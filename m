@@ -1,72 +1,74 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / scan: Prefer devices without _HID/_CID for _ADR matching
-Date: Fri, 31 Mar 2017 23:23:43 +0200
-Message-ID: <9569337.hBepXicPcZ@aspire.rjw.lan>
-References: <20161225102148.7706-1-hdegoede@redhat.com> <1816647.tOAZ7v3nRx@aspire.rjw.lan> <b9150482-cfc7-7737-923a-665d8b4ba9fe@redhat.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fixes for v4.11-rc5
+Date: Fri, 31 Mar 2017 23:34:32 +0200
+Message-ID: <CAJZ5v0jasxCt-8iRLoqc-JUCdNZ_btGio+GO5o_y6Awb_+xTMg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44131 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753430AbdCaV33 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 31 Mar 2017 17:29:29 -0400
-In-Reply-To: <b9150482-cfc7-7737-923a-665d8b4ba9fe@redhat.com>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:33035 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754289AbdCaVed (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Mar 2017 17:34:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Friday, March 31, 2017 12:39:35 PM Hans de Goede wrote:
-> Hi,
-> 
-> On 30-03-17 22:56, Rafael J. Wysocki wrote:
-> > On Sunday, January 01, 2017 09:30:06 PM Hans de Goede wrote:
-> >> Hi,
-> >>
-> >> On 30-12-16 02:27, Rafael J. Wysocki wrote:
-> >>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>>
-> >>> The way acpi_find_child_device() works currently is that, if there
-> >>> are two (or more) devices with the same _ADR value in the same
-> >>> namespace scope (which is not specifically allowed by the spec and
-> >>> the OS behavior in that case is not defined), the first one of them
-> >>> found to be present (with the help of _STA) will be returned.
-> >>>
-> >>> This covers the majority of cases, but is not sufficient if some of
-> >>> the devices in question have a _HID (or _CID) returning some valid
-> >>> ACPI/PNP device IDs (which is disallowed by the spec) and the
-> >>> ASL writers' expectation appears to be that the OS will match
-> >>> devices without a valid ACPI/PNP device ID against a given bus
-> >>> address first.
-> >>>
-> >>> To cover this special case as well, modify find_child_checks()
-> >>> to prefer devices without ACPI/PNP device IDs over devices that
-> >>> have them.
-> >>>
-> >>> Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> >>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>> ---
-> >>>
-> >>> I'm not actually sure if this is sufficient to fix the original 80860F14 uid "2"
-> >>> sd-controller problem on CherryTrail.  Hans, can you please check?
-> >>
-> >> Ok, just booted a kernel with this patch replacing my own attempt
-> >> at fixing this, and the kernel still sees and initializes the
-> >> mmc controller in question correctly with this patch:
-> >>
-> >> Tested-by: Hans de Goede <hdegoede@redhat.com>
-> >
-> > Unfortunately, this breaks discrete graphics enumeration in
-> >
-> > https://bugzilla.kernel.org/show_bug.cgi?id=194889
-> >
-> > so can you please check if the patch below doesn't break the platform fixed by
-> > the above?
-> 
-> I've just tried this and this patch does not regress the platform fixed
-> by the original commit.
+Hi Linus,
 
-OK, thanks!
+Please pull from the tag
 
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.11-rc5
+
+with top-most commit a07930662e3097144d6cbbc1b9211867fd1a173e
+
+ Merge branches 'acpi-hotplug-fixes', 'acpi-build-fixes' and 'acpi-apei-fixes'
+
+on top of commit c02ed2e75ef4c74e41e421acb4ef1494671585e8
+
+ Linux 4.11-rc4
+
+to receive ACPI fixes for v4.11-rc5.
+
+These fix two issues related to IOAPIC hotplug, an overzealous build
+optimization that prevents the function graph tracer from working with
+the ACPI subsystem correctly and an RCU synchronization issue in the
+ACPI APEI code.
+
+Specifics:
+
+ - Drop the unconditional setting of the '-Os' gcc flag from the ACPI
+   Makefile to make the function graph tracer work correctly with the
+   ACPI subsystem (Josh Poimboeuf).
+
+ - Add missing synchronize_rcu() to ghes_remove() which removes an
+   element from an RCU-protected list, but fails to synchronize it
+   properly afterward (James Morse).
+
+ - Fix two problems related to IOAPIC hotplug, a local variable
+   initialization in setup_res() and the creation of platform
+   device objects for IO(x)APICs which are (a) unused and (b) leaked
+   on hot-removal (Joerg Roedel).
+
+Thanks!
+
+---------------
+
+James Morse (1):
+      ACPI / APEI: Add missing synchronize_rcu() on NOTIFY_SCI removal
+
+Joerg Roedel (2):
+      ACPI: ioapic: Clear on-stack resource before using it
+      ACPI: Do not create a platform_device for IOAPIC/IOxAPIC
+
+Josh Poimboeuf (1):
+      ACPI: Fix incompatibility with mcount-based function graph tracing
+
+---------------
+
+ drivers/acpi/Makefile        | 1 -
+ drivers/acpi/acpi_platform.c | 8 +++++---
+ drivers/acpi/apei/ghes.c     | 1 +
+ drivers/acpi/ioapic.c        | 6 ++++++
+ 4 files changed, 12 insertions(+), 4 deletions(-)
