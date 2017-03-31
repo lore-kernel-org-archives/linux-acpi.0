@@ -1,49 +1,70 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/4] power: supply: axp288_fuel_gauge: Unregister duplicate ACPI battery supply
-Date: Sat, 01 Apr 2017 00:30:22 +0200
-Message-ID: <1577850.bTAv4lXM9l@aspire.rjw.lan>
-References: <20170316161601.32267-1-hdegoede@redhat.com> <CAJZ5v0i7TN+iJLR_SeaCrpKJ13g1_bQ-G54cugAF9Dm4=pifAg@mail.gmail.com> <0c1cc4fc-d127-54d1-334b-9a569354d2a3@redhat.com>
+Subject: [PATCH] ACPI / scan: Prefer devices without _HID for _ADR matching
+Date: Sat, 01 Apr 2017 00:45:52 +0200
+Message-ID: <1609746.B4NEsK2OtA@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <0c1cc4fc-d127-54d1-334b-9a569354d2a3@redhat.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63664 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754594AbdCaWvh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 Mar 2017 18:51:37 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Mike <mike@mikewilson.me.uk>, Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Friday, March 31, 2017 11:57:47 AM Hans de Goede wrote:
-> Hi,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Hi,
+Commit c2a6bbaf0c5f (ACPI / scan: Prefer devices without _HID/_CID
+for _ADR matching) added a list_empty(&adev->pnp.ids) check to
+find_child_checks() so as to catch situations in which the ACPI
+core attempts to decode _ADR for a device having a _HID too which
+is strictly against the spec.  However, it overlooked the fact that
+the adev->pnp.ids list for the devices taken into account by
+find_child_checks() may contain device IDs set internally by the
+kernel, like "LNXVIDEO" (thanks to Zhang Rui for that realization),
+and it broke the enumeration of those devices as a result.
 
-[cut]
+To unbreak it, replace the overly coarse grained list_empty()
+check with a much more precise check against the pnp.type.platform_id
+flag which is only set for devices having a _HID (that's how it
+should be done from the start, as having both _ADR and _CID is
+actually permitted).
 
-> >
-> > Anyway, I'd prefer blacklists in the battery and ac drivers to be honest.
-> 
-> As I explained in my reply to the discussion around the first patch that
-> is somewhat hard to do and requires encoding knowledge in those drivers
-> which really does not belong there:
-> 
-> "The problem is that Intel re-uses HIDs between generations and
-> for the Whiskey Cove PMIC we want to not use the ACPI battery
-> and ac drivers on Cherry Trail (where they are known to be
-> broken) but things are different on Apollo Lake. Yet both
-> use the same HID for their companion Whiskey Cove PMIC even
-> though they are 2 completely different revisions of the PMIC
-> (e.g. one uses i2c the other does not).
-> 
-> The 2 native drivers have code to detect which revision they
-> are dealing with and exit with -ENODEV if it is not the
-> revision they were written for, but this means that simple
-> HID blacklisting will not work. So IMHO the decision to
-> unregister the  ACPI battery / ac interface really belongs
-> in the native driver as that has all the nitty gritty detail
-> needed to make that decision."
+Fixes: c2a6bbaf0c5f (ACPI / scan: Prefer devices without _HID/_CID for _ADR matching)
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=194889
+Reported-and-tested-by: Mike <mike@mikewilson.me.uk>
+Tested-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/glue.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Do the native drivers bind to platform devices?
+Index: linux-pm/drivers/acpi/glue.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/glue.c
++++ linux-pm/drivers/acpi/glue.c
+@@ -99,13 +99,13 @@ static int find_child_checks(struct acpi
+ 		return -ENODEV;
+ 
+ 	/*
+-	 * If the device has a _HID (or _CID) returning a valid ACPI/PNP
+-	 * device ID, it is better to make it look less attractive here, so that
+-	 * the other device with the same _ADR value (that may not have a valid
+-	 * device ID) can be matched going forward.  [This means a second spec
+-	 * violation in a row, so whatever we do here is best effort anyway.]
++	 * If the device has a _HID returning a valid ACPI/PNP device ID, it is
++	 * better to make it look less attractive here, so that the other device
++	 * with the same _ADR value (that may not have a valid device ID) can be
++	 * matched going forward.  [This means a second spec violation in a row,
++	 * so whatever we do here is best effort anyway.]
+ 	 */
+-	return sta_present && list_empty(&adev->pnp.ids) ?
++	return sta_present && !adev->pnp.type.platform_id ?
+ 			FIND_CHILD_MAX_SCORE : FIND_CHILD_MIN_SCORE;
+ }
+ 
 
-Thanks,
-Rafael
