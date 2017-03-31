@@ -1,58 +1,93 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH 1/1] PCI: Fix for PEM-specific resource reservation for legacy firmware case
-Date: Fri, 31 Mar 2017 17:06:44 +0200
-Message-ID: <1490972804-25830-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: helgaas@kernel.org, Lorenzo.Pieralisi@arm.com, robert.richter@caviumnetworks.com, ddaney@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, rafael@kernel.org
-Cc: Sunil.Goutham@cavium.com, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V2] acpi: apei: check for pending errors when probing HED
+ type GHES entries
+Date: Fri, 31 Mar 2017 09:18:00 -0600
+Message-ID: <ecfcd471-cab3-ca80-aaf0-18fd5ac21f61@codeaurora.org>
+References: <1490802880-10239-1-git-send-email-tbaicar@codeaurora.org>
+ <58DD40BE.9000506@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:59252 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754099AbdCaPSE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Mar 2017 11:18:04 -0400
+In-Reply-To: <58DD40BE.9000506@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, bp@suse.de, prarit@redhat.com, bhelgaas@google.com, punit.agrawal@arm.com, mingo@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, shiju.jose@huawei.com, ahs3@redhat.com
 
-SZ_16M PEM resource size includes PEM-specific register and its children
-resources. Reservation of the whole SZ_16M range leads to child device
-driver failure when pcieport driver is requesting resources:
-pcieport 0004:1f:00.0: can't enable device: BAR 0 [mem 0x87e0c0f00000-0x87e0c0ffffff 64bit] not claimed
-So we cannot reserve full 16M here and instead we want to reserve
-PEM-specific register only which is SZ_64K.
+Hello James,
 
-At the end increase PEM resource to SZ_16M since this is what
-thunder_pem_init() call expects for proper initialization.
 
-Fixes: 9abb27c7594a ("PCI: thunder-pem: Add legacy firmware support for Cavium ThunderX host controller")
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-CC: stable@vger.kernel.org	# v4.10+
----
- drivers/pci/host/pci-thunder-pem.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+On 3/30/2017 11:30 AM, James Morse wrote:
+> On 29/03/17 16:54, Tyler Baicar wrote:
+>> If a HED type error occurs prior to GHES probing, the kernel will
+>> never report the error. The HED driver will see that no notifiers
+>> are registered, and clear the interrupt.
+>>
+>> This becomes a more serious problem with firmware that supports
+>> GHESv2 acknowledgements from the kernel. The firmware will populate
+>> the error and wait for the kernel ack. But since the kernel will
+>> never process the error we get into a state that the firmware will
+>> not send any more errors and the kernel will never see or ack the
+>> original error.
+>>
+>> Check for pending errors when probing HED type GHES entries to
+>> avoid the above situation.
+> Isn't this a problem for the other notification types too?
+>
+> It looks like SEI can indicate the notification is non-fatal even if we haven't
+> done the ghes_probe() yet and fail to find the CPER records.
+>
+> Would moving the OSC call to set the APEI bit later solve this, or is it
+> specific to the way AMLs Notify() works?
+For SEAs, the kernel would have already tried handling the SEA and gone 
+through the GHES code unsuccessfully. If the SEA was non-fatal then we 
+could print the GHES/CPER info here.
 
-diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
-index b89c373..6e031b5 100644
---- a/drivers/pci/host/pci-thunder-pem.c
-+++ b/drivers/pci/host/pci-thunder-pem.c
-@@ -375,7 +375,6 @@ static void thunder_pem_legacy_fw(struct acpi_pci_root *root,
- 	index -= node * PEM_MAX_DOM_IN_NODE;
- 	res_pem->start = PEM_RES_BASE | FIELD_PREP(PEM_NODE_MASK, node) |
- 					FIELD_PREP(PEM_INDX_MASK, index);
--	res_pem->end = res_pem->start + SZ_16M - 1;
- 	res_pem->flags = IORESOURCE_MEM;
- }
- 
-@@ -399,8 +398,15 @@ static int thunder_pem_acpi_init(struct pci_config_window *cfg)
- 	 */
- 	if (ret) {
- 		thunder_pem_legacy_fw(root, res_pem);
--		/* Reserve PEM-specific resources and PCI configuration space */
-+		/*
-+		 * Reserve 64K size PEM specific resources. The full 16M range
-+		 * size is required for thunder_pem_init() call.
-+		 */
-+		res_pem->end = res_pem->start + SZ_64K - 1;
- 		thunder_pem_reserve_range(dev, root->segment, res_pem);
-+		res_pem->end = res_pem->start + SZ_16M - 1;
-+
-+		/* Reserve PCI configuration space as well. */
- 		thunder_pem_reserve_range(dev, root->segment, &cfg->res);
- 	}
- 
+SEIs are probably similar to the SEA case I would imagine.
+
+The notification interface I believe just sends the notification to 
+anyone registered for that event and then clears the interrupt, so if no 
+one is registered, the interrupt will be cleared.
+
+It may be more practical to add this call to ghes_proc() at the end of 
+the switch statement so that all notification types check for pending 
+errors right after probing. Adding this call shouldn't be an issue since 
+if there is no error pending it will just return back. The polled 
+notification type calls ghes_proc() every time it's timer expires to 
+check for errors.
+
+Thanks,
+Tyler
+>> This patch is based on Shiju's patch that adds support for GSIV
+>> and GPIO notification types:
+>> https://patchwork.kernel.org/patch/9628817/
+>>
+>> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+>> ---
+>>   drivers/acpi/apei/ghes.c | 1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>> index fd39929..cf5e938 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -1035,6 +1035,7 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>>   			register_acpi_hed_notifier(&ghes_notifier_hed);
+>>   		list_add_rcu(&ghes->list, &ghes_hed);
+>>   		mutex_unlock(&ghes_list_mutex);
+>> +		ghes_proc(ghes);
+>>   		break;
+>>   	case ACPI_HEST_NOTIFY_NMI:
+>>   		ghes_nmi_add(ghes);
+>>
+
 -- 
-2.7.4
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
+
