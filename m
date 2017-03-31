@@ -1,71 +1,72 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v3 3/4] i2c: core: Allow drivers to specify index for irq
- to get from of / ACPI
-Date: Fri, 31 Mar 2017 23:19:05 +0200
-Message-ID: <20170331211905.frbdixlix24gt35c@ninjato>
-References: <20170325135550.22509-1-hdegoede@redhat.com>
- <20170325135550.22509-4-hdegoede@redhat.com>
- <1490530535.21738.31.camel@linux.intel.com>
- <1935239d-fdd8-3917-9865-de389e6728e8@redhat.com>
- <20170330203954.GA1452@katana>
- <149df3eb-8111-4c91-472e-f6c708302ede@redhat.com>
- <20170331162332.dar3f3mval2ch2uh@ninjato>
- <2b4d002f-9e6b-b193-7dc3-2f4c20a93276@redhat.com>
- <20170331195407.GA1449@katana>
- <0ff7a58f-b6d3-edb2-2751-e30069098c61@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / scan: Prefer devices without _HID/_CID for _ADR matching
+Date: Fri, 31 Mar 2017 23:23:43 +0200
+Message-ID: <9569337.hBepXicPcZ@aspire.rjw.lan>
+References: <20161225102148.7706-1-hdegoede@redhat.com> <1816647.tOAZ7v3nRx@aspire.rjw.lan> <b9150482-cfc7-7737-923a-665d8b4ba9fe@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="co6ceiplha5zzcmj"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:44719 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754916AbdCaVTH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 31 Mar 2017 17:19:07 -0400
-Content-Disposition: inline
-In-Reply-To: <0ff7a58f-b6d3-edb2-2751-e30069098c61@redhat.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44131 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753430AbdCaV33 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 Mar 2017 17:29:29 -0400
+In-Reply-To: <b9150482-cfc7-7737-923a-665d8b4ba9fe@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Hans de Goede <hdegoede@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sebastian Reichel <sre@kernel.org>, linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-pm@vger.kernel.org
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>
 
+On Friday, March 31, 2017 12:39:35 PM Hans de Goede wrote:
+> Hi,
+> 
+> On 30-03-17 22:56, Rafael J. Wysocki wrote:
+> > On Sunday, January 01, 2017 09:30:06 PM Hans de Goede wrote:
+> >> Hi,
+> >>
+> >> On 30-12-16 02:27, Rafael J. Wysocki wrote:
+> >>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>>
+> >>> The way acpi_find_child_device() works currently is that, if there
+> >>> are two (or more) devices with the same _ADR value in the same
+> >>> namespace scope (which is not specifically allowed by the spec and
+> >>> the OS behavior in that case is not defined), the first one of them
+> >>> found to be present (with the help of _STA) will be returned.
+> >>>
+> >>> This covers the majority of cases, but is not sufficient if some of
+> >>> the devices in question have a _HID (or _CID) returning some valid
+> >>> ACPI/PNP device IDs (which is disallowed by the spec) and the
+> >>> ASL writers' expectation appears to be that the OS will match
+> >>> devices without a valid ACPI/PNP device ID against a given bus
+> >>> address first.
+> >>>
+> >>> To cover this special case as well, modify find_child_checks()
+> >>> to prefer devices without ACPI/PNP device IDs over devices that
+> >>> have them.
+> >>>
+> >>> Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>> ---
+> >>>
+> >>> I'm not actually sure if this is sufficient to fix the original 80860F14 uid "2"
+> >>> sd-controller problem on CherryTrail.  Hans, can you please check?
+> >>
+> >> Ok, just booted a kernel with this patch replacing my own attempt
+> >> at fixing this, and the kernel still sees and initializes the
+> >> mmc controller in question correctly with this patch:
+> >>
+> >> Tested-by: Hans de Goede <hdegoede@redhat.com>
+> >
+> > Unfortunately, this breaks discrete graphics enumeration in
+> >
+> > https://bugzilla.kernel.org/show_bug.cgi?id=194889
+> >
+> > so can you please check if the patch below doesn't break the platform fixed by
+> > the above?
+> 
+> I've just tried this and this patch does not regress the platform fixed
+> by the original commit.
 
---co6ceiplha5zzcmj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+OK, thanks!
 
-Hans,
-
-> So I'm going to throw in a fifth option for a name for the flag:
->=20
-> "disable_i2c_core_irq_mapping"
-
-I am fine with that. It is only used once per driver, so "clarity over
-brevity" from my POV.
-
-Thanks,
-
-   Wolfram
-
-
---co6ceiplha5zzcmj
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAljex8kACgkQFA3kzBSg
-KbakDQ/9E68GHOjoNK+Gd6XEq9u+fPcmfhgLqZCOuTvzvLoXQmTwu1uy3V5Vhdrl
-g/ULNoMTQuIaedHWk5Gw0+S1spkgpTIQeSGu+CadGSOFZcgQxsFVYOV4E+R1n0rO
-hx/gKy8ax39cKbXeNDrfuUrNm5FSWHVi9vkVR54ODzfIr/tXItxndkzhMtycYgKV
-uVvH36YoO+X0RUIDZqQnFvnF8kYiBwh2TYoCvCyUHYDvPT76QoDIXZrzKQZU3hG8
-HbQ+eFD+F5YurPzX3UwGWg5GOPpVBpnWI/HVrgxDtA/0QMxXCyXanHisLQVjB3Mt
-XwrHy4bCRkUPjeAB0B+HcdpejqxODdCVPzSLxj7WcnGlOQ9c7VNA1GuLTFodAfBH
-HChaGvEm3VbusNOlBKgDqFSWwCKDn5TKWE6mAU+pjrioZxzSsHRcylNnY6zs7v0Q
-IdqRKwK3y1+1/tkz5kClfh/mRrOAwCqlG+7RuoU+4fh8sdSGGN3wTUJWz24cEJOi
-t1lfTEqGen544iitRfSn6OeUQk7u3Sxu9ci5bYAm3kkabxvHaZseHakcr830ztWl
-jqzu+Y7R1bXzt+MgxEw/9H79w6CuVmcJo8qhkL5z7RDd1kQzAYsocrM/GYWpLilK
-3b5XvLTm1cgh9C6LuSlylZPQ6YyAH7qnx0se5ev+WRD+C6jefLo=
-=wIUu
------END PGP SIGNATURE-----
-
---co6ceiplha5zzcmj--
