@@ -1,107 +1,127 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] ACPI / scan: Prefer devices without _HID/_CID for _ADR
- matching
-Date: Fri, 31 Mar 2017 12:39:35 +0200
-Message-ID: <b9150482-cfc7-7737-923a-665d8b4ba9fe@redhat.com>
-References: <20161225102148.7706-1-hdegoede@redhat.com>
- <2022116.4lq1KAmrJA@aspire.rjw.lan>
- <651067e1-e87f-6dba-0b99-c158655d2086@redhat.com>
- <1816647.tOAZ7v3nRx@aspire.rjw.lan>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v22 11/11] acpi/arm64: Add SBSA Generic Watchdog support
+ in GTDT driver
+Date: Fri, 31 Mar 2017 12:54:03 +0100
+Message-ID: <20170331115403.GB31763@red-moon>
+References: <20170321163122.9183-1-fu.wei@linaro.org>
+ <20170321163122.9183-12-fu.wei@linaro.org>
+ <20170328154111.GC18046@red-moon>
+ <CADyBb7uDyjhP2Pjtzh6pTN-0hkokB=KevY7V76G9qZOF-9-zoQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1816647.tOAZ7v3nRx@aspire.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:59128 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932882AbdCaLxp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 Mar 2017 07:53:45 -0400
+Content-Disposition: inline
+In-Reply-To: <CADyBb7uDyjhP2Pjtzh6pTN-0hkokB=KevY7V76G9qZOF-9-zoQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Fu Wei <fu.wei@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, Wei
 
-Hi,
+On Fri, Mar 31, 2017 at 04:10:43PM +0800, Fu Wei wrote:
 
-On 30-03-17 22:56, Rafael J. Wysocki wrote:
-> On Sunday, January 01, 2017 09:30:06 PM Hans de Goede wrote:
->> Hi,
->>
->> On 30-12-16 02:27, Rafael J. Wysocki wrote:
->>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>
->>> The way acpi_find_child_device() works currently is that, if there
->>> are two (or more) devices with the same _ADR value in the same
->>> namespace scope (which is not specifically allowed by the spec and
->>> the OS behavior in that case is not defined), the first one of them
->>> found to be present (with the help of _STA) will be returned.
->>>
->>> This covers the majority of cases, but is not sufficient if some of
->>> the devices in question have a _HID (or _CID) returning some valid
->>> ACPI/PNP device IDs (which is disallowed by the spec) and the
->>> ASL writers' expectation appears to be that the OS will match
->>> devices without a valid ACPI/PNP device ID against a given bus
->>> address first.
->>>
->>> To cover this special case as well, modify find_child_checks()
->>> to prefer devices without ACPI/PNP device IDs over devices that
->>> have them.
->>>
->>> Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>> ---
->>>
->>> I'm not actually sure if this is sufficient to fix the original 80860F14 uid "2"
->>> sd-controller problem on CherryTrail.  Hans, can you please check?
->>
->> Ok, just booted a kernel with this patch replacing my own attempt
->> at fixing this, and the kernel still sees and initializes the
->> mmc controller in question correctly with this patch:
->>
->> Tested-by: Hans de Goede <hdegoede@redhat.com>
->
-> Unfortunately, this breaks discrete graphics enumeration in
->
-> https://bugzilla.kernel.org/show_bug.cgi?id=194889
->
-> so can you please check if the patch below doesn't break the platform fixed by
-> the above?
+[...]
 
-I've just tried this and this patch does not regress the platform fixed
-by the original commit.
+> >> +static int __init gtdt_sbsa_gwdt_init(void)
+> >> +{
+> >> +     int ret, i = 0;
+> >> +     void *platform_timer;
+> >> +     struct acpi_table_header *table;
+> >> +
+> >> +     if (acpi_disabled)
+> >> +             return 0;
+> >> +
+> >> +     if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_GTDT, 0, &table)))
+> >> +             return -EINVAL;
+> >> +
+> >> +     ret = acpi_gtdt_init(table, NULL);
+> >> +     if (ret)
+> >> +             return ret;
+> >
+> > Ok, I missed previous versions reviews so I miss the background
+> > here and I apologise.
+> >
+> > I do not understand why you call acpi_gtdt_init() again (or better,
+> > why acpi_gtdt_init() does not return straight away) here if the
+> > stashed pointer in acpi_gtdt_desc is already set. I am not a big fan
+> > of the for_each_platform_timer macro either, here you can just read
+> > the ACPI_SIG_GTDT and parse its entries, I see no point in calling
+> > acpi_gtdt_init() again, there is nothing to stash for later probing,
+> > is there ?
+> >
+> > Or it is just to reuse common parsing code ? Regardless, if the
+> > acpi_gtdt_desc struct is already initialized acpi_gtdt_init() should
+> > just return or I am missing the point.
+> >
+> > I would like clarifications on the acpi_gtdt_init() call above please
+> > (plus GSI unmap fix), apart from that:
+> >
+> > Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> 
+> Actually, after the discussion in the 7th patch, I have tried to do
+> this, see if that can make the code simpler.
+> Then I found out that
+> (1) If we would like to reuse "for_each_platform_timer" (and
+> "next_platform_timer") to scan the GTDT for SBSA watchdog, we have to
+> re-initialize acpi_gtdt_desc, too.
+>      So we still need to explain that why we have to re-initialize
+> acpi_gtdt_desc.
+> (2) If we totally ignore acpi_gtdt_desc, and acpi_gtdt_init(), we
+> can't re-use  "for_each_platform_timer" (and "next_platform_timer") .
+> we have to re-write  the loop of scanning the GTDT for SBSA watchdog,
 
-Regards,
+Or we get rid of for_each_platform_timer altogether that for me
+is not useful at all and just obfuscates.
 
-Hans
+Anyway, add the comment below and you are done with this, at this point
+in time it is best to avoid changing the code we'd just risk adding
+bugs.
 
+At -rc1 we will send patches to reshape this code as per this
+discussion.
 
->
-> Thanks,
-> Rafael
->
->
-> ---
->  drivers/acpi/glue.c |   12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
->
-> Index: linux-pm/drivers/acpi/glue.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/glue.c
-> +++ linux-pm/drivers/acpi/glue.c
-> @@ -99,13 +99,13 @@ static int find_child_checks(struct acpi
->  		return -ENODEV;
->
->  	/*
-> -	 * If the device has a _HID (or _CID) returning a valid ACPI/PNP
-> -	 * device ID, it is better to make it look less attractive here, so that
-> -	 * the other device with the same _ADR value (that may not have a valid
-> -	 * device ID) can be matched going forward.  [This means a second spec
-> -	 * violation in a row, so whatever we do here is best effort anyway.]
-> +	 * If the device has a _HID returning a valid ACPI/PNP device ID, it is
-> +	 * better to make it look less attractive here, so that the other device
-> +	 * with the same _ADR value (that may not have a valid device ID) can be
-> +	 * matched going forward.  [This means a second spec violation in a row,
-> +	 * so whatever we do here is best effort anyway.]
->  	 */
-> -	return sta_present && list_empty(&adev->pnp.ids) ?
-> +	return sta_present && !adev->pnp.type.platform_id ?
->  			FIND_CHILD_MAX_SCORE : FIND_CHILD_MIN_SCORE;
->  }
->
->
+Thanks !
+Lorenzo
+
+> So may I suggest that maybe we can keep using acpi_gtdt_init, only add
+> the comment to explain why we have to re-initialize
+> acpi_gtdt_desc(Just what you have said in the 7th patch. Thanks for
+> your correction for the comment, I will use that ), this way maybe can
+> make the code simpler.
+> 
+> But If you still concern about this,  we still can discuss this at -rc1.
+> 
+> Great thanks for your help! :-)
+> 
+> >
+> >> +     for_each_platform_timer(platform_timer) {
+> >> +             if (is_non_secure_watchdog(platform_timer)) {
+> >> +                     ret = gtdt_import_sbsa_gwdt(platform_timer, i);
+> >> +                     if (ret)
+> >> +                             break;
+> >> +                     i++;
+> >> +             }
+> >> +     }
+> >> +
+> >> +     if (i)
+> >> +             pr_info("found %d SBSA generic Watchdog(s).\n", i);
+> >> +
+> >> +     return ret;
+> >> +}
+> >> +
+> >> +device_initcall(gtdt_sbsa_gwdt_init);
+> >> --
+> >> 2.9.3
+> >>
+> 
+> 
+> 
+> -- 
+> Best regards,
+> 
+> Fu Wei
+> Software Engineer
+> Red Hat
