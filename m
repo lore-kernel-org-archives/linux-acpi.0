@@ -1,48 +1,64 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH] i2c: i2c-scmi: add a MS HID
-Date: Fri, 31 Mar 2017 13:01:55 +0300
-Message-ID: <1490954515.708.72.camel@linux.intel.com>
-References: <1489154315-26499-1-git-send-email-vkrasnov@dev.rtsoft.ru>
-         <20170323204747.w2nxxrpjwypiygwb@ninjato>
-         <20170330155233.dfnqe7d2xkr32zlo@ninjato>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v3 3/4] i2c: core: Allow drivers to specify index for irq
+ to get from of / ACPI
+Date: Fri, 31 Mar 2017 12:03:44 +0200
+Message-ID: <149df3eb-8111-4c91-472e-f6c708302ede@redhat.com>
+References: <20170325135550.22509-1-hdegoede@redhat.com>
+ <20170325135550.22509-4-hdegoede@redhat.com>
+ <1490530535.21738.31.camel@linux.intel.com>
+ <1935239d-fdd8-3917-9865-de389e6728e8@redhat.com>
+ <20170330203954.GA1452@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:20794 "EHLO mga03.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:60672 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753338AbdCaKCB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 31 Mar 2017 06:02:01 -0400
-In-Reply-To: <20170330155233.dfnqe7d2xkr32zlo@ninjato>
+        id S1754441AbdCaKDs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 Mar 2017 06:03:48 -0400
+In-Reply-To: <20170330203954.GA1452@katana>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>, Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
-Cc: jdelvare@suse.com, linux-i2c@vger.kernel.org, Edgar Cherkasov <echerkasov@dev.rtsoft.ru>, Michael Brunner <Michael.Brunner@kontron.com>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sebastian Reichel <sre@kernel.org>, linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-pm@vger.kernel.org
 
-On Thu, 2017-03-30 at 17:52 +0200, Wolfram Sang wrote:
-> On Thu, Mar 23, 2017 at 09:47:47PM +0100, Wolfram Sang wrote:
-> > On Fri, Mar 10, 2017 at 04:58:35PM +0300, Viktor Krasnov wrote:
+Hi,
 
-> > > Signed-off-by: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
-> > > Signed-off-by: Michael Brunner <Michael.Brunner@kontron.com>
-> > > Acked-by: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+On 30-03-17 22:39, Wolfram Sang wrote:
+> Hi Hans,
+>
+>> Sorry for doing this in the middle of the thread, but this is the only
+>> mail I could find in my archives (I guess I delete mail to aggressively).
+>
+> I use patchwork to track patches (which is mentioned in MAINTAINERS).
+> And patchwork has the nice feature to download patches or series of
+> patches as mbox. And from there you can reply directly, or bounce to
+> yourself first, etc. That's what I do when I lost a mail.
 
+Ok, I will do that the next time.
 
-A bit of offtopic here, but I have noticed kontron.com address in SoB
-lines.
+>> Anyways self-nack for this series, there are multiple issues with it:
+>>
+>> 1) In hindsight the irq_index is a bad idea and instead we need a noirq
+>> flag in i2c_driver
+>
+> What do you mean by that? No IRQ assigned? In Linux, 0 is no irq. I
+> guess you mean something else...
 
-I would like to know if Kontron will follow ACPI spec when assembling
-firmwares for its board [1]?
+Note I said "flag in i2c_driver" the idea is that the driver can tell
+the i2c_core that it is not going to use i2c_client->irq by
+setting i2c_driver->no_irq and that the i2c_core then will not bother
+with trying to get an irq in i2c_device_probe(), this is esp. useful
+for ACPI i2c instantiated devices where we otherwise might end up
+returning -EPROBE_DEFER (waiting for an irq to show up) without
+needing the irq, which is esp. troublesome when there is no driver
+for the irqchip the ACPI irq resource points to as then we end up
+waiting indefinitely.
 
-Table name LPW8 for SSDT is not allowed by spec and can't be just
-decompiled without hacking either table or decompiler.
+I hope this makes things more clear, if you've another suggestion
+for handling this I'm all ears.
 
-[1] http://www.kontron.com/products/boards-and-standard-form-factors/sma
-rc/smarc-sxbt.html
+Regards,
 
-P.S. We may continue privately to not contaminate mailing list with
-unnecessary noise.
+Hans
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
