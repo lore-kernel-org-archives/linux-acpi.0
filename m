@@ -1,96 +1,76 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 3/4] power: supply: axp288_fuel_gauge: Unregister
- duplicate ACPI battery supply
-Date: Fri, 31 Mar 2017 11:57:47 +0200
-Message-ID: <0c1cc4fc-d127-54d1-334b-9a569354d2a3@redhat.com>
-References: <20170316161601.32267-1-hdegoede@redhat.com>
- <20170316161601.32267-4-hdegoede@redhat.com>
- <6382698.NuYXpb6L7h@aspire.rjw.lan>
- <0ed23626-b6b2-a42e-2a1d-762c8c833f7b@redhat.com>
- <CAJZ5v0h466y6hBy_-12AEgcpAUXEA7cZkNwXZwvsHnjWtoqFeg@mail.gmail.com>
- <eb52c4b4-fc3c-b11b-edef-a35c6bb0d82d@redhat.com>
- <CAJZ5v0i7TN+iJLR_SeaCrpKJ13g1_bQ-G54cugAF9Dm4=pifAg@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [GIT PULL] ACPI IORT changes for v4.12
+Date: Fri, 31 Mar 2017 11:02:26 +0100
+Message-ID: <20170331100226.GA30762@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0i7TN+iJLR_SeaCrpKJ13g1_bQ-G54cugAF9Dm4=pifAg@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:57532 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754272AbdCaKCB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 Mar 2017 06:02:01 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: catalin.marinas@arm.com, will.deacon@arm.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, john.garry@huawei.com, rjw@rjwysocki.net, marc.zyngier@arm.com
 
-Hi,
+Hi Catalin, Will,
 
-On 31-03-17 11:11, Rafael J. Wysocki wrote:
-> On Fri, Mar 31, 2017 at 11:08 AM, Hans de Goede <hdegoede@redhat.com> wrote:
->> Hi,
->>
->> On 31-03-17 11:05, Rafael J. Wysocki wrote:
->>>
->>> On Fri, Mar 31, 2017 at 11:01 AM, Hans de Goede <hdegoede@redhat.com>
->>> wrote:
->>>
->>> [cut]
->>>
->>>>>> --- a/drivers/power/supply/axp288_fuel_gauge.c
->>>>>> +++ b/drivers/power/supply/axp288_fuel_gauge.c
->>>>>> @@ -26,6 +26,7 @@
->>>>>>  #include <linux/mfd/axp20x.h>
->>>>>>  #include <linux/platform_device.h>
->>>>>>  #include <linux/power_supply.h>
->>>>>> +#include <linux/power/acpi.h>
->>>>>>  #include <linux/iio/consumer.h>
->>>>>>  #include <linux/debugfs.h>
->>>>>>  #include <linux/seq_file.h>
->>>>>> @@ -754,6 +755,8 @@ static int axp288_fuel_gauge_probe(struct
->>>>>> platform_device *pdev)
->>>>>>                 return ret;
->>>>>>         }
->>>>>>
->>>>>> +       acpi_battery_unregister();
->>>>>> +
->>>>>
->>>>>
->>>>>
->>>>> What if the ACPI battery driver is loaded after this has been called
->>>>> already?
->>>>
->>>>
->>>>
->>>> The module exports that symbol so it must be loaded already.
->>>
->>>
->>> But then it may be unloaded manually and loaded again, may it not?
->>
->>
->> Only if you first unload axp288_fuel_gauge.ko otherwise it will
->> have a refcount > 0.
->
-> OK
->
-> Anyway, I'd prefer blacklists in the battery and ac drivers to be honest.
+I have collected the following ACPI/IORT patches for the 4.12 release:
 
-As I explained in my reply to the discussion around the first patch that
-is somewhat hard to do and requires encoding knowledge in those drivers
-which really does not belong there:
+- IORT interface minor clean-ups
+- IORT platform devices (IORT named components) devid mapping interface
+  implementation
+- ACPI core changes to enable platform MSIs
 
-"The problem is that Intel re-uses HIDs between generations and
-for the Whiskey Cove PMIC we want to not use the ACPI battery
-and ac drivers on Cherry Trail (where they are known to be
-broken) but things are different on Apollo Lake. Yet both
-use the same HID for their companion Whiskey Cove PMIC even
-though they are 2 completely different revisions of the PMIC
-(e.g. one uses i2c the other does not).
+ACPI core changes have been acknowledged by the ACPI maintainer and
+I reviewed/updated the IORT patches.
 
-The 2 native drivers have code to detect which revision they
-are dealing with and exit with -ENODEV if it is not the
-revision they were written for, but this means that simple
-HID blacklisting will not work. So IMHO the decision to
-unregister the  ACPI battery / ac interface really belongs
-in the native driver as that has all the nitty gritty detail
-needed to make that decision."
+This pull request provides the groundwork to implement platform MSIs
+in ACPI for ARM64, the irqchip changes enabling GIC ITS platform
+MSIs will be merged via the irqchip tree.
 
-Regards,
+Please consider pulling it.
 
-Hans
+Thanks !
+Lorenzo
+
+The following changes since commit 97da3854c526d3a6ee05c849c96e48d21527606c:
+
+  Linux 4.11-rc3 (2017-03-19 19:09:39 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git tags/acpi-arm64-for-v4.12
+
+for you to fetch changes up to d4f54a186667ffd19eac8e3f48c51d940a9b9784:
+
+  ACPI: platform: setup MSI domain for ACPI based platform device (2017-03-30 10:20:01 +0100)
+
+----------------------------------------------------------------
+ACPI ARM64 specific changes for v4.12.
+
+Patches contain:
+
+- IORT kernel interface misc clean-ups
+- IORT id mapping interface refactoring in preparation for platform
+  MSI (IORT named components -> GIC ITS mappings) devid mapping code
+- IORT id mapping implementation for named components nodes to ITS nodes,
+  in order to provide the kernel with a firmware interface to map
+  platform devices devids to GIC ITS components
+
+----------------------------------------------------------------
+Hanjun Guo (7):
+      ACPI/IORT: Fix the indentation in iort_scan_node()
+      ACPI/IORT: Add missing comment for iort_dev_find_its_id()
+      ACPI/IORT: Rework iort_match_node_callback() return value handling
+      ACPI/IORT: Rename iort_node_map_rid() to make it generic
+      ACPI/IORT: Introduce iort_node_map_platform_id() to retrieve dev id
+      ACPI: platform-msi: retrieve devid from IORT
+      ACPI: platform: setup MSI domain for ACPI based platform device
+
+ drivers/acpi/arm64/iort.c | 158 +++++++++++++++++++++++++++++++++++++---------
+ drivers/acpi/glue.c       |   6 ++
+ include/linux/acpi_iort.h |   3 +
+ 3 files changed, 136 insertions(+), 31 deletions(-)
