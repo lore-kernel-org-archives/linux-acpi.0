@@ -1,245 +1,240 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v22 11/11] acpi/arm64: Add SBSA Generic Watchdog support
- in GTDT driver
-Date: Fri, 31 Mar 2017 16:10:43 +0800
-Message-ID: <CADyBb7uDyjhP2Pjtzh6pTN-0hkokB=KevY7V76G9qZOF-9-zoQ@mail.gmail.com>
-References: <20170321163122.9183-1-fu.wei@linaro.org> <20170321163122.9183-12-fu.wei@linaro.org>
- <20170328154111.GC18046@red-moon>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 1/4] acpi: battery: Add acpi_battery_unregister() function
+Date: Fri, 31 Mar 2017 10:53:36 +0200
+Message-ID: <580faaaa-0cf2-7afc-4c25-5007fadfdb99@redhat.com>
+References: <20170316161601.32267-1-hdegoede@redhat.com>
+ <20170316161601.32267-2-hdegoede@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE675FE@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170328154111.GC18046@red-moon>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:47974 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752334AbdCaIxl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 Mar 2017 04:53:41 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE675FE@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 
-Hi Lorenzo,
+Hi,
 
-On 28 March 2017 at 23:41, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wr=
-ote:
-> On Wed, Mar 22, 2017 at 12:31:22AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
->> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+On 27-03-17 03:16, Zheng, Lv wrote:
+> Hi, Hans
+>
+>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Hans de
+>> Goede
+>> Subject: [PATCH 1/4] acpi: battery: Add acpi_battery_unregister() function
 >>
->> This driver adds support for parsing SBSA Generic Watchdog timer
->> in GTDT, parse all info in SBSA Generic Watchdog Structure in GTDT,
->> and creating a platform device with that information.
+>> On some systems we have a native pmic driver which provides battery
+>> monitoring, while the acpi battery driver is broken on these systems
+>> due to bad dstds or because of missing vendor specific acpi opregion
+>
+> dstds -> dsdts?
+
+Yes, fixed locally.
+
+>
+>> (e.g. BMOP opregion) support, which the acpi battery device in the
+>> dsdt relies on.
+>
+> Why don't we support BMOP and leverage between PMIC driver and BMOP opregion driver?
+
+Multiple reasons:
+1) The BMOP is an undocumented proprietary ACPI interface (not part of the
+    ACPI spec) which would need to be reverse engineered and implemented per
+    fuel-gauge driver; once for the axp288, once for the max17047 once for
+    the ti fuel gauge which can be used on some models according to the DSDTs
+    I've.
+
+2) Even if we do this we still will not get a battery everywhere as not all
+    DSDTs export the ACPI battery interface, only some do. So we still need
+    the native driver + power_supply for those tablets without the ACPI
+    battery interface and on those with the ACPI interface we end up with
+    multiple battery interfaces for a single battery which breaks the userspace
+    ABI.
+
+3) Even if we reverse-engineer the BMOP stuff and get things to work, the
+    quality of the ACPI battery implementation in these DSDTs is questionable,
+    where as with native fuel-gauge drivers we can guarantee proper reporting
+    of the battery stare to userspace
+
+TL;DR: having a native driver is better and there should only be one driver
+registered, hence this patch.
+
+
+>
 >>
->> This allows the operating system to obtain device data from the
->> resource of platform device. The platform device named "sbsa-gwdt"
->> can be used by the ARM SBSA Generic Watchdog driver.
+>> This leads to there being 2 battery power_supply-s registed like this:
 >>
->> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> Tested-by: Xiongfeng Wang <wangxiongfeng2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>> ~$ acpi
+>> Battery 0: Charging, 84%, 00:49:39 until charged
+>> Battery 1: Unknown, 0%, rate information unavailable
+>>
+>> Even if the acpi battery where to function fine (which on systems
+>> where we have a native pmic driver it often doesn't) we still do not
+>> want to export the same battery to userspace twice.
+>>
+>> This commit adds an acpi_battery_unregister() function which native
+>> pmic drivers can call to tell the acpi-battery driver to unregister
+>> itself so that we do not end up with 2 power_supply-s for the same
+>> battery device.
+>
+> I'm not sure if this is a good idea:
+> Driver A calls Driver B's unregister function in case Driver A should be unware of the existence of Driver B.
+>
+> For example, acpi_video_unregister() is such a bad practice.
+
+acpi_video_unregister() although not pretty is very much necessary
+actually the whole backlight sysfs interface were we do sometimes
+register multiple sysfs backlight class devices for a single
+backlight and let userspace figure things out is a prime
+example of why we need this, we need to export only one
+interface and in case of the power_supply interface doing
+anything else would be an ABI break.
+
+Note that in this case things are actually much better then
+the acpi_video stuff, since we've a very clear place when to
+do the unregister (in the native x86 only drivers) rather then
+needing some magic heuristics.
+
+> Do we have any other choices?
+
+We could alternatively have the ACPI battery and ac drivers
+contain a black list of ACPI HIDs which they check and when
+these are in the DSDT and enabled/present have their probe
+methods return -ENODEV.
+
+I dismissed this at first, but on second thought that should
+work.
+
+Regards,
+
+Hans
+
+
+
+
+> For example, driver priority and etc.?
+>
+> Thanks
+> Lv
+>
+>
+>>
+>> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=194811
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> Tested-by: Sergei Trusov <t.rus76@ya.ru>
 >> ---
->>  drivers/acpi/arm64/gtdt.c | 94 ++++++++++++++++++++++++++++++++++++++++=
-+++++++
->>  1 file changed, 94 insertions(+)
+>>  drivers/acpi/battery.c     | 32 +++++++++++++++++++++++++++++++-
+>>  include/linux/power/acpi.h | 18 ++++++++++++++++++
+>>  2 files changed, 49 insertions(+), 1 deletion(-)
+>>  create mode 100644 include/linux/power/acpi.h
 >>
->> diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
->> index f471873..5d167f0 100644
->> --- a/drivers/acpi/arm64/gtdt.c
->> +++ b/drivers/acpi/arm64/gtdt.c
->> @@ -14,6 +14,7 @@
+>> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+>> index 4ef1e46..644e154 100644
+>> --- a/drivers/acpi/battery.c
+>> +++ b/drivers/acpi/battery.c
+>> @@ -31,6 +31,7 @@
+>>  #include <linux/delay.h>
+>>  #include <linux/slab.h>
+>>  #include <linux/suspend.h>
+>> +#include <linux/mutex.h>
+>>  #include <asm/unaligned.h>
+>>
+>>  #ifdef CONFIG_ACPI_PROCFS_POWER
+>> @@ -41,6 +42,7 @@
+>>
 >>  #include <linux/acpi.h>
->>  #include <linux/init.h>
->>  #include <linux/kernel.h>
->> +#include <linux/platform_device.h>
+>>  #include <linux/power_supply.h>
+>> +#include <linux/power/acpi.h>
 >>
->>  #include <clocksource/arm_arch_timer.h>
+>>  #include "battery.h"
 >>
->> @@ -59,6 +60,17 @@ static inline bool is_timer_block(void *platform_time=
-r)
->>       return gh->type =3D=3D ACPI_GTDT_TYPE_TIMER_BLOCK;
+>> @@ -66,6 +68,10 @@ MODULE_AUTHOR("Alexey Starikovskiy <astarikovskiy@suse.de>");
+>>  MODULE_DESCRIPTION("ACPI Battery Driver");
+>>  MODULE_LICENSE("GPL");
+>>
+>> +enum init_state_enum { BAT_NONE, BAT_INITIALIZED, BAT_EXITED };
+>> +
+>> +static enum init_state_enum init_state;
+>> +static DEFINE_MUTEX(init_state_mutex);
+>>  static async_cookie_t async_cookie;
+>>  static int battery_bix_broken_package;
+>>  static int battery_notification_delay_ms;
+>> @@ -1336,17 +1342,41 @@ static int __init acpi_battery_init(void)
+>>  	if (acpi_disabled)
+>>  		return -ENODEV;
+>>
+>> +	/* Check if acpi_battery_unregister got called before _init() */
+>> +	mutex_lock(&init_state_mutex);
+>> +	if (init_state != BAT_NONE)
+>> +		goto out_unlock;
+>> +
+>>  	async_cookie = async_schedule(acpi_battery_init_async, NULL);
+>> +	init_state = BAT_INITIALIZED;
+>> +out_unlock:
+>> +	mutex_unlock(&init_state_mutex);
+>> +
+>>  	return 0;
 >>  }
 >>
->> +static inline bool is_non_secure_watchdog(void *platform_timer)
->> +{
->> +     struct acpi_gtdt_header *gh =3D platform_timer;
->> +     struct acpi_gtdt_watchdog *wd =3D platform_timer;
->> +
->> +     if (gh->type !=3D ACPI_GTDT_TYPE_WATCHDOG)
->> +             return false;
->> +
->> +     return !(wd->timer_flags & ACPI_GTDT_WATCHDOG_SECURE);
->> +}
->> +
->>  static int __init map_gt_gsi(u32 interrupt, u32 flags)
+>> -static void __exit acpi_battery_exit(void)
+>> +void acpi_battery_unregister(void)
 >>  {
->>       int trigger, polarity;
->> @@ -285,3 +297,85 @@ int __init acpi_arch_timer_mem_init(struct arch_tim=
-er_mem *timer_mem,
->>
->>       return 0;
+>> +	/* Check if _init() is done and only do unregister once */
+>> +	mutex_lock(&init_state_mutex);
+>> +	if (init_state != BAT_INITIALIZED)
+>> +		goto out_exit;
+>> +
+>>  	async_synchronize_cookie(async_cookie + 1);
+>>  	acpi_bus_unregister_driver(&acpi_battery_driver);
+>>  #ifdef CONFIG_ACPI_PROCFS_POWER
+>>  	acpi_unlock_battery_dir(acpi_battery_dir);
+>>  #endif
+>> +
+>> +out_exit:
+>> +	init_state = BAT_EXITED;
+>> +	mutex_unlock(&init_state_mutex);
+>> +}
+>> +EXPORT_SYMBOL_GPL(acpi_battery_unregister);
+>> +
+>> +static void __exit acpi_battery_exit(void)
+>> +{
+>> +	acpi_battery_unregister();
 >>  }
->> +
+>>
+>>  module_init(acpi_battery_init);
+>> diff --git a/include/linux/power/acpi.h b/include/linux/power/acpi.h
+>> new file mode 100644
+>> index 0000000..83bdfb9
+>> --- /dev/null
+>> +++ b/include/linux/power/acpi.h
+>> @@ -0,0 +1,18 @@
 >> +/*
->> + * Initialize a SBSA generic Watchdog platform device info from GTDT
+>> + * Functions exported by the acpi power_supply drivers
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
 >> + */
->> +static int __init gtdt_import_sbsa_gwdt(struct acpi_gtdt_watchdog *wd,
->> +                                     int index)
->> +{
->> +     struct platform_device *pdev;
->> +     int irq =3D map_gt_gsi(wd->timer_interrupt, wd->timer_flags);
 >> +
->> +     /*
->> +      * According to SBSA specification the size of refresh and control
->> +      * frames of SBSA Generic Watchdog is SZ_4K(Offset 0x000 =E2=80=93=
- 0xFFF).
->> +      */
->> +     struct resource res[] =3D {
->> +             DEFINE_RES_MEM(wd->control_frame_address, SZ_4K),
->> +             DEFINE_RES_MEM(wd->refresh_frame_address, SZ_4K),
->> +             DEFINE_RES_IRQ(irq),
->> +     };
->> +     int nr_res =3D ARRAY_SIZE(res);
+>> +#ifndef __LINUX_POWER_ACPI_H_
+>> +#define __LINUX_POWER_ACPI_H_
 >> +
->> +     pr_debug("found a Watchdog (0x%llx/0x%llx gsi:%u flags:0x%x).\n",
->> +              wd->refresh_frame_address, wd->control_frame_address,
->> +              wd->timer_interrupt, wd->timer_flags);
+>> +#if IS_ENABLED(CONFIG_ACPI_BATTERY)
+>> +void acpi_battery_unregister(void);
+>> +#else
+>> +static inline void acpi_battery_unregister(void) {}
+>> +#endif
 >> +
->> +     if (!(wd->refresh_frame_address && wd->control_frame_address)) {
->> +             pr_err(FW_BUG "failed to get the Watchdog base address.\n"=
-);
-
-
-+             acpi_unregister_gsi(wd->timer_interrupt);
-
-
->> +             return -EINVAL;
->
-> You should unmap the gsi here.
-
-yes, you are right, fixed it.
-
->
->> +     }
->> +
->> +     if (irq <=3D 0) {
->> +             pr_warn("failed to map the Watchdog interrupt.\n");
->> +             nr_res--;
->> +     }
->> +
->> +     /*
->> +      * Add a platform device named "sbsa-gwdt" to match the platform d=
-river.
->> +      * "sbsa-gwdt": SBSA(Server Base System Architecture) Generic Watc=
-hdog
->> +      * The platform driver (like drivers/watchdog/sbsa_gwdt.c)can get =
-device
-
-+      * The platform driver can get device info below by matching this nam=
-e.
-
->
-> Nit: I would not hardcode drivers paths in comments.
-
-
-OK, deleted it
-
->
->> +      * info below by matching this name.
->> +      */
->> +     pdev =3D platform_device_register_simple("sbsa-gwdt", index, res, =
-nr_res);
->> +     if (IS_ERR(pdev)) {
->> +             acpi_unregister_gsi(wd->timer_interrupt);
->> +             return PTR_ERR(pdev);
->> +     }
->> +
->> +     return 0;
->> +}
->> +
->> +static int __init gtdt_sbsa_gwdt_init(void)
->> +{
->> +     int ret, i =3D 0;
->> +     void *platform_timer;
->> +     struct acpi_table_header *table;
->> +
->> +     if (acpi_disabled)
->> +             return 0;
->> +
->> +     if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_GTDT, 0, &table)))
->> +             return -EINVAL;
->> +
->> +     ret =3D acpi_gtdt_init(table, NULL);
->> +     if (ret)
->> +             return ret;
->
-> Ok, I missed previous versions reviews so I miss the background
-> here and I apologise.
->
-> I do not understand why you call acpi_gtdt_init() again (or better,
-> why acpi_gtdt_init() does not return straight away) here if the
-> stashed pointer in acpi_gtdt_desc is already set. I am not a big fan
-> of the for_each_platform_timer macro either, here you can just read
-> the ACPI_SIG_GTDT and parse its entries, I see no point in calling
-> acpi_gtdt_init() again, there is nothing to stash for later probing,
-> is there ?
->
-> Or it is just to reuse common parsing code ? Regardless, if the
-> acpi_gtdt_desc struct is already initialized acpi_gtdt_init() should
-> just return or I am missing the point.
->
-> I would like clarifications on the acpi_gtdt_init() call above please
-> (plus GSI unmap fix), apart from that:
->
-> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-
-Actually, after the discussion in the 7th patch, I have tried to do
-this, see if that can make the code simpler.
-Then I found out that
-(1) If we would like to reuse "for_each_platform_timer" (and
-"next_platform_timer") to scan the GTDT for SBSA watchdog, we have to
-re-initialize acpi_gtdt_desc, too.
-     So we still need to explain that why we have to re-initialize
-acpi_gtdt_desc.
-(2) If we totally ignore acpi_gtdt_desc, and acpi_gtdt_init(), we
-can't re-use  "for_each_platform_timer" (and "next_platform_timer") .
-we have to re-write  the loop of scanning the GTDT for SBSA watchdog,
-
-So may I suggest that maybe we can keep using acpi_gtdt_init, only add
-the comment to explain why we have to re-initialize
-acpi_gtdt_desc(Just what you have said in the 7th patch. Thanks for
-your correction for the comment, I will use that ), this way maybe can
-make the code simpler.
-
-But If you still concern about this,  we still can discuss this at -rc1.
-
-Great thanks for your help! :-)
-
->
->> +     for_each_platform_timer(platform_timer) {
->> +             if (is_non_secure_watchdog(platform_timer)) {
->> +                     ret =3D gtdt_import_sbsa_gwdt(platform_timer, i);
->> +                     if (ret)
->> +                             break;
->> +                     i++;
->> +             }
->> +     }
->> +
->> +     if (i)
->> +             pr_info("found %d SBSA generic Watchdog(s).\n", i);
->> +
->> +     return ret;
->> +}
->> +
->> +device_initcall(gtdt_sbsa_gwdt_init);
+>> +#endif
 >> --
 >> 2.9.3
 >>
-
-
-
---=20
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
