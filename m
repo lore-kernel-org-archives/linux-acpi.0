@@ -1,89 +1,70 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v3 1/3] mfd: intel_soc_pmic: Fix a mess with compilation units
-Date: Sun, 2 Apr 2017 23:18:21 +0300
-Message-ID: <CAHp75Vdt3ys=tFax5iK5tnANNCLj-b4-VxO78b4ZT0jqdAnsdg@mail.gmail.com>
-References: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com> <201704030357.HdHD43mM%fengguang.wu@intel.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 1/3] device property: Move FW type specific functionality
+ to FW specific files
+Date: Fri, 31 Mar 2017 16:20:22 +0300
+Message-ID: <f356b466-38b9-83b7-bfb7-1e64f686f212@linux.intel.com>
+References: <1490353432-12017-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20170327113100.GZ2957@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <201704030357.HdHD43mM%fengguang.wu@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, kbuild-all@01.org, Lee Jones <lee.jones@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170327113100.GZ2957-3PARRvDOhMZrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Apr 2, 2017 at 11:03 PM, kbuild test robot <lkp@intel.com> wrote:
-> Hi Andy,
->
-> [auto build test ERROR on ljones-mfd/for-mfd-next]
-> [also build test ERROR on v4.11-rc4 next-20170331]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+Hi Mika,
 
-Thank you for report, though...
+Thanks for the review again!
 
+Mika Westerberg wrote:
+> On Fri, Mar 24, 2017 at 01:03:50PM +0200, Sakari Ailus wrote:
+>> +static int acpi_fwnode_property_read_int_array(
 >
-> url:    https://github.com/0day-ci/linux/commits/Andy-Shevchenko/mfd-intel_soc_pmic-Fix-a-mess-with-compilation-units/20170320-153539
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git for-mfd-next
-> config: tile-allyesconfig (attached as .config)
-> compiler: tilegx-linux-gcc (GCC) 4.6.2
-> reproduce:
->         wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
+> This is really ugly way to split arguments into multiple lines IMHO.
+>
+>> +	struct fwnode_handle *fwnode, const char *propname,
+>> +	unsigned int elem_size, void *val, size_t nval)
+>
+>
+> I would much more see something like:
+>
+> static int
+> acpi_fwnode_property_read_int_array(struct fwnode_handle *fwnode,
+> 	const char *propname, unsigned int elem_size, void *val, size_t nval)
+>
+> or even
+>
+> static int
+> acpi_fwnode_property_read_int_array(struct fwnode_handle *fwnode,
+> 				    const char *propname,
+> 				    unsigned int elem_size,
+> 				    void *val, size_t nval)
+>
+> ditto for all occurences.
+>
+> Other than that this patch looks reasonable to me.
 
->         make.cross ARCH=tile
+I don't think CodingStyle defines any particular points where to wrap 
+the lines. Different conventions seem to exist:
 
-...I doubt how below is related to my patch. This is obvious x86 code
-which was initially submitted without
-depend on X86
-line in corresponding Kconfig.
+$ git grep '^\(static\|const\|inline\|int\|struct\|u\[0-9\).*($' |wc -l
+3106
 
->
-> All errors (new ones prefixed by >>):
->
->>> drivers/mfd/intel_soc_pmic_bxtwc.c:24:31: fatal error: asm/intel_pmc_ipc.h: No such file or directory
->    compilation terminated.
->
-> vim +24 drivers/mfd/intel_soc_pmic_bxtwc.c
->
-> 39d047c0 Qipeng Zha 2015-09-15   8   * version 2, as published by the Free Software Foundation.
-> 39d047c0 Qipeng Zha 2015-09-15   9   *
-> 39d047c0 Qipeng Zha 2015-09-15  10   * This program is distributed in the hope it will be useful, but WITHOUT
-> 39d047c0 Qipeng Zha 2015-09-15  11   * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> 39d047c0 Qipeng Zha 2015-09-15  12   * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> 39d047c0 Qipeng Zha 2015-09-15  13   * more details.
-> 39d047c0 Qipeng Zha 2015-09-15  14   */
-> 39d047c0 Qipeng Zha 2015-09-15  15
-> 39d047c0 Qipeng Zha 2015-09-15  16  #include <linux/module.h>
-> 39d047c0 Qipeng Zha 2015-09-15  17  #include <linux/acpi.h>
-> 39d047c0 Qipeng Zha 2015-09-15  18  #include <linux/err.h>
-> 39d047c0 Qipeng Zha 2015-09-15  19  #include <linux/delay.h>
-> 39d047c0 Qipeng Zha 2015-09-15  20  #include <linux/interrupt.h>
-> 39d047c0 Qipeng Zha 2015-09-15  21  #include <linux/kernel.h>
-> 39d047c0 Qipeng Zha 2015-09-15  22  #include <linux/mfd/core.h>
-> 39d047c0 Qipeng Zha 2015-09-15  23  #include <linux/mfd/intel_bxtwc.h>
-> 39d047c0 Qipeng Zha 2015-09-15 @24  #include <asm/intel_pmc_ipc.h>
-> 39d047c0 Qipeng Zha 2015-09-15  25
-> 39d047c0 Qipeng Zha 2015-09-15  26  /* PMIC device registers */
-> 39d047c0 Qipeng Zha 2015-09-15  27  #define REG_ADDR_MASK               0xFF00
-> 39d047c0 Qipeng Zha 2015-09-15  28  #define REG_ADDR_SHIFT              8
-> 39d047c0 Qipeng Zha 2015-09-15  29  #define REG_OFFSET_MASK             0xFF
-> 39d047c0 Qipeng Zha 2015-09-15  30
-> 39d047c0 Qipeng Zha 2015-09-15  31  /* Interrupt Status Registers */
-> 39d047c0 Qipeng Zha 2015-09-15  32  #define BXTWC_IRQLVL1               0x4E02
->
-> :::::: The code at line 24 was first introduced by commit
-> :::::: 39d047c0b1c812e9f0014e7100e372e61f2de3de mfd: add Intel Broxton Whiskey Cove PMIC driver
->
-> :::::: TO: Qipeng Zha <qipeng.zha@intel.com>
-> :::::: CC: Lee Jones <lee.jones@linaro.org>
->
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Not all of the occurrences found exhibit such indentation but then again 
+the above does not catch all of those that do either.
 
-
+I can change that if you insist but I'm telling you that it wouldn't be 
+alone in the kernel. :-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Kind regards,
+
+Sakari Ailus
+sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
