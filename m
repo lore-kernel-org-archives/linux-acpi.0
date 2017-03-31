@@ -1,74 +1,49 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.11-rc5
-Date: Fri, 31 Mar 2017 23:34:32 +0200
-Message-ID: <CAJZ5v0jasxCt-8iRLoqc-JUCdNZ_btGio+GO5o_y6Awb_+xTMg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 3/4] power: supply: axp288_fuel_gauge: Unregister duplicate ACPI battery supply
+Date: Sat, 01 Apr 2017 00:30:22 +0200
+Message-ID: <1577850.bTAv4lXM9l@aspire.rjw.lan>
+References: <20170316161601.32267-1-hdegoede@redhat.com> <CAJZ5v0i7TN+iJLR_SeaCrpKJ13g1_bQ-G54cugAF9Dm4=pifAg@mail.gmail.com> <0c1cc4fc-d127-54d1-334b-9a569354d2a3@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:33035 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754289AbdCaVed (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Mar 2017 17:34:33 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <0c1cc4fc-d127-54d1-334b-9a569354d2a3@redhat.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+On Friday, March 31, 2017 11:57:47 AM Hans de Goede wrote:
+> Hi,
 
-Please pull from the tag
+Hi,
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.11-rc5
+[cut]
 
-with top-most commit a07930662e3097144d6cbbc1b9211867fd1a173e
+> >
+> > Anyway, I'd prefer blacklists in the battery and ac drivers to be honest.
+> 
+> As I explained in my reply to the discussion around the first patch that
+> is somewhat hard to do and requires encoding knowledge in those drivers
+> which really does not belong there:
+> 
+> "The problem is that Intel re-uses HIDs between generations and
+> for the Whiskey Cove PMIC we want to not use the ACPI battery
+> and ac drivers on Cherry Trail (where they are known to be
+> broken) but things are different on Apollo Lake. Yet both
+> use the same HID for their companion Whiskey Cove PMIC even
+> though they are 2 completely different revisions of the PMIC
+> (e.g. one uses i2c the other does not).
+> 
+> The 2 native drivers have code to detect which revision they
+> are dealing with and exit with -ENODEV if it is not the
+> revision they were written for, but this means that simple
+> HID blacklisting will not work. So IMHO the decision to
+> unregister the  ACPI battery / ac interface really belongs
+> in the native driver as that has all the nitty gritty detail
+> needed to make that decision."
 
- Merge branches 'acpi-hotplug-fixes', 'acpi-build-fixes' and 'acpi-apei-fixes'
+Do the native drivers bind to platform devices?
 
-on top of commit c02ed2e75ef4c74e41e421acb4ef1494671585e8
-
- Linux 4.11-rc4
-
-to receive ACPI fixes for v4.11-rc5.
-
-These fix two issues related to IOAPIC hotplug, an overzealous build
-optimization that prevents the function graph tracer from working with
-the ACPI subsystem correctly and an RCU synchronization issue in the
-ACPI APEI code.
-
-Specifics:
-
- - Drop the unconditional setting of the '-Os' gcc flag from the ACPI
-   Makefile to make the function graph tracer work correctly with the
-   ACPI subsystem (Josh Poimboeuf).
-
- - Add missing synchronize_rcu() to ghes_remove() which removes an
-   element from an RCU-protected list, but fails to synchronize it
-   properly afterward (James Morse).
-
- - Fix two problems related to IOAPIC hotplug, a local variable
-   initialization in setup_res() and the creation of platform
-   device objects for IO(x)APICs which are (a) unused and (b) leaked
-   on hot-removal (Joerg Roedel).
-
-Thanks!
-
----------------
-
-James Morse (1):
-      ACPI / APEI: Add missing synchronize_rcu() on NOTIFY_SCI removal
-
-Joerg Roedel (2):
-      ACPI: ioapic: Clear on-stack resource before using it
-      ACPI: Do not create a platform_device for IOAPIC/IOxAPIC
-
-Josh Poimboeuf (1):
-      ACPI: Fix incompatibility with mcount-based function graph tracing
-
----------------
-
- drivers/acpi/Makefile        | 1 -
- drivers/acpi/acpi_platform.c | 8 +++++---
- drivers/acpi/apei/ghes.c     | 1 +
- drivers/acpi/ioapic.c        | 6 ++++++
- 4 files changed, 12 insertions(+), 4 deletions(-)
+Thanks,
+Rafael
