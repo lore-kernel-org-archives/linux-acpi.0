@@ -1,127 +1,58 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v22 11/11] acpi/arm64: Add SBSA Generic Watchdog support
- in GTDT driver
-Date: Fri, 31 Mar 2017 12:54:03 +0100
-Message-ID: <20170331115403.GB31763@red-moon>
-References: <20170321163122.9183-1-fu.wei@linaro.org>
- <20170321163122.9183-12-fu.wei@linaro.org>
- <20170328154111.GC18046@red-moon>
- <CADyBb7uDyjhP2Pjtzh6pTN-0hkokB=KevY7V76G9qZOF-9-zoQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59128 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932882AbdCaLxp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 31 Mar 2017 07:53:45 -0400
-Content-Disposition: inline
-In-Reply-To: <CADyBb7uDyjhP2Pjtzh6pTN-0hkokB=KevY7V76G9qZOF-9-zoQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: [PATCH 1/1] PCI: Fix for PEM-specific resource reservation for legacy firmware case
+Date: Fri, 31 Mar 2017 17:06:44 +0200
+Message-ID: <1490972804-25830-1-git-send-email-tn@semihalf.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: helgaas@kernel.org, Lorenzo.Pieralisi@arm.com, robert.richter@caviumnetworks.com, ddaney@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, rafael@kernel.org
+Cc: Sunil.Goutham@cavium.com, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, Wei
 
-On Fri, Mar 31, 2017 at 04:10:43PM +0800, Fu Wei wrote:
+SZ_16M PEM resource size includes PEM-specific register and its children
+resources. Reservation of the whole SZ_16M range leads to child device
+driver failure when pcieport driver is requesting resources:
+pcieport 0004:1f:00.0: can't enable device: BAR 0 [mem 0x87e0c0f00000-0x87e0c0ffffff 64bit] not claimed
+So we cannot reserve full 16M here and instead we want to reserve
+PEM-specific register only which is SZ_64K.
 
-[...]
+At the end increase PEM resource to SZ_16M since this is what
+thunder_pem_init() call expects for proper initialization.
 
-> >> +static int __init gtdt_sbsa_gwdt_init(void)
-> >> +{
-> >> +     int ret, i = 0;
-> >> +     void *platform_timer;
-> >> +     struct acpi_table_header *table;
-> >> +
-> >> +     if (acpi_disabled)
-> >> +             return 0;
-> >> +
-> >> +     if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_GTDT, 0, &table)))
-> >> +             return -EINVAL;
-> >> +
-> >> +     ret = acpi_gtdt_init(table, NULL);
-> >> +     if (ret)
-> >> +             return ret;
-> >
-> > Ok, I missed previous versions reviews so I miss the background
-> > here and I apologise.
-> >
-> > I do not understand why you call acpi_gtdt_init() again (or better,
-> > why acpi_gtdt_init() does not return straight away) here if the
-> > stashed pointer in acpi_gtdt_desc is already set. I am not a big fan
-> > of the for_each_platform_timer macro either, here you can just read
-> > the ACPI_SIG_GTDT and parse its entries, I see no point in calling
-> > acpi_gtdt_init() again, there is nothing to stash for later probing,
-> > is there ?
-> >
-> > Or it is just to reuse common parsing code ? Regardless, if the
-> > acpi_gtdt_desc struct is already initialized acpi_gtdt_init() should
-> > just return or I am missing the point.
-> >
-> > I would like clarifications on the acpi_gtdt_init() call above please
-> > (plus GSI unmap fix), apart from that:
-> >
-> > Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> 
-> Actually, after the discussion in the 7th patch, I have tried to do
-> this, see if that can make the code simpler.
-> Then I found out that
-> (1) If we would like to reuse "for_each_platform_timer" (and
-> "next_platform_timer") to scan the GTDT for SBSA watchdog, we have to
-> re-initialize acpi_gtdt_desc, too.
->      So we still need to explain that why we have to re-initialize
-> acpi_gtdt_desc.
-> (2) If we totally ignore acpi_gtdt_desc, and acpi_gtdt_init(), we
-> can't re-use  "for_each_platform_timer" (and "next_platform_timer") .
-> we have to re-write  the loop of scanning the GTDT for SBSA watchdog,
+Fixes: 9abb27c7594a ("PCI: thunder-pem: Add legacy firmware support for Cavium ThunderX host controller")
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+CC: stable@vger.kernel.org	# v4.10+
+---
+ drivers/pci/host/pci-thunder-pem.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-Or we get rid of for_each_platform_timer altogether that for me
-is not useful at all and just obfuscates.
-
-Anyway, add the comment below and you are done with this, at this point
-in time it is best to avoid changing the code we'd just risk adding
-bugs.
-
-At -rc1 we will send patches to reshape this code as per this
-discussion.
-
-Thanks !
-Lorenzo
-
-> So may I suggest that maybe we can keep using acpi_gtdt_init, only add
-> the comment to explain why we have to re-initialize
-> acpi_gtdt_desc(Just what you have said in the 7th patch. Thanks for
-> your correction for the comment, I will use that ), this way maybe can
-> make the code simpler.
-> 
-> But If you still concern about this,  we still can discuss this at -rc1.
-> 
-> Great thanks for your help! :-)
-> 
-> >
-> >> +     for_each_platform_timer(platform_timer) {
-> >> +             if (is_non_secure_watchdog(platform_timer)) {
-> >> +                     ret = gtdt_import_sbsa_gwdt(platform_timer, i);
-> >> +                     if (ret)
-> >> +                             break;
-> >> +                     i++;
-> >> +             }
-> >> +     }
-> >> +
-> >> +     if (i)
-> >> +             pr_info("found %d SBSA generic Watchdog(s).\n", i);
-> >> +
-> >> +     return ret;
-> >> +}
-> >> +
-> >> +device_initcall(gtdt_sbsa_gwdt_init);
-> >> --
-> >> 2.9.3
-> >>
-> 
-> 
-> 
-> -- 
-> Best regards,
-> 
-> Fu Wei
-> Software Engineer
-> Red Hat
+diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
+index b89c373..6e031b5 100644
+--- a/drivers/pci/host/pci-thunder-pem.c
++++ b/drivers/pci/host/pci-thunder-pem.c
+@@ -375,7 +375,6 @@ static void thunder_pem_legacy_fw(struct acpi_pci_root *root,
+ 	index -= node * PEM_MAX_DOM_IN_NODE;
+ 	res_pem->start = PEM_RES_BASE | FIELD_PREP(PEM_NODE_MASK, node) |
+ 					FIELD_PREP(PEM_INDX_MASK, index);
+-	res_pem->end = res_pem->start + SZ_16M - 1;
+ 	res_pem->flags = IORESOURCE_MEM;
+ }
+ 
+@@ -399,8 +398,15 @@ static int thunder_pem_acpi_init(struct pci_config_window *cfg)
+ 	 */
+ 	if (ret) {
+ 		thunder_pem_legacy_fw(root, res_pem);
+-		/* Reserve PEM-specific resources and PCI configuration space */
++		/*
++		 * Reserve 64K size PEM specific resources. The full 16M range
++		 * size is required for thunder_pem_init() call.
++		 */
++		res_pem->end = res_pem->start + SZ_64K - 1;
+ 		thunder_pem_reserve_range(dev, root->segment, res_pem);
++		res_pem->end = res_pem->start + SZ_16M - 1;
++
++		/* Reserve PCI configuration space as well. */
+ 		thunder_pem_reserve_range(dev, root->segment, &cfg->res);
+ 	}
+ 
+-- 
+2.7.4
