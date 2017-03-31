@@ -1,93 +1,81 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V2] acpi: apei: check for pending errors when probing HED
- type GHES entries
-Date: Fri, 31 Mar 2017 09:18:00 -0600
-Message-ID: <ecfcd471-cab3-ca80-aaf0-18fd5ac21f61@codeaurora.org>
-References: <1490802880-10239-1-git-send-email-tbaicar@codeaurora.org>
- <58DD40BE.9000506@arm.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v3 2/8] acpi: apei: handle SEI notification type for ARMv8
+Date: Fri, 31 Mar 2017 17:20:26 +0100
+Message-ID: <58DE81CA.3020803@arm.com>
+References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com> <1490869877-118713-3-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:59252 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754099AbdCaPSE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Mar 2017 11:18:04 -0400
-In-Reply-To: <58DD40BE.9000506@arm.com>
+Received: from foss.arm.com ([217.140.101.70]:33812 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933182AbdCaQUv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 Mar 2017 12:20:51 -0400
+In-Reply-To: <1490869877-118713-3-git-send-email-xiexiuqi@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, bp@suse.de, prarit@redhat.com, bhelgaas@google.com, punit.agrawal@arm.com, mingo@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, shiju.jose@huawei.com, ahs3@redhat.com
+To: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com, zhengqiang10@huawei.com, wuquanming@huawei.com, wangxiongfeng2@huawei.com
 
-Hello James,
+Hi Xie XiuQi,
+
+On 30/03/17 11:31, Xie XiuQi wrote:
+> ARM APEI extension proposal added SEI (asynchronous SError interrupt)
+> notification type for ARMv8.
+> 
+> Add a new GHES error source handling function for SEI. In firmware
+> first mode, if an error source's notification type is SEI. Then GHES
+> could parse and report the detail error information.
+
+The APEI additions are unsafe until patch 4 as SEA can interrupt SEI and
+deadlock while trying to take the same set of locks. This patch needs to be
+after that interaction is fixed/prevented, or we should prevent it by adding a
+depends-on-not to the Kconfig to prevent SEI and SEA being registered at the
+same time. (as a short term fix).
+
+(more comments on this on that later patch)
 
 
-On 3/30/2017 11:30 AM, James Morse wrote:
-> On 29/03/17 16:54, Tyler Baicar wrote:
->> If a HED type error occurs prior to GHES probing, the kernel will
->> never report the error. The HED driver will see that no notifiers
->> are registered, and clear the interrupt.
->>
->> This becomes a more serious problem with firmware that supports
->> GHESv2 acknowledgements from the kernel. The firmware will populate
->> the error and wait for the kernel ack. But since the kernel will
->> never process the error we get into a state that the firmware will
->> not send any more errors and the kernel will never see or ack the
->> original error.
->>
->> Check for pending errors when probing HED type GHES entries to
->> avoid the above situation.
-> Isn't this a problem for the other notification types too?
->
-> It looks like SEI can indicate the notification is non-fatal even if we haven't
-> done the ghes_probe() yet and fail to find the CPER records.
->
-> Would moving the OSC call to set the APEI bit later solve this, or is it
-> specific to the way AMLs Notify() works?
-For SEAs, the kernel would have already tried handling the SEA and gone 
-through the GHES code unsuccessfully. If the SEA was non-fatal then we 
-could print the GHES/CPER info here.
+> diff --git a/arch/arm64/kernel/traps.c b/arch/arm64/kernel/traps.c
+> index e52be6a..53710a2 100644
+> --- a/arch/arm64/kernel/traps.c
+> +++ b/arch/arm64/kernel/traps.c
 
-SEIs are probably similar to the SEA case I would imagine.
+> @@ -625,6 +627,14 @@ asmlinkage void bad_mode(struct pt_regs *regs, int reason, unsigned int esr)
 
-The notification interface I believe just sends the notification to 
-anyone registered for that event and then clears the interrupt, so if no 
-one is registered, the interrupt will be cleared.
+bad_mode() is called in other scenarios too, for example executing an undefined
+instruction at EL1. You split the SError path out of the vectors in patch 7, I
+think we should do that here.
 
-It may be more practical to add this call to ghes_proc() at the end of 
-the switch statement so that all notification types check for pending 
-errors right after probing. Adding this call shouldn't be an issue since 
-if there is no error pending it will just return back. The polled 
-notification type calls ghes_proc() every time it's timer expires to 
-check for errors.
+
+>  		handler[reason], smp_processor_id(), esr,
+>  		esr_get_class_string(esr));
+>  
+> +	/*
+> +	 * In firmware first mode, we could assume firmware will only generate one
+> +	 * of cper records at a time. There is no risk for one cpu to parse ghes table.
+> +	 */
+
+I don't follow this comment, is this saying SError can't interrupt SError? We
+already get this guarantee as the CPU masks SError when it takes an exception.
+
+Firmware can generate multiple CPER records for a single 'event'. The CPER
+records are the 'Data' in ACPI:Table 18-343 Generic Error Data Entry, and there
+are 'zero or more' of these with a 'Generic Error Status Block' header that
+describes the overall event. (Table 18-342).
+
+I don't think we need this comment.
+
+
+> +	if (IS_ENABLED(CONFIG_ACPI_APEI_SEI) && ESR_ELx_EC(esr) == ESR_ELx_EC_SERROR) {
+> +		ghes_notify_sei();
+> +	}
+
+>  	die("Oops - bad mode", regs, 0);
+>  	local_irq_disable();
+>  	panic("bad mode");
 
 Thanks,
-Tyler
->> This patch is based on Shiju's patch that adds support for GSIV
->> and GPIO notification types:
->> https://patchwork.kernel.org/patch/9628817/
->>
->> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
->> ---
->>   drivers/acpi/apei/ghes.c | 1 +
->>   1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index fd39929..cf5e938 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -1035,6 +1035,7 @@ static int ghes_probe(struct platform_device *ghes_dev)
->>   			register_acpi_hed_notifier(&ghes_notifier_hed);
->>   		list_add_rcu(&ghes->list, &ghes_hed);
->>   		mutex_unlock(&ghes_list_mutex);
->> +		ghes_proc(ghes);
->>   		break;
->>   	case ACPI_HEST_NOTIFY_NMI:
->>   		ghes_nmi_add(ghes);
->>
 
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+James
 
