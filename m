@@ -1,64 +1,78 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 3/4] power: supply: axp288_fuel_gauge: Unregister
- duplicate ACPI battery supply
-Date: Sat, 1 Apr 2017 15:22:54 +0200
-Message-ID: <5d35214e-68ea-3abc-c5b9-ce44d592b541@redhat.com>
-References: <20170316161601.32267-1-hdegoede@redhat.com>
- <CAJZ5v0i7TN+iJLR_SeaCrpKJ13g1_bQ-G54cugAF9Dm4=pifAg@mail.gmail.com>
- <0c1cc4fc-d127-54d1-334b-9a569354d2a3@redhat.com>
- <1577850.bTAv4lXM9l@aspire.rjw.lan>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v3 3/4] i2c: core: Allow drivers to specify index for irq
+ to get from of / ACPI
+Date: Sat, 1 Apr 2017 09:33:33 -0700
+Message-ID: <20170401163333.GB17130@dtor-ws>
+References: <20170325135550.22509-1-hdegoede@redhat.com>
+ <20170325135550.22509-4-hdegoede@redhat.com>
+ <1490530535.21738.31.camel@linux.intel.com>
+ <1935239d-fdd8-3917-9865-de389e6728e8@redhat.com>
+ <20170330203954.GA1452@katana>
+ <149df3eb-8111-4c91-472e-f6c708302ede@redhat.com>
+ <20170331162332.dar3f3mval2ch2uh@ninjato>
+ <2b4d002f-9e6b-b193-7dc3-2f4c20a93276@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55654 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751862AbdDANW6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 1 Apr 2017 09:22:58 -0400
-In-Reply-To: <1577850.bTAv4lXM9l@aspire.rjw.lan>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:34522 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751726AbdDAQdg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Apr 2017 12:33:36 -0400
+Content-Disposition: inline
+In-Reply-To: <2b4d002f-9e6b-b193-7dc3-2f4c20a93276@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sebastian Reichel <sre@kernel.org>, linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-pm@vger.kernel.org
 
-Hi,
-
-On 01-04-17 00:30, Rafael J. Wysocki wrote:
-> On Friday, March 31, 2017 11:57:47 AM Hans de Goede wrote:
->> Hi,
->
+On Fri, Mar 31, 2017 at 08:22:55PM +0200, Hans de Goede wrote:
 > Hi,
->
-> [cut]
->
->>>
->>> Anyway, I'd prefer blacklists in the battery and ac drivers to be honest.
->>
->> As I explained in my reply to the discussion around the first patch that
->> is somewhat hard to do and requires encoding knowledge in those drivers
->> which really does not belong there:
->>
->> "The problem is that Intel re-uses HIDs between generations and
->> for the Whiskey Cove PMIC we want to not use the ACPI battery
->> and ac drivers on Cherry Trail (where they are known to be
->> broken) but things are different on Apollo Lake. Yet both
->> use the same HID for their companion Whiskey Cove PMIC even
->> though they are 2 completely different revisions of the PMIC
->> (e.g. one uses i2c the other does not).
->>
->> The 2 native drivers have code to detect which revision they
->> are dealing with and exit with -ENODEV if it is not the
->> revision they were written for, but this means that simple
->> HID blacklisting will not work. So IMHO the decision to
->> unregister the  ACPI battery / ac interface really belongs
->> in the native driver as that has all the nitty gritty detail
->> needed to make that decision."
->
-> Do the native drivers bind to platform devices?
+> 
+> On 31-03-17 18:23, Wolfram Sang wrote:
+> >
+> >>Note I said "flag in i2c_driver" the idea is that the driver can tell
+> >>the i2c_core that it is not going to use i2c_client->irq by
+> >>setting i2c_driver->no_irq and that the i2c_core then will not bother
+> >>with trying to get an irq in i2c_device_probe(), this is esp. useful
+> >>for ACPI i2c instantiated devices where we otherwise might end up
+> >>returning -EPROBE_DEFER (waiting for an irq to show up) without
+> >>needing the irq, which is esp. troublesome when there is no driver
+> >>for the irqchip the ACPI irq resource points to as then we end up
+> >>waiting indefinitely.
+> >
+> >Okay, thanks. I understand the big picture. But does it really need to
+> >be fixed in I2C core? Independent of I2C: if an irq is described in ACPI
+> >and the driver for the needed irq controller is not available, that can
+> >lead to various problems everywhere.
+> 
+> Normally drivers call acpi_dev_gpio_irq_get themselves in their probe
+> method and the -EPROBE_DEFER handling is done in the drivers probe
+> itself, giving drivers various options to deal with irqs.
+> 
+> The problem here is that the i2c system is somewhat special in that
+> it does irq mapping on behalf of the driver and does not even bother
+> to call the driver's probe() if the acpi_dev_gpio_irq_get() call
+> returns -EPROBE_DEFER.
+> 
+> >Or maybe you simply want to be early and don't want to get deferred? Are
+> >we talking then about boot optimizations or necessities?
+> 
+> The problem which I'm trying to fix is not having to write a (complex)
+> gpio driver for an undocumented PMIC which I (and AFAICT no-one) needs (*)
+> just because the i2c-core needs to be "special" and do the acpi_dev_gpio_irq_get
+> for me even though in this specific driver I don't need the irq at index
+> 0 at all. IOW the problem which I'm trying to fix is to get i2c_device_probe
+> to not out-smart me and never call my driver's probe method for
+> invalid reasons.
 
-No, (yes, but not really) they are i2c drivers, but for cells of
-mfd i2c devices, so under the hood they bind to platform devices.
+I wonder if, instead of adding flags to I2C core (which I think behaves
+quite sanely), we could not have a "simple" GPIO stub driver for that
+PMIC that just registers gpiochip and does nothing (until somebody finds
+a use case and actually adds meat to it). This will stop
+acpi_dev_gpio_irq_get() returning -EPROBE_DEFER and all will be well in
+the kingdom.
 
-Regards,
+Thanks.
 
-Hans
+-- 
+Dmitry
