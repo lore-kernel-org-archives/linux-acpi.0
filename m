@@ -1,78 +1,57 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v3 3/4] i2c: core: Allow drivers to specify index for irq
- to get from of / ACPI
-Date: Sat, 1 Apr 2017 09:33:33 -0700
-Message-ID: <20170401163333.GB17130@dtor-ws>
-References: <20170325135550.22509-1-hdegoede@redhat.com>
- <20170325135550.22509-4-hdegoede@redhat.com>
- <1490530535.21738.31.camel@linux.intel.com>
- <1935239d-fdd8-3917-9865-de389e6728e8@redhat.com>
- <20170330203954.GA1452@katana>
- <149df3eb-8111-4c91-472e-f6c708302ede@redhat.com>
- <20170331162332.dar3f3mval2ch2uh@ninjato>
- <2b4d002f-9e6b-b193-7dc3-2f4c20a93276@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH] acpi, nfit: fix acpi_get_table leak
+Date: Sat, 01 Apr 2017 12:25:20 -0700
+Message-ID: <149107472042.16205.8935477753191459036.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34522 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751726AbdDAQdg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Apr 2017 12:33:36 -0400
-Content-Disposition: inline
-In-Reply-To: <2b4d002f-9e6b-b193-7dc3-2f4c20a93276@redhat.com>
+Received: from mga04.intel.com ([192.55.52.120]:49194 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751804AbdDATaa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 1 Apr 2017 15:30:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sebastian Reichel <sre@kernel.org>, linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-pm@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, stable@vger.kernel.org
 
-On Fri, Mar 31, 2017 at 08:22:55PM +0200, Hans de Goede wrote:
-> Hi,
-> 
-> On 31-03-17 18:23, Wolfram Sang wrote:
-> >
-> >>Note I said "flag in i2c_driver" the idea is that the driver can tell
-> >>the i2c_core that it is not going to use i2c_client->irq by
-> >>setting i2c_driver->no_irq and that the i2c_core then will not bother
-> >>with trying to get an irq in i2c_device_probe(), this is esp. useful
-> >>for ACPI i2c instantiated devices where we otherwise might end up
-> >>returning -EPROBE_DEFER (waiting for an irq to show up) without
-> >>needing the irq, which is esp. troublesome when there is no driver
-> >>for the irqchip the ACPI irq resource points to as then we end up
-> >>waiting indefinitely.
-> >
-> >Okay, thanks. I understand the big picture. But does it really need to
-> >be fixed in I2C core? Independent of I2C: if an irq is described in ACPI
-> >and the driver for the needed irq controller is not available, that can
-> >lead to various problems everywhere.
-> 
-> Normally drivers call acpi_dev_gpio_irq_get themselves in their probe
-> method and the -EPROBE_DEFER handling is done in the drivers probe
-> itself, giving drivers various options to deal with irqs.
-> 
-> The problem here is that the i2c system is somewhat special in that
-> it does irq mapping on behalf of the driver and does not even bother
-> to call the driver's probe() if the acpi_dev_gpio_irq_get() call
-> returns -EPROBE_DEFER.
-> 
-> >Or maybe you simply want to be early and don't want to get deferred? Are
-> >we talking then about boot optimizations or necessities?
-> 
-> The problem which I'm trying to fix is not having to write a (complex)
-> gpio driver for an undocumented PMIC which I (and AFAICT no-one) needs (*)
-> just because the i2c-core needs to be "special" and do the acpi_dev_gpio_irq_get
-> for me even though in this specific driver I don't need the irq at index
-> 0 at all. IOW the problem which I'm trying to fix is to get i2c_device_probe
-> to not out-smart me and never call my driver's probe method for
-> invalid reasons.
+Calls to acpi_get_table() must be paired with acpi_put_table() to undo
+the mapping established by acpi_tb_acquire_table().
 
-I wonder if, instead of adding flags to I2C core (which I think behaves
-quite sanely), we could not have a "simple" GPIO stub driver for that
-PMIC that just registers gpiochip and does nothing (until somebody finds
-a use case and actually adds meat to it). This will stop
-acpi_dev_gpio_irq_get() returning -EPROBE_DEFER and all will be well in
-the kingdom.
+Cc: <stable@vger.kernel.org>
+Fixes: 6b11d1d67713 ("ACPI / osl: Remove acpi_get_table_with_size()/early_acpi_os_unmap_memory() users")
+Cc: Lv Zheng <lv.zheng@intel.com>
+Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Thanks.
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index c8ea9d698cd0..6acfea69f061 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2818,6 +2818,11 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(acpi_nfit_desc_init);
+ 
++static void acpi_nfit_put_table(void *table)
++{
++	acpi_put_table(table);
++}
++
+ static int acpi_nfit_add(struct acpi_device *adev)
+ {
+ 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+@@ -2834,6 +2839,10 @@ static int acpi_nfit_add(struct acpi_device *adev)
+ 		dev_dbg(dev, "failed to find NFIT at startup\n");
+ 		return 0;
+ 	}
++
++	rc = devm_add_action_or_reset(dev, acpi_nfit_put_table, tbl);
++	if (rc)
++		return rc;
+ 	sz = tbl->length;
+ 
+ 	acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
 
--- 
-Dmitry
