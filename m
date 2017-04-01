@@ -1,56 +1,136 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V8 5/6] ACPI: Support the probing on the devices which
- apply indirect-IO
-Date: Sat, 1 Apr 2017 01:02:32 +0200
-Message-ID: <CAJZ5v0gZdghH7jjd-zMmqXNkuvVVVSPDHfBrJXx5OXR2NE0KgA@mail.gmail.com>
-References: <1490887619-61732-1-git-send-email-yuanzhichang@hisilicon.com>
- <1490887619-61732-6-git-send-email-yuanzhichang@hisilicon.com>
- <1908501.jAQQKvjW4f@aspire.rjw.lan> <58DDFCBE.1030705@hisilicon.com>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH] ACPICA: use designated initializers
+Date: Fri, 31 Mar 2017 17:26:27 -0700
+Message-ID: <CAGXu5j+S28jat1E+wNDE710cQ9qcHnkM12qi3HActrw-imwQGw@mail.gmail.com>
+References: <20161217010425.GA140581@beast> <1AE640813FDE7649BE1B193DEA596E886CDFF348@SHSMSX101.ccr.corp.intel.com>
+ <CAGXu5jJk2+_r_72B=yqz9=s=S3VY6v8o7jis7e6YMhy2tSJgHw@mail.gmail.com> <1AE640813FDE7649BE1B193DEA596E886CE6BD95@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f46.google.com ([209.85.218.46]:33780 "EHLO
-        mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751263AbdCaXCe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Mar 2017 19:02:34 -0400
-In-Reply-To: <58DDFCBE.1030705@hisilicon.com>
+Received: from mail-it0-f50.google.com ([209.85.214.50]:35947 "EHLO
+        mail-it0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754944AbdDAA02 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Mar 2017 20:26:28 -0400
+Received: by mail-it0-f50.google.com with SMTP id e75so21942542itd.1
+        for <linux-acpi@vger.kernel.org>; Fri, 31 Mar 2017 17:26:28 -0700 (PDT)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE6BD95@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "zhichang.yuan" <yuanzhichang@hisilicon.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, Brian Starkey <brian.starkey@arm.com>, Olof Johansson <olof@lixom.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linuxarm@huawei.com"devicetree@vger.kernel.org" <de>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Fri, Mar 31, 2017 at 8:52 AM, zhichang.yuan
-<yuanzhichang@hisilicon.com> wrote:
-> Hi, Rafael,
+On Wed, Mar 29, 2017 at 7:12 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi,
 >
-> Thanks for reviewing this!
->
-> On 2017/3/31 4:31, Rafael J. Wysocki wrote:
->> On Thursday, March 30, 2017 11:26:58 PM zhichang.yuan wrote:
->>> On some platforms(such as Hip06/Hip07), the legacy ISA/LPC devices access I/O
->>> with some special host-local I/O ports known on x86. To access the I/O
->>> peripherals, an indirect-IO mechanism is introduced to mapped the host-local
->>> I/O to system logical/fake PIO similar the PCI MMIO on architectures where no
->>> separate I/O space exists. Just as PCI MMIO, the host I/O range should be
->>> registered before probing the downstream devices and set up the I/O mapping.
->>> But current ACPI bus probing doesn't support these indirect-IO hosts/devices.
->>>
->>> This patch introdueces a new ACPI handler for this device category. Through the
->>> handler attach callback, the indirect-IO hosts I/O registration is done and
->>> all peripherals' I/O resources are translated into logic/fake PIO before
->>> starting the enumeration.
+>> From: keescook@google.com [mailto:keescook@google.com] On Behalf Of Kees Cook
+>> Subject: Re: [PATCH] ACPICA: use designated initializers
 >>
->> Can you explain to me briefly what exactly this code is expected to be doing?
+>> On Sun, Dec 18, 2016 at 10:06 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
+>> > Hi,
+>> >
+>> >> From: Kees Cook [mailto:keescook@chromium.org]
+>> >> Subject: [PATCH] ACPICA: use designated initializers
+>> >>
+>> >> Prepare to mark sensitive kernel structures for randomization by making
+>> >> sure they're using designated initializers. These were identified during
+>> >> allyesconfig builds of x86, arm, and arm64, with most initializer fixes
+>> >> extracted from grsecurity.
+>> >
+>> > This commit is not suitable for ACPICA upstream.
+>> > It's not portable. Please drop.
+>>
+>> What compilers are building this that do not support designated
+>> initializers? Also, couldn't this be made into a macro so it could be
+>> supported in either case?
 >
-> As you know currently for ARM architecture IO space is memory mapped and
-> is only used by pci devices. The port number is dynamically allocated
-> converting the device IO address into a PIO token: i.e.
-> http://lxr.free-electrons.com/source/drivers/acpi/pci_root.c#L745
-> This patch is meant to support a new class of IO host controller
-> that are not PCI based and that still require to have the IO addresses
-> be translated in the same PIO token space as the PCI controller
+> It's MSVC.
+> In ACPICA upstream, it supports Intel compiler, GCC and MSVC.
+>
+>>
+>> #ifdef __GNUC__
+>> # define ACPI_SLEEP_FUNCTIONS(legacy, extended) { \
+>>     .legacy_function = legacy, \
+>>     .extended_function = extended, \
+>> }
+>> #else
+>> # define ACPI_SLEEP_FUNCTIONS(legacy, extended) { legacy, extended }
+>> #endif
+>>
+>> ...
+>>
+>>  static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
+>>         ACPI_SLEEP_FUNCTIONS(
+>>                ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_sleep),
+>>                acpi_hw_extended_sleep),
+>> ...
+>
+> There are many such cases in ACPICA, and I couldn't see the benefit to introduce such mechanism to such a software whose purposes contain portability.
+> Unless you can invent a mechanism that can be utilized by all such cases.
+> Then you should put it into acgcc.h and implement a replaceable in acmsvc.h.
+> After that, you surely need to do a cleanup in the entire ACPICA code base using this new mechanism.
 
-IOW, this is ARM-specific, right?
+This is only needed in a few cases, so I think general solution would
+be overkill. That said, it looks like MSVC supports designated
+initializers. Are people building this with especially old compilers?
 
-Thanks,
-Rafael
+-Kees
+
+>
+> Thanks
+> Lv
+>
+>>
+>>
+>> -Kees
+>>
+>> >
+>> > Thanks
+>> > Lv
+>> >
+>> >>
+>> >> Signed-off-by: Kees Cook <keescook@chromium.org>
+>> >> ---
+>> >>  drivers/acpi/acpica/hwxfsleep.c | 11 ++++++-----
+>> >>  1 file changed, 6 insertions(+), 5 deletions(-)
+>> >>
+>> >> diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
+>> >> index f76e0eab32b8..25cd5c66e102 100644
+>> >> --- a/drivers/acpi/acpica/hwxfsleep.c
+>> >> +++ b/drivers/acpi/acpica/hwxfsleep.c
+>> >> @@ -70,11 +70,12 @@ static acpi_status acpi_hw_sleep_dispatch(u8 sleep_state, u32 function_id);
+>> >>  /* Legacy functions are optional, based upon ACPI_REDUCED_HARDWARE */
+>> >>
+>> >>  static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
+>> >> -     {ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_sleep),
+>> >> -      acpi_hw_extended_sleep},
+>> >> -     {ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake_prep),
+>> >> -      acpi_hw_extended_wake_prep},
+>> >> -     {ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake), acpi_hw_extended_wake}
+>> >> +     { .legacy_function = ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_sleep),
+>> >> +       .extended_function = acpi_hw_extended_sleep },
+>> >> +     { .legacy_function = ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake_prep),
+>> >> +       .extended_function = acpi_hw_extended_wake_prep },
+>> >> +     { .legacy_function = ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake),
+>> >> +       .extended_function = acpi_hw_extended_wake }
+>> >>  };
+>> >>
+>> >>  /*
+>> >> --
+>> >> 2.7.4
+>> >>
+>> >>
+>> >> --
+>> >> Kees Cook
+>> >> Nexus Security
+>>
+>>
+>>
+>> --
+>> Kees Cook
+>> Pixel Security
+
+
+
+-- 
+Kees Cook
+Pixel Security
