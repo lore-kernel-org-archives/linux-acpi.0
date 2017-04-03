@@ -1,88 +1,33 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH] ACPI: emits change uevents to all physical companion devices of container's children
-Date: Mon,  3 Apr 2017 23:55:33 +0800
-Message-ID: <20170403155533.30283-1-jlee@suse.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH 0/2] Make cppc acpi driver aware of pcc subspace ids
+Date: Mon, 3 Apr 2017 10:44:29 -0600
+Message-ID: <ccc72eec-4a43-b976-0195-49a7c0029641@codeaurora.org>
+References: <1490941442-11954-1-git-send-email-george.cherian@cavium.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:36129 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751803AbdDCPzl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2017 11:55:41 -0400
+Received: from smtp.codeaurora.org ([198.145.29.96]:42114 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753022AbdDCQoc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2017 12:44:32 -0400
+In-Reply-To: <1490941442-11954-1-git-send-email-george.cherian@cavium.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Michal Hocko <mhocko@suse.com>, Jiri Kosina <jkosina@suse.cz>
+To: George Cherian <george.cherian@cavium.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
+Cc: ashwin.chaugule@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, jassisinghbrar@gmail.com, robert.moore@intel.com, lv.zheng@intel.com
 
-The caa73ea1 patch, "ACPI / hotplug / driver core: Handle containers
-in a special way", introduced the offline callback of acpi container.
-In the patch description, it mentions:
+Hi George,
 
-    For ACPI containers that callback simply walks the list of ACPI
-    device objects right below the container object (its children) and
-    checks if all of their physical companion devices are offline.  If
-    that's not the case, it returns -EBUSY and the container system
-    devivce cannot be put offline.  Consequently, to put the container
-    system device offline, it is necessary to put all of the physical
-    devices depending on its ACPI companion object offline beforehand.
+On 3/31/2017 12:24 AM, George Cherian wrote:
+> The current cppc acpi driver works with only one pcc subspace id.
+> It maintains and registers only one pcc channel even if the acpi table has 
+> different pcc subspace ids. The series tries to address the same by making 
+> cppc acpi driver aware of multiple possible pcc subspace ids.
+The current ACPI 6.1 spec restricts the CPPC to a single PCC subspace. See section:
+8.4.7.1.9 Using PCC Registers, which states "If the PCC register space is used, all PCC
+registers must be defined to be in the same subspace."
 
-Looks that it means acpi_container_offline() should walks all physical
-companion devices of container's children and checks their offline
-state. And, the comment in source code is "Check all of the dependent
-devices' physical companions", which means it should checks _all_
-physical companions.
-
-But, the checking code just stops at the first not-offlined physical
-companion device of the first not-offlined child, then kernel only
-emits KOBJ_CHANGE uevent to the one device. It doesn't really walk
-all children's all physical companion devices and doesn't send change
-uevent to them.
-
-This causes that usespace can only receive one uevent for one physical
-companion device in acpi container when acpi container offline is
-triggered.
-
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
----
- drivers/acpi/container.c | 5 +++--
- drivers/acpi/scan.c      | 1 -
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 12c2409..1f1537d 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -43,13 +43,14 @@ static int acpi_container_offline(struct container_dev *cdev)
- {
- 	struct acpi_device *adev = ACPI_COMPANION(&cdev->dev);
- 	struct acpi_device *child;
-+	int ret = 0;
- 
- 	/* Check all of the dependent devices' physical companions. */
- 	list_for_each_entry(child, &adev->children, node)
- 		if (!acpi_scan_is_offline(child, false))
--			return -EBUSY;
-+			ret = -EBUSY;
- 
--	return 0;
-+	return ret;
- }
- 
- static void acpi_container_release(struct device *dev)
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 1926918..1a9055c 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -134,7 +134,6 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
- 				kobject_uevent(&pn->dev->kobj, KOBJ_CHANGE);
- 
- 			offline = false;
--			break;
- 		}
- 
- 	mutex_unlock(&adev->physical_node_lock);
--- 
-2.10.2
-
+--
+Thanks,
+Prashanth
