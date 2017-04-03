@@ -1,135 +1,74 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH] acpi, nfit: fix acpi_get_table leak
-Date: Mon, 3 Apr 2017 13:47:52 -0700
-Message-ID: <CAPcyv4jzd8UoX=Us0VKKQpGCukARt3tYRhnL6mrMtA=0=xZD+A@mail.gmail.com>
-References: <149107472042.16205.8935477753191459036.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20170403190014.GA20892@linux.intel.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH 1/2] ACPI: ACPICA: Add non-linux host build support
+Date: Mon, 3 Apr 2017 15:47:09 -0600
+Message-ID: <5ce80bd8-c0c8-8ba9-872f-80af844a1ac1@redhat.com>
+References: <45fb52dc64ba477ae07c135aecd3b68394f5893b.1490930522.git.lv.zheng@intel.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f51.google.com ([209.85.218.51]:36509 "EHLO
-        mail-oi0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751792AbdDCUry (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2017 16:47:54 -0400
-Received: by mail-oi0-f51.google.com with SMTP id r203so140957386oib.3
-        for <linux-acpi@vger.kernel.org>; Mon, 03 Apr 2017 13:47:53 -0700 (PDT)
-In-Reply-To: <20170403190014.GA20892@linux.intel.com>
+Received: from mail-qk0-f176.google.com ([209.85.220.176]:36768 "EHLO
+        mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751754AbdDCVrN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2017 17:47:13 -0400
+Received: by mail-qk0-f176.google.com with SMTP id p22so126844131qka.3
+        for <linux-acpi@vger.kernel.org>; Mon, 03 Apr 2017 14:47:12 -0700 (PDT)
+In-Reply-To: <45fb52dc64ba477ae07c135aecd3b68394f5893b.1490930522.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Al Stone <ah3@redhat.com>
 
-On Mon, Apr 3, 2017 at 12:00 PM, Ross Zwisler
-<ross.zwisler@linux.intel.com> wrote:
-> On Sat, Apr 01, 2017 at 12:25:20PM -0700, Dan Williams wrote:
->> Calls to acpi_get_table() must be paired with acpi_put_table() to undo
->> the mapping established by acpi_tb_acquire_table().
->>
->> Cc: <stable@vger.kernel.org>
->> Fixes: 6b11d1d67713 ("ACPI / osl: Remove acpi_get_table_with_size()/early_acpi_os_unmap_memory() users")
->> Cc: Lv Zheng <lv.zheng@intel.com>
->> Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> ---
->>  drivers/acpi/nfit/core.c |    9 +++++++++
->>  1 file changed, 9 insertions(+)
->>
->> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
->> index c8ea9d698cd0..6acfea69f061 100644
->> --- a/drivers/acpi/nfit/core.c
->> +++ b/drivers/acpi/nfit/core.c
->> @@ -2818,6 +2818,11 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
->>  }
->>  EXPORT_SYMBOL_GPL(acpi_nfit_desc_init);
->>
->> +static void acpi_nfit_put_table(void *table)
->> +{
->> +     acpi_put_table(table);
->> +}
->> +
->>  static int acpi_nfit_add(struct acpi_device *adev)
->>  {
->>       struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
->> @@ -2834,6 +2839,10 @@ static int acpi_nfit_add(struct acpi_device *adev)
->>               dev_dbg(dev, "failed to find NFIT at startup\n");
->>               return 0;
->>       }
->> +
->> +     rc = devm_add_action_or_reset(dev, acpi_nfit_put_table, tbl);
->> +     if (rc)
->> +             return rc;
->>       sz = tbl->length;
->>
->>       acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
->
-> I've been looking at this this as well, and I think it might be better to just
-> drop the reference immediately in acpi_nfit_add() after we're done processing
-> the tables?
->
-> Anyway, here's the patch I was working on, but I think either works.
->
-> ------ 8< ------
-> From 4819cd889b08c3c17f8f9fcf895a083f21fa0898 Mon Sep 17 00:00:00 2001
-> From: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Date: Mon, 3 Apr 2017 11:53:32 -0600
-> Subject: [PATCH] nfit: release reference on ACPI nfit table
->
-> Currently acpi_nfit_add() grabs a reference to the ACPI NFIT table
-> structures via acpi_get_table(), but never releases it with
-> acpi_put_table().  This means that the refcount protecting the ioremap for
-> the NFIT table never decrements, so the ioremap can never be undone.  The
-> ioremap happens via this path:
->
-> acpi_get_table()
->   acpi_tb_get_table()
->     acpi_tb_validate_table()
->       acpi_tb_acquire_table()
->         acpi_os_map_memory()
->
-> In practice this fix is correct but won't have a usable visible impact
-> because the ACPI sysfs code (acpi_table_attr_init() et al.), which
-> populates /sys/firmware/acpi/tables/NFIT, also keeps a table reference, so
-> the NFIT table memory will always remain mapped.
->
-> We drop the refcount at the end of acpi_nfit_add() instead of waiting till
-> driver unload and doing it via acpi_nfit_remove() or something akin to
-> acpi_nfit_destruct() called via the devm_ interface.  This is because
-> during acpi_nfit_add() we never actually keep any references to the
-> original ACPI tables.  We either copy individual elements out, or we make
-> whole copies of tables in functions like add_spa(), add memdev(), etc.
->
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+On 03/30/2017 10:53 PM, Lv Zheng wrote:
+> _LINUX: used to detect a target build is a linux kernel/application.
+> __linux__: used to detect a build is on a linux hosts.
+> 
+> Thus we can see: if a linux kernel build is performed on environments other
+> than linux hosts, __linux__ may not be defined by the compiler and _LINUX
+> cannot cover linux kernel resident ACPICA files, as it's only defined in
+> <linux/acpi.h> and hence only allows non ACPICA kernel files to correctly
+> include aclinux.h.
+> As a conclusion, we don't actually support such build.
+> 
+> This patch adds -D_LINUX for ACPICA files so that kernel builds on any
+> hosts can use unified _LINUX as a linux kernel target indication to
+> correctly include aclinux.h.
+> 
+> Cc: Al Stone <ah3@redhat.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 > ---
->  drivers/acpi/nfit/core.c | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 662036b..ad0dfd6 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -2833,8 +2833,10 @@ static int acpi_nfit_add(struct acpi_device *adev)
->         sz = tbl->length;
->
->         acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
-> -       if (!acpi_desc)
-> -               return -ENOMEM;
-> +       if (!acpi_desc) {
-> +               rc = -ENOMEM;
-> +               goto out;
-> +       }
->         acpi_nfit_desc_init(acpi_desc, &adev->dev);
->
->         /* Save the acpi header for exporting the revision via sysfs */
-> @@ -2857,6 +2859,8 @@ static int acpi_nfit_add(struct acpi_device *adev)
->                 rc = acpi_nfit_init(acpi_desc, (void *) tbl
->                                 + sizeof(struct acpi_table_nfit),
->                                 sz - sizeof(struct acpi_table_nfit));
-> +out:
-> +       acpi_put_table(tbl);
->         return rc;
->  }
+>  drivers/acpi/acpica/Makefile | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
+> index 32d93ed..dea6530 100644
+> --- a/drivers/acpi/acpica/Makefile
+> +++ b/drivers/acpi/acpica/Makefile
+> @@ -2,7 +2,7 @@
+>  # Makefile for ACPICA Core interpreter
+>  #
+>  
+> -ccflags-y			:= -Os -DBUILDING_ACPICA
+> +ccflags-y			:= -Os -D_LINUX -DBUILDING_ACPICA
+>  ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
+>  
+>  # use acpi.o to put all files here into acpi.o modparam namespace
+> 
 
-Hi Ross, thanks for this. I'll add your note about this fix not making
-a difference in practice to my devm_add_action_or_reset() version and
-drop -stable. I don't want to maintain gotos in the init path if at
-all possible.
+These patches do solve the particular compilation problem I was having
+(targeting an embedded arm64 system), so thank you for that.  The build
+test obviously needs fixing, but with the Linaro aarch64-elf compilers,
+and the defconfig,
+
+Tested-by: Al Stone <ahs3@redhat.com>
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
