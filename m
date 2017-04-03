@@ -1,57 +1,48 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v3 1/3] mfd: intel_soc_pmic: Fix a mess with compilation units
-Date: Mon, 3 Apr 2017 12:26:54 +0300
-Message-ID: <CAHp75VcGgSF-spv6OZWuAE9ardAW=Q6GjC7T8Eto=7subAuW2g@mail.gmail.com>
-References: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
- <201704030357.HdHD43mM%fengguang.wu@intel.com> <CAHp75Vdt3ys=tFax5iK5tnANNCLj-b4-VxO78b4ZT0jqdAnsdg@mail.gmail.com>
- <20170403092028.z4xtrwz5wj3go3jd@dell>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v23 09/11] acpi/arm64: Add memory-mapped timer support in
+ GTDT driver
+Date: Mon, 3 Apr 2017 10:49:45 +0100
+Message-ID: <20170403094944.GC5706@arm.com>
+References: <20170331175105.8370-1-fu.wei@linaro.org>
+ <20170331175105.8370-10-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20170403092028.z4xtrwz5wj3go3jd@dell>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: kbuild test robot <lkp@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, kbuild-all@01.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:56414 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751845AbdDCJt2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 3 Apr 2017 05:49:28 -0400
+Content-Disposition: inline
+In-Reply-To: <20170331175105.8370-10-fu.wei@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: fu.wei@linaro.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 
-On Mon, Apr 3, 2017 at 12:20 PM, Lee Jones <lee.jones@linaro.org> wrote:
-> On Sun, 02 Apr 2017, Andy Shevchenko wrote:
->
->> On Sun, Apr 2, 2017 at 11:03 PM, kbuild test robot <lkp@intel.com> wrote:
->> > Hi Andy,
->> >
->> > [auto build test ERROR on ljones-mfd/for-mfd-next]
->> > [also build test ERROR on v4.11-rc4 next-20170331]
->> > [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->>
->> Thank you for report, though...
->>
->> >
->> > url:    https://github.com/0day-ci/linux/commits/Andy-Shevchenko/mfd-intel_soc_pmic-Fix-a-mess-with-compilation-units/20170320-153539
->> > base:   https://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git for-mfd-next
->> > config: tile-allyesconfig (attached as .config)
->> > compiler: tilegx-linux-gcc (GCC) 4.6.2
->> > reproduce:
->> >         wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->> >         chmod +x ~/bin/make.cross
->> >         # save the attached .config to linux build tree
->>
->> >         make.cross ARCH=tile
->>
->> ...I doubt how below is related to my patch. This is obvious x86 code
->> which was initially submitted without
->> depend on X86
->> line in corresponding Kconfig.
->
-> I think you should probably specify the architecture in the Kconfig
-> entry, or else some `randconfig`s will fail.
+On Sat, Apr 01, 2017 at 01:51:03AM +0800, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
+> 
+> On platforms booting with ACPI, architected memory-mapped timers'
+> configuration data is provided by firmware through the ACPI GTDT
+> static table.
+> 
+> The clocksource architected timer kernel driver requires a firmware
+> interface to collect timer configuration and configure its driver.
+> this infrastructure is present for device tree systems, but it is
+> missing on systems booting with ACPI.
+> 
+> Implement the kernel infrastructure required to parse the static
+> ACPI GTDT table so that the architected timer clocksource driver can
+> make use of it on systems booting with ACPI, therefore enabling
+> the corresponding timers configuration.
+> 
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/acpi/arm64/gtdt.c | 146 ++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h      |   1 +
+>  2 files changed, 147 insertions(+)
 
-Yes, I understand how to fix this, though it's not a problem of this
-patch per se.
+We need Lorenzo's ack on this.
 
-Fengguang, is there any possible way to determine the relation between
-an error and a root cause change?
-
--- 
-With Best Regards,
-Andy Shevchenko
+Will
