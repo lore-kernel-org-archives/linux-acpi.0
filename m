@@ -1,237 +1,106 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v23 09/11] acpi/arm64: Add memory-mapped timer support in
- GTDT driver
-Date: Mon, 3 Apr 2017 11:45:58 +0100
-Message-ID: <20170403104558.GA32414@red-moon>
-References: <20170331175105.8370-1-fu.wei@linaro.org>
- <20170331175105.8370-10-fu.wei@linaro.org>
+From: Fengguang Wu <lkp@intel.com>
+Subject: Re: [kbuild-all] [PATCH v3 1/3] mfd: intel_soc_pmic: Fix a mess with
+ compilation units
+Date: Mon, 3 Apr 2017 19:06:31 +0800
+Message-ID: <20170403110631.2fksvvnj22plih7o@wfg-t540p.sh.intel.com>
+References: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
+ <201704030357.HdHD43mM%fengguang.wu@intel.com>
+ <CAHp75Vdt3ys=tFax5iK5tnANNCLj-b4-VxO78b4ZT0jqdAnsdg@mail.gmail.com>
+ <20170403092028.z4xtrwz5wj3go3jd@dell>
+ <CAHp75VcGgSF-spv6OZWuAE9ardAW=Q6GjC7T8Eto=7subAuW2g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170331175105.8370-10-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org
+In-Reply-To: <CAHp75VcGgSF-spv6OZWuAE9ardAW=Q6GjC7T8Eto=7subAuW2g@mail.gmail.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Lee Jones <lee.jones@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, kbuild-all@01.org, Zhang Rui <rui.zhang@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Apr 01, 2017 at 01:51:03AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> 
-> On platforms booting with ACPI, architected memory-mapped timers'
-> configuration data is provided by firmware through the ACPI GTDT
-> static table.
-> 
-> The clocksource architected timer kernel driver requires a firmware
-> interface to collect timer configuration and configure its driver.
-> this infrastructure is present for device tree systems, but it is
-> missing on systems booting with ACPI.
-> 
-> Implement the kernel infrastructure required to parse the static
-> ACPI GTDT table so that the architected timer clocksource driver can
-> make use of it on systems booting with ACPI, therefore enabling
-> the corresponding timers configuration.
-> 
-> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/acpi/arm64/gtdt.c | 146 ++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/acpi.h      |   1 +
->  2 files changed, 147 insertions(+)
-> 
-> diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
-> index 3d95af8..3dd33f3 100644
-> --- a/drivers/acpi/arm64/gtdt.c
-> +++ b/drivers/acpi/arm64/gtdt.c
-> @@ -13,6 +13,7 @@
->  
->  #include <linux/acpi.h>
->  #include <linux/init.h>
-> +#include <linux/irqdomain.h>
->  #include <linux/kernel.h>
->  
->  #include <clocksource/arm_arch_timer.h>
-> @@ -37,6 +38,28 @@ struct acpi_gtdt_descriptor {
->  
->  static struct acpi_gtdt_descriptor acpi_gtdt_desc __initdata;
->  
-> +static inline void *next_platform_timer(void *platform_timer)
-> +{
-> +	struct acpi_gtdt_header *gh = platform_timer;
-> +
-> +	platform_timer += gh->length;
-> +	if (platform_timer < acpi_gtdt_desc.gtdt_end)
-> +		return platform_timer;
-> +
-> +	return NULL;
-> +}
-> +
-> +#define for_each_platform_timer(_g)				\
-> +	for (_g = acpi_gtdt_desc.platform_timer; _g;	\
-> +	     _g = next_platform_timer(_g))
-> +
-> +static inline bool is_timer_block(void *platform_timer)
-> +{
-> +	struct acpi_gtdt_header *gh = platform_timer;
-> +
-> +	return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
-> +}
-> +
->  static int __init map_gt_gsi(u32 interrupt, u32 flags)
->  {
->  	int trigger, polarity;
-> @@ -155,3 +178,126 @@ int __init acpi_gtdt_init(struct acpi_table_header *table,
->  
->  	return 0;
->  }
-> +
-> +static int __init gtdt_parse_timer_block(struct acpi_gtdt_timer_block *block,
-> +					 struct arch_timer_mem *timer_mem)
-> +{
-> +	int i;
-> +	struct arch_timer_mem_frame *frame;
-> +	struct acpi_gtdt_timer_entry *gtdt_frame;
-> +
-> +	if (!block->timer_count) {
-> +		pr_err(FW_BUG "GT block present, but frame count is zero.");
-> +		return -ENODEV;
-> +	}
-> +
-> +	if (block->timer_count > ARCH_TIMER_MEM_MAX_FRAMES) {
-> +		pr_err(FW_BUG "GT block lists %d frames, ACPI spec only allows 8\n",
-> +		       block->timer_count);
-> +		return -EINVAL;
-> +	}
-> +
-> +	timer_mem->cntctlbase = (phys_addr_t)block->block_address;
-> +	/*
-> +	 * The CNTCTLBase frame is 4KB (register offsets 0x000 - 0xFFC).
-> +	 * See ARM DDI 0487A.k_iss10775, page I1-5129, Table I1-3
-> +	 * "CNTCTLBase memory map".
-> +	 */
-> +	timer_mem->size = SZ_4K;
-> +
-> +	gtdt_frame = (void *)block + block->timer_offset;
-> +	if (gtdt_frame + block->timer_count != (void *)block + block->header.length)
-> +		return -EINVAL;
-> +
-> +	/*
-> +	 * Get the GT timer Frame data for every GT Block Timer
-> +	 */
-> +	for (i = 0; i < block->timer_count; i++, gtdt_frame++) {
-> +		if (gtdt_frame->common_flags & ACPI_GTDT_GT_IS_SECURE_TIMER)
-> +			continue;
-> +
-> +		if (!gtdt_frame->base_address || !gtdt_frame->timer_interrupt)
-> +			goto error;
-> +
-> +		frame = &timer_mem->frame[gtdt_frame->frame_number];
-> +		frame->phys_irq = map_gt_gsi(gtdt_frame->timer_interrupt,
-> +					     gtdt_frame->timer_flags);
-> +		if (frame->phys_irq <= 0) {
-> +			pr_warn("failed to map physical timer irq in frame %d.\n",
-> +				gtdt_frame->frame_number);
-> +			goto error;
-> +		}
-> +
-> +		if (gtdt_frame->virtual_timer_interrupt) {
-> +			frame->virt_irq =
-> +				map_gt_gsi(gtdt_frame->virtual_timer_interrupt,
-> +					   gtdt_frame->virtual_timer_flags);
-> +			if (frame->virt_irq <= 0) {
-> +				pr_warn("failed to map virtual timer irq in frame %d.\n",
-> +					gtdt_frame->frame_number);
-> +				acpi_unregister_gsi(gtdt_frame->timer_interrupt);
-> +				goto error;
-> +			}
-> +		} else {
-> +			frame->virt_irq = 0;
-> +			pr_debug("virtual timer in frame %d not implemented.\n",
-> +				 gtdt_frame->frame_number);
-> +		}
-> +
-> +		frame->cntbase = gtdt_frame->base_address;
-> +		/*
-> +		 * The CNTBaseN frame is 4KB (register offsets 0x000 - 0xFFC).
-> +		 * See ARM DDI 0487A.k_iss10775, page I1-5130, Table I1-4
-> +		 * "CNTBaseN memory map".
-> +		 */
-> +		frame->size = SZ_4K;
-> +		frame->valid = true;
-> +	}
-> +
-> +	return 0;
-> +
-> +error:
-> +	for (i = 0; i < ARCH_TIMER_MEM_MAX_FRAMES; i++) {
-> +		frame = &timer_mem->frame[i];
-> +		if (!frame->valid)
-> +			continue;
-> +		irq_dispose_mapping(frame->phys_irq);
-> +		if (frame->virt_irq)
-> +			irq_dispose_mapping(frame->virt_irq);
-> +	}
+On Mon, Apr 03, 2017 at 12:26:54PM +0300, Andy Shevchenko wrote:
+>On Mon, Apr 3, 2017 at 12:20 PM, Lee Jones <lee.jones@linaro.org> wrote:
+>> On Sun, 02 Apr 2017, Andy Shevchenko wrote:
+>>
+>>> On Sun, Apr 2, 2017 at 11:03 PM, kbuild test robot <lkp@intel.com> wrote:
+>>> > Hi Andy,
+>>> >
+>>> > [auto build test ERROR on ljones-mfd/for-mfd-next]
+>>> > [also build test ERROR on v4.11-rc4 next-20170331]
+>>> > [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+>>>
+>>> Thank you for report, though...
+>>>
+>>> >
+>>> > url:    https://github.com/0day-ci/linux/commits/Andy-Shevchenko/mfd-intel_soc_pmic-Fix-a-mess-with-compilation-units/20170320-153539
+>>> > base:   https://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git for-mfd-next
+>>> > config: tile-allyesconfig (attached as .config)
+>>> > compiler: tilegx-linux-gcc (GCC) 4.6.2
+>>> > reproduce:
+>>> >         wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+>>> >         chmod +x ~/bin/make.cross
+>>> >         # save the attached .config to linux build tree
+>>>
+>>> >         make.cross ARCH=tile
+>>>
+>>> ...I doubt how below is related to my patch. This is obvious x86 code
+>>> which was initially submitted without
+>>> depend on X86
+>>> line in corresponding Kconfig.
+>>
+>> I think you should probably specify the architecture in the Kconfig
+>> entry, or else some `randconfig`s will fail.
+>
+>Yes, I understand how to fix this, though it's not a problem of this
+>patch per se.
+>
+>Fengguang, is there any possible way to determine the relation between
+>an error and a root cause change?
 
-You should unregister GSIs with the same API you use to register GSIs,
-I do not like code that assumes acpi_unregister_gsi() internal
-implementation, it is wrong to do that.
+Andy, our 0day build error reports are all bisected ones. It means the
+error happens since the reported patch/commit, which is either
+responsible for the root cause, or somehow triggers (or changes the
+exact form of) an old bug.
 
-Other than that patch is ok:
+I just manual confirmed the bisect is correct:
 
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+=============== commit 162c61d1a ===============
+/home/wfg/linux
+HEAD is now at 162c61d... mfd: intel_soc_pmic: Fix a mess with compilation units
+/home/wfg/linux/obj-compiletest
 
-> +	return -EINVAL;
-> +}
-> +
-> +/**
-> + * acpi_arch_timer_mem_init() - Get the info of all GT blocks in GTDT table.
-> + * @timer_mem:	The pointer to the array of struct arch_timer_mem for returning
-> + *		the result of parsing. The element number of this array should
-> + *		be platform_timer_count(the total number of platform timers).
-> + * @timer_count: It points to a integer variable which is used for storing the
-> + *		number of GT blocks we have parsed.
-> + *
-> + * Return: 0 if success, -EINVAL/-ENODEV if error.
-> + */
-> +int __init acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem,
-> +				    int *timer_count)
-> +{
-> +	int ret;
-> +	void *platform_timer;
-> +
-> +	*timer_count = 0;
-> +	for_each_platform_timer(platform_timer) {
-> +		if (is_timer_block(platform_timer)) {
-> +			ret = gtdt_parse_timer_block(platform_timer, timer_mem);
-> +			if (ret)
-> +				return ret;
-> +			timer_mem++;
-> +			(*timer_count)++;
-> +		}
-> +	}
-> +
-> +	if (*timer_count)
-> +		pr_info("found %d memory-mapped timer block(s).\n",
-> +			*timer_count);
-> +
-> +	return 0;
-> +}
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 4b5c146..3193724 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -599,6 +599,7 @@ int acpi_reconfig_notifier_unregister(struct notifier_block *nb);
->  int acpi_gtdt_init(struct acpi_table_header *table, int *platform_timer_count);
->  int acpi_gtdt_map_ppi(int type);
->  bool acpi_gtdt_c3stop(int type);
-> +int acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem, int *timer_count);
->  #endif
->  
->  #else	/* !CONFIG_ACPI */
-> -- 
-> 2.9.3
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+make ARCH=tile allyesconfig
+make ARCH=tile drivers/mfd/
+
+!!! BUILD ERROR !!!
+make ARCH=tile M=drivers/mfd/
+
+!!! BUILD ERROR !!!
+grep -a -F drivers/mfd/ /tmp/build-err-162c61d1a76aa5ccfb398225b3f6f2e896fb58b0-wfg --color
+../drivers/mfd/intel_soc_pmic_bxtwc.c:24:31: fatal error: asm/intel_pmc_ipc.h: No such file or directory
+compilation terminated.
+make[2]: *** [drivers/mfd/intel_soc_pmic_bxtwc.o] Error 1
+make[2]: Target '__build' not remade because of errors.
+make[1]: *** [drivers/mfd/] Error 2
+make: *** [sub-make] Error 2
+make[2]: *** No rule to make target 'drivers/mfd//intel_soc_pmic_bxtwc.o', needed by 'drivers/mfd//built-in.o'.
+make[2]: Target '__build' not remade because of errors.
+make[1]: *** [_module_drivers/mfd/] Error 2
+make[1]: Target '_all' not remade because of errors.
+make: *** [sub-make] Error 2
+
+=============== PREV commit e93c10211d03c35271896b03a40d3eca4a674770 ===============
+/home/wfg/linux
+Previous HEAD position was 162c61d... mfd: intel_soc_pmic: Fix a mess with compilation units
+HEAD is now at e93c102... mfd: lpc_ich: Enable watchdog on Intel Apollo Lake PCH
+/home/wfg/linux/obj-compiletest
+
+make ARCH=tile allyesconfig
+make ARCH=tile drivers/mfd/
+
+make ARCH=tile M=drivers/mfd/
+
+grep -a -F drivers/mfd/ /tmp/build-err-e93c10211d03c35271896b03a40d3eca4a674770-wfg --color
+
+Thanks,
+Fengguang
