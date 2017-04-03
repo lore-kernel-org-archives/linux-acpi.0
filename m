@@ -1,69 +1,88 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [kbuild-all] [PATCH v3 1/3] mfd: intel_soc_pmic: Fix a mess
- with compilation units
-Date: Mon, 03 Apr 2017 17:43:35 +0300
-Message-ID: <1491230615.708.110.camel@linux.intel.com>
-References: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
-         <201704030357.HdHD43mM%fengguang.wu@intel.com>
-         <CAHp75Vdt3ys=tFax5iK5tnANNCLj-b4-VxO78b4ZT0jqdAnsdg@mail.gmail.com>
-         <20170403092028.z4xtrwz5wj3go3jd@dell>
-         <CAHp75VcGgSF-spv6OZWuAE9ardAW=Q6GjC7T8Eto=7subAuW2g@mail.gmail.com>
-         <20170403110631.2fksvvnj22plih7o@wfg-t540p.sh.intel.com>
-         <CAHp75VeWmR0W1=V29OFYrAfodKam=M5bdU8bTQUj_NHVTY2gjg@mail.gmail.com>
-         <20170403143317.3wfqx2nek2p4dyt3@dell>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH] ACPI: emits change uevents to all physical companion devices of container's children
+Date: Mon,  3 Apr 2017 23:55:33 +0800
+Message-ID: <20170403155533.30283-1-jlee@suse.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:24808 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753807AbdDCOnq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 3 Apr 2017 10:43:46 -0400
-In-Reply-To: <20170403143317.3wfqx2nek2p4dyt3@dell>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:36129 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751803AbdDCPzl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2017 11:55:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Fengguang Wu <lkp@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, kbuild-all@01.org, Zhang Rui <rui.zhang@intel.com>
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Michal Hocko <mhocko@suse.com>, Jiri Kosina <jkosina@suse.cz>
 
-On Mon, 2017-04-03 at 15:33 +0100, Lee Jones wrote:
-> On Mon, 03 Apr 2017, Andy Shevchenko wrote:
-> 
-> > On Mon, Apr 3, 2017 at 2:06 PM, Fengguang Wu <lkp@intel.com> wrote:
-> > > On Mon, Apr 03, 2017 at 12:26:54PM +0300, Andy Shevchenko wrote:
-> > > > On Mon, Apr 3, 2017 at 12:20 PM, Lee Jones <lee.jones@linaro.org
-> > > > > wrote:
-> > > > > On Sun, 02 Apr 2017, Andy Shevchenko wrote:
-> > > > > > On Sun, Apr 2, 2017 at 11:03 PM, kbuild test robot <lkp@inte
-> > > > > > l.com>
-> > > > > > wrote:
+The caa73ea1 patch, "ACPI / hotplug / driver core: Handle containers
+in a special way", introduced the offline callback of acpi container.
+In the patch description, it mentions:
 
-> > > > Yes, I understand how to fix this, though it's not a problem of
-> > > > this
-> > > > patch per se.
-> > > > 
-> > > > Fengguang, is there any possible way to determine the relation
-> > > > between
-> > > > an error and a root cause change?
-> > > 
-> > > 
-> > > Andy, our 0day build error reports are all bisected ones. It means
-> > > the
-> > > error happens since the reported patch/commit, which is either
-> > > responsible for the root cause, or somehow triggers (or changes
-> > > the
-> > > exact form of) an old bug.
-> > 
-> > Thanks, like you said in this case it looks pretty much for
-> > triggering
-> > an old bug.
-> 
-> Quite.  But as a good open source citizen, you'll follow up with
-> patches too, right? :)
+    For ACPI containers that callback simply walks the list of ACPI
+    device objects right below the container object (its children) and
+    checks if all of their physical companion devices are offline.  If
+    that's not the case, it returns -EBUSY and the container system
+    devivce cannot be put offline.  Consequently, to put the container
+    system device offline, it is necessary to put all of the physical
+    devices depending on its ACPI companion object offline beforehand.
 
-It looks like I have to submit fix for older bug first. Likely I can do
-this without delays and give you a green light to apply via your tree.
-Unfortunately I will continue on this tomorrow.
+Looks that it means acpi_container_offline() should walks all physical
+companion devices of container's children and checks their offline
+state. And, the comment in source code is "Check all of the dependent
+devices' physical companions", which means it should checks _all_
+physical companions.
 
+But, the checking code just stops at the first not-offlined physical
+companion device of the first not-offlined child, then kernel only
+emits KOBJ_CHANGE uevent to the one device. It doesn't really walk
+all children's all physical companion devices and doesn't send change
+uevent to them.
+
+This causes that usespace can only receive one uevent for one physical
+companion device in acpi container when acpi container offline is
+triggered.
+
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
+---
+ drivers/acpi/container.c | 5 +++--
+ drivers/acpi/scan.c      | 1 -
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index 12c2409..1f1537d 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -43,13 +43,14 @@ static int acpi_container_offline(struct container_dev *cdev)
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(&cdev->dev);
+ 	struct acpi_device *child;
++	int ret = 0;
+ 
+ 	/* Check all of the dependent devices' physical companions. */
+ 	list_for_each_entry(child, &adev->children, node)
+ 		if (!acpi_scan_is_offline(child, false))
+-			return -EBUSY;
++			ret = -EBUSY;
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static void acpi_container_release(struct device *dev)
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 1926918..1a9055c 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -134,7 +134,6 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
+ 				kobject_uevent(&pn->dev->kobj, KOBJ_CHANGE);
+ 
+ 			offline = false;
+-			break;
+ 		}
+ 
+ 	mutex_unlock(&adev->physical_node_lock);
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.10.2
+
