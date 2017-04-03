@@ -1,50 +1,102 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH 0/2] Make cppc acpi driver aware of pcc subspace ids
-Date: Mon, 3 Apr 2017 10:50:07 -0700
-Message-ID: <CAFHUOYzf_CFcYCCTbgpJ_Orp_fJMLX8DD=ag-f3TBv0FeY-CRA@mail.gmail.com>
-References: <1490941442-11954-1-git-send-email-george.cherian@cavium.com> <ccc72eec-4a43-b976-0195-49a7c0029641@codeaurora.org>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v3 3/4] i2c: core: Allow drivers to specify index for irq
+ to get from of / ACPI
+Date: Mon, 3 Apr 2017 11:29:47 -0700
+Message-ID: <20170403182947.GB34530@dtor-ws>
+References: <20170325135550.22509-1-hdegoede@redhat.com>
+ <20170325135550.22509-4-hdegoede@redhat.com>
+ <1490530535.21738.31.camel@linux.intel.com>
+ <1935239d-fdd8-3917-9865-de389e6728e8@redhat.com>
+ <20170330203954.GA1452@katana>
+ <149df3eb-8111-4c91-472e-f6c708302ede@redhat.com>
+ <20170331162332.dar3f3mval2ch2uh@ninjato>
+ <2b4d002f-9e6b-b193-7dc3-2f4c20a93276@redhat.com>
+ <20170401163333.GB17130@dtor-ws>
+ <7a315574-59e8-c182-ff69-07f8fdd60e7f@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yb0-f174.google.com ([209.85.213.174]:33786 "EHLO
-        mail-yb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752077AbdDCRuI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2017 13:50:08 -0400
-Received: by mail-yb0-f174.google.com with SMTP id l201so29701044ybf.0
-        for <linux-acpi@vger.kernel.org>; Mon, 03 Apr 2017 10:50:08 -0700 (PDT)
-In-Reply-To: <ccc72eec-4a43-b976-0195-49a7c0029641@codeaurora.org>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:36264 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751136AbdDCS3u (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2017 14:29:50 -0400
+Content-Disposition: inline
+In-Reply-To: <7a315574-59e8-c182-ff69-07f8fdd60e7f@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Cc: George Cherian <george.cherian@cavium.com>, linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, devel@acpica.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sebastian Reichel <sre@kernel.org>, linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-pm@vger.kernel.org
 
-Hi George,
+On Sun, Apr 02, 2017 at 02:17:59PM +0200, Hans de Goede wrote:
+> Hi,
+> 
+> On 01-04-17 18:33, Dmitry Torokhov wrote:
+> >On Fri, Mar 31, 2017 at 08:22:55PM +0200, Hans de Goede wrote:
+> >>Hi,
+> >>
+> >>On 31-03-17 18:23, Wolfram Sang wrote:
+> >>>
+> >>>>Note I said "flag in i2c_driver" the idea is that the driver can tell
+> >>>>the i2c_core that it is not going to use i2c_client->irq by
+> >>>>setting i2c_driver->no_irq and that the i2c_core then will not bother
+> >>>>with trying to get an irq in i2c_device_probe(), this is esp. useful
+> >>>>for ACPI i2c instantiated devices where we otherwise might end up
+> >>>>returning -EPROBE_DEFER (waiting for an irq to show up) without
+> >>>>needing the irq, which is esp. troublesome when there is no driver
+> >>>>for the irqchip the ACPI irq resource points to as then we end up
+> >>>>waiting indefinitely.
+> >>>
+> >>>Okay, thanks. I understand the big picture. But does it really need to
+> >>>be fixed in I2C core? Independent of I2C: if an irq is described in ACPI
+> >>>and the driver for the needed irq controller is not available, that can
+> >>>lead to various problems everywhere.
+> >>
+> >>Normally drivers call acpi_dev_gpio_irq_get themselves in their probe
+> >>method and the -EPROBE_DEFER handling is done in the drivers probe
+> >>itself, giving drivers various options to deal with irqs.
+> >>
+> >>The problem here is that the i2c system is somewhat special in that
+> >>it does irq mapping on behalf of the driver and does not even bother
+> >>to call the driver's probe() if the acpi_dev_gpio_irq_get() call
+> >>returns -EPROBE_DEFER.
+> >>
+> >>>Or maybe you simply want to be early and don't want to get deferred? Are
+> >>>we talking then about boot optimizations or necessities?
+> >>
+> >>The problem which I'm trying to fix is not having to write a (complex)
+> >>gpio driver for an undocumented PMIC which I (and AFAICT no-one) needs (*)
+> >>just because the i2c-core needs to be "special" and do the acpi_dev_gpio_irq_get
+> >>for me even though in this specific driver I don't need the irq at index
+> >>0 at all. IOW the problem which I'm trying to fix is to get i2c_device_probe
+> >>to not out-smart me and never call my driver's probe method for
+> >>invalid reasons.
+> >
+> >I wonder if, instead of adding flags to I2C core (which I think behaves
+> >quite sanely), we could not have a "simple" GPIO stub driver for that
+> >PMIC that just registers gpiochip and does nothing (until somebody finds
+> >a use case and actually adds meat to it). This will stop
+> >acpi_dev_gpio_irq_get() returning -EPROBE_DEFER and all will be well in
+> >the kingdom.
+> 
+> I'm afraid that that may cause problems when an i2c device shows up
+> with a driver which actually does need a working irq, faking to have
+> a working irq then will lead to lots of head scratching why the irq
+> never triggers then.
 
-On Mon, Apr 3, 2017 at 9:44 AM, Prakash, Prashanth
-<pprakash@codeaurora.org> wrote:
-> Hi George,
->
-> On 3/31/2017 12:24 AM, George Cherian wrote:
->> The current cppc acpi driver works with only one pcc subspace id.
->> It maintains and registers only one pcc channel even if the acpi table has
->> different pcc subspace ids. The series tries to address the same by making
->> cppc acpi driver aware of multiple possible pcc subspace ids.
-> The current ACPI 6.1 spec restricts the CPPC to a single PCC subspace. See section:
-> 8.4.7.1.9 Using PCC Registers, which states "If the PCC register space is used, all PCC
-> registers must be defined to be in the same subspace."
+I was talking about this particular PMIC that you do not want to write
+full driver for, not doing this at i2c core level. If somebody does need
+interrupt form that device, hey will have to write driver.
 
-Agreed with Prashanth, beside of that, spec also says "To amortize the
-cost of PCC transactions, OSPM should read or
-write all PCC registers via a single read or write command when possible."
+> 
+> And this is also useful in other scenarios, I agree that in many
+> cases the i2c-core irq handling is useful, but in more complex cases
+> not so much.
 
-Thanks
-Hoan
+-PPROBE_DEFER is the only one case where driver does not get to run its
+probe() method. In all other scenarios driver is free to ignore
+client->irq and implement its own interrupt parsing and mapping.
 
->
-> --
-> Thanks,
-> Prashanth
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
+
+-- 
+Dmitry
