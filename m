@@ -1,56 +1,73 @@
-From: George Cherian <gcherian@caviumnetworks.com>
-Subject: Re: [PATCH 0/2] Make cppc acpi driver aware of pcc subspace ids
-Date: Tue, 4 Apr 2017 16:23:44 +0530
-Message-ID: <58E37B38.2030204@caviumnetworks.com>
-References: <1490941442-11954-1-git-send-email-george.cherian@cavium.com>
- <ccc72eec-4a43-b976-0195-49a7c0029641@codeaurora.org>
- <CAFHUOYzf_CFcYCCTbgpJ_Orp_fJMLX8DD=ag-f3TBv0FeY-CRA@mail.gmail.com>
+From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V10 05/12] ACPI/IORT: Add function to check SMMUs drivers
+	presence
+Date: Tue, 4 Apr 2017 12:04:39 +0100
+Message-ID: <e2713b7b-718d-c059-2e14-cc6ab7636a22@arm.com>
+References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
+	<1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
+	<1491301105-5274-6-git-send-email-sricharan@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAFHUOYzf_CFcYCCTbgpJ_Orp_fJMLX8DD=ag-f3TBv0FeY-CRA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hoan Tran <hotran@apm.com>, "Prakash, Prashanth" <pprakash@codeaurora.org>
-Cc: George Cherian <george.cherian@cavium.com>, linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, devel@acpica.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1491301105-5274-6-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, will.deacon-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Hoan/Prashanth,
+On 04/04/17 11:18, Sricharan R wrote:
+> From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> 
+> The IOMMU probe deferral implementation requires a mechanism to detect
+> if drivers for SMMU components are built-in in the kernel to detect
+> whether IOMMU configuration for a given device should be deferred (ie
+> SMMU drivers present but still not probed) or not (drivers not present).
+> 
+> Add a simple function to IORT to detect if SMMU drivers for SMMU
+> components managed by IORT are built-in in the kernel.
 
+Ah, if only DT could be this neat and tidy :D
 
-On 04/03/2017 11:20 PM, Hoan Tran wrote:
-> Hi George,
->
-> On Mon, Apr 3, 2017 at 9:44 AM, Prakash, Prashanth
-> <pprakash@codeaurora.org> wrote:
->> Hi George,
->>
->> On 3/31/2017 12:24 AM, George Cherian wrote:
->>> The current cppc acpi driver works with only one pcc subspace id.
->>> It maintains and registers only one pcc channel even if the acpi table has
->>> different pcc subspace ids. The series tries to address the same by making
->>> cppc acpi driver aware of multiple possible pcc subspace ids.
->> The current ACPI 6.1 spec restricts the CPPC to a single PCC subspace. See section:
->> 8.4.7.1.9 Using PCC Registers, which states "If the PCC register space is used, all PCC
->> registers must be defined to be in the same subspace."
->
-> Agreed with Prashanth, beside of that, spec also says "To amortize the
-> cost of PCC transactions, OSPM should read or
-> write all PCC registers via a single read or write command when possible."
+Reviewed-by: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
 
-Yes indeed the spec says so but it was not at all a scalable solution 
-when platform has more number of CPU's and CPU domains. That is why we 
-took this approach.
-
->
-> Thanks
-> Hoan
->
->>
->> --
->> Thanks,
->> Prashanth
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Tested-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+> Cc: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> ---
+>  drivers/acpi/arm64/iort.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 4a5bb96..3dd9ec3 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -523,6 +523,19 @@ static int arm_smmu_iort_xlate(struct device *dev, u32 streamid,
+>  	return ret;
+>  }
+>  
+> +static inline bool iort_iommu_driver_enabled(u8 type)
+> +{
+> +	switch (type) {
+> +	case ACPI_IORT_NODE_SMMU_V3:
+> +		return IS_BUILTIN(CONFIG_ARM_SMMU_V3);
+> +	case ACPI_IORT_NODE_SMMU:
+> +		return IS_BUILTIN(CONFIG_ARM_SMMU);
+> +	default:
+> +		pr_warn("IORT node type %u does not describe an SMMU\n", type);
+> +		return false;
+> +	}
+> +}
+> +
+>  static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+>  					struct acpi_iort_node *node,
+>  					u32 streamid)
+> 
