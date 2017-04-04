@@ -1,84 +1,68 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH V10 12/12] ACPI/IORT: Remove linker section for IORT
- entries probing
-Date: Tue, 4 Apr 2017 12:33:11 +0100
-Message-ID: <fd719e47-2dff-c8f5-b979-d54d2cbf7796@arm.com>
-References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
- <1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
- <1491301105-5274-13-git-send-email-sricharan@codeaurora.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [kbuild-all] [PATCH v3 1/3] mfd: intel_soc_pmic: Fix a mess
+ with compilation units
+Date: Tue, 04 Apr 2017 15:13:52 +0300
+Message-ID: <1491308032.708.123.camel@linux.intel.com>
+References: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
+         <201704030357.HdHD43mM%fengguang.wu@intel.com>
+         <CAHp75Vdt3ys=tFax5iK5tnANNCLj-b4-VxO78b4ZT0jqdAnsdg@mail.gmail.com>
+         <20170403092028.z4xtrwz5wj3go3jd@dell>
+         <CAHp75VcGgSF-spv6OZWuAE9ardAW=Q6GjC7T8Eto=7subAuW2g@mail.gmail.com>
+         <20170403110631.2fksvvnj22plih7o@wfg-t540p.sh.intel.com>
+         <CAHp75VeWmR0W1=V29OFYrAfodKam=M5bdU8bTQUj_NHVTY2gjg@mail.gmail.com>
+         <20170403143317.3wfqx2nek2p4dyt3@dell>
+         <1491230615.708.110.camel@linux.intel.com>
+         <20170404084129.ccvpn7tnzwpgocu6@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1491301105-5274-13-git-send-email-sricharan@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sricharan R <sricharan@codeaurora.org>, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, frowand.list@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, gregkh@linuxfoundation.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170404084129.ccvpn7tnzwpgocu6@dell>
+Sender: linux-pm-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Fengguang Wu <lkp@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, kbuild-all@01.org, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 04/04/17 11:18, Sricharan R wrote:
-> From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+On Tue, 2017-04-04 at 09:41 +0100, Lee Jones wrote:
+> On Mon, 03 Apr 2017, Andy Shevchenko wrote:
 > 
-> The IORT linker section introduced by commit 34ceea275f62
-> ("ACPI/IORT: Introduce linker section for IORT entries probing")
-> was needed to make sure SMMU drivers are registered (and therefore
-> probed) in the kernel before devices using the SMMU have a chance
-> to probe in turn.
-> 
-> Through the introduction of deferred IOMMU configuration the linker
-> section based IORT probing infrastructure is not needed any longer, in
-> that device/SMMU probe dependencies are managed through the probe
-> deferral mechanism, making the IORT linker section infrastructure
-> unused, so that it can be removed.
-> 
-> Remove the unused IORT linker section probing infrastructure
-> from the kernel to complete the ACPI IORT IOMMU configure probe
-> deferral mechanism implementation.
+> > On Mon, 2017-04-03 at 15:33 +0100, Lee Jones wrote:
+> > > On Mon, 03 Apr 2017, Andy Shevchenko wrote:
+> > > 
+> > > > On Mon, Apr 3, 2017 at 2:06 PM, Fengguang Wu <lkp@intel.com>
+> > > > wrote:
+> > > > > On Mon, Apr 03, 2017 at 12:26:54PM +0300, Andy Shevchenko
+> > > > > wrote:
+> > > > > > On Mon, Apr 3, 2017 at 12:20 PM, Lee Jones <lee.jones@linaro
+> > > > > > .org
+> > > > > > > wrote:
+> > > > > > > On Sun, 02 Apr 2017, Andy Shevchenko wrote:
+> > > > > > > > On Sun, Apr 2, 2017 at 11:03 PM, kbuild test robot <lkp@
+> > > > > > > > inte
+> > > > > > > > l.com>
+> > > > > > > > wrote:
 
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+> > > > > > It looks like I have to submit fix for older bug first.
+> > > > > > Likely I can do
+> > this without delays and give you a green light to apply via your
+> > tree.
+> > Unfortunately I will continue on this tomorrow.
+> 
+> Turns out that this is not an older bug.
+> 
+> You need to fix your patch.  I believe you lose the depend on
+> INTEL_PMC_IPC, which ensures it's only built on x86 systems.
+> 
+> NB: I discovered this after a 20 second scan, so it might not be the
+> correct fix.  Please investigate.
 
-> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Robin Murphy <robin.murphy@arm.com>
-> Cc: Sricharan R <sricharan@codeaurora.org>
-> ---
->  drivers/acpi/arm64/iort.c         | 2 --
->  include/asm-generic/vmlinux.lds.h | 1 -
->  include/linux/acpi_iort.h         | 3 ---
->  3 files changed, 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index e323ece..e7b1940 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -1000,6 +1000,4 @@ void __init acpi_iort_init(void)
->  	}
->  
->  	iort_init_platform_devices();
-> -
-> -	acpi_probe_device_table(iort);
->  }
-> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-> index 0968d13..9faa26c 100644
-> --- a/include/asm-generic/vmlinux.lds.h
-> +++ b/include/asm-generic/vmlinux.lds.h
-> @@ -566,7 +566,6 @@
->  	IRQCHIP_OF_MATCH_TABLE()					\
->  	ACPI_PROBE_TABLE(irqchip)					\
->  	ACPI_PROBE_TABLE(clksrc)					\
-> -	ACPI_PROBE_TABLE(iort)						\
->  	EARLYCON_TABLE()
->  
->  #define INIT_TEXT							\
-> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-> index 77e0809..f167e1d04 100644
-> --- a/include/linux/acpi_iort.h
-> +++ b/include/linux/acpi_iort.h
-> @@ -52,7 +52,4 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
->  { return NULL; }
->  #endif
->  
-> -#define IORT_ACPI_DECLARE(name, table_id, fn)		\
-> -	ACPI_DECLARE_PROBE_ENTRY(iort, name, table_id, 0, NULL, 0, fn)
-> -
->  #endif /* __ACPI_IORT_H__ */
-> 
+Oh my gosh, I was looking to older version of the patch which does a
+select and thus I was quite sure that that triggers an old bug.
+
+Thank you everyone who raised concern.
+
+P.S. Certainly need a vacation...
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
