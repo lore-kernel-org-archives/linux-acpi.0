@@ -1,76 +1,85 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH 1/1] PCI: Fix for PEM-specific resource reservation for
- legacy firmware case
-Date: Tue, 4 Apr 2017 07:12:06 +0200
-Message-ID: <4aece958-583e-ad86-7923-87d501a4c1c7@semihalf.com>
-References: <1490972804-25830-1-git-send-email-tn@semihalf.com>
- <20170403201814.GA13232@bhelgaas-glaptop.roam.corp.google.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [kbuild-all] [PATCH v3 1/3] mfd: intel_soc_pmic: Fix a mess with
+ compilation units
+Date: Tue, 4 Apr 2017 09:41:29 +0100
+Message-ID: <20170404084129.ccvpn7tnzwpgocu6@dell>
+References: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
+ <201704030357.HdHD43mM%fengguang.wu@intel.com>
+ <CAHp75Vdt3ys=tFax5iK5tnANNCLj-b4-VxO78b4ZT0jqdAnsdg@mail.gmail.com>
+ <20170403092028.z4xtrwz5wj3go3jd@dell>
+ <CAHp75VcGgSF-spv6OZWuAE9ardAW=Q6GjC7T8Eto=7subAuW2g@mail.gmail.com>
+ <20170403110631.2fksvvnj22plih7o@wfg-t540p.sh.intel.com>
+ <CAHp75VeWmR0W1=V29OFYrAfodKam=M5bdU8bTQUj_NHVTY2gjg@mail.gmail.com>
+ <20170403143317.3wfqx2nek2p4dyt3@dell>
+ <1491230615.708.110.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170403201814.GA13232@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Lorenzo.Pieralisi@arm.com, robert.richter@caviumnetworks.com, ddaney@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, rafael@kernel.org, Sunil.Goutham@cavium.com, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:35226 "EHLO
+        mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752477AbdDDIld (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Apr 2017 04:41:33 -0400
+Received: by mail-lf0-f41.google.com with SMTP id j90so88381602lfk.2
+        for <linux-acpi@vger.kernel.org>; Tue, 04 Apr 2017 01:41:33 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1491230615.708.110.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Fengguang Wu <lkp@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, kbuild-all@01.org, Zhang Rui <rui.zhang@intel.com>
 
-On 03.04.2017 22:18, Bjorn Helgaas wrote:
-> On Fri, Mar 31, 2017 at 05:06:44PM +0200, Tomasz Nowicki wrote:
->> SZ_16M PEM resource size includes PEM-specific register and its children
->> resources. Reservation of the whole SZ_16M range leads to child device
->> driver failure when pcieport driver is requesting resources:
->> pcieport 0004:1f:00.0: can't enable device: BAR 0 [mem 0x87e0c0f00000-0x87e0c0ffffff 64bit] not claimed
->> So we cannot reserve full 16M here and instead we want to reserve
->> PEM-specific register only which is SZ_64K.
->>
->> At the end increase PEM resource to SZ_16M since this is what
->> thunder_pem_init() call expects for proper initialization.
->>
->> Fixes: 9abb27c7594a ("PCI: thunder-pem: Add legacy firmware support for Cavium ThunderX host controller")
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> CC: stable@vger.kernel.org	# v4.10+
->
-> Applied to for-linus for v4.11, thanks!
+On Mon, 03 Apr 2017, Andy Shevchenko wrote:
 
-Thanks Bjorn.
+> On Mon, 2017-04-03 at 15:33 +0100, Lee Jones wrote:
+> > On Mon, 03 Apr 2017, Andy Shevchenko wrote:
+> > 
+> > > On Mon, Apr 3, 2017 at 2:06 PM, Fengguang Wu <lkp@intel.com> wrote:
+> > > > On Mon, Apr 03, 2017 at 12:26:54PM +0300, Andy Shevchenko wrote:
+> > > > > On Mon, Apr 3, 2017 at 12:20 PM, Lee Jones <lee.jones@linaro.org
+> > > > > > wrote:
+> > > > > > On Sun, 02 Apr 2017, Andy Shevchenko wrote:
+> > > > > > > On Sun, Apr 2, 2017 at 11:03 PM, kbuild test robot <lkp@inte
+> > > > > > > l.com>
+> > > > > > > wrote:
+> 
+> > > > > Yes, I understand how to fix this, though it's not a problem of
+> > > > > this
+> > > > > patch per se.
+> > > > > 
+> > > > > Fengguang, is there any possible way to determine the relation
+> > > > > between
+> > > > > an error and a root cause change?
+> > > > 
+> > > > 
+> > > > Andy, our 0day build error reports are all bisected ones. It means
+> > > > the
+> > > > error happens since the reported patch/commit, which is either
+> > > > responsible for the root cause, or somehow triggers (or changes
+> > > > the
+> > > > exact form of) an old bug.
+> > > 
+> > > Thanks, like you said in this case it looks pretty much for
+> > > triggering
+> > > an old bug.
+> > 
+> > Quite.  But as a good open source citizen, you'll follow up with
+> > patches too, right? :)
+> 
+> It looks like I have to submit fix for older bug first. Likely I can do
+> this without delays and give you a green light to apply via your tree.
+> Unfortunately I will continue on this tomorrow.
 
-Tomasz
+Turns out that this is not an older bug.
 
->
->> ---
->>  drivers/pci/host/pci-thunder-pem.c | 10 ++++++++--
->>  1 file changed, 8 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
->> index b89c373..6e031b5 100644
->> --- a/drivers/pci/host/pci-thunder-pem.c
->> +++ b/drivers/pci/host/pci-thunder-pem.c
->> @@ -375,7 +375,6 @@ static void thunder_pem_legacy_fw(struct acpi_pci_root *root,
->>  	index -= node * PEM_MAX_DOM_IN_NODE;
->>  	res_pem->start = PEM_RES_BASE | FIELD_PREP(PEM_NODE_MASK, node) |
->>  					FIELD_PREP(PEM_INDX_MASK, index);
->> -	res_pem->end = res_pem->start + SZ_16M - 1;
->>  	res_pem->flags = IORESOURCE_MEM;
->>  }
->>
->> @@ -399,8 +398,15 @@ static int thunder_pem_acpi_init(struct pci_config_window *cfg)
->>  	 */
->>  	if (ret) {
->>  		thunder_pem_legacy_fw(root, res_pem);
->> -		/* Reserve PEM-specific resources and PCI configuration space */
->> +		/*
->> +		 * Reserve 64K size PEM specific resources. The full 16M range
->> +		 * size is required for thunder_pem_init() call.
->> +		 */
->> +		res_pem->end = res_pem->start + SZ_64K - 1;
->>  		thunder_pem_reserve_range(dev, root->segment, res_pem);
->> +		res_pem->end = res_pem->start + SZ_16M - 1;
->> +
->> +		/* Reserve PCI configuration space as well. */
->>  		thunder_pem_reserve_range(dev, root->segment, &cfg->res);
->>  	}
->>
->> --
->> 2.7.4
->>
+You need to fix your patch.  I believe you lose the depend on
+INTEL_PMC_IPC, which ensures it's only built on x86 systems.
+
+NB: I discovered this after a 20 second scan, so it might not be the
+correct fix.  Please investigate.
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
