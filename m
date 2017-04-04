@@ -1,75 +1,51 @@
-From: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
-Subject: [PATCH v2] i2c: i2c-scmi: add a MS HID
-Date: Tue,  4 Apr 2017 19:18:27 +0300
-Message-ID: <1491322707-2991-1-git-send-email-vkrasnov@dev.rtsoft.ru>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [GIT PULL] ACPI IORT changes for v4.12
+Date: Tue, 4 Apr 2017 18:04:18 +0100
+Message-ID: <20170404170418.GF19969@e104818-lin.cambridge.arm.com>
+References: <20170331100226.GA30762@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.dev.rtsoft.ru ([213.79.90.226]:43094 "EHLO
-        mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932162AbdDDQTH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Apr 2017 12:19:07 -0400
+Received: from foss.arm.com ([217.140.101.70]:47342 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751979AbdDDREX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 4 Apr 2017 13:04:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20170331100226.GA30762@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jdelvare@suse.com, wsa@the-dreams.de
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com, jarkko.nikula@linux.intel.com, echerkasov@dev.rtsoft.ru, Michael.Brunner@kontron.com, Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: will.deacon@arm.com, marc.zyngier@arm.com, john.garry@huawei.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org
 
-From: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+On Fri, Mar 31, 2017 at 11:02:26AM +0100, Lorenzo Pieralisi wrote:
+> ----------------------------------------------------------------
+> ACPI ARM64 specific changes for v4.12.
+> 
+> Patches contain:
+> 
+> - IORT kernel interface misc clean-ups
+> - IORT id mapping interface refactoring in preparation for platform
+>   MSI (IORT named components -> GIC ITS mappings) devid mapping code
+> - IORT id mapping implementation for named components nodes to ITS nodes,
+>   in order to provide the kernel with a firmware interface to map
+>   platform devices devids to GIC ITS components
+> 
+> ----------------------------------------------------------------
+> Hanjun Guo (7):
+>       ACPI/IORT: Fix the indentation in iort_scan_node()
+>       ACPI/IORT: Add missing comment for iort_dev_find_its_id()
+>       ACPI/IORT: Rework iort_match_node_callback() return value handling
+>       ACPI/IORT: Rename iort_node_map_rid() to make it generic
+>       ACPI/IORT: Introduce iort_node_map_platform_id() to retrieve dev id
+>       ACPI: platform-msi: retrieve devid from IORT
+>       ACPI: platform: setup MSI domain for ACPI based platform device
+> 
+>  drivers/acpi/arm64/iort.c | 158 +++++++++++++++++++++++++++++++++++++---------
+>  drivers/acpi/glue.c       |   6 ++
+>  include/linux/acpi_iort.h |   3 +
+>  3 files changed, 136 insertions(+), 31 deletions(-)
 
-Description of the problem:
- - i2c-scmi driver contains only two identifiers "SMBUS01" and "SMBUSIBM";
- - the fist HID (SMBUS01) is clearly defined in "SMBus Control Method
-   Interface Specification, version 1.0": "Each device must specify
-   'SMBUS01' as its _HID and use a unique _UID value";
- - unfortunately, BIOS vendors (like AMI) seem to ignore this requirement
-   and implement "SMB0001" HID instead of "SMBUS01";
- - I speculate that they do this because only "SMB0001" is hard coded in
-   Windows SMBus driver produced by Microsoft.
+Pulled for 4.12. Thanks.
 
-This leads to following situation:
- - SMBus works out of box in Windows but not in Linux;
- - board vendors are forced to add correct "SMBUS01" HID to BIOS to make
-   SMBus work in Linux. Moreover the same board vendors complain that
-   tools (3-rd party ASL compiler) do not like the "SMBUS01" identifier
-   and produce errors.  So they need to constantly patch the compiler for
-   each new version of BIOS.
-
-As it is very unlikely that BIOS vendors implement a correct HID in
-future, I would propose to consider whether it is possible to work around
-the problem by adding MS HID to the Linux i2c-scmi driver.
-
-v2: move the definition of the new HID to the driver itself.
-
-Signed-off-by: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
-Signed-off-by: Michael Brunner <Michael.Brunner@kontron.com>
-Acked-by: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
----
- drivers/i2c/busses/i2c-scmi.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
-index dfc98df..f876dd6 100644
---- a/drivers/i2c/busses/i2c-scmi.c
-+++ b/drivers/i2c/busses/i2c-scmi.c
-@@ -18,6 +18,9 @@
- #define ACPI_SMBUS_HC_CLASS		"smbus"
- #define ACPI_SMBUS_HC_DEVICE_NAME	"cmi"
- 
-+/* SMBUS HID definition as supported by Microsoft Windows */
-+#define ACPI_SMBUS_MS_HID		"SMB0001"
-+
- ACPI_MODULE_NAME("smbus_cmi");
- 
- struct smbus_methods_t {
-@@ -51,6 +54,7 @@ struct acpi_smbus_cmi {
- static const struct acpi_device_id acpi_smbus_cmi_ids[] = {
- 	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
- 	{ACPI_SMBUS_IBM_HID, (kernel_ulong_t)&ibm_smbus_methods},
-+	{ACPI_SMBUS_MS_HID, (kernel_ulong_t)&smbus_methods},
- 	{"", 0}
- };
- MODULE_DEVICE_TABLE(acpi, acpi_smbus_cmi_ids);
 -- 
-1.9.3
-
+Catalin
