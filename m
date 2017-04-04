@@ -1,90 +1,54 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v1 6/8] gpio: acpi: Explain how to get GPIO descriptors
- in ACPI case
-Date: Tue, 4 Apr 2017 11:21:29 -0700
-Message-ID: <20170404182129.GA20615@dtor-ws>
-References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
- <20170323194618.26548-7-andriy.shevchenko@linux.intel.com>
- <20170323202838.GA11818@dtor-ws>
- <1490719163.708.40.camel@linux.intel.com>
- <20170329071235.GB38261@dtor-ws>
- <1490799864.708.50.camel@linux.intel.com>
- <1491322277.708.129.camel@linux.intel.com>
- <20170404173108.GC29558@dtor-ws>
- <1491328751.24567.2.camel@linux.intel.com>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH v23 00/11] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Tue, 4 Apr 2017 15:39:04 -0500
+Message-ID: <58003cb9-e190-925d-f5af-947159cbd040@codeaurora.org>
+References: <20170331175105.8370-1-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34579 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752404AbdDDSVd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Apr 2017 14:21:33 -0400
-Content-Disposition: inline
-In-Reply-To: <1491328751.24567.2.camel@linux.intel.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:47334 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752792AbdDDUjJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Apr 2017 16:39:09 -0400
+In-Reply-To: <20170331175105.8370-1-fu.wei@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org
+To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 
-On Tue, Apr 04, 2017 at 08:59:11PM +0300, Andy Shevchenko wrote:
-> On Tue, 2017-04-04 at 10:31 -0700, Dmitry Torokhov wrote:
-> > On Tue, Apr 04, 2017 at 07:11:17PM +0300, Andy Shevchenko wrote:
-> > > On Wed, 2017-03-29 at 18:04 +0300, Andy Shevchenko wrote:
-> > > > On Wed, 2017-03-29 at 00:12 -0700, Dmitry Torokhov wrote:
-> > > > > On Tue, Mar 28, 2017 at 07:39:23PM +0300, Andy Shevchenko wrote:
-> > > > > > On Thu, 2017-03-23 at 13:28 -0700, Dmitry Torokhov wrote:
-> > > > > > > On Thu, Mar 23, 2017 at 09:46:16PM +0200, Andy Shevchenko
-> > > > > > > wrote:
+On 03/31/2017 12:50 PM, fu.wei@linaro.org wrote:
+> This patchset:
+>     (1)Preparation for adding GTDT support in arm_arch_timer:
+>         1. Introduce a MMIO CNTFRQ helper.
+>         2. separate out device-tree code from arch_timer_detect_rate
+>         3. remove arch_timer_detect_rate use arch_timer_*get_cntfrq directly
+>         4. Refactor arch_timer_needs_probing, and move it into DT init call
+>         5. Introduce some new structs and refactor the MMIO timer init code
+>         for reusing some common code.
 > 
-> > > > Otherwise I'm reading something like this:
-> > > > "If we have platform driverX.c which has DT/platform and ACPI
-> > > > enumeration, we must split ACPI part out, duplicate a lot of code
-> > > > and
-> > > > use platform driver as a library."
-> > 
-> > No. You need to split the part that augments incomplete ACPI data, and
-> > move it somewhere (drivers/platform/x86/<platform>-crap.c; the driver
-> > stays the same: a driver that is useful across multiple platforms.
+>     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
+>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
+>     memory-mapped timer and SBSA Generic Watchdog timer.
+>     This driver can help to simplify all the relevant timer drivers,
+>     and separate all the ACPI GTDT knowledge from them.
 > 
-> > > > Is that what you mean?
+>     (3)Simplify ACPI code for arm_arch_timer
 > 
-> So, it means to spread IDs in two places.
-
-For completely different purposes, yes. One takes DMI data to identify
-platform, and ACPI _instance_ ID to identify the particular ACPI device;
-there theoretically could be several of them.  If you have a better
-option to identify the instance, we can switch to them.
-
-The driver uses HID or CID to bind to one or more devices.
-
-> Looking into silead_dmi.c I
-> can say it looks as a hack, we aren't supposed to use "ACPIXXXX:YY" in
-> the drivers AFAIK. Besides the fact of notifier and arch_initcall().
+>     (4)Add GTDT support for ARM memory-mapped timer.
 > 
-> It indeed feels like a crap and looks like a crap.
-
-It is supposed to be crap. We have a vendor that neglected to describe
-the device in firmware properly and instead expects the driver to be
-recompiled for each device shipped. Bad, bad vendor. So we have crap in
-platform/x86/... At least we do not smear this shit all over generic
-driver.
-
+> This patchset has been tested on the following platforms with ACPI enabled:
+>     (1)ARM Foundation v8 model
 > 
-> Rafael, Mika, what are your opinions about proposed approach?
-> 
-> > > > P.S. This all _CRS fallback shouldn't be allowed in the first
-> > > > place.
-> > 
-> > It does work in many cases. By disallowing it completely you force
-> > much
-> > more platform stuff knowledge in the kernel, whereas before you needed
-> > to deal with exceptions.
-> 
-> It works due to luck, not otherwise.
+> Changelog:
+> v23: https://lkml.org/lkml/2017/3/31/
 
-As far as I see it works often enough.
+v23:
 
-Thanks.
+Tested-by: Timur Tabi <timur@codeaurora.org>
 
 -- 
-Dmitry
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
+Technologies, Inc.  Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
