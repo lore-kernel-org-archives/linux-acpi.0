@@ -1,85 +1,199 @@
-From: <lizdebeth_@hotmail.com>
-Subject: 38932 linux-acpi
-Date: Tue, 04 Apr 2017 17:17:09 -0000
-Message-ID: <149132622999.6120.13158772104032314800@candw.ag>
-Reply-To: <lizdebeth_@hotmail.com>
+From: Alexey Klimov <alexey.klimov@arm.com>
+Subject: Re: [PATCH 2/2] ACPI / CPPC: Make cppc acpi driver aware of pcc
+ subspace ids
+Date: Tue, 4 Apr 2017 18:18:56 +0100
+Message-ID: <20170404181856.05a4d136@e105365-lin.cambridge.arm.com>
+References: <1490941442-11954-1-git-send-email-george.cherian@cavium.com>
+        <1490941442-11954-3-git-send-email-george.cherian@cavium.com>
+        <20170403173746.GA27057@arm.com>
+        <58E37AA8.40308@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="4764772.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 206-214-7-244.candw.ag ([206.214.7.244]:56739 "HELO candw.ag"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751270AbdDDRRY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 4 Apr 2017 13:17:24 -0400
-Content-Disposition: attachment
+Received: from mail-ve1eur01on0055.outbound.protection.outlook.com ([104.47.1.55]:3616
+        "EHLO EUR01-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S932388AbdDDRTW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 4 Apr 2017 13:19:22 -0400
+In-Reply-To: <58E37AA8.40308@caviumnetworks.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
+To: George Cherian <gcherian@caviumnetworks.com>
+Cc: George Cherian <george.cherian@cavium.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, ashwin.chaugule@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, jassisinghbrar@gmail.com, robert.moore@intel.com, lv.zheng@intel.com, pprakash@codeaurora.org
 
-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
+On Tue, 4 Apr 2017 16:21:20 +0530 George Cherian <gcherian@caviumnetworks.c=
+om> wrote:
+
+>
+> Hi Alexey,
+>
+> On 04/03/2017 11:07 PM, Alexey Klimov wrote:
+> > (adding Prashanth to c/c)
+> >
+> > Hi George,
+> >
+> > On Fri, Mar 31, 2017 at 06:24:02AM +0000, George Cherian wrote:
+> >> Based on Section 14.1 of ACPI specification, it is possible to
+> >> have a maximum of 256 PCC subspace ids. Add support of multiple
+> >> PCC subspace id instead of using a single global pcc_data
+> >> structure.
+> >>
+> >> While at that fix the time_delta check in send_pcc_cmd() so that
+> >> last_mpar_reset and mpar_count is initialized properly. Also
+> >> maintain a global total_mpar_count which is a sum of per subspace
+> >> id mpar value.
+> >
+> > Could you please provide clarification on why sum of
+> > total_mpar_count is required? Do you assume that there always will
+> > be only one single firmware CPU that handles PCC commands on
+> > another side?
+>
+> Yes you are right the total_mpar_count  should be removed and should
+> be handled per subspace id. Moreover the current logic of not sending
+> the command to PCC and returning with -EIO is also flawed. It should
+> actually have a retry mechanism instead of returning -EIO even
+> without submitting the request to the channel.
+
+That sounds interesting.
+How many times should the code try to resend before giving up (let's
+say that timing constraints allow the caller to resend command)?
+
+Regarding error codes, the code can differentiate between timeout,
+platform error, timing constraints (-EBUSY?), maybe some other errors.
+In some cases and since mailbox framework can't resend pcc commands on
+itself then it's the client responsibility to re-queue a command.
+
+
+> > Theoretically different PCC channels can be connected to different
+> > platform CPUs on other end (imagine NUMA systems in case of CPPC)
+> > so it's not clear why transport layer of PCC should use that global
+> > count. Also, ACPI spec 6.1 (page 701) in in description of MPAR
+> > states "The maximum number of periodic requests that the subspace
+> > channel can support".
+> >
+> >
+> >
+> >> Signed-off-by: George Cherian <george.cherian@cavium.com>
+> >> ---
+> >>   drivers/acpi/cppc_acpi.c | 189
+> >> ++++++++++++++++++++++++++--------------------- 1 file changed,
+> >> 105 insertions(+), 84 deletions(-)
+> >>
+> >> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> >> index 3ca0729..7ba05ac 100644
+> >> --- a/drivers/acpi/cppc_acpi.c
+> >> +++ b/drivers/acpi/cppc_acpi.c
+> >> @@ -77,12 +77,16 @@ struct cppc_pcc_data {
+> >>    wait_queue_head_t pcc_write_wait_q;
+> >>   };
+> >>
+> >> -/* Structure to represent the single PCC channel */
+> >> -static struct cppc_pcc_data pcc_data =3D {
+> >> -  .pcc_subspace_idx =3D -1,
+> >> -  .platform_owns_pcc =3D true,
+> >> -};
+> >> +/* Array  to represent the PCC channel per subspace id */
+> >> +static struct cppc_pcc_data pcc_data[MAX_PCC_SUBSPACES];
+> >> +/*
+> >> + * It is quiet possible that multiple CPU's can share
+> >> + * same subspace ids. The cpu_pcc_subspace_idx maintains
+> >> + * the cpu to pcc subspace id map.
+> >> + */
+> >> +static DEFINE_PER_CPU(int, cpu_pcc_subspace_idx);
+> >>
+> >> +static int total_mpar_count;
+> >>   /*
+> >>    * The cpc_desc structure contains the ACPI register details
+> >>    * as described in the per CPU _CPC tables. The details
+> >> @@ -93,7 +97,8 @@ static struct cppc_pcc_data pcc_data =3D {
+> >>   static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
+> >>
+> >>   /* pcc mapped address + header size + offset within PCC subspace
+> >> */ -#define GET_PCC_VADDR(offs) (pcc_data.pcc_comm_addr + 0x8 +
+> >> (offs)) +#define GET_PCC_VADDR(offs, pcc_ss_id)
+> >> (pcc_data[pcc_ss_id].pcc_comm_addr + \
+> >> +                                          0x8 + (offs))
+> >>
+> >>   /* Check if a CPC regsiter is in PCC */
+> >>   #define CPC_IN_PCC(cpc) ((cpc)->type =3D=3D ACPI_TYPE_BUFFER
+> >> &&         \ @@ -183,13 +188,17 @@ static struct kobj_type
+> >> cppc_ktype =3D { .default_attrs =3D cppc_attrs,
+> >>   };
+> >>
+> >> -static int check_pcc_chan(bool chk_err_bit)
+> >> +static int check_pcc_chan(int cpunum, bool chk_err_bit)
+> >>   {
+> >>    int ret =3D -EIO, status =3D 0;
+> >> -  struct acpi_pcct_shared_memory __iomem *generic_comm_base
+> >> =3D pcc_data.pcc_comm_addr;
+> >> -  ktime_t next_deadline =3D ktime_add(ktime_get(),
+> >> pcc_data.deadline); -
+> >> -  if (!pcc_data.platform_owns_pcc)
+> >> +  int pcc_ss_id =3D per_cpu(cpu_pcc_subspace_idx, cpunum);
+> >> +  struct cppc_pcc_data *pcc_ss_data =3D &pcc_data[pcc_ss_id];
+> >> +  struct acpi_pcct_shared_memory __iomem *generic_comm_base
+> >> =3D
+> >> +          pcc_ss_data->pcc_comm_addr;
+> >> +  ktime_t next_deadline =3D ktime_add(ktime_get(),
+> >> +                                    pcc_ss_data->deadline);
+> >> +
+> >> +  if (!pcc_ss_data->platform_owns_pcc)
+> >>            return 0;
+> >>
+> >>    /* Retry in case the remote processor was too slow to
+> >> catch up. */ @@ -214,7 +223,7 @@ static int check_pcc_chan(bool
+> >> chk_err_bit) }
+> >>
+> >>    if (likely(!ret))
+> >> -          pcc_data.platform_owns_pcc =3D false;
+> >> +          pcc_ss_data->platform_owns_pcc =3D false;
+> >>    else
+> >>            pr_err("PCC check channel failed. Status=3D%x\n",
+> >> status);
+> >>
+> >> @@ -225,11 +234,13 @@ static int check_pcc_chan(bool chk_err_bit)
+> >>    * This function transfers the ownership of the PCC to the
+> >> platform
+> >>    * So it must be called while holding write_lock(pcc_lock)
+> >>    */
+> >> -static int send_pcc_cmd(u16 cmd)
+> >> +static int send_pcc_cmd(int cpunum, u16 cmd)
+> >
+> >
+> > I don't like the direction of where it's going.
+> >
+> > To send commands through PCC channel you don't need to know CPU
+> > number. Ideally, send_pcc_cmd() shouldn't care a lot about software
+> > entity that uses it (CPPC, RASF, MPST, etc) and passing some CPU
+> > number to this function you bind it to CPPC interfaces while it
+> > shouldn't depend on it. Maybe you can pass subspace it here instead.
+> Actually if you look inside send_pcc_cmd it does a mapping of cpu to
+> subspace id.  To avoid confusion it is better to pass the subspace id
+> to this function than the cpu number.
+
+That is what I tried to suggest in my comments.
+
+
+> > BTW, is it possible to make separate mailbox PCC client and move it
+> > out from CPPC code?
+>
+> Why do you think it is necessary? Currently CPPC driver itself is the
+> client for mailbox/pcc driver.
+
+There is no reason to copy-paste client code.
+
+I didn't find if it's allowed by ACPI spec for few entities as MPST and
+CPPC to use the same PCC channel for example but if yes, then separate
+client code should care about queuing, locking, re-trying.
+
+
+
+Thanks,
+Alexey.
+
+IMPORTANT NOTICE: The contents of this email and any attachments are confid=
+ential and may also be privileged. If you are not the intended recipient, p=
+lease notify the sender immediately and do not disclose the contents to any=
+ other person, use it for any purpose, or store or copy the information in =
+any medium. Thank you.
