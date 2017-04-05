@@ -1,378 +1,83 @@
-From: "zhichang.yuan" <zhichang.yuan02@gmail.com>
-Subject: Re: [PATCH V8 1/6] LIBIO: Introduce a generic PIO mapping method
-Date: Wed, 5 Apr 2017 20:18:55 +0800
-Message-ID: <9fb5224f-eec3-5b03-e5f9-169280ef4c49@gmail.com>
-References: <201704011328.1YdgEHnc%fengguang.wu@intel.com>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: Re: [PATCH v2] i2c: i2c-scmi: add a MS HID
+Date: Wed, 5 Apr 2017 14:59:32 +0200
+Message-ID: <20170405145932.3ef689d5@endymion>
+References: <1491322707-2991-1-git-send-email-vkrasnov@dev.rtsoft.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201704011328.1YdgEHnc%fengguang.wu@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>, fengguang.wu@intel.com
-Cc: "zhichang.yuan" <yuanzhichang@hisilicon.com>, kbuild-all@01.org, catalin.marinas@arm.com, will.deacon@arm.com, robh+dt@kernel.org, frowand.list@gmail.com, bhelgaas@google.com, rafael@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, brian.starkey@arm.com, olof@lixom.net, lorenzo.pieralisi@arm.com, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, minyard@acm.org, zourongrong@gmail.com, john.garry@huawei.com, gabriele.paoloni@huawei.com, xuwei5@hisilicon.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:33136 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932597AbdDEM7g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 5 Apr 2017 08:59:36 -0400
+In-Reply-To: <1491322707-2991-1-git-send-email-vkrasnov@dev.rtsoft.ru>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+Cc: wsa@the-dreams.de, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com, jarkko.nikula@linux.intel.com, echerkasov@dev.rtsoft.ru, Michael.Brunner@kontron.com
 
-Hi,
-
-Thanks for your report!
-
-I am sorry for that!
-
-This issue was caused by missing the '#include <linux/logic_pio.h>' in
-logic_pio.c for some architectures where the 'asm-generic/io.h' wasn't been
-included.
-
-Will be fixed in the next V9.
-
-Apologized for this!
-
--Zhichang
-
-
-On 04/01/2017 01:58 PM, kbuild test robot wrote:
-> Hi zhichang.yuan,
+On Tue,  4 Apr 2017 19:18:27 +0300, Viktor Krasnov wrote:
+> From: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
 > 
-> [auto build test ERROR on linus/master]
-> [also build test ERROR on v4.11-rc4 next-20170331]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> Description of the problem:
+>  - i2c-scmi driver contains only two identifiers "SMBUS01" and "SMBUSIBM";
+>  - the fist HID (SMBUS01) is clearly defined in "SMBus Control Method
+>    Interface Specification, version 1.0": "Each device must specify
+>    'SMBUS01' as its _HID and use a unique _UID value";
+>  - unfortunately, BIOS vendors (like AMI) seem to ignore this requirement
+>    and implement "SMB0001" HID instead of "SMBUS01";
+>  - I speculate that they do this because only "SMB0001" is hard coded in
+>    Windows SMBus driver produced by Microsoft.
 > 
-> url:    https://github.com/0day-ci/linux/commits/zhichang-yuan/LIBIO-Introduce-a-generic-PIO-mapping-method/20170401-104801
-> config: alpha-allyesconfig (attached as .config)
-> compiler: alpha-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
-> reproduce:
->         wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=alpha 
+> This leads to following situation:
+>  - SMBus works out of box in Windows but not in Linux;
+>  - board vendors are forced to add correct "SMBUS01" HID to BIOS to make
+>    SMBus work in Linux. Moreover the same board vendors complain that
+>    tools (3-rd party ASL compiler) do not like the "SMBUS01" identifier
+>    and produce errors.  So they need to constantly patch the compiler for
+>    each new version of BIOS.
 > 
-> All error/warnings (new ones prefixed by >>):
+> As it is very unlikely that BIOS vendors implement a correct HID in
+> future, I would propose to consider whether it is possible to work around
+> the problem by adding MS HID to the Linux i2c-scmi driver.
 > 
->>> lib/logic_pio.c:32:50: error: 'PIO_MAX_SECT' undeclared here (not in a function)
->     static struct logic_pio_root logic_pio_root_list[PIO_MAX_SECT] = {
->                                                      ^~~~~~~~~~~~
->>> lib/logic_pio.c:39:3: error: 'PIO_CPU_MMIO' undeclared here (not in a function)
->      [PIO_CPU_MMIO ... PIO_INDIRECT - 1] = {
->       ^~~~~~~~~~~~
->>> lib/logic_pio.c:39:20: error: 'PIO_INDIRECT' undeclared here (not in a function)
->      [PIO_CPU_MMIO ... PIO_INDIRECT - 1] = {
->                        ^~~~~~~~~~~~
->>> lib/logic_pio.c:39:3: error: array index in initializer not of integer type
->      [PIO_CPU_MMIO ... PIO_INDIRECT - 1] = {
->       ^~~~~~~~~~~~
->    lib/logic_pio.c:39:3: note: (near initialization for 'logic_pio_root_list')
->>> lib/logic_pio.c:40:3: error: field name not in record or union initializer
->       .sec_head = LIST_HEAD_INIT(logic_pio_root_list[PIO_CPU_MMIO].sec_head),
->       ^
->    lib/logic_pio.c:40:3: note: (near initialization for 'logic_pio_root_list')
->    lib/logic_pio.c:41:3: error: field name not in record or union initializer
->       .sec_min = PIO_SECT_MIN(PIO_CPU_MMIO),
->       ^
->    lib/logic_pio.c:41:3: note: (near initialization for 'logic_pio_root_list')
->>> lib/logic_pio.c:41:14: error: implicit declaration of function 'PIO_SECT_MIN' [-Werror=implicit-function-declaration]
->       .sec_min = PIO_SECT_MIN(PIO_CPU_MMIO),
->                  ^~~~~~~~~~~~
->    lib/logic_pio.c:42:3: error: field name not in record or union initializer
->       .sec_max = PIO_SECT_MAX(PIO_INDIRECT - 1),
->       ^
->    lib/logic_pio.c:42:3: note: (near initialization for 'logic_pio_root_list')
->>> lib/logic_pio.c:42:14: error: implicit declaration of function 'PIO_SECT_MAX' [-Werror=implicit-function-declaration]
->       .sec_max = PIO_SECT_MAX(PIO_INDIRECT - 1),
->                  ^~~~~~~~~~~~
->    lib/logic_pio.c:46:3: error: array index in initializer not of integer type
->      [PIO_INDIRECT] = {
->       ^~~~~~~~~~~~
->    lib/logic_pio.c:46:3: note: (near initialization for 'logic_pio_root_list')
->    lib/logic_pio.c:47:3: error: field name not in record or union initializer
->       .sec_head = LIST_HEAD_INIT(logic_pio_root_list[PIO_INDIRECT].sec_head),
->       ^
->    lib/logic_pio.c:47:3: note: (near initialization for 'logic_pio_root_list')
->    lib/logic_pio.c:48:3: error: field name not in record or union initializer
->       .sec_min = PIO_SECT_MIN(PIO_INDIRECT),
->       ^
->    lib/logic_pio.c:48:3: note: (near initialization for 'logic_pio_root_list')
->    lib/logic_pio.c:49:3: error: field name not in record or union initializer
->       .sec_max = PIO_SECT_MAX(PIO_INDIRECT),
->       ^
->    lib/logic_pio.c:49:3: note: (near initialization for 'logic_pio_root_list')
->    In file included from include/linux/list.h:8:0,
->                     from include/linux/kobject.h:20,
->                     from include/linux/of.h:21,
->                     from lib/logic_pio.c:18:
->    lib/logic_pio.c: In function 'logic_pio_find_range_byaddr':
->>> include/linux/rculist.h:351:49: error: dereferencing pointer to incomplete type 'struct logic_pio_hwaddr'
->      for (pos = list_entry_rcu((head)->next, typeof(*pos), member); \
->                                                      
->    include/linux/kernel.h:852:18: note: in definition of macro 'container_of'
->      const typeof( ((type *)0)->member ) *__mptr = (ptr); \
->                      ^~~~
->>> include/linux/rculist.h:351:13: note: in expansion of macro 'list_entry_rcu'
->      for (pos = list_entry_rcu((head)->next, typeof(*pos), member); \
->                 ^~~~~~~~~~~~~~
->>> lib/logic_pio.c:77:2: note: in expansion of macro 'list_for_each_entry_rcu'
->      list_for_each_entry_rcu(range, &io_range_list, list) {
->      ^~~~~~~~~~~~~~~~~~~~~~~
->    include/linux/kernel.h:852:48: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
->      const typeof( ((type *)0)->member ) *__mptr = (ptr); \
->                                                    ^
->>> include/linux/rculist.h:277:2: note: in expansion of macro 'container_of'
->      container_of(lockless_dereference(ptr), type, member)
->      ^~~~~~~~~~~~
->>> include/linux/rculist.h:351:13: note: in expansion of macro 'list_entry_rcu'
->      for (pos = list_entry_rcu((head)->next, typeof(*pos), member); \
->                 ^~~~~~~~~~~~~~
->>> lib/logic_pio.c:77:2: note: in expansion of macro 'list_for_each_entry_rcu'
->      list_for_each_entry_rcu(range, &io_range_list, list) {
->      ^~~~~~~~~~~~~~~~~~~~~~~
->>> include/linux/kernel.h:852:48: warning: initialization makes pointer from integer without a cast [-Wint-conversion]
->      const typeof( ((type *)0)->member ) *__mptr = (ptr); \
->                                                    ^
->>> include/linux/rculist.h:277:2: note: in expansion of macro 'container_of'
->      container_of(lockless_dereference(ptr), type, member)
->      ^~~~~~~~~~~~
->    include/linux/rculist.h:353:9: note: in expansion of macro 'list_entry_rcu'
->       pos = list_entry_rcu(pos->member.next, typeof(*pos), member))
->             ^~~~~~~~~~~~~~
->>> lib/logic_pio.c:77:2: note: in expansion of macro 'list_for_each_entry_rcu'
->      list_for_each_entry_rcu(range, &io_range_list, list) {
->      ^~~~~~~~~~~~~~~~~~~~~~~
->    lib/logic_pio.c: In function 'logic_pio_alloc_range':
->>> lib/logic_pio.c:109:19: error: dereferencing pointer to incomplete type 'struct logic_pio_root'
->      idle_start = root->sec_min;
->                       ^~
->    In file included from include/linux/list.h:8:0,
->                     from include/linux/kobject.h:20,
->                     from include/linux/of.h:21,
->                     from lib/logic_pio.c:18:
->>> include/linux/rculist.h:351:49: error: dereferencing pointer to incomplete type 'struct logic_pio_sect'
->      for (pos = list_entry_rcu((head)->next, typeof(*pos), member); \
->                                                      
->    include/linux/kernel.h:852:18: note: in definition of macro 'container_of'
->      const typeof( ((type *)0)->member ) *__mptr = (ptr); \
->                      ^~~~
->>> include/linux/rculist.h:351:13: note: in expansion of macro 'list_entry_rcu'
->      for (pos = list_entry_rcu((head)->next, typeof(*pos), member); \
->                 ^~~~~~~~~~~~~~
->    lib/logic_pio.c:111:2: note: in expansion of macro 'list_for_each_entry_rcu'
->      list_for_each_entry_rcu(entry, &root->sec_head, list) {
->      ^~~~~~~~~~~~~~~~~~~~~~~
->>> include/linux/kernel.h:852:48: warning: initialization makes pointer from integer without a cast [-Wint-conversion]
->      const typeof( ((type *)0)->member ) *__mptr = (ptr); \
->                                                    ^
+> v2: move the definition of the new HID to the driver itself.
 > 
-> vim +/PIO_MAX_SECT +32 lib/logic_pio.c
-> 
->     12	 * GNU General Public License for more details.
->     13	 *
->     14	 * You should have received a copy of the GNU General Public License
->     15	 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->     16	 */
->     17	
->   > 18	#include <linux/of.h>
->     19	#include <linux/io.h>
->     20	#include <linux/mm.h>
->     21	#include <linux/rculist.h>
->     22	#include <linux/sizes.h>
->     23	#include <linux/slab.h>
->     24	
->     25	/* The unique hardware address list. */
->     26	static LIST_HEAD(io_range_list);
->     27	static DEFINE_MUTEX(io_range_mutex);
->     28	
->     29	/*
->     30	 * These are the lists for PIO. The highest PIO_SECT_BITS of PIO is the index.
->     31	 */
->   > 32	static struct logic_pio_root logic_pio_root_list[PIO_MAX_SECT] = {
->     33	#ifdef CONFIG_INDIRECT_PIO
->     34		/*
->     35		 * At this moment, assign all the other logic PIO space to MMIO.
->     36		 * If more elements added, please adjust the ending index and .sec_max;
->     37		 * Please keep MMIO element started from index ZERO.
->     38		 */
->   > 39		[PIO_CPU_MMIO ... PIO_INDIRECT - 1] = {
->   > 40			.sec_head = LIST_HEAD_INIT(logic_pio_root_list[PIO_CPU_MMIO].sec_head),
->   > 41			.sec_min = PIO_SECT_MIN(PIO_CPU_MMIO),
->   > 42			.sec_max = PIO_SECT_MAX(PIO_INDIRECT - 1),
->     43		},
->     44	
->     45		/* The last element */
->     46		[PIO_INDIRECT] = {
->     47			.sec_head = LIST_HEAD_INIT(logic_pio_root_list[PIO_INDIRECT].sec_head),
->     48			.sec_min = PIO_SECT_MIN(PIO_INDIRECT),
->     49			.sec_max = PIO_SECT_MAX(PIO_INDIRECT),
->     50		},
->     51	#else
->     52		[PIO_CPU_MMIO] = {
->     53			.sec_head = LIST_HEAD_INIT(logic_pio_root_list[PIO_CPU_MMIO].sec_head),
->     54			.sec_min = PIO_SECT_MIN(PIO_CPU_MMIO),
->     55			.sec_max = PIO_SECT_MAX(PIO_CPU_MMIO),
->     56		},
->     57	
->     58	#endif
->     59	};
->     60	
->     61	/*
->     62	 * Search a io_range registered which match the fwnode and addr.
->     63	 *
->     64	 * @fwnode: the host fwnode which must be valid;
->     65	 * @start: the start hardware address of this search;
->     66	 * @end: the end hardware address of this search. can be equal to @start;
->     67	 *
->     68	 * return NULL when there is no matched node; IS_ERR() means ERROR;
->     69	 * valid virtual address represent a matched node was found.
->     70	 */
->     71	static struct logic_pio_hwaddr *
->     72	logic_pio_find_range_byaddr(struct fwnode_handle *fwnode,
->     73				resource_size_t start, resource_size_t end)
->     74	{
->     75		struct logic_pio_hwaddr *range;
->     76	
->   > 77		list_for_each_entry_rcu(range, &io_range_list, list) {
->     78			if (!range->pio_peer) {
->     79				pr_warn("Invalid cpu addr node(%pa) in list!\n",
->     80					&range->hw_start);
->     81				continue;
->     82			}
->     83			if (range->fwnode != fwnode)
->     84				continue;
->     85			/* without any overlap with current range */
->     86			if (start >= range->hw_start + range->size ||
->     87				end < range->hw_start)
->     88				continue;
->     89			/* overlap is not supported now. */
->     90			if (start < range->hw_start ||
->     91				end >= range->hw_start + range->size)
->     92				return ERR_PTR(-EBUSY);
->     93			/* had been registered. */
->     94			return range;
->     95		}
->     96	
->     97		return NULL;
->     98	}
->     99	
->    100	
->    101	static int logic_pio_alloc_range(struct logic_pio_root *root,
->    102			resource_size_t size, unsigned long align,
->    103			struct list_head **prev, resource_size_t *pio_alloc)
->    104	{
->    105		struct logic_pio_sect *entry;
->    106		resource_size_t tmp_start;
->    107		resource_size_t idle_start, idle_end;
->    108	
->  > 109		idle_start = root->sec_min;
->    110		*prev = &root->sec_head;
->    111		list_for_each_entry_rcu(entry, &root->sec_head, list) {
->    112			if (!entry->hwpeer ||
->    113				idle_start > entry->io_start) {
->    114				WARN(1, "skip an invalid io range during traversal!\n");
->    115				goto nextentry;
->    116			}
->    117			/* set the end edge. */
->    118			if (idle_start == entry->io_start) {
->    119				struct logic_pio_sect *next;
->    120	
->    121				idle_start = entry->io_start + entry->hwpeer->size;
->  > 122				next = list_next_or_null_rcu(&root->sec_head,
->  > 123					&entry->list, struct logic_pio_sect, list);
->    124				if (next) {
->    125					entry = next;
->    126				} else {
->    127					*prev = &entry->list;
->    128					break;
->    129				}
->    130			}
->    131			idle_end = entry->io_start - 1;
->    132	
->    133			/* contiguous range... */
->    134			if (idle_start > idle_end)
->    135				goto nextentry;
->    136	
->    137			tmp_start = idle_start;
->    138			idle_start = ALIGN(idle_start, align);
->    139			if (idle_start >= tmp_start &&
->    140				idle_start + size <= idle_end) {
->    141				*prev = &entry->list;
->    142				*pio_alloc = idle_start;
->    143				return 0;
->    144			}
->    145	
->    146	nextentry:
->    147			idle_start = entry->io_start + entry->hwpeer->size;
->    148			*prev = &entry->list;
->    149		}
->    150		/* check the last free gap... */
->    151		idle_end = root->sec_max;
->    152	
->    153		tmp_start = idle_start;
->    154		idle_start = ALIGN(idle_start, align);
->    155		if (idle_start >= tmp_start &&
->    156			idle_start + size <= idle_end) {
->    157			*pio_alloc = idle_start;
->    158			return 0;
->    159		}
->    160	
->    161		return -EBUSY;
->    162	}
->    163	
->    164	/*
->    165	 * register a io range node in the io range list.
->    166	 *
->    167	 * @newrange: pointer to the io range to be registered.
->    168	 *
->    169	 * return 'newrange' when success, ERR_VALUE() is for failures.
->    170	 * specially, return a valid pointer which is not equal to 'newrange' when
->    171	 * the io range had been registered before.
->    172	 */
->    173	struct logic_pio_hwaddr
->    174	*logic_pio_register_range(struct logic_pio_hwaddr *newrange,
->    175			unsigned long align)
->    176	{
->    177		struct logic_pio_hwaddr *range;
->    178		struct logic_pio_sect *newsect;
->    179		resource_size_t pio_alloc;
->    180		struct list_head *prev, *hwprev;
->    181		unsigned long sect_id;
->    182		int err;
->    183	
->    184		if (!newrange || !newrange->fwnode || !newrange->size)
->    185			return ERR_PTR(-EINVAL);
->    186	
->    187		sect_id = newrange->flags;
->    188		if (sect_id >= PIO_MAX_SECT)
->    189			return ERR_PTR(-EINVAL);
->    190	
->    191		mutex_lock(&io_range_mutex);
->    192		range = logic_pio_find_range_byaddr(newrange->fwnode,
->    193				newrange->hw_start,
->    194				newrange->hw_start + newrange->size - 1);
->    195		if (range) {
->    196			if (!IS_ERR(range))
->    197				pr_info("the request IO range had been registered!\n");
->    198			else
->    199				pr_err("registering IO[%pa - sz%pa) got failed!\n",
->    200					&newrange->hw_start, &newrange->size);
->    201			mutex_unlock(&io_range_mutex);
->    202			return range;
->    203		}
->    204	
->    205		err = logic_pio_alloc_range(&logic_pio_root_list[sect_id],
->    206				newrange->size, align, &prev, &pio_alloc);
->    207		if (err) {
->    208			pr_err("can't find free %pa logical IO range!\n",
->    209				&newrange->size);
->    210			goto exitproc;
->    211		}
->    212	
->    213		if (prev == &logic_pio_root_list[sect_id].sec_head) {
->    214			hwprev = &io_range_list;
->    215		} else {
->  > 216			newsect = to_pio_sect(prev);
->  > 217			hwprev = &newsect->hwpeer->list;
->    218		}
->    219	
->    220		newsect = kzalloc(sizeof(*newsect), GFP_KERNEL);
-> 
+> Signed-off-by: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+> Signed-off-by: Michael Brunner <Michael.Brunner@kontron.com>
+> Acked-by: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+
+Reviewed-by: Jean Delvare <jdelvare@suse.de>
+
 > ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+>  drivers/i2c/busses/i2c-scmi.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 > 
+> diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
+> index dfc98df..f876dd6 100644
+> --- a/drivers/i2c/busses/i2c-scmi.c
+> +++ b/drivers/i2c/busses/i2c-scmi.c
+> @@ -18,6 +18,9 @@
+>  #define ACPI_SMBUS_HC_CLASS		"smbus"
+>  #define ACPI_SMBUS_HC_DEVICE_NAME	"cmi"
+>  
+> +/* SMBUS HID definition as supported by Microsoft Windows */
+> +#define ACPI_SMBUS_MS_HID		"SMB0001"
+> +
+>  ACPI_MODULE_NAME("smbus_cmi");
+>  
+>  struct smbus_methods_t {
+> @@ -51,6 +54,7 @@ struct acpi_smbus_cmi {
+>  static const struct acpi_device_id acpi_smbus_cmi_ids[] = {
+>  	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
+>  	{ACPI_SMBUS_IBM_HID, (kernel_ulong_t)&ibm_smbus_methods},
+> +	{ACPI_SMBUS_MS_HID, (kernel_ulong_t)&smbus_methods},
+>  	{"", 0}
+>  };
+>  MODULE_DEVICE_TABLE(acpi, acpi_smbus_cmi_ids);
+
+
+-- 
+Jean Delvare
+SUSE L3 Support
