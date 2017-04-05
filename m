@@ -1,43 +1,49 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v23 06/11] clocksource: arm_arch_timer: refactor MMIO
- timer probing.
-Date: Wed, 5 Apr 2017 19:42:30 +0100
-Message-ID: <20170405184229.GA29338@leverpostej>
-References: <20170331175105.8370-1-fu.wei@linaro.org>
- <20170331175105.8370-7-fu.wei@linaro.org>
+From: David Howells <dhowells@redhat.com>
+Subject: [PATCH 16/24] ACPI: Limit access to custom_method when the kernel
+ is locked down
+Date: Wed, 05 Apr 2017 21:16:50 +0100
+Message-ID: <149142340999.5101.7799938986753834830.stgit@warthog.procyon.org.uk>
+References: <149142326734.5101.4596394505987813763.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34834 "EHLO foss.arm.com"
+Received: from mx1.redhat.com ([209.132.183.28]:42100 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932913AbdDESnA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 5 Apr 2017 14:43:00 -0400
-Content-Disposition: inline
-In-Reply-To: <20170331175105.8370-7-fu.wei@linaro.org>
+        id S934041AbdDEUQ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 5 Apr 2017 16:16:58 -0400
+In-Reply-To: <149142326734.5101.4596394505987813763.stgit@warthog.procyon.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
+To: linux-kernel@vger.kernel.org
+Cc: matthew.garrett@nebula.com, linux-efi@vger.kernel.org, gnomes@lxorguk.ukuu.org.uk, gregkh@linuxfoundation.org, dhowells@redhat.com, linux-acpi@vger.kernel.org, linux-security-module@vger.kernel.org, keyrings@vger.kernel.org
 
-On Sat, Apr 01, 2017 at 01:51:00AM +0800, fu.wei@linaro.org wrote:
-> +	arch_timer_mem_freq = arch_timer_mem_get_cntfrq(base);
-> +	if (!arch_timer_rate && arch_timer_mem_freq) {
-> +		arch_timer_rate = arch_timer_mem_freq;
-> +	} else if (!arch_timer_rate || arch_timer_rate != arch_timer_mem_freq) {
-> +		pr_err(FW_BUG "invalid MMIO frequency.\n");
-> +		iounmap(base);
-> +		return -EINVAL;
-> +	}
+From: Matthew Garrett <matthew.garrett@nebula.com>
 
-I thought I had previously mentioned that this last check has the
-potential to break DT systems, which may be inadvertently relying on the
-probe order.
+custom_method effectively allows arbitrary access to system memory, making
+it possible for an attacker to circumvent restrictions on module loading.
+Disable it if the kernel is locked down.
 
-I agree we must do this check for ACPI, but I think that for DT it needs
-to be relaxed.
+Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: linux-acpi@vger.kernel.org
+---
 
-I'm happy to rework that locally, if you can address my comments on
-patch 9.
+ drivers/acpi/custom_method.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-Thanks,
-Mark.
+diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
+index c68e72414a67..e4d721c330c0 100644
+--- a/drivers/acpi/custom_method.c
++++ b/drivers/acpi/custom_method.c
+@@ -29,6 +29,9 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
+ 	struct acpi_table_header table;
+ 	acpi_status status;
+ 
++	if (kernel_is_locked_down())
++		return -EPERM;
++
+ 	if (!(*ppos)) {
+ 		/* parse the table header to get the table length */
+ 		if (count <= sizeof(struct acpi_table_header))
+
