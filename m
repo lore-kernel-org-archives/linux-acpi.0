@@ -1,86 +1,25 @@
-From: <toyosaka@comgnet.com>
-Subject: 27020 linux-acpi
-Date: Tue, 04 Apr 2017 20:51:58 -0000
-Message-ID: <149133911869.21476.13740511762561635917@isurgut.ru>
-Reply-To: <toyosaka@comgnet.com>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCH V10 00/12] IOMMU probe deferral support
+Date: Tue, 4 Apr 2017 20:23:12 -0500
+Message-ID: <CAL_JsqJH9C9sNGBSLH88bJ=uKF7RibHDAUZUW9M2xeO2AM-FUw@mail.gmail.com>
+References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org> <1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: application/zip; name="97563166.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 90-151-120-114.pppoe-adsl.isurgut.ru ([90.151.120.114]:55169
-        "HELO isurgut.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1752419AbdDDUwE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Apr 2017 16:52:04 -0400
-Content-Disposition: attachment
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-arch-owner@vger.kernel.org>
+In-Reply-To: <1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
+Sender: linux-arch-owner@vger.kernel.org
+To: Sricharan R <sricharan@codeaurora.org>
+Cc: Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>, Joerg Roedel <joro@8bytes.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Linux IOMMU <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-arm-msm <linux-arm-msm@vger.kernel.org>, Marek Szyprowski <m.szyprowski@samsung.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Frank Rowand <frowand.list@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-kernel@vger.kernel
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
 
-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
+On Tue, Apr 4, 2017 at 5:18 AM, Sricharan R <sricharan@codeaurora.org> wrote:
+> This series calls the dma ops configuration for the devices
+> at a generic place so that it works for all busses.
+> The dma_configure_ops for a device is now called during
+> the device_attach callback just before the probe of the
+> bus/driver is called. Similarly dma_deconfigure is called during
+> device/driver_detach path.
+
+For patches 3, 4, 6, 7, 8:
+
+Acked-by: Rob Herring <robh@kernel.org>
