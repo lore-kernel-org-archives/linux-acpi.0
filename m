@@ -1,83 +1,134 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: Re: [PATCH v2] i2c: i2c-scmi: add a MS HID
-Date: Wed, 5 Apr 2017 14:59:32 +0200
-Message-ID: <20170405145932.3ef689d5@endymion>
-References: <1491322707-2991-1-git-send-email-vkrasnov@dev.rtsoft.ru>
+From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v23 09/11] acpi/arm64: Add memory-mapped timer support in
+ GTDT driver
+Date: Wed, 5 Apr 2017 19:38:09 +0100
+Message-ID: <20170405183808.GB27550@leverpostej>
+References: <20170331175105.8370-1-fu.wei@linaro.org>
+ <20170331175105.8370-10-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:33136 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932597AbdDEM7g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 5 Apr 2017 08:59:36 -0400
-In-Reply-To: <1491322707-2991-1-git-send-email-vkrasnov@dev.rtsoft.ru>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170331175105.8370-10-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
-Cc: wsa@the-dreams.de, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com, jarkko.nikula@linux.intel.com, echerkasov@dev.rtsoft.ru, Michael.Brunner@kontron.com
 
-On Tue,  4 Apr 2017 19:18:27 +0300, Viktor Krasnov wrote:
-> From: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
-> 
-> Description of the problem:
->  - i2c-scmi driver contains only two identifiers "SMBUS01" and "SMBUSIBM";
->  - the fist HID (SMBUS01) is clearly defined in "SMBus Control Method
->    Interface Specification, version 1.0": "Each device must specify
->    'SMBUS01' as its _HID and use a unique _UID value";
->  - unfortunately, BIOS vendors (like AMI) seem to ignore this requirement
->    and implement "SMB0001" HID instead of "SMBUS01";
->  - I speculate that they do this because only "SMB0001" is hard coded in
->    Windows SMBus driver produced by Microsoft.
-> 
-> This leads to following situation:
->  - SMBus works out of box in Windows but not in Linux;
->  - board vendors are forced to add correct "SMBUS01" HID to BIOS to make
->    SMBus work in Linux. Moreover the same board vendors complain that
->    tools (3-rd party ASL compiler) do not like the "SMBUS01" identifier
->    and produce errors.  So they need to constantly patch the compiler for
->    each new version of BIOS.
-> 
-> As it is very unlikely that BIOS vendors implement a correct HID in
-> future, I would propose to consider whether it is possible to work around
-> the problem by adding MS HID to the Linux i2c-scmi driver.
-> 
-> v2: move the definition of the new HID to the driver itself.
-> 
-> Signed-off-by: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
-> Signed-off-by: Michael Brunner <Michael.Brunner@kontron.com>
-> Acked-by: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+Hi,
 
-Reviewed-by: Jean Delvare <jdelvare@suse.de>
+I tried to fix the issue that Lornzo raised, such that I could queue
+these patches. From looking at this patch in more detail however, I
+think there are further issues that need to be addressed.
 
-> ---
->  drivers/i2c/busses/i2c-scmi.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
-> index dfc98df..f876dd6 100644
-> --- a/drivers/i2c/busses/i2c-scmi.c
-> +++ b/drivers/i2c/busses/i2c-scmi.c
-> @@ -18,6 +18,9 @@
->  #define ACPI_SMBUS_HC_CLASS		"smbus"
->  #define ACPI_SMBUS_HC_DEVICE_NAME	"cmi"
->  
-> +/* SMBUS HID definition as supported by Microsoft Windows */
-> +#define ACPI_SMBUS_MS_HID		"SMB0001"
+On Sat, Apr 01, 2017 at 01:51:03AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
+> +	/*
+> +	 * Get the GT timer Frame data for every GT Block Timer
+> +	 */
+> +	for (i = 0; i < block->timer_count; i++, gtdt_frame++) {
+> +		if (gtdt_frame->common_flags & ACPI_GTDT_GT_IS_SECURE_TIMER)
+> +			continue;
 > +
->  ACPI_MODULE_NAME("smbus_cmi");
->  
->  struct smbus_methods_t {
-> @@ -51,6 +54,7 @@ struct acpi_smbus_cmi {
->  static const struct acpi_device_id acpi_smbus_cmi_ids[] = {
->  	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
->  	{ACPI_SMBUS_IBM_HID, (kernel_ulong_t)&ibm_smbus_methods},
-> +	{ACPI_SMBUS_MS_HID, (kernel_ulong_t)&smbus_methods},
->  	{"", 0}
->  };
->  MODULE_DEVICE_TABLE(acpi, acpi_smbus_cmi_ids);
+> +		if (!gtdt_frame->base_address || !gtdt_frame->timer_interrupt)
+> +			goto error;
+> +
+> +		frame = &timer_mem->frame[gtdt_frame->frame_number];
+> +		frame->phys_irq = map_gt_gsi(gtdt_frame->timer_interrupt,
+> +					     gtdt_frame->timer_flags);
+> +		if (frame->phys_irq <= 0) {
+> +			pr_warn("failed to map physical timer irq in frame %d.\n",
+> +				gtdt_frame->frame_number);
+> +			goto error;
+> +		}
+> +
+> +		if (gtdt_frame->virtual_timer_interrupt) {
+> +			frame->virt_irq =
+> +				map_gt_gsi(gtdt_frame->virtual_timer_interrupt,
+> +					   gtdt_frame->virtual_timer_flags);
+> +			if (frame->virt_irq <= 0) {
+> +				pr_warn("failed to map virtual timer irq in frame %d.\n",
+> +					gtdt_frame->frame_number);
+> +				acpi_unregister_gsi(gtdt_frame->timer_interrupt);
+> +				goto error;
+> +			}
+> +		} else {
+> +			frame->virt_irq = 0;
+> +			pr_debug("virtual timer in frame %d not implemented.\n",
+> +				 gtdt_frame->frame_number);
+> +		}
+> +
+> +		frame->cntbase = gtdt_frame->base_address;
+> +		/*
+> +		 * The CNTBaseN frame is 4KB (register offsets 0x000 - 0xFFC).
+> +		 * See ARM DDI 0487A.k_iss10775, page I1-5130, Table I1-4
+> +		 * "CNTBaseN memory map".
+> +		 */
+> +		frame->size = SZ_4K;
+> +		frame->valid = true;
+> +	}
+> +
+> +	return 0;
+> +
+> +error:
+> +	for (i = 0; i < ARCH_TIMER_MEM_MAX_FRAMES; i++) {
+> +		frame = &timer_mem->frame[i];
+> +		if (!frame->valid)
+> +			continue;
+> +		irq_dispose_mapping(frame->phys_irq);
+> +		if (frame->virt_irq)
+> +			irq_dispose_mapping(frame->virt_irq);
+> +	}
 
+We assign interrupts and may goto error before setting valid, so here we
+won't free the interrupts of the last frame we parsed.
 
--- 
-Jean Delvare
-SUSE L3 Support
+> +	return -EINVAL;
+> +}
+> +
+> +/**
+> + * acpi_arch_timer_mem_init() - Get the info of all GT blocks in GTDT table.
+> + * @timer_mem:	The pointer to the array of struct arch_timer_mem for returning
+> + *		the result of parsing. The element number of this array should
+> + *		be platform_timer_count(the total number of platform timers).
+> + * @timer_count: It points to a integer variable which is used for storing the
+> + *		number of GT blocks we have parsed.
+> + *
+> + * Return: 0 if success, -EINVAL/-ENODEV if error.
+> + */
+> +int __init acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem,
+> +				    int *timer_count)
+> +{
+> +	int ret;
+> +	void *platform_timer;
+> +
+> +	*timer_count = 0;
+> +	for_each_platform_timer(platform_timer) {
+> +		if (is_timer_block(platform_timer)) {
+> +			ret = gtdt_parse_timer_block(platform_timer, timer_mem);
+> +			if (ret)
+> +				return ret;
+> +			timer_mem++;
+> +			(*timer_count)++;
+> +		}
+> +	}
+
+If we were to have multiple GT blocks, this would leave timer_mem in an
+inconsistent state. In gtdt_parse_timer_block we'll blat any existing
+timer_mem->cntctlbase, and blat some arbitrary set of frames. however,
+*some* frames may have been held over from a previous iteration.
+
+My understanding was that the system level timer had a single CNTCTLBase
+frame, and hence we should only have a single GT block.
+
+Judging by ARM DDI 0487A.k_iss10775, I1.3 "Memory-mapped timer
+components" and I3.4 "Generic Timer memory-mapped registers overview",
+it does appear that the system should only have one CNTCTLBase frame.
+
+What's going on here?
+
+Thanks,
+Mark.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
