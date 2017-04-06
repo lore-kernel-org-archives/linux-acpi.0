@@ -1,59 +1,106 @@
-From: Sergey Temerkhanov <s.temerkhanov@gmail.com>
-Subject: [PATCH] arm64: acpi: Support PCI devices numa_node property in ACPI mode
-Date: Thu,  6 Apr 2017 11:47:11 +0000
-Message-ID: <20170406114711.17261-1-s.temerkhanov@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:36649 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933313AbdDFLrw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Apr 2017 07:47:52 -0400
-Received: by mail-qk0-f193.google.com with SMTP id v75so5435849qkb.3
-        for <linux-acpi@vger.kernel.org>; Thu, 06 Apr 2017 04:47:51 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v2 0/9] V4L2 fwnode support
+Date: Thu,  6 Apr 2017 16:10:41 +0300
+Message-ID: <1491484249-11964-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-media-8fOc0yYH5q9zeIdxy0IIJw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This commit modifies ARM64-specific ACPI PCI support functions to
-properly set the numa_node property on host bridges and thus on PCI
-devices. Such support requires _PXM objects to be set in DSDT/SSDT
-tables describing PCI root bridges
+Hello everyone, 
 
-Signed-off-by: Sergey Temerkhanov <s.temerkhanov@gmail.com>
----
- arch/arm64/kernel/pci.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+This patchset adds support for fwnode to V4L2. Besides OF, also ACPI based
+systems can be supported this way. By using V4L2 fwnode, the individual 
+drivers do not need to be aware of the underlying firmware implementation.
+The patchset also removes specific V4L2 OF support and converts the 
+affected drivers to use V4L2 fwnode.
 
-diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index 4f0e3ebfea4b..c45c7a26f984 100644
---- a/arch/arm64/kernel/pci.c
-+++ b/arch/arm64/kernel/pci.c
-@@ -81,7 +81,16 @@ int raw_pci_write(unsigned int domain, unsigned int bus,
- 
- int pcibus_to_node(struct pci_bus *bus)
- {
--	return dev_to_node(&bus->dev);
-+	struct pci_config_window *cfg = bus->sysdata;
-+	struct acpi_device *adev = NULL;
-+	struct device *dev;
-+
-+	if (!acpi_disabled)
-+		adev = to_acpi_device(cfg->parent);
-+
-+	dev = adev ? &adev->dev : &bus->dev;
-+
-+	return dev_to_node(dev);
- }
- EXPORT_SYMBOL(pcibus_to_node);
- 
-@@ -186,6 +195,8 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
- 	struct pci_bus *bus, *child;
- 	struct acpi_pci_root_ops *root_ops;
- 
-+	set_dev_node(&root->device->dev, node);
-+
- 	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
- 	if (!ri)
- 		return NULL;
+The patchset depends on another patchset here:
+
+<URL:http://www.spinics.net/lists/linux-acpi/msg72973.html>
+
+v1 of the set can be found here:
+
+<URL:http://www.spinics.net/lists/linux-media/msg111073.html>
+
+changes since v1:
+
+- Use existing dev_fwnode() instead of device_fwnode_handle() added by the
+  ACPI graph patchset,
+
+- Fix too long line of ^'s in ReST documentation.
+
+Sakari Ailus (8):
+  v4l: flash led class: Use fwnode_handle instead of device_node in init
+  v4l: fwnode: Support generic fwnode for parsing standardised
+    properties
+  v4l: async: Add fwnode match support
+  v4l: async: Provide interoperability between OF and fwnode matching
+  v4l: Switch from V4L2 OF not V4L2 fwnode API
+  v4l: media/drv-intf/soc_mediabus.h: include dependent header file
+  docs-rst: media: Switch documentation to V4L2 fwnode API
+  v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework
+
+ Documentation/media/kapi/v4l2-core.rst         |   2 +-
+ Documentation/media/kapi/v4l2-fwnode.rst       |   3 +
+ Documentation/media/kapi/v4l2-of.rst           |   3 -
+ drivers/leds/leds-aat1290.c                    |   5 +-
+ drivers/leds/leds-max77693.c                   |   5 +-
+ drivers/media/i2c/Kconfig                      |   9 +
+ drivers/media/i2c/adv7604.c                    |   7 +-
+ drivers/media/i2c/mt9v032.c                    |   7 +-
+ drivers/media/i2c/ov2659.c                     |   8 +-
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c       |   7 +-
+ drivers/media/i2c/s5k5baf.c                    |   6 +-
+ drivers/media/i2c/smiapp/Kconfig               |   1 +
+ drivers/media/i2c/smiapp/smiapp-core.c         |  29 +-
+ drivers/media/i2c/tc358743.c                   |  11 +-
+ drivers/media/i2c/tvp514x.c                    |   6 +-
+ drivers/media/i2c/tvp5150.c                    |   7 +-
+ drivers/media/i2c/tvp7002.c                    |   6 +-
+ drivers/media/platform/Kconfig                 |   3 +
+ drivers/media/platform/am437x/Kconfig          |   1 +
+ drivers/media/platform/am437x/am437x-vpfe.c    |   8 +-
+ drivers/media/platform/atmel/Kconfig           |   1 +
+ drivers/media/platform/atmel/atmel-isc.c       |   8 +-
+ drivers/media/platform/exynos4-is/Kconfig      |   2 +
+ drivers/media/platform/exynos4-is/media-dev.c  |   6 +-
+ drivers/media/platform/exynos4-is/mipi-csis.c  |   6 +-
+ drivers/media/platform/omap3isp/isp.c          |  71 ++---
+ drivers/media/platform/pxa_camera.c            |   7 +-
+ drivers/media/platform/rcar-vin/Kconfig        |   1 +
+ drivers/media/platform/rcar-vin/rcar-core.c    |   6 +-
+ drivers/media/platform/soc_camera/Kconfig      |   1 +
+ drivers/media/platform/soc_camera/atmel-isi.c  |   7 +-
+ drivers/media/platform/soc_camera/soc_camera.c |   3 +-
+ drivers/media/platform/ti-vpe/cal.c            |  11 +-
+ drivers/media/platform/xilinx/Kconfig          |   1 +
+ drivers/media/platform/xilinx/xilinx-vipp.c    |  59 +++--
+ drivers/media/v4l2-core/Kconfig                |   3 +
+ drivers/media/v4l2-core/Makefile               |   4 +-
+ drivers/media/v4l2-core/v4l2-async.c           |  36 ++-
+ drivers/media/v4l2-core/v4l2-flash-led-class.c |  11 +-
+ drivers/media/v4l2-core/v4l2-fwnode.c          | 353 +++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-of.c              | 327 -----------------------
+ include/media/drv-intf/soc_mediabus.h          |   2 +
+ include/media/v4l2-async.h                     |   7 +-
+ include/media/v4l2-flash-led-class.h           |   4 +-
+ include/media/v4l2-fwnode.h                    | 104 ++++++++
+ include/media/v4l2-of.h                        | 128 ---------
+ include/media/v4l2-subdev.h                    |   3 +
+ 47 files changed, 698 insertions(+), 608 deletions(-)
+ create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
+ delete mode 100644 Documentation/media/kapi/v4l2-of.rst
+ create mode 100644 drivers/media/v4l2-core/v4l2-fwnode.c
+ delete mode 100644 drivers/media/v4l2-core/v4l2-of.c
+ create mode 100644 include/media/v4l2-fwnode.h
+ delete mode 100644 include/media/v4l2-of.h
+
 -- 
-2.12.1
+2.7.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
