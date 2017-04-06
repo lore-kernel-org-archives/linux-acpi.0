@@ -1,78 +1,84 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v23 06/11] clocksource: arm_arch_timer: refactor MMIO
- timer probing.
-Date: Thu, 6 Apr 2017 18:45:06 +0800
-Message-ID: <CADyBb7tjLRYHsrB3V579RGxGS0jM51x628AqKomV_VFm+0b0ZQ@mail.gmail.com>
-References: <20170331175105.8370-1-fu.wei@linaro.org> <20170331175105.8370-7-fu.wei@linaro.org>
- <20170405184229.GA29338@leverpostej>
+From: Sricharan R <sricharan@codeaurora.org>
+Subject: Re: [PATCH V10 06/12] of: device: Fix overflow of coherent_dma_mask
+Date: Thu, 6 Apr 2017 16:31:30 +0530
+Message-ID: <b77e3405-f060-bcd5-99f6-7d76f9edf08a@codeaurora.org>
+References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
+ <1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
+ <1491301105-5274-7-git-send-email-sricharan@codeaurora.org>
+ <58E5E7B7.1050400@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f51.google.com ([209.85.214.51]:35102 "EHLO
-        mail-it0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754970AbdDFKpH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Apr 2017 06:45:07 -0400
-Received: by mail-it0-f51.google.com with SMTP id y18so98490073itc.0
-        for <linux-acpi@vger.kernel.org>; Thu, 06 Apr 2017 03:45:07 -0700 (PDT)
-In-Reply-To: <20170405184229.GA29338@leverpostej>
+Received: from smtp.codeaurora.org ([198.145.29.96]:44412 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752603AbdDFLBl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Apr 2017 07:01:41 -0400
+In-Reply-To: <58E5E7B7.1050400@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
+To: Frank Rowand <frowand.list@gmail.com>, robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, gregkh@linuxfoundation.org
 
-Hi Mark,
+Hi Frank,
 
-On 6 April 2017 at 02:42, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Sat, Apr 01, 2017 at 01:51:00AM +0800, fu.wei@linaro.org wrote:
->> +     arch_timer_mem_freq = arch_timer_mem_get_cntfrq(base);
->> +     if (!arch_timer_rate && arch_timer_mem_freq) {
->> +             arch_timer_rate = arch_timer_mem_freq;
->> +     } else if (!arch_timer_rate || arch_timer_rate != arch_timer_mem_freq) {
->> +             pr_err(FW_BUG "invalid MMIO frequency.\n");
->> +             iounmap(base);
->> +             return -EINVAL;
->> +     }
+On 4/6/2017 12:31 PM, Frank Rowand wrote:
+> On 04/04/17 03:18, Sricharan R wrote:
+>> Size of the dma-range is calculated as coherent_dma_mask + 1
+>> and passed to arch_setup_dma_ops further. It overflows when
+>> the coherent_dma_mask is set for full 64 bits 0xFFFFFFFFFFFFFFFF,
+>> resulting in size getting passed as 0 wrongly. Fix this by
+>> passsing in max(mask, mask + 1). Note that in this case
+>> when the mask is set to full 64bits, we will be passing the mask
+>> itself to arch_setup_dma_ops instead of the size. The real fix
+>> for this should be to make arch_setup_dma_ops receive the
+>> mask and handle it, to be done in the future.
+>>
+>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+>> ---
+>>  drivers/of/device.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/of/device.c b/drivers/of/device.c
+>> index c17c19d..c2ae6bb 100644
+>> --- a/drivers/of/device.c
+>> +++ b/drivers/of/device.c
+>> @@ -107,7 +107,7 @@ void of_dma_configure(struct device *dev, struct device_node *np)
+>>  	ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
+>>  	if (ret < 0) {
+>>  		dma_addr = offset = 0;
+>> -		size = dev->coherent_dma_mask + 1;
+>> +		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+>>  	} else {
+>>  		offset = PFN_DOWN(paddr - dma_addr);
+>>  		dev_dbg(dev, "dma_pfn_offset(%#08lx)\n", offset);
+>>
 >
-> I thought I had previously mentioned that this last check has the
-> potential to break DT systems, which may be inadvertently relying on the
-> probe order.
+> NACK.
 >
-> I agree we must do this check for ACPI, but I think that for DT it needs
-> to be relaxed.
+> Passing an invalid size to arch_setup_dma_ops() is only part of the problem.
+> size is also used in of_dma_configure() before calling arch_setup_dma_ops():
 >
-> I'm happy to rework that locally, if you can address my comments on
-> patch 9.
-
-yes, you suggested that we keep the current frequency probing approach for DT,
-and use the new approach for ACPI.
-
-Because we try to merge the common code for MMIO timer. this become a little
-problem, sorry for that.
-
-I thinks for this code, maybe we can do :
-
-arch_timer_mem_freq = arch_timer_mem_get_cntfrq(base);
-if (!arch_timer_rate && arch_timer_mem_freq) {
-arch_timer_rate = arch_timer_mem_freq;
-} else if (!acpi_disabled && arch_timer_rate != arch_timer_mem_freq) {
-pr_err(FW_BUG "invalid MMIO frequency.\n");
-iounmap(base);
-return -EINVAL;
-}
-
-Please correct me, if I miss something.
-
-Thanks :-)
-
+>         dev->coherent_dma_mask = min(dev->coherent_dma_mask,
+>                                      DMA_BIT_MASK(ilog2(dma_addr + size)));
+>         *dev->dma_mask = min((*dev->dma_mask),
+>                              DMA_BIT_MASK(ilog2(dma_addr + size)));
 >
-> Thanks,
-> Mark.
+> which would be incorrect for size == 0xffffffffffffffffULL when
+> dma_addr != 0.  So the proposed fix really is not papering over
+> the base problem very well.
+>
 
+Ok, but with your fix for of_dma_get_range and the above fix,
+dma_addr will be '0' when size = 0xffffffffffffffffULL,
+but DMA_BIT_MASK(ilog2(dma_addr + size)) would be wrong though,
+making coherent_dma_mask to be smaller 0x7fffffffffffffffULL.
 
+Regards,
+  Sricharan
+
+> I agree that the proper solution involves passing a mask instead
+> of a size to arch_setup_dma_ops().
+>
 
 -- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
+"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
