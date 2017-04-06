@@ -1,266 +1,38 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v23 09/11] acpi/arm64: Add memory-mapped timer support in
- GTDT driver
-Date: Fri, 7 Apr 2017 01:11:33 +0800
-Message-ID: <CADyBb7uVfmc6d6Fcd2xJcXdCy87iSdVW9hQQdzOy+Y4FK0OrwA@mail.gmail.com>
-References: <20170331175105.8370-1-fu.wei@linaro.org> <20170331175105.8370-10-fu.wei@linaro.org>
- <20170403104558.GA32414@red-moon>
+From: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V14 00/10] Add UEFI 2.6 and ACPI 6.1 updates for RAS on
+ ARM64
+Date: Thu, 6 Apr 2017 18:12:00 +0100
+Message-ID: <20170406171200.GE7705@e104818-lin.cambridge.arm.com>
+References: <1490729440-32591-1-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170403104558.GA32414@red-moon>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1490729440-32591-1-git-send-email-tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org
+Cc: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dev
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Lorenzo,
+Hi Rafael,
 
-On 3 April 2017 at 18:45, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
-> On Sat, Apr 01, 2017 at 01:51:03AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
->> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->>
->> On platforms booting with ACPI, architected memory-mapped timers'
->> configuration data is provided by firmware through the ACPI GTDT
->> static table.
->>
->> The clocksource architected timer kernel driver requires a firmware
->> interface to collect timer configuration and configure its driver.
->> this infrastructure is present for device tree systems, but it is
->> missing on systems booting with ACPI.
->>
->> Implement the kernel infrastructure required to parse the static
->> ACPI GTDT table so that the architected timer clocksource driver can
->> make use of it on systems booting with ACPI, therefore enabling
->> the corresponding timers configuration.
->>
->> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> ---
->>  drivers/acpi/arm64/gtdt.c | 146 ++++++++++++++++++++++++++++++++++++++++++++++
->>  include/linux/acpi.h      |   1 +
->>  2 files changed, 147 insertions(+)
->>
->> diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
->> index 3d95af8..3dd33f3 100644
->> --- a/drivers/acpi/arm64/gtdt.c
->> +++ b/drivers/acpi/arm64/gtdt.c
->> @@ -13,6 +13,7 @@
->>
->>  #include <linux/acpi.h>
->>  #include <linux/init.h>
->> +#include <linux/irqdomain.h>
->>  #include <linux/kernel.h>
->>
->>  #include <clocksource/arm_arch_timer.h>
->> @@ -37,6 +38,28 @@ struct acpi_gtdt_descriptor {
->>
->>  static struct acpi_gtdt_descriptor acpi_gtdt_desc __initdata;
->>
->> +static inline void *next_platform_timer(void *platform_timer)
->> +{
->> +     struct acpi_gtdt_header *gh = platform_timer;
->> +
->> +     platform_timer += gh->length;
->> +     if (platform_timer < acpi_gtdt_desc.gtdt_end)
->> +             return platform_timer;
->> +
->> +     return NULL;
->> +}
->> +
->> +#define for_each_platform_timer(_g)                          \
->> +     for (_g = acpi_gtdt_desc.platform_timer; _g;    \
->> +          _g = next_platform_timer(_g))
->> +
->> +static inline bool is_timer_block(void *platform_timer)
->> +{
->> +     struct acpi_gtdt_header *gh = platform_timer;
->> +
->> +     return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
->> +}
->> +
->>  static int __init map_gt_gsi(u32 interrupt, u32 flags)
->>  {
->>       int trigger, polarity;
->> @@ -155,3 +178,126 @@ int __init acpi_gtdt_init(struct acpi_table_header *table,
->>
->>       return 0;
->>  }
->> +
->> +static int __init gtdt_parse_timer_block(struct acpi_gtdt_timer_block *block,
->> +                                      struct arch_timer_mem *timer_mem)
->> +{
->> +     int i;
->> +     struct arch_timer_mem_frame *frame;
->> +     struct acpi_gtdt_timer_entry *gtdt_frame;
->> +
->> +     if (!block->timer_count) {
->> +             pr_err(FW_BUG "GT block present, but frame count is zero.");
->> +             return -ENODEV;
->> +     }
->> +
->> +     if (block->timer_count > ARCH_TIMER_MEM_MAX_FRAMES) {
->> +             pr_err(FW_BUG "GT block lists %d frames, ACPI spec only allows 8\n",
->> +                    block->timer_count);
->> +             return -EINVAL;
->> +     }
->> +
->> +     timer_mem->cntctlbase = (phys_addr_t)block->block_address;
->> +     /*
->> +      * The CNTCTLBase frame is 4KB (register offsets 0x000 - 0xFFC).
->> +      * See ARM DDI 0487A.k_iss10775, page I1-5129, Table I1-3
->> +      * "CNTCTLBase memory map".
->> +      */
->> +     timer_mem->size = SZ_4K;
->> +
->> +     gtdt_frame = (void *)block + block->timer_offset;
->> +     if (gtdt_frame + block->timer_count != (void *)block + block->header.length)
->> +             return -EINVAL;
->> +
->> +     /*
->> +      * Get the GT timer Frame data for every GT Block Timer
->> +      */
->> +     for (i = 0; i < block->timer_count; i++, gtdt_frame++) {
->> +             if (gtdt_frame->common_flags & ACPI_GTDT_GT_IS_SECURE_TIMER)
->> +                     continue;
->> +
->> +             if (!gtdt_frame->base_address || !gtdt_frame->timer_interrupt)
->> +                     goto error;
->> +
->> +             frame = &timer_mem->frame[gtdt_frame->frame_number];
->> +             frame->phys_irq = map_gt_gsi(gtdt_frame->timer_interrupt,
->> +                                          gtdt_frame->timer_flags);
->> +             if (frame->phys_irq <= 0) {
->> +                     pr_warn("failed to map physical timer irq in frame %d.\n",
->> +                             gtdt_frame->frame_number);
->> +                     goto error;
->> +             }
->> +
->> +             if (gtdt_frame->virtual_timer_interrupt) {
->> +                     frame->virt_irq =
->> +                             map_gt_gsi(gtdt_frame->virtual_timer_interrupt,
->> +                                        gtdt_frame->virtual_timer_flags);
->> +                     if (frame->virt_irq <= 0) {
->> +                             pr_warn("failed to map virtual timer irq in frame %d.\n",
->> +                                     gtdt_frame->frame_number);
->> +                             acpi_unregister_gsi(gtdt_frame->timer_interrupt);
->> +                             goto error;
->> +                     }
->> +             } else {
->> +                     frame->virt_irq = 0;
->> +                     pr_debug("virtual timer in frame %d not implemented.\n",
->> +                              gtdt_frame->frame_number);
->> +             }
->> +
->> +             frame->cntbase = gtdt_frame->base_address;
->> +             /*
->> +              * The CNTBaseN frame is 4KB (register offsets 0x000 - 0xFFC).
->> +              * See ARM DDI 0487A.k_iss10775, page I1-5130, Table I1-4
->> +              * "CNTBaseN memory map".
->> +              */
->> +             frame->size = SZ_4K;
->> +             frame->valid = true;
->> +     }
->> +
->> +     return 0;
->> +
->> +error:
->> +     for (i = 0; i < ARCH_TIMER_MEM_MAX_FRAMES; i++) {
->> +             frame = &timer_mem->frame[i];
->> +             if (!frame->valid)
->> +                     continue;
->> +             irq_dispose_mapping(frame->phys_irq);
->> +             if (frame->virt_irq)
->> +                     irq_dispose_mapping(frame->virt_irq);
->> +     }
->
-> You should unregister GSIs with the same API you use to register GSIs,
-> I do not like code that assumes acpi_unregister_gsi() internal
-> implementation, it is wrong to do that.
+On Tue, Mar 28, 2017 at 01:30:30PM -0600, Tyler Baicar wrote:
+> Tyler Baicar (9):
+>   acpi: apei: read ack upon ghes record consumption
+>   ras: acpi/apei: cper: generic error data entry v3 per ACPI 6.1
+>   efi: parse ARM processor error
+>   arm64: exception: handle Synchronous External Abort
+>   acpi: apei: handle SEA notification type for ARMv8
+>   efi: print unrecognized CPER section
+>   ras: acpi / apei: generate trace event for unrecognized CPER section
+>   trace, ras: add ARM processor error trace event
+>   arm/arm64: KVM: add guest SEA support
 
-Thanks for pointing it out, I have thought about it.
-But the the same API I use to register GSIs is acpi_unregister_gsi(GSI);
-that means we need GSI as the parameter. But when the register goes
-wrong, and goto error, the info we have is the IRQ but not GSI. So I
-use the  acpi_unregister_gsi() internal implementation.
-If we try to use the same API, we may need to add this info into
-struct arch_timer_mem_frame only for unwinding.
+It looks like the KVM parts are getting acked and the arm64 and efi bits
+have been acked as well. Are you ok to take this series through the ACPI
+tree?
 
-But yes, we do have another way to do, that is  registering GSI untill
-we figure out which is the "best_frame". But this requires some bigger
-change(like using the  irq_of_parse_and_map() internal implementation
-to get GSI but don't map), and map GSI untill get the "best_frame" .
-
-which way do you prefer?
-
-But I will unify the API in v24
-
->
-> Other than that patch is ok:
->
-> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
->
->> +     return -EINVAL;
->> +}
->> +
->> +/**
->> + * acpi_arch_timer_mem_init() - Get the info of all GT blocks in GTDT table.
->> + * @timer_mem:       The pointer to the array of struct arch_timer_mem for returning
->> + *           the result of parsing. The element number of this array should
->> + *           be platform_timer_count(the total number of platform timers).
->> + * @timer_count: It points to a integer variable which is used for storing the
->> + *           number of GT blocks we have parsed.
->> + *
->> + * Return: 0 if success, -EINVAL/-ENODEV if error.
->> + */
->> +int __init acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem,
->> +                                 int *timer_count)
->> +{
->> +     int ret;
->> +     void *platform_timer;
->> +
->> +     *timer_count = 0;
->> +     for_each_platform_timer(platform_timer) {
->> +             if (is_timer_block(platform_timer)) {
->> +                     ret = gtdt_parse_timer_block(platform_timer, timer_mem);
->> +                     if (ret)
->> +                             return ret;
->> +                     timer_mem++;
->> +                     (*timer_count)++;
->> +             }
->> +     }
->> +
->> +     if (*timer_count)
->> +             pr_info("found %d memory-mapped timer block(s).\n",
->> +                     *timer_count);
->> +
->> +     return 0;
->> +}
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index 4b5c146..3193724 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -599,6 +599,7 @@ int acpi_reconfig_notifier_unregister(struct notifier_block *nb);
->>  int acpi_gtdt_init(struct acpi_table_header *table, int *platform_timer_count);
->>  int acpi_gtdt_map_ppi(int type);
->>  bool acpi_gtdt_c3stop(int type);
->> +int acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem, int *timer_count);
->>  #endif
->>
->>  #else        /* !CONFIG_ACPI */
->> --
->> 2.9.3
->>
-
-
+Thanks.
 
 -- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Catalin
