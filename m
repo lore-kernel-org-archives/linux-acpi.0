@@ -1,65 +1,55 @@
-From: Frank Rowand <frowand.list@gmail.com>
-Subject: Re: [PATCH V10 06/12] of: device: Fix overflow of coherent_dma_mask
-Date: Thu, 6 Apr 2017 00:01:11 -0700
-Message-ID: <58E5E7B7.1050400@gmail.com>
-References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
- <1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
- <1491301105-5274-7-git-send-email-sricharan@codeaurora.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2] i2c: i2c-scmi: add a MS HID
+Date: Thu, 6 Apr 2017 11:03:09 +0300
+Message-ID: <20170406080309.GP2957@lahna.fi.intel.com>
+References: <1491322707-2991-1-git-send-email-vkrasnov@dev.rtsoft.ru>
+ <20170405145932.3ef689d5@endymion>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1491301105-5274-7-git-send-email-sricharan@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sricharan R <sricharan@codeaurora.org>, robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, gregkh@linuxfoundation.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:25217 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756747AbdDFIFY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 6 Apr 2017 04:05:24 -0400
+Content-Disposition: inline
+In-Reply-To: <20170405145932.3ef689d5@endymion>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jean Delvare <jdelvare@suse.de>
+Cc: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>, wsa@the-dreams.de, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, andriy.shevchenko@linux.intel.com, jarkko.nikula@linux.intel.com, echerkasov@dev.rtsoft.ru, Michael.Brunner@kontron.com
 
-On 04/04/17 03:18, Sricharan R wrote:
-> Size of the dma-range is calculated as coherent_dma_mask + 1
-> and passed to arch_setup_dma_ops further. It overflows when
-> the coherent_dma_mask is set for full 64 bits 0xFFFFFFFFFFFFFFFF,
-> resulting in size getting passed as 0 wrongly. Fix this by
-> passsing in max(mask, mask + 1). Note that in this case
-> when the mask is set to full 64bits, we will be passing the mask
-> itself to arch_setup_dma_ops instead of the size. The real fix
-> for this should be to make arch_setup_dma_ops receive the
-> mask and handle it, to be done in the future.
+On Wed, Apr 05, 2017 at 02:59:32PM +0200, Jean Delvare wrote:
+> On Tue,  4 Apr 2017 19:18:27 +0300, Viktor Krasnov wrote:
+> > From: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+> > 
+> > Description of the problem:
+> >  - i2c-scmi driver contains only two identifiers "SMBUS01" and "SMBUSIBM";
+> >  - the fist HID (SMBUS01) is clearly defined in "SMBus Control Method
+> >    Interface Specification, version 1.0": "Each device must specify
+> >    'SMBUS01' as its _HID and use a unique _UID value";
+> >  - unfortunately, BIOS vendors (like AMI) seem to ignore this requirement
+> >    and implement "SMB0001" HID instead of "SMBUS01";
+> >  - I speculate that they do this because only "SMB0001" is hard coded in
+> >    Windows SMBus driver produced by Microsoft.
+> > 
+> > This leads to following situation:
+> >  - SMBus works out of box in Windows but not in Linux;
+> >  - board vendors are forced to add correct "SMBUS01" HID to BIOS to make
+> >    SMBus work in Linux. Moreover the same board vendors complain that
+> >    tools (3-rd party ASL compiler) do not like the "SMBUS01" identifier
+> >    and produce errors.  So they need to constantly patch the compiler for
+> >    each new version of BIOS.
+> > 
+> > As it is very unlikely that BIOS vendors implement a correct HID in
+> > future, I would propose to consider whether it is possible to work around
+> > the problem by adding MS HID to the Linux i2c-scmi driver.
+> > 
+> > v2: move the definition of the new HID to the driver itself.
+> > 
+> > Signed-off-by: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+> > Signed-off-by: Michael Brunner <Michael.Brunner@kontron.com>
+> > Acked-by: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
 > 
-> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
-> ---
->  drivers/of/device.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/of/device.c b/drivers/of/device.c
-> index c17c19d..c2ae6bb 100644
-> --- a/drivers/of/device.c
-> +++ b/drivers/of/device.c
-> @@ -107,7 +107,7 @@ void of_dma_configure(struct device *dev, struct device_node *np)
->  	ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
->  	if (ret < 0) {
->  		dma_addr = offset = 0;
-> -		size = dev->coherent_dma_mask + 1;
-> +		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
->  	} else {
->  		offset = PFN_DOWN(paddr - dma_addr);
->  		dev_dbg(dev, "dma_pfn_offset(%#08lx)\n", offset);
-> 
+> Reviewed-by: Jean Delvare <jdelvare@suse.de>
 
-NACK.
-
-Passing an invalid size to arch_setup_dma_ops() is only part of the problem.
-size is also used in of_dma_configure() before calling arch_setup_dma_ops():
-
-        dev->coherent_dma_mask = min(dev->coherent_dma_mask,
-                                     DMA_BIT_MASK(ilog2(dma_addr + size)));
-        *dev->dma_mask = min((*dev->dma_mask),
-                             DMA_BIT_MASK(ilog2(dma_addr + size)));
-
-which would be incorrect for size == 0xffffffffffffffffULL when
-dma_addr != 0.  So the proposed fix really is not papering over
-the base problem very well.
-
-I agree that the proper solution involves passing a mask instead
-of a size to arch_setup_dma_ops().
-
--Frank
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
