@@ -1,110 +1,50 @@
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: Re: [PATCH v3 4/8] APEI: GHES: reserve a virtual page for SEI context
-Date: Thu, 6 Apr 2017 17:25:32 +0800
-Message-ID: <9feb4506-5038-ce43-f0e5-0c5c279abc41@huawei.com>
-References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
- <1490869877-118713-5-git-send-email-xiexiuqi@huawei.com>
- <58DE8252.7070709@arm.com>
+From: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH V10 03/12] of: dma: Move range size workaround to
+	of_dma_get_range()
+Date: Thu, 6 Apr 2017 15:05:31 +0530
+Message-ID: <4b56ef2a-3ede-6093-69d9-576b6e73ea44@codeaurora.org>
+References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
+	<1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
+	<1491301105-5274-4-git-send-email-sricharan@codeaurora.org>
+	<58E5DF13.2020700@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <58DE8252.7070709@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, wuquanming@huawei.com, kvm@vger.kernel.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, rostedt@goodmis.org, gengdongjiu@huawei.com, wangxiongfeng2@huawei.com, linux-acpi@vger.kernel.org, christoffer.dall@linaro.org, shiju.jose@huawei.com, zhengqiang10@huawei.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, hanjun.guo@linaro.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <58E5DF13.2020700-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, robin.murphy-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi James,
+Hi Frank,
 
-Thanks for your comments.
-
-On 2017/4/1 0:22, James Morse wrote:
-> Hi Xie XiuQi,
-> 
-> On 30/03/17 11:31, Xie XiuQi wrote:
->> On arm64 platform, SEI may interrupt code which had interrupts masked.
->> But SEI could be masked, so it's not treated as NMI, however SEA is
->> treated as NMI.
+On 4/6/2017 11:54 AM, Frank Rowand wrote:
+> On 04/04/17 03:18, Sricharan R wrote:
+>> From: Laurent Pinchart <laurent.pinchart+renesas-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 >>
->> So, the  memory area used to transfer hardware error information from
->> BIOS to Linux can be determined only in NMI, SEI(arm64), IRQ or timer
->> handler.
->>
->> In this patch, we add a virtual page for SEI context.
-> 
-> I don't think this is the best way of solving the interaction problem. If we
-> ever need to add another notification method this gets even more complicated,
-> and the ioremap code has to know how these methods can interact.
-> 
-> 
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index 045d101..b1f9b1f 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -155,54 +162,55 @@ static void ghes_ioremap_exit(void)
-> 
->> -static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
->> -{
->> -	unsigned long vaddr, paddr;
->> -	pgprot_t prot;
->> -
->> -	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
->> +	if (in_nmi()) {
->> +		raw_spin_lock(&ghes_ioremap_lock_nmi);
->> +		vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
->> +	} else if (this_cpu_read(sei_in_process)) {
-> 
->> +		spin_lock_irqsave(&ghes_ioremap_lock_sei, flags);
-> 
-> I think this one should be a raw_spin_lock. I'm pretty sure this is for RT-linux
-> where spin_lock() on a contented lock will call schedule() in the same way
-> mutex_lock() does. If interrupts were masked by arch code then you need to use
-> raw_spin_lock.
-> So now we need to know how we got in here, we interrupted the SError handler so
-> this should only be Synchronous External Abort. Having to know how we got here
-> is another problem with this approach.
-> 
-> 
-> As suggested earlier[0], I think the best way is to allocate one page of virtual
-> address space per struct ghes, and move the locks out to the notify calls, which
-> can know how they are called.
-> 
-> I've pushed a branch to:
-> http://www.linux-arm.org/git?p=linux-jm.git;a=commit;h=refs/heads/apei_ioremap_rework/v1
-> 
+>> Invalid dma-ranges values should be worked around when retrieving the
+>> DMA range in of_dma_get_range(), not by all callers of the function.
+>> This isn't much of a problem now that we have a single caller, but that
+>> situation will change when moving DMA configuration to device probe
+>> time.
+>
+> Please drop this patch from the series.  I just now sent Rob an
+> alternative that reflects other changes that have occurred since
+> this patch series was first created many, many moons ago
+> (https://lkml.org/lkml/2017/4/6/53).
 
-Good! I could rebase on your patch next time.
+ok, would drop this.
 
-> I intend to post those patches as an RFC series later in the cycle, I've only
-> build tested it so far.
-> 
-> 
-> Thanks,
-> 
-> James
-> 
->> +		vaddr = (unsigned long)GHES_IOREMAP_SEI_PAGE(ghes_ioremap_area->addr);
->> +	} else {
->> +		spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
->> +		vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
->> +	}
-> 
-> 
-> [0] https://lkml.org/lkml/2017/3/20/434
-> 
-> 
-> .
-> 
+Regards,
+  Sricharan
 
 -- 
-Thanks,
-Xie XiuQi
+"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
