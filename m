@@ -1,84 +1,59 @@
-From: Sricharan R <sricharan@codeaurora.org>
-Subject: Re: [PATCH V10 06/12] of: device: Fix overflow of coherent_dma_mask
-Date: Thu, 6 Apr 2017 16:31:30 +0530
-Message-ID: <b77e3405-f060-bcd5-99f6-7d76f9edf08a@codeaurora.org>
-References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
- <1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
- <1491301105-5274-7-git-send-email-sricharan@codeaurora.org>
- <58E5E7B7.1050400@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sergey Temerkhanov <s.temerkhanov@gmail.com>
+Subject: [PATCH] arm64: acpi: Support PCI devices numa_node property in ACPI mode
+Date: Thu,  6 Apr 2017 11:47:11 +0000
+Message-ID: <20170406114711.17261-1-s.temerkhanov@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:44412 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752603AbdDFLBl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Apr 2017 07:01:41 -0400
-In-Reply-To: <58E5E7B7.1050400@gmail.com>
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:36649 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933313AbdDFLrw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Apr 2017 07:47:52 -0400
+Received: by mail-qk0-f193.google.com with SMTP id v75so5435849qkb.3
+        for <linux-acpi@vger.kernel.org>; Thu, 06 Apr 2017 04:47:51 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frank Rowand <frowand.list@gmail.com>, robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, gregkh@linuxfoundation.org
+To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Frank,
+This commit modifies ARM64-specific ACPI PCI support functions to
+properly set the numa_node property on host bridges and thus on PCI
+devices. Such support requires _PXM objects to be set in DSDT/SSDT
+tables describing PCI root bridges
 
-On 4/6/2017 12:31 PM, Frank Rowand wrote:
-> On 04/04/17 03:18, Sricharan R wrote:
->> Size of the dma-range is calculated as coherent_dma_mask + 1
->> and passed to arch_setup_dma_ops further. It overflows when
->> the coherent_dma_mask is set for full 64 bits 0xFFFFFFFFFFFFFFFF,
->> resulting in size getting passed as 0 wrongly. Fix this by
->> passsing in max(mask, mask + 1). Note that in this case
->> when the mask is set to full 64bits, we will be passing the mask
->> itself to arch_setup_dma_ops instead of the size. The real fix
->> for this should be to make arch_setup_dma_ops receive the
->> mask and handle it, to be done in the future.
->>
->> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
->> ---
->>  drivers/of/device.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/of/device.c b/drivers/of/device.c
->> index c17c19d..c2ae6bb 100644
->> --- a/drivers/of/device.c
->> +++ b/drivers/of/device.c
->> @@ -107,7 +107,7 @@ void of_dma_configure(struct device *dev, struct device_node *np)
->>  	ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
->>  	if (ret < 0) {
->>  		dma_addr = offset = 0;
->> -		size = dev->coherent_dma_mask + 1;
->> +		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
->>  	} else {
->>  		offset = PFN_DOWN(paddr - dma_addr);
->>  		dev_dbg(dev, "dma_pfn_offset(%#08lx)\n", offset);
->>
->
-> NACK.
->
-> Passing an invalid size to arch_setup_dma_ops() is only part of the problem.
-> size is also used in of_dma_configure() before calling arch_setup_dma_ops():
->
->         dev->coherent_dma_mask = min(dev->coherent_dma_mask,
->                                      DMA_BIT_MASK(ilog2(dma_addr + size)));
->         *dev->dma_mask = min((*dev->dma_mask),
->                              DMA_BIT_MASK(ilog2(dma_addr + size)));
->
-> which would be incorrect for size == 0xffffffffffffffffULL when
-> dma_addr != 0.  So the proposed fix really is not papering over
-> the base problem very well.
->
+Signed-off-by: Sergey Temerkhanov <s.temerkhanov@gmail.com>
+---
+ arch/arm64/kernel/pci.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-Ok, but with your fix for of_dma_get_range and the above fix,
-dma_addr will be '0' when size = 0xffffffffffffffffULL,
-but DMA_BIT_MASK(ilog2(dma_addr + size)) would be wrong though,
-making coherent_dma_mask to be smaller 0x7fffffffffffffffULL.
-
-Regards,
-  Sricharan
-
-> I agree that the proper solution involves passing a mask instead
-> of a size to arch_setup_dma_ops().
->
-
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index 4f0e3ebfea4b..c45c7a26f984 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -81,7 +81,16 @@ int raw_pci_write(unsigned int domain, unsigned int bus,
+ 
+ int pcibus_to_node(struct pci_bus *bus)
+ {
+-	return dev_to_node(&bus->dev);
++	struct pci_config_window *cfg = bus->sysdata;
++	struct acpi_device *adev = NULL;
++	struct device *dev;
++
++	if (!acpi_disabled)
++		adev = to_acpi_device(cfg->parent);
++
++	dev = adev ? &adev->dev : &bus->dev;
++
++	return dev_to_node(dev);
+ }
+ EXPORT_SYMBOL(pcibus_to_node);
+ 
+@@ -186,6 +195,8 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 	struct pci_bus *bus, *child;
+ 	struct acpi_pci_root_ops *root_ops;
+ 
++	set_dev_node(&root->device->dev, node);
++
+ 	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
+ 	if (!ri)
+ 		return NULL;
 -- 
-"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+2.12.1
+
