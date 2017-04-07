@@ -1,102 +1,102 @@
 From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Subject: Re: [PATCH] acpi: pci: don't ignore function ID of bridge device in _PRT
-Date: Fri, 7 Apr 2017 18:07:12 +0100
-Message-ID: <CAKv+Gu9zvf=mSjbV+=r_OH4PJ_1oRr_zKAoqb0TpAOiP7rKvSA@mail.gmail.com>
-References: <20170407132222.28300-1-ard.biesheuvel@linaro.org>
+Date: Fri, 7 Apr 2017 18:12:05 +0100
+Message-ID: <CAKv+Gu_rivjMaQ740LWO1Nm8SPMGuQ1J1TFeD8QXnRch8Lv6bg@mail.gmail.com>
+References: <20170407132222.28300-1-ard.biesheuvel@linaro.org> <20170407170654.GA30103@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f47.google.com ([209.85.214.47]:35685 "EHLO
-        mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932576AbdDGRHN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2017 13:07:13 -0400
-Received: by mail-it0-f47.google.com with SMTP id y18so123107989itc.0
-        for <linux-acpi@vger.kernel.org>; Fri, 07 Apr 2017 10:07:13 -0700 (PDT)
-In-Reply-To: <20170407132222.28300-1-ard.biesheuvel@linaro.org>
+Received: from mail-io0-f176.google.com ([209.85.223.176]:34066 "EHLO
+        mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932075AbdDGRMG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2017 13:12:06 -0400
+Received: by mail-io0-f176.google.com with SMTP id b140so53716388iof.1
+        for <linux-acpi@vger.kernel.org>; Fri, 07 Apr 2017 10:12:06 -0700 (PDT)
+In-Reply-To: <20170407170654.GA30103@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Ott <alan@softiron.co.uk>
-Cc: Leif Lindholm <leif.lindholm@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-On 7 April 2017 at 14:22, Ard Biesheuvel <ard.biesheuvel@linaro.org> wrote:
-> We currently derive legacy interrupt routing by matching _PRT
-> entries on the PCI device only, presumably under the assumption
-> that PRT entries always have a value of 0xffff in the function
-> field, meaning 'match all functions'.
+On 7 April 2017 at 18:06, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> Hi Ard,
 >
-> This no longer holds for modern PCIe topologies, where the
-> legacy interrupts for different slots may be wired to different
-> functions on the same bridge device. For instance, on AMD Seattle,
-> we may have something like
+> On Fri, Apr 07, 2017 at 02:22:22PM +0100, Ard Biesheuvel wrote:
+>> We currently derive legacy interrupt routing by matching _PRT
+>> entries on the PCI device only, presumably under the assumption
+>> that PRT entries always have a value of 0xffff in the function
+>> field, meaning 'match all functions'.
 >
-> -[0000:00]-+-00.0  Advanced Micro Devices, Inc. [AMD] Device 1a00
->            +-02.0  Advanced Micro Devices, Inc. [AMD] Device 1a01
->            +-02.2-[01]----00.0  Renesas uPD720202 USB 3.0 Host Controller
->            \-02.3-[02]----00.0  Realtek RTL8169 PCIe Gigabit Ethernet
+> The spec (ACPI v6.0, sec 6.2.13) contains a note that:
 >
-> where the _PRT describes the legacy interrupt routing as
+>   The PCI function number in the Address field of the _PRT packages
+>   must be 0xFFFF, indicating "any" function number or "all functions".
 >
->     Name (_PRT, Package ()  // _PRT: PCI Routing Table
->     {
->         // slot 1: dev 2 fn 1
->         Package () { 0x20001, 0x0, 0x0, 0x140 },
->         Package () { 0x20001, 0x1, 0x0, 0x141 },
->         Package () { 0x20001, 0x2, 0x0, 0x142 },
->         Package () { 0x20001, 0x3, 0x0, 0x143 },
+> If we need a patch like this, we need to somehow reconcile it with
+> that spec text to make sure firmware and OS folks have a common
+> understanding of how this is supposed to work.
 >
->         // slot 1: dev 2 fn 2
->         Package () { 0x20002, 0x0, 0x0, 0x144 },
->         Package () { 0x20002, 0x1, 0x0, 0x145 },
->         Package () { 0x20002, 0x2, 0x0, 0x146 },
->         Package () { 0x20002, 0x3, 0x0, 0x147 },
+>> This no longer holds for modern PCIe topologies, where the
+>> legacy interrupts for different slots may be wired to different
+>> functions on the same bridge device. For instance, on AMD Seattle,
+>> we may have something like
+>>
+>> -[0000:00]-+-00.0  Advanced Micro Devices, Inc. [AMD] Device 1a00
+>>            +-02.0  Advanced Micro Devices, Inc. [AMD] Device 1a01
+>>            +-02.2-[01]----00.0  Renesas uPD720202 USB 3.0 Host Controller
+>>            \-02.3-[02]----00.0  Realtek RTL8169 PCIe Gigabit Ethernet
+>>
+>> where the _PRT describes the legacy interrupt routing as
+>>
+>>     Name (_PRT, Package ()  // _PRT: PCI Routing Table
+>>     {
+>>         // slot 1: dev 2 fn 1
+>>         Package () { 0x20001, 0x0, 0x0, 0x140 },
+>>         Package () { 0x20001, 0x1, 0x0, 0x141 },
+>>         Package () { 0x20001, 0x2, 0x0, 0x142 },
+>>         Package () { 0x20001, 0x3, 0x0, 0x143 },
+>>
+>>         // slot 1: dev 2 fn 2
+>>         Package () { 0x20002, 0x0, 0x0, 0x144 },
+>>         Package () { 0x20002, 0x1, 0x0, 0x145 },
+>>         Package () { 0x20002, 0x2, 0x0, 0x146 },
+>>         Package () { 0x20002, 0x3, 0x0, 0x147 },
+>>
+>>         // slot 1: dev 2 fn 3
+>>         Package () { 0x20003, 0x0, 0x0, 0x148 },
+>>         Package () { 0x20003, 0x1, 0x0, 0x149 },
+>>         Package () { 0x20003, 0x2, 0x0, 0x14a },
+>>         Package () { 0x20003, 0x3, 0x0, 0x14b }
+>>     }) // _PRT
 >
->         // slot 1: dev 2 fn 3
->         Package () { 0x20003, 0x0, 0x0, 0x148 },
->         Package () { 0x20003, 0x1, 0x0, 0x149 },
->         Package () { 0x20003, 0x2, 0x0, 0x14a },
->         Package () { 0x20003, 0x3, 0x0, 0x14b }
->     }) // _PRT
+> But I think this _PRT description is incorrect and we should change
+> the _PRT rather than the kernel.  My laptop has a basically identical
+> topology:
 >
-> The current code always matches on the first entry when trying to
-> derive the legacy interrupt routing for the USB and Ethernet controllers
-> behind bridges 02.2 and 02.3, which results in the wrong entry to
-> be selected.
+>   -[0000:00]-+-00.0  Intel Corporation Sky Lake Host Bridge/DRAM Registers
+>              +-1c.0-[02]----00.0  Realtek Semiconductor Co., Ltd.  Device 525a
+>              +-1c.2-[04]----00.0  Intel Corporation Wireless 8260
 >
-> So fix this by matching the function ID to the value in the _PRT entry
-> if the _PRT entries are not using 0xffff in the lower word to match
-> all functions.
+> and the ASL looks like this (paraphrased):
 >
-> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> ---
->  drivers/acpi/pci_irq.c | 2 ++
->  1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index c576a6fe4ebb..caac4ac94418 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -160,6 +160,8 @@ static int acpi_pci_irq_check_entry(acpi_handle handl=
-e, struct pci_dev *dev,
->         struct acpi_prt_entry *entry;
->
->         if (((prt->address >> 16) & 0xffff) !=3D device ||
-> +           ((prt->address & 0xffff) !=3D 0xffff &&
-> +            (prt->address & 0xffff) !=3D PCI_FUNC(dev->devfn)) ||
->             prt->pin + 1 !=3D pin)
->                 return -ENODEV;
->
-> --
-> 2.9.3
+>   Device (EXP1) {
+>     Name (_ADR, 0x001C0000)
+>     Name (_PRT) {
+>       Package () { 0xFFFF, 0x00, \_SB.LNKA, 0x00 },
+>       Package () { 0xFFFF, 0x01, \_SB.LNKB, 0x00 },
+>       ...
+>     }
+>   }
+>   Device (EXP3) {
+>     Name (_ADR, 0x001C0002)
+>     Name (_PRT) {
+>       Package () { 0xFFFF, 0x00, \_SB.LNKC, 0x00 },
+>       Package () { 0xFFFF, 0x01, \_SB.LNKD, 0x00 },
+>       ...
+>     }
+>   }
 >
 
-It has been pointed out to me by Alan that the current wording of the
-ACPI spec requires the function field of the address to be 0xffff.
-
-Section 6.2.13 of the ACPI spec has this note
-
-Note: The PCI function number in the Address field of the _PRT
-packages must be 0xFFFF, indicating
-=E2=80=9Cany=E2=80=9D function number or =E2=80=9Call functions=E2=80=9D
-
-of which I wonder if it makes sense for bridges as well.
+Thanks for the explanation. But how is this wired up into the PNP0A08
+device then? IOW, how does the ACPI code in Linux discover the
+relation between these devices and my PCI root device?
