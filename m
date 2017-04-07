@@ -1,37 +1,122 @@
-From: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 17/24] acpi: Ignore acpi_rsdp kernel param when the kernel has been locked down
-Date: Fri, 07 Apr 2017 08:05:27 +0100
-Message-ID: <21360.1491548727@warthog.procyon.org.uk>
-References: <20170407063107.GA10451@dhcp-128-65.nay.redhat.com> <149142326734.5101.4596394505987813763.stgit@warthog.procyon.org.uk> <149142341772.5101.12366553346604485034.stgit@warthog.procyon.org.uk> <CAJZ5v0j580XfGHd+GVQe+7vuSGyxFzfrDOjYfOcGTnKZSvjCoA@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 3/4] power: supply: axp288_fuel_gauge: Unregister
+ duplicate ACPI battery supply
+Date: Fri, 7 Apr 2017 09:18:07 +0200
+Message-ID: <c62e0707-7415-9473-98cb-3741c4f258ff@redhat.com>
+References: <20170316161601.32267-1-hdegoede@redhat.com>
+ <20170316161601.32267-4-hdegoede@redhat.com>
+ <6382698.NuYXpb6L7h@aspire.rjw.lan>
+ <0ed23626-b6b2-a42e-2a1d-762c8c833f7b@redhat.com>
+ <CAJZ5v0h466y6hBy_-12AEgcpAUXEA7cZkNwXZwvsHnjWtoqFeg@mail.gmail.com>
+ <eb52c4b4-fc3c-b11b-edef-a35c6bb0d82d@redhat.com>
+ <CAJZ5v0i7TN+iJLR_SeaCrpKJ13g1_bQ-G54cugAF9Dm4=pifAg@mail.gmail.com>
+ <0c1cc4fc-d127-54d1-334b-9a569354d2a3@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170407063107.GA10451-0VdLhd/A9Pl+NNSt+8eSiB/sF2h8X+2i0E9HWUfgJXw@public.gmane.org>
-Content-ID: <21359.1491548727.1-S6HVgzuS8uM4Awkfq6JHfwNdhmdF6hFW@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, gnomes-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Josh Boyer <jwboyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keyrings-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:39010 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753038AbdDGHSL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 7 Apr 2017 03:18:11 -0400
+In-Reply-To: <0c1cc4fc-d127-54d1-334b-9a569354d2a3@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
 
-Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+Hi,
 
-> > > This option allows userspace to pass the RSDP address to the kernel, which
-> > > makes it possible for a user to circumvent any restrictions imposed on
-> > > loading modules.  Ignore the option when the kernel is locked down.
-> > 
-> > I'm not really sure here.
-> > 
-> > What exactly is the mechanism?
-> 
-> Actually this acpi_rsdp param is created for EFI kexec reboot in old
-> days when we had not supported persistent efi vm space across kexec
-> reboot. At that time kexec reboot runs as noefi mode, it can not find
-> the acpi root table thus kernel will hang early.
-> 
-> Now kexec can support EFI boot so this param is not necessary for most
-> user unless they still use efi=old_map.
+On 31-03-17 11:57, Hans de Goede wrote:
+> Hi,
+>
+> On 31-03-17 11:11, Rafael J. Wysocki wrote:
+>> On Fri, Mar 31, 2017 at 11:08 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+>>> Hi,
+>>>
+>>> On 31-03-17 11:05, Rafael J. Wysocki wrote:
+>>>>
+>>>> On Fri, Mar 31, 2017 at 11:01 AM, Hans de Goede <hdegoede@redhat.com>
+>>>> wrote:
+>>>>
+>>>> [cut]
+>>>>
+>>>>>>> --- a/drivers/power/supply/axp288_fuel_gauge.c
+>>>>>>> +++ b/drivers/power/supply/axp288_fuel_gauge.c
+>>>>>>> @@ -26,6 +26,7 @@
+>>>>>>>  #include <linux/mfd/axp20x.h>
+>>>>>>>  #include <linux/platform_device.h>
+>>>>>>>  #include <linux/power_supply.h>
+>>>>>>> +#include <linux/power/acpi.h>
+>>>>>>>  #include <linux/iio/consumer.h>
+>>>>>>>  #include <linux/debugfs.h>
+>>>>>>>  #include <linux/seq_file.h>
+>>>>>>> @@ -754,6 +755,8 @@ static int axp288_fuel_gauge_probe(struct
+>>>>>>> platform_device *pdev)
+>>>>>>>                 return ret;
+>>>>>>>         }
+>>>>>>>
+>>>>>>> +       acpi_battery_unregister();
+>>>>>>> +
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> What if the ACPI battery driver is loaded after this has been called
+>>>>>> already?
+>>>>>
+>>>>>
+>>>>>
+>>>>> The module exports that symbol so it must be loaded already.
+>>>>
+>>>>
+>>>> But then it may be unloaded manually and loaded again, may it not?
+>>>
+>>>
+>>> Only if you first unload axp288_fuel_gauge.ko otherwise it will
+>>> have a refcount > 0.
+>>
+>> OK
+>>
+>> Anyway, I'd prefer blacklists in the battery and ac drivers to be honest.
+>
+> As I explained in my reply to the discussion around the first patch that
+> is somewhat hard to do and requires encoding knowledge in those drivers
+> which really does not belong there:
+>
+> "The problem is that Intel re-uses HIDs between generations and
+> for the Whiskey Cove PMIC we want to not use the ACPI battery
+> and ac drivers on Cherry Trail (where they are known to be
+> broken) but things are different on Apollo Lake. Yet both
+> use the same HID for their companion Whiskey Cove PMIC even
+> though they are 2 completely different revisions of the PMIC
+> (e.g. one uses i2c the other does not).
+>
+> The 2 native drivers have code to detect which revision they
+> are dealing with and exit with -ENODEV if it is not the
+> revision they were written for, but this means that simple
+> HID blacklisting will not work. So IMHO the decision to
+> unregister the  ACPI battery / ac interface really belongs
+> in the native driver as that has all the nitty gritty detail
+> needed to make that decision."
 
-Is this patch now unnecessary?
+So thinking more about this, esp. after receiving a bug report
+from a user getting ACPI errors because of Linux not implementing
+the proprietary undocumented BMOP opregion before the ACPI battery
+driver gets unregistered by the native one, I thing we do indeed
+need to go with a blacklist.
 
-David
+This means also being able to match by _HRV, as Some HIDs are
+re-used for different hardware between Bay Trail / Cherry Trail /
+Broxton with just a bump of _HRV.
+
+I'm currently working on respinning my
+"acpi: utils: Add new acpi_dev_present helper" to address the
+review comments on it. I'm going to give it an optional hrv
+function argument for this use, so as to not having to implement
+hrv checking code in both ac.c and battery.c .
+
+So self-nack for this series as is.
+
+Regards,
+
+Hans
