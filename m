@@ -1,49 +1,70 @@
-From: Dave Young <dyoung@redhat.com>
-Subject: Re: [PATCH 17/24] acpi: Ignore acpi_rsdp kernel param when the
- kernel has been locked down
-Date: Fri, 7 Apr 2017 15:39:56 +0800
-Message-ID: <20170407073956.GA10737@dhcp-128-65.nay.redhat.com>
-References: <20170407063107.GA10451@dhcp-128-65.nay.redhat.com>
- <149142326734.5101.4596394505987813763.stgit@warthog.procyon.org.uk>
- <149142341772.5101.12366553346604485034.stgit@warthog.procyon.org.uk>
- <CAJZ5v0j580XfGHd+GVQe+7vuSGyxFzfrDOjYfOcGTnKZSvjCoA@mail.gmail.com>
- <21360.1491548727@warthog.procyon.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-security-module-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <21360.1491548727@warthog.procyon.org.uk>
-Sender: owner-linux-security-module@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, gnomes@lxorguk.ukuu.org.uk, linux-efi@vger.kernel.org, Josh Boyer <jwboyer@redhat.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-security-module@vger.kernel.org, keyrings@vger.kernel.org, matthew.garrett@nebula.com
+From: Baoquan He <bhe@redhat.com>
+Subject: [PATCH] ACPI / tables: Cleanup the obsolete acpi_parse_entries
+Date: Fri,  7 Apr 2017 16:22:47 +0800
+Message-ID: <1491553367-17847-1-git-send-email-bhe@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:52224 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754473AbdDGIWy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 7 Apr 2017 04:22:54 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Baoquan He <bhe@redhat.com>
 
-On 04/07/17 at 08:05am, David Howells wrote:
-> Dave Young <dyoung@redhat.com> wrote:
-> 
-> > > > This option allows userspace to pass the RSDP address to the kernel, which
-> > > > makes it possible for a user to circumvent any restrictions imposed on
-> > > > loading modules.  Ignore the option when the kernel is locked down.
-> > > 
-> > > I'm not really sure here.
-> > > 
-> > > What exactly is the mechanism?
-> > 
-> > Actually this acpi_rsdp param is created for EFI kexec reboot in old
-> > days when we had not supported persistent efi vm space across kexec
-> > reboot. At that time kexec reboot runs as noefi mode, it can not find
-> > the acpi root table thus kernel will hang early.
-> > 
-> > Now kexec can support EFI boot so this param is not necessary for most
-> > user unless they still use efi=old_map.
-> 
-> Is this patch now unnecessary?
+Function acpi_parse_entries is not used any more. And the being used
+function, acpi_table_parse_entries can substitute it if really needed.
 
-I think it is still necessary because the acpi_rsdp kernel param is still
-a valid paramater and one can still pass a pointer to be recognized as acpi
-root pointer.
+So clean it up in this patch.
 
-Maybe "imposed on loading modules" is not clear which can be dropped.
+Signed-off-by: Baoquan He <bhe@redhat.com>
+---
+ drivers/acpi/tables.c | 16 ----------------
+ include/linux/acpi.h  |  4 ----
+ 2 files changed, 20 deletions(-)
 
-Thanks
-Dave
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 2604189..0dae722 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -311,22 +311,6 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ }
+ 
+ int __init
+-acpi_parse_entries(char *id,
+-			unsigned long table_size,
+-			acpi_tbl_entry_handler handler,
+-			struct acpi_table_header *table_header,
+-			int entry_id, unsigned int max_entries)
+-{
+-	struct acpi_subtable_proc proc = {
+-		.id		= entry_id,
+-		.handler	= handler,
+-	};
+-
+-	return acpi_parse_entries_array(id, table_size, table_header,
+-			&proc, 1, max_entries);
+-}
+-
+-int __init
+ acpi_table_parse_entries_array(char *id,
+ 			 unsigned long table_size,
+ 			 struct acpi_subtable_proc *proc, int proc_num,
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 9b05886..83abbfc 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -233,10 +233,6 @@ int acpi_numa_init (void);
+ 
+ int acpi_table_init (void);
+ int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
+-int __init acpi_parse_entries(char *id, unsigned long table_size,
+-			      acpi_tbl_entry_handler handler,
+-			      struct acpi_table_header *table_header,
+-			      int entry_id, unsigned int max_entries);
+ int __init acpi_table_parse_entries(char *id, unsigned long table_size,
+ 			      int entry_id,
+ 			      acpi_tbl_entry_handler handler,
+-- 
+2.5.5
+
