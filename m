@@ -1,142 +1,66 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH V10 06/12] of: device: Fix overflow of coherent_dma_mask
-Date: Fri, 7 Apr 2017 15:46:27 +0100
-Message-ID: <b38312b0-268b-ed86-a5b3-886f86ea13f5@arm.com>
-References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
- <1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
- <1491301105-5274-7-git-send-email-sricharan@codeaurora.org>
- <58E5E7B7.1050400@gmail.com>
- <b77e3405-f060-bcd5-99f6-7d76f9edf08a@codeaurora.org>
- <58E69831.6010306@gmail.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v3 8/8] arm64: exception: check shared writable page in
+ SEI handler
+Date: Fri, 07 Apr 2017 16:56:45 +0100
+Message-ID: <58E7B6BD.3000401@arm.com>
+References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
+ <1490869877-118713-9-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:56268 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755802AbdDGOqd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 7 Apr 2017 10:46:33 -0400
-In-Reply-To: <58E69831.6010306@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <1490869877-118713-9-git-send-email-xiexiuqi@huawei.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: linux-arm-kernel@lists.infradead.org, wuquanming@huawei.com, kvm@vger.kernel.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, rostedt@goodmis.org, gengdongjiu@huawei.com, wangxiongfeng2@huawei.com, linux-acpi@vger.kernel.org, Wang Xiongfeng <wangxiongfengi2@huawei.com>, shiju.jose@huawei.com, zhengqiang10@huawei.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, hanjun.guo@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frank Rowand <frowand.list@gmail.com>, Sricharan R <sricharan@codeaurora.org>, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, gregkh@linuxfoundation.org
 
-On 06/04/17 20:34, Frank Rowand wrote:
-> On 04/06/17 04:01, Sricharan R wrote:
->> Hi Frank,
->>
->> On 4/6/2017 12:31 PM, Frank Rowand wrote:
->>> On 04/04/17 03:18, Sricharan R wrote:
->>>> Size of the dma-range is calculated as coherent_dma_mask + 1
->>>> and passed to arch_setup_dma_ops further. It overflows when
->>>> the coherent_dma_mask is set for full 64 bits 0xFFFFFFFFFFFFFFFF,
->>>> resulting in size getting passed as 0 wrongly. Fix this by
->>>> passsing in max(mask, mask + 1). Note that in this case
->>>> when the mask is set to full 64bits, we will be passing the mask
->>>> itself to arch_setup_dma_ops instead of the size. The real fix
->>>> for this should be to make arch_setup_dma_ops receive the
->>>> mask and handle it, to be done in the future.
->>>>
->>>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
->>>> ---
->>>>  drivers/of/device.c | 2 +-
->>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/of/device.c b/drivers/of/device.c
->>>> index c17c19d..c2ae6bb 100644
->>>> --- a/drivers/of/device.c
->>>> +++ b/drivers/of/device.c
->>>> @@ -107,7 +107,7 @@ void of_dma_configure(struct device *dev, struct device_node *np)
->>>>      ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
->>>>      if (ret < 0) {
->>>>          dma_addr = offset = 0;
->>>> -        size = dev->coherent_dma_mask + 1;
->>>> +        size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
->>>>      } else {
->>>>          offset = PFN_DOWN(paddr - dma_addr);
->>>>          dev_dbg(dev, "dma_pfn_offset(%#08lx)\n", offset);
->>>>
->>>
->>> NACK.
->>>
->>> Passing an invalid size to arch_setup_dma_ops() is only part of the problem.
->>> size is also used in of_dma_configure() before calling arch_setup_dma_ops():
->>>
->>>         dev->coherent_dma_mask = min(dev->coherent_dma_mask,
->>>                                      DMA_BIT_MASK(ilog2(dma_addr + size)));
->>>         *dev->dma_mask = min((*dev->dma_mask),
->>>                              DMA_BIT_MASK(ilog2(dma_addr + size)));
->>>
->>> which would be incorrect for size == 0xffffffffffffffffULL when
->>> dma_addr != 0.  So the proposed fix really is not papering over
->>> the base problem very well.
->>>
->>
->> Ok, but with your fix for of_dma_get_range and the above fix,
->> dma_addr will be '0' when size = 0xffffffffffffffffULL,
->> but DMA_BIT_MASK(ilog2(dma_addr + size)) would be wrong though,
->> making coherent_dma_mask to be smaller 0x7fffffffffffffffULL.
+Hi Xie XiuQi,
+
+On 30/03/17 11:31, Xie XiuQi wrote:
+> From: Wang Xiongfeng <wangxiongfeng2@huawei.com>
 > 
-> Yes, that was my point.  Setting size to 0x7fffffffffffffffULL
-> affects several places.  Another potential location (based only
-> on the function header comment, not from reading the code) is
-> iommu_dma_init_domain().  The header comment says:
-> 
->     * @base and @size should be exact multiples of IOMMU page granularity to
->     * avoid rounding surprises.
+> Since SEI is asynchronous, the error data has been consumed. So we must
+> suppose that all the memory data current process can write are
+> contaminated. If the process doesn't have shared writable pages, the
+> process will be killed, and the system will continue running normally.
+> Otherwise, the system must be terminated, because the error has been
+> propagated to other processes running on other cores, and recursively
+> the error may be propagated to several another processes.
 
-That is really only referring to the fact that some of the work done
-therein involves truncation to PFNs, so anyone passing in non-exact
-values expecting them to round a particular way may get things off by a
-page one way or the other. It's not going to have much practical
-significance for real devices (in particular since size is used more as
-a sanity check than any kind of actual limit there).
+This is pretty complicated. We can't guarantee that another CPU hasn't modified
+the page tables while we do this, (so its racy). We can't guarantee that the
+corrupt data hasn't been sent over the network or written to disk in the mean
+time (so its not enough).
 
-> I have not read enough context to really understand of_dma_configure(), but
-> it seems there is yet another issue in how the error return case from
-> of_dma_get_range() is handled (with the existing code, as well as if
-> my patch gets accepted).  An error return value can mean _either_
-> there is no dma-ranges property _or_ "an other problem occurred".  Should
-> the "an other problem occurred" case be handled by defaulting size to
-> a value based on dev->coherent_dma_mask (the current case) or should the
-> attempt to set up the DMA configuration just fail?
+The scenario you have is a write of corrupt data to memory where another CPU
+reading it doesn't know the value is corrupt.
 
-There is indeed a lot wrong with of_dma_configure() and
-arch_setup_dma_ops(), but fixing those is beyond the scope of this
-series. This is just working around a latent bug in the one specific
-case where a value is *not* derived from DT. Any DT which worked before
-still works; any DT which made of_dma_configure() go wrong before still
-makes of_dma_configure() go wrong exactly the same.
+The hardware gives us quite a lot of help containing errors. The RAS
+specification (DDI 0587A) describes your scenario as error propagation in '2.1.2
+Architectural error propagation', and then classifies it in '2.1.3
+Architecturally infected, containable and uncontainable' as uncontained because
+the value is no longer in the general-purpose registers. For uncontained errors
+we should panic().
 
-Whilst it's not ideal, since a DMA mask basically represents the maximum
-size of address that that particular device can be given, I can't see it
-making any practical difference for a full 64-bit DMA mask to be trimmed
-down to 63 bits upon re-probing - no system is likely to have that many
-physical address bits anyway, and I don't think any IOMMUs support that
-large an IOVA space either, so as long as it's still big enough to cover
-"everything", it'll be OK.
+We shouldn't need to try to track errors after we get a notification as the
+hardware has done this for us.
 
-Of course, whether DMA_BIT_MASK(ilog2(dma_addr + size)) is the right
-thing to do in the first place is yet another matter, as there are
-plenty of cases where it results in something which can't reach the
-given range at all, but again, this isn't the place. Much as I'm keen to
-get the behaviour of of_dma_configure() sorted out properly, it doesn't
-seem reasonable that that should suddenly block this
-almost-entirely-orthogonal series that various other work has been
-waiting on for some time now. The WIP patch I have for
-arch_setup_dma_ops() already touches 3 architectures and 4 other
-subsystems...
 
-Robin.
+Firmware-first does complicate this if events like this are not delivered using
+a synchronous external abort, as Linux may have PSTATE.A masked preventing
+SError Interrupts from being taken. It looks like PSTATE.A is masked much more
+often than is necessary. I will look into cleaning this up.
 
-> 
->>
->> Regards,
->>  Sricharan
->>
->>> I agree that the proper solution involves passing a mask instead
->>> of a size to arch_setup_dma_ops().
->>>
->>
-> 
 
+Thanks,
+
+James
