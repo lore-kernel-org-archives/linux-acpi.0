@@ -1,124 +1,167 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 1/2] acpi: utils: Add new acpi_dev_present helper
-Date: Fri, 7 Apr 2017 12:39:09 +0200
-Message-ID: <29af2f0a-8f3a-dc67-3fb8-59117da33e86@redhat.com>
-References: <20170316161736.339-1-hdegoede@redhat.com>
- <20170316161736.339-2-hdegoede@redhat.com>
- <4029834.c3GWUpRlkb@aspire.rjw.lan>
- <20170329092638.GU2957@lahna.fi.intel.com>
- <1490806252.708.53.camel@linux.intel.com>
- <20170330083341.GA10207@h08.hostsharing.net>
+From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH v2 3/8] v4l: async: Add fwnode match support
+Date: Fri, 7 Apr 2017 13:39:13 +0300
+Message-ID: <20170407103913.GE4192@valkosipuli.retiisi.org.uk>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
+ <3722368.bfpMvP62Mi@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54670 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754526AbdDGKjO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 7 Apr 2017 06:39:14 -0400
-In-Reply-To: <20170330083341.GA10207@h08.hostsharing.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3722368.bfpMvP62Mi@avalon>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Robert Moore <robert.moore@intel.com>
 
-Hi Lukas,
+Hi Laurent,
 
-On 30-03-17 10:33, Lukas Wunner wrote:
-> [cc += Robert Moore]
->
-> Hi Hans,
->
-> I'm the author of acpi_dev_found(), please in the future use git blame
-> to determine relevant authors of existing code that should be cc'ed,
+On Fri, Apr 07, 2017 at 12:49:02PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> On Thursday 06 Apr 2017 16:12:05 Sakari Ailus wrote:
+> > Add fwnode matching to complement OF node matching. And fwnode may also be
+> > an OF node.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++++
+> >  include/media/v4l2-async.h           |  5 +++++
+> >  include/media/v4l2-subdev.h          |  3 +++
+> >  3 files changed, 20 insertions(+)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> > b/drivers/media/v4l2-core/v4l2-async.c index 96cc733..384ad5e 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -46,6 +46,11 @@ static bool match_of(struct v4l2_subdev *sd, struct
+> > v4l2_async_subdev *asd) of_node_full_name(asd->match.of.node));
+> >  }
+> > 
+> > +static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> > *asd)
+> > +{
+> > +	return sd->fwnode == asd->match.fwnode.fwn;
+> > +}
+> > +
+> >  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> > *asd) {
+> >  	if (!asd->match.custom.match)
+> > @@ -80,6 +85,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct
+> > v4l2_async_notifier * case V4L2_ASYNC_MATCH_OF:
+> >  			match = match_of;
+> >  			break;
+> > +		case V4L2_ASYNC_MATCH_FWNODE:
+> > +			match = match_fwnode;
+> > +			break;
+> >  		default:
+> >  			/* Cannot happen, unless someone breaks us */
+> >  			WARN_ON(true);
+> > @@ -158,6 +166,7 @@ int v4l2_async_notifier_register(struct v4l2_device
+> > *v4l2_dev, case V4L2_ASYNC_MATCH_DEVNAME:
+> >  		case V4L2_ASYNC_MATCH_I2C:
+> >  		case V4L2_ASYNC_MATCH_OF:
+> > +		case V4L2_ASYNC_MATCH_FWNODE:
+> >  			break;
+> >  		default:
+> >  			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : 
+> NULL,
+> > @@ -282,6 +291,9 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+> >  	 */
+> >  	if (!sd->of_node && sd->dev)
+> >  		sd->of_node = sd->dev->of_node;
+> > +	if (!sd->fwnode && sd->dev)
+> > +		sd->fwnode = sd->dev->of_node ?
+> > +			&sd->dev->of_node->fwnode : sd->dev->fwnode;
+> > 
+> >  	mutex_lock(&list_lock);
+> > 
+> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> > index 8e2a236..8f552d2 100644
+> > --- a/include/media/v4l2-async.h
+> > +++ b/include/media/v4l2-async.h
+> > @@ -32,6 +32,7 @@ struct v4l2_async_notifier;
+> >   * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
+> >   * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
+> >   * @V4L2_ASYNC_MATCH_OF: Match will use OF node
+> > + * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
+> >   *
+> >   * This enum is used by the asyncrhronous sub-device logic to define the
+> >   * algorithm that will be used to match an asynchronous device.
+> > @@ -41,6 +42,7 @@ enum v4l2_async_match_type {
+> >  	V4L2_ASYNC_MATCH_DEVNAME,
+> >  	V4L2_ASYNC_MATCH_I2C,
+> >  	V4L2_ASYNC_MATCH_OF,
+> > +	V4L2_ASYNC_MATCH_FWNODE,
+> >  };
+> > 
+> >  /**
+> > @@ -58,6 +60,9 @@ struct v4l2_async_subdev {
+> >  			const struct device_node *node;
+> >  		} of;
+> >  		struct {
+> > +			struct fwnode_handle *fwn;
+> 
+> I'd name this "node". The rationale is that code should be as independent as 
+> possible of whether we use device_node or fwnode_handle. Naming both variable 
+> "node" helps in that regard, and is in my opinion easier to read. This applies 
+> to the other patches in the series too.
 
-Right, sorry about that.
+What you're proposing doesn't really change that: you'll have to be aware of
+which one you have anyway. Variables pointing to fwnode_handle are often
+called fwn as well --- as node is used for struct device_node.
 
-> I noticed your patch only now:
->
-> On Thursday, March 16, 2017 05:17:35 PM Hans de Goede wrote:
->> acpi_dev_found just iterates over all acpi-ids and sees if one matches.
->> This means that it will return true for devices which are in the dsdt
->> but disabled (their _STA method returns 0).
->>
->> For some drivers it is useful to be able to check if a certain hid
->> is not only present in the namespace, but also actually present as in
->> acpi_device_is_present() will return true for the device. For example
->> because if a certain device is present then the driver will want to use
->> an extcon or IIO adc channel provided by that device.
->>
->> This commit adds a new acpi_dev_present helper which drivers can use
->> to this end.
->>
->> Arguably acpi_dev_present is what acpi_dev_found should have been, but
->> there are too many users to just change acpi_dev_found without the risk
->> of breaking something.
->
-> I originally did submit an acpi_dev_present() function which was identical
-> to what you've submitted now:
-> http://www.spinics.net/lists/linux-acpi/msg61865.html
->
-> However Robert Moore raised an objection that "Traversing the namespace
-> over and over is truly brute force":
-> http://www.spinics.net/lists/linux-acpi/msg61911.html
->
-> For my use case, which was apple_gmux_present(), just detecting presence
-> of the HID in the namespace was sufficient, I did not have the need to
-> execute _STA.  Hence to address Robert Moore's concern I switched to
-> simply traversing the acpi_bus_id_list.
->
-> Rafael objected to the acpi_dev_present() name as it suggested that _STA
-> is checked even though it wasn't, so I renamed the function to
-> acpi_dev_found() with commit c68ae33e7fb4.
->
-> The objection raised by Robert Moore applies to your patch as well since
-> it is identical to my original patch.  The return value of _STA seems to
-> be cached in the "status" field of struct acpi_device, so you may
-> be able to overcome Robert Moore's objection by calling bus_find_device()
-> with a callback which contains the check in acpi_device_is_present().
-> See drivers/firmware/efi/dev-path-parser.c for an example (parse_acpi_path()
-> and match_acpi_dev()).  This is probably faster than acpi_get_devices()
-> because it just traverses a list instead of walking the namespace and it
-> avoids the call to _STA.  (Some devices just return a constant when _STA
-> is called, others may take more time.)
+In other words, I prefer to keep it as it is.
 
-Thank you for your input. I've prepared a new version using your suggestion
-and slightly extended the function with a uid and hrv argument so that
-it becomes more generally useful, e.g. it can be used now to replace
-the code from drivers/firmware/efi/dev-path-parser.c you gave as an
-example how to do this.
+> 
+> Apart from that,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> 
+> > +		} fwnode;
+> > +		struct {
+> >  			const char *name;
+> >  		} device_name;
+> >  		struct {
+> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > index 0ab1c5d..5f1669c 100644
+> > --- a/include/media/v4l2-subdev.h
+> > +++ b/include/media/v4l2-subdev.h
+> > @@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
+> >   * @devnode: subdev device node
+> >   * @dev: pointer to the physical device, if any
+> >   * @of_node: The device_node of the subdev, usually the same as
+> > dev->of_node. + * @fwnode: The fwnode_handle of the subdev, usually the
+> > same as
+> > + *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-
+> NULL).
+> >   * @async_list: Links this subdev to a global subdev_list or
+> > @notifier->done *	list.
+> >   * @asd: Pointer to respective &struct v4l2_async_subdev.
+> > @@ -819,6 +821,7 @@ struct v4l2_subdev {
+> >  	struct video_device *devnode;
+> >  	struct device *dev;
+> >  	struct device_node *of_node;
+> > +	struct fwnode_handle *fwnode;
+> >  	struct list_head async_list;
+> >  	struct v4l2_async_subdev *asd;
+> >  	struct v4l2_async_notifier *notifier;
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
-I'm going to submit a new version of this patch-set now, including
-a few patches replacing another series from me which can also use the
-new extended functionality.
-
-If people like the new v2 acpi_dev_present() I will submit patches
-to replace the custom code for this in drivers/firmware/efi/dev-path-parser.c
-and sound/soc/intel/common/sst-match-acpi.c once it is merged.
-
-Talking about merging, I also have some none ACPI patches which
-need this pending (such as 2/2 of the orgiinal series) it would be
-great of at least the first patch of the new series could be merged
-in time for 4.12, or alternatively an immutable branch with it
-can be created for 4.13 once 4.12-rc1 is released.
-
+-- 
 Regards,
 
-Hans
-
-
->
-> FWIW, all existing users of acpi_dev_found(), except for the hisilicon
-> Ethernet driver, originally used acpi_get_devices() and I converted
-> them to acpi_dev_found to deduplicate code.  Thus it would be safe to
-> convert those to your new function acpi_dev_present().  I also converted
-> sound/soc/intel/common/sst-match-acpi.c to acpi_dev_found() but the
-> Intel folks switched back to acpi_get_devices() because just like you
-> they had the need to check _STA.  If you introduce a new helper which
-> checks _STA, it would be good if you could amend sst-match-acpi.c to
-> use it so as to deduplicate code.
->
-> Thanks,
->
-> Lukas
->
+Sakari Ailus
+e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
