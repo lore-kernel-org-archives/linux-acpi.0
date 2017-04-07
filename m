@@ -1,102 +1,85 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH] acpi: pci: don't ignore function ID of bridge device in _PRT
-Date: Fri, 7 Apr 2017 18:12:05 +0100
-Message-ID: <CAKv+Gu_rivjMaQ740LWO1Nm8SPMGuQ1J1TFeD8QXnRch8Lv6bg@mail.gmail.com>
-References: <20170407132222.28300-1-ard.biesheuvel@linaro.org> <20170407170654.GA30103@bhelgaas-glaptop.roam.corp.google.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] arm64: acpi: Support PCI devices numa_node property in
+ ACPI mode
+Date: Fri, 7 Apr 2017 18:18:12 +0100
+Message-ID: <20170407171812.GA12012@red-moon>
+References: <20170406114711.17261-1-s.temerkhanov@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f176.google.com ([209.85.223.176]:34066 "EHLO
-        mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932075AbdDGRMG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2017 13:12:06 -0400
-Received: by mail-io0-f176.google.com with SMTP id b140so53716388iof.1
-        for <linux-acpi@vger.kernel.org>; Fri, 07 Apr 2017 10:12:06 -0700 (PDT)
-In-Reply-To: <20170407170654.GA30103@bhelgaas-glaptop.roam.corp.google.com>
+Received: from foss.arm.com ([217.140.101.70]:58854 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933347AbdDGRRk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 7 Apr 2017 13:17:40 -0400
+Content-Disposition: inline
+In-Reply-To: <20170406114711.17261-1-s.temerkhanov@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+To: Sergey Temerkhanov <s.temerkhanov@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 7 April 2017 at 18:06, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> Hi Ard,
->
-> On Fri, Apr 07, 2017 at 02:22:22PM +0100, Ard Biesheuvel wrote:
->> We currently derive legacy interrupt routing by matching _PRT
->> entries on the PCI device only, presumably under the assumption
->> that PRT entries always have a value of 0xffff in the function
->> field, meaning 'match all functions'.
->
-> The spec (ACPI v6.0, sec 6.2.13) contains a note that:
->
->   The PCI function number in the Address field of the _PRT packages
->   must be 0xFFFF, indicating "any" function number or "all functions".
->
-> If we need a patch like this, we need to somehow reconcile it with
-> that spec text to make sure firmware and OS folks have a common
-> understanding of how this is supposed to work.
->
->> This no longer holds for modern PCIe topologies, where the
->> legacy interrupts for different slots may be wired to different
->> functions on the same bridge device. For instance, on AMD Seattle,
->> we may have something like
->>
->> -[0000:00]-+-00.0  Advanced Micro Devices, Inc. [AMD] Device 1a00
->>            +-02.0  Advanced Micro Devices, Inc. [AMD] Device 1a01
->>            +-02.2-[01]----00.0  Renesas uPD720202 USB 3.0 Host Controller
->>            \-02.3-[02]----00.0  Realtek RTL8169 PCIe Gigabit Ethernet
->>
->> where the _PRT describes the legacy interrupt routing as
->>
->>     Name (_PRT, Package ()  // _PRT: PCI Routing Table
->>     {
->>         // slot 1: dev 2 fn 1
->>         Package () { 0x20001, 0x0, 0x0, 0x140 },
->>         Package () { 0x20001, 0x1, 0x0, 0x141 },
->>         Package () { 0x20001, 0x2, 0x0, 0x142 },
->>         Package () { 0x20001, 0x3, 0x0, 0x143 },
->>
->>         // slot 1: dev 2 fn 2
->>         Package () { 0x20002, 0x0, 0x0, 0x144 },
->>         Package () { 0x20002, 0x1, 0x0, 0x145 },
->>         Package () { 0x20002, 0x2, 0x0, 0x146 },
->>         Package () { 0x20002, 0x3, 0x0, 0x147 },
->>
->>         // slot 1: dev 2 fn 3
->>         Package () { 0x20003, 0x0, 0x0, 0x148 },
->>         Package () { 0x20003, 0x1, 0x0, 0x149 },
->>         Package () { 0x20003, 0x2, 0x0, 0x14a },
->>         Package () { 0x20003, 0x3, 0x0, 0x14b }
->>     }) // _PRT
->
-> But I think this _PRT description is incorrect and we should change
-> the _PRT rather than the kernel.  My laptop has a basically identical
-> topology:
->
->   -[0000:00]-+-00.0  Intel Corporation Sky Lake Host Bridge/DRAM Registers
->              +-1c.0-[02]----00.0  Realtek Semiconductor Co., Ltd.  Device 525a
->              +-1c.2-[04]----00.0  Intel Corporation Wireless 8260
->
-> and the ASL looks like this (paraphrased):
->
->   Device (EXP1) {
->     Name (_ADR, 0x001C0000)
->     Name (_PRT) {
->       Package () { 0xFFFF, 0x00, \_SB.LNKA, 0x00 },
->       Package () { 0xFFFF, 0x01, \_SB.LNKB, 0x00 },
->       ...
->     }
->   }
->   Device (EXP3) {
->     Name (_ADR, 0x001C0002)
->     Name (_PRT) {
->       Package () { 0xFFFF, 0x00, \_SB.LNKC, 0x00 },
->       Package () { 0xFFFF, 0x01, \_SB.LNKD, 0x00 },
->       ...
->     }
->   }
->
+Hi Sergey,
 
-Thanks for the explanation. But how is this wired up into the PNP0A08
-device then? IOW, how does the ACPI code in Linux discover the
-relation between these devices and my PCI root device?
+On Thu, Apr 06, 2017 at 11:47:11AM +0000, Sergey Temerkhanov wrote:
+> This commit modifies ARM64-specific ACPI PCI support functions to
+> properly set the numa_node property on host bridges and thus on PCI
+> devices. Such support requires _PXM objects to be set in DSDT/SSDT
+> tables describing PCI root bridges
+> 
+> Signed-off-by: Sergey Temerkhanov <s.temerkhanov@gmail.com>
+> ---
+>  arch/arm64/kernel/pci.c | 13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+> index 4f0e3ebfea4b..c45c7a26f984 100644
+> --- a/arch/arm64/kernel/pci.c
+> +++ b/arch/arm64/kernel/pci.c
+> @@ -81,7 +81,16 @@ int raw_pci_write(unsigned int domain, unsigned int bus,
+>  
+>  int pcibus_to_node(struct pci_bus *bus)
+>  {
+> -	return dev_to_node(&bus->dev);
+> +	struct pci_config_window *cfg = bus->sysdata;
+
+Well, this implicit cast is a guess (ie it might be a DT sysdata
+and there you can't have a clue on what it really is).
+
+> +	struct acpi_device *adev = NULL;
+> +	struct device *dev;
+> +
+> +	if (!acpi_disabled)
+> +		adev = to_acpi_device(cfg->parent);
+> +
+> +	dev = adev ? &adev->dev : &bus->dev;
+> +
+> +	return dev_to_node(dev);
+>  }
+>  EXPORT_SYMBOL(pcibus_to_node);
+>  
+> @@ -186,6 +195,8 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>  	struct pci_bus *bus, *child;
+>  	struct acpi_pci_root_ops *root_ops;
+>  
+> +	set_dev_node(&root->device->dev, node);
+
+Ok I suspect this is one of those catch-22 issues with host bridge
+creation/scan code (like domain nr), let me have a look I will send
+you a patch next week when I figure out the call ordering required
+to make this work, I want to make sure we can make this work with
+DT and ACPI alike.
+
+Thanks !
+Lorenzo
+
+> +
+>  	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
+>  	if (!ri)
+>  		return NULL;
+> -- 
+> 2.12.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
