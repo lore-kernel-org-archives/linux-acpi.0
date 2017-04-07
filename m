@@ -1,57 +1,144 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH v2 6/8] v4l: media/drv-intf/soc_mediabus.h: include dependent header file
-Date: Fri, 07 Apr 2017 13:01:29 +0300
-Message-ID: <2155093.Y2052RbRLf@avalon>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <1491484330-12040-7-git-send-email-sakari.ailus@linux.intel.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 3/8] v4l: async: Add fwnode match support
+Date: Fri, 07 Apr 2017 13:04:47 +0300
+Message-ID: <2374089.j4OXu9zDtc@avalon>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1491484330-12040-7-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35520 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751738AbdDGKEB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2017 06:04:01 -0400
+In-Reply-To: <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 
 Hi Sakari,
 
 Thank you for the patch.
 
-On Thursday 06 Apr 2017 16:12:08 Sakari Ailus wrote:
-> media/drv-intf/soc_mediabus.h does depend on struct v4l2_mbus_config which
-> is defined in media/v4l2-mediabus.h. Include it.
+One more small comment below.
+
+On Thursday 06 Apr 2017 16:12:05 Sakari Ailus wrote:
+> Add fwnode matching to complement OF node matching. And fwnode may also be
+> an OF node.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-
-Was this provided indirectly before, through v4l2-of.h perhaps ? If so, 
-shouldn't this patch be moved before 5/8 ? Apart from that,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
->  include/media/drv-intf/soc_mediabus.h | 2 ++
->  1 file changed, 2 insertions(+)
+>  drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++++
+>  include/media/v4l2-async.h           |  5 +++++
+>  include/media/v4l2-subdev.h          |  3 +++
+>  3 files changed, 20 insertions(+)
 > 
-> diff --git a/include/media/drv-intf/soc_mediabus.h
-> b/include/media/drv-intf/soc_mediabus.h index 2ff7737..0449788 100644
-> --- a/include/media/drv-intf/soc_mediabus.h
-> +++ b/include/media/drv-intf/soc_mediabus.h
-> @@ -14,6 +14,8 @@
->  #include <linux/videodev2.h>
->  #include <linux/v4l2-mediabus.h>
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> b/drivers/media/v4l2-core/v4l2-async.c index 96cc733..384ad5e 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -46,6 +46,11 @@ static bool match_of(struct v4l2_subdev *sd, struct
+> v4l2_async_subdev *asd) of_node_full_name(asd->match.of.node));
+>  }
 > 
-> +#include <media/v4l2-mediabus.h>
+> +static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> *asd)
+> +{
+> +	return sd->fwnode == asd->match.fwnode.fwn;
+> +}
 > +
+>  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> *asd) {
+>  	if (!asd->match.custom.match)
+> @@ -80,6 +85,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct
+> v4l2_async_notifier * case V4L2_ASYNC_MATCH_OF:
+>  			match = match_of;
+>  			break;
+> +		case V4L2_ASYNC_MATCH_FWNODE:
+> +			match = match_fwnode;
+> +			break;
+>  		default:
+>  			/* Cannot happen, unless someone breaks us */
+>  			WARN_ON(true);
+> @@ -158,6 +166,7 @@ int v4l2_async_notifier_register(struct v4l2_device
+> *v4l2_dev, case V4L2_ASYNC_MATCH_DEVNAME:
+>  		case V4L2_ASYNC_MATCH_I2C:
+>  		case V4L2_ASYNC_MATCH_OF:
+> +		case V4L2_ASYNC_MATCH_FWNODE:
+>  			break;
+>  		default:
+>  			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : 
+NULL,
+> @@ -282,6 +291,9 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  	 */
+>  	if (!sd->of_node && sd->dev)
+>  		sd->of_node = sd->dev->of_node;
+> +	if (!sd->fwnode && sd->dev)
+> +		sd->fwnode = sd->dev->of_node ?
+> +			&sd->dev->of_node->fwnode : sd->dev->fwnode;
+> 
+>  	mutex_lock(&list_lock);
+> 
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> index 8e2a236..8f552d2 100644
+> --- a/include/media/v4l2-async.h
+> +++ b/include/media/v4l2-async.h
+> @@ -32,6 +32,7 @@ struct v4l2_async_notifier;
+>   * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
+>   * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
+>   * @V4L2_ASYNC_MATCH_OF: Match will use OF node
+> + * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
+>   *
+>   * This enum is used by the asyncrhronous sub-device logic to define the
+>   * algorithm that will be used to match an asynchronous device.
+> @@ -41,6 +42,7 @@ enum v4l2_async_match_type {
+>  	V4L2_ASYNC_MATCH_DEVNAME,
+>  	V4L2_ASYNC_MATCH_I2C,
+>  	V4L2_ASYNC_MATCH_OF,
+> +	V4L2_ASYNC_MATCH_FWNODE,
+>  };
+> 
 >  /**
->   * enum soc_mbus_packing - data packing types on the media-bus
->   * @SOC_MBUS_PACKING_NONE:	no packing, bit-for-bit transfer to RAM, one
+> @@ -58,6 +60,9 @@ struct v4l2_async_subdev {
+>  			const struct device_node *node;
+>  		} of;
+>  		struct {
+> +			struct fwnode_handle *fwn;
+
+Shouldn't this be const ?
+
+> +		} fwnode;
+> +		struct {
+>  			const char *name;
+>  		} device_name;
+>  		struct {
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 0ab1c5d..5f1669c 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
+>   * @devnode: subdev device node
+>   * @dev: pointer to the physical device, if any
+>   * @of_node: The device_node of the subdev, usually the same as
+> dev->of_node.
+> + * @fwnode: The fwnode_handle of the subdev, usually the same as
+> + *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-
+NULL).
+>   * @async_list: Links this subdev to a global subdev_list or
+> @notifier->done *	list.
+>   * @asd: Pointer to respective &struct v4l2_async_subdev.
+> @@ -819,6 +821,7 @@ struct v4l2_subdev {
+>  	struct video_device *devnode;
+>  	struct device *dev;
+>  	struct device_node *of_node;
+> +	struct fwnode_handle *fwnode;
+>  	struct list_head async_list;
+>  	struct v4l2_async_subdev *asd;
+>  	struct v4l2_async_notifier *notifier;
 
 -- 
 Regards,
 
 Laurent Pinchart
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
