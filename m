@@ -1,81 +1,112 @@
-From: <h.piontek@mistravel.pl>
-Subject: 10346 linux-acpi
-Date: Fri, 07 Apr 2017 17:17:59 -0000
-Message-ID: <149158547904.21467.6604342386321581430@zaural.ru>
-Reply-To: <h.piontek@mistravel.pl>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] acpi: pci: don't ignore function ID of bridge device in
+ _PRT
+Date: Fri, 7 Apr 2017 12:49:52 -0500
+Message-ID: <20170407174952.GA4351@bhelgaas-glaptop.roam.corp.google.com>
+References: <20170407132222.28300-1-ard.biesheuvel@linaro.org>
+ <20170407170654.GA30103@bhelgaas-glaptop.roam.corp.google.com>
+ <CAKv+Gu_rivjMaQ740LWO1Nm8SPMGuQ1J1TFeD8QXnRch8Lv6bg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="15339594031146.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ws247.zone31-163-134.zaural.ru ([31.163.134.247]:50512 "HELO
-        zaural.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S934485AbdDGRSE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 7 Apr 2017 13:18:04 -0400
-Content-Disposition: attachment
+Received: from mail.kernel.org ([198.145.29.136]:48970 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932905AbdDGRt5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 7 Apr 2017 13:49:57 -0400
+Content-Disposition: inline
+In-Reply-To: <CAKv+Gu_rivjMaQ740LWO1Nm8SPMGuQ1J1TFeD8QXnRch8Lv6bg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-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
+On Fri, Apr 07, 2017 at 06:12:05PM +0100, Ard Biesheuvel wrote:
+> On 7 April 2017 at 18:06, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > Hi Ard,
+> >
+> > On Fri, Apr 07, 2017 at 02:22:22PM +0100, Ard Biesheuvel wrote:
+> >> We currently derive legacy interrupt routing by matching _PRT
+> >> entries on the PCI device only, presumably under the assumption
+> >> that PRT entries always have a value of 0xffff in the function
+> >> field, meaning 'match all functions'.
+> >
+> > The spec (ACPI v6.0, sec 6.2.13) contains a note that:
+> >
+> >   The PCI function number in the Address field of the _PRT packages
+> >   must be 0xFFFF, indicating "any" function number or "all functions".
+> >
+> > If we need a patch like this, we need to somehow reconcile it with
+> > that spec text to make sure firmware and OS folks have a common
+> > understanding of how this is supposed to work.
+> >
+> >> This no longer holds for modern PCIe topologies, where the
+> >> legacy interrupts for different slots may be wired to different
+> >> functions on the same bridge device. For instance, on AMD Seattle,
+> >> we may have something like
+> >>
+> >> -[0000:00]-+-00.0  Advanced Micro Devices, Inc. [AMD] Device 1a00
+> >>            +-02.0  Advanced Micro Devices, Inc. [AMD] Device 1a01
+> >>            +-02.2-[01]----00.0  Renesas uPD720202 USB 3.0 Host Controller
+> >>            \-02.3-[02]----00.0  Realtek RTL8169 PCIe Gigabit Ethernet
+> >>
+> >> where the _PRT describes the legacy interrupt routing as
+> >>
+> >>     Name (_PRT, Package ()  // _PRT: PCI Routing Table
+> >>     {
+> >>         // slot 1: dev 2 fn 1
+> >>         Package () { 0x20001, 0x0, 0x0, 0x140 },
+> >>         Package () { 0x20001, 0x1, 0x0, 0x141 },
+> >>         Package () { 0x20001, 0x2, 0x0, 0x142 },
+> >>         Package () { 0x20001, 0x3, 0x0, 0x143 },
+> >>
+> >>         // slot 1: dev 2 fn 2
+> >>         Package () { 0x20002, 0x0, 0x0, 0x144 },
+> >>         Package () { 0x20002, 0x1, 0x0, 0x145 },
+> >>         Package () { 0x20002, 0x2, 0x0, 0x146 },
+> >>         Package () { 0x20002, 0x3, 0x0, 0x147 },
+> >>
+> >>         // slot 1: dev 2 fn 3
+> >>         Package () { 0x20003, 0x0, 0x0, 0x148 },
+> >>         Package () { 0x20003, 0x1, 0x0, 0x149 },
+> >>         Package () { 0x20003, 0x2, 0x0, 0x14a },
+> >>         Package () { 0x20003, 0x3, 0x0, 0x14b }
+> >>     }) // _PRT
+> >
+> > But I think this _PRT description is incorrect and we should change
+> > the _PRT rather than the kernel.  My laptop has a basically identical
+> > topology:
+> >
+> >   -[0000:00]-+-00.0  Intel Corporation Sky Lake Host Bridge/DRAM Registers
+> >              +-1c.0-[02]----00.0  Realtek Semiconductor Co., Ltd.  Device 525a
+> >              +-1c.2-[04]----00.0  Intel Corporation Wireless 8260
+> >
+> > and the ASL looks like this (paraphrased):
+> >
+> >   Device (EXP1) {
+> >     Name (_ADR, 0x001C0000)
+> >     Name (_PRT) {
+> >       Package () { 0xFFFF, 0x00, \_SB.LNKA, 0x00 },
+> >       Package () { 0xFFFF, 0x01, \_SB.LNKB, 0x00 },
+> >       ...
+> >     }
+> >   }
+> >   Device (EXP3) {
+> >     Name (_ADR, 0x001C0002)
+> >     Name (_PRT) {
+> >       Package () { 0xFFFF, 0x00, \_SB.LNKC, 0x00 },
+> >       Package () { 0xFFFF, 0x01, \_SB.LNKD, 0x00 },
+> >       ...
+> >     }
+> >   }
+> >
+> 
+> Thanks for the explanation. But how is this wired up into the PNP0A08
+> device then? IOW, how does the ACPI code in Linux discover the
+> relation between these devices and my PCI root device?
+
+  Device (PCI0) {
+    Name (_ADR, 0x00)
+    Name (_HID, "PNP0A08")
+    Device (EXP1) { ... }
+    Device (EXP3) { ... }
+  }
