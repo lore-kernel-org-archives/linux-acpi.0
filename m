@@ -1,13 +1,13 @@
 From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH v2 7/8] docs-rst: media: Switch documentation to V4L2 fwnode API
-Date: Fri, 07 Apr 2017 12:59:01 +0300
-Message-ID: <1640047.4eZCzTnCCW@avalon>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <1491484330-12040-8-git-send-email-sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2 6/8] v4l: media/drv-intf/soc_mediabus.h: include dependent header file
+Date: Fri, 07 Apr 2017 13:01:29 +0300
+Message-ID: <2155093.Y2052RbRLf@avalon>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <1491484330-12040-7-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1491484330-12040-8-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+In-Reply-To: <1491484330-12040-7-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -17,57 +17,34 @@ Hi Sakari,
 
 Thank you for the patch.
 
-On Thursday 06 Apr 2017 16:12:09 Sakari Ailus wrote:
-> Instead of including the V4L2 OF header in ReST documentation, use the
-> V4L2 fwnode header instead.
+On Thursday 06 Apr 2017 16:12:08 Sakari Ailus wrote:
+> media/drv-intf/soc_mediabus.h does depend on struct v4l2_mbus_config which
+> is defined in media/v4l2-mediabus.h. Include it.
 > 
 > Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> ---
->  Documentation/media/kapi/v4l2-core.rst   | 2 +-
->  Documentation/media/kapi/v4l2-fwnode.rst | 3 +++
->  Documentation/media/kapi/v4l2-of.rst     | 3 ---
->  3 files changed, 4 insertions(+), 4 deletions(-)
->  create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
->  delete mode 100644 Documentation/media/kapi/v4l2-of.rst
-> 
-> diff --git a/Documentation/media/kapi/v4l2-core.rst
-> b/Documentation/media/kapi/v4l2-core.rst index e967715..1bc8a14 100644
-> --- a/Documentation/media/kapi/v4l2-core.rst
-> +++ b/Documentation/media/kapi/v4l2-core.rst
-> @@ -19,7 +19,7 @@ Video2Linux devices
->      v4l2-mc
->      v4l2-mediabus
->      v4l2-mem2mem
-> -    v4l2-of
-> +    v4l2-fwnode
 
-I wonder whether we should keep this alphabetically sorted.
-
-Apart from that,
+Was this provided indirectly before, through v4l2-of.h perhaps ? If so, 
+shouldn't this patch be moved before 5/8 ? Apart from that,
 
 Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 
->      v4l2-rect
->      v4l2-tuner
->      v4l2-common
-> diff --git a/Documentation/media/kapi/v4l2-fwnode.rst
-> b/Documentation/media/kapi/v4l2-fwnode.rst new file mode 100644
-> index 0000000..6c8bccd
-> --- /dev/null
-> +++ b/Documentation/media/kapi/v4l2-fwnode.rst
-> @@ -0,0 +1,3 @@
-> +V4L2 fwnode kAPI
-> +^^^^^^^^^^^^^^^^
-> +.. kernel-doc:: include/media/v4l2-fwnode.h
-> diff --git a/Documentation/media/kapi/v4l2-of.rst
-> b/Documentation/media/kapi/v4l2-of.rst deleted file mode 100644
-> index 1ddf76b..0000000
-> --- a/Documentation/media/kapi/v4l2-of.rst
-> +++ /dev/null
-> @@ -1,3 +0,0 @@
-> -V4L2 Open Firmware kAPI
-> -^^^^^^^^^^^^^^^^^^^^^^^
-> -.. kernel-doc:: include/media/v4l2-of.h
+> ---
+>  include/media/drv-intf/soc_mediabus.h | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/include/media/drv-intf/soc_mediabus.h
+> b/include/media/drv-intf/soc_mediabus.h index 2ff7737..0449788 100644
+> --- a/include/media/drv-intf/soc_mediabus.h
+> +++ b/include/media/drv-intf/soc_mediabus.h
+> @@ -14,6 +14,8 @@
+>  #include <linux/videodev2.h>
+>  #include <linux/v4l2-mediabus.h>
+> 
+> +#include <media/v4l2-mediabus.h>
+> +
+>  /**
+>   * enum soc_mbus_packing - data packing types on the media-bus
+>   * @SOC_MBUS_PACKING_NONE:	no packing, bit-for-bit transfer to RAM, one
 
 -- 
 Regards,
