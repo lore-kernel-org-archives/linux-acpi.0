@@ -1,95 +1,263 @@
-From: Sergei Temerkhanov <s.temerkhanov@gmail.com>
-Subject: Re: [PATCH] arm64: acpi: Support PCI devices numa_node property in
- ACPI mode
-Date: Fri, 7 Apr 2017 11:31:12 -0700
-Message-ID: <CAPEA6daR9+BmyW6G9XOsO18782a-tjJrJKyxcYNHeHonuXRggw@mail.gmail.com>
-References: <20170406114711.17261-1-s.temerkhanov@gmail.com> <20170407171812.GA12012@red-moon>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH] acpi: pci: don't ignore function ID of bridge device in _PRT
+Date: Fri, 7 Apr 2017 19:35:45 +0100
+Message-ID: <CAKv+Gu-wXAU9_eHFLSDNKa6hTznHne=HDU8qi-c69PrgSR1i=Q@mail.gmail.com>
+References: <20170407132222.28300-1-ard.biesheuvel@linaro.org>
+ <20170407170654.GA30103@bhelgaas-glaptop.roam.corp.google.com>
+ <CAKv+Gu_rivjMaQ740LWO1Nm8SPMGuQ1J1TFeD8QXnRch8Lv6bg@mail.gmail.com> <20170407180652.GA12301@red-moon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:36308 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755228AbdDGSbN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2017 14:31:13 -0400
-Received: by mail-io0-f196.google.com with SMTP id 68so8285233ioh.3
-        for <linux-acpi@vger.kernel.org>; Fri, 07 Apr 2017 11:31:13 -0700 (PDT)
-In-Reply-To: <20170407171812.GA12012@red-moon>
+Received: from mail-it0-f49.google.com ([209.85.214.49]:37217 "EHLO
+        mail-it0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934071AbdDGSfr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2017 14:35:47 -0400
+Received: by mail-it0-f49.google.com with SMTP id a140so47317935ita.0
+        for <linux-acpi@vger.kernel.org>; Fri, 07 Apr 2017 11:35:47 -0700 (PDT)
+In-Reply-To: <20170407180652.GA12301@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Alan Ott <alan@softiron.co.uk>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-On Fri, Apr 7, 2017 at 10:18 AM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> Hi Sergey,
+On 7 April 2017 at 19:06, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com> wrote:
+> On Fri, Apr 07, 2017 at 06:12:05PM +0100, Ard Biesheuvel wrote:
+>> On 7 April 2017 at 18:06, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>> > Hi Ard,
+>> >
+>> > On Fri, Apr 07, 2017 at 02:22:22PM +0100, Ard Biesheuvel wrote:
+>> >> We currently derive legacy interrupt routing by matching _PRT
+>> >> entries on the PCI device only, presumably under the assumption
+>> >> that PRT entries always have a value of 0xffff in the function
+>> >> field, meaning 'match all functions'.
+>> >
+>> > The spec (ACPI v6.0, sec 6.2.13) contains a note that:
+>> >
+>> >   The PCI function number in the Address field of the _PRT packages
+>> >   must be 0xFFFF, indicating "any" function number or "all functions".
+>> >
+>> > If we need a patch like this, we need to somehow reconcile it with
+>> > that spec text to make sure firmware and OS folks have a common
+>> > understanding of how this is supposed to work.
+>> >
+>> >> This no longer holds for modern PCIe topologies, where the
+>> >> legacy interrupts for different slots may be wired to different
+>> >> functions on the same bridge device. For instance, on AMD Seattle,
+>> >> we may have something like
+>> >>
+>> >> -[0000:00]-+-00.0  Advanced Micro Devices, Inc. [AMD] Device 1a00
+>> >>            +-02.0  Advanced Micro Devices, Inc. [AMD] Device 1a01
+>> >>            +-02.2-[01]----00.0  Renesas uPD720202 USB 3.0 Host Controller
+>> >>            \-02.3-[02]----00.0  Realtek RTL8169 PCIe Gigabit Ethernet
+>> >>
+>> >> where the _PRT describes the legacy interrupt routing as
+>> >>
+>> >>     Name (_PRT, Package ()  // _PRT: PCI Routing Table
+>> >>     {
+>> >>         // slot 1: dev 2 fn 1
+>> >>         Package () { 0x20001, 0x0, 0x0, 0x140 },
+>> >>         Package () { 0x20001, 0x1, 0x0, 0x141 },
+>> >>         Package () { 0x20001, 0x2, 0x0, 0x142 },
+>> >>         Package () { 0x20001, 0x3, 0x0, 0x143 },
+>> >>
+>> >>         // slot 1: dev 2 fn 2
+>> >>         Package () { 0x20002, 0x0, 0x0, 0x144 },
+>> >>         Package () { 0x20002, 0x1, 0x0, 0x145 },
+>> >>         Package () { 0x20002, 0x2, 0x0, 0x146 },
+>> >>         Package () { 0x20002, 0x3, 0x0, 0x147 },
+>> >>
+>> >>         // slot 1: dev 2 fn 3
+>> >>         Package () { 0x20003, 0x0, 0x0, 0x148 },
+>> >>         Package () { 0x20003, 0x1, 0x0, 0x149 },
+>> >>         Package () { 0x20003, 0x2, 0x0, 0x14a },
+>> >>         Package () { 0x20003, 0x3, 0x0, 0x14b }
+>> >>     }) // _PRT
+>> >
+>> > But I think this _PRT description is incorrect and we should change
+>> > the _PRT rather than the kernel.  My laptop has a basically identical
+>> > topology:
+>> >
+>> >   -[0000:00]-+-00.0  Intel Corporation Sky Lake Host Bridge/DRAM Registers
+>> >              +-1c.0-[02]----00.0  Realtek Semiconductor Co., Ltd.  Device 525a
+>> >              +-1c.2-[04]----00.0  Intel Corporation Wireless 8260
+>> >
+>> > and the ASL looks like this (paraphrased):
+>> >
+>> >   Device (EXP1) {
+>> >     Name (_ADR, 0x001C0000)
+>> >     Name (_PRT) {
+>> >       Package () { 0xFFFF, 0x00, \_SB.LNKA, 0x00 },
+>> >       Package () { 0xFFFF, 0x01, \_SB.LNKB, 0x00 },
+>> >       ...
+>> >     }
+>> >   }
+>> >   Device (EXP3) {
+>> >     Name (_ADR, 0x001C0002)
+>> >     Name (_PRT) {
+>> >       Package () { 0xFFFF, 0x00, \_SB.LNKC, 0x00 },
+>> >       Package () { 0xFFFF, 0x01, \_SB.LNKD, 0x00 },
+>> >       ...
+>> >     }
+>> >   }
+>> >
+>>
+>> Thanks for the explanation. But how is this wired up into the PNP0A08
+>> device then? IOW, how does the ACPI code in Linux discover the
+>> relation between these devices and my PCI root device?
 >
-> On Thu, Apr 06, 2017 at 11:47:11AM +0000, Sergey Temerkhanov wrote:
->> This commit modifies ARM64-specific ACPI PCI support functions to
->> properly set the numa_node property on host bridges and thus on PCI
->> devices. Such support requires _PXM objects to be set in DSDT/SSDT
->> tables describing PCI root bridges
->>
->> Signed-off-by: Sergey Temerkhanov <s.temerkhanov@gmail.com>
->> ---
->>  arch/arm64/kernel/pci.c | 13 ++++++++++++-
->>  1 file changed, 12 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
->> index 4f0e3ebfea4b..c45c7a26f984 100644
->> --- a/arch/arm64/kernel/pci.c
->> +++ b/arch/arm64/kernel/pci.c
->> @@ -81,7 +81,16 @@ int raw_pci_write(unsigned int domain, unsigned int bus,
->>
->>  int pcibus_to_node(struct pci_bus *bus)
->>  {
->> -     return dev_to_node(&bus->dev);
->> +     struct pci_config_window *cfg = bus->sysdata;
+> You describe the PCI hierarchy starting from PNP0A08 at root and the
+> kernel assigns the ACPI companion through _ADR matching (see
+> acpi_pci_find_companion()) which is what is used by _PRT parsing
+> code to route IRQs IIUC.
 >
-> Well, this implicit cast is a guess (ie it might be a DT sysdata
-> and there you can't have a clue on what it really is).
 
-Yes, but it's only accessed when acpi_disabled != 0. I just tried to
-save few lines and brackets :-)
+OK, I have changed my DSDT as follows:
 
-Regards,
-Sergey
 
->
->> +     struct acpi_device *adev = NULL;
->> +     struct device *dev;
->> +
->> +     if (!acpi_disabled)
->> +             adev = to_acpi_device(cfg->parent);
->> +
->> +     dev = adev ? &adev->dev : &bus->dev;
->> +
->> +     return dev_to_node(dev);
->>  }
->>  EXPORT_SYMBOL(pcibus_to_node);
->>
->> @@ -186,6 +195,8 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->>       struct pci_bus *bus, *child;
->>       struct acpi_pci_root_ops *root_ops;
->>
->> +     set_dev_node(&root->device->dev, node);
->
-> Ok I suspect this is one of those catch-22 issues with host bridge
-> creation/scan code (like domain nr), let me have a look I will send
-> you a patch next week when I figure out the call ordering required
-> to make this work, I want to make sure we can make this work with
-> DT and ACPI alike.
->
-> Thanks !
-> Lorenzo
->
->> +
->>       ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
->>       if (!ri)
->>               return NULL;
->> --
->> 2.12.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Device (PCI0)
+{
+    Name (_ADR, 0x00)
+    Name (_HID, "PNP0A08" /* PCI Express Bus */)  // _HID: Hardware ID
+    Name (_CID, "PNP0A03" /* PCI Bus */)  // _CID: Compatible ID
+    Name (_SEG, 0x00)  // _SEG: PCI Segment
+    Name (_BBN, 0x00)  // _BBN: BIOS Bus Number
+    Name (_CCA, 0x01)  // _CCA: Cache Coherency Attribute
+
+    Device (EXP1)
+    {
+        Name (_ADR, 0x20001)  // _ADR: Address
+        Name (_PRT, Package ()  // _PRT: PCI Routing Table
+        {
+            // slot 1: dev 2 fn 1
+            Package () { 0xFFFF, 0x0, 0x0, 0x140 },
+            Package () { 0xFFFF, 0x1, 0x0, 0x141 },
+            Package () { 0xFFFF, 0x2, 0x0, 0x142 },
+            Package () { 0xFFFF, 0x3, 0x0, 0x143 }
+        }) // _PRT
+    }
+    Device (EXP2)
+    {
+        Name (_ADR, 0x20002)  // _ADR: Address
+        Name (_PRT, Package ()  // _PRT: PCI Routing Table
+        {
+            // slot 2: dev 2 fn 2
+            Package () { 0xFFFF, 0x0, 0x0, 0x144 },
+            Package () { 0xFFFF, 0x1, 0x0, 0x145 },
+            Package () { 0xFFFF, 0x2, 0x0, 0x146 },
+            Package () { 0xFFFF, 0x3, 0x0, 0x147 }
+        }) // _PRT
+    }
+    Device (EXP3)
+    {
+        Name (_ADR, 0x20003)  // _ADR: Address
+        Name (_PRT, Package ()  // _PRT: PCI Routing Table
+        {
+            // slot 3: dev 2 fn 3
+            Package () { 0xFFFF, 0x0, 0x0, 0x148 },
+            Package () { 0xFFFF, 0x1, 0x0, 0x149 },
+            Package () { 0xFFFF, 0x2, 0x0, 0x14a },
+            Package () { 0xFFFF, 0x3, 0x0, 0x14b }
+        }) // _PRT
+    }
+
+but it does not get picked up, and I am back to
+
+[    3.357555] pcieport 0000:00:02.2: can't derive routing for PCI INT A
+[    3.370477] pcieport 0000:00:02.2: PCI INT A: no GSI
+[    3.380549] pcieport 0000:00:02.3: can't derive routing for PCI INT A
+[    3.393476] pcieport 0000:00:02.3: PCI INT A: no GSI
+
+Then I tried switching to
+
+Device (SLT1)
+{
+    Name(_HID, EISAID("PNP0C0F"))
+    Name(_UID, 0x1)
+    Name(_PRS, ResourceTemplate() {
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x140 }
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x141 }
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x142 }
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x143 }
+    })
+    Method (_CRS, 0) { Return (_PRS) }
+    Method (_SRS, 1) { }
+    Method (_DIS) { }
+}
+Device (SLT2)
+{
+    Name(_HID, EISAID("PNP0C0F"))
+    Name(_UID, 0x2)
+    Name(_PRS, ResourceTemplate() {
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x144 }
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x145 }
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x146 }
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x147 }
+    })
+    Method (_CRS, 0) { Return (_PRS) }
+    Method (_SRS, 1) { }
+    Method (_DIS) { }
+}
+Device (SLT3)
+{
+    Name(_HID, EISAID("PNP0C0F"))
+    Name(_UID, 0x3)
+    Name(_PRS, ResourceTemplate() {
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x148 }
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x149 }
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x14A }
+        Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive) { 0x14B }
+    })
+    Method (_CRS, 0) { Return (_PRS) }
+    Method (_SRS, 1) { }
+    Method (_DIS) { }
+}
+
+//
+// PCIe Root Bus
+//
+Device (PCI0)
+{
+    Name (_HID, "PNP0A08" /* PCI Express Bus */)  // _HID: Hardware ID
+    Name (_CID, "PNP0A03" /* PCI Bus */)  // _CID: Compatible ID
+    Name (_SEG, 0x00)  // _SEG: PCI Segment
+    Name (_BBN, 0x00)  // _BBN: BIOS Bus Number
+    Name (_CCA, 0x01)  // _CCA: Cache Coherency Attribute
+
+    Device (EXP1)
+    {
+        Name (_ADR, 0x20001)  // _ADR: Address
+        Name (_PRT, Package ()  // _PRT: PCI Routing Table
+        {
+            Package () { 0xFFFF, 0x0, \_SB.SLT1, 0x0 },
+            Package () { 0xFFFF, 0x1, \_SB.SLT1, 0x1 },
+            Package () { 0xFFFF, 0x2, \_SB.SLT1, 0x2 },
+            Package () { 0xFFFF, 0x3, \_SB.SLT1, 0x3 }
+        }) // _PRT
+    }
+    Device (EXP2)
+    {
+        Name (_ADR, 0x20002)  // _ADR: Address
+        Name (_PRT, Package ()  // _PRT: PCI Routing Table
+        {
+            Package () { 0xFFFF, 0x0, \_SB.SLT2, 0x0 },
+            Package () { 0xFFFF, 0x1, \_SB.SLT2, 0x1 },
+            Package () { 0xFFFF, 0x2, \_SB.SLT2, 0x2 },
+            Package () { 0xFFFF, 0x3, \_SB.SLT2, 0x3 }
+        }) // _PRT
+    }
+    Device (EXP3)
+    {
+        Name (_ADR, 0x20003)  // _ADR: Address
+        Name (_PRT, Package ()  // _PRT: PCI Routing Table
+        {
+            Package () { 0xFFFF, 0x0, \_SB.SLT3, 0x0 },
+            Package () { 0xFFFF, 0x1, \_SB.SLT3, 0x1 },
+            Package () { 0xFFFF, 0x2, \_SB.SLT3, 0x2 },
+            Package () { 0xFFFF, 0x3, \_SB.SLT3, 0x3 }
+        }) // _PRT
+    }
+
+with the same result.
+
+So could we be missing anything in the arm64 implementation that
+prevents the companion device from being found?
