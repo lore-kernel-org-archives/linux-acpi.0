@@ -1,44 +1,80 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 8/8] v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework
-Date: Fri, 07 Apr 2017 12:58:01 +0300
-Message-ID: <2097657.y1FbEyaKry@avalon>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <1491484330-12040-9-git-send-email-sakari.ailus@linux.intel.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH v2 7/8] docs-rst: media: Switch documentation to V4L2 fwnode API
+Date: Fri, 07 Apr 2017 12:59:01 +0300
+Message-ID: <1640047.4eZCzTnCCW@avalon>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <1491484330-12040-8-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35492 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754622AbdDGJ5Q (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2017 05:57:16 -0400
-In-Reply-To: <1491484330-12040-9-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1491484330-12040-8-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 
 Hi Sakari,
 
 Thank you for the patch.
 
-On Thursday 06 Apr 2017 16:12:10 Sakari Ailus wrote:
-> All drivers have been converted from V4L2 OF to V4L2 fwnode. The V4L2 OF
-> framework is now unused. Remove it.
+On Thursday 06 Apr 2017 16:12:09 Sakari Ailus wrote:
+> Instead of including the V4L2 OF header in ReST documentation, use the
+> V4L2 fwnode header instead.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 > ---
->  drivers/media/v4l2-core/Makefile  |   3 -
->  drivers/media/v4l2-core/v4l2-of.c | 327 -----------------------------------
->  include/media/v4l2-of.h           | 128 ---------------
->  3 files changed, 458 deletions(-)
->  delete mode 100644 drivers/media/v4l2-core/v4l2-of.c
->  delete mode 100644 include/media/v4l2-of.h
+>  Documentation/media/kapi/v4l2-core.rst   | 2 +-
+>  Documentation/media/kapi/v4l2-fwnode.rst | 3 +++
+>  Documentation/media/kapi/v4l2-of.rst     | 3 ---
+>  3 files changed, 4 insertions(+), 4 deletions(-)
+>  create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
+>  delete mode 100644 Documentation/media/kapi/v4l2-of.rst
+> 
+> diff --git a/Documentation/media/kapi/v4l2-core.rst
+> b/Documentation/media/kapi/v4l2-core.rst index e967715..1bc8a14 100644
+> --- a/Documentation/media/kapi/v4l2-core.rst
+> +++ b/Documentation/media/kapi/v4l2-core.rst
+> @@ -19,7 +19,7 @@ Video2Linux devices
+>      v4l2-mc
+>      v4l2-mediabus
+>      v4l2-mem2mem
+> -    v4l2-of
+> +    v4l2-fwnode
+
+I wonder whether we should keep this alphabetically sorted.
+
+Apart from that,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+
+>      v4l2-rect
+>      v4l2-tuner
+>      v4l2-common
+> diff --git a/Documentation/media/kapi/v4l2-fwnode.rst
+> b/Documentation/media/kapi/v4l2-fwnode.rst new file mode 100644
+> index 0000000..6c8bccd
+> --- /dev/null
+> +++ b/Documentation/media/kapi/v4l2-fwnode.rst
+> @@ -0,0 +1,3 @@
+> +V4L2 fwnode kAPI
+> +^^^^^^^^^^^^^^^^
+> +.. kernel-doc:: include/media/v4l2-fwnode.h
+> diff --git a/Documentation/media/kapi/v4l2-of.rst
+> b/Documentation/media/kapi/v4l2-of.rst deleted file mode 100644
+> index 1ddf76b..0000000
+> --- a/Documentation/media/kapi/v4l2-of.rst
+> +++ /dev/null
+> @@ -1,3 +0,0 @@
+> -V4L2 Open Firmware kAPI
+> -^^^^^^^^^^^^^^^^^^^^^^^
+> -.. kernel-doc:: include/media/v4l2-of.h
 
 -- 
 Regards,
 
 Laurent Pinchart
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
