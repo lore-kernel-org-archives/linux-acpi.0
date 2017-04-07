@@ -1,122 +1,229 @@
-From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCH v2 1/8] v4l: flash led class: Use fwnode_handle instead
- of device_node in init
-Date: Fri, 7 Apr 2017 13:20:38 +0300
-Message-ID: <20170407102038.GC4192@valkosipuli.retiisi.org.uk>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
- <1491484330-12040-2-git-send-email-sakari.ailus@linux.intel.com>
- <3129720.GhXEqohgpp@avalon>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 5/8] v4l: Switch from V4L2 OF not V4L2 fwnode API
+Date: Fri, 07 Apr 2017 13:32:54 +0300
+Message-ID: <14918382.izlyCngq8n@avalon>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <1491484330-12040-6-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3129720.GhXEqohgpp@avalon>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1491484330-12040-6-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Laurent,
+Hi Sakari,
 
-Thank you for the review!
+Thank you for the patch.
 
-On Fri, Apr 07, 2017 at 11:49:56AM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
+On Thursday 06 Apr 2017 16:12:07 Sakari Ailus wrote:
+> Switch users of the v4l2_of_ APIs to the more generic v4l2_fwnode_ APIs.
 > 
-> Thank you for the patch.
+> Existing OF matching continues to be supported. omap3isp and smiapp
+> drivers are converted to fwnode matching as well.
 > 
-> On Thursday 06 Apr 2017 16:12:03 Sakari Ailus wrote:
-> > Pass the more generic fwnode_handle to the init function than the
-> > device_node.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> > ---
-> >  drivers/leds/leds-aat1290.c                    |  5 +++--
-> >  drivers/leds/leds-max77693.c                   |  5 +++--
-> >  drivers/media/v4l2-core/v4l2-flash-led-class.c | 11 ++++++-----
-> >  include/media/v4l2-flash-led-class.h           |  4 ++--
-> >  4 files changed, 14 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
-> > index def3cf9..a21e192 100644
-> > --- a/drivers/leds/leds-aat1290.c
-> > +++ b/drivers/leds/leds-aat1290.c
-> > @@ -503,8 +503,9 @@ static int aat1290_led_probe(struct platform_device
-> > *pdev) aat1290_init_v4l2_flash_config(led, &led_cfg, &v4l2_sd_cfg);
-> > 
-> >  	/* Create V4L2 Flash subdev. */
-> > -	led->v4l2_flash = v4l2_flash_init(dev, sub_node, fled_cdev, NULL,
-> > -					  &v4l2_flash_ops, &v4l2_sd_cfg);
-> > +	led->v4l2_flash = v4l2_flash_init(dev, of_fwnode_handle(sub_node),
-> > +					  fled_cdev, NULL, &v4l2_flash_ops,
-> > +					  &v4l2_sd_cfg);
-> >  	if (IS_ERR(led->v4l2_flash)) {
-> >  		ret = PTR_ERR(led->v4l2_flash);
-> >  		goto error_v4l2_flash_init;
-> > diff --git a/drivers/leds/leds-max77693.c b/drivers/leds/leds-max77693.c
-> > index 1eb58ef..2d3062d 100644
-> > --- a/drivers/leds/leds-max77693.c
-> > +++ b/drivers/leds/leds-max77693.c
-> > @@ -930,8 +930,9 @@ static int max77693_register_led(struct max77693_sub_led
-> > *sub_led, max77693_init_v4l2_flash_config(sub_led, led_cfg, &v4l2_sd_cfg);
-> > 
-> >  	/* Register in the V4L2 subsystem. */
-> > -	sub_led->v4l2_flash = v4l2_flash_init(dev, sub_node, fled_cdev, NULL,
-> > -					      &v4l2_flash_ops, &v4l2_sd_cfg);
-> > +	sub_led->v4l2_flash = v4l2_flash_init(dev, of_fwnode_handle(sub_node),
-> > +					      fled_cdev, NULL, 
-> &v4l2_flash_ops,
-> > +					      &v4l2_sd_cfg);
-> >  	if (IS_ERR(sub_led->v4l2_flash)) {
-> >  		ret = PTR_ERR(sub_led->v4l2_flash);
-> >  		goto err_v4l2_flash_init;
-> > diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c
-> > b/drivers/media/v4l2-core/v4l2-flash-led-class.c index 794e563..f430c89
-> > 100644
-> > --- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
-> > +++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
-> > @@ -13,6 +13,7 @@
-> >  #include <linux/module.h>
-> >  #include <linux/mutex.h>
-> >  #include <linux/of.h>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Benoit Parrot <bparrot@ti.com> # i2c/ov2569.c,
+> am437x/am437x-vpfe.c and ti-vpe/cal.c ---
+>  drivers/media/i2c/Kconfig                      |  9 ++++
+>  drivers/media/i2c/adv7604.c                    |  7 +--
+>  drivers/media/i2c/mt9v032.c                    |  7 +--
+>  drivers/media/i2c/ov2659.c                     |  8 +--
+>  drivers/media/i2c/s5c73m3/s5c73m3-core.c       |  7 +--
+>  drivers/media/i2c/s5k5baf.c                    |  6 +--
+>  drivers/media/i2c/smiapp/Kconfig               |  1 +
+>  drivers/media/i2c/smiapp/smiapp-core.c         | 29 ++++++-----
+>  drivers/media/i2c/tc358743.c                   | 11 ++--
+>  drivers/media/i2c/tvp514x.c                    |  6 +--
+>  drivers/media/i2c/tvp5150.c                    |  7 +--
+>  drivers/media/i2c/tvp7002.c                    |  6 +--
+>  drivers/media/platform/Kconfig                 |  3 ++
+>  drivers/media/platform/am437x/Kconfig          |  1 +
+>  drivers/media/platform/am437x/am437x-vpfe.c    |  8 +--
+>  drivers/media/platform/atmel/Kconfig           |  1 +
+>  drivers/media/platform/atmel/atmel-isc.c       |  8 +--
+>  drivers/media/platform/exynos4-is/Kconfig      |  2 +
+>  drivers/media/platform/exynos4-is/media-dev.c  |  6 +--
+>  drivers/media/platform/exynos4-is/mipi-csis.c  |  6 +--
+>  drivers/media/platform/omap3isp/isp.c          | 71 +++++++++++-----------
+>  drivers/media/platform/pxa_camera.c            |  7 +--
+>  drivers/media/platform/rcar-vin/Kconfig        |  1 +
+>  drivers/media/platform/rcar-vin/rcar-core.c    |  6 +--
+>  drivers/media/platform/soc_camera/Kconfig      |  1 +
+>  drivers/media/platform/soc_camera/atmel-isi.c  |  7 +--
+>  drivers/media/platform/soc_camera/soc_camera.c |  3 +-
+>  drivers/media/platform/ti-vpe/cal.c            | 11 ++--
+>  drivers/media/platform/xilinx/Kconfig          |  1 +
+>  drivers/media/platform/xilinx/xilinx-vipp.c    | 59 +++++++++++----------
+>  include/media/v4l2-fwnode.h                    |  4 +-
+>  31 files changed, 176 insertions(+), 134 deletions(-)
 > 
-> I think you can drop linux/of.h.
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index cee1dae..6b2423a 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -210,6 +210,7 @@ config VIDEO_ADV7604
+>  	depends on GPIOLIB || COMPILE_TEST
+>  	select HDMI
+>  	select MEDIA_CEC_EDID
+> +	select V4L2_FWNODE
 
-Correct. Will fix.
+What happens when building the driver on a platform that includes neither OF 
+nor ACPI support ?
 
+>  	---help---
+>  	  Support for the Analog Devices ADV7604 video decoder.
 > 
-> > +#include <linux/property.h>
-> >  #include <linux/slab.h>
-> >  #include <linux/types.h>
-> >  #include <media/v4l2-flash-led-class.h>
-> > @@ -612,7 +613,7 @@ static const struct v4l2_subdev_internal_ops
-> > v4l2_flash_subdev_internal_ops = { static const struct v4l2_subdev_ops
-> > v4l2_flash_subdev_ops;
-> > 
-> >  struct v4l2_flash *v4l2_flash_init(
-> > -	struct device *dev, struct device_node *of_node,
-> > +	struct device *dev, struct fwnode_handle *fwn,
-> >  	struct led_classdev_flash *fled_cdev,
-> >  	struct led_classdev_flash *iled_cdev,
-> >  	const struct v4l2_flash_ops *ops,
-> > @@ -638,7 +639,7 @@ struct v4l2_flash *v4l2_flash_init(
-> >  	v4l2_flash->iled_cdev = iled_cdev;
-> >  	v4l2_flash->ops = ops;
-> >  	sd->dev = dev;
-> > -	sd->of_node = of_node ? of_node : led_cdev->dev->of_node;
-> > +	sd->fwnode = fwn ? fwn : dev_fwnode(led_cdev->dev);
-> 
-> v4l2_subdev will only have a fwnode field in patch 3/8.
 
-I think I've rearranged the set after writing the patch and missed the
-dependency. I'll move it third unless there are other dependencies.
+[snip]
+
+How have you checked that you haven't missed any entry in the Kconfig files ?
+
+[snip]
+
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 084ecf4a..95850b9 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+
+[snip]
+
+> @@ -2024,43 +2025,42 @@ enum isp_of_phy {
+>  	ISP_OF_PHY_CSIPHY2,
+>  };
+> 
+> -static int isp_of_parse_node(struct device *dev, struct device_node *node,
+> -			     struct isp_async_subdev *isd)
+> +static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
+> +			    struct isp_async_subdev *isd)
+>  {
+>  	struct isp_bus_cfg *buscfg = &isd->bus;
+> -	struct v4l2_of_endpoint vep;
+> +	struct v4l2_fwnode_endpoint vfwn;
+
+vfwn is confusing to me, I think the variable name should show that it refers 
+to an endpoint.
+
+>  	unsigned int i;
+>  	int ret;
+> 
+> -	ret = v4l2_of_parse_endpoint(node, &vep);
+> +	ret = v4l2_fwnode_endpoint_parse(fwn, &vfwn);
+>  	if (ret)
+>  		return ret;
+> 
+> -	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
+> -		vep.base.port);
+> +	dev_dbg(dev, "interface %u\n", vfwn.base.port);
+
+Is there no way to keep the node name in the error message ?
+
+
+[snip]
+
+> @@ -2094,18 +2094,17 @@ static int isp_of_parse_node(struct device *dev,
+> struct device_node *node, break;
+> 
+>  	default:
+> -		dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
+> -			 vep.base.port);
+> +		dev_warn(dev, "invalid interface %u\n", vfwn.base.port);
+
+Ditto.
+
+>  		break;
+>  	}
+> 
+>  	return 0;
+>  }
+> 
+> -static int isp_of_parse_nodes(struct device *dev,
+> -			      struct v4l2_async_notifier *notifier)
+> +static int isp_fwnodes_parse(struct device *dev,
+> +			     struct v4l2_async_notifier *notifier)
+>  {
+> -	struct device_node *node = NULL;
+> +	struct fwnode_handle *fwn = NULL;
+
+As explained in the review of another patch from the same series, I wouldn't 
+rename the variable.
+
+>  	notifier->subdevs = devm_kcalloc(
+>  		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+
+[snip]
+
+> @@ -2219,12 +2220,12 @@ static int isp_probe(struct platform_device *pdev)
+>  	if (IS_ERR(isp->syscon))
+>  		return PTR_ERR(isp->syscon);
+> 
+> -	ret = of_property_read_u32_index(pdev->dev.of_node, "syscon", 1,
+> -					 &isp->syscon_offset);
+> +	ret = of_property_read_u32_index(pdev->dev.of_node,
+> +					 "syscon", 1, &isp->syscon_offset);
+
+This change doesn't seem to be needed.
+
+>  	if (ret)
+>  		return ret;
+> 
+> -	ret = isp_of_parse_nodes(&pdev->dev, &isp->notifier);
+> +	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
+>  	if (ret < 0)
+>  		return ret;
+> 
+
+[snip]
+
+> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c
+> b/drivers/media/platform/xilinx/xilinx-vipp.c index feb3b2f..6a2721b 100644
+> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
+> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+
+[snip]
+
+> @@ -103,9 +103,10 @@ static int xvip_graph_build_one(struct
+> xvip_composite_device *xdev, * the link.
+>  		 */
+>  		if (link.local_port >= local->num_pads) {
+> -			dev_err(xdev->dev, "invalid port number %u on %s\n",
+> -				link.local_port, link.local_node->full_name);
+> -			v4l2_of_put_link(&link);
+> +			dev_err(xdev->dev, "invalid port number %u for %s\n",
+> +				link.local_port,
+> +				to_of_node(link.local_node)->full_name);
+
+This makes me believe that we're missing a fwnode_full_name() function.
+
+> +			v4l2_fwnode_put_link(&link);
+>  			ret = -EINVAL;
+>  			break;
+>  		}
+
+[snip]
+
+> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> index a675d8a..bc9cf51 100644
+> --- a/include/media/v4l2-fwnode.h
+> +++ b/include/media/v4l2-fwnode.h
+> @@ -17,10 +17,10 @@
+>  #ifndef _V4L2_FWNODE_H
+>  #define _V4L2_FWNODE_H
+> 
+> +#include <linux/errno.h>
+> +#include <linux/fwnode.h>
+>  #include <linux/list.h>
+>  #include <linux/types.h>
+> -#include <linux/errno.h>
+> -#include <linux/of_graph.h>
+> 
+>  #include <media/v4l2-mediabus.h>
+
+This probably belongs to another patch (at least the alphabetical sorting 
+does).
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Laurent Pinchart
