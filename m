@@ -1,24 +1,24 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Subject: Re: [PATCH] acpi: pci: don't ignore function ID of bridge device in
  _PRT
-Date: Fri, 7 Apr 2017 12:49:52 -0500
-Message-ID: <20170407174952.GA4351@bhelgaas-glaptop.roam.corp.google.com>
+Date: Fri, 7 Apr 2017 19:06:52 +0100
+Message-ID: <20170407180652.GA12301@red-moon>
 References: <20170407132222.28300-1-ard.biesheuvel@linaro.org>
  <20170407170654.GA30103@bhelgaas-glaptop.roam.corp.google.com>
  <CAKv+Gu_rivjMaQ740LWO1Nm8SPMGuQ1J1TFeD8QXnRch8Lv6bg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:48970 "EHLO mail.kernel.org"
+Received: from foss.arm.com ([217.140.101.70]:59798 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932905AbdDGRt5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 7 Apr 2017 13:49:57 -0400
+        id S933696AbdDGSGW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 7 Apr 2017 14:06:22 -0400
 Content-Disposition: inline
 In-Reply-To: <CAKv+Gu_rivjMaQ740LWO1Nm8SPMGuQ1J1TFeD8QXnRch8Lv6bg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
 On Fri, Apr 07, 2017 at 06:12:05PM +0100, Ard Biesheuvel wrote:
 > On 7 April 2017 at 18:06, Bjorn Helgaas <helgaas@kernel.org> wrote:
@@ -104,9 +104,9 @@ On Fri, Apr 07, 2017 at 06:12:05PM +0100, Ard Biesheuvel wrote:
 > device then? IOW, how does the ACPI code in Linux discover the
 > relation between these devices and my PCI root device?
 
-  Device (PCI0) {
-    Name (_ADR, 0x00)
-    Name (_HID, "PNP0A08")
-    Device (EXP1) { ... }
-    Device (EXP3) { ... }
-  }
+You describe the PCI hierarchy starting from PNP0A08 at root and the
+kernel assigns the ACPI companion through _ADR matching (see
+acpi_pci_find_companion()) which is what is used by _PRT parsing
+code to route IRQs IIUC.
+
+Lorenzo
