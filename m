@@ -1,195 +1,272 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 2/8] v4l: fwnode: Support generic fwnode for parsing standardised properties
-Date: Fri, 07 Apr 2017 13:54:58 +0300
-Message-ID: <1761689.CzVR5YAybi@avalon>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com> <2366571.B7YdK6QUO2@avalon> <20170407103633.GD4192@valkosipuli.retiisi.org.uk>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 5/8] v4l: Switch from V4L2 OF not V4L2 fwnode API
+Date: Fri, 7 Apr 2017 13:58:06 +0300
+Message-ID: <20170407105805.GG4192@valkosipuli.retiisi.org.uk>
+References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1491484330-12040-6-git-send-email-sakari.ailus@linux.intel.com>
+ <14918382.izlyCngq8n@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20170407103633.GD4192@valkosipuli.retiisi.org.uk>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43562 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750705AbdDGK6k (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2017 06:58:40 -0400
+Content-Disposition: inline
+In-Reply-To: <14918382.izlyCngq8n@avalon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 
-Hi Sakari,
+Hi Laurent,
 
-On Friday 07 Apr 2017 13:36:34 Sakari Ailus wrote:
-> On Fri, Apr 07, 2017 at 12:44:27PM +0300, Laurent Pinchart wrote:
-> > On Thursday 06 Apr 2017 16:12:04 Sakari Ailus wrote:
-> > > The fwnode_handle is a more generic way than OF device_node to describe
-> > > firmware nodes. Instead of the OF API, use more generic fwnode API to
-> > > obtain the same information.
+On Fri, Apr 07, 2017 at 01:32:54PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> On Thursday 06 Apr 2017 16:12:07 Sakari Ailus wrote:
+> > Switch users of the v4l2_of_ APIs to the more generic v4l2_fwnode_ APIs.
 > > 
-> > I would mention that this is a copy of v4l2-of.c with the OF API replaced
-> > with the fwnode API.
-> 
-> I'll add that to the description.
-> 
-> > > As the V4L2 fwnode support will be required by a small minority of e.g.
-> > > ACPI based systems (the same might actually go for OF), make this a
-> > > module instead of embedding it in the videodev module.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > ---
-> > > 
-> > >  drivers/media/v4l2-core/Kconfig       |   3 +
-> > >  drivers/media/v4l2-core/Makefile      |   1 +
-> > >  drivers/media/v4l2-core/v4l2-fwnode.c | 353 +++++++++++++++++++++++++++
-> > >  include/media/v4l2-fwnode.h           | 104 ++++++++++
-> > >  4 files changed, 461 insertions(+)
-> > >  create mode 100644 drivers/media/v4l2-core/v4l2-fwnode.c
-> > >  create mode 100644 include/media/v4l2-fwnode.h
-
-[snip]
-
-> > > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > b/drivers/media/v4l2-core/v4l2-fwnode.c new file mode 100644
-> > > index 0000000..4f69b11
-> > > --- /dev/null
-> > > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > @@ -0,0 +1,353 @@
-> > > +/*
-> > > + * V4L2 fwnode binding parsing library
-> > > + *
-> > > + * Copyright (c) 2016 Intel Corporation.
-> > > + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > + *
-> > > + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-> > > + * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > > + *
-> > > + * Copyright (C) 2012 Renesas Electronics Corp.
-> > > + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > + *
-> > > + * This program is free software; you can redistribute it and/or modify
-> > > + * it under the terms of version 2 of the GNU General Public License as
-> > > + * published by the Free Software Foundation.
-> > > + */
-> > > +#include <linux/acpi.h>
-> > > +#include <linux/kernel.h>
-> > > +#include <linux/module.h>
-> > > +#include <linux/of.h>
-> > > +#include <linux/property.h>
-> > > +#include <linux/slab.h>
-> > > +#include <linux/string.h>
-> > > +#include <linux/types.h>
-> > > +
-> > > +#include <media/v4l2-fwnode.h>
-> > > +
-> > > +static int v4l2_fwnode_endpoint_parse_csi_bus(struct fwnode_handle
-> > > *fwn,
-> > > +					      struct v4l2_fwnode_endpoint
-> > > *vfwn)
-> > > +{
-> > > +	struct v4l2_fwnode_bus_mipi_csi2 *bus = &vfwn->bus.mipi_csi2;
-> > > +	bool have_clk_lane = false;
-> > > +	unsigned int flags = 0, lanes_used = 0;
-> > > +	unsigned int i;
-> > > +	u32 v;
-> > > +	int rval;
+> > Existing OF matching continues to be supported. omap3isp and smiapp
+> > drivers are converted to fwnode matching as well.
 > > 
-> > I would have used "ret" instead of "rval" ;-)
-> 
-> I know. But
-> 
-> 1) there's no established convention in the file and
-> 
-> 2) "rval" has the benefit is easier to look up; one doesn't find a plethora
-> of "return something". Therefore it is better than "ret" for the purpose.
-
-The solution to that is
-
-/ret\>
-
-(and, of course, switching to vim :-D)
-
-[snip]
-
-> > > +/*
-> > > + * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-> > > + * v4l2_fwnode_endpoint_alloc_parse()
-> > > + * @fwn - the V4L2 fwnode the resources of which are to be released
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Acked-by: Benoit Parrot <bparrot@ti.com> # i2c/ov2569.c,
+> > am437x/am437x-vpfe.c and ti-vpe/cal.c ---
+> >  drivers/media/i2c/Kconfig                      |  9 ++++
+> >  drivers/media/i2c/adv7604.c                    |  7 +--
+> >  drivers/media/i2c/mt9v032.c                    |  7 +--
+> >  drivers/media/i2c/ov2659.c                     |  8 +--
+> >  drivers/media/i2c/s5c73m3/s5c73m3-core.c       |  7 +--
+> >  drivers/media/i2c/s5k5baf.c                    |  6 +--
+> >  drivers/media/i2c/smiapp/Kconfig               |  1 +
+> >  drivers/media/i2c/smiapp/smiapp-core.c         | 29 ++++++-----
+> >  drivers/media/i2c/tc358743.c                   | 11 ++--
+> >  drivers/media/i2c/tvp514x.c                    |  6 +--
+> >  drivers/media/i2c/tvp5150.c                    |  7 +--
+> >  drivers/media/i2c/tvp7002.c                    |  6 +--
+> >  drivers/media/platform/Kconfig                 |  3 ++
+> >  drivers/media/platform/am437x/Kconfig          |  1 +
+> >  drivers/media/platform/am437x/am437x-vpfe.c    |  8 +--
+> >  drivers/media/platform/atmel/Kconfig           |  1 +
+> >  drivers/media/platform/atmel/atmel-isc.c       |  8 +--
+> >  drivers/media/platform/exynos4-is/Kconfig      |  2 +
+> >  drivers/media/platform/exynos4-is/media-dev.c  |  6 +--
+> >  drivers/media/platform/exynos4-is/mipi-csis.c  |  6 +--
+> >  drivers/media/platform/omap3isp/isp.c          | 71 +++++++++++-----------
+> >  drivers/media/platform/pxa_camera.c            |  7 +--
+> >  drivers/media/platform/rcar-vin/Kconfig        |  1 +
+> >  drivers/media/platform/rcar-vin/rcar-core.c    |  6 +--
+> >  drivers/media/platform/soc_camera/Kconfig      |  1 +
+> >  drivers/media/platform/soc_camera/atmel-isi.c  |  7 +--
+> >  drivers/media/platform/soc_camera/soc_camera.c |  3 +-
+> >  drivers/media/platform/ti-vpe/cal.c            | 11 ++--
+> >  drivers/media/platform/xilinx/Kconfig          |  1 +
+> >  drivers/media/platform/xilinx/xilinx-vipp.c    | 59 +++++++++++----------
+> >  include/media/v4l2-fwnode.h                    |  4 +-
+> >  31 files changed, 176 insertions(+), 134 deletions(-)
 > > 
-> > Mayeb "the V4L2 fwnode whose resources are to be released" ?
-> > 
-> > > + *
-> > > + * It is safe to call this function with NULL argument or on an
-> > 
-> > s/on an/on a/
+> > diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> > index cee1dae..6b2423a 100644
+> > --- a/drivers/media/i2c/Kconfig
+> > +++ b/drivers/media/i2c/Kconfig
+> > @@ -210,6 +210,7 @@ config VIDEO_ADV7604
+> >  	depends on GPIOLIB || COMPILE_TEST
+> >  	select HDMI
+> >  	select MEDIA_CEC_EDID
+> > +	select V4L2_FWNODE
 > 
-> Yes.
-> 
-> > > + * V4L2 fwnode the parsing of which failed.
-> > 
-> > "whose parsing failed" ?
-> 
-> Any particular reason? Do you like "whose"? :-)
+> What happens when building the driver on a platform that includes neither OF 
+> nor ACPI support ?
 
-"of which" sounds dubious in this context, but please consult a native English 
-speaker in case of doubt.
+You need either in practice, also for the V4L2 fwnode to be meaningful.
 
-[snip]
+Do you have something in particular in mind?
 
-> > > +/**
-> > > + * v4l2_fwnode_endpoint_parse_link() - parse a link between two
-> > > endpoints
-> > > + * @node: pointer to the fwnode at the local end of the link
-> > 
-> > The parameter is called __fwn. I believe you should rename it to fwn,
-> > otherwise the documentation will look weird.
-> > 
-> > As explained before, you should mention that this is an endpoint fwnode
-> > handle.
 > 
-> Agreed.
+> >  	---help---
+> >  	  Support for the Analog Devices ADV7604 video decoder.
+> > 
 > 
-> > > + * @link: pointer to the V4L2 fwnode link data structure
-> > > + *
-> > > + * Fill the link structure with the local and remote nodes and port
-> > > numbers.
-> > > + * The local_node and remote_node fields are set to point to the local
-> > > and
-> > > + * remote port's parent nodes respectively (the port parent node being
-> > > the
-> > > + * parent node of the port node if that node isn't a 'ports' node, or
-> > > the
-> > > + * grand-parent node of the port node otherwise).
-> > > + *
-> > > + * A reference is taken to both the local and remote nodes, the caller
-> > > + * must use v4l2_fwnode_endpoint_put_link() to drop the references
-> > > + * when done with the link.
-> > 
-> > Just curious, is there a reason to wrap earlier than the 80 columns limit
-> > ?
-> > 
-> >  * A reference is taken to both the local and remote nodes, the caller
-> >  must use
-> >  * v4l2_fwnode_endpoint_put_link() to drop the references when done with
-> >  the
-> >  * link.
-> > 
-> > would work.
+> [snip]
 > 
-> It is like a speed limit, you can perfectly legally drive slower than 80
-> characters per line, right? :-)
+> How have you checked that you haven't missed any entry in the Kconfig files ?
 
-That reminds me of a particular road trip in California that should probably 
-not be mentioned here, but whose participants certainly remember :-)
+I made one Kconfig change per driver. :-)
 
-> Albeit the conditions seem pretty good in this file, I can try pushing it
-> closer to the limit.
 > 
-> > > + * Return: 0 on success, or -ENOLINK if the remote fwnode can't be
-> > > found.
+> [snip]
+> 
+> > diff --git a/drivers/media/platform/omap3isp/isp.c
+> > b/drivers/media/platform/omap3isp/isp.c index 084ecf4a..95850b9 100644
+> > --- a/drivers/media/platform/omap3isp/isp.c
+> > +++ b/drivers/media/platform/omap3isp/isp.c
+> 
+> [snip]
+> 
+> > @@ -2024,43 +2025,42 @@ enum isp_of_phy {
+> >  	ISP_OF_PHY_CSIPHY2,
+> >  };
 > > 
-> > Here too you should mention remote endpoint.
+> > -static int isp_of_parse_node(struct device *dev, struct device_node *node,
+> > -			     struct isp_async_subdev *isd)
+> > +static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
+> > +			    struct isp_async_subdev *isd)
+> >  {
+> >  	struct isp_bus_cfg *buscfg = &isd->bus;
+> > -	struct v4l2_of_endpoint vep;
+> > +	struct v4l2_fwnode_endpoint vfwn;
 > 
-> Oh yes.
+> vfwn is confusing to me, I think the variable name should show that it refers 
+> to an endpoint.
+
+How about adding ep to tell it's an endpoint?
+
 > 
-> > > + */
+> >  	unsigned int i;
+> >  	int ret;
+> > 
+> > -	ret = v4l2_of_parse_endpoint(node, &vep);
+> > +	ret = v4l2_fwnode_endpoint_parse(fwn, &vfwn);
+> >  	if (ret)
+> >  		return ret;
+> > 
+> > -	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
+> > -		vep.base.port);
+> > +	dev_dbg(dev, "interface %u\n", vfwn.base.port);
+> 
+> Is there no way to keep the node name in the error message ?
+
+There's no generic fwnode means to do something similar currently, possibly
+because I understand ACPI doesn't do that. One could check whether the node
+is an OF node and then use the full_name field but I wonder if it's worth
+it.
+
+> 
+> 
+> [snip]
+> 
+> > @@ -2094,18 +2094,17 @@ static int isp_of_parse_node(struct device *dev,
+> > struct device_node *node, break;
+> > 
+> >  	default:
+> > -		dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
+> > -			 vep.base.port);
+> > +		dev_warn(dev, "invalid interface %u\n", vfwn.base.port);
+> 
+> Ditto.
+> 
+> >  		break;
+> >  	}
+> > 
+> >  	return 0;
+> >  }
+> > 
+> > -static int isp_of_parse_nodes(struct device *dev,
+> > -			      struct v4l2_async_notifier *notifier)
+> > +static int isp_fwnodes_parse(struct device *dev,
+> > +			     struct v4l2_async_notifier *notifier)
+> >  {
+> > -	struct device_node *node = NULL;
+> > +	struct fwnode_handle *fwn = NULL;
+> 
+> As explained in the review of another patch from the same series, I wouldn't 
+> rename the variable.
+
+Most pointers to struct fwnode_handle are actually called fwnode and some
+fw_node. fwn is just shorter. :-)
+
+There are also cases pointers to struct device_node and struct fwnode_handle
+are needed in the same function.
+
+> 
+> >  	notifier->subdevs = devm_kcalloc(
+> >  		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+> 
+> [snip]
+> 
+> > @@ -2219,12 +2220,12 @@ static int isp_probe(struct platform_device *pdev)
+> >  	if (IS_ERR(isp->syscon))
+> >  		return PTR_ERR(isp->syscon);
+> > 
+> > -	ret = of_property_read_u32_index(pdev->dev.of_node, "syscon", 1,
+> > -					 &isp->syscon_offset);
+> > +	ret = of_property_read_u32_index(pdev->dev.of_node,
+> > +					 "syscon", 1, &isp->syscon_offset);
+> 
+> This change doesn't seem to be needed.
+
+Oh, indeed. Will fix.
+
+> 
+> >  	if (ret)
+> >  		return ret;
+> > 
+> > -	ret = isp_of_parse_nodes(&pdev->dev, &isp->notifier);
+> > +	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
+> >  	if (ret < 0)
+> >  		return ret;
+> > 
+> 
+> [snip]
+> 
+> > diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c
+> > b/drivers/media/platform/xilinx/xilinx-vipp.c index feb3b2f..6a2721b 100644
+> > --- a/drivers/media/platform/xilinx/xilinx-vipp.c
+> > +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+> 
+> [snip]
+> 
+> > @@ -103,9 +103,10 @@ static int xvip_graph_build_one(struct
+> > xvip_composite_device *xdev, * the link.
+> >  		 */
+> >  		if (link.local_port >= local->num_pads) {
+> > -			dev_err(xdev->dev, "invalid port number %u on %s\n",
+> > -				link.local_port, link.local_node->full_name);
+> > -			v4l2_of_put_link(&link);
+> > +			dev_err(xdev->dev, "invalid port number %u for %s\n",
+> > +				link.local_port,
+> > +				to_of_node(link.local_node)->full_name);
+> 
+> This makes me believe that we're missing a fwnode_full_name() function.
+
+It'd be nice to have that, I agree. What should it do on non-OF nodes?
+Return a pointers to an empty string?
+
+> 
+> > +			v4l2_fwnode_put_link(&link);
+> >  			ret = -EINVAL;
+> >  			break;
+> >  		}
+> 
+> [snip]
+> 
+> > diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> > index a675d8a..bc9cf51 100644
+> > --- a/include/media/v4l2-fwnode.h
+> > +++ b/include/media/v4l2-fwnode.h
+> > @@ -17,10 +17,10 @@
+> >  #ifndef _V4L2_FWNODE_H
+> >  #define _V4L2_FWNODE_H
+> > 
+> > +#include <linux/errno.h>
+> > +#include <linux/fwnode.h>
+> >  #include <linux/list.h>
+> >  #include <linux/types.h>
+> > -#include <linux/errno.h>
+> > -#include <linux/of_graph.h>
+> > 
+> >  #include <media/v4l2-mediabus.h>
+> 
+> This probably belongs to another patch (at least the alphabetical sorting 
+> does).
+
+Yes, I'll change it.
 
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
