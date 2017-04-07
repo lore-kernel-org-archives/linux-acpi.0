@@ -1,93 +1,93 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 7/8] docs-rst: media: Switch documentation to V4L2
- fwnode API
-Date: Sat, 8 Apr 2017 02:02:21 +0300
-Message-ID: <20170407230220.GO4192@valkosipuli.retiisi.org.uk>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
- <1491484330-12040-8-git-send-email-sakari.ailus@linux.intel.com>
- <1640047.4eZCzTnCCW@avalon>
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [PATCH V10 06/12] of: device: Fix overflow of coherent_dma_mask
+Date: Fri, 7 Apr 2017 16:10:27 -0700
+Message-ID: <58E81C63.3020701@gmail.com>
+References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
+ <1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
+ <1491301105-5274-7-git-send-email-sricharan@codeaurora.org>
+ <58E5E7B7.1050400@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1640047.4eZCzTnCCW@avalon>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:33189 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753853AbdDGXKu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2017 19:10:50 -0400
+In-Reply-To: <58E5E7B7.1050400@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sricharan R <sricharan@codeaurora.org>, robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, gregkh@linuxfoundation.org
 
-Hi Laurent,
+On 04/06/17 00:01, Frank Rowand wrote:
+> On 04/04/17 03:18, Sricharan R wrote:
+>> Size of the dma-range is calculated as coherent_dma_mask + 1
+>> and passed to arch_setup_dma_ops further. It overflows when
+>> the coherent_dma_mask is set for full 64 bits 0xFFFFFFFFFFFFFFFF,
+>> resulting in size getting passed as 0 wrongly. Fix this by
+>> passsing in max(mask, mask + 1). Note that in this case
+>> when the mask is set to full 64bits, we will be passing the mask
+>> itself to arch_setup_dma_ops instead of the size. The real fix
+>> for this should be to make arch_setup_dma_ops receive the
+>> mask and handle it, to be done in the future.
+>>
+>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+>> ---
+>>  drivers/of/device.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/of/device.c b/drivers/of/device.c
+>> index c17c19d..c2ae6bb 100644
+>> --- a/drivers/of/device.c
+>> +++ b/drivers/of/device.c
+>> @@ -107,7 +107,7 @@ void of_dma_configure(struct device *dev, struct device_node *np)
+>>  	ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
+>>  	if (ret < 0) {
+>>  		dma_addr = offset = 0;
+>> -		size = dev->coherent_dma_mask + 1;
+>> +		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
 
-On Fri, Apr 07, 2017 at 12:59:01PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Thursday 06 Apr 2017 16:12:09 Sakari Ailus wrote:
-> > Instead of including the V4L2 OF header in ReST documentation, use the
-> > V4L2 fwnode header instead.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  Documentation/media/kapi/v4l2-core.rst   | 2 +-
-> >  Documentation/media/kapi/v4l2-fwnode.rst | 3 +++
-> >  Documentation/media/kapi/v4l2-of.rst     | 3 ---
-> >  3 files changed, 4 insertions(+), 4 deletions(-)
-> >  create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
-> >  delete mode 100644 Documentation/media/kapi/v4l2-of.rst
-> > 
-> > diff --git a/Documentation/media/kapi/v4l2-core.rst
-> > b/Documentation/media/kapi/v4l2-core.rst index e967715..1bc8a14 100644
-> > --- a/Documentation/media/kapi/v4l2-core.rst
-> > +++ b/Documentation/media/kapi/v4l2-core.rst
-> > @@ -19,7 +19,7 @@ Video2Linux devices
-> >      v4l2-mc
-> >      v4l2-mediabus
-> >      v4l2-mem2mem
-> > -    v4l2-of
-> > +    v4l2-fwnode
-> 
-> I wonder whether we should keep this alphabetically sorted.
+NACK withdrawn below.
 
-It's not fully sorted at the moment --- see tuner / common below. It'd be
-good if it was though. I'll add a patch for that.
+However, I would prefer a change to this line for readability. Using max() results
+in the correct result, but obscures the reason behind the algorithm, where the
+intent is to avoid an overflow.  How about something like:
 
-> 
-> Apart from that,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	size = (dev->coherent_dma_mask == 0xffffffffffffffffULL)
+		? 0xffffffffffffffffULL : dev->coherent_dma_mask + 1;
 
-Thanks!
 
+>>  	} else {
+>>  		offset = PFN_DOWN(paddr - dma_addr);
+>>  		dev_dbg(dev, "dma_pfn_offset(%#08lx)\n", offset);
+>>
 > 
-> >      v4l2-rect
-> >      v4l2-tuner
-> >      v4l2-common
-> > diff --git a/Documentation/media/kapi/v4l2-fwnode.rst
-> > b/Documentation/media/kapi/v4l2-fwnode.rst new file mode 100644
-> > index 0000000..6c8bccd
-> > --- /dev/null
-> > +++ b/Documentation/media/kapi/v4l2-fwnode.rst
-> > @@ -0,0 +1,3 @@
-> > +V4L2 fwnode kAPI
-> > +^^^^^^^^^^^^^^^^
-> > +.. kernel-doc:: include/media/v4l2-fwnode.h
-> > diff --git a/Documentation/media/kapi/v4l2-of.rst
-> > b/Documentation/media/kapi/v4l2-of.rst deleted file mode 100644
-> > index 1ddf76b..0000000
-> > --- a/Documentation/media/kapi/v4l2-of.rst
-> > +++ /dev/null
-> > @@ -1,3 +0,0 @@
-> > -V4L2 Open Firmware kAPI
-> > -^^^^^^^^^^^^^^^^^^^^^^^
-> > -.. kernel-doc:: include/media/v4l2-of.h
+> NACK.
 > 
-> -- 
-> Regards,
+> Passing an invalid size to arch_setup_dma_ops() is only part of the problem.
+> size is also used in of_dma_configure() before calling arch_setup_dma_ops():
 > 
-> Laurent Pinchart
+>         dev->coherent_dma_mask = min(dev->coherent_dma_mask,
+>                                      DMA_BIT_MASK(ilog2(dma_addr + size)));
+>         *dev->dma_mask = min((*dev->dma_mask),
+>                              DMA_BIT_MASK(ilog2(dma_addr + size)));
+> 
+> which would be incorrect for size == 0xffffffffffffffffULL when
+> dma_addr != 0.  So the proposed fix really is not papering over
+
+  ^^^^^^^^^^^^^  This is the flaw in my objection.  When in the
+(ret < 0) path, dma_addr is set to zero.  So my worry about dma_addr != 0
+is baseless.
+
+I withdraw my NACK because my analysis was flawed.
+
+-Frank
+
+> the base problem very well.
+> 
+> I agree that the proper solution involves passing a mask instead
+> of a size to arch_setup_dma_ops().
+> 
+> -Frank
 > 
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
