@@ -1,167 +1,168 @@
-From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCH v2 3/8] v4l: async: Add fwnode match support
-Date: Fri, 7 Apr 2017 13:39:13 +0300
-Message-ID: <20170407103913.GE4192@valkosipuli.retiisi.org.uk>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
- <1491484330-12040-4-git-send-email-sakari.ailus@linux.intel.com>
- <3722368.bfpMvP62Mi@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3722368.bfpMvP62Mi@avalon>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2 1/4] ACPI: utils: Add new acpi_dev_present helper
+Date: Fri,  7 Apr 2017 12:43:42 +0200
+Message-ID: <20170407104345.27042-1-hdegoede@redhat.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sebastian Reichel <sre@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Chen-Yu Tsai <wens@csie.org>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Laurent,
+acpi_dev_found just iterates over all ACPI-ids and sees if one matches.
+This means that it will return true for devices which are in the dsdt
+but disabled (their _STA method returns 0).
 
-On Fri, Apr 07, 2017 at 12:49:02PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Thursday 06 Apr 2017 16:12:05 Sakari Ailus wrote:
-> > Add fwnode matching to complement OF node matching. And fwnode may also be
-> > an OF node.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++++
-> >  include/media/v4l2-async.h           |  5 +++++
-> >  include/media/v4l2-subdev.h          |  3 +++
-> >  3 files changed, 20 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> > b/drivers/media/v4l2-core/v4l2-async.c index 96cc733..384ad5e 100644
-> > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > @@ -46,6 +46,11 @@ static bool match_of(struct v4l2_subdev *sd, struct
-> > v4l2_async_subdev *asd) of_node_full_name(asd->match.of.node));
-> >  }
-> > 
-> > +static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev
-> > *asd)
-> > +{
-> > +	return sd->fwnode == asd->match.fwnode.fwn;
-> > +}
-> > +
-> >  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev
-> > *asd) {
-> >  	if (!asd->match.custom.match)
-> > @@ -80,6 +85,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct
-> > v4l2_async_notifier * case V4L2_ASYNC_MATCH_OF:
-> >  			match = match_of;
-> >  			break;
-> > +		case V4L2_ASYNC_MATCH_FWNODE:
-> > +			match = match_fwnode;
-> > +			break;
-> >  		default:
-> >  			/* Cannot happen, unless someone breaks us */
-> >  			WARN_ON(true);
-> > @@ -158,6 +166,7 @@ int v4l2_async_notifier_register(struct v4l2_device
-> > *v4l2_dev, case V4L2_ASYNC_MATCH_DEVNAME:
-> >  		case V4L2_ASYNC_MATCH_I2C:
-> >  		case V4L2_ASYNC_MATCH_OF:
-> > +		case V4L2_ASYNC_MATCH_FWNODE:
-> >  			break;
-> >  		default:
-> >  			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : 
-> NULL,
-> > @@ -282,6 +291,9 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
-> >  	 */
-> >  	if (!sd->of_node && sd->dev)
-> >  		sd->of_node = sd->dev->of_node;
-> > +	if (!sd->fwnode && sd->dev)
-> > +		sd->fwnode = sd->dev->of_node ?
-> > +			&sd->dev->of_node->fwnode : sd->dev->fwnode;
-> > 
-> >  	mutex_lock(&list_lock);
-> > 
-> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> > index 8e2a236..8f552d2 100644
-> > --- a/include/media/v4l2-async.h
-> > +++ b/include/media/v4l2-async.h
-> > @@ -32,6 +32,7 @@ struct v4l2_async_notifier;
-> >   * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
-> >   * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
-> >   * @V4L2_ASYNC_MATCH_OF: Match will use OF node
-> > + * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
-> >   *
-> >   * This enum is used by the asyncrhronous sub-device logic to define the
-> >   * algorithm that will be used to match an asynchronous device.
-> > @@ -41,6 +42,7 @@ enum v4l2_async_match_type {
-> >  	V4L2_ASYNC_MATCH_DEVNAME,
-> >  	V4L2_ASYNC_MATCH_I2C,
-> >  	V4L2_ASYNC_MATCH_OF,
-> > +	V4L2_ASYNC_MATCH_FWNODE,
-> >  };
-> > 
-> >  /**
-> > @@ -58,6 +60,9 @@ struct v4l2_async_subdev {
-> >  			const struct device_node *node;
-> >  		} of;
-> >  		struct {
-> > +			struct fwnode_handle *fwn;
-> 
-> I'd name this "node". The rationale is that code should be as independent as 
-> possible of whether we use device_node or fwnode_handle. Naming both variable 
-> "node" helps in that regard, and is in my opinion easier to read. This applies 
-> to the other patches in the series too.
+For some drivers it is useful to be able to check if a certain HID
+is not only present in the namespace, but also actually present as in
+acpi_device_is_present() will return true for the device. For example
+because if a certain device is present then the driver will want to use
+an extcon or IIO adc channel provided by that device.
 
-What you're proposing doesn't really change that: you'll have to be aware of
-which one you have anyway. Variables pointing to fwnode_handle are often
-called fwn as well --- as node is used for struct device_node.
+This commit adds a new acpi_dev_present helper which drivers can use
+to this end.
 
-In other words, I prefer to keep it as it is.
+Like acpi_dev_found, acpi_dev_present take a HID as argument, but
+it also has 2 extra optional arguments to only check for an ACPI
+device with a specific UID and/or HRV value. This makes it more
+generic and allows it to replace custom code doing similar checks
+in several places.
 
-> 
-> Apart from that,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> 
-> > +		} fwnode;
-> > +		struct {
-> >  			const char *name;
-> >  		} device_name;
-> >  		struct {
-> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > index 0ab1c5d..5f1669c 100644
-> > --- a/include/media/v4l2-subdev.h
-> > +++ b/include/media/v4l2-subdev.h
-> > @@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
-> >   * @devnode: subdev device node
-> >   * @dev: pointer to the physical device, if any
-> >   * @of_node: The device_node of the subdev, usually the same as
-> > dev->of_node. + * @fwnode: The fwnode_handle of the subdev, usually the
-> > same as
-> > + *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-
-> NULL).
-> >   * @async_list: Links this subdev to a global subdev_list or
-> > @notifier->done *	list.
-> >   * @asd: Pointer to respective &struct v4l2_async_subdev.
-> > @@ -819,6 +821,7 @@ struct v4l2_subdev {
-> >  	struct video_device *devnode;
-> >  	struct device *dev;
-> >  	struct device_node *of_node;
-> > +	struct fwnode_handle *fwnode;
-> >  	struct list_head async_list;
-> >  	struct v4l2_async_subdev *asd;
-> >  	struct v4l2_async_notifier *notifier;
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+Arguably acpi_dev_present is what acpi_dev_found should have been, but
+there are too many users to just change acpi_dev_found without the risk
+of breaking something.
 
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Lukas Wunner <lukas@wunner.de>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+Changes in v2:
+-Switch to using bus_find_device() to avoid "Traversing the namespace
+ over and over"
+-Add optional (may be NULL / -1) uid and hrv arguments, this will
+ allow this new function to replace the custom code for this in
+ drivers/firmware/efi/dev-path-parser.c as well as in
+ sound/soc/intel/common/sst-match-acpi.c and will allow it to be
+ used to implement blacklists to avoid loading the ACPI ac / battery
+ driver on systems which have a PMIC / charger acpi device with a
+ native driver which offers a better (often working vs not working)
+ user experience
+-Dropped Mika's reviewd by as this is almost a total rewrite
+---
+ drivers/acpi/utils.c    | 72 +++++++++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |  1 +
+ include/linux/acpi.h    |  5 ++++
+ 3 files changed, 78 insertions(+)
+
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 22c0995..d879237 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -736,6 +736,78 @@ bool acpi_dev_found(const char *hid)
+ }
+ EXPORT_SYMBOL(acpi_dev_found);
+ 
++struct acpi_dev_present_info {
++	struct acpi_device_id hid[2];
++	const char *uid;
++	int hrv;
++};
++
++static int acpi_dev_present_cb(struct device *dev, void *data)
++{
++	struct acpi_device *adev = to_acpi_device(dev);
++	struct acpi_dev_present_info *match = data;
++	unsigned long long hrv;
++	acpi_status status;
++
++	if (acpi_match_device_ids(adev, match->hid))
++		return 0;
++
++	if (match->uid && adev->pnp.unique_id &&
++	    strcmp(adev->pnp.unique_id, match->uid))
++		return 0;
++
++	if (match->uid && !adev->pnp.unique_id &&
++	    strcmp("0", match->uid))
++		return 0;
++
++	if (match->hrv == -1)
++		return 1;
++
++	status = acpi_evaluate_integer(adev->handle, "_HRV", NULL, &hrv);
++	if (ACPI_FAILURE(status))
++		return 0;
++
++	return hrv == match->hrv;
++}
++
++/**
++ * acpi_dev_present - Detect that a given ACPI device is present
++ * @hid: Hardware ID of the device.
++ * @uid: Unique ID of the device, pass "0" for devices without a _UID,
++ *       pass NULL to not check _UID
++ * @hrv: Hardware Revision of the device, pass -1 to not check _HRV
++ *
++ * Return %true if a matching device was present at the moment of invocation.
++ * Note that if the device is pluggable, it may since have disappeared.
++ *
++ * Note that unlike acpi_dev_found() this function checks the status
++ * of the device so for devices which are present in the dsdt, but
++ * which are disabled (their _STA callback returns 0) this function
++ * will return false.
++ *
++ * For this function to work, acpi_bus_scan() must have been executed
++ * which happens in the subsys_initcall() subsection. Hence, do not
++ * call from a subsys_initcall() or earlier (use acpi_get_devices()
++ * instead). Calling from module_init() is fine (which is synonymous
++ * with device_initcall()).
++ */
++bool acpi_dev_present(const char *hid, const char *uid, int hrv)
++{
++	struct acpi_dev_present_info match;
++	struct device *dev;
++
++	strlcpy(match.hid[0].id, hid, sizeof(match.hid[0].id));
++	match.hid[1].id[0] = 0;
++	match.uid = uid;
++	match.hrv = hrv;
++
++	dev = bus_find_device(&acpi_bus_type, NULL, &match,
++			      acpi_dev_present_cb);
++
++	return dev ? true : false;
++}
++EXPORT_SYMBOL(acpi_dev_present);
++
+ /*
+  * acpi_backlight= handling, this is done here rather then in video_detect.c
+  * because __setup cannot be used in modules.
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index ef0ae8a..64498d5 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -88,6 +88,7 @@ acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+ 	}
+ 
+ bool acpi_dev_found(const char *hid);
++bool acpi_dev_present(const char *hid, const char *uid, int hrv);
+ 
+ #ifdef CONFIG_ACPI
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 9b05886..e5dd0f1 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -611,6 +611,11 @@ static inline bool acpi_dev_found(const char *hid)
+ 	return false;
+ }
+ 
++static inline bool acpi_dev_present(const char *hid, const char *uid, int hrv)
++{
++	return false;
++}
++
+ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+ {
+ 	return false;
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.9.3
