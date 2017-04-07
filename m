@@ -1,84 +1,142 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: [PATCH] acpi: pci: don't ignore function ID of bridge device in _PRT
-Date: Fri,  7 Apr 2017 14:22:22 +0100
-Message-ID: <20170407132222.28300-1-ard.biesheuvel@linaro.org>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH V10 06/12] of: device: Fix overflow of coherent_dma_mask
+Date: Fri, 7 Apr 2017 15:46:27 +0100
+Message-ID: <b38312b0-268b-ed86-a5b3-886f86ea13f5@arm.com>
+References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
+ <1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
+ <1491301105-5274-7-git-send-email-sricharan@codeaurora.org>
+ <58E5E7B7.1050400@gmail.com>
+ <b77e3405-f060-bcd5-99f6-7d76f9edf08a@codeaurora.org>
+ <58E69831.6010306@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f179.google.com ([209.85.128.179]:35626 "EHLO
-        mail-wr0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756127AbdDGNWh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2017 09:22:37 -0400
-Received: by mail-wr0-f179.google.com with SMTP id o21so79438731wrb.2
-        for <linux-acpi@vger.kernel.org>; Fri, 07 Apr 2017 06:22:36 -0700 (PDT)
+Received: from foss.arm.com ([217.140.101.70]:56268 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755802AbdDGOqd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 7 Apr 2017 10:46:33 -0400
+In-Reply-To: <58E69831.6010306@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: graeme.gregory@linaro.org, al.stone@linaro.org, bhelgaas@google.com
-Cc: leif.lindholm@linaro.org, linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, marc.zyngier@arm.com, mark.rutland@arm.com, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+To: Frank Rowand <frowand.list@gmail.com>, Sricharan R <sricharan@codeaurora.org>, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, gregkh@linuxfoundation.org
 
-We currently derive legacy interrupt routing by matching _PRT
-entries on the PCI device only, presumably under the assumption
-that PRT entries always have a value of 0xffff in the function
-field, meaning 'match all functions'.
+On 06/04/17 20:34, Frank Rowand wrote:
+> On 04/06/17 04:01, Sricharan R wrote:
+>> Hi Frank,
+>>
+>> On 4/6/2017 12:31 PM, Frank Rowand wrote:
+>>> On 04/04/17 03:18, Sricharan R wrote:
+>>>> Size of the dma-range is calculated as coherent_dma_mask + 1
+>>>> and passed to arch_setup_dma_ops further. It overflows when
+>>>> the coherent_dma_mask is set for full 64 bits 0xFFFFFFFFFFFFFFFF,
+>>>> resulting in size getting passed as 0 wrongly. Fix this by
+>>>> passsing in max(mask, mask + 1). Note that in this case
+>>>> when the mask is set to full 64bits, we will be passing the mask
+>>>> itself to arch_setup_dma_ops instead of the size. The real fix
+>>>> for this should be to make arch_setup_dma_ops receive the
+>>>> mask and handle it, to be done in the future.
+>>>>
+>>>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+>>>> ---
+>>>>  drivers/of/device.c | 2 +-
+>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/of/device.c b/drivers/of/device.c
+>>>> index c17c19d..c2ae6bb 100644
+>>>> --- a/drivers/of/device.c
+>>>> +++ b/drivers/of/device.c
+>>>> @@ -107,7 +107,7 @@ void of_dma_configure(struct device *dev, struct device_node *np)
+>>>>      ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
+>>>>      if (ret < 0) {
+>>>>          dma_addr = offset = 0;
+>>>> -        size = dev->coherent_dma_mask + 1;
+>>>> +        size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+>>>>      } else {
+>>>>          offset = PFN_DOWN(paddr - dma_addr);
+>>>>          dev_dbg(dev, "dma_pfn_offset(%#08lx)\n", offset);
+>>>>
+>>>
+>>> NACK.
+>>>
+>>> Passing an invalid size to arch_setup_dma_ops() is only part of the problem.
+>>> size is also used in of_dma_configure() before calling arch_setup_dma_ops():
+>>>
+>>>         dev->coherent_dma_mask = min(dev->coherent_dma_mask,
+>>>                                      DMA_BIT_MASK(ilog2(dma_addr + size)));
+>>>         *dev->dma_mask = min((*dev->dma_mask),
+>>>                              DMA_BIT_MASK(ilog2(dma_addr + size)));
+>>>
+>>> which would be incorrect for size == 0xffffffffffffffffULL when
+>>> dma_addr != 0.  So the proposed fix really is not papering over
+>>> the base problem very well.
+>>>
+>>
+>> Ok, but with your fix for of_dma_get_range and the above fix,
+>> dma_addr will be '0' when size = 0xffffffffffffffffULL,
+>> but DMA_BIT_MASK(ilog2(dma_addr + size)) would be wrong though,
+>> making coherent_dma_mask to be smaller 0x7fffffffffffffffULL.
+> 
+> Yes, that was my point.  Setting size to 0x7fffffffffffffffULL
+> affects several places.  Another potential location (based only
+> on the function header comment, not from reading the code) is
+> iommu_dma_init_domain().  The header comment says:
+> 
+>     * @base and @size should be exact multiples of IOMMU page granularity to
+>     * avoid rounding surprises.
 
-This no longer holds for modern PCIe topologies, where the
-legacy interrupts for different slots may be wired to different
-functions on the same bridge device. For instance, on AMD Seattle,
-we may have something like
+That is really only referring to the fact that some of the work done
+therein involves truncation to PFNs, so anyone passing in non-exact
+values expecting them to round a particular way may get things off by a
+page one way or the other. It's not going to have much practical
+significance for real devices (in particular since size is used more as
+a sanity check than any kind of actual limit there).
 
--[0000:00]-+-00.0  Advanced Micro Devices, Inc. [AMD] Device 1a00
-           +-02.0  Advanced Micro Devices, Inc. [AMD] Device 1a01
-           +-02.2-[01]----00.0  Renesas uPD720202 USB 3.0 Host Controller
-           \-02.3-[02]----00.0  Realtek RTL8169 PCIe Gigabit Ethernet
+> I have not read enough context to really understand of_dma_configure(), but
+> it seems there is yet another issue in how the error return case from
+> of_dma_get_range() is handled (with the existing code, as well as if
+> my patch gets accepted).  An error return value can mean _either_
+> there is no dma-ranges property _or_ "an other problem occurred".  Should
+> the "an other problem occurred" case be handled by defaulting size to
+> a value based on dev->coherent_dma_mask (the current case) or should the
+> attempt to set up the DMA configuration just fail?
 
-where the _PRT describes the legacy interrupt routing as
+There is indeed a lot wrong with of_dma_configure() and
+arch_setup_dma_ops(), but fixing those is beyond the scope of this
+series. This is just working around a latent bug in the one specific
+case where a value is *not* derived from DT. Any DT which worked before
+still works; any DT which made of_dma_configure() go wrong before still
+makes of_dma_configure() go wrong exactly the same.
 
-    Name (_PRT, Package ()  // _PRT: PCI Routing Table
-    {
-        // slot 1: dev 2 fn 1
-        Package () { 0x20001, 0x0, 0x0, 0x140 },
-        Package () { 0x20001, 0x1, 0x0, 0x141 },
-        Package () { 0x20001, 0x2, 0x0, 0x142 },
-        Package () { 0x20001, 0x3, 0x0, 0x143 },
+Whilst it's not ideal, since a DMA mask basically represents the maximum
+size of address that that particular device can be given, I can't see it
+making any practical difference for a full 64-bit DMA mask to be trimmed
+down to 63 bits upon re-probing - no system is likely to have that many
+physical address bits anyway, and I don't think any IOMMUs support that
+large an IOVA space either, so as long as it's still big enough to cover
+"everything", it'll be OK.
 
-        // slot 1: dev 2 fn 2
-        Package () { 0x20002, 0x0, 0x0, 0x144 },
-        Package () { 0x20002, 0x1, 0x0, 0x145 },
-        Package () { 0x20002, 0x2, 0x0, 0x146 },
-        Package () { 0x20002, 0x3, 0x0, 0x147 },
+Of course, whether DMA_BIT_MASK(ilog2(dma_addr + size)) is the right
+thing to do in the first place is yet another matter, as there are
+plenty of cases where it results in something which can't reach the
+given range at all, but again, this isn't the place. Much as I'm keen to
+get the behaviour of of_dma_configure() sorted out properly, it doesn't
+seem reasonable that that should suddenly block this
+almost-entirely-orthogonal series that various other work has been
+waiting on for some time now. The WIP patch I have for
+arch_setup_dma_ops() already touches 3 architectures and 4 other
+subsystems...
 
-        // slot 1: dev 2 fn 3
-        Package () { 0x20003, 0x0, 0x0, 0x148 },
-        Package () { 0x20003, 0x1, 0x0, 0x149 },
-        Package () { 0x20003, 0x2, 0x0, 0x14a },
-        Package () { 0x20003, 0x3, 0x0, 0x14b }
-    }) // _PRT
+Robin.
 
-The current code always matches on the first entry when trying to
-derive the legacy interrupt routing for the USB and Ethernet controllers
-behind bridges 02.2 and 02.3, which results in the wrong entry to
-be selected.
-
-So fix this by matching the function ID to the value in the _PRT entry
-if the _PRT entries are not using 0xffff in the lower word to match
-all functions.
-
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
----
- drivers/acpi/pci_irq.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index c576a6fe4ebb..caac4ac94418 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -160,6 +160,8 @@ static int acpi_pci_irq_check_entry(acpi_handle handle, struct pci_dev *dev,
- 	struct acpi_prt_entry *entry;
- 
- 	if (((prt->address >> 16) & 0xffff) != device ||
-+	    ((prt->address & 0xffff) != 0xffff &&
-+	     (prt->address & 0xffff) != PCI_FUNC(dev->devfn)) ||
- 	    prt->pin + 1 != pin)
- 		return -ENODEV;
- 
--- 
-2.9.3
+> 
+>>
+>> Regards,
+>>  Sricharan
+>>
+>>> I agree that the proper solution involves passing a mask instead
+>>> of a size to arch_setup_dma_ops().
+>>>
+>>
+> 
 
