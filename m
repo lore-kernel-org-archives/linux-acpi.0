@@ -1,42 +1,57 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH] arm64: acpi: Support PCI devices numa_node property in
- ACPI mode
-Date: Sat, 8 Apr 2017 13:17:32 -0400
-Message-ID: <0dada57f-4215-4ced-482d-88203857e06d@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:48454 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752544AbdDHRRf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Apr 2017 13:17:35 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v3 2/4] ACPI: battery: Fix acpi_battery_exit on acpi_battery_init_async errors
+Date: Sat,  8 Apr 2017 23:23:44 +0200
+Message-ID: <20170408212346.8227-2-hdegoede@redhat.com>
+References: <20170408212346.8227-1-hdegoede@redhat.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170408212346.8227-1-hdegoede@redhat.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 12/31/1969 7:00 PM, linux-arm-kernel [mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf Of Sergey Temerkhanov wrote:
->  int pcibus_to_node(struct pci_bus *bus)  {
-> -	return dev_to_node(&bus->dev);
-> +	struct pci_config_window *cfg = bus->sysdata;
-> +	struct acpi_device *adev = NULL;
-> +	struct device *dev;
-> +
-> +	if (!acpi_disabled)
-> +		adev = to_acpi_device(cfg->parent);
-> +
+The acpi_lock_battery_dir() / acpi_bus_register_driver() calls in
+acpi_battery_init_async() may fail. Check that they succeeded before
+undoing them.
 
-I see a problem here that NUMA node information is read from the parent device.
-PCI bus can have multiple levels of switches and bridges. The NUMA information
-is only present on the host bridge.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/battery.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-This code only works if the endpoint is directly connected to the root port. 
-
-You should follow a similar design pattern like pci_dma_configure() where
-you go to the host bridge device from any pci device and read the _PXM from
-the host bridge.
-
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 4ef1e46..b35fca4 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -67,6 +67,7 @@ MODULE_DESCRIPTION("ACPI Battery Driver");
+ MODULE_LICENSE("GPL");
+ 
+ static async_cookie_t async_cookie;
++static bool battery_driver_registered;
+ static int battery_bix_broken_package;
+ static int battery_notification_delay_ms;
+ static unsigned int cache_time = 1000;
+@@ -1329,6 +1330,7 @@ static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
+ 	if (result < 0)
+ 		acpi_unlock_battery_dir(acpi_battery_dir);
+ #endif
++	battery_driver_registered = (result == 0);
+ }
+ 
+ static int __init acpi_battery_init(void)
+@@ -1343,9 +1345,11 @@ static int __init acpi_battery_init(void)
+ static void __exit acpi_battery_exit(void)
+ {
+ 	async_synchronize_cookie(async_cookie + 1);
+-	acpi_bus_unregister_driver(&acpi_battery_driver);
++	if (battery_driver_registered)
++		acpi_bus_unregister_driver(&acpi_battery_driver);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+-	acpi_unlock_battery_dir(acpi_battery_dir);
++	if (acpi_battery_dir)
++		acpi_unlock_battery_dir(acpi_battery_dir);
+ #endif
+ }
+ 
 -- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+2.9.3
