@@ -1,65 +1,82 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [RFC] Fix shared irq trigger-flags conflict when old irqaction uses IRQF_TRIGGER_NONE
-Date: Sun,  9 Apr 2017 21:59:18 +0200
-Message-ID: <20170409195918.20864-1-hdegoede@redhat.com>
+Subject: Re: [Intel-gfx] [PATCH] ACPI / bus: Introduce a list of ids for
+ "always present" devices
+Date: Sun, 9 Apr 2017 22:32:46 +0200
+Message-ID: <591c099a-4b2b-0b69-575a-cd4c95c02682@redhat.com>
+References: <20170225182328.26644-1-hdegoede@redhat.com>
+ <3161510.WQnmWnCBb0@aspire.rjw.lan>
+ <ccbbaa31-9140-f976-bdcd-7e5ad23a47c8@redhat.com>
+ <s5hwpcb3dfc.wl-tiwai@suse.de>
+ <CAJZ5v0hcc6FmEk+k_VX=nPUe4EGM5Fe2WNTrb3mjvJETBcf1ug@mail.gmail.com>
+ <s5h7f4bnt2z.wl-tiwai@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53528 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:43856 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752322AbdDIT7W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 9 Apr 2017 15:59:22 -0400
+        id S1752463AbdDIUcu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 9 Apr 2017 16:32:50 -0400
+In-Reply-To: <s5h7f4bnt2z.wl-tiwai@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, intel-gfx <intel-gfx@lists.freedesktop.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
 
-While writing a driver for the INT0002 ACPI device found on Intel
-Bay and Cherry Trail devices I hit the following error:
+Hi,
 
-"genirq: Flags mismatch irq 9. 00000084 (INT0002) vs. 00000080 (acpi)"
+On 27-02-17 23:53, Takashi Iwai wrote:
+> On Mon, 27 Feb 2017 22:27:58 +0100,
+> Rafael J. Wysocki wrote:
+>>
+>> On Mon, Feb 27, 2017 at 3:40 PM, Takashi Iwai <tiwai@suse.de> wrote:
 
-This is caused by drivers/acpi/osl.c first doing:
+<snip>
 
-request_irq(irq, acpi_irq, IRQF_SHARED, "acpi", acpi_irq)
+>>> Oh, this is interesting, please let me join to the party.
+>>>
+>>> We've hit a similar problem, but for other one: namely, it's INT0002
+>>> that is found on a few CHT devices.  It's never bound properly by a
+>>> similar reason, where _STA is always zero on Linux:
+>>>
+>>>             Method (_STA, 0, NotSerialized)  // _STA: Status
+>>>             {
+>>>                 If (SOCS <= 0x04)
+>>>                 {
+>>>                     Return (0x0F)
+>>>                 }
+>>>                 Else
+>>>                 {
+>>>                     Return (Zero)
+>>>                 }
+>>>             }
+>>>
+>>> The device is supposed to be a "virtual GPIO" stuff, and the driver
+>>> hasn't been upstreamed from Intel.  Due to the lack of this driver
+>>> (and it's binding), the machine gets spurious IRQ#9 after the PM
+>>> resume, and it locks up at the second time of PM.
+>>
+>> Well, the solution here seems to be to acquire the missing driver
+>> instead of adding quirks to the ACPI core.
+>
+> The driver is available (not upstreamed, though), but it's not bound
+> due to _STA above.  That's why I'm interested in this thread.
 
-While the irqdata for the irq contains no trigger flags, resulting
-in an irqaction with IRQF_TRIGGER_NONE.
+Takashi thanks for pointing me to the INT0002 device / driver to
+fix the spurious IRQ#9 after the PM resume issue. I was seeing this
+on the GPD-win too (when suspending with power-button + wakeup with
+spacebar). I've added a patch to add the INT0002 device to the
+always present device list + cleaned up the INT0002 driver. I plan
+to submit this upstream soon.
 
-And then the INT0002 driver I'm working on calling platform_get_irq
-which does: irqd_set_trigger_type(irqd, r->flags & IORESOURCE_BITS);
+If you want to test this on your device you need these patches:
 
-And then request_irq(irq, ..., IRQF_SHARED, ...) on the irq returned
-by platform_get_irq causes the error quoted above.
+https://github.com/jwrdegoede/linux-sunxi/commit/a1a6e92f2665376ed72f575553238a93e88bb037
+https://github.com/jwrdegoede/linux-sunxi/commit/4946f68f8eaa300f42289bf767722d78cf7fa9e2
+https://github.com/jwrdegoede/linux-sunxi/commit/32640c816dd60d17f003ae8306863da01c215afb
+https://github.com/jwrdegoede/linux-sunxi/commit/abb6a9d69690bb2a1a00b184b06cdae43d6ad001
 
-Arguably the genirq code should not hit the shared irq trigger-flags
-mismatch code if the old irqaction has IRQF_TRIGGER_NONE as flags.
+Regards,
 
-This patch is an attempt at fixing this, but I'm not sure it is the
-right fix, hence it RFC status.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- kernel/irq/manage.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
-index a4afe5c..24e5eef 100644
---- a/kernel/irq/manage.c
-+++ b/kernel/irq/manage.c
-@@ -1212,8 +1212,13 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
- 		 * set the trigger type must match. Also all must
- 		 * agree on ONESHOT.
- 		 */
-+		unsigned int old_msk = old->flags & IRQF_TRIGGER_MASK;
-+
-+		if (!old_msk)
-+			old_msk = irqd_get_trigger_type(&desc->irq_data);
-+
- 		if (!((old->flags & new->flags) & IRQF_SHARED) ||
--		    ((old->flags ^ new->flags) & IRQF_TRIGGER_MASK) ||
-+		    ((old_msk ^ new->flags) & IRQF_TRIGGER_MASK) ||
- 		    ((old->flags ^ new->flags) & IRQF_ONESHOT))
- 			goto mismatch;
- 
--- 
-2.9.3
+Hans
 
