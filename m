@@ -1,187 +1,113 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [Intel-gfx] [PATCH] ACPI / bus: Introduce a list of ids for
- "always present" devices
-Date: Mon, 10 Apr 2017 17:44:07 +0200
-Message-ID: <7df348bc-5f8c-94e0-e3cf-dfe7024d8804@redhat.com>
-References: <20170225182328.26644-1-hdegoede@redhat.com>
- <3161510.WQnmWnCBb0@aspire.rjw.lan>
- <ccbbaa31-9140-f976-bdcd-7e5ad23a47c8@redhat.com>
- <s5hwpcb3dfc.wl-tiwai@suse.de>
- <CAJZ5v0hcc6FmEk+k_VX=nPUe4EGM5Fe2WNTrb3mjvJETBcf1ug@mail.gmail.com>
- <s5h7f4bnt2z.wl-tiwai@suse.de>
- <591c099a-4b2b-0b69-575a-cd4c95c02682@redhat.com>
- <s5hinmcwemi.wl-tiwai@suse.de>
+Subject: [PATCH v4] ACPI / bus: Introduce a list of ids for
+	"always present" devices
+Date: Mon, 10 Apr 2017 17:49:36 +0200
+Message-ID: <20170410154936.15330-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44990 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754406AbdDJPoK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 10 Apr 2017 11:44:10 -0400
-In-Reply-To: <s5hinmcwemi.wl-tiwai@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Jani Nikula <jani.nikula@linux.intel.com>, =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, intel-gfx <intel-gfx@lists.freedesktop.org>, Robert Moore <robert.moore@intel.com>, Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, intel-gfx <intel-gfx@lists.freedesktop.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
 
-Hi,
-
-On 10-04-17 15:56, Takashi Iwai wrote:
-> On Sun, 09 Apr 2017 22:32:46 +0200,
-> Hans de Goede wrote:
->>
->> Hi,
->>
->> On 27-02-17 23:53, Takashi Iwai wrote:
->>> On Mon, 27 Feb 2017 22:27:58 +0100,
->>> Rafael J. Wysocki wrote:
->>>>
->>>> On Mon, Feb 27, 2017 at 3:40 PM, Takashi Iwai <tiwai@suse.de> wrote:
->>
->> <snip>
->>
->>>>> Oh, this is interesting, please let me join to the party.
->>>>>
->>>>> We've hit a similar problem, but for other one: namely, it's INT0002
->>>>> that is found on a few CHT devices.  It's never bound properly by a
->>>>> similar reason, where _STA is always zero on Linux:
->>>>>
->>>>>             Method (_STA, 0, NotSerialized)  // _STA: Status
->>>>>             {
->>>>>                 If (SOCS <= 0x04)
->>>>>                 {
->>>>>                     Return (0x0F)
->>>>>                 }
->>>>>                 Else
->>>>>                 {
->>>>>                     Return (Zero)
->>>>>                 }
->>>>>             }
->>>>>
->>>>> The device is supposed to be a "virtual GPIO" stuff, and the driver
->>>>> hasn't been upstreamed from Intel.  Due to the lack of this driver
->>>>> (and it's binding), the machine gets spurious IRQ#9 after the PM
->>>>> resume, and it locks up at the second time of PM.
->>>>
->>>> Well, the solution here seems to be to acquire the missing driver
->>>> instead of adding quirks to the ACPI core.
->>>
->>> The driver is available (not upstreamed, though), but it's not bound
->>> due to _STA above.  That's why I'm interested in this thread.
->>
->> Takashi thanks for pointing me to the INT0002 device / driver to
->> fix the spurious IRQ#9 after the PM resume issue. I was seeing this
->> on the GPD-win too (when suspending with power-button + wakeup with
->> spacebar). I've added a patch to add the INT0002 device to the
->> always present device list + cleaned up the INT0002 driver. I plan
->> to submit this upstream soon.
->>
->> If you want to test this on your device you need these patches:
->>
->> https://github.com/jwrdegoede/linux-sunxi/commit/a1a6e92f2665376ed72f575553238a93e88bb037
->> https://github.com/jwrdegoede/linux-sunxi/commit/4946f68f8eaa300f42289bf767722d78cf7fa9e2
->> https://github.com/jwrdegoede/linux-sunxi/commit/32640c816dd60d17f003ae8306863da01c215afb
->> https://github.com/jwrdegoede/linux-sunxi/commit/abb6a9d69690bb2a1a00b184b06cdae43d6ad001
->
-> Thanks Hans, these look promising!
->
-> One remaining concern is that INT0002 seems serving for other purpose,
-> too, in drivers/platform/x86/intel_menlow.c for the thermal
-> management.  I wonder whether we can enable INT0002 unconditionally.
-
-Oh, good point I already had the following in the driver to deal with this:
-
-static const struct x86_cpu_id int0002_cpu_ids[] = {
-/*
-  * Limit ourselves to Cherry Trail for now, until testing shows we
-  * need to handle the INT0002 device on Baytrail too.
-  *      ICPU(INTEL_FAM6_ATOM_SILVERMONT1),       * Valleyview, Bay Trail *
-  */
-         ICPU(INTEL_FAM6_ATOM_AIRMONT),          /* Braswell, Cherry Trail */
-         {}
-};
-
-
-probe()
-{
-         /* Menlow has a different INT0002 device? <sigh> */
-         data->cpu_id = x86_match_cpu(int0002_cpu_ids);
-         if (!data->cpu_id)
-                 return -ENODEV;
-}
-
-But I guess we need to do the same for the always present stuff to force the
-status to present, so now I've :
-
-#ifdef CONFIG_X86
-/*
-  * Some ACPI devices are hidden (status == 0x0) in recent BIOS-es because
-  * some recent windows drivers bind to one device but poke at multiple
-  * devices at the same time, so the others get hidden.
-  * We work around this by always reporting ACPI_STA_DEFAULT for these
-  * devices. Note this MUST only be done for devices where this is safe.
-  *
-  * This forcing of devices to be present is limited to specific CPU (SoC)
-  * models both to avoid potentially causing trouble on other models and
-  * because some HIDs are re-used on different SoCs for completely
-  * different devices.
-  */
-struct always_present_device_id {
-         struct acpi_device_id hid[2];
-         struct x86_cpu_id cpu_id[2];
-};
-
-#define ENTRY(hid, cpu_model) {                                         \
-         { { hid, }, {} },                                               \
-         { { X86_VENDOR_INTEL, 6, cpu_model, X86_FEATURE_ANY, }, {} }    \
-}
-
-static const struct always_present_device_id always_present_device_ids[] = {
-         /*
-          * Cherrytrail pwm directly poked by GPU driver in win10,
-          * but Linux uses a separate pwm driver, harmless if not used.
-          */
-         ENTRY("80862288", INTEL_FAM6_ATOM_AIRMONT),
-         /*
-          * The INT0002 device is necessary to clear wakeup interrupt sources
-          * on Cherry Trail devices, without it we get nobody cared IRQ msgs.
-          */
-         ENTRY("INT0002", INTEL_FAM6_ATOM_AIRMONT),
-};
-#endif
-
-void acpi_set_device_status(struct acpi_device *adev, u32 sta)
-{
-         u32 *status = (u32 *)&adev->status;
-#ifdef CONFIG_X86
-         int i;
-
-         /* acpi_match_device_ids checks status, so start with default */
-         *status = ACPI_STA_DEFAULT;
-         for (i = 0; i < ARRAY_SIZE(always_present_device_ids); i++) {
-                 if (acpi_match_device_ids(adev,
-                         always_present_device_ids[i].hid) == 0 &&
-                     x86_match_cpu(always_present_device_ids[i].cpu_id)) {
-                         dev_info(&adev->dev, "Device [%s] is in always present l
-                                  adev->pnp.bus_id, ACPI_STA_DEFAULT);
-                         return;
-                 }
-         }
-#endif
-         *status = sta;
-}
-
-
-
-Which limits the forcing of status to present for INT0002 to cherrytrail
-systems (and this probably is a good idea for the "80862288" pwm device too,
-so it is done there too).
-
-You can find the latest version of my patches, with these changes here:
-
-https://github.com/jwrdegoede/linux-sunxi/commits/master
-
-Regards,
-
-Hans
+U2V2ZXJhbCBjaGVycnl0cmFpbCBkZXZpY2VzIChhbGwgb2Ygd2hpY2ggc2hpcCB3aXRoIHdpbmRv
+d3MgMTApIGhpZGUgdGhlCmxwc3MgcHdtIGNvbnRyb2xsZXIgaW4gQUNQSSwgdHlwaWNhbGx5IHRo
+ZSBfU1RBIG1ldGhvZCBsb29rcyBsaWtlIHRoaXM6CgogICAgTWV0aG9kIChfU1RBLCAwLCBOb3RT
+ZXJpYWxpemVkKSAgLy8gX1NUQTogU3RhdHVzCiAgICB7CiAgICAgICAgSWYgKE9TSUQgPT0gT25l
+KQogICAgICAgIHsKICAgICAgICAgICAgUmV0dXJuIChaZXJvKQogICAgICAgIH0KCiAgICAgICAg
+UmV0dXJuICgweDBGKQogICAgfQoKV2hlcmUgT1NJRCBpcyBzb21lIGRhcmsgbWFnaWMgc2VlbiBp
+biBhbGwgY2hlcnJ5dHJhaWwgQUNQSSB0YWJsZXMgbWFraW5nCnRoZSBtYWNoaW5lIGJlaGF2ZSBk
+aWZmZXJlbnRseSBkZXBlbmRpbmcgb24gd2hpY2ggT1MgaXQgKnRoaW5rcyogaXQgaXMKYm9vdGlu
+ZywgdGhpcyBnZXRzIHNldCBpbiBhIG51bWJlciBvZiB3YXlzIHdoaWNoIHdlIGNhbm5vdCBjb250
+cm9sLCBvbgpzb21lIG5ld2VyIG1hY2hpbmVzIGl0IHNpbXBsZSBoYXJkY29kZWQgdG8gIk9uZSIg
+YWthIHdpbjEwLgoKVGhpcyBjYXVzZXMgdGhlIFBXTSBjb250cm9sbGVyIHRvIGdldCBoaWRkZW4s
+IHdoaWNoIG1lYW5zIExpbnV4IGNhbm5vdApjb250cm9sIHRoZSBiYWNrbGlnaHQgbGV2ZWwgb24g
+Y2h0IGJhc2VkIHRhYmxldHMgLyBsYXB0b3BzLgoKU2luY2UgbG9hZGluZyB0aGUgZHJpdmVyIGZv
+ciB0aGlzIGRvZXMgbm8gaGFybSAodGhlIG9ubHkgaW4ga2VybmVsIHVzZXIKb2YgaXQgaXMgdGhl
+IGk5MTUgZHJpdmVyLCB3aGljaCB3aWxsIG9ubHkgdXNlIGl0IHdoZW4gaXQgbmVlZHMgaXQpLCB0
+aGlzCmNvbW1pdCBtYWtlcyBhY3BpX2J1c19nZXRfc3RhdHVzKCkgYWx3YXlzIHNldCBzdGF0dXMg
+dG8gQUNQSV9TVEFfREVGQVVMVApmb3IgdGhlIDgwODYyMjg4IGRldmljZSwgZml4aW5nIHRoZSBs
+YWNrIG9mIGJhY2tsaWdodCBjb250cm9sLgoKU2lnbmVkLW9mZi1ieTogSGFucyBkZSBHb2VkZSA8
+aGRlZ29lZGVAcmVkaGF0LmNvbT4KLS0tCkNoYW5nZXMgaW4gdjI6Ci1Vc2UgcHJfZGVidWcgaW5z
+dGVhZCBvZiBBQ1BJX0RFQlVHX1BSSU5UCkNoYW5nZXMgaW4gdjM6Ci1Vbi1pbmxpbmUgYWNwaV9z
+ZXRfZGV2aWNlX3N0YXR1cyBhbmQgZG8gdGhlIGFsd2F5c19wcmVzZW50X2RldmljZV9pZHMKIHRh
+YmxlIGNoZWNrIGluc2lkZSB0aGUgdW4taW5saW5lZCB2ZXJzaW9uIG9mIGl0CkNoYW5nZXMgaW4g
+djQ6Ci1Vc2UgZGV2X2luZm8gaW5zdGVhZCBvZiBwcl9kZWJ1ZwotTm90IG9ubHkgY2hlY2sgZm9y
+IEFDUEkgSElEIGJ1dCBhbHNvIGZvciBDUFUgKFNvQykgbW9kZWwgc28gYXMgdG8gbm90CiBmb3Ig
+ZGV2aWNlcyBwcmVzZW50IG9uIG90aGVyIG1vZGVscyB0aGVuIGZvciB3aGljaCB0aGUgcXVpcmsg
+aXMgaW50ZW5kZWQgYW5kCiB0byBhdm9pZCBlbmFibGluZyB1bnJlbGF0ZWQgQUNQSSBkZXZpY2Vz
+IHdoaWNoIGhhcHBlbiB0byB1c2UgdGhlIHNhbWUgSElECi0tLQogZHJpdmVycy9hY3BpL2J1cy5j
+ICAgICAgfCA1NSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrCiBpbmNsdWRlL2FjcGkvYWNwaV9idXMuaCB8ICA2ICstLS0tLQogMiBmaWxlcyBjaGFuZ2Vk
+LCA1NiBpbnNlcnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMv
+YWNwaS9idXMuYyBiL2RyaXZlcnMvYWNwaS9idXMuYwppbmRleCAzNGZiZTAyLi45NDEwNmZlIDEw
+MDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvYnVzLmMKKysrIGIvZHJpdmVycy9hY3BpL2J1cy5jCkBA
+IC0zNCw2ICszNCw4IEBACiAjaW5jbHVkZSA8bGludXgvcmVib290Lmg+CiAjaW5jbHVkZSA8bGlu
+dXgvZGVsYXkuaD4KICNpZmRlZiBDT05GSUdfWDg2CisjaW5jbHVkZSA8YXNtL2NwdV9kZXZpY2Vf
+aWQuaD4KKyNpbmNsdWRlIDxhc20vaW50ZWwtZmFtaWx5Lmg+CiAjaW5jbHVkZSA8YXNtL21wc3Bl
+Yy5oPgogI2VuZGlmCiAjaW5jbHVkZSA8bGludXgvYWNwaV9pb3J0Lmg+CkBAIC0xMzIsNiArMTM0
+LDU5IEBAIGludCBhY3BpX2J1c19nZXRfc3RhdHVzKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNl
+KQogfQogRVhQT1JUX1NZTUJPTChhY3BpX2J1c19nZXRfc3RhdHVzKTsKIAorI2lmZGVmIENPTkZJ
+R19YODYKKy8qCisgKiBTb21lIEFDUEkgZGV2aWNlcyBhcmUgaGlkZGVuIChzdGF0dXMgPT0gMHgw
+KSBpbiByZWNlbnQgQklPUy1lcyBiZWNhdXNlCisgKiBzb21lIHJlY2VudCB3aW5kb3dzIGRyaXZl
+cnMgYmluZCB0byBvbmUgZGV2aWNlIGJ1dCBwb2tlIGF0IG11bHRpcGxlCisgKiBkZXZpY2VzIGF0
+IHRoZSBzYW1lIHRpbWUsIHNvIHRoZSBvdGhlcnMgZ2V0IGhpZGRlbi4KKyAqIFdlIHdvcmsgYXJv
+dW5kIHRoaXMgYnkgYWx3YXlzIHJlcG9ydGluZyBBQ1BJX1NUQV9ERUZBVUxUIGZvciB0aGVzZQor
+ICogZGV2aWNlcy4gTm90ZSB0aGlzIE1VU1Qgb25seSBiZSBkb25lIGZvciBkZXZpY2VzIHdoZXJl
+IHRoaXMgaXMgc2FmZS4KKyAqCisgKiBUaGlzIGZvcmNpbmcgb2YgZGV2aWNlcyB0byBiZSBwcmVz
+ZW50IGlzIGxpbWl0ZWQgdG8gc3BlY2lmaWMgQ1BVIChTb0MpCisgKiBtb2RlbHMgYm90aCB0byBh
+dm9pZCBwb3RlbnRpYWxseSBjYXVzaW5nIHRyb3VibGUgb24gb3RoZXIgbW9kZWxzIGFuZAorICog
+YmVjYXVzZSBzb21lIEhJRHMgYXJlIHJlLXVzZWQgb24gZGlmZmVyZW50IFNvQ3MgZm9yIGNvbXBs
+ZXRlbHkKKyAqIGRpZmZlcmVudCBkZXZpY2VzLgorICovCitzdHJ1Y3QgYWx3YXlzX3ByZXNlbnRf
+ZGV2aWNlX2lkIHsKKwlzdHJ1Y3QgYWNwaV9kZXZpY2VfaWQgaGlkWzJdOworCXN0cnVjdCB4ODZf
+Y3B1X2lkIGNwdV9pZFsyXTsKK307CisKKyNkZWZpbmUgRU5UUlkoaGlkLCBjcHVfbW9kZWwpIHsJ
+CQkJCQlcCisJeyB7IGhpZCwgfSwge30gfSwJCQkJCQlcCisJeyB7IFg4Nl9WRU5ET1JfSU5URUws
+IDYsIGNwdV9tb2RlbCwgWDg2X0ZFQVRVUkVfQU5ZLCB9LCB7fSB9LAlcCit9CisKK3N0YXRpYyBj
+b25zdCBzdHJ1Y3QgYWx3YXlzX3ByZXNlbnRfZGV2aWNlX2lkIGFsd2F5c19wcmVzZW50X2Rldmlj
+ZV9pZHNbXSA9IHsKKwkvKgorCSAqIENoZXJyeXRyYWlsIHB3bSBkaXJlY3RseSBwb2tlZCBieSBH
+UFUgZHJpdmVyIGluIHdpbjEwLAorCSAqIGJ1dCBMaW51eCB1c2VzIGEgc2VwYXJhdGUgcHdtIGRy
+aXZlciwgaGFybWxlc3MgaWYgbm90IHVzZWQuCisJICovCisJRU5UUlkoIjgwODYyMjg4IiwgSU5U
+RUxfRkFNNl9BVE9NX0FJUk1PTlQpLAorfTsKKyNlbmRpZgorCit2b2lkIGFjcGlfc2V0X2Rldmlj
+ZV9zdGF0dXMoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2LCB1MzIgc3RhKQoreworCXUzMiAqc3Rh
+dHVzID0gKHUzMiAqKSZhZGV2LT5zdGF0dXM7CisjaWZkZWYgQ09ORklHX1g4NgorCWludCBpOwor
+CisJLyogYWNwaV9tYXRjaF9kZXZpY2VfaWRzIGNoZWNrcyBzdGF0dXMsIHNvIHN0YXJ0IHdpdGgg
+ZGVmYXVsdCAqLworCSpzdGF0dXMgPSBBQ1BJX1NUQV9ERUZBVUxUOworCWZvciAoaSA9IDA7IGkg
+PCBBUlJBWV9TSVpFKGFsd2F5c19wcmVzZW50X2RldmljZV9pZHMpOyBpKyspIHsKKwkJaWYgKGFj
+cGlfbWF0Y2hfZGV2aWNlX2lkcyhhZGV2LAorCQkJYWx3YXlzX3ByZXNlbnRfZGV2aWNlX2lkc1tp
+XS5oaWQpID09IDAgJiYKKwkJICAgIHg4Nl9tYXRjaF9jcHUoYWx3YXlzX3ByZXNlbnRfZGV2aWNl
+X2lkc1tpXS5jcHVfaWQpKSB7CisJCQlkZXZfaW5mbygmYWRldi0+ZGV2LCAiRGV2aWNlIFslc10g
+aXMgaW4gYWx3YXlzIHByZXNlbnQgbGlzdCBzZXR0aW5nIHN0YXR1cyBbJTA4eF1cbiIsCisJCQkJ
+IGFkZXYtPnBucC5idXNfaWQsIEFDUElfU1RBX0RFRkFVTFQpOworCQkJcmV0dXJuOworCQl9CisJ
+fQorI2VuZGlmCisJKnN0YXR1cyA9IHN0YTsKK30KKwogdm9pZCBhY3BpX2J1c19wcml2YXRlX2Rh
+dGFfaGFuZGxlcihhY3BpX2hhbmRsZSBoYW5kbGUsCiAJCQkJICAgdm9pZCAqY29udGV4dCkKIHsK
+ZGlmZiAtLWdpdCBhL2luY2x1ZGUvYWNwaS9hY3BpX2J1cy5oIGIvaW5jbHVkZS9hY3BpL2FjcGlf
+YnVzLmgKaW5kZXggNjQ0OThkNS4uYTZhZTA1NyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9hY3BpL2Fj
+cGlfYnVzLmgKKysrIGIvaW5jbHVkZS9hY3BpL2FjcGlfYnVzLmgKQEAgLTQ0MSwxMSArNDQxLDYg
+QEAgc3RhdGljIGlubGluZSB2b2lkICphY3BpX2RyaXZlcl9kYXRhKHN0cnVjdCBhY3BpX2Rldmlj
+ZSAqZCkKICNkZWZpbmUgdG9fYWNwaV9kZXZpY2UoZCkJY29udGFpbmVyX29mKGQsIHN0cnVjdCBh
+Y3BpX2RldmljZSwgZGV2KQogI2RlZmluZSB0b19hY3BpX2RyaXZlcihkKQljb250YWluZXJfb2Yo
+ZCwgc3RydWN0IGFjcGlfZHJpdmVyLCBkcnYpCiAKLXN0YXRpYyBpbmxpbmUgdm9pZCBhY3BpX3Nl
+dF9kZXZpY2Vfc3RhdHVzKHN0cnVjdCBhY3BpX2RldmljZSAqYWRldiwgdTMyIHN0YSkKLXsKLQkq
+KCh1MzIgKikmYWRldi0+c3RhdHVzKSA9IHN0YTsKLX0KLQogc3RhdGljIGlubGluZSB2b2lkIGFj
+cGlfc2V0X2hwX2NvbnRleHQoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2LAogCQkJCSAgICAgICBz
+dHJ1Y3QgYWNwaV9ob3RwbHVnX2NvbnRleHQgKmhwKQogewpAQCAtNDk0LDYgKzQ4OSw3IEBAIHZv
+aWQgYWNwaV9idXNfcHV0X2FjcGlfZGV2aWNlKHN0cnVjdCBhY3BpX2RldmljZSAqYWRldik7CiBh
+Y3BpX3N0YXR1cyBhY3BpX2J1c19nZXRfc3RhdHVzX2hhbmRsZShhY3BpX2hhbmRsZSBoYW5kbGUs
+CiAJCQkJICAgICAgIHVuc2lnbmVkIGxvbmcgbG9uZyAqc3RhKTsKIGludCBhY3BpX2J1c19nZXRf
+c3RhdHVzKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKTsKK3ZvaWQgYWNwaV9zZXRfZGV2aWNl
+X3N0YXR1cyhzdHJ1Y3QgYWNwaV9kZXZpY2UgKmFkZXYsIHUzMiBzdGEpOwogCiBpbnQgYWNwaV9i
+dXNfc2V0X3Bvd2VyKGFjcGlfaGFuZGxlIGhhbmRsZSwgaW50IHN0YXRlKTsKIGNvbnN0IGNoYXIg
+KmFjcGlfcG93ZXJfc3RhdGVfc3RyaW5nKGludCBzdGF0ZSk7Ci0tIAoyLjkuMwoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcg
+bGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
