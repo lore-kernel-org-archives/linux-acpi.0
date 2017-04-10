@@ -1,113 +1,197 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v4] ACPI / bus: Introduce a list of ids for
-	"always present" devices
-Date: Mon, 10 Apr 2017 17:49:36 +0200
-Message-ID: <20170410154936.15330-1-hdegoede@redhat.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH] acpi: drop support for force_remove
+Date: Mon, 10 Apr 2017 19:13:44 +0200
+Message-ID: <20170410171343.GO4618@dhcp22.suse.cz>
+References: <20170403074023.29121-1-mhocko@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Jani Nikula <jani.nikula@linux.intel.com>, =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, intel-gfx <intel-gfx@lists.freedesktop.org>, Robert Moore <robert.moore@intel.com>, Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170403074023.29121-1-mhocko@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Joey Lee <jlee@suse.com>, Jiri Kosina <jkosina@suse.cz>, Kani Toshimitsu <toshi.kani@hpe.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-api@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-U2V2ZXJhbCBjaGVycnl0cmFpbCBkZXZpY2VzIChhbGwgb2Ygd2hpY2ggc2hpcCB3aXRoIHdpbmRv
-d3MgMTApIGhpZGUgdGhlCmxwc3MgcHdtIGNvbnRyb2xsZXIgaW4gQUNQSSwgdHlwaWNhbGx5IHRo
-ZSBfU1RBIG1ldGhvZCBsb29rcyBsaWtlIHRoaXM6CgogICAgTWV0aG9kIChfU1RBLCAwLCBOb3RT
-ZXJpYWxpemVkKSAgLy8gX1NUQTogU3RhdHVzCiAgICB7CiAgICAgICAgSWYgKE9TSUQgPT0gT25l
-KQogICAgICAgIHsKICAgICAgICAgICAgUmV0dXJuIChaZXJvKQogICAgICAgIH0KCiAgICAgICAg
-UmV0dXJuICgweDBGKQogICAgfQoKV2hlcmUgT1NJRCBpcyBzb21lIGRhcmsgbWFnaWMgc2VlbiBp
-biBhbGwgY2hlcnJ5dHJhaWwgQUNQSSB0YWJsZXMgbWFraW5nCnRoZSBtYWNoaW5lIGJlaGF2ZSBk
-aWZmZXJlbnRseSBkZXBlbmRpbmcgb24gd2hpY2ggT1MgaXQgKnRoaW5rcyogaXQgaXMKYm9vdGlu
-ZywgdGhpcyBnZXRzIHNldCBpbiBhIG51bWJlciBvZiB3YXlzIHdoaWNoIHdlIGNhbm5vdCBjb250
-cm9sLCBvbgpzb21lIG5ld2VyIG1hY2hpbmVzIGl0IHNpbXBsZSBoYXJkY29kZWQgdG8gIk9uZSIg
-YWthIHdpbjEwLgoKVGhpcyBjYXVzZXMgdGhlIFBXTSBjb250cm9sbGVyIHRvIGdldCBoaWRkZW4s
-IHdoaWNoIG1lYW5zIExpbnV4IGNhbm5vdApjb250cm9sIHRoZSBiYWNrbGlnaHQgbGV2ZWwgb24g
-Y2h0IGJhc2VkIHRhYmxldHMgLyBsYXB0b3BzLgoKU2luY2UgbG9hZGluZyB0aGUgZHJpdmVyIGZv
-ciB0aGlzIGRvZXMgbm8gaGFybSAodGhlIG9ubHkgaW4ga2VybmVsIHVzZXIKb2YgaXQgaXMgdGhl
-IGk5MTUgZHJpdmVyLCB3aGljaCB3aWxsIG9ubHkgdXNlIGl0IHdoZW4gaXQgbmVlZHMgaXQpLCB0
-aGlzCmNvbW1pdCBtYWtlcyBhY3BpX2J1c19nZXRfc3RhdHVzKCkgYWx3YXlzIHNldCBzdGF0dXMg
-dG8gQUNQSV9TVEFfREVGQVVMVApmb3IgdGhlIDgwODYyMjg4IGRldmljZSwgZml4aW5nIHRoZSBs
-YWNrIG9mIGJhY2tsaWdodCBjb250cm9sLgoKU2lnbmVkLW9mZi1ieTogSGFucyBkZSBHb2VkZSA8
-aGRlZ29lZGVAcmVkaGF0LmNvbT4KLS0tCkNoYW5nZXMgaW4gdjI6Ci1Vc2UgcHJfZGVidWcgaW5z
-dGVhZCBvZiBBQ1BJX0RFQlVHX1BSSU5UCkNoYW5nZXMgaW4gdjM6Ci1Vbi1pbmxpbmUgYWNwaV9z
-ZXRfZGV2aWNlX3N0YXR1cyBhbmQgZG8gdGhlIGFsd2F5c19wcmVzZW50X2RldmljZV9pZHMKIHRh
-YmxlIGNoZWNrIGluc2lkZSB0aGUgdW4taW5saW5lZCB2ZXJzaW9uIG9mIGl0CkNoYW5nZXMgaW4g
-djQ6Ci1Vc2UgZGV2X2luZm8gaW5zdGVhZCBvZiBwcl9kZWJ1ZwotTm90IG9ubHkgY2hlY2sgZm9y
-IEFDUEkgSElEIGJ1dCBhbHNvIGZvciBDUFUgKFNvQykgbW9kZWwgc28gYXMgdG8gbm90CiBmb3Ig
-ZGV2aWNlcyBwcmVzZW50IG9uIG90aGVyIG1vZGVscyB0aGVuIGZvciB3aGljaCB0aGUgcXVpcmsg
-aXMgaW50ZW5kZWQgYW5kCiB0byBhdm9pZCBlbmFibGluZyB1bnJlbGF0ZWQgQUNQSSBkZXZpY2Vz
-IHdoaWNoIGhhcHBlbiB0byB1c2UgdGhlIHNhbWUgSElECi0tLQogZHJpdmVycy9hY3BpL2J1cy5j
-ICAgICAgfCA1NSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrCiBpbmNsdWRlL2FjcGkvYWNwaV9idXMuaCB8ICA2ICstLS0tLQogMiBmaWxlcyBjaGFuZ2Vk
-LCA1NiBpbnNlcnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-YWNwaS9idXMuYyBiL2RyaXZlcnMvYWNwaS9idXMuYwppbmRleCAzNGZiZTAyLi45NDEwNmZlIDEw
-MDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvYnVzLmMKKysrIGIvZHJpdmVycy9hY3BpL2J1cy5jCkBA
-IC0zNCw2ICszNCw4IEBACiAjaW5jbHVkZSA8bGludXgvcmVib290Lmg+CiAjaW5jbHVkZSA8bGlu
-dXgvZGVsYXkuaD4KICNpZmRlZiBDT05GSUdfWDg2CisjaW5jbHVkZSA8YXNtL2NwdV9kZXZpY2Vf
-aWQuaD4KKyNpbmNsdWRlIDxhc20vaW50ZWwtZmFtaWx5Lmg+CiAjaW5jbHVkZSA8YXNtL21wc3Bl
-Yy5oPgogI2VuZGlmCiAjaW5jbHVkZSA8bGludXgvYWNwaV9pb3J0Lmg+CkBAIC0xMzIsNiArMTM0
-LDU5IEBAIGludCBhY3BpX2J1c19nZXRfc3RhdHVzKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNl
-KQogfQogRVhQT1JUX1NZTUJPTChhY3BpX2J1c19nZXRfc3RhdHVzKTsKIAorI2lmZGVmIENPTkZJ
-R19YODYKKy8qCisgKiBTb21lIEFDUEkgZGV2aWNlcyBhcmUgaGlkZGVuIChzdGF0dXMgPT0gMHgw
-KSBpbiByZWNlbnQgQklPUy1lcyBiZWNhdXNlCisgKiBzb21lIHJlY2VudCB3aW5kb3dzIGRyaXZl
-cnMgYmluZCB0byBvbmUgZGV2aWNlIGJ1dCBwb2tlIGF0IG11bHRpcGxlCisgKiBkZXZpY2VzIGF0
-IHRoZSBzYW1lIHRpbWUsIHNvIHRoZSBvdGhlcnMgZ2V0IGhpZGRlbi4KKyAqIFdlIHdvcmsgYXJv
-dW5kIHRoaXMgYnkgYWx3YXlzIHJlcG9ydGluZyBBQ1BJX1NUQV9ERUZBVUxUIGZvciB0aGVzZQor
-ICogZGV2aWNlcy4gTm90ZSB0aGlzIE1VU1Qgb25seSBiZSBkb25lIGZvciBkZXZpY2VzIHdoZXJl
-IHRoaXMgaXMgc2FmZS4KKyAqCisgKiBUaGlzIGZvcmNpbmcgb2YgZGV2aWNlcyB0byBiZSBwcmVz
-ZW50IGlzIGxpbWl0ZWQgdG8gc3BlY2lmaWMgQ1BVIChTb0MpCisgKiBtb2RlbHMgYm90aCB0byBh
-dm9pZCBwb3RlbnRpYWxseSBjYXVzaW5nIHRyb3VibGUgb24gb3RoZXIgbW9kZWxzIGFuZAorICog
-YmVjYXVzZSBzb21lIEhJRHMgYXJlIHJlLXVzZWQgb24gZGlmZmVyZW50IFNvQ3MgZm9yIGNvbXBs
-ZXRlbHkKKyAqIGRpZmZlcmVudCBkZXZpY2VzLgorICovCitzdHJ1Y3QgYWx3YXlzX3ByZXNlbnRf
-ZGV2aWNlX2lkIHsKKwlzdHJ1Y3QgYWNwaV9kZXZpY2VfaWQgaGlkWzJdOworCXN0cnVjdCB4ODZf
-Y3B1X2lkIGNwdV9pZFsyXTsKK307CisKKyNkZWZpbmUgRU5UUlkoaGlkLCBjcHVfbW9kZWwpIHsJ
-CQkJCQlcCisJeyB7IGhpZCwgfSwge30gfSwJCQkJCQlcCisJeyB7IFg4Nl9WRU5ET1JfSU5URUws
-IDYsIGNwdV9tb2RlbCwgWDg2X0ZFQVRVUkVfQU5ZLCB9LCB7fSB9LAlcCit9CisKK3N0YXRpYyBj
-b25zdCBzdHJ1Y3QgYWx3YXlzX3ByZXNlbnRfZGV2aWNlX2lkIGFsd2F5c19wcmVzZW50X2Rldmlj
-ZV9pZHNbXSA9IHsKKwkvKgorCSAqIENoZXJyeXRyYWlsIHB3bSBkaXJlY3RseSBwb2tlZCBieSBH
-UFUgZHJpdmVyIGluIHdpbjEwLAorCSAqIGJ1dCBMaW51eCB1c2VzIGEgc2VwYXJhdGUgcHdtIGRy
-aXZlciwgaGFybWxlc3MgaWYgbm90IHVzZWQuCisJICovCisJRU5UUlkoIjgwODYyMjg4IiwgSU5U
-RUxfRkFNNl9BVE9NX0FJUk1PTlQpLAorfTsKKyNlbmRpZgorCit2b2lkIGFjcGlfc2V0X2Rldmlj
-ZV9zdGF0dXMoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2LCB1MzIgc3RhKQoreworCXUzMiAqc3Rh
-dHVzID0gKHUzMiAqKSZhZGV2LT5zdGF0dXM7CisjaWZkZWYgQ09ORklHX1g4NgorCWludCBpOwor
-CisJLyogYWNwaV9tYXRjaF9kZXZpY2VfaWRzIGNoZWNrcyBzdGF0dXMsIHNvIHN0YXJ0IHdpdGgg
-ZGVmYXVsdCAqLworCSpzdGF0dXMgPSBBQ1BJX1NUQV9ERUZBVUxUOworCWZvciAoaSA9IDA7IGkg
-PCBBUlJBWV9TSVpFKGFsd2F5c19wcmVzZW50X2RldmljZV9pZHMpOyBpKyspIHsKKwkJaWYgKGFj
-cGlfbWF0Y2hfZGV2aWNlX2lkcyhhZGV2LAorCQkJYWx3YXlzX3ByZXNlbnRfZGV2aWNlX2lkc1tp
-XS5oaWQpID09IDAgJiYKKwkJICAgIHg4Nl9tYXRjaF9jcHUoYWx3YXlzX3ByZXNlbnRfZGV2aWNl
-X2lkc1tpXS5jcHVfaWQpKSB7CisJCQlkZXZfaW5mbygmYWRldi0+ZGV2LCAiRGV2aWNlIFslc10g
-aXMgaW4gYWx3YXlzIHByZXNlbnQgbGlzdCBzZXR0aW5nIHN0YXR1cyBbJTA4eF1cbiIsCisJCQkJ
-IGFkZXYtPnBucC5idXNfaWQsIEFDUElfU1RBX0RFRkFVTFQpOworCQkJcmV0dXJuOworCQl9CisJ
-fQorI2VuZGlmCisJKnN0YXR1cyA9IHN0YTsKK30KKwogdm9pZCBhY3BpX2J1c19wcml2YXRlX2Rh
-dGFfaGFuZGxlcihhY3BpX2hhbmRsZSBoYW5kbGUsCiAJCQkJICAgdm9pZCAqY29udGV4dCkKIHsK
-ZGlmZiAtLWdpdCBhL2luY2x1ZGUvYWNwaS9hY3BpX2J1cy5oIGIvaW5jbHVkZS9hY3BpL2FjcGlf
-YnVzLmgKaW5kZXggNjQ0OThkNS4uYTZhZTA1NyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9hY3BpL2Fj
-cGlfYnVzLmgKKysrIGIvaW5jbHVkZS9hY3BpL2FjcGlfYnVzLmgKQEAgLTQ0MSwxMSArNDQxLDYg
-QEAgc3RhdGljIGlubGluZSB2b2lkICphY3BpX2RyaXZlcl9kYXRhKHN0cnVjdCBhY3BpX2Rldmlj
-ZSAqZCkKICNkZWZpbmUgdG9fYWNwaV9kZXZpY2UoZCkJY29udGFpbmVyX29mKGQsIHN0cnVjdCBh
-Y3BpX2RldmljZSwgZGV2KQogI2RlZmluZSB0b19hY3BpX2RyaXZlcihkKQljb250YWluZXJfb2Yo
-ZCwgc3RydWN0IGFjcGlfZHJpdmVyLCBkcnYpCiAKLXN0YXRpYyBpbmxpbmUgdm9pZCBhY3BpX3Nl
-dF9kZXZpY2Vfc3RhdHVzKHN0cnVjdCBhY3BpX2RldmljZSAqYWRldiwgdTMyIHN0YSkKLXsKLQkq
-KCh1MzIgKikmYWRldi0+c3RhdHVzKSA9IHN0YTsKLX0KLQogc3RhdGljIGlubGluZSB2b2lkIGFj
-cGlfc2V0X2hwX2NvbnRleHQoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2LAogCQkJCSAgICAgICBz
-dHJ1Y3QgYWNwaV9ob3RwbHVnX2NvbnRleHQgKmhwKQogewpAQCAtNDk0LDYgKzQ4OSw3IEBAIHZv
-aWQgYWNwaV9idXNfcHV0X2FjcGlfZGV2aWNlKHN0cnVjdCBhY3BpX2RldmljZSAqYWRldik7CiBh
-Y3BpX3N0YXR1cyBhY3BpX2J1c19nZXRfc3RhdHVzX2hhbmRsZShhY3BpX2hhbmRsZSBoYW5kbGUs
-CiAJCQkJICAgICAgIHVuc2lnbmVkIGxvbmcgbG9uZyAqc3RhKTsKIGludCBhY3BpX2J1c19nZXRf
-c3RhdHVzKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKTsKK3ZvaWQgYWNwaV9zZXRfZGV2aWNl
-X3N0YXR1cyhzdHJ1Y3QgYWNwaV9kZXZpY2UgKmFkZXYsIHUzMiBzdGEpOwogCiBpbnQgYWNwaV9i
-dXNfc2V0X3Bvd2VyKGFjcGlfaGFuZGxlIGhhbmRsZSwgaW50IHN0YXRlKTsKIGNvbnN0IGNoYXIg
-KmFjcGlfcG93ZXJfc3RhdGVfc3RyaW5nKGludCBzdGF0ZSk7Ci0tIAoyLjkuMwoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcg
-bGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+On Mon 03-04-17 09:40:23, Michal Hocko wrote:
+> From: Michal Hocko <mhocko@suse.com>
+> 
+> /sys/firmware/acpi/hotplug/force_remove was presumably added to support
+> auto offlining in the past. This is, however, inherently dangerous for
+> some hotplugable resources like memory. The memory offlining fails when
+> the memory is still in use and cannot be dropped or migrated. If we
+> ignore the failure we are basically allowing for subtle memory
+> corruption or a crash.
+> 
+> We have actually noticed the later while hitting BUG() during the memory
+> hotremove (remove_memory):
+> 	ret = walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1), NULL,
+> 			check_memblock_offlined_cb);
+> 	if (ret)
+> 		BUG();
+> 
+> it took us quite non-trivial time realize that the customer had
+> force_remove enabled. Even if the BUG was removed here and we could
+> propagate the error up the call chain it wouldn't help at all because
+> then we would hit a crash or a memory corruption later and harder to
+> debug. So force_remove is unfixable for the memory hotremove. We haven't
+> checked other hotplugable resources to be prone to a similar problems.
+> 
+> Remove the force_remove functionality because it is not fixable currently.
+> Keep the sysfs file and report an error if somebody tries to enable it.
+> Encourage users to report about the missing functionality and work with
+> them with an alternative solution.
+> 
+> Reviewed-by: Lee, Chun-Yi <jlee@suse.com>
+> Signed-off-by: Michal Hocko <mhocko@suse.com>
+
+ping on this?
+
+> ---
+> Hi,
+> this has been previously discussed [1] without acpi mailing list CCed.
+> So I am resending it now with hopefully everybody involved.
+> 
+> [1] http://lkml.kernel.org/r/20170320192938.GA11363@dhcp22.suse.cz
+> 
+>  Documentation/ABI/obsolete/sysfs-firmware-acpi |  8 ++++++++
+>  Documentation/ABI/testing/sysfs-firmware-acpi  | 10 ----------
+>  drivers/acpi/internal.h                        |  2 --
+>  drivers/acpi/scan.c                            | 16 +++-------------
+>  drivers/acpi/sysfs.c                           |  9 +++++----
+>  5 files changed, 16 insertions(+), 29 deletions(-)
+>  create mode 100644 Documentation/ABI/obsolete/sysfs-firmware-acpi
+> 
+> diff --git a/Documentation/ABI/obsolete/sysfs-firmware-acpi b/Documentation/ABI/obsolete/sysfs-firmware-acpi
+> new file mode 100644
+> index 000000000000..6715a71bec3d
+> --- /dev/null
+> +++ b/Documentation/ABI/obsolete/sysfs-firmware-acpi
+> @@ -0,0 +1,8 @@
+> +What:		/sys/firmware/acpi/hotplug/force_remove
+> +Date:		Mar 2017
+> +Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> +Description:
+> +		Since the force_remove is inherently broken and dangerous to
+> +		use for some hotplugable resources like memory (because ignoring
+> +		the offline failure might lead to memory corruption and crashes)
+> +		enabling this knob is not safe and thus unsupported.
+> diff --git a/Documentation/ABI/testing/sysfs-firmware-acpi b/Documentation/ABI/testing/sysfs-firmware-acpi
+> index c7fc72d4495c..613f42a9d5cd 100644
+> --- a/Documentation/ABI/testing/sysfs-firmware-acpi
+> +++ b/Documentation/ABI/testing/sysfs-firmware-acpi
+> @@ -44,16 +44,6 @@ Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>  		or 0 (unset).  Attempts to write any other values to it will
+>  		cause -EINVAL to be returned.
+>  
+> -What:		/sys/firmware/acpi/hotplug/force_remove
+> -Date:		May 2013
+> -Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> -Description:
+> -		The number in this file (0 or 1) determines whether (1) or not
+> -		(0) the ACPI subsystem will allow devices to be hot-removed even
+> -		if they cannot be put offline gracefully (from the kernel's
+> -		viewpoint).  That number can be changed by writing a boolean
+> -		value to this file.
+> -
+>  What:		/sys/firmware/acpi/interrupts/
+>  Date:		February 2008
+>  Contact:	Len Brown <lenb@kernel.org>
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index f15900132912..66229ffa909b 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -65,8 +65,6 @@ static inline void acpi_cmos_rtc_init(void) {}
+>  #endif
+>  int acpi_rev_override_setup(char *str);
+>  
+> -extern bool acpi_force_hot_remove;
+> -
+>  void acpi_sysfs_add_hotplug_profile(struct acpi_hotplug_profile *hotplug,
+>  				    const char *name);
+>  int acpi_scan_add_handler_with_hotplug(struct acpi_scan_handler *handler,
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 192691880d55..e2080b6e54aa 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -30,12 +30,6 @@ extern struct acpi_device *acpi_root;
+>  
+>  #define INVALID_ACPI_HANDLE	((acpi_handle)empty_zero_page)
+>  
+> -/*
+> - * If set, devices will be hot-removed even if they cannot be put offline
+> - * gracefully (from the kernel's standpoint).
+> - */
+> -bool acpi_force_hot_remove;
+> -
+>  static const char *dummy_hid = "device";
+>  
+>  static LIST_HEAD(acpi_dep_list);
+> @@ -170,9 +164,6 @@ static acpi_status acpi_bus_offline(acpi_handle handle, u32 lvl, void *data,
+>  			pn->put_online = false;
+>  		}
+>  		ret = device_offline(pn->dev);
+> -		if (acpi_force_hot_remove)
+> -			continue;
+> -
+>  		if (ret >= 0) {
+>  			pn->put_online = !ret;
+>  		} else {
+> @@ -241,11 +232,11 @@ static int acpi_scan_try_to_offline(struct acpi_device *device)
+>  		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+>  				    NULL, acpi_bus_offline, (void *)true,
+>  				    (void **)&errdev);
+> -		if (!errdev || acpi_force_hot_remove)
+> +		if (!errdev)
+>  			acpi_bus_offline(handle, 0, (void *)true,
+>  					 (void **)&errdev);
+>  
+> -		if (errdev && !acpi_force_hot_remove) {
+> +		if (errdev) {
+>  			dev_warn(errdev, "Offline failed.\n");
+>  			acpi_bus_online(handle, 0, NULL, NULL);
+>  			acpi_walk_namespace(ACPI_TYPE_ANY, handle,
+> @@ -263,8 +254,7 @@ static int acpi_scan_hot_remove(struct acpi_device *device)
+>  	unsigned long long sta;
+>  	acpi_status status;
+>  
+> -	if (device->handler && device->handler->hotplug.demand_offline
+> -	    && !acpi_force_hot_remove) {
+> +	if (device->handler && device->handler->hotplug.demand_offline) {
+>  		if (!acpi_scan_is_offline(device, true))
+>  			return -EBUSY;
+>  	} else {
+> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+> index cf05ae973381..1b5ee1e0e5a3 100644
+> --- a/drivers/acpi/sysfs.c
+> +++ b/drivers/acpi/sysfs.c
+> @@ -921,7 +921,7 @@ void acpi_sysfs_add_hotplug_profile(struct acpi_hotplug_profile *hotplug,
+>  static ssize_t force_remove_show(struct kobject *kobj,
+>  				 struct kobj_attribute *attr, char *buf)
+>  {
+> -	return sprintf(buf, "%d\n", !!acpi_force_hot_remove);
+> +	return sprintf(buf, "%d\n", 0);
+>  }
+>  
+>  static ssize_t force_remove_store(struct kobject *kobj,
+> @@ -935,9 +935,10 @@ static ssize_t force_remove_store(struct kobject *kobj,
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	lock_device_hotplug();
+> -	acpi_force_hot_remove = val;
+> -	unlock_device_hotplug();
+> +	if (val) {
+> +		pr_err("Enabling force_remove is not supported anymore. Please report to linux-acpi@vger.kernel.org if you depend on this functionality\n");
+> +		return -EINVAL;
+> +	}
+>  	return size;
+>  }
+>  
+> -- 
+> 2.11.0
+> 
+
+-- 
+Michal Hocko
+SUSE Labs
