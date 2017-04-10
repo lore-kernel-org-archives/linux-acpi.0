@@ -1,55 +1,75 @@
-From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCH v2 4/8] v4l: async: Provide interoperability between OF
- and fwnode matching
-Date: Mon, 10 Apr 2017 14:28:57 +0300
-Message-ID: <20170410112857.GP4192@valkosipuli.retiisi.org.uk>
-References: <1491484330-12040-1-git-send-email-sakari.ailus@linux.intel.com>
- <1491484330-12040-5-git-send-email-sakari.ailus@linux.intel.com>
- <4169138.83VydnvH0Q@avalon>
- <20170407221047.GL4192@valkosipuli.retiisi.org.uk>
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [PATCH V11 00/11] IOMMU probe deferral support
+Date: Mon, 10 Apr 2017 04:56:20 -0700
+Message-ID: <58EB72E4.6030009@gmail.com>
+References: <1491823266-1209-1-git-send-email-sricharan@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170407221047.GL4192-S+BSfZ9RZZmRSg0ZkenSGLdO1Tsj/99ntUK59QYPAWc@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35766 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752746AbdDJL4n (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Apr 2017 07:56:43 -0400
+In-Reply-To: <1491823266-1209-1-git-send-email-sricharan@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sricharan R <sricharan@codeaurora.org>, robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, gregkh@linuxfoundation.org
 
-Hi Laurent,
-
-On Sat, Apr 08, 2017 at 01:10:47AM +0300, Sakari Ailus wrote:
-> Hi Laurent,
+On 04/10/17 04:20, Sricharan R wrote:
+> This series calls the dma ops configuration for the devices
+> at a generic place so that it works for all busses.
+> The dma_configure_ops for a device is now called during
+> the device_attach callback just before the probe of the
+> bus/driver is called. Similarly dma_deconfigure is called during
+> device/driver_detach path.
 > 
-> On Fri, Apr 07, 2017 at 01:07:48PM +0300, Laurent Pinchart wrote:
-> > Hi Sakari,
-> > 
-> > Thank you for the patch.
-> > 
-> > On Thursday 06 Apr 2017 16:12:06 Sakari Ailus wrote:
-> > > OF and fwnode support are separated in V4L2 and individual drivers may
-> > > implement one of them. Sub-devices do not match with a notifier
-> > > expecting sub-devices with fwnodes, nor the other way around.
-> > 
-> > Shouldn't we instead convert all drivers to fwnode matching ? What's missing 
-> > after the mass conversion in patch 5/8 ?
+> pci_bus_add_devices    (platform/amba)(_device_create/driver_register)
+>        |                         |
+> pci_bus_add_device     (device_add/driver_register)
+>        |                         |
+> device_attach           device_initial_probe
+>        |                         |
+> __device_attach_driver    __device_attach_driver
+>        |
+> driver_probe_device
+>        |
+> really_probe
+>        |
+> dma_configure
 > 
-> A lot of drivers use the OF frame work and thus do not deal with fwnodes
-> directly. I haven't entirely converted them to use the fwnode API since
-> making additional, unnecessary changes increases the likelihood of errors.
+> Similarly on the device/driver_unregister path __device_release_driver is
+> called which inturn calls dma_deconfigure.
+> 
+> Rebased the series against mainline 4.11-rc5. Applies and builds cleanly
+> against iommu-next and with 3-way merge applies on top of linux-next
+> as well (patch #8), because of "ACPI platform MSI support" from
+> Hanjun being merged.
+>   
+> * Tested with platform and pci devices for probe deferral
+>   and reprobe on arm64 based platform.
+> 
+> Previous post of this series [8]. 
+> 
+> Please note that, i have kept the tested/acked tags intact from V8
+> because V9/10/11 were for more fixes that was added, so the original
+> tags that was given for the functional testing remains the same.
+> 
+>  [V11]
+>      * No functional changes.
+> 
+>      * Rebased on top of 4.11-rc6.
+> 
+>      * Dropped patch#3 from V10, as a result have to make
+>        a change in patch#7 to return a 'non-void' to fix a
+>        build warning.
+> 
+>      * Added Robin's and Rob's tags.
 
-Doing the rest of the conversion was less work than I originally had
-anticipated. The changes are obvious and very similar from driver to driver,
-perhaps unsurprisingly. Nevertheless, additional testing coverage certainly
-wouldn't hurt.
+< snip >
 
--- 
-Regards,
+The changes are good enough for me and you have Rob's acks, so the
+series looks good from the device tree standpoint.
 
-Sakari Ailus
-e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Frank
+
