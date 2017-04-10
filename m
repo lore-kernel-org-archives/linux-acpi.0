@@ -1,129 +1,168 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 2/7] v4l: async: Add fwnode match support
-Date: Mon, 10 Apr 2017 16:02:51 +0300
-Message-ID: <1491829376-14791-3-git-send-email-sakari.ailus@linux.intel.com>
-References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:45749 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753205AbdDJNEd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 10 Apr 2017 09:04:33 -0400
-In-Reply-To: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V10 06/12] of: device: Fix overflow of coherent_dma_mask
+Date: Mon, 10 Apr 2017 14:25:22 +0100
+Message-ID: <c740e7e6-9a36-51fe-c207-980e8e077e94@arm.com>
+References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
+	<1491301105-5274-1-git-send-email-sricharan@codeaurora.org>
+	<1491301105-5274-7-git-send-email-sricharan@codeaurora.org>
+	<58E5E7B7.1050400@gmail.com>
+	<b77e3405-f060-bcd5-99f6-7d76f9edf08a@codeaurora.org>
+	<58E69831.6010306@gmail.com>
+	<b38312b0-268b-ed86-a5b3-886f86ea13f5@arm.com>
+	<58E81D01.8030606@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <58E81D01.8030606-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, will.deacon-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
 
-Add fwnode matching to complement OF node matching. And fwnode may also be
-an OF node.
+On 08/04/17 00:13, Frank Rowand wrote:
+> On 04/07/17 07:46, Robin Murphy wrote:
+>> On 06/04/17 20:34, Frank Rowand wrote:
+>>> On 04/06/17 04:01, Sricharan R wrote:
+>>>> Hi Frank,
+>>>>
+>>>> On 4/6/2017 12:31 PM, Frank Rowand wrote:
+>>>>> On 04/04/17 03:18, Sricharan R wrote:
+>>>>>> Size of the dma-range is calculated as coherent_dma_mask + 1
+>>>>>> and passed to arch_setup_dma_ops further. It overflows when
+>>>>>> the coherent_dma_mask is set for full 64 bits 0xFFFFFFFFFFFFFFFF,
+>>>>>> resulting in size getting passed as 0 wrongly. Fix this by
+>>>>>> passsing in max(mask, mask + 1). Note that in this case
+>>>>>> when the mask is set to full 64bits, we will be passing the mask
+>>>>>> itself to arch_setup_dma_ops instead of the size. The real fix
+>>>>>> for this should be to make arch_setup_dma_ops receive the
+>>>>>> mask and handle it, to be done in the future.
+>>>>>>
+>>>>>> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+>>>>>> ---
+>>>>>>  drivers/of/device.c | 2 +-
+>>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>>>
+>>>>>> diff --git a/drivers/of/device.c b/drivers/of/device.c
+>>>>>> index c17c19d..c2ae6bb 100644
+>>>>>> --- a/drivers/of/device.c
+>>>>>> +++ b/drivers/of/device.c
+>>>>>> @@ -107,7 +107,7 @@ void of_dma_configure(struct device *dev, struct device_node *np)
+>>>>>>      ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
+>>>>>>      if (ret < 0) {
+>>>>>>          dma_addr = offset = 0;
+>>>>>> -        size = dev->coherent_dma_mask + 1;
+>>>>>> +        size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+>>>>>>      } else {
+>>>>>>          offset = PFN_DOWN(paddr - dma_addr);
+>>>>>>          dev_dbg(dev, "dma_pfn_offset(%#08lx)\n", offset);
+>>>>>>
+>>>>>
+>>>>> NACK.
+>>>>>
+>>>>> Passing an invalid size to arch_setup_dma_ops() is only part of the problem.
+>>>>> size is also used in of_dma_configure() before calling arch_setup_dma_ops():
+>>>>>
+>>>>>         dev->coherent_dma_mask = min(dev->coherent_dma_mask,
+>>>>>                                      DMA_BIT_MASK(ilog2(dma_addr + size)));
+>>>>>         *dev->dma_mask = min((*dev->dma_mask),
+>>>>>                              DMA_BIT_MASK(ilog2(dma_addr + size)));
+>>>>>
+>>>>> which would be incorrect for size == 0xffffffffffffffffULL when
+>>>>> dma_addr != 0.  So the proposed fix really is not papering over
+>>>>> the base problem very well.
+>>>>>
+>>>>
+>>>> Ok, but with your fix for of_dma_get_range and the above fix,
+>>>> dma_addr will be '0' when size = 0xffffffffffffffffULL,
+>>>> but DMA_BIT_MASK(ilog2(dma_addr + size)) would be wrong though,
+>>>> making coherent_dma_mask to be smaller 0x7fffffffffffffffULL.
+>>>
+>>> Yes, that was my point.  Setting size to 0x7fffffffffffffffULL
+>>> affects several places.  Another potential location (based only
+>>> on the function header comment, not from reading the code) is
+>>> iommu_dma_init_domain().  The header comment says:
+>>>
+>>>     * @base and @size should be exact multiples of IOMMU page granularity to
+>>>     * avoid rounding surprises.
+>>
+>> That is really only referring to the fact that some of the work done
+>> therein involves truncation to PFNs, so anyone passing in non-exact
+>> values expecting them to round a particular way may get things off by a
+>> page one way or the other. It's not going to have much practical
+>> significance for real devices (in particular since size is used more as
+>> a sanity check than any kind of actual limit there).
+>>
+>>> I have not read enough context to really understand of_dma_configure(), but
+>>> it seems there is yet another issue in how the error return case from
+>>> of_dma_get_range() is handled (with the existing code, as well as if
+>>> my patch gets accepted).  An error return value can mean _either_
+>>> there is no dma-ranges property _or_ "an other problem occurred".  Should
+>>> the "an other problem occurred" case be handled by defaulting size to
+>>> a value based on dev->coherent_dma_mask (the current case) or should the
+>>> attempt to set up the DMA configuration just fail?
+>>
+>> There is indeed a lot wrong with of_dma_configure() and
+>> arch_setup_dma_ops(), but fixing those is beyond the scope of this
+>> series. This is just working around a latent bug in the one specific
+>> case where a value is *not* derived from DT. Any DT which worked before
+>> still works; any DT which made of_dma_configure() go wrong before still
+>> makes of_dma_configure() go wrong exactly the same.
+>>
+>> Whilst it's not ideal, since a DMA mask basically represents the maximum
+>> size of address that that particular device can be given, I can't see it
+>> making any practical difference for a full 64-bit DMA mask to be trimmed
+>> down to 63 bits upon re-probing - no system is likely to have that many
+>> physical address bits anyway, and I don't think any IOMMUs support that
+>> large an IOVA space either, so as long as it's still big enough to cover
+>> "everything", it'll be OK.
+>>
+>> Of course, whether DMA_BIT_MASK(ilog2(dma_addr + size)) is the right
+>> thing to do in the first place is yet another matter, as there are
+>> plenty of cases where it results in something which can't reach the
+>> given range at all, but again, this isn't the place. Much as I'm keen to
+>> get the behaviour of of_dma_configure() sorted out properly, it doesn't
+>> seem reasonable that that should suddenly block this
+>> almost-entirely-orthogonal series that various other work has been
+>> waiting on for some time now. The WIP patch I have for
+>> arch_setup_dma_ops() already touches 3 architectures and 4 other
+>> subsystems...
+> 
+> In a reply to my original NACK email, I just now retracted the NACK,
+> but with a requested change for readability.
+> 
+> I buy your analysis and argument here.  The patch will improve things
+> a little, but it will be good to revisit of_dma_configure() in the
+> future to further clean things up.
 
-Do not enable fwnode matching yet. It will replace OF matching soon.
+Thanks! As mentioned, I have some patches brewing in this area which
+should hopefully help somewhat; I'll try to get them posted this week.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 15 +++++++++++++++
- include/media/v4l2-async.h           |  5 +++++
- include/media/v4l2-subdev.h          |  3 +++
- 3 files changed, 23 insertions(+)
+Robin.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 96cc733..ff32f95 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -14,6 +14,7 @@
- #include <linux/list.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/types.h>
-@@ -46,6 +47,16 @@ static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- 			    of_node_full_name(asd->match.of.node));
- }
- 
-+static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-+{
-+	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
-+		return sd->fwnode == asd->match.fwnode.fwnode;
-+
-+	return !of_node_cmp(of_node_full_name(to_of_node(sd->fwnode)),
-+			    of_node_full_name(
-+				    to_of_node(asd->match.fwnode.fwnode)));
-+}
-+
- static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- 	if (!asd->match.custom.match)
-@@ -80,6 +91,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 		case V4L2_ASYNC_MATCH_OF:
- 			match = match_of;
- 			break;
-+		case V4L2_ASYNC_MATCH_FWNODE:
-+			match = match_fwnode;
-+			break;
- 		default:
- 			/* Cannot happen, unless someone breaks us */
- 			WARN_ON(true);
-@@ -158,6 +172,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 		case V4L2_ASYNC_MATCH_DEVNAME:
- 		case V4L2_ASYNC_MATCH_I2C:
- 		case V4L2_ASYNC_MATCH_OF:
-+		case V4L2_ASYNC_MATCH_FWNODE:
- 			break;
- 		default:
- 			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 8e2a236..c3695fa 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -32,6 +32,7 @@ struct v4l2_async_notifier;
-  * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
-  * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
-  * @V4L2_ASYNC_MATCH_OF: Match will use OF node
-+ * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
-  *
-  * This enum is used by the asyncrhronous sub-device logic to define the
-  * algorithm that will be used to match an asynchronous device.
-@@ -41,6 +42,7 @@ enum v4l2_async_match_type {
- 	V4L2_ASYNC_MATCH_DEVNAME,
- 	V4L2_ASYNC_MATCH_I2C,
- 	V4L2_ASYNC_MATCH_OF,
-+	V4L2_ASYNC_MATCH_FWNODE,
- };
- 
- /**
-@@ -58,6 +60,9 @@ struct v4l2_async_subdev {
- 			const struct device_node *node;
- 		} of;
- 		struct {
-+			struct fwnode_handle *fwnode;
-+		} fwnode;
-+		struct {
- 			const char *name;
- 		} device_name;
- 		struct {
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 0ab1c5d..5f1669c 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
-  * @devnode: subdev device node
-  * @dev: pointer to the physical device, if any
-  * @of_node: The device_node of the subdev, usually the same as dev->of_node.
-+ * @fwnode: The fwnode_handle of the subdev, usually the same as
-+ *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-NULL).
-  * @async_list: Links this subdev to a global subdev_list or @notifier->done
-  *	list.
-  * @asd: Pointer to respective &struct v4l2_async_subdev.
-@@ -819,6 +821,7 @@ struct v4l2_subdev {
- 	struct video_device *devnode;
- 	struct device *dev;
- 	struct device_node *of_node;
-+	struct fwnode_handle *fwnode;
- 	struct list_head async_list;
- 	struct v4l2_async_subdev *asd;
- 	struct v4l2_async_notifier *notifier;
--- 
-2.7.4
-
+> 
+> -Frank
+> 
+>>
+>> Robin.
+>>
+>>>
+>>>>
+>>>> Regards,
+>>>>  Sricharan
+>>>>
+>>>>> I agree that the proper solution involves passing a mask instead
+>>>>> of a size to arch_setup_dma_ops().
+>>>>>
+>>>>
+>>>
+>>
+>>
+> 
