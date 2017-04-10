@@ -1,67 +1,129 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 6/7] docs-rst: media: Switch documentation to V4L2 fwnode API
-Date: Mon, 10 Apr 2017 16:02:55 +0300
-Message-ID: <1491829376-14791-7-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH v3 2/7] v4l: async: Add fwnode match support
+Date: Mon, 10 Apr 2017 16:02:51 +0300
+Message-ID: <1491829376-14791-3-git-send-email-sakari.ailus@linux.intel.com>
 References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:36561 "EHLO mga04.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:45749 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753205AbdDJNEH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 10 Apr 2017 09:04:07 -0400
+        id S1753205AbdDJNEd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 10 Apr 2017 09:04:33 -0400
 In-Reply-To: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
 
-Instead of including the V4L2 OF header in ReST documentation, use the
-V4L2 fwnode header instead.
+Add fwnode matching to complement OF node matching. And fwnode may also be
+an OF node.
+
+Do not enable fwnode matching yet. It will replace OF matching soon.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- Documentation/media/kapi/v4l2-core.rst   | 2 +-
- Documentation/media/kapi/v4l2-fwnode.rst | 3 +++
- Documentation/media/kapi/v4l2-of.rst     | 3 ---
- 3 files changed, 4 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
- delete mode 100644 Documentation/media/kapi/v4l2-of.rst
+ drivers/media/v4l2-core/v4l2-async.c | 15 +++++++++++++++
+ include/media/v4l2-async.h           |  5 +++++
+ include/media/v4l2-subdev.h          |  3 +++
+ 3 files changed, 23 insertions(+)
 
-diff --git a/Documentation/media/kapi/v4l2-core.rst b/Documentation/media/kapi/v4l2-core.rst
-index 2fbf532..11c3eca 100644
---- a/Documentation/media/kapi/v4l2-core.rst
-+++ b/Documentation/media/kapi/v4l2-core.rst
-@@ -13,11 +13,11 @@ Video4Linux devices
-     v4l2-event
-     v4l2-fh
-     v4l2-flash-led-class
-+    v4l2-fwnode
-     v4l2-intro
-     v4l2-mc
-     v4l2-mediabus
-     v4l2-mem2mem
--    v4l2-of
-     v4l2-rect
-     v4l2-subdev
-     v4l2-tuner
-diff --git a/Documentation/media/kapi/v4l2-fwnode.rst b/Documentation/media/kapi/v4l2-fwnode.rst
-new file mode 100644
-index 0000000..6c8bccd
---- /dev/null
-+++ b/Documentation/media/kapi/v4l2-fwnode.rst
-@@ -0,0 +1,3 @@
-+V4L2 fwnode kAPI
-+^^^^^^^^^^^^^^^^
-+.. kernel-doc:: include/media/v4l2-fwnode.h
-diff --git a/Documentation/media/kapi/v4l2-of.rst b/Documentation/media/kapi/v4l2-of.rst
-deleted file mode 100644
-index 1ddf76b..0000000
---- a/Documentation/media/kapi/v4l2-of.rst
-+++ /dev/null
-@@ -1,3 +0,0 @@
--V4L2 Open Firmware kAPI
--^^^^^^^^^^^^^^^^^^^^^^^
--.. kernel-doc:: include/media/v4l2-of.h
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 96cc733..ff32f95 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -14,6 +14,7 @@
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+@@ -46,6 +47,16 @@ static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ 			    of_node_full_name(asd->match.of.node));
+ }
+ 
++static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
++{
++	if (!is_of_node(sd->fwnode) || !is_of_node(asd->match.fwnode.fwnode))
++		return sd->fwnode == asd->match.fwnode.fwnode;
++
++	return !of_node_cmp(of_node_full_name(to_of_node(sd->fwnode)),
++			    of_node_full_name(
++				    to_of_node(asd->match.fwnode.fwnode)));
++}
++
+ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+ 	if (!asd->match.custom.match)
+@@ -80,6 +91,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+ 		case V4L2_ASYNC_MATCH_OF:
+ 			match = match_of;
+ 			break;
++		case V4L2_ASYNC_MATCH_FWNODE:
++			match = match_fwnode;
++			break;
+ 		default:
+ 			/* Cannot happen, unless someone breaks us */
+ 			WARN_ON(true);
+@@ -158,6 +172,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
+ 		case V4L2_ASYNC_MATCH_OF:
++		case V4L2_ASYNC_MATCH_FWNODE:
+ 			break;
+ 		default:
+ 			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 8e2a236..c3695fa 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -32,6 +32,7 @@ struct v4l2_async_notifier;
+  * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
+  * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
+  * @V4L2_ASYNC_MATCH_OF: Match will use OF node
++ * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
+  *
+  * This enum is used by the asyncrhronous sub-device logic to define the
+  * algorithm that will be used to match an asynchronous device.
+@@ -41,6 +42,7 @@ enum v4l2_async_match_type {
+ 	V4L2_ASYNC_MATCH_DEVNAME,
+ 	V4L2_ASYNC_MATCH_I2C,
+ 	V4L2_ASYNC_MATCH_OF,
++	V4L2_ASYNC_MATCH_FWNODE,
+ };
+ 
+ /**
+@@ -58,6 +60,9 @@ struct v4l2_async_subdev {
+ 			const struct device_node *node;
+ 		} of;
+ 		struct {
++			struct fwnode_handle *fwnode;
++		} fwnode;
++		struct {
+ 			const char *name;
+ 		} device_name;
+ 		struct {
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 0ab1c5d..5f1669c 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
+  * @devnode: subdev device node
+  * @dev: pointer to the physical device, if any
+  * @of_node: The device_node of the subdev, usually the same as dev->of_node.
++ * @fwnode: The fwnode_handle of the subdev, usually the same as
++ *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-NULL).
+  * @async_list: Links this subdev to a global subdev_list or @notifier->done
+  *	list.
+  * @asd: Pointer to respective &struct v4l2_async_subdev.
+@@ -819,6 +821,7 @@ struct v4l2_subdev {
+ 	struct video_device *devnode;
+ 	struct device *dev;
+ 	struct device_node *of_node;
++	struct fwnode_handle *fwnode;
+ 	struct list_head async_list;
+ 	struct v4l2_async_subdev *asd;
+ 	struct v4l2_async_notifier *notifier;
 -- 
 2.7.4
 
