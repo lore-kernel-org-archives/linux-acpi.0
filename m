@@ -1,55 +1,42 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [RFC PATCH 4/7] ACPICA: IORT: Add SMMuV3 model definitions.
-Date: Tue, 11 Apr 2017 16:59:17 +0100
-Message-ID: <d60a1fcc-081e-03e8-3454-6802e830ddb9@arm.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RFC PATCH 3/7] iommu/arm-smmu-v3: Introduce smmu option
+ USE_SHARED_IRQS for Silicon errata
+Date: Tue, 11 Apr 2017 17:21:24 +0100
+Message-ID: <20170411162123.GF17109@arm.com>
 References: <1491921765-29475-1-git-send-email-linucherian@gmail.com>
- <1491921765-29475-5-git-send-email-linucherian@gmail.com>
+ <1491921765-29475-4-git-send-email-linucherian@gmail.com>
+ <b84e2383-1a65-3c5a-8e2c-28eafdb20adc@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35338 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:35604 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752513AbdDKP7W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 11 Apr 2017 11:59:22 -0400
-In-Reply-To: <1491921765-29475-5-git-send-email-linucherian@gmail.com>
+        id S1753078AbdDKQVE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 11 Apr 2017 12:21:04 -0400
+Content-Disposition: inline
+In-Reply-To: <b84e2383-1a65-3c5a-8e2c-28eafdb20adc@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linucherian@gmail.com, catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com
-Cc: rjw@rjwysocki.net, lenb@kernel.org, joro@8bytes.org, robert.moore@intel.com, lv.zheng@intel.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, devel@acpica.org, Sunil.Goutham@cavium.com, Geethasowjanya.Akula@cavium.com, robert.richter@cavium.com, linu.cherian@cavium.com
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: linucherian@gmail.com, catalin.marinas@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, joro@8bytes.org, robert.moore@intel.com, lv.zheng@intel.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, devel@acpica.org, Sunil.Goutham@cavium.com, Geethasowjanya.Akula@cavium.com, robert.richter@cavium.com, linu.cherian@cavium.com, Geetha <gakula@cavium.com>
 
-On 11/04/17 15:42, linucherian@gmail.com wrote:
-> From: Linu Cherian <linu.cherian@cavium.com>
+On Tue, Apr 11, 2017 at 04:54:26PM +0100, Robin Murphy wrote:
+> On 11/04/17 15:42, linucherian@gmail.com wrote:
+> > From: Geetha <gakula@cavium.com>
+> > 
+> > Cavium 99xx SMMU implementation doesn't not support unique irq lines for
+> > gerror, eventq and cmdq-sync. USE_SHARED_IRQS option enables to use single
+> > irq line for all three interrupts.
 > 
-> Add SMMuV3 model definitions.
-> 
-> Signed-off-by: Linu Cherian <linu.cherian@cavium.com>
-> ---
->  include/acpi/actbl2.h | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-> index 2b4af07..9db67d6 100644
-> --- a/include/acpi/actbl2.h
-> +++ b/include/acpi/actbl2.h
-> @@ -778,6 +778,11 @@ struct acpi_iort_smmu {
->  #define ACPI_IORT_SMMU_CORELINK_MMU400  0x00000002	/* ARM Corelink MMU-400 */
->  #define ACPI_IORT_SMMU_CORELINK_MMU500  0x00000003	/* ARM Corelink MMU-500 */
->  
-> +#define ACPI_IORT_SMMU_V3               0x00000000      /* Generic SMMUv3 */
-> +#define ACPI_IORT_SMMU_CORELINK_MMU600  0x00000001      /* ARM Corelink MMU-600 */
-> +#define ACPI_IORT_SMMU_V3_HISILICON     0x00000002      /* HiSilicon SMMUv3 */
-> +#define ACPI_IORT_SMMU_V3_CAVIUM_CN99XX 0x00000003      /* Cavium CN99xx SMMUv3 */
+> AFAICS, there's nothing actually wrong with using shared wired IRQs -
+> the architecture spec doesn't appear to say anything about it. I think
+> it might suffice to simply add IRQF_SHARED if we can see the SMMU
+> doesn't support MSIs anyway - it doesn't really seem like something we
+> need to treat as a specific quirk.
 
-None of those models are listed in the current IORT spec.
+No, this is not permitted by the spec. See 3.18.2 ("Interrupt sources"),
+where it's clear that each source asserts a *unique* wired interrupt.
 
-What's MMU-600?
+Geetha: does your implementation support MSIs?
 
-Robin.
-
-> +
->  /* Masks for Flags field above */
->  
->  #define ACPI_IORT_SMMU_DVM_SUPPORTED    (1)
-> 
-
+Will
