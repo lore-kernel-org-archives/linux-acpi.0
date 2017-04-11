@@ -1,15 +1,15 @@
 From: linucherian@gmail.com
-Subject: [RFC PATCH 6/7] ACPI/IORT: Fixup SMMUv3 resource size for Cavium 99xx SMMUv3 model.
-Date: Tue, 11 Apr 2017 20:12:44 +0530
-Message-ID: <1491921765-29475-7-git-send-email-linucherian@gmail.com>
+Subject: [RFC PATCH 7/7] arm64: Documentation: Add Cavium ThunderX2 SMMUv3 erratas.
+Date: Tue, 11 Apr 2017 20:12:45 +0530
+Message-ID: <1491921765-29475-8-git-send-email-linucherian@gmail.com>
 References: <1491921765-29475-1-git-send-email-linucherian@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34209 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751248AbdDKOnn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Apr 2017 10:43:43 -0400
-Received: by mail-pg0-f65.google.com with SMTP id o123so30405823pga.1
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Apr 2017 07:43:43 -0700 (PDT)
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33778 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751248AbdDKOnt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Apr 2017 10:43:49 -0400
+Received: by mail-pf0-f196.google.com with SMTP id c198so11020300pfc.0
+        for <linux-acpi@vger.kernel.org>; Tue, 11 Apr 2017 07:43:48 -0700 (PDT)
 In-Reply-To: <1491921765-29475-1-git-send-email-linucherian@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,40 +18,26 @@ Cc: rjw@rjwysocki.net, lenb@kernel.org, robin.murphy@arm.com, joro@8bytes.org, r
 
 From: Linu Cherian <linu.cherian@cavium.com>
 
-Cavium 99xx implementation doesn't support second page in SMMU
-register space. Hence, resource size is set as 64k for this model.
+Add Cavium ThunderX2 SMMUv3 erratas to the errata list.
 
 Signed-off-by: Linu Cherian <linu.cherian@cavium.com>
 ---
- drivers/acpi/arm64/iort.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ Documentation/arm64/silicon-errata.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 22e08d2..ac22280 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -765,12 +765,20 @@ static void __init arm_smmu_v3_init_resources(struct resource *res,
- {
- 	struct acpi_iort_smmu_v3 *smmu;
- 	int num_res = 0;
-+	unsigned long size = SZ_128K;
- 
- 	/* Retrieve SMMUv3 specific data */
- 	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
- 
-+	/*
-+	 * Override the size, for Cavium CN99xx implementations
-+	 * which doesn't support the page 1 SMMU register space.
-+	 */
-+	if (smmu->model == ACPI_IORT_SMMU_V3_CAVIUM_CN99XX)
-+		size = SZ_64K;
-+
- 	res[num_res].start = smmu->base_address;
--	res[num_res].end = smmu->base_address + SZ_128K - 1;
-+	res[num_res].end = smmu->base_address + size - 1;
- 	res[num_res].flags = IORESOURCE_MEM;
- 
- 	num_res++;
+diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
+index 10f2ddd..42422f6 100644
+--- a/Documentation/arm64/silicon-errata.txt
++++ b/Documentation/arm64/silicon-errata.txt
+@@ -62,6 +62,8 @@ stable kernels.
+ | Cavium         | ThunderX GICv3  | #23154          | CAVIUM_ERRATUM_23154        |
+ | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
+ | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
++| Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
++| Cavium         | ThunderX2 SMMUv3| #126            | N/A                         |
+ |                |                 |                 |                             |
+ | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
+ |                |                 |                 |                             |
 -- 
 1.9.1
 
