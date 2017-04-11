@@ -1,82 +1,37 @@
 From: Cao jin <caoj.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH] acpi: drop useless function
-Date: Tue, 11 Apr 2017 11:51:38 +0800
-Message-ID: <58EC52CA.70503@cn.fujitsu.com>
-References: <1491879441-32276-1-git-send-email-caoj.fnst@cn.fujitsu.com>
- <58EC4747.8030804@cn.fujitsu.com>
+Subject: Re: [PATCH] ACPI / tables: Cleanup the obsolete acpi_parse_entries
+Date: Tue, 11 Apr 2017 14:31:32 +0800
+Message-ID: <58EC7844.9020401@cn.fujitsu.com>
+References: <1491553367-17847-1-git-send-email-bhe@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:20229 "EHLO
+Received: from cn.fujitsu.com ([59.151.112.132]:42657 "EHLO
         heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752108AbdDKDmE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Apr 2017 23:42:04 -0400
-In-Reply-To: <58EC4747.8030804@cn.fujitsu.com>
+        with ESMTP id S1752291AbdDKGWB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Apr 2017 02:22:01 -0400
+In-Reply-To: <1491553367-17847-1-git-send-email-bhe@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, bhe@redhat.com
+To: Baoquan He <bhe@redhat.com>, rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Just saw Baoquan He sent the same patch several days before, so Baoquan
-take the precedence:)
 
-On 04/11/2017 11:02 AM, Cao jin wrote:
-> Re-CC RJW because wrong typing of the address
+
+On 04/07/2017 04:22 PM, Baoquan He wrote:
+> Function acpi_parse_entries is not used any more. And the being used
+> function, acpi_table_parse_entries can substitute it if really needed.
 > 
-> On 04/11/2017 10:57 AM, Cao jin wrote:
->> Signed-off-by: Cao jin <caoj.fnst@cn.fujitsu.com>
->> ---
->>  drivers/acpi/tables.c | 15 ---------------
->>  include/linux/acpi.h  |  4 ----
->>  2 files changed, 19 deletions(-)
->>
->> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
->> index 2604189..7885339 100644
->> --- a/drivers/acpi/tables.c
->> +++ b/drivers/acpi/tables.c
->> @@ -310,21 +310,6 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
->>  	return errs ? -EINVAL : count;
->>  }
->>  
->> -int __init
->> -acpi_parse_entries(char *id,
->> -			unsigned long table_size,
->> -			acpi_tbl_entry_handler handler,
->> -			struct acpi_table_header *table_header,
->> -			int entry_id, unsigned int max_entries)
->> -{
->> -	struct acpi_subtable_proc proc = {
->> -		.id		= entry_id,
->> -		.handler	= handler,
->> -	};
->> -
->> -	return acpi_parse_entries_array(id, table_size, table_header,
->> -			&proc, 1, max_entries);
->> -}
->>  
->>  int __init
->>  acpi_table_parse_entries_array(char *id,
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index 9b05886..83abbfc 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -233,10 +233,6 @@ int acpi_numa_init (void);
->>  
->>  int acpi_table_init (void);
->>  int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
->> -int __init acpi_parse_entries(char *id, unsigned long table_size,
->> -			      acpi_tbl_entry_handler handler,
->> -			      struct acpi_table_header *table_header,
->> -			      int entry_id, unsigned int max_entries);
->>  int __init acpi_table_parse_entries(char *id, unsigned long table_size,
->>  			      int entry_id,
->>  			      acpi_tbl_entry_handler handler,
->>
+> So clean it up in this patch.
 > 
+
+It maybe also useful to mention the commit id f26527b142 & 9b3fedde27
+who disuse the function.
 
 -- 
 Sincerely,
 Cao jin
+
 
 
