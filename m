@@ -1,62 +1,63 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / scan: Set the visited flag for all enumerated devices
-Date: Tue, 11 Apr 2017 16:29:50 +0200
-Message-ID: <CAJZ5v0ixW6D-HaiBN7U-pHOSVf=0eTMqvfheFBd0oinKhdqruw@mail.gmail.com>
-References: <1749017.AgSQtRUy3j@aspire.rjw.lan> <20170411093628.GT2957@lahna.fi.intel.com>
- <CAJZ5v0gbeF=zG_H9ZJasOpojx0mVJDa_4+0JB9sgAYHJs5ASrg@mail.gmail.com>
+From: linucherian-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Subject: [RFC PATCH 0/7] Cavium CN99xx SMMUv3 Errata workarounds
+Date: Tue, 11 Apr 2017 20:12:38 +0530
+Message-ID: <1491921765-29475-1-git-send-email-linucherian@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:35647 "EHLO
-        mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751047AbdDKO34 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Apr 2017 10:29:56 -0400
-In-Reply-To: <CAJZ5v0gbeF=zG_H9ZJasOpojx0mVJDa_4+0JB9sgAYHJs5ASrg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
+Cc: Sunil.Goutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Geethasowjanya.Akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Tue, Apr 11, 2017 at 4:15 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Tue, Apr 11, 2017 at 11:36 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
->> On Tue, Apr 11, 2017 at 12:23:42AM +0200, Rafael J. Wysocki wrote:
->>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>
->>> Commit 10c7e20b2ff3 (ACPI / scan: fix enumeration (visited) flags for
->>> bus rescans) attempted to fix a problem with ACPI-based enumerateion
->>> of I2C/SPI devices, but it forgot to ensure that the visited flag
->>> will be set for all of the other enumerated devices, so fix that.
->>>
->>> Fixes: 10c7e20b2ff3 (ACPI / scan: fix enumeration (visited) flags for bus rescans)
->>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->
-> Thanks for the review, but I'm actually unsure about one thing.
->
-> Namely, we may want to call acpi_default_enumeration(device) even if
-> an ACPI driver has been bound to the device.
->
-> The reason why is because this runs before driver modules are loaded
-> (and quite likely before ACPI drivers are registered too) and
-> acpi_default_enumeration(device) is going to be invoked even if there
-> is a matching ACPI driver, but it is registered later.  That driver
-> can still bind to the device object going forward, of course, so there
-> can be an ACPI device object with both a companion "physical" device
-> and an ACPI driver bound at the same time anyway.
->
-> However, if acpi_bus_scan() is called for the same device as a result
-> of a bus/device check notification, for example, the
-> acpi_default_enumeration(device) will be skipped for device objects
-> with ACPI drivers bound (as of the current version of the patch) which
-> is quite inconsistent IMO.
+From: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
-Well, the unpatched code does not call
-acpi_default_enumeration(device) on device objects with ACPI drivers
-bound, so I guess that may be a change on top of the current patch.
+Cavium CN99xx SMMUv3 implementation has two Silicon Erratas.
+1. Errata ID #74
+   SMMU register alias Page 1 is not implemented
+2. Errata ID #126
+   SMMU doesnt support unique IRQ lines for gerror, eventq and cmdq-sync
 
-I'll go ahead with the patch as is, sorry for the noise.
+The following patchset does software workaround for these two erratas.
+An option flag is introduced for each errata which will enable/disable
+the errata workarounds.
+For device tree based probing, option flags can be turned on by passing 
+relevant options along with the smmuv3 device node. For ACPI, option flags
+are turned on when Cavium CN99xx SMMuv3 model is identified in the IORT.
 
-Thanks,
-Rafael
+Note: We are in the process of getting necessary IORT SMMUv3 model ID 
+      for Cavium CN99xx SMMUv3 implementation and it is yet to get
+      allocated. We have assumed model ID 3 for this.
+
+Geetha (1):
+  iommu/arm-smmu-v3: Introduce smmu option USE_SHARED_IRQS for Silicon
+    errata
+
+Linu Cherian (6):
+  iommu/arm-smmu-v3: Introduce smmu option PAGE0_REGS_ONLY for Silicon
+    errata.
+  iommu/arm-smmu-v3: Do resource size checks based on smmu option
+    PAGE0_REGS_ONLY
+  ACPICA: IORT: Add SMMuV3 model definitions.
+  iommu/arm-smmu-v3: For ACPI based device probing, set relevant options
+    for different SMMUv3 implementations.
+  ACPI/IORT: Fixup SMMUv3 resource size for Cavium 99xx SMMUv3 model.
+  arm64: Documentation: Add Cavium ThunderX2 SMMUv3 erratas.
+
+ Documentation/arm64/silicon-errata.txt |   2 +
+ drivers/acpi/arm64/iort.c              |  10 ++-
+ drivers/iommu/arm-smmu-v3.c            | 115 ++++++++++++++++++++++++++-------
+ include/acpi/actbl2.h                  |   5 ++
+ 4 files changed, 107 insertions(+), 25 deletions(-)
+
+-- 
+1.9.1
