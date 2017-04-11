@@ -1,74 +1,68 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: 4.11-rc*: PCI IRQ allocation broken
-Date: Mon, 10 Apr 2017 20:43:38 -0500
-Message-ID: <20170411014338.GA9311@bhelgaas-glaptop.roam.corp.google.com>
-References: <alpine.LRH.2.20.1704102317110.14071@math.ut.ee>
+From: Cao jin <caoj.fnst@cn.fujitsu.com>
+Subject: [PATCH] acpi: drop useless function
+Date: Tue, 11 Apr 2017 10:57:21 +0800
+Message-ID: <1491879441-32276-1-git-send-email-caoj.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.20.1704102317110.14071@math.ut.ee>
-Sender: linux-pci-owner@vger.kernel.org
-To: Meelis Roos <mroos@linux.ee>
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:17776 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751564AbdDKCr6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Apr 2017 22:47:58 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, jw@rjwysocki.net
 
-On Mon, Apr 10, 2017 at 11:21:22PM +0300, Meelis Roos wrote:
-> This happens on my HP Compaq 8100 Elite SFF PC. While 4.10 works fine, 
-> 4.11.-rc5 and at least back to 4.10.0-10770-g2d6be4abf514 fail to assign 
-> PCI IRQ to multiple devices (no GSI messages in the dmesg). This results 
-> in mouse in one USB port working and keyboard in another USB port not 
-> working, reproducibly.
-> 
-> Will bisect.
+Signed-off-by: Cao jin <caoj.fnst@cn.fujitsu.com>
+---
+ drivers/acpi/tables.c | 15 ---------------
+ include/linux/acpi.h  |  4 ----
+ 2 files changed, 19 deletions(-)
 
-Thanks a lot for the report, Meelis, and I apologize for the inconvenience.
-I opened https://bugzilla.kernel.org/show_bug.cgi?id=195319 to track this,
-marked it as a regression, and attached your v4.11-rc5 dmesg to it.
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 2604189..7885339 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -310,21 +310,6 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 	return errs ? -EINVAL : count;
+ }
+ 
+-int __init
+-acpi_parse_entries(char *id,
+-			unsigned long table_size,
+-			acpi_tbl_entry_handler handler,
+-			struct acpi_table_header *table_header,
+-			int entry_id, unsigned int max_entries)
+-{
+-	struct acpi_subtable_proc proc = {
+-		.id		= entry_id,
+-		.handler	= handler,
+-	};
+-
+-	return acpi_parse_entries_array(id, table_size, table_header,
+-			&proc, 1, max_entries);
+-}
+ 
+ int __init
+ acpi_table_parse_entries_array(char *id,
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 9b05886..83abbfc 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -233,10 +233,6 @@ int acpi_numa_init (void);
+ 
+ int acpi_table_init (void);
+ int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
+-int __init acpi_parse_entries(char *id, unsigned long table_size,
+-			      acpi_tbl_entry_handler handler,
+-			      struct acpi_table_header *table_header,
+-			      int entry_id, unsigned int max_entries);
+ int __init acpi_table_parse_entries(char *id, unsigned long table_size,
+ 			      int entry_id,
+ 			      acpi_tbl_entry_handler handler,
+-- 
+2.1.0
 
-Something seems broken in ACPI.  There are a bunch of warnings, and I
-think the PCI IRQ problem is a consequence of the fact that the
-PNP0A08 _CRS evaluation failed, and we probably don't bother looking
-for a _PRT under that bridge.
 
-> Linux version 4.11.0-rc5-00033-g308ac7563944 (mroos@prometheus) (gcc version 6.3.0 20170321 (Debian 6.3.0-11) ) #64 SMP Wed Apr 5 12:29:53 EEST 2017
-> Command line: BOOT_IMAGE=/boot/vmlinuz-4.11.0-rc5-00033-g308ac7563944 root=/dev/sda1 ro
-> ...
-> ACPI BIOS Warning (bug): Optional FADT field Pm2ControlBlock has valid Address but zero Length: 0x0000000000000050/0x0 (20170119/tbfadt-658)
-> ACPI BIOS Warning (bug): Invalid length for FADT/Pm2ControlBlock: 0, using default 8 (20170119/tbfadt-708)
-> ...
-> acpi LNXCPU:00: Invalid PBLK length [7]
-> acpi LNXCPU:01: Invalid PBLK length [7]
-> acpi LNXCPU:02: Invalid PBLK length [7]
-> acpi LNXCPU:03: Invalid PBLK length [7]
-> acpi PNP0A08:00: [Firmware Bug]: no secondary bus range in _CRS
-> ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
-> acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
-> ACPI BIOS Error (bug): \_SB.PCI0._OSC: Excess arguments - ASL declared 5, ACPI requires 4 (20170119/nsarguments-189)
-> ACPI Error: [CAPD] Namespace lookup failure, AE_ALREADY_EXISTS (20170119/dsfield-211)
-> ACPI Error: Method parse/execution failed [\_SB.PCI0._OSC] (Node ffff880113031668), AE_ALREADY_EXISTS (20170119/psparse-543)
-> acpi PNP0A08:00: _OSC failed (AE_ALREADY_EXISTS); disabling ASPM
-> acpi PNP0A08:00: [Firmware Info]: MMCONFIG for domain 0000 [bus 00-3f] only partially covers this bridge
-> acpi PNP0A08:00: failed to parse _CRS method, error code -5
-> acpi PNP0A08:00: Bus 0000:00 not present in PCI namespace
-> ...
-> PCI: Discovered peer bus 00
-> PCI: root bus 00: using default resources
-> PCI: Probing PCI hardware (bus 00)
-> ...
-> ACPI: \: failed to evaluate _DSM (0x1001)
-> ...
-> PCI host bridge to bus 0000:00
-> pci_bus 0000:00: root bus resource [io  0x0000-0xffff]
-> pci_bus 0000:00: root bus resource [mem 0x00000000-0xfffffffff]
-> pci_bus 0000:00: No busn resource found for root bus, will use [bus 00-ff]
-> ...
-> PCI: Discovered peer bus 3f
-> PCI: root bus 3f: using default resources
-> PCI: Probing PCI hardware (bus 3f)
-> ACPI: \: failed to evaluate _DSM (0x1001)
-> ...
-> pnp 00:00: Plug and Play ACPI device, IDs PNP0b00 (active)
-> pnp 00:01: can't evaluate _CRS: 12316
-> ...
-> [drm] ACPI BIOS requests an excessive sleep of 4294705151 ms, using 1500 ms instead
+
