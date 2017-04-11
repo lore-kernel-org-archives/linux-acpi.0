@@ -1,73 +1,107 @@
-From: Sunil Kovvuri <sunil.kovvuri@gmail.com>
-Subject: Re: [RFC PATCH 4/7] ACPICA: IORT: Add SMMuV3 model definitions.
-Date: Tue, 11 Apr 2017 22:27:55 +0530
-Message-ID: <CA+sq2CfXQAM-ooNRQBbYNYc_T=p2yrvA2FYD=2_=_-Z9kQwVcA@mail.gmail.com>
-References: <1491921765-29475-1-git-send-email-linucherian@gmail.com>
- <1491921765-29475-5-git-send-email-linucherian@gmail.com> <d60a1fcc-081e-03e8-3454-6802e830ddb9@arm.com>
+From: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [PATCH V14 01/10] acpi: apei: read ack upon ghes record
+ consumption
+Date: Tue, 11 Apr 2017 19:15:47 +0200
+Message-ID: <20170411171547.qntimdxnqmtf43ot@pd.tnic>
+References: <1490729440-32591-1-git-send-email-tbaicar@codeaurora.org>
+ <1490729440-32591-2-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36068 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751273AbdDKQ55 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Apr 2017 12:57:57 -0400
-Received: by mail-wr0-f193.google.com with SMTP id o21so442935wrb.3
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Apr 2017 09:57:56 -0700 (PDT)
-In-Reply-To: <d60a1fcc-081e-03e8-3454-6802e830ddb9@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1490729440-32591-2-git-send-email-tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: linucherian@gmail.com, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, hanjun.guo@linaro.org, sudeep.holla@arm.com, "Goutham, Sunil" <Sunil.Goutham@cavium.com>, Geethasowjanya.Akula@cavium.com, Joerg Roedel <joro@8bytes.org>, rjw@rjwysocki.net, robert.moore@intel.com, robert.richter@cavium.com, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, lv.zheng@intel.com, linu.cherian@cavium.com, devel@acpica.org, LAKML <linux-arm-kernel@lists.infradead.org>, lenb@kernel.org
 
-On Tue, Apr 11, 2017 at 9:29 PM, Robin Murphy <robin.murphy@arm.com> wrote:
-> On 11/04/17 15:42, linucherian@gmail.com wrote:
->> From: Linu Cherian <linu.cherian@cavium.com>
->>
->> Add SMMuV3 model definitions.
->>
->> Signed-off-by: Linu Cherian <linu.cherian@cavium.com>
->> ---
->>  include/acpi/actbl2.h | 5 +++++
->>  1 file changed, 5 insertions(+)
->>
->> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
->> index 2b4af07..9db67d6 100644
->> --- a/include/acpi/actbl2.h
->> +++ b/include/acpi/actbl2.h
->> @@ -778,6 +778,11 @@ struct acpi_iort_smmu {
->>  #define ACPI_IORT_SMMU_CORELINK_MMU400  0x00000002   /* ARM Corelink MMU-400 */
->>  #define ACPI_IORT_SMMU_CORELINK_MMU500  0x00000003   /* ARM Corelink MMU-500 */
->>
->> +#define ACPI_IORT_SMMU_V3               0x00000000      /* Generic SMMUv3 */
->> +#define ACPI_IORT_SMMU_CORELINK_MMU600  0x00000001      /* ARM Corelink MMU-600 */
->> +#define ACPI_IORT_SMMU_V3_HISILICON     0x00000002      /* HiSilicon SMMUv3 */
->> +#define ACPI_IORT_SMMU_V3_CAVIUM_CN99XX 0x00000003      /* Cavium CN99xx SMMUv3 */
->
-> None of those models are listed in the current IORT spec.
+On Tue, Mar 28, 2017 at 01:30:31PM -0600, Tyler Baicar wrote:
+> A RAS (Reliability, Availability, Serviceability) controller
+> may be a separate processor running in parallel with OS
+> execution, and may generate error records for consumption by
+> the OS. If the RAS controller produces multiple error records,
+> then they may be overwritten before the OS has consumed them.
+> 
+> The Generic Hardware Error Source (GHES) v2 structure
+> introduces the capability for the OS to acknowledge the
+> consumption of the error record generated by the RAS
+> controller. A RAS controller supporting GHESv2 shall wait for
+> the acknowledgment before writing a new error record, thus
+> eliminating the race condition.
+> 
+> Add support for parsing of GHESv2 sub-tables as well.
+> 
+> Signed-off-by: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> CC: Jonathan (Zhixiong) Zhang <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> Reviewed-by: James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>
+> ---
+>  drivers/acpi/apei/ghes.c | 49 +++++++++++++++++++++++++++++++++++++++++++++---
+>  drivers/acpi/apei/hest.c |  7 +++++--
+>  include/acpi/ghes.h      |  5 ++++-
+>  3 files changed, 55 insertions(+), 6 deletions(-)
 
-As mentioned in the cover letter, we are in the process of getting
-model no added for
-our silicon in the soon to be published updated IORT spec. Meanwhile
-we wanted to take
-feedback on the errata patches from experts. Hence patches were
-submitted as RFC.
+...
 
-Thanks,
-Sunil.
+> @@ -249,10 +254,18 @@ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+>  	ghes = kzalloc(sizeof(*ghes), GFP_KERNEL);
+>  	if (!ghes)
+>  		return ERR_PTR(-ENOMEM);
+> +
+>  	ghes->generic = generic;
+> +	if (IS_HEST_TYPE_GENERIC_V2(ghes)) {
+> +		rc = apei_map_generic_address(
+> +			&ghes->generic_v2->read_ack_register);
 
->
-> What's MMU-600?
->
-> Robin.
->
->> +
->>  /* Masks for Flags field above */
->>
->>  #define ACPI_IORT_SMMU_DVM_SUPPORTED    (1)
->>
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Yeah, that linebreak just to keep the 80-cols rule makes the code ugly
+and hard to read.
+
+Please put that mapping and unmapping in wrappers called
+map_gen_v2(ghes) and unmap_gen_v2(ghes) or so, so that you can call them
+wherever needed. Thus should make the flow a bit more understandable
+what's going on and you won't have to repeat the unmapping lines in
+ghes_fini().
+
+> @@ -649,6 +669,23 @@ static void ghes_estatus_cache_add(
+>  	rcu_read_unlock();
+>  }
+>  
+> +static int ghes_ack_error(struct acpi_hest_generic_v2 *generic_v2)
+> +{
+> +	int rc;
+> +	u64 val = 0;
+> +
+> +	rc = apei_read(&val, &generic_v2->read_ack_register);
+> +	if (rc)
+> +		return rc;
+> +	val &= generic_v2->read_ack_preserve <<
+> +		generic_v2->read_ack_register.bit_offset;
+> +	val |= generic_v2->read_ack_write <<
+> +		generic_v2->read_ack_register.bit_offset;
+
+Yeah, let them stick out, it more readable this way. Line spacing is
+helpful too:
+
+...
+        rc = apei_read(&val, &generic_v2->read_ack_register);
+        if (rc)
+                return rc;
+
+        val &= generic_v2->read_ack_preserve << generic_v2->read_ack_register.bit_offset;
+        val |= generic_v2->read_ack_write    << generic_v2->read_ack_register.bit_offset;
+
+        return apei_write(val, &generic_v2->read_ack_register);
+}
+
+> +	rc = apei_write(val, &generic_v2->read_ack_register);
+> +
+> +	return rc;
+> +}
+> +
+>  static int ghes_proc(struct ghes *ghes)
+>  {
+>  	int rc;
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
