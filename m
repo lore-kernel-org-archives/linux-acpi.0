@@ -1,31 +1,39 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 0] ACPICA: Linuxize: Restore and fix intel compiler build
-Date: Tue, 11 Apr 2017 15:52:04 +0200
-Message-ID: <CAJZ5v0jKcOP2HHeVOf=f=VR91nqRv5tYM7jUT_zsKReVLGgNRw@mail.gmail.com>
-References: <1491896851-2788-1-git-send-email-lv.zheng@intel.com>
+From: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] acpi: drop support for force_remove
+Date: Tue, 11 Apr 2017 15:52:33 +0200
+Message-ID: <20170411135233.GO6729@dhcp22.suse.cz>
+References: <20170403074023.29121-1-mhocko@kernel.org>
+ <20170410171343.GO4618@dhcp22.suse.cz>
+ <3644128.Y1GtXNQdkv@aspire.rjw.lan>
+ <20170411122016.GK6729@dhcp22.suse.cz>
+ <CAJZ5v0hhoej=FoqYaBOwy1-_AP35WyEYYUNkb3Pn22G0monanA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:34234 "EHLO
-        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751350AbdDKNwF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Apr 2017 09:52:05 -0400
-Received: by mail-oi0-f41.google.com with SMTP id g204so110598002oib.1
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Apr 2017 06:52:04 -0700 (PDT)
-In-Reply-To: <1491896851-2788-1-git-send-email-lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0hhoej=FoqYaBOwy1-_AP35WyEYYUNkb3Pn22G0monanA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Joey Lee <jlee-IBi9RG/b67k@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, Kani Toshimitsu <toshi.kani-ZPxbGqLxI0U@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Apr 11, 2017 at 9:47 AM, Lv Zheng <lv.zheng@intel.com> wrote:
-> This patch restores Intel compiler settings for ACPICA components.
-> And fixes its inclusion in acenv.h.
->
-> Reported-by: Stepan M Mishura <stepan.m.mishura@intel.com>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+On Tue 11-04-17 15:48:04, Rafael J. Wysocki wrote:
+> On Tue, Apr 11, 2017 at 2:20 PM, Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> > On Tue 11-04-17 00:15:42, Rafael J. Wysocki wrote:
+[...]
+> >> I'll apply it if nobody has any problems with it.
+> >
+> > It is definitely your call but how long are we going to wait
+> > (considering that the current behavior is obviously broken wrt memory
+> > hotplug)?
+> 
+> A couple of days more?  Surely not going to push it into 4.11 at this
+> stage as it is an ABI change.
 
-When did it break?
-
-Thanks,
-Rafael
+Ohh, I didn't want to push it to 4.11 this late but having it in
+linux-next might help to catch some users who are not following the
+mailing list. Going to 4.12 would be really great but I wouldn't really
+object even 4.13...
+-- 
+Michal Hocko
+SUSE Labs
