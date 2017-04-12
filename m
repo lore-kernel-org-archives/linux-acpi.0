@@ -1,68 +1,77 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: Export mutex functions
-Date: Wed, 12 Apr 2017 15:29:55 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5924DB@ORSMSX110.amr.corp.intel.com>
-References: <1492009990-3539-1-git-send-email-linux@roeck-us.net>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH V14 02/10] ras: acpi/apei: cper: generic error data
+ entry v3 per ACPI 6.1
+Date: Wed, 12 Apr 2017 09:40:03 -0700
+Message-ID: <1492015203.28586.1.camel@perches.com>
+References: <1490729440-32591-1-git-send-email-tbaicar@codeaurora.org>
+ <1490729440-32591-3-git-send-email-tbaicar@codeaurora.org>
+ <20170412133447.n2yft7v266v6k6gh@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:39123 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751349AbdDLP35 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Apr 2017 11:29:57 -0400
-In-Reply-To: <1492009990-3539-1-git-send-email-linux@roeck-us.net>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <20170412133447.n2yft7v266v6k6gh@pd.tnic>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Borislav Petkov <bp@alien8.de>, Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-The ACPICA mutex functions are based on the host OS functions, so they don't really buy you anything. You should just use the native Linux functions.
+On Wed, 2017-04-12 at 15:34 +0200, Borislav Petkov wrote:
+> On Tue, Mar 28, 2017 at 01:30:32PM -0600, Tyler Baicar wrote:
+> > Currently when a RAS error is reported it is not timestamped.
+[]
+> > diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+[]
+> > +#define acpi_hest_generic_data_error_length(gdata)	\
+> > +	(((struct acpi_hest_generic_data *)(gdata))->error_data_length)
+> > +#define acpi_hest_generic_data_size(gdata)		\
+> > +	((acpi_hest_generic_data_version(gdata) >= 3) ?	\
+> > +	sizeof(struct acpi_hest_generic_data_v300) :	\
+> > +	sizeof(struct acpi_hest_generic_data))
+> > +#define acpi_hest_generic_data_record_size(gdata)	\
+> > +	(acpi_hest_generic_data_size(gdata) +		\
+> > +	acpi_hest_generic_data_error_length(gdata))
+> > +#define acpi_hest_generic_data_next(gdata)		\
+> > +	((void *)(gdata) + acpi_hest_generic_data_record_size(gdata))
+> 
+> This is one unreadable pile of too long names with a clearly redundant
+> and too long prefix. Please shorten it all.
 
+Naming is generally author's choice and internal
+consistency has value too.
 
-> -----Original Message-----
-> From: Guenter Roeck [mailto:linux@roeck-us.net]
-> Sent: Wednesday, April 12, 2017 8:13 AM
-> To: Moore, Robert <robert.moore@intel.com>; Zheng, Lv
-> <lv.zheng@intel.com>; Wysocki, Rafael J <rafael.j.wysocki@intel.com>;
-> Len Brown <lenb@kernel.org>
-> Cc: linux-acpi@vger.kernel.org; devel@acpica.org; linux-
-> kernel@vger.kernel.org; Guenter Roeck <linux@roeck-us.net>
-> Subject: [PATCH] ACPICA: Export mutex functions
-> 
-> Mutex functions may be needed by drivers. Examples are accesses to
-> Super-IO SIO registers (0x2e/0x2f or 0x4e/0x4f) or Super-IO
-> environmental monitor registers, both which may also be accessed through
-> DSDT.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/acpi/acpica/utxfmutex.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpica/utxfmutex.c
-> b/drivers/acpi/acpica/utxfmutex.c index c016211c35ae..5d20581f4b2f
-> 100644
-> --- a/drivers/acpi/acpica/utxfmutex.c
-> +++ b/drivers/acpi/acpica/utxfmutex.c
-> @@ -150,6 +150,7 @@ acpi_acquire_mutex(acpi_handle handle, acpi_string
-> pathname, u16 timeout)
->  	status = acpi_os_acquire_mutex(mutex_obj->mutex.os_mutex, timeout);
->  	return (status);
->  }
-> +ACPI_EXPORT_SYMBOL(acpi_acquire_mutex)
-> 
-> 
-> /***********************************************************************
-> ********
->   *
-> @@ -185,3 +186,4 @@ acpi_status acpi_release_mutex(acpi_handle handle,
-> acpi_string pathname)
->  	acpi_os_release_mutex(mutex_obj->mutex.os_mutex);
->  	return (AE_OK);
->  }
-> +ACPI_EXPORT_SYMBOL(acpi_release_mutex)
-> --
-> 2.7.4
+acpi_hest_generic<foo> is already used throughout this codebase
+in multiple files and paths.
 
+> > @@ -73,3 +85,13 @@ static inline void ghes_edac_unregister(struct ghes *ghes)
+> >  {
+> >  }
+> >  #endif
+> > +
+> > +#define acpi_hest_generic_data_version(gdata)			\
+> > +	(gdata->revision >> 8)
+> > +
+> > +static inline void *acpi_hest_generic_data_payload(struct acpi_hest_generic_data *gdata)
+> 
+> Lemme try to shorten it:
+> 
+> static inline void *acpi_hest_get_payload(struct acpi_hest_gdata *d)
+> {
+> 	if (hest_gdata_ver(d) >= 3)
+> 		return (void *)(((struct acpi_hest_gdata_v3 *)d) + 1);
+> 	else
+> 		return d + 1;
+> }
+> 
+> Now this is much more readable IMO. You can actually see what's going
+> on. And you still know what the struct names are.
+
+trivial: unnecessary cast to void *
