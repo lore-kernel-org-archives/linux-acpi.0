@@ -1,85 +1,122 @@
-From: <h.piontek@mistravel.pl>
-Subject: 23831 linux-acpi
-Date: Wed, 12 Apr 2017 20:03:31 -0000
-Message-ID: <149202741169.21476.14744510444508538585@telenet.ru>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: [patch 08/13] ACPI/processor: Replace racy task affinity logic.
+Date: Wed, 12 Apr 2017 22:07:34 +0200
+Message-ID: <20170412201042.785920903@linutronix.de>
+References: <20170412200726.941336635@linutronix.de>
 Mime-Version: 1.0
-Content-Type: application/zip; name="7498525543.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-15
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 2.202-31-94.telenet.ru ([94.31.202.2]:47331 "HELO telenet.ru"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1755251AbdDLUDf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Apr 2017 16:03:35 -0400
-Content-Disposition: attachment
+Received: from Galois.linutronix.de ([146.0.238.70]:35448 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755623AbdDLUUw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Apr 2017 16:20:52 -0400
+Content-Disposition: inline; filename=ACPI-processor--Use-work_on_cpu--.patch
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, Sebastian Siewior <bigeasy@linutronix.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "David S. Miller" <davem@davemloft.net>, Fenghua Yu <fenghua.yu@intel.com>, Herbert Xu <herbert@gondor.apana.org.au>, Lai Jiangshan <jiangshanlai@gmail.com>, Len Brown <lenb@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tejun Heo <tj@kernel.org>, Tony Luck <tony.luck@intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, linux-acpi@vger.kernel.org
 
-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
-AAA=
+acpi_processor_get_throttling() requires to invoke the getter function on
+the target CPU. This is achieved by temporarily setting the affinity of the
+calling user space thread to the requested CPU and reset it to the original
+affinity afterwards.
+
+That's racy vs. CPU hotplug and concurrent affinity settings for that
+thread resulting in code executing on the wrong CPU and overwriting the
+new affinity setting.
+
+acpi_processor_get_throttling() is invoked in two ways:
+
+1) The CPU online callback, which is already running on the target CPU and
+   obviously protected against hotplug and not affected by affinity
+   settings.
+
+2) The ACPI driver probe function, which is not protected against hotplug
+   during modprobe.
+
+Switch it over to work_on_cpu() and protect the probe function against CPU
+hotplug.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/acpi/processor_driver.c     |    7 ++++++-
+ drivers/acpi/processor_throttling.c |   31 +++++++++++++------------------
+ 2 files changed, 19 insertions(+), 19 deletions(-)
+
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -262,11 +262,16 @@ static int __acpi_processor_start(struct
+ static int acpi_processor_start(struct device *dev)
+ {
+ 	struct acpi_device *device = ACPI_COMPANION(dev);
++	int ret;
+ 
+ 	if (!device)
+ 		return -ENODEV;
+ 
+-	return __acpi_processor_start(device);
++	/* Protect against concurrent CPU hotplug operations */
++	get_online_cpus();
++	ret = __acpi_processor_start(device);
++	put_online_cpus();
++	return ret;
+ }
+ 
+ static int acpi_processor_stop(struct device *dev)
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -901,36 +901,31 @@ static int acpi_processor_get_throttling
+ 	return 0;
+ }
+ 
+-static int acpi_processor_get_throttling(struct acpi_processor *pr)
++static long __acpi_processor_get_throttling(void *data)
+ {
+-	cpumask_var_t saved_mask;
+-	int ret;
++	struct acpi_processor *pr = data;
++
++	return pr->throttling.acpi_processor_get_throttling(pr);
++}
+ 
++static int acpi_processor_get_throttling(struct acpi_processor *pr)
++{
+ 	if (!pr)
+ 		return -EINVAL;
+ 
+ 	if (!pr->flags.throttling)
+ 		return -ENODEV;
+ 
+-	if (!alloc_cpumask_var(&saved_mask, GFP_KERNEL))
+-		return -ENOMEM;
+-
+ 	/*
+-	 * Migrate task to the cpu pointed by pr.
++	 * This is either called from the CPU hotplug callback of
++	 * processor_driver or via the ACPI probe function. In the latter
++	 * case the CPU is not guaranteed to be online. Both call sites are
++	 * protected against CPU hotplug.
+ 	 */
+-	cpumask_copy(saved_mask, &current->cpus_allowed);
+-	/* FIXME: use work_on_cpu() */
+-	if (set_cpus_allowed_ptr(current, cpumask_of(pr->id))) {
+-		/* Can't migrate to the target pr->id CPU. Exit */
+-		free_cpumask_var(saved_mask);
++	if (!cpu_online(pr->id))
+ 		return -ENODEV;
+-	}
+-	ret = pr->throttling.acpi_processor_get_throttling(pr);
+-	/* restore the previous state */
+-	set_cpus_allowed_ptr(current, saved_mask);
+-	free_cpumask_var(saved_mask);
+ 
+-	return ret;
++	return work_on_cpu(pr->id, __acpi_processor_get_throttling, pr);
+ }
+ 
+ static int acpi_processor_get_fadt_info(struct acpi_processor *pr)
+
+
