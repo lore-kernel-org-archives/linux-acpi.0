@@ -1,74 +1,47 @@
-From: Linu Cherian <linucherian@gmail.com>
-Subject: Re: [RFC PATCH 1/7] iommu/arm-smmu-v3: Introduce smmu option
- PAGE0_REGS_ONLY for Silicon errata.
-Date: Wed, 12 Apr 2017 10:35:19 +0530
-Message-ID: <CAGOz-0Z-kwxdD0x=X51baRmGe1bWJ4PyNkmRSuyheepPUYKxmg@mail.gmail.com>
-References: <1491921765-29475-1-git-send-email-linucherian@gmail.com>
- <1491921765-29475-2-git-send-email-linucherian@gmail.com> <d89ecbd2-ed1b-b13b-a7e4-ff2478655203@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Subject: [PATCH] ACPI / blacklist: add _REV quirk for Dell Inspiron 7537
+Date: Wed, 12 Apr 2017 16:12:45 +0800
+Message-ID: <20170412081245.8714-1-kai.heng.feng@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yb0-f170.google.com ([209.85.213.170]:34159 "EHLO
-        mail-yb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750767AbdDLFFU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Apr 2017 01:05:20 -0400
-Received: by mail-yb0-f170.google.com with SMTP id m133so4141549ybb.1
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Apr 2017 22:05:20 -0700 (PDT)
-In-Reply-To: <d89ecbd2-ed1b-b13b-a7e4-ff2478655203@arm.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:51435 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752515AbdDLINJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Apr 2017 04:13:09 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, Hanjun Guo <hanjun.guo@linaro.org>, sudeep.holla@arm.com, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, joro@8bytes.org, robert.moore@intel.com, lv.zheng@intel.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, devel@acpica.org, Sunil.Goutham@cavium.com, Geethasowjanya.Akula@cavium.com, robert.richter@cavium.com, Linu Cherian <linu.cherian@cavium.com>
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Kai-Heng Feng <kai.heng.feng@canonical.com>
 
-On Tue, Apr 11, 2017 at 9:12 PM, Robin Murphy <robin.murphy@arm.com> wrote:
-> On 11/04/17 15:42, linucherian@gmail.com wrote:
->> From: Linu Cherian <linu.cherian@cavium.com>
->>
->> Cavium 99xx SMMU implementation doesn't support page 1 register space
->> and PAGE0_REGS_ONLY option will be enabled as an errata workaround.
->
-> Ugh :(
->
->> This option when turned on, replaces all page 1 offsets used for
->> EVTQ_PROD/CONS, PRIQ_PROD/CONS register access with page 0 offsets.
->
-> I think it might be neater to have something like:
->
-> arm_smmu_page1(smmu) {
->         if (smmu->quirk)
->                 return smmu->base;
->         return smmu->base + 64k;
-> }
->
-> and use it as the base in the appropriate places, rather than override
-> the individual registers. Much like ARM_SMMU_GR0_NS in the SMMUv2 driver.
->
+The battery can only be detected after AC power adapter event.
 
-IIUC, we need to change the offsets as well for this,
-Like,
- #define ARM_SMMU_EVTQ_BASE             0xa0
--#define ARM_SMMU_EVTQ_PROD             0x100a8
--#define ARM_SMMU_EVTQ_CONS             0x100ac
-+#define ARM_SMMU_EVTQ_PROD             0xa8
-+#define ARM_SMMU_EVTQ_CONS             0xac
- #define ARM_SMMU_EVTQ_IRQ_CFG0         0xb0
- #define ARM_SMMU_EVTQ_IRQ_CFG1         0xb8
- #define ARM_SMMU_EVTQ_IRQ_CFG2         0xbc
+Adding the machine to acpi_rev_dmi_table[] can workaround this issue.
 
- #define ARM_SMMU_PRIQ_BASE             0xc0
--#define ARM_SMMU_PRIQ_PROD             0x100c8
--#define ARM_SMMU_PRIQ_CONS             0x100cc
-+#define ARM_SMMU_PRIQ_PROD             0xc8
-+#define ARM_SMMU_PRIQ_CONS             0xcc
+BugLink: https://bugs.launchpad.net/bugs/1678590
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=105721
+Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+---
+ drivers/acpi/blacklist.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 4421f7c9981c..bb542acc0574 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -188,6 +188,14 @@ static struct dmi_system_id acpi_rev_dmi_table[] __initdata = {
+ 		      DMI_MATCH(DMI_PRODUCT_NAME, "Latitude 3350"),
+ 		},
+ 	},
++	{
++	 .callback = dmi_enable_rev_override,
++	 .ident = "DELL Inspiron 7537",
++	 .matches = {
++		      DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		      DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7537"),
++		},
++	},
+ #endif
+ 	{}
+ };
+-- 
+2.12.2
 
-But, it appears difficult to take this approach, at least with
-arm_smmu_init_one_queue function.
-This function takes both page0 register offset and and page1 register
-offset as an argument.
-So, we might need to do additional checks in this function to decide,
-whether to use
-a pag0 base or page1 base.
-
-
-Thanks.
