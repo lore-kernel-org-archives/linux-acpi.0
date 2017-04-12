@@ -1,95 +1,58 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH V14 03/10] efi: parse ARM processor error
-Date: Wed, 12 Apr 2017 18:51:26 +0200
-Message-ID: <20170412165125.xzsovuficgbygkfp@pd.tnic>
-References: <1490729440-32591-1-git-send-email-tbaicar@codeaurora.org>
- <1490729440-32591-4-git-send-email-tbaicar@codeaurora.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] arm64: acpi: Support PCI devices numa_node property in
+ ACPI mode
+Date: Wed, 12 Apr 2017 18:04:33 +0100
+Message-ID: <20170412170433.GA7412@red-moon>
+References: <0dada57f-4215-4ced-482d-88203857e06d@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([5.9.137.197]:59524 "EHLO mail.skyhub.de"
+Received: from foss.arm.com ([217.140.101.70]:47270 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752928AbdDLQvr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Apr 2017 12:51:47 -0400
+        id S1751101AbdDLRD5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 Apr 2017 13:03:57 -0400
 Content-Disposition: inline
-In-Reply-To: <1490729440-32591-4-git-send-email-tbaicar@codeaurora.org>
+In-Reply-To: <0dada57f-4215-4ced-482d-88203857e06d@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Mar 28, 2017 at 01:30:33PM -0600, Tyler Baicar wrote:
-> Add support for ARM Common Platform Error Record (CPER).
-> UEFI 2.6 specification adds support for ARM specific
-> processor error information to be reported as part of the
-> CPER records. This provides more detail on for processor error logs.
+On Sat, Apr 08, 2017 at 01:17:32PM -0400, Sinan Kaya wrote:
+> On 12/31/1969 7:00 PM, linux-arm-kernel [mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf Of Sergey Temerkhanov wrote:
+> >  int pcibus_to_node(struct pci_bus *bus)  {
+> > -	return dev_to_node(&bus->dev);
+> > +	struct pci_config_window *cfg = bus->sysdata;
+> > +	struct acpi_device *adev = NULL;
+> > +	struct device *dev;
+> > +
+> > +	if (!acpi_disabled)
+> > +		adev = to_acpi_device(cfg->parent);
+> > +
 > 
-> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-> CC: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> Reviewed-by: James Morse <james.morse@arm.com>
-> Reviewed-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> ---
->  drivers/firmware/efi/cper.c | 133 ++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/cper.h        |  54 ++++++++++++++++++
->  2 files changed, 187 insertions(+)
+> I see a problem here that NUMA node information is read from the
+> parent device.  PCI bus can have multiple levels of switches and
+> bridges. The NUMA information is only present on the host bridge.
 > 
-> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-> index 8fa4e23..56aa516 100644
-> --- a/drivers/firmware/efi/cper.c
-> +++ b/drivers/firmware/efi/cper.c
-> @@ -110,12 +110,15 @@ void cper_print_bits(const char *pfx, unsigned int bits,
->  static const char * const proc_type_strs[] = {
->  	"IA32/X64",
->  	"IA64",
-> +	"ARM",
->  };
->  
->  static const char * const proc_isa_strs[] = {
->  	"IA32",
->  	"IA64",
->  	"X64",
-> +	"ARM A32/T32",
-> +	"ARM A64",
->  };
->  
->  static const char * const proc_error_type_strs[] = {
-> @@ -139,6 +142,18 @@ void cper_print_bits(const char *pfx, unsigned int bits,
->  	"corrected",
->  };
->  
-> +static const char * const arm_reg_ctx_strs[] = {
-> +	"AArch32 general purpose registers",
-> +	"AArch32 EL1 context registers",
-> +	"AArch32 EL2 context registers",
-> +	"AArch32 secure context registers",
-> +	"AArch64 general purpose registers",
-> +	"AArch64 EL1 context registers",
-> +	"AArch64 EL2 context registers",
-> +	"AArch64 EL3 context registers",
-> +	"Misc. system register structure",
-> +};
+> This code only works if the endpoint is directly connected to the root
+> port. 
 
-That...
+That's not what this code does. This code retrieves the struct device
+backing the ACPI device representing the PNP0A08 host bridge and its
+dev->numa_node value (that was set in pci_acpi_scan_root()).
 
-> +
->  static void cper_print_proc_generic(const char *pfx,
->  				    const struct cper_sec_proc_generic *proc)
->  {
-> @@ -184,6 +199,114 @@ static void cper_print_proc_generic(const char *pfx,
->  		printk("%s""IP: 0x%016llx\n", pfx, proc->ip);
->  }
->  
-> +static void cper_print_proc_arm(const char *pfx,
-> +				const struct cper_sec_proc_arm *proc)
+I am not a big fan of this. I wonder if we could not make it DT/ACPI
+agnostic by simply setting the numa_node in the pci_bus->dev field,
+and propagate it downstream a PCI hierarcy (as we do with sysdata)
+in pci_alloc_child_bus().
 
-... and that function should go into:
+This way pcibus_to_node() would become straightforward (ie as it
+is now - provided the above is doable):
 
-#if defined(CONFIG_ARM64) || defined(CONFIG_ARM)
+dev_to_node(&bus->dev);
 
-Just put them close together so that you don't have too much ifdeffery.
+This is suspiciously similar to the domain number song and dance
+except that the NUMA node now is in the struct pci_bus->dev->numa_node
+instead of struct pci_bus->domain_nr.
 
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Lorenzo
