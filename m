@@ -1,43 +1,63 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 2/2] ACPI: ACPICA: Cleanup drivers/acpi/acpica Makefile
-Date: Wed, 12 Apr 2017 02:11:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE90152@SHSMSX101.ccr.corp.intel.com>
-References: <796420b4be45373de2e0c6148062fb8d8ddbbcb4.1490930522.git.lv.zheng@intel.com>
- <201704021640.4xwSssrU%fengguang.wu@intel.com>
- <1AE640813FDE7649BE1B193DEA596E886CE8DA28@SHSMSX101.ccr.corp.intel.com>
- <CAJZ5v0hjA+VF3UG5+7Y+YpTMh48bXs6P6v0tnn9iRWBeKknHxw@mail.gmail.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC PATCH 4/7] ACPICA: IORT: Add SMMuV3 model definitions.
+Date: Wed, 12 Apr 2017 10:33:49 +0800
+Message-ID: <e40bacb5-0341-dde8-eee7-894b199da7ca@linaro.org>
+References: <1491921765-29475-1-git-send-email-linucherian@gmail.com>
+ <1491921765-29475-5-git-send-email-linucherian@gmail.com>
+ <d60a1fcc-081e-03e8-3454-6802e830ddb9@arm.com>
+ <CA+sq2CfXQAM-ooNRQBbYNYc_T=p2yrvA2FYD=2_=_-Z9kQwVcA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:59891 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751992AbdDLCLQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 11 Apr 2017 22:11:16 -0400
-In-Reply-To: <CAJZ5v0hjA+VF3UG5+7Y+YpTMh48bXs6P6v0tnn9iRWBeKknHxw@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:33821 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752002AbdDLCd4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Apr 2017 22:33:56 -0400
+Received: by mail-pf0-f182.google.com with SMTP id c198so6838170pfc.1
+        for <linux-acpi@vger.kernel.org>; Tue, 11 Apr 2017 19:33:56 -0700 (PDT)
+In-Reply-To: <CA+sq2CfXQAM-ooNRQBbYNYc_T=p2yrvA2FYD=2_=_-Z9kQwVcA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, "kbuild-all@01.org" <kbuild-all@01.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, lkp <lkp@intel.com>
+To: Sunil Kovvuri <sunil.kovvuri@gmail.com>, Robin Murphy <robin.murphy@arm.com>
+Cc: linucherian@gmail.com, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, sudeep.holla@arm.com, "Goutham, Sunil" <Sunil.Goutham@cavium.com>, Geethasowjanya.Akula@cavium.com, Joerg Roedel <joro@8bytes.org>, rjw@rjwysocki.net, robert.moore@intel.com, robert.richter@cavium.com, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, lv.zheng@intel.com, linu.cherian@cavium.com, devel@acpica.org, LAKML <linux-arm-kernel@lists.infradead.org>, lenb@kernel.org
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFJhZmFlbCBKLg0K
-PiBXeXNvY2tpDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMi8yXSBBQ1BJOiBBQ1BJQ0E6IENsZWFu
-dXAgZHJpdmVycy9hY3BpL2FjcGljYSBNYWtlZmlsZQ0KPiANCj4gT24gVHVlLCBBcHIgMTEsIDIw
-MTcgYXQgOToxOSBBTSwgWmhlbmcsIEx2IDxsdi56aGVuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+
-IEhpLCBSYWZhZWwNCj4gPg0KPiA+IEFjY29yZGluZyB0byB0aGUgdGVzdCwgUEFUQ0ggMDIgaXMg
-bm90IHBvc3NpYmxlIHVubGVzcyBBQ1BJQ0EgZGVidWdnaW5nIGZ1bmN0aW9uIHN0dWJzIGFyZSBj
-b3JyZWN0bHkNCj4gcHJlcGFyZWQgZm9yIEFDUElfREVCVUdfT1VUUFVUPW4uDQo+ID4gU28gcGxl
-YXNlIGhlbHAgdG8gZHJvcCBQQVRDSCAwMiBhbmQgb25seSBQQVRDSCAwMSBpcyB1c2VmdWwgZm9y
-IG5vdy4NCj4gDQo+IE9LDQo+IA0KPiBDYW4geW91IHBsZWFzZSByZXNlbmQgcGF0Y2ggWzEvMl0g
-c2VwYXJhdGVseSwgdGhlbiwgYW5kIGxldCBtZSBrbm93DQo+IHdoYXQgaXMgc3VwZXJzZWRlZCBi
-eSBpdD8NCg0KWWVzLCBpdCBpcyByZS1zZW50IGFuZCB5b3UgY2FuIGZpbmQgaXQgaGVyZToNCmh0
-dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3JhZmFlbC9saW51
-eC1wbS5naXQvY29tbWl0Lz9pZD1mZmFiOTE4OGU0NA0KVGhlIG9ubHkgY2hhbmdlIGlzIHRvIGFk
-ZCBUZXN0ZWQtYnkgdGFnIGZyb20gQWwgU3RvbmUgYWxvbmcgd2l0aCBjb3JyZWN0ZWQgZW1haWwg
-YWRkcmVzcy4NCg0KVGhhbmtzLA0KTHYNCg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCj4gLS0N
-Cj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2Ny
-aWJlIGxpbnV4LWFjcGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9A
-dmdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtl
-cm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+On 2017/4/12 0:57, Sunil Kovvuri wrote:
+> On Tue, Apr 11, 2017 at 9:29 PM, Robin Murphy <robin.murphy@arm.com> wrote:
+>> On 11/04/17 15:42, linucherian@gmail.com wrote:
+>>> From: Linu Cherian <linu.cherian@cavium.com>
+>>>
+>>> Add SMMuV3 model definitions.
+>>>
+>>> Signed-off-by: Linu Cherian <linu.cherian@cavium.com>
+>>> ---
+>>>  include/acpi/actbl2.h | 5 +++++
+>>>  1 file changed, 5 insertions(+)
+>>>
+>>> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+>>> index 2b4af07..9db67d6 100644
+>>> --- a/include/acpi/actbl2.h
+>>> +++ b/include/acpi/actbl2.h
+>>> @@ -778,6 +778,11 @@ struct acpi_iort_smmu {
+>>>  #define ACPI_IORT_SMMU_CORELINK_MMU400  0x00000002   /* ARM Corelink MMU-400 */
+>>>  #define ACPI_IORT_SMMU_CORELINK_MMU500  0x00000003   /* ARM Corelink MMU-500 */
+>>>
+>>> +#define ACPI_IORT_SMMU_V3               0x00000000      /* Generic SMMUv3 */
+>>> +#define ACPI_IORT_SMMU_CORELINK_MMU600  0x00000001      /* ARM Corelink MMU-600 */
+>>> +#define ACPI_IORT_SMMU_V3_HISILICON     0x00000002      /* HiSilicon SMMUv3 */
+>>> +#define ACPI_IORT_SMMU_V3_CAVIUM_CN99XX 0x00000003      /* Cavium CN99xx SMMUv3 */
+>>
+>> None of those models are listed in the current IORT spec.
+>
+> As mentioned in the cover letter, we are in the process of getting
+> model no added for
+> our silicon in the soon to be published updated IORT spec. Meanwhile
+> we wanted to take
+> feedback on the errata patches from experts. Hence patches were
+> submitted as RFC.
+
+Thanks. The name for Hisilicon SMMUv3 might be changed, we need to wait
+for the released IORT spec.
+
+Thanks
+Hanjun
