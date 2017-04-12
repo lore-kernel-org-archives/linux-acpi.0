@@ -1,47 +1,71 @@
-From: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Subject: [PATCH] ACPI / blacklist: add _REV quirk for Dell Inspiron 7537
-Date: Wed, 12 Apr 2017 16:12:45 +0800
-Message-ID: <20170412081245.8714-1-kai.heng.feng@canonical.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:51435 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752515AbdDLINJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Apr 2017 04:13:09 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [PATCH v3 8/8] arm64: exception: check shared writable page in
+ SEI handler
+Date: Wed, 12 Apr 2017 16:35:07 +0800
+Message-ID: <5b914702-7262-54d5-2f64-0521a04add03@huawei.com>
+References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
+ <1490869877-118713-9-git-send-email-xiexiuqi@huawei.com>
+ <58E7B6BD.3000401@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <58E7B6BD.3000401@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: James Morse <james.morse@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com, zhengqiang10@huawei.com, wuquanming@huawei.com, Wang Xiongfeng <wangxiongfengi2@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Kai-Heng Feng <kai.heng.feng@canonical.com>
 
-The battery can only be detected after AC power adapter event.
+Hi James,
 
-Adding the machine to acpi_rev_dmi_table[] can workaround this issue.
 
-BugLink: https://bugs.launchpad.net/bugs/1678590
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=105721
-Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
----
- drivers/acpi/blacklist.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 4421f7c9981c..bb542acc0574 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -188,6 +188,14 @@ static struct dmi_system_id acpi_rev_dmi_table[] __initdata = {
- 		      DMI_MATCH(DMI_PRODUCT_NAME, "Latitude 3350"),
- 		},
- 	},
-+	{
-+	 .callback = dmi_enable_rev_override,
-+	 .ident = "DELL Inspiron 7537",
-+	 .matches = {
-+		      DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		      DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7537"),
-+		},
-+	},
- #endif
- 	{}
- };
--- 
-2.12.2
-
+On 2017/4/7 23:56, James Morse wrote:
+> Hi Xie XiuQi,
+> 
+> On 30/03/17 11:31, Xie XiuQi wrote:
+>> From: Wang Xiongfeng <wangxiongfeng2@huawei.com>
+>>
+>> Since SEI is asynchronous, the error data has been consumed. So we must
+>> suppose that all the memory data current process can write are
+>> contaminated. If the process doesn't have shared writable pages, the
+>> process will be killed, and the system will continue running normally.
+>> Otherwise, the system must be terminated, because the error has been
+>> propagated to other processes running on other cores, and recursively
+>> the error may be propagated to several another processes.
+> 
+> This is pretty complicated. We can't guarantee that another CPU hasn't modified
+> the page tables while we do this, (so its racy). We can't guarantee that the
+> corrupt data hasn't been sent over the network or written to disk in the mean
+> time (so its not enough).
+> 
+> The scenario you have is a write of corrupt data to memory where another CPU
+> reading it doesn't know the value is corrupt.
+> 
+> The hardware gives us quite a lot of help containing errors. The RAS
+> specification (DDI 0587A) describes your scenario as error propagation in '2.1.2
+> Architectural error propagation', and then classifies it in '2.1.3
+> Architecturally infected, containable and uncontainable' as uncontained because
+> the value is no longer in the general-purpose registers. For uncontained errors
+> we should panic().
+> 
+> We shouldn't need to try to track errors after we get a notification as the
+> hardware has done this for us.
+> 
+Thanks for your comments. I think what you said is reasonable. We will remove this
+patch and use AET fields of ESR_ELx to determine whether we should kill current
+process or just panic.
+> 
+> Firmware-first does complicate this if events like this are not delivered using
+> a synchronous external abort, as Linux may have PSTATE.A masked preventing
+> SError Interrupts from being taken. It looks like PSTATE.A is masked much more
+> often than is necessary. I will look into cleaning this up.
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> .
+> 
+Thanks,
+Wang Xiongfeng
