@@ -1,101 +1,85 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v5 5/5] power: supply: axp288_charger: Only wait for INT3496 device if present
-Date: Wed, 12 Apr 2017 20:07:33 +0200
-Message-ID: <20170412180733.27897-6-hdegoede@redhat.com>
-References: <20170412180733.27897-1-hdegoede@redhat.com>
+From: <h.piontek@mistravel.pl>
+Subject: 23831 linux-acpi
+Date: Wed, 12 Apr 2017 20:03:31 -0000
+Message-ID: <149202741169.21476.14744510444508538585@telenet.ru>
+Mime-Version: 1.0
+Content-Type: application/zip; name="7498525543.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57394 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751935AbdDLSHx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Apr 2017 14:07:53 -0400
-In-Reply-To: <20170412180733.27897-1-hdegoede@redhat.com>
+Received: from 2.202-31-94.telenet.ru ([94.31.202.2]:47331 "HELO telenet.ru"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1755251AbdDLUDf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 Apr 2017 16:03:35 -0400
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Liam Breck <liam@networkimprov.net>, Tony Lindgren <tony@atomide.com>, linux-pm@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On some devices with an axp288 pmic setting vbus path based on the
-id-pin is handled by an ACPI _AIE interrupt on the gpio and the
-INT3496 device is disabled.
-
-Instead of returning -EPROBE_DEFER on these devices waiting for the
-never to show up INT3496 device, check for its presence and only
-request and monitor the matching extcon if the device is there,
-otherwise let the firmware handle the vbus path control.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Acked-by: Sebastian Reichel <sre@kernel.org>
----
-Changes in v2:
--Do not schedule otg.work to sync the id-pin state when we don't have
- the extcon, this avoids turning off charging as soon as the driver loads
- on devices without the extcon
----
- drivers/power/supply/axp288_charger.c | 28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/power/supply/axp288_charger.c b/drivers/power/supply/axp288_charger.c
-index 6be2fe2..d51ebd1 100644
---- a/drivers/power/supply/axp288_charger.c
-+++ b/drivers/power/supply/axp288_charger.c
-@@ -14,6 +14,7 @@
-  * GNU General Public License for more details.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/module.h>
- #include <linux/device.h>
- #include <linux/regmap.h>
-@@ -113,7 +114,8 @@
- #define ILIM_3000MA			3000	/* 3000mA */
- 
- #define AXP288_EXTCON_DEV_NAME		"axp288_extcon"
--#define USB_HOST_EXTCON_DEV_NAME	"INT3496:00"
-+#define USB_HOST_EXTCON_HID		"INT3496"
-+#define USB_HOST_EXTCON_NAME		"INT3496:00"
- 
- static const unsigned int cable_ids[] =
- 	{ EXTCON_CHG_USB_SDP, EXTCON_CHG_USB_CDP, EXTCON_CHG_USB_DCP };
-@@ -807,10 +809,14 @@ static int axp288_charger_probe(struct platform_device *pdev)
- 		return -EPROBE_DEFER;
- 	}
- 
--	info->otg.cable = extcon_get_extcon_dev(USB_HOST_EXTCON_DEV_NAME);
--	if (info->otg.cable == NULL) {
--		dev_dbg(dev, "EXTCON_USB_HOST is not ready, probe deferred\n");
--		return -EPROBE_DEFER;
-+	if (acpi_dev_present(USB_HOST_EXTCON_HID, NULL, -1)) {
-+		info->otg.cable = extcon_get_extcon_dev(USB_HOST_EXTCON_NAME);
-+		if (info->otg.cable == NULL) {
-+			dev_dbg(dev, "EXTCON_USB_HOST is not ready, probe deferred\n");
-+			return -EPROBE_DEFER;
-+		}
-+		dev_info(&pdev->dev,
-+			 "Using " USB_HOST_EXTCON_HID " extcon for usb-id\n");
- 	}
- 
- 	platform_set_drvdata(pdev, info);
-@@ -849,13 +855,15 @@ static int axp288_charger_probe(struct platform_device *pdev)
- 	/* Register for OTG notification */
- 	INIT_WORK(&info->otg.work, axp288_charger_otg_evt_worker);
- 	info->otg.id_nb.notifier_call = axp288_charger_handle_otg_evt;
--	ret = devm_extcon_register_notifier(&pdev->dev, info->otg.cable,
-+	if (info->otg.cable) {
-+		ret = devm_extcon_register_notifier(&pdev->dev, info->otg.cable,
- 					EXTCON_USB_HOST, &info->otg.id_nb);
--	if (ret) {
--		dev_err(dev, "failed to register EXTCON_USB_HOST notifier\n");
--		return ret;
-+		if (ret) {
-+			dev_err(dev, "failed to register EXTCON_USB_HOST notifier\n");
-+			return ret;
-+		}
-+		schedule_work(&info->otg.work);
- 	}
--	schedule_work(&info->otg.work);
- 
- 	/* Register charger interrupts */
- 	for (i = 0; i < CHRG_INTR_END; i++) {
--- 
-2.9.3
-
+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
+AAA=
