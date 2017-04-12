@@ -1,38 +1,34 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH] arm64: acpi: Support PCI devices numa_node property in
- ACPI mode
-Date: Wed, 12 Apr 2017 13:48:15 -0400
-Message-ID: <5f01eac0-37a2-392e-eb42-a9ac85a2eebc@codeaurora.org>
-References: <0dada57f-4215-4ced-482d-88203857e06d@codeaurora.org>
- <20170412170433.GA7412@red-moon>
- <855540a9-888d-6419-3add-d8b0dbb43029@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v5 0/5] ACPI: new acpi_dev_present helper + ac and battery blacklist patches
+Date: Wed, 12 Apr 2017 20:07:28 +0200
+Message-ID: <20170412180733.27897-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:34164 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755598AbdDLRsW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Apr 2017 13:48:22 -0400
-In-Reply-To: <855540a9-888d-6419-3add-d8b0dbb43029@codeaurora.org>
+Received: from mx1.redhat.com ([209.132.183.28]:45658 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751555AbdDLSHi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 Apr 2017 14:07:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Liam Breck <liam@networkimprov.net>, Tony Lindgren <tony@atomide.com>, linux-pm@vger.kernel.org
 
-On 4/12/2017 1:27 PM, Sinan Kaya wrote:
-> I am not a big fan of this. I wonder if we could not make it DT/ACPI
-> agnostic by simply setting the numa_node in the pci_bus->dev field,
-> and propagate it downstream a PCI hierarcy (as we do with sysdata)
-> in pci_alloc_child_bus().
+Hi Rafael,
 
-I didn't realize that we were pushing sysdata to the child buses. No
-issues then. 
+As requested here is a resend of the latest version of my
+acpi_dev_present helper + ac and battery blacklist patches.
 
-I was under the impression that sysdata only existed for the host bridge
-itself and was not shared with the rest of the bus.
+I've also added a power-supply patch, which depends on the new
+acpi_dev_present helper and has an Ack from Sebastian Reichel
+(the power-supply maintainer) for being merged through the ACPI
+tree because of that dependency.
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+These patches obsolete:
+-earlier versions of patches with the same title
+-"ACPI: battery: Add acpi_battery_unregister() function"
+-"ACPI: ac: Add acpi_ac_unregister() function"
+-"power: supply: axp288_fuel_gauge: Unregister duplicate ACPI battery supply"
+-"power: supply: axp288_charger: Unregister duplicate ACPI ac supply"
+
+Thanks & Regards,
+
+Hans
