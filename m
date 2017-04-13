@@ -1,61 +1,88 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [patch 08/13] ACPI/processor: Replace racy task affinity logic.
-Date: Thu, 13 Apr 2017 14:52:24 +0200
-Message-ID: <20170413125224.5uu36nekq4r72b4y@hirez.programming.kicks-ass.net>
-References: <20170412200726.941336635@linutronix.de>
- <20170412201042.785920903@linutronix.de>
- <20170413113945.mkdsk24rovzcrod6@hirez.programming.kicks-ass.net>
- <alpine.DEB.2.20.1704131345160.2408@nanos>
+From: Meelis Roos <mroos@linux.ee>
+Subject: Re: 4.11-rc*: PCI IRQ allocation broken
+Date: Thu, 13 Apr 2017 22:03:28 +0300 (EEST)
+Message-ID: <alpine.LRH.2.20.1704132201410.21515@math.ut.ee>
+References: <alpine.LRH.2.20.1704102317110.14071@math.ut.ee> <20170411014338.GA9311@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:51048 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751139AbdDMMwl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Apr 2017 08:52:41 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1704131345160.2408@nanos>
+Received: from smtp1.it.da.ut.ee ([193.40.5.66]:41463 "EHLO smtp1.it.da.ut.ee"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753053AbdDMTDi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 13 Apr 2017 15:03:38 -0400
+In-Reply-To: <20170411014338.GA9311@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Sebastian Siewior <bigeasy@linutronix.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "David S. Miller" <davem@davemloft.net>, Fenghua Yu <fenghua.yu@intel.com>, Herbert Xu <herbert@gondor.apana.org.au>, Lai Jiangshan <jiangshanlai@gmail.com>, Len Brown <lenb@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tejun Heo <tj@kernel.org>, Tony Luck <tony.luck@intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Apr 13, 2017 at 02:01:42PM +0200, Thomas Gleixner wrote:
-> On Thu, 13 Apr 2017, Peter Zijlstra wrote:
+> > This happens on my HP Compaq 8100 Elite SFF PC. While 4.10 works fine, 
+> > 4.11.-rc5 and at least back to 4.10.0-10770-g2d6be4abf514 fail to assign 
+> > PCI IRQ to multiple devices (no GSI messages in the dmesg). This results 
+> > in mouse in one USB port working and keyboard in another USB port not 
+> > working, reproducibly.
 > > 
-> > That makes my machine sad...
-> > [    9.786610]  work_on_cpu+0x82/0x90
-> > [    9.790404]  ? __usermodehelper_disable+0x110/0x110
-> > [    9.795846]  ? __acpi_processor_get_throttling+0x20/0x20
-> > [    9.801773]  acpi_processor_set_throttling+0x199/0x220
-> > [    9.807506]  ? trace_hardirqs_on_caller+0xfb/0x1d0
-> > [    9.812851]  acpi_processor_get_throttling_ptc+0xec/0x180
-> > [    9.818876]  __acpi_processor_get_throttling+0xf/0x20
-> > [    9.824511]  work_for_cpu_fn+0x14/0x20
-> > [    9.828692]  process_one_work+0x261/0x670
-> > [    9.833165]  worker_thread+0x21b/0x3f0
-> > [    9.837348]  kthread+0x108/0x140
-> > [    9.840947]  ? process_one_work+0x670/0x670
-> > [    9.845611]  ? kthread_create_on_node+0x40/0x40
-> > [    9.850667]  ret_from_fork+0x31/0x40
+> > Will bisect.
 > 
-> Yuck. So the call chain is:
-> 
-> acpi_processor_get_throttling()
->   work_on_cpu(acpi_processor_get_throttling)
-> 
-> That work does:
-> 
-> __acpi_processor_get_throttling()
->     acpi_processor_get_throttling_ptc()
->       acpi_processor_set_throttling()
->         work_on_cpu(__acpi_processor_set_throttling)
-> 
-> Why the heck calls a get_throttling() function set_throttling()? I'm mildly
-> surprised.
-> 
-> Does the delta patch below cure the problem?
+> Thanks a lot for the report, Meelis, and I apologize for the inconvenience.
+> I opened https://bugzilla.kernel.org/show_bug.cgi?id=195319 to track this,
+> marked it as a regression, and attached your v4.11-rc5 dmesg to it.
 
-Yes, aside from a compile warn.
+Bisecting got stuck - I reached a state with about 5-6 steps left when I 
+got an unbootable kernel. Went there yesterday, restarted a good kernel, 
+skipped the kernel and left. When I rebooted into the next bisect 
+kernel, it has hung again. Will see when I get to go there. 
+Unfortunately I did not remember to take the intermediate bisect state 
+with me :(
 
-But that's disgusting... then again, you merely reintroduced this hack.
+> 
+> Something seems broken in ACPI.  There are a bunch of warnings, and I
+> think the PCI IRQ problem is a consequence of the fact that the
+> PNP0A08 _CRS evaluation failed, and we probably don't bother looking
+> for a _PRT under that bridge.
+> 
+> > Linux version 4.11.0-rc5-00033-g308ac7563944 (mroos@prometheus) (gcc version 6.3.0 20170321 (Debian 6.3.0-11) ) #64 SMP Wed Apr 5 12:29:53 EEST 2017
+> > Command line: BOOT_IMAGE=/boot/vmlinuz-4.11.0-rc5-00033-g308ac7563944 root=/dev/sda1 ro
+> > ...
+> > ACPI BIOS Warning (bug): Optional FADT field Pm2ControlBlock has valid Address but zero Length: 0x0000000000000050/0x0 (20170119/tbfadt-658)
+> > ACPI BIOS Warning (bug): Invalid length for FADT/Pm2ControlBlock: 0, using default 8 (20170119/tbfadt-708)
+> > ...
+> > acpi LNXCPU:00: Invalid PBLK length [7]
+> > acpi LNXCPU:01: Invalid PBLK length [7]
+> > acpi LNXCPU:02: Invalid PBLK length [7]
+> > acpi LNXCPU:03: Invalid PBLK length [7]
+> > acpi PNP0A08:00: [Firmware Bug]: no secondary bus range in _CRS
+> > ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+> > acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
+> > ACPI BIOS Error (bug): \_SB.PCI0._OSC: Excess arguments - ASL declared 5, ACPI requires 4 (20170119/nsarguments-189)
+> > ACPI Error: [CAPD] Namespace lookup failure, AE_ALREADY_EXISTS (20170119/dsfield-211)
+> > ACPI Error: Method parse/execution failed [\_SB.PCI0._OSC] (Node ffff880113031668), AE_ALREADY_EXISTS (20170119/psparse-543)
+> > acpi PNP0A08:00: _OSC failed (AE_ALREADY_EXISTS); disabling ASPM
+> > acpi PNP0A08:00: [Firmware Info]: MMCONFIG for domain 0000 [bus 00-3f] only partially covers this bridge
+> > acpi PNP0A08:00: failed to parse _CRS method, error code -5
+> > acpi PNP0A08:00: Bus 0000:00 not present in PCI namespace
+> > ...
+> > PCI: Discovered peer bus 00
+> > PCI: root bus 00: using default resources
+> > PCI: Probing PCI hardware (bus 00)
+> > ...
+> > ACPI: \: failed to evaluate _DSM (0x1001)
+> > ...
+> > PCI host bridge to bus 0000:00
+> > pci_bus 0000:00: root bus resource [io  0x0000-0xffff]
+> > pci_bus 0000:00: root bus resource [mem 0x00000000-0xfffffffff]
+> > pci_bus 0000:00: No busn resource found for root bus, will use [bus 00-ff]
+> > ...
+> > PCI: Discovered peer bus 3f
+> > PCI: root bus 3f: using default resources
+> > PCI: Probing PCI hardware (bus 3f)
+> > ACPI: \: failed to evaluate _DSM (0x1001)
+> > ...
+> > pnp 00:00: Plug and Play ACPI device, IDs PNP0b00 (active)
+> > pnp 00:01: can't evaluate _CRS: 12316
+> > ...
+> > [drm] ACPI BIOS requests an excessive sleep of 4294705151 ms, using 1500 ms instead
+> 
+
+-- 
+Meelis Roos (mroos@linux.ee)
