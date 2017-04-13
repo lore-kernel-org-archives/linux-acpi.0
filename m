@@ -1,64 +1,173 @@
-From: Paul Menzel <pmenzel@molgen.mpg.de>
-Subject: RE: [Regression Linux 4.11] TPM module not loaded anymore
-Date: Thu, 13 Apr 2017 09:19:28 +0200
-Message-ID: <f8d59c32452604d642146bbeb20cb5b2@molgen.mpg.de>
-References: <c4bfd77e-3fb9-8a9b-28f5-48e6c13beb12@maciej.szmigiero.name>
- <bf4ca184f43cc7b6ee8069b63558087c@molgen.mpg.de>
- <20170406165557.GD7657@obsidianresearch.com>
- <3d62bd7d4addc020c2f8e3c2edf3280e@molgen.mpg.de>
- <20170406191013.GA25011@obsidianresearch.com>
- <20170407201347.2qcyrdzgg2yikoen@intel.com>
- <cd01f99b4297a5fc8f11e0998ab06d7e@molgen.mpg.de>
- <1491759283.1152.12.camel@molgen.mpg.de>
- <20170411225757.yoi2puygipigucjh@intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E59259A@ORSMSX110.amr.corp.intel.com>
- <e6c10b975e6be81e259357fe220cc26e@molgen.mpg.de>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E592804@ORSMSX110.amr.corp.intel.com>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [PATCH v3 7/8] arm64: exception: handle asynchronous SError
+ interrupt
+Date: Thu, 13 Apr 2017 16:44:27 +0800
+Message-ID: <2b7dc4a7-9fe8-0a6e-46b6-dc75ab3d0e87@huawei.com>
+References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
+ <1490869877-118713-8-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.molgen.mpg.de ([141.14.17.11]:49729 "EHLO mx1.molgen.mpg.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753286AbdDMHTb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 13 Apr 2017 03:19:31 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E592804@ORSMSX110.amr.corp.intel.com>
+Received: from szxga01-in.huawei.com ([45.249.212.187]:5325 "EHLO
+        dggrg01-dlp.huawei.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751439AbdDMIsS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Apr 2017 04:48:18 -0400
+In-Reply-To: <1490869877-118713-8-git-send-email-xiexiuqi@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Moore <robert.moore@intel.com>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>, linux-kernel@vger.kernel.org, Arthur Heymans <arthur@aheymans.xyz>, tpmdd-devel@lists.sourceforge.net, GNUtoo@no-log.org, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+To: Xie XiuQi <xiexiuqi@huawei.com>, christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, james.morse@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com
+Cc: linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com, zhengqiang10@huawei.com, wuquanming@huawei.com, Wang Xiongfeng <wangxiongfengi2@huawei.com>
 
-Dear Robert,
+Hi Xiuqi,
 
-
-Thank you for your reply.
-
-
-On 2017-04-12 23:49, Moore, Robert wrote:
-
->> On 2017-04-12 17:54, Moore, Robert wrote:
->> > And probably the dmesg if error messages appear in there.
->> 
->> Linux doesn’t log any messages, as the `tpm` module doesn’t load. 
->> Please
->> find the output of `sudo acpidump` attached.
->> 
->> […]
+On 2017/3/30 18:31, Xie XiuQi wrote:
+> Error Synchronization Barrier (ESB; part of the ARMv8.2 Extensions)
+> is used to synchronize Unrecoverable errors. That is, containable errors
+> architecturally consumed by the PE and not silently propagated.
 > 
-> Do you have any idea what control method(s) are executing? The DSDT
-> and SSDT in the acpidump load fine here, and all predefined control
-> methods in these tables execute OK.
+> With ESB it is generally possible to isolate an unrecoverable error
+> between two ESB instructions. So, it's possible to recovery from
 
-Sorry, I don’t know what’s done.
+>  /* ISS field definitions for exceptions taken in to Hyp */
+>  #define ESR_ELx_CV		(UL(1) << 24)
+>  #define ESR_ELx_COND_SHIFT	(20)
+> diff --git a/arch/arm64/kernel/entry.S b/arch/arm64/kernel/entry.S
+> index 43512d4..d8a7306 100644
+> --- a/arch/arm64/kernel/entry.S
+> +++ b/arch/arm64/kernel/entry.S
+> @@ -69,7 +69,14 @@
+>  #define BAD_FIQ		2
+>  #define BAD_ERROR	3
+>  
+> +	.arch_extension ras
+> +
+>  	.macro	kernel_entry, el, regsize = 64
+> +#ifdef CONFIG_ARM64_ESB
+> +	.if	\el == 0
+> +	esb
+> +	.endif
+> +#endif
+>  	sub	sp, sp, #S_FRAME_SIZE
+>  	.if	\regsize == 32
+>  	mov	w0, w0				// zero upper 32 bits of x0
+> @@ -208,6 +215,7 @@ alternative_else_nop_endif
+>  #endif
+>  
+>  	.if	\el == 0
+> +	msr	daifset, #0xF			// Set flags
+>  	ldr	x23, [sp, #S_SP]		// load return stack pointer
+>  	msr	sp_el0, x23
+>  #ifdef CONFIG_ARM64_ERRATUM_845719
+> @@ -226,6 +234,15 @@ alternative_else_nop_endif
+>  
+>  	msr	elr_el1, x21			// set up the return data
+>  	msr	spsr_el1, x22
+> +
+> +#ifdef CONFIG_ARM64_ESB
+> +	.if \el == 0
+> +	esb					// Error Synchronization Barrier
+> +	mrs	x21, disr_el1			// Check for deferred error
+> +	tbnz	x21, #31, el1_sei
 
-> We need to root-cause this problem, as a simple revert will break the
-> customers that the fix was intended for in the first place.
+We may need to clear disr_el1.A after reading it because the hardware won't clear it.
 
-I know, but I have no idea how to root-cause this. If nothing can be 
-found, a revert is required by Linux’ no-regression-policy.
+> +	.endif
+> +#endif
+> +
+>  	ldp	x0, x1, [sp, #16 * 0]
+>  	ldp	x2, x3, [sp, #16 * 1]
+>  	ldp	x4, x5, [sp, #16 * 2]
+> @@ -318,7 +335,7 @@ ENTRY(vectors)
+>  	ventry	el1_sync_invalid		// Synchronous EL1t
+>  	ventry	el1_irq_invalid			// IRQ EL1t
+>  	ventry	el1_fiq_invalid			// FIQ EL1t
+> -	ventry	el1_error_invalid		// Error EL1t
+> +	ventry	el1_error			// Error EL1t
+>  
+>  	ventry	el1_sync			// Synchronous EL1h
+>  	ventry	el1_irq				// IRQ EL1h
+> @@ -328,7 +345,7 @@ ENTRY(vectors)
+>  	ventry	el0_sync			// Synchronous 64-bit EL0
+>  	ventry	el0_irq				// IRQ 64-bit EL0
+>  	ventry	el0_fiq_invalid			// FIQ 64-bit EL0
+> -	ventry	el0_error_invalid		// Error 64-bit EL0
+> +	ventry	el0_error			// Error 64-bit EL0
+>  
+>  #ifdef CONFIG_COMPAT
+>  	ventry	el0_sync_compat			// Synchronous 32-bit EL0
+> @@ -508,12 +525,31 @@ el1_preempt:
+>  	ret	x24
+>  #endif
+>  
+> +	.align	6
+> +el1_error:
+> +	kernel_entry 1
+> +el1_sei:
+> +	/*
+> +	 * asynchronous SError interrupt from kernel
+> +	 */
+> +	mov	x0, sp
+> +	mrs	x1, esr_el1
+> +	mov	x2, #1				// exception level of SEI generated
+> +	b	do_sei
+> +ENDPROC(el1_error)
+> +
+> +
+>  /*
+>   * EL0 mode handlers.
+>   */
+>  	.align	6
+>  el0_sync:
+>  	kernel_entry 0
+> +#ifdef CONFIG_ARM64_ESB
+> +	mrs     x26, disr_el1
+> +	tbnz    x26, #31, el0_sei		// check DISR.A
+> +	msr	daifclr, #0x4			// unmask SEI
+> +#endif
+>  	mrs	x25, esr_el1			// read the syndrome register
+>  	lsr	x24, x25, #ESR_ELx_EC_SHIFT	// exception class
+>  	cmp	x24, #ESR_ELx_EC_SVC64		// SVC in 64-bit state
+> @@ -688,8 +724,38 @@ el0_inv:
+>  ENDPROC(el0_sync)
+>  
+>  	.align	6
+> +el0_error:
+> +	kernel_entry 0
+> +el0_sei:
+> +	/*
+> +	 * asynchronous SError interrupt from userspace
+> +	 */
+> +	ct_user_exit
+> +	mov	x0, sp
+> +	mrs	x1, esr_el1
+> +	mov	x2, #0
+> +	bl	do_sei
+> +	b	ret_to_user
+> +ENDPROC(el0_error)
+> +
+> +	.align	6
+>  el0_irq:
+>  	kernel_entry 0
+> +#ifdef CONFIG_ARM64_ESB
+> +	mrs     x26, disr_el1
+> +	tbz     x26, #31, el0_irq_naked          // check DISR.A
+> +
+> +	mov	x0, sp
+> +	mrs	x1, esr_el1
+> +	mov	x2, 0
+> +
+> +	/*
+> +	 * The SEI generated at EL0 is not affect this irq context,
+> +	 * so after sei handler, we continue process this irq.
+> +	 */
+> +	bl	do_sei
+> +	msr     daifclr, #0x4                   // unmask SEI
+> +#endif
+>  el0_irq_naked:
+>  	enable_dbg
+>  #ifdef CONFIG_TRACE_IRQFLAGS
 
+Thanks,
+Wang Xiongfeng
 
-Kind regards,
-
-Paul
