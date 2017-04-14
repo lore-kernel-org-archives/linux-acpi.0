@@ -1,55 +1,56 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 0/7] libnvdimm: acpi updates and a revert
-Date: Fri, 14 Apr 2017 14:57:05 -0700
-Message-ID: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 1/7] Revert "libnvdimm: band aid btt vs clear poison
+ locking"
+Date: Fri, 14 Apr 2017 14:57:11 -0700
+Message-ID: <149220703105.36563.1290518071230049126.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:5754 "EHLO mga06.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:42501 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752089AbdDNWCu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Apr 2017 18:02:50 -0400
+        id S1752559AbdDNWCz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Apr 2017 18:02:55 -0400
+In-Reply-To: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: Linda Knippers <linda.knippers@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Toshi Kani <toshi.kani@hpe.com>, linux-acpi@vger.kernel.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, linux-acpi@vger.kernel.org
 
-Changes since v1:
-* moved the rename of nfit_mem_dcr_init() to __nfit_mem_init() to "acpi,
-  nfit: support 'map failed' dimms"
-* added "acpi, nfit: collate health state flags"
-* added "tools/testing/nvdimm: fix nfit_test shutdown crashes"
+This reverts commit 4aa5615e080a "libnvdimm: band aid btt vs clear
+poison locking".
 
+Now that poison list locking has been converted to a spinlock and poison
+list entry allocation during i/o has been converted to GFP_NOWAIT,
+revert the band-aid that disabled error clearing from btt i/o.
+
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/nvdimm/claim.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-With Dave's recent fix [1], we can restore error clearing for btt i/o in
-4.12.
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index ca6d572c48fc..b3323c0697f6 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -243,15 +243,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 	}
+ 
+ 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
+-		/*
+-		 * FIXME: nsio_rw_bytes() may be called from atomic
+-		 * context in the btt case and nvdimm_clear_poison()
+-		 * takes a sleeping lock. Until the locking can be
+-		 * reworked this capability requires that the namespace
+-		 * is not claimed by btt.
+-		 */
+-		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
+-				&& (!ndns->claim || !is_nd_btt(ndns->claim))) {
++		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)) {
+ 			long cleared;
+ 
+ 			cleared = nvdimm_clear_poison(&ndns->dev, offset, size);
 
-ACPI 6.1 introduced new health state flags. Beyond reflecting them in
-the dimmX/flags sysfs attribute we also need to handle the deeper
-implications of the ACPI_NFIT_MEM_MAP_FAILED flag which changes
-assumptions on how the driver discovers dimms. In the "map failed" case
-there may missing or no SPA entries associated with a dimm. Those dimms
-should still be registered with libnvdimm so that the error state can be
-communicated and recovery attempted.
-
-[1]: https://patchwork.kernel.org/patch/9680035/
-
----
-
-Dan Williams (7):
-      Revert "libnvdimm: band aid btt vs clear poison locking"
-      acpi, nfit: add support for acpi 6.1 dimm state flags
-      tools/testing/nvdimm: test acpi 6.1 health state flags
-      acpi, nfit: support "map failed" dimms
-      acpi, nfit: collate health state flags
-      acpi, nfit: limit ->flush_probe() to initialization work
-      tools/testing/nvdimm: fix nfit_test shutdown crashes
-
-
- drivers/acpi/nfit/core.c         |   82 +++++++++++++++++++++++++++++++-------
- drivers/acpi/nfit/nfit.h         |    3 +
- drivers/nvdimm/claim.c           |   10 -----
- tools/testing/nvdimm/test/nfit.c |   50 +++++++++++++++++++++--
- 4 files changed, 115 insertions(+), 30 deletions(-)
