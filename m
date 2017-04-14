@@ -1,7 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/5] acpi, nfit: support "map failed" dimms
-Date: Fri, 14 Apr 2017 09:58:32 -0700
-Message-ID: <149218911271.3926.4006907031326342869.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 5/5] acpi, nfit: limit ->flush_probe() to initialization work
+Date: Fri, 14 Apr 2017 09:58:38 -0700
+Message-ID: <149218911796.3926.17292323458849061393.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <149218909065.3926.1234846095650907678.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,125 +21,79 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Stop requiring dimms be successfully mapped into a
-system-physical-address range. For provisioning and hardware remediation
-purposes the kernel should account for failed devices in sysfs. If
-possible it should still allow management commands to be sent to the
-device.
+The nvdimm probe flushing mechanism gives userspace a sync point where
+it knows all asynchronous driver probe sequences have completed.
+However, it need not wait for other asynchronous actions, like
+on-demand address-range-scrub. Track the init work separately from other
+work in the workqueue, and only flush the former.
 
-Reported-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Reported-by: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/acpi/nfit/core.c |   44 ++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 36 insertions(+), 8 deletions(-)
+ drivers/acpi/nfit/core.c |   13 ++++++++++---
+ drivers/acpi/nfit/nfit.h |    1 +
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 05829de43b1d..06738df477db 100644
+index 06738df477db..17cac9d369e0 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -743,23 +743,33 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
+@@ -738,7 +738,7 @@ static void nfit_mem_init_bdw(struct acpi_nfit_desc *acpi_desc,
+ 	}
+ }
+ 
+-static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
++static int __nfit_mem_init(struct acpi_nfit_desc *acpi_desc,
+ 		struct acpi_nfit_system_address *spa)
  {
  	struct nfit_mem *nfit_mem, *found;
- 	struct nfit_memdev *nfit_memdev;
--	int type = nfit_spa_type(spa);
-+	int type = spa ? nfit_spa_type(spa) : 0;
- 
- 	switch (type) {
- 	case NFIT_SPA_DCR:
- 	case NFIT_SPA_PM:
- 		break;
- 	default:
--		return 0;
-+		if (spa)
-+			return 0;
- 	}
- 
-+	/*
-+	 * This loop runs in two modes, when a dimm is mapped the loop
-+	 * adds memdev associations to an existing dimm, or creates a
-+	 * dimm. In the unmapped dimm case this loop sweeps for memdev
-+	 * instances with an invalid / zero range_index and adds those
-+	 * dimms without spa associations.
-+	 */
- 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
- 		struct nfit_flush *nfit_flush;
- 		struct nfit_dcr *nfit_dcr;
- 		u32 device_handle;
- 		u16 dcr;
- 
--		if (nfit_memdev->memdev->range_index != spa->range_index)
-+		if (spa && nfit_memdev->memdev->range_index != spa->range_index)
-+			continue;
-+		if (!spa && nfit_memdev->memdev->range_index)
- 			continue;
- 		found = NULL;
- 		dcr = nfit_memdev->memdev->region_index;
-@@ -844,14 +854,15 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
- 				break;
- 			}
- 			nfit_mem_init_bdw(acpi_desc, nfit_mem, spa);
--		} else {
-+		} else if (type == NFIT_SPA_PM) {
- 			/*
- 			 * A single dimm may belong to multiple SPA-PM
- 			 * ranges, record at least one in addition to
- 			 * any SPA-DCR range.
- 			 */
- 			nfit_mem->memdev_pmem = nfit_memdev->memdev;
--		}
-+		} else
-+			nfit_mem->memdev_dcr = nfit_memdev->memdev;
- 	}
- 
- 	return 0;
-@@ -875,6 +886,8 @@ static int nfit_mem_cmp(void *priv, struct list_head *_a, struct list_head *_b)
- static int nfit_mem_init(struct acpi_nfit_desc *acpi_desc)
- {
- 	struct nfit_spa *nfit_spa;
-+	int rc;
-+
- 
- 	/*
- 	 * For each SPA-DCR or SPA-PMEM address range find its
-@@ -885,13 +898,20 @@ static int nfit_mem_init(struct acpi_nfit_desc *acpi_desc)
+@@ -898,7 +898,7 @@ static int nfit_mem_init(struct acpi_nfit_desc *acpi_desc)
  	 * BDWs are optional.
  	 */
  	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
--		int rc;
--
- 		rc = nfit_mem_dcr_init(acpi_desc, nfit_spa->spa);
+-		rc = nfit_mem_dcr_init(acpi_desc, nfit_spa->spa);
++		rc = __nfit_mem_init(acpi_desc, nfit_spa->spa);
  		if (rc)
  			return rc;
  	}
+@@ -908,7 +908,7 @@ static int nfit_mem_init(struct acpi_nfit_desc *acpi_desc)
+ 	 * SPA entries above. Find and register all the unmapped DIMMs
+ 	 * for reporting and recovery purposes.
+ 	 */
+-	rc = nfit_mem_dcr_init(acpi_desc, NULL);
++	rc = __nfit_mem_init(acpi_desc, NULL);
+ 	if (rc)
+ 		return rc;
  
-+	/*
-+	 * If a DIMM has failed to be mapped into SPA there will be no
-+	 * SPA entries above. Find and register all the unmapped DIMMs
-+	 * for reporting and recovery purposes.
-+	 */
-+	rc = nfit_mem_dcr_init(acpi_desc, NULL);
-+	if (rc)
-+		return rc;
+@@ -2568,6 +2568,7 @@ static void acpi_nfit_scrub(struct work_struct *work)
+ 			acpi_nfit_register_region(acpi_desc, nfit_spa);
+ 		}
+ 	}
++	acpi_desc->init_complete = 1;
+ 
+ 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
+ 		acpi_nfit_async_scrub(acpi_desc, nfit_spa);
+@@ -2771,6 +2772,12 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+ 	device_lock(dev);
+ 	device_unlock(dev);
+ 
++	/* bounce the init_mutex to make init_complete valid */
++	mutex_lock(&acpi_desc->init_mutex);
++	mutex_unlock(&acpi_desc->init_mutex);
++	if (acpi_desc->init_complete)
++		return 0;
 +
- 	list_sort(NULL, &acpi_desc->dimms, nfit_mem_cmp);
- 
- 	return 0;
-@@ -1301,8 +1321,16 @@ static umode_t acpi_nfit_dimm_attr_visible(struct kobject *kobj,
- 	struct device *dev = container_of(kobj, struct device, kobj);
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
- 
--	if (!to_nfit_dcr(dev))
-+	if (!to_nfit_dcr(dev)) {
-+		/* Without a dcr only the memdev attributes can be surfaced */
-+		if (a == &dev_attr_handle.attr || a == &dev_attr_phys_id.attr
-+				|| a == &dev_attr_flags.attr
-+				|| a == &dev_attr_family.attr
-+				|| a == &dev_attr_dsm_mask.attr)
-+			return a->mode;
- 		return 0;
-+	}
-+
- 	if (a == &dev_attr_format1.attr && num_nvdimm_formats(nvdimm) <= 1)
- 		return 0;
- 	return a->mode;
+ 	/*
+ 	 * Scrub work could take 10s of seconds, userspace may give up so we
+ 	 * need to be interruptible while waiting.
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index fc29c2e9832e..256829597585 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -163,6 +163,7 @@ struct acpi_nfit_desc {
+ 	unsigned int scrub_count;
+ 	unsigned int scrub_mode;
+ 	unsigned int cancel:1;
++	unsigned int init_complete:1;
+ 	unsigned long dimm_cmd_force_en;
+ 	unsigned long bus_cmd_force_en;
+ 	int (*blk_do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
