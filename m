@@ -1,59 +1,45 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.11-rc7
-Date: Fri, 14 Apr 2017 13:53:57 +0200
-Message-ID: <CAJZ5v0gkmCBukp28d_sAiN7yhSFvrTkWq6bawmv6V9U4bkYPpA@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH 0/5] libnvdimm: acpi updates and a revert
+Date: Fri, 14 Apr 2017 09:58:11 -0700
+Message-ID: <149218909065.3926.1234846095650907678.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:35429 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750784AbdDNLx6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Apr 2017 07:53:58 -0400
+Received: from mga01.intel.com ([192.55.52.88]:43896 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751463AbdDNRDz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Apr 2017 13:03:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-nvdimm@lists.01.org
+Cc: Linda Knippers <linda.knippers@hpe.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, vishal.l.verma@intel.com
 
-Hi Linus,
+With Dave's recent fix [1], we can restore error clearing for btt i/o in
+4.12.
 
-Please pull from the tag
+ACPI 6.1 introduced new health state flags. Beyond reflecting them in
+the dimmX/flags sysfs attribute we also need to handle the deeper
+implications of the ACPI_NFIT_MEM_MAP_FAILED flag which changes
+assumptions on how the driver discovers dimms. In the "map failed" case
+there may missing or no SPA entries associated with a dimm. Those dimms
+should still be registered with libnvdimm so that the error state can be
+communicated and recovery attempted.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.11-rc7
+[1]: https://patchwork.kernel.org/patch/9680035/
 
-with top-most commit f83e13f94e14d27c9610f917e40e23a6c2bbeaf0
+---
 
- Merge branches 'acpi-scan-fixes' and 'acpica-fixes'
+Dan Williams (5):
+      Revert "libnvdimm: band aid btt vs clear poison locking"
+      acpi, nfit: add support for acpi 6.1 dimm state flags
+      tools/testing/nvdimm: test acpi 6.1 health state flags
+      acpi, nfit: support "map failed" dimms
+      acpi, nfit: limit ->flush_probe() to initialization work
 
-on top of commit 39da7c509acff13fc8cb12ec1bb20337c988ed36
 
- Linux 4.11-rc6
-
-to receive ACPI fixes for v4.11-rc7.
-
-These revert a recent ACPICA commit that turned out to be problematic
-and fix a device enumeration breakage from the 4.8 cycle.
-
-Specifics:
-
- - Revert a recent ACPICA commit targeted at catching firmware bugs
-   which promptly did that and caused functional problems to appear
-   (Rafael Wysocki).
-
- - Fix a device enumeration problem introduced in the 4.8 time frame
-   which caused the ACPI docking station driver to report incorrect
-   status via sysfs among other things (Rafael Wysocki).
-
-Thanks!
-
----------------
-
-Rafael J. Wysocki (2):
-      ACPI / scan: Set the visited flag for all enumerated devices
-      Revert "ACPICA: Resources: Not a valid resource if buffer length too long"
-
----------------
-
- drivers/acpi/acpica/utresrc.c | 17 +++++------------
- drivers/acpi/scan.c           | 19 ++++++++++++-------
- 2 files changed, 17 insertions(+), 19 deletions(-)
+ drivers/acpi/nfit/core.c         |   61 +++++++++++++++++++++++++++++++-------
+ drivers/acpi/nfit/nfit.h         |    1 +
+ drivers/nvdimm/claim.c           |   10 +-----
+ tools/testing/nvdimm/test/nfit.c |   40 +++++++++++++++++++++++--
+ 4 files changed, 88 insertions(+), 24 deletions(-)
