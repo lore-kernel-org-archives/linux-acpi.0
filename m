@@ -1,56 +1,53 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/5] Revert "libnvdimm: band aid btt vs clear poison locking"
-Date: Fri, 14 Apr 2017 09:58:16 -0700
-Message-ID: <149218909642.3926.2657031890982247617.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH 2/5] acpi, nfit: add support for acpi 6.1 dimm state flags
+Date: Fri, 14 Apr 2017 09:58:22 -0700
+Message-ID: <149218910195.3926.13927602427357940056.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <149218909065.3926.1234846095650907678.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <149218909065.3926.1234846095650907678.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:36043 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751960AbdDNREG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Apr 2017 13:04:06 -0400
+In-Reply-To: <149218909065.3926.1234846095650907678.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, vishal.l.verma@intel.com
 
-This reverts commit 4aa5615e080a "libnvdimm: band aid btt vs clear
-poison locking".
+Add support for the ACPI_NFIT_MEM_MAP_FAILED ("map_fail") and
+ACPI_NFIT_MEM_HEALTH_ENABLED ("smart_notify") health state flags. The
+"map_fail" flag identifies DIMMs that were not mapped into one or more
+physical address ranges. The "health_notify" flag indicates whether
+platform firmware will send notifications when there is new SMART health
+data to consume.
 
-Now that poison list locking has been converted to a spinlock and poison
-list entry allocation during i/o has been converted to GFP_NOWAIT,
-revert the band-aid that disabled error clearing from btt i/o.
-
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/claim.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ drivers/acpi/nfit/core.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index ca6d572c48fc..b3323c0697f6 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -243,15 +243,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 	}
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 53943d6f4214..05829de43b1d 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1246,12 +1246,14 @@ static ssize_t flags_show(struct device *dev,
+ {
+ 	u16 flags = to_nfit_memdev(dev)->flags;
  
- 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
--		/*
--		 * FIXME: nsio_rw_bytes() may be called from atomic
--		 * context in the btt case and nvdimm_clear_poison()
--		 * takes a sleeping lock. Until the locking can be
--		 * reworked this capability requires that the namespace
--		 * is not claimed by btt.
--		 */
--		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
--				&& (!ndns->claim || !is_nd_btt(ndns->claim))) {
-+		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)) {
- 			long cleared;
+-	return sprintf(buf, "%s%s%s%s%s\n",
++	return sprintf(buf, "%s%s%s%s%s%s%s\n",
+ 		flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
+ 		flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail " : "",
+ 		flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
+ 		flags & ACPI_NFIT_MEM_NOT_ARMED ? "not_armed " : "",
+-		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " : "");
++		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " : "",
++		flags & ACPI_NFIT_MEM_MAP_FAILED ? "map_fail " : "",
++		flags & ACPI_NFIT_MEM_HEALTH_ENABLED ? "smart_notify " : "");
+ }
+ static DEVICE_ATTR_RO(flags);
  
- 			cleared = nvdimm_clear_poison(&ndns->dev, offset, size);
+
