@@ -1,53 +1,139 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 2/7] acpi, nfit: add support for acpi 6.1 dimm state flags
-Date: Fri, 14 Apr 2017 14:57:16 -0700
-Message-ID: <149220703619.36563.13778038601265074941.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 3/7] tools/testing/nvdimm: test acpi 6.1 health state
+ flags
+Date: Fri, 14 Apr 2017 14:57:21 -0700
+Message-ID: <149220704158.36563.13636094149021468832.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:11788 "EHLO mga14.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:6776 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752559AbdDNWDB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Apr 2017 18:03:01 -0400
+        id S1752559AbdDNWDG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Apr 2017 18:03:06 -0400
 In-Reply-To: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
 Cc: linux-acpi@vger.kernel.org
 
-Add support for the ACPI_NFIT_MEM_MAP_FAILED ("map_fail") and
-ACPI_NFIT_MEM_HEALTH_ENABLED ("smart_notify") health state flags. The
-"map_fail" flag identifies DIMMs that were not mapped into one or more
-physical address ranges. The "health_notify" flag indicates whether
-platform firmware will send notifications when there is new SMART health
-data to consume.
+Add a simulated dimm with an ACPI_NFIT_MEM_MAP_FAILED indication, and
+set the ACPI_NFIT_MEM_HEALTH_ENABLED flag on all the dimms where
+nfit_test simulates health events, but spread it out over several
+redundant memdev entries to test that the nfit driver coalesces all the
+flags.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ tools/testing/nvdimm/test/nfit.c |   40 +++++++++++++++++++++++++++++++++++---
+ 1 file changed, 37 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 53943d6f4214..05829de43b1d 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1246,12 +1246,14 @@ static ssize_t flags_show(struct device *dev,
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 798f17655433..bc02f28ed8b8 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -132,6 +132,7 @@ static u32 handle[] = {
+ 	[3] = NFIT_DIMM_HANDLE(0, 0, 1, 0, 1),
+ 	[4] = NFIT_DIMM_HANDLE(0, 1, 0, 0, 0),
+ 	[5] = NFIT_DIMM_HANDLE(1, 0, 0, 0, 0),
++	[6] = NFIT_DIMM_HANDLE(1, 0, 0, 0, 1),
+ };
+ 
+ static unsigned long dimm_fail_cmd_flags[NUM_DCR];
+@@ -728,8 +729,8 @@ static int nfit_test0_alloc(struct nfit_test *t)
+ static int nfit_test1_alloc(struct nfit_test *t)
  {
- 	u16 flags = to_nfit_memdev(dev)->flags;
+ 	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * 2
+-		+ sizeof(struct acpi_nfit_memory_map)
+-		+ offsetof(struct acpi_nfit_control_region, window_size);
++		+ sizeof(struct acpi_nfit_memory_map) * 2
++		+ offsetof(struct acpi_nfit_control_region, window_size) * 2;
+ 	int i;
  
--	return sprintf(buf, "%s%s%s%s%s\n",
-+	return sprintf(buf, "%s%s%s%s%s%s%s\n",
- 		flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
- 		flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail " : "",
- 		flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
- 		flags & ACPI_NFIT_MEM_NOT_ARMED ? "not_armed " : "",
--		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " : "");
-+		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " : "",
-+		flags & ACPI_NFIT_MEM_MAP_FAILED ? "map_fail " : "",
-+		flags & ACPI_NFIT_MEM_HEALTH_ENABLED ? "smart_notify " : "");
- }
- static DEVICE_ATTR_RO(flags);
+ 	t->nfit_buf = test_alloc(t, nfit_size, &t->nfit_dma);
+@@ -906,6 +907,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->address = 0;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 2;
++	memdev->flags = ACPI_NFIT_MEM_HEALTH_ENABLED;
  
+ 	/* mem-region2 (spa1, dimm0) */
+ 	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 2;
+@@ -921,6 +923,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->address = SPA0_SIZE/2;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 4;
++	memdev->flags = ACPI_NFIT_MEM_HEALTH_ENABLED;
+ 
+ 	/* mem-region3 (spa1, dimm1) */
+ 	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 3;
+@@ -951,6 +954,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->address = SPA0_SIZE/2;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 4;
++	memdev->flags = ACPI_NFIT_MEM_HEALTH_ENABLED;
+ 
+ 	/* mem-region5 (spa1, dimm3) */
+ 	memdev = nfit_buf + offset + sizeof(struct acpi_nfit_memory_map) * 5;
+@@ -1086,6 +1090,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->address = 0;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 1;
++	memdev->flags = ACPI_NFIT_MEM_HEALTH_ENABLED;
+ 
+ 	offset = offset + sizeof(struct acpi_nfit_memory_map) * 14;
+ 	/* dcr-descriptor0: blk */
+@@ -1384,6 +1389,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 		memdev->address = 0;
+ 		memdev->interleave_index = 0;
+ 		memdev->interleave_ways = 1;
++		memdev->flags = ACPI_NFIT_MEM_HEALTH_ENABLED;
+ 
+ 		/* mem-region16 (spa/bdw4, dimm4) */
+ 		memdev = nfit_buf + offset +
+@@ -1486,6 +1492,34 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	dcr->code = NFIT_FIC_BYTE;
+ 	dcr->windows = 0;
+ 
++	offset += dcr->header.length;
++	memdev = nfit_buf + offset;
++	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
++	memdev->header.length = sizeof(*memdev);
++	memdev->device_handle = handle[6];
++	memdev->physical_id = 0;
++	memdev->region_id = 0;
++	memdev->range_index = 0;
++	memdev->region_index = 0+2;
++	memdev->region_size = SPA2_SIZE;
++	memdev->region_offset = 0;
++	memdev->address = 0;
++	memdev->interleave_index = 0;
++	memdev->interleave_ways = 1;
++	memdev->flags = ACPI_NFIT_MEM_MAP_FAILED;
++
++	/* dcr-descriptor1 */
++	offset += sizeof(*memdev);
++	dcr = nfit_buf + offset;
++	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
++	dcr->header.length = offsetof(struct acpi_nfit_control_region,
++			window_size);
++	dcr->region_index = 0+2;
++	dcr_common_init(dcr);
++	dcr->serial_number = ~handle[6];
++	dcr->code = NFIT_FIC_BYTE;
++	dcr->windows = 0;
++
+ 	post_ars_status(&t->ars_state, t->spa_set_dma[0], SPA2_SIZE);
+ 
+ 	acpi_desc = &t->acpi_desc;
+@@ -1907,7 +1941,7 @@ static __init int nfit_test_init(void)
+ 		case 1:
+ 			nfit_test->num_pm = 1;
+ 			nfit_test->dcr_idx = NUM_DCR;
+-			nfit_test->num_dcr = 1;
++			nfit_test->num_dcr = 2;
+ 			nfit_test->alloc = nfit_test1_alloc;
+ 			nfit_test->setup = nfit_test1_setup;
+ 			break;
 
