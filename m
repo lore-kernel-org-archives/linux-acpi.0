@@ -1,70 +1,84 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 6/7] acpi,
- nfit: limit ->flush_probe() to initialization work
-Date: Fri, 14 Apr 2017 14:57:37 -0700
-Message-ID: <149220705756.36563.14401124380313786346.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 7/7] tools/testing/nvdimm: fix nfit_test shutdown crashes
+Date: Fri, 14 Apr 2017 14:57:42 -0700
+Message-ID: <149220706287.36563.2986440928438769021.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:44587 "EHLO mga04.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:24734 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754794AbdDNWDW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Apr 2017 18:03:22 -0400
+        id S1752089AbdDNWD1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Apr 2017 18:03:27 -0400
 In-Reply-To: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+Cc: Linda Knippers <linda.knippers@hpe.com>, linux-acpi@vger.kernel.org
 
-The nvdimm probe flushing mechanism gives userspace a sync point where
-it knows all asynchronous driver probe sequences have completed.
-However, it need not wait for other asynchronous actions, like
-on-demand address-range-scrub. Track the init work separately from other
-work in the workqueue, and only flush the former.
+Keep the nfit_test instances alive until after nfit_test_teardown(), as
+we may be doing resource lookups until the final un-registrations have
+completed. This fixes crashes of the form.
 
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000038
+ IP: __release_resource+0x12/0x90
+ Call Trace:
+  remove_resource+0x23/0x40
+  __wrap_remove_resource+0x29/0x30 [nfit_test_iomap]
+  acpi_nfit_remove_resource+0xe/0x10 [nfit]
+  devm_action_release+0xf/0x20
+  release_nodes+0x16d/0x2b0
+  devres_release_all+0x3c/0x60
+  device_release+0x21/0x90
+  kobject_release+0x6a/0x170
+  kobject_put+0x2f/0x60
+  put_device+0x17/0x20
+  platform_device_unregister+0x20/0x30
+  nfit_test_exit+0x36/0x960 [nfit_test]
+
+Reported-by: Linda Knippers <linda.knippers@hpe.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c |    7 +++++++
- drivers/acpi/nfit/nfit.h |    1 +
- 2 files changed, 8 insertions(+)
+ tools/testing/nvdimm/test/nfit.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 1d54833ade3f..69c6cc77130c 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2581,6 +2581,7 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 			acpi_nfit_register_region(acpi_desc, nfit_spa);
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index bc02f28ed8b8..d7fb1b894128 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -1958,6 +1958,7 @@ static __init int nfit_test_init(void)
+ 			put_device(&pdev->dev);
+ 			goto err_register;
  		}
- 	}
-+	acpi_desc->init_complete = 1;
++		get_device(&pdev->dev);
  
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
- 		acpi_nfit_async_scrub(acpi_desc, nfit_spa);
-@@ -2784,6 +2785,12 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
- 	device_lock(dev);
- 	device_unlock(dev);
- 
-+	/* bounce the init_mutex to make init_complete valid */
-+	mutex_lock(&acpi_desc->init_mutex);
-+	mutex_unlock(&acpi_desc->init_mutex);
-+	if (acpi_desc->init_complete)
-+		return 0;
+ 		rc = dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
+ 		if (rc)
+@@ -1976,6 +1977,10 @@ static __init int nfit_test_init(void)
+ 		if (instances[i])
+ 			platform_device_unregister(&instances[i]->pdev);
+ 	nfit_test_teardown();
++	for (i = 0; i < NUM_NFITS; i++)
++		if (instances[i])
++			put_device(&instances[i]->pdev.dev);
 +
- 	/*
- 	 * Scrub work could take 10s of seconds, userspace may give up so we
- 	 * need to be interruptible while waiting.
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index aaabd2721f8e..fac098bfa585 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -163,6 +163,7 @@ struct acpi_nfit_desc {
- 	unsigned int scrub_count;
- 	unsigned int scrub_mode;
- 	unsigned int cancel:1;
-+	unsigned int init_complete:1;
- 	unsigned long dimm_cmd_force_en;
- 	unsigned long bus_cmd_force_en;
- 	int (*blk_do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
+ 	return rc;
+ }
+ 
+@@ -1983,10 +1988,13 @@ static __exit void nfit_test_exit(void)
+ {
+ 	int i;
+ 
+-	platform_driver_unregister(&nfit_test_driver);
+ 	for (i = 0; i < NUM_NFITS; i++)
+ 		platform_device_unregister(&instances[i]->pdev);
++	platform_driver_unregister(&nfit_test_driver);
+ 	nfit_test_teardown();
++
++	for (i = 0; i < NUM_NFITS; i++)
++		put_device(&instances[i]->pdev.dev);
+ 	class_destroy(nfit_test_dimm);
+ }
+ 
 
