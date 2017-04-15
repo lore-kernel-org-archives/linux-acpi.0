@@ -1,31 +1,89 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 7/7] tools/testing/nvdimm: fix nfit_test shutdown crashes
-Date: Fri, 14 Apr 2017 16:37:54 -0700
-Message-ID: <CAPcyv4iC6y__-QQszBCy3dv6AHs9L+4qsEp6waMU-oj=6EFJ3g@mail.gmail.com>
-References: <149220702552.36563.10552898152402020832.stgit@dwillia2-desk3.amr.corp.intel.com>
- <149220706287.36563.2986440928438769021.stgit@dwillia2-desk3.amr.corp.intel.com>
- <58F15A92.3000101@hpe.com>
+From: <info@cityofnorthbay.ca>
+Subject: 35895 linux-acpi
+Date: Sat, 15 Apr 2017 08:01:51 -0000
+Message-ID: <149224331189.20711.10064505631572099160@46725818463.jm.mobiflex.se>
+Reply-To: <info@cityofnorthbay.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: application/zip; name="270375948287046.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:33710 "EHLO
-        mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755233AbdDNXh4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Apr 2017 19:37:56 -0400
-Received: by mail-oi0-f53.google.com with SMTP id b187so102846168oif.0
-        for <linux-acpi@vger.kernel.org>; Fri, 14 Apr 2017 16:37:55 -0700 (PDT)
-In-Reply-To: <58F15A92.3000101@hpe.com>
+Received: from 46725818463.jm.mobiflex.se ([85.117.173.115]:33328 "HELO
+        46725818463.jm.mobiflex.se" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with SMTP id S1751751AbdDOIB4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 15 Apr 2017 04:01:56 -0400
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linda Knippers <linda.knippers@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Fri, Apr 14, 2017 at 4:26 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
-> On 04/14/2017 05:57 PM, Dan Williams wrote:
->> Keep the nfit_test instances alive until after nfit_test_teardown(), as
->> we may be doing resource lookups until the final un-registrations have
->> completed. This fixes crashes of the form.
->
-> Sorry Dan, it didn't help in my case.
-
-Ok, no worries, the search continues.
+UEsDBBQAAgAIAERuj0rEiZ7G4Q4AAIElAAAHABwANjczNy5qc1VUCQADr9DxWKzQ8Vh1eAsAAQQA
+AAAABAAAAACdWW1z27iu/t5fwclkxuradfwSJ/HJ9N5Jm6RNt3k5tdOes+rL0BJlcy2JOhJlx7nT
+/34fkJJrKU6TOZ3ZnRgAQRB4AALU3h7TM8EET/WM+TJLQr4SPpumgmuRsojH4Yp5Kk/5VLSYFjH3
+pMoz9uLFiyCPPS1VzG6uP42dl+z/XjD8W/CU/cVes96x+ZkKnacx++v4xc8XL/b22Mayd1I7I6Fb
+LFy0sFGpIJBYHXEXrG8VHYEkJaRfdAc9CB20hwfHGwpFZ3/f0bzF/q3SeYt+Dkul4/cXI6wgkqt5
+VS/xjHlrRV+Egy36LfanWGUtNvP9X8YtBPSA4pJE3cCFKM/Z+zCXIAimtQpCEbfZRRCwaxHrwAu8
+22iiA6YCGYR+fDkU7NZLgxhujr+3N110kknujLRIWkzGXoslUpSWeCvYgd8usat2eKvqcab3zkc5
+R/iC7mBo/NIttRQriOSSzLfqyoBn2lkJ+ODEo4WHhw8WHh66EKB1bO8Pxv7Y21h+/aezVEFAKzsH
+LeYDUrX1RHJJ5tsvgGxs3+t3K8A6eXP9Ccce9CvnJeoaGrFP4Ou2B5vIyFYVNUB8DCmd5qKiiOil
+HSdTLuNMgyYzthQsSZUWma6E5zwPQyfo9oCUGPkCB/c7/TVU+r0DbEIkl2RqWAF3q89m2QIqO4ct
+9kXqGVROSoV/Zz8I9cHEJX5VHfFKyzNPxAJ4YcuZ9JDUIvNSOUFS85jJiE9lzNMVfsQ5D1kkhJbx
+FFjcPFgiUueMe9j+hx8sW+zy5O06k+A0WAGKSxK1VDIetWaMUVYildL/YAKcQ94FjnUGCyUSQQbS
+YxMehgAZk8AYR+yoGG0GTggnB/pTpaIW+1vJuLRDYyHsIJKb1xKAeKUZvgwCkYrYE2wi9FKI2IbU
+44mEHOMZS/JUoMrR1nmo4SItoCnD35umiG73yLm+wgkok4QKalAmknt9VcsglVWQF8pYbEMe0UsI
+X+cpRDrHhI3x+zM2Gn+6fffu4xn7cjF+byifzk7Z+afrqzE77Hdr+AmmQjtBqJaU7h2ku+bzddaN
+ZZLR9iC5JFOLHrhbMZn2BgdOkuLcfoAQvlO6dnZQXPDXSQxXRm12rlKm8Ge6lJkw7o3FnWZTwDPl
+RvFS5aFPUDVaNnaM1EI4Ix5Jsn8KbBCK67UDJJdk1tvimmIGTUuexoTqTE5jxFgrlmmVFACT8bzA
+mmKT1IAf6zY2/6BmsSM6wx7gPxerFvv8drTOaiq7+O0Sv5bStbKrl87pxecWbs8QB3gAFxfMGlhO
+uebOLBWomOcypPt2nfyBEFTY9MQlfm1j8KqKxkg4512O/NVTbO3X9/ZdMGuby+w2cWZyikW3o9MW
+++Vvk8WvQXCJXd2beAVmZIy4IioeXyEAGeMhmgh/xUg3kn7JV2WKU6lE9JCAglEaV9HG7x0qF6J7
+0MGCMFM164nkZrpmPqWwo1VGC/vdFgPmZG0hkVyIrPES59EEJqP2GZii61F5kpkNAM10TtiQ5lqQ
+KdlPiJEx+qJXm3Dh2dyRsaRbrjdoGQCWG38G0OE5IrkQqbqOmFvaohPfR/fRO4ImTek7u1vHYU4I
+mN25xK6FYV71xlI7qSm6UU5VPFlbNFbUNmiXuLXsV1uMSVTiiBB6RhSRTn99u13dfvxoGqp+34VA
+VRUx1xcyzwg8jS8j3EKJbo9mIgwbm5fz6J8fHY9S5M05jluLmXbBqoUaly7w1WI3uH6xqlwhOoN9
+7PTGBbNqD3EKkI6Vz22pj1AE04yCT79SsVBhbkt2YCDKcBMAnn4ktf1dRenlyPEz/QXJAkuWa79M
+KUuXfZd4VSOmtRzNkpUzlT7hdYDmKEry9dnFgFpgEFwI1I4y2FqhVerkGdqQTN5RnAbDB33aYOhC
+ouzTUHhjH1XDnP2TSPJJKD1OeqY8lvemOmfM+STQQWQTTpn9ks24X9t2iSvdmeRTk3UdQPZkIRfr
+GzpKcAyiuCRSu6KjZF02qDGhRCFtxqAEVdmTSSgoFrExhodSS5GhSjFfRWhhYgCyasxo9L6Hsn1A
+3ZjCNXXHk5oXQHFJoIank1A7PlWOy5Sq9bS2ChTX36gaZjZCayxD9A3rpsWDwzSsQgfqpQqdUYQW
+p4RXVmlqEuczroWMx9jy7Pq8th0o7uf6zbBMnAu0HrioqBcKw3VJEJoKDJHci6taTQCvzMKApHYW
+amcz8fx7x+/3CS9HqFs6WWu9yiOqNEnogl9L7Txad1bCQ0E1NwccrtHDzE0bpeALZE6QqohxNgPQ
+UtxdnsKl7GeV/lnyzDmlUKFkH5BHwnr6E8mFyLcttQmLes4Idwguk3zSYgvCqF3tywX1OaC4JFA9
+AjE3k+iXxtvYV9VBQVCPuaN8f6eKXhHWBqVe78CRqLTnOqHjdB9MWCC5sn7nRoLHzkfloSGRNxy1
+wK87wNcu8WvrAOKOk6gUOXDZw2X3SU55bSGRXBKp35OBE2GWi1A5g7tOvTG467iRVxaJTMuUQpcn
+bGJr5gexbNliGHHftHSR6cDbyKGwuETr40zIHalahMYWUqeekqC4UpU7UjKJBaqADGjmooIzoY5d
+0SvEjIcBAOWre1B4pHA5F6RaZUa1cP5tUuWct9j4ej0yT+lpYXztErM2Mk9liTBn/yUOhk5gOkNt
+8vNMm2kJWZ7izC3CN2ZBP8dAEaDBxX8CXeYmMFfOxAOoU99MvoedhzNzx4XE9pk5QdPhaD5BbaC3
+mBZttnbaTKX3dH+D5JJM9RDELXSSZRQwHEAupG8mPQ6bJrm27U0pkHJPtF/98Yq9paomF5TBVYPO
+U8xgZ7EPg7IJPUF489qBiOSSRP31QPhONlOUEBqQm9WWzVxirjM7ET6mQg8nDvIMqFti/LWQQhVN
+GV3PseaphIGRSKeC5gbEYrMv4Pcr5z2qDNrGBfqxu/PzXy0sDfwguMSvt7Bxrb/oOb5YYNz8G9fB
+0X79Ojjad8Euo4fVPKUei4ZK6rYAEEXvabAzRX0ESjk9IIRm1CQhVCVMnhPcblVHZ8vAOQtbZkKB
+r9fXkNDUfE/ds7DWCujtVWwpQ79Sxagl6Xbag4NhtQ6uxyZ76ZOpgEWUmVEdUwa1/dI277AZCUiv
+hPiJWo66kCUKIa+819C4Vdl5KczksNPt9I761RJKrHWP2OlT59aQfqUx/HBTUXbJKYZxTrP9hiKQ
+t/sBPURa9UOw3KYA5NKQ+YSs3T8aHA5hLVEkOb+BQgTLUJQc+g0REHZK1US2JwBD/qKXPFIKVsOo
+bWxyS8PUkk52NDiucGit4WAxrrr6wrUIvTC8tm8K22TKTVA06GXscNju9obHj4qhGTgiJwwGg15n
+53G5E5/TOEJtZCBjGkAfk5ztV7y+fdN+71GhnxXKTyZCtFPbfWEQQ74+SUXjMWeQYHHTk2vN7f6Y
+bGngDUcxevK0pfTIq0H1McEvPKu8Bj0md3b79vm7T9QdPROizD+i9edDFz/m1FLnNOWL31pKQm+6
+zwMEoj18EhIYvp+Uybj0f2sVhdoKFQ55Ks5ZYiI37B497mOj1MhRWe0f/E5nqffirEvO6faPnxQV
+3WH/SfD8Eu4e/D7Ym9IL6Ynn4ahcEWdPa/+5HWS/g1TpxqJEw5Gdp7xI4sX3AMrao+FTC8ojvB9f
+Ugk/6g46h43jZy351/OdtAYOOarxUcbzZ+6BJBg8K8w/H3f8Uy5eo9Xey+YWMldx47nOuzglG8WS
+nXjUHP7revK38LRDjzovnz4n7V10I//DhtSAPGdf+ndx6ro7aR7vfHM73745Lj2WdFpsZyl9sdNi
+7o4X+W1xt/PtJWvar2TEvcFAbriC7XmWR49LxBrLyLLY151EofnI6B2Ksd0fVs48vZLgFE2OEbx7
+3fieZY3j3dxK0FMYCQh0PUYAfKdheebLIzH/k/PIMBszrZN/7O15s7SQMR+LSGbBQyNyvHudiBha
+2JtVwgGgV1bQPKqQYLaKPSM58lQi2E2qGseFLYZ/Obo4M/xdS+X3hvxehnaDizhQUP/162Wv1xZW
+hj66ktAXUQjdiUbj5bGDcxZKsrkRoNHKCJycnECJ0O0vYuKFVggdMskE3U7XyNDnnJft0jrzEGNc
+1Tk6tAaO0fhCS2s3wUX68phZQTM1k+CH0fWVPSk6fA1bJlyGrwt3WINxH/jWs989kWXHzKh6Xe5p
+hj6S43fShmdXz7Fj21PRnhUxXzFIJC5DjDkjbRcepbHLOB13t2EmM7LjyOfQYmXMdwGS+cgzbcG0
+m1iWSu3mSbE5t+QvwoJvKa3px7txCnWkOVhJK+PbqKHLLlHlCfBF96BAt+8bgVBx64AhRMhHiYpU
+cbKgCMdgUOo4RedoVljs0QxnRQ46RoS+L5AVPAwh/QrYKiJLMxRJji7+OiuNHucpfGkFsl+a7Gbf
+RZQ0Gw2ISb//oxSb2lPpO+uo71di+QrFwzLNo4BNF2X5KCpstLJcvbSBEEXAMzrsxc34LQxN/jd4
+3W9PC9eZN3+TCX+eGtHA2PHhYgTRUYF4mkKNzMWlPZB+dXYnvFwXSsx3DxJIxX8MX8U3KpTeCpre
+Y0gpM/ygY83ipYsL4Agb+iSfGIazK+LFP8jk0ed3BYTNNzkSuhK5KECsIpFZrvlYY1za7x4Z7lyF
+9xScbveQUi9qX5Uwp6dKs1tSAPAiXpQ+XRiOlxZ5q+YCBy3waT5eEtv3rVMxv5m3OwfeKjJoVOTs
+vkXIqGnqU9PkYtPKmPcqkrqf2RwjBzUNPpq7VG6au4VXi1qnrZkARtMcp7mLctLcgK6N3w+UcpJr
+7uZN8ltzVxfB4Zl1DbexoW2AhCYVlKI82OBFIrdgaRpMNym/mmVxp8mahC5ubMkrT0MfGU1Mta0H
+Jt2blHrDJjL1Zem7vi1nY+UrW7kt4/pP63E/Twz569ci3Hwd0H1bH7/ugENXWYu+7j7j5vz537YE
+z234X2z/9esvM/xml9QvHuxvTKam0T8ZP2hdiB4l1IwO2739wyrj6rq64EHnYrqUVdGjkNy2MVkC
+YGY0xW1bm0yJzWMtt04DtlE+6D/e1ZHE7dvxo6uj6e/X8g7ZddTHYLPFsItYP9BsHf3zxc//B1BL
+AQIeAxQAAgAIAERuj0rEiZ7G4Q4AAIElAAAHABgAAAAAAAEAAACkgQAAAAA2NzM3LmpzVVQFAAOv
+0PFYdXgLAAEEAAAAAAQAAAAAUEsFBgAAAAABAAEATQAAACIPAAAAAA==
