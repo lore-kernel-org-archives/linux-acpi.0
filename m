@@ -1,54 +1,81 @@
-From: <geir.nuland@lyse.net>
-Subject: (unknown)
-Date: Sun, 16 Apr 2017 08:52:09 -0000
-Message-ID: <149233272920.20711.1594913100068746653@smartlation.info>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v2] i2c: i2c-scmi: add a MS HID
+Date: Sun, 16 Apr 2017 21:50:13 +0200
+Message-ID: <20170416195013.oldw47c4novlyxwh@ninjato>
+References: <1491322707-2991-1-git-send-email-vkrasnov@dev.rtsoft.ru>
 Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_75980237014631_linux-acpi.zip"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="3zeaun3kycraaggs"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.smartlation.info ([76.72.161.186]:45580 "HELO
-        smartlation.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1752442AbdDPIwM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Apr 2017 04:52:12 -0400
-Subject: 
-Content-Disposition: attachment
+Received: from sauhun.de ([88.99.104.3]:57659 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756617AbdDPTuQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 16 Apr 2017 15:50:16 -0400
+Content-Disposition: inline
+In-Reply-To: <1491322707-2991-1-git-send-email-vkrasnov@dev.rtsoft.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
+To: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+Cc: jdelvare@suse.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com, jarkko.nikula@linux.intel.com, echerkasov@dev.rtsoft.ru, Michael.Brunner@kontron.com
 
-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
+
+--3zeaun3kycraaggs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Apr 04, 2017 at 07:18:27PM +0300, Viktor Krasnov wrote:
+> From: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+>=20
+> Description of the problem:
+>  - i2c-scmi driver contains only two identifiers "SMBUS01" and "SMBUSIBM";
+>  - the fist HID (SMBUS01) is clearly defined in "SMBus Control Method
+>    Interface Specification, version 1.0": "Each device must specify
+>    'SMBUS01' as its _HID and use a unique _UID value";
+>  - unfortunately, BIOS vendors (like AMI) seem to ignore this requirement
+>    and implement "SMB0001" HID instead of "SMBUS01";
+>  - I speculate that they do this because only "SMB0001" is hard coded in
+>    Windows SMBus driver produced by Microsoft.
+>=20
+> This leads to following situation:
+>  - SMBus works out of box in Windows but not in Linux;
+>  - board vendors are forced to add correct "SMBUS01" HID to BIOS to make
+>    SMBus work in Linux. Moreover the same board vendors complain that
+>    tools (3-rd party ASL compiler) do not like the "SMBUS01" identifier
+>    and produce errors.  So they need to constantly patch the compiler for
+>    each new version of BIOS.
+>=20
+> As it is very unlikely that BIOS vendors implement a correct HID in
+> future, I would propose to consider whether it is possible to work around
+> the problem by adding MS HID to the Linux i2c-scmi driver.
+>=20
+> v2: move the definition of the new HID to the driver itself.
+>=20
+> Signed-off-by: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+> Signed-off-by: Michael Brunner <Michael.Brunner@kontron.com>
+> Acked-by: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+
+Applied to for-next, thanks!
+
+
+--3zeaun3kycraaggs
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAljzyvUACgkQFA3kzBSg
+KbZdWw/9E6oOZGNOJZiYhYWt27kl3DbZ0IFoklJarjpA6lpHuIa6Zqzhj2I3HR/t
+AM/PclX06YG7xfJo/zzi8Ex5DsRqEmASMWxW5WcmIVgeHMeYEObwS5SPowqTN21o
+F+LuR3VyeMBdqlwm8V1OulLpXI4iXGf0aLpCC6iOpo70tgnDcyhZvw48gVa9B/UE
+A/Ni+vv+aYpcLN4dh0GvxMe5jKg/L9ScDT7M50nK/utMsOEZU4YAYyBkj8GyoA4l
+tdIObD2bLzlcT2jaLyWE3y59rqNlT8BcllPYAJnE1ZUOEUlUBE/Jsltp546MmWUs
+IBezrDIWVjt9Kr4l6B3sm/LZQjjYy8ezt7Uk/njZbmrDfEFPPURhZ/OL6p/8w/P0
+dBf8mPAqTUAGsCs9yqRSv9g6pnzbGr54ovZRc2PaR8I1du3crRke2xZwCIX2tmIw
+b19r5mqQ4XGeM4+1zzk+Q0+1Fb0ymWp2tEWyMUzGwg04AkkMvRtnJfM1dd5AYO4h
+BZKjSmtPb953Ok6MyDHTkwiPZNfJ0qdcz2LE5767ZBZHR8JgIRL/zywtKB+cdQN9
+jtxMPheGJKBiq+iI/sQSdCxEWA/45pCeo4rENKCvzGH6xpVrBscgDZm7y+Y4Q/Qn
+mbWyrpi1/MhCvzEkXRLc+/1YjNR/Te0h3PZYTpQRWNgZZV42AOA=
+=k7Qn
+-----END PGP SIGNATURE-----
+
+--3zeaun3kycraaggs--
