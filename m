@@ -1,88 +1,144 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: Export mutex functions
-Date: Mon, 17 Apr 2017 17:12:57 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E59332C@ORSMSX110.amr.corp.intel.com>
-References: <1492009990-3539-1-git-send-email-linux@roeck-us.net>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E5924DB@ORSMSX110.amr.corp.intel.com>
- <20170412212241.GA12384@roeck-us.net>
- <1AE640813FDE7649BE1B193DEA596E886CE92A85@SHSMSX101.ccr.corp.intel.com>
- <20170417155646.GA8730@roeck-us.net>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH v3 1/8] trace: ras: add ARM processor error information
+ trace event
+Date: Mon, 17 Apr 2017 11:18:43 -0600
+Message-ID: <f8ef4306-fd69-d8a3-3ca6-86be2825cab3@codeaurora.org>
+References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
+ <1490869877-118713-11-git-send-email-xiexiuqi@huawei.com>
+ <32ca4e7e-eb5e-a4ff-33d6-68d06e9242fb@codeaurora.org>
+ <6c0d2652-71ba-aefc-d6cd-5cc9a0b0d729@huawei.com>
+ <8aa30f6a-d18d-1cce-57dc-08efb52d822e@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:57409 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754243AbdDQRNF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 17 Apr 2017 13:13:05 -0400
-In-Reply-To: <20170417155646.GA8730@roeck-us.net>
+Received: from smtp.codeaurora.org ([198.145.29.96]:40150 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752528AbdDQRSt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Apr 2017 13:18:49 -0400
+In-Reply-To: <8aa30f6a-d18d-1cce-57dc-08efb52d822e@huawei.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Xie XiuQi <xiexiuqi@huawei.com>, christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, james.morse@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com
+Cc: linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com, zhengqiang10@huawei.com, wuquanming@huawei.com, wangxiongfeng2@huawei.com
 
-There is a model for the drivers to directly acquire an AML mutex object. That is why the acquire/release public interfaces were added to ACPICA.
+On 4/16/2017 9:16 PM, Xie XiuQi wrote:
+> On 2017/4/17 11:08, Xie XiuQi wrote:
+>>> On 3/30/2017 4:31 AM, Xie XiuQi wrote:
+>>>> Add a new trace event for ARM processor error information, so that
+>>>> the user will know what error occurred. With this information the
+>>>> user may take appropriate action.
+>>>>
+>>>> These trace events are consistent with the ARM processor error
+>>>> information table which defined in UEFI 2.6 spec section N.2.4.4.1.
+>>>>
+>>>> ---
+>>>> v2: add trace enabled condition as Steven's suggestion.
+>>>>       fix a typo.
+>>>> ---
+>>>>
+>>>> Cc: Steven Rostedt <rostedt@goodmis.org>
+>>>> Cc: Tyler Baicar <tbaicar@codeaurora.org>
+>>>> Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
+>>>> ---
+>>>
+...
+>>>> +/*
+>>>> + * First define the enums in MM_ACTION_RESULT to be exported to userspace
+>>>> + * via TRACE_DEFINE_ENUM().
+>>>> + */
+>>>> +#undef EM
+>>>> +#undef EMe
+>>>> +#define EM(a, b) TRACE_DEFINE_ENUM(a);
+>>>> +#define EMe(a, b)    TRACE_DEFINE_ENUM(a);
+>>>> +
+>>>> +ARM_PROC_ERR_TYPE
+>>>> +ARM_PROC_ERR_FLAGS
+>>> Are the above two lines supposed to be here?
+>>>> +
+>>>> +/*
+>>>> + * Now redefine the EM() and EMe() macros to map the enums to the strings
+>>>> + * that will be printed in the output.
+>>>> + */
+>>>> +#undef EM
+>>>> +#undef EMe
+>>>> +#define EM(a, b)        { a, b },
+>>>> +#define EMe(a, b)    { a, b }
+>>>> +
+>>>> +TRACE_EVENT(arm_proc_err,
+>>> I think it would be better to keep this similar to the naming of the current RAS trace events (right now we have mc_event, arm_event, aer_event, etc.). I would suggest using "arm_err_info_event" since this is handling the error information structures of the arm errors.
+>>>> +
+>>>> +    TP_PROTO(const struct cper_arm_err_info *err),
+>>>> +
+>>>> +    TP_ARGS(err),
+>>>> +
+>>>> +    TP_STRUCT__entry(
+>>>> +        __field(u8, type)
+>>>> +        __field(u16, multiple_error)
+>>>> +        __field(u8, flags)
+>>>> +        __field(u64, error_info)
+>>>> +        __field(u64, virt_fault_addr)
+>>>> +        __field(u64, physical_fault_addr)
+>>> Validation bits should also be a part of this structure that way user space tools will know which of these fields are valid.
+>> Could we use the default value to check the validation which we have checked in TP_fast_assign?
+Yes, true...I guess we really don't need the validation bits then.
+>>>> +    ),
+>>>> +
+>>>> +    TP_fast_assign(
+>>>> +        __entry->type = err->type;
+>>>> +
+>>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_MULTI_ERR)
+>>>> +            __entry->multiple_error = err->multiple_error;
+>>>> +        else
+>>>> +            __entry->multiple_error = ~0;
+>>>> +
+>>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_FLAGS)
+>>>> +            __entry->flags = err->flags;
+>>>> +        else
+>>>> +            __entry->flags = ~0;
+>>>> +
+>>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_ERR_INFO)
+>>>> +            __entry->error_info = err->error_info;
+>>>> +        else
+>>>> +            __entry->error_info = 0ULL;
+>>>> +
+>>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_VIRT_ADDR)
+>>>> +            __entry->virt_fault_addr = err->virt_fault_addr;
+>>>> +        else
+>>>> +            __entry->virt_fault_addr = 0ULL;
+>>>> +
+>>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR)
+>>>> +            __entry->physical_fault_addr = err->physical_fault_addr;
+>>>> +        else
+>>>> +            __entry->physical_fault_addr = 0ULL;
+>>>> +    ),
+>>>> +
+>>>> +    TP_printk("ARM Processor Error: type %s; count: %u; flags: %s;"
+>>> I think the "ARM Processor Error:" part of this should just be removed. Here's the output with this removed and the trace event renamed to arm_err_info_event. I think this looks much cleaner and matches the style used with the arm_event.
+>>>
+>>>            <idle>-0     [020] .ns.   366.592434: arm_event: affinity level: 2; MPIDR: 0000000000000000; MIDR: 00000000510f8000; running state: 1; PSCI state: 0
+>>>            <idle>-0     [020] .ns.   366.592437: arm_err_info_event: type cache error; count: 0; flags: 0x3; error info: 0000000000c20058; virtual address: 0000000000000000; physical address: 0000000000000000
+> As this section is ARM Processor Error Section, how about use arm_proc_err_event?
+This is not for the ARM Processor Error Section, that is what the 
+arm_event is handling. What you are adding this trace support for here 
+is called the ARM Processor Error Information (UEFI 2.6 spec section 
+N.2.4.4.1). So I think your trace event here should be called 
+arm_err_info_event. This will also be consistent with the other two 
+trace events that I'm planning on adding:
 
-I forget all of the details, but the model was developed with MS and others during the ACPI 6.0 timeframe.
+arm_ctx_info_event: ARM Processor Context Information (UEFI 2.6 section 
+N.2.4.4.2)
+arm_vendor_info_event: This is the "Vendor Specific Error Information" 
+in the ARM Processor Error Section (Table 260). It's possible I may just 
+add this into the arm_event trace event, but I haven't looked into it 
+enough yet.
 
+Thanks,
+Tyler
 
-> -----Original Message-----
-> From: Guenter Roeck [mailto:linux@roeck-us.net]
-> Sent: Monday, April 17, 2017 8:57 AM
-> To: Zheng, Lv
-> Cc: Moore, Robert; Wysocki, Rafael J; Len Brown; linux-
-> acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org
-> Subject: Re: [PATCH] ACPICA: Export mutex functions
-> 
-> Hi,
-> 
-> On Mon, Apr 17, 2017 at 09:39:35AM +0000, Zheng, Lv wrote:
-> > Hi,
-> >
-> > > From: Guenter Roeck [mailto:linux@roeck-us.net]
-> > > Subject: Re: [PATCH] ACPICA: Export mutex functions
-> > >
-> > > On Wed, Apr 12, 2017 at 03:29:55PM +0000, Moore, Robert wrote:
-> > > > The ACPICA mutex functions are based on the host OS functions, so
-> they don't really buy you anything.
-> > > You should just use the native Linux functions.
-> > > >
-> > >
-> > > You mean they don't really acquire the requested ACPI mutex, and the
-> > > underlying DSDT which declares and uses the mutex just ignores if
-> > > the mutex was acquired by acpi_acquire_mutex() ?
-> > >
-> > > To clarify: You are saying that code such as
-> > >
-> > > 	acpi_status status;
-> > >
-> > > 	status = acpi_acquire_mutex(NULL, "\\_SB.PCI0.SBRG.SIO1.MUT0",
-> 0x10);
-> > > 	if (ACPI_FAILURE(status)) {
-> > > 		pr_err("Failed to acquire ACPI mutex\n");
-> > > 		return -EBUSY;
-> > > 	}
-> >
-> > Why do you need to access \_SB.PCI0.SBRG.SIO1.MUT0?
-> > OSPM should only invoke entry methods predefined by ACPI spec or
-> whatever specs.
-> > There shouldn't be any needs that a driver acquires an arbitrary AML
-> mutex.
-> > You do not seem to have justified the usage model, IMO.
-> >
-> 
-> I am sorry, I have no idea how to do that. I can see that the resource in
-> question (IO address 0x2e/0x2f) is accessed from the DSDT, that the
-> resource is mutex protected, and that accesses to the same IO address from
-> the Linux kernel are unreliable unless I acquire the mutex in question. At
-> the same time, I can see that request_muxed_region() succeeds, so
-> presumably ACPI does not reserve the region for its exclusive use.
-> 
-> It may well be that the "official" response to this problem is "you must
-> not instantiate a watchdog, environmental monitor, or gpio driver (or
-> anything else provided by the Super-IO chip that requires access to those
-> ports) on this platform in Linux". Is that what you are suggesting ?
-> 
-> Thanks,
-> Guenter
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
+
