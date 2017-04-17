@@ -1,53 +1,88 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2 0/2] additional sysfs entries for CPPC
-Date: Mon, 17 Apr 2017 18:20:53 +0200
-Message-ID: <2277460.NbhXrg4XLS@aspire.rjw.lan>
-References: <1490817000-13876-1-git-send-email-pprakash@codeaurora.org> <94a244fe-27be-7615-f7f9-e5ac77af851a@codeaurora.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: Export mutex functions
+Date: Mon, 17 Apr 2017 17:12:57 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E59332C@ORSMSX110.amr.corp.intel.com>
+References: <1492009990-3539-1-git-send-email-linux@roeck-us.net>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E5924DB@ORSMSX110.amr.corp.intel.com>
+ <20170412212241.GA12384@roeck-us.net>
+ <1AE640813FDE7649BE1B193DEA596E886CE92A85@SHSMSX101.ccr.corp.intel.com>
+ <20170417155646.GA8730@roeck-us.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49973 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754031AbdDQQ05 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 17 Apr 2017 12:26:57 -0400
-In-Reply-To: <94a244fe-27be-7615-f7f9-e5ac77af851a@codeaurora.org>
+Received: from mga11.intel.com ([192.55.52.93]:57409 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754243AbdDQRNF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 17 Apr 2017 13:13:05 -0400
+In-Reply-To: <20170417155646.GA8730@roeck-us.net>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, hotran@apm.com, ahs3@redhat.com, Alexey Klimov <alexey.klimov@arm.com>, George Cherian <george.cherian@cavium.com>
+To: Guenter Roeck <linux@roeck-us.net>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Monday, April 17, 2017 09:42:15 AM Prakash, Prashanth wrote:
-> Cc++
+There is a model for the drivers to directly acquire an AML mutex object. That is why the acquire/release public interfaces were added to ACPICA.
+
+I forget all of the details, but the model was developed with MS and others during the ACPI 6.0 timeframe.
+
+
+> -----Original Message-----
+> From: Guenter Roeck [mailto:linux@roeck-us.net]
+> Sent: Monday, April 17, 2017 8:57 AM
+> To: Zheng, Lv
+> Cc: Moore, Robert; Wysocki, Rafael J; Len Brown; linux-
+> acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org
+> Subject: Re: [PATCH] ACPICA: Export mutex functions
 > 
-> Any feedback on this?
+> Hi,
 > 
-> On 3/29/2017 1:49 PM, Prashanth Prakash wrote:
-> > This patch-set adds few additional sysfs entries to expose the
-> > performance capabilities of each CPU. The performance capabilities
-> > include highest perf, lowest perf, nominal perf and lowest
-> > non-linear perf. See 8.4.7.1 for ACPI 6.1 spec for details on
-> > these capabilities.
+> On Mon, Apr 17, 2017 at 09:39:35AM +0000, Zheng, Lv wrote:
+> > Hi,
 > >
-> > cppc_cpufreq driver operates in KHz scale whereas the delivered
-> > performance computed in userspace will be in abstract CPPC scale, so
-> > exposing perf capabilities should allow userspace to figure out the
-> > conversion factor from CPPC scale to KHz.
+> > > From: Guenter Roeck [mailto:linux@roeck-us.net]
+> > > Subject: Re: [PATCH] ACPICA: Export mutex functions
+> > >
+> > > On Wed, Apr 12, 2017 at 03:29:55PM +0000, Moore, Robert wrote:
+> > > > The ACPICA mutex functions are based on the host OS functions, so
+> they don't really buy you anything.
+> > > You should just use the native Linux functions.
+> > > >
+> > >
+> > > You mean they don't really acquire the requested ACPI mutex, and the
+> > > underlying DSDT which declares and uses the mutex just ignores if
+> > > the mutex was acquired by acpi_acquire_mutex() ?
+> > >
+> > > To clarify: You are saying that code such as
+> > >
+> > > 	acpi_status status;
+> > >
+> > > 	status = acpi_acquire_mutex(NULL, "\\_SB.PCI0.SBRG.SIO1.MUT0",
+> 0x10);
+> > > 	if (ACPI_FAILURE(status)) {
+> > > 		pr_err("Failed to acquire ACPI mutex\n");
+> > > 		return -EBUSY;
+> > > 	}
 > >
-> > Changes in V2:
-> >  - Removed caching of perf caps based on Rafael's inputs
+> > Why do you need to access \_SB.PCI0.SBRG.SIO1.MUT0?
+> > OSPM should only invoke entry methods predefined by ACPI spec or
+> whatever specs.
+> > There shouldn't be any needs that a driver acquires an arbitrary AML
+> mutex.
+> > You do not seem to have justified the usage model, IMO.
 > >
-> > Prashanth Prakash (2):
-> >   ACPI / CPPC: Read lowest non linear perf in cppc_get_perf_caps
-> >   ACPI / CPPC: add sysfs entries for CPPC perf capabilities
-> >
-> >  drivers/acpi/cppc_acpi.c | 80 ++++++++++++++++++++++++++----------------------
-> >  include/acpi/cppc_acpi.h |  3 +-
-> >  2 files changed, 46 insertions(+), 37 deletions(-)
-
-I am about to get to this.
-
-Thanks,
-Rafael
-
+> 
+> I am sorry, I have no idea how to do that. I can see that the resource in
+> question (IO address 0x2e/0x2f) is accessed from the DSDT, that the
+> resource is mutex protected, and that accesses to the same IO address from
+> the Linux kernel are unreliable unless I acquire the mutex in question. At
+> the same time, I can see that request_muxed_region() succeeds, so
+> presumably ACPI does not reserve the region for its exclusive use.
+> 
+> It may well be that the "official" response to this problem is "you must
+> not instantiate a watchdog, environmental monitor, or gpio driver (or
+> anything else provided by the Super-IO chip that requires access to those
+> ports) on this platform in Linux". Is that what you are suggesting ?
+> 
+> Thanks,
+> Guenter
