@@ -1,52 +1,130 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH v8 10/15] ACPI: platform-msi: retrieve dev id from IORT
-Date: Mon, 17 Apr 2017 18:01:35 -0400
-Message-ID: <9556e737-a9d8-f751-2872-6fabce86fa48@codeaurora.org>
-References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
- <1484744105-53140-11-git-send-email-guohanjun@huawei.com>
- <838d8504-b6f0-2475-f4b1-9761ecd9f573@codeaurora.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH] ACPICA: Export mutex functions
+Date: Mon, 17 Apr 2017 15:32:57 -0700
+Message-ID: <20170417223257.GA22495@roeck-us.net>
+References: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5924DB@ORSMSX110.amr.corp.intel.com>
+ <20170412212241.GA12384@roeck-us.net>
+ <1AE640813FDE7649BE1B193DEA596E886CE92A85@SHSMSX101.ccr.corp.intel.com>
+ <20170417155646.GA8730@roeck-us.net>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E59332C@ORSMSX110.amr.corp.intel.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E59345B@ORSMSX110.amr.corp.intel.com>
+ <20170417194527.GA16734@roeck-us.net>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E593580@ORSMSX110.amr.corp.intel.com>
+ <20170417210353.GA19771@roeck-us.net>
+ <CAJZ5v0jyxRH_B7Yj7HxRdxhofZjgRf175WqmyjtsupWPQYx6tQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:46850 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751620AbdDQWBk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Apr 2017 18:01:40 -0400
-In-Reply-To: <838d8504-b6f0-2475-f4b1-9761ecd9f573@codeaurora.org>
+Received: from bh-25.webhostbox.net ([208.91.199.152]:39280 "EHLO
+        bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752401AbdDQWdA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Apr 2017 18:33:00 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0jyxRH_B7Yj7HxRdxhofZjgRf175WqmyjtsupWPQYx6tQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Matthias Brugger <mbrugger@suse.com>, Wei Xu <xuwei5@hisilicon.com>, Ming Lei <tom.leiming@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-On 4/17/2017 5:44 PM, Sinan Kaya wrote:
-> Any idea what happened to the change in this function during merge?
+On Mon, Apr 17, 2017 at 11:29:38PM +0200, Rafael J. Wysocki wrote:
+> On Mon, Apr 17, 2017 at 11:03 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+> > On Mon, Apr 17, 2017 at 08:40:38PM +0000, Moore, Robert wrote:
+> >>
+> >>
+> >> > -----Original Message-----
+> >> > From: Guenter Roeck [mailto:linux@roeck-us.net]
+> >> > Sent: Monday, April 17, 2017 12:45 PM
+> >> > To: Moore, Robert <robert.moore@intel.com>
+> >> > Cc: Zheng, Lv <lv.zheng@intel.com>; Wysocki, Rafael J
+> >> > <rafael.j.wysocki@intel.com>; 'Len Brown' <lenb@kernel.org>; 'linux-
+> >> > acpi@vger.kernel.org' <linux-acpi@vger.kernel.org>; 'devel@acpica.org'
+> >> > <devel@acpica.org>; 'linux-kernel@vger.kernel.org' <linux-
+> >> > kernel@vger.kernel.org>; Box, David E <david.e.box@intel.com>
+> >> > Subject: Re: [PATCH] ACPICA: Export mutex functions
+> >> >
+> >> > On Mon, Apr 17, 2017 at 07:27:37PM +0000, Moore, Robert wrote:
+> >> > >
+> >> > > > -----Original Message-----
+> >> > > > From: Moore, Robert
+> >> > > > Sent: Monday, April 17, 2017 10:13 AM
+> >> > > > To: Guenter Roeck <linux@roeck-us.net>; Zheng, Lv
+> >> > > > <lv.zheng@intel.com>
+> >> > > > Cc: Wysocki, Rafael J <rafael.j.wysocki@intel.com>; Len Brown
+> >> > > > <lenb@kernel.org>; linux-acpi@vger.kernel.org; devel@acpica.org;
+> >> > > > linux- kernel@vger.kernel.org
+> >> > > > Subject: RE: [PATCH] ACPICA: Export mutex functions
+> >> > > >
+> >> > > > There is a model for the drivers to directly acquire an AML mutex
+> >> > > > object. That is why the acquire/release public interfaces were added
+> >> > > > to ACPICA.
+> >> > > >
+> >> > > > I forget all of the details, but the model was developed with MS and
+> >> > > > others during the ACPI 6.0 timeframe.
+> >> > > >
+> >> > > >
+> >> > > [Moore, Robert]
+> >> > >
+> >> > >
+> >> > > Here is the case where the OS may need to directly acquire an AML
+> >> > mutex:
+> >> > >
+> >> > > From the ACPI spec:
+> >> > >
+> >> > > 19.6.2 Acquire (Acquire a Mutex)
+> >> > >
+> >> > > Note: For Mutex objects referenced by a _DLM object, the host OS may
+> >> > also contend for ownership.
+> >> > >
+> >> > From the context in the dsdt, and from description of expected use cases
+> >> > for _DLM objects I can find, this is what the mutex is used for (to
+> >> > serialize access to a resource on a low pin count serial interconnect,
+> >> > aka LPC).
+> >> >
+> >> > What does that mean in practice ? That I am not supposed to use it
+> >> > because it doesn't follow standard ACPI mutex declaration rules ?
+> >> >
+> >> > Thanks,
+> >> > Guenter
+> >> >
+> >> > >
+> >> [Moore, Robert]
+> >>
+> >> I'm not an expert on the _DLM method, but I would point you to the description section in the ACPI spec, 5.7.5 _DLM (DeviceLock Mutex).
+> >>
+> >
+> > I did. However, not being an ACPI expert, that doesn't tell me anything.
 > 
-> https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/commit/?id=ae7c18380495ac5c14a614fdb6c452c3bf9148ac
+> Basically, if the kernel and AML need to access a device concurrently,
+> there should be a _DLM object under that device in the ACPI tables.
+> In that case it is expected to return a list of (AML) mutexes that can
+> be acquired by the kernel in order to synchronize device access with
+> respect to AML (and for each mutex it may also return a description of
+> the specific resources to be protected by it).
 > 
+> Bottom line: without _DLM, the kernel cannot synchronize things with
+> respect to AML properly, because it has no information how to do that
+> then.
 
-I realized that there is a V9 out there. I'm catching up with the work. 
+That is all quite interesting. I do see the mutex in question used on various
+motherboards from various vendors (I checked boards from Gigabyte, MSI, and
+Intel). Interestingly, the naming seems to be consistent - it is always named
+"MUT0". For the most part, it seems to be available on more recent
+motherboards; older motherboards tend to use the resource without locking.
+However, I don't see any mention of "_DLM" in any of the DSDTs.
 
-https://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git/commit/?h=irq/irqchip-4.12&id=e6db07d0f3b6da1f8cfd485776bfefa4fcdbfc45
+At the same time, access to ports 0x2e/0x2f is widely used in the kernel.
+As mentioned before, it is used in watchdog, hardware monitoring, and gpio
+drivers, but also in parallel port and infrared driver code. Effectively
+that means that all this code is inherently unsafe on systems with ACPI
+support.
 
-seems to be fixing the issue. 
+I had thought about implementing a set of utility functions to make the kernel
+code safer to use if the mutex is found to exist. Right now I wonder, though,
+if such code would have a chance to be accepted. Any thoughts on that ?
 
-> 63a52b3 platform-msi: Make platform_msi_create_device_domain() ACPI aware
-> e07b978 irqchip/gicv3-its: platform-msi: Scan MADT to create platform msi domain
-> 09be1d5 irqchip/gicv3-its: platform-msi: Refactor its_pmsi_init() to prepare for ACPI
-> 4e96df9 irqchip/gicv3-its: platform-msi: Refactor its_pmsi_prepare()
-> e593828 irqchip/gic-v3-its: Keep the include header files in alphabetic order
-> e226a74 ACPI: platform: setup MSI domain for ACPI based platform device
-> 79c7533 ACPI: platform-msi: retrieve devid from IORT
-> 43394c9 ACPI/IORT: Introduce iort_node_map_platform_id() to retrieve dev id
-> e6eaeae ACPI/IORT: Rename iort_node_map_rid() to make it generic
-> 6acbb92 ACPI/IORT: Rework iort_match_node_callback() return value handling
-> f8e2f50 ACPI/IORT: Add missing comment for iort_dev_find_its_id()
-> 4b1eeee ACPI/IORT: Fix the indentation in iort_scan_node()
+Thanks,
+Guenter
 
-Apologies for the noise.
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+> 
+> Thanks,
+> Rafael
