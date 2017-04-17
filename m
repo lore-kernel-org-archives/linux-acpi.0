@@ -1,72 +1,152 @@
-From: Cao jin <caoj.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH] acpica: trivial changes on comments
-Date: Mon, 17 Apr 2017 10:58:30 +0800
-Message-ID: <58F42F56.2070809@cn.fujitsu.com>
-References: <1492397781-18584-1-git-send-email-caoj.fnst@cn.fujitsu.com>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: Re: [PATCH v3 1/8] trace: ras: add ARM processor error information
+ trace event
+Date: Mon, 17 Apr 2017 11:08:26 +0800
+Message-ID: <6c0d2652-71ba-aefc-d6cd-5cc9a0b0d729@huawei.com>
+References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
+ <1490869877-118713-11-git-send-email-xiexiuqi@huawei.com>
+ <32ca4e7e-eb5e-a4ff-33d6-68d06e9242fb@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:3405 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932274AbdDQC6M (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Apr 2017 22:58:12 -0400
-In-Reply-To: <1492397781-18584-1-git-send-email-caoj.fnst@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <32ca4e7e-eb5e-a4ff-33d6-68d06e9242fb@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Baicar, Tyler" <tbaicar@codeaurora.org>, christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, james.morse@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com
+Cc: linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com, zhengqiang10@huawei.com, wuquanming@huawei.com, wangxiongfeng2@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org
 
-Re-to: linux-acpi@vger.kernel.org
+Hi Tyler,
 
-On 04/17/2017 10:56 AM, Cao jin wrote:
-> Remove superfluous word; unify comments and function prototype.
+Thanks for your comments and testing.
+
+On 2017/4/15 4:36, Baicar, Tyler wrote:
+> On 3/30/2017 4:31 AM, Xie XiuQi wrote:
+>> Add a new trace event for ARM processor error information, so that
+>> the user will know what error occurred. With this information the
+>> user may take appropriate action.
+>>
+>> These trace events are consistent with the ARM processor error
+>> information table which defined in UEFI 2.6 spec section N.2.4.4.1.
+>>
+>> ---
+>> v2: add trace enabled condition as Steven's suggestion.
+>>      fix a typo.
+>> ---
+>>
+>> Cc: Steven Rostedt <rostedt@goodmis.org>
+>> Cc: Tyler Baicar <tbaicar@codeaurora.org>
+>> Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
+>> ---
+> ...
+>>   +#define ARM_PROC_ERR_TYPE    \
+>> +    EM ( CPER_ARM_INFO_TYPE_CACHE, "cache error" )    \
+>> +    EM ( CPER_ARM_INFO_TYPE_TLB,  "TLB error" )    \
+>> +    EM ( CPER_ARM_INFO_TYPE_BUS, "bus error" )    \
+>> +    EMe ( CPER_ARM_INFO_TYPE_UARCH, "micro-architectural error" )
+>> +
+>> +#define ARM_PROC_ERR_FLAGS    \
+>> +    EM ( CPER_ARM_INFO_FLAGS_FIRST, "First error captured" )    \
+>> +    EM ( CPER_ARM_INFO_FLAGS_LAST,  "Last error captured" )    \
+>> +    EM ( CPER_ARM_INFO_FLAGS_PROPAGATED, "Propagated" )    \
+>> +    EMe ( CPER_ARM_INFO_FLAGS_OVERFLOW, "Overflow" )
+>> +
+> Hello Xie XiuQi,
 > 
-> Signed-off-by: Cao jin <caoj.fnst@cn.fujitsu.com>
-> ---
->  drivers/acpi/acpica/tbfadt.c  | 2 +-
->  drivers/acpi/acpica/tbutils.c | 4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
+> This isn't compiling for me because of these definitions. Here you are using ARM_*, but below in the TP_printk you are using ARCH_*. The compiler complains the ARCH_* ones are undefined:
 > 
-> diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
-> index 51860bf..ba5fcbe 100644
-> --- a/drivers/acpi/acpica/tbfadt.c
-> +++ b/drivers/acpi/acpica/tbfadt.c
-> @@ -449,7 +449,7 @@ void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
->   * The 64-bit X fields are optional extensions to the original 32-bit FADT
->   * V1.0 fields. Even if they are present in the FADT, they are optional and
->   * are unused if the BIOS sets them to zero. Therefore, we must copy/expand
-> - * 32-bit V1.0 fields to the 64-bit X fields if the the 64-bit X field is
-> + * 32-bit V1.0 fields to the 64-bit X fields if the 64-bit X field is
->   * originally zero.
->   *
->   * For ACPI 1.0 FADTs (that contain no 64-bit addresses), all 32-bit address
-> diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-> index 5a968a7..e05555c 100644
-> --- a/drivers/acpi/acpica/tbutils.c
-> +++ b/drivers/acpi/acpica/tbutils.c
-> @@ -141,7 +141,7 @@ void acpi_tb_check_dsdt_header(void)
->   *
->   * FUNCTION:    acpi_tb_copy_dsdt
->   *
-> - * PARAMETERS:  table_desc          - Installed table to copy
-> + * PARAMETERS:  table_index         - Index of installed table to copy
->   *
->   * RETURN:      None
->   *
-> @@ -239,7 +239,7 @@ acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size)
->   *
->   * FUNCTION:    acpi_tb_parse_root_table
->   *
-> - * PARAMETERS:  rsdp                    - Pointer to the RSDP
-> + * PARAMETERS:  rsdp_address            - Pointer to the RSDP
->   *
->   * RETURN:      Status
->   *
+> ./include/trace/../../include/ras/ras_event.h:278:37: error: 'ARCH_PROC_ERR_TYPE' undeclared (first use in this function)
+>      __print_symbolic(__entry->type, ARCH_PROC_ERR_TYPE),
+> ./include/trace/../../include/ras/ras_event.h:280:38: error: 'ARCH_PROC_ERR_FLAGS' undeclared (first use in this function)
+>      __print_symbolic(__entry->flags, ARCH_PROC_ERR_FLAGS),
+
+Sorry, it's a typo. It should be ARM_xxx.
+
+> 
+>> +/*
+>> + * First define the enums in MM_ACTION_RESULT to be exported to userspace
+>> + * via TRACE_DEFINE_ENUM().
+>> + */
+>> +#undef EM
+>> +#undef EMe
+>> +#define EM(a, b) TRACE_DEFINE_ENUM(a);
+>> +#define EMe(a, b)    TRACE_DEFINE_ENUM(a);
+>> +
+>> +ARM_PROC_ERR_TYPE
+>> +ARM_PROC_ERR_FLAGS
+> Are the above two lines supposed to be here?
+>> +
+>> +/*
+>> + * Now redefine the EM() and EMe() macros to map the enums to the strings
+>> + * that will be printed in the output.
+>> + */
+>> +#undef EM
+>> +#undef EMe
+>> +#define EM(a, b)        { a, b },
+>> +#define EMe(a, b)    { a, b }
+>> +
+>> +TRACE_EVENT(arm_proc_err,
+> I think it would be better to keep this similar to the naming of the current RAS trace events (right now we have mc_event, arm_event, aer_event, etc.). I would suggest using "arm_err_info_event" since this is handling the error information structures of the arm errors.
+>> +
+>> +    TP_PROTO(const struct cper_arm_err_info *err),
+>> +
+>> +    TP_ARGS(err),
+>> +
+>> +    TP_STRUCT__entry(
+>> +        __field(u8, type)
+>> +        __field(u16, multiple_error)
+>> +        __field(u8, flags)
+>> +        __field(u64, error_info)
+>> +        __field(u64, virt_fault_addr)
+>> +        __field(u64, physical_fault_addr)
+> Validation bits should also be a part of this structure that way user space tools will know which of these fields are valid.
+
+Could we use the default value to check the validation which we have checked in TP_fast_assign?
+
+>> +    ),
+>> +
+>> +    TP_fast_assign(
+>> +        __entry->type = err->type;
+>> +
+>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_MULTI_ERR)
+>> +            __entry->multiple_error = err->multiple_error;
+>> +        else
+>> +            __entry->multiple_error = ~0;
+>> +
+>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_FLAGS)
+>> +            __entry->flags = err->flags;
+>> +        else
+>> +            __entry->flags = ~0;
+>> +
+>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_ERR_INFO)
+>> +            __entry->error_info = err->error_info;
+>> +        else
+>> +            __entry->error_info = 0ULL;
+>> +
+>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_VIRT_ADDR)
+>> +            __entry->virt_fault_addr = err->virt_fault_addr;
+>> +        else
+>> +            __entry->virt_fault_addr = 0ULL;
+>> +
+>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR)
+>> +            __entry->physical_fault_addr = err->physical_fault_addr;
+>> +        else
+>> +            __entry->physical_fault_addr = 0ULL;
+>> +    ),
+>> +
+>> +    TP_printk("ARM Processor Error: type %s; count: %u; flags: %s;"
+> I think the "ARM Processor Error:" part of this should just be removed. Here's the output with this removed and the trace event renamed to arm_err_info_event. I think this looks much cleaner and matches the style used with the arm_event.
+> 
+>           <idle>-0     [020] .ns.   366.592434: arm_event: affinity level: 2; MPIDR: 0000000000000000; MIDR: 00000000510f8000; running state: 1; PSCI state: 0
+>           <idle>-0     [020] .ns.   366.592437: arm_err_info_event: type cache error; count: 0; flags: 0x3; error info: 0000000000c20058; virtual address: 0000000000000000; physical address: 0000000000000000
+
+I agree. It looks much better.
+
+> 
+> Thanks,
+> Tyler
 > 
 
 -- 
-Sincerely,
-Cao jin
-
-
+Thanks,
+Xie XiuQi
