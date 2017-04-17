@@ -1,144 +1,59 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH v3 1/8] trace: ras: add ARM processor error information
- trace event
-Date: Mon, 17 Apr 2017 11:18:43 -0600
-Message-ID: <f8ef4306-fd69-d8a3-3ca6-86be2825cab3@codeaurora.org>
-References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
- <1490869877-118713-11-git-send-email-xiexiuqi@huawei.com>
- <32ca4e7e-eb5e-a4ff-33d6-68d06e9242fb@codeaurora.org>
- <6c0d2652-71ba-aefc-d6cd-5cc9a0b0d729@huawei.com>
- <8aa30f6a-d18d-1cce-57dc-08efb52d822e@huawei.com>
+From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH 2/5] acpi, nfit: add support for acpi 6.1 dimm state flags
+Date: Mon, 17 Apr 2017 17:28:56 +0000
+Message-ID: <1492450115.26622.3.camel@hpe.com>
+References: <149218909065.3926.1234846095650907678.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <149218910195.3926.13927602427357940056.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:40150 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752528AbdDQRSt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Apr 2017 13:18:49 -0400
-In-Reply-To: <8aa30f6a-d18d-1cce-57dc-08efb52d822e@huawei.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <149218910195.3926.13927602427357940056.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-ID: <CBE218352406D943B2C27A09D2544F3E-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Xie XiuQi <xiexiuqi@huawei.com>, christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, james.morse@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com
-Cc: linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com, zhengqiang10@huawei.com, wuquanming@huawei.com, wangxiongfeng2@huawei.com
 
-On 4/16/2017 9:16 PM, Xie XiuQi wrote:
-> On 2017/4/17 11:08, Xie XiuQi wrote:
->>> On 3/30/2017 4:31 AM, Xie XiuQi wrote:
->>>> Add a new trace event for ARM processor error information, so that
->>>> the user will know what error occurred. With this information the
->>>> user may take appropriate action.
->>>>
->>>> These trace events are consistent with the ARM processor error
->>>> information table which defined in UEFI 2.6 spec section N.2.4.4.1.
->>>>
->>>> ---
->>>> v2: add trace enabled condition as Steven's suggestion.
->>>>       fix a typo.
->>>> ---
->>>>
->>>> Cc: Steven Rostedt <rostedt@goodmis.org>
->>>> Cc: Tyler Baicar <tbaicar@codeaurora.org>
->>>> Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
->>>> ---
->>>
-...
->>>> +/*
->>>> + * First define the enums in MM_ACTION_RESULT to be exported to userspace
->>>> + * via TRACE_DEFINE_ENUM().
->>>> + */
->>>> +#undef EM
->>>> +#undef EMe
->>>> +#define EM(a, b) TRACE_DEFINE_ENUM(a);
->>>> +#define EMe(a, b)    TRACE_DEFINE_ENUM(a);
->>>> +
->>>> +ARM_PROC_ERR_TYPE
->>>> +ARM_PROC_ERR_FLAGS
->>> Are the above two lines supposed to be here?
->>>> +
->>>> +/*
->>>> + * Now redefine the EM() and EMe() macros to map the enums to the strings
->>>> + * that will be printed in the output.
->>>> + */
->>>> +#undef EM
->>>> +#undef EMe
->>>> +#define EM(a, b)        { a, b },
->>>> +#define EMe(a, b)    { a, b }
->>>> +
->>>> +TRACE_EVENT(arm_proc_err,
->>> I think it would be better to keep this similar to the naming of the current RAS trace events (right now we have mc_event, arm_event, aer_event, etc.). I would suggest using "arm_err_info_event" since this is handling the error information structures of the arm errors.
->>>> +
->>>> +    TP_PROTO(const struct cper_arm_err_info *err),
->>>> +
->>>> +    TP_ARGS(err),
->>>> +
->>>> +    TP_STRUCT__entry(
->>>> +        __field(u8, type)
->>>> +        __field(u16, multiple_error)
->>>> +        __field(u8, flags)
->>>> +        __field(u64, error_info)
->>>> +        __field(u64, virt_fault_addr)
->>>> +        __field(u64, physical_fault_addr)
->>> Validation bits should also be a part of this structure that way user space tools will know which of these fields are valid.
->> Could we use the default value to check the validation which we have checked in TP_fast_assign?
-Yes, true...I guess we really don't need the validation bits then.
->>>> +    ),
->>>> +
->>>> +    TP_fast_assign(
->>>> +        __entry->type = err->type;
->>>> +
->>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_MULTI_ERR)
->>>> +            __entry->multiple_error = err->multiple_error;
->>>> +        else
->>>> +            __entry->multiple_error = ~0;
->>>> +
->>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_FLAGS)
->>>> +            __entry->flags = err->flags;
->>>> +        else
->>>> +            __entry->flags = ~0;
->>>> +
->>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_ERR_INFO)
->>>> +            __entry->error_info = err->error_info;
->>>> +        else
->>>> +            __entry->error_info = 0ULL;
->>>> +
->>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_VIRT_ADDR)
->>>> +            __entry->virt_fault_addr = err->virt_fault_addr;
->>>> +        else
->>>> +            __entry->virt_fault_addr = 0ULL;
->>>> +
->>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR)
->>>> +            __entry->physical_fault_addr = err->physical_fault_addr;
->>>> +        else
->>>> +            __entry->physical_fault_addr = 0ULL;
->>>> +    ),
->>>> +
->>>> +    TP_printk("ARM Processor Error: type %s; count: %u; flags: %s;"
->>> I think the "ARM Processor Error:" part of this should just be removed. Here's the output with this removed and the trace event renamed to arm_err_info_event. I think this looks much cleaner and matches the style used with the arm_event.
->>>
->>>            <idle>-0     [020] .ns.   366.592434: arm_event: affinity level: 2; MPIDR: 0000000000000000; MIDR: 00000000510f8000; running state: 1; PSCI state: 0
->>>            <idle>-0     [020] .ns.   366.592437: arm_err_info_event: type cache error; count: 0; flags: 0x3; error info: 0000000000c20058; virtual address: 0000000000000000; physical address: 0000000000000000
-> As this section is ARM Processor Error Section, how about use arm_proc_err_event?
-This is not for the ARM Processor Error Section, that is what the 
-arm_event is handling. What you are adding this trace support for here 
-is called the ARM Processor Error Information (UEFI 2.6 spec section 
-N.2.4.4.1). So I think your trace event here should be called 
-arm_err_info_event. This will also be consistent with the other two 
-trace events that I'm planning on adding:
-
-arm_ctx_info_event: ARM Processor Context Information (UEFI 2.6 section 
-N.2.4.4.2)
-arm_vendor_info_event: This is the "Vendor Specific Error Information" 
-in the ARM Processor Error Section (Table 260). It's possible I may just 
-add this into the arm_event trace event, but I haven't looked into it 
-enough yet.
-
-Thanks,
-Tyler
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
-
+T24gRnJpLCAyMDE3LTA0LTE0IGF0IDA5OjU4IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IEFkZCBzdXBwb3J0IGZvciB0aGUgQUNQSV9ORklUX01FTV9NQVBfRkFJTEVEICgibWFwX2ZhaWwi
+KSBhbmQNCj4gQUNQSV9ORklUX01FTV9IRUFMVEhfRU5BQkxFRCAoInNtYXJ0X25vdGlmeSIpIGhl
+YWx0aCBzdGF0ZSBmbGFncy4gVGhlDQo+ICJtYXBfZmFpbCIgZmxhZyBpZGVudGlmaWVzIERJTU1z
+IHRoYXQgd2VyZSBub3QgbWFwcGVkIGludG8gb25lIG9yDQo+IG1vcmUgcGh5c2ljYWwgYWRkcmVz
+cyByYW5nZXMuIFRoZSAiaGVhbHRoX25vdGlmeSIgZmxhZyBpbmRpY2F0ZXMNCj4gd2hldGhlciBw
+bGF0Zm9ybSBmaXJtd2FyZSB3aWxsIHNlbmQgbm90aWZpY2F0aW9ucyB3aGVuIHRoZXJlIGlzIG5l
+dw0KPiBTTUFSVCBoZWFsdGggZGF0YSB0byBjb25zdW1lLg0KPiANCj4gU2lnbmVkLW9mZi1ieTog
+RGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+IC0tLQ0KPiDCoGRyaXZl
+cnMvYWNwaS9uZml0L2NvcmUuYyB8wqDCoMKgwqA2ICsrKystLQ0KPiDCoDEgZmlsZSBjaGFuZ2Vk
+LCA0IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJp
+dmVycy9hY3BpL25maXQvY29yZS5jIGIvZHJpdmVycy9hY3BpL25maXQvY29yZS5jDQo+IGluZGV4
+IDUzOTQzZDZmNDIxNC4uMDU4MjlkZTQzYjFkIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2FjcGkv
+bmZpdC9jb3JlLmMNCj4gKysrIGIvZHJpdmVycy9hY3BpL25maXQvY29yZS5jDQo+IEBAIC0xMjQ2
+LDEyICsxMjQ2LDE0IEBAIHN0YXRpYyBzc2l6ZV90IGZsYWdzX3Nob3coc3RydWN0IGRldmljZSAq
+ZGV2LA0KPiDCoHsNCj4gwqAJdTE2IGZsYWdzID0gdG9fbmZpdF9tZW1kZXYoZGV2KS0+ZmxhZ3M7
+DQo+IMKgDQo+IC0JcmV0dXJuIHNwcmludGYoYnVmLCAiJXMlcyVzJXMlc1xuIiwNCj4gKwlyZXR1
+cm4gc3ByaW50ZihidWYsICIlcyVzJXMlcyVzJXMlc1xuIiwNCj4gwqAJCWZsYWdzICYgQUNQSV9O
+RklUX01FTV9TQVZFX0ZBSUxFRCA/ICJzYXZlX2ZhaWwgIiA6DQo+ICIiLA0KPiDCoAkJZmxhZ3Mg
+JiBBQ1BJX05GSVRfTUVNX1JFU1RPUkVfRkFJTEVEID8gInJlc3RvcmVfZmFpbA0KPiAiIDogIiIs
+DQo+IMKgCQlmbGFncyAmIEFDUElfTkZJVF9NRU1fRkxVU0hfRkFJTEVEID8gImZsdXNoX2ZhaWwg
+IiA6DQo+ICIiLA0KPiDCoAkJZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX05PVF9BUk1FRCA/ICJub3Rf
+YXJtZWQgIiA6ICIiLA0KPiAtCQlmbGFncyAmIEFDUElfTkZJVF9NRU1fSEVBTFRIX09CU0VSVkVE
+ID8gInNtYXJ0X2V2ZW50DQo+ICIgOiAiIik7DQo+ICsJCWZsYWdzICYgQUNQSV9ORklUX01FTV9I
+RUFMVEhfT0JTRVJWRUQgPyAic21hcnRfZXZlbnQNCj4gIiA6ICIiLA0KPiArCQlmbGFncyAmIEFD
+UElfTkZJVF9NRU1fTUFQX0ZBSUxFRCA/ICJtYXBfZmFpbCAiIDogIiIsDQo+ICsJCWZsYWdzICYg
+QUNQSV9ORklUX01FTV9IRUFMVEhfRU5BQkxFRCA/ICJzbWFydF9ub3RpZnkNCj4gIiA6ICIiKTsN
+Cg0KVGhhbmtzIGZvciB0aGUgdXBkYXRlISAgVGhlIGFib3ZlIGNoYW5nZSBsb29rcyBnb29kLCBi
+dXQgd2Ugd2lsbCBhbHNvDQpuZWVkIHRvIG1ha2UgdGhlIHNhbWUgY2hhbmdlcyB0byB0aGUgZGV2
+X2luZm8oKSBpbg0KYWNwaV9uZml0X3JlZ2lzdGVyX2RpbW1zKCkuDQoNCi1Ub3NoaQpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
+bGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcv
+bWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
