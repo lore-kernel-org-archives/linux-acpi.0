@@ -1,130 +1,105 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPICA: Export mutex functions
-Date: Tue, 18 Apr 2017 16:15:09 +0200
-Message-ID: <1773950.yRmmpX2ztC@aspire.rjw.lan>
-References: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5924DB@ORSMSX110.amr.corp.intel.com> <1AE640813FDE7649BE1B193DEA596E886CE93F83@SHSMSX101.ccr.corp.intel.com> <03d661cb-a561-cfce-2c0e-f81ff73e6653@roeck-us.net>
+Subject: Re: [PATCH V2 1/2] ACPI / CPPC: Read lowest non linear perf in cppc_get_perf_caps
+Date: Tue, 18 Apr 2017 16:28:49 +0200
+Message-ID: <1509183.UhELQJrXFv@aspire.rjw.lan>
+References: <1490817000-13876-1-git-send-email-pprakash@codeaurora.org> <1490817000-13876-2-git-send-email-pprakash@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46918 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59967 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751012AbdDROVO (ORCPT
+        by vger.kernel.org with ESMTP id S1753767AbdDROey (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 18 Apr 2017 10:21:14 -0400
-In-Reply-To: <03d661cb-a561-cfce-2c0e-f81ff73e6653@roeck-us.net>
+        Tue, 18 Apr 2017 10:34:54 -0400
+In-Reply-To: <1490817000-13876-2-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
+To: Prashanth Prakash <pprakash@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, hotran@apm.com, ahs3@redhat.com
 
-On Tuesday, April 18, 2017 06:50:26 AM Guenter Roeck wrote:
-> On 04/18/2017 12:14 AM, Zheng, Lv wrote:
-> > Hi,
+On Wednesday, March 29, 2017 01:49:59 PM Prashanth Prakash wrote:
+> Read lowest non linear perf in cppc_get_perf_caps so that it can be exposed
+> via sysfs to the usespace. Lowest non linear perf is the lowest performance
+> level at which nonlinear power savings are achieved.
+> 
+> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
 
-[cut]
+Except that I would spell "nonlinear" as one word which appears to be a common
+practice, it looks OK to me.
 
-> >
-> > Maybe I should provide more detailed examples for this solution.
-> >
-> > For example:
-> > OperationRegion (SIOT, SuperIOAddressSpace, Zero, 100)
-> > Field (SIOT, ByteAcc, Lock, Preserve)
-> > {
-> >     FNC1, 8,
-> >     FNC2, 8,
-> >     ...
-> > }
-> >
-> > Acquire (MUX0)
-> > Store (0, FNC1)
-> > Release (MUX0)
-> >
-> > Then you can call (let me use casual pseudo code)
-> > acpi_install_operation_region(SuperIOAddressSpace, superio_opregion_handler) from OS side.
-> > In its callback superio_opregion_handler(), you can:
-> >
-> > superio_enter();
-> > If (address == 0) {
-> >    /* mean FNC1 */
-> >    Perform the locked superior accesses
-> > } else if (address == 1) {
-> >    /* mean FNC2 */
-> >    Perform the locked superior accesses
-> > }
-> > superio_exit();
-> >
-> > Are there similar approach in your DSDT?
-> >
+> ---
+>  drivers/acpi/cppc_acpi.c | 19 +++++++++++--------
+>  include/acpi/cppc_acpi.h |  1 +
+>  2 files changed, 12 insertions(+), 8 deletions(-)
 > 
-> Some snippets from the DSDT:
-> 
-> 	Device (SIO1)
->             {
->          	Name (_HID, EisaId ("PNP0C02") /* PNP Motherboard Resources */)  // _HID: Hardware ID
->          	Name (_UID, Zero)  // _UID: Unique ID
-> 		...
-> 		Mutex (MUT0, 0x00)
-> 		Method (ENFG, 1, NotSerialized)
->                      {
->                          Acquire (MUT0, 0x0FFF)
->                          INDX = 0x87
->                          INDX = One
->                          INDX = 0x55
->                          If ((SP1O == 0x2E))
->                          {
->                              INDX = 0x55
->                          }
->                          Else
->                          {
->                              INDX = 0xAA
->                          }
-> 
->                          LDN = Arg0
->                      }
-> 
->                      Method (EXFG, 0, NotSerialized)
->                      {
->                          INDX = 0x02
->                          DATA = 0x02
->                          Release (MUT0)
->                      }
-> 
-> 		    OperationRegion (IOID, SystemIO, SP1O, 0x02)	/* SP1O is 0x2e */
->                      Field (IOID, ByteAcc, NoLock, Preserve)
->                      {
->                          INDX,   8,
->                          DATA,   8
->                      }
-> 		    ...
-> 
-> Example for use:
-> 		Method (DCNT, 2, NotSerialized)
->                      {
->                          ENFG (CGLD (Arg0))
->                          If (((DMCH < 0x04) && ((Local1 = (DMCH & 0x03)) != Zero)))
->                          {
->                              RDMA (Arg0, Arg1, Local1++)
->                          }
-> 
->                          ACTR = Arg1
->                          Local1 = (IOAH << 0x08)
->                          Local1 |= IOAL
->                          RRIO (Arg0, Arg1, Local1, 0x08)
->                          EXFG ()
->                      }
-> 
-> Can there be more than one address space handler for a given region ?
-> Each driver accessing the resource would need that handler.
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 3ca0729..f5f3c29 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -972,9 +972,9 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
+>  int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+>  {
+>  	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
+> -	struct cpc_register_resource *highest_reg, *lowest_reg, *ref_perf,
+> -								 *nom_perf;
+> -	u64 high, low, nom;
+> +	struct cpc_register_resource *highest_reg, *lowest_reg,
+> +		*lowest_non_linear_reg, *nominal_reg;
+> +	u64 high, low, nom, low_non_linear;
 
-Rather, every driver accessing the resource would need to be aware of the
-existence of the operation region handler and would need to use the mutual
-exclusion mechanism used by that handler, if my understanding here is correct.
+min_nonlinear here?
 
-The existence of an operation region for a specific section of address space is
-a declaration that AML is going to access locations in that section.  It allows
-the OS to install a handler for that region to intercept AML accesses and do
-what it likes with them.
+>  	int ret = 0, regs_in_pcc = 0;
+>  
+>  	if (!cpc_desc) {
+> @@ -984,12 +984,12 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+>  
+>  	highest_reg = &cpc_desc->cpc_regs[HIGHEST_PERF];
+>  	lowest_reg = &cpc_desc->cpc_regs[LOWEST_PERF];
+> -	ref_perf = &cpc_desc->cpc_regs[REFERENCE_PERF];
+> -	nom_perf = &cpc_desc->cpc_regs[NOMINAL_PERF];
+> +	lowest_non_linear_reg = &cpc_desc->cpc_regs[LOW_NON_LINEAR_PERF];
+> +	nominal_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
+>  
+>  	/* Are any of the regs PCC ?*/
+>  	if (CPC_IN_PCC(highest_reg) || CPC_IN_PCC(lowest_reg) ||
+> -		CPC_IN_PCC(ref_perf) || CPC_IN_PCC(nom_perf)) {
+> +		CPC_IN_PCC(lowest_non_linear_reg) || CPC_IN_PCC(nominal_reg)) {
+>  		regs_in_pcc = 1;
+>  		down_write(&pcc_data.pcc_lock);
+>  		/* Ring doorbell once to update PCC subspace */
+> @@ -1005,10 +1005,13 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+>  	cpc_read(cpunum, lowest_reg, &low);
+>  	perf_caps->lowest_perf = low;
+>  
+> -	cpc_read(cpunum, nom_perf, &nom);
+> +	cpc_read(cpunum, nominal_reg, &nom);
+>  	perf_caps->nominal_perf = nom;
+>  
+> -	if (!high || !low || !nom)
+> +	cpc_read(cpunum, lowest_non_linear_reg, &low_non_linear);
+> +	perf_caps->lowest_non_linear_perf = low_non_linear;
+> +
+> +	if (!high || !low || !nom || !low_non_linear)
+>  		ret = -EFAULT;
+>  
+>  out_err:
+> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> index 427a7c3..3f64660 100644
+> --- a/include/acpi/cppc_acpi.h
+> +++ b/include/acpi/cppc_acpi.h
+> @@ -103,6 +103,7 @@ struct cppc_perf_caps {
+>  	u32 highest_perf;
+>  	u32 nominal_perf;
+>  	u32 lowest_perf;
+> +	u32 lowest_non_linear_perf;
+>  };
+>  
+>  struct cppc_perf_ctrls {
+> 
+
+I can make the above changes for you if you agree. :-)
 
 Thanks,
 Rafael
