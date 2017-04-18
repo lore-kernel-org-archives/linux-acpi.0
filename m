@@ -1,130 +1,354 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: Export mutex functions
-Date: Mon, 17 Apr 2017 23:53:50 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE93D3A@SHSMSX101.ccr.corp.intel.com>
-References: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5924DB@ORSMSX110.amr.corp.intel.com>
- <20170412212241.GA12384@roeck-us.net>
- <1AE640813FDE7649BE1B193DEA596E886CE92A85@SHSMSX101.ccr.corp.intel.com>
- <20170417155646.GA8730@roeck-us.net>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E59332C@ORSMSX110.amr.corp.intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E59345B@ORSMSX110.amr.corp.intel.com>
- <20170417194527.GA16734@roeck-us.net>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E593580@ORSMSX110.amr.corp.intel.com>
- <20170417210353.GA19771@roeck-us.net>
- <CAJZ5v0jyxRH_B7Yj7HxRdxhofZjgRf175WqmyjtsupWPQYx6tQ@mail.gmail.com>
- <20170417223257.GA22495@roeck-us.net>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [PATCH v3 7/8] arm64: exception: handle asynchronous SError
+ interrupt
+Date: Tue, 18 Apr 2017 09:09:14 +0800
+Message-ID: <d7a8884d-f6b7-69d0-2438-83c202926000@huawei.com>
+References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
+ <1490869877-118713-8-git-send-email-xiexiuqi@huawei.com>
+ <20170413105131.GD24027@leverpostej>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:8567 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757885AbdDQXx5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 17 Apr 2017 19:53:57 -0400
-In-Reply-To: <20170417223257.GA22495@roeck-us.net>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170413105131.GD24027@leverpostej>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Rutland <mark.rutland@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>
+Cc: linux-arm-kernel@lists.infradead.org, wuquanming@huawei.com, kvm@vger.kernel.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, rostedt@goodmis.org, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, james.morse@arm.com, christoffer.dall@linaro.org, Wang Xiongfeng <wangxiongfengi2@huawei.com>, shiju.jose@huawei.com, zhengqiang10@huawei.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, hanjun.guo@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-Hi,
+Hi Mark,
 
-> From: Guenter Roeck [mailto:linux@roeck-us.net]
-> Subject: Re: [PATCH] ACPICA: Export mutex functions
+I have some confusion about the RAS feature when VHE is enabled. Does RAS spec support
+the situation when VHE is enabled. When VHE is disabled, the hyperviosr delegates the error
+exception to EL1 by setting HCR_EL2.VSE to 1, and this will inject a virtual SEI into OS.
+My understanding is that HCR_EL2.VSE is only used to inject a virtual SEI into EL1.
+But when VHE is enabled, the host OS will run at EL2. We can't inject a virtual SEI into
+host OS. I don't know if RAS spec can handle this situation.
+
+Thanks,
+Wang Xiongfeng
+
+On 2017/4/13 18:51, Mark Rutland wrote:
+> Hi,
 > 
-> On Mon, Apr 17, 2017 at 11:29:38PM +0200, Rafael J. Wysocki wrote:
-> > On Mon, Apr 17, 2017 at 11:03 PM, Guenter Roeck <linux@roeck-us.net> wrote:
-> > > On Mon, Apr 17, 2017 at 08:40:38PM +0000, Moore, Robert wrote:
-> > >>
-> > >>
-> > >> > From: Guenter Roeck [mailto:linux@roeck-us.net]
-> > >> > Subject: Re: [PATCH] ACPICA: Export mutex functions
-> > >> >
-> > >> > On Mon, Apr 17, 2017 at 07:27:37PM +0000, Moore, Robert wrote:
-> > >> > >
-> > >> > > > From: Moore, Robert
-> > >> > > > Subject: RE: [PATCH] ACPICA: Export mutex functions
-> > >> > > >
-> > >> > > > There is a model for the drivers to directly acquire an AML mutex
-> > >> > > > object. That is why the acquire/release public interfaces were added
-> > >> > > > to ACPICA.
-> > >> > > >
-> > >> > > > I forget all of the details, but the model was developed with MS and
-> > >> > > > others during the ACPI 6.0 timeframe.
-> > >> > > >
-> > >> > > >
-> > >> > > [Moore, Robert]
-> > >> > >
-> > >> > >
-> > >> > > Here is the case where the OS may need to directly acquire an AML
-> > >> > mutex:
-> > >> > >
-> > >> > > From the ACPI spec:
-> > >> > >
-> > >> > > 19.6.2 Acquire (Acquire a Mutex)
-> > >> > >
-> > >> > > Note: For Mutex objects referenced by a _DLM object, the host OS may
-> > >> > also contend for ownership.
-> > >> > >
-> > >> > From the context in the dsdt, and from description of expected use cases
-> > >> > for _DLM objects I can find, this is what the mutex is used for (to
-> > >> > serialize access to a resource on a low pin count serial interconnect,
-> > >> > aka LPC).
-> > >> >
-> > >> > What does that mean in practice ? That I am not supposed to use it
-> > >> > because it doesn't follow standard ACPI mutex declaration rules ?
-> > >> >
-> > >> > Thanks,
-> > >> > Guenter
-> > >> >
-> > >> > >
-> > >> [Moore, Robert]
-> > >>
-> > >> I'm not an expert on the _DLM method, but I would point you to the description section in the
-> ACPI spec, 5.7.5 _DLM (DeviceLock Mutex).
-> > >>
-> > >
-> > > I did. However, not being an ACPI expert, that doesn't tell me anything.
-> >
-> > Basically, if the kernel and AML need to access a device concurrently,
-> > there should be a _DLM object under that device in the ACPI tables.
-> > In that case it is expected to return a list of (AML) mutexes that can
-> > be acquired by the kernel in order to synchronize device access with
-> > respect to AML (and for each mutex it may also return a description of
-> > the specific resources to be protected by it).
-> >
-> > Bottom line: without _DLM, the kernel cannot synchronize things with
-> > respect to AML properly, because it has no information how to do that
-> > then.
+> On Thu, Mar 30, 2017 at 06:31:07PM +0800, Xie XiuQi wrote:
+>> diff --git a/arch/arm64/include/asm/esr.h b/arch/arm64/include/asm/esr.h
+>> index f20c64a..22f9c90 100644
+>> --- a/arch/arm64/include/asm/esr.h
+>> +++ b/arch/arm64/include/asm/esr.h
+>> @@ -106,6 +106,20 @@
+>>  #define ESR_ELx_AR 		(UL(1) << 14)
+>>  #define ESR_ELx_CM 		(UL(1) << 8)
+>>  
+>> +#define ESR_Elx_DFSC_SEI	(0x11)
 > 
-> That is all quite interesting. I do see the mutex in question used on various
-> motherboards from various vendors (I checked boards from Gigabyte, MSI, and
-> Intel). Interestingly, the naming seems to be consistent - it is always named
-> "MUT0". For the most part, it seems to be available on more recent
-> motherboards; older motherboards tend to use the resource without locking.
-> However, I don't see any mention of "_DLM" in any of the DSDTs.
+> We should probably have a definition for the uncategorized DFSC value,
+> too.
 > 
-
-OK, then you might be having problems in your opregion driver.
-
-> At the same time, access to ports 0x2e/0x2f is widely used in the kernel.
-> As mentioned before, it is used in watchdog, hardware monitoring, and gpio
-> drivers, but also in parallel port and infrared driver code. Effectively
-> that means that all this code is inherently unsafe on systems with ACPI
-> support.
+> [...]
 > 
-> I had thought about implementing a set of utility functions to make the kernel
-> code safer to use if the mutex is found to exist.
-
-As what you've mentioned, there are already lots of parallel accesses in kernel without enabling ACPI.
-Are these accesses mutually exclusive (safe)?
-If so, why do you need to invent a new synchronization mechanism?
-
-> Right now I wonder, though,
-> if such code would have a chance to be accepted. Any thoughts on that ?
-
-Is that possible to make it safe in the opregion driver?
-
-Thanks
-Lv
+>> index 43512d4..d8a7306 100644
+>> --- a/arch/arm64/kernel/entry.S
+>> +++ b/arch/arm64/kernel/entry.S
+>> @@ -69,7 +69,14 @@
+>>  #define BAD_FIQ		2
+>>  #define BAD_ERROR	3
+>>  
+>> +	.arch_extension ras
+> 
+> Generally, arch_extension is a warning sign that code isn't going to
+> work with contemporary assemblers, which we likely need to support.
+> 
+>> +
+>>  	.macro	kernel_entry, el, regsize = 64
+>> +#ifdef CONFIG_ARM64_ESB
+>> +	.if	\el == 0
+>> +	esb
+> 
+> Here, I think that we'll need to macro this such that we can build with
+> existing toolchains.
+> 
+> e.g. in <asm/assembler.h> we need something like:
+> 
+> 	#define HINT_IMM_ESB	16
+> 
+> 	.macro ESB
+> 	hint	#HINT_IMM_ESB
+> 	.endm
+> 
+>> +	.endif
+>> +#endif
+>>  	sub	sp, sp, #S_FRAME_SIZE
+>>  	.if	\regsize == 32
+>>  	mov	w0, w0				// zero upper 32 bits of x0
+>> @@ -208,6 +215,7 @@ alternative_else_nop_endif
+>>  #endif
+>>  
+>>  	.if	\el == 0
+>> +	msr	daifset, #0xF			// Set flags
+> 
+> Elsewhere in head.S we use helpers to fiddle with DAIF bits.
+> 
+> Please be consistent with that. Add an enable_all macro if we need one.
+> 
+>>  	ldr	x23, [sp, #S_SP]		// load return stack pointer
+>>  	msr	sp_el0, x23
+>>  #ifdef CONFIG_ARM64_ERRATUM_845719
+>> @@ -226,6 +234,15 @@ alternative_else_nop_endif
+>>  
+>>  	msr	elr_el1, x21			// set up the return data
+>>  	msr	spsr_el1, x22
+>> +
+>> +#ifdef CONFIG_ARM64_ESB
+>> +	.if \el == 0
+>> +	esb					// Error Synchronization Barrier
+>> +	mrs	x21, disr_el1			// Check for deferred error
+> 
+> We'll need an <asm/sysreg.h> definition for this register. With that, we
+> can use mrs_s here.
+> 
+>> +	tbnz	x21, #31, el1_sei
+>> +	.endif
+>> +#endif
+>> +
+>>  	ldp	x0, x1, [sp, #16 * 0]
+>>  	ldp	x2, x3, [sp, #16 * 1]
+>>  	ldp	x4, x5, [sp, #16 * 2]
+>> @@ -318,7 +335,7 @@ ENTRY(vectors)
+>>  	ventry	el1_sync_invalid		// Synchronous EL1t
+>>  	ventry	el1_irq_invalid			// IRQ EL1t
+>>  	ventry	el1_fiq_invalid			// FIQ EL1t
+>> -	ventry	el1_error_invalid		// Error EL1t
+>> +	ventry	el1_error			// Error EL1t
+>>  
+>>  	ventry	el1_sync			// Synchronous EL1h
+>>  	ventry	el1_irq				// IRQ EL1h
+>> @@ -328,7 +345,7 @@ ENTRY(vectors)
+>>  	ventry	el0_sync			// Synchronous 64-bit EL0
+>>  	ventry	el0_irq				// IRQ 64-bit EL0
+>>  	ventry	el0_fiq_invalid			// FIQ 64-bit EL0
+>> -	ventry	el0_error_invalid		// Error 64-bit EL0
+>> +	ventry	el0_error			// Error 64-bit EL0
+>>  
+>>  #ifdef CONFIG_COMPAT
+>>  	ventry	el0_sync_compat			// Synchronous 32-bit EL0
+>> @@ -508,12 +525,31 @@ el1_preempt:
+>>  	ret	x24
+>>  #endif
+>>  
+>> +	.align	6
+>> +el1_error:
+>> +	kernel_entry 1
+>> +el1_sei:
+>> +	/*
+>> +	 * asynchronous SError interrupt from kernel
+>> +	 */
+>> +	mov	x0, sp
+>> +	mrs	x1, esr_el1
+> 
+> I don't think this is correct if we branched here from kernel_exit.
+> Surely we want the DISR_EL1 value, and ESR_EL1 is unrelated?
+> 
+>> +	mov	x2, #1				// exception level of SEI generated
+>> +	b	do_sei
+> 
+> You don't need to figure out the EL here. In do_sei() we can determine
+> the exception level from the regs (e.g. using user_mode(regs)).
+> 
+>> +ENDPROC(el1_error)
+>> +
+>> +
+>>  /*
+>>   * EL0 mode handlers.
+>>   */
+>>  	.align	6
+>>  el0_sync:
+>>  	kernel_entry 0
+>> +#ifdef CONFIG_ARM64_ESB
+>> +	mrs     x26, disr_el1
+>> +	tbnz    x26, #31, el0_sei		// check DISR.A
+>> +	msr	daifclr, #0x4			// unmask SEI
+>> +#endif
+> 
+> Why do we duplicate this across the EL0 handlers, rather than making it
+> common in the el0 kernel_entry code?
+> 
+>>  	mrs	x25, esr_el1			// read the syndrome register
+>>  	lsr	x24, x25, #ESR_ELx_EC_SHIFT	// exception class
+>>  	cmp	x24, #ESR_ELx_EC_SVC64		// SVC in 64-bit state
+>> @@ -688,8 +724,38 @@ el0_inv:
+>>  ENDPROC(el0_sync)
+>>  
+>>  	.align	6
+>> +el0_error:
+>> +	kernel_entry 0
+>> +el0_sei:
+>> +	/*
+>> +	 * asynchronous SError interrupt from userspace
+>> +	 */
+>> +	ct_user_exit
+>> +	mov	x0, sp
+>> +	mrs	x1, esr_el1
+> 
+> As with el1_sei, I don't think this is correct if we branched to
+> el0_sei. As far as I am aware, ESR_EL1 will contain whatever exception
+> we took, and the value we want is in DISR_EL1.
+> 
+>> +	mov	x2, #0
+> 
+> This EL parameter can go.
+> 
+>> +	bl	do_sei
+>> +	b	ret_to_user
+>> +ENDPROC(el0_error)
+>> +
+>> +	.align	6
+>>  el0_irq:
+>>  	kernel_entry 0
+>> +#ifdef CONFIG_ARM64_ESB
+>> +	mrs     x26, disr_el1
+>> +	tbz     x26, #31, el0_irq_naked          // check DISR.A
+>> +
+>> +	mov	x0, sp
+>> +	mrs	x1, esr_el1
+>> +	mov	x2, 0
+>> +
+>> +	/*
+>> +	 * The SEI generated at EL0 is not affect this irq context,
+>> +	 * so after sei handler, we continue process this irq.
+>> +	 */
+>> +	bl	do_sei
+>> +	msr     daifclr, #0x4                   // unmask SEI
+> 
+> This rough pattern is duplicated several times across the EL0 entry
+> paths. I think it should be made common.
+> 
+>> +#endif
+>>  el0_irq_naked:
+>>  	enable_dbg
+>>  #ifdef CONFIG_TRACE_IRQFLAGS
+>> diff --git a/arch/arm64/kernel/traps.c b/arch/arm64/kernel/traps.c
+>> index b6d6727..99be6d8 100644
+>> --- a/arch/arm64/kernel/traps.c
+>> +++ b/arch/arm64/kernel/traps.c
+>> @@ -643,6 +643,34 @@ asmlinkage void bad_mode(struct pt_regs *regs, int reason, unsigned int esr)
+>>  		handler[reason], smp_processor_id(), esr,
+>>  		esr_get_class_string(esr));
+>>  
+>> +	die("Oops - bad mode", regs, 0);
+>> +	local_irq_disable();
+>> +	panic("bad mode");
+>> +}
+>> +
+>> +static const char *sei_context[] = {
+>> +	"userspace",			/* EL0 */
+>> +	"kernel",			/* EL1 */
+>> +};
+> 
+> This should go. It's only used in one place, and would be clearer with
+> the strings inline. More on that below.
+> 
+>> +
+>> +static const char *sei_severity[] = {
+> 
+> Please name this for what it actually represents:
+> 
+> static const char *esr_aet_str[] = {
+> 
+>> +	[0 ... ESR_ELx_AET_MAX] =	"Unknown",
+> 
+> For consistency with esr_class_str, please make this:
+> 
+> 	[0 ... ESR_ELx_AET_MAX] =	"UNRECOGNIZED AET",
+> 
+> ... which makes it clear that this isn't some AET value which reports an
+> "Unknown" status.
+> 
+>> +	[ESR_ELx_AET_UC]	=	"Uncontainable",
+>> +	[ESR_ELx_AET_UEU]	=	"Unrecoverable",
+>> +	[ESR_ELx_AET_UEO]	=	"Restartable",
+>> +	[ESR_ELx_AET_UER]	=	"Recoverable",
+>> +	[ESR_ELx_AET_CE]	=	"Corrected",
+>> +};
+>> +
+>> +DEFINE_PER_CPU(int, sei_in_process);
+> 
+> A previous patch added definition of this.
+> 
+>> +asmlinkage void do_sei(struct pt_regs *regs, unsigned int esr, int el)
+>> +{
+>> +	int aet = ESR_ELx_AET(esr);
+> 
+> The AET field is only valid when the DFSC is 0b010001, so we need to
+> check that before we interpret AET.
+> 
+>> +	console_verbose();
+>> +
+>> +	pr_crit("Asynchronous SError interrupt detected on CPU%d, %s, %s\n",
+>> +		smp_processor_id(), sei_context[el], sei_severity[aet]);
+> 
+> We should dump the full ESR_ELx value, regardless of what automated
+> decoding we do, so that we have a chance of debugging issues in the
+> field.
+> 
+> It would also be nice to align with how bad_mode reports this today.
+> Please make this:
+> 
+> 	pr_crit("SError detected on CPU%d while in %s mode: code: 0x%08x -- %s\n",
+> 		smp_processor_id(), user_mode(regs) ? "user" : "kernel",
+> 		esr, esr_aet_str[aet]);
+> 
+> ... though it might be best to dump the raw SPSR rather than trying to
+> say user/kernel, so that we can distinguish EL1/EL2 with VHE, etc.
+> 
+>> +
+>>  	/*
+>>  	 * In firmware first mode, we could assume firmware will only generate one
+>>  	 * of cper records at a time. There is no risk for one cpu to parse ghes table.
+>> @@ -653,9 +681,31 @@ asmlinkage void bad_mode(struct pt_regs *regs, int reason, unsigned int esr)
+>>  		this_cpu_dec(sei_in_process);
+>>  	}
+>>  
+>> -	die("Oops - bad mode", regs, 0);
+>> +	if (el == 0 && IS_ENABLED(CONFIG_ARM64_ESB) &&
+> 
+> Please use user_mode(regs), and get rid of the el parameter to this
+> function entirely.
+> 
+>> +	    cpus_have_cap(ARM64_HAS_RAS_EXTN)) {
+>> +		siginfo_t info;
+>> +		void __user *pc = (void __user *)instruction_pointer(regs);
+>> +
+>> +		if (aet >= ESR_ELx_AET_UEO)
+>> +			return;
+> 
+> We need to check the DFSC first, and 0b111 is a reserved value (which
+> the ARM ARM doesn't define the recoverability of), so I don't think this
+> is correct.
+> 
+> We should probably test the DSFC, then switch on the AET value, so as to
+> handle only the cases we are aware of.
+> 
+>> +
+>> +		if (aet == ESR_ELx_AET_UEU) {
+>> +			info.si_signo = SIGILL;
+>> +			info.si_errno = 0;
+>> +			info.si_code  = ILL_ILLOPC;
+>> +			info.si_addr  = pc;
+> 
+> An unrecoverable error is not necessarily a particular bad instruction,
+> so I'm not sure this makes sense.
+> 
+> Thanks,
+> Mark.
+> 
+> .
+> 
