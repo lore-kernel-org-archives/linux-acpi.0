@@ -1,151 +1,158 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: Export mutex functions
-Date: Tue, 18 Apr 2017 16:07:59 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E593908@ORSMSX110.amr.corp.intel.com>
-References: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5924DB@ORSMSX110.amr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886CE93F83@SHSMSX101.ccr.corp.intel.com>
- <03d661cb-a561-cfce-2c0e-f81ff73e6653@roeck-us.net>
- <1773950.yRmmpX2ztC@aspire.rjw.lan>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH V2] acpi:apei:handle GSIV and GPIO notification types
+Date: Tue, 18 Apr 2017 18:35:21 +0200
+Message-ID: <20170418163521.c6bg73p43sjllxnr@pd.tnic>
+References: <86258A5CC0A3704780874CF6004BA8A62DCBFF56@lhreml502-mbs>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:16868 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757452AbdDRQID (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 18 Apr 2017 12:08:03 -0400
-In-Reply-To: <1773950.yRmmpX2ztC@aspire.rjw.lan>
-Content-Language: en-US
+Received: from mx2.suse.de ([195.135.220.15]:44109 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754869AbdDRQfj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 18 Apr 2017 12:35:39 -0400
+Content-Disposition: inline
+In-Reply-To: <86258A5CC0A3704780874CF6004BA8A62DCBFF56@lhreml502-mbs>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Guenter Roeck <linux@roeck-us.net>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
+To: Shiju Jose <shiju.jose@huawei.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "prarit@redhat.com" <prarit@redhat.com>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "punit.agrawal@arm.com" <punit.agrawal@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "james.morse@arm.com" <james.morse@arm.com>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>
 
+Just nitpicks below.
 
+On Thu, Mar 16, 2017 at 04:08:17PM +0000, Shiju Jose wrote:
+> System Controller Interrupts are received by ACPI's error device,
+> which in turn notifies the GHES code. The same is true of
+> APEI's GSIV and GPIO notification types.
+> Add support for GSIV and GPIO sharing the SCI
+> register/unregister/notifier code.Rename the list and notifier
+> to show this is no longer just SCI, but anything from the
+> Hardware Error Device.
+> 
+> Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
+> [james.morse@arm.com: rewrote commit log]
+> Signed-off-by: James Morse <james.morse@arm.com>
+> CC: James Morse <james.morse@arm.com>
+> CC: Hanjun Guo <guohanjun@huawei.com>
+> Reviewed-by: James Morse <james.morse@arm.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 28 +++++++++++++++++-----------
+>  1 file changed, 17 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index b192b42..fd39929 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -89,14 +89,14 @@
+>  module_param_named(disable, ghes_disable, bool, 0);
+>  
+>  /*
+> - * All error sources notified with SCI shares one notifier function,
+> + * All error sources notified with HED shares one notifier function,
 
-> -----Original Message-----
-> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> Sent: Tuesday, April 18, 2017 7:15 AM
-> To: Guenter Roeck <linux@roeck-us.net>
-> Cc: Zheng, Lv <lv.zheng@intel.com>; Rafael J. Wysocki
-> <rafael@kernel.org>; Moore, Robert <robert.moore@intel.com>; Wysocki,
-> Rafael J <rafael.j.wysocki@intel.com>; Len Brown <lenb@kernel.org>;
-> linux-acpi@vger.kernel.org; devel@acpica.org; linux-
-> kernel@vger.kernel.org; Box, David E <david.e.box@intel.com>
-> Subject: Re: [PATCH] ACPICA: Export mutex functions
-> 
-> On Tuesday, April 18, 2017 06:50:26 AM Guenter Roeck wrote:
-> > On 04/18/2017 12:14 AM, Zheng, Lv wrote:
-> > > Hi,
-> 
-> [cut]
-> 
-> > >
-> > > Maybe I should provide more detailed examples for this solution.
-> > >
-> > > For example:
-> > > OperationRegion (SIOT, SuperIOAddressSpace, Zero, 100) Field (SIOT,
-> > > ByteAcc, Lock, Preserve) {
-> > >     FNC1, 8,
-> > >     FNC2, 8,
-> > >     ...
-> > > }
-> > >
-> > > Acquire (MUX0)
-> > > Store (0, FNC1)
-> > > Release (MUX0)
-> > >
-> > > Then you can call (let me use casual pseudo code)
-> > > acpi_install_operation_region(SuperIOAddressSpace,
-> superio_opregion_handler) from OS side.
-> > > In its callback superio_opregion_handler(), you can:
-> > >
-> > > superio_enter();
-> > > If (address == 0) {
-> > >    /* mean FNC1 */
-> > >    Perform the locked superior accesses } else if (address == 1) {
-> > >    /* mean FNC2 */
-> > >    Perform the locked superior accesses } superio_exit();
-> > >
-> > > Are there similar approach in your DSDT?
-> > >
-> >
-> > Some snippets from the DSDT:
-> >
-> > 	Device (SIO1)
-> >             {
-> >          	Name (_HID, EisaId ("PNP0C02") /* PNP Motherboard
-> Resources */)  // _HID: Hardware ID
-> >          	Name (_UID, Zero)  // _UID: Unique ID
-> > 		...
-> > 		Mutex (MUT0, 0x00)
-> > 		Method (ENFG, 1, NotSerialized)
-> >                      {
-> >                          Acquire (MUT0, 0x0FFF)
-> >                          INDX = 0x87
-> >                          INDX = One
-> >                          INDX = 0x55
-> >                          If ((SP1O == 0x2E))
-> >                          {
-> >                              INDX = 0x55
-> >                          }
-> >                          Else
-> >                          {
-> >                              INDX = 0xAA
-> >                          }
-> >
-> >                          LDN = Arg0
-> >                      }
-> >
-> >                      Method (EXFG, 0, NotSerialized)
-> >                      {
-> >                          INDX = 0x02
-> >                          DATA = 0x02
-> >                          Release (MUT0)
-> >                      }
-> >
-> > 		    OperationRegion (IOID, SystemIO, SP1O, 0x02)	/* SP1O
-> is 0x2e */
-> >                      Field (IOID, ByteAcc, NoLock, Preserve)
-> >                      {
-> >                          INDX,   8,
-> >                          DATA,   8
-> >                      }
-> > 		    ...
-> >
-> > Example for use:
-> > 		Method (DCNT, 2, NotSerialized)
-> >                      {
-> >                          ENFG (CGLD (Arg0))
-> >                          If (((DMCH < 0x04) && ((Local1 = (DMCH &
-> 0x03)) != Zero)))
-> >                          {
-> >                              RDMA (Arg0, Arg1, Local1++)
-> >                          }
-> >
-> >                          ACTR = Arg1
-> >                          Local1 = (IOAH << 0x08)
-> >                          Local1 |= IOAL
-> >                          RRIO (Arg0, Arg1, Local1, 0x08)
-> >                          EXFG ()
-> >                      }
-> >
-> > Can there be more than one address space handler for a given region ?
-> > Each driver accessing the resource would need that handler.
-> 
-> Rather, every driver accessing the resource would need to be aware of
-> the existence of the operation region handler and would need to use the
-> mutual exclusion mechanism used by that handler, if my understanding
-> here is correct.
-> 
-> The existence of an operation region for a specific section of address
-> space is a declaration that AML is going to access locations in that
-> section.  It allows the OS to install a handler for that region to
-> intercept AML accesses and do what it likes with them.
-> 
-> Thanks,
-> Rafael
+s/shares one notifier function/share a single notifier callback/
 
-Yes, agreed.
-Bob
+Also, let's write out here what HED stands for.
 
+>   * so they need to be linked and checked one by one.  This is applied
+>   * to NMI too.
+
+This sentence wants to say "This holds true for NMIs too." I presume?
+
+>   *
+>   * RCU is used for these lists, so ghes_list_mutex is only used for
+>   * list changing, not for traversing.
+>   */
+> -static LIST_HEAD(ghes_sci);
+> +static LIST_HEAD(ghes_hed);
+>  static DEFINE_MUTEX(ghes_list_mutex);
+>  
+>  /*
+> @@ -702,14 +702,14 @@ static irqreturn_t ghes_irq_func(int irq, void *data)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> -static int ghes_notify_sci(struct notifier_block *this,
+> +static int ghes_notify_hed(struct notifier_block *this,
+>  				  unsigned long event, void *data)
+
+Align args at opening brace.
+
+>  {
+>  	struct ghes *ghes;
+>  	int ret = NOTIFY_DONE;
+>  
+>  	rcu_read_lock();
+> -	list_for_each_entry_rcu(ghes, &ghes_sci, list) {
+> +	list_for_each_entry_rcu(ghes, &ghes_hed, list) {
+>  		if (!ghes_proc(ghes))
+>  			ret = NOTIFY_OK;
+>  	}
+> @@ -718,8 +718,8 @@ static int ghes_notify_sci(struct notifier_block *this,
+>  	return ret;
+>  }
+>  
+> -static struct notifier_block ghes_notifier_sci = {
+> -	.notifier_call = ghes_notify_sci,
+> +static struct notifier_block ghes_notifier_hed = {
+> +	.notifier_call = ghes_notify_hed,
+>  };
+>  
+>  #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+> @@ -966,6 +966,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  	case ACPI_HEST_NOTIFY_POLLED:
+>  	case ACPI_HEST_NOTIFY_EXTERNAL:
+>  	case ACPI_HEST_NOTIFY_SCI:
+> +	case ACPI_HEST_NOTIFY_GSIV:
+> +	case ACPI_HEST_NOTIFY_GPIO:
+>  		break;
+
+<-- \n here for readability.
+
+>  	case ACPI_HEST_NOTIFY_NMI:
+>  		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
+> @@ -1026,10 +1028,12 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  		}
+>  		break;
+
+ditto.
+
+>  	case ACPI_HEST_NOTIFY_SCI:
+> +	case ACPI_HEST_NOTIFY_GSIV:
+> +	case ACPI_HEST_NOTIFY_GPIO:
+>  		mutex_lock(&ghes_list_mutex);
+> -		if (list_empty(&ghes_sci))
+> -			register_acpi_hed_notifier(&ghes_notifier_sci);
+> -		list_add_rcu(&ghes->list, &ghes_sci);
+> +		if (list_empty(&ghes_hed))
+> +			register_acpi_hed_notifier(&ghes_notifier_hed);
+> +		list_add_rcu(&ghes->list, &ghes_hed);
+>  		mutex_unlock(&ghes_list_mutex);
+>  		break;
+
+ditto.
+
+>  	case ACPI_HEST_NOTIFY_NMI:
+> @@ -1068,10 +1072,12 @@ static int ghes_remove(struct platform_device *ghes_dev)
+>  		free_irq(ghes->irq, ghes);
+>  		break;
+>  	case ACPI_HEST_NOTIFY_SCI:
+> +	case ACPI_HEST_NOTIFY_GSIV:
+> +	case ACPI_HEST_NOTIFY_GPIO:
+>  		mutex_lock(&ghes_list_mutex);
+>  		list_del_rcu(&ghes->list);
+> -		if (list_empty(&ghes_sci))
+> -			unregister_acpi_hed_notifier(&ghes_notifier_sci);
+> +		if (list_empty(&ghes_hed))
+> +			unregister_acpi_hed_notifier(&ghes_notifier_hed);
+>  		mutex_unlock(&ghes_list_mutex);
+>  		break;
+
+ditto.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
