@@ -1,105 +1,102 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2 1/2] ACPI / CPPC: Read lowest non linear perf in cppc_get_perf_caps
-Date: Tue, 18 Apr 2017 16:28:49 +0200
-Message-ID: <1509183.UhELQJrXFv@aspire.rjw.lan>
-References: <1490817000-13876-1-git-send-email-pprakash@codeaurora.org> <1490817000-13876-2-git-send-email-pprakash@codeaurora.org>
+Subject: Re: [RFC] ACPI / Processor: add sysfs support for low power idle
+Date: Tue, 18 Apr 2017 16:34:36 +0200
+Message-ID: <2594349.EKCJmLdolL@aspire.rjw.lan>
+References: <1490832795-27441-1-git-send-email-pprakash@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59967 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46830 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753767AbdDROey (ORCPT
+        by vger.kernel.org with ESMTP id S1750758AbdDROkl (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 18 Apr 2017 10:34:54 -0400
-In-Reply-To: <1490817000-13876-2-git-send-email-pprakash@codeaurora.org>
+        Tue, 18 Apr 2017 10:40:41 -0400
+In-Reply-To: <1490832795-27441-1-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Prashanth Prakash <pprakash@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, hotran@apm.com, ahs3@redhat.com
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, sudeep.holla@arm.com, al.stone@linaro.org
 
-On Wednesday, March 29, 2017 01:49:59 PM Prashanth Prakash wrote:
-> Read lowest non linear perf in cppc_get_perf_caps so that it can be exposed
-> via sysfs to the usespace. Lowest non linear perf is the lowest performance
-> level at which nonlinear power savings are achieved.
+On Wednesday, March 29, 2017 06:13:15 PM Prashanth Prakash wrote:
+> Add support to expose idle statistics maintained by platform to
+> userspace via sysfs in addition to other data of interest from
+> each LPI(Low Power Idle) state.
+> 
+> LPI described in section 8.4.4 of ACPI spec 6.1 provides different
+> methods to obtain idle statistics maintained by the platform. These
+> show a granular view of how each of the LPI state is being used at
+> different level of hierarchy. sysfs data is exposed at each level in
+> the hierarchy by creating a directory named 'lpi' at each level and
+> the LPI state information is presented under it. Below is the
+> representation of LPI information at one such level in the hierarchy
+> 
+> .../ACPI00XX: XX/lpi
+> 	|-> summary_stats
+> 	|-> state0
+> 	|	|-> desc
+> 	|	|-> time
+> 	|	|-> usage
+> 	|	|-> latency
+> 	|	|-> min_residency
+> 	|	|-> flags
+> 	|	|-> arch_flags
+> 	|
+> 	<<more states>>
+> 
+> ACPI00XX can be ACPI0007(processor) or ACPI0010(processor container)
+> 
+> stateX contains information related to a specific LPI state defined
+> in the LPI ACPI tables.
+> 
+> summary_stats shows the stats(usage and time) from all the LPI states
+> under a device. The summary_stats are provided to reduce the number'
+> of files to be accessed by the userspace to capture a snapshot of the'
+> idle statistics.
 > 
 > Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
 
-Except that I would spell "nonlinear" as one word which appears to be a common
-practice, it looks OK to me.
+I'd like Sudeep to tell me what he thinks about this in the first place.
 
 > ---
->  drivers/acpi/cppc_acpi.c | 19 +++++++++++--------
->  include/acpi/cppc_acpi.h |  1 +
->  2 files changed, 12 insertions(+), 8 deletions(-)
+>  drivers/acpi/acpi_processor.c |  11 ++
+>  drivers/acpi/processor_idle.c | 345 +++++++++++++++++++++++++++++++++++++++++-
+>  include/acpi/processor.h      |  27 ++++
+>  3 files changed, 381 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 3ca0729..f5f3c29 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -972,9 +972,9 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
->  int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index 0143135..a01368d 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -570,9 +570,19 @@ void __init acpi_early_processor_osc(void)
+>  static int acpi_processor_container_attach(struct acpi_device *dev,
+>  					   const struct acpi_device_id *id)
 >  {
->  	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
-> -	struct cpc_register_resource *highest_reg, *lowest_reg, *ref_perf,
-> -								 *nom_perf;
-> -	u64 high, low, nom;
-> +	struct cpc_register_resource *highest_reg, *lowest_reg,
-> +		*lowest_non_linear_reg, *nominal_reg;
-> +	u64 high, low, nom, low_non_linear;
+> +	if (dev->status.present && dev->status.functional &&
+> +		dev->status.enabled && dev->status.show_in_ui)
+> +		acpi_lpi_sysfs_init(dev->handle,
+> +				(struct acpi_lpi_sysfs_data **)&dev->driver_data);
 
-min_nonlinear here?
+This isn't the right place to do it IMO.
 
->  	int ret = 0, regs_in_pcc = 0;
+It should be done at the processor driver initialization when it is know that
+LPI is going to be used at all.
+
+>  	return 1;
+>  }
 >  
->  	if (!cpc_desc) {
-> @@ -984,12 +984,12 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
->  
->  	highest_reg = &cpc_desc->cpc_regs[HIGHEST_PERF];
->  	lowest_reg = &cpc_desc->cpc_regs[LOWEST_PERF];
-> -	ref_perf = &cpc_desc->cpc_regs[REFERENCE_PERF];
-> -	nom_perf = &cpc_desc->cpc_regs[NOMINAL_PERF];
-> +	lowest_non_linear_reg = &cpc_desc->cpc_regs[LOW_NON_LINEAR_PERF];
-> +	nominal_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
->  
->  	/* Are any of the regs PCC ?*/
->  	if (CPC_IN_PCC(highest_reg) || CPC_IN_PCC(lowest_reg) ||
-> -		CPC_IN_PCC(ref_perf) || CPC_IN_PCC(nom_perf)) {
-> +		CPC_IN_PCC(lowest_non_linear_reg) || CPC_IN_PCC(nominal_reg)) {
->  		regs_in_pcc = 1;
->  		down_write(&pcc_data.pcc_lock);
->  		/* Ring doorbell once to update PCC subspace */
-> @@ -1005,10 +1005,13 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
->  	cpc_read(cpunum, lowest_reg, &low);
->  	perf_caps->lowest_perf = low;
->  
-> -	cpc_read(cpunum, nom_perf, &nom);
-> +	cpc_read(cpunum, nominal_reg, &nom);
->  	perf_caps->nominal_perf = nom;
->  
-> -	if (!high || !low || !nom)
-> +	cpc_read(cpunum, lowest_non_linear_reg, &low_non_linear);
-> +	perf_caps->lowest_non_linear_perf = low_non_linear;
+> +static void acpi_processor_container_detach(struct acpi_device *dev)
+> +{
+> +	if (dev->driver_data)
+> +		acpi_lpi_sysfs_exit((struct acpi_lpi_sysfs_data *)dev->driver_data);
+
+And analogously here.
+
+> +}
 > +
-> +	if (!high || !low || !nom || !low_non_linear)
->  		ret = -EFAULT;
->  
->  out_err:
-> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> index 427a7c3..3f64660 100644
-> --- a/include/acpi/cppc_acpi.h
-> +++ b/include/acpi/cppc_acpi.h
-> @@ -103,6 +103,7 @@ struct cppc_perf_caps {
->  	u32 highest_perf;
->  	u32 nominal_perf;
->  	u32 lowest_perf;
-> +	u32 lowest_non_linear_perf;
->  };
->  
->  struct cppc_perf_ctrls {
-> 
-
-I can make the above changes for you if you agree. :-)
+>  static const struct acpi_device_id processor_container_ids[] = {
+>  	{ ACPI_PROCESSOR_CONTAINER_HID, },
+>  	{ }
 
 Thanks,
 Rafael
