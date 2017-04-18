@@ -1,131 +1,66 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 1/3] ACPI / bus: Introduce a list of ids
- for "always present" devices
-Date: Tue, 18 Apr 2017 15:34:44 +0200
-Message-ID: <CAJZ5v0gL6+sNwcJpz+F_BgPUq6Qu5uCBeA_5zQHX3QO359yzbQ@mail.gmail.com>
-References: <20170418115425.16068-1-hdegoede@redhat.com>
+Subject: Re: [PATCH v6 2/5] ACPI: battery: Fix acpi_battery_exit on
+ acpi_battery_init_async errors
+Date: Tue, 18 Apr 2017 15:36:38 +0200
+Message-ID: <CAJZ5v0g4h6zWg8FxoUhyshyVGpzbyi+4w7H95HHt9b9quv7anw@mail.gmail.com>
+References: <20170418115842.16214-1-hdegoede@redhat.com> <20170418115842.16214-3-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20170418115425.16068-1-hdegoede@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170418115842.16214-3-hdegoede@redhat.com>
+Sender: linux-pm-owner@vger.kernel.org
 To: Hans de Goede <hdegoede@redhat.com>
-Cc: Takashi Iwai <tiwai@suse.de>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Len Brown <lenb@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVHVlLCBBcHIgMTgsIDIwMTcgYXQgMTo1NCBQTSwgSGFucyBkZSBHb2VkZSA8aGRlZ29lZGVA
-cmVkaGF0LmNvbT4gd3JvdGU6Cj4gU2V2ZXJhbCBDaGVycnkgVHJhaWwgZGV2aWNlcyAoYWxsIG9m
-IHdoaWNoIHNoaXAgd2l0aCBXaW5kb3dzIDEwKSBoaWRlIHRoZQo+IExQU1MgUFdNIGNvbnRyb2xs
-ZXIgaW4gQUNQSSwgdHlwaWNhbGx5IHRoZSBfU1RBIG1ldGhvZCBsb29rcyBsaWtlIHRoaXM6Cj4K
-PiAgICAgTWV0aG9kIChfU1RBLCAwLCBOb3RTZXJpYWxpemVkKSAgLy8gX1NUQTogU3RhdHVzCj4g
-ICAgIHsKPiAgICAgICAgIElmIChPU0lEID09IE9uZSkKPiAgICAgICAgIHsKPiAgICAgICAgICAg
-ICBSZXR1cm4gKFplcm8pCj4gICAgICAgICB9Cj4KPiAgICAgICAgIFJldHVybiAoMHgwRikKPiAg
-ICAgfQo+Cj4gV2hlcmUgT1NJRCBpcyBzb21lIGRhcmsgbWFnaWMgc2VlbiBpbiBhbGwgQ2hlcnJ5
-IFRyYWlsIEFDUEkgdGFibGVzIG1ha2luZwo+IHRoZSBtYWNoaW5lIGJlaGF2ZSBkaWZmZXJlbnRs
-eSBkZXBlbmRpbmcgb24gd2hpY2ggT1MgaXQgKnRoaW5rcyogaXQgaXMKPiBib290aW5nLCB0aGlz
-IGdldHMgc2V0IGluIGEgbnVtYmVyIG9mIHdheXMgd2hpY2ggd2UgY2Fubm90IGNvbnRyb2wsIG9u
-Cj4gc29tZSBuZXdlciBtYWNoaW5lcyBpdCBzaW1wbGUgaGFyZGNvZGVkIHRvICJPbmUiIGFrYSB3
-aW4xMC4KPgo+IFRoaXMgY2F1c2VzIHRoZSBQV00gY29udHJvbGxlciB0byBnZXQgaGlkZGVuLCB3
-aGljaCBtZWFucyBMaW51eCBjYW5ub3QKPiBjb250cm9sIHRoZSBiYWNrbGlnaHQgbGV2ZWwgb24g
-Y2h0IGJhc2VkIHRhYmxldHMgLyBsYXB0b3BzLgo+Cj4gU2luY2UgbG9hZGluZyB0aGUgZHJpdmVy
-IGZvciB0aGlzIGRvZXMgbm8gaGFybSAodGhlIG9ubHkgaW4ga2VybmVsIHVzZXIKPiBvZiBpdCBp
-cyB0aGUgaTkxNSBkcml2ZXIsIHdoaWNoIHdpbGwgb25seSB1c2UgaXQgd2hlbiBpdCBuZWVkcyBp
-dCksIHRoaXMKPiBjb21taXQgbWFrZXMgYWNwaV9idXNfZ2V0X3N0YXR1cygpIGFsd2F5cyBzZXQg
-c3RhdHVzIHRvIEFDUElfU1RBX0RFRkFVTFQKPiBmb3IgdGhlIDgwODYyMjg4IGRldmljZSwgZml4
-aW5nIHRoZSBsYWNrIG9mIGJhY2tsaWdodCBjb250cm9sLgo+Cj4gU2lnbmVkLW9mZi1ieTogSGFu
-cyBkZSBHb2VkZSA8aGRlZ29lZGVAcmVkaGF0LmNvbT4KPiAtLS0KPiBDaGFuZ2VzIGluIHYyOgo+
-IC1Vc2UgcHJfZGVidWcgaW5zdGVhZCBvZiBBQ1BJX0RFQlVHX1BSSU5UCj4gQ2hhbmdlcyBpbiB2
-MzoKPiAtVW4taW5saW5lIGFjcGlfc2V0X2RldmljZV9zdGF0dXMgYW5kIGRvIHRoZSBhbHdheXNf
-cHJlc2VudF9kZXZpY2VfaWRzCj4gIHRhYmxlIGNoZWNrIGluc2lkZSB0aGUgdW4taW5saW5lZCB2
-ZXJzaW9uIG9mIGl0Cj4gQ2hhbmdlcyBpbiB2NDoKPiAtVXNlIGRldl9pbmZvIGluc3RlYWQgb2Yg
-cHJfZGVidWcKPiAtTm90IG9ubHkgY2hlY2sgZm9yIEFDUEkgSElEIGJ1dCBhbHNvIGZvciBDUFUg
-KFNvQykgbW9kZWwgc28gYXMgdG8gbm90Cj4gIGZvciBkZXZpY2VzIHByZXNlbnQgb24gb3RoZXIg
-bW9kZWxzIHRoZW4gZm9yIHdoaWNoIHRoZSBxdWlyayBpcyBpbnRlbmRlZCBhbmQKPiAgdG8gYXZv
-aWQgZW5hYmxpbmcgdW5yZWxhdGVkIEFDUEkgZGV2aWNlcyB3aGljaCBoYXBwZW4gdG8gdXNlIHRo
-ZSBzYW1lIEhJRAo+IENoYW5nZXMgaW4gdjU6Cj4gLU9ubHkgZG8gdGhlIGRldl9pbmZvIG9uY2Ug
-cGVyIGRldmljZSAoYWNwaV9zZXRfZGV2aWNlX3N0YXR1cyBnZXRzIGNhbGxlZAo+ICBtdWx0aXBs
-ZSB0aW1lcyBwZXIgZGV2aWNlIGR1cmluZyBib290KQo+IENoYW5nZXMgaW4gdjY6Cj4gLUFsbG93
-IHNwZWNpZnlpbmcgbW9yZSB0aGVuIG9uZSBDUFUtbW9kZWwgZm9yIGEgc2luZ2xlIEhJRAo+IC1O
-b3Qgb25seSBtYXRjaCB0aGUgSElEIGJ1dCBhbHNvIHRoZSBVSUQsIGxpa2Ugb24gQ2hlcnJ5IFRy
-YWlsLCBvbiBzb21lIEJheQo+ICBUcmFpbCBXaW5kb3dzIDEwIHRhYmxldHMgd2UgbmVlZCB0byBl
-bmFibGUgdGhlIFBXTSBjb250cm9sbGVyIHRvIGdldCB3b3JraW5nCj4gIGJhY2tsaWdodCBldmVu
-IHRob3VnaCBfU1RBIHJldHVybnMgMC4gVGhlIEJheSBUcmFpbCBTb0MgaGFzIDIgUFdNIGNvbnRy
-b2xsZXJzCj4gIGFuZCB3ZSBvbmx5IG5lZWQgdGhlIGZpcnN0IG9uZS4gVUlEIG1hdGNoaW5nIHdp
-bGwgYWxsb3dzIGFkZGluZyBhbiBlbnRyeSBmb3IKPiAgQmF5IFRyYWlsIHdoaWNoIG9ubHkgZW5h
-YmxlcyB0aGUgZmlyc3QgUFdNIGNvbnRyb2xsZXIKPiAtLS0KPiAgZHJpdmVycy9hY3BpL2J1cy5j
-ICAgICAgfCA2NSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrCj4gIGluY2x1ZGUvYWNwaS9hY3BpX2J1cy5oIHwgIDYgKy0tLS0KPiAgMiBmaWxlcyBjaGFu
-Z2VkLCA2NiBpbnNlcnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQo+Cj4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvYWNwaS9idXMuYyBiL2RyaXZlcnMvYWNwaS9idXMuYwo+IGluZGV4IDM0ZmJlMDIuLmVi
-MzA2MzAgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9hY3BpL2J1cy5jCj4gKysrIGIvZHJpdmVycy9h
-Y3BpL2J1cy5jCj4gQEAgLTM0LDYgKzM0LDggQEAKPiAgI2luY2x1ZGUgPGxpbnV4L3JlYm9vdC5o
-Pgo+ICAjaW5jbHVkZSA8bGludXgvZGVsYXkuaD4KPiAgI2lmZGVmIENPTkZJR19YODYKPiArI2lu
-Y2x1ZGUgPGFzbS9jcHVfZGV2aWNlX2lkLmg+Cj4gKyNpbmNsdWRlIDxhc20vaW50ZWwtZmFtaWx5
-Lmg+Cj4gICNpbmNsdWRlIDxhc20vbXBzcGVjLmg+Cj4gICNlbmRpZgo+ICAjaW5jbHVkZSA8bGlu
-dXgvYWNwaV9pb3J0Lmg+Cj4gQEAgLTEzMiw2ICsxMzQsNjkgQEAgaW50IGFjcGlfYnVzX2dldF9z
-dGF0dXMoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UpCj4gIH0KPiAgRVhQT1JUX1NZTUJPTChh
-Y3BpX2J1c19nZXRfc3RhdHVzKTsKPgo+ICsjaWZkZWYgQ09ORklHX1g4Ngo+ICsvKgo+ICsgKiBT
-b21lIEFDUEkgZGV2aWNlcyBhcmUgaGlkZGVuIChzdGF0dXMgPT0gMHgwKSBpbiByZWNlbnQgQklP
-Uy1lcyBiZWNhdXNlCj4gKyAqIHNvbWUgcmVjZW50IFdpbmRvd3MgZHJpdmVycyBiaW5kIHRvIG9u
-ZSBkZXZpY2UgYnV0IHBva2UgYXQgbXVsdGlwbGUKPiArICogZGV2aWNlcyBhdCB0aGUgc2FtZSB0
-aW1lLCBzbyB0aGUgb3RoZXJzIGdldCBoaWRkZW4uCj4gKyAqIFdlIHdvcmsgYXJvdW5kIHRoaXMg
-YnkgYWx3YXlzIHJlcG9ydGluZyBBQ1BJX1NUQV9ERUZBVUxUIGZvciB0aGVzZQo+ICsgKiBkZXZp
-Y2VzLiBOb3RlIHRoaXMgTVVTVCBvbmx5IGJlIGRvbmUgZm9yIGRldmljZXMgd2hlcmUgdGhpcyBp
-cyBzYWZlLgo+ICsgKgo+ICsgKiBUaGlzIGZvcmNpbmcgb2YgZGV2aWNlcyB0byBiZSBwcmVzZW50
-IGlzIGxpbWl0ZWQgdG8gc3BlY2lmaWMgQ1BVIChTb0MpCj4gKyAqIG1vZGVscyBib3RoIHRvIGF2
-b2lkIHBvdGVudGlhbGx5IGNhdXNpbmcgdHJvdWJsZSBvbiBvdGhlciBtb2RlbHMgYW5kCj4gKyAq
-IGJlY2F1c2Ugc29tZSBISURzIGFyZSByZS11c2VkIG9uIGRpZmZlcmVudCBTb0NzIGZvciBjb21w
-bGV0ZWx5Cj4gKyAqIGRpZmZlcmVudCBkZXZpY2VzLgo+ICsgKi8KPiArc3RydWN0IGFsd2F5c19w
-cmVzZW50X2RldmljZV9pZCB7Cj4gKyAgICAgICBzdHJ1Y3QgYWNwaV9kZXZpY2VfaWQgaGlkWzJd
-Owo+ICsgICAgICAgc3RydWN0IHg4Nl9jcHVfaWQgY3B1X2lkc1syXTsKClRoaXMgcmVhbGx5IGlz
-IHg4Ni1zcGVjaWZpYywgc28gaXQgc2hvdWxkIGdvIGludG8gc29tZXdoZXJlIGxpa2UKYXJjaC94
-ODYva2VybmVsL2FjcGkvIG9yIGRyaXZlcnMvYWNwaS94ODYvIChub3QgcHJlc2VudCB5ZXQpLgoK
-PiArICAgICAgIGNvbnN0IGNoYXIgKnVpZDsKPiArfTsKPiArCj4gKyNkZWZpbmUgSUNQVShtb2Rl
-bCkgICAgeyBYODZfVkVORE9SX0lOVEVMLCA2LCBtb2RlbCwgWDg2X0ZFQVRVUkVfQU5ZLCB9Cj4g
-Kwo+ICsjZGVmaW5lIEVOVFJZKGhpZCwgdWlkLCBjcHVfbW9kZWxzKSB7ICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIFwKPiArICAgICAgIHsgeyBoaWQsIH0sIHt9IH0sICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCj4gKyAgICAgICB7IGNwdV9t
-b2RlbHMsIHt9IH0sICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-XAo+ICsgICAgICAgdWlkLCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIFwKPiArfQo+ICsKPiArc3RhdGljIGNvbnN0IHN0cnVjdCBhbHdh
-eXNfcHJlc2VudF9kZXZpY2VfaWQgYWx3YXlzX3ByZXNlbnRfZGV2aWNlX2lkc1tdID0gewo+ICsg
-ICAgICAgLyoKPiArICAgICAgICAqIENoZXJyeSBUcmFpbCBQV00gZGlyZWN0bHkgcG9rZWQgYnkg
-R1BVIGRyaXZlciBpbiB3aW4xMCwKPiArICAgICAgICAqIGJ1dCBMaW51eCB1c2VzIGEgc2VwYXJh
-dGUgUFdNIGRyaXZlciwgaGFybWxlc3MgaWYgbm90IHVzZWQuCj4gKyAgICAgICAgKi8KPiArICAg
-ICAgIEVOVFJZKCI4MDg2MjI4OCIsICIxIiwgSUNQVShJTlRFTF9GQU02X0FUT01fQUlSTU9OVCkp
-LAo+ICt9Owo+ICsjZW5kaWYKPiArCj4gK3ZvaWQgYWNwaV9zZXRfZGV2aWNlX3N0YXR1cyhzdHJ1
-Y3QgYWNwaV9kZXZpY2UgKmFkZXYsIHUzMiBzdGEpCj4gK3sKPiArICAgICAgIHUzMiAqc3RhdHVz
-ID0gKHUzMiAqKSZhZGV2LT5zdGF0dXM7Cj4gKyNpZmRlZiBDT05GSUdfWDg2Cj4gKyAgICAgICB1
-MzIgb2xkX3N0YXR1cyA9ICpzdGF0dXM7Cj4gKyAgICAgICBpbnQgaTsKPiArCj4gKyAgICAgICAv
-KiBhY3BpX21hdGNoX2RldmljZV9pZHMgY2hlY2tzIHN0YXR1cywgc28gc3RhcnQgd2l0aCBkZWZh
-dWx0ICovCj4gKyAgICAgICAqc3RhdHVzID0gQUNQSV9TVEFfREVGQVVMVDsKPiArICAgICAgIGZv
-ciAoaSA9IDA7IGkgPCBBUlJBWV9TSVpFKGFsd2F5c19wcmVzZW50X2RldmljZV9pZHMpOyBpKysp
-IHsKPiArICAgICAgICAgICAgICAgaWYgKGFjcGlfbWF0Y2hfZGV2aWNlX2lkcyhhZGV2LAo+ICsg
-ICAgICAgICAgICAgICAgICAgICAgIGFsd2F5c19wcmVzZW50X2RldmljZV9pZHNbaV0uaGlkKSA9
-PSAwICYmCj4gKyAgICAgICAgICAgICAgICAgICBhZGV2LT5wbnAudW5pcXVlX2lkICYmCj4gKyAg
-ICAgICAgICAgICAgICAgICBzdHJjbXAoYWRldi0+cG5wLnVuaXF1ZV9pZCwKPiArICAgICAgICAg
-ICAgICAgICAgICAgICAgICBhbHdheXNfcHJlc2VudF9kZXZpY2VfaWRzW2ldLnVpZCkgPT0gMCAm
-Jgo+ICsgICAgICAgICAgICAgICAgICAgeDg2X21hdGNoX2NwdShhbHdheXNfcHJlc2VudF9kZXZp
-Y2VfaWRzW2ldLmNwdV9pZHMpKSB7CgpTcGxpdCB0aGlzIGNvbmRpdGlvbiBwbGVhc2UuICBJdCBp
-cyBhbG1vc3QgdW5yZWFkYWJsZSBhcyBpcy4KCj4gKyAgICAgICAgICAgICAgICAgICAgICAgaWYg
-KG9sZF9zdGF0dXMgIT0gQUNQSV9TVEFfREVGQVVMVCkKPiArICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIGRldl9pbmZvKCZhZGV2LT5kZXYsCj4gKyAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAiRGV2aWNlIFslc10gaXMgaW4gYWx3YXlzIHByZXNlbnQgbGlzdCBz
-ZXR0aW5nIHN0YXR1cyBbJTA4eF1cbiIsCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBhZGV2LT5wbnAuYnVzX2lkLCBBQ1BJX1NUQV9ERUZBVUxUKTsKPiArICAgICAg
-ICAgICAgICAgICAgICAgICByZXR1cm47Cj4gKyAgICAgICAgICAgICAgIH0KPiArICAgICAgIH0K
-PiArI2VuZGlmCj4gKyAgICAgICAqc3RhdHVzID0gc3RhOwo+ICt9Cj4gKwo+ICB2b2lkIGFjcGlf
-YnVzX3ByaXZhdGVfZGF0YV9oYW5kbGVyKGFjcGlfaGFuZGxlIGhhbmRsZSwKPiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIHZvaWQgKmNvbnRleHQpCj4gIHsKClRoYW5rcywKUmFm
-YWVsCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVs
-LWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
-L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+On Tue, Apr 18, 2017 at 1:58 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> The acpi_lock_battery_dir() / acpi_bus_register_driver() calls in
+> acpi_battery_init_async() may fail. Check that they succeeded before
+> undoing them.
+>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/acpi/battery.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 4ef1e46..b35fca4 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -67,6 +67,7 @@ MODULE_DESCRIPTION("ACPI Battery Driver");
+>  MODULE_LICENSE("GPL");
+>
+>  static async_cookie_t async_cookie;
+> +static bool battery_driver_registered;
+>  static int battery_bix_broken_package;
+>  static int battery_notification_delay_ms;
+>  static unsigned int cache_time = 1000;
+> @@ -1329,6 +1330,7 @@ static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
+>         if (result < 0)
+>                 acpi_unlock_battery_dir(acpi_battery_dir);
+>  #endif
+> +       battery_driver_registered = (result == 0);
+
+Maybe
+
+      battery_driver_registered = !result;
+
+>  }
+>
+>  static int __init acpi_battery_init(void)
+> @@ -1343,9 +1345,11 @@ static int __init acpi_battery_init(void)
+>  static void __exit acpi_battery_exit(void)
+>  {
+>         async_synchronize_cookie(async_cookie + 1);
+> -       acpi_bus_unregister_driver(&acpi_battery_driver);
+> +       if (battery_driver_registered)
+> +               acpi_bus_unregister_driver(&acpi_battery_driver);
+>  #ifdef CONFIG_ACPI_PROCFS_POWER
+> -       acpi_unlock_battery_dir(acpi_battery_dir);
+> +       if (acpi_battery_dir)
+> +               acpi_unlock_battery_dir(acpi_battery_dir);
+>  #endif
+>  }
+
+Thanks,
+Rafael
