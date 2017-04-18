@@ -1,88 +1,55 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v6 4/5] ACPI: ac: Add a blacklist with PMIC ACPI HIDs with a native charger driver
-Date: Tue, 18 Apr 2017 13:58:41 +0200
-Message-ID: <20170418115842.16214-5-hdegoede@redhat.com>
-References: <20170418115842.16214-1-hdegoede@redhat.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170418115842.16214-1-hdegoede@redhat.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+From: Dmitry Frank <mail@dmitryfrank.com>
+Subject: What is the proper way to address the problem of backlight with two
+ video cards?
+Date: Tue, 18 Apr 2017 15:26:16 +0300
+Message-ID: <20170418122616.GA11467@dimon-t520>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from forward10h.cmail.yandex.net ([87.250.230.221]:51169 "EHLO
+        forward10h.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752784AbdDRMbh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 18 Apr 2017 08:31:37 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On some systems we have a native PMIC driver which provides Mains
-monitoring, while the ACPI ac driver is broken on these systems
-due to bad DSTDs or because we do not support the proprietary and
-undocumented ACPI opregions these ACPI battery devices rely on
-(e.g. BMOP opregion).
+On my laptop Thinkpad T520, I have the following problem: when I suspend it
+and then resume back, the backlight brightness always gets reset to the
+maximum value, independently of the value I had before suspending it.
 
-This leads for example to a ADP1 power_supply which reports
-itself as always online even if no mains are connected.
+I tracked this issue down to the following:
 
-This commit adds a blacklist with PMIC ACPI HIDs for which we've a
-native charger or extcon driver and makes the ACPI ac driver not
-register itself when a PMIC on this list is present.
+Thinkpad T520 has two video cards: Intel i915 and Nvidia GF119M.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
-Changes in v2:
--This is a new patch in v2 of this patch-set replacing:
- "ACPI: ac: Add acpi_ac_unregister() function"
- "power: supply: axp288_charger: Unregister duplicate ACPI ac supply"
- And also this patch from my local patch-queue (not submitted yet):
- "i2c-cht-wc: remove broken ACPI AC power-supply"
----
- drivers/acpi/ac.c | 21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+Attributes (as in struct acpi_video_device_attrib) for Intel are: 0x80010400
+(LCD, bios_can_detect: 1)
 
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index f71b756..8df95a1 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -57,12 +57,23 @@ static int acpi_ac_add(struct acpi_device *device);
- static int acpi_ac_remove(struct acpi_device *device);
- static void acpi_ac_notify(struct acpi_device *device, u32 event);
- 
-+struct acpi_ac_bl {
-+	const char *hid;
-+	int hrv;
-+};
-+
- static const struct acpi_device_id ac_device_ids[] = {
- 	{"ACPI0003", 0},
- 	{"", 0},
- };
- MODULE_DEVICE_TABLE(acpi, ac_device_ids);
- 
-+/* Lists of PMIC ACPI HIDs with an (often better) native charger driver */
-+static const struct acpi_ac_bl acpi_ac_blacklist[] = {
-+	{ "INT33F4", -1 }, /* X-Powers AXP288 PMIC */
-+	{ "INT34D3",  3 }, /* Intel Cherrytrail Whiskey Cove PMIC */
-+};
-+
- #ifdef CONFIG_PM_SLEEP
- static int acpi_ac_resume(struct device *dev);
- #endif
-@@ -424,11 +435,19 @@ static int acpi_ac_remove(struct acpi_device *device)
- 
- static int __init acpi_ac_init(void)
- {
--	int result;
-+	int i, result;
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
-+	for (i = 0; i < ARRAY_SIZE(acpi_ac_blacklist); i++)
-+		if (acpi_dev_present(acpi_ac_blacklist[i].hid, "1",
-+				     acpi_ac_blacklist[i].hrv)) {
-+			pr_info("ACPI: AC: found native %s PMIC, not loading\n",
-+				acpi_ac_blacklist[i].hid);
-+			return -ENODEV;
-+		}
-+
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	acpi_ac_dir = acpi_lock_ac_dir();
- 	if (!acpi_ac_dir)
--- 
-2.9.3
+Attributes for Nvidia are: 0x110. So, there's no device_id_scheme bit, and
+thus acpi_video_bus_get_one_device() falls back to the legacy ID detection,
+and sets it as LCD.
+
+The main problem is that executing _BCM on either of those two cards affects
+the laptop's LCD panel in the same way. They appear to the kernel as two
+separate cards (and they are indeed).
+
+When I adjust the brightness, only that of Intel card is recorded. But during
+the resume, acpi_video_resume() calls acpi_video_device_lcd_set_level() for
+both cards, and Nvidia happens to be the second one, so its brightness "wins".
+
+Fwiw, I do not use proprietary nvidia drivers.
+
+At this point I'm unsure of what's the right way to solve that. Since Nvidia
+Optimus allows two cards to work simultaneously (for different applications),
+it does not make sense to check which card is "active", since both of them can
+be active. But, is there some way to check that two video adapters control the
+same physical LCD panel? So far I failed to find one: these acpi_video_device-s
+don't share anything, e.g. each of them has its own struct
+acpi_video_device_brightness and struct backlight_device.
+
+If anyone has some idea, please share.
+
+Thanks!
