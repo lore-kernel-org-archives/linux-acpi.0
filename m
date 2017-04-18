@@ -1,89 +1,40 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v4] ACPI / bus: Introduce a list of ids for
- "always present" devices
-Date: Tue, 18 Apr 2017 11:31:09 +0300
-Message-ID: <1492504269.24567.49.camel@linux.intel.com>
-References: <20170410154936.15330-1-hdegoede@redhat.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/2] ACPI / scan: Apply default enumeration to devices
+ with ACPI drivers
+Date: Tue, 18 Apr 2017 13:21:31 +0300
+Message-ID: <20170418102131.GB3093@lahna.fi.intel.com>
+References: <20731969.imAyuWkf7P@aspire.rjw.lan>
+ <7942620.ijDeSLx5PQ@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20170410154936.15330-1-hdegoede@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Hans de Goede <hdegoede@redhat.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, intel-gfx <intel-gfx@lists.freedesktop.org>, Robert Moore <robert.moore@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:27838 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751309AbdDRKVg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 18 Apr 2017 06:21:36 -0400
+Content-Disposition: inline
+In-Reply-To: <7942620.ijDeSLx5PQ@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-T24gTW9uLCAyMDE3LTA0LTEwIGF0IDE3OjQ5ICswMjAwLCBIYW5zIGRlIEdvZWRlIHdyb3RlOgo+
-IFNldmVyYWwgY2hlcnJ5dHJhaWwgZGV2aWNlcyAoYWxsIG9mIHdoaWNoIHNoaXAgd2l0aCB3aW5k
-b3dzIDEwKSBoaWRlCj4gdGhlCj4gbHBzcyBwd20gY29udHJvbGxlciBpbiBBQ1BJLCB0eXBpY2Fs
-bHkgdGhlIF9TVEEgbWV0aG9kIGxvb2tzIGxpa2UKPiB0aGlzOgoKQ2hlcnJ5VHJhaWwKUFdNCkxQ
-U1MKCj4gCj4gwqDCoMKgwqBNZXRob2QgKF9TVEEsIDAsIE5vdFNlcmlhbGl6ZWQpwqDCoC8vIF9T
-VEE6IFN0YXR1cwo+IMKgwqDCoMKgewo+IMKgwqDCoMKgwqDCoMKgwqBJZiAoT1NJRCA9PSBPbmUp
-Cj4gwqDCoMKgwqDCoMKgwqDCoHsKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBSZXR1cm4gKFpl
-cm8pCj4gwqDCoMKgwqDCoMKgwqDCoH0KPiAKPiDCoMKgwqDCoMKgwqDCoMKgUmV0dXJuICgweDBG
-KQo+IMKgwqDCoMKgfQo+IAo+IFdoZXJlIE9TSUQgaXMgc29tZSBkYXJrIG1hZ2ljIHNlZW4gaW4g
-YWxsIGNoZXJyeXRyYWlsIEFDUEkgdGFibGVzCj4gbWFraW5nCj4gdGhlIG1hY2hpbmUgYmVoYXZl
-IGRpZmZlcmVudGx5IGRlcGVuZGluZyBvbiB3aGljaCBPUyBpdCAqdGhpbmtzKiBpdCBpcwo+IGJv
-b3RpbmcsIHRoaXMgZ2V0cyBzZXQgaW4gYSBudW1iZXIgb2Ygd2F5cyB3aGljaCB3ZSBjYW5ub3Qg
-Y29udHJvbCwgb24KPiBzb21lIG5ld2VyIG1hY2hpbmVzIGl0IHNpbXBsZSBoYXJkY29kZWQgdG8g
-Ik9uZSIgYWthIHdpbjEwLgo+IAo+IFRoaXMgY2F1c2VzIHRoZSBQV00gY29udHJvbGxlciB0byBn
-ZXQgaGlkZGVuLCB3aGljaCBtZWFucyBMaW51eCBjYW5ub3QKPiBjb250cm9sIHRoZSBiYWNrbGln
-aHQgbGV2ZWwgb24gY2h0IGJhc2VkIHRhYmxldHMgLyBsYXB0b3BzLgo+IAo+IFNpbmNlIGxvYWRp
-bmcgdGhlIGRyaXZlciBmb3IgdGhpcyBkb2VzIG5vIGhhcm0gKHRoZSBvbmx5IGluIGtlcm5lbAo+
-IHVzZXIKPiBvZiBpdCBpcyB0aGUgaTkxNSBkcml2ZXIsIHdoaWNoIHdpbGwgb25seSB1c2UgaXQg
-d2hlbiBpdCBuZWVkcyBpdCksCj4gdGhpcwo+IGNvbW1pdCBtYWtlcyBhY3BpX2J1c19nZXRfc3Rh
-dHVzKCkgYWx3YXlzIHNldCBzdGF0dXMgdG8KPiBBQ1BJX1NUQV9ERUZBVUxUCj4gZm9yIHRoZSA4
-MDg2MjI4OCBkZXZpY2UsIGZpeGluZyB0aGUgbGFjayBvZiBiYWNrbGlnaHQgY29udHJvbC4KCj4g
-KyNpZmRlZiBDT05GSUdfWDg2Cj4gKy8qCj4gKyAqIFNvbWUgQUNQSSBkZXZpY2VzIGFyZSBoaWRk
-ZW4gKHN0YXR1cyA9PSAweDApIGluIHJlY2VudCBCSU9TLWVzCj4gYmVjYXVzZQo+ICsgKiBzb21l
-IHJlY2VudCB3aW5kb3dzIGRyaXZlcnMgYmluZCB0byBvbmUgZGV2aWNlIGJ1dCBwb2tlIGF0Cj4g
-bXVsdGlwbGUKCldpbmRvd3MKCj4gKyAqIGRldmljZXMgYXQgdGhlIHNhbWUgdGltZSwgc28gdGhl
-IG90aGVycyBnZXQgaGlkZGVuLgo+ICsgKiBXZSB3b3JrIGFyb3VuZCB0aGlzIGJ5IGFsd2F5cyBy
-ZXBvcnRpbmcgQUNQSV9TVEFfREVGQVVMVCBmb3IgdGhlc2UKPiArICogZGV2aWNlcy4gTm90ZSB0
-aGlzIE1VU1Qgb25seSBiZSBkb25lIGZvciBkZXZpY2VzIHdoZXJlIHRoaXMgaXMKPiBzYWZlLgo+
-ICsgKgo+ICsgKiBUaGlzIGZvcmNpbmcgb2YgZGV2aWNlcyB0byBiZSBwcmVzZW50IGlzIGxpbWl0
-ZWQgdG8gc3BlY2lmaWMgQ1BVCj4gKFNvQykKPiArICogbW9kZWxzIGJvdGggdG8gYXZvaWQgcG90
-ZW50aWFsbHkgY2F1c2luZyB0cm91YmxlIG9uIG90aGVyIG1vZGVscwo+IGFuZAo+ICsgKiBiZWNh
-dXNlIHNvbWUgSElEcyBhcmUgcmUtdXNlZCBvbiBkaWZmZXJlbnQgU29DcyBmb3IgY29tcGxldGVs
-eQo+ICsgKiBkaWZmZXJlbnQgZGV2aWNlcy4KPiArICovCj4gK3N0cnVjdCBhbHdheXNfcHJlc2Vu
-dF9kZXZpY2VfaWQgewo+ICsJc3RydWN0IGFjcGlfZGV2aWNlX2lkIGhpZFsyXTsKPiArCXN0cnVj
-dCB4ODZfY3B1X2lkIGNwdV9pZFsyXTsKPiArfTsKPiArCgo+ICsjZGVmaW5lIEVOVFJZKGhpZCwg
-Y3B1X21vZGVsKSB7CQkJCQkKCj4gCVwKPiArCXsgeyBoaWQsIH0sIHt9IH0sCQkJCQkJCj4gXAoK
-PiArCXsgeyBYODZfVkVORE9SX0lOVEVMLCA2LCBjcHVfbW9kZWwsIFg4Nl9GRUFUVVJFX0FOWSwg
-fSwge30gfSwKPiAJXAoKQ2FuIHdlIHVzZSBzZXBhcmF0ZSBtYWNybyBmb3IgdGhpcy4gaS5lLiBJ
-Q1BVKCkgPwoKUGVyaGFwcyBhdCBzb21lIHBvaW50IHdlIG1pZ2h0IHN3aXRjaCB0byBzZXQgb2Yg
-Z2VuZXJpYyBJQ1BVKCktbGlrZQptYWNyb3MuCgpNb3Jlb3ZlciwgaXQgc2VlbXMgeW91IG1heSBj
-aGFuZ2UgaXQgdG8gdXNlIG9ubHkgb25lIGV4aXN0aW5nIHN0cnVjdHVyZQoKSUNQVShtb2RlbCwg
-aGlkKQoKPiArfQo+ICsKPiArc3RhdGljIGNvbnN0IHN0cnVjdCBhbHdheXNfcHJlc2VudF9kZXZp
-Y2VfaWQKPiBhbHdheXNfcHJlc2VudF9kZXZpY2VfaWRzW10gPSB7Cj4gKwkvKgo+ICsJwqAqIENo
-ZXJyeXRyYWlsIHB3bSBkaXJlY3RseSBwb2tlZCBieSBHUFUgZHJpdmVyIGluIHdpbjEwLAo+ICsJ
-wqAqIGJ1dCBMaW51eCB1c2VzIGEgc2VwYXJhdGUgcHdtIGRyaXZlciwgaGFybWxlc3MgaWYgbm90
-Cj4gdXNlZC4KPiArCcKgKi8KPiArCUVOVFJZKCI4MDg2MjI4OCIsIElOVEVMX0ZBTTZfQVRPTV9B
-SVJNT05UKSwKPiArfTsKPiArI2VuZGlmCj4gKwo+ICt2b2lkIGFjcGlfc2V0X2RldmljZV9zdGF0
-dXMoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2LCB1MzIgc3RhKQo+ICt7Cj4gKwl1MzIgKnN0YXR1
-cyA9ICh1MzIgKikmYWRldi0+c3RhdHVzOwo+ICsjaWZkZWYgQ09ORklHX1g4Ngo+ICsJaW50IGk7
-Cj4gKwo+ICsJLyogYWNwaV9tYXRjaF9kZXZpY2VfaWRzIGNoZWNrcyBzdGF0dXMsIHNvIHN0YXJ0
-IHdpdGggZGVmYXVsdAo+ICovCj4gKwkqc3RhdHVzID0gQUNQSV9TVEFfREVGQVVMVDsKCj4gKwlm
-b3IgKGkgPSAwOyBpIDwgQVJSQVlfU0laRShhbHdheXNfcHJlc2VudF9kZXZpY2VfaWRzKTsgaSsr
-KSB7Cj4gKwkJaWYgKGFjcGlfbWF0Y2hfZGV2aWNlX2lkcyhhZGV2LAo+ICsJCQlhbHdheXNfcHJl
-c2VudF9kZXZpY2VfaWRzW2ldLmhpZCkgPT0gMCAmJgo+ICsJCcKgwqDCoMKgeDg2X21hdGNoX2Nw
-dShhbHdheXNfcHJlc2VudF9kZXZpY2VfaWRzW2ldLmNwdV9pZAo+ICkpIHsKCkkgZG9uJ3QgbGlr
-ZSB0aGlzLiBJdCBsb29rcyBhIGJpdCBoYWNraXNoLiBJZiB3ZSBuZWVkIG1vcmUsIHRoYW4gb25l
-IGhpZApwZXIgQ1BVLCB3ZSBtaWdodCBqdXN0IHN1cHBseSBhbiBhcnJheQoKSUNQVShtb2RlbCwg
-aGlkcykKCj4gKwkJCWRldl9pbmZvKCZhZGV2LT5kZXYsICJEZXZpY2UgWyVzXSBpcyBpbgo+IGFs
-d2F5cyBwcmVzZW50IGxpc3Qgc2V0dGluZyBzdGF0dXMgWyUwOHhdXG4iLAo+ICsJCQkJwqBhZGV2
-LT5wbnAuYnVzX2lkLCBBQ1BJX1NUQV9ERUZBVUxUKTsKPiArCQkJcmV0dXJuOwo+ICsJCX0KPiAr
-CX0KPiArI2VuZGlmCgotLSAKQW5keSBTaGV2Y2hlbmtvIDxhbmRyaXkuc2hldmNoZW5rb0BsaW51
-eC5pbnRlbC5jb20+CkludGVsIEZpbmxhbmQgT3kKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
-bGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+On Mon, Apr 17, 2017 at 01:19:50AM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> The current code in acpi_bus_attach() is inconsistent with respect
+> to device objects with ACPI drivers bound to them, as it allows
+> ACPI drivers to bind to device objects with existing "physical"
+> device companions, but it doesn't allow "physical" device objects
+> to be created for ACPI device objects with ACPI drivers bound to
+> them.  Thus, in some cases, the outcome depends on the ordering
+> of events which is confusing at best.
+> 
+> For this reason, modify acpi_bus_attach() to call
+> acpi_default_enumeration() for device objects with the 
+> pnp.type.platform_id flag set regardless of whether or not
+> any ACPI drivers are bound to them.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
