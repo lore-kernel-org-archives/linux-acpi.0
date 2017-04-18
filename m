@@ -1,111 +1,256 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH V2 1/2] ACPI / CPPC: Read lowest non linear perf in
- cppc_get_perf_caps
-Date: Tue, 18 Apr 2017 11:03:18 -0600
-Message-ID: <97f75cae-280f-6b99-6457-fe01c528c8a3@codeaurora.org>
-References: <1490817000-13876-1-git-send-email-pprakash@codeaurora.org>
- <1490817000-13876-2-git-send-email-pprakash@codeaurora.org>
- <1509183.UhELQJrXFv@aspire.rjw.lan>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v24 09/11] acpi/arm64: Add memory-mapped timer support in
+ GTDT driver
+Date: Tue, 18 Apr 2017 18:21:07 +0100
+Message-ID: <20170418172107.GA1401@red-moon>
+References: <20170414184014.8524-1-fu.wei@linaro.org>
+ <20170414184014.8524-10-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:40998 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754847AbdDRRDZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Apr 2017 13:03:25 -0400
-In-Reply-To: <1509183.UhELQJrXFv@aspire.rjw.lan>
-Content-Language: en-US
+Received: from foss.arm.com ([217.140.101.70]:59108 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753989AbdDRRUh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 18 Apr 2017 13:20:37 -0400
+Content-Disposition: inline
+In-Reply-To: <20170414184014.8524-10-fu.wei@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, hotran@apm.com, ahs3@redhat.com
+To: fu.wei@linaro.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 
-Hi Rafael,
+On Sat, Apr 15, 2017 at 02:40:12AM +0800, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
+> 
+> On platforms booting with ACPI, architected memory-mapped timers'
+> configuration data is provided by firmware through the ACPI GTDT
+> static table.
+> 
+> The clocksource architected timer kernel driver requires a firmware
+> interface to collect timer configuration and configure its driver.
+> this infrastructure is present for device tree systems, but it is
+> missing on systems booting with ACPI.
+> 
+> Implement the kernel infrastructure required to parse the static
+> ACPI GTDT table so that the architected timer clocksource driver can
+> make use of it on systems booting with ACPI, therefore enabling
+> the corresponding timers configuration.
+> 
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+> ---
+>  drivers/acpi/arm64/gtdt.c | 144 ++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h      |   1 +
+>  2 files changed, 145 insertions(+)
+> 
+> diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+> index 3d95af8..c9ef9c2 100644
+> --- a/drivers/acpi/arm64/gtdt.c
+> +++ b/drivers/acpi/arm64/gtdt.c
+> @@ -13,6 +13,7 @@
+>  
+>  #include <linux/acpi.h>
+>  #include <linux/init.h>
+> +#include <linux/irqdomain.h>
+>  #include <linux/kernel.h>
+>  
+>  #include <clocksource/arm_arch_timer.h>
+> @@ -37,6 +38,28 @@ struct acpi_gtdt_descriptor {
+>  
+>  static struct acpi_gtdt_descriptor acpi_gtdt_desc __initdata;
+>  
+> +static inline void *next_platform_timer(void *platform_timer)
+> +{
+> +	struct acpi_gtdt_header *gh = platform_timer;
+> +
+> +	platform_timer += gh->length;
+> +	if (platform_timer < acpi_gtdt_desc.gtdt_end)
+> +		return platform_timer;
+> +
+> +	return NULL;
+> +}
+> +
+> +#define for_each_platform_timer(_g)				\
+> +	for (_g = acpi_gtdt_desc.platform_timer; _g;	\
+> +	     _g = next_platform_timer(_g))
+> +
+> +static inline bool is_timer_block(void *platform_timer)
+> +{
+> +	struct acpi_gtdt_header *gh = platform_timer;
+> +
+> +	return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
+> +}
+> +
+>  static int __init map_gt_gsi(u32 interrupt, u32 flags)
+>  {
+>  	int trigger, polarity;
+> @@ -155,3 +178,124 @@ int __init acpi_gtdt_init(struct acpi_table_header *table,
+>  
+>  	return 0;
+>  }
+> +
+> +static int __init gtdt_parse_timer_block(struct acpi_gtdt_timer_block *block,
+> +					 struct arch_timer_mem *timer_mem)
+> +{
+> +	int i;
+> +	struct arch_timer_mem_frame *frame;
+> +	struct acpi_gtdt_timer_entry *gtdt_frame;
+> +
+> +	if (!block->timer_count) {
+> +		pr_err(FW_BUG "GT block present, but frame count is zero.");
+> +		return -ENODEV;
+> +	}
+> +
+> +	if (block->timer_count > ARCH_TIMER_MEM_MAX_FRAMES) {
+> +		pr_err(FW_BUG "GT block lists %d frames, ACPI spec only allows 8\n",
+> +		       block->timer_count);
+> +		return -EINVAL;
+> +	}
+> +
+> +	timer_mem->cntctlbase = (phys_addr_t)block->block_address;
+> +	/*
+> +	 * The CNTCTLBase frame is 4KB (register offsets 0x000 - 0xFFC).
+> +	 * See ARM DDI 0487A.k_iss10775, page I1-5129, Table I1-3
+> +	 * "CNTCTLBase memory map".
+> +	 */
+> +	timer_mem->size = SZ_4K;
+> +
+> +	gtdt_frame = (void *)block + block->timer_offset;
+> +	if (gtdt_frame + block->timer_count != (void *)block + block->header.length)
+> +		return -EINVAL;
+> +
+> +	/*
+> +	 * Get the GT timer Frame data for every GT Block Timer
+> +	 */
+> +	for (i = 0; i < block->timer_count; i++, gtdt_frame++) {
+> +		if (gtdt_frame->common_flags & ACPI_GTDT_GT_IS_SECURE_TIMER)
+> +			continue;
+> +
+> +		if (!gtdt_frame->base_address || !gtdt_frame->timer_interrupt)
+> +			goto error;
+> +
+> +		frame = &timer_mem->frame[gtdt_frame->frame_number];
+> +		frame->phys_irq = map_gt_gsi(gtdt_frame->timer_interrupt,
+> +					     gtdt_frame->timer_flags);
+> +		if (frame->phys_irq <= 0) {
+> +			pr_warn("failed to map physical timer irq in frame %d.\n",
+> +				gtdt_frame->frame_number);
+> +			goto error;
+> +		}
+> +
+> +		if (gtdt_frame->virtual_timer_interrupt) {
+> +			frame->virt_irq =
+> +				map_gt_gsi(gtdt_frame->virtual_timer_interrupt,
+> +					   gtdt_frame->virtual_timer_flags);
+> +			if (frame->virt_irq <= 0) {
+> +				pr_warn("failed to map virtual timer irq in frame %d.\n",
+> +					gtdt_frame->frame_number);
+> +				goto error;
+> +			}
+> +		} else {
+> +			frame->virt_irq = 0;
+> +			pr_debug("virtual timer in frame %d not implemented.\n",
+> +				 gtdt_frame->frame_number);
+> +		}
+> +
+> +		frame->cntbase = gtdt_frame->base_address;
+> +		/*
+> +		 * The CNTBaseN frame is 4KB (register offsets 0x000 - 0xFFC).
+> +		 * See ARM DDI 0487A.k_iss10775, page I1-5130, Table I1-4
+> +		 * "CNTBaseN memory map".
+> +		 */
+> +		frame->size = SZ_4K;
+> +		frame->valid = true;
+> +	}
+> +
+> +	return 0;
+> +
+> +error:
+> +	for (i = 0; i < ARCH_TIMER_MEM_MAX_FRAMES; i++) {
+> +		frame = &timer_mem->frame[i];
+> +		if (frame->phys_irq > 0)
+> +			acpi_unregister_irq(frame->phys_irq);
+> +		if (frame->virt_irq > 0)
+> +			acpi_unregister_irq(frame->virt_irq);
+> +	}
 
-On 4/18/2017 8:28 AM, Rafael J. Wysocki wrote:
-> On Wednesday, March 29, 2017 01:49:59 PM Prashanth Prakash wrote:
->> Read lowest non linear perf in cppc_get_perf_caps so that it can be exposed
->> via sysfs to the usespace. Lowest non linear perf is the lowest performance
->> level at which nonlinear power savings are achieved.
->>
->> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
-> Except that I would spell "nonlinear" as one word which appears to be a common
-> practice, it looks OK to me.
->
->> ---
->>  drivers/acpi/cppc_acpi.c | 19 +++++++++++--------
->>  include/acpi/cppc_acpi.h |  1 +
->>  2 files changed, 12 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->> index 3ca0729..f5f3c29 100644
->> --- a/drivers/acpi/cppc_acpi.c
->> +++ b/drivers/acpi/cppc_acpi.c
->> @@ -972,9 +972,9 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
->>  int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
->>  {
->>  	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
->> -	struct cpc_register_resource *highest_reg, *lowest_reg, *ref_perf,
->> -								 *nom_perf;
->> -	u64 high, low, nom;
->> +	struct cpc_register_resource *highest_reg, *lowest_reg,
->> +		*lowest_non_linear_reg, *nominal_reg;
->> +	u64 high, low, nom, low_non_linear;
-> min_nonlinear here?
->
->>  	int ret = 0, regs_in_pcc = 0;
->>  
->>  	if (!cpc_desc) {
->> @@ -984,12 +984,12 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
->>  
->>  	highest_reg = &cpc_desc->cpc_regs[HIGHEST_PERF];
->>  	lowest_reg = &cpc_desc->cpc_regs[LOWEST_PERF];
->> -	ref_perf = &cpc_desc->cpc_regs[REFERENCE_PERF];
->> -	nom_perf = &cpc_desc->cpc_regs[NOMINAL_PERF];
->> +	lowest_non_linear_reg = &cpc_desc->cpc_regs[LOW_NON_LINEAR_PERF];
->> +	nominal_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
->>  
->>  	/* Are any of the regs PCC ?*/
->>  	if (CPC_IN_PCC(highest_reg) || CPC_IN_PCC(lowest_reg) ||
->> -		CPC_IN_PCC(ref_perf) || CPC_IN_PCC(nom_perf)) {
->> +		CPC_IN_PCC(lowest_non_linear_reg) || CPC_IN_PCC(nominal_reg)) {
->>  		regs_in_pcc = 1;
->>  		down_write(&pcc_data.pcc_lock);
->>  		/* Ring doorbell once to update PCC subspace */
->> @@ -1005,10 +1005,13 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
->>  	cpc_read(cpunum, lowest_reg, &low);
->>  	perf_caps->lowest_perf = low;
->>  
->> -	cpc_read(cpunum, nom_perf, &nom);
->> +	cpc_read(cpunum, nominal_reg, &nom);
->>  	perf_caps->nominal_perf = nom;
->>  
->> -	if (!high || !low || !nom)
->> +	cpc_read(cpunum, lowest_non_linear_reg, &low_non_linear);
->> +	perf_caps->lowest_non_linear_perf = low_non_linear;
->> +
->> +	if (!high || !low || !nom || !low_non_linear)
->>  		ret = -EFAULT;
->>  
->>  out_err:
->> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
->> index 427a7c3..3f64660 100644
->> --- a/include/acpi/cppc_acpi.h
->> +++ b/include/acpi/cppc_acpi.h
->> @@ -103,6 +103,7 @@ struct cppc_perf_caps {
->>  	u32 highest_perf;
->>  	u32 nominal_perf;
->>  	u32 lowest_perf;
->> +	u32 lowest_non_linear_perf;
->>  };
->>  
->>  struct cppc_perf_ctrls {
->>
-> I can make the above changes for you if you agree. :-)
+There are three error paths, none of them reset [i,gtdt_frame],
+correct ?
 
-Thanks! Yes, you can make those correction :-)
+If yes, why can't it simply be written like this ?
 
---
+for (; i >= 0; i--, gtdt_frame--) {
+	frame = &timer_mem->frame[gtdt_frame->frame_number];
+
+	/* not sure this check is actually needed */
+	if (gtdt_frame->common_flags & ACPI_GTDT_GT_IS_SECURE_TIMER)
+		continue;
+
+	if (frame->phys_irq > 0)
+		acpi_unregister_gsi(gtdt_frame->timer_interrupt);
+	if (frame->virt_irq > 0)
+		acpi_unregister_gsi(gtdt_frame->virtual_timer_interrupt);
+}
+
+It is time we merged this code, that's for certain so if for any reason
+loop above does not work this current series is ok for me, go ahead, I
+just don't see the point of adding another ACPI IRQ function
+acpi_unregister_irq() (which does not mean acpi_unregister_gsi() is sane
+- we just lived with it when ACPI ARM64 was merged because changing its
+API requires reworking x86 legacy code that I don't understand).
+
 Thanks,
-Prashanth
+Lorenzo
+
+> +	return -EINVAL;
+> +}
+> +
+> +/**
+> + * acpi_arch_timer_mem_init() - Get the info of all GT blocks in GTDT table.
+> + * @timer_mem:	The pointer to the array of struct arch_timer_mem for returning
+> + *		the result of parsing. The element number of this array should
+> + *		be platform_timer_count(the total number of platform timers).
+> + * @timer_count: It points to a integer variable which is used for storing the
+> + *		number of GT blocks we have parsed.
+> + *
+> + * Return: 0 if success, -EINVAL/-ENODEV if error.
+> + */
+> +int __init acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem,
+> +				    int *timer_count)
+> +{
+> +	int ret;
+> +	void *platform_timer;
+> +
+> +	*timer_count = 0;
+> +	for_each_platform_timer(platform_timer) {
+> +		if (is_timer_block(platform_timer)) {
+> +			ret = gtdt_parse_timer_block(platform_timer, timer_mem);
+> +			if (ret)
+> +				return ret;
+> +			timer_mem++;
+> +			(*timer_count)++;
+> +		}
+> +	}
+> +
+> +	if (*timer_count)
+> +		pr_info("found %d memory-mapped timer block(s).\n",
+> +			*timer_count);
+> +
+> +	return 0;
+> +}
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 728d1ed..4b1ab65 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -606,6 +606,7 @@ int acpi_reconfig_notifier_unregister(struct notifier_block *nb);
+>  int acpi_gtdt_init(struct acpi_table_header *table, int *platform_timer_count);
+>  int acpi_gtdt_map_ppi(int type);
+>  bool acpi_gtdt_c3stop(int type);
+> +int acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem, int *timer_count);
+>  #endif
+>  
+>  #else	/* !CONFIG_ACPI */
+> -- 
+> 2.9.3
+> 
