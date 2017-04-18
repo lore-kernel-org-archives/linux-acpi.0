@@ -1,141 +1,40 @@
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: Re: [PATCH v3 1/8] trace: ras: add ARM processor error information
- trace event
-Date: Tue, 18 Apr 2017 10:22:05 +0800
-Message-ID: <6de4c208-b4c7-282c-12ec-8863cadb7c60@huawei.com>
-References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
- <1490869877-118713-11-git-send-email-xiexiuqi@huawei.com>
- <32ca4e7e-eb5e-a4ff-33d6-68d06e9242fb@codeaurora.org>
- <6c0d2652-71ba-aefc-d6cd-5cc9a0b0d729@huawei.com>
- <8aa30f6a-d18d-1cce-57dc-08efb52d822e@huawei.com>
- <f8ef4306-fd69-d8a3-3ca6-86be2825cab3@codeaurora.org>
+From: <h.piontek@mistravel.pl>
+Subject: (unknown)
+Date: Tue, 18 Apr 2017 02:53:35 -0000
+Message-ID: <149248401527.22386.17904969766710659158@udm.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: application/zip; name="EMAIL_259096023_linux-acpi.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([45.249.212.189]:5442 "EHLO
-        dggrg03-dlp.huawei.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755433AbdDRCWo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Apr 2017 22:22:44 -0400
-In-Reply-To: <f8ef4306-fd69-d8a3-3ca6-86be2825cab3@codeaurora.org>
+Received: from a134.sub126.net78.udm.net ([78.85.126.134]:54483 "HELO udm.net"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1755663AbdDRCxk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 17 Apr 2017 22:53:40 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Baicar, Tyler" <tbaicar@codeaurora.org>, christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, james.morse@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com
-Cc: linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com, zhengqiang10@huawei.com, wuquanming@huawei.com, wangxiongfeng2@huawei.com
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi Tyler,
-
-On 2017/4/18 1:18, Baicar, Tyler wrote:
-> On 4/16/2017 9:16 PM, Xie XiuQi wrote:
->> On 2017/4/17 11:08, Xie XiuQi wrote:
->>>> On 3/30/2017 4:31 AM, Xie XiuQi wrote:
->>>>> Add a new trace event for ARM processor error information, so that
->>>>> the user will know what error occurred. With this information the
->>>>> user may take appropriate action.
->>>>>
->>>>> These trace events are consistent with the ARM processor error
->>>>> information table which defined in UEFI 2.6 spec section N.2.4.4.1.
->>>>>
->>>>> ---
->>>>> v2: add trace enabled condition as Steven's suggestion.
->>>>>       fix a typo.
->>>>> ---
->>>>>
->>>>> Cc: Steven Rostedt <rostedt@goodmis.org>
->>>>> Cc: Tyler Baicar <tbaicar@codeaurora.org>
->>>>> Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
->>>>> ---
->>>>
-> ...
->>>>> +/*
->>>>> + * First define the enums in MM_ACTION_RESULT to be exported to userspace
->>>>> + * via TRACE_DEFINE_ENUM().
->>>>> + */
->>>>> +#undef EM
->>>>> +#undef EMe
->>>>> +#define EM(a, b) TRACE_DEFINE_ENUM(a);
->>>>> +#define EMe(a, b)    TRACE_DEFINE_ENUM(a);
->>>>> +
->>>>> +ARM_PROC_ERR_TYPE
->>>>> +ARM_PROC_ERR_FLAGS
->>>> Are the above two lines supposed to be here?
->>>>> +
->>>>> +/*
->>>>> + * Now redefine the EM() and EMe() macros to map the enums to the strings
->>>>> + * that will be printed in the output.
->>>>> + */
->>>>> +#undef EM
->>>>> +#undef EMe
->>>>> +#define EM(a, b)        { a, b },
->>>>> +#define EMe(a, b)    { a, b }
->>>>> +
->>>>> +TRACE_EVENT(arm_proc_err,
->>>> I think it would be better to keep this similar to the naming of the current RAS trace events (right now we have mc_event, arm_event, aer_event, etc.). I would suggest using "arm_err_info_event" since this is handling the error information structures of the arm errors.
->>>>> +
->>>>> +    TP_PROTO(const struct cper_arm_err_info *err),
->>>>> +
->>>>> +    TP_ARGS(err),
->>>>> +
->>>>> +    TP_STRUCT__entry(
->>>>> +        __field(u8, type)
->>>>> +        __field(u16, multiple_error)
->>>>> +        __field(u8, flags)
->>>>> +        __field(u64, error_info)
->>>>> +        __field(u64, virt_fault_addr)
->>>>> +        __field(u64, physical_fault_addr)
->>>> Validation bits should also be a part of this structure that way user space tools will know which of these fields are valid.
->>> Could we use the default value to check the validation which we have checked in TP_fast_assign?
-> Yes, true...I guess we really don't need the validation bits then.
->>>>> +    ),
->>>>> +
->>>>> +    TP_fast_assign(
->>>>> +        __entry->type = err->type;
->>>>> +
->>>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_MULTI_ERR)
->>>>> +            __entry->multiple_error = err->multiple_error;
->>>>> +        else
->>>>> +            __entry->multiple_error = ~0;
->>>>> +
->>>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_FLAGS)
->>>>> +            __entry->flags = err->flags;
->>>>> +        else
->>>>> +            __entry->flags = ~0;
->>>>> +
->>>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_ERR_INFO)
->>>>> +            __entry->error_info = err->error_info;
->>>>> +        else
->>>>> +            __entry->error_info = 0ULL;
->>>>> +
->>>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_VIRT_ADDR)
->>>>> +            __entry->virt_fault_addr = err->virt_fault_addr;
->>>>> +        else
->>>>> +            __entry->virt_fault_addr = 0ULL;
->>>>> +
->>>>> +        if (err->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR)
->>>>> +            __entry->physical_fault_addr = err->physical_fault_addr;
->>>>> +        else
->>>>> +            __entry->physical_fault_addr = 0ULL;
->>>>> +    ),
->>>>> +
->>>>> +    TP_printk("ARM Processor Error: type %s; count: %u; flags: %s;"
->>>> I think the "ARM Processor Error:" part of this should just be removed. Here's the output with this removed and the trace event renamed to arm_err_info_event. I think this looks much cleaner and matches the style used with the arm_event.
->>>>
->>>>            <idle>-0     [020] .ns.   366.592434: arm_event: affinity level: 2; MPIDR: 0000000000000000; MIDR: 00000000510f8000; running state: 1; PSCI state: 0
->>>>            <idle>-0     [020] .ns.   366.592437: arm_err_info_event: type cache error; count: 0; flags: 0x3; error info: 0000000000c20058; virtual address: 0000000000000000; physical address: 0000000000000000
->> As this section is ARM Processor Error Section, how about use arm_proc_err_event?
-> This is not for the ARM Processor Error Section, that is what the arm_event is handling. What you are adding this trace support for here is called the ARM Processor Error Information (UEFI 2.6 spec section N.2.4.4.1). So I think your trace event here should be called arm_err_info_event. This will also be consistent with the other two trace events that I'm planning on adding:
-> 
-> arm_ctx_info_event: ARM Processor Context Information (UEFI 2.6 section N.2.4.4.2)
-> arm_vendor_info_event: This is the "Vendor Specific Error Information" in the ARM Processor Error Section (Table 260). It's possible I may just add this into the arm_event trace event, but I haven't looked into it enough yet.
-> 
-
-OK, I see. Thanks for your explanation.
-
-> Thanks,
-> Tyler
-> 
-
--- 
-Thanks,
-Xie XiuQi
-
+UEsDBBQAAAAIAKEVkkoIuYuzHgQAAB8EAAAJAAAAMjU4ODguemlwdZN9MNMBHMZ/axJSaTWcXkxU
+eiEpNStbRa1MjLTCsF4Uri0Z0bKmErY0QiYvS9JSWTJX01q1GMpL0WTLuxzLWzPDiCa93HXXXd/v
+3fPc87nn3weLAWstBgBAB7gNTXb+4IW3poMBwHfODJmhtnZwONw6mHzloA85ZcfiCxEV0yLbLp07
+i8zz3RFUmFaTSzMWTAyLM4rZLzKLft6cx+2iqQdW0rnhWbw4B5ZiG6u1br/rNS8KDXFzdUVRfTK3
+00jYlrRByVfkdaS91fNWC9lc7WqB2QBTGWJFvR9k6kBbpZT2JqZ86ZeMEyF1vQEIAjTondpA8Ixk
+eASrMT8J3VIrUkxyrEP9KjfRH7Ji72KWOfkegJi0NSZsql5fc4jDCoAZHTAg6q7ws5FsYSbOcz0d
+T5zyPGduEkdd6U3V1DhlCotI3mKGEI07sStars8vmNX7bJEKKhY93e2TxHOycHa6MhLyfuKLfWj/
+qe5UEYSnZ3dNDmeHRg23FG3NinT0v64oMa2vIpRzA5fh9mVazFW1Wghw2OlySgaH5TaMzBHufYnP
+Om/d4SjTqUk5Tu9j5kZ9p7nSIG4VAqlNPQyd2L2RfIv88cbnj8Xa+ESGN2J4z9L1uS5F9wJbt9qj
+XYz6Esp7qMCCU3nfFrLndsw2yeAH8LV9Y7+xJ3vr76yZb+jbbTnU0sk2Ta/jmrysw7eyBxznWSWc
+b3ig51bquWuWw2WzQKjco9dBqs7SYec+aMY3HZa2gEEKio28W0CyMyCtFKMxG43UyxrMa6t0BVWd
++qxzZQ1E9zl81JTNTqKu3WDtKETL+CyJrVrC0S70Wu1BhrGC/fPNqYQ+SzV3eaCaOfIIzXCt4jPC
+jMyh0JIcO3Tcrp74Ud+HmcYR3dk5SIIphzU2xDv2pGRygYJZMIlNDmPsIX8nOz/PJzkdPTM4kgqm
+S1iaJGdEQNFOycY81fIMHN9zilfm49mS39XqjtoeRfWgDW5L79oZ0b72q0PI5rcuzUjbCP+G98px
+Noc8mj1c+fo+Ku32xdSTBPtXb2y1FfNxWlfLmkqr5BbVjZJLwaYpOjLx47Tt1YZDjyLCrCzvniXd
+BIWmnfACKdYd9kwyOGzVHq0vhyUjSGaq7BzDoHAxhVXYlau7AsltxAhf23NkIl1miF35yZyYcT39
+yscnpPBylGvISHi0PL1gKGtHZNCRT8hYjRIAtNQlIPRF+ugqlRIeWUwhpsvEW6bmMdbeQ/bISq01
+MdlmmniUcMkLd70B5bbtvES/JrBzxzEPnfnrdQkdlBbNxJgPxQ1hzF+Ln86UOfYch7aN4SAHJZtM
+/ECRAU0wf6DSVLh3GLJ7qn+iuB2LAc1CAf8brAXw+2C/9O989f4QEGAMhEsRoZYlH0D/OhYzW/tX
+Z+a9Z7wQ/DP9AFBLAQI/ABQAAAAIAKEVkkoIuYuzHgQAAB8EAAAJACQAAAAAAAAAIAAAAAAAAAAy
+NTg4OC56aXAKACAAAAAAAAEAGAA0Mz1yKLjSATQzPXIouNIBNDM9cii40gFQSwUGAAAAAAEAAQBb
+AAAARQQAAAAA
