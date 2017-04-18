@@ -1,89 +1,151 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v24 08/11] acpi: Introduce acpi_unregister_irq function
-Date: Tue, 18 Apr 2017 16:58:41 +0100
-Message-ID: <20170418155841.GK17866@leverpostej>
-References: <20170414184014.8524-1-fu.wei@linaro.org>
- <20170414184014.8524-9-fu.wei@linaro.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: Export mutex functions
+Date: Tue, 18 Apr 2017 16:07:59 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E593908@ORSMSX110.amr.corp.intel.com>
+References: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5924DB@ORSMSX110.amr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE93F83@SHSMSX101.ccr.corp.intel.com>
+ <03d661cb-a561-cfce-2c0e-f81ff73e6653@roeck-us.net>
+ <1773950.yRmmpX2ztC@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58526 "EHLO foss.arm.com"
+Received: from mga06.intel.com ([134.134.136.31]:16868 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753372AbdDRP7L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 18 Apr 2017 11:59:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20170414184014.8524-9-fu.wei@linaro.org>
+        id S1757452AbdDRQID (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 18 Apr 2017 12:08:03 -0400
+In-Reply-To: <1773950.yRmmpX2ztC@aspire.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org
-Cc: daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, sudeep.holla@arm.com, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Guenter Roeck <linux@roeck-us.net>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-On Sat, Apr 15, 2017 at 02:40:11AM +0800, fu.wei@linaro.org wrote:
-> From: Fu Wei <fu.wei@linaro.org>
-> 
-> This patch introduces acpi_unregister_irq function to free a
-> linux IRQ number<->GSI mapping by a given linux IRQ number.
-> 
-> Even we have successfully registered the GSI, when some error occurs, we
-> may need to unmap it for freeing the IRQ resource. But in some cases, we
-> only have IRQ, but not GSI.
-> 
-> This patch is the preparation for memory-mapped timer support in GTDT
-> driver.
-> 
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> ---
->  drivers/acpi/irq.c   | 10 ++++++++++
->  include/linux/acpi.h |  7 +++++++
->  2 files changed, 17 insertions(+)
 
-This will need comments/acks from the ACPI folk.
 
-Lorenzo, do you prefer this to direct use of irq_dispose_mapping() in
-the GTDT parsing code?
-
-Thanks,
-Mark.
-
-> diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
-> index 830299a..59de777 100644
-> --- a/drivers/acpi/irq.c
-> +++ b/drivers/acpi/irq.c
-> @@ -85,6 +85,16 @@ void acpi_unregister_gsi(u32 gsi)
->  EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
->  
->  /**
-> + * acpi_unregister_irq() - Free a linux IRQ number<->GSI mapping
-> + * @irq: linux IRQ number
-> + */
-> +void acpi_unregister_irq(int irq)
-> +{
-> +	irq_dispose_mapping(irq);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_unregister_irq);
-> +
-> +/**
->   * acpi_get_irq_source_fwhandle() - Retrieve fwhandle from IRQ resource source.
->   * @source: acpi_resource_source to use for the lookup.
->   *
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 4b5c146..728d1ed 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -336,6 +336,13 @@ extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
->   */
->  void acpi_unregister_gsi (u32 gsi);
->  
-> +/*
-> + * This function undoes the effect of one call to acpi_register_gsi().
-> + * The irq should be the return value of acpi_register_gsi().
-> + * If the irq is valid, free a linux IRQ number<->GSI mapping.
-> + */
-> +void acpi_unregister_irq(int irq);
-> +
->  struct pci_dev;
->  
->  int acpi_pci_irq_enable (struct pci_dev *dev);
-> -- 
-> 2.9.3
+> -----Original Message-----
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Sent: Tuesday, April 18, 2017 7:15 AM
+> To: Guenter Roeck <linux@roeck-us.net>
+> Cc: Zheng, Lv <lv.zheng@intel.com>; Rafael J. Wysocki
+> <rafael@kernel.org>; Moore, Robert <robert.moore@intel.com>; Wysocki,
+> Rafael J <rafael.j.wysocki@intel.com>; Len Brown <lenb@kernel.org>;
+> linux-acpi@vger.kernel.org; devel@acpica.org; linux-
+> kernel@vger.kernel.org; Box, David E <david.e.box@intel.com>
+> Subject: Re: [PATCH] ACPICA: Export mutex functions
 > 
+> On Tuesday, April 18, 2017 06:50:26 AM Guenter Roeck wrote:
+> > On 04/18/2017 12:14 AM, Zheng, Lv wrote:
+> > > Hi,
+> 
+> [cut]
+> 
+> > >
+> > > Maybe I should provide more detailed examples for this solution.
+> > >
+> > > For example:
+> > > OperationRegion (SIOT, SuperIOAddressSpace, Zero, 100) Field (SIOT,
+> > > ByteAcc, Lock, Preserve) {
+> > >     FNC1, 8,
+> > >     FNC2, 8,
+> > >     ...
+> > > }
+> > >
+> > > Acquire (MUX0)
+> > > Store (0, FNC1)
+> > > Release (MUX0)
+> > >
+> > > Then you can call (let me use casual pseudo code)
+> > > acpi_install_operation_region(SuperIOAddressSpace,
+> superio_opregion_handler) from OS side.
+> > > In its callback superio_opregion_handler(), you can:
+> > >
+> > > superio_enter();
+> > > If (address == 0) {
+> > >    /* mean FNC1 */
+> > >    Perform the locked superior accesses } else if (address == 1) {
+> > >    /* mean FNC2 */
+> > >    Perform the locked superior accesses } superio_exit();
+> > >
+> > > Are there similar approach in your DSDT?
+> > >
+> >
+> > Some snippets from the DSDT:
+> >
+> > 	Device (SIO1)
+> >             {
+> >          	Name (_HID, EisaId ("PNP0C02") /* PNP Motherboard
+> Resources */)  // _HID: Hardware ID
+> >          	Name (_UID, Zero)  // _UID: Unique ID
+> > 		...
+> > 		Mutex (MUT0, 0x00)
+> > 		Method (ENFG, 1, NotSerialized)
+> >                      {
+> >                          Acquire (MUT0, 0x0FFF)
+> >                          INDX = 0x87
+> >                          INDX = One
+> >                          INDX = 0x55
+> >                          If ((SP1O == 0x2E))
+> >                          {
+> >                              INDX = 0x55
+> >                          }
+> >                          Else
+> >                          {
+> >                              INDX = 0xAA
+> >                          }
+> >
+> >                          LDN = Arg0
+> >                      }
+> >
+> >                      Method (EXFG, 0, NotSerialized)
+> >                      {
+> >                          INDX = 0x02
+> >                          DATA = 0x02
+> >                          Release (MUT0)
+> >                      }
+> >
+> > 		    OperationRegion (IOID, SystemIO, SP1O, 0x02)	/* SP1O
+> is 0x2e */
+> >                      Field (IOID, ByteAcc, NoLock, Preserve)
+> >                      {
+> >                          INDX,   8,
+> >                          DATA,   8
+> >                      }
+> > 		    ...
+> >
+> > Example for use:
+> > 		Method (DCNT, 2, NotSerialized)
+> >                      {
+> >                          ENFG (CGLD (Arg0))
+> >                          If (((DMCH < 0x04) && ((Local1 = (DMCH &
+> 0x03)) != Zero)))
+> >                          {
+> >                              RDMA (Arg0, Arg1, Local1++)
+> >                          }
+> >
+> >                          ACTR = Arg1
+> >                          Local1 = (IOAH << 0x08)
+> >                          Local1 |= IOAL
+> >                          RRIO (Arg0, Arg1, Local1, 0x08)
+> >                          EXFG ()
+> >                      }
+> >
+> > Can there be more than one address space handler for a given region ?
+> > Each driver accessing the resource would need that handler.
+> 
+> Rather, every driver accessing the resource would need to be aware of
+> the existence of the operation region handler and would need to use the
+> mutual exclusion mechanism used by that handler, if my understanding
+> here is correct.
+> 
+> The existence of an operation region for a specific section of address
+> space is a declaration that AML is going to access locations in that
+> section.  It allows the OS to install a handler for that region to
+> intercept AML accesses and do what it likes with them.
+> 
+> Thanks,
+> Rafael
+
+Yes, agreed.
+Bob
+
