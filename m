@@ -1,87 +1,72 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v6 2/5] ACPI: battery: Fix acpi_battery_exit on
- acpi_battery_init_async errors
-Date: Wed, 19 Apr 2017 10:43:17 +0200
-Message-ID: <aaaabcb5-421b-aa22-f5b5-a28fbbc2d5c6@redhat.com>
-References: <20170418115842.16214-1-hdegoede@redhat.com>
- <20170418115842.16214-3-hdegoede@redhat.com>
- <CAJZ5v0g4h6zWg8FxoUhyshyVGpzbyi+4w7H95HHt9b9quv7anw@mail.gmail.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH] ACPI: emits change uevents to all physical companion
+ devices of container's children
+Date: Wed, 19 Apr 2017 16:50:37 +0800
+Message-ID: <20170419085037.GD16910@linux-l9pv.suse>
+References: <20170403155533.30283-1-jlee@suse.com>
+ <CAJZ5v0je_2gk_M7B1PBnvFVtoaiAxm59c2PBWQootZ13eY6tkQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42522 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1761144AbdDSInW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Apr 2017 04:43:22 -0400
-In-Reply-To: <CAJZ5v0g4h6zWg8FxoUhyshyVGpzbyi+4w7H95HHt9b9quv7anw@mail.gmail.com>
+Received: from smtp.nue.novell.com ([195.135.221.5]:56225 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1760729AbdDSIuu (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Wed, 19 Apr 2017 04:50:50 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0je_2gk_M7B1PBnvFVtoaiAxm59c2PBWQootZ13eY6tkQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Michal Hocko <mhocko@suse.com>, Jiri Kosina <jkosina@suse.cz>
 
-Hi,
+Hi, 
 
-On 18-04-17 15:36, Rafael J. Wysocki wrote:
-> On Tue, Apr 18, 2017 at 1:58 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->> The acpi_lock_battery_dir() / acpi_bus_register_driver() calls in
->> acpi_battery_init_async() may fail. Check that they succeeded before
->> undoing them.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>  drivers/acpi/battery.c | 8 ++++++--
->>  1 file changed, 6 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
->> index 4ef1e46..b35fca4 100644
->> --- a/drivers/acpi/battery.c
->> +++ b/drivers/acpi/battery.c
->> @@ -67,6 +67,7 @@ MODULE_DESCRIPTION("ACPI Battery Driver");
->>  MODULE_LICENSE("GPL");
->>
->>  static async_cookie_t async_cookie;
->> +static bool battery_driver_registered;
->>  static int battery_bix_broken_package;
->>  static int battery_notification_delay_ms;
->>  static unsigned int cache_time = 1000;
->> @@ -1329,6 +1330,7 @@ static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
->>         if (result < 0)
->>                 acpi_unlock_battery_dir(acpi_battery_dir);
->>  #endif
->> +       battery_driver_registered = (result == 0);
+On Wed, Apr 19, 2017 at 02:30:18AM +0200, Rafael J. Wysocki wrote:
+> On Mon, Apr 3, 2017 at 5:55 PM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
+> > The caa73ea1 patch, "ACPI / hotplug / driver core: Handle containers
+> > in a special way", introduced the offline callback of acpi container.
+> > In the patch description, it mentions:
+> >
+> >     For ACPI containers that callback simply walks the list of ACPI
+> >     device objects right below the container object (its children) and
+> >     checks if all of their physical companion devices are offline.  If
+> >     that's not the case, it returns -EBUSY and the container system
+> >     devivce cannot be put offline.  Consequently, to put the container
+> >     system device offline, it is necessary to put all of the physical
+> >     devices depending on its ACPI companion object offline beforehand.
+> >
+> > Looks that it means acpi_container_offline() should walks all physical
+> > companion devices of container's children and checks their offline
+> > state. And, the comment in source code is "Check all of the dependent
+> > devices' physical companions", which means it should checks _all_
+> > physical companions.
+> >
+> > But, the checking code just stops at the first not-offlined physical
+> > companion device of the first not-offlined child, then kernel only
+> > emits KOBJ_CHANGE uevent to the one device. It doesn't really walk
+> > all children's all physical companion devices and doesn't send change
+> > uevent to them.
+> 
+> It is unclear to me from the description whether or not this is a
+> practical issue.
+> 
+> Also there is an alternative, which is not to send KOBJ_CHANGE uevents
+> to any children at all.
+> 
+> Why is the approach you chose better?
 >
-> Maybe
->
->       battery_driver_registered = !result;
 
-I prefer == 0 here because we are checking for success (which is 0)
-not for "not true".
+Please ignore this patch!
 
-Regards,
+Thanks for your review. I'd say sorry for that I confused with
+the code in acpi_scan_hot_remove() when I was sending this patch.
+At that time I didn't aware that the acpi_container_offline() does
+not need to send uevent to not-offline-yet devices.  
 
-Hans
+Before two weeks ago (around Apr. 5), I sent a mail to linux-acpi
+for reminding to ignore this patch. I don't know why the mail got
+filtered...
 
-
-
->
->>  }
->>
->>  static int __init acpi_battery_init(void)
->> @@ -1343,9 +1345,11 @@ static int __init acpi_battery_init(void)
->>  static void __exit acpi_battery_exit(void)
->>  {
->>         async_synchronize_cookie(async_cookie + 1);
->> -       acpi_bus_unregister_driver(&acpi_battery_driver);
->> +       if (battery_driver_registered)
->> +               acpi_bus_unregister_driver(&acpi_battery_driver);
->>  #ifdef CONFIG_ACPI_PROCFS_POWER
->> -       acpi_unlock_battery_dir(acpi_battery_dir);
->> +       if (acpi_battery_dir)
->> +               acpi_unlock_battery_dir(acpi_battery_dir);
->>  #endif
->>  }
->
-> Thanks,
-> Rafael
->
+Thanks a lot!
+Joey Lee
