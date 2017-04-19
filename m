@@ -1,24 +1,28 @@
 From: Dmitry Frank <mail@dmitryfrank.com>
 Subject: Re: [PATCH] acpi: video: get rid of magic numbers and use enum
  instead
-Date: Wed, 19 Apr 2017 12:58:03 +0300
-Message-ID: <20170419095803.GA9993@dimon-t520>
+Date: Wed, 19 Apr 2017 13:12:06 +0300
+Message-ID: <20170419101205.GC13803@dimon-t520>
 References: <20170418123558.12436-1-mail@dmitryfrank.com>
  <CAJZ5v0jRJhhZehYFzb6LtaheGsgXUb6OCZvoCHraFgwx2M_GVQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from forward4p.cmail.yandex.net ([77.88.31.19]:53899 "EHLO
-        forward4p.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1760784AbdDSKFW (ORCPT
+Received: from forward5j.cmail.yandex.net ([5.255.227.23]:56693 "EHLO
+        forward5j.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933765AbdDSKXV (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Apr 2017 06:05:22 -0400
+        Wed, 19 Apr 2017 06:23:21 -0400
 Content-Disposition: inline
 In-Reply-To: <CAJZ5v0jRJhhZehYFzb6LtaheGsgXUb6OCZvoCHraFgwx2M_GVQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Felipe Contreras <felipe.contreras@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Felipe Contreras <felipe.contreras@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+
+Hi Rafael,
+
+Thanks for the review.
 
 On 04/19, Rafael J. Wysocki wrote:
 > Hi,
@@ -99,5 +103,5 @@ I'll be happy to craft v3. Otherwise, I'm fine with these names too.
 
 Ok, I added a descriptive comment above the field.
 
-> Thanks,
-> Rafael
+Thanks,
+Dmitry
