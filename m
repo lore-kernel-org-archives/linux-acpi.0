@@ -1,44 +1,87 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V3] acpi:apei:handle GSIV and GPIO notification types
-Date: Wed, 19 Apr 2017 09:50:14 -0600
-Message-ID: <9593090b-ad98-14e1-f06c-61bc9c3fa906@codeaurora.org>
-References: <86258A5CC0A3704780874CF6004BA8A62E695201@FRAEML521-MBX.china.huawei.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v24 09/11] acpi/arm64: Add memory-mapped timer support in
+ GTDT driver
+Date: Wed, 19 Apr 2017 16:56:27 +0100
+Message-ID: <20170419155627.GA9439@red-moon>
+References: <20170414184014.8524-1-fu.wei@linaro.org>
+ <20170414184014.8524-10-fu.wei@linaro.org>
+ <20170418172107.GA1401@red-moon>
+ <20170419150725.GH27829@leverpostej>
+ <20170419154554.GJ27829@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:57558 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937665AbdDSPuT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Apr 2017 11:50:19 -0400
-In-Reply-To: <86258A5CC0A3704780874CF6004BA8A62E695201@FRAEML521-MBX.china.huawei.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170419154554.GJ27829@leverpostej>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shiju Jose <shiju.jose@huawei.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "bp@suse.de" <bp@suse.de>, "mingo@kernel.org" <mingo@kernel.org>, "prarit@redhat.com" <prarit@redhat.com>, "punit.agrawal@arm.com" <punit.agrawal@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "james.morse@arm.com" <james.morse@arm.com>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>
 
-On 4/19/2017 6:03 AM, Shiju Jose wrote:
-> System Controller Interrupts are received by ACPI's error device,
-> which in turn notifies the GHES code. The same is true of
-> APEI's GSIV and GPIO notification types.
-> Add support for GSIV and GPIO sharing the SCI
-> register/unregister/notifier code.Rename the list and notifier
-> to show this is no longer just SCI, but anything from the
-> Hardware Error Device.
->
-> Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
-> [james.morse@arm.com: rewrote commit log]
-> Signed-off-by: James Morse <james.morse@arm.com>
-> CC: James Morse <james.morse@arm.com>
-> CC: Hanjun Guo <guohanjun@huawei.com>
-> Reviewed-by: James Morse <james.morse@arm.com>
-Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+On Wed, Apr 19, 2017 at 04:45:54PM +0100, Mark Rutland wrote:
+> On Wed, Apr 19, 2017 at 04:07:25PM +0100, Mark Rutland wrote:
+> > On Tue, Apr 18, 2017 at 06:21:07PM +0100, Lorenzo Pieralisi wrote:
+> > > On Sat, Apr 15, 2017 at 02:40:12AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
+>  
+> > > If yes, why can't it simply be written like this ?
+> > > 
+> > > for (; i >= 0; i--, gtdt_frame--) {
+> > > 	frame = &timer_mem->frame[gtdt_frame->frame_number];
+> > > 
+> > > 	/* not sure this check is actually needed */
+> > > 	if (gtdt_frame->common_flags & ACPI_GTDT_GT_IS_SECURE_TIMER)
+> > > 		continue;
+> > > 
+> > > 	if (frame->phys_irq > 0)
+> > > 		acpi_unregister_gsi(gtdt_frame->timer_interrupt);
+> > > 	if (frame->virt_irq > 0)
+> > > 		acpi_unregister_gsi(gtdt_frame->virtual_timer_interrupt);
+> > > }
+> > 
+> > A reverse loop of this form will work.
+> > 
+> > That requires some restructuring, and care to avoid going out of bounds
+> > instantaneously with the gtdt_frame--, so as to not invoke nasal demons.
+> > 
+> > I've attacked this locally, and will send this out after testing. I'll
+> > drop the new ACPI API patch.
+> 
+> FWIW, I've set this up so the cleanup path is:
+> 
+> do {
+>         if (gtdt_frame->common_flags & ACPI_GTDT_GT_IS_SECURE_TIMER ||
+>             gtdt_frame->frame_number >= ARCH_TIMER_MEM_MAX_FRAMES)
+>                 continue;
+> 
+>         frame = &timer_mem->frame[gtdt_frame->frame_number];
+> 
+>         if (frame->phys_irq > 0)
+>                 acpi_unregister_gsi(gtdt_frame->timer_interrupt);
+>         frame->phys_irq = 0;
+> 
+>         if (frame->virt_irq > 0)
+>                 acpi_unregister_gsi(gtdt_frame->virtual_timer_interrupt);
+>         frame->virt_irq = 0;
+> } while (i-- >= 0 && gtdt_frame--);
+> 
+> ... the zeroing is to account for duplicate frames, which I now check for in
+> the probe path (as we do for DT).
+> 
+> Can I take it per your comment on the prior version that with this change I can
+> take your ack?
 
-Thanks,
-Tyler
+Yes, thanks for fixing it up, please add my:
 
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
 
+> I also assume that you're happy for all of the drivers/acpi/arm64/ patches in the
+> series to go via the clocksource tree?
+
+Yes that's how I expect them to go upstream, that's the simplest way.
+
+Thanks !
+Lorenzo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
