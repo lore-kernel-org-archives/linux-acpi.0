@@ -1,195 +1,124 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v6 1/3] ACPI / bus: Introduce a list of ids for "always
- present" devices
-Date: Wed, 19 Apr 2017 10:59:08 +0200
-Message-ID: <2929a1e8-c471-ad05-8226-c680dfb35632@redhat.com>
-References: <20170418115425.16068-1-hdegoede@redhat.com>
- <CAJZ5v0gL6+sNwcJpz+F_BgPUq6Qu5uCBeA_5zQHX3QO359yzbQ@mail.gmail.com>
+From: Shiju Jose <shiju.jose@huawei.com>
+Subject: RE: [PATCH V2] acpi:apei:handle GSIV and GPIO notification types
+Date: Wed, 19 Apr 2017 09:25:22 +0000
+Message-ID: <86258A5CC0A3704780874CF6004BA8A62E694A63@FRAEML521-MBX.china.huawei.com>
+References: <86258A5CC0A3704780874CF6004BA8A62DCBFF56@lhreml502-mbs>
+ <20170418163521.c6bg73p43sjllxnr@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58858 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1761255AbdDSI7M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Apr 2017 04:59:12 -0400
-In-Reply-To: <CAJZ5v0gL6+sNwcJpz+F_BgPUq6Qu5uCBeA_5zQHX3QO359yzbQ@mail.gmail.com>
+Received: from szxga03-in.huawei.com ([45.249.212.189]:5446 "EHLO
+        dggrg03-dlp.huawei.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1761451AbdDSJZp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Apr 2017 05:25:45 -0400
+In-Reply-To: <20170418163521.c6bg73p43sjllxnr@pd.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>, =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>
+To: 'Borislav Petkov' <bp@suse.de>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "prarit@redhat.com" <prarit@redhat.com>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "punit.agrawal@arm.com" <punit.agrawal@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "james.morse@arm.com" <james.morse@arm.com>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>
 
-Hi,
-
-On 18-04-17 15:34, Rafael J. Wysocki wrote:
-> On Tue, Apr 18, 2017 at 1:54 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->> Several Cherry Trail devices (all of which ship with Windows 10) hide the
->> LPSS PWM controller in ACPI, typically the _STA method looks like this:
->>
->>     Method (_STA, 0, NotSerialized)  // _STA: Status
->>     {
->>         If (OSID == One)
->>         {
->>             Return (Zero)
->>         }
->>
->>         Return (0x0F)
->>     }
->>
->> Where OSID is some dark magic seen in all Cherry Trail ACPI tables making
->> the machine behave differently depending on which OS it *thinks* it is
->> booting, this gets set in a number of ways which we cannot control, on
->> some newer machines it simple hardcoded to "One" aka win10.
->>
->> This causes the PWM controller to get hidden, which means Linux cannot
->> control the backlight level on cht based tablets / laptops.
->>
->> Since loading the driver for this does no harm (the only in kernel user
->> of it is the i915 driver, which will only use it when it needs it), this
->> commit makes acpi_bus_get_status() always set status to ACPI_STA_DEFAULT
->> for the 80862288 device, fixing the lack of backlight control.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->> Changes in v2:
->> -Use pr_debug instead of ACPI_DEBUG_PRINT
->> Changes in v3:
->> -Un-inline acpi_set_device_status and do the always_present_device_ids
->>  table check inside the un-inlined version of it
->> Changes in v4:
->> -Use dev_info instead of pr_debug
->> -Not only check for ACPI HID but also for CPU (SoC) model so as to not
->>  for devices present on other models then for which the quirk is intended and
->>  to avoid enabling unrelated ACPI devices which happen to use the same HID
->> Changes in v5:
->> -Only do the dev_info once per device (acpi_set_device_status gets called
->>  multiple times per device during boot)
->> Changes in v6:
->> -Allow specifying more then one CPU-model for a single HID
->> -Not only match the HID but also the UID, like on Cherry Trail, on some Bay
->>  Trail Windows 10 tablets we need to enable the PWM controller to get working
->>  backlight even though _STA returns 0. The Bay Trail SoC has 2 PWM controllers
->>  and we only need the first one. UID matching will allows adding an entry for
->>  Bay Trail which only enables the first PWM controller
->> ---
->>  drivers/acpi/bus.c      | 65 +++++++++++++++++++++++++++++++++++++++++++++++++
->>  include/acpi/acpi_bus.h |  6 +----
->>  2 files changed, 66 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
->> index 34fbe02..eb30630 100644
->> --- a/drivers/acpi/bus.c
->> +++ b/drivers/acpi/bus.c
->> @@ -34,6 +34,8 @@
->>  #include <linux/reboot.h>
->>  #include <linux/delay.h>
->>  #ifdef CONFIG_X86
->> +#include <asm/cpu_device_id.h>
->> +#include <asm/intel-family.h>
->>  #include <asm/mpspec.h>
->>  #endif
->>  #include <linux/acpi_iort.h>
->> @@ -132,6 +134,69 @@ int acpi_bus_get_status(struct acpi_device *device)
->>  }
->>  EXPORT_SYMBOL(acpi_bus_get_status);
->>
->> +#ifdef CONFIG_X86
->> +/*
->> + * Some ACPI devices are hidden (status == 0x0) in recent BIOS-es because
->> + * some recent Windows drivers bind to one device but poke at multiple
->> + * devices at the same time, so the others get hidden.
->> + * We work around this by always reporting ACPI_STA_DEFAULT for these
->> + * devices. Note this MUST only be done for devices where this is safe.
->> + *
->> + * This forcing of devices to be present is limited to specific CPU (SoC)
->> + * models both to avoid potentially causing trouble on other models and
->> + * because some HIDs are re-used on different SoCs for completely
->> + * different devices.
->> + */
->> +struct always_present_device_id {
->> +       struct acpi_device_id hid[2];
->> +       struct x86_cpu_id cpu_ids[2];
->
-> This really is x86-specific, so it should go into somewhere like
-> arch/x86/kernel/acpi/ or drivers/acpi/x86/ (not present yet).
-
-Ok, but then how do you want to hook this up, before you said
-that you wanted to deal with this in acpi_set_device_status(),
-which belongs in drivers/acpi/bus.c, do you want the x86
-code to provide something like a
-
-bool acpi_device_always_present(struct acpi_device *adev) {
-}
-
-Helper function and use that in the drivers/acpi/bus.c
-acpi_set_device_status() implementation ?
-
-
->
->> +       const char *uid;
->> +};
->> +
->> +#define ICPU(model)    { X86_VENDOR_INTEL, 6, model, X86_FEATURE_ANY, }
->> +
->> +#define ENTRY(hid, uid, cpu_models) {                                  \
->> +       { { hid, }, {} },                                               \
->> +       { cpu_models, {} },                                             \
->> +       uid,                                                            \
->> +}
->> +
->> +static const struct always_present_device_id always_present_device_ids[] = {
->> +       /*
->> +        * Cherry Trail PWM directly poked by GPU driver in win10,
->> +        * but Linux uses a separate PWM driver, harmless if not used.
->> +        */
->> +       ENTRY("80862288", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT)),
->> +};
->> +#endif
->> +
->> +void acpi_set_device_status(struct acpi_device *adev, u32 sta)
->> +{
->> +       u32 *status = (u32 *)&adev->status;
->> +#ifdef CONFIG_X86
->> +       u32 old_status = *status;
->> +       int i;
->> +
->> +       /* acpi_match_device_ids checks status, so start with default */
->> +       *status = ACPI_STA_DEFAULT;
->> +       for (i = 0; i < ARRAY_SIZE(always_present_device_ids); i++) {
->> +               if (acpi_match_device_ids(adev,
->> +                       always_present_device_ids[i].hid) == 0 &&
->> +                   adev->pnp.unique_id &&
->> +                   strcmp(adev->pnp.unique_id,
->> +                          always_present_device_ids[i].uid) == 0 &&
->> +                   x86_match_cpu(always_present_device_ids[i].cpu_ids)) {
->
-> Split this condition please.  It is almost unreadable as is.
-
-Not sure what you want me to do here ? Use multiple if's with "continue"
-if the check fails, or add whitespace (empty lines) between the conditions,
-or ... ?
-
-
->
->> +                       if (old_status != ACPI_STA_DEFAULT)
->> +                               dev_info(&adev->dev,
->> +                                        "Device [%s] is in always present list setting status [%08x]\n",
->> +                                        adev->pnp.bus_id, ACPI_STA_DEFAULT);
->> +                       return;
->> +               }
->> +       }
->> +#endif
->> +       *status = sta;
->> +}
->> +
->>  void acpi_bus_private_data_handler(acpi_handle handle,
->>                                    void *context)
->>  {
->
-> Thanks,
-> Rafael
->
-
-Regards,
-
-Hans
+SGkgQm9yaXMsDQoNClRoYW5rcyBmb3IgeW91ciBjb21tZW50cy4NCkkgd2lsbCBhZGRyZXNzIHRo
+ZSBjb21tZW50cyBpbiB0aGUgbmV4dCB2ZXJzaW9uLg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2Fn
+ZS0tLS0tDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86
+bGludXgtYWNwaS0NCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgQm9yaXNs
+YXYgUGV0a292DQo+IFNlbnQ6IDE4IEFwcmlsIDIwMTcgMTc6MzUNCj4gVG86IFNoaWp1IEpvc2UN
+Cj4gQ2M6IHJqd0Byand5c29ja2kubmV0OyBsZW5iQGtlcm5lbC5vcmc7IG1pbmdvQGtlcm5lbC5v
+cmc7DQo+IHByYXJpdEByZWRoYXQuY29tOyB0YmFpY2FyQGNvZGVhdXJvcmEub3JnOyBwdW5pdC5h
+Z3Jhd2FsQGFybS5jb207DQo+IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBqYW1lcy5tb3Jz
+ZUBhcm0uY29tOyBmdS53ZWlAbGluYXJvLm9yZzsNCj4gR3VvaGFuanVuIChIYW5qdW4gR3VvKTsg
+R2FicmllbGUgUGFvbG9uaTsgSm9obiBHYXJyeTsgeHV3ZWkgKE8pOw0KPiBaaGVuZ3FpYW5nICh0
+dXJpbmcpDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggVjJdIGFjcGk6YXBlaTpoYW5kbGUgR1NJViBh
+bmQgR1BJTyBub3RpZmljYXRpb24NCj4gdHlwZXMNCj4gDQo+IEp1c3Qgbml0cGlja3MgYmVsb3cu
+DQo+IA0KPiBPbiBUaHUsIE1hciAxNiwgMjAxNyBhdCAwNDowODoxN1BNICswMDAwLCBTaGlqdSBK
+b3NlIHdyb3RlOg0KPiA+IFN5c3RlbSBDb250cm9sbGVyIEludGVycnVwdHMgYXJlIHJlY2VpdmVk
+IGJ5IEFDUEkncyBlcnJvciBkZXZpY2UsDQo+ID4gd2hpY2ggaW4gdHVybiBub3RpZmllcyB0aGUg
+R0hFUyBjb2RlLiBUaGUgc2FtZSBpcyB0cnVlIG9mIEFQRUkncyBHU0lWDQo+ID4gYW5kIEdQSU8g
+bm90aWZpY2F0aW9uIHR5cGVzLg0KPiA+IEFkZCBzdXBwb3J0IGZvciBHU0lWIGFuZCBHUElPIHNo
+YXJpbmcgdGhlIFNDSQ0KPiA+IHJlZ2lzdGVyL3VucmVnaXN0ZXIvbm90aWZpZXIgY29kZS5SZW5h
+bWUgdGhlIGxpc3QgYW5kIG5vdGlmaWVyIHRvDQo+IHNob3cNCj4gPiB0aGlzIGlzIG5vIGxvbmdl
+ciBqdXN0IFNDSSwgYnV0IGFueXRoaW5nIGZyb20gdGhlIEhhcmR3YXJlIEVycm9yDQo+ID4gRGV2
+aWNlLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogU2hpanUgSm9zZSA8c2hpanUuam9zZUBodWF3
+ZWkuY29tPg0KPiA+IFtqYW1lcy5tb3JzZUBhcm0uY29tOiByZXdyb3RlIGNvbW1pdCBsb2ddDQo+
+ID4gU2lnbmVkLW9mZi1ieTogSmFtZXMgTW9yc2UgPGphbWVzLm1vcnNlQGFybS5jb20+DQo+ID4g
+Q0M6IEphbWVzIE1vcnNlIDxqYW1lcy5tb3JzZUBhcm0uY29tPg0KPiA+IENDOiBIYW5qdW4gR3Vv
+IDxndW9oYW5qdW5AaHVhd2VpLmNvbT4NCj4gPiBSZXZpZXdlZC1ieTogSmFtZXMgTW9yc2UgPGph
+bWVzLm1vcnNlQGFybS5jb20+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hcGVpL2doZXMu
+YyB8IDI4ICsrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0NCj4gPiAgMSBmaWxlIGNoYW5nZWQs
+IDE3IGluc2VydGlvbnMoKyksIDExIGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvYWNwaS9hcGVpL2doZXMuYyBiL2RyaXZlcnMvYWNwaS9hcGVpL2doZXMuYw0KPiBp
+bmRleA0KPiA+IGIxOTJiNDIuLmZkMzk5MjkgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3Bp
+L2FwZWkvZ2hlcy5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FwZWkvZ2hlcy5jDQo+ID4gQEAg
+LTg5LDE0ICs4OSwxNCBAQA0KPiA+ICBtb2R1bGVfcGFyYW1fbmFtZWQoZGlzYWJsZSwgZ2hlc19k
+aXNhYmxlLCBib29sLCAwKTsNCj4gPg0KPiA+ICAvKg0KPiA+IC0gKiBBbGwgZXJyb3Igc291cmNl
+cyBub3RpZmllZCB3aXRoIFNDSSBzaGFyZXMgb25lIG5vdGlmaWVyIGZ1bmN0aW9uLA0KPiA+ICsg
+KiBBbGwgZXJyb3Igc291cmNlcyBub3RpZmllZCB3aXRoIEhFRCBzaGFyZXMgb25lIG5vdGlmaWVy
+IGZ1bmN0aW9uLA0KPiANCj4gcy9zaGFyZXMgb25lIG5vdGlmaWVyIGZ1bmN0aW9uL3NoYXJlIGEg
+c2luZ2xlIG5vdGlmaWVyIGNhbGxiYWNrLw0KPiANCj4gQWxzbywgbGV0J3Mgd3JpdGUgb3V0IGhl
+cmUgd2hhdCBIRUQgc3RhbmRzIGZvci4NCg0KT2sgSSB3aWxsIG1ha2UgdGhlc2UgY2hhbmdlcy4g
+DQoNCj4gDQo+ID4gICAqIHNvIHRoZXkgbmVlZCB0byBiZSBsaW5rZWQgYW5kIGNoZWNrZWQgb25l
+IGJ5IG9uZS4gIFRoaXMgaXMNCj4gYXBwbGllZA0KPiA+ICAgKiB0byBOTUkgdG9vLg0KPiANCj4g
+VGhpcyBzZW50ZW5jZSB3YW50cyB0byBzYXkgIlRoaXMgaG9sZHMgdHJ1ZSBmb3IgTk1JcyB0b28u
+IiBJIHByZXN1bWU/DQoNCk9rLiBJIHdpbGwgY2hhbmdlIHRoaXMgc2VudGVuY2UgdG8gIlRoaXMg
+aG9sZHMgdHJ1ZSBmb3IgTk1JcyB0b28uIg0KDQo+IA0KPiA+ICAgKg0KPiA+ICAgKiBSQ1UgaXMg
+dXNlZCBmb3IgdGhlc2UgbGlzdHMsIHNvIGdoZXNfbGlzdF9tdXRleCBpcyBvbmx5IHVzZWQgZm9y
+DQo+ID4gICAqIGxpc3QgY2hhbmdpbmcsIG5vdCBmb3IgdHJhdmVyc2luZy4NCj4gPiAgICovDQo+
+ID4gLXN0YXRpYyBMSVNUX0hFQUQoZ2hlc19zY2kpOw0KPiA+ICtzdGF0aWMgTElTVF9IRUFEKGdo
+ZXNfaGVkKTsNCj4gPiAgc3RhdGljIERFRklORV9NVVRFWChnaGVzX2xpc3RfbXV0ZXgpOw0KPiA+
+DQo+ID4gIC8qDQo+ID4gQEAgLTcwMiwxNCArNzAyLDE0IEBAIHN0YXRpYyBpcnFyZXR1cm5fdCBn
+aGVzX2lycV9mdW5jKGludCBpcnEsIHZvaWQNCj4gKmRhdGEpDQo+ID4gIAlyZXR1cm4gSVJRX0hB
+TkRMRUQ7DQo+ID4gIH0NCj4gPg0KPiA+IC1zdGF0aWMgaW50IGdoZXNfbm90aWZ5X3NjaShzdHJ1
+Y3Qgbm90aWZpZXJfYmxvY2sgKnRoaXMsDQo+ID4gK3N0YXRpYyBpbnQgZ2hlc19ub3RpZnlfaGVk
+KHN0cnVjdCBub3RpZmllcl9ibG9jayAqdGhpcywNCj4gPiAgCQkJCSAgdW5zaWduZWQgbG9uZyBl
+dmVudCwgdm9pZCAqZGF0YSkNCj4gDQo+IEFsaWduIGFyZ3MgYXQgb3BlbmluZyBicmFjZS4NCg0K
+T2suIEkgd2lsbCBhbGlnbiB0aGUgYXJncy4NCg0KPiANCj4gPiAgew0KPiA+ICAJc3RydWN0IGdo
+ZXMgKmdoZXM7DQo+ID4gIAlpbnQgcmV0ID0gTk9USUZZX0RPTkU7DQo+ID4NCj4gPiAgCXJjdV9y
+ZWFkX2xvY2soKTsNCj4gPiAtCWxpc3RfZm9yX2VhY2hfZW50cnlfcmN1KGdoZXMsICZnaGVzX3Nj
+aSwgbGlzdCkgew0KPiA+ICsJbGlzdF9mb3JfZWFjaF9lbnRyeV9yY3UoZ2hlcywgJmdoZXNfaGVk
+LCBsaXN0KSB7DQo+ID4gIAkJaWYgKCFnaGVzX3Byb2MoZ2hlcykpDQo+ID4gIAkJCXJldCA9IE5P
+VElGWV9PSzsNCj4gPiAgCX0NCj4gPiBAQCAtNzE4LDggKzcxOCw4IEBAIHN0YXRpYyBpbnQgZ2hl
+c19ub3RpZnlfc2NpKHN0cnVjdCBub3RpZmllcl9ibG9jaw0KPiAqdGhpcywNCj4gPiAgCXJldHVy
+biByZXQ7DQo+ID4gIH0NCj4gPg0KPiA+IC1zdGF0aWMgc3RydWN0IG5vdGlmaWVyX2Jsb2NrIGdo
+ZXNfbm90aWZpZXJfc2NpID0gew0KPiA+IC0JLm5vdGlmaWVyX2NhbGwgPSBnaGVzX25vdGlmeV9z
+Y2ksDQo+ID4gK3N0YXRpYyBzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgZ2hlc19ub3RpZmllcl9oZWQg
+PSB7DQo+ID4gKwkubm90aWZpZXJfY2FsbCA9IGdoZXNfbm90aWZ5X2hlZCwNCj4gPiAgfTsNCj4g
+Pg0KPiA+ICAjaWZkZWYgQ09ORklHX0hBVkVfQUNQSV9BUEVJX05NSQ0KPiA+IEBAIC05NjYsNiAr
+OTY2LDggQEAgc3RhdGljIGludCBnaGVzX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UNCj4g
+KmdoZXNfZGV2KQ0KPiA+ICAJY2FzZSBBQ1BJX0hFU1RfTk9USUZZX1BPTExFRDoNCj4gPiAgCWNh
+c2UgQUNQSV9IRVNUX05PVElGWV9FWFRFUk5BTDoNCj4gPiAgCWNhc2UgQUNQSV9IRVNUX05PVElG
+WV9TQ0k6DQo+ID4gKwljYXNlIEFDUElfSEVTVF9OT1RJRllfR1NJVjoNCj4gPiArCWNhc2UgQUNQ
+SV9IRVNUX05PVElGWV9HUElPOg0KPiA+ICAJCWJyZWFrOw0KPiANCj4gPC0tIFxuIGhlcmUgZm9y
+IHJlYWRhYmlsaXR5Lg0KDQpPayBJIHdpbGwgYWRkIG5ldyBsaW5lIGhlcmUuDQoNCj4gDQo+ID4g
+IAljYXNlIEFDUElfSEVTVF9OT1RJRllfTk1JOg0KPiA+ICAJCWlmICghSVNfRU5BQkxFRChDT05G
+SUdfSEFWRV9BQ1BJX0FQRUlfTk1JKSkgeyBAQCAtMTAyNiwxMA0KPiArMTAyOCwxMg0KPiA+IEBA
+IHN0YXRpYyBpbnQgZ2hlc19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpnaGVzX2RldikN
+Cj4gPiAgCQl9DQo+ID4gIAkJYnJlYWs7DQo+IA0KPiBkaXR0by4NCg0KT2sgSSB3aWxsIGFkZCBu
+ZXcgbGluZSBoZXJlLg0KDQo+ID4gIAljYXNlIEFDUElfSEVTVF9OT1RJRllfU0NJOg0KPiA+ICsJ
+Y2FzZSBBQ1BJX0hFU1RfTk9USUZZX0dTSVY6DQo+ID4gKwljYXNlIEFDUElfSEVTVF9OT1RJRllf
+R1BJTzoNCj4gPiAgCQltdXRleF9sb2NrKCZnaGVzX2xpc3RfbXV0ZXgpOw0KPiA+IC0JCWlmIChs
+aXN0X2VtcHR5KCZnaGVzX3NjaSkpDQo+ID4gLQkJCXJlZ2lzdGVyX2FjcGlfaGVkX25vdGlmaWVy
+KCZnaGVzX25vdGlmaWVyX3NjaSk7DQo+ID4gLQkJbGlzdF9hZGRfcmN1KCZnaGVzLT5saXN0LCAm
+Z2hlc19zY2kpOw0KPiA+ICsJCWlmIChsaXN0X2VtcHR5KCZnaGVzX2hlZCkpDQo+ID4gKwkJCXJl
+Z2lzdGVyX2FjcGlfaGVkX25vdGlmaWVyKCZnaGVzX25vdGlmaWVyX2hlZCk7DQo+ID4gKwkJbGlz
+dF9hZGRfcmN1KCZnaGVzLT5saXN0LCAmZ2hlc19oZWQpOw0KPiA+ICAJCW11dGV4X3VubG9jaygm
+Z2hlc19saXN0X211dGV4KTsNCj4gPiAgCQlicmVhazsNCj4gDQo+IGRpdHRvLg0KDQpPayBJIHdp
+bGwgYWRkIG5ldyBsaW5lIGhlcmUuDQoNCj4gDQo+ID4gIAljYXNlIEFDUElfSEVTVF9OT1RJRllf
+Tk1JOg0KPiA+IEBAIC0xMDY4LDEwICsxMDcyLDEyIEBAIHN0YXRpYyBpbnQgZ2hlc19yZW1vdmUo
+c3RydWN0IHBsYXRmb3JtX2RldmljZQ0KPiAqZ2hlc19kZXYpDQo+ID4gIAkJZnJlZV9pcnEoZ2hl
+cy0+aXJxLCBnaGVzKTsNCj4gPiAgCQlicmVhazsNCj4gPiAgCWNhc2UgQUNQSV9IRVNUX05PVElG
+WV9TQ0k6DQo+ID4gKwljYXNlIEFDUElfSEVTVF9OT1RJRllfR1NJVjoNCj4gPiArCWNhc2UgQUNQ
+SV9IRVNUX05PVElGWV9HUElPOg0KPiA+ICAJCW11dGV4X2xvY2soJmdoZXNfbGlzdF9tdXRleCk7
+DQo+ID4gIAkJbGlzdF9kZWxfcmN1KCZnaGVzLT5saXN0KTsNCj4gPiAtCQlpZiAobGlzdF9lbXB0
+eSgmZ2hlc19zY2kpKQ0KPiA+IC0JCQl1bnJlZ2lzdGVyX2FjcGlfaGVkX25vdGlmaWVyKCZnaGVz
+X25vdGlmaWVyX3NjaSk7DQo+ID4gKwkJaWYgKGxpc3RfZW1wdHkoJmdoZXNfaGVkKSkNCj4gPiAr
+CQkJdW5yZWdpc3Rlcl9hY3BpX2hlZF9ub3RpZmllcigmZ2hlc19ub3RpZmllcl9oZWQpOw0KPiA+
+ICAJCW11dGV4X3VubG9jaygmZ2hlc19saXN0X211dGV4KTsNCj4gPiAgCQlicmVhazsNCj4gDQo+
+IGRpdHRvLg0KDQpPayBJIHdpbGwgYWRkIG5ldyBsaW5lIGhlcmUuDQoNCj4gDQo+IC0tDQo+IFJl
+Z2FyZHMvR3J1c3MsDQo+ICAgICBCb3Jpcy4NCj4NCg0KVGhhbmtzLA0KU2hpanUNCiANCj4gU1VT
+RSBMaW51eCBHbWJILCBHRjogRmVsaXggSW1lbmTDtnJmZmVyLCBKYW5lIFNtaXRoYXJkLCBHcmFo
+YW0gTm9ydG9uLA0KPiBIUkIgMjEyODQgKEFHIE7DvHJuYmVyZykNCj4gLS0NCj4gLS0NCj4gVG8g
+dW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxp
+bnV4LWFjcGkiDQo+IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5r
+ZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vDQo+IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5v
+cmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
