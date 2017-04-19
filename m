@@ -1,414 +1,202 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH v4 1/2] ACPI / PMIC: Add opregion driver for Intel CHT
- Whiskey Cove PMIC
-Date: Wed, 19 Apr 2017 13:26:42 -0700
-Message-ID: <1492633602.69096.247.camel@linux.intel.com>
-References: <20170419130700.31277-1-hdegoede@redhat.com>
-         <20170419130700.31277-2-hdegoede@redhat.com>
-         <CAJZ5v0h=PmuXivja3iuD4jW5Ro=T_VLk23vrj_K5mBuiH-=b4A@mail.gmail.com>
+From: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH V15 01/11] acpi: apei: read ack upon ghes record
+ consumption
+Date: Wed, 19 Apr 2017 14:31:13 -0600
+Message-ID: <d6111739-69ff-bac7-8000-9af937d0a7bb@codeaurora.org>
+References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
+ <1492556723-9189-2-git-send-email-tbaicar@codeaurora.org>
+ <20170419183112.x7tmjzpoq7ds64s2@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:44254 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S937119AbdDSU0o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Apr 2017 16:26:44 -0400
-In-Reply-To: <CAJZ5v0h=PmuXivja3iuD4jW5Ro=T_VLk23vrj_K5mBuiH-=b4A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170419183112.x7tmjzpoq7ds64s2-fF5Pk5pvG8Y@public.gmane.org>
+Content-Language: en-US
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
+Cc: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bin Gao <bin.gao@intel.com>
 
-On Wed, 2017-04-19 at 22:17 +0200, Rafael J. Wysocki wrote:
-> On Wed, Apr 19, 2017 at 3:06 PM, Hans de Goede <hdegoede@redhat.com>
-> wrote:
-> > 
-> > Add opregion driver for Intel CHT Whiskey Cove PMIC, based on
-> > various
-> > non upstreamed CHT Whiskey Cove PMIC patches. This does not include
-> > support for the Thermal opregion (DPTF) due to lacking
-> > documentation.
-> > 
-> > Cc: Bin Gao <bin.gao@intel.com>
-> > Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
-> > Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> 
-> Felipe, Srinivas, any concerns here?
-No.
-The DPTF part I will try to add later.
+On 4/19/2017 12:31 PM, Borislav Petkov wrote:
+> On Tue, Apr 18, 2017 at 05:05:13PM -0600, Tyler Baicar wrote:
+>> A RAS (Reliability, Availability, Serviceability) controller
+>> may be a separate processor running in parallel with OS
+>> execution, and may generate error records for consumption by
+>> the OS. If the RAS controller produces multiple error records,
+>> then they may be overwritten before the OS has consumed them.
+>>
+>> The Generic Hardware Error Source (GHES) v2 structure
+>> introduces the capability for the OS to acknowledge the
+>> consumption of the error record generated by the RAS
+>> controller. A RAS controller supporting GHESv2 shall wait for
+>> the acknowledgment before writing a new error record, thus
+>> eliminating the race condition.
+>>
+>> Add support for parsing of GHESv2 sub-tables as well.
+>>
+>> Signed-off-by: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+>> CC: Jonathan (Zhixiong) Zhang <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+>> Reviewed-by: James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>
+>> ---
+>>   drivers/acpi/apei/ghes.c | 55 +++++++++++++++++++++++++++++++++++++++++++++---
+>>   drivers/acpi/apei/hest.c |  7 ++++--
+>>   include/acpi/ghes.h      |  5 ++++-
+>>   3 files changed, 61 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>> index 79b3c9c..6d87ab7 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -46,6 +46,7 @@
+>>   #include <linux/nmi.h>
+>>   #include <linux/sched/clock.h>
+>>   
+>> +#include <acpi/actbl1.h>
+>>   #include <acpi/ghes.h>
+>>   #include <acpi/apei.h>
+>>   #include <asm/tlbflush.h>
+>> @@ -80,6 +81,10 @@
+>>   	((struct acpi_hest_generic_status *)				\
+>>   	 ((struct ghes_estatus_node *)(estatus_node) + 1))
+>>   
+>> +#define IS_HEST_TYPE_GENERIC_V2(ghes)				\
+>> +	((struct acpi_hest_header *)ghes->generic)->type ==	\
+> This is a nasty hack: casting the ghes->generic pointer to a pointer of its
+> first member which is a acpi_hest_header.
+>
+> Why isn't this a nice inline function with proper dereferencing:
+>
+> static inline bool is_hest_type_generic_v2(struct ghes *ghes)
+> {
+>          return ghes->generic->header.type == ACPI_HEST_TYPE_GENERIC_ERROR_V2;
+> }
+>
+> ?
+I'll change it to this.
+> Also, please integrate scripts/checkpatch.pl in your patch creation
+> workflow. Some of the warnings/errors *actually* make sense.
+>
+>>   /*
+>>    * This driver isn't really modular, however for the time being,
+>>    * continuing to use module_param is the easiest way to remain
+>> @@ -240,6 +245,17 @@ static int ghes_estatus_pool_expand(unsigned long len)
+>>   	return 0;
+>>   }
+>>   
+>> +static int map_gen_v2(struct ghes *ghes)
+>> +{
+>> +	return apei_map_generic_address(&ghes->generic_v2->read_ack_register);
+>> +}
+>> +
+>> +static void unmap_gen_v2(struct ghes *ghes)
+>> +{
+>> +	apei_unmap_generic_address(&ghes->generic_v2->read_ack_register);
+>> +	return;
+>> +}
+> Like this one, for example:
+>
+> WARNING: void function return statements are not generally useful
+> #89: FILE: drivers/acpi/apei/ghes.c:257:
+> +       return;
+> +}
+Will remove the return.
+>
+>> +
+>>   static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+>>   {
+>>   	struct ghes *ghes;
+>> @@ -249,10 +265,17 @@ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+>>   	ghes = kzalloc(sizeof(*ghes), GFP_KERNEL);
+>>   	if (!ghes)
+>>   		return ERR_PTR(-ENOMEM);
+>> +
+>>   	ghes->generic = generic;
+>> +	if (IS_HEST_TYPE_GENERIC_V2(ghes)) {
+>> +		rc = map_gen_v2(ghes);
+>> +		if (rc)
+>> +			goto err_free;
+>> +	}
+>> +
+>>   	rc = apei_map_generic_address(&generic->error_status_address);
+>>   	if (rc)
+>> -		goto err_free;
+>> +		goto err_unmap_read_ack_addr;
+>>   	error_block_length = generic->error_block_length;
+>>   	if (error_block_length > GHES_ESTATUS_MAX_SIZE) {
+>>   		pr_warning(FW_WARN GHES_PFX
+>> @@ -264,13 +287,16 @@ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+>>   	ghes->estatus = kmalloc(error_block_length, GFP_KERNEL);
+>>   	if (!ghes->estatus) {
+>>   		rc = -ENOMEM;
+>> -		goto err_unmap;
+>> +		goto err_unmap_status_addr;
+>>   	}
+>>   
+>>   	return ghes;
+>>   
+>> -err_unmap:
+>> +err_unmap_status_addr:
+>>   	apei_unmap_generic_address(&generic->error_status_address);
+>> +err_unmap_read_ack_addr:
+>> +	if (IS_HEST_TYPE_GENERIC_V2(ghes))
+>> +		unmap_gen_v2(ghes);
+>>   err_free:
+>>   	kfree(ghes);
+>>   	return ERR_PTR(rc);
+>> @@ -280,6 +306,8 @@ static void ghes_fini(struct ghes *ghes)
+>>   {
+>>   	kfree(ghes->estatus);
+>>   	apei_unmap_generic_address(&ghes->generic->error_status_address);
+>> +	if (IS_HEST_TYPE_GENERIC_V2(ghes))
+>> +		unmap_gen_v2(ghes);
+>>   }
+>>   
+>>   static inline int ghes_severity(int severity)
+>> @@ -649,6 +677,21 @@ static void ghes_estatus_cache_add(
+>>   	rcu_read_unlock();
+>>   }
+>>   
+>> +static int ghes_ack_error(struct acpi_hest_generic_v2 *generic_v2)
+> If you name this function parameter to something shorter, say gv2, for
+> example...
+Will do.
+>
+>> +{
+>> +	int rc;
+>> +	u64 val = 0;
+>> +
+>> +	rc = apei_read(&val, &generic_v2->read_ack_register);
+>> +	if (rc)
+>> +		return rc;
+>> +
+>> +	val &= generic_v2->read_ack_preserve << generic_v2->read_ack_register.bit_offset;
+>> +	val |= generic_v2->read_ack_write << generic_v2->read_ack_register.bit_offset;
+> ... you can align those two nicely while remaining within the 80 cols width:
+>
+>          val &= gv2->read_ack_preserve << gv2->read_ack_register.bit_offset;
+>          val |= gv2->read_ack_write    << gv2->read_ack_register.bit_offset;
+>
+> and make them readable at a quick glance.
+Will do.
+>> +
+>> +	return apei_write(val, &generic_v2->read_ack_register);
+>> +}
+>> +
+>>   static int ghes_proc(struct ghes *ghes)
+>>   {
+>>   	int rc;
+>> @@ -661,6 +704,12 @@ static int ghes_proc(struct ghes *ghes)
+>>   			ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+>>   	}
+>>   	ghes_do_proc(ghes, ghes->estatus);
+> This needs a comment why v2 needs to ACK the error. The commit message
+> is not necessarily something we'll find quickly in the future.
+Will do.
 
 Thanks,
-Srinivas
+Tyler
 
-> 
-> > 
-> > ---
-> > Changes in v2:
-> > -s/WhiskeyCove/Whiskey Cove/
-> > -Some minor style tweaks
-> > -Allow building as module
-> > Changes in v3:
-> > -Drop filename from copyright header
-> > -Simplify intel_cht_wc_pmic_update_power to 1 line
-> > -Move defines of regulator register addresses to
-> > intel_pmic_chtwc.c,
-> >  it is the only place where they are used
-> > Changes in v4:
-> > -Make the config option a bool, ACPI OPRegion handlers must be
-> > available
-> >  before other drivers using them are loaded, which can only be
-> > ensured if
-> >  both the mfd and opregion drivers are built in.
-> > ---
-> >  drivers/acpi/Kconfig                 |   6 +
-> >  drivers/acpi/Makefile                |   1 +
-> >  drivers/acpi/pmic/intel_pmic_chtwc.c | 280
-> > +++++++++++++++++++++++++++++++++++
-> >  3 files changed, 287 insertions(+)
-> >  create mode 100644 drivers/acpi/pmic/intel_pmic_chtwc.c
-> > 
-> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > index 83e5f7e..4f12fe0 100644
-> > --- a/drivers/acpi/Kconfig
-> > +++ b/drivers/acpi/Kconfig
-> > @@ -516,6 +516,12 @@ config BXT_WC_PMIC_OPREGION
-> >         help
-> >           This config adds ACPI operation region support for BXT
-> > WhiskeyCove PMIC.
-> > 
-> > +config CHT_WC_PMIC_OPREGION
-> > +       bool "ACPI operation region support for CHT Whiskey Cove
-> > PMIC"
-> > +       depends on INTEL_SOC_PMIC_CHTWC
-> > +       help
-> > +         This config adds ACPI operation region support for CHT
-> > Whiskey Cove PMIC.
-> > +
-> >  endif
-> > 
-> >  config ACPI_CONFIGFS
-> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> > index d94f92f..d78065c 100644
-> > --- a/drivers/acpi/Makefile
-> > +++ b/drivers/acpi/Makefile
-> > @@ -101,6 +101,7 @@ obj-$(CONFIG_PMIC_OPREGION) +=
-> > pmic/intel_pmic.o
-> >  obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
-> >  obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
-> >  obj-$(CONFIG_BXT_WC_PMIC_OPREGION) += pmic/intel_pmic_bxtwc.o
-> > +obj-$(CONFIG_CHT_WC_PMIC_OPREGION) += pmic/intel_pmic_chtwc.o
-> > 
-> >  obj-$(CONFIG_ACPI_CONFIGFS)    += acpi_configfs.o
-> > 
-> > diff --git a/drivers/acpi/pmic/intel_pmic_chtwc.c
-> > b/drivers/acpi/pmic/intel_pmic_chtwc.c
-> > new file mode 100644
-> > index 0000000..85636d7
-> > --- /dev/null
-> > +++ b/drivers/acpi/pmic/intel_pmic_chtwc.c
-> > @@ -0,0 +1,280 @@
-> > +/*
-> > + * Intel CHT Whiskey Cove PMIC operation region driver
-> > + * Copyright (C) 2017 Hans de Goede <hdegoede@redhat.com>
-> > + *
-> > + * Based on various non upstream patches to support the CHT
-> > Whiskey Cove PMIC:
-> > + * Copyright (C) 2013-2015 Intel Corporation. All rights reserved.
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> > + * modify it under the terms of the GNU General Public License
-> > version
-> > + * 2 as published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful,
-> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> > + * GNU General Public License for more details.
-> > + */
-> > +
-> > +#include <linux/acpi.h>
-> > +#include <linux/init.h>
-> > +#include <linux/mfd/intel_soc_pmic.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/regmap.h>
-> > +#include "intel_pmic.h"
-> > +
-> > +#define CHT_WC_V1P05A_CTRL             0x6e3b
-> > +#define CHT_WC_V1P15_CTRL              0x6e3c
-> > +#define CHT_WC_V1P05A_VSEL             0x6e3d
-> > +#define CHT_WC_V1P15_VSEL              0x6e3e
-> > +#define CHT_WC_V1P8A_CTRL              0x6e56
-> > +#define CHT_WC_V1P8SX_CTRL             0x6e57
-> > +#define CHT_WC_VDDQ_CTRL               0x6e58
-> > +#define CHT_WC_V1P2A_CTRL              0x6e59
-> > +#define CHT_WC_V1P2SX_CTRL             0x6e5a
-> > +#define CHT_WC_V1P8A_VSEL              0x6e5b
-> > +#define CHT_WC_VDDQ_VSEL               0x6e5c
-> > +#define CHT_WC_V2P8SX_CTRL             0x6e5d
-> > +#define CHT_WC_V3P3A_CTRL              0x6e5e
-> > +#define CHT_WC_V3P3SD_CTRL             0x6e5f
-> > +#define CHT_WC_VSDIO_CTRL              0x6e67
-> > +#define CHT_WC_V3P3A_VSEL              0x6e68
-> > +#define CHT_WC_VPROG1A_CTRL            0x6e90
-> > +#define CHT_WC_VPROG1B_CTRL            0x6e91
-> > +#define CHT_WC_VPROG1F_CTRL            0x6e95
-> > +#define CHT_WC_VPROG2D_CTRL            0x6e99
-> > +#define CHT_WC_VPROG3A_CTRL            0x6e9a
-> > +#define CHT_WC_VPROG3B_CTRL            0x6e9b
-> > +#define CHT_WC_VPROG4A_CTRL            0x6e9c
-> > +#define CHT_WC_VPROG4B_CTRL            0x6e9d
-> > +#define CHT_WC_VPROG4C_CTRL            0x6e9e
-> > +#define CHT_WC_VPROG4D_CTRL            0x6e9f
-> > +#define CHT_WC_VPROG5A_CTRL            0x6ea0
-> > +#define CHT_WC_VPROG5B_CTRL            0x6ea1
-> > +#define CHT_WC_VPROG6A_CTRL            0x6ea2
-> > +#define CHT_WC_VPROG6B_CTRL            0x6ea3
-> > +#define CHT_WC_VPROG1A_VSEL            0x6ec0
-> > +#define CHT_WC_VPROG1B_VSEL            0x6ec1
-> > +#define CHT_WC_V1P8SX_VSEL             0x6ec2
-> > +#define CHT_WC_V1P2SX_VSEL             0x6ec3
-> > +#define CHT_WC_V1P2A_VSEL              0x6ec4
-> > +#define CHT_WC_VPROG1F_VSEL            0x6ec5
-> > +#define CHT_WC_VSDIO_VSEL              0x6ec6
-> > +#define CHT_WC_V2P8SX_VSEL             0x6ec7
-> > +#define CHT_WC_V3P3SD_VSEL             0x6ec8
-> > +#define CHT_WC_VPROG2D_VSEL            0x6ec9
-> > +#define CHT_WC_VPROG3A_VSEL            0x6eca
-> > +#define CHT_WC_VPROG3B_VSEL            0x6ecb
-> > +#define CHT_WC_VPROG4A_VSEL            0x6ecc
-> > +#define CHT_WC_VPROG4B_VSEL            0x6ecd
-> > +#define CHT_WC_VPROG4C_VSEL            0x6ece
-> > +#define CHT_WC_VPROG4D_VSEL            0x6ecf
-> > +#define CHT_WC_VPROG5A_VSEL            0x6ed0
-> > +#define CHT_WC_VPROG5B_VSEL            0x6ed1
-> > +#define CHT_WC_VPROG6A_VSEL            0x6ed2
-> > +#define CHT_WC_VPROG6B_VSEL            0x6ed3
-> > +
-> > +/*
-> > + * Regulator support is based on the non upstream patch:
-> > + * "regulator: whiskey_cove: implements Whiskey Cove pmic VRF
-> > support"
-> > + * https://github.com/intel-aero/meta-intel-aero/blob/master/recip
-> > es-kernel/linux/linux-yocto/0019-regulator-whiskey_cove-implements-
-> > WhiskeyCove-pmic-V.patch
-> > + */
-> > +static struct pmic_table power_table[] = {
-> > +       {
-> > +               .address = 0x0,
-> > +               .reg = CHT_WC_V1P8A_CTRL,
-> > +               .bit = 0x01,
-> > +       }, /* V18A */
-> > +       {
-> > +               .address = 0x04,
-> > +               .reg = CHT_WC_V1P8SX_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* V18X */
-> > +       {
-> > +               .address = 0x08,
-> > +               .reg = CHT_WC_VDDQ_CTRL,
-> > +               .bit = 0x01,
-> > +       }, /* VDDQ */
-> > +       {
-> > +               .address = 0x0c,
-> > +               .reg = CHT_WC_V1P2A_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* V12A */
-> > +       {
-> > +               .address = 0x10,
-> > +               .reg = CHT_WC_V1P2SX_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* V12X */
-> > +       {
-> > +               .address = 0x14,
-> > +               .reg = CHT_WC_V2P8SX_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* V28X */
-> > +       {
-> > +               .address = 0x18,
-> > +               .reg = CHT_WC_V3P3A_CTRL,
-> > +               .bit = 0x01,
-> > +       }, /* V33A */
-> > +       {
-> > +               .address = 0x1c,
-> > +               .reg = CHT_WC_V3P3SD_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* V3SD */
-> > +       {
-> > +               .address = 0x20,
-> > +               .reg = CHT_WC_VSDIO_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VSD */
-> > +/*     {
-> > +               .address = 0x24,
-> > +               .reg = ??,
-> > +               .bit = ??,
-> > +       }, ** VSW2 */
-> > +/*     {
-> > +               .address = 0x28,
-> > +               .reg = ??,
-> > +               .bit = ??,
-> > +       }, ** VSW1 */
-> > +/*     {
-> > +               .address = 0x2c,
-> > +               .reg = ??,
-> > +               .bit = ??,
-> > +       }, ** VUPY */
-> > +/*     {
-> > +               .address = 0x30,
-> > +               .reg = ??,
-> > +               .bit = ??,
-> > +       }, ** VRSO */
-> > +       {
-> > +               .address = 0x34,
-> > +               .reg = CHT_WC_VPROG1A_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP1A */
-> > +       {
-> > +               .address = 0x38,
-> > +               .reg = CHT_WC_VPROG1B_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP1B */
-> > +       {
-> > +               .address = 0x3c,
-> > +               .reg = CHT_WC_VPROG1F_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP1F */
-> > +       {
-> > +               .address = 0x40,
-> > +               .reg = CHT_WC_VPROG2D_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP2D */
-> > +       {
-> > +               .address = 0x44,
-> > +               .reg = CHT_WC_VPROG3A_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP3A */
-> > +       {
-> > +               .address = 0x48,
-> > +               .reg = CHT_WC_VPROG3B_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP3B */
-> > +       {
-> > +               .address = 0x4c,
-> > +               .reg = CHT_WC_VPROG4A_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP4A */
-> > +       {
-> > +               .address = 0x50,
-> > +               .reg = CHT_WC_VPROG4B_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP4B */
-> > +       {
-> > +               .address = 0x54,
-> > +               .reg = CHT_WC_VPROG4C_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP4C */
-> > +       {
-> > +               .address = 0x58,
-> > +               .reg = CHT_WC_VPROG4D_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP4D */
-> > +       {
-> > +               .address = 0x5c,
-> > +               .reg = CHT_WC_VPROG5A_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP5A */
-> > +       {
-> > +               .address = 0x60,
-> > +               .reg = CHT_WC_VPROG5B_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP5B */
-> > +       {
-> > +               .address = 0x64,
-> > +               .reg = CHT_WC_VPROG6A_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP6A */
-> > +       {
-> > +               .address = 0x68,
-> > +               .reg = CHT_WC_VPROG6B_CTRL,
-> > +               .bit = 0x07,
-> > +       }, /* VP6B */
-> > +/*     {
-> > +               .address = 0x6c,
-> > +               .reg = ??,
-> > +               .bit = ??,
-> > +       }  ** VP7A */
-> > +};
-> > +
-> > +static int intel_cht_wc_pmic_get_power(struct regmap *regmap, int
-> > reg,
-> > +               int bit, u64 *value)
-> > +{
-> > +       int data;
-> > +
-> > +       if (regmap_read(regmap, reg, &data))
-> > +               return -EIO;
-> > +
-> > +       *value = (data & bit) ? 1 : 0;
-> > +       return 0;
-> > +}
-> > +
-> > +static int intel_cht_wc_pmic_update_power(struct regmap *regmap,
-> > int reg,
-> > +               int bitmask, bool on)
-> > +{
-> > +       return regmap_update_bits(regmap, reg, bitmask, on ? 1 :
-> > 0);
-> > +}
-> > +
-> > +/*
-> > + * The thermal table and ops are empty, we do not support the
-> > Thermal opregion
-> > + * (DPTF) due to lacking documentation.
-> > + */
-> > +static struct intel_pmic_opregion_data
-> > intel_cht_wc_pmic_opregion_data = {
-> > +       .get_power              = intel_cht_wc_pmic_get_power,
-> > +       .update_power           = intel_cht_wc_pmic_update_power,
-> > +       .power_table            = power_table,
-> > +       .power_table_count      = ARRAY_SIZE(power_table),
-> > +};
-> > +
-> > +static int intel_cht_wc_pmic_opregion_probe(struct platform_device
-> > *pdev)
-> > +{
-> > +       struct intel_soc_pmic *pmic = dev_get_drvdata(pdev-
-> > >dev.parent);
-> > +
-> > +       return intel_pmic_install_opregion_handler(&pdev->dev,
-> > +                       ACPI_HANDLE(pdev->dev.parent),
-> > +                       pmic->regmap,
-> > +                       &intel_cht_wc_pmic_opregion_data);
-> > +}
-> > +
-> > +static struct platform_device_id cht_wc_opregion_id_table[] = {
-> > +       { .name = "cht_wcove_region" },
-> > +       {},
-> > +};
-> > +MODULE_DEVICE_TABLE(platform, cht_wc_opregion_id_table);
-> > +
-> > +static struct platform_driver intel_cht_wc_pmic_opregion_driver =
-> > {
-> > +       .probe = intel_cht_wc_pmic_opregion_probe,
-> > +       .driver = {
-> > +               .name = "cht_whiskey_cove_pmic",
-> > +       },
-> > +       .id_table = cht_wc_opregion_id_table,
-> > +};
-> > +module_platform_driver(intel_cht_wc_pmic_opregion_driver);
-> > +
-> > +MODULE_DESCRIPTION("Intel CHT Whiskey Cove PMIC operation region
-> > driver");
-> > +MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
-> > +MODULE_LICENSE("GPL");
-> > --
-> > 2.9.3
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> > acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
