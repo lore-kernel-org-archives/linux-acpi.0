@@ -1,98 +1,60 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v4 2/2] ACPI / PMIC: Stop xpower OPRegion handler relying on IIO
-Date: Wed, 19 Apr 2017 15:07:00 +0200
-Message-ID: <20170419130700.31277-3-hdegoede@redhat.com>
-References: <20170419130700.31277-1-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44430 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1763485AbdDSNHH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Apr 2017 09:07:07 -0400
-In-Reply-To: <20170419130700.31277-1-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v24 09/11] acpi/arm64: Add memory-mapped timer support in
+ GTDT driver
+Date: Wed, 19 Apr 2017 16:07:25 +0100
+Message-ID: <20170419150725.GH27829@leverpostej>
+References: <20170414184014.8524-1-fu.wei@linaro.org>
+ <20170414184014.8524-10-fu.wei@linaro.org>
+ <20170418172107.GA1401@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170418172107.GA1401@red-moon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org
 
-The intel_pmic_xpower code provides an OPRegion handler, which must be
-available before other drivers using it are loaded, which can only be
-ensured if both the mfd and opregion drivers are built in, which is why
-the Kconfig option for intel_pmic_xpower is a bool.
+On Tue, Apr 18, 2017 at 06:21:07PM +0100, Lorenzo Pieralisi wrote:
+> On Sat, Apr 15, 2017 at 02:40:12AM +0800, fu.wei@linaro.org wrote:
 
-The use of IIO is causing trouble for generic distro configs here as
-distros will typically want to build IIO drivers as modules and there
-really is no reason to use IIO here. The reading of the ADC value is a
-single regmap_bulk_read, which is already protected against races by
-the regmap-lock.
+> > +error:
+> > +	for (i = 0; i < ARCH_TIMER_MEM_MAX_FRAMES; i++) {
+> > +		frame = &timer_mem->frame[i];
+> > +		if (frame->phys_irq > 0)
+> > +			acpi_unregister_irq(frame->phys_irq);
+> > +		if (frame->virt_irq > 0)
+> > +			acpi_unregister_irq(frame->virt_irq);
+> > +	}
+> 
+> There are three error paths, none of them reset [i,gtdt_frame],
+> correct ?
 
-This commit removes the use of IIO, allowing distros to enable the
-driver without needing to built IIO in and also actually simplifies
-the code.
+Correct.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/Kconfig                  |  2 +-
- drivers/acpi/pmic/intel_pmic_xpower.c | 21 ++++-----------------
- 2 files changed, 5 insertions(+), 18 deletions(-)
+> If yes, why can't it simply be written like this ?
+> 
+> for (; i >= 0; i--, gtdt_frame--) {
+> 	frame = &timer_mem->frame[gtdt_frame->frame_number];
+> 
+> 	/* not sure this check is actually needed */
+> 	if (gtdt_frame->common_flags & ACPI_GTDT_GT_IS_SECURE_TIMER)
+> 		continue;
+> 
+> 	if (frame->phys_irq > 0)
+> 		acpi_unregister_gsi(gtdt_frame->timer_interrupt);
+> 	if (frame->virt_irq > 0)
+> 		acpi_unregister_gsi(gtdt_frame->virtual_timer_interrupt);
+> }
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 4f12fe0..842530f 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -506,7 +506,7 @@ config CRC_PMIC_OPREGION
- 
- config XPOWER_PMIC_OPREGION
- 	bool "ACPI operation region support for XPower AXP288 PMIC"
--	depends on AXP288_ADC = y
-+	depends on MFD_AXP20X_I2C
- 	help
- 	  This config adds ACPI operation region support for XPower AXP288 PMIC.
- 
-diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-index e6e991a..55f5111 100644
---- a/drivers/acpi/pmic/intel_pmic_xpower.c
-+++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-@@ -18,7 +18,6 @@
- #include <linux/mfd/axp20x.h>
- #include <linux/regmap.h>
- #include <linux/platform_device.h>
--#include <linux/iio/consumer.h>
- #include "intel_pmic.h"
- 
- #define XPOWER_GPADC_LOW	0x5b
-@@ -186,28 +185,16 @@ static int intel_xpower_pmic_update_power(struct regmap *regmap, int reg,
-  * @regmap: regmap of the PMIC device
-  * @reg: register to get the reading
-  *
-- * We could get the sensor value by manipulating the HW regs here, but since
-- * the axp288 IIO driver may also access the same regs at the same time, the
-- * APIs provided by IIO subsystem are used here instead to avoid problems. As
-- * a result, the two passed in params are of no actual use.
-- *
-  * Return a positive value on success, errno on failure.
-  */
- static int intel_xpower_pmic_get_raw_temp(struct regmap *regmap, int reg)
- {
--	struct iio_channel *gpadc_chan;
--	int ret, val;
--
--	gpadc_chan = iio_channel_get(NULL, "axp288-system-temp");
--	if (IS_ERR_OR_NULL(gpadc_chan))
--		return -EACCES;
-+	u8 buf[2];
- 
--	ret = iio_read_channel_raw(gpadc_chan, &val);
--	if (ret < 0)
--		val = ret;
-+	if (regmap_bulk_read(regmap, AXP288_GP_ADC_H, buf, 2))
-+		return -EIO;
- 
--	iio_channel_release(gpadc_chan);
--	return val;
-+	return (buf[0] << 4) + ((buf[1] >> 4) & 0x0F);
- }
- 
- static struct intel_pmic_opregion_data intel_xpower_pmic_opregion_data = {
--- 
-2.9.3
+A reverse loop of this form will work.
 
+That requires some restructuring, and care to avoid going out of bounds
+instantaneously with the gtdt_frame--, so as to not invoke nasal demons.
+
+I've attacked this locally, and will send this out after testing. I'll
+drop the new ACPI API patch.
+
+Thanks,
+Mark.
