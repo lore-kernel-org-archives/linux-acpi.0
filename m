@@ -1,109 +1,87 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH 2/3] ACPI: Remove platform devices from a bus on removal
-Date: Wed, 19 Apr 2017 14:54:41 +0800
-Message-ID: <20170419065441.GB16910@linux-l9pv.suse>
-References: <1490204005-2733-1-git-send-email-joro@8bytes.org>
- <1490204005-2733-3-git-send-email-joro@8bytes.org>
- <20170419065017.GA16910@linux-l9pv.suse>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v6 2/5] ACPI: battery: Fix acpi_battery_exit on
+ acpi_battery_init_async errors
+Date: Wed, 19 Apr 2017 10:43:17 +0200
+Message-ID: <aaaabcb5-421b-aa22-f5b5-a28fbbc2d5c6@redhat.com>
+References: <20170418115842.16214-1-hdegoede@redhat.com>
+ <20170418115842.16214-3-hdegoede@redhat.com>
+ <CAJZ5v0g4h6zWg8FxoUhyshyVGpzbyi+4w7H95HHt9b9quv7anw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:48862 "EHLO
-        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933276AbdDSGyw (ORCPT
-        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-        Wed, 19 Apr 2017 02:54:52 -0400
-Content-Disposition: inline
-In-Reply-To: <20170419065017.GA16910@linux-l9pv.suse>
+Received: from mx1.redhat.com ([209.132.183.28]:42522 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1761144AbdDSInW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 19 Apr 2017 04:43:22 -0400
+In-Reply-To: <CAJZ5v0g4h6zWg8FxoUhyshyVGpzbyi+4w7H95HHt9b9quv7anw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Joerg Roedel <jroedel@suse.de>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
 
-On Wed, Apr 19, 2017 at 02:50:17PM +0800, joeyli wrote:
-> On Wed, Mar 22, 2017 at 06:33:24PM +0100, Joerg Roedel wrote:
-> > From: Joerg Roedel <jroedel@suse.de>
-> > 
-> > The function acpi_bus_attach() creates platform_devices if
-> > this is specified by the firmware. But in acpi_bus_trim()
-> > these devices are not removed, leaving a dangling reference
-> > to the parent device.
-> > 
-> > In the case of a PCI root-bus, this results in the
-> > host_bridge device not being released on hot-remove.
-> > 
-> > Fix it by scanning the list of platform_devices for devices
-> > to be removed with the bus.
-> > 
-> > Signed-off-by: Joerg Roedel <jroedel@suse.de>
-> > ---
-> >  drivers/acpi/scan.c | 26 ++++++++++++++++++++++++++
-> >  1 file changed, 26 insertions(+)
-> > 
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > index 1926918..b07518b 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -13,6 +13,7 @@
-> >  #include <linux/dmi.h>
-> >  #include <linux/nls.h>
-> >  #include <linux/dma-mapping.h>
-> > +#include <linux/platform_device.h>
-> >  
-> >  #include <asm/pgtable.h>
-> >  
-> > @@ -1928,6 +1929,25 @@ int acpi_bus_scan(acpi_handle handle)
-> >  EXPORT_SYMBOL(acpi_bus_scan);
-> >  
-> >  /**
-> > + * acpi_bus_trim_platform_device - Check and remove a platform device
-> > + *				   from a bus
-> > + * @dev: Platform device to check
-> > + * @data: pointer to the acpi_device to check dev against
-> > + *
-> > + * Checks whether the platform_device dev belongs to the acpi_device
-> > + * data and unregisters dev if it matches.
-> > + */
-> > +static int acpi_bus_trim_platform_device(struct device *dev, void *data)
-> > +{
-> > +	struct acpi_device *adev = data;
-> > +
-> > +	if (dev->fwnode == acpi_fwnode_handle(adev))
-> > +		platform_device_unregister(to_platform_device(dev));
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +/**
-> >   * acpi_bus_trim - Detach scan handlers and drivers from ACPI device objects.
-> >   * @adev: Root of the ACPI namespace scope to walk.
-> >   *
-> > @@ -1950,6 +1970,12 @@ void acpi_bus_trim(struct acpi_device *adev)
-> >  	} else {
-> >  		device_release_driver(&adev->dev);
-> >  	}
-> > +
-> > +	/* Remove platform devices from the bus */
-> > +	if (adev->pnp.type.platform_id)
-> 
-> This patch cases that dock_notify() is broken in find_dock_station()
-> because the dock_station platform device was removed.
-> 
-> If anyone wants to apply this patch, then the dock device should be
-> excluded:
-> 
-> +	if (is_dock_device(adev) && adev->pnp.type.platform_id)
+Hi,
 
-Sorry, it should be:
-+	if (!is_dock_device(adev) && adev->pnp.type.platform_id)
-
-> 
-> > +		bus_for_each_dev(&platform_bus_type, NULL, adev,
-> > +				 acpi_bus_trim_platform_device);
-> > +
-> >  	/*
-> >  	 * Most likely, the device is going away, so put it into D3cold before
-> >  	 * that.
+On 18-04-17 15:36, Rafael J. Wysocki wrote:
+> On Tue, Apr 18, 2017 at 1:58 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> The acpi_lock_battery_dir() / acpi_bus_register_driver() calls in
+>> acpi_battery_init_async() may fail. Check that they succeeded before
+>> undoing them.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>  drivers/acpi/battery.c | 8 ++++++--
+>>  1 file changed, 6 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+>> index 4ef1e46..b35fca4 100644
+>> --- a/drivers/acpi/battery.c
+>> +++ b/drivers/acpi/battery.c
+>> @@ -67,6 +67,7 @@ MODULE_DESCRIPTION("ACPI Battery Driver");
+>>  MODULE_LICENSE("GPL");
+>>
+>>  static async_cookie_t async_cookie;
+>> +static bool battery_driver_registered;
+>>  static int battery_bix_broken_package;
+>>  static int battery_notification_delay_ms;
+>>  static unsigned int cache_time = 1000;
+>> @@ -1329,6 +1330,7 @@ static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
+>>         if (result < 0)
+>>                 acpi_unlock_battery_dir(acpi_battery_dir);
+>>  #endif
+>> +       battery_driver_registered = (result == 0);
 >
+> Maybe
+>
+>       battery_driver_registered = !result;
 
-Joey Lee 
+I prefer == 0 here because we are checking for success (which is 0)
+not for "not true".
+
+Regards,
+
+Hans
+
+
+
+>
+>>  }
+>>
+>>  static int __init acpi_battery_init(void)
+>> @@ -1343,9 +1345,11 @@ static int __init acpi_battery_init(void)
+>>  static void __exit acpi_battery_exit(void)
+>>  {
+>>         async_synchronize_cookie(async_cookie + 1);
+>> -       acpi_bus_unregister_driver(&acpi_battery_driver);
+>> +       if (battery_driver_registered)
+>> +               acpi_bus_unregister_driver(&acpi_battery_driver);
+>>  #ifdef CONFIG_ACPI_PROCFS_POWER
+>> -       acpi_unlock_battery_dir(acpi_battery_dir);
+>> +       if (acpi_battery_dir)
+>> +               acpi_unlock_battery_dir(acpi_battery_dir);
+>>  #endif
+>>  }
+>
+> Thanks,
+> Rafael
+>
