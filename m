@@ -1,72 +1,209 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] drm/etnaviv: add thermal dependency
-Date: Wed, 19 Apr 2017 20:11:16 +0200
-Message-ID: <20170419181209.537907-1-arnd@arndb.de>
+From: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [PATCH V15 01/11] acpi: apei: read ack upon ghes record
+ consumption
+Date: Wed, 19 Apr 2017 20:31:12 +0200
+Message-ID: <20170419183112.x7tmjzpoq7ds64s2@pd.tnic>
+References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
+ <1492556723-9189-2-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Lucas Stach <l.stach@pengutronix.de>, David Airlie <airlied@linux.ie>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-pm@vger.kernel.org, Sujith Thomas <sujith.thomas@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, etnaviv@lists.freedesktop.org, Eduardo Valentin <edubezval@gmail.com>, linux-acpi@vger.kernel.org, Russell King <linux+etnaviv@armlinux.org.uk>, Darren Hart <dvhart@infradead.org>, Zhang Rui <rui.zhang@intel.com>, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andy@infradead.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1492556723-9189-2-git-send-email-tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-V2hlbiBDT05GSUdfVEhFUk1BTCBpcyBlbmFibGVkIGFzIGEgbG9hZGFibGUgbW9kdWxlLCBhbmQg
-ZXRuYXZpdiBpcwpidWlsdC1pbiwgd2UgZ2V0IGEgbGluayBlcnJvcjoKCmRyaXZlcnMvZ3B1L2Ry
-bS9ldG5hdml2L2V0bmF2aXZfZ3B1Lm86IEluIGZ1bmN0aW9uIGBldG5hdml2X2dwdV9iaW5kJzoK
-ZXRuYXZpdl9ncHUuYzooLnRleHQuZXRuYXZpdl9ncHVfYmluZCsweDM0KTogdW5kZWZpbmVkIHJl
-ZmVyZW5jZSB0byBgdGhlcm1hbF9vZl9jb29saW5nX2RldmljZV9yZWdpc3RlcicKZXRuYXZpdl9n
-cHUuYzooLnRleHQuZXRuYXZpdl9ncHVfYmluZCsweGUwKTogdW5kZWZpbmVkIHJlZmVyZW5jZSB0
-byBgdGhlcm1hbF9jb29saW5nX2RldmljZV91bnJlZ2lzdGVyJwpkcml2ZXJzL2dwdS9kcm0vZXRu
-YXZpdi9ldG5hdml2X2dwdS5vOiBJbiBmdW5jdGlvbiBgZXRuYXZpdl9ncHVfdW5iaW5kJzoKZXRu
-YXZpdl9ncHUuYzooLnRleHQuZXRuYXZpdl9ncHVfdW5iaW5kKzB4ZjApOiB1bmRlZmluZWQgcmVm
-ZXJlbmNlIHRvIGB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlX3VucmVnaXN0ZXInCgpUaGlzIGFkZHMg
-YSBLY29uZmlnIGRlcGVuZGVuY3kgdG8gcHJldmVudCBldG5hdml2IGZyb20gYmVpbmcgYnVpbHQt
-aW4Kd2l0aCBDT05GSUdfVEhFUk1BTD1tLCB3aGlsZSBzdGlsbCBhbGxvd2luZyB0aGUgdmFsaWQg
-Y29uZmlndXJhdGlvbnMuClVuZm9ydHVuYXRlbHksIHNpbXBseSBhZGRpbmcgdGhlIGRlcGVuZGVu
-Y3kgaGVyZSBicmVha3MgS2NvbmZpZyB0aHJvdWdoCmEgZGVwZW5kZW5jeSBsb29wIGludm9sdmlu
-ZyBsb3RzIG9mIHN5bWJvbHMgYWxsIHRoZSB3YXkgdW50aWwgQUNQSV9WSURFTywKd2hpY2ggaXMg
-dGhlIG9ubHkgdmlkZW8gZHJpdmVyIHRoYXQgZXhwbGljaXRseSBzZWxlY3RzICdUSEVSTUFMJy4g
-VHVybmluZwp0aGlzIGludG8gYSAnZGVwZW5kcyBvbicgYWRkcmVzc2VzIHRoZSBwcm9ibGVtLgpG
-b3IgY29tcGxldGVuZXNzLCBJJ20gYWxzbyByZW1vdmluZyB0aGUgcmVkdW5kYW50ICdzZWxlY3Qg
-VEhFUk1BTCcKZnJvbSBJTlRFTF9NRU5MT1csIHNvIG5vIG90aGVyIGRyaXZlciB1c2VzIHRoYXQg
-c3RhdGVtZW50LgoKRml4ZXM6IGJjZGZiNWU1NmRjNSAoImRybS9ldG5hdml2OiBhZGQgZXRuYXZp
-diBjb29saW5nIGRldmljZSIpClNpZ25lZC1vZmYtYnk6IEFybmQgQmVyZ21hbm4gPGFybmRAYXJu
-ZGIuZGU+Ci0tLQogZHJpdmVycy9hY3BpL0tjb25maWcgICAgICAgICAgICB8IDIgKy0KIGRyaXZl
-cnMvZ3B1L2RybS9ldG5hdml2L0tjb25maWcgfCAxICsKIGRyaXZlcnMvcGxhdGZvcm0veDg2L0tj
-b25maWcgICAgfCAxIC0KIDMgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0
-aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9LY29uZmlnIGIvZHJpdmVycy9hY3Bp
-L0tjb25maWcKaW5kZXggMDNjYzRlNzQwOTZiLi4yNTIzOTllZmE4YjMgMTAwNjQ0Ci0tLSBhL2Ry
-aXZlcnMvYWNwaS9LY29uZmlnCisrKyBiL2RyaXZlcnMvYWNwaS9LY29uZmlnCkBAIC0xODQsNyAr
-MTg0LDcgQEAgY29uZmlnIEFDUElfVklERU8KIAl0cmlzdGF0ZSAiVmlkZW8iCiAJZGVwZW5kcyBv
-biBYODYgJiYgQkFDS0xJR0hUX0NMQVNTX0RFVklDRQogCWRlcGVuZHMgb24gSU5QVVQKLQlzZWxl
-Y3QgVEhFUk1BTAorCWRlcGVuZHMgb24gVEhFUk1BTAogCWhlbHAKIAkgIFRoaXMgZHJpdmVyIGlt
-cGxlbWVudHMgdGhlIEFDUEkgRXh0ZW5zaW9ucyBGb3IgRGlzcGxheSBBZGFwdGVycwogCSAgZm9y
-IGludGVncmF0ZWQgZ3JhcGhpY3MgZGV2aWNlcyBvbiBtb3RoZXJib2FyZCwgYXMgc3BlY2lmaWVk
-IGluCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vZXRuYXZpdi9LY29uZmlnIGIvZHJpdmVy
-cy9ncHUvZHJtL2V0bmF2aXYvS2NvbmZpZwppbmRleCA3MWNlZTRlOWZlZmIuLjFkNmM3NDRlNzky
-NCAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL2V0bmF2aXYvS2NvbmZpZworKysgYi9kcml2
-ZXJzL2dwdS9kcm0vZXRuYXZpdi9LY29uZmlnCkBAIC0zLDYgKzMsNyBAQCBjb25maWcgRFJNX0VU
-TkFWSVYKIAl0cmlzdGF0ZSAiRVROQVZJViAoRFJNIHN1cHBvcnQgZm9yIFZpdmFudGUgR1BVIElQ
-IGNvcmVzKSIKIAlkZXBlbmRzIG9uIERSTQogCWRlcGVuZHMgb24gQVJDSF9NWEMgfHwgQVJDSF9E
-T1ZFIHx8IChBUk0gJiYgQ09NUElMRV9URVNUKQorCWRlcGVuZHMgb24gVEhFUk1BTCB8fCBUSEVS
-TUFMPW4KIAlkZXBlbmRzIG9uIE1NVQogCXNlbGVjdCBTSE1FTQogCXNlbGVjdCBTWU5DX0ZJTEUK
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvcGxhdGZvcm0veDg2L0tjb25maWcgYi9kcml2ZXJzL3BsYXRm
-b3JtL3g4Ni9LY29uZmlnCmluZGV4IGUyMjllYTMxN2I5Yy4uNzZjZWQ4N2VmZGU1IDEwMDY0NAot
-LS0gYS9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9LY29uZmlnCisrKyBiL2RyaXZlcnMvcGxhdGZvcm0v
-eDg2L0tjb25maWcKQEAgLTU0NCw3ICs1NDQsNiBAQCBjb25maWcgU0VOU09SU19IREFQUwogY29u
-ZmlnIElOVEVMX01FTkxPVwogCXRyaXN0YXRlICJUaGVybWFsIE1hbmFnZW1lbnQgZHJpdmVyIGZv
-ciBJbnRlbCBtZW5sb3cgcGxhdGZvcm0iCiAJZGVwZW5kcyBvbiBBQ1BJX1RIRVJNQUwKLQlzZWxl
-Y3QgVEhFUk1BTAogCS0tLWhlbHAtLS0KIAkgIEFDUEkgdGhlcm1hbCBtYW5hZ2VtZW50IGVuaGFu
-Y2VtZW50IGRyaXZlciBvbgogCSAgSW50ZWwgTWVubG93IHBsYXRmb3JtLgotLSAKMi45LjAKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBt
-YWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3Rz
-LmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+On Tue, Apr 18, 2017 at 05:05:13PM -0600, Tyler Baicar wrote:
+> A RAS (Reliability, Availability, Serviceability) controller
+> may be a separate processor running in parallel with OS
+> execution, and may generate error records for consumption by
+> the OS. If the RAS controller produces multiple error records,
+> then they may be overwritten before the OS has consumed them.
+> 
+> The Generic Hardware Error Source (GHES) v2 structure
+> introduces the capability for the OS to acknowledge the
+> consumption of the error record generated by the RAS
+> controller. A RAS controller supporting GHESv2 shall wait for
+> the acknowledgment before writing a new error record, thus
+> eliminating the race condition.
+> 
+> Add support for parsing of GHESv2 sub-tables as well.
+> 
+> Signed-off-by: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> CC: Jonathan (Zhixiong) Zhang <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> Reviewed-by: James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>
+> ---
+>  drivers/acpi/apei/ghes.c | 55 +++++++++++++++++++++++++++++++++++++++++++++---
+>  drivers/acpi/apei/hest.c |  7 ++++--
+>  include/acpi/ghes.h      |  5 ++++-
+>  3 files changed, 61 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 79b3c9c..6d87ab7 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -46,6 +46,7 @@
+>  #include <linux/nmi.h>
+>  #include <linux/sched/clock.h>
+>  
+> +#include <acpi/actbl1.h>
+>  #include <acpi/ghes.h>
+>  #include <acpi/apei.h>
+>  #include <asm/tlbflush.h>
+> @@ -80,6 +81,10 @@
+>  	((struct acpi_hest_generic_status *)				\
+>  	 ((struct ghes_estatus_node *)(estatus_node) + 1))
+>  
+> +#define IS_HEST_TYPE_GENERIC_V2(ghes)				\
+> +	((struct acpi_hest_header *)ghes->generic)->type ==	\
+
+This is a nasty hack: casting the ghes->generic pointer to a pointer of its
+first member which is a acpi_hest_header.
+
+Why isn't this a nice inline function with proper dereferencing:
+
+static inline bool is_hest_type_generic_v2(struct ghes *ghes)
+{
+        return ghes->generic->header.type == ACPI_HEST_TYPE_GENERIC_ERROR_V2;
+}
+
+?
+
+Also, please integrate scripts/checkpatch.pl in your patch creation
+workflow. Some of the warnings/errors *actually* make sense.
+
+>  /*
+>   * This driver isn't really modular, however for the time being,
+>   * continuing to use module_param is the easiest way to remain
+> @@ -240,6 +245,17 @@ static int ghes_estatus_pool_expand(unsigned long len)
+>  	return 0;
+>  }
+>  
+> +static int map_gen_v2(struct ghes *ghes)
+> +{
+> +	return apei_map_generic_address(&ghes->generic_v2->read_ack_register);
+> +}
+> +
+> +static void unmap_gen_v2(struct ghes *ghes)
+> +{
+> +	apei_unmap_generic_address(&ghes->generic_v2->read_ack_register);
+> +	return;
+> +}
+
+Like this one, for example:
+
+WARNING: void function return statements are not generally useful
+#89: FILE: drivers/acpi/apei/ghes.c:257:
++       return;
++}
+
+> +
+>  static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+>  {
+>  	struct ghes *ghes;
+> @@ -249,10 +265,17 @@ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+>  	ghes = kzalloc(sizeof(*ghes), GFP_KERNEL);
+>  	if (!ghes)
+>  		return ERR_PTR(-ENOMEM);
+> +
+>  	ghes->generic = generic;
+> +	if (IS_HEST_TYPE_GENERIC_V2(ghes)) {
+> +		rc = map_gen_v2(ghes);
+> +		if (rc)
+> +			goto err_free;
+> +	}
+> +
+>  	rc = apei_map_generic_address(&generic->error_status_address);
+>  	if (rc)
+> -		goto err_free;
+> +		goto err_unmap_read_ack_addr;
+>  	error_block_length = generic->error_block_length;
+>  	if (error_block_length > GHES_ESTATUS_MAX_SIZE) {
+>  		pr_warning(FW_WARN GHES_PFX
+> @@ -264,13 +287,16 @@ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+>  	ghes->estatus = kmalloc(error_block_length, GFP_KERNEL);
+>  	if (!ghes->estatus) {
+>  		rc = -ENOMEM;
+> -		goto err_unmap;
+> +		goto err_unmap_status_addr;
+>  	}
+>  
+>  	return ghes;
+>  
+> -err_unmap:
+> +err_unmap_status_addr:
+>  	apei_unmap_generic_address(&generic->error_status_address);
+> +err_unmap_read_ack_addr:
+> +	if (IS_HEST_TYPE_GENERIC_V2(ghes))
+> +		unmap_gen_v2(ghes);
+>  err_free:
+>  	kfree(ghes);
+>  	return ERR_PTR(rc);
+> @@ -280,6 +306,8 @@ static void ghes_fini(struct ghes *ghes)
+>  {
+>  	kfree(ghes->estatus);
+>  	apei_unmap_generic_address(&ghes->generic->error_status_address);
+> +	if (IS_HEST_TYPE_GENERIC_V2(ghes))
+> +		unmap_gen_v2(ghes);
+>  }
+>  
+>  static inline int ghes_severity(int severity)
+> @@ -649,6 +677,21 @@ static void ghes_estatus_cache_add(
+>  	rcu_read_unlock();
+>  }
+>  
+> +static int ghes_ack_error(struct acpi_hest_generic_v2 *generic_v2)
+
+If you name this function parameter to something shorter, say gv2, for
+example...
+
+> +{
+> +	int rc;
+> +	u64 val = 0;
+> +
+> +	rc = apei_read(&val, &generic_v2->read_ack_register);
+> +	if (rc)
+> +		return rc;
+> +
+> +	val &= generic_v2->read_ack_preserve << generic_v2->read_ack_register.bit_offset;
+> +	val |= generic_v2->read_ack_write << generic_v2->read_ack_register.bit_offset;
+
+... you can align those two nicely while remaining within the 80 cols width:
+
+        val &= gv2->read_ack_preserve << gv2->read_ack_register.bit_offset;
+        val |= gv2->read_ack_write    << gv2->read_ack_register.bit_offset;
+
+and make them readable at a quick glance.
+
+> +
+> +	return apei_write(val, &generic_v2->read_ack_register);
+> +}
+> +
+>  static int ghes_proc(struct ghes *ghes)
+>  {
+>  	int rc;
+> @@ -661,6 +704,12 @@ static int ghes_proc(struct ghes *ghes)
+>  			ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+>  	}
+>  	ghes_do_proc(ghes, ghes->estatus);
+
+This needs a comment why v2 needs to ACK the error. The commit message
+is not necessarily something we'll find quickly in the future.
+
+> +
+> +	if (IS_HEST_TYPE_GENERIC_V2(ghes)) {
+> +		rc = ghes_ack_error(ghes->generic_v2);
+> +		if (rc)
+> +			return rc;
+> +	}
+>  out:
+>  	ghes_clear_estatus(ghes);
+>  	return rc;
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
