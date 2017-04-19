@@ -1,50 +1,29 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v7 2/2] ACPI / bus: Add INT0002 to list of always-present devices
-Date: Wed, 19 Apr 2017 14:04:08 +0200
-Message-ID: <20170419120408.25037-2-hdegoede@redhat.com>
-References: <20170419120408.25037-1-hdegoede@redhat.com>
+Subject: [PATCH v4 0/2] ACPI / PMIC: Intel CHT Whiskey Cove opregion driver + xpower opregion bugfix
+Date: Wed, 19 Apr 2017 15:06:58 +0200
+Message-ID: <20170419130700.31277-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55736 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:47042 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933599AbdDSMEW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Apr 2017 08:04:22 -0400
-In-Reply-To: <20170419120408.25037-1-hdegoede@redhat.com>
+        id S1763485AbdDSNHD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 19 Apr 2017 09:07:03 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jani Nikula <jani.nikula@linux.intel.com>, =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, intel-gfx <intel-gfx@lists.freedesktop.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org
 
-The INT0002 device is necessary to clear wakeup interrupt sources
-on Cherry Trail devices, without it we get nobody cared IRQ msgs
-and some systems don't properly resume at all without it.
+Hi All,
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
-Changes in v6:
--This is a new patch in v6 of this patch-set
-Changes in v7:
--Adjust for the always present devices table being moved to
- drivers/acpi/x86/x86_utils.c
----
- drivers/acpi/x86/x86_utils.c | 5 +++++
- 1 file changed, 5 insertions(+)
+These 2 seem to have fallen through the cracks, hence this resend,
+note the 1st patch has a minor change compared to the last time
+it was send, its Kconfig option has been changed from a tristate
+to a bool.
 
-diff --git a/drivers/acpi/x86/x86_utils.c b/drivers/acpi/x86/x86_utils.c
-index 74f1237..98d875a 100644
---- a/drivers/acpi/x86/x86_utils.c
-+++ b/drivers/acpi/x86/x86_utils.c
-@@ -49,6 +49,11 @@ static const struct always_present_id always_present_ids[] = {
- 	 */
- 	ENTRY("80860F09", "1", ICPU(INTEL_FAM6_ATOM_SILVERMONT1)),
- 	ENTRY("80862288", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT)),
-+	/*
-+	 * The INT0002 device is necessary to clear wakeup interrupt sources
-+	 * on Cherry Trail devices, without it we get nobody cared IRQ msgs.
-+	 */
-+	ENTRY("INT0002", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT)),
- };
- 
- bool acpi_device_always_present(struct acpi_device *adev)
--- 
-2.9.3
+Regards,
 
+Hans
+
+p.s.
+
+I'm going on vacation / offline starting tomorrow I will be back
+May 1st, so if I'm responding to email that is why.
