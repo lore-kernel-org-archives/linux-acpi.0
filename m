@@ -1,38 +1,43 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 1/2] ACPI: video: get rid of magic numbers and use enum instead
-Date: Wed, 19 Apr 2017 21:36:27 +0200
-Message-ID: <CAJZ5v0gZ95Np7gPidaAO2D7oEmDyE_O8RVuLOnoTsKC5o=QwFQ@mail.gmail.com>
-References: <20170418123558.12436-1-mail@dmitryfrank.com> <20170419103618.20939-1-mail@dmitryfrank.com>
- <20170419103618.20939-2-mail@dmitryfrank.com>
+Subject: Re: [PATCH v7 0/5] ACPI: new acpi_dev_present helper + ac and battery
+ blacklist patches
+Date: Wed, 19 Apr 2017 21:37:50 +0200
+Message-ID: <CAJZ5v0i1oFMaqRF85TzvEM_ZHAe+rUUXqRruy7aHY_PwGcCw0w@mail.gmail.com>
+References: <20170419120212.24949-1-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:35447 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934549AbdDSTg2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Apr 2017 15:36:28 -0400
-Received: by mail-yb0-f193.google.com with SMTP id 19so2082474ybl.2
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Apr 2017 12:36:28 -0700 (PDT)
-In-Reply-To: <20170419103618.20939-2-mail@dmitryfrank.com>
+Received: from mail-yb0-f196.google.com ([209.85.213.196]:32785 "EHLO
+        mail-yb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934788AbdDSThv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Apr 2017 15:37:51 -0400
+In-Reply-To: <20170419120212.24949-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Frank <mail@dmitryfrank.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Felipe Contreras <felipe.contreras@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
 
-On Wed, Apr 19, 2017 at 12:36 PM, Dmitry Frank <mail@dmitryfrank.com> wrote:
-> The first two items in the _BCL method response are special:
+On Wed, Apr 19, 2017 at 2:02 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> Hi Rafael,
 >
->   - Level when machine has full power
->   - Level when machine is on batteries
->   - .... actual supported levels go there ....
+> This is a new version of my acpi_dev_present helper + ac and battery
+> blacklist patches, new compared to the v5 resend of the latest
+> version of all these patches are some changes to the first,
+> third and fourth patch as requested by Andy Shevchenko.
 >
-> So this commits adds an enum and uses its descriptive elements
-> throughout the code, instead of magic numbers.
+> This set also includes a power-supply patch, which depends on the
+> new acpi_dev_present helper and has an Ack from Sebastian Reichel
+> (the power-supply maintainer) for being merged through the ACPI
+> tree because of that dependency.
 >
-> Signed-off-by: Dmitry Frank <mail@dmitryfrank.com>
+> These patches obsolete:
+> -earlier versions of patches with the same title
+> -"ACPI: battery: Add acpi_battery_unregister() function"
+> -"ACPI: ac: Add acpi_ac_unregister() function"
+> -"power: supply: axp288_fuel_gauge: Unregister duplicate ACPI battery supply"
+> -"power: supply: axp288_charger: Unregister duplicate ACPI ac supply"
 
-Are there any differences between this and the previous version of the
-patch you posted?
+Andy, Mika, any concerns about anything this series?
 
 Thanks,
 Rafael
