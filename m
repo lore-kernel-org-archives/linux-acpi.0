@@ -1,93 +1,139 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [RFC] ACPI / Processor: add sysfs support for low power idle
-Date: Wed, 19 Apr 2017 17:00:57 -0600
-Message-ID: <f24c964c-bfe5-0ef5-0021-6c6093e990e4@codeaurora.org>
-References: <1490832795-27441-1-git-send-email-pprakash@codeaurora.org>
- <2594349.EKCJmLdolL@aspire.rjw.lan>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v4 2/2] ACPI / PMIC: Stop xpower OPRegion handler
+ relying on IIO
+Date: Thu, 20 Apr 2017 11:19:33 +0300
+Message-ID: <1492676373.24567.91.camel@linux.intel.com>
+References: <20170419130700.31277-1-hdegoede@redhat.com>
+         <20170419130700.31277-3-hdegoede@redhat.com>
+         <CAJZ5v0i6SztwFrkGA3cw9Y+qCGuJ_mH_gMBXbXx9SgGMRQjHfA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:36618 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937612AbdDSXBA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Apr 2017 19:01:00 -0400
-In-Reply-To: <2594349.EKCJmLdolL@aspire.rjw.lan>
-Content-Language: en-US
+Received: from mga01.intel.com ([192.55.52.88]:37078 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S939844AbdDTITj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Apr 2017 04:19:39 -0400
+In-Reply-To: <CAJZ5v0i6SztwFrkGA3cw9Y+qCGuJ_mH_gMBXbXx9SgGMRQjHfA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, sudeep.holla@arm.com, al.stone@linaro.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Hans de Goede <hdegoede@redhat.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi Rafael,
+On Wed, 2017-04-19 at 22:18 +0200, Rafael J. Wysocki wrote:
+> On Wed, Apr 19, 2017 at 3:07 PM, Hans de Goede <hdegoede@redhat.com>
+> wrote:
+> > The intel_pmic_xpower code provides an OPRegion handler, which must
+> > be
+> > available before other drivers using it are loaded, which can only
+> > be
+> > ensured if both the mfd and opregion drivers are built in, which is
+> > why
+> > the Kconfig option for intel_pmic_xpower is a bool.
+> > 
+> > The use of IIO is causing trouble for generic distro configs here as
+> > distros will typically want to build IIO drivers as modules and
+> > there
+> > really is no reason to use IIO here. The reading of the ADC value is
+> > a
+> > single regmap_bulk_read, which is already protected against races by
+> > the regmap-lock.
+> > 
+> > This commit removes the use of IIO, allowing distros to enable the
+> > driver without needing to built IIO in and also actually simplifies
+> > the code.
+> > 
+> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> 
+> Andy, Srinivas, any concerns?
 
-On 4/18/2017 8:34 AM, Rafael J. Wysocki wrote:
-> On Wednesday, March 29, 2017 06:13:15 PM Prashanth Prakash wrote:
->> Add support to expose idle statistics maintained by platform to
->> userspace via sysfs in addition to other data of interest from
->> each LPI(Low Power Idle) state.
->>
->> LPI described in section 8.4.4 of ACPI spec 6.1 provides different
->> methods to obtain idle statistics maintained by the platform. These
->> show a granular view of how each of the LPI state is being used at
->> different level of hierarchy. sysfs data is exposed at each level in
->> the hierarchy by creating a directory named 'lpi' at each level and
->> the LPI state information is presented under it. Below is the
->> representation of LPI information at one such level in the hierarchy
->>
->> .../ACPI00XX: XX/lpi
->> 	|-> summary_stats
->> 	|-> state0
->> 	|	|-> desc
->> 	|	|-> time
->> 	|	|-> usage
->> 	|	|-> latency
->> 	|	|-> min_residency
->> 	|	|-> flags
->> 	|	|-> arch_flags
->> 	|
->> 	<<more states>>
->>
->> ACPI00XX can be ACPI0007(processor) or ACPI0010(processor container)
->>
->> stateX contains information related to a specific LPI state defined
->> in the LPI ACPI tables.
->>
->> summary_stats shows the stats(usage and time) from all the LPI states
->> under a device. The summary_stats are provided to reduce the number'
->> of files to be accessed by the userspace to capture a snapshot of the'
->> idle statistics.
->>
->> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
-> I'd like Sudeep to tell me what he thinks about this in the first place.
->
->> ---
->>  drivers/acpi/acpi_processor.c |  11 ++
->>  drivers/acpi/processor_idle.c | 345 +++++++++++++++++++++++++++++++++++++++++-
->>  include/acpi/processor.h      |  27 ++++
->>  3 files changed, 381 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
->> index 0143135..a01368d 100644
->> --- a/drivers/acpi/acpi_processor.c
->> +++ b/drivers/acpi/acpi_processor.c
->> @@ -570,9 +570,19 @@ void __init acpi_early_processor_osc(void)
->>  static int acpi_processor_container_attach(struct acpi_device *dev,
->>  					   const struct acpi_device_id *id)
->>  {
->> +	if (dev->status.present && dev->status.functional &&
->> +		dev->status.enabled && dev->status.show_in_ui)
->> +		acpi_lpi_sysfs_init(dev->handle,
->> +				(struct acpi_lpi_sysfs_data **)&dev->driver_data);
-> This isn't the right place to do it IMO.
->
-> It should be done at the processor driver initialization when it is know that
-> LPI is going to be used at all.
-I will make the changes to initialize this in processor driver.
+I would prefer to have this magic shifts in a common header between
+drivers, but I'm not insisting (I admit it might take much more work for
+no clear benefit, except keeping ADC bits in one place).
 
-Thanks for the feedback!
+So, I'm fine with this change.
 
---
-Thanks,
-Prashanth
+> 
+> > ---
+> >  drivers/acpi/Kconfig                  |  2 +-
+> >  drivers/acpi/pmic/intel_pmic_xpower.c | 21 ++++-----------------
+> >  2 files changed, 5 insertions(+), 18 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> > index 4f12fe0..842530f 100644
+> > --- a/drivers/acpi/Kconfig
+> > +++ b/drivers/acpi/Kconfig
+> > @@ -506,7 +506,7 @@ config CRC_PMIC_OPREGION
+> > 
+> >  config XPOWER_PMIC_OPREGION
+> >         bool "ACPI operation region support for XPower AXP288 PMIC"
+> > -       depends on AXP288_ADC = y
+> > +       depends on MFD_AXP20X_I2C
+> >         help
+> >           This config adds ACPI operation region support for XPower
+> > AXP288 PMIC.
+> > 
+> > diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c
+> > b/drivers/acpi/pmic/intel_pmic_xpower.c
+> > index e6e991a..55f5111 100644
+> > --- a/drivers/acpi/pmic/intel_pmic_xpower.c
+> > +++ b/drivers/acpi/pmic/intel_pmic_xpower.c
+> > @@ -18,7 +18,6 @@
+> >  #include <linux/mfd/axp20x.h>
+> >  #include <linux/regmap.h>
+> >  #include <linux/platform_device.h>
+> > -#include <linux/iio/consumer.h>
+> >  #include "intel_pmic.h"
+> > 
+> >  #define XPOWER_GPADC_LOW       0x5b
+> > @@ -186,28 +185,16 @@ static int
+> > intel_xpower_pmic_update_power(struct regmap *regmap, int reg,
+> >   * @regmap: regmap of the PMIC device
+> >   * @reg: register to get the reading
+> >   *
+> > - * We could get the sensor value by manipulating the HW regs here,
+> > but since
+> > - * the axp288 IIO driver may also access the same regs at the same
+> > time, the
+> > - * APIs provided by IIO subsystem are used here instead to avoid
+> > problems. As
+> > - * a result, the two passed in params are of no actual use.
+> > - *
+> >   * Return a positive value on success, errno on failure.
+> >   */
+> >  static int intel_xpower_pmic_get_raw_temp(struct regmap *regmap,
+> > int reg)
+> >  {
+> > -       struct iio_channel *gpadc_chan;
+> > -       int ret, val;
+> > -
+> > -       gpadc_chan = iio_channel_get(NULL, "axp288-system-temp");
+> > -       if (IS_ERR_OR_NULL(gpadc_chan))
+> > -               return -EACCES;
+> > +       u8 buf[2];
+> > 
+> > -       ret = iio_read_channel_raw(gpadc_chan, &val);
+> > -       if (ret < 0)
+> > -               val = ret;
+> > +       if (regmap_bulk_read(regmap, AXP288_GP_ADC_H, buf, 2))
+> > +               return -EIO;
+> > 
+> > -       iio_channel_release(gpadc_chan);
+> > -       return val;
+> > +       return (buf[0] << 4) + ((buf[1] >> 4) & 0x0F);
+> >  }
+> > 
+> >  static struct intel_pmic_opregion_data
+> > intel_xpower_pmic_opregion_data = {
+> > --
+> > 2.9.3
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-
+> > acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
