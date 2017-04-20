@@ -1,46 +1,25 @@
-From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V11 00/11] IOMMU probe deferral support
-Date: Thu, 20 Apr 2017 16:31:57 +0200
-Message-ID: <20170420143157.GG7266@8bytes.org>
-References: <1491823266-1209-1-git-send-email-sricharan@codeaurora.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] acpi: fix typo
+Date: Thu, 20 Apr 2017 14:35:19 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5940C5@ORSMSX110.amr.corp.intel.com>
+References: <1490953594-16014-1-git-send-email-caoj.fnst@cn.fujitsu.com>
+ <CAJZ5v0gMp2ahedsmD6qUnXj0-=EVdPTC8C-e-HiuO17Ai-1PGA@mail.gmail.com>
+ <58F6F3E1.5020601@cn.fujitsu.com>
+ <CAJZ5v0g8VeDG5KM8=Ls3m=Z+nRbCW6oP1ZoiLdz9rNW5-NSYTg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1491823266-1209-1-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:21084 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S946344AbdDTOfX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Apr 2017 10:35:23 -0400
+In-Reply-To: <CAJZ5v0g8VeDG5KM8=Ls3m=Z+nRbCW6oP1ZoiLdz9rNW5-NSYTg@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Cao jin <caoj.fnst@cn.fujitsu.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
 
-On Mon, Apr 10, 2017 at 04:50:55PM +0530, Sricharan R wrote:
->  arch/arm64/mm/dma-mapping.c       | 142 +++++---------------------------------
->  drivers/acpi/arm64/iort.c         |  48 ++++++++++++-
->  drivers/acpi/glue.c               |   5 --
->  drivers/acpi/scan.c               |  11 ++-
->  drivers/base/dd.c                 |   9 +++
->  drivers/base/dma-mapping.c        |  41 +++++++++++
->  drivers/iommu/arm-smmu-v3.c       |  46 +-----------
->  drivers/iommu/arm-smmu.c          | 110 +++++++++++++----------------
->  drivers/iommu/of_iommu.c          | 126 ++++++++++++++++++++++++---------
->  drivers/of/device.c               |  23 +++++-
->  drivers/of/platform.c             |  10 +--
->  drivers/pci/probe.c               |  28 --------
->  include/acpi/acpi_bus.h           |   2 +-
->  include/asm-generic/vmlinux.lds.h |   1 -
->  include/linux/acpi.h              |   7 +-
->  include/linux/acpi_iort.h         |   3 -
->  include/linux/dma-mapping.h       |  12 ++++
->  include/linux/of_device.h         |  10 ++-
->  18 files changed, 312 insertions(+), 322 deletions(-)
-
-Applied, thanks.
+T2ssIHdlJ3ZlIGdvdCB0aGUgY2hhbmdlcyB0byBhY3R5cGVzLmggaW4gQUNQSUNBLg0KVGhhbmtz
+LA0KQm9iDQoNCg0K
