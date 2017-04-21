@@ -1,83 +1,22 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Fri, 21 Apr 2017 16:48:57 -0700
-Message-ID: <149281853758.22910.2919981036906495309.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Mr.Jerry Smith" <laszlo.cserhalmi@forsterkozpont.hu>
+Subject: (unknown)
+Date: Fri, 21 Apr 2017 19:44:13 +0200 (CEST)
+Message-ID: <128341427.4817281.1492796653655.JavaMail.zimbra@forsterkozpont.hu>
+Reply-To: "silvembievans@hotmail.com" <silvembievans@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.forsterkozpont.hu ([84.206.26.125]:59893 "EHLO
+        mail.forsterkozpont.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1426594AbdDVAMC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Apr 2017 20:12:02 -0400
+Subject: 
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The nvdimm_flush() mechanism helps to reduce the impact of an ADR
-(asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
-platform WPQ (write-pending-queue) buffers when power is removed. The
-nvdimm_flush() mechanism performs that same function on-demand.
 
-When a pmem namespace is associated with a block device, an
-nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
-request. However, when a namespace is in device-dax mode, or namespaces
-are disabled, userspace needs another path.
 
-The new 'flush' attribute is visible when it can be determined that the
-interleave-set either does, or does not have DIMMs that expose WPQ-flush
-addresses, "flush-hints" in ACPI NFIT terminology. It returns "1" and
-flushes DIMMs, or returns "0" the flush operation is a platform nop.
+We Give Out Loans At 3% Interest Rate And We Offer Loans From $5,000 To $50,000,000.00, Are You Looking To Buy A House Car Or Company Or Start Up A Truck Company or Buy A Truck Or Personal Loans Or Business Loan, Email Us At jerryfunds11@inbox.lv  With Amount Needed And Phone Number.
 
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/nvdimm/region_devs.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 8de5a04644a1..3495b4c23941 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -255,6 +255,19 @@ static ssize_t size_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(size);
- 
-+static ssize_t flush_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+
-+	if (nvdimm_has_flush(nd_region)) {
-+		nvdimm_flush(nd_region);
-+		return sprintf(buf, "1\n");
-+	}
-+	return sprintf(buf, "0\n");
-+}
-+static DEVICE_ATTR_RO(flush);
-+
- static ssize_t mappings_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -474,6 +487,7 @@ static DEVICE_ATTR_RO(resource);
- 
- static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_size.attr,
-+	&dev_attr_flush.attr,
- 	&dev_attr_nstype.attr,
- 	&dev_attr_mappings.attr,
- 	&dev_attr_btt_seed.attr,
-@@ -508,6 +522,9 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
- 	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
- 		return 0;
- 
-+	if (a == &dev_attr_flush.attr && nvdimm_has_flush(nd_region) < 0)
-+		return 0;
-+
- 	if (a != &dev_attr_set_cookie.attr
- 			&& a != &dev_attr_available_size.attr)
- 		return a->mode;
