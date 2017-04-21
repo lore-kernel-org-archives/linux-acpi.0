@@ -1,62 +1,62 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 2/2] ACPI / PMIC: xpower: Add support for the GPI1 regulator to the OpRegion handler
-Date: Fri, 21 Apr 2017 09:34:33 +0200
-Message-ID: <20170421073433.10897-2-hdegoede@redhat.com>
-References: <20170421073433.10897-1-hdegoede@redhat.com>
+Subject: [PATCH] ACPI: lpss: call pwm_add_table() for Bay Trail PWM device
+Date: Fri, 21 Apr 2017 09:35:07 +0200
+Message-ID: <20170421073507.10945-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36232 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:57368 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1036013AbdDUHei (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Apr 2017 03:34:38 -0400
-In-Reply-To: <20170421073433.10897-1-hdegoede@redhat.com>
+        id S1036001AbdDUHfK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Apr 2017 03:35:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org
 
-Some Bay Trail devices use a GPI1 regulator field (address 0x4c) in
-their 0x8d power OpRegion, add support for this.
-
-This fixes AE_BAD_PARAMETER errors getting thrown on these devices and
-fixes these errors causing these devices to not suspend.
+On Bay Trail systems with a Crystal Cove PMIC the Crystal Cove's PWM is
+used to control the backlight brightness. On systems without one, the
+Crystal Cove SoC's PWM is used and we need to call pwm_add_table() so
+that the i915 driver can find the pwm for controlling the backlight.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/pmic/intel_pmic_xpower.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/acpi/acpi_lpss.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-index 1a76c78..b8af87c 100644
---- a/drivers/acpi/pmic/intel_pmic_xpower.c
-+++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-@@ -118,6 +118,10 @@ static struct pmic_table power_table[] = {
- 		.reg = 0x10,
- 		.bit = 0x00
- 	}, /* BUC6 */
-+	{
-+		.address = 0x4c,
-+		.reg = 0x92,
-+	}, /* GPI1 */
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 5edfd9c..10347e3 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -143,6 +143,22 @@ static void lpss_deassert_reset(struct lpss_private_data *pdata)
+ 	writel(val, pdata->mmio_base + offset);
+ }
+ 
++/*
++ * BYT PWM used for backlight control by the i915 driver on systems without
++ * the Crystal Cove PMIC.
++ */
++static struct pwm_lookup byt_pwm_lookup[] = {
++	PWM_LOOKUP_WITH_MODULE("80860F09:00", 0, "0000:00:02.0",
++			       "pwm_backlight", 0, PWM_POLARITY_NORMAL,
++			       "pwm-lpss-platform"),
++};
++
++static void byt_pwm_setup(struct lpss_private_data *pdata)
++{
++	if (!acpi_dev_present("INT33FD", NULL, -1))
++		pwm_add_table(byt_pwm_lookup, ARRAY_SIZE(byt_pwm_lookup));
++}
++
+ #define LPSS_I2C_ENABLE			0x6c
+ 
+ static void byt_i2c_setup(struct lpss_private_data *pdata)
+@@ -200,6 +216,7 @@ static const struct lpss_device_desc lpt_sdio_dev_desc = {
+ 
+ static const struct lpss_device_desc byt_pwm_dev_desc = {
+ 	.flags = LPSS_SAVE_CTX,
++	.setup = byt_pwm_setup,
  };
  
- /* TMP0 - TMP5 are the same, all from GPADC */
-@@ -165,6 +169,16 @@ static int intel_xpower_pmic_update_power(struct regmap *regmap, int reg,
- {
- 	int data;
- 
-+	/* GPIO1 LDO regulator needs special handling */
-+	if (reg == 0x92) {
-+		if (on)
-+			data = 0x03;
-+		else
-+			data = 0x04;
-+
-+		return regmap_update_bits(regmap, reg, 0x07, data);
-+	}
-+
- 	if (regmap_read(regmap, reg, &data))
- 		return -EIO;
- 
+ static const struct lpss_device_desc bsw_pwm_dev_desc = {
 -- 
 2.9.3
 
