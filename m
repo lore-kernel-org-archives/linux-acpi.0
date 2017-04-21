@@ -1,77 +1,122 @@
-From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] acpi, nfit: fix the memory error check in nfit_handle_mce
-Date: Fri, 21 Apr 2017 10:21:59 +0800
-Message-ID: <201704211005.QjuD0bvn%fengguang.wu@intel.com>
-References: <20170420221818.23522-1-vishal.l.verma@intel.com>
+From: "zhichang.yuan" <zhichang.yuan02@gmail.com>
+Subject: Re: [PATCH V8 5/6] ACPI: Support the probing on the devices which
+ apply indirect-IO
+Date: Fri, 21 Apr 2017 10:22:52 +0800
+Message-ID: <a73c87d3-59fc-843b-a4e1-d9f5201bffd9@gmail.com>
+References: <1490887619-61732-1-git-send-email-yuanzhichang@hisilicon.com>
+ <1490887619-61732-6-git-send-email-yuanzhichang@hisilicon.com>
+ <CALdTtnuO=592n+PoR_kkdTyeFYRd90VyPf0JLwnEo7DtXwzoPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170420221818.23522-1-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:35013 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1034592AbdDUCXF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Apr 2017 22:23:05 -0400
+In-Reply-To: <CALdTtnuO=592n+PoR_kkdTyeFYRd90VyPf0JLwnEo7DtXwzoPA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: dann frazier <dann.frazier@canonical.com>, "zhichang.yuan" <yuanzhichang@hisilicon.com>, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, rafael@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, Brian Starkey <brian.starkey@arm.com>, olof@lixom.net, benh@kernel.crashing.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linuxarm@huawei.com, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-pci@vger.kernel.org, Corey Minyard <minyard@acm.org>, Zou Rongrong <zourongrong@gmail.com>, John Garry <john.garry@huawei.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>
 
-Hi Vishal,
+Hi, Dann,
 
-[auto build test WARNING on pm/linux-next]
-[also build test WARNING on v4.11-rc7 next-20170420]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-url:    https://github.com/0day-ci/linux/commits/Vishal-Verma/acpi-nfit-fix-the-memory-error-check-in-nfit_handle_mce/20170421-084359
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-config: x86_64-randconfig-x005-201716 (attached as .config)
-compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=x86_64 
 
-All warnings (new ones prefixed by >>):
+On 04/21/2017 04:57 AM, dann frazier wrote:
+> On Thu, Mar 30, 2017 at 9:26 AM, zhichang.yuan
+> <yuanzhichang@hisilicon.com> wrote:
+>> On some platforms(such as Hip06/Hip07), the legacy ISA/LPC devices access I/O
+>> with some special host-local I/O ports known on x86. To access the I/O
+>> peripherals, an indirect-IO mechanism is introduced to mapped the host-local
+>> I/O to system logical/fake PIO similar the PCI MMIO on architectures where no
+>> separate I/O space exists. Just as PCI MMIO, the host I/O range should be
+>> registered before probing the downstream devices and set up the I/O mapping.
+>> But current ACPI bus probing doesn't support these indirect-IO hosts/devices.
+>>
+>> This patch introdueces a new ACPI handler for this device category. Through the
+>> handler attach callback, the indirect-IO hosts I/O registration is done and
+>> all peripherals' I/O resources are translated into logic/fake PIO before
+>> starting the enumeration.
+>>
+>> Signed-off-by: zhichang.yuan <yuanzhichang@hisilicon.com>
+>> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+>> ---
+>>  drivers/acpi/Makefile          |   1 +
+>>  drivers/acpi/acpi_indirectio.c | 344 +++++++++++++++++++++++++++++++++++++++++
+>>  drivers/acpi/internal.h        |   5 +
+>>  drivers/acpi/scan.c            |   1 +
+>>  4 files changed, 351 insertions(+)
+>>  create mode 100644 drivers/acpi/acpi_indirectio.c
+>>
+>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+>> index a391bbc..10e5f2b 100644
+>> --- a/drivers/acpi/Makefile
+>> +++ b/drivers/acpi/Makefile
+>> @@ -57,6 +57,7 @@ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+>>  acpi-y                         += acpi_lpat.o
+>>  acpi-$(CONFIG_ACPI_GENERIC_GSI) += irq.o
+>>  acpi-$(CONFIG_ACPI_WATCHDOG)   += acpi_watchdog.o
+>> +acpi-$(CONFIG_INDIRECT_PIO)    += acpi_indirectio.o
+>>
+>>  # These are (potentially) separate modules
+>>
+>> diff --git a/drivers/acpi/acpi_indirectio.c b/drivers/acpi/acpi_indirectio.c
+>> new file mode 100644
+>> index 0000000..c8c80b5
+>> --- /dev/null
+>> +++ b/drivers/acpi/acpi_indirectio.c
+>> @@ -0,0 +1,344 @@
 
-   drivers/acpi/nfit/mce.c: In function 'nfit_handle_mce':
->> drivers/acpi/nfit/mce.c:29:30: warning: comparison of constant '128ul' with boolean expression is always false [-Wbool-compare]
-     if (!(mce->status & 0xef80) == BIT(7))
-                                 ^~
->> drivers/acpi/nfit/mce.c:29:30: warning: logical not is only applied to the left hand side of comparison [-Wlogical-not-parentheses]
+[snip]
 
-vim +/128ul +29 drivers/acpi/nfit/mce.c
+>> +acpi_build_logiciores_template(struct acpi_device *adev,
+>> +                       struct acpi_buffer *buffer)
+>> +{
+>> +       acpi_handle handle = adev->handle;
+>> +       struct acpi_resource *resource;
+>> +       acpi_status status;
+>> +       int res_cnt = 0;
+>> +
+>> +       status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+>> +                                    acpi_count_logiciores, &res_cnt);
+>> +       if (ACPI_FAILURE(status) || !res_cnt) {
+>> +               dev_err(&adev->dev, "can't evaluate _CRS: %d\n", status);
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       buffer->length = sizeof(struct acpi_resource) * (res_cnt + 1) + 1;
+>> +       buffer->pointer = kzalloc(buffer->length - 1, GFP_KERNEL);
+> 
+> (Seth Forshee noticed this issue, just passing it on)
+> 
+> Should this just allocate the full buffer->length? That would keep the
+> length attribute accurate (possibly avoiding an off-by-1 error later).
+> It's not clear what the trailing byte is needed for, but other drivers
+> allocate it as well (drivers/acpi/pci_link.c and
+> drivers/platform/x86/sony-laptop.c).
 
-    13	 * General Public License for more details.
-    14	 */
-    15	#include <linux/notifier.h>
-    16	#include <linux/acpi.h>
-    17	#include <linux/nd.h>
-    18	#include <asm/mce.h>
-    19	#include "nfit.h"
-    20	
-    21	static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
-    22				void *data)
-    23	{
-    24		struct mce *mce = (struct mce *)data;
-    25		struct acpi_nfit_desc *acpi_desc;
-    26		struct nfit_spa *nfit_spa;
-    27	
-    28		/* We only care about memory errors */
-  > 29		if (!(mce->status & 0xef80) == BIT(7))
-    30			return NOTIFY_DONE;
-    31	
-    32		/*
-    33		 * mce->addr contains the physical addr accessed that caused the
-    34		 * machine check. We need to walk through the list of NFITs, and see
-    35		 * if any of them matches that address, and only then start a scrub.
-    36		 */
-    37		mutex_lock(&acpi_desc_lock);
+Thanks for your suggestion!
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+I also curious why this one appended byte is needed as it seems the later
+acpi_set_current_resources() doesn't use this byte.
+And I tested without setting the buffer->length as the length of resource list
+directly, it seems ok.
+
+But anyway, it looks more reasonable to allocate the memory with the
+buffer->length rather than buffer->length - 1;
+
+I was made the V9 patch-set, and I can add your suggestion there. But I also
+awaiting for ARM64 ACPI maintainer's comment about this patch before really
+sending V9. I wonder whether there is better way to make our indirect-IO devices
+can be assigned the logic PIO before the enumeration...
+
+Lorenzo, Hanjun, what do you think about this patch?
+
+Thanks,
+Zhichang
+
+> 
+>  -dann
+> 
