@@ -1,127 +1,79 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V15 03/11] cper: add timestamp print to CPER status
- printing
-Date: Fri, 21 Apr 2017 10:04:35 -0600
-Message-ID: <35cc4ae0-e8fa-fd3a-5d7f-243ed2e82ea0@codeaurora.org>
-References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
- <1492556723-9189-4-git-send-email-tbaicar@codeaurora.org>
- <20170421122150.76cce2cfrt767glv@pd.tnic>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 1/1] PCI: Add MCFG quirk for 2nd node of Cavium ThunderX
+ pass2.x host controller
+Date: Fri, 21 Apr 2017 11:56:14 -0500
+Message-ID: <20170421165614.GA17916@bhelgaas-glaptop.roam.corp.google.com>
+References: <1490789773-21506-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20170421122150.76cce2cfrt767glv@pd.tnic>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, rafael@kernel.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, tony.luck@intel.com, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1490789773-21506-1-git-send-email-tn@semihalf.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Lorenzo.Pieralisi@arm.com, Sunil.Goutham@cavium.com, rafael@kernel.org, linux-pci@vger.kernel.org, linu.cherian@cavium.com, ddaney@caviumnetworks.com, geethasowjanya.akula@gmail.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 4/21/2017 6:21 AM, Borislav Petkov wrote:
-> On Tue, Apr 18, 2017 at 05:05:15PM -0600, Tyler Baicar wrote:
->> The ACPI 6.1 spec added a timestamp to the HEST generic data
-> HEST?
->
-> I see the timestamp in
->
-> Table 18-343 Generic Error Data Entry
->
-> where those things are "One or more Generic Error Data Entry structures
-> may be recorded in the Generic Error Data Entries field of the Generic
-> Error Status Block structure."
->
-> And those are part of the "18.3.2.7 Generic Hardware Error Source",
-> i.e., GHES. So why do you say "HEST" above?
-Ah yes, this should be GHES no HEST. There are too many acronyms 
-involved here :)
->
->> structure. Print the timestamp out when printing out the error
->> status information.
->>
->> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
->> CC: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
->> Reviewed-by: James Morse <james.morse@arm.com>
->> Reviewed-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> Remove those Reviewed-by:s
->
->> ---
->>   drivers/firmware/efi/cper.c | 28 ++++++++++++++++++++++++++++
->>   1 file changed, 28 insertions(+)
->>
->> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
->> index 8328a6f..46585f9 100644
->> --- a/drivers/firmware/efi/cper.c
->> +++ b/drivers/firmware/efi/cper.c
->> @@ -32,6 +32,8 @@
->>   #include <linux/acpi.h>
->>   #include <linux/pci.h>
->>   #include <linux/aer.h>
->> +#include <linux/printk.h>
->> +#include <linux/bcd.h>
->>   #include <acpi/ghes.h>
->>   
->>   #define INDENT_SP	" "
->> @@ -387,6 +389,29 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->>   	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
->>   }
->>   
->> +static void cper_estatus_timestamp(const char *pfx,
-> cper_print_tstamp()
->
->> +				   struct acpi_hest_generic_data_v300 *gdata)
->> +{
->> +	__u8 hour, min, sec, day, mon, year, century, *timestamp;
->> +
->> +	if (gdata->validation_bits & ACPI_HEST_GEN_VALID_TIMESTAMP) {
->> +		timestamp = (__u8 *)&(gdata->time_stamp);
->> +		sec       = bcd2bin(timestamp[0]);
->> +		min       = bcd2bin(timestamp[1]);
->> +		hour      = bcd2bin(timestamp[2]);
->> +		day       = bcd2bin(timestamp[4]);
->> +		mon       = bcd2bin(timestamp[5]);
->> +		year      = bcd2bin(timestamp[6]);
->> +		century   = bcd2bin(timestamp[7]);
->> +
->> +		if (*(timestamp + 3) & 0x1)
->> +			printk("%stimestamp is precise\n", pfx);
->> +
->> +		printk("%stime: %02d%02d-%02d-%02d %02d:%02d:%02d\n", pfx,
->> +			century, year, mon, day, hour, min, sec);
-> Yeah, about the precise tstamp, you can do something like this:
->
+On Wed, Mar 29, 2017 at 02:16:13PM +0200, Tomasz Nowicki wrote:
+> Currently SoCs pass2.x do not emulate EA headers for ACPI boot method at all.
+> However, for pass2.x some devices (like EDAC) advertise incorrect base addresses
+> in their BARs which results in driver probe failure during resource request.
+> Since all problematic blocks are on 2nd NUMA node under domain 10 add necessary
+> quirk entry to obtain BAR addresses correction using EA header emulation.
+> 
+> Fixes: 44f22bd91e88 ("PCI: Add MCFG quirks for Cavium ThunderX pass2.x host controller")
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> CC: stable@vger.kernel.org	# v4.10+
+
+Sorry Tomasz, I must have mistakenly marked this "accepted" in
+patchwork, so it fell off my to-do list.  It's too late to get this in
+v4.11, but I can still apply it for v4.12.
+
+I put it on my pci/host-thunder branch with Robert's ack.  I added a preceding
+patch to tidy up whitespace, which makes this patch look like just:
+
+        /* SoC pass2.x */
+        THUNDER_PEM_QUIRK(1, 0),
+        THUNDER_PEM_QUIRK(1, 1),
++       THUNDER_ECAM_QUIRK(1, 10),
+
+Please double-check it to make sure this is what you need.
+
 > ---
-> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-> index 46585f92b741..a649884e2264 100644
-> --- a/drivers/firmware/efi/cper.c
-> +++ b/drivers/firmware/efi/cper.c
-> @@ -404,10 +404,8 @@ static void cper_estatus_timestamp(const char *pfx,
->   		year      = bcd2bin(timestamp[6]);
->   		century   = bcd2bin(timestamp[7]);
->   
-> -		if (*(timestamp + 3) & 0x1)
-> -			printk("%stimestamp is precise\n", pfx);
-> -
-> -		printk("%stime: %02d%02d-%02d-%02d %02d:%02d:%02d\n", pfx,
-> +		printk("%s%ststamp: %02d%02d-%02d-%02d %02d:%02d:%02d\n", pfx,
-> +			(timestamp[3] & 0x1 ? "precise " : ""),
->   			century, year, mon, day, hour, min, sec);
->   	}
->   }
-This is basically what I already had in v14...you asked to move it into 
-a different if-statement? https://lkml.org/lkml/2017/4/12/397
-
-Thanks,
-Tyler
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+>  drivers/acpi/pci_mcfg.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> index a6a4cea..a0a391e 100644
+> --- a/drivers/acpi/pci_mcfg.c
+> +++ b/drivers/acpi/pci_mcfg.c
+> @@ -90,13 +90,14 @@ static struct mcfg_fixup mcfg_quirks[] = {
+>  	  &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x894057000000UL, node) },  \
+>  	{ "CAVIUM", "THUNDERX", rev, 9 + (10 * (node)), MCFG_BUS_ANY,	    \
+>  	  &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x89808f000000UL, node) }
+> +#define THUNDER_ECAM_QUIRK(rev, seg)					\
+> +	{ "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,			\
+> +	&pci_thunder_ecam_ops }
+>  	/* SoC pass2.x */
+>  	THUNDER_PEM_QUIRK(1, 0),
+>  	THUNDER_PEM_QUIRK(1, 1),
+> +	THUNDER_ECAM_QUIRK(1, 10),
+>  
+> -#define THUNDER_ECAM_QUIRK(rev, seg)					\
+> -	{ "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,			\
+> -	&pci_thunder_ecam_ops }
+>  	/* SoC pass1.x */
+>  	THUNDER_PEM_QUIRK(2, 0),	/* off-chip devices */
+>  	THUNDER_PEM_QUIRK(2, 1),	/* off-chip devices */
+> -- 
+> 2.7.4
+> 
