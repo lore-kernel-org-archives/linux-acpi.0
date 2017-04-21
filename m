@@ -1,83 +1,306 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] iio: accel: bma180: Add ACPI enumeration support
-Date: Fri, 21 Apr 2017 09:38:12 +0200
-Message-ID: <20170421073812.12531-1-hdegoede@redhat.com>
+Subject: [PATCH] drivers/platform/x86: Add driver for INT0002 ACPI device
+Date: Fri, 21 Apr 2017 09:41:57 +0200
+Message-ID: <20170421074157.19159-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41764 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:37888 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1036092AbdDUHiP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Apr 2017 03:38:15 -0400
+        id S1036090AbdDUHl7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Apr 2017 03:41:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, linux-iio@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Takashi Iwai <tiwai@suse.de>
 
-Some x86 tablets use the bms250 accelerometer, add support for this.
+Some peripherals on Baytrail and Cherrytrail platforms signal PME to the
+PMC to wakeup the system. When this happens software needs to clear the
+PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
+
+This is modelled in ACPI through the INT0002 ACPI device.
+
+This commit adds a driver which will bind to that device, call the
+ACPI event handler for the wakeup and clear the interrupt source
+avoiding the irq storm.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/iio/accel/bma180.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ drivers/platform/x86/Kconfig         |  10 ++
+ drivers/platform/x86/Makefile        |   1 +
+ drivers/platform/x86/intel_int0002.c | 232 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 243 insertions(+)
+ create mode 100644 drivers/platform/x86/intel_int0002.c
 
-diff --git a/drivers/iio/accel/bma180.c b/drivers/iio/accel/bma180.c
-index 0890934..5c75190 100644
---- a/drivers/iio/accel/bma180.c
-+++ b/drivers/iio/accel/bma180.c
-@@ -14,6 +14,7 @@
-  * BMA250: 7-bit I2C slave address 0x18 or 0x19
-  */
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 53afa78..c400e29 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -889,6 +889,16 @@ config INTEL_PMC_CORE
+ 	  Supported features:
+ 		- SLP_S0_RESIDENCY counter.
  
++config INTEL_INT0002
++	tristate "Intel INT0002 Virtual GPIO ACPI device driver"
++	depends on X86 && ACPI
++	---help---
++	  Some peripherals on Baytrail and Cherrytrail platforms signal
++	  PME to the PMC to wakeup the system. When this happens software
++	  needs to explictly clear the interrupt source to avoid an IRQ
++	  storm on IRQ 9. This is modelled in ACPI through the INT0002
++	  ACPI device. This driver implements the clearing of the IRQ.
++
+ config IBM_RTL
+ 	tristate "Device driver to enable PRTL support"
+ 	depends on PCI
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index 6731893..de4ffb5 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -51,6 +51,7 @@ obj-$(CONFIG_INTEL_SCU_IPC)	+= intel_scu_ipc.o
+ obj-$(CONFIG_INTEL_SCU_IPC_UTIL) += intel_scu_ipcutil.o
+ obj-$(CONFIG_INTEL_MFLD_THERMAL) += intel_mid_thermal.o
+ obj-$(CONFIG_INTEL_IPS)		+= intel_ips.o
++obj-$(CONFIG_INTEL_INT0002)	+= intel_int0002.o
+ obj-$(CONFIG_XO1_RFKILL)	+= xo1-rfkill.o
+ obj-$(CONFIG_XO15_EBOOK)	+= xo15-ebook.o
+ obj-$(CONFIG_IBM_RTL)		+= ibm_rtl.o
+diff --git a/drivers/platform/x86/intel_int0002.c b/drivers/platform/x86/intel_int0002.c
+new file mode 100644
+index 0000000..76220db
+--- /dev/null
++++ b/drivers/platform/x86/intel_int0002.c
+@@ -0,0 +1,232 @@
++/*
++ * Intel INT0002 "Virtual GPIO" driver
++ *
++ * Copyright (C) 2017 Hans de Goede <hdegoede@redhat.com>
++ *
++ * Loosely based on android x86 kernel code which is:
++ *
++ * Copyright (c) 2014, Intel Corporation.
++ *
++ * Author: Dyut Kumar Sil <dyut.k.sil@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Some peripherals on Baytrail and Cherrytrail platforms signal PME to the
++ * PMC to wakeup the system. When this happens software needs to clear the
++ * PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
++ *
++ * This is modelled in ACPI through the INT0002 ACPI device, which is
++ * called a "Virtual GPIO controller" in ACPI because it defines the event
++ * handler to call when the PME triggers through _AEI and _L02 / _E02
++ * methods as would be done for a real GPIO interrupt.
++ * 
++ * This driver will bind to the INT0002 device, call the ACPI event handler
++ * for the wakeup and clear the interrupt source avoiding the irq storm.
++ */
++
++#include <asm/cpu_device_id.h>
++#include <asm/intel-family.h>
++#include <asm/io.h>
 +#include <linux/acpi.h>
- #include <linux/module.h>
- #include <linux/i2c.h>
- #include <linux/interrupt.h>
-@@ -705,6 +706,8 @@ static const struct iio_trigger_ops bma180_trigger_ops = {
- static int bma180_probe(struct i2c_client *client,
- 		const struct i2c_device_id *id)
- {
-+	struct device *dev = &client->dev;
-+	const struct acpi_device_id *acpi_id;
- 	struct bma180_data *data;
- 	struct iio_dev *indio_dev;
- 	int ret;
-@@ -716,7 +719,15 @@ static int bma180_probe(struct i2c_client *client,
- 	data = iio_priv(indio_dev);
- 	i2c_set_clientdata(client, indio_dev);
- 	data->client = client;
--	data->part_info = &bma180_part_info[id->driver_data];
-+	if (id) {
-+		data->part_info = &bma180_part_info[id->driver_data];
-+	} else {
-+		acpi_id = acpi_match_device(dev->driver->acpi_match_table, dev);
-+		if (!acpi_id)
-+			return -ENODEV;
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/slab.h>
 +
-+		data->part_info = &bma180_part_info[acpi_id->driver_data];
-+	}
- 
- 	ret = data->part_info->chip_config(data);
- 	if (ret < 0)
-@@ -836,6 +847,12 @@ static SIMPLE_DEV_PM_OPS(bma180_pm_ops, bma180_suspend, bma180_resume);
- #define BMA180_PM_OPS NULL
- #endif
- 
-+static const struct acpi_device_id bma180_acpi_match[] = {
-+	{ "BMA250E", BMA250 },
-+	{ }
++#define GPE0A_PME_STS_BIT               0x2000
++#define GPE0A_PME_EN_BIT                0x2000
++#define GPE0A_STS_PORT			0x420
++#define GPE0A_EN_PORT			0x428
++
++#define ICPU(model)	{ X86_VENDOR_INTEL, 6, model, X86_FEATURE_ANY, }
++
++static const struct x86_cpu_id int0002_cpu_ids[] = {
++/*
++ * Limit ourselves to Cherry Trail for now, until testing shows we
++ * need to handle the INT0002 device on Baytrail too.
++ *	ICPU(INTEL_FAM6_ATOM_SILVERMONT1),	 * Valleyview, Bay Trail *
++ */
++	ICPU(INTEL_FAM6_ATOM_AIRMONT),		/* Braswell, Cherry Trail */
++	{}
 +};
-+MODULE_DEVICE_TABLE(acpi, bma180_acpi_match);
 +
- static struct i2c_device_id bma180_ids[] = {
- 	{ "bma180", BMA180 },
- 	{ "bma250", BMA250 },
-@@ -847,6 +864,7 @@ MODULE_DEVICE_TABLE(i2c, bma180_ids);
- static struct i2c_driver bma180_driver = {
- 	.driver = {
- 		.name	= "bma180",
-+		.acpi_match_table = ACPI_PTR(bma180_acpi_match),
- 		.pm	= BMA180_PM_OPS,
- 	},
- 	.probe		= bma180_probe,
++struct int0002_data {
++	struct spinlock lock;
++	struct device *dev;
++	const struct x86_cpu_id *cpu_id;
++	acpi_handle handle;
++	char ev_name[5];
++};
++
++static void int0002_irq_enable(struct int0002_data *data, bool enable)
++{
++	unsigned long flags;
++	u32 gpe_en_reg;
++	
++	spin_lock_irqsave(&data->lock, flags);
++
++	gpe_en_reg = inl(GPE0A_EN_PORT);
++	if (enable)
++		gpe_en_reg |= GPE0A_PME_EN_BIT;
++	else
++		gpe_en_reg &= ~GPE0A_PME_EN_BIT;	
++	outl(gpe_en_reg, GPE0A_EN_PORT);
++
++	spin_unlock_irqrestore(&data->lock, flags);
++}
++
++static irqreturn_t int0002_irq_handler(int irq, void *handler_data)
++{
++	struct int0002_data *data = handler_data;
++	u32 gpe_sts_reg;
++
++	gpe_sts_reg = inl(GPE0A_STS_PORT);
++	if (!(gpe_sts_reg & GPE0A_PME_STS_BIT))
++		return IRQ_NONE;
++
++	int0002_irq_enable(data, false);
++
++	return IRQ_WAKE_THREAD;
++}
++
++static irqreturn_t int0002_irq_thread(int irq, void *handler_data)
++{
++	struct int0002_data *data = handler_data;
++	acpi_status status;
++
++	/* Don't call ACPI event handler on Baytrail? Taken from Android-x86 */
++	if (data->cpu_id->model != INTEL_FAM6_ATOM_SILVERMONT1) {
++		status = acpi_evaluate_object(data->handle, data->ev_name,
++					      NULL, NULL);
++		if (ACPI_FAILURE(status))
++			dev_err(data->dev, "Error calling %s\n", data->ev_name);
++	}
++
++	/* Ack and then re-enable IRQ */
++	outl(GPE0A_PME_STS_BIT, GPE0A_STS_PORT);
++	int0002_irq_enable(data, true);
++
++	return IRQ_HANDLED;
++}
++
++static int int0002_probe(struct platform_device *pdev)
++{
++	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
++	struct device *dev = &pdev->dev;
++	struct int0002_data *data;
++	struct acpi_resource *res;
++	acpi_status status;
++	acpi_handle hdl;
++	int irq, ret;
++
++	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
++	if (!data) {
++		dev_err(dev, "can't allocate memory for int0002\n");
++		return -ENOMEM;
++	}
++
++	spin_lock_init(&data->lock);
++	data->dev = dev; 
++
++	/* Menlow has a different INT0002 device? <sigh> */
++	data->cpu_id = x86_match_cpu(int0002_cpu_ids);
++	if (!data->cpu_id)
++		return -ENODEV;
++
++	data->handle = ACPI_HANDLE(dev);
++	if (!data->handle)
++		return -ENODEV;
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
++		dev_err(dev, "Error getting IRQ: %d\n", irq);
++		return irq;
++	}
++
++	status = acpi_get_event_resources(data->handle, &buf);
++	if (ACPI_FAILURE(status)) {
++		dev_err(dev, "Error getting acpi event resources\n");
++		return -ENODEV;
++	}
++
++	/* Find the "GPIO interrupt" event handler to call upon PME */
++	ret = -ENODEV;
++	for (res = buf.pointer;
++	     res && (res->type != ACPI_RESOURCE_TYPE_END_TAG);
++	     res = ACPI_NEXT_RESOURCE(res)) {
++
++		if (res->type != ACPI_RESOURCE_TYPE_GPIO ||
++		    res->data.gpio.connection_type !=
++		    ACPI_RESOURCE_GPIO_TYPE_INT)
++			continue;
++
++		snprintf(data->ev_name, sizeof(data->ev_name), "_%c%02X",
++			res->data.gpio.triggering ? 'E' : 'L',
++			res->data.gpio.pin_table[0]);
++
++		status = acpi_get_handle(data->handle, data->ev_name, &hdl);
++		if (ACPI_SUCCESS(status)) {
++			ret = 0;
++			break;
++		}
++	}
++
++	ACPI_FREE(buf.pointer);
++
++	if (ret) {
++		dev_err(dev, "Error could not find event handler\n");
++		return ret;
++	}
++
++	ret = devm_request_threaded_irq(dev, irq,
++					int0002_irq_handler, int0002_irq_thread,
++					IRQF_SHARED, "INT0002", data);
++	if (ret) {
++		dev_err(dev, "Error requesting IRQ %d: %d\n", irq, ret);
++		return ret;
++	}
++
++	int0002_irq_enable(data, true);
++
++	return 0;
++}
++
++static int int0002_runtime_suspend(struct device *dev)
++{
++	return 0;
++}
++
++static int int0002_runtime_resume(struct device *dev)
++{
++	return 0;
++}
++
++static const struct dev_pm_ops int0002_pm_ops = {
++	.runtime_suspend = int0002_runtime_suspend,
++	.runtime_resume = int0002_runtime_resume,
++};
++
++static const struct acpi_device_id int0002_acpi_ids[] = {
++	{ "INT0002", 0 },
++	{ },
++};
++MODULE_DEVICE_TABLE(acpi, int0002_acpi_ids);
++
++static struct platform_driver int0002_driver = {
++	.driver = {
++		.name			= "Intel INT0002 Virtual GPIO",
++		.pm			= &int0002_pm_ops,
++		.acpi_match_table	= ACPI_PTR(int0002_acpi_ids),
++	},
++	.probe	= int0002_probe,
++};
++
++module_platform_driver(int0002_driver);
++
++MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
++MODULE_DESCRIPTION("Intel INT0002 Virtual GPIO driver");
++MODULE_LICENSE("GPL");
 -- 
 2.9.3
 
