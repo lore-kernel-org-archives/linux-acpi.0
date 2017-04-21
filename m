@@ -1,17 +1,15 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH] arm64: acpi: Support PCI devices numa_node property in
- ACPI mode
-Date: Fri, 21 Apr 2017 18:17:03 +0100
-Message-ID: <20170421171703.GB27801@red-moon>
-References: <20170406114711.17261-1-s.temerkhanov@gmail.com>
- <20170407171812.GA12012@red-moon>
- <CAPEA6daR9+BmyW6G9XOsO18782a-tjJrJKyxcYNHeHonuXRggw@mail.gmail.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH 1/1] PCI: Add MCFG quirk for 2nd node of Cavium ThunderX
+ pass2.x host controller
+Date: Fri, 21 Apr 2017 19:30:41 +0200
+Message-ID: <1e1aef81-3d0e-02a3-8005-47d9c1d9d5f3@semihalf.com>
+References: <1490789773-21506-1-git-send-email-tn@semihalf.com>
+ <20170421165614.GA17916@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAPEA6daR9+BmyW6G9XOsO18782a-tjJrJKyxcYNHeHonuXRggw@mail.gmail.com>
+In-Reply-To: <20170421165614.GA17916@bhelgaas-glaptop.roam.corp.google.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,90 +19,67 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sergei Temerkhanov <s.temerkhanov@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Lorenzo.Pieralisi@arm.com, Sunil.Goutham@cavium.com, rafael@kernel.org, linux-pci@vger.kernel.org, linu.cherian@cavium.com, ddaney@caviumnetworks.com, geethasowjanya.akula@gmail.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Sergei,
+On 21.04.2017 18:56, Bjorn Helgaas wrote:
+> On Wed, Mar 29, 2017 at 02:16:13PM +0200, Tomasz Nowicki wrote:
+>> Currently SoCs pass2.x do not emulate EA headers for ACPI boot method at all.
+>> However, for pass2.x some devices (like EDAC) advertise incorrect base addresses
+>> in their BARs which results in driver probe failure during resource request.
+>> Since all problematic blocks are on 2nd NUMA node under domain 10 add necessary
+>> quirk entry to obtain BAR addresses correction using EA header emulation.
+>>
+>> Fixes: 44f22bd91e88 ("PCI: Add MCFG quirks for Cavium ThunderX pass2.x host controller")
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> CC: stable@vger.kernel.org	# v4.10+
+>
+> Sorry Tomasz, I must have mistakenly marked this "accepted" in
+> patchwork, so it fell off my to-do list.  It's too late to get this in
+> v4.11, but I can still apply it for v4.12.
+>
+> I put it on my pci/host-thunder branch with Robert's ack.  I added a preceding
+> patch to tidy up whitespace, which makes this patch look like just:
+>
+>         /* SoC pass2.x */
+>         THUNDER_PEM_QUIRK(1, 0),
+>         THUNDER_PEM_QUIRK(1, 1),
+> +       THUNDER_ECAM_QUIRK(1, 10),
+>
+> Please double-check it to make sure this is what you need.
 
-On Fri, Apr 07, 2017 at 11:31:12AM -0700, Sergei Temerkhanov wrote:
-> On Fri, Apr 7, 2017 at 10:18 AM, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
-> > Hi Sergey,
-> >
-> > On Thu, Apr 06, 2017 at 11:47:11AM +0000, Sergey Temerkhanov wrote:
-> >> This commit modifies ARM64-specific ACPI PCI support functions to
-> >> properly set the numa_node property on host bridges and thus on PCI
-> >> devices. Such support requires _PXM objects to be set in DSDT/SSDT
-> >> tables describing PCI root bridges
-> >>
-> >> Signed-off-by: Sergey Temerkhanov <s.temerkhanov@gmail.com>
-> >> ---
-> >>  arch/arm64/kernel/pci.c | 13 ++++++++++++-
-> >>  1 file changed, 12 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-> >> index 4f0e3ebfea4b..c45c7a26f984 100644
-> >> --- a/arch/arm64/kernel/pci.c
-> >> +++ b/arch/arm64/kernel/pci.c
-> >> @@ -81,7 +81,16 @@ int raw_pci_write(unsigned int domain, unsigned int bus,
-> >>
-> >>  int pcibus_to_node(struct pci_bus *bus)
-> >>  {
-> >> -     return dev_to_node(&bus->dev);
-> >> +     struct pci_config_window *cfg = bus->sysdata;
-> >
-> > Well, this implicit cast is a guess (ie it might be a DT sysdata
-> > and there you can't have a clue on what it really is).
-> 
-> Yes, but it's only accessed when acpi_disabled != 0. I just tried to
-> save few lines and brackets :-)
+This is exactly what we need. Thank you Bjorn.
 
-I have put together a patch, I will drop it on linux-pci next week
-so that we can all have a look and test it.
+Tomasz
 
-Thanks !
-Lorenzo
-
-> Regards,
-> Sergey
-> 
-> >
-> >> +     struct acpi_device *adev = NULL;
-> >> +     struct device *dev;
-> >> +
-> >> +     if (!acpi_disabled)
-> >> +             adev = to_acpi_device(cfg->parent);
-> >> +
-> >> +     dev = adev ? &adev->dev : &bus->dev;
-> >> +
-> >> +     return dev_to_node(dev);
-> >>  }
-> >>  EXPORT_SYMBOL(pcibus_to_node);
-> >>
-> >> @@ -186,6 +195,8 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
-> >>       struct pci_bus *bus, *child;
-> >>       struct acpi_pci_root_ops *root_ops;
-> >>
-> >> +     set_dev_node(&root->device->dev, node);
-> >
-> > Ok I suspect this is one of those catch-22 issues with host bridge
-> > creation/scan code (like domain nr), let me have a look I will send
-> > you a patch next week when I figure out the call ordering required
-> > to make this work, I want to make sure we can make this work with
-> > DT and ACPI alike.
-> >
-> > Thanks !
-> > Lorenzo
-> >
-> >> +
-> >>       ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
-> >>       if (!ri)
-> >>               return NULL;
-> >> --
-> >> 2.12.1
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>> ---
+>>  drivers/acpi/pci_mcfg.c | 7 ++++---
+>>  1 file changed, 4 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+>> index a6a4cea..a0a391e 100644
+>> --- a/drivers/acpi/pci_mcfg.c
+>> +++ b/drivers/acpi/pci_mcfg.c
+>> @@ -90,13 +90,14 @@ static struct mcfg_fixup mcfg_quirks[] = {
+>>  	  &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x894057000000UL, node) },  \
+>>  	{ "CAVIUM", "THUNDERX", rev, 9 + (10 * (node)), MCFG_BUS_ANY,	    \
+>>  	  &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x89808f000000UL, node) }
+>> +#define THUNDER_ECAM_QUIRK(rev, seg)					\
+>> +	{ "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,			\
+>> +	&pci_thunder_ecam_ops }
+>>  	/* SoC pass2.x */
+>>  	THUNDER_PEM_QUIRK(1, 0),
+>>  	THUNDER_PEM_QUIRK(1, 1),
+>> +	THUNDER_ECAM_QUIRK(1, 10),
+>>
+>> -#define THUNDER_ECAM_QUIRK(rev, seg)					\
+>> -	{ "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,			\
+>> -	&pci_thunder_ecam_ops }
+>>  	/* SoC pass1.x */
+>>  	THUNDER_PEM_QUIRK(2, 0),	/* off-chip devices */
+>>  	THUNDER_PEM_QUIRK(2, 1),	/* off-chip devices */
+>> --
+>> 2.7.4
+>>
