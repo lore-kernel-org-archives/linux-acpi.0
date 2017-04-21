@@ -1,39 +1,67 @@
-From: Robert Richter <robert.richter@cavium.com>
-Subject: Re: [PATCH 1/1] PCI: Add MCFG quirk for 2nd node of Cavium ThunderX
- pass2.x host controller
-Date: Fri, 21 Apr 2017 13:34:54 +0200
-Message-ID: <20170421113454.GR16981@rric.localdomain>
-References: <1490789773-21506-1-git-send-email-tn@semihalf.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v8 1/2] ACPI / bus: Introduce a list of ids
+ for "always present" devices
+Date: Fri, 21 Apr 2017 14:38:33 +0300
+Message-ID: <1492774713.24567.117.camel@linux.intel.com>
+References: <20170421104741.17185-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0062.outbound.protection.outlook.com ([104.47.41.62]:43936
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1038783AbdDULfK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Apr 2017 07:35:10 -0400
-Content-Disposition: inline
-In-Reply-To: <1490789773-21506-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20170421104741.17185-1-hdegoede@redhat.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Hans de Goede <hdegoede@redhat.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org, intel-gfx <intel-gfx@lists.freedesktop.org>, Robert Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: helgaas@kernel.org, Lorenzo.Pieralisi@arm.com, ddaney@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, rafael@kernel.org, Sunil.Goutham@cavium.com, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 
-On 29.03.17 14:16:13, Tomasz Nowicki wrote:
-> Currently SoCs pass2.x do not emulate EA headers for ACPI boot method at all.
-> However, for pass2.x some devices (like EDAC) advertise incorrect base addresses
-> in their BARs which results in driver probe failure during resource request.
-> Since all problematic blocks are on 2nd NUMA node under domain 10 add necessary
-> quirk entry to obtain BAR addresses correction using EA header emulation.
-> 
-> Fixes: 44f22bd91e88 ("PCI: Add MCFG quirks for Cavium ThunderX pass2.x host controller")
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> CC: stable@vger.kernel.org	# v4.10+
-
-Acked-by: Robert Richter <rrichter@cavium.com>
-
-Bjorn, please apply.
-
-Thanks,
-
--Robert
+T24gRnJpLCAyMDE3LTA0LTIxIGF0IDEyOjQ3ICswMjAwLCBIYW5zIGRlIEdvZWRlIHdyb3RlOgo+
+IFNldmVyYWwgQmF5IC8gQ2hlcnJ5IFRyYWlsIGRldmljZXMgKGFsbCBvZiB3aGljaCBzaGlwIHdp
+dGggV2luZG93cyAxMCkKPiBoaWRlCj4gdGhlIExQU1MgUFdNIGNvbnRyb2xsZXIgaW4gQUNQSSwg
+dHlwaWNhbGx5IHRoZSBfU1RBIG1ldGhvZCBsb29rcyBsaWtlCj4gdGhpczoKPiAKPiDCoMKgwqDC
+oE1ldGhvZCAoX1NUQSwgMCwgTm90U2VyaWFsaXplZCnCoMKgLy8gX1NUQTogU3RhdHVzCj4gwqDC
+oMKgwqB7Cj4gwqDCoMKgwqDCoMKgwqDCoElmIChPU0lEID09IE9uZSkKPiDCoMKgwqDCoMKgwqDC
+oMKgewo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoFJldHVybiAoWmVybykKPiDCoMKgwqDCoMKg
+wqDCoMKgfQo+IAo+IMKgwqDCoMKgwqDCoMKgwqBSZXR1cm4gKDB4MEYpCj4gwqDCoMKgwqB9Cj4g
+Cj4gV2hlcmUgT1NJRCBpcyBzb21lIGRhcmsgbWFnaWMgc2VlbiBpbiBhbGwgQ2hlcnJ5IFRyYWls
+IEFDUEkgdGFibGVzCj4gbWFraW5nCj4gdGhlIG1hY2hpbmUgYmVoYXZlIGRpZmZlcmVudGx5IGRl
+cGVuZGluZyBvbiB3aGljaCBPUyBpdCAqdGhpbmtzKiBpdCBpcwo+IGJvb3RpbmcsIHRoaXMgZ2V0
+cyBzZXQgaW4gYSBudW1iZXIgb2Ygd2F5cyB3aGljaCB3ZSBjYW5ub3QgY29udHJvbCwgb24KPiBz
+b21lIG5ld2VyIG1hY2hpbmVzIGl0IHNpbXBsZSBoYXJkY29kZWQgdG8gIk9uZSIgYWthIHdpbjEw
+Lgo+IAo+IFRoaXMgY2F1c2VzIHRoZSBQV00gY29udHJvbGxlciB0byBnZXQgaGlkZGVuLCB3aGlj
+aCBtZWFucyBMaW51eCBjYW5ub3QKPiBjb250cm9sIHRoZSBiYWNrbGlnaHQgbGV2ZWwgb24gY2h0
+IGJhc2VkIHRhYmxldHMgLyBsYXB0b3BzLgo+IAo+IFNpbmNlIGxvYWRpbmcgdGhlIGRyaXZlciBm
+b3IgdGhpcyBkb2VzIG5vIGhhcm0gKHRoZSBvbmx5IGluIGtlcm5lbAo+IHVzZXIKPiBvZiBpdCBp
+cyB0aGUgaTkxNSBkcml2ZXIsIHdoaWNoIHdpbGwgb25seSB1c2VzIGl0IHdoZW4gaXQgbmVlZHMg
+aXQpLAo+IHRoaXMKPiBjb21taXQgbWFrZXMgYWNwaV9idXNfZ2V0X3N0YXR1cygpIGFsd2F5cyBz
+ZXQgc3RhdHVzIHRvCj4gQUNQSV9TVEFfREVGQVVMVAo+IGZvciB0aGUgTFBTUyBQV00gZGV2aWNl
+LCBmaXhpbmcgdGhlIGxhY2sgb2YgYmFja2xpZ2h0IGNvbnRyb2wuCj4gCgo+IMKgZHJpdmVycy9h
+Y3BpL01ha2VmaWxlwqDCoMKgwqDCoMKgwqDCoHzCoMKgMSArCj4gwqBkcml2ZXJzL2FjcGkvYnVz
+LmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqA1ICsrKwo+IMKgZHJpdmVycy9hY3BpL3g4Ni94
+ODZfdXRpbHMuYyB8IDg1Cj4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysKClBlcmhhcHMgLi4uL3g4Ni91dGlscy5jID8KCj4gwqBpbmNsdWRlL2FjcGkvYWNwaV9i
+dXMuaMKgwqDCoMKgwqDCoHzCoMKgOSArKysrKwoKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3Bp
+L2J1cy5jIGIvZHJpdmVycy9hY3BpL2J1cy5jCj4gaW5kZXggMzRmYmUwMi4uNzg0YmRhNiAxMDA2
+NDQKPiAtLS0gYS9kcml2ZXJzL2FjcGkvYnVzLmMKPiArKysgYi9kcml2ZXJzL2FjcGkvYnVzLmMK
+PiBAQCAtMTE0LDYgKzExNCwxMSBAQCBpbnQgYWNwaV9idXNfZ2V0X3N0YXR1cyhzdHJ1Y3QgYWNw
+aV9kZXZpY2UKPiAqZGV2aWNlKQo+IMKgCWFjcGlfc3RhdHVzIHN0YXR1czsKPiDCoAl1bnNpZ25l
+ZCBsb25nIGxvbmcgc3RhOwo+IMKgCj4gKwlpZiAoYWNwaV9kZXZpY2VfYWx3YXlzX3ByZXNlbnQo
+ZGV2aWNlKSkgewo+ICsJCWFjcGlfc2V0X2RldmljZV9zdGF0dXMoZGV2aWNlLCBBQ1BJX1NUQV9E
+RUZBVUxUKTsKPiArCQlyZXR1cm4gMDsKPiArCX0KPiArCj4gwqAJc3RhdHVzID0gYWNwaV9idXNf
+Z2V0X3N0YXR1c19oYW5kbGUoZGV2aWNlLT5oYW5kbGUsICZzdGEpOwo+IMKgCWlmIChBQ1BJX0ZB
+SUxVUkUoc3RhdHVzKSkKPiDCoAkJcmV0dXJuIC1FTk9ERVY7Cj4gCgo+ICsjZGVmaW5lIElDUFUo
+bW9kZWwpCXsgWDg2X1ZFTkRPUl9JTlRFTCwgNiwgbW9kZWwsCj4gWDg2X0ZFQVRVUkVfQU5ZLCB9
+Cj4gKwoKPiArI2RlZmluZSBFTlRSWShoaWQsIHVpZCwgY3B1X21vZGVscykgewkJCQkKCmNwdV9t
+b2RlbHMgLT4gY3B1X21vZGVsID8KCk9yIEkgbWlzc2VkIHRoYXQgaXQncyBhbiBhcnJheT8KCi0t
+IApBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT4KSW50
+ZWwgRmlubGFuZCBPeQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5v
+cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1n
+ZngK
