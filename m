@@ -1,75 +1,169 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v8 1/2] ACPI / bus: Introduce a list of ids
- for "always present" devices
-Date: Fri, 21 Apr 2017 13:43:51 +0200
-Message-ID: <ca555b75-18e0-fcb4-4447-b782f71ee3e1@redhat.com>
-References: <20170421104741.17185-1-hdegoede@redhat.com>
- <1492774713.24567.117.camel@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <1492774713.24567.117.camel@linux.intel.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org, intel-gfx <intel-gfx@lists.freedesktop.org>, Robert Moore <robert.moore@intel.com>
+Subject: [PATCH v2 1/2] ACPI / PMIC: xpower: Fix power_table addresses
+Date: Fri, 21 Apr 2017 13:48:08 +0200
+Message-ID: <20170421114809.17468-1-hdegoede@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:51644 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S971278AbdDULsR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Apr 2017 07:48:17 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org, russianneuromancer@ya.ru
 
-SGksCgpPbiAyMS0wNC0xNyAxMzozOCwgQW5keSBTaGV2Y2hlbmtvIHdyb3RlOgo+IE9uIEZyaSwg
-MjAxNy0wNC0yMSBhdCAxMjo0NyArMDIwMCwgSGFucyBkZSBHb2VkZSB3cm90ZToKPj4gU2V2ZXJh
-bCBCYXkgLyBDaGVycnkgVHJhaWwgZGV2aWNlcyAoYWxsIG9mIHdoaWNoIHNoaXAgd2l0aCBXaW5k
-b3dzIDEwKQo+PiBoaWRlCj4+IHRoZSBMUFNTIFBXTSBjb250cm9sbGVyIGluIEFDUEksIHR5cGlj
-YWxseSB0aGUgX1NUQSBtZXRob2QgbG9va3MgbGlrZQo+PiB0aGlzOgo+Pgo+PiAgICAgIE1ldGhv
-ZCAoX1NUQSwgMCwgTm90U2VyaWFsaXplZCkgIC8vIF9TVEE6IFN0YXR1cwo+PiAgICAgIHsKPj4g
-ICAgICAgICAgSWYgKE9TSUQgPT0gT25lKQo+PiAgICAgICAgICB7Cj4+ICAgICAgICAgICAgICBS
-ZXR1cm4gKFplcm8pCj4+ICAgICAgICAgIH0KPj4KPj4gICAgICAgICAgUmV0dXJuICgweDBGKQo+
-PiAgICAgIH0KPj4KPj4gV2hlcmUgT1NJRCBpcyBzb21lIGRhcmsgbWFnaWMgc2VlbiBpbiBhbGwg
-Q2hlcnJ5IFRyYWlsIEFDUEkgdGFibGVzCj4+IG1ha2luZwo+PiB0aGUgbWFjaGluZSBiZWhhdmUg
-ZGlmZmVyZW50bHkgZGVwZW5kaW5nIG9uIHdoaWNoIE9TIGl0ICp0aGlua3MqIGl0IGlzCj4+IGJv
-b3RpbmcsIHRoaXMgZ2V0cyBzZXQgaW4gYSBudW1iZXIgb2Ygd2F5cyB3aGljaCB3ZSBjYW5ub3Qg
-Y29udHJvbCwgb24KPj4gc29tZSBuZXdlciBtYWNoaW5lcyBpdCBzaW1wbGUgaGFyZGNvZGVkIHRv
-ICJPbmUiIGFrYSB3aW4xMC4KPj4KPj4gVGhpcyBjYXVzZXMgdGhlIFBXTSBjb250cm9sbGVyIHRv
-IGdldCBoaWRkZW4sIHdoaWNoIG1lYW5zIExpbnV4IGNhbm5vdAo+PiBjb250cm9sIHRoZSBiYWNr
-bGlnaHQgbGV2ZWwgb24gY2h0IGJhc2VkIHRhYmxldHMgLyBsYXB0b3BzLgo+Pgo+PiBTaW5jZSBs
-b2FkaW5nIHRoZSBkcml2ZXIgZm9yIHRoaXMgZG9lcyBubyBoYXJtICh0aGUgb25seSBpbiBrZXJu
-ZWwKPj4gdXNlcgo+PiBvZiBpdCBpcyB0aGUgaTkxNSBkcml2ZXIsIHdoaWNoIHdpbGwgb25seSB1
-c2VzIGl0IHdoZW4gaXQgbmVlZHMgaXQpLAo+PiB0aGlzCj4+IGNvbW1pdCBtYWtlcyBhY3BpX2J1
-c19nZXRfc3RhdHVzKCkgYWx3YXlzIHNldCBzdGF0dXMgdG8KPj4gQUNQSV9TVEFfREVGQVVMVAo+
-PiBmb3IgdGhlIExQU1MgUFdNIGRldmljZSwgZml4aW5nIHRoZSBsYWNrIG9mIGJhY2tsaWdodCBj
-b250cm9sLgo+Pgo+IAo+PiAgIGRyaXZlcnMvYWNwaS9NYWtlZmlsZSAgICAgICAgfCAgMSArCj4+
-ICAgZHJpdmVycy9hY3BpL2J1cy5jICAgICAgICAgICB8ICA1ICsrKwo+PiAgIGRyaXZlcnMvYWNw
-aS94ODYveDg2X3V0aWxzLmMgfCA4NQo+PiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKwo+IAo+IFBlcmhhcHMgLi4uL3g4Ni91dGlscy5jID8KCkkgdGhvdWdodCB0
-aGF0IHV0aWxzLmMgd291bGQgYmUgdG9vIGdlbmVyaWMsCmJ1dCB0aGF0IHdhcyBtYWlubHkgdGhp
-bmtpbmcgYWJvdXQgbW9kdWxlIGtlcm5lbApjbWRsaW5lIG9wdGlvbnMgd2hpY2ggZG8gbm90IGFw
-cGx5IGhlcmUsIHN0aWxsCmhhdmluZyBhIHNvbWV3aGF0IHVuaXF1ZSBiYXNlbmFtZSBzZWVtcyB1
-c2VmdWwuCgo+IAo+PiAgIGluY2x1ZGUvYWNwaS9hY3BpX2J1cy5oICAgICAgfCAgOSArKysrKwo+
-IAo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2J1cy5jIGIvZHJpdmVycy9hY3BpL2J1cy5j
-Cj4+IGluZGV4IDM0ZmJlMDIuLjc4NGJkYTYgMTAwNjQ0Cj4+IC0tLSBhL2RyaXZlcnMvYWNwaS9i
-dXMuYwo+PiArKysgYi9kcml2ZXJzL2FjcGkvYnVzLmMKPj4gQEAgLTExNCw2ICsxMTQsMTEgQEAg
-aW50IGFjcGlfYnVzX2dldF9zdGF0dXMoc3RydWN0IGFjcGlfZGV2aWNlCj4+ICpkZXZpY2UpCj4+
-ICAgCWFjcGlfc3RhdHVzIHN0YXR1czsKPj4gICAJdW5zaWduZWQgbG9uZyBsb25nIHN0YTsKPj4g
-ICAKPj4gKwlpZiAoYWNwaV9kZXZpY2VfYWx3YXlzX3ByZXNlbnQoZGV2aWNlKSkgewo+PiArCQlh
-Y3BpX3NldF9kZXZpY2Vfc3RhdHVzKGRldmljZSwgQUNQSV9TVEFfREVGQVVMVCk7Cj4+ICsJCXJl
-dHVybiAwOwo+PiArCX0KPj4gKwo+PiAgIAlzdGF0dXMgPSBhY3BpX2J1c19nZXRfc3RhdHVzX2hh
-bmRsZShkZXZpY2UtPmhhbmRsZSwgJnN0YSk7Cj4+ICAgCWlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVz
-KSkKPj4gICAJCXJldHVybiAtRU5PREVWOwo+Pgo+IAo+PiArI2RlZmluZSBJQ1BVKG1vZGVsKQl7
-IFg4Nl9WRU5ET1JfSU5URUwsIDYsIG1vZGVsLAo+PiBYODZfRkVBVFVSRV9BTlksIH0KPj4gKwo+
-IAo+PiArI2RlZmluZSBFTlRSWShoaWQsIHVpZCwgY3B1X21vZGVscykgewkJCQkKPiAKPiBjcHVf
-bW9kZWxzIC0+IGNwdV9tb2RlbCA/Cj4gCj4gT3IgSSBtaXNzZWQgdGhhdCBpdCdzIGFuIGFycmF5
-PwoKSXQgbWF5IGJlIGFuIGFycmF5LCBlLmcuIDoKCiAgICAgICAgIEVOVFJZKCJJTlQwMDAyIiwg
-IjEiLCAoSUNQVShJTlRFTF9GQU02X0FUT01fU0lMVkVSTU9OVDEpLCBJQ1BVKElOVEVMX0ZBTTZf
-QVRPTV9BSVJNT05UKSkgKSwKCk5vdGUgdGhpcyBpcyBhIHRoZW9yZXRpY2FsIGV4YW1wbGUgKGZv
-ciBub3cpLgoKUmVnYXJkcywKCkhhbnMKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJl
-ZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGlu
-Zm8vaW50ZWwtZ2Z4Cg==
+The power table addresses should be contiguous, but there was a hole
+where 0x34 was missing. On most devices this is not a problem as
+addresses above 0x34 are used for the BUC# convertors which are not
+used in the DSDTs I've access to but after the BUC# convertors
+there is a field named GPI1 in the DSTDs, which does get used in some
+cases and ended up turning BUC6 on and off due to the wrong addresses,
+resulting in turning the entire device off (or causing it to reboot).
+
+Removing the hole in the addresses fixes this, fixing one of my
+Bay Trail tablets turning off while booting the mainline kernel.
+
+While at it add comments with the field names used in the DSDTs to
+make it easier to compare the register and bits used at each address
+with the datasheet.
+
+Cc: russianneuromancer@ya.ru
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+Changes in v2:
+-Add Andy's Reviewed-by
+---
+ drivers/acpi/pmic/intel_pmic_xpower.c | 50 +++++++++++++++++------------------
+ 1 file changed, 25 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
+index 55f5111..1a76c78 100644
+--- a/drivers/acpi/pmic/intel_pmic_xpower.c
++++ b/drivers/acpi/pmic/intel_pmic_xpower.c
+@@ -27,97 +27,97 @@ static struct pmic_table power_table[] = {
+ 		.address = 0x00,
+ 		.reg = 0x13,
+ 		.bit = 0x05,
+-	},
++	}, /* ALD1 */
+ 	{
+ 		.address = 0x04,
+ 		.reg = 0x13,
+ 		.bit = 0x06,
+-	},
++	}, /* ALD2 */
+ 	{
+ 		.address = 0x08,
+ 		.reg = 0x13,
+ 		.bit = 0x07,
+-	},
++	}, /* ALD3 */
+ 	{
+ 		.address = 0x0c,
+ 		.reg = 0x12,
+ 		.bit = 0x03,
+-	},
++	}, /* DLD1 */
+ 	{
+ 		.address = 0x10,
+ 		.reg = 0x12,
+ 		.bit = 0x04,
+-	},
++	}, /* DLD2 */
+ 	{
+ 		.address = 0x14,
+ 		.reg = 0x12,
+ 		.bit = 0x05,
+-	},
++	}, /* DLD3 */
+ 	{
+ 		.address = 0x18,
+ 		.reg = 0x12,
+ 		.bit = 0x06,
+-	},
++	}, /* DLD4 */
+ 	{
+ 		.address = 0x1c,
+ 		.reg = 0x12,
+ 		.bit = 0x00,
+-	},
++	}, /* ELD1 */
+ 	{
+ 		.address = 0x20,
+ 		.reg = 0x12,
+ 		.bit = 0x01,
+-	},
++	}, /* ELD2 */
+ 	{
+ 		.address = 0x24,
+ 		.reg = 0x12,
+ 		.bit = 0x02,
+-	},
++	}, /* ELD3 */
+ 	{
+ 		.address = 0x28,
+ 		.reg = 0x13,
+ 		.bit = 0x02,
+-	},
++	}, /* FLD1 */
+ 	{
+ 		.address = 0x2c,
+ 		.reg = 0x13,
+ 		.bit = 0x03,
+-	},
++	}, /* FLD2 */
+ 	{
+ 		.address = 0x30,
+ 		.reg = 0x13,
+ 		.bit = 0x04,
+-	},
++	}, /* FLD3 */
+ 	{
+-		.address = 0x38,
++		.address = 0x34,
+ 		.reg = 0x10,
+ 		.bit = 0x03,
+-	},
++	}, /* BUC1 */
+ 	{
+-		.address = 0x3c,
++		.address = 0x38,
+ 		.reg = 0x10,
+ 		.bit = 0x06,
+-	},
++	}, /* BUC2 */
+ 	{
+-		.address = 0x40,
++		.address = 0x3c,
+ 		.reg = 0x10,
+ 		.bit = 0x05,
+-	},
++	}, /* BUC3 */
+ 	{
+-		.address = 0x44,
++		.address = 0x40,
+ 		.reg = 0x10,
+ 		.bit = 0x04,
+-	},
++	}, /* BUC4 */
+ 	{
+-		.address = 0x48,
++		.address = 0x44,
+ 		.reg = 0x10,
+ 		.bit = 0x01,
+-	},
++	}, /* BUC5 */
+ 	{
+-		.address = 0x4c,
++		.address = 0x48,
+ 		.reg = 0x10,
+ 		.bit = 0x00
+-	},
++	}, /* BUC6 */
+ };
+ 
+ /* TMP0 - TMP5 are the same, all from GPADC */
+-- 
+2.9.3
+
