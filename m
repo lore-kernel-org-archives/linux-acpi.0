@@ -1,85 +1,48 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH 1/1] PCI: Add MCFG quirk for 2nd node of Cavium ThunderX
- pass2.x host controller
-Date: Fri, 21 Apr 2017 19:30:41 +0200
-Message-ID: <1e1aef81-3d0e-02a3-8005-47d9c1d9d5f3@semihalf.com>
-References: <1490789773-21506-1-git-send-email-tn@semihalf.com>
- <20170421165614.GA17916@bhelgaas-glaptop.roam.corp.google.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH V15 03/11] cper: add timestamp print to CPER status
+ printing
+Date: Fri, 21 Apr 2017 19:26:03 +0200
+Message-ID: <20170421172603.4574wonnm5tgvbcn@pd.tnic>
+References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
+ <1492556723-9189-4-git-send-email-tbaicar@codeaurora.org>
+ <20170421122150.76cce2cfrt767glv@pd.tnic>
+ <35cc4ae0-e8fa-fd3a-5d7f-243ed2e82ea0@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170421165614.GA17916@bhelgaas-glaptop.roam.corp.google.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Lorenzo.Pieralisi@arm.com, Sunil.Goutham@cavium.com, rafael@kernel.org, linux-pci@vger.kernel.org, linu.cherian@cavium.com, ddaney@caviumnetworks.com, geethasowjanya.akula@gmail.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <35cc4ae0-e8fa-fd3a-5d7f-243ed2e82ea0@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, rafael@kernel.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, tony.luck@intel.com, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 21.04.2017 18:56, Bjorn Helgaas wrote:
-> On Wed, Mar 29, 2017 at 02:16:13PM +0200, Tomasz Nowicki wrote:
->> Currently SoCs pass2.x do not emulate EA headers for ACPI boot method at all.
->> However, for pass2.x some devices (like EDAC) advertise incorrect base addresses
->> in their BARs which results in driver probe failure during resource request.
->> Since all problematic blocks are on 2nd NUMA node under domain 10 add necessary
->> quirk entry to obtain BAR addresses correction using EA header emulation.
->>
->> Fixes: 44f22bd91e88 ("PCI: Add MCFG quirks for Cavium ThunderX pass2.x host controller")
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> CC: stable@vger.kernel.org	# v4.10+
->
-> Sorry Tomasz, I must have mistakenly marked this "accepted" in
-> patchwork, so it fell off my to-do list.  It's too late to get this in
-> v4.11, but I can still apply it for v4.12.
->
-> I put it on my pci/host-thunder branch with Robert's ack.  I added a preceding
-> patch to tidy up whitespace, which makes this patch look like just:
->
->         /* SoC pass2.x */
->         THUNDER_PEM_QUIRK(1, 0),
->         THUNDER_PEM_QUIRK(1, 1),
-> +       THUNDER_ECAM_QUIRK(1, 10),
->
-> Please double-check it to make sure this is what you need.
-
-This is exactly what we need. Thank you Bjorn.
-
-Tomasz
-
->
->> ---
->>  drivers/acpi/pci_mcfg.c | 7 ++++---
->>  1 file changed, 4 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
->> index a6a4cea..a0a391e 100644
->> --- a/drivers/acpi/pci_mcfg.c
->> +++ b/drivers/acpi/pci_mcfg.c
->> @@ -90,13 +90,14 @@ static struct mcfg_fixup mcfg_quirks[] = {
->>  	  &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x894057000000UL, node) },  \
->>  	{ "CAVIUM", "THUNDERX", rev, 9 + (10 * (node)), MCFG_BUS_ANY,	    \
->>  	  &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x89808f000000UL, node) }
->> +#define THUNDER_ECAM_QUIRK(rev, seg)					\
->> +	{ "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,			\
->> +	&pci_thunder_ecam_ops }
->>  	/* SoC pass2.x */
->>  	THUNDER_PEM_QUIRK(1, 0),
->>  	THUNDER_PEM_QUIRK(1, 1),
->> +	THUNDER_ECAM_QUIRK(1, 10),
->>
->> -#define THUNDER_ECAM_QUIRK(rev, seg)					\
->> -	{ "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,			\
->> -	&pci_thunder_ecam_ops }
->>  	/* SoC pass1.x */
->>  	THUNDER_PEM_QUIRK(2, 0),	/* off-chip devices */
->>  	THUNDER_PEM_QUIRK(2, 1),	/* off-chip devices */
->> --
->> 2.7.4
->>
+T24gRnJpLCBBcHIgMjEsIDIwMTcgYXQgMTA6MDQ6MzVBTSAtMDYwMCwgQmFpY2FyLCBUeWxlciB3
+cm90ZToKPiBUaGlzIGlzIGJhc2ljYWxseSB3aGF0IEkgYWxyZWFkeSBoYWQgaW4gdjE0Li4ueW91
+IGFza2VkIHRvIG1vdmUgaXQgaW50byBhCj4gZGlmZmVyZW50IGlmLXN0YXRlbWVudD8gaHR0cHM6
+Ly9sa21sLm9yZy9sa21sLzIwMTcvNC8xMi8zOTcKCldlbGwsIGNsZWFybHkgSSd2ZSBiZWVuIHNt
+b2tpbmcgc29tZSBuYXN0eSBwb3RlbnQgc2gqdC4gOi1cCgovbWUgZ29lcyBhbmQgbG9va3MgYXQg
+dGhlIHNwZWM6CgoiQml0IDAg4oCTIFRpbWVzdGFtcCBpcyBwcmVjaXNlIGlmIHRoaXMgYml0IGlz
+IHNldCBhbmQgY29ycmVsYXRlcyB0byB0aGUKdGltZSBvZiB0aGUgZXJyb3IgZXZlbnQuIgoKU28g
+d2h5IGFyZSB3ZSBldmVuIHByaW50aW5nIHRoZSB0aW1lc3RhbXAgd2hlbiAhcHJlY2lzZT8KCklP
+VywgSSB0aGluayB3ZSBzaG91bGQgZG86CgoJaWYgKCEodGltZXN0YW1wWzNdICYgMHgxKSkKCQlw
+cmludGsoIiVzdGltZXN0YW1wIGltcHJlY2lzZVxuIiwgcGZ4KTsKCWVsc2UgewoJCXNlYyA9IC4u
+CgkJbWluID0gLi4uCgoJCS4uLgoJfQoKYW5kIHByaW50IHRoZSBhY3R1YWwgdmFsdWVzIG9ubHkg
+d2hlbiB0aGUgdGltZXN0YW1wIGlzIHByZWNpc2UuCk90aGVyd2lzZSBpdCBoYXMgKnNvbWUqIHZh
+bHVlcyB3aGljaCBjb3VsZCBqdXN0IGFzIHdlbGwgYmUgY29tcGxldGVseQpyYW5kb20uIEFuZCBp
+dCdzIG5vdCBsaWtlIHdlJ3JlIHJlcG9ydGluZyB0aGUgZXJyb3IgdG9tb3Jyb3cgLSBpdCBpcwpt
+b3N0bHkgYSBjb3VwbGUgb2Ygc2Vjb25kcyBmcm9tIGxvZ2dpbmcgdG8gdGhlIGZ3IHB1c2hpbmcg
+aXQgb3V0Li4uCgotLSAKUmVnYXJkcy9HcnVzcywKICAgIEJvcmlzLgoKR29vZCBtYWlsaW5nIHBy
+YWN0aWNlcyBmb3IgNDAwOiBhdm9pZCB0b3AtcG9zdGluZyBhbmQgdHJpbSB0aGUgcmVwbHkuCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmt2bWFybSBtYWls
+aW5nIGxpc3QKa3ZtYXJtQGxpc3RzLmNzLmNvbHVtYmlhLmVkdQpodHRwczovL2xpc3RzLmNzLmNv
+bHVtYmlhLmVkdS9tYWlsbWFuL2xpc3RpbmZvL2t2bWFybQo=
