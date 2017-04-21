@@ -1,165 +1,62 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/2] ACPI / PMIC: xpower: Fix power_table addresses
-Date: Fri, 21 Apr 2017 09:34:32 +0200
-Message-ID: <20170421073433.10897-1-hdegoede@redhat.com>
+Subject: [PATCH 2/2] ACPI / PMIC: xpower: Add support for the GPI1 regulator to the OpRegion handler
+Date: Fri, 21 Apr 2017 09:34:33 +0200
+Message-ID: <20170421073433.10897-2-hdegoede@redhat.com>
+References: <20170421073433.10897-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49884 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:36232 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1036013AbdDUHeg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Apr 2017 03:34:36 -0400
+        id S1036013AbdDUHei (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Apr 2017 03:34:38 -0400
+In-Reply-To: <20170421073433.10897-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org, russianneuromancer@ya.ru
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org
 
-The power table addresses should be contiguous, but there was a hole
-where 0x34 was missing. On most devices this is not a problem as
-addresses above 0x34 are used for the BUC# convertors which are not
-used in the DSDTs I've access to but after the BUC# convertors
-there is a field named GPI1 in the DSTDs, which does get used in some
-cases and ended up turning BUC6 on and off due to the wrong addresses,
-resulting in turning the entire device off (or causing it to reboot).
+Some Bay Trail devices use a GPI1 regulator field (address 0x4c) in
+their 0x8d power OpRegion, add support for this.
 
-Removing the hole in the addresses fixes this, fixing one of my
-Bay Trail tablets turning off while booting the mainline kernel.
+This fixes AE_BAD_PARAMETER errors getting thrown on these devices and
+fixes these errors causing these devices to not suspend.
 
-While at it add comments with the field names used in the DSDTs to
-make it easier to compare the register and bits used at each address
-with the datasheet.
-
-Cc: russianneuromancer@ya.ru
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/pmic/intel_pmic_xpower.c | 50 +++++++++++++++++------------------
- 1 file changed, 25 insertions(+), 25 deletions(-)
+ drivers/acpi/pmic/intel_pmic_xpower.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
 diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-index 55f5111..1a76c78 100644
+index 1a76c78..b8af87c 100644
 --- a/drivers/acpi/pmic/intel_pmic_xpower.c
 +++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-@@ -27,97 +27,97 @@ static struct pmic_table power_table[] = {
- 		.address = 0x00,
- 		.reg = 0x13,
- 		.bit = 0x05,
--	},
-+	}, /* ALD1 */
- 	{
- 		.address = 0x04,
- 		.reg = 0x13,
- 		.bit = 0x06,
--	},
-+	}, /* ALD2 */
- 	{
- 		.address = 0x08,
- 		.reg = 0x13,
- 		.bit = 0x07,
--	},
-+	}, /* ALD3 */
- 	{
- 		.address = 0x0c,
- 		.reg = 0x12,
- 		.bit = 0x03,
--	},
-+	}, /* DLD1 */
- 	{
- 		.address = 0x10,
- 		.reg = 0x12,
- 		.bit = 0x04,
--	},
-+	}, /* DLD2 */
- 	{
- 		.address = 0x14,
- 		.reg = 0x12,
- 		.bit = 0x05,
--	},
-+	}, /* DLD3 */
- 	{
- 		.address = 0x18,
- 		.reg = 0x12,
- 		.bit = 0x06,
--	},
-+	}, /* DLD4 */
- 	{
- 		.address = 0x1c,
- 		.reg = 0x12,
- 		.bit = 0x00,
--	},
-+	}, /* ELD1 */
- 	{
- 		.address = 0x20,
- 		.reg = 0x12,
- 		.bit = 0x01,
--	},
-+	}, /* ELD2 */
- 	{
- 		.address = 0x24,
- 		.reg = 0x12,
- 		.bit = 0x02,
--	},
-+	}, /* ELD3 */
- 	{
- 		.address = 0x28,
- 		.reg = 0x13,
- 		.bit = 0x02,
--	},
-+	}, /* FLD1 */
- 	{
- 		.address = 0x2c,
- 		.reg = 0x13,
- 		.bit = 0x03,
--	},
-+	}, /* FLD2 */
- 	{
- 		.address = 0x30,
- 		.reg = 0x13,
- 		.bit = 0x04,
--	},
-+	}, /* FLD3 */
- 	{
--		.address = 0x38,
-+		.address = 0x34,
- 		.reg = 0x10,
- 		.bit = 0x03,
--	},
-+	}, /* BUC1 */
- 	{
--		.address = 0x3c,
-+		.address = 0x38,
- 		.reg = 0x10,
- 		.bit = 0x06,
--	},
-+	}, /* BUC2 */
- 	{
--		.address = 0x40,
-+		.address = 0x3c,
- 		.reg = 0x10,
- 		.bit = 0x05,
--	},
-+	}, /* BUC3 */
- 	{
--		.address = 0x44,
-+		.address = 0x40,
- 		.reg = 0x10,
- 		.bit = 0x04,
--	},
-+	}, /* BUC4 */
- 	{
--		.address = 0x48,
-+		.address = 0x44,
- 		.reg = 0x10,
- 		.bit = 0x01,
--	},
-+	}, /* BUC5 */
- 	{
--		.address = 0x4c,
-+		.address = 0x48,
+@@ -118,6 +118,10 @@ static struct pmic_table power_table[] = {
  		.reg = 0x10,
  		.bit = 0x00
--	},
-+	}, /* BUC6 */
+ 	}, /* BUC6 */
++	{
++		.address = 0x4c,
++		.reg = 0x92,
++	}, /* GPI1 */
  };
  
  /* TMP0 - TMP5 are the same, all from GPADC */
+@@ -165,6 +169,16 @@ static int intel_xpower_pmic_update_power(struct regmap *regmap, int reg,
+ {
+ 	int data;
+ 
++	/* GPIO1 LDO regulator needs special handling */
++	if (reg == 0x92) {
++		if (on)
++			data = 0x03;
++		else
++			data = 0x04;
++
++		return regmap_update_bits(regmap, reg, 0x07, data);
++	}
++
+ 	if (regmap_read(regmap, reg, &data))
+ 		return -EIO;
+ 
 -- 
 2.9.3
 
