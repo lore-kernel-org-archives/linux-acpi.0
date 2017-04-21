@@ -1,184 +1,155 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: Re: [PATCH v3 7/8] arm64: exception: handle asynchronous SError
- interrupt
-Date: Fri, 21 Apr 2017 18:46:48 +0800
-Message-ID: <1cf65f76-65ee-d98c-cf3e-a5e8ff63550d@huawei.com>
-References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
- <1490869877-118713-8-git-send-email-xiexiuqi@huawei.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v8 1/2] ACPI / bus: Introduce a list of ids for
+	"always present" devices
+Date: Fri, 21 Apr 2017 12:47:40 +0200
+Message-ID: <20170421104741.17185-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([45.249.212.189]:5448 "EHLO
-        dggrg03-dlp.huawei.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S971278AbdDUKr2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Apr 2017 06:47:28 -0400
-In-Reply-To: <1490869877-118713-8-git-send-email-xiexiuqi@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Jani Nikula <jani.nikula@linux.intel.com>, =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, intel-gfx <intel-gfx@lists.freedesktop.org>, Robert Moore <robert.moore@intel.com>, Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Xie XiuQi <xiexiuqi@huawei.com>, christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, james.morse@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com
-Cc: linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com, zhengqiang10@huawei.com, wuquanming@huawei.com, Wang Xiongfeng <wangxiongfengi2@huawei.com>
 
-Hi XiuQi,
-
-On 2017/3/30 18:31, Xie XiuQi wrote:
-> Error Synchronization Barrier (ESB; part of the ARMv8.2 Extensions)
-> is used to synchronize Unrecoverable errors. That is, containable errors
-> architecturally consumed by the PE and not silently propagated.
-> 
-> With ESB it is generally possible to isolate an unrecoverable error
-> between two ESB instructions. So, it's possible to recovery from
-> unrecoverable errors reported by asynchronous SError interrupt.
-> 
-> If ARMv8.2 RAS Extension is not support, ESB is treated as a NOP.
-> 
-> Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
-> Signed-off-by: Wang Xiongfeng <wangxiongfengi2@huawei.com>
-> ---
->  arch/arm64/Kconfig           | 16 ++++++++++
->  arch/arm64/include/asm/esr.h | 14 +++++++++
->  arch/arm64/kernel/entry.S    | 70 ++++++++++++++++++++++++++++++++++++++++++--
->  arch/arm64/kernel/traps.c    | 54 ++++++++++++++++++++++++++++++++--
->  4 files changed, 150 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 859a90e..7402175 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -911,6 +911,22 @@ endmenu
->  
->  menu "ARMv8.2 architectural features"
->  
-> +config ARM64_ESB
-> +	bool "Enable support for Error Synchronization Barrier (ESB)"
-> +	default n
-> +	help
-> +	  Error Synchronization Barrier (ESB; part of the ARMv8.2 Extensions)
-> +	  is used to synchronize Unrecoverable errors. That is, containable errors
-> +	  architecturally consumed by the PE and not silently propagated.
-> +
-> +	  Without ESB it is not generally possible to isolate an Unrecoverable
-> +	  error because it is not known which instruction generated the error.
-> +
-> +	  Selecting this option allows inject esb instruction before the exception
-> +	  change. If ARMv8.2 RAS Extension is not support, ESB is treated as a NOP.
-> +
-> +	  Note that ESB instruction can introduce slight overhead, so say N if unsure.
-> +
->  config ARM64_UAO
->  	bool "Enable support for User Access Override (UAO)"
->  	default y
-> diff --git a/arch/arm64/include/asm/esr.h b/arch/arm64/include/asm/esr.h
-> index f20c64a..22f9c90 100644
-> --- a/arch/arm64/include/asm/esr.h
-> +++ b/arch/arm64/include/asm/esr.h
-> @@ -106,6 +106,20 @@
->  #define ESR_ELx_AR 		(UL(1) << 14)
->  #define ESR_ELx_CM 		(UL(1) << 8)
->  
-> +#define ESR_Elx_DFSC_SEI	(0x11)
-> +
-> +#define ESR_ELx_AET_SHIFT	(10)
-> +#define ESR_ELx_AET_MAX		(7)
-> +#define ESR_ELx_AET_MASK	(UL(7) << ESR_ELx_AET_SHIFT)
-> +#define ESR_ELx_AET(esr)	(((esr) & ESR_ELx_AET_MASK) >> ESR_ELx_AET_SHIFT)
-> +
-> +#define ESR_ELx_AET_UC		(0)
-> +#define ESR_ELx_AET_UEU		(1)
-> +#define ESR_ELx_AET_UEO		(2)
-> +#define ESR_ELx_AET_UER		(3)
-> +#define ESR_ELx_AET_CE		(6)
-> +
-> +
->  /* ISS field definitions for exceptions taken in to Hyp */
->  #define ESR_ELx_CV		(UL(1) << 24)
->  #define ESR_ELx_COND_SHIFT	(20)
-> diff --git a/arch/arm64/kernel/entry.S b/arch/arm64/kernel/entry.S
-> index 43512d4..d8a7306 100644
-> --- a/arch/arm64/kernel/entry.S
-> +++ b/arch/arm64/kernel/entry.S
-> @@ -69,7 +69,14 @@
->  #define BAD_FIQ		2
->  #define BAD_ERROR	3
->  
-> +	.arch_extension ras
-> +
->  	.macro	kernel_entry, el, regsize = 64
-because we also want to take SEI exception in kernel space, we may need to unmask SEI in kernel_entry.
-> +#ifdef CONFIG_ARM64_ESB
-> +	.if	\el == 0
-> +	esb
-> +	.endif
-> +#endif
->  	sub	sp, sp, #S_FRAME_SIZE
->  	.if	\regsize == 32
->  	mov	w0, w0				// zero upper 32 bits of x0
-> @@ -208,6 +215,7 @@ alternative_else_nop_endif
->  #endif
->  
->  	.if	\el == 0
-> +	msr	daifset, #0xF			// Set flags
->  	ldr	x23, [sp, #S_SP]		// load return stack pointer
->  	msr	sp_el0, x23
->  #ifdef CONFIG_ARM64_ERRATUM_845719
-> @@ -226,6 +234,15 @@ alternative_else_nop_endif
->  
->  	msr	elr_el1, x21			// set up the return data
->  	msr	spsr_el1, x22
-> +
-> +#ifdef CONFIG_ARM64_ESB
-> +	.if \el == 0
-> +	esb					// Error Synchronization Barrier
-> +	mrs	x21, disr_el1			// Check for deferred error
-> +	tbnz	x21, #31, el1_sei
-> +	.endif
-> +#endif
-> +
->  	ldp	x0, x1, [sp, #16 * 0]
->  	ldp	x2, x3, [sp, #16 * 1]
->  	ldp	x4, x5, [sp, #16 * 2]
-> @@ -318,7 +335,7 @@ ENTRY(vectors)
->  	ventry	el1_sync_invalid		// Synchronous EL1t
->  	ventry	el1_irq_invalid			// IRQ EL1t
->  	ventry	el1_fiq_invalid			// FIQ EL1t
-> -	ventry	el1_error_invalid		// Error EL1t
-> +	ventry	el1_error			// Error EL1t
->  
->  	ventry	el1_sync			// Synchronous EL1h
->  	ventry	el1_irq				// IRQ EL1h
-> @@ -328,7 +345,7 @@ ENTRY(vectors)
->  	ventry	el0_sync			// Synchronous 64-bit EL0
->  	ventry	el0_irq				// IRQ 64-bit EL0
->  	ventry	el0_fiq_invalid			// FIQ 64-bit EL0
-> -	ventry	el0_error_invalid		// Error 64-bit EL0
-> +	ventry	el0_error			// Error 64-bit EL0
-
-for the situation 'Current EL with SPx', we also need to change the sError vector to el1_error.
->  
->  #ifdef CONFIG_COMPAT
->  	ventry	el0_sync_compat			// Synchronous 32-bit EL0
-> @@ -508,12 +525,31 @@ el1_preempt:
->  	ret	x24
->  #endif
->  
-> +	.align	6
-> +el1_error:
-> +	kernel_entry 1
-> +el1_sei:
-> +	/*
-> +	 * asynchronous SError interrupt from kernel
-> +	 */
-> +	mov	x0, sp
-> +	mrs	x1, esr_el1
-> +	mov	x2, #1				// exception level of SEI generated
-> +	b	do_sei
-> +ENDPROC(el1_error)
-> +
-> +
-
-
-Thanks,
-
-Wang Xiongfeng
-
-
+U2V2ZXJhbCBCYXkgLyBDaGVycnkgVHJhaWwgZGV2aWNlcyAoYWxsIG9mIHdoaWNoIHNoaXAgd2l0
+aCBXaW5kb3dzIDEwKSBoaWRlCnRoZSBMUFNTIFBXTSBjb250cm9sbGVyIGluIEFDUEksIHR5cGlj
+YWxseSB0aGUgX1NUQSBtZXRob2QgbG9va3MgbGlrZSB0aGlzOgoKICAgIE1ldGhvZCAoX1NUQSwg
+MCwgTm90U2VyaWFsaXplZCkgIC8vIF9TVEE6IFN0YXR1cwogICAgewogICAgICAgIElmIChPU0lE
+ID09IE9uZSkKICAgICAgICB7CiAgICAgICAgICAgIFJldHVybiAoWmVybykKICAgICAgICB9Cgog
+ICAgICAgIFJldHVybiAoMHgwRikKICAgIH0KCldoZXJlIE9TSUQgaXMgc29tZSBkYXJrIG1hZ2lj
+IHNlZW4gaW4gYWxsIENoZXJyeSBUcmFpbCBBQ1BJIHRhYmxlcyBtYWtpbmcKdGhlIG1hY2hpbmUg
+YmVoYXZlIGRpZmZlcmVudGx5IGRlcGVuZGluZyBvbiB3aGljaCBPUyBpdCAqdGhpbmtzKiBpdCBp
+cwpib290aW5nLCB0aGlzIGdldHMgc2V0IGluIGEgbnVtYmVyIG9mIHdheXMgd2hpY2ggd2UgY2Fu
+bm90IGNvbnRyb2wsIG9uCnNvbWUgbmV3ZXIgbWFjaGluZXMgaXQgc2ltcGxlIGhhcmRjb2RlZCB0
+byAiT25lIiBha2Egd2luMTAuCgpUaGlzIGNhdXNlcyB0aGUgUFdNIGNvbnRyb2xsZXIgdG8gZ2V0
+IGhpZGRlbiwgd2hpY2ggbWVhbnMgTGludXggY2Fubm90CmNvbnRyb2wgdGhlIGJhY2tsaWdodCBs
+ZXZlbCBvbiBjaHQgYmFzZWQgdGFibGV0cyAvIGxhcHRvcHMuCgpTaW5jZSBsb2FkaW5nIHRoZSBk
+cml2ZXIgZm9yIHRoaXMgZG9lcyBubyBoYXJtICh0aGUgb25seSBpbiBrZXJuZWwgdXNlcgpvZiBp
+dCBpcyB0aGUgaTkxNSBkcml2ZXIsIHdoaWNoIHdpbGwgb25seSB1c2VzIGl0IHdoZW4gaXQgbmVl
+ZHMgaXQpLCB0aGlzCmNvbW1pdCBtYWtlcyBhY3BpX2J1c19nZXRfc3RhdHVzKCkgYWx3YXlzIHNl
+dCBzdGF0dXMgdG8gQUNQSV9TVEFfREVGQVVMVApmb3IgdGhlIExQU1MgUFdNIGRldmljZSwgZml4
+aW5nIHRoZSBsYWNrIG9mIGJhY2tsaWdodCBjb250cm9sLgoKU2lnbmVkLW9mZi1ieTogSGFucyBk
+ZSBHb2VkZSA8aGRlZ29lZGVAcmVkaGF0LmNvbT4KLS0tCkNoYW5nZXMgaW4gdjI6Ci1Vc2UgcHJf
+ZGVidWcgaW5zdGVhZCBvZiBBQ1BJX0RFQlVHX1BSSU5UCkNoYW5nZXMgaW4gdjM6Ci1Vbi1pbmxp
+bmUgYWNwaV9zZXRfZGV2aWNlX3N0YXR1cyBhbmQgZG8gdGhlIGFsd2F5c19wcmVzZW50X2Rldmlj
+ZV9pZHMKIHRhYmxlIGNoZWNrIGluc2lkZSB0aGUgdW4taW5saW5lZCB2ZXJzaW9uIG9mIGl0CkNo
+YW5nZXMgaW4gdjQ6Ci1Vc2UgZGV2X2luZm8gaW5zdGVhZCBvZiBwcl9kZWJ1ZwotTm90IG9ubHkg
+Y2hlY2sgZm9yIEFDUEkgSElEIGJ1dCBhbHNvIGZvciBDUFUgKFNvQykgbW9kZWwgc28gYXMgdG8g
+bm90CiBmb3IgZGV2aWNlcyBwcmVzZW50IG9uIG90aGVyIG1vZGVscyB0aGVuIGZvciB3aGljaCB0
+aGUgcXVpcmsgaXMgaW50ZW5kZWQgYW5kCiB0byBhdm9pZCBlbmFibGluZyB1bnJlbGF0ZWQgQUNQ
+SSBkZXZpY2VzIHdoaWNoIGhhcHBlbiB0byB1c2UgdGhlIHNhbWUgSElECkNoYW5nZXMgaW4gdjU6
+Ci1Pbmx5IGRvIHRoZSBkZXZfaW5mbyBvbmNlIHBlciBkZXZpY2UgKGFjcGlfc2V0X2RldmljZV9z
+dGF0dXMgZ2V0cyBjYWxsZWQKIG11bHRpcGxlIHRpbWVzIHBlciBkZXZpY2UgZHVyaW5nIGJvb3Qp
+CkNoYW5nZXMgaW4gdjY6Ci1BbGxvdyBzcGVjaWZ5aW5nIG1vcmUgdGhlbiBvbmUgQ1BVLW1vZGVs
+IGZvciBhIHNpbmdsZSBISUQKLU5vdCBvbmx5IG1hdGNoIHRoZSBISUQgYnV0IGFsc28gdGhlIFVJ
+RCwgbGlrZSBvbiBDaGVycnkgVHJhaWwsIG9uIHNvbWUgQmF5CiBUcmFpbCBXaW5kb3dzIDEwIHRh
+YmxldHMgd2UgbmVlZCB0byBlbmFibGUgdGhlIFBXTSBjb250cm9sbGVyIHRvIGdldCB3b3JraW5n
+CiBiYWNrbGlnaHQgZXZlbiB0aG91Z2ggX1NUQSByZXR1cm5zIDAuIFRoZSBCYXkgVHJhaWwgU29D
+IGhhcyAyIFBXTSBjb250cm9sbGVycwogYW5kIHdlIG9ubHkgbmVlZCB0aGUgZmlyc3Qgb25lLiBV
+SUQgbWF0Y2hpbmcgd2lsbCBhbGxvd3MgYWRkaW5nIGFuIGVudHJ5IGZvcgogQmF5IFRyYWlsIHdo
+aWNoIG9ubHkgZW5hYmxlcyB0aGUgZmlyc3QgUFdNIGNvbnRyb2xsZXIKQ2hhbmdlcyBpbiB2NzoK
+LVB1dCB0aGUgYWN0dWFsIHg4NiBzcGVjaWZpYyBtYXRjaGluZyBjb2RlIGFuZCB0YWJsZSB3aXRo
+IGFsd2F5cyBwcmVzZW50CiBkZXZpY2UgSElEICsgVUlEICsgQ1BVIG1vZGVsIGVudHJpZXMgaW4g
+YSBuZXcgeDg2L3g4Nl91dGlscy5jIGZpbGUgd2hpY2gKIHByb3ZpZGVzIGFuIGFjcGlfZGV2aWNl
+X2Fsd2F5c19wcmVzZW50KCkgaGVscGVyIGZ1bmN0aW9uIG9uIHg4Niwgb24KIG5vbiB4ODYgYSBz
+dHViIHdoaWNoIGFsd2F5cyByZXR1cm5zIGZhbHNlIGlzIHByb3ZpZGVkCi1TcXVhc2ggaW4gdGhl
+IGFkZGl0aW9uIG9mIHRoZSBCYXkgVHJhaWwgUFdNIGVudHJ5IGluIHRoZSB0YWJsZSBhcyBpdAog
+aXMgdGhlcmUgZm9yIHRoZSBzYW1lIHJlYXNvbnMgYXMgdGhlIENoZXJyeSBUcmFpbCBlbnRyeSBp
+cyB0aGVyZQpDaGFuZ2VzIGluIHY4OgotTW92ZSB0aGUgYWNwaV9kZXZpY2VfYWx3YXlzX3ByZXNl
+bnQoKSBjaGVjayB0byBhY3BpX2J1c19nZXRfc3RhdHVzKCksCiBsZWF2ZSBhY3BpX3NldF9kZXZp
+Y2Vfc3RhdHVzIHVuY2hhbmdlZAotLS0KIGRyaXZlcnMvYWNwaS9NYWtlZmlsZSAgICAgICAgfCAg
+MSArCiBkcml2ZXJzL2FjcGkvYnVzLmMgICAgICAgICAgIHwgIDUgKysrCiBkcml2ZXJzL2FjcGkv
+eDg2L3g4Nl91dGlscy5jIHwgODUgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysKIGluY2x1ZGUvYWNwaS9hY3BpX2J1cy5oICAgICAgfCAgOSArKysrKwogNCBmaWxl
+cyBjaGFuZ2VkLCAxMDAgaW5zZXJ0aW9ucygrKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMv
+YWNwaS94ODYveDg2X3V0aWxzLmMKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvTWFrZWZpbGUg
+Yi9kcml2ZXJzL2FjcGkvTWFrZWZpbGUKaW5kZXggZDc4MDY1Yy4uZjM5NDBhYyAxMDA2NDQKLS0t
+IGEvZHJpdmVycy9hY3BpL01ha2VmaWxlCisrKyBiL2RyaXZlcnMvYWNwaS9NYWtlZmlsZQpAQCAt
+NTAsNiArNTAsNyBAQCBhY3BpLSQoQ09ORklHX0FDUElfUkVEVUNFRF9IQVJEV0FSRV9PTkxZKSAr
+PSBldmdlZC5vCiBhY3BpLXkJCQkJKz0gc3lzZnMubwogYWNwaS15CQkJCSs9IHByb3BlcnR5Lm8K
+IGFjcGktJChDT05GSUdfWDg2KQkJKz0gYWNwaV9jbW9zX3J0Yy5vCithY3BpLSQoQ09ORklHX1g4
+NikJCSs9IHg4Ni94ODZfdXRpbHMubwogYWNwaS0kKENPTkZJR19ERUJVR19GUykJCSs9IGRlYnVn
+ZnMubwogYWNwaS0kKENPTkZJR19BQ1BJX05VTUEpCSs9IG51bWEubwogYWNwaS0kKENPTkZJR19B
+Q1BJX1BST0NGU19QT1dFUikgKz0gY21fc2JzLm8KZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9i
+dXMuYyBiL2RyaXZlcnMvYWNwaS9idXMuYwppbmRleCAzNGZiZTAyLi43ODRiZGE2IDEwMDY0NAot
+LS0gYS9kcml2ZXJzL2FjcGkvYnVzLmMKKysrIGIvZHJpdmVycy9hY3BpL2J1cy5jCkBAIC0xMTQs
+NiArMTE0LDExIEBAIGludCBhY3BpX2J1c19nZXRfc3RhdHVzKHN0cnVjdCBhY3BpX2RldmljZSAq
+ZGV2aWNlKQogCWFjcGlfc3RhdHVzIHN0YXR1czsKIAl1bnNpZ25lZCBsb25nIGxvbmcgc3RhOwog
+CisJaWYgKGFjcGlfZGV2aWNlX2Fsd2F5c19wcmVzZW50KGRldmljZSkpIHsKKwkJYWNwaV9zZXRf
+ZGV2aWNlX3N0YXR1cyhkZXZpY2UsIEFDUElfU1RBX0RFRkFVTFQpOworCQlyZXR1cm4gMDsKKwl9
+CisKIAlzdGF0dXMgPSBhY3BpX2J1c19nZXRfc3RhdHVzX2hhbmRsZShkZXZpY2UtPmhhbmRsZSwg
+JnN0YSk7CiAJaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKQogCQlyZXR1cm4gLUVOT0RFVjsKZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS94ODYveDg2X3V0aWxzLmMgYi9kcml2ZXJzL2FjcGkveDg2
+L3g4Nl91dGlscy5jCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLjc0ZjEyMzcK
+LS0tIC9kZXYvbnVsbAorKysgYi9kcml2ZXJzL2FjcGkveDg2L3g4Nl91dGlscy5jCkBAIC0wLDAg
+KzEsODUgQEAKKy8qCisgKiAgWDg2IEFDUEkgVXRpbGl0eSBGdW5jdGlvbnMKKyAqCisgKiBDb3B5
+cmlnaHQgKEMpIDIwMTcgSGFucyBkZSBHb2VkZSA8aGRlZ29lZGVAcmVkaGF0LmNvbT4KKyAqCisg
+KiBCYXNlZCBvbiB2YXJpb3VzIG5vbiB1cHN0cmVhbSBwYXRjaGVzIHRvIHN1cHBvcnQgdGhlIENI
+VCBXaGlza2V5IENvdmUgUE1JQzoKKyAqIENvcHlyaWdodCAoQykgMjAxMy0yMDE1IEludGVsIENv
+cnBvcmF0aW9uLiBBbGwgcmlnaHRzIHJlc2VydmVkLgorICoKKyAqIFRoaXMgcHJvZ3JhbSBpcyBm
+cmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CisgKiBp
+dCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIHZlcnNp
+b24gMiBhcworICogcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24uCisg
+Ki8KKworI2luY2x1ZGUgPGxpbnV4L2FjcGkuaD4KKyNpbmNsdWRlIDxhc20vY3B1X2RldmljZV9p
+ZC5oPgorI2luY2x1ZGUgPGFzbS9pbnRlbC1mYW1pbHkuaD4KKyNpbmNsdWRlICIuLi9pbnRlcm5h
+bC5oIgorCisvKgorICogU29tZSBBQ1BJIGRldmljZXMgYXJlIGhpZGRlbiAoc3RhdHVzID09IDB4
+MCkgaW4gcmVjZW50IEJJT1MtZXMgYmVjYXVzZQorICogc29tZSByZWNlbnQgV2luZG93cyBkcml2
+ZXJzIGJpbmQgdG8gb25lIGRldmljZSBidXQgcG9rZSBhdCBtdWx0aXBsZQorICogZGV2aWNlcyBh
+dCB0aGUgc2FtZSB0aW1lLCBzbyB0aGUgb3RoZXJzIGdldCBoaWRkZW4uCisgKiBXZSB3b3JrIGFy
+b3VuZCB0aGlzIGJ5IGFsd2F5cyByZXBvcnRpbmcgQUNQSV9TVEFfREVGQVVMVCBmb3IgdGhlc2UK
+KyAqIGRldmljZXMuIE5vdGUgdGhpcyBNVVNUIG9ubHkgYmUgZG9uZSBmb3IgZGV2aWNlcyB3aGVy
+ZSB0aGlzIGlzIHNhZmUuCisgKgorICogVGhpcyBmb3JjaW5nIG9mIGRldmljZXMgdG8gYmUgcHJl
+c2VudCBpcyBsaW1pdGVkIHRvIHNwZWNpZmljIENQVSAoU29DKQorICogbW9kZWxzIGJvdGggdG8g
+YXZvaWQgcG90ZW50aWFsbHkgY2F1c2luZyB0cm91YmxlIG9uIG90aGVyIG1vZGVscyBhbmQKKyAq
+IGJlY2F1c2Ugc29tZSBISURzIGFyZSByZS11c2VkIG9uIGRpZmZlcmVudCBTb0NzIGZvciBjb21w
+bGV0ZWx5CisgKiBkaWZmZXJlbnQgZGV2aWNlcy4KKyAqLworc3RydWN0IGFsd2F5c19wcmVzZW50
+X2lkIHsKKwlzdHJ1Y3QgYWNwaV9kZXZpY2VfaWQgaGlkWzJdOworCXN0cnVjdCB4ODZfY3B1X2lk
+IGNwdV9pZHNbMl07CisJY29uc3QgY2hhciAqdWlkOworfTsKKworI2RlZmluZSBJQ1BVKG1vZGVs
+KQl7IFg4Nl9WRU5ET1JfSU5URUwsIDYsIG1vZGVsLCBYODZfRkVBVFVSRV9BTlksIH0KKworI2Rl
+ZmluZSBFTlRSWShoaWQsIHVpZCwgY3B1X21vZGVscykgewkJCQkJXAorCXsgeyBoaWQsIH0sIHt9
+IH0sCQkJCQkJXAorCXsgY3B1X21vZGVscywge30gfSwJCQkJCQlcCisJdWlkLAkJCQkJCQkJXAor
+fQorCitzdGF0aWMgY29uc3Qgc3RydWN0IGFsd2F5c19wcmVzZW50X2lkIGFsd2F5c19wcmVzZW50
+X2lkc1tdID0geworCS8qCisJICogQmF5IC8gQ2hlcnJ5IFRyYWlsIFBXTSBkaXJlY3RseSBwb2tl
+ZCBieSBHUFUgZHJpdmVyIGluIHdpbjEwLAorCSAqIGJ1dCBMaW51eCB1c2VzIGEgc2VwYXJhdGUg
+UFdNIGRyaXZlciwgaGFybWxlc3MgaWYgbm90IHVzZWQuCisJICovCisJRU5UUlkoIjgwODYwRjA5
+IiwgIjEiLCBJQ1BVKElOVEVMX0ZBTTZfQVRPTV9TSUxWRVJNT05UMSkpLAorCUVOVFJZKCI4MDg2
+MjI4OCIsICIxIiwgSUNQVShJTlRFTF9GQU02X0FUT01fQUlSTU9OVCkpLAorfTsKKworYm9vbCBh
+Y3BpX2RldmljZV9hbHdheXNfcHJlc2VudChzdHJ1Y3QgYWNwaV9kZXZpY2UgKmFkZXYpCit7CisJ
+dTMyICpzdGF0dXMgPSAodTMyICopJmFkZXYtPnN0YXR1czsKKwl1MzIgb2xkX3N0YXR1cyA9ICpz
+dGF0dXM7CisJYm9vbCByZXQgPSBmYWxzZTsKKwl1bnNpZ25lZCBpbnQgaTsKKworCS8qIGFjcGlf
+bWF0Y2hfZGV2aWNlX2lkcyBjaGVja3Mgc3RhdHVzLCBzbyBzZXQgaXQgdG8gZGVmYXVsdCAqLwor
+CSpzdGF0dXMgPSBBQ1BJX1NUQV9ERUZBVUxUOworCWZvciAoaSA9IDA7IGkgPCBBUlJBWV9TSVpF
+KGFsd2F5c19wcmVzZW50X2lkcyk7IGkrKykgeworCQlpZiAoYWNwaV9tYXRjaF9kZXZpY2VfaWRz
+KGFkZXYsIGFsd2F5c19wcmVzZW50X2lkc1tpXS5oaWQpKQorCQkJY29udGludWU7CisKKwkJaWYg
+KCFhZGV2LT5wbnAudW5pcXVlX2lkIHx8CisJCSAgICBzdHJjbXAoYWRldi0+cG5wLnVuaXF1ZV9p
+ZCwgYWx3YXlzX3ByZXNlbnRfaWRzW2ldLnVpZCkpCisJCQljb250aW51ZTsKKworCQlpZiAoIXg4
+Nl9tYXRjaF9jcHUoYWx3YXlzX3ByZXNlbnRfaWRzW2ldLmNwdV9pZHMpKQorCQkJY29udGludWU7
+CisKKwkJaWYgKG9sZF9zdGF0dXMgIT0gQUNQSV9TVEFfREVGQVVMVCkgLyogTG9nIG9ubHkgb25j
+ZSAqLworCQkJZGV2X2luZm8oJmFkZXYtPmRldiwKKwkJCQkgIkRldmljZSBbJXNdIGlzIGluIGFs
+d2F5cyBwcmVzZW50IGxpc3RcbiIsCisJCQkJIGFkZXYtPnBucC5idXNfaWQpOworCisJCXJldCA9
+IHRydWU7CisJCWJyZWFrOworCX0KKwkqc3RhdHVzID0gb2xkX3N0YXR1czsKKworCXJldHVybiBy
+ZXQ7Cit9CmRpZmYgLS1naXQgYS9pbmNsdWRlL2FjcGkvYWNwaV9idXMuaCBiL2luY2x1ZGUvYWNw
+aS9hY3BpX2J1cy5oCmluZGV4IGI1M2MwNTguLmEzZWY1ODQgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUv
+YWNwaS9hY3BpX2J1cy5oCisrKyBiL2luY2x1ZGUvYWNwaS9hY3BpX2J1cy5oCkBAIC01ODcsNiAr
+NTg3LDE1IEBAIHN0cnVjdCBhY3BpX3BjaV9yb290ICphY3BpX3BjaV9maW5kX3Jvb3QoYWNwaV9o
+YW5kbGUgaGFuZGxlKTsKIGludCBhY3BpX2VuYWJsZV93YWtldXBfZGV2aWNlX3Bvd2VyKHN0cnVj
+dCBhY3BpX2RldmljZSAqZGV2LCBpbnQgc3RhdGUpOwogaW50IGFjcGlfZGlzYWJsZV93YWtldXBf
+ZGV2aWNlX3Bvd2VyKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2KTsKIAorI2lmZGVmIENPTkZJR19Y
+ODYKK2Jvb2wgYWNwaV9kZXZpY2VfYWx3YXlzX3ByZXNlbnQoc3RydWN0IGFjcGlfZGV2aWNlICph
+ZGV2KTsKKyNlbHNlCitzdGF0aWMgaW5saW5lIGJvb2wgYWNwaV9kZXZpY2VfYWx3YXlzX3ByZXNl
+bnQoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2KQoreworCXJldHVybiBmYWxzZTsKK30KKyNlbmRp
+ZgorCiAjaWZkZWYgQ09ORklHX1BNCiBhY3BpX3N0YXR1cyBhY3BpX2FkZF9wbV9ub3RpZmllcihz
+dHJ1Y3QgYWNwaV9kZXZpY2UgKmFkZXYsIHN0cnVjdCBkZXZpY2UgKmRldiwKIAkJCQkgdm9pZCAo
+KndvcmtfZnVuYykoc3RydWN0IHdvcmtfc3RydWN0ICp3b3JrKSk7Ci0tIAoyLjkuMwoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxp
+bmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJl
+ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
