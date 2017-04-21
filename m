@@ -1,159 +1,110 @@
-From: Hans de Goede <j.w.r.degoede@gmail.com>
-Subject: Re: [PATCH v7 1/2] ACPI / bus: Introduce a list of ids for "always
- present" devices
-Date: Fri, 21 Apr 2017 11:59:34 +0200
-Message-ID: <1c429ce0-8637-b749-2c9b-de7d6a722962@gmail.com>
-References: <20170419120408.25037-1-hdegoede@redhat.com>
- <CAJZ5v0jkE0DWBewfzJGM5i92FQrKv_=EKR5hu28NR=hw4Kv2jw@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] drivers/platform/x86: Add driver for INT0002 ACPI device
+Date: Fri, 21 Apr 2017 12:11:26 +0200
+Message-ID: <24d0d0f1-93dc-8413-651d-104703cdb216@redhat.com>
+References: <20170421074157.19159-1-hdegoede@redhat.com>
+ <s5hfuh2mayi.wl-tiwai@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34301 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1037544AbdDUJ7i (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Apr 2017 05:59:38 -0400
-Received: by mail-wr0-f196.google.com with SMTP id 6so7250877wra.1
-        for <linux-acpi@vger.kernel.org>; Fri, 21 Apr 2017 02:59:37 -0700 (PDT)
-In-Reply-To: <CAJZ5v0jkE0DWBewfzJGM5i92FQrKv_=EKR5hu28NR=hw4Kv2jw@mail.gmail.com>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <s5hfuh2mayi.wl-tiwai@suse.de>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Hans de Goede <hdegoede@redhat.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>, =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Robert Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
 Hi,
 
-On 19-04-17 22:14, Rafael J. Wysocki wrote:
-> On Wed, Apr 19, 2017 at 2:04 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->> Several Bay / Cherry Trail devices (all of which ship with Windows 10) hide
->> the LPSS PWM controller in ACPI, typically the _STA method looks like this:
+On 21-04-17 10:17, Takashi Iwai wrote:
+> On Fri, 21 Apr 2017 09:41:57 +0200,
+> Hans de Goede wrote:
 >>
->>      Method (_STA, 0, NotSerialized)  // _STA: Status
->>      {
->>          If (OSID == One)
->>          {
->>              Return (Zero)
->>          }
+>> Some peripherals on Baytrail and Cherrytrail platforms signal PME to the
+>> PMC to wakeup the system. When this happens software needs to clear the
+>> PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
 >>
->>          Return (0x0F)
->>      }
+>> This is modelled in ACPI through the INT0002 ACPI device.
 >>
->> Where OSID is some dark magic seen in all Cherry Trail ACPI tables making
->> the machine behave differently depending on which OS it *thinks* it is
->> booting, this gets set in a number of ways which we cannot control, on
->> some newer machines it simple hardcoded to "One" aka win10.
->>
->> This causes the PWM controller to get hidden, which means Linux cannot
->> control the backlight level on cht based tablets / laptops.
->>
->> Since loading the driver for this does no harm (the only in kernel user
->> of it is the i915 driver, which will only uses it when it needs it), this
->> commit makes acpi_bus_get_status() always set status to ACPI_STA_DEFAULT
->> for the LPSS PWM device, fixing the lack of backlight control.
+>> This commit adds a driver which will bind to that device, call the
+>> ACPI event handler for the wakeup and clear the interrupt source
+>> avoiding the irq storm.
 >>
 >> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->> Changes in v2:
->> -Use pr_debug instead of ACPI_DEBUG_PRINT
->> Changes in v3:
->> -Un-inline acpi_set_device_status and do the always_present_device_ids
->>   table check inside the un-inlined version of it
->> Changes in v4:
->> -Use dev_info instead of pr_debug
->> -Not only check for ACPI HID but also for CPU (SoC) model so as to not
->>   for devices present on other models then for which the quirk is intended and
->>   to avoid enabling unrelated ACPI devices which happen to use the same HID
->> Changes in v5:
->> -Only do the dev_info once per device (acpi_set_device_status gets called
->>   multiple times per device during boot)
->> Changes in v6:
->> -Allow specifying more then one CPU-model for a single HID
->> -Not only match the HID but also the UID, like on Cherry Trail, on some Bay
->>   Trail Windows 10 tablets we need to enable the PWM controller to get working
->>   backlight even though _STA returns 0. The Bay Trail SoC has 2 PWM controllers
->>   and we only need the first one. UID matching will allows adding an entry for
->>   Bay Trail which only enables the first PWM controller
->> Changes in v7:
->> -Put the actual x86 specific matching code and table with always present
->>   device HID + UID + CPU model entries in a new x86/x86_utils.c file which
->>   provides an acpi_device_always_present() helper function on x86, on
->>   non x86 a stub which always returns false is provided
->> -Squash in the addition of the Bay Trail PWM entry in the table as it
->>   is there for the same reasons as the Cherry Trail entry is there
+> 
+> This patch requires your previous "always present" patchset, right?
 
-<snip>
+On boards where the _STA for INT0002 returns 0, that patchset
+is needed for the driver to bind to the device, so yes it has
+a functional requirement on some (most it seems) board, but
+only at run-time, it can be merged independently.
 
->> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
->> index 34fbe02..4d952cc 100644
->> --- a/drivers/acpi/bus.c
->> +++ b/drivers/acpi/bus.c
->> @@ -132,6 +132,16 @@ int acpi_bus_get_status(struct acpi_device *device)
->>   }
->>   EXPORT_SYMBOL(acpi_bus_get_status);
->>
->> +void acpi_set_device_status(struct acpi_device *adev, u32 sta)
+> Some nitpicking:
+> 
+>> --- /dev/null
+>> +++ b/drivers/platform/x86/intel_int0002.c
+> ...
+>> +struct int0002_data {
+>> +	struct spinlock lock;
+>> +	struct device *dev;
+>> +	const struct x86_cpu_id *cpu_id;
+>> +	acpi_handle handle;
+>> +	char ev_name[5];
+> 
+> Are 5 bytes enough?  I see the code below:
+> 
+>> +		snprintf(data->ev_name, sizeof(data->ev_name), "_%c%02X",
+>> +			res->data.gpio.triggering ? 'E' : 'L',
+>> +			res->data.gpio.pin_table[0]);
+> 
+> So it counts 6 including NUL.
+
+The name is e.g. _E02 or _L02 so 5 bytes including the NUL is enough :)
+
+> 
+>> +static int int0002_probe(struct platform_device *pdev)
 >> +{
->> +       u32 *status = (u32 *)&adev->status;
+>> +	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+>> +	struct device *dev = &pdev->dev;
+>> +	struct int0002_data *data;
+>> +	struct acpi_resource *res;
+>> +	acpi_status status;
+>> +	acpi_handle hdl;
+>> +	int irq, ret;
 >> +
->> +       if (acpi_device_always_present(adev))
->> +               *status = ACPI_STA_DEFAULT;
->> +       else
->> +               *status = sta;
+>> +	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+>> +	if (!data) {
+>> +		dev_err(dev, "can't allocate memory for int0002\n");
 > 
-> *((u32 *)&adev->status) = acpi_device_always_present(adev) ?
-> ACPI_STA_DEFAULT : sta;
+> The error message is mostly superfluous.
+
+Agreed, will fix for v2.
+
+>> +static int int0002_runtime_suspend(struct device *dev)
+>> +{
+>> +	return 0;
+>> +}
+>> +
+>> +static int int0002_runtime_resume(struct device *dev)
+>> +{
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct dev_pm_ops int0002_pm_ops = {
+>> +	.runtime_suspend = int0002_runtime_suspend,
+>> +	.runtime_resume = int0002_runtime_resume,
+>> +};
 > 
-> and I guess it could still be static inline?
-> 
-> But that said, evaluating _STA for the always present devices is
-> pointless (as Lukas noticed), so why not to modify
-> acpi_bus_get_status() to do something like:
-> 
->      if (acpi_device_always_present(adev)) {
->          acpi_set_device_status(adev, ACPI_STA_DEFAULT);
->          return 0;
->      }
-> 
-> upfront
+> Do we need these runtime PM?  If not, we can remove the header
+> inclusion, too.
 
-Hehe, my v1 of this patch actually did the check in acpi_bus_get_status()
-I moved it to acpi_set_device_status() on your request. Moving it back
-is fine with me and indeed seems cleaner.
+We enable runtime pm for this device, at which point these
+are mandatory.
 
-> and modify the other path invoking acpi_set_device_status() accordingly.
-> 
-> And in that path, which I seem to have overlooked before, the
-> acpi_set_device_status() call is too early for invoking
-> acpi_device_always_present(adev), so the latter should be called
-> directly from acpi_add_single_object() like
-> 
->      acpi_init_device_object(device, handle, type, sta);
->      if (acpi_device_always_present(adev))
->          acpi_set_device_status(adev, ACPI_STA_DEFAULT);
-
-That is not necessary, the place(s) where we care about status being
-fixed-up for always-present devices, so that they get scanned / their
-platform device initiated, is in acpi_bus_attach() which
-already calls acpi_bus_get_status() and thus gets the
-acpi_device_always_present() check applied before checking.
-
-For hotplugged devices there are acpi_scan_bus_check and
-acpi_scan_device_check but those both also already call
-acpi_bus_get_status() before checking adev->status.
-
-So just adding the check to acpi_bus_get_status(), as I did in
-v1 is sufficient.
-
-Note that the end result is still significantly cleaner then v1
-as we're now using the acpi_device_always_present() which makes
-the drivers/acpi/bus.c changes a lot cleaner.
-
-I'll go and test this and then send a v8.
+> Other than that, I confirmed to work on my ASUS E200H.
+>    Tested-by: Takashi Iwai <tiwai@suse.de>
 
 Regards,
 
 Hans
-
-
-
