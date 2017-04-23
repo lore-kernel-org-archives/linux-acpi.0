@@ -1,44 +1,76 @@
-From: <info@cityofnorthbay.ca>
-Subject: 30905 linux-acpi
-Date: Sun, 23 Apr 2017 04:57:23 -0000
-Message-ID: <149292344393.15559.4504354408319948452@vivozap.com.br>
+From: "Winkler, Tomas" <tomas.winkler@intel.com>
+Subject: RE: [PATCH v1 1/8] lib/uuid: Introduce uuid_{be|le}_cmp_p{p}()
+ helpers
+Date: Sun, 23 Apr 2017 10:29:14 +0000
+Message-ID: <5B8DA87D05A7694D9FA63FD143655C1B543E8399@hasmsx108.ger.corp.intel.com>
+References: <20170421144645.45189-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="636066313768.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 179-244-123-134.user.vivozap.com.br ([179.244.123.134]:4700
-        "HELO vivozap.com.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S932319AbdDWE53 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Apr 2017 00:57:29 -0400
-Content-Disposition: attachment
+Received: from mga02.intel.com ([134.134.136.20]:43050 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1044826AbdDWK3U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 23 Apr 2017 06:29:20 -0400
+In-Reply-To: <20170421144645.45189-1-andriy.shevchenko@linux.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, "Koul, Vinod" <vinod.koul@intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Kirti Wankhede <kwankhede@nvidia.com>, Alex Williamson <alex.williamson@redhat.com>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Matt Fleming <matt@codeblueprint.co.uk>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-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
+> New helpers take pointers to uuid_{be|le} as parameters.
+> 
+> When using them on a raw data we don't need to do an ugly dereference and,
+> in some cases, a type casting.
+> 
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Liam Girdwood <lgirdwood@gmail.com>
+> Cc: Mark Brown <broonie@kernel.org>
+> Cc: Vinod Koul <vinod.koul@intel.com>
+> Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+> Cc: Kirti Wankhede <kwankhede@nvidia.com>
+> Cc: Alex Williamson <alex.williamson@redhat.com>
+> Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+> Cc: Haiyang Zhang <haiyangz@microsoft.com>
+> Cc: Stephen Hemminger <sthemmin@microsoft.com>
+> Cc: Tomas Winkler <tomas.winkler@intel.com>
+> Cc: Matt Fleming <matt@codeblueprint.co.uk>
+> Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  include/linux/uuid.h | 20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
+> 
+> diff --git a/include/linux/uuid.h b/include/linux/uuid.h index
+> 4dff73a89758..45312cb5ac65 100644
+> --- a/include/linux/uuid.h
+> +++ b/include/linux/uuid.h
+> @@ -58,6 +58,26 @@ static inline int uuid_be_cmp(const uuid_be u1, const
+> uuid_be u2)
+>  	return memcmp(&u1, &u2, sizeof(uuid_be));  }
+> 
+> +static inline int uuid_le_cmp_p(const uuid_le *pu1, const uuid_le u2) {
+> +	return memcmp(pu1, &u2, sizeof(uuid_le)); }
+> +
+> +static inline int uuid_be_cmp_p(const uuid_be *pu1, const uuid_be u2) {
+> +	return memcmp(pu1, &u2, sizeof(uuid_be)); }
+> +
+> +static inline int uuid_le_cmp_pp(const uuid_le *pu1, const uuid_le
+> +*pu2) {
+> +	return memcmp(pu1, pu2, sizeof(uuid_le)); }
+> +
+> +static inline int uuid_be_cmp_pp(const uuid_be *pu1, const uuid_be
+> +*pu2) {
+> +	return memcmp(pu1, pu2, sizeof(uuid_be)); }
+> +
+>  void generate_random_uuid(unsigned char uuid[16]);
+> 
+>  extern void uuid_le_gen(uuid_le *u);
+
+I think this going overboard, the _pp types  are just enough. 
+Tomas
