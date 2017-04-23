@@ -1,32 +1,45 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v1 1/8] lib/uuid: Introduce uuid_{be|le}_cmp_p{p}() helpers
-Date: Sun, 23 Apr 2017 15:42:35 +0300
-Message-ID: <CAHp75VeTgdE=OiRNS6JrH3M-rF+jpPVgmd4G+n321=vhVE4XiA@mail.gmail.com>
-References: <20170421144645.45189-1-andriy.shevchenko@linux.intel.com> <5B8DA87D05A7694D9FA63FD143655C1B543E8399@hasmsx108.ger.corp.intel.com>
+From: <h.piontek@mistravel.pl>
+Subject: 25428 linux-acpi
+Date: Sun, 23 Apr 2017 14:17:25 -0000
+Message-ID: <149295704511.20066.13473663080698814320@nojabrsk.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <5B8DA87D05A7694D9FA63FD143655C1B543E8399@hasmsx108.ger.corp.intel.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Winkler, Tomas" <tomas.winkler@intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, "Koul, Vinod" <vinod.koul@intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>Benjamin Tissoires <be>
+Content-Type: application/zip; name="3480.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from adsl-90-150-171-83.nojabrsk.ru ([90.150.171.83]:42519 "HELO
+        nojabrsk.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1045532AbdDWORa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 23 Apr 2017 10:17:30 -0400
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sun, Apr 23, 2017 at 1:29 PM, Winkler, Tomas <tomas.winkler@intel.com> wrote:
->> New helpers take pointers to uuid_{be|le} as parameters.
->>
->> When using them on a raw data we don't need to do an ugly dereference and,
->> in some cases, a type casting.
-
-> I think this going overboard, the _pp types  are just enough.
-I looked at existing users and there are cases like
-#define XXX_UUID UUID_...(a, b, c, ...)
-
-uuid_.*_cmp(value, XXX_UUID)
-
-For _pp variant if would be _cmp_pp(value, &XXX_UUID) which is
-slightly worse than for _p variant.
-
--- 
-With Best Regards,
-Andy Shevchenko
+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
+AAAAAAEAAQBbAAAApAUAAAAA
