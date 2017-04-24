@@ -1,101 +1,94 @@
-From: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
-Subject: Re: [PATCH] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Mon, 24 Apr 2017 13:03:06 -0400
-Message-ID: <58FE2FCA.5050702@hpe.com>
-References: <149281853758.22910.2919981036906495309.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 1/1] PCI: Add MCFG quirk for 2nd node of Cavium ThunderX
+ pass2.x host controller
+Date: Mon, 24 Apr 2017 12:05:05 -0500
+Message-ID: <CAErSpo4-a4jKEpxZX3YKeAzE-oVdE3gtRDGSx7nrGuVzK9OKGA@mail.gmail.com>
+References: <1490789773-21506-1-git-send-email-tn@semihalf.com>
+ <20170421165614.GA17916@bhelgaas-glaptop.roam.corp.google.com> <20170424093429.GT16981@rric.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <149281853758.22910.2919981036906495309.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:38624 "EHLO
+        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S975374AbdDXRF1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Apr 2017 13:05:27 -0400
+Received: by mail-wm0-f44.google.com with SMTP id r190so74118135wme.1
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Apr 2017 10:05:26 -0700 (PDT)
+In-Reply-To: <20170424093429.GT16981@rric.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robert Richter <robert.richter@cavium.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, David Daney <ddaney@caviumnetworks.com>, Vadim.Lomovtsev@caviumnetworks.com, "Rafael J. Wysocki" <rafael@kernel.org>, Sunil.Goutham@cavium.com, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 04/21/2017 07:48 PM, Dan Williams wrote:
-> The nvdimm_flush() mechanism helps to reduce the impact of an ADR
-> (asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
-> platform WPQ (write-pending-queue) buffers when power is removed. The
-> nvdimm_flush() mechanism performs that same function on-demand.
-> 
-> When a pmem namespace is associated with a block device, an
-> nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
-> request. However, when a namespace is in device-dax mode, or namespaces
-> are disabled, userspace needs another path.
+On Mon, Apr 24, 2017 at 4:34 AM, Robert Richter
+<robert.richter@cavium.com> wrote:
+> On 21.04.17 11:56:14, Bjorn Helgaas wrote:
+>> On Wed, Mar 29, 2017 at 02:16:13PM +0200, Tomasz Nowicki wrote:
+>> > Currently SoCs pass2.x do not emulate EA headers for ACPI boot method at all.
+>> > However, for pass2.x some devices (like EDAC) advertise incorrect base addresses
+>> > in their BARs which results in driver probe failure during resource request.
+>> > Since all problematic blocks are on 2nd NUMA node under domain 10 add necessary
+>> > quirk entry to obtain BAR addresses correction using EA header emulation.
+>> >
+>> > Fixes: 44f22bd91e88 ("PCI: Add MCFG quirks for Cavium ThunderX pass2.x host controller")
+>> > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> > CC: stable@vger.kernel.org  # v4.10+
+>>
+>> Sorry Tomasz, I must have mistakenly marked this "accepted" in
+>> patchwork, so it fell off my to-do list.  It's too late to get this in
+>> v4.11, but I can still apply it for v4.12.
+>>
+>> I put it on my pci/host-thunder branch with Robert's ack.  I added a preceding
+>> patch to tidy up whitespace, which makes this patch look like just:
+>>
+>>         /* SoC pass2.x */
+>>         THUNDER_PEM_QUIRK(1, 0),
+>>         THUNDER_PEM_QUIRK(1, 1),
+>> +       THUNDER_ECAM_QUIRK(1, 10),
+>>
+>> Please double-check it to make sure this is what you need.
+>
+> Bjorn,
+>
+> since the second is marked stable there will be conflicts when
+> applying it to stable (or built errors). The best would be to change
+> order of both (128cd6e8249f^, 128cd6e8249f) for smooth backporting
+> which makes it then more close to Tomasz's version again.
 
-Why would a user need to flush a disabled namespace?
+Thanks, I should have noticed that.  Could go either way; I just
+marked 128cd6e8249f^ for stable as well, since it seemed marginally
+easier to read to split the whitespace changes from the real change.
 
-> The new 'flush' attribute is visible when it can be determined that the
-> interleave-set either does, or does not have DIMMs that expose WPQ-flush
-> addresses, "flush-hints" in ACPI NFIT terminology. It returns "1" and
-> flushes DIMMs, or returns "0" the flush operation is a platform nop.
-
-It seems a little odd to me that reading a read-only attribute both
-tells you that the device has flush hints and also triggers a flush.
-This means that anyone at any time can cause a flush.  Do we want that?
-
--- ljk
-
-> 
-> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/nvdimm/region_devs.c |   17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
-> 
-> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-> index 8de5a04644a1..3495b4c23941 100644
-> --- a/drivers/nvdimm/region_devs.c
-> +++ b/drivers/nvdimm/region_devs.c
-> @@ -255,6 +255,19 @@ static ssize_t size_show(struct device *dev,
->  }
->  static DEVICE_ATTR_RO(size);
->  
-> +static ssize_t flush_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct nd_region *nd_region = to_nd_region(dev);
-> +
-> +	if (nvdimm_has_flush(nd_region)) {
-> +		nvdimm_flush(nd_region);
-> +		return sprintf(buf, "1\n");
-> +	}
-> +	return sprintf(buf, "0\n");
-> +}
-> +static DEVICE_ATTR_RO(flush);
-> +
->  static ssize_t mappings_show(struct device *dev,
->  		struct device_attribute *attr, char *buf)
->  {
-> @@ -474,6 +487,7 @@ static DEVICE_ATTR_RO(resource);
->  
->  static struct attribute *nd_region_attributes[] = {
->  	&dev_attr_size.attr,
-> +	&dev_attr_flush.attr,
->  	&dev_attr_nstype.attr,
->  	&dev_attr_mappings.attr,
->  	&dev_attr_btt_seed.attr,
-> @@ -508,6 +522,9 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
->  	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
->  		return 0;
->  
-> +	if (a == &dev_attr_flush.attr && nvdimm_has_flush(nd_region) < 0)
-> +		return 0;
-> +
->  	if (a != &dev_attr_set_cookie.attr
->  			&& a != &dev_attr_available_size.attr)
->  		return a->mode;
-> 
-> _______________________________________________
-> Linux-nvdimm mailing list
-> Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> https://lists.01.org/mailman/listinfo/linux-nvdimm
-> 
+>> > ---
+>> >  drivers/acpi/pci_mcfg.c | 7 ++++---
+>> >  1 file changed, 4 insertions(+), 3 deletions(-)
+>> >
+>> > diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+>> > index a6a4cea..a0a391e 100644
+>> > --- a/drivers/acpi/pci_mcfg.c
+>> > +++ b/drivers/acpi/pci_mcfg.c
+>> > @@ -90,13 +90,14 @@ static struct mcfg_fixup mcfg_quirks[] = {
+>> >       &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x894057000000UL, node) },  \
+>> >     { "CAVIUM", "THUNDERX", rev, 9 + (10 * (node)), MCFG_BUS_ANY,       \
+>> >       &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x89808f000000UL, node) }
+>> > +#define THUNDER_ECAM_QUIRK(rev, seg)                                       \
+>> > +   { "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,                 \
+>> > +   &pci_thunder_ecam_ops }
+>> >     /* SoC pass2.x */
+>> >     THUNDER_PEM_QUIRK(1, 0),
+>> >     THUNDER_PEM_QUIRK(1, 1),
+>> > +   THUNDER_ECAM_QUIRK(1, 10),
+>> >
+>> > -#define THUNDER_ECAM_QUIRK(rev, seg)                                       \
+>> > -   { "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,                 \
+>> > -   &pci_thunder_ecam_ops }
+>> >     /* SoC pass1.x */
+>> >     THUNDER_PEM_QUIRK(2, 0),        /* off-chip devices */
+>> >     THUNDER_PEM_QUIRK(2, 1),        /* off-chip devices */
+>> > --
+>> > 2.7.4
+>> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
