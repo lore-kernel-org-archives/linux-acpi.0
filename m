@@ -1,133 +1,81 @@
-From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Mon, 24 Apr 2017 14:31:12 +0900
-Message-ID: <20170424143104.4517.61FB500B@jp.fujitsu.com>
+Date: Mon, 24 Apr 2017 00:04:23 -0700
+Message-ID: <CAA9_cmd4mihnee6HARww=Lrtd87fNwqShNDeJ5GG7dmyohamuA@mail.gmail.com>
 References: <149281853758.22910.2919981036906495309.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20170424143104.4517.61FB500B@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mgwym04.jp.fujitsu.com ([211.128.242.43]:60363 "EHLO
-        mgwym04.jp.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1046389AbdDXFnS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Apr 2017 01:43:18 -0400
-In-Reply-To: <149281853758.22910.2919981036906495309.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170424143104.4517.61FB500B-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Masayoshi Mizuma <m.mizuma-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 21 Apr 2017 16:48:57 -0700 Dan Williams wrote:
-> The nvdimm_flush() mechanism helps to reduce the impact of an ADR
-> (asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
-> platform WPQ (write-pending-queue) buffers when power is removed. The
-> nvdimm_flush() mechanism performs that same function on-demand.
-> 
-> When a pmem namespace is associated with a block device, an
-> nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
-> request. However, when a namespace is in device-dax mode, or namespaces
-> are disabled, userspace needs another path.
-> 
-> The new 'flush' attribute is visible when it can be determined that the
-> interleave-set either does, or does not have DIMMs that expose WPQ-flush
-> addresses, "flush-hints" in ACPI NFIT terminology. It returns "1" and
-> flushes DIMMs, or returns "0" the flush operation is a platform nop.
-> 
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/nvdimm/region_devs.c |   17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
-> 
-> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-> index 8de5a04644a1..3495b4c23941 100644
-> --- a/drivers/nvdimm/region_devs.c
-> +++ b/drivers/nvdimm/region_devs.c
-> @@ -255,6 +255,19 @@ static ssize_t size_show(struct device *dev,
->  }
->  static DEVICE_ATTR_RO(size);
->  
-> +static ssize_t flush_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct nd_region *nd_region = to_nd_region(dev);
-> +
-> +	if (nvdimm_has_flush(nd_region)) {
+On Sun, Apr 23, 2017 at 10:31 PM, Masayoshi Mizuma
+<m.mizuma-+CUm20s59erQFUHtdCDX3A@public.gmane.org> wrote:
+> On Fri, 21 Apr 2017 16:48:57 -0700 Dan Williams wrote:
+>> The nvdimm_flush() mechanism helps to reduce the impact of an ADR
+>> (asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
+>> platform WPQ (write-pending-queue) buffers when power is removed. The
+>> nvdimm_flush() mechanism performs that same function on-demand.
+>>
+>> When a pmem namespace is associated with a block device, an
+>> nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
+>> request. However, when a namespace is in device-dax mode, or namespaces
+>> are disabled, userspace needs another path.
+>>
+>> The new 'flush' attribute is visible when it can be determined that the
+>> interleave-set either does, or does not have DIMMs that expose WPQ-flush
+>> addresses, "flush-hints" in ACPI NFIT terminology. It returns "1" and
+>> flushes DIMMs, or returns "0" the flush operation is a platform nop.
+>>
+>> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> ---
+>>  drivers/nvdimm/region_devs.c |   17 +++++++++++++++++
+>>  1 file changed, 17 insertions(+)
+>>
+>> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+>> index 8de5a04644a1..3495b4c23941 100644
+>> --- a/drivers/nvdimm/region_devs.c
+>> +++ b/drivers/nvdimm/region_devs.c
+>> @@ -255,6 +255,19 @@ static ssize_t size_show(struct device *dev,
+>>  }
+>>  static DEVICE_ATTR_RO(size);
+>>
+>> +static ssize_t flush_show(struct device *dev,
+>> +             struct device_attribute *attr, char *buf)
+>> +{
+>> +     struct nd_region *nd_region = to_nd_region(dev);
+>> +
+>> +     if (nvdimm_has_flush(nd_region)) {
+>
+> nvdimm_has_flush() also returns as -ENXIO, so
+>
+> if (nvdimm_has_flush(nd_region) == 1)
 
-nvdimm_has_flush() also returns as -ENXIO, so
+If it returns -ENXIO then region_visible() will hide the attribute.
 
-if (nvdimm_has_flush(nd_region) == 1)  
+>
+>> +             nvdimm_flush(nd_region);
+>> +             return sprintf(buf, "1\n");
+>> +     }
+>> +     return sprintf(buf, "0\n");
+>> +}
+>> +static DEVICE_ATTR_RO(flush);
+>> +
+>
+> I think separating show and store is better because
+> users may only check wheter the device has the flush capability or not.
 
-> +		nvdimm_flush(nd_region);
-> +		return sprintf(buf, "1\n");
-> +	}
-> +	return sprintf(buf, "0\n");
-> +}
-> +static DEVICE_ATTR_RO(flush);
-> +
-
-I think separating show and store is better because
-users may only check wheter the device has the flush capability or not.
-
-The separate code is like as follows (not tested).
-
-static ssize_t flush_show(struct device *dev,
-	struct device_attribute *attr, char *buf)
-{
-	struct nd_region *nd_region = to_nd_region(dev);
-
-	if (nvdimm_has_flush(nd_region) == 1) {
-		return sprintf(buf, "1\n");
-	} else {
-		return sprintf(buf, "0\n");
-	}
-}
-
-static ssize_t flush_store(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t len)
-{
-	bool flush;
-	int rc = strtobool(buf, &flush);
-	struct nd_region *nd_region = to_nd_region(dev);
-
-	if (rc)
-		return rc;
-
-	if (flush && (nvdimm_has_flush(nd_region) == 1)) {
-		nvdimm_flush(nd_region);
-		return 0;
-	} else {
-		return -1;
-	}
-}
-static DEVICE_ATTR_RW(flush);
-
-Regards,
-Masayoshi Mizuma
-
->  static ssize_t mappings_show(struct device *dev,
->  		struct device_attribute *attr, char *buf)
->  {
-> @@ -474,6 +487,7 @@ static DEVICE_ATTR_RO(resource);
->  
->  static struct attribute *nd_region_attributes[] = {
->  	&dev_attr_size.attr,
-> +	&dev_attr_flush.attr,
->  	&dev_attr_nstype.attr,
->  	&dev_attr_mappings.attr,
->  	&dev_attr_btt_seed.attr,
-> @@ -508,6 +522,9 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
->  	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
->  		return 0;
->  
-> +	if (a == &dev_attr_flush.attr && nvdimm_has_flush(nd_region) < 0)
-> +		return 0;
-> +
->  	if (a != &dev_attr_set_cookie.attr
->  			&& a != &dev_attr_available_size.attr)
->  		return a->mode;
-> 
-> _______________________________________________
-> Linux-nvdimm mailing list
-> Linux-nvdimm@lists.01.org
-> https://lists.01.org/mailman/listinfo/linux-nvdimm
-
+Makes sense, I'll separate. Thanks for the review.
