@@ -1,116 +1,53 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH] ACPI / GED: use late init to allow other drivers init
-Date: Mon, 24 Apr 2017 19:33:11 -0400
-Message-ID: <3f0f2853-d2e5-be32-2bde-47e72c51a0a6@codeaurora.org>
-References: <1492813704-32280-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0gtLajqCsw0HTS=sL_=cU1aSFzUk6e_kAPAfreuCpak7g@mail.gmail.com>
- <bf1ce91f-b232-4dce-5ed7-597b0ef46f92@codeaurora.org>
- <CAJZ5v0jaGnoCjiU6VuHLyy9Kug8nHzxPxP8tuy3kphtfgmW38w@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH v2 0/2] libnvdimm: export wpq flush interface
+Date: Mon, 24 Apr 2017 16:49:51 -0700
+Message-ID: <149307779085.7155.436029631521340565.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41962 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S978746AbdDXXdO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Apr 2017 19:33:14 -0400
-In-Reply-To: <CAJZ5v0jaGnoCjiU6VuHLyy9Kug8nHzxPxP8tuy3kphtfgmW38w@mail.gmail.com>
+Received: from mga04.intel.com ([192.55.52.120]:64148 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S979267AbdDXXzo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 24 Apr 2017 19:55:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-nvdimm@lists.01.org
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>, linux-acpi@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 
-Hi Rafael,
+Changes since v1 [1]:
+* Clean up the changelog to clarify how this capability is expected to
+  be used (Jeff)
+* Make the attribute read / write to separate detection and flush
+  triggering (Masayoshi)
+* Add the flush hint detection crash fix
 
-On 4/24/2017 7:01 PM, Rafael J. Wysocki wrote:
-> On Sat, Apr 22, 2017 at 12:48 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> On 4/21/2017 6:43 PM, Rafael J. Wysocki wrote:
->>>> +late_initcall(ged_init);
->>> Does this fix the problem?
->>>
->>> What about if the module in question is loaded after running late_initcalls?
->>
->> This fixed the issue for me where I had dependencies for QUP I2C driver and GHES
->> drivers. Both of them are modules and get probed via normal module execution path.
->>
->> However, I'm open to improvements.  Do you have a better suggestion? I can try
->> to add some _DEP stuff if it is present, but I remember Linux doesn't like _DEP
->> stuff too much.
-> 
-> My point is that nothing guarantees a specific ordering or timing of
-> module loading in general, so moving stuff to different initcall
-> levels does not really help 100% of the time.
-> 
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-April/009898.html
 
-I was thinking about this today. I agree that this is not a complete solution.
+---
 
-I'm interested in drivers that are either built-in or present in the initramfs.
-Drivers that participate in GED work are considered essential drivers. I expect
-these essential drivers to be present in early boot phase. 
+Quoting the changelog from patch2:
 
-I can certainly improve the commit message.
+The nvdimm_flush() mechanism helps to reduce the impact of an ADR
+(asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
+platform WPQ (write-pending-queue) buffers when power is removed. The
+nvdimm_flush() mechanism performs that same function on-demand.
 
-As long as the drivers are built-in or available in initramfs, I expect this to work. 
-I want to focus on this use case. 
+When a pmem namespace is associated with a block device, an
+nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
+request. These requests are typically associated with filesystem
+metadata updates. However, when a namespace is in device-dax mode,
+userspace (think database metadata) needs another path to perform the
+same flushing. In other words this is not required to make data
+persistent, but in the case of metadata it allows for a smaller failure
+domain in the unlikely event of an ADR failure.
 
-static char *initcall_level_names[] __initdata = {
-        "early",
-        "core",
-        "postcore",
-        "arch",
-        "subsys",
-        "fs",
-        "device",
-        "late",
-};
+---
 
-static void __init do_initcall_level(int level)
-{
-...
-        for (fn = initcall_levels[level]; fn < initcall_levels[level+1]; fn++)
-                do_one_initcall(*fn);
-}
-
-Given these constraints, doesn't this guarantee the order of initialization for built-in and
-initramfs modules?
-
-Of course, this won't also play nice with another driver module that requires late_init.
-Maybe, this is 1% of the case. 
-
-If the driver gets pulled in from the rootfs via modules.conf, then this will definitely
-not work as you indicated. 
-
-My proposal is to explore the presence of _DEP to reach to %100. Here is an example
-
-GED OBJECT
-{
-	Name(_DEP, "Some other object")
-}
-
-I see that ACPI core checks the presence of _DEP value in acpi_device_dep_initialize() 
-and it won't load the GED driver until dependencies are met if I got it right.
-
-acpi_walk_dep_device_list() gets called from external drivers that need to unblock
-the dependent object. acpi_gpiochip_add() seems to take care of this for GPIO.
-i2c_acpi_install_space_handler() seems to take care of this for I2C. 
-
-We can potentially add acpi_walk_dep_device_list() to GHES driver for completeness.
-Then, all FW needs to do is set up a dependency from GED object to its required objects.
-
-Please let me know if I'm missing something. 
+Dan Williams (2):
+      libnvdimm, region: fix flush hint detection crash
+      libnvdimm, region: sysfs trigger for nvdimm_flush()
 
 
-> Thanks,
-> Rafael
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-Sinan
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+ drivers/nvdimm/region_devs.c |   52 +++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 48 insertions(+), 4 deletions(-)
