@@ -1,84 +1,133 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v1 2/8] ASoC: Intel: Skylake: Use recently introduced
- uuid_le_cmp_p{p}()
-Date: Mon, 24 Apr 2017 10:21:05 +0530
-Message-ID: <20170424045105.GF6263@localhost>
-References: <20170421144645.45189-1-andriy.shevchenko@linux.intel.com>
- <20170421144645.45189-2-andriy.shevchenko@linux.intel.com>
+From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+Subject: Re: [PATCH] libnvdimm, region: sysfs trigger for nvdimm_flush()
+Date: Mon, 24 Apr 2017 14:31:12 +0900
+Message-ID: <20170424143104.4517.61FB500B@jp.fujitsu.com>
+References: <149281853758.22910.2919981036906495309.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:61445 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1046128AbdDXEtV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 24 Apr 2017 00:49:21 -0400
-Content-Disposition: inline
-In-Reply-To: <20170421144645.45189-2-andriy.shevchenko@linux.intel.com>
+Received: from mgwym04.jp.fujitsu.com ([211.128.242.43]:60363 "EHLO
+        mgwym04.jp.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1046389AbdDXFnS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Apr 2017 01:43:18 -0400
+In-Reply-To: <149281853758.22910.2919981036906495309.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, alsa-devel@alsa-project.org, linux-input@vger.kernel.org, kvm@vger.kernel.org, devel@linuxdriverproject.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Apr 21, 2017 at 05:46:39PM +0300, Andy Shevchenko wrote:
-> Recently introduced helpers take pointers to uuid_{be|le} instead of
-> reference.
-
-Are they in linus's tree, if not it introduces dependency, so we might want
-to defer after merge window
-
+On Fri, 21 Apr 2017 16:48:57 -0700 Dan Williams wrote:
+> The nvdimm_flush() mechanism helps to reduce the impact of an ADR
+> (asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
+> platform WPQ (write-pending-queue) buffers when power is removed. The
+> nvdimm_flush() mechanism performs that same function on-demand.
 > 
-> Using them makes code less ugly.
-
-How so..?
-
+> When a pmem namespace is associated with a block device, an
+> nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
+> request. However, when a namespace is in device-dax mode, or namespaces
+> are disabled, userspace needs another path.
 > 
-> Cc: Liam Girdwood <lgirdwood@gmail.com>
-> Cc: Mark Brown <broonie@kernel.org>
-> Cc: Vinod Koul <vinod.koul@intel.com>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> The new 'flush' attribute is visible when it can be determined that the
+> interleave-set either does, or does not have DIMMs that expose WPQ-flush
+> addresses, "flush-hints" in ACPI NFIT terminology. It returns "1" and
+> flushes DIMMs, or returns "0" the flush operation is a platform nop.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  sound/soc/intel/skylake/skl-pcm.c       | 2 +-
->  sound/soc/intel/skylake/skl-sst-utils.c | 4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
+>  drivers/nvdimm/region_devs.c |   17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
 > 
-> diff --git a/sound/soc/intel/skylake/skl-pcm.c b/sound/soc/intel/skylake/skl-pcm.c
-> index 600faad19bd4..4bf171985872 100644
-> --- a/sound/soc/intel/skylake/skl-pcm.c
-> +++ b/sound/soc/intel/skylake/skl-pcm.c
-> @@ -1207,7 +1207,7 @@ static int skl_get_module_info(struct skl *skl, struct skl_module_cfg *mconfig)
->  	}
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index 8de5a04644a1..3495b4c23941 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -255,6 +255,19 @@ static ssize_t size_show(struct device *dev,
+>  }
+>  static DEVICE_ATTR_RO(size);
 >  
->  	list_for_each_entry(module, &ctx->uuid_list, list) {
-> -		if (uuid_le_cmp(*uuid_mod, module->uuid) == 0) {
-> +		if (uuid_le_cmp_p(uuid_mod, module->uuid) == 0) {
->  			mconfig->id.module_id = module->id;
->  			mconfig->is_loadable = module->is_loadable;
->  			return 0;
-> diff --git a/sound/soc/intel/skylake/skl-sst-utils.c b/sound/soc/intel/skylake/skl-sst-utils.c
-> index 6d5bff04bf65..67288580c743 100644
-> --- a/sound/soc/intel/skylake/skl-sst-utils.c
-> +++ b/sound/soc/intel/skylake/skl-sst-utils.c
-> @@ -189,7 +189,7 @@ int skl_get_pvt_id(struct skl_sst *ctx, uuid_le *uuid_mod, int instance_id)
->  	int pvt_id;
->  
->  	list_for_each_entry(module, &ctx->uuid_list, list) {
-> -		if (uuid_le_cmp(*uuid_mod, module->uuid) == 0) {
-> +		if (uuid_le_cmp_p(uuid_mod, module->uuid) == 0) {
->  
->  			pvt_id = skl_pvtid_128(module);
->  			if (pvt_id >= 0) {
-> @@ -218,7 +218,7 @@ int skl_put_pvt_id(struct skl_sst *ctx, uuid_le *uuid_mod, int *pvt_id)
->  	struct uuid_module *module;
->  
->  	list_for_each_entry(module, &ctx->uuid_list, list) {
-> -		if (uuid_le_cmp(*uuid_mod, module->uuid) == 0) {
-> +		if (uuid_le_cmp_p(uuid_mod, module->uuid) == 0) {
->  
->  			if (*pvt_id != 0)
->  				i = (*pvt_id) / 64;
-> -- 
-> 2.11.0
-> 
+> +static ssize_t flush_show(struct device *dev,
+> +		struct device_attribute *attr, char *buf)
+> +{
+> +	struct nd_region *nd_region = to_nd_region(dev);
+> +
+> +	if (nvdimm_has_flush(nd_region)) {
 
--- 
-~Vinod
+nvdimm_has_flush() also returns as -ENXIO, so
+
+if (nvdimm_has_flush(nd_region) == 1)  
+
+> +		nvdimm_flush(nd_region);
+> +		return sprintf(buf, "1\n");
+> +	}
+> +	return sprintf(buf, "0\n");
+> +}
+> +static DEVICE_ATTR_RO(flush);
+> +
+
+I think separating show and store is better because
+users may only check wheter the device has the flush capability or not.
+
+The separate code is like as follows (not tested).
+
+static ssize_t flush_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct nd_region *nd_region = to_nd_region(dev);
+
+	if (nvdimm_has_flush(nd_region) == 1) {
+		return sprintf(buf, "1\n");
+	} else {
+		return sprintf(buf, "0\n");
+	}
+}
+
+static ssize_t flush_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t len)
+{
+	bool flush;
+	int rc = strtobool(buf, &flush);
+	struct nd_region *nd_region = to_nd_region(dev);
+
+	if (rc)
+		return rc;
+
+	if (flush && (nvdimm_has_flush(nd_region) == 1)) {
+		nvdimm_flush(nd_region);
+		return 0;
+	} else {
+		return -1;
+	}
+}
+static DEVICE_ATTR_RW(flush);
+
+Regards,
+Masayoshi Mizuma
+
+>  static ssize_t mappings_show(struct device *dev,
+>  		struct device_attribute *attr, char *buf)
+>  {
+> @@ -474,6 +487,7 @@ static DEVICE_ATTR_RO(resource);
+>  
+>  static struct attribute *nd_region_attributes[] = {
+>  	&dev_attr_size.attr,
+> +	&dev_attr_flush.attr,
+>  	&dev_attr_nstype.attr,
+>  	&dev_attr_mappings.attr,
+>  	&dev_attr_btt_seed.attr,
+> @@ -508,6 +522,9 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
+>  	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
+>  		return 0;
+>  
+> +	if (a == &dev_attr_flush.attr && nvdimm_has_flush(nd_region) < 0)
+> +		return 0;
+> +
+>  	if (a != &dev_attr_set_cookie.attr
+>  			&& a != &dev_attr_available_size.attr)
+>  		return a->mode;
+> 
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
+
