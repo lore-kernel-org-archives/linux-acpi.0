@@ -1,90 +1,87 @@
-From: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-Subject: Re: [PATCH v1 1/8] lib/uuid: Introduce uuid_{be|le}_cmp_p{p}()
- helpers
-Date: Mon, 24 Apr 2017 12:44:02 +0200
-Message-ID: <20170424104402.GA9723@wunner.de>
-References: <20170421144645.45189-1-andriy.shevchenko@linux.intel.com>
- <5B8DA87D05A7694D9FA63FD143655C1B543E8399@hasmsx108.ger.corp.intel.com>
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: Re: [PATCH] drm/etnaviv: add thermal dependency
+Date: Mon, 24 Apr 2017 12:44:54 +0200
+Message-ID: <1493030694.2891.10.camel@pengutronix.de>
+References: <20170419181209.537907-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5B8DA87D05A7694D9FA63FD143655C1B543E8399-Jy8z56yoSI8MvF1YICWikbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: "Winkler, Tomas" <tomas.winkler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org" <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org" <devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Koul, Vinod" <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Benjamin Tissoires <benjamin.ti>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170419181209.537907-1-arnd@arndb.de>
+Sender: linux-pm-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: David Airlie <airlied@linux.ie>, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-pm@vger.kernel.org, Sujith Thomas <sujith.thomas@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell King <linux+etnaviv@armlinux.org.uk>, Christian Gmeiner <christian.gmeiner@gmail.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, etnaviv@lists.freedesktop.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-> New helpers take pointers to uuid_{be|le} as parameters.
+Am Mittwoch, den 19.04.2017, 20:11 +0200 schrieb Arnd Bergmann:
+> When CONFIG_THERMAL is enabled as a loadable module, and etnaviv is
+> built-in, we get a link error:
 > 
-> When using them on a raw data we don't need to do an ugly dereference and,
-> in some cases, a type casting.
+> drivers/gpu/drm/etnaviv/etnaviv_gpu.o: In function `etnaviv_gpu_bind':
+> etnaviv_gpu.c:(.text.etnaviv_gpu_bind+0x34): undefined reference to `thermal_of_cooling_device_register'
+> etnaviv_gpu.c:(.text.etnaviv_gpu_bind+0xe0): undefined reference to `thermal_cooling_device_unregister'
+> drivers/gpu/drm/etnaviv/etnaviv_gpu.o: In function `etnaviv_gpu_unbind':
+> etnaviv_gpu.c:(.text.etnaviv_gpu_unbind+0xf0): undefined reference to `thermal_cooling_device_unregister'
 > 
-> Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-> Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-> Cc: Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Cc: Benjamin Tissoires <benjamin.tissoires-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Kirti Wankhede <kwankhede-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-> Cc: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: "K. Y. Srinivasan" <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-> Cc: Haiyang Zhang <haiyangz-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-> Cc: Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-> Cc: Tomas Winkler <tomas.winkler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
-> Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+> This adds a Kconfig dependency to prevent etnaviv from being built-in
+> with CONFIG_THERMAL=m, while still allowing the valid configurations.
+> Unfortunately, simply adding the dependency here breaks Kconfig through
+> a dependency loop involving lots of symbols all the way until ACPI_VIDEO,
+> which is the only video driver that explicitly selects 'THERMAL'. Turning
+> this into a 'depends on' addresses the problem.
+> For completeness, I'm also removing the redundant 'select THERMAL'
+> from INTEL_MENLOW, so no other driver uses that statement.
 > 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Fixes: bcdfb5e56dc5 ("drm/etnaviv: add etnaviv cooling device")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+This patch mixes a few things, so the subject doesn't really fit. I'm
+fine with taking the patch trough my tree, if I can get an ACK on the
+ACPI part.
+
+Regards,
+Lucas
+
 > ---
->  include/linux/uuid.h | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
+>  drivers/acpi/Kconfig            | 2 +-
+>  drivers/gpu/drm/etnaviv/Kconfig | 1 +
+>  drivers/platform/x86/Kconfig    | 1 -
+>  3 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/include/linux/uuid.h b/include/linux/uuid.h index
-> 4dff73a89758..45312cb5ac65 100644
-> --- a/include/linux/uuid.h
-> +++ b/include/linux/uuid.h
-> @@ -58,6 +58,26 @@ static inline int uuid_be_cmp(const uuid_be u1, const
-> uuid_be u2)
->  	return memcmp(&u1, &u2, sizeof(uuid_be));  }
-> 
-> +static inline int uuid_le_cmp_p(const uuid_le *pu1, const uuid_le u2) {
-> +	return memcmp(pu1, &u2, sizeof(uuid_le)); }
-> +
-> +static inline int uuid_be_cmp_p(const uuid_be *pu1, const uuid_be u2) {
-> +	return memcmp(pu1, &u2, sizeof(uuid_be)); }
-> +
-> +static inline int uuid_le_cmp_pp(const uuid_le *pu1, const uuid_le
-> +*pu2) {
-> +	return memcmp(pu1, pu2, sizeof(uuid_le)); }
-> +
-> +static inline int uuid_be_cmp_pp(const uuid_be *pu1, const uuid_be
-> +*pu2) {
-> +	return memcmp(pu1, pu2, sizeof(uuid_be)); }
-> +
->  void generate_random_uuid(unsigned char uuid[16]);
-> 
->  extern void uuid_le_gen(uuid_le *u);
-
-There's a bug in gcc wherein constant compound literals are generated
-on the stack at runtime, rather than stored in rodata.  The bug occurs
-if the compound literal is passed by reference.  It does not manifest
-itself when passing by value:
-
-https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68725
-
-Hence this patch is unfortunately counterproductive if the UUIDs are
-declared const.
-
-FWIW I've posted a series back in January to constify UUIDs as much as
-possible, but I got some objections and lacked the time so far to
-address them.  In fact I'm thinking that gcc needs to be fixed first,
-then we can focus on improving the kernel side of things:
-
-https://www.spinics.net/lists/linux-efi/msg10093.html
-
-Best regards,
-
-Lukas
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 03cc4e74096b..252399efa8b3 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -184,7 +184,7 @@ config ACPI_VIDEO
+>  	tristate "Video"
+>  	depends on X86 && BACKLIGHT_CLASS_DEVICE
+>  	depends on INPUT
+> -	select THERMAL
+> +	depends on THERMAL
+>  	help
+>  	  This driver implements the ACPI Extensions For Display Adapters
+>  	  for integrated graphics devices on motherboard, as specified in
+> diff --git a/drivers/gpu/drm/etnaviv/Kconfig b/drivers/gpu/drm/etnaviv/Kconfig
+> index 71cee4e9fefb..1d6c744e7924 100644
+> --- a/drivers/gpu/drm/etnaviv/Kconfig
+> +++ b/drivers/gpu/drm/etnaviv/Kconfig
+> @@ -3,6 +3,7 @@ config DRM_ETNAVIV
+>  	tristate "ETNAVIV (DRM support for Vivante GPU IP cores)"
+>  	depends on DRM
+>  	depends on ARCH_MXC || ARCH_DOVE || (ARM && COMPILE_TEST)
+> +	depends on THERMAL || THERMAL=n
+>  	depends on MMU
+>  	select SHMEM
+>  	select SYNC_FILE
+> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> index e229ea317b9c..76ced87efde5 100644
+> --- a/drivers/platform/x86/Kconfig
+> +++ b/drivers/platform/x86/Kconfig
+> @@ -544,7 +544,6 @@ config SENSORS_HDAPS
+>  config INTEL_MENLOW
+>  	tristate "Thermal Management driver for Intel menlow platform"
+>  	depends on ACPI_THERMAL
+> -	select THERMAL
+>  	---help---
+>  	  ACPI thermal management enhancement driver on
+>  	  Intel Menlow platform.
