@@ -1,89 +1,41 @@
-From: Robert Richter <robert.richter@cavium.com>
-Subject: Re: [PATCH 1/1] PCI: Add MCFG quirk for 2nd node of Cavium ThunderX
- pass2.x host controller
-Date: Mon, 24 Apr 2017 11:34:29 +0200
-Message-ID: <20170424093429.GT16981@rric.localdomain>
-References: <1490789773-21506-1-git-send-email-tn@semihalf.com>
- <20170421165614.GA17916@bhelgaas-glaptop.roam.corp.google.com>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [PATCH 2/2] i2c: designware: Add ACPI HID for Hisilicon Hip07/08
+ I2C controller
+Date: Mon, 24 Apr 2017 12:34:40 +0300
+Message-ID: <2cb57c38-e480-06d5-2f5d-1db2a8d75c00@linux.intel.com>
+References: <1492831424-40581-1-git-send-email-guohanjun@huawei.com>
+ <1492831424-40581-2-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-sn1nam02on0054.outbound.protection.outlook.com ([104.47.36.54]:55609
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1168004AbdDXJeq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 24 Apr 2017 05:34:46 -0400
-Content-Disposition: inline
-In-Reply-To: <20170421165614.GA17916@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1492831424-40581-2-git-send-email-guohanjun@huawei.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Wolfram Sang <wsa@the-dreams.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linuxarm@huawei.com, wangkefeng.wang@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Lorenzo.Pieralisi@arm.com, ddaney@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, rafael@kernel.org, Sunil.Goutham@cavium.com, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 
-On 21.04.17 11:56:14, Bjorn Helgaas wrote:
-> On Wed, Mar 29, 2017 at 02:16:13PM +0200, Tomasz Nowicki wrote:
-> > Currently SoCs pass2.x do not emulate EA headers for ACPI boot method at all.
-> > However, for pass2.x some devices (like EDAC) advertise incorrect base addresses
-> > in their BARs which results in driver probe failure during resource request.
-> > Since all problematic blocks are on 2nd NUMA node under domain 10 add necessary
-> > quirk entry to obtain BAR addresses correction using EA header emulation.
-> > 
-> > Fixes: 44f22bd91e88 ("PCI: Add MCFG quirks for Cavium ThunderX pass2.x host controller")
-> > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> > CC: stable@vger.kernel.org	# v4.10+
-> 
-> Sorry Tomasz, I must have mistakenly marked this "accepted" in
-> patchwork, so it fell off my to-do list.  It's too late to get this in
-> v4.11, but I can still apply it for v4.12.
-> 
-> I put it on my pci/host-thunder branch with Robert's ack.  I added a preceding
-> patch to tidy up whitespace, which makes this patch look like just:
-> 
->         /* SoC pass2.x */
->         THUNDER_PEM_QUIRK(1, 0),
->         THUNDER_PEM_QUIRK(1, 1),
-> +       THUNDER_ECAM_QUIRK(1, 10),
-> 
-> Please double-check it to make sure this is what you need.
+On 04/22/2017 06:23 AM, Hanjun Guo wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
+>
+> Add ACPI HID HISI02A1 and HISI02A2 for Hisilicon Hip07/08,
+> which have different clock frequency.
+>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/i2c/busses/i2c-designware-platdrv.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
+> index 79c4b4e..90c7c10 100644
+> --- a/drivers/i2c/busses/i2c-designware-platdrv.c
+> +++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+> @@ -129,6 +129,8 @@ static int dw_i2c_acpi_configure(struct platform_device *pdev)
+>  	{ "AMDI0010", ACCESS_INTR_MASK },
+>  	{ "AMDI0510", 0 },
+>  	{ "APMC0D0F", 0 },
+> +	{ "HISI02A1", 0 },
+> +	{ "HISI02A2", 0 },
+>  	{ }
 
-Bjorn,
-
-since the second is marked stable there will be conflicts when
-applying it to stable (or built errors). The best would be to change
-order of both (128cd6e8249f^, 128cd6e8249f) for smooth backporting
-which makes it then more close to Tomasz's version again.
-
-Thanks,
-
--Robert
-
-> 
-> > ---
-> >  drivers/acpi/pci_mcfg.c | 7 ++++---
-> >  1 file changed, 4 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> > index a6a4cea..a0a391e 100644
-> > --- a/drivers/acpi/pci_mcfg.c
-> > +++ b/drivers/acpi/pci_mcfg.c
-> > @@ -90,13 +90,14 @@ static struct mcfg_fixup mcfg_quirks[] = {
-> >  	  &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x894057000000UL, node) },  \
-> >  	{ "CAVIUM", "THUNDERX", rev, 9 + (10 * (node)), MCFG_BUS_ANY,	    \
-> >  	  &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x89808f000000UL, node) }
-> > +#define THUNDER_ECAM_QUIRK(rev, seg)					\
-> > +	{ "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,			\
-> > +	&pci_thunder_ecam_ops }
-> >  	/* SoC pass2.x */
-> >  	THUNDER_PEM_QUIRK(1, 0),
-> >  	THUNDER_PEM_QUIRK(1, 1),
-> > +	THUNDER_ECAM_QUIRK(1, 10),
-> >  
-> > -#define THUNDER_ECAM_QUIRK(rev, seg)					\
-> > -	{ "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,			\
-> > -	&pci_thunder_ecam_ops }
-> >  	/* SoC pass1.x */
-> >  	THUNDER_PEM_QUIRK(2, 0),	/* off-chip devices */
-> >  	THUNDER_PEM_QUIRK(2, 1),	/* off-chip devices */
-> > -- 
-> > 2.7.4
-> > 
+Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
