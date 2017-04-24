@@ -1,43 +1,89 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH v2] platform/x86: Add driver for INT0002 ACPI device
-Date: Mon, 24 Apr 2017 17:19:42 +0800
-Message-ID: <20170424091942.GN7636@linux-l9pv.suse>
-References: <20170421125246.3982-1-hdegoede@redhat.com>
+From: Robert Richter <robert.richter@cavium.com>
+Subject: Re: [PATCH 1/1] PCI: Add MCFG quirk for 2nd node of Cavium ThunderX
+ pass2.x host controller
+Date: Mon, 24 Apr 2017 11:34:29 +0200
+Message-ID: <20170424093429.GT16981@rric.localdomain>
+References: <1490789773-21506-1-git-send-email-tn@semihalf.com>
+ <20170421165614.GA17916@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-sn1nam02on0054.outbound.protection.outlook.com ([104.47.36.54]:55609
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1168004AbdDXJeq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 24 Apr 2017 05:34:46 -0400
 Content-Disposition: inline
-In-Reply-To: <20170421125246.3982-1-hdegoede@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Takashi Iwai <tiwai@suse.de>
+In-Reply-To: <20170421165614.GA17916@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Lorenzo.Pieralisi@arm.com, ddaney@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, rafael@kernel.org, Sunil.Goutham@cavium.com, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 
-Hi,
-
-On Fri, Apr 21, 2017 at 02:52:46PM +0200, Hans de Goede wrote:
-> Some peripherals on Baytrail and Cherrytrail platforms signal PME to the
-> PMC to wakeup the system. When this happens software needs to clear the
-> PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
+On 21.04.17 11:56:14, Bjorn Helgaas wrote:
+> On Wed, Mar 29, 2017 at 02:16:13PM +0200, Tomasz Nowicki wrote:
+> > Currently SoCs pass2.x do not emulate EA headers for ACPI boot method at all.
+> > However, for pass2.x some devices (like EDAC) advertise incorrect base addresses
+> > in their BARs which results in driver probe failure during resource request.
+> > Since all problematic blocks are on 2nd NUMA node under domain 10 add necessary
+> > quirk entry to obtain BAR addresses correction using EA header emulation.
+> > 
+> > Fixes: 44f22bd91e88 ("PCI: Add MCFG quirks for Cavium ThunderX pass2.x host controller")
+> > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> > CC: stable@vger.kernel.org	# v4.10+
 > 
-> This is modelled in ACPI through the INT0002 ACPI device.
+> Sorry Tomasz, I must have mistakenly marked this "accepted" in
+> patchwork, so it fell off my to-do list.  It's too late to get this in
+> v4.11, but I can still apply it for v4.12.
 > 
-> This commit adds a driver which will bind to that device, call the
-> ACPI event handler for the wakeup and clear the interrupt source
-> avoiding the irq storm.
+> I put it on my pci/host-thunder branch with Robert's ack.  I added a preceding
+> patch to tidy up whitespace, which makes this patch look like just:
 > 
-> Cc: joeyli <jlee@suse.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> Tested-by: Takashi Iwai <tiwai@suse.de>
-> ---
-> Changes in v2:
-> -Remove dev_err after malloc failure
-> -Remove unused empty runtime pm callbacks
-> -s/GPE0A_PME_/GPE0A_PME_B0_/
-> -Fixed some checkpatch warnings (I forgot to run checkpatch on v1)
+>         /* SoC pass2.x */
+>         THUNDER_PEM_QUIRK(1, 0),
+>         THUNDER_PEM_QUIRK(1, 1),
+> +       THUNDER_ECAM_QUIRK(1, 10),
+> 
+> Please double-check it to make sure this is what you need.
 
-Please feel free to add:
-	Reviewed-by: Joey Lee <jlee@suse.com>
+Bjorn,
 
-Thanks a lot!
-Joey Lee
+since the second is marked stable there will be conflicts when
+applying it to stable (or built errors). The best would be to change
+order of both (128cd6e8249f^, 128cd6e8249f) for smooth backporting
+which makes it then more close to Tomasz's version again.
+
+Thanks,
+
+-Robert
+
+> 
+> > ---
+> >  drivers/acpi/pci_mcfg.c | 7 ++++---
+> >  1 file changed, 4 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> > index a6a4cea..a0a391e 100644
+> > --- a/drivers/acpi/pci_mcfg.c
+> > +++ b/drivers/acpi/pci_mcfg.c
+> > @@ -90,13 +90,14 @@ static struct mcfg_fixup mcfg_quirks[] = {
+> >  	  &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x894057000000UL, node) },  \
+> >  	{ "CAVIUM", "THUNDERX", rev, 9 + (10 * (node)), MCFG_BUS_ANY,	    \
+> >  	  &thunder_pem_ecam_ops, THUNDER_PEM_RES(0x89808f000000UL, node) }
+> > +#define THUNDER_ECAM_QUIRK(rev, seg)					\
+> > +	{ "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,			\
+> > +	&pci_thunder_ecam_ops }
+> >  	/* SoC pass2.x */
+> >  	THUNDER_PEM_QUIRK(1, 0),
+> >  	THUNDER_PEM_QUIRK(1, 1),
+> > +	THUNDER_ECAM_QUIRK(1, 10),
+> >  
+> > -#define THUNDER_ECAM_QUIRK(rev, seg)					\
+> > -	{ "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,			\
+> > -	&pci_thunder_ecam_ops }
+> >  	/* SoC pass1.x */
+> >  	THUNDER_PEM_QUIRK(2, 0),	/* off-chip devices */
+> >  	THUNDER_PEM_QUIRK(2, 1),	/* off-chip devices */
+> > -- 
+> > 2.7.4
+> > 
