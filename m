@@ -1,53 +1,80 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 0/2] libnvdimm: export wpq flush interface
-Date: Mon, 24 Apr 2017 16:49:51 -0700
-Message-ID: <149307779085.7155.436029631521340565.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 1/2] libnvdimm, region: fix flush hint detection crash
+Date: Mon, 24 Apr 2017 16:49:56 -0700
+Message-ID: <149307779612.7155.12969380677038292861.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149307779085.7155.436029631521340565.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:64148 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S979267AbdDXXzo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 24 Apr 2017 19:55:44 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <149307779085.7155.436029631521340565.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>, linux-acpi@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 
-Changes since v1 [1]:
-* Clean up the changelog to clarify how this capability is expected to
-  be used (Jeff)
-* Make the attribute read / write to separate detection and flush
-  triggering (Masayoshi)
-* Add the flush hint detection crash fix
+In the case where a dimm does not have any associated flush hints the
+ndrd->flush_wpq array may be uninitialized leading to crashes with the
+following signature:
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-April/009898.html
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
+ IP: region_visible+0x10f/0x160 [libnvdimm]
 
+ Call Trace:
+  internal_create_group+0xbe/0x2f0
+  sysfs_create_groups+0x40/0x80
+  device_add+0x2d8/0x650
+  nd_async_device_register+0x12/0x40 [libnvdimm]
+  async_run_entry_fn+0x39/0x170
+  process_one_work+0x212/0x6c0
+  ? process_one_work+0x197/0x6c0
+  worker_thread+0x4e/0x4a0
+  kthread+0x10c/0x140
+  ? process_one_work+0x6c0/0x6c0
+  ? kthread_create_on_node+0x60/0x60
+  ret_from_fork+0x31/0x40
+
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Fixes: f284a4f23752 ("libnvdimm: introduce nvdimm_flush() and nvdimm_has_flush()")
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/nvdimm/region_devs.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-Quoting the changelog from patch2:
-
-The nvdimm_flush() mechanism helps to reduce the impact of an ADR
-(asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
-platform WPQ (write-pending-queue) buffers when power is removed. The
-nvdimm_flush() mechanism performs that same function on-demand.
-
-When a pmem namespace is associated with a block device, an
-nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
-request. These requests are typically associated with filesystem
-metadata updates. However, when a namespace is in device-dax mode,
-userspace (think database metadata) needs another path to perform the
-same flushing. In other words this is not required to make data
-persistent, but in the case of metadata it allows for a smaller failure
-domain in the unlikely event of an ADR failure.
-
----
-
-Dan Williams (2):
-      libnvdimm, region: fix flush hint detection crash
-      libnvdimm, region: sysfs trigger for nvdimm_flush()
-
-
- drivers/nvdimm/region_devs.c |   52 +++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 48 insertions(+), 4 deletions(-)
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 8de5a04644a1..24abceda986a 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -1000,17 +1000,20 @@ EXPORT_SYMBOL_GPL(nvdimm_flush);
+  */
+ int nvdimm_has_flush(struct nd_region *nd_region)
+ {
+-	struct nd_region_data *ndrd = dev_get_drvdata(&nd_region->dev);
+ 	int i;
+ 
+ 	/* no nvdimm == flushing capability unknown */
+ 	if (nd_region->ndr_mappings == 0)
+ 		return -ENXIO;
+ 
+-	for (i = 0; i < nd_region->ndr_mappings; i++)
+-		/* flush hints present, flushing required */
+-		if (ndrd_get_flush_wpq(ndrd, i, 0))
++	for (i = 0; i < nd_region->ndr_mappings; i++) {
++		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
++		struct nvdimm *nvdimm = nd_mapping->nvdimm;
++
++		/* flush hints present / available */
++		if (nvdimm->num_flush)
+ 			return 1;
++	}
+ 
+ 	/*
+ 	 * The platform defines dimm devices without hints, assume
