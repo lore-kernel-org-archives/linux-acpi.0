@@ -1,70 +1,45 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: Re: [PATCH 1/2] ACPI / APD: Add clock frequency for Hisilicon
- Hip07/08 I2C controller
-Date: Mon, 24 Apr 2017 19:51:28 +0800
-Message-ID: <735385cf-6f64-9321-f8e5-1bffdf0708e1@huawei.com>
-References: <1492831424-40581-1-git-send-email-guohanjun@huawei.com>
+From: <geir.nuland@lyse.net>
+Subject: 56222 linux-acpi
+Date: Mon, 24 Apr 2017 14:51:11 -0000
+Message-ID: <149304547183.15559.13345425799418308248@hinet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: application/zip; name="411099276857.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([45.249.212.187]:5790 "EHLO
-        dggrg01-dlp.huawei.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1168727AbdDXLvn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Apr 2017 07:51:43 -0400
-In-Reply-To: <1492831424-40581-1-git-send-email-guohanjun@huawei.com>
+Received: from 124-12-240-142.dynamic.tfn.net.tw ([124.12.240.142]:57979 "HELO
+        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1172890AbdDXOvR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 24 Apr 2017 10:51:17 -0400
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
+To: linux-acpi@vger.kernel.org
 
-
-
-On 2017/4/22 11:23, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> I2C clock frequency of Designware ip for Hisilicon Hip07 is 200M,
-> but 250M for Hip08, use two ACPI IDs to differentiate them.
-
-It is valuable to support i2c on hisilicon D0x board, Hip05/06/07 using same clock frequency,
-it should have their own ACPI ID. For both two patches,
-
-Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/acpi/acpi_apd.c | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-> index 26696b6..8f57648 100644
-> --- a/drivers/acpi/acpi_apd.c
-> +++ b/drivers/acpi/acpi_apd.c
-> @@ -106,6 +106,16 @@ static int acpi_apd_setup(struct apd_private_data *pdata)
->  	.setup = acpi_apd_setup,
->  	.fixed_clk_rate = 133000000,
->  };
-> +
-> +static const struct apd_device_desc hip07_i2c_desc = {
-> +	.setup = acpi_apd_setup,
-> +	.fixed_clk_rate = 200000000,
-> +};
-> +
-> +static const struct apd_device_desc hip08_i2c_desc = {
-> +	.setup = acpi_apd_setup,
-> +	.fixed_clk_rate = 250000000,
-> +};
->  #endif
->  
->  #else
-> @@ -169,6 +179,8 @@ static int acpi_apd_create_device(struct acpi_device *adev,
->  #ifdef CONFIG_ARM64
->  	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
->  	{ "BRCM900D", APD_ADDR(vulcan_spi_desc) },
-> +	{ "HISI0A21", APD_ADDR(hip07_i2c_desc) },
-> +	{ "HISI0A22", APD_ADDR(hip08_i2c_desc) },
->  #endif
->  	{ }
->  };
-> 
+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
