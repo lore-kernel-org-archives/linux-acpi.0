@@ -1,314 +1,90 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2] platform/x86: Add driver for INT0002 ACPI device
-Date: Mon, 24 Apr 2017 12:40:30 +0300
-Message-ID: <CAHp75Vf28pXs81pThrjVtpqDfsosTsGQSnX0V1WHth=9OJ9u7g@mail.gmail.com>
-References: <20170421125246.3982-1-hdegoede@redhat.com>
+From: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [PATCH v1 1/8] lib/uuid: Introduce uuid_{be|le}_cmp_p{p}()
+ helpers
+Date: Mon, 24 Apr 2017 12:44:02 +0200
+Message-ID: <20170424104402.GA9723@wunner.de>
+References: <20170421144645.45189-1-andriy.shevchenko@linux.intel.com>
+ <5B8DA87D05A7694D9FA63FD143655C1B543E8399@hasmsx108.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:34482 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1167016AbdDXJkc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Apr 2017 05:40:32 -0400
-In-Reply-To: <20170421125246.3982-1-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5B8DA87D05A7694D9FA63FD143655C1B543E8399-Jy8z56yoSI8MvF1YICWikbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: "Winkler, Tomas" <tomas.winkler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org" <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org" <devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Koul, Vinod" <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Benjamin Tissoires <benjamin.ti>
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, joeyli <jlee@suse.com>
 
-+Cc: Mika (that's why left all content + one my comment below)
-
-On Fri, Apr 21, 2017 at 3:52 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Some peripherals on Baytrail and Cherrytrail platforms signal PME to the
-> PMC to wakeup the system. When this happens software needs to clear the
-> PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
->
-> This is modelled in ACPI through the INT0002 ACPI device.
->
-> This commit adds a driver which will bind to that device, call the
-> ACPI event handler for the wakeup and clear the interrupt source
-> avoiding the irq storm.
->
-> Cc: joeyli <jlee@suse.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> Tested-by: Takashi Iwai <tiwai@suse.de>
+> New helpers take pointers to uuid_{be|le} as parameters.
+> 
+> When using them on a raw data we don't need to do an ugly dereference and,
+> in some cases, a type casting.
+> 
+> Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+> Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> Cc: Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Cc: Benjamin Tissoires <benjamin.tissoires-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Kirti Wankhede <kwankhede-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+> Cc: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: "K. Y. Srinivasan" <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> Cc: Haiyang Zhang <haiyangz-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> Cc: Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> Cc: Tomas Winkler <tomas.winkler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+> Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 > ---
-> Changes in v2:
-> -Remove dev_err after malloc failure
-> -Remove unused empty runtime pm callbacks
-> -s/GPE0A_PME_/GPE0A_PME_B0_/
-> -Fixed some checkpatch warnings (I forgot to run checkpatch on v1)
-> ---
->  drivers/platform/x86/Kconfig         |  10 ++
->  drivers/platform/x86/Makefile        |   1 +
->  drivers/platform/x86/intel_int0002.c | 214 +++++++++++++++++++++++++++++++++++
->  3 files changed, 225 insertions(+)
->  create mode 100644 drivers/platform/x86/intel_int0002.c
->
-> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-> index 53afa78..be2ffbd 100644
-> --- a/drivers/platform/x86/Kconfig
-> +++ b/drivers/platform/x86/Kconfig
-> @@ -889,6 +889,16 @@ config INTEL_PMC_CORE
->           Supported features:
->                 - SLP_S0_RESIDENCY counter.
->
-> +config INTEL_INT0002
-> +       tristate "Intel INT0002 Virtual GPIO ACPI device driver"
-> +       depends on X86 && ACPI
-> +       ---help---
-> +         Some peripherals on Baytrail and Cherrytrail platforms signal
-> +         PME to the PMC to wakeup the system. When this happens software
-> +         needs to explicitly clear the interrupt source to avoid an IRQ
-> +         storm on IRQ 9. This is modelled in ACPI through the INT0002
-> +         ACPI device. This driver implements the clearing of the IRQ.
+>  include/linux/uuid.h | 20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
+> 
+> diff --git a/include/linux/uuid.h b/include/linux/uuid.h index
+> 4dff73a89758..45312cb5ac65 100644
+> --- a/include/linux/uuid.h
+> +++ b/include/linux/uuid.h
+> @@ -58,6 +58,26 @@ static inline int uuid_be_cmp(const uuid_be u1, const
+> uuid_be u2)
+>  	return memcmp(&u1, &u2, sizeof(uuid_be));  }
+> 
+> +static inline int uuid_le_cmp_p(const uuid_le *pu1, const uuid_le u2) {
+> +	return memcmp(pu1, &u2, sizeof(uuid_le)); }
 > +
->  config IBM_RTL
->         tristate "Device driver to enable PRTL support"
->         depends on PCI
-> diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-> index 6731893..de4ffb5 100644
-> --- a/drivers/platform/x86/Makefile
-> +++ b/drivers/platform/x86/Makefile
-> @@ -51,6 +51,7 @@ obj-$(CONFIG_INTEL_SCU_IPC)   += intel_scu_ipc.o
->  obj-$(CONFIG_INTEL_SCU_IPC_UTIL) += intel_scu_ipcutil.o
->  obj-$(CONFIG_INTEL_MFLD_THERMAL) += intel_mid_thermal.o
->  obj-$(CONFIG_INTEL_IPS)                += intel_ips.o
-> +obj-$(CONFIG_INTEL_INT0002)    += intel_int0002.o
->  obj-$(CONFIG_XO1_RFKILL)       += xo1-rfkill.o
->  obj-$(CONFIG_XO15_EBOOK)       += xo15-ebook.o
->  obj-$(CONFIG_IBM_RTL)          += ibm_rtl.o
-> diff --git a/drivers/platform/x86/intel_int0002.c b/drivers/platform/x86/intel_int0002.c
-> new file mode 100644
-> index 0000000..52aab58
-> --- /dev/null
-> +++ b/drivers/platform/x86/intel_int0002.c
-> @@ -0,0 +1,214 @@
-> +/*
-> + * Intel INT0002 "Virtual GPIO" driver
-> + *
-> + * Copyright (C) 2017 Hans de Goede <hdegoede@redhat.com>
-> + *
-> + * Loosely based on android x86 kernel code which is:
-> + *
-> + * Copyright (c) 2014, Intel Corporation.
-> + *
-> + * Author: Dyut Kumar Sil <dyut.k.sil@intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * Some peripherals on Baytrail and Cherrytrail platforms signal PME to the
-> + * PMC to wakeup the system. When this happens software needs to clear the
-> + * PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
-> + *
-> + * This is modelled in ACPI through the INT0002 ACPI device, which is
-> + * called a "Virtual GPIO controller" in ACPI because it defines the event
-> + * handler to call when the PME triggers through _AEI and _L02 / _E02
-> + * methods as would be done for a real GPIO interrupt.
-> + *
-> + * This driver will bind to the INT0002 device, call the ACPI event handler
-> + * for the wakeup and clear the interrupt source avoiding the irq storm.
-> + */
+> +static inline int uuid_be_cmp_p(const uuid_be *pu1, const uuid_be u2) {
+> +	return memcmp(pu1, &u2, sizeof(uuid_be)); }
 > +
-> +#include <asm/cpu_device_id.h>
-> +#include <asm/intel-family.h>
-> +#include <linux/acpi.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/io.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/slab.h>
+> +static inline int uuid_le_cmp_pp(const uuid_le *pu1, const uuid_le
+> +*pu2) {
+> +	return memcmp(pu1, pu2, sizeof(uuid_le)); }
 > +
-> +#define GPE0A_PME_B0_STS_BIT           0x2000
-> +#define GPE0A_PME_B0_EN_BIT            0x2000
-> +#define GPE0A_STS_PORT                 0x420
-> +#define GPE0A_EN_PORT                  0x428
+> +static inline int uuid_be_cmp_pp(const uuid_be *pu1, const uuid_be
+> +*pu2) {
+> +	return memcmp(pu1, pu2, sizeof(uuid_be)); }
 > +
-> +#define ICPU(model)    { X86_VENDOR_INTEL, 6, model, X86_FEATURE_ANY, }
-> +
-> +static const struct x86_cpu_id int0002_cpu_ids[] = {
-> +/*
-> + * Limit ourselves to Cherry Trail for now, until testing shows we
-> + * need to handle the INT0002 device on Baytrail too.
-> + *     ICPU(INTEL_FAM6_ATOM_SILVERMONT1),       * Valleyview, Bay Trail *
-> + */
-> +       ICPU(INTEL_FAM6_ATOM_AIRMONT),          /* Braswell, Cherry Trail */
-> +       {}
-> +};
-> +
-> +struct int0002_data {
-> +       spinlock_t lock;
-> +       struct device *dev;
-> +       const struct x86_cpu_id *cpu_id;
-> +       acpi_handle handle;
-> +       char ev_name[5];
-> +};
-> +
-> +static void int0002_irq_enable(struct int0002_data *data, bool enable)
-> +{
-> +       unsigned long flags;
-> +       u32 gpe_en_reg;
-> +
-> +       spin_lock_irqsave(&data->lock, flags);
-> +
-> +       gpe_en_reg = inl(GPE0A_EN_PORT);
-> +       if (enable)
-> +               gpe_en_reg |= GPE0A_PME_B0_EN_BIT;
-> +       else
-> +               gpe_en_reg &= ~GPE0A_PME_B0_EN_BIT;
-> +       outl(gpe_en_reg, GPE0A_EN_PORT);
-> +
-> +       spin_unlock_irqrestore(&data->lock, flags);
-> +}
-> +
-> +static irqreturn_t int0002_irq_handler(int irq, void *handler_data)
-> +{
-> +       struct int0002_data *data = handler_data;
-> +       u32 gpe_sts_reg;
-> +
-> +       gpe_sts_reg = inl(GPE0A_STS_PORT);
-> +       if (!(gpe_sts_reg & GPE0A_PME_B0_STS_BIT))
-> +               return IRQ_NONE;
-> +
-> +       int0002_irq_enable(data, false);
-> +
-> +       return IRQ_WAKE_THREAD;
-> +}
-> +
-> +static irqreturn_t int0002_irq_thread(int irq, void *handler_data)
-> +{
-> +       struct int0002_data *data = handler_data;
-> +       acpi_status status;
-> +
-> +       /* Don't call ACPI event handler on Baytrail? Taken from Android-x86 */
-> +       if (data->cpu_id->model != INTEL_FAM6_ATOM_SILVERMONT1) {
-> +               status = acpi_evaluate_object(data->handle, data->ev_name,
-> +                                             NULL, NULL);
-> +               if (ACPI_FAILURE(status))
-> +                       dev_err(data->dev, "Error calling %s\n", data->ev_name);
-> +       }
-> +
-> +       /* Ack and then re-enable IRQ */
-> +       outl(GPE0A_PME_B0_STS_BIT, GPE0A_STS_PORT);
-> +       int0002_irq_enable(data, true);
-> +
-> +       return IRQ_HANDLED;
-> +}
-> +
-> +static int int0002_probe(struct platform_device *pdev)
-> +{
-> +       struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
-> +       struct device *dev = &pdev->dev;
-> +       struct int0002_data *data;
-> +       struct acpi_resource *res;
-> +       acpi_status status;
-> +       acpi_handle hdl;
-> +       int irq, ret;
-> +
-> +       data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
-> +       if (!data)
-> +               return -ENOMEM;
-> +
-> +       spin_lock_init(&data->lock);
-> +       data->dev = dev;
-> +
-> +       /* Menlow has a different INT0002 device? <sigh> */
-> +       data->cpu_id = x86_match_cpu(int0002_cpu_ids);
-> +       if (!data->cpu_id)
-> +               return -ENODEV;
-> +
-> +       data->handle = ACPI_HANDLE(dev);
-> +       if (!data->handle)
-> +               return -ENODEV;
-> +
-> +       irq = platform_get_irq(pdev, 0);
-> +       if (irq < 0) {
-> +               dev_err(dev, "Error getting IRQ: %d\n", irq);
-> +               return irq;
-> +       }
-> +
-> +       status = acpi_get_event_resources(data->handle, &buf);
-> +       if (ACPI_FAILURE(status)) {
-> +               dev_err(dev, "Error getting acpi event resources\n");
-> +               return -ENODEV;
-> +       }
-> +
-> +       /* Find the "GPIO interrupt" event handler to call upon PME */
-> +       ret = -ENODEV;
-> +       for (res = buf.pointer;
-> +            res && (res->type != ACPI_RESOURCE_TYPE_END_TAG);
-> +            res = ACPI_NEXT_RESOURCE(res)) {
-> +
-> +               if (res->type != ACPI_RESOURCE_TYPE_GPIO ||
-> +                   res->data.gpio.connection_type !=
-> +                   ACPI_RESOURCE_GPIO_TYPE_INT)
-> +                       continue;
-> +
+>  void generate_random_uuid(unsigned char uuid[16]);
+> 
+>  extern void uuid_le_gen(uuid_le *u);
 
-> +               snprintf(data->ev_name, sizeof(data->ev_name), "_%c%02X",
-> +                       res->data.gpio.triggering ? 'E' : 'L',
-> +                       res->data.gpio.pin_table[0]);
-> +
-> +               status = acpi_get_handle(data->handle, data->ev_name, &hdl);
-> +               if (ACPI_SUCCESS(status)) {
-> +                       ret = 0;
-> +                       break;
-> +               }
+There's a bug in gcc wherein constant compound literals are generated
+on the stack at runtime, rather than stored in rodata.  The bug occurs
+if the compound literal is passed by reference.  It does not manifest
+itself when passing by value:
 
-I still think it might make sense to split it to some generic helper
-(same code is used in gpiolib-acpi.c).
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68725
 
-> +       }
-> +
-> +       ACPI_FREE(buf.pointer);
-> +
-> +       if (ret) {
-> +               dev_err(dev, "Error could not find event handler\n");
-> +               return ret;
-> +       }
-> +
-> +       ret = devm_request_threaded_irq(dev, irq,
-> +                                       int0002_irq_handler, int0002_irq_thread,
-> +                                       IRQF_SHARED, "INT0002", data);
-> +       if (ret) {
-> +               dev_err(dev, "Error requesting IRQ %d: %d\n", irq, ret);
-> +               return ret;
-> +       }
-> +
-> +       int0002_irq_enable(data, true);
-> +
-> +       return 0;
-> +}
-> +
-> +static const struct acpi_device_id int0002_acpi_ids[] = {
-> +       { "INT0002", 0 },
-> +       { },
-> +};
-> +MODULE_DEVICE_TABLE(acpi, int0002_acpi_ids);
-> +
-> +static struct platform_driver int0002_driver = {
-> +       .driver = {
-> +               .name                   = "Intel INT0002 Virtual GPIO",
-> +               .acpi_match_table       = ACPI_PTR(int0002_acpi_ids),
-> +       },
-> +       .probe  = int0002_probe,
-> +};
-> +
-> +module_platform_driver(int0002_driver);
-> +
-> +MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
-> +MODULE_DESCRIPTION("Intel INT0002 Virtual GPIO driver");
-> +MODULE_LICENSE("GPL");
-> --
-> 2.9.3
->
+Hence this patch is unfortunately counterproductive if the UUIDs are
+declared const.
 
+FWIW I've posted a series back in January to constify UUIDs as much as
+possible, but I got some objections and lacked the time so far to
+address them.  In fact I'm thinking that gcc needs to be fixed first,
+then we can focus on improving the kernel side of things:
 
+https://www.spinics.net/lists/linux-efi/msg10093.html
 
--- 
-With Best Regards,
-Andy Shevchenko
+Best regards,
+
+Lukas
