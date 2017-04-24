@@ -1,50 +1,43 @@
-From: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v1 1/8] lib/uuid: Introduce uuid_{be|le}_cmp_p{p}()
- helpers
-Date: Mon, 24 Apr 2017 11:53:30 +0300
-Message-ID: <1493024010.24567.151.camel@linux.intel.com>
-References: <20170421144645.45189-1-andriy.shevchenko@linux.intel.com>
-         <5B8DA87D05A7694D9FA63FD143655C1B543E8399@hasmsx108.ger.corp.intel.com>
-         <CAHp75VeTgdE=OiRNS6JrH3M-rF+jpPVgmd4G+n321=vhVE4XiA@mail.gmail.com>
-         <1492975128.3570.2.camel@intel.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH v2] platform/x86: Add driver for INT0002 ACPI device
+Date: Mon, 24 Apr 2017 17:19:42 +0800
+Message-ID: <20170424091942.GN7636@linux-l9pv.suse>
+References: <20170421125246.3982-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1492975128.3570.2.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Winkler, Tomas" <tomas.winkler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Koul, Vinod" <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org" <devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org>, "kwankhede-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org" <kwankhede-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org" <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org" <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, "broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org" <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mik>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170421125246.3982-1-hdegoede@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Takashi Iwai <tiwai@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2017-04-23 at 20:20 +0000, Winkler, Tomas wrote:
-> On Sun, 2017-04-23 at 15:42 +0300, Andy Shevchenko wrote:
-> > On Sun, Apr 23, 2017 at 1:29 PM, Winkler, Tomas <tomas.winkler@intel
-> > .
-> > com> wrote:
-> > > > New helpers take pointers to uuid_{be|le} as parameters.
-> > > > 
-> > > > When using them on a raw data we don't need to do an ugly
-> > > > dereference and,
-> > > > in some cases, a type casting.
-> > > 
-> > > I think this going overboard, the _pp types  are just enough.
-> > 
-> > I looked at existing users and there are cases like
-> > #define XXX_UUID UUID_...(a, b, c, ...)
-> > 
-> > uuid_.*_cmp(value, XXX_UUID)
-> > 
-> > For _pp variant if would be _cmp_pp(value, &XXX_UUID) which is
-> > slightly worse than for _p variant.
-> 
-> 
-> Maybe it's worth to actually replace the defines with variables than
-> to
-> create an interface with all the permutations.
+Hi,
 
-Maybe. I didn't estimate the number of users that would be in a scope.
+On Fri, Apr 21, 2017 at 02:52:46PM +0200, Hans de Goede wrote:
+> Some peripherals on Baytrail and Cherrytrail platforms signal PME to the
+> PMC to wakeup the system. When this happens software needs to clear the
+> PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
+> 
+> This is modelled in ACPI through the INT0002 ACPI device.
+> 
+> This commit adds a driver which will bind to that device, call the
+> ACPI event handler for the wakeup and clear the interrupt source
+> avoiding the irq storm.
+> 
+> Cc: joeyli <jlee@suse.com>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Tested-by: Takashi Iwai <tiwai@suse.de>
+> ---
+> Changes in v2:
+> -Remove dev_err after malloc failure
+> -Remove unused empty runtime pm callbacks
+> -s/GPE0A_PME_/GPE0A_PME_B0_/
+> -Fixed some checkpatch warnings (I forgot to run checkpatch on v1)
 
--- 
-Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Intel Finland Oy
+Please feel free to add:
+	Reviewed-by: Joey Lee <jlee@suse.com>
+
+Thanks a lot!
+Joey Lee
