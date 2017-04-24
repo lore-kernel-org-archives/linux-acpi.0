@@ -1,7 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 1/2] libnvdimm, region: fix flush hint detection crash
-Date: Mon, 24 Apr 2017 16:49:56 -0700
-Message-ID: <149307779612.7155.12969380677038292861.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 2/2] libnvdimm, region: sysfs trigger for nvdimm_flush()
+Date: Mon, 24 Apr 2017 16:50:01 -0700
+Message-ID: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <149307779085.7155.436029631521340565.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,63 +18,100 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-In the case where a dimm does not have any associated flush hints the
-ndrd->flush_wpq array may be uninitialized leading to crashes with the
-following signature:
+The nvdimm_flush() mechanism helps to reduce the impact of an ADR
+(asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
+platform WPQ (write-pending-queue) buffers when power is removed. The
+nvdimm_flush() mechanism performs that same function on-demand.
 
- BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
- IP: region_visible+0x10f/0x160 [libnvdimm]
+When a pmem namespace is associated with a block device, an
+nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
+request. These requests are typically associated with filesystem
+metadata updates. However, when a namespace is in device-dax mode,
+userspace (think database metadata) needs another path to perform the
+same flushing. In other words this is not required to make data
+persistent, but in the case of metadata it allows for a smaller failure
+domain in the unlikely event of an ADR failure.
 
- Call Trace:
-  internal_create_group+0xbe/0x2f0
-  sysfs_create_groups+0x40/0x80
-  device_add+0x2d8/0x650
-  nd_async_device_register+0x12/0x40 [libnvdimm]
-  async_run_entry_fn+0x39/0x170
-  process_one_work+0x212/0x6c0
-  ? process_one_work+0x197/0x6c0
-  worker_thread+0x4e/0x4a0
-  kthread+0x10c/0x140
-  ? process_one_work+0x6c0/0x6c0
-  ? kthread_create_on_node+0x60/0x60
-  ret_from_fork+0x31/0x40
+The new 'flush' attribute is visible when the individual DIMMs backing a
+given interleave-set are described by platform firmware. In ACPI terms
+this is "NVDIMM Region Mapping Structures" and associated "Flush Hint
+Address Structures". Reads return "1" if the region supports triggering
+WPQ flushes on all DIMMs. Reads return "0" the flush operation is a
+platform nop, and in that case the attribute is read-only.
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Fixes: f284a4f23752 ("libnvdimm: introduce nvdimm_flush() and nvdimm_has_flush()")
+Cc: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Masayoshi Mizuma <m.mizuma-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/nvdimm/region_devs.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ drivers/nvdimm/region_devs.c |   41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
 diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 8de5a04644a1..24abceda986a 100644
+index 24abceda986a..c48f3eddce2d 100644
 --- a/drivers/nvdimm/region_devs.c
 +++ b/drivers/nvdimm/region_devs.c
-@@ -1000,17 +1000,20 @@ EXPORT_SYMBOL_GPL(nvdimm_flush);
-  */
- int nvdimm_has_flush(struct nd_region *nd_region)
- {
--	struct nd_region_data *ndrd = dev_get_drvdata(&nd_region->dev);
- 	int i;
+@@ -255,6 +255,35 @@ static ssize_t size_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(size);
  
- 	/* no nvdimm == flushing capability unknown */
- 	if (nd_region->ndr_mappings == 0)
- 		return -ENXIO;
- 
--	for (i = 0; i < nd_region->ndr_mappings; i++)
--		/* flush hints present, flushing required */
--		if (ndrd_get_flush_wpq(ndrd, i, 0))
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+		struct nvdimm *nvdimm = nd_mapping->nvdimm;
++static ssize_t flush_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_region *nd_region = to_nd_region(dev);
 +
-+		/* flush hints present / available */
-+		if (nvdimm->num_flush)
- 			return 1;
-+	}
++	/*
++	 * NOTE: in the nvdimm_has_flush() error case this attribute is
++	 * not visible.
++	 */
++	return sprintf(buf, "%d\n", nvdimm_has_flush(nd_region));
++}
++
++static ssize_t flush_store(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t len)
++{
++	bool flush;
++	int rc = strtobool(buf, &flush);
++	struct nd_region *nd_region = to_nd_region(dev);
++
++	if (rc)
++		return rc;
++	if (!flush)
++		return -EINVAL;
++	nvdimm_flush(nd_region);
++
++	return len;
++}
++static DEVICE_ATTR_RW(flush);
++
+ static ssize_t mappings_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -474,6 +503,7 @@ static DEVICE_ATTR_RO(resource);
  
- 	/*
- 	 * The platform defines dimm devices without hints, assume
+ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_size.attr,
++	&dev_attr_flush.attr,
+ 	&dev_attr_nstype.attr,
+ 	&dev_attr_mappings.attr,
+ 	&dev_attr_btt_seed.attr,
+@@ -508,6 +538,17 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
+ 		return 0;
+ 
++	if (a == &dev_attr_flush.attr) {
++		int has_flush = nvdimm_has_flush(nd_region);
++
++		if (has_flush == 1)
++			return a->mode;
++		else if (has_flush == 0)
++			return 0400;
++		else
++			return 0;
++	}
++
+ 	if (a != &dev_attr_set_cookie.attr
+ 			&& a != &dev_attr_available_size.attr)
+ 		return a->mode;
