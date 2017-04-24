@@ -1,108 +1,37 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Mon, 24 Apr 2017 13:58:12 -0400
-Message-ID: <x49efwhd6x7.fsf@segfault.boston.devel.redhat.com>
-References: <149281853758.22910.2919981036906495309.stgit@dwillia2-desk3.amr.corp.intel.com>
-        <x49d1c1g4ba.fsf@segfault.boston.devel.redhat.com>
-        <CAPcyv4jYAM73HUOU15ok1F91y+A6OEbSXrwBVStz7ewhmsnJsA@mail.gmail.com>
-        <x4960htg3hv.fsf@segfault.boston.devel.redhat.com>
-        <CAPcyv4jiPfUNR9jFtjGgmfaMWLboVzW9gHmFBtykR+C4pDae2g@mail.gmail.com>
+From: "Ms. Katherine" <ulia@distral.ro>
+Subject: EXTREMELY IMPORTANT
+Date: Mon, 24 Apr 2017 19:52:12 +0100
+Message-ID: <20170424185218.2265851B334B@mail.distral.ro>
+Reply-To: kathrynnmison@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54864 "EHLO mx1.redhat.com"
+Received: from mail.distral.ro ([5.2.192.160]:35937 "EHLO mail.distral.ro"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1173735AbdDXR6O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 24 Apr 2017 13:58:14 -0400
-In-Reply-To: <CAPcyv4jiPfUNR9jFtjGgmfaMWLboVzW9gHmFBtykR+C4pDae2g@mail.gmail.com>
-        (Dan Williams's message of "Mon, 24 Apr 2017 10:43:41 -0700")
+        id S972118AbdDXTiD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 24 Apr 2017 15:38:03 -0400
+Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
+To: Recipients <ulia@distral.ro>
 
-Dan Williams <dan.j.williams@intel.com> writes:
+Dear Beloved, Sorry for the inconvenience, I am getting in touch with you regarding an extremely important and urgent matter, Please I need your urgent assistance and idea to finish up a project (Orphanage Home) Due to my health condition, Everything is available to finish up the project, All I need is your idea and trust.
 
-> [ adding Christoph ]
->
-> On Mon, Apr 24, 2017 at 9:43 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
->> Dan Williams <dan.j.williams@intel.com> writes:
->>
->>> On Mon, Apr 24, 2017 at 9:26 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
->>>> Dan Williams <dan.j.williams@intel.com> writes:
->>>>
->>>>> The nvdimm_flush() mechanism helps to reduce the impact of an ADR
->>>>> (asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
->>>>> platform WPQ (write-pending-queue) buffers when power is removed. The
->>>>> nvdimm_flush() mechanism performs that same function on-demand.
->>>>>
->>>>> When a pmem namespace is associated with a block device, an
->>>>> nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
->>>>> request. However, when a namespace is in device-dax mode, or namespaces
->>>>> are disabled, userspace needs another path.
->>>>>
->>>>> The new 'flush' attribute is visible when it can be determined that the
->>>>> interleave-set either does, or does not have DIMMs that expose WPQ-flush
->>>>> addresses, "flush-hints" in ACPI NFIT terminology. It returns "1" and
->>>>> flushes DIMMs, or returns "0" the flush operation is a platform nop.
->>>>>
->>>>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->>>>
->>>> NACK.  This should function the same way it does for a pmem device.
->>>> Wire up sync.
->>>
->>> We don't have dirty page tracking for device-dax, without that I don't
->>> think we should wire up the current sync calls.
->>
->> Why not?  Device dax is meant for the "flush from userspace" paradigm.
->> There's enough special casing around device dax that I think you can get
->> away with implementing *sync as call to nvdimm_flush.
->
-> I think its an abuse of fsync() and gets in the way of where we might
-> take userspace-pmem-flushing with new sync primitives as proposed here
-> [1].
+Sehr geehrte Geliebte, traurig für die Unannehmlichkeiten, ich bin in Kontakt mit Ihnen über eine äußerst wichtige und dringende Angelegenheit, Bitte brauche ich Ihre dringende Hilfe und Idee, um ein Projekt zu beenden (Orphanage Home) Wegen meines Gesundheitszustandes ist alles verfügbar Beenden Sie das Projekt, Alles was ich brauche ist Ihre Idee und Vertrauen.
 
-I agree that it's an abuse, and I'm happy to not go that route.  I am
-still against using a sysfs file to do this WPQ flush, however.
+Please contact me for more details.
+Contact Email: kathrynnmison@gmail.com
 
-> I'm also conscious of the shade that hch threw the last time I tried
-> to abuse an existing syscall for device-dax [2].
->
->>> I do think we need a more sophisticated sync syscall interface
->>> eventually that can select which level of flushing is being performed
->>> (page cache vs cpu cache vs platform-write-buffers).
->>
->> I don't.  I think this whole notion of flush, and flush harder is
->> brain-dead.  How do you explain to applications when they should use
->> each one?
->
-> You never need to use this mechanism to guarantee persistence, which
-> is counter to what fsync() is defined to provide. This mechanism is
-> only there to backstop against potential ADR failures.
+Thanks
 
-You haven't answered my question.  Why should applications even need to
-consider this?  Do you expect ADR to have a high failure rate?  If so,
-shouldn't an application call this deep flush any time they would want
-to make their state persistent?
+---
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
 
->>> Until then I think this sideband interface makes sense and sysfs is
->>> more usable than an ioctl.
->>
->> Well, if you're totally against wiring up sync, then I say we forget
->> about the deep flush completely.  What's your use case?
->
-> The use case is device-dax users that want to reduce the impact of an
-> ADR failure. Which also assumes that the platform has mechanisms to
-> communicate ADR failure. This is not an interface I expect to be used
-> for general purpose applications. All of those should be depending
-> solely on ADR semantics.
 
-What applications?
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
 
-I remain unconvinced of the utility of the WPQ flush separate from
-msync/fsync.  Either you always do the WPQ flush, or you never do it.  I
-don't see the use case for doing it sometimes, and no one I've asked has
-managed to come up with a concrete use case.
-
-Cheers,
-Jeff
