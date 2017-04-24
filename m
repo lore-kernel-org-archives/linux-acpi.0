@@ -1,81 +1,104 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Mon, 24 Apr 2017 00:04:23 -0700
-Message-ID: <CAA9_cmd4mihnee6HARww=Lrtd87fNwqShNDeJ5GG7dmyohamuA@mail.gmail.com>
-References: <149281853758.22910.2919981036906495309.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20170424143104.4517.61FB500B@jp.fujitsu.com>
+From: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v1 2/8] ASoC: Intel: Skylake: Use recently introduced
+ uuid_le_cmp_p{p}()
+Date: Mon, 24 Apr 2017 11:50:52 +0300
+Message-ID: <1493023852.24567.148.camel@linux.intel.com>
+References: <20170421144645.45189-1-andriy.shevchenko@linux.intel.com>
+         <20170421144645.45189-2-andriy.shevchenko@linux.intel.com>
+         <20170424045105.GF6263@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170424143104.4517.61FB500B-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Masayoshi Mizuma <m.mizuma-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170424045105.GF6263@localhost>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Apr 23, 2017 at 10:31 PM, Masayoshi Mizuma
-<m.mizuma-+CUm20s59erQFUHtdCDX3A@public.gmane.org> wrote:
-> On Fri, 21 Apr 2017 16:48:57 -0700 Dan Williams wrote:
->> The nvdimm_flush() mechanism helps to reduce the impact of an ADR
->> (asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
->> platform WPQ (write-pending-queue) buffers when power is removed. The
->> nvdimm_flush() mechanism performs that same function on-demand.
->>
->> When a pmem namespace is associated with a block device, an
->> nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
->> request. However, when a namespace is in device-dax mode, or namespaces
->> are disabled, userspace needs another path.
->>
->> The new 'flush' attribute is visible when it can be determined that the
->> interleave-set either does, or does not have DIMMs that expose WPQ-flush
->> addresses, "flush-hints" in ACPI NFIT terminology. It returns "1" and
->> flushes DIMMs, or returns "0" the flush operation is a platform nop.
->>
->> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> ---
->>  drivers/nvdimm/region_devs.c |   17 +++++++++++++++++
->>  1 file changed, 17 insertions(+)
->>
->> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
->> index 8de5a04644a1..3495b4c23941 100644
->> --- a/drivers/nvdimm/region_devs.c
->> +++ b/drivers/nvdimm/region_devs.c
->> @@ -255,6 +255,19 @@ static ssize_t size_show(struct device *dev,
->>  }
->>  static DEVICE_ATTR_RO(size);
->>
->> +static ssize_t flush_show(struct device *dev,
->> +             struct device_attribute *attr, char *buf)
->> +{
->> +     struct nd_region *nd_region = to_nd_region(dev);
->> +
->> +     if (nvdimm_has_flush(nd_region)) {
->
-> nvdimm_has_flush() also returns as -ENXIO, so
->
-> if (nvdimm_has_flush(nd_region) == 1)
+On Mon, 2017-04-24 at 10:21 +0530, Vinod Koul wrote:
+> On Fri, Apr 21, 2017 at 05:46:39PM +0300, Andy Shevchenko wrote:
+> > Recently introduced helpers take pointers to uuid_{be|le} instead of
+> > reference.
+> 
+> Are they in linus's tree, if not it introduces dependency, so we might
+> want
+> to defer after merge window
 
-If it returns -ENXIO then region_visible() will hide the attribute.
+You are Cc'ed to patch 1 which brings them.
 
->
->> +             nvdimm_flush(nd_region);
->> +             return sprintf(buf, "1\n");
->> +     }
->> +     return sprintf(buf, "0\n");
->> +}
->> +static DEVICE_ATTR_RO(flush);
->> +
->
-> I think separating show and store is better because
-> users may only check wheter the device has the flush capability or not.
+> > 
+> > Using them makes code less ugly.
+> 
+> How so..?
 
-Makes sense, I'll separate. Thanks for the review.
+Consider below example.
+
+- if (uuid_le_cmp(*uuid_mod, module->uuid) == 0) {
++ if (uuid_le_cmp_p(uuid_mod, module->uuid) == 0) {
+
+There are two points:
+1) caller don't need to dereference pointers to its values;
+2) this allow compiler to not copy the data (though clever compiler
+might optimize that).
+
+> 
+> > 
+> > Cc: Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > Cc: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> > ---
+> >  sound/soc/intel/skylake/skl-pcm.c       | 2 +-
+> >  sound/soc/intel/skylake/skl-sst-utils.c | 4 ++--
+> >  2 files changed, 3 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/sound/soc/intel/skylake/skl-pcm.c
+> > b/sound/soc/intel/skylake/skl-pcm.c
+> > index 600faad19bd4..4bf171985872 100644
+> > --- a/sound/soc/intel/skylake/skl-pcm.c
+> > +++ b/sound/soc/intel/skylake/skl-pcm.c
+> > @@ -1207,7 +1207,7 @@ static int skl_get_module_info(struct skl
+> > *skl, struct skl_module_cfg *mconfig)
+> >  	}
+> >  
+> >  	list_for_each_entry(module, &ctx->uuid_list, list) {
+> > -		if (uuid_le_cmp(*uuid_mod, module->uuid) == 0) {
+> > +		if (uuid_le_cmp_p(uuid_mod, module->uuid) == 0) {
+> >  			mconfig->id.module_id = module->id;
+> >  			mconfig->is_loadable = module->is_loadable;
+> >  			return 0;
+> > diff --git a/sound/soc/intel/skylake/skl-sst-utils.c
+> > b/sound/soc/intel/skylake/skl-sst-utils.c
+> > index 6d5bff04bf65..67288580c743 100644
+> > --- a/sound/soc/intel/skylake/skl-sst-utils.c
+> > +++ b/sound/soc/intel/skylake/skl-sst-utils.c
+> > @@ -189,7 +189,7 @@ int skl_get_pvt_id(struct skl_sst *ctx, uuid_le
+> > *uuid_mod, int instance_id)
+> >  	int pvt_id;
+> >  
+> >  	list_for_each_entry(module, &ctx->uuid_list, list) {
+> > -		if (uuid_le_cmp(*uuid_mod, module->uuid) == 0) {
+> > +		if (uuid_le_cmp_p(uuid_mod, module->uuid) == 0) {
+> >  
+> >  			pvt_id = skl_pvtid_128(module);
+> >  			if (pvt_id >= 0) {
+> > @@ -218,7 +218,7 @@ int skl_put_pvt_id(struct skl_sst *ctx, uuid_le
+> > *uuid_mod, int *pvt_id)
+> >  	struct uuid_module *module;
+> >  
+> >  	list_for_each_entry(module, &ctx->uuid_list, list) {
+> > -		if (uuid_le_cmp(*uuid_mod, module->uuid) == 0) {
+> > +		if (uuid_le_cmp_p(uuid_mod, module->uuid) == 0) {
+> >  
+> >  			if (*pvt_id != 0)
+> >  				i = (*pvt_id) / 64;
+> > -- 
+> > 2.11.0
+> > 
+> 
+> 
+
+-- 
+Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Intel Finland Oy
