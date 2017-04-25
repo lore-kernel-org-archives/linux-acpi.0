@@ -1,178 +1,158 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v3 0/7] V4L2 fwnode support
-Date: Tue, 25 Apr 2017 10:51:58 +0200
-Message-ID: <7d0e3f86-2dcf-77d4-9411-5d98d1956586@xs4all.nl>
-References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [RFC] ACPI / Processor: add sysfs support for low power idle
+Date: Tue, 25 Apr 2017 11:28:20 +0100
+Message-ID: <0ac023c3-4bda-ba33-4634-6108e0631962@arm.com>
+References: <1490832795-27441-1-git-send-email-pprakash@codeaurora.org>
+ <2e633ef7-5155-7eb7-0f1b-8bc36bd25da7@arm.com>
+ <37544927-1f7d-ab59-63d5-32ac1d777bb6@codeaurora.org>
+ <a6544dab-4ae4-22d6-4fe5-08f7919072ca@arm.com>
+ <c9ab5b6c-ad86-1a03-2d1f-c8526e8684b1@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:43097 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1176909AbdDYIwC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Apr 2017 04:52:02 -0400
-In-Reply-To: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from foss.arm.com ([217.140.101.70]:39154 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1429618AbdDYK2e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 25 Apr 2017 06:28:34 -0400
+In-Reply-To: <c9ab5b6c-ad86-1a03-2d1f-c8526e8684b1@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, laurent.pinchart@ideasonboard.com
+To: "Prakash, Prashanth" <pprakash@codeaurora.org>, linux-acpi@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net, lenb@kernel.org, al.stone@linaro.org
 
-On 10/04/17 15:02, Sakari Ailus wrote:
-> Hello everyone,
+
+
+On 25/04/17 02:17, Prakash, Prashanth wrote:
 > 
-> This patchset adds support for fwnode to V4L2. Besides OF, also ACPI based
-> systems can be supported this way. By using V4L2 fwnode, the individual
-> drivers do not need to be aware of the underlying firmware implementation.
-> The patchset also removes specific V4L2 OF support and converts the
-> affected drivers to use V4L2 fwnode.
+> 
+> On 4/20/2017 2:46 AM, Sudeep Holla wrote:
+>>
+>> On 19/04/17 23:57, Prakash, Prashanth wrote:
+>>> Hi Sudeep,
+>>>
+>>> On 4/19/2017 9:37 AM, Sudeep Holla wrote:
+>>>> On 30/03/17 01:13, Prashanth Prakash wrote:
+>>>>> Add support to expose idle statistics maintained by platform to
+>>>>> userspace via sysfs in addition to other data of interest from
+>>>>> each LPI(Low Power Idle) state.
+>>>>>
+>>>> While I understand this information is useful for some optimization
+>>>> and also for idle characterization with different workloads, I prefer
+>>>> to keep this in debugfs for:
+>>>>
+>>>> 1. We already have CPUIdle stats, this information may be more accurate
+>>>>    which is good for above reasons but user-space applications shouldn't
+>>>>    depend on it and end-up misusing it.
+>>>> 2. Also as more features get pushed into hardware, even these stats may
+>>>>    not remain so much accurate as it is today and hence it would be
+>>>>    better if user-space applications never use/depend on them.
+>>>>
+>>>> Let me know if there are conflicting reasons ?
+>>> The information about idle state of shared resources(Cache, interconnect ...)
+>>> which cannot be deduced from the cpuidle stats is quite useful. We can use this
+>>> to analyze newer workloads and to explain their power consumption, especially as
+>>> the amount of time some of these shared resources spends in different LPI states
+>>> can be influenced by changes to workload, kernel or firmware. And for auto
+>>> promote-able states this is the only way to capture idle stats.
+>>>
+>> I agree that the stats are useful, no argument there. The question is
+>> more in terms of whether it can be debugfs which is just useful in
+>> analysis and characterization or sysfs which becomes user ABI.
+>>
+>>> Regarding 2, since these stats are clearly defined by ACPI spec and maintained by
+>>> platform, I think it is reasonable to expect them to be accurate. If it is not accurate,
+>>> it is likely that platform is breaking the spec.
+>>>
+>> I was considering firmware vs hardware here. If f/w tracks and updates
+>> these statistics, it may not be so accurate in the future if more
+>> controls that are today done in f/w will be done automatically done in 
+>> h/w. If h/w updates these statistics, then yes they will be accurate.
+>
+> Agree with f/w tracking vs h/w tracking, but I am not sure if we can (or should even try
+>  to) handle those issues at LPI driver level.
 
-Successfully tested with my Atmel sama5d3 board + ov2640 sensor.
+No I was not saying to control it. I just raised it to make sure we
+don't allow userspace to depend on these stats too much other than just
+characterization and analysis as these might be lost in future platforms.
 
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> I am still trying to convince myself if we need this as sysfs user ABI,
+>> so just thinking aloud.
+> Sure.
+>>> Given above, I don't see much room for user-space applications to misuse this.
+>> You never know :)
+> :-)
+>>
+>>> Given these are defined as optional in spec, user-space application should use
+>>> only if/when available and use it as complementary to cpuidle stats.
+>>>
+>> Fair enough.
+>>
+>> [...]
+>>
+>>>>> 	|	|-> flags
+>>>>> 	|	|-> arch_flags
+>>>>> 	|
+>>>>> 	<<more states>>
+>>>>>
+>>>>> ACPI00XX can be ACPI0007(processor) or ACPI0010(processor container)
+>>>>>
+>>>>> stateX contains information related to a specific LPI state defined
+>>>>> in the LPI ACPI tables.
+>>>>>
+>>>>> summary_stats shows the stats(usage and time) from all the LPI states
+>>>>> under a device. The summary_stats are provided to reduce the number'
+>>>>> of files to be accessed by the userspace to capture a snapshot of the'
+>>>>> idle statistics.
+>>>> Really ? What's the need to reduce the no. of file accesses ?
+>>> When we have a large number of cores, with multiple idle state + few auto-promotable
+>>> states. The amount of files we need to access to get a snapshot before/after a running
+>>> a workload is quite high.
+>>>
+>> OK. Since I don't have much knowledge on that, I can't really comment,
+>> but I wonder why is that not done for many stats that are per-cpu today.
+> Good point. The only example I can think of is cpufreq stats that does something like this,
+> though I am not sure of exact motivation(s) behind it.
+> 
+> I think one could have made the similar case with cpuidle sysfs as well. Moreover
+> summary_stats only mitigates some of the overhead with frequent reading of stats and
+> doesn't really fix it in a scalable manner. So, I  suppose the current reasoning to have
+> summary_stats is quite weak to start with.
 
+After you brought up this point, I was thinking to use this over
+hierarchical representation. If we put this summary_stats in debugfs,
+then no need to worry about user ABI.
+
+>>> It gets worse if we want to keep the file handles open to sample it little more frequently,
+>>> to get breakdown of idle state distribution during different phases of a workload.
+>> On the contrary agreeing with you on issue with large no. of file
+>> handles, why not we have single stat file that provides all the
+>> information you need and be done with it ? Why do we need all this
+>> hierarchy of sysfs if the summary_stats can provide all those
+>> information broken down.
+> With hierarchy, it is possible to get information about relationship between cpus
+> and  higher order shared resources. If we flatten the hierarchy we lose information
+> about relationships and it gets a little hard to clearly represent the idle states of
+> shared resources and which cpus share those resources.
+> 
+
+No, what I meant is to have complete information broken down to the
+lowest possible level, but just one file access to get that information.
+
+IIUC, you had some format already for summary_stat file, just extend
+to get all the information you would get reading individual sysfs files
+organized hierarchically. I don't think that should matter much as you
+would have all these information, just the representation differs. I am
+assuming all this data is not used/interpreted on the fly, but mostly
+used offline for analysis. Otherwise it's already misuse and we don't
+want to expose such user ABI IMO.
+
+Just to summarize, though I agree this LPI stats are more accurate and
+more representative summary, I think it may fade away as we move towards
+hardware controlled lower power states. Since we already have cpuidle
+stats, I prefer to keep this LPI stats interface to userspace as simple
+and minimal as possible and yet helpful to get all the information.
+
+-- 
 Regards,
-
-	Hans
-
-> 
-> The patchset depends on another patchset here:
-> 
-> <URL:http://www.spinics.net/lists/linux-acpi/msg72973.html> 
-> 
-> A git tree with the dependencies can be found here:
-> 
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi-merge>
-> 
-> v1 of the set can be found here:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg111073.html> 
-> 
-> and v2 here:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg114110.html>
-> 
-> changes since v2:
-> 
-> - Use EXPORT_SYMBOL_GPL() instead of EXPORT_SYMBOL().
-> 
-> - Alphabetically order the topics under V4L2 core kAPI documentation.
-> 
-> - Prefer "fwnode" variable name for struct fwnode_handle pointers instead
->   of "fwn". Similarly, use "vep" for struct v4l2_fwnode_endpoint instead
->   of "vfwn".
-> 
-> - Convert existing users of OF matching to fwnode matching.
-> 
-> - Remove OF matching support as well as compatibility between OF and
->   fwnode matching.
-> 
-> - Use of_node_cmp() to determine whether two nodes match in case both of
->   them are OF nodes. There is thus no functional difference between
->   existing OF matching in v1.
-> 
-> - Continue to use struct device_node.full_name on fwnodes that are known
->   to be OF nodes instead of omitting such debug information. Drivers that
->   can actually use fwnode need a new interface to provide this in fwnode
->   framework. This is out of scope of the patchset.
-> 
-> - Remove linux/of.h header inclusion in
->   drivers/media/v4l2-core/v4l2-flash-led-class.c.
-> 
-> - Improved line wrapping primarily in
->   drivers/media/v4l2-core/v4l2-fwnode.c.
-> 
-> - Rewrap KernelDoc documentation for V4L2 fwnode API up to 80 characters
->   per line (new patch).
-> 
-> - Fix KernelDoc documentation, there were a few locations where the
->   argument had been changed but the documentation was not updated
->   accordingly. 
-> 
-> - Fix punctuation and wording in V4L2 fwnode documentation.
-> 
-> - Drop patch "v4l: media/drv-intf/soc_mediabus.h: include dependent header
->   file". It is no longer needed.
-> 
-> - Fix obtaining port parent in v4l2_fwnode_parse_link() on ACPI.
-> 
-> - Include newly OF-supported atmel-isi to V4L2 OF -> fwnode conversion.
-> 
-> - Add that the v4l2-fwnode.c has origins in v4l2-of.c to the commit
->   message and the file header.
-> 
-> changes since v1:
-> 
-> - Use existing dev_fwnode() instead of device_fwnode_handle() added by the
->   ACPI graph patchset,
-> 
-> - Fix too long line of ^'s in ReST documentation and
-> 
-> - Drop the patch rearranging the header files. It'd better go in
->   separately, if at all.
-> 
-> Sakari Ailus (7):
->   v4l: fwnode: Support generic fwnode for parsing standardised
->     properties
->   v4l: async: Add fwnode match support
->   v4l: flash led class: Use fwnode_handle instead of device_node in init
->   v4l: Switch from V4L2 OF not V4L2 fwnode API
->   docs-rst: media: Sort topic list alphabetically
->   docs-rst: media: Switch documentation to V4L2 fwnode API
->   v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework
-> 
->  Documentation/media/kapi/v4l2-core.rst         |  20 +-
->  Documentation/media/kapi/v4l2-fwnode.rst       |   3 +
->  Documentation/media/kapi/v4l2-of.rst           |   3 -
->  drivers/leds/leds-aat1290.c                    |   5 +-
->  drivers/leds/leds-max77693.c                   |   5 +-
->  drivers/media/i2c/Kconfig                      |   9 +
->  drivers/media/i2c/adv7604.c                    |   7 +-
->  drivers/media/i2c/mt9v032.c                    |   7 +-
->  drivers/media/i2c/ov2659.c                     |   8 +-
->  drivers/media/i2c/s5c73m3/s5c73m3-core.c       |   7 +-
->  drivers/media/i2c/s5k5baf.c                    |   6 +-
->  drivers/media/i2c/smiapp/Kconfig               |   1 +
->  drivers/media/i2c/smiapp/smiapp-core.c         |  29 ++-
->  drivers/media/i2c/tc358743.c                   |  11 +-
->  drivers/media/i2c/tvp514x.c                    |   6 +-
->  drivers/media/i2c/tvp5150.c                    |   7 +-
->  drivers/media/i2c/tvp7002.c                    |   6 +-
->  drivers/media/platform/Kconfig                 |   3 +
->  drivers/media/platform/am437x/Kconfig          |   1 +
->  drivers/media/platform/am437x/am437x-vpfe.c    |  15 +-
->  drivers/media/platform/atmel/Kconfig           |   1 +
->  drivers/media/platform/atmel/atmel-isc.c       |  13 +-
->  drivers/media/platform/exynos4-is/Kconfig      |   2 +
->  drivers/media/platform/exynos4-is/media-dev.c  |  13 +-
->  drivers/media/platform/exynos4-is/mipi-csis.c  |   6 +-
->  drivers/media/platform/omap3isp/isp.c          |  49 ++--
->  drivers/media/platform/pxa_camera.c            |  11 +-
->  drivers/media/platform/rcar-vin/Kconfig        |   1 +
->  drivers/media/platform/rcar-vin/rcar-core.c    |  23 +-
->  drivers/media/platform/soc_camera/Kconfig      |   1 +
->  drivers/media/platform/soc_camera/atmel-isi.c  |   7 +-
->  drivers/media/platform/soc_camera/soc_camera.c |   7 +-
->  drivers/media/platform/ti-vpe/cal.c            |  15 +-
->  drivers/media/platform/xilinx/Kconfig          |   1 +
->  drivers/media/platform/xilinx/xilinx-vipp.c    |  63 +++--
->  drivers/media/v4l2-core/Kconfig                |   3 +
->  drivers/media/v4l2-core/Makefile               |   4 +-
->  drivers/media/v4l2-core/v4l2-async.c           |  21 +-
->  drivers/media/v4l2-core/v4l2-flash-led-class.c |  12 +-
->  drivers/media/v4l2-core/v4l2-fwnode.c          | 342 +++++++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-of.c              | 327 -----------------------
->  include/media/v4l2-async.h                     |   8 +-
->  include/media/v4l2-flash-led-class.h           |   4 +-
->  include/media/v4l2-fwnode.h                    | 104 ++++++++
->  include/media/v4l2-of.h                        | 128 ---------
->  include/media/v4l2-subdev.h                    |   3 +
->  46 files changed, 690 insertions(+), 638 deletions(-)
->  create mode 100644 Documentation/media/kapi/v4l2-fwnode.rst
->  delete mode 100644 Documentation/media/kapi/v4l2-of.rst
->  create mode 100644 drivers/media/v4l2-core/v4l2-fwnode.c
->  delete mode 100644 drivers/media/v4l2-core/v4l2-of.c
->  create mode 100644 include/media/v4l2-fwnode.h
->  delete mode 100644 include/media/v4l2-of.h
-> 
-
+Sudeep
