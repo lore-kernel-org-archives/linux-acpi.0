@@ -1,127 +1,82 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH RFC 2/4] mmc: sdio: Add capability to skip SDIO reset at
- scan
-Date: Tue, 25 Apr 2017 15:45:41 +0300
-Message-ID: <e9dabea2-76bc-8112-93de-c2ad7f2668f3@intel.com>
-References: <1492769288-7474-1-git-send-email-adrian.hunter@intel.com>
- <1492769288-7474-3-git-send-email-adrian.hunter@intel.com>
- <CAPDyKFq7qWGgyXStJU3XZnGRcqMXZs_z21nJ2vUnCe0Pn-q19Q@mail.gmail.com>
- <ff496ea4-ba9b-387b-2d3b-3bf59b878973@intel.com>
- <CAPDyKFpDjx9EWLFCR5yejJg5bu3x--ksuOAE33+a_L0FNUW9dw@mail.gmail.com>
- <9ed30be6-9a42-9cd1-f260-9b57da369b05@intel.com>
- <CAPDyKFqorfJTVeS+r-qWYTFcAuJ67kmpk1WWQpkeMeQKsVfEcg@mail.gmail.com>
- <15332477-f37b-21d0-f85b-132d7bc0cdb4@intel.com>
- <CAPDyKFr-y5uAZMhGuiL8o7syTpDqFcQp5ibnO80ZWCFUNcQetQ@mail.gmail.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V15 04/11] efi: parse ARM processor error
+Date: Tue, 25 Apr 2017 10:05:31 -0600
+Message-ID: <b39e05d4-fcec-ec26-5aa9-895655eb513c@codeaurora.org>
+References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
+ <1492556723-9189-5-git-send-email-tbaicar@codeaurora.org>
+ <20170421175527.fjwnqd22jz7br5yu@pd.tnic>
+ <e54c9893-446f-9e77-b78b-2548d394719b@codeaurora.org>
+ <20170424175240.3nvhbxzwicxnk6og@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:11980 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1429430AbdDYMv1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Apr 2017 08:51:27 -0400
-In-Reply-To: <CAPDyKFr-y5uAZMhGuiL8o7syTpDqFcQp5ibnO80ZWCFUNcQetQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <20170424175240.3nvhbxzwicxnk6og@pd.tnic>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Borislav Petkov <bp@alien8.de>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, rafael@kernel.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, tony.luck@intel.com, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawe
 List-Id: linux-acpi@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Grygorii Strashko <grygorii.strashko@ti.com>
 
-On 25/04/17 15:24, Ulf Hansson wrote:
-> On 25 April 2017 at 13:20, Adrian Hunter <adrian.hunter@intel.com> wrote:
->> On 25/04/17 13:46, Ulf Hansson wrote:
->>> On 25 April 2017 at 09:57, Adrian Hunter <adrian.hunter@intel.com> wrote:
->>>> On 25/04/17 10:52, Ulf Hansson wrote:
->>>>> +Grygorii Strashko
->>>>>
->>>>> On 25 April 2017 at 08:21, Adrian Hunter <adrian.hunter@intel.com> wrote:
->>>>>> On 24/04/17 23:33, Ulf Hansson wrote:
->>>>>>> On 21 April 2017 at 12:08, Adrian Hunter <adrian.hunter@intel.com> wrote:
->>>>>>>> The SDIO card state might be being preserved during hibernation, for
->>>>>>>> example a SDIO wifi card supporting WOWLAN. That state will be lost if an
->>>>>>>> SDIO reset is done. One way to avoid that would be to build mmc core as a
->>>>>>>> module and simply not load it until after attempting to restore the
->>>>>>>> hibernation image. However that won't work if the hibernation image is
->>>>>>>> stored on eMMC which, of course, requires mmc core.
->>>>>>>
->>>>>>> I don't follow here. Are you saying the SDIO card is kept powered in
->>>>>>> hibernation, as to be able to support WOWLAN, right?
->>>>>>
->>>>>> Yes
->>>>>
->>>>> Okay, makes sense!
->>>>>
->>>>>>
->>>>>>>
->>>>>>> Then, it feels plain wrong the mmc_rescan() tries to re-initialize it.
->>>>>>> That should never happen, unless something is broken of course.
->>>>>>
->>>>>> The thing to note about hibernation is that there is a regular boot in
->>>>>> between saving the hibernation image and restoring it again.  At boot time,
->>>>>> the kernel knows almost nothing about whether there is a hibernation image
->>>>>> and whether or not it will be restored.  Consequently it becomes difficult
->>>>>> to avoid mmc_rescan().  As mentioned above, we need mmc_rescan() to
->>>>>> initialize the eMMC so that the hibernation image can be read.
->>>>>
->>>>> What's wrong with using the hibernation callbacks in the struct
->>>>> dev_pm_ops? We already do this.
->>>>
->>>> Here is the scenario.  The kernel has just booted.  User space wants to try
->>>> to restore a hibernation image, if there is one.  So user space loads the
->>>> mmc core because the hibernation image is on eMMC.  Mmc core does an SDIO
->>>> reset on the SDIO card and the state is lost.  It has little to do with pm
->>>> callbacks AFAICS.
->>>
->>> Ah, now I see what you mean. I thought the problem was during the
->>> actual restoring of the hibernation image.
->>>
->>> Alright, when a boot is triggered by WOWLAN , you want to avoid
->>> sending the reset command for the SDIO card before the
->>> re-initialization of the SDIO card starts.
->>>
->>> The problem with this approach is that you can't differentiate between
->>> a cold boot and a boot triggered by WOWLAN, right!? In other words, in
->>> some cases the reset command may be needed while in other it won't.
->>
->> SDIO reset is only needed if the card has not been power-cycled.  The
->> assumption is that the platform takes care of that when needed. e.g. when
->> rebooting instead of going to S4.
->>
->>>
->>> Maybe you can elaborate more on what exactly what the problem is with
->>> sending the reset command when the boot is triggered from WOWLAN? Yes,
->>> the SDIO card loses its context, but how is that a problem?
->>
->> The wifi driver expects to find the function in an initialized state.
-> 
-> So how does the the wifi driver distinguish this a boot caused by
-> WOWLAN - and not a cold boot?
+On 4/24/2017 11:52 AM, Borislav Petkov wrote:
+> On Fri, Apr 21, 2017 at 12:22:09PM -0600, Baicar, Tyler wrote:
+>> I guess it's not really needed. It just may be useful considering there can
+>> be numerous error info structures, numerous context info structures, and a
+>> variable length vendor information section. I can move this print to only in
+>> the length check failure cases.
+> And? Why does the user care?
+>
+> I mean, it is good for debugging when you wanna see you're parsing the
+> error info data properly but otherwise it doesn't improve the error
+> reporting one bit.
+I'll move this to just happen when the length check fails.
+>> Because these are part of the error information structure. I wouldn't think
+>> FW would populate error information structures that are different versions
+>> in the same processor error, but it could be possible from the spec (at
+>> least once there are different versions of the table).
+> Same argument as above.
+I can remove it then.
+>
+>> There is an error information 64 bit value in the ARM processor error
+>> information structure. (UEFI spec 2.6 table 261)
+> So that's IP-dependent and explained in the following tables. Any plans
+> on decoding that too?
+Yes, I do plan on adding further decoding for these values in the future.
+>
+>> Why's that? Dumping this vendor specific error information is similar to the
+>> unrecognized CPER section reporting which is also meant for vendor specific
+>> information https://lkml.org/lkml/2017/4/18/751
+> And how do those naked bytes help the user understand the error happening?
+>
+> Even in your example you have:
+>
+> [  140.739210] {1}[Hardware Error]:   00000000: 4d415201 4d492031 453a4d45 435f4343  .RAM1 IMEM:ECC_C
+> [  140.739214] {1}[Hardware Error]:   00000010: 53515f45 44525f42 00000000 00000000  E_QSB_RD........
+>
+> Which looks like some correctable ECC DRAM error and is actually begging
+> to be decoded in a human-readable form. So let's do that completely and
+> not dump partially decoded information.
+That seems like something that should be done outside of these patches 
+(if added to the kernel at all). The decoding for this information would 
+all be vendor specific, so I'm not sure if we want to pollute the EFI 
+code with vendor specific error decoding. Currently we are using the RAS 
+Daemon user space tool for the decoding of this information since 
+vendors can easily pick up this tool and add an extension for their 
+vendor specific parsing. These prints will only happen when the firmware 
+supports the vendor specific error information anyway.
 
-It doesn't have to.  It doesn't get loaded until after the attempt to
-restore the hibernation image.  So in the hibernation case it has its
-->restore() callback.  If there is no hibernation image, it gets loaded and
-probed.
+Thanks,
+Tyler
 
-AFAICT that is the normal way to stop drivers interfering with hibernation
-i.e. don't load them until after the attempt is made to restore the
-hibernation image.  We could do that with mmc core too, but for the fact
-that the hibernation image is on eMMC.
-
-> 
->> Otherwise it would have to re-enable the function and re-do the
->> function-specific initialization.  I don't know if there are other
-> 
-> At boot the SDIO func driver becomes probed, when the mmc core finds
-> and SDIO card and then registers a func device for it. Are you saying
-> that the SDIO func driver can take shortcuts when enabling the func
-> device, when the boot is trigger from WOWLAN?
-
-No.
-
-> 
->> consequences.  Presumably it will have lost any information about the nature
->> of the wake-up trigger.
-> 
-> How does that matter?
-
-I don't know if it matters.
-
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
