@@ -1,82 +1,106 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V15 04/11] efi: parse ARM processor error
-Date: Tue, 25 Apr 2017 10:05:31 -0600
-Message-ID: <b39e05d4-fcec-ec26-5aa9-895655eb513c@codeaurora.org>
-References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
- <1492556723-9189-5-git-send-email-tbaicar@codeaurora.org>
- <20170421175527.fjwnqd22jz7br5yu@pd.tnic>
- <e54c9893-446f-9e77-b78b-2548d394719b@codeaurora.org>
- <20170424175240.3nvhbxzwicxnk6og@pd.tnic>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH] ACPI / GED: use late init to allow other drivers init
+Date: Tue, 25 Apr 2017 12:24:19 -0400
+Message-ID: <3f2c5bcc-3499-d5ef-6955-778979d25b08@codeaurora.org>
+References: <1492813704-32280-1-git-send-email-okaya@codeaurora.org>
+ <CAJZ5v0gtLajqCsw0HTS=sL_=cU1aSFzUk6e_kAPAfreuCpak7g@mail.gmail.com>
+ <bf1ce91f-b232-4dce-5ed7-597b0ef46f92@codeaurora.org>
+ <CAJZ5v0jaGnoCjiU6VuHLyy9Kug8nHzxPxP8tuy3kphtfgmW38w@mail.gmail.com>
+ <3f0f2853-d2e5-be32-2bde-47e72c51a0a6@codeaurora.org>
+ <20170425070154.GC9999@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20170424175240.3nvhbxzwicxnk6og@pd.tnic>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:44486 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S980644AbdDYQYW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Apr 2017 12:24:22 -0400
+In-Reply-To: <20170425070154.GC9999@wunner.de>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, rafael@kernel.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, tony.luck@intel.com, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawe
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 4/24/2017 11:52 AM, Borislav Petkov wrote:
-> On Fri, Apr 21, 2017 at 12:22:09PM -0600, Baicar, Tyler wrote:
->> I guess it's not really needed. It just may be useful considering there can
->> be numerous error info structures, numerous context info structures, and a
->> variable length vendor information section. I can move this print to only in
->> the length check failure cases.
-> And? Why does the user care?
->
-> I mean, it is good for debugging when you wanna see you're parsing the
-> error info data properly but otherwise it doesn't improve the error
-> reporting one bit.
-I'll move this to just happen when the length check fails.
->> Because these are part of the error information structure. I wouldn't think
->> FW would populate error information structures that are different versions
->> in the same processor error, but it could be possible from the spec (at
->> least once there are different versions of the table).
-> Same argument as above.
-I can remove it then.
->
->> There is an error information 64 bit value in the ARM processor error
->> information structure. (UEFI spec 2.6 table 261)
-> So that's IP-dependent and explained in the following tables. Any plans
-> on decoding that too?
-Yes, I do plan on adding further decoding for these values in the future.
->
->> Why's that? Dumping this vendor specific error information is similar to the
->> unrecognized CPER section reporting which is also meant for vendor specific
->> information https://lkml.org/lkml/2017/4/18/751
-> And how do those naked bytes help the user understand the error happening?
->
-> Even in your example you have:
->
-> [  140.739210] {1}[Hardware Error]:   00000000: 4d415201 4d492031 453a4d45 435f4343  .RAM1 IMEM:ECC_C
-> [  140.739214] {1}[Hardware Error]:   00000010: 53515f45 44525f42 00000000 00000000  E_QSB_RD........
->
-> Which looks like some correctable ECC DRAM error and is actually begging
-> to be decoded in a human-readable form. So let's do that completely and
-> not dump partially decoded information.
-That seems like something that should be done outside of these patches 
-(if added to the kernel at all). The decoding for this information would 
-all be vendor specific, so I'm not sure if we want to pollute the EFI 
-code with vendor specific error decoding. Currently we are using the RAS 
-Daemon user space tool for the decoding of this information since 
-vendors can easily pick up this tool and add an extension for their 
-vendor specific parsing. These prints will only happen when the firmware 
-supports the vendor specific error information anyway.
+On 4/25/2017 3:01 AM, Lukas Wunner wrote:
+> On Sat, Apr 22, 2017 at 12:48 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
+>> On 4/21/2017 6:43 PM, Rafael J. Wysocki wrote:
+>>> +late_initcall(ged_init);
+>>> Does this fix the problem?
+>>>
+>>> What about if the module in question is loaded after running
+>>> late_initcalls?
+>>
+>> This fixed the issue for me where I had dependencies for QUP I2C driver
+>> and GHES drivers. Both of them are modules and get probed via normal
+>> module execution path.
+>>
+>> However, I'm open to improvements.  Do you have a better suggestion?
+>> I can try to add some _DEP stuff if it is present, but I remember Linux
+>> doesn't like _DEP stuff too much.
+> 
+> Would it be possible to solve this by just returning -EPROBE_DEFER from the
+> ->probe hook if the devices you depend on are not bound yet?
+> 
 
-Thanks,
-Tyler
+I'm not sure. 
+
+> Alternatively, would it be possible to solve it with a struct device_link?
+
+I wasn't aware of device_link concept. This is something that I will keep in
+my mind when I'm dealing with producer/consumer problems with known device
+driver instances. It looked very useful.
+
+Here is how the overall relationship between drivers.
+
+| GED | <--->  | Platform specific ACPI AML | <----> Vendor GPIO
+                                              <----> Vendor I2C
+                                              <----> ACPI GHES
+					      <----> Some other driver
+
+The problem with Generic Event Device (GED) is that it produces event
+notification facility to the platform specific AML code and GED doesn't
+have any idea about the consumers of these interrupts or what platform AML
+does. 
+
+GED only sees the interrupts that it needs to register and
+knows the ASL code it needs to execute when that interrupt happens.
+
+It is possible for AML code not to use any of these drivers or require
+some arbitrary driver as well as vendor specific drivers. It is totally
+up to the firmware to decide what to do with this event.
+
+My proposal was to require platform AML code to indicate the dependencies
+between GED and drivers on the right side of the picture via _DEP as this
+cannot be done via normal kernel mechanisms.
+
+This approach might work in general. However, it also has its own caveats.
+
+All of these drivers on the right side are unrelated to each other. Some
+operating system can implement a subset of these drivers.
+
+If I include the dependencies, GED will never load for partial driver situations.
+This is also a deal breaker. 
+
+Why would you break some other feature if your OS doesn't support RAS as an
+example?
+
+Given all these lose bindings and no driver association, where do we go
+from here?
+
+I consider GED as a light version of Embedded controller (EC) implementation. 
+
+How is this problem solved for EC as it has the same problem?
+
+> 
+> Thanks,
+> 
+> Lukas
+> 
+
 
 -- 
+Sinan Kaya
 Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
