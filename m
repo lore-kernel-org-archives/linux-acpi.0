@@ -1,43 +1,66 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / GED: use late init to allow other drivers init
-Date: Tue, 25 Apr 2017 13:03:03 +0200
-Message-ID: <CAJZ5v0iVOmkgU5tBZzocTgPjcAQzY8mFrzBiMJ_kmHvh3Lhgww@mail.gmail.com>
-References: <1492813704-32280-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0gtLajqCsw0HTS=sL_=cU1aSFzUk6e_kAPAfreuCpak7g@mail.gmail.com>
- <bf1ce91f-b232-4dce-5ed7-597b0ef46f92@codeaurora.org> <CAJZ5v0jaGnoCjiU6VuHLyy9Kug8nHzxPxP8tuy3kphtfgmW38w@mail.gmail.com>
- <0601c14c-ce5c-a181-0801-4a64a0a3c7be@codeaurora.org>
+Subject: Re: [PATCH RFC 3/4] mmc: sdhci-acpi: Set MMC_CAP2_NO_SDIO_RESET if
+ child has wake from S4 (hibernate)
+Date: Tue, 25 Apr 2017 13:05:42 +0200
+Message-ID: <CAJZ5v0irctEBjpXFLW9nuevx4L0HNigNMQv1qgCuGp7tOiE8Jg@mail.gmail.com>
+References: <1492769288-7474-1-git-send-email-adrian.hunter@intel.com>
+ <1492769288-7474-4-git-send-email-adrian.hunter@intel.com>
+ <CAJZ5v0hcfsbfy=KhgTDvg7zj-egKODDJAF0-gqWdxuxKfyBFPQ@mail.gmail.com> <a28facd9-9d81-2be0-280b-ac4267e334d0@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:34078 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1172415AbdDYLDE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Apr 2017 07:03:04 -0400
-In-Reply-To: <0601c14c-ce5c-a181-0801-4a64a0a3c7be@codeaurora.org>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:33779 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1430043AbdDYLFo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Apr 2017 07:05:44 -0400
+In-Reply-To: <a28facd9-9d81-2be0-280b-ac4267e334d0@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Adrian Hunter <adrian.hunter@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Tue, Apr 25, 2017 at 3:43 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
->
->> My point is that nothing guarantees a specific ordering or timing of
->> module loading in general, so moving stuff to different initcall
->> levels does not really help 100% of the time.
+On Tue, Apr 25, 2017 at 9:28 AM, Adrian Hunter <adrian.hunter@intel.com> wrote:
+> On 25/04/17 00:52, Rafael J. Wysocki wrote:
+>> On Fri, Apr 21, 2017 at 12:08 PM, Adrian Hunter <adrian.hunter@intel.com> wrote:
+>>> SDIO reset interferes with a SDIO function driver's restore from
+>>> hibernation. Set MMC_CAP2_NO_SDIO_RESET if a child node has _S4W method
+>>> which indicates a capability to wake from S4 (hibernate).
+>>>
+>>> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+>>> ---
+>>>  drivers/mmc/host/sdhci-acpi.c | 17 ++++++++++++++++-
+>>>  1 file changed, 16 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/mmc/host/sdhci-acpi.c b/drivers/mmc/host/sdhci-acpi.c
+>>> index c6a9a1bfaa22..e053a45db6b1 100644
+>>> --- a/drivers/mmc/host/sdhci-acpi.c
+>>> +++ b/drivers/mmc/host/sdhci-acpi.c
+>>> @@ -374,6 +374,14 @@ static const struct sdhci_acpi_slot *sdhci_acpi_get_slot(const char *hid,
+>>>         return NULL;
+>>>  }
+>>>
+>>> +static bool sdhci_acpi_child_has_s4w(struct acpi_device *child)
+>>> +{
+>>> +       acpi_handle handle = child->handle;
+>>> +       unsigned long long ret;
+>>> +
+>>> +       return ACPI_SUCCESS(acpi_evaluate_integer(handle, "_S4W", NULL, &ret));
 >>
+>> First off, there is acpi_has_method().
+>>
+>> Second, checking child->wakeup.sleep_state is a better indicator of S4
+>> wakeup support.
 >
-> Are you talking about init vs. probe in general?
+> So, like this?
+>
+>         child->wakeup.sleep_state >= ACPI_STATE_S4
+>
+> That comes just from _PRW right?
 
-Yes.
+It may be fixed up if the power resources in there don't match what
+_PRW itself returns, but generally yes.
 
-Generally speaking, if the initialization of built-in code depends on
-a loadable module to be present, it has to explicitly wait for that
-module to advertise itself, this way or another, or it has to poll.
-
-> Sorry, I'm trying to decode what you mean to see if there is some other behavior
-> that I'm not aware of in ACPI.
-
-Sorry for being unclear.
+In any case _S4W is optional even for devices that can wake up from S4 IIRC.
 
 Thanks,
 Rafael
