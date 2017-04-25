@@ -1,46 +1,152 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH V15 06/11] acpi: apei: handle SEA notification type for
- ARMv8
-Date: Tue, 25 Apr 2017 19:46:41 +0200
-Message-ID: <20170425174641.bfzwr4h3eoaxtcor@pd.tnic>
-References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
- <1492556723-9189-7-git-send-email-tbaicar@codeaurora.org>
- <20170425172154.ggg56j52inf3522e@pd.tnic>
- <6d7249d3-e0b2-afa7-b5fa-8e85c40d8a13@codeaurora.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH RFC 2/4] mmc: sdio: Add capability to skip SDIO reset at
+ scan
+Date: Tue, 25 Apr 2017 13:51:19 -0500
+Message-ID: <a873b92c-e290-2e9b-d473-e28e9aeb4c0c@ti.com>
+References: <1492769288-7474-1-git-send-email-adrian.hunter@intel.com>
+ <1492769288-7474-3-git-send-email-adrian.hunter@intel.com>
+ <CAPDyKFq7qWGgyXStJU3XZnGRcqMXZs_z21nJ2vUnCe0Pn-q19Q@mail.gmail.com>
+ <ff496ea4-ba9b-387b-2d3b-3bf59b878973@intel.com>
+ <CAPDyKFpDjx9EWLFCR5yejJg5bu3x--ksuOAE33+a_L0FNUW9dw@mail.gmail.com>
+ <9ed30be6-9a42-9cd1-f260-9b57da369b05@intel.com>
+ <CAPDyKFqorfJTVeS+r-qWYTFcAuJ67kmpk1WWQpkeMeQKsVfEcg@mail.gmail.com>
+ <15332477-f37b-21d0-f85b-132d7bc0cdb4@intel.com>
+ <CAPDyKFr-y5uAZMhGuiL8o7syTpDqFcQp5ibnO80ZWCFUNcQetQ@mail.gmail.com>
+ <e9dabea2-76bc-8112-93de-c2ad7f2668f3@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <6d7249d3-e0b2-afa7-b5fa-8e85c40d8a13@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, rafael@kernel.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, tony.luck@intel.com, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lelnx193.ext.ti.com ([198.47.27.77]:9546 "EHLO
+        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1948142AbdDYSvY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Apr 2017 14:51:24 -0400
+In-Reply-To: <e9dabea2-76bc-8112-93de-c2ad7f2668f3@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Tue, Apr 25, 2017 at 11:41:39AM -0600, Baicar, Tyler wrote:
-> I originally had this as a notifier, but Will requested to remove the
-> notifier. That conversation is here: https://lkml.org/lkml/2017/1/18/1018
 
-Yeah, he mentioned on IRC. I just think notifiers would be the cleaner
-thing but whatever you guys say.
 
-Just we had a nasty hack on x86 which I got rid of recently:
+On 04/25/2017 07:45 AM, Adrian Hunter wrote:
+> On 25/04/17 15:24, Ulf Hansson wrote:
+>> On 25 April 2017 at 13:20, Adrian Hunter <adrian.hunter@intel.com> wrote:
+>>> On 25/04/17 13:46, Ulf Hansson wrote:
+>>>> On 25 April 2017 at 09:57, Adrian Hunter <adrian.hunter@intel.com> wrote:
+>>>>> On 25/04/17 10:52, Ulf Hansson wrote:
+>>>>>> +Grygorii Strashko
+>>>>>>
+>>>>>> On 25 April 2017 at 08:21, Adrian Hunter <adrian.hunter@intel.com> wrote:
+>>>>>>> On 24/04/17 23:33, Ulf Hansson wrote:
+>>>>>>>> On 21 April 2017 at 12:08, Adrian Hunter <adrian.hunter@intel.com> wrote:
+>>>>>>>>> The SDIO card state might be being preserved during hibernation, for
+>>>>>>>>> example a SDIO wifi card supporting WOWLAN. That state will be lost if an
+>>>>>>>>> SDIO reset is done. One way to avoid that would be to build mmc core as a
+>>>>>>>>> module and simply not load it until after attempting to restore the
+>>>>>>>>> hibernation image. However that won't work if the hibernation image is
+>>>>>>>>> stored on eMMC which, of course, requires mmc core.
+>>>>>>>>
+>>>>>>>> I don't follow here. Are you saying the SDIO card is kept powered in
+>>>>>>>> hibernation, as to be able to support WOWLAN, right?
+>>>>>>>
+>>>>>>> Yes
+>>>>>>
+>>>>>> Okay, makes sense!
+>>>>>>
+>>>>>>>
+>>>>>>>>
+>>>>>>>> Then, it feels plain wrong the mmc_rescan() tries to re-initialize it.
+>>>>>>>> That should never happen, unless something is broken of course.
+>>>>>>>
+>>>>>>> The thing to note about hibernation is that there is a regular boot in
+>>>>>>> between saving the hibernation image and restoring it again.  At boot time,
+>>>>>>> the kernel knows almost nothing about whether there is a hibernation image
+>>>>>>> and whether or not it will be restored.  Consequently it becomes difficult
+>>>>>>> to avoid mmc_rescan().  As mentioned above, we need mmc_rescan() to
+>>>>>>> initialize the eMMC so that the hibernation image can be read.
+>>>>>>
+>>>>>> What's wrong with using the hibernation callbacks in the struct
+>>>>>> dev_pm_ops? We already do this.
+>>>>>
+>>>>> Here is the scenario.  The kernel has just booted.  User space wants to try
+>>>>> to restore a hibernation image, if there is one.  So user space loads the
+>>>>> mmc core because the hibernation image is on eMMC.  Mmc core does an SDIO
+>>>>> reset on the SDIO card and the state is lost.  It has little to do with pm
+>>>>> callbacks AFAICS.
+>>>>
+>>>> Ah, now I see what you mean. I thought the problem was during the
+>>>> actual restoring of the hibernation image.
+>>>>
+>>>> Alright, when a boot is triggered by WOWLAN , you want to avoid
+>>>> sending the reset command for the SDIO card before the
+>>>> re-initialization of the SDIO card starts.
+>>>>
+>>>> The problem with this approach is that you can't differentiate between
+>>>> a cold boot and a boot triggered by WOWLAN, right!? In other words, in
+>>>> some cases the reset command may be needed while in other it won't.
+>>>
+>>> SDIO reset is only needed if the card has not been power-cycled.  The
+>>> assumption is that the platform takes care of that when needed. e.g. when
+>>> rebooting instead of going to S4.
+>>>
+>>>>
+>>>> Maybe you can elaborate more on what exactly what the problem is with
+>>>> sending the reset command when the boot is triggered from WOWLAN? Yes,
+>>>> the SDIO card loses its context, but how is that a problem?
+>>>
+>>> The wifi driver expects to find the function in an initialized state.
+>>
+>> So how does the the wifi driver distinguish this a boot caused by
+>> WOWLAN - and not a cold boot?
+> 
+> It doesn't have to.  It doesn't get loaded until after the attempt to
+> restore the hibernation image.  So in the hibernation case it has its
+> ->restore() callback.  
 
-https://lkml.kernel.org/r/20170406090634.30950-1-bp@alien8.de
+For this case is a good question of how Kernel wifi card driver state will be
+synchronized HW state after restore from Hibernation (first of all wireless state -
+scan results, connection state and parameters)? Most probably wifi driver will
+need to perform mostly full re-initialization on restore, so...
 
-and I wouldn't want you guys to have the same "fun". :)
+>If there is no hibernation image, it gets loaded and
+> probed.
+
+But in this case, as per you patch, there are will be no SDIO reset so
+do you expect that wifi driver will still work? 
+
+> 
+> AFAICT that is the normal way to stop drivers interfering with hibernation
+> i.e. don't load them until after the attempt is made to restore the
+> hibernation image.  We could do that with mmc core too, but for the fact
+> that the hibernation image is on eMMC.
+
+>From my experience, it pretty hard to restore HW state which runs by FW, so as
+W/A we just unloaded remoteproc, wireless and graphic drivers before hibernation and
+reloaded them right after. As I know the same approach often used in x86 world also.
+
+
+> 
+>>
+>>> Otherwise it would have to re-enable the function and re-do the
+>>> function-specific initialization.  I don't know if there are other
+>>
+>> At boot the SDIO func driver becomes probed, when the mmc core finds
+>> and SDIO card and then registers a func device for it. Are you saying
+>> that the SDIO func driver can take shortcuts when enabling the func
+>> device, when the boot is trigger from WOWLAN?
+> 
+> No.
+> 
+>>
+>>> consequences.  Presumably it will have lost any information about the nature
+>>> of the wake-up trigger.
+>>
+>> How does that matter?
+> 
+> I don't know if it matters.
+> 
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+regards,
+-grygorii
