@@ -1,158 +1,85 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [RFC] ACPI / Processor: add sysfs support for low power idle
-Date: Tue, 25 Apr 2017 11:28:20 +0100
-Message-ID: <0ac023c3-4bda-ba33-4634-6108e0631962@arm.com>
-References: <1490832795-27441-1-git-send-email-pprakash@codeaurora.org>
- <2e633ef7-5155-7eb7-0f1b-8bc36bd25da7@arm.com>
- <37544927-1f7d-ab59-63d5-32ac1d777bb6@codeaurora.org>
- <a6544dab-4ae4-22d6-4fe5-08f7919072ca@arm.com>
- <c9ab5b6c-ad86-1a03-2d1f-c8526e8684b1@codeaurora.org>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH RFC 2/4] mmc: sdio: Add capability to skip SDIO reset at scan
+Date: Tue, 25 Apr 2017 12:46:01 +0200
+Message-ID: <CAPDyKFqorfJTVeS+r-qWYTFcAuJ67kmpk1WWQpkeMeQKsVfEcg@mail.gmail.com>
+References: <1492769288-7474-1-git-send-email-adrian.hunter@intel.com>
+ <1492769288-7474-3-git-send-email-adrian.hunter@intel.com>
+ <CAPDyKFq7qWGgyXStJU3XZnGRcqMXZs_z21nJ2vUnCe0Pn-q19Q@mail.gmail.com>
+ <ff496ea4-ba9b-387b-2d3b-3bf59b878973@intel.com> <CAPDyKFpDjx9EWLFCR5yejJg5bu3x--ksuOAE33+a_L0FNUW9dw@mail.gmail.com>
+ <9ed30be6-9a42-9cd1-f260-9b57da369b05@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39154 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1429618AbdDYK2e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Apr 2017 06:28:34 -0400
-In-Reply-To: <c9ab5b6c-ad86-1a03-2d1f-c8526e8684b1@codeaurora.org>
+Received: from mail-qt0-f173.google.com ([209.85.216.173]:35386 "EHLO
+        mail-qt0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1177331AbdDYKqC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Apr 2017 06:46:02 -0400
+Received: by mail-qt0-f173.google.com with SMTP id y33so135901218qta.2
+        for <linux-acpi@vger.kernel.org>; Tue, 25 Apr 2017 03:46:02 -0700 (PDT)
+In-Reply-To: <9ed30be6-9a42-9cd1-f260-9b57da369b05@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>, linux-acpi@vger.kernel.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net, lenb@kernel.org, al.stone@linaro.org
+To: Adrian Hunter <adrian.hunter@intel.com>
+Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Grygorii Strashko <grygorii.strashko@ti.com>
 
-
-
-On 25/04/17 02:17, Prakash, Prashanth wrote:
-> 
-> 
-> On 4/20/2017 2:46 AM, Sudeep Holla wrote:
+On 25 April 2017 at 09:57, Adrian Hunter <adrian.hunter@intel.com> wrote:
+> On 25/04/17 10:52, Ulf Hansson wrote:
+>> +Grygorii Strashko
 >>
->> On 19/04/17 23:57, Prakash, Prashanth wrote:
->>> Hi Sudeep,
->>>
->>> On 4/19/2017 9:37 AM, Sudeep Holla wrote:
->>>> On 30/03/17 01:13, Prashanth Prakash wrote:
->>>>> Add support to expose idle statistics maintained by platform to
->>>>> userspace via sysfs in addition to other data of interest from
->>>>> each LPI(Low Power Idle) state.
->>>>>
->>>> While I understand this information is useful for some optimization
->>>> and also for idle characterization with different workloads, I prefer
->>>> to keep this in debugfs for:
+>> On 25 April 2017 at 08:21, Adrian Hunter <adrian.hunter@intel.com> wrote:
+>>> On 24/04/17 23:33, Ulf Hansson wrote:
+>>>> On 21 April 2017 at 12:08, Adrian Hunter <adrian.hunter@intel.com> wrote:
+>>>>> The SDIO card state might be being preserved during hibernation, for
+>>>>> example a SDIO wifi card supporting WOWLAN. That state will be lost if an
+>>>>> SDIO reset is done. One way to avoid that would be to build mmc core as a
+>>>>> module and simply not load it until after attempting to restore the
+>>>>> hibernation image. However that won't work if the hibernation image is
+>>>>> stored on eMMC which, of course, requires mmc core.
 >>>>
->>>> 1. We already have CPUIdle stats, this information may be more accurate
->>>>    which is good for above reasons but user-space applications shouldn't
->>>>    depend on it and end-up misusing it.
->>>> 2. Also as more features get pushed into hardware, even these stats may
->>>>    not remain so much accurate as it is today and hence it would be
->>>>    better if user-space applications never use/depend on them.
->>>>
->>>> Let me know if there are conflicting reasons ?
->>> The information about idle state of shared resources(Cache, interconnect ...)
->>> which cannot be deduced from the cpuidle stats is quite useful. We can use this
->>> to analyze newer workloads and to explain their power consumption, especially as
->>> the amount of time some of these shared resources spends in different LPI states
->>> can be influenced by changes to workload, kernel or firmware. And for auto
->>> promote-able states this is the only way to capture idle stats.
+>>>> I don't follow here. Are you saying the SDIO card is kept powered in
+>>>> hibernation, as to be able to support WOWLAN, right?
 >>>
->> I agree that the stats are useful, no argument there. The question is
->> more in terms of whether it can be debugfs which is just useful in
->> analysis and characterization or sysfs which becomes user ABI.
+>>> Yes
 >>
->>> Regarding 2, since these stats are clearly defined by ACPI spec and maintained by
->>> platform, I think it is reasonable to expect them to be accurate. If it is not accurate,
->>> it is likely that platform is breaking the spec.
+>> Okay, makes sense!
+>>
 >>>
->> I was considering firmware vs hardware here. If f/w tracks and updates
->> these statistics, it may not be so accurate in the future if more
->> controls that are today done in f/w will be done automatically done in 
->> h/w. If h/w updates these statistics, then yes they will be accurate.
+>>>>
+>>>> Then, it feels plain wrong the mmc_rescan() tries to re-initialize it.
+>>>> That should never happen, unless something is broken of course.
+>>>
+>>> The thing to note about hibernation is that there is a regular boot in
+>>> between saving the hibernation image and restoring it again.  At boot time,
+>>> the kernel knows almost nothing about whether there is a hibernation image
+>>> and whether or not it will be restored.  Consequently it becomes difficult
+>>> to avoid mmc_rescan().  As mentioned above, we need mmc_rescan() to
+>>> initialize the eMMC so that the hibernation image can be read.
+>>
+>> What's wrong with using the hibernation callbacks in the struct
+>> dev_pm_ops? We already do this.
 >
-> Agree with f/w tracking vs h/w tracking, but I am not sure if we can (or should even try
->  to) handle those issues at LPI driver level.
+> Here is the scenario.  The kernel has just booted.  User space wants to try
+> to restore a hibernation image, if there is one.  So user space loads the
+> mmc core because the hibernation image is on eMMC.  Mmc core does an SDIO
+> reset on the SDIO card and the state is lost.  It has little to do with pm
+> callbacks AFAICS.
 
-No I was not saying to control it. I just raised it to make sure we
-don't allow userspace to depend on these stats too much other than just
-characterization and analysis as these might be lost in future platforms.
+Ah, now I see what you mean. I thought the problem was during the
+actual restoring of the hibernation image.
 
->> I am still trying to convince myself if we need this as sysfs user ABI,
->> so just thinking aloud.
-> Sure.
->>> Given above, I don't see much room for user-space applications to misuse this.
->> You never know :)
-> :-)
->>
->>> Given these are defined as optional in spec, user-space application should use
->>> only if/when available and use it as complementary to cpuidle stats.
->>>
->> Fair enough.
->>
->> [...]
->>
->>>>> 	|	|-> flags
->>>>> 	|	|-> arch_flags
->>>>> 	|
->>>>> 	<<more states>>
->>>>>
->>>>> ACPI00XX can be ACPI0007(processor) or ACPI0010(processor container)
->>>>>
->>>>> stateX contains information related to a specific LPI state defined
->>>>> in the LPI ACPI tables.
->>>>>
->>>>> summary_stats shows the stats(usage and time) from all the LPI states
->>>>> under a device. The summary_stats are provided to reduce the number'
->>>>> of files to be accessed by the userspace to capture a snapshot of the'
->>>>> idle statistics.
->>>> Really ? What's the need to reduce the no. of file accesses ?
->>> When we have a large number of cores, with multiple idle state + few auto-promotable
->>> states. The amount of files we need to access to get a snapshot before/after a running
->>> a workload is quite high.
->>>
->> OK. Since I don't have much knowledge on that, I can't really comment,
->> but I wonder why is that not done for many stats that are per-cpu today.
-> Good point. The only example I can think of is cpufreq stats that does something like this,
-> though I am not sure of exact motivation(s) behind it.
-> 
-> I think one could have made the similar case with cpuidle sysfs as well. Moreover
-> summary_stats only mitigates some of the overhead with frequent reading of stats and
-> doesn't really fix it in a scalable manner. So, I  suppose the current reasoning to have
-> summary_stats is quite weak to start with.
+Alright, when a boot is triggered by WOWLAN , you want to avoid
+sending the reset command for the SDIO card before the
+re-initialization of the SDIO card starts.
 
-After you brought up this point, I was thinking to use this over
-hierarchical representation. If we put this summary_stats in debugfs,
-then no need to worry about user ABI.
+The problem with this approach is that you can't differentiate between
+a cold boot and a boot triggered by WOWLAN, right!? In other words, in
+some cases the reset command may be needed while in other it won't.
 
->>> It gets worse if we want to keep the file handles open to sample it little more frequently,
->>> to get breakdown of idle state distribution during different phases of a workload.
->> On the contrary agreeing with you on issue with large no. of file
->> handles, why not we have single stat file that provides all the
->> information you need and be done with it ? Why do we need all this
->> hierarchy of sysfs if the summary_stats can provide all those
->> information broken down.
-> With hierarchy, it is possible to get information about relationship between cpus
-> and  higher order shared resources. If we flatten the hierarchy we lose information
-> about relationships and it gets a little hard to clearly represent the idle states of
-> shared resources and which cpus share those resources.
-> 
+Maybe you can elaborate more on what exactly what the problem is with
+sending the reset command when the boot is triggered from WOWLAN? Yes,
+the SDIO card loses its context, but how is that a problem?
 
-No, what I meant is to have complete information broken down to the
-lowest possible level, but just one file access to get that information.
+[...]
 
-IIUC, you had some format already for summary_stat file, just extend
-to get all the information you would get reading individual sysfs files
-organized hierarchically. I don't think that should matter much as you
-would have all these information, just the representation differs. I am
-assuming all this data is not used/interpreted on the fly, but mostly
-used offline for analysis. Otherwise it's already misuse and we don't
-want to expose such user ABI IMO.
-
-Just to summarize, though I agree this LPI stats are more accurate and
-more representative summary, I think it may fade away as we move towards
-hardware controlled lower power states. Since we already have cpuidle
-stats, I prefer to keep this LPI stats interface to userspace as simple
-and minimal as possible and yet helpful to get all the information.
-
--- 
-Regards,
-Sudeep
+Kind regards
+Uffe
