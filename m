@@ -1,121 +1,47 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH RFC 1/4] mmc: sdio: Keep card runtime resumed while adding
- function devices
-Date: Tue, 25 Apr 2017 09:41:09 +0300
-Message-ID: <94e74b75-0393-852b-a868-1784621bb304@intel.com>
-References: <1492769288-7474-1-git-send-email-adrian.hunter@intel.com>
- <1492769288-7474-2-git-send-email-adrian.hunter@intel.com>
- <CAPDyKFqkj_Tb6zA2e8RZ_pGsLErqvDdSYyC-mKfVanZimfkmFA@mail.gmail.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH] ACPI / GED: use late init to allow other drivers init
+Date: Tue, 25 Apr 2017 09:01:54 +0200
+Message-ID: <20170425070154.GC9999@wunner.de>
+References: <1492813704-32280-1-git-send-email-okaya@codeaurora.org>
+ <CAJZ5v0gtLajqCsw0HTS=sL_=cU1aSFzUk6e_kAPAfreuCpak7g@mail.gmail.com>
+ <bf1ce91f-b232-4dce-5ed7-597b0ef46f92@codeaurora.org>
+ <CAJZ5v0jaGnoCjiU6VuHLyy9Kug8nHzxPxP8tuy3kphtfgmW38w@mail.gmail.com>
+ <3f0f2853-d2e5-be32-2bde-47e72c51a0a6@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:40780 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S980867AbdDYGqy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Apr 2017 02:46:54 -0400
-In-Reply-To: <CAPDyKFqkj_Tb6zA2e8RZ_pGsLErqvDdSYyC-mKfVanZimfkmFA@mail.gmail.com>
+Received: from mailout3.hostsharing.net ([176.9.242.54]:55805 "EHLO
+        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1167833AbdDYHB4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Apr 2017 03:01:56 -0400
+Content-Disposition: inline
+In-Reply-To: <3f0f2853-d2e5-be32-2bde-47e72c51a0a6@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 25/04/17 00:03, Ulf Hansson wrote:
-> On 21 April 2017 at 12:08, Adrian Hunter <adrian.hunter@intel.com> wrote:
->> Drivers core will runtime suspend a device with no driver. That means the
->> SDIO card will be runtime suspended as soon as it is added. It is then
->> runtime resumed to add each function. That is entirely pointless, so add
-> 
-> I totally agree! You are touching the part of the PM code for SDIO
-> that is severely broken in my view.
-> 
-> The mmc core shouldn't mess with runtime PM for func device at all,
-> except setting up the parent-child relationship. Instead runtime PM
-> for the func device should be solely handled by the func driver.
+On Sat, Apr 22, 2017 at 12:48 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> On 4/21/2017 6:43 PM, Rafael J. Wysocki wrote:
+> > +late_initcall(ged_init);
+> > Does this fix the problem?
+> >
+> > What about if the module in question is loaded after running
+> > late_initcalls?
+>
+> This fixed the issue for me where I had dependencies for QUP I2C driver
+> and GHES drivers. Both of them are modules and get probed via normal
+> module execution path.
+>
+> However, I'm open to improvements.  Do you have a better suggestion?
+> I can try to add some _DEP stuff if it is present, but I remember Linux
+> doesn't like _DEP stuff too much.
 
-This addresses the runtime pm of the SDIO card device, not the function
-devices.  SDIO cards do not have drivers, only the functions do.
+Would it be possible to solve this by just returning -EPROBE_DEFER from the
+->probe hook if the devices you depend on are not bound yet?
 
-> 
->> pm runtime get/put to keep the SDIO card runtime resumed until the function
->> devices have been added.
->>
->> This also benefits the hibernation use-case whereby we want to avoid the
->> SDIO reset that is done as part of runtime resume. In that case, the SDIO
->> card state is preserved at boot time by avoiding loading any function
->> drivers before restoring the hibernation image.
-> 
-> This seems like a different issue. I guess this is because the func
-> driver don't implement the PM callbacks, which makes the mmc core to
-> remove the sdio card at mmc_pm_notify().
-> 
-> The proper solution here is to make the sdio func driver to implement
-> the PM callbacks.
+Alternatively, would it be possible to solve it with a struct device_link?
 
-This is before the SDIO function devices have been added and consequently
-before the SDIO function drivers have been probed.
+Thanks,
 
-Since none of the functions have drivers, mmc_pm_notify() doesn't remove the
-card anyway.
-
-> 
->>
->> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
->> ---
->>  drivers/mmc/core/sdio.c | 11 ++++++++++-
->>  1 file changed, 10 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/mmc/core/sdio.c b/drivers/mmc/core/sdio.c
->> index fae732c870a9..97bedde0610c 100644
->> --- a/drivers/mmc/core/sdio.c
->> +++ b/drivers/mmc/core/sdio.c
->> @@ -1110,6 +1110,8 @@ int mmc_attach_sdio(struct mmc_host *host)
->>                 if (err)
->>                         goto remove;
->>
->> +               pm_runtime_get_noresume(&card->dev);
->> +
->>                 /*
->>                  * Enable runtime PM for this card
->>                  */
->> @@ -1129,7 +1131,7 @@ int mmc_attach_sdio(struct mmc_host *host)
->>         for (i = 0; i < funcs; i++, card->sdio_funcs++) {
->>                 err = sdio_init_func(host->card, i + 1);
->>                 if (err)
->> -                       goto remove;
->> +                       goto remove_get;
->>
->>                 /*
->>                  * Enable Runtime PM for this func (if supported)
->> @@ -1156,6 +1158,10 @@ int mmc_attach_sdio(struct mmc_host *host)
->>         }
->>
->>         mmc_claim_host(host);
->> +
->> +       if (host->caps & MMC_CAP_POWER_OFF_CARD)
->> +               pm_runtime_put(&card->dev);
->> +
->>         return 0;
->>
->>
->> @@ -1163,6 +1169,9 @@ int mmc_attach_sdio(struct mmc_host *host)
->>         /* Remove without lock if the device has been added. */
->>         mmc_sdio_remove(host);
->>         mmc_claim_host(host);
->> +remove_get:
->> +       if (host->caps & MMC_CAP_POWER_OFF_CARD)
->> +               pm_runtime_put(&card->dev);
->>  remove:
->>         /* And with lock if it hasn't been added. */
->>         mmc_release_host(host);
->> --
->> 1.9.1
->>
-> 
-> Overall this looks okay to me. Except for the changelog that is a bit
-> miss-leading.
-> 
-> Kind regards
-> Uffe
-> 
-
+Lukas
