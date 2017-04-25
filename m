@@ -1,66 +1,98 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH V15 04/11] efi: parse ARM processor error
-Date: Tue, 25 Apr 2017 18:31:01 +0200
-Message-ID: <20170425163101.oygshqqz2ik6te3f@pd.tnic>
-References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
- <1492556723-9189-5-git-send-email-tbaicar@codeaurora.org>
- <20170421175527.fjwnqd22jz7br5yu@pd.tnic>
- <e54c9893-446f-9e77-b78b-2548d394719b@codeaurora.org>
- <20170424175240.3nvhbxzwicxnk6og@pd.tnic>
- <b39e05d4-fcec-ec26-5aa9-895655eb513c@codeaurora.org>
+From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] libnvdimm, region: sysfs trigger for nvdimm_flush()
+Date: Tue, 25 Apr 2017 10:37:07 -0600
+Message-ID: <20170425163707.GA11773@linux.intel.com>
+References: <149307779085.7155.436029631521340565.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <b39e05d4-fcec-ec26-5aa9-895655eb513c@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, rafael@kernel.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, tony.luck@intel.com, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawe
+In-Reply-To: <149307780135.7155.11108531648914675756.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 25, 2017 at 10:05:31AM -0600, Baicar, Tyler wrote:
-> That seems like something that should be done outside of these patches (if
-> added to the kernel at all). The decoding for this information would all be
-> vendor specific, so I'm not sure if we want to pollute the EFI code with
-> vendor specific error decoding. Currently we are using the RAS Daemon user
-> space tool for the decoding of this information since vendors can easily
-> pick up this tool and add an extension for their vendor specific parsing.
-> These prints will only happen when the firmware supports the vendor specific
-> error information anyway.
+On Mon, Apr 24, 2017 at 04:50:01PM -0700, Dan Williams wrote:
+> The nvdimm_flush() mechanism helps to reduce the impact of an ADR
+> (asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
+> platform WPQ (write-pending-queue) buffers when power is removed. The
+> nvdimm_flush() mechanism performs that same function on-demand.
+> 
+> When a pmem namespace is associated with a block device, an
+> nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
+> request. These requests are typically associated with filesystem
+> metadata updates. However, when a namespace is in device-dax mode,
+> userspace (think database metadata) needs another path to perform the
+> same flushing. In other words this is not required to make data
+> persistent, but in the case of metadata it allows for a smaller failure
+> domain in the unlikely event of an ADR failure.
+> 
+> The new 'flush' attribute is visible when the individual DIMMs backing a
+> given interleave-set are described by platform firmware. In ACPI terms
+> this is "NVDIMM Region Mapping Structures" and associated "Flush Hint
+> Address Structures". Reads return "1" if the region supports triggering
+> WPQ flushes on all DIMMs. Reads return "0" the flush operation is a
+> platform nop, and in that case the attribute is read-only.
+> 
+> Cc: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Masayoshi Mizuma <m.mizuma-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/nvdimm/region_devs.c |   41 +++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 41 insertions(+)
+> 
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index 24abceda986a..c48f3eddce2d 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -255,6 +255,35 @@ static ssize_t size_show(struct device *dev,
+>  }
+>  static DEVICE_ATTR_RO(size);
+>  
+> +static ssize_t flush_show(struct device *dev,
+> +		struct device_attribute *attr, char *buf)
+> +{
+> +	struct nd_region *nd_region = to_nd_region(dev);
+> +
+> +	/*
+> +	 * NOTE: in the nvdimm_has_flush() error case this attribute is
+> +	 * not visible.
+> +	 */
+> +	return sprintf(buf, "%d\n", nvdimm_has_flush(nd_region));
+> +}
+> +
+> +static ssize_t flush_store(struct device *dev, struct device_attribute *attr,
+> +		const char *buf, size_t len)
+> +{
+> +	bool flush;
+> +	int rc = strtobool(buf, &flush);
+> +	struct nd_region *nd_region = to_nd_region(dev);
+> +
+> +	if (rc)
+> +		return rc;
+> +	if (!flush)
+> +		return -EINVAL;
 
-The same questions apply here: what do you do if the machine panics
-because the error is fatal and you can't get it to run any userspace?
-Wouldn't it be good to decode the whole error?
+Is there a benefit to verifying whether the user actually pushed a "1" into
+our flush sysfs entry?  Why have an -EINVAL error case at all?
 
-Right now we photograph screens on Intel x86 and feed the typed MCA info
-by hand to mcelog. Hardly an optimal situation.
+Flushing is non-destructive and we don't actually need the user to give us any
+data, so it seems simpler to just have this code flush, regardless of what
+input we received.
 
-On AMD, there's a decoder which actually can dump the decoded critical
-error. (Or could - that's in flux again :-\).
-
-So yes, if stuff is too vendor-specific then you probably don't
-want to decode it (or add a vendor-specific decoding module like
-edac_mce_amd.ko, for example). But the tables from the UEFI spec,
-documenting IP-specific error types which should be valid for most if
-not all ARM64 implementations adhering to the spec, would be useful to
-decode.
-
-In general, the more we can decode the error in the kernel and the less
-we need an external help to do so, the better.
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+> +	nvdimm_flush(nd_region);
+> +
+> +	return len;
+> +}
+> +static DEVICE_ATTR_RW(flush);
