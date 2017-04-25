@@ -1,16 +1,16 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH] acpi: fix acpi_get_table() leak / acpi-sysfs denial of
+Subject: [PATCH v2] acpi: fix acpi_get_table() leak / acpi-sysfs denial of
  service
-Date: Tue, 25 Apr 2017 12:39:20 -0700
-Message-ID: <149314916034.8899.7439820192725219189.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 25 Apr 2017 12:58:31 -0700
+Message-ID: <149315024459.9151.4555045488194999231.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:61489 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:29084 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1433130AbdDYTpN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Apr 2017 15:45:13 -0400
+        id S1953751AbdDYUEZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 25 Apr 2017 16:04:25 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rafael.j.wysocki@intel.com
@@ -36,11 +36,16 @@ Reported-by: Anush Seetharaman <anush.seetharaman@intel.com>
 Fixes: 1c8fce27e275 ("ACPI: introduce drivers/acpi/sysfs.c")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+
+Changes in v2:
+* compile fix s/table/table_header/. Sorry, I forgot to do 'stg refresh'
+  before 'stg mail'
+
  drivers/acpi/sysfs.c |    7 +++++--
  1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index cf05ae973381..531ddabf0390 100644
+index cf05ae973381..5180fef9eb49 100644
 --- a/drivers/acpi/sysfs.c
 +++ b/drivers/acpi/sysfs.c
 @@ -333,14 +333,17 @@ static ssize_t acpi_table_show(struct file *filp, struct kobject *kobj,
@@ -58,7 +63,7 @@ index cf05ae973381..531ddabf0390 100644
 -				       table_header, table_header->length);
 +	rc = memory_read_from_buffer(buf, count, &offset, table_header,
 +			table_header->length);
-+	acpi_put_table(table);
++	acpi_put_table(table_header);
 +	return rc;
  }
  
