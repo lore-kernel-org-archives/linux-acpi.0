@@ -1,96 +1,65 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 2/2] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Tue, 25 Apr 2017 09:38:34 -0700
-Message-ID: <CAPcyv4iRPeA=BEx4X+B651amfKt4m4rAXiq3KhAaZ2=rD0bjQA@mail.gmail.com>
-References: <149307779085.7155.436029631521340565.stgit@dwillia2-desk3.amr.corp.intel.com>
- <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20170425163707.GA11773@linux.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH V15 06/11] acpi: apei: handle SEA notification type for
+ ARMv8
+Date: Tue, 25 Apr 2017 19:21:54 +0200
+Message-ID: <20170425172154.ggg56j52inf3522e@pd.tnic>
+References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
+ <1492556723-9189-7-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f52.google.com ([209.85.218.52]:35629 "EHLO
-        mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1176891AbdDYQif (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Apr 2017 12:38:35 -0400
-Received: by mail-oi0-f52.google.com with SMTP id j201so178337555oih.2
-        for <linux-acpi@vger.kernel.org>; Tue, 25 Apr 2017 09:38:35 -0700 (PDT)
-In-Reply-To: <20170425163707.GA11773@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <1492556723-9189-7-git-send-email-tbaicar@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, rafael@kernel.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, tony.luck@intel.com, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, Apr 25, 2017 at 9:37 AM, Ross Zwisler
-<ross.zwisler@linux.intel.com> wrote:
-> On Mon, Apr 24, 2017 at 04:50:01PM -0700, Dan Williams wrote:
->> The nvdimm_flush() mechanism helps to reduce the impact of an ADR
->> (asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
->> platform WPQ (write-pending-queue) buffers when power is removed. The
->> nvdimm_flush() mechanism performs that same function on-demand.
->>
->> When a pmem namespace is associated with a block device, an
->> nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
->> request. These requests are typically associated with filesystem
->> metadata updates. However, when a namespace is in device-dax mode,
->> userspace (think database metadata) needs another path to perform the
->> same flushing. In other words this is not required to make data
->> persistent, but in the case of metadata it allows for a smaller failure
->> domain in the unlikely event of an ADR failure.
->>
->> The new 'flush' attribute is visible when the individual DIMMs backing a
->> given interleave-set are described by platform firmware. In ACPI terms
->> this is "NVDIMM Region Mapping Structures" and associated "Flush Hint
->> Address Structures". Reads return "1" if the region supports triggering
->> WPQ flushes on all DIMMs. Reads return "0" the flush operation is a
->> platform nop, and in that case the attribute is read-only.
->>
->> Cc: Jeff Moyer <jmoyer@redhat.com>
->> Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> ---
->>  drivers/nvdimm/region_devs.c |   41 +++++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 41 insertions(+)
->>
->> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
->> index 24abceda986a..c48f3eddce2d 100644
->> --- a/drivers/nvdimm/region_devs.c
->> +++ b/drivers/nvdimm/region_devs.c
->> @@ -255,6 +255,35 @@ static ssize_t size_show(struct device *dev,
->>  }
->>  static DEVICE_ATTR_RO(size);
->>
->> +static ssize_t flush_show(struct device *dev,
->> +             struct device_attribute *attr, char *buf)
->> +{
->> +     struct nd_region *nd_region = to_nd_region(dev);
->> +
->> +     /*
->> +      * NOTE: in the nvdimm_has_flush() error case this attribute is
->> +      * not visible.
->> +      */
->> +     return sprintf(buf, "%d\n", nvdimm_has_flush(nd_region));
->> +}
->> +
->> +static ssize_t flush_store(struct device *dev, struct device_attribute *attr,
->> +             const char *buf, size_t len)
->> +{
->> +     bool flush;
->> +     int rc = strtobool(buf, &flush);
->> +     struct nd_region *nd_region = to_nd_region(dev);
->> +
->> +     if (rc)
->> +             return rc;
->> +     if (!flush)
->> +             return -EINVAL;
->
-> Is there a benefit to verifying whether the user actually pushed a "1" into
-> our flush sysfs entry?  Why have an -EINVAL error case at all?
->
-> Flushing is non-destructive and we don't actually need the user to give us any
-> data, so it seems simpler to just have this code flush, regardless of what
-> input we received.
+On Tue, Apr 18, 2017 at 05:05:18PM -0600, Tyler Baicar wrote:
+> ARM APEI extension proposal added SEA (Synchronous External Abort)
+> notification type for ARMv8.
+> Add a new GHES error source handling function for SEA. If an error
+> source's notification type is SEA, then this function can be registered
+> into the SEA exception handler. That way GHES will parse and report
+> SEA exceptions when they occur.
+> An SEA can interrupt code that had interrupts masked and is treated as
+> an NMI. To aid this the page of address space for mapping APEI buffers
+> while in_nmi() is always reserved, and ghes_ioremap_pfn_nmi() is
+> changed to use the helper methods to find the prot_t to map with in
+> the same way as ghes_ioremap_pfn_irq().
 
-I want to be specific so that in the future if we decide that we want
-to have "0" or some other value have a different meaning of "1" we
-won't need to contend with userspace that may be expecting any random
-value to work.
+...
+
+> @@ -518,6 +520,17 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>  	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
+>  		inf->name, esr, addr);
+>  
+> +	/*
+> +	 * Synchronous aborts may interrupt code which had interrupts masked.
+> +	 * Before calling out into the wider kernel tell the interested
+> +	 * subsystems.
+> +	 */
+> +	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA)) {
+> +		nmi_enter();
+> +		ghes_notify_sea();
+> +		nmi_exit();
+> +	}
+
+Well, the other GHES notification methods use a notifier:
+ghes_notify_sci, ghes_notify_nmi. You probably should do that too
+instead of calling straight into a driver from arch code.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
