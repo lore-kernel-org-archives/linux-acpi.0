@@ -1,66 +1,91 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH RFC 3/4] mmc: sdhci-acpi: Set MMC_CAP2_NO_SDIO_RESET if
- child has wake from S4 (hibernate)
-Date: Tue, 25 Apr 2017 13:05:42 +0200
-Message-ID: <CAJZ5v0irctEBjpXFLW9nuevx4L0HNigNMQv1qgCuGp7tOiE8Jg@mail.gmail.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH RFC 2/4] mmc: sdio: Add capability to skip SDIO reset at
+ scan
+Date: Tue, 25 Apr 2017 14:20:31 +0300
+Message-ID: <15332477-f37b-21d0-f85b-132d7bc0cdb4@intel.com>
 References: <1492769288-7474-1-git-send-email-adrian.hunter@intel.com>
- <1492769288-7474-4-git-send-email-adrian.hunter@intel.com>
- <CAJZ5v0hcfsbfy=KhgTDvg7zj-egKODDJAF0-gqWdxuxKfyBFPQ@mail.gmail.com> <a28facd9-9d81-2be0-280b-ac4267e334d0@intel.com>
+ <1492769288-7474-3-git-send-email-adrian.hunter@intel.com>
+ <CAPDyKFq7qWGgyXStJU3XZnGRcqMXZs_z21nJ2vUnCe0Pn-q19Q@mail.gmail.com>
+ <ff496ea4-ba9b-387b-2d3b-3bf59b878973@intel.com>
+ <CAPDyKFpDjx9EWLFCR5yejJg5bu3x--ksuOAE33+a_L0FNUW9dw@mail.gmail.com>
+ <9ed30be6-9a42-9cd1-f260-9b57da369b05@intel.com>
+ <CAPDyKFqorfJTVeS+r-qWYTFcAuJ67kmpk1WWQpkeMeQKsVfEcg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:33779 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1430043AbdDYLFo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Apr 2017 07:05:44 -0400
-In-Reply-To: <a28facd9-9d81-2be0-280b-ac4267e334d0@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFqorfJTVeS+r-qWYTFcAuJ67kmpk1WWQpkeMeQKsVfEcg@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Tue, Apr 25, 2017 at 9:28 AM, Adrian Hunter <adrian.hunter@intel.com> wrote:
-> On 25/04/17 00:52, Rafael J. Wysocki wrote:
->> On Fri, Apr 21, 2017 at 12:08 PM, Adrian Hunter <adrian.hunter@intel.com> wrote:
->>> SDIO reset interferes with a SDIO function driver's restore from
->>> hibernation. Set MMC_CAP2_NO_SDIO_RESET if a child node has _S4W method
->>> which indicates a capability to wake from S4 (hibernate).
+On 25/04/17 13:46, Ulf Hansson wrote:
+> On 25 April 2017 at 09:57, Adrian Hunter <adrian.hunter@intel.com> wrote:
+>> On 25/04/17 10:52, Ulf Hansson wrote:
+>>> +Grygorii Strashko
 >>>
->>> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
->>> ---
->>>  drivers/mmc/host/sdhci-acpi.c | 17 ++++++++++++++++-
->>>  1 file changed, 16 insertions(+), 1 deletion(-)
+>>> On 25 April 2017 at 08:21, Adrian Hunter <adrian.hunter@intel.com> wrote:
+>>>> On 24/04/17 23:33, Ulf Hansson wrote:
+>>>>> On 21 April 2017 at 12:08, Adrian Hunter <adrian.hunter@intel.com> wrote:
+>>>>>> The SDIO card state might be being preserved during hibernation, for
+>>>>>> example a SDIO wifi card supporting WOWLAN. That state will be lost if an
+>>>>>> SDIO reset is done. One way to avoid that would be to build mmc core as a
+>>>>>> module and simply not load it until after attempting to restore the
+>>>>>> hibernation image. However that won't work if the hibernation image is
+>>>>>> stored on eMMC which, of course, requires mmc core.
+>>>>>
+>>>>> I don't follow here. Are you saying the SDIO card is kept powered in
+>>>>> hibernation, as to be able to support WOWLAN, right?
+>>>>
+>>>> Yes
 >>>
->>> diff --git a/drivers/mmc/host/sdhci-acpi.c b/drivers/mmc/host/sdhci-acpi.c
->>> index c6a9a1bfaa22..e053a45db6b1 100644
->>> --- a/drivers/mmc/host/sdhci-acpi.c
->>> +++ b/drivers/mmc/host/sdhci-acpi.c
->>> @@ -374,6 +374,14 @@ static const struct sdhci_acpi_slot *sdhci_acpi_get_slot(const char *hid,
->>>         return NULL;
->>>  }
+>>> Okay, makes sense!
 >>>
->>> +static bool sdhci_acpi_child_has_s4w(struct acpi_device *child)
->>> +{
->>> +       acpi_handle handle = child->handle;
->>> +       unsigned long long ret;
->>> +
->>> +       return ACPI_SUCCESS(acpi_evaluate_integer(handle, "_S4W", NULL, &ret));
+>>>>
+>>>>>
+>>>>> Then, it feels plain wrong the mmc_rescan() tries to re-initialize it.
+>>>>> That should never happen, unless something is broken of course.
+>>>>
+>>>> The thing to note about hibernation is that there is a regular boot in
+>>>> between saving the hibernation image and restoring it again.  At boot time,
+>>>> the kernel knows almost nothing about whether there is a hibernation image
+>>>> and whether or not it will be restored.  Consequently it becomes difficult
+>>>> to avoid mmc_rescan().  As mentioned above, we need mmc_rescan() to
+>>>> initialize the eMMC so that the hibernation image can be read.
+>>>
+>>> What's wrong with using the hibernation callbacks in the struct
+>>> dev_pm_ops? We already do this.
 >>
->> First off, there is acpi_has_method().
->>
->> Second, checking child->wakeup.sleep_state is a better indicator of S4
->> wakeup support.
->
-> So, like this?
->
->         child->wakeup.sleep_state >= ACPI_STATE_S4
->
-> That comes just from _PRW right?
+>> Here is the scenario.  The kernel has just booted.  User space wants to try
+>> to restore a hibernation image, if there is one.  So user space loads the
+>> mmc core because the hibernation image is on eMMC.  Mmc core does an SDIO
+>> reset on the SDIO card and the state is lost.  It has little to do with pm
+>> callbacks AFAICS.
+> 
+> Ah, now I see what you mean. I thought the problem was during the
+> actual restoring of the hibernation image.
+> 
+> Alright, when a boot is triggered by WOWLAN , you want to avoid
+> sending the reset command for the SDIO card before the
+> re-initialization of the SDIO card starts.
+> 
+> The problem with this approach is that you can't differentiate between
+> a cold boot and a boot triggered by WOWLAN, right!? In other words, in
+> some cases the reset command may be needed while in other it won't.
 
-It may be fixed up if the power resources in there don't match what
-_PRW itself returns, but generally yes.
+SDIO reset is only needed if the card has not been power-cycled.  The
+assumption is that the platform takes care of that when needed. e.g. when
+rebooting instead of going to S4.
 
-In any case _S4W is optional even for devices that can wake up from S4 IIRC.
+> 
+> Maybe you can elaborate more on what exactly what the problem is with
+> sending the reset command when the boot is triggered from WOWLAN? Yes,
+> the SDIO card loses its context, but how is that a problem?
 
-Thanks,
-Rafael
+The wifi driver expects to find the function in an initialized state.
+Otherwise it would have to re-enable the function and re-do the
+function-specific initialization.  I don't know if there are other
+consequences.  Presumably it will have lost any information about the nature
+of the wake-up trigger.
+
