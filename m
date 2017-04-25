@@ -1,117 +1,126 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 2/2] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Mon, 24 Apr 2017 16:50:01 -0700
-Message-ID: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149307779085.7155.436029631521340565.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [RFC] ACPI / Processor: add sysfs support for low power idle
+Date: Mon, 24 Apr 2017 19:17:52 -0600
+Message-ID: <c9ab5b6c-ad86-1a03-2d1f-c8526e8684b1@codeaurora.org>
+References: <1490832795-27441-1-git-send-email-pprakash@codeaurora.org>
+ <2e633ef7-5155-7eb7-0f1b-8bc36bd25da7@arm.com>
+ <37544927-1f7d-ab59-63d5-32ac1d777bb6@codeaurora.org>
+ <a6544dab-4ae4-22d6-4fe5-08f7919072ca@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <149307779085.7155.436029631521340565.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:48008 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S979639AbdDYBR4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Apr 2017 21:17:56 -0400
+In-Reply-To: <a6544dab-4ae4-22d6-4fe5-08f7919072ca@arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, al.stone@linaro.org
 
-The nvdimm_flush() mechanism helps to reduce the impact of an ADR
-(asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
-platform WPQ (write-pending-queue) buffers when power is removed. The
-nvdimm_flush() mechanism performs that same function on-demand.
 
-When a pmem namespace is associated with a block device, an
-nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
-request. These requests are typically associated with filesystem
-metadata updates. However, when a namespace is in device-dax mode,
-userspace (think database metadata) needs another path to perform the
-same flushing. In other words this is not required to make data
-persistent, but in the case of metadata it allows for a smaller failure
-domain in the unlikely event of an ADR failure.
 
-The new 'flush' attribute is visible when the individual DIMMs backing a
-given interleave-set are described by platform firmware. In ACPI terms
-this is "NVDIMM Region Mapping Structures" and associated "Flush Hint
-Address Structures". Reads return "1" if the region supports triggering
-WPQ flushes on all DIMMs. Reads return "0" the flush operation is a
-platform nop, and in that case the attribute is read-only.
+On 4/20/2017 2:46 AM, Sudeep Holla wrote:
+>
+> On 19/04/17 23:57, Prakash, Prashanth wrote:
+>> Hi Sudeep,
+>>
+>> On 4/19/2017 9:37 AM, Sudeep Holla wrote:
+>>> On 30/03/17 01:13, Prashanth Prakash wrote:
+>>>> Add support to expose idle statistics maintained by platform to
+>>>> userspace via sysfs in addition to other data of interest from
+>>>> each LPI(Low Power Idle) state.
+>>>>
+>>> While I understand this information is useful for some optimization
+>>> and also for idle characterization with different workloads, I prefer
+>>> to keep this in debugfs for:
+>>>
+>>> 1. We already have CPUIdle stats, this information may be more accurate
+>>>    which is good for above reasons but user-space applications shouldn't
+>>>    depend on it and end-up misusing it.
+>>> 2. Also as more features get pushed into hardware, even these stats may
+>>>    not remain so much accurate as it is today and hence it would be
+>>>    better if user-space applications never use/depend on them.
+>>>
+>>> Let me know if there are conflicting reasons ?
+>> The information about idle state of shared resources(Cache, interconnect ...)
+>> which cannot be deduced from the cpuidle stats is quite useful. We can use this
+>> to analyze newer workloads and to explain their power consumption, especially as
+>> the amount of time some of these shared resources spends in different LPI states
+>> can be influenced by changes to workload, kernel or firmware. And for auto
+>> promote-able states this is the only way to capture idle stats.
+>>
+> I agree that the stats are useful, no argument there. The question is
+> more in terms of whether it can be debugfs which is just useful in
+> analysis and characterization or sysfs which becomes user ABI.
+>
+>> Regarding 2, since these stats are clearly defined by ACPI spec and maintained by
+>> platform, I think it is reasonable to expect them to be accurate. If it is not accurate,
+>> it is likely that platform is breaking the spec.
+>>
+> I was considering firmware vs hardware here. If f/w tracks and updates
+> these statistics, it may not be so accurate in the future if more
+> controls that are today done in f/w will be done automatically done in
+> h/w. If h/w updates these statistics, then yes they will be accurate.
+Agree with f/w tracking vs h/w tracking, but I am not sure if we can (or should even try
+ to) handle those issues at LPI driver level.
+> I am still trying to convince myself if we need this as sysfs user ABI,
+> so just thinking aloud.
+Sure.
+>> Given above, I don't see much room for user-space applications to misuse this.
+> You never know :)
+:-)
+>
+>> Given these are defined as optional in spec, user-space application should use
+>> only if/when available and use it as complementary to cpuidle stats.
+>>
+> Fair enough.
+>
+> [...]
+>
+>>>> 	|	|-> flags
+>>>> 	|	|-> arch_flags
+>>>> 	|
+>>>> 	<<more states>>
+>>>>
+>>>> ACPI00XX can be ACPI0007(processor) or ACPI0010(processor container)
+>>>>
+>>>> stateX contains information related to a specific LPI state defined
+>>>> in the LPI ACPI tables.
+>>>>
+>>>> summary_stats shows the stats(usage and time) from all the LPI states
+>>>> under a device. The summary_stats are provided to reduce the number'
+>>>> of files to be accessed by the userspace to capture a snapshot of the'
+>>>> idle statistics.
+>>> Really ? What's the need to reduce the no. of file accesses ?
+>> When we have a large number of cores, with multiple idle state + few auto-promotable
+>> states. The amount of files we need to access to get a snapshot before/after a running
+>> a workload is quite high.
+>>
+> OK. Since I don't have much knowledge on that, I can't really comment,
+> but I wonder why is that not done for many stats that are per-cpu today.
+Good point. The only example I can think of is cpufreq stats that does something like this,
+though I am not sure of exact motivation(s) behind it.
 
-Cc: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Masayoshi Mizuma <m.mizuma-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/nvdimm/region_devs.c |   41 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+I think one could have made the similar case with cpuidle sysfs as well. Moreover
+summary_stats only mitigates some of the overhead with frequent reading of stats and
+doesn't really fix it in a scalable manner. So, I  suppose the current reasoning to have
+summary_stats is quite weak to start with.
+>> It gets worse if we want to keep the file handles open to sample it little more frequently,
+>> to get breakdown of idle state distribution during different phases of a workload.
+> On the contrary agreeing with you on issue with large no. of file
+> handles, why not we have single stat file that provides all the
+> information you need and be done with it ? Why do we need all this
+> hierarchy of sysfs if the summary_stats can provide all those
+> information broken down.
+With hierarchy, it is possible to get information about relationship between cpus
+and  higher order shared resources. If we flatten the hierarchy we lose information
+about relationships and it gets a little hard to clearly represent the idle states of
+shared resources and which cpus share those resources.
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 24abceda986a..c48f3eddce2d 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -255,6 +255,35 @@ static ssize_t size_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(size);
- 
-+static ssize_t flush_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+
-+	/*
-+	 * NOTE: in the nvdimm_has_flush() error case this attribute is
-+	 * not visible.
-+	 */
-+	return sprintf(buf, "%d\n", nvdimm_has_flush(nd_region));
-+}
-+
-+static ssize_t flush_store(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t len)
-+{
-+	bool flush;
-+	int rc = strtobool(buf, &flush);
-+	struct nd_region *nd_region = to_nd_region(dev);
-+
-+	if (rc)
-+		return rc;
-+	if (!flush)
-+		return -EINVAL;
-+	nvdimm_flush(nd_region);
-+
-+	return len;
-+}
-+static DEVICE_ATTR_RW(flush);
-+
- static ssize_t mappings_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -474,6 +503,7 @@ static DEVICE_ATTR_RO(resource);
- 
- static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_size.attr,
-+	&dev_attr_flush.attr,
- 	&dev_attr_nstype.attr,
- 	&dev_attr_mappings.attr,
- 	&dev_attr_btt_seed.attr,
-@@ -508,6 +538,17 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
- 	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
- 		return 0;
- 
-+	if (a == &dev_attr_flush.attr) {
-+		int has_flush = nvdimm_has_flush(nd_region);
-+
-+		if (has_flush == 1)
-+			return a->mode;
-+		else if (has_flush == 0)
-+			return 0400;
-+		else
-+			return 0;
-+	}
-+
- 	if (a != &dev_attr_set_cookie.attr
- 			&& a != &dev_attr_available_size.attr)
- 		return a->mode;
+--
+Thanks,
+Prashanth
