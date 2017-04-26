@@ -1,64 +1,57 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2] acpi: fix acpi_get_table() leak / acpi-sysfs denial of service
-Date: Wed, 26 Apr 2017 15:37:42 -0700
-Message-ID: <CAPcyv4i_mRLSxm7YAnk_p8PhP=kyhT1aZZcrG-zZxXXWhGQuew@mail.gmail.com>
-References: <149315024459.9151.4555045488194999231.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAJZ5v0h4hOeRfBgK=ARbw8dmML56v0xnvPjsY9wZ0fv7EXCeQw@mail.gmail.com>
+Subject: Re: [PATCH v3] libnvdimm, region: sysfs trigger for nvdimm_flush()
+Date: Wed, 26 Apr 2017 16:00:04 -0700
+Message-ID: <CAPcyv4jQXRQVHnNMqJDrwSMM=1kJx_7sWifUN-u1yusVCZ0roQ@mail.gmail.com>
+References: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <x49zif23nvl.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f48.google.com ([209.85.218.48]:35262 "EHLO
-        mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031797AbdDZWho (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 18:37:44 -0400
-Received: by mail-oi0-f48.google.com with SMTP id j201so18376840oih.2
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Apr 2017 15:37:43 -0700 (PDT)
-In-Reply-To: <CAJZ5v0h4hOeRfBgK=ARbw8dmML56v0xnvPjsY9wZ0fv7EXCeQw@mail.gmail.com>
+Received: from mail-oi0-f54.google.com ([209.85.218.54]:34878 "EHLO
+        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754546AbdDZXAF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 19:00:05 -0400
+Received: by mail-oi0-f54.google.com with SMTP id j201so18853930oih.2
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Apr 2017 16:00:05 -0700 (PDT)
+In-Reply-To: <x49zif23nvl.fsf@segfault.boston.devel.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Rafael Wysocki <rafael.j.wysocki@intel.com>, Anush Seetharaman <anush.seetharaman@intel.com>, Tiffany Kasanicky <tiffany.j.kasanicky@intel.com>, Ryon Jensen <ryon.jensen@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kristin Jacque <kristin.jacque@intel.com>, Zhang Rui <rui.zhang@intel.com>
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, Apr 26, 2017 at 3:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Tue, Apr 25, 2017 at 9:58 PM, Dan Williams <dan.j.williams@intel.com> wrote:
->> Reading an ACPI table through the /sys/firmware/acpi/tables interface
->> more than 65,536 times leads to the following log message:
+On Wed, Apr 26, 2017 at 1:38 PM, Jeff Moyer <jmoyer@redhat.com> wrote:
+> Dan Williams <dan.j.williams@intel.com> writes:
+>
+>> The nvdimm_flush() mechanism helps to reduce the impact of an ADR
+>> (asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
+>> platform WPQ (write-pending-queue) buffers when power is removed. The
+>> nvdimm_flush() mechanism performs that same function on-demand.
 >>
->>  ACPI Error: Table ffff88033595eaa8, Validation count is zero after increment
->>   (20170119/tbutils-423)
+>> When a pmem namespace is associated with a block device, an
+>> nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
+>> request. These requests are typically associated with filesystem
+>> metadata updates. However, when a namespace is in device-dax mode,
+>> userspace (think database metadata) needs another path to perform the
+>> same flushing. In other words this is not required to make data
+>> persistent, but in the case of metadata it allows for a smaller failure
+>> domain in the unlikely event of an ADR failure.
 >>
->> ...and the table being unavailable until the next reboot. Add the
->> missing acpi_put_table() so the table ->validation_count is decremented
->> after each read.
->>
->> Cc: <stable@vger.kernel.org>
->> Cc: Zhang Rui <rui.zhang@intel.com>
->> Cc: Rafael Wysocki <rafael.j.wysocki@intel.com>
->> Cc: Kristin Jacque <kristin.jacque@intel.com>
->> Cc: Tiffany Kasanicky <tiffany.j.kasanicky@intel.com>
->> Cc: Ryon Jensen <ryon.jensen@intel.com>
->> Reported-by: Anush Seetharaman <anush.seetharaman@intel.com>
->> Fixes: 1c8fce27e275 ("ACPI: introduce drivers/acpi/sysfs.c")
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> The new 'flush' attribute is visible when the individual DIMMs backing a
+>> given interleave-set are described by platform firmware. In ACPI terms
+>> this is "NVDIMM Region Mapping Structures" and associated "Flush Hint
+>> Address Structures". Reads return "1" if the region supports triggering
+>> WPQ flushes on all DIMMs. Reads return "0" the flush operation is a
+>> platform nop, and in that case the attribute is read-only.
 >
-> I'm going to apply this, but your Fixes tag is not correct.
+> I can make peace with exposing this to userspace, though I am mostly
+> against its use.  However, sysfs feels like the wrong interface.
+> Believe it or not, I'd rather see this implemented as an ioctl.
 >
-> validation_count was added to struct acpi_table_desc by commit
->
-> commit 174cc7187e6f088942c8e74daa7baff7b44b33c9
-> Author: Lv Zheng <lv.zheng@intel.com>
-> Date:   Wed Dec 14 15:04:25 2016 +0800
->
->     ACPICA: Tables: Back port acpi_get_table_with_size() and
-> early_acpi_os_unmap_memory()
-> from Linux kernel
->
-> from the 4.10 time frame, so IMO it should be
->
-> Fixes: 174cc7187e6f (ACPICA: Tables: Back port
-> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
-> kernel)
->
+> This isn't a NACK, it's me giving my opinion.  Do with it what you will.
 
-Ah, thanks for the catch, I missed that detail and was wrong to argue
-it was a 7 year old bug. Apologies Lv!
+I hate ioctls with a burning passion so I can't get on board with that
+change, but perhaps the sentiment behind it is that this is too
+visible and too attractive being called "flush" in sysfs? Would a name
+more specific to the mechanism make it more palatable? Like
+"flush_hint_trigger" or "wpq_drain"?
