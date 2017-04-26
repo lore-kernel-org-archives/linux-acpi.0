@@ -1,82 +1,53 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [RFC/RFT PATCH 3/3] PCI/ACPI: Add ACPI pci_bus_find_numa_node() implementation
-Date: Wed, 26 Apr 2017 11:06:19 +0100
-Message-ID: <20170426100619.31758-3-lorenzo.pieralisi@arm.com>
+Subject: [RFC/RFT PATCH 2/3] PCI: Add call to set-up NUMA node for struct pci_bus devices
+Date: Wed, 26 Apr 2017 11:06:18 +0100
+Message-ID: <20170426100619.31758-2-lorenzo.pieralisi@arm.com>
 References: <20170426100619.31758-1-lorenzo.pieralisi@arm.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:52664 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1956720AbdDZKFg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 06:05:36 -0400
 In-Reply-To: <20170426100619.31758-1-lorenzo.pieralisi@arm.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-pci@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>
-List-Id: linux-acpi@vger.kernel.org
 
-The introduction of pci_bus_find_numa_node(pci_bus) allows at PCI
-host bridge registration to detect the NUMA node for a given
-struct pci_bus.dev. Implement an ACPI method that, through
-the struct pci_bus.bridge ACPI companion, retrieve and return
-the NUMA node corresponding to a given struct pci_bus.dev.
+The member dev in struct pci_bus represents the kernel struct
+device representation of a PCI bus, inclusive of its NUMA node.
+When a PCI host bridge is registered, initialize the corresponding
+struct pci_bus.dev member NUMA node and add code in
+pci_alloc_child_bus() to propagate the NUMA node set-up through the PCI
+bus hierarchy (ie child nodes are in the same NUMA node as the parent).
 
 Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/pci-acpi.c | 20 ++++++++++++++++++++
- include/linux/pci.h    |  6 ++++++
- 2 files changed, 26 insertions(+)
+ drivers/pci/probe.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 0018603..915da79 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -10,6 +10,7 @@
- #include <linux/delay.h>
- #include <linux/init.h>
- #include <linux/irqdomain.h>
-+#include <linux/numa.h>
- #include <linux/pci.h>
- #include <linux/msi.h>
- #include <linux/pci_hotplug.h>
-@@ -853,6 +854,25 @@ struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
- 	return irq_find_matching_fwnode(fwnode, DOMAIN_BUS_PCI_MSI);
- }
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index dfc9a27..5739a993 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -770,6 +770,7 @@ int pci_register_host_bridge(struct pci_host_bridge *bridge)
+ 	device_enable_async_suspend(bus->bridge);
+ 	pci_set_bus_of_node(bus);
+ 	pci_set_bus_msi_domain(bus);
++	set_dev_node(&bus->dev, pci_bus_find_numa_node(bus));
  
-+int acpi_pci_bus_find_numa_node(struct pci_bus *bus)
-+{
-+	int node = NUMA_NO_NODE;
-+	struct device *bridge = get_device(bus->bridge);
-+
-+	if (!bridge)
-+		return node;
-+
-+	if (has_acpi_companion(bridge)) {
-+		struct acpi_device *adev = to_acpi_device_node(bridge->fwnode);
-+
-+		node = acpi_get_node(adev->handle);
-+	}
-+
-+	put_device(bridge);
-+
-+	return node;
-+}
-+
- static int __init acpi_pci_init(void)
- {
- 	int ret;
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 9e62462..b40d095 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1481,6 +1481,12 @@ static inline int acpi_pci_bus_find_domain_nr(struct pci_bus *bus)
- #endif
- int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent);
- #endif
-+#ifdef CONFIG_ACPI
-+int acpi_pci_bus_find_numa_node(struct pci_bus *bus);
-+#else
-+static inline int acpi_pci_bus_find_numa_node(struct pci_bus *bus)
-+{ return NUMA_NO_NODE; }
-+#endif
- int pci_bus_find_numa_node(struct pci_bus *bus);
- 
- /* some architectures require additional setup to direct VGA traffic */
+ 	if (!parent)
+ 		set_dev_node(bus->bridge, pcibus_to_node(bus));
+@@ -861,7 +862,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+ 	 */
+ 	child->dev.class = &pcibus_class;
+ 	dev_set_name(&child->dev, "%04x:%02x", pci_domain_nr(child), busnr);
+-
++	set_dev_node(&child->dev, dev_to_node(&parent->dev));
+ 	/*
+ 	 * Set up the primary, secondary and subordinate
+ 	 * bus numbers.
 -- 
 2.10.0
+
