@@ -1,57 +1,46 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 08/15] ACPICA: Debugger: Add interpreter blocking mark for single-step mode
-Date: Wed, 26 Apr 2017 16:18:33 +0800
-Message-ID: <c463aed1ea66e50b7b4821de7a06b0f9e069a75e.1493194142.git.lv.zheng@intel.com>
+Subject: [PATCH 07/15] ACPICA: debugger: fix memory leak on Pathname
+Date: Wed, 26 Apr 2017 16:18:25 +0800
+Message-ID: <432cc89ffcd396910ba024e97c40b075dd7cb2d3.1493194142.git.lv.zheng@intel.com>
 References: <cover.1493194142.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:50258 "EHLO mga04.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:39305 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952799AbdDZISh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Apr 2017 04:18:37 -0400
+        id S1952788AbdDZISg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 04:18:36 -0400
 In-Reply-To: <cover.1493194142.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Colin Ian King <colin.king@canonical.com>
 
-ACPICA commit 91af5d18cd40b35f9d5568fb95fc403ff12474e5
+From: Colin Ian King <colin.king@canonical.com>
 
-When the single-step mode is used, evaluation is actually split by the
-single-step command prompts, so this patch correctly marks the evaluation
-segment with interpreter lock release/acquire.
-This in return fixes an issue that in the single-step command prompt,
-commands requiring to hold the namespace lock (ex. namespace) cannot be
-executed. ACPICA BZ 1362, fixed by Lv Zheng.
+ACPICA commit 1db14dc88f308119634d77ab9dcb6586b9fe4777
 
-Link: https://github.com/acpica/acpica/commit/91af5d18
-Link: https://bugs.acpica.org/show_bug.cgi?id=1362
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+On the error return path when acpi_get_object_info fails the allocated
+pathname is not free'd leading to a memory leak.  Free pathname
+to fix this.
+
+Link: https://github.com/acpica/acpica/commit/1db14dc8
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/dbxface.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/acpi/acpica/dbmethod.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/acpica/dbxface.c b/drivers/acpi/acpica/dbxface.c
-index 205b8e0..9b91cea 100644
---- a/drivers/acpi/acpica/dbxface.c
-+++ b/drivers/acpi/acpica/dbxface.c
-@@ -45,6 +45,7 @@
- #include "accommon.h"
- #include "amlcode.h"
- #include "acdebug.h"
-+#include "acinterp.h"
+diff --git a/drivers/acpi/acpica/dbmethod.c b/drivers/acpi/acpica/dbmethod.c
+index 15c8237..df62c92 100644
+--- a/drivers/acpi/acpica/dbmethod.c
++++ b/drivers/acpi/acpica/dbmethod.c
+@@ -422,6 +422,7 @@ acpi_db_walk_for_execute(acpi_handle obj_handle,
  
- #define _COMPONENT          ACPI_CA_DEBUGGER
- ACPI_MODULE_NAME("dbxface")
-@@ -368,7 +369,9 @@ acpi_db_single_step(struct acpi_walk_state *walk_state,
- 		walk_state->method_breakpoint = 1;	/* Must be non-zero! */
+ 	status = acpi_get_object_info(obj_handle, &obj_info);
+ 	if (ACPI_FAILURE(status)) {
++		ACPI_FREE(pathname);
+ 		return (status);
  	}
- 
-+	acpi_ex_exit_interpreter();
- 	status = acpi_db_start_command(walk_state, op);
-+	acpi_ex_enter_interpreter();
- 
- 	/* User commands complete, continue execution of the interrupted method */
  
 -- 
 2.7.4
