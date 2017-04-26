@@ -1,61 +1,81 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v8 1/2] ACPI / bus: Introduce a list of ids
-	for "always present" devices
-Date: Wed, 26 Apr 2017 23:59:21 +0200
-Message-ID: <1741278.DpBmV3eiGJ@aspire.rjw.lan>
-References: <20170421104741.17185-1-hdegoede@redhat.com>
- <1492774713.24567.117.camel@linux.intel.com>
- <ca555b75-18e0-fcb4-4447-b782f71ee3e1@redhat.com>
+Subject: Re: [PATCH v2 2/2] ACPI / PMIC: xpower: Add support for the GPI1 regulator to the OpRegion handler
+Date: Thu, 27 Apr 2017 00:01:42 +0200
+Message-ID: <2873076.4YlPq2sVU6@aspire.rjw.lan>
+References: <20170421114809.17468-1-hdegoede@redhat.com> <20170421114809.17468-2-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <ca555b75-18e0-fcb4-4447-b782f71ee3e1@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Takashi Iwai <tiwai@suse.de>, intel-gfx <intel-gfx@lists.freedesktop.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:56424 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934850AbdDZWH4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 18:07:56 -0400
+In-Reply-To: <20170421114809.17468-2-hdegoede@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, russianneuromancer@ya.ru
 
-T24gRnJpZGF5LCBBcHJpbCAyMSwgMjAxNyAwMTo0Mzo1MSBQTSBIYW5zIGRlIEdvZWRlIHdyb3Rl
-Ogo+IEhpLAo+IAo+IE9uIDIxLTA0LTE3IDEzOjM4LCBBbmR5IFNoZXZjaGVua28gd3JvdGU6Cj4g
-PiBPbiBGcmksIDIwMTctMDQtMjEgYXQgMTI6NDcgKzAyMDAsIEhhbnMgZGUgR29lZGUgd3JvdGU6
-Cj4gPj4gU2V2ZXJhbCBCYXkgLyBDaGVycnkgVHJhaWwgZGV2aWNlcyAoYWxsIG9mIHdoaWNoIHNo
-aXAgd2l0aCBXaW5kb3dzIDEwKQo+ID4+IGhpZGUKPiA+PiB0aGUgTFBTUyBQV00gY29udHJvbGxl
-ciBpbiBBQ1BJLCB0eXBpY2FsbHkgdGhlIF9TVEEgbWV0aG9kIGxvb2tzIGxpa2UKPiA+PiB0aGlz
-Ogo+ID4+Cj4gPj4gICAgICBNZXRob2QgKF9TVEEsIDAsIE5vdFNlcmlhbGl6ZWQpICAvLyBfU1RB
-OiBTdGF0dXMKPiA+PiAgICAgIHsKPiA+PiAgICAgICAgICBJZiAoT1NJRCA9PSBPbmUpCj4gPj4g
-ICAgICAgICAgewo+ID4+ICAgICAgICAgICAgICBSZXR1cm4gKFplcm8pCj4gPj4gICAgICAgICAg
-fQo+ID4+Cj4gPj4gICAgICAgICAgUmV0dXJuICgweDBGKQo+ID4+ICAgICAgfQo+ID4+Cj4gPj4g
-V2hlcmUgT1NJRCBpcyBzb21lIGRhcmsgbWFnaWMgc2VlbiBpbiBhbGwgQ2hlcnJ5IFRyYWlsIEFD
-UEkgdGFibGVzCj4gPj4gbWFraW5nCj4gPj4gdGhlIG1hY2hpbmUgYmVoYXZlIGRpZmZlcmVudGx5
-IGRlcGVuZGluZyBvbiB3aGljaCBPUyBpdCAqdGhpbmtzKiBpdCBpcwo+ID4+IGJvb3RpbmcsIHRo
-aXMgZ2V0cyBzZXQgaW4gYSBudW1iZXIgb2Ygd2F5cyB3aGljaCB3ZSBjYW5ub3QgY29udHJvbCwg
-b24KPiA+PiBzb21lIG5ld2VyIG1hY2hpbmVzIGl0IHNpbXBsZSBoYXJkY29kZWQgdG8gIk9uZSIg
-YWthIHdpbjEwLgo+ID4+Cj4gPj4gVGhpcyBjYXVzZXMgdGhlIFBXTSBjb250cm9sbGVyIHRvIGdl
-dCBoaWRkZW4sIHdoaWNoIG1lYW5zIExpbnV4IGNhbm5vdAo+ID4+IGNvbnRyb2wgdGhlIGJhY2ts
-aWdodCBsZXZlbCBvbiBjaHQgYmFzZWQgdGFibGV0cyAvIGxhcHRvcHMuCj4gPj4KPiA+PiBTaW5j
-ZSBsb2FkaW5nIHRoZSBkcml2ZXIgZm9yIHRoaXMgZG9lcyBubyBoYXJtICh0aGUgb25seSBpbiBr
-ZXJuZWwKPiA+PiB1c2VyCj4gPj4gb2YgaXQgaXMgdGhlIGk5MTUgZHJpdmVyLCB3aGljaCB3aWxs
-IG9ubHkgdXNlcyBpdCB3aGVuIGl0IG5lZWRzIGl0KSwKPiA+PiB0aGlzCj4gPj4gY29tbWl0IG1h
-a2VzIGFjcGlfYnVzX2dldF9zdGF0dXMoKSBhbHdheXMgc2V0IHN0YXR1cyB0bwo+ID4+IEFDUElf
-U1RBX0RFRkFVTFQKPiA+PiBmb3IgdGhlIExQU1MgUFdNIGRldmljZSwgZml4aW5nIHRoZSBsYWNr
-IG9mIGJhY2tsaWdodCBjb250cm9sLgo+ID4+Cj4gPiAKPiA+PiAgIGRyaXZlcnMvYWNwaS9NYWtl
-ZmlsZSAgICAgICAgfCAgMSArCj4gPj4gICBkcml2ZXJzL2FjcGkvYnVzLmMgICAgICAgICAgIHwg
-IDUgKysrCj4gPj4gICBkcml2ZXJzL2FjcGkveDg2L3g4Nl91dGlscy5jIHwgODUKPiA+PiArKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwo+ID4gCj4gPiBQZXJoYXBz
-IC4uLi94ODYvdXRpbHMuYyA/Cj4gCj4gSSB0aG91Z2h0IHRoYXQgdXRpbHMuYyB3b3VsZCBiZSB0
-b28gZ2VuZXJpYywKPiBidXQgdGhhdCB3YXMgbWFpbmx5IHRoaW5raW5nIGFib3V0IG1vZHVsZSBr
-ZXJuZWwKPiBjbWRsaW5lIG9wdGlvbnMgd2hpY2ggZG8gbm90IGFwcGx5IGhlcmUsIHN0aWxsCj4g
-aGF2aW5nIGEgc29tZXdoYXQgdW5pcXVlIGJhc2VuYW1lIHNlZW1zIHVzZWZ1bC4KCkkgcmVuYW1l
-ZCBpdCB0byB1dGlsLmMgd2hpbGUgYXBwbHlpbmcgdGhlIHBhdGNoZXMuCgpUaGFua3MsClJhZmFl
-bAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwt
-Z2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8v
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+On Friday, April 21, 2017 01:48:09 PM Hans de Goede wrote:
+> Some Bay Trail devices use a GPI1 regulator field (address 0x4c) in
+> their 0x8d power OpRegion, add support for this.
+> 
+> This fixes AE_BAD_PARAMETER errors getting thrown on these devices and
+> fixes these errors causing these devices to not suspend.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+Srinivas, Andy, any concerns here?
+
+> ---
+> Changes in v2:
+> -Simplify reg == 0x92 handling (suggested by Andy Shevchenko)
+> -Add special handling for reg == 0x92 to intel_xpower_pmic_get_power() too
+> ---
+>  drivers/acpi/pmic/intel_pmic_xpower.c | 15 ++++++++++++++-
+>  1 file changed, 14 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
+> index 1a76c78..c9be430 100644
+> --- a/drivers/acpi/pmic/intel_pmic_xpower.c
+> +++ b/drivers/acpi/pmic/intel_pmic_xpower.c
+> @@ -118,6 +118,10 @@ static struct pmic_table power_table[] = {
+>  		.reg = 0x10,
+>  		.bit = 0x00
+>  	}, /* BUC6 */
+> +	{
+> +		.address = 0x4c,
+> +		.reg = 0x92,
+> +	}, /* GPI1 */
+>  };
+>  
+>  /* TMP0 - TMP5 are the same, all from GPADC */
+> @@ -156,7 +160,12 @@ static int intel_xpower_pmic_get_power(struct regmap *regmap, int reg,
+>  	if (regmap_read(regmap, reg, &data))
+>  		return -EIO;
+>  
+> -	*value = (data & BIT(bit)) ? 1 : 0;
+> +	/* GPIO1 LDO regulator needs special handling */
+> +	if (reg == 0x92)
+> +		*value = ((data & 0x07) == 0x03);
+> +	else
+> +		*value = (data & BIT(bit)) ? 1 : 0;
+> +
+>  	return 0;
+>  }
+>  
+> @@ -165,6 +174,10 @@ static int intel_xpower_pmic_update_power(struct regmap *regmap, int reg,
+>  {
+>  	int data;
+>  
+> +	/* GPIO1 LDO regulator needs special handling */
+> +	if (reg == 0x92)
+> +		return regmap_update_bits(regmap, reg, 0x07, on ? 0x03 : 0x04);
+> +
+>  	if (regmap_read(regmap, reg, &data))
+>  		return -EIO;
+>  
+> 
+
