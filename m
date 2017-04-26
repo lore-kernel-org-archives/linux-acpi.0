@@ -1,73 +1,99 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH] ACPICA: Tables: Fix regression introduced by a too
- early mechanism enabling
-Date: Wed, 26 Apr 2017 05:15:07 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE98BCA@SHSMSX101.ccr.corp.intel.com>
-References: <1493171393-1825-1-git-send-email-lv.zheng@intel.com>
- <CAPcyv4gtYzkeUL-Ou8bap5Sye=1Tq2PmuhZM04nFPwdjmCwCgg@mail.gmail.com>
+From: Jonathan Cameron <jic23@kernel.org>
+Subject: Re: [PATCH] iio: accel: bma180: Add ACPI enumeration support
+Date: Wed, 26 Apr 2017 07:40:33 +0100
+Message-ID: <08327ffe-119a-b62b-a6f9-0f485444bd9a@kernel.org>
+References: <20170421073812.12531-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:48405 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1035412AbdDZFPN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Apr 2017 01:15:13 -0400
-In-Reply-To: <CAPcyv4gtYzkeUL-Ou8bap5Sye=1Tq2PmuhZM04nFPwdjmCwCgg@mail.gmail.com>
-Content-Language: en-US
+Received: from saturn.retrosnub.co.uk ([178.18.118.26]:58505 "EHLO
+        saturn.retrosnub.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1956147AbdDZGkl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 02:40:41 -0400
+In-Reply-To: <20170421073812.12531-1-hdegoede@redhat.com>
+Content-Language: en-GH
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-acpi@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, linux-iio@vger.kernel.org
 
-SGksDQoNCj4gRnJvbTogRGFuIFdpbGxpYW1zIFttYWlsdG86ZGFuLmoud2lsbGlhbXNAaW50ZWwu
-Y29tXQ0KPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSF0gQUNQSUNBOiBUYWJsZXM6IEZpeCByZWdy
-ZXNzaW9uIGludHJvZHVjZWQgYnkgYSB0b28gZWFybHkgbWVjaGFuaXNtIGVuYWJsaW5nDQo+IA0K
-PiBPbiBUdWUsIEFwciAyNSwgMjAxNyBhdCA2OjQ5IFBNLCBMdiBaaGVuZyA8bHYuemhlbmdAaW50
-ZWwuY29tPiB3cm90ZToNCj4gPiBJbiB0aGUgTGludXgga2VybmVsIHNpZGUsIGFjcGlfZ2V0X3Rh
-YmxlKCkgaGFzbid0IGJlZW4gZnVsbHkgYmFsYW5jZWQgYnkNCj4gPiBhY3BpX3B1dF90YWJsZSgp
-IGludm9jYXRpb25zLiBTbyBpdCBpcyBub3QgYSBnb29kIHRpbWluZyB0byByZXBvcnQgZXJyb3Jz
-Lg0KPiA+IFRoZSBzdHJpY3QgYmFsYW5jZWQgdmFsaWRhdGlvbiBjb3VudCBjaGVjayBzaG91bGQg
-b25seSBiZSBlbmFibGVkIGFmdGVyDQo+ID4gY29uZmlybWluZyB0aGF0IGFsbCBrZXJuZWwgc2lk
-ZSBpbnZvY2F0aW9ucyBhcmUgc2FmZS4NCj4gDQo+IFdlJ3ZlIGJlZW4gbGl2aW5nIHdpdGggdGhp
-cyBidWcgZm9yIDcgeWVhcnMsIGxldCdzIGp1c3QgZ28gZml4IGFsbA0KPiBhY3BpX2dldF90YWJs
-ZSgpIGludm9jYXRpb25zIHRvIG1ha2Ugc3VyZSB0aGV5IGhhdmUgYSBjb3JyZXNwb25kaW5nDQo+
-IGFjcGlfcHV0X3RhYmxlKCkuDQoNCldlIGtuZXcgdGhhdCwgeW91IHNob3VsZCBoYXZlIGFscmVh
-ZHkgc2VlbiBhIHNlcmllcyBpbnRlcm5hbGx5IG9yDQpleHRlcm5hbGx5IGZyb20gbWUgYWNoaWV2
-aW5nIHRoaXMuDQpJdCdzIGRvbmUgc2V2ZXJhbCB5ZWFycyBhZ28uIEJ1dCBpdCB0YWtlcyBsb25n
-IHRpbWUgdG8gbWFrZSB0aGUNCkFDUElDQSBwYXJ0IHVwc3RyZWFtZWQuDQoNCk5vdyBteSBwbGFu
-IGlzOg0KMS4gaW50cm9kdWNlIHRoZSBBUElzIGJ1dCBhbGxvdyBvbGQgdXNhZ2UgbW9kZWxzIGlu
-IG9yZGVyIG5vdCB0bw0KICAgY2hhbmdlIG9sZCBBQ1BJQ0EgYmVoYXZpb3IgYW5kIGl0cyB1c2Vy
-cy4NCjIuIGZpeCBhbGwgdXNlcnMNCjMuIGRpc2FsbG93IG9sZCB1c2FnZSBtb2RlbHMuDQpJdCdz
-IGp1c3QgbXkgbWlzdGFrZSB0byBsZWFrIHRoZSBmaW5hbCBzdGFnZSBhcHByb2FjaCB0byB0aGUg
-QUNQSUNBDQp1cHN0cmVhbSBmcm9tIG15IGxvY2FsIHJlcG8uDQpOb3cgd2UgY2FuIHRyeSB0byBq
-dW1wIHRvIHRoZSBmaW5hbCBzdGVwLCBidXQgYXMgZmFyIGFzIEkga25vdywNCm5vdCBvbmx5IExp
-bnV4LCBBQ1BJQ0EgaXRzZWxmIGFsc28gY29udGFpbnMgc2V2ZXJhbCBicm9rZW4gY2FzZXMuDQoN
-CkJvdHRvbSBsaW5lIG9mIExpbnV4IGtlcm5lbCBpcyB3ZSBzaG91bGRuJ3QgYnJlYWsgYW55IHJ1
-bm5pbmcgc3lzdGVtLg0KU28gSU1PLCB3ZSB3aWxsIG5lZWQgdGhpcyBjb21taXQgZHVyaW5nIHRo
-aXMgc3BlY2lhbCBwZXJpb2QuDQoNCkkgZGlkbid0IHNheSB0aGUgZmluYWwgc3RlcCBpcyB3cm9u
-ZyBvciBpcyBub3QgcmVxdWlyZWQuDQpXZSBjYW4gZG8gYm90aCBpbiBwYXJhbGxlbC4NCg0KU28g
-Y291bGQgeW91IHBsZWFzZSBoZWxwIHRvIGNvbmZpcm0gaWYgaXQncyB3b3JraW5nLg0KQW5kIEkg
-d291bGQgbGlrZSB0byBzdWdnZXN0IGxpbnV4IHRvIHRha2UgdGhpcyBmaXJzdCBzdGVwIGZpeCBh
-bG9uZw0Kd2l0aCBvdGhlciBmaW5hbCBzdGVwIGZpeGVzIGR1cmluZyB0aGlzIHBlcmlvZC4NCg0K
-VGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2DQoNCj4gDQo+ID4NCj4gPiBUaHVzIHRoaXMgcGF0
-Y2ggcmVtb3ZlcyB0aGUgZmF0YWwgZXJyb3IgYnV0IGxlYXZlcyB0aGUgZXJyb3IgcmVwb3J0IHRv
-DQo+ID4gaW5kaWNhdGUgdGhlIGxlYWsgc28gdGhhdCBkZXZlbG9wZXJzIGNhbiBub3RpY2UgdGhl
-IHJlcXVpcmVkIGVuZ2luZWVyaW5nDQo+ID4gY2hhbmdlLiBSZXBvcnRlZCBieSBEYW4gV2lsbGlh
-bXMsIGZpeGVkIGJ5IEx2IFpoZW5nLg0KPiA+DQo+ID4gUmVwb3J0ZWQtYnk6IERhbiBXaWxsaWFt
-cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5n
-IDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2Ev
-dGJ1dGlscy5jIHwgMSAtDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxIGRlbGV0aW9uKC0pDQo+ID4N
-Cj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS90YnV0aWxzLmMgYi9kcml2ZXJz
-L2FjcGkvYWNwaWNhL3RidXRpbHMuYw0KPiA+IGluZGV4IDVhOTY4YTcuLjllN2Q5NWNmIDEwMDY0
-NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvdGJ1dGlscy5jDQo+ID4gKysrIGIvZHJp
-dmVycy9hY3BpL2FjcGljYS90YnV0aWxzLmMNCj4gPiBAQCAtNDIyLDcgKzQyMiw2IEBAIGFjcGlf
-dGJfZ2V0X3RhYmxlKHN0cnVjdCBhY3BpX3RhYmxlX2Rlc2MgKnRhYmxlX2Rlc2MsDQo+ID4gICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICJUYWJsZSAlcCwgVmFsaWRhdGlvbiBjb3VudCBpcyB6
-ZXJvIGFmdGVyIGluY3JlbWVudFxuIiwNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-dGFibGVfZGVzYykpOw0KPiA+ICAgICAgICAgICAgICAgICB0YWJsZV9kZXNjLT52YWxpZGF0aW9u
-X2NvdW50LS07DQo+ID4gLSAgICAgICAgICAgICAgIHJldHVybl9BQ1BJX1NUQVRVUyhBRV9MSU1J
-VCk7DQo+IA0KPiBJZiB5b3Ugd2FudCB0byBsZWF2ZSB0aGUgZXJyb3IgcmVwb3J0IHR1cm4gaXQg
-aW50byBhIFdBUk5fT05fT05DRSgpIHNvDQo+IGl0IGRvZXNuJ3Qga2VlcCB0cmlnZ2VyaW5nLCBi
-dXQgSSdkIHJhdGhlciB3ZSBqdXN0IGZvY3VzIG9uIHRoZQ0KPiBtaXNzaW5nIGFjcGlfcHV0X3Rh
-YmxlKCkgY2FsbHMuDQo=
+On 21/04/17 08:38, Hans de Goede wrote:
+> Some x86 tablets use the bms250 accelerometer, add support for this.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Hi Hans,
+
+Would you mind rebasing this on the latest iio.git togreg branch?
+(which should be the same as linux-next by now if that is easier)
+Some OF bindings got added in the recent cycle that make it not
+apply cleanly.
+
+Thanks,
+
+Jonathan
+> ---
+>  drivers/iio/accel/bma180.c | 20 +++++++++++++++++++-
+>  1 file changed, 19 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/iio/accel/bma180.c b/drivers/iio/accel/bma180.c
+> index 0890934..5c75190 100644
+> --- a/drivers/iio/accel/bma180.c
+> +++ b/drivers/iio/accel/bma180.c
+> @@ -14,6 +14,7 @@
+>   * BMA250: 7-bit I2C slave address 0x18 or 0x19
+>   */
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/module.h>
+>  #include <linux/i2c.h>
+>  #include <linux/interrupt.h>
+> @@ -705,6 +706,8 @@ static const struct iio_trigger_ops bma180_trigger_ops = {
+>  static int bma180_probe(struct i2c_client *client,
+>  		const struct i2c_device_id *id)
+>  {
+> +	struct device *dev = &client->dev;
+> +	const struct acpi_device_id *acpi_id;
+>  	struct bma180_data *data;
+>  	struct iio_dev *indio_dev;
+>  	int ret;
+> @@ -716,7 +719,15 @@ static int bma180_probe(struct i2c_client *client,
+>  	data = iio_priv(indio_dev);
+>  	i2c_set_clientdata(client, indio_dev);
+>  	data->client = client;
+> -	data->part_info = &bma180_part_info[id->driver_data];
+> +	if (id) {
+> +		data->part_info = &bma180_part_info[id->driver_data];
+> +	} else {
+> +		acpi_id = acpi_match_device(dev->driver->acpi_match_table, dev);
+> +		if (!acpi_id)
+> +			return -ENODEV;
+> +
+> +		data->part_info = &bma180_part_info[acpi_id->driver_data];
+> +	}
+>  
+>  	ret = data->part_info->chip_config(data);
+>  	if (ret < 0)
+> @@ -836,6 +847,12 @@ static SIMPLE_DEV_PM_OPS(bma180_pm_ops, bma180_suspend, bma180_resume);
+>  #define BMA180_PM_OPS NULL
+>  #endif
+>  
+> +static const struct acpi_device_id bma180_acpi_match[] = {
+> +	{ "BMA250E", BMA250 },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(acpi, bma180_acpi_match);
+> +
+>  static struct i2c_device_id bma180_ids[] = {
+>  	{ "bma180", BMA180 },
+>  	{ "bma250", BMA250 },
+> @@ -847,6 +864,7 @@ MODULE_DEVICE_TABLE(i2c, bma180_ids);
+>  static struct i2c_driver bma180_driver = {
+>  	.driver = {
+>  		.name	= "bma180",
+> +		.acpi_match_table = ACPI_PTR(bma180_acpi_match),
+>  		.pm	= BMA180_PM_OPS,
+>  	},
+>  	.probe		= bma180_probe,
+> 
+
