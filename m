@@ -1,47 +1,126 @@
-From: <info@cityofnorthbay.ca>
-Subject: 48960 linux-acpi
-Date: Wed, 26 Apr 2017 07:46:32 -0000
-Message-ID: <149319279269.22262.17731223299642088550@hinet.net>
-Mime-Version: 1.0
-Content-Type: application/zip; name="662.zip"
-Content-Transfer-Encoding: base64
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 00/15] ACPICA 20170303 Release
+Date: Wed, 26 Apr 2017 16:17:37 +0800
+Message-ID: <cover.1493194142.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 114-42-112-217.dynamic-ip.hinet.net ([114.42.112.217]:47983
-        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with SMTP id S1952030AbdDZHqq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 03:46:46 -0400
-Content-Disposition: attachment
+Received: from mga05.intel.com ([192.55.52.43]:14950 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1433957AbdDZIRq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 04:17:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-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
+The 20170303 ACPICA kernel-resident subsystem updates are linuxized based
+on the linux-pm/linux-next branch.
+
+The patchset has passed the following build/boot tests.
+Build tests are performed as follows:
+1. i386 + allyes
+2. i386 + allno
+3. i386 + default + ACPI_DEBUGGER=y
+4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+5. i386 + default + ACPI_DEBUG=n + ACPI=y
+6. i386 + default + ACPI=n
+7. x86_64 + allyes
+8. x86_64 + allno
+9. x86_64 + default + ACPI_DEBUGGER=y
+10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
+12.x86_64 + default + ACPI=n
+Boot tests are performed as follows:
+1. x86_64 + default + ACPI_DEBUGGER=y
+Where:
+1. i386: machine named as "Dell Inspiron Mini 1010"
+2. x86_64: machine named as "Microsoft Surface Pro 3"
+3. default: kernel configuration with following items enabled:
+   All hardware drivers related to the machines of i386/x86_64
+   All "drivers/acpi" configurations
+   All "drivers/platform" drivers
+   All other drivers that link the APIs provided by ACPICA subsystem
+
+The divergences checking result:
+Before applying (20170119 Release):
+  369 lines
+After applying (20170303 Release):
+  369 lines
+
+Bob Moore (9):
+  ACPICA: Disassembler: Enhance resource descriptor detection
+  ACPICA: Update some function headers, no funtional change
+  ACPICA: Fix a module for excessive debug output
+  ACPICA: Fix several incorrect invocations of ACPICA return macro
+  ACPICA: Update for automatic repair code for objects returned by
+    evaluate_object
+  ACPICA: Cleanup AML opcode definitions, no functional change
+  ACPICA: iasl: add ASL conversion tool
+  ACPICA: Local cache support: Allow small cache objects
+  ACPICA: Update version to 20170303
+
+Colin Ian King (1):
+  ACPICA: debugger: fix memory leak on Pathname
+
+David E. Box (1):
+  ACPICA: Disassembler: Do not unconditionally remove temporary names
+
+Jung-uk Kim (1):
+  ACPICA: Fix build for FreeBSD kernel.
+
+Lv Zheng (2):
+  ACPICA: Debugger: Add interpreter blocking mark for single-step mode
+  ACPICA: iasl: Fix IORT SMMU GSI disassembling
+
+Seunghun Han (1):
+  ACPICA: Namespace: fix operand cache leak
+
+ drivers/acpi/acpica/acconvert.h | 144 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/acglobal.h  |  53 +++++++++++++++
+ drivers/acpi/acpica/aclocal.h   | 106 ++++++++++++++++++++++++-----
+ drivers/acpi/acpica/acmacros.h  |  35 ++++++++++
+ drivers/acpi/acpica/acopcode.h  |   2 +
+ drivers/acpi/acpica/amlcode.h   |  99 +++++++++++++--------------
+ drivers/acpi/acpica/dbmethod.c  |   1 +
+ drivers/acpi/acpica/dbxface.c   |   5 +-
+ drivers/acpi/acpica/dscontrol.c |   2 +-
+ drivers/acpi/acpica/dsmthdat.c  |   3 +-
+ drivers/acpi/acpica/dsobject.c  |  15 +++--
+ drivers/acpi/acpica/dsopcode.c  |   4 +-
+ drivers/acpi/acpica/dsutils.c   |   8 +--
+ drivers/acpi/acpica/dswexec.c   |   2 +-
+ drivers/acpi/acpica/dswload2.c  |   2 +-
+ drivers/acpi/acpica/exmisc.c    |  16 ++---
+ drivers/acpi/acpica/exnames.c   |   4 +-
+ drivers/acpi/acpica/exoparg1.c  |  17 +++--
+ drivers/acpi/acpica/exoparg2.c  |   4 +-
+ drivers/acpi/acpica/exoparg6.c  |  16 ++---
+ drivers/acpi/acpica/exresolv.c  |   3 +-
+ drivers/acpi/acpica/exstore.c   |   5 +-
+ drivers/acpi/acpica/exstoren.c  |   2 +-
+ drivers/acpi/acpica/hwvalid.c   |  18 ++---
+ drivers/acpi/acpica/nsaccess.c  |   2 +-
+ drivers/acpi/acpica/nsrepair.c  |  16 +----
+ drivers/acpi/acpica/nsrepair2.c |   6 +-
+ drivers/acpi/acpica/nsutils.c   |  29 ++++----
+ drivers/acpi/acpica/psargs.c    |  29 +++++++-
+ drivers/acpi/acpica/psloop.c    |  34 +++++++++-
+ drivers/acpi/acpica/psobject.c  |  38 +++++++++++
+ drivers/acpi/acpica/psopcode.c  |  15 +++--
+ drivers/acpi/acpica/psopinfo.c  |   2 +-
+ drivers/acpi/acpica/psparse.c   |   6 +-
+ drivers/acpi/acpica/pstree.c    |   9 ++-
+ drivers/acpi/acpica/psutils.c   |  11 +++
+ drivers/acpi/acpica/utalloc.c   |  50 ++++++++++++++
+ drivers/acpi/acpica/utcache.c   |   2 +-
+ drivers/acpi/acpica/utdebug.c   |   1 +
+ drivers/acpi/acpica/utresrc.c   |   9 +++
+ drivers/acpi/acpica/utxferror.c |  16 ++---
+ include/acpi/acconfig.h         |   1 +
+ include/acpi/acpixf.h           |   2 +-
+ include/acpi/actbl2.h           |  10 +++
+ 44 files changed, 659 insertions(+), 195 deletions(-)
+ create mode 100644 drivers/acpi/acpica/acconvert.h
+
+-- 
+2.7.4
+
