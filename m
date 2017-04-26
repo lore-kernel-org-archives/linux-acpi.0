@@ -1,71 +1,58 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 04/15] ACPICA: Fix several incorrect invocations of ACPICA return macro
-Date: Wed, 26 Apr 2017 16:18:02 +0800
-Message-ID: <9dc9fbff0de68a144bb47997af00558cb3979511.1493194142.git.lv.zheng@intel.com>
+Subject: [PATCH 08/15] ACPICA: Debugger: Add interpreter blocking mark for single-step mode
+Date: Wed, 26 Apr 2017 16:18:33 +0800
+Message-ID: <c463aed1ea66e50b7b4821de7a06b0f9e069a75e.1493194142.git.lv.zheng@intel.com>
 References: <cover.1493194142.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:4966 "EHLO mga06.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:50258 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952686AbdDZISG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Apr 2017 04:18:06 -0400
+        id S1952799AbdDZISh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 04:18:37 -0400
 In-Reply-To: <cover.1493194142.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
 Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+ACPICA commit 91af5d18cd40b35f9d5568fb95fc403ff12474e5
 
-ACPICA commit 521bedc49b42e59116de1b54dcd95d30d36cac90
+When the single-step mode is used, evaluation is actually split by the
+single-step command prompts, so this patch correctly marks the evaluation
+segment with interpreter lock release/acquire.
+This in return fixes an issue that in the single-step command prompt,
+commands requiring to hold the namespace lock (ex. namespace) cannot be
+executed. ACPICA BZ 1362, fixed by Lv Zheng.
 
-Not needed since there is no function tracing for the
-validation function in hwvalid.c
-
-Link: https://github.com/acpica/acpica/commit/521bedc4
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/91af5d18
+Link: https://bugs.acpica.org/show_bug.cgi?id=1362
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/hwvalid.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/acpica/dbxface.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
-index 0b102e0..3094cec 100644
---- a/drivers/acpi/acpica/hwvalid.c
-+++ b/drivers/acpi/acpica/hwvalid.c
-@@ -135,7 +135,7 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
- 	if ((bit_width != 8) && (bit_width != 16) && (bit_width != 32)) {
- 		ACPI_ERROR((AE_INFO,
- 			    "Bad BitWidth parameter: %8.8X", bit_width));
--		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+		return (AE_BAD_PARAMETER);
+diff --git a/drivers/acpi/acpica/dbxface.c b/drivers/acpi/acpica/dbxface.c
+index 205b8e0..9b91cea 100644
+--- a/drivers/acpi/acpica/dbxface.c
++++ b/drivers/acpi/acpica/dbxface.c
+@@ -45,6 +45,7 @@
+ #include "accommon.h"
+ #include "amlcode.h"
+ #include "acdebug.h"
++#include "acinterp.h"
+ 
+ #define _COMPONENT          ACPI_CA_DEBUGGER
+ ACPI_MODULE_NAME("dbxface")
+@@ -368,7 +369,9 @@ acpi_db_single_step(struct acpi_walk_state *walk_state,
+ 		walk_state->method_breakpoint = 1;	/* Must be non-zero! */
  	}
  
- 	port_info = acpi_protected_ports;
-@@ -153,13 +153,13 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
- 		ACPI_ERROR((AE_INFO,
- 			    "Illegal I/O port address/length above 64K: %8.8X%8.8X/0x%X",
- 			    ACPI_FORMAT_UINT64(address), byte_width));
--		return_ACPI_STATUS(AE_LIMIT);
-+		return (AE_LIMIT);
- 	}
++	acpi_ex_exit_interpreter();
+ 	status = acpi_db_start_command(walk_state, op);
++	acpi_ex_enter_interpreter();
  
- 	/* Exit if requested address is not within the protected port table */
+ 	/* User commands complete, continue execution of the interrupted method */
  
- 	if (address > acpi_protected_ports[ACPI_PORT_INFO_ENTRIES - 1].end) {
--		return_ACPI_STATUS(AE_OK);
-+		return (AE_OK);
- 	}
- 
- 	/* Check request against the list of protected I/O ports */
-@@ -198,7 +198,7 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
- 		}
- 	}
- 
--	return_ACPI_STATUS(AE_OK);
-+	return (AE_OK);
- }
- 
- /******************************************************************************
 -- 
 2.7.4
 
