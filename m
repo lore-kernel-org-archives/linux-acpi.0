@@ -1,63 +1,44 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] acpi: fix acpi_get_table() leak / acpi-sysfs denial of
- service
-Date: Wed, 26 Apr 2017 01:37:52 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE98A4C@SHSMSX101.ccr.corp.intel.com>
-References: <149314916034.8899.7439820192725219189.stgit@dwillia2-desk3.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <149314916034.8899.7439820192725219189.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc: "Seetharaman, Anush" <anush.seetharaman@intel.com>, "Kasanicky, Tiffany J" <tiffany.j.kasanicky@intel.com>, "Jensen, Ryon" <ryon.jensen@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Jacque, Kristin" <kristin.jacque@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH] ACPICA: Tables: Fix regression introduced by a too early mechanism enabling
+Date: Wed, 26 Apr 2017 09:49:53 +0800
+Message-ID: <1493171393-1825-1-git-send-email-lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:2909 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1434481AbdDZBt7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 25 Apr 2017 21:49:59 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIERhbg0KPiBXaWxs
-aWFtcw0KPiBTdWJqZWN0OiBbUEFUQ0hdIGFjcGk6IGZpeCBhY3BpX2dldF90YWJsZSgpIGxlYWsg
-LyBhY3BpLXN5c2ZzIGRlbmlhbCBvZiBzZXJ2aWNlDQo+IA0KPiBSZWFkaW5nIGFuIEFDUEkgdGFi
-bGUgdGhyb3VnaCB0aGUgL3N5cy9maXJtd2FyZS9hY3BpL3RhYmxlcyBpbnRlcmZhY2UNCj4gbW9y
-ZSB0aGFuIDY1LDUzNiB0aW1lcyBsZWFkcyB0byB0aGUgZm9sbG93aW5nIGxvZyBtZXNzYWdlOg0K
-PiANCj4gIEFDUEkgRXJyb3I6IFRhYmxlIGZmZmY4ODAzMzU5NWVhYTgsIFZhbGlkYXRpb24gY291
-bnQgaXMgemVybyBhZnRlciBpbmNyZW1lbnQNCj4gICAoMjAxNzAxMTkvdGJ1dGlscy00MjMpDQo+
-IA0KPiAuLi5hbmQgdGhlIHRhYmxlIGJlaW5nIHVuYXZhaWxhYmxlIHVudGlsIHRoZSBuZXh0IHJl
-Ym9vdC4gQWRkIHRoZQ0KPiBtaXNzaW5nIGFjcGlfcHV0X3RhYmxlKCkgc28gdGhlIHRhYmxlIC0+
-dmFsaWRhdGlvbl9jb3VudCBpcyBkZWNyZW1lbnRlZA0KPiBhZnRlciBlYWNoIHJlYWQuDQoNCkZv
-ciBub3csIHNob3VsZCBqdXN0IHJldHVybiBBRV9PSyBpbnN0ZWFkIG9mIEFFX0xJTUlUIGluIGFj
-cGlfdGJfZ2V0X3RhYmxlKCkuDQpPdGhlcndpc2UgdGhpcyBmaXggd2lsbCBub3QgYmUgc3VmZmlj
-aWVudCB0byBmaXggYWxsIHBvc3NpYmxlIHByb2JsZW0NClVubGVzcyB3ZSBjYW4gYWRkIGFjcGlf
-cHV0X3RhYmxlKCkgZm9yIGFsbCBhY3BpX2dldF90YWJsZSgpIGludm9jYXRpb24uDQpMZXQgbWUg
-c2VuZCBhIHBhdGNoIGZvciB5b3UgdG8gdHJ5Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0K
-THYNCg0KPiANCj4gQ2M6IDxzdGFibGVAdmdlci5rZXJuZWwub3JnPg0KPiBDYzogWmhhbmcgUnVp
-IDxydWkuemhhbmdAaW50ZWwuY29tPg0KPiBDYzogUmFmYWVsIFd5c29ja2kgPHJhZmFlbC5qLnd5
-c29ja2lAaW50ZWwuY29tPg0KPiBDYzogS3Jpc3RpbiBKYWNxdWUgPGtyaXN0aW4uamFjcXVlQGlu
-dGVsLmNvbT4NCj4gQ2M6IFRpZmZhbnkgS2FzYW5pY2t5IDx0aWZmYW55Lmoua2FzYW5pY2t5QGlu
-dGVsLmNvbT4NCj4gQ2M6IFJ5b24gSmVuc2VuIDxyeW9uLmplbnNlbkBpbnRlbC5jb20+DQo+IFJl
-cG9ydGVkLWJ5OiBBbnVzaCBTZWV0aGFyYW1hbiA8YW51c2guc2VldGhhcmFtYW5AaW50ZWwuY29t
-Pg0KPiBGaXhlczogMWM4ZmNlMjdlMjc1ICgiQUNQSTogaW50cm9kdWNlIGRyaXZlcnMvYWNwaS9z
-eXNmcy5jIikNCj4gU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0Bp
-bnRlbC5jb20+DQo+IC0tLQ0KPiAgZHJpdmVycy9hY3BpL3N5c2ZzLmMgfCAgICA3ICsrKysrLS0N
-Cj4gIDEgZmlsZSBjaGFuZ2VkLCA1IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+IA0K
-PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3N5c2ZzLmMgYi9kcml2ZXJzL2FjcGkvc3lzZnMu
-Yw0KPiBpbmRleCBjZjA1YWU5NzMzODEuLjUzMWRkYWJmMDM5MCAxMDA2NDQNCj4gLS0tIGEvZHJp
-dmVycy9hY3BpL3N5c2ZzLmMNCj4gKysrIGIvZHJpdmVycy9hY3BpL3N5c2ZzLmMNCj4gQEAgLTMz
-MywxNCArMzMzLDE3IEBAIHN0YXRpYyBzc2l6ZV90IGFjcGlfdGFibGVfc2hvdyhzdHJ1Y3QgZmls
-ZSAqZmlscCwgc3RydWN0IGtvYmplY3QgKmtvYmosDQo+ICAJICAgIGNvbnRhaW5lcl9vZihiaW5f
-YXR0ciwgc3RydWN0IGFjcGlfdGFibGVfYXR0ciwgYXR0cik7DQo+ICAJc3RydWN0IGFjcGlfdGFi
-bGVfaGVhZGVyICp0YWJsZV9oZWFkZXIgPSBOVUxMOw0KPiAgCWFjcGlfc3RhdHVzIHN0YXR1czsN
-Cj4gKwlzc2l6ZV90IHJjOw0KPiANCj4gIAlzdGF0dXMgPSBhY3BpX2dldF90YWJsZSh0YWJsZV9h
-dHRyLT5uYW1lLCB0YWJsZV9hdHRyLT5pbnN0YW5jZSwNCj4gIAkJCQkmdGFibGVfaGVhZGVyKTsN
-Cj4gIAlpZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykpDQo+ICAJCXJldHVybiAtRU5PREVWOw0KPiAN
-Cj4gLQlyZXR1cm4gbWVtb3J5X3JlYWRfZnJvbV9idWZmZXIoYnVmLCBjb3VudCwgJm9mZnNldCwN
-Cj4gLQkJCQkgICAgICAgdGFibGVfaGVhZGVyLCB0YWJsZV9oZWFkZXItPmxlbmd0aCk7DQo+ICsJ
-cmMgPSBtZW1vcnlfcmVhZF9mcm9tX2J1ZmZlcihidWYsIGNvdW50LCAmb2Zmc2V0LCB0YWJsZV9o
-ZWFkZXIsDQo+ICsJCQl0YWJsZV9oZWFkZXItPmxlbmd0aCk7DQo+ICsJYWNwaV9wdXRfdGFibGUo
-dGFibGUpOw0KPiArCXJldHVybiByYzsNCj4gIH0NCj4gDQo+ICBzdGF0aWMgaW50IGFjcGlfdGFi
-bGVfYXR0cl9pbml0KHN0cnVjdCBrb2JqZWN0ICp0YWJsZXNfb2JqLA0KPiANCj4gLS0NCj4gVG8g
-dW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxp
-bnV4LWFjcGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5r
-ZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5v
-cmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+In the Linux kernel side, acpi_get_table() hasn't been fully balanced by
+acpi_put_table() invocations. So it is not a good timing to report errors.
+The strict balanced validation count check should only be enabled after
+confirming that all kernel side invocations are safe.
+
+Thus this patch removes the fatal error but leaves the error report to
+indicate the leak so that developers can notice the required engineering
+change. Reported by Dan Williams, fixed by Lv Zheng.
+
+Reported-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/tbutils.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index 5a968a7..9e7d95cf 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -422,7 +422,6 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
+ 			    "Table %p, Validation count is zero after increment\n",
+ 			    table_desc));
+ 		table_desc->validation_count--;
+-		return_ACPI_STATUS(AE_LIMIT);
+ 	}
+ 
+ 	*out_table = table_desc->pointer;
+-- 
+2.7.4
+
