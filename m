@@ -1,60 +1,51 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 1/2] libnvdimm, region: fix flush hint detection crash
-Date: Wed, 26 Apr 2017 13:04:23 -0700
-Message-ID: <CAPcyv4g8Y_h3AmgPWBBK7=FOOschc+Z3Nh-9Otx8mAoBthv3=Q@mail.gmail.com>
-References: <149307779085.7155.436029631521340565.stgit@dwillia2-desk3.amr.corp.intel.com>
- <149307779612.7155.12969380677038292861.stgit@dwillia2-desk3.amr.corp.intel.com>
- <x49bmrj9cqj.fsf@segfault.boston.devel.redhat.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH v3] libnvdimm, region: sysfs trigger for nvdimm_flush()
+Date: Wed, 26 Apr 2017 16:38:54 -0400
+Message-ID: <x49zif23nvl.fsf@segfault.boston.devel.redhat.com>
+References: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
+        <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:33727 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754156AbdDZUEZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 16:04:25 -0400
-Received: by mail-oi0-f42.google.com with SMTP id y11so14338105oie.0
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Apr 2017 13:04:24 -0700 (PDT)
-In-Reply-To: <x49bmrj9cqj.fsf@segfault.boston.devel.redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:59568 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S936718AbdDZUjF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 16:39:05 -0400
+In-Reply-To: <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
+        (Dan Williams's message of "Tue, 25 Apr 2017 13:17:37 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Apr 26, 2017 at 12:43 PM, Jeff Moyer <jmoyer@redhat.com> wrote:
-> Dan Williams <dan.j.williams@intel.com> writes:
+Dan Williams <dan.j.williams@intel.com> writes:
+
+> The nvdimm_flush() mechanism helps to reduce the impact of an ADR
+> (asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
+> platform WPQ (write-pending-queue) buffers when power is removed. The
+> nvdimm_flush() mechanism performs that same function on-demand.
 >
->> In the case where a dimm does not have any associated flush hints the
->> ndrd->flush_wpq array may be uninitialized leading to crashes with the
->> following signature:
->>
->>  BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
->>  IP: region_visible+0x10f/0x160 [libnvdimm]
->>
->>  Call Trace:
->>   internal_create_group+0xbe/0x2f0
->>   sysfs_create_groups+0x40/0x80
->>   device_add+0x2d8/0x650
->>   nd_async_device_register+0x12/0x40 [libnvdimm]
->>   async_run_entry_fn+0x39/0x170
->>   process_one_work+0x212/0x6c0
->>   ? process_one_work+0x197/0x6c0
->>   worker_thread+0x4e/0x4a0
->>   kthread+0x10c/0x140
->>   ? process_one_work+0x6c0/0x6c0
->>   ? kthread_create_on_node+0x60/0x60
->>   ret_from_fork+0x31/0x40
+> When a pmem namespace is associated with a block device, an
+> nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
+> request. These requests are typically associated with filesystem
+> metadata updates. However, when a namespace is in device-dax mode,
+> userspace (think database metadata) needs another path to perform the
+> same flushing. In other words this is not required to make data
+> persistent, but in the case of metadata it allows for a smaller failure
+> domain in the unlikely event of an ADR failure.
 >
-> Sorry for being dense, but I'm having a tough time connecting the dots,
-> here.  How does region_visible trip over the missing (not uninitialized,
-> you're actually walking off the end of the structure) wpq_flush array?
+> The new 'flush' attribute is visible when the individual DIMMs backing a
+> given interleave-set are described by platform firmware. In ACPI terms
+> this is "NVDIMM Region Mapping Structures" and associated "Flush Hint
+> Address Structures". Reads return "1" if the region supports triggering
+> WPQ flushes on all DIMMs. Reads return "0" the flush operation is a
+> platform nop, and in that case the attribute is read-only.
 
-So, you're not dense, or you're at least as equally dense as me,
-because I didn't immediately understand where this failure was coming
-from either. I just happened to trigger it while running patch2 and
-thought the current code just looked unsafe by inspection.
+I can make peace with exposing this to userspace, though I am mostly
+against its use.  However, sysfs feels like the wrong interface.
+Believe it or not, I'd rather see this implemented as an ioctl.
 
-> Anyway, the fix looks valid.
->
-> Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+This isn't a NACK, it's me giving my opinion.  Do with it what you will.
 
-Thanks!
+Cheers,
+Jeff
