@@ -1,62 +1,65 @@
-From: Daniel Drake <drake@endlessm.com>
-Subject: Re: [PATCH] ACPI / EC: handle ECDT EC and DSDT EC simultaneously
-Date: Wed, 26 Apr 2017 07:11:09 -0600
-Message-ID: <CAD8Lp44nXRv0rpZgPw1f0LZ_bcn74fQFzG6HBxRcL1QAWxBHTQ@mail.gmail.com>
-References: <20170420201219.21568-1-drake@endlessm.com> <1AE640813FDE7649BE1B193DEA596E886CE96843@SHSMSX101.ccr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [RFC PATCH] ACPICA: Tables: Fix regression introduced by a too
+ early mechanism enabling
+Date: Wed, 26 Apr 2017 07:13:43 -0700
+Message-ID: <CAPcyv4jmzN3GjH669W4xuaG62iTwdE+McC49EJpE1gO0SG70+Q@mail.gmail.com>
+References: <1493171393-1825-1-git-send-email-lv.zheng@intel.com>
+ <CAPcyv4gtYzkeUL-Ou8bap5Sye=1Tq2PmuhZM04nFPwdjmCwCgg@mail.gmail.com> <1AE640813FDE7649BE1B193DEA596E886CE98BCA@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:36854 "EHLO
-        mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1035837AbdDZNLU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 09:11:20 -0400
-Received: by mail-oi0-f47.google.com with SMTP id w12so95851885oiw.3
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Apr 2017 06:11:20 -0700 (PDT)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE96843@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-oi0-f48.google.com ([209.85.218.48]:34528 "EHLO
+        mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S3001054AbdDZONp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 10:13:45 -0400
+Received: by mail-oi0-f48.google.com with SMTP id x184so2050152oia.1
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Apr 2017 07:13:45 -0700 (PDT)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE98BCA@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "chiu@endlessm.com" <chiu@endlessm.com>, "linux@endlessm.com" <linux@endlessm.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-Hi Lv,
+On Tue, Apr 25, 2017 at 10:15 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi,
+>
+>> From: Dan Williams [mailto:dan.j.williams@intel.com]
+>> Subject: Re: [RFC PATCH] ACPICA: Tables: Fix regression introduced by a too early mechanism enabling
+>>
+>> On Tue, Apr 25, 2017 at 6:49 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+>> > In the Linux kernel side, acpi_get_table() hasn't been fully balanced by
+>> > acpi_put_table() invocations. So it is not a good timing to report errors.
+>> > The strict balanced validation count check should only be enabled after
+>> > confirming that all kernel side invocations are safe.
+>>
+>> We've been living with this bug for 7 years, let's just go fix all
+>> acpi_get_table() invocations to make sure they have a corresponding
+>> acpi_put_table().
+>
+> We knew that, you should have already seen a series internally or
+> externally from me achieving this.
+> It's done several years ago. But it takes long time to make the
+> ACPICA part upstreamed.
+>
+> Now my plan is:
+> 1. introduce the APIs but allow old usage models in order not to
+>    change old ACPICA behavior and its users.
+> 2. fix all users
+> 3. disallow old usage models.
+> It's just my mistake to leak the final stage approach to the ACPICA
+> upstream from my local repo.
+> Now we can try to jump to the final step, but as far as I know,
+> not only Linux, ACPICA itself also contains several broken cases.
+>
+> Bottom line of Linux kernel is we shouldn't break any running system.
+> So IMO, we will need this commit during this special period.
+>
+> I didn't say the final step is wrong or is not required.
+> We can do both in parallel.
+>
+> So could you please help to confirm if it's working.
+> And I would like to suggest linux to take this first step fix along
+> with other final step fixes during this period.
 
-Thanks for the detailed response. In trying to decode the tricky code
-flow and seeing all this first_ec / boot_ec / DSDT EC / ECDT EC stuff,
-I seem to have made the wrong interpretation about how this is
-designed.
-
-On Sun, Apr 23, 2017 at 10:43 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> The entire problem looks to me is:
-> When GPE setting differs between ECDT and DSDT, which one should be
-> trusted by OS?
-
-This case suggests that Windows uses the ECDT setting, right?
-
-> The current code chose to always trust DSDT GPE settings as in theory it
-> doesn't make sense to trust the ECDT GPE setting in most of the cases,
-> ECDT GPE is not meant to be used during runtime. So why don't we just add
-> a quirk to favor GPE setting from ECDT rather than the GPE setting from
-> DSDT for these platforms?
-
-Do you mean a DMI quirk? We have found those to be quite impractical
-in the past, it is too hard to get 100% coverage of all machines
-affected by the bug, and usually we would only be able to quirk it
-late in the process (after the machine has already shipped to users).
-In a recent case we had an Asus DMI quirks list that grew slowly to
-over 30 entries over a year, before we found a generic solution.
-
-In this case we have asked Asus BIOS engineers to not repeat this
-issue on future products, but even if they follow our advice there, we
-can expect a decent number of models affected by this issue.
-
-And we just found a 2nd model with the same issue. Here is the
-"acpidump -b" output:
-https://www.dropbox.com/s/d3w2xrmrz1oklnw/x580vd_acpi.tgz?dl=0
-
-To see the windows device tree using Microsoft Windows Internals, are
-you referring to the paperback book? Which of the 2 parts would we
-have to purchase? Does it come with a binary on CD or would we have to
-figure out how to compile the tool?
-
-Thanks,
-Daniel
+I just think "this period" is very short and we can skip the band-aid
+and go straight to auditing the 48 call sites of acpi_get_table.
