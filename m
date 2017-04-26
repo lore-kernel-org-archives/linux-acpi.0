@@ -1,59 +1,89 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 10/15] ACPICA: iasl: Fix IORT SMMU GSI disassembling
-Date: Wed, 26 Apr 2017 16:18:49 +0800
-Message-ID: <63b0875a5374260513152f35d1d85fc32b4cdf25.1493194142.git.lv.zheng@intel.com>
+Subject: [PATCH 06/15] ACPICA: Update for automatic repair code for objects returned by evaluate_object
+Date: Wed, 26 Apr 2017 16:18:16 +0800
+Message-ID: <1d82754b482a289c5c81c7270f6557e01ecd9158.1493194142.git.lv.zheng@intel.com>
 References: <cover.1493194142.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:15031 "EHLO mga06.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:22415 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1952817AbdDZISx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Apr 2017 04:18:53 -0400
+        id S1952717AbdDZISZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 04:18:25 -0400
 In-Reply-To: <cover.1493194142.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
 Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-ACPICA commit 637b88de24a78c20478728d9d66632b06fcaa5bf
+From: Bob Moore <robert.moore@intel.com>
 
-If the IORT template is compiled and then iort.aml binary disassembled to
-iort.dsl, SMMUv1 node lists incorrect offset for SMMU_Nsg_cfg_irpt Interrupt:
-[0ECh 0236   8]       SMMU_Nsg_irpt Interrupt : 0000000000000000
-[0ECh 0236   8]    SMMU_Nsg_cfg_irpt Interrupt : 0000000000000000
-This is because iasl hasn't implemented SMMU GSI decoding yet.
+ACPICA commit 6b58810b9aad7358fbf1a0f4057fefa8d29838d3
 
-This patch fixes this issue by preparing structures for decoding IORT SMMU
-GSI. ACPICA BZ 1340, reported by Alexei Fedorov, fixed by Lv Zheng.
+This change fixes two instances where the repair code made an incorrect
+assumption about how reference counts are assigned to package objects.
+Resolves issues where a warning was issued about a "large reference
+count" -- which usually indicates an attempt to delete an object
+that has previously been poisoned and released into the object cache.
 
-Link: https://github.com/acpica/acpica/commit/637b88de
-Link: https://bugs.acpica.org/show_bug.cgi?id=1340
-Reported-by: Alexei Fedorov <Alexei.Fedorov@arm.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Link: https://github.com/acpica/acpica/commit/6b58810b
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl2.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/acpi/acpica/nsrepair.c  | 16 +++-------------
+ drivers/acpi/acpica/nsrepair2.c |  6 +-----
+ 2 files changed, 4 insertions(+), 18 deletions(-)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 7aee9fb..83666cb 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -783,6 +783,15 @@ struct acpi_iort_smmu {
- #define ACPI_IORT_SMMU_DVM_SUPPORTED    (1)
- #define ACPI_IORT_SMMU_COHERENT_WALK    (1<<1)
+diff --git a/drivers/acpi/acpica/nsrepair.c b/drivers/acpi/acpica/nsrepair.c
+index 3831626..418ef2a 100644
+--- a/drivers/acpi/acpica/nsrepair.c
++++ b/drivers/acpi/acpica/nsrepair.c
+@@ -290,22 +290,12 @@ acpi_ns_simple_repair(struct acpi_evaluate_info *info,
+ 	/* Object was successfully repaired */
  
-+/* Global interrupt format */
+ 	if (package_index != ACPI_NOT_PACKAGE_ELEMENT) {
+-		/*
+-		 * The original object is a package element. We need to
+-		 * decrement the reference count of the original object,
+-		 * for removing it from the package.
+-		 *
+-		 * However, if the original object was just wrapped with a
+-		 * package object as part of the repair, we don't need to
+-		 * change the reference count.
+-		 */
 +
-+struct acpi_iort_smmu_gsi {
-+	u32 nsg_irpt;
-+	u32 nsg_irpt_flags;
-+	u32 nsg_cfg_irpt;
-+	u32 nsg_cfg_irpt_flags;
-+};
++		/* Update reference count of new object */
 +
- struct acpi_iort_smmu_v3 {
- 	u64 base_address;	/* SMMUv3 base address */
- 	u32 flags;
+ 		if (!(info->return_flags & ACPI_OBJECT_WRAPPED)) {
+ 			new_object->common.reference_count =
+ 			    return_object->common.reference_count;
+-
+-			if (return_object->common.reference_count > 1) {
+-				return_object->common.reference_count--;
+-			}
+ 		}
+ 
+ 		ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
+diff --git a/drivers/acpi/acpica/nsrepair2.c b/drivers/acpi/acpica/nsrepair2.c
+index 3522654..06037e0 100644
+--- a/drivers/acpi/acpica/nsrepair2.c
++++ b/drivers/acpi/acpica/nsrepair2.c
+@@ -403,16 +403,12 @@ acpi_ns_repair_CID(struct acpi_evaluate_info *info,
+ 			return (status);
+ 		}
+ 
+-		/* Take care with reference counts */
+-
+ 		if (original_element != *element_ptr) {
+ 
+-			/* Element was replaced */
++			/* Update reference count of new object */
+ 
+ 			(*element_ptr)->common.reference_count =
+ 			    original_ref_count;
+-
+-			acpi_ut_remove_reference(original_element);
+ 		}
+ 
+ 		element_ptr++;
 -- 
 2.7.4
 
