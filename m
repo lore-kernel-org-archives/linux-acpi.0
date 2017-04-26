@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 02/15] ACPICA: Update some function headers, no funtional change
-Date: Wed, 26 Apr 2017 16:17:50 +0800
-Message-ID: <a046aec635802e547a1308a055c39c6d3595ce38.1493194142.git.lv.zheng@intel.com>
+Subject: [PATCH 04/15] ACPICA: Fix several incorrect invocations of ACPICA return macro
+Date: Wed, 26 Apr 2017 16:18:02 +0800
+Message-ID: <9dc9fbff0de68a144bb47997af00558cb3979511.1493194142.git.lv.zheng@intel.com>
 References: <cover.1493194142.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:35194 "EHLO mga03.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:4966 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1950267AbdDZIRy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Apr 2017 04:17:54 -0400
+        id S1952686AbdDZISG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 04:18:06 -0400
 In-Reply-To: <cover.1493194142.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,71 +16,56 @@ Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 57c1b2d3e2f9ff7f465b0f08bfb38294101fe0b3
+ACPICA commit 521bedc49b42e59116de1b54dcd95d30d36cac90
 
-utxferror, update function headers.
+Not needed since there is no function tracing for the
+validation function in hwvalid.c
 
-Link: https://github.com/acpica/acpica/commit/57c1b2d3
+Link: https://github.com/acpica/acpica/commit/521bedc4
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/utxferror.c | 16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ drivers/acpi/acpica/hwvalid.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utxferror.c b/drivers/acpi/acpica/utxferror.c
-index a16bd9e..950a1e5 100644
---- a/drivers/acpi/acpica/utxferror.c
-+++ b/drivers/acpi/acpica/utxferror.c
-@@ -91,7 +91,7 @@ ACPI_EXPORT_SYMBOL(acpi_error)
-  *
-  * PARAMETERS:  module_name         - Caller's module name (for error output)
-  *              line_number         - Caller's line number (for error output)
-- *              status              - Status to be formatted
-+ *              status              - Status value to be decoded/formatted
-  *              format              - Printf format string + additional args
-  *
-  * RETURN:      None
-@@ -132,8 +132,8 @@ ACPI_EXPORT_SYMBOL(acpi_exception)
-  *
-  * FUNCTION:    acpi_warning
-  *
-- * PARAMETERS:  module_name         - Caller's module name (for error output)
-- *              line_number         - Caller's line number (for error output)
-+ * PARAMETERS:  module_name         - Caller's module name (for warning output)
-+ *              line_number         - Caller's line number (for warning output)
-  *              format              - Printf format string + additional args
-  *
-  * RETURN:      None
-@@ -163,17 +163,13 @@ ACPI_EXPORT_SYMBOL(acpi_warning)
-  *
-  * FUNCTION:    acpi_info
-  *
-- * PARAMETERS:  module_name         - Caller's module name (for error output)
-- *              line_number         - Caller's line number (for error output)
-- *              format              - Printf format string + additional args
-+ * PARAMETERS:  format              - Printf format string + additional args
-  *
-  * RETURN:      None
-  *
-  * DESCRIPTION: Print generic "ACPI:" information message. There is no
-  *              module/line/version info in order to keep the message simple.
-  *
-- * TBD: module_name and line_number args are not needed, should be removed.
-- *
-  ******************************************************************************/
- void ACPI_INTERNAL_VAR_XFACE acpi_info(const char *format, ...)
- {
-@@ -229,8 +225,8 @@ ACPI_EXPORT_SYMBOL(acpi_bios_error)
-  *
-  * FUNCTION:    acpi_bios_warning
-  *
-- * PARAMETERS:  module_name         - Caller's module name (for error output)
-- *              line_number         - Caller's line number (for error output)
-+ * PARAMETERS:  module_name         - Caller's module name (for warning output)
-+ *              line_number         - Caller's line number (for warning output)
-  *              format              - Printf format string + additional args
-  *
-  * RETURN:      None
+diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
+index 0b102e0..3094cec 100644
+--- a/drivers/acpi/acpica/hwvalid.c
++++ b/drivers/acpi/acpica/hwvalid.c
+@@ -135,7 +135,7 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
+ 	if ((bit_width != 8) && (bit_width != 16) && (bit_width != 32)) {
+ 		ACPI_ERROR((AE_INFO,
+ 			    "Bad BitWidth parameter: %8.8X", bit_width));
+-		return_ACPI_STATUS(AE_BAD_PARAMETER);
++		return (AE_BAD_PARAMETER);
+ 	}
+ 
+ 	port_info = acpi_protected_ports;
+@@ -153,13 +153,13 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
+ 		ACPI_ERROR((AE_INFO,
+ 			    "Illegal I/O port address/length above 64K: %8.8X%8.8X/0x%X",
+ 			    ACPI_FORMAT_UINT64(address), byte_width));
+-		return_ACPI_STATUS(AE_LIMIT);
++		return (AE_LIMIT);
+ 	}
+ 
+ 	/* Exit if requested address is not within the protected port table */
+ 
+ 	if (address > acpi_protected_ports[ACPI_PORT_INFO_ENTRIES - 1].end) {
+-		return_ACPI_STATUS(AE_OK);
++		return (AE_OK);
+ 	}
+ 
+ 	/* Check request against the list of protected I/O ports */
+@@ -198,7 +198,7 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
+ 		}
+ 	}
+ 
+-	return_ACPI_STATUS(AE_OK);
++	return (AE_OK);
+ }
+ 
+ /******************************************************************************
 -- 
 2.7.4
 
