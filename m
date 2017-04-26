@@ -1,51 +1,136 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH v3] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Wed, 26 Apr 2017 16:38:54 -0400
-Message-ID: <x49zif23nvl.fsf@segfault.boston.devel.redhat.com>
-References: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
-        <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 5/5]  platform: x86: intel-hid: Wake up the system from suspend-to-idle
+Date: Wed, 26 Apr 2017 23:27:06 +0200
+Message-ID: <7255712.4ssjnT3GDQ@aspire.rjw.lan>
+References: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59568 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936718AbdDZUjF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Apr 2017 16:39:05 -0400
-In-Reply-To: <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
-        (Dan Williams's message of "Tue, 25 Apr 2017 13:17:37 -0700")
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49104 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1030579AbdDZVdn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 17:33:43 -0400
+In-Reply-To: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Linux PM <linux-pm@vger.kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>
 
-Dan Williams <dan.j.williams@intel.com> writes:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> The nvdimm_flush() mechanism helps to reduce the impact of an ADR
-> (asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
-> platform WPQ (write-pending-queue) buffers when power is removed. The
-> nvdimm_flush() mechanism performs that same function on-demand.
->
-> When a pmem namespace is associated with a block device, an
-> nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
-> request. These requests are typically associated with filesystem
-> metadata updates. However, when a namespace is in device-dax mode,
-> userspace (think database metadata) needs another path to perform the
-> same flushing. In other words this is not required to make data
-> persistent, but in the case of metadata it allows for a smaller failure
-> domain in the unlikely event of an ADR failure.
->
-> The new 'flush' attribute is visible when the individual DIMMs backing a
-> given interleave-set are described by platform firmware. In ACPI terms
-> this is "NVDIMM Region Mapping Structures" and associated "Flush Hint
-> Address Structures". Reads return "1" if the region supports triggering
-> WPQ flushes on all DIMMs. Reads return "0" the flush operation is a
-> platform nop, and in that case the attribute is read-only.
+Allow the intel-hid driver to wake up the system from suspend-to-idle
+by configuring its platform device as a wakeup one by default and
+switching it over to a system wakeup events triggering mode during
+system suspend transitions.
 
-I can make peace with exposing this to userspace, though I am mostly
-against its use.  However, sysfs feels like the wrong interface.
-Believe it or not, I'd rather see this implemented as an ioctl.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-This isn't a NACK, it's me giving my opinion.  Do with it what you will.
+This depends on https://patchwork.kernel.org/patch/9685529/
 
-Cheers,
-Jeff
+---
+ drivers/platform/x86/intel-hid.c |   49 ++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 43 insertions(+), 6 deletions(-)
+
+Index: linux-pm/drivers/platform/x86/intel-hid.c
+===================================================================
+--- linux-pm.orig/drivers/platform/x86/intel-hid.c
++++ linux-pm/drivers/platform/x86/intel-hid.c
+@@ -23,6 +23,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/input/sparse-keymap.h>
+ #include <linux/acpi.h>
++#include <linux/suspend.h>
+ #include <acpi/acpi_bus.h>
+ 
+ MODULE_LICENSE("GPL");
+@@ -75,6 +76,7 @@ static const struct key_entry intel_arra
+ struct intel_hid_priv {
+ 	struct input_dev *input_dev;
+ 	struct input_dev *array;
++	bool wakeup_mode;
+ };
+ 
+ static int intel_hid_set_enable(struct device *device, int enable)
+@@ -118,23 +120,44 @@ static void intel_button_array_enable(st
+ 		dev_warn(device, "failed to set button capability\n");
+ }
+ 
+-static int intel_hid_pl_suspend_handler(struct device *device)
++static int intel_hid_pm_prepare(struct device *dev)
+ {
+-	intel_hid_set_enable(device, 0);
+-	intel_button_array_enable(device, false);
++	struct platform_device *device = to_platform_device(dev);
++	struct intel_hid_priv *priv = dev_get_drvdata(&device->dev);
+ 
++	priv->wakeup_mode = true;
+ 	return 0;
+ }
+ 
+-static int intel_hid_pl_resume_handler(struct device *device)
++static void intel_hid_pm_complete(struct device *dev)
++{
++	struct platform_device *device = to_platform_device(dev);
++	struct intel_hid_priv *priv = dev_get_drvdata(&device->dev);
++
++	priv->wakeup_mode = false;
++}
++
++static int intel_hid_pl_suspend_handler(struct device *device)
+ {
+-	intel_hid_set_enable(device, 1);
+-	intel_button_array_enable(device, true);
++	if (pm_suspend_via_firmware()) {
++		intel_hid_set_enable(device, 0);
++		intel_button_array_enable(device, false);
++	}
++	return 0;
++}
+ 
++static int intel_hid_pl_resume_handler(struct device *device)
++{
++	if (pm_resume_via_firmware()) {
++		intel_hid_set_enable(device, 1);
++		intel_button_array_enable(device, true);
++	}
+ 	return 0;
+ }
+ 
+ static const struct dev_pm_ops intel_hid_pl_pm_ops = {
++	.prepare = intel_hid_pm_prepare,
++	.complete = intel_hid_pm_complete,
+ 	.freeze  = intel_hid_pl_suspend_handler,
+ 	.thaw  = intel_hid_pl_resume_handler,
+ 	.restore  = intel_hid_pl_resume_handler,
+@@ -206,6 +229,19 @@ static void notify_handler(acpi_handle h
+ 	unsigned long long ev_index;
+ 	acpi_status status;
+ 
++	if (priv->wakeup_mode) {
++		/* Wake up on 5-button array events only. */
++		if (event == 0xc0 || !priv->array)
++			return;
++
++		if (sparse_keymap_entry_from_scancode(priv->array, event))
++			pm_wakeup_hard_event(&device->dev);
++		else
++			dev_info(&device->dev, "unknown event 0x%x\n", event);
++
++		return;
++	}
++
+ 	/* 0xC0 is for HID events, other values are for 5 button array */
+ 	if (event != 0xc0) {
+ 		if (!priv->array ||
+@@ -292,6 +328,7 @@ static int intel_hid_probe(struct platfo
+ 				 "failed to enable HID power button\n");
+ 	}
+ 
++	device_init_wakeup(&device->dev, true);
+ 	return 0;
+ 
+ err_remove_notify:
+
