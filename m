@@ -1,40 +1,64 @@
-From: tnhuynh@apm.com
-Subject: [PATCH V1] i2c: xgene: Set ACPI_COMPANION_I2C
-Date: Wed, 26 Apr 2017 16:48:51 +0700
-Message-ID: <1493200131-30171-1-git-send-email-tnhuynh@apm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [RFC/RFT PATCH 1/3] PCI: Introduce pci_bus_find_numa_node()
+Date: Wed, 26 Apr 2017 11:06:17 +0100
+Message-ID: <20170426100619.31758-1-lorenzo.pieralisi@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f46.google.com ([74.125.83.46]:36521 "EHLO
-        mail-pg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2997907AbdDZJtK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 05:49:10 -0400
-Received: by mail-pg0-f46.google.com with SMTP id t7so2794515pgt.3
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Apr 2017 02:49:10 -0700 (PDT)
+Received: from foss.arm.com ([217.140.101.70]:52648 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1034752AbdDZKFf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 06:05:35 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Loc Ho <lho@apm.com>, Phong Vo <pvo@apm.com>, Thang Nguyen <tqnguyen@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
+To: linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>
 
-From: Tin Huynh <tnhuynh@apm.com>
+Create an empty stub, to be populated by firmware methods, to
+retrieve the NUMA node for a given pci_bus. No functional change
+introduced.
 
-With ACPI, i2c-core requires ACPI companion to be set in order for it
-to create slave device.
-This patch sets the ACPI companion accordingly.
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/i2c/busses/i2c-xgene-slimpro.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/pci/pci.c   | 6 ++++++
+ include/linux/pci.h | 1 +
+ 2 files changed, 7 insertions(+)
 
-diff --git a/drivers/i2c/busses/i2c-xgene-slimpro.c b/drivers/i2c/busses/i2c-xgene-slimpro.c
-index dbe7e44..6ba6c83 100644
---- a/drivers/i2c/busses/i2c-xgene-slimpro.c
-+++ b/drivers/i2c/busses/i2c-xgene-slimpro.c
-@@ -416,6 +416,7 @@ static int xgene_slimpro_i2c_probe(struct platform_device *pdev)
- 	adapter->class = I2C_CLASS_HWMON;
- 	adapter->dev.parent = &pdev->dev;
- 	adapter->dev.of_node = pdev->dev.of_node;
-+	ACPI_COMPANION_SET(&adapter->dev, ACPI_COMPANION(&pdev->dev));
- 	i2c_set_adapdata(adapter, ctx);
- 	rc = i2c_add_adapter(adapter);
- 	if (rc) {
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 7904d02..2de9162 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -12,6 +12,7 @@
+ #include <linux/delay.h>
+ #include <linux/dmi.h>
+ #include <linux/init.h>
++#include <linux/numa.h>
+ #include <linux/of.h>
+ #include <linux/of_pci.h>
+ #include <linux/pci.h>
+@@ -5235,6 +5236,11 @@ int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent)
+ #endif
+ #endif
+ 
++int pci_bus_find_numa_node(struct pci_bus *bus)
++{
++	return NUMA_NO_NODE;
++}
++
+ /**
+  * pci_ext_cfg_avail - can we access extended PCI config space?
+  *
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index eb3da1a..9e62462 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1481,6 +1481,7 @@ static inline int acpi_pci_bus_find_domain_nr(struct pci_bus *bus)
+ #endif
+ int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent);
+ #endif
++int pci_bus_find_numa_node(struct pci_bus *bus);
+ 
+ /* some architectures require additional setup to direct VGA traffic */
+ typedef int (*arch_set_vga_state_t)(struct pci_dev *pdev, bool decode,
 -- 
-1.7.1
+2.10.0
 
