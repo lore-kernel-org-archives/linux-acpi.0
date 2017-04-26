@@ -1,97 +1,63 @@
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 1/2] x86/MCE: Export memory_error()
-Date: Tue, 25 Apr 2017 15:07:41 -0600
-Message-ID: <20170425210740.GA15722@omniknight.lm.intel.com>
-References: <20170420221818.23522-1-vishal.l.verma@intel.com>
- <CAPcyv4ijU2V-4WOPysL12ByOovAXDO=Mci1D4wNDFqxRjdvT2w@mail.gmail.com>
- <1492804517.2738.25.camel@intel.com>
- <3908561D78D1C84285E8C5FCA982C28F6127653B@ORSMSX114.amr.corp.intel.com>
- <CAPcyv4jAkCE2QBuxfxxmZfQZLCVOGLrLXqDu5TyGCVA+xJMEVg@mail.gmail.com>
- <20170421202741.GA16423@intel.com>
- <20170421210704.c5pvpn6zivvruzx3@pd.tnic>
- <20170424113620.6iq2466yhkhb33rp@pd.tnic>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] acpi: fix acpi_get_table() leak / acpi-sysfs denial of
+ service
+Date: Wed, 26 Apr 2017 01:37:52 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE98A4C@SHSMSX101.ccr.corp.intel.com>
+References: <149314916034.8899.7439820192725219189.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:11646 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1951021AbdDYVJD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Apr 2017 17:09:03 -0400
-Content-Disposition: inline
-In-Reply-To: <20170424113620.6iq2466yhkhb33rp@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <149314916034.8899.7439820192725219189.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+Cc: "Seetharaman, Anush" <anush.seetharaman@intel.com>, "Kasanicky, Tiffany J" <tiffany.j.kasanicky@intel.com>, "Jensen, Ryon" <ryon.jensen@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Jacque, Kristin" <kristin.jacque@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>, Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 04/24, Borislav Petkov wrote:
-> From: Borislav Petkov <bp@suse.de>
-> Date: Mon, 24 Apr 2017 13:16:50 +0200
-> Subject: [PATCH 1/2] x86/MCE: Export memory_error()
-> 
-> Export the function which checks whether an MCE is a memory error to
-> other users so that we can reuse the logic. Drop the boot_cpu_data use,
-> while at it, as mce.cpuvendor already has the CPU vendor in there.
-> 
-> Signed-off-by: Borislav Petkov <bp@suse.de>
-> ---
->  arch/x86/include/asm/mce.h       |  1 +
->  arch/x86/kernel/cpu/mcheck/mce.c | 12 +++++-------
->  2 files changed, 6 insertions(+), 7 deletions(-)
-> 
-Here is the updated patch to use the above helper:
-
-8<-----
-
-
->From 9661a85799c9067d762ecf29630f2b7f69897628 Mon Sep 17 00:00:00 2001
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Tue, 25 Apr 2017 15:00:58 -0600
-Subject: [PATCH v2] acpi, nfit: fix the memory error check in nfit_handle_mce
-
-The check for an MCE being a memory error in the NFIT mce handler was
-bogus. Export the new mce_is_memory_error helper, and use that tp
-perform the correct check in the handler.
-
-Reported-by: Tony Luck <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- arch/x86/kernel/cpu/mcheck/mce.c | 1 +
- drivers/acpi/nfit/mce.c          | 2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
-
-This applies on tip/master + Borislav's patches in this thread above.
-I'm not sure what the right process for queueing this for both
-upstream and -stable is, so just replying here. Should I post it
-independently?
-
-diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
-index 361865ca..5cfbaeb 100644
---- a/arch/x86/kernel/cpu/mcheck/mce.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -527,6 +527,7 @@ bool mce_is_memory_error(struct mce *m)
- 
- 	return false;
- }
-+EXPORT_SYMBOL_GPL(mce_is_memory_error);
- 
- static bool cec_add_mce(struct mce *m)
- {
-diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
-index 3ba1c34..fd86bec 100644
---- a/drivers/acpi/nfit/mce.c
-+++ b/drivers/acpi/nfit/mce.c
-@@ -26,7 +26,7 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
- 	struct nfit_spa *nfit_spa;
- 
- 	/* We only care about memory errors */
--	if (!(mce->status & MCACOD))
-+	if (!mce_is_memory_error(mce))
- 		return NOTIFY_DONE;
- 
- 	/*
--- 
-2.9.3
-
+SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
+aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIERhbg0KPiBXaWxs
+aWFtcw0KPiBTdWJqZWN0OiBbUEFUQ0hdIGFjcGk6IGZpeCBhY3BpX2dldF90YWJsZSgpIGxlYWsg
+LyBhY3BpLXN5c2ZzIGRlbmlhbCBvZiBzZXJ2aWNlDQo+IA0KPiBSZWFkaW5nIGFuIEFDUEkgdGFi
+bGUgdGhyb3VnaCB0aGUgL3N5cy9maXJtd2FyZS9hY3BpL3RhYmxlcyBpbnRlcmZhY2UNCj4gbW9y
+ZSB0aGFuIDY1LDUzNiB0aW1lcyBsZWFkcyB0byB0aGUgZm9sbG93aW5nIGxvZyBtZXNzYWdlOg0K
+PiANCj4gIEFDUEkgRXJyb3I6IFRhYmxlIGZmZmY4ODAzMzU5NWVhYTgsIFZhbGlkYXRpb24gY291
+bnQgaXMgemVybyBhZnRlciBpbmNyZW1lbnQNCj4gICAoMjAxNzAxMTkvdGJ1dGlscy00MjMpDQo+
+IA0KPiAuLi5hbmQgdGhlIHRhYmxlIGJlaW5nIHVuYXZhaWxhYmxlIHVudGlsIHRoZSBuZXh0IHJl
+Ym9vdC4gQWRkIHRoZQ0KPiBtaXNzaW5nIGFjcGlfcHV0X3RhYmxlKCkgc28gdGhlIHRhYmxlIC0+
+dmFsaWRhdGlvbl9jb3VudCBpcyBkZWNyZW1lbnRlZA0KPiBhZnRlciBlYWNoIHJlYWQuDQoNCkZv
+ciBub3csIHNob3VsZCBqdXN0IHJldHVybiBBRV9PSyBpbnN0ZWFkIG9mIEFFX0xJTUlUIGluIGFj
+cGlfdGJfZ2V0X3RhYmxlKCkuDQpPdGhlcndpc2UgdGhpcyBmaXggd2lsbCBub3QgYmUgc3VmZmlj
+aWVudCB0byBmaXggYWxsIHBvc3NpYmxlIHByb2JsZW0NClVubGVzcyB3ZSBjYW4gYWRkIGFjcGlf
+cHV0X3RhYmxlKCkgZm9yIGFsbCBhY3BpX2dldF90YWJsZSgpIGludm9jYXRpb24uDQpMZXQgbWUg
+c2VuZCBhIHBhdGNoIGZvciB5b3UgdG8gdHJ5Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0K
+THYNCg0KPiANCj4gQ2M6IDxzdGFibGVAdmdlci5rZXJuZWwub3JnPg0KPiBDYzogWmhhbmcgUnVp
+IDxydWkuemhhbmdAaW50ZWwuY29tPg0KPiBDYzogUmFmYWVsIFd5c29ja2kgPHJhZmFlbC5qLnd5
+c29ja2lAaW50ZWwuY29tPg0KPiBDYzogS3Jpc3RpbiBKYWNxdWUgPGtyaXN0aW4uamFjcXVlQGlu
+dGVsLmNvbT4NCj4gQ2M6IFRpZmZhbnkgS2FzYW5pY2t5IDx0aWZmYW55Lmoua2FzYW5pY2t5QGlu
+dGVsLmNvbT4NCj4gQ2M6IFJ5b24gSmVuc2VuIDxyeW9uLmplbnNlbkBpbnRlbC5jb20+DQo+IFJl
+cG9ydGVkLWJ5OiBBbnVzaCBTZWV0aGFyYW1hbiA8YW51c2guc2VldGhhcmFtYW5AaW50ZWwuY29t
+Pg0KPiBGaXhlczogMWM4ZmNlMjdlMjc1ICgiQUNQSTogaW50cm9kdWNlIGRyaXZlcnMvYWNwaS9z
+eXNmcy5jIikNCj4gU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0Bp
+bnRlbC5jb20+DQo+IC0tLQ0KPiAgZHJpdmVycy9hY3BpL3N5c2ZzLmMgfCAgICA3ICsrKysrLS0N
+Cj4gIDEgZmlsZSBjaGFuZ2VkLCA1IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+IA0K
+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3N5c2ZzLmMgYi9kcml2ZXJzL2FjcGkvc3lzZnMu
+Yw0KPiBpbmRleCBjZjA1YWU5NzMzODEuLjUzMWRkYWJmMDM5MCAxMDA2NDQNCj4gLS0tIGEvZHJp
+dmVycy9hY3BpL3N5c2ZzLmMNCj4gKysrIGIvZHJpdmVycy9hY3BpL3N5c2ZzLmMNCj4gQEAgLTMz
+MywxNCArMzMzLDE3IEBAIHN0YXRpYyBzc2l6ZV90IGFjcGlfdGFibGVfc2hvdyhzdHJ1Y3QgZmls
+ZSAqZmlscCwgc3RydWN0IGtvYmplY3QgKmtvYmosDQo+ICAJICAgIGNvbnRhaW5lcl9vZihiaW5f
+YXR0ciwgc3RydWN0IGFjcGlfdGFibGVfYXR0ciwgYXR0cik7DQo+ICAJc3RydWN0IGFjcGlfdGFi
+bGVfaGVhZGVyICp0YWJsZV9oZWFkZXIgPSBOVUxMOw0KPiAgCWFjcGlfc3RhdHVzIHN0YXR1czsN
+Cj4gKwlzc2l6ZV90IHJjOw0KPiANCj4gIAlzdGF0dXMgPSBhY3BpX2dldF90YWJsZSh0YWJsZV9h
+dHRyLT5uYW1lLCB0YWJsZV9hdHRyLT5pbnN0YW5jZSwNCj4gIAkJCQkmdGFibGVfaGVhZGVyKTsN
+Cj4gIAlpZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykpDQo+ICAJCXJldHVybiAtRU5PREVWOw0KPiAN
+Cj4gLQlyZXR1cm4gbWVtb3J5X3JlYWRfZnJvbV9idWZmZXIoYnVmLCBjb3VudCwgJm9mZnNldCwN
+Cj4gLQkJCQkgICAgICAgdGFibGVfaGVhZGVyLCB0YWJsZV9oZWFkZXItPmxlbmd0aCk7DQo+ICsJ
+cmMgPSBtZW1vcnlfcmVhZF9mcm9tX2J1ZmZlcihidWYsIGNvdW50LCAmb2Zmc2V0LCB0YWJsZV9o
+ZWFkZXIsDQo+ICsJCQl0YWJsZV9oZWFkZXItPmxlbmd0aCk7DQo+ICsJYWNwaV9wdXRfdGFibGUo
+dGFibGUpOw0KPiArCXJldHVybiByYzsNCj4gIH0NCj4gDQo+ICBzdGF0aWMgaW50IGFjcGlfdGFi
+bGVfYXR0cl9pbml0KHN0cnVjdCBrb2JqZWN0ICp0YWJsZXNfb2JqLA0KPiANCj4gLS0NCj4gVG8g
+dW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxp
+bnV4LWFjcGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5r
+ZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5v
+cmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
