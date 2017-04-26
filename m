@@ -1,44 +1,42 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH] ACPICA: Tables: Fix regression introduced by a too early mechanism enabling
-Date: Wed, 26 Apr 2017 09:49:53 +0800
-Message-ID: <1493171393-1825-1-git-send-email-lv.zheng@intel.com>
+From: tnhuynh@apm.com
+Subject: [PATCH V1] i2c: xgene: Add support for I2C_FUNC_I2C functionality
+Date: Wed, 26 Apr 2017 11:41:45 +0700
+Message-ID: <1493181705-18531-1-git-send-email-tnhuynh@apm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:2909 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1434481AbdDZBt7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Apr 2017 21:49:59 -0400
+Received: from mail-pf0-f175.google.com ([209.85.192.175]:36531 "EHLO
+        mail-pf0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1953219AbdDZEmX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 00:42:23 -0400
+Received: by mail-pf0-f175.google.com with SMTP id 194so36155685pfv.3
+        for <linux-acpi@vger.kernel.org>; Tue, 25 Apr 2017 21:42:22 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>
+To: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Loc Ho <lho@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
 
-In the Linux kernel side, acpi_get_table() hasn't been fully balanced by
-acpi_put_table() invocations. So it is not a good timing to report errors.
-The strict balanced validation count check should only be enabled after
-confirming that all kernel side invocations are safe.
+From: Tin Huynh <tnhuynh@apm.com>
 
-Thus this patch removes the fatal error but leaves the error report to
-indicate the leak so that developers can notice the required engineering
-change. Reported by Dan Williams, fixed by Lv Zheng.
-
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Certain I2C slave drivers, such as the pca95xx, require
+only I2C operations instead of SMBus extensions.
+This patch adds I2C_FUNC_I2C functionally to support those drivers.
 ---
- drivers/acpi/acpica/tbutils.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/i2c/busses/i2c-xgene-slimpro.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 5a968a7..9e7d95cf 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -422,7 +422,6 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
- 			    "Table %p, Validation count is zero after increment\n",
- 			    table_desc));
- 		table_desc->validation_count--;
--		return_ACPI_STATUS(AE_LIMIT);
- 	}
- 
- 	*out_table = table_desc->pointer;
+diff --git a/drivers/i2c/busses/i2c-xgene-slimpro.c b/drivers/i2c/busses/i2c-xgene-slimpro.c
+index dbe7e44..439357c 100644
+--- a/drivers/i2c/busses/i2c-xgene-slimpro.c
++++ b/drivers/i2c/busses/i2c-xgene-slimpro.c
+@@ -365,7 +365,8 @@ static int xgene_slimpro_i2c_xfer(struct i2c_adapter *adap, u16 addr,
+ */
+ static u32 xgene_slimpro_i2c_func(struct i2c_adapter *adapter)
+ {
+-	return I2C_FUNC_SMBUS_BYTE |
++	return I2C_FUNC_I2C |
++		I2C_FUNC_SMBUS_BYTE |
+ 		I2C_FUNC_SMBUS_BYTE_DATA |
+ 		I2C_FUNC_SMBUS_WORD_DATA |
+ 		I2C_FUNC_SMBUS_BLOCK_DATA |
 -- 
-2.7.4
+1.7.1
 
