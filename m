@@ -1,55 +1,73 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [RFC PATCH] ACPICA: Tables: Fix regression introduced by a too
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH] ACPICA: Tables: Fix regression introduced by a too
  early mechanism enabling
-Date: Tue, 25 Apr 2017 22:00:57 -0700
-Message-ID: <CAPcyv4gtYzkeUL-Ou8bap5Sye=1Tq2PmuhZM04nFPwdjmCwCgg@mail.gmail.com>
+Date: Wed, 26 Apr 2017 05:15:07 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE98BCA@SHSMSX101.ccr.corp.intel.com>
 References: <1493171393-1825-1-git-send-email-lv.zheng@intel.com>
+ <CAPcyv4gtYzkeUL-Ou8bap5Sye=1Tq2PmuhZM04nFPwdjmCwCgg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:34904 "EHLO
-        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1177341AbdDZFA6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Apr 2017 01:00:58 -0400
-Received: by mail-oi0-f54.google.com with SMTP id j201so196235714oih.2
-        for <linux-acpi@vger.kernel.org>; Tue, 25 Apr 2017 22:00:58 -0700 (PDT)
-In-Reply-To: <1493171393-1825-1-git-send-email-lv.zheng@intel.com>
+Received: from mga07.intel.com ([134.134.136.100]:48405 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1035412AbdDZFPN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 01:15:13 -0400
+In-Reply-To: <CAPcyv4gtYzkeUL-Ou8bap5Sye=1Tq2PmuhZM04nFPwdjmCwCgg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Tue, Apr 25, 2017 at 6:49 PM, Lv Zheng <lv.zheng@intel.com> wrote:
-> In the Linux kernel side, acpi_get_table() hasn't been fully balanced by
-> acpi_put_table() invocations. So it is not a good timing to report errors.
-> The strict balanced validation count check should only be enabled after
-> confirming that all kernel side invocations are safe.
-
-We've been living with this bug for 7 years, let's just go fix all
-acpi_get_table() invocations to make sure they have a corresponding
-acpi_put_table().
-
->
-> Thus this patch removes the fatal error but leaves the error report to
-> indicate the leak so that developers can notice the required engineering
-> change. Reported by Dan Williams, fixed by Lv Zheng.
->
-> Reported-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->  drivers/acpi/acpica/tbutils.c | 1 -
->  1 file changed, 1 deletion(-)
->
-> diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-> index 5a968a7..9e7d95cf 100644
-> --- a/drivers/acpi/acpica/tbutils.c
-> +++ b/drivers/acpi/acpica/tbutils.c
-> @@ -422,7 +422,6 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
->                             "Table %p, Validation count is zero after increment\n",
->                             table_desc));
->                 table_desc->validation_count--;
-> -               return_ACPI_STATUS(AE_LIMIT);
-
-If you want to leave the error report turn it into a WARN_ON_ONCE() so
-it doesn't keep triggering, but I'd rather we just focus on the
-missing acpi_put_table() calls.
+SGksDQoNCj4gRnJvbTogRGFuIFdpbGxpYW1zIFttYWlsdG86ZGFuLmoud2lsbGlhbXNAaW50ZWwu
+Y29tXQ0KPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSF0gQUNQSUNBOiBUYWJsZXM6IEZpeCByZWdy
+ZXNzaW9uIGludHJvZHVjZWQgYnkgYSB0b28gZWFybHkgbWVjaGFuaXNtIGVuYWJsaW5nDQo+IA0K
+PiBPbiBUdWUsIEFwciAyNSwgMjAxNyBhdCA2OjQ5IFBNLCBMdiBaaGVuZyA8bHYuemhlbmdAaW50
+ZWwuY29tPiB3cm90ZToNCj4gPiBJbiB0aGUgTGludXgga2VybmVsIHNpZGUsIGFjcGlfZ2V0X3Rh
+YmxlKCkgaGFzbid0IGJlZW4gZnVsbHkgYmFsYW5jZWQgYnkNCj4gPiBhY3BpX3B1dF90YWJsZSgp
+IGludm9jYXRpb25zLiBTbyBpdCBpcyBub3QgYSBnb29kIHRpbWluZyB0byByZXBvcnQgZXJyb3Jz
+Lg0KPiA+IFRoZSBzdHJpY3QgYmFsYW5jZWQgdmFsaWRhdGlvbiBjb3VudCBjaGVjayBzaG91bGQg
+b25seSBiZSBlbmFibGVkIGFmdGVyDQo+ID4gY29uZmlybWluZyB0aGF0IGFsbCBrZXJuZWwgc2lk
+ZSBpbnZvY2F0aW9ucyBhcmUgc2FmZS4NCj4gDQo+IFdlJ3ZlIGJlZW4gbGl2aW5nIHdpdGggdGhp
+cyBidWcgZm9yIDcgeWVhcnMsIGxldCdzIGp1c3QgZ28gZml4IGFsbA0KPiBhY3BpX2dldF90YWJs
+ZSgpIGludm9jYXRpb25zIHRvIG1ha2Ugc3VyZSB0aGV5IGhhdmUgYSBjb3JyZXNwb25kaW5nDQo+
+IGFjcGlfcHV0X3RhYmxlKCkuDQoNCldlIGtuZXcgdGhhdCwgeW91IHNob3VsZCBoYXZlIGFscmVh
+ZHkgc2VlbiBhIHNlcmllcyBpbnRlcm5hbGx5IG9yDQpleHRlcm5hbGx5IGZyb20gbWUgYWNoaWV2
+aW5nIHRoaXMuDQpJdCdzIGRvbmUgc2V2ZXJhbCB5ZWFycyBhZ28uIEJ1dCBpdCB0YWtlcyBsb25n
+IHRpbWUgdG8gbWFrZSB0aGUNCkFDUElDQSBwYXJ0IHVwc3RyZWFtZWQuDQoNCk5vdyBteSBwbGFu
+IGlzOg0KMS4gaW50cm9kdWNlIHRoZSBBUElzIGJ1dCBhbGxvdyBvbGQgdXNhZ2UgbW9kZWxzIGlu
+IG9yZGVyIG5vdCB0bw0KICAgY2hhbmdlIG9sZCBBQ1BJQ0EgYmVoYXZpb3IgYW5kIGl0cyB1c2Vy
+cy4NCjIuIGZpeCBhbGwgdXNlcnMNCjMuIGRpc2FsbG93IG9sZCB1c2FnZSBtb2RlbHMuDQpJdCdz
+IGp1c3QgbXkgbWlzdGFrZSB0byBsZWFrIHRoZSBmaW5hbCBzdGFnZSBhcHByb2FjaCB0byB0aGUg
+QUNQSUNBDQp1cHN0cmVhbSBmcm9tIG15IGxvY2FsIHJlcG8uDQpOb3cgd2UgY2FuIHRyeSB0byBq
+dW1wIHRvIHRoZSBmaW5hbCBzdGVwLCBidXQgYXMgZmFyIGFzIEkga25vdywNCm5vdCBvbmx5IExp
+bnV4LCBBQ1BJQ0EgaXRzZWxmIGFsc28gY29udGFpbnMgc2V2ZXJhbCBicm9rZW4gY2FzZXMuDQoN
+CkJvdHRvbSBsaW5lIG9mIExpbnV4IGtlcm5lbCBpcyB3ZSBzaG91bGRuJ3QgYnJlYWsgYW55IHJ1
+bm5pbmcgc3lzdGVtLg0KU28gSU1PLCB3ZSB3aWxsIG5lZWQgdGhpcyBjb21taXQgZHVyaW5nIHRo
+aXMgc3BlY2lhbCBwZXJpb2QuDQoNCkkgZGlkbid0IHNheSB0aGUgZmluYWwgc3RlcCBpcyB3cm9u
+ZyBvciBpcyBub3QgcmVxdWlyZWQuDQpXZSBjYW4gZG8gYm90aCBpbiBwYXJhbGxlbC4NCg0KU28g
+Y291bGQgeW91IHBsZWFzZSBoZWxwIHRvIGNvbmZpcm0gaWYgaXQncyB3b3JraW5nLg0KQW5kIEkg
+d291bGQgbGlrZSB0byBzdWdnZXN0IGxpbnV4IHRvIHRha2UgdGhpcyBmaXJzdCBzdGVwIGZpeCBh
+bG9uZw0Kd2l0aCBvdGhlciBmaW5hbCBzdGVwIGZpeGVzIGR1cmluZyB0aGlzIHBlcmlvZC4NCg0K
+VGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2DQoNCj4gDQo+ID4NCj4gPiBUaHVzIHRoaXMgcGF0
+Y2ggcmVtb3ZlcyB0aGUgZmF0YWwgZXJyb3IgYnV0IGxlYXZlcyB0aGUgZXJyb3IgcmVwb3J0IHRv
+DQo+ID4gaW5kaWNhdGUgdGhlIGxlYWsgc28gdGhhdCBkZXZlbG9wZXJzIGNhbiBub3RpY2UgdGhl
+IHJlcXVpcmVkIGVuZ2luZWVyaW5nDQo+ID4gY2hhbmdlLiBSZXBvcnRlZCBieSBEYW4gV2lsbGlh
+bXMsIGZpeGVkIGJ5IEx2IFpoZW5nLg0KPiA+DQo+ID4gUmVwb3J0ZWQtYnk6IERhbiBXaWxsaWFt
+cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5n
+IDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2Ev
+dGJ1dGlscy5jIHwgMSAtDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxIGRlbGV0aW9uKC0pDQo+ID4N
+Cj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS90YnV0aWxzLmMgYi9kcml2ZXJz
+L2FjcGkvYWNwaWNhL3RidXRpbHMuYw0KPiA+IGluZGV4IDVhOTY4YTcuLjllN2Q5NWNmIDEwMDY0
+NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvdGJ1dGlscy5jDQo+ID4gKysrIGIvZHJp
+dmVycy9hY3BpL2FjcGljYS90YnV0aWxzLmMNCj4gPiBAQCAtNDIyLDcgKzQyMiw2IEBAIGFjcGlf
+dGJfZ2V0X3RhYmxlKHN0cnVjdCBhY3BpX3RhYmxlX2Rlc2MgKnRhYmxlX2Rlc2MsDQo+ID4gICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICJUYWJsZSAlcCwgVmFsaWRhdGlvbiBjb3VudCBpcyB6
+ZXJvIGFmdGVyIGluY3JlbWVudFxuIiwNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+dGFibGVfZGVzYykpOw0KPiA+ICAgICAgICAgICAgICAgICB0YWJsZV9kZXNjLT52YWxpZGF0aW9u
+X2NvdW50LS07DQo+ID4gLSAgICAgICAgICAgICAgIHJldHVybl9BQ1BJX1NUQVRVUyhBRV9MSU1J
+VCk7DQo+IA0KPiBJZiB5b3Ugd2FudCB0byBsZWF2ZSB0aGUgZXJyb3IgcmVwb3J0IHR1cm4gaXQg
+aW50byBhIFdBUk5fT05fT05DRSgpIHNvDQo+IGl0IGRvZXNuJ3Qga2VlcCB0cmlnZ2VyaW5nLCBi
+dXQgSSdkIHJhdGhlciB3ZSBqdXN0IGZvY3VzIG9uIHRoZQ0KPiBtaXNzaW5nIGFjcGlfcHV0X3Rh
+YmxlKCkgY2FsbHMuDQo=
