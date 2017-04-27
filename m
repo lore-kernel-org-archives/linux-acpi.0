@@ -1,68 +1,89 @@
-From: <geir.nuland@lyse.net>
-Subject: 32361 linux-acpi
-Date: Thu, 27 Apr 2017 20:37:43 -0000
-Message-ID: <149332546347.22260.2615945028207337650@u16563822.onlinehome-server.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [RFC] ACPI / Processor: add sysfs support for low power idle
+Date: Thu, 27 Apr 2017 15:04:51 -0600
+Message-ID: <717bfc22-4e6e-c9de-343f-aa40dd8ef408@codeaurora.org>
+References: <1490832795-27441-1-git-send-email-pprakash@codeaurora.org>
+ <2e633ef7-5155-7eb7-0f1b-8bc36bd25da7@arm.com>
+ <37544927-1f7d-ab59-63d5-32ac1d777bb6@codeaurora.org>
+ <a6544dab-4ae4-22d6-4fe5-08f7919072ca@arm.com>
+ <c9ab5b6c-ad86-1a03-2d1f-c8526e8684b1@codeaurora.org>
+ <0ac023c3-4bda-ba33-4634-6108e0631962@arm.com>
+ <e92d05d4-c9a1-f94b-854b-bb57bb479234@codeaurora.org>
+ <6e02cc0d-52a8-05f9-7227-7a9e6018621b@arm.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="61568666738.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ip172.pool2.gold.clients.juba.rcswimax.com ([41.79.25.172]:55320
-        "HELO u16563822.onlinehome-server.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with SMTP id S968485AbdD0Uhv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 27 Apr 2017 16:37:51 -0400
-Content-Disposition: attachment
+Received: from smtp.codeaurora.org ([198.145.29.96]:35746 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966071AbdD0VEy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Apr 2017 17:04:54 -0400
+In-Reply-To: <6e02cc0d-52a8-05f9-7227-7a9e6018621b@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, al.stone@linaro.org, linux-acpi@vger.kernel.org
 
-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
-AAAAgQoAAAAA
+
+On 4/27/2017 3:16 AM, Sudeep Holla wrote:
+>
+> On 27/04/17 00:21, Prakash, Prashanth wrote:
+>> Hi Sudeep,
+>>
+>> On 4/25/2017 4:28 AM, Sudeep Holla wrote:
+>>>> With hierarchy, it is possible to get information about relationship between cpus
+>>>> and  higher order shared resources. If we flatten the hierarchy we lose information
+>>>> about relationships and it gets a little hard to clearly represent the idle states of
+>>>> shared resources and which cpus share those resources.
+>>>>
+>>> No, what I meant is to have complete information broken down to the
+>>> lowest possible level, but just one file access to get that information.
+>>>
+>>> IIUC, you had some format already for summary_stat file, just extend
+>>> to get all the information you would get reading individual sysfs files
+>>> organized hierarchically. I don't think that should matter much as you
+>>> would have all these information, just the representation differs. I am
+>>> assuming all this data is not used/interpreted on the fly, but mostly
+>>> used offline for analysis. Otherwise it's already misuse and we don't
+>>> want to expose such user ABI IMO.
+>>>
+>>> Just to summarize, though I agree this LPI stats are more accurate and
+>>> more representative summary, I think it may fade away as we move towards
+>>> hardware controlled lower power states. Since we already have cpuidle
+>>> stats, I prefer to keep this LPI stats interface to userspace as simple
+>>> and minimal as possible and yet helpful to get all the information.
+>> Sounds good. I will remove summary_stats and make other changes based on
+>> feedback and post next rev.
+> I am sorry if I was not clear earlier, I was infact asking you what if
+> we just have single summary_stat file with all statistics broken down to
+> minuet details you want instead of creating the hierarchy of individual
+> files which you say has overhead to read.
+>
+> Do you process the stats on the fly when workload is running, I assume not.
+I don't see any use-cases for on the fly analysis. The most we might want to
+do it capture this data periodically and then post-process it to see how different
+phases of a workload did. The overhead of reading multiple files comes down what
+could be the duration between reads to this sysfs without drastically impacting the
+workload - so it is probably not such a big issue.
+
+While it is possible to simplify by having all the data aggregated into a single
+file at each level in the hierarchy, we end up trading some inefficiencies:
+- We are reducing the number of file access but increasing the amount of
+data read (which user-space may or may not be interested in), including
+re-reading the constant fields(desc, latency etc..) every time.
+- Adding all info on the same file increases the probability we might break
+userspace parsing of this single file when we want add a new piece of
+information. While this was possible earlier, the probability was little
+lower as it was restricted to only time and usage.
+- Another reason to avoid collapsing all the fields to single file is to keep
+it consistent with cpudile interface
+
+I was thinking about some of the above issues and when you mentioned
+simple and minimal, I interpreted it as lets keep the interface simple by
+removing summary_stats and few other fields we discussed. Sorry, my bad.
+
+--
+Thanks,
+Prashanth
+
