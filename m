@@ -1,50 +1,72 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 2/2] ACPI / PMIC: xpower: Add support for the GPI1 regulator to the OpRegion handler
-Date: Fri, 28 Apr 2017 00:28:12 +0200
-Message-ID: <5402074.iyQs1h8kyq@aspire.rjw.lan>
-References: <20170421114809.17468-1-hdegoede@redhat.com> <2873076.4YlPq2sVU6@aspire.rjw.lan> <1493285746.24567.224.camel@linux.intel.com>
+Subject: Re: [PATCH v2 1/2] ACPICA: Tables: Fix regression introduced by a too early mechanism enabling
+Date: Fri, 28 Apr 2017 00:30:38 +0200
+Message-ID: <1841048.oWuTkq5WIo@aspire.rjw.lan>
+References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57469 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:43471 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756416AbdD0We1 (ORCPT
+        by vger.kernel.org with ESMTP id S1162393AbdD0Wgx (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:34:27 -0400
-In-Reply-To: <1493285746.24567.224.camel@linux.intel.com>
+        Thu, 27 Apr 2017 18:36:53 -0400
+In-Reply-To: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, russianneuromancer@ya.ru
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>
 
-On Thursday, April 27, 2017 12:35:46 PM Andy Shevchenko wrote:
-> On Thu, 2017-04-27 at 00:01 +0200, Rafael J. Wysocki wrote:
-> > On Friday, April 21, 2017 01:48:09 PM Hans de Goede wrote:
-> > > Some Bay Trail devices use a GPI1 regulator field (address 0x4c) in
-> > > their 0x8d power OpRegion, add support for this.
-> > > 
-> > > This fixes AE_BAD_PARAMETER errors getting thrown on these devices
-> > > and
-> > > fixes these errors causing these devices to not suspend.
-> > > 
-> > > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > 
-> > Srinivas, Andy, any concerns here?
+On Thursday, April 27, 2017 04:22:44 PM Lv Zheng wrote:
+> In the Linux kernel side, acpi_get_table() clones haven't been fully
+> balanced by acpi_put_table() invocations. In ACPICA side, due to the design
+> change, there are also unbalanced acpi_get_table_by_index() invocations
+> requiring special care to be cleaned up.
 > 
-> Nothing major.
+> So it is not a good timing to report acpi_get_table() counting errors for
+> this period. The strict balanced validation count check should only be
+> enabled after confirming that all invocations are safe and compliant to
+> their designed purposes.
 > 
-> It might be useful to introduce
+> Thus this patch removes the fatal error along with lthe error report to
+> fix this issue. Reported by Dan Williams, fixed by Lv Zheng.
 > 
-> GPI1_LDO_MASK GENMASK(2,0)
-> GPI1_LDO_ON  (3 << 0)
-> GPI1_LDO_OFF (4 << 0)
-> 
-> But it's up to you. I'm fine with either.
+> Fixes: 174cc7187e6f ("ACPICA: Tables: Back port acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel")
+> Reported-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-This is a good point IMO.
+Please do not add #if 0 anywhere to the kernel code base.
 
-Hans, care to use symbols as suggested by Andy?
+If you need to drop some piece of code, just drop it.
+
+And in this particular case validation_count should be dropped from the data
+type definition too.
+
+> ---
+>  drivers/acpi/acpica/tbutils.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+> index 5a968a7..8175c70 100644
+> --- a/drivers/acpi/acpica/tbutils.c
+> +++ b/drivers/acpi/acpica/tbutils.c
+> @@ -418,11 +418,13 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
+>  
+>  	table_desc->validation_count++;
+>  	if (table_desc->validation_count == 0) {
+> +		table_desc->validation_count--;
+> +#if 0
+>  		ACPI_ERROR((AE_INFO,
+>  			    "Table %p, Validation count is zero after increment\n",
+>  			    table_desc));
+> -		table_desc->validation_count--;
+>  		return_ACPI_STATUS(AE_LIMIT);
+> +#endif
+>  	}
+>  
+>  	*out_table = table_desc->pointer;
+> 
 
 Thanks,
 Rafael
