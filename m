@@ -1,7 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: [PATCH v3] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Thu, 27 Apr 2017 15:40:41 -0400
-Message-ID: <x497f25prk6.fsf@segfault.boston.devel.redhat.com>
+Date: Thu, 27 Apr 2017 15:43:41 -0400
+Message-ID: <x491ssdprf6.fsf@segfault.boston.devel.redhat.com>
 References: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
         <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
         <x49zif23nvl.fsf@segfault.boston.devel.redhat.com>
@@ -10,15 +10,16 @@ References: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.cor
         <CAPcyv4jOP6fhk4wXahdEWH2O_93LQe9yzrWYZatSXXDwEk5OBA@mail.gmail.com>
         <x49d1bxsngb.fsf@segfault.boston.devel.redhat.com>
         <CAPcyv4g1zbaNDttkzGv4NV9ZQXrObLqpPLMQW2wqoP_iTozrsQ@mail.gmail.com>
+        <CAPcyv4hDmwSO8szjn+mqL6xpW2H92WsTDn=8qLtJi7Y8kduX5Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43564 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:38856 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1162059AbdD0Tkn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 27 Apr 2017 15:40:43 -0400
-In-Reply-To: <CAPcyv4g1zbaNDttkzGv4NV9ZQXrObLqpPLMQW2wqoP_iTozrsQ@mail.gmail.com>
-        (Dan Williams's message of "Thu, 27 Apr 2017 12:17:49 -0700")
+        id S967863AbdD0Tnn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Apr 2017 15:43:43 -0400
+In-Reply-To: <CAPcyv4hDmwSO8szjn+mqL6xpW2H92WsTDn=8qLtJi7Y8kduX5Q@mail.gmail.com>
+        (Dan Williams's message of "Thu, 27 Apr 2017 12:21:54 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Dan Williams <dan.j.williams@intel.com>
@@ -26,59 +27,13 @@ Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Masayoshi Mizuma <m
 
 Dan Williams <dan.j.williams@intel.com> writes:
 
-> On Thu, Apr 27, 2017 at 11:41 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
->> Dan Williams <dan.j.williams@intel.com> writes:
->>
->>>> The sentiment is that programs shouldn't have to grovel around in sysfs
->>>> to do stuff related to an open file descriptor or mapping.  I don't take
->>>> issue with the name.  I do worry that something like 'wpq_drain' may be
->>>> too platform specific, though.  The NVM Programming Model specification
->>>> is going to call this "deep flush", so maybe that will give you
->>>> some inspiration if you do want to change the name.
->>>
->>> I'll change to "deep_flush", and I quibble that this is related to a
->>> single open file descriptor or mapping. It really is a "region flush"
->>> for giving extra protection for global metadata, but the persistence
->>> of individual fds or mappings is handled by ADR. I think an ioctl
->>> might give the false impression that every time you flush a cacheline
->>> to persistence you need to call the ioctl.
->>
->> fsync, for example, may affect more than one fd--all data in the drive
->> write cache will be flushed.  I don't see how this is so different.  I
->> think a sysfs file is awkward because it requires an application to
->> chase down the correct file in the sysfs hierarchy.  If the application
->> already has an open fd or a mapping, it should be able to operate on
->> that.
->
-> I'm teetering, but still leaning towards sysfs. The use case that
-> needs this is device-dax because we otherwise silently do this behind
-> the application's back on filesystem-dax for fsync / msync.
+> We also still seem to need a discovery mechanism as I've had questions
+> about "how do I tell if my system supports deep flush?". That's where
+> sysfs is much better than an ioctl. The need for deep flush discovery
+> tips the scales, at least for me, to also do deep flush triggering
+> through the same interface.
 
-We may yet get file system support for flush from userspace (NOVA, for
-example).  So I don't think we should restrict ourselves to only
-thinking about the device dax use case.
-
-> A device-dax ioctl would be straightforward, but 'deep flush' assumes
-> that the device-dax instance is fronting persistent memory.  There's
-> nothing persistent memory specific about device-dax except that today
-> only the nvdimm sub-system knows how to create them, but there's
-> nothing that prevents other memory regions from being mapped this way.
-
-You're concerned that applications operating on device dax instances
-that are not backed by pmem will try to issue a deep flush?  Why would
-they do that, and why can't you just return failure from the ioctl?
-
-> So I'd rather this persistent memory specific mechanism stay with the
-> persistent memory specific portion of the interface rather than plumb
-> persistent memory details out through the generic device-dax interface
-> since we have no other intercept point like we do in the
-> filesystem-dax case to hide this flush.
-
-Look at the block layer.  You can issue an ioctl on a block device, and
-if the generic block layer can handle it, it does.  If not, it gets
-passed down to lower layers until either it gets handled, or it bubbles
-back up because nobody knew what to do with it.  I think you can do the
-same thing here, and that solves your layering violation.
+Return ENXIO or EOPNOTSUPP from the ioctl when it isn't supported?
 
 Cheers,
 Jeff
