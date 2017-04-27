@@ -1,97 +1,123 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] libnvdimm, pmem: fix badblocks notification crash
-Date: Thu, 27 Apr 2017 15:10:11 -0700
-Message-ID: <149333101097.4714.1923436715100717938.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH v5] libnvdimm, region: sysfs trigger for nvdimm_flush()
+Date: Thu, 27 Apr 2017 15:17:25 -0700
+Message-ID: <149333144522.4906.620839784941994429.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149324959589.17912.8116722315071483296.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:53031 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752943AbdD0WXS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Apr 2017 18:23:18 -0400
+In-Reply-To: <149324959589.17912.8116722315071483296.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>, linux-acpi@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, linux-kernel@vger.kernel.org
 
-The nd_pmem_notify() routine is called whenever an ARS
-(address-range-scrub) completes to communicate results to the
-per-namespace badblocks instances.
+The nvdimm_flush() mechanism helps to reduce the impact of an ADR
+(asynchronous-dimm-refresh) failure. The ADR mechanism handles flushing
+platform WPQ (write-pending-queue) buffers when power is removed. The
+nvdimm_flush() mechanism performs that same function on-demand.
 
-When the namespace is in btt mode we crash because we do not allocate a
-struct pmem_device instance in that case. Resulting in the following
-crash signature:
+When a pmem namespace is associated with a block device, an
+nvdimm_flush() is triggered with every block-layer REQ_FUA, or REQ_FLUSH
+request. These requests are typically associated with filesystem
+metadata updates. However, when a namespace is in device-dax mode,
+userspace (think database metadata) needs another path to perform the
+same flushing. In other words this is not required to make data
+persistent, but in the case of metadata it allows for a smaller failure
+domain in the unlikely event of an ADR failure.
 
- BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
- IP: nd_pmem_notify+0x30/0xf0 [nd_pmem]
- Call Trace:
-  nd_device_notify+0x40/0x50
-  child_notify+0x10/0x20
-  device_for_each_child+0x50/0x90
-  nd_region_notify+0x20/0x30
-  nd_device_notify+0x40/0x50
-  nvdimm_region_notify+0x27/0x30
-  acpi_nfit_scrub+0x341/0x590 [nfit]
-  process_one_work+0x197/0x450
-  worker_thread+0x4e/0x4a0
-  kthread+0x109/0x140
+The new 'deep_flush' attribute is visible when the individual DIMMs
+backing a given interleave-set are described by platform firmware. In
+ACPI terms this is "NVDIMM Region Mapping Structures" and associated
+"Flush Hint Address Structures". Reads return "1" if the region supports
+triggering WPQ flushes on all DIMMs. Reads return "0" the flush
+operation is a platform nop, and in that case the attribute is
+read-only.
 
-Given that we don't even populate the btt badblocks instance, just
-return early and skip the device to region lookup.
+Why sysfs and not an ioctl? An ioctl requires establishing a new
+ioctl function number space for device-dax. Given that this would be
+called on a device-dax fd an application could be forgiven for
+accidentally calling this on a filesystem-dax fd. Placing this interface
+in libnvdimm sysfs removes that potential for collision with a
+filesystem ioctl, and it keeps ioctls out of the generic device-dax
+implementation.
 
-This is a simpler version of the original fix by Toshi [1].
-
-[1]: https://patchwork.kernel.org/patch/9700055/
-
-Cc: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reported-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/pmem.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/nvdimm/region_devs.c |   41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 5b536be5a12e..ee6cd31dafcf 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -388,21 +388,21 @@ static void nd_pmem_shutdown(struct device *dev)
- 
- static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
- {
--	struct pmem_device *pmem = dev_get_drvdata(dev);
--	struct nd_region *nd_region = to_region(pmem);
- 	resource_size_t offset = 0, end_trunc = 0;
- 	struct nd_namespace_common *ndns;
- 	struct nd_namespace_io *nsio;
-+	struct nd_region *nd_region;
-+	struct pmem_device *pmem;
- 	struct resource res;
- 
- 	if (event != NVDIMM_REVALIDATE_POISON)
- 		return;
- 
--	if (is_nd_btt(dev)) {
--		struct nd_btt *nd_btt = to_nd_btt(dev);
-+	/* no badblocks instance to update in the btt case */
-+	if (is_nd_btt(dev))
-+		return;
- 
--		ndns = nd_btt->ndns;
--	} else if (is_nd_pfn(dev)) {
-+	if (is_nd_pfn(dev)) {
- 		struct nd_pfn *nd_pfn = to_nd_pfn(dev);
- 		struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
- 
-@@ -415,6 +415,8 @@ static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
- 	nsio = to_nd_namespace_io(&ndns->dev);
- 	res.start = nsio->res.start + offset;
- 	res.end = nsio->res.end - end_trunc;
-+	pmem = dev_get_drvdata(dev);
-+	nd_region = to_region(pmem);
- 	nvdimm_badblocks_populate(nd_region, &pmem->bb, &res);
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 24abceda986a..53d1ba4e6d99 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -255,6 +255,35 @@ static ssize_t size_show(struct device *dev,
  }
+ static DEVICE_ATTR_RO(size);
+ 
++static ssize_t deep_flush_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_region *nd_region = to_nd_region(dev);
++
++	/*
++	 * NOTE: in the nvdimm_has_flush() error case this attribute is
++	 * not visible.
++	 */
++	return sprintf(buf, "%d\n", nvdimm_has_flush(nd_region));
++}
++
++static ssize_t deep_flush_store(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t len)
++{
++	bool flush;
++	int rc = strtobool(buf, &flush);
++	struct nd_region *nd_region = to_nd_region(dev);
++
++	if (rc)
++		return rc;
++	if (!flush)
++		return -EINVAL;
++	nvdimm_flush(nd_region);
++
++	return len;
++}
++static DEVICE_ATTR_RW(deep_flush);
++
+ static ssize_t mappings_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -479,6 +508,7 @@ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_btt_seed.attr,
+ 	&dev_attr_pfn_seed.attr,
+ 	&dev_attr_dax_seed.attr,
++	&dev_attr_deep_flush.attr,
+ 	&dev_attr_read_only.attr,
+ 	&dev_attr_set_cookie.attr,
+ 	&dev_attr_available_size.attr,
+@@ -508,6 +538,17 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	if (!is_nd_pmem(dev) && a == &dev_attr_resource.attr)
+ 		return 0;
+ 
++	if (a == &dev_attr_deep_flush.attr) {
++		int has_flush = nvdimm_has_flush(nd_region);
++
++		if (has_flush == 1)
++			return a->mode;
++		else if (has_flush == 0)
++			return 0444;
++		else
++			return 0;
++	}
++
+ 	if (a != &dev_attr_set_cookie.attr
+ 			&& a != &dev_attr_available_size.attr)
+ 		return a->mode;
+
