@@ -1,92 +1,118 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle on
- Dell systems
-Date: Thu, 27 Apr 2017 14:47:59 +0000
-Message-ID: <fbb003d3c4fb465b9c17b4698431c96c@ausx13mpc120.AMER.DELL.COM>
-References: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
- <3060629.nj3VExRueE@aspire.rjw.lan>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2] acpi: fix acpi_get_table() leak / acpi-sysfs denial of service
+Date: Thu, 27 Apr 2017 07:48:32 -0700
+Message-ID: <CAPcyv4jk3iCOmvq06s++KM6zJdi=DXRq-KYosT+rWOBkF=Dpsg@mail.gmail.com>
+References: <149315024459.9151.4555045488194999231.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CAJZ5v0h4hOeRfBgK=ARbw8dmML56v0xnvPjsY9wZ0fv7EXCeQw@mail.gmail.com> <1AE640813FDE7649BE1B193DEA596E886CE998CF@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <3060629.nj3VExRueE@aspire.rjw.lan>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: rjw@rjwysocki.net, linux-pm@vger.kernel.org
-Cc: andriy.shevchenko@linux.intel.com, dvhart@infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, srinivas.pandruvada@linux.intel.com, tglx@linutronix.de, mika.westerberg@linux.intel.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f54.google.com ([209.85.218.54]:35748 "EHLO
+        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932722AbdD0Ose (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Apr 2017 10:48:34 -0400
+Received: by mail-oi0-f54.google.com with SMTP id j201so40225576oih.2
+        for <linux-acpi@vger.kernel.org>; Thu, 27 Apr 2017 07:48:34 -0700 (PDT)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE998CF@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Seetharaman, Anush" <anush.seetharaman@intel.com>, "Kasanicky, Tiffany J" <tiffany.j.kasanicky@intel.com>, "Jensen, Ryon" <ryon.jensen@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Jacque, Kristin" <kristin.jacque@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
 
-> -----Original Message-----
-> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> Sent: Wednesday, April 26, 2017 4:24 PM
-> To: Linux PM <linux-pm@vger.kernel.org>
-> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>; Darren Hart
-> <dvhart@infradead.org>; LKML <linux-kernel@vger.kernel.org>; Linux ACPI <=
-linux-
-> acpi@vger.kernel.org>; Srinivas Pandruvada
-> <srinivas.pandruvada@linux.intel.com>; Thomas Gleixner <tglx@linutronix.d=
-e>;
-> Mika Westerberg <mika.westerberg@linux.intel.com>; Limonciello, Mario
-> <Mario_Limonciello@Dell.com>
-> Subject: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle o=
-n Dell
-> systems
->=20
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->=20
-> Some recent Dell laptops, including the XPS13 model numbers 9360 and
-> 9365, cannot be woken up from suspend-to-idle by pressing the power
-> button which is unexpected and makes that feature hardly usable on
-> those systems.  However, on the 9365 ACPI S3 (suspend-to-RAM) is not
-> expected to be used at all (these systems ship with Windows 10 using
-> Modern Standby which never exercises the ACPI S3 path) and
-> suspend-to-idle is the only viable system suspend mechanism in there.
->=20
-> The reason why the power button wakeup from suspend-to-idle doesn't
-> work on those systems is because their power button events are
-> signaled by the EC (Embedded Controller), whose GPE (General Purpose
-> Event) line is disabled during suspend-to-idle transitions in Linux.
-> That is done on purpose, because in general the EC tends to generate
-> tons of events for various reasons (battery and thermal updates and
-> similar, for example) and all of them would kick the CPUs out of deep
-> idle states while in suspend-to-idle, which would not be desirable.
->=20
-> Of course, on the Dell systems in question the EC GPE must be enabled
-> during suspend-to-idle transitions for the button press events to
-> be signaled while suspended at all.  Fortunately, there is a way to
-> tell the EC to stop generating the non-wakeup events, which is by
-> using the _DSM object under the so called micro-PEP (uPEP) device
-> provided to support Modern Standby in Windows 10.
->=20
-> The expected way to use it is to invoke function 0 from it on system
-> initialization, functions 3 and 5 during suspend transitions and
-> functions 4 and 6 during resume transitions (to reverse the actions
-> carried out by the former).  In particular, function 5 from the uPEP
-> device _DSM causes the EC to become less verbose (so to speak) on the
-> affected systems and then its GPE can be enabled as a wakeup source
-> (then, on resume, function 6 switches it back to the "working state"
-> mode).
->=20
-> In support of the affected Dell systems, implement the uPEP device
-> handling as described and allow the EC to generate system wakeup
-> events if that device is present and behaves as expected.  Enable
-> that for Dell only, as there are other systems out there in which
-> the uPEP device is exposed in the ACPI tables and its _DSM appears
-> to be functional, but it actually isn't, whereas Dell is committed
-> to supporting it.
->=20
+On Wed, Apr 26, 2017 at 11:49 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi, Rafael
+>
+>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J.
+>> Wysocki
+>> Subject: Re: [PATCH v2] acpi: fix acpi_get_table() leak / acpi-sysfs denial of service
+>>
+>> On Tue, Apr 25, 2017 at 9:58 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+>> > Reading an ACPI table through the /sys/firmware/acpi/tables interface
+>> > more than 65,536 times leads to the following log message:
+>> >
+>> >  ACPI Error: Table ffff88033595eaa8, Validation count is zero after increment
+>> >   (20170119/tbutils-423)
+>> >
+>> > ...and the table being unavailable until the next reboot. Add the
+>> > missing acpi_put_table() so the table ->validation_count is decremented
+>> > after each read.
+>> >
+>> > Cc: <stable@vger.kernel.org>
+>> > Cc: Zhang Rui <rui.zhang@intel.com>
+>> > Cc: Rafael Wysocki <rafael.j.wysocki@intel.com>
+>> > Cc: Kristin Jacque <kristin.jacque@intel.com>
+>> > Cc: Tiffany Kasanicky <tiffany.j.kasanicky@intel.com>
+>> > Cc: Ryon Jensen <ryon.jensen@intel.com>
+>> > Reported-by: Anush Seetharaman <anush.seetharaman@intel.com>
+>> > Fixes: 1c8fce27e275 ("ACPI: introduce drivers/acpi/sysfs.c")
+>> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>>
+>> I'm going to apply this, but your Fixes tag is not correct.
+>
+> Even we want to skip the so-called "short period".
+> This fix is not 100% correct.
+> It's written in a very casual way.
+> I would think it was just a material to mention me to work on this issue.
+> See, there are several acpi_get_table clones invoked in sysfs.c, it just fixed one of them.
+> So it only fixes very limited cases.
+> I'll post one for fixing sysfs calls later.
 
-I am of course biased in that my priority is for this to work for Dell.
-Dell is definitely committed to supporting this on any system with
-the low power idle bit in the FADT set.
+That's the point, the other problem areas can be fixed up incrementally.
 
-So I'm fine with the current proposed solution, but have you
-dug into what actually breaks on this other system?  Does it actually
-work with Modern Standby + the uPEP device on Windows 10?
+>
+> There are also several cases needing urgent care, for example, FACS table used between suspend/resume process.
+> Which can also increase the count by 1 for each suspend/resume cycle.
+> I'll post an urgent fix for this along with the sysfs one.
+>
+>>
+>> validation_count was added to struct acpi_table_desc by commit
+>>
+>> commit 174cc7187e6f088942c8e74daa7baff7b44b33c9
+>> Author: Lv Zheng <lv.zheng@intel.com>
+>> Date:   Wed Dec 14 15:04:25 2016 +0800
+>>
+>>     ACPICA: Tables: Back port acpi_get_table_with_size() and
+>> early_acpi_os_unmap_memory()
+>> from Linux kernel
+>>
+>> from the 4.10 time frame, so IMO it should be
+>>
+>> Fixes: 174cc7187e6f (ACPICA: Tables: Back port
+>> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
+>> kernel)
+>
+> And TBH, IMO, my posted patch is a regression fix fixing this tag.
+> https://patchwork.kernel.org/patch/9700175/
+> It fixes my damaged brain of trying to enable this mechanism.
+> It's actually a mistake, the planned way is not that.
+>
+> I don't think fixing ~50 users could be easily achieved in just 1 cycle without triggering any other issues.
+> Especially among them, there are design changes.
+> In order to upstream this mechanism to ACPICA, I've already changed the original design.
+> Originally it's done in a different way:
+> A acpi_get_validate_table() API is prepared for those wants to pin the ACPI table in memory.
+> And it is not reference counting based.
+> Now all solution need to be re-considered due to the design change.
+> So I don't think it will be a short period.
+>
+> On the contrary, if there is no one executing a script to read/write sysfs more than 60000 times,
+> the error won't flood logs.
 
-To my understanding I would think any OEM that is enabling this
-uPEP device it should be getting called by the Windows kernel
-identically when entering resiliency phases.
+That's not true. Here is the log flood is how we discovered the
+problem in the first place:
 
-This makes me wonder if it should be inverted and a blacklist
-of platforms that the uPEP device doesn't work.
+https://gist.github.com/djbw/ac03ac15bde6db0301a73a33bea70521
+
+...this was not a deliberate loop. Now, we did find that this
+application was reading the tables more often than it should, and
+hopefully there aren't too many more applications like this out in the
+wild.
+
+> So I was actually trying to do the right things for Linux kernel.
+> While just laying down a simple hammer without caring about user experiences could be destructive.
+> It's a disaster if some servers need to be rebooted due to this issue.
+
+It's not a disaster in that most systems should not be re-reading the
+tables at a high enough frequency for this to matter. The fact that
+this bug has shipped in Fedora and other places without issue helps
+point out that this is hard to hit in practice.
