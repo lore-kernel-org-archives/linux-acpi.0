@@ -1,79 +1,102 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH 12/15] ACPICA: iasl: add ASL conversion tool
-Date: Thu, 27 Apr 2017 17:07:17 +0200
-Message-ID: <000a6dab-f00f-ad00-97bd-623dc1948cf5@intel.com>
-References: <952e3354e4cbe4310e1037bc16820c70cc0fd8f6.1493194142.git.lv.zheng@intel.com>
- <201704270350.iclhVCVR%fengguang.wu@intel.com>
- <1AE640813FDE7649BE1B193DEA596E886CE995F0@SHSMSX101.ccr.corp.intel.com>
+From: Sunil Kovvuri <sunil.kovvuri@gmail.com>
+Subject: Re: [PATCH 0/3] Cavium ThunderX2 SMMUv3 errata workarounds
+Date: Thu, 27 Apr 2017 22:07:34 +0530
+Message-ID: <CA+sq2CfX+rrJniu7Fe0E47mF+nWkdx94=8buGtrP8zBdFrXV+Q@mail.gmail.com>
+References: <1493293584-20287-1-git-send-email-gakula@caviumnetworks.com> <20170427133910.GB31368@rric.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28362 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755321AbdD0PHW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 27 Apr 2017 11:07:22 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE995F0@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:33148 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752443AbdD0Qhh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Apr 2017 12:37:37 -0400
+In-Reply-To: <20170427133910.GB31368@rric.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, lkp <lkp@intel.com>
-Cc: "kbuild-all@01.org" <kbuild-all@01.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, "Box, David E" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Robert Richter <robert.richter@cavium.com>
+Cc: Geetha sowjanya <gakula@caviumnetworks.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, jcm@redhat.com, linu.cherian@cavium.com, Will Deacon <will.deacon@arm.com>, LKML <linux-kernel@vger.kernel.org>, geethasowjanya.akula@gmail.com, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Hanjun Guo <hanjun.guo@linaro.org>, sudeep.holla@arm.com, Geetha <gakula@cavium.com>, Sunil Goutham <sgoutham@cavium.com>, Robin Murphy <robin.murphy@arm.com>, LAKML <linux-arm-kernel@lists.infradead.org>
 
-On 4/27/2017 3:43 AM, Zheng, Lv wrote:
-> Hi,
+On Thu, Apr 27, 2017 at 7:09 PM, Robert Richter
+<robert.richter@cavium.com> wrote:
+> On 27.04.17 17:16:21, Geetha sowjanya wrote:
+>> From: Geetha <gakula@cavium.com>
+>>
+>> Cavium CN99xx SMMUv3 implementation has two Silicon Erratas.
+>> 1. Errata ID #74
+>>    SMMU register alias Page 1 is not implemented
+>> 2. Errata ID #126
+>>    SMMU doesnt support unique IRQ lines for gerror, eventq and cmdq-sync
+>>
+>> The following patchset does software workaround for these two erratas.
+>>
+>> This series is based on RFC patch.
+>> https://www.spinics.net/lists/arm-kernel/msg575739.html
+>>
+>> As suggested by Will Deacon, code is modified to use silicon id to
+>> enable errata#74 workaround.
 >
-> It's fixed by PATCH 14 in the same series.
-> I'll combine them in order not to break bisection processes.
+> Can we go with the previous series [1] and:
+>
+>  * drop the iort model numbering part,
+>
+>  * add an enablement function that enables flags (smmu->options)
+>    depending on midr values (which replaces the macro code)?
 
-OK, thanks!
+I don't see how it is efficient and consistent, if we take data from DT
+for non-ACPI mode and read CPU ID from MIDR for ACPI mode.
 
->> From: lkp
->> Subject: Re: [PATCH 12/15] ACPICA: iasl: add ASL conversion tool
->>
->> Hi Bob,
->>
->> [auto build test ERROR on pm/linux-next]
->> [also build test ERROR on v4.11-rc8 next-20170426]
->> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->>
->> url:    https://github.com/0day-ci/linux/commits/Lv-Zheng/ACPICA-Disassembler-Enhance-resource-
->> descriptor-detection/20170427-010527
->> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
->> config: x86_64-acpi-redef (attached as .config)
->> compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
->> reproduce:
->>          # save the attached .config to linux build tree
->>          make ARCH=x86_64
->>
->> Note: the linux-review/Lv-Zheng/ACPICA-Disassembler-Enhance-resource-descriptor-detection/20170427-
->> 010527 HEAD 3e033e5bcdf2b5e89028d19030d8479ac5b855bf builds fine.
->>        It only hurts bisectibility.
->>
->> All errors (new ones prefixed by >>):
->>
->>     In file included from drivers/acpi/acpica/accommon.h:56:0,
->>                      from drivers/acpi/acpica/utcopy.c:45:
->>>> drivers/acpi/acpica/aclocal.h:841:2: error: unknown type name 'FILE'
->>       FILE *file;
->>       ^~~~
->>
->> vim +/FILE +841 drivers/acpi/acpica/aclocal.h
->>
->>     835
->>     836	/*
->>     837	 * File node - used for "Include" operator file stack and
->>     838	 * depdendency tree for the -ca option
->>     839	 */
->>     840	struct acpi_file_node {
->>   > 841		FILE *file;
->>     842		char *filename;
->>     843		char *file_start;	/* Points to AML and indicates when the AML for this particular
->> file starts. */
->>     844		char *file_end;		/* Points to AML and indicates when the AML for this
->> particular file ends. */
->>
->> ---
->> 0-DAY kernel test infrastructure                Open Source Technology Center
->> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Thanks,
+Sunil.
 
-
+>
+> E.g.:
+>
+> static void acpi_smmu_enable_cavium(struct arm_smmu_device *smmu)
+> {
+>         u32 cpu_model;
+>
+>         if (!IS_ENABLED(CONFIG_ARM64))
+>                 return;
+>
+>         cpu_model = read_cpuid_id() & MIDR_CPU_MODEL_MASK;
+>         switch (cpu_model) {
+>         case ...:
+>         case ...:
+>                 break;
+>         default:
+>                 /* No Cavium CN99xx SMMU v3 */
+>                 return;
+>         }
+>
+>         smmu->options |= (ARM_SMMU_OPT_PAGE0_REGS_ONLY |
+>                          ARM_SMMU_OPT_USE_SHARED_IRQS);
+> }
+>
+> -Robert
+>
+>
+> [1] [RFC PATCH 0/7] Cavium CN99xx SMMUv3 Errata workarounds
+>     https://marc.info/?l=linux-acpi&m=149192179623708&w=2
+>
+>>
+>> Linu Cherian (1):
+>>   iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #74
+>>
+>> Geetha (2):
+>>   arm64: Add MIDR values for Cavium cn99xx SoCs
+>>   iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #126
+>>
+>>  Documentation/arm64/silicon-errata.txt |  2 ++
+>>  arch/arm64/include/asm/cputype.h       |  3 ++
+>>  drivers/acpi/arm64/iort.c              | 14 +++++++-
+>>  drivers/iommu/arm-smmu-v3.c            | 64 +++++++++++++++++++++++++++++-----
+>>  4 files changed, 73 insertions(+), 10 deletions(-)
+>>
+>> --
+>> 1.9.1
+>>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
