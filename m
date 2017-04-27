@@ -1,71 +1,156 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/2] ACPICA: Tables: Fix regression introduced by a too early mechanism enabling
-Date: Fri, 28 Apr 2017 00:30:38 +0200
-Message-ID: <1841048.oWuTkq5WIo@aspire.rjw.lan>
-References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
+Subject: Re: [PATCH v2 2/2] ACPI: Fix memory mapping leaks in current sysfs dumpable ACPI tables support.
+Date: Fri, 28 Apr 2017 00:32:05 +0200
+Message-ID: <4277647.WvhH6F4tss@aspire.rjw.lan>
+References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com> <73632c930a4c3a960ca6a9b935e3a2a8a0222cc5.1493281247.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:43471 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:60467 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1162393AbdD0Wgx (ORCPT
+        by vger.kernel.org with ESMTP id S938014AbdD0WiW (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 27 Apr 2017 18:36:53 -0400
-In-Reply-To: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
+        Thu, 27 Apr 2017 18:38:22 -0400
+In-Reply-To: <73632c930a4c3a960ca6a9b935e3a2a8a0222cc5.1493281247.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thursday, April 27, 2017 04:22:44 PM Lv Zheng wrote:
-> In the Linux kernel side, acpi_get_table() clones haven't been fully
-> balanced by acpi_put_table() invocations. In ACPICA side, due to the design
-> change, there are also unbalanced acpi_get_table_by_index() invocations
-> requiring special care to be cleaned up.
+On Thursday, April 27, 2017 04:22:50 PM Lv Zheng wrote:
+> This patch adds balanced acpi_get_table()/acpi_put_table() support for
+> sysfs table dumping code so that no need to call
+> acpi_get_validated_table().
 > 
-> So it is not a good timing to report acpi_get_table() counting errors for
-> this period. The strict balanced validation count check should only be
-> enabled after confirming that all invocations are safe and compliant to
-> their designed purposes.
+> Since ACPICA does not use all of the tables, this can help to reduce some
+> usless memory mappings by utilizing the new table handling APIs.
 > 
-> Thus this patch removes the fatal error along with lthe error report to
-> fix this issue. Reported by Dan Williams, fixed by Lv Zheng.
+> The original sysfs dumpable ACPI table implementation forces tables to be
+> mapped after a read operation and never unmaps them again whatever there
+> are no users in the kernel interested in these tables.  With new balanced
+> table handling APIs, tables are unmapped after the read operation.
 > 
-> Fixes: 174cc7187e6f ("ACPICA: Tables: Back port acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel")
-> Reported-by: Dan Williams <dan.j.williams@intel.com>
 > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-
-Please do not add #if 0 anywhere to the kernel code base.
-
-If you need to drop some piece of code, just drop it.
-
-And in this particular case validation_count should be dropped from the data
-type definition too.
-
 > ---
->  drivers/acpi/acpica/tbutils.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+>  drivers/acpi/sysfs.c | 51 ++++++++++++++++++++++++++++++++++++---------------
+>  1 file changed, 36 insertions(+), 15 deletions(-)
 > 
-> diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-> index 5a968a7..8175c70 100644
-> --- a/drivers/acpi/acpica/tbutils.c
-> +++ b/drivers/acpi/acpica/tbutils.c
-> @@ -418,11 +418,13 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
+> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+> index 1b5ee1e..c3bb6ce 100644
+> --- a/drivers/acpi/sysfs.c
+> +++ b/drivers/acpi/sysfs.c
+> @@ -333,21 +333,34 @@ static ssize_t acpi_table_show(struct file *filp, struct kobject *kobj,
+>  	    container_of(bin_attr, struct acpi_table_attr, attr);
+>  	struct acpi_table_header *table_header = NULL;
+>  	acpi_status status;
+> +	ssize_t len;
 >  
->  	table_desc->validation_count++;
->  	if (table_desc->validation_count == 0) {
-> +		table_desc->validation_count--;
-> +#if 0
->  		ACPI_ERROR((AE_INFO,
->  			    "Table %p, Validation count is zero after increment\n",
->  			    table_desc));
-> -		table_desc->validation_count--;
->  		return_ACPI_STATUS(AE_LIMIT);
-> +#endif
+>  	status = acpi_get_table(table_attr->name, table_attr->instance,
+>  				&table_header);
+>  	if (ACPI_FAILURE(status))
+>  		return -ENODEV;
+> +	len = memory_read_from_buffer(buf, count, &offset,
+> +				      table_header, table_header->length);
+> +	acpi_put_table(table_header);
+> +	return len;
+> +}
+
+The above seems to be taken verbatim from the Dan's patch.
+
+If that's the case, please do the below as a separate patch on top of the Dan's
+one.
+
+> +
+> +static bool acpi_table_has_multiple_instances(char *signature)
+> +{
+> +	acpi_status status;
+> +	struct acpi_table_header *header;
+>  
+> -	return memory_read_from_buffer(buf, count, &offset,
+> -				       table_header, table_header->length);
+> +	status = acpi_get_table(signature, 2, &header);
+> +	if (ACPI_FAILURE(status))
+> +		return false;
+> +	acpi_put_table(header);
+> +	return true;
+>  }
+>  
+>  static int acpi_table_attr_init(struct kobject *tables_obj,
+>  				struct acpi_table_attr *table_attr,
+>  				struct acpi_table_header *table_header)
+>  {
+> -	struct acpi_table_header *header = NULL;
+>  	struct acpi_table_attr *attr = NULL;
+>  	char instance_str[ACPI_INST_SIZE];
+>  
+> @@ -368,9 +381,9 @@ static int acpi_table_attr_init(struct kobject *tables_obj,
+>  
+>  	ACPI_MOVE_NAME(table_attr->filename, table_header->signature);
+>  	table_attr->filename[ACPI_NAME_SIZE] = '\0';
+> -	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
+> -					 !acpi_get_table
+> -					 (table_header->signature, 2, &header))) {
+> +	if (table_attr->instance > 1 ||
+> +	    (table_attr->instance == 1 &&
+> +	     acpi_table_has_multiple_instances(table_header->signature))) {
+>  		snprintf(instance_str, sizeof(instance_str), "%u",
+>  			 table_attr->instance);
+>  		strcat(table_attr->filename, instance_str);
+> @@ -419,11 +432,11 @@ acpi_status acpi_sysfs_table_handler(u32 event, void *table, void *context)
+>  
+>  static int acpi_tables_sysfs_init(void)
+>  {
+> -	struct acpi_table_attr *table_attr;
+> +	struct acpi_table_attr *table_attr = NULL;
+>  	struct acpi_table_header *table_header = NULL;
+>  	int table_index;
+>  	acpi_status status;
+> -	int ret;
+> +	int ret = 0;
+>  
+>  	tables_kobj = kobject_create_and_add("tables", acpi_kobj);
+>  	if (!tables_kobj)
+> @@ -435,24 +448,32 @@ static int acpi_tables_sysfs_init(void)
+>  
+>  	for (table_index = 0;; table_index++) {
+>  		status = acpi_get_table_by_index(table_index, &table_header);
+> -
+>  		if (status == AE_BAD_PARAMETER)
+>  			break;
+> -
+>  		if (ACPI_FAILURE(status))
+> -			continue;
+> +			goto next_table;
+>  
+>  		table_attr = kzalloc(sizeof(*table_attr), GFP_KERNEL);
+> -		if (!table_attr)
+> -			return -ENOMEM;
+> +		if (!table_attr) {
+> +			ret = -ENOMEM;
+> +			goto next_table;
+> +		}
+>  
+>  		ret = acpi_table_attr_init(tables_kobj,
+>  					   table_attr, table_header);
+> +		if (ret)
+> +			goto next_table;
+> +		list_add_tail(&table_attr->node, &acpi_table_attr_list);
+> +
+> +next_table:
+> +		acpi_put_table(table_header);
+>  		if (ret) {
+> -			kfree(table_attr);
+> +			if (table_attr) {
+> +				kfree(table_attr);
+> +				table_attr = NULL;
+> +			}
+>  			return ret;
+>  		}
+> -		list_add_tail(&table_attr->node, &acpi_table_attr_list);
 >  	}
 >  
->  	*out_table = table_desc->pointer;
+>  	kobject_uevent(tables_kobj, KOBJ_ADD);
 > 
 
 Thanks,
