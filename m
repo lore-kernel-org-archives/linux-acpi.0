@@ -1,98 +1,97 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v3] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Thu, 27 Apr 2017 14:36:15 -0700
-Message-ID: <CAPcyv4hErApEjUWnRz9ywak8RP6BDremBKzG2wDvWO=wHdAwPg@mail.gmail.com>
-References: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
- <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
- <x49zif23nvl.fsf@segfault.boston.devel.redhat.com> <CAPcyv4jQXRQVHnNMqJDrwSMM=1kJx_7sWifUN-u1yusVCZ0roQ@mail.gmail.com>
- <x49y3umufpm.fsf@segfault.boston.devel.redhat.com> <CAPcyv4jOP6fhk4wXahdEWH2O_93LQe9yzrWYZatSXXDwEk5OBA@mail.gmail.com>
- <x49d1bxsngb.fsf@segfault.boston.devel.redhat.com> <CAPcyv4g1zbaNDttkzGv4NV9ZQXrObLqpPLMQW2wqoP_iTozrsQ@mail.gmail.com>
- <x497f25prk6.fsf@segfault.boston.devel.redhat.com> <CAPcyv4hthct-P=W9QLbjswvco8Fcewpf13ZX6-h2PXpHwRtAKg@mail.gmail.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] libnvdimm, pmem: fix badblocks notification crash
+Date: Thu, 27 Apr 2017 15:10:11 -0700
+Message-ID: <149333101097.4714.1923436715100717938.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f53.google.com ([209.85.214.53]:36100 "EHLO
-        mail-it0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1034874AbdD0VgQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Apr 2017 17:36:16 -0400
-Received: by mail-it0-f53.google.com with SMTP id g66so25917611ite.1
-        for <linux-acpi@vger.kernel.org>; Thu, 27 Apr 2017 14:36:16 -0700 (PDT)
-In-Reply-To: <CAPcyv4hthct-P=W9QLbjswvco8Fcewpf13ZX6-h2PXpHwRtAKg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Apr 27, 2017 at 1:02 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Thu, Apr 27, 2017 at 12:40 PM, Jeff Moyer <jmoyer@redhat.com> wrote:
->> Dan Williams <dan.j.williams@intel.com> writes:
->>
->>> On Thu, Apr 27, 2017 at 11:41 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
->>>> Dan Williams <dan.j.williams@intel.com> writes:
->>>>
->>>>>> The sentiment is that programs shouldn't have to grovel around in sysfs
->>>>>> to do stuff related to an open file descriptor or mapping.  I don't take
->>>>>> issue with the name.  I do worry that something like 'wpq_drain' may be
->>>>>> too platform specific, though.  The NVM Programming Model specification
->>>>>> is going to call this "deep flush", so maybe that will give you
->>>>>> some inspiration if you do want to change the name.
->>>>>
->>>>> I'll change to "deep_flush", and I quibble that this is related to a
->>>>> single open file descriptor or mapping. It really is a "region flush"
->>>>> for giving extra protection for global metadata, but the persistence
->>>>> of individual fds or mappings is handled by ADR. I think an ioctl
->>>>> might give the false impression that every time you flush a cacheline
->>>>> to persistence you need to call the ioctl.
->>>>
->>>> fsync, for example, may affect more than one fd--all data in the drive
->>>> write cache will be flushed.  I don't see how this is so different.  I
->>>> think a sysfs file is awkward because it requires an application to
->>>> chase down the correct file in the sysfs hierarchy.  If the application
->>>> already has an open fd or a mapping, it should be able to operate on
->>>> that.
->>>
->>> I'm teetering, but still leaning towards sysfs. The use case that
->>> needs this is device-dax because we otherwise silently do this behind
->>> the application's back on filesystem-dax for fsync / msync.
->>
->> We may yet get file system support for flush from userspace (NOVA, for
->> example).  So I don't think we should restrict ourselves to only
->> thinking about the device dax use case.
->>
->>> A device-dax ioctl would be straightforward, but 'deep flush' assumes
->>> that the device-dax instance is fronting persistent memory.  There's
->>> nothing persistent memory specific about device-dax except that today
->>> only the nvdimm sub-system knows how to create them, but there's
->>> nothing that prevents other memory regions from being mapped this way.
->>
->> You're concerned that applications operating on device dax instances
->> that are not backed by pmem will try to issue a deep flush?  Why would
->> they do that, and why can't you just return failure from the ioctl?
->>
->>> So I'd rather this persistent memory specific mechanism stay with the
->>> persistent memory specific portion of the interface rather than plumb
->>> persistent memory details out through the generic device-dax interface
->>> since we have no other intercept point like we do in the
->>> filesystem-dax case to hide this flush.
->>
->> Look at the block layer.  You can issue an ioctl on a block device, and
->> if the generic block layer can handle it, it does.  If not, it gets
->> passed down to lower layers until either it gets handled, or it bubbles
->> back up because nobody knew what to do with it.  I think you can do the
->> same thing here, and that solves your layering violation.
->
-> So this is where I started. I was going to follow the block layer.
-> Except recently the block layer has been leaning away from ioctls and
-> implementing support for syscalls directly. The same approach for
-> device-dax fallocate() support got NAKd, so I opted for sysfs out of
-> the gate.
->
-> However, since there really is no analog for "deep flush" in the
-> syscall namespace lets (*gag*) implement an ioctl for this.
+The nd_pmem_notify() routine is called whenever an ARS
+(address-range-scrub) completes to communicate results to the
+per-namespace badblocks instances.
 
-So I think about it for 2 seconds and now I'm veering back to sysfs.
-We don't want applications calling this ioctl on filesystem-dax fds. I
-simply can't bring myself to do the work to pick a unique ioctl number
-that is known to be unique for the full filsystem and block-layer
-paths when we can put this interface right where it belongs in nvdimm
-specific sysfs.
+When the namespace is in btt mode we crash because we do not allocate a
+struct pmem_device instance in that case. Resulting in the following
+crash signature:
+
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
+ IP: nd_pmem_notify+0x30/0xf0 [nd_pmem]
+ Call Trace:
+  nd_device_notify+0x40/0x50
+  child_notify+0x10/0x20
+  device_for_each_child+0x50/0x90
+  nd_region_notify+0x20/0x30
+  nd_device_notify+0x40/0x50
+  nvdimm_region_notify+0x27/0x30
+  acpi_nfit_scrub+0x341/0x590 [nfit]
+  process_one_work+0x197/0x450
+  worker_thread+0x4e/0x4a0
+  kthread+0x109/0x140
+
+Given that we don't even populate the btt badblocks instance, just
+return early and skip the device to region lookup.
+
+This is a simpler version of the original fix by Toshi [1].
+
+[1]: https://patchwork.kernel.org/patch/9700055/
+
+Cc: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reported-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/nvdimm/pmem.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 5b536be5a12e..ee6cd31dafcf 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -388,21 +388,21 @@ static void nd_pmem_shutdown(struct device *dev)
+ 
+ static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
+ {
+-	struct pmem_device *pmem = dev_get_drvdata(dev);
+-	struct nd_region *nd_region = to_region(pmem);
+ 	resource_size_t offset = 0, end_trunc = 0;
+ 	struct nd_namespace_common *ndns;
+ 	struct nd_namespace_io *nsio;
++	struct nd_region *nd_region;
++	struct pmem_device *pmem;
+ 	struct resource res;
+ 
+ 	if (event != NVDIMM_REVALIDATE_POISON)
+ 		return;
+ 
+-	if (is_nd_btt(dev)) {
+-		struct nd_btt *nd_btt = to_nd_btt(dev);
++	/* no badblocks instance to update in the btt case */
++	if (is_nd_btt(dev))
++		return;
+ 
+-		ndns = nd_btt->ndns;
+-	} else if (is_nd_pfn(dev)) {
++	if (is_nd_pfn(dev)) {
+ 		struct nd_pfn *nd_pfn = to_nd_pfn(dev);
+ 		struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
+ 
+@@ -415,6 +415,8 @@ static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
+ 	nsio = to_nd_namespace_io(&ndns->dev);
+ 	res.start = nsio->res.start + offset;
+ 	res.end = nsio->res.end - end_trunc;
++	pmem = dev_get_drvdata(dev);
++	nd_region = to_region(pmem);
+ 	nvdimm_badblocks_populate(nd_region, &pmem->bb, &res);
+ }
