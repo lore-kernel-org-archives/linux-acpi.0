@@ -1,49 +1,54 @@
-From: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH 2/3] iommu/arm-smmu-v3: Add workaround for Cavium
-	ThunderX2 erratum #74
-Date: Thu, 27 Apr 2017 18:00:31 +0100
-Message-ID: <20170427170030.GF1890@arm.com>
-References: <1493293584-20287-1-git-send-email-gakula@caviumnetworks.com>
-	<1493293584-20287-3-git-send-email-gakula@caviumnetworks.com>
-	<20170427164237.GA7114@leverpostej>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH v3] libnvdimm, region: sysfs trigger for nvdimm_flush()
+Date: Thu, 27 Apr 2017 14:41:08 -0400
+Message-ID: <x49d1bxsngb.fsf@segfault.boston.devel.redhat.com>
+References: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
+        <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
+        <x49zif23nvl.fsf@segfault.boston.devel.redhat.com>
+        <CAPcyv4jQXRQVHnNMqJDrwSMM=1kJx_7sWifUN-u1yusVCZ0roQ@mail.gmail.com>
+        <x49y3umufpm.fsf@segfault.boston.devel.redhat.com>
+        <CAPcyv4jOP6fhk4wXahdEWH2O_93LQe9yzrWYZatSXXDwEk5OBA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170427164237.GA7114@leverpostej>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, Geetha <gakula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:52778 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1031925AbdD0SlL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Apr 2017 14:41:11 -0400
+In-Reply-To: <CAPcyv4jOP6fhk4wXahdEWH2O_93LQe9yzrWYZatSXXDwEk5OBA@mail.gmail.com>
+        (Dan Williams's message of "Thu, 27 Apr 2017 09:56:44 -0700")
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Apr 27, 2017 at 05:42:37PM +0100, Mark Rutland wrote:
-> On Thu, Apr 27, 2017 at 05:16:23PM +0530, Geetha sowjanya wrote:
-> > +	/*
-> > +	 * Override the size, for Cavium CN99xx implementations
-> > +	 * which doesn't support the page 1 SMMU register space.
-> > +	 */
-> > +	cpu_model = read_cpuid_id() & MIDR_CPU_MODEL_MASK;
-> > +	if (cpu_model == MIDR_THUNDERX_99XX ||
-> > +	    cpu_model == MIDR_BRCM_VULCAN)
-> > +		size = SZ_64K;
-> 
-> If you're trying to identify an SMMU erratum, identify the SMMU, not the
-> CPU it happens to be paired with this time.
-> 
-> There are ID registers in the SMMU you can use to do so.
-> 
-> NAK to using the CPU ID here.
+Dan Williams <dan.j.williams@intel.com> writes:
 
-Agreed. I had some off-list discussion with Geetha where we agreed to use
-the "silicon ID", which I assumed was the SMMU IIDR register.
+>> The sentiment is that programs shouldn't have to grovel around in sysfs
+>> to do stuff related to an open file descriptor or mapping.  I don't take
+>> issue with the name.  I do worry that something like 'wpq_drain' may be
+>> too platform specific, though.  The NVM Programming Model specification
+>> is going to call this "deep flush", so maybe that will give you
+>> some inspiration if you do want to change the name.
+>
+> I'll change to "deep_flush", and I quibble that this is related to a
+> single open file descriptor or mapping. It really is a "region flush"
+> for giving extra protection for global metadata, but the persistence
+> of individual fds or mappings is handled by ADR. I think an ioctl
+> might give the false impression that every time you flush a cacheline
+> to persistence you need to call the ioctl.
 
-Will
+fsync, for example, may affect more than one fd--all data in the drive
+write cache will be flushed.  I don't see how this is so different.  I
+think a sysfs file is awkward because it requires an application to
+chase down the correct file in the sysfs hierarchy.  If the application
+already has an open fd or a mapping, it should be able to operate on
+that.
+
+As for confusion on when to use the interface, I think that's inevitable
+no matter how it's implemented.  We're introducing a flush type that has
+never been exposed before, and we're not giving any information on how
+likely an ADR failure is, or how expensive this flush will be.
+
+Cheers,
+Jeff
