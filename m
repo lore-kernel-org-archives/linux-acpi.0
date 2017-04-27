@@ -1,51 +1,66 @@
-From: Sricharan R <sricharan@codeaurora.org>
-Subject: Re: [REGRESSION next-20170426] Commit 09515ef5ddad ("of/acpi:
- Configure dma operations at probe time for platform/amba/pci bus devices")
- causes oops in mvneta
-Date: Thu, 27 Apr 2017 14:24:22 +0530
-Message-ID: <28fbd821-c975-48e0-92bf-2d3938286cc5@codeaurora.org>
-References: <20170426181508.687b52af@gmail.com>
- <20170427084427.GV5077@suse.de>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [RFC] ACPI / Processor: add sysfs support for low power idle
+Date: Thu, 27 Apr 2017 10:16:12 +0100
+Message-ID: <6e02cc0d-52a8-05f9-7227-7a9e6018621b@arm.com>
+References: <1490832795-27441-1-git-send-email-pprakash@codeaurora.org>
+ <2e633ef7-5155-7eb7-0f1b-8bc36bd25da7@arm.com>
+ <37544927-1f7d-ab59-63d5-32ac1d777bb6@codeaurora.org>
+ <a6544dab-4ae4-22d6-4fe5-08f7919072ca@arm.com>
+ <c9ab5b6c-ad86-1a03-2d1f-c8526e8684b1@codeaurora.org>
+ <0ac023c3-4bda-ba33-4634-6108e0631962@arm.com>
+ <e92d05d4-c9a1-f94b-854b-bb57bb479234@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:45928 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S968145AbdD0Iya (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Apr 2017 04:54:30 -0400
-In-Reply-To: <20170427084427.GV5077@suse.de>
-Content-Language: en-US
+Received: from foss.arm.com ([217.140.101.70]:35294 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754610AbdD0JQS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Apr 2017 05:16:18 -0400
+In-Reply-To: <e92d05d4-c9a1-f94b-854b-bb57bb479234@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joerg Roedel <jroedel@suse.de>, Ralph Sennhauser <ralph.sennhauser@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, netdev@vger.kernel.org
+To: "Prakash, Prashanth" <pprakash@codeaurora.org>, linux-acpi@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net, lenb@kernel.org, al.stone@linaro.org
 
-Hi Joerg,
 
-On 4/27/2017 2:14 PM, Joerg Roedel wrote:
-> Sricharan,
-> 
-> On Wed, Apr 26, 2017 at 06:15:08PM +0200, Ralph Sennhauser wrote:
->> Commit 09515ef5ddad ("of/acpi: Configure dma operations at probe time
->> for platform/amba/pci bus devices") causes a kernel panic as in the log
->> below on an armada-385. Reverting the commit fixes the issue.
-> 
-> Any insight here? I tend to revert the patch in my tree, or is there a
-> quick and easy fix?
 
-I am checking on this manually to see what could be going wrong in the
-driver. From logs i could not conclude directly. I will need some
-more testing help (i will ask for) to root cause this.
+On 27/04/17 00:21, Prakash, Prashanth wrote:
+> Hi Sudeep,
+> 
+> On 4/25/2017 4:28 AM, Sudeep Holla wrote:
+>>> With hierarchy, it is possible to get information about relationship between cpus
+>>> and  higher order shared resources. If we flatten the hierarchy we lose information
+>>> about relationships and it gets a little hard to clearly represent the idle states of
+>>> shared resources and which cpus share those resources.
+>>>
+>> No, what I meant is to have complete information broken down to the
+>> lowest possible level, but just one file access to get that information.
+>>
+>> IIUC, you had some format already for summary_stat file, just extend
+>> to get all the information you would get reading individual sysfs files
+>> organized hierarchically. I don't think that should matter much as you
+>> would have all these information, just the representation differs. I am
+>> assuming all this data is not used/interpreted on the fly, but mostly
+>> used offline for analysis. Otherwise it's already misuse and we don't
+>> want to expose such user ABI IMO.
+>>
+>> Just to summarize, though I agree this LPI stats are more accurate and
+>> more representative summary, I think it may fade away as we move towards
+>> hardware controlled lower power states. Since we already have cpuidle
+>> stats, I prefer to keep this LPI stats interface to userspace as simple
+>> and minimal as possible and yet helpful to get all the information.
+>
+> Sounds good. I will remove summary_stats and make other changes based on
+> feedback and post next rev.
 
-Regards,
- Sricharan
+I am sorry if I was not clear earlier, I was infact asking you what if
+we just have single summary_stat file with all statistics broken down to
+minuet details you want instead of creating the hierarchy of individual
+files which you say has overhead to read.
 
-> 
-> 
-> 
-> 	Joerg
-> 
+Do you process the stats on the fly when workload is running, I assume not.
 
 -- 
-"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+Regards,
+Sudeep
