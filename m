@@ -1,28 +1,31 @@
-From: Dan Williams <dan.j.williams@intel.com>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: [PATCH v3] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Thu, 27 Apr 2017 12:21:54 -0700
-Message-ID: <CAPcyv4hDmwSO8szjn+mqL6xpW2H92WsTDn=8qLtJi7Y8kduX5Q@mail.gmail.com>
+Date: Thu, 27 Apr 2017 15:40:41 -0400
+Message-ID: <x497f25prk6.fsf@segfault.boston.devel.redhat.com>
 References: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
- <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
- <x49zif23nvl.fsf@segfault.boston.devel.redhat.com> <CAPcyv4jQXRQVHnNMqJDrwSMM=1kJx_7sWifUN-u1yusVCZ0roQ@mail.gmail.com>
- <x49y3umufpm.fsf@segfault.boston.devel.redhat.com> <CAPcyv4jOP6fhk4wXahdEWH2O_93LQe9yzrWYZatSXXDwEk5OBA@mail.gmail.com>
- <x49d1bxsngb.fsf@segfault.boston.devel.redhat.com> <CAPcyv4g1zbaNDttkzGv4NV9ZQXrObLqpPLMQW2wqoP_iTozrsQ@mail.gmail.com>
+        <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
+        <x49zif23nvl.fsf@segfault.boston.devel.redhat.com>
+        <CAPcyv4jQXRQVHnNMqJDrwSMM=1kJx_7sWifUN-u1yusVCZ0roQ@mail.gmail.com>
+        <x49y3umufpm.fsf@segfault.boston.devel.redhat.com>
+        <CAPcyv4jOP6fhk4wXahdEWH2O_93LQe9yzrWYZatSXXDwEk5OBA@mail.gmail.com>
+        <x49d1bxsngb.fsf@segfault.boston.devel.redhat.com>
+        <CAPcyv4g1zbaNDttkzGv4NV9ZQXrObLqpPLMQW2wqoP_iTozrsQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f50.google.com ([209.85.214.50]:35600 "EHLO
-        mail-it0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938689AbdD0TV4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Apr 2017 15:21:56 -0400
-Received: by mail-it0-f50.google.com with SMTP id 70so21368141ita.0
-        for <linux-acpi@vger.kernel.org>; Thu, 27 Apr 2017 12:21:55 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:43564 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1162059AbdD0Tkn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Apr 2017 15:40:43 -0400
 In-Reply-To: <CAPcyv4g1zbaNDttkzGv4NV9ZQXrObLqpPLMQW2wqoP_iTozrsQ@mail.gmail.com>
+        (Dan Williams's message of "Thu, 27 Apr 2017 12:17:49 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Apr 27, 2017 at 12:17 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+Dan Williams <dan.j.williams@intel.com> writes:
+
 > On Thu, Apr 27, 2017 at 11:41 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
 >> Dan Williams <dan.j.williams@intel.com> writes:
 >>
@@ -49,20 +52,33 @@ On Thu, Apr 27, 2017 at 12:17 PM, Dan Williams <dan.j.williams@intel.com> wrote:
 >
 > I'm teetering, but still leaning towards sysfs. The use case that
 > needs this is device-dax because we otherwise silently do this behind
-> the application's back on filesystem-dax for fsync / msync. A
-> device-dax ioctl would be straightforward, but 'deep flush' assumes
-> that the device-dax instance is fronting persistent memory. There's
+> the application's back on filesystem-dax for fsync / msync.
+
+We may yet get file system support for flush from userspace (NOVA, for
+example).  So I don't think we should restrict ourselves to only
+thinking about the device dax use case.
+
+> A device-dax ioctl would be straightforward, but 'deep flush' assumes
+> that the device-dax instance is fronting persistent memory.  There's
 > nothing persistent memory specific about device-dax except that today
 > only the nvdimm sub-system knows how to create them, but there's
 > nothing that prevents other memory regions from being mapped this way.
+
+You're concerned that applications operating on device dax instances
+that are not backed by pmem will try to issue a deep flush?  Why would
+they do that, and why can't you just return failure from the ioctl?
+
 > So I'd rather this persistent memory specific mechanism stay with the
 > persistent memory specific portion of the interface rather than plumb
 > persistent memory details out through the generic device-dax interface
 > since we have no other intercept point like we do in the
 > filesystem-dax case to hide this flush.
 
-We also still seem to need a discovery mechanism as I've had questions
-about "how do I tell if my system supports deep flush?". That's where
-sysfs is much better than an ioctl. The need for deep flush discovery
-tips the scales, at least for me, to also do deep flush triggering
-through the same interface.
+Look at the block layer.  You can issue an ioctl on a block device, and
+if the generic block layer can handle it, it does.  If not, it gets
+passed down to lower layers until either it gets handled, or it bubbles
+back up because nobody knew what to do with it.  I think you can do the
+same thing here, and that solves your layering violation.
+
+Cheers,
+Jeff
