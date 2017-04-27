@@ -1,77 +1,145 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 12/15] ACPICA: iasl: add ASL conversion tool
-Date: Thu, 27 Apr 2017 01:43:43 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE995F0@SHSMSX101.ccr.corp.intel.com>
-References: <952e3354e4cbe4310e1037bc16820c70cc0fd8f6.1493194142.git.lv.zheng@intel.com>
- <201704270350.iclhVCVR%fengguang.wu@intel.com>
+Subject: RE: [PATCH] ACPI / EC: handle ECDT EC and DSDT EC simultaneously
+Date: Thu, 27 Apr 2017 03:18:04 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9973E@SHSMSX101.ccr.corp.intel.com>
+References: <20170420201219.21568-1-drake@endlessm.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE96843@SHSMSX101.ccr.corp.intel.com>
+ <CAD8Lp44nXRv0rpZgPw1f0LZ_bcn74fQFzG6HBxRcL1QAWxBHTQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:15938 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:47143 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938080AbdD0Bnt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Apr 2017 21:43:49 -0400
-In-Reply-To: <201704270350.iclhVCVR%fengguang.wu@intel.com>
+        id S1750832AbdD0DSJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Apr 2017 23:18:09 -0400
+In-Reply-To: <CAD8Lp44nXRv0rpZgPw1f0LZ_bcn74fQFzG6HBxRcL1QAWxBHTQ@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lkp <lkp@intel.com>
-Cc: "kbuild-all@01.org" <kbuild-all@01.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, "Box, David E" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Daniel Drake <drake@endlessm.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "chiu@endlessm.com" <chiu@endlessm.com>, "linux@endlessm.com" <linux@endlessm.com>
 
-Hi,
-
-It's fixed by PATCH 14 in the same series.
-I'll combine them in order not to break bisection processes.
-
-Thanks
-Lv
-
-> From: lkp
-> Subject: Re: [PATCH 12/15] ACPICA: iasl: add ASL conversion tool
-> 
-> Hi Bob,
-> 
-> [auto build test ERROR on pm/linux-next]
-> [also build test ERROR on v4.11-rc8 next-20170426]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Lv-Zheng/ACPICA-Disassembler-Enhance-resource-
-> descriptor-detection/20170427-010527
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-> config: x86_64-acpi-redef (attached as .config)
-> compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=x86_64
-> 
-> Note: the linux-review/Lv-Zheng/ACPICA-Disassembler-Enhance-resource-descriptor-detection/20170427-
-> 010527 HEAD 3e033e5bcdf2b5e89028d19030d8479ac5b855bf builds fine.
->       It only hurts bisectibility.
-> 
-> All errors (new ones prefixed by >>):
-> 
->    In file included from drivers/acpi/acpica/accommon.h:56:0,
->                     from drivers/acpi/acpica/utcopy.c:45:
-> >> drivers/acpi/acpica/aclocal.h:841:2: error: unknown type name 'FILE'
->      FILE *file;
->      ^~~~
-> 
-> vim +/FILE +841 drivers/acpi/acpica/aclocal.h
-> 
->    835
->    836	/*
->    837	 * File node - used for "Include" operator file stack and
->    838	 * depdendency tree for the -ca option
->    839	 */
->    840	struct acpi_file_node {
->  > 841		FILE *file;
->    842		char *filename;
->    843		char *file_start;	/* Points to AML and indicates when the AML for this particular
-> file starts. */
->    844		char *file_end;		/* Points to AML and indicates when the AML for this
-> particular file ends. */
-> 
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+SGksDQoNCj4gRnJvbTogRGFuaWVsIERyYWtlIFttYWlsdG86ZHJha2VAZW5kbGVzc20uY29tXQ0K
+PiBTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJIC8gRUM6IGhhbmRsZSBFQ0RUIEVDIGFuZCBEU0RU
+IEVDIHNpbXVsdGFuZW91c2x5DQo+IA0KPiBIaSBMdiwNCj4gDQo+IFRoYW5rcyBmb3IgdGhlIGRl
+dGFpbGVkIHJlc3BvbnNlLiBJbiB0cnlpbmcgdG8gZGVjb2RlIHRoZSB0cmlja3kgY29kZQ0KPiBm
+bG93IGFuZCBzZWVpbmcgYWxsIHRoaXMgZmlyc3RfZWMgLyBib290X2VjIC8gRFNEVCBFQyAvIEVD
+RFQgRUMgc3R1ZmYsDQo+IEkgc2VlbSB0byBoYXZlIG1hZGUgdGhlIHdyb25nIGludGVycHJldGF0
+aW9uIGFib3V0IGhvdyB0aGlzIGlzDQo+IGRlc2lnbmVkLg0KPiANCj4gT24gU3VuLCBBcHIgMjMs
+IDIwMTcgYXQgMTA6NDMgUE0sIFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90ZToN
+Cj4gPiBUaGUgZW50aXJlIHByb2JsZW0gbG9va3MgdG8gbWUgaXM6DQo+ID4gV2hlbiBHUEUgc2V0
+dGluZyBkaWZmZXJzIGJldHdlZW4gRUNEVCBhbmQgRFNEVCwgd2hpY2ggb25lIHNob3VsZCBiZQ0K
+PiA+IHRydXN0ZWQgYnkgT1M/DQo+IA0KPiBUaGlzIGNhc2Ugc3VnZ2VzdHMgdGhhdCBXaW5kb3dz
+IHVzZXMgdGhlIEVDRFQgc2V0dGluZywgcmlnaHQ/DQoNCkkgY2hlY2tlZCB0aGUgcHJvdmlkZWQg
+YWNwaSB0YWJsZXMuDQpJbmRlZWQsIHRoZSBFQ0RUIEVDIGlzIGNvcnJlY3QuDQpbMDAwaCAwMDAw
+ICAgNF0gICAgICAgICAgICAgICAgICAgIFNpZ25hdHVyZSA6ICJFQ0RUIiAgICBbRW1iZWRkZWQg
+Q29udHJvbGxlciBCb290IFJlc291cmNlcyBUYWJsZV0NClswMDRoIDAwMDQgICA0XSAgICAgICAg
+ICAgICAgICAgVGFibGUgTGVuZ3RoIDogMDAwMDAwQzENClswMDhoIDAwMDggICAxXSAgICAgICAg
+ICAgICAgICAgICAgIFJldmlzaW9uIDogMDENClswMDloIDAwMDkgICAxXSAgICAgICAgICAgICAg
+ICAgICAgIENoZWNrc3VtIDogRUMNClswMEFoIDAwMTAgICA2XSAgICAgICAgICAgICAgICAgICAg
+ICAgT2VtIElEIDogIl9BU1VTXyINClswMTBoIDAwMTYgICA4XSAgICAgICAgICAgICAgICAgT2Vt
+IFRhYmxlIElEIDogIk5vdGVib29rIg0KWzAxOGggMDAyNCAgIDRdICAgICAgICAgICAgICAgICBP
+ZW0gUmV2aXNpb24gOiAwMTA3MjAwOQ0KWzAxQ2ggMDAyOCAgIDRdICAgICAgICAgICAgICBBc2wg
+Q29tcGlsZXIgSUQgOiAiQU1JLiINClswMjBoIDAwMzIgICA0XSAgICAgICAgQXNsIENvbXBpbGVy
+IFJldmlzaW9uIDogMDAwMDAwMDUNCg0KDQpbMDI0aCAwMDM2ICAxMl0gICAgICBDb21tYW5kL1N0
+YXR1cyBSZWdpc3RlciA6IFtHZW5lcmljIEFkZHJlc3MgU3RydWN0dXJlXQ0KWzAyNGggMDAzNiAg
+IDFdICAgICAgICAgICAgICAgICAgICAgU3BhY2UgSUQgOiAwMSBbU3lzdGVtSU9dDQpbMDI1aCAw
+MDM3ICAgMV0gICAgICAgICAgICAgICAgICAgIEJpdCBXaWR0aCA6IDA4DQpbMDI2aCAwMDM4ICAg
+MV0gICAgICAgICAgICAgICAgICAgQml0IE9mZnNldCA6IDAwDQpbMDI3aCAwMDM5ICAgMV0gICAg
+ICAgICBFbmNvZGVkIEFjY2VzcyBXaWR0aCA6IDAwIFtVbmRlZmluZWQvTGVnYWN5XQ0KWzAyOGgg
+MDA0MCAgIDhdICAgICAgICAgICAgICAgICAgICAgIEFkZHJlc3MgOiAwMDAwMDAwMDAwMDAwMDY2
+DQoNClswMzBoIDAwNDggIDEyXSAgICAgICAgICAgICAgICBEYXRhIFJlZ2lzdGVyIDogW0dlbmVy
+aWMgQWRkcmVzcyBTdHJ1Y3R1cmVdDQpbMDMwaCAwMDQ4ICAgMV0gICAgICAgICAgICAgICAgICAg
+ICBTcGFjZSBJRCA6IDAxIFtTeXN0ZW1JT10NClswMzFoIDAwNDkgICAxXSAgICAgICAgICAgICAg
+ICAgICAgQml0IFdpZHRoIDogMDgNClswMzJoIDAwNTAgICAxXSAgICAgICAgICAgICAgICAgICBC
+aXQgT2Zmc2V0IDogMDANClswMzNoIDAwNTEgICAxXSAgICAgICAgIEVuY29kZWQgQWNjZXNzIFdp
+ZHRoIDogMDAgW1VuZGVmaW5lZC9MZWdhY3ldDQpbMDM0aCAwMDUyICAgOF0gICAgICAgICAgICAg
+ICAgICAgICAgQWRkcmVzcyA6IDAwMDAwMDAwMDAwMDAwNjINCg0KWzAzQ2ggMDA2MCAgIDRdICAg
+ICAgICAgICAgICAgICAgICAgICAgICBVSUQgOiAwMDAwMDAwMA0KWzA0MGggMDA2NCAgIDFdICAg
+ICAgICAgICAgICAgICAgIEdQRSBOdW1iZXIgOiAyMw0KWzA0MWggMDA2NSAgMTldICAgICAgICAg
+ICAgICAgICAgICAgTmFtZXBhdGggOiAiXF9TQi5QQ0kwLkxQQ0IuRUMwIg0KDQpXaGlsZSB0aGUg
+RFNEVCBFQyBpcyBpbiBmYWN0IGludmFsaWQgYXMgaXQgcmV0dXJucyAwIGZyb20gaXRzIF9TVEE6
+DQogICAgU2NvcGUgKF9TQi5QQ0kwLkxQQ0IpDQogICAgew0KICAgICAgICBEZXZpY2UgKEhfRUMp
+DQogICAgICAgIHsNCiAgICAgICAgICAgIE5hbWUgKF9ISUQsIEVpc2FJZCAoIlBOUDBDMDkiKSAv
+KiBFbWJlZGRlZCBDb250cm9sbGVyIERldmljZSAqLykgIC8vIF9ISUQ6IEhhcmR3YXJlIElEDQog
+ICAgICAgICAgICBOYW1lIChfVUlELCBPbmUpICAvLyBfVUlEOiBVbmlxdWUgSUQNCiAgICAgICAg
+ICAgIE1ldGhvZCAoX1NUQSwgMCwgTm90U2VyaWFsaXplZCkgIC8vIF9TVEE6IFN0YXR1cw0KICAg
+ICAgICAgICAgew0KICAgICAgICAgICAgICAgIF5eXkdGWDAuQ0xJRCA9IDB4MDMNCiAgICAgICAg
+ICAgICAgICBSZXR1cm4gKFplcm8pDQogICAgICAgICAgICB9DQogICAgICAgICAgICAuLi4NCiAg
+ICAgICAgfQ0KICAgIH0NCg0KSXQgZG9lc24ndCBjb250YWluIF9DUlMsIHNvIGl0J3MgbGlrZWx5
+IHRoYXQgaXQgd2lsbCBmYWlsIGluDQphY3BpX2VjX2RzZHRfcHJvYmUoKSBkdWUgdG8gZmFpbHVy
+ZSBvZiB3YWxrIF9DUlMuDQoNCkFyZSB5b3Ugc3VyZSB0aGUgc2FtZSBwcm9ibGVtIGNhbiBiZSBz
+ZWVuIG5vIHRoaXMgcGxhdGZvcm0/DQoNCklmIHNvLCBwb3NzaWJseSB5b3Ugb25seSBuZWVkIHRv
+IGFkZCBzb21lIHNhbml0eSBjaGVja3MgaW4NCmFjcGlfZWNfZHNkdF9wcm9iZSgpLiBBZnRlciBh
+Y3BpX2dldF9kZXZpY2VzKCkgY2FsbCwgY2hlY2sgaWYNCml0cyBJTyBhZGRyZXNzZXMgYXJlIGlu
+dmFsaWQuDQpPciBjaGVjayBpdHMgX1NUQSAocHJlc2VudCAmJiByZXR1cm4gdmFsaWQgdmFsdWUp
+IGFmdGVyIHRoYXQuDQpJdCBtaWdodCBub3QgYmUgcG9zc2libGUgdG8gZG8gc3VjaCBfU1RBIGV4
+ZWN1dGlvbi4NCg0KU28gSU1PLCB0aGUgYWNwaV9lY19kc2R0X3Byb2JlKCkgaXMgbm90IGEgZ29v
+ZCBjaG9pY2UuDQpUaGUgaGlzdG9yeSBpczoNCjEuIEluIEFDUEkgc3BlYyAxLjAsIHRoZXJlIGlz
+IG5vIEVDRFQsIEJJT1MgZGV2ZWxvcGVycyBoYXZlDQogICB0byBwcm92aWRlIHdyYXBwZXJzIGlu
+IEVDIHJlYWQvd3JpdGUgZnVuY3Rpb25zIGluIG9yZGVyIHRvDQogICBiZSBhYmxlIHRvIGFjY2Vz
+cyBFQyBmaXJtd2FyZSBiZWZvcmUgT1MgbG9hZHMgdGhlIEVDDQogICBkcml2ZXIuIEJlZm9yZSBF
+Qy5fUkVHIGlzIGludm9rZWQsIGFjY2VzcyBzeXN0ZW1pbw0KICAgb3ByZWdpb24gaW5zdGVhZCBv
+ZiBkaXJlY3RseSBhY2Nlc3NpbmcgRUMgb3ByZWdpb25zLg0KICAgSW4gQUNQSSBzcGVjIDIuMCwg
+RUNEVCBpcyBwcm92aWRlZCB0byBlbGltaW5hdGUgdGhlDQogICBDb21wbGljYXRpb24gb2YgdGhp
+cyBuZWVkcy4NCjIuIER1cmluZyBlYXJseSBMaW51eCBFQyBzdXBwb3J0LCBFQ0RUIGNvZGUgaXMg
+cHJvdmlkZWQNCiAgIGZvciB0aGUgc3BlYyBwdXJwb3NlLiBCdXQgc2V2ZXJhbCB1bi1yb290LWNh
+dXNlZCBrZXJuZWwNCiAgIGJ1Z3MgbWFkZSB0aGUgZGV2ZWxvcGVycyB0byBtYWtlIHRoZSB3cm9u
+ZyBjaG9pY2UsIHN0YXJ0aW5nDQogICB0byBhbHdheXMgb3ZlcnJpZGUgRUNEVCBFQyB1c2luZyBE
+U0RUIEVDLg0KICAgVGhlIGN1bHByaXQgY29tbWl0cyBhcmUgYzZjYjBlODcgYW5kIGE1MDMyYmZk
+Lg0KICAgVGhlIGN1bHByaXQgaW4gZmFjdCBmaW5hbGx5IGFsc28gcGxheWVkIGFzIG9uZSBvZiB0
+aG9zZQ0KICAgcmVhc29ucyBwcmV2ZW50aW5nIHRoZSBBTUwgaW50ZXJwcmV0ZXIgZnJvbSBiZWlu
+Zw0KICAgY29ycmVjdGx5IGltcGxlbWVudGVkIGFzIFdpbmRvd3MgY29tcGxpYW50Lg0KMy4gSG93
+ZXZlciwgYWZ0ZXIgc3dpdGNoaW5nIHRvIHRoZSBvbGQgYmVoYXZpb3IsIGFuZCB0aGUNCiAgIERT
+RFQgYm9vdCBFQyBtZWNoYW5pc20gaXMgZW50aXJlbHkgYWJhbmRvbmVkLiBCdXQgdXNlcnMNCiAg
+IFJlcG9ydGVkIHRoYXQgdGhleSBjYW4gc2VlIEVDIG9wcmVnaW9uIGFjY2Vzc2VkIGluIHNvbWUN
+CiAgIF9TVEEvX0lOSSwgYXMgTGludXggZXhlY3V0ZXMgdGhlc2UgY29udHJvbCBtZXRob2RzIHZl
+cnkNCiAgIEVhcmx5IChlYXJsaWVyIGJlZm9yZSBwcm9iZSBFQyBkcml2ZXIpIGFuZCB0aGVyZSBp
+cyBubw0KICAgRUNEVCBvbiB0aG9zZSBwbGF0Zm9ybXMsIHdlIGNhbiBzZWUgZXJyb3JzIGNvbXBs
+YWluaW5nDQogICBubyBvcHJlZ2lvbiBoYW5kbGVyLiBUaGUgYnVnIGlzIGtlcm5lbCBCdWd6aWxs
+YSAxMTkyNjEuDQogICBUQkgsIHRoZXNlIGVycm9ycyBhcmUgbm90IHN1Y2ggY3JpdGljYWwgSU1P
+LCB0aGUgQklPUw0KICAgb2J2aW91c2x5IHZpb2xhdGVzIGZhY3RzIG1lbnRpb25lZCBpbiBoaXN0
+b3J5IDEgYW5kIHdlDQogICBvYnZpb3VzbHkgZG8gbm90IGhhdmUga25vd2xlZGdlIG9mIHRoZSBl
+eGVjdXRpb24gb3JkZXINCiAgIG9mIHRoZXNlIGNvbnRyb2wgbWV0aG9kcyBvbiBXaW5kb3dzIGFu
+ZCB3ZSBvYnZpb3VzbHkNCiAgIGRvIG5vdCBrbm93IGlmIHN1Y2ggZXJyb3IgY2FuIGFsc28gYmUg
+c2VlbiBieSBXaW5vZHdzDQogICBhbmQgZG8gbm90IGtub3cgd2hldGhlciBzdWNoIGVycm9yIGNh
+biBiZSBmdW5jdGlvbmFsDQogICBmYWlsdXJlIGFuZCByZWFjaGVkIEJJT1MgZGV2ZWxvcGVycycg
+YXR0ZW50aW9uLg0KICAgQnV0IHdlIGZpbmFsbHkgaGF2ZSBubyBjaG9pY2UgYnV0IHJlc3Rvcmlu
+ZyB0aGUgYm9vdA0KICAgRFNEVCBFQyBoYWNrIGJhY2sgYXMgd2UgZG8gbm90IGtub3cgaG93IExp
+bnV4IGNhbg0KICAgZXhlY3V0ZSBhbGwgY29udHJvbCBtZXRob2RzIGluIHRoZSBleGFjdCBvcmRl
+ciBhcw0KICAgV2luZG93cy4uLg0KDQpUaGVuIG5vdywgaXQgYWN0dWFsbHkgbWFrZXMgdGhlIHBy
+b2JsZW0gbW9yZSBjb21wbGljYXRlZC4NCmFzIGl0IG1pZ2h0IG5vdCBiZSBwb3NzaWJsZSB0byBl
+eGVjdXRlIF9DUlMvX0dQRS9fU1RBDQphdCB0aGF0IHRpbWUgdG8gc2FuaXRpemUgdGhlIERTRFQg
+RUMuDQpQcm9iYWJseSB3ZSBjb3VsZCBqdXN0IGFiYW5kb24gaXQgYWdhaW4/DQoNCkFueXdheSB3
+ZSBjYW4gZmlyc3RseSBqdXN0IGFkZCAxIGxpbmUgSU8gYWRkcmVzcyBhbmQgX0dQRQ0KZXhpc3Rl
+bmNlIHNhbml0eSBjaGVjayBpbiBhY3BpX2VjX2RzZHRfcHJvYmUoKSB0byBmaXgNCnlvdXIgaXNz
+dWUuDQoNCj4gDQo+ID4gVGhlIGN1cnJlbnQgY29kZSBjaG9zZSB0byBhbHdheXMgdHJ1c3QgRFNE
+VCBHUEUgc2V0dGluZ3MgYXMgaW4gdGhlb3J5IGl0DQo+ID4gZG9lc24ndCBtYWtlIHNlbnNlIHRv
+IHRydXN0IHRoZSBFQ0RUIEdQRSBzZXR0aW5nIGluIG1vc3Qgb2YgdGhlIGNhc2VzLA0KPiA+IEVD
+RFQgR1BFIGlzIG5vdCBtZWFudCB0byBiZSB1c2VkIGR1cmluZyBydW50aW1lLiBTbyB3aHkgZG9u
+J3Qgd2UganVzdCBhZGQNCj4gPiBhIHF1aXJrIHRvIGZhdm9yIEdQRSBzZXR0aW5nIGZyb20gRUNE
+VCByYXRoZXIgdGhhbiB0aGUgR1BFIHNldHRpbmcgZnJvbQ0KPiA+IERTRFQgZm9yIHRoZXNlIHBs
+YXRmb3Jtcz8NCj4gDQo+IERvIHlvdSBtZWFuIGEgRE1JIHF1aXJrPyBXZSBoYXZlIGZvdW5kIHRo
+b3NlIHRvIGJlIHF1aXRlIGltcHJhY3RpY2FsDQo+IGluIHRoZSBwYXN0LCBpdCBpcyB0b28gaGFy
+ZCB0byBnZXQgMTAwJSBjb3ZlcmFnZSBvZiBhbGwgbWFjaGluZXMNCj4gYWZmZWN0ZWQgYnkgdGhl
+IGJ1ZywgYW5kIHVzdWFsbHkgd2Ugd291bGQgb25seSBiZSBhYmxlIHRvIHF1aXJrIGl0DQo+IGxh
+dGUgaW4gdGhlIHByb2Nlc3MgKGFmdGVyIHRoZSBtYWNoaW5lIGhhcyBhbHJlYWR5IHNoaXBwZWQg
+dG8gdXNlcnMpLg0KPiBJbiBhIHJlY2VudCBjYXNlIHdlIGhhZCBhbiBBc3VzIERNSSBxdWlya3Mg
+bGlzdCB0aGF0IGdyZXcgc2xvd2x5IHRvDQo+IG92ZXIgMzAgZW50cmllcyBvdmVyIGEgeWVhciwg
+YmVmb3JlIHdlIGZvdW5kIGEgZ2VuZXJpYyBzb2x1dGlvbi4NCj4gDQo+IEluIHRoaXMgY2FzZSB3
+ZSBoYXZlIGFza2VkIEFzdXMgQklPUyBlbmdpbmVlcnMgdG8gbm90IHJlcGVhdCB0aGlzDQo+IGlz
+c3VlIG9uIGZ1dHVyZSBwcm9kdWN0cywgYnV0IGV2ZW4gaWYgdGhleSBmb2xsb3cgb3VyIGFkdmlj
+ZSB0aGVyZSwgd2UNCj4gY2FuIGV4cGVjdCBhIGRlY2VudCBudW1iZXIgb2YgbW9kZWxzIGFmZmVj
+dGVkIGJ5IHRoaXMgaXNzdWUuDQo+IA0KPiBBbmQgd2UganVzdCBmb3VuZCBhIDJuZCBtb2RlbCB3
+aXRoIHRoZSBzYW1lIGlzc3VlLiBIZXJlIGlzIHRoZQ0KPiAiYWNwaWR1bXAgLWIiIG91dHB1dDoN
+Cj4gaHR0cHM6Ly93d3cuZHJvcGJveC5jb20vcy9kM3cyeHJtcnoxb2tsbncveDU4MHZkX2FjcGku
+dGd6P2RsPTANCj4gDQo+IFRvIHNlZSB0aGUgd2luZG93cyBkZXZpY2UgdHJlZSB1c2luZyBNaWNy
+b3NvZnQgV2luZG93cyBJbnRlcm5hbHMsIGFyZQ0KPiB5b3UgcmVmZXJyaW5nIHRvIHRoZSBwYXBl
+cmJhY2sgYm9vaz8gV2hpY2ggb2YgdGhlIDIgcGFydHMgd291bGQgd2UNCj4gaGF2ZSB0byBwdXJj
+aGFzZT8gRG9lcyBpdCBjb21lIHdpdGggYSBiaW5hcnkgb24gQ0Qgb3Igd291bGQgd2UgaGF2ZSB0
+bw0KPiBmaWd1cmUgb3V0IGhvdyB0byBjb21waWxlIHRoZSB0b29sPw0KDQpTb3JyeSBJIGNvbmZ1
+c2VkIGl0IHdpdGggc3lzaW50ZXJuYWwgdG9vbHMNCmh0dHBzOi8vdGVjaG5ldC5taWNyb3NvZnQu
+Y29tL2VuLXVzL3N5c2ludGVybmFscy9iYjg0MjA2Mi5hc3B4DQoNCkhvd2V2ZXIgaXQgc2hvdWxk
+IGJlIE9TUiBvbmxpbmUgRERLIGRldmVsb3BlciBzdXBwb3J0IHV0aWxpdHk6DQpodHRwOi8vd3d3
+Lm9zcm9ubGluZS5jb20vYXJ0aWNsZS5jZm0/aWQ9OTcNCg0KVGhhbmtzDQpMdg0K
