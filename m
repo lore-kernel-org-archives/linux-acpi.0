@@ -1,82 +1,57 @@
-From: Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH v1 8/8] ACPI: Use recently introduced uuid_le_cmp_p{p}()
- helpers
-Date: Thu, 27 Apr 2017 14:46:31 +0200
-Message-ID: <20170427124631.3fycg2jbs4ffhi45@pd.tnic>
-References: <20170421144645.45189-1-andriy.shevchenko@linux.intel.com>
- <20170421144645.45189-8-andriy.shevchenko@linux.intel.com>
- <7721821.2dV0yqi2RQ@aspire.rjw.lan>
+From: "Jayachandran C." <c.jayachandran@gmail.com>
+Subject: Re: [PATCH 1/3] arm64: Add MIDR values for Cavium cn99xx SoCs
+Date: Thu, 27 Apr 2017 18:31:50 +0530
+Message-ID: <CA+7sy7BX3hVG=Coh0Dy6iiAHWqKuEVz1c2Z58TQACbMPrvdyqA@mail.gmail.com>
+References: <1493293584-20287-1-git-send-email-gakula@caviumnetworks.com> <1493293584-20287-2-git-send-email-gakula@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <7721821.2dV0yqi2RQ-yvgW3jdyMHm1GS7QM15AGw@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f193.google.com ([209.85.223.193]:36173 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1031975AbdD0NBw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Apr 2017 09:01:52 -0400
+In-Reply-To: <1493293584-20287-2-git-send-email-gakula@caviumnetworks.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Geetha sowjanya <gakula@caviumnetworks.com>
+Cc: Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, hanjun.guo@linaro.org, Sudeep Holla <sudeep.holla@arm.com>, iommu@lists.linux-foundation.org, Jon Masters <jcm@redhat.com>, linu.cherian@cavium.com, linux-kernel@vger.kernel.org, geethasowjanya.akula@gmail.com, linux-acpi@vger.kernel.org, robert.richter@cavium.com, Catalin Marinas <catalin.marinas@arm.com>, Geetha <gakula@cavium.com>, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org
 
-On Fri, Apr 21, 2017 at 11:22:31PM +0200, Rafael J. Wysocki wrote:
-> >  #ifdef CONFIG_ACPI_APEI_PCIEAER
-> > -		else if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
-> > -				      CPER_SEC_PCIE)) {
-> > +		else if (!uuid_le_cmp_p(sec_type, CPER_SEC_PCIE)) {
-> >  			struct cper_sec_pcie *pcie_err;
-> >  			pcie_err = (struct cper_sec_pcie *)(gdata+1);
-> >  			if (sev == GHES_SEV_RECOVERABLE &&
-> > 
-> 
-> But this one is for Boris.
+On Thu, Apr 27, 2017 at 5:16 PM, Geetha sowjanya
+<gakula@caviumnetworks.com> wrote:
+> From: Geetha <gakula@cavium.com>
+>
+> Add MIDR values for Cavium cn99xx SoCs
+>
+> Signed-off-by: Geetha <gakula@cavium.com>
+> ---
+>  arch/arm64/include/asm/cputype.h | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/arch/arm64/include/asm/cputype.h b/arch/arm64/include/asm/cputype.h
+> index fc50271..066fad0 100644
+> --- a/arch/arm64/include/asm/cputype.h
+> +++ b/arch/arm64/include/asm/cputype.h
+> @@ -85,6 +85,7 @@
+>
+>  #define CAVIUM_CPU_PART_THUNDERX       0x0A1
+>  #define CAVIUM_CPU_PART_THUNDERX_81XX  0x0A2
+> +#define CAVIUM_CPU_PART_THUNDERX_99XX  0x0AF
 
-I don't see anything wrong with it upon a brief inspection.
+Can you please use the name CAVIUM_CPU_PART_THUNDERX2? We have used
+ThunderX2 consistently for this platform, having THUNDERX here would
+be confusing.
 
-What could be improved here, though, is if the whole uuid_* types
-handling be changed so that gcc doesn't generate yucky code. Because
-here's what it does now, regardless of this patch:
+>  #define BRCM_CPU_PART_VULCAN           0x516
+>
+> @@ -94,6 +95,8 @@
+>  #define MIDR_CORTEX_A57 MIDR_CPU_MODEL(ARM_CPU_IMP_ARM, ARM_CPU_PART_CORTEX_A57)
+>  #define MIDR_THUNDERX  MIDR_CPU_MODEL(ARM_CPU_IMP_CAVIUM, CAVIUM_CPU_PART_THUNDERX)
+>  #define MIDR_THUNDERX_81XX MIDR_CPU_MODEL(ARM_CPU_IMP_CAVIUM, CAVIUM_CPU_PART_THUNDERX_81XX)
+> +#define MIDR_THUNDERX_99XX MIDR_CPU_MODEL(ARM_CPU_IMP_CAVIUM, CAVIUM_CPU_PART_THUNDERX_99XX)
+> +#define MIDR_BRCM_VULCAN MIDR_CPU_MODEL(ARM_CPU_IMP_BRCM, BRCM_CPU_PART_VULCAN)
+>  #define MIDR_QCOM_FALKOR_V1 MIDR_CPU_MODEL(ARM_CPU_IMP_QCOM, QCOM_CPU_PART_FALKOR_V1)
+>
+>  #ifndef __ASSEMBLY__
 
-        .file 16 "./include/linux/uuid.h"
-        .loc 16 63 0
-        leaq    16(%rsp), %rsi  #,
-        movl    $16, %edx       #,
-        movq    %r15, %rdi      # gdata,
-        movb    $84, 16(%rsp)   #, MEM[(struct  *)&u2]
-        movb    $-23, 17(%rsp)  #, MEM[(struct  *)&u2 + 1B]
-        movb    $-107, 18(%rsp) #, MEM[(struct  *)&u2 + 2B]
-        movb    $-39, 19(%rsp)  #, MEM[(struct  *)&u2 + 3B]
-        movb    $-63, 20(%rsp)  #, MEM[(struct  *)&u2 + 4B]
-        movb    $-69, 21(%rsp)  #, MEM[(struct  *)&u2 + 5B]
-        movb    $15, 22(%rsp)   #, MEM[(struct  *)&u2 + 6B]
-        movb    $67, 23(%rsp)   #, MEM[(struct  *)&u2 + 7B]
-        movb    $-83, 24(%rsp)  #, MEM[(struct  *)&u2 + 8B]
-        movb    $-111, 25(%rsp) #, MEM[(struct  *)&u2 + 9B]
-        movb    $-76, 26(%rsp)  #, MEM[(struct  *)&u2 + 10B]
-        movb    $77, 27(%rsp)   #, MEM[(struct  *)&u2 + 11B]
-        movb    $-53, 28(%rsp)  #, MEM[(struct  *)&u2 + 12B]
-        movb    $60, 29(%rsp)   #, MEM[(struct  *)&u2 + 13B]
-        movb    $111, 30(%rsp)  #, MEM[(struct  *)&u2 + 14B]
-        movb    $53, 31(%rsp)   #, MEM[(struct  *)&u2 + 15B]
-        call    memcmp  #
-
-So it is basically building that UUID byte by byte before calling
-memcmp.
-
-And I'm wondering if those 16-byte arrays could be replaced with
-
-typedef struct {
-        u64 a, b;
-} u128;
-
-from the crypto code.
-
-And whether the code generated by gcc would look much saner. Because the
-CPU can handle two qwords much better/faster than 16 u8s.
-
-Anyway, in case someone feels bored...
-
--- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+Thanks,
+JC.
