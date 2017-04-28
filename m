@@ -1,121 +1,102 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 4/4] ACPI: Fix memory mapping leaks in current sysfs dumpable ACPI tables support
-Date: Fri, 28 Apr 2017 13:30:32 +0800
-Message-ID: <0b1b82d968540967f78988fb706715406f0b6102.1493357251.git.lv.zheng@intel.com>
-References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
+From: Sricharan R <sricharan@codeaurora.org>
+Subject: Re: [REGRESSION next-20170426] Commit 09515ef5ddad ("of/acpi:
+ Configure dma operations at probe time for platform/amba/pci bus devices")
+ causes oops in mvneta
+Date: Fri, 28 Apr 2017 11:13:33 +0530
+Message-ID: <524b7fc8-1eca-a7d8-7bc7-6743be17c208@codeaurora.org>
+References: <20170426181508.687b52af@gmail.com>
+ <2fb57b9b-3944-d9cc-1fac-8dcccaa0c37a@codeaurora.org>
+ <20170427164014.422a124c@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------E413B5F93E4921879CA78459"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:48360 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756085AbdD1Faf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 28 Apr 2017 01:30:35 -0400
-In-Reply-To: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:38344 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756525AbdD1Fnm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Apr 2017 01:43:42 -0400
+In-Reply-To: <20170427164014.422a124c@gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Ralph Sennhauser <ralph.sennhauser@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Joerg Roedel <jroedel@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, netdev@vger.kernel.org
 
-This patch adds acpi_put_table() to make all acpi_get_table() clone
-invocations balanced for sysfs ACPI table dump code.
+This is a multi-part message in MIME format.
+--------------E413B5F93E4921879CA78459
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-Since Linux does not use all of the tables, this can help to reduce some
-usless memory mappings.
+Hi Ralph,
 
-While originally, all tables will be remained to be mapped after a
-userspace acpidump execution, potentially causing problem on server
-platforms. With the new APIs, it is possible to release such useless table
-mappings.
+On 4/27/2017 8:10 PM, Ralph Sennhauser wrote:
+> On Thu, 27 Apr 2017 19:05:09 +0530
+> Sricharan R <sricharan@codeaurora.org> wrote:
+> 
+>> Hi,
+>>
+>> On 4/26/2017 9:45 PM, Ralph Sennhauser wrote:
+>>> Hi Sricharan R,
+>>>
+>>> Commit 09515ef5ddad ("of/acpi: Configure dma operations at probe
+>>> time for platform/amba/pci bus devices") causes a kernel panic as
+>>> in the log below on an armada-385. Reverting the commit fixes the
+>>> issue.
+>>>
+>>> Regards
+>>> Ralph  
+>>
+>> Somehow not getting a obvious clue on whats going wrong with the logs
+>> below. From the log and looking in to dts, the drivers seems to the
+>> one for "marvell,armada-370-neta".
+> 
+> Correct.
+> 
+>> Issue looks the data from the dma
+>> has gone bad and subsequently referring the wrong data has resulted
+>> in the crash. Looks like the dma_masks is the one going wrong.
+>> Can i get some logs from mvneta_probe, about dev->dma_mask,
+>> dev->coherent_dma_mask and dev->dma_ops with and without the patch
+>> to see whats the difference ?
+> 
+> Not sure I understood what exactly you are after. Might be faster to
+> just send me a patch with all debug print statements you like to see.
+> 
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/sysfs.c | 41 +++++++++++++++++++++++++++++++----------
- 1 file changed, 31 insertions(+), 10 deletions(-)
+Attached the patch with debug prints.
 
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 2bbf722..14425dc 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -346,11 +346,22 @@ static ssize_t acpi_table_show(struct file *filp, struct kobject *kobj,
- 	return len;
- }
- 
-+static bool acpi_table_has_multiple_instances(char *signature)
-+{
-+	acpi_status status;
-+	struct acpi_table_header *header;
-+
-+	status = acpi_get_table(signature, 2, &header);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+	acpi_put_table(header);
-+	return true;
-+}
-+
- static int acpi_table_attr_init(struct kobject *tables_obj,
- 				struct acpi_table_attr *table_attr,
- 				struct acpi_table_header *table_header)
- {
--	struct acpi_table_header *header = NULL;
- 	struct acpi_table_attr *attr = NULL;
- 	char instance_str[ACPI_INST_SIZE];
- 
-@@ -371,9 +382,9 @@ static int acpi_table_attr_init(struct kobject *tables_obj,
- 
- 	ACPI_MOVE_NAME(table_attr->filename, table_header->signature);
- 	table_attr->filename[ACPI_NAME_SIZE] = '\0';
--	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
--					 !acpi_get_table
--					 (table_header->signature, 2, &header))) {
-+	if (table_attr->instance > 1 ||
-+	    (table_attr->instance == 1 &&
-+	     acpi_table_has_multiple_instances(table_header->signature))) {
- 		snprintf(instance_str, sizeof(instance_str), "%u",
- 			 table_attr->instance);
- 		strcat(table_attr->filename, instance_str);
-@@ -422,11 +433,11 @@ acpi_status acpi_sysfs_table_handler(u32 event, void *table, void *context)
- 
- static int acpi_tables_sysfs_init(void)
- {
--	struct acpi_table_attr *table_attr;
-+	struct acpi_table_attr *table_attr = NULL;
- 	struct acpi_table_header *table_header = NULL;
- 	int table_index;
- 	acpi_status status;
--	int ret;
-+	int ret = 0;
- 
- 	tables_kobj = kobject_create_and_add("tables", acpi_kobj);
- 	if (!tables_kobj)
-@@ -446,16 +457,26 @@ static int acpi_tables_sysfs_init(void)
- 			continue;
- 
- 		table_attr = kzalloc(sizeof(*table_attr), GFP_KERNEL);
--		if (!table_attr)
--			return -ENOMEM;
-+		if (!table_attr) {
-+			ret = -ENOMEM;
-+			goto next_table;
-+		}
- 
- 		ret = acpi_table_attr_init(tables_kobj,
- 					   table_attr, table_header);
-+		if (ret)
-+			goto next_table;
-+		list_add_tail(&table_attr->node, &acpi_table_attr_list);
-+
-+next_table:
-+		acpi_put_table(table_header);
- 		if (ret) {
--			kfree(table_attr);
-+			if (table_attr) {
-+				kfree(table_attr);
-+				table_attr = NULL;
-+			}
- 			return ret;
- 		}
--		list_add_tail(&table_attr->node, &acpi_table_attr_list);
- 	}
- 
- 	kobject_uevent(tables_kobj, KOBJ_ADD);
+Regards,
+ Sricharan
+
 -- 
-2.7.4
+"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
 
+--------------E413B5F93E4921879CA78459
+Content-Type: text/plain; charset=UTF-8;
+ name="0001-Debug-prints.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="0001-Debug-prints.patch"
+
+RnJvbSBmZTc3ZDM5NjhkNmJjMzViNDZlNWYzMGQ1YzY3Yzc2MDNhYTEwNTk3IE1vbiBTZXAg
+MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBTcmljaGFyYW4gUiA8c3JpY2hhcmFuQGNvZGVhdXJv
+cmEub3JnPgpEYXRlOiBGcmksIDI4IEFwciAyMDE3IDA5OjQzOjI2ICswNTMwClN1YmplY3Q6
+IFtQQVRDSF0gRGVidWcgcHJpbnRzCgpTaWduZWQtb2ZmLWJ5OiBTcmljaGFyYW4gUiA8c3Jp
+Y2hhcmFuQGNvZGVhdXJvcmEub3JnPgotLS0KIGRyaXZlcnMvbmV0L2V0aGVybmV0L21hcnZl
+bGwvbXZuZXRhLmMgfCA2ICsrKysrKwogMSBmaWxlIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygr
+KQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21hcnZlbGwvbXZuZXRhLmMg
+Yi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tYXJ2ZWxsL212bmV0YS5jCmluZGV4IGQyOTcwMTEu
+LjI1MGYwYjIgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21hcnZlbGwvbXZu
+ZXRhLmMKKysrIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWFydmVsbC9tdm5ldGEuYwpAQCAt
+NDE0Niw2ICs0MTQ2LDEyIEBAIHN0YXRpYyBpbnQgbXZuZXRhX3Byb2JlKHN0cnVjdCBwbGF0
+Zm9ybV9kZXZpY2UgKnBkZXYpCiAJaW50IHBoeV9tb2RlOwogCWludCBlcnI7CiAJaW50IGNw
+dTsKKwlzdHJ1Y3QgZGV2aWNlICpkZGV2ID0gJnBkZXYtPmRldjsKKworCisJZGV2X2Vycihk
+ZGV2LCAiZGV2LT5kbWFfbWFzayAweCVsbHhcbiIsICooZGRldi0+ZG1hX21hc2spKTsKKwlk
+ZXZfZXJyKGRkZXYsICJkZXYtPmNvaGVyZW50X2RtYV9tYXNrIDB4JWxseFxuIiwgZGRldi0+
+Y29oZXJlbnRfZG1hX21hc2spOworCWRldl9lcnIoZGRldiwgImRldi0+ZG1hX29wcyAweCVs
+bHhcbiIsIGRkZXYtPmRtYV9vcHMpOwogCiAJZGV2ID0gYWxsb2NfZXRoZXJkZXZfbXFzKHNp
+emVvZihzdHJ1Y3QgbXZuZXRhX3BvcnQpLCB0eHFfbnVtYmVyLCByeHFfbnVtYmVyKTsKIAlp
+ZiAoIWRldikKLS0gClFVQUxDT01NIElORElBLCBvbiBiZWhhbGYgb2YgUXVhbGNvbW0gSW5u
+b3ZhdGlvbiBDZW50ZXIsIEluYy4gaXMgYSBtZW1iZXIgb2YgQ29kZSBBdXJvcmEgRm9ydW0s
+IGhvc3RlZCBieSBUaGUgTGludXggRm91bmRhdGlvbgoK
+--------------E413B5F93E4921879CA78459--
