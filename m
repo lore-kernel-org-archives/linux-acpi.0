@@ -1,101 +1,114 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 1/2] ACPICA: Tables: Fix regression introduced by a
- too early mechanism enabling
-Date: Fri, 28 Apr 2017 01:24:01 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9A031@SHSMSX101.ccr.corp.intel.com>
-References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
- <1841048.oWuTkq5WIo@aspire.rjw.lan>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH] ACPI / GED: use late init to allow other drivers init
+Date: Thu, 27 Apr 2017 22:32:07 -0400
+Message-ID: <5c77c025-e3a4-f317-e7bc-f76e19ed2b12@codeaurora.org>
+References: <1492813704-32280-1-git-send-email-okaya@codeaurora.org>
+ <CAJZ5v0gtLajqCsw0HTS=sL_=cU1aSFzUk6e_kAPAfreuCpak7g@mail.gmail.com>
+ <bf1ce91f-b232-4dce-5ed7-597b0ef46f92@codeaurora.org>
+ <CAJZ5v0jaGnoCjiU6VuHLyy9Kug8nHzxPxP8tuy3kphtfgmW38w@mail.gmail.com>
+ <3f0f2853-d2e5-be32-2bde-47e72c51a0a6@codeaurora.org>
+ <20170425070154.GC9999@wunner.de>
+ <3f2c5bcc-3499-d5ef-6955-778979d25b08@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:55957 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938346AbdD1BYG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 27 Apr 2017 21:24:06 -0400
-In-Reply-To: <1841048.oWuTkq5WIo@aspire.rjw.lan>
+Received: from smtp.codeaurora.org ([198.145.29.96]:47672 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935593AbdD1CcL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Apr 2017 22:32:11 -0400
+In-Reply-To: <3f2c5bcc-3499-d5ef-6955-778979d25b08@codeaurora.org>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>
+To: Lukas Wunner <lukas@wunner.de>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi, Rafael
-
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J.
-> Wysocki
-> Subject: Re: [PATCH v2 1/2] ACPICA: Tables: Fix regression introduced by a too early mechanism
-> enabling
+On 4/25/2017 12:24 PM, Sinan Kaya wrote:
+> On 4/25/2017 3:01 AM, Lukas Wunner wrote:
+>> On Sat, Apr 22, 2017 at 12:48 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
+>>> On 4/21/2017 6:43 PM, Rafael J. Wysocki wrote:
+>>>> +late_initcall(ged_init);
+>>>> Does this fix the problem?
+>>>>
+>>>> What about if the module in question is loaded after running
+>>>> late_initcalls?
+>>>
+>>> This fixed the issue for me where I had dependencies for QUP I2C driver
+>>> and GHES drivers. Both of them are modules and get probed via normal
+>>> module execution path.
+>>>
+>>> However, I'm open to improvements.  Do you have a better suggestion?
+>>> I can try to add some _DEP stuff if it is present, but I remember Linux
+>>> doesn't like _DEP stuff too much.
+>>
+>> Would it be possible to solve this by just returning -EPROBE_DEFER from the
+>> ->probe hook if the devices you depend on are not bound yet?
+>>
 > 
-> On Thursday, April 27, 2017 04:22:44 PM Lv Zheng wrote:
-> > In the Linux kernel side, acpi_get_table() clones haven't been fully
-> > balanced by acpi_put_table() invocations. In ACPICA side, due to the design
-> > change, there are also unbalanced acpi_get_table_by_index() invocations
-> > requiring special care to be cleaned up.
-> >
-> > So it is not a good timing to report acpi_get_table() counting errors for
-> > this period. The strict balanced validation count check should only be
-> > enabled after confirming that all invocations are safe and compliant to
-> > their designed purposes.
-> >
-> > Thus this patch removes the fatal error along with lthe error report to
-> > fix this issue. Reported by Dan Williams, fixed by Lv Zheng.
-> >
-> > Fixes: 174cc7187e6f ("ACPICA: Tables: Back port acpi_get_table_with_size() and
-> early_acpi_os_unmap_memory() from Linux kernel")
-> > Reported-by: Dan Williams <dan.j.williams@intel.com>
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> I'm not sure. 
 > 
-> Please do not add #if 0 anywhere to the kernel code base.
+>> Alternatively, would it be possible to solve it with a struct device_link?
 > 
-> If you need to drop some piece of code, just drop it.
+> I wasn't aware of device_link concept. This is something that I will keep in
+> my mind when I'm dealing with producer/consumer problems with known device
+> driver instances. It looked very useful.
 > 
-> And in this particular case validation_count should be dropped from the data
-> type definition too.
-
-Then I would prefer to fix all acpi_get_table() clones in ACPICA.
-That could avoid removing the useful code.
-
-Without fixing sysfs/Load/table_handler ones, there will always cases frequently increasing/decreasing the count.
-Others seem to be not urgent.
-
-I'll post the fix as an urgent fix here with the ACPICA upstream process bypassed and back port it to ACPICA later.
-If there are changes during the back port, I'll take care of making the differences eliminated in the corresponding ACPICA release cycle.
-
-Thanks
-Lv
-
-
+> Here is how the overall relationship between drivers.
 > 
-> > ---
-> >  drivers/acpi/acpica/tbutils.c | 4 +++-
-> >  1 file changed, 3 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-> > index 5a968a7..8175c70 100644
-> > --- a/drivers/acpi/acpica/tbutils.c
-> > +++ b/drivers/acpi/acpica/tbutils.c
-> > @@ -418,11 +418,13 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
-> >
-> >  	table_desc->validation_count++;
-> >  	if (table_desc->validation_count == 0) {
-> > +		table_desc->validation_count--;
-> > +#if 0
-> >  		ACPI_ERROR((AE_INFO,
-> >  			    "Table %p, Validation count is zero after increment\n",
-> >  			    table_desc));
-> > -		table_desc->validation_count--;
-> >  		return_ACPI_STATUS(AE_LIMIT);
-> > +#endif
-> >  	}
-> >
-> >  	*out_table = table_desc->pointer;
-> >
+> | GED | <--->  | Platform specific ACPI AML | <----> Vendor GPIO
+>                                               <----> Vendor I2C
+>                                               <----> ACPI GHES
+> 					      <----> Some other driver
 > 
-> Thanks,
-> Rafael
+> The problem with Generic Event Device (GED) is that it produces event
+> notification facility to the platform specific AML code and GED doesn't
+> have any idea about the consumers of these interrupts or what platform AML
+> does. 
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> GED only sees the interrupts that it needs to register and
+> knows the ASL code it needs to execute when that interrupt happens.
+> 
+> It is possible for AML code not to use any of these drivers or require
+> some arbitrary driver as well as vendor specific drivers. It is totally
+> up to the firmware to decide what to do with this event.
+> 
+> My proposal was to require platform AML code to indicate the dependencies
+> between GED and drivers on the right side of the picture via _DEP as this
+> cannot be done via normal kernel mechanisms.
+> 
+> This approach might work in general. However, it also has its own caveats.
+> 
+> All of these drivers on the right side are unrelated to each other. Some
+> operating system can implement a subset of these drivers.
+> 
+> If I include the dependencies, GED will never load for partial driver situations.
+> This is also a deal breaker. 
+> 
+> Why would you break some other feature if your OS doesn't support RAS as an
+> example?
+> 
+> Given all these lose bindings and no driver association, where do we go
+> from here?
+> 
+> I consider GED as a light version of Embedded controller (EC) implementation. 
+> 
+> How is this problem solved for EC as it has the same problem?
+> 
+
+This recommendation came from Timur. I wanted to see how everybody feels about it.
+
+When GED driver makes an AML call and the driver on the right side of the picture
+is not present, GED driver gets an ACPI error return code. 
+
+GED driver can potentially reschedule the AML call to be retried in 30 seconds. 
+
+Repeat this 5 times. If nobody handles the event, disable the interrupt. 
+
+Let me know what you think.
+
+
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
