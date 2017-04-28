@@ -1,104 +1,57 @@
-From: Ralph Sennhauser <ralph.sennhauser@gmail.com>
-Subject: Re: [REGRESSION next-20170426] Commit 09515ef5ddad ("of/acpi:
- Configure dma operations at probe time for platform/amba/pci bus devices")
- causes oops in mvneta
-Date: Fri, 28 Apr 2017 14:25:03 +0200
-Message-ID: <20170428142503.3b465425@gmail.com>
-References: <20170426181508.687b52af@gmail.com>
-        <2fb57b9b-3944-d9cc-1fac-8dcccaa0c37a@codeaurora.org>
-        <20170427164014.422a124c@gmail.com>
-        <524b7fc8-1eca-a7d8-7bc7-6743be17c208@codeaurora.org>
-        <20170428081919.21bb569d@gmail.com>
-        <bcdcc1cc-181c-8396-dd3c-dd40d0c7efc1@codeaurora.org>
+From: Daniel Drake <drake@endlessm.com>
+Subject: Re: [PATCH] ACPI / EC: handle ECDT EC and DSDT EC simultaneously
+Date: Fri, 28 Apr 2017 06:52:29 -0600
+Message-ID: <CAD8Lp46nYiKuwc8i7K_uSKisH4q=wWs8tH7ktJCgoeMDBoU4wg@mail.gmail.com>
+References: <20170420201219.21568-1-drake@endlessm.com> <CAD8Lp44nXRv0rpZgPw1f0LZ_bcn74fQFzG6HBxRcL1QAWxBHTQ@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE9973E@SHSMSX101.ccr.corp.intel.com>
+ <2213549.Q4Z823dSPo@aspire.rjw.lan> <CAD8Lp46+BQxcB9hgp0wXvWkA32XksYdG1h-vZOzQ5pT0P-0Ydg@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE9A1C9@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <bcdcc1cc-181c-8396-dd3c-dd40d0c7efc1@codeaurora.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Sricharan R <sricharan@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Joerg Roedel <jroedel@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, netdev@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wr0-f170.google.com ([209.85.128.170]:36366 "EHLO
+        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1034971AbdD1Mwb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Apr 2017 08:52:31 -0400
+Received: by mail-wr0-f170.google.com with SMTP id l50so33169638wrc.3
+        for <linux-acpi@vger.kernel.org>; Fri, 28 Apr 2017 05:52:30 -0700 (PDT)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE9A1C9@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "chiu@endlessm.com" <chiu@endlessm.com>, "linux@endlessm.com" <linux@endlessm.com>
 
-On Fri, 28 Apr 2017 17:26:41 +0530
-Sricharan R <sricharan@codeaurora.org> wrote:
+Hi,
 
-> Hi Ralph,
-> 
-> <snip..>
-> 
-> >>>>>
-> >>>>> Commit 09515ef5ddad ("of/acpi: Configure dma operations at probe
-> >>>>> time for platform/amba/pci bus devices") causes a kernel panic
-> >>>>> as in the log below on an armada-385. Reverting the commit
-> >>>>> fixes the issue.
-> >>>>>
-> >>>>> Regards
-> >>>>> Ralph      
-> >>>>
-> >>>> Somehow not getting a obvious clue on whats going wrong with the
-> >>>> logs below. From the log and looking in to dts, the drivers seems
-> >>>> to the one for "marvell,armada-370-neta".    
-> >>>
-> >>> Correct.
-> >>>     
-> >>>> Issue looks the data from the dma
-> >>>> has gone bad and subsequently referring the wrong data has
-> >>>> resulted in the crash. Looks like the dma_masks is the one going
-> >>>> wrong. Can i get some logs from mvneta_probe, about
-> >>>> dev->dma_mask, dev->coherent_dma_mask and dev->dma_ops with and
-> >>>> without the patch to see whats the difference ?    
-> >>>
-> >>> Not sure I understood what exactly you are after. Might be faster
-> >>> to just send me a patch with all debug print statements you like
-> >>> to see.   
-> >>
-> >> Attached the patch with debug prints.
-> >>
-> >> Regards,
-> >>  Sricharan
-> >>  
-> > 
-> > Hi Sricharan
-> > 
-> > With commit 09515ef5ddad
-> > 
-> > [    1.288962] mvneta f1070000.ethernet: dev->dma_mask 0xffffffff
-> > [    1.294827] mvneta f1070000.ethernet: dev->coherent_dma_mask
-> > 0xffffffff [    1.301472] mvneta f1070000.ethernet: dev->dma_ops
-> > 0x40b00c0601460
-> > 
-> > [    1.322047] mvneta f1034000.ethernet: dev->dma_mask 0xffffffff
-> > [    1.327904] mvneta f1034000.ethernet: dev->coherent_dma_mask
-> > 0xffffffff [    1.334549] mvneta f1034000.ethernet: dev->dma_ops
-> > 0x40b00c0601460
-> > 
-> > 
-> > With the patch reverted, the build that works
-> > 
-> > [    1.289001] mvneta f1070000.ethernet: dev->dma_mask 0xffffffff
-> > [    1.294866] mvneta f1070000.ethernet: dev->coherent_dma_mask
-> > 0xffffffff [    1.301511] mvneta f1070000.ethernet: dev->dma_ops
-> > 0x40b00c06014a8
-> > 
-> > [    1.317005] mvneta f1034000.ethernet: dev->dma_mask 0xffffffff
-> > [    1.322867] mvneta f1034000.ethernet: dev->coherent_dma_mask
-> > 0xffffffff [    1.329508] mvneta f1034000.ethernet: dev->dma_ops
-> > 0x40b00c06014a8 
-> 
-> My bad, i think it is this patch missing [1], attached it as well.
-> Infact, this was in the series initially and got acked to get merged
-> separately well before the series. I should have sent this to Russell.
-> I will do this now. If this fixes up the issue,
-> i will take this patch separately, while this series gets tested
-> on -next.
-> 
-> [1] https://patchwork.kernel.org/patch/9362113/
-> 
+On Fri, Apr 28, 2017 at 12:33 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> However in the above debugging commit, I'm sure we shouldn't invoke _STA in ec_parse_device().
+> As the reasons below.
+>
+> In theory, using DSDT EC as boot EC is not spec compliant.
+> It's just a workaround in Linux for not knowing the Windows device enumeration orders.
+> Especially, the order of executing the control method execution that may contain hardware initialization code.
+> Such control methods are mostly _STA/_INI.
+> While for _HID/_CRS/_GPE/_BBN, it is unlikely to trigger order issues and it might be safe to invoke them such early.
+>
+> If you executes _STA here, you might bring EC._STA execution prior than other _INI/_STA and may break some other platforms.
+> So for now, I think you should only add simple sanity checks for ioports.
+> And since you have the direct accesses to these affected platforms, you can help to provide such working sanity check improvements for us.
 
-With the attached patch,
-0001-arm-dma-mapping-Don-t-override-dma_ops-in-arch_setup.patch, on top
-of next all is well again.
+In the DSDT you were looking at the H_EC device, but for whatever
+reason, there are two ECs in this DSDT and the one that Linux picks up
+is the 2nd one, \_SB_.PCI0.LPCB.EC0.
 
-Thanks
-Ralph
+This device has no _STA but does have valid _CRS, and the debug patch
+results agree:
+
+ ACPI : EC: acpi_ec_dsdt_probe: search for DSDT EC
+ ACPI : EC: ec_parse_device: _STA status 5 val 0
+ ACPI : EC: ec_parse_device: _CRS status 0 command 66 data 62
+ ACPI : EC: EC stopped
+ ACPI : EC: EC started
+ ACPI: \_SB_.PCI0.LPCB.EC0_: Used as first EC
+
+acpidump output is at
+https://www.dropbox.com/s/d3w2xrmrz1oklnw/x580vd_acpi.tgz?dl=0
+
+Daniel
