@@ -1,57 +1,103 @@
-From: Daniel Drake <drake@endlessm.com>
-Subject: Re: [PATCH] ACPI / EC: handle ECDT EC and DSDT EC simultaneously
-Date: Fri, 28 Apr 2017 06:52:29 -0600
-Message-ID: <CAD8Lp46nYiKuwc8i7K_uSKisH4q=wWs8tH7ktJCgoeMDBoU4wg@mail.gmail.com>
-References: <20170420201219.21568-1-drake@endlessm.com> <CAD8Lp44nXRv0rpZgPw1f0LZ_bcn74fQFzG6HBxRcL1QAWxBHTQ@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886CE9973E@SHSMSX101.ccr.corp.intel.com>
- <2213549.Q4Z823dSPo@aspire.rjw.lan> <CAD8Lp46+BQxcB9hgp0wXvWkA32XksYdG1h-vZOzQ5pT0P-0Ydg@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886CE9A1C9@SHSMSX101.ccr.corp.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH V15 07/11] acpi: apei: panic OS with fatal error status
+ block
+Date: Fri, 28 Apr 2017 15:07:10 +0200
+Message-ID: <20170428130710.s7m7nk46xmobxgq5@pd.tnic>
+References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
+ <1492556723-9189-8-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f170.google.com ([209.85.128.170]:36366 "EHLO
-        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1034971AbdD1Mwb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Apr 2017 08:52:31 -0400
-Received: by mail-wr0-f170.google.com with SMTP id l50so33169638wrc.3
-        for <linux-acpi@vger.kernel.org>; Fri, 28 Apr 2017 05:52:30 -0700 (PDT)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE9A1C9@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <1492556723-9189-8-git-send-email-tbaicar@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, rafael@kernel.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, tony.luck@intel.com, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "chiu@endlessm.com" <chiu@endlessm.com>, "linux@endlessm.com" <linux@endlessm.com>
 
-Hi,
+On Tue, Apr 18, 2017 at 05:05:19PM -0600, Tyler Baicar wrote:
+> From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+> 
+> Even if an error status block's severity is fatal, the kernel does not
+> honor the severity level and panic.
+> 
+> With the firmware first model, the platform could inform the OS about a
+> fatal hardware error through the non-NMI GHES notification type. The OS
+> should panic when a hardware error record is received with this
+> severity.
+> 
+> Call panic() after CPER data in error status block is printed if
+> severity is fatal, before each error section is handled.
+> 
+> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> Reviewed-by: James Morse <james.morse@arm.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 19 ++++++++++++++-----
+>  1 file changed, 14 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 2d387f8..b91123f 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -134,6 +134,8 @@
+>  static struct ghes_estatus_cache *ghes_estatus_caches[GHES_ESTATUS_CACHES_SIZE];
+>  static atomic_t ghes_estatus_cache_alloced;
+>  
+> +static int ghes_panic_timeout __read_mostly = 30;
+> +
+>  static int ghes_ioremap_init(void)
+>  {
+>  	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
+> @@ -692,6 +694,13 @@ static int ghes_ack_error(struct acpi_hest_generic_v2 *generic_v2)
+>  	return apei_write(val, &generic_v2->read_ack_register);
+>  }
+>  
+> +static void __ghes_call_panic(void)
 
-On Fri, Apr 28, 2017 at 12:33 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> However in the above debugging commit, I'm sure we shouldn't invoke _STA in ec_parse_device().
-> As the reasons below.
->
-> In theory, using DSDT EC as boot EC is not spec compliant.
-> It's just a workaround in Linux for not knowing the Windows device enumeration orders.
-> Especially, the order of executing the control method execution that may contain hardware initialization code.
-> Such control methods are mostly _STA/_INI.
-> While for _HID/_CRS/_GPE/_BBN, it is unlikely to trigger order issues and it might be safe to invoke them such early.
->
-> If you executes _STA here, you might bring EC._STA execution prior than other _INI/_STA and may break some other platforms.
-> So for now, I think you should only add simple sanity checks for ioports.
-> And since you have the direct accesses to these affected platforms, you can help to provide such working sanity check improvements for us.
+__ghes_panic()
 
-In the DSDT you were looking at the H_EC device, but for whatever
-reason, there are two ECs in this DSDT and the one that Linux picks up
-is the 2nd one, \_SB_.PCI0.LPCB.EC0.
+> +{
+> +	if (panic_timeout == 0)
 
-This device has no _STA but does have valid _CRS, and the debug patch
-results agree:
+	if (!panic_timeout)
 
- ACPI : EC: acpi_ec_dsdt_probe: search for DSDT EC
- ACPI : EC: ec_parse_device: _STA status 5 val 0
- ACPI : EC: ec_parse_device: _CRS status 0 command 66 data 62
- ACPI : EC: EC stopped
- ACPI : EC: EC started
- ACPI: \_SB_.PCI0.LPCB.EC0_: Used as first EC
+> +		panic_timeout = ghes_panic_timeout;
+> +	panic("Fatal hardware error!");
+> +}
+> +
+>  static int ghes_proc(struct ghes *ghes)
+>  {
+>  	int rc;
+> @@ -699,6 +708,10 @@ static int ghes_proc(struct ghes *ghes)
+>  	rc = ghes_read_estatus(ghes, 0);
+>  	if (rc)
+>  		goto out;
 
-acpidump output is at
-https://www.dropbox.com/s/d3w2xrmrz1oklnw/x580vd_acpi.tgz?dl=0
+<---- newline here.
 
-Daniel
+> +	if (ghes_severity(ghes->estatus->error_severity) >= GHES_SEV_PANIC) {
+> +		__ghes_print_estatus(KERN_EMERG, ghes->generic, ghes->estatus);
+> +		__ghes_call_panic();
+> +	}
+
+ditto.
+
+>  	if (!ghes_estatus_cached(ghes->estatus)) {
+>  		if (ghes_print_estatus(NULL, ghes->generic, ghes->estatus))
+>  			ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
