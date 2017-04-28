@@ -1,87 +1,57 @@
-From: Sricharan R <sricharan@codeaurora.org>
-Subject: Re: [REGRESSION next-20170426] Commit 09515ef5ddad ("of/acpi:
- Configure dma operations at probe time for platform/amba/pci bus devices")
- causes oops in mvneta
-Date: Fri, 28 Apr 2017 09:59:32 +0530
-Message-ID: <0a3e7a85-babb-8ae7-2c19-480c5203a8e5@codeaurora.org>
-References: <20170426181508.687b52af@gmail.com>
- <2fb57b9b-3944-d9cc-1fac-8dcccaa0c37a@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------147DF2B73712B6B592606189"
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 1/4] ACPICA: Tables: Fix regression introduced by a too early mechanism enabling
+Date: Fri, 28 Apr 2017 13:27:13 +0800
+Message-ID: <cb4a8f21633a8369c1fb22ec165e1363c109b873.1493357044.git.lv.zheng@intel.com>
+References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:46266 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1162958AbdD1E3k (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Apr 2017 00:29:40 -0400
-In-Reply-To: <2fb57b9b-3944-d9cc-1fac-8dcccaa0c37a@codeaurora.org>
-Content-Language: en-US
+Received: from mga05.intel.com ([192.55.52.43]:5882 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932582AbdD1F1R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 28 Apr 2017 01:27:17 -0400
+In-Reply-To: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ralph Sennhauser <ralph.sennhauser@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Joerg Roedel <jroedel@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, netdev@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>
 
-This is a multi-part message in MIME format.
---------------147DF2B73712B6B592606189
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In the Linux kernel side, acpi_get_table() clones haven't been fully
+balanced by acpi_put_table() invocations. In ACPICA side, due to the design
+change, there are also unbalanced acpi_get_table_by_index() invocations
+requiring special care.
 
-Hi Ralph,
+So it is not a good timing to report acpi_get_table() counting errors. The
+strict balanced validation count check should only be enabled after
+confirming that all invocations are safe and compliant to their designed
+purposes.
 
-On 4/27/2017 7:05 PM, Sricharan R wrote:
-> Hi,
-> 
-> On 4/26/2017 9:45 PM, Ralph Sennhauser wrote:
->> Hi Sricharan R,
->>
->> Commit 09515ef5ddad ("of/acpi: Configure dma operations at probe time
->> for platform/amba/pci bus devices") causes a kernel panic as in the log
->> below on an armada-385. Reverting the commit fixes the issue.
->>
->> Regards
->> Ralph
-> 
-> Somehow not getting a obvious clue on whats going wrong with the logs
-> below. From the log and looking in to dts, the drivers seems to the one for
-> "marvell,armada-370-neta". Issue looks the data from the dma has gone bad
-> and subsequently referring the wrong data has resulted in the crash.
-> Looks like the dma_masks is the one going wrong.
-> Can i get some logs from mvneta_probe, about dev->dma_mask,
-> dev->coherent_dma_mask and dev->dma_ops with and without the patch
-> to see whats the difference ?
-> 
+Thus this patch removes the fatal error along with the error report to
+fix this issue. Reported by Dan Williams, fixed by Lv Zheng.
 
-Attached the patch with debug prints.
+Fixes: 174cc7187e6f ("ACPICA: Tables: Back port acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel")
+Cc: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Anush Seetharaman <anush.seetharaman@intel.com>
+Reported-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/tbutils.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-Regards,
- Sricharan
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index 5a968a7..7abe665 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -418,11 +418,7 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
+ 
+ 	table_desc->validation_count++;
+ 	if (table_desc->validation_count == 0) {
+-		ACPI_ERROR((AE_INFO,
+-			    "Table %p, Validation count is zero after increment\n",
+-			    table_desc));
+ 		table_desc->validation_count--;
+-		return_ACPI_STATUS(AE_LIMIT);
+ 	}
+ 
+ 	*out_table = table_desc->pointer;
+-- 
+2.7.4
 
---------------147DF2B73712B6B592606189
-Content-Type: text/plain; charset=UTF-8;
- name="0001-Debug-prints.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="0001-Debug-prints.patch"
-
-RnJvbSBmZTc3ZDM5NjhkNmJjMzViNDZlNWYzMGQ1YzY3Yzc2MDNhYTEwNTk3IE1vbiBTZXAg
-MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBTcmljaGFyYW4gUiA8c3JpY2hhcmFuQGNvZGVhdXJv
-cmEub3JnPgpEYXRlOiBGcmksIDI4IEFwciAyMDE3IDA5OjQzOjI2ICswNTMwClN1YmplY3Q6
-IFtQQVRDSF0gRGVidWcgcHJpbnRzCgpTaWduZWQtb2ZmLWJ5OiBTcmljaGFyYW4gUiA8c3Jp
-Y2hhcmFuQGNvZGVhdXJvcmEub3JnPgotLS0KIGRyaXZlcnMvbmV0L2V0aGVybmV0L21hcnZl
-bGwvbXZuZXRhLmMgfCA2ICsrKysrKwogMSBmaWxlIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygr
-KQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21hcnZlbGwvbXZuZXRhLmMg
-Yi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tYXJ2ZWxsL212bmV0YS5jCmluZGV4IGQyOTcwMTEu
-LjI1MGYwYjIgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21hcnZlbGwvbXZu
-ZXRhLmMKKysrIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWFydmVsbC9tdm5ldGEuYwpAQCAt
-NDE0Niw2ICs0MTQ2LDEyIEBAIHN0YXRpYyBpbnQgbXZuZXRhX3Byb2JlKHN0cnVjdCBwbGF0
-Zm9ybV9kZXZpY2UgKnBkZXYpCiAJaW50IHBoeV9tb2RlOwogCWludCBlcnI7CiAJaW50IGNw
-dTsKKwlzdHJ1Y3QgZGV2aWNlICpkZGV2ID0gJnBkZXYtPmRldjsKKworCisJZGV2X2Vycihk
-ZGV2LCAiZGV2LT5kbWFfbWFzayAweCVsbHhcbiIsICooZGRldi0+ZG1hX21hc2spKTsKKwlk
-ZXZfZXJyKGRkZXYsICJkZXYtPmNvaGVyZW50X2RtYV9tYXNrIDB4JWxseFxuIiwgZGRldi0+
-Y29oZXJlbnRfZG1hX21hc2spOworCWRldl9lcnIoZGRldiwgImRldi0+ZG1hX29wcyAweCVs
-bHhcbiIsIGRkZXYtPmRtYV9vcHMpOwogCiAJZGV2ID0gYWxsb2NfZXRoZXJkZXZfbXFzKHNp
-emVvZihzdHJ1Y3QgbXZuZXRhX3BvcnQpLCB0eHFfbnVtYmVyLCByeHFfbnVtYmVyKTsKIAlp
-ZiAoIWRldikKLS0gClFVQUxDT01NIElORElBLCBvbiBiZWhhbGYgb2YgUXVhbGNvbW0gSW5u
-b3ZhdGlvbiBDZW50ZXIsIEluYy4gaXMgYSBtZW1iZXIgb2YgQ29kZSBBdXJvcmEgRm9ydW0s
-IGhvc3RlZCBieSBUaGUgTGludXggRm91bmRhdGlvbgoK
---------------147DF2B73712B6B592606189--
