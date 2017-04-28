@@ -1,72 +1,104 @@
-From: <durrant@iupui.edu>
-Subject: 28142 linux-acpi
-Date: Fri, 28 Apr 2017 23:40:52 -0000
-Message-ID: <149342285201.22109.17741421869581751466@interkonekt.pl>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] acpi, nfit: kill ACPI_NFIT_DEBUG
+Date: Fri, 28 Apr 2017 16:48:12 -0700
+Message-ID: <149342311149.438.10499300640043562280.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149341494933.35578.4269653029034926839.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="4.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 176-103-72-103.interkonekt.pl ([176.103.72.103]:47399 "HELO
-        interkonekt.pl" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with SMTP id S1162414AbdD1Xkz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Apr 2017 19:40:55 -0400
-Content-Disposition: attachment
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <149341494933.35578.4269653029034926839.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-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
-SwUGAAAAAAEAAQBbAAAAqgsAAAAA
+Inevitably when one actually needs to debug a DSM issue it's on a
+distribution kernel that has CONFIG_ACPI_NFIT_DEBUG=n. The config symbol
+was only there to avoid the compile error due to the missing fallback for
+print_hex_dump_debug in the CONFIG_DYNAMIC_DEBUG=n case. That was fixed
+with commit cdf17449af1d "hexdump: do not print debug dumps for
+!CONFIG_DEBUG", so the config symbol can just be dropped.
+
+Cc: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+Changes in v2:
+* Thanks to Joe for pointing out the misunderstanding about
+  print_hex_dump_debug() compilation being broken in the
+  CONFIG_DYNAMIC_DEBUG=n case. Since commit cdf17449af1d we can rely on
+  print_hex_dump_debug() to do the right thing by default.
+
+ drivers/acpi/nfit/Kconfig |   12 ------------
+ drivers/acpi/nfit/core.c  |   21 ++++++++-------------
+ 2 files changed, 8 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/acpi/nfit/Kconfig b/drivers/acpi/nfit/Kconfig
+index dd0d53c52552..6d3351452ea2 100644
+--- a/drivers/acpi/nfit/Kconfig
++++ b/drivers/acpi/nfit/Kconfig
+@@ -12,15 +12,3 @@ config ACPI_NFIT
+ 
+ 	  To compile this driver as a module, choose M here:
+ 	  the module will be called nfit.
+-
+-config ACPI_NFIT_DEBUG
+-	bool "NFIT DSM debug"
+-	depends on ACPI_NFIT
+-	depends on DYNAMIC_DEBUG
+-	default n
+-	help
+-	  Enabling this option causes the nfit driver to dump the
+-	  input and output buffers of _DSM operations on the ACPI0012
+-	  device and its children.  This can be very verbose, so leave
+-	  it disabled unless you are debugging a hardware / firmware
+-	  issue.
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 261eea1d2906..ced95a79c1a1 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -268,14 +268,11 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		in_buf.buffer.length = call_pkg->nd_size_in;
+ 	}
+ 
+-	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+-		dev_dbg(dev, "%s:%s cmd: %d: func: %d input length: %d\n",
+-				__func__, dimm_name, cmd, func,
+-				in_buf.buffer.length);
+-		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
++	dev_dbg(dev, "%s:%s cmd: %d: func: %d input length: %d\n",
++			__func__, dimm_name, cmd, func, in_buf.buffer.length);
++	print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
+ 			in_buf.buffer.pointer,
+ 			min_t(u32, 256, in_buf.buffer.length), true);
+-	}
+ 
+ 	out_obj = acpi_evaluate_dsm(handle, uuid, 1, func, &in_obj);
+ 	if (!out_obj) {
+@@ -307,13 +304,11 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		goto out;
+ 	}
+ 
+-	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+-		dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__,
+-				dimm_name, cmd_name, out_obj->buffer.length);
+-		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
+-				4, out_obj->buffer.pointer, min_t(u32, 128,
+-					out_obj->buffer.length), true);
+-	}
++	dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__, dimm_name,
++			cmd_name, out_obj->buffer.length);
++	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
++			out_obj->buffer.pointer,
++			min_t(u32, 128, out_obj->buffer.length), true);
+ 
+ 	for (i = 0, offset = 0; i < desc->out_num; i++) {
+ 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
