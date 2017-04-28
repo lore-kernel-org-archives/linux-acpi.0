@@ -1,67 +1,72 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/3] dynamic_hex_dump cleanup
-Date: Fri, 28 Apr 2017 16:12:29 -0700
-Message-ID: <CAPcyv4iqK-3X5ngXs6HjTQhtW0DEu5KsBcgAY1nVJCWPnSagGw@mail.gmail.com>
-References: <149341493336.35578.13631055553267152302.stgit@dwillia2-desk3.amr.corp.intel.com>
- <1493416143.1873.13.camel@perches.com>
- <CAPcyv4iJvjJTd7M5_5saopTvKPStC=sYqq++FbE_qFJwpqmASw@mail.gmail.com>
- <1493417230.1873.15.camel@perches.com>
- <CAPcyv4h=DfkJu6+7by0HoVhUOKtoCJmc4GGg3XNxYURCkX09Tw@mail.gmail.com>
- <CAPcyv4jzMfd8TrFcX0GR+6iz0SaJyO5NzzswrEVm-kNVfgrQFQ@mail.gmail.com>
- <1493418714.1873.18.camel@perches.com>
- <CAPcyv4hDC1f9xRJJyDK09ezF7Q=qz+fvku5qFP_FCrS2xh=zUA@mail.gmail.com>
- <1493420656.1873.22.camel@perches.com>
+From: <durrant@iupui.edu>
+Subject: 28142 linux-acpi
+Date: Fri, 28 Apr 2017 23:40:52 -0000
+Message-ID: <149342285201.22109.17741421869581751466@interkonekt.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1493420656.1873.22.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-remoteproc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Baron <jbaron-JqFfY2XvxFXQT0dZR+AlfA@public.gmane.org>
+Content-Type: application/zip; name="4.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 176-103-72-103.interkonekt.pl ([176.103.72.103]:47399 "HELO
+        interkonekt.pl" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with SMTP id S1162414AbdD1Xkz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Apr 2017 19:40:55 -0400
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Fri, Apr 28, 2017 at 4:04 PM, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org> wrote:
-> On Fri, 2017-04-28 at 15:59 -0700, Dan Williams wrote:
->> ...but again, hex_dump_dbg() implies to me dev_dbg() behavior, i.e.
->> that the hexdump happens in the KERN_DEBUG case
->
-> I think you are confusing KERN_DEBUG, a logging level, with a
-> preprocessor #define of DEBUG.
-
-Indeed I am.
-
->
->>  which I don't want. I
->> want the call to be compiled out completely when it can't be
->> enabled/disabled dynamically.
->
-> dev_dbg is compiled away completely when DEBUG is
-> not defined and when CONFIG_DYNAMIC_DEBUG is not
-> defined.
->
-> This hex_dump facility should behave the same way.
->
->> I think we do need a hex_dump_dbg(), but that does not eliminate the
->> utility of / need for dynamic_hex_dump().
->
-> dynamic_hex_dump should only exist when CONFIG_DYNAMIC_DEBUG
-> is enabled and should otherwise be invisible to driver code.
->
-
-So, I overlooked that Linus fixed this compile problem a while back with:
-
-cdf17449af1d hexdump: do not print debug dumps for !CONFIG_DEBUG
-
-Which predated the introduction of ACPI_NFIT_DEBUG. So I can just call
-print_hex_dump_debug() and call it a day.
-
-Sorry for the noise, Joe!
+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
+SwUGAAAAAAEAAQBbAAAAqgsAAAAA
