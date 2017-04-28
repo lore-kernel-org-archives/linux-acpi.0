@@ -1,144 +1,101 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2] acpi: fix acpi_get_table() leak / acpi-sysfs denial
- of service
-Date: Fri, 28 Apr 2017 01:13:27 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9A011@SHSMSX101.ccr.corp.intel.com>
-References: <149315024459.9151.4555045488194999231.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAJZ5v0h4hOeRfBgK=ARbw8dmML56v0xnvPjsY9wZ0fv7EXCeQw@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886CE998CF@SHSMSX101.ccr.corp.intel.com>
- <CAPcyv4jk3iCOmvq06s++KM6zJdi=DXRq-KYosT+rWOBkF=Dpsg@mail.gmail.com>
+Subject: RE: [PATCH v2 1/2] ACPICA: Tables: Fix regression introduced by a
+ too early mechanism enabling
+Date: Fri, 28 Apr 2017 01:24:01 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9A031@SHSMSX101.ccr.corp.intel.com>
+References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
+ <1841048.oWuTkq5WIo@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4jk3iCOmvq06s++KM6zJdi=DXRq-KYosT+rWOBkF=Dpsg@mail.gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:55957 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S938346AbdD1BYG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Apr 2017 21:24:06 -0400
+In-Reply-To: <1841048.oWuTkq5WIo@aspire.rjw.lan>
 Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Seetharaman, Anush" <anush.seetharaman@intel.com>, "Kasanicky, Tiffany J" <tiffany.j.kasanicky@intel.com>, "Jensen, Ryon" <ryon.jensen@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Jacque, Kristin" <kristin.jacque@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIERhbg0KPiBXaWxs
-aWFtcw0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYyXSBhY3BpOiBmaXggYWNwaV9nZXRfdGFibGUo
-KSBsZWFrIC8gYWNwaS1zeXNmcyBkZW5pYWwgb2Ygc2VydmljZQ0KPiANCj4gT24gV2VkLCBBcHIg
-MjYsIDIwMTcgYXQgMTE6NDkgUE0sIFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90
-ZToNCj4gPiBIaSwgUmFmYWVsDQo+ID4NCj4gPj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2Vy
-Lmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24g
-QmVoYWxmIE9mDQo+IFJhZmFlbCBKLg0KPiA+PiBXeXNvY2tpDQo+ID4+IFN1YmplY3Q6IFJlOiBb
-UEFUQ0ggdjJdIGFjcGk6IGZpeCBhY3BpX2dldF90YWJsZSgpIGxlYWsgLyBhY3BpLXN5c2ZzIGRl
-bmlhbCBvZiBzZXJ2aWNlDQo+ID4+DQo+ID4+IE9uIFR1ZSwgQXByIDI1LCAyMDE3IGF0IDk6NTgg
-UE0sIERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPiB3cm90ZToNCj4gPj4g
-PiBSZWFkaW5nIGFuIEFDUEkgdGFibGUgdGhyb3VnaCB0aGUgL3N5cy9maXJtd2FyZS9hY3BpL3Rh
-YmxlcyBpbnRlcmZhY2UNCj4gPj4gPiBtb3JlIHRoYW4gNjUsNTM2IHRpbWVzIGxlYWRzIHRvIHRo
-ZSBmb2xsb3dpbmcgbG9nIG1lc3NhZ2U6DQo+ID4+ID4NCj4gPj4gPiAgQUNQSSBFcnJvcjogVGFi
-bGUgZmZmZjg4MDMzNTk1ZWFhOCwgVmFsaWRhdGlvbiBjb3VudCBpcyB6ZXJvIGFmdGVyIGluY3Jl
-bWVudA0KPiA+PiA+ICAgKDIwMTcwMTE5L3RidXRpbHMtNDIzKQ0KPiA+PiA+DQo+ID4+ID4gLi4u
-YW5kIHRoZSB0YWJsZSBiZWluZyB1bmF2YWlsYWJsZSB1bnRpbCB0aGUgbmV4dCByZWJvb3QuIEFk
-ZCB0aGUNCj4gPj4gPiBtaXNzaW5nIGFjcGlfcHV0X3RhYmxlKCkgc28gdGhlIHRhYmxlIC0+dmFs
-aWRhdGlvbl9jb3VudCBpcyBkZWNyZW1lbnRlZA0KPiA+PiA+IGFmdGVyIGVhY2ggcmVhZC4NCj4g
-Pj4gPg0KPiA+PiA+IENjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4NCj4gPj4gPiBDYzogWmhh
-bmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPg0KPiA+PiA+IENjOiBSYWZhZWwgV3lzb2NraSA8
-cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+DQo+ID4+ID4gQ2M6IEtyaXN0aW4gSmFjcXVlIDxr
-cmlzdGluLmphY3F1ZUBpbnRlbC5jb20+DQo+ID4+ID4gQ2M6IFRpZmZhbnkgS2FzYW5pY2t5IDx0
-aWZmYW55Lmoua2FzYW5pY2t5QGludGVsLmNvbT4NCj4gPj4gPiBDYzogUnlvbiBKZW5zZW4gPHJ5
-b24uamVuc2VuQGludGVsLmNvbT4NCj4gPj4gPiBSZXBvcnRlZC1ieTogQW51c2ggU2VldGhhcmFt
-YW4gPGFudXNoLnNlZXRoYXJhbWFuQGludGVsLmNvbT4NCj4gPj4gPiBGaXhlczogMWM4ZmNlMjdl
-Mjc1ICgiQUNQSTogaW50cm9kdWNlIGRyaXZlcnMvYWNwaS9zeXNmcy5jIikNCj4gPj4gPiBTaWdu
-ZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gPj4N
-Cj4gPj4gSSdtIGdvaW5nIHRvIGFwcGx5IHRoaXMsIGJ1dCB5b3VyIEZpeGVzIHRhZyBpcyBub3Qg
-Y29ycmVjdC4NCj4gPg0KPiA+IEV2ZW4gd2Ugd2FudCB0byBza2lwIHRoZSBzby1jYWxsZWQgInNo
-b3J0IHBlcmlvZCIuDQo+ID4gVGhpcyBmaXggaXMgbm90IDEwMCUgY29ycmVjdC4NCj4gPiBJdCdz
-IHdyaXR0ZW4gaW4gYSB2ZXJ5IGNhc3VhbCB3YXkuDQo+ID4gSSB3b3VsZCB0aGluayBpdCB3YXMg
-anVzdCBhIG1hdGVyaWFsIHRvIG1lbnRpb24gbWUgdG8gd29yayBvbiB0aGlzIGlzc3VlLg0KPiA+
-IFNlZSwgdGhlcmUgYXJlIHNldmVyYWwgYWNwaV9nZXRfdGFibGUgY2xvbmVzIGludm9rZWQgaW4g
-c3lzZnMuYywgaXQganVzdCBmaXhlZCBvbmUgb2YgdGhlbS4NCj4gPiBTbyBpdCBvbmx5IGZpeGVz
-IHZlcnkgbGltaXRlZCBjYXNlcy4NCj4gPiBJJ2xsIHBvc3Qgb25lIGZvciBmaXhpbmcgc3lzZnMg
-Y2FsbHMgbGF0ZXIuDQo+IA0KPiBUaGF0J3MgdGhlIHBvaW50LCB0aGUgb3RoZXIgcHJvYmxlbSBh
-cmVhcyBjYW4gYmUgZml4ZWQgdXAgaW5jcmVtZW50YWxseS4NCg0KTm8sIHRoZSBvdGhlcnMgYWNw
-aV9nZXRfdGFibGUoKSBpbnZvY2F0aW9ucyBhcmUgY2FsbGVkIGVhY2ggdGltZSB3aGVuIGEgdGFi
-bGUgaXMgYWNjZXNzZWQuDQpIYXZlIHlvdSBkdW1wZWQgdmFsaWRhdGlvbiBjb3VudCBmb3IgeW91
-ciBjb21taXQ/DQpGb3IgU1NEVHMsIGl0IGRvZXMgbm90aGluZywgdGhlIHZhbGlkYXRpb24gY291
-bnRzIGFyZSBzdGlsbCBpbmNyZWFzZWQgZWFjaCB0aW1lIGFjcGlkdW1wIGlzIGV4ZWN1dGVkLg0K
-V2hpbGUgU1NEVCBpcyB0aGUgbWFqb3IgdHlwZSBvZiB0aGUgdGFibGVzIGxpc3RlZCBpbiB0aGUg
-WFNEVC9SU0RULg0KU28gSU1PLCB5b3VyIHBhcnRpYWwgZml4IGRvZXNuJ3QgZml4IGFueXRoaW5n
-IGluIHRoZSBlbmQuDQoNCj4gDQo+ID4NCj4gPiBUaGVyZSBhcmUgYWxzbyBzZXZlcmFsIGNhc2Vz
-IG5lZWRpbmcgdXJnZW50IGNhcmUsIGZvciBleGFtcGxlLCBGQUNTIHRhYmxlIHVzZWQgYmV0d2Vl
-bg0KPiBzdXNwZW5kL3Jlc3VtZSBwcm9jZXNzLg0KPiA+IFdoaWNoIGNhbiBhbHNvIGluY3JlYXNl
-IHRoZSBjb3VudCBieSAxIGZvciBlYWNoIHN1c3BlbmQvcmVzdW1lIGN5Y2xlLg0KPiA+IEknbGwg
-cG9zdCBhbiB1cmdlbnQgZml4IGZvciB0aGlzIGFsb25nIHdpdGggdGhlIHN5c2ZzIG9uZS4NCj4g
-Pg0KPiA+Pg0KPiA+PiB2YWxpZGF0aW9uX2NvdW50IHdhcyBhZGRlZCB0byBzdHJ1Y3QgYWNwaV90
-YWJsZV9kZXNjIGJ5IGNvbW1pdA0KPiA+Pg0KPiA+PiBjb21taXQgMTc0Y2M3MTg3ZTZmMDg4OTQy
-YzhlNzRkYWE3YmFmZjdiNDRiMzNjOQ0KPiA+PiBBdXRob3I6IEx2IFpoZW5nIDxsdi56aGVuZ0Bp
-bnRlbC5jb20+DQo+ID4+IERhdGU6ICAgV2VkIERlYyAxNCAxNTowNDoyNSAyMDE2ICswODAwDQo+
-ID4+DQo+ID4+ICAgICBBQ1BJQ0E6IFRhYmxlczogQmFjayBwb3J0IGFjcGlfZ2V0X3RhYmxlX3dp
-dGhfc2l6ZSgpIGFuZA0KPiA+PiBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpDQo+ID4+IGZy
-b20gTGludXgga2VybmVsDQo+ID4+DQo+ID4+IGZyb20gdGhlIDQuMTAgdGltZSBmcmFtZSwgc28g
-SU1PIGl0IHNob3VsZCBiZQ0KPiA+Pg0KPiA+PiBGaXhlczogMTc0Y2M3MTg3ZTZmIChBQ1BJQ0E6
-IFRhYmxlczogQmFjayBwb3J0DQo+ID4+IGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpIGFuZCBl
-YXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpIGZyb20gTGludXgNCj4gPj4ga2VybmVsKQ0KPiA+
-DQo+ID4gQW5kIFRCSCwgSU1PLCBteSBwb3N0ZWQgcGF0Y2ggaXMgYSByZWdyZXNzaW9uIGZpeCBm
-aXhpbmcgdGhpcyB0YWcuDQo+ID4gaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85
-NzAwMTc1Lw0KPiA+IEl0IGZpeGVzIG15IGRhbWFnZWQgYnJhaW4gb2YgdHJ5aW5nIHRvIGVuYWJs
-ZSB0aGlzIG1lY2hhbmlzbS4NCj4gPiBJdCdzIGFjdHVhbGx5IGEgbWlzdGFrZSwgdGhlIHBsYW5u
-ZWQgd2F5IGlzIG5vdCB0aGF0Lg0KPiA+DQo+ID4gSSBkb24ndCB0aGluayBmaXhpbmcgfjUwIHVz
-ZXJzIGNvdWxkIGJlIGVhc2lseSBhY2hpZXZlZCBpbiBqdXN0IDEgY3ljbGUgd2l0aG91dCB0cmln
-Z2VyaW5nIGFueSBvdGhlcg0KPiBpc3N1ZXMuDQo+ID4gRXNwZWNpYWxseSBhbW9uZyB0aGVtLCB0
-aGVyZSBhcmUgZGVzaWduIGNoYW5nZXMuDQo+ID4gSW4gb3JkZXIgdG8gdXBzdHJlYW0gdGhpcyBt
-ZWNoYW5pc20gdG8gQUNQSUNBLCBJJ3ZlIGFscmVhZHkgY2hhbmdlZCB0aGUgb3JpZ2luYWwgZGVz
-aWduLg0KPiA+IE9yaWdpbmFsbHkgaXQncyBkb25lIGluIGEgZGlmZmVyZW50IHdheToNCj4gPiBB
-IGFjcGlfZ2V0X3ZhbGlkYXRlX3RhYmxlKCkgQVBJIGlzIHByZXBhcmVkIGZvciB0aG9zZSB3YW50
-cyB0byBwaW4gdGhlIEFDUEkgdGFibGUgaW4gbWVtb3J5Lg0KPiA+IEFuZCBpdCBpcyBub3QgcmVm
-ZXJlbmNlIGNvdW50aW5nIGJhc2VkLg0KPiA+IE5vdyBhbGwgc29sdXRpb24gbmVlZCB0byBiZSBy
-ZS1jb25zaWRlcmVkIGR1ZSB0byB0aGUgZGVzaWduIGNoYW5nZS4NCj4gPiBTbyBJIGRvbid0IHRo
-aW5rIGl0IHdpbGwgYmUgYSBzaG9ydCBwZXJpb2QuDQo+ID4NCj4gPiBPbiB0aGUgY29udHJhcnks
-IGlmIHRoZXJlIGlzIG5vIG9uZSBleGVjdXRpbmcgYSBzY3JpcHQgdG8gcmVhZC93cml0ZSBzeXNm
-cyBtb3JlIHRoYW4gNjAwMDAgdGltZXMsDQo+ID4gdGhlIGVycm9yIHdvbid0IGZsb29kIGxvZ3Mu
-DQo+IA0KPiBUaGF0J3Mgbm90IHRydWUuIEhlcmUgaXMgdGhlIGxvZyBmbG9vZCBpcyBob3cgd2Ug
-ZGlzY292ZXJlZCB0aGUNCj4gcHJvYmxlbSBpbiB0aGUgZmlyc3QgcGxhY2U6DQo+IA0KPiBodHRw
-czovL2dpc3QuZ2l0aHViLmNvbS9kamJ3L2FjMDNhYzE1YmRlNmRiMDMwMWE3M2EzM2JlYTcwNTIx
-DQo+IA0KPiAuLi50aGlzIHdhcyBub3QgYSBkZWxpYmVyYXRlIGxvb3AuIE5vdywgd2UgZGlkIGZp
-bmQgdGhhdCB0aGlzDQo+IGFwcGxpY2F0aW9uIHdhcyByZWFkaW5nIHRoZSB0YWJsZXMgbW9yZSBv
-ZnRlbiB0aGFuIGl0IHNob3VsZCwgYW5kDQo+IGhvcGVmdWxseSB0aGVyZSBhcmVuJ3QgdG9vIG1h
-bnkgbW9yZSBhcHBsaWNhdGlvbnMgbGlrZSB0aGlzIG91dCBpbiB0aGUNCj4gd2lsZC4NCg0KSSBh
-bHJlYWR5IGZvbGxvd2VkIHlvdXIgc3VnZ2VzdGlvbiB0byBjaGFuZ2UgdGhlIGVycm9yIGluIHYy
-LCBtYWtpbmcgaXQgbXV0ZWQgZm9yIHRoaXMgcGVyaW9kLg0KU28geW91IHdvbid0IHNlZSBzdWNo
-IGxvZyBmbG9vZC4NCg0KPiANCj4gPiBTbyBJIHdhcyBhY3R1YWxseSB0cnlpbmcgdG8gZG8gdGhl
-IHJpZ2h0IHRoaW5ncyBmb3IgTGludXgga2VybmVsLg0KPiA+IFdoaWxlIGp1c3QgbGF5aW5nIGRv
-d24gYSBzaW1wbGUgaGFtbWVyIHdpdGhvdXQgY2FyaW5nIGFib3V0IHVzZXIgZXhwZXJpZW5jZXMg
-Y291bGQgYmUgZGVzdHJ1Y3RpdmUuDQo+ID4gSXQncyBhIGRpc2FzdGVyIGlmIHNvbWUgc2VydmVy
-cyBuZWVkIHRvIGJlIHJlYm9vdGVkIGR1ZSB0byB0aGlzIGlzc3VlLg0KPiANCj4gSXQncyBub3Qg
-YSBkaXNhc3RlciBpbiB0aGF0IG1vc3Qgc3lzdGVtcyBzaG91bGQgbm90IGJlIHJlLXJlYWRpbmcg
-dGhlDQo+IHRhYmxlcyBhdCBhIGhpZ2ggZW5vdWdoIGZyZXF1ZW5jeSBmb3IgdGhpcyB0byBtYXR0
-ZXIuIFRoZSBmYWN0IHRoYXQNCj4gdGhpcyBidWcgaGFzIHNoaXBwZWQgaW4gRmVkb3JhIGFuZCBv
-dGhlciBwbGFjZXMgd2l0aG91dCBpc3N1ZSBoZWxwcw0KPiBwb2ludCBvdXQgdGhhdCB0aGlzIGlz
-IGhhcmQgdG8gaGl0IGluIHByYWN0aWNlLg0KDQpPbmUgY2FzZSB5b3UgZG9uJ3Qga25vdyBpczoN
-CkluIEFDUElDQSwgd2hlbiBBTUwgTG9hZCBvcGNvZGUgaXMgaW52b2tlZCwgYWNwaV9nZXRfdGFi
-bGVfYnlfaW5kZXgoKSBjYW4gaGFwcGVuLg0KU28gaWYgTG9hZC9VbmxvYWQgaXMgZnJlcXVlbnRs
-eSBpbnZva2VkIG9uIHNlcnZlcnMgKEkgd291bGQgaW1hZ2luZSB0aGlzIGNhbiBoYXBwZW4gdG8g
-c29tZSBwZXItY3B1IGR5bmFtaWMgbG9hZGluZyB0YWJsZXMpLA0KWW91J2xsIHNvb24gcmVhY2gg
-dGhlIHNhbWUgcHJvYmxlbS4NCkFuZCB0aGVuIGl0IHdpbGwgY2F1c2Ugc2VydmVycyBwZXItY3B1
-IEFDUEkgcmVsYXRlZCBmdW5jdGlvbmFsaXR5IHRvIHN0b3Agd29ya2luZy4NCg0KTXkgZmlyc3Qg
-dmVyc2lvbiBpbmNsdWRlcyBhIG5ldyBmdW5jdGlvbiBhY3BpX3RiX2dldF92YWxpZGF0ZWRfdGFi
-bGUoKS4NClRvIGJlIGludm9rZWQgaW50ZXJuYWxseSBieSBBQ1BJQ0EsIHNvIHRhYmxlcyBwaW5u
-ZWQgKGZvciBleGFtcGxlLCBkdWUgdG8gbm8gZnVsbCBVbmxvYWQgc3VwcG9ydCkgYnkgQUNQSUNB
-LCB0aGUgdmFsaWRhdGlvbiBjb3VudCB3aWxsIG9ubHkgYmUgaW5jcmVhc2VkIG9uY2UuDQoNCkhv
-d2V2ZXIgbWFraW5nIGNoYW5nZXMgaW4gQUNQSUNBIHJlcXVpcmVzIGV4Y2Vzc2l2ZSBjb21tdW5p
-Y2F0aW9uIGVmZm9ydHMuDQpTbyB3ZSBjaG9zZSB0aGUgY3VycmVudCBQTEFOOg0KMS4gS2VlcCBB
-Q1BJQ0EgbGVzcyBjaGFuZ2VkIGFuZCBrZWVwIHRoZSBvbGQgYmVoYXZpb3IuDQoyLiBNYWtlIGEg
-cGFpcmVkIGFjcGlfcHV0X3RhYmxlKCkgYXZhaWxhYmxlIHRvIGVsaW1pbmF0ZSBrZXJuZWwgc2lk
-ZSB3cm9uZyBBUElzICh0aGVyZSBhcmUgZWFybHlfYWNwaV91bm1hcF9tZW1vcnkoKSBuZWVkIHRv
-IGJlIGNsZWFuZWQgdXAgYXQgdGhhdCB0aW1lKS4NCjMuIEdvIGJhY2sgdG8gZml4IGFsbCB1c2Ug
-Y2FzZXMgdGhlbiBlbmFibGUgdGhlIG5ldyBiZWhhdmlvci4NCg0KRm9yIGNoYW5nZXMgcmVsYXRl
-ZCB0byBBQ1BJQ0EsIEkgZG9uJ3QgdGhpbmsgaXQgd2lsbCBiZSBzaW1wbGUgYW5kIGNhbiBiZSBk
-b25lIGluIGEgc2hvcnQgcGVyaW9kLg0KV2Ugc2hhbGwgZG8gdGhpbmdzIHdoaWxlIGluIHRoZSBt
-ZWFud2hpbGUgdG8gZW5zdXJlIG5vIHVzZXIgZXhwZXJpZW5jZSByZWdyZXNzaW9ucy4NCg0KU2Vl
-LCBJIGFscmVhZHkgc2FpZCBteSBhcG9sb2dpZXMgdG8gdGhlIGNvbW11bml0eSBmb3IgbGVha2lu
-ZyB0aGUgd3JvbmcgbGluZSB0byB0aGUga2VybmVsLg0KV2h5IGRvIHdlIHN0aWxsIGFyZ3VlIGFy
-b3VuZCBhIHBvc3NpYmxlIHVzZXIgZXhwZXJpZW5jZSBkaXNhc3Rlcj8NCldoeSBzaGFsbCB3ZSBt
-YWtlIG91ciBvd24gcHJlZmVyZW5jZSBjb25mbGljdCB0aGUgaGlnaGVyIHByaW9yaXR5IHRoYW4g
-dGhlIHVzZXIgZXhwZXJpZW5jZT8NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2DQoNCj4g
-LS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vi
-c2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRv
-bW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2Vy
-Lmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+Hi, Rafael
+
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J.
+> Wysocki
+> Subject: Re: [PATCH v2 1/2] ACPICA: Tables: Fix regression introduced by a too early mechanism
+> enabling
+> 
+> On Thursday, April 27, 2017 04:22:44 PM Lv Zheng wrote:
+> > In the Linux kernel side, acpi_get_table() clones haven't been fully
+> > balanced by acpi_put_table() invocations. In ACPICA side, due to the design
+> > change, there are also unbalanced acpi_get_table_by_index() invocations
+> > requiring special care to be cleaned up.
+> >
+> > So it is not a good timing to report acpi_get_table() counting errors for
+> > this period. The strict balanced validation count check should only be
+> > enabled after confirming that all invocations are safe and compliant to
+> > their designed purposes.
+> >
+> > Thus this patch removes the fatal error along with lthe error report to
+> > fix this issue. Reported by Dan Williams, fixed by Lv Zheng.
+> >
+> > Fixes: 174cc7187e6f ("ACPICA: Tables: Back port acpi_get_table_with_size() and
+> early_acpi_os_unmap_memory() from Linux kernel")
+> > Reported-by: Dan Williams <dan.j.williams@intel.com>
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> 
+> Please do not add #if 0 anywhere to the kernel code base.
+> 
+> If you need to drop some piece of code, just drop it.
+> 
+> And in this particular case validation_count should be dropped from the data
+> type definition too.
+
+Then I would prefer to fix all acpi_get_table() clones in ACPICA.
+That could avoid removing the useful code.
+
+Without fixing sysfs/Load/table_handler ones, there will always cases frequently increasing/decreasing the count.
+Others seem to be not urgent.
+
+I'll post the fix as an urgent fix here with the ACPICA upstream process bypassed and back port it to ACPICA later.
+If there are changes during the back port, I'll take care of making the differences eliminated in the corresponding ACPICA release cycle.
+
+Thanks
+Lv
+
+
+> 
+> > ---
+> >  drivers/acpi/acpica/tbutils.c | 4 +++-
+> >  1 file changed, 3 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+> > index 5a968a7..8175c70 100644
+> > --- a/drivers/acpi/acpica/tbutils.c
+> > +++ b/drivers/acpi/acpica/tbutils.c
+> > @@ -418,11 +418,13 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
+> >
+> >  	table_desc->validation_count++;
+> >  	if (table_desc->validation_count == 0) {
+> > +		table_desc->validation_count--;
+> > +#if 0
+> >  		ACPI_ERROR((AE_INFO,
+> >  			    "Table %p, Validation count is zero after increment\n",
+> >  			    table_desc));
+> > -		table_desc->validation_count--;
+> >  		return_ACPI_STATUS(AE_LIMIT);
+> > +#endif
+> >  	}
+> >
+> >  	*out_table = table_desc->pointer;
+> >
+> 
+> Thanks,
+> Rafael
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
