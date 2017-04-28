@@ -1,39 +1,53 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 0/3] dynamic_hex_dump cleanup
-Date: Fri, 28 Apr 2017 14:28:53 -0700
-Message-ID: <149341493336.35578.13631055553267152302.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/3] printk: provide generic dynamic_hex_dump fallback
+Date: Fri, 28 Apr 2017 14:28:59 -0700
+Message-ID: <149341493902.35578.4854765976357149724.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149341493336.35578.13631055553267152302.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:40212 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753291AbdD1Veq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 28 Apr 2017 17:34:46 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <149341493336.35578.13631055553267152302.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linux-remoteproc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Baron <jbaron-JqFfY2XvxFXQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-remoteproc@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Andersson <bjorn.andersson@linaro.org>, linux-acpi@vger.kernel.org, Jason Baron <jbaron@akamai.com>
 
-More than one driver has worked around the fact that
-print_hex_dump_debug() requires CONFIG_DYNAMIC_DEBUG=y to build. Provide
-a dynamic_hex_dump() so that drivers that want the extra debugging to be
-turned off in the CONFIG_DYNAMIC_DEBUG=n can use dynamic_hex_dump()
-directly.
+The lack of a silent fallback for this routine has caused the nfit
+driver and the virtio_rpmsg_bus to develop local workarounds. Define a
+nop version of dynamic_hex_dump() in the CONFIG_DYNAMIC_DEBUG=n case so
+we can clean up those local workarounds.
 
-I'm fine to carry this whole set through nvdimm.git if no one sees any
-issues.
-
+Cc: Jason Baron <jbaron-JqFfY2XvxFXQT0dZR+AlfA@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ include/linux/dynamic_debug.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Dan Williams (3):
-      printk: provide generic dynamic_hex_dump fallback
-      virtio, rpmsg: switch to dynamic_hex_dump()
-      acpi, nfit: kill ACPI_NFIT_DEBUG, switch to dynamic_hex_dump()
-
-
- drivers/acpi/nfit/Kconfig        |   12 ------------
- drivers/acpi/nfit/core.c         |   21 ++++++++-------------
- drivers/rpmsg/virtio_rpmsg_bus.c |    6 ------
- include/linux/dynamic_debug.h    |    6 ++++++
- 4 files changed, 14 insertions(+), 31 deletions(-)
+diff --git a/include/linux/dynamic_debug.h b/include/linux/dynamic_debug.h
+index 546d68057e3b..c26302e1e387 100644
+--- a/include/linux/dynamic_debug.h
++++ b/include/linux/dynamic_debug.h
+@@ -180,6 +180,12 @@ static inline int ddebug_dyndbg_module_param_cb(char *param, char *val,
+ 	do { if (0) printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__); } while (0)
+ #define dynamic_dev_dbg(dev, fmt, ...)					\
+ 	do { if (0) dev_printk(KERN_DEBUG, dev, fmt, ##__VA_ARGS__); } while (0)
++
++static inline void dynamic_hex_dump(const char *prefix_str, int prefix_type,
++		int rowsize, int groupsize, const void *buf, size_t len,
++		bool ascii)
++{
++}
+ #endif
+ 
+ #endif
