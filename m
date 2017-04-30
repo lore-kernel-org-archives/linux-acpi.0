@@ -1,103 +1,62 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] ACPI: Delay turning off unused resources after suspend till acpi_pm_end()
-Date: Sun, 30 Apr 2017 22:54:16 +0200
-Message-ID: <20170430205416.6625-1-hdegoede@redhat.com>
+From: Jon Masters <jcm@jonmasters.org>
+Subject: Re: [PATCH] SPCR: check bit width for the 16550 UART
+Date: Sun, 30 Apr 2017 17:39:38 -0400
+Message-ID: <78013fd3-0313-8e96-16d4-99c5e0af8db2@jonmasters.org>
+References: <20161205130534.11080-1-aleksey.makarov@linaro.org>
+ <CADaLND=cpfnrNUAR+hHBjMk=ei50Z=TFhgzDy0T+EkqUuM7ZWQ@mail.gmail.com>
+ <c5bc8527-4dbc-8411-a441-7e7aebcbbfed@redhat.com>
+ <CADaLNDn9ZVaZNc0B6_gJ7wBUBPne4qNpYeiPmUO7_SBzsW+srA@mail.gmail.com>
+ <CADaLND=t3O9J+KvaK=xb455HjaLYMA+4yodFVrozMEMtgPi-pw@mail.gmail.com>
+ <3a6193ef-ca86-c113-b09a-5d6c882137e2@redhat.com>
+ <CADaLNDmZQsmx6V8nveOUKJqEUAoeijxYhqWhKEhLGh_RiQo+ZA@mail.gmail.com>
+ <53421849-d031-77e1-9edb-53c9d673d462@redhat.com>
+ <1481124199.4751.50.camel@redhat.com>
+ <3a27e455-dc5f-4fee-aa72-4eab752e91d0@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38890 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1164524AbdD3UyU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 30 Apr 2017 16:54:20 -0400
+Received: from edison.jonmasters.org ([173.255.233.168]:52071 "EHLO
+        edison.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1424383AbdD3Vjs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Apr 2017 17:39:48 -0400
+In-Reply-To: <3a27e455-dc5f-4fee-aa72-4eab752e91d0@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+To: Mark Salter <msalter@redhat.com>, Duc Dang <dhdang@apm.com>
+Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Len Brown <lenb@kernel.org>
 
-Commit 660b1113e0f3 ("ACPI / PM: Fix consistency check for power resources
-during resume") introduced a check for ACPI power resources which have
-been turned on by the BIOS during suspend and turns these back off again.
+On 12/13/2016 01:20 AM, Jon Masters wrote:
+> On 12/07/2016 10:23 AM, Mark Salter wrote:
 
-This is causing problems on a Dell Venue Pro 11 7130 (i5-4300Y) it causes
-the following messages to show up in dmesg:
+>> If you specify a baudrate with earlycon=, the driver tries to set that
+>> baudrate and if you have an 8250 with some non-standard baud clock, then
+>> it will fail. Perhaps SPCR shouldn't pass baud option to setup_earlycon().
+> 
+> Yet they seem to explicitly want to do this...in my conversations with some
+> others we agree that, in many cases, you really want to say "leave the baud
+> whatever the firmware set it", which would work in this case, but might
+> break some others. Then again, nobody on x86 Linux is really using the
+> SPCR today due to it not having been something they used until now and
+> due to the location of the COM ports being fairly well known ;)
+> 
+> So who knows what folks will prefer, but we should at least get the spec
+> to cover both situations by explicitly calling out Applied as special.
 
-[  131.014605] ACPI: Waking up from system sleep state S3
-[  131.150271] acpi LNXPOWER:07: Turning OFF
-[  131.150323] acpi LNXPOWER:06: Turning OFF
-[  131.150911] acpi LNXPOWER:00: Turning OFF
-[  131.169014] ACPI : EC: interrupt unblocked
-[  131.181811] xhci_hcd 0000:00:14.0: System wakeup disabled by ACPI
-[  133.535728] pci_raw_set_power_state: 76 callbacks suppressed
-[  133.535735] iwlwifi 0000:01:00.0: Refused to change power state,
-               currently in D3
-[  133.597672] PM: noirq resume of devices complete after 2428.891 msecs
+<snip>
 
-Followed by a bunch of iwlwifi errors later on and the pcie device
-dropping from the bus (acpiphp thinks it has been unplugged).
+> So I've been discussing some changes to the SPCR and the current proposal
+> is that we have two new subtypes - one for 16550s that are non-standard
+> register width/stride but use the typical base clock, and a specific
+> additional type for SBSA level 0 compatible 16550 UARTs (Applied). I
+> will followup when the specification document has been revised.
 
-Disabling the turning off of unused power resources fixes this. Instead
-of adding a quirk for this system, this commit fixes this by moving the
-disabling of unused power resources to later in the resume sequence
-when the iwlwifi card has been moved out of D3 so the ref_count for
-its power resource no longer is 0.
+As an update. I've been speaking with friends at Microsoft on and off
+about this for quite some time. They've been very helpful (as usual) and
+we should get an SPCR update soon covering Applied's case. I have pinged
+the APM team to make sure that they're ready to post a patch.
 
-This new behavior seems to match the intend of the original commit which
-commit-msg says: "which means that no devices are going to need them
-any time soon) and we should turn them off".
+I would like this small fix squeezed in 4.12, but before 4.13.
 
-This also avoids power resources which we need when bringing devices out
-of D3 from getting bounced off and then back on again.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/power.c | 10 ++++++++++
- drivers/acpi/sleep.c |  1 +
- drivers/acpi/sleep.h |  1 +
- 3 files changed, 12 insertions(+)
-
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index fcd4ce6..1d330a5 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -863,6 +863,16 @@ void acpi_resume_power_resources(void)
- 
- 		mutex_unlock(&resource->resource_lock);
- 	}
-+
-+	mutex_unlock(&power_resource_list_lock);
-+}
-+
-+void acpi_turn_off_unused_power_resources(void)
-+{
-+	struct acpi_power_resource *resource;
-+
-+	mutex_lock(&power_resource_list_lock);
-+
- 	list_for_each_entry_reverse(resource, &acpi_power_resource_list, list_node) {
- 		int result, state;
- 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index a4327af..097d630 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -474,6 +474,7 @@ static void acpi_pm_start(u32 acpi_state)
-  */
- static void acpi_pm_end(void)
- {
-+	acpi_turn_off_unused_power_resources();
- 	acpi_scan_lock_release();
- 	/*
- 	 * This is necessary in case acpi_pm_finish() is not called during a
-diff --git a/drivers/acpi/sleep.h b/drivers/acpi/sleep.h
-index a9cc34e..a82ff74 100644
---- a/drivers/acpi/sleep.h
-+++ b/drivers/acpi/sleep.h
-@@ -6,6 +6,7 @@ extern struct list_head acpi_wakeup_device_list;
- extern struct mutex acpi_device_lock;
- 
- extern void acpi_resume_power_resources(void);
-+extern void acpi_turn_off_unused_power_resources(void);
- 
- static inline acpi_status acpi_set_waking_vector(u32 wakeup_address)
- {
--- 
-2.9.3
+Jon.
 
