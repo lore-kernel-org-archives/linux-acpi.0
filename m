@@ -1,84 +1,95 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Generic device properties framework updates for v4.12-rc1
-Date: Mon, 1 May 2017 22:51:53 +0200
-Message-ID: <CAJZ5v0j5AY-Jp4XQ8VW9y30NTXtKaDsPU-g6iqp0zew3tNayHw@mail.gmail.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.10 62/62] ftrace/x86: Fix triple fault with graph tracing and suspend-to-ram
+Date: Mon,  1 May 2017 14:35:15 -0700
+Message-ID: <20170501212733.168044252@linuxfoundation.org>
+References: <20170501212730.774855694@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:36068 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750908AbdEAUv4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 1 May 2017 16:51:56 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170501212730.774855694@linuxfoundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Paul Menzel <pmenzel@molgen.mpg.de>, Josh Poimboeuf <jpoimboe@redhat.com>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+4.10-stable review patch.  If anyone has any objections, please let me know.
 
-Please pull from the tag
+------------------
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- devprop-4.12-rc1
+From: Josh Poimboeuf <jpoimboe@redhat.com>
 
-with top-most commit e48174779440c79ff5dd75f0e6b169d4e184262d
+commit 34a477e5297cbaa6ecc6e17c042a866e1cbe80d6 upstream.
 
- device property: Read strings using string array reading functions
+On x86-32, with CONFIG_FIRMWARE and multiple CPUs, if you enable function
+graph tracing and then suspend to RAM, it will triple fault and reboot when
+it resumes.
 
-on top of commit c02ed2e75ef4c74e41e421acb4ef1494671585e8
+The first fault happens when booting a secondary CPU:
 
- Linux 4.11-rc4
+startup_32_smp()
+  load_ucode_ap()
+    prepare_ftrace_return()
+      ftrace_graph_is_dead()
+        (accesses 'kill_ftrace_graph')
 
-to receive generic device properties framework updates for v4.12-rc1.
+The early head_32.S code calls into load_ucode_ap(), which has an an
+ftrace hook, so it calls prepare_ftrace_return(), which calls
+ftrace_graph_is_dead(), which tries to access the global
+'kill_ftrace_graph' variable with a virtual address, causing a fault
+because the CPU is still in real mode.
 
-These add support for the ports and endpoints concepts, based on the
-existing DT support for them, to the generic device properties
-framework and update the ACPI _DSD properties code to recognize
-ports and endpoints accordingly.
+The fix is to add a check in prepare_ftrace_return() to make sure it's
+running in protected mode before continuing.  The check makes sure the
+stack pointer is a virtual kernel address.  It's a bit of a hack, but
+it's not very intrusive and it works well enough.
 
-Specifics:
+For reference, here are a few other (more difficult) ways this could
+have potentially been fixed:
 
- - Extend the ACPI _DSD properties code and the generic device
-   properties framework to support the concept of remote endponts
-   (Mika Westerberg, Sakari Ailus).
+- Move startup_32_smp()'s call to load_ucode_ap() down to *after* paging
+  is enabled.  (No idea what that would break.)
 
- - Document the support for ports and endpoints in _DSD properties
-   and extend the generic device properties framework to make it
-   more suitable for the handling of ports and endpoints (Sakari
-   Ailus).
+- Track down load_ucode_ap()'s entire callee tree and mark all the
+  functions 'notrace'.  (Probably not realistic.)
 
-Thanks!
+- Pause graph tracing in ftrace_suspend_notifier_call() or bringup_cpu()
+  or __cpu_up(), and ensure that the pause facility can be queried from
+  real mode.
 
----------------
+Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Len Brown <lenb@kernel.org>
+Link: http://lkml.kernel.org/r/5c1272269a580660703ed2eccf44308e790c7a98.1492123841.git.jpoimboe@redhat.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-Mika Westerberg (6):
-      ACPI / property: Add possiblity to retrieve parent firmware node
-      device property: Add fwnode_get_parent()
-      ACPI / property: Add fwnode_get_next_child_node()
-      device property: Add fwnode_get_named_child_node()
-      ACPI / property: Add support for remote endpoints
-      device property: Add support for remote endpoints
+---
+ arch/x86/kernel/ftrace.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Sakari Ailus (10):
-      device property: Add fwnode_handle_get()
-      of: Add of_fwnode_handle() to convert device nodes to fwnode_handle
-      device property: Make dev_fwnode() public
-      device property: Add support for fwnode endpoints
-      device property: Add fwnode_get_next_parent()
-      ACPI / DSD: Document references, ports and endpoints
-      device property: fwnode_property_read_string_array() may return -EILSEQ
-      device property: Fix reading pset strings using array access functions
-      device property: fwnode_property_read_string_array() returns nr of strings
-      device property: Read strings using string array reading functions
-
----------------
-
- Documentation/acpi/dsd/graph.txt | 162 +++++++++++++++++
- drivers/acpi/property.c          | 259 ++++++++++++++++++++++++----
- drivers/base/property.c          | 364 +++++++++++++++++++++++++++++++--------
- include/acpi/acpi_bus.h          |   1 +
- include/linux/acpi.h             |  38 +++-
- include/linux/fwnode.h           |  12 ++
- include/linux/of.h               |   4 +
- include/linux/property.h         |  26 +++
- 8 files changed, 761 insertions(+), 105 deletions(-)
+--- a/arch/x86/kernel/ftrace.c
++++ b/arch/x86/kernel/ftrace.c
+@@ -983,6 +983,18 @@ void prepare_ftrace_return(unsigned long
+ 	unsigned long return_hooker = (unsigned long)
+ 				&return_to_handler;
+ 
++	/*
++	 * When resuming from suspend-to-ram, this function can be indirectly
++	 * called from early CPU startup code while the CPU is in real mode,
++	 * which would fail miserably.  Make sure the stack pointer is a
++	 * virtual address.
++	 *
++	 * This check isn't as accurate as virt_addr_valid(), but it should be
++	 * good enough for this purpose, and it's fast.
++	 */
++	if (unlikely((long)__builtin_frame_address(0) >= 0))
++		return;
++
+ 	if (unlikely(ftrace_graph_is_dead()))
+ 		return;
+ 
