@@ -1,18 +1,18 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.9 54/54] ftrace/x86: Fix triple fault with graph tracing and suspend-to-ram
-Date: Mon,  1 May 2017 14:32:01 -0700
-Message-ID: <20170501212633.941060776@linuxfoundation.org>
-References: <20170501212631.798128131@linuxfoundation.org>
+Subject: [PATCH 4.4 43/43] ftrace/x86: Fix triple fault with graph tracing and suspend-to-ram
+Date: Mon,  1 May 2017 14:27:43 -0700
+Message-ID: <20170501212601.265075022@linuxfoundation.org>
+References: <20170501212559.546911128@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170501212631.798128131@linuxfoundation.org>
+In-Reply-To: <20170501212559.546911128@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Paul Menzel <pmenzel@molgen.mpg.de>, Josh Poimboeuf <jpoimboe@redhat.com>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
 
-4.9-stable review patch.  If anyone has any objections, please let me know.
+4.4-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -74,7 +74,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/arch/x86/kernel/ftrace.c
 +++ b/arch/x86/kernel/ftrace.c
-@@ -983,6 +983,18 @@ void prepare_ftrace_return(unsigned long
+@@ -977,6 +977,18 @@ void prepare_ftrace_return(unsigned long
  	unsigned long return_hooker = (unsigned long)
  				&return_to_handler;
  
