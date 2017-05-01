@@ -1,62 +1,79 @@
-From: Jon Masters <jcm@jonmasters.org>
-Subject: Re: [PATCH] SPCR: check bit width for the 16550 UART
-Date: Sun, 30 Apr 2017 17:39:38 -0400
-Message-ID: <78013fd3-0313-8e96-16d4-99c5e0af8db2@jonmasters.org>
-References: <20161205130534.11080-1-aleksey.makarov@linaro.org>
- <CADaLND=cpfnrNUAR+hHBjMk=ei50Z=TFhgzDy0T+EkqUuM7ZWQ@mail.gmail.com>
- <c5bc8527-4dbc-8411-a441-7e7aebcbbfed@redhat.com>
- <CADaLNDn9ZVaZNc0B6_gJ7wBUBPne4qNpYeiPmUO7_SBzsW+srA@mail.gmail.com>
- <CADaLND=t3O9J+KvaK=xb455HjaLYMA+4yodFVrozMEMtgPi-pw@mail.gmail.com>
- <3a6193ef-ca86-c113-b09a-5d6c882137e2@redhat.com>
- <CADaLNDmZQsmx6V8nveOUKJqEUAoeijxYhqWhKEhLGh_RiQo+ZA@mail.gmail.com>
- <53421849-d031-77e1-9edb-53c9d673d462@redhat.com>
- <1481124199.4751.50.camel@redhat.com>
- <3a27e455-dc5f-4fee-aa72-4eab752e91d0@redhat.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] libnvdimm: restore "libnvdimm: band aid btt vs clear poison
+ locking"
+Date: Mon, 01 May 2017 10:19:48 -0700
+Message-ID: <149365918855.23471.2493940794453999099.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from edison.jonmasters.org ([173.255.233.168]:52071 "EHLO
-        edison.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1424383AbdD3Vjs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Apr 2017 17:39:48 -0400
-In-Reply-To: <3a27e455-dc5f-4fee-aa72-4eab752e91d0@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Salter <msalter@redhat.com>, Duc Dang <dhdang@apm.com>
-Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Len Brown <lenb@kernel.org>
 
-On 12/13/2016 01:20 AM, Jon Masters wrote:
-> On 12/07/2016 10:23 AM, Mark Salter wrote:
+This continues the 4.11 status quo of disabling of error clearing from
+the BTT I/O path. Toshi found that even though we have eliminated all
+the libnvdimm sources of sleeping-while-atomic triggers, we still have
+sleeping operations that will occur in the path to send the ACPI DSM to
+the DIMM to clear the error:
 
->> If you specify a baudrate with earlycon=, the driver tries to set that
->> baudrate and if you have an 8250 with some non-standard baud clock, then
->> it will fail. Perhaps SPCR shouldn't pass baud option to setup_earlycon().
-> 
-> Yet they seem to explicitly want to do this...in my conversations with some
-> others we agree that, in many cases, you really want to say "leave the baud
-> whatever the firmware set it", which would work in this case, but might
-> break some others. Then again, nobody on x86 Linux is really using the
-> SPCR today due to it not having been something they used until now and
-> due to the location of the COM ports being fairly well known ;)
-> 
-> So who knows what folks will prefer, but we should at least get the spec
-> to cover both situations by explicitly calling out Applied as special.
+ BUG: sleeping function called from invalid context at mm/slab.h:432
+ in_atomic(): 1, irqs_disabled(): 0, pid: 13353, name: dd
+ Call Trace:
+  dump_stack+0x86/0xc3
+  ___might_sleep+0x17d/0x250
+  __might_sleep+0x4a/0x80
+  __kmalloc+0x1c0/0x2e0
+  acpi_os_allocate_zeroed+0x2d/0x2f
+  acpi_evaluate_object+0x59/0x3b1
+  acpi_evaluate_dsm+0xbd/0x10c
+  acpi_nfit_ctl+0x1ef/0x7c0 [nfit]
+  ? nsio_rw_bytes+0x152/0x280
+  nvdimm_clear_poison+0x77/0x140
+  nsio_rw_bytes+0x18f/0x280
+  btt_write_pg+0x1d4/0x3d0 [nd_btt]
+  btt_make_request+0x119/0x2d0 [nd_btt]
 
-<snip>
+A solution for tracking and handling media errors natively in the BTT is
+needed.
 
-> So I've been discussing some changes to the SPCR and the current proposal
-> is that we have two new subtypes - one for 16550s that are non-standard
-> register width/stride but use the typical base clock, and a specific
-> additional type for SBSA level 0 compatible 16550 UARTs (Applied). I
-> will followup when the specification document has been revised.
+Cc: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reported-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/nvdimm/claim.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-As an update. I've been speaking with friends at Microsoft on and off
-about this for quite some time. They've been very helpful (as usual) and
-we should get an SPCR update soon covering Applied's case. I have pinged
-the APM team to make sure that they're ready to post a patch.
-
-I would like this small fix squeezed in 4.12, but before 4.13.
-
-Jon.
-
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index 35b210dc1e56..6945e35058bf 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -250,7 +250,16 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 	}
+ 
+ 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
+-		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)) {
++		/*
++		 * FIXME: nsio_rw_bytes() may be called from atomic
++		 * context in the btt case and the ACPI DSM path for
++		 * clearing the error takes sleeping locks and allocates
++		 * memory. An explicit error clearing path, and support
++		 * for tracking badblocks in BTT metadata is needed to
++		 * work around this collision.
++		 */
++		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
++				&& (!ndns->claim || !is_nd_btt(ndns->claim))) {
+ 			long cleared;
+ 
+ 			cleared = nvdimm_clear_poison(&ndns->dev,
