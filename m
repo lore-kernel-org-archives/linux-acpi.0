@@ -1,79 +1,147 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] libnvdimm: restore "libnvdimm: band aid btt vs clear poison
- locking"
-Date: Mon, 01 May 2017 10:19:48 -0700
-Message-ID: <149365918855.23471.2493940794453999099.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Rafael Wysocki <rjwysocki@gmail.com>
+Subject: [GIT PULL] ACPI updates for v4.12-rc1, part 1
+Date: Mon, 1 May 2017 22:50:37 +0200
+Message-ID: <CAJZ5v0j4o+WXV7rxisP5cxT5Y1s_qkNUOTXt8EybfKTDmHf+TA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f195.google.com ([209.85.223.195]:34469 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750775AbdEAUuj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 1 May 2017 16:50:39 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-This continues the 4.11 status quo of disabling of error clearing from
-the BTT I/O path. Toshi found that even though we have eliminated all
-the libnvdimm sources of sleeping-while-atomic triggers, we still have
-sleeping operations that will occur in the path to send the ACPI DSM to
-the DIMM to clear the error:
+Hi Linus,
 
- BUG: sleeping function called from invalid context at mm/slab.h:432
- in_atomic(): 1, irqs_disabled(): 0, pid: 13353, name: dd
- Call Trace:
-  dump_stack+0x86/0xc3
-  ___might_sleep+0x17d/0x250
-  __might_sleep+0x4a/0x80
-  __kmalloc+0x1c0/0x2e0
-  acpi_os_allocate_zeroed+0x2d/0x2f
-  acpi_evaluate_object+0x59/0x3b1
-  acpi_evaluate_dsm+0xbd/0x10c
-  acpi_nfit_ctl+0x1ef/0x7c0 [nfit]
-  ? nsio_rw_bytes+0x152/0x280
-  nvdimm_clear_poison+0x77/0x140
-  nsio_rw_bytes+0x18f/0x280
-  btt_write_pg+0x1d4/0x3d0 [nd_btt]
-  btt_make_request+0x119/0x2d0 [nd_btt]
+Please pull from the tag
 
-A solution for tracking and handling media errors natively in the BTT is
-needed.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.12-rc1
 
-Cc: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reported-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/nvdimm/claim.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+with top-most commit 52e70c8af7e5d04e3fe431066f0530a17a8147c2
 
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 35b210dc1e56..6945e35058bf 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -250,7 +250,16 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 	}
- 
- 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
--		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)) {
-+		/*
-+		 * FIXME: nsio_rw_bytes() may be called from atomic
-+		 * context in the btt case and the ACPI DSM path for
-+		 * clearing the error takes sleeping locks and allocates
-+		 * memory. An explicit error clearing path, and support
-+		 * for tracking badblocks in BTT metadata is needed to
-+		 * work around this collision.
-+		 */
-+		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
-+				&& (!ndns->claim || !is_nd_btt(ndns->claim))) {
- 			long cleared;
- 
- 			cleared = nvdimm_clear_poison(&ndns->dev,
+ Merge branches 'acpi-power', 'acpi-blacklist', 'acpi-video' and 'acpi-doc'
+
+on top of commit 5a7ad1146caa895ad718a534399e38bd2ba721b7
+
+ Linux 4.11-rc8
+
+to receive the first batch of ACPI updates for v4.12-rc1.
+
+These are some device enumeration code changes, updates of the AC
+and battery drivers to help them avoid attaching to devices that
+cannot be handled by them, new operation region driver for the
+Intel CHT Whiskey Cove PMIC, new sysfs entries for CPPC performance
+capabilities, a new _REV quirk blacklist entry and a couple of
+assorted minor fixes and cleanups.
+
+Specifics:
+
+ - Update the core device enumeration code to make it more internally
+   consistent and robust and drop the force_remove sysfs attribute
+   that could be used to tell it to ignore errors on device
+   hot-removal which was dangerous in general and no real and
+   still relevant use cases for it could be found (Rafael Wysocki,
+   Michal Hocko).
+
+ - Make the core device enumeration code use _PXM to associate
+   platform devices created by it with specific NUMA nodes (Shanker
+   Donthineni).
+
+ - Extend the CPPC library by adding more sysfs entries for
+   performance capabilities to it and making it use the lowest
+   nonlinear performance parameter (Prashanth Prakash).
+
+ - Make the CPU online more consistent with CPU initialization in
+   the ACPI processor driver (Prashanth Prakash).
+
+ - Update the AC and battery drivers to help them avoid attaching to
+   devices that cannot be handled by them and update the axp288_charger
+   power supply driver to work correctly on ACPI systems without the
+   INT3496 device (Hans de Goede).
+
+ - Add an ACPI operation region driver for the Intel CHT Whiskey Cove
+   PMIC and update the xpower operation region driver to work without
+   IIO which isn't really necessary for it to work (Hans de Goede).
+
+ - Add a new entry for Dell Inspiron 7537 to the _REV quirk blacklist
+   (Kai Heng Feng).
+
+ - Make the code in the ACPI video driver easier to follow by adding
+   symbols and comments to it (Dmitry Frank).
+
+ - Update ACPI documentation and drop a function that has no users
+   from the tables-handling code (Cao jin, Baoquan He).
+
+Thanks!
+
+---------------
+
+Baoquan He (1):
+      ACPI / tables: Drop acpi_parse_entries() which is not used
+
+Cao jin (1):
+      ACPI / doc: linuxized-acpica.txt: fix typos
+
+Dmitry Frank (2):
+      ACPI / video: get rid of magic numbers and use enum instead
+      ACPI / video: add comments about subtle cases
+
+Hans de Goede (7):
+      ACPI / utils: Add new acpi_dev_present helper
+      ACPI / battery: Fix acpi_battery_exit on acpi_battery_init_async errors
+      ACPI / battery: Add a blacklist with PMIC ACPI HIDs with a
+native battery driver
+      ACPI / AC: Add a blacklist with PMIC ACPI HIDs with a native
+charger driver
+      power: supply: axp288_charger: Only wait for INT3496 device if present
+      ACPI / PMIC: Add opregion driver for Intel CHT Whiskey Cove PMIC
+      ACPI / PMIC: Stop xpower OPRegion handler relying on IIO
+
+Kai Heng Feng (1):
+      ACPI / blacklist: add _REV quirk for Dell Inspiron 7537
+
+Michal Hocko (1):
+      ACPI / scan: Drop support for force_remove
+
+Prakash, Prashanth (3):
+      ACPI / Processor: Drop setup_max_cpus check from acpi_processor_add()
+      ACPI / CPPC: Read lowest nonlinear perf in cppc_get_perf_caps()
+      ACPI / CPPC: add sysfs entries for CPPC perf capabilities
+
+Rafael J. Wysocki (2):
+      ACPI / scan: Apply default enumeration to devices with ACPI drivers
+      ACPI / scan: Avoid enumerating devices more than once
+
+Shanker Donthineni (1):
+      ACPI / platform: Update platform device NUMA node based on _PXM method
+
+---------------
+
+ Documentation/ABI/obsolete/sysfs-firmware-acpi |   8 +
+ Documentation/ABI/testing/sysfs-firmware-acpi  |  10 -
+ Documentation/acpi/linuxized-acpica.txt        |  10 +-
+ drivers/acpi/Kconfig                           |   8 +-
+ drivers/acpi/Makefile                          |   1 +
+ drivers/acpi/ac.c                              |  20 ++
+ drivers/acpi/acpi_platform.c                   |   5 +-
+ drivers/acpi/acpi_processor.c                  |   5 -
+ drivers/acpi/acpi_video.c                      | 157 ++++++++++----
+ drivers/acpi/battery.c                         |  22 +-
+ drivers/acpi/blacklist.c                       |   8 +
+ drivers/acpi/cppc_acpi.c                       |  80 +++----
+ drivers/acpi/internal.h                        |   2 -
+ drivers/acpi/pmic/intel_pmic_chtwc.c           | 280 +++++++++++++++++++++++++
+ drivers/acpi/pmic/intel_pmic_xpower.c          |  21 +-
+ drivers/acpi/scan.c                            |  24 +--
+ drivers/acpi/sysfs.c                           |   9 +-
+ drivers/acpi/tables.c                          |  16 --
+ drivers/acpi/utils.c                           |  66 ++++++
+ drivers/power/supply/axp288_charger.c          |  28 ++-
+ include/acpi/acpi_bus.h                        |   1 +
+ include/acpi/cppc_acpi.h                       |   3 +-
+ include/linux/acpi.h                           |   9 +-
+ 23 files changed, 617 insertions(+), 176 deletions(-)
