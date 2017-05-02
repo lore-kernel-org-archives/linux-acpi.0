@@ -1,190 +1,67 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH V8 07/11] iommu: of: Handle IOMMU lookup failure with
- deferred probing or error
-Date: Tue, 2 May 2017 20:35:37 +0200
-Message-ID: <CAMuHMdV05uCcVss+V1E+_OQYosJO6P95rU1WynV-G08-iHJnyg@mail.gmail.com>
-References: <1486136933-20328-1-git-send-email-sricharan@codeaurora.org> <1486136933-20328-8-git-send-email-sricharan@codeaurora.org>
+From: <geir.nuland@lyse.net>
+Subject: 32414 linux-acpi
+Date: Tue, 02 May 2017 19:34:06 -0000
+Message-ID: <149375364682.8648.15762174939022718835@vnpt.vn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: application/zip; name="63307840.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:36462 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750896AbdEBSfk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 May 2017 14:35:40 -0400
-In-Reply-To: <1486136933-20328-8-git-send-email-sricharan@codeaurora.org>
+Received: from static.vnpt.vn ([14.186.142.127]:42569 "HELO vnpt.vn"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751243AbdEBTeO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 2 May 2017 15:34:14 -0400
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sricharan R <sricharan@codeaurora.org>
-Cc: Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>, Joerg Roedel <joro@8bytes.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Marek Szyprowski <m.szyprowski@samsung.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, tn@semihalf.com, Hanjun Guo <hanjun.guo@linaro.org>, okaya@codeaurora.org, Magnus Damm <magnus.damm@gmail.com>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-Hi Sricharan,
-
-On Fri, Feb 3, 2017 at 4:48 PM, Sricharan R <sricharan@codeaurora.org> wrote:
-> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
->
-> Failures to look up an IOMMU when parsing the DT iommus property need to
-> be handled separately from the .of_xlate() failures to support deferred
-> probing.
->
-> The lack of a registered IOMMU can be caused by the lack of a driver for
-> the IOMMU, the IOMMU device probe not having been performed yet, having
-> been deferred, or having failed.
->
-> The first case occurs when the device tree describes the bus master and
-> IOMMU topology correctly but no device driver exists for the IOMMU yet
-> or the device driver has not been compiled in. Return NULL, the caller
-> will configure the device without an IOMMU.
->
-> The second and third cases are handled by deferring the probe of the bus
-> master device which will eventually get reprobed after the IOMMU.
->
-> The last case is currently handled by deferring the probe of the bus
-> master device as well. A mechanism to either configure the bus master
-> device without an IOMMU or to fail the bus master device probe depending
-> on whether the IOMMU is optional or mandatory would be a good
-> enhancement.
->
-> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Laurent Pichart <laurent.pinchart+renesas@ideasonboard.com>
-> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
-
-This patch broke Renesas R-Car Gen3 platforms in renesas-drivers.
-As the IOMMU nodes in DT are not yet enabled, all devices having iommus
-properties in DT now fail to probe.
-
-This can be fixed by either:
-  - Disabling CONFIG_IPMMU_VMSA, or
-  - Reverting commit 7b07cbefb68d486f (but keeping "int ret = 0;").
-
-Note that this was a bit hard to investigate, as R-Car Gen3 support wasn't
-upstreamed yet, so bisection pointed to a merge commit.
-
-> ---
->  [*] Fixed minor comment from Bjorn for removing the pci.h header inclusion
->      in of_iommu.c
->
->  drivers/base/dma-mapping.c | 5 +++--
->  drivers/iommu/of_iommu.c   | 4 ++--
->  drivers/of/device.c        | 7 ++++++-
->  include/linux/of_device.h  | 9 ++++++---
->  4 files changed, 17 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/base/dma-mapping.c b/drivers/base/dma-mapping.c
-> index 449b948..82bd45c 100644
-> --- a/drivers/base/dma-mapping.c
-> +++ b/drivers/base/dma-mapping.c
-> @@ -353,6 +353,7 @@ int dma_configure(struct device *dev)
->  {
->         struct device *bridge = NULL, *dma_dev = dev;
->         enum dev_dma_attr attr;
-> +       int ret = 0;
->
->         if (dev_is_pci(dev)) {
->                 bridge = pci_get_host_bridge_device(to_pci_dev(dev));
-> @@ -363,7 +364,7 @@ int dma_configure(struct device *dev)
->         }
->
->         if (dma_dev->of_node) {
-> -               of_dma_configure(dev, dma_dev->of_node);
-> +               ret = of_dma_configure(dev, dma_dev->of_node);
->         } else if (has_acpi_companion(dma_dev)) {
->                 attr = acpi_get_dma_attr(to_acpi_device_node(dma_dev->fwnode));
->                 if (attr != DEV_DMA_NOT_SUPPORTED)
-> @@ -373,7 +374,7 @@ int dma_configure(struct device *dev)
->         if (bridge)
->                 pci_put_host_bridge_device(bridge);
->
-> -       return 0;
-> +       return ret;
->  }
->
->  void dma_deconfigure(struct device *dev)
-> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-> index 1f92d98..2d04663 100644
-> --- a/drivers/iommu/of_iommu.c
-> +++ b/drivers/iommu/of_iommu.c
-> @@ -236,7 +236,7 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
->                         ops = ERR_PTR(err);
->         }
->
-> -       return IS_ERR(ops) ? NULL : ops;
-> +       return ops;
->  }
->
->  static int __init of_iommu_init(void)
-> @@ -247,7 +247,7 @@ static int __init of_iommu_init(void)
->         for_each_matching_node_and_match(np, matches, &match) {
->                 const of_iommu_init_fn init_fn = match->data;
->
-> -               if (init_fn(np))
-> +               if (init_fn && init_fn(np))
->                         pr_err("Failed to initialise IOMMU %s\n",
->                                 of_node_full_name(np));
->         }
-> diff --git a/drivers/of/device.c b/drivers/of/device.c
-> index c17c19d..ba51ca6 100644
-> --- a/drivers/of/device.c
-> +++ b/drivers/of/device.c
-> @@ -82,7 +82,7 @@ int of_device_add(struct platform_device *ofdev)
->   * can use a platform bus notifier and handle BUS_NOTIFY_ADD_DEVICE events
->   * to fix up DMA configuration.
->   */
-> -void of_dma_configure(struct device *dev, struct device_node *np)
-> +int of_dma_configure(struct device *dev, struct device_node *np)
->  {
->         u64 dma_addr, paddr, size;
->         int ret;
-> @@ -129,10 +129,15 @@ void of_dma_configure(struct device *dev, struct device_node *np)
->                 coherent ? " " : " not ");
->
->         iommu = of_iommu_configure(dev, np);
-> +       if (IS_ERR(iommu))
-> +               return PTR_ERR(iommu);
-> +
->         dev_dbg(dev, "device is%sbehind an iommu\n",
->                 iommu ? " " : " not ");
->
->         arch_setup_dma_ops(dev, dma_addr, size, iommu, coherent);
-> +
-> +       return 0;
->  }
->  EXPORT_SYMBOL_GPL(of_dma_configure);
->
-> diff --git a/include/linux/of_device.h b/include/linux/of_device.h
-> index 3cb2288..9499861 100644
-> --- a/include/linux/of_device.h
-> +++ b/include/linux/of_device.h
-> @@ -56,7 +56,7 @@ static inline struct device_node *of_cpu_device_node_get(int cpu)
->         return of_node_get(cpu_dev->of_node);
->  }
->
-> -void of_dma_configure(struct device *dev, struct device_node *np);
-> +int of_dma_configure(struct device *dev, struct device_node *np);
->  void of_dma_deconfigure(struct device *dev);
->  #else /* CONFIG_OF */
->
-> @@ -105,8 +105,11 @@ static inline struct device_node *of_cpu_device_node_get(int cpu)
->  {
->         return NULL;
->  }
-> -static inline void of_dma_configure(struct device *dev, struct device_node *np)
-> -{}
-> +
-> +static inline int of_dma_configure(struct device *dev, struct device_node *np)
-> +{
-> +       return 0;
-> +}
->  static inline void of_dma_deconfigure(struct device *dev)
->  {}
->  #endif /* CONFIG_OF */
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+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
