@@ -1,95 +1,144 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.4 43/43] ftrace/x86: Fix triple fault with graph tracing and suspend-to-ram
-Date: Mon,  1 May 2017 14:27:43 -0700
-Message-ID: <20170501212601.265075022@linuxfoundation.org>
-References: <20170501212559.546911128@linuxfoundation.org>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal SoC management updates for v4.12-rc1 #1
+Date: Mon, 1 May 2017 21:26:48 -0700
+Message-ID: <20170502042645.GA18904@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170501212559.546911128@linuxfoundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Paul Menzel <pmenzel@molgen.mpg.de>, Josh Poimboeuf <jpoimboe@redhat.com>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:34187 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750915AbdEBE0y (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 May 2017 00:26:54 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-4.4-stable review patch.  If anyone has any objections, please let me know.
 
-------------------
+--Nq2Wo0NMKNjxTN9z
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-From: Josh Poimboeuf <jpoimboe@redhat.com>
+Hello Rui,
 
-commit 34a477e5297cbaa6ecc6e17c042a866e1cbe80d6 upstream.
+Please pull the following changes to get the Thermal SoC updates
+for 4.12-rc1. Here we have:
+- Removal of non-DT booting on TI-SoC driver. Also, support to
+fetching coefficients from DT.
+- Refactoring of RCAR Gen3.
+- New driver: support for BCM 2835.
+- New driver: support for Broadcom Northstar.
+- New folder for broadcom drivers.
+- New driver: support for DA9062/61.
+- Small fix on MTK thermal.
 
-On x86-32, with CONFIG_FIRMWARE and multiple CPUs, if you enable function
-graph tracing and then suspend to RAM, it will triple fault and reboot when
-it resumes.
+These branch has been gone through kernel-ci and linux-next.
 
-The first fault happens when booting a secondary CPU:
+BR,
 
-startup_32_smp()
-  load_ucode_ap()
-    prepare_ftrace_return()
-      ftrace_graph_is_dead()
-        (accesses 'kill_ftrace_graph')
+The following changes since commit c1ae3cfa0e89fa1a7ecc4c99031f5e9ae99d9201:
 
-The early head_32.S code calls into load_ucode_ap(), which has an an
-ftrace hook, so it calls prepare_ftrace_return(), which calls
-ftrace_graph_is_dead(), which tries to access the global
-'kill_ftrace_graph' variable with a virtual address, causing a fault
-because the CPU is still in real mode.
+  Linux 4.11-rc1 (2017-03-05 12:59:56 -0800)
 
-The fix is to add a check in prepare_ftrace_return() to make sure it's
-running in protected mode before continuing.  The check makes sure the
-stack pointer is a virtual kernel address.  It's a bit of a hack, but
-it's not very intrusive and it works well enough.
+are available in the git repository at:
 
-For reference, here are a few other (more difficult) ways this could
-have potentially been fixed:
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal =
+linus
 
-- Move startup_32_smp()'s call to load_ucode_ap() down to *after* paging
-  is enabled.  (No idea what that would break.)
+for you to fetch changes up to 05d7839aa290901429d8edcd8f7974c9df2bcaa5:
 
-- Track down load_ucode_ap()'s entire callee tree and mark all the
-  functions 'notrace'.  (Probably not realistic.)
+  thermal: mt8173: minor mtk_thermal.c cleanups (2017-04-23 09:01:42 -0700)
 
-- Pause graph tracing in ftrace_suspend_notifier_call() or bringup_cpu()
-  or __cpu_up(), and ensure that the pause facility can be queried from
-  real mode.
+----------------------------------------------------------------
+Dawei Chien (1):
+      thermal: mt8173: minor mtk_thermal.c cleanups
 
-Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
-Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
-Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
-Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Len Brown <lenb@kernel.org>
-Link: http://lkml.kernel.org/r/5c1272269a580660703ed2eccf44308e790c7a98.1492123841.git.jpoimboe@redhat.com
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Keerthy (3):
+      thermal: ti-soc-thermal: Fetch slope and offset from DT
+      thermal: ti-soc-thermal: Remove redundant constants
+      thermal: ti-soc-thermal: Remove redundant code
 
----
- arch/x86/kernel/ftrace.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+Niklas S=C3=B6derlund (7):
+      thermal: rcar_gen3_thermal: add delay in .thermal_init on r8a7796
+      thermal: rcar_gen3_thermal: remove unneeded mutex
+      thermal: rcar_gen3_thermal: check that TSC exists before memory alloc=
+ation
+      thermal: rcar_gen3_thermal: record and check number of TSCs found
+      thermal: rcar_gen3_thermal: enable hardware interrupts for trip points
+      thermal: rcar_gen3_thermal: store device match data in private struct=
+ure
+      thermal: rcar_gen3_thermal: add suspend and resume support
 
---- a/arch/x86/kernel/ftrace.c
-+++ b/arch/x86/kernel/ftrace.c
-@@ -977,6 +977,18 @@ void prepare_ftrace_return(unsigned long
- 	unsigned long return_hooker = (unsigned long)
- 				&return_to_handler;
- 
-+	/*
-+	 * When resuming from suspend-to-ram, this function can be indirectly
-+	 * called from early CPU startup code while the CPU is in real mode,
-+	 * which would fail miserably.  Make sure the stack pointer is a
-+	 * virtual address.
-+	 *
-+	 * This check isn't as accurate as virt_addr_valid(), but it should be
-+	 * good enough for this purpose, and it's fast.
-+	 */
-+	if (unlikely((long)__builtin_frame_address(0) >= 0))
-+		return;
-+
- 	if (unlikely(ftrace_graph_is_dead()))
- 		return;
- 
+Rafa=C5=82 Mi=C5=82ecki (4):
+      dt-bindings: thermal: add support for Broadcom's Northstar thermal
+      thermal: broadcom: add Northstar thermal driver
+      thermal: broadcom: ns: specify myself as MODULE_AUTHOR
+      thermal: bcm2835: move to the broadcom subdirectory
+
+Stefan Wahren (2):
+      dt-bindings: Add thermal zone to bcm2835-thermal example
+      thermal: bcm2835: add thermal driver for bcm2835 SoC
+
+Steve Twiss (2):
+      Documentation: devicetree: thermal: da9062/61 TJUNC temperature bindi=
+ng
+      thermal: da9062/61: Thermal junction temperature monitoring driver
+
+ .../bindings/thermal/brcm,bcm2835-thermal.txt      |  32 ++-
+ .../devicetree/bindings/thermal/brcm,ns-thermal    |  37 +++
+ .../devicetree/bindings/thermal/da9062-thermal.txt |  36 +++
+ drivers/thermal/Kconfig                            |  15 +
+ drivers/thermal/Makefile                           |   2 +
+ drivers/thermal/broadcom/Kconfig                   |  16 ++
+ drivers/thermal/broadcom/Makefile                  |   2 +
+ drivers/thermal/broadcom/bcm2835_thermal.c         | 314 +++++++++++++++++=
++++
+ drivers/thermal/broadcom/ns-thermal.c              | 106 +++++++
+ drivers/thermal/da9062-thermal.c                   | 315 +++++++++++++++++=
+++++
+ drivers/thermal/mtk_thermal.c                      |   2 +-
+ drivers/thermal/rcar_gen3_thermal.c                | 199 ++++++++++++-
+ .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  10 -
+ .../thermal/ti-soc-thermal/omap3-thermal-data.c    |   4 -
+ .../thermal/ti-soc-thermal/omap4-thermal-data.c    |   6 -
+ .../thermal/ti-soc-thermal/omap5-thermal-data.c    |   4 -
+ drivers/thermal/ti-soc-thermal/ti-bandgap.h        |   4 -
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 158 +----------
+ drivers/thermal/ti-soc-thermal/ti-thermal.h        |  16 --
+ 19 files changed, 1061 insertions(+), 217 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/thermal/brcm,ns-therm=
+al
+ create mode 100644 Documentation/devicetree/bindings/thermal/da9062-therma=
+l.txt
+ create mode 100644 drivers/thermal/broadcom/Kconfig
+ create mode 100644 drivers/thermal/broadcom/Makefile
+ create mode 100644 drivers/thermal/broadcom/bcm2835_thermal.c
+ create mode 100644 drivers/thermal/broadcom/ns-thermal.c
+ create mode 100644 drivers/thermal/da9062-thermal.c
+
+--Nq2Wo0NMKNjxTN9z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJZCAp/AAoJEA6VkvSQfF5T/EEP/AiotunlBeChXOE6NoDEoZFU
+2hrlCb7OkCBkXW87zhmPYH8rgwg7FZblVe/QN3rvVMoevtqrFfhU71cVwCdjmRXY
+M+VoPErcKaW+J0rzXYz/+PiuDa1V6G8hdC3008LrLKULCTBMPSOgJaejyq/+jOeJ
+SvISfPDyCiDD+byAeztnIAkAqNffuaFFR8hho5eKLxkXhXRsI5RChkel+1IRZmZU
+jnM3bv38y1caGFwxoW42djB9uI4HUL1IYfLOgcwlodoyoFn4y+IetEJ9NC2H59t9
+Hx9mfJnol3QWL8MUPqeph5KfqzYk4sKGADGtPaL86IO+ilvTxIDp0pPDh0FNq5Nc
+p7gGxvNOC3zRkIsz5+x7mt2ctaLnkCRBUzI8QAa6qZ93ifK2XXGEbpyg4Plh4iCu
+x5M1+bH9rqLFST0LFOVumyfS6KnLRo/3xtCzqes2zvdyaL35eedrqEUJ2iNTwV+Q
+m71ORFXyZjLkKa2LJh42Q6YszQh5jPcR9GVM93ZuAyWmXUU2YZZBrFttmNfw89Kr
+Ju3xz7/vm6MR6SpZnXJZMmYXAB9bUBj1fUvFVnHYWQVM5U7T3/BGGyE0wSo7+FAZ
+AGCyvlRBKXk0Sp6XLnMfvnWPO4/uX9xpjwiufXOxNgHIUKoIrpj9RvEFgkZSQ3ni
+x3sgZ5MpqmkPvGPLC4qO
+=OMdZ
+-----END PGP SIGNATURE-----
+
+--Nq2Wo0NMKNjxTN9z--
