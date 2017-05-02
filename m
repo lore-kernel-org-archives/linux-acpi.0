@@ -1,84 +1,62 @@
-From: Geetha Akula <geethasowjanya.akula@gmail.com>
-Subject: Re: [PATCH 2/3] iommu/arm-smmu-v3: Add workaround for Cavium
- ThunderX2 erratum #74
-Date: Tue, 2 May 2017 12:01:15 +0530
-Message-ID: <CANHdaibvzp22XEa3NnKAKUtrHcWGc9oUcnM8KubcYCzEfOaKJg@mail.gmail.com>
-References: <1493293584-20287-1-git-send-email-gakula@caviumnetworks.com>
- <1493293584-20287-3-git-send-email-gakula@caviumnetworks.com>
- <20170427164237.GA7114@leverpostej> <20170427170030.GF1890@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [PATCH] acpi/apei/erst: Remove "Error" from initialization and disable output
+Date: Tue,  2 May 2017 09:14:51 -0400
+Message-ID: <1493730891-13712-1-git-send-email-prarit@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:34998 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751123AbdEBGbS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 2 May 2017 02:31:18 -0400
-In-Reply-To: <20170427170030.GF1890@arm.com>
+Received: from mx1.redhat.com ([209.132.183.28]:48442 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750740AbdEBNOy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 2 May 2017 09:14:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Geetha sowjanya <gakula@caviumnetworks.com>, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, jcm@redhat.com, Linu Cherian <linu.cherian@cavium.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, Geetha <gakula@cavium.com>, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org
+To: linux-acpi@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>, Kees Cook <keescook@chromium.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-Hi Will,
+The word "Error" is used by many QA groups and users as a keyword to
+indicate that there is a critical failure during system bootup. The ESRT
+code would interact better with these scripts if the word "Error" was
+dropped from non-error messages.  Other ACPI features only use the acronym
+for initialization and disable messages so the ESRT code should do the
+same.
 
-SMMU_IIDR register is broken on T99, that the reason we are using MIDR.
-If using MIDR is not accepted, can we enable errata based on SMMU resource size?
-some thing like below.
+Remove "Error Record Serialization Table" and replace it with "ACPI ESRT"
+in the messages.
 
-static bool page0_reg_only = false;
-+static unsigned long arm_smmu_resource_size(void)
-+{
-+       if (page0_reg_only)
-+               return SZ_64K;
-+       else
-+               return SZ_128K;
-+}
-+
- static int arm_smmu_device_probe(struct platform_device *pdev)
- {
-        int irq, ret;
-@@ -2674,7 +2692,13 @@ static int arm_smmu_device_probe(struct
-platform_device *pdev)
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Anton Vorontsov <anton@enomsg.org>
+Cc: Colin Cross <ccross@android.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+---
+ drivers/acpi/apei/erst.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-        /* Base address */
-        res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index ec4f507b524f..a796b9d91e20 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -1129,8 +1129,7 @@ static int __init erst_init(void)
+ 		goto err;
+ 
+ 	if (erst_disable) {
+-		pr_info(
+-	"Error Record Serialization Table (ERST) support is disabled.\n");
++		pr_info("ACPI ERST support is disabled.\n");
+ 		goto err;
+ 	}
+ 
+@@ -1187,8 +1186,7 @@ static int __init erst_init(void)
+ 	if (!erst_erange.vaddr)
+ 		goto err_release_erange;
+ 
+-	pr_info(
+-	"Error Record Serialization Table (ERST) support is initialized.\n");
++	pr_info("ACPI ERST support is initialized.\n");
+ 
+ 	buf = kmalloc(erst_erange.size, GFP_KERNEL);
+ 	spin_lock_init(&erst_info.buf_lock);
+-- 
+1.7.9.3
 
-+       /*
-+     * Setting page0_reg_only flag, for Cavium CN99xx implementations
-+     * which doesn't support the page 1 SMMU register space.
-+     */
-+       if (resource_size(res) == SZ_64K)
-+                       page0_reg_only = true;
--        if (resource_size(res) + 1 < SZ_128K) {
-+       if (resource_size(res) + 1 < arm_smmu_resource_size()) {
-                dev_err(dev, "MMIO region too small (%pr)\n", res);
-                return -EINVAL;
-        }
-
-
-Thank you,
-Geetha.
-
-On Thu, Apr 27, 2017 at 10:30 PM, Will Deacon <will.deacon@arm.com> wrote:
-> On Thu, Apr 27, 2017 at 05:42:37PM +0100, Mark Rutland wrote:
->> On Thu, Apr 27, 2017 at 05:16:23PM +0530, Geetha sowjanya wrote:
->> > +   /*
->> > +    * Override the size, for Cavium CN99xx implementations
->> > +    * which doesn't support the page 1 SMMU register space.
->> > +    */
->> > +   cpu_model = read_cpuid_id() & MIDR_CPU_MODEL_MASK;
->> > +   if (cpu_model == MIDR_THUNDERX_99XX ||
->> > +       cpu_model == MIDR_BRCM_VULCAN)
->> > +           size = SZ_64K;
->>
->> If you're trying to identify an SMMU erratum, identify the SMMU, not the
->> CPU it happens to be paired with this time.
->>
->> There are ID registers in the SMMU you can use to do so.
->>
->> NAK to using the CPU ID here.
->
-> Agreed. I had some off-list discussion with Geetha where we agreed to use
-> the "silicon ID", which I assumed was the SMMU IIDR register.
->
-> Will
