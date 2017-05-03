@@ -1,129 +1,102 @@
-From: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH V8 07/11] iommu: of: Handle IOMMU lookup failure with
-	deferred probing or error
-Date: Wed, 3 May 2017 16:43:05 +0530
-Message-ID: <9742498a-a415-6725-3aa0-b29089152383@codeaurora.org>
-References: <1486136933-20328-1-git-send-email-sricharan@codeaurora.org>
-	<1486136933-20328-8-git-send-email-sricharan@codeaurora.org>
-	<CAMuHMdV05uCcVss+V1E+_OQYosJO6P95rU1WynV-G08-iHJnyg@mail.gmail.com>
-	<2bfd11dc-9f94-2b69-7b03-c640e53155e1@arm.com>
-	<26defadf-6380-4af4-6323-b51198376bc1@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <26defadf-6380-4af4-6323-b51198376bc1-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Cc: okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linux-Renesas <linux-renesas-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: [patch added to 3.12-stable] ftrace/x86: Fix triple fault with graph tracing and suspend-to-ram
+Date: Wed,  3 May 2017 14:23:27 +0200
+Message-ID: <20170503122327.12095-49-jslaby@suse.cz>
+References: <20170503122327.12095-1-jslaby@suse.cz>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:38615 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751005AbdECMXt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 3 May 2017 08:23:49 -0400
+In-Reply-To: <20170503122327.12095-1-jslaby@suse.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jiri Slaby <jslaby@suse.cz>
 
-Hi,
+From: Josh Poimboeuf <jpoimboe@redhat.com>
 
-On 5/3/2017 3:54 PM, Sricharan R wrote:
-> Hi Robin,
-> 
-> On 5/3/2017 3:24 PM, Robin Murphy wrote:
->> Hi Geert,
->>
->> On 02/05/17 19:35, Geert Uytterhoeven wrote:
->>> Hi Sricharan,
->>>
->>> On Fri, Feb 3, 2017 at 4:48 PM, Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> wrote:
->>>> From: Laurent Pinchart <laurent.pinchart+renesas-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
->>>>
->>>> Failures to look up an IOMMU when parsing the DT iommus property need to
->>>> be handled separately from the .of_xlate() failures to support deferred
->>>> probing.
->>>>
->>>> The lack of a registered IOMMU can be caused by the lack of a driver for
->>>> the IOMMU, the IOMMU device probe not having been performed yet, having
->>>> been deferred, or having failed.
->>>>
->>>> The first case occurs when the device tree describes the bus master and
->>>> IOMMU topology correctly but no device driver exists for the IOMMU yet
->>>> or the device driver has not been compiled in. Return NULL, the caller
->>>> will configure the device without an IOMMU.
->>>>
->>>> The second and third cases are handled by deferring the probe of the bus
->>>> master device which will eventually get reprobed after the IOMMU.
->>>>
->>>> The last case is currently handled by deferring the probe of the bus
->>>> master device as well. A mechanism to either configure the bus master
->>>> device without an IOMMU or to fail the bus master device probe depending
->>>> on whether the IOMMU is optional or mandatory would be a good
->>>> enhancement.
->>>>
->>>> Tested-by: Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
->>>> Signed-off-by: Laurent Pichart <laurent.pinchart+renesas-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
->>>> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
->>>
->>> This patch broke Renesas R-Car Gen3 platforms in renesas-drivers.
->>> As the IOMMU nodes in DT are not yet enabled, all devices having iommus
->>> properties in DT now fail to probe.
->>
->> How exactly do they fail to probe? Per d7b0558230e4, if there are no ops
->> registered then they should merely defer until we reach the point of
->> giving up and ignoring the IOMMU. Is it just that you have no other
->> late-probing drivers or post-init module loads to kick the deferred
->> queue after that point? I did try to find a way to explicitly kick it
->> from a suitably late initcall, but there didn't seem to be any obvious
->> public interface - anyone have any suggestions?
->>
->> I think that's more of a general problem with the probe deferral
->> mechanism itself (I've seen the same thing happen with some of the
->> CoreSight stuff on Juno due to the number of inter-component
->> dependencies) rather than any specific fault of this series.
->>
-> 
-> I was thinking of an additional check like below to avoid the
-> situation ?
-> 
-> From 499b6e662f60f23740b8880882b0a16f16434501 Mon Sep 17 00:00:00 2001
-> From: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> Date: Wed, 3 May 2017 13:16:59 +0530
-> Subject: [PATCH] iommu: of: Fix check for returning EPROBE_DEFER
-> 
-> While returning EPROBE_DEFER for iommu masters
-> take in to account of iommu nodes that could be
-> marked in DT as 'status=disabled', in which case
-> simply return NULL and let the master's probe
-> continue rather than deferring.
-> 
-> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> ---
->  drivers/iommu/of_iommu.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-> index 9f44ee8..e6e9bec 100644
-> --- a/drivers/iommu/of_iommu.c
-> +++ b/drivers/iommu/of_iommu.c
-> @@ -118,6 +118,7 @@ static bool of_iommu_driver_present(struct device_node *np)
-> 
->         ops = iommu_ops_from_fwnode(fwnode);
->         if ((ops && !ops->of_xlate) ||
-> +           !of_device_is_available(iommu_spec->np) ||
->             (!ops && !of_iommu_driver_present(iommu_spec->np)))
->                 return NULL;
-> 
+This patch has been added to the 3.12 stable tree. If you have any
+objections, please let us know.
 
-While same as the other 'status=disabled' patch [1], better not to
-defer the probe itself in the case ?
+===============
 
-[1] https://patchwork.kernel.org/patch/9681211/
+commit 34a477e5297cbaa6ecc6e17c042a866e1cbe80d6 upstream.
 
-Regards,
- Sricharan
+On x86-32, with CONFIG_FIRMWARE and multiple CPUs, if you enable function
+graph tracing and then suspend to RAM, it will triple fault and reboot when
+it resumes.
 
+The first fault happens when booting a secondary CPU:
+
+startup_32_smp()
+  load_ucode_ap()
+    prepare_ftrace_return()
+      ftrace_graph_is_dead()
+        (accesses 'kill_ftrace_graph')
+
+The early head_32.S code calls into load_ucode_ap(), which has an an
+ftrace hook, so it calls prepare_ftrace_return(), which calls
+ftrace_graph_is_dead(), which tries to access the global
+'kill_ftrace_graph' variable with a virtual address, causing a fault
+because the CPU is still in real mode.
+
+The fix is to add a check in prepare_ftrace_return() to make sure it's
+running in protected mode before continuing.  The check makes sure the
+stack pointer is a virtual kernel address.  It's a bit of a hack, but
+it's not very intrusive and it works well enough.
+
+For reference, here are a few other (more difficult) ways this could
+have potentially been fixed:
+
+- Move startup_32_smp()'s call to load_ucode_ap() down to *after* paging
+  is enabled.  (No idea what that would break.)
+
+- Track down load_ucode_ap()'s entire callee tree and mark all the
+  functions 'notrace'.  (Probably not realistic.)
+
+- Pause graph tracing in ftrace_suspend_notifier_call() or bringup_cpu()
+  or __cpu_up(), and ensure that the pause facility can be queried from
+  real mode.
+
+Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Len Brown <lenb@kernel.org>
+Link: http://lkml.kernel.org/r/5c1272269a580660703ed2eccf44308e790c7a98.1492123841.git.jpoimboe@redhat.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+---
+ arch/x86/kernel/ftrace.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/x86/kernel/ftrace.c b/arch/x86/kernel/ftrace.c
+index f8ab203fb676..b8162154e615 100644
+--- a/arch/x86/kernel/ftrace.c
++++ b/arch/x86/kernel/ftrace.c
+@@ -735,6 +735,18 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr,
+ 	unsigned long return_hooker = (unsigned long)
+ 				&return_to_handler;
+ 
++	/*
++	 * When resuming from suspend-to-ram, this function can be indirectly
++	 * called from early CPU startup code while the CPU is in real mode,
++	 * which would fail miserably.  Make sure the stack pointer is a
++	 * virtual address.
++	 *
++	 * This check isn't as accurate as virt_addr_valid(), but it should be
++	 * good enough for this purpose, and it's fast.
++	 */
++	if (unlikely((long)__builtin_frame_address(0) >= 0))
++		return;
++
+ 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
+ 		return;
+ 
 -- 
-"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+2.12.2
+
