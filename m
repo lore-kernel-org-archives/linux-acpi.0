@@ -1,102 +1,45 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: [patch added to 3.12-stable] ftrace/x86: Fix triple fault with graph tracing and suspend-to-ram
-Date: Wed,  3 May 2017 14:23:27 +0200
-Message-ID: <20170503122327.12095-49-jslaby@suse.cz>
-References: <20170503122327.12095-1-jslaby@suse.cz>
+From: Daniel Drake <drake@endlessm.com>
+Subject: Re: [PATCH] ACPI / EC: handle ECDT EC and DSDT EC simultaneously
+Date: Wed, 3 May 2017 14:06:27 -0600
+Message-ID: <CAD8Lp47r=ZKzF3HSWj4D-Pu=PppTK0-_3fTbWFjHXKLvEqr8dw@mail.gmail.com>
+References: <20170420201219.21568-1-drake@endlessm.com> <CAD8Lp44nXRv0rpZgPw1f0LZ_bcn74fQFzG6HBxRcL1QAWxBHTQ@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE9973E@SHSMSX101.ccr.corp.intel.com>
+ <2213549.Q4Z823dSPo@aspire.rjw.lan> <CAD8Lp46+BQxcB9hgp0wXvWkA32XksYdG1h-vZOzQ5pT0P-0Ydg@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE9A1C9@SHSMSX101.ccr.corp.intel.com> <CAD8Lp46nYiKuwc8i7K_uSKisH4q=wWs8tH7ktJCgoeMDBoU4wg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38615 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751005AbdECMXt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 3 May 2017 08:23:49 -0400
-In-Reply-To: <20170503122327.12095-1-jslaby@suse.cz>
+Received: from mail-io0-f177.google.com ([209.85.223.177]:33671 "EHLO
+        mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757705AbdECUG3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 May 2017 16:06:29 -0400
+Received: by mail-io0-f177.google.com with SMTP id p24so18426873ioi.0
+        for <linux-acpi@vger.kernel.org>; Wed, 03 May 2017 13:06:29 -0700 (PDT)
+In-Reply-To: <CAD8Lp46nYiKuwc8i7K_uSKisH4q=wWs8tH7ktJCgoeMDBoU4wg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jiri Slaby <jslaby@suse.cz>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "chiu@endlessm.com" <chiu@endlessm.com>, "linux@endlessm.com" <linux@endlessm.com>
 
-From: Josh Poimboeuf <jpoimboe@redhat.com>
+Hi Lv,
 
-This patch has been added to the 3.12 stable tree. If you have any
-objections, please let us know.
+On Fri, Apr 28, 2017 at 6:52 AM, Daniel Drake <drake@endlessm.com> wrote:
+> In the DSDT you were looking at the H_EC device, but for whatever
+> reason, there are two ECs in this DSDT and the one that Linux picks up
+> is the 2nd one, \_SB_.PCI0.LPCB.EC0.
+>
+> This device has no _STA but does have valid _CRS, and the debug patch
+> results agree:
+>
+>  ACPI : EC: acpi_ec_dsdt_probe: search for DSDT EC
+>  ACPI : EC: ec_parse_device: _STA status 5 val 0
+>  ACPI : EC: ec_parse_device: _CRS status 0 command 66 data 62
+>  ACPI : EC: EC stopped
+>  ACPI : EC: EC started
+>  ACPI: \_SB_.PCI0.LPCB.EC0_: Used as first EC
 
-===============
+How do we proceed here? Any other options we can try that don't
+involve DMI quirking?
 
-commit 34a477e5297cbaa6ecc6e17c042a866e1cbe80d6 upstream.
-
-On x86-32, with CONFIG_FIRMWARE and multiple CPUs, if you enable function
-graph tracing and then suspend to RAM, it will triple fault and reboot when
-it resumes.
-
-The first fault happens when booting a secondary CPU:
-
-startup_32_smp()
-  load_ucode_ap()
-    prepare_ftrace_return()
-      ftrace_graph_is_dead()
-        (accesses 'kill_ftrace_graph')
-
-The early head_32.S code calls into load_ucode_ap(), which has an an
-ftrace hook, so it calls prepare_ftrace_return(), which calls
-ftrace_graph_is_dead(), which tries to access the global
-'kill_ftrace_graph' variable with a virtual address, causing a fault
-because the CPU is still in real mode.
-
-The fix is to add a check in prepare_ftrace_return() to make sure it's
-running in protected mode before continuing.  The check makes sure the
-stack pointer is a virtual kernel address.  It's a bit of a hack, but
-it's not very intrusive and it works well enough.
-
-For reference, here are a few other (more difficult) ways this could
-have potentially been fixed:
-
-- Move startup_32_smp()'s call to load_ucode_ap() down to *after* paging
-  is enabled.  (No idea what that would break.)
-
-- Track down load_ucode_ap()'s entire callee tree and mark all the
-  functions 'notrace'.  (Probably not realistic.)
-
-- Pause graph tracing in ftrace_suspend_notifier_call() or bringup_cpu()
-  or __cpu_up(), and ensure that the pause facility can be queried from
-  real mode.
-
-Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
-Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
-Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
-Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Len Brown <lenb@kernel.org>
-Link: http://lkml.kernel.org/r/5c1272269a580660703ed2eccf44308e790c7a98.1492123841.git.jpoimboe@redhat.com
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
----
- arch/x86/kernel/ftrace.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/arch/x86/kernel/ftrace.c b/arch/x86/kernel/ftrace.c
-index f8ab203fb676..b8162154e615 100644
---- a/arch/x86/kernel/ftrace.c
-+++ b/arch/x86/kernel/ftrace.c
-@@ -735,6 +735,18 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr,
- 	unsigned long return_hooker = (unsigned long)
- 				&return_to_handler;
- 
-+	/*
-+	 * When resuming from suspend-to-ram, this function can be indirectly
-+	 * called from early CPU startup code while the CPU is in real mode,
-+	 * which would fail miserably.  Make sure the stack pointer is a
-+	 * virtual address.
-+	 *
-+	 * This check isn't as accurate as virt_addr_valid(), but it should be
-+	 * good enough for this purpose, and it's fast.
-+	 */
-+	if (unlikely((long)__builtin_frame_address(0) >= 0))
-+		return;
-+
- 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
- 		return;
- 
--- 
-2.12.2
-
+Thanks
+Daniel
