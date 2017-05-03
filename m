@@ -1,45 +1,45 @@
-From: Daniel Drake <drake@endlessm.com>
-Subject: Re: [PATCH] ACPI / EC: handle ECDT EC and DSDT EC simultaneously
-Date: Wed, 3 May 2017 14:06:27 -0600
-Message-ID: <CAD8Lp47r=ZKzF3HSWj4D-Pu=PppTK0-_3fTbWFjHXKLvEqr8dw@mail.gmail.com>
-References: <20170420201219.21568-1-drake@endlessm.com> <CAD8Lp44nXRv0rpZgPw1f0LZ_bcn74fQFzG6HBxRcL1QAWxBHTQ@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886CE9973E@SHSMSX101.ccr.corp.intel.com>
- <2213549.Q4Z823dSPo@aspire.rjw.lan> <CAD8Lp46+BQxcB9hgp0wXvWkA32XksYdG1h-vZOzQ5pT0P-0Ydg@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886CE9A1C9@SHSMSX101.ccr.corp.intel.com> <CAD8Lp46nYiKuwc8i7K_uSKisH4q=wWs8tH7ktJCgoeMDBoU4wg@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v3 1/1] of: Move OF property and graph API from base.c to property.c
+Date: Wed, 3 May 2017 15:19:13 -0500
+Message-ID: <CAL_JsqKOnhaHW=GihiuaM6m8TjmREKNJsJaAaW96bKYmy=2MeQ@mail.gmail.com>
+References: <1493806898-5409-1-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:33671 "EHLO
-        mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757705AbdECUG3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 May 2017 16:06:29 -0400
-Received: by mail-io0-f177.google.com with SMTP id p24so18426873ioi.0
-        for <linux-acpi@vger.kernel.org>; Wed, 03 May 2017 13:06:29 -0700 (PDT)
-In-Reply-To: <CAD8Lp46nYiKuwc8i7K_uSKisH4q=wWs8tH7ktJCgoeMDBoU4wg@mail.gmail.com>
+Received: from mail.kernel.org ([198.145.29.136]:42262 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752771AbdECUTi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 3 May 2017 16:19:38 -0400
+In-Reply-To: <1493806898-5409-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "chiu@endlessm.com" <chiu@endlessm.com>, "linux@endlessm.com" <linux@endlessm.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Frank Rowand <frowand.list@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Al Stone <ahs3@redhat.com>
 
-Hi Lv,
-
-On Fri, Apr 28, 2017 at 6:52 AM, Daniel Drake <drake@endlessm.com> wrote:
-> In the DSDT you were looking at the H_EC device, but for whatever
-> reason, there are two ECs in this DSDT and the one that Linux picks up
-> is the 2nd one, \_SB_.PCI0.LPCB.EC0.
+On Wed, May 3, 2017 at 5:21 AM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> base.c contains both core OF functions and increasingly other
+> functionality such as accessing properties and graphs, including
+> convenience functions. In the near future this would also include OF
+> specific implementation of the fwnode property and graph APIs.
 >
-> This device has no _STA but does have valid _CRS, and the debug patch
-> results agree:
+> Create driver/of/property.c to contain procedures for accessing and
+> interpreting device tree properties. The procedures are moved from
+> drivers/of/base.c, with no changes other than copying only the includes
+> required by the moved procedures.
 >
->  ACPI : EC: acpi_ec_dsdt_probe: search for DSDT EC
->  ACPI : EC: ec_parse_device: _STA status 5 val 0
->  ACPI : EC: ec_parse_device: _CRS status 0 command 66 data 62
->  ACPI : EC: EC stopped
->  ACPI : EC: EC started
->  ACPI: \_SB_.PCI0.LPCB.EC0_: Used as first EC
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Hi Rob and Frank,
+>
+> This is a pre-dependency for further fwnode property cleanup. The patch
+> appears to be slightly more conflict-prone than the rest of the patchset:
+>
+> <URL:http://www.spinics.net/lists/linux-acpi/msg72647.html>
+>
+> Would it be possible to merge it separately from the rest?
 
-How do we proceed here? Any other options we can try that don't
-involve DMI quirking?
+Yes, but not now in the middle of the merge window. Maybe towards the
+end of the merge window for 4.12. Or it's not going to be until 4.13.
 
-Thanks
-Daniel
+Rob
