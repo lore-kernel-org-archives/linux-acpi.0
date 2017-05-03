@@ -1,31 +1,40 @@
-From: "H.A" <mioara@viata-libera.ro>
-Subject: Re:
-Date: Wed, 03 May 2017 07:23:12 +0100
-Message-ID: <20170503062332.3DF4484B28@mail.viata-libera.ro>
-Reply-To: helenaroberts99@gmail.com
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH 2/3] iommu/arm-smmu-v3: Add workaround for Cavium
+ ThunderX2 erratum #74
+Date: Wed, 3 May 2017 10:47:18 +0100
+Message-ID: <20170503094717.GC8233@arm.com>
+References: <1493293584-20287-1-git-send-email-gakula@caviumnetworks.com>
+ <1493293584-20287-3-git-send-email-gakula@caviumnetworks.com>
+ <20170427164237.GA7114@leverpostej>
+ <20170427170030.GF1890@arm.com>
+ <CANHdaibvzp22XEa3NnKAKUtrHcWGc9oUcnM8KubcYCzEfOaKJg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.viata-libera.ro ([81.12.239.110]:36172 "EHLO
-        mail.viata-libera.ro" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751561AbdECGdX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 May 2017 02:33:23 -0400
-Content-Description: Mail message body
+Received: from foss.arm.com ([217.140.101.70]:52402 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752757AbdECJrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 3 May 2017 05:47:16 -0400
+Content-Disposition: inline
+In-Reply-To: <CANHdaibvzp22XEa3NnKAKUtrHcWGc9oUcnM8KubcYCzEfOaKJg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <mioara@viata-libera.ro>
+To: Geetha Akula <geethasowjanya.akula@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Geetha sowjanya <gakula@caviumnetworks.com>, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, jcm@redhat.com, Linu Cherian <linu.cherian@cavium.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, Geetha <gakula@cavium.com>, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org
 
-With profound love in my heart, I Kindly Oblige your interest to very important proposal.. It is Truly Divine and require your utmost attention..........
+Hi Geetha,
 
-S hlubokou láskou v mém srdci, Laskave jsem prinutit svuj zájem k návrhu .. Je velmi duležité, skutecne Divine a vyžadují vaši nejvyšší pozornost.
+On Tue, May 02, 2017 at 12:01:15PM +0530, Geetha Akula wrote:
+> SMMU_IIDR register is broken on T99, that the reason we are using MIDR.
 
-  Kontaktujte me prímo pres: helenaroberts99@gmail.com pro úplné podrobnosti.complete.
+Urgh, that's unfortunate. In what way is it broken?
 
+> If using MIDR is not accepted, can we enable errata based on SMMU resource size?
+> some thing like below.
 
-HELINA .A ROBERTS
+No, you need to get your model number added to IORT after all if the IIDR
+can't uniqely identify the part.
 
----
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
+Sorry,
 
+Will
