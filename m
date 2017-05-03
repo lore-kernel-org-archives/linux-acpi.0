@@ -1,67 +1,31 @@
-From: <geir.nuland@lyse.net>
-Subject: 32414 linux-acpi
-Date: Tue, 02 May 2017 19:34:06 -0000
-Message-ID: <149375364682.8648.15762174939022718835@vnpt.vn>
+From: "H.A" <mioara@viata-libera.ro>
+Subject: Re:
+Date: Wed, 03 May 2017 07:23:12 +0100
+Message-ID: <20170503062332.3DF4484B28@mail.viata-libera.ro>
+Reply-To: helenaroberts99@gmail.com
 Mime-Version: 1.0
-Content-Type: application/zip; name="63307840.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static.vnpt.vn ([14.186.142.127]:42569 "HELO vnpt.vn"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751243AbdEBTeO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 2 May 2017 15:34:14 -0400
-Content-Disposition: attachment
+Received: from mail.viata-libera.ro ([81.12.239.110]:36172 "EHLO
+        mail.viata-libera.ro" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751561AbdECGdX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 May 2017 02:33:23 -0400
+Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Recipients <mioara@viata-libera.ro>
 
-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
+With profound love in my heart, I Kindly Oblige your interest to very important proposal.. It is Truly Divine and require your utmost attention..........
+
+S hlubokou láskou v mém srdci, Laskave jsem prinutit svuj zájem k návrhu .. Je velmi duležité, skutecne Divine a vyžadují vaši nejvyšší pozornost.
+
+  Kontaktujte me prímo pres: helenaroberts99@gmail.com pro úplné podrobnosti.complete.
+
+
+HELINA .A ROBERTS
+
+---
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
+
