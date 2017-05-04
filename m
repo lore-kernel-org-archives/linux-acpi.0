@@ -1,153 +1,159 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 1/2] libnvdimm: convert NDD_ flags to use bitops,
- introduce NDD_LOCKED
-Date: Thu, 04 May 2017 15:43:04 -0700
-Message-ID: <149393778452.34042.11808841820577827779.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 2/2] libnvdimm: handle locked label storage areas
+Date: Thu, 04 May 2017 15:43:10 -0700
+Message-ID: <149393778992.34042.6110586296081480841.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <149393778452.34042.11808841820577827779.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:41701 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752401AbdEDWs5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 4 May 2017 18:48:57 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <149393778452.34042.11808841820577827779.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This is a preparation patch for handling locked nvdimm label regions, a
-new concept as introduced by the latest DSM document on pmem.io [1]. A
-future patch will leverage nvdimm_set_locked() at DIMM probe time to
-flag regions that can not be enabled. There should be no functional
-difference resulting from this change.
+Per the latest version of the "NVDIMM DSM Interface Example" [1], the
+label data retrieval routine can report a "locked" status. In this case
+all regions associated with that DIMM are disabled until the label area
+is unlocked. Provide generic libnvdimm enabling for NVDIMMs with label
+data area locking capabilities.
 
-[1]: http://pmem.io/documents/NVDIMM_DSM_Interface_Example-V1.3.pdf
+[1]: http://pmem.io/documents/
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/acpi/nfit/core.c        |    4 ++--
- drivers/nvdimm/dimm_devs.c      |   11 +++++++++--
- drivers/nvdimm/namespace_devs.c |    2 +-
- drivers/nvdimm/nd.h             |    1 +
- drivers/nvdimm/region_devs.c    |    4 ++--
- include/linux/libnvdimm.h       |    6 ++++--
- 6 files changed, 19 insertions(+), 9 deletions(-)
+ drivers/acpi/nfit/core.c        |   21 ++++++++++++++++++---
+ drivers/nvdimm/dimm.c           |    2 ++
+ drivers/nvdimm/dimm_devs.c      |    8 ++++++--
+ drivers/nvdimm/namespace_devs.c |   17 ++++++++++++-----
+ include/uapi/linux/ndctl.h      |    1 +
+ 5 files changed, 39 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index ced95a79c1a1..a26c2297c1ed 100644
+index a26c2297c1ed..891bd49ada0b 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -1512,7 +1512,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		}
- 
- 		if (nfit_mem->bdw && nfit_mem->memdev_pmem)
--			flags |= NDD_ALIASING;
-+			set_bit(NDD_ALIASING, &flags);
- 
- 		/* collate flags across all memdevs for this dimm */
- 		list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
-@@ -1527,7 +1527,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 
- 		mem_flags = __to_nfit_memdev(nfit_mem)->flags;
- 		if (mem_flags & ACPI_NFIT_MEM_NOT_ARMED)
--			flags |= NDD_UNARMED;
-+			set_bit(NDD_UNARMED, &flags);
- 
- 		rc = acpi_nfit_add_dimm(acpi_desc, nfit_mem, device_handle);
- 		if (rc)
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 8b721321be5b..7d1a3dbc7d5d 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -34,7 +34,7 @@ int nvdimm_check_config_data(struct device *dev)
- 
- 	if (!nvdimm->cmd_mask ||
- 	    !test_bit(ND_CMD_GET_CONFIG_DATA, &nvdimm->cmd_mask)) {
--		if (nvdimm->flags & NDD_ALIASING)
-+		if (test_bit(NDD_ALIASING, &nvdimm->flags))
- 			return -ENXIO;
- 		else
- 			return -ENOTTY;
-@@ -188,7 +188,14 @@ void nvdimm_set_aliasing(struct device *dev)
- {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
- 
--	nvdimm->flags |= NDD_ALIASING;
-+	set_bit(NDD_ALIASING, &nvdimm->flags);
-+}
-+
-+void nvdimm_set_locked(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+
-+	set_bit(NDD_LOCKED, &nvdimm->flags);
+@@ -184,14 +184,29 @@ static int xlat_bus_status(void *buf, unsigned int cmd, u32 status)
+ 	return 0;
  }
  
- static void nvdimm_release(struct device *dev)
++static int xlat_nvdimm_status(void *buf, unsigned int cmd, u32 status)
++{
++	switch (cmd) {
++	case ND_CMD_GET_CONFIG_SIZE:
++		if (status >> 16 & ND_CONFIG_LOCKED)
++			return -EACCES;
++		break;
++	default:
++		break;
++	}
++
++	/* all other non-zero status results in an error */
++	if (status)
++		return -EIO;
++	return 0;
++}
++
+ static int xlat_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd,
+ 		u32 status)
+ {
+ 	if (!nvdimm)
+ 		return xlat_bus_status(buf, cmd, status);
+-	if (status)
+-		return -EIO;
+-	return 0;
++	return xlat_nvdimm_status(buf, cmd, status);
+ }
+ 
+ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
+index ee0b412827bf..e0f0e3ce1a32 100644
+--- a/drivers/nvdimm/dimm.c
++++ b/drivers/nvdimm/dimm.c
+@@ -49,6 +49,8 @@ static int nvdimm_probe(struct device *dev)
+ 	kref_init(&ndd->kref);
+ 
+ 	rc = nvdimm_init_nsarea(ndd);
++	if (rc == -EACCES)
++		nvdimm_set_locked(dev);
+ 	if (rc)
+ 		goto err;
+ 
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 7d1a3dbc7d5d..fac1e9fbd11d 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -67,6 +67,7 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(ndd->dev);
+ 	struct nvdimm_bus_descriptor *nd_desc;
+ 	int rc = validate_dimm(ndd);
++	int cmd_rc = 0;
+ 
+ 	if (rc)
+ 		return rc;
+@@ -76,8 +77,11 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
+ 
+ 	memset(cmd, 0, sizeof(*cmd));
+ 	nd_desc = nvdimm_bus->nd_desc;
+-	return nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
+-			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd), NULL);
++	rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
++			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd), &cmd_rc);
++	if (rc < 0)
++		return rc;
++	return cmd_rc;
+ }
+ 
+ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
 diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 1b481a5fb966..2f2d8afc684a 100644
+index 2f2d8afc684a..2f9dfbd2dbec 100644
 --- a/drivers/nvdimm/namespace_devs.c
 +++ b/drivers/nvdimm/namespace_devs.c
-@@ -2240,7 +2240,7 @@ static int init_active_labels(struct nd_region *nd_region)
- 		 * being activated if it aliases DPA.
+@@ -2236,14 +2236,21 @@ static int init_active_labels(struct nd_region *nd_region)
+ 		int count, j;
+ 
+ 		/*
+-		 * If the dimm is disabled then prevent the region from
+-		 * being activated if it aliases DPA.
++		 * If the dimm is disabled then we may need to prevent
++		 * the region from being activated.
  		 */
  		if (!ndd) {
--			if ((nvdimm->flags & NDD_ALIASING) == 0)
-+			if (!test_bit(NDD_ALIASING, &nvdimm->flags))
+-			if (!test_bit(NDD_ALIASING, &nvdimm->flags))
++			if (test_bit(NDD_LOCKED, &nvdimm->flags))
++				/* fail, label data may be unreadable */;
++			else if (test_bit(NDD_ALIASING, &nvdimm->flags))
++				/* fail, labels needed to disambiguate dpa */;
++			else
  				return 0;
- 			dev_dbg(&nd_region->dev, "%s: is disabled, failing probe\n",
- 					dev_name(&nd_mapping->nvdimm->dev));
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index c3b33cf655fb..77d032192bf7 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -240,6 +240,7 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
- long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 		unsigned int len);
- void nvdimm_set_aliasing(struct device *dev);
-+void nvdimm_set_locked(struct device *dev);
- struct nd_btt *to_nd_btt(struct device *dev);
- 
- struct nd_gen_sb {
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 07756b2e1cd5..b550edf2571f 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -222,7 +222,7 @@ int nd_region_to_nstype(struct nd_region *nd_region)
- 			struct nd_mapping *nd_mapping = &nd_region->mapping[i];
- 			struct nvdimm *nvdimm = nd_mapping->nvdimm;
- 
--			if (nvdimm->flags & NDD_ALIASING)
-+			if (test_bit(NDD_ALIASING, &nvdimm->flags))
- 				alias++;
+-			dev_dbg(&nd_region->dev, "%s: is disabled, failing probe\n",
+-					dev_name(&nd_mapping->nvdimm->dev));
++
++			dev_err(&nd_region->dev, "%s: is %s, failing probe\n",
++					dev_name(&nd_mapping->nvdimm->dev),
++					test_bit(NDD_LOCKED, &nvdimm->flags)
++					? "locked" : "disabled");
+ 			return -ENXIO;
  		}
- 		if (alias)
-@@ -881,7 +881,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 			return NULL;
- 		}
- 
--		if (nvdimm->flags & NDD_UNARMED)
-+		if (test_bit(NDD_UNARMED, &nvdimm->flags))
- 			ro = 1;
- 	}
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index f07b1b14159a..6c807017128d 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -20,9 +20,11 @@
- 
+ 		nd_mapping->ndd = ndd;
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index ede5c6a62164..7ad3863cb88b 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -169,6 +169,7 @@ enum {
  enum {
- 	/* when a dimm supports both PMEM and BLK access a label is required */
--	NDD_ALIASING = 1 << 0,
-+	NDD_ALIASING = 0,
- 	/* unarmed memory devices may not persist writes */
--	NDD_UNARMED = 1 << 1,
-+	NDD_UNARMED = 1,
-+	/* locked memory devices should not be accessed */
-+	NDD_LOCKED = 2,
+ 	ND_ARS_VOLATILE = 1,
+ 	ND_ARS_PERSISTENT = 2,
++	ND_CONFIG_LOCKED = 1,
+ };
  
- 	/* need to set a limit somewhere, but yes, this is likely overkill */
- 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
-
+ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
