@@ -1,59 +1,85 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPI / EC: handle ECDT EC and DSDT EC simultaneously
-Date: Thu, 4 May 2017 05:05:27 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9D008@SHSMSX101.ccr.corp.intel.com>
-References: <20170420201219.21568-1-drake@endlessm.com>
- <CAD8Lp44nXRv0rpZgPw1f0LZ_bcn74fQFzG6HBxRcL1QAWxBHTQ@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886CE9973E@SHSMSX101.ccr.corp.intel.com>
- <2213549.Q4Z823dSPo@aspire.rjw.lan>
- <CAD8Lp46+BQxcB9hgp0wXvWkA32XksYdG1h-vZOzQ5pT0P-0Ydg@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886CE9A1C9@SHSMSX101.ccr.corp.intel.com>
- <CAD8Lp46nYiKuwc8i7K_uSKisH4q=wWs8tH7ktJCgoeMDBoU4wg@mail.gmail.com>
- <CAD8Lp47r=ZKzF3HSWj4D-Pu=PppTK0-_3fTbWFjHXKLvEqr8dw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v5 1/5] of: Add of_graph_get_port_parent() to obtain a port's parent node
+Date: Thu,  4 May 2017 10:14:07 +0300
+Message-ID: <1493882051-28814-2-git-send-email-sakari.ailus@linux.intel.com>
+References: <1493882051-28814-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:19161 "EHLO mga05.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:12025 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754040AbdEDFFc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 4 May 2017 01:05:32 -0400
-In-Reply-To: <CAD8Lp47r=ZKzF3HSWj4D-Pu=PppTK0-_3fTbWFjHXKLvEqr8dw@mail.gmail.com>
-Content-Language: en-US
+        id S1751491AbdEDHPL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 4 May 2017 03:15:11 -0400
+In-Reply-To: <1493882051-28814-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Drake <drake@endlessm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "chiu@endlessm.com" <chiu@endlessm.com>, "linux@endlessm.com" <linux@endlessm.com>
+To: linux-acpi@vger.kernel.org
+Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com
 
-SGksIERhbmllbA0KDQo+IEZyb206IERhbmllbCBEcmFrZSBbbWFpbHRvOmRyYWtlQGVuZGxlc3Nt
-LmNvbV0NCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gQUNQSSAvIEVDOiBoYW5kbGUgRUNEVCBFQyBh
-bmQgRFNEVCBFQyBzaW11bHRhbmVvdXNseQ0KPiANCj4gSGkgTHYsDQo+IA0KPiBPbiBGcmksIEFw
-ciAyOCwgMjAxNyBhdCA2OjUyIEFNLCBEYW5pZWwgRHJha2UgPGRyYWtlQGVuZGxlc3NtLmNvbT4g
-d3JvdGU6DQo+ID4gSW4gdGhlIERTRFQgeW91IHdlcmUgbG9va2luZyBhdCB0aGUgSF9FQyBkZXZp
-Y2UsIGJ1dCBmb3Igd2hhdGV2ZXINCj4gPiByZWFzb24sIHRoZXJlIGFyZSB0d28gRUNzIGluIHRo
-aXMgRFNEVCBhbmQgdGhlIG9uZSB0aGF0IExpbnV4IHBpY2tzIHVwDQo+ID4gaXMgdGhlIDJuZCBv
-bmUsIFxfU0JfLlBDSTAuTFBDQi5FQzAuDQo+ID4NCj4gPiBUaGlzIGRldmljZSBoYXMgbm8gX1NU
-QSBidXQgZG9lcyBoYXZlIHZhbGlkIF9DUlMsIGFuZCB0aGUgZGVidWcgcGF0Y2gNCj4gPiByZXN1
-bHRzIGFncmVlOg0KPiA+DQo+ID4gIEFDUEkgOiBFQzogYWNwaV9lY19kc2R0X3Byb2JlOiBzZWFy
-Y2ggZm9yIERTRFQgRUMNCj4gPiAgQUNQSSA6IEVDOiBlY19wYXJzZV9kZXZpY2U6IF9TVEEgc3Rh
-dHVzIDUgdmFsIDANCj4gPiAgQUNQSSA6IEVDOiBlY19wYXJzZV9kZXZpY2U6IF9DUlMgc3RhdHVz
-IDAgY29tbWFuZCA2NiBkYXRhIDYyDQo+ID4gIEFDUEkgOiBFQzogRUMgc3RvcHBlZA0KPiA+ICBB
-Q1BJIDogRUM6IEVDIHN0YXJ0ZWQNCj4gPiAgQUNQSTogXF9TQl8uUENJMC5MUENCLkVDMF86IFVz
-ZWQgYXMgZmlyc3QgRUMNCj4gDQo+IEhvdyBkbyB3ZSBwcm9jZWVkIGhlcmU/IEFueSBvdGhlciBv
-cHRpb25zIHdlIGNhbiB0cnkgdGhhdCBkb24ndA0KPiBpbnZvbHZlIERNSSBxdWlya2luZz8NCg0K
-UXVpcmsgc2VlbXMgdG8gYmUgcmVxdWlyZWQ6DQoxLiBXZSBkbyBub3Qga25vdyB0aGUgb3JkZXIg
-d2luZG93cyBpbnZva2VzIF9JTkkvX1NUQSwgdGhlcmUgYXJlIHNldmVyYWwgcG9zc2libGUgc29s
-dXRpb25zDQogICAxLiBFQyBvcHJlZ2lvbiBoYW5kbGVyIGlzIGluc3RhbGxlZCB3aGVuIEVDIGRl
-dmljZSBpcyBlbnVtZXJhdGVkLiBCZWZvcmUgdGhhdCwganVzdCBjb21wbGFpbnMgZXJyb3JzLg0K
-ICAgMi4gRUMgb3ByZWdpb24gYWNjZXNzIHRyaWdnZXJzIExpbnV4IHRvIHByb2JlIEVDIGRldmlj
-ZSBkcml2ZXIuDQogICBXZSBoYXZlIHRyaWVkIDEsIGFuZCBhcyBJIG1lbnRpb25lZCBiZWZvcmUs
-IHNvbWVvbmUgcmVwb3J0ZWQgYSByZWdyZXNzaW9uIGZvciB0aGUgbmV3IGVycm9ycy4NCiAgIDIg
-YWxzbyBsb29rZWQgc2NhcnksIGFzIEVDLl9TVEEgbWF5IHN0aWxsIGNvbnRhaW4gQklPUyBwcm92
-aWRlZCBpbml0aWFsaXphdGlvbiBjb2RlIHRoYXQgY2Fubm90IGJlIGludm9rZWQgc3VjaCBlYXJs
-aWVyLg0KMi4gRXZlbiB0aGUgYWJvdmUgb25lIGRvZXNuJ3QgbWF0dGVyIChmb3IgZXhhbXBsZSwg
-MiBpcyB3b3JraW5nIGZvciBhbGwgcGxhdGZvcm1zKSwgTGludXggc3RpbGwgZG9uJ3Qga25vdyB0
-aGUgcHJlZmVyZW5jZSBvZiB0aGUgR1BFIHNldHRpbmdzLg0KDQpNYXliZSBJIGNvdWxkIGhlbHAg
-dG8gcHJlc2VudCBzb21lIGRlbW8gY29kZS4NCkxldCdzIGZpbGUgYSBrZXJuZWwgQnVnemlsbGEg
-ZW50cnkgdG8gd29yayBvbiB0aGlzIGlzc3VlIHRvZ2V0aGVyOg0KaHR0cHM6Ly9idWd6aWxsYS5r
-ZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0xOTU2NTENCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2Fy
-ZHMNCkx2DQoNCj4gDQo+IFRoYW5rcw0KPiBEYW5pZWwNCg==
+Split off obtaining a port's parent node. This will be soon needed for
+implementing the fwnode ops.
+
+Depends-on: ("of: Move OF property and graph API from base.c to property.c")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/of/property.c | 35 +++++++++++++++++++++++++++--------
+ 1 file changed, 27 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index e5d3e1f..cf704f4 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -681,6 +681,30 @@ struct device_node *of_graph_get_endpoint_by_regs(
+ EXPORT_SYMBOL(of_graph_get_endpoint_by_regs);
+ 
+ /**
++ * of_graph_get_port_parent() - get port's parent node
++ * @node: pointer to a port node
++ *
++ * Return: Device node which is the parent of the given port node
++ *	   @node. Use of_node_put() on it when done.
++ */
++static struct device_node *
++of_graph_get_port_parent(struct device_node *node)
++{
++	struct device_node *np;
++
++	/* Get the parent of the port */
++	np = of_get_next_parent(node);
++	if (!np)
++		return NULL;
++
++	/* Is there "ports" node? If not, return it. */
++	if (of_node_cmp(np->name, "ports"))
++		return np;
++
++	return of_get_next_parent(np);
++}
++
++/**
+  * of_graph_get_remote_port_parent() - get remote port's parent node
+  * @node: pointer to a local endpoint device_node
+  *
+@@ -691,18 +715,13 @@ struct device_node *of_graph_get_remote_port_parent(
+ 			       const struct device_node *node)
+ {
+ 	struct device_node *np;
+-	unsigned int depth;
+ 
+ 	/* Get remote endpoint node. */
+ 	np = of_parse_phandle(node, "remote-endpoint", 0);
++	if (!np)
++		return NULL;
+ 
+-	/* Walk 3 levels up only if there is 'ports' node. */
+-	for (depth = 3; depth && np; depth--) {
+-		np = of_get_next_parent(np);
+-		if (depth == 2 && of_node_cmp(np->name, "ports"))
+-			break;
+-	}
+-	return np;
++	return of_graph_get_port_parent(of_get_next_parent(np));
+ }
+ EXPORT_SYMBOL(of_graph_get_remote_port_parent);
+ 
+-- 
+2.7.4
+
