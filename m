@@ -1,49 +1,37 @@
-From: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v2 7/7] arm64: Documentation: Add Cavium ThunderX2 SMMUv3
-	erratas
-Date: Thu,  4 May 2017 18:05:39 +0530
-Message-ID: <1493901339-14929-8-git-send-email-gakula@caviumnetworks.com>
-References: <1493901339-14929-1-git-send-email-gakula@caviumnetworks.com>
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: Re: [PATCH v3.1 4/7] v4l: Switch from V4L2 OF not V4L2 fwnode API
+Date: Thu, 04 May 2017 15:43:32 +0200
+Message-ID: <1493905412.2381.20.camel@pengutronix.de>
+References: <1491829376-14791-5-git-send-email-sakari.ailus@linux.intel.com>
+         <1493121374-13298-1-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1493901339-14929-1-git-send-email-gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: will.deacon-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:36549 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753283AbdEDNng (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 4 May 2017 09:43:36 -0400
+In-Reply-To: <1493121374-13298-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
 
-From: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+On Tue, 2017-04-25 at 14:56 +0300, Sakari Ailus wrote:
+> Switch users of the v4l2_of_ APIs to the more generic v4l2_fwnode_ APIs.
+> Async OF matching is replaced by fwnode matching and OF matching support
+> is removed.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Benoit Parrot <bparrot@ti.com> # i2c/ov2569.c, am437x/am437x-vpfe.c and ti-vpe/cal.c
+> Tested-by: Hans Verkuil <hans.verkuil@cisco.com> # Atmel sama5d3 board + ov2640 sensor
 
-Add Cavium ThunderX2 SMMUv3 erratas to the errata list.
+Tested and works on v4.11 with Steve's imx-media-staging-md branch on
+Nitrogen6X i.MX6Q + Toshiba TC358743 HDMI to MIPI CSI-2 bridge.
 
-Signed-off-by: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- Documentation/arm64/silicon-errata.txt | 2 ++
- 1 file changed, 2 insertions(+)
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
-index 10f2ddd..42422f6 100644
---- a/Documentation/arm64/silicon-errata.txt
-+++ b/Documentation/arm64/silicon-errata.txt
-@@ -62,6 +62,8 @@ stable kernels.
- | Cavium         | ThunderX GICv3  | #23154          | CAVIUM_ERRATUM_23154        |
- | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
- | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
-+| Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
-+| Cavium         | ThunderX2 SMMUv3| #126            | N/A                         |
- |                |                 |                 |                             |
- | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
- |                |                 |                 |                             |
--- 
-1.8.3.1
+regards
+Philipp
+
