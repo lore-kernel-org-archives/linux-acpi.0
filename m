@@ -1,128 +1,120 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v3 2/4] ACPICA: Tables: Add mechanism to allow to
- balance late stage acpi_get_table() independently
-Date: Thu, 4 May 2017 07:18:28 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9D136@SHSMSX101.ccr.corp.intel.com>
-References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
- <89693a14ceb97e3d1fa7cc098b15c73f5b176863.1493357251.git.lv.zheng@intel.com>
- <3915288.8qJPC28FTg@aspire.rjw.lan>
+Subject: RE: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle
+ on Dell systems
+Date: Thu, 4 May 2017 07:58:53 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9D3AE@SHSMSX101.ccr.corp.intel.com>
+References: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
+ <3060629.nj3VExRueE@aspire.rjw.lan>
+ <fbb003d3c4fb465b9c17b4698431c96c@ausx13mpc120.AMER.DELL.COM>
+ <5667544.hrarxH2qbq@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:59554 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:26385 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751612AbdEDHSd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 4 May 2017 03:18:33 -0400
-In-Reply-To: <3915288.8qJPC28FTg@aspire.rjw.lan>
+        id S1751721AbdEDH65 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 4 May 2017 03:58:57 -0400
+In-Reply-To: <5667544.hrarxH2qbq@aspire.rjw.lan>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Mario.Limonciello@dell.com" <Mario.Limonciello@dell.com>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>, "dvhart@infradead.org" <dvhart@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>
 
-Hi, Rafael
+Hi,
 
+> -----Original Message-----
 > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J.
 > Wysocki
-> Subject: Re: [PATCH v3 2/4] ACPICA: Tables: Add mechanism to allow to balance late stage
-> acpi_get_table() independently
+> Sent: Friday, April 28, 2017 6:26 AM
+> To: Mario.Limonciello@dell.com
+> Cc: linux-pm@vger.kernel.org; andriy.shevchenko@linux.intel.com; dvhart@infradead.org; linux-
+> kernel@vger.kernel.org; linux-acpi@vger.kernel.org; srinivas.pandruvada@linux.intel.com;
+> tglx@linutronix.de; mika.westerberg@linux.intel.com
+> Subject: Re: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle on Dell systems
 > 
-> On Friday, April 28, 2017 01:30:20 PM Lv Zheng wrote:
-> > For all frequent late stage acpi_get_table() clone invocations, we should
-> > only fix them altogether, otherwise, excessive acpi_put_table() could
-> > unexpectedly unmap the table used by the other users. Thus the current plan
-> > is to fix all acpi_get_table() clones together or to fix none of them.
-> 
-> I honestly don't think that fixing none of them is a valid option here.
-
-That's just exactly the old behavior, maybe shouldn't be called as "fix".
-Should say "change to use the new behavior together" all stay unchanged.
-
-I actually want to make the change from ACPICA side.
-But it's costly to persuade ACPICA upstream to take both the "acpi_get_table_with_size()/early_acpi_os_unmap_memory() divergence reduction" change and the "table map on-demand" change.
-
-So we just made 2 things separated, and did 1 thing once.
-
-> 
-> > This prevents kernel developers from improving the late stage code quality
-> > without waiting for the ACPICA upstream to improve first.
+> On Thursday, April 27, 2017 02:47:59 PM Mario.Limonciello@dell.com wrote:
+> > > -----Original Message-----
+> > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > > Sent: Wednesday, April 26, 2017 4:24 PM
+> > > To: Linux PM <linux-pm@vger.kernel.org>
+> > > Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>; Darren Hart
+> > > <dvhart@infradead.org>; LKML <linux-kernel@vger.kernel.org>; Linux ACPI <linux-
+> > > acpi@vger.kernel.org>; Srinivas Pandruvada
+> > > <srinivas.pandruvada@linux.intel.com>; Thomas Gleixner <tglx@linutronix.de>;
+> > > Mika Westerberg <mika.westerberg@linux.intel.com>; Limonciello, Mario
+> > > <Mario_Limonciello@Dell.com>
+> > > Subject: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle on Dell
+> > > systems
+> > >
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > >
+> > > Some recent Dell laptops, including the XPS13 model numbers 9360 and
+> > > 9365, cannot be woken up from suspend-to-idle by pressing the power
+> > > button which is unexpected and makes that feature hardly usable on
+> > > those systems.  However, on the 9365 ACPI S3 (suspend-to-RAM) is not
+> > > expected to be used at all (these systems ship with Windows 10 using
+> > > Modern Standby which never exercises the ACPI S3 path) and
+> > > suspend-to-idle is the only viable system suspend mechanism in there.
+> > >
+> > > The reason why the power button wakeup from suspend-to-idle doesn't
+> > > work on those systems is because their power button events are
+> > > signaled by the EC (Embedded Controller), whose GPE (General Purpose
+> > > Event) line is disabled during suspend-to-idle transitions in Linux.
+> > > That is done on purpose, because in general the EC tends to generate
+> > > tons of events for various reasons (battery and thermal updates and
+> > > similar, for example) and all of them would kick the CPUs out of deep
+> > > idle states while in suspend-to-idle, which would not be desirable.
+> > >
+> > > Of course, on the Dell systems in question the EC GPE must be enabled
+> > > during suspend-to-idle transitions for the button press events to
+> > > be signaled while suspended at all.  Fortunately, there is a way to
+> > > tell the EC to stop generating the non-wakeup events, which is by
+> > > using the _DSM object under the so called micro-PEP (uPEP) device
+> > > provided to support Modern Standby in Windows 10.
+> > >
+> > > The expected way to use it is to invoke function 0 from it on system
+> > > initialization, functions 3 and 5 during suspend transitions and
+> > > functions 4 and 6 during resume transitions (to reverse the actions
+> > > carried out by the former).  In particular, function 5 from the uPEP
+> > > device _DSM causes the EC to become less verbose (so to speak) on the
+> > > affected systems and then its GPE can be enabled as a wakeup source
+> > > (then, on resume, function 6 switches it back to the "working state"
+> > > mode).
+> > >
+> > > In support of the affected Dell systems, implement the uPEP device
+> > > handling as described and allow the EC to generate system wakeup
+> > > events if that device is present and behaves as expected.  Enable
+> > > that for Dell only, as there are other systems out there in which
+> > > the uPEP device is exposed in the ACPI tables and its _DSM appears
+> > > to be functional, but it actually isn't, whereas Dell is committed
+> > > to supporting it.
+> > >
 > >
-> > This patch adds a mechanism to stop decrementing validation count to
-> > prevent the table unmapping operations so that acpi_put_table() balance
-> > fixes can be done independently to each others.
+> > I am of course biased in that my priority is for this to work for Dell.
+> > Dell is definitely committed to supporting this on any system with
+> > the low power idle bit in the FADT set.
 > >
-> > Cc: Dan Williams <dan.j.williams@intel.com>
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > ---
-> >  drivers/acpi/acpica/tbutils.c | 10 ++++++++--
-> >  1 file changed, 8 insertions(+), 2 deletions(-)
+> > So I'm fine with the current proposed solution, but have you
+> > dug into what actually breaks on this other system?  Does it actually
+> > work with Modern Standby + the uPEP device on Windows 10?
 > >
-> > diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-> > index 7abe665..b517bd0 100644
-> > --- a/drivers/acpi/acpica/tbutils.c
-> > +++ b/drivers/acpi/acpica/tbutils.c
-> > @@ -445,12 +445,18 @@ void acpi_tb_put_table(struct acpi_table_desc *table_desc)
+> > To my understanding I would think any OEM that is enabling this
+> > uPEP device it should be getting called by the Windows kernel
+> > identically when entering resiliency phases.
 > >
-> >  	ACPI_FUNCTION_TRACE(acpi_tb_put_table);
-> >
-> > -	if (table_desc->validation_count == 0) {
-> > +	if ((table_desc->validation_count + 1) == 0) {
+> > This makes me wonder if it should be inverted and a blacklist
+> > of platforms that the uPEP device doesn't work.
 > 
-> This means that validation_count has reached the maximum value, right?
+> For now I'd prefer to only do it on platforms where the benefit is clear.
 > 
-> >  		ACPI_WARNING((AE_INFO,
-> > -			      "Table %p, Validation count is zero before decrement\n",
-> > +			      "Table %p, Validation count is about to expire, decrement is unsafe\n",
-> >  			      table_desc));
-> 
-> So why is it unsafe to decrement it?
+> The next step may be to extend it to the other ones, but let's avoid making
+> what is problem mitigation really depend on things that may or may not
+> work elsewhere to start with.
 
-Considering this case:
-A program opens a sysfs table file 65535 times: validation_count = 65535.
-Load opcode is invoked by the AML interpreter, but it cannot increase the validation count, see acpi_tb_get_table(): validation_count = 65535.
-Now the program closes the sysfs table file: validation_count = 0, which triggers table unmap.
-But it is likely that the AML code is still accessing the namespace objects provided by this table.
-A kernel crash then can be seen.
-
-So after applying this patch, 65535 now is the threshold.
-When it is reached, validation_count will remain 65535 from then on (see both acpi_tb_get_table()/acpi_tb_put_table()).
-When it is reached, the 65535 validation count ensures "the old behavior" - for late stage;
-When it is not reached, the 65535 validation count ensures "the new behavior" - for early stage.
-
-Then you can see, if there's no acpi_put_table() invoked for such old behavior dependent users, the validation count can also remain 65535.
-That's why I said PATCH 3 is actually breaking things.
-
-IMO, if we really want the acpi_put_table() balance work proceeded without waiting for the ACPICA upstream to change.
-We need this commit.
-
-I actually generated this commit once.
-But hesitated to send it to ACPICA upstream as it didn't look like a good idea to increase communication cost to upstream a commit that hadn't been determined to be used by ACPICA.
-
-However if other driver maintainers want to make their acpi_get_table() invocations balanced like what Dan did here.
-This commit is required.
+Then is it possible to invoke acpi_mark_gpe_for_wake() (and maybe also acpi_unmark_gpe_for_wake()) right after invoking uPEP functions?
+So that such platform specific stuffs won't go into ec.c.
 
 Thanks and best regards
 Lv
-
-> 
-> >  		return_VOID;
-> >  	}
-> > +	if (table_desc->validation_count == 0) {
-> > +		ACPI_ERROR((AE_INFO,
-> > +			   "Table %p, Validation count is zero before decrement\n",
-> > +			   table_desc));
-> > +		return_VOID;
-> > +	}
-> >  	table_desc->validation_count--;
-> >
-> >  	if (table_desc->validation_count == 0) {
-> >
-> 
-> Thanks,
-> Rafael
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
