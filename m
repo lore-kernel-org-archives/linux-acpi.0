@@ -1,88 +1,109 @@
-From: gengdongjiu <gengdj.1984@gmail.com>
-Subject: Re: [PATCH v3 1/3] arm64: kvm: support kvmtool to detect RAS
- extension feature
-Date: Fri, 5 May 2017 01:20:53 +0800
-Message-ID: <CAMj-D2BS7UHLC3DGM5i7fSRsqDKHmLYg79UV7sT6yHGFy5aYfw@mail.gmail.com>
+From: Jon Mason <jon.mason@broadcom.com>
+Subject: Re: [PATCH] ACPI: SPCR: Use access width to determine mmio usage
+Date: Thu, 4 May 2017 13:30:41 -0400
+Message-ID: <CAC3K-4pyppQmb=QZyv8TW3dOGsUR1k64NtLayOeMYpLpDQXfrQ@mail.gmail.com>
+References: <1493910330-17913-1-git-send-email-jon.mason@broadcom.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37E597D3A@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, Sandeepa Prabhu <sandeepa.s.prabhu@gmail.com>, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, Fu Wei <fu.wei@linaro.org>, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f177.google.com ([209.85.223.177]:33042 "EHLO
+        mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751474AbdEDRam (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 4 May 2017 13:30:42 -0400
+Received: by mail-io0-f177.google.com with SMTP id p24so31144590ioi.0
+        for <linux-acpi@vger.kernel.org>; Thu, 04 May 2017 10:30:42 -0700 (PDT)
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E597D3A@ORSMSX110.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Box, David E" <david.e.box@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "bcm-kernel-feedback-list@broadcom.com" <bcm-kernel-feedback-list@broadcom.com>
 
-Dear James,
+On Thu, May 4, 2017 at 12:28 PM, Moore, Robert <robert.moore@intel.com> wrote:
+> Jon,
+>
+> You might want to take a look at using the acpi_read and acpi_write ACPICA interfaces that accept a GAS structure and handle the access width (etc.) automatically.
+>
+> Bob
+
+This function in SPCR is using common code for the early console.  So
+the acpi_read/write would not be usable in that common code.
+
+Thanks,
+Jon
 
 >
->  Hi Dongjiu Geng,
 >
-> On 30/04/17 06:37, Dongjiu Geng wrote:
->> Handle kvmtool's detection for RAS extension, because sometimes
->> the APP needs to know the CPU's capacity
->
->> diff --git a/arch/arm64/kvm/reset.c b/arch/arm64/kvm/reset.c
->> index d9e9697..1004039 100644
->> --- a/arch/arm64/kvm/reset.c
->> +++ b/arch/arm64/kvm/reset.c
->> @@ -64,6 +64,14 @@ static bool cpu_has_32bit_el1(void)
->>   return !!(pfr0 & 0x20);
->>  }
+>> -----Original Message-----
+>> From: Jon Mason [mailto:jon.mason@broadcom.com]
+>> Sent: Thursday, May 4, 2017 8:06 AM
+>> To: Rafael Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>;
+>> Moore, Robert <robert.moore@intel.com>; Zheng, Lv <lv.zheng@intel.com>
+>> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
+>> devel@acpica.org; bcm-kernel-feedback-list@broadcom.com
+>> Subject: [PATCH] ACPI: SPCR: Use access width to determine mmio usage
 >>
->> +static bool kvm_arm_support_ras_extension(void)
->> +{
->> + u64 pfr0;
+>> The current SPCR code does not check the access width of the mmio, and
+>> uses a default of 8bit register accesses.  This prevents devices that
+>> only do 16 or 32bit register accesses from working.  By simply checking
+>> this field and setting the mmio string appropriately, this issue can be
+>> corrected.  To prevent any legacy issues, the code will default to 8bit
+>> accesses if the value is anything but 16 or 32.
+>>
+>> Signed-off-by: Jon Mason <jon.mason@broadcom.com>
+>> ---
+>>  drivers/acpi/spcr.c     | 18 ++++++++++++++++--
+>>  include/acpi/acrestyp.h |  7 +++++++
+>>  2 files changed, 23 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c index
+>> 01c9466..11233f6 100644
+>> --- a/drivers/acpi/spcr.c
+>> +++ b/drivers/acpi/spcr.c
+>> @@ -74,8 +74,22 @@ int __init parse_spcr(bool earlycon)
+>>               goto done;
+>>       }
+>>
+>> -     iotype = table->serial_port.space_id ==
+>> ACPI_ADR_SPACE_SYSTEM_MEMORY ?
+>> -                     "mmio" : "io";
+>> +     if (table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+>> +             switch (table->serial_port.access_width) {
+>> +             default:
+>> +                     pr_err("Unexpected SPCR Access Width.  Defaulting to
+>> byte size\n");
+>> +             case ACPI_ACCESS_SIZE_BYTE:
+>> +                     iotype = "mmio";
+>> +                     break;
+>> +             case ACPI_ACCESS_SIZE_WORD:
+>> +                     iotype = "mmio16";
+>> +                     break;
+>> +             case ACPI_ACCESS_SIZE_DWORD:
+>> +                     iotype = "mmio32";
+>> +                     break;
+>> +             }
+>> +     } else
+>> +             iotype = "io";
+>>
+>>       switch (table->interface_type) {
+>>       case ACPI_DBG2_ARM_SBSA_32BIT:
+>> diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h index
+>> f0f7403..781cb55 100644
+>> --- a/include/acpi/acrestyp.h
+>> +++ b/include/acpi/acrestyp.h
+>> @@ -372,6 +372,13 @@ struct acpi_resource_generic_register {
+>>       u64 address;
+>>  };
+>>
+>> +/* Generic Address Space Access Sizes */
+>> +#define ACPI_ACCESS_SIZE_UNDEFINED           0
+>> +#define ACPI_ACCESS_SIZE_BYTE                        1
+>> +#define ACPI_ACCESS_SIZE_WORD                        2
+>> +#define ACPI_ACCESS_SIZE_DWORD                       3
+>> +#define ACPI_ACCESS_SIZE_QWORD                       4
 >> +
->> + pfr0 = read_system_reg(SYS_ID_AA64PFR0_EL1);
->> + return !!(pfr0 & 0x10000000);
->> +}
+>>  struct acpi_resource_gpio {
+>>       u8 revision_id;
+>>       u8 connection_type;
+>> --
+>> 2.7.4
 >
-> Why are we telling user-space that the CPU has RAS extensions? EL0 can't do
-> anything with this and the guest EL1 can detect it from the id registers.
->
->
-> Are you using this to decide whether or not to generate a HEST for the guest?
-
-James, yes, it is.  my current user-space qemu EL0 patches indeed will
-check the RAS  extensions.
-if has the RAS extensions. for SEA, userspace qemu will generate the
-CPER and inject the SEA to guest;
-for SEI,  userspace qemu sets the virtual SEI with the specified
-Syndrome(set the HCR_EL2.VSE and vsesr_el2 );
-if not have RAS extensions, Qemu does nothing
-
-
->
-> If Qemu/kvmtool supports handling memory-failure notifications from signals you
-> should always generate a HEST. The GHES notification method could be anything
-> Qemu can deliver to the guest using the KVM APIs. Notifications from Qemu to the
-> guest don't depend on the RAS extensions. KVM has APIs for IRQ and SEA (you can
-> use KVM_SET_ONE_REG).
-
-I will consider your suggestion to  always generate a CPER instead of
-relying on the RAS extensions, thanks
-For this comments "SEA (you can use KVM_SET_ONE_REG)",  may be it will
-be duplicated with the existed KVM API  as I mentioned in another mail
-thread.I am considering that whether it is necessary to change the
-vcpu registers in the Qemu/KVMTools
-
->
->
-> I think we need a new API for injecting SError for SEI from Qemu/kvmtool, but it
-> shouldn't be related to the RAS extensions. All v8.0 CPUs have HCR_EL2.VSE, so
-> we need to know KVM supports this API.
->
-> Your later patch adds code to set VSESR to make virtual RAS SErrors work, I
-> think we need to expose that to user-space.
->
->
-> Thanks,
->
-> James
