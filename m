@@ -1,681 +1,128 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v5 2/5] device property: Move FW type specific functionality to FW specific files
-Date: Thu,  4 May 2017 10:14:08 +0300
-Message-ID: <1493882051-28814-3-git-send-email-sakari.ailus@linux.intel.com>
-References: <1493882051-28814-1-git-send-email-sakari.ailus@linux.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v3 2/4] ACPICA: Tables: Add mechanism to allow to
+ balance late stage acpi_get_table() independently
+Date: Thu, 4 May 2017 07:18:28 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9D136@SHSMSX101.ccr.corp.intel.com>
+References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
+ <89693a14ceb97e3d1fa7cc098b15c73f5b176863.1493357251.git.lv.zheng@intel.com>
+ <3915288.8qJPC28FTg@aspire.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:32773 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:59554 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751958AbdEDHPi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 4 May 2017 03:15:38 -0400
-In-Reply-To: <1493882051-28814-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S1751612AbdEDHSd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 4 May 2017 03:18:33 -0400
+In-Reply-To: <3915288.8qJPC28FTg@aspire.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>
 
-The device and fwnode property API supports Devicetree, ACPI and pset
-properties. The implementation of this functionality for each firmware
-type was embedded in the fwnode property core. Move it out to firmware
-type specific locations, making it easier to maintain.
+Hi, Rafael
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/acpi/property.c |  72 +++++++++++++++++
- drivers/acpi/scan.c     |   1 +
- drivers/base/property.c | 206 +++++++++++++++++++-----------------------------
- drivers/of/property.c   |  99 +++++++++++++++++++++++
- include/linux/acpi.h    |   4 +
- include/linux/fwnode.h  |  53 +++++++++++++
- include/linux/of.h      |   2 +
- 7 files changed, 312 insertions(+), 125 deletions(-)
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J.
+> Wysocki
+> Subject: Re: [PATCH v3 2/4] ACPICA: Tables: Add mechanism to allow to balance late stage
+> acpi_get_table() independently
+> 
+> On Friday, April 28, 2017 01:30:20 PM Lv Zheng wrote:
+> > For all frequent late stage acpi_get_table() clone invocations, we should
+> > only fix them altogether, otherwise, excessive acpi_put_table() could
+> > unexpectedly unmap the table used by the other users. Thus the current plan
+> > is to fix all acpi_get_table() clones together or to fix none of them.
+> 
+> I honestly don't think that fixing none of them is a valid option here.
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 9364398..fb3b96f 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -57,6 +57,7 @@ static bool acpi_nondev_subnode_extract(const union acpi_object *desc,
- 
- 	dn->name = link->package.elements[0].string.pointer;
- 	dn->fwnode.type = FWNODE_ACPI_DATA;
-+	dn->fwnode.ops = &acpi_fwnode_ops;
- 	dn->parent = parent;
- 	INIT_LIST_HEAD(&dn->data.subnodes);
- 
-@@ -1119,3 +1120,74 @@ int acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
- 
- 	return 0;
- }
-+
-+static bool acpi_fwnode_property_present(struct fwnode_handle *fwnode,
-+					 const char *propname)
-+{
-+	return !acpi_node_prop_get(fwnode, propname, NULL);
-+}
-+
-+static int acpi_fwnode_property_read_int_array(
-+	struct fwnode_handle *fwnode, const char *propname,
-+	unsigned int elem_size, void *val, size_t nval)
-+{
-+	enum dev_prop_type type;
-+
-+	switch (elem_size) {
-+	case sizeof(u8):
-+		type = DEV_PROP_U8;
-+		break;
-+	case sizeof(u16):
-+		type = DEV_PROP_U16;
-+		break;
-+	case sizeof(u32):
-+		type = DEV_PROP_U32;
-+		break;
-+	case sizeof(u64):
-+		type = DEV_PROP_U64;
-+		break;
-+	default:
-+		return -ENXIO;
-+	}
-+
-+	return acpi_node_prop_read(fwnode, propname, type, val, nval);
-+}
-+
-+static int acpi_fwnode_property_read_string_array(
-+	struct fwnode_handle *fwnode, const char *propname, const char **val,
-+	size_t nval)
-+{
-+	return acpi_node_prop_read(fwnode, propname, DEV_PROP_STRING,
-+				   val, nval);
-+}
-+
-+static struct fwnode_handle *acpi_fwnode_get_parent(
-+	struct fwnode_handle *fwnode)
-+{
-+	return acpi_node_get_parent(fwnode);
-+}
-+
-+static struct fwnode_handle *acpi_fwnode_get_named_child_node(
-+	struct fwnode_handle *fwnode, const char *childname)
-+{
-+	struct fwnode_handle *child;
-+
-+	/*
-+	 * Find first matching named child node of this fwnode.
-+	 * For ACPI this will be a data only sub-node.
-+	 */
-+	fwnode_for_each_child_node(fwnode, child)
-+		if (acpi_data_node_match(child, childname))
-+			return child;
-+
-+	return NULL;
-+}
-+
-+const struct fwnode_operations acpi_fwnode_ops = {
-+	.property_present = acpi_fwnode_property_present,
-+	.property_read_int_array = acpi_fwnode_property_read_int_array,
-+	.property_read_string_array = acpi_fwnode_property_read_string_array,
-+	.get_parent = acpi_fwnode_get_parent,
-+	.get_next_child_node = acpi_get_next_subnode,
-+	.get_named_child_node = acpi_fwnode_get_named_child_node,
-+};
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index e39ec7b..3db9192 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1436,6 +1436,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
- 	device->handle = handle;
- 	device->parent = acpi_bus_get_parent(handle);
- 	device->fwnode.type = FWNODE_ACPI;
-+	device->fwnode.ops = &acpi_fwnode_ops;
- 	acpi_set_device_status(device, sta);
- 	acpi_device_get_busid(device);
- 	acpi_set_pnp_ids(handle, &device->pnp, type);
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 149de31..4dc5ab6 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -187,6 +187,49 @@ struct fwnode_handle *dev_fwnode(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(dev_fwnode);
- 
-+static bool pset_fwnode_property_present(struct fwnode_handle *fwnode,
-+					 const char *propname)
-+{
-+	return !!pset_prop_get(to_pset_node(fwnode), propname);
-+}
-+
-+static int pset_fwnode_read_int_array(
-+	struct fwnode_handle *fwnode, const char *propname,
-+	unsigned int elem_size, void *val, size_t nval)
-+{
-+	struct property_set *node = to_pset_node(fwnode);
-+
-+	if (!val)
-+		return pset_prop_count_elems_of_size(node, propname, elem_size);
-+
-+	switch (elem_size) {
-+	case sizeof(u8):
-+		return pset_prop_read_u8_array(node, propname, val, nval);
-+	case sizeof(u16):
-+		return pset_prop_read_u16_array(node, propname, val, nval);
-+	case sizeof(u32):
-+		return pset_prop_read_u32_array(node, propname, val, nval);
-+	case sizeof(u64):
-+		return pset_prop_read_u64_array(node, propname, val, nval);
-+	}
-+
-+	return -ENXIO;
-+}
-+
-+static int pset_fwnode_property_read_string_array(
-+	struct fwnode_handle *fwnode, const char *propname, const char **val,
-+	size_t nval)
-+{
-+	return pset_prop_read_string_array(to_pset_node(fwnode), propname,
-+					   val, nval);
-+}
-+
-+static const struct fwnode_operations pset_fwnode_ops = {
-+	.property_present = pset_fwnode_property_present,
-+	.property_read_int_array = pset_fwnode_read_int_array,
-+	.property_read_string_array = pset_fwnode_property_read_string_array,
-+};
-+
- /**
-  * device_property_present - check if a property of a device is present
-  * @dev: Device whose property is being checked
-@@ -200,18 +243,6 @@ bool device_property_present(struct device *dev, const char *propname)
- }
- EXPORT_SYMBOL_GPL(device_property_present);
- 
--static bool __fwnode_property_present(struct fwnode_handle *fwnode,
--				      const char *propname)
--{
--	if (is_of_node(fwnode))
--		return of_property_read_bool(to_of_node(fwnode), propname);
--	else if (is_acpi_node(fwnode))
--		return !acpi_node_prop_get(fwnode, propname, NULL);
--	else if (is_pset_node(fwnode))
--		return !!pset_prop_get(to_pset_node(fwnode), propname);
--	return false;
--}
--
- /**
-  * fwnode_property_present - check if a property of a firmware node is present
-  * @fwnode: Firmware node whose property to check
-@@ -221,10 +252,11 @@ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
- {
- 	bool ret;
- 
--	ret = __fwnode_property_present(fwnode, propname);
-+	ret = fwnode_call_int_op(fwnode, property_present, propname);
- 	if (ret == false && !IS_ERR_OR_NULL(fwnode) &&
- 	    !IS_ERR_OR_NULL(fwnode->secondary))
--		ret = __fwnode_property_present(fwnode->secondary, propname);
-+		ret = fwnode_call_int_op(fwnode->secondary, property_present,
-+					 propname);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(fwnode_property_present);
-@@ -398,42 +430,22 @@ int device_property_match_string(struct device *dev, const char *propname,
- }
- EXPORT_SYMBOL_GPL(device_property_match_string);
- 
--#define OF_DEV_PROP_READ_ARRAY(node, propname, type, val, nval)				\
--	(val) ? of_property_read_##type##_array((node), (propname), (val), (nval))	\
--	      : of_property_count_elems_of_size((node), (propname), sizeof(type))
--
--#define PSET_PROP_READ_ARRAY(node, propname, type, val, nval)				\
--	(val) ? pset_prop_read_##type##_array((node), (propname), (val), (nval))	\
--	      : pset_prop_count_elems_of_size((node), (propname), sizeof(type))
--
--#define FWNODE_PROP_READ(_fwnode_, _propname_, _type_, _proptype_, _val_, _nval_)	\
--({											\
--	int _ret_;									\
--	if (is_of_node(_fwnode_))							\
--		_ret_ = OF_DEV_PROP_READ_ARRAY(to_of_node(_fwnode_), _propname_,	\
--					       _type_, _val_, _nval_);			\
--	else if (is_acpi_node(_fwnode_))						\
--		_ret_ = acpi_node_prop_read(_fwnode_, _propname_, _proptype_,		\
--					    _val_, _nval_);				\
--	else if (is_pset_node(_fwnode_)) 						\
--		_ret_ = PSET_PROP_READ_ARRAY(to_pset_node(_fwnode_), _propname_,	\
--					     _type_, _val_, _nval_);			\
--	else										\
--		_ret_ = -ENXIO;								\
--	_ret_;										\
--})
--
--#define FWNODE_PROP_READ_ARRAY(_fwnode_, _propname_, _type_, _proptype_, _val_, _nval_)	\
--({											\
--	int _ret_;									\
--	_ret_ = FWNODE_PROP_READ(_fwnode_, _propname_, _type_, _proptype_,		\
--				 _val_, _nval_);					\
--	if (_ret_ == -EINVAL && !IS_ERR_OR_NULL(_fwnode_) &&				\
--	    !IS_ERR_OR_NULL(_fwnode_->secondary))					\
--		_ret_ = FWNODE_PROP_READ(_fwnode_->secondary, _propname_, _type_,	\
--				_proptype_, _val_, _nval_);				\
--	_ret_;										\
--})
-+static int fwnode_property_read_int_array(
-+	struct fwnode_handle *fwnode, const char *propname,
-+	unsigned int elem_size, void *val, size_t nval)
-+{
-+	int ret;
-+
-+	ret = fwnode_call_int_op(fwnode, property_read_int_array, propname,
-+				 elem_size, val, nval);
-+	if (ret == -EINVAL && !IS_ERR_OR_NULL(fwnode) &&
-+	    !IS_ERR_OR_NULL(fwnode->secondary))
-+		ret = fwnode_call_int_op(
-+			fwnode->secondary, property_read_int_array, propname,
-+			elem_size, val, nval);
-+
-+	return ret;
-+}
- 
- /**
-  * fwnode_property_read_u8_array - return a u8 array property of firmware node
-@@ -456,8 +468,8 @@ EXPORT_SYMBOL_GPL(device_property_match_string);
- int fwnode_property_read_u8_array(struct fwnode_handle *fwnode,
- 				  const char *propname, u8 *val, size_t nval)
- {
--	return FWNODE_PROP_READ_ARRAY(fwnode, propname, u8, DEV_PROP_U8,
--				      val, nval);
-+	return fwnode_property_read_int_array(fwnode, propname, sizeof(u8),
-+					      val, nval);
- }
- EXPORT_SYMBOL_GPL(fwnode_property_read_u8_array);
- 
-@@ -482,8 +494,8 @@ EXPORT_SYMBOL_GPL(fwnode_property_read_u8_array);
- int fwnode_property_read_u16_array(struct fwnode_handle *fwnode,
- 				   const char *propname, u16 *val, size_t nval)
- {
--	return FWNODE_PROP_READ_ARRAY(fwnode, propname, u16, DEV_PROP_U16,
--				      val, nval);
-+	return fwnode_property_read_int_array(fwnode, propname, sizeof(u16),
-+					      val, nval);
- }
- EXPORT_SYMBOL_GPL(fwnode_property_read_u16_array);
- 
-@@ -508,8 +520,8 @@ EXPORT_SYMBOL_GPL(fwnode_property_read_u16_array);
- int fwnode_property_read_u32_array(struct fwnode_handle *fwnode,
- 				   const char *propname, u32 *val, size_t nval)
- {
--	return FWNODE_PROP_READ_ARRAY(fwnode, propname, u32, DEV_PROP_U32,
--				      val, nval);
-+	return fwnode_property_read_int_array(fwnode, propname, sizeof(u32),
-+					      val, nval);
- }
- EXPORT_SYMBOL_GPL(fwnode_property_read_u32_array);
- 
-@@ -534,29 +546,11 @@ EXPORT_SYMBOL_GPL(fwnode_property_read_u32_array);
- int fwnode_property_read_u64_array(struct fwnode_handle *fwnode,
- 				   const char *propname, u64 *val, size_t nval)
- {
--	return FWNODE_PROP_READ_ARRAY(fwnode, propname, u64, DEV_PROP_U64,
--				      val, nval);
-+	return fwnode_property_read_int_array(fwnode, propname, sizeof(u64),
-+					      val, nval);
- }
- EXPORT_SYMBOL_GPL(fwnode_property_read_u64_array);
- 
--static int __fwnode_property_read_string_array(struct fwnode_handle *fwnode,
--					       const char *propname,
--					       const char **val, size_t nval)
--{
--	if (is_of_node(fwnode))
--		return val ?
--			of_property_read_string_array(to_of_node(fwnode),
--						      propname, val, nval) :
--			of_property_count_strings(to_of_node(fwnode), propname);
--	else if (is_acpi_node(fwnode))
--		return acpi_node_prop_read(fwnode, propname, DEV_PROP_STRING,
--					   val, nval);
--	else if (is_pset_node(fwnode))
--		return pset_prop_read_string_array(to_pset_node(fwnode),
--						   propname, val, nval);
--	return -ENXIO;
--}
--
- /**
-  * fwnode_property_read_string_array - return string array property of a node
-  * @fwnode: Firmware node to get the property of
-@@ -581,11 +575,13 @@ int fwnode_property_read_string_array(struct fwnode_handle *fwnode,
- {
- 	int ret;
- 
--	ret = __fwnode_property_read_string_array(fwnode, propname, val, nval);
-+	ret = fwnode_call_int_op(fwnode, property_read_string_array, propname,
-+				 val, nval);
- 	if (ret == -EINVAL && !IS_ERR_OR_NULL(fwnode) &&
- 	    !IS_ERR_OR_NULL(fwnode->secondary))
--		ret = __fwnode_property_read_string_array(fwnode->secondary,
--							  propname, val, nval);
-+		ret = fwnode_call_int_op(fwnode->secondary,
-+					 property_read_string_array, propname,
-+					 val, nval);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(fwnode_property_read_string_array);
-@@ -903,6 +899,7 @@ int device_add_properties(struct device *dev,
- 		return PTR_ERR(p);
- 
- 	p->fwnode.type = FWNODE_PDATA;
-+	p->fwnode.ops = &pset_fwnode_ops;
- 	set_secondary_fwnode(dev, &p->fwnode);
- 	return 0;
- }
-@@ -938,19 +935,7 @@ EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
-  */
- struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode)
- {
--	struct fwnode_handle *parent = NULL;
--
--	if (is_of_node(fwnode)) {
--		struct device_node *node;
--
--		node = of_get_parent(to_of_node(fwnode));
--		if (node)
--			parent = &node->fwnode;
--	} else if (is_acpi_node(fwnode)) {
--		parent = acpi_node_get_parent(fwnode);
--	}
--
--	return parent;
-+	return fwnode_call_ptr_op(fwnode, get_parent);
- }
- EXPORT_SYMBOL_GPL(fwnode_get_parent);
- 
-@@ -962,18 +947,7 @@ EXPORT_SYMBOL_GPL(fwnode_get_parent);
- struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
- 						 struct fwnode_handle *child)
- {
--	if (is_of_node(fwnode)) {
--		struct device_node *node;
--
--		node = of_get_next_available_child(to_of_node(fwnode),
--						   to_of_node(child));
--		if (node)
--			return &node->fwnode;
--	} else if (is_acpi_node(fwnode)) {
--		return acpi_get_next_subnode(fwnode, child);
--	}
--
--	return NULL;
-+	return fwnode_call_ptr_op(fwnode, get_next_child_node, child);
- }
- EXPORT_SYMBOL_GPL(fwnode_get_next_child_node);
- 
-@@ -1005,23 +979,7 @@ EXPORT_SYMBOL_GPL(device_get_next_child_node);
- struct fwnode_handle *fwnode_get_named_child_node(struct fwnode_handle *fwnode,
- 						  const char *childname)
- {
--	struct fwnode_handle *child;
--
--	/*
--	 * Find first matching named child node of this fwnode.
--	 * For ACPI this will be a data only sub-node.
--	 */
--	fwnode_for_each_child_node(fwnode, child) {
--		if (is_of_node(child)) {
--			if (!of_node_cmp(to_of_node(child)->name, childname))
--				return child;
--		} else if (is_acpi_data_node(child)) {
--			if (acpi_data_node_match(child, childname))
--				return child;
--		}
--	}
--
--	return NULL;
-+	return fwnode_call_ptr_op(fwnode, get_named_child_node, childname);
- }
- EXPORT_SYMBOL_GPL(fwnode_get_named_child_node);
- 
-@@ -1043,8 +1001,7 @@ EXPORT_SYMBOL_GPL(device_get_named_child_node);
-  */
- void fwnode_handle_get(struct fwnode_handle *fwnode)
- {
--	if (is_of_node(fwnode))
--		of_node_get(to_of_node(fwnode));
-+	fwnode_call_void_op(fwnode, get);
- }
- EXPORT_SYMBOL_GPL(fwnode_handle_get);
- 
-@@ -1058,8 +1015,7 @@ EXPORT_SYMBOL_GPL(fwnode_handle_get);
-  */
- void fwnode_handle_put(struct fwnode_handle *fwnode)
- {
--	if (is_of_node(fwnode))
--		of_node_put(to_of_node(fwnode));
-+	fwnode_call_void_op(fwnode, put);
- }
- EXPORT_SYMBOL_GPL(fwnode_handle_put);
- 
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-index cf704f4..984e37e 100644
---- a/drivers/of/property.c
-+++ b/drivers/of/property.c
-@@ -780,3 +780,102 @@ struct device_node *of_graph_get_remote_node(const struct device_node *node,
- 	return remote;
- }
- EXPORT_SYMBOL(of_graph_get_remote_node);
-+
-+static void of_fwnode_get(struct fwnode_handle *fwnode)
-+{
-+	of_node_get(to_of_node(fwnode));
-+}
-+
-+static void of_fwnode_put(struct fwnode_handle *fwnode)
-+{
-+	of_node_put(to_of_node(fwnode));
-+}
-+
-+static bool of_fwnode_property_present(struct fwnode_handle *fwnode,
-+				       const char *propname)
-+{
-+	return of_property_read_bool(to_of_node(fwnode), propname);
-+}
-+
-+static int of_fwnode_property_read_int_array(
-+	struct fwnode_handle *fwnode, const char *propname,
-+	unsigned int elem_size, void *val, size_t nval)
-+{
-+	struct device_node *node = to_of_node(fwnode);
-+
-+	if (!val)
-+		return of_property_count_elems_of_size(node, propname,
-+						       elem_size);
-+
-+	switch (elem_size) {
-+	case sizeof(u8):
-+		return of_property_read_u8_array(node, propname, val, nval);
-+	case sizeof(u16):
-+		return of_property_read_u16_array(node, propname, val, nval);
-+	case sizeof(u32):
-+		return of_property_read_u32_array(node, propname, val, nval);
-+	case sizeof(u64):
-+		return of_property_read_u64_array(node, propname, val, nval);
-+	}
-+
-+	return -ENXIO;
-+}
-+
-+static int of_fwnode_property_read_string_array(
-+	struct fwnode_handle *fwnode, const char *propname,
-+	const char **val, size_t nval)
-+{
-+	struct device_node *node = to_of_node(fwnode);
-+
-+	return val ?
-+		of_property_read_string_array(node, propname, val, nval) :
-+		of_property_count_strings(node, propname);
-+}
-+
-+static struct fwnode_handle *of_fwnode_get_parent(struct fwnode_handle *fwnode)
-+{
-+	struct device_node *node;
-+
-+	node = of_get_parent(to_of_node(fwnode));
-+	if (node)
-+		return of_fwnode_handle(node);
-+
-+	return NULL;
-+}
-+
-+static struct fwnode_handle *of_fwnode_get_next_child_node(
-+	struct fwnode_handle *fwnode, struct fwnode_handle *child)
-+{
-+	struct device_node *node;
-+
-+	node = of_get_next_available_child(to_of_node(fwnode),
-+					   to_of_node(child));
-+	if (node)
-+		return of_fwnode_handle(node);
-+
-+	return NULL;
-+}
-+
-+static struct fwnode_handle *of_fwnode_get_named_child_node(
-+	struct fwnode_handle *fwnode, const char *childname)
-+{
-+	struct device_node *node = to_of_node(fwnode);
-+	struct device_node *child;
-+
-+	for_each_available_child_of_node(node, child)
-+		if (!of_node_cmp(child->name, childname))
-+			return of_fwnode_handle(child);
-+
-+	return NULL;
-+}
-+
-+const struct fwnode_operations of_fwnode_ops = {
-+	.get = of_fwnode_get,
-+	.put = of_fwnode_put,
-+	.property_present = of_fwnode_property_present,
-+	.property_read_int_array = of_fwnode_property_read_int_array,
-+	.property_read_string_array = of_fwnode_property_read_string_array,
-+	.get_parent = of_fwnode_get_parent,
-+	.get_next_child_node = of_fwnode_get_next_child_node,
-+	.get_named_child_node = of_fwnode_get_named_child_node,
-+};
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 137e4a3..b8f23c5 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -56,6 +56,9 @@ static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
- 	acpi_fwnode_handle(adev) : NULL)
- #define ACPI_HANDLE(dev)		acpi_device_handle(ACPI_COMPANION(dev))
- 
-+
-+extern const struct fwnode_operations acpi_fwnode_ops;
-+
- static inline struct fwnode_handle *acpi_alloc_fwnode_static(void)
- {
- 	struct fwnode_handle *fwnode;
-@@ -65,6 +68,7 @@ static inline struct fwnode_handle *acpi_alloc_fwnode_static(void)
- 		return NULL;
- 
- 	fwnode->type = FWNODE_ACPI_STATIC;
-+	fwnode->ops = &acpi_fwnode_ops;
- 
- 	return fwnode;
- }
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 3dff239..e05aaef 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -12,6 +12,8 @@
- #ifndef _LINUX_FWNODE_H_
- #define _LINUX_FWNODE_H_
- 
-+#include <linux/types.h>
-+
- enum fwnode_type {
- 	FWNODE_INVALID = 0,
- 	FWNODE_OF,
-@@ -22,9 +24,12 @@ enum fwnode_type {
- 	FWNODE_IRQCHIP
- };
- 
-+struct fwnode_operations;
-+
- struct fwnode_handle {
- 	enum fwnode_type type;
- 	struct fwnode_handle *secondary;
-+	const struct fwnode_operations *ops;
- };
- 
- /**
-@@ -39,4 +44,52 @@ struct fwnode_endpoint {
- 	const struct fwnode_handle *local_fwnode;
- };
- 
-+/**
-+ * struct fwnode_operations - Operations for fwnode interface
-+ * @get: Get a reference to an fwnode.
-+ * @put: Put a reference to an fwnode.
-+ * @property_present: Return true if a property is present.
-+ * @property_read_integer_array: Read an array of integer properties. Return
-+ *				 zero on success, a negative error code
-+ *				 otherwise.
-+ * @property_read_string_array: Read an array of string properties. Return zero
-+ *				on success, a negative error code otherwise.
-+ * @get_parent: Return the parent of an fwnode.
-+ * @get_next_child_node: Return the next child node in an iteration.
-+ * @get_named_child_node: Return a child node with a given name.
-+ */
-+struct fwnode_operations {
-+	void (*get)(struct fwnode_handle *fwnode);
-+	void (*put)(struct fwnode_handle *fwnode);
-+	bool (*property_present)(struct fwnode_handle *fwnode,
-+				 const char *propname);
-+	int (*property_read_int_array)(struct fwnode_handle *fwnode,
-+				       const char *propname,
-+				       unsigned int elem_size, void *val,
-+				       size_t nval);
-+	int (*property_read_string_array)(struct fwnode_handle *fwnode_handle,
-+					  const char *propname,
-+					  const char **val, size_t nval);
-+	struct fwnode_handle *(*get_parent)(struct fwnode_handle *fwnode);
-+	struct fwnode_handle *(*get_next_child_node)(
-+		struct fwnode_handle *fwnode, struct fwnode_handle *child);
-+	struct fwnode_handle *(*get_named_child_node)(
-+		struct fwnode_handle *fwnode, const char *name);
-+};
-+
-+#define fwnode_has_op(fwnode, op)				\
-+	((fwnode) && (fwnode)->ops && (fwnode)->ops->op)
-+#define fwnode_call_int_op(fwnode, op, ...)				\
-+	(fwnode ? (fwnode_has_op(fwnode, op) ?				\
-+		   (fwnode)->ops->op(fwnode, ## __VA_ARGS__) : -ENXIO) : \
-+	 -EINVAL)
-+#define fwnode_call_ptr_op(fwnode, op, ...)		\
-+	(fwnode_has_op(fwnode, op) ?			\
-+	 (fwnode)->ops->op(fwnode, ## __VA_ARGS__) : NULL)
-+#define fwnode_call_void_op(fwnode, op, ...)				\
-+	do {								\
-+		if (fwnode_has_op(fwnode, op))				\
-+			(fwnode)->ops->op(fwnode, ## __VA_ARGS__);	\
-+	} while (false)
-+
- #endif
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 50fcdb5..64f4cd6 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -100,10 +100,12 @@ struct of_reconfig_data {
- 
- /* initialize a node */
- extern struct kobj_type of_node_ktype;
-+extern const struct fwnode_operations of_fwnode_ops;
- static inline void of_node_init(struct device_node *node)
- {
- 	kobject_init(&node->kobj, &of_node_ktype);
- 	node->fwnode.type = FWNODE_OF;
-+	node->fwnode.ops = &of_fwnode_ops;
- }
- 
- /* true when node is initialized */
--- 
-2.7.4
+That's just exactly the old behavior, maybe shouldn't be called as "fix".
+Should say "change to use the new behavior together" all stay unchanged.
 
+I actually want to make the change from ACPICA side.
+But it's costly to persuade ACPICA upstream to take both the "acpi_get_table_with_size()/early_acpi_os_unmap_memory() divergence reduction" change and the "table map on-demand" change.
+
+So we just made 2 things separated, and did 1 thing once.
+
+> 
+> > This prevents kernel developers from improving the late stage code quality
+> > without waiting for the ACPICA upstream to improve first.
+> >
+> > This patch adds a mechanism to stop decrementing validation count to
+> > prevent the table unmapping operations so that acpi_put_table() balance
+> > fixes can be done independently to each others.
+> >
+> > Cc: Dan Williams <dan.j.williams@intel.com>
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > ---
+> >  drivers/acpi/acpica/tbutils.c | 10 ++++++++--
+> >  1 file changed, 8 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+> > index 7abe665..b517bd0 100644
+> > --- a/drivers/acpi/acpica/tbutils.c
+> > +++ b/drivers/acpi/acpica/tbutils.c
+> > @@ -445,12 +445,18 @@ void acpi_tb_put_table(struct acpi_table_desc *table_desc)
+> >
+> >  	ACPI_FUNCTION_TRACE(acpi_tb_put_table);
+> >
+> > -	if (table_desc->validation_count == 0) {
+> > +	if ((table_desc->validation_count + 1) == 0) {
+> 
+> This means that validation_count has reached the maximum value, right?
+> 
+> >  		ACPI_WARNING((AE_INFO,
+> > -			      "Table %p, Validation count is zero before decrement\n",
+> > +			      "Table %p, Validation count is about to expire, decrement is unsafe\n",
+> >  			      table_desc));
+> 
+> So why is it unsafe to decrement it?
+
+Considering this case:
+A program opens a sysfs table file 65535 times: validation_count = 65535.
+Load opcode is invoked by the AML interpreter, but it cannot increase the validation count, see acpi_tb_get_table(): validation_count = 65535.
+Now the program closes the sysfs table file: validation_count = 0, which triggers table unmap.
+But it is likely that the AML code is still accessing the namespace objects provided by this table.
+A kernel crash then can be seen.
+
+So after applying this patch, 65535 now is the threshold.
+When it is reached, validation_count will remain 65535 from then on (see both acpi_tb_get_table()/acpi_tb_put_table()).
+When it is reached, the 65535 validation count ensures "the old behavior" - for late stage;
+When it is not reached, the 65535 validation count ensures "the new behavior" - for early stage.
+
+Then you can see, if there's no acpi_put_table() invoked for such old behavior dependent users, the validation count can also remain 65535.
+That's why I said PATCH 3 is actually breaking things.
+
+IMO, if we really want the acpi_put_table() balance work proceeded without waiting for the ACPICA upstream to change.
+We need this commit.
+
+I actually generated this commit once.
+But hesitated to send it to ACPICA upstream as it didn't look like a good idea to increase communication cost to upstream a commit that hadn't been determined to be used by ACPICA.
+
+However if other driver maintainers want to make their acpi_get_table() invocations balanced like what Dan did here.
+This commit is required.
+
+Thanks and best regards
+Lv
+
+> 
+> >  		return_VOID;
+> >  	}
+> > +	if (table_desc->validation_count == 0) {
+> > +		ACPI_ERROR((AE_INFO,
+> > +			   "Table %p, Validation count is zero before decrement\n",
+> > +			   table_desc));
+> > +		return_VOID;
+> > +	}
+> >  	table_desc->validation_count--;
+> >
+> >  	if (table_desc->validation_count == 0) {
+> >
+> 
+> Thanks,
+> Rafael
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
