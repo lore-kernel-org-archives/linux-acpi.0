@@ -1,38 +1,128 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v1] ACPI: Switch to use generic UUID API
-Date: Fri, 5 May 2017 13:02:21 +0300
-Message-ID: <CAOQ4uxg6+_0KRMkMyupFJDtXrTqxx8vOz3=ZyEuj8BakvfuEJQ@mail.gmail.com>
-References: <20170504092151.88646-1-andriy.shevchenko@linux.intel.com>
- <CAPcyv4jzD0MEBRNTwTokVzgdDWas682ArUjRAGT1hp=QRE8Pjg@mail.gmail.com>
- <CAOQ4uxjha8_2_HwgdgBN=G-vNytAW5Gk155E9z8OWyFiGNEZVw@mail.gmail.com>
- <1493976265.30052.21.camel@linux.intel.com> <CAOQ4uxjErce01+xyDnM=nCJS+avQ4g6hQVvH3fVotj7Ws2moCQ@mail.gmail.com>
- <20170505095739.GB6762@lst.de>
+From: Geetha Akula <geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/3] iommu/arm-smmu-v3: Add workaround for Cavium
+	ThunderX2 erratum #74
+Date: Fri, 5 May 2017 17:43:37 +0530
+Message-ID: <CANHdaibSBc3hVrisn7YQHEo1Z-nxMqr=Nzt4g6CO9XXjVtVBGQ@mail.gmail.com>
+References: <1493293584-20287-1-git-send-email-gakula@caviumnetworks.com>
+	<1493293584-20287-3-git-send-email-gakula@caviumnetworks.com>
+	<20170427164237.GA7114@leverpostej> <20170427170030.GF1890@arm.com>
+	<CANHdaibvzp22XEa3NnKAKUtrHcWGc9oUcnM8KubcYCzEfOaKJg@mail.gmail.com>
+	<20170503094717.GC8233@arm.com>
+	<75890ac7-19db-0b8b-cc74-248c36ef4dab@jonmasters.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170505095739.GB6762@lst.de>
-Sender: linux-pci-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, tpmdd-devel@lists.sourceforge.net, intel-gfx@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-input@vger.kernel.org, iommu@lists.linux-foundation.org, linux-mmc@vger.kernel.org, Netdev <netdev@vger.kernel.org>, linux-pci@vger.kernel.org, USB list <linux-usb@vger.kernel.org>, alsa-devel@alsa-project.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Borislav Petkov <bp@suse.de>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Skeggs <bskeggs@redhat.com>, Benj
+Content-Type: multipart/mixed; boundary="===============9091601529263400079=="
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <75890ac7-19db-0b8b-cc74-248c36ef4dab-Zp4isUonpHBD60Wz+7aTrA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jon Masters <jcm-Zp4isUonpHBD60Wz+7aTrA@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, catalin.marinas-5wv7dgnIgG8@public.gmane.org, Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, Geetha <gakula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Sunil Goutham <sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, May 5, 2017 at 12:57 PM, Christoph Hellwig <hch@lst.de> wrote:
-> On Fri, May 05, 2017 at 12:50:31PM +0300, Amir Goldstein wrote:
->> To complete the picture for folks not cc'ed on my patches,
->> xfs use case suggests there is also justification for the additional helpers:
->>
->> uuid_is_null() / uuid_equal()
->> guid_is_null() / guid_equal()
+--===============9091601529263400079==
+Content-Type: multipart/alternative; boundary=001a11402298bd7de0054ec5d1c8
+
+--001a11402298bd7de0054ec5d1c8
+Content-Type: text/plain; charset=UTF-8
+
+Hi Jon,
+
+Charles Garcia-Tobin has confirmed that the new IORT spec includes Cavium
+ThunderX model number.
+I have resubmitted patches based on IORT model number.
+https://www.spinics.net/lists/arm-kernel/msg579511.html
+
+
+Thank you,
+Geetha.
+
+
+On Fri, May 5, 2017 at 5:06 AM, Jon Masters <jcm-Zp4isUonpHBD60Wz+7aTrA@public.gmane.org> wrote:
+
+> On 05/03/2017 05:47 AM, Will Deacon wrote:
+> > Hi Geetha,
+> >
+> > On Tue, May 02, 2017 at 12:01:15PM +0530, Geetha Akula wrote:
+> >> SMMU_IIDR register is broken on T99, that the reason we are using MIDR.
+> >
+> > Urgh, that's unfortunate. In what way is it broken?
+> >
+> >> If using MIDR is not accepted, can we enable errata based on SMMU
+> resource size?
+> >> some thing like below.
+> >
+> > No, you need to get your model number added to IORT after all if the IIDR
+> > can't uniqely identify the part.
+> >
+> > Sorry
 >
-> The is_null is useful and I bet we'll find other instances. I'm
-> not sure _equals really adds much value over the existing _cmp
-> helpers, but on the other hand they are so trivial that we might as
-> well add them.
-
-Exactly. The fact that not only xfs used the same helper name
-(drivers/md/md.c) suggests that it useful.
-
+> [I've pinged the IORT author directly with a copy of the above message]
 >
-> The other thing XFS has is uuid_copy.
+> Can folks please take action urgently if the IORT spec needs updating to
+> accommodate additional vendor IDs.
+>
+> Jon.
+>
+>
 
-Andy already listed uuid_copy.
+--001a11402298bd7de0054ec5d1c8
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><div><div>Hi Jon,<br><br>Charles Garcia-Tobin has confirme=
+d that the new IORT spec includes Cavium ThunderX model number.<br>I have r=
+esubmitted patches based on IORT model number. <br><a href=3D"https://www.s=
+pinics.net/lists/arm-kernel/msg579511.html">https://www.spinics.net/lists/a=
+rm-kernel/msg579511.html</a><br><br><br></div>Thank you,<br></div>Geetha.<b=
+r><div><div><br></div></div></div><div class=3D"gmail_extra"><br><div class=
+=3D"gmail_quote">On Fri, May 5, 2017 at 5:06 AM, Jon Masters <span dir=3D"l=
+tr">&lt;<a href=3D"mailto:jcm-Zp4isUonpHBD60Wz+7aTrA@public.gmane.org" target=3D"_blank">jcm@jonmast=
+ers.org</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_quote" style=3D=
+"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex"><span class=
+=3D"">On 05/03/2017 05:47 AM, Will Deacon wrote:<br>
+&gt; Hi Geetha,<br>
+&gt;<br>
+&gt; On Tue, May 02, 2017 at 12:01:15PM +0530, Geetha Akula wrote:<br>
+&gt;&gt; SMMU_IIDR register is broken on T99, that the reason we are using =
+MIDR.<br>
+&gt;<br>
+&gt; Urgh, that&#39;s unfortunate. In what way is it broken?<br>
+&gt;<br>
+&gt;&gt; If using MIDR is not accepted, can we enable errata based on SMMU =
+resource size?<br>
+&gt;&gt; some thing like below.<br>
+&gt;<br>
+&gt; No, you need to get your model number added to IORT after all if the I=
+IDR<br>
+&gt; can&#39;t uniqely identify the part.<br>
+&gt;<br>
+&gt; Sorry<br>
+<br>
+</span>[I&#39;ve pinged the IORT author directly with a copy of the above m=
+essage]<br>
+<br>
+Can folks please take action urgently if the IORT spec needs updating to<br=
+>
+accommodate additional vendor IDs.<br>
+<span class=3D"HOEnZb"><font color=3D"#888888"><br>
+Jon.<br>
+<br>
+</font></span></blockquote></div><br></div>
+
+--001a11402298bd7de0054ec5d1c8--
+
+--===============9091601529263400079==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============9091601529263400079==--
