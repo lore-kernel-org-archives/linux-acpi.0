@@ -1,175 +1,112 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / APEI: Boot Error Record Table processing was needlessly complicated
-Date: Fri, 05 May 2017 21:52:24 +0200
-Message-ID: <4487859.ZpYz6V1TKk@aspire.rjw.lan>
-References: <20170505181037.31668-1-tony.luck@intel.com>
+Subject: Re: [PATCH] ACPI: Delay turning off unused resources after suspend till acpi_pm_end()
+Date: Fri, 05 May 2017 22:07:32 +0200
+Message-ID: <3645269.cWqcE5V9pV@aspire.rjw.lan>
+References: <20170430205416.6625-1-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49053 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:54339 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751284AbdEET6s (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 5 May 2017 15:58:48 -0400
-In-Reply-To: <20170505181037.31668-1-tony.luck@intel.com>
+        by vger.kernel.org with ESMTP id S1751033AbdEEUN4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 5 May 2017 16:13:56 -0400
+In-Reply-To: <20170430205416.6625-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Borislav Petkov <bp@suse.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jonathan Zhang <zjzhang@codeaurora.org>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Friday, May 05, 2017 11:10:37 AM Luck, Tony wrote:
-> From: Tony Luck <tony.luck@intel.com>
+On Sunday, April 30, 2017 10:54:16 PM Hans de Goede wrote:
+> Commit 660b1113e0f3 ("ACPI / PM: Fix consistency check for power resources
+> during resume") introduced a check for ACPI power resources which have
+> been turned on by the BIOS during suspend and turns these back off again.
 > 
-> Quoting version 6.1 of the ACPI specification. Section 18.3.1 "Boot
-> Error Source" says:
+> This is causing problems on a Dell Venue Pro 11 7130 (i5-4300Y) it causes
+> the following messages to show up in dmesg:
 > 
->   The Boot Error Region is a range of addressable memory OSPM can access
->   during initialization to determine if an unhandled error condition
->   occurred. System firmware must report this memory range as firmware
->   reserved. The format of the Boot Error Region follow that of an Error
->   Status Block, this is defined in Section 18.3.2.7. The format of the
->   error status block is described by Table 18-342.
+> [  131.014605] ACPI: Waking up from system sleep state S3
+> [  131.150271] acpi LNXPOWER:07: Turning OFF
+> [  131.150323] acpi LNXPOWER:06: Turning OFF
+> [  131.150911] acpi LNXPOWER:00: Turning OFF
+> [  131.169014] ACPI : EC: interrupt unblocked
+> [  131.181811] xhci_hcd 0000:00:14.0: System wakeup disabled by ACPI
+> [  133.535728] pci_raw_set_power_state: 76 callbacks suppressed
+> [  133.535735] iwlwifi 0000:01:00.0: Refused to change power state,
+>                currently in D3
+> [  133.597672] PM: noirq resume of devices complete after 2428.891 msecs
 > 
-> This clarifies some points that were obfuscated in earlier versions.
-> E.g. there is no longer a separate table to describe the format of the
-> "Boot Error Region" (which was identical to the "Error Status Block").
-> Also saying "follow that of *an* Error Status Block" makes it clear that
-> there is just one block (which can still contain multiple "Generic Error
-> Data Entry structures").
+> Followed by a bunch of iwlwifi errors later on and the pcie device
+> dropping from the bus (acpiphp thinks it has been unplugged).
 > 
-> The loop inside bert_print_all() is unnecessary (but probably harmless
-> as the "while (remain > sizeof(struct acpi_bert_region))" loop should
-> terminate after we skipped over the first entry.
+> Disabling the turning off of unused power resources fixes this. Instead
+> of adding a quirk for this system, this commit fixes this by moving the
+> disabling of unused power resources to later in the resume sequence
+> when the iwlwifi card has been moved out of D3 so the ref_count for
+> its power resource no longer is 0.
 > 
-> We can drop the "bert_print_all()" function and just move the four
-> relevant lines inline in "bert_init()". Since there are no remaining
-> users of "struct acpi_bert_region" we delete it from <acpi/actbl1.h>
+> This new behavior seems to match the intend of the original commit which
+> commit-msg says: "which means that no devices are going to need them
+> any time soon) and we should turn them off".
 > 
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Huang Ying <ying.huang@intel.com>
-> Cc: Borislav Petkov <bp@suse.de>
-> Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> Cc: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> Cc: Tyler Baicar <tbaicar@codeaurora.org>
-> Cc: linux-acpi@vger.kernel.org
-> Signed-off-by: Tony Luck <tony.luck@intel.com>
+> This also avoids power resources which we need when bringing devices out
+> of D3 from getting bounced off and then back on again.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 > ---
->  drivers/acpi/apei/bert.c | 54 +++++++-----------------------------------------
->  include/acpi/actbl1.h    | 11 +---------
->  2 files changed, 8 insertions(+), 57 deletions(-)
+>  drivers/acpi/power.c | 10 ++++++++++
+>  drivers/acpi/sleep.c |  1 +
+>  drivers/acpi/sleep.h |  1 +
+>  3 files changed, 12 insertions(+)
 > 
-> diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
-> index 12771fcf0417..b28e1573d4cf 100644
-> --- a/drivers/acpi/apei/bert.c
-> +++ b/drivers/acpi/apei/bert.c
-> @@ -34,50 +34,6 @@
+> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+> index fcd4ce6..1d330a5 100644
+> --- a/drivers/acpi/power.c
+> +++ b/drivers/acpi/power.c
+> @@ -863,6 +863,16 @@ void acpi_resume_power_resources(void)
 >  
->  static int bert_disable;
+>  		mutex_unlock(&resource->resource_lock);
+>  	}
+> +
+> +	mutex_unlock(&power_resource_list_lock);
+> +}
+> +
+> +void acpi_turn_off_unused_power_resources(void)
+> +{
+> +	struct acpi_power_resource *resource;
+> +
+> +	mutex_lock(&power_resource_list_lock);
+> +
+>  	list_for_each_entry_reverse(resource, &acpi_power_resource_list, list_node) {
+>  		int result, state;
 >  
-> -static void __init bert_print_all(struct acpi_bert_region *region,
-> -				  unsigned int region_len)
-> -{
-> -	struct acpi_hest_generic_status *estatus =
-> -		(struct acpi_hest_generic_status *)region;
-> -	int remain = region_len;
-> -	u32 estatus_len;
-> -
-> -	if (!estatus->block_status)
-> -		return;
-> -
-> -	while (remain > sizeof(struct acpi_bert_region)) {
-> -		if (cper_estatus_check(estatus)) {
-> -			pr_err(FW_BUG "Invalid error record.\n");
-> -			return;
-> -		}
-> -
-> -		estatus_len = cper_estatus_len(estatus);
-> -		if (remain < estatus_len) {
-> -			pr_err(FW_BUG "Truncated status block (length: %u).\n",
-> -			       estatus_len);
-> -			return;
-> -		}
-> -
-> -		pr_info_once("Error records from previous boot:\n");
-> -
-> -		cper_estatus_print(KERN_INFO HW_ERR, estatus);
-> -
-> -		/*
-> -		 * Because the boot error source is "one-time polled" type,
-> -		 * clear Block Status of current Generic Error Status Block,
-> -		 * once it's printed.
-> -		 */
-> -		estatus->block_status = 0;
-> -
-> -		estatus = (void *)estatus + estatus_len;
-> -		/* No more error records. */
-> -		if (!estatus->block_status)
-> -			return;
-> -
-> -		remain -= estatus_len;
-> -	}
-> -}
-> -
->  static int __init setup_bert_disable(char *str)
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index a4327af..097d630 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -474,6 +474,7 @@ static void acpi_pm_start(u32 acpi_state)
+>   */
+>  static void acpi_pm_end(void)
 >  {
->  	bert_disable = 1;
-> @@ -89,7 +45,7 @@ __setup("bert_disable", setup_bert_disable);
->  static int __init bert_check_table(struct acpi_table_bert *bert_tab)
->  {
->  	if (bert_tab->header.length < sizeof(struct acpi_table_bert) ||
-> -	    bert_tab->region_length < sizeof(struct acpi_bert_region))
-> +	    bert_tab->region_length < sizeof(struct acpi_hest_generic_status))
->  		return -EINVAL;
+> +	acpi_turn_off_unused_power_resources();
+>  	acpi_scan_lock_release();
+>  	/*
+>  	 * This is necessary in case acpi_pm_finish() is not called during a
+> diff --git a/drivers/acpi/sleep.h b/drivers/acpi/sleep.h
+> index a9cc34e..a82ff74 100644
+> --- a/drivers/acpi/sleep.h
+> +++ b/drivers/acpi/sleep.h
+> @@ -6,6 +6,7 @@ extern struct list_head acpi_wakeup_device_list;
+>  extern struct mutex acpi_device_lock;
 >  
->  	return 0;
-> @@ -98,7 +54,7 @@ static int __init bert_check_table(struct acpi_table_bert *bert_tab)
->  static int __init bert_init(void)
->  {
->  	struct apei_resources bert_resources;
-> -	struct acpi_bert_region *boot_error_region;
-> +	struct acpi_hest_generic_status *boot_error_region;
->  	struct acpi_table_bert *bert_tab;
->  	unsigned int region_len;
->  	acpi_status status;
-> @@ -138,7 +94,11 @@ static int __init bert_init(void)
->  		goto out_fini;
->  	boot_error_region = ioremap_cache(bert_tab->address, region_len);
->  	if (boot_error_region) {
-> -		bert_print_all(boot_error_region, region_len);
-> +		if (boot_error_region->block_status) {
-> +			pr_info("Error records from previous boot:\n");
-> +			cper_estatus_print(KERN_INFO HW_ERR, boot_error_region);
-> +			boot_error_region->block_status = 0;
-> +		}
->  		iounmap(boot_error_region);
->  	} else {
->  		rc = -ENOMEM;
-> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-> index b4ce55c008b0..cf0bd26774aa 100644
-> --- a/include/acpi/actbl1.h
-> +++ b/include/acpi/actbl1.h
-> @@ -127,16 +127,7 @@ struct acpi_table_bert {
->  	struct acpi_table_header header;	/* Common ACPI table header */
->  	u32 region_length;	/* Length of the boot error region */
->  	u64 address;		/* Physical address of the error region */
-> -};
-> -
-> -/* Boot Error Region (not a subtable, pointed to by Address field above) */
-> -
-> -struct acpi_bert_region {
-> -	u32 block_status;	/* Type of error information */
-> -	u32 raw_data_offset;	/* Offset to raw error data */
-> -	u32 raw_data_length;	/* Length of raw error data */
-> -	u32 data_length;	/* Length of generic error data */
-> -	u32 error_severity;	/* Severity code */
-> +				/* which is a struct acpi_hest_generic_status */
->  };
+>  extern void acpi_resume_power_resources(void);
+> +extern void acpi_turn_off_unused_power_resources(void);
 >  
->  /* Values for block_status flags above */
+>  static inline acpi_status acpi_set_waking_vector(u32 wakeup_address)
+>  {
 > 
 
-The actbl1.h change should be routed through the upstream ACPICA I think
-after we've dropped all things depending on it from the kernel.
+Makes sense to me, so applied.
 
 Thanks,
 Rafael
