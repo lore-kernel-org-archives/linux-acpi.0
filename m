@@ -1,124 +1,95 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH V15 09/11] ras: acpi / apei: generate trace event for
- unrecognized CPER section
-Date: Fri, 5 May 2017 14:44:04 -0400
-Message-ID: <20170505144404.724da229@gandalf.local.home>
-References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
- <1492556723-9189-10-git-send-email-tbaicar@codeaurora.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 3.18 25/68] ftrace/x86: Fix triple fault with graph tracing and suspend-to-ram
+Date: Fri,  5 May 2017 11:32:10 -0700
+Message-ID: <20170505183213.604181274@linuxfoundation.org>
+References: <20170505183212.587141964@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1492556723-9189-10-git-send-email-tbaicar@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, rafael@kernel.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, nkaje@codeaurora.org, bp@alien8.de, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, tony.luck@intel.com, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170505183212.587141964@linuxfoundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Paul Menzel <pmenzel@molgen.mpg.de>, Josh Poimboeuf <jpoimboe@redhat.com>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
 
+3.18-stable review patch.  If anyone has any objections, please let me know.
 
-Sorry for the late reply. Borislav pinged me to look at this.
+------------------
 
+From: Josh Poimboeuf <jpoimboe@redhat.com>
 
-On Tue, 18 Apr 2017 17:05:21 -0600
-Tyler Baicar <tbaicar@codeaurora.org> wrote:
+commit 34a477e5297cbaa6ecc6e17c042a866e1cbe80d6 upstream.
 
+On x86-32, with CONFIG_FIRMWARE and multiple CPUs, if you enable function
+graph tracing and then suspend to RAM, it will triple fault and reboot when
+it resumes.
 
+The first fault happens when booting a secondary CPU:
 
-> diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-> index 1791a12..5861b6f 100644
-> --- a/include/ras/ras_event.h
-> +++ b/include/ras/ras_event.h
-> @@ -162,6 +162,51 @@
->  );
->  
->  /*
-> + * Unknown Section Report
-> + *
-> + * This event is generated when hardware detected a hardware
-> + * error event, which may be of non-standard section as defined
-> + * in UEFI spec appendix "Common Platform Error Record", or may
-> + * be of sections for which TRACE_EVENT is not defined.
-> + *
-> + */
-> +TRACE_EVENT(unknown_sec_event,
-> +
-> +	TP_PROTO(const uuid_le *sec_type,
-> +		 const uuid_le *fru_id,
-> +		 const char *fru_text,
-> +		 const u8 sev,
-> +		 const u8 *err,
-> +		 const u32 len),
-> +
-> +	TP_ARGS(sec_type, fru_id, fru_text, sev, err, len),
-> +
-> +	TP_STRUCT__entry(
-> +		__array(char, sec_type, 16)
-> +		__array(char, fru_id, 16)
-> +		__string(fru_text, fru_text)
-> +		__field(u8, sev)
-> +		__field(u32, len)
-> +		__dynamic_array(u8, buf, len)
-> +	),
-> +
-> +	TP_fast_assign(
-> +		memcpy(__entry->sec_type, sec_type, sizeof(uuid_le));
-> +		memcpy(__entry->fru_id, fru_id, sizeof(uuid_le));
+startup_32_smp()
+  load_ucode_ap()
+    prepare_ftrace_return()
+      ftrace_graph_is_dead()
+        (accesses 'kill_ftrace_graph')
 
-My only concern here is that you are using sizeof(uuid_le) into an
-array that is hardcoded as 16 bytes. I don't expect the size of uuid_le
-to ever change, but if it does, you just created an exploit.
+The early head_32.S code calls into load_ucode_ap(), which has an an
+ftrace hook, so it calls prepare_ftrace_return(), which calls
+ftrace_graph_is_dead(), which tries to access the global
+'kill_ftrace_graph' variable with a virtual address, causing a fault
+because the CPU is still in real mode.
 
-I would suggest having a macro about the size of uuid_le and use both
-here and include/uapi/linux/uuid.h.
+The fix is to add a check in prepare_ftrace_return() to make sure it's
+running in protected mode before continuing.  The check makes sure the
+stack pointer is a virtual kernel address.  It's a bit of a hack, but
+it's not very intrusive and it works well enough.
 
-#define UUID_SIZE
+For reference, here are a few other (more difficult) ways this could
+have potentially been fixed:
 
-typedef struct {
-	__u8 b[UUID_SIZE];
-} uuid_le;
+- Move startup_32_smp()'s call to load_ucode_ap() down to *after* paging
+  is enabled.  (No idea what that would break.)
 
-And then we can just use UUID_SIZE safely here:
+- Track down load_ucode_ap()'s entire callee tree and mark all the
+  functions 'notrace'.  (Probably not realistic.)
 
-	__array(char, sec_type, UUID_SIZE)
+- Pause graph tracing in ftrace_suspend_notifier_call() or bringup_cpu()
+  or __cpu_up(), and ensure that the pause facility can be queried from
+  real mode.
 
-[...]
+Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Len Brown <lenb@kernel.org>
+Link: http://lkml.kernel.org/r/5c1272269a580660703ed2eccf44308e790c7a98.1492123841.git.jpoimboe@redhat.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-	memcpy(__entry->sec_type, sec_type, UUID_SIZE));
+---
+ arch/x86/kernel/ftrace.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Alternatively we could add in the C file that defines the tracepoints:
-
-BUILD_BUG(sizeof(uuid_le) > 16);
-
-But that's hacky.
-
-
-> +		__assign_str(fru_text, fru_text);
-> +		__entry->sev = sev;
-> +		__entry->len = len;
-> +		memcpy(__get_dynamic_array(buf), err, len);
-> +	),
-> +
-> +	TP_printk("severity: %d; sec type:%pU; FRU: %pU %s; data len:%d; raw data:%s",
-> +		  __entry->sev, __entry->sec_type,
-
-Hmm, I wonder if %pU is defined in the libtraceevent library?
-
--- Steve
-
-> +		  __entry->fru_id, __get_str(fru_text),
-> +		  __entry->len,
-> +		  __print_hex(__get_dynamic_array(buf), __entry->len))
-> +);
-> +
-> +/*
->   * PCIe AER Trace event
->   *
->   * These events are generated when hardware detects a corrected or
+--- a/arch/x86/kernel/ftrace.c
++++ b/arch/x86/kernel/ftrace.c
+@@ -703,6 +703,18 @@ void prepare_ftrace_return(unsigned long
+ 	unsigned long return_hooker = (unsigned long)
+ 				&return_to_handler;
+ 
++	/*
++	 * When resuming from suspend-to-ram, this function can be indirectly
++	 * called from early CPU startup code while the CPU is in real mode,
++	 * which would fail miserably.  Make sure the stack pointer is a
++	 * virtual address.
++	 *
++	 * This check isn't as accurate as virt_addr_valid(), but it should be
++	 * good enough for this purpose, and it's fast.
++	 */
++	if (unlikely((long)__builtin_frame_address(0) >= 0))
++		return;
++
+ 	if (unlikely(ftrace_graph_is_dead()))
+ 		return;
+ 
