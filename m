@@ -1,134 +1,121 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle
- on Dell systems
-Date: Fri, 5 May 2017 00:36:03 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9DB82@SHSMSX101.ccr.corp.intel.com>
-References: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E886CE9D3AE@SHSMSX101.ccr.corp.intel.com>
- <2575390.Ukje8MD5v5@aspire.rjw.lan> <1679308.ELldjq8J12@aspire.rjw.lan>
+Subject: RE: [PATCH v3 2/4] ACPICA: Tables: Add mechanism to allow to
+ balance late stage acpi_get_table() independently
+Date: Fri, 5 May 2017 00:53:29 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9DBA9@SHSMSX101.ccr.corp.intel.com>
+References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
+ <89693a14ceb97e3d1fa7cc098b15c73f5b176863.1493357251.git.lv.zheng@intel.com>
+ <3915288.8qJPC28FTg@aspire.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E886CE9D136@SHSMSX101.ccr.corp.intel.com>
+ <CAPcyv4hhshAGaVJh74GSgB1iD6NbHUa5eXJVsRhaqbjgZ=LSUw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1679308.ELldjq8J12@aspire.rjw.lan>
+In-Reply-To: <CAPcyv4hhshAGaVJh74GSgB1iD6NbHUa5eXJVsRhaqbjgZ=LSUw@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Mario.Limonciello@dell.com" <Mario.Limonciello@dell.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>, "dvhart@infradead.org" <dvhart@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> Subject: Re: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle on Dell systems
-> 
-> On Thursday, May 04, 2017 04:23:30 PM Rafael J. Wysocki wrote:
-> > On Thursday, May 04, 2017 07:58:53 AM Zheng, Lv wrote:
-> > > Hi,
-> > >
-> > > > -----Original Message-----
-> > > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of
-> Rafael J.
-> > > > Wysocki
-> > > > Sent: Friday, April 28, 2017 6:26 AM
-> > > > To: Mario.Limonciello@dell.com
-> > > > Cc: linux-pm@vger.kernel.org; andriy.shevchenko@linux.intel.com; dvhart@infradead.org; linux-
-> > > > kernel@vger.kernel.org; linux-acpi@vger.kernel.org; srinivas.pandruvada@linux.intel.com;
-> > > > tglx@linutronix.de; mika.westerberg@linux.intel.com
-> > > > Subject: Re: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle on Dell systems
-> > > >
-> > > > On Thursday, April 27, 2017 02:47:59 PM Mario.Limonciello@dell.com wrote:
-> > > > > > -----Original Message-----
-> > > > > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > > > > > Sent: Wednesday, April 26, 2017 4:24 PM
-> > > > > > To: Linux PM <linux-pm@vger.kernel.org>
-> > > > > > Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>; Darren Hart
-> > > > > > <dvhart@infradead.org>; LKML <linux-kernel@vger.kernel.org>; Linux ACPI <linux-
-> > > > > > acpi@vger.kernel.org>; Srinivas Pandruvada
-> > > > > > <srinivas.pandruvada@linux.intel.com>; Thomas Gleixner <tglx@linutronix.de>;
-> > > > > > Mika Westerberg <mika.westerberg@linux.intel.com>; Limonciello, Mario
-> > > > > > <Mario_Limonciello@Dell.com>
-> > > > > > Subject: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle on Dell
-> > > > > > systems
-> > > > > >
-> > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > >
-> > > > > > Some recent Dell laptops, including the XPS13 model numbers 9360 and
-> > > > > > 9365, cannot be woken up from suspend-to-idle by pressing the power
-> > > > > > button which is unexpected and makes that feature hardly usable on
-> > > > > > those systems.  However, on the 9365 ACPI S3 (suspend-to-RAM) is not
-> > > > > > expected to be used at all (these systems ship with Windows 10 using
-> > > > > > Modern Standby which never exercises the ACPI S3 path) and
-> > > > > > suspend-to-idle is the only viable system suspend mechanism in there.
-> > > > > >
-> > > > > > The reason why the power button wakeup from suspend-to-idle doesn't
-> > > > > > work on those systems is because their power button events are
-> > > > > > signaled by the EC (Embedded Controller), whose GPE (General Purpose
-> > > > > > Event) line is disabled during suspend-to-idle transitions in Linux.
-> > > > > > That is done on purpose, because in general the EC tends to generate
-> > > > > > tons of events for various reasons (battery and thermal updates and
-> > > > > > similar, for example) and all of them would kick the CPUs out of deep
-> > > > > > idle states while in suspend-to-idle, which would not be desirable.
-> > > > > >
-> > > > > > Of course, on the Dell systems in question the EC GPE must be enabled
-> > > > > > during suspend-to-idle transitions for the button press events to
-> > > > > > be signaled while suspended at all.  Fortunately, there is a way to
-> > > > > > tell the EC to stop generating the non-wakeup events, which is by
-> > > > > > using the _DSM object under the so called micro-PEP (uPEP) device
-> > > > > > provided to support Modern Standby in Windows 10.
-> > > > > >
-> > > > > > The expected way to use it is to invoke function 0 from it on system
-> > > > > > initialization, functions 3 and 5 during suspend transitions and
-> > > > > > functions 4 and 6 during resume transitions (to reverse the actions
-> > > > > > carried out by the former).  In particular, function 5 from the uPEP
-> > > > > > device _DSM causes the EC to become less verbose (so to speak) on the
-> > > > > > affected systems and then its GPE can be enabled as a wakeup source
-> > > > > > (then, on resume, function 6 switches it back to the "working state"
-> > > > > > mode).
-> > > > > >
-> > > > > > In support of the affected Dell systems, implement the uPEP device
-> > > > > > handling as described and allow the EC to generate system wakeup
-> > > > > > events if that device is present and behaves as expected.  Enable
-> > > > > > that for Dell only, as there are other systems out there in which
-> > > > > > the uPEP device is exposed in the ACPI tables and its _DSM appears
-> > > > > > to be functional, but it actually isn't, whereas Dell is committed
-> > > > > > to supporting it.
-> > > > > >
-> > > > >
-> > > > > I am of course biased in that my priority is for this to work for Dell.
-> > > > > Dell is definitely committed to supporting this on any system with
-> > > > > the low power idle bit in the FADT set.
-> > > > >
-> > > > > So I'm fine with the current proposed solution, but have you
-> > > > > dug into what actually breaks on this other system?  Does it actually
-> > > > > work with Modern Standby + the uPEP device on Windows 10?
-> > > > >
-> > > > > To my understanding I would think any OEM that is enabling this
-> > > > > uPEP device it should be getting called by the Windows kernel
-> > > > > identically when entering resiliency phases.
-> > > > >
-> > > > > This makes me wonder if it should be inverted and a blacklist
-> > > > > of platforms that the uPEP device doesn't work.
-> > > >
-> > > > For now I'd prefer to only do it on platforms where the benefit is clear.
-> > > >
-> > > > The next step may be to extend it to the other ones, but let's avoid making
-> > > > what is problem mitigation really depend on things that may or may not
-> > > > work elsewhere to start with.
-> > >
-> > > Then is it possible to invoke acpi_mark_gpe_for_wake() (and maybe also acpi_unmark_gpe_for_wake())
-> right after invoking uPEP functions?
-> > > So that such platform specific stuffs won't go into ec.c.
-> >
-> > I'm not sure ATM, but it should be doable in theory.
-> 
-> So the problem with that is that the EC GPE number is not known to the sleep.c
-> code, so it would need to be exported by the EC driver somehow or similar,
-> which would be uglier than the current patch IMO.
-
-Ah, I see.
-Anyway, this is not urgent.
-We can just focus on user issue now.
-
-Thanks and best regards
-Lv
+SGksIERhbg0KDQo+IEZyb206IERhbiBXaWxsaWFtcyBbbWFpbHRvOmRhbi5qLndpbGxpYW1zQGlu
+dGVsLmNvbV0NCj4gU2VudDogVGh1cnNkYXksIE1heSA0LCAyMDE3IDExOjQ1IFBNDQo+IFN1Ympl
+Y3Q6IFJlOiBbUEFUQ0ggdjMgMi80XSBBQ1BJQ0E6IFRhYmxlczogQWRkIG1lY2hhbmlzbSB0byBh
+bGxvdyB0byBiYWxhbmNlIGxhdGUgc3RhZ2UNCj4gYWNwaV9nZXRfdGFibGUoKSBpbmRlcGVuZGVu
+dGx5DQo+IA0KPiBPbiBUaHUsIE1heSA0LCAyMDE3IGF0IDEyOjE4IEFNLCBaaGVuZywgTHYgPGx2
+LnpoZW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4gSGksIFJhZmFlbA0KPiA+DQo+ID4+IEZyb206
+IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZg0KPiBSYWZhZWwgSi4NCj4gPj4gV3lzb2Nr
+aQ0KPiA+PiBTdWJqZWN0OiBSZTogW1BBVENIIHYzIDIvNF0gQUNQSUNBOiBUYWJsZXM6IEFkZCBt
+ZWNoYW5pc20gdG8gYWxsb3cgdG8gYmFsYW5jZSBsYXRlIHN0YWdlDQo+ID4+IGFjcGlfZ2V0X3Rh
+YmxlKCkgaW5kZXBlbmRlbnRseQ0KPiA+Pg0KPiA+PiBPbiBGcmlkYXksIEFwcmlsIDI4LCAyMDE3
+IDAxOjMwOjIwIFBNIEx2IFpoZW5nIHdyb3RlOg0KPiA+PiA+IEZvciBhbGwgZnJlcXVlbnQgbGF0
+ZSBzdGFnZSBhY3BpX2dldF90YWJsZSgpIGNsb25lIGludm9jYXRpb25zLCB3ZSBzaG91bGQNCj4g
+Pj4gPiBvbmx5IGZpeCB0aGVtIGFsdG9nZXRoZXIsIG90aGVyd2lzZSwgZXhjZXNzaXZlIGFjcGlf
+cHV0X3RhYmxlKCkgY291bGQNCj4gPj4gPiB1bmV4cGVjdGVkbHkgdW5tYXAgdGhlIHRhYmxlIHVz
+ZWQgYnkgdGhlIG90aGVyIHVzZXJzLiBUaHVzIHRoZSBjdXJyZW50IHBsYW4NCj4gPj4gPiBpcyB0
+byBmaXggYWxsIGFjcGlfZ2V0X3RhYmxlKCkgY2xvbmVzIHRvZ2V0aGVyIG9yIHRvIGZpeCBub25l
+IG9mIHRoZW0uDQo+ID4+DQo+ID4+IEkgaG9uZXN0bHkgZG9uJ3QgdGhpbmsgdGhhdCBmaXhpbmcg
+bm9uZSBvZiB0aGVtIGlzIGEgdmFsaWQgb3B0aW9uIGhlcmUuDQo+ID4NCj4gPiBUaGF0J3MganVz
+dCBleGFjdGx5IHRoZSBvbGQgYmVoYXZpb3IsIG1heWJlIHNob3VsZG4ndCBiZSBjYWxsZWQgYXMg
+ImZpeCIuDQo+ID4gU2hvdWxkIHNheSAiY2hhbmdlIHRvIHVzZSB0aGUgbmV3IGJlaGF2aW9yIHRv
+Z2V0aGVyIiBhbGwgc3RheSB1bmNoYW5nZWQuDQo+ID4NCj4gPiBJIGFjdHVhbGx5IHdhbnQgdG8g
+bWFrZSB0aGUgY2hhbmdlIGZyb20gQUNQSUNBIHNpZGUuDQo+ID4gQnV0IGl0J3MgY29zdGx5IHRv
+IHBlcnN1YWRlIEFDUElDQSB1cHN0cmVhbSB0byB0YWtlIGJvdGggdGhlDQo+ICJhY3BpX2dldF90
+YWJsZV93aXRoX3NpemUoKS9lYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpIGRpdmVyZ2VuY2Ug
+cmVkdWN0aW9uIiBjaGFuZ2UgYW5kIHRoZSAidGFibGUNCj4gbWFwIG9uLWRlbWFuZCIgY2hhbmdl
+Lg0KPiA+DQo+ID4gU28gd2UganVzdCBtYWRlIDIgdGhpbmdzIHNlcGFyYXRlZCwgYW5kIGRpZCAx
+IHRoaW5nIG9uY2UuDQo+ID4NCj4gPj4NCj4gPj4gPiBUaGlzIHByZXZlbnRzIGtlcm5lbCBkZXZl
+bG9wZXJzIGZyb20gaW1wcm92aW5nIHRoZSBsYXRlIHN0YWdlIGNvZGUgcXVhbGl0eQ0KPiA+PiA+
+IHdpdGhvdXQgd2FpdGluZyBmb3IgdGhlIEFDUElDQSB1cHN0cmVhbSB0byBpbXByb3ZlIGZpcnN0
+Lg0KPiA+PiA+DQo+ID4+ID4gVGhpcyBwYXRjaCBhZGRzIGEgbWVjaGFuaXNtIHRvIHN0b3AgZGVj
+cmVtZW50aW5nIHZhbGlkYXRpb24gY291bnQgdG8NCj4gPj4gPiBwcmV2ZW50IHRoZSB0YWJsZSB1
+bm1hcHBpbmcgb3BlcmF0aW9ucyBzbyB0aGF0IGFjcGlfcHV0X3RhYmxlKCkgYmFsYW5jZQ0KPiA+
+PiA+IGZpeGVzIGNhbiBiZSBkb25lIGluZGVwZW5kZW50bHkgdG8gZWFjaCBvdGhlcnMuDQo+ID4+
+ID4NCj4gPj4gPiBDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+
+ID4+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gPj4g
+PiAtLS0NCj4gPj4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS90YnV0aWxzLmMgfCAxMCArKysrKysr
+Ky0tDQo+ID4+ID4gIDEgZmlsZSBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25z
+KC0pDQo+ID4+ID4NCj4gPj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS90YnV0
+aWxzLmMgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL3RidXRpbHMuYw0KPiA+PiA+IGluZGV4IDdhYmU2
+NjUuLmI1MTdiZDAgMTAwNjQ0DQo+ID4+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGljYS90YnV0
+aWxzLmMNCj4gPj4gPiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL3RidXRpbHMuYw0KPiA+PiA+
+IEBAIC00NDUsMTIgKzQ0NSwxOCBAQCB2b2lkIGFjcGlfdGJfcHV0X3RhYmxlKHN0cnVjdCBhY3Bp
+X3RhYmxlX2Rlc2MgKnRhYmxlX2Rlc2MpDQo+ID4+ID4NCj4gPj4gPiAgICAgQUNQSV9GVU5DVElP
+Tl9UUkFDRShhY3BpX3RiX3B1dF90YWJsZSk7DQo+ID4+ID4NCj4gPj4gPiAtICAgaWYgKHRhYmxl
+X2Rlc2MtPnZhbGlkYXRpb25fY291bnQgPT0gMCkgew0KPiA+PiA+ICsgICBpZiAoKHRhYmxlX2Rl
+c2MtPnZhbGlkYXRpb25fY291bnQgKyAxKSA9PSAwKSB7DQo+ID4+DQo+ID4+IFRoaXMgbWVhbnMg
+dGhhdCB2YWxpZGF0aW9uX2NvdW50IGhhcyByZWFjaGVkIHRoZSBtYXhpbXVtIHZhbHVlLCByaWdo
+dD8NCj4gPj4NCj4gPj4gPiAgICAgICAgICAgICBBQ1BJX1dBUk5JTkcoKEFFX0lORk8sDQo+ID4+
+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAiVGFibGUgJXAsIFZhbGlkYXRpb24gY291bnQg
+aXMgemVybyBiZWZvcmUgZGVjcmVtZW50XG4iLA0KPiA+PiA+ICsgICAgICAgICAgICAgICAgICAg
+ICAgICAgIlRhYmxlICVwLCBWYWxpZGF0aW9uIGNvdW50IGlzIGFib3V0IHRvIGV4cGlyZSwgZGVj
+cmVtZW50IGlzIHVuc2FmZVxuIiwNCj4gPj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgIHRh
+YmxlX2Rlc2MpKTsNCj4gPj4NCj4gPj4gU28gd2h5IGlzIGl0IHVuc2FmZSB0byBkZWNyZW1lbnQg
+aXQ/DQo+ID4NCj4gPiBDb25zaWRlcmluZyB0aGlzIGNhc2U6DQo+ID4gQSBwcm9ncmFtIG9wZW5z
+IGEgc3lzZnMgdGFibGUgZmlsZSA2NTUzNSB0aW1lczogdmFsaWRhdGlvbl9jb3VudCA9IDY1NTM1
+Lg0KPiA+IExvYWQgb3Bjb2RlIGlzIGludm9rZWQgYnkgdGhlIEFNTCBpbnRlcnByZXRlciwgYnV0
+IGl0IGNhbm5vdCBpbmNyZWFzZSB0aGUgdmFsaWRhdGlvbiBjb3VudCwgc2VlDQo+IGFjcGlfdGJf
+Z2V0X3RhYmxlKCk6IHZhbGlkYXRpb25fY291bnQgPSA2NTUzNS4NCj4gPiBOb3cgdGhlIHByb2dy
+YW0gY2xvc2VzIHRoZSBzeXNmcyB0YWJsZSBmaWxlOiB2YWxpZGF0aW9uX2NvdW50ID0gMCwgd2hp
+Y2ggdHJpZ2dlcnMgdGFibGUgdW5tYXAuDQo+ID4gQnV0IGl0IGlzIGxpa2VseSB0aGF0IHRoZSBB
+TUwgY29kZSBpcyBzdGlsbCBhY2Nlc3NpbmcgdGhlIG5hbWVzcGFjZSBvYmplY3RzIHByb3ZpZGVk
+IGJ5IHRoaXMgdGFibGUuDQo+ID4gQSBrZXJuZWwgY3Jhc2ggdGhlbiBjYW4gYmUgc2Vlbi4NCj4g
+Pg0KPiA+IFNvIGFmdGVyIGFwcGx5aW5nIHRoaXMgcGF0Y2gsIDY1NTM1IG5vdyBpcyB0aGUgdGhy
+ZXNob2xkLg0KPiA+IFdoZW4gaXQgaXMgcmVhY2hlZCwgdmFsaWRhdGlvbl9jb3VudCB3aWxsIHJl
+bWFpbiA2NTUzNSBmcm9tIHRoZW4gb24gKHNlZSBib3RoDQo+IGFjcGlfdGJfZ2V0X3RhYmxlKCkv
+YWNwaV90Yl9wdXRfdGFibGUoKSkuDQo+ID4gV2hlbiBpdCBpcyByZWFjaGVkLCB0aGUgNjU1MzUg
+dmFsaWRhdGlvbiBjb3VudCBlbnN1cmVzICJ0aGUgb2xkIGJlaGF2aW9yIiAtIGZvciBsYXRlIHN0
+YWdlOw0KPiA+IFdoZW4gaXQgaXMgbm90IHJlYWNoZWQsIHRoZSA2NTUzNSB2YWxpZGF0aW9uIGNv
+dW50IGVuc3VyZXMgInRoZSBuZXcgYmVoYXZpb3IiIC0gZm9yIGVhcmx5IHN0YWdlLg0KPiA+DQo+
+ID4gVGhlbiB5b3UgY2FuIHNlZSwgaWYgdGhlcmUncyBubyBhY3BpX3B1dF90YWJsZSgpIGludm9r
+ZWQgZm9yIHN1Y2ggb2xkIGJlaGF2aW9yIGRlcGVuZGVudCB1c2VycywgdGhlDQo+IHZhbGlkYXRp
+b24gY291bnQgY2FuIGFsc28gcmVtYWluIDY1NTM1Lg0KPiA+IFRoYXQncyB3aHkgSSBzYWlkIFBB
+VENIIDMgaXMgYWN0dWFsbHkgYnJlYWtpbmcgdGhpbmdzLg0KPiA+DQo+ID4gSU1PLCBpZiB3ZSBy
+ZWFsbHkgd2FudCB0aGUgYWNwaV9wdXRfdGFibGUoKSBiYWxhbmNlIHdvcmsgcHJvY2VlZGVkIHdp
+dGhvdXQgd2FpdGluZyBmb3IgdGhlIEFDUElDQQ0KPiB1cHN0cmVhbSB0byBjaGFuZ2UuDQo+ID4g
+V2UgbmVlZCB0aGlzIGNvbW1pdC4NCj4gPg0KPiA+IEkgYWN0dWFsbHkgZ2VuZXJhdGVkIHRoaXMg
+Y29tbWl0IG9uY2UuDQo+ID4gQnV0IGhlc2l0YXRlZCB0byBzZW5kIGl0IHRvIEFDUElDQSB1cHN0
+cmVhbSBhcyBpdCBkaWRuJ3QgbG9vayBsaWtlIGEgZ29vZCBpZGVhIHRvIGluY3JlYXNlDQo+IGNv
+bW11bmljYXRpb24gY29zdCB0byB1cHN0cmVhbSBhIGNvbW1pdCB0aGF0IGhhZG4ndCBiZWVuIGRl
+dGVybWluZWQgdG8gYmUgdXNlZCBieSBBQ1BJQ0EuDQo+ID4NCj4gPiBIb3dldmVyIGlmIG90aGVy
+IGRyaXZlciBtYWludGFpbmVycyB3YW50IHRvIG1ha2UgdGhlaXIgYWNwaV9nZXRfdGFibGUoKSBp
+bnZvY2F0aW9ucyBiYWxhbmNlZCBsaWtlDQo+IHdoYXQgRGFuIGRpZCBoZXJlLg0KPiA+IFRoaXMg
+Y29tbWl0IGlzIHJlcXVpcmVkLg0KPiA+DQo+IA0KPiBXaHkgZG8gd2UgbmVlZCB2YWxpZGF0aW9u
+X2NvdW50IGF0IGFsbD8gSSB3b3VsZCB0aGluayB5b3Ugd291bGQgb25seQ0KPiBuZWVkIHRoYXQg
+aWYgdGFibGVzIGNhbiBiZSBob3QtcmVtb3ZlZCBhbmQgeW91IG5lZWQgdG8gd2FpdCBmb3IgYWxs
+DQo+IGFjdGl2ZSB1c2VycyB0byBkcmFpbi4gTW9zdCB0YWJsZXMgZG9uJ3QgaGF2ZSB0aGF0IGJl
+aGF2aW9yLCByaWdodD8NCj4gU2hvdWxkIHdlIGluc3RlYWQgYmUgcmVmZXJlbmNlIGNvdW50aW5n
+IHRoZSBmZXcgdGFibGVzIHRoYXQgbWlnaHQgYmUNCj4gcmVtb3ZlZCBhbmQgbGVhdmUgdGhlIHJl
+c3Qgc3RhdGljYWxseSBhbGxvY2F0ZWQ/DQoNCkZvciBub3csIHdlIG5lZWQgdGhhdCBmb3IgaG90
+LXJlbW92YWwgaW4gZWFybHkgYm9vdCBzdGFnZSwgbm90IGxhdGUgc3RhZ2UuDQpPdGhlcndpc2Ug
+eW91J2xsIHNlZSB3YXJuaW5ncyByZXBvcnRlZCBmcm9tIGNoZWNrX2Vhcmx5X2lvcmVtYXBfbGVh
+aygpLg0KYWNwaV9nZXRfdGFibGUoKS9hY3BpX3B1dF90YWJsZSgpIGlzIG5vdyBqdXN0IGEgcmVw
+bGFjZW1lbnQgb2YgYWNwaV9nZXRfdGFibGVfd2l0aF9zaXplKCkvZWFybHlfYWNwaV9vc191bm1h
+cF9tZW1vcnkoKS4NClRoZXkgYXJlIHJlcXVpcmVkIHRvIGJlIHBhaXJlZCBmb3IgZWFybHkgc3Rh
+Z2UuDQpCdXQgbm90IHlldCBlbmFibGVkIGZvciBsYXRlIHN0YWdlLg0KDQpQbGVhc2UgY2hlY2sg
+aHR0cHM6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvdG9ydmFsZHMv
+bGludXguZ2l0L2NvbW1pdC8/aWQ9MTc0Y2M3MTg3DQpZb3UgY2FuIHNlZSBhIGxvbmcgc3Rvcnkg
+aW4gdGhpcyBwYXRjaCBkZXNjcmlwdGlvbi4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2
+DQoNCg==
