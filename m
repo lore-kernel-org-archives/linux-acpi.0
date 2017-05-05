@@ -1,47 +1,134 @@
-From: Jon Masters <jcm@jonmasters.org>
-Subject: Re: [PATCH 2/3] iommu/arm-smmu-v3: Add workaround for Cavium
- ThunderX2 erratum #74
-Date: Thu, 4 May 2017 19:36:08 -0400
-Message-ID: <75890ac7-19db-0b8b-cc74-248c36ef4dab@jonmasters.org>
-References: <1493293584-20287-1-git-send-email-gakula@caviumnetworks.com>
- <1493293584-20287-3-git-send-email-gakula@caviumnetworks.com>
- <20170427164237.GA7114@leverpostej> <20170427170030.GF1890@arm.com>
- <CANHdaibvzp22XEa3NnKAKUtrHcWGc9oUcnM8KubcYCzEfOaKJg@mail.gmail.com>
- <20170503094717.GC8233@arm.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle
+ on Dell systems
+Date: Fri, 5 May 2017 00:36:03 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9DB82@SHSMSX101.ccr.corp.intel.com>
+References: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E886CE9D3AE@SHSMSX101.ccr.corp.intel.com>
+ <2575390.Ukje8MD5v5@aspire.rjw.lan> <1679308.ELldjq8J12@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from edison.jonmasters.org ([173.255.233.168]:39093 "EHLO
-        edison.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751730AbdEDXgK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 4 May 2017 19:36:10 -0400
-In-Reply-To: <20170503094717.GC8233@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1679308.ELldjq8J12@aspire.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Mario.Limonciello@dell.com" <Mario.Limonciello@dell.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>, "dvhart@infradead.org" <dvhart@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, Geetha Akula <geethasowjanya.akula@gmail.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Geetha sowjanya <gakula@caviumnetworks.com>, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, jcm@redhat.com, Linu Cherian <linu.cherian@cavium.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, Geetha <gakula@cavium.com>, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org
 
-On 05/03/2017 05:47 AM, Will Deacon wrote:
-> Hi Geetha,
-> 
-> On Tue, May 02, 2017 at 12:01:15PM +0530, Geetha Akula wrote:
->> SMMU_IIDR register is broken on T99, that the reason we are using MIDR.
-> 
-> Urgh, that's unfortunate. In what way is it broken?
-> 
->> If using MIDR is not accepted, can we enable errata based on SMMU resource size?
->> some thing like below.
-> 
-> No, you need to get your model number added to IORT after all if the IIDR
-> can't uniqely identify the part.
-> 
-> Sorry
+Hi,
 
-[I've pinged the IORT author directly with a copy of the above message]
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Subject: Re: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle on Dell systems
+> 
+> On Thursday, May 04, 2017 04:23:30 PM Rafael J. Wysocki wrote:
+> > On Thursday, May 04, 2017 07:58:53 AM Zheng, Lv wrote:
+> > > Hi,
+> > >
+> > > > -----Original Message-----
+> > > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of
+> Rafael J.
+> > > > Wysocki
+> > > > Sent: Friday, April 28, 2017 6:26 AM
+> > > > To: Mario.Limonciello@dell.com
+> > > > Cc: linux-pm@vger.kernel.org; andriy.shevchenko@linux.intel.com; dvhart@infradead.org; linux-
+> > > > kernel@vger.kernel.org; linux-acpi@vger.kernel.org; srinivas.pandruvada@linux.intel.com;
+> > > > tglx@linutronix.de; mika.westerberg@linux.intel.com
+> > > > Subject: Re: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle on Dell systems
+> > > >
+> > > > On Thursday, April 27, 2017 02:47:59 PM Mario.Limonciello@dell.com wrote:
+> > > > > > -----Original Message-----
+> > > > > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > > > > > Sent: Wednesday, April 26, 2017 4:24 PM
+> > > > > > To: Linux PM <linux-pm@vger.kernel.org>
+> > > > > > Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>; Darren Hart
+> > > > > > <dvhart@infradead.org>; LKML <linux-kernel@vger.kernel.org>; Linux ACPI <linux-
+> > > > > > acpi@vger.kernel.org>; Srinivas Pandruvada
+> > > > > > <srinivas.pandruvada@linux.intel.com>; Thomas Gleixner <tglx@linutronix.de>;
+> > > > > > Mika Westerberg <mika.westerberg@linux.intel.com>; Limonciello, Mario
+> > > > > > <Mario_Limonciello@Dell.com>
+> > > > > > Subject: [PATCH 3/5] ACPI / sleep: EC-based wakeup from suspend-to-idle on Dell
+> > > > > > systems
+> > > > > >
+> > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > > > >
+> > > > > > Some recent Dell laptops, including the XPS13 model numbers 9360 and
+> > > > > > 9365, cannot be woken up from suspend-to-idle by pressing the power
+> > > > > > button which is unexpected and makes that feature hardly usable on
+> > > > > > those systems.  However, on the 9365 ACPI S3 (suspend-to-RAM) is not
+> > > > > > expected to be used at all (these systems ship with Windows 10 using
+> > > > > > Modern Standby which never exercises the ACPI S3 path) and
+> > > > > > suspend-to-idle is the only viable system suspend mechanism in there.
+> > > > > >
+> > > > > > The reason why the power button wakeup from suspend-to-idle doesn't
+> > > > > > work on those systems is because their power button events are
+> > > > > > signaled by the EC (Embedded Controller), whose GPE (General Purpose
+> > > > > > Event) line is disabled during suspend-to-idle transitions in Linux.
+> > > > > > That is done on purpose, because in general the EC tends to generate
+> > > > > > tons of events for various reasons (battery and thermal updates and
+> > > > > > similar, for example) and all of them would kick the CPUs out of deep
+> > > > > > idle states while in suspend-to-idle, which would not be desirable.
+> > > > > >
+> > > > > > Of course, on the Dell systems in question the EC GPE must be enabled
+> > > > > > during suspend-to-idle transitions for the button press events to
+> > > > > > be signaled while suspended at all.  Fortunately, there is a way to
+> > > > > > tell the EC to stop generating the non-wakeup events, which is by
+> > > > > > using the _DSM object under the so called micro-PEP (uPEP) device
+> > > > > > provided to support Modern Standby in Windows 10.
+> > > > > >
+> > > > > > The expected way to use it is to invoke function 0 from it on system
+> > > > > > initialization, functions 3 and 5 during suspend transitions and
+> > > > > > functions 4 and 6 during resume transitions (to reverse the actions
+> > > > > > carried out by the former).  In particular, function 5 from the uPEP
+> > > > > > device _DSM causes the EC to become less verbose (so to speak) on the
+> > > > > > affected systems and then its GPE can be enabled as a wakeup source
+> > > > > > (then, on resume, function 6 switches it back to the "working state"
+> > > > > > mode).
+> > > > > >
+> > > > > > In support of the affected Dell systems, implement the uPEP device
+> > > > > > handling as described and allow the EC to generate system wakeup
+> > > > > > events if that device is present and behaves as expected.  Enable
+> > > > > > that for Dell only, as there are other systems out there in which
+> > > > > > the uPEP device is exposed in the ACPI tables and its _DSM appears
+> > > > > > to be functional, but it actually isn't, whereas Dell is committed
+> > > > > > to supporting it.
+> > > > > >
+> > > > >
+> > > > > I am of course biased in that my priority is for this to work for Dell.
+> > > > > Dell is definitely committed to supporting this on any system with
+> > > > > the low power idle bit in the FADT set.
+> > > > >
+> > > > > So I'm fine with the current proposed solution, but have you
+> > > > > dug into what actually breaks on this other system?  Does it actually
+> > > > > work with Modern Standby + the uPEP device on Windows 10?
+> > > > >
+> > > > > To my understanding I would think any OEM that is enabling this
+> > > > > uPEP device it should be getting called by the Windows kernel
+> > > > > identically when entering resiliency phases.
+> > > > >
+> > > > > This makes me wonder if it should be inverted and a blacklist
+> > > > > of platforms that the uPEP device doesn't work.
+> > > >
+> > > > For now I'd prefer to only do it on platforms where the benefit is clear.
+> > > >
+> > > > The next step may be to extend it to the other ones, but let's avoid making
+> > > > what is problem mitigation really depend on things that may or may not
+> > > > work elsewhere to start with.
+> > >
+> > > Then is it possible to invoke acpi_mark_gpe_for_wake() (and maybe also acpi_unmark_gpe_for_wake())
+> right after invoking uPEP functions?
+> > > So that such platform specific stuffs won't go into ec.c.
+> >
+> > I'm not sure ATM, but it should be doable in theory.
+> 
+> So the problem with that is that the EC GPE number is not known to the sleep.c
+> code, so it would need to be exported by the EC driver somehow or similar,
+> which would be uglier than the current patch IMO.
 
-Can folks please take action urgently if the IORT spec needs updating to
-accommodate additional vendor IDs.
+Ah, I see.
+Anyway, this is not urgent.
+We can just focus on user issue now.
 
-Jon.
-
+Thanks and best regards
+Lv
