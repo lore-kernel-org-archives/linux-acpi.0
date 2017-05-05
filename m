@@ -1,67 +1,63 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 5/5] ACPI: button: Obselete acpi_lid_open() invocations
-Date: Fri,  5 May 2017 10:40:01 +0800
-Message-ID: <3323fbefe77239808e9abba90929bf2a02d916a3.1493951798.git.lv.zheng@intel.com>
-References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI: SPCR: Use access width to determine mmio usage
+Date: Fri, 5 May 2017 03:09:34 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE9DCBC@SHSMSX101.ccr.corp.intel.com>
+References: <1493910330-17913-1-git-send-email-jon.mason@broadcom.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:48987 "EHLO mga07.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:56755 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754358AbdEECkF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 4 May 2017 22:40:05 -0400
-In-Reply-To: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+        id S1752078AbdEEDJj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 4 May 2017 23:09:39 -0400
+In-Reply-To: <1493910330-17913-1-git-send-email-jon.mason@broadcom.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Jon Mason <jon.mason@broadcom.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "bcm-kernel-feedback-list@broadcom.com" <bcm-kernel-feedback-list@broadcom.com>
 
-Since notification side has been changed to always notify kernel listeners
-using _LID returning value. Now listeners needn't invoke invoke
-acpi_lid_open(), it should use a spec suggested control method lid device
-usage model: register lid notification and use the notified value instead,
-which is the only way to ensure the value is correct.
-
-This patch fixes i915 driver to drop acpi_lid_open() user. It's not
-possible to change nouveau_connector.c user using a simple way now. So this
-patch only marks acpi_lid_open() as deprecated to accelerate this process
-by indicating this change to the nouveau developers.
-
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/button.c             | 7 ++++++-
- drivers/gpu/drm/i915/intel_lvds.c | 2 +-
- 2 files changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 7ff3a75..50d7898 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -348,7 +348,12 @@ int acpi_lid_notifier_unregister(struct notifier_block *nb)
- }
- EXPORT_SYMBOL(acpi_lid_notifier_unregister);
- 
--int acpi_lid_open(void)
-+/*
-+ * The intentional usage model is to register a lid notifier and use the
-+ * notified value instead. Directly evaluating _LID without seeing a
-+ * Notify(lid, 0x80) is not reliable.
-+ */
-+int __deprecated acpi_lid_open(void)
- {
- 	if (!lid_device)
- 		return -ENODEV;
-diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
-index 9ca4dc4..8ca9080 100644
---- a/drivers/gpu/drm/i915/intel_lvds.c
-+++ b/drivers/gpu/drm/i915/intel_lvds.c
-@@ -548,7 +548,7 @@ static int intel_lid_notify(struct notifier_block *nb, unsigned long val,
- 	/* Don't force modeset on machines where it causes a GPU lockup */
- 	if (dmi_check_system(intel_no_modeset_on_lid))
- 		goto exit;
--	if (!acpi_lid_open()) {
-+	if (!val) {
- 		/* do modeset on next lid open event */
- 		dev_priv->modeset_restore = MODESET_ON_LID_OPEN;
- 		goto exit;
--- 
-2.7.4
-
+SGksDQoNCj4gRnJvbTogSm9uIE1hc29uIFttYWlsdG86am9uLm1hc29uQGJyb2FkY29tLmNvbV0N
+Cj4gU2VudDogVGh1cnNkYXksIE1heSA0LCAyMDE3IDExOjA2IFBNDQo+IFN1YmplY3Q6IFtQQVRD
+SF0gQUNQSTogU1BDUjogVXNlIGFjY2VzcyB3aWR0aCB0byBkZXRlcm1pbmUgbW1pbyB1c2FnZQ0K
+PiANCj4gVGhlIGN1cnJlbnQgU1BDUiBjb2RlIGRvZXMgbm90IGNoZWNrIHRoZSBhY2Nlc3Mgd2lk
+dGggb2YgdGhlIG1taW8sIGFuZA0KPiB1c2VzIGEgZGVmYXVsdCBvZiA4Yml0IHJlZ2lzdGVyIGFj
+Y2Vzc2VzLiAgVGhpcyBwcmV2ZW50cyBkZXZpY2VzIHRoYXQNCj4gb25seSBkbyAxNiBvciAzMmJp
+dCByZWdpc3RlciBhY2Nlc3NlcyBmcm9tIHdvcmtpbmcuICBCeSBzaW1wbHkgY2hlY2tpbmcNCj4g
+dGhpcyBmaWVsZCBhbmQgc2V0dGluZyB0aGUgbW1pbyBzdHJpbmcgYXBwcm9wcmlhdGVseSwgdGhp
+cyBpc3N1ZSBjYW4gYmUNCj4gY29ycmVjdGVkLiAgVG8gcHJldmVudCBhbnkgbGVnYWN5IGlzc3Vl
+cywgdGhlIGNvZGUgd2lsbCBkZWZhdWx0IHRvIDhiaXQNCj4gYWNjZXNzZXMgaWYgdGhlIHZhbHVl
+IGlzIGFueXRoaW5nIGJ1dCAxNiBvciAzMi4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEpvbiBNYXNv
+biA8am9uLm1hc29uQGJyb2FkY29tLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2FjcGkvc3Bjci5j
+ICAgICB8IDE4ICsrKysrKysrKysrKysrKystLQ0KPiAgaW5jbHVkZS9hY3BpL2FjcmVzdHlwLmgg
+fCAgNyArKysrKysrDQo+ICAyIGZpbGVzIGNoYW5nZWQsIDIzIGluc2VydGlvbnMoKyksIDIgZGVs
+ZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3NwY3IuYyBiL2RyaXZl
+cnMvYWNwaS9zcGNyLmMNCj4gaW5kZXggMDFjOTQ2Ni4uMTEyMzNmNiAxMDA2NDQNCj4gLS0tIGEv
+ZHJpdmVycy9hY3BpL3NwY3IuYw0KPiArKysgYi9kcml2ZXJzL2FjcGkvc3Bjci5jDQo+IEBAIC03
+NCw4ICs3NCwyMiBAQCBpbnQgX19pbml0IHBhcnNlX3NwY3IoYm9vbCBlYXJseWNvbikNCj4gIAkJ
+Z290byBkb25lOw0KPiAgCX0NCj4gDQo+IC0JaW90eXBlID0gdGFibGUtPnNlcmlhbF9wb3J0LnNw
+YWNlX2lkID09IEFDUElfQURSX1NQQUNFX1NZU1RFTV9NRU1PUlkgPw0KPiAtCQkJIm1taW8iIDog
+ImlvIjsNCj4gKwlpZiAodGFibGUtPnNlcmlhbF9wb3J0LnNwYWNlX2lkID09IEFDUElfQURSX1NQ
+QUNFX1NZU1RFTV9NRU1PUlkpIHsNCj4gKwkJc3dpdGNoICh0YWJsZS0+c2VyaWFsX3BvcnQuYWNj
+ZXNzX3dpZHRoKSB7DQo+ICsJCWRlZmF1bHQ6DQo+ICsJCQlwcl9lcnIoIlVuZXhwZWN0ZWQgU1BD
+UiBBY2Nlc3MgV2lkdGguICBEZWZhdWx0aW5nIHRvIGJ5dGUgc2l6ZVxuIik7DQo+ICsJCWNhc2Ug
+QUNQSV9BQ0NFU1NfU0laRV9CWVRFOg0KPiArCQkJaW90eXBlID0gIm1taW8iOw0KPiArCQkJYnJl
+YWs7DQo+ICsJCWNhc2UgQUNQSV9BQ0NFU1NfU0laRV9XT1JEOg0KPiArCQkJaW90eXBlID0gIm1t
+aW8xNiI7DQo+ICsJCQlicmVhazsNCj4gKwkJY2FzZSBBQ1BJX0FDQ0VTU19TSVpFX0RXT1JEOg0K
+PiArCQkJaW90eXBlID0gIm1taW8zMiI7DQo+ICsJCQlicmVhazsNCj4gKwkJfQ0KPiArCX0gZWxz
+ZQ0KPiArCQlpb3R5cGUgPSAiaW8iOw0KPiANCj4gIAlzd2l0Y2ggKHRhYmxlLT5pbnRlcmZhY2Vf
+dHlwZSkgew0KPiAgCWNhc2UgQUNQSV9EQkcyX0FSTV9TQlNBXzMyQklUOg0KPiBkaWZmIC0tZ2l0
+IGEvaW5jbHVkZS9hY3BpL2FjcmVzdHlwLmggYi9pbmNsdWRlL2FjcGkvYWNyZXN0eXAuaA0KPiBp
+bmRleCBmMGY3NDAzLi43ODFjYjU1IDEwMDY0NA0KPiAtLS0gYS9pbmNsdWRlL2FjcGkvYWNyZXN0
+eXAuaA0KPiArKysgYi9pbmNsdWRlL2FjcGkvYWNyZXN0eXAuaA0KPiBAQCAtMzcyLDYgKzM3Miwx
+MyBAQCBzdHJ1Y3QgYWNwaV9yZXNvdXJjZV9nZW5lcmljX3JlZ2lzdGVyIHsNCj4gIAl1NjQgYWRk
+cmVzczsNCj4gIH07DQo+IA0KPiArLyogR2VuZXJpYyBBZGRyZXNzIFNwYWNlIEFjY2VzcyBTaXpl
+cyAqLw0KPiArI2RlZmluZSBBQ1BJX0FDQ0VTU19TSVpFX1VOREVGSU5FRAkJMA0KPiArI2RlZmlu
+ZSBBQ1BJX0FDQ0VTU19TSVpFX0JZVEUJCQkxDQo+ICsjZGVmaW5lIEFDUElfQUNDRVNTX1NJWkVf
+V09SRAkJCTINCj4gKyNkZWZpbmUgQUNQSV9BQ0NFU1NfU0laRV9EV09SRAkJCTMNCj4gKyNkZWZp
+bmUgQUNQSV9BQ0NFU1NfU0laRV9RV09SRAkJCTQNCj4gKw0KPiAgc3RydWN0IGFjcGlfcmVzb3Vy
+Y2VfZ3BpbyB7DQo+ICAJdTggcmV2aXNpb25faWQ7DQo+ICAJdTggY29ubmVjdGlvbl90eXBlOw0K
+DQpQbGVhc2UgZG9uJ3QgZGVmaW5lIHRoaXMuDQpJdCdzIHBvc3NpYmxlIHRvIGNhbGN1bGF0ZSA4
+LzE2LzMyLzY0IGZyb20gdGhlIGFjY2VzcyB3aWR0aCB2YWx1ZS4NClRyeToNCjEgPDwgKGFjY2Vz
+c193aWR0aCArIDKjqQ0KDQpUaGFua3MNCkx2DQoNCg==
