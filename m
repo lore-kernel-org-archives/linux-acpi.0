@@ -1,37 +1,182 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH] ACPI: SPCR: Use access width to determine mmio usage
-Date: Sat, 6 May 2017 18:39:48 -0400
-Message-ID: <4e11bb2b-7cec-6a7b-ca2b-88be31a98b7d@redhat.com>
-References: <1493910330-17913-1-git-send-email-jon.mason@broadcom.com>
+From: Linu Cherian <linu.cherian@cavium.com>
+Subject: Re: [PATCH v3 1/7] iommu/arm-smmu-v3: Introduce SMMU option
+ PAGE0_REGS_ONLY for ThunderX2 errata #74
+Date: Mon, 8 May 2017 14:47:39 +0530
+Message-ID: <20170508091739.GA26003@virtx40>
+References: <1493986091-30521-1-git-send-email-gakula@caviumnetworks.com>
+ <1493986091-30521-2-git-send-email-gakula@caviumnetworks.com>
+ <20170505230328.GN4906@rric.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1493910330-17913-1-git-send-email-jon.mason@broadcom.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Mason <jon.mason@broadcom.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, bcm-kernel-feedback-list@broadcom.com, Loc Ho <lho@apm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-sn1nam01on0088.outbound.protection.outlook.com ([104.47.32.88]:7200
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750797AbdEHJSH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 May 2017 05:18:07 -0400
+Content-Disposition: inline
+In-Reply-To: <20170505230328.GN4906@rric.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robert Richter <rric@kernel.org>
+Cc: Geetha sowjanya <gakula@caviumnetworks.com>, will.deacon@arm.com, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, jcm@redhat.com, linux-kernel@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, Charles.Garcia-Tobin@arm.com, Geetha Sowjanya <geethasowjanya.akula@cavium.com>
 
-On 05/04/2017 11:05 AM, Jon Mason wrote:
-> The current SPCR code does not check the access width of the mmio, and
-> uses a default of 8bit register accesses.  This prevents devices that
-> only do 16 or 32bit register accesses from working.  By simply checking
-> this field and setting the mmio string appropriately, this issue can be
-> corrected.  To prevent any legacy issues, the code will default to 8bit
-> accesses if the value is anything but 16 or 32.
+On Sat May 06, 2017 at 01:03:28AM +0200, Robert Richter wrote:
+> On 05.05.17 17:38:05, Geetha sowjanya wrote:
+> > From: Linu Cherian <linu.cherian@cavium.com>
+> > 
+> > Cavium ThunderX2 SMMU implementation doesn't support page 1 register space
+> > and PAGE0_REGS_ONLY option will be enabled as an errata workaround.
+> > 
+> > This option when turned on, replaces all page 1 offsets used for
+> > EVTQ_PROD/CONS, PRIQ_PROD/CONS register access with page 0 offsets.
+> > 
+> > Signed-off-by: Linu Cherian <linu.cherian@cavium.com>
+> > Signed-off-by: Geetha Sowjanya <geethasowjanya.akula@cavium.com>
+> > ---
+> >  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |  6 +++
+> >  drivers/iommu/arm-smmu-v3.c                        | 44 ++++++++++++++++------
+> >  2 files changed, 38 insertions(+), 12 deletions(-)
+> 
+> > @@ -1995,8 +2011,10 @@ static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
+> >  	if (!(smmu->features & ARM_SMMU_FEAT_PRI))
+> >  		return 0;
+> >  
+> > -	return arm_smmu_init_one_queue(smmu, &smmu->priq.q, ARM_SMMU_PRIQ_PROD,
+> > -				       ARM_SMMU_PRIQ_CONS, PRIQ_ENT_DWORDS);
+> > +	return arm_smmu_init_one_queue(smmu, &smmu->priq.q,
+> > +				       ARM_SMMU_PRIQ_PROD(smmu),
+> > +				       ARM_SMMU_PRIQ_CONS(smmu),
+> > +				       PRIQ_ENT_DWORDS);
+> 
+> I would also suggest Robin's idea from the v1 review here. This works
+> if we rework arm_smmu_init_one_queue() to pass addresses instead of
+> offsets.
+> 
+> This would make these widespread offset calculations obsolete.
+>
 
-Thanks for this. Just as an FYI I've a running discussion with Microsoft
-about defining additional UART subtypes in the DBG2 for special case
-UARTs. Specifically, I want to address AppliedMicro's special 8250 dw IP
-that also has a non-standard clock. At this time, there is general
-agreement to use the access width for some cases rather than defining
-yet more subtypes - so your patch is good.
+Have pasted here the relevant changes for doing fixups on smmu base instead
+of offset to get feedback. 
 
-Loc/Applied: please track this thread, incorporate feedback, and also
-track the other general recent discussions of 8250 dw from this week.
+This actually results in more lines of changes. If you think the below
+approach is still better, will post a V4 of this series with this change.
 
-Jon.
 
++static inline unsigned long arm_smmu_page1_base(
++	struct arm_smmu_device *smmu)
++{
++	if (ARM_SMMU_PAGE0_REGS_ONLY(smmu))
++		return smmu->base;
++	else
++		return smmu->base + SZ_64K;
++}
++
+
+@@ -1948,8 +1962,8 @@ static void arm_smmu_put_resv_regions(struct device *dev,
+ /* Probing and initialisation functions */
+ static int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
+ 				   struct arm_smmu_queue *q,
+-				   unsigned long prod_off,
+-				   unsigned long cons_off,
++				   unsigned long prod_addr,
++				   unsigned long cons_addr,
+ 				   size_t dwords)
+ {
+ 	size_t qsz = ((1 << q->max_n_shift) * dwords) << 3;
+@@ -1961,8 +1975,8 @@ static int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
+ 		return -ENOMEM;
+ 	}
+ 
+-	q->prod_reg	= smmu->base + prod_off;
+-	q->cons_reg	= smmu->base + cons_off;
++	q->prod_reg	= prod_addr;
++	q->cons_reg	= cons_addr;
+ 	q->ent_dwords	= dwords;
+ 
+ 	q->q_base  = Q_BASE_RWA;
+@@ -1977,17 +1991,25 @@ static int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
+ static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
+ {
+ 	int ret;
++	unsigned long page1_base, page0_base;
++
++	page0_base = smmu->base;
++	page1_base = arm_smmu_page1_base(smmu);
+ 
+ 	/* cmdq */
+ 	spin_lock_init(&smmu->cmdq.lock);
+-	ret = arm_smmu_init_one_queue(smmu, &smmu->cmdq.q, ARM_SMMU_CMDQ_PROD,
+-				      ARM_SMMU_CMDQ_CONS, CMDQ_ENT_DWORDS);
++	ret = arm_smmu_init_one_queue(smmu, &smmu->cmdq.q, 
++				      page0_base + ARM_SMMU_CMDQ_PROD,
++				      page0_base + ARM_SMMU_CMDQ_CONS, 
++				      CMDQ_ENT_DWORDS);
+ 	if (ret)
+ 		return ret;
+ 
+ 	/* evtq */
+-	ret = arm_smmu_init_one_queue(smmu, &smmu->evtq.q, ARM_SMMU_EVTQ_PROD,
+-				      ARM_SMMU_EVTQ_CONS, EVTQ_ENT_DWORDS);
++	ret = arm_smmu_init_one_queue(smmu, &smmu->evtq.q,
++				      page1_base + ARM_SMMU_EVTQ_PROD,
++				      page1_base + ARM_SMMU_EVTQ_CONS,
++				      EVTQ_ENT_DWORDS);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -1995,8 +2017,10 @@ static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
+ 	if (!(smmu->features & ARM_SMMU_FEAT_PRI))
+ 		return 0;
+ 
+-	return arm_smmu_init_one_queue(smmu, &smmu->priq.q, ARM_SMMU_PRIQ_PROD,
+-				       ARM_SMMU_PRIQ_CONS, PRIQ_ENT_DWORDS);
++	return arm_smmu_init_one_queue(smmu, &smmu->priq.q,
++				       page1_base + ARM_SMMU_PRIQ_PROD,
++				       page1_base + ARM_SMMU_PRIQ_CONS,
++				       PRIQ_ENT_DWORDS);
+ }
+
+
+
+@@ -2301,8 +2349,11 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
+ {
+ 	int ret;
+ 	u32 reg, enables;
++	unsigned long page1_base;
+ 	struct arm_smmu_cmdq_ent cmd;
+ 
++	page1_base = arm_smmu_page1_base(smmu);
++
+ 	/* Clear CR0 and sync (disables SMMU and queue processing) */
+ 	reg = readl_relaxed(smmu->base + ARM_SMMU_CR0);
+ 	if (reg & CR0_SMMUEN)
+@@ -2363,8 +2414,8 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
+ 
+ 	/* Event queue */
+ 	writeq_relaxed(smmu->evtq.q.q_base, smmu->base + ARM_SMMU_EVTQ_BASE);
+-	writel_relaxed(smmu->evtq.q.prod, smmu->base + ARM_SMMU_EVTQ_PROD);
+-	writel_relaxed(smmu->evtq.q.cons, smmu->base + ARM_SMMU_EVTQ_CONS);
++	writel_relaxed(smmu->evtq.q.prod, page1_base + ARM_SMMU_EVTQ_PROD);
++	writel_relaxed(smmu->evtq.q.cons, page1_base + ARM_SMMU_EVTQ_CONS);
+ 
+ 	enables |= CR0_EVTQEN;
+ 	ret = arm_smmu_write_reg_sync(smmu, enables, ARM_SMMU_CR0,
+@@ -2379,9 +2430,9 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
+ 		writeq_relaxed(smmu->priq.q.q_base,
+ 			       smmu->base + ARM_SMMU_PRIQ_BASE);
+ 		writel_relaxed(smmu->priq.q.prod,
+-			       smmu->base + ARM_SMMU_PRIQ_PROD);
++			       page1_base + ARM_SMMU_PRIQ_PROD);
+ 		writel_relaxed(smmu->priq.q.cons,
+-			       smmu->base + ARM_SMMU_PRIQ_CONS);
++			       page1_base + ARM_SMMU_PRIQ_CONS);
+ 
+ 		enables |= CR0_PRIQEN;
+ 		ret = arm_smmu_write_reg_sync(smmu, enables, ARM_SMMU_CR0,
+
+
+
+Thanks.
 -- 
-Computer Architect | Sent from my Fedora powered laptop
+Linu cherian
