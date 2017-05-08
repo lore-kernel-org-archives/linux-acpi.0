@@ -1,79 +1,40 @@
-From: Linu Cherian <linu.cherian@cavium.com>
-Subject: Re: [PATCH v3 0/7] Cavium ThunderX2 SMMUv3 errata workarounds
-Date: Mon, 8 May 2017 20:45:36 +0530
-Message-ID: <20170508151536.GA27789@virtx40>
-References: <1493986091-30521-1-git-send-email-gakula@caviumnetworks.com>
- <20170505222250.GY16981@rric.localdomain>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v3 7/8] arm64: exception: handle asynchronous SError interrupt
+Date: Mon, 08 May 2017 18:27:46 +0100
+Message-ID: <5910AA92.2010106@arm.com>
+References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com> <1490869877-118713-8-git-send-email-xiexiuqi@huawei.com> <20170413105131.GD24027@leverpostej> <d7a8884d-f6b7-69d0-2438-83c202926000@huawei.com> <58F5EFC6.5070601@arm.com> <e6502f82-108e-3f53-4791-515671e4d515@huawei.com> <58F876EB.2020805@arm.com> <2bb41d98-553f-1361-e497-4095ddd501d0@huawei.com> <58FE328E.7030106@arm.com> <d20bb634-d70b-5ab9-20e2-46275675ce1f@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-co1nam03on0044.outbound.protection.outlook.com ([104.47.40.44]:32782
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754771AbdEHPQD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 8 May 2017 11:16:03 -0400
-Content-Disposition: inline
-In-Reply-To: <20170505222250.GY16981@rric.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <d20bb634-d70b-5ab9-20e2-46275675ce1f@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>, christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com, wuquanming@huawei.com, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, zhengqiang10@huawei.com, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Richter <robert.richter@cavium.com>
-Cc: Geetha sowjanya <gakula@caviumnetworks.com>, will.deacon@arm.com, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, jcm@redhat.com, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, Charles.Garcia-Tobin@arm.com
 
-On Sat May 06, 2017 at 12:22:50AM +0200, Robert Richter wrote:
-> On 05.05.17 17:38:04, Geetha sowjanya wrote:
-> > From: Linu Cherian <linu.cherian@cavium.com>
-> > 
-> > Cavium ThunderX2 SMMUv3 implementation has two Silicon Erratas.
-> > 1. Errata ID #74
-> >    SMMU register alias Page 1 is not implemented
-> > 2. Errata ID #126
-> >    SMMU doesnt support unique IRQ lines and also MSI for gerror, 
-> >    eventq and cmdq-sync
-> > 
-> > The following patchset does software workaround for these two erratas.
-> > 
-> > This series is based on patchset. 
-> > https://www.spinics.net/lists/arm-kernel/msg578443.html
-> > 
-> > Changes from v1:
-> >  Since the use of MIDR register is rejected and SMMU_IIDR is broken on this 
-> >  silicon, as suggested by Will Deacon modified the patches to use ThunderX2 
-> >  SMMUv3 IORT model number to enable errata workaround.
-> > 
-> > Changes from v2:
-> >  Updated "Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt" document with 
-> >  new SMMU option used to enable errata workaround.
-> >  
-> > Geetha Sowjanya (1):
-> >   iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #126
-> > 
-> > Linu Cherian (6):
-> >   iommu/arm-smmu-v3: Introduce smmu option PAGE0_REGS_ONLY for ThunderX2
-> >     errata#74.
-> >   iommu/arm-smmu-v3: Do resource size checks based on SMMU option
-> >     PAGE0_REGS_ONLY
-> >   ACPICA: IORT: Add Cavium ThunderX2 SMMUv3 model definition.
-> >   iommu/arm-smmu-v3: For ACPI based device probing, set PAGE0_REGS_ONLY
-> >     option     for ThunderX2 SMMUv3 implementations.
-> >   ACPI/IORT: Fixup SMMUv3 resource size for Cavium ThunderX2 SMMUv3
-> >     model
-> >   arm64: Documentation: Add Cavium ThunderX2 SMMUv3 erratas
-> 
-> This split into patches does not look reasonable to me. 1 patch only
-> for each workaround should be sufficient.
-> 
+Hi Xiongfeng Wang,
 
-* Should we not atleast keep the changes in drivers/acpi/iort.c and
- include/acpi/actbl2.h seperate, since they are outside smmuv3 driver ? 
+On 28/04/17 03:55, Xiongfeng Wang wrote:
+>>> >> It is ok to just ignore the process following the ESB instruction in el0_sync, because the process will be sent SIGBUS signal.
+>> > 
+>> > I don't understand. How will Linux know the process caused an error if we
+>> > neither take an SError nor read DISR_EL1 after an ESB?
 
-* Probably i can merge the below patches, 
-  1. iommu/arm-smmu-v3: Introduce smmu option PAGE0_REGS_ONLY for ThunderX2 
-    errata#74.
-  2. iommu/arm-smmu-v3: Do resource size checks based on SMMU option
-     PAGE0_REGS_O
+> I think there may be some misunderstanding here. The ESB instruction is placed in kernel_entry
+> of el0_sync and el0_irq. For the el0_sync, such as an syscall from userspace, after ESB is executed,
+> we check whether DISR.A is set. If it is not set, we go on to process the syscall. If it is set, we
+> jump to sError vector and then just eret.
 
-Is that fine ?
+Ah, this looks like an early optimisation!
 
-Thanks.
--- 
-Linu cherian
+We can't assume that the SError will result in the processing being killed, the
+AET bits of the SError ISS Encoding (page D7-2284 of ARM-ARM DDI0487B.a), has a
+'corrected' error encoding.
+For these I would expect the SError-vector C code to do nothing and return to
+where it came from. In this case the syscall should still be run.
+
+
+Thanks,
+
+James
