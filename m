@@ -1,59 +1,93 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH] ACPI: SPCR: Use access width to determine mmio usage
-Date: Mon, 8 May 2017 15:50:05 -0400
-Message-ID: <f122adfb-872e-9ee6-db61-b55c75903b63@redhat.com>
-References: <1493910330-17913-1-git-send-email-jon.mason@broadcom.com>
- <4e11bb2b-7cec-6a7b-ca2b-88be31a98b7d@redhat.com>
- <CAPw-ZTkF2KnC2TWwxWLTKoM5LPkipHvJeQGaBp30JjDNQ76VEA@mail.gmail.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V15 11/11] arm/arm64: KVM: add guest SEA support
+Date: Mon, 8 May 2017 13:54:44 -0600
+Message-ID: <dade63eb-b231-d7a5-f307-9737d7b088f2@codeaurora.org>
+References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org>
+ <1492556723-9189-12-git-send-email-tbaicar@codeaurora.org>
+ <20170508174058.5hbujeblxq5z6iwa@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11610 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754862AbdEHTuJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 8 May 2017 15:50:09 -0400
-In-Reply-To: <CAPw-ZTkF2KnC2TWwxWLTKoM5LPkipHvJeQGaBp30JjDNQ76VEA@mail.gmail.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:60090 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754862AbdEHTyw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 May 2017 15:54:52 -0400
+In-Reply-To: <20170508174058.5hbujeblxq5z6iwa@pd.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Loc Ho <lho@apm.com>
-Cc: Jon Mason <jon.mason@broadcom.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, devel@acpica.org, bcm-kernel-feedback-list@broadcom.com
+To: Borislav Petkov <bp@alien8.de>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org
 
-On 05/08/2017 03:11 PM, Loc Ho wrote:
-> Hi Jon,
-> 
->>> The current SPCR code does not check the access width of the mmio, and
->>> uses a default of 8bit register accesses.  This prevents devices that
->>> only do 16 or 32bit register accesses from working.  By simply checking
->>> this field and setting the mmio string appropriately, this issue can be
->>> corrected.  To prevent any legacy issues, the code will default to 8bit
->>> accesses if the value is anything but 16 or 32.
+On 5/8/2017 11:40 AM, Borislav Petkov wrote:
+> On Tue, Apr 18, 2017 at 05:05:23PM -0600, Tyler Baicar wrote:
+>> Currently external aborts are unsupported by the guest abort
+>> handling. Add handling for SEAs so that the host kernel reports
+>> SEAs which occur in the guest kernel.
 >>
->> Thanks for this. Just as an FYI I've a running discussion with Microsoft
->> about defining additional UART subtypes in the DBG2 for special case
->> UARTs. Specifically, I want to address AppliedMicro's special 8250 dw IP
->> that also has a non-standard clock. At this time, there is general
->> agreement to use the access width for some cases rather than defining
->> yet more subtypes - so your patch is good.
+>> When an SEA occurs in the guest kernel, the guest exits and is
+>> routed to kvm_handle_guest_abort(). Prior to this patch, a print
+>> message of an unsupported FSC would be printed and nothing else
+>> would happen. With this patch, the code gets routed to the APEI
+>> handling of SEAs in the host kernel to report the SEA information.
 >>
->> Loc/Applied: please track this thread, incorporate feedback, and also
->> track the other general recent discussions of 8250 dw from this week.
-> 
-> Thanks for forward me this patch. This patch does not work with X-Gene
-> v1 and v2 SoC's. As BIOS SPCR encodes these info as:
-> 
-> Bit Width: 32
-> Bit Offset: 0
-> Encoded Access Width: 01 (Byte Access)
-> 
-> With this patch, it would use the "mmio" instead the "mmio32" as with
-> this patch - https://patchwork.kernel.org/patch/9460959
+>> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+>> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+>> Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+>> Acked-by: Christoffer Dall <cdall@linaro.org>
+...
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +/*
+>>    * Dispatch a data abort to the relevant handler.
+>>    */
+>>   asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>> index 612deb3..d286248 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -812,17 +812,18 @@ static int ghes_notify_sci(struct notifier_block *this,
+>>   #ifdef CONFIG_ACPI_APEI_SEA
+>>   static LIST_HEAD(ghes_sea);
+>>   
+>> -void ghes_notify_sea(void)
+>> +int ghes_notify_sea(void)
+>>   {
+>>   	struct ghes *ghes;
+>> +	int ret = -ENOENT;
+>>   
+>> -	/*
+>> -	 * synchronize_rcu() will wait for nmi_exit(), so no need to
+>> -	 * rcu_read_lock().
+>> -	 */
+>> +	rcu_read_lock();
+>>   	list_for_each_entry_rcu(ghes, &ghes_sea, list) {
+>> -		ghes_proc(ghes);
+>> +		if(!ghes_proc(ghes))
+>> +			ret = 0;
+> What is the idea here: the first time ghes_proc() returns 0, ret is set
+> to 0 and all errors after it will be practically ignored. Looks like it
+> needs more love.
+This was discussed in the v12 and v13 patch series. There is existing 
+code in kvm_handle_guest_abort
+for injecting an abort back into the guest. We only want to do that if 
+it was an abort that was not
+handled by the firmware first handling. So here we verify that at least 
+one of the SEA error sources
+successfully reported an error record sent from the firmware. If there 
+were no errors reported by
+firmware, then we want to continue with the current implementation that 
+will inject the virtual
+abort. (kvm_inject_vabt)
 
-I think this is why we need the DBG2 subtype for Applied X-Gene1. I'm
-hoping the update to the SPCR/DBG2 spec is done soon.
-
-Jon.
+Thanks,
+Tyler
 
 -- 
-Computer Architect | Sent from my Fedora powered laptop
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
 
