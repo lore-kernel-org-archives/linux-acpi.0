@@ -1,129 +1,140 @@
-From: Geetha Akula <geethasowjanya.akula@gmail.com>
-Subject: Re: [PATCH v3 2/7] iommu/arm-smmu-v3: Do resource size checks based
- on SMMU
-Date: Mon, 8 May 2017 16:33:21 +0530
-Message-ID: <CANHdaibz+RkLPwbme0NQ_Bq38=dLJS6OFDnFZpO1ubXKQzH_Zw@mail.gmail.com>
+From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v3 6/7] iommu/arm-smmu-v3: Add workaround for Cavium
+	ThunderX2 erratum #126
+Date: Mon, 8 May 2017 12:21:28 +0100
+Message-ID: <a2618ab6-6609-7885-3b62-c1c1f170c318@arm.com>
 References: <1493986091-30521-1-git-send-email-gakula@caviumnetworks.com>
- <1493986091-30521-3-git-send-email-gakula@caviumnetworks.com>
- <20170505221844.GW16981@rric.localdomain> <20170508094437.GA26538@virtx40> <20170508100932.GH16981@rric.localdomain>
+	<1493986091-30521-7-git-send-email-gakula@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33953 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750785AbdEHLDY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 May 2017 07:03:24 -0400
-In-Reply-To: <20170508100932.GH16981@rric.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1493986091-30521-7-git-send-email-gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, will.deacon-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Richter <robert.richter@cavium.com>
-Cc: Linu Cherian <linu.cherian@cavium.com>, Geetha sowjanya <gakula@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, Hanjun Guo <hanjun.guo@linaro.org>, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, jcm@redhat.com, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, Sunil Goutham <sgoutham@cavium.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Geetha Sowjanya <geethasowjanya.akula@cavium.com>
 
-On Mon, May 8, 2017 at 3:39 PM, Robert Richter
-<robert.richter@cavium.com> wrote:
-> On 08.05.17 15:14:37, Linu Cherian wrote:
->> On Sat May 06, 2017 at 12:18:44AM +0200, Robert Richter wrote:
->> > On 05.05.17 17:38:06, Geetha sowjanya wrote:
->> > > From: Linu Cherian <linu.cherian@cavium.com>
->> > >
->> > > With implementations supporting only page 0 register space,
->> > > resource size can be 64k as well and hence perform size checks
->> > > based on SMMU option PAGE0_REGS_ONLY.
->> > >
->> > > For this, arm_smmu_device_dt_probe/acpi_probe has been moved before
->> > > platform_get_resource call, so that SMMU options are set beforehand.
->> > >
->> > > Signed-off-by:  Linu Cherian <linu.cherian@cavium.com>
->> > > Signed-off-by:  Geetha Sowjanya <geethasowjanya.akula@cavium.com>
->> > > ---
->> > >  drivers/iommu/arm-smmu-v3.c | 26 +++++++++++++++++---------
->> > >  1 file changed, 17 insertions(+), 9 deletions(-)
->> > >
->> > > diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
->> > > index 107b4a6..f027676 100644
->> > > --- a/drivers/iommu/arm-smmu-v3.c
->> > > +++ b/drivers/iommu/arm-smmu-v3.c
->> > > @@ -2672,6 +2672,14 @@ static int arm_smmu_device_dt_probe(struct platform_device *pdev,
->> > >   return ret;
->> > >  }
->> > >
->> > > +static unsigned long arm_smmu_resource_size(struct arm_smmu_device *smmu)
->> > > +{
->> > > + if (ARM_SMMU_PAGE0_REGS_ONLY(smmu))
->> > > +         return SZ_64K;
->> > > + else
->> > > +         return SZ_128K;
->> > > +}
->> > > +
->> >
->> > I think this can be dropped. See below.
->> >
->> > >  static int arm_smmu_device_probe(struct platform_device *pdev)
->> > >  {
->> > >   int irq, ret;
->> > > @@ -2688,9 +2696,17 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
->> > >   }
->> > >   smmu->dev = dev;
->> > >
->> > > + if (dev->of_node) {
->> > > +         ret = arm_smmu_device_dt_probe(pdev, smmu);
->> > > + } else {
->> > > +         ret = arm_smmu_device_acpi_probe(pdev, smmu);
->> > > +         if (ret == -ENODEV)
->> > > +                 return ret;
->> > > + }
->> > > +
->> > >   /* Base address */
->> > >   res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> > > - if (resource_size(res) + 1 < SZ_128K) {
->> > > + if (resource_size(res) + 1 < arm_smmu_resource_size(smmu)) {
->> > >           dev_err(dev, "MMIO region too small (%pr)\n", res);
->> > >           return -EINVAL;
->> > >   }
->> >
->> > Why not just do the follwoing here:
->> >
->> >     /* Base address */
->> >     res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> >     if (resource_size(res) + 1 < arm_smmu_resource_size(smmu)) {
->> >             dev_err(dev, "MMIO region too small (%pr)\n", res);
->> >             return -EINVAL;
->> >     }
->> >     ioaddr = res->start;
->> >
->> > +   /*
->> > +    * Override the size, for Cavium ThunderX2 implementation
->> > +    * which doesn't support the page 1 SMMU register space.
->> > +    */
->> > +   if (smmu->options & ARM_SMMU_OPT_PAGE0_REGS_ONLY)
->> > +           res->end = res->size + SZ_64K -1;
->> > +
->> >     smmu->base = devm_ioremap_resource(dev, res);
->> >     if (IS_ERR(smmu->base))
->> >             return PTR_ERR(smmu->base);
->>
->>
->> This might not work, since platform_device_add is being called from
->> iort.c before the res->end gets fixed up here.
->
-> It should. You added it with 128k and you get it back with
-> platform_get_resource(), but before ioremap you shrink the size to
-> 64k.
->
-> -Robert
+On 05/05/17 13:08, Geetha sowjanya wrote:
+> From: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> 
+> Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
+> lines for gerror, eventq and cmdq-sync.
+> 
+> This patch addresses the issue by checking if any interrupt sources are
+> using same irq number, then they are registered as shared irqs.
+> 
+> Signed-off-by: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/iommu/arm-smmu-v3.c | 32 ++++++++++++++++++++++++++++----
+>  1 file changed, 28 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+> index 016b702..46428e7 100644
+> --- a/drivers/iommu/arm-smmu-v3.c
+> +++ b/drivers/iommu/arm-smmu-v3.c
+> @@ -2236,10 +2236,30 @@ static void arm_smmu_setup_msis(struct arm_smmu_device *smmu)
+>  	devm_add_action(dev, arm_smmu_free_msis, dev);
+>  }
+>  
+> +static int get_irq_flags(struct arm_smmu_device *smmu, int irq)
+> +{
+> +	int match_count = 0;
+> +
+> +	if (irq == smmu->evtq.q.irq)
+> +		match_count++;
+> +	if (irq == smmu->cmdq.q.irq)
+> +		match_count++;
+> +	if (irq == smmu->gerr_irq)
+> +		match_count++;
+> +	if (irq == smmu->priq.q.irq)
+> +		match_count++;
+> +
+> +	if (match_count > 1)
+> +		return IRQF_SHARED | IRQF_ONESHOT;
+> +
+> +	return 0;
 
-Hi Robert,
+I'd say just have this return IRQF_ONESHOT in the non-shared case...
 
-Linu is right. You are missing the sequence of event. If we skip the
-changes in iort file, smmu initialization in acpi fails.
+> +}
+> +
+>  static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
+>  {
+>  	int ret, irq;
+>  	u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
+> +	u32 irqflags = 0;
+>  
+>  	/* Disable IRQs first */
+>  	ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
+> @@ -2254,9 +2274,10 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
+>  	/* Request interrupt lines */
+>  	irq = smmu->evtq.q.irq;
+>  	if (irq) {
+> +		irqflags = get_irq_flags(smmu, irq);
+>  		ret = devm_request_threaded_irq(smmu->dev, irq, NULL,
+>  						arm_smmu_evtq_thread,
+> -						IRQF_ONESHOT,
+> +						IRQF_ONESHOT | irqflags,
 
+...and pass get_irq_flags(smmu, irq) directly as the argument here.
 
-[    3.721647] ACPI: IORT: iort_add_smmu_platform_device
-[    3.726826] platform arm-smmu-v3.1.auto: failed to claim resource
-0: [mem 0x402310000-0x40232ffff]
-[    3.736052] arm-smmu-v3 arm-smmu-v3.0.auto: option mask 0x1
-[    3.741753] arm_smmu_device_probe
+The local variable and intermediate logic only seem to add unnecessary
+complexity, given that the two cases we actually end up with are:
 
+IRQF_ONESHOT | 0
 
-Thank you,
-Geetha.
+vs.
+
+IRQF_ONESHOT | IRQF_SHARED | IRQF_ONESHOT
+
+neither of which looks particularly sensible.
+
+Robin.
+
+>  						"arm-smmu-v3-evtq", smmu);
+>  		if (ret < 0)
+>  			dev_warn(smmu->dev, "failed to enable evtq irq\n");
+> @@ -2264,8 +2285,9 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
+>  
+>  	irq = smmu->cmdq.q.irq;
+>  	if (irq) {
+> +		irqflags = get_irq_flags(smmu, irq);
+>  		ret = devm_request_irq(smmu->dev, irq,
+> -				       arm_smmu_cmdq_sync_handler, 0,
+> +				       arm_smmu_cmdq_sync_handler, irqflags,
+>  				       "arm-smmu-v3-cmdq-sync", smmu);
+>  		if (ret < 0)
+>  			dev_warn(smmu->dev, "failed to enable cmdq-sync irq\n");
+> @@ -2273,8 +2295,9 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
+>  
+>  	irq = smmu->gerr_irq;
+>  	if (irq) {
+> +		irqflags = get_irq_flags(smmu, irq);
+>  		ret = devm_request_irq(smmu->dev, irq, arm_smmu_gerror_handler,
+> -				       0, "arm-smmu-v3-gerror", smmu);
+> +				       irqflags, "arm-smmu-v3-gerror", smmu);
+>  		if (ret < 0)
+>  			dev_warn(smmu->dev, "failed to enable gerror irq\n");
+>  	}
+> @@ -2282,9 +2305,10 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
+>  	if (smmu->features & ARM_SMMU_FEAT_PRI) {
+>  		irq = smmu->priq.q.irq;
+>  		if (irq) {
+> +			irqflags = get_irq_flags(smmu, irq);
+>  			ret = devm_request_threaded_irq(smmu->dev, irq, NULL,
+>  							arm_smmu_priq_thread,
+> -							IRQF_ONESHOT,
+> +							IRQF_ONESHOT | irqflags,
+>  							"arm-smmu-v3-priq",
+>  							smmu);
+>  			if (ret < 0)
+> 
