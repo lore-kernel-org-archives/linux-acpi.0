@@ -1,95 +1,97 @@
-From: <durrant@iupui.edu>
-Subject: 17021
-Date: Tue, 09 May 2017 22:45:14 -0000
-Message-ID: <149436991462.26768.11336382415393486869@digiten.eu>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management updates for v4.12-rc1, part 2
+Date: Wed, 10 May 2017 00:58:05 +0200
+Message-ID: <CAJZ5v0i=Ge2YpepTNXERJQnLkj+VZFeYVmG77hLsO3L0cb=1YA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="811600.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 185-67-236-155.digiten.eu ([185.67.236.155]:44832 "HELO
-        digiten.eu" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1750733AbdEIWpT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 May 2017 18:45:19 -0400
-Content-Disposition: attachment
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:33360 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750733AbdEIW6G (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 May 2017 18:58:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-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
-BgAAAAA=
-Message-ID: <149436991462.26768.11336382415393486869@digiten.eu>
-From: <durrant@iupui.edu>
-To: <linux-acpi@vger.kernel.org>
-Subject: 26000
-Date: Tue, 09 May 2017 22:45:14 -0000
-Importance: High
-MIME-Version: 1.0
-Content-Type: application/zip; name="1160086327962.zip"
-Content-Disposition: attachment
-Content-Transfer-Encoding: base64
+Hi Linus,
 
-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
+Please pull from the tag
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-extra-4.12-rc1
+
+with top-most commit 80449d89d4d6d0af4d6d310597e0f4a3fe0c08a9
+
+ Merge branches 'pm-domains', 'pm-cpuidle', 'pm-sleep' and 'powercap'
+
+on top of commit 08be881064da126b8df4b96b0b3e2e307969a4a1
+
+ Merge tag 'acpi-4.12-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+to receive more power management updates for v4.12-rc1.
+
+These add new CPU IDs to a couple of drivers, fix a possible NULL
+pointer dereference in the cpuidle core, update DT-related things
+in the generic power domains framework and finally update the
+suspend/resume infrastructure to improve the handling of wakeups
+from suspend-to-idle.
+
+Specifics:
+
+ - Add Intel Gemini Lake CPU IDs to the intel_idle and intel_rapl
+   drivers (David Box).
+
+ - Add a NULL pointer check to the cpuidle core to prevent it from
+   crashing on platforms with incomplete cpuidle configuration (Fei
+   Li).
+
+ - Fix DT-related documentation in the generic power domains (genpd)
+   framework and add a MAINTAINERS entry for DT-related material in
+   genpd (Viresh Kumar).
+
+ - Update the system suspend/resume infrastructure to improve the
+   handling of aborts of suspend transitions in progress in the
+   wakeup framework and rework the suspend-to-idle core loop to make
+   it possible to filter out spurious wakeup events (specifically the
+   ones coming from ACPI) without resuming all the way up to user
+   space every time (Rafael Wysocki).
+
+Thanks!
+
+---------------
+
+David E. Box (2):
+      powercap: intel_rapl: Add support for Gemini Lake
+      x86/intel_idle: add Gemini Lake support
+
+Li, Fei (1):
+      cpuidle: check dev before usage in cpuidle_use_deepest_state()
+
+Rafael J. Wysocki (2):
+      PM / wakeup: Integrate mechanism to abort transitions in progress
+      ACPI / sleep: Ignore spurious SCI wakeups from suspend-to-idle
+
+Viresh Kumar (2):
+      PM / Domains: Fix DT example
+      PM / Domains: Add DT file to MAINTAINERS
+
+---------------
+
+ .../devicetree/bindings/power/power_domain.txt     |  2 +-
+ MAINTAINERS                                        |  1 +
+ drivers/acpi/battery.c                             |  2 +-
+ drivers/acpi/button.c                              |  5 +-
+ drivers/acpi/device_pm.c                           |  3 +-
+ drivers/acpi/sleep.c                               | 28 +++++++++++
+ drivers/base/power/main.c                          |  5 --
+ drivers/base/power/wakeup.c                        | 54 ++++++++++++----------
+ drivers/cpuidle/cpuidle.c                          |  3 +-
+ drivers/idle/intel_idle.c                          |  2 +
+ drivers/powercap/intel_rapl.c                      |  1 +
+ include/linux/pm_wakeup.h                          | 25 ++++++++--
+ include/linux/suspend.h                            |  7 ++-
+ kernel/power/process.c                             |  2 +-
+ kernel/power/suspend.c                             | 29 ++++++++++--
+ 15 files changed, 123 insertions(+), 46 deletions(-)
