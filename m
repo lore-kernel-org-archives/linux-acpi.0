@@ -1,116 +1,150 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v3 2/4] ACPICA: Tables: Add mechanism to allow to
- balance late stage acpi_get_table() independently
-Date: Tue, 9 May 2017 01:58:40 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEA018F@SHSMSX101.ccr.corp.intel.com>
-References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
- <3915288.8qJPC28FTg@aspire.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E886CE9D136@SHSMSX101.ccr.corp.intel.com>
- <2006722.863OfZUBRq@aspire.rjw.lan>
+From: Julian Wiedmann <julian.wiedmann@jwi.name>
+Subject: Re: [PATCH 1/5] Revert "ACPI / button: Remove lid_init_state=method
+ mode"
+Date: Tue, 9 May 2017 03:22:06 +0200
+Message-ID: <873fc05b-5c4c-37ee-752d-e87380c634f0@jwi.name>
+References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:18535 "EHLO mga06.intel.com"
+Received: from aibo.runbox.com ([91.220.196.211]:57410 "EHLO aibo.runbox.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751958AbdEIB6q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 8 May 2017 21:58:46 -0400
-In-Reply-To: <2006722.863OfZUBRq@aspire.rjw.lan>
-Content-Language: en-US
+        id S1751243AbdEICFA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 May 2017 22:05:00 -0400
+In-Reply-To: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>
+To: Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-Hi,
-
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J.
-> Wysocki
-> Subject: Re: [PATCH v3 2/4] ACPICA: Tables: Add mechanism to allow to balance late stage
-> acpi_get_table() independently
+On 05.05.2017 04:39, Lv Zheng wrote:
+> This reverts commit ecb10b694b72ca5ea51b3c90a71ff2a11963425a.
 > 
-> On Thursday, May 04, 2017 07:18:28 AM Zheng, Lv wrote:
-> > Hi, Rafael
-> >
-> > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of
-> Rafael J.
-> > > Wysocki
-> > > Subject: Re: [PATCH v3 2/4] ACPICA: Tables: Add mechanism to allow to balance late stage
-> > > acpi_get_table() independently
-> > >
-> > > On Friday, April 28, 2017 01:30:20 PM Lv Zheng wrote:
-> > > > For all frequent late stage acpi_get_table() clone invocations, we should
-> > > > only fix them altogether, otherwise, excessive acpi_put_table() could
-> > > > unexpectedly unmap the table used by the other users. Thus the current plan
-> > > > is to fix all acpi_get_table() clones together or to fix none of them.
-> > >
-> > > I honestly don't think that fixing none of them is a valid option here.
-> >
-> > That's just exactly the old behavior, maybe shouldn't be called as "fix".
-> > Should say "change to use the new behavior together" all stay unchanged.
-> >
-> > I actually want to make the change from ACPICA side.
-> > But it's costly to persuade ACPICA upstream to take both the
-> "acpi_get_table_with_size()/early_acpi_os_unmap_memory() divergence reduction" change and the "table
-> map on-demand" change.
-> >
-> > So we just made 2 things separated, and did 1 thing once.
-> >
-> > >
-> > > > This prevents kernel developers from improving the late stage code quality
-> > > > without waiting for the ACPICA upstream to improve first.
-> > > >
-> > > > This patch adds a mechanism to stop decrementing validation count to
-> > > > prevent the table unmapping operations so that acpi_put_table() balance
-> > > > fixes can be done independently to each others.
-> > > >
-> > > > Cc: Dan Williams <dan.j.williams@intel.com>
-> > > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > > > ---
-> > > >  drivers/acpi/acpica/tbutils.c | 10 ++++++++--
-> > > >  1 file changed, 8 insertions(+), 2 deletions(-)
-> > > >
-> > > > diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-> > > > index 7abe665..b517bd0 100644
-> > > > --- a/drivers/acpi/acpica/tbutils.c
-> > > > +++ b/drivers/acpi/acpica/tbutils.c
-> > > > @@ -445,12 +445,18 @@ void acpi_tb_put_table(struct acpi_table_desc *table_desc)
-> > > >
-> > > >  	ACPI_FUNCTION_TRACE(acpi_tb_put_table);
-> > > >
-> > > > -	if (table_desc->validation_count == 0) {
-> > > > +	if ((table_desc->validation_count + 1) == 0) {
-> > >
-> > > This means that validation_count has reached the maximum value, right?
-> > >
-> > > >  		ACPI_WARNING((AE_INFO,
-> > > > -			      "Table %p, Validation count is zero before decrement\n",
-> > > > +			      "Table %p, Validation count is about to expire, decrement is unsafe\n",
-> > > >  			      table_desc));
-> > >
-> > > So why is it unsafe to decrement it?
-> >
-> > Considering this case:
-> > A program opens a sysfs table file 65535 times: validation_count = 65535.
-> > Load opcode is invoked by the AML interpreter, but it cannot increase the validation count, see
-> acpi_tb_get_table(): validation_count = 65535.
-> > Now the program closes the sysfs table file: validation_count = 0, which triggers table unmap.
-> > But it is likely that the AML code is still accessing the namespace objects provided by this table.
-> > A kernel crash then can be seen.
-> >
-> > So after applying this patch, 65535 now is the threshold.
+> The only expected ACPI control method lid device's usage model is
+> 1. Listen to the lid notification,
+> 2. Evaluate _LID after being notified by BIOS,
+> 3. Suspend the system (if users configure to do so) after seeing "close".
+> It's not ensured that BIOS will notify OS after boot/resume, and
+> it's not ensured that BIOS will always generate "open" event upon
+> opening the lid.
 > 
-> OK, so this is overflow detection in disguise. :-)
+> But there are 2 wrong usage models:
+> 1. When the lid device is responsible for suspend/resume the system,
+>    userspace requires to see "open" event to be paired with "close" after
+>    the system is resumed, or it will suspend the system again.
+> 2. When an external monitor connects to the laptop attached docks,
+>    userspace requires to see "close" event after the system is resumed so
+>    that it can determine whether the internal display should remain dark
+>    and the external display should be lit on.
 > 
-> It is quite confusing, IMO.  It would be better to define a limit symbol like
-> ACPI_TABLE_VCOUNT_MAX below the natural maximum of the data type
-> (say, make it equal to 65534 if the data type is unsigned short int) and then
-> make *both* acpi_tb_get_table() and acpi_tb_put_table() refuse to update
-> validation_count *and* print a "validation count overflow" message once it
-> has become greater than ACPI_TABLE_VCOUNT_MAX (in which case it will
-> natrually stay at ACPI_TABLE_VCOUNT_MAX+1).
+> After we made default kenrel behavior to be suitable for usage model 1,
+> users of usage model 2 start to report regressions for such behavior
+> change.
+> 
+> Reversion of button.lid_init_state=method doesn't actually reverts to old
+> default behavior as doing so can enter a regression loop, but facilitates
+> users to work the reported regressions around with
+> button.lid_init_state=method.
+Thanks Lv for doing this.
 
-OK, I'll also make the error message less verbose in the next revision.
+> 
+> Fixes: 77e9a4aa9de1 ("ACPI / button: Change default behavior to lid_init_state=open")
+To be fair, it doesn't actually fix it - the regression is still there,
+this just allows affected users to work-around it again. Fixing it means
+switching back the default to 'method'.
+Anyway, please add a cc: stable so this is picked up for 4.11.x.
 
-Thanks,
-Lv
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=195455
+> Link: https://bugzilla.redhat.com/show_bug.cgi?id=1430259
+> Tested-by: Steffen Weber <steffen.weber@gmail.com>
+> Reported-by: Julian Wiedmann <julian.weidmann@jwi.name>
+Tested-by: Julian Wiedmann <julian.wiedmann@jwi.name>
+(mind the typo)
+
+> Reported-by: Joachim Frieben <jfrieben@hotmail.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  Documentation/acpi/acpi-lid.txt | 16 ++++++++++++----
+>  drivers/acpi/button.c           |  9 +++++++++
+>  2 files changed, 21 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/acpi/acpi-lid.txt b/Documentation/acpi/acpi-lid.txt
+> index 22cb309..effe7af 100644
+> --- a/Documentation/acpi/acpi-lid.txt
+> +++ b/Documentation/acpi/acpi-lid.txt
+> @@ -59,20 +59,28 @@ button driver uses the following 3 modes in order not to trigger issues.
+>  If the userspace hasn't been prepared to ignore the unreliable "opened"
+>  events and the unreliable initial state notification, Linux users can use
+>  the following kernel parameters to handle the possible issues:
+> -A. button.lid_init_state=open:
+> +A. button.lid_init_state=method:
+> +   When this option is specified, the ACPI button driver reports the
+> +   initial lid state using the returning value of the _LID control method
+> +   and whether the "opened"/"closed" events are paired fully relies on the
+> +   firmware implementation.
+> +   This option can be used to fix some platforms where the returning value
+> +   of the _LID control method is reliable but the initial lid state
+> +   notification is missing.
+> +   This option is the default behavior during the period the userspace
+> +   isn't ready to handle the buggy AML tables.
+> +B. button.lid_init_state=open:
+>     When this option is specified, the ACPI button driver always reports the
+>     initial lid state as "opened" and whether the "opened"/"closed" events
+>     are paired fully relies on the firmware implementation.
+>     This may fix some platforms where the returning value of the _LID
+>     control method is not reliable and the initial lid state notification is
+>     missing.
+> -   This option is the default behavior during the period the userspace
+> -   isn't ready to handle the buggy AML tables.
+>  
+>  If the userspace has been prepared to ignore the unreliable "opened" events
+>  and the unreliable initial state notification, Linux users should always
+>  use the following kernel parameter:
+> -B. button.lid_init_state=ignore:
+> +C. button.lid_init_state=ignore:
+>     When this option is specified, the ACPI button driver never reports the
+>     initial lid state and there is a compensation mechanism implemented to
+>     ensure that the reliable "closed" notifications can always be delievered
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index 668137e..6d5a8c1 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -57,6 +57,7 @@
+>  
+>  #define ACPI_BUTTON_LID_INIT_IGNORE	0x00
+>  #define ACPI_BUTTON_LID_INIT_OPEN	0x01
+> +#define ACPI_BUTTON_LID_INIT_METHOD	0x02
+>  
+>  #define _COMPONENT		ACPI_BUTTON_COMPONENT
+>  ACPI_MODULE_NAME("button");
+> @@ -376,6 +377,9 @@ static void acpi_lid_initialize_state(struct acpi_device *device)
+>  	case ACPI_BUTTON_LID_INIT_OPEN:
+>  		(void)acpi_lid_notify_state(device, 1);
+>  		break;
+> +	case ACPI_BUTTON_LID_INIT_METHOD:
+> +		(void)acpi_lid_update_state(device);
+> +		break;
+>  	case ACPI_BUTTON_LID_INIT_IGNORE:
+>  	default:
+>  		break;
+> @@ -559,6 +563,9 @@ static int param_set_lid_init_state(const char *val, struct kernel_param *kp)
+>  	if (!strncmp(val, "open", sizeof("open") - 1)) {
+>  		lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
+>  		pr_info("Notify initial lid state as open\n");
+> +	} else if (!strncmp(val, "method", sizeof("method") - 1)) {
+> +		lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
+> +		pr_info("Notify initial lid state with _LID return value\n");
+>  	} else if (!strncmp(val, "ignore", sizeof("ignore") - 1)) {
+>  		lid_init_state = ACPI_BUTTON_LID_INIT_IGNORE;
+>  		pr_info("Do not notify initial lid state\n");
+> @@ -572,6 +579,8 @@ static int param_get_lid_init_state(char *buffer, struct kernel_param *kp)
+>  	switch (lid_init_state) {
+>  	case ACPI_BUTTON_LID_INIT_OPEN:
+>  		return sprintf(buffer, "open");
+> +	case ACPI_BUTTON_LID_INIT_METHOD:
+> +		return sprintf(buffer, "method");
+>  	case ACPI_BUTTON_LID_INIT_IGNORE:
+>  		return sprintf(buffer, "ignore");
+>  	default:
+> 
