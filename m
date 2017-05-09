@@ -1,50 +1,88 @@
-From: <h.piontek@mistravel.pl>
-Subject: 34783
-Date: Tue, 09 May 2017 07:39:12 -0000
-Message-ID: <149431555264.31457.5199705194309746116@udm.net>
+From: Felipe Balbi <balbi@kernel.org>
+Subject: Re: [PATCH v1] ACPI: Switch to use generic UUID API
+Date: Tue, 09 May 2017 10:56:43 +0300
+Message-ID: <87o9v2jwec.fsf@linux.intel.com>
+References: <20170504092151.88646-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="1717069.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from a49.sub71.net78.udm.net ([78.85.71.49]:49067 "HELO udm.net"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751046AbdEIHjR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 May 2017 03:39:17 -0400
-Content-Disposition: attachment
+Received: from mga09.intel.com ([134.134.136.24]:28770 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752121AbdEIH5u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 03:57:50 -0400
+In-Reply-To: <20170504092151.88646-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, tpmdd-devel@lists.sourceforge.net, intel-gfx@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-input@vger.kernel.org, iommu@lists.linux-foundation.org, linux-mmc@vger.kernel.org, netdev@vger.kernel.org, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Borislav Petkov <bp@suse.de>, Dan Williams <dan.j.williams@intel.com>, Amir Goldstein <amir73il@gmail.com>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Skeggs <bskeggs@redhat.com>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Joerg Roedel <joro@8bytes.org>, Adrian Hunter <adrian.hunter@intel.com>, Yisen Zhuang <yisen.zhuang@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Zhang Rui <rui.zhang@intel.com>, Mathias Nyman <mathias.nyman@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark
 
-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
+
+Hi,
+
+Andy Shevchenko <andriy.shevchenko@linux.intel.com> writes:
+> acpi_evaluate_dsm() and friends take a pointer to a raw buffer of 16
+> bytes. Instead we convert them to use uuid_le type. At the same time we
+> convert current users.
+>
+> acpi_str_to_uuid() becomes useless after the conversion and it's safe to
+> get rid of it.
+>
+> The conversion fixes a potential bug in int340x_thermal as well since
+> we have to use memcmp() on binary data.
+>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Cc: Borislav Petkov <bp@suse.de>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Amir Goldstein <amir73il@gmail.com>
+> Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+> Cc: Jani Nikula <jani.nikula@linux.intel.com>
+> Cc: Ben Skeggs <bskeggs@redhat.com>
+> Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> Cc: Adrian Hunter <adrian.hunter@intel.com>
+> Cc: Yisen Zhuang <yisen.zhuang@huawei.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: Felipe Balbi <balbi@kernel.org>
+> Cc: Mathias Nyman <mathias.nyman@intel.com>
+> Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Cc: Liam Girdwood <lgirdwood@gmail.com>
+> Cc: Mark Brown <broonie@kernel.org>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+> index a15ec71d0423..6b5284ec76df 100644
+> --- a/drivers/usb/dwc3/dwc3-pci.c
+> +++ b/drivers/usb/dwc3/dwc3-pci.c
+> @@ -56,7 +56,7 @@ struct dwc3_pci {
+>  	struct platform_device *dwc3;
+>  	struct pci_dev *pci;
+>  
+> -	u8 uuid[16];
+> +	uuid_le uuid;
+>  
+>  	unsigned int has_dsm_for_pm:1;
+>  };
+> @@ -118,7 +118,7 @@ static int dwc3_pci_quirks(struct dwc3_pci *dwc)
+>  
+>  		if (pdev->device == PCI_DEVICE_ID_INTEL_BXT ||
+>  				pdev->device == PCI_DEVICE_ID_INTEL_BXT_M) {
+> -			acpi_str_to_uuid(PCI_INTEL_BXT_DSM_UUID, dwc->uuid);
+> +			uuid_le_to_bin(PCI_INTEL_BXT_DSM_UUID, &dwc->uuid);
+>  			dwc->has_dsm_for_pm = true;
+>  		}
+>  
+> @@ -288,7 +288,7 @@ static int dwc3_pci_dsm(struct dwc3_pci *dwc, int param)
+>  	tmp.type = ACPI_TYPE_INTEGER;
+>  	tmp.integer.value = param;
+>  
+> -	obj = acpi_evaluate_dsm(ACPI_HANDLE(&dwc->pci->dev), dwc->uuid,
+> +	obj = acpi_evaluate_dsm(ACPI_HANDLE(&dwc->pci->dev), &dwc->uuid,
+>  			1, PCI_INTEL_BXT_FUNC_PMU_PWR, &argv4);
+>  	if (!obj) {
+>  		dev_err(&dwc->pci->dev, "failed to evaluate _DSM\n");
+
+Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+
+-- 
+balbi
