@@ -1,50 +1,82 @@
-From: <geir.nuland@lyse.net>
-Subject: 9759
-Date: Tue, 09 May 2017 16:22:09 -0000
-Message-ID: <149434692914.26664.8843504676934968813@csloxinfo.net>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: Regression: bd698d24b1b57: i2c: designware: Get selected speed
+ mode sda-hold-time via ACPI
+Date: Tue, 09 May 2017 19:20:48 +0300
+Message-ID: <1494346848.30052.84.camel@linux.intel.com>
+References: <20170509140720.GA21122@red-moon>
+         <1494341651.30052.82.camel@linux.intel.com>
+         <20170509155253.GA21475@red-moon>
 Mime-Version: 1.0
-Content-Type: application/zip; name="9833260227110.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static.vnpt.vn ([14.162.193.18]:58108 "HELO csloxinfo.net"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751356AbdEIQWQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 May 2017 12:22:16 -0400
-Content-Disposition: attachment
+Received: from mga11.intel.com ([192.55.52.93]:62985 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752737AbdEIQXy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 12:23:54 -0400
+In-Reply-To: <20170509155253.GA21475@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: chin.yew.tan@intel.com, mika.westerberg@linux.intel.com, jarkko.nikula@linux.intel.com, wsa@the-dreams.de, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, ken.xue@amd.com, jeff.wu@amd.com
 
-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
+On Tue, 2017-05-09 at 16:52 +0100, Lorenzo Pieralisi wrote:
+> [+ Ken, Jeff]
+> 
+> On Tue, May 09, 2017 at 05:54:11PM +0300, Andy Shevchenko wrote:
+> > On Tue, 2017-05-09 at 15:07 +0100, Lorenzo Pieralisi wrote:
+> > > Hi guys,
+> > > 
+> > > as a heads-up, with today mainline (commit 2868b2513aa7) I get the
+> > > following splat on AMD Seattle, reverting the $SUBJECT commit
+> > > "solves"
+> > > the problem.
+> > > 
+> > > My I2C knowledge is a bit limited but I am not sure I understand
+> > > why
+> > > we should be reading eg ss_hcnt/ss_lcnt depending on the dev-
+> > > >clk_freq
+> > > but then i2c_dw_init() _always_ requires those values to be set
+> > > for
+> > > a given device. Again, I have no insights into I2C inner workings
+> > > so apologies for the silly assumption/question.
+> > > 
+> > > Please have a look into this, thanks.
+> > 
+> > Since there is no clock defined you got a warning.
+> 
+> IIUC there has never been a clock defined for this platform, that's
+> the problem. The warning appeared because the commit in $SUBJECT
+> prevents reading the ss_hcnt and ss_lcnt values from ACPI methods
+> that are there in ACPI tables (SSCN and FMCN), because it carries
+> out the SSCN FMCN look-up depending on the dev->clk_freq value.
+> 
+> Before $SUBJECT commit the values were read unconditionally from SSCN
+> and FMCN ACPI methods IIUC, again, I am no I2C expert so it is more
+> a question than anything else.
+> 
+> dev->clk_freq is set to 400000 by default because FW does not the
+> contain (ie never contained) "clock-frequency" property and
+> acpi_speed can't be ascertained through I2C resources, that's how
+> I read what's happening.
+> 
+> > It means either ID is not added to drivers/acpi/acpi_apd.c or
+
+Just one question, did you look at all into above driver?
+I suppose it missed ID and properties for the device.
+
+> > platform has wrong values and thus 
+> > dw_i2c_no_acpi_params should be expanded.
+> > 
+> > I have no such platform, so I can't tell which one is the right fix.
+> > But it's not a revert by my opinion.
+> 
+> It was working before the commit in $SUBJECT was applied, AMD chaps
+> may be able to chime in hopefully to clarify, whether that's a revert
+> or not we shall see but with a given FW the kernel behaviour changed,
+> it may affect other platforms too if their FW was not upgraded
+> accordingly that's why I reported it.
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
