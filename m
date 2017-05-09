@@ -1,41 +1,65 @@
-From: "elodinewarlord01@ono.com" <elodinewarlord01@ono.com>
-Subject: Greetings
-Date: Tue, 9 May 2017 13:44:08 +0200 (CEST)
-Message-ID: <10166341.835411494330248011.JavaMail.defaultUser@defaultHost>
-Reply-To: elodinewarlord01@ono.com
+From: Geetha sowjanya <gakula@caviumnetworks.com>
+Subject: [v4 0/4] Cavium ThunderX2 SMMUv3 errata workarounds
+Date: Tue,  9 May 2017 17:15:10 +0530
+Message-ID: <1494330314-30179-1-git-send-email-gakula@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.ono.com ([62.42.230.179]:61714 "EHLO smtp2.ono.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752800AbdEILoM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 May 2017 07:44:12 -0400
+Received: from mail-bn3nam01on0042.outbound.protection.outlook.com ([104.47.33.42]:64640
+        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751360AbdEIMEG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 08:04:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: will.deacon@arm.com, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org
+Cc: jcm@redhat.com, linux-kernel@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, Charles.Garcia-Tobin@arm.com
 
- Dearest ,
+From: Linu Cherian <linu.cherian@cavium.com>
 
-I am constrained to contact you because of the maltreatment which I am 
-receiving from my step mother. She planned to take away all my late 
-father's treasurer and properties from me since the  unexpected death 
-of my beloved Father ,my mother died 10years ago and I was left alone 
-with my step mother to take care of me. Meanwhile I wanted to travel to 
-Europe, but she hide  away my  international passport and other 
-valuable documents.  Luckily she did not discover where I kept my
-father's File which contained very important documents . Now I am 
-presently staying in the Refugee Mission Camp in Burkina Faso. I am 
-seeking for long term relationship and investment assistance. My father 
-of blessed memory deposited the sum of US$ 27.5 Million in one bank 
-here in Burkina Faso with my name as the next of kin. I had contacted 
-the Bank to clear the deposit but the Branch Manager told me that being 
-a refugee, my status according to the local law does not authorize me 
-to carry out the operation ,However, he advised me to provide a trustee 
-who will stand on my behalf. I had wanted to inform my stepmother about 
-this deposit but I am afraid that she will not offer me anything after 
-the release of the money ,I will give you details in my next mail after 
-receiving your acceptance mail to help me,
+Cavium ThunderX2 SMMUv3 implementation has two Silicon Erratas.
+1. Errata ID #74
+   SMMU register alias Page 1 is not implemented
+2. Errata ID #126
+   SMMU doesnt support unique IRQ lines and also MSI for gerror,
+   eventq and cmdq-sync
 
-Best Regards
-Miss. Elodine I. Coulibaly
+The following patchset does software workaround for these two erratas.
+
+This series is based on patchset.
+https://www.spinics.net/lists/arm-kernel/msg578443.html
+
+Changes from v3:
+ - Merged patches 1, 2 and 4 of Version 3.
+ - Modified the page1_offset_adjust() and get_irq_flags() implementation as 
+   suggested by Robin. 
+
+Changes from v2:
+ Updated "Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt" document with
+ new SMMU option used to enable errata workaround.
+
+Changes from v1:
+ Since the use of MIDR register is rejected and SMMU_IIDR is broken on this
+ silicon, as suggested by Will Deacon modified the patches to use ThunderX2
+ SMMUv3 IORT model number to enable errata workaround.
+
+
+Geetha Sowjanya (1):
+  iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #126
+
+Linu Cherian (3):
+  ACPICA: IORT: Add Cavium ThunderX2 SMMUv3 model definition.
+  ACPI/IORT: Fixup SMMUv3 resource size for Cavium ThunderX2 SMMUv3
+    model
+  iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #74
+
+ Documentation/arm64/silicon-errata.txt             |   2 +
+ .../devicetree/bindings/iommu/arm,smmu-v3.txt      |   6 ++
+ drivers/acpi/arm64/iort.c                          |  10 +-
+ drivers/iommu/arm-smmu-v3.c                        | 109 ++++++++++++++++-----
+ include/acpi/actbl2.h                              |   2 +
+ 5 files changed, 103 insertions(+), 26 deletions(-)
+
+-- 
+1.8.3.1
 
