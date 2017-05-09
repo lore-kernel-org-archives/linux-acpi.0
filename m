@@ -1,120 +1,50 @@
-From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Subject: Re: [PATCH] HID: i2c: Call acpi_device_fix_up_power for
- ACPI-enumerated devices
-Date: Tue, 9 May 2017 09:36:18 +0200
-Message-ID: <20170509073618.GC19130@mail.corp.redhat.com>
-References: <20170507214914.6013-1-hdegoede@redhat.com>
- <20170509071231.GA19130@mail.corp.redhat.com>
- <17ecd9cc-e802-ca85-1fe5-6814fa2007f3@redhat.com>
+From: <h.piontek@mistravel.pl>
+Subject: 34783
+Date: Tue, 09 May 2017 07:39:12 -0000
+Message-ID: <149431555264.31457.5199705194309746116@udm.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: application/zip; name="1717069.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39698 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751166AbdEIHgY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 May 2017 03:36:24 -0400
-Content-Disposition: inline
-In-Reply-To: <17ecd9cc-e802-ca85-1fe5-6814fa2007f3@redhat.com>
+Received: from a49.sub71.net78.udm.net ([78.85.71.49]:49067 "HELO udm.net"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751046AbdEIHjR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 03:39:17 -0400
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jiri Kosina <jikos@kernel.org>, linux-input@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On May 09 2017 or thereabouts, Hans de Goede wrote:
-> Hi,
-> 
-> On 09-05-17 09:12, Benjamin Tissoires wrote:
-> > Hi Hans,
-> > 
-> > On May 07 2017 or thereabouts, Hans de Goede wrote:
-> > > ACPI devices which do not have a _PSC method are assumed to have been
-> > > put in D0 by the BIOS, but for touchscreens that is not always true,
-> > > so call acpi_device_fix_up_power to explicitly put devices without a
-> > > _PSC method into D0 state.
-> > > 
-> > > This fixes the SIS0817 i2c-hid touchscreen on a Peaq C1010 2-in-1
-> > > device failing to probe with a "hid_descr_cmd failed" error.
-> > > 
-> > > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > > ---
-> > >   drivers/hid/i2c-hid/i2c-hid.c | 13 +++++++++++++
-> > >   1 file changed, 13 insertions(+)
-> > > 
-> > > diff --git a/drivers/hid/i2c-hid/i2c-hid.c b/drivers/hid/i2c-hid/i2c-hid.c
-> > > index ea3c3546cef7..c716d9605940 100644
-> > > --- a/drivers/hid/i2c-hid/i2c-hid.c
-> > > +++ b/drivers/hid/i2c-hid/i2c-hid.c
-> > > @@ -960,6 +960,15 @@ static int i2c_hid_acpi_pdata(struct i2c_client *client,
-> > >   	return 0;
-> > >   }
-> > > +static void i2c_hid_acpi_fix_up_power(struct device *dev)
-> > > +{
-> > > +	acpi_handle handle = ACPI_HANDLE(dev);
-> > > +	struct acpi_device *adev;
-> > > +
-> > > +	if (handle && acpi_bus_get_device(handle, &adev) == 0)
-> > > +		acpi_device_fix_up_power(adev);
-> > 
-> > I am wondering if this is not something that should be handled by
-> > acpi-core or i2c-core. Looks like something pretty generic.
-> 
-> The acpi-core deliberately does not do this, as unconditionally
-> doing this for all devices is known to break things on some
-> platforms, see:
-> 
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=7cd8407
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=b9e95fc65eded
-> 
-> So calling this is something which needs to be done an a device-by-device
-> (usually actually on a driver-by-driver) basis.
-> 
-> I don't expect this to cause any problems for i2c-hid devices
-> (as the above commits shown once it was done for all ACPI enumerated devices)
-> and it is necessary for some i2c-hid devices.
-> 
-> > Also, isn't this also needed on resume (or reset_resume)?
-> 
-> After a suspend the device is in D3, so we will always execute _PS0
-> to put it back in D0. This is about devices without a _PSC method
-> (which allows querying the actual state) being in D3 on boot, rather
-> then the expected (and assumed) D0. Note that for devices with a _PSC
-> method calling acpi_device_fix_up_power() is a nop.
-> 
-
-Thanks for the extensive explanations.
-
-Acked-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-
-Maybe we can add this to the commit message for future reference?
-
-Cheers,
-Benjamin
-
-> Regards,
-> 
-> Hans
-> 
-> > > +}
-> > > +
-> > >   static const struct acpi_device_id i2c_hid_acpi_match[] = {
-> > >   	{"ACPI0C50", 0 },
-> > >   	{"PNP0C50", 0 },
-> > > @@ -972,6 +981,8 @@ static inline int i2c_hid_acpi_pdata(struct i2c_client *client,
-> > >   {
-> > >   	return -ENODEV;
-> > >   }
-> > > +
-> > > +static inline void i2c_hid_acpi_fix_up_power(struct device *dev) {}
-> > >   #endif
-> > >   #ifdef CONFIG_OF
-> > > @@ -1070,6 +1081,8 @@ static int i2c_hid_probe(struct i2c_client *client,
-> > >   	if (ret < 0)
-> > >   		goto err;
-> > > +	i2c_hid_acpi_fix_up_power(&client->dev);
-> > > +
-> > >   	pm_runtime_get_noresume(&client->dev);
-> > >   	pm_runtime_set_active(&client->dev);
-> > >   	pm_runtime_enable(&client->dev);
-> > > -- 
-> > > 2.12.2
-> > > 
+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
