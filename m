@@ -1,153 +1,41 @@
-From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Subject: Re: [PATCH] HID: i2c: Call acpi_device_fix_up_power for
- ACPI-enumerated devices
-Date: Tue, 9 May 2017 10:57:46 +0200
-Message-ID: <20170509085746.GF19130@mail.corp.redhat.com>
-References: <20170507214914.6013-1-hdegoede@redhat.com>
- <20170509071231.GA19130@mail.corp.redhat.com>
- <17ecd9cc-e802-ca85-1fe5-6814fa2007f3@redhat.com>
- <20170509073618.GC19130@mail.corp.redhat.com>
- <20f11f8a-2649-9ffa-6dd2-51efc5dedde1@redhat.com>
+From: "elodinewarlord01@ono.com" <elodinewarlord01@ono.com>
+Subject: Greetings
+Date: Tue, 9 May 2017 13:44:08 +0200 (CEST)
+Message-ID: <10166341.835411494330248011.JavaMail.defaultUser@defaultHost>
+Reply-To: elodinewarlord01@ono.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20f11f8a-2649-9ffa-6dd2-51efc5dedde1@redhat.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jiri Kosina <jikos@kernel.org>, linux-input@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.ono.com ([62.42.230.179]:61714 "EHLO smtp2.ono.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752800AbdEILoM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 07:44:12 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On May 09 2017 or thereabouts, Hans de Goede wrote:
-> Hi,
-> 
-> On 09-05-17 09:36, Benjamin Tissoires wrote:
-> > On May 09 2017 or thereabouts, Hans de Goede wrote:
-> > > Hi,
-> > > 
-> > > On 09-05-17 09:12, Benjamin Tissoires wrote:
-> > > > Hi Hans,
-> > > > 
-> > > > On May 07 2017 or thereabouts, Hans de Goede wrote:
-> > > > > ACPI devices which do not have a _PSC method are assumed to have been
-> > > > > put in D0 by the BIOS, but for touchscreens that is not always true,
-> > > > > so call acpi_device_fix_up_power to explicitly put devices without a
-> > > > > _PSC method into D0 state.
-> > > > > 
-> > > > > This fixes the SIS0817 i2c-hid touchscreen on a Peaq C1010 2-in-1
-> > > > > device failing to probe with a "hid_descr_cmd failed" error.
-> > > > > 
-> > > > > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > > > > ---
-> > > > >    drivers/hid/i2c-hid/i2c-hid.c | 13 +++++++++++++
-> > > > >    1 file changed, 13 insertions(+)
-> > > > > 
-> > > > > diff --git a/drivers/hid/i2c-hid/i2c-hid.c b/drivers/hid/i2c-hid/i2c-hid.c
-> > > > > index ea3c3546cef7..c716d9605940 100644
-> > > > > --- a/drivers/hid/i2c-hid/i2c-hid.c
-> > > > > +++ b/drivers/hid/i2c-hid/i2c-hid.c
-> > > > > @@ -960,6 +960,15 @@ static int i2c_hid_acpi_pdata(struct i2c_client *client,
-> > > > >    	return 0;
-> > > > >    }
-> > > > > +static void i2c_hid_acpi_fix_up_power(struct device *dev)
-> > > > > +{
-> > > > > +	acpi_handle handle = ACPI_HANDLE(dev);
-> > > > > +	struct acpi_device *adev;
-> > > > > +
-> > > > > +	if (handle && acpi_bus_get_device(handle, &adev) == 0)
-> > > > > +		acpi_device_fix_up_power(adev);
-> > > > 
-> > > > I am wondering if this is not something that should be handled by
-> > > > acpi-core or i2c-core. Looks like something pretty generic.
-> > > 
-> > > The acpi-core deliberately does not do this, as unconditionally
-> > > doing this for all devices is known to break things on some
-> > > platforms, see:
-> > > 
-> > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=7cd8407
-> > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=b9e95fc65eded
-> > > 
-> > > So calling this is something which needs to be done an a device-by-device
-> > > (usually actually on a driver-by-driver) basis.
-> > > 
-> > > I don't expect this to cause any problems for i2c-hid devices
-> > > (as the above commits shown once it was done for all ACPI enumerated devices)
-> > > and it is necessary for some i2c-hid devices.
-> > > 
-> > > > Also, isn't this also needed on resume (or reset_resume)?
-> > > 
-> > > After a suspend the device is in D3, so we will always execute _PS0
-> > > to put it back in D0. This is about devices without a _PSC method
-> > > (which allows querying the actual state) being in D3 on boot, rather
-> > > then the expected (and assumed) D0. Note that for devices with a _PSC
-> > > method calling acpi_device_fix_up_power() is a nop.
-> > > 
-> > 
-> > Thanks for the extensive explanations.
-> > 
-> > Acked-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-> 
-> Thank you.
-> 
-> > Maybe we can add this to the commit message for future reference?
-> 
-> Ok, I'm about to send a v2 with an improved commit msg:
-> 
-> "For ACPI devices which do not have a _PSC method, the ACPI subsys cannot
-> query their initial state at boot, so these devices are assumed to have
-> been put in D0 by the BIOS, but for touchscreens that is not always true.
-> 
-> This commit adds a call to acpi_device_fix_up_power to explicitly put
-> devices without a _PSC method into D0 state (for devices with a _PSC
-> method it is a nop). Note we only need to do this on probe, after a
-> resume the ACPI subsys knows the device is in D3 and will properly
-> put it in D0.
-> 
-> This fixes the SIS0817 i2c-hid touchscreen on a Peaq C1010 2-in-1
-> device failing to probe with a "hid_descr_cmd failed" error."
+ Dearest ,
 
-Works for me.
+I am constrained to contact you because of the maltreatment which I am 
+receiving from my step mother. She planned to take away all my late 
+father's treasurer and properties from me since the  unexpected death 
+of my beloved Father ,my mother died 10years ago and I was left alone 
+with my step mother to take care of me. Meanwhile I wanted to travel to 
+Europe, but she hide  away my  international passport and other 
+valuable documents.  Luckily she did not discover where I kept my
+father's File which contained very important documents . Now I am 
+presently staying in the Refugee Mission Camp in Burkina Faso. I am 
+seeking for long term relationship and investment assistance. My father 
+of blessed memory deposited the sum of US$ 27.5 Million in one bank 
+here in Burkina Faso with my name as the next of kin. I had contacted 
+the Bank to clear the deposit but the Branch Manager told me that being 
+a refugee, my status according to the local law does not authorize me 
+to carry out the operation ,However, he advised me to provide a trustee 
+who will stand on my behalf. I had wanted to inform my stepmother about 
+this deposit but I am afraid that she will not offer me anything after 
+the release of the money ,I will give you details in my next mail after 
+receiving your acceptance mail to help me,
 
-Thanks for the quick respin.
+Best Regards
+Miss. Elodine I. Coulibaly
 
-Cheers,
-Benjamin
-
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-> > 
-> > Cheers,
-> > Benjamin
-> > 
-> > > Regards,
-> > > 
-> > > Hans
-> > > 
-> > > > > +}
-> > > > > +
-> > > > >    static const struct acpi_device_id i2c_hid_acpi_match[] = {
-> > > > >    	{"ACPI0C50", 0 },
-> > > > >    	{"PNP0C50", 0 },
-> > > > > @@ -972,6 +981,8 @@ static inline int i2c_hid_acpi_pdata(struct i2c_client *client,
-> > > > >    {
-> > > > >    	return -ENODEV;
-> > > > >    }
-> > > > > +
-> > > > > +static inline void i2c_hid_acpi_fix_up_power(struct device *dev) {}
-> > > > >    #endif
-> > > > >    #ifdef CONFIG_OF
-> > > > > @@ -1070,6 +1081,8 @@ static int i2c_hid_probe(struct i2c_client *client,
-> > > > >    	if (ret < 0)
-> > > > >    		goto err;
-> > > > > +	i2c_hid_acpi_fix_up_power(&client->dev);
-> > > > > +
-> > > > >    	pm_runtime_get_noresume(&client->dev);
-> > > > >    	pm_runtime_set_active(&client->dev);
-> > > > >    	pm_runtime_enable(&client->dev);
-> > > > > -- 
-> > > > > 2.12.2
-> > > > > 
