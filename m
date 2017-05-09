@@ -1,58 +1,52 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v3 3/3] arm/arm64: signal SIBGUS and inject SEA Error
-Date: Tue, 09 May 2017 15:28:20 +0100
-Message-ID: <5911D204.7020304@arm.com>
-References: <CAMj-D2BGTDKpOcMu2ip41_MTTj8VDwvs59Ds7yvLHcD8PeQzhg@mail.gmail.com> <5910AAA2.4030304@arm.com> <20170508175416.GA32234@cbox>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: Regression: bd698d24b1b57: i2c: designware: Get selected speed
+ mode sda-hold-time via ACPI
+Date: Tue, 09 May 2017 17:54:11 +0300
+Message-ID: <1494341651.30052.82.camel@linux.intel.com>
+References: <20170509140720.GA21122@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:55578 "EHLO foss.arm.com"
+Received: from mga02.intel.com ([134.134.136.20]:50787 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753361AbdEIO3A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 May 2017 10:29:00 -0400
-In-Reply-To: <20170508175416.GA32234@cbox>
+        id S1753212AbdEIO6v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 10:58:51 -0400
+In-Reply-To: <20170509140720.GA21122@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christoffer Dall <cdall@linaro.org>
-Cc: gengdongjiu <gengdj.1984@gmail.com>, Tyler Baicar <tbaicar@codeaurora.org>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, Sandeepa Prabhu <sandeepa.s.prabhu@gmail.com>, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, Fu Wei <fu.wei@linaro.org>, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, chin.yew.tan@intel.com, mika.westerberg@linux.intel.com, jarkko.nikula@linux.intel.com
+Cc: wsa@the-dreams.de, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>
 
-Hi Christoffer,
-
-On 08/05/17 18:54, Christoffer Dall wrote:
-> On Mon, May 08, 2017 at 06:28:02PM +0100, James Morse wrote:
-> I must admit I am losing track of exactly what this proposed API was
-> supposed to do.
-
-There are two, and we keep jumping between them!
-This is about two notification methods APEI has for arm64, 'SEA' and 'SEI'.
-
-SEA is synchronous and looks like a data abort. Qemu/kvmtool can inject these
-today using the KVM_GET/SET_ONE_REG API whenever it wants to.
-
-SEI uses SError, is asynchronous and can be masked. In addition these need to be
-consumed/synchronised by the ESB instruction, even when executed by a guest.
-Hardware has the necessary bits to drive all this, we need to expose an API to
-drive it.
-
-(I try to spell them out each time so I don't confuse SEI with something
-synchronous!)
-
-
-This patch was about SEA. I think you've answered our question:
-
-> However, if it's a question about setting up VCPU registers to a certain
-> state and potentially modifying memory, then I think experience has
-> shown us (psci) that emulating something in the kernel that userspace
-> can have fine-grained control over is a bad idea, and should be left to
-> userspace using as generic APIs as possible.
+On Tue, 2017-05-09 at 15:07 +0100, Lorenzo Pieralisi wrote:
+> Hi guys,
 > 
-> Furthermore, if I understand what injecting a SEA requires, it is very
-> similar to resetting the CPU and loading data into guest memory, which
-> QEMU already does today, and there is no reason to introduce additional
-> APIs if it can be done using KVM_GET/SET_ONE_REG ioctls.
+> as a heads-up, with today mainline (commit 2868b2513aa7) I get the
+> following splat on AMD Seattle, reverting the $SUBJECT commit "solves"
+> the problem.
+> 
+> My I2C knowledge is a bit limited but I am not sure I understand why
+> we should be reading eg ss_hcnt/ss_lcnt depending on the dev->clk_freq
+> but then i2c_dw_init() _always_ requires those values to be set for
+> a given device. Again, I have no insights into I2C inner workings
+> so apologies for the silly assumption/question.
+> 
+> Please have a look into this, thanks.
 
+Since there is no clock defined you got a warning.
 
-Thanks,
+It means either ID is not added to drivers/acpi/acpi_apd.c or
+platform has wrong values and thus 
+dw_i2c_no_acpi_params should be expanded.
 
-James
+I have no such platform, so I can't tell which one is the right fix.
+But it's not a revert by my opinion.
+
+> [    1.160597] ------------[ cut here ]------------
+> [    1.165207] WARNING: CPU: 0 PID: 1 at drivers/i2c/busses/i2c-
+> designware-core.c:293 i2c_dw_clk_rate+0x20/0x30
+> 
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
