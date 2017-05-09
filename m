@@ -1,58 +1,73 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: Re: [PATCH v3 7/8] arm64: exception: handle asynchronous SError
- interrupt
-Date: Tue, 9 May 2017 10:16:32 +0800
-Message-ID: <4cfa4f66-e9a2-fd52-fb64-b2510bcdf1d8@huawei.com>
-References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
- <1490869877-118713-8-git-send-email-xiexiuqi@huawei.com>
- <20170413105131.GD24027@leverpostej>
- <d7a8884d-f6b7-69d0-2438-83c202926000@huawei.com> <58F5EFC6.5070601@arm.com>
- <e6502f82-108e-3f53-4791-515671e4d515@huawei.com> <58F876EB.2020805@arm.com>
- <2bb41d98-553f-1361-e497-4095ddd501d0@huawei.com> <58FE328E.7030106@arm.com>
- <d20bb634-d70b-5ab9-20e2-46275675ce1f@huawei.com> <5910AA92.2010106@arm.com>
+From: Julian Wiedmann <julian.wiedmann@jwi.name>
+Subject: Re: [PATCH 5/5] ACPI: button: Obselete acpi_lid_open() invocations
+Date: Tue, 9 May 2017 03:21:49 +0200
+Message-ID: <23804416-4c85-e1e7-fc07-34be1ac5610f@jwi.name>
+References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+ <3323fbefe77239808e9abba90929bf2a02d916a3.1493951798.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5910AA92.2010106@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, wuquanming@huawei.com, linux-arm-kernel@lists.infradead.org, kvm@vger.kernel.org, Xie XiuQi <xiexiuqi@huawei.com>, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, rostedt@goodmis.org, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, fu.wei@linaro.org, shiju.jose@huawei.com, zhengqiang10@huawei.com, kvmarm@lists.cs.columbia.edu, christoffer.dall@linaro.org, hanjun.guo@linaro.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from aibo.runbox.com ([91.220.196.211]:38856 "EHLO aibo.runbox.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751662AbdEICzn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 May 2017 22:55:43 -0400
+In-Reply-To: <3323fbefe77239808e9abba90929bf2a02d916a3.1493951798.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-Hi James,
+On 05.05.2017 04:40, Lv Zheng wrote:
+> Since notification side has been changed to always notify kernel listeners
+> using _LID returning value. Now listeners needn't invoke invoke
+> acpi_lid_open(), it should use a spec suggested control method lid device
+> usage model: register lid notification and use the notified value instead,
+> which is the only way to ensure the value is correct.
+> 
+> This patch fixes i915 driver to drop acpi_lid_open() user. It's not
+> possible to change nouveau_connector.c user using a simple way now. So this
+> patch only marks acpi_lid_open() as deprecated to accelerate this process
+> by indicating this change to the nouveau developers.
+> 
+Resend with intel-gfx@lists.freedesktop.org and nouveau@lists.freedesktop.org
+on cc?
 
-On 2017/5/9 1:27, James Morse wrote:
-> Hi Xiongfeng Wang,
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  drivers/acpi/button.c             | 7 ++++++-
+>  drivers/gpu/drm/i915/intel_lvds.c | 2 +-
+>  2 files changed, 7 insertions(+), 2 deletions(-)
 > 
-> On 28/04/17 03:55, Xiongfeng Wang wrote:
->>>>>> It is ok to just ignore the process following the ESB instruction in el0_sync, because the process will be sent SIGBUS signal.
->>>>
->>>> I don't understand. How will Linux know the process caused an error if we
->>>> neither take an SError nor read DISR_EL1 after an ESB?
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index 7ff3a75..50d7898 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -348,7 +348,12 @@ int acpi_lid_notifier_unregister(struct notifier_block *nb)
+>  }
+>  EXPORT_SYMBOL(acpi_lid_notifier_unregister);
+>  
+> -int acpi_lid_open(void)
+> +/*
+> + * The intentional usage model is to register a lid notifier and use the
+> + * notified value instead. Directly evaluating _LID without seeing a
+> + * Notify(lid, 0x80) is not reliable.
+> + */
+> +int __deprecated acpi_lid_open(void)
+>  {
+>  	if (!lid_device)
+>  		return -ENODEV;
+> diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+> index 9ca4dc4..8ca9080 100644
+> --- a/drivers/gpu/drm/i915/intel_lvds.c
+> +++ b/drivers/gpu/drm/i915/intel_lvds.c
+> @@ -548,7 +548,7 @@ static int intel_lid_notify(struct notifier_block *nb, unsigned long val,
+>  	/* Don't force modeset on machines where it causes a GPU lockup */
+>  	if (dmi_check_system(intel_no_modeset_on_lid))
+>  		goto exit;
+> -	if (!acpi_lid_open()) {
+> +	if (!val) {
+>  		/* do modeset on next lid open event */
+>  		dev_priv->modeset_restore = MODESET_ON_LID_OPEN;
+>  		goto exit;
 > 
->> I think there may be some misunderstanding here. The ESB instruction is placed in kernel_entry
->> of el0_sync and el0_irq. For the el0_sync, such as an syscall from userspace, after ESB is executed,
->> we check whether DISR.A is set. If it is not set, we go on to process the syscall. If it is set, we
->> jump to sError vector and then just eret.
-> 
-> Ah, this looks like an early optimisation!
-> 
-> We can't assume that the SError will result in the processing being killed, the
-> AET bits of the SError ISS Encoding (page D7-2284 of ARM-ARM DDI0487B.a), has a
-> 'corrected' error encoding.
-> For these I would expect the SError-vector C code to do nothing and return to
-> where it came from. In this case the syscall should still be run.
-> 
-Yes, it makes sense, so we should add a return value for the do_sei handler.
-
-Thanks,
-Wang Xiongfeng
