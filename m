@@ -1,70 +1,112 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 5/5] ACPI: button: Obselete acpi_lid_open() invocations
-Date: Tue,  9 May 2017 15:02:47 +0800
-Message-ID: <22b130fe0cf3fca19b0e14c69426fe36766cf2ee.1494311429.git.lv.zheng@intel.com>
-References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] HID: i2c: Call acpi_device_fix_up_power for
+ ACPI-enumerated devices
+Date: Tue, 9 May 2017 09:21:06 +0200
+Message-ID: <17ecd9cc-e802-ca85-1fe5-6814fa2007f3@redhat.com>
+References: <20170507214914.6013-1-hdegoede@redhat.com>
+ <20170509071231.GA19130@mail.corp.redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36902 "EHLO mga01.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49424 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750849AbdEIHCv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 May 2017 03:02:51 -0400
-In-Reply-To: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+        id S1751270AbdEIHVL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 03:21:11 -0400
+In-Reply-To: <20170509071231.GA19130@mail.corp.redhat.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, nouveau@lists.freedesktop.org
+To: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Cc: Jiri Kosina <jikos@kernel.org>, linux-input@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
 
-Since notification side has been changed to always notify kernel listeners
-using _LID returning value. Now listeners needn't invoke acpi_lid_open(),
-it should use a spec suggested control method lid device usage model:
-register lid notification and use the notified value instead, which is the
-only way to ensure the value is correct for "button.lid_init_state=ignore"
-mode or other modes with "button.lid_fake_events=N" specified.
+Hi,
 
-This patch fixes i915 driver to drop acpi_lid_open() user. It's not
-possible to change nouveau_connector.c user using a simple way now. So this
-patch only marks acpi_lid_open() as deprecated to accelerate this process
-by indicating this change to the nouveau developers.
+On 09-05-17 09:12, Benjamin Tissoires wrote:
+> Hi Hans,
+> 
+> On May 07 2017 or thereabouts, Hans de Goede wrote:
+>> ACPI devices which do not have a _PSC method are assumed to have been
+>> put in D0 by the BIOS, but for touchscreens that is not always true,
+>> so call acpi_device_fix_up_power to explicitly put devices without a
+>> _PSC method into D0 state.
+>>
+>> This fixes the SIS0817 i2c-hid touchscreen on a Peaq C1010 2-in-1
+>> device failing to probe with a "hid_descr_cmd failed" error.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>   drivers/hid/i2c-hid/i2c-hid.c | 13 +++++++++++++
+>>   1 file changed, 13 insertions(+)
+>>
+>> diff --git a/drivers/hid/i2c-hid/i2c-hid.c b/drivers/hid/i2c-hid/i2c-hid.c
+>> index ea3c3546cef7..c716d9605940 100644
+>> --- a/drivers/hid/i2c-hid/i2c-hid.c
+>> +++ b/drivers/hid/i2c-hid/i2c-hid.c
+>> @@ -960,6 +960,15 @@ static int i2c_hid_acpi_pdata(struct i2c_client *client,
+>>   	return 0;
+>>   }
+>>   
+>> +static void i2c_hid_acpi_fix_up_power(struct device *dev)
+>> +{
+>> +	acpi_handle handle = ACPI_HANDLE(dev);
+>> +	struct acpi_device *adev;
+>> +
+>> +	if (handle && acpi_bus_get_device(handle, &adev) == 0)
+>> +		acpi_device_fix_up_power(adev);
+> 
+> I am wondering if this is not something that should be handled by
+> acpi-core or i2c-core. Looks like something pretty generic.
 
-Cc: <intel-gfx@lists.freedesktop.org>
-Cc: <nouveau@lists.freedesktop.org>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/button.c             | 7 ++++++-
- drivers/gpu/drm/i915/intel_lvds.c | 2 +-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+The acpi-core deliberately does not do this, as unconditionally
+doing this for all devices is known to break things on some
+platforms, see:
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 7ff3a75..50d7898 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -348,7 +348,12 @@ int acpi_lid_notifier_unregister(struct notifier_block *nb)
- }
- EXPORT_SYMBOL(acpi_lid_notifier_unregister);
- 
--int acpi_lid_open(void)
-+/*
-+ * The intentional usage model is to register a lid notifier and use the
-+ * notified value instead. Directly evaluating _LID without seeing a
-+ * Notify(lid, 0x80) is not reliable.
-+ */
-+int __deprecated acpi_lid_open(void)
- {
- 	if (!lid_device)
- 		return -ENODEV;
-diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
-index 9ca4dc4..8ca9080 100644
---- a/drivers/gpu/drm/i915/intel_lvds.c
-+++ b/drivers/gpu/drm/i915/intel_lvds.c
-@@ -548,7 +548,7 @@ static int intel_lid_notify(struct notifier_block *nb, unsigned long val,
- 	/* Don't force modeset on machines where it causes a GPU lockup */
- 	if (dmi_check_system(intel_no_modeset_on_lid))
- 		goto exit;
--	if (!acpi_lid_open()) {
-+	if (!val) {
- 		/* do modeset on next lid open event */
- 		dev_priv->modeset_restore = MODESET_ON_LID_OPEN;
- 		goto exit;
--- 
-2.7.4
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=7cd8407
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=b9e95fc65eded
 
+So calling this is something which needs to be done an a device-by-device
+(usually actually on a driver-by-driver) basis.
+
+I don't expect this to cause any problems for i2c-hid devices
+(as the above commits shown once it was done for all ACPI enumerated devices)
+and it is necessary for some i2c-hid devices.
+
+> Also, isn't this also needed on resume (or reset_resume)?
+
+After a suspend the device is in D3, so we will always execute _PS0
+to put it back in D0. This is about devices without a _PSC method
+(which allows querying the actual state) being in D3 on boot, rather
+then the expected (and assumed) D0. Note that for devices with a _PSC
+method calling acpi_device_fix_up_power() is a nop.
+
+Regards,
+
+Hans
+
+>> +}
+>> +
+>>   static const struct acpi_device_id i2c_hid_acpi_match[] = {
+>>   	{"ACPI0C50", 0 },
+>>   	{"PNP0C50", 0 },
+>> @@ -972,6 +981,8 @@ static inline int i2c_hid_acpi_pdata(struct i2c_client *client,
+>>   {
+>>   	return -ENODEV;
+>>   }
+>> +
+>> +static inline void i2c_hid_acpi_fix_up_power(struct device *dev) {}
+>>   #endif
+>>   
+>>   #ifdef CONFIG_OF
+>> @@ -1070,6 +1081,8 @@ static int i2c_hid_probe(struct i2c_client *client,
+>>   	if (ret < 0)
+>>   		goto err;
+>>   
+>> +	i2c_hid_acpi_fix_up_power(&client->dev);
+>> +
+>>   	pm_runtime_get_noresume(&client->dev);
+>>   	pm_runtime_set_active(&client->dev);
+>>   	pm_runtime_enable(&client->dev);
+>> -- 
+>> 2.12.2
+>>
