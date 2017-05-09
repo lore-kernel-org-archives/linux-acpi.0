@@ -1,82 +1,95 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: Regression: bd698d24b1b57: i2c: designware: Get selected speed
- mode sda-hold-time via ACPI
-Date: Tue, 09 May 2017 19:20:48 +0300
-Message-ID: <1494346848.30052.84.camel@linux.intel.com>
-References: <20170509140720.GA21122@red-moon>
-         <1494341651.30052.82.camel@linux.intel.com>
-         <20170509155253.GA21475@red-moon>
+From: <durrant@iupui.edu>
+Subject: 17021
+Date: Tue, 09 May 2017 22:45:14 -0000
+Message-ID: <149436991462.26768.11336382415393486869@digiten.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: application/zip; name="811600.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:62985 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752737AbdEIQXy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 May 2017 12:23:54 -0400
-In-Reply-To: <20170509155253.GA21475@red-moon>
+Received: from 185-67-236-155.digiten.eu ([185.67.236.155]:44832 "HELO
+        digiten.eu" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1750733AbdEIWpT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 18:45:19 -0400
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: chin.yew.tan@intel.com, mika.westerberg@linux.intel.com, jarkko.nikula@linux.intel.com, wsa@the-dreams.de, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, ken.xue@amd.com, jeff.wu@amd.com
+To: linux-acpi@vger.kernel.org
 
-On Tue, 2017-05-09 at 16:52 +0100, Lorenzo Pieralisi wrote:
-> [+ Ken, Jeff]
-> 
-> On Tue, May 09, 2017 at 05:54:11PM +0300, Andy Shevchenko wrote:
-> > On Tue, 2017-05-09 at 15:07 +0100, Lorenzo Pieralisi wrote:
-> > > Hi guys,
-> > > 
-> > > as a heads-up, with today mainline (commit 2868b2513aa7) I get the
-> > > following splat on AMD Seattle, reverting the $SUBJECT commit
-> > > "solves"
-> > > the problem.
-> > > 
-> > > My I2C knowledge is a bit limited but I am not sure I understand
-> > > why
-> > > we should be reading eg ss_hcnt/ss_lcnt depending on the dev-
-> > > >clk_freq
-> > > but then i2c_dw_init() _always_ requires those values to be set
-> > > for
-> > > a given device. Again, I have no insights into I2C inner workings
-> > > so apologies for the silly assumption/question.
-> > > 
-> > > Please have a look into this, thanks.
-> > 
-> > Since there is no clock defined you got a warning.
-> 
-> IIUC there has never been a clock defined for this platform, that's
-> the problem. The warning appeared because the commit in $SUBJECT
-> prevents reading the ss_hcnt and ss_lcnt values from ACPI methods
-> that are there in ACPI tables (SSCN and FMCN), because it carries
-> out the SSCN FMCN look-up depending on the dev->clk_freq value.
-> 
-> Before $SUBJECT commit the values were read unconditionally from SSCN
-> and FMCN ACPI methods IIUC, again, I am no I2C expert so it is more
-> a question than anything else.
-> 
-> dev->clk_freq is set to 400000 by default because FW does not the
-> contain (ie never contained) "clock-frequency" property and
-> acpi_speed can't be ascertained through I2C resources, that's how
-> I read what's happening.
-> 
-> > It means either ID is not added to drivers/acpi/acpi_apd.c or
+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
+BgAAAAA=
+Message-ID: <149436991462.26768.11336382415393486869@digiten.eu>
+From: <durrant@iupui.edu>
+To: <linux-acpi@vger.kernel.org>
+Subject: 26000
+Date: Tue, 09 May 2017 22:45:14 -0000
+Importance: High
+MIME-Version: 1.0
+Content-Type: application/zip; name="1160086327962.zip"
+Content-Disposition: attachment
+Content-Transfer-Encoding: base64
 
-Just one question, did you look at all into above driver?
-I suppose it missed ID and properties for the device.
-
-> > platform has wrong values and thus 
-> > dw_i2c_no_acpi_params should be expanded.
-> > 
-> > I have no such platform, so I can't tell which one is the right fix.
-> > But it's not a revert by my opinion.
-> 
-> It was working before the commit in $SUBJECT was applied, AMD chaps
-> may be able to chime in hopefully to clarify, whether that's a revert
-> or not we shall see but with a given FW the kernel behaviour changed,
-> it may affect other platforms too if their FW was not upgraded
-> accordingly that's why I reported it.
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+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
