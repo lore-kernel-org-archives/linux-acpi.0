@@ -1,97 +1,143 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v4 2/4] ACPICA: Tables: Add mechanism to allow to balance late stage acpi_get_table() independently
-Date: Tue,  9 May 2017 13:57:41 +0800
-Message-ID: <86628bf775497ed03931e30361bb6115d78876be.1494309338.git.lv.zheng@intel.com>
-References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 1/5] Revert "ACPI / button: Remove lid_init_state=method
+ mode"
+Date: Tue, 9 May 2017 06:17:51 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEA02E1@SHSMSX101.ccr.corp.intel.com>
+References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+ <873fc05b-5c4c-37ee-752d-e87380c634f0@jwi.name>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:29851 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751166AbdEIGR4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 02:17:56 -0400
+In-Reply-To: <873fc05b-5c4c-37ee-752d-e87380c634f0@jwi.name>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Julian Wiedmann <julian.wiedmann@jwi.name>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-For all frequent late stage acpi_get_table() clone invocations, we should
-only change them altogether, otherwise, excessive acpi_put_table() could
-unexpectedly unmap the table used by the other users. Thus the current plan
-is to change all acpi_get_table() clones together or to change none of
-them. However in practical, this is not convenient as this can prevent
-kernel developers' efforts of improving the late stage code quality before
-waiting for the ACPICA upstream to improve first.
-
-This patch adds a validation count threashold, when it is reached, the
-validation count can no longer be incremented/decremented to invalidate the
-table descriptor (means preventing table unmappings) so that acpi_put_table()
-balance changes can be done independently to each others. Lv Zheng.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/tbutils.c | 24 +++++++++++++++---------
- include/acpi/actbl.h          |  9 +++++++++
- 2 files changed, 24 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 7abe665..04beafc 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -416,9 +416,13 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
- 		}
- 	}
- 
--	table_desc->validation_count++;
--	if (table_desc->validation_count == 0) {
--		table_desc->validation_count--;
-+	if (table_desc->validation_count < ACPI_MAX_TABLE_VALIDATIONS) {
-+		table_desc->validation_count++;
-+		if (table_desc->validation_count >= ACPI_MAX_TABLE_VALIDATIONS) {
-+			ACPI_WARNING((AE_INFO,
-+				      "Table %p, Validation count overflows\n",
-+				      table_desc));
-+		}
- 	}
- 
- 	*out_table = table_desc->pointer;
-@@ -445,13 +449,15 @@ void acpi_tb_put_table(struct acpi_table_desc *table_desc)
- 
- 	ACPI_FUNCTION_TRACE(acpi_tb_put_table);
- 
--	if (table_desc->validation_count == 0) {
--		ACPI_WARNING((AE_INFO,
--			      "Table %p, Validation count is zero before decrement\n",
--			      table_desc));
--		return_VOID;
-+	if (table_desc->validation_count < ACPI_MAX_TABLE_VALIDATIONS) {
-+		table_desc->validation_count--;
-+		if (table_desc->validation_count >= ACPI_MAX_TABLE_VALIDATIONS) {
-+			ACPI_WARNING((AE_INFO,
-+				      "Table %p, Validation count underflows\n",
-+				      table_desc));
-+			return_VOID;
-+		}
- 	}
--	table_desc->validation_count--;
- 
- 	if (table_desc->validation_count == 0) {
- 
-diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
-index d92543f..8e1bff8 100644
---- a/include/acpi/actbl.h
-+++ b/include/acpi/actbl.h
-@@ -374,6 +374,15 @@ struct acpi_table_desc {
- 	u16 validation_count;
- };
- 
-+/*
-+ * Maximum validation count, when it is reached, validation count can no
-+ * longer be changed. Which means, the table can no longer be invalidated.
-+ * This mechanism is implemented for backward compatibility, where in OS
-+ * late stage, old drivers are not facilitated with paired validations and
-+ * invalidations.
-+ */
-+#define ACPI_MAX_TABLE_VALIDATIONS          5
-+
- /* Masks for Flags field above */
- 
- #define ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL  (0)	/* Virtual address, external maintained */
--- 
-2.7.4
+SGksIEp1bGlhbg0KDQo+IEZyb206IEp1bGlhbiBXaWVkbWFubiBbbWFpbHRvOmp1bGlhbi53aWVk
+bWFubkBqd2kubmFtZV0NCj4gU3ViamVjdDogUmU6IFtQQVRDSCAxLzVdIFJldmVydCAiQUNQSSAv
+IGJ1dHRvbjogUmVtb3ZlIGxpZF9pbml0X3N0YXRlPW1ldGhvZCBtb2RlIg0KPiANCj4gT24gMDUu
+MDUuMjAxNyAwNDozOSwgTHYgWmhlbmcgd3JvdGU6DQo+ID4gVGhpcyByZXZlcnRzIGNvbW1pdCBl
+Y2IxMGI2OTRiNzJjYTVlYTUxYjNjOTBhNzFmZjJhMTE5NjM0MjVhLg0KPiA+DQo+ID4gVGhlIG9u
+bHkgZXhwZWN0ZWQgQUNQSSBjb250cm9sIG1ldGhvZCBsaWQgZGV2aWNlJ3MgdXNhZ2UgbW9kZWwg
+aXMNCj4gPiAxLiBMaXN0ZW4gdG8gdGhlIGxpZCBub3RpZmljYXRpb24sDQo+ID4gMi4gRXZhbHVh
+dGUgX0xJRCBhZnRlciBiZWluZyBub3RpZmllZCBieSBCSU9TLA0KPiA+IDMuIFN1c3BlbmQgdGhl
+IHN5c3RlbSAoaWYgdXNlcnMgY29uZmlndXJlIHRvIGRvIHNvKSBhZnRlciBzZWVpbmcgImNsb3Nl
+Ii4NCj4gPiBJdCdzIG5vdCBlbnN1cmVkIHRoYXQgQklPUyB3aWxsIG5vdGlmeSBPUyBhZnRlciBi
+b290L3Jlc3VtZSwgYW5kDQo+ID4gaXQncyBub3QgZW5zdXJlZCB0aGF0IEJJT1Mgd2lsbCBhbHdh
+eXMgZ2VuZXJhdGUgIm9wZW4iIGV2ZW50IHVwb24NCj4gPiBvcGVuaW5nIHRoZSBsaWQuDQo+ID4N
+Cj4gPiBCdXQgdGhlcmUgYXJlIDIgd3JvbmcgdXNhZ2UgbW9kZWxzOg0KPiA+IDEuIFdoZW4gdGhl
+IGxpZCBkZXZpY2UgaXMgcmVzcG9uc2libGUgZm9yIHN1c3BlbmQvcmVzdW1lIHRoZSBzeXN0ZW0s
+DQo+ID4gICAgdXNlcnNwYWNlIHJlcXVpcmVzIHRvIHNlZSAib3BlbiIgZXZlbnQgdG8gYmUgcGFp
+cmVkIHdpdGggImNsb3NlIiBhZnRlcg0KPiA+ICAgIHRoZSBzeXN0ZW0gaXMgcmVzdW1lZCwgb3Ig
+aXQgd2lsbCBzdXNwZW5kIHRoZSBzeXN0ZW0gYWdhaW4uDQo+ID4gMi4gV2hlbiBhbiBleHRlcm5h
+bCBtb25pdG9yIGNvbm5lY3RzIHRvIHRoZSBsYXB0b3AgYXR0YWNoZWQgZG9ja3MsDQo+ID4gICAg
+dXNlcnNwYWNlIHJlcXVpcmVzIHRvIHNlZSAiY2xvc2UiIGV2ZW50IGFmdGVyIHRoZSBzeXN0ZW0g
+aXMgcmVzdW1lZCBzbw0KPiA+ICAgIHRoYXQgaXQgY2FuIGRldGVybWluZSB3aGV0aGVyIHRoZSBp
+bnRlcm5hbCBkaXNwbGF5IHNob3VsZCByZW1haW4gZGFyaw0KPiA+ICAgIGFuZCB0aGUgZXh0ZXJu
+YWwgZGlzcGxheSBzaG91bGQgYmUgbGl0IG9uLg0KPiA+DQo+ID4gQWZ0ZXIgd2UgbWFkZSBkZWZh
+dWx0IGtlbnJlbCBiZWhhdmlvciB0byBiZSBzdWl0YWJsZSBmb3IgdXNhZ2UgbW9kZWwgMSwNCj4g
+PiB1c2VycyBvZiB1c2FnZSBtb2RlbCAyIHN0YXJ0IHRvIHJlcG9ydCByZWdyZXNzaW9ucyBmb3Ig
+c3VjaCBiZWhhdmlvcg0KPiA+IGNoYW5nZS4NCj4gPg0KPiA+IFJldmVyc2lvbiBvZiBidXR0b24u
+bGlkX2luaXRfc3RhdGU9bWV0aG9kIGRvZXNuJ3QgYWN0dWFsbHkgcmV2ZXJ0cyB0byBvbGQNCj4g
+PiBkZWZhdWx0IGJlaGF2aW9yIGFzIGRvaW5nIHNvIGNhbiBlbnRlciBhIHJlZ3Jlc3Npb24gbG9v
+cCwgYnV0IGZhY2lsaXRhdGVzDQo+ID4gdXNlcnMgdG8gd29yayB0aGUgcmVwb3J0ZWQgcmVncmVz
+c2lvbnMgYXJvdW5kIHdpdGgNCj4gPiBidXR0b24ubGlkX2luaXRfc3RhdGU9bWV0aG9kLg0KPiBU
+aGFua3MgTHYgZm9yIGRvaW5nIHRoaXMuDQo+IA0KPiA+DQo+ID4gRml4ZXM6IDc3ZTlhNGFhOWRl
+MSAoIkFDUEkgLyBidXR0b246IENoYW5nZSBkZWZhdWx0IGJlaGF2aW9yIHRvIGxpZF9pbml0X3N0
+YXRlPW9wZW4iKQ0KPiBUbyBiZSBmYWlyLCBpdCBkb2Vzbid0IGFjdHVhbGx5IGZpeCBpdCAtIHRo
+ZSByZWdyZXNzaW9uIGlzIHN0aWxsIHRoZXJlLA0KPiB0aGlzIGp1c3QgYWxsb3dzIGFmZmVjdGVk
+IHVzZXJzIHRvIHdvcmstYXJvdW5kIGl0IGFnYWluLiBGaXhpbmcgaXQgbWVhbnMNCj4gc3dpdGNo
+aW5nIGJhY2sgdGhlIGRlZmF1bHQgdG8gJ21ldGhvZCcuDQo+IEFueXdheSwgcGxlYXNlIGFkZCBh
+IGNjOiBzdGFibGUgc28gdGhpcyBpcyBwaWNrZWQgdXAgZm9yIDQuMTEueC4NCg0KT0ssIEknbGwg
+Y29ycmVjdCB0aGUgIkZpeGVzIiB0YWcgYW5kIGFkZCBzdGFibGUgYXMgYSBjYyByZWNpcGllbnQu
+DQoNCj4gDQo+ID4gTGluazogaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNn
+aT9pZD0xOTU0NTUNCj4gPiBMaW5rOiBodHRwczovL2J1Z3ppbGxhLnJlZGhhdC5jb20vc2hvd19i
+dWcuY2dpP2lkPTE0MzAyNTkNCj4gPiBUZXN0ZWQtYnk6IFN0ZWZmZW4gV2ViZXIgPHN0ZWZmZW4u
+d2ViZXJAZ21haWwuY29tPg0KPiA+IFJlcG9ydGVkLWJ5OiBKdWxpYW4gV2llZG1hbm4gPGp1bGlh
+bi53ZWlkbWFubkBqd2kubmFtZT4NCj4gVGVzdGVkLWJ5OiBKdWxpYW4gV2llZG1hbm4gPGp1bGlh
+bi53aWVkbWFubkBqd2kubmFtZT4NCj4gKG1pbmQgdGhlIHR5cG8pDQoNCk9LLiBUaGFua3MgZm9y
+IHBvaW50aW5nIGl0IG91dC4NCg0KVGhhbmtzDQpMdg0KDQo+IA0KPiA+IFJlcG9ydGVkLWJ5OiBK
+b2FjaGltIEZyaWViZW4gPGpmcmllYmVuQGhvdG1haWwuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6
+IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gLS0tDQo+ID4gIERvY3VtZW50YXRp
+b24vYWNwaS9hY3BpLWxpZC50eHQgfCAxNiArKysrKysrKysrKystLS0tDQo+ID4gIGRyaXZlcnMv
+YWNwaS9idXR0b24uYyAgICAgICAgICAgfCAgOSArKysrKysrKysNCj4gPiAgMiBmaWxlcyBjaGFu
+Z2VkLCAyMSBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdp
+dCBhL0RvY3VtZW50YXRpb24vYWNwaS9hY3BpLWxpZC50eHQgYi9Eb2N1bWVudGF0aW9uL2FjcGkv
+YWNwaS1saWQudHh0DQo+ID4gaW5kZXggMjJjYjMwOS4uZWZmZTdhZiAxMDA2NDQNCj4gPiAtLS0g
+YS9Eb2N1bWVudGF0aW9uL2FjcGkvYWNwaS1saWQudHh0DQo+ID4gKysrIGIvRG9jdW1lbnRhdGlv
+bi9hY3BpL2FjcGktbGlkLnR4dA0KPiA+IEBAIC01OSwyMCArNTksMjggQEAgYnV0dG9uIGRyaXZl
+ciB1c2VzIHRoZSBmb2xsb3dpbmcgMyBtb2RlcyBpbiBvcmRlciBub3QgdG8gdHJpZ2dlciBpc3N1
+ZXMuDQo+ID4gIElmIHRoZSB1c2Vyc3BhY2UgaGFzbid0IGJlZW4gcHJlcGFyZWQgdG8gaWdub3Jl
+IHRoZSB1bnJlbGlhYmxlICJvcGVuZWQiDQo+ID4gIGV2ZW50cyBhbmQgdGhlIHVucmVsaWFibGUg
+aW5pdGlhbCBzdGF0ZSBub3RpZmljYXRpb24sIExpbnV4IHVzZXJzIGNhbiB1c2UNCj4gPiAgdGhl
+IGZvbGxvd2luZyBrZXJuZWwgcGFyYW1ldGVycyB0byBoYW5kbGUgdGhlIHBvc3NpYmxlIGlzc3Vl
+czoNCj4gPiAtQS4gYnV0dG9uLmxpZF9pbml0X3N0YXRlPW9wZW46DQo+ID4gK0EuIGJ1dHRvbi5s
+aWRfaW5pdF9zdGF0ZT1tZXRob2Q6DQo+ID4gKyAgIFdoZW4gdGhpcyBvcHRpb24gaXMgc3BlY2lm
+aWVkLCB0aGUgQUNQSSBidXR0b24gZHJpdmVyIHJlcG9ydHMgdGhlDQo+ID4gKyAgIGluaXRpYWwg
+bGlkIHN0YXRlIHVzaW5nIHRoZSByZXR1cm5pbmcgdmFsdWUgb2YgdGhlIF9MSUQgY29udHJvbCBt
+ZXRob2QNCj4gPiArICAgYW5kIHdoZXRoZXIgdGhlICJvcGVuZWQiLyJjbG9zZWQiIGV2ZW50cyBh
+cmUgcGFpcmVkIGZ1bGx5IHJlbGllcyBvbiB0aGUNCj4gPiArICAgZmlybXdhcmUgaW1wbGVtZW50
+YXRpb24uDQo+ID4gKyAgIFRoaXMgb3B0aW9uIGNhbiBiZSB1c2VkIHRvIGZpeCBzb21lIHBsYXRm
+b3JtcyB3aGVyZSB0aGUgcmV0dXJuaW5nIHZhbHVlDQo+ID4gKyAgIG9mIHRoZSBfTElEIGNvbnRy
+b2wgbWV0aG9kIGlzIHJlbGlhYmxlIGJ1dCB0aGUgaW5pdGlhbCBsaWQgc3RhdGUNCj4gPiArICAg
+bm90aWZpY2F0aW9uIGlzIG1pc3NpbmcuDQo+ID4gKyAgIFRoaXMgb3B0aW9uIGlzIHRoZSBkZWZh
+dWx0IGJlaGF2aW9yIGR1cmluZyB0aGUgcGVyaW9kIHRoZSB1c2Vyc3BhY2UNCj4gPiArICAgaXNu
+J3QgcmVhZHkgdG8gaGFuZGxlIHRoZSBidWdneSBBTUwgdGFibGVzLg0KPiA+ICtCLiBidXR0b24u
+bGlkX2luaXRfc3RhdGU9b3BlbjoNCj4gPiAgICAgV2hlbiB0aGlzIG9wdGlvbiBpcyBzcGVjaWZp
+ZWQsIHRoZSBBQ1BJIGJ1dHRvbiBkcml2ZXIgYWx3YXlzIHJlcG9ydHMgdGhlDQo+ID4gICAgIGlu
+aXRpYWwgbGlkIHN0YXRlIGFzICJvcGVuZWQiIGFuZCB3aGV0aGVyIHRoZSAib3BlbmVkIi8iY2xv
+c2VkIiBldmVudHMNCj4gPiAgICAgYXJlIHBhaXJlZCBmdWxseSByZWxpZXMgb24gdGhlIGZpcm13
+YXJlIGltcGxlbWVudGF0aW9uLg0KPiA+ICAgICBUaGlzIG1heSBmaXggc29tZSBwbGF0Zm9ybXMg
+d2hlcmUgdGhlIHJldHVybmluZyB2YWx1ZSBvZiB0aGUgX0xJRA0KPiA+ICAgICBjb250cm9sIG1l
+dGhvZCBpcyBub3QgcmVsaWFibGUgYW5kIHRoZSBpbml0aWFsIGxpZCBzdGF0ZSBub3RpZmljYXRp
+b24gaXMNCj4gPiAgICAgbWlzc2luZy4NCj4gPiAtICAgVGhpcyBvcHRpb24gaXMgdGhlIGRlZmF1
+bHQgYmVoYXZpb3IgZHVyaW5nIHRoZSBwZXJpb2QgdGhlIHVzZXJzcGFjZQ0KPiA+IC0gICBpc24n
+dCByZWFkeSB0byBoYW5kbGUgdGhlIGJ1Z2d5IEFNTCB0YWJsZXMuDQo+ID4NCj4gPiAgSWYgdGhl
+IHVzZXJzcGFjZSBoYXMgYmVlbiBwcmVwYXJlZCB0byBpZ25vcmUgdGhlIHVucmVsaWFibGUgIm9w
+ZW5lZCIgZXZlbnRzDQo+ID4gIGFuZCB0aGUgdW5yZWxpYWJsZSBpbml0aWFsIHN0YXRlIG5vdGlm
+aWNhdGlvbiwgTGludXggdXNlcnMgc2hvdWxkIGFsd2F5cw0KPiA+ICB1c2UgdGhlIGZvbGxvd2lu
+ZyBrZXJuZWwgcGFyYW1ldGVyOg0KPiA+IC1CLiBidXR0b24ubGlkX2luaXRfc3RhdGU9aWdub3Jl
+Og0KPiA+ICtDLiBidXR0b24ubGlkX2luaXRfc3RhdGU9aWdub3JlOg0KPiA+ICAgICBXaGVuIHRo
+aXMgb3B0aW9uIGlzIHNwZWNpZmllZCwgdGhlIEFDUEkgYnV0dG9uIGRyaXZlciBuZXZlciByZXBv
+cnRzIHRoZQ0KPiA+ICAgICBpbml0aWFsIGxpZCBzdGF0ZSBhbmQgdGhlcmUgaXMgYSBjb21wZW5z
+YXRpb24gbWVjaGFuaXNtIGltcGxlbWVudGVkIHRvDQo+ID4gICAgIGVuc3VyZSB0aGF0IHRoZSBy
+ZWxpYWJsZSAiY2xvc2VkIiBub3RpZmljYXRpb25zIGNhbiBhbHdheXMgYmUgZGVsaWV2ZXJlZA0K
+PiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYnV0dG9uLmMgYi9kcml2ZXJzL2FjcGkvYnV0
+dG9uLmMNCj4gPiBpbmRleCA2NjgxMzdlLi42ZDVhOGMxIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZl
+cnMvYWNwaS9idXR0b24uYw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9idXR0b24uYw0KPiA+IEBA
+IC01Nyw2ICs1Nyw3IEBADQo+ID4NCj4gPiAgI2RlZmluZSBBQ1BJX0JVVFRPTl9MSURfSU5JVF9J
+R05PUkUJMHgwMA0KPiA+ICAjZGVmaW5lIEFDUElfQlVUVE9OX0xJRF9JTklUX09QRU4JMHgwMQ0K
+PiA+ICsjZGVmaW5lIEFDUElfQlVUVE9OX0xJRF9JTklUX01FVEhPRAkweDAyDQo+ID4NCj4gPiAg
+I2RlZmluZSBfQ09NUE9ORU5UCQlBQ1BJX0JVVFRPTl9DT01QT05FTlQNCj4gPiAgQUNQSV9NT0RV
+TEVfTkFNRSgiYnV0dG9uIik7DQo+ID4gQEAgLTM3Niw2ICszNzcsOSBAQCBzdGF0aWMgdm9pZCBh
+Y3BpX2xpZF9pbml0aWFsaXplX3N0YXRlKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKQ0KPiA+
+ICAJY2FzZSBBQ1BJX0JVVFRPTl9MSURfSU5JVF9PUEVOOg0KPiA+ICAJCSh2b2lkKWFjcGlfbGlk
+X25vdGlmeV9zdGF0ZShkZXZpY2UsIDEpOw0KPiA+ICAJCWJyZWFrOw0KPiA+ICsJY2FzZSBBQ1BJ
+X0JVVFRPTl9MSURfSU5JVF9NRVRIT0Q6DQo+ID4gKwkJKHZvaWQpYWNwaV9saWRfdXBkYXRlX3N0
+YXRlKGRldmljZSk7DQo+ID4gKwkJYnJlYWs7DQo+ID4gIAljYXNlIEFDUElfQlVUVE9OX0xJRF9J
+TklUX0lHTk9SRToNCj4gPiAgCWRlZmF1bHQ6DQo+ID4gIAkJYnJlYWs7DQo+ID4gQEAgLTU1OSw2
+ICs1NjMsOSBAQCBzdGF0aWMgaW50IHBhcmFtX3NldF9saWRfaW5pdF9zdGF0ZShjb25zdCBjaGFy
+ICp2YWwsIHN0cnVjdCBrZXJuZWxfcGFyYW0gKmtwKQ0KPiA+ICAJaWYgKCFzdHJuY21wKHZhbCwg
+Im9wZW4iLCBzaXplb2YoIm9wZW4iKSAtIDEpKSB7DQo+ID4gIAkJbGlkX2luaXRfc3RhdGUgPSBB
+Q1BJX0JVVFRPTl9MSURfSU5JVF9PUEVOOw0KPiA+ICAJCXByX2luZm8oIk5vdGlmeSBpbml0aWFs
+IGxpZCBzdGF0ZSBhcyBvcGVuXG4iKTsNCj4gPiArCX0gZWxzZSBpZiAoIXN0cm5jbXAodmFsLCAi
+bWV0aG9kIiwgc2l6ZW9mKCJtZXRob2QiKSAtIDEpKSB7DQo+ID4gKwkJbGlkX2luaXRfc3RhdGUg
+PSBBQ1BJX0JVVFRPTl9MSURfSU5JVF9NRVRIT0Q7DQo+ID4gKwkJcHJfaW5mbygiTm90aWZ5IGlu
+aXRpYWwgbGlkIHN0YXRlIHdpdGggX0xJRCByZXR1cm4gdmFsdWVcbiIpOw0KPiA+ICAJfSBlbHNl
+IGlmICghc3RybmNtcCh2YWwsICJpZ25vcmUiLCBzaXplb2YoImlnbm9yZSIpIC0gMSkpIHsNCj4g
+PiAgCQlsaWRfaW5pdF9zdGF0ZSA9IEFDUElfQlVUVE9OX0xJRF9JTklUX0lHTk9SRTsNCj4gPiAg
+CQlwcl9pbmZvKCJEbyBub3Qgbm90aWZ5IGluaXRpYWwgbGlkIHN0YXRlXG4iKTsNCj4gPiBAQCAt
+NTcyLDYgKzU3OSw4IEBAIHN0YXRpYyBpbnQgcGFyYW1fZ2V0X2xpZF9pbml0X3N0YXRlKGNoYXIg
+KmJ1ZmZlciwgc3RydWN0IGtlcm5lbF9wYXJhbSAqa3ApDQo+ID4gIAlzd2l0Y2ggKGxpZF9pbml0
+X3N0YXRlKSB7DQo+ID4gIAljYXNlIEFDUElfQlVUVE9OX0xJRF9JTklUX09QRU46DQo+ID4gIAkJ
+cmV0dXJuIHNwcmludGYoYnVmZmVyLCAib3BlbiIpOw0KPiA+ICsJY2FzZSBBQ1BJX0JVVFRPTl9M
+SURfSU5JVF9NRVRIT0Q6DQo+ID4gKwkJcmV0dXJuIHNwcmludGYoYnVmZmVyLCAibWV0aG9kIik7
+DQo+ID4gIAljYXNlIEFDUElfQlVUVE9OX0xJRF9JTklUX0lHTk9SRToNCj4gPiAgCQlyZXR1cm4g
+c3ByaW50ZihidWZmZXIsICJpZ25vcmUiKTsNCj4gPiAgCWRlZmF1bHQ6DQo+ID4NCg==
