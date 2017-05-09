@@ -1,82 +1,76 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: Regression: bd698d24b1b57: i2c: designware: Get selected speed
- mode sda-hold-time via ACPI
-Date: Tue, 9 May 2017 16:52:53 +0100
-Message-ID: <20170509155253.GA21475@red-moon>
-References: <20170509140720.GA21122@red-moon>
- <1494341651.30052.82.camel@linux.intel.com>
+From: Robert Richter <robert.richter@cavium.com>
+Subject: Re: [PATCH v3 0/7] Cavium ThunderX2 SMMUv3 errata workarounds
+Date: Tue, 9 May 2017 18:07:29 +0200
+Message-ID: <20170509160729.GN16981@rric.localdomain>
+References: <1493986091-30521-1-git-send-email-gakula@caviumnetworks.com>
+ <20170505222250.GY16981@rric.localdomain>
+ <20170508151536.GA27789@virtx40>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:56536 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755898AbdEIPv7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 May 2017 11:51:59 -0400
+Received: from mail-sn1nam02on0060.outbound.protection.outlook.com ([104.47.36.60]:28272
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754538AbdEIQHu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 12:07:50 -0400
 Content-Disposition: inline
-In-Reply-To: <1494341651.30052.82.camel@linux.intel.com>
+In-Reply-To: <20170508151536.GA27789@virtx40>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: chin.yew.tan@intel.com, mika.westerberg@linux.intel.com, jarkko.nikula@linux.intel.com, wsa@the-dreams.de, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, ken.xue@amd.com, jeff.wu@amd.com
+To: Linu Cherian <linu.cherian@cavium.com>
+Cc: Geetha sowjanya <gakula@caviumnetworks.com>, will.deacon@arm.com, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, jcm@redhat.com, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, Charles.Garcia-Tobin@arm.com
 
-[+ Ken, Jeff]
-
-On Tue, May 09, 2017 at 05:54:11PM +0300, Andy Shevchenko wrote:
-> On Tue, 2017-05-09 at 15:07 +0100, Lorenzo Pieralisi wrote:
-> > Hi guys,
+On 08.05.17 20:45:36, Linu Cherian wrote:
+> On Sat May 06, 2017 at 12:22:50AM +0200, Robert Richter wrote:
+> > On 05.05.17 17:38:04, Geetha sowjanya wrote:
+> > > From: Linu Cherian <linu.cherian@cavium.com>
+> > > 
+> > > Cavium ThunderX2 SMMUv3 implementation has two Silicon Erratas.
+> > > 1. Errata ID #74
+> > >    SMMU register alias Page 1 is not implemented
+> > > 2. Errata ID #126
+> > >    SMMU doesnt support unique IRQ lines and also MSI for gerror, 
+> > >    eventq and cmdq-sync
+> > > 
+> > > The following patchset does software workaround for these two erratas.
+> > > 
+> > > This series is based on patchset. 
+> > > https://www.spinics.net/lists/arm-kernel/msg578443.html
+> > > 
+> > > Changes from v1:
+> > >  Since the use of MIDR register is rejected and SMMU_IIDR is broken on this 
+> > >  silicon, as suggested by Will Deacon modified the patches to use ThunderX2 
+> > >  SMMUv3 IORT model number to enable errata workaround.
+> > > 
+> > > Changes from v2:
+> > >  Updated "Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt" document with 
+> > >  new SMMU option used to enable errata workaround.
+> > >  
+> > > Geetha Sowjanya (1):
+> > >   iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #126
+> > > 
+> > > Linu Cherian (6):
+> > >   iommu/arm-smmu-v3: Introduce smmu option PAGE0_REGS_ONLY for ThunderX2
+> > >     errata#74.
+> > >   iommu/arm-smmu-v3: Do resource size checks based on SMMU option
+> > >     PAGE0_REGS_ONLY
+> > >   ACPICA: IORT: Add Cavium ThunderX2 SMMUv3 model definition.
+> > >   iommu/arm-smmu-v3: For ACPI based device probing, set PAGE0_REGS_ONLY
+> > >     option     for ThunderX2 SMMUv3 implementations.
+> > >   ACPI/IORT: Fixup SMMUv3 resource size for Cavium ThunderX2 SMMUv3
+> > >     model
+> > >   arm64: Documentation: Add Cavium ThunderX2 SMMUv3 erratas
 > > 
-> > as a heads-up, with today mainline (commit 2868b2513aa7) I get the
-> > following splat on AMD Seattle, reverting the $SUBJECT commit "solves"
-> > the problem.
-> > 
-> > My I2C knowledge is a bit limited but I am not sure I understand why
-> > we should be reading eg ss_hcnt/ss_lcnt depending on the dev->clk_freq
-> > but then i2c_dw_init() _always_ requires those values to be set for
-> > a given device. Again, I have no insights into I2C inner workings
-> > so apologies for the silly assumption/question.
-> > 
-> > Please have a look into this, thanks.
-> 
-> Since there is no clock defined you got a warning.
-
-IIUC there has never been a clock defined for this platform, that's
-the problem. The warning appeared because the commit in $SUBJECT
-prevents reading the ss_hcnt and ss_lcnt values from ACPI methods
-that are there in ACPI tables (SSCN and FMCN), because it carries
-out the SSCN FMCN look-up depending on the dev->clk_freq value.
-
-Before $SUBJECT commit the values were read unconditionally from SSCN
-and FMCN ACPI methods IIUC, again, I am no I2C expert so it is more
-a question than anything else.
-
-dev->clk_freq is set to 400000 by default because FW does not the
-contain (ie never contained) "clock-frequency" property and
-acpi_speed can't be ascertained through I2C resources, that's how
-I read what's happening.
-
-> It means either ID is not added to drivers/acpi/acpi_apd.c or
-> platform has wrong values and thus 
-> dw_i2c_no_acpi_params should be expanded.
-> 
-> I have no such platform, so I can't tell which one is the right fix.
-> But it's not a revert by my opinion.
-
-It was working before the commit in $SUBJECT was applied, AMD chaps
-may be able to chime in hopefully to clarify, whether that's a revert
-or not we shall see but with a given FW the kernel behaviour changed,
-it may affect other platforms too if their FW was not upgraded
-accordingly that's why I reported it.
-
-Thanks !
-Lorenzo
-
-> 
-> > [    1.160597] ------------[ cut here ]------------
-> > [    1.165207] WARNING: CPU: 0 PID: 1 at drivers/i2c/busses/i2c-
-> > designware-core.c:293 i2c_dw_clk_rate+0x20/0x30
+> > This split into patches does not look reasonable to me. 1 patch only
+> > for each workaround should be sufficient.
 > > 
 > 
-> -- 
-> Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Intel Finland Oy
+> * Should we not atleast keep the changes in drivers/acpi/iort.c and
+>  include/acpi/actbl2.h seperate, since they are outside smmuv3 driver ? 
+
+IMO both patches depend each other. You can't shrink the io space
+first without adjusting the offset when accessing it. At least the
+order should be changed. But since it is one workaround I would prefer
+also one patch.
+
+-Robert
