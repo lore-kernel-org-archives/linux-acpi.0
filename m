@@ -1,219 +1,172 @@
-From: Linu Cherian <linu.cherian@cavium.com>
-Subject: Re: [v4 3/4] iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2
- erratum #74
-Date: Tue, 9 May 2017 19:18:56 +0530
-Message-ID: <20170509134856.GA1090@virtx40>
-References: <1494330314-30179-1-git-send-email-gakula@caviumnetworks.com>
- <1494330314-30179-4-git-send-email-gakula@caviumnetworks.com>
- <bd0b9567-ccc5-8bf2-b113-d0f7a1ab2ed2@arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Regression: bd698d24b1b57: i2c: designware: Get selected speed mode
+ sda-hold-time via ACPI
+Date: Tue, 9 May 2017 15:07:20 +0100
+Message-ID: <20170509140720.GA21122@red-moon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2nam03on0073.outbound.protection.outlook.com ([104.47.42.73]:15584
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751304AbdEINtZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 9 May 2017 09:49:25 -0400
+Received: from foss.arm.com ([217.140.101.70]:55252 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751210AbdEIOG2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 10:06:28 -0400
 Content-Disposition: inline
-In-Reply-To: <bd0b9567-ccc5-8bf2-b113-d0f7a1ab2ed2@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: Geetha sowjanya <gakula@caviumnetworks.com>, will.deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, jcm@redhat.com, linux-kernel@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, Charles.Garcia-Tobin@arm.com, Geetha Sowjanya <geethasowjanya.akula@cavium.com>
+To: chin.yew.tan@intel.com, mika.westerberg@linux.intel.com, jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com
+Cc: wsa@the-dreams.de, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>
 
-On Tue May 09, 2017 at 02:02:58PM +0100, Robin Murphy wrote:
-> On 09/05/17 12:45, Geetha sowjanya wrote:
-> > From: Linu Cherian <linu.cherian@cavium.com>
-> > 
-> > Cavium ThunderX2 SMMU implementation doesn't support page 1 register space
-> > and PAGE0_REGS_ONLY option is enabled as an errata workaround.
-> > This option when turned on, replaces all page 1 offsets used for
-> > EVTQ_PROD/CONS, PRIQ_PROD/CONS register access with page 0 offsets.
-> > 
-> > SMMU resource size checks are now based on SMMU option PAGE0_REGS_ONLY,
-> > since resource size can be either 64k/128k.
-> > For this, arm_smmu_device_dt_probe/acpi_probe has been moved before
-> > platform_get_resource call, so that SMMU options are set beforehand.
-> > 
-> > Signed-off-by: Linu Cherian <linu.cherian@cavium.com>
-> > Signed-off-by: Geetha Sowjanya <geethasowjanya.akula@cavium.com>
-> > ---
-> >  Documentation/arm64/silicon-errata.txt             |  1 +
-> >  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |  6 ++
-> >  drivers/iommu/arm-smmu-v3.c                        | 80 ++++++++++++++++------
-> >  3 files changed, 66 insertions(+), 21 deletions(-)
-> > 
-> > diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
-> > index 10f2ddd..4693a32 100644
-> > --- a/Documentation/arm64/silicon-errata.txt
-> > +++ b/Documentation/arm64/silicon-errata.txt
-> > @@ -62,6 +62,7 @@ stable kernels.
-> >  | Cavium         | ThunderX GICv3  | #23154          | CAVIUM_ERRATUM_23154        |
-> >  | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
-> >  | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
-> > +| Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
-> >  |                |                 |                 |                             |
-> >  | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
-> >  |                |                 |                 |                             |
-> > diff --git a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-> > index be57550..e6da62b 100644
-> > --- a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-> > +++ b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-> > @@ -49,6 +49,12 @@ the PCIe specification.
-> >  - hisilicon,broken-prefetch-cmd
-> >                      : Avoid sending CMD_PREFETCH_* commands to the SMMU.
-> >  
-> > +- cavium-cn99xx,broken-page1-regspace
-> > +                    : Replaces all page 1 offsets used for EVTQ_PROD/CONS,
-> > +						PRIQ_PROD/CONS register access with page 0 offsets.
-> > +						Set for Caviun ThunderX2 silicon that doesn't support
-> > +						SMMU page1 register space.
-> > +
-> >  ** Example
-> >  
-> >          smmu@2b400000 {
-> > diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-> > index 380969a..1e986a0 100644
-> > --- a/drivers/iommu/arm-smmu-v3.c
-> > +++ b/drivers/iommu/arm-smmu-v3.c
-> > @@ -176,15 +176,15 @@
-> >  #define ARM_SMMU_CMDQ_CONS		0x9c
-> >  
-> >  #define ARM_SMMU_EVTQ_BASE		0xa0
-> > -#define ARM_SMMU_EVTQ_PROD		0x100a8
-> > -#define ARM_SMMU_EVTQ_CONS		0x100ac
-> > +#define ARM_SMMU_EVTQ_PROD(smmu)	(page1_offset_adjust(0x100a8, smmu))
-> > +#define ARM_SMMU_EVTQ_CONS(smmu)	(page1_offset_adjust(0x100ac, smmu))
-> 
-> Sorry, perhaps I should have communicated the rest of the idea more
-> explicitly - you now don't need to change these definitions...
-> 
+Hi guys,
 
-Fine. 
+as a heads-up, with today mainline (commit 2868b2513aa7) I get the
+following splat on AMD Seattle, reverting the $SUBJECT commit "solves"
+the problem.
 
+My I2C knowledge is a bit limited but I am not sure I understand why
+we should be reading eg ss_hcnt/ss_lcnt depending on the dev->clk_freq
+but then i2c_dw_init() _always_ requires those values to be set for
+a given device. Again, I have no insights into I2C inner workings
+so apologies for the silly assumption/question.
 
-> >  #define ARM_SMMU_EVTQ_IRQ_CFG0		0xb0
-> >  #define ARM_SMMU_EVTQ_IRQ_CFG1		0xb8
-> >  #define ARM_SMMU_EVTQ_IRQ_CFG2		0xbc
-> >  
-> >  #define ARM_SMMU_PRIQ_BASE		0xc0
-> > -#define ARM_SMMU_PRIQ_PROD		0x100c8
-> > -#define ARM_SMMU_PRIQ_CONS		0x100cc
-> > +#define ARM_SMMU_PRIQ_PROD(smmu)	(page1_offset_adjust(0x100c8, smmu))
-> > +#define ARM_SMMU_PRIQ_CONS(smmu)	(page1_offset_adjust(0x100cc, smmu))
-> >  #define ARM_SMMU_PRIQ_IRQ_CFG0		0xd0
-> >  #define ARM_SMMU_PRIQ_IRQ_CFG1		0xd8
-> >  #define ARM_SMMU_PRIQ_IRQ_CFG2		0xdc
-> > @@ -412,6 +412,9 @@
-> >  #define MSI_IOVA_BASE			0x8000000
-> >  #define MSI_IOVA_LENGTH			0x100000
-> >  
-> > +#define ARM_SMMU_PAGE0_REGS_ONLY(smmu)		\
-> > +	((smmu)->options & ARM_SMMU_OPT_PAGE0_REGS_ONLY)
-> > +
-> >  static bool disable_bypass;
-> >  module_param_named(disable_bypass, disable_bypass, bool, S_IRUGO);
-> >  MODULE_PARM_DESC(disable_bypass,
-> > @@ -597,6 +600,7 @@ struct arm_smmu_device {
-> >  	u32				features;
-> >  
-> >  #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
-> > +#define ARM_SMMU_OPT_PAGE0_REGS_ONLY    (1 << 1)
-> >  	u32				options;
-> >  
-> >  	struct arm_smmu_cmdq		cmdq;
-> > @@ -663,9 +667,19 @@ struct arm_smmu_option_prop {
-> >  
-> >  static struct arm_smmu_option_prop arm_smmu_options[] = {
-> >  	{ ARM_SMMU_OPT_SKIP_PREFETCH, "hisilicon,broken-prefetch-cmd" },
-> > +	{ ARM_SMMU_OPT_PAGE0_REGS_ONLY, "cavium-cn99xx,broken-page1-regspace"},
-> >  	{ 0, NULL},
-> >  };
-> >  
-> > +static inline unsigned long page1_offset_adjust(
-> > +	unsigned long off, struct arm_smmu_device *smmu)
-> > +{
-> > +	if (off > SZ_64K && ARM_SMMU_PAGE0_REGS_ONLY(smmu))
-> > +		return (off - SZ_64K);
-> > +
-> > +	return off;
-> > +}
-> > +
-> >  static struct arm_smmu_domain *to_smmu_domain(struct iommu_domain *dom)
-> >  {
-> >  	return container_of(dom, struct arm_smmu_domain, domain);
-> > @@ -1986,8 +2000,10 @@ static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
-> >  		return ret;
-> >  
-> >  	/* evtq */
-> > -	ret = arm_smmu_init_one_queue(smmu, &smmu->evtq.q, ARM_SMMU_EVTQ_PROD,
-> > -				      ARM_SMMU_EVTQ_CONS, EVTQ_ENT_DWORDS);
-> > +	ret = arm_smmu_init_one_queue(smmu, &smmu->evtq.q,
-> > +				      ARM_SMMU_EVTQ_PROD(smmu),
-> > +				      ARM_SMMU_EVTQ_CONS(smmu),
-> > +				      EVTQ_ENT_DWORDS);
-> 
-> ...or these callsites; you can just use page1_offset_adjust() directly
-> within arm_smmu_init_one_queue(), i.e.
+Please have a look into this, thanks.
 
-> 
-> 
->        q->prod_reg = smmu->base + page1_offset_adjust(prod_off, smmu);
->        q->cons_reg = smmu->base + page1_offset_adjust(cons_off, smmu);
-> 
-> because it won't affect page 0 offsets either way.
-> 
-> >  	if (ret)
-> >  		return ret;
-> >  
-> > @@ -1995,8 +2011,10 @@ static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
-> >  	if (!(smmu->features & ARM_SMMU_FEAT_PRI))
-> >  		return 0;
-> >  
-> > -	return arm_smmu_init_one_queue(smmu, &smmu->priq.q, ARM_SMMU_PRIQ_PROD,
-> > -				       ARM_SMMU_PRIQ_CONS, PRIQ_ENT_DWORDS);
-> > +	return arm_smmu_init_one_queue(smmu, &smmu->priq.q,
-> > +				       ARM_SMMU_PRIQ_PROD(smmu),
-> > +				       ARM_SMMU_PRIQ_CONS(smmu),
-> > +				       PRIQ_ENT_DWORDS);
-> >  }
-> >  
-> >  static int arm_smmu_init_l1_strtab(struct arm_smmu_device *smmu)
-> > @@ -2363,8 +2381,10 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
-> >  
-> >  	/* Event queue */
-> >  	writeq_relaxed(smmu->evtq.q.q_base, smmu->base + ARM_SMMU_EVTQ_BASE);
-> > -	writel_relaxed(smmu->evtq.q.prod, smmu->base + ARM_SMMU_EVTQ_PROD);
-> > -	writel_relaxed(smmu->evtq.q.cons, smmu->base + ARM_SMMU_EVTQ_CONS);
-> > +	writel_relaxed(smmu->evtq.q.prod, smmu->base +
-> > +		       ARM_SMMU_EVTQ_PROD(smmu));
-> 
-> And correspondingly just use page1_offset_adjust(ARM_SMMU_EVTQ_*, smmu)
-> explicitly for these writes.
-> 
-> In fact, if all the potential callsites are immediately converting the
-> offset into an address, then it may be worth just factoring that into
-> the helper as well, something like:
-> 
-> static inline void __iomem *arm_smmu_page1_fixup(unsigned long offset,
-> 					struct arm_smmu_device *smmu)
-> {
-> 	if (offset > SZ_64K && ARM_SMMU_PAGE0_REGS_ONLY(smmu))
-> 		offset -= SZ_64K;
-> 
-> 	return smmu->base + offset;
-> }
-> 
-> What do you reckon?
-> 
+Lorenzo
 
-Just had a opinion that, replacing all page1 offset macros(ARM_SMMU_EVTQ/PRIQ_PROD/CONS) with
-page1_offset_adjust(ARM_SMMU_EVTQ/PRIQ_PROD/CONS, smmu) will make the changes 
-more uniform. In that case, we wont need, offset > SZ_64K  check as
-well.
-
-Hope the intention is not to change the offset definitions.
-
-
--- 
-Linu cherian
+[    1.160597] ------------[ cut here ]------------
+[    1.165207] WARNING: CPU: 0 PID: 1 at drivers/i2c/busses/i2c-designware-core.c:293 i2c_dw_clk_rate+0x20/0x30
+[    1.175019] Modules linked in:
+[    1.178065] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.11.0-11415-g98a1892 #17
+[    1.185360] Hardware name: AMD Seattle/Seattle, BIOS 18:16:37 May  1 2017
+[    1.192134] task: ffff8003ed8e0000 task.stack: ffff8003ed8e8000
+[    1.198041] PC is at i2c_dw_clk_rate+0x20/0x30
+[    1.202472] LR is at i2c_dw_init+0x104/0x3c0
+[    1.206729] pc : [<ffff00000874bfc0>] lr : [<ffff00000874c8a4>] pstate: 60000045
+[    1.214110] sp : ffff8003ed8ebb90
+[    1.217412] x29: ffff8003ed8ebb90 x28: 0000000000000000 
+[    1.222714] x27: ffff000008df5fd0 x26: ffff000008f1b000 
+[    1.228014] x25: ffff000008d00454 x24: 000000000000012c 
+[    1.233314] x23: 00000000000707ae x22: 000000000000012c 
+[    1.238614] x21: ffff8003ed4c78b8 x20: 0000000000000000 
+[    1.243915] x19: ffff8003ed4c7818 x18: 0000000000000000 
+[    1.249214] x17: 00000000000017ff x16: 0000000000000003 
+[    1.254515] x15: 0088000000000000 x14: 00000000452b2be8 
+[    1.259815] x13: 0000000000000000 x12: 0000000000000018 
+[    1.265114] x11: 0000000000000000 x10: 0101010101010101 
+[    1.270415] x9 : 0000000000000000 x8 : ffff8003ed6e5900 
+[    1.275714] x7 : 0000000000000000 x6 : 000000000000003f 
+[    1.281014] x5 : 0000000000000008 x4 : 0000000000000000 
+[    1.286314] x3 : ffff00000807806c x2 : 0000000000000000 
+[    1.291613] x1 : 0000000000000000 x0 : ffff8003ed4c7818 
+[    1.296915] ---[ end trace 11d80b7b3eea6126 ]---
+[    1.301519] Call trace:
+[    1.303953] Exception stack(0xffff8003ed8eb9c0 to 0xffff8003ed8ebaf0)
+[    1.310381] b9c0: ffff8003ed4c7818 0001000000000000 ffff8003ed8ebb90 ffff00000874bfc0
+[    1.318197] b9e0: ffff8003ed8eba40 ffff00000847468c 000000000000000f 0000000000000001
+[    1.326013] ba00: ffff8003ef40dfc8 ffff8003ed6cc050 ffff000008f63000 ffff000008f63f66
+[    1.333829] ba20: ffff8003ed8eba70 ffff00000845428c ffff8003ed595000 0000000000000000
+[    1.341645] ba40: ffff8003ed8ebaa0 ffff000008481bd8 ffff8003ed8ebaa0 ffff00000845428c
+[    1.349461] ba60: ffff8003ed4c7818 0000000000000000 0000000000000000 ffff00000807806c
+[    1.357276] ba80: 0000000000000000 0000000000000008 000000000000003f 0000000000000000
+[    1.365092] baa0: ffff8003ed6e5900 0000000000000000 0101010101010101 0000000000000000
+[    1.372908] bac0: 0000000000000018 0000000000000000 00000000452b2be8 0088000000000000
+[    1.380723] bae0: 0000000000000003 00000000000017ff
+[    1.385588] [<ffff00000874bfc0>] i2c_dw_clk_rate+0x20/0x30
+[    1.391061] [<ffff00000874cb98>] i2c_dw_probe+0x38/0x238
+[    1.396360] [<ffff00000874d67c>] dw_i2c_plat_probe+0x2b4/0x558
+[    1.402182] [<ffff0000085546c0>] platform_drv_probe+0x58/0xc0
+[    1.407916] [<ffff000008552824>] driver_probe_device+0x21c/0x2c0
+[    1.413909] [<ffff000008552974>] __driver_attach+0xac/0xb0
+[    1.419382] [<ffff00000855099c>] bus_for_each_dev+0x64/0xa0
+[    1.424941] [<ffff000008552138>] driver_attach+0x20/0x28
+[    1.430241] [<ffff000008551c88>] bus_add_driver+0x110/0x230
+[    1.435800] [<ffff0000085532f8>] driver_register+0x60/0xf8
+[    1.441272] [<ffff0000085545f8>] __platform_driver_register+0x40/0x48
+[    1.447702] [<ffff000008d44b98>] dw_i2c_init_driver+0x18/0x20
+[    1.453437] [<ffff0000080830f8>] do_one_initcall+0x38/0x120
+[    1.458997] [<ffff000008d00cf0>] kernel_init_freeable+0x198/0x238
+[    1.465078] [<ffff000008906f38>] kernel_init+0x10/0x100
+[    1.470289] [<ffff000008082ec0>] ret_from_fork+0x10/0x50
+[    1.475601] Call trace:
+[    1.478035] Exception stack(0xffff8003ed8eb9c0 to 0xffff8003ed8ebaf0)
+[    1.484462] b9c0: ffff8003ed4c7818 0001000000000000 ffff8003ed8ebb90 ffff00000874bfc0
+[    1.492278] b9e0: ffff8003ed8eba40 ffff00000847468c 000000000000000f 0000000000000001
+[    1.500094] ba00: ffff8003ef40dfc8 ffff8003ed6cc050 ffff000008f63000 ffff000008f63f66
+[    1.507910] ba20: ffff8003ed8eba70 ffff00000845428c ffff8003ed595000 0000000000000000
+[    1.515725] ba40: ffff8003ed8ebaa0 ffff000008481bd8 ffff8003ed8ebaa0 ffff00000845428c
+[    1.523541] ba60: ffff8003ed4c7818 0000000000000000 0000000000000000 ffff00000807806c
+[    1.531357] ba80: 0000000000000000 0000000000000008 000000000000003f 0000000000000000
+[    1.539173] baa0: ffff8003ed6e5900 0000000000000000 0101010101010101 0000000000000000
+[    1.546988] bac0: 0000000000000018 0000000000000000 00000000452b2be8 0088000000000000
+[    1.554804] bae0: 0000000000000003 00000000000017ff
+[    1.559669] [<ffff00000874bfc0>] i2c_dw_clk_rate+0x20/0x30
+[    1.565141] [<ffff00000874cb98>] i2c_dw_probe+0x38/0x238
+[    1.570440] [<ffff00000874d67c>] dw_i2c_plat_probe+0x2b4/0x558
+[    1.576260] [<ffff0000085546c0>] platform_drv_probe+0x58/0xc0
+[    1.581993] [<ffff000008552824>] driver_probe_device+0x21c/0x2c0
+[    1.587986] [<ffff000008552974>] __driver_attach+0xac/0xb0
+[    1.593459] [<ffff00000855099c>] bus_for_each_dev+0x64/0xa0
+[    1.599018] [<ffff000008552138>] driver_attach+0x20/0x28
+[    1.604316] [<ffff000008551c88>] bus_add_driver+0x110/0x230
+[    1.609875] [<ffff0000085532f8>] driver_register+0x60/0xf8
+[    1.615348] [<ffff0000085545f8>] __platform_driver_register+0x40/0x48
+[    1.621775] [<ffff000008d44b98>] dw_i2c_init_driver+0x18/0x20
+[    1.627508] [<ffff0000080830f8>] do_one_initcall+0x38/0x120
+[    1.633067] [<ffff000008d00cf0>] kernel_init_freeable+0x198/0x238
+[    1.639147] [<ffff000008906f38>] kernel_init+0x10/0x100
+[    1.644359] [<ffff000008082ec0>] ret_from_fork+0x10/0x50
+[    1.649913] Call trace:
+[    1.652349] Exception stack(0xffff8003ed8eb9c0 to 0xffff8003ed8ebaf0)
+[    1.658776] b9c0: ffff8003ed728018 0001000000000000 ffff8003ed8ebb90 ffff00000874bfc0
+[    1.666593] b9e0: ffff7e000fb5b880 ffff8003ef403c80 ffff8003ed8ebb00 ffff0000081d7f1c
+[    1.674409] ba00: ffff7e000fb5b880 ffff8003ed6e2f80 ffff8003ed8ebb20 ffff0000081d7f1c
+[    1.682225] ba20: ffff7e000fb5b880 ffff8003ed6e2a00 ffff8003ed8e0000 000000000008d9c0
+[    1.690041] ba40: ffff8003ef403c80 ffff8003ed8e0000 ffff000008476ee4 ffff000008f1b000
+[    1.697857] ba60: ffff8003ed728018 0000000000000000 0000000000000000 ffff00000807a06c
+[    1.705673] ba80: 0000000000000000 0000000000000008 000000000000003f 0000000000000000
+[    1.713489] baa0: ffff8003ed6e5080 0000000000000000 0101010101010101 0000000000000000
+[    1.721305] bac0: 0000000000000018 0000000000000000 000000006255f330 0088000000000000
+[    1.729120] bae0: 0000000000000003 00000000000017ff
+[    1.733985] [<ffff00000874bfc0>] i2c_dw_clk_rate+0x20/0x30
+[    1.739458] [<ffff00000874cb98>] i2c_dw_probe+0x38/0x238
+[    1.744757] [<ffff00000874d67c>] dw_i2c_plat_probe+0x2b4/0x558
+[    1.750577] [<ffff0000085546c0>] platform_drv_probe+0x58/0xc0
+[    1.756310] [<ffff000008552824>] driver_probe_device+0x21c/0x2c0
+[    1.762303] [<ffff000008552974>] __driver_attach+0xac/0xb0
+[    1.767775] [<ffff00000855099c>] bus_for_each_dev+0x64/0xa0
+[    1.773334] [<ffff000008552138>] driver_attach+0x20/0x28
+[    1.778633] [<ffff000008551c88>] bus_add_driver+0x110/0x230
+[    1.784192] [<ffff0000085532f8>] driver_register+0x60/0xf8
+[    1.789665] [<ffff0000085545f8>] __platform_driver_register+0x40/0x48
+[    1.796092] [<ffff000008d44b98>] dw_i2c_init_driver+0x18/0x20
+[    1.801825] [<ffff0000080830f8>] do_one_initcall+0x38/0x120
+[    1.807384] [<ffff000008d00cf0>] kernel_init_freeable+0x198/0x238
+[    1.813463] [<ffff000008906f38>] kernel_init+0x10/0x100
+[    1.818675] [<ffff000008082ec0>] ret_from_fork+0x10/0x50
+[    1.823986] Call trace:
+[    1.826420] Exception stack(0xffff8003ed8eb9c0 to 0xffff8003ed8ebaf0)
+[    1.832848] b9c0: ffff8003ed728018 0001000000000000 ffff8003ed8ebb90 ffff00000874bfc0
+[    1.840664] b9e0: ffff7e000fb5b880 ffff8003ef403c80 ffff8003ed8ebb00 ffff0000081d7f1c
+[    1.848480] ba00: ffff7e000fb5b880 ffff8003ed6e2f80 ffff8003ed8ebb20 ffff0000081d7f1c
+[    1.856295] ba20: ffff7e000fb5b880 ffff8003ed6e2a00 ffff8003ed8e0000 000000000008d9c0
+[    1.864111] ba40: ffff8003ef403c80 ffff8003ed8e0000 ffff000008476ee4 ffff000008f1b000
+[    1.871927] ba60: ffff8003ed728018 0000000000000000 0000000000000000 ffff00000807a06c
+[    1.879743] ba80: 0000000000000000 0000000000000008 000000000000003f 0000000000000000
+[    1.887559] baa0: ffff8003ed6e5080 0000000000000000 0101010101010101 0000000000000000
+[    1.895374] bac0: 0000000000000018 0000000000000000 000000006255f330 0088000000000000
+[    1.903190] bae0: 0000000000000003 00000000000017ff
+[    1.908055] [<ffff00000874bfc0>] i2c_dw_clk_rate+0x20/0x30
+[    1.913527] [<ffff00000874cb98>] i2c_dw_probe+0x38/0x238
+[    1.918826] [<ffff00000874d67c>] dw_i2c_plat_probe+0x2b4/0x558
+[    1.924646] [<ffff0000085546c0>] platform_drv_probe+0x58/0xc0
+[    1.930379] [<ffff000008552824>] driver_probe_device+0x21c/0x2c0
+[    1.936372] [<ffff000008552974>] __driver_attach+0xac/0xb0
+[    1.941844] [<ffff00000855099c>] bus_for_each_dev+0x64/0xa0
+[    1.947403] [<ffff000008552138>] driver_attach+0x20/0x28
+[    1.952702] [<ffff000008551c88>] bus_add_driver+0x110/0x230
+[    1.958261] [<ffff0000085532f8>] driver_register+0x60/0xf8
+[    1.963734] [<ffff0000085545f8>] __platform_driver_register+0x40/0x48
+[    1.970161] [<ffff000008d44b98>] dw_i2c_init_driver+0x18/0x20
+[    1.975894] [<ffff0000080830f8>] do_one_initcall+0x38/0x120
+[    1.981453] [<ffff000008d00cf0>] kernel_init_freeable+0x198/0x238
+[    1.987533] [<ffff000008906f38>] kernel_init+0x10/0x100
+[    1.992745] [<ffff000008082ec0>] ret_from_fork+0x10/0x50
