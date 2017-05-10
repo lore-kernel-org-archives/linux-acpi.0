@@ -1,171 +1,93 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI updates for v4.12-rc1, part 2
-Date: Wed, 10 May 2017 00:59:16 +0200
-Message-ID: <CAJZ5v0iv4vAzz_FEkd90pr4mT9EWn-neKX_0rG6DhaJeHx37Bw@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH v1] ACPI: Switch to use generic UUID API
+Date: Wed, 10 May 2017 09:20:51 +0800
+Message-ID: <1494379251.2129.15.camel@intel.com>
+References: <20170504092151.88646-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:27765 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750747AbdEJBU7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 9 May 2017 21:20:59 -0400
+In-Reply-To: <20170504092151.88646-1-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, tpmdd-devel@lists.sourceforge.net, intel-gfx@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-input@vger.kernel.org, iommu@lists.linux-foundation.org, linux-mmc@vger.kernel.org, netdev@vger.kernel.org, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Borislav Petkov <bp@suse.de>, Dan Williams <dan.j.williams@intel.com>, Amir Goldstein <amir73il@gmail.com>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Skeggs <bskeggs@redhat.com>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Joerg Roedel <joro@8bytes.org>, Adrian Hunter <adrian.hunter@intel.com>, Yisen Zhuang <yisen.zhuang@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Felipe Balbi <balbi@kernel.org>, Mathias Nyman <mathias.nyman@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
 
-Hi Linus,
+On Thu, 2017-05-04 at 12:21 +0300, Andy Shevchenko wrote:
+> acpi_evaluate_dsm() and friends take a pointer to a raw buffer of 16
+> bytes. Instead we convert them to use uuid_le type. At the same time
+> we
+> convert current users.
+> 
+> acpi_str_to_uuid() becomes useless after the conversion and it's safe
+> to
+> get rid of it.
+> 
+> The conversion fixes a potential bug in int340x_thermal as well since
+> we have to use memcmp() on binary data.
+> 
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Cc: Borislav Petkov <bp@suse.de>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Amir Goldstein <amir73il@gmail.com>
+> Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+> Cc: Jani Nikula <jani.nikula@linux.intel.com>
+> Cc: Ben Skeggs <bskeggs@redhat.com>
+> Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> Cc: Adrian Hunter <adrian.hunter@intel.com>
+> Cc: Yisen Zhuang <yisen.zhuang@huawei.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: Felipe Balbi <balbi@kernel.org>
+> Cc: Mathias Nyman <mathias.nyman@intel.com>
+> Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Cc: Liam Girdwood <lgirdwood@gmail.com>
+> Cc: Mark Brown <broonie@kernel.org>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+> 
+> diff --git a/drivers/thermal/int340x_thermal/int3400_thermal.c
+> b/drivers/thermal/int340x_thermal/int3400_thermal.c
+> index 9413c4abf0b9..c0eb3bb19b23 100644
+> --- a/drivers/thermal/int340x_thermal/int3400_thermal.c
+> +++ b/drivers/thermal/int340x_thermal/int3400_thermal.c
+> @@ -23,7 +23,7 @@ enum int3400_thermal_uuid {
+>  	INT3400_THERMAL_MAXIMUM_UUID,
+>  };
+>  
+> -static u8 *int3400_thermal_uuids[INT3400_THERMAL_MAXIMUM_UUID] = {
+> +static const char
+> *int3400_thermal_uuids[INT3400_THERMAL_MAXIMUM_UUID] = {
+>  	"42A441D6-AE6A-462b-A84B-4A8CE79027D3",
+>  	"3A95C389-E4B8-4629-A526-C52C88626BAE",
+>  	"97C68AE7-15FA-499c-B8C9-5DA81D606E0A",
+> @@ -141,10 +141,10 @@ static int int3400_thermal_get_uuids(struct
+> int3400_thermal_priv *priv)
+>  		}
+>  
+>  		for (j = 0; j < INT3400_THERMAL_MAXIMUM_UUID; j++) {
+> -			u8 uuid[16];
+> +			uuid_le u;
+>  
+> -			acpi_str_to_uuid(int3400_thermal_uuids[j],
+> uuid);
+> -			if (!strncmp(uuid, objb->buffer.pointer,
+> 16)) {
+> +			uuid_le_to_bin(int3400_thermal_uuids[j],
+> &u);
+> +			if (!uuid_le_cmp(*(uuid_le *)objb-
+> >buffer.pointer), u) {
+>  				priv->uuid_bitmap |= (1 << j);
+>  				break;
+>  			}
+thanks for the fix.
 
-Please pull from the tag
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-extra-4.12-rc1
-
-with top-most commit 46436eb2f9e6ab0770c14292296d133f8907f699
-
- Merge branches 'acpi-soc', 'acpi-bus', 'acpi-pmic' and 'acpi-power'
-
-on top of commit 08be881064da126b8df4b96b0b3e2e307969a4a1
-
- Merge tag 'acpi-4.12-rc1' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-
-to receive more ACPI updates for v4.12-rc1.
-
-These update the ACPICA code in the kernel to upstream revision
-20170303 which adds a few minor fixes and improvements, update
-ACPI SoC drivers with new device IDs, platform-related information
-and similar, fix the register information in the xpower PMIC driver,
-introduce a concept of "always present" devices to the ACPI device
-enumeration code and use it to fix a problem with one platform, and
-fix a system resume issue related to power resources.
-
-Specifics:
-
- - Update the ACPICA code in the kernel to upstream revision
-   20170303 which includes:
-   * Minor fixes and improvements in the core code (Bob Moore,
-     Seunghun Han).
-   * Debugger fixes (Colin Ian King, Lv Zheng).
-   * Compiler/disassembler improvements (Bob Moore, David Box,
-     Lv Zheng).
-   * Build-related update (Lv Zheng).
-
- - Add new device IDs and platform-related information to the
-   ACPI drivers for Intel (LPSS) and AMD (APD) SoCs (Hanjun Guo,
-   Hans de Goede).
-
- - Make it possible to quirk ACPI-enumerated devices as "always
-   present" on platforms where they are incorrectly reported as not
-   present by the AML and add the INT0002 device ID to the list of
-   "always present" devices (Hans de Goede).
-
- - Fix the register information in the xpower PMIC driver and add
-   comments to map the registers to symbols used by AML to it
-   (Hans de Goede).
-
- - Move the code turning off unused ACPI power resources during
-   system resume to a point after all devices have been resumed
-   to avoid issues with power resources that do not behave as
-   expected (Hans de Goede).
-
-There is a small conflict between this material and the already
-merged changes in drivers/acpi/acpi_apd.c that went in through a
-different path, but the resolution of it should be straightforward.
-
-Thanks!
-
----------------
-
-Bob Moore (9):
-      ACPICA: Disassembler: Enhance resource descriptor detection
-      ACPICA: Update some function headers, no funtional change
-      ACPICA: Fix a module for excessive debug output
-      ACPICA: Fix several incorrect invocations of ACPICA return macro
-      ACPICA: Update for automatic repair code for objects returned by
-evaluate_object
-      ACPICA: Cleanup AML opcode definitions, no functional change
-      ACPICA: Local cache support: Allow small cache objects
-      ACPICA: iasl: add ASL conversion tool
-      ACPICA: Update version to 20170303
-
-Colin Ian King (1):
-      ACPICA: debugger: fix memory leak on Pathname
-
-David E. Box (1):
-      ACPICA: Disassembler: Do not unconditionally remove temporary names
-
-Hanjun Guo (2):
-      ACPI / APD: Add clock frequency for Hisilicon Hip07/08 I2C controller
-      i2c: designware: Add ACPI HID for Hisilicon Hip07/08 I2C controller
-
-Hans de Goede (5):
-      ACPI / bus: Introduce a list of ids for "always present" devices
-      ACPI / bus: Add INT0002 to list of always-present devices
-      ACPI / LPSS: Call pwm_add_table() for Bay Trail PWM device
-      ACPI / PMIC: xpower: Fix power_table addresses
-      ACPI / power: Delay turning off unused power resources after suspend
-
-Lv Zheng (3):
-      ACPICA: Add non-linux host build support
-      ACPICA: Debugger: Add interpreter blocking mark for single-step mode
-      ACPICA: iasl: Fix IORT SMMU GSI disassembling
-
-Seunghun Han (1):
-      ACPICA: Namespace: fix operand cache leak
-
----------------
-
- drivers/acpi/Makefile                       |   1 +
- drivers/acpi/acpi_apd.c                     |  12 +++
- drivers/acpi/acpi_lpss.c                    |  17 ++++
- drivers/acpi/acpica/Makefile                |   2 +-
- drivers/acpi/acpica/acconvert.h             | 144 ++++++++++++++++++++++++++++
- drivers/acpi/acpica/acglobal.h              |  53 ++++++++++
- drivers/acpi/acpica/aclocal.h               | 106 ++++++++++++++++----
- drivers/acpi/acpica/acmacros.h              |  35 +++++++
- drivers/acpi/acpica/acopcode.h              |   2 +
- drivers/acpi/acpica/amlcode.h               |  99 +++++++++----------
- drivers/acpi/acpica/dbmethod.c              |   1 +
- drivers/acpi/acpica/dbxface.c               |   5 +-
- drivers/acpi/acpica/dscontrol.c             |   2 +-
- drivers/acpi/acpica/dsmthdat.c              |   3 +-
- drivers/acpi/acpica/dsobject.c              |  15 +--
- drivers/acpi/acpica/dsopcode.c              |   4 +-
- drivers/acpi/acpica/dsutils.c               |   8 +-
- drivers/acpi/acpica/dswexec.c               |   2 +-
- drivers/acpi/acpica/dswload2.c              |   2 +-
- drivers/acpi/acpica/exmisc.c                |  16 ++--
- drivers/acpi/acpica/exnames.c               |   4 +-
- drivers/acpi/acpica/exoparg1.c              |  17 ++--
- drivers/acpi/acpica/exoparg2.c              |   4 +-
- drivers/acpi/acpica/exoparg6.c              |  16 ++--
- drivers/acpi/acpica/exresolv.c              |   3 +-
- drivers/acpi/acpica/exstore.c               |   5 +-
- drivers/acpi/acpica/exstoren.c              |   2 +-
- drivers/acpi/acpica/hwvalid.c               |  18 ++--
- drivers/acpi/acpica/nsaccess.c              |   2 +-
- drivers/acpi/acpica/nsrepair.c              |  16 +---
- drivers/acpi/acpica/nsrepair2.c             |   6 +-
- drivers/acpi/acpica/nsutils.c               |  29 +++---
- drivers/acpi/acpica/psargs.c                |  29 +++++-
- drivers/acpi/acpica/psloop.c                |  34 ++++++-
- drivers/acpi/acpica/psobject.c              |  38 ++++++++
- drivers/acpi/acpica/psopcode.c              |  15 +--
- drivers/acpi/acpica/psopinfo.c              |   2 +-
- drivers/acpi/acpica/psparse.c               |   6 +-
- drivers/acpi/acpica/pstree.c                |   9 +-
- drivers/acpi/acpica/psutils.c               |  11 +++
- drivers/acpi/acpica/utalloc.c               |  50 ++++++++++
- drivers/acpi/acpica/utcache.c               |   2 +-
- drivers/acpi/acpica/utdebug.c               |   1 +
- drivers/acpi/acpica/utresrc.c               |   9 ++
- drivers/acpi/acpica/utxferror.c             |  16 ++--
- drivers/acpi/bus.c                          |   5 +
- drivers/acpi/pmic/intel_pmic_xpower.c       |  50 +++++-----
- drivers/acpi/power.c                        |  10 ++
- drivers/acpi/sleep.c                        |   1 +
- drivers/acpi/sleep.h                        |   1 +
- drivers/acpi/x86/utils.c                    |  90 +++++++++++++++++
- drivers/i2c/busses/i2c-designware-platdrv.c |   2 +
- include/acpi/acconfig.h                     |   1 +
- include/acpi/acpi_bus.h                     |   9 ++
- include/acpi/acpixf.h                       |   2 +-
- include/acpi/actbl2.h                       |  10 ++
- 56 files changed, 833 insertions(+), 221 deletions(-)
+-rui
