@@ -1,85 +1,68 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [Intel-gfx] [PATCH v2 5/5] ACPI: button: Obselete acpi_lid_open()  invocations
-Date: Wed, 10 May 2017 13:30:50 +0300
-Message-ID: <87d1bhngv9.fsf@intel.com>
-References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com> <22b130fe0cf3fca19b0e14c69426fe36766cf2ee.1494311429.git.lv.zheng@intel.com>
+From: Geetha sowjanya <gakula@caviumnetworks.com>
+Subject: [v5 0/4] Cavium ThunderX2 SMMUv3 errata workarounds
+Date: Wed, 10 May 2017 17:01:54 +0530
+Message-ID: <1494415918-13770-1-git-send-email-gakula@caviumnetworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:26263 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752193AbdEJK20 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 May 2017 06:28:26 -0400
-In-Reply-To: <22b130fe0cf3fca19b0e14c69426fe36766cf2ee.1494311429.git.lv.zheng@intel.com>
+Received: from mail-by2nam01on0077.outbound.protection.outlook.com ([104.47.34.77]:6403
+        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752589AbdEJLuz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 May 2017 07:50:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, nouveau@lists.freedesktop.org
+To: will.deacon@arm.com, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org
+Cc: jcm@redhat.com, linux-kernel@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, Charles.Garcia-Tobin@arm.com
 
-On Tue, 09 May 2017, Lv Zheng <lv.zheng@intel.com> wrote:
-> Since notification side has been changed to always notify kernel listeners
-> using _LID returning value. Now listeners needn't invoke acpi_lid_open(),
-> it should use a spec suggested control method lid device usage model:
-> register lid notification and use the notified value instead, which is the
-> only way to ensure the value is correct for "button.lid_init_state=ignore"
-> mode or other modes with "button.lid_fake_events=N" specified.
->
-> This patch fixes i915 driver to drop acpi_lid_open() user. It's not
-> possible to change nouveau_connector.c user using a simple way now. So this
-> patch only marks acpi_lid_open() as deprecated to accelerate this process
-> by indicating this change to the nouveau developers.
+From: Linu Cherian <linu.cherian@cavium.com>
 
-Where's the rest of the series? Please send it all to intel-gfx so our
-CI can crunch through it. And I could take a peek too.
+Cavium ThunderX2 SMMUv3 implementation has two Silicon Erratas.
+1. Errata ID #74
+   SMMU register alias Page 1 is not implemented
+2. Errata ID #126
+   SMMU doesnt support unique IRQ lines and also MSI for gerror,
+   eventq and cmdq-sync
 
-This seems relevant:
+The following patchset does software workaround for these two erratas.
 
-Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=100923
+This series is based on patchset.
+https://www.spinics.net/lists/arm-kernel/msg578443.html
 
+Changes since v4:
+ - Replaced all page1 offset macros ARM_SMMU_EVTQ/PRIQ_PROD/CONS with
+	arm_smmu_page1_fixup(ARM_SMMU_EVTQ/PRIQ_PROD/CONS, smmu)
 
-BR,
-Jani.
+Changes since v3:
+ - Merged patches 1, 2 and 4 of Version 3.
+ - Modified the page1_offset_adjust() and get_irq_flags() implementation as
+   suggested by Robin.
 
->
-> Cc: <intel-gfx@lists.freedesktop.org>
-> Cc: <nouveau@lists.freedesktop.org>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->  drivers/acpi/button.c             | 7 ++++++-
->  drivers/gpu/drm/i915/intel_lvds.c | 2 +-
->  2 files changed, 7 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 7ff3a75..50d7898 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -348,7 +348,12 @@ int acpi_lid_notifier_unregister(struct notifier_block *nb)
->  }
->  EXPORT_SYMBOL(acpi_lid_notifier_unregister);
->  
-> -int acpi_lid_open(void)
-> +/*
-> + * The intentional usage model is to register a lid notifier and use the
-> + * notified value instead. Directly evaluating _LID without seeing a
-> + * Notify(lid, 0x80) is not reliable.
-> + */
-> +int __deprecated acpi_lid_open(void)
->  {
->  	if (!lid_device)
->  		return -ENODEV;
-> diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
-> index 9ca4dc4..8ca9080 100644
-> --- a/drivers/gpu/drm/i915/intel_lvds.c
-> +++ b/drivers/gpu/drm/i915/intel_lvds.c
-> @@ -548,7 +548,7 @@ static int intel_lid_notify(struct notifier_block *nb, unsigned long val,
->  	/* Don't force modeset on machines where it causes a GPU lockup */
->  	if (dmi_check_system(intel_no_modeset_on_lid))
->  		goto exit;
-> -	if (!acpi_lid_open()) {
-> +	if (!val) {
->  		/* do modeset on next lid open event */
->  		dev_priv->modeset_restore = MODESET_ON_LID_OPEN;
->  		goto exit;
+Changes since v2:
+ - Updated "Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt" document with
+   new SMMU option used to enable errata workaround.
+
+Changes since v1:
+ - Since the use of MIDR register is rejected and SMMU_IIDR is broken on this
+   silicon, as suggested by Will Deacon modified the patches to use ThunderX2
+   SMMUv3 IORT model number to enable errata workaround.
+
+Geetha Sowjanya (1):
+  iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #126
+
+Linu Cherian (3):
+  ACPICA: IORT: Add Cavium ThunderX2 SMMUv3 model definition.
+  ACPI/IORT: Fixup SMMUv3 resource size for Cavium ThunderX2 SMMUv3
+    model
+  iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #74
+
+ Documentation/arm64/silicon-errata.txt             |  2 +
+ .../devicetree/bindings/iommu/arm,smmu-v3.txt      |  6 ++
+ drivers/acpi/arm64/iort.c                          | 10 ++-
+ drivers/iommu/arm-smmu-v3.c                        | 93 +++++++++++++++++-----
+ include/acpi/actbl2.h                              |  2 +
+ 5 files changed, 93 insertions(+), 20 deletions(-)
 
 -- 
-Jani Nikula, Intel Open Source Technology Center
+1.8.3.1
+
