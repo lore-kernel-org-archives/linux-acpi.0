@@ -1,7 +1,7 @@
-From: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH 1/2] x86/MCE: Export memory_error()
-Date: Wed, 10 May 2017 19:31:30 +0000
-Message-ID: <1494444606.20330.2.camel@intel.com>
+Date: Wed, 10 May 2017 22:04:07 +0200
+Message-ID: <20170510200406.mphusoidfuyq24ee@pd.tnic>
 References: <20170420221818.23522-1-vishal.l.verma@intel.com>
  <CAPcyv4ijU2V-4WOPysL12ByOovAXDO=Mci1D4wNDFqxRjdvT2w@mail.gmail.com>
  <1492804517.2738.25.camel@intel.com>
@@ -11,77 +11,29 @@ References: <20170420221818.23522-1-vishal.l.verma@intel.com>
  <20170421210704.c5pvpn6zivvruzx3@pd.tnic>
  <20170424113620.6iq2466yhkhb33rp@pd.tnic>
  <20170425210740.GA15722@omniknight.lm.intel.com>
+ <1494444606.20330.2.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170425210740.GA15722-PxNA6LsHknajYZd8rzuJLNh3ngVCH38I@public.gmane.org>
-Content-Language: en-US
-Content-ID: <FAFA71A69DC0D14CB66E18325FBC04FE-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org" <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
-Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Luck,
- Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([5.9.137.197]:35522 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751069AbdEJUET (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 May 2017 16:04:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1494444606.20330.2.camel@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-T24gVHVlLCAyMDE3LTA0LTI1IGF0IDE1OjA3IC0wNjAwLCBWaXNoYWwgVmVybWEgd3JvdGU6DQo+
-IE9uIDA0LzI0LCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6DQo+ID4gRnJvbTogQm9yaXNsYXYgUGV0
-a292IDxicEBzdXNlLmRlPg0KPiA+IERhdGU6IE1vbiwgMjQgQXByIDIwMTcgMTM6MTY6NTAgKzAy
-MDANCj4gPiBTdWJqZWN0OiBbUEFUQ0ggMS8yXSB4ODYvTUNFOiBFeHBvcnQgbWVtb3J5X2Vycm9y
-KCkNCj4gPiANCj4gPiBFeHBvcnQgdGhlIGZ1bmN0aW9uIHdoaWNoIGNoZWNrcyB3aGV0aGVyIGFu
-IE1DRSBpcyBhIG1lbW9yeSBlcnJvciB0bw0KPiA+IG90aGVyIHVzZXJzIHNvIHRoYXQgd2UgY2Fu
-IHJldXNlIHRoZSBsb2dpYy4gRHJvcCB0aGUgYm9vdF9jcHVfZGF0YQ0KPiA+IHVzZSwNCj4gPiB3
-aGlsZSBhdCBpdCwgYXMgbWNlLmNwdXZlbmRvciBhbHJlYWR5IGhhcyB0aGUgQ1BVIHZlbmRvciBp
-biB0aGVyZS4NCj4gPiANCj4gPiBTaWduZWQtb2ZmLWJ5OiBCb3Jpc2xhdiBQZXRrb3YgPGJwQHN1
-c2UuZGU+DQo+ID4gLS0tDQo+ID4gwqBhcmNoL3g4Ni9pbmNsdWRlL2FzbS9tY2UuaMKgwqDCoMKg
-wqDCoMKgfMKgwqAxICsNCj4gPiDCoGFyY2gveDg2L2tlcm5lbC9jcHUvbWNoZWNrL21jZS5jIHwg
-MTIgKysrKystLS0tLS0tDQo+ID4gwqAyIGZpbGVzIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwg
-NyBkZWxldGlvbnMoLSkNCj4gPiANCg0KSGkgQm9yaXMvVG9ueSwNCg0KSSBkaWRuJ3Qgc2VlIHRo
-ZSBhYm92ZSBwYXRjaGVzIGluIHRoZSBSQVMgYnJhbmNoZXMgb2YgdGhlIHRpcCB0cmVlIC0NCndl
-cmUgeW91IHRoaW5raW5nIHdlIHdvdWxkIGNhcnJ5IHRoZXNlIHRocm91Z2ggdGhlIG52ZGltbSB0
-cmVlDQooaW5jbHVkaW5nIG15IHVwZGF0ZWQgcGF0Y2ggYmVsb3cpPw0KDQo+IA0KPiBIZXJlIGlz
-IHRoZSB1cGRhdGVkIHBhdGNoIHRvIHVzZSB0aGUgYWJvdmUgaGVscGVyOg0KPiANCj4gODwtLS0t
-LQ0KPiANCj4gDQo+IEZyb20gOTY2MWE4NTc5OWM5MDY3ZDc2MmVjZjI5NjMwZjJiN2Y2OTg5NzYy
-OCBNb24gU2VwIDE3IDAwOjAwOjAwIDIwMDENCj4gRnJvbTogVmlzaGFsIFZlcm1hIDx2aXNoYWwu
-bC52ZXJtYUBpbnRlbC5jb20+DQo+IERhdGU6IFR1ZSwgMjUgQXByIDIwMTcgMTU6MDA6NTggLTA2
-MDANCj4gU3ViamVjdDogW1BBVENIIHYyXSBhY3BpLCBuZml0OiBmaXggdGhlIG1lbW9yeSBlcnJv
-ciBjaGVjayBpbg0KPiBuZml0X2hhbmRsZV9tY2UNCj4gDQo+IFRoZSBjaGVjayBmb3IgYW4gTUNF
-IGJlaW5nIGEgbWVtb3J5IGVycm9yIGluIHRoZSBORklUIG1jZSBoYW5kbGVyIHdhcw0KPiBib2d1
-cy4gRXhwb3J0IHRoZSBuZXcgbWNlX2lzX21lbW9yeV9lcnJvciBoZWxwZXIsIGFuZCB1c2UgdGhh
-dCB0cA0KPiBwZXJmb3JtIHRoZSBjb3JyZWN0IGNoZWNrIGluIHRoZSBoYW5kbGVyLg0KPiANCj4g
-UmVwb3J0ZWQtYnk6IFRvbnkgTHVjayA8dG9ueS5sdWNrQGludGVsLmNvbT4NCj4gQ2M6IEJvcmlz
-bGF2IFBldGtvdiA8YnBAc3VzZS5kZT4NCj4gQ2M6IDxzdGFibGVAdmdlci5rZXJuZWwub3JnPg0K
-PiBTaWduZWQtb2ZmLWJ5OiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4N
-Cj4gLS0tDQo+IMKgYXJjaC94ODYva2VybmVsL2NwdS9tY2hlY2svbWNlLmMgfCAxICsNCj4gwqBk
-cml2ZXJzL2FjcGkvbmZpdC9tY2UuY8KgwqDCoMKgwqDCoMKgwqDCoMKgfCAyICstDQo+IMKgMiBm
-aWxlcyBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4gDQo+IFRoaXMg
-YXBwbGllcyBvbiB0aXAvbWFzdGVyICsgQm9yaXNsYXYncyBwYXRjaGVzIGluIHRoaXMgdGhyZWFk
-IGFib3ZlLg0KPiBJJ20gbm90IHN1cmUgd2hhdCB0aGUgcmlnaHQgcHJvY2VzcyBmb3IgcXVldWVp
-bmcgdGhpcyBmb3IgYm90aA0KPiB1cHN0cmVhbSBhbmQgLXN0YWJsZSBpcywgc28ganVzdCByZXBs
-eWluZyBoZXJlLiBTaG91bGQgSSBwb3N0IGl0DQo+IGluZGVwZW5kZW50bHk/DQo+IA0KPiBkaWZm
-IC0tZ2l0IGEvYXJjaC94ODYva2VybmVsL2NwdS9tY2hlY2svbWNlLmMNCj4gYi9hcmNoL3g4Ni9r
-ZXJuZWwvY3B1L21jaGVjay9tY2UuYw0KPiBpbmRleCAzNjE4NjVjYS4uNWNmYmFlYiAxMDA2NDQN
-Cj4gLS0tIGEvYXJjaC94ODYva2VybmVsL2NwdS9tY2hlY2svbWNlLmMNCj4gKysrIGIvYXJjaC94
-ODYva2VybmVsL2NwdS9tY2hlY2svbWNlLmMNCj4gQEAgLTUyNyw2ICs1MjcsNyBAQCBib29sIG1j
-ZV9pc19tZW1vcnlfZXJyb3Ioc3RydWN0IG1jZSAqbSkNCj4gwqANCj4gwqAJcmV0dXJuIGZhbHNl
-Ow0KPiDCoH0NCj4gK0VYUE9SVF9TWU1CT0xfR1BMKG1jZV9pc19tZW1vcnlfZXJyb3IpOw0KPiDC
-oA0KPiDCoHN0YXRpYyBib29sIGNlY19hZGRfbWNlKHN0cnVjdCBtY2UgKm0pDQo+IMKgew0KPiBk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL25maXQvbWNlLmMgYi9kcml2ZXJzL2FjcGkvbmZpdC9t
-Y2UuYw0KPiBpbmRleCAzYmExYzM0Li5mZDg2YmVjIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2Fj
-cGkvbmZpdC9tY2UuYw0KPiArKysgYi9kcml2ZXJzL2FjcGkvbmZpdC9tY2UuYw0KPiBAQCAtMjYs
-NyArMjYsNyBAQCBzdGF0aWMgaW50IG5maXRfaGFuZGxlX21jZShzdHJ1Y3Qgbm90aWZpZXJfYmxv
-Y2sNCj4gKm5iLCB1bnNpZ25lZCBsb25nIHZhbCwNCj4gwqAJc3RydWN0IG5maXRfc3BhICpuZml0
-X3NwYTsNCj4gwqANCj4gwqAJLyogV2Ugb25seSBjYXJlIGFib3V0IG1lbW9yeSBlcnJvcnMgKi8N
-Cj4gLQlpZiAoIShtY2UtPnN0YXR1cyAmIE1DQUNPRCkpDQo+ICsJaWYgKCFtY2VfaXNfbWVtb3J5
-X2Vycm9yKG1jZSkpDQo+IMKgCQlyZXR1cm4gTk9USUZZX0RPTkU7DQo+IMKgDQo+IMKgCS8qCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
-bSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAx
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Wed, May 10, 2017 at 07:31:30PM +0000, Verma, Vishal L wrote:
+> I didn't see the above patches in the RAS branches of the tip tree -
+
+You need to be patient - we have merge window right now. Next week,
+after -rc1 releases, it is business as usual again.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
