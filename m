@@ -1,120 +1,76 @@
-From: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-Subject: [v5 4/4] iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2
-	erratum #126
-Date: Wed, 10 May 2017 17:01:58 +0530
-Message-ID: <1494415918-13770-5-git-send-email-gakula@caviumnetworks.com>
-References: <1494415918-13770-1-git-send-email-gakula@caviumnetworks.com>
+From: Christoffer Dall <cdall@linaro.org>
+Subject: Re: [PATCH v3 3/3] arm/arm64: signal SIBGUS and inject SEA Error
+Date: Wed, 10 May 2017 14:20:55 +0200
+Message-ID: <20170510122055.GE28721@cbox>
+References: <CAMj-D2BGTDKpOcMu2ip41_MTTj8VDwvs59Ds7yvLHcD8PeQzhg@mail.gmail.com>
+ <5910AAA2.4030304@arm.com>
+ <20170508175416.GA32234@cbox>
+ <5911D204.7020304@arm.com>
+ <e8614b38-9c17-bcfc-2239-307ed0f98c94@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1494415918-13770-1-git-send-email-gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: will.deacon-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qk0-f179.google.com ([209.85.220.179]:36517 "EHLO
+        mail-qk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752731AbdEJMVD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 10 May 2017 08:21:03 -0400
+Received: by mail-qk0-f179.google.com with SMTP id u75so27086882qka.3
+        for <linux-acpi@vger.kernel.org>; Wed, 10 May 2017 05:21:03 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <e8614b38-9c17-bcfc-2239-307ed0f98c94@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: gengdongjiu <gengdongjiu@huawei.com>
+Cc: James Morse <james.morse@arm.com>, gengdongjiu <gengdj.1984@gmail.com>, Tyler Baicar <tbaicar@codeaurora.org>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, Sandeepa Prabhu <sandeepa.s.prabhu@gmail.com>, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, Fu Wei <fu.wei@linaro.org>, rostedt@goodmis.org, bristot@redhat.coml
 
-From: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+On Wed, May 10, 2017 at 05:15:04PM +0800, gengdongjiu wrote:
+> Thanks James's explanation.
+> 
+> Hi Christoffer,
+> 
+> On 2017/5/9 22:28, James Morse wrote:
+> > Hi Christoffer,
+> > 
+> > On 08/05/17 18:54, Christoffer Dall wrote:
+> >> On Mon, May 08, 2017 at 06:28:02PM +0100, James Morse wrote:
+> >> I must admit I am losing track of exactly what this proposed API was
+> >> supposed to do.
+> > 
+> > There are two, and we keep jumping between them!
+> > This is about two notification methods APEI has for arm64, 'SEA' and 'SEI'.
+> > 
+> > SEA is synchronous and looks like a data abort. Qemu/kvmtool can inject these
+> > today using the KVM_GET/SET_ONE_REG API whenever it wants to.
+> > 
+> > SEI uses SError, is asynchronous and can be masked. In addition these need to be
+> > consumed/synchronised by the ESB instruction, even when executed by a guest.
+> > Hardware has the necessary bits to drive all this, we need to expose an API to
+> > drive it.
+> > 
+> > (I try to spell them out each time so I don't confuse SEI with something
+> > synchronous!)
+> > 
+> > 
+> > This patch was about SEA. I think you've answered our question:
+> 
+> we are talking about the SEA(synchronous data abort) injection two methods:
+> 
+> (1)change vcpu registers in the Qemu/kvmtools and using the KVM_GET/SET_ONE_REG API to set.
 
-Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
-lines for gerror, eventq and cmdq-sync.
+Yes, if this is possible, why would you want something more?
 
-This patch addresses the issue by checking if any interrupt sources are
-using same irq number, then they are registered as shared irqs.
+> (2)using existed in-kernel API "kvm_inject_dabt" to inject through IOCTL command from Qemu.
+> 
 
-Signed-off-by: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- Documentation/arm64/silicon-errata.txt |  1 +
- drivers/iommu/arm-smmu-v3.c            | 29 +++++++++++++++++++++++++----
- 2 files changed, 26 insertions(+), 4 deletions(-)
+I'm not really going to consider this, because "use internal API from
+userspace" doesn't work.
 
-diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
-index 4693a32..42422f6 100644
---- a/Documentation/arm64/silicon-errata.txt
-+++ b/Documentation/arm64/silicon-errata.txt
-@@ -63,6 +63,7 @@ stable kernels.
- | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
- | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
- | Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
-+| Cavium         | ThunderX2 SMMUv3| #126            | N/A                         |
- |                |                 |                 |                             |
- | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
- |                |                 |                 |                             |
-diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index 5836b72..6ae5d3b 100644
---- a/drivers/iommu/arm-smmu-v3.c
-+++ b/drivers/iommu/arm-smmu-v3.c
-@@ -2232,6 +2232,25 @@ static void arm_smmu_setup_msis(struct arm_smmu_device *smmu)
- 	devm_add_action(dev, arm_smmu_free_msis, dev);
- }
- 
-+static int get_irq_flags(struct arm_smmu_device *smmu, int irq)
-+{
-+	int match_count = 0;
-+
-+	if (irq == smmu->evtq.q.irq)
-+		match_count++;
-+	if (irq == smmu->cmdq.q.irq)
-+		match_count++;
-+	if (irq == smmu->gerr_irq)
-+		match_count++;
-+	if (irq == smmu->priq.q.irq)
-+		match_count++;
-+
-+	if (match_count > 1)
-+		return IRQF_SHARED | IRQF_ONESHOT;
-+
-+	return IRQF_ONESHOT;
-+}
-+
- static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
- {
- 	int ret, irq;
-@@ -2252,7 +2271,7 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
- 	if (irq) {
- 		ret = devm_request_threaded_irq(smmu->dev, irq, NULL,
- 						arm_smmu_evtq_thread,
--						IRQF_ONESHOT,
-+						get_irq_flags(smmu, irq),
- 						"arm-smmu-v3-evtq", smmu);
- 		if (ret < 0)
- 			dev_warn(smmu->dev, "failed to enable evtq irq\n");
-@@ -2261,7 +2280,8 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
- 	irq = smmu->cmdq.q.irq;
- 	if (irq) {
- 		ret = devm_request_irq(smmu->dev, irq,
--				       arm_smmu_cmdq_sync_handler, 0,
-+				       arm_smmu_cmdq_sync_handler,
-+					   get_irq_flags(smmu, irq),
- 				       "arm-smmu-v3-cmdq-sync", smmu);
- 		if (ret < 0)
- 			dev_warn(smmu->dev, "failed to enable cmdq-sync irq\n");
-@@ -2270,7 +2290,8 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
- 	irq = smmu->gerr_irq;
- 	if (irq) {
- 		ret = devm_request_irq(smmu->dev, irq, arm_smmu_gerror_handler,
--				       0, "arm-smmu-v3-gerror", smmu);
-+						get_irq_flags(smmu, irq),
-+						"arm-smmu-v3-gerror", smmu);
- 		if (ret < 0)
- 			dev_warn(smmu->dev, "failed to enable gerror irq\n");
- 	}
-@@ -2280,7 +2301,7 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
- 		if (irq) {
- 			ret = devm_request_threaded_irq(smmu->dev, irq, NULL,
- 							arm_smmu_priq_thread,
--							IRQF_ONESHOT,
-+							get_irq_flags(smmu, irq),
- 							"arm-smmu-v3-priq",
- 							smmu);
- 			if (ret < 0)
--- 
-1.8.3.1
+So this should be:
+
+  (2) Introduce a new API to do X.
+
+I still think you know what my preference is; use the existing API if at
+all possible.
+
+Thanks,
+-Christoffer
