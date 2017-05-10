@@ -1,84 +1,85 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: Regression: bd698d24b1b57: i2c: designware: Get selected speed
- mode sda-hold-time via ACPI
-Date: Wed, 10 May 2017 10:24:50 +0100
-Message-ID: <20170510092450.GA26012@red-moon>
-References: <20170509140720.GA21122@red-moon>
- <1494341651.30052.82.camel@linux.intel.com>
- <20170509155253.GA21475@red-moon>
- <1494346848.30052.84.camel@linux.intel.com>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [Intel-gfx] [PATCH v2 5/5] ACPI: button: Obselete acpi_lid_open()  invocations
+Date: Wed, 10 May 2017 13:30:50 +0300
+Message-ID: <87d1bhngv9.fsf@intel.com>
+References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com> <22b130fe0cf3fca19b0e14c69426fe36766cf2ee.1494311429.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35342 "EHLO foss.arm.com"
+Received: from mga06.intel.com ([134.134.136.31]:26263 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751228AbdEJJXz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 May 2017 05:23:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1494346848.30052.84.camel@linux.intel.com>
+        id S1752193AbdEJK20 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 May 2017 06:28:26 -0400
+In-Reply-To: <22b130fe0cf3fca19b0e14c69426fe36766cf2ee.1494311429.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: chin.yew.tan@intel.com, mika.westerberg@linux.intel.com, jarkko.nikula@linux.intel.com, wsa@the-dreams.de, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, ken.xue@amd.com, jeff.wu@amd.com
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, nouveau@lists.freedesktop.org
 
-On Tue, May 09, 2017 at 07:20:48PM +0300, Andy Shevchenko wrote:
-> On Tue, 2017-05-09 at 16:52 +0100, Lorenzo Pieralisi wrote:
-> > [+ Ken, Jeff]
-> > 
-> > On Tue, May 09, 2017 at 05:54:11PM +0300, Andy Shevchenko wrote:
-> > > On Tue, 2017-05-09 at 15:07 +0100, Lorenzo Pieralisi wrote:
-> > > > Hi guys,
-> > > > 
-> > > > as a heads-up, with today mainline (commit 2868b2513aa7) I get the
-> > > > following splat on AMD Seattle, reverting the $SUBJECT commit
-> > > > "solves"
-> > > > the problem.
-> > > > 
-> > > > My I2C knowledge is a bit limited but I am not sure I understand
-> > > > why
-> > > > we should be reading eg ss_hcnt/ss_lcnt depending on the dev-
-> > > > >clk_freq
-> > > > but then i2c_dw_init() _always_ requires those values to be set
-> > > > for
-> > > > a given device. Again, I have no insights into I2C inner workings
-> > > > so apologies for the silly assumption/question.
-> > > > 
-> > > > Please have a look into this, thanks.
-> > > 
-> > > Since there is no clock defined you got a warning.
-> > 
-> > IIUC there has never been a clock defined for this platform, that's
-> > the problem. The warning appeared because the commit in $SUBJECT
-> > prevents reading the ss_hcnt and ss_lcnt values from ACPI methods
-> > that are there in ACPI tables (SSCN and FMCN), because it carries
-> > out the SSCN FMCN look-up depending on the dev->clk_freq value.
-> > 
-> > Before $SUBJECT commit the values were read unconditionally from SSCN
-> > and FMCN ACPI methods IIUC, again, I am no I2C expert so it is more
-> > a question than anything else.
-> > 
-> > dev->clk_freq is set to 400000 by default because FW does not the
-> > contain (ie never contained) "clock-frequency" property and
-> > acpi_speed can't be ascertained through I2C resources, that's how
-> > I read what's happening.
-> > 
-> > > It means either ID is not added to drivers/acpi/acpi_apd.c or
-> 
-> Just one question, did you look at all into above driver?
-> I suppose it missed ID and properties for the device.
+On Tue, 09 May 2017, Lv Zheng <lv.zheng@intel.com> wrote:
+> Since notification side has been changed to always notify kernel listeners
+> using _LID returning value. Now listeners needn't invoke acpi_lid_open(),
+> it should use a spec suggested control method lid device usage model:
+> register lid notification and use the notified value instead, which is the
+> only way to ensure the value is correct for "button.lid_init_state=ignore"
+> mode or other modes with "button.lid_fake_events=N" specified.
+>
+> This patch fixes i915 driver to drop acpi_lid_open() user. It's not
+> possible to change nouveau_connector.c user using a simple way now. So this
+> patch only marks acpi_lid_open() as deprecated to accelerate this process
+> by indicating this change to the nouveau developers.
 
-I looked into it yes. I have also looked at ACPI tables and they
-contain the SSCN and FMCN methods and AFAIK the set-up was working
-fine before the commit in $SUBJECT - AMD guys - please correct me
-if I am wrong, I found this thread which explains things a bit:
+Where's the rest of the series? Please send it all to intel-gfx so our
+CI can crunch through it. And I could take a peek too.
 
-http://lists.infradead.org/pipermail/linux-arm-kernel/2015-December/395983.html
+This seems relevant:
 
-If we have to patch drivers/acpi/acpi_apd.c to restore the previous
-behaviour that's fine by me but this is a regression nonetheless unless
-someone explains to me why the current firmware set-up (with SSCN and
-FMCN) is unreliable/deprecated, it is not clear to me at all and it
-may affect other platforms too.
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=100923
 
-Thanks,
-Lorenzo
+
+BR,
+Jani.
+
+>
+> Cc: <intel-gfx@lists.freedesktop.org>
+> Cc: <nouveau@lists.freedesktop.org>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  drivers/acpi/button.c             | 7 ++++++-
+>  drivers/gpu/drm/i915/intel_lvds.c | 2 +-
+>  2 files changed, 7 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index 7ff3a75..50d7898 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -348,7 +348,12 @@ int acpi_lid_notifier_unregister(struct notifier_block *nb)
+>  }
+>  EXPORT_SYMBOL(acpi_lid_notifier_unregister);
+>  
+> -int acpi_lid_open(void)
+> +/*
+> + * The intentional usage model is to register a lid notifier and use the
+> + * notified value instead. Directly evaluating _LID without seeing a
+> + * Notify(lid, 0x80) is not reliable.
+> + */
+> +int __deprecated acpi_lid_open(void)
+>  {
+>  	if (!lid_device)
+>  		return -ENODEV;
+> diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+> index 9ca4dc4..8ca9080 100644
+> --- a/drivers/gpu/drm/i915/intel_lvds.c
+> +++ b/drivers/gpu/drm/i915/intel_lvds.c
+> @@ -548,7 +548,7 @@ static int intel_lid_notify(struct notifier_block *nb, unsigned long val,
+>  	/* Don't force modeset on machines where it causes a GPU lockup */
+>  	if (dmi_check_system(intel_no_modeset_on_lid))
+>  		goto exit;
+> -	if (!acpi_lid_open()) {
+> +	if (!val) {
+>  		/* do modeset on next lid open event */
+>  		dev_priv->modeset_restore = MODESET_ON_LID_OPEN;
+>  		goto exit;
+
+-- 
+Jani Nikula, Intel Open Source Technology Center
