@@ -1,80 +1,106 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
- lid_init_state=open"
-Date: Thu, 11 May 2017 00:59:33 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEA1274@SHSMSX101.ccr.corp.intel.com>
-References: <20170510161240.13229-1-benjamin.tissoires@redhat.com>
- <20170510161240.13229-3-benjamin.tissoires@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / GED: use late init to allow other drivers init
+Date: Thu, 11 May 2017 02:58:05 +0200
+Message-ID: <20778615.CFpVNM6V8o@aspire.rjw.lan>
+References: <1492813704-32280-1-git-send-email-okaya@codeaurora.org> <3f2c5bcc-3499-d5ef-6955-778979d25b08@codeaurora.org> <5c77c025-e3a4-f317-e7bc-f76e19ed2b12@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:15341 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753726AbdEKA7h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 10 May 2017 20:59:37 -0400
-In-Reply-To: <20170510161240.13229-3-benjamin.tissoires@redhat.com>
-Content-Language: en-US
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63193 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753726AbdEKBEe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 May 2017 21:04:34 -0400
+In-Reply-To: <5c77c025-e3a4-f317-e7bc-f76e19ed2b12@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: Jiri Eischmann <jeischma@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: Lukas Wunner <lukas@wunner.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi,
+On Thursday, April 27, 2017 10:32:07 PM Sinan Kaya wrote:
+> On 4/25/2017 12:24 PM, Sinan Kaya wrote:
+> > On 4/25/2017 3:01 AM, Lukas Wunner wrote:
+> >> On Sat, Apr 22, 2017 at 12:48 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> >>> On 4/21/2017 6:43 PM, Rafael J. Wysocki wrote:
+> >>>> +late_initcall(ged_init);
+> >>>> Does this fix the problem?
+> >>>>
+> >>>> What about if the module in question is loaded after running
+> >>>> late_initcalls?
+> >>>
+> >>> This fixed the issue for me where I had dependencies for QUP I2C driver
+> >>> and GHES drivers. Both of them are modules and get probed via normal
+> >>> module execution path.
+> >>>
+> >>> However, I'm open to improvements.  Do you have a better suggestion?
+> >>> I can try to add some _DEP stuff if it is present, but I remember Linux
+> >>> doesn't like _DEP stuff too much.
+> >>
+> >> Would it be possible to solve this by just returning -EPROBE_DEFER from the
+> >> ->probe hook if the devices you depend on are not bound yet?
+> >>
+> > 
+> > I'm not sure. 
+> > 
+> >> Alternatively, would it be possible to solve it with a struct device_link?
+> > 
+> > I wasn't aware of device_link concept. This is something that I will keep in
+> > my mind when I'm dealing with producer/consumer problems with known device
+> > driver instances. It looked very useful.
+> > 
+> > Here is how the overall relationship between drivers.
+> > 
+> > | GED | <--->  | Platform specific ACPI AML | <----> Vendor GPIO
+> >                                               <----> Vendor I2C
+> >                                               <----> ACPI GHES
+> > 					      <----> Some other driver
+> > 
+> > The problem with Generic Event Device (GED) is that it produces event
+> > notification facility to the platform specific AML code and GED doesn't
+> > have any idea about the consumers of these interrupts or what platform AML
+> > does. 
+> > 
+> > GED only sees the interrupts that it needs to register and
+> > knows the ASL code it needs to execute when that interrupt happens.
+> > 
+> > It is possible for AML code not to use any of these drivers or require
+> > some arbitrary driver as well as vendor specific drivers. It is totally
+> > up to the firmware to decide what to do with this event.
+> > 
+> > My proposal was to require platform AML code to indicate the dependencies
+> > between GED and drivers on the right side of the picture via _DEP as this
+> > cannot be done via normal kernel mechanisms.
+> > 
+> > This approach might work in general. However, it also has its own caveats.
+> > 
+> > All of these drivers on the right side are unrelated to each other. Some
+> > operating system can implement a subset of these drivers.
+> > 
+> > If I include the dependencies, GED will never load for partial driver situations.
+> > This is also a deal breaker. 
+> > 
+> > Why would you break some other feature if your OS doesn't support RAS as an
+> > example?
+> > 
+> > Given all these lose bindings and no driver association, where do we go
+> > from here?
+> > 
+> > I consider GED as a light version of Embedded controller (EC) implementation. 
+> > 
+> > How is this problem solved for EC as it has the same problem?
+> > 
+> 
+> This recommendation came from Timur. I wanted to see how everybody feels about it.
+> 
+> When GED driver makes an AML call and the driver on the right side of the picture
+> is not present, GED driver gets an ACPI error return code. 
 
-> From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
-> Subject: [PATCH 2/2] Revert "ACPI / button: Change default behavior to lid_init_state=open"
-> 
-> This reverts commit 77e9a4aa9de10cc1418bf9a892366988802a8025.
-> 
-> Even if the method implementation can be buggy on some platform,
-> the "open" choice is worse. It breaks docking stations basically
-> and there is no way to have a user-space hwdb to fix that.
-> 
-> On the contrary, it's rather easy in user-space to have a hwdb
-> with the problematic platforms. Then, libinput (1.7.0+) can fix
-> the state of the LID switch for us: you need to set the udev
-> property LIBINPUT_ATTR_LID_SWITCH_RELIABILITY to 'write_open'.
-> 
-> When libinput detects internal keyboard events, it will
-> overwrite the state of the switch to open, making it reliable
-> again. Given that logind only checks the LID switch value after
-> a timeout, we can assume the user will use the internal keyboard
-> before this timeout expires.
-> 
-> For example, such a hwdb entry is:
-> 
-> libinput:name:*Lid Switch*:dmi:*svnMicrosoftCorporation:pnSurface3:*
->  LIBINPUT_ATTR_LID_SWITCH_RELIABILITY=write_open
+This means that _EVT evaluation failed, right?
 
-For the reason mentioned previously and proofs here (see patch descriptions):
-https://patchwork.kernel.org/patch/9717111/
-We shouldn't do this.
+How does the _EVT in question look like?  What does make it depend on the
+other drivers to be present in particular?
 
-Thanks and best regards
-Lv
-
-> 
-> Link: https://bugzilla.gnome.org/show_bug.cgi?id=782380
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-> ---
->  drivers/acpi/button.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 6d5a8c1..e19f530 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -113,7 +113,7 @@ struct acpi_button {
-> 
->  static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
->  static struct acpi_device *lid_device;
-> -static u8 lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
-> +static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
-> 
->  static unsigned long lid_report_interval __read_mostly = 500;
->  module_param(lid_report_interval, ulong, 0644);
-> --
-> 2.9.3
+Thanks,
+Rafael
 
