@@ -1,86 +1,54 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH] ACPI / GED: use late init to allow other drivers init
-Date: Thu, 11 May 2017 09:43:14 -0400
-Message-ID: <0a368676-d01a-5ac8-179d-b6e7507fd500@codeaurora.org>
-References: <1492813704-32280-1-git-send-email-okaya@codeaurora.org>
- <20170425070154.GC9999@wunner.de>
- <3f2c5bcc-3499-d5ef-6955-778979d25b08@codeaurora.org>
- <1874042.5bWzSJ73x0@aspire.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [v5 1/4] ACPICA: IORT: Add Cavium ThunderX2 SMMUv3 model
+ definition.
+Date: Thu, 11 May 2017 16:40:51 +0200
+Message-ID: <3624921.NlXkYaVXxR@aspire.rjw.lan>
+References: <1494415918-13770-1-git-send-email-gakula@caviumnetworks.com>
+ <3122711.vgvub3W1fy@aspire.rjw.lan> <20170511084525.GA18839@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1874042.5bWzSJ73x0@aspire.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lukas Wunner <lukas@wunner.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Abdulhamid, Harb" <harba@codeaurora.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170511084525.GA18839@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, linu.cherian@cavium.com, Charles.Garcia-Tobin@arm.com, geethasowjanya.akula@gmail.com, jcm@redhat.com, Geetha sowjanya <gakula@caviumnetworks.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Geetha Sowjanya <geethasowjanya.akula@cavium.com>, Lv Zheng <lv.zheng@intel.com>, sudeep.holla@arm.com, sgoutham@cavium.com, robin.murphy@arm.com, robert.richter@cavium.com, hanjun.guo@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
-
-On 5/10/2017 8:46 PM, Rafael J. Wysocki wrote:
->> My proposal was to require platform AML code to indicate the dependencies
->> between GED and drivers on the right side of the picture via _DEP as this
->> cannot be done via normal kernel mechanisms.
-> Something like _DEP would be needed.
+On Thursday, May 11, 2017 09:45:25 AM Will Deacon wrote:
+> On Thu, May 11, 2017 at 02:26:02AM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday, May 10, 2017 05:01:55 PM Geetha sowjanya wrote:
+> > > From: Linu Cherian <linu.cherian@cavium.com>
+> > > 
+> > > Add SMMUv3 model definition for ThunderX2.
+> > > 
+> > > Signed-off-by: Linu Cherian <linu.cherian@cavium.com>
+> > > Signed-off-by: Geetha Sowjanya <geethasowjanya.akula@cavium.com>
+> > 
+> > This is an ACPICA change, but you have not included the ACPICA maintainers
+> > into your original CC list (added now).
+> > 
+> > Bob, Lv, how should this be routed?
+> > 
+> > Do you want to apply this patch upstream first or can we make this change in
+> > Linux and upstream in parallel?  That shouldn't be a big deal, right?
 > 
-> However, _DEP as specified is only about operation region dependencies, which
-> doesn't seem to be applicable here.
-> 
-> That said, _DEP is used for general dependecies by firmware already, but it
-> would at least be good to send a proposal for a spec update regarding that
-> before mandating using _DEP for GED.
+> I think we're still waiting for the updated IORT document to be published (I
+> think this should be in the next week or so), so I don't think we should
+> commit the new ID before that happens.
 
-OK. I'll reach out to Harb and let's see where the proposal goes. 
+OK, thanks for the heads-up.
 
-> 
->> This approach might work in general. However, it also has its own caveats.
->>
->> All of these drivers on the right side are unrelated to each other. Some
->> operating system can implement a subset of these drivers.
->>
->> If I include the dependencies, GED will never load for partial driver situations.
->> This is also a deal breaker. 
-> _DEP doesn't mean a hard dependency AFAICS.  It is about ordering, not about
-> presence, at least as specified currently.
-> 
->> Why would you break some other feature if your OS doesn't support RAS as an
->> example?
->>
->> Given all these lose bindings and no driver association, where do we go
->> from here?
->>
->> I consider GED as a light version of Embedded controller (EC) implementation. 
-> No, it is not.
+I think it's better to submit the actbl2.h update directly to ACPICA
+upstream when the doc is published and then work on top of that.
 
-Thanks for correction. Let me repeat with the correct terminology this time. 
-
-Don't we have the same problem on GPE/SCI mechanism?
-
-An event that SCI is delivering may not be handled because the handler of the
-event is not present during OS boot?
-
-The SCI relationship would be:
-
-| SCI | <--->  | Platform specific ACPI AML (_AEI) | <----> Vendor XYZ driver
-                                              	     <----> Vendor I2C
-                                                     <----> ACPI GHES
-
-> 
-> It is more of a generalization of the GPE/SCI mechanism in order to make it
-> possible to cover things different from GPIO (which already is covered by
-> _AEI).
-> 
->> How is this problem solved for EC as it has the same problem?
-> It doesn't.  The EC relies on the GPE/SCI mechanism to be there and that is
-> always present.
-> 
-> Thanks,
-> Rafael
-
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Thanks,
+Rafael
