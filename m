@@ -1,67 +1,90 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [v5 1/4] ACPICA: IORT: Add Cavium ThunderX2 SMMUv3 model
- definition.
-Date: Thu, 11 May 2017 09:45:25 +0100
-Message-ID: <20170511084525.GA18839@arm.com>
-References: <1494415918-13770-1-git-send-email-gakula@caviumnetworks.com>
- <1494415918-13770-2-git-send-email-gakula@caviumnetworks.com>
- <3122711.vgvub3W1fy@aspire.rjw.lan>
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Subject: Re: [PATCH 0/2] acpi/button: revert v4.10 behavior
+Date: Thu, 11 May 2017 11:33:50 +0200
+Message-ID: <20170511093350.GE30987@mail.corp.redhat.com>
+References: <20170510161240.13229-1-benjamin.tissoires@redhat.com>
+ <CAJZ5v0jX82ueSVEHzMZngnJUf=yYJ+TN2efQ0BgwxcQd=bb0_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:44852 "EHLO foss.arm.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34106 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755320AbdEKIpV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 11 May 2017 04:45:21 -0400
+        id S1753492AbdEKJd5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 11 May 2017 05:33:57 -0400
 Content-Disposition: inline
-In-Reply-To: <3122711.vgvub3W1fy@aspire.rjw.lan>
+In-Reply-To: <CAJZ5v0jX82ueSVEHzMZngnJUf=yYJ+TN2efQ0BgwxcQd=bb0_g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Geetha sowjanya <gakula@caviumnetworks.com>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, jcm@redhat.com, linux-kernel@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, Charles.Garcia-Tobin@arm.com, Geetha Sowjanya <geethasowjanya.akula@cavium.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, Jiri Eischmann <jeischma@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thu, May 11, 2017 at 02:26:02AM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, May 10, 2017 05:01:55 PM Geetha sowjanya wrote:
-> > From: Linu Cherian <linu.cherian@cavium.com>
-> > 
-> > Add SMMUv3 model definition for ThunderX2.
-> > 
-> > Signed-off-by: Linu Cherian <linu.cherian@cavium.com>
-> > Signed-off-by: Geetha Sowjanya <geethasowjanya.akula@cavium.com>
+Hi Rafael,
+
+On May 11 2017 or thereabouts, Rafael J. Wysocki wrote:
+> On Wed, May 10, 2017 at 6:12 PM, Benjamin Tissoires
+> <benjamin.tissoires@redhat.com> wrote:
+> > The new default 'open' behavior for acpi_lid_initialize_state() is just
+> > wrong. It breaks professional laptops with a docking station [1].
+> >
+> > Booting the laptop with the LID closed is something common and now there
+> > is no way of knowing the actual state of the LID switch at boot. Please
+> > use a user-space solution as described in 2/2 if you really don't want to
+> > add quirks in the kernel.
+> >
+> > Cheers,
+> > Benjamin
+> >
+> > [1] https://bugzilla.gnome.org/show_bug.cgi?id=782380
+> >
+> > Benjamin Tissoires (2):
+> >   Revert "ACPI / button: Remove lid_init_state=method mode"
+> >   Revert "ACPI / button: Change default behavior to lid_init_state=open"
+> >
+> >  Documentation/acpi/acpi-lid.txt | 16 ++++++++++++----
+> >  drivers/acpi/button.c           | 11 ++++++++++-
+> >  2 files changed, 22 insertions(+), 5 deletions(-)
 > 
-> This is an ACPICA change, but you have not included the ACPICA maintainers
-> into your original CC list (added now).
+> Well, have you seen the recent series
+> (http://marc.info/?l=linux-acpi&m=149431335204701&w=2 and the
+> following) from Lv?
 > 
-> Bob, Lv, how should this be routed?
+
+Yeah, sorry I saw it right after sending mine.
+
+> He evidently agrees with you that "ACPI / button: Remove
+> lid_init_state=method mode" should be reverted, but then there are
+> differences.
+
+I still believe the second patch should be reverted (I'll try to
+convince Lv in the other replies).
+
 > 
-> Do you want to apply this patch upstream first or can we make this change in
-> Linux and upstream in parallel?  That shouldn't be a big deal, right?
+> Can you please have a look at that and let me know what's wrong with
+> it in your view?  I'd like to have a full picture if poss.
 
-I think we're still waiting for the updated IORT document to be published (I
-think this should be in the next week or so), so I don't think we should
-commit the new ID before that happens.
+Sure.
 
-Will
+A "short" summary could be the following (I'll go in deeper details in
+the other replies I'll send):
+- it's true that some devices are broken in term of LID switch, but we
+  never managed to get an accurate estimate of how many devices are
+  affected. Last time we spoke only 3 devices were affected, 1 being 4
+  years old or more, one other having a in-kernel solution already.
+- the change in the default setting breaks many more devices (all the
+  thinkpads from Lenovo, most professional Dell laptops too), and the
+  distributions solution would be to set the default setting back to
+  "method", so we are back to square one
+- changing the default setting to "open" prevents user space to fix the
+  kernel by adding heuristics
+- the only viable solution is to have a list of problematic devices that
+  don't report the correct LID switch state at boot (and later). Whether
+  this list is in the kernel or in user-space, I don't care, but the
+  current v4.11 code (and probably the second series Lv sent) prevents a
+  user-space database to be set.
 
-> > ---
-> >  include/acpi/actbl2.h | 2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-> > index faa9f2c..76a6f5d 100644
-> > --- a/include/acpi/actbl2.h
-> > +++ b/include/acpi/actbl2.h
-> > @@ -779,6 +779,8 @@ struct acpi_iort_smmu {
-> >  #define ACPI_IORT_SMMU_CORELINK_MMU400  0x00000002	/* ARM Corelink MMU-400 */
-> >  #define ACPI_IORT_SMMU_CORELINK_MMU500  0x00000003	/* ARM Corelink MMU-500 */
-> >  
-> > +#define ACPI_IORT_SMMU_V3_CAVIUM_CN99XX 0x00000002 /* Cavium ThunderX2 SMMUv3 */
-> > +
-> >  /* Masks for Flags field above */
-> >  
-> >  #define ACPI_IORT_SMMU_DVM_SUPPORTED    (1)
-> > 
+Cheers,
+Benjamin
+
 > 
 > Thanks,
 > Rafael
-> 
