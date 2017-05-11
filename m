@@ -1,95 +1,98 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / GED: use late init to allow other drivers init
-Date: Thu, 11 May 2017 16:52:23 +0200
-Message-ID: <7848366.O4PImzsRl1@aspire.rjw.lan>
-References: <1492813704-32280-1-git-send-email-okaya@codeaurora.org> <1874042.5bWzSJ73x0@aspire.rjw.lan> <0a368676-d01a-5ac8-179d-b6e7507fd500@codeaurora.org>
+From: =?iso-8859-1?Q?Jan_Kundr=E1t?= <jan.kundrat@cesnet.cz>
+Subject: CS553x MFD doesn't get registered on Axiomtek SBC84622 (Geode LX) =?iso-8859-1?Q?due_to_a_conflict_between_SystemIO_and_OpRegion_ranges?=
+Date: Thu, 11 May 2017 18:00:39 +0200
+Message-ID: <ddb1c055-2483-496f-9095-942bab029b6e@cesnet.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0a368676-d01a-5ac8-179d-b6e7507fd500@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Lukas Wunner <lukas@wunner.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Abdulhamid, Harb" <harba@codeaurora.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from office2.cesnet.cz ([195.113.144.244]:33183 "EHLO
+        office2.cesnet.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751572AbdEKQHi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 May 2017 12:07:38 -0400
+Received: from localhost (unknown [IPv6:2001:718:1:2c:ad0a:52e5:c55e:e1c6])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by office2.cesnet.cz (Postfix) with ESMTPSA id 84FB820006
+        for <linux-acpi@vger.kernel.org>; Thu, 11 May 2017 18:00:39 +0200 (CEST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thursday, May 11, 2017 09:43:14 AM Sinan Kaya wrote:
-> Hi Rafael,
-> 
-> On 5/10/2017 8:46 PM, Rafael J. Wysocki wrote:
-> >> My proposal was to require platform AML code to indicate the dependencies
-> >> between GED and drivers on the right side of the picture via _DEP as this
-> >> cannot be done via normal kernel mechanisms.
-> > Something like _DEP would be needed.
-> > 
-> > However, _DEP as specified is only about operation region dependencies, which
-> > doesn't seem to be applicable here.
-> > 
-> > That said, _DEP is used for general dependecies by firmware already, but it
-> > would at least be good to send a proposal for a spec update regarding that
-> > before mandating using _DEP for GED.
-> 
-> OK. I'll reach out to Harb and let's see where the proposal goes. 
+Hi,
+I have an Axiomtek SBC84622, a board based on AMD Geode LX which uses a=20
+CS553x MFD for providing access to the I2C bus master and some GPIO pins=20
+(and other stuff). I'm running 4.9.23, and driver/device registration fails=20=
 
-It looks like this is about operation regions after all, however, so _DEP as is
-should be sufficient here.
+on my board due to some conflict in the ACPI data. As a result of that,=20
+kernel says that "MFD add devices failed" with EBUSY (-16), and no I2C bus=20=
 
-There is some limited _DEP support in the ACPI layer, but we were missing
-a way to represent those dependencies in the driver core.
+is visible.
 
-That can be done through device_link objects now, so we may be able to support
-_DEP in a more meaningful way, but the cases when _DEP is used for something
-different from operation regions in practice need to be treated with caution.
+I went through the cs5535_mfd_probe -> mfd_add_devices -> mfd_add_device=20
+call chain. The function that fails is `acpi_check_resource_conflict`=20
+within the `mfd_add_device`. Because I am brave and clueless when it comes=20=
 
+to ACPI, I commented out the `goto fail_alias` so that a failed validation=20=
 
-> > 
-> >> This approach might work in general. However, it also has its own caveats.
-> >>
-> >> All of these drivers on the right side are unrelated to each other. Some
-> >> operating system can implement a subset of these drivers.
-> >>
-> >> If I include the dependencies, GED will never load for partial driver situations.
-> >> This is also a deal breaker. 
-> > _DEP doesn't mean a hard dependency AFAICS.  It is about ordering, not about
-> > presence, at least as specified currently.
-> > 
-> >> Why would you break some other feature if your OS doesn't support RAS as an
-> >> example?
-> >>
-> >> Given all these lose bindings and no driver association, where do we go
-> >> from here?
-> >>
-> >> I consider GED as a light version of Embedded controller (EC) implementation. 
-> > No, it is not.
-> 
-> Thanks for correction. Let me repeat with the correct terminology this time. 
-> 
-> Don't we have the same problem on GPE/SCI mechanism?
+of the ACPI data doesn't cause mfd_add_device's failure, and after that,=20
+the I2C bus started working and all devices were registered properly as far=20=
 
-Yes, in theory.
+as I can tell. Here's what gets shown in the dmesg after I added a couple=20
+more printks:
 
-> An event that SCI is delivering may not be handled because the handler of the
-> event is not present during OS boot?
+[    0.533493] mfd_add_devices: calling mfd_add_device 0
+[    0.533796] mfd_add_devices: calling mfd_add_device 1
+[    0.533898] ACPI Warning: SystemIO range=20
+0x0000000000006100-0x00000000000061FF conflicts with OpRegion=20
+0x0000000000006100-0x00000000000061FF (\_SB.GPIO)=20
+(20160831/utaddress-247)\x007)
+[    0.534232] ACPI: If an ACPI driver is available for this device, you=20
+should use it instead of the native driver
+[    0.534367] PWN mfd_add_device: acpi_check_resource_conflict failed
+[    0.534670] cs5535-gpio cs5535-gpio: reserved resource region [io =20
+0x6100-0x61ff]
+[    0.535145] mfd_add_devices: calling mfd_add_device 2
+[    0.535449] cs5535-mfgpt cs5535-mfgpt: reserved resource region [io =20
+0x6200-0x623f]
+[    0.535582] cs5535-mfgpt cs5535-mfgpt: 0 MFGPT timers available
+[    0.535673] mfd_add_devices: calling mfd_add_device 3
+[    0.535934] mfd_add_devices: calling mfd_add_device 4
+[    0.536073] ACPI Warning: SystemIO range=20
+0x0000000000009C00-0x0000000000009C3F conflicts with OpRegion=20
+0x0000000000009C3C-0x0000000000009C3C (\SCPP)=20
+(20160831/utaddress-247)\x007)
+[    0.536342] ACPI Warning: SystemIO range=20
+0x0000000000009C00-0x0000000000009C3F conflicts with OpRegion=20
+0x0000000000009C24-0x0000000000009C27 (\VSAB)=20
+(20160831/utaddress-247)\x007)
+[    0.536604] ACPI: If an ACPI driver is available for this device, you=20
+should use it instead of the native driver
+[    0.536735] PWN mfd_add_device: acpi_check_resource_conflict failed
+[    0.536992] cs5535-mfd 0000:00:0f.0: 5 devices registered.
 
-It would be a problem if something like _Lxx or _Exx referred to an operation
-region without a handler, but these usually refer to operation regions in
-memory or in the PCI config space and there are default operation region
-handlers for those address spaces.
+I.e., registration of subdevices #1 and #4 would fail if the mfd_add_device=20=
 
-Of course, if they referred to operation regions on an I2C bus, for example,
-the problem might very well occur in there too.
+cared about the acpi_check_resource_conflict.
 
-> The SCI relationship would be:
-> 
-> | SCI | <--->  | Platform specific ACPI AML (_AEI) | <----> Vendor XYZ driver
->                                               	     <----> Vendor I2C
->                                                      <----> ACPI GHES
-> 
+I've checked the manufacturer's database for an updated BIOS, but it seems=20=
 
-This would not be the SCI AFAICS, because _AEI is specific to GPIO interrupts
-and it only says which interrupts should be handled by the ACPI layer.  There
-needs to be _EVT for handling them just like in the GED case (or the other
-way around, actuallly), so this is just analogous to GED.
+that they don't provide anything. The version that I have is "1.0.0" dating=20=
 
-Thanks,
-Rafael
+back to 2009, so I don't think there are big chances of a fix from the=20
+vendor. I'm quite happy that I now have my I2C. I would be even happier if=20=
+
+the geode_wdt also started working, but that's for some other time.
+
+What can I do in order to fix this properly? I very quickly glanced through=20=
+
+the log of drivers/mfd/mfd-core.c and I see some bits which suggest that=20
+maybe this particular board might need some more quirks. I have=20
+approximately zero knowledge of ACPI and kernel programming. I'll be happy=20=
+
+to test patches which fix this, and I can also provide dumps of ACPI tables=20=
+
+or whatever else is needed.
+
+With kind regards,
+Jan
