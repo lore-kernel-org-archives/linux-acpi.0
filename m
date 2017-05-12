@@ -1,50 +1,39 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH V15 06/11] acpi: apei: handle SEA notification type for
- ARMv8
-Date: Fri, 12 May 2017 17:45:16 +0100
-Message-ID: <5915E69C.5090201@arm.com>
-References: <1492556723-9189-1-git-send-email-tbaicar@codeaurora.org> <1492556723-9189-7-git-send-email-tbaicar@codeaurora.org> <5910AAB8.8070703@arm.com> <9e26f779-5eae-2558-6045-10c1afde9bf2@codeaurora.org>
+From: Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
+Subject: Re: [RFC/RFT PATCH 1/3] PCI: Introduce pci_bus_find_numa_node()
+Date: Fri, 12 May 2017 10:18:46 -0700
+Message-ID: <20170512171846.GA21391@localhost.localdomain>
+References: <20170426100619.31758-1-lorenzo.pieralisi@arm.com>
+ <1494593045-19911-1-git-send-email-Vadim.Lomovtsev@caviumnetworks.com>
+ <20170512155040.GA11377@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9e26f779-5eae-2558-6045-10c1afde9bf2@codeaurora.org>
+Content-Disposition: inline
+In-Reply-To: <20170512155040.GA11377@red-moon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, devel@acpica.org, Suzuki.Po
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Vadim.Lomovtsev@caviumnetworks.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Tyler,
+Hi Lorenzo
 
-On 08/05/17 20:59, Baicar, Tyler wrote:
-> On 5/8/2017 11:28 AM, James Morse wrote:
->> I was tidying up the masking/unmasking in entry.S, something I wasn't aware of
->> that leads to a bug:
->> entry.S will unmask interrupts for instruction/data aborts that came from a
->> context with interrupts enabled. This makes sense for get_user() and friends...
->> For do_sea() we pull nmi_enter() as this can interrupt interrupts-masked code,
->> such as APEI, but if we end up in here with interrupts unmasked we can take an
->> IRQ from this 'NMI' context, which will inherit the in_nmi() and could lead to
->> the deadlock we were originally trying to avoid.
->>
->> Teaching entry.S to spot external aborts is messy. I think the two choices are
->> to either mask interrupts when calling nmi_enter() (as these things should be
->> mutually exclusive), or to conditionally call nmi_enter() based on
->> interrupts_enabled(regs). I prefer the second one as it matches the notify_sea()
->> while interruptible that happens when KVM takes one of these.
+On Fri, May 12, 2017 at 04:50:40PM +0100, Lorenzo Pieralisi wrote:
+> Hi Vadim,
+> 
+> On Fri, May 12, 2017 at 05:44:05AM -0700, Vadim Lomovtsev wrote:
+> > Hi Lorenzo,
+> > 
+> > Are there any news related to these patches ?
+> 
+> Not really, I have not received any feedback but I was expecting some
+> to make progress here. Have you tested it ?
+>
+> Please let me know, thanks !
 
-Thinking about this some more: the KVM case is different as we know it was a
-guest that triggered the external abort. Nothing the host kernel does is likely
-to trigger either the same error or a related one.
+Not yet. Plan to test them after weekend and will get back to you.
 
-But I can't think of a way this would trip twice on the host... yes your
-suggestion looks fine.
+> 
+> Lorenzo
 
-(When we add SError/SEI support too we will need to change it as SEA may
-interrupt SEI, and nmi_enter() has a BUG_ON(in_nmi()), so this nesting will need
-explicitly checking.)
-
-
-Thanks,
-
-James
+WBR,
+Vadim
