@@ -1,110 +1,77 @@
-From: Florian Echtler <floe@butterbrot.org>
-Subject: Re: Notifications about ACPI events in userspace?
-Date: Fri, 12 May 2017 13:05:21 +0200
-Message-ID: <22eb7eab-21b0-aa5b-a989-0e4e80c707fb@butterbrot.org>
-References: <71a48bf5-54b5-6d7b-d574-e0aa6c1acb80@butterbrot.org>
- <20170512100652.GA22013@wunner.de>
+From: Geetha Akula <geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [v5 1/4] ACPICA: IORT: Add Cavium ThunderX2 SMMUv3 model
+	definition.
+Date: Fri, 12 May 2017 17:21:59 +0530
+Message-ID: <CANHdaib_fswMdcrht_PE+-A1trfcUU56+arvorNkB-Nj4ZRz2Q@mail.gmail.com>
+References: <1494415918-13770-1-git-send-email-gakula@caviumnetworks.com>
+	<3122711.vgvub3W1fy@aspire.rjw.lan> <20170511084525.GA18839@arm.com>
+	<3624921.NlXkYaVXxR@aspire.rjw.lan> <20170512102459.GF26181@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="d09fVQgVMkkSH09RpAXATIgt4bBU25i0J"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:44646 "EHLO butterbrot.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932220AbdELLFb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 May 2017 07:05:31 -0400
-In-Reply-To: <20170512100652.GA22013@wunner.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20170512102459.GF26181-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org>, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, sudeep.holla-5wv7dgnIgG8@public.gmane.org, Sunil Goutham <sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Robert Richter <robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---d09fVQgVMkkSH09RpAXATIgt4bBU25i0J
-Content-Type: multipart/mixed; boundary="Qhc6KKeVRkLcE17320LU4uSueGCLI8FKP";
- protected-headers="v1"
-From: Florian Echtler <floe@butterbrot.org>
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
-Message-ID: <22eb7eab-21b0-aa5b-a989-0e4e80c707fb@butterbrot.org>
-Subject: Re: Notifications about ACPI events in userspace?
-References: <71a48bf5-54b5-6d7b-d574-e0aa6c1acb80@butterbrot.org>
- <20170512100652.GA22013@wunner.de>
-In-Reply-To: <20170512100652.GA22013@wunner.de>
+On Fri, May 12, 2017 at 3:54 PM, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org> wrote:
+> On Thu, May 11, 2017 at 04:40:51PM +0200, Rafael J. Wysocki wrote:
+>> On Thursday, May 11, 2017 09:45:25 AM Will Deacon wrote:
+>> > On Thu, May 11, 2017 at 02:26:02AM +0200, Rafael J. Wysocki wrote:
+>> > > On Wednesday, May 10, 2017 05:01:55 PM Geetha sowjanya wrote:
+>> > > > From: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>> > > >
+>> > > > Add SMMUv3 model definition for ThunderX2.
+>> > > >
+>> > > > Signed-off-by: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>> > > > Signed-off-by: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>> > >
+>> > > This is an ACPICA change, but you have not included the ACPICA maintainers
+>> > > into your original CC list (added now).
+>> > >
+>> > > Bob, Lv, how should this be routed?
+>> > >
+>> > > Do you want to apply this patch upstream first or can we make this change in
+>> > > Linux and upstream in parallel?  That shouldn't be a big deal, right?
+>> >
+>> > I think we're still waiting for the updated IORT document to be published (I
+>> > think this should be in the next week or so), so I don't think we should
+>> > commit the new ID before that happens.
+>>
+>> OK, thanks for the heads-up.
+>>
+>> I think it's better to submit the actbl2.h update directly to ACPICA
+>> upstream when the doc is published and then work on top of that.
+>
+> The doc is now published:
+>
+> http://infocenter.arm.com/help/topic/com.arm.doc.den0049c/DEN0049C_IO_Remapping_Table.pdf
+>
+> so the new model numbers are confirmed.
+>
+> Cheers,
+>
+> Will
 
---Qhc6KKeVRkLcE17320LU4uSueGCLI8FKP
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Thanks Will.
 
-On 12.05.2017 12:06, Lukas Wunner wrote:
-> On Fri, May 12, 2017 at 10:37:47AM +0200, Florian Echtler wrote:
->> I'm currently adding support for the iMac's target display mode (TDM) =
-to
->> Linux.
->=20
-> Cool!
-
-:-)
-
->> However, I'm not seeing anything happening with either acpi_listen or
->> kacpimon.
->> Does this require any kernel changes, or could I subscribe to these
->> events somehow?
->=20
-> You can subscribe to these events by calling acpi_install_notify_handle=
-r().
-> See drivers/platform/x86/apple-gmux.c for an example.  That's a driver =
-for
-> APP000B, a custom chip found on dual-GPU MacBook Pros dubbed GMUX which=
- is
-> responsible for multiplexing the panel between the GPUs.
-
-OK, but this has to happen in a kernel context, correct? No way to see th=
-ese
-from userspace?
-
-> I'm not sure what APP000C is, could be a similar custom controller, I'd=
- have
-> to do some research first to know what it does.  Surely "DP" stands for=
-
-> DisplayPort, but what does "PT" stand for?
-
-I'm guessing DPPT is for "DisPlayPorT". As far as I could tell, it's just=
- a stub
-for receiving the Notify() calls; the actual source switching is handled =
-by
-writing to SMC keys.
-
-> Perhaps apple-gmux.c could serve as a template for an APP000C driver.
-> The code should be easy to understand, if you have questions just ask a=
-way.
-
-Since I need to modify the applesmc.c driver anyway, it would probably ma=
-ke
-sense to integrate the notify handler there?
-
-The other approach would be to write a dedicated TDM module, but I'm not =
-sure
-how to access the SMC, then...
-
-Best, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
+Will resubmit the patches based on Robin's latest patch "acpica: iort:
+Update SMMU models for IORT rev. C",
+as there is a miss match in the macro name used to define ThunderX2
+iort model number.
+https://lkml.org/lkml/2017/5/12/211
 
 
---Qhc6KKeVRkLcE17320LU4uSueGCLI8FKP--
 
---d09fVQgVMkkSH09RpAXATIgt4bBU25i0J
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEARECAAYFAlkVlvEACgkQ7CzyshGvathS6wCfcJoOYrmN/pwa2z8ecf9a/Zhw
-5icAoNfp2ySItFaWDc+SjFSR74c9FLTI
-=RtlA
------END PGP SIGNATURE-----
-
---d09fVQgVMkkSH09RpAXATIgt4bBU25i0J--
+Thank you,
+Geetha.
