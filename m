@@ -1,14 +1,17 @@
 From: "Luck, Tony" <tony.luck@intel.com>
-Subject: [PATCH v2 0/2] Clean up ACPI Boot Error Record Table code
-Date: Fri, 12 May 2017 14:42:10 -0700
-Message-ID: <cover.1494624795.git.tony.luck@intel.com>
+Subject: [PATCH v2 1/2] ACPI / APEI: Boot Error Record Table processing was needlessly complicated
+Date: Fri, 12 May 2017 14:42:11 -0700
+Message-ID: <78b9b4db53afcaec6bd5b6b95480d64ef6874450.1494624795.git.tony.luck@intel.com>
 References: <20170512120118.zwhgtcbf4u4zshbn@pd.tnic>
+ <cover.1494624795.git.tony.luck@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:58545 "EHLO mga06.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:65355 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757950AbdELVnX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 May 2017 17:43:23 -0400
-In-Reply-To: <20170512120118.zwhgtcbf4u4zshbn@pd.tnic>
+        id S1756114AbdELVnS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 May 2017 17:43:18 -0400
+In-Reply-To: <cover.1494624795.git.tony.luck@intel.com>
+In-Reply-To: <cover.1494624795.git.tony.luck@intel.com>
+References: <cover.1494624795.git.tony.luck@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
@@ -16,24 +19,29 @@ Cc: Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, Huang Ying <yi
 
 From: Tony Luck <tony.luck@intel.com>
 
-ACPI 6.1 spec clarified the structure of the Boot Error Record Table.
-Linux code was overly complex, and included a redundant structure
-definition of "acpi_bert_region".
+Quoting version 6.1 of the ACPI specification. Section 18.3.1 "Boot
+Error Source" says:
 
-v2 changes:
-Rafael: Split the change to <acpi/actbl1.h> into a separate patch so
-	it can be fed through ACPICA process.
-Boris:  Better wording for the comment about the "address" field in 
-	the acpi_table_bert structure.
+  The Boot Error Region is a range of addressable memory OSPM can access
+  during initialization to determine if an unhandled error condition
+  occurred. System firmware must report this memory range as firmware
+  reserved. The format of the Boot Error Region follow that of an Error
+  Status Block, this is defined in Section 18.3.2.7. The format of the
+  error status block is described by Table 18-342.
 
-Tony Luck (2):
-  ACPI / APEI: Boot Error Record Table processing was needlessly
-    complicated
-  ACPI / APEI: No remaining users of struct acpi_bert_region
+This clarifies some points that were obfuscated in earlier versions.
+E.g. there is no longer a separate table to describe the format of the
+"Boot Error Region" (which was identical to the "Error Status Block").
+Also saying "follow that of *an* Error Status Block" makes it clear that
+there is just one block (which can still contain multiple "Generic Error
+Data Entry structures").
 
- drivers/acpi/apei/bert.c | 54 +++++++-----------------------------------------
- include/acpi/actbl1.h    | 16 +++++---------
- 2 files changed, 12 insertions(+), 58 deletions(-)
+The loop inside bert_print_all() is unnecessary (but probably harmless
+as the "while (remain > sizeof(struct acpi_bert_region))" loop should
+terminate after we skipped over the first entry.
+
+We can drop the "bert_print_all()" function and just move the four
+relevant lines inline in "bert_init()".
 
 Cc: Len Brown <lenb@kernel.org>
 Cc: Huang Ying <ying.huang@intel.com>
@@ -44,7 +52,96 @@ Cc: Tyler Baicar <tbaicar@codeaurora.org>
 Cc: linux-acpi@vger.kernel.org
 Reviewed-by: Borislav Petkov <bp@suse.de>
 Signed-off-by: Tony Luck <tony.luck@intel.com>
+---
+ drivers/acpi/apei/bert.c | 54 +++++++-----------------------------------------
+ 1 file changed, 7 insertions(+), 47 deletions(-)
 
+diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
+index 12771fcf0417..b28e1573d4cf 100644
+--- a/drivers/acpi/apei/bert.c
++++ b/drivers/acpi/apei/bert.c
+@@ -34,50 +34,6 @@
+ 
+ static int bert_disable;
+ 
+-static void __init bert_print_all(struct acpi_bert_region *region,
+-				  unsigned int region_len)
+-{
+-	struct acpi_hest_generic_status *estatus =
+-		(struct acpi_hest_generic_status *)region;
+-	int remain = region_len;
+-	u32 estatus_len;
+-
+-	if (!estatus->block_status)
+-		return;
+-
+-	while (remain > sizeof(struct acpi_bert_region)) {
+-		if (cper_estatus_check(estatus)) {
+-			pr_err(FW_BUG "Invalid error record.\n");
+-			return;
+-		}
+-
+-		estatus_len = cper_estatus_len(estatus);
+-		if (remain < estatus_len) {
+-			pr_err(FW_BUG "Truncated status block (length: %u).\n",
+-			       estatus_len);
+-			return;
+-		}
+-
+-		pr_info_once("Error records from previous boot:\n");
+-
+-		cper_estatus_print(KERN_INFO HW_ERR, estatus);
+-
+-		/*
+-		 * Because the boot error source is "one-time polled" type,
+-		 * clear Block Status of current Generic Error Status Block,
+-		 * once it's printed.
+-		 */
+-		estatus->block_status = 0;
+-
+-		estatus = (void *)estatus + estatus_len;
+-		/* No more error records. */
+-		if (!estatus->block_status)
+-			return;
+-
+-		remain -= estatus_len;
+-	}
+-}
+-
+ static int __init setup_bert_disable(char *str)
+ {
+ 	bert_disable = 1;
+@@ -89,7 +45,7 @@ __setup("bert_disable", setup_bert_disable);
+ static int __init bert_check_table(struct acpi_table_bert *bert_tab)
+ {
+ 	if (bert_tab->header.length < sizeof(struct acpi_table_bert) ||
+-	    bert_tab->region_length < sizeof(struct acpi_bert_region))
++	    bert_tab->region_length < sizeof(struct acpi_hest_generic_status))
+ 		return -EINVAL;
+ 
+ 	return 0;
+@@ -98,7 +54,7 @@ static int __init bert_check_table(struct acpi_table_bert *bert_tab)
+ static int __init bert_init(void)
+ {
+ 	struct apei_resources bert_resources;
+-	struct acpi_bert_region *boot_error_region;
++	struct acpi_hest_generic_status *boot_error_region;
+ 	struct acpi_table_bert *bert_tab;
+ 	unsigned int region_len;
+ 	acpi_status status;
+@@ -138,7 +94,11 @@ static int __init bert_init(void)
+ 		goto out_fini;
+ 	boot_error_region = ioremap_cache(bert_tab->address, region_len);
+ 	if (boot_error_region) {
+-		bert_print_all(boot_error_region, region_len);
++		if (boot_error_region->block_status) {
++			pr_info("Error records from previous boot:\n");
++			cper_estatus_print(KERN_INFO HW_ERR, boot_error_region);
++			boot_error_region->block_status = 0;
++		}
+ 		iounmap(boot_error_region);
+ 	} else {
+ 		rc = -ENOMEM;
 -- 
 2.11.0
 
