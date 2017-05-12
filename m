@@ -1,110 +1,83 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 2/4] ACPICA: Tables: Add mechanism to allow to balance late stage acpi_get_table() independently
-Date: Fri, 12 May 2017 23:41:26 +0200
-Message-ID: <2101425.aQhWfuyaHJ@aspire.rjw.lan>
-References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com> <86628bf775497ed03931e30361bb6115d78876be.1494309338.git.lv.zheng@intel.com> <1660120.KNfsmTX9Wg@aspire.rjw.lan>
+Subject: Re: [PATCH v2 2/2] ACPI / APEI: No remaining users of struct acpi_bert_region
+Date: Fri, 12 May 2017 23:46:31 +0200
+Message-ID: <747341231.C4QRqWBle1@aspire.rjw.lan>
+References: <20170512120118.zwhgtcbf4u4zshbn@pd.tnic> <cover.1494624795.git.tony.luck@intel.com> <e5482112927d6b31aba43b88f1faba6c9fd96ab3.1494624795.git.tony.luck@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48221 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51326 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755256AbdELVr6 (ORCPT
+        by vger.kernel.org with ESMTP id S1758114AbdELVxC (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 May 2017 17:47:58 -0400
-In-Reply-To: <1660120.KNfsmTX9Wg@aspire.rjw.lan>
+        Fri, 12 May 2017 17:53:02 -0400
+In-Reply-To: <e5482112927d6b31aba43b88f1faba6c9fd96ab3.1494624795.git.tony.luck@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Borislav Petkov <bp@suse.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jonathan Zhang <zjzhang@codeaurora.org>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-On Friday, May 12, 2017 11:03:52 PM Rafael J. Wysocki wrote:
-> On Tuesday, May 09, 2017 01:57:41 PM Lv Zheng wrote:
-> > For all frequent late stage acpi_get_table() clone invocations, we should
-> > only change them altogether, otherwise, excessive acpi_put_table() could
-> > unexpectedly unmap the table used by the other users. Thus the current plan
-> > is to change all acpi_get_table() clones together or to change none of
-> > them. However in practical, this is not convenient as this can prevent
-> > kernel developers' efforts of improving the late stage code quality before
-> > waiting for the ACPICA upstream to improve first.
-> > 
-> > This patch adds a validation count threashold, when it is reached, the
-> > validation count can no longer be incremented/decremented to invalidate the
-> > table descriptor (means preventing table unmappings) so that acpi_put_table()
-> > balance changes can be done independently to each others. Lv Zheng.
-> > 
-> > Cc: Dan Williams <dan.j.williams@intel.com>
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > ---
-> >  drivers/acpi/acpica/tbutils.c | 24 +++++++++++++++---------
-> >  include/acpi/actbl.h          |  9 +++++++++
-> >  2 files changed, 24 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-> > index 7abe665..04beafc 100644
-> > --- a/drivers/acpi/acpica/tbutils.c
-> > +++ b/drivers/acpi/acpica/tbutils.c
-> > @@ -416,9 +416,13 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
-> >  		}
-> >  	}
-> >  
-> > -	table_desc->validation_count++;
-> > -	if (table_desc->validation_count == 0) {
-> > -		table_desc->validation_count--;
-> > +	if (table_desc->validation_count < ACPI_MAX_TABLE_VALIDATIONS) {
-> > +		table_desc->validation_count++;
-> > +		if (table_desc->validation_count >= ACPI_MAX_TABLE_VALIDATIONS) {
-> > +			ACPI_WARNING((AE_INFO,
-> > +				      "Table %p, Validation count overflows\n",
-> > +				      table_desc));
-> > +		}
-> >  	}
-> >  
-> >  	*out_table = table_desc->pointer;
-> > @@ -445,13 +449,15 @@ void acpi_tb_put_table(struct acpi_table_desc *table_desc)
-> >  
-> >  	ACPI_FUNCTION_TRACE(acpi_tb_put_table);
-> >  
-> > -	if (table_desc->validation_count == 0) {
-> > -		ACPI_WARNING((AE_INFO,
-> > -			      "Table %p, Validation count is zero before decrement\n",
-> > -			      table_desc));
-> > -		return_VOID;
-> > +	if (table_desc->validation_count < ACPI_MAX_TABLE_VALIDATIONS) {
-> > +		table_desc->validation_count--;
-> > +		if (table_desc->validation_count >= ACPI_MAX_TABLE_VALIDATIONS) {
+On Friday, May 12, 2017 02:42:12 PM Luck, Tony wrote:
+> From: Tony Luck <tony.luck@intel.com>
 > 
-> Is this going to ever trigger?
+> Version 6.1 of the ACPI specification. Section 18.3.1 "Boot Error
+> Source" clarified that the format of the Boot Error Region is a "Generic
+> Error Status Block". So we don't need separate (but identical) "struct
+> acpi_bert_region" and "struct acpi_hest_generic_status".
 > 
-> We've already verified that validation_count is not 0 and that it is less than
-> ACPI_MAX_TABLE_VALIDATIONS and we have decremented it, so how can it be
-> greater than or equal to ACPI_MAX_TABLE_VALIDATIONS here?
+> Code using acpi_bert_region has been changed to use acpi_hest_generic_status
+> instead. So we can delete the definition now.
+> 
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Huang Ying <ying.huang@intel.com>
+> Cc: Borislav Petkov <bp@suse.de>
+> Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Cc: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> Cc: Tyler Baicar <tbaicar@codeaurora.org>
+> Cc: linux-acpi@vger.kernel.org
+> Reviewed-by: Borislav Petkov <bp@suse.de>
+> Signed-off-by: Tony Luck <tony.luck@intel.com>
+> ---
+>  include/acpi/actbl1.h | 16 +++++-----------
+>  1 file changed, 5 insertions(+), 11 deletions(-)
+> 
+> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+> index b4ce55c008b0..b44663a87bd1 100644
+> --- a/include/acpi/actbl1.h
+> +++ b/include/acpi/actbl1.h
+> @@ -126,17 +126,11 @@ struct acpi_whea_header {
+>  struct acpi_table_bert {
+>  	struct acpi_table_header header;	/* Common ACPI table header */
+>  	u32 region_length;	/* Length of the boot error region */
+> -	u64 address;		/* Physical address of the error region */
+> -};
+> -
+> -/* Boot Error Region (not a subtable, pointed to by Address field above) */
+> -
+> -struct acpi_bert_region {
+> -	u32 block_status;	/* Type of error information */
+> -	u32 raw_data_offset;	/* Offset to raw error data */
+> -	u32 raw_data_length;	/* Length of raw error data */
+> -	u32 data_length;	/* Length of generic error data */
+> -	u32 error_severity;	/* Severity code */
+> +	u64 address;		/*
+> +				 * Physical address of the error region
+> +				 * which is a Generic Error Status Block
+> +				 * (struct acpi_hest_generic_status)
+> +				 */
+>  };
+>  
+>  /* Values for block_status flags above */
+> 
 
-Wrong question, sorry.
+Well, again, this is an ACPICA header and by changing it in the kernel alone
+we make it out of sync with the upstream, which may be a problem for the
+maintainers thereof when they port changes from the upstream ACPICA to the
+kernel.
 
-I think that the check is in case validation_count was 0 before the decrementation,
-right?
-
-So then, I'd still check if validation_count == 0 and if so, set it to
-ACPI_MAX_TABLE_VALIDATIONS.
-
-Next, if validation_count => ACPI_MAX_TABLE_VALIDATIONS, I'd print the warning
-message and return.
-
-Then, the decrementation would not underflow, so it would be safe to do it.
-
-Wouldn't that be somewhat easier to follow?
-
-> > +			ACPI_WARNING((AE_INFO,
-> > +				      "Table %p, Validation count underflows\n",
-> > +				      table_desc));
-> > +			return_VOID;
-> > +		}
-> >  	}
-> > -	table_desc->validation_count--;
-> >  
-> >  	if (table_desc->validation_count == 0) {
-> >
+So, (a) do we have to change it and (b) can that be routed through the
+upstream?
 
 Thanks,
 Rafael
