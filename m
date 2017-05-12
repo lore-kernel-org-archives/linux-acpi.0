@@ -1,147 +1,111 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: [PATCH v2 1/2] ACPI / APEI: Boot Error Record Table processing was needlessly complicated
-Date: Fri, 12 May 2017 14:42:11 -0700
-Message-ID: <78b9b4db53afcaec6bd5b6b95480d64ef6874450.1494624795.git.tony.luck@intel.com>
-References: <20170512120118.zwhgtcbf4u4zshbn@pd.tnic>
- <cover.1494624795.git.tony.luck@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v4 2/4] ACPICA: Tables: Add mechanism to allow to balance late stage acpi_get_table() independently
+Date: Fri, 12 May 2017 23:41:26 +0200
+Message-ID: <2101425.aQhWfuyaHJ@aspire.rjw.lan>
+References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com> <86628bf775497ed03931e30361bb6115d78876be.1494309338.git.lv.zheng@intel.com> <1660120.KNfsmTX9Wg@aspire.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:65355 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756114AbdELVnS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 May 2017 17:43:18 -0400
-In-Reply-To: <cover.1494624795.git.tony.luck@intel.com>
-In-Reply-To: <cover.1494624795.git.tony.luck@intel.com>
-References: <cover.1494624795.git.tony.luck@intel.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48221 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755256AbdELVr6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 May 2017 17:47:58 -0400
+In-Reply-To: <1660120.KNfsmTX9Wg@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Borislav Petkov <bp@suse.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jonathan Zhang <zjzhang@codeaurora.org>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>
 
-From: Tony Luck <tony.luck@intel.com>
+On Friday, May 12, 2017 11:03:52 PM Rafael J. Wysocki wrote:
+> On Tuesday, May 09, 2017 01:57:41 PM Lv Zheng wrote:
+> > For all frequent late stage acpi_get_table() clone invocations, we should
+> > only change them altogether, otherwise, excessive acpi_put_table() could
+> > unexpectedly unmap the table used by the other users. Thus the current plan
+> > is to change all acpi_get_table() clones together or to change none of
+> > them. However in practical, this is not convenient as this can prevent
+> > kernel developers' efforts of improving the late stage code quality before
+> > waiting for the ACPICA upstream to improve first.
+> > 
+> > This patch adds a validation count threashold, when it is reached, the
+> > validation count can no longer be incremented/decremented to invalidate the
+> > table descriptor (means preventing table unmappings) so that acpi_put_table()
+> > balance changes can be done independently to each others. Lv Zheng.
+> > 
+> > Cc: Dan Williams <dan.j.williams@intel.com>
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > ---
+> >  drivers/acpi/acpica/tbutils.c | 24 +++++++++++++++---------
+> >  include/acpi/actbl.h          |  9 +++++++++
+> >  2 files changed, 24 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+> > index 7abe665..04beafc 100644
+> > --- a/drivers/acpi/acpica/tbutils.c
+> > +++ b/drivers/acpi/acpica/tbutils.c
+> > @@ -416,9 +416,13 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
+> >  		}
+> >  	}
+> >  
+> > -	table_desc->validation_count++;
+> > -	if (table_desc->validation_count == 0) {
+> > -		table_desc->validation_count--;
+> > +	if (table_desc->validation_count < ACPI_MAX_TABLE_VALIDATIONS) {
+> > +		table_desc->validation_count++;
+> > +		if (table_desc->validation_count >= ACPI_MAX_TABLE_VALIDATIONS) {
+> > +			ACPI_WARNING((AE_INFO,
+> > +				      "Table %p, Validation count overflows\n",
+> > +				      table_desc));
+> > +		}
+> >  	}
+> >  
+> >  	*out_table = table_desc->pointer;
+> > @@ -445,13 +449,15 @@ void acpi_tb_put_table(struct acpi_table_desc *table_desc)
+> >  
+> >  	ACPI_FUNCTION_TRACE(acpi_tb_put_table);
+> >  
+> > -	if (table_desc->validation_count == 0) {
+> > -		ACPI_WARNING((AE_INFO,
+> > -			      "Table %p, Validation count is zero before decrement\n",
+> > -			      table_desc));
+> > -		return_VOID;
+> > +	if (table_desc->validation_count < ACPI_MAX_TABLE_VALIDATIONS) {
+> > +		table_desc->validation_count--;
+> > +		if (table_desc->validation_count >= ACPI_MAX_TABLE_VALIDATIONS) {
+> 
+> Is this going to ever trigger?
+> 
+> We've already verified that validation_count is not 0 and that it is less than
+> ACPI_MAX_TABLE_VALIDATIONS and we have decremented it, so how can it be
+> greater than or equal to ACPI_MAX_TABLE_VALIDATIONS here?
 
-Quoting version 6.1 of the ACPI specification. Section 18.3.1 "Boot
-Error Source" says:
+Wrong question, sorry.
 
-  The Boot Error Region is a range of addressable memory OSPM can access
-  during initialization to determine if an unhandled error condition
-  occurred. System firmware must report this memory range as firmware
-  reserved. The format of the Boot Error Region follow that of an Error
-  Status Block, this is defined in Section 18.3.2.7. The format of the
-  error status block is described by Table 18-342.
+I think that the check is in case validation_count was 0 before the decrementation,
+right?
 
-This clarifies some points that were obfuscated in earlier versions.
-E.g. there is no longer a separate table to describe the format of the
-"Boot Error Region" (which was identical to the "Error Status Block").
-Also saying "follow that of *an* Error Status Block" makes it clear that
-there is just one block (which can still contain multiple "Generic Error
-Data Entry structures").
+So then, I'd still check if validation_count == 0 and if so, set it to
+ACPI_MAX_TABLE_VALIDATIONS.
 
-The loop inside bert_print_all() is unnecessary (but probably harmless
-as the "while (remain > sizeof(struct acpi_bert_region))" loop should
-terminate after we skipped over the first entry.
+Next, if validation_count => ACPI_MAX_TABLE_VALIDATIONS, I'd print the warning
+message and return.
 
-We can drop the "bert_print_all()" function and just move the four
-relevant lines inline in "bert_init()".
+Then, the decrementation would not underflow, so it would be safe to do it.
 
-Cc: Len Brown <lenb@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org
-Reviewed-by: Borislav Petkov <bp@suse.de>
-Signed-off-by: Tony Luck <tony.luck@intel.com>
----
- drivers/acpi/apei/bert.c | 54 +++++++-----------------------------------------
- 1 file changed, 7 insertions(+), 47 deletions(-)
+Wouldn't that be somewhat easier to follow?
 
-diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
-index 12771fcf0417..b28e1573d4cf 100644
---- a/drivers/acpi/apei/bert.c
-+++ b/drivers/acpi/apei/bert.c
-@@ -34,50 +34,6 @@
- 
- static int bert_disable;
- 
--static void __init bert_print_all(struct acpi_bert_region *region,
--				  unsigned int region_len)
--{
--	struct acpi_hest_generic_status *estatus =
--		(struct acpi_hest_generic_status *)region;
--	int remain = region_len;
--	u32 estatus_len;
--
--	if (!estatus->block_status)
--		return;
--
--	while (remain > sizeof(struct acpi_bert_region)) {
--		if (cper_estatus_check(estatus)) {
--			pr_err(FW_BUG "Invalid error record.\n");
--			return;
--		}
--
--		estatus_len = cper_estatus_len(estatus);
--		if (remain < estatus_len) {
--			pr_err(FW_BUG "Truncated status block (length: %u).\n",
--			       estatus_len);
--			return;
--		}
--
--		pr_info_once("Error records from previous boot:\n");
--
--		cper_estatus_print(KERN_INFO HW_ERR, estatus);
--
--		/*
--		 * Because the boot error source is "one-time polled" type,
--		 * clear Block Status of current Generic Error Status Block,
--		 * once it's printed.
--		 */
--		estatus->block_status = 0;
--
--		estatus = (void *)estatus + estatus_len;
--		/* No more error records. */
--		if (!estatus->block_status)
--			return;
--
--		remain -= estatus_len;
--	}
--}
--
- static int __init setup_bert_disable(char *str)
- {
- 	bert_disable = 1;
-@@ -89,7 +45,7 @@ __setup("bert_disable", setup_bert_disable);
- static int __init bert_check_table(struct acpi_table_bert *bert_tab)
- {
- 	if (bert_tab->header.length < sizeof(struct acpi_table_bert) ||
--	    bert_tab->region_length < sizeof(struct acpi_bert_region))
-+	    bert_tab->region_length < sizeof(struct acpi_hest_generic_status))
- 		return -EINVAL;
- 
- 	return 0;
-@@ -98,7 +54,7 @@ static int __init bert_check_table(struct acpi_table_bert *bert_tab)
- static int __init bert_init(void)
- {
- 	struct apei_resources bert_resources;
--	struct acpi_bert_region *boot_error_region;
-+	struct acpi_hest_generic_status *boot_error_region;
- 	struct acpi_table_bert *bert_tab;
- 	unsigned int region_len;
- 	acpi_status status;
-@@ -138,7 +94,11 @@ static int __init bert_init(void)
- 		goto out_fini;
- 	boot_error_region = ioremap_cache(bert_tab->address, region_len);
- 	if (boot_error_region) {
--		bert_print_all(boot_error_region, region_len);
-+		if (boot_error_region->block_status) {
-+			pr_info("Error records from previous boot:\n");
-+			cper_estatus_print(KERN_INFO HW_ERR, boot_error_region);
-+			boot_error_region->block_status = 0;
-+		}
- 		iounmap(boot_error_region);
- 	} else {
- 		rc = -ENOMEM;
--- 
-2.11.0
+> > +			ACPI_WARNING((AE_INFO,
+> > +				      "Table %p, Validation count underflows\n",
+> > +				      table_desc));
+> > +			return_VOID;
+> > +		}
+> >  	}
+> > -	table_desc->validation_count--;
+> >  
+> >  	if (table_desc->validation_count == 0) {
+> >
+
+Thanks,
+Rafael
 
