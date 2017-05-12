@@ -1,146 +1,96 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 5/5] ACPI: button: Obselete acpi_lid_open()
- invocations
-Date: Fri, 12 May 2017 06:08:09 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEA2E0E@SHSMSX101.ccr.corp.intel.com>
-References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
- <22b130fe0cf3fca19b0e14c69426fe36766cf2ee.1494311429.git.lv.zheng@intel.com>
- <CAN+gG=G_yh77Vab_bvWxTOVHsiUm21-X8bajo14utjaCwf1x=Q@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886CEA2BB0@SHSMSX101.ccr.corp.intel.com>
+From: Florian Echtler <floe@butterbrot.org>
+Subject: Notifications about ACPI events in userspace?
+Date: Fri, 12 May 2017 10:37:47 +0200
+Message-ID: <71a48bf5-54b5-6d7b-d574-e0aa6c1acb80@butterbrot.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="cd3sXhQ4GpG9Xg8jBtDGKADfTWDfOO2bx"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:22995 "EHLO mga03.intel.com"
+Received: from butterbrot.org ([176.9.106.16]:40650 "EHLO butterbrot.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753373AbdELGIO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 May 2017 02:08:14 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CEA2BB0@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
+        id S1757112AbdELIoi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 May 2017 04:44:38 -0400
+Received: from [141.54.178.119] (anna125.medien.uni-weimar.de [141.54.178.119])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by butterbrot.org (Postfix) with ESMTPSA id C6F204AE02FC
+        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2017 10:37:48 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-SGksDQoNCklmIG15IHByZXZpb3VzIHJlcGx5IGlzIG5vdCBwZXJzdWFzaXZlIGVub3VnaC4NCkxl
-dCBtZSBkbyB0aGF0IGluIGEgZGlmZmVyZW50IHdheS4NCg0KPiBGcm9tOiBsaW51eC1hY3BpLW93
-bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwu
-b3JnXSBPbiBCZWhhbGYgT2YgWmhlbmcsDQo+IEx2DQo+IFN1YmplY3Q6IFJFOiBbUEFUQ0ggdjIg
-NS81XSBBQ1BJOiBidXR0b246IE9ic2VsZXRlIGFjcGlfbGlkX29wZW4oKSBpbnZvY2F0aW9ucw0K
-PiANCj4gSGksDQo+IA0KPiA+IEZyb206IEJlbmphbWluIFRpc3NvaXJlcyBbbWFpbHRvOmJlbmph
-bWluLnRpc3NvaXJlc0BnbWFpbC5jb21dDQo+ID4gU3ViamVjdDogUmU6IFtQQVRDSCB2MiA1LzVd
-IEFDUEk6IGJ1dHRvbjogT2JzZWxldGUgYWNwaV9saWRfb3BlbigpIGludm9jYXRpb25zDQo+ID4N
-Cj4gPiBPbiBUdWUsIE1heSA5LCAyMDE3IGF0IDk6MDIgQU0sIEx2IFpoZW5nIDxsdi56aGVuZ0Bp
-bnRlbC5jb20+IHdyb3RlOg0KPiA+ID4gU2luY2Ugbm90aWZpY2F0aW9uIHNpZGUgaGFzIGJlZW4g
-Y2hhbmdlZCB0byBhbHdheXMgbm90aWZ5IGtlcm5lbCBsaXN0ZW5lcnMNCj4gPiA+IHVzaW5nIF9M
-SUQgcmV0dXJuaW5nIHZhbHVlLiBOb3cgbGlzdGVuZXJzIG5lZWRuJ3QgaW52b2tlIGFjcGlfbGlk
-X29wZW4oKSwNCj4gPiA+IGl0IHNob3VsZCB1c2UgYSBzcGVjIHN1Z2dlc3RlZCBjb250cm9sIG1l
-dGhvZCBsaWQgZGV2aWNlIHVzYWdlIG1vZGVsOg0KPiA+ID4gcmVnaXN0ZXIgbGlkIG5vdGlmaWNh
-dGlvbiBhbmQgdXNlIHRoZSBub3RpZmllZCB2YWx1ZSBpbnN0ZWFkLCB3aGljaCBpcyB0aGUNCj4g
-PiA+IG9ubHkgd2F5IHRvIGVuc3VyZSB0aGUgdmFsdWUgaXMgY29ycmVjdCBmb3IgImJ1dHRvbi5s
-aWRfaW5pdF9zdGF0ZT1pZ25vcmUiDQo+ID4gPiBtb2RlIG9yIG90aGVyIG1vZGVzIHdpdGggImJ1
-dHRvbi5saWRfZmFrZV9ldmVudHM9TiIgc3BlY2lmaWVkLg0KPiA+ID4NCj4gPiA+IFRoaXMgcGF0
-Y2ggZml4ZXMgaTkxNSBkcml2ZXIgdG8gZHJvcCBhY3BpX2xpZF9vcGVuKCkgdXNlci4gSXQncyBu
-b3QNCj4gPiA+IHBvc3NpYmxlIHRvIGNoYW5nZSBub3V2ZWF1X2Nvbm5lY3Rvci5jIHVzZXIgdXNp
-bmcgYSBzaW1wbGUgd2F5IG5vdy4gU28gdGhpcw0KPiA+ID4gcGF0Y2ggb25seSBtYXJrcyBhY3Bp
-X2xpZF9vcGVuKCkgYXMgZGVwcmVjYXRlZCB0byBhY2NlbGVyYXRlIHRoaXMgcHJvY2Vzcw0KPiA+
-ID4gYnkgaW5kaWNhdGluZyB0aGlzIGNoYW5nZSB0byB0aGUgbm91dmVhdSBkZXZlbG9wZXJzLg0K
-PiA+DQo+ID4gSWYgIHRoZSBvbmx5IDIgdXNlcnMgb2YgYWNwaV9saWRfb3BlbigpIGFyZSBpbnRl
-bCBhbmQgbm91dmVhdSwgYW5kIGlmDQo+ID4gdGhleSBzaG91bGQgcmVseSBvbiB0aGUgdmFsdWUg
-c3RvcmVkIGluIHRoZSBpbnB1dCBub2RlLCBub3QgdGhlIG9uZQ0KPiA+IGV4cG9ydGVkIGJ5IHRo
-ZSBfTElEIG1ldGhvZCAod2hpY2ggY2FuIGJlIHdyb25nIG9uIHNvbWUgcGxhdGZvcm1zKSwNCj4g
-PiBob3cgYWJvdXQgc2ltcGx5IGNoYW5naW5nIHRoZSBpbXBsZW1lbnRhdGlvbiBvZiBhY3BpX2xp
-ZF9vcGVuKCkgdG8NCj4gPiBmZXRjaCB0aGUgdmFsdWUgZnJvbSB0aGUgaW5wdXQgbm9kZSBkaXJl
-Y3RseT8NCg0KSWYgYWNwaV9saWRfb3BlbigpIHJldHVybnMgc3RvcmVkIHZhbHVlIGluIGlucHV0
-IG5vZGUsDQp0aGVuIGl0IGFjdHVhbGx5IHJldHVybnMgdGhlIHZhbHVlIHdlIG5vdGlmaWVkIHRv
-IHRoZSBpbnB1dCBsYXllci4NCldoaWxlIGk5MTUgYW5kIG5vdXZlYXUgZXhwbGljaXRseSBkbyBu
-b3QgdHJ1c3QgdGhhdCB2YWx1ZSBhbmQgaW52b2tlIGFjcGlfbGlkX29wZW4oKS4NCg0KRm9yIGJ1
-dHRvbi5saWRfaW5pdF9zdGF0ZT1tZXRob2QsIFBBVENIIDQvNSBpcyB1c2VsZXNzIGFzIHRoZSB2
-YWx1ZXMgYXJlIHNhbWUuDQoNCkhvd2V2ZXIgaW4gbXkgcmVwbHkgb2YgUEFUQ0ggMi4NCkkgZXhw
-bGFpbmVkIHRoZSBkaWZmZXJlbmNlIG9mIG1ldGhvZC9jbG9zZSwgZm9yIHRoZSBzYW1lIHJlYXNv
-biwgd2UgY2FuIGFsc28gc2Vuc2UgdGhlIGRpZmZlcmVuY2Ugb2YgbWV0aG9kL29wZW4uDQpUaGUg
-ZGlmZmVyZW5jZSB0aGVuIGNhbiBleHBsYWluIHRoZSB1c2VmdWxuZXNzIG9mIG9wZW4vY2xvc2Ug
-bW9kZXMuDQoNCkdpdmVuIG9wZW4vY2xvc2UgbW9kZXMgYXJlIGFsbCB1c2VmdWw6DQpidXR0b24u
-bGlkX2luaXRfc3RhdGU9b3Blbg0KMS4gYnV0dG9uIGRyaXZlciBzZW5kcyBvcGVuIHRvIGlucHV0
-IGxheWVyIGFmdGVyIGJvb3QvcmVzdW1lDQoyLiBpOTE1L25vdXZlYXUgdXNlcyBfTElEIHJldHVy
-biB2YWx1ZSBhZnRlciBib290L3Jlc3VtZQ0KSWYgX0xJRCByZXR1cm4gdmFsdWUgYWZ0ZXIgYm9v
-dC9yZXN1bWUgaXMgImNsb3NlIiwgdGhleSBhcmUgZGlmZmVyZW50Lg0KDQpidXR0b24ubGlkX2lu
-aXRfc3RhdGU9Y2xvc2UNCjEuIGJ1dHRvbiBkcml2ZXIgc2VuZHMgY2xvc2UgdG8gaW5wdXQgbGF5
-ZXIgYWZ0ZXIgYm9vdC9yZXN1bWUNCjIuIGk5MTUvbm91dmVhdSB1c2VzIF9MSUQgcmV0dXJuIHZh
-bHVlIGFmdGVyIGJvb3QvcmVzdW1lDQpJZiBfTElEIHJldHVybiB2YWx1ZSBhZnRlciBib290L3Jl
-c3VtZSBpcyAib3BlbiIsIHRoZXkgYXJlIGRpZmZlcmVudC4NCg0KVGhlIG9ubHkgd2F5IHRvIGJl
-IGNvbnNpc3RlbnQgdG8gb2xkIGk5MTUvbm91dmVhdSBiZWhhdmlvciBpczoNCmJ1dHRvbi5saWRf
-aW5pdF9zdGF0ZT1vcGVuL2Nsb3NlDQoxLiBidXR0b24gZHJpdmVyIHNlbmRzIG9wZW4vY2xvc2Ug
-dG8gaW5wdXQgbGF5ZXIgYWZ0ZXIgYm9vdC9yZXN1bWUNCjIuIGJ1dHRvbiBkcml2ZXIgc2VuZHMg
-X0xJRCByZXR1cm4gdmFsdWUgdG8gaTkxNSBhZnRlciBib290L3Jlc3VtZSAoUEFUQ0ggNCkNClNv
-IHRoYXQgaTkxNSBjYW4ganVzdCB1c2UgdGhlIG5vdGlmaWVkIHZhbHVlIGluIHRoaXMgcGF0Y2gg
-KFBBVENIIDUpLg0KRm9yIG5vdXZlYXUsIG5vIGNoYW5nZSBoYXMgYmVlbiBtYWRlIGZvciBub3cs
-IGFuZCBhcyBhIGNvbmNlcXVlbmNlLCBhY3BpX2xpZF9vcGVuKCkgaXMgc3RpbGwga2VwdCBidXQg
-bWFya2VkIGFzIGRlcHJlY2F0ZWQuDQoNCj4gDQo+IFNlZSBteSByZXBseSBvZiBQQVRDSCA0Lg0K
-PiBJdCBzZWVtcyB0aGV5IHRydXN0IF9MSUQgcmV0dXJuIHZhbHVlIG1vcmUgdGhhbiB3aGF0IHdl
-IHNlbmQgdG8gdGhlbS4NCj4gDQo+IFdlIGNhbiBhY3R1YWxseSBzZW5kIGZha2VkICJvcGVuL2Ns
-b3NlIiB0byB0aGVtIHdoZW4gYnV0dG9uLmxpZF9pbml0X3N0YXRlPW9wZW4vY2xvc2UgaXMgc3Bl
-Y2lmaWVkLg0KPiANCj4gU28gdGhlc2UgMiBwYXRjaGVzIFtQQVRDSCA0LTUvNV0gYXJlIHVzZWQg
-dG8gZG8gYSBzbWFsbCBjbGVhbnVwIGZvciBsaWQgZXZlbnQgbm90aWZpZXIgQVBJcy4NCj4gSSB0
-aGluayB0aGV5IGFyZSBub3Qgc3RyaWN0bHkgcmVsYXRlZCB0byB0aGUgbGlkIGlzc3VlcyB3ZSBh
-cmUgdGFsa2luZyBhYm91dC4NCg0KU2VlIERvY3VtZW50YXRpb24vYWNwaS9hY3BpLWxpZC50eHQ6
-DQpUaGUgX0xJRCBjb250cm9sIG1ldGhvZCBpcyBkZXNjcmliZWQgdG8gcmV0dXJuIHRoZSAiY3Vy
-cmVudCIgbGlkIHN0YXRlLg0KSG93ZXZlciB0aGUgd29yZCBvZiAiY3VycmVudCIgaGFzIGFtYmln
-dWl0eSwgc29tZSBidWdneSBBTUwgdGFibGVzIHJldHVybg0KdGhlIGxpZCBzdGF0ZSB1cG9uIHRo
-ZSBsYXN0IGxpZCBub3RpZmljYXRpb24gaW5zdGVhZCBvZiByZXR1cm5pbmcgdGhlIGxpZA0Kc3Rh
-dGUgdXBvbiB0aGUgbGFzdCBfTElEIGV2YWx1YXRpb24uDQoNCkluIG9yZGVyIHRvIGhhdmUgYWNw
-aSBsaWQgZXZlbnQgbm90aWZpZXIgQVBJIGNvbXBsaWFudCB0byB0aGUgYWJvdmUgbWVudGlvbmVk
-IGJvdGggImJ1Z2d5IiBhbmQgIm5vbmJ1Z2d5IiBpbXBsZW1lbnRhdGlvbi4NClRoZSBlbnN1cmVk
-IGxpZCBldmVudCBtb2RlbCBpbnRlcmZhY2Ugc2hvdWxkIGJlOg0KMS4gTGlkIGV2ZW50IG5vdGlm
-aWVyIGxpc3RlbmVycyBpbnZva2VzIGFjcGlfbGlkX25vdGlmaWVyX3JlZ2lzdGVyKCkuDQoyLiBB
-bmQgaW4gdGhlIGNhbGxiYWNrLCB1c2VzIF9MSUQgcmV0dXJuIHZhbHVlLg0KVGhpcyBpcyBhbHNv
-IHRoZSBvbmx5IHBvc3NpYmxlIHdheSB0byBjb21iaW5lICJyZWNlaXZpbmcgbGlkIG5vdGlmeSIg
-YW5kICJldmFsdWF0ZSBfTElEIiBpbnRvIDEgc2luZ2xlIGF0b21pYyBvcGVyYXRpb24uDQoNClNv
-IEkgdHJlbmQgdG8gcmVtb3ZlIGFjcGlfbGlkX29wZW4oKSBhbmQgZW5mb3JjZSB0aGUgbmV3IEFQ
-SS4NCg0KQXMgYSBjb25jbHVzaW9uLCBQQVRDSCA0LTUNCjEuIG1ha2VzIGEgaGlkZGVuIGxvZ2lj
-IGV4cGxpY2l0IC0gdGhlIGxpZCBldmVudCBsaXN0ZW5lcnMgYWx3YXlzIHVzZSBfTElEIHJldHVy
-biB2YWx1ZS4gTGVzcyBoaWRkZW4gbG9naWNzIHNob3VsZCBsZWF2ZSBsZXNzIGNoYW5jZXMgb2Yg
-YnVncy4NCjIuIGlzIGFuIGltcGxlbWVudGF0aW9uIGZvciBvdXIgZG9jdW1lbnRlZCBBQ1BJIGxp
-ZCBldmVudCBtb2RlbC4NCkFuZCB0aGUgaW1wbGVtZW50YXRpb24gaXMgZG9uZSBpbiBhIHJlZ3Jl
-c3Npb24gc2FmZSB3YXkuDQoNClRoYW5rcywNCkx2DQoNCj4gDQo+IENoZWVycywNCj4gTHYNCj4g
-DQo+ID4NCj4gPiBDaGVlcnMsDQo+ID4gQmVuamFtaW4NCj4gPg0KPiA+ID4NCj4gPiA+IENjOiA8
-aW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZz4NCj4gPiA+IENjOiA8bm91dmVhdUBsaXN0
-cy5mcmVlZGVza3RvcC5vcmc+DQo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBMdiBaaGVuZyA8bHYuemhl
-bmdAaW50ZWwuY29tPg0KPiA+ID4gLS0tDQo+ID4gPiAgZHJpdmVycy9hY3BpL2J1dHRvbi5jICAg
-ICAgICAgICAgIHwgNyArKysrKystDQo+ID4gPiAgZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxf
-bHZkcy5jIHwgMiArLQ0KPiA+ID4gIDIgZmlsZXMgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspLCAy
-IGRlbGV0aW9ucygtKQ0KPiA+ID4NCj4gPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYnV0
-dG9uLmMgYi9kcml2ZXJzL2FjcGkvYnV0dG9uLmMNCj4gPiA+IGluZGV4IDdmZjNhNzUuLjUwZDc4
-OTggMTAwNjQ0DQo+ID4gPiAtLS0gYS9kcml2ZXJzL2FjcGkvYnV0dG9uLmMNCj4gPiA+ICsrKyBi
-L2RyaXZlcnMvYWNwaS9idXR0b24uYw0KPiA+ID4gQEAgLTM0OCw3ICszNDgsMTIgQEAgaW50IGFj
-cGlfbGlkX25vdGlmaWVyX3VucmVnaXN0ZXIoc3RydWN0IG5vdGlmaWVyX2Jsb2NrICpuYikNCj4g
-PiA+ICB9DQo+ID4gPiAgRVhQT1JUX1NZTUJPTChhY3BpX2xpZF9ub3RpZmllcl91bnJlZ2lzdGVy
-KTsNCj4gPiA+DQo+ID4gPiAtaW50IGFjcGlfbGlkX29wZW4odm9pZCkNCj4gPiA+ICsvKg0KPiA+
-ID4gKyAqIFRoZSBpbnRlbnRpb25hbCB1c2FnZSBtb2RlbCBpcyB0byByZWdpc3RlciBhIGxpZCBu
-b3RpZmllciBhbmQgdXNlIHRoZQ0KPiA+ID4gKyAqIG5vdGlmaWVkIHZhbHVlIGluc3RlYWQuIERp
-cmVjdGx5IGV2YWx1YXRpbmcgX0xJRCB3aXRob3V0IHNlZWluZyBhDQo+ID4gPiArICogTm90aWZ5
-KGxpZCwgMHg4MCkgaXMgbm90IHJlbGlhYmxlLg0KPiA+ID4gKyAqLw0KPiA+ID4gK2ludCBfX2Rl
-cHJlY2F0ZWQgYWNwaV9saWRfb3Blbih2b2lkKQ0KPiA+ID4gIHsNCj4gPiA+ICAgICAgICAgaWYg
-KCFsaWRfZGV2aWNlKQ0KPiA+ID4gICAgICAgICAgICAgICAgIHJldHVybiAtRU5PREVWOw0KPiA+
-ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX2x2ZHMuYyBiL2RyaXZl
-cnMvZ3B1L2RybS9pOTE1L2ludGVsX2x2ZHMuYw0KPiA+ID4gaW5kZXggOWNhNGRjNC4uOGNhOTA4
-MCAxMDA2NDQNCj4gPiA+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX2x2ZHMuYw0K
-PiA+ID4gKysrIGIvZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxfbHZkcy5jDQo+ID4gPiBAQCAt
-NTQ4LDcgKzU0OCw3IEBAIHN0YXRpYyBpbnQgaW50ZWxfbGlkX25vdGlmeShzdHJ1Y3Qgbm90aWZp
-ZXJfYmxvY2sgKm5iLCB1bnNpZ25lZCBsb25nIHZhbCwNCj4gPiA+ICAgICAgICAgLyogRG9uJ3Qg
-Zm9yY2UgbW9kZXNldCBvbiBtYWNoaW5lcyB3aGVyZSBpdCBjYXVzZXMgYSBHUFUgbG9ja3VwICov
-DQo+ID4gPiAgICAgICAgIGlmIChkbWlfY2hlY2tfc3lzdGVtKGludGVsX25vX21vZGVzZXRfb25f
-bGlkKSkNCj4gPiA+ICAgICAgICAgICAgICAgICBnb3RvIGV4aXQ7DQo+ID4gPiAtICAgICAgIGlm
-ICghYWNwaV9saWRfb3BlbigpKSB7DQo+ID4gPiArICAgICAgIGlmICghdmFsKSB7DQo+ID4gPiAg
-ICAgICAgICAgICAgICAgLyogZG8gbW9kZXNldCBvbiBuZXh0IGxpZCBvcGVuIGV2ZW50ICovDQo+
-ID4gPiAgICAgICAgICAgICAgICAgZGV2X3ByaXYtPm1vZGVzZXRfcmVzdG9yZSA9IE1PREVTRVRf
-T05fTElEX09QRU47DQo+ID4gPiAgICAgICAgICAgICAgICAgZ290byBleGl0Ow0KPiA+ID4gLS0N
-Cj4gPiA+IDIuNy40DQo+ID4gPg0KPiA+ID4gLS0NCj4gPiA+IFRvIHVuc3Vic2NyaWJlIGZyb20g
-dGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1hY3BpIiBpbg0KPiA+
-ID4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4g
-PiA+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jk
-b21vLWluZm8uaHRtbA0KPiAT77+977+97Lm7HO+/vSbvv71+77+9Ju+/vRjvv73vv70rLe+/ve+/
-vd22F++/ve+/vXfvv73vv73Lm++/ve+/ve+/vW3vv71i77+977+9WnLvv73vv73vv73vv71ebu+/
-vXLvv73vv73vv71677+9Gu+/ve+/vWjvv73vv73vv73vv70m77+977+9Hu+/vUfvv73vv73vv71o
-77+9Ayjvv73pmo4NCj4g77+93aJqIu+/ve+/vRrvv70bbe+/ve+/ve+/ve+/ve+/vXrvv73elu+/
-ve+/ve+/vWbvv73vv73vv71o77+977+977+9fu+/vW3vv70NCg==
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--cd3sXhQ4GpG9Xg8jBtDGKADfTWDfOO2bx
+Content-Type: multipart/mixed; boundary="966tfA6AQjHAIF4fs8ImuGvnai0ucawOo";
+ protected-headers="v1"
+From: Florian Echtler <floe@butterbrot.org>
+To: linux-acpi <linux-acpi@vger.kernel.org>
+Message-ID: <71a48bf5-54b5-6d7b-d574-e0aa6c1acb80@butterbrot.org>
+Subject: Notifications about ACPI events in userspace?
+
+--966tfA6AQjHAIF4fs8ImuGvnai0ucawOo
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi everyone,
+
+I'm currently adding support for the iMac's target display mode (TDM) to =
+Linux.
+When an external DisplayPort source is added/removed, the following ACPI =
+code is
+invoked:
+
+    Scope (\_SB.PCI0.LPCB.SMC)
+    {
+        Device (DPPT)
+        {
+            Name (_HID, EisaId ("APP000C"))  // _HID: Hardware ID
+            Name (_CID, "smc-dppt")  // _CID: Compatible ID
+        }
+    }
+
+   Scope (\_SB.PCI0.LPCB.EC)
+    {
+        Method (_Q30, 0, NotSerialized)  // _Qxx: EC Query
+        {
+            Notify (\_SB.PCI0.LPCB.SMC.DPPT, 0x80) // Status Change
+        }
+
+        Method (_Q31, 0, NotSerialized)  // _Qxx: EC Query
+        {
+            Notify (\_SB.PCI0.LPCB.SMC.DPPT, 0x81) // Information Change
+        }
+    }
+
+
+I've already verified that the method calls do indeed take place, by turn=
+ing on
+EC debugging. The APP000C device does also exist in /sys.
+
+However, I'm not seeing anything happening with either acpi_listen or kac=
+pimon.
+Does this require any kernel changes, or could I subscribe to these event=
+s somehow?
+
+Best, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
+
+
+--966tfA6AQjHAIF4fs8ImuGvnai0ucawOo--
+
+--cd3sXhQ4GpG9Xg8jBtDGKADfTWDfOO2bx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEARECAAYFAlkVdFwACgkQ7CzyshGvatjD4wCdHoRhD++Pzly0DKK+gfkP5T54
+RJYAoOaUUGEE+R4z2D9V9/20cy1QCkEl
+=KMpS
+-----END PGP SIGNATURE-----
+
+--cd3sXhQ4GpG9Xg8jBtDGKADfTWDfOO2bx--
