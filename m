@@ -1,20 +1,72 @@
-From: Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
-Subject: [RFC/RFT PATCH 1/3] PCI: Introduce pci_bus_find_numa_node()
-Date: Fri, 12 May 2017 05:44:05 -0700
-Message-ID: <1494593045-19911-1-git-send-email-Vadim.Lomovtsev@caviumnetworks.com>
-References: <20170426100619.31758-1-lorenzo.pieralisi@arm.com>
+From: Geetha sowjanya <gakula@caviumnetworks.com>
+Subject: [v6 0/3] Cavium ThunderX2 SMMUv3 errata workarounds
+Date: Fri, 12 May 2017 18:11:03 +0530
+Message-ID: <1494592866-14076-1-git-send-email-gakula@caviumnetworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170426100619.31758-1-lorenzo.pieralisi@arm.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bl2nam02on0064.outbound.protection.outlook.com ([104.47.38.64]:15200
+        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751900AbdELNAP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 May 2017 09:00:15 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: will.deacon@arm.com, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@rjwysocki.net, jcm@redhat.com, linux-kernel@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, devel@acpica.org, linu.cherian@cavium.com, Charles.Garcia-Tobin@arm.com
 
-Hi Lorenzo,
+From: Linu Cherian <linu.cherian@cavium.com>
 
-Are there any news related to these patches ?
+Cavium ThunderX2 SMMUv3 implementation has two Silicon Erratas.
+1. Errata ID #74
+   SMMU register alias Page 1 is not implemented
+2. Errata ID #126
+   SMMU doesnt support unique IRQ lines and also MSI for gerror,
+   eventq and cmdq-sync
 
-WBR,
-Vadim
+The following patchset does software workaround for these two erratas.
+
+This series is based on patchset.
+https://www.spinics.net/lists/arm-kernel/msg578443.html
+
+Changes since v5:
+  - Rebased on Robin's "Update SMMU models for IORT rev. C" patch.
+     https://www.spinics.net/lists/arm-kernel/msg580728.html
+  - Replaced ACPI_IORT_SMMU_V3_CAVIUM_CN99XX macro with ACPI_IORT_SMMU_CAVIUM_CN99XX
+
+Changes since v4:
+ - Replaced all page1 offset macros ARM_SMMU_EVTQ/PRIQ_PROD/CONS with
+    arm_smmu_page1_fixup(ARM_SMMU_EVTQ/PRIQ_PROD/CONS, smmu)
+
+Changes since v3:
+ - Merged patches 1, 2 and 4 of Version 3.
+ - Modified the page1_offset_adjust() and get_irq_flags() implementation as
+   suggested by Robin.
+
+Changes since v2:
+ - Updated "Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt" document with
+   new SMMU option used to enable errata workaround.
+
+Changes since v1:
+ - Since the use of MIDR register is rejected and SMMU_IIDR is broken on this
+   silicon, as suggested by Will Deacon modified the patches to use ThunderX2
+   SMMUv3 IORT model number to enable errata workaround. 
+
+
+Geetha Sowjanya (1):
+  iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #126
+
+Linu Cherian (2):
+  ACPI/IORT: Fixup SMMUv3 resource size for Cavium ThunderX2 SMMUv3
+    model
+  iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #74
+
+ Documentation/arm64/silicon-errata.txt             |  2 +
+ .../devicetree/bindings/iommu/arm,smmu-v3.txt      |  6 ++
+ drivers/acpi/arm64/iort.c                          | 10 ++-
+ drivers/iommu/arm-smmu-v3.c                        | 93 +++++++++++++++++-----
+ 4 files changed, 91 insertions(+), 20 deletions(-)
+
+-- 
+1.8.3.1
+
