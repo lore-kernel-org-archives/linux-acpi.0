@@ -1,242 +1,246 @@
 From: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Subject: Re: [PATCH v2 4/5] ACPI: button: Always notify kernel space using
- _LID returning value
-Date: Fri, 12 May 2017 12:06:59 +0200
-Message-ID: <CAN+gG=GLQHWmYq+amnLi+N3bE-+RB4Cb16KG1k0bGXKChBmYyA@mail.gmail.com>
+Subject: Re: [PATCH v2 5/5] ACPI: button: Obselete acpi_lid_open() invocations
+Date: Fri, 12 May 2017 12:20:36 +0200
+Message-ID: <CAN+gG=GazunH_RFDUusbnT+ncNoejLuA5=v-49KDFFJ4oy8xuw@mail.gmail.com>
 References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
- <81c156ff4ba959afba755182979227c90c6b6776.1494311429.git.lv.zheng@intel.com>
- <CAN+gG=HuwVz_vvW3Y8ZZ9DWWpcA8FO1QzGDio1nhe=3Y6xmdSQ@mail.gmail.com> <1AE640813FDE7649BE1B193DEA596E886CEA2B96@SHSMSX101.ccr.corp.intel.com>
+ <22b130fe0cf3fca19b0e14c69426fe36766cf2ee.1494311429.git.lv.zheng@intel.com>
+ <CAN+gG=G_yh77Vab_bvWxTOVHsiUm21-X8bajo14utjaCwf1x=Q@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886CEA2BB0@SHSMSX101.ccr.corp.intel.com> <1AE640813FDE7649BE1B193DEA596E886CEA2E0E@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:32983 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757140AbdELKHB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2017 06:07:01 -0400
-Received: by mail-wr0-f194.google.com with SMTP id w50so6960555wrc.0
-        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2017 03:07:00 -0700 (PDT)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CEA2B96@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33782 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750977AbdELKUj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 May 2017 06:20:39 -0400
+Received: by mail-wm0-f67.google.com with SMTP id y10so12894352wmh.0
+        for <linux-acpi@vger.kernel.org>; Fri, 12 May 2017 03:20:38 -0700 (PDT)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CEA2E0E@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>
 
-On Fri, May 12, 2017 at 3:22 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+Hi Lv,
+
+I am trying to reduce the number of parallel discussion we have on the
+same subject, but there is something here I can't let you have.
+
+On Fri, May 12, 2017 at 8:08 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
 > Hi,
 >
->> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Benjamin
->> Tissoires
->> Subject: Re: [PATCH v2 4/5] ACPI: button: Always notify kernel space using _LID returning value
+> If my previous reply is not persuasive enough.
+> Let me do that in a different way.
+>
+>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.ker=
+nel.org] On Behalf Of Zheng,
+>> Lv
+>> Subject: RE: [PATCH v2 5/5] ACPI: button: Obselete acpi_lid_open() invoc=
+ations
 >>
->> On Tue, May 9, 2017 at 9:02 AM, Lv Zheng <lv.zheng@intel.com> wrote:
->> > Both nouveau and i915, the only 2 kernel space lid notification listeners,
->> > invoke acpi_lid_open() API to obtain _LID returning value instead of using
->> > the notified value.
->> >
->> > So this patch moves this logic from listeners to lid driver, always notify
->> > kernel space listeners using _LID returning value.
->> >
->> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
->> > ---
->> >  drivers/acpi/button.c | 31 ++++++++++++++++++++-----------
->> >  1 file changed, 20 insertions(+), 11 deletions(-)
->> >
->> > diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
->> > index b91ff86..7ff3a75 100644
->> > --- a/drivers/acpi/button.c
->> > +++ b/drivers/acpi/button.c
->> > @@ -119,6 +119,9 @@ static u8 lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
->> >  static unsigned long lid_report_interval __read_mostly = 500;
->> >  module_param(lid_report_interval, ulong, 0644);
->> >  MODULE_PARM_DESC(lid_report_interval, "Interval (ms) between lid key events");
->> > +static bool lid_fake_events __read_mostly = true;
->> > +module_param(lid_fake_events, bool, 0644);
->> > +MODULE_PARM_DESC(lid_fake_events, "Deliver fake events to kernel drivers");
->> >
->> >  /* --------------------------------------------------------------------------
->> >                                FS Interface (/proc)
->> > @@ -139,7 +142,8 @@ static int acpi_lid_evaluate_state(struct acpi_device *device)
->> >         return lid_state ? 1 : 0;
->> >  }
->> >
->> > -static void acpi_lid_notify_state(struct acpi_device *device, int state)
->> > +static void acpi_lid_notify_state(struct acpi_device *device,
->> > +                                 int state, bool bios_notify)
->> >  {
->> >         struct acpi_button *button = acpi_driver_data(device);
->> >         ktime_t next_report;
->> > @@ -219,7 +223,11 @@ static void acpi_lid_notify_state(struct acpi_device *device, int state)
->> >         if (state)
->> >                 pm_wakeup_event(&device->dev, 0);
->> >
->> > -       atomic_notifier_call_chain(&acpi_lid_notifier, state, device);
->> > +       if (bios_notify)
->> > +               atomic_notifier_call_chain(&acpi_lid_notifier, state, device);
->> > +       else if (lid_fake_events)
->> > +               atomic_notifier_call_chain(&acpi_lid_notifier,
->> > +                       acpi_lid_evaluate_state(device), device);
+>> Hi,
 >>
->> I don't quite get the "lid_fake_event" parameter. If set, you are
->> forwarding the evaluated method, which should be correct, not faked...
+>> > From: Benjamin Tissoires [mailto:benjamin.tissoires@gmail.com]
+>> > Subject: Re: [PATCH v2 5/5] ACPI: button: Obselete acpi_lid_open() inv=
+ocations
+>> >
+>> > On Tue, May 9, 2017 at 9:02 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+>> > > Since notification side has been changed to always notify kernel lis=
+teners
+>> > > using _LID returning value. Now listeners needn't invoke acpi_lid_op=
+en(),
+>> > > it should use a spec suggested control method lid device usage model=
+:
+>> > > register lid notification and use the notified value instead, which =
+is the
+>> > > only way to ensure the value is correct for "button.lid_init_state=
+=3Dignore"
+>> > > mode or other modes with "button.lid_fake_events=3DN" specified.
+>> > >
+>> > > This patch fixes i915 driver to drop acpi_lid_open() user. It's not
+>> > > possible to change nouveau_connector.c user using a simple way now. =
+So this
+>> > > patch only marks acpi_lid_open() as deprecated to accelerate this pr=
+ocess
+>> > > by indicating this change to the nouveau developers.
+>> >
+>> > If  the only 2 users of acpi_lid_open() are intel and nouveau, and if
+>> > they should rely on the value stored in the input node, not the one
+>> > exported by the _LID method (which can be wrong on some platforms),
+>> > how about simply changing the implementation of acpi_lid_open() to
+>> > fetch the value from the input node directly?
 >
-> Fake means the event is generated by kernel.
-> BIOS didn't generate the event.
-> Maybe we could name it differently.
+> If acpi_lid_open() returns stored value in input node,
+> then it actually returns the value we notified to the input layer.
+> While i915 and nouveau explicitly do not trust that value and invoke acpi=
+_lid_open().
 >
->>
->> Also, what if bios_notify is false and so is lid_fake_events? Is that
->> expected that no events are forwarded?
+> For button.lid_init_state=3Dmethod, PATCH 4/5 is useless as the values ar=
+e same.
 >
-> When bios_notify=true:
-> 1. the button driver evaluates _LID upon seeing a BIOS notification and
-> 2. the lid event notifier just forwards _LID return value to the listeners.
-> When bios_notify=false:
-> 1. this is only happen when the platform reboots/resumes,
-> 2. the button driver just fakes (sorry I used fake again) an event without seeing any BIOS notification, and
-> 3. the lid event notifier sends the faked event to the listeners. Originally, What has been sent to the listeners:
-> 3.1. sends "open" to the listeners when button.lid_init_state=open,
-> 3.2. sends "close" to the listeners when button.lid_init_state=close,
-> 3.3. sends _LID return value to the listeners when button.lid_init_state=method.
+> However in my reply of PATCH 2.
+> I explained the difference of method/close, for the same reason, we can a=
+lso sense the difference of method/open.
+> The difference then can explain the usefulness of open/close modes.
 >
-> So let's check the listener side (who invokes acpi_lid_notifier_register()).
-> The only acpi_lid_notifier_register() invoker is drivers/gpu/drm/i915/intel_lvds.c.
+> Given open/close modes are all useful:
+> button.lid_init_state=3Dopen
+> 1. button driver sends open to input layer after boot/resume
+> 2. i915/nouveau uses _LID return value after boot/resume
+> If _LID return value after boot/resume is "close", they are different.
 >
-> If you check its implementation (also you can see its code in PATCH 5/5).
-> It cares no about what we send.
-> Whatever we send "open/close/eval(_LID)" to it, it just invokes acpi_lid_open() API to obtain the _LID return value.
+> button.lid_init_state=3Dclose
+> 1. button driver sends close to input layer after boot/resume
+> 2. i915/nouveau uses _LID return value after boot/resume
+> If _LID return value after boot/resume is "open", they are different.
+>
+> The only way to be consistent to old i915/nouveau behavior is:
+> button.lid_init_state=3Dopen/close
 
-Right, so that's a wrong behavior since c1c7af6089207 "drm/i915: force
-mode set at lid open time" at around the 2.6.31 kernel.
+But these two modes are wrong in the absolute case:
+- a laptop has no reasons for not being powered up with the lid
+physically closed (wake on lan?) -> so open is an approximation
+already made on good assumption that there is not a high chance of the
+users powering/resuming the laptop with the lid closed
+- in the "close" case, this setting works for docked laptops, but if
+the laptop can be docked, it can also be undocked. And if you boot
+with button.lid_init_state=3Dclose, undock your laptop, go into suspend,
+resume -> the lid state is now "closed" while it should be opened.
 
-> While button driver's preference is remove acpi_lid_open() and let the listeners use the notified value instead.
+So no, these are just workarounds. i915/nouveau expect the acpi/button
+state to be reliable, or they should ignore it. But you can't fake
+events when you are not absolutely sure of what is happening.
 
-That's one way of seeing. I would prefer having acpi_lid_open()
-reporting the cached value, the same as the one we sent in the
-notifier.
-Or if you believe there might be races, this could be synced or
-acpi_lid_open() can be removed, but the races seem to be minimal in
-term of impact: if the LID is opened, on resume the driver decides to
-restore the pipes and planes by itself.
-A race would mean that the notification would only matter for the last
-state, and that's no problem.
-
->
-> If the listener do not use the notified value, there is a time slice between lid notification and the _LID evaluation.
-> We should put some synchronization mechanism around around the 2 actions in button driver to make the result more trustworthy.
-> So we trend to just send what the listener want to them and leave the possibility of implementing such usage model in button driver.
+> 1. button driver sends open/close to input layer after boot/resume
+> 2. button driver sends _LID return value to i915 after boot/resume (PATCH=
+ 4)
+> So that i915 can just use the notified value in this patch (PATCH 5).
+> For nouveau, no change has been made for now, and as a concequence, acpi_=
+lid_open() is still kept but marked as deprecated.
 >
 >>
->> Honestly, adding one more kernel parameter doesn't seem to solve
->> anything, it just adds more blur on a blurry situation.
+>> See my reply of PATCH 4.
+>> It seems they trust _LID return value more than what we send to them.
 >>
->> How about:
->> - you keep the "ignore", "method" and "open" (because they are kernel
->> API now) and don't add more
->> - you revert the "method" initial lid state, as requested by me and
->> others hitting the docking station "bug"
->
-> Let's talk about this in different email.
->
->> - you just let user space deal with false lid switch values by
->> forwarding the bugs to libinput.
+>> We can actually send faked "open/close" to them when button.lid_init_sta=
+te=3Dopen/close is specified.
 >>
->> IMO, we don't need such patch.
+>> So these 2 patches [PATCH 4-5/5] are used to do a small cleanup for lid =
+event notifier APIs.
+>> I think they are not strictly related to the lid issues we are talking a=
+bout.
 >
-> This patch is developed to eliminate acpi_lid_open() in order to enforce the following usage model:
+> See Documentation/acpi/acpi-lid.txt:
+> The _LID control method is described to return the "current" lid state.
+> However the word of "current" has ambiguity, some buggy AML tables return
+> the lid state upon the last lid notification instead of returning the lid
+> state upon the last _LID evaluation.
 >
-> All lid event notifier should use the notified value in their callback.
+> In order to have acpi lid event notifier API compliant to the above menti=
+oned both "buggy" and "nonbuggy" implementation.
+> The ensured lid event model interface should be:
+> 1. Lid event notifier listeners invokes acpi_lid_notifier_register().
+> 2. And in the callback, uses _LID return value.
+> This is also the only possible way to combine "receiving lid notify" and =
+"evaluate _LID" into 1 single atomic operation.
+>
+> So I trend to remove acpi_lid_open() and enforce the new API.
+>
+> As a conclusion, PATCH 4-5
+> 1. makes a hidden logic explicit - the lid event listeners always use _LI=
+D return value. Less hidden logics should leave less chances of bugs.
+> 2. is an implementation for our documented ACPI lid event model.
+> And the implementation is done in a regression safe way.
 
-Yes, make sense. But you are deprecating the nouveau call in the other
-patch, while all you could do is fix it in acpi.button without
-bothering other developers. So no, I still believe this is not the
-best way of solving the issue.
+I understand all of that. But my point is still that on some
+platforms, the lid acpi state is not reliable, and the code in
+i915/nouveau is not made for those platforms. So the ideal solution is
+to know which platforms are problematic and take the right decisions
+having everything at hands. Just "fixing" the internal API won't help
+teaching these drivers to not make the assumption that the _LID acpi
+call is always correct.
+
+So yes, nouveau/i915 might need to be fixed, but IMO, fixing
+acpi/button to report correct (true, accurate, actual, or physical if
+you prefer) is the best, future proof way (minus platform quirks).
 
 Cheers,
 Benjamin
 
 >
-> Cheers,
+> Thanks,
 > Lv
 >
 >>
 >> Cheers,
->> Benjamin
+>> Lv
 >>
->> >  }
 >> >
->> >  static int acpi_button_state_seq_show(struct seq_file *seq, void *offset)
->> > @@ -349,7 +357,8 @@ int acpi_lid_open(void)
->> >  }
->> >  EXPORT_SYMBOL(acpi_lid_open);
+>> > Cheers,
+>> > Benjamin
 >> >
->> > -static int acpi_lid_update_state(struct acpi_device *device)
->> > +static int acpi_lid_update_state(struct acpi_device *device,
->> > +                                bool bios_notify)
->> >  {
->> >         int state;
->> >
->> > @@ -357,7 +366,7 @@ static int acpi_lid_update_state(struct acpi_device *device)
->> >         if (state < 0)
->> >                 return state;
->> >
->> > -       acpi_lid_notify_state(device, state);
->> > +       acpi_lid_notify_state(device, state, bios_notify);
->> >         return 0;
->> >  }
->> >
->> > @@ -365,13 +374,13 @@ static void acpi_lid_initialize_state(struct acpi_device *device)
->> >  {
->> >         switch (lid_init_state) {
->> >         case ACPI_BUTTON_LID_INIT_OPEN:
->> > -               (void)acpi_lid_notify_state(device, 1);
->> > +               (void)acpi_lid_notify_state(device, 1, false);
->> >                 break;
->> >         case ACPI_BUTTON_LID_INIT_CLOSE:
->> > -               (void)acpi_lid_notify_state(device, 0);
->> > +               (void)acpi_lid_notify_state(device, 0, false);
->> >                 break;
->> >         case ACPI_BUTTON_LID_INIT_METHOD:
->> > -               (void)acpi_lid_update_state(device);
->> > +               (void)acpi_lid_update_state(device, false);
->> >                 break;
->> >         case ACPI_BUTTON_LID_INIT_IGNORE:
->> >         default:
->> > @@ -391,7 +400,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
->> >         case ACPI_BUTTON_NOTIFY_STATUS:
->> >                 input = button->input;
->> >                 if (button->type == ACPI_BUTTON_TYPE_LID) {
->> > -                       acpi_lid_update_state(device);
->> > +                       acpi_lid_update_state(device, true);
->> >                 } else {
->> >                         int keycode;
->> >
->> > @@ -555,13 +564,13 @@ static int param_set_lid_init_state(const char *val, struct kernel_param *kp)
->> >
->> >         if (!strncmp(val, "open", sizeof("open") - 1)) {
->> >                 lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
->> > -               pr_info("Notify initial lid state as open\n");
->> > +               pr_info("Notify initial lid state to users space as open and kernel drivers with
->> _LID return value\n");
->> >         } else if (!strncmp(val, "close", sizeof("close") - 1)) {
->> >                 lid_init_state = ACPI_BUTTON_LID_INIT_CLOSE;
->> > -               pr_info("Notify initial lid state as close\n");
->> > +               pr_info("Notify initial lid state to user space as close and kernel drivers with
->> _LID return value\n");
->> >         } else if (!strncmp(val, "method", sizeof("method") - 1)) {
->> >                 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
->> > -               pr_info("Notify initial lid state with _LID return value\n");
->> > +               pr_info("Notify initial lid state to user/kernel space with _LID return value\n");
->> >         } else if (!strncmp(val, "ignore", sizeof("ignore") - 1)) {
->> >                 lid_init_state = ACPI_BUTTON_LID_INIT_IGNORE;
->> >                 pr_info("Do not notify initial lid state\n");
->> > --
->> > 2.7.4
->> >
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> > >
+>> > > Cc: <intel-gfx@lists.freedesktop.org>
+>> > > Cc: <nouveau@lists.freedesktop.org>
+>> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+>> > > ---
+>> > >  drivers/acpi/button.c             | 7 ++++++-
+>> > >  drivers/gpu/drm/i915/intel_lvds.c | 2 +-
+>> > >  2 files changed, 7 insertions(+), 2 deletions(-)
+>> > >
+>> > > diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+>> > > index 7ff3a75..50d7898 100644
+>> > > --- a/drivers/acpi/button.c
+>> > > +++ b/drivers/acpi/button.c
+>> > > @@ -348,7 +348,12 @@ int acpi_lid_notifier_unregister(struct notifie=
+r_block *nb)
+>> > >  }
+>> > >  EXPORT_SYMBOL(acpi_lid_notifier_unregister);
+>> > >
+>> > > -int acpi_lid_open(void)
+>> > > +/*
+>> > > + * The intentional usage model is to register a lid notifier and us=
+e the
+>> > > + * notified value instead. Directly evaluating _LID without seeing =
+a
+>> > > + * Notify(lid, 0x80) is not reliable.
+>> > > + */
+>> > > +int __deprecated acpi_lid_open(void)
+>> > >  {
+>> > >         if (!lid_device)
+>> > >                 return -ENODEV;
+>> > > diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i91=
+5/intel_lvds.c
+>> > > index 9ca4dc4..8ca9080 100644
+>> > > --- a/drivers/gpu/drm/i915/intel_lvds.c
+>> > > +++ b/drivers/gpu/drm/i915/intel_lvds.c
+>> > > @@ -548,7 +548,7 @@ static int intel_lid_notify(struct notifier_bloc=
+k *nb, unsigned long val,
+>> > >         /* Don't force modeset on machines where it causes a GPU loc=
+kup */
+>> > >         if (dmi_check_system(intel_no_modeset_on_lid))
+>> > >                 goto exit;
+>> > > -       if (!acpi_lid_open()) {
+>> > > +       if (!val) {
+>> > >                 /* do modeset on next lid open event */
+>> > >                 dev_priv->modeset_restore =3D MODESET_ON_LID_OPEN;
+>> > >                 goto exit;
+>> > > --
+>> > > 2.7.4
+>> > >
+>> > > --
+>> > > To unsubscribe from this list: send the line "unsubscribe linux-acpi=
+" in
+>> > > the body of a message to majordomo@vger.kernel.org
+>> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>  =EF=BF=BD=EF=BF=BD=EC=B9=BB =EF=BF=BD&=EF=BF=BD~=EF=BF=BD&=EF=BF=BD =EF=
+=BF=BD=EF=BF=BD+-=EF=BF=BD=EF=BF=BD=DD=B6 =EF=BF=BD=EF=BF=BDw=EF=BF=BD=EF=
+=BF=BD=CB=9B=EF=BF=BD=EF=BF=BD=EF=BF=BDm=EF=BF=BDb=EF=BF=BD=EF=BF=BDZr=EF=
+=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD^n=EF=BF=BDr=EF=BF=BD=EF=BF=BD=EF=BF=BDz=
+=EF=BF=BD =EF=BF=BD=EF=BF=BDh=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD&=EF=BF=BD=
+=EF=BF=BD =EF=BF=BDG=EF=BF=BD=EF=BF=BD=EF=BF=BDh=EF=BF=BD (=EF=BF=BD=E9=9A=
+=8E
+>> =EF=BF=BD=DD=A2j"=EF=BF=BD=EF=BF=BD =EF=BF=BD m=EF=BF=BD=EF=BF=BD=EF=BF=
+=BD=EF=BF=BD=EF=BF=BDz=EF=BF=BD=DE=96=EF=BF=BD=EF=BF=BD=EF=BF=BDf=EF=BF=BD=
+=EF=BF=BD=EF=BF=BDh=EF=BF=BD=EF=BF=BD=EF=BF=BD~=EF=BF=BDm=EF=BF=BD
