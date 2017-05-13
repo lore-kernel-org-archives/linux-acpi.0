@@ -1,157 +1,263 @@
-From: Florian Echtler <floe@butterbrot.org>
-Subject: Re: Notifications about ACPI events in userspace?
-Date: Sat, 13 May 2017 18:47:16 +0200
-Message-ID: <35eb95e2-5876-5ed8-e8e9-6811fd656618@butterbrot.org>
-References: <71a48bf5-54b5-6d7b-d574-e0aa6c1acb80@butterbrot.org>
- <20170512100652.GA22013@wunner.de>
- <22eb7eab-21b0-aa5b-a989-0e4e80c707fb@butterbrot.org>
- <20170513121824.GA685@wunner.de>
+From: Sabrina Dubroca <sd@queasysnail.net>
+Subject: Re: [PATCH 08/10] efi/x86: Move EFI BGRT init code to early init code
+Date: Sun, 14 May 2017 01:18:27 +0200
+Message-ID: <20170513231827.GA1068@bistromath.localdomain>
+References: <1485868902-20401-1-git-send-email-ard.biesheuvel@linaro.org>
+ <1485868902-20401-9-git-send-email-ard.biesheuvel@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="5xU5fShLm0dQkWEm23aSp4OJl2Bc0AS42"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:34105 "EHLO butterbrot.org"
+Received: from mx1.redhat.com ([209.132.183.28]:51208 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752726AbdEMQrW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 13 May 2017 12:47:22 -0400
-In-Reply-To: <20170513121824.GA685@wunner.de>
+        id S1756812AbdEMXSf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 13 May 2017 19:18:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1485868902-20401-9-git-send-email-ard.biesheuvel@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H . Peter Anvin" <hpa@zytor.com>, Dave Young <dyoung@redhat.com>, linux-efi@vger.kernel.org, Matt Fleming <matt@codeblueprint.co.uk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---5xU5fShLm0dQkWEm23aSp4OJl2Bc0AS42
-Content-Type: multipart/mixed; boundary="f7eJ6VTbwCHSM64cJxE2uI9Qlm6EuC8aT";
- protected-headers="v1"
-From: Florian Echtler <floe@butterbrot.org>
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
-Message-ID: <35eb95e2-5876-5ed8-e8e9-6811fd656618@butterbrot.org>
-Subject: Re: Notifications about ACPI events in userspace?
-References: <71a48bf5-54b5-6d7b-d574-e0aa6c1acb80@butterbrot.org>
- <20170512100652.GA22013@wunner.de>
- <22eb7eab-21b0-aa5b-a989-0e4e80c707fb@butterbrot.org>
- <20170513121824.GA685@wunner.de>
-In-Reply-To: <20170513121824.GA685@wunner.de>
+2017-01-31, 13:21:40 +0000, Ard Biesheuvel wrote:
+> From: Dave Young <dyoung@redhat.com>
+> 
+> Before invoking the arch specific handler, efi_mem_reserve() reserves
+> the given memory region through memblock.
+> 
+> efi_bgrt_init() will call efi_mem_reserve() after mm_init(), at which
+> time memblock is dead and should not be used anymore.
+> 
+> The EFI BGRT code depends on ACPI initialization to get the BGRT ACPI
+> table, so move parsing of the BGRT table to ACPI early boot code to
+> ensure that efi_mem_reserve() in EFI BGRT code still use memblock safely.
+> 
+> Signed-off-by: Dave Young <dyoung@redhat.com>
+> Cc: Matt Fleming <matt@codeblueprint.co.uk>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: linux-acpi@vger.kernel.org
+> Tested-by: Bhupesh Sharma <bhsharma@redhat.com>
+> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 
---f7eJ6VTbwCHSM64cJxE2uI9Qlm6EuC8aT
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+I have a box that panics in early boot after this patch. The kernel
+config is based on a Fedora 25 kernel + localmodconfig.
 
-On 13.05.2017 14:18, Lukas Wunner wrote:
->=20
-> So to sum it up, the built-in panel on the iMac can be driven by a
-> separate machine and we can switch between the two sources via the SMC.=
+BUG: unable to handle kernel paging request at ffffffffff240001
+IP: efi_bgrt_init+0xdc/0x134
+PGD 1ac0c067
+PUD 1ac0e067
+PMD 1aee9067
+PTE 9380701800000163
 
->
-> [...]
->
-> I guess you could register a vga_switcheroo handler which controls
-> switching via the SMC.  You'd also have to register a vga_switcheroo
-> client whenever you detect hotplug of an external source (and unregiste=
-r
-> on unplug).  The client is normally a DRM driver but would in this case=
-
-> just be a pseudo device.
->=20
-> Then you could switch back and forth via the vga_switcheroo interface.
-
-Hm... since there's no power switching of any kind involved, would that s=
-till
-make sense?
-
-> On macOS I can't find the "dppt" string in any kernel extension, but
-> it's present in this user space component:
-> /System/Library/LoginPlugins/BezelServices.loginPlugin/Contents/MacOS/B=
-ezelServices
->=20
-> Disassembling it reveals that it talks to a special Mach port to switch=
-
-> the display but it's not listening to the Notify() events.  Perhaps thi=
-s
-> is only used with BootCamp?
->=20
-> In any case the other end of the Mach port seems to be /usr/libexec/dpd=
-=2E
-
-I think the dpd binary is also somehow listening for ACPI events, or it i=
-s
-triggered by some other component when the ACPI Notify happens (in
-com.apple.dpd.plist, you can also find the "smc-dppt" string,).
-
->> As far as I could tell, it's just a stub
->> for receiving the Notify() calls; the actual source switching is handl=
-ed by
->> writing to SMC keys.
->=20
-> Yes, the Notify() calls are used to generate some kind of interrupt,
-> perhaps one for hotplug and the other one for unplug?
-
-Correct, I already verified this with EC debugging turned on - _Q31 is tr=
-iggered
-when an external source is plugged in, _Q30 when it is removed.
-
->>> Perhaps apple-gmux.c could serve as a template for an APP000C driver.=
-
->>> The code should be easy to understand, if you have questions just ask=
- away.
->>
->> Since I need to modify the applesmc.c driver anyway, it would probably=
- make
->> sense to integrate the notify handler there?
->=20
-> Sounds reasonable to me.
-
-AFAICT, the alternative (which maybe would be more sensible, the more I t=
-hink
-about it) would be to export applesmc_{read,write}_key as public symbols =
-and
-just access them from a standalone driver for the APP000C ACPI device. Si=
-nce
-that should only be present on a Mac that actually supports TDM, there's =
-also no
-risk of writing to arbitrary SMC keys on unsupported devices.
-
-> Which iMac model are you developing this on exactly, a 2009/2010 model
-> (without Thunderbolt) or a newer one?  The newer ones can only be drive=
-n
-> via DP-over-Thunderbolt tunnels, so the HPD pin is coming from the
-> Thunderbolt controller, not the socket.  We don't have support for
-> setting up DP-over-Thunderbolt tunnels in thunderbolt.ko yet, only
-> PCIe-over-Thunderbolt is supported.  If the external source is already
-> present on boot, the tunnel may be established by the Thunderbolt EFI
-> driver but will be gone after unplug.
-
-I have a 2009/2010 model, so no Thunderbolt. If someone is feeling advent=
-urous
-with a Thunderbolt iMac, feel free to poke the SMC. I've written a short =
-blog
-post that should be sufficient as background information for some initial=
-
-experiments: http://floe.butterbrot.org/matrix/hacking/tdm/ and
-https://github.com/floe/smc_util (in particular, look at tdm_{on,off}.sh)=
-=2E
-
-Best, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
+Oops: 0009 [#1] SMP
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper Not tainted 4.10.0-rc5-00116-g7b0a911 #19
+Hardware name: Hewlett-Packard HP Z220 CMT Workstation/1790, BIOS K51 v01.02 05/03/2012
+task: ffffffff9fc10500 task.stack: ffffffff9fc00000
+RIP: 0010:efi_bgrt_init+0xdc/0x134
+RSP: 0000:ffffffff9fc03d58 EFLAGS: 00010082
+RAX: ffffffffff240001 RBX: 0000000000000000 RCX: 1380701800000006
+RDX: 8000000000000163 RSI: 9380701800000163 RDI: 00000000000005be
+RBP: ffffffff9fc03d70 R08: 1380701800001000 R09: 0000000000000002
+R10: 000000000002d000 R11: ffff98a3dedd2fc6 R12: ffffffff9f9f22b6
+R13: ffffffff9ff49480 R14: 0000000000000010 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffffffff9fd20000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffff240001 CR3: 000000001ac09000 CR4: 00000000000406b0
+Call Trace:
+ ? acpi_parse_ioapic+0x98/0x98
+ acpi_parse_bgrt+0x9/0xd
+ acpi_table_parse+0x7a/0xa9
+ acpi_boot_init+0x3c7/0x4f9
+ ? acpi_parse_x2apic+0x74/0x74
+ ? acpi_parse_x2apic_nmi+0x46/0x46
+ setup_arch+0xb4b/0xc6f
+ ? printk+0x52/0x6e
+ start_kernel+0xb2/0x47b
+ ? early_idt_handler_array+0x120/0x120
+ x86_64_start_reservations+0x24/0x26
+ x86_64_start_kernel+0xf7/0x11a
+ start_cpu+0x14/0x14
+Code: 48 c7 c7 10 16 a0 9f e8 4e 94 40 ff eb 62 be 06 00 00 00 e8 f9 ff 00 00 48 85 c0 75 0e 48 c7 c7 40 16 a0 9f e8 31 94 40 ff eb 45 <66> 44 8b 20 be 06 00 00 00 48 89 c7 8b 58 02 e8 87 00 01 00 66
+RIP: efi_bgrt_init+0xdc/0x134 RSP: ffffffff9fc03d58
+CR2: ffffffffff240001
+---[ end trace f68728a0d3053b52 ]---
+Kernel panic - not syncing: Attempted to kill the idle task!
+---[ end Kernel panic - not syncing: Attempted to kill the idle task!
 
 
---f7eJ6VTbwCHSM64cJxE2uI9Qlm6EuC8aT--
+That code is:
 
---5xU5fShLm0dQkWEm23aSp4OJl2Bc0AS42
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+All code
+========
+   0:	48 c7 c7 10 16 a0 9f 	mov    $0xffffffff9fa01610,%rdi
+   7:	e8 4e 94 40 ff       	callq  0xffffffffff40945a
+   c:	eb 62                	jmp    0x70
+   e:	be 06 00 00 00       	mov    $0x6,%esi
+  13:	e8 f9 ff 00 00       	callq  0x10011
+  18:	48 85 c0             	test   %rax,%rax
+  1b:	75 0e                	jne    0x2b
+  1d:	48 c7 c7 40 16 a0 9f 	mov    $0xffffffff9fa01640,%rdi
+  24:	e8 31 94 40 ff       	callq  0xffffffffff40945a
+  29:	eb 45                	jmp    0x70
+  2b:*	66 44 8b 20          	mov    (%rax),%r12w		<-- trapping instruction
+  2f:	be 06 00 00 00       	mov    $0x6,%esi
+  34:	48 89 c7             	mov    %rax,%rdi
+  37:	8b 58 02             	mov    0x2(%rax),%ebx
+  3a:	e8 87 00 01 00       	callq  0x100c6
+  3f:	66                   	data16
 
-iEYEARECAAYFAlkXOJQACgkQ7CzyshGvati0PACgxl10Iemh6itCl2iWPZOLhhlY
-p1cAoN0OWUCyfN3cRgFwn8mVU+TreWBd
-=O21E
------END PGP SIGNATURE-----
+Code starting with the faulting instruction
+===========================================
+   0:	66 44 8b 20          	mov    (%rax),%r12w
+   4:	be 06 00 00 00       	mov    $0x6,%esi
+   9:	48 89 c7             	mov    %rax,%rdi
+   c:	8b 58 02             	mov    0x2(%rax),%ebx
+   f:	e8 87 00 01 00       	callq  0x1009b
+  14:	66                   	data16
 
---5xU5fShLm0dQkWEm23aSp4OJl2Bc0AS42--
+
+which is just after the early_memremap() call.
+
+I enabled early_ioremap_debug and the last warning had:
+
+__early_ioremap(1380701800001000, 00001000) [1] => 00000001 + ffffffffff240000
+
+
+
+Rest of the log, in case there's anything useful in there:
+
+
+Linux version 4.10.0-rc5-00116-g7b0a911 (root@netdev4) (gcc version 6.3.1 20161221 (Red Hat 6.3.1-1) (GCC) ) #19 SMP Sat May 13 23:16:09 CEST 2017
+Command line: BOOT_IMAGE=/vmlinuz-4.10.0-rc5-00116-g7b0a911 root=UUID=3b849e12-46bd-4406-a2ec-f44238a55d56 ro console=ttyS0,115200 earlyprintk=serial,0x000003F8,115200
+x86/fpu: Supporting XSAVE feature 0x001: 'x87 floating point registers'
+x86/fpu: Supporting XSAVE feature 0x002: 'SSE registers'
+x86/fpu: Supporting XSAVE feature 0x004: 'AVX registers'
+x86/fpu: xstate_offset[2]:  576, xstate_sizes[2]:  256
+x86/fpu: Enabled xstate features 0x7, context size is 832 bytes, using 'standard' format.
+e820: BIOS-provided physical RAM map:
+BIOS-e820: [mem 0x0000000000000000-0x0000000000093bff] usable
+BIOS-e820: [mem 0x0000000000093c00-0x000000000009ffff] reserved
+BIOS-e820: [mem 0x00000000000e0000-0x00000000000fffff] reserved
+BIOS-e820: [mem 0x0000000000100000-0x000000001fffffff] usable
+BIOS-e820: [mem 0x0000000020000000-0x00000000201fffff] reserved
+BIOS-e820: [mem 0x0000000020200000-0x0000000040003fff] usable
+BIOS-e820: [mem 0x0000000040004000-0x0000000040004fff] reserved
+BIOS-e820: [mem 0x0000000040005000-0x00000000d9362fff] usable
+BIOS-e820: [mem 0x00000000d9363000-0x00000000d9940fff] reserved
+BIOS-e820: [mem 0x00000000d9941000-0x00000000d9ba7fff] ACPI NVS
+BIOS-e820: [mem 0x00000000d9ba8000-0x00000000d9bb7fff] ACPI data
+BIOS-e820: [mem 0x00000000d9bb8000-0x00000000d9bc0fff] ACPI NVS
+BIOS-e820: [mem 0x00000000d9bc1000-0x00000000d9bc5fff] ACPI data
+BIOS-e820: [mem 0x00000000d9bc6000-0x00000000d9c08fff] ACPI NVS
+BIOS-e820: [mem 0x00000000d9c09000-0x00000000d9ffffff] usable
+BIOS-e820: [mem 0x00000000db000000-0x00000000df1fffff] reserved
+BIOS-e820: [mem 0x00000000f8000000-0x00000000fbffffff] reserved
+BIOS-e820: [mem 0x00000000fec00000-0x00000000fec00fff] reserved
+BIOS-e820: [mem 0x00000000fed00000-0x00000000fed03fff] reserved
+BIOS-e820: [mem 0x00000000fed1c000-0x00000000fed44fff] reserved
+BIOS-e820: [mem 0x00000000fed90000-0x00000000fed93fff] reserved
+BIOS-e820: [mem 0x00000000fee00000-0x00000000fee00fff] reserved
+BIOS-e820: [mem 0x00000000ff000000-0x00000000ffffffff] reserved
+BIOS-e820: [mem 0x0000000100000000-0x000000011edfffff] usable
+bootconsole [earlyser0] enabled
+NX (Execute Disable) protection: active
+SMBIOS 2.7 present.
+DMI: Hewlett-Packard HP Z220 CMT Workstation/1790, BIOS K51 v01.02 05/03/2012
+e820: last_pfn = 0x11ee00 max_arch_pfn = 0x400000000
+x86/PAT: Configuration [0-7]: WB  WC  UC- UC  WB  WC  UC- WT
+ing RDTSC...
+e820: last_pfn = 0xda000 max_arch_pfn = 0x400000000
+found SMP MP-table at [mem 0x000f4ea0-0x000f4eaf] mapped at [ffff98a2c00f4ea0]
+RAMDISK: [mem 0x366ed000-0x3736efff]
+ACPI: Early table checksum verification disabled
+ACPI: RSDP 0x00000000000F9810 000024 (v02 HPQOEM)
+ACPI: XSDT 0x00000000D9BA8080 00007C (v01 HPQOEM SLIC-WKS 01072009 AMI  00010013)
+ACPI: FACP 0x00000000D9BB10F0 0000F4 (v04 HPQOEM SLIC-WKS 01072009 AMI  00010013)
+ACPI: DSDT 0x00000000D9BA8188 008F67 (v02 HPQOEM SLIC-WKS 00000051 INTL 20051117)
+ACPI: FACS 0x00000000D9BB8F80 000040
+ACPI: APIC 0x00000000D9BB11E8 000084 (v03 HPQOEM SLIC-WKS 01072009 AMI  00010013)
+ACPI: MCFG 0x00000000D9BB1270 00003C (v01 HPQOEM SLIC-WKS 01072009 MSFT 00000097)
+ACPI: HPET 0x00000000D9BB12B0 000038 (v01 HPQOEM SLIC-WKS 01072009 AMI. 00000005)
+ACPI: SSDT 0x00000000D9BB12E8 00036D (v01 SataRe SataTabl 00001000 INTL 20091112)
+ACPI: SSDT 0x00000000D9BB1658 005270 (v01 COMPAQ WMI      00000001 MSFT 03000001)
+ACPI: SLIC 0x00000000D9BB68C8 000176 (v01 HPQOEM SLIC-WKS 00000001      00000000)
+ACPI: SSDT 0x00000000D9BB6A40 0009AA (v01 PmRef  Cpu0Ist  00003000 INTL 20051117)
+ACPI: SSDT 0x00000000D9BB73F0 000A92 (v01 PmRef  CpuPm    00003000 INTL 20051117)
+ACPI: ASF! 0x00000000D9BB7E88 0000A5 (v32 INTEL   HCG     00000001 TFSM 000F4240)
+ACPI: BGRT 0x00000000D9BB7F30 00003C (v00 HPQOEM SLIC-WKS 01072009 AMI  00010013)
+No NUMA configuration found
+Faking a node at [mem 0x0000000000000000-0x000000011edfffff]
+NODE_DATA(0) allocated [mem 0x11edd5000-0x11edfffff]
+Zone ranges:
+  DMA      [mem 0x0000000000001000-0x0000000000ffffff]
+  DMA32    [mem 0x0000000001000000-0x00000000ffffffff]
+  Normal   [mem 0x0000000100000000-0x000000011edfffff]
+  Device   empty
+Movable zone start for each node
+Early memory node ranges
+  node   0: [mem 0x0000000000001000-0x0000000000092fff]
+  node   0: [mem 0x0000000000100000-0x000000001fffffff]
+  node   0: [mem 0x0000000020200000-0x0000000040003fff]
+  node   0: [mem 0x0000000040005000-0x00000000d9362fff]
+  node   0: [mem 0x00000000d9c09000-0x00000000d9ffffff]
+  node   0: [mem 0x0000000100000000-0x000000011edfffff]
+Initmem setup node 0 [mem 0x0000000000001000-0x000000011edfffff]
+Reserving Intel graphics memory at 0x00000000db200000-0x00000000df1fffff
+ACPI: PM-Timer IO Port: 0x408
+ACPI: LAPIC_NMI (acpi_id[0x00] high edge lint[0x1])
+ACPI: LAPIC_NMI (acpi_id[0x02] high edge lint[0x1])
+ACPI: LAPIC_NMI (acpi_id[0x01] high edge lint[0x1])
+ACPI: LAPIC_NMI (acpi_id[0x03] high edge lint[0x1])
+IOAPIC[0]: apic_id 0, version 32, address 0xfec00000, GSI 0-23
+ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+Using ACPI (MADT) for SMP configuration information
+ACPI: HPET id: 0x8086a701 base: 0xfed00000
+BUG: unable to handle kernel paging request at ffffffffff240001
+IP: efi_bgrt_init+0xdc/0x134
+PGD 1ac0c067
+PUD 1ac0e067
+PMD 1aee9067
+PTE 9380701800000163
+
+Oops: 0009 [#1] SMP
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper Not tainted 4.10.0-rc5-00116-g7b0a911 #19
+Hardware name: Hewlett-Packard HP Z220 CMT Workstation/1790, BIOS K51 v01.02 05/03/2012
+task: ffffffff9fc10500 task.stack: ffffffff9fc00000
+RIP: 0010:efi_bgrt_init+0xdc/0x134
+RSP: 0000:ffffffff9fc03d58 EFLAGS: 00010082
+RAX: ffffffffff240001 RBX: 0000000000000000 RCX: 1380701800000006
+RDX: 8000000000000163 RSI: 9380701800000163 RDI: 00000000000005be
+RBP: ffffffff9fc03d70 R08: 1380701800001000 R09: 0000000000000002
+R10: 000000000002d000 R11: ffff98a3dedd2fc6 R12: ffffffff9f9f22b6
+R13: ffffffff9ff49480 R14: 0000000000000010 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffffffff9fd20000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffff240001 CR3: 000000001ac09000 CR4: 00000000000406b0
+Call Trace:
+ ? acpi_parse_ioapic+0x98/0x98
+ acpi_parse_bgrt+0x9/0xd
+ acpi_table_parse+0x7a/0xa9
+ acpi_boot_init+0x3c7/0x4f9
+ ? acpi_parse_x2apic+0x74/0x74
+ ? acpi_parse_x2apic_nmi+0x46/0x46
+ setup_arch+0xb4b/0xc6f
+ ? printk+0x52/0x6e
+ start_kernel+0xb2/0x47b
+ ? early_idt_handler_array+0x120/0x120
+ x86_64_start_reservations+0x24/0x26
+ x86_64_start_kernel+0xf7/0x11a
+ start_cpu+0x14/0x14
+Code: 48 c7 c7 10 16 a0 9f e8 4e 94 40 ff eb 62 be 06 00 00 00 e8 f9 ff 00 00 48 85 c0 75 0e 48 c7 c7 40 16 a0 9f e8 31 94 40 ff eb 45 <66> 44 8b 20 be 06 00 00 00 48 89 c7 8b 58 02 e8 87 00 01 00 66
+RIP: efi_bgrt_init+0xdc/0x134 RSP: ffffffff9fc03d58
+CR2: ffffffffff240001
+---[ end trace f68728a0d3053b52 ]---
+Kernel panic - not syncing: Attempted to kill the idle task!
+---[ end Kernel panic - not syncing: Attempted to kill the idle task!
+
+
+-- 
+Sabrina
