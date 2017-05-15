@@ -1,104 +1,117 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v3] ACPI / PMIC: xpower: Add support for the GPI1
- regulator to the OpRegion handler
-Date: Mon, 15 May 2017 11:58:44 +0300
-Message-ID: <1494838724.6967.50.camel@linux.intel.com>
-References: <20170514213539.20231-1-hdegoede@redhat.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [RFC/RFT PATCH 3/3] PCI/ACPI: Add ACPI pci_bus_find_numa_node()
+ implementation
+Date: Mon, 15 May 2017 10:17:49 +0100
+Message-ID: <20170515091749.GA14348@red-moon>
+References: <20170426100619.31758-1-lorenzo.pieralisi@arm.com>
+ <20170426100619.31758-3-lorenzo.pieralisi@arm.com>
+ <5919471B.7080607@hisilicon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:40884 "EHLO mga02.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:49256 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759829AbdEOJEn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 15 May 2017 05:04:43 -0400
-In-Reply-To: <20170514213539.20231-1-hdegoede@redhat.com>
+        id S933360AbdEOJQv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 15 May 2017 05:16:51 -0400
+Content-Disposition: inline
+In-Reply-To: <5919471B.7080607@hisilicon.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org
+To: Zhou Wang <wangzhou1@hisilicon.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>
 
-On Sun, 2017-05-14 at 23:35 +0200, Hans de Goede wrote:
-> Some Bay Trail devices use a GPI1 regulator field (address 0x4c) in
-> their 0x8d power OpRegion, add support for this.
+On Mon, May 15, 2017 at 02:13:47PM +0800, Zhou Wang wrote:
+> On 2017/4/26 18:06, Lorenzo Pieralisi wrote:
+> > The introduction of pci_bus_find_numa_node(pci_bus) allows at PCI
+> > host bridge registration to detect the NUMA node for a given
+> > struct pci_bus.dev. Implement an ACPI method that, through
+> > the struct pci_bus.bridge ACPI companion, retrieve and return
+> > the NUMA node corresponding to a given struct pci_bus.dev.
+> > 
+> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > Cc: Bjorn Helgaas <bhelgaas@google.com>
+> > ---
+> >  drivers/pci/pci-acpi.c | 20 ++++++++++++++++++++
+> >  include/linux/pci.h    |  6 ++++++
+> >  2 files changed, 26 insertions(+)
+> > 
+> > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> > index 0018603..915da79 100644
+> > --- a/drivers/pci/pci-acpi.c
+> > +++ b/drivers/pci/pci-acpi.c
+> > @@ -10,6 +10,7 @@
+> >  #include <linux/delay.h>
+> >  #include <linux/init.h>
+> >  #include <linux/irqdomain.h>
+> > +#include <linux/numa.h>
+> >  #include <linux/pci.h>
+> >  #include <linux/msi.h>
+> >  #include <linux/pci_hotplug.h>
+> > @@ -853,6 +854,25 @@ struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
+> >  	return irq_find_matching_fwnode(fwnode, DOMAIN_BUS_PCI_MSI);
+> >  }
+> >  
+> > +int acpi_pci_bus_find_numa_node(struct pci_bus *bus)
+> > +{
+> > +	int node = NUMA_NO_NODE;
+> > +	struct device *bridge = get_device(bus->bridge);
+> > +
+> > +	if (!bridge)
+> > +		return node;
+> > +
+> > +	if (has_acpi_companion(bridge)) {
+> > +		struct acpi_device *adev = to_acpi_device_node(bridge->fwnode);
+> > +
+> > +		node = acpi_get_node(adev->handle);
+> > +	}
+> > +
+> > +	put_device(bridge);
+> > +
+> > +	return node;
+> > +}
+> > +
 > 
-> This fixes AE_BAD_PARAMETER errors getting thrown on these devices and
-> fixes these errors causing these devices to not suspend.
+> It seems there is no function to call this, am I right?
 
-FWIW:
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Sorry, I missed updating pci_bus_find_numa_node() while reshuffling
+the code, apologies.
 
+I will repost shortly.
+
+> Another question is that: in the latest IORT revision C, "Proximity
+> domain" has been added to the IORT spec.  So when we enable NUMA for a
+> PCIe device, should we also consider this?
+
+That's for the SMMU device.
+
+Lorenzo
+
+> Thanks,
+> Zhou
 > 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Changes in v2:
-> -Simplify reg == 0x92 handling (suggested by Andy Shevchenko)
-> -Add special handling for reg == 0x92 to intel_xpower_pmic_get_power()
-> too
-> Changes in v3:
-> -Use defines for GPI1 reg and bits, rather then hardcoded hex values
-> ---
->  drivers/acpi/pmic/intel_pmic_xpower.c | 21 ++++++++++++++++++++-
->  1 file changed, 20 insertions(+), 1 deletion(-)
+> >  static int __init acpi_pci_init(void)
+> >  {
+> >  	int ret;
+> > diff --git a/include/linux/pci.h b/include/linux/pci.h
+> > index 9e62462..b40d095 100644
+> > --- a/include/linux/pci.h
+> > +++ b/include/linux/pci.h
+> > @@ -1481,6 +1481,12 @@ static inline int acpi_pci_bus_find_domain_nr(struct pci_bus *bus)
+> >  #endif
+> >  int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent);
+> >  #endif
+> > +#ifdef CONFIG_ACPI
+> > +int acpi_pci_bus_find_numa_node(struct pci_bus *bus);
+> > +#else
+> > +static inline int acpi_pci_bus_find_numa_node(struct pci_bus *bus)
+> > +{ return NUMA_NO_NODE; }
+> > +#endif
+> >  int pci_bus_find_numa_node(struct pci_bus *bus);
+> >  
+> >  /* some architectures require additional setup to direct VGA traffic */
+> > 
 > 
-> diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c
-> b/drivers/acpi/pmic/intel_pmic_xpower.c
-> index 1a76c784cd4c..3b7d5be5b7ed 100644
-> --- a/drivers/acpi/pmic/intel_pmic_xpower.c
-> +++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-> @@ -21,6 +21,11 @@
->  #include "intel_pmic.h"
->  
->  #define XPOWER_GPADC_LOW	0x5b
-> +#define XPOWER_GPI1_CTRL	0x92
-> +
-> +#define GPI1_LDO_MASK		GENMASK(2, 0)
-> +#define GPI1_LDO_ON		(3 << 0)
-> +#define GPI1_LDO_OFF		(4 << 0)
->  
->  static struct pmic_table power_table[] = {
->  	{
-> @@ -118,6 +123,10 @@ static struct pmic_table power_table[] = {
->  		.reg = 0x10,
->  		.bit = 0x00
->  	}, /* BUC6 */
-> +	{
-> +		.address = 0x4c,
-> +		.reg = 0x92,
-> +	}, /* GPI1 */
->  };
->  
->  /* TMP0 - TMP5 are the same, all from GPADC */
-> @@ -156,7 +165,12 @@ static int intel_xpower_pmic_get_power(struct
-> regmap *regmap, int reg,
->  	if (regmap_read(regmap, reg, &data))
->  		return -EIO;
->  
-> -	*value = (data & BIT(bit)) ? 1 : 0;
-> +	/* GPIO1 LDO regulator needs special handling */
-> +	if (reg == XPOWER_GPI1_CTRL)
-> +		*value = ((data & GPI1_LDO_MASK) == GPI1_LDO_ON);
-> +	else
-> +		*value = (data & BIT(bit)) ? 1 : 0;
-> +
->  	return 0;
->  }
->  
-> @@ -165,6 +179,11 @@ static int intel_xpower_pmic_update_power(struct
-> regmap *regmap, int reg,
->  {
->  	int data;
->  
-> +	/* GPIO1 LDO regulator needs special handling */
-> +	if (reg == XPOWER_GPI1_CTRL)
-> +		return regmap_update_bits(regmap, reg, GPI1_LDO_MASK,
-> +					  on ? GPI1_LDO_ON :
-> GPI1_LDO_OFF);
-> +
->  	if (regmap_read(regmap, reg, &data))
->  		return -EIO;
->  
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
