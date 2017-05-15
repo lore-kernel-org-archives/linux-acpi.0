@@ -1,85 +1,96 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / GED: use late init to allow other drivers init
-Date: Mon, 15 May 2017 12:59:07 +0200
-Message-ID: <CAJZ5v0i6p6iZgJGLVgGVanAD3uGjbarp5QihuAd=_eZ8zFQwDw@mail.gmail.com>
-References: <1492813704-32280-1-git-send-email-okaya@codeaurora.org>
- <1874042.5bWzSJ73x0@aspire.rjw.lan> <0a368676-d01a-5ac8-179d-b6e7507fd500@codeaurora.org>
- <7848366.O4PImzsRl1@aspire.rjw.lan> <b864973e-d52b-12f7-32b2-78ec0b132a0b@codeaurora.org>
+Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to lid_init_state=open"
+Date: Mon, 15 May 2017 13:01:02 +0200
+Message-ID: <CAJZ5v0iD33i4B+gFvKLOnLKB557eLx1yzFCJeiR6hghD9fmKeQ@mail.gmail.com>
+References: <20170510161240.13229-1-benjamin.tissoires@redhat.com>
+ <20170511094551.GF30987@mail.corp.redhat.com> <1AE640813FDE7649BE1B193DEA596E886CEA2CC4@SHSMSX101.ccr.corp.intel.com>
+ <2574646.jh0JF0mi0Y@aspire.rjw.lan> <20170515074553.GJ30987@mail.corp.redhat.com>
+ <CAJZ5v0jJ0SruFMp+v5ibcBnzctvjZF7U1w4+XThzFjwxTpdUUQ@mail.gmail.com> <20170515093752.GB11762@mail.corp.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f52.google.com ([209.85.218.52]:36237 "EHLO
-        mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751365AbdEOK7J (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 15 May 2017 06:59:09 -0400
-In-Reply-To: <b864973e-d52b-12f7-32b2-78ec0b132a0b@codeaurora.org>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:36309 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752926AbdEOLBD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 15 May 2017 07:01:03 -0400
+In-Reply-To: <20170515093752.GB11762@mail.corp.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lukas Wunner <lukas@wunner.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Abdulhamid, Harb" <harba@codeaurora.org>
+To: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Jiri Eischmann <jeischma@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Mon, May 15, 2017 at 4:36 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> Hi Rafael,
->
-> On 5/11/2017 10:52 AM, Rafael J. Wysocki wrote:
->>> OK. I'll reach out to Harb and let's see where the proposal goes.
->> It looks like this is about operation regions after all, however, so _DEP as is
->> should be sufficient here.
+On Mon, May 15, 2017 at 11:37 AM, Benjamin Tissoires
+<benjamin.tissoires@redhat.com> wrote:
+> On May 15 2017 or thereabouts, Rafael J. Wysocki wrote:
+>> On Mon, May 15, 2017 at 9:45 AM, Benjamin Tissoires
+>> <benjamin.tissoires@redhat.com> wrote:
+>> > On May 12 2017 or thereabouts, Rafael J. Wysocki wrote:
+>> >> On Friday, May 12, 2017 02:36:20 AM Zheng, Lv wrote:
+>> >> > Hi,
+>> >> >
+>> >> > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
+>> >> > > Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to lid_init_state=open"
+>> >> > >
+>> >> > > On May 11 2017 or thereabouts, Zheng, Lv wrote:
+>> >> > > > Hi,
+>> >> > > >
+>> >> > > > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
+>> >> > > > > Subject: [PATCH 2/2] Revert "ACPI / button: Change default behavior to lid_init_state=open"
+>> >> > > > >
+>> >> > > > > This reverts commit 77e9a4aa9de10cc1418bf9a892366988802a8025.
+>> >> > > > >
+>> >> > > > > Even if the method implementation can be buggy on some platform,
+>> >> > > > > the "open" choice is worse. It breaks docking stations basically
+>> >> > > > > and there is no way to have a user-space hwdb to fix that.
+>> >> > > > >
+>> >> > > > > On the contrary, it's rather easy in user-space to have a hwdb
+>> >> > > > > with the problematic platforms. Then, libinput (1.7.0+) can fix
+>> >> > > > > the state of the LID switch for us: you need to set the udev
+>> >> > > > > property LIBINPUT_ATTR_LID_SWITCH_RELIABILITY to 'write_open'.
+>> >> > > > >
+>> >> > > > > When libinput detects internal keyboard events, it will
+>> >> > > > > overwrite the state of the switch to open, making it reliable
+>> >> > > > > again. Given that logind only checks the LID switch value after
+>> >> > > > > a timeout, we can assume the user will use the internal keyboard
+>> >> > > > > before this timeout expires.
+>> >> > > > >
+>> >> > > > > For example, such a hwdb entry is:
+>> >> > > > >
+>> >> > > > > libinput:name:*Lid Switch*:dmi:*svnMicrosoftCorporation:pnSurface3:*
+>> >> > > > >  LIBINPUT_ATTR_LID_SWITCH_RELIABILITY=write_open
+>> >> > > >
+>> >
+>> > [...]
+>> >
+>> >>
+>> >> Well, if it worked in a specific way that users depended on before the commit in
+>> >> question and now it works differently, then it does break things.
+>> >>
+>> >> Benjamin, my understanding is that this is the case, is it correct?
+>> >
+>> > That is correct. This patch I reverted introduces regression for professional
+>> > laptops that expect the LID switch to be reported accurately.
 >>
->> There is some limited _DEP support in the ACPI layer, but we were missing
->> a way to represent those dependencies in the driver core.
->>
->> That can be done through device_link objects now, so we may be able to support
->> _DEP in a more meaningful way, but the cases when _DEP is used for something
->> different from operation regions in practice need to be treated with caution.
->>
->>
+>> And from a user's perspective, what does not work any more?
 >
-> _DEP could certainly help here. However, _DEP doesn't answer the loose binding question.
-> If one driver is missing in one operating system, _GED driver will never load due
-> to unsatisfied dependency. This forces us into all or none condition. We have operating
-> systems that we need to support and do not have vendor I2C or GPIO drivers. That's why,
-> we are hesitant to place _DEP into ACPI tables.
-
-_DEP as defined in the spec should be fine still.
-
-Quoting directly:
-
-"_DEP evaluates to a package and designates device objects that OSPM
-should assign a higher
-priority in start ordering due to future operation region accesses.
-
-To increase the likelihood that an SPB operation region handler is
-available when needed, OSPM
-needs to know in advance which methods will access it -- _DEP provides
-OSPM with this
-information. While the _DEP keyword may be used to determine start
-ordering, only the _REG
-method (Section 6.5.4) callbacks can be relied upon to determine
-whether a region is accessible at a
-given point in time."
-
-So according to the above, _DEP is advisory only and you need _REG.
-
-In theory, because I'm not sure if _REG actually works.
-
-> The problem is that there is no concept of per event dependency. This could have helped
-> us figure out if such an interrupt should be enabled or not.
+> If you boot or resume your laptop with the lid closed on a docking
+> station while using an external monitor connected to it, both internal
+> and external displays will light on, while only the external should.
 >
-> Another solution for operating regions is _REG if FW wants to ignore the event during
-> boot. This is the one we are looking into at this moment for non-critical events.
+> There is a design choice in gdm to only provide the greater on the
+> internal display when lit on, so users only see a gray area on the
+> external monitor. Also, the cursor will not show up as it's by default
+> on the internal display too.
 >
-> late_init proposed in this patch helps for built-in drivers such as GHES where we do
-> not want to ignore events. Since GHES is not an actual device, this has to be solved
-> in ACPI.
+> To "fix" that, users have to open the laptop once and close it once
+> again to sync the state of the switch with the hardware state.
 
-For built-in things it would be better to have explicit initialization
-ordering, eg. initializing both GHES and GED from one initcall in the
-right order.
+OK
 
-Using different initcall levels for them is sort of OK, but then it is
-not quite clear from the code what the specific ordering requirement
-is, so please add a comment describing that at least.
+Yeah, that sucks.
+
+So without the Lv's patch the behavior (on the systems in question) is
+as expected, right?
 
 Thanks,
 Rafael
