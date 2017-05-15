@@ -1,7 +1,7 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [RFC/RFT PATCH v2 1/3] PCI: Introduce pci_bus_find_numa_node()
-Date: Mon, 15 May 2017 14:22:03 +0100
-Message-ID: <20170515132205.19622-2-lorenzo.pieralisi@arm.com>
+Subject: [RFC/RFT PATCH v2 3/3] PCI/ACPI: Add ACPI pci_bus_find_numa_node() implementation
+Date: Mon, 15 May 2017 14:22:05 +0100
+Message-ID: <20170515132205.19622-4-lorenzo.pieralisi@arm.com>
 References: <20170515132205.19622-1-lorenzo.pieralisi@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170515132205.19622-1-lorenzo.pieralisi@arm.com>
@@ -10,52 +10,87 @@ To: linux-pci@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Zhou Wang <wangzhou1@hisilicon.com>, Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Create an empty stub, to be populated by firmware methods, to
-retrieve the NUMA node for a given pci_bus. No functional change
-introduced.
+The introduction of pci_bus_find_numa_node(pci_bus) allows at PCI
+host bridge registration to detect the NUMA node for a given
+struct pci_bus.dev. Implement an ACPI method that, through
+the struct pci_bus.bridge ACPI companion, retrieve and return
+the NUMA node corresponding to a given struct pci_bus.dev.
 
 Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/pci.c   | 6 ++++++
- include/linux/pci.h | 1 +
- 2 files changed, 7 insertions(+)
+ drivers/pci/pci-acpi.c | 20 ++++++++++++++++++++
+ drivers/pci/pci.c      |  2 +-
+ include/linux/pci.h    |  6 ++++++
+ 3 files changed, 27 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index b01bd5b..e9803c1 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -12,6 +12,7 @@
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 0018603..915da79 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -10,6 +10,7 @@
  #include <linux/delay.h>
- #include <linux/dmi.h>
  #include <linux/init.h>
+ #include <linux/irqdomain.h>
 +#include <linux/numa.h>
- #include <linux/of.h>
- #include <linux/of_pci.h>
  #include <linux/pci.h>
-@@ -5403,6 +5404,11 @@ int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent)
- #endif
- #endif
+ #include <linux/msi.h>
+ #include <linux/pci_hotplug.h>
+@@ -853,6 +854,25 @@ struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
+ 	return irq_find_matching_fwnode(fwnode, DOMAIN_BUS_PCI_MSI);
+ }
  
-+int pci_bus_find_numa_node(struct pci_bus *bus)
++int acpi_pci_bus_find_numa_node(struct pci_bus *bus)
 +{
-+	return NUMA_NO_NODE;
++	int node = NUMA_NO_NODE;
++	struct device *bridge = get_device(bus->bridge);
++
++	if (!bridge)
++		return node;
++
++	if (has_acpi_companion(bridge)) {
++		struct acpi_device *adev = to_acpi_device_node(bridge->fwnode);
++
++		node = acpi_get_node(adev->handle);
++	}
++
++	put_device(bridge);
++
++	return node;
 +}
 +
+ static int __init acpi_pci_init(void)
+ {
+ 	int ret;
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index e9803c1..451342d 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -5406,7 +5406,7 @@ int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent)
+ 
+ int pci_bus_find_numa_node(struct pci_bus *bus)
+ {
+-	return NUMA_NO_NODE;
++	return acpi_disabled ? NUMA_NO_NODE : acpi_pci_bus_find_numa_node(bus);
+ }
+ 
  /**
-  * pci_ext_cfg_avail - can we access extended PCI config space?
-  *
 diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 33c2b0b..ccbeefd 100644
+index ccbeefd..ed89220 100644
 --- a/include/linux/pci.h
 +++ b/include/linux/pci.h
-@@ -1472,6 +1472,7 @@ static inline int acpi_pci_bus_find_domain_nr(struct pci_bus *bus)
+@@ -1472,6 +1472,12 @@ static inline int acpi_pci_bus_find_domain_nr(struct pci_bus *bus)
  #endif
  int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent);
  #endif
-+int pci_bus_find_numa_node(struct pci_bus *bus);
++#ifdef CONFIG_ACPI
++int acpi_pci_bus_find_numa_node(struct pci_bus *bus);
++#else
++static inline int acpi_pci_bus_find_numa_node(struct pci_bus *bus)
++{ return NUMA_NO_NODE; }
++#endif
+ int pci_bus_find_numa_node(struct pci_bus *bus);
  
  /* some architectures require additional setup to direct VGA traffic */
- typedef int (*arch_set_vga_state_t)(struct pci_dev *pdev, bool decode,
 -- 
 2.10.0
