@@ -1,48 +1,58 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [RFC/RFT PATCH v2 2/3] PCI: Add call to set-up NUMA node for struct pci_bus devices
-Date: Mon, 15 May 2017 14:22:04 +0100
-Message-ID: <20170515132205.19622-3-lorenzo.pieralisi@arm.com>
-References: <20170515132205.19622-1-lorenzo.pieralisi@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170515132205.19622-1-lorenzo.pieralisi@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Zhou Wang <wangzhou1@hisilicon.com>, Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
+From: Sabrina Dubroca <sd@queasysnail.net>
+Subject: Re: [PATCH 08/10] efi/x86: Move EFI BGRT init code to early init code
+Date: Mon, 15 May 2017 15:44:26 +0200
+Message-ID: <20170515134426.GC1068@bistromath.localdomain>
+References: <1485868902-20401-1-git-send-email-ard.biesheuvel@linaro.org>
+ <1485868902-20401-9-git-send-email-ard.biesheuvel@linaro.org>
+ <20170513231827.GA1068@bistromath.localdomain>
+ <20170515083740.GA30363@dhcp-128-65.nay.redhat.com>
+ <20170515111037.GB1068@bistromath.localdomain>
+ <20170515131835.GA5708@dhcp-128-65.nay.redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:42396 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934063AbdEONod (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 15 May 2017 09:44:33 -0400
+Content-Disposition: inline
+In-Reply-To: <20170515131835.GA5708@dhcp-128-65.nay.redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dave Young <dyoung@redhat.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H . Peter Anvin" <hpa@zytor.com>, linux-efi@vger.kernel.org, Matt Fleming <matt@codeblueprint.co.uk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-The member dev in struct pci_bus represents the kernel struct
-device representation of a PCI bus, inclusive of its NUMA node.
-When a PCI host bridge is registered, initialize the corresponding
-struct pci_bus.dev member NUMA node and add code in
-pci_alloc_child_bus() to propagate the NUMA node set-up through the PCI
-bus hierarchy (ie child nodes are in the same NUMA node as the parent).
+2017-05-15, 21:18:35 +0800, Dave Young wrote:
+> On 05/15/17 at 01:10pm, Sabrina Dubroca wrote:
+> > 2017-05-15, 16:37:40 +0800, Dave Young wrote:
+> > > diff --git a/arch/x86/platform/efi/efi-bgrt.c b/arch/x86/platform/efi/efi-bgrt.c
+> > > index 04ca876..b986e26 100644
+> > > --- a/arch/x86/platform/efi/efi-bgrt.c
+> > > +++ b/arch/x86/platform/efi/efi-bgrt.c
+> > > @@ -36,6 +36,9 @@ void __init efi_bgrt_init(struct acpi_table_header *table)
+> > >  	if (acpi_disabled)
+> > >  		return;
+> > >  
+> > > +	if (!efi_enabled(EFI_CONFIG_TABLES))
+> 
+> A better version should be checking EFI_BOOT, could you retest with
+> below instead? If it works I can send a patch with your Tested-by:
+> if (!efi_enabled(EFI_BOOT))
 
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/pci/probe.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Yes, that works. Thanks for the fix :)
 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 19c8950..76c089f 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -770,6 +770,7 @@ int pci_register_host_bridge(struct pci_host_bridge *bridge)
- 	device_enable_async_suspend(bus->bridge);
- 	pci_set_bus_of_node(bus);
- 	pci_set_bus_msi_domain(bus);
-+	set_dev_node(&bus->dev, pci_bus_find_numa_node(bus));
- 
- 	if (!parent)
- 		set_dev_node(bus->bridge, pcibus_to_node(bus));
-@@ -861,7 +862,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
- 	 */
- 	child->dev.class = &pcibus_class;
- 	dev_set_name(&child->dev, "%04x:%02x", pci_domain_nr(child), busnr);
--
-+	set_dev_node(&child->dev, dev_to_node(&parent->dev));
- 	/*
- 	 * Set up the primary, secondary and subordinate
- 	 * bus numbers.
+> > > +		return;
+> > > +
+> > >  	if (table->length < sizeof(bgrt_tab)) {
+> > >  		pr_notice("Ignoring BGRT: invalid length %u (expected %zu)\n",
+> > >  		       table->length, sizeof(bgrt_tab));
+> > > 
+> > 
+> > -- 
+> > Sabrina
+> 
+> Thanks
+> Dave
+
 -- 
-2.10.0
+Sabrina
