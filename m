@@ -1,58 +1,67 @@
-From: Sabrina Dubroca <sd@queasysnail.net>
-Subject: Re: [PATCH 08/10] efi/x86: Move EFI BGRT init code to early init code
-Date: Mon, 15 May 2017 15:44:26 +0200
-Message-ID: <20170515134426.GC1068@bistromath.localdomain>
-References: <1485868902-20401-1-git-send-email-ard.biesheuvel@linaro.org>
- <1485868902-20401-9-git-send-email-ard.biesheuvel@linaro.org>
- <20170513231827.GA1068@bistromath.localdomain>
- <20170515083740.GA30363@dhcp-128-65.nay.redhat.com>
- <20170515111037.GB1068@bistromath.localdomain>
- <20170515131835.GA5708@dhcp-128-65.nay.redhat.com>
+From: Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
+Subject: Re: [RFC/RFT PATCH v2 0/3] PCI: generic device NUMA node detection
+Date: Mon, 15 May 2017 06:51:57 -0700
+Message-ID: <20170515135157.GB9700@localhost.localdomain>
+References: <20170515132205.19622-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42396 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934063AbdEONod (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 15 May 2017 09:44:33 -0400
+Received: from mail-dm3nam03on0082.outbound.protection.outlook.com ([104.47.41.82]:46400
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S934356AbdEONwD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 15 May 2017 09:52:03 -0400
 Content-Disposition: inline
-In-Reply-To: <20170515131835.GA5708@dhcp-128-65.nay.redhat.com>
+In-Reply-To: <20170515132205.19622-1-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Young <dyoung@redhat.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H . Peter Anvin" <hpa@zytor.com>, linux-efi@vger.kernel.org, Matt Fleming <matt@codeblueprint.co.uk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Zhou Wang <wangzhou1@hisilicon.com>, Vadim.Lomovtsev@caviumnetworks.com
 
-2017-05-15, 21:18:35 +0800, Dave Young wrote:
-> On 05/15/17 at 01:10pm, Sabrina Dubroca wrote:
-> > 2017-05-15, 16:37:40 +0800, Dave Young wrote:
-> > > diff --git a/arch/x86/platform/efi/efi-bgrt.c b/arch/x86/platform/efi/efi-bgrt.c
-> > > index 04ca876..b986e26 100644
-> > > --- a/arch/x86/platform/efi/efi-bgrt.c
-> > > +++ b/arch/x86/platform/efi/efi-bgrt.c
-> > > @@ -36,6 +36,9 @@ void __init efi_bgrt_init(struct acpi_table_header *table)
-> > >  	if (acpi_disabled)
-> > >  		return;
-> > >  
-> > > +	if (!efi_enabled(EFI_CONFIG_TABLES))
+On Mon, May 15, 2017 at 02:22:02PM +0100, Lorenzo Pieralisi wrote:
+> This patch series is v2 of a previous posting:
 > 
-> A better version should be checking EFI_BOOT, could you retest with
-> below instead? If it works I can send a patch with your Tested-by:
-> if (!efi_enabled(EFI_BOOT))
-
-Yes, that works. Thanks for the fix :)
-
-> > > +		return;
-> > > +
-> > >  	if (table->length < sizeof(bgrt_tab)) {
-> > >  		pr_notice("Ignoring BGRT: invalid length %u (expected %zu)\n",
-> > >  		       table->length, sizeof(bgrt_tab));
-> > > 
-> > 
-> > -- 
-> > Sabrina
+> v1 -> v2:
 > 
-> Thanks
-> Dave
+> - Added missing call to acpi_pci_bus_find_numa_node()
+> - Rebased against v4.12-rc1
+> 
+> v1: https://lkml.org/lkml/2017/4/26/211
+> 
+> On the ARM64 architecture, the arch specific PCI pcibus_to_node() callback
+> can be triggered on struct pci_bus.sysdata structures that carry host
+> bridge specific data through different structures layout (ie sysdata
+> pointer points at different structs for different host bridges), therefore
+> it is not possible to have a unified pcibus_to_node() implementation.
+> 
+> Given that the device NUMA node is a property of the struct pci_bus (and
+> its associated struct device), move the struct pci_bus node assignment to
+> generic PCI code, where according to the platform firmware the NUMA node
+> for the device backing the struct pci_bus is retrieved and propagated
+> through the PCI bus hierarchy.
+> 
+> Lorenzo Pieralisi (3):
+>   PCI: Introduce pci_bus_find_numa_node()
+>   PCI: Add call to set-up NUMA node for struct pci_bus devices
+>   PCI/ACPI: Add ACPI pci_bus_find_numa_node() implementation
+> 
+>  drivers/pci/pci-acpi.c | 20 ++++++++++++++++++++
+>  drivers/pci/pci.c      |  6 ++++++
+>  drivers/pci/probe.c    |  3 ++-
+>  include/linux/pci.h    |  7 +++++++
+>  4 files changed, 35 insertions(+), 1 deletion(-)
+>
 
--- 
-Sabrina
+Tested at dual-socketed system with Cavium ThunderX SoC.
+Tested with 4.11 kernel.
+No issues observed, numa_node value set appropriately for pci devices.
+
+Tested-by: Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
+
+> -- 
+> 2.10.0
+> 
+
+
+WBR,
+Vadim
