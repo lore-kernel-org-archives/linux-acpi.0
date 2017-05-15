@@ -1,86 +1,106 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC/RFT PATCH 1/3] PCI: Introduce pci_bus_find_numa_node()
-Date: Mon, 15 May 2017 14:05:00 +0100
-Message-ID: <20170515130500.GA19201@red-moon>
-References: <20170426100619.31758-1-lorenzo.pieralisi@arm.com>
- <1494593045-19911-1-git-send-email-Vadim.Lomovtsev@caviumnetworks.com>
- <20170512155040.GA11377@red-moon>
- <20170512171846.GA21391@localhost.localdomain>
- <20170515125711.GA9700@localhost.localdomain>
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
+ lid_init_state=open"
+Date: Mon, 15 May 2017 15:05:31 +0200
+Message-ID: <20170515130531.GC11762@mail.corp.redhat.com>
+References: <20170510161240.13229-1-benjamin.tissoires@redhat.com>
+ <20170511094551.GF30987@mail.corp.redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CEA2CC4@SHSMSX101.ccr.corp.intel.com>
+ <2574646.jh0JF0mi0Y@aspire.rjw.lan>
+ <20170515074553.GJ30987@mail.corp.redhat.com>
+ <CAJZ5v0jJ0SruFMp+v5ibcBnzctvjZF7U1w4+XThzFjwxTpdUUQ@mail.gmail.com>
+ <20170515093752.GB11762@mail.corp.redhat.com>
+ <CAJZ5v0iD33i4B+gFvKLOnLKB557eLx1yzFCJeiR6hghD9fmKeQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:37860 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756459AbdEONFk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 15 May 2017 09:05:40 -0400
 Content-Disposition: inline
-In-Reply-To: <20170515125711.GA9700@localhost.localdomain>
-Sender: linux-pci-owner@vger.kernel.org
-To: Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>
+In-Reply-To: <CAJZ5v0iD33i4B+gFvKLOnLKB557eLx1yzFCJeiR6hghD9fmKeQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Jiri Eischmann <jeischma@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Mon, May 15, 2017 at 05:57:11AM -0700, Vadim Lomovtsev wrote:
-> On Fri, May 12, 2017 at 10:18:46AM -0700, Vadim Lomovtsev wrote:
-> Hi Lorenzo,
-> 
-> > Hi Lorenzo
-> > 
-> > On Fri, May 12, 2017 at 04:50:40PM +0100, Lorenzo Pieralisi wrote:
-> > > Hi Vadim,
-> > > 
-> > > On Fri, May 12, 2017 at 05:44:05AM -0700, Vadim Lomovtsev wrote:
-> > > > Hi Lorenzo,
-> > > > 
-> > > > Are there any news related to these patches ?
-> > > 
-> > > Not really, I have not received any feedback but I was expecting some
-> > > to make progress here. Have you tested it ?
-> > >
-> > > Please let me know, thanks !
-> > 
-> > Not yet. Plan to test them after weekend and will get back to you.
+On May 15 2017 or thereabouts, Rafael J. Wysocki wrote:
+> On Mon, May 15, 2017 at 11:37 AM, Benjamin Tissoires
+> <benjamin.tissoires@redhat.com> wrote:
+> > On May 15 2017 or thereabouts, Rafael J. Wysocki wrote:
+> >> On Mon, May 15, 2017 at 9:45 AM, Benjamin Tissoires
+> >> <benjamin.tissoires@redhat.com> wrote:
+> >> > On May 12 2017 or thereabouts, Rafael J. Wysocki wrote:
+> >> >> On Friday, May 12, 2017 02:36:20 AM Zheng, Lv wrote:
+> >> >> > Hi,
+> >> >> >
+> >> >> > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
+> >> >> > > Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to lid_init_state=open"
+> >> >> > >
+> >> >> > > On May 11 2017 or thereabouts, Zheng, Lv wrote:
+> >> >> > > > Hi,
+> >> >> > > >
+> >> >> > > > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
+> >> >> > > > > Subject: [PATCH 2/2] Revert "ACPI / button: Change default behavior to lid_init_state=open"
+> >> >> > > > >
+> >> >> > > > > This reverts commit 77e9a4aa9de10cc1418bf9a892366988802a8025.
+> >> >> > > > >
+> >> >> > > > > Even if the method implementation can be buggy on some platform,
+> >> >> > > > > the "open" choice is worse. It breaks docking stations basically
+> >> >> > > > > and there is no way to have a user-space hwdb to fix that.
+> >> >> > > > >
+> >> >> > > > > On the contrary, it's rather easy in user-space to have a hwdb
+> >> >> > > > > with the problematic platforms. Then, libinput (1.7.0+) can fix
+> >> >> > > > > the state of the LID switch for us: you need to set the udev
+> >> >> > > > > property LIBINPUT_ATTR_LID_SWITCH_RELIABILITY to 'write_open'.
+> >> >> > > > >
+> >> >> > > > > When libinput detects internal keyboard events, it will
+> >> >> > > > > overwrite the state of the switch to open, making it reliable
+> >> >> > > > > again. Given that logind only checks the LID switch value after
+> >> >> > > > > a timeout, we can assume the user will use the internal keyboard
+> >> >> > > > > before this timeout expires.
+> >> >> > > > >
+> >> >> > > > > For example, such a hwdb entry is:
+> >> >> > > > >
+> >> >> > > > > libinput:name:*Lid Switch*:dmi:*svnMicrosoftCorporation:pnSurface3:*
+> >> >> > > > >  LIBINPUT_ATTR_LID_SWITCH_RELIABILITY=write_open
+> >> >> > > >
+> >> >
+> >> > [...]
+> >> >
+> >> >>
+> >> >> Well, if it worked in a specific way that users depended on before the commit in
+> >> >> question and now it works differently, then it does break things.
+> >> >>
+> >> >> Benjamin, my understanding is that this is the case, is it correct?
+> >> >
+> >> > That is correct. This patch I reverted introduces regression for professional
+> >> > laptops that expect the LID switch to be reported accurately.
+> >>
+> >> And from a user's perspective, what does not work any more?
 > >
+> > If you boot or resume your laptop with the lid closed on a docking
+> > station while using an external monitor connected to it, both internal
+> > and external displays will light on, while only the external should.
+> >
+> > There is a design choice in gdm to only provide the greater on the
+> > internal display when lit on, so users only see a gray area on the
+> > external monitor. Also, the cursor will not show up as it's by default
+> > on the internal display too.
+> >
+> > To "fix" that, users have to open the laptop once and close it once
+> > again to sync the state of the switch with the hardware state.
 > 
-> Here is the results of testing you patches at dual-socketed board
-> with Cavium ThunderX SoC.
+> OK
 > 
-> Each boot kernel boot with acpi=force argument.
+> Yeah, that sucks.
 > 
-> 1. The 4.12-rc1 couldn't find rootfs partition so can't be tested.
-> 2.1  The 4.11 without your patch set 0 to numa node for pci device
->   cat /sys/bus/pci/devices/*/numa_node
->   got zeroes here for all devices
-> 2.2 The 4.11 with your patches applied set -1 to numa_node for all pci devices
->   same command provides "-1"
+> So without the Lv's patch the behavior (on the systems in question) is
+> as expected, right?
 > 
-> So looking at your patches..
-> 
-> At the patch 1/3 you implemented pci_bus_find_numa_node function:
-> 
-> +int pci_bus_find_numa_node(struct pci_bus *bus)
-> +{
-> +	return NUMA_NO_NODE;
-> +}
-> 
-> Then at the 2/3 patch it is called from pci_register_host_bridge:
-> @@ -770,6 +770,7 @@ int pci_register_host_bridge(struct pci_host_bridge *bridge)
-> [..]
-> +	set_dev_node(&bus->dev, pci_bus_find_numa_node(bus));
-> 
-> I suppose that is why I'm seeing those -1 in the numa_node field.
-> 
-> And at the patch 3/3 you implemented acpi_pci_bus_find_numa_node function
->  +int acpi_pci_bus_find_numa_node(struct pci_bus *bus)
-> which implements actual work of getting numa node value,
-> but it seems that nodoby calls it, isn't it ?
-> 
-> Don't we need to update pci_bus_find_numa_node with proper calling
-> of acpi_pci_bus_find_numa_node() ?
 
-Yes:
+Yes, reverting these 2 patches restores the pre v4.11 kernel behavior.
 
-https://lkml.org/lkml/2017/4/26/211
-
-Apologies for wasting your time, v2 coming with the actual call,
-please have a look.
-
-Thanks,
-Lorenzo
+Cheers,
+Benjamin
