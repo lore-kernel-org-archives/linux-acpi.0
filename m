@@ -1,131 +1,129 @@
-From: sricharan@codeaurora.org
-Subject: Re: [PATCH V8 07/11] iommu: of: Handle IOMMU lookup failure with
- deferred probing or error
-Date: Tue, 16 May 2017 07:56:08 +0530
-Message-ID: <c9c3cdcc43eba9b9aa68fa750b61a099@codeaurora.org>
-References: <1486136933-20328-1-git-send-email-sricharan@codeaurora.org>
- <1486136933-20328-8-git-send-email-sricharan@codeaurora.org>
- <CAMuHMdV05uCcVss+V1E+_OQYosJO6P95rU1WynV-G08-iHJnyg@mail.gmail.com>
- <2bfd11dc-9f94-2b69-7b03-c640e53155e1@arm.com>
- <26defadf-6380-4af4-6323-b51198376bc1@codeaurora.org>
- <20170515142238.GD3605@arm.com>
+From: Zhou Wang <wangzhou1@hisilicon.com>
+Subject: Re: [RFC/RFT PATCH 3/3] PCI/ACPI: Add ACPI pci_bus_find_numa_node()
+ implementation
+Date: Tue, 16 May 2017 11:22:37 +0800
+Message-ID: <591A707D.5000000@hisilicon.com>
+References: <20170426100619.31758-1-lorenzo.pieralisi@arm.com>
+ <20170426100619.31758-3-lorenzo.pieralisi@arm.com>
+ <5919471B.7080607@hisilicon.com> <20170515091749.GA14348@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-renesas-soc-owner@vger.kernel.org>
-In-Reply-To: <20170515142238.GD3605@arm.com>
-Sender: linux-renesas-soc-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-arm-msm@vger.kernel.org, Joerg Roedel <joro@8bytes.org>, Magnus Damm <magnus.damm@gmail.com>, okaya@codeaurora.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, iommu@lists.linux-foundation.org, Geert Uytterhoeven <geert@linux-m68k.org>, Hanjun Guo <hanjun.guo@linaro.org>, linux-pci <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, tn@semihalf.com, Robin Murphy <robin.murphy@arm.com>, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([45.249.212.189]:5951 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750759AbdEPDWp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 15 May 2017 23:22:45 -0400
+In-Reply-To: <20170515091749.GA14348@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>
 
-Hi Will,
+On 2017/5/15 17:17, Lorenzo Pieralisi wrote:
+> On Mon, May 15, 2017 at 02:13:47PM +0800, Zhou Wang wrote:
+>> On 2017/4/26 18:06, Lorenzo Pieralisi wrote:
+>>> The introduction of pci_bus_find_numa_node(pci_bus) allows at PCI
+>>> host bridge registration to detect the NUMA node for a given
+>>> struct pci_bus.dev. Implement an ACPI method that, through
+>>> the struct pci_bus.bridge ACPI companion, retrieve and return
+>>> the NUMA node corresponding to a given struct pci_bus.dev.
+>>>
+>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>> Cc: Bjorn Helgaas <bhelgaas@google.com>
+>>> ---
+>>>  drivers/pci/pci-acpi.c | 20 ++++++++++++++++++++
+>>>  include/linux/pci.h    |  6 ++++++
+>>>  2 files changed, 26 insertions(+)
+>>>
+>>> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+>>> index 0018603..915da79 100644
+>>> --- a/drivers/pci/pci-acpi.c
+>>> +++ b/drivers/pci/pci-acpi.c
+>>> @@ -10,6 +10,7 @@
+>>>  #include <linux/delay.h>
+>>>  #include <linux/init.h>
+>>>  #include <linux/irqdomain.h>
+>>> +#include <linux/numa.h>
+>>>  #include <linux/pci.h>
+>>>  #include <linux/msi.h>
+>>>  #include <linux/pci_hotplug.h>
+>>> @@ -853,6 +854,25 @@ struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
+>>>  	return irq_find_matching_fwnode(fwnode, DOMAIN_BUS_PCI_MSI);
+>>>  }
+>>>  
+>>> +int acpi_pci_bus_find_numa_node(struct pci_bus *bus)
+>>> +{
+>>> +	int node = NUMA_NO_NODE;
+>>> +	struct device *bridge = get_device(bus->bridge);
+>>> +
+>>> +	if (!bridge)
+>>> +		return node;
+>>> +
+>>> +	if (has_acpi_companion(bridge)) {
+>>> +		struct acpi_device *adev = to_acpi_device_node(bridge->fwnode);
+>>> +
+>>> +		node = acpi_get_node(adev->handle);
+>>> +	}
+>>> +
+>>> +	put_device(bridge);
+>>> +
+>>> +	return node;
+>>> +}
+>>> +
+>>
+>> It seems there is no function to call this, am I right?
+> 
+> Sorry, I missed updating pci_bus_find_numa_node() while reshuffling
+> the code, apologies.
+> 
+> I will repost shortly.
+> 
+>> Another question is that: in the latest IORT revision C, "Proximity
+>> domain" has been added to the IORT spec.  So when we enable NUMA for a
+>> PCIe device, should we also consider this?
+> 
+> That's for the SMMU device.
 
-On 2017-05-15 19:52, Will Deacon wrote:
-> Hi Sricharan,
-> 
-> On Wed, May 03, 2017 at 03:54:59PM +0530, Sricharan R wrote:
->> On 5/3/2017 3:24 PM, Robin Murphy wrote:
->> > On 02/05/17 19:35, Geert Uytterhoeven wrote:
->> >> On Fri, Feb 3, 2017 at 4:48 PM, Sricharan R <sricharan@codeaurora.org> wrote:
->> >>> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
->> >>>
->> >>> Failures to look up an IOMMU when parsing the DT iommus property need to
->> >>> be handled separately from the .of_xlate() failures to support deferred
->> >>> probing.
->> >>>
->> >>> The lack of a registered IOMMU can be caused by the lack of a driver for
->> >>> the IOMMU, the IOMMU device probe not having been performed yet, having
->> >>> been deferred, or having failed.
->> >>>
->> >>> The first case occurs when the device tree describes the bus master and
->> >>> IOMMU topology correctly but no device driver exists for the IOMMU yet
->> >>> or the device driver has not been compiled in. Return NULL, the caller
->> >>> will configure the device without an IOMMU.
->> >>>
->> >>> The second and third cases are handled by deferring the probe of the bus
->> >>> master device which will eventually get reprobed after the IOMMU.
->> >>>
->> >>> The last case is currently handled by deferring the probe of the bus
->> >>> master device as well. A mechanism to either configure the bus master
->> >>> device without an IOMMU or to fail the bus master device probe depending
->> >>> on whether the IOMMU is optional or mandatory would be a good
->> >>> enhancement.
->> >>>
->> >>> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> >>> Signed-off-by: Laurent Pichart <laurent.pinchart+renesas@ideasonboard.com>
->> >>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
->> >>
->> >> This patch broke Renesas R-Car Gen3 platforms in renesas-drivers.
->> >> As the IOMMU nodes in DT are not yet enabled, all devices having iommus
->> >> properties in DT now fail to probe.
->> >
->> > How exactly do they fail to probe? Per d7b0558230e4, if there are no ops
->> > registered then they should merely defer until we reach the point of
->> > giving up and ignoring the IOMMU. Is it just that you have no other
->> > late-probing drivers or post-init module loads to kick the deferred
->> > queue after that point? I did try to find a way to explicitly kick it
->> > from a suitably late initcall, but there didn't seem to be any obvious
->> > public interface - anyone have any suggestions?
->> >
->> > I think that's more of a general problem with the probe deferral
->> > mechanism itself (I've seen the same thing happen with some of the
->> > CoreSight stuff on Juno due to the number of inter-component
->> > dependencies) rather than any specific fault of this series.
->> >
->> 
->> I was thinking of an additional check like below to avoid the
->> situation ?
->> 
->> From 499b6e662f60f23740b8880882b0a16f16434501 Mon Sep 17 00:00:00 2001
->> From: Sricharan R <sricharan@codeaurora.org>
->> Date: Wed, 3 May 2017 13:16:59 +0530
->> Subject: [PATCH] iommu: of: Fix check for returning EPROBE_DEFER
->> 
->> While returning EPROBE_DEFER for iommu masters
->> take in to account of iommu nodes that could be
->> marked in DT as 'status=disabled', in which case
->> simply return NULL and let the master's probe
->> continue rather than deferring.
->> 
->> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
->> ---
->>  drivers/iommu/of_iommu.c | 1 +
->>  1 file changed, 1 insertion(+)
->> 
->> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
->> index 9f44ee8..e6e9bec 100644
->> --- a/drivers/iommu/of_iommu.c
->> +++ b/drivers/iommu/of_iommu.c
->> @@ -118,6 +118,7 @@ static bool of_iommu_driver_present(struct 
->> device_node *np)
->> 
->>         ops = iommu_ops_from_fwnode(fwnode);
->>         if ((ops && !ops->of_xlate) ||
->> +           !of_device_is_available(iommu_spec->np) ||
->>             (!ops && !of_iommu_driver_present(iommu_spec->np)))
->>                 return NULL;
-> 
-> Without this patch, v4.12-rc1 hangs on my Juno waiting to mount the 
-> root
-> filesystem. The problem is that the USB controller is behind an SMMU 
-> which
-> is marked as 'status = "disabled"' in the devicetree. Whilst there was 
-> a
-> separate thread with Ard about exactly what this means in terms of the 
-> DMA
-> ops used by upstream devices, your patch above fixes the regression and
-> I think should go in regardless. The DMA ops issue will likely require
-> an additional DT binding anyway, to advertise the behaviour of the
-> IOMMU when it is disabled.
-> 
-> Tested-by: Will Deacon <will.deacon@arm.com>
-> Acked-by: Will Deacon <will.deacon@arm.com>
-> 
-> Could you resend it as a proper patch, please?
+Sorry, this is another problem. Now I get it that this Proximity domain
+is for SMMU itself.
 
-Sure, will send this as a separate patch.
+Thanks,
+Zhou
 
-Regards,
-  Sricharan
+> 
+> Lorenzo
+> 
+>> Thanks,
+>> Zhou
+>>
+>>>  static int __init acpi_pci_init(void)
+>>>  {
+>>>  	int ret;
+>>> diff --git a/include/linux/pci.h b/include/linux/pci.h
+>>> index 9e62462..b40d095 100644
+>>> --- a/include/linux/pci.h
+>>> +++ b/include/linux/pci.h
+>>> @@ -1481,6 +1481,12 @@ static inline int acpi_pci_bus_find_domain_nr(struct pci_bus *bus)
+>>>  #endif
+>>>  int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent);
+>>>  #endif
+>>> +#ifdef CONFIG_ACPI
+>>> +int acpi_pci_bus_find_numa_node(struct pci_bus *bus);
+>>> +#else
+>>> +static inline int acpi_pci_bus_find_numa_node(struct pci_bus *bus)
+>>> +{ return NUMA_NO_NODE; }
+>>> +#endif
+>>>  int pci_bus_find_numa_node(struct pci_bus *bus);
+>>>  
+>>>  /* some architectures require additional setup to direct VGA traffic */
+>>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> .
+> 
+
