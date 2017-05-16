@@ -1,221 +1,175 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH v2 5/5] ACPICA: Tables: Add deferred table verification support
-Date: Tue, 16 May 2017 15:13:55 +0800
-Message-ID: <91f88cf7614fa7169a0650ddb1133069448c0fb6.1494916766.git.lv.zheng@intel.com>
-References: <20170227093432.3308-1-hdegoede@redhat.com> <cover.1494916766.git.lv.zheng@intel.com>
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
+ lid_init_state=open"
+Date: Tue, 16 May 2017 09:15:32 +0200
+Message-ID: <20170516071532.GD11762@mail.corp.redhat.com>
+References: <20170511094551.GF30987@mail.corp.redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CEA2CC4@SHSMSX101.ccr.corp.intel.com>
+ <2574646.jh0JF0mi0Y@aspire.rjw.lan>
+ <20170515074553.GJ30987@mail.corp.redhat.com>
+ <CAJZ5v0jJ0SruFMp+v5ibcBnzctvjZF7U1w4+XThzFjwxTpdUUQ@mail.gmail.com>
+ <20170515093752.GB11762@mail.corp.redhat.com>
+ <CAJZ5v0iD33i4B+gFvKLOnLKB557eLx1yzFCJeiR6hghD9fmKeQ@mail.gmail.com>
+ <20170515130531.GC11762@mail.corp.redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CEA41F1@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886CEA420E@SHSMSX101.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:16537 "EHLO mga14.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:33266 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751438AbdEPHOB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 May 2017 03:14:01 -0400
-In-Reply-To: <cover.1494916766.git.lv.zheng@intel.com>
+        id S1751027AbdEPHPj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 May 2017 03:15:39 -0400
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CEA420E@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org, Hans de Goede <hdegoede@redhat.com>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiri Eischmann <jeischma@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-This patch allows tables not verified in early stage verfied in
-acpi_reallocate_root_table(). This is useful for OSPMs like linux where tables
-cannot be verified in early stage due to early ioremp limitations on some
-architectures. Reported by Hans de Geode, fixed by Lv Zheng.
+On May 16 2017 or thereabouts, Zheng, Lv wrote:
+> Hi,
+> 
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Zheng,
+> > Lv
+> > Subject: RE: [PATCH 2/2] Revert "ACPI / button: Change default behavior to lid_init_state=open"
+> > 
+> > Hi, Guys
+> > 
+> > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
+> > > Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to lid_init_state=open"
+> > >
+> > > On May 15 2017 or thereabouts, Rafael J. Wysocki wrote:
+> > > > On Mon, May 15, 2017 at 11:37 AM, Benjamin Tissoires
+> > > > <benjamin.tissoires@redhat.com> wrote:
+> > > > > On May 15 2017 or thereabouts, Rafael J. Wysocki wrote:
+> > > > >> On Mon, May 15, 2017 at 9:45 AM, Benjamin Tissoires
+> > > > >> <benjamin.tissoires@redhat.com> wrote:
+> > > > >> > On May 12 2017 or thereabouts, Rafael J. Wysocki wrote:
+> > > > >> >> On Friday, May 12, 2017 02:36:20 AM Zheng, Lv wrote:
+> > > > >> >> > Hi,
+> > > > >> >> >
+> > > > >> >> > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
+> > > > >> >> > > Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
+> > > lid_init_state=open"
+> > > > >> >> > >
+> > > > >> >> > > On May 11 2017 or thereabouts, Zheng, Lv wrote:
+> > > > >> >> > > > Hi,
+> > > > >> >> > > >
+> > > > >> >> > > > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
+> > > > >> >> > > > > Subject: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
+> > > lid_init_state=open"
+> > > > >> >> > > > >
+> > > > >> >> > > > > This reverts commit 77e9a4aa9de10cc1418bf9a892366988802a8025.
+> > > > >> >> > > > >
+> > > > >> >> > > > > Even if the method implementation can be buggy on some platform,
+> > > > >> >> > > > > the "open" choice is worse. It breaks docking stations basically
+> > > > >> >> > > > > and there is no way to have a user-space hwdb to fix that.
+> > > > >> >> > > > >
+> > > > >> >> > > > > On the contrary, it's rather easy in user-space to have a hwdb
+> > > > >> >> > > > > with the problematic platforms. Then, libinput (1.7.0+) can fix
+> > > > >> >> > > > > the state of the LID switch for us: you need to set the udev
+> > > > >> >> > > > > property LIBINPUT_ATTR_LID_SWITCH_RELIABILITY to 'write_open'.
+> > > > >> >> > > > >
+> > > > >> >> > > > > When libinput detects internal keyboard events, it will
+> > > > >> >> > > > > overwrite the state of the switch to open, making it reliable
+> > > > >> >> > > > > again. Given that logind only checks the LID switch value after
+> > > > >> >> > > > > a timeout, we can assume the user will use the internal keyboard
+> > > > >> >> > > > > before this timeout expires.
+> > > > >> >> > > > >
+> > > > >> >> > > > > For example, such a hwdb entry is:
+> > > > >> >> > > > >
+> > > > >> >> > > > > libinput:name:*Lid Switch*:dmi:*svnMicrosoftCorporation:pnSurface3:*
+> > > > >> >> > > > >  LIBINPUT_ATTR_LID_SWITCH_RELIABILITY=write_open
+> > > > >> >> > > >
+> > > > >> >
+> > > > >> > [...]
+> > > > >> >
+> > > > >> >>
+> > > > >> >> Well, if it worked in a specific way that users depended on before the commit in
+> > > > >> >> question and now it works differently, then it does break things.
+> > > > >> >>
+> > > > >> >> Benjamin, my understanding is that this is the case, is it correct?
+> > > > >> >
+> > > > >> > That is correct. This patch I reverted introduces regression for professional
+> > > > >> > laptops that expect the LID switch to be reported accurately.
+> > > > >>
+> > > > >> And from a user's perspective, what does not work any more?
+> > > > >
+> > > > > If you boot or resume your laptop with the lid closed on a docking
+> > > > > station while using an external monitor connected to it, both internal
+> > > > > and external displays will light on, while only the external should.
+> > > > >
+> > > > > There is a design choice in gdm to only provide the greater on the
+> > > > > internal display when lit on, so users only see a gray area on the
+> > > > > external monitor. Also, the cursor will not show up as it's by default
+> > > > > on the internal display too.
+> > > > >
+> > > > > To "fix" that, users have to open the laptop once and close it once
+> > > > > again to sync the state of the switch with the hardware state.
+> > > >
+> > > > OK
+> > > >
+> > > > Yeah, that sucks.
+> > > >
+> > > > So without the Lv's patch the behavior (on the systems in question) is
+> > > > as expected, right?
+> > > >
+> > >
+> > > Yes, reverting these 2 patches restores the pre v4.11 kernel behavior.
+> > 
+> > I would make an argument that:
+> > A. Is this necessarily a button driver regression?
+> > 1. Users already configured to not using internal display, why gdm need to determine it again instead
+> > of users choice?
+> > 2. Can gdm/graphics driver saves state before suspend, and restores saved state after resume?
+> >    If users didn't change state during suspend, then everything should be correct.
+> >    If users changed state during suspend, it should be acceptable for users to change it again to make
+> > the state correct.
+> > See, this is obviously a case that is not so strictly related to ACPI button driver.
+> > Why do we need to force button driver to marry external monitors.
+> > B. Bug reporters are all ok with using quirk modes as boot parameters to work this around.
+> > Why should we change our default behavior aimlessly?
+> 
+> I have one more concern:
+> In button.lid_init_state=method mode,
+> Is that possible for libinput to work things around if _LID return value is not correct?
+> How libinput ensures correct timing of overwriting the input node value?
+> Will button driver faked event value overwrites what libinput has written?
+> 
+> From this point of view, button.lid_init_state=ignore might be a better choice than button.lid_init_state=method to allow libinput to deal with all kind of cases.
+> 
 
-Reported-by: Hans de Goede <hdegoede@redhat.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/tbdata.c   | 31 ++++++++++++++++++++++++-------
- drivers/acpi/acpica/tbinstal.c |  1 +
- drivers/acpi/acpica/tbxface.c  | 28 +++++++++++++++++++++++-----
- drivers/acpi/bus.c             |  3 ---
- include/acpi/actbl.h           |  1 +
- 5 files changed, 49 insertions(+), 15 deletions(-)
+This is my last email on this topic, I don't even want to fully read/answer
+the one in 1/2 given the amount of bad faith you put in that.
 
-diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
-index 2dee2cd..f58e209 100644
---- a/drivers/acpi/acpica/tbdata.c
-+++ b/drivers/acpi/acpica/tbdata.c
-@@ -426,12 +426,18 @@ acpi_status
- acpi_tb_check_duplication(struct acpi_table_desc *table_desc, u32 *table_index)
- {
- 	u32 i;
-+	u32 max_table_index;
- 
- 	ACPI_FUNCTION_TRACE(tb_check_duplication);
- 
- 	/* Check if table is already registered */
- 
--	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
-+	if (table_index) {
-+		max_table_index = *table_index;
-+	} else {
-+		max_table_index = acpi_gbl_root_table_list.current_table_count;
-+	}
-+	for (i = 0; i < max_table_index; ++i) {
- 		/*
- 		 * Check for a table match on the entire table length,
- 		 * not just the header.
-@@ -551,6 +557,8 @@ acpi_tb_verify_temp_table(struct acpi_table_desc *table_desc,
- 				goto invalidate_and_exit;
- 			}
- 		}
-+
-+		table_desc->flags |= ACPI_TABLE_IS_VERIFIED;
- 	}
- 
- 	return_ACPI_STATUS(status);
-@@ -576,6 +584,8 @@ acpi_status acpi_tb_resize_root_table_list(void)
- {
- 	struct acpi_table_desc *tables;
- 	u32 table_count;
-+	u32 current_table_count, max_table_count;
-+	u32 i;
- 
- 	ACPI_FUNCTION_TRACE(tb_resize_root_table_list);
- 
-@@ -595,8 +605,8 @@ acpi_status acpi_tb_resize_root_table_list(void)
- 		table_count = acpi_gbl_root_table_list.current_table_count;
- 	}
- 
--	tables = ACPI_ALLOCATE_ZEROED(((acpi_size)table_count +
--				       ACPI_ROOT_TABLE_SIZE_INCREMENT) *
-+	max_table_count = table_count + ACPI_ROOT_TABLE_SIZE_INCREMENT;
-+	tables = ACPI_ALLOCATE_ZEROED(((acpi_size)max_table_count) *
- 				      sizeof(struct acpi_table_desc));
- 	if (!tables) {
- 		ACPI_ERROR((AE_INFO,
-@@ -606,9 +616,16 @@ acpi_status acpi_tb_resize_root_table_list(void)
- 
- 	/* Copy and free the previous table array */
- 
-+	current_table_count = 0;
- 	if (acpi_gbl_root_table_list.tables) {
--		memcpy(tables, acpi_gbl_root_table_list.tables,
--		       (acpi_size)table_count * sizeof(struct acpi_table_desc));
-+		for (i = 0; i < table_count; i++) {
-+			if (acpi_gbl_root_table_list.tables[i].address) {
-+				memcpy(tables + current_table_count,
-+				       acpi_gbl_root_table_list.tables + i,
-+				       sizeof(struct acpi_table_desc));
-+				current_table_count++;
-+			}
-+		}
- 
- 		if (acpi_gbl_root_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED) {
- 			ACPI_FREE(acpi_gbl_root_table_list.tables);
-@@ -616,8 +633,8 @@ acpi_status acpi_tb_resize_root_table_list(void)
- 	}
- 
- 	acpi_gbl_root_table_list.tables = tables;
--	acpi_gbl_root_table_list.max_table_count =
--	    table_count + ACPI_ROOT_TABLE_SIZE_INCREMENT;
-+	acpi_gbl_root_table_list.max_table_count = max_table_count;
-+	acpi_gbl_root_table_list.current_table_count = current_table_count;
- 	acpi_gbl_root_table_list.flags |= ACPI_ROOT_ORIGIN_ALLOCATED;
- 
- 	return_ACPI_STATUS(AE_OK);
-diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index 9404801..5ef0f91 100644
---- a/drivers/acpi/acpica/tbinstal.c
-+++ b/drivers/acpi/acpica/tbinstal.c
-@@ -167,6 +167,7 @@ acpi_tb_install_standard_table(acpi_physical_address address,
- 
- 	/* Validate and verify a table before installation */
- 
-+	i = acpi_gbl_root_table_list.current_table_count;
- 	status = acpi_tb_verify_temp_table(&new_table_desc, NULL, &i);
- 	if (ACPI_FAILURE(status)) {
- 		if (status == AE_CTRL_TERMINATE) {
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index b0dc841..a6da41d 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -167,7 +167,8 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_initialize_tables)
- acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
- {
- 	acpi_status status;
--	u32 i;
-+	struct acpi_table_desc *table_desc;
-+	u32 i, j;
- 
- 	ACPI_FUNCTION_TRACE(acpi_reallocate_root_table);
- 
-@@ -179,6 +180,8 @@ acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
- 		return_ACPI_STATUS(AE_SUPPORT);
- 	}
- 
-+	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
-+
- 	/*
- 	 * Ensure OS early boot logic, which is required by some hosts. If the
- 	 * table state is reported to be wrong, developers should fix the
-@@ -186,11 +189,11 @@ acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
- 	 * early stage.
- 	 */
- 	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
--		if (acpi_gbl_root_table_list.tables[i].pointer) {
-+		table_desc = &acpi_gbl_root_table_list.tables[i];
-+		if (table_desc->pointer) {
- 			ACPI_ERROR((AE_INFO,
- 				    "Table [%4.4s] is not invalidated during early boot stage",
--				    acpi_gbl_root_table_list.tables[i].
--				    signature.ascii));
-+				    table_desc->signature.ascii));
- 		}
- 	}
- 
-@@ -200,11 +203,26 @@ acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
- 		 * table initilization here once the flag is set.
- 		 */
- 		acpi_gbl_enable_table_validation = TRUE;
-+		for (i = 0; i < acpi_gbl_root_table_list.current_table_count;
-+		     ++i) {
-+			table_desc = &acpi_gbl_root_table_list.tables[i];
-+			if (!(table_desc->flags & ACPI_TABLE_IS_VERIFIED)) {
-+				j = i;
-+				status =
-+				    acpi_tb_verify_temp_table(table_desc, NULL,
-+							      &j);
-+				if (ACPI_FAILURE(status)) {
-+					acpi_tb_uninstall_table(table_desc);
-+				}
-+			}
-+		}
- 	}
- 
- 	acpi_gbl_root_table_list.flags |= ACPI_ROOT_ALLOW_RESIZE;
--
- 	status = acpi_tb_resize_root_table_list();
-+	acpi_gbl_root_table_list.flags |= ACPI_ROOT_ORIGIN_ALLOCATED;
-+
-+	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
- 	return_ACPI_STATUS(status);
- }
- 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index c26342f..93c7c5b 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1009,9 +1009,6 @@ void __init acpi_early_init(void)
- 
- 	printk(KERN_INFO PREFIX "Core revision %08x\n", ACPI_CA_VERSION);
- 
--	/* It's safe to verify table checksums during late stage */
--	acpi_gbl_enable_table_validation = TRUE;
--
- 	/* enable workarounds, unless strict ACPI spec. compliance */
- 	if (!acpi_strict)
- 		acpi_gbl_enable_interpreter_slack = TRUE;
-diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
-index d92543f..d10a172 100644
---- a/include/acpi/actbl.h
-+++ b/include/acpi/actbl.h
-@@ -380,6 +380,7 @@ struct acpi_table_desc {
- #define ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL (1)	/* Physical address, internally mapped */
- #define ACPI_TABLE_ORIGIN_INTERNAL_VIRTUAL  (2)	/* Virtual address, internallly allocated */
- #define ACPI_TABLE_ORIGIN_MASK              (3)
-+#define ACPI_TABLE_IS_VERIFIED              (4)
- #define ACPI_TABLE_IS_LOADED                (8)
- 
- /*
--- 
-2.7.4
+This is a REGRESSION. It used to work on thousands of devices, it
+doesn't anymore. So any regression has to be chased down and no good
+reason can justify such a regression.
 
+The only solution is to revert both these changes. We can not ask user
+space to fix a kernel regression, it's not how it works.
+
+You can not also change the semantic of an input switch. An input
+switch, as per the input subsystem is supposed to forward an actual
+state of the underlying hardware. Any fake information is bad and has to
+be avoided.
+
+I already gave you 2 solutions to fix the 7 machines you see that are
+problematic, and you just seem to ignore them:
+- revert to the v4.10 behavior and let libinput fix that for you
+- revert to the v4.10 behavior and have a quirk database in acpi/button
+
+I also proposed to take maintainership on this particular module because
+you said you were assigned this by default because you were the last
+introducing changes in it. I asked you twice, and two times you replied
+skipping this part.
+
+It's clear you don't want to revert to the old state, and even if I can
+prove to you that you have to, you don't listen.
+
+So please, do not force me to call the maintainers and Linus on this
+simple 2 reverts.
+
+Cheers,
+Benjamin
