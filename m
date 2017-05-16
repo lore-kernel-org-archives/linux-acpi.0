@@ -1,57 +1,69 @@
 From: Robert Richter <robert.richter@cavium.com>
-Subject: Re: [RFC/RFT PATCH v2 0/3] PCI: generic device NUMA node detection
-Date: Tue, 16 May 2017 16:57:51 +0200
-Message-ID: <20170516145712.GB658@rric.localdomain>
+Subject: Re: [RFC/RFT PATCH v2 3/3] PCI/ACPI: Add ACPI
+ pci_bus_find_numa_node() implementation
+Date: Tue, 16 May 2017 17:15:29 +0200
+Message-ID: <20170516151529.GC658@rric.localdomain>
 References: <20170515132205.19622-1-lorenzo.pieralisi@arm.com>
+ <20170515132205.19622-4-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-co1nam03on0067.outbound.protection.outlook.com ([104.47.40.67]:24404
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+Received: from mail-by2nam03on0057.outbound.protection.outlook.com ([104.47.42.57]:2909
+        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750765AbdEPO6G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 May 2017 10:58:06 -0400
+        id S1750950AbdEPPPr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 May 2017 11:15:47 -0400
 Content-Disposition: inline
-In-Reply-To: <20170515132205.19622-1-lorenzo.pieralisi@arm.com>
+In-Reply-To: <20170515132205.19622-4-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Zhou Wang <wangzhou1@hisilicon.com>, Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Zhou Wang <wangzhou1@hisilicon.com>, Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
 
-On 15.05.17 14:22:02, Lorenzo Pieralisi wrote:
-> This patch series is v2 of a previous posting:
+On 15.05.17 14:22:05, Lorenzo Pieralisi wrote:
+> The introduction of pci_bus_find_numa_node(pci_bus) allows at PCI
+> host bridge registration to detect the NUMA node for a given
+> struct pci_bus.dev. Implement an ACPI method that, through
+> the struct pci_bus.bridge ACPI companion, retrieve and return
+> the NUMA node corresponding to a given struct pci_bus.dev.
 > 
-> v1 -> v2:
-> 
-> - Added missing call to acpi_pci_bus_find_numa_node()
-> - Rebased against v4.12-rc1
-> 
-> v1: https://lkml.org/lkml/2017/4/26/211
-> 
-> On the ARM64 architecture, the arch specific PCI pcibus_to_node() callback
-> can be triggered on struct pci_bus.sysdata structures that carry host
-> bridge specific data through different structures layout (ie sysdata
-> pointer points at different structs for different host bridges), therefore
-> it is not possible to have a unified pcibus_to_node() implementation.
-> 
-> Given that the device NUMA node is a property of the struct pci_bus (and
-> its associated struct device), move the struct pci_bus node assignment to
-> generic PCI code, where according to the platform firmware the NUMA node
-> for the device backing the struct pci_bus is retrieved and propagated
-> through the PCI bus hierarchy.
-> 
-> Lorenzo Pieralisi (3):
->   PCI: Introduce pci_bus_find_numa_node()
->   PCI: Add call to set-up NUMA node for struct pci_bus devices
->   PCI/ACPI: Add ACPI pci_bus_find_numa_node() implementation
-> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> ---
 >  drivers/pci/pci-acpi.c | 20 ++++++++++++++++++++
->  drivers/pci/pci.c      |  6 ++++++
->  drivers/pci/probe.c    |  3 ++-
->  include/linux/pci.h    |  7 +++++++
->  4 files changed, 35 insertions(+), 1 deletion(-)
+>  drivers/pci/pci.c      |  2 +-
+>  include/linux/pci.h    |  6 ++++++
+>  3 files changed, 27 insertions(+), 1 deletion(-)
+> 
 
-For the whole series:
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index e9803c1..451342d 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -5406,7 +5406,7 @@ int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent)
+>  
+>  int pci_bus_find_numa_node(struct pci_bus *bus)
+>  {
+> -	return NUMA_NO_NODE;
+> +	return acpi_disabled ? NUMA_NO_NODE : acpi_pci_bus_find_numa_node(bus);
 
-Reviewed-by: Robert Richter <rrichter@cavium.com>
-Tested-by: Robert Richter <rrichter@cavium.com>
+I looked into how this works with devicetree.
+
+With ACPI it is set directly in pci_register_host_bridge() with
+set_dev_node().
+
+For the DT case the set_dev_node call sets it to NUMA_NO_NODE first.
+Since in DT the bridge is a platform device which has the node id
+assigned already (if there is one), the bus' node id is set later in
+device_add() when deriving it from the parent device which is the
+bridge. So this should work.
+
+I have tested it both DT and ACPI.
+
+Thanks,
+
+-Robert
+
+>  }
+>  
+>  /**
