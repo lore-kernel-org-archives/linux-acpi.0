@@ -1,36 +1,51 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 0/3] ACPI / EC: Add quirk modes for boot EC support
-Date: Tue, 16 May 2017 17:46:43 +0800
-Message-ID: <cover.1494927504.git.lv.zheng@intel.com>
+Subject: [PATCH 1/3] ACPI / EC: Enhance boot EC sanity check
+Date: Tue, 16 May 2017 17:46:52 +0800
+Message-ID: <17b7c639a253cf0f21281094d8ac3a2cc3facc1a.1494927504.git.lv.zheng@intel.com>
+References: <cover.1494927504.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:24647 "EHLO mga03.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:16922 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750795AbdEPJqv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 May 2017 05:46:51 -0400
+        id S1751815AbdEPJq4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 May 2017 05:46:56 -0400
+In-Reply-To: <cover.1494927504.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Daniel Drake <drake@endlessm.com>
 
-It's reported that Asus laptop X550VXK/FX502VD/FX502VE have a BIOS bug
-where the ECDT correctly states that EC events trigger GPE 0x23, but the
-DSDT _GPE method incorrectly returns GPE 0x33.
+It's reported that some buggy BIOS tables can contain 2 DSDT ECs and one of
+them is invalid. As we shouldn't evaluate _STA from acpi_ec_dsdt_probe()
+due to the unknown Windows enumeration order, this patch simply enhances
+sanity checks in ec_parse_device() as a workaround to skip probing wrong
+namespace ECs.
 
-This patchset prepares required code for adding quirks for such platforms,
-however it doesn't finally add the quirks due to lack of platform
-information.
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=195651
+Tested-by: Daniel Drake <drake@endlessm.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/ec.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Link: https://www.spinics.net/lists/linux-acpi/msg73763.html
-      https://bugzilla.kernel.org/show_bug.cgi?id=195651
-
-Lv Zheng (3):
-  ACPI / EC: Enhance boot EC sanity check
-  ACPI / EC: Add support to skip boot stage DSDT probe
-  ACPI / EC: Add EC setting preference support
-
- drivers/acpi/ec.c | 51 ++++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 46 insertions(+), 5 deletions(-)
-
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index c24235d..a920db6 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1362,6 +1362,14 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
+ 				     ec_parse_io_ports, ec);
+ 	if (ACPI_FAILURE(status))
+ 		return status;
++	/*
++	 * It's better to evaluate _STA to determine if the device is
++	 * valid. But that could potentially trigger issues related to
++	 * the unknown orders of _INI/_STA evaluations.
++	 * However we can abort due to invalid _CRS information here.
++	 */
++	if (ec->data_addr == 0 || ec->command_addr == 0)
++		return AE_OK;
+ 
+ 	/* Get GPE bit assignment (EC events). */
+ 	/* TODO: Add support for _GPE returning a package */
 -- 
 2.7.4
 
