@@ -1,175 +1,220 @@
-From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
- lid_init_state=open"
-Date: Tue, 16 May 2017 09:15:32 +0200
-Message-ID: <20170516071532.GD11762@mail.corp.redhat.com>
-References: <20170511094551.GF30987@mail.corp.redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CEA2CC4@SHSMSX101.ccr.corp.intel.com>
- <2574646.jh0JF0mi0Y@aspire.rjw.lan>
- <20170515074553.GJ30987@mail.corp.redhat.com>
- <CAJZ5v0jJ0SruFMp+v5ibcBnzctvjZF7U1w4+XThzFjwxTpdUUQ@mail.gmail.com>
- <20170515093752.GB11762@mail.corp.redhat.com>
- <CAJZ5v0iD33i4B+gFvKLOnLKB557eLx1yzFCJeiR6hghD9fmKeQ@mail.gmail.com>
- <20170515130531.GC11762@mail.corp.redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CEA41F1@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886CEA420E@SHSMSX101.ccr.corp.intel.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH V8 07/11] iommu: of: Handle IOMMU lookup failure with deferred probing or error
+Date: Tue, 16 May 2017 10:17:08 +0300
+Message-ID: <1924197.MWBQ7kvoOo@avalon>
+References: <1486136933-20328-1-git-send-email-sricharan@codeaurora.org> <1804176.uxVOFWagsb@avalon> <9952978e7ac69193daf67ccb77eebe29@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33266 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751027AbdEPHPj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 May 2017 03:15:39 -0400
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CEA420E@SHSMSX101.ccr.corp.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44076 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751457AbdEPHRE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2017 03:17:04 -0400
+In-Reply-To: <9952978e7ac69193daf67ccb77eebe29@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiri Eischmann <jeischma@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: sricharan@codeaurora.org
+Cc: Robin Murphy <robin.murphy@arm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Will Deacon <will.deacon@arm.com>, Joerg Roedel <joro@8bytes.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, Marek Szyprowski <m.szyprowski@samsung.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, tn@semihalf.com, Hanjun Guo <hanjun.guo@linaro.org>, okaya@codeaurora.org, Magnus Damm <magnus.damm@gmail.com>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, linux-arm-msm-owner@vger.kernel.org
 
-On May 16 2017 or thereabouts, Zheng, Lv wrote:
-> Hi,
-> 
-> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Zheng,
-> > Lv
-> > Subject: RE: [PATCH 2/2] Revert "ACPI / button: Change default behavior to lid_init_state=open"
+Hi Sricharan,
+
+On Tuesday 16 May 2017 07:53:57 sricharan@codeaurora.org wrote:
+> On 2017-05-16 03:04, Laurent Pinchart wrote:
+> > On Monday 15 May 2017 23:37:16 Laurent Pinchart wrote:
+> >> On Wednesday 03 May 2017 15:54:59 Sricharan R wrote:
+> >>> On 5/3/2017 3:24 PM, Robin Murphy wrote:
+> >>>> On 02/05/17 19:35, Geert Uytterhoeven wrote:
+> >>>>> On Fri, Feb 3, 2017 at 4:48 PM, Sricharan R wrote:
+> >>>>>> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> >>>>>> 
+> >>>>>> Failures to look up an IOMMU when parsing the DT iommus property
+> >>>>>> need to be handled separately from the .of_xlate() failures to
+> >>>>>> support deferred probing.
+> >>>>>> 
+> >>>>>> The lack of a registered IOMMU can be caused by the lack of a driver
+> >>>>>> for the IOMMU, the IOMMU device probe not having been performed yet,
+> >>>>>> having been deferred, or having failed.
+> >>>>>> 
+> >>>>>> The first case occurs when the device tree describes the bus master
+> >>>>>> and IOMMU topology correctly but no device driver exists for the
+> >>>>>> IOMMU yet or the device driver has not been compiled in. Return NULL,
+> >>>>>> the caller will configure the device without an IOMMU.
+> >>>>>> 
+> >>>>>> The second and third cases are handled by deferring the probe of the
+> >>>>>> bus master device which will eventually get reprobed after the
+> >>>>>> IOMMU.
+> >>>>>> 
+> >>>>>> The last case is currently handled by deferring the probe of the bus
+> >>>>>> master device as well. A mechanism to either configure the bus
+> >>>>>> master device without an IOMMU or to fail the bus master device probe
+> >>>>>> depending on whether the IOMMU is optional or mandatory would be a
+> >>>>>> good enhancement.
+> >>>>>> 
+> >>>>>> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> >>>>>> Signed-off-by: Laurent Pichart
+> >>>>>> <laurent.pinchart+renesas@ideasonboard.com>
+> >>>>>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+> >>>>> 
+> >>>>> This patch broke Renesas R-Car Gen3 platforms in renesas-drivers.
+> >>>>> As the IOMMU nodes in DT are not yet enabled, all devices having
+> >>>>> iommus properties in DT now fail to probe.
+> >>>> 
+> >>>> How exactly do they fail to probe? Per d7b0558230e4, if there are no
+> >>>> ops registered then they should merely defer until we reach the point
+> >>>> of giving up and ignoring the IOMMU. Is it just that you have no other
+> >>>> late-probing drivers or post-init module loads to kick the deferred
+> >>>> queue after that point? I did try to find a way to explicitly kick it
+> >>>> from a suitably late initcall, but there didn't seem to be any obvious
+> >>>> public interface - anyone have any suggestions?
+> >>>> 
+> >>>> I think that's more of a general problem with the probe deferral
+> >>>> mechanism itself (I've seen the same thing happen with some of the
+> >>>> CoreSight stuff on Juno due to the number of inter-component
+> >>>> dependencies) rather than any specific fault of this series.
+> >>> 
+> >>> I was thinking of an additional check like below to avoid the
+> >>> situation ?
+> >>> 
+> >>> From 499b6e662f60f23740b8880882b0a16f16434501 Mon Sep 17 00:00:00 2001
+> >>> From: Sricharan R <sricharan@codeaurora.org>
+> >>> Date: Wed, 3 May 2017 13:16:59 +0530
+> >>> Subject: [PATCH] iommu: of: Fix check for returning EPROBE_DEFER
+> >>> 
+> >>> While returning EPROBE_DEFER for iommu masters
+> >>> take in to account of iommu nodes that could be
+> >>> marked in DT as 'status=disabled', in which case
+> >>> simply return NULL and let the master's probe
+> >>> continue rather than deferring.
+> >>> 
+> >>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+> >>> ---
+> >>> 
+> >>>  drivers/iommu/of_iommu.c | 1 +
+> >>>  1 file changed, 1 insertion(+)
+> >>> 
+> >>> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+> >>> index 9f44ee8..e6e9bec 100644
+> >>> --- a/drivers/iommu/of_iommu.c
+> >>> +++ b/drivers/iommu/of_iommu.c
+> >>> @@ -118,6 +118,7 @@ static bool of_iommu_driver_present(struct
+> >>> device_node *np)
+> >>> 
+> >>>         ops = iommu_ops_from_fwnode(fwnode);
+> >>>         if ((ops && !ops->of_xlate) ||
+> >>> +           !of_device_is_available(iommu_spec->np) ||
+> >>>             (!ops && !of_iommu_driver_present(iommu_spec->np)))
+> >>>                 return NULL;
+> >> 
+> >> This looks good to me, but won't be enough. The ipmmu-vmsa driver in
+> >> v4.12-rc1 doesn't call iommu_device_register() and thus won't be found
+> >> by iommu_ops_from_fwnode(). Furthermore, it doesn't IOMMU_OF_DECLARE(),
+> >> and thus will always be considered as absent.
+> >> 
+> >> I agree that the ipmmu-vmsa driver needs to be fixed, but it would
+> >> have been nice to check existing IOMMU drivers before merging this patch
+> >> series...
 > > 
-> > Hi, Guys
+> > Please pardon the question, but has this patch series been tested on
+> > ARM32 ?
 > > 
-> > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
-> > > Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to lid_init_state=open"
-> > >
-> > > On May 15 2017 or thereabouts, Rafael J. Wysocki wrote:
-> > > > On Mon, May 15, 2017 at 11:37 AM, Benjamin Tissoires
-> > > > <benjamin.tissoires@redhat.com> wrote:
-> > > > > On May 15 2017 or thereabouts, Rafael J. Wysocki wrote:
-> > > > >> On Mon, May 15, 2017 at 9:45 AM, Benjamin Tissoires
-> > > > >> <benjamin.tissoires@redhat.com> wrote:
-> > > > >> > On May 12 2017 or thereabouts, Rafael J. Wysocki wrote:
-> > > > >> >> On Friday, May 12, 2017 02:36:20 AM Zheng, Lv wrote:
-> > > > >> >> > Hi,
-> > > > >> >> >
-> > > > >> >> > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
-> > > > >> >> > > Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
-> > > lid_init_state=open"
-> > > > >> >> > >
-> > > > >> >> > > On May 11 2017 or thereabouts, Zheng, Lv wrote:
-> > > > >> >> > > > Hi,
-> > > > >> >> > > >
-> > > > >> >> > > > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
-> > > > >> >> > > > > Subject: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
-> > > lid_init_state=open"
-> > > > >> >> > > > >
-> > > > >> >> > > > > This reverts commit 77e9a4aa9de10cc1418bf9a892366988802a8025.
-> > > > >> >> > > > >
-> > > > >> >> > > > > Even if the method implementation can be buggy on some platform,
-> > > > >> >> > > > > the "open" choice is worse. It breaks docking stations basically
-> > > > >> >> > > > > and there is no way to have a user-space hwdb to fix that.
-> > > > >> >> > > > >
-> > > > >> >> > > > > On the contrary, it's rather easy in user-space to have a hwdb
-> > > > >> >> > > > > with the problematic platforms. Then, libinput (1.7.0+) can fix
-> > > > >> >> > > > > the state of the LID switch for us: you need to set the udev
-> > > > >> >> > > > > property LIBINPUT_ATTR_LID_SWITCH_RELIABILITY to 'write_open'.
-> > > > >> >> > > > >
-> > > > >> >> > > > > When libinput detects internal keyboard events, it will
-> > > > >> >> > > > > overwrite the state of the switch to open, making it reliable
-> > > > >> >> > > > > again. Given that logind only checks the LID switch value after
-> > > > >> >> > > > > a timeout, we can assume the user will use the internal keyboard
-> > > > >> >> > > > > before this timeout expires.
-> > > > >> >> > > > >
-> > > > >> >> > > > > For example, such a hwdb entry is:
-> > > > >> >> > > > >
-> > > > >> >> > > > > libinput:name:*Lid Switch*:dmi:*svnMicrosoftCorporation:pnSurface3:*
-> > > > >> >> > > > >  LIBINPUT_ATTR_LID_SWITCH_RELIABILITY=write_open
-> > > > >> >> > > >
-> > > > >> >
-> > > > >> > [...]
-> > > > >> >
-> > > > >> >>
-> > > > >> >> Well, if it worked in a specific way that users depended on before the commit in
-> > > > >> >> question and now it works differently, then it does break things.
-> > > > >> >>
-> > > > >> >> Benjamin, my understanding is that this is the case, is it correct?
-> > > > >> >
-> > > > >> > That is correct. This patch I reverted introduces regression for professional
-> > > > >> > laptops that expect the LID switch to be reported accurately.
-> > > > >>
-> > > > >> And from a user's perspective, what does not work any more?
-> > > > >
-> > > > > If you boot or resume your laptop with the lid closed on a docking
-> > > > > station while using an external monitor connected to it, both internal
-> > > > > and external displays will light on, while only the external should.
-> > > > >
-> > > > > There is a design choice in gdm to only provide the greater on the
-> > > > > internal display when lit on, so users only see a gray area on the
-> > > > > external monitor. Also, the cursor will not show up as it's by default
-> > > > > on the internal display too.
-> > > > >
-> > > > > To "fix" that, users have to open the laptop once and close it once
-> > > > > again to sync the state of the switch with the hardware state.
-> > > >
-> > > > OK
-> > > >
-> > > > Yeah, that sucks.
-> > > >
-> > > > So without the Lv's patch the behavior (on the systems in question) is
-> > > > as expected, right?
-> > > >
-> > >
-> > > Yes, reverting these 2 patches restores the pre v4.11 kernel behavior.
+> > When the device is probed the arch_setup_dma_ops() function is called.
+> > It sets the device's dma_ops and the mapping (in
+> > __arm_iommu_attach_device()). If probe is deferred,
+> > arch_teardown_dma_ops() is called which in turn calls
+> > arch_teardown_dma_ops(). This removes the mapping but doesn't touch the
+> > dma_ops. The next time the device is probed, arch_setup_dma_ops() bails
+> > out immediately as the dma_ops are already set, leaving us with a device
+> > bound to IOMMU operations but with no mapping. This oopses later as soon
+> > as the kernel tries to map memory for the device through the IOMMU.
+> 
+> Resetting the dma_ops for arm32 was added in this patch [1], which I
+> missed to send in the original series, but now have added to Russell's patch
+> tracking system.
+
+Thank you. I fear that won't be enough though.
+
+> [1] https://patchwork.kernel.org/patch/9434105/
+
+Quoting the patch:
+
+> arch_teardown_dma_ops() being the inverse of arch_setup_dma_ops()
+> ,dma_ops should be cleared in the teardown path. Otherwise
+> this causes problem when the probe of device is retried after
+> being deferred. The device's iommu structures are cleared
+> after EPROBEDEFER error, but on the next try dma_ops will still
+> be set to old value, which is not right.
+>
+> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+> Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+> ---
+>   arch/arm/mm/dma-mapping.c | 1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+> index ab4f745..a40f03e 100644
+> --- a/arch/arm/mm/dma-mapping.c
+> +++ b/arch/arm/mm/dma-mapping.c
+> @@ -2358,6 +2358,7 @@ static void arm_teardown_iommu_dma_ops(struct device 
+*dev)
+>   	__arm_iommu_detach_device(dev);
+>   	arm_iommu_release_mapping(mapping);
+> +	set_dma_ops(dev, NULL);
+>   }
+>   #else
+
+The subject mentions arch_teardown_dma_ops(), which I think is correct, but 
+the patch adds the set_dma_ops() call to arm_teardown_iommu_dma_ops().
+
+However, the situation is perhaps more complex. Note the check at the 
+beginning of arch_setup_dma_ops():
+
+	/*
+	 * Don't override the dma_ops if they have already been set. Ideally
+	 * this should be the only location where dma_ops are set, remove this
+	 * check when all other callers of set_dma_ops will have disappeared.
+	 */
+	if (dev->dma_ops)
+		return;
+
+If you set the dma_ops to NULL in arm_teardown_iommu_dma_ops() or 
+arch_teardown_dma_ops(), the next call to arch_setup_dma_ops() will override 
+them. To be safe you should only set them to NULL if they have been set by 
+arch_setup_dma_ops(). More than that, arch_teardown_dma_ops() should probably 
+not call arm_teardown_iommu_dma_ops() at all if the dma_ops were set by 
+arm_iommu_attach_device() and not arch_teardown_dma_ops(). One option would be 
+to add a field to struct dev_archdata to store that information. To avoid 
+growing the structure, which is embedded in every struct device, you could 
+possibly turn the dma_coherent bool into a bitfield.
+
+@@ -19,7 +19,8 @@ struct dev_archdata {
+ #ifdef CONFIG_XEN
+ 	const struct dma_map_ops *dev_dma_ops;
+ #endif
+-	bool dma_coherent;
++	bool dma_coherent:1;
++	bool dma_ops_setup:1;
+ };
+ 
+ struct omap_device;
+
+I haven't checked, however, whether the dma_coherent field would need to be 
+accessed atomically, so this might be a bad idea.
+
+Last but not least, a fix must be merged in v4.12, and the sooner the better.
+
+> > I might be missing something obvious, but I don't see how this can
+> > work.
 > > 
-> > I would make an argument that:
-> > A. Is this necessarily a button driver regression?
-> > 1. Users already configured to not using internal display, why gdm need to determine it again instead
-> > of users choice?
-> > 2. Can gdm/graphics driver saves state before suspend, and restores saved state after resume?
-> >    If users didn't change state during suspend, then everything should be correct.
-> >    If users changed state during suspend, it should be acceptable for users to change it again to make
-> > the state correct.
-> > See, this is obviously a case that is not so strictly related to ACPI button driver.
-> > Why do we need to force button driver to marry external monitors.
-> > B. Bug reporters are all ok with using quirk modes as boot parameters to work this around.
-> > Why should we change our default behavior aimlessly?
-> 
-> I have one more concern:
-> In button.lid_init_state=method mode,
-> Is that possible for libinput to work things around if _LID return value is not correct?
-> How libinput ensures correct timing of overwriting the input node value?
-> Will button driver faked event value overwrites what libinput has written?
-> 
-> From this point of view, button.lid_init_state=ignore might be a better choice than button.lid_init_state=method to allow libinput to deal with all kind of cases.
-> 
+> >>>>> This can be fixed by either:
+> >>>>>   - Disabling CONFIG_IPMMU_VMSA, or
+> >>>>>   - Reverting commit 7b07cbefb68d486f (but keeping "int ret = 0;").
+> >>>>> 
+> >>>>> Note that this was a bit hard to investigate, as R-Car Gen3 support
+> >>>>> wasn't upstreamed yet, so bisection pointed to a merge commit.
 
-This is my last email on this topic, I don't even want to fully read/answer
-the one in 1/2 given the amount of bad faith you put in that.
+-- 
+Regards,
 
-This is a REGRESSION. It used to work on thousands of devices, it
-doesn't anymore. So any regression has to be chased down and no good
-reason can justify such a regression.
+Laurent Pinchart
 
-The only solution is to revert both these changes. We can not ask user
-space to fix a kernel regression, it's not how it works.
-
-You can not also change the semantic of an input switch. An input
-switch, as per the input subsystem is supposed to forward an actual
-state of the underlying hardware. Any fake information is bad and has to
-be avoided.
-
-I already gave you 2 solutions to fix the 7 machines you see that are
-problematic, and you just seem to ignore them:
-- revert to the v4.10 behavior and let libinput fix that for you
-- revert to the v4.10 behavior and have a quirk database in acpi/button
-
-I also proposed to take maintainership on this particular module because
-you said you were assigned this by default because you were the last
-introducing changes in it. I asked you twice, and two times you replied
-skipping this part.
-
-It's clear you don't want to revert to the old state, and even if I can
-prove to you that you have to, you don't listen.
-
-So please, do not force me to call the maintainers and Linus on this
-simple 2 reverts.
-
-Cheers,
-Benjamin
