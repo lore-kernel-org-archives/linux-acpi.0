@@ -1,37 +1,80 @@
-From: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH V16 08/11] efi: print unrecognized CPER section
-Date: Tue, 16 May 2017 11:16:21 -0600
-Message-ID: <e91cb902-c583-c3bc-b5d8-bd4291581341@codeaurora.org>
-References: <1494883680-25551-1-git-send-email-tbaicar@codeaurora.org>
- <1494883680-25551-9-git-send-email-tbaicar@codeaurora.org>
- <20170516142927.guxwc3gdgpqshpks@pd.tnic>
- <5a4a5b58-3e31-9fa5-091d-bb63437da9ab@codeaurora.org>
- <20170516165540.xnbxdhrqeiorqhc5@pd.tnic>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [RFC/RFT PATCH v2 3/3] PCI/ACPI: Add ACPI
+ pci_bus_find_numa_node() implementation
+Date: Tue, 16 May 2017 19:02:00 +0100
+Message-ID: <20170516180200.GA24458@red-moon>
+References: <20170515132205.19622-1-lorenzo.pieralisi@arm.com>
+ <20170515132205.19622-4-lorenzo.pieralisi@arm.com>
+ <20170516151529.GC658@rric.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170516165540.xnbxdhrqeiorqhc5-fF5Pk5pvG8Y@public.gmane.org>
-Content-Language: en-US
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
-Cc: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:38652 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751035AbdEPSBC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 May 2017 14:01:02 -0400
+Content-Disposition: inline
+In-Reply-To: <20170516151529.GC658@rric.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robert Richter <robert.richter@cavium.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Zhou Wang <wangzhou1@hisilicon.com>, Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
 
-On 5/16/2017 10:55 AM, Borislav Petkov wrote:
-> On Tue, May 16, 2017 at 10:44:43AM -0600, Baicar, Tyler wrote:
->> I meant to respond to this comment after I sent the v16 patch series, but
->> you beat me to it :)
->>
->> These prefixes are common to all the GHES/CPER printing to the kernel logs.
-> I don't mean that - I meant to remove them from this particular example
-> in the commit message along with the timestamps. Because they are simply
-> useless there.
->
-> Of course they should stay in the actual printk calls.
-Ah, okay. I'll remove all that from the commit message.
+On Tue, May 16, 2017 at 05:15:29PM +0200, Robert Richter wrote:
+> On 15.05.17 14:22:05, Lorenzo Pieralisi wrote:
+> > The introduction of pci_bus_find_numa_node(pci_bus) allows at PCI
+> > host bridge registration to detect the NUMA node for a given
+> > struct pci_bus.dev. Implement an ACPI method that, through
+> > the struct pci_bus.bridge ACPI companion, retrieve and return
+> > the NUMA node corresponding to a given struct pci_bus.dev.
+> > 
+> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > Cc: Bjorn Helgaas <bhelgaas@google.com>
+> > ---
+> >  drivers/pci/pci-acpi.c | 20 ++++++++++++++++++++
+> >  drivers/pci/pci.c      |  2 +-
+> >  include/linux/pci.h    |  6 ++++++
+> >  3 files changed, 27 insertions(+), 1 deletion(-)
+> > 
+> 
+> > diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> > index e9803c1..451342d 100644
+> > --- a/drivers/pci/pci.c
+> > +++ b/drivers/pci/pci.c
+> > @@ -5406,7 +5406,7 @@ int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent)
+> >  
+> >  int pci_bus_find_numa_node(struct pci_bus *bus)
+> >  {
+> > -	return NUMA_NO_NODE;
+> > +	return acpi_disabled ? NUMA_NO_NODE : acpi_pci_bus_find_numa_node(bus);
+> 
+> I looked into how this works with devicetree.
+> 
+> With ACPI it is set directly in pci_register_host_bridge() with
+> set_dev_node().
+> 
+> For the DT case the set_dev_node call sets it to NUMA_NO_NODE first.
+> Since in DT the bridge is a platform device which has the node id
+> assigned already (if there is one), the bus' node id is set later in
+> device_add() when deriving it from the parent device which is the
+> bridge. So this should work.
 
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Which also means that the node propagation for bus->dev in patch 2 can
+be probably removed :), the problem with ACPI is setting the node
+for the host bridge which in DT is done by default at platform device
+creation, the rest is done by the core already there is not any need
+to propagate it again when child busses are created (they take their
+node from the parent).
+
+Thanks for the heads-up and testing,
+Lorenzo
+
+> I have tested it both DT and ACPI.
+> 
+> Thanks,
+> 
+> -Robert
+> 
+> >  }
+> >  
+> >  /**
