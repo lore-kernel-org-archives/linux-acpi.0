@@ -1,119 +1,152 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] iio: accel: bma180: Add ACPI enumeration support
-Date: Tue, 16 May 2017 10:09:10 +0200
-Message-ID: <c0fc13a6-06b1-456d-826b-61c7313063e8@redhat.com>
-References: <20170421073812.12531-1-hdegoede@redhat.com>
- <08327ffe-119a-b62b-a6f9-0f485444bd9a@kernel.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
+ lid_init_state=open"
+Date: Tue, 16 May 2017 08:30:21 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEA4569@SHSMSX101.ccr.corp.intel.com>
+References: <20170511094551.GF30987@mail.corp.redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CEA2CC4@SHSMSX101.ccr.corp.intel.com>
+ <2574646.jh0JF0mi0Y@aspire.rjw.lan>
+ <20170515074553.GJ30987@mail.corp.redhat.com>
+ <CAJZ5v0jJ0SruFMp+v5ibcBnzctvjZF7U1w4+XThzFjwxTpdUUQ@mail.gmail.com>
+ <20170515093752.GB11762@mail.corp.redhat.com>
+ <CAJZ5v0iD33i4B+gFvKLOnLKB557eLx1yzFCJeiR6hghD9fmKeQ@mail.gmail.com>
+ <20170515130531.GC11762@mail.corp.redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CEA41F1@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886CEA420E@SHSMSX101.ccr.corp.intel.com>
+ <20170516071532.GD11762@mail.corp.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52792 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:58160 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751264AbdEPIJN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 May 2017 04:09:13 -0400
-In-Reply-To: <08327ffe-119a-b62b-a6f9-0f485444bd9a@kernel.org>
+        id S1751234AbdEPIa0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 May 2017 04:30:26 -0400
+In-Reply-To: <20170516071532.GD11762@mail.corp.redhat.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, linux-iio@vger.kernel.org
+To: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiri Eischmann <jeischma@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi,
-
-On 26-04-17 08:40, Jonathan Cameron wrote:
-> On 21/04/17 08:38, Hans de Goede wrote:
->> Some x86 tablets use the bms250 accelerometer, add support for this.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> Hi Hans,
-> 
-> Would you mind rebasing this on the latest iio.git togreg branch?
-> (which should be the same as linux-next by now if that is easier)
-> Some OF bindings got added in the recent cycle that make it not
-> apply cleanly.
-
-Sure I can rebase,, actually I just tested a rebased version and noticed:
-
-[   20.705333] bma180 i2c-BMA250E:00: failed to config the chip
-
-Which is because the BMA250E and BMA250 are not the same chip
-as I thought. So v2 is going to be 2 patches one to add support
-for the BMA250E (it is compatible but reports a different chip-id)
-and another one actually adding the ACPI enumeration support
-for it.
-
-Regards,
-
-Hans
-
-
-> 
-> Thanks,
-> 
-> Jonathan
->> ---
->>   drivers/iio/accel/bma180.c | 20 +++++++++++++++++++-
->>   1 file changed, 19 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/iio/accel/bma180.c b/drivers/iio/accel/bma180.c
->> index 0890934..5c75190 100644
->> --- a/drivers/iio/accel/bma180.c
->> +++ b/drivers/iio/accel/bma180.c
->> @@ -14,6 +14,7 @@
->>    * BMA250: 7-bit I2C slave address 0x18 or 0x19
->>    */
->>   
->> +#include <linux/acpi.h>
->>   #include <linux/module.h>
->>   #include <linux/i2c.h>
->>   #include <linux/interrupt.h>
->> @@ -705,6 +706,8 @@ static const struct iio_trigger_ops bma180_trigger_ops = {
->>   static int bma180_probe(struct i2c_client *client,
->>   		const struct i2c_device_id *id)
->>   {
->> +	struct device *dev = &client->dev;
->> +	const struct acpi_device_id *acpi_id;
->>   	struct bma180_data *data;
->>   	struct iio_dev *indio_dev;
->>   	int ret;
->> @@ -716,7 +719,15 @@ static int bma180_probe(struct i2c_client *client,
->>   	data = iio_priv(indio_dev);
->>   	i2c_set_clientdata(client, indio_dev);
->>   	data->client = client;
->> -	data->part_info = &bma180_part_info[id->driver_data];
->> +	if (id) {
->> +		data->part_info = &bma180_part_info[id->driver_data];
->> +	} else {
->> +		acpi_id = acpi_match_device(dev->driver->acpi_match_table, dev);
->> +		if (!acpi_id)
->> +			return -ENODEV;
->> +
->> +		data->part_info = &bma180_part_info[acpi_id->driver_data];
->> +	}
->>   
->>   	ret = data->part_info->chip_config(data);
->>   	if (ret < 0)
->> @@ -836,6 +847,12 @@ static SIMPLE_DEV_PM_OPS(bma180_pm_ops, bma180_suspend, bma180_resume);
->>   #define BMA180_PM_OPS NULL
->>   #endif
->>   
->> +static const struct acpi_device_id bma180_acpi_match[] = {
->> +	{ "BMA250E", BMA250 },
->> +	{ }
->> +};
->> +MODULE_DEVICE_TABLE(acpi, bma180_acpi_match);
->> +
->>   static struct i2c_device_id bma180_ids[] = {
->>   	{ "bma180", BMA180 },
->>   	{ "bma250", BMA250 },
->> @@ -847,6 +864,7 @@ MODULE_DEVICE_TABLE(i2c, bma180_ids);
->>   static struct i2c_driver bma180_driver = {
->>   	.driver = {
->>   		.name	= "bma180",
->> +		.acpi_match_table = ACPI_PTR(bma180_acpi_match),
->>   		.pm	= BMA180_PM_OPS,
->>   	},
->>   	.probe		= bma180_probe,
->>
-> 
+SGksIEJlbmphbWluDQoNCj4gPiA+ID4gPiA+PiA+PiA+ID4gPiA+IEZvciBleGFtcGxlLCBzdWNo
+IGEgaHdkYiBlbnRyeSBpczoNCj4gPiA+ID4gPiA+PiA+PiA+ID4gPiA+IGxpYmlucHV0Om5hbWU6
+KkxpZCBTd2l0Y2gqOmRtaToqc3ZuTWljcm9zb2Z0Q29ycG9yYXRpb246cG5TdXJmYWNlMzoqDQo+
+ID4gPiA+ID4gPj4gPj4gPiA+ID4gPiAgTElCSU5QVVRfQVRUUl9MSURfU1dJVENIX1JFTElBQklM
+SVRZPXdyaXRlX29wZW4NCj4gPiA+ID4gPiA+PiA+PiBXZWxsLCBpZiBpdCB3b3JrZWQgaW4gYSBz
+cGVjaWZpYyB3YXkgdGhhdCB1c2VycyBkZXBlbmRlZCBvbiBiZWZvcmUgdGhlIGNvbW1pdCBpbg0K
+PiA+ID4gPiA+ID4+ID4+IHF1ZXN0aW9uIGFuZCBub3cgaXQgd29ya3MgZGlmZmVyZW50bHksIHRo
+ZW4gaXQgZG9lcyBicmVhayB0aGluZ3MuDQo+ID4gPiA+ID4gPj4gPj4gQmVuamFtaW4sIG15IHVu
+ZGVyc3RhbmRpbmcgaXMgdGhhdCB0aGlzIGlzIHRoZSBjYXNlLCBpcyBpdCBjb3JyZWN0Pw0KPiA+
+ID4gPiA+ID4+ID4gVGhhdCBpcyBjb3JyZWN0LiBUaGlzIHBhdGNoIEkgcmV2ZXJ0ZWQgaW50cm9k
+dWNlcyByZWdyZXNzaW9uIGZvciBwcm9mZXNzaW9uYWwNCj4gPiA+ID4gPiA+PiA+IGxhcHRvcHMg
+dGhhdCBleHBlY3QgdGhlIExJRCBzd2l0Y2ggdG8gYmUgcmVwb3J0ZWQgYWNjdXJhdGVseS4NCj4g
+PiA+ID4gPiA+PiBBbmQgZnJvbSBhIHVzZXIncyBwZXJzcGVjdGl2ZSwgd2hhdCBkb2VzIG5vdCB3
+b3JrIGFueSBtb3JlPw0KPiA+ID4gPiA+ID4gSWYgeW91IGJvb3Qgb3IgcmVzdW1lIHlvdXIgbGFw
+dG9wIHdpdGggdGhlIGxpZCBjbG9zZWQgb24gYSBkb2NraW5nDQo+ID4gPiA+ID4gPiBzdGF0aW9u
+IHdoaWxlIHVzaW5nIGFuIGV4dGVybmFsIG1vbml0b3IgY29ubmVjdGVkIHRvIGl0LCBib3RoIGlu
+dGVybmFsDQo+ID4gPiA+ID4gPiBhbmQgZXh0ZXJuYWwgZGlzcGxheXMgd2lsbCBsaWdodCBvbiwg
+d2hpbGUgb25seSB0aGUgZXh0ZXJuYWwgc2hvdWxkLg0KPiA+ID4gPiA+ID4gVGhlcmUgaXMgYSBk
+ZXNpZ24gY2hvaWNlIGluIGdkbSB0byBvbmx5IHByb3ZpZGUgdGhlIGdyZWF0ZXIgb24gdGhlDQo+
+ID4gPiA+ID4gPiBpbnRlcm5hbCBkaXNwbGF5IHdoZW4gbGl0IG9uLCBzbyB1c2VycyBvbmx5IHNl
+ZSBhIGdyYXkgYXJlYSBvbiB0aGUNCj4gPiA+ID4gPiA+IGV4dGVybmFsIG1vbml0b3IuIEFsc28s
+IHRoZSBjdXJzb3Igd2lsbCBub3Qgc2hvdyB1cCBhcyBpdCdzIGJ5IGRlZmF1bHQNCj4gPiA+ID4g
+PiA+IG9uIHRoZSBpbnRlcm5hbCBkaXNwbGF5IHRvby4NCj4gPiA+ID4gPiA+IFRvICJmaXgiIHRo
+YXQsIHVzZXJzIGhhdmUgdG8gb3BlbiB0aGUgbGFwdG9wIG9uY2UgYW5kIGNsb3NlIGl0IG9uY2UN
+Cj4gPiA+ID4gPiA+IGFnYWluIHRvIHN5bmMgdGhlIHN0YXRlIG9mIHRoZSBzd2l0Y2ggd2l0aCB0
+aGUgaGFyZHdhcmUgc3RhdGUuDQo+ID4gPiA+ID4gT0sNCj4gPiA+ID4gPiBZZWFoLCB0aGF0IHN1
+Y2tzLg0KPiA+ID4gPiA+IFNvIHdpdGhvdXQgdGhlIEx2J3MgcGF0Y2ggdGhlIGJlaGF2aW9yIChv
+biB0aGUgc3lzdGVtcyBpbiBxdWVzdGlvbikgaXMNCj4gPiA+ID4gPiBhcyBleHBlY3RlZCwgcmln
+aHQ/DQo+ID4gPiA+IFllcywgcmV2ZXJ0aW5nIHRoZXNlIDIgcGF0Y2hlcyByZXN0b3JlcyB0aGUg
+cHJlIHY0LjExIGtlcm5lbCBiZWhhdmlvci4NCj4gPiA+IEkgd291bGQgbWFrZSBhbiBhcmd1bWVu
+dCB0aGF0Og0KPiA+ID4gQS4gSXMgdGhpcyBuZWNlc3NhcmlseSBhIGJ1dHRvbiBkcml2ZXIgcmVn
+cmVzc2lvbj8NCj4gPiA+IDEuIFVzZXJzIGFscmVhZHkgY29uZmlndXJlZCB0byBub3QgdXNpbmcg
+aW50ZXJuYWwgZGlzcGxheSwgd2h5IGdkbSBuZWVkIHRvIGRldGVybWluZSBpdCBhZ2Fpbg0KPiBp
+bnN0ZWFkDQo+ID4gPiBvZiB1c2VycyBjaG9pY2U/DQo+ID4gPiAyLiBDYW4gZ2RtL2dyYXBoaWNz
+IGRyaXZlciBzYXZlcyBzdGF0ZSBiZWZvcmUgc3VzcGVuZCwgYW5kIHJlc3RvcmVzIHNhdmVkIHN0
+YXRlIGFmdGVyIHJlc3VtZT8NCj4gPiA+ICAgIElmIHVzZXJzIGRpZG4ndCBjaGFuZ2Ugc3RhdGUg
+ZHVyaW5nIHN1c3BlbmQsIHRoZW4gZXZlcnl0aGluZyBzaG91bGQgYmUgY29ycmVjdC4NCj4gPiA+
+ICAgIElmIHVzZXJzIGNoYW5nZWQgc3RhdGUgZHVyaW5nIHN1c3BlbmQsIGl0IHNob3VsZCBiZSBh
+Y2NlcHRhYmxlIGZvciB1c2VycyB0byBjaGFuZ2UgaXQgYWdhaW4gdG8NCj4gbWFrZQ0KPiA+ID4g
+dGhlIHN0YXRlIGNvcnJlY3QuDQo+ID4gPiBTZWUsIHRoaXMgaXMgb2J2aW91c2x5IGEgY2FzZSB0
+aGF0IGlzIG5vdCBzbyBzdHJpY3RseSByZWxhdGVkIHRvIEFDUEkgYnV0dG9uIGRyaXZlci4NCj4g
+PiA+IFdoeSBkbyB3ZSBuZWVkIHRvIGZvcmNlIGJ1dHRvbiBkcml2ZXIgdG8gbWFycnkgZXh0ZXJu
+YWwgbW9uaXRvcnMuDQo+ID4gPiBCLiBCdWcgcmVwb3J0ZXJzIGFyZSBhbGwgb2sgd2l0aCB1c2lu
+ZyBxdWlyayBtb2RlcyBhcyBib290IHBhcmFtZXRlcnMgdG8gd29yayB0aGlzIGFyb3VuZC4NCj4g
+PiA+IFdoeSBzaG91bGQgd2UgY2hhbmdlIG91ciBkZWZhdWx0IGJlaGF2aW9yIGFpbWxlc3NseT8N
+Cj4gPg0KPiA+IEkgaGF2ZSBvbmUgbW9yZSBjb25jZXJuOg0KPiA+IEluIGJ1dHRvbi5saWRfaW5p
+dF9zdGF0ZT1tZXRob2QgbW9kZSwNCj4gPiBJcyB0aGF0IHBvc3NpYmxlIGZvciBsaWJpbnB1dCB0
+byB3b3JrIHRoaW5ncyBhcm91bmQgaWYgX0xJRCByZXR1cm4gdmFsdWUgaXMgbm90IGNvcnJlY3Q/
+DQo+ID4gSG93IGxpYmlucHV0IGVuc3VyZXMgY29ycmVjdCB0aW1pbmcgb2Ygb3ZlcndyaXRpbmcg
+dGhlIGlucHV0IG5vZGUgdmFsdWU/DQo+ID4gV2lsbCBidXR0b24gZHJpdmVyIGZha2VkIGV2ZW50
+IHZhbHVlIG92ZXJ3cml0ZXMgd2hhdCBsaWJpbnB1dCBoYXMgd3JpdHRlbj8NCj4gPg0KPiA+IEZy
+b20gdGhpcyBwb2ludCBvZiB2aWV3LCBidXR0b24ubGlkX2luaXRfc3RhdGU9aWdub3JlIG1pZ2h0
+IGJlIGEgYmV0dGVyIGNob2ljZSB0aGFuDQo+IGJ1dHRvbi5saWRfaW5pdF9zdGF0ZT1tZXRob2Qg
+dG8gYWxsb3cgbGliaW5wdXQgdG8gZGVhbCB3aXRoIGFsbCBraW5kIG9mIGNhc2VzLg0KPiA+DQo+
+IA0KPiBUaGlzIGlzIG15IGxhc3QgZW1haWwgb24gdGhpcyB0b3BpYywgSSBkb24ndCBldmVuIHdh
+bnQgdG8gZnVsbHkgcmVhZC9hbnN3ZXINCj4gdGhlIG9uZSBpbiAxLzIgZ2l2ZW4gdGhlIGFtb3Vu
+dCBvZiBiYWQgZmFpdGggeW91IHB1dCBpbiB0aGF0Lg0KDQpXaGF0J3MgdGhhdD8NCkkgbWVhbiwg
+dGhlIGJhZCBmYWl0aD8NCg0KPiBUaGlzIGlzIGEgUkVHUkVTU0lPTi4gSXQgdXNlZCB0byB3b3Jr
+IG9uIHRob3VzYW5kcyBvZiBkZXZpY2VzLCBpdA0KPiBkb2Vzbid0IGFueW1vcmUuIFNvIGFueSBy
+ZWdyZXNzaW9uIGhhcyB0byBiZSBjaGFzZWQgZG93biBhbmQgbm8gZ29vZA0KPiByZWFzb24gY2Fu
+IGp1c3RpZnkgc3VjaCBhIHJlZ3Jlc3Npb24uDQoNCkkgdHJpZ2dlcmVkIG1hbnkgc3VjaCBraW5k
+IG9mIGxheWVyZWQgcmVncmVzc2lvbnMgYW5kIGRpZCBmaXggdGhlbSAxIGJ5IDEgaW4gZGlmZmVy
+ZW50IHBsYWNlcy4NCkhvd2V2ZXIsIHRoaXMgbWlnaHQgYmUgZGlmZmVyZW50Lg0KV2hpY2ggZGVw
+ZW5kcyBvbiBvdXIgYWdyZWVtZW50Lg0KDQo+IFRoZSBvbmx5IHNvbHV0aW9uIGlzIHRvIHJldmVy
+dCBib3RoIHRoZXNlIGNoYW5nZXMuIFdlIGNhbiBub3QgYXNrIHVzZXINCj4gc3BhY2UgdG8gZml4
+IGEga2VybmVsIHJlZ3Jlc3Npb24sIGl0J3Mgbm90IGhvdyBpdCB3b3Jrcy4NCg0KWWVzLCBJIGtu
+b3cuDQpXZSBqdXN0IGFza2VkIHVzZXJzIHRvIHVzZSBxdWlyayBtb2RlcyBvZiBidXR0b24gZHJp
+dmVyLg0KQW5kIHRoZXJlIGlzIGluIGZhY3QgYWx3YXlzIG9uZSBvZiB0aGVtIHdvcmtpbmcuDQpX
+ZSBoYXZlbid0IGFza2VkIHVzZXIgc3BhY2UgdG8gY2hhbmdlLg0KV2UgYXJlIGp1c3QgZGlzY3Vz
+c2luZyB0aGUgY29ycmVjdG5lc3Mgb2Ygc29tZSB1c2VyIHNwYWNlIGJlaGF2aW9ycy4NCg0KPiBZ
+b3UgY2FuIG5vdCBhbHNvIGNoYW5nZSB0aGUgc2VtYW50aWMgb2YgYW4gaW5wdXQgc3dpdGNoLiBB
+biBpbnB1dA0KPiBzd2l0Y2gsIGFzIHBlciB0aGUgaW5wdXQgc3Vic3lzdGVtIGlzIHN1cHBvc2Vk
+IHRvIGZvcndhcmQgYW4gYWN0dWFsDQo+IHN0YXRlIG9mIHRoZSB1bmRlcmx5aW5nIGhhcmR3YXJl
+LiBBbnkgZmFrZSBpbmZvcm1hdGlvbiBpcyBiYWQgYW5kIGhhcyB0bw0KPiBiZSBhdm9pZGVkLg0K
+DQpTaW5jZSBmYWtlIGV2ZW50cyBhcmUgaGFybWZ1bCwgd2h5IGRvIHdlIGZha2UgYW4gZXZlbnQg
+YWZ0ZXIgYm9vdC9yZXN1bWU/DQpidXR0b24ubGlkX2luaXRfc3RhdGU9bWV0aG9kIHNlZW1zIGNh
+biBmYWtlIHN1Y2ggYW4gZXZlbnQuDQoNCj4gSSBhbHJlYWR5IGdhdmUgeW91IDIgc29sdXRpb25z
+IHRvIGZpeCB0aGUgNyBtYWNoaW5lcyB5b3Ugc2VlIHRoYXQgYXJlDQo+IHByb2JsZW1hdGljLCBh
+bmQgeW91IGp1c3Qgc2VlbSB0byBpZ25vcmUgdGhlbToNCj4gLSByZXZlcnQgdG8gdGhlIHY0LjEw
+IGJlaGF2aW9yIGFuZCBsZXQgbGliaW5wdXQgZml4IHRoYXQgZm9yIHlvdQ0KDQpJIGFscmVhZHkg
+Y2hvc2UgdGhpcy4NCkJ1dCBJIGp1c3QgcmFpc2VkIGEgY29uY2VybiB0aGF0IGJ1dHRvbi5saWRf
+aW5pdF9zdGF0ZT1tZXRob2QgY291bGQgYnJpbmcgdHJvdWJsZXMgdG8gbGliaW5wdXQgcXVpcmtz
+Lg0KDQo+IC0gcmV2ZXJ0IHRvIHRoZSB2NC4xMCBiZWhhdmlvciBhbmQgaGF2ZSBhIHF1aXJrIGRh
+dGFiYXNlIGluIGFjcGkvYnV0dG9uDQo+IA0KPiBJIGFsc28gcHJvcG9zZWQgdG8gdGFrZSBtYWlu
+dGFpbmVyc2hpcCBvbiB0aGlzIHBhcnRpY3VsYXIgbW9kdWxlIGJlY2F1c2UNCj4geW91IHNhaWQg
+eW91IHdlcmUgYXNzaWduZWQgdGhpcyBieSBkZWZhdWx0IGJlY2F1c2UgeW91IHdlcmUgdGhlIGxh
+c3QNCj4gaW50cm9kdWNpbmcgY2hhbmdlcyBpbiBpdC4gSSBhc2tlZCB5b3UgdHdpY2UsIGFuZCB0
+d28gdGltZXMgeW91IHJlcGxpZWQNCj4gc2tpcHBpbmcgdGhpcyBwYXJ0Lg0KDQpJIGRpZG4ndCwg
+eW91IGp1c3Qgc2tpcHBlZCBQQVRDSCAxLzIgcmVwbHkuLi4NCkxldCBtZSBjb3B5IGl0IGZyb20g
+dGhhdCBlbWFpbDoNCj09PT09DQpBY3R1YWxseSB0aGVyZSBpcyBubyBzcGVjaWFsIG1haW50YWlu
+ZXJzaGlwIHJlbGF0ZWQgdG8gdGhlIGJ1dHRvbiBkcml2ZXIuDQpBbGwgZHJpdmVycyBvZiBBQ1BJ
+IHNwZWMgZGVmaW5lZCBkZXZpY2VzIChQTlB4eHggc3R1ZmZzKSBhcmUgbWFpbnRhaW5lZCBhcyBh
+IHdob2xlIGJ5IFJhZmFlbC4NCkFuZCB3ZSBhcmUgaGVscGluZyBoaW0gYnkgZG9pbmcgdHJpYWdl
+IG9uIGtlcm5lbCBCdWd6aWxsYS4NCg0KVGhlcmUgaXNuJ3QgYSBjYXRlZ29yeSBvbiBrZXJuZWwg
+QnVnemlsbGEgcmVsYXRlZCB0byBsaWQgaXNzdWVzLg0KUHJvYmFibHkgeW91IGNhbiBoZWxwIHRv
+IGNyZWF0ZSBvbmUgdW5kZXIgQUNQSSBwcm9kdWN0Lg0KSWYgdGhpcyBjYW4gYmUgYWNoaWV2ZWQs
+IHlvdSBjYW4gYmUgdGhlIGRlZmF1bHQgYXNzaWduZWUgZm9yIHN1Y2ggaXNzdWVzLg0KSWYgdGhp
+cyBjYW5ub3QgYmUgYWNoaWV2ZWQsIHdlJ2xsIGp1c3QgZm9yd2FyZCBzb21lIGxpZCByZXBvcnRz
+IHRvIHlvdSBmaXJzdC4NClBsZWFzZSB0ZWxsIG1lIHdoaWNoIHByb2R1Y3QvY29tcG9uZW50IHlv
+dSdkIHByZWZlciBmb3IgdXMgdG8gZm9yd2FyZC4NCg0KRm9yIG1vZGlmeWluZyBhY3BpL2J1dHRv
+bi5jLCBpdCdzIG9wZW4gc291cmNlLCB5b3UgY2FuIHNlbmQgcGF0Y2hlcyBhbmQgQUNQSSBjb21t
+dW5pdHkgY2FuIGhlbHAgdG8gcmV2aWV3Lg0KPT09PT0NCg0KPiBJdCdzIGNsZWFyIHlvdSBkb24n
+dCB3YW50IHRvIHJldmVydCB0byB0aGUgb2xkIHN0YXRlLCBhbmQgZXZlbiBpZiBJIGNhbg0KPiBw
+cm92ZSB0byB5b3UgdGhhdCB5b3UgaGF2ZSB0bywgeW91IGRvbid0IGxpc3Rlbi4NCj4gU28gcGxl
+YXNlLCBkbyBub3QgZm9yY2UgbWUgdG8gY2FsbCB0aGUgbWFpbnRhaW5lcnMgYW5kIExpbnVzIG9u
+IHRoaXMNCj4gc2ltcGxlIDIgcmV2ZXJ0cy4NCg0KTm8sIEkgY3VycmVudGx5IGNhbm5vdCBwZXJz
+dWFkZSBteXNlbGYgdG8gcmV2ZXJ0IHRvICJtZXRob2QiIG1vZGUuDQpCdXQgdGhhdCBkb2Vzbid0
+IG1lYW4gSSBkb24ndCB3YW50IHRvIG9yIEkgd2FudCB0by4NCllvdSBqdXN0IGRpZG4ndCBwcm92
+ZSB0aGF0IGJ5IGFuc3dlcmluZyBteSBxdWVzdGlvbnMgaW4gUEFUQ0ggMS8yIGFuZCBpbiB0aGlz
+IGVtYWlsLg0KRXNwZWNpYWxseToNCjEuIEFmdGVyIHJldmVydGluZyB0byAibWV0aG9kIiBtb2Rl
+LCBjYW4gbGliaW5wdXQgd29yayBhbGwgY2FzZXMgYXJvdW5kPw0KICAgQXJlIHRoZXJlIGFueSB0
+aW1pbmcgaXNzdWVzIHRoYXQgY2FuIHByZXZlbnQgbGliaW5wdXQgZnJvbSB3b3JraW5nIHNvbWUg
+c3Vja3MgYXJvdW5kLg0KICAgQ29uc2lkZXJpbmcgdGhpcyBjYXNlLCBpdCdzIGxpa2VseSBzdWNo
+IHByb2JsZW1zIGNhbiBoYXBwZW4uDQogICBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hv
+d19idWcuY2dpP2lkPTEwNjE1MQ0KMi4gV2hvIHNob3VsZCBiZSByZXNwb25zaWJsZSBmb3IgZml4
+aW5nIHRoaXMgaXNzdWUgYWZ0ZXIgcmV2ZXJ0aW5nIHRvICJtZXRob2QiIG1vZGU6DQogICBodHRw
+czovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTEwNjE1MQ0KICAgV2hhdCdz
+IHRoZSByb290IGNhdXNlIG9mIHRoaXMgaXNzdWU/DQozLiBIb3cgY2FuIHdlIGdlbmVyYXRlIHRo
+ZSBxdWlyayBmb3IgdGhlIGZvbGxvd2luZyBwb3NzaWJsZSBicmVha2FnZToNCiAgIE5vIGxpZCBu
+b3RpZmljYXRpb24gYW5kIF9MSUQgcmV0dXJuIGNhY2hlZCBvcGVuIGFmdGVyIGJvb3QvcmVzdW1l
+DQoNCkNoZWVycywNCkx2DQo=
