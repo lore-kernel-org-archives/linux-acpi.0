@@ -1,124 +1,129 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [SPCR] mmio32 iotype access requirements for X-Gene 8250(_dw)
- UART
-Date: Sat, 3 Dec 2016 17:11:04 +0000
-Message-ID: <20161203171104.GH1115@linaro-xps13.localdomain>
-References: <20161201183350.GF30746@bhelgaas-glaptop.roam.corp.google.com>
- <f18738b7096fb06a5865214ddc299ce99630673b.1480644928.git.dhdang@apm.com>
- <6d593615-e97f-8738-42be-1f8f4906d2f4@redhat.com>
- <CADaLNDkyCrheZLNG3_9BVgvGBW8WrA-VPWOCezz3U-g+nt5W9w@mail.gmail.com>
- <175F32B0-C73F-4250-9E60-3CE7409F0B0C@redhat.com>
- <CADaLNDmWRn+UKzF8PH2LmYCSF+NhHaw26RTN+QoaByh1wS7jfQ@mail.gmail.com>
- <7fa523de-3fbb-1566-f521-927143f73d1e@redhat.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [RFC v1 2/7] iommu/arm-smmu-v3: Add erratum framework functions
+Date: Tue, 16 May 2017 14:08:00 +0100
+Message-ID: <44374533-c1ed-5f13-d70c-8a7431bf8451@arm.com>
+References: <20170513094731.3676-1-shameerali.kolothum.thodi@huawei.com>
+ <20170513094731.3676-3-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:41621 "EHLO
-        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752073AbdEPK57 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 May 2017 06:57:59 -0400
-Content-Disposition: inline
-In-Reply-To: <7fa523de-3fbb-1566-f521-927143f73d1e@redhat.com>
+Received: from foss.arm.com ([217.140.101.70]:35916 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750931AbdEPNIG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 May 2017 09:08:06 -0400
+In-Reply-To: <20170513094731.3676-3-shameerali.kolothum.thodi@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>
-Cc: Duc Dang <dhdang@apm.com>, Rafael Wysocki <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Mark Salter <msalter@redhat.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, patches <patches@apm.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@hpe.com>
+To: shameer <shameerali.kolothum.thodi@huawei.com>, will.deacon@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org
+Cc: gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com
 
-On Sat, Dec 03, 2016 at 05:06:31AM -0500, Jon Masters wrote:
-> Hi Duc, all,
-> 
-> (and changing the subject and trimming/adjusting the CC)
-> 
-> On 12/02/2016 02:39 PM, Duc Dang wrote:
-> > On Fri, Dec 2, 2016 at 12:11 AM, Jon Masters <jcm@redhat.com> wrote:
-> >> You're welcome.
-> >>
-> >> (Unrelated) Note that I added a console= and earlycon in my test (and
-> >> got the baud rate wrong for the console but nevermind...was ssh'd in
-> >> after the earlycon output I cared about anyway) because of some other
-> >> cleanup work for the SPCR parsing that apparently is still not quite
-> >> fixed for upstream, or rather, there is a need to match on the 32-bit
-> >> access required for the UART and that isn't happening so it's not
-> >> getting setup. Folks are tracking that one and fixing it though.
-> 
-> > I don't see this console issue on X-Gene1 (Mustang board). I tried
-> > with X-Gene 2 as well. I used both console=ttyS0,115200 and
-> > earlycon=uart8250,mmio32,0x1c020000. Are you setting baudrate to
-> > 115200 or something else?
-> 
-> Let me clarify. What I meant above is that when I generated the boot
-> log, I had specified earlycon and console parameters, but had fat
-> fingered the baud rate (m400 uses 9600, mustang uses 115200 baud).
-> That's what I was referring to in the original text above.
-> 
-> HOWEVER...
-> 
-> There is a broader problem with X-Gene SPCR support. The problem is
-> that the 16550 UART in X-Gene requires the 32-bit access quirk (the
-> iotype is set to UPIO_MEM32 for the APMC0D08 device). This means
-> that when univ8250_console_match runs later, it will compare the
-> iotype (MEM32) with the type previously registered with the
-> kernel when the earlycon setup the preferred console.
-> 
-> The earlycon preferred console will parse the SPCR and find:
-> 
->         iotype = table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY ?
->                         "mmio" : "io";
-> 
-> Which sets it to "mmio" (not "mmio32"). There is a DBG2 (the table
-> referenced by the SPCR that provides the actual port types for all
-> modern revisions of the SPCR with revision2+, as required by Linux)
-> port subtype for non-compliant SBSA ARM Generic UARTs that require
-> 32-bit accesses, and this is ACPI_DBG2_ARM_SBSA_32BIT (type 0xd).
-> 
-> However that only applies for "pl011" devices, and doesn't provide
-> for 16550 UARTs that require 32-bit accessors.
-> 
-> So you'll end up with Linux thinking it's registering a non-32-bit
-> mmio preferred console during earlycon setup and then never match
-> against that later in the 8250_core/8250_dw match function by
-> virtue of the fact that these differ.
-> 
-> There are a couple of possibilities:
-> 
-> 1). Perhaps (for some reason) the IP actually does support sub-32-bit
->     access and the iotype simply needs to be changed to reflect this.
->     That would be the easiest option. But it's been this way for a
->     long time in various codebases, so I would be pleasantly
->     surprised if this were the case. Let me/us know :)
-> 
-> 2). We find some way during SPCR setup to quirk for X-Gene as a non
->     standard 16550 and set it up as an mmio32 iotype.
-> 
-Aleksey is going to send a patch for review that uses the register width
-field in the Generic Address Structure to select mmio vs mmio32 for the
-8250 UARTS.
+On 13/05/17 10:47, shameer wrote:
+> This will provide a way to replace the existing skip_prefetch_cmd
+> erratum using the new framework.
 
-The registers in xgene are 8 bits wide with a padding of 24 dont care
-bits, they do allow AFAIK 8 bit address, but they are at 32bit spacing
-unlike real 16550 at 8 bit spacing.
+Yikes, between this and patch 1 we're already pushing 70 lines of new
+code, and it still doesn't actually do anything yet. Implementing the
+SMMUv3 equivalent of SMMUv2's acpi_smmu_get_data() would probably be
+about 10 lines; all you need to do is set some quirk flags based on a
+compatible value. These quirks aren't really any different in principle
+to the firmware COHACC overrides that we already process.
 
-> 3). We get the DBG2 table updated to add a subtype of the 16650
->     called something like "(deprecated) 16550 subset supporting
->     only 32-bit accesses". Then we add this to Linux and get
->     the firmware updated on systems to switch to this type. We
->     would probably still want to quirk for existing machines.
+Sorry, I'm saying no to a massively overengineered "framework" for
+something so relatively simple.
+
+Robin.
+
+> Signed-off-by: shameer <shameerali.kolothum.thodi@huawei.com>
+> ---
+>  drivers/iommu/arm-smmu-v3.c | 58 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 58 insertions(+)
 > 
-> Perhaps I'm missing something. I would love for that to be true,
-> but I don't think it is. I think we need a subtype of the 16550
-> defined that encapsulates this mmio32 requirement properly. To
-> that end, I've preemptively asked some friends at MS for a
-> favor to look into adding a new subtype for this.
+> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+> index a166590..f20d5d5 100644
+> --- a/drivers/iommu/arm-smmu-v3.c
+> +++ b/drivers/iommu/arm-smmu-v3.c
+> @@ -664,16 +664,72 @@ enum smmu_erratum_match_type {
+>  	se_match_dt,
+>  };
+>  
+> +void erratum_skip_prefetch_cmd(struct arm_smmu_device *smmu, void *arg)
+> +{
+> +	smmu->options |= ARM_SMMU_OPT_SKIP_PREFETCH;
+> +}
+> +
+>  struct smmu_erratum_workaround {
+>  	enum smmu_erratum_match_type match_type;
+>  	const void *id;	/* Indicate the Erratum ID */
+>  	const char *desc_str;
+> +	void (*enable)(struct arm_smmu_device *, void *);
+>  };
+>  
+>  static const struct smmu_erratum_workaround smmu_workarounds[] = {
+>  
+>  };
+>  
+> +typedef bool (*se_match_fn_t)(const struct smmu_erratum_workaround *,
+> +							  const void *);
+> +static
+> +bool smmu_check_dt_erratum(const struct smmu_erratum_workaround *wa,
+> +						   const void *arg)
+> +{
+> +	const struct device_node *np = arg;
+> +
+> +	return of_property_read_bool(np, wa->id);
+> +}
+> +
+> +static void smmu_enable_errata(struct arm_smmu_device *smmu,
+> +				enum smmu_erratum_match_type type,
+> +				se_match_fn_t match_fn,
+> +				void *arg)
+> +{
+> +	const struct smmu_erratum_workaround *wa = smmu_workarounds;
+> +
+> +	for (; wa->desc_str; wa++) {
+> +		if (wa->match_type != type)
+> +			continue;
+> +
+> +		if (match_fn(wa, arg)) {
+> +			if (wa->enable) {
+> +				wa->enable(smmu, arg);
+> +				dev_info(smmu->dev,
+> +					"Enabling workaround for %s\n",
+> +					 wa->desc_str);
+> +			}
+> +		}
+> +	}
+> +}
+> +
+> +
+> +static void smmu_check_workarounds(struct arm_smmu_device *smmu,
+> +				  enum smmu_erratum_match_type type,
+> +				  void *arg)
+> +{
+> +	se_match_fn_t match_fn = NULL;
+> +
+> +	switch (type) {
+> +	case se_match_dt:
+> +		match_fn = smmu_check_dt_erratum;
+> +		break;
+> +	}
+> +
+> +	smmu_enable_errata(smmu, type, match_fn, arg);
+> +
+> +}
+> +
+>  static struct arm_smmu_domain *to_smmu_domain(struct iommu_domain *dom)
+>  {
+>  	return container_of(dom, struct arm_smmu_domain, domain);
+> @@ -2641,6 +2697,8 @@ static int arm_smmu_device_dt_probe(struct platform_device *pdev,
+>  
+>  	parse_driver_options(smmu);
+>  
+> +	smmu_check_workarounds(smmu, se_match_dt, dev->of_node);
+> +
+>  	if (of_dma_is_coherent(dev->of_node))
+>  		smmu->features |= ARM_SMMU_FEAT_COHERENCY;
+>  
 > 
-> Let me know what you think is the best path... :)
-> 
-
-I think the new subtype is the way to go as we can also use this to
-detect that we have no knowledge of the clocks set by firmware so we
-should not attempt a baud rate change like we can on 16550.
-
-Thanks
-
-Graeme
 
