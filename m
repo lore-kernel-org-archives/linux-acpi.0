@@ -1,58 +1,92 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH V1] i2c: xgene: Set ACPI_COMPANION_I2C
-Date: Tue, 16 May 2017 23:40:43 +0200
-Message-ID: <20170516214043.rycazedisujdbmmm@ninjato>
-References: <1493200131-30171-1-git-send-email-tnhuynh@apm.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH v2 0/2] Clean up ACPI Boot Error Record Table code
+Date: Tue, 16 May 2017 16:12:21 -0600
+Message-ID: <5174133f-2588-eda1-4f98-0e457f16af0d@codeaurora.org>
+References: <20170512120118.zwhgtcbf4u4zshbn@pd.tnic>
+ <cover.1494624795.git.tony.luck@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="f4rp5nkqlypkct2t"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:36024 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751181AbdEPVkp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 May 2017 17:40:45 -0400
-Content-Disposition: inline
-In-Reply-To: <1493200131-30171-1-git-send-email-tnhuynh@apm.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:39244 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751300AbdEPWMY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2017 18:12:24 -0400
+In-Reply-To: <cover.1494624795.git.tony.luck@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tnhuynh@apm.com
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Loc Ho <lho@apm.com>, Phong Vo <pvo@apm.com>, Thang Nguyen <tqnguyen@apm.com>, patches@apm.com
+To: "Luck, Tony" <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Borislav Petkov <bp@suse.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jonathan Zhang <zjzhang@codeaurora.org>, linux-acpi@vger.kernel.org
 
+On 5/12/2017 3:42 PM, Luck, Tony wrote:
+> From: Tony Luck <tony.luck@intel.com>
+>
+> ACPI 6.1 spec clarified the structure of the Boot Error Record Table.
+> Linux code was overly complex, and included a redundant structure
+> definition of "acpi_bert_region".
+>
+> v2 changes:
+> Rafael: Split the change to <acpi/actbl1.h> into a separate patch so
+> 	it can be fed through ACPICA process.
+> Boris:  Better wording for the comment about the "address" field in
+> 	the acpi_table_bert structure.
+>
+> Tony Luck (2):
+>    ACPI / APEI: Boot Error Record Table processing was needlessly
+>      complicated
+>    ACPI / APEI: No remaining users of struct acpi_bert_region
+>
+>   drivers/acpi/apei/bert.c | 54 +++++++-----------------------------------------
+>   include/acpi/actbl1.h    | 16 +++++---------
+>   2 files changed, 12 insertions(+), 58 deletions(-)
+>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Huang Ying <ying.huang@intel.com>
+> Cc: Borislav Petkov <bp@suse.de>
+> Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Cc: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> Cc: Tyler Baicar <tbaicar@codeaurora.org>
+> Cc: linux-acpi@vger.kernel.org
+> Reviewed-by: Borislav Petkov <bp@suse.de>
+> Signed-off-by: Tony Luck <tony.luck@intel.com>
+Hello Tony,
 
---f4rp5nkqlypkct2t
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I tested this out and can see everything works properly as long as the 
+BERT record is valid.
 
-On Wed, Apr 26, 2017 at 04:48:51PM +0700, tnhuynh@apm.com wrote:
-> From: Tin Huynh <tnhuynh@apm.com>
->=20
-> With ACPI, i2c-core requires ACPI companion to be set in order for it
-> to create slave device.
-> This patch sets the ACPI companion accordingly.
+Previously, if I made the CPER section size too small then the kernel 
+would just print the Firmware Bug: Invalid error record. Doing the same 
+thing with this patch series I can see an unlimited stream of unknown 
+error sections being printed out (I tested this with my ACPI 6.1/UEFI 
+2.6 patches which include the non-standard error record support).
 
-Again, no Signed-off. I can't apply it without one. lso, please add your
-full name to the mail header.
+[   11.482831] [Hardware Error]:  Error 1, type: recoverable
+[   11.482832] [Hardware Error]:   section type: unknown, 
+00000000-0000-0000-0000-000000000000
+[   11.482833] [Hardware Error]:   section length: 0x0
+[   11.482834] [Hardware Error]:  Error 2, type: recoverable
+[   11.482835] [Hardware Error]:   section type: unknown, 
+00000000-0000-0000-0000-000000000000
+[   11.482836] [Hardware Error]:   section length: 0x0
+[   11.482837] [Hardware Error]:  Error 3, type: recoverable
+[   11.482839] [Hardware Error]:   section type: unknown, 
+00000000-0000-0000-0000-000000000000
+[   11.482839] [Hardware Error]:   section length: 0x0
+...
 
+For that reason, I'd suggest leaving this check in:
 
---f4rp5nkqlypkct2t
-Content-Type: application/pgp-signature; name="signature.asc"
+if (cper_estatus_check(estatus)) {
+     pr_err(FW_BUG "Invalid error record.\n");
+     return;
+}
 
------BEGIN PGP SIGNATURE-----
+Thanks,
+Tyler
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlkbcdsACgkQFA3kzBSg
-KbaVZg/5ARR1kbvGlVjqUkMY921Athy6A6c1/08urmZWDupbG8+ePLTe4sNSiwD9
-3DjVJ8NI8gO7XSlqWJ0h5b6KliWxyWTeTwF6gBpv2CcfgV1sNr70SwSIpFa43Vy2
-LH18C9QhEtLg1MZycI51yHOw81n3D+Jeot0d0pV9PsinWVFYIhasIPj1nmgCWamD
-c8FC/bTUL5ir1RRvPZrOk/4KaCd2u+1T13Mc+dhBbW6TegULxAgR6deII6LQuFJb
-LrnKyyZMGkUl48lyxiCFSLotLoUFHi2mJGs07v2P1XnhTvMG1glDIsWTZ2KxM+ep
-YfWuBFXi6pnQcV5DbeIcAGXUGCSQyyzlP4v8WRVShEWfpls3xXsyaL19f1/dKk4T
-4oC8DpYIFKKISPlfWmpuAHCuFFj37qct8fD+lw4rCbC8Qt5WB+fboM1caI61A7+B
-s1xlihbtWu/lJhPx5J4abdmmigRdTGPy8J23QDxCxTDrAQfu8qd5KjfGFryMftWz
-5pOaPLJ2sCj4ZRnilgOGkZ+jVlSEAd5GFfT8cTjVVPu1IlnzaqSnpw6Dl3s7rgVb
-VGqlf+UMwXlHEnw61fs1M2Agu/5tAoAb/f19E1Cx9RDaBdRWVELhsjj/OJMoz9O4
-4FrSd5M4jJ9qS+QVAnwVKpAlEWeQO9hLuAAVK6c8Nirjc6d9dkU=
-=DWf4
------END PGP SIGNATURE-----
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
 
---f4rp5nkqlypkct2t--
