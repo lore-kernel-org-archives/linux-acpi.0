@@ -1,93 +1,144 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH v2 2/5] ACPICA: Tables: Do not validate signature for dynamic table load
-Date: Tue, 16 May 2017 15:13:26 +0800
-Message-ID: <f07bb8cfeda364698adad9bc15d54c9b2ac8b366.1494916766.git.lv.zheng@intel.com>
+Subject: [RFC PATCH v2 3/5] ACPICA: Tables: Change table duplication check to be related to acpi_gbl_verify_table_checksum
+Date: Tue, 16 May 2017 15:13:39 +0800
+Message-ID: <579de00f5d54e128b04bba5ae627afd0f132c528.1494916766.git.lv.zheng@intel.com>
 References: <20170227093432.3308-1-hdegoede@redhat.com> <cover.1494916766.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:53622 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:64277 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751052AbdEPHNf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 May 2017 03:13:35 -0400
+        id S1751169AbdEPHNp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 May 2017 03:13:45 -0400
 In-Reply-To: <cover.1494916766.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
 Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org, Hans de Goede <hdegoede@redhat.com>
 
-Windows seems to allow arbitrary table signatures for Load/load_table
-opcodes:
-  ACPI BIOS Error (bug): Table has invalid signature [PRAD] (0x44415250)
-So this patch removes dynamic load signature checks. However we need to
-find a way to avoid table loading against tables like MADT. This is not
-covered by this commit.
+acpi_gbl_verify_table_checksum is used to avoid validating (mapping) an entire
+table in OS boot stage. 2nd "Reload" check in acpi_tb_install_standard_table()
+is prepared for the same purpose. So this patch combines them together
+using a renamed acpi_gbl_enable_table_validation flag. Lv Zheng.
 
-This Windows behavior has been validated on link #1. An end user bug
-report can also be found on link #2.
-
-This patch also includes simple cleanup for static load signature check
-code. Reported by Ye Xiaolong, Fixed by Lv Zheng.
-
-Link: https://github.com/acpica/acpica/pull/121 [#1]
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=118601 [#2]
-Reported-by: Ye Xiaolong <xiaolong.ye@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/tbinstal.c | 28 ----------------------------
- drivers/acpi/acpica/tbxfload.c |  2 +-
- 2 files changed, 1 insertion(+), 29 deletions(-)
+ drivers/acpi/acpica/tbdata.c   |  4 ++--
+ drivers/acpi/acpica/tbinstal.c |  2 +-
+ drivers/acpi/acpica/tbxface.c  |  8 ++++++++
+ drivers/acpi/bus.c             |  2 +-
+ drivers/acpi/tables.c          |  4 ++--
+ include/acpi/acpixf.h          | 15 ++++++++-------
+ 6 files changed, 22 insertions(+), 13 deletions(-)
 
+diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
+index 42ea044..e81355b 100644
+--- a/drivers/acpi/acpica/tbdata.c
++++ b/drivers/acpi/acpica/tbdata.c
+@@ -338,7 +338,7 @@ void acpi_tb_invalidate_table(struct acpi_table_desc *table_desc)
+ acpi_status acpi_tb_validate_temp_table(struct acpi_table_desc *table_desc)
+ {
+ 
+-	if (!table_desc->pointer && !acpi_gbl_verify_table_checksum) {
++	if (!table_desc->pointer && !acpi_gbl_enable_table_validation) {
+ 		/*
+ 		 * Only validates the header of the table.
+ 		 * Note that Length contains the size of the mapping after invoking
+@@ -394,7 +394,7 @@ acpi_tb_verify_temp_table(struct acpi_table_desc *table_desc, char *signature)
+ 
+ 	/* Verify the checksum */
+ 
+-	if (acpi_gbl_verify_table_checksum) {
++	if (acpi_gbl_enable_table_validation) {
+ 		status =
+ 		    acpi_tb_verify_checksum(table_desc->pointer,
+ 					    table_desc->length);
 diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index ee74515..9d21296 100644
+index 9d21296..f7bc362 100644
 --- a/drivers/acpi/acpica/tbinstal.c
 +++ b/drivers/acpi/acpica/tbinstal.c
-@@ -222,34 +222,6 @@ acpi_tb_install_standard_table(acpi_physical_address address,
+@@ -221,7 +221,7 @@ acpi_tb_install_standard_table(acpi_physical_address address,
+ 
  	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
  
- 	if (reload) {
--		/*
--		 * Validate the incoming table signature.
--		 *
--		 * 1) Originally, we checked the table signature for "SSDT" or "PSDT".
--		 * 2) We added support for OEMx tables, signature "OEM".
--		 * 3) Valid tables were encountered with a null signature, so we just
--		 *    gave up on validating the signature, (05/2008).
--		 * 4) We encountered non-AML tables such as the MADT, which caused
--		 *    interpreter errors and kernel faults. So now, we once again allow
--		 *    only "SSDT", "OEMx", and now, also a null signature. (05/2011).
--		 */
--		if ((new_table_desc.signature.ascii[0] != 0x00) &&
--		    (!ACPI_COMPARE_NAME
--		     (&new_table_desc.signature, ACPI_SIG_SSDT))
--		    && (strncmp(new_table_desc.signature.ascii, "OEM", 3))) {
--			ACPI_BIOS_ERROR((AE_INFO,
--					 "Table has invalid signature [%4.4s] (0x%8.8X), "
--					 "must be SSDT or OEMx",
--					 acpi_ut_valid_nameseg(new_table_desc.
--							       signature.
--							       ascii) ?
--					 new_table_desc.signature.
--					 ascii : "????",
--					 new_table_desc.signature.integer));
--
--			status = AE_BAD_SIGNATURE;
--			goto unlock_and_exit;
--		}
+-	if (reload) {
++	if (acpi_gbl_enable_table_validation) {
  
  		/* Check if table is already registered */
  
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index b71ce3b..d81f442 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -206,7 +206,7 @@ acpi_status acpi_tb_load_namespace(void)
- 	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
- 		table = &acpi_gbl_root_table_list.tables[i];
+diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+index 010b1c43..b0dc841 100644
+--- a/drivers/acpi/acpica/tbxface.c
++++ b/drivers/acpi/acpica/tbxface.c
+@@ -194,6 +194,14 @@ acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
+ 		}
+ 	}
  
--		if (!acpi_gbl_root_table_list.tables[i].address ||
-+		if (!table->address ||
- 		    (!ACPI_COMPARE_NAME(table->signature.ascii, ACPI_SIG_SSDT)
- 		     && !ACPI_COMPARE_NAME(table->signature.ascii,
- 					   ACPI_SIG_PSDT)
++	if (!acpi_gbl_enable_table_validation) {
++		/*
++		 * Now it's safe to do full table validation. We can do deferred
++		 * table initilization here once the flag is set.
++		 */
++		acpi_gbl_enable_table_validation = TRUE;
++	}
++
+ 	acpi_gbl_root_table_list.flags |= ACPI_ROOT_ALLOW_RESIZE;
+ 
+ 	status = acpi_tb_resize_root_table_list();
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 34fbe02..c26342f 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1010,7 +1010,7 @@ void __init acpi_early_init(void)
+ 	printk(KERN_INFO PREFIX "Core revision %08x\n", ACPI_CA_VERSION);
+ 
+ 	/* It's safe to verify table checksums during late stage */
+-	acpi_gbl_verify_table_checksum = TRUE;
++	acpi_gbl_enable_table_validation = TRUE;
+ 
+ 	/* enable workarounds, unless strict ACPI spec. compliance */
+ 	if (!acpi_strict)
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 0dae722..b5cc09c 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -740,10 +740,10 @@ int __init acpi_table_init(void)
+ 
+ 	if (acpi_verify_table_checksum) {
+ 		pr_info("Early table checksum verification enabled\n");
+-		acpi_gbl_verify_table_checksum = TRUE;
++		acpi_gbl_enable_table_validation = TRUE;
+ 	} else {
+ 		pr_info("Early table checksum verification disabled\n");
+-		acpi_gbl_verify_table_checksum = FALSE;
++		acpi_gbl_enable_table_validation = FALSE;
+ 	}
+ 
+ 	status = acpi_initialize_tables(initial_tables, ACPI_MAX_TABLES, 0);
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 15c86ce..88a1de8 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -160,13 +160,14 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_create_osi_method, TRUE);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_use_default_register_widths, TRUE);
+ 
+ /*
+- * Whether or not to verify the table checksum before installation. Set
+- * this to TRUE to verify the table checksum before install it to the table
+- * manager. Note that enabling this option causes errors to happen in some
+- * OSPMs during early initialization stages. Default behavior is to do such
+- * verification.
+- */
+-ACPI_INIT_GLOBAL(u8, acpi_gbl_verify_table_checksum, TRUE);
++ * Whether or not to validate (map) an entire table to verify
++ * checksum/duplication in early stage before install. Set this to TRUE to
++ * allow early table validation before install it to the table manager.
++ * Note that enabling this option causes errors to happen in some OSPMs
++ * during early initialization stages. Default behavior is to allow such
++ * validation.
++ */
++ACPI_INIT_GLOBAL(u8, acpi_gbl_enable_table_validation, TRUE);
+ 
+ /*
+  * Optionally enable output from the AML Debug Object.
 -- 
 2.7.4
 
