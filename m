@@ -1,131 +1,67 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
- lid_init_state=open"
-Date: Tue, 16 May 2017 05:47:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEA420E@SHSMSX101.ccr.corp.intel.com>
-References: <20170510161240.13229-1-benjamin.tissoires@redhat.com>
- <20170511094551.GF30987@mail.corp.redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CEA2CC4@SHSMSX101.ccr.corp.intel.com>
- <2574646.jh0JF0mi0Y@aspire.rjw.lan>
- <20170515074553.GJ30987@mail.corp.redhat.com>
- <CAJZ5v0jJ0SruFMp+v5ibcBnzctvjZF7U1w4+XThzFjwxTpdUUQ@mail.gmail.com>
- <20170515093752.GB11762@mail.corp.redhat.com>
- <CAJZ5v0iD33i4B+gFvKLOnLKB557eLx1yzFCJeiR6hghD9fmKeQ@mail.gmail.com>
- <20170515130531.GC11762@mail.corp.redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CEA41F1@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH v2 0/5] ACPICA: Tables: Add deferred verification support
+Date: Tue, 16 May 2017 15:13:08 +0800
+Message-ID: <cover.1494916766.git.lv.zheng@intel.com>
+References: <20170227093432.3308-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:17281 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:49883 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751007AbdEPFrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 May 2017 01:47:16 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CEA41F1@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
+        id S1751052AbdEPHNP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 May 2017 03:13:15 -0400
+In-Reply-To: <20170227093432.3308-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiri Eischmann <jeischma@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org, Hans de Goede <hdegoede@redhat.com>
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFpoZW5nLA0KPiBM
-dg0KPiBTdWJqZWN0OiBSRTogW1BBVENIIDIvMl0gUmV2ZXJ0ICJBQ1BJIC8gYnV0dG9uOiBDaGFu
-Z2UgZGVmYXVsdCBiZWhhdmlvciB0byBsaWRfaW5pdF9zdGF0ZT1vcGVuIg0KPiANCj4gSGksIEd1
-eXMNCj4gDQo+ID4gRnJvbTogQmVuamFtaW4gVGlzc29pcmVzIFttYWlsdG86YmVuamFtaW4udGlz
-c29pcmVzQHJlZGhhdC5jb21dDQo+ID4gU3ViamVjdDogUmU6IFtQQVRDSCAyLzJdIFJldmVydCAi
-QUNQSSAvIGJ1dHRvbjogQ2hhbmdlIGRlZmF1bHQgYmVoYXZpb3IgdG8gbGlkX2luaXRfc3RhdGU9
-b3BlbiINCj4gPg0KPiA+IE9uIE1heSAxNSAyMDE3IG9yIHRoZXJlYWJvdXRzLCBSYWZhZWwgSi4g
-V3lzb2NraSB3cm90ZToNCj4gPiA+IE9uIE1vbiwgTWF5IDE1LCAyMDE3IGF0IDExOjM3IEFNLCBC
-ZW5qYW1pbiBUaXNzb2lyZXMNCj4gPiA+IDxiZW5qYW1pbi50aXNzb2lyZXNAcmVkaGF0LmNvbT4g
-d3JvdGU6DQo+ID4gPiA+IE9uIE1heSAxNSAyMDE3IG9yIHRoZXJlYWJvdXRzLCBSYWZhZWwgSi4g
-V3lzb2NraSB3cm90ZToNCj4gPiA+ID4+IE9uIE1vbiwgTWF5IDE1LCAyMDE3IGF0IDk6NDUgQU0s
-IEJlbmphbWluIFRpc3NvaXJlcw0KPiA+ID4gPj4gPGJlbmphbWluLnRpc3NvaXJlc0ByZWRoYXQu
-Y29tPiB3cm90ZToNCj4gPiA+ID4+ID4gT24gTWF5IDEyIDIwMTcgb3IgdGhlcmVhYm91dHMsIFJh
-ZmFlbCBKLiBXeXNvY2tpIHdyb3RlOg0KPiA+ID4gPj4gPj4gT24gRnJpZGF5LCBNYXkgMTIsIDIw
-MTcgMDI6MzY6MjAgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+ID4gPj4gPj4gPiBIaSwNCj4gPiA+
-ID4+ID4+ID4NCj4gPiA+ID4+ID4+ID4gPiBGcm9tOiBCZW5qYW1pbiBUaXNzb2lyZXMgW21haWx0
-bzpiZW5qYW1pbi50aXNzb2lyZXNAcmVkaGF0LmNvbV0NCj4gPiA+ID4+ID4+ID4gPiBTdWJqZWN0
-OiBSZTogW1BBVENIIDIvMl0gUmV2ZXJ0ICJBQ1BJIC8gYnV0dG9uOiBDaGFuZ2UgZGVmYXVsdCBi
-ZWhhdmlvciB0bw0KPiA+IGxpZF9pbml0X3N0YXRlPW9wZW4iDQo+ID4gPiA+PiA+PiA+ID4NCj4g
-PiA+ID4+ID4+ID4gPiBPbiBNYXkgMTEgMjAxNyBvciB0aGVyZWFib3V0cywgWmhlbmcsIEx2IHdy
-b3RlOg0KPiA+ID4gPj4gPj4gPiA+ID4gSGksDQo+ID4gPiA+PiA+PiA+ID4gPg0KPiA+ID4gPj4g
-Pj4gPiA+ID4gPiBGcm9tOiBCZW5qYW1pbiBUaXNzb2lyZXMgW21haWx0bzpiZW5qYW1pbi50aXNz
-b2lyZXNAcmVkaGF0LmNvbV0NCj4gPiA+ID4+ID4+ID4gPiA+ID4gU3ViamVjdDogW1BBVENIIDIv
-Ml0gUmV2ZXJ0ICJBQ1BJIC8gYnV0dG9uOiBDaGFuZ2UgZGVmYXVsdCBiZWhhdmlvciB0bw0KPiA+
-IGxpZF9pbml0X3N0YXRlPW9wZW4iDQo+ID4gPiA+PiA+PiA+ID4gPiA+DQo+ID4gPiA+PiA+PiA+
-ID4gPiA+IFRoaXMgcmV2ZXJ0cyBjb21taXQgNzdlOWE0YWE5ZGUxMGNjMTQxOGJmOWE4OTIzNjY5
-ODg4MDJhODAyNS4NCj4gPiA+ID4+ID4+ID4gPiA+ID4NCj4gPiA+ID4+ID4+ID4gPiA+ID4gRXZl
-biBpZiB0aGUgbWV0aG9kIGltcGxlbWVudGF0aW9uIGNhbiBiZSBidWdneSBvbiBzb21lIHBsYXRm
-b3JtLA0KPiA+ID4gPj4gPj4gPiA+ID4gPiB0aGUgIm9wZW4iIGNob2ljZSBpcyB3b3JzZS4gSXQg
-YnJlYWtzIGRvY2tpbmcgc3RhdGlvbnMgYmFzaWNhbGx5DQo+ID4gPiA+PiA+PiA+ID4gPiA+IGFu
-ZCB0aGVyZSBpcyBubyB3YXkgdG8gaGF2ZSBhIHVzZXItc3BhY2UgaHdkYiB0byBmaXggdGhhdC4N
-Cj4gPiA+ID4+ID4+ID4gPiA+ID4NCj4gPiA+ID4+ID4+ID4gPiA+ID4gT24gdGhlIGNvbnRyYXJ5
-LCBpdCdzIHJhdGhlciBlYXN5IGluIHVzZXItc3BhY2UgdG8gaGF2ZSBhIGh3ZGINCj4gPiA+ID4+
-ID4+ID4gPiA+ID4gd2l0aCB0aGUgcHJvYmxlbWF0aWMgcGxhdGZvcm1zLiBUaGVuLCBsaWJpbnB1
-dCAoMS43LjArKSBjYW4gZml4DQo+ID4gPiA+PiA+PiA+ID4gPiA+IHRoZSBzdGF0ZSBvZiB0aGUg
-TElEIHN3aXRjaCBmb3IgdXM6IHlvdSBuZWVkIHRvIHNldCB0aGUgdWRldg0KPiA+ID4gPj4gPj4g
-PiA+ID4gPiBwcm9wZXJ0eSBMSUJJTlBVVF9BVFRSX0xJRF9TV0lUQ0hfUkVMSUFCSUxJVFkgdG8g
-J3dyaXRlX29wZW4nLg0KPiA+ID4gPj4gPj4gPiA+ID4gPg0KPiA+ID4gPj4gPj4gPiA+ID4gPiBX
-aGVuIGxpYmlucHV0IGRldGVjdHMgaW50ZXJuYWwga2V5Ym9hcmQgZXZlbnRzLCBpdCB3aWxsDQo+
-ID4gPiA+PiA+PiA+ID4gPiA+IG92ZXJ3cml0ZSB0aGUgc3RhdGUgb2YgdGhlIHN3aXRjaCB0byBv
-cGVuLCBtYWtpbmcgaXQgcmVsaWFibGUNCj4gPiA+ID4+ID4+ID4gPiA+ID4gYWdhaW4uIEdpdmVu
-IHRoYXQgbG9naW5kIG9ubHkgY2hlY2tzIHRoZSBMSUQgc3dpdGNoIHZhbHVlIGFmdGVyDQo+ID4g
-PiA+PiA+PiA+ID4gPiA+IGEgdGltZW91dCwgd2UgY2FuIGFzc3VtZSB0aGUgdXNlciB3aWxsIHVz
-ZSB0aGUgaW50ZXJuYWwga2V5Ym9hcmQNCj4gPiA+ID4+ID4+ID4gPiA+ID4gYmVmb3JlIHRoaXMg
-dGltZW91dCBleHBpcmVzLg0KPiA+ID4gPj4gPj4gPiA+ID4gPg0KPiA+ID4gPj4gPj4gPiA+ID4g
-PiBGb3IgZXhhbXBsZSwgc3VjaCBhIGh3ZGIgZW50cnkgaXM6DQo+ID4gPiA+PiA+PiA+ID4gPiA+
-DQo+ID4gPiA+PiA+PiA+ID4gPiA+IGxpYmlucHV0Om5hbWU6KkxpZCBTd2l0Y2gqOmRtaToqc3Zu
-TWljcm9zb2Z0Q29ycG9yYXRpb246cG5TdXJmYWNlMzoqDQo+ID4gPiA+PiA+PiA+ID4gPiA+ICBM
-SUJJTlBVVF9BVFRSX0xJRF9TV0lUQ0hfUkVMSUFCSUxJVFk9d3JpdGVfb3Blbg0KPiA+ID4gPj4g
-Pj4gPiA+ID4NCj4gPiA+ID4+ID4NCj4gPiA+ID4+ID4gWy4uLl0NCj4gPiA+ID4+ID4NCj4gPiA+
-ID4+ID4+DQo+ID4gPiA+PiA+PiBXZWxsLCBpZiBpdCB3b3JrZWQgaW4gYSBzcGVjaWZpYyB3YXkg
-dGhhdCB1c2VycyBkZXBlbmRlZCBvbiBiZWZvcmUgdGhlIGNvbW1pdCBpbg0KPiA+ID4gPj4gPj4g
-cXVlc3Rpb24gYW5kIG5vdyBpdCB3b3JrcyBkaWZmZXJlbnRseSwgdGhlbiBpdCBkb2VzIGJyZWFr
-IHRoaW5ncy4NCj4gPiA+ID4+ID4+DQo+ID4gPiA+PiA+PiBCZW5qYW1pbiwgbXkgdW5kZXJzdGFu
-ZGluZyBpcyB0aGF0IHRoaXMgaXMgdGhlIGNhc2UsIGlzIGl0IGNvcnJlY3Q/DQo+ID4gPiA+PiA+
-DQo+ID4gPiA+PiA+IFRoYXQgaXMgY29ycmVjdC4gVGhpcyBwYXRjaCBJIHJldmVydGVkIGludHJv
-ZHVjZXMgcmVncmVzc2lvbiBmb3IgcHJvZmVzc2lvbmFsDQo+ID4gPiA+PiA+IGxhcHRvcHMgdGhh
-dCBleHBlY3QgdGhlIExJRCBzd2l0Y2ggdG8gYmUgcmVwb3J0ZWQgYWNjdXJhdGVseS4NCj4gPiA+
-ID4+DQo+ID4gPiA+PiBBbmQgZnJvbSBhIHVzZXIncyBwZXJzcGVjdGl2ZSwgd2hhdCBkb2VzIG5v
-dCB3b3JrIGFueSBtb3JlPw0KPiA+ID4gPg0KPiA+ID4gPiBJZiB5b3UgYm9vdCBvciByZXN1bWUg
-eW91ciBsYXB0b3Agd2l0aCB0aGUgbGlkIGNsb3NlZCBvbiBhIGRvY2tpbmcNCj4gPiA+ID4gc3Rh
-dGlvbiB3aGlsZSB1c2luZyBhbiBleHRlcm5hbCBtb25pdG9yIGNvbm5lY3RlZCB0byBpdCwgYm90
-aCBpbnRlcm5hbA0KPiA+ID4gPiBhbmQgZXh0ZXJuYWwgZGlzcGxheXMgd2lsbCBsaWdodCBvbiwg
-d2hpbGUgb25seSB0aGUgZXh0ZXJuYWwgc2hvdWxkLg0KPiA+ID4gPg0KPiA+ID4gPiBUaGVyZSBp
-cyBhIGRlc2lnbiBjaG9pY2UgaW4gZ2RtIHRvIG9ubHkgcHJvdmlkZSB0aGUgZ3JlYXRlciBvbiB0
-aGUNCj4gPiA+ID4gaW50ZXJuYWwgZGlzcGxheSB3aGVuIGxpdCBvbiwgc28gdXNlcnMgb25seSBz
-ZWUgYSBncmF5IGFyZWEgb24gdGhlDQo+ID4gPiA+IGV4dGVybmFsIG1vbml0b3IuIEFsc28sIHRo
-ZSBjdXJzb3Igd2lsbCBub3Qgc2hvdyB1cCBhcyBpdCdzIGJ5IGRlZmF1bHQNCj4gPiA+ID4gb24g
-dGhlIGludGVybmFsIGRpc3BsYXkgdG9vLg0KPiA+ID4gPg0KPiA+ID4gPiBUbyAiZml4IiB0aGF0
-LCB1c2VycyBoYXZlIHRvIG9wZW4gdGhlIGxhcHRvcCBvbmNlIGFuZCBjbG9zZSBpdCBvbmNlDQo+
-ID4gPiA+IGFnYWluIHRvIHN5bmMgdGhlIHN0YXRlIG9mIHRoZSBzd2l0Y2ggd2l0aCB0aGUgaGFy
-ZHdhcmUgc3RhdGUuDQo+ID4gPg0KPiA+ID4gT0sNCj4gPiA+DQo+ID4gPiBZZWFoLCB0aGF0IHN1
-Y2tzLg0KPiA+ID4NCj4gPiA+IFNvIHdpdGhvdXQgdGhlIEx2J3MgcGF0Y2ggdGhlIGJlaGF2aW9y
-IChvbiB0aGUgc3lzdGVtcyBpbiBxdWVzdGlvbikgaXMNCj4gPiA+IGFzIGV4cGVjdGVkLCByaWdo
-dD8NCj4gPiA+DQo+ID4NCj4gPiBZZXMsIHJldmVydGluZyB0aGVzZSAyIHBhdGNoZXMgcmVzdG9y
-ZXMgdGhlIHByZSB2NC4xMSBrZXJuZWwgYmVoYXZpb3IuDQo+IA0KPiBJIHdvdWxkIG1ha2UgYW4g
-YXJndW1lbnQgdGhhdDoNCj4gQS4gSXMgdGhpcyBuZWNlc3NhcmlseSBhIGJ1dHRvbiBkcml2ZXIg
-cmVncmVzc2lvbj8NCj4gMS4gVXNlcnMgYWxyZWFkeSBjb25maWd1cmVkIHRvIG5vdCB1c2luZyBp
-bnRlcm5hbCBkaXNwbGF5LCB3aHkgZ2RtIG5lZWQgdG8gZGV0ZXJtaW5lIGl0IGFnYWluIGluc3Rl
-YWQNCj4gb2YgdXNlcnMgY2hvaWNlPw0KPiAyLiBDYW4gZ2RtL2dyYXBoaWNzIGRyaXZlciBzYXZl
-cyBzdGF0ZSBiZWZvcmUgc3VzcGVuZCwgYW5kIHJlc3RvcmVzIHNhdmVkIHN0YXRlIGFmdGVyIHJl
-c3VtZT8NCj4gICAgSWYgdXNlcnMgZGlkbid0IGNoYW5nZSBzdGF0ZSBkdXJpbmcgc3VzcGVuZCwg
-dGhlbiBldmVyeXRoaW5nIHNob3VsZCBiZSBjb3JyZWN0Lg0KPiAgICBJZiB1c2VycyBjaGFuZ2Vk
-IHN0YXRlIGR1cmluZyBzdXNwZW5kLCBpdCBzaG91bGQgYmUgYWNjZXB0YWJsZSBmb3IgdXNlcnMg
-dG8gY2hhbmdlIGl0IGFnYWluIHRvIG1ha2UNCj4gdGhlIHN0YXRlIGNvcnJlY3QuDQo+IFNlZSwg
-dGhpcyBpcyBvYnZpb3VzbHkgYSBjYXNlIHRoYXQgaXMgbm90IHNvIHN0cmljdGx5IHJlbGF0ZWQg
-dG8gQUNQSSBidXR0b24gZHJpdmVyLg0KPiBXaHkgZG8gd2UgbmVlZCB0byBmb3JjZSBidXR0b24g
-ZHJpdmVyIHRvIG1hcnJ5IGV4dGVybmFsIG1vbml0b3JzLg0KPiBCLiBCdWcgcmVwb3J0ZXJzIGFy
-ZSBhbGwgb2sgd2l0aCB1c2luZyBxdWlyayBtb2RlcyBhcyBib290IHBhcmFtZXRlcnMgdG8gd29y
-ayB0aGlzIGFyb3VuZC4NCj4gV2h5IHNob3VsZCB3ZSBjaGFuZ2Ugb3VyIGRlZmF1bHQgYmVoYXZp
-b3IgYWltbGVzc2x5Pw0KDQpJIGhhdmUgb25lIG1vcmUgY29uY2VybjoNCkluIGJ1dHRvbi5saWRf
-aW5pdF9zdGF0ZT1tZXRob2QgbW9kZSwNCklzIHRoYXQgcG9zc2libGUgZm9yIGxpYmlucHV0IHRv
-IHdvcmsgdGhpbmdzIGFyb3VuZCBpZiBfTElEIHJldHVybiB2YWx1ZSBpcyBub3QgY29ycmVjdD8N
-CkhvdyBsaWJpbnB1dCBlbnN1cmVzIGNvcnJlY3QgdGltaW5nIG9mIG92ZXJ3cml0aW5nIHRoZSBp
-bnB1dCBub2RlIHZhbHVlPw0KV2lsbCBidXR0b24gZHJpdmVyIGZha2VkIGV2ZW50IHZhbHVlIG92
-ZXJ3cml0ZXMgd2hhdCBsaWJpbnB1dCBoYXMgd3JpdHRlbj8NCg0KRnJvbSB0aGlzIHBvaW50IG9m
-IHZpZXcsIGJ1dHRvbi5saWRfaW5pdF9zdGF0ZT1pZ25vcmUgbWlnaHQgYmUgYSBiZXR0ZXIgY2hv
-aWNlIHRoYW4gYnV0dG9uLmxpZF9pbml0X3N0YXRlPW1ldGhvZCB0byBhbGxvdyBsaWJpbnB1dCB0
-byBkZWFsIHdpdGggYWxsIGtpbmQgb2YgY2FzZXMuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRz
-DQpMdg0K
+On linux, we can not verify ACPI tables before installing them into the
+global table list in early stage due to the number of slot limitations for
+early ioremap. This leaves a problem that we cannot detect duplicated
+tables in early stage, causing unwanted error messages seen when the
+duplicated tables are failed to be loaded [link #1].
+
+This patchset as ACPICA PR [link #2] adds support to verify tables in
+acpi_reallocate_root_tables() which is invoked after installing tables in
+early stage, being ready for late ioremap and beofre loading table in late
+stage. If duplicated tables are detected, acpi_reallocate_root_tables()
+stops installing them to the final reallocated global table list.
+
+In v1 patchset [link #3], problems can be seen for dynamic loading tables
+which are allocated as virtuall allocated tables. Such tables are
+incremented in the global table list as the sanity check done in install
+step only compares the table addresses while the virtual allocated
+addresses are not stable.
+In v2 patchset, we follow original design discussion made in ACPICA devel
+mailing list, implements deferred table verification so that duplicate
+tables are still can be detected in install step rather than in load step.
+Also we removed table signature check according to verified windows
+behavior [link #4] and reported issues [link #5].
+
+Link: http://www.spinics.net/lists/linux-acpi/msg72215.html [#1]
+Link: https://github.com//acpica/acpica/pull/265            [#2]
+Link: http://www.spinics.net/lists/linux-acpi/msg72589.html [#3]
+Link: https://github.com//acpica/acpica/pull/121            [#4]
+      https://bugzilla.kernel.org/show_bug.cgi?id=118601    [#5]
+
+Lv Zheng (5):
+  ACPICA: Tables: Cleanup table handler invokers
+  ACPICA: Tables: Do not validate signature for dynamic table load
+  ACPICA: Tables: Change table duplication check to be related to
+    acpi_gbl_verify_table_checksum
+  ACPICA: Tables: Combine checksum/duplication verification together
+  ACPICA: Tables: Add deferred table verification support
+
+ drivers/acpi/acpica/actables.h |   5 +-
+ drivers/acpi/acpica/tbdata.c   | 222 ++++++++++++++++++++++++++++++++++++-----
+ drivers/acpi/acpica/tbinstal.c | 161 ++++--------------------------
+ drivers/acpi/acpica/tbxface.c  |  36 ++++++-
+ drivers/acpi/acpica/tbxfload.c |   2 +-
+ drivers/acpi/bus.c             |   3 -
+ drivers/acpi/tables.c          |   4 +-
+ include/acpi/acpixf.h          |  15 +--
+ include/acpi/actbl.h           |   1 +
+ 9 files changed, 266 insertions(+), 183 deletions(-)
+
+-- 
+2.7.4
+
