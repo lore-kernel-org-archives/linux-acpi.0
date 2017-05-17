@@ -1,78 +1,200 @@
-From: shameer <shameerali.kolothum.thodi@huawei.com>
-Subject: [PATCH] iommu/arm-smmu-v3: Enable ACPI based HiSilicon CMD_PREFETCH quirk(erratum 161010701)
-Date: Wed, 17 May 2017 10:12:05 +0100
-Message-ID: <20170517091205.7752-1-shameerali.kolothum.thodi@huawei.com>
+From: Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [PATCH V8 07/11] iommu: of: Handle IOMMU lookup failure with
+ deferred probing or error
+Date: Wed, 17 May 2017 18:22:24 +0900
+Message-ID: <CANqRtoSEwdoufUxP-Rm=qZJ7G8V3ow5F0ggV3tALrfiRad+j4Q@mail.gmail.com>
+References: <1486136933-20328-1-git-send-email-sricharan@codeaurora.org>
+ <1486136933-20328-8-git-send-email-sricharan@codeaurora.org>
+ <CAMuHMdV05uCcVss+V1E+_OQYosJO6P95rU1WynV-G08-iHJnyg@mail.gmail.com>
+ <2bfd11dc-9f94-2b69-7b03-c640e53155e1@arm.com> <26defadf-6380-4af4-6323-b51198376bc1@codeaurora.org>
+ <CAMuHMdUoLp1oVT_=NG8HS-jgG6AhOeVUsGgu7fLbGY+7A+0cOg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([45.249.212.188]:6326 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754032AbdEQJOB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2017 05:14:01 -0400
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:34188 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753408AbdEQJW1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2017 05:22:27 -0400
+In-Reply-To: <CAMuHMdUoLp1oVT_=NG8HS-jgG6AhOeVUsGgu7fLbGY+7A+0cOg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: robin.murphy@arm.com, will.deacon@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com
-Cc: john.garry@huawei.com, gabriele.paoloni@huawei.com, guohanjun@huawei.com, xuwei5@hisilicon.com, linuxarm@huawei.com, devel@acpica.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, shameer <shameerali.kolothum.thodi@huawei.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Sricharan R <sricharan@codeaurora.org>, Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>, Joerg Roedel <joro@8bytes.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Marek Szyprowski <m.szyprowski@samsung.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, tn@semihalf.com, Hanjun Guo <hanjun.guo@linaro.org>, okaya@codeaurora.org, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
 
-HiSilicon SMMUv3 on Hip06/Hip07 platforms doesn't support CMD_PREFETCH
-command. The dt based support for this quirk is already present in the
-driver(hisilicon,broken-prefetch-cmd). This adds ACPI support for the
-quirk using the IORT smmu model number.
+Hi Geert, everyone,
 
-Signed-off-by: shameer <shameerali.kolothum.thodi@huawei.com>
-Signed-off-by: hanjun <guohanjun@huawei.com>
----
- Documentation/arm64/silicon-errata.txt |  1 +
- drivers/iommu/arm-smmu-v3.c            | 16 ++++++++++++++++
- 2 files changed, 17 insertions(+)
+On Fri, May 5, 2017 at 10:23 PM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> Hi Sricharan, Robin,
+>
+> On Wed, May 3, 2017 at 12:24 PM, Sricharan R <sricharan@codeaurora.org> wrote:
+>> On 5/3/2017 3:24 PM, Robin Murphy wrote:
+>>> On 02/05/17 19:35, Geert Uytterhoeven wrote:
+>>>> On Fri, Feb 3, 2017 at 4:48 PM, Sricharan R <sricharan@codeaurora.org> wrote:
+>>>>> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+>>>>>
+>>>>> Failures to look up an IOMMU when parsing the DT iommus property need to
+>>>>> be handled separately from the .of_xlate() failures to support deferred
+>>>>> probing.
+>>>>>
+>>>>> The lack of a registered IOMMU can be caused by the lack of a driver for
+>>>>> the IOMMU, the IOMMU device probe not having been performed yet, having
+>>>>> been deferred, or having failed.
+>>>>>
+>>>>> The first case occurs when the device tree describes the bus master and
+>>>>> IOMMU topology correctly but no device driver exists for the IOMMU yet
+>>>>> or the device driver has not been compiled in. Return NULL, the caller
+>>>>> will configure the device without an IOMMU.
+>>>>>
+>>>>> The second and third cases are handled by deferring the probe of the bus
+>>>>> master device which will eventually get reprobed after the IOMMU.
+>>>>>
+>>>>> The last case is currently handled by deferring the probe of the bus
+>>>>> master device as well. A mechanism to either configure the bus master
+>>>>> device without an IOMMU or to fail the bus master device probe depending
+>>>>> on whether the IOMMU is optional or mandatory would be a good
+>>>>> enhancement.
+>>>>>
+>>>>> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>>>>> Signed-off-by: Laurent Pichart <laurent.pinchart+renesas@ideasonboard.com>
+>>>>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+>>>>
+>>>> This patch broke Renesas R-Car Gen3 platforms in renesas-drivers.
+>>>> As the IOMMU nodes in DT are not yet enabled, all devices having iommus
+>>>> properties in DT now fail to probe.
+>>>
+>>> How exactly do they fail to probe? Per d7b0558230e4, if there are no ops
+>>> registered then they should merely defer until we reach the point of
+>>> giving up and ignoring the IOMMU. Is it just that you have no other
+>>> late-probing drivers or post-init module loads to kick the deferred
+>>> queue after that point? I did try to find a way to explicitly kick it
+>>> from a suitably late initcall, but there didn't seem to be any obvious
+>>> public interface - anyone have any suggestions?
+>>>
+>>> I think that's more of a general problem with the probe deferral
+>>> mechanism itself (I've seen the same thing happen with some of the
+>>> CoreSight stuff on Juno due to the number of inter-component
+>>> dependencies) rather than any specific fault of this series.
+>
+> I had a deeper look into the issue.
+>
+> What changed, is that of_dma_configure() now returns an error code,
+> and dma_configure() looks at it.
+>
+> Actually there are two failure modes:
+>   1. Devices with an iommus property pointing to a disabled IOMMU node.
+>      These return -EPROBE_DEFER, and are now retried forever.
+>   2. Devices that are blacklisted in the IPMMU driver, as we don't want to
+>      use them with an IOMMU yet.
+>      These return -ENODEV, due to ipmmu_of_xlate_dma().
+>
+>> I was thinking of an additional check like below to avoid the
+>> situation ?
+>>
+>> From 499b6e662f60f23740b8880882b0a16f16434501 Mon Sep 17 00:00:00 2001
+>> From: Sricharan R <sricharan@codeaurora.org>
+>> Date: Wed, 3 May 2017 13:16:59 +0530
+>> Subject: [PATCH] iommu: of: Fix check for returning EPROBE_DEFER
+>>
+>> While returning EPROBE_DEFER for iommu masters
+>> take in to account of iommu nodes that could be
+>> marked in DT as 'status=disabled', in which case
+>> simply return NULL and let the master's probe
+>> continue rather than deferring.
+>>
+>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+>> ---
+>>  drivers/iommu/of_iommu.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+>> index 9f44ee8..e6e9bec 100644
+>> --- a/drivers/iommu/of_iommu.c
+>> +++ b/drivers/iommu/of_iommu.c
+>> @@ -118,6 +118,7 @@ static bool of_iommu_driver_present(struct device_node *np)
+>>
+>>         ops = iommu_ops_from_fwnode(fwnode);
+>>         if ((ops && !ops->of_xlate) ||
+>> +           !of_device_is_available(iommu_spec->np) ||
+>>             (!ops && !of_iommu_driver_present(iommu_spec->np)))
+>>                 return NULL;
+>
+> Thanks, this fixes the first class of failures.
+>
+> The second class can be worked around using:
+>
+> --- a/drivers/iommu/of_iommu.c
+> +++ b/drivers/iommu/of_iommu.c
+> @@ -196,6 +196,11 @@ static const struct iommu_ops
+>                 ops = of_iommu_xlate(dev, &iommu_spec);
+>                 of_node_put(iommu_spec.np);
+>                 idx++;
+> +               if (PTR_ERR(ops) == -ENODEV) {
+> +                       dev_info(dev, "%s: Ignoring -ENODEV => NULL\n",
+> +                                __func__);
+> +                       return NULL;
+> +               }
+>                 if (IS_ERR_OR_NULL(ops))
+>                         break;
+>         }
+>
+> but obviously that's too hackish to apply...
+> Magnus, do you have a suggestion?
 
-diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
-index 10f2ddd..d5d23d0 100644
---- a/Documentation/arm64/silicon-errata.txt
-+++ b/Documentation/arm64/silicon-errata.txt
-@@ -66,6 +66,7 @@ stable kernels.
- | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
- |                |                 |                 |                             |
- | Hisilicon      | Hip0{5,6,7}     | #161010101      | HISILICON_ERRATUM_161010101 |
-+| Hisilicon      | Hip0{6,7}       | #161010701      | N/A                         |
- |                |                 |                 |                             |
- | Qualcomm Tech. | Falkor v1       | E1003           | QCOM_FALKOR_ERRATUM_1003    |
- | Qualcomm Tech. | Falkor v1       | E1009           | QCOM_FALKOR_ERRATUM_1009    |
-diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index 380969a..abe4b88 100644
---- a/drivers/iommu/arm-smmu-v3.c
-+++ b/drivers/iommu/arm-smmu-v3.c
-@@ -2605,6 +2605,20 @@ static int arm_smmu_device_hw_probe(struct arm_smmu_device *smmu)
- }
- 
- #ifdef CONFIG_ACPI
-+static void parse_driver_acpi_options(struct acpi_iort_smmu_v3 *iort_smmu,
-+				      struct arm_smmu_device *smmu)
-+{
-+	switch (iort_smmu->model) {
-+	case ACPI_IORT_SMMU_HISILICON_HI161X:
-+		smmu->options |= ARM_SMMU_OPT_SKIP_PREFETCH;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	dev_notice(smmu->dev, "options set 0x%x\n", smmu->options);
-+}
-+
- static int arm_smmu_device_acpi_probe(struct platform_device *pdev,
- 				      struct arm_smmu_device *smmu)
- {
-@@ -2617,6 +2631,8 @@ static int arm_smmu_device_acpi_probe(struct platform_device *pdev,
- 	/* Retrieve SMMUv3 specific data */
- 	iort_smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
- 
-+	parse_driver_acpi_options(iort_smmu, smmu);
-+
- 	if (iort_smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE)
- 		smmu->features |= ARM_SMMU_FEAT_COHERENCY;
- 
--- 
-1.9.1
+Thanks for your efforts guys!
+
+I've recently been working on up-porting the IPMMU patches and
+addressing review comments. Now with my local driver stack on top of
+v4.12-rc (a95cfad) I did not notice these issues initially since I
+only tested devices with IPMMU enabled. Once these issues were pointed
+out to me by Geert I have now reproduced the 64-bit ARM specific ones
+on r8a7796 Salvator-X.
+
+On my r8a7796 platform I'm using the following IOMMU and DMA Engine devices:
+
+IOMMU device IPMMU-DS0 - Connected to SYS-DMAC0
+IOMMU device IPMMU-DS1 - Connected to SYS-DMAC1 and SYS-DMAC2
+IOMMU device IPMMU-MM - Root device serving IPMMU-DS0 and IPMMU-DS1
+
+For testing the serial port SCIF1 is used with DMA Engine devices
+SYS-DMAC1 or SYS-DMAC2.
+
+The software environment is configured as follows:
+- The DTS comes with all devices above enabled except IPMMU-DS0 which
+comes with status = "disabled".
+- The IPMMU driver is during run time only allowing use of SYS-DMAC2.
+For other devices ->of_xlate() returns -ENODEV.
+
+The above used to work just fine with v4.11 or earlier.
+
+My observations for v4.12-rc:
+
+1) Default state for a95cfad
+
+The devices SYS-DMAC0 and SYS-DMAC1 will never probe. However SYS-DMAC2 is fine.
+
+2) After applying "[PATCH] iommu: of: Fix check for returning EPROBE_DEFER" [1]
+
+This fixes SYS-DMAC0 that now probes and operates without IPMMU-DS0 as
+expected. Same as v4.11 or earlier.
+
+3) After also applying "[PATCH] of: iommu: Ignore all errors except
+EPROBE_DEFER" [2]
+
+This fixes SYS-DMAC1 that now probes and operates without IPMMU-DS1 as
+expected. Same as v4.11 or earlier.
+
+With fix [1] and [2] things seem back to normal. Unless I'm mistaken
+it also seems that [1] allows me to drop the similar patch "[PATCH/RFC
+v2 1/4] iommu/of: Skip IOMMU devices disabled in DT".
+
+Thanks for your help.
+
+Cheers,
+
+/ magnus
 
 
+[1] https://lkml.org/lkml/2017/5/16/25
+[2] https://www.spinics.net/lists/arm-kernel/msg581485.html
+[3] https://patchwork.kernel.org/patch/9540605/
