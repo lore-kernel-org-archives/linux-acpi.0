@@ -1,65 +1,93 @@
-From: Robert Richter <robert.richter@cavium.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Subject: Re: [RFC/RFT PATCH v2 3/3] PCI/ACPI: Add ACPI
  pci_bus_find_numa_node() implementation
-Date: Wed, 17 May 2017 16:35:58 +0200
-Message-ID: <20170517143558.GP16981@rric.localdomain>
+Date: Wed, 17 May 2017 17:04:24 +0100
+Message-ID: <20170517160424.GA8643@red-moon>
 References: <20170515132205.19622-1-lorenzo.pieralisi@arm.com>
  <20170515132205.19622-4-lorenzo.pieralisi@arm.com>
  <20170516151529.GC658@rric.localdomain>
  <20170516180200.GA24458@red-moon>
  <20170517134654.GA8497@red-moon>
+ <20170517143558.GP16981@rric.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:49672 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753764AbdEQQDZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 17 May 2017 12:03:25 -0400
 Content-Disposition: inline
-In-Reply-To: <20170517134654.GA8497@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Zhou Wang <wangzhou1@hisilicon.com>, Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
+In-Reply-To: <20170517143558.GP16981@rric.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robert Richter <robert.richter@cavium.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Zhou Wang <wangzhou1@hisilicon.com>, Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
 
-On 17.05.17 14:46:54, Lorenzo Pieralisi wrote:
-
-> More explicitly, I think the whole series should work also with the diff
-> below applied on top of it. Side note: for consistency, I do not think
-> that adding a DT counterpart to pci_bus_find_numa_node() would hurt.
+On Wed, May 17, 2017 at 04:35:58PM +0200, Robert Richter wrote:
+> On 17.05.17 14:46:54, Lorenzo Pieralisi wrote:
 > 
-> Thanks !
-> Lorenzo
+> > More explicitly, I think the whole series should work also with the diff
+> > below applied on top of it. Side note: for consistency, I do not think
+> > that adding a DT counterpart to pci_bus_find_numa_node() would hurt.
+> > 
+> > Thanks !
+> > Lorenzo
+> > 
+> > -- >8 --
+> > diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> > index 76c089f..cf0692c 100644
+> > --- a/drivers/pci/probe.c
+> > +++ b/drivers/pci/probe.c
+> > @@ -862,7 +862,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+> >  	 */
+> >  	child->dev.class = &pcibus_class;
+> >  	dev_set_name(&child->dev, "%04x:%02x", pci_domain_nr(child), busnr);
+> > -	set_dev_node(&child->dev, dev_to_node(&parent->dev));
+> > +
 > 
-> -- >8 --
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index 76c089f..cf0692c 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -862,7 +862,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
->  	 */
->  	child->dev.class = &pcibus_class;
->  	dev_set_name(&child->dev, "%04x:%02x", pci_domain_nr(child), busnr);
-> -	set_dev_node(&child->dev, dev_to_node(&parent->dev));
-> +
+> Hmm, in device_add() there is already:
+> 
+> 	/* use parent numa_node */
+> 	if (parent && (dev_to_node(dev) == NUMA_NO_NODE))
+>         	set_dev_node(dev, dev_to_node(parent));
+> 
+> So there are cases where the device has a different node than the
+> parent. I am not sure if we can assume for pci that it maps always.
+> 
+> And since device_add() is called later anyway, the above change might
+> not necessary at all.
 
-Hmm, in device_add() there is already:
+That's why I _removed_ the set_dev_node() in the diff above (that applies
+to patch (2)), I do not think it is a) correct and b) necessary to
+propagate the NUMA node from bus to a child bus given that device_add()
+takes care of that already.
 
-	/* use parent numa_node */
-	if (parent && (dev_to_node(dev) == NUMA_NO_NODE))
-        	set_dev_node(dev, dev_to_node(parent));
+I should post a v3 (with the diff above applied) so that we are all on
+the same page and we can test it.
 
-So there are cases where the device has a different node than the
-parent. I am not sure if we can assume for pci that it maps always.
+> But at least we must assign the node id to the
+> bridge, which is the parent. Maybe just have in
+> acpi_pci_root_create():
+> 
+> 	bridge = get_device(bus->bridge);
+> 	adev = to_acpi_device_node(bridge->fwnode);
+> 	set_dev_node(bridge, acpi_get_node(adev->handle));
 
-And since device_add() is called later anyway, the above change might
-not necessary at all. But at least we must assign the node id to the
-bridge, which is the parent. Maybe just have in
-acpi_pci_root_create():
+I do not think that's enough, I need to check again but I think that
+also the bus->dev should have its NUMA node set for things to work (and
+allow the NUMA node to propagate correctly through device_add())
+otherwise pcibus_to_node() would fail for devices sitting on the root
+bus, right ?
 
-	bridge = get_device(bus->bridge);
-	adev = to_acpi_device_node(bridge->fwnode);
-	set_dev_node(bridge, acpi_get_node(adev->handle));
+I will check again and post v3 shortly.
 
--Robert
+Thanks !
+Lorenzo
 
-
->  	/*
->  	 * Set up the primary, secondary and subordinate
->  	 * bus numbers.
+> 
+> -Robert
+> 
+> 
+> >  	/*
+> >  	 * Set up the primary, secondary and subordinate
+> >  	 * bus numbers.
