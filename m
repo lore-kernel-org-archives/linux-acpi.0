@@ -1,96 +1,70 @@
-From: Robert Richter <robert.richter@cavium.com>
-Subject: Re: [RFC/RFT PATCH v2 3/3] PCI/ACPI: Add ACPI
- pci_bus_find_numa_node() implementation
-Date: Wed, 17 May 2017 18:15:51 +0200
-Message-ID: <20170517161551.GQ16981@rric.localdomain>
-References: <20170515132205.19622-1-lorenzo.pieralisi@arm.com>
- <20170515132205.19622-4-lorenzo.pieralisi@arm.com>
- <20170516151529.GC658@rric.localdomain>
- <20170516180200.GA24458@red-moon>
- <20170517134654.GA8497@red-moon>
- <20170517143558.GP16981@rric.localdomain>
- <20170517160424.GA8643@red-moon>
+From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/3] iommu: of: Fix check for returning EPROBE_DEFER
+Date: Wed, 17 May 2017 12:04:30 -0500
+Message-ID: <20170517170430.GD31462@bhelgaas-glaptop.roam.corp.google.com>
+References: <1495020609-13397-1-git-send-email-sricharan@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2nam02on0070.outbound.protection.outlook.com ([104.47.38.70]:39086
-        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752318AbdEQQQG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 17 May 2017 12:16:06 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170517160424.GA8643@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1495020609-13397-1-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.neuschaefer-hi6Y0CQ0nG0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Sergey Temerkhanov <s.temerkhanov@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Zhou Wang <wangzhou1@hisilicon.com>, Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
 
-On 17.05.17 17:04:24, Lorenzo Pieralisi wrote:
-> On Wed, May 17, 2017 at 04:35:58PM +0200, Robert Richter wrote:
-> > On 17.05.17 14:46:54, Lorenzo Pieralisi wrote:
-> > 
-> > > More explicitly, I think the whole series should work also with the diff
-> > > below applied on top of it. Side note: for consistency, I do not think
-> > > that adding a DT counterpart to pci_bus_find_numa_node() would hurt.
-> > > 
-> > > Thanks !
-> > > Lorenzo
-> > > 
-> > > -- >8 --
-> > > diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> > > index 76c089f..cf0692c 100644
-> > > --- a/drivers/pci/probe.c
-> > > +++ b/drivers/pci/probe.c
-> > > @@ -862,7 +862,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
-> > >  	 */
-> > >  	child->dev.class = &pcibus_class;
-> > >  	dev_set_name(&child->dev, "%04x:%02x", pci_domain_nr(child), busnr);
-> > > -	set_dev_node(&child->dev, dev_to_node(&parent->dev));
-> > > +
-> > 
-> > Hmm, in device_add() there is already:
-> > 
-> > 	/* use parent numa_node */
-> > 	if (parent && (dev_to_node(dev) == NUMA_NO_NODE))
-> >         	set_dev_node(dev, dev_to_node(parent));
-> > 
-> > So there are cases where the device has a different node than the
-> > parent. I am not sure if we can assume for pci that it maps always.
-> > 
-> > And since device_add() is called later anyway, the above change might
-> > not necessary at all.
+On Wed, May 17, 2017 at 05:00:07PM +0530, Sricharan R wrote:
+> Now with iommu probe deferral, we return -EPROBE_DEFER
+> for master's that are connected to an iommu which is not
+
+s/master's/masters/
+
+s/iommu/IOMMU/ in your English text (changelogs and comments).  That seems
+to be the convention, based on "git log drivers/iommu/of_iommu.c"
+
+> probed yet, but going to get probed, so that we can attach
+> the correct dma_ops. So while trying to defer the probe of
+> the master, check if the of_iommu node that it is connected
+> to is marked in DT as 'status=disabled', then the iommu is never
+> is going to get probed. So simply return NULL and let the master
+> work without an iommu.
 > 
-> That's why I _removed_ the set_dev_node() in the diff above (that applies
-> to patch (2)), I do not think it is a) correct and b) necessary to
-> propagate the NUMA node from bus to a child bus given that device_add()
-> takes care of that already.
-
-Ah, right, you removed it instead.
-
+> Fixes: 7b07cbefb68d ("iommu: of: Handle IOMMU lookup failure with deferred probing or error")
+> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> Reported-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+> Tested-by: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+> Tested-by: Magnus Damn <magnus.damn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Acked-by: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+> ---
+>  drivers/iommu/of_iommu.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> I should post a v3 (with the diff above applied) so that we are all on
-> the same page and we can test it.
+> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+> index 9f44ee8..e6e9bec 100644
+> --- a/drivers/iommu/of_iommu.c
+> +++ b/drivers/iommu/of_iommu.c
+> @@ -118,6 +118,7 @@ static bool of_iommu_driver_present(struct device_node *np)
+>  
+>  	ops = iommu_ops_from_fwnode(fwnode);
+>  	if ((ops && !ops->of_xlate) ||
+> +	    !of_device_is_available(iommu_spec->np) ||
+>  	    (!ops && !of_iommu_driver_present(iommu_spec->np)))
+>  		return NULL;
+>  
+> -- 
+> QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
 > 
-> > But at least we must assign the node id to the
-> > bridge, which is the parent. Maybe just have in
-> > acpi_pci_root_create():
-> > 
-> > 	bridge = get_device(bus->bridge);
-> > 	adev = to_acpi_device_node(bridge->fwnode);
-> > 	set_dev_node(bridge, acpi_get_node(adev->handle));
 > 
-> I do not think that's enough, I need to check again but I think that
-> also the bus->dev should have its NUMA node set for things to work (and
-> allow the NUMA node to propagate correctly through device_add())
-> otherwise pcibus_to_node() would fail for devices sitting on the root
-> bus, right ?
-
-Yeah, maybe another hop is in between and the node id for bus->dev is
-used. Which need to be set then.
-
-> 
-> I will check again and post v3 shortly.
-
-Thanks,
-
--Robert
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
