@@ -1,208 +1,100 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [v6 2/3] iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2
- erratum #74
-Date: Wed, 17 May 2017 10:13:01 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA838351762@FRAEML521-MBX.china.huawei.com>
-References: <1494592866-14076-1-git-send-email-gakula@caviumnetworks.com>
- <1494592866-14076-3-git-send-email-gakula@caviumnetworks.com>
+From: Sricharan R <sricharan@codeaurora.org>
+Subject: Re: [PATCH V8 07/11] iommu: of: Handle IOMMU lookup failure with
+ deferred probing or error
+Date: Wed, 17 May 2017 15:58:12 +0530
+Message-ID: <3b154db4-6ebb-c05c-91f0-beefa75fae00@codeaurora.org>
+References: <1486136933-20328-1-git-send-email-sricharan@codeaurora.org>
+ <1486136933-20328-8-git-send-email-sricharan@codeaurora.org>
+ <CAMuHMdV05uCcVss+V1E+_OQYosJO6P95rU1WynV-G08-iHJnyg@mail.gmail.com>
+ <2bfd11dc-9f94-2b69-7b03-c640e53155e1@arm.com>
+ <26defadf-6380-4af4-6323-b51198376bc1@codeaurora.org>
+ <CAMuHMdUoLp1oVT_=NG8HS-jgG6AhOeVUsGgu7fLbGY+7A+0cOg@mail.gmail.com>
+ <CANqRtoSEwdoufUxP-Rm=qZJ7G8V3ow5F0ggV3tALrfiRad+j4Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([45.249.212.189]:6399 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751045AbdEQKNT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2017 06:13:19 -0400
-In-Reply-To: <1494592866-14076-3-git-send-email-gakula@caviumnetworks.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:39092 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752038AbdEQK2V (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2017 06:28:21 -0400
+In-Reply-To: <CANqRtoSEwdoufUxP-Rm=qZJ7G8V3ow5F0ggV3tALrfiRad+j4Q@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Geetha sowjanya <gakula@caviumnetworks.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Cc: "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, Geetha Sowjanya <geethasowjanya.akula@cavium.com>, "geethasowjanya.akula@gmail.com" <geethasowjanya.akula@gmail.com>, "jcm@redhat.com" <jcm@redhat.com>, "linu.cherian@cavium.com" <linu.cherian@cavium.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "robert.moore@intel.com" <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "robert.richter@cavium.com" <robert.richter@cavium.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "sgoutham@cavium.com" <sgoutham@cavium.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, devel@acpica
+To: Magnus Damm <magnus.damm@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>, Joerg Roedel <joro@8bytes.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Marek Szyprowski <m.szyprowski@samsung.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, tn@semihalf.com, Hanjun Guo <hanjun.guo@linaro.org>, okaya@codeaurora.org, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
 
-Hi Geetha,
+Hi Magnus,
 
-> -----Original Message-----
-> From: linux-arm-kernel [mailto:linux-arm-kernel-
-> bounces@lists.infradead.org] On Behalf Of Geetha sowjanya
-> Sent: Friday, May 12, 2017 1:41 PM
-> To: will.deacon@arm.com; robin.murphy@arm.com;
-> lorenzo.pieralisi@arm.com; hanjun.guo@linaro.org; sudeep.holla@arm.com;
-> iommu@lists.linux-foundation.org
-> Cc: Charles.Garcia-Tobin@arm.com; Geetha Sowjanya;
-> geethasowjanya.akula@gmail.com; jcm@redhat.com;
-> linu.cherian@cavium.com; rjw@rjwysocki.net; robert.moore@intel.com;
-> linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
-> robert.richter@cavium.com; lv.zheng@intel.com; catalin.marinas@arm.com;
-> sgoutham@cavium.com; linux-arm-kernel@lists.infradead.org;
-> devel@acpica.org
-> Subject: [v6 2/3] iommu/arm-smmu-v3: Add workaround for Cavium
-> ThunderX2 erratum #74
-> 
-> From: Linu Cherian <linu.cherian@cavium.com>
-> 
-> Cavium ThunderX2 SMMU implementation doesn't support page 1 register
-> space and PAGE0_REGS_ONLY option is enabled as an errata workaround.
-> This option when turned on, replaces all page 1 offsets used for
-> EVTQ_PROD/CONS, PRIQ_PROD/CONS register access with page 0 offsets.
-> 
-> SMMU resource size checks are now based on SMMU option
-> PAGE0_REGS_ONLY, since resource size can be either 64k/128k.
-> For this, arm_smmu_device_dt_probe/acpi_probe has been moved before
-> platform_get_resource call, so that SMMU options are set beforehand.
-> 
-> Signed-off-by: Linu Cherian <linu.cherian@cavium.com>
-> Signed-off-by: Geetha Sowjanya <geethasowjanya.akula@cavium.com>
-> ---
->  Documentation/arm64/silicon-errata.txt             |  1 +
->  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |  6 ++
->  drivers/iommu/arm-smmu-v3.c                        | 64 +++++++++++++++++-----
->  3 files changed, 56 insertions(+), 15 deletions(-)
-> 
-> diff --git a/Documentation/arm64/silicon-errata.txt
-> b/Documentation/arm64/silicon-errata.txt
-> index 10f2ddd..4693a32 100644
-> --- a/Documentation/arm64/silicon-errata.txt
-> +++ b/Documentation/arm64/silicon-errata.txt
-> @@ -62,6 +62,7 @@ stable kernels.
->  | Cavium         | ThunderX GICv3  | #23154          | CAVIUM_ERRATUM_23154
-> |
->  | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456
-> |
->  | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
-> +| Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
->  |                |                 |                 |                             |
->  | Freescale/NXP  | LS2080A/LS1043A | A-008585        |
-> FSL_ERRATUM_A008585         |
->  |                |                 |                 |                             |
-> diff --git a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-> b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-> index be57550..e6da62b 100644
-> --- a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-> +++ b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-> @@ -49,6 +49,12 @@ the PCIe specification.
->  - hisilicon,broken-prefetch-cmd
->                      : Avoid sending CMD_PREFETCH_* commands to the SMMU.
-> 
-> +- cavium-cn99xx,broken-page1-regspace
-> +                    : Replaces all page 1 offsets used for EVTQ_PROD/CONS,
-> +						PRIQ_PROD/CONS register
-> access with page 0 offsets.
-> +						Set for Caviun ThunderX2
-> silicon that doesn't support
-> +						SMMU page1 register space.
-> +
->  ** Example
-> 
->          smmu@2b400000 {
-> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-> index 380969a..c519927c 100644
-> --- a/drivers/iommu/arm-smmu-v3.c
-> +++ b/drivers/iommu/arm-smmu-v3.c
-> @@ -412,6 +412,9 @@
->  #define MSI_IOVA_BASE			0x8000000
->  #define MSI_IOVA_LENGTH			0x100000
-> 
-> +#define ARM_SMMU_PAGE0_REGS_ONLY(smmu)		\
-> +	((smmu)->options & ARM_SMMU_OPT_PAGE0_REGS_ONLY)
-> +
->  static bool disable_bypass;
->  module_param_named(disable_bypass, disable_bypass, bool, S_IRUGO);
-> MODULE_PARM_DESC(disable_bypass, @@ -597,6 +600,7 @@ struct
-> arm_smmu_device {
->  	u32				features;
-> 
->  #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
-> +#define ARM_SMMU_OPT_PAGE0_REGS_ONLY    (1 << 1)
->  	u32				options;
-> 
->  	struct arm_smmu_cmdq		cmdq;
-> @@ -663,9 +667,19 @@ struct arm_smmu_option_prop {
-> 
->  static struct arm_smmu_option_prop arm_smmu_options[] = {
->  	{ ARM_SMMU_OPT_SKIP_PREFETCH, "hisilicon,broken-prefetch-
-> cmd" },
-> +	{ ARM_SMMU_OPT_PAGE0_REGS_ONLY,
-> +"cavium-cn99xx,broken-page1-regspace"},
->  	{ 0, NULL},
->  };
-> 
-> +static inline void __iomem *arm_smmu_page1_fixup(unsigned long offset,
-> +						 struct arm_smmu_device
-> *smmu)
-> +{
-> +	if (offset > SZ_64K && ARM_SMMU_PAGE0_REGS_ONLY(smmu))
-> +		offset -= SZ_64K;
-> +
-> +	return smmu->base + offset;
-> +}
-> +
->  static struct arm_smmu_domain *to_smmu_domain(struct iommu_domain
-> *dom)  {
->  	return container_of(dom, struct arm_smmu_domain, domain); @@ -
-> 1961,8 +1975,8 @@ static int arm_smmu_init_one_queue(struct
-> arm_smmu_device *smmu,
->  		return -ENOMEM;
->  	}
-> 
-> -	q->prod_reg	= smmu->base + prod_off;
-> -	q->cons_reg	= smmu->base + cons_off;
-> +	q->prod_reg	= arm_smmu_page1_fixup(prod_off, smmu);
-> +	q->cons_reg	= arm_smmu_page1_fixup(cons_off, smmu);
->  	q->ent_dwords	= dwords;
-> 
->  	q->q_base  = Q_BASE_RWA;
-> @@ -2363,8 +2377,10 @@ static int arm_smmu_device_reset(struct
-> arm_smmu_device *smmu, bool bypass)
-> 
->  	/* Event queue */
->  	writeq_relaxed(smmu->evtq.q.q_base, smmu->base +
-> ARM_SMMU_EVTQ_BASE);
-> -	writel_relaxed(smmu->evtq.q.prod, smmu->base +
-> ARM_SMMU_EVTQ_PROD);
-> -	writel_relaxed(smmu->evtq.q.cons, smmu->base +
-> ARM_SMMU_EVTQ_CONS);
-> +	writel_relaxed(smmu->evtq.q.prod,
-> +		       arm_smmu_page1_fixup(ARM_SMMU_EVTQ_PROD,
-> smmu));
-> +	writel_relaxed(smmu->evtq.q.cons,
-> +		       arm_smmu_page1_fixup(ARM_SMMU_EVTQ_CONS,
-> smmu));
-> 
->  	enables |= CR0_EVTQEN;
->  	ret = arm_smmu_write_reg_sync(smmu, enables,
-> ARM_SMMU_CR0, @@ -2379,9 +2395,9 @@ static int
-> arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
->  		writeq_relaxed(smmu->priq.q.q_base,
->  			       smmu->base + ARM_SMMU_PRIQ_BASE);
->  		writel_relaxed(smmu->priq.q.prod,
-> -			       smmu->base + ARM_SMMU_PRIQ_PROD);
-> +
-> arm_smmu_page1_fixup(ARM_SMMU_PRIQ_PROD, smmu));
->  		writel_relaxed(smmu->priq.q.cons,
-> -			       smmu->base + ARM_SMMU_PRIQ_CONS);
-> +
-> arm_smmu_page1_fixup(ARM_SMMU_PRIQ_CONS, smmu));
-> 
->  		enables |= CR0_PRIQEN;
->  		ret = arm_smmu_write_reg_sync(smmu, enables,
-> ARM_SMMU_CR0, @@ -2605,6 +2621,14 @@ static int
-> arm_smmu_device_hw_probe(struct arm_smmu_device *smmu)  }
-> 
->  #ifdef CONFIG_ACPI
-> +static void acpi_smmu_get_options(u32 model, struct arm_smmu_device
-> +*smmu) {
-> +	if (model == ACPI_IORT_SMMU_CAVIUM_CN99XX)
-> +		smmu->options |= ARM_SMMU_OPT_PAGE0_REGS_ONLY;
+<snip..>
 
-HiSIlicon hip06/07 boards have a similar existing option to enable,
-ARM_SMMU_OPT_SKIP_PREFETCH. I have just sent out a similar patch to enable
-It-" [PATCH] iommu/arm-smmu-v3: Enable ACPI based HiSilicon CMD_PREFETCH
- quirk(erratum 161010701)".  May be it can be merged here, if this series goes through.
- Not sure about the protocol though.
+>> Magnus, do you have a suggestion?
+> 
+> Thanks for your efforts guys!
+> 
+> I've recently been working on up-porting the IPMMU patches and
+> addressing review comments. Now with my local driver stack on top of
+> v4.12-rc (a95cfad) I did not notice these issues initially since I
+> only tested devices with IPMMU enabled. Once these issues were pointed
+> out to me by Geert I have now reproduced the 64-bit ARM specific ones
+> on r8a7796 Salvator-X.
+> 
+> On my r8a7796 platform I'm using the following IOMMU and DMA Engine devices:
+> 
+> IOMMU device IPMMU-DS0 - Connected to SYS-DMAC0
+> IOMMU device IPMMU-DS1 - Connected to SYS-DMAC1 and SYS-DMAC2
+> IOMMU device IPMMU-MM - Root device serving IPMMU-DS0 and IPMMU-DS1
+> 
+> For testing the serial port SCIF1 is used with DMA Engine devices
+> SYS-DMAC1 or SYS-DMAC2.
+> 
+> The software environment is configured as follows:
+> - The DTS comes with all devices above enabled except IPMMU-DS0 which
+> comes with status = "disabled".
+> - The IPMMU driver is during run time only allowing use of SYS-DMAC2.
+> For other devices ->of_xlate() returns -ENODEV.
+> 
+> The above used to work just fine with v4.11 or earlier.
+> 
+> My observations for v4.12-rc:
+> 
+> 1) Default state for a95cfad
+> 
+> The devices SYS-DMAC0 and SYS-DMAC1 will never probe. However SYS-DMAC2 is fine.
+> 
+> 2) After applying "[PATCH] iommu: of: Fix check for returning EPROBE_DEFER" [1]
+> 
+> This fixes SYS-DMAC0 that now probes and operates without IPMMU-DS0 as
+> expected. Same as v4.11 or earlier.
+> 
+> 3) After also applying "[PATCH] of: iommu: Ignore all errors except
+> EPROBE_DEFER" [2]
+> 
+> This fixes SYS-DMAC1 that now probes and operates without IPMMU-DS1 as
+> expected. Same as v4.11 or earlier.
+> 
+> With fix [1] and [2] things seem back to normal. Unless I'm mistaken
 
-Thanks,
-Shameer
+Thanks, will use this as your Tested-by.
 
+Regards,
+ Sricharan
 
+> it also seems that [1] allows me to drop the similar patch "[PATCH/RFC
+> v2 1/4] iommu/of: Skip IOMMU devices disabled in DT".
+> 
+> Thanks for your help.
+> 
+> Cheers,
+> 
+> / magnus
+> 
+> 
+> [1] https://lkml.org/lkml/2017/5/16/25
+> [2] https://www.spinics.net/lists/arm-kernel/msg581485.html
+> [3] https://patchwork.kernel.org/patch/9540605/
+> 
 
+-- 
+"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
