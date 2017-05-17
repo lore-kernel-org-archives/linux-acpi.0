@@ -1,70 +1,43 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/3] iommu: of: Fix check for returning EPROBE_DEFER
-Date: Wed, 17 May 2017 12:04:30 -0500
-Message-ID: <20170517170430.GD31462@bhelgaas-glaptop.roam.corp.google.com>
-References: <1495020609-13397-1-git-send-email-sricharan@codeaurora.org>
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 1/2] x86/MCE: Export memory_error()
+Date: Wed, 17 May 2017 18:58:00 +0000
+Message-ID: <1495047396.20330.16.camel@intel.com>
+References: <20170425210740.GA15722@omniknight.lm.intel.com>
+         <1494444606.20330.2.camel@intel.com>
+         <20170510200406.mphusoidfuyq24ee@pd.tnic>
+         <1494446729.20330.4.camel@intel.com>
+         <20170510200851.mhz3434jauxdq2u5@pd.tnic>
+         <1494450649.20330.6.camel@intel.com>
+         <20170510215707.v7zywrslma4o7jao@pd.tnic>
+         <1494453738.20330.8.camel@intel.com>
+         <20170510221631.3ue63iw3mgh2d6xt@pd.tnic>
+         <1494454869.20330.9.camel@intel.com>
+         <20170517123839.xkd25bcj3bf7rdlc@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1495020609-13397-1-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.neuschaefer-hi6Y0CQ0nG0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:15688 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751348AbdEQTGp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 17 May 2017 15:06:45 -0400
+In-Reply-To: <20170517123839.xkd25bcj3bf7rdlc@pd.tnic>
+Content-Language: en-US
+Content-ID: <432CD4436F17744BA6447795DC8ACE24@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "bp@alien8.de" <bp@alien8.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, May 17, 2017 at 05:00:07PM +0530, Sricharan R wrote:
-> Now with iommu probe deferral, we return -EPROBE_DEFER
-> for master's that are connected to an iommu which is not
-
-s/master's/masters/
-
-s/iommu/IOMMU/ in your English text (changelogs and comments).  That seems
-to be the convention, based on "git log drivers/iommu/of_iommu.c"
-
-> probed yet, but going to get probed, so that we can attach
-> the correct dma_ops. So while trying to defer the probe of
-> the master, check if the of_iommu node that it is connected
-> to is marked in DT as 'status=disabled', then the iommu is never
-> is going to get probed. So simply return NULL and let the master
-> work without an iommu.
-> 
-> Fixes: 7b07cbefb68d ("iommu: of: Handle IOMMU lookup failure with deferred probing or error")
-> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> Reported-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-> Tested-by: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-> Tested-by: Magnus Damn <magnus.damn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Acked-by: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-> ---
->  drivers/iommu/of_iommu.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-> index 9f44ee8..e6e9bec 100644
-> --- a/drivers/iommu/of_iommu.c
-> +++ b/drivers/iommu/of_iommu.c
-> @@ -118,6 +118,7 @@ static bool of_iommu_driver_present(struct device_node *np)
->  
->  	ops = iommu_ops_from_fwnode(fwnode);
->  	if ((ops && !ops->of_xlate) ||
-> +	    !of_device_is_available(iommu_spec->np) ||
->  	    (!ops && !of_iommu_driver_present(iommu_spec->np)))
->  		return NULL;
->  
-> -- 
-> QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+T24gV2VkLCAyMDE3LTA1LTE3IGF0IDE0OjM4ICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
+DQo+IE9uIFdlZCwgTWF5IDEwLCAyMDE3IGF0IDEwOjIyOjMyUE0gKzAwMDAsIFZlcm1hLCBWaXNo
+YWwgTCB3cm90ZToNCj4gPiA+IEknbGwgcHJlcCB0aGUgcXVldWUgbmV4dCB3ZWVrIGFuZCBydW4g
+dGVzdHMuDQo+ID4gPiANCj4gPiANCj4gPiBPaywgVGhhbmtzIEJvcmlzIQ0KPiANCj4gT2ssIEkn
+dmUgcHVzaGVkIGEgYnJhbmNoOg0KPiANCj4gaHR0cHM6Ly9naXQua2VybmVsLm9yZy9wdWIvc2Nt
+L2xpbnV4L2tlcm5lbC9naXQvYnAvYnAuZ2l0L2xvZy8/aD10aXAtcg0KPiBhcy1wZW5kaW5nDQo+
+IA0KPiBQbGVhc2UgaGF2ZSBhIGxvb2ssIHRlc3QsIHBva2UsIGV0Yy4uLg0KDQpRdWljay9taW5v
+ciBvYnNlcnZhdGlvbiAtIHlvdSBtb3ZlZCB0aGUgRVhQT1JUX1NZTUJPTF9HUEwgaW50byB5b3Vy
+DQpvcmlnaW5hbCBwYXRjaCwgYnV0IHRoZSBjb21taXQgbWVzc2FnZSBvZiBtaW5lIHN0aWxsIHRh
+bGtzIGFib3V0DQpleHBvcnRpbmcuIFBlcmhhcHMgaXQgc2hvdWxkIHJlYWQ6DQoNCiJVc2UgdGhl
+IG5ldyBtY2VfaXNfbWVtb3J5X2Vycm9yKCkgaGVscGVyLi4iDQoNClRoYW5rcywNCglWaXNoYWwN
+Cg0KPiANCj4gVGhhbmtzLg0KPiA=
