@@ -1,66 +1,76 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH V2 1/3] iommu: of: Fix check for returning EPROBE_DEFER
-Date: Thu, 18 May 2017 13:47 +0300
-Message-ID: <24120310.hn6YiD4jDp@avalon>
-References: <1495102030-10548-1-git-send-email-sricharan@codeaurora.org>
+From: =?big5?B?vEK5xcJA?= <scott.liu@emc.com.tw>
+Subject: RE: How my i2c device bring up?
+Date: Thu, 18 May 2017 19:09:43 +0800
+Message-ID: <03dd01d2cfc7$40a62ec0$c1f28c40$@emc.com.tw>
+References: <032401d2cee9$6ab6ea80$4024bf80$@emc.com.tw> <9c683d1f-06c6-eadb-d9be-5ff22845181f@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53719 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754985AbdERKqw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 May 2017 06:46:52 -0400
-In-Reply-To: <1495102030-10548-1-git-send-email-sricharan@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+        charset="big5"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <9c683d1f-06c6-eadb-d9be-5ff22845181f@linux.intel.com>
+Content-Language: zh-tw
+Sender: linux-i2c-owner@vger.kernel.org
+To: 'Jarkko Nikula' <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
+Cc: 'Dmitry Torokhov' <dmitry.torokhov@gmail.com>, benjamin.tissoires@gmail.com, jeff.chuang@emc.com.tw
 List-Id: linux-acpi@vger.kernel.org
-To: Sricharan R <sricharan@codeaurora.org>
-Cc: robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, frowand.list@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, magnus.damm@gmail.com, geert@linux-m68k.org, j.neuschaefer@gmx.net, laurent.pinchart+renesas@ideasonboard.com
 
-Hi Sricharan,
+Hi Jakko,
+	I am not happy because the internet & network are so slow..... :(
+	The kernel of those configurations are still on compile. 
 
-Thank you for the patch.
+	I have checked that my target platform is Intel Baytrail, so good
+luck with me.
+	Thank you !
 
-On Thursday 18 May 2017 15:37:08 Sricharan R wrote:
-> Now with IOMMU probe deferral, we return -EPROBE_DEFER
-> for masters that are connected to an IOMMU which is not
-> probed yet, but going to get probed, so that we can attach
-> the correct dma_ops. So while trying to defer the probe of
-> the master, check if the of_iommu node that it is connected
-> to is marked in DT as 'status=disabled', then the IOMMU is never
-> is going to get probed. So simply return NULL and let the master
-> work without an IOMMU.
+BR,
+Scott 
+
+
+> -----Original Message-----
+> From: Jarkko Nikula [mailto:jarkko.nikula@linux.intel.com]
+> Sent: Wednesday, May 17, 2017 7:56 PM
+> To: ¼B¹ÅÂ@; linux-i2c@vger.kernel.org; linux-acpi@vger.kernel.org;
+> linux-input@vger.kernel.org
+> Cc: Dmitry Torokhov; benjamin.tissoires@gmail.com;
+> jeff.chuang@emc.com.tw
+> Subject: Re: How my i2c device bring up?
 > 
-> Fixes: 7b07cbefb68d ("iommu: of: Handle IOMMU lookup failure with deferred
-> probing or error") Signed-off-by: Sricharan R <sricharan@codeaurora.org>
-> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Tested-by: Will Deacon <will.deacon@arm.com>
-> Tested-by: Magnus Damn <magnus.damn@gmail.com>
-> Acked-by: Will Deacon <will.deacon@arm.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
-> [V2] Corrected spelling/case in commit log
+> Hi
 > 
->  drivers/iommu/of_iommu.c | 1 +
->  1 file changed, 1 insertion(+)
+> On 05/17/2017 11:41 AM, ¼B¹ÅÂ@ wrote:
+> >
+> > I have tried to install three versions of Chromium OS(R58-9334,
+> > R59-9351,
+> > R60-9554) respectively,
+> > all of them runs kernel v4.4 and all of them can see nothing for my
+> > device by ¡§ls /sys/bus/i2c/devices¡¨.
+> > The output file is as ¡§Chromum_v4.4.52_dev_bus_i2c_devices_0517.jpg¡¨.
+> > I guess the underlying drivers(I2C bus, ACPI DSDT table) could be
+> > failed to recognize my I2C device.
+> >
+> Is this Intel Skylake ix-6xxx based laptop?
 > 
-> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-> index 9f44ee8..e6e9bec 100644
-> --- a/drivers/iommu/of_iommu.c
-> +++ b/drivers/iommu/of_iommu.c
-> @@ -118,6 +118,7 @@ static bool of_iommu_driver_present(struct device_node
-> *np)
+> My guess is that based on your finding that i2c touchscreen works in
+Ubuntu
+> that Chromium kernel may not have needed drivers enabled.
 > 
->  	ops = iommu_ops_from_fwnode(fwnode);
->  	if ((ops && !ops->of_xlate) ||
-> +	    !of_device_is_available(iommu_spec->np) ||
->  	    (!ops && !of_iommu_driver_present(iommu_spec->np)))
->  		return NULL;
-
--- 
-Regards,
-
-Laurent Pinchart
-
+> If you have access to kernel config of Chromium image could you check does
+it
+> have these MFD_INTEL_LPSS configurations on? I have them as built-in but
+> should work when built as modules too.
+> 
+> CONFIG_MFD_INTEL_LPSS=y
+> CONFIG_MFD_INTEL_LPSS_ACPI=y
+> CONFIG_MFD_INTEL_LPSS_PCI=y
+> 
+> I suppose these I2C_DESIGNWARE options are already on since I know there
+> are Intel Baytrail based Chromebooks out there.
+> 
+> CONFIG_I2C_DESIGNWARE_CORE=m
+> CONFIG_I2C_DESIGNWARE_PLATFORM=m
+> CONFIG_I2C_DESIGNWARE_PCI=m
+> CONFIG_I2C_DESIGNWARE_BAYTRAIL=y
+> 
+> --
+> Jarkko
