@@ -1,12 +1,14 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v4 3/3] of: Support const and non-const use for to_of_node()
-Date: Thu, 18 May 2017 14:11:30 +0300
-Message-ID: <1495105890-20097-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [RESEND PATCH v4 3/3] of: Support const and non-const use for to_of_node()
+Date: Thu, 18 May 2017 14:12:39 +0300
+Message-ID: <1495105959-20146-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1495104163-17165-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:40704 "EHLO mga03.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:3017 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934781AbdERLNS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 18 May 2017 07:13:18 -0400
+        id S934241AbdERLN4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 18 May 2017 07:13:56 -0400
+In-Reply-To: <1495104163-17165-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: devicetree@vger.kernel.org, robh@kernel.org, frowand.list@gmail.com
@@ -19,6 +21,8 @@ as well.
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
 This was actually in another set, but fits better here.
+
+(Now with correct In-Reply-To header.)
 
  include/linux/of.h | 16 ++++++++++------
  1 file changed, 10 insertions(+), 6 deletions(-)
