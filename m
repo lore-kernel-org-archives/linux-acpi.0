@@ -1,74 +1,60 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH V4 2/4] iommu: of: Ignore all errors except EPROBE_DEFER
-Date: Thu, 18 May 2017 17:56:49 +0300
-Message-ID: <2207666.NfkZRjnSBi@avalon>
-References: <1495119257-26724-1-git-send-email-sricharan@codeaurora.org>
-	<1495119257-26724-2-git-send-email-sricharan@codeaurora.org>
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] acpi/nfit: Fix memory corruption/Unregister mce decoder
+ on failure
+Date: Thu, 18 May 2017 17:35:06 +0000
+Message-ID: <1495128822.20330.18.camel@intel.com>
+References: <1495065367-30551-1-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1495119257-26724-2-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.neuschaefer-hi6Y0CQ0nG0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:50450 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753623AbdERRfI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 18 May 2017 13:35:08 -0400
+In-Reply-To: <1495065367-30551-1-git-send-email-prarit@redhat.com>
+Content-Language: en-US
+Content-ID: <3DC9F63FCA1A434BB74C9136D0FC51D1@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "prarit@redhat.com" <prarit@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>
 
-Hi Sricharan,
-
-Thank you for the patch.
-
-On Thursday 18 May 2017 20:24:15 Sricharan R wrote:
-> While deferring the probe of IOMMU masters, xlate and
-> add_device callbacks called from of_iommu_configure
-> can pass back error values like -ENODEV, which means
-> the IOMMU cannot be connected with that master for real
-> reasons. Before the IOMMU probe deferral, all such errors
-> were ignored. Now all those errors are propagated back,
-> killing the master's probe for such errors. Instead ignore
-> all the errors except EPROBE_DEFER, which is the only one
-> of concern and let the master work without IOMMU, thus
-> restoring the old behavior.
-> 
-> Fixes: 7b07cbefb68d ("iommu: of: Handle IOMMU lookup failure with deferred
-> probing or error") Reported-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-> Tested-by: Magnus Damn <magnus.damn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-
-> ---
-> [V4] Reworded commit log and changed dev_info to dev_dbg
-> 
->  drivers/iommu/of_iommu.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-> index e6e9bec..19779b8 100644
-> --- a/drivers/iommu/of_iommu.c
-> +++ b/drivers/iommu/of_iommu.c
-> @@ -237,6 +237,12 @@ const struct iommu_ops *of_iommu_configure(struct
-> device *dev, ops = ERR_PTR(err);
->  	}
-> 
-> +	/* Ignore all other errors apart from EPROBE_DEFER */
-> +	if (IS_ERR(ops) && (PTR_ERR(ops) != -EPROBE_DEFER)) {
-> +		dev_dbg(dev, "Adding to IOMMU failed: %ld\n", PTR_ERR(ops));
-> +		ops = NULL;
-> +	}
-> +
->  	return ops;
->  }
-
--- 
-Regards,
-
-Laurent Pinchart
+T24gV2VkLCAyMDE3LTA1LTE3IGF0IDE5OjU2IC0wNDAwLCBQcmFyaXQgQmhhcmdhdmEgd3JvdGU6
+DQo+IG5maXRfaW5pdCgpIGNhbGxzIG5maXRfbWNlX3JlZ2lzdGVyKCkgb24gbW9kdWxlIGxvYWQu
+wqDCoFdoZW4gdGhlIG1vZHVsZQ0KPiBsb2FkIGZhaWxzIHRoZSBuZml0IG1jZSBkZWNvZGVyIGlz
+IG5vdCB1bnJlZ2lzdGVyZWQuwqDCoFRoZSBtb2R1bGUncw0KPiBtZW1vcnkgaXMgZnJlZWQgbGVh
+dmluZyB0aGUgZGVjb2RlciBjaGFpbiByZWZlcmVuY2luZyBqdW5rLsKgwqBUaGlzIHdpbGwNCj4g
+Y2F1c2UgcGFuaWNzIGFzIGZ1dHVyZSByZWdpc3RyYXRpb25zIHdpbGwgcmVmZXJlbmNlIHRoZSBm
+cmVlJ2QgbWVtb3J5Lg0KPiANCj4gT25seSByZWdpc3RlciB0aGUgbmZpdCBtY2UgZGVjb2RlciBv
+biBzdWNjZXNzLg0KDQpHb29kIGZpbmQhIEknbSB3b25kZXJpbmcgaWYgcmVnaXN0ZXJpbmcgdGhl
+IG1jZSBoYW5kbGVyIGFmdGVyIHRoZSByZXN0DQpvZiB0aGUgaW5pdCB3aWxsIGxlYXZlIGEgKHNt
+YWxsKSB3aW5kb3cgb3BlbiB3aGVyZSBNQ0VzIGNhbiBoYXBwZW4gYnV0DQp0aGUgaGFuZGxlciBo
+YXMgeWV0IHRvIGJlIHJlZ2lzdGVyZWQuLiBNYXliZSBpdCBpcyBpbmNvbnNlcXVlbnRpYWwsIGFu
+ZA0Kd2UgY2FuIGp1c3QgZG8gdGhpcy4gQWx0ZXJuYXRpdmVseSwgaWYgYWNwaV9idXNfcmVnaXN0
+ZXJfZHJpdmVyIGZhaWxzLA0KdGhlbiBnbyBiYWNrIGFuZCB1bnJlZ2lzdGVyIHRoZSBtY2UgaGFu
+ZGxlci4uDQoNCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFByYXJpdCBCaGFyZ2F2YSA8cHJhcml0QHJl
+ZGhhdC5jb20+DQo+IENjOiBKZWZmIE1veWVyIDxqbW95ZXJAcmVkaGF0LmNvbT4NCj4gQ2M6ICJS
+YWZhZWwgSi4gV3lzb2NraSIgPHJqd0Byand5c29ja2kubmV0Pg0KPiBDYzogTGVuIEJyb3duIDxs
+ZW5iQGtlcm5lbC5vcmc+DQo+IENjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVs
+LmNvbT4NCj4gQ2M6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPg0KPiBD
+YzogIkxlZSwgQ2h1bi1ZaSIgPGpvZXlsaS5rZXJuZWxAZ21haWwuY29tPg0KPiBDYzogTGluZGEg
+S25pcHBlcnMgPGxpbmRhLmtuaXBwZXJzQGhwZS5jb20+DQo+IC0tLQ0KPiDCoGRyaXZlcnMvYWNw
+aS9uZml0L2NvcmUuYyB8wqDCoMKgwqA4ICsrKysrKy0tDQo+IMKgMSBmaWxlIGNoYW5nZWQsIDYg
+aW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJz
+L2FjcGkvbmZpdC9jb3JlLmMgYi9kcml2ZXJzL2FjcGkvbmZpdC9jb3JlLmMNCj4gaW5kZXggNjU2
+YWNiNWQ3MTY2Li5iNjA4NTZiNDMyNWIgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvYWNwaS9uZml0
+L2NvcmUuYw0KPiArKysgYi9kcml2ZXJzL2FjcGkvbmZpdC9jb3JlLmMNCj4gQEAgLTMwNDMsNiAr
+MzA0Myw4IEBAIHN0YXRpYyB2b2lkIGFjcGlfbmZpdF9ub3RpZnkoc3RydWN0IGFjcGlfZGV2aWNl
+DQo+ICphZGV2LCB1MzIgZXZlbnQpDQo+IMKgDQo+IMKgc3RhdGljIF9faW5pdCBpbnQgbmZpdF9p
+bml0KHZvaWQpDQo+IMKgew0KPiArCWludCByZXQ7DQo+ICsNCj4gwqAJQlVJTERfQlVHX09OKHNp
+emVvZihzdHJ1Y3QgYWNwaV90YWJsZV9uZml0KSAhPSA0MCk7DQo+IMKgCUJVSUxEX0JVR19PTihz
+aXplb2Yoc3RydWN0IGFjcGlfbmZpdF9zeXN0ZW1fYWRkcmVzcykgIT0gNTYpOw0KPiDCoAlCVUlM
+RF9CVUdfT04oc2l6ZW9mKHN0cnVjdCBhY3BpX25maXRfbWVtb3J5X21hcCkgIT0gNDgpOw0KPiBA
+QCAtMzA2OSw5ICszMDcxLDExIEBAIHN0YXRpYyBfX2luaXQgaW50IG5maXRfaW5pdCh2b2lkKQ0K
+PiDCoAlpZiAoIW5maXRfd3EpDQo+IMKgCQlyZXR1cm4gLUVOT01FTTsNCj4gwqANCj4gLQluZml0
+X21jZV9yZWdpc3RlcigpOw0KPiArCXJldCA9IGFjcGlfYnVzX3JlZ2lzdGVyX2RyaXZlcigmYWNw
+aV9uZml0X2RyaXZlcik7DQo+ICsJaWYgKCFyZXQpDQo+ICsJCW5maXRfbWNlX3JlZ2lzdGVyKCk7
+DQo+IMKgDQo+IC0JcmV0dXJuIGFjcGlfYnVzX3JlZ2lzdGVyX2RyaXZlcigmYWNwaV9uZml0X2Ry
+aXZlcik7DQo+ICsJcmV0dXJuIHJldDsNCj4gwqB9DQo+IMKgDQo+IMKgc3RhdGljIF9fZXhpdCB2
+b2lkIG5maXRfZXhpdCh2b2lkKQ==
