@@ -1,84 +1,71 @@
-From: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH 1/3] iommu: of: Fix check for returning EPROBE_DEFER
-Date: Thu, 18 May 2017 14:33:57 +0530
-Message-ID: <1c306cf1-f7fb-87b1-1fef-3b08aea04560@codeaurora.org>
-References: <1495020609-13397-1-git-send-email-sricharan@codeaurora.org>
-	<20170517170430.GD31462@bhelgaas-glaptop.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20170517170430.GD31462-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.neuschaefer-hi6Y0CQ0nG0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH v3 0/5] ACPICA: Tables: Add deferred verification support
+Date: Thu, 18 May 2017 17:57:13 +0800
+Message-ID: <cover.1495100623.git.lv.zheng@intel.com>
+References: <20170227093432.3308-1-hdegoede@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:50437 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752978AbdERJ5S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 18 May 2017 05:57:18 -0400
+In-Reply-To: <20170227093432.3308-1-hdegoede@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org, Hans de Goede <hdegoede@redhat.com>
 
-Hi Bjorn,
+On linux, we can not verify ACPI tables before installing them into the
+global table list in early stage due to the number of slot limitations for
+early ioremap. This leaves a problem that we cannot detect duplicated
+tables in early stage, causing unwanted error messages seen when the
+duplicated tables are failed to be loaded [link #1].
 
-On 5/17/2017 10:34 PM, Bjorn Helgaas wrote:
-> On Wed, May 17, 2017 at 05:00:07PM +0530, Sricharan R wrote:
->> Now with iommu probe deferral, we return -EPROBE_DEFER
->> for master's that are connected to an iommu which is not
-> 
-> s/master's/masters/
-> 
-> s/iommu/IOMMU/ in your English text (changelogs and comments).  That seems
-> to be the convention, based on "git log drivers/iommu/of_iommu.c"
-> 
+This patchset as ACPICA PR [link #2] adds support to verify tables in
+acpi_reallocate_root_tables() which is invoked after installing tables in
+early stage, being ready for late ioremap and beofre loading table in late
+stage. If duplicated tables are detected, acpi_reallocate_root_tables()
+stops installing them to the final reallocated global table list.
 
-ok, will correct those.
+In v1 patchset [link #3], problems can be seen for dynamic loading tables
+which are allocated as virtuall allocated tables. Such tables are
+incremented in the global table list as the sanity check done in install
+step only compares the table addresses while the virtual allocated
+addresses are not stable.
+In v2 patchset, we follow original design discussion made in ACPICA devel
+mailing list, implements deferred table verification so that duplicate
+tables are still can be detected in install step rather than in load step.
+Also we removed table signature check according to verified windows
+behavior [link #4] and reported issues [link #5].
+In v3 patchset, one serious problem is detected around returning
+AE_CTRL_TERMINATE for duplicate tables. The problem is detected by ASLTS.
+Also it contains small improvements. ACPICA pull request [link #2] is
+also updated.
 
-Regards,
- Sricharan
+Link: http://www.spinics.net/lists/linux-acpi/msg72215.html [#1]
+Link: https://github.com//acpica/acpica/pull/265            [#2]
+Link: http://www.spinics.net/lists/linux-acpi/msg72589.html [#3]
+Link: https://github.com//acpica/acpica/pull/121            [#4]
+      https://bugzilla.kernel.org/show_bug.cgi?id=118601    [#5]
 
+Lv Zheng (5):
+  ACPICA: Tables: Cleanup table handler invokers
+  ACPICA: Tables: Do not validate signature for dynamic table load
+  ACPICA: Tables: Change table duplication check to be related to
+    acpi_gbl_verify_table_checksum
+  ACPICA: Tables: Combine checksum/duplication verification together
+  ACPICA: Tables: Add deferred table verification support
 
->> probed yet, but going to get probed, so that we can attach
->> the correct dma_ops. So while trying to defer the probe of
->> the master, check if the of_iommu node that it is connected
->> to is marked in DT as 'status=disabled', then the iommu is never
->> is going to get probed. So simply return NULL and let the master
->> work without an iommu.
->>
->> Fixes: 7b07cbefb68d ("iommu: of: Handle IOMMU lookup failure with deferred probing or error")
->> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
->> Reported-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
->> Tested-by: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
->> Tested-by: Magnus Damn <magnus.damn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> Acked-by: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
->> ---
->>  drivers/iommu/of_iommu.c | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
->> index 9f44ee8..e6e9bec 100644
->> --- a/drivers/iommu/of_iommu.c
->> +++ b/drivers/iommu/of_iommu.c
->> @@ -118,6 +118,7 @@ static bool of_iommu_driver_present(struct device_node *np)
->>  
->>  	ops = iommu_ops_from_fwnode(fwnode);
->>  	if ((ops && !ops->of_xlate) ||
->> +	    !of_device_is_available(iommu_spec->np) ||
->>  	    (!ops && !of_iommu_driver_present(iommu_spec->np)))
->>  		return NULL;
->>  
->> -- 
->> QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
->>
->>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+ drivers/acpi/acpica/actables.h |   5 +-
+ drivers/acpi/acpica/tbdata.c   | 228 ++++++++++++++++++++++++++++++++++++-----
+ drivers/acpi/acpica/tbinstal.c | 161 ++++-------------------------
+ drivers/acpi/acpica/tbxface.c  |  33 +++++-
+ drivers/acpi/acpica/tbxfload.c |   2 +-
+ drivers/acpi/bus.c             |   3 -
+ drivers/acpi/tables.c          |   4 +-
+ include/acpi/acpixf.h          |  15 +--
+ include/acpi/actbl.h           |   1 +
+ 9 files changed, 270 insertions(+), 182 deletions(-)
 
 -- 
-"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+2.7.4
+
