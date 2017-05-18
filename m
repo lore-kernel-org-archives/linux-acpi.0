@@ -1,115 +1,73 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: Regression: bd698d24b1b57: i2c: designware: Get selected speed
- mode sda-hold-time via ACPI
-Date: Thu, 18 May 2017 14:44:25 +0100
-Message-ID: <CAKv+Gu-=4YXovPTjWWOkN4BTFQt9qYyU781s1Qwx1vvrAMZsyQ@mail.gmail.com>
-References: <20170509140720.GA21122@red-moon> <1494341651.30052.82.camel@linux.intel.com>
- <20170509155253.GA21475@red-moon> <1494346848.30052.84.camel@linux.intel.com>
- <20170510092450.GA26012@red-moon> <1105edd1-8649-66f2-8df8-79aeae61af3a@linux.intel.com>
- <CAKv+Gu-DPNUy=ODRqqVrvO-b04FxkEg8bz=dHzwspU5FqBRnNg@mail.gmail.com> <25ff2580-d461-87f2-f61d-2ede10ea4c01@linux.intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFC PATCH v2 0/5] ACPICA: Tables: Add deferred verification
+ support
+Date: Thu, 18 May 2017 16:01:30 +0200
+Message-ID: <71329223-dbb4-2845-a14e-3db579ca552b@redhat.com>
+References: <20170227093432.3308-1-hdegoede@redhat.com>
+ <cover.1494916766.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f176.google.com ([209.85.223.176]:36749 "EHLO
-        mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755193AbdERNo1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 May 2017 09:44:27 -0400
-Received: by mail-io0-f176.google.com with SMTP id o12so28701790iod.3
-        for <linux-acpi@vger.kernel.org>; Thu, 18 May 2017 06:44:26 -0700 (PDT)
-In-Reply-To: <25ff2580-d461-87f2-f61d-2ede10ea4c01@linux.intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:47726 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753786AbdEROBd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 18 May 2017 10:01:33 -0400
+In-Reply-To: <cover.1494916766.git.lv.zheng@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, chin.yew.tan@intel.com, mika.westerberg@linux.intel.com, wsa@the-dreams.de, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-i2c@vger.kernel.org, ken.xue@amd.com, jeff.wu@amd.com
+To: Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, "David E . Box" <david.e.box@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org
 
-On 18 May 2017 at 14:05, Jarkko Nikula <jarkko.nikula@linux.intel.com> wrote:
-> On 05/18/2017 03:24 PM, Ard Biesheuvel wrote:
->>
->> On 10 May 2017 at 14:55, Jarkko Nikula <jarkko.nikula@linux.intel.com>
->> wrote:
->>>
->>> On 05/10/2017 12:24 PM, Lorenzo Pieralisi wrote:
->>>>
->>>>
->>>> On Tue, May 09, 2017 at 07:20:48PM +0300, Andy Shevchenko wrote:
->>>>>>>
->>>>>>>
->>>>>>> It means either ID is not added to drivers/acpi/acpi_apd.c or
->>>>>
->>>>>
->>>>>
->>>>> Just one question, did you look at all into above driver?
->>>>> I suppose it missed ID and properties for the device.
->>>>
->>>>
->>>>
->>>> I looked into it yes. I have also looked at ACPI tables and they
->>>> contain the SSCN and FMCN methods and AFAIK the set-up was working
->>>> fine before the commit in $SUBJECT - AMD guys - please correct me
->>>> if I am wrong, I found this thread which explains things a bit:
->>>>
->>>>
->>>>
->>>> http://lists.infradead.org/pipermail/linux-arm-kernel/2015-December/395983.html
->>>>
->>>> If we have to patch drivers/acpi/acpi_apd.c to restore the previous
->>>> behaviour that's fine by me but this is a regression nonetheless unless
->>>> someone explains to me why the current firmware set-up (with SSCN and
->>>> FMCN) is unreliable/deprecated, it is not clear to me at all and it
->>>> may affect other platforms too.
->>>>
->>> I guess best would be to fix the i2c_dw_init(). Maybe by moving timing
->>> parameters settings out to another function, do setting only for selected
->>> speed and calculate only once in case parameters are not set.
->>>
->>> I don't think timing parameters for standard or fast speeds are not
->>> needed
->>> unless operating at those speeds but have to check that first. At least
->>> that's what we are doing for high speed.
->>>
->>
->> Commit bd698d24b1b57 is broken and should be reverted: the splat on
->> AMD Seattle is the most visible symptom, but the logic change results
->> in DW_IC_SS_SCL_HCNT/DW_IC_SS_SCL_LCNT possibly being set to different
->> values than specified by the ACPI methods. The missing clock splat is
->> only a symptom of this: the driver tries to calculate values from the
->> clock frequency that should have been read from the DSDT.
->>
->> For reference, this is the description we have on the platform in
->> question:
->>
->>             Method (SSCN, 0, NotSerialized)
->>             {
->>                 Return (Package (0x03)
->>                 {
->>                     0x0430,
->>                     0x04E1,
->>                     0x00
->>                 })
->>             }
->>
->>             Method (FMCN, 0, NotSerialized)
->>             {
->>                 Return (Package (0x03)
->>                 {
->>                     0x00DE,
->>                     0x018F,
->>                     0x00
->>                 })
->>             }
->>
->> Whether it hurts to program different standard mode values here is
->> irrelevant. It is simply wrong.
->>
-> I have a fix for this. Could you try does it fix the issue for you?
->
-> http://www.spinics.net/lists/linux-i2c/msg29509.html
->
+Hi,
 
-Thanks. But the question is really whether we want to change the
-driver so that the DW_IC_SS_SCL_HCNT/DW_IC_SS_SCL_LCNT registers are
-no longer programmed at all when running at a higher speed. Can you
-guarantee that this will not cause any change in behavior in all
-instances of this hardware that are supported currently, no matter how
-they are synthesized and described to the OS? The previous commit only
-affected the platdrv variety AFAIR
+On 16-05-17 09:13, Lv Zheng wrote:
+> On linux, we can not verify ACPI tables before installing them into the
+> global table list in early stage due to the number of slot limitations for
+> early ioremap. This leaves a problem that we cannot detect duplicated
+> tables in early stage, causing unwanted error messages seen when the
+> duplicated tables are failed to be loaded [link #1].
+> 
+> This patchset as ACPICA PR [link #2] adds support to verify tables in
+> acpi_reallocate_root_tables() which is invoked after installing tables in
+> early stage, being ready for late ioremap and beofre loading table in late
+> stage. If duplicated tables are detected, acpi_reallocate_root_tables()
+> stops installing them to the final reallocated global table list.
+> 
+> In v1 patchset [link #3], problems can be seen for dynamic loading tables
+> which are allocated as virtuall allocated tables. Such tables are
+> incremented in the global table list as the sanity check done in install
+> step only compares the table addresses while the virtual allocated
+> addresses are not stable.
+> In v2 patchset, we follow original design discussion made in ACPICA devel
+> mailing list, implements deferred table verification so that duplicate
+> tables are still can be detected in install step rather than in load step.
+> Also we removed table signature check according to verified windows
+> behavior [link #4] and reported issues [link #5].
+> 
+> Link: http://www.spinics.net/lists/linux-acpi/msg72215.html [#1]
+> Link: https://github.com//acpica/acpica/pull/265            [#2]
+> Link: http://www.spinics.net/lists/linux-acpi/msg72589.html [#3]
+> Link: https://github.com//acpica/acpica/pull/121            [#4]
+>        https://bugzilla.kernel.org/show_bug.cgi?id=118601    [#5]
+> 
+> Lv Zheng (5):
+>    ACPICA: Tables: Cleanup table handler invokers
+>    ACPICA: Tables: Do not validate signature for dynamic table load
+>    ACPICA: Tables: Change table duplication check to be related to
+>      acpi_gbl_verify_table_checksum
+>    ACPICA: Tables: Combine checksum/duplication verification together
+>    ACPICA: Tables: Add deferred table verification support
+
+I've tested these patches and can confirm that they fix the ACPI
+errors on the system which started this all.
+
+Note I've tested "v2" of the patch-set, I was on the Cc for the
+cover letter for v3, but I did not receive the actual patches,
+if you want me test v3 please send me the patches (or point
+me to a git branch with them).
+
+Regards,
+
+Hans
