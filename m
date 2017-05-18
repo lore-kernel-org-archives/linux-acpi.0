@@ -1,132 +1,93 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH v3 1/5] ACPICA: Tables: Cleanup table handler invokers
-Date: Thu, 18 May 2017 17:57:21 +0800
-Message-ID: <213b7c8aad7f7e2d626e108ee8dcc43de30c4dfa.1495100623.git.lv.zheng@intel.com>
+Subject: [RFC PATCH v3 2/5] ACPICA: Tables: Do not validate signature for dynamic table load
+Date: Thu, 18 May 2017 17:57:33 +0800
+Message-ID: <1978962b7d10bd212437816418884400dd498102.1495100623.git.lv.zheng@intel.com>
 References: <20170227093432.3308-1-hdegoede@redhat.com> <cover.1495100623.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:18781 "EHLO mga06.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:18188 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752978AbdERJ5Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 18 May 2017 05:57:25 -0400
+        id S1752978AbdERJ5h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 18 May 2017 05:57:37 -0400
 In-Reply-To: <cover.1495100623.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
 Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org
 
-Recently, we allows the table mutex to be held in both early and late stage
-APIs. This patch further cleans up the related code to reduce redundant
-code related to acpi_gbl_table_handler. Lv Zheng.
+Windows seems to allow arbitrary table signatures for Load/load_table
+opcodes:
+  ACPI BIOS Error (bug): Table has invalid signature [PRAD] (0x44415250)
+So this patch removes dynamic load signature checks. However we need to
+find a way to avoid table loading against tables like MADT. This is not
+covered by this commit.
 
-Tested-by: Hans de Goede <hdegoede@redhat.com>
+This Windows behavior has been validated on link #1. An end user bug
+report can also be found on link #2.
+
+This patch also includes simple cleanup for static load signature check
+code. Reported by Ye Xiaolong, Fixed by Lv Zheng.
+
+Link: https://github.com/acpica/acpica/pull/121 [#1]
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=118601 [#2]
+Reported-by: Ye Xiaolong <xiaolong.ye@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/actables.h |  2 ++
- drivers/acpi/acpica/tbdata.c   | 43 ++++++++++++++++++++++++++++--------------
- drivers/acpi/acpica/tbinstal.c |  8 ++------
- 3 files changed, 33 insertions(+), 20 deletions(-)
+ drivers/acpi/acpica/tbinstal.c | 28 ----------------------------
+ drivers/acpi/acpica/tbxfload.c |  2 +-
+ 2 files changed, 1 insertion(+), 29 deletions(-)
 
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index c8da453..89ed31b 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -132,6 +132,8 @@ acpi_tb_install_and_load_table(acpi_physical_address address,
- 
- acpi_status acpi_tb_unload_table(u32 table_index);
- 
-+void acpi_tb_notify_table(u32 event, void *table);
-+
- void acpi_tb_terminate(void);
- 
- acpi_status acpi_tb_delete_namespace_by_owner(u32 table_index);
-diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
-index 27c5c27..42ea044 100644
---- a/drivers/acpi/acpica/tbdata.c
-+++ b/drivers/acpi/acpica/tbdata.c
-@@ -818,13 +818,9 @@ acpi_tb_load_table(u32 table_index, struct acpi_namespace_node *parent_node)
- 		acpi_ev_update_gpes(owner_id);
- 	}
- 
--	/* Invoke table handler if present */
--
--	if (acpi_gbl_table_handler) {
--		(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_LOAD, table,
--					     acpi_gbl_table_handler_context);
--	}
-+	/* Invoke table handler */
- 
-+	acpi_tb_notify_table(ACPI_TABLE_EVENT_LOAD, table);
- 	return_ACPI_STATUS(status);
- }
- 
-@@ -892,15 +888,11 @@ acpi_status acpi_tb_unload_table(u32 table_index)
- 		return_ACPI_STATUS(AE_NOT_EXIST);
- 	}
- 
--	/* Invoke table handler if present */
-+	/* Invoke table handler */
- 
--	if (acpi_gbl_table_handler) {
--		status = acpi_get_table_by_index(table_index, &table);
--		if (ACPI_SUCCESS(status)) {
--			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
--						     table,
--						     acpi_gbl_table_handler_context);
--		}
-+	status = acpi_get_table_by_index(table_index, &table);
-+	if (ACPI_SUCCESS(status)) {
-+		acpi_tb_notify_table(ACPI_TABLE_EVENT_UNLOAD, table);
- 	}
- 
- 	/* Delete the portion of the namespace owned by this table */
-@@ -914,3 +906,26 @@ acpi_status acpi_tb_unload_table(u32 table_index)
- 	acpi_tb_set_table_loaded_flag(table_index, FALSE);
- 	return_ACPI_STATUS(status);
- }
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_tb_notify_table
-+ *
-+ * PARAMETERS:  event               - Table event
-+ *              table               - Validated table pointer
-+ *
-+ * RETURN:      None
-+ *
-+ * DESCRIPTION: Notify a table event to the users.
-+ *
-+ ******************************************************************************/
-+
-+void acpi_tb_notify_table(u32 event, void *table)
-+{
-+	/* Invoke table handler if present */
-+
-+	if (acpi_gbl_table_handler) {
-+		(void)acpi_gbl_table_handler(event, table,
-+					     acpi_gbl_table_handler_context);
-+	}
-+}
 diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index 4620f3c..ee74515 100644
+index ee74515..9d21296 100644
 --- a/drivers/acpi/acpica/tbinstal.c
 +++ b/drivers/acpi/acpica/tbinstal.c
-@@ -306,14 +306,10 @@ acpi_tb_install_standard_table(acpi_physical_address address,
- 	acpi_tb_install_table_with_override(&new_table_desc, override,
- 					    table_index);
- 
--	/* Invoke table handler if present */
-+	/* Invoke table handler */
- 
- 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
--	if (acpi_gbl_table_handler) {
--		(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_INSTALL,
--					     new_table_desc.pointer,
--					     acpi_gbl_table_handler_context);
--	}
-+	acpi_tb_notify_table(ACPI_TABLE_EVENT_INSTALL, new_table_desc.pointer);
+@@ -222,34 +222,6 @@ acpi_tb_install_standard_table(acpi_physical_address address,
  	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
  
- unlock_and_exit:
+ 	if (reload) {
+-		/*
+-		 * Validate the incoming table signature.
+-		 *
+-		 * 1) Originally, we checked the table signature for "SSDT" or "PSDT".
+-		 * 2) We added support for OEMx tables, signature "OEM".
+-		 * 3) Valid tables were encountered with a null signature, so we just
+-		 *    gave up on validating the signature, (05/2008).
+-		 * 4) We encountered non-AML tables such as the MADT, which caused
+-		 *    interpreter errors and kernel faults. So now, we once again allow
+-		 *    only "SSDT", "OEMx", and now, also a null signature. (05/2011).
+-		 */
+-		if ((new_table_desc.signature.ascii[0] != 0x00) &&
+-		    (!ACPI_COMPARE_NAME
+-		     (&new_table_desc.signature, ACPI_SIG_SSDT))
+-		    && (strncmp(new_table_desc.signature.ascii, "OEM", 3))) {
+-			ACPI_BIOS_ERROR((AE_INFO,
+-					 "Table has invalid signature [%4.4s] (0x%8.8X), "
+-					 "must be SSDT or OEMx",
+-					 acpi_ut_valid_nameseg(new_table_desc.
+-							       signature.
+-							       ascii) ?
+-					 new_table_desc.signature.
+-					 ascii : "????",
+-					 new_table_desc.signature.integer));
+-
+-			status = AE_BAD_SIGNATURE;
+-			goto unlock_and_exit;
+-		}
+ 
+ 		/* Check if table is already registered */
+ 
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index b71ce3b..d81f442 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -206,7 +206,7 @@ acpi_status acpi_tb_load_namespace(void)
+ 	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
+ 		table = &acpi_gbl_root_table_list.tables[i];
+ 
+-		if (!acpi_gbl_root_table_list.tables[i].address ||
++		if (!table->address ||
+ 		    (!ACPI_COMPARE_NAME(table->signature.ascii, ACPI_SIG_SSDT)
+ 		     && !ACPI_COMPARE_NAME(table->signature.ascii,
+ 					   ACPI_SIG_PSDT)
 -- 
 2.7.4
 
