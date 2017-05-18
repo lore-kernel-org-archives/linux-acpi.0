@@ -1,76 +1,59 @@
-From: =?big5?B?vEK5xcJA?= <scott.liu@emc.com.tw>
-Subject: RE: How my i2c device bring up?
-Date: Thu, 18 May 2017 19:09:43 +0800
-Message-ID: <03dd01d2cfc7$40a62ec0$c1f28c40$@emc.com.tw>
-References: <032401d2cee9$6ab6ea80$4024bf80$@emc.com.tw> <9c683d1f-06c6-eadb-d9be-5ff22845181f@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="big5"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <9c683d1f-06c6-eadb-d9be-5ff22845181f@linux.intel.com>
-Content-Language: zh-tw
-Sender: linux-i2c-owner@vger.kernel.org
-To: 'Jarkko Nikula' <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
-Cc: 'Dmitry Torokhov' <dmitry.torokhov@gmail.com>, benjamin.tissoires@gmail.com, jeff.chuang@emc.com.tw
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v4 3/3] of: Support const and non-const use for to_of_node()
+Date: Thu, 18 May 2017 14:11:30 +0300
+Message-ID: <1495105890-20097-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:40704 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934781AbdERLNS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 18 May 2017 07:13:18 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: devicetree@vger.kernel.org, robh@kernel.org, frowand.list@gmail.com
+Cc: linux-acpi@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, ahs3@redhat.com
 
-Hi Jakko,
-	I am not happy because the internet & network are so slow..... :(
-	The kernel of those configurations are still on compile. 
+Turn to_of_node() into a macro in order to support both const and
+non-const use. Additionally make the fwnode argument to is_of_node() const
+as well.
 
-	I have checked that my target platform is Intel Baytrail, so good
-luck with me.
-	Thank you !
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+This was actually in another set, but fits better here.
 
-BR,
-Scott 
+ include/linux/of.h | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
+diff --git a/include/linux/of.h b/include/linux/of.h
+index a7ccf34..03dbc94 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -148,16 +148,20 @@ extern raw_spinlock_t devtree_lock;
+ #ifdef CONFIG_OF
+ void of_core_init(void);
+ 
+-static inline bool is_of_node(struct fwnode_handle *fwnode)
++static inline bool is_of_node(const struct fwnode_handle *fwnode)
+ {
+ 	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_OF;
+ }
+ 
+-static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
+-{
+-	return is_of_node(fwnode) ?
+-		container_of(fwnode, struct device_node, fwnode) : NULL;
+-}
++#define to_of_node(__fwnode)						\
++	({								\
++		typeof(__fwnode) __to_of_node_fwnode = __fwnode;	\
++									\
++		is_of_node(__to_of_node_fwnode) ?			\
++			container_of(__to_of_node_fwnode,		\
++				     struct device_node, fwnode) :	\
++			NULL;						\
++	})
+ 
+ #define of_fwnode_handle(node)						\
+ 	({								\
+-- 
+2.7.4
 
-> -----Original Message-----
-> From: Jarkko Nikula [mailto:jarkko.nikula@linux.intel.com]
-> Sent: Wednesday, May 17, 2017 7:56 PM
-> To: ¼B¹ÅÂ@; linux-i2c@vger.kernel.org; linux-acpi@vger.kernel.org;
-> linux-input@vger.kernel.org
-> Cc: Dmitry Torokhov; benjamin.tissoires@gmail.com;
-> jeff.chuang@emc.com.tw
-> Subject: Re: How my i2c device bring up?
-> 
-> Hi
-> 
-> On 05/17/2017 11:41 AM, ¼B¹ÅÂ@ wrote:
-> >
-> > I have tried to install three versions of Chromium OS(R58-9334,
-> > R59-9351,
-> > R60-9554) respectively,
-> > all of them runs kernel v4.4 and all of them can see nothing for my
-> > device by ¡§ls /sys/bus/i2c/devices¡¨.
-> > The output file is as ¡§Chromum_v4.4.52_dev_bus_i2c_devices_0517.jpg¡¨.
-> > I guess the underlying drivers(I2C bus, ACPI DSDT table) could be
-> > failed to recognize my I2C device.
-> >
-> Is this Intel Skylake ix-6xxx based laptop?
-> 
-> My guess is that based on your finding that i2c touchscreen works in
-Ubuntu
-> that Chromium kernel may not have needed drivers enabled.
-> 
-> If you have access to kernel config of Chromium image could you check does
-it
-> have these MFD_INTEL_LPSS configurations on? I have them as built-in but
-> should work when built as modules too.
-> 
-> CONFIG_MFD_INTEL_LPSS=y
-> CONFIG_MFD_INTEL_LPSS_ACPI=y
-> CONFIG_MFD_INTEL_LPSS_PCI=y
-> 
-> I suppose these I2C_DESIGNWARE options are already on since I know there
-> are Intel Baytrail based Chromebooks out there.
-> 
-> CONFIG_I2C_DESIGNWARE_CORE=m
-> CONFIG_I2C_DESIGNWARE_PLATFORM=m
-> CONFIG_I2C_DESIGNWARE_PCI=m
-> CONFIG_I2C_DESIGNWARE_BAYTRAIL=y
-> 
-> --
-> Jarkko
