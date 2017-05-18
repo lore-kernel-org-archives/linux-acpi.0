@@ -1,63 +1,84 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: [PATCH] acpi/nfit: Fix memory corruption/Unregister mce decoder on failure
-Date: Wed, 17 May 2017 19:56:07 -0400
-Message-ID: <1495065367-30551-1-git-send-email-prarit@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34902 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752375AbdEQX4P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 17 May 2017 19:56:15 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH 1/3] iommu: of: Fix check for returning EPROBE_DEFER
+Date: Thu, 18 May 2017 14:33:57 +0530
+Message-ID: <1c306cf1-f7fb-87b1-1fef-3b08aea04560@codeaurora.org>
+References: <1495020609-13397-1-git-send-email-sricharan@codeaurora.org>
+	<20170517170430.GD31462@bhelgaas-glaptop.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20170517170430.GD31462-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.neuschaefer-hi6Y0CQ0nG0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Prarit Bhargava <prarit@redhat.com>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Linda Knippers <linda.knippers@hpe.com>
 
-nfit_init() calls nfit_mce_register() on module load.  When the module
-load fails the nfit mce decoder is not unregistered.  The module's
-memory is freed leaving the decoder chain referencing junk.  This will
-cause panics as future registrations will reference the free'd memory.
+Hi Bjorn,
 
-Only register the nfit mce decoder on success.
+On 5/17/2017 10:34 PM, Bjorn Helgaas wrote:
+> On Wed, May 17, 2017 at 05:00:07PM +0530, Sricharan R wrote:
+>> Now with iommu probe deferral, we return -EPROBE_DEFER
+>> for master's that are connected to an iommu which is not
+> 
+> s/master's/masters/
+> 
+> s/iommu/IOMMU/ in your English text (changelogs and comments).  That seems
+> to be the convention, based on "git log drivers/iommu/of_iommu.c"
+> 
 
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: Linda Knippers <linda.knippers@hpe.com>
----
- drivers/acpi/nfit/core.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ok, will correct those.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 656acb5d7166..b60856b4325b 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -3043,6 +3043,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- 
- static __init int nfit_init(void)
- {
-+	int ret;
-+
- 	BUILD_BUG_ON(sizeof(struct acpi_table_nfit) != 40);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 56);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_memory_map) != 48);
-@@ -3069,9 +3071,11 @@ static __init int nfit_init(void)
- 	if (!nfit_wq)
- 		return -ENOMEM;
- 
--	nfit_mce_register();
-+	ret = acpi_bus_register_driver(&acpi_nfit_driver);
-+	if (!ret)
-+		nfit_mce_register();
- 
--	return acpi_bus_register_driver(&acpi_nfit_driver);
-+	return ret;
- }
- 
- static __exit void nfit_exit(void)
+Regards,
+ Sricharan
+
+
+>> probed yet, but going to get probed, so that we can attach
+>> the correct dma_ops. So while trying to defer the probe of
+>> the master, check if the of_iommu node that it is connected
+>> to is marked in DT as 'status=disabled', then the iommu is never
+>> is going to get probed. So simply return NULL and let the master
+>> work without an iommu.
+>>
+>> Fixes: 7b07cbefb68d ("iommu: of: Handle IOMMU lookup failure with deferred probing or error")
+>> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+>> Reported-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+>> Tested-by: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+>> Tested-by: Magnus Damn <magnus.damn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> Acked-by: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+>> ---
+>>  drivers/iommu/of_iommu.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+>> index 9f44ee8..e6e9bec 100644
+>> --- a/drivers/iommu/of_iommu.c
+>> +++ b/drivers/iommu/of_iommu.c
+>> @@ -118,6 +118,7 @@ static bool of_iommu_driver_present(struct device_node *np)
+>>  
+>>  	ops = iommu_ops_from_fwnode(fwnode);
+>>  	if ((ops && !ops->of_xlate) ||
+>> +	    !of_device_is_available(iommu_spec->np) ||
+>>  	    (!ops && !of_iommu_driver_present(iommu_spec->np)))
+>>  		return NULL;
+>>  
+>> -- 
+>> QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+>>
+>>
+>> _______________________________________________
+>> linux-arm-kernel mailing list
+>> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
 -- 
-1.7.9.3
-
+"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
