@@ -1,36 +1,95 @@
-From: Robert Richter <robert.richter@cavium.com>
-Subject: Re: [PATCH 1/2] acpica: iort: Update SMMU models for IORT rev. C
-Date: Fri, 19 May 2017 13:32:37 +0200
-Message-ID: <20170519113237.GN658@rric.localdomain>
-References: <0bb462748c0a08dbf1db103d2a96b80c71412817.1494585645.git.robin.murphy@arm.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH] efi/reboot: Fall back to original power-off method if
+ EFI_RESET_SHUTDOWN returns
+Date: Fri, 19 May 2017 16:45:49 +0100
+Message-ID: <CAKv+Gu-qSMK6YTh5O=w-6mOSdAkMzNn945M+TAC0CAMRfgVhmw@mail.gmail.com>
+References: <20170423123655.13015-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0061.outbound.protection.outlook.com ([104.47.37.61]:14752
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750818AbdESLcx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 19 May 2017 07:32:53 -0400
-Content-Disposition: inline
-In-Reply-To: <0bb462748c0a08dbf1db103d2a96b80c71412817.1494585645.git.robin.murphy@arm.com>
+Received: from mail-it0-f41.google.com ([209.85.214.41]:36772 "EHLO
+        mail-it0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752916AbdESPpw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 May 2017 11:45:52 -0400
+Received: by mail-it0-f41.google.com with SMTP id o5so120841461ith.1
+        for <linux-acpi@vger.kernel.org>; Fri, 19 May 2017 08:45:52 -0700 (PDT)
+In-Reply-To: <20170423123655.13015-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: will.deacon@arm.com, rjw@rjwysocki.net, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, gakula@caviumnetworks.com, linu.cherian@cavium.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, john.garry@huawei.com, shameerali.kolothum.thodi@huawei.com, gabriele.paoloni@huawei.com, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+To: Hans de Goede <hdegoede@redhat.com>, Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Jones <pjones@redhat.com>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, Mark Salter <msalter@redhat.com>
 
-On 12.05.17 11:41:41, Robin Murphy wrote:
-> IORT revision C has been published with a number of new SMMU
-> implementation identifiers; define them.
-> 
-> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-> CC: Robert Moore <robert.moore@intel.com>
-> CC: Lv Zheng <lv.zheng@intel.com>
-> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+On 23 April 2017 at 13:36, Hans de Goede <hdegoede@redhat.com> wrote:
+> Commit 44be28e9dd98 ("x86/reboot: Add EFI reboot quirk for ACPI Hardware
+> Reduced flag") sets pm_power_off to efi_power_off() when the
+> acpi_gbl_reduced_hardware flag is set.
+>
+> According to its commit message this is necessary because: "BayTrail-T
+> class of hardware requires EFI in order to powerdown and reboot and no
+> other reliable method exists"
+>
+> But I have a Bay Trail CR tablet where the EFI_RESET_SHUTDOWN call does
+> not work, it simply returns without doing anything (AFAICT).
+>
+> So it seems that some Bay Trail devices must use EFI for power-off, while
+> for others only ACPI works.
+>
+> Note that efi_power_off() only gets used if the platform code defines
+> efi_poweroff_required() and that returns true, this currently only ever
+> happens on x86.
+>
+> Since on the devices which need ACPI for power-off the EFI_RESET_SHUTDOWN
+> call simply returns, this patch makes the efi-reboot code remember the
+> old pm_power_off handler and if EFI_RESET_SHUTDOWN returns it falls back
+> to calling that.
+>
+> This seems preferable to dmi-quirking our way out of this, since there
+> are likely quite a few devices suffering from this.
+>
+> Cc: Mark Salter <msalter@redhat.com>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/firmware/efi/reboot.c | 12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/firmware/efi/reboot.c b/drivers/firmware/efi/reboot.c
+> index 62ead9b..7117e2d 100644
+> --- a/drivers/firmware/efi/reboot.c
+> +++ b/drivers/firmware/efi/reboot.c
+> @@ -5,6 +5,8 @@
+>  #include <linux/efi.h>
+>  #include <linux/reboot.h>
+>
+> +void (*orig_pm_power_off)(void);
+> +
+>  int efi_reboot_quirk_mode = -1;
+>
+>  void efi_reboot(enum reboot_mode reboot_mode, const char *__unused)
+> @@ -51,6 +53,12 @@ bool __weak efi_poweroff_required(void)
+>  static void efi_power_off(void)
+>  {
+>         efi.reset_system(EFI_RESET_SHUTDOWN, EFI_SUCCESS, 0, NULL);
+> +       /*
+> +        * The above call should not return, if it does fall back to
+> +        * the original power off method (typically ACPI poweroff).
+> +        */
+> +       if (orig_pm_power_off)
+> +               orig_pm_power_off();
+>  }
+>
+>  static int __init efi_shutdown_init(void)
+> @@ -58,8 +66,10 @@ static int __init efi_shutdown_init(void)
+>         if (!efi_enabled(EFI_RUNTIME_SERVICES))
+>                 return -ENODEV;
+>
+> -       if (efi_poweroff_required())
+> +       if (efi_poweroff_required()) {
+> +               orig_pm_power_off = pm_power_off;
+>                 pm_power_off = efi_power_off;
+> +       }
+>
+>         return 0;
+>  }
 
-As an additional note, could these both patches being marked stable?
-If we are going to deploy fw with the new model number, older kernels
-become unusable as the smmu is not detected any longer.
-
-Thanks,
-
--Robert
+This does not look unreasonable to me, but this is more Matt's turf so
+I will let him handle this one.
