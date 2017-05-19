@@ -1,293 +1,65 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH V17 11/11] arm/arm64: KVM: add guest SEA support
-Date: Fri, 19 May 2017 14:32:13 -0600
-Message-ID: <1495225933-4410-12-git-send-email-tbaicar@codeaurora.org>
-References: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH v3] ACPI / APEI: Boot Error Record Table processing was
+ needlessly complicated
+Date: Fri, 19 May 2017 15:39:29 -0600
+Message-ID: <276be033-dcbb-bff3-fa52-9a84a57a9d2e@codeaurora.org>
+References: <5174133f-2588-eda1-4f98-0e457f16af0d@codeaurora.org>
+ <20170516225806.5702-1-tony.luck@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, Suzuki.Poulose@arm.com, punit.agrawal@arm.com, astone@redhat.com, harba@codeaurora.org, hanjun.gu
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:38846 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756170AbdESVjg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 May 2017 17:39:36 -0400
+In-Reply-To: <20170516225806.5702-1-tony.luck@intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Borislav Petkov <bp@suse.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jonathan Zhang <zjzhang@codeaurora.org>, linux-acpi@vger.kernel.org
 
-Currently external aborts are unsupported by the guest abort
-handling. Add handling for SEAs so that the host kernel reports
-SEAs which occur in the guest kernel.
+On 5/16/2017 4:58 PM, Luck, Tony wrote:
+> From: Tony Luck <tony.luck@intel.com>
+>
+> Quoting version 6.1 of the ACPI specification. Section 18.3.1 "Boot
+> Error Source" says:
+>
+>    The Boot Error Region is a range of addressable memory OSPM can access
+>    during initialization to determine if an unhandled error condition
+>    occurred. System firmware must report this memory range as firmware
+>    reserved. The format of the Boot Error Region follow that of an Error
+>    Status Block, this is defined in Section 18.3.2.7. The format of the
+>    error status block is described by Table 18-342.
+>
+> This clarifies some points that were obfuscated in earlier versions.
+> E.g. there is no longer a separate table to describe the format of the
+> "Boot Error Region" (which was identical to the "Error Status Block").
+> Also saying "follow that of *an* Error Status Block" makes it clear that
+> there is just one block (which can still contain multiple "Generic Error
+> Data Entry structures").
+>
+> The loop inside bert_print_all() is unnecessary (but probably harmless
+> as the "while (remain > sizeof(struct acpi_bert_region))" loop should
+> terminate after we skipped over the first entry.
+>
+> We can drop the "bert_print_all()" function and just move the four
+> relevant lines inline in "bert_init()".
+>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Huang Ying <ying.huang@intel.com>
+> Cc: Borislav Petkov <bp@suse.de>
+> Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Cc: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> Cc: Tyler Baicar <tbaicar@codeaurora.org>
+> Cc: linux-acpi@vger.kernel.org
+> Reviewed-by: Borislav Petkov <bp@suse.de>
+> Signed-off-by: Tony Luck <tony.luck@intel.com>
+Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
 
-When an SEA occurs in the guest kernel, the guest exits and is
-routed to kvm_handle_guest_abort(). Prior to this patch, a print
-message of an unsupported FSC would be printed and nothing else
-would happen. With this patch, the code gets routed to the APEI
-handling of SEAs in the host kernel to report the SEA information.
-
-Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
-Acked-by: Christoffer Dall <cdall@linaro.org>
----
- arch/arm/include/asm/kvm_arm.h       | 10 ++++++++++
- arch/arm/include/asm/system_misc.h   |  5 +++++
- arch/arm64/include/asm/kvm_arm.h     | 10 ++++++++++
- arch/arm64/include/asm/system_misc.h |  2 ++
- arch/arm64/mm/fault.c                | 22 ++++++++++++++++++++--
- drivers/acpi/apei/ghes.c             | 17 +++++++++++------
- include/acpi/ghes.h                  |  2 +-
- virt/kvm/arm/mmu.c                   | 36 +++++++++++++++++++++++++++++++++---
- 8 files changed, 92 insertions(+), 12 deletions(-)
-
-diff --git a/arch/arm/include/asm/kvm_arm.h b/arch/arm/include/asm/kvm_arm.h
-index a3f0b3d..ebf020b 100644
---- a/arch/arm/include/asm/kvm_arm.h
-+++ b/arch/arm/include/asm/kvm_arm.h
-@@ -187,6 +187,16 @@
- #define FSC_FAULT	(0x04)
- #define FSC_ACCESS	(0x08)
- #define FSC_PERM	(0x0c)
-+#define FSC_SEA		(0x10)
-+#define FSC_SEA_TTW0	(0x14)
-+#define FSC_SEA_TTW1	(0x15)
-+#define FSC_SEA_TTW2	(0x16)
-+#define FSC_SEA_TTW3	(0x17)
-+#define FSC_SECC	(0x18)
-+#define FSC_SECC_TTW0	(0x1c)
-+#define FSC_SECC_TTW1	(0x1d)
-+#define FSC_SECC_TTW2	(0x1e)
-+#define FSC_SECC_TTW3	(0x1f)
- 
- /* Hyp Prefetch Fault Address Register (HPFAR/HDFAR) */
- #define HPFAR_MASK	(~0xf)
-diff --git a/arch/arm/include/asm/system_misc.h b/arch/arm/include/asm/system_misc.h
-index a3d61ad..8c4a89f 100644
---- a/arch/arm/include/asm/system_misc.h
-+++ b/arch/arm/include/asm/system_misc.h
-@@ -22,6 +22,11 @@
- 
- extern unsigned int user_debug;
- 
-+static inline int handle_guest_sea(phys_addr_t addr, unsigned int esr)
-+{
-+	return -1;
-+}
-+
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* __ASM_ARM_SYSTEM_MISC_H */
-diff --git a/arch/arm64/include/asm/kvm_arm.h b/arch/arm64/include/asm/kvm_arm.h
-index 6e99978..61d694c 100644
---- a/arch/arm64/include/asm/kvm_arm.h
-+++ b/arch/arm64/include/asm/kvm_arm.h
-@@ -204,6 +204,16 @@
- #define FSC_FAULT	ESR_ELx_FSC_FAULT
- #define FSC_ACCESS	ESR_ELx_FSC_ACCESS
- #define FSC_PERM	ESR_ELx_FSC_PERM
-+#define FSC_SEA		ESR_ELx_FSC_EXTABT
-+#define FSC_SEA_TTW0	(0x14)
-+#define FSC_SEA_TTW1	(0x15)
-+#define FSC_SEA_TTW2	(0x16)
-+#define FSC_SEA_TTW3	(0x17)
-+#define FSC_SECC	(0x18)
-+#define FSC_SECC_TTW0	(0x1c)
-+#define FSC_SECC_TTW1	(0x1d)
-+#define FSC_SECC_TTW2	(0x1e)
-+#define FSC_SECC_TTW3	(0x1f)
- 
- /* Hyp Prefetch Fault Address Register (HPFAR/HDFAR) */
- #define HPFAR_MASK	(~UL(0xf))
-diff --git a/arch/arm64/include/asm/system_misc.h b/arch/arm64/include/asm/system_misc.h
-index bc81243..95aa442 100644
---- a/arch/arm64/include/asm/system_misc.h
-+++ b/arch/arm64/include/asm/system_misc.h
-@@ -56,6 +56,8 @@ void hook_debug_fault_code(int nr, int (*fn)(unsigned long, unsigned int,
- 	__show_ratelimited;						\
- })
- 
-+int handle_guest_sea(phys_addr_t addr, unsigned int esr);
-+
- #endif	/* __ASSEMBLY__ */
- 
- #endif	/* __ASM_SYSTEM_MISC_H */
-diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-index 9b4e26f..1ce62cc 100644
---- a/arch/arm64/mm/fault.c
-+++ b/arch/arm64/mm/fault.c
-@@ -532,6 +532,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- {
- 	struct siginfo info;
- 	const struct fault_info *inf;
-+	int ret = 0;
- 
- 	inf = esr_to_fault_info(esr);
- 	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
-@@ -546,7 +547,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 		if (interrupts_enabled(regs))
- 			nmi_enter();
- 
--		ghes_notify_sea();
-+		ret = ghes_notify_sea();
- 
- 		if (interrupts_enabled(regs))
- 			nmi_exit();
-@@ -561,7 +562,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 		info.si_addr  = (void __user *)addr;
- 	arm64_notify_die("", regs, &info, esr);
- 
--	return 0;
-+	return ret;
- }
- 
- static const struct fault_info fault_info[] = {
-@@ -632,6 +633,23 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- };
- 
- /*
-+ * Handle Synchronous External Aborts that occur in a guest kernel.
-+ *
-+ * The return value will be zero if the SEA was successfully handled
-+ * and non-zero if there was an error processing the error or there was
-+ * no error to process.
-+ */
-+int handle_guest_sea(phys_addr_t addr, unsigned int esr)
-+{
-+	int ret = -ENOENT;
-+
-+	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
-+		ret = ghes_notify_sea();
-+
-+	return ret;
-+}
-+
-+/*
-  * Dispatch a data abort to the relevant handler.
-  */
- asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index a0ab5f3..7084c97 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -817,17 +817,22 @@ static int ghes_notify_sci(struct notifier_block *this,
- #ifdef CONFIG_ACPI_APEI_SEA
- static LIST_HEAD(ghes_sea);
- 
--void ghes_notify_sea(void)
-+/*
-+ * Return 0 only if one of the SEA error sources successfully reported an error
-+ * record sent from the firmware.
-+ */
-+int ghes_notify_sea(void)
- {
- 	struct ghes *ghes;
-+	int ret = -ENOENT;
- 
--	/*
--	 * synchronize_rcu() will wait for nmi_exit(), so no need to
--	 * rcu_read_lock().
--	 */
-+	rcu_read_lock();
- 	list_for_each_entry_rcu(ghes, &ghes_sea, list) {
--		ghes_proc(ghes);
-+		if (!ghes_proc(ghes))
-+			ret = 0;
- 	}
-+	rcu_read_unlock();
-+	return ret;
- }
- 
- static void ghes_sea_add(struct ghes *ghes)
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 95305ae..9f26e01 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -113,6 +113,6 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
- 	return (void *)(gdata) + acpi_hest_get_record_size(gdata);
- }
- 
--void ghes_notify_sea(void);
-+int ghes_notify_sea(void);
- 
- #endif /* GHES_H */
-diff --git a/virt/kvm/arm/mmu.c b/virt/kvm/arm/mmu.c
-index 313ee64..521e737 100644
---- a/virt/kvm/arm/mmu.c
-+++ b/virt/kvm/arm/mmu.c
-@@ -29,6 +29,7 @@
- #include <asm/kvm_asm.h>
- #include <asm/kvm_emulate.h>
- #include <asm/virt.h>
-+#include <asm/system_misc.h>
- 
- #include "trace.h"
- 
-@@ -1418,6 +1419,25 @@ static void handle_access_fault(struct kvm_vcpu *vcpu, phys_addr_t fault_ipa)
- 		kvm_set_pfn_accessed(pfn);
- }
- 
-+static bool is_abort_sea(unsigned long fault_status)
-+{
-+	switch (fault_status) {
-+	case FSC_SEA:
-+	case FSC_SEA_TTW0:
-+	case FSC_SEA_TTW1:
-+	case FSC_SEA_TTW2:
-+	case FSC_SEA_TTW3:
-+	case FSC_SECC:
-+	case FSC_SECC_TTW0:
-+	case FSC_SECC_TTW1:
-+	case FSC_SECC_TTW2:
-+	case FSC_SECC_TTW3:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
- /**
-  * kvm_handle_guest_abort - handles all 2nd stage aborts
-  * @vcpu:	the VCPU pointer
-@@ -1440,19 +1460,29 @@ int kvm_handle_guest_abort(struct kvm_vcpu *vcpu, struct kvm_run *run)
- 	gfn_t gfn;
- 	int ret, idx;
- 
-+	fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
-+
-+	fault_ipa = kvm_vcpu_get_fault_ipa(vcpu);
-+
-+	/*
-+	 * The host kernel will handle the synchronous external abort. There
-+	 * is no need to pass the error into the guest.
-+	 */
-+	if (is_abort_sea(fault_status)) {
-+		if (!handle_guest_sea(fault_ipa, kvm_vcpu_get_hsr(vcpu)))
-+			return 1;
-+	}
-+
- 	is_iabt = kvm_vcpu_trap_is_iabt(vcpu);
- 	if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu))) {
- 		kvm_inject_vabt(vcpu);
- 		return 1;
- 	}
- 
--	fault_ipa = kvm_vcpu_get_fault_ipa(vcpu);
--
- 	trace_kvm_guest_fault(*vcpu_pc(vcpu), kvm_vcpu_get_hsr(vcpu),
- 			      kvm_vcpu_get_hfar(vcpu), fault_ipa);
- 
- 	/* Check the stage-2 fault is trans. fault or write fault */
--	fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
- 	if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
- 	    fault_status != FSC_ACCESS) {
- 		kvm_err("Unsupported FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
 -- 
 Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project.
+
