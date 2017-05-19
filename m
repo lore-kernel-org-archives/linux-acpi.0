@@ -1,34 +1,96 @@
-From: =?big5?B?vEK5xcJA?= <scott.liu@emc.com.tw>
-Subject: RE: How my i2c device bring up?
-Date: Fri, 19 May 2017 16:38:03 +0800
-Message-ID: <042c01d2d07b$3ac612e0$b05238a0$@emc.com.tw>
-References: <032401d2cee9$6ab6ea80$4024bf80$@emc.com.tw> <9c683d1f-06c6-eadb-d9be-5ff22845181f@linux.intel.com> <040b01d2d06b$06c00010$14400030$@emc.com.tw> <ed46f222-9cbe-92f5-962f-cf38b678476b@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="big5"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emcscan.emc.com.tw ([192.72.220.5]:29292 "EHLO
-        emcscan.emc.com.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751948AbdESIhX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 May 2017 04:37:23 -0400
-In-Reply-To: <ed46f222-9cbe-92f5-962f-cf38b678476b@linux.intel.com>
-Content-Language: zh-tw
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mian Yousaf Kaukab <yousaf.kaukab@suse.com>
+Subject: [PATCH] ACPI: processor: fix LPI when built as module
+Date: Fri, 19 May 2017 11:28:37 +0200
+Message-ID: <20170519092837.30991-1-yousaf.kaukab@suse.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, rafael.j.wysocki@intel.com
+Cc: sudeep.holla@arm.com, catalin.marinas@arm.com, lorenzo.pieralisi@arm.com, Mian Yousaf Kaukab <yousaf.kaukab@suse.com>
 List-Id: linux-acpi@vger.kernel.org
-To: 'Jarkko Nikula' <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
-Cc: 'Dmitry Torokhov' <dmitry.torokhov@gmail.com>, benjamin.tissoires@gmail.com, jeff.chuang@emc.com.tw
 
-> >
-> Nice to hear. Looks like those Chromium images don't support platforms
-that
-> require those CONFIG_MFD_INTEL_LPSS options.
-> 
+Low Power Idle(LPI) support added acpi_processor_ffh_lpi_probe() and
+acpi_processor_ffh_lpi_enter() as __weak functions and arch code is
+supposed to provide the actual callbacks. This breaks if
+ACPI_PROCESSOR is configured as a module.
 
-Those configurations are default in 64bits image.
-The image was 32bits in the first place I built which 
-doesn't default set those configurations for Intel Baytrail.
+Add CONFIG_ARCH_HAS_ACPI_LPI configuration option to fix this.
 
-Thanks.
-Scott
+Signed-off-by: Mian Yousaf Kaukab <yousaf.kaukab@suse.com>
+---
+ arch/arm64/Kconfig            | 1 +
+ arch/arm64/kernel/cpuidle.c   | 2 ++
+ drivers/acpi/Kconfig          | 3 +++
+ drivers/acpi/processor_idle.c | 9 +++++++--
+ 4 files changed, 13 insertions(+), 2 deletions(-)
 
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 848a34116c67..de2f2779cdf5 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -10,6 +10,7 @@ config ARM64
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
++	select ARCH_HAS_ACPI_LPI if ACPI
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
+diff --git a/arch/arm64/kernel/cpuidle.c b/arch/arm64/kernel/cpuidle.c
+index fd691087dc9a..002d9cb890bd 100644
+--- a/arch/arm64/kernel/cpuidle.c
++++ b/arch/arm64/kernel/cpuidle.c
+@@ -51,9 +51,11 @@ int acpi_processor_ffh_lpi_probe(unsigned int cpu)
+ {
+ 	return arm_cpuidle_init(cpu);
+ }
++EXPORT_SYMBOL(acpi_processor_ffh_lpi_probe);
+ 
+ int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
+ {
+ 	return CPU_PM_CPU_IDLE_ENTER(arm_cpuidle_suspend, lpi->index);
+ }
++EXPORT_SYMBOL(acpi_processor_ffh_lpi_enter);
+ #endif
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 1ce52f84dc23..7e5a7bce9d72 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -224,6 +224,9 @@ config ACPI_PROCESSOR_IDLE
+ 	bool
+ 	select CPU_IDLE
+ 
++config ARCH_HAS_ACPI_LPI
++	def_bool n
++
+ config ACPI_MCFG
+ 	bool
+ 
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 5c8aa9cf62d7..321fe9acd8e8 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1211,15 +1211,20 @@ static int acpi_processor_get_lpi_info(struct acpi_processor *pr)
+ 	return 0;
+ }
+ 
+-int __weak acpi_processor_ffh_lpi_probe(unsigned int cpu)
++#ifdef CONFIG_ARCH_HAS_ACPI_LPI
++int acpi_processor_ffh_lpi_probe(unsigned int cpu);
++int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi);
++#else
++static int acpi_processor_ffh_lpi_probe(unsigned int cpu)
+ {
+ 	return -ENODEV;
+ }
+ 
+-int __weak acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
++static int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
+ {
+ 	return -ENODEV;
+ }
++#endif /* CONFIG_ARCH_HAS_ACPI_LPI */
+ 
+ /**
+  * acpi_idle_lpi_enter - enters an ACPI any LPI state
+-- 
+2.11.0
