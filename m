@@ -1,73 +1,46 @@
-From: =?big5?B?vEK5xcJA?= <scott.liu@emc.com.tw>
-Subject: RE: How my i2c device bring up?
-Date: Fri, 19 May 2017 14:42:03 +0800
-Message-ID: <040b01d2d06b$06c00010$14400030$@emc.com.tw>
-References: <032401d2cee9$6ab6ea80$4024bf80$@emc.com.tw> <9c683d1f-06c6-eadb-d9be-5ff22845181f@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="big5"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <9c683d1f-06c6-eadb-d9be-5ff22845181f@linux.intel.com>
-Content-Language: zh-tw
-Sender: linux-input-owner@vger.kernel.org
-To: 'Jarkko Nikula' <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
-Cc: 'Dmitry Torokhov' <dmitry.torokhov@gmail.com>, benjamin.tissoires@gmail.com, jeff.chuang@emc.com.tw
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 1/3] ACPI / EC: Enhance boot EC sanity check
+Date: Fri, 19 May 2017 15:07:35 +0800
+Message-ID: <7c94728bbb598231064f976e8980b44ab1f7464b.1495176440.git.lv.zheng@intel.com>
+References: <cover.1494927504.git.lv.zheng@intel.com> <cover.1495176440.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1495176440.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Jarkko,
-	After enabled those configurations on, the touch works.
-	Chrome can recognize my touch device, thank you for help.
+It's reported that some buggy BIOS tables can contain 2 DSDT ECs and one of
+them is invalid. As we shouldn't evaluate _STA from acpi_ec_dsdt_probe()
+due to the unknown Windows enumeration order, this patch simply enhances
+sanity checks in ec_parse_device() as a workaround to skip probing wrong
+namespace ECs.
 
-BR,
-Scott 
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=195651
+Tested-by: Daniel Drake <drake@endlessm.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/ec.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-
-> -----Original Message-----
-> From: Jarkko Nikula [mailto:jarkko.nikula@linux.intel.com]
-> Sent: Wednesday, May 17, 2017 7:56 PM
-> To: ¼B¹ÅÂ@; linux-i2c@vger.kernel.org; linux-acpi@vger.kernel.org;
-> linux-input@vger.kernel.org
-> Cc: Dmitry Torokhov; benjamin.tissoires@gmail.com;
-> jeff.chuang@emc.com.tw
-> Subject: Re: How my i2c device bring up?
-> 
-> Hi
-> 
-> On 05/17/2017 11:41 AM, ¼B¹ÅÂ@ wrote:
-> >
-> > I have tried to install three versions of Chromium OS(R58-9334,
-> > R59-9351,
-> > R60-9554) respectively,
-> > all of them runs kernel v4.4 and all of them can see nothing for my
-> > device by ¡§ls /sys/bus/i2c/devices¡¨.
-> > The output file is as ¡§Chromum_v4.4.52_dev_bus_i2c_devices_0517.jpg¡¨.
-> > I guess the underlying drivers(I2C bus, ACPI DSDT table) could be
-> > failed to recognize my I2C device.
-> >
-> Is this Intel Skylake ix-6xxx based laptop?
-> 
-> My guess is that based on your finding that i2c touchscreen works in
-Ubuntu
-> that Chromium kernel may not have needed drivers enabled.
-> 
-> If you have access to kernel config of Chromium image could you check does
-it
-> have these MFD_INTEL_LPSS configurations on? I have them as built-in but
-> should work when built as modules too.
-> 
-> CONFIG_MFD_INTEL_LPSS=y
-> CONFIG_MFD_INTEL_LPSS_ACPI=y
-> CONFIG_MFD_INTEL_LPSS_PCI=y
-> 
-> I suppose these I2C_DESIGNWARE options are already on since I know there
-> are Intel Baytrail based Chromebooks out there.
-> 
-> CONFIG_I2C_DESIGNWARE_CORE=m
-> CONFIG_I2C_DESIGNWARE_PLATFORM=m
-> CONFIG_I2C_DESIGNWARE_PCI=m
-> CONFIG_I2C_DESIGNWARE_BAYTRAIL=y
-> 
-> --
-> Jarkko
-
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index c24235d..a920db6 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1362,6 +1362,14 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
+ 				     ec_parse_io_ports, ec);
+ 	if (ACPI_FAILURE(status))
+ 		return status;
++	/*
++	 * It's better to evaluate _STA to determine if the device is
++	 * valid. But that could potentially trigger issues related to
++	 * the unknown orders of _INI/_STA evaluations.
++	 * However we can abort due to invalid _CRS information here.
++	 */
++	if (ec->data_addr == 0 || ec->command_addr == 0)
++		return AE_OK;
+ 
+ 	/* Get GPE bit assignment (EC events). */
+ 	/* TODO: Add support for _GPE returning a package */
+-- 
+2.7.4
