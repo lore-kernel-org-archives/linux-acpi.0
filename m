@@ -1,74 +1,114 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 2/3] ACPI / EC: Add support to skip boot stage DSDT probe
-Date: Fri, 19 May 2017 15:07:44 +0800
-Message-ID: <e2b56ddc0cd3ae8370daa974cc987496c1c75e2b.1495176440.git.lv.zheng@intel.com>
+Subject: [PATCH v2 3/3] ACPI / EC: Fix media keys not working problem on some Asus laptops
+Date: Fri, 19 May 2017 15:07:55 +0800
+Message-ID: <e707d22144582aeff624c451dbb32b3e3324271b.1495176440.git.lv.zheng@intel.com>
 References: <cover.1494927504.git.lv.zheng@intel.com> <cover.1495176440.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:63980 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753181AbdESHH5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 19 May 2017 03:07:57 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1495176440.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Chris Chiu <chiu@endlessm.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Long time ago, Linux EC driver won't probe DSDT EC during boot. It was
-added by the following commit (see link #1 for bug report):
-  Commit: c5279dee26c0e8d7c4200993bfc4b540d2469598
-  Subject: ACPI: EC: Add some basic check for ECDT data
-This is wrong as the only way to know if the DSDT EC is valid is to
-evaluate its _STA control method, but it's not proper to evaluate this
-control method that early and out of the ACPI enumeration process.
+From: Chris Chiu <chiu@endlessm.com>
 
-But after we reverted back to the expected behavior, someone reported a
-regression (see link #2 for reference). On that platform, there is no ECDT,
-but the platform control methds access EC operation region earlier than
-Linux expects. Without knowing the exact device enumeration order on
-Windows, we in fact cannot conclude anything but can just follow the
-regression rule to revert to old wrong behavior to probe DSDT EC at the old
-position.
+Some Asus laptops (verified on X550VXK/FX502VD/FX502VE) get no
+interrupts when pressing media keys thus the corresponding functions
+are not invoked. It's due to the _GPE defines in DSDT for EC returns
+differnt value compared to the GPE Number in ECDT. Confirmed with Asus
+that the vale in ECDT is the correct one. This commit use a DMI quirk
+to prevent calling _GPE when doing ec_parse_device() and keep the ECDT
+GPE number setting for the EC device.
 
-Now we've been reported 3rd functional breakage (link #3). The safest way
-of solving it includes evaluating _STA. Due to the reason above, it is not
-such safe to evaluate _STA in acpi_ec_dsdt_probe(). In order to handle both
-issues (link #2 and link #3), we could just skip boot stage DSDT probe when
-ECDT exists.
-
-Note this change doesn't solve the reported problem, it can only be
-resolved by a GPE setting quirk, and without this commit but with only the
-GPE setting quirk, the reported problem can be solved. However, this commit
-can improve our code quality by making unexpected behavior less effective.
-
-Link: http://bugzilla.kernel.org/show_bug.cgi?id=11880 [#1]
-Link: http://bugzilla.kernel.org/show_bug.cgi?id=119261 [#2]
-Link: http://bugzilla.kernel.org/show_bug.cgi?id=195651 [#3]
+Link: https://phabricator.endlessm.com/T16033
+      https://phabricator.endlessm.com/T16722
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=195651
 Tested-by: Daniel Drake <drake@endlessm.com>
+Signed-off-by: Chris Chiu <chiu@endlessm.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/ec.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/acpi/ec.c | 50 ++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 44 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index a920db6..e232a1c 100644
+index e232a1c..b6d28ef 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -1679,6 +1679,14 @@ int __init acpi_ec_dsdt_probe(void)
- 	struct acpi_ec *ec;
- 	int ret;
+@@ -190,6 +190,7 @@ static struct workqueue_struct *ec_query_wq;
  
-+	/*
-+	 * If a platform has ECDT, there is no need to proceed as the
-+	 * following unsafe probe is not a part of ACPI device enumeration,
-+	 * and hence _STA is not executed.
-+	 */
-+	if (boot_ec)
-+		return -ENODEV;
+ static int EC_FLAGS_QUERY_HANDSHAKE; /* Needs QR_EC issued when SCI_EVT set */
+ static int EC_FLAGS_CORRECT_ECDT; /* Needs ECDT port address correction */
++static int EC_FLAGS_IGNORE_DSDT_GPE; /* Needs ECDT GPE as correction setting */
+ 
+ /* --------------------------------------------------------------------------
+  *                           Logging/Debugging
+@@ -1371,12 +1372,21 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
+ 	if (ec->data_addr == 0 || ec->command_addr == 0)
+ 		return AE_OK;
+ 
+-	/* Get GPE bit assignment (EC events). */
+-	/* TODO: Add support for _GPE returning a package */
+-	status = acpi_evaluate_integer(handle, "_GPE", NULL, &tmp);
+-	if (ACPI_FAILURE(status))
+-		return status;
+-	ec->gpe = tmp;
++	if (boot_ec && EC_FLAGS_IGNORE_DSDT_GPE) {
++		/*
++		 * First boot_ec is always ECDT EC.
++		 * Always inherit the GPE number setting from the first
++		 * boot_ec.
++		 */
++		ec->gpe = boot_ec->gpe;
++	} else {
++		/* Get GPE bit assignment (EC events). */
++		/* TODO: Add support for _GPE returning a package */
++		status = acpi_evaluate_integer(handle, "_GPE", NULL, &tmp);
++		if (ACPI_FAILURE(status))
++			return status;
++		ec->gpe = tmp;
++	}
+ 	/* Use the global lock for all EC transactions? */
+ 	tmp = 0;
+ 	acpi_evaluate_integer(handle, "_GLK", NULL, &tmp);
+@@ -1769,11 +1779,39 @@ static int ec_correct_ecdt(const struct dmi_system_id *id)
+ 	return 0;
+ }
+ 
++/*
++ * Some DSDTs contain wrong GPE setting.
++ * Asus FX502VD/VE, X550VXK, X580VD
++ * Link: https://bugzilla.kernel.org/show_bug.cgi?id=195651
++ */
++static int ec_honor_ecdt_gpe(const struct dmi_system_id *id)
++{
++	pr_debug("Detected system needing ignore DSDT GPE setting.\n");
++	EC_FLAGS_IGNORE_DSDT_GPE = 1;
++	return 0;
++}
 +
- 	ec = acpi_ec_alloc();
- 	if (!ec)
- 		return -ENOMEM;
+ static struct dmi_system_id ec_dmi_table[] __initdata = {
+ 	{
+ 	ec_correct_ecdt, "MSI MS-171F", {
+ 	DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star"),
+ 	DMI_MATCH(DMI_PRODUCT_NAME, "MS-171F"),}, NULL},
++	{
++	ec_honor_ecdt_gpe, "ASUS FX502VD", {
++	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++	DMI_MATCH(DMI_PRODUCT_NAME, "FX502VD"),}, NULL},
++	{
++	ec_honor_ecdt_gpe, "ASUS FX502VE", {
++	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++	DMI_MATCH(DMI_PRODUCT_NAME, "FX502VE"),}, NULL},
++	{
++	ec_honor_ecdt_gpe, "ASUS X550VXK", {
++	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++	DMI_MATCH(DMI_PRODUCT_NAME, "X550VXK"),}, NULL},
++	{
++	ec_honor_ecdt_gpe, "ASUS X580VD", {
++	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++	DMI_MATCH(DMI_PRODUCT_NAME, "X580VD"),}, NULL},
+ 	{},
+ };
+ 
 -- 
 2.7.4
-
