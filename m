@@ -1,87 +1,32 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH v2 0/5] ACPICA: Tables: Add deferred verification
- support
-Date: Fri, 19 May 2017 07:59:29 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEA5F31@SHSMSX101.ccr.corp.intel.com>
-References: <20170227093432.3308-1-hdegoede@redhat.com>
- <cover.1494916766.git.lv.zheng@intel.com>
- <71329223-dbb4-2845-a14e-3db579ca552b@redhat.com>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: How my i2c device bring up?
+Date: Fri, 19 May 2017 11:23:29 +0300
+Message-ID: <ed46f222-9cbe-92f5-962f-cf38b678476b@linux.intel.com>
+References: <032401d2cee9$6ab6ea80$4024bf80$@emc.com.tw>
+ <9c683d1f-06c6-eadb-d9be-5ff22845181f@linux.intel.com>
+ <040b01d2d06b$06c00010$14400030$@emc.com.tw>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=big5; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11832 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:44289 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751260AbdESH7e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 19 May 2017 03:59:34 -0400
-In-Reply-To: <71329223-dbb4-2845-a14e-3db579ca552b@redhat.com>
-Content-Language: en-US
+        id S1754808AbdESIaL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 19 May 2017 04:30:11 -0400
+In-Reply-To: <040b01d2d06b$06c00010$14400030$@emc.com.tw>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Box, David E" <david.e.box@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: =?UTF-8?B?5YqJ5ZiJ6ae/?= <scott.liu@emc.com.tw>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
+Cc: 'Dmitry Torokhov' <dmitry.torokhov@gmail.com>, benjamin.tissoires@gmail.com, jeff.chuang@emc.com.tw
 
-SGksIEhhbnMNCg0KPiBGcm9tOiBIYW5zIGRlIEdvZWRlIFttYWlsdG86aGRlZ29lZGVAcmVkaGF0
-LmNvbV0NCj4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0ggdjIgMC81XSBBQ1BJQ0E6IFRhYmxlczog
-QWRkIGRlZmVycmVkIHZlcmlmaWNhdGlvbiBzdXBwb3J0DQo+IA0KPiBIaSwNCj4gDQo+IE9uIDE2
-LTA1LTE3IDA5OjEzLCBMdiBaaGVuZyB3cm90ZToNCj4gPiBPbiBsaW51eCwgd2UgY2FuIG5vdCB2
-ZXJpZnkgQUNQSSB0YWJsZXMgYmVmb3JlIGluc3RhbGxpbmcgdGhlbSBpbnRvIHRoZQ0KPiA+IGds
-b2JhbCB0YWJsZSBsaXN0IGluIGVhcmx5IHN0YWdlIGR1ZSB0byB0aGUgbnVtYmVyIG9mIHNsb3Qg
-bGltaXRhdGlvbnMgZm9yDQo+ID4gZWFybHkgaW9yZW1hcC4gVGhpcyBsZWF2ZXMgYSBwcm9ibGVt
-IHRoYXQgd2UgY2Fubm90IGRldGVjdCBkdXBsaWNhdGVkDQo+ID4gdGFibGVzIGluIGVhcmx5IHN0
-YWdlLCBjYXVzaW5nIHVud2FudGVkIGVycm9yIG1lc3NhZ2VzIHNlZW4gd2hlbiB0aGUNCj4gPiBk
-dXBsaWNhdGVkIHRhYmxlcyBhcmUgZmFpbGVkIHRvIGJlIGxvYWRlZCBbbGluayAjMV0uDQo+ID4N
-Cj4gPiBUaGlzIHBhdGNoc2V0IGFzIEFDUElDQSBQUiBbbGluayAjMl0gYWRkcyBzdXBwb3J0IHRv
-IHZlcmlmeSB0YWJsZXMgaW4NCj4gPiBhY3BpX3JlYWxsb2NhdGVfcm9vdF90YWJsZXMoKSB3aGlj
-aCBpcyBpbnZva2VkIGFmdGVyIGluc3RhbGxpbmcgdGFibGVzIGluDQo+ID4gZWFybHkgc3RhZ2Us
-IGJlaW5nIHJlYWR5IGZvciBsYXRlIGlvcmVtYXAgYW5kIGJlb2ZyZSBsb2FkaW5nIHRhYmxlIGlu
-IGxhdGUNCj4gPiBzdGFnZS4gSWYgZHVwbGljYXRlZCB0YWJsZXMgYXJlIGRldGVjdGVkLCBhY3Bp
-X3JlYWxsb2NhdGVfcm9vdF90YWJsZXMoKQ0KPiA+IHN0b3BzIGluc3RhbGxpbmcgdGhlbSB0byB0
-aGUgZmluYWwgcmVhbGxvY2F0ZWQgZ2xvYmFsIHRhYmxlIGxpc3QuDQo+ID4NCj4gPiBJbiB2MSBw
-YXRjaHNldCBbbGluayAjM10sIHByb2JsZW1zIGNhbiBiZSBzZWVuIGZvciBkeW5hbWljIGxvYWRp
-bmcgdGFibGVzDQo+ID4gd2hpY2ggYXJlIGFsbG9jYXRlZCBhcyB2aXJ0dWFsbCBhbGxvY2F0ZWQg
-dGFibGVzLiBTdWNoIHRhYmxlcyBhcmUNCj4gPiBpbmNyZW1lbnRlZCBpbiB0aGUgZ2xvYmFsIHRh
-YmxlIGxpc3QgYXMgdGhlIHNhbml0eSBjaGVjayBkb25lIGluIGluc3RhbGwNCj4gPiBzdGVwIG9u
-bHkgY29tcGFyZXMgdGhlIHRhYmxlIGFkZHJlc3NlcyB3aGlsZSB0aGUgdmlydHVhbCBhbGxvY2F0
-ZWQNCj4gPiBhZGRyZXNzZXMgYXJlIG5vdCBzdGFibGUuDQo+ID4gSW4gdjIgcGF0Y2hzZXQsIHdl
-IGZvbGxvdyBvcmlnaW5hbCBkZXNpZ24gZGlzY3Vzc2lvbiBtYWRlIGluIEFDUElDQSBkZXZlbA0K
-PiA+IG1haWxpbmcgbGlzdCwgaW1wbGVtZW50cyBkZWZlcnJlZCB0YWJsZSB2ZXJpZmljYXRpb24g
-c28gdGhhdCBkdXBsaWNhdGUNCj4gPiB0YWJsZXMgYXJlIHN0aWxsIGNhbiBiZSBkZXRlY3RlZCBp
-biBpbnN0YWxsIHN0ZXAgcmF0aGVyIHRoYW4gaW4gbG9hZCBzdGVwLg0KPiA+IEFsc28gd2UgcmVt
-b3ZlZCB0YWJsZSBzaWduYXR1cmUgY2hlY2sgYWNjb3JkaW5nIHRvIHZlcmlmaWVkIHdpbmRvd3MN
-Cj4gPiBiZWhhdmlvciBbbGluayAjNF0gYW5kIHJlcG9ydGVkIGlzc3VlcyBbbGluayAjNV0uDQo+
-ID4NCj4gPiBMaW5rOiBodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LWFjcGkvbXNn
-NzIyMTUuaHRtbCBbIzFdDQo+ID4gTGluazogaHR0cHM6Ly9naXRodWIuY29tLy9hY3BpY2EvYWNw
-aWNhL3B1bGwvMjY1ICAgICAgICAgICAgWyMyXQ0KPiA+IExpbms6IGh0dHA6Ly93d3cuc3Bpbmlj
-cy5uZXQvbGlzdHMvbGludXgtYWNwaS9tc2c3MjU4OS5odG1sIFsjM10NCj4gPiBMaW5rOiBodHRw
-czovL2dpdGh1Yi5jb20vL2FjcGljYS9hY3BpY2EvcHVsbC8xMjEgICAgICAgICAgICBbIzRdDQo+
-ID4gICAgICAgIGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTE4
-NjAxICAgIFsjNV0NCj4gPg0KPiA+IEx2IFpoZW5nICg1KToNCj4gPiAgICBBQ1BJQ0E6IFRhYmxl
-czogQ2xlYW51cCB0YWJsZSBoYW5kbGVyIGludm9rZXJzDQo+ID4gICAgQUNQSUNBOiBUYWJsZXM6
-IERvIG5vdCB2YWxpZGF0ZSBzaWduYXR1cmUgZm9yIGR5bmFtaWMgdGFibGUgbG9hZA0KPiA+ICAg
-IEFDUElDQTogVGFibGVzOiBDaGFuZ2UgdGFibGUgZHVwbGljYXRpb24gY2hlY2sgdG8gYmUgcmVs
-YXRlZCB0bw0KPiA+ICAgICAgYWNwaV9nYmxfdmVyaWZ5X3RhYmxlX2NoZWNrc3VtDQo+ID4gICAg
-QUNQSUNBOiBUYWJsZXM6IENvbWJpbmUgY2hlY2tzdW0vZHVwbGljYXRpb24gdmVyaWZpY2F0aW9u
-IHRvZ2V0aGVyDQo+ID4gICAgQUNQSUNBOiBUYWJsZXM6IEFkZCBkZWZlcnJlZCB0YWJsZSB2ZXJp
-ZmljYXRpb24gc3VwcG9ydA0KPiANCj4gSSd2ZSB0ZXN0ZWQgdGhlc2UgcGF0Y2hlcyBhbmQgY2Fu
-IGNvbmZpcm0gdGhhdCB0aGV5IGZpeCB0aGUgQUNQSQ0KPiBlcnJvcnMgb24gdGhlIHN5c3RlbSB3
-aGljaCBzdGFydGVkIHRoaXMgYWxsLg0KPiANCj4gTm90ZSBJJ3ZlIHRlc3RlZCAidjIiIG9mIHRo
-ZSBwYXRjaC1zZXQsIEkgd2FzIG9uIHRoZSBDYyBmb3IgdGhlDQo+IGNvdmVyIGxldHRlciBmb3Ig
-djMsIGJ1dCBJIGRpZCBub3QgcmVjZWl2ZSB0aGUgYWN0dWFsIHBhdGNoZXMsDQo+IGlmIHlvdSB3
-YW50IG1lIHRlc3QgdjMgcGxlYXNlIHNlbmQgbWUgdGhlIHBhdGNoZXMgKG9yIHBvaW50DQo+IG1l
-IHRvIGEgZ2l0IGJyYW5jaCB3aXRoIHRoZW0pLg0KDQpXaGF0IEkgYWRkZWQgaXM6DQoJCSp0YWJs
-ZV9pbmRleCA9IGk7DQpJbiBhY3BpX3RiX2luc3RhbGxfc3RhbmRhcmRfdGFibGUoKS4NCldpdGhv
-dXQgdGhpcyBsaW5lLCBMb2FkIGEgdGFibGUgMm5kIHRpbWUgYWZ0ZXIgdGhlIDFzdCB0aW1lIExv
-YWQvVW5sb2FkIHdpbGwgZmFpbC4NCk90aGVyIGNoYW5nZXMgYXJlIG5vdCBmdW5jdGlvbmFsLiBJ
-J20gc29ycnkgZm9yIHRoYXQgbWlzdGFrZS4NCg0KVGVzdGluZyB2MiBjYW4gYmUgc3VmZmljaWVu
-dCBhcyB3aGF0IHYzIGltcHJvdmVzIGlzIG5vdCBzdHJpY3RseSByZWxhdGVkIHRvIHlvdXIgaXNz
-dWUuDQpBbmQgd2UgY2FuIGVuc3VyZSB0aGUgdjMgaW1wcm92ZW1lbnQncyBxdWFsaXR5IGxvY2Fs
-bHkgd2hpbGUgZm9yIHlvdXIgaXNzdWUgSSBjYW5ub3QuDQoNClNvIGl0J3MgT0sgaWYgeW91IGRv
-bid0IGRvIGFueSBmdXJ0aGVyIHRlc3RpbmcsIGJ1dCBpZiB5b3Ugd2FudCB0byB0cnk6DQpZb3Ug
-Y2FuIHJlYWNoIHRoZSBjb2RlIHZpYSB0aGUgZm9sbG93aW5nIGdpdCByZXBvc2l0b3J5Og0KaHR0
-cHM6Ly9naXRodWIuY29tL3pldGFsb2cvbGludXgvDQpUaGV5IGFyZSB0b3AgNSBjb21taXRzIGlu
-IGFjcGljYS10YWJsZXMyIGJyYW5jaDoNCmh0dHBzOi8vZ2l0aHViLmNvbS96ZXRhbG9nL2xpbnV4
-L2NvbW1pdHMvYWNwaWNhLXRhYmxlczINCg0KIyBnaXQgcmVtb3RlIGFkZCBsaW51eC1hY3BpY2Eg
-aHR0cHM6Ly9naXRodWIuY29tL3pldGFsb2cvbGludXgvDQojIGdpdCBmZXRjaCBsaW51eC1hY3Bp
-Y2ENCiMgZ2l0IGNoZWNrb3V0IGFjcGljYS10YWJsZXMyDQoNClRoYW5rcyBhbmQgYmVzdCByZWdh
-cmRzDQpMdg0K
+On 05/19/2017 09:42 AM, ¼B¹ÅÂ@ wrote:
+> Hi Jarkko,
+> 	After enabled those configurations on, the touch works.
+> 	Chrome can recognize my touch device, thank you for help.
+>
+Nice to hear. Looks like those Chromium images don't support platforms 
+that require those CONFIG_MFD_INTEL_LPSS options.
+
+-- 
+Jarkko
+
