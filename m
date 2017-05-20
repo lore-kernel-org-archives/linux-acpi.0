@@ -1,69 +1,87 @@
-From: <ecaterinasuciu09@yahoo.com>
-Subject: (unknown)
-Date: Sat, 20 May 2017 08:14:06 -0000
-Message-ID: <149526804613.1559.13982538043165984949@nsg-static-126.81.75.182-airtel.com>
-Mime-Version: 1.0
-Content-Type: application/zip; name="0482411662588.zip"
-Content-Transfer-Encoding: base64
+From: Vincent Legoll <vincent.legoll@gmail.com>
+Subject: [PATCH] ACPI: fix whitespace in pr_fmt() to align log entries
+Date: Sat, 20 May 2017 20:38:13 +0200
+Message-ID: <1495305493-4905-1-git-send-email-vincent.legoll@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nsg-static-126.81.75.182-airtel.com ([182.75.81.126]:4576 "HELO
-        nsg-static-126.81.75.182-airtel.com" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with SMTP id S1753045AbdETIOZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 20 May 2017 04:14:25 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:33096 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750810AbdETSi2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 20 May 2017 14:38:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Vincent Legoll <vincent.legoll@gmail.com>
 
-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
+See this dmesg extract before the patch:
+
+[    0.679466] ACPI: Dynamic OEM Table Load:
+[    0.679470] ACPI: SSDT 0xFFFF910F6B497E00 00018A (v02 PmRef  ApCst    00003000 INTL 20160422)
+[    0.679579] ACPI: Executed 1 blocks of module-level executable AML code
+[    0.681477] ACPI : EC: EC started
+[    0.681478] ACPI : EC: interrupt blocked
+[    0.684798] ACPI: Interpreter enabled
+[    0.684835] ACPI: (supports S0 S3 S4 S5)
+
+Signed-off-by: Vincent Legoll <vincent.legoll@gmail.com>
+---
+ drivers/acpi/acpi_dbg.c | 2 +-
+ drivers/acpi/button.c   | 2 +-
+ drivers/acpi/ec.c       | 2 +-
+ drivers/acpi/ioapic.c   | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/acpi_dbg.c b/drivers/acpi/acpi_dbg.c
+index dee8692..3ec05aa 100644
+--- a/drivers/acpi/acpi_dbg.c
++++ b/drivers/acpi/acpi_dbg.c
+@@ -10,7 +10,7 @@
+  */
+ 
+ /* #define DEBUG */
+-#define pr_fmt(fmt) "ACPI : AML: " fmt
++#define pr_fmt(fmt) "ACPI: AML: " fmt
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index b7c2a06..f265588 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -19,7 +19,7 @@
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  */
+ 
+-#define pr_fmt(fmt) "ACPI : button: " fmt
++#define pr_fmt(fmt) "ACPI: button: " fmt
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index c24235d..01e6e39 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -27,7 +27,7 @@
+ 
+ /* Uncomment next line to get verbose printout */
+ /* #define DEBUG */
+-#define pr_fmt(fmt) "ACPI : EC: " fmt
++#define pr_fmt(fmt) "ACPI: EC: " fmt
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+index 7e4fbf9..3595aa9 100644
+--- a/drivers/acpi/ioapic.c
++++ b/drivers/acpi/ioapic.c
+@@ -21,7 +21,7 @@
+  * registered when we parsed the ACPI MADT.
+  */
+ 
+-#define pr_fmt(fmt) "ACPI : IOAPIC: " fmt
++#define pr_fmt(fmt) "ACPI: IOAPIC: " fmt
+ 
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
+-- 
+2.7.4
+
