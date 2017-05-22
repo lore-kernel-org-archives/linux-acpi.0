@@ -1,62 +1,74 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v5 0/3] Preparation for further fwnode property cleanup
-Date: Mon, 22 May 2017 11:11:35 +0300
-Message-ID: <1495440698-22260-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v5 3/3] of: Support const and non-const use for to_of_node()
+Date: Mon, 22 May 2017 11:11:38 +0300
+Message-ID: <1495440698-22260-4-git-send-email-sakari.ailus@linux.intel.com>
+References: <1495440698-22260-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:4300 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757076AbdEVINU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 May 2017 04:13:20 -0400
+In-Reply-To: <1495440698-22260-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: devicetree@vger.kernel.org, robh@kernel.org, frowand.list@gmail.com
+Cc: linux-acpi@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, ahs3@redhat.com
 
-Hi Rob, Frank, others,
+Turn to_of_node() into a macro in order to support both const and
+non-const use. Additionally make the fwnode argument to is_of_node() const
+as well.
 
-Here's the 4th version of what used to be a single patch to prepare for
-fwnode property cleanup.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/linux/of.h | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-Beyond this, I have a couple of other patchsets I'll post in the near
-future:
-
-- fwnode property cleanup (for linux-pm) which moves the property API 
-implementation to FW specific locations; depends on these patches,
-
-- V4L2 fwnode patches (for media_tree, no unmerged dependencies, pull
-  request sent) and
-
-- fwnode const patchset which allows making the fwnode argument for the 
-  property API functions const. It depends on both of the previous sets.
-  Might be for linux-pm.
-
-since v4:
-
-- Add patch "of: Support const and non-const use for to_of_node()" to the
-  set.
-
-- Make nop is_of_node() and to_of_node() const-correct if OF is disabled.
-  (since v4.1)
-
-since v3: 
-
-- Rebase the first patch (no conflicts),
-
-- Add another patch for to make of_fwnode_handle() handle NULL argument 
-gracefully. 
-
-Sakari Ailus (3):
-  of: Move OF property and graph API from base.c to property.c
-  of: Make of_fwnode_handle() safer
-  of: Support const and non-const use for to_of_node()
-
- drivers/of/Makefile   |   2 +-
- drivers/of/base.c     | 733 ------------------------------------------------
- drivers/of/property.c | 763 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/of.h    |  30 +-
- 4 files changed, 784 insertions(+), 744 deletions(-)
- create mode 100644 drivers/of/property.c
-
+diff --git a/include/linux/of.h b/include/linux/of.h
+index a7ccf34..52ffebc 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -148,16 +148,20 @@ extern raw_spinlock_t devtree_lock;
+ #ifdef CONFIG_OF
+ void of_core_init(void);
+ 
+-static inline bool is_of_node(struct fwnode_handle *fwnode)
++static inline bool is_of_node(const struct fwnode_handle *fwnode)
+ {
+ 	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_OF;
+ }
+ 
+-static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
+-{
+-	return is_of_node(fwnode) ?
+-		container_of(fwnode, struct device_node, fwnode) : NULL;
+-}
++#define to_of_node(__fwnode)						\
++	({								\
++		typeof(__fwnode) __to_of_node_fwnode = __fwnode;	\
++									\
++		is_of_node(__to_of_node_fwnode) ?			\
++			container_of(__to_of_node_fwnode,		\
++				     struct device_node, fwnode) :	\
++			NULL;						\
++	})
+ 
+ #define of_fwnode_handle(node)						\
+ 	({								\
+@@ -539,12 +543,12 @@ static inline void of_core_init(void)
+ {
+ }
+ 
+-static inline bool is_of_node(struct fwnode_handle *fwnode)
++static inline bool is_of_node(const struct fwnode_handle *fwnode)
+ {
+ 	return false;
+ }
+ 
+-static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
++static inline const struct device_node *to_of_node(struct fwnode_handle *fwnode)
+ {
+ 	return NULL;
+ }
 -- 
 2.7.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
