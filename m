@@ -1,87 +1,89 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v4 1/5] ACPI: Constify argument to acpi_device_is_present()
-Date: Mon, 22 May 2017 11:53:18 +0300
-Message-ID: <1495443202-22817-2-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v4 5/5] device property: Add FW type agnostic fwnode_graph_get_remote_node
+Date: Mon, 22 May 2017 11:53:22 +0300
+Message-ID: <1495443202-22817-6-git-send-email-sakari.ailus@linux.intel.com>
 References: <1495443202-22817-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1495443202-22817-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga05.intel.com ([192.55.52.43]:12175 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752670AbdEVIyu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 May 2017 04:54:50 -0400
+In-Reply-To: <1495443202-22817-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com
 
-This will be needed in constifying the fwnode API.
+Add fwnode_graph_get_remote_node() function which is equivalent to
+of_graph_get_remote_node() on OF.
 
-The side effects the function had have been moved to the callers.
-
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/device_pm.c | 4 +++-
- drivers/acpi/internal.h  | 2 +-
- drivers/acpi/scan.c      | 9 +++------
- 3 files changed, 7 insertions(+), 8 deletions(-)
+ drivers/base/property.c  | 37 +++++++++++++++++++++++++++++++++++++
+ include/linux/property.h |  2 ++
+ 2 files changed, 39 insertions(+)
 
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index 798d500..b404604 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -262,8 +262,10 @@ int acpi_bus_init_power(struct acpi_device *device)
- 		return -EINVAL;
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index f5ac4cc..b311a6f 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -1214,6 +1214,43 @@ fwnode_graph_get_remote_endpoint(struct fwnode_handle *fwnode)
+ EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_endpoint);
  
- 	device->power.state = ACPI_STATE_UNKNOWN;
--	if (!acpi_device_is_present(device))
-+	if (!acpi_device_is_present(device)) {
-+		device->flags.initialized = false;
- 		return -ENXIO;
+ /**
++ * fwnode_graph_get_remote_node - get remote parent node for given port/endpoint
++ * @fwnode: pointer to parent fwnode_handle containing graph port/endpoint
++ * @port_id: identifier of the parent port node
++ * @endpoint_id: identifier of the endpoint node
++ *
++ * Return: Remote fwnode handle associated with remote endpoint node linked
++ *	   to @node. Use fwnode_node_put() on it when done.
++ */
++struct fwnode_handle *fwnode_graph_get_remote_node(
++	struct fwnode_handle *fwnode, u32 port_id, u32 endpoint_id)
++{
++	struct fwnode_handle *endpoint = NULL;
++
++	while ((endpoint = fwnode_graph_get_next_endpoint(fwnode, endpoint))) {
++		struct fwnode_endpoint fwnode_ep;
++		struct fwnode_handle *remote;
++		int ret;
++
++		ret = fwnode_graph_parse_endpoint(endpoint, &fwnode_ep);
++		if (ret < 0)
++			continue;
++
++		if (fwnode_ep.port != port_id || fwnode_ep.id != endpoint_id)
++			continue;
++
++		remote = fwnode_graph_get_remote_port_parent(endpoint);
++		if (!remote)
++			return NULL;
++
++		return fwnode_device_is_available(remote) ? remote : NULL;
 +	}
++
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_node);
++
++/**
+  * fwnode_graph_parse_endpoint - parse common endpoint node properties
+  * @fwnode: pointer to endpoint fwnode_handle
+  * @endpoint: pointer to the fwnode endpoint data structure
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 7be014a..b9f4838 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -281,6 +281,8 @@ struct fwnode_handle *fwnode_graph_get_remote_port(
+ 	struct fwnode_handle *fwnode);
+ struct fwnode_handle *fwnode_graph_get_remote_endpoint(
+ 	struct fwnode_handle *fwnode);
++struct fwnode_handle *fwnode_graph_get_remote_node(
++	struct fwnode_handle *fwnode, u32 port, u32 endpoint);
  
- 	result = acpi_device_get_power(device, &state);
- 	if (result)
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 66229ff..7300240 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -111,7 +111,7 @@ int acpi_device_setup_files(struct acpi_device *dev);
- void acpi_device_remove_files(struct acpi_device *dev);
- void acpi_device_add_finalize(struct acpi_device *device);
- void acpi_free_pnp_ids(struct acpi_device_pnp *pnp);
--bool acpi_device_is_present(struct acpi_device *adev);
-+bool acpi_device_is_present(const struct acpi_device *adev);
- bool acpi_device_is_battery(struct acpi_device *adev);
- bool acpi_device_is_first_physical_node(struct acpi_device *adev,
- 					const struct device *dev);
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index e39ec7b..b609cbf 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1567,13 +1567,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 	return 0;
- }
- 
--bool acpi_device_is_present(struct acpi_device *adev)
-+bool acpi_device_is_present(const struct acpi_device *adev)
- {
--	if (adev->status.present || adev->status.functional)
--		return true;
--
--	adev->flags.initialized = false;
--	return false;
-+	return adev->status.present || adev->status.functional;
- }
- 
- static bool acpi_scan_handler_matching(struct acpi_scan_handler *handler,
-@@ -1831,6 +1827,7 @@ static void acpi_bus_attach(struct acpi_device *device)
- 	acpi_bus_get_status(device);
- 	/* Skip devices that are not present. */
- 	if (!acpi_device_is_present(device)) {
-+		device->flags.initialized = false;
- 		acpi_device_clear_enumerated(device);
- 		device->flags.power_manageable = 0;
- 		return;
+ int fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
+ 				struct fwnode_endpoint *endpoint);
 -- 
 2.7.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
