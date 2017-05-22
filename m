@@ -1,137 +1,81 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 4/7] device property: Constify argument to pset fwnode backend
-Date: Mon, 22 May 2017 12:07:39 +0300
-Message-ID: <1495444062-23867-5-git-send-email-sakari.ailus@linux.intel.com>
-References: <1495444062-23867-1-git-send-email-sakari.ailus@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V4 3/4] ACPI/IORT: Ignore all errors except EPROBE_DEFER
+Date: Mon, 22 May 2017 11:37:31 +0100
+Message-ID: <20170522103730.GB7553@red-moon>
+References: <1495119257-26724-1-git-send-email-sricharan@codeaurora.org>
+ <1495119257-26724-3-git-send-email-sricharan@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:16662 "EHLO mga04.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:34606 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757571AbdEVJK5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 May 2017 05:10:57 -0400
-In-Reply-To: <1495444062-23867-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S1757326AbdEVKga (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 May 2017 06:36:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1495119257-26724-3-git-send-email-sricharan@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com
+To: Sricharan R <sricharan@codeaurora.org>
+Cc: robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, frowand.list@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, laurent.pinchart@ideasonboard.com, j.neuschaefer@gmx.net, geert@linux-m68k.org, magnus.damm@gmail.com
 
-Internally constify pset fwnode backend. Do not touch the pset fwnode
-operations yet.
+Hi Sricharan,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/base/property.c | 39 +++++++++++++++++++++------------------
- 1 file changed, 21 insertions(+), 18 deletions(-)
+On Thu, May 18, 2017 at 08:24:16PM +0530, Sricharan R wrote:
+> While deferring the probe of IOMMU masters, xlate and
+> add_device callbacks called from iort_iommu_configure
+> can pass back error values like -ENODEV, which means
+> the IOMMU cannot be connected with that master for real
+> reasons. Before the IOMMU probe deferral, all such errors
+> were ignored. Now all those errors are propagated back,
+> killing the master's probe for such errors. Instead ignore
+> all the errors except EPROBE_DEFER, which is the only one
+> of concern and let the master work without IOMMU, thus
+> restoring the old behavior.
+> 
+> Fixes: 5a1bb638d567 ("drivers: acpi: Handle IOMMU lookup failure with deferred probing or error")
+> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+> ---
+> [V4] Added this patch newly.
+> 
+>  drivers/acpi/arm64/iort.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index c5fecf9..16e101f 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -782,6 +782,12 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+>  	if (err)
+>  		ops = ERR_PTR(err);
+>  
+> +	/* Ignore all other errors apart from EPROBE_DEFER */
+> +	if (IS_ERR(ops) && (PTR_ERR(ops) != -EPROBE_DEFER)) {
+> +		dev_dbg(dev, "Adding to IOMMU failed: %ld\n", PTR_ERR(ops));
+> +		ops = NULL;
+> +	}
+> +
+>  	return ops;
+>  }
+>  
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index b311a6f..e0c9489 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -25,19 +25,22 @@ struct property_set {
- 	const struct property_entry *properties;
- };
- 
--static inline bool is_pset_node(struct fwnode_handle *fwnode)
-+static inline bool is_pset_node(const struct fwnode_handle *fwnode)
- {
- 	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_PDATA;
- }
- 
--static inline struct property_set *to_pset_node(struct fwnode_handle *fwnode)
--{
--	return is_pset_node(fwnode) ?
--		container_of(fwnode, struct property_set, fwnode) : NULL;
--}
--
--static const struct property_entry *pset_prop_get(struct property_set *pset,
--						  const char *name)
-+#define to_pset_node(__fwnode)						\
-+	({								\
-+		typeof(__fwnode) fwnode = __fwnode;			\
-+									\
-+		is_pset_node(fwnode) ?					\
-+			container_of(fwnode, struct property_set, fwnode) : \
-+			NULL;						\
-+	})
-+
-+static const struct property_entry *
-+pset_prop_get(const struct property_set *pset, const char *name)
- {
- 	const struct property_entry *prop;
- 
-@@ -51,7 +54,7 @@ static const struct property_entry *pset_prop_get(struct property_set *pset,
- 	return NULL;
- }
- 
--static const void *pset_prop_find(struct property_set *pset,
-+static const void *pset_prop_find(const struct property_set *pset,
- 				  const char *propname, size_t length)
- {
- 	const struct property_entry *prop;
-@@ -71,7 +74,7 @@ static const void *pset_prop_find(struct property_set *pset,
- 	return pointer;
- }
- 
--static int pset_prop_read_u8_array(struct property_set *pset,
-+static int pset_prop_read_u8_array(const struct property_set *pset,
- 				   const char *propname,
- 				   u8 *values, size_t nval)
- {
-@@ -86,7 +89,7 @@ static int pset_prop_read_u8_array(struct property_set *pset,
- 	return 0;
- }
- 
--static int pset_prop_read_u16_array(struct property_set *pset,
-+static int pset_prop_read_u16_array(const struct property_set *pset,
- 				    const char *propname,
- 				    u16 *values, size_t nval)
- {
-@@ -101,7 +104,7 @@ static int pset_prop_read_u16_array(struct property_set *pset,
- 	return 0;
- }
- 
--static int pset_prop_read_u32_array(struct property_set *pset,
-+static int pset_prop_read_u32_array(const struct property_set *pset,
- 				    const char *propname,
- 				    u32 *values, size_t nval)
- {
-@@ -116,7 +119,7 @@ static int pset_prop_read_u32_array(struct property_set *pset,
- 	return 0;
- }
- 
--static int pset_prop_read_u64_array(struct property_set *pset,
-+static int pset_prop_read_u64_array(const struct property_set *pset,
- 				    const char *propname,
- 				    u64 *values, size_t nval)
- {
-@@ -131,7 +134,7 @@ static int pset_prop_read_u64_array(struct property_set *pset,
- 	return 0;
- }
- 
--static int pset_prop_count_elems_of_size(struct property_set *pset,
-+static int pset_prop_count_elems_of_size(const struct property_set *pset,
- 					 const char *propname, size_t length)
- {
- 	const struct property_entry *prop;
-@@ -143,7 +146,7 @@ static int pset_prop_count_elems_of_size(struct property_set *pset,
- 	return prop->length / length;
- }
- 
--static int pset_prop_read_string_array(struct property_set *pset,
-+static int pset_prop_read_string_array(const struct property_set *pset,
- 				       const char *propname,
- 				       const char **strings, size_t nval)
- {
-@@ -217,8 +220,8 @@ static int pset_fwnode_read_int_array(
- }
- 
- static int pset_fwnode_property_read_string_array(
--	struct fwnode_handle *fwnode, const char *propname, const char **val,
--	size_t nval)
-+	struct fwnode_handle *fwnode, const char *propname,
-+	const char **val, size_t nval)
- {
- 	return pset_prop_read_string_array(to_pset_node(fwnode), propname,
- 					   val, nval);
--- 
-2.7.4
+It is getting a bit convoluted. Is not it better to propagate the
+error back and let acpi_dma_configure() make a decision accordingly ?
 
+Something like:
+
+-- >8 --
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index e39ec7b..3a10d757 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1371,8 +1371,8 @@ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+ 	iort_set_dma_mask(dev);
+ 
+ 	iommu = iort_iommu_configure(dev);
+-	if (IS_ERR(iommu))
+-		return PTR_ERR(iommu);
++	if (IS_ERR(iommu) && PTR_ERR(iommu) == -EPROBE_DEFER)
++		return -EPROBE_DEFER;
+ 
+ 	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+ 	/*
