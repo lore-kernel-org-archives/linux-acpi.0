@@ -1,63 +1,52 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: [PATCH v2] acpi/nfit: Fix memory corruption/Unregister mce decoder on failure
-Date: Tue, 23 May 2017 11:14:18 -0400
-Message-ID: <1495552458-16708-1-git-send-email-prarit@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5386 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S967218AbdEWPOZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 May 2017 11:14:25 -0400
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 73AA085540
-        for <linux-acpi@vger.kernel.org>; Tue, 23 May 2017 15:14:24 +0000 (UTC)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 01/12] gpiolib: Export gpiod_configure_flags() to internal users
+Date: Tue, 23 May 2017 20:03:16 +0300
+Message-ID: <20170523170327.18055-2-andriy.shevchenko@linux.intel.com>
+References: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jagadish Krishnamoorthy <jagadish.krishnamoorthy@intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Prarit Bhargava <prarit@redhat.com>
 
-nfit_init() calls nfit_mce_register() on module load.  When the module
-load fails the nfit mce decoder is not unregistered.  The module's
-memory is freed leaving the decoder chain referencing junk.  This will
-cause panics as future registrations will reference the free'd memory.
+This is preparatory patch for enabling GPIO ACPI to configure a pin
+accordingly.
 
-Unregister the nfit mce decoder on module init failure.
-
-[v2]: register and then unregister mce handler to avoid losing mce events
-
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/acpi/nfit/core.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/gpio/gpiolib.c | 2 +-
+ drivers/gpio/gpiolib.h | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 656acb5d7166..450e4a233b5e 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -3043,6 +3043,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- 
- static __init int nfit_init(void)
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 5db44139cef8..99e07a2b7e02 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -3212,7 +3212,7 @@ EXPORT_SYMBOL_GPL(gpiod_get_optional);
+  * requested function and/or index, or another IS_ERR() code if an error
+  * occurred while trying to acquire the GPIO.
+  */
+-static int gpiod_configure_flags(struct gpio_desc *desc, const char *con_id,
++int gpiod_configure_flags(struct gpio_desc *desc, const char *con_id,
+ 		unsigned long lflags, enum gpiod_flags dflags)
  {
-+	int ret;
-+
- 	BUILD_BUG_ON(sizeof(struct acpi_table_nfit) != 40);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 56);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_memory_map) != 48);
-@@ -3070,8 +3072,12 @@ static __init int nfit_init(void)
- 		return -ENOMEM;
+ 	int status;
+diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
+index 2495b7ee1b42..e36a0bdc7740 100644
+--- a/drivers/gpio/gpiolib.h
++++ b/drivers/gpio/gpiolib.h
+@@ -199,6 +199,8 @@ struct gpio_desc {
  
- 	nfit_mce_register();
-+	ret = acpi_bus_register_driver(&acpi_nfit_driver);
-+	if (ret)
-+		nfit_mce_unregister();
-+
-+	return ret;
+ int gpiod_request(struct gpio_desc *desc, const char *label);
+ void gpiod_free(struct gpio_desc *desc);
++int gpiod_configure_flags(struct gpio_desc *desc, const char *con_id,
++		unsigned long lflags, enum gpiod_flags dflags);
+ int gpiod_hog(struct gpio_desc *desc, const char *name,
+ 		unsigned long lflags, enum gpiod_flags dflags);
  
--	return acpi_bus_register_driver(&acpi_nfit_driver);
- }
- 
- static __exit void nfit_exit(void)
 -- 
-1.7.9.3
+2.11.0
 
