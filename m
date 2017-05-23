@@ -1,70 +1,73 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 10/12] PNP / ACPI: add support for GpioInt resource type
-Date: Tue, 23 May 2017 20:03:25 +0300
-Message-ID: <20170523170327.18055-11-andriy.shevchenko@linux.intel.com>
-References: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:47942 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1764788AbdEWRDs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 May 2017 13:03:48 -0400
-In-Reply-To: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v2 00/12] gpio: acpi: Make it working
+Date: Tue, 23 May 2017 20:03:15 +0300
+Message-ID: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jagadish Krishnamoorthy <jagadish.krishnamoorthy@intel.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Jagadish Krishnamoorthy <jagadish.krishnamoorthy@intel.com>
+This is second iteration of the fix of GPIO ACPI library to make it
+robust against different ACPI specification generations and thus
+firmwares.
 
-The PNP ACPI driver parses ACPI interrupt resource but not
-GpioInt resource. When the firmware passes GpioInt resource
-for IRQ the PNP ACPI driver ignores it and hence the interrupt for
-the particular driver will not work.
-One such example is 8042 keyboard which uses PNP driver for obtaining
-the interrupt resource. On Intel Braswell project GpioInt is used
-instead of interrupt resource and the keyboard driver fails to
-register interrupt.
-Fix the issue by parsing GpioInt resource type.
+Currently GPIO ACPI library provides an API to get a GPIO resources
+(IO or interrupt) from ACPI tables for the individual drivers.
 
-Signed-off-by: Jagadish Krishnamoorthy <jagadish.krishnamoorthy@intel.com>
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/pnp/pnpacpi/rsparser.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+This library has few flaws which makes some devices not working:
+- the library allows to abuse ACPI by using a _CRS fallback mechanism
+- the library neglects flags of the resource
+- the PNP ACPI is not ready for GpioInt() resources for interrupts
 
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index 4b717c699313..af44e57f5148 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -180,6 +180,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 	struct pnp_dev *dev = data;
- 	struct acpi_resource_dma *dma;
- 	struct acpi_resource_vendor_typed *vendor_typed;
-+	struct acpi_resource_gpio *gpio;
- 	struct resource_win win = {{0}, 0};
- 	struct resource *r = &win.res;
- 	int i, flags;
-@@ -210,6 +211,20 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 			}
- 		}
- 		return AE_OK;
-+	} else if (acpi_gpio_get_irq_resource(res, &gpio)) {
-+		/*
-+		 * If the resource is GpioInt() type then extract the IRQ
-+		 * from GPIO resource and fill it into IRQ resource type.
-+		 */
-+		i = acpi_dev_gpio_irq_get(dev->data, 0);
-+		if (i >= 0) {
-+			flags = acpi_dev_irq_flags(gpio->triggering,
-+						   gpio->polarity,
-+						   gpio->sharable);
-+		} else
-+			flags = IORESOURCE_DISABLED;
-+		pnp_add_irq_resource(dev, i, flags);
-+		return AE_OK;
- 	} else if (r->flags & IORESOURCE_DISABLED) {
- 		pnp_add_irq_resource(dev, 0, IORESOURCE_DISABLED);
- 		return AE_OK;
+In this series:
+- the _CRS fallback is forbidden
+- the pin configuration follows what firmware wants to
+- the documentation is updated in order to clarify corner cases
+- the PNP ACPI is extended to support GpioInt() for interrupts
+
+After this series it's possible to use GPIO pins for input (interrupt)
+which were set as output due to HW reset default is input buffer
+disabled and BIOS didn't touch that pin at all. It's a crucial
+functionality for Internet of Things (IoT) open connected boards where
+user may choose any of available pin for almost any of available
+function, including GPIO input (interrupt).
+
+Current bad behaviour was first reported by Jarkko Nikula few months ago.
+
+Jagadish, it would be nice if you can re-test entire series in your
+environment and give a Tested-by tag.
+
+In v2:
+- add 4 patches to fix an issue with device that takes GpioInt resource
+- amend documentation
+- fix several spelling typos
+- add Mika's and Jarkko's tags
+- rebase on top of recent linux-next
+
+Andy Shevchenko (11):
+  gpiolib: Export gpiod_configure_flags() to internal users
+  gpio: acpi: Align acpi_find_gpio() with DT version
+  gpio: acpi: Do sanity check for GpioInt in acpi_find_gpio()
+  gpio: acpi: Even more tighten up ACPI GPIO lookups
+  gpio: acpi: Synchronize acpi_find_gpio() and acpi_gpio_count()
+  gpio: acpi: Explain how to get GPIO descriptors in ACPI case
+  gpio: acpi: Factor out acpi_gpio_to_gpiod_flags() helper
+  gpio: acpi: Override GPIO initialization flags
+  gpio: acpi: Split out acpi_gpio_get_irq_resource() helper
+  PNP / ACPI: join strings back for better maintenance
+  PNP / ACPI: remove FSF address
+
+Jagadish Krishnamoorthy (1):
+  PNP / ACPI: add support for GpioInt resource type
+
+ Documentation/acpi/gpio-properties.txt |  65 ++++++++++++
+ drivers/gpio/gpiolib-acpi.c            | 185 ++++++++++++++++++++-------------
+ drivers/gpio/gpiolib.c                 |  10 +-
+ drivers/gpio/gpiolib.h                 |  17 ++-
+ drivers/pnp/pnpacpi/rsparser.c         |  37 ++++---
+ include/linux/acpi.h                   |   7 ++
+ 6 files changed, 230 insertions(+), 91 deletions(-)
+
 -- 
 2.11.0
-
