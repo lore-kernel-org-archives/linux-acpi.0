@@ -1,109 +1,48 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH V11 08/11] drivers: acpi: Handle IOMMU lookup failure
-	with deferred probing or error
-Date: Tue, 23 May 2017 10:26:59 +0100
-Message-ID: <20170523092659.GA19999@red-moon>
-References: <1491823266-1209-1-git-send-email-sricharan@codeaurora.org>
-	<1491823266-1209-9-git-send-email-sricharan@codeaurora.org>
-	<41668eff-271c-1c4c-7665-3bf0faa74669@codeaurora.org>
-	<20170523085241.GA18204@red-moon>
-	<c6d5c033-a8f9-03e3-9963-cd291ae2d7e1@codeaurora.org>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH V17 00/11] Add UEFI 2.6 and ACPI 6.1 updates for RAS on
+ ARM64
+Date: Tue, 23 May 2017 11:30:43 +0200
+Message-ID: <20170523093043.GB25383@nazgul.tnic>
+References: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
 Content-Disposition: inline
-In-Reply-To: <c6d5c033-a8f9-03e3-9963-cd291ae2d7e1-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
+In-Reply-To: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, rafael@kernel.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, tony.luck@intel.com, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawe
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 23, 2017 at 02:31:17PM +0530, Sricharan R wrote:
-> Hi Lorenzo,
-> 
-> On 5/23/2017 2:22 PM, Lorenzo Pieralisi wrote:
-> > On Tue, May 23, 2017 at 02:26:10AM -0400, Nate Watterson wrote:
-> >> Hi Sricharan,
-> >>
-> >> On 4/10/2017 7:21 AM, Sricharan R wrote:
-> >>> This is an equivalent to the DT's handling of the iommu master's probe
-> >>> with deferred probing when the corrsponding iommu is not probed yet.
-> >>> The lack of a registered IOMMU can be caused by the lack of a driver for
-> >>> the IOMMU, the IOMMU device probe not having been performed yet, having
-> >>> been deferred, or having failed.
-> >>>
-> >>> The first case occurs when the firmware describes the bus master and
-> >>> IOMMU topology correctly but no device driver exists for the IOMMU yet
-> >>> or the device driver has not been compiled in. Return NULL, the caller
-> >>> will configure the device without an IOMMU.
-> >>>
-> >>> The second and third cases are handled by deferring the probe of the bus
-> >>> master device which will eventually get reprobed after the IOMMU.
-> >>>
-> >>> The last case is currently handled by deferring the probe of the bus
-> >>> master device as well. A mechanism to either configure the bus master
-> >>> device without an IOMMU or to fail the bus master device probe depending
-> >>> on whether the IOMMU is optional or mandatory would be a good
-> >>> enhancement.
-> >>>
-> >>> Tested-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> >>> Reviewed-by: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-> >>> [Lorenzo: Added fixes for dma_coherent_mask overflow, acpi_dma_configure
-> >>>           called multiple times for same device]
-> >>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> >>> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> >>> ---
-> >>>  drivers/acpi/arm64/iort.c  | 33 ++++++++++++++++++++++++++++++++-
-> >>>  drivers/acpi/scan.c        | 11 ++++++++---
-> >>>  drivers/base/dma-mapping.c |  2 +-
-> >>>  include/acpi/acpi_bus.h    |  2 +-
-> >>>  include/linux/acpi.h       |  7 +++++--
-> >>>  5 files changed, 47 insertions(+), 8 deletions(-)
-> >>>
-> >>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> >>> index 3dd9ec3..e323ece 100644
-> >>> --- a/drivers/acpi/arm64/iort.c
-> >>> +++ b/drivers/acpi/arm64/iort.c
-> >>> @@ -543,6 +543,14 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
-> >>>  	const struct iommu_ops *ops = NULL;
-> >>>  	int ret = -ENODEV;
-> >>>  	struct fwnode_handle *iort_fwnode;
-> >>> +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> >>> +
-> >>> +	/*
-> >>> +	 * If we already translated the fwspec there
-> >>> +	 * is nothing left to do, return the iommu_ops.
-> >>> +	 */
-> >>> +	if (fwspec && fwspec->ops)
-> >>> +		return fwspec->ops;
-> >>
-> >> Is this logic strictly required? It breaks masters with multiple SIDs
-> >> as only the first SID is actually added to the master's fwspec.
-> > 
-> > My bad, that's indeed a silly bug I introduced. Please let me know if the
-> > patch below fixes it, we will send it upstream shortly.
-> > 
-> 
-> oops, i think emails crossed. Please let me know if you are ok to add
-> this to the other fixes.
+On Fri, May 19, 2017 at 02:32:02PM -0600, Tyler Baicar wrote:
+> When a memory error, CPU error, PCIe error, or other type of hardware error
+> that's covered by RAS occurs, firmware should populate the shared GHES memory
+> location with the proper GHES structures to notify the OS of the error.
 
-No worries, yes I am ok thanks but please give Nate some time to report
-back to make sure the diff I sent actually fixes the problem.
+...
 
-Apologies for the breakage.
+> V17:Rebase on tip
+>     Change trace event helper function names
+>     Remove unneeded prefixes from commit text
 
-Lorenzo
+The whole series:
 
-> 
-> Regards,
->  Sricharan
-> 
+Reviewed-by: Borislav Petkov <bp@suse.de>
+
+Thanks!
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+--
