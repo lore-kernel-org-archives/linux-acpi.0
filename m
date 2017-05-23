@@ -1,76 +1,63 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH] ACPI: processor: fix LPI when built as module
-Date: Tue, 23 May 2017 14:08:06 +0100
-Message-ID: <314aff9d-6c24-e533-ef08-c16bc0816474@arm.com>
-References: <20170519092837.30991-1-yousaf.kaukab@suse.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [PATCH v2] acpi/nfit: Fix memory corruption/Unregister mce decoder on failure
+Date: Tue, 23 May 2017 11:14:18 -0400
+Message-ID: <1495552458-16708-1-git-send-email-prarit@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51264 "EHLO foss.arm.com"
+Received: from mx1.redhat.com ([209.132.183.28]:5386 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1760115AbdEWNIL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 May 2017 09:08:11 -0400
-In-Reply-To: <20170519092837.30991-1-yousaf.kaukab@suse.com>
-Content-Language: en-US
+        id S967218AbdEWPOZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 May 2017 11:14:25 -0400
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 73AA085540
+        for <linux-acpi@vger.kernel.org>; Tue, 23 May 2017 15:14:24 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mian Yousaf Kaukab <yousaf.kaukab@suse.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, rafael.j.wysocki@intel.com, Sudeep Holla <sudeep.holla@arm.com>, catalin.marinas@arm.com, lorenzo.pieralisi@arm.com
+To: linux-acpi@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>
 
+nfit_init() calls nfit_mce_register() on module load.  When the module
+load fails the nfit mce decoder is not unregistered.  The module's
+memory is freed leaving the decoder chain referencing junk.  This will
+cause panics as future registrations will reference the free'd memory.
 
+Unregister the nfit mce decoder on module init failure.
 
-On 19/05/17 10:28, Mian Yousaf Kaukab wrote:
-> Low Power Idle(LPI) support added acpi_processor_ffh_lpi_probe() and
-> acpi_processor_ffh_lpi_enter() as __weak functions and arch code is
-> supposed to provide the actual callbacks. This breaks if
-> ACPI_PROCESSOR is configured as a module.
-> 
-> Add CONFIG_ARCH_HAS_ACPI_LPI configuration option to fix this.
-> 
+[v2]: register and then unregister mce handler to avoid losing mce events
 
-Rafael didn't like the extra Kconfig option when I first posted
-LPI patches.
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+---
+ drivers/acpi/nfit/core.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-> Signed-off-by: Mian Yousaf Kaukab <yousaf.kaukab@suse.com>
-> ---
->  arch/arm64/Kconfig            | 1 +
->  arch/arm64/kernel/cpuidle.c   | 2 ++
->  drivers/acpi/Kconfig          | 3 +++
->  drivers/acpi/processor_idle.c | 9 +++++++--
->  4 files changed, 13 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 848a34116c67..de2f2779cdf5 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -10,6 +10,7 @@ config ARM64
->  	select ARCH_HAS_DEBUG_VIRTUAL
->  	select ARCH_HAS_DEVMEM_IS_ALLOWED
->  	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
-> +	select ARCH_HAS_ACPI_LPI if ACPI
->  	select ARCH_HAS_ELF_RANDOMIZE
->  	select ARCH_HAS_GCOV_PROFILE_ALL
->  	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
-> diff --git a/arch/arm64/kernel/cpuidle.c b/arch/arm64/kernel/cpuidle.c
-> index fd691087dc9a..002d9cb890bd 100644
-> --- a/arch/arm64/kernel/cpuidle.c
-> +++ b/arch/arm64/kernel/cpuidle.c
-> @@ -51,9 +51,11 @@ int acpi_processor_ffh_lpi_probe(unsigned int cpu)
->  {
->  	return arm_cpuidle_init(cpu);
->  }
-> +EXPORT_SYMBOL(acpi_processor_ffh_lpi_probe);
->  
->  int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
->  {
->  	return CPU_PM_CPU_IDLE_ENTER(arm_cpuidle_suspend, lpi->index);
->  }
-> +EXPORT_SYMBOL(acpi_processor_ffh_lpi_enter);
-
-Won't these 2 export suffice ? I am just curious why that won't work.
-Will weak function definitions be still picked when built as modules ?
-
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 656acb5d7166..450e4a233b5e 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3043,6 +3043,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+ 
+ static __init int nfit_init(void)
+ {
++	int ret;
++
+ 	BUILD_BUG_ON(sizeof(struct acpi_table_nfit) != 40);
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 56);
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_memory_map) != 48);
+@@ -3070,8 +3072,12 @@ static __init int nfit_init(void)
+ 		return -ENOMEM;
+ 
+ 	nfit_mce_register();
++	ret = acpi_bus_register_driver(&acpi_nfit_driver);
++	if (ret)
++		nfit_mce_unregister();
++
++	return ret;
+ 
+-	return acpi_bus_register_driver(&acpi_nfit_driver);
+ }
+ 
+ static __exit void nfit_exit(void)
 -- 
-Regards,
-Sudeep
+1.7.9.3
+
