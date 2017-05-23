@@ -1,78 +1,124 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 11/12] PNP / ACPI: join strings back for better maintenance
-Date: Tue, 23 May 2017 20:03:26 +0300
-Message-ID: <20170523170327.18055-12-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 04/12] gpio: acpi: Even more tighten up ACPI GPIO lookups
+Date: Tue, 23 May 2017 20:03:19 +0300
+Message-ID: <20170523170327.18055-5-andriy.shevchenko@linux.intel.com>
 References: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:34271 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1761390AbdEWRDr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 May 2017 13:03:47 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jagadish Krishnamoorthy <jagadish.krishnamoorthy@intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Bastien Nocera <hadess@hadess.net>
+List-Id: linux-acpi@vger.kernel.org
 
-Simply join string literals back for better maintenance and debugging.
+The commit 10cf4899f8af ("gpiolib: tighten up ACPI legacy gpio lookups")
+prevents to getting same resource twice if the driver asks twice using
+different connection ID.
 
-No functional changes intended.
+But the whole idea of fallback might bring some problems. Imagine the case when
+we have two versions of BIOS/hardware where in one _DSD is introduced along
+with GPIO resources, but the other one uses just plain GPIO resource for
+another purpose
 
+Case 1:
+
+    Device (DEVX)
+    {
+        ...
+        Name (_CRS, ResourceTemplate ()
+        {
+            GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+                    "\\_SB.GPO0", 0, ResourceConsumer) {15}
+        })
+        Name (_DSD, Package ()
+        {
+            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package ()
+            {
+                Package () {"some-gpios", Package() {^DEVX, 0, 0, 0 }},
+            }
+        })
+    }
+
+Case 2:
+
+    Device (DEVX)
+    {
+        ...
+        Name (_CRS, ResourceTemplate ()
+        {
+            GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+                    "\\_SB.GPO0", 0, ResourceConsumer) {27}
+        })
+    }
+
+To prevent the possible misconfiguration tighten up even more GPIO ACPI lookups
+for case without connection ID provided.
+
+In the past the issue had been triggered by "use mctrl_gpio helpers" series
+[1,2].
+
+[1] commit 4ef03d328769 ("tty/serial/8250: use mctrl_gpio helpers")
+[2] https://patchwork.kernel.org/patch/9283745/
+
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Bastien Nocera <hadess@hadess.net>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/pnp/pnpacpi/rsparser.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/gpio/gpiolib-acpi.c | 36 +-----------------------------------
+ 1 file changed, 1 insertion(+), 35 deletions(-)
 
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index af44e57f5148..02ae95a70b7d 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -149,8 +149,8 @@ static int vendor_resource_matches(struct pnp_dev *dev,
- 	    uuid_len == sizeof(match->data) &&
- 	    memcmp(uuid, match->data, uuid_len) == 0) {
- 		if (expected_len && expected_len != actual_len) {
--			dev_err(&dev->dev, "wrong vendor descriptor size; "
--				"expected %d, found %d bytes\n",
-+			dev_err(&dev->dev,
-+				"wrong vendor descriptor size; expected %d, found %d bytes\n",
- 				expected_len, actual_len);
- 			return 0;
- 		}
-@@ -204,9 +204,8 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 			 * one interrupt, we won't be able to re-encode it.
- 			 */
- 			if (pnp_can_write(dev)) {
--				dev_warn(&dev->dev, "multiple interrupts in "
--					 "_CRS descriptor; configuration can't "
--					 "be changed\n");
-+				dev_warn(&dev->dev,
-+					 "multiple interrupts in _CRS descriptor; configuration can't be changed\n");
- 				dev->capabilities &= ~PNP_WRITE;
- 			}
- 		}
-@@ -346,8 +345,8 @@ static __init void pnpacpi_parse_ext_irq_option(struct pnp_dev *dev,
- 			if (p->interrupts[i] < PNP_IRQ_NR)
- 				__set_bit(p->interrupts[i], map.bits);
- 			else
--				dev_err(&dev->dev, "ignoring IRQ %d option "
--					"(too large for %d entry bitmap)\n",
-+				dev_err(&dev->dev,
-+					"ignoring IRQ %d option (too large for %d entry bitmap)\n",
- 					p->interrupts[i], PNP_IRQ_NR);
- 		}
- 	}
-@@ -948,8 +947,9 @@ int pnpacpi_encode_resources(struct pnp_dev *dev, struct acpi_buffer *buffer)
- 		case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
- 		case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
- 		default:	/* other type */
--			dev_warn(&dev->dev, "can't encode unknown resource "
--				 "type %d\n", resource->type);
-+			dev_warn(&dev->dev,
-+				 "can't encode unknown resource type %d\n",
-+				 resource->type);
- 			return -EINVAL;
- 		}
- 		resource++;
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 28f35a9de86b..0392d8ed332f 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -1129,45 +1129,11 @@ int acpi_gpio_count(struct device *dev, const char *con_id)
+ 	return count ? count : -ENOENT;
+ }
+ 
+-struct acpi_crs_lookup {
+-	struct list_head node;
+-	struct acpi_device *adev;
+-	const char *con_id;
+-};
+-
+-static DEFINE_MUTEX(acpi_crs_lookup_lock);
+-static LIST_HEAD(acpi_crs_lookup_list);
+-
+ bool acpi_can_fallback_to_crs(struct acpi_device *adev, const char *con_id)
+ {
+-	struct acpi_crs_lookup *l, *lookup = NULL;
+-
+ 	/* Never allow fallback if the device has properties */
+ 	if (adev->data.properties || adev->driver_gpios)
+ 		return false;
+ 
+-	mutex_lock(&acpi_crs_lookup_lock);
+-
+-	list_for_each_entry(l, &acpi_crs_lookup_list, node) {
+-		if (l->adev == adev) {
+-			lookup = l;
+-			break;
+-		}
+-	}
+-
+-	if (!lookup) {
+-		lookup = kmalloc(sizeof(*lookup), GFP_KERNEL);
+-		if (lookup) {
+-			lookup->adev = adev;
+-			lookup->con_id = kstrdup(con_id, GFP_KERNEL);
+-			list_add_tail(&lookup->node, &acpi_crs_lookup_list);
+-		}
+-	}
+-
+-	mutex_unlock(&acpi_crs_lookup_lock);
+-
+-	return lookup &&
+-		((!lookup->con_id && !con_id) ||
+-		 (lookup->con_id && con_id &&
+-		  strcmp(lookup->con_id, con_id) == 0));
++	return con_id == NULL;
+ }
 -- 
 2.11.0
-
