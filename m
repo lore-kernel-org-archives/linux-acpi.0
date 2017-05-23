@@ -1,78 +1,76 @@
-From: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: [PATCH v5 5/5] ACPI/IORT: Move the check to get iommu_ops from
-	translated fwspec
-Date: Tue, 23 May 2017 18:31:33 +0530
-Message-ID: <1495544493-14219-5-git-send-email-sricharan@codeaurora.org>
-References: <1495544493-14219-1-git-send-email-sricharan@codeaurora.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH] ACPI: processor: fix LPI when built as module
+Date: Tue, 23 May 2017 14:08:06 +0100
+Message-ID: <314aff9d-6c24-e533-ef08-c16bc0816474@arm.com>
+References: <20170519092837.30991-1-yousaf.kaukab@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1495544493-14219-1-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: robin.murphy-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, j.neuschaefer-hi6Y0CQ0nG0@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nwatters-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:51264 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1760115AbdEWNIL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 May 2017 09:08:11 -0400
+In-Reply-To: <20170519092837.30991-1-yousaf.kaukab@suse.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mian Yousaf Kaukab <yousaf.kaukab@suse.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, rafael.j.wysocki@intel.com, Sudeep Holla <sudeep.holla@arm.com>, catalin.marinas@arm.com, lorenzo.pieralisi@arm.com
 
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
 
-With IOMMU probe deferral, iort_iommu_configure can be called
-multiple times for the same device. Hence we have a check
-to see if the device's fwspec is already translated and return
-the iommu_ops from that directly. But the check is wrongly
-placed in iort_iommu_xlate, which breaks devices with multiple
-sids. Move the check to iort_iommu_configure.
 
-Fixes: 5a1bb638d567 ("drivers: acpi: Handle IOMMU lookup failure with deferred probing or error")
-Tested-by: Nate Watterson <nwatters-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
----
+On 19/05/17 10:28, Mian Yousaf Kaukab wrote:
+> Low Power Idle(LPI) support added acpi_processor_ffh_lpi_probe() and
+> acpi_processor_ffh_lpi_enter() as __weak functions and arch code is
+> supposed to provide the actual callbacks. This breaks if
+> ACPI_PROCESSOR is configured as a module.
+> 
+> Add CONFIG_ARCH_HAS_ACPI_LPI configuration option to fix this.
+> 
 
-[v5] new patch
+Rafael didn't like the extra Kconfig option when I first posted
+LPI patches.
 
- drivers/acpi/arm64/iort.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+> Signed-off-by: Mian Yousaf Kaukab <yousaf.kaukab@suse.com>
+> ---
+>  arch/arm64/Kconfig            | 1 +
+>  arch/arm64/kernel/cpuidle.c   | 2 ++
+>  drivers/acpi/Kconfig          | 3 +++
+>  drivers/acpi/processor_idle.c | 9 +++++++--
+>  4 files changed, 13 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 848a34116c67..de2f2779cdf5 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -10,6 +10,7 @@ config ARM64
+>  	select ARCH_HAS_DEBUG_VIRTUAL
+>  	select ARCH_HAS_DEVMEM_IS_ALLOWED
+>  	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
+> +	select ARCH_HAS_ACPI_LPI if ACPI
+>  	select ARCH_HAS_ELF_RANDOMIZE
+>  	select ARCH_HAS_GCOV_PROFILE_ALL
+>  	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
+> diff --git a/arch/arm64/kernel/cpuidle.c b/arch/arm64/kernel/cpuidle.c
+> index fd691087dc9a..002d9cb890bd 100644
+> --- a/arch/arm64/kernel/cpuidle.c
+> +++ b/arch/arm64/kernel/cpuidle.c
+> @@ -51,9 +51,11 @@ int acpi_processor_ffh_lpi_probe(unsigned int cpu)
+>  {
+>  	return arm_cpuidle_init(cpu);
+>  }
+> +EXPORT_SYMBOL(acpi_processor_ffh_lpi_probe);
+>  
+>  int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
+>  {
+>  	return CPU_PM_CPU_IDLE_ENTER(arm_cpuidle_suspend, lpi->index);
+>  }
+> +EXPORT_SYMBOL(acpi_processor_ffh_lpi_enter);
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 16e101f..797b28d 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -666,14 +666,6 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
- 	int ret = -ENODEV;
- 	struct fwnode_handle *iort_fwnode;
- 
--	/*
--	 * If we already translated the fwspec there
--	 * is nothing left to do, return the iommu_ops.
--	 */
--	ops = iort_fwspec_iommu_ops(dev->iommu_fwspec);
--	if (ops)
--		return ops;
--
- 	if (node) {
- 		iort_fwnode = iort_get_fwnode(node);
- 		if (!iort_fwnode)
-@@ -735,6 +727,14 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
- 	u32 streamid = 0;
- 	int err;
- 
-+	/*
-+	 * If we already translated the fwspec there
-+	 * is nothing left to do, return the iommu_ops.
-+	 */
-+	ops = iort_fwspec_iommu_ops(dev->iommu_fwspec);
-+	if (ops)
-+		return ops;
-+
- 	if (dev_is_pci(dev)) {
- 		struct pci_bus *bus = to_pci_dev(dev)->bus;
- 		u32 rid;
+Won't these 2 export suffice ? I am just curious why that won't work.
+Will weak function definitions be still picked when built as modules ?
+
 -- 
-QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+Regards,
+Sudeep
