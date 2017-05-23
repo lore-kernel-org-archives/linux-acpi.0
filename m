@@ -1,126 +1,52 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 07/12] gpio: acpi: Factor out acpi_gpio_to_gpiod_flags() helper
-Date: Tue, 23 May 2017 20:03:22 +0300
-Message-ID: <20170523170327.18055-8-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 03/12] gpio: acpi: Do sanity check for GpioInt in acpi_find_gpio()
+Date: Tue, 23 May 2017 20:03:18 +0300
+Message-ID: <20170523170327.18055-4-andriy.shevchenko@linux.intel.com>
 References: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:17199 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1761453AbdEWREN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 May 2017 13:04:13 -0400
 In-Reply-To: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jagadish Krishnamoorthy <jagadish.krishnamoorthy@intel.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-The helper function acpi_gpio_to_gpiod_flags() will be used later to configure
-pin properly whenever it's requested.
+Check that we don't ask for output direction on GpioInt resource
+in cases with or without _DSD defined.
 
-While here, introduce a checking error code returned by gpiod_configure_flags()
-and bail out if it's not okay.
-
+Reviewed-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/gpio/gpiolib-acpi.c | 61 ++++++++++++++++++++++++++-------------------
- 1 file changed, 36 insertions(+), 25 deletions(-)
+ drivers/gpio/gpiolib-acpi.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 740df0e9dcb3..cb61e11558a5 100644
+index 055a8a255a40..28f35a9de86b 100644
 --- a/drivers/gpio/gpiolib-acpi.c
 +++ b/drivers/gpio/gpiolib-acpi.c
-@@ -423,6 +423,31 @@ static bool acpi_get_driver_gpio_data(struct acpi_device *adev,
- 	return false;
- }
- 
-+static enum gpiod_flags
-+acpi_gpio_to_gpiod_flags(const struct acpi_resource_gpio *agpio)
-+{
-+	bool pull_up = agpio->pin_config == ACPI_PIN_CONFIG_PULLUP;
-+
-+	switch (agpio->io_restriction) {
-+	case ACPI_IO_RESTRICT_INPUT:
-+		return GPIOD_IN;
-+	case ACPI_IO_RESTRICT_OUTPUT:
-+		/*
-+		 * ACPI GPIO resources don't contain an initial value for the
-+		 * GPIO. Therefore we deduce that value from the pull field
-+		 * instead. If the pin is pulled up we assume default to be
-+		 * high, otherwise low.
-+		 */
-+		return pull_up ? GPIOD_OUT_HIGH : GPIOD_OUT_LOW;
-+	default:
-+		/*
-+		 * Assume that the BIOS has configured the direction and pull
-+		 * accordingly.
-+		 */
-+		return GPIOD_ASIS;
+@@ -622,12 +622,12 @@ struct gpio_desc *acpi_find_gpio(struct device *dev,
+ 		desc = acpi_get_gpiod_by_index(adev, NULL, idx, &info);
+ 		if (IS_ERR(desc))
+ 			return desc;
 +	}
-+}
-+
- struct acpi_gpio_lookup {
- 	struct acpi_gpio_info info;
- 	int index;
-@@ -740,7 +765,6 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
- 	struct acpi_resource *ares;
- 	int pin_index = (int)address;
- 	acpi_status status;
--	bool pull_up;
- 	int length;
- 	int i;
  
-@@ -755,7 +779,6 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+-		if ((flags == GPIOD_OUT_LOW || flags == GPIOD_OUT_HIGH) &&
+-		    info.gpioint) {
+-			dev_dbg(dev, "refusing GpioInt() entry when doing GPIOD_OUT_* lookup\n");
+-			return ERR_PTR(-ENOENT);
+-		}
++	if (info.gpioint &&
++	    (flags == GPIOD_OUT_LOW || flags == GPIOD_OUT_HIGH)) {
++		dev_dbg(dev, "refusing GpioInt() entry when doing GPIOD_OUT_* lookup\n");
++		return ERR_PTR(-ENOENT);
  	}
  
- 	agpio = &ares->data.gpio;
--	pull_up = agpio->pin_config == ACPI_PIN_CONFIG_PULLUP;
- 
- 	if (WARN_ON(agpio->io_restriction == ACPI_IO_RESTRICT_INPUT &&
- 	    function == ACPI_WRITE)) {
-@@ -806,35 +829,23 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
- 		}
- 
- 		if (!found) {
--			desc = gpiochip_request_own_desc(chip, pin,
--							 "ACPI:OpRegion");
-+			enum gpiod_flags flags = acpi_gpio_to_gpiod_flags(agpio);
-+			const char *label = "ACPI:OpRegion";
-+			int err;
-+
-+			desc = gpiochip_request_own_desc(chip, pin, label);
- 			if (IS_ERR(desc)) {
- 				status = AE_ERROR;
- 				mutex_unlock(&achip->conn_lock);
- 				goto out;
- 			}
- 
--			switch (agpio->io_restriction) {
--			case ACPI_IO_RESTRICT_INPUT:
--				gpiod_direction_input(desc);
--				break;
--			case ACPI_IO_RESTRICT_OUTPUT:
--				/*
--				 * ACPI GPIO resources don't contain an
--				 * initial value for the GPIO. Therefore we
--				 * deduce that value from the pull field
--				 * instead. If the pin is pulled up we
--				 * assume default to be high, otherwise
--				 * low.
--				 */
--				gpiod_direction_output(desc, pull_up);
--				break;
--			default:
--				/*
--				 * Assume that the BIOS has configured the
--				 * direction and pull accordingly.
--				 */
--				break;
-+			err = gpiod_configure_flags(desc, label, 0, flags);
-+			if (err < 0) {
-+				status = AE_NOT_CONFIGURED;
-+				gpiochip_free_own_desc(desc);
-+				mutex_unlock(&achip->conn_lock);
-+				goto out;
- 			}
- 
- 			conn = kzalloc(sizeof(*conn), GFP_KERNEL);
+ 	if (info.polarity == GPIO_ACTIVE_LOW)
 -- 
 2.11.0
+
