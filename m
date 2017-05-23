@@ -1,7 +1,7 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 05/12] gpio: acpi: Synchronize acpi_find_gpio() and acpi_gpio_count()
-Date: Tue, 23 May 2017 20:03:20 +0300
-Message-ID: <20170523170327.18055-6-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 07/12] gpio: acpi: Factor out acpi_gpio_to_gpiod_flags() helper
+Date: Tue, 23 May 2017 20:03:22 +0300
+Message-ID: <20170523170327.18055-8-andriy.shevchenko@linux.intel.com>
 References: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
@@ -10,34 +10,117 @@ To: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Dmitry
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-If we pass connection ID to the both functions and at the same time
-acpi_can_fallback_to_crs() returns false we will get different results,
-i.e. the number of GPIO resources returned by acpi_gpio_count() might be
-not correct.
+The helper function acpi_gpio_to_gpiod_flags() will be used later to configure
+pin properly whenever it's requested.
 
-Fix this by calling acpi_can_fallback_to_crs() in acpi_gpio_count()
-before trying to fallback.
+While here, introduce a checking error code returned by gpiod_configure_flags()
+and bail out if it's not okay.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/gpio/gpiolib-acpi.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/gpio/gpiolib-acpi.c | 61 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 36 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 0392d8ed332f..740df0e9dcb3 100644
+index 740df0e9dcb3..cb61e11558a5 100644
 --- a/drivers/gpio/gpiolib-acpi.c
 +++ b/drivers/gpio/gpiolib-acpi.c
-@@ -1119,6 +1119,9 @@ int acpi_gpio_count(struct device *dev, const char *con_id)
- 		struct list_head resource_list;
- 		unsigned int crs_count = 0;
+@@ -423,6 +423,31 @@ static bool acpi_get_driver_gpio_data(struct acpi_device *adev,
+ 	return false;
+ }
  
-+		if (!acpi_can_fallback_to_crs(adev, con_id))
-+			return count;
++static enum gpiod_flags
++acpi_gpio_to_gpiod_flags(const struct acpi_resource_gpio *agpio)
++{
++	bool pull_up = agpio->pin_config == ACPI_PIN_CONFIG_PULLUP;
 +
- 		INIT_LIST_HEAD(&resource_list);
- 		acpi_dev_get_resources(adev, &resource_list,
- 				       acpi_find_gpio_count, &crs_count);
++	switch (agpio->io_restriction) {
++	case ACPI_IO_RESTRICT_INPUT:
++		return GPIOD_IN;
++	case ACPI_IO_RESTRICT_OUTPUT:
++		/*
++		 * ACPI GPIO resources don't contain an initial value for the
++		 * GPIO. Therefore we deduce that value from the pull field
++		 * instead. If the pin is pulled up we assume default to be
++		 * high, otherwise low.
++		 */
++		return pull_up ? GPIOD_OUT_HIGH : GPIOD_OUT_LOW;
++	default:
++		/*
++		 * Assume that the BIOS has configured the direction and pull
++		 * accordingly.
++		 */
++		return GPIOD_ASIS;
++	}
++}
++
+ struct acpi_gpio_lookup {
+ 	struct acpi_gpio_info info;
+ 	int index;
+@@ -740,7 +765,6 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+ 	struct acpi_resource *ares;
+ 	int pin_index = (int)address;
+ 	acpi_status status;
+-	bool pull_up;
+ 	int length;
+ 	int i;
+ 
+@@ -755,7 +779,6 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+ 	}
+ 
+ 	agpio = &ares->data.gpio;
+-	pull_up = agpio->pin_config == ACPI_PIN_CONFIG_PULLUP;
+ 
+ 	if (WARN_ON(agpio->io_restriction == ACPI_IO_RESTRICT_INPUT &&
+ 	    function == ACPI_WRITE)) {
+@@ -806,35 +829,23 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+ 		}
+ 
+ 		if (!found) {
+-			desc = gpiochip_request_own_desc(chip, pin,
+-							 "ACPI:OpRegion");
++			enum gpiod_flags flags = acpi_gpio_to_gpiod_flags(agpio);
++			const char *label = "ACPI:OpRegion";
++			int err;
++
++			desc = gpiochip_request_own_desc(chip, pin, label);
+ 			if (IS_ERR(desc)) {
+ 				status = AE_ERROR;
+ 				mutex_unlock(&achip->conn_lock);
+ 				goto out;
+ 			}
+ 
+-			switch (agpio->io_restriction) {
+-			case ACPI_IO_RESTRICT_INPUT:
+-				gpiod_direction_input(desc);
+-				break;
+-			case ACPI_IO_RESTRICT_OUTPUT:
+-				/*
+-				 * ACPI GPIO resources don't contain an
+-				 * initial value for the GPIO. Therefore we
+-				 * deduce that value from the pull field
+-				 * instead. If the pin is pulled up we
+-				 * assume default to be high, otherwise
+-				 * low.
+-				 */
+-				gpiod_direction_output(desc, pull_up);
+-				break;
+-			default:
+-				/*
+-				 * Assume that the BIOS has configured the
+-				 * direction and pull accordingly.
+-				 */
+-				break;
++			err = gpiod_configure_flags(desc, label, 0, flags);
++			if (err < 0) {
++				status = AE_NOT_CONFIGURED;
++				gpiochip_free_own_desc(desc);
++				mutex_unlock(&achip->conn_lock);
++				goto out;
+ 			}
+ 
+ 			conn = kzalloc(sizeof(*conn), GFP_KERNEL);
 -- 
 2.11.0
