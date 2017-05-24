@@ -1,74 +1,168 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: [patch V3 22/32] ACPI/processor: Use cpu_hotplug_disable() instead of
- get_online_cpus()
-Date: Wed, 24 May 2017 10:15:33 +0200
-Message-ID: <20170524081548.851588594@linutronix.de>
-References: <20170524081511.203800767@linutronix.de>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v4] gpio: Add driver for ACPI INT0002 Virtual GPIO device
+Date: Wed, 24 May 2017 13:27:51 +0300
+Message-ID: <1495621671.6967.88.camel@linux.intel.com>
+References: <20170524075801.9152-1-hdegoede@redhat.com>
+         <20170524075801.9152-2-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline;
- filename=ACPIprocessor_Use_cpu_hotplug_disable()_instead_of_get_online_cpus().patch
-Sender: linux-kernel-owner@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, Sebastian Siewior <bigeasy@linutronix.de>, Paul McKenney <paulmck@linux.vnet.ibm.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20170524075801.9152-2-hdegoede@redhat.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Converting the hotplug locking, i.e. get_online_cpus(), to a percpu rwsem
-unearthed a circular lock dependency which was hidden from lockdep due to
-the lockdep annotation of get_online_cpus() which prevents lockdep from
-creating full dependency chains.
+On Wed, 2017-05-24 at 09:58 +0200, Hans de Goede wrote:
+> Some peripherals on Bay Trail and Cherry Trail platforms signal PME to
+> the
+> PMC to wakeup the system. When this happens software needs to clear
+> the
+> PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ
+> 9.
+> 
+> This is modeled in ACPI through the INT0002 ACPI Virtual GPIO device.
+> 
+> This commit adds a driver which registers the Virtual GPIOs expected
+> by the DSDT on these devices, letting gpiolib-acpi claim the
+> virtual GPIO and install a GPIO-interrupt handler which call the _L02
+> handler as it would for a real GPIO controller.
 
-CPU0                    CPU1
-----                    ----
-lock((&wfc.work));
-                         lock(cpu_hotplug_lock.rw_sem);
-                         lock((&wfc.work));
-lock(cpu_hotplug_lock.rw_sem);
+Some issues below, after addressing them
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-This dependency is established via acpi_processor_start() which calls into
-the work queue code. And the work queue code establishes the reverse
-dependency.
+> +config GPIO_INT0002
+> +	tristate "Intel ACPI INT0002 Virtual GPIO"
+> +	depends on ACPI
 
-This is not a problem of get_online_cpus() recursion, it's a possible
-deadlock undetected by lockdep so far.
+&& X86 (see below why)
 
-The cure is to use cpu_hotplug_disable() instead of get_online_cpus() to
-protect the probing from acpi_processor_start().
+> +#include <asm/cpu_device_id.h>
+> +#include <asm/intel-family.h>
 
-There is a side effect to this: cpu_hotplug_disable() makes a concurrent
-cpu hotplug attempt via the sysfs interfaces fail with -EBUSY, but that
-probing usually happens during the boot process where no interaction is
-possible. Any later invocations are infrequent enough and concurrent
-hotplug attempts are so unlikely that the danger of user space visible
-regressions is very close to zero. Anyway, thats preferrable over a real
-deadlock.
+Please, move this after <linux/*> headers with empty line in between.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sebastian Siewior <bigeasy@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>
+Because you are using specific x86 headers you must depend on X86.
 
----
- drivers/acpi/processor_driver.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> +#include <linux/acpi.h>
+> +#include <linux/gpio.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/io.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/suspend.h>
 
-Index: b/drivers/acpi/processor_driver.c
-===================================================================
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -268,9 +268,9 @@ static int acpi_processor_start(struct d
- 		return -ENODEV;
- 
- 	/* Protect against concurrent CPU hotplug operations */
--	get_online_cpus();
-+	cpu_hotplug_disable();
- 	ret = __acpi_processor_start(device);
--	put_online_cpus();
-+	cpu_hotplug_enable();
- 	return ret;
- }
- 
+> +
+> +/* For some reason the virtual GPIO pin tied to the GPE is numbered
+> pin 2 */
+> +#define GPE0A_PME_B0_VIRT_GPIO_PIN	2
+> +
+
+> +#define GPE0A_PME_B0_STS_BIT		0x2000
+> +#define GPE0A_PME_B0_EN_BIT		0x2000
+
+BIT() ?
+
+> +#define GPE0A_STS_PORT			0x420
+> +#define GPE0A_EN_PORT			0x428
+> +
+
+> +static int int0002_probe(struct platform_device *pdev)
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	const struct x86_cpu_id *cpu_id;
+> +	struct gpio_chip *chip;
+> +	int i, irq, ret;
+> +
+
+> +	/* Menlow has a different INT0002 device? <sigh> */
+
+Perhaps we can remove that all code. I will look at it when I have spare
+time.
+
+For now we may go with your code as is.
+
+> +	cpu_id = x86_match_cpu(int0002_cpu_ids);
+> +	if (!cpu_id)
+> +		return -ENODEV;
+> +
+> +	irq = platform_get_irq(pdev, 0);
+> +	if (irq < 0) {
+> +		dev_err(dev, "Error getting IRQ: %d\n", irq);
+> +		return irq;
+> +	}
+> +
+> +	chip = devm_kzalloc(dev, sizeof(*chip), GFP_KERNEL);
+> +	if (!chip)
+> +		return -ENOMEM;
+> +
+> +	chip->label = DRV_NAME;
+> +	chip->parent = dev;
+> +	chip->owner = THIS_MODULE;
+> +	chip->get = int0002_gpio_get;
+> +	chip->set = int0002_gpio_set;
+> +	chip->direction_input = int0002_gpio_get;
+> +	chip->direction_output = int0002_gpio_direction_output;
+> +	chip->base = -1;
+> +	chip->ngpio = GPE0A_PME_B0_VIRT_GPIO_PIN + 1;
+> +	chip->irq_need_valid_mask = true;
+> +
+> +	ret = devm_gpiochip_add_data(&pdev->dev, chip, NULL);
+> +	if (ret) {
+> +		dev_err(dev, "Error adding gpio chip: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	for (i = 0; i < GPE0A_PME_B0_VIRT_GPIO_PIN; i++)
+> +		clear_bit(i, chip->irq_valid_mask);
+> +
+> +	/*
+> +	 * We manually request the irq here instead of passing a
+> flow-handler
+> +	 * to gpiochip_set_chained_irqchip, because the irq is
+> shared.
+> +	 */
+
+Linus, I'm just wondering if we can provide generic solution for such
+cases (AFAIU this is copied from some of Intel pin control driver, so,
+we have two or more users already).
+
+For now let's go with current proposal.
+
+> +	ret = devm_request_irq(dev, irq, int0002_irq,
+> +			       IRQF_SHARED | IRQF_NO_THREAD,
+> "INT0002", chip);
+> +	if (ret) {
+> +		dev_err(dev, "Error requesting IRQ %d: %d\n", irq,
+> ret);
+> +		return ret;
+> +	}
+> +
+> 
+
+> +
+> +static const struct acpi_device_id int0002_acpi_ids[] = {
+> +	{ "INT0002", 0 },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(acpi, int0002_acpi_ids);
+> +
+> +static struct platform_driver int0002_driver = {
+> +	.driver = {
+> +		.name			= DRV_NAME,
+> +		.acpi_match_table	= 
+
+> ACPI_PTR(int0002_acpi_ids),
+
+No #ifdef, so ACPI_PTR can be dropped.
+
+> +	},
+> +	.probe	= int0002_probe,
+> +};
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
