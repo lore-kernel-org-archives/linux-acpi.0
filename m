@@ -1,68 +1,59 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2] acpi: fix acpi_get_table() leak / acpi-sysfs denial of service
-Date: Wed, 24 May 2017 12:01:20 -0700
-Message-ID: <CAPcyv4gpz_Msbevk1MEsfbO4nXySaRNSc7LC=D7NL-AdEdM0=g@mail.gmail.com>
-References: <149315024459.9151.4555045488194999231.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAJZ5v0h4hOeRfBgK=ARbw8dmML56v0xnvPjsY9wZ0fv7EXCeQw@mail.gmail.com> <CAPcyv4i_mRLSxm7YAnk_p8PhP=kyhT1aZZcrG-zZxXXWhGQuew@mail.gmail.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH] workqueue: Implement delayed_work_busy()
+Date: Wed, 24 May 2017 16:21:43 -0400
+Message-ID: <20170524202143.GN24798@htj.duckdns.org>
+References: <1495582493-10069-1-git-send-email-alex.naidis@linux.com>
+ <20170524151154.GD24798@htj.duckdns.org>
+ <CACuw83r65iSCQdV1WVR=wQqw0voJ_98HmsRF9XaAdeGtQ_daGQ@mail.gmail.com>
+ <20170524200141.GM24798@htj.duckdns.org>
+ <CACuw83qcNAX1RNr=G6cfGeLqTKL-rtDLpK60o65BB50dLPMOzA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f49.google.com ([209.85.218.49]:35657 "EHLO
-        mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754524AbdEXTBW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 May 2017 15:01:22 -0400
-Received: by mail-oi0-f49.google.com with SMTP id l18so253782904oig.2
-        for <linux-acpi@vger.kernel.org>; Wed, 24 May 2017 12:01:22 -0700 (PDT)
-In-Reply-To: <CAPcyv4i_mRLSxm7YAnk_p8PhP=kyhT1aZZcrG-zZxXXWhGQuew@mail.gmail.com>
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:36833 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964823AbdEXUVp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 May 2017 16:21:45 -0400
+Content-Disposition: inline
+In-Reply-To: <CACuw83qcNAX1RNr=G6cfGeLqTKL-rtDLpK60o65BB50dLPMOzA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Rafael Wysocki <rafael.j.wysocki@intel.com>, Anush Seetharaman <anush.seetharaman@intel.com>, Tiffany Kasanicky <tiffany.j.kasanicky@intel.com>, Ryon Jensen <ryon.jensen@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kristin Jacque <kristin.jacque@intel.com>, Zhang Rui <rui.zhang@intel.com>
+To: Alex Naidis <alex.naidis@linux.com>
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Wed, Apr 26, 2017 at 3:37 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Wed, Apr 26, 2017 at 3:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->> On Tue, Apr 25, 2017 at 9:58 PM, Dan Williams <dan.j.williams@intel.com> wrote:
->>> Reading an ACPI table through the /sys/firmware/acpi/tables interface
->>> more than 65,536 times leads to the following log message:
->>>
->>>  ACPI Error: Table ffff88033595eaa8, Validation count is zero after increment
->>>   (20170119/tbutils-423)
->>>
->>> ...and the table being unavailable until the next reboot. Add the
->>> missing acpi_put_table() so the table ->validation_count is decremented
->>> after each read.
->>>
->>> Cc: <stable@vger.kernel.org>
->>> Cc: Zhang Rui <rui.zhang@intel.com>
->>> Cc: Rafael Wysocki <rafael.j.wysocki@intel.com>
->>> Cc: Kristin Jacque <kristin.jacque@intel.com>
->>> Cc: Tiffany Kasanicky <tiffany.j.kasanicky@intel.com>
->>> Cc: Ryon Jensen <ryon.jensen@intel.com>
->>> Reported-by: Anush Seetharaman <anush.seetharaman@intel.com>
->>> Fixes: 1c8fce27e275 ("ACPI: introduce drivers/acpi/sysfs.c")
->>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->>
->> I'm going to apply this, but your Fixes tag is not correct.
->>
->> validation_count was added to struct acpi_table_desc by commit
->>
->> commit 174cc7187e6f088942c8e74daa7baff7b44b33c9
->> Author: Lv Zheng <lv.zheng@intel.com>
->> Date:   Wed Dec 14 15:04:25 2016 +0800
->>
->>     ACPICA: Tables: Back port acpi_get_table_with_size() and
->> early_acpi_os_unmap_memory()
->> from Linux kernel
->>
->> from the 4.10 time frame, so IMO it should be
->>
->> Fixes: 174cc7187e6f (ACPICA: Tables: Back port
->> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
->> kernel)
->>
->
-> Ah, thanks for the catch, I missed that detail and was wrong to argue
-> it was a 7 year old bug. Apologies Lv!
+Hello,
 
-Hi Rafael, I don't see this in latest Linus master or queued in your
-bleeding-edge branch.
+cc'ing ACPI folks.
+
+On Wed, May 24, 2017 at 10:16:02PM +0200, Alex Naidis wrote:
+> 2017-05-24 22:01 GMT+02:00 Tejun Heo <tj@kernel.org>:
+> > Hello, Alex.
+> >
+> > On Wed, May 24, 2017 at 09:58:19PM +0200, Alex Naidis wrote:
+> >> Yeah, I agree, it is wrong to rely on work_busy() providing correct data.
+> >> However sometimes it is useful to have an indicator like this to at least
+> >> catch some cases where requeuing work would be obsolete.
+> >> This applies for delayed work too.
+> >
+> > Can you elaborage on "requeueing work would be obsolate" a bit?
+> Sure.
+> The case that I mean is represented well by the usage of work_busy here:
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/acpi/bus.c#n534
+> It checks work_busy() before requeuing the work, since in some cases
+> it is obsolete
+> to requeue the work if it is already pending or running.
+
+So, there is no point in testing whether a work item is pending before
+queeing it.  It's completely spurious.  The only part which makes
+sense is if it doesn't want to queue a work item if it's already
+running (but note that this isn't synchronized properly) for some
+reason, but given that it can race with workqueue operation and
+spuriously return false when the work item just started running, it
+can't be for correctness.
+
+Rafael, Len, can you please explain why work_busy() test is there?
+
+Thanks.
+
+-- 
+tejun
