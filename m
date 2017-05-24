@@ -1,58 +1,68 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: [PATCH 7/7] iommu/arm-smmu-v3: Disable tagged pointers
-Date: Wed, 24 May 2017 19:01:43 +0100
-Message-ID: <20170524180143.19855-8-jean-philippe.brucker@arm.com>
-References: <20170524180143.19855-1-jean-philippe.brucker@arm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2] acpi: fix acpi_get_table() leak / acpi-sysfs denial of service
+Date: Wed, 24 May 2017 12:01:20 -0700
+Message-ID: <CAPcyv4gpz_Msbevk1MEsfbO4nXySaRNSc7LC=D7NL-AdEdM0=g@mail.gmail.com>
+References: <149315024459.9151.4555045488194999231.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CAJZ5v0h4hOeRfBgK=ARbw8dmML56v0xnvPjsY9wZ0fv7EXCeQw@mail.gmail.com> <CAPcyv4i_mRLSxm7YAnk_p8PhP=kyhT1aZZcrG-zZxXXWhGQuew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20170524180143.19855-1-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, thunder.leizhen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, sunil.kovvuri-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f49.google.com ([209.85.218.49]:35657 "EHLO
+        mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754524AbdEXTBW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 May 2017 15:01:22 -0400
+Received: by mail-oi0-f49.google.com with SMTP id l18so253782904oig.2
+        for <linux-acpi@vger.kernel.org>; Wed, 24 May 2017 12:01:22 -0700 (PDT)
+In-Reply-To: <CAPcyv4i_mRLSxm7YAnk_p8PhP=kyhT1aZZcrG-zZxXXWhGQuew@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Rafael Wysocki <rafael.j.wysocki@intel.com>, Anush Seetharaman <anush.seetharaman@intel.com>, Tiffany Kasanicky <tiffany.j.kasanicky@intel.com>, Ryon Jensen <ryon.jensen@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kristin Jacque <kristin.jacque@intel.com>, Zhang Rui <rui.zhang@intel.com>
 
-The ARM architecture has a "Top Byte Ignore" (TBI) option that makes the
-MMU mask out bits [63:56] of an address, allowing a userspace application
-to store data in its pointers. This option is incompatible with PCI ATS.
+On Wed, Apr 26, 2017 at 3:37 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Wed, Apr 26, 2017 at 3:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>> On Tue, Apr 25, 2017 at 9:58 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+>>> Reading an ACPI table through the /sys/firmware/acpi/tables interface
+>>> more than 65,536 times leads to the following log message:
+>>>
+>>>  ACPI Error: Table ffff88033595eaa8, Validation count is zero after increment
+>>>   (20170119/tbutils-423)
+>>>
+>>> ...and the table being unavailable until the next reboot. Add the
+>>> missing acpi_put_table() so the table ->validation_count is decremented
+>>> after each read.
+>>>
+>>> Cc: <stable@vger.kernel.org>
+>>> Cc: Zhang Rui <rui.zhang@intel.com>
+>>> Cc: Rafael Wysocki <rafael.j.wysocki@intel.com>
+>>> Cc: Kristin Jacque <kristin.jacque@intel.com>
+>>> Cc: Tiffany Kasanicky <tiffany.j.kasanicky@intel.com>
+>>> Cc: Ryon Jensen <ryon.jensen@intel.com>
+>>> Reported-by: Anush Seetharaman <anush.seetharaman@intel.com>
+>>> Fixes: 1c8fce27e275 ("ACPI: introduce drivers/acpi/sysfs.c")
+>>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>>
+>> I'm going to apply this, but your Fixes tag is not correct.
+>>
+>> validation_count was added to struct acpi_table_desc by commit
+>>
+>> commit 174cc7187e6f088942c8e74daa7baff7b44b33c9
+>> Author: Lv Zheng <lv.zheng@intel.com>
+>> Date:   Wed Dec 14 15:04:25 2016 +0800
+>>
+>>     ACPICA: Tables: Back port acpi_get_table_with_size() and
+>> early_acpi_os_unmap_memory()
+>> from Linux kernel
+>>
+>> from the 4.10 time frame, so IMO it should be
+>>
+>> Fixes: 174cc7187e6f (ACPICA: Tables: Back port
+>> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
+>> kernel)
+>>
+>
+> Ah, thanks for the catch, I missed that detail and was wrong to argue
+> it was a 7 year old bug. Apologies Lv!
 
-If TBI is enabled in the SMMU and userspace triggers DMA transactions on
-tagged pointers, the endpoint might create ATC entries for addresses that
-include a tag. Software would then have to send ATC invalidation packets
-for each 255 possible alias of an address, or just wipe the whole address
-space. This is not a viable option, so disable TBI.
-
-The impact of this change is unclear, since there are very few users of
-tagged pointers, much less SVM. But the requirement introduced by this
-patch doesn't seem excessive: a userspace application using both tagged
-pointers and SVM should now sanitize addresses (clear the tag) before
-using them for device DMA.
-
-Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
----
- drivers/iommu/arm-smmu-v3.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index 87ed6239b9a6..0b2674f8ba0f 100644
---- a/drivers/iommu/arm-smmu-v3.c
-+++ b/drivers/iommu/arm-smmu-v3.c
-@@ -997,7 +997,6 @@ static u64 arm_smmu_cpu_tcr_to_cd(u64 tcr)
- 	val |= ARM_SMMU_TCR2CD(tcr, EPD0);
- 	val |= ARM_SMMU_TCR2CD(tcr, EPD1);
- 	val |= ARM_SMMU_TCR2CD(tcr, IPS);
--	val |= ARM_SMMU_TCR2CD(tcr, TBI0);
- 
- 	return val;
- }
--- 
-2.12.1
+Hi Rafael, I don't see this in latest Linus master or queued in your
+bleeding-edge branch.
