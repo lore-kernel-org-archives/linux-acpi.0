@@ -1,76 +1,55 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v5] gpio: Add driver for ACPI INT0002 Virtual GPIO device
-Date: Wed, 24 May 2017 14:10:17 +0200
-Message-ID: <ac3f6fd1-7994-341d-9b4c-25afd0c25601@redhat.com>
-References: <20170524104216.23643-1-hdegoede@redhat.com>
- <1495625003.6967.93.camel@linux.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] acpi: acpica: dbfileio: Use strlcpy to Copy a C-string
+ into a sized buffer
+Date: Wed, 24 May 2017 14:15:52 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E59B15D@ORSMSX110.amr.corp.intel.com>
+References: <1495581953-5523-1-git-send-email-karim.eshapa@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60122 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756943AbdEXMKU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 24 May 2017 08:10:20 -0400
-In-Reply-To: <1495625003.6967.93.camel@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1495581953-5523-1-git-send-email-karim.eshapa@gmail.com>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Karim Eshapa <karim.eshapa@gmail.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
 
-Hi,
-
-On 24-05-17 13:23, Andy Shevchenko wrote:
-> On Wed, 2017-05-24 at 12:42 +0200, Hans de Goede wrote:
->> Some peripherals on Bay Trail and Cherry Trail platforms signal PME to
->> the
->> PMC to wakeup the system. When this happens software needs to clear
->> the
->> PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ
->> 9.
->>
->> This is modeled in ACPI through the INT0002 ACPI Virtual GPIO device.
->>
->> This commit adds a driver which registers the Virtual GPIOs expected
->> by the DSDT on these devices, letting gpiolib-acpi claim the
->> virtual GPIO and install a GPIO-interrupt handler which call the _L02
->> handler as it would for a real GPIO controller.
->>
->> Cc: joeyli <jlee@suse.com>
->> Cc: Takashi Iwai <tiwai@suse.de>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> 
-> In addition to my comment to v4 (if you are going to apply it) couple of
-> nits below. (I'm fine with current version, as tag says, though consider
-> them anyway)
-
-I prefer to stick with the current version (v5) unless something
-bigger comes up.
-
-Regards,
-
-Hans
+I'm not sure that strlcpy is portable.
+Bob
 
 
-
+> -----Original Message-----
+> From: Karim Eshapa [mailto:karim.eshapa@gmail.com]
+> Sent: Tuesday, May 23, 2017 4:26 PM
+> To: Moore, Robert <robert.moore@intel.com>
+> Cc: Zheng, Lv <lv.zheng@intel.com>; Wysocki, Rafael J
+> <rafael.j.wysocki@intel.com>; lenb@kernel.org; linux-
+> acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org;
+> Karim Eshapa <karim.eshapa@gmail.com>
+> Subject: [PATCH] acpi: acpica: dbfileio: Use strlcpy to Copy a C-string
+> into a sized buffer
 > 
->> +#define GPE0A_PME_B0_STS_BIT		BIT(13)
->> +#define GPE0A_PME_B0_EN_BIT		BIT(13)
->> +#define GPE0A_STS_PORT			0x420
->> +#define GPE0A_EN_PORT			0x428
+> Use strlcpy with sized buffer instead of strncpy to avoid non NUL-
+> terminated source strings problems.
 > 
-> Perhaps squeeze bits after actual ports like
+> Signed-off-by: Karim Eshapa <karim.eshapa@gmail.com>
+> ---
+>  drivers/acpi/acpica/dbfileio.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> ADDRESSa
-> ADDRa_BITa
+> diff --git a/drivers/acpi/acpica/dbfileio.c
+> b/drivers/acpi/acpica/dbfileio.c index 4d81ea2..f0f22f1 100644
+> --- a/drivers/acpi/acpica/dbfileio.c
+> +++ b/drivers/acpi/acpica/dbfileio.c
+> @@ -99,7 +99,7 @@ void acpi_db_open_debug_file(char *name)
+>  	}
 > 
-> ADDRESSb
-> ADDRb_BITa
-> 
->> +	for (i = 0; i < GPE0A_PME_B0_VIRT_GPIO_PIN; i++)
->> +		clear_bit(i, chip->irq_valid_mask);
-> 
-> bitmap_zero() ?
-> 
+>  	acpi_os_printf("Debug output file %s opened\n", name);
+> -	strncpy(acpi_gbl_db_debug_filename, name,
+> +	strlcpy(acpi_gbl_db_debug_filename, name,
+>  		sizeof(acpi_gbl_db_debug_filename));
+>  	acpi_gbl_db_output_to_file = TRUE;
+>  }
+> --
+> 2.7.4
