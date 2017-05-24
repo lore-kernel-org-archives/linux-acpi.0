@@ -1,48 +1,75 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v6 2/3] of: Make of_fwnode_handle() safer
-Date: Wed, 24 May 2017 17:53:54 +0300
-Message-ID: <1495637635-26057-3-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 3/3] of: Support const and non-const use for to_of_node()
+Date: Wed, 24 May 2017 17:53:55 +0300
+Message-ID: <1495637635-26057-4-git-send-email-sakari.ailus@linux.intel.com>
 References: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga09.intel.com ([134.134.136.24]:15644 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935545AbdEXOzI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 24 May 2017 10:55:08 -0400
+        id S937237AbdEXOzJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 May 2017 10:55:09 -0400
 In-Reply-To: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: devicetree@vger.kernel.org, robh@kernel.org, frowand.list@gmail.com
 Cc: linux-acpi@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, ahs3@redhat.com, kieran.bingham@ideasonboard.com
 
-On the expense of a little bit more complexity in the of_fwnode_handle()
-macro, make the macro result in NULL in case its argument is NULL while
-still referencing it only once.
+Turn to_of_node() into a macro in order to support both const and
+non-const use. Additionally make the fwnode argument to is_of_node() const
+as well.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- include/linux/of.h | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ include/linux/of.h | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/include/linux/of.h b/include/linux/of.h
-index 50fcdb5..f05c87f 100644
+index f05c87f..29b7b738b 100644
 --- a/include/linux/of.h
 +++ b/include/linux/of.h
-@@ -159,7 +159,13 @@ static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
- 		container_of(fwnode, struct device_node, fwnode) : NULL;
+@@ -148,16 +148,20 @@ extern raw_spinlock_t devtree_lock;
+ #ifdef CONFIG_OF
+ void of_core_init(void);
+ 
+-static inline bool is_of_node(struct fwnode_handle *fwnode)
++static inline bool is_of_node(const struct fwnode_handle *fwnode)
+ {
+ 	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_OF;
  }
  
--#define of_fwnode_handle(node) (&(node)->fwnode)
-+#define of_fwnode_handle(node)						\
+-static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
+-{
+-	return is_of_node(fwnode) ?
+-		container_of(fwnode, struct device_node, fwnode) : NULL;
+-}
++#define to_of_node(__fwnode)						\
 +	({								\
-+		typeof(node) __of_fwnode_handle_node = (node);		\
++		typeof(__fwnode) __to_of_node_fwnode = (__fwnode);	\
 +									\
-+		__of_fwnode_handle_node ?				\
-+			&__of_fwnode_handle_node->fwnode : NULL;	\
++		is_of_node(__to_of_node_fwnode) ?			\
++			container_of(__to_of_node_fwnode,		\
++				     struct device_node, fwnode) :	\
++			NULL;						\
 +	})
  
- static inline bool of_have_populated_dt(void)
+ #define of_fwnode_handle(node)						\
+ 	({								\
+@@ -539,12 +543,12 @@ static inline void of_core_init(void)
  {
+ }
+ 
+-static inline bool is_of_node(struct fwnode_handle *fwnode)
++static inline bool is_of_node(const struct fwnode_handle *fwnode)
+ {
+ 	return false;
+ }
+ 
+-static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
++static inline struct device_node *to_of_node(const struct fwnode_handle *fwnode)
+ {
+ 	return NULL;
+ }
 -- 
 2.7.4
 
