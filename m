@@ -1,55 +1,48 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpi: acpica: dbfileio: Use strlcpy to Copy a C-string
- into a sized buffer
-Date: Wed, 24 May 2017 14:15:52 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E59B15D@ORSMSX110.amr.corp.intel.com>
-References: <1495581953-5523-1-git-send-email-karim.eshapa@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1495581953-5523-1-git-send-email-karim.eshapa@gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Karim Eshapa <karim.eshapa@gmail.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 2/3] of: Make of_fwnode_handle() safer
+Date: Wed, 24 May 2017 17:53:54 +0300
+Message-ID: <1495637635-26057-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:15644 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S935545AbdEXOzI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 May 2017 10:55:08 -0400
+In-Reply-To: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: devicetree@vger.kernel.org, robh@kernel.org, frowand.list@gmail.com
+Cc: linux-acpi@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, ahs3@redhat.com, kieran.bingham@ideasonboard.com
 
-I'm not sure that strlcpy is portable.
-Bob
+On the expense of a little bit more complexity in the of_fwnode_handle()
+macro, make the macro result in NULL in case its argument is NULL while
+still referencing it only once.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ include/linux/of.h | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-> -----Original Message-----
-> From: Karim Eshapa [mailto:karim.eshapa@gmail.com]
-> Sent: Tuesday, May 23, 2017 4:26 PM
-> To: Moore, Robert <robert.moore@intel.com>
-> Cc: Zheng, Lv <lv.zheng@intel.com>; Wysocki, Rafael J
-> <rafael.j.wysocki@intel.com>; lenb@kernel.org; linux-
-> acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org;
-> Karim Eshapa <karim.eshapa@gmail.com>
-> Subject: [PATCH] acpi: acpica: dbfileio: Use strlcpy to Copy a C-string
-> into a sized buffer
-> 
-> Use strlcpy with sized buffer instead of strncpy to avoid non NUL-
-> terminated source strings problems.
-> 
-> Signed-off-by: Karim Eshapa <karim.eshapa@gmail.com>
-> ---
->  drivers/acpi/acpica/dbfileio.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/acpica/dbfileio.c
-> b/drivers/acpi/acpica/dbfileio.c index 4d81ea2..f0f22f1 100644
-> --- a/drivers/acpi/acpica/dbfileio.c
-> +++ b/drivers/acpi/acpica/dbfileio.c
-> @@ -99,7 +99,7 @@ void acpi_db_open_debug_file(char *name)
->  	}
-> 
->  	acpi_os_printf("Debug output file %s opened\n", name);
-> -	strncpy(acpi_gbl_db_debug_filename, name,
-> +	strlcpy(acpi_gbl_db_debug_filename, name,
->  		sizeof(acpi_gbl_db_debug_filename));
->  	acpi_gbl_db_output_to_file = TRUE;
->  }
-> --
-> 2.7.4
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 50fcdb5..f05c87f 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -159,7 +159,13 @@ static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
+ 		container_of(fwnode, struct device_node, fwnode) : NULL;
+ }
+ 
+-#define of_fwnode_handle(node) (&(node)->fwnode)
++#define of_fwnode_handle(node)						\
++	({								\
++		typeof(node) __of_fwnode_handle_node = (node);		\
++									\
++		__of_fwnode_handle_node ?				\
++			&__of_fwnode_handle_node->fwnode : NULL;	\
++	})
+ 
+ static inline bool of_have_populated_dt(void)
+ {
+-- 
+2.7.4
+
