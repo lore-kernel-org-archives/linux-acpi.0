@@ -1,64 +1,60 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v5] gpio: Add driver for ACPI INT0002 Virtual GPIO device
-Date: Wed, 24 May 2017 14:23:23 +0300
-Message-ID: <1495625003.6967.93.camel@linux.intel.com>
-References: <20170524104216.23643-1-hdegoede@redhat.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 09/12] gpio: acpi: Split out
+ acpi_gpio_get_irq_resource() helper
+Date: Wed, 24 May 2017 14:53:43 +0300
+Message-ID: <20170524115343.GC8541@lahna.fi.intel.com>
+References: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
+ <20170523170327.18055-10-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:19304 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1035160AbdEXL17 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 24 May 2017 07:27:59 -0400
-In-Reply-To: <20170524104216.23643-1-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170523170327.18055-10-andriy.shevchenko@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jagadish Krishnamoorthy <jagadish.krishnamoorthy@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
 
-On Wed, 2017-05-24 at 12:42 +0200, Hans de Goede wrote:
-> Some peripherals on Bay Trail and Cherry Trail platforms signal PME to
-> the
-> PMC to wakeup the system. When this happens software needs to clear
-> the
-> PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ
-> 9.
+On Tue, May 23, 2017 at 08:03:24PM +0300, Andy Shevchenko wrote:
+> The helper does retrieve pointer to struct acpi_resource_gpio from
+> struct acpi_resource if it represents GpioInt() resource.
 > 
-> This is modeled in ACPI through the INT0002 ACPI Virtual GPIO device.
+> It will be used by PNP code later on.
 > 
-> This commit adds a driver which registers the Virtual GPIOs expected
-> by the DSDT on these devices, letting gpiolib-acpi claim the
-> virtual GPIO and install a GPIO-interrupt handler which call the _L02
-> handler as it would for a real GPIO controller.
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/gpio/gpiolib-acpi.c | 23 ++++++++++++++++++-----
+>  include/linux/acpi.h        |  7 +++++++
+>  2 files changed, 25 insertions(+), 5 deletions(-)
 > 
-> Cc: joeyli <jlee@suse.com>
-> Cc: Takashi Iwai <tiwai@suse.de>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> index e431222edc2b..6bea176b066c 100644
+> --- a/drivers/gpio/gpiolib-acpi.c
+> +++ b/drivers/gpio/gpiolib-acpi.c
+> @@ -165,6 +165,23 @@ static void acpi_gpio_chip_dh(acpi_handle handle, void *data)
+>  	/* The address of this function is used as a key. */
+>  }
 
-In addition to my comment to v4 (if you are going to apply it) couple of
-nits below. (I'm fine with current version, as tag says, though consider
-them anyway)
+Since this is exported, it might be good idea to provide kernel-doc
+here.
 
-> +#define GPE0A_PME_B0_STS_BIT		BIT(13)
-> +#define GPE0A_PME_B0_EN_BIT		BIT(13)
-> +#define GPE0A_STS_PORT			0x420
-> +#define GPE0A_EN_PORT			0x428
+Anyway,
 
-Perhaps squeeze bits after actual ports like
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-ADDRESSa
-ADDRa_BITa
-
-ADDRESSb
-ADDRb_BITa
-
-> +	for (i = 0; i < GPE0A_PME_B0_VIRT_GPIO_PIN; i++)
-> +		clear_bit(i, chip->irq_valid_mask);
-
-bitmap_zero() ?
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+> +bool acpi_gpio_get_irq_resource(struct acpi_resource *ares,
+> +				struct acpi_resource_gpio **agpio)
+> +{
+> +	struct acpi_resource_gpio *gpio;
+> +
+> +	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
+> +		return false;
+> +
+> +	gpio = &ares->data.gpio;
+> +	if (gpio->connection_type != ACPI_RESOURCE_GPIO_TYPE_INT)
+> +		return false;
+> +
+> +	*agpio = gpio;
+> +	return true;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_gpio_get_irq_resource);
