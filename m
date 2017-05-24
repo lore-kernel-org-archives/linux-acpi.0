@@ -1,75 +1,71 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: 4.12-rc1 REGRESSION "ACPI / sleep: Ignore spurious SCI wakeups
- from suspend-to-idle" causes system to not wakeup
-Date: Thu, 25 May 2017 01:07:35 +0200
-Message-ID: <CAJZ5v0gw307HWchHb29+0w6kRMOH3ZCeq41HKMSQP+bZ6g2ELw@mail.gmail.com>
-References: <e267ef96-4ca4-6432-311b-4af0c2786f9a@redhat.com>
- <1762448.ZPPEFgdK7X@aspire.rjw.lan> <ff6b5078-ee77-1b5e-fc5b-29efedf85649@redhat.com>
+Subject: Re: [PATCH v3] gpio: Add driver for ACPI INT0002 Virtual GPIO device
+Date: Thu, 25 May 2017 01:10:22 +0200
+Message-ID: <CAJZ5v0izgRfxbUVLLQ1jzAVorRc5-71u-cqCNM28sgYFEkLyCw@mail.gmail.com>
+References: <20170523201241.27520-1-hdegoede@redhat.com> <1568110.8i5Lk7glZA@aspire.rjw.lan>
+ <5d207e0b-72d1-ee46-9e90-a98744768ced@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f49.google.com ([209.85.214.49]:37327 "EHLO
-        mail-it0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1164566AbdEXXHh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 May 2017 19:07:37 -0400
-Received: by mail-it0-f49.google.com with SMTP id g126so48519430ith.0
-        for <linux-acpi@vger.kernel.org>; Wed, 24 May 2017 16:07:37 -0700 (PDT)
-In-Reply-To: <ff6b5078-ee77-1b5e-fc5b-29efedf85649@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <5d207e0b-72d1-ee46-9e90-a98744768ced@redhat.com>
+Sender: linux-gpio-owner@vger.kernel.org
 To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi <linux-acpi@vger.kernel.org>, "Thorsten Leemhuis (regressions address)" <regressions@leemhuis.info>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-gpio@vger.kernel.org, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, May 24, 2017 at 9:01 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+On Wed, May 24, 2017 at 9:50 AM, Hans de Goede <hdegoede@redhat.com> wrote:
 > Hi,
 >
-> On 24-05-17 01:47, Rafael J. Wysocki wrote:
->>
->> On Tuesday, May 23, 2017 09:58:49 PM Hans de Goede wrote:
->>>
->>> Hi,
->>
->>
->> Hi,
->>
->>> On (some?) Cherry Trail devices the system can be woken up
->>> by pressing a key on the USB attached keyboard (even on some tablets
->>> with an external USB keyboard).
->>
->>
->> So first I need to know if this is with USB wakeup properly enabled via
->> sysfs
->> or just because the system reacts to the first ACPI interrupt triggered
->> while
->> suspended.
->>
->> Note that USB wakeup is not enabled by default in the kernel, so if user
->> space init doesn't do that, it has to be done manually.
->
->
-> I'm not doing anything specific to enable USB wakeup, but I just checked
-> in sysfs and yes it is enabled. I guess this gets inherited from the BIOS
-> and on this system the BIOS enables this by default ?
-
-That's possible.  OK
 
 [cut]
 
->>> Looking at the "ACPI / sleep: Ignore spurious SCI wakeups from
->>> suspend-to-idle" commit I've added a pm_wakeup_hard_event()
->>> to the int0002 driver when the GPE0A_PME_B0_STS_BIT is set and
->>> with this change the fix works for 4.12-rc1 too and fixes the
->>> issue with the system more or less hanging on the first wakeup
->>> attempt by USB-keyboard.
+>>> +static irqreturn_t int0002_irq(int irq, void *data)
+>>> +{
+>>> +       struct gpio_chip *chip = data;
+>>> +       u32 gpe_sts_reg;
+>>> +
+>>> +       gpe_sts_reg = inl(GPE0A_STS_PORT);
+>>> +       if (!(gpe_sts_reg & GPE0A_PME_B0_STS_BIT))
+>>> +               return IRQ_NONE;
+>>> +
+>>> +       generic_handle_irq(irq_find_mapping(chip->irqdomain,
+>>> +                                           GPE0A_PME_B0_VIRT_GPIO_PIN));
+>>> +
+>>> +       pm_wakeup_hard_event(chip->parent);
 >>
 >>
->> Does the USB keyboard still wake up only once?
+>> It may be better to just do pm_system_wakeup() here and drop the
+>> device_init_wakeup() from _probe().
 >
 >
-> No with the INT0002 driver in place I can reliable wakeup the system
-> with the USB keyboard every time.
+> Ok, I've given this a try and it works fine, so I will send a v4 with
+> this changed.
 
-OK, good.
+OK
+
+>> The reason why is that device_init_wakeup() allows user space to disable
+>> this wakeup source via sysfs which probably never is a good idea, because
+>> this thing is just for clearing PME status which should be done regardless
+>> and the actual wakeup is triggered by something else.
+>
+>
+> Ack.
+>
+>> Also in theory pm_system_wakeup() should not really be necessary for
+>> wakeup via USB keyboard to work, because that should be signaled via
+>> acpi_pm_notify_handler(), at least in principle.
+>
+>
+> Earlier versions of the int0002 driver did not call any wakeup() function
+> at all and with 4.11 that worked fine, my initial testing with 4.12-rc1 also
+> did not include a wakeup() call but that resulted in USB-keyboard wakeup
+> not working and the system not responding to other wakeup sources like
+> the power-button after the attempted USB-keyb wakeup. To be sure I've
+> retried my current int0002 code with the wakeup call commented out, that
+> leads to the same result (unwakeable system) so it seems we really need
+> to do the pm_system_wakeup() call.
+
+That's fine, it doesn't hurt to put it in there ATM anyway.
 
 Thanks,
 Rafael
