@@ -1,167 +1,245 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: 4.12-rc1 REGRESSION "ACPI / sleep: Ignore spurious SCI wakeups
- from suspend-to-idle" causes system to not wakeup
-Date: Wed, 24 May 2017 09:01:16 +0200
-Message-ID: <ff6b5078-ee77-1b5e-fc5b-29efedf85649@redhat.com>
-References: <e267ef96-4ca4-6432-311b-4af0c2786f9a@redhat.com>
- <1762448.ZPPEFgdK7X@aspire.rjw.lan>
+Subject: Re: [PATCH v3] gpio: Add driver for ACPI INT0002 Virtual GPIO device
+Date: Wed, 24 May 2017 09:50:45 +0200
+Message-ID: <5d207e0b-72d1-ee46-9e90-a98744768ced@redhat.com>
+References: <20170523201241.27520-1-hdegoede@redhat.com>
+ <1568110.8i5Lk7glZA@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48976 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:43644 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934256AbdEXHBU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 24 May 2017 03:01:20 -0400
-In-Reply-To: <1762448.ZPPEFgdK7X@aspire.rjw.lan>
+        id S966965AbdEXHut (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 May 2017 03:50:49 -0400
+In-Reply-To: <1568110.8i5Lk7glZA@aspire.rjw.lan>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Thorsten Leemhuis (regressions address)" <regressions@leemhuis.info>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-gpio@vger.kernel.org, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
 
 Hi,
 
-On 24-05-17 01:47, Rafael J. Wysocki wrote:
-> On Tuesday, May 23, 2017 09:58:49 PM Hans de Goede wrote:
->> Hi,
-> 
-> Hi,
-> 
->> On (some?) Cherry Trail devices the system can be woken up
->> by pressing a key on the USB attached keyboard (even on some tablets
->> with an external USB keyboard).
-> 
-> So first I need to know if this is with USB wakeup properly enabled via sysfs
-> or just because the system reacts to the first ACPI interrupt triggered while
-> suspended.
->
-> Note that USB wakeup is not enabled by default in the kernel, so if user
-> space init doesn't do that, it has to be done manually.
-
-I'm not doing anything specific to enable USB wakeup, but I just checked
-in sysfs and yes it is enabled. I guess this gets inherited from the BIOS
-and on this system the BIOS enables this by default ?
-
->> This has never worked properly, with 4.11 it works once, followed
->> by a "irq 9: nobody cared" message, after which other wakeup
->> methods will need to be used (luckily irq 9 is otherwise unused).
->>
->> Since commit eed4d47efe95("ACPI / sleep: Ignore spurious SCI wakeups
->> from suspend-to-idle") the first wakeup by USB-keyboard also no longer
->> works.
-> 
-> Which makes me a bit suspicious about the "works" part.
-
-Right, this never really worked properly.
-
->> Worse, trying to wake up the system through an USB-keyboard (or in
->> case of laptop models _the_ keyboard) seems to result in the
->> system no longer waking up at all, not even through other wake-up
->> sources.
->>
->> While testing I got the system to wake-up once after trying a wakeup
->> with the usb-keyb first. I managed to get it to wake-up by repeatedly
->> pressing the power-button without pressing it long enough for the
->> system to do a hard-poweroff. Here is what I found in dmesg in this
->> case:
->>
->> [   99.987110] PM: Preparing system for sleep (freeze)
->> [   99.990133] Freezing user space processes ... (elapsed 0.003 seconds) done.
->> [   99.993359] OOM killer disabled.
->> [   99.993360] Freezing remaining freezable tasks ... (elapsed 0.001 seconds) done.
->> [   99.994592] PM: Suspending system (freeze)
->> [   99.994594] Suspending console(s) (use no_console_suspend to debug)
->> [  100.005486] serial 00:01: disabled
->> [  101.133291] PM: suspend of devices complete after 1135.306 msecs
->> [  101.133296] PM: suspend devices took 1.139 seconds
->> [  101.155819] PM: late suspend of devices complete after 22.522 msecs
->> [  101.183734] PM: noirq suspend of devices complete after 27.902 msecs
->> [  101.183746] PM: suspend-to-idle
->> [  106.750715] Suspended for 5.203 seconds
->> [  106.751155] PM: resume from suspend-to-idle
->> [  106.777022] PM: noirq resume of devices complete after 25.650 msecs
->> [  106.805621] PM: noirq suspend of devices complete after 27.745 msecs
->> [  106.830932] PM: noirq resume of devices complete after 25.309 msecs
->> [  106.858605] PM: noirq suspend of devices complete after 27.023 msecs
->> <repeated lots (really lots) of times>
->> [  146.693603] irq 9: nobody cared (try booting with the "irqpoll" option)
->> <backtrace about irq>
->> [  146.693861] Disabling IRQ #9
->> [  149.179549] PM: noirq suspend of devices complete after 3857.221 msecs
->> [  149.179563] PM: suspend-to-idle
->> [ 2519.926892] Suspended for 2371.000 seconds
->> [ 2519.927373] PM: resume from suspend-to-idle
->> [ 2519.953064] PM: noirq resume of devices complete after 25.272 msecs
->> [ 2521.066390] PM: early resume of devices complete after 1113.460 msecs
->> [ 2521.067464] pcieport 0000:00:1c.0: System wakeup disabled by ACPI
->> [ 2521.068616] rtc_cmos 00:04: System wakeup disabled by ACPI
->> <unrelated i915 unclaimed register access oops>
->> [ 2521.131849] PM: resume of devices complete after 65.482 msecs
->> [ 2521.132828] PM: resume devices took 0.066 seconds
->> [ 2521.132895] PM: Finishing wakeup.
->> [ 2521.132896] OOM killer enabled.
->> [ 2521.132897] Restarting tasks ... done.
->>
->> I have a fix for the "irq 9: nobody cared" issue and I actually found
->> this regression(ish) while trying to test this fix.
->>
->> The "irq 9: nobody cared" issue is caused by Linux not having a driver
->> for the INT0002 ACPI device, let me quote the commit message for the
->> driver for this device which fixes this with 4.11:
->>
->> "Some peripherals on Baytrail and Cherrytrail platforms signal PME to the
+On 24-05-17 01:58, Rafael J. Wysocki wrote:
+> On Tuesday, May 23, 2017 10:12:41 PM Hans de Goede wrote:
+>> Some peripherals on Baytrail and Cherrytrail platforms signal PME to the
 >> PMC to wakeup the system. When this happens software needs to clear the
 >> PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
 >>
->> This is modeled in ACPI through the INT0002 ACPI device.
+>> This is modelled in ACPI through the INT0002 ACPI Virtual GPIO device.
 >>
->> This commit adds a driver which will bind to that device, call the
->> ACPI event handler for the wakeup and clear the interrupt source
->> avoiding the irq storm."
+>> This commit adds a driver which registers the Virtual GPIOs expected
+>> by the DSDT on these devices, this will make gpiolib-acpi claim the
+>> virtual GPIO and execute _L02 when the PME_B0_STS bit is set, avoiding
+>> the irq storm.
 >>
->> The int0002 driver shares irq 9 / the SCI with the ACPI subsys,
+>> Cc: joeyli <jlee@suse.com>
+>> Cc: Takashi Iwai <tiwai@suse.de>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>> Changes in v2:
+>> -Remove dev_err after malloc failure
+>> -Remove unused empty runtime pm callbacks
+>> -s/GPE0A_PME_/GPE0A_PME_B0_/
+>> -Fixed some checkpatch warnings (I forgot to run checkpatch on v1)
+>> Changes in v3:
+>> -Rewrite as gpiochip driver letting gpiolib-acpi deal with claiming the pin
+>>   0x0002 and calling the _L02 event handler when the virtual gpio-irq triggers
+>> -Rebase on 4.12-rc1
+>> ---
+>>   drivers/gpio/Kconfig        |  14 +++
+>>   drivers/gpio/Makefile       |   1 +
+>>   drivers/gpio/gpio-int0002.c | 211 ++++++++++++++++++++++++++++++++++++++++++++
+>>   3 files changed, 226 insertions(+)
+>>   create mode 100644 drivers/gpio/gpio-int0002.c
+>>
+>> diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+>> index 23ca51e..11e7f9b 100644
+>> --- a/drivers/gpio/Kconfig
+>> +++ b/drivers/gpio/Kconfig
+>> @@ -608,6 +608,20 @@ config GPIO_GPIO_MM
+>>   	  The base port addresses for the devices may be configured via the base
+>>   	  array module parameter.
+>>   
+>> +config GPIO_INT0002
+>> +	tristate "Intel ACPI INT0002 Virtual GPIO"
+>> +	depends on ACPI
+>> +	select GPIOLIB_IRQCHIP
+>> +	---help---
+>> +	  Some peripherals on Baytrail and Cherrytrail platforms signal
+>> +	  PME to the PMC to wakeup the system. When this happens software
+>> +	  needs to explicitly clear the interrupt source to avoid an IRQ
+>> +	  storm on IRQ 9. This is modelled in ACPI through the INT0002
+>> +	  Virtual GPIO ACPI device.
+>> +
+>> +	  To compile this driver as a module, choose M here: the module will
+>> +	  be called gpio_int0002.
+>> +
+>>   config GPIO_IT87
+>>   	tristate "IT87xx GPIO support"
+>>   	help
+>> diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+>> index 68b9627..1f76c56 100644
+>> --- a/drivers/gpio/Makefile
+>> +++ b/drivers/gpio/Makefile
+>> @@ -55,6 +55,7 @@ obj-$(CONFIG_GPIO_GPIO_MM)	+= gpio-gpio-mm.o
+>>   obj-$(CONFIG_GPIO_GRGPIO)	+= gpio-grgpio.o
+>>   obj-$(CONFIG_HTC_EGPIO)		+= gpio-htc-egpio.o
+>>   obj-$(CONFIG_GPIO_ICH)		+= gpio-ich.o
+>> +obj-$(CONFIG_GPIO_INT0002)	+= gpio-int0002.o
+>>   obj-$(CONFIG_GPIO_IOP)		+= gpio-iop.o
+>>   obj-$(CONFIG_GPIO_IT87)		+= gpio-it87.o
+>>   obj-$(CONFIG_GPIO_JANZ_TTL)	+= gpio-janz-ttl.o
+>> diff --git a/drivers/gpio/gpio-int0002.c b/drivers/gpio/gpio-int0002.c
+>> new file mode 100644
+>> index 0000000..e73664d
+>> --- /dev/null
+>> +++ b/drivers/gpio/gpio-int0002.c
+>> @@ -0,0 +1,211 @@
+>> +/*
+>> + * Intel INT0002 "Virtual GPIO" driver
+>> + *
+>> + * Copyright (C) 2017 Hans de Goede <hdegoede@redhat.com>
+>> + *
+>> + * Loosely based on android x86 kernel code which is:
+>> + *
+>> + * Copyright (c) 2014, Intel Corporation.
+>> + *
+>> + * Author: Dyut Kumar Sil <dyut.k.sil@intel.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + *
+>> + * Some peripherals on Baytrail and Cherrytrail platforms signal PME to the
+>> + * PMC to wakeup the system. When this happens software needs to clear the
+>> + * PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
+>> + *
+>> + * This is modelled in ACPI through the INT0002 ACPI device, which is
+>> + * called a "Virtual GPIO controller" in ACPI because it defines the event
+>> + * handler to call when the PME triggers through _AEI and _L02 / _E02
+>> + * methods as would be done for a real GPIO interrupt in ACPI.
+>> + *
+>> + * This driver will bind to the INT0002 device, and register as a GPIO
+>> + * controller, letting gpiolib-acpi.c call the _L02 handler as it would
+>> + * for a real GPIO controller.
+>> + */
+>> +
+>> +#include <asm/cpu_device_id.h>
+>> +#include <asm/intel-family.h>
+>> +#include <linux/acpi.h>
+>> +#include <linux/gpio.h>
+>> +#include <linux/interrupt.h>
+>> +#include <linux/io.h>
+>> +#include <linux/kernel.h>
+>> +#include <linux/module.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/slab.h>
+>> +
+>> +#define DRV_NAME			"INT0002 Virtual GPIO"
+>> +
+>> +/* For some reason the virtual GPIO pin tied to the GPE is numbered pin 2 */
+>> +#define GPE0A_PME_B0_VIRT_GPIO_PIN	2
+>> +
+>> +#define GPE0A_PME_B0_STS_BIT		0x2000
+>> +#define GPE0A_PME_B0_EN_BIT		0x2000
+>> +#define GPE0A_STS_PORT			0x420
+>> +#define GPE0A_EN_PORT			0x428
+>> +
+>> +#define ICPU(model)	{ X86_VENDOR_INTEL, 6, model, X86_FEATURE_ANY, }
+>> +
+>> +static const struct x86_cpu_id int0002_cpu_ids[] = {
+>> +/*
+>> + * Limit ourselves to Cherry Trail for now, until testing shows we
+>> + * need to handle the INT0002 device on Baytrail too.
+>> + *	ICPU(INTEL_FAM6_ATOM_SILVERMONT1),	 * Valleyview, Bay Trail *
+>> + */
+>> +	ICPU(INTEL_FAM6_ATOM_AIRMONT),		/* Braswell, Cherry Trail */
+>> +	{}
+>> +};
+>> +
+>> +static int int0002_gpio_get(struct gpio_chip *chip, unsigned int offset)
+>> +{
+>> +	return 0;
+>> +}
+>> +
+>> +static void int0002_gpio_set(struct gpio_chip *chip, unsigned int offset,
+>> +			     int value)
+>> +{
+>> +}
+>> +
+>> +static int int0002_gpio_direction_output(struct gpio_chip *chip,
+>> +					 unsigned int offset, int value)
+>> +{
+>> +	return 0;
+>> +}
+>> +
+>> +static void int0002_irq_ack(struct irq_data *data)
+>> +{
+>> +	outl(GPE0A_PME_B0_STS_BIT, GPE0A_STS_PORT);
+>> +}
+>> +
+>> +static void int0002_irq_unmask(struct irq_data *data)
+>> +{
+>> +	u32 gpe_en_reg;
+>> +
+>> +	gpe_en_reg = inl(GPE0A_EN_PORT);
+>> +	gpe_en_reg |= GPE0A_PME_B0_EN_BIT;
+>> +	outl(gpe_en_reg, GPE0A_EN_PORT);
+>> +}
+>> +
+>> +static void int0002_irq_mask(struct irq_data *data)
+>> +{
+>> +	u32 gpe_en_reg;
+>> +
+>> +	gpe_en_reg = inl(GPE0A_EN_PORT);
+>> +	gpe_en_reg &= ~GPE0A_PME_B0_EN_BIT;
+>> +	outl(gpe_en_reg, GPE0A_EN_PORT);
+>> +}
+>> +
+>> +static irqreturn_t int0002_irq(int irq, void *data)
+>> +{
+>> +	struct gpio_chip *chip = data;
+>> +	u32 gpe_sts_reg;
+>> +
+>> +	gpe_sts_reg = inl(GPE0A_STS_PORT);
+>> +	if (!(gpe_sts_reg & GPE0A_PME_B0_STS_BIT))
+>> +		return IRQ_NONE;
+>> +
+>> +	generic_handle_irq(irq_find_mapping(chip->irqdomain,
+>> +					    GPE0A_PME_B0_VIRT_GPIO_PIN));
+>> +
+>> +	pm_wakeup_hard_event(chip->parent);
 > 
-> This is why in interacts with the commit in question.
+> It may be better to just do pm_system_wakeup() here and drop the
+> device_init_wakeup() from _probe().
 
-Right.
+Ok, I've given this a try and it works fine, so I will send a v4 with
+this changed.
 
->> it detects if the interrupt is for it by doing the following:
->>
->>           gpe_sts_reg = inl(GPE0A_STS_PORT);
->>           if (!(gpe_sts_reg & GPE0A_PME_B0_STS_BIT))
->>                   return IRQ_NONE;
->>
->> Looking at the "ACPI / sleep: Ignore spurious SCI wakeups from
->> suspend-to-idle" commit I've added a pm_wakeup_hard_event()
->> to the int0002 driver when the GPE0A_PME_B0_STS_BIT is set and
->> with this change the fix works for 4.12-rc1 too and fixes the
->> issue with the system more or less hanging on the first wakeup
->> attempt by USB-keyboard.
-> 
-> Does the USB keyboard still wake up only once?
+> The reason why is that device_init_wakeup() allows user space to disable
+> this wakeup source via sysfs which probably never is a good idea, because
+> this thing is just for clearing PME status which should be done regardless
+> and the actual wakeup is triggered by something else.
 
-No with the INT0002 driver in place I can reliable wakeup the system
-with the USB keyboard every time.
+Ack.
 
->> So the question now is how to move forward with this, although
->> this may not really count as a regression the change from wakeup
->> by USB-keyboard working once, to it more or less hanging the
->> system certainly does not make things better.
->>
->> As such I think it might be a good idea to merge the int0002 driver
->> during the 4.12 cycle ?
-> 
-> It looks like that.
-> 
->> The int0002 driver was a platform/x86 driver, but various people
->> have asked to redo it as a gpio driver. I will post the new
->> version shortly and put everyone who is getting this mail on
->> the CC.
-> 
-> OK, thanks!
+> Also in theory pm_system_wakeup() should not really be necessary for
+> wakeup via USB keyboard to work, because that should be signaled via
+> acpi_pm_notify_handler(), at least in principle.
+
+Earlier versions of the int0002 driver did not call any wakeup() function
+at all and with 4.11 that worked fine, my initial testing with 4.12-rc1 also
+did not include a wakeup() call but that resulted in USB-keyboard wakeup
+not working and the system not responding to other wakeup sources like
+the power-button after the attempted USB-keyb wakeup. To be sure I've
+retried my current int0002 code with the wakeup call commented out, that
+leads to the same result (unwakeable system) so it seems we really need
+to do the pm_system_wakeup() call.
+
+v4 coming up.
 
 Regards,
 
 Hans
-
