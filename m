@@ -1,48 +1,71 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: [PATCH v9 7/7] MANTAINERS: Add maintainer for HiSilicon LPC driver
-Date: Thu, 25 May 2017 12:37:28 +0100
-Message-ID: <1495712248-5232-8-git-send-email-gabriele.paoloni@huawei.com>
-References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [RESEND PATCH v2] acpi/nfit: Fix memory corruption/Unregister mce decoder on failure
+Date: Thu, 25 May 2017 08:10:43 -0400
+Message-ID: <1495714243-5595-1-git-send-email-prarit@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([45.249.212.188]:6829 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1763903AbdEYLob (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 May 2017 07:44:31 -0400
-In-Reply-To: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36918 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1765564AbdEYMKr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 25 May 2017 08:10:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: catalin.marinas@arm.com, will.deacon@arm.com, robh+dt@kernel.org, frowand.list@gmail.com, bhelgaas@google.com, rafael@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com
-Cc: gabriele.paoloni@huawei.com, mark.rutland@arm.com, brian.starkey@arm.com, olof@lixom.net, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, john.garry@huawei.com, xuwei5@hisilicon.com
+To: linux-acpi@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Linda Knippers <linda.knippers@hpe.com>
 
-Added maintainer for drivers/bus/hisi_lpc.c
+I somehow managed to trim off the cc list ... oops.  Sorry about that.
 
-Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+P.
+
+----8<----
+
+nfit_init() calls nfit_mce_register() on module load.  When the module
+load fails the nfit mce decoder is not unregistered.  The module's
+memory is freed leaving the decoder chain referencing junk.  This will
+cause panics as future registrations will reference the free'd memory.
+
+Unregister the nfit mce decoder on module init failure.
+
+[v2]: register and then unregister mce handler to avoid losing mce events
+
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Cc: Linda Knippers <linda.knippers@hpe.com>
 ---
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/acpi/nfit/core.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 9e98464..8fb9006 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6061,6 +6061,14 @@ F:	include/uapi/linux/if_hippi.h
- F:	net/802/hippi.c
- F:	drivers/net/hippi/
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 656acb5d7166..450e4a233b5e 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3043,6 +3043,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
  
-+HISILICON LPC BUS DRIVER
-+M:	Gabriele Paoloni <gabriele.paoloni@huawei.com>
-+L:	linux-arm-kernel@lists.infradead.org
-+W:	http://www.hisilicon.com
-+S:	Maintained
-+F:	drivers/bus/hisi_lpc.c
-+F:	Documentation/devicetree/bindings/arm/hisilicon/hisilicon-low-pin-count.txt
+ static __init int nfit_init(void)
+ {
++	int ret;
 +
- HISILICON NETWORK SUBSYSTEM DRIVER
- M:	Yisen Zhuang <yisen.zhuang@huawei.com>
- M:	Salil Mehta <salil.mehta@huawei.com>
+ 	BUILD_BUG_ON(sizeof(struct acpi_table_nfit) != 40);
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 56);
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_memory_map) != 48);
+@@ -3070,8 +3072,12 @@ static __init int nfit_init(void)
+ 		return -ENOMEM;
+ 
+ 	nfit_mce_register();
++	ret = acpi_bus_register_driver(&acpi_nfit_driver);
++	if (ret)
++		nfit_mce_unregister();
++
++	return ret;
+ 
+-	return acpi_bus_register_driver(&acpi_nfit_driver);
+ }
+ 
+ static __exit void nfit_exit(void)
 -- 
-2.7.4
-
+1.7.9.3
 
