@@ -1,55 +1,104 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v5] gpio: Add driver for ACPI INT0002 Virtual GPIO device
-Date: Thu, 25 May 2017 01:12:37 +0200
-Message-ID: <CAJZ5v0jogwciZcKG0HaK_40AjJF+kf7BEfZbV_U4N1ci327kaw@mail.gmail.com>
-References: <20170524104216.23643-1-hdegoede@redhat.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
+ lid_init_state=open"
+Date: Thu, 25 May 2017 06:17:23 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEA80B3@SHSMSX101.ccr.corp.intel.com>
+References: <20170510161240.13229-1-benjamin.tissoires@redhat.com>
+ <20170511094551.GF30987@mail.corp.redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CEA2CC4@SHSMSX101.ccr.corp.intel.com>
+ <2574646.jh0JF0mi0Y@aspire.rjw.lan>
+ <20170515074553.GJ30987@mail.corp.redhat.com>
+ <CAJZ5v0jJ0SruFMp+v5ibcBnzctvjZF7U1w4+XThzFjwxTpdUUQ@mail.gmail.com>
+ <20170515093752.GB11762@mail.corp.redhat.com>
+ <CAJZ5v0iD33i4B+gFvKLOnLKB557eLx1yzFCJeiR6hghD9fmKeQ@mail.gmail.com>
+ <20170524080830.GE13096@mail.corp.redhat.com>
+ <CAJZ5v0g=-LfwX1Vx6U3=HhWqfYd6m5gfpmourWbZRuCzdS+WdA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:33290 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1164538AbdEXXMi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 May 2017 19:12:38 -0400
-In-Reply-To: <20170524104216.23643-1-hdegoede@redhat.com>
+Received: from mga06.intel.com ([134.134.136.31]:46620 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1162785AbdEYGR2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 25 May 2017 02:17:28 -0400
+In-Reply-To: <CAJZ5v0g=-LfwX1Vx6U3=HhWqfYd6m5gfpmourWbZRuCzdS+WdA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-gpio@vger.kernel.org, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiri Eischmann <jeischma@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, May 24, 2017 at 12:42 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Some peripherals on Bay Trail and Cherry Trail platforms signal PME to the
-> PMC to wakeup the system. When this happens software needs to clear the
-> PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
->
-> This is modeled in ACPI through the INT0002 ACPI Virtual GPIO device.
->
-> This commit adds a driver which registers the Virtual GPIOs expected
-> by the DSDT on these devices, letting gpiolib-acpi claim the
-> virtual GPIO and install a GPIO-interrupt handler which call the _L02
-> handler as it would for a real GPIO controller.
->
-> Cc: joeyli <jlee@suse.com>
-> Cc: Takashi Iwai <tiwai@suse.de>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
-> Changes in v2:
-> -Remove dev_err after malloc failure
-> -Remove unused empty runtime pm callbacks
-> -s/GPE0A_PME_/GPE0A_PME_B0_/
-> -Fixed some checkpatch warnings (I forgot to run checkpatch on v1)
-> Changes in v3:
-> -Rewrite as gpiochip driver letting gpiolib-acpi deal with claiming the pin
->  0x0002 and calling the _L02 event handler when the virtual gpio-irq triggers
-> -Rebase on 4.12-rc1
-> Changes in v4:
-> -Drop device_init_wakeup() from _probe(), use pm_system_wakeup() instead
->  of pm_wakeup_hard_event(chip->parent)
-> -Improve commit message
-> Changes in v5:
-> -Use BIT() macro for FOO_BIT defines
-> -Drop unneeded ACPI_PTR macro usage
-
-LGTM
-
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+SGksDQoNCj4gPj4gPj4gPj4gQmVuamFtaW4sIG15IHVuZGVyc3RhbmRpbmcgaXMgdGhhdCB0aGlz
+IGlzIHRoZSBjYXNlLCBpcyBpdCBjb3JyZWN0Pw0KPiA+PiA+PiA+DQo+ID4+ID4+ID4gVGhhdCBp
+cyBjb3JyZWN0LiBUaGlzIHBhdGNoIEkgcmV2ZXJ0ZWQgaW50cm9kdWNlcyByZWdyZXNzaW9uIGZv
+ciBwcm9mZXNzaW9uYWwNCj4gPj4gPj4gPiBsYXB0b3BzIHRoYXQgZXhwZWN0IHRoZSBMSUQgc3dp
+dGNoIHRvIGJlIHJlcG9ydGVkIGFjY3VyYXRlbHkuDQo+ID4+ID4+DQo+ID4+ID4+IEFuZCBmcm9t
+IGEgdXNlcidzIHBlcnNwZWN0aXZlLCB3aGF0IGRvZXMgbm90IHdvcmsgYW55IG1vcmU/DQo+ID4+
+ID4NCj4gPj4gPiBJZiB5b3UgYm9vdCBvciByZXN1bWUgeW91ciBsYXB0b3Agd2l0aCB0aGUgbGlk
+IGNsb3NlZCBvbiBhIGRvY2tpbmcNCj4gPj4gPiBzdGF0aW9uIHdoaWxlIHVzaW5nIGFuIGV4dGVy
+bmFsIG1vbml0b3IgY29ubmVjdGVkIHRvIGl0LCBib3RoIGludGVybmFsDQo+ID4+ID4gYW5kIGV4
+dGVybmFsIGRpc3BsYXlzIHdpbGwgbGlnaHQgb24sIHdoaWxlIG9ubHkgdGhlIGV4dGVybmFsIHNo
+b3VsZC4NCj4gPj4gPg0KPiA+PiA+IFRoZXJlIGlzIGEgZGVzaWduIGNob2ljZSBpbiBnZG0gdG8g
+b25seSBwcm92aWRlIHRoZSBncmVhdGVyIG9uIHRoZQ0KPiA+PiA+IGludGVybmFsIGRpc3BsYXkg
+d2hlbiBsaXQgb24sIHNvIHVzZXJzIG9ubHkgc2VlIGEgZ3JheSBhcmVhIG9uIHRoZQ0KPiA+PiA+
+IGV4dGVybmFsIG1vbml0b3IuIEFsc28sIHRoZSBjdXJzb3Igd2lsbCBub3Qgc2hvdyB1cCBhcyBp
+dCdzIGJ5IGRlZmF1bHQNCj4gPj4gPiBvbiB0aGUgaW50ZXJuYWwgZGlzcGxheSB0b28uDQo+ID4+
+ID4NCj4gPj4gPiBUbyAiZml4IiB0aGF0LCB1c2VycyBoYXZlIHRvIG9wZW4gdGhlIGxhcHRvcCBv
+bmNlIGFuZCBjbG9zZSBpdCBvbmNlDQo+ID4+ID4gYWdhaW4gdG8gc3luYyB0aGUgc3RhdGUgb2Yg
+dGhlIHN3aXRjaCB3aXRoIHRoZSBoYXJkd2FyZSBzdGF0ZS4NCj4gPj4NCj4gPj4gT0sNCj4gPj4N
+Cj4gPj4gWWVhaCwgdGhhdCBzdWNrcy4NCj4gPj4NCj4gPj4gU28gd2l0aG91dCB0aGUgTHYncyBw
+YXRjaCB0aGUgYmVoYXZpb3IgKG9uIHRoZSBzeXN0ZW1zIGluIHF1ZXN0aW9uKSBpcw0KPiA+PiBh
+cyBleHBlY3RlZCwgcmlnaHQ/DQo+ID4NCj4gPiBXb3VsZCB5b3UgYWdyZWUgdG8gdGFrZSBib3Ro
+IHRoZXNlIHJldmVydHMgd2l0aG91dCBMdidzIEFDSz8gV2UgYWxyZWFkeQ0KPiA+IHRyaWVkIHRv
+IGV4cGxhaW4gZm9yIDIgd2Vla3MgdGhhdCB0aGV5IGFyZSB2YWx1YWJsZSwgYnV0IGl0IHNlZW1z
+IHdlDQo+ID4gY2FuJ3QgbWFrZSBjaGFuZ2UgaGlzIG1pbmQuDQoNCkl0J3Mgbm90IHRoYXQgZGlm
+ZmljdWx0IHRvIGdldCBhbiBhZ3JlZW1lbnQuDQpXZSBqdXN0IGRpZG4ndCBjb21tdW5pY2F0ZSB3
+ZWxsLg0KDQo+IE9uZSBvZiB0aGUgcmV2ZXJ0cyBhY3R1YWxseSBpcyBhbHJlYWR5IGluIChhcyBh
+IHBhdGNoIGZyb20gTHYpIGFuZA0KPiBJJ2xsIG1vc3QgcHJvYmFibHkgcHVzaCB0aGUgb3RoZXIg
+b25lIGZvciAtcmM0IG5leHQgd2Vlay4NCg0KSWYgd2UgcmVhbGx5IHdhbnQgdG8gZ28gYmFjayB0
+byAibWV0aG9kIiBtb2RlLg0KV2UgbmVlZCBvbmUgbW9yZSBwYXRjaCBhbmQgaXQgaXMgbm90IGlu
+IEJlbmphbWluJ3Mgc2VyaWVzLg0KDQpUaGVyZSBhcmUgMyBrbm93biBicm9rZW4gY2FzZXMsIDIg
+b2YgdGhlbSBhcmUgcmVsYXRlZCB0byBvcmRlcnMuDQpUaGUgbGFzdCAxIGlzIG5vdCBvcmRlciBy
+ZWxhdGVkOg0KMS4gU3VyZmFjZSBQcm8gMzogb3BlbiBhcnJpdmVzIHZlcnkgZWFybHkgdG8gdXBk
+YXRlIGNhY2hlZCB2YWx1ZSwgbm90IG5vdGlmaWNhdGlvbg0KMi4gU2Ftc3VuZyBOMjEwKzogb3Bl
+biBhcnJpdmVzIHZlcnkgbGF0ZSB0byB1cGRhdGUgY2FjaGVkIHZhbHVlLCBub3Qgbm90aWZpY2F0
+aW9uIA0KMy4gU3VyZmFjZSBQcm8gMTogbm8gb3BlbiBldmVudCwgX0xJRCBrZWVwcyBvbiByZXR1
+cm5pbmcgY2xvc2UNCg0KVGhlIG9yZGVyIHByb2JsZW0gaXMgKGNvbnNpZGVyaW5nIG1ldGhvZCBt
+b2RlKToNCg0KX1F4eCA8LSBJbnZva2VkIGR1ZSB0byBFQyBldmVudHMNCiAgVXBkYXRlIF9MSUQg
+cmV0dXJuIHZhbHVlDQogIE5vdGlmeShMSUQsIGNsb3NlKQ0KICAgIGlucHV0X3JlcG9ydChTV19M
+SUQgMSkgLT4gY2FwdHVyZWQgYnkgdXNlciBzcGFjZSBhbmQgc3lzdGVtIHN0YXJ0cyB0byBzdXNw
+ZW5kDQphY3BpX2J1dHRvbl9zdXNwZW5kDQphY3BpX2VjX3N1c3BlbmQNCiAgYWNwaV9lY19kaXNh
+YmxlX2V2ZW50DQphY3BpX2J1dHRvbl9yZXN1bWUNCiAgaWYgKG1ldGhvZCkNCiAgICBpbnB1dF9y
+ZXBvcnQoU1dfTElELCBfTElEIHJldHVybiB2YWx1ZSwgd291bGQgYmUgMSBmb3IgY2FjaGVkIHZh
+bHVlKQ0KYWNwaV9lY19yZXN1bWUNCiAgYWNwaV9lY19lbmFibGVfZXZlbnQNCl9ReHggPC0gSW52
+b2tlZCBkdWUgdG8gRUMgZXZlbnRzLCBmb3IgYnJva2VuIGNhc2UgMywgbm8gc3VjaCBldmVudA0K
+ICBVcGRhdGUgX0xJRCByZXR1cm4gdmFsdWUNCiAgTm90aWZ5KExJRCwgb3BlbikgPC0gZm9yIGJy
+b2tlbiBjYXNlIDEsIDIsIDMsIG5vIHN1Y2ggbm90aWZpY2F0aW9uLCB0aHVzIG9wZW4gY2Fubm90
+IGJlIGRlbGl2ZXJlZCB0byB1c2VyIHNwYWNlLg0KICAgIGlucHV0X3JlcG9ydChTV19MSUQsIDAp
+DQoNClRoZSBvcmRlciBvZiBhY3BpX2J1dHRvbl9yZXN1bWUoKS9hY3BpX2VjX3Jlc3VtZSgpIGlz
+IGRldGVybWluZWQgYnkgdGhlIGVudW1lcmF0aW9uIG9yZGVyLg0KU28gaXQgY291bGQgdmFyeSBv
+biBkaWZmZXJlbnQgcGxhdGZvcm1zLg0KQ29uc2lkZXJpbmcgY2FzZSAxLCBmb3Igc3VyZmFjZSBw
+cm8gMywgd2hlcmUgYWNwaV9idXR0b25fcmVzdW1lKCkgaXMgaW52b2tlZCBiZWZvcmUgYWNwaV9l
+Y19yZXN1bWUoKS4NCkJ1dHRvbiBkcml2ZXIgd2lsbCBzZW5kIGZhbHNlICJjbG9zZSIgdG8gdXNl
+ciBzcGFjZSwgYW5kIHRoZSB1cGRhdGVkICJvcGVuIiBzdGF0ZSB3b24ndCBiZSBkZWxpdmVyZWQg
+dG8gdXNlciBzcGFjZS4NClN0YXlpbmcgaW4gbWV0aG9kIG1vZGUsIHdlIGNhbiBvbmx5IHN1c3Bl
+bmQgdGhlIHN5c3RlbSBvbmNlLCBmb2xsb3ctdXAgImNsb3NlIiBldmVudHMgd29uJ3QgYXJyaXZl
+IHRvIHVzZXIgc3BhY2UuDQoNCkV2ZW4gd2UgY2FuIGFkZCBtYW55IHdvcmthcm91bmRzIHRvIG1h
+a2Ugc3VyZSBhY3BpX2VjX3Jlc3VtZSgpIGlzIGV4ZWN1dGVkIGJlZm9yZSBhY3BpX2J1dHRvbl9y
+ZXN1bWUoKSBvbiBzdWNoIHBsYXRmb3Jtcy4NCldlIHN0aWxsIGNhbm5vdCBmaXggY2FzZSAyIGFu
+ZCBjYXNlIDMuDQpTbyBmaW5hbGx5IHRoaXMgb3JkZXIgc3RpbGwgY2Fubm90IGJlIGVuc3VyZWQs
+IGFuZCB0aGUgc29sdXRpb24gaXMgc3RpbGwgbm90IHN0YWJsZS4NCkkgd291bGQgaW1hZ2luZSB0
+aGUgb3JkZXIgcHJvYmxlbSBpcyB0aGUga2V5IHJlYXNvbiB3aHkgTVMgc3RvcHMgc2VuZGluZyAi
+b3BlbiIgb24gdGhlc2UgcGxhdGZvcm1zLg0KDQpUaGVuIGdpdmVuIHRoaXMgb3JkZXIgaXNzdWUg
+aXMgbm90IGZpeGFibGUsIHdlIG5lZWQgdG8gZml4IGJyb2tlbiBjYXNlIDEgYnkgYWRkaW5nICJj
+b21wbGVtZW50IGV2ZW50IiBpbiAibWV0aG9kIiBtb2RlLg0KV2h5IGRvbid0IHdlIGRvIHRoaXMg
+Zmlyc3QgYmVmb3JlIHJldmVydGluZyB0byAibWV0aG9kIiBtb2RlPw0KDQpBbmQgZm9yIGJyb2tl
+biBzdHVmZnMgbGlrZSBjYXNlIDIvY2FzZSAzLA0KSU1PLCB0aGV5IGNhbiBvbmx5IGJlIHNvbHZl
+ZCB1c2luZyAiaWdub3JlIiBtb2RlLCBhbmQgY2hhbmdlcyBpbiB1c2VyIHNwYWNlLg0KSWYgd2Ug
+ZG9uJ3QgdXNlIHRoaXMgc29sdXRpb24sIHdlIHN0aWxsIG5lZWQgbGliaW5wdXQgcXVpcmtzIHRv
+IGhhbmRsZSB0aGVtIChtYXkgcG9zc2libHkgZW5jb3VudGVyIHNvbWUgbmV3IHVuZml4YWJsZSBw
+cm9ibGVtcykuDQpJZiB5b3Ugd2FudCB0byBzdGF5IGluICJtZXRob2QiIG1vZGUsIHdpbGwgeW91
+IGJlIHJlc3BvbnNpYmxlIGZvciByZXNwb25kaW5nIGVuZCB1c2VycyBvbiBrZXJuZWwgQnVnemls
+bGEgdXNpbmcgbGliaW5wdXQgcXVpcmtzPw0KV2UgaGF2ZSBhIFBvd2VyLUxpZCBjYXRlZ29yeSBu
+b3csIHdlIGNhbiBoYXZlIHlvdSBndXlzIGFzIGRlZmF1bHQgYXNzaWduZWUuDQoNCkNoZWVycywN
+Ckx2DQo=
