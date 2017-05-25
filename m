@@ -1,66 +1,82 @@
-From: Mathias Nyman <mathias.nyman@linux.intel.com>
-Subject: Re: [RFC PATCH] usb: optimize acpi companion search for usb port
- devices
-Date: Thu, 25 May 2017 18:24:22 +0300
-Message-ID: <5926F726.4070302@linux.intel.com>
-References: <1495631472-3828-1-git-send-email-mathias.nyman@linux.intel.com>
- <20170524144414.GA13730@kroah.com>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [RESEND PATCH v2] acpi/nfit: Fix memory corruption/Unregister
+ mce decoder on failure
+Date: Thu, 25 May 2017 13:00:16 -0600
+Message-ID: <20170525190016.GA27785@omniknight.lm.intel.com>
+References: <1495714243-5595-1-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:17556 "EHLO mga07.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:26279 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758302AbdEYPVr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 25 May 2017 11:21:47 -0400
-In-Reply-To: <20170524144414.GA13730@kroah.com>
+        id S1758065AbdEYTBr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 25 May 2017 15:01:47 -0400
+Content-Disposition: inline
+In-Reply-To: <1495714243-5595-1-git-send-email-prarit@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, stern@rowland.harvard.edu, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: linux-acpi@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Linda Knippers <linda.knippers@hpe.com>
 
-On 24.05.2017 17:44, Greg KH wrote:
-> On Wed, May 24, 2017 at 04:11:12PM +0300, Mathias Nyman wrote:
->> This optimization significantly reduces xhci driver load time.
->>
->> In ACPI tables the acpi companion port devices are children of
->> the hub device. The port devices are identified by their port number
->> returned by the ACPI _ADR method.
->> _ADR 0 is reserved for the root hub device.
->>
->> The current implementation to find a acpi companion port device
->> loops through all acpi port devices under that parent hub, calling
->> their _ADR method each time a new port device is added.
->>
->> for a xHC controller with 25 ports under its roothub it
->> will end up invoking ACPI bytecode 625 times before all ports
->> are ready, making it really slow.
->>
->> The _ADR values are already read and cached earler. So instead of
->> running the bytecode again we can check the cached _ADR value first,
->> and then fall back to the old way.
->>
->> As one of the more significant changes, the xhci load time on
->> Intel kabylake reduced by 70%, (28ms) from
->> initcall xhci_pci_init+0x0/0x49 returned 0 after 39537 usecs
->> to
->> initcall xhci_pci_init+0x0/0x49 returned 0 after 11270 usecs
->>
->> Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
->> ---
->>   drivers/usb/core/usb-acpi.c | 26 +++++++++++++++++++++++---
->>   1 file changed, 23 insertions(+), 3 deletions(-)
->
-> Why is this RFC?  What's wrong with it as-is?
->
+On 05/25, Prarit Bhargava wrote:
+> I somehow managed to trim off the cc list ... oops.  Sorry about that.
+> 
+> P.
+> 
+> ----8<----
+> 
+> nfit_init() calls nfit_mce_register() on module load.  When the module
+> load fails the nfit mce decoder is not unregistered.  The module's
+> memory is freed leaving the decoder chain referencing junk.  This will
+> cause panics as future registrations will reference the free'd memory.
+> 
+> Unregister the nfit mce decoder on module init failure.
+> 
+> [v2]: register and then unregister mce handler to avoid losing mce events
+> 
+> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+> Cc: Jeff Moyer <jmoyer@redhat.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+> Cc: Linda Knippers <linda.knippers@hpe.com>
+> ---
+>  drivers/acpi/nfit/core.c |    8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+> 
 
-Last minute doubt, nothing should be wrong, but I started to wonder if there is
-any particular reason the ACPI part was done the way it was.
+Looks good,
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Or if maybe other drivers could benefit from checking cached _ADR value first as
-well, and this whole thing should be a part of drivers/acpi/glue.c instead?
-
-(adding acpi mailing list, not just Rafael)
-
-Thanks
--Mathias
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 656acb5d7166..450e4a233b5e 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -3043,6 +3043,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+>  
+>  static __init int nfit_init(void)
+>  {
+> +	int ret;
+> +
+>  	BUILD_BUG_ON(sizeof(struct acpi_table_nfit) != 40);
+>  	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 56);
+>  	BUILD_BUG_ON(sizeof(struct acpi_nfit_memory_map) != 48);
+> @@ -3070,8 +3072,12 @@ static __init int nfit_init(void)
+>  		return -ENOMEM;
+>  
+>  	nfit_mce_register();
+> +	ret = acpi_bus_register_driver(&acpi_nfit_driver);
+> +	if (ret)
+> +		nfit_mce_unregister();
+> +
+> +	return ret;
+>  
+> -	return acpi_bus_register_driver(&acpi_nfit_driver);
+>  }
+>  
+>  static __exit void nfit_exit(void)
+> -- 
+> 1.7.9.3
+> 
