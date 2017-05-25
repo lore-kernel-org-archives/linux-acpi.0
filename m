@@ -1,7 +1,7 @@
 From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: [PATCH v9 6/7] LPC: Add the ACPI LPC support
-Date: Thu, 25 May 2017 12:37:27 +0100
-Message-ID: <1495712248-5232-7-git-send-email-gabriele.paoloni@huawei.com>
+Subject: [PATCH v9 3/7] OF: Add missing I/O range exception for indirect-IO devices
+Date: Thu, 25 May 2017 12:37:24 +0100
+Message-ID: <1495712248-5232-4-git-send-email-gabriele.paoloni@huawei.com>
 References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,152 +14,178 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: "zhichang.yuan" <yuanzhichang@hisilicon.com>
 
-Based on the provious patches, this patch supports the ACPI LPC host on
-Hip06/Hip07.
+There are some special ISA/LPC devices that work on a specific I/O range
+where it is not correct to specify a 'ranges' property in DTS parent node
+as cpu addresses translated from DTS node are only for memory space on some
+architectures, such as Arm64. Without the parent 'ranges' property, current
+of_translate_address() return an error.
+Here we add special handlings for this case.
+During the OF address translation, some checkings will be perfromed to
+identify whether the device node is registered as indirect-IO. If yes, the
+I/O translation will be done in a different way from that one of PCI MMIO.
+In this way, the I/O 'reg' property of the special ISA/LPC devices will be
+parsed correctly.
 
 Signed-off-by: zhichang.yuan <yuanzhichang@hisilicon.com>
-Signed-off-by: John Garry <john.garry@huawei.com>
 Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Tested-by: dann frazier <dann.frazier@canonical.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>    #earlier draft
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- drivers/acpi/arm64/acpi_indirect_pio.c |  3 ++
- drivers/bus/hisi_lpc.c                 | 71 ++++++++++++++++++++++++++++++++--
- include/acpi/acpi_indirect_pio.h       |  4 ++
- 3 files changed, 75 insertions(+), 3 deletions(-)
+ drivers/of/address.c | 90 ++++++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 74 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/acpi/arm64/acpi_indirect_pio.c b/drivers/acpi/arm64/acpi_indirect_pio.c
-index 7813f73..3a5ba7a 100644
---- a/drivers/acpi/arm64/acpi_indirect_pio.c
-+++ b/drivers/acpi/arm64/acpi_indirect_pio.c
-@@ -261,6 +261,9 @@ int acpi_set_logic_pio_resource(struct device *child,
+diff --git a/drivers/of/address.c b/drivers/of/address.c
+index 34a55e8..c51de70 100644
+--- a/drivers/of/address.c
++++ b/drivers/of/address.c
+@@ -552,9 +552,14 @@ static int of_translate_one(struct device_node *parent, struct of_bus *bus,
+  * that translation is impossible (that is we are not dealing with a value
+  * that can be mapped to a cpu physical address). This is not really specified
+  * that way, but this is traditionally the way IBM at least do things
++ *
++ * Whenever the translation fails, the *host pointer will be set to the
++ * device that had registered logical PIO mapping, and the return code is
++ * relative to that node.
+  */
+ static u64 __of_translate_address(struct device_node *dev,
+-				  const __be32 *in_addr, const char *rprop)
++				  const __be32 *in_addr, const char *rprop,
++				  struct device_node **host)
+ {
+ 	struct device_node *parent = NULL;
+ 	struct of_bus *bus, *pbus;
+@@ -567,6 +572,7 @@ static u64 __of_translate_address(struct device_node *dev,
+ 	/* Increase refcount at current level */
+ 	of_node_get(dev);
  
- /* All the host devices which apply indirect-PIO can be listed here. */
- static const struct acpi_device_id acpi_indirect_host_id[] = {
-+#ifdef CONFIG_HISILICON_LPC
-+	{"HISI0191", INDIRECT_PIO_INFO(lpc_host_desc)},
-+#endif
- 	{""},
- };
++	*host = NULL;
+ 	/* Get parent & match bus type */
+ 	parent = of_get_parent(dev);
+ 	if (parent == NULL)
+@@ -587,6 +593,8 @@ static u64 __of_translate_address(struct device_node *dev,
  
-diff --git a/drivers/bus/hisi_lpc.c b/drivers/bus/hisi_lpc.c
-index 4f3bf76..05a0a84 100644
---- a/drivers/bus/hisi_lpc.c
-+++ b/drivers/bus/hisi_lpc.c
-@@ -467,7 +467,9 @@ static int hisilpc_probe(struct platform_device *pdev)
- 	}
- 
- 	/* register the LPC host PIO resources */
--	if (!has_acpi_companion(dev)) {
-+	if (has_acpi_companion(dev)) {
-+		lpcdev->io_host = find_io_range_by_fwnode(dev->fwnode);
-+	} else {
- 		struct logic_pio_hwaddr *range;
- 
- 		range = kzalloc(sizeof(*range), GFP_KERNEL);
-@@ -481,13 +483,14 @@ static int hisilpc_probe(struct platform_device *pdev)
- 		ret = logic_pio_register_range(range);
- 		if (ret) {
- 			kfree(range);
--			dev_err(dev, "OF: register IO range FAIL!\n");
-+			dev_err(dev, "OF: logic_pio_register_range returned %d!\n",
-+					ret);
- 			return -ret;
+ 	/* Translate */
+ 	for (;;) {
++		struct logic_pio_hwaddr *iorange;
++
+ 		/* Switch to parent bus */
+ 		of_node_put(dev);
+ 		dev = parent;
+@@ -599,6 +607,19 @@ static u64 __of_translate_address(struct device_node *dev,
+ 			break;
  		}
- 		lpcdev->io_host = range;
- 	}
- 	if (!lpcdev->io_host) {
--		dev_err(dev, "Hisilpc IO hasn't registered!\n");
-+		dev_err(dev, "HiSi LPC IO hasn't been registered!\n");
- 		return -EFAULT;
- 	}
  
-@@ -533,10 +536,72 @@ static const struct of_device_id hisilpc_of_match[] = {
- 	{},
- };
- 
-+#ifdef CONFIG_ACPI
-+#include <acpi/acpi_indirect_pio.h>
-+
-+struct lpc_private_data {
-+	resource_size_t io_size;
-+	resource_size_t io_start;
-+};
-+
-+static struct lpc_private_data lpc_data = {
-+	.io_size = LPC_BUS_IO_SIZE,
-+	.io_start = LPC_MIN_BUS_RANGE,
-+};
-+
-+static int lpc_host_io_setup(struct acpi_device *adev, void *pdata)
-+{
-+	int ret = 0;
-+	struct logic_pio_hwaddr *range;
-+	struct lpc_private_data *lpc_private;
-+	struct acpi_device *child;
-+
-+	lpc_private = (struct lpc_private_data *)pdata;
-+	range = kzalloc(sizeof(*range), GFP_KERNEL);
-+	if (!range)
-+		return -ENOMEM;
-+	range->fwnode = &adev->fwnode;
-+	range->flags = PIO_INDIRECT;
-+	range->size = lpc_private->io_size;
-+	range->hw_start = lpc_private->io_start;
-+
-+	ret = logic_pio_register_range(range);
-+	if (ret) {
-+		kfree(range);
-+		return ret;
-+	}
-+
-+	/* In HiSilicon lpc, only care about the children of the host. */
-+	list_for_each_entry(child, &adev->children, node) {
-+		ret = acpi_set_logic_pio_resource(&child->dev, &adev->dev);
-+		if (ret) {
-+			dev_err(&child->dev,
-+					"acpi_set_logic_pio_resource() returned %d\n",
-+					ret);
-+			return ret;
++		/*
++		 * For indirectIO device which has no ranges property, get
++		 * the address from reg directly.
++		 */
++		iorange = find_io_range_by_fwnode(&dev->fwnode);
++		if (iorange && (iorange->flags != PIO_CPU_MMIO)) {
++			result = of_read_number(addr + 1, na - 1);
++			pr_debug("indirectIO matched(%s) 0x%llx\n",
++					of_node_full_name(dev), result);
++			*host = of_node_get(dev);
++			break;
 +		}
++
+ 		/* Get new parent bus and counts */
+ 		pbus = of_match_bus(parent);
+ 		pbus->count_cells(dev, &pna, &pns);
+@@ -631,13 +652,32 @@ static u64 __of_translate_address(struct device_node *dev,
+ 
+ u64 of_translate_address(struct device_node *dev, const __be32 *in_addr)
+ {
+-	return __of_translate_address(dev, in_addr, "ranges");
++	struct device_node *host;
++	u64 ret;
++
++	ret =  __of_translate_address(dev, in_addr, "ranges", &host);
++	if (host) {
++		of_node_put(host);
++		return OF_BAD_ADDR;
 +	}
 +
 +	return ret;
+ }
+ EXPORT_SYMBOL(of_translate_address);
+ 
+ u64 of_translate_dma_address(struct device_node *dev, const __be32 *in_addr)
+ {
+-	return __of_translate_address(dev, in_addr, "dma-ranges");
++	struct device_node *host;
++	u64 ret;
++
++	ret = __of_translate_address(dev, in_addr, "dma-ranges", &host);
++
++	if (host) {
++		of_node_put(host);
++		return OF_BAD_ADDR;
++	}
++
++	return ret;
+ }
+ EXPORT_SYMBOL(of_translate_dma_address);
+ 
+@@ -679,29 +719,47 @@ const __be32 *of_get_address(struct device_node *dev, int index, u64 *size,
+ }
+ EXPORT_SYMBOL(of_get_address);
+ 
++static u64 of_translate_ioport(struct device_node *dev, const __be32 *in_addr)
++{
++	u64 taddr;
++	unsigned long port;
++	struct device_node *host;
++
++	taddr = __of_translate_address(dev, in_addr, "ranges", &host);
++	if (host) {
++		/* host specific port access */
++		port = logic_pio_trans_hwaddr(&host->fwnode, taddr);
++		of_node_put(host);
++	} else {
++		/* memory mapped I/O range */
++		port = pci_address_to_pio(taddr);
++	}
++
++	if (port == (unsigned long)-1)
++		return OF_BAD_ADDR;
++
++	return port;
 +}
 +
-+static const struct acpi_device_id hisilpc_acpi_match[] = {
-+	{"HISI0191", },
-+	{},
-+};
-+
-+const struct indirect_pio_device_desc lpc_host_desc = {
-+	.pdata = &lpc_data,
-+	.pre_setup = lpc_host_io_setup,
-+};
-+
-+#endif
-+
- static struct platform_driver hisilpc_driver = {
- 	.driver = {
- 		.name           = "hisi_lpc",
- 		.of_match_table = hisilpc_of_match,
-+		.acpi_match_table = ACPI_PTR(hisilpc_acpi_match),
- 	},
- 	.probe = hisilpc_probe,
- };
-diff --git a/include/acpi/acpi_indirect_pio.h b/include/acpi/acpi_indirect_pio.h
-index efc5c43..7a8d26b 100644
---- a/include/acpi/acpi_indirect_pio.h
-+++ b/include/acpi/acpi_indirect_pio.h
-@@ -18,6 +18,10 @@ struct indirect_pio_device_desc {
- 	int (*pre_setup)(struct acpi_device *adev, void *pdata);
- };
+ static int __of_address_to_resource(struct device_node *dev,
+ 		const __be32 *addrp, u64 size, unsigned int flags,
+ 		const char *name, struct resource *r)
+ {
+ 	u64 taddr;
  
-+#ifdef CONFIG_HISILICON_LPC
-+extern const struct indirect_pio_device_desc lpc_host_desc;
-+#endif
+-	if ((flags & (IORESOURCE_IO | IORESOURCE_MEM)) == 0)
++	if (flags & IORESOURCE_MEM)
++		taddr = of_translate_address(dev, addrp);
++	else if (flags & IORESOURCE_IO)
++		taddr = of_translate_ioport(dev, addrp);
++	else
+ 		return -EINVAL;
+-	taddr = of_translate_address(dev, addrp);
 +
- int acpi_set_logic_pio_resource(struct device *child,
- 		struct device *hostdev);
+ 	if (taddr == OF_BAD_ADDR)
+ 		return -EINVAL;
+ 	memset(r, 0, sizeof(struct resource));
+-	if (flags & IORESOURCE_IO) {
+-		unsigned long port;
+-		port = pci_address_to_pio(taddr);
+-		if (port == (unsigned long)-1)
+-			return -EINVAL;
+-		r->start = port;
+-		r->end = port + size - 1;
+-	} else {
+-		r->start = taddr;
+-		r->end = taddr + size - 1;
+-	}
++
++	r->start = taddr;
++	r->end = taddr + size - 1;
+ 	r->flags = flags;
+ 	r->name = name ? name : dev->full_name;
  
 -- 
 2.7.4
