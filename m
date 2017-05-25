@@ -1,104 +1,31 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
- lid_init_state=open"
-Date: Thu, 25 May 2017 06:17:23 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEA80B3@SHSMSX101.ccr.corp.intel.com>
-References: <20170510161240.13229-1-benjamin.tissoires@redhat.com>
- <20170511094551.GF30987@mail.corp.redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CEA2CC4@SHSMSX101.ccr.corp.intel.com>
- <2574646.jh0JF0mi0Y@aspire.rjw.lan>
- <20170515074553.GJ30987@mail.corp.redhat.com>
- <CAJZ5v0jJ0SruFMp+v5ibcBnzctvjZF7U1w4+XThzFjwxTpdUUQ@mail.gmail.com>
- <20170515093752.GB11762@mail.corp.redhat.com>
- <CAJZ5v0iD33i4B+gFvKLOnLKB557eLx1yzFCJeiR6hghD9fmKeQ@mail.gmail.com>
- <20170524080830.GE13096@mail.corp.redhat.com>
- <CAJZ5v0g=-LfwX1Vx6U3=HhWqfYd6m5gfpmourWbZRuCzdS+WdA@mail.gmail.com>
+From: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+Subject: Re: [PATCH] efi/reboot: Fall back to original power-off method if
+ EFI_RESET_SHUTDOWN returns
+Date: Thu, 25 May 2017 12:11:26 +0100
+Message-ID: <20170525111126.GB3546@codeblueprint.co.uk>
+References: <20170423123655.13015-1-hdegoede@redhat.com>
+ <CAKv+Gu-qSMK6YTh5O=w-6mOSdAkMzNn945M+TAC0CAMRfgVhmw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:46620 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1162785AbdEYGR2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 25 May 2017 02:17:28 -0400
-In-Reply-To: <CAJZ5v0g=-LfwX1Vx6U3=HhWqfYd6m5gfpmourWbZRuCzdS+WdA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAKv+Gu-qSMK6YTh5O=w-6mOSdAkMzNn945M+TAC0CAMRfgVhmw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Jones <pjones-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Salter <msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiri Eischmann <jeischma@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-SGksDQoNCj4gPj4gPj4gPj4gQmVuamFtaW4sIG15IHVuZGVyc3RhbmRpbmcgaXMgdGhhdCB0aGlz
-IGlzIHRoZSBjYXNlLCBpcyBpdCBjb3JyZWN0Pw0KPiA+PiA+PiA+DQo+ID4+ID4+ID4gVGhhdCBp
-cyBjb3JyZWN0LiBUaGlzIHBhdGNoIEkgcmV2ZXJ0ZWQgaW50cm9kdWNlcyByZWdyZXNzaW9uIGZv
-ciBwcm9mZXNzaW9uYWwNCj4gPj4gPj4gPiBsYXB0b3BzIHRoYXQgZXhwZWN0IHRoZSBMSUQgc3dp
-dGNoIHRvIGJlIHJlcG9ydGVkIGFjY3VyYXRlbHkuDQo+ID4+ID4+DQo+ID4+ID4+IEFuZCBmcm9t
-IGEgdXNlcidzIHBlcnNwZWN0aXZlLCB3aGF0IGRvZXMgbm90IHdvcmsgYW55IG1vcmU/DQo+ID4+
-ID4NCj4gPj4gPiBJZiB5b3UgYm9vdCBvciByZXN1bWUgeW91ciBsYXB0b3Agd2l0aCB0aGUgbGlk
-IGNsb3NlZCBvbiBhIGRvY2tpbmcNCj4gPj4gPiBzdGF0aW9uIHdoaWxlIHVzaW5nIGFuIGV4dGVy
-bmFsIG1vbml0b3IgY29ubmVjdGVkIHRvIGl0LCBib3RoIGludGVybmFsDQo+ID4+ID4gYW5kIGV4
-dGVybmFsIGRpc3BsYXlzIHdpbGwgbGlnaHQgb24sIHdoaWxlIG9ubHkgdGhlIGV4dGVybmFsIHNo
-b3VsZC4NCj4gPj4gPg0KPiA+PiA+IFRoZXJlIGlzIGEgZGVzaWduIGNob2ljZSBpbiBnZG0gdG8g
-b25seSBwcm92aWRlIHRoZSBncmVhdGVyIG9uIHRoZQ0KPiA+PiA+IGludGVybmFsIGRpc3BsYXkg
-d2hlbiBsaXQgb24sIHNvIHVzZXJzIG9ubHkgc2VlIGEgZ3JheSBhcmVhIG9uIHRoZQ0KPiA+PiA+
-IGV4dGVybmFsIG1vbml0b3IuIEFsc28sIHRoZSBjdXJzb3Igd2lsbCBub3Qgc2hvdyB1cCBhcyBp
-dCdzIGJ5IGRlZmF1bHQNCj4gPj4gPiBvbiB0aGUgaW50ZXJuYWwgZGlzcGxheSB0b28uDQo+ID4+
-ID4NCj4gPj4gPiBUbyAiZml4IiB0aGF0LCB1c2VycyBoYXZlIHRvIG9wZW4gdGhlIGxhcHRvcCBv
-bmNlIGFuZCBjbG9zZSBpdCBvbmNlDQo+ID4+ID4gYWdhaW4gdG8gc3luYyB0aGUgc3RhdGUgb2Yg
-dGhlIHN3aXRjaCB3aXRoIHRoZSBoYXJkd2FyZSBzdGF0ZS4NCj4gPj4NCj4gPj4gT0sNCj4gPj4N
-Cj4gPj4gWWVhaCwgdGhhdCBzdWNrcy4NCj4gPj4NCj4gPj4gU28gd2l0aG91dCB0aGUgTHYncyBw
-YXRjaCB0aGUgYmVoYXZpb3IgKG9uIHRoZSBzeXN0ZW1zIGluIHF1ZXN0aW9uKSBpcw0KPiA+PiBh
-cyBleHBlY3RlZCwgcmlnaHQ/DQo+ID4NCj4gPiBXb3VsZCB5b3UgYWdyZWUgdG8gdGFrZSBib3Ro
-IHRoZXNlIHJldmVydHMgd2l0aG91dCBMdidzIEFDSz8gV2UgYWxyZWFkeQ0KPiA+IHRyaWVkIHRv
-IGV4cGxhaW4gZm9yIDIgd2Vla3MgdGhhdCB0aGV5IGFyZSB2YWx1YWJsZSwgYnV0IGl0IHNlZW1z
-IHdlDQo+ID4gY2FuJ3QgbWFrZSBjaGFuZ2UgaGlzIG1pbmQuDQoNCkl0J3Mgbm90IHRoYXQgZGlm
-ZmljdWx0IHRvIGdldCBhbiBhZ3JlZW1lbnQuDQpXZSBqdXN0IGRpZG4ndCBjb21tdW5pY2F0ZSB3
-ZWxsLg0KDQo+IE9uZSBvZiB0aGUgcmV2ZXJ0cyBhY3R1YWxseSBpcyBhbHJlYWR5IGluIChhcyBh
-IHBhdGNoIGZyb20gTHYpIGFuZA0KPiBJJ2xsIG1vc3QgcHJvYmFibHkgcHVzaCB0aGUgb3RoZXIg
-b25lIGZvciAtcmM0IG5leHQgd2Vlay4NCg0KSWYgd2UgcmVhbGx5IHdhbnQgdG8gZ28gYmFjayB0
-byAibWV0aG9kIiBtb2RlLg0KV2UgbmVlZCBvbmUgbW9yZSBwYXRjaCBhbmQgaXQgaXMgbm90IGlu
-IEJlbmphbWluJ3Mgc2VyaWVzLg0KDQpUaGVyZSBhcmUgMyBrbm93biBicm9rZW4gY2FzZXMsIDIg
-b2YgdGhlbSBhcmUgcmVsYXRlZCB0byBvcmRlcnMuDQpUaGUgbGFzdCAxIGlzIG5vdCBvcmRlciBy
-ZWxhdGVkOg0KMS4gU3VyZmFjZSBQcm8gMzogb3BlbiBhcnJpdmVzIHZlcnkgZWFybHkgdG8gdXBk
-YXRlIGNhY2hlZCB2YWx1ZSwgbm90IG5vdGlmaWNhdGlvbg0KMi4gU2Ftc3VuZyBOMjEwKzogb3Bl
-biBhcnJpdmVzIHZlcnkgbGF0ZSB0byB1cGRhdGUgY2FjaGVkIHZhbHVlLCBub3Qgbm90aWZpY2F0
-aW9uIA0KMy4gU3VyZmFjZSBQcm8gMTogbm8gb3BlbiBldmVudCwgX0xJRCBrZWVwcyBvbiByZXR1
-cm5pbmcgY2xvc2UNCg0KVGhlIG9yZGVyIHByb2JsZW0gaXMgKGNvbnNpZGVyaW5nIG1ldGhvZCBt
-b2RlKToNCg0KX1F4eCA8LSBJbnZva2VkIGR1ZSB0byBFQyBldmVudHMNCiAgVXBkYXRlIF9MSUQg
-cmV0dXJuIHZhbHVlDQogIE5vdGlmeShMSUQsIGNsb3NlKQ0KICAgIGlucHV0X3JlcG9ydChTV19M
-SUQgMSkgLT4gY2FwdHVyZWQgYnkgdXNlciBzcGFjZSBhbmQgc3lzdGVtIHN0YXJ0cyB0byBzdXNw
-ZW5kDQphY3BpX2J1dHRvbl9zdXNwZW5kDQphY3BpX2VjX3N1c3BlbmQNCiAgYWNwaV9lY19kaXNh
-YmxlX2V2ZW50DQphY3BpX2J1dHRvbl9yZXN1bWUNCiAgaWYgKG1ldGhvZCkNCiAgICBpbnB1dF9y
-ZXBvcnQoU1dfTElELCBfTElEIHJldHVybiB2YWx1ZSwgd291bGQgYmUgMSBmb3IgY2FjaGVkIHZh
-bHVlKQ0KYWNwaV9lY19yZXN1bWUNCiAgYWNwaV9lY19lbmFibGVfZXZlbnQNCl9ReHggPC0gSW52
-b2tlZCBkdWUgdG8gRUMgZXZlbnRzLCBmb3IgYnJva2VuIGNhc2UgMywgbm8gc3VjaCBldmVudA0K
-ICBVcGRhdGUgX0xJRCByZXR1cm4gdmFsdWUNCiAgTm90aWZ5KExJRCwgb3BlbikgPC0gZm9yIGJy
-b2tlbiBjYXNlIDEsIDIsIDMsIG5vIHN1Y2ggbm90aWZpY2F0aW9uLCB0aHVzIG9wZW4gY2Fubm90
-IGJlIGRlbGl2ZXJlZCB0byB1c2VyIHNwYWNlLg0KICAgIGlucHV0X3JlcG9ydChTV19MSUQsIDAp
-DQoNClRoZSBvcmRlciBvZiBhY3BpX2J1dHRvbl9yZXN1bWUoKS9hY3BpX2VjX3Jlc3VtZSgpIGlz
-IGRldGVybWluZWQgYnkgdGhlIGVudW1lcmF0aW9uIG9yZGVyLg0KU28gaXQgY291bGQgdmFyeSBv
-biBkaWZmZXJlbnQgcGxhdGZvcm1zLg0KQ29uc2lkZXJpbmcgY2FzZSAxLCBmb3Igc3VyZmFjZSBw
-cm8gMywgd2hlcmUgYWNwaV9idXR0b25fcmVzdW1lKCkgaXMgaW52b2tlZCBiZWZvcmUgYWNwaV9l
-Y19yZXN1bWUoKS4NCkJ1dHRvbiBkcml2ZXIgd2lsbCBzZW5kIGZhbHNlICJjbG9zZSIgdG8gdXNl
-ciBzcGFjZSwgYW5kIHRoZSB1cGRhdGVkICJvcGVuIiBzdGF0ZSB3b24ndCBiZSBkZWxpdmVyZWQg
-dG8gdXNlciBzcGFjZS4NClN0YXlpbmcgaW4gbWV0aG9kIG1vZGUsIHdlIGNhbiBvbmx5IHN1c3Bl
-bmQgdGhlIHN5c3RlbSBvbmNlLCBmb2xsb3ctdXAgImNsb3NlIiBldmVudHMgd29uJ3QgYXJyaXZl
-IHRvIHVzZXIgc3BhY2UuDQoNCkV2ZW4gd2UgY2FuIGFkZCBtYW55IHdvcmthcm91bmRzIHRvIG1h
-a2Ugc3VyZSBhY3BpX2VjX3Jlc3VtZSgpIGlzIGV4ZWN1dGVkIGJlZm9yZSBhY3BpX2J1dHRvbl9y
-ZXN1bWUoKSBvbiBzdWNoIHBsYXRmb3Jtcy4NCldlIHN0aWxsIGNhbm5vdCBmaXggY2FzZSAyIGFu
-ZCBjYXNlIDMuDQpTbyBmaW5hbGx5IHRoaXMgb3JkZXIgc3RpbGwgY2Fubm90IGJlIGVuc3VyZWQs
-IGFuZCB0aGUgc29sdXRpb24gaXMgc3RpbGwgbm90IHN0YWJsZS4NCkkgd291bGQgaW1hZ2luZSB0
-aGUgb3JkZXIgcHJvYmxlbSBpcyB0aGUga2V5IHJlYXNvbiB3aHkgTVMgc3RvcHMgc2VuZGluZyAi
-b3BlbiIgb24gdGhlc2UgcGxhdGZvcm1zLg0KDQpUaGVuIGdpdmVuIHRoaXMgb3JkZXIgaXNzdWUg
-aXMgbm90IGZpeGFibGUsIHdlIG5lZWQgdG8gZml4IGJyb2tlbiBjYXNlIDEgYnkgYWRkaW5nICJj
-b21wbGVtZW50IGV2ZW50IiBpbiAibWV0aG9kIiBtb2RlLg0KV2h5IGRvbid0IHdlIGRvIHRoaXMg
-Zmlyc3QgYmVmb3JlIHJldmVydGluZyB0byAibWV0aG9kIiBtb2RlPw0KDQpBbmQgZm9yIGJyb2tl
-biBzdHVmZnMgbGlrZSBjYXNlIDIvY2FzZSAzLA0KSU1PLCB0aGV5IGNhbiBvbmx5IGJlIHNvbHZl
-ZCB1c2luZyAiaWdub3JlIiBtb2RlLCBhbmQgY2hhbmdlcyBpbiB1c2VyIHNwYWNlLg0KSWYgd2Ug
-ZG9uJ3QgdXNlIHRoaXMgc29sdXRpb24sIHdlIHN0aWxsIG5lZWQgbGliaW5wdXQgcXVpcmtzIHRv
-IGhhbmRsZSB0aGVtIChtYXkgcG9zc2libHkgZW5jb3VudGVyIHNvbWUgbmV3IHVuZml4YWJsZSBw
-cm9ibGVtcykuDQpJZiB5b3Ugd2FudCB0byBzdGF5IGluICJtZXRob2QiIG1vZGUsIHdpbGwgeW91
-IGJlIHJlc3BvbnNpYmxlIGZvciByZXNwb25kaW5nIGVuZCB1c2VycyBvbiBrZXJuZWwgQnVnemls
-bGEgdXNpbmcgbGliaW5wdXQgcXVpcmtzPw0KV2UgaGF2ZSBhIFBvd2VyLUxpZCBjYXRlZ29yeSBu
-b3csIHdlIGNhbiBoYXZlIHlvdSBndXlzIGFzIGRlZmF1bHQgYXNzaWduZWUuDQoNCkNoZWVycywN
-Ckx2DQo=
+On Fri, 19 May, at 04:45:49PM, Ard Biesheuvel wrote:
+> 
+> This does not look unreasonable to me, but this is more Matt's turf so
+> I will let him handle this one.
+
+I was hoping that either Len or Rafael would have chimed in by now,
+but they were probably waiting for me...
+
+Doesn't ACPI reduced require that EFI power off be supported? I can't
+find anything in the spec that makes that connection.
+
+Unless the ACPI folks provide a reason that falling back to ACPI
+poweroff doesn't make sense for ACPI reduced hardware, I think we
+should apply this patch.
