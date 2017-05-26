@@ -1,72 +1,127 @@
-From: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
-Date: Fri, 26 May 2017 23:03:40 +0200
-Message-ID: <20170526210340.GA5114@wunner.de>
-References: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v9 2/7] PCI: Apply the new generic I/O management on PCI
+ IO hosts
+Date: Fri, 26 May 2017 16:20:01 -0500
+Message-ID: <20170526212001.GB21531@bhelgaas-glaptop.roam.corp.google.com>
+References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1495712248-5232-3-git-send-email-gabriele.paoloni@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <30380cb3-0f26-8aea-2689-d4886879129c-H5Ww8s0cz1NjHglVgfe8mg@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Florian Echtler <floe-H5Ww8s0cz1NjHglVgfe8mg@public.gmane.org>
-Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+In-Reply-To: <1495712248-5232-3-git-send-email-gabriele.paoloni@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, minyard@acm.org, arnd@arndb.de, rafael@kernel.org, linux-pci@vger.kernel.org, catalin.marinas@arm.com, john.garry@huawei.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, xuwei5@hisilicon.com, linuxarm@huawei.com, linux-acpi@vger.kernel.org, robh+dt@kernel.org, "zhichang.yuan" <yuanzhichang@hisilicon.com>, benh@kernel.crashing.org, bhelgaas@google.com, frowand.list@gmail.com, brian.starkey@arm.com, linux-arm-kernel@lists.infradead.org, olof@lixom.net
 List-Id: linux-acpi@vger.kernel.org
 
-W2NjICs9IGRyaS1kZXZlbCwgYW1kLWdmeF0KCk9uIEZyaSwgTWF5IDI2LCAyMDE3IGF0IDAyOjEz
-OjI5UE0gKzAyMDAsIEZsb3JpYW4gRWNodGxlciB3cm90ZToKPiBJJ20gcnVubmluZyBVYnVudHUg
-MTYuMDQuMiBvbiBhIDI3IiB1bmlib2R5IGlNYWMgMTAsMSBmcm9tIDIwMDkuIEhvd2V2ZXIsIGV2
-ZW4KPiB3aXRoIHRoZSBtb3N0IHJlY2VudCBIV0Ugc3RhY2sgKGtlcm5lbCA0LjgpLCB0aGUgZGlz
-cGxheSBzdGF5cyBibGFjayBhZnRlcgo+IHN1c3BlbmQuIEkgY2FuIHNzaCBpbnRvIHRoZSBtYWNo
-aW5lLCBzbyB3YWtldXAgaXMgT0ssIGJ1dCB0aGUgZGlzcGxheSBpcwo+IGVudGlyZWx5IGJsYWNr
-IChiYWNrbGlnaHQgc3RheXMgb2ZmKS4KPiAKPiBOb3RlOiB0aGlzIGFwcGVhcnMgdG8gYmUgZW50
-aXJlbHkgdW5yZWxhdGVkIHRvIHRoZSBURE0gc3R1ZmYgSSBwb3N0ZWQgYWJvdXQKPiBlYXJsaWVy
-LiBJbnRlcmVzdGluZ2x5LCB3aGVuIEkgZW5hYmxlIFRETSwgZXZlbiBhZnRlciBzdXNwZW5kLCB0
-aGUgZGlzcGxheSB3b3Jrcwo+IHdoaWxlIFRETSBpcyBhY3RpdmUuIE9uY2UgSSBkaXNhYmxlIFRE
-TSwgaXQncyBiYWNrIHRvIGJsYWNrICh1bmludGVudGlvbmFsIHNvbmcKPiByZWZlcmVuY2UgdGhl
-cmUpLgoKU291bmRzIGxpa2UgYSByYWRlb24gaXNzdWUgdG8gbWUuCgpUaGUgTENEX1BBTkVMX1BX
-UiBhbmQgTENEX0JLTF9PTl9NVVggcGlucyBhcmUgY29taW5nIGZyb20gYSBtdXguCgpJbiBURE0g
-bW9kZSwgdGhlIHBpbnMgYXJlIG11eGVkIHRvIHRoZSBTTUMsIHNvIGl0IGNhbiB0dXJuIHRoZSBw
-YW5lbCBvbgphbmQgb2ZmLiAgSWYgVERNIGlzIG5vdCBpbiB1c2UsIHRoZSBwaW5zIGFyZSBtdXhl
-ZCB0byB0aGUgQVRJIGNhcmQuCgpUaGUgQVRJIGNhcmQgaGFzIE1YTV9QTkxfUFdSX0VOIGFuZCBN
-WE1fUE5MX0JMX0VOIHBpbnMuICBUaG9zZSBtdXN0IGJlCmVuYWJsZWQgZm9yIHRoZSBwYW5lbCB0
-byBsaWdodCB1cC4gIFBlcmhhcHMgcmFkZW9uIG5lZWRzIHRvIGJlIGV4dGVuZGVkCnRvIGRvIHRo
-YXQuICBPbmUgdGhlb3J5IGlzIHRoYXQgdGhpcyBpcyBkb25lIHZpYSBBQ1BJLCBidXQgcGVyaGFw
-cwpvbmx5IGlmIGEgY2VydGFpbiBvcGVyYXRpbmcgc3lzdGVtIGlzIHJ1bm5pbmcuICBEdW1wIHRo
-ZSBBQ1BJIHRhYmxlcwphbmQgc2VhcmNoIERTRFQgYW5kIFNTRFQqIHRhYmxlcyBmb3IgbWV0aG9k
-cyByZWxhdGluZyB0byB0aGUgQVRJIGNhcmQKYW5kL29yIGJhY2tsaWdodC4gIElmIHlvdSBmaW5k
-IGNoZWNrcyBmb3IgT1NEVyB0aGVyZSAoZS5nLiBpbiBfUFMwLAppLmUuIG9uIHJlc3VtZSksIGl0
-IG1lYW5zIHRoZSBBTUwgY29kZSBpcyBvbmx5IGV4ZWN1dGVkIG9uIERhcndpbi4KQ29udmVyc2Vs
-eSAhT1NEVyBtZWFucyB0aGUgY29kZSBpcyBvbmx5IGV4ZWN1dGVkIG9uIFdpbmRvd3MgKEJvb3Qg
-Q2FtcCkuCkxpbnV4IG1hc3F1ZXJhZGVzIGFzIERhcndpbiwgYnV0IHRoaXMgY2FuIGJlIGRpc2Fi
-bGVkIHdpdGgKYWNwaV9vc2k9IURhcndpbiBvbiB0aGUgY29tbWFuZCBsaW5lLiAgSXQncyB3b3J0
-aCB0cnlpbmcgaWYgdGhhdCBjaGFuZ2VzCnRoZSBiZWhhdmlvdXIuICBJZiBpdCBkb2VzLCB0aGVu
-IG1hY09TIGxpa2VseSBzZXRzIHRob3NlIHBpbnMgb24gcmVzdW1lCmFuZCB3ZSBuZWVkIHRvIGRv
-IHRoZSBzYW1lIGluIHJhZGVvbi4KCkhUSCwKCkx1a2FzCgo+IAo+IEkndmUgbm90ZWQgdGhhdCBp
-biAvc3lzL2NsYXNzL2JhY2tsaWdodCwgdGhlcmUgYXJlIHR3byBkaWZmZXJlbnQgY29udHJvbAo+
-IGludGVyZmFjZXMsIGFwcGxlX2JhY2tsaWdodCBhbmQgcmFkZW9uX2JsMC4gQmVmb3JlIHN1c3Bl
-bmQsIEkgY2FuIGNvbnRyb2wgdGhlCj4gc2NyZWVuIGJyaWdodG5lc3MgZnJvbSBzeXN0ZW0gc2V0
-dGluZ3MsIGV2ZW4gaWYgb25seSBvbmUgb2YgdGhlbSBpcyBsb2FkZWQsIHNvCj4gYm90aCBicmln
-aHRuZXNzIGludGVyZmFjZXMgd29yay4KPiAKPiBXaGF0IEkndmUgYWxyZWFkeSB0cmllZCB3aXRo
-b3V0IHN1Y2Nlc3M6Cj4gCj4gLSBCbGluZGx5IHN3aXRjaGluZyB0byB0aGUgY29uc29sZSBhbmQg
-YmFjay4KPiAtIENhbGxpbmcgRElTUExBWT06MC4wIHhyYW5kciAtLW91dHB1dCBlRFAxIC0tYXV0
-byB2aWEgc3NoLgo+IC0gUmVzdGFydGluZyBYIHZpYSBzc2guCj4gLSBCbGFja2xpc3QgYXBwbGVf
-Ymwgb24gdGhlIGtlcm5lbCBjbWRsaW5lIChtb2Rwcm9iZS5ibGFja2xpc3Q9YXBwbGVfYmwpLgo+
-IC0gRGlzYWJsaW5nIHRoZSByYWRlb24gYmFja2xpZ2h0IG9uIHRoZSBrZXJuZWwgY21kbGluZSAo
-cmFkZW9uLmJhY2tsaWdodD0wKS4KPiAtIFVzaW5nIHJhZGVvbnRvb2wgdG8gdHVybiB0aGUgYmFj
-a2xpZ2h0IGJhY2sgb24gYWZ0ZXIgc3VzcGVuZC4KPiAtIERpcmVjdGx5IHVzaW5nIHRoZSBpbnRl
-cmZhY2UgaW4gL3N5cy9jbGFzcy9iYWNrbGlnaHQvIHRvIHR1cm4gaXQgYmFjayBvbi4KPiAKPiBJ
-J20gc3RhcnRpbmcgdG8gcnVuIG91dCBvZiBpZGVhcy4uLiBhbnkgaGludHM/Cj4gCj4gUmVnYXJk
-cywgRmxvcmlhbgo+IC0tIAo+IFNFTlQgRlJPTSBNWSBERUMgVlQ1MCBURVJNSU5BTApfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphbWQtZ2Z4IG1haWxpbmcg
-bGlzdAphbWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNr
-dG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2FtZC1nZngK
+On Thu, May 25, 2017 at 12:37:23PM +0100, Gabriele Paoloni wrote:
+> From: "zhichang.yuan" <yuanzhichang@hisilicon.com>
+> 
+> After introducing the new generic I/O space management(LOGIC_IO), the
+> original PCI MMIO relevant helpers need to be updated based on the new
+> interfaces defined in LOGIC_IO.
+> This patch adapts the corresponding code to match the changes introduced
+> by LOGIC_IO.
+> 
+> Signed-off-by: zhichang.yuan <yuanzhichang@hisilicon.com>
+> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>        #earlier draft
+
+Not sure how you plan to merge this, but here's my ack:
+
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
+If you split this as suggested below, add my ack to all three patches.
+
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index b01bd5b..c9fe12b 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+>...
+
+> -int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
+> +int pci_register_io_range(struct fwnode_handle *fwnode, phys_addr_t addr,
+> +			resource_size_t	size)
+
+It's trivial and nit-picky, but I would do the __weak removal in its
+own patch.  It's obviously fine because there's only one
+implementation, but it's unrelated to the main point of this patch.
+
+I would split the signature change (fwnode addition) to a separate
+patch, too, just to make the actual change more obvious, especially
+since that's the only part that crosses subsystems (ACPI, PCI, OF).
+
+>  {
+> -	int err = 0;
+> -
+> +	int ret = 0;
+>  #ifdef PCI_IOBASE
+> -	struct io_range *range;
+> -	resource_size_t allocated_size = 0;
+> -
+> -	/* check if the range hasn't been previously recorded */
+> -	spin_lock(&io_range_lock);
+> -	list_for_each_entry(range, &io_range_list, list) {
+> -		if (addr >= range->start && addr + size <= range->start + size) {
+> -			/* range already registered, bail out */
+> -			goto end_register;
+> -		}
+> -		allocated_size += range->size;
+> -	}
+> -
+> -	/* range not registed yet, check for available space */
+> -	if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
+> -		/* if it's too big check if 64K space can be reserved */
+> -		if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
+> -			err = -E2BIG;
+> -			goto end_register;
+> -		}
+> -
+> -		size = SZ_64K;
+> -		pr_warn("Requested IO range too big, new size set to 64K\n");
+> -	}
+> +	struct logic_pio_hwaddr *range;
+>  
+> -	/* add the range to the list */
+> -	range = kzalloc(sizeof(*range), GFP_ATOMIC);
+> -	if (!range) {
+> -		err = -ENOMEM;
+> -		goto end_register;
+> -	}
+> +	if (!size || addr + size < addr)
+> +		return -EINVAL;
+>  
+> -	range->start = addr;
+> +	range = kzalloc(sizeof(*range), GFP_KERNEL);
+> +	if (!range)
+> +		return -ENOMEM;
+
+Add a blank line here.
+
+> +	range->fwnode = fwnode;
+>  	range->size = size;
+> +	range->hw_start = addr;
+> +	range->flags = PIO_CPU_MMIO;
+>  
+> -	list_add_tail(&range->list, &io_range_list);
+> -
+> -end_register:
+> -	spin_unlock(&io_range_lock);
+> +	ret = logic_pio_register_range(range);
+> +	if (ret)
+> +		kfree(range);
+>  #endif
+>  
+> -	return err;
+> +	return ret;
+>  }
