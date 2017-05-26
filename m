@@ -1,67 +1,78 @@
-From: Peter Hutterer <peter.hutterer@who-t.net>
-Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to
- lid_init_state=open"
-Date: Fri, 26 May 2017 17:39:53 +1000
-Message-ID: <20170526073953.GA29786@jelly>
-References: <20170524080830.GE13096@mail.corp.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: [PATCH 0/8] i2c: refactor core and break out blocks
+Date: Fri, 26 May 2017 10:20:51 +0200
+Message-ID: <20170526082101.4746-1-wsa@the-dreams.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from leo.clearchain.com ([199.73.29.74]:19013 "EHLO
-        mail.clearchain.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936863AbdEZHmH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 26 May 2017 03:42:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20170524080830.GE13096@mail.corp.redhat.com>
+Received: from sauhun.de ([88.99.104.3]:44323 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758780AbdEZIVN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 May 2017 04:21:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Jiri Eischmann <jeischma@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-i2c@vger.kernel.org
+Cc: Jean Delvare <jdelvare@suse.de>, linux-acpi@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On May 25 2017, Benjamin Tissoires wrote:
-> On May 15 2017 or thereabouts, Rafael J. Wysocki wrote:
+Yes, I wanted to do this for years now... The I2C core became a huge monolithic
+blob getting harder and harder to maintain. This series breaks out some
+functional parts into seperate files. This makes the code easier to handle
+because of the smaller chunks. It reduces ifdeffery because we can now handle
+compilation at the Makefile level. And it helps to spread responsibility, e.g.
+the ACPI maintainers do now have a dedicated file listed in MAINTAINERS.
 
-> > >> >> Benjamin, my understanding is that this is the case, is it correct?
-> > >> >
-> > >> > That is correct. This patch I reverted introduces regression for professional
-> > >> > laptops that expect the LID switch to be reported accurately.
-> > >>
-> > >> And from a user's perspective, what does not work any more?
-> > >
-> > > If you boot or resume your laptop with the lid closed on a docking
-> > > station while using an external monitor connected to it, both internal
-> > > and external displays will light on, while only the external should.
-> > >
-> > > There is a design choice in gdm to only provide the greater on the
-> > > internal display when lit on, so users only see a gray area on the
-> > > external monitor. Also, the cursor will not show up as it's by default
-> > > on the internal display too.
-> > >
-> > > To "fix" that, users have to open the laptop once and close it once
-> > > again to sync the state of the switch with the hardware state.
-> >
-> > OK
-> >
-> > Yeah, that sucks.
-> >
-> > So without the Lv's patch the behavior (on the systems in question) is
-> > as expected, right?
-> 
-> Would you agree to take both these reverts without Lv's ACK? We already
-> tried to explain for 2 weeks that they are valuable, but it seems we
-> can't make change his mind.
-> 
-> I have more that 26 emails in my INBOX (not counting my replies) and I
-> would really like switching to more valuable work than explaining again
-> and again that when a regression is introduced, it needs to be fixed (or
-> reverted in that case).
+This series was tested with a Renesas Lager board (R-Car H2 SoC). It booted
+normally and all device drivers for I2C clients seem to work normally. I wired
+two I2C busses together and used i2c-slave-eeprom to let one I2C IP core read
+out data from the other. That all worked fine. Buildbot is also happy, it found
+two issues of the first (non public) iteration. Thanks!
 
-Yes please. This should have stopped right after "regression on basically
-every decent laptop out there" and we should be discussing how to fix the
-devices that actually need quirks because they're broken. Instead it 
-turned into a discussion on why we should stick with the regression and
-convince all of userspace to change and implement broken heuristics. I've
-used up my time budget for that.
+I did not test ACPI and hope for some assistance here :) I'd also be happy if
+people could check the includes of the newly created files, there might be
+missing some.
 
-Cheers,
-   Peter
+As a result, the main i2c-core file goes down from ~3600 lines to ~2000 lines.
+I think this is pretty helpful. I plan to apply this for v4.13 to not block
+other core changes. Let's see if we are there yet and the series is ready.
+Looking forward to comments.
+
+A branch can be found here:
+git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git i2c/core-refactor
+
+Kind regards,
+
+   Wolfram
+
+
+Wolfram Sang (8):
+  i2c: rename core source file to allow refactorization
+  i2c: break out slave support into seperate file
+  i2c: break out smbus support into seperate file
+  i2c: break out OF support into seperate file
+  i2c: break out ACPI support into seperate file
+  docs: i2c: dev-interface: adapt to new filenames of the i2c core
+  i2c: remove unneeded includes from core
+  i2c: reformat core-base file header
+
+ Documentation/driver-api/i2c.rst            |    5 +-
+ Documentation/i2c/dev-interface             |   14 +-
+ MAINTAINERS                                 |    1 +
+ drivers/i2c/Makefile                        |    7 +-
+ drivers/i2c/busses/i2c-designware-core.c    |    2 +-
+ drivers/i2c/i2c-core-acpi.c                 |  653 +++++++++++
+ drivers/i2c/{i2c-core.c => i2c-core-base.c} | 1681 +--------------------------
+ drivers/i2c/i2c-core-of.c                   |  276 +++++
+ drivers/i2c/i2c-core-slave.c                |  115 ++
+ drivers/i2c/i2c-core-smbus.c                |  594 ++++++++++
+ drivers/i2c/i2c-core.h                      |   24 +
+ include/trace/events/i2c.h                  |  226 +---
+ include/trace/events/smbus.h                |  249 ++++
+ 13 files changed, 1978 insertions(+), 1869 deletions(-)
+ create mode 100644 drivers/i2c/i2c-core-acpi.c
+ rename drivers/i2c/{i2c-core.c => i2c-core-base.c} (58%)
+ create mode 100644 drivers/i2c/i2c-core-of.c
+ create mode 100644 drivers/i2c/i2c-core-slave.c
+ create mode 100644 drivers/i2c/i2c-core-smbus.c
+ create mode 100644 include/trace/events/smbus.h
+
+-- 
+2.11.0
+
