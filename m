@@ -1,23 +1,65 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 5/8] i2c: break out ACPI support into seperate file
-Date: Fri, 26 May 2017 19:15:56 +0300
-Message-ID: <20170526161556.GB2784@lahna.fi.intel.com>
-References: <20170526082101.4746-1-wsa@the-dreams.de>
- <20170526082101.4746-6-wsa@the-dreams.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170526082101.4746-6-wsa@the-dreams.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH] ARM64/ACPI: Fix BAD_MADT_GICC_ENTRY() macro implementation
+Date: Fri, 26 May 2017 17:40:02 +0100
+Message-ID: <20170526164002.30103-1-lorenzo.pieralisi@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:33730 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753362AbdEZQiz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 May 2017 12:38:55 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Julien Grall <julien.grall@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Al Stone <ahs3@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>
 
-On Fri, May 26, 2017 at 10:20:56AM +0200, Wolfram Sang wrote:
-> Removes some ifdeffery. Also add the new file to the relevant
-> MAINTAINERS section.
-> 
-> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+The BAD_MADT_GICC_ENTRY() macro checks if a GICC MADT entry passes
+muster from an ACPI specification standpoint. Current macro detects the
+MADT GICC entry length through ACPI firmware version (it changed from 76
+to 80 bytes in the transition from ACPI 5.1 to ACPI 6.0 specification)
+but always uses (erroneously) the ACPICA (latest) struct (ie struct
+acpi_madt_generic_interrupt - that is 80-bytes long) length to check if
+the current GICC entry memory record exceeds the MADT table end in
+memory as defined by the MADT table header itself, which may result in
+false negatives depending on the ACPI firmware version and how the MADT
+entries are laid out in memory (ie on ACPI 5.1 firmware MADT GICC
+entries are 76 bytes long, so by adding 80 to a GICC entry start address
+in memory the resulting address may well be past the actual MADT end,
+triggering a false negative).
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Fix the BAD_MADT_GICC_ENTRY() macro by reshuffling the condition checks
+and update them to always use the firmware version specific MADT GICC
+entry length in order to carry out boundary checks.
+
+Fixes: b6cfb277378e ("ACPI / ARM64: add BAD_MADT_GICC_ENTRY() macro")
+Reported-by: Julien Grall <julien.grall@arm.com>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Julien Grall <julien.grall@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Al Stone <ahs3@redhat.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+---
+ arch/arm64/include/asm/acpi.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 0e99978..59cca1d 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -23,9 +23,9 @@
+ #define ACPI_MADT_GICC_LENGTH	\
+ 	(acpi_gbl_FADT.header.revision < 6 ? 76 : 80)
+ 
+-#define BAD_MADT_GICC_ENTRY(entry, end)						\
+-	(!(entry) || (unsigned long)(entry) + sizeof(*(entry)) > (end) ||	\
+-	 (entry)->header.length != ACPI_MADT_GICC_LENGTH)
++#define BAD_MADT_GICC_ENTRY(entry, end)					\
++	(!(entry) || (entry)->header.length != ACPI_MADT_GICC_LENGTH ||	\
++	(unsigned long)(entry) + ACPI_MADT_GICC_LENGTH > (end))
+ 
+ /* Basic configuration for ACPI */
+ #ifdef	CONFIG_ACPI
+-- 
+2.10.0
+
