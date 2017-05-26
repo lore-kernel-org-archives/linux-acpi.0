@@ -1,65 +1,165 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH] ARM64/ACPI: Fix BAD_MADT_GICC_ENTRY() macro implementation
-Date: Fri, 26 May 2017 17:40:02 +0100
-Message-ID: <20170526164002.30103-1-lorenzo.pieralisi@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:33730 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753362AbdEZQiz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 26 May 2017 12:38:55 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v9 1/7] LIB: Introduce a generic PIO mapping method
+Date: Fri, 26 May 2017 15:57:44 -0500
+Message-ID: <20170526205744.GA21531@bhelgaas-glaptop.roam.corp.google.com>
+References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1495712248-5232-2-git-send-email-gabriele.paoloni@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1495712248-5232-2-git-send-email-gabriele.paoloni@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, minyard@acm.org, arnd@arndb.de, rafael@kernel.org, linux-pci@vger.kernel.org, catalin.marinas@arm.com, john.garry@huawei.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, xuwei5@hisilicon.com, linuxarm@huawei.com, linux-acpi@vger.kernel.org, robh+dt@kernel.org, "zhichang.yuan" <yuanzhichang@hisilicon.com>, benh@kernel.crashing.org, bhelgaas@google.com, frowand.list@gmail.com, brian.starkey@arm.com, linux-arm-kernel@lists.infradead.org, olof@lixom.net
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Julien Grall <julien.grall@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Al Stone <ahs3@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>
 
-The BAD_MADT_GICC_ENTRY() macro checks if a GICC MADT entry passes
-muster from an ACPI specification standpoint. Current macro detects the
-MADT GICC entry length through ACPI firmware version (it changed from 76
-to 80 bytes in the transition from ACPI 5.1 to ACPI 6.0 specification)
-but always uses (erroneously) the ACPICA (latest) struct (ie struct
-acpi_madt_generic_interrupt - that is 80-bytes long) length to check if
-the current GICC entry memory record exceeds the MADT table end in
-memory as defined by the MADT table header itself, which may result in
-false negatives depending on the ACPI firmware version and how the MADT
-entries are laid out in memory (ie on ACPI 5.1 firmware MADT GICC
-entries are 76 bytes long, so by adding 80 to a GICC entry start address
-in memory the resulting address may well be past the actual MADT end,
-triggering a false negative).
+On Thu, May 25, 2017 at 12:37:22PM +0100, Gabriele Paoloni wrote:
+> From: "zhichang.yuan" <yuanzhichang@hisilicon.com>
+> 
+> In 'commit 41f8bba7f555 ("of/pci: Add pci_register_io_range() and
+> pci_pio_to_address()")' a new I/O space management was supported. With that
+> driver, the I/O ranges configured for PCI/PCIE hosts on some architectures
+> can be mapped to logical PIO, converted easily between CPU address and the
+> corresponding logicial PIO. Based on this, PCI I/O devices can be accessed
+> in a memory read/write way through the unified in/out accessors.
+> 
+> But on some archs/platforms, there are bus hosts which access I/O
+> peripherals with host-local I/O port addresses rather than memory
+> addresses after memory-mapped.
+> To support those devices, a more generic I/O mapping method is introduced
+> here. Through this patch, both the CPU addresses and the host-local port
+> can be mapped into the logical PIO space with different logical/fake PIOs.
+> After this, all the I/O accesses to either PCI MMIO devices or host-local
+> I/O peripherals can be unified into the existing I/O accessors defined in
+> asm-generic/io.h and be redirected to the right device-specific hooks
+> based on the input logical PIO.
+> 
+> Signed-off-by: zhichang.yuan <yuanzhichang@hisilicon.com>
+> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> ---
+>  include/asm-generic/io.h  |  50 +++++++++
+>  include/linux/logic_pio.h | 110 ++++++++++++++++++
+>  lib/Kconfig               |  26 +++++
+>  lib/Makefile              |   2 +
+>  lib/logic_pio.c           | 280 ++++++++++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 468 insertions(+)
+>  create mode 100644 include/linux/logic_pio.h
+>  create mode 100644 lib/logic_pio.c
+> 
+> diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
+> index 7ef015e..f7fbec3 100644
+> --- a/include/asm-generic/io.h
+> +++ b/include/asm-generic/io.h
+> ...  
 
-Fix the BAD_MADT_GICC_ENTRY() macro by reshuffling the condition checks
-and update them to always use the firmware version specific MADT GICC
-entry length in order to carry out boundary checks.
+>  #ifndef inb
+> +#ifdef CONFIG_INDIRECT_PIO
+> +#define inb logic_inb
+> +#else
+>  #define inb inb
+>  static inline u8 inb(unsigned long addr)
+>  {
+>  	return readb(PCI_IOBASE + addr);
+>  }
+> +#endif /* CONFIG_INDIRECT_PIO */
+>  #endif
+>  
+>  #ifndef inw
+> +#ifdef CONFIG_INDIRECT_PIO
+> +#define inw logic_inw
 
-Fixes: b6cfb277378e ("ACPI / ARM64: add BAD_MADT_GICC_ENTRY() macro")
-Reported-by: Julien Grall <julien.grall@arm.com>
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Julien Grall <julien.grall@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Al Stone <ahs3@redhat.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
----
- arch/arm64/include/asm/acpi.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Cosmetic: could these ifdefs all be collected in one place, e.g.,
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 0e99978..59cca1d 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -23,9 +23,9 @@
- #define ACPI_MADT_GICC_LENGTH	\
- 	(acpi_gbl_FADT.header.revision < 6 ? 76 : 80)
- 
--#define BAD_MADT_GICC_ENTRY(entry, end)						\
--	(!(entry) || (unsigned long)(entry) + sizeof(*(entry)) > (end) ||	\
--	 (entry)->header.length != ACPI_MADT_GICC_LENGTH)
-+#define BAD_MADT_GICC_ENTRY(entry, end)					\
-+	(!(entry) || (entry)->header.length != ACPI_MADT_GICC_LENGTH ||	\
-+	(unsigned long)(entry) + ACPI_MADT_GICC_LENGTH > (end))
- 
- /* Basic configuration for ACPI */
- #ifdef	CONFIG_ACPI
--- 
-2.10.0
+  #ifdef CONFIG_INDIRECT_PIO
+  #define inb logic_inb
+  #define inw logic_inw
+  #define inl logic_inl
+  ...
+  #endif
 
+to avoid cluttering every one of the default definitions?  Could the
+collection be in logic_pio.h itself, next to the extern declarations?
+
+> +#else
+>  #define inw inw
+>  static inline u16 inw(unsigned long addr)
+>  {
+>  	return readw(PCI_IOBASE + addr);
+>  }
+> +#endif /* CONFIG_INDIRECT_PIO */
+>  #endif
+
+>  #ifndef insb_p
+> diff --git a/include/linux/logic_pio.h b/include/linux/logic_pio.h
+> new file mode 100644
+> index 0000000..8e4dc65
+> --- /dev/null
+> +++ b/include/linux/logic_pio.h
+> ...
+
+> +extern u8 logic_inb(unsigned long addr);
+
+I think you only build the definitions for these if
+CONFIG_INDIRECT_PIO, so the declarations could be under that #idef,
+too.
+
+In PCI code, I omit the "extern" from function declarations.  This
+isn't PCI code, and I don't know if there's a real consensus on this,
+but there is some precedent: 5bd085b5fbd8 ("x86: remove "extern" from
+function prototypes in <asm/proto.h>")
+
+> +#ifdef CONFIG_LOGIC_PIO
+> +extern struct logic_pio_hwaddr
+> +*find_io_range_by_fwnode(struct fwnode_handle *fwnode);
+
+If you have to split the line (this one would fit without the
+"extern"), the "*" goes with the type, e.g.,
+
+  struct logic_pio_hwaddr *
+  find_io_range_by_fwnode(struct fwnode_handle *fwnode);
+
+More occurrences below.
+
+> diff --git a/lib/logic_pio.c b/lib/logic_pio.c
+> new file mode 100644
+> index 0000000..4a960cd
+> --- /dev/null
+> +++ b/lib/logic_pio.c
+> ...
+
+> +#if defined(CONFIG_INDIRECT_PIO) && defined(PCI_IOBASE)
+> +#define BUILD_LOGIC_PIO(bw, type)\
+> +type logic_in##bw(unsigned long addr)\
+> +{\
+> +	type ret = -1;\
+> +\
+> +	if (addr < MMIO_UPPER_LIMIT) {\
+> +		ret = read##bw(PCI_IOBASE + addr);\
+> +	} else {\
+> +		struct logic_pio_hwaddr *entry = find_io_range(addr);\
+> +\
+> +		if (entry && entry->ops)\
+> +			ret = entry->ops->pfin(entry->devpara,\
+> +					addr, sizeof(type));\
+> +		else\
+> +			WARN_ON_ONCE(1);\
+> +	}	\
+> +	return ret;\
+> +}	\
+
+I think these would be slightly easier to read if the line continuation
+backslashes were aligned at the right, as with
+ACPI_DECLARE_PROBE_ENTRY(), __atomic_op_acquire(), DECLARE_EWMA(),
+etc.
+
+Bjorn
