@@ -1,165 +1,72 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v9 1/7] LIB: Introduce a generic PIO mapping method
-Date: Fri, 26 May 2017 15:57:44 -0500
-Message-ID: <20170526205744.GA21531@bhelgaas-glaptop.roam.corp.google.com>
-References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
- <1495712248-5232-2-git-send-email-gabriele.paoloni@huawei.com>
+From: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
+Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
+Date: Fri, 26 May 2017 23:03:40 +0200
+Message-ID: <20170526210340.GA5114@wunner.de>
+References: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1495712248-5232-2-git-send-email-gabriele.paoloni@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, minyard@acm.org, arnd@arndb.de, rafael@kernel.org, linux-pci@vger.kernel.org, catalin.marinas@arm.com, john.garry@huawei.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, xuwei5@hisilicon.com, linuxarm@huawei.com, linux-acpi@vger.kernel.org, robh+dt@kernel.org, "zhichang.yuan" <yuanzhichang@hisilicon.com>, benh@kernel.crashing.org, bhelgaas@google.com, frowand.list@gmail.com, brian.starkey@arm.com, linux-arm-kernel@lists.infradead.org, olof@lixom.net
+In-Reply-To: <30380cb3-0f26-8aea-2689-d4886879129c-H5Ww8s0cz1NjHglVgfe8mg@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Florian Echtler <floe-H5Ww8s0cz1NjHglVgfe8mg@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 25, 2017 at 12:37:22PM +0100, Gabriele Paoloni wrote:
-> From: "zhichang.yuan" <yuanzhichang@hisilicon.com>
-> 
-> In 'commit 41f8bba7f555 ("of/pci: Add pci_register_io_range() and
-> pci_pio_to_address()")' a new I/O space management was supported. With that
-> driver, the I/O ranges configured for PCI/PCIE hosts on some architectures
-> can be mapped to logical PIO, converted easily between CPU address and the
-> corresponding logicial PIO. Based on this, PCI I/O devices can be accessed
-> in a memory read/write way through the unified in/out accessors.
-> 
-> But on some archs/platforms, there are bus hosts which access I/O
-> peripherals with host-local I/O port addresses rather than memory
-> addresses after memory-mapped.
-> To support those devices, a more generic I/O mapping method is introduced
-> here. Through this patch, both the CPU addresses and the host-local port
-> can be mapped into the logical PIO space with different logical/fake PIOs.
-> After this, all the I/O accesses to either PCI MMIO devices or host-local
-> I/O peripherals can be unified into the existing I/O accessors defined in
-> asm-generic/io.h and be redirected to the right device-specific hooks
-> based on the input logical PIO.
-> 
-> Signed-off-by: zhichang.yuan <yuanzhichang@hisilicon.com>
-> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> ---
->  include/asm-generic/io.h  |  50 +++++++++
->  include/linux/logic_pio.h | 110 ++++++++++++++++++
->  lib/Kconfig               |  26 +++++
->  lib/Makefile              |   2 +
->  lib/logic_pio.c           | 280 ++++++++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 468 insertions(+)
->  create mode 100644 include/linux/logic_pio.h
->  create mode 100644 lib/logic_pio.c
-> 
-> diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
-> index 7ef015e..f7fbec3 100644
-> --- a/include/asm-generic/io.h
-> +++ b/include/asm-generic/io.h
-> ...  
-
->  #ifndef inb
-> +#ifdef CONFIG_INDIRECT_PIO
-> +#define inb logic_inb
-> +#else
->  #define inb inb
->  static inline u8 inb(unsigned long addr)
->  {
->  	return readb(PCI_IOBASE + addr);
->  }
-> +#endif /* CONFIG_INDIRECT_PIO */
->  #endif
->  
->  #ifndef inw
-> +#ifdef CONFIG_INDIRECT_PIO
-> +#define inw logic_inw
-
-Cosmetic: could these ifdefs all be collected in one place, e.g.,
-
-  #ifdef CONFIG_INDIRECT_PIO
-  #define inb logic_inb
-  #define inw logic_inw
-  #define inl logic_inl
-  ...
-  #endif
-
-to avoid cluttering every one of the default definitions?  Could the
-collection be in logic_pio.h itself, next to the extern declarations?
-
-> +#else
->  #define inw inw
->  static inline u16 inw(unsigned long addr)
->  {
->  	return readw(PCI_IOBASE + addr);
->  }
-> +#endif /* CONFIG_INDIRECT_PIO */
->  #endif
-
->  #ifndef insb_p
-> diff --git a/include/linux/logic_pio.h b/include/linux/logic_pio.h
-> new file mode 100644
-> index 0000000..8e4dc65
-> --- /dev/null
-> +++ b/include/linux/logic_pio.h
-> ...
-
-> +extern u8 logic_inb(unsigned long addr);
-
-I think you only build the definitions for these if
-CONFIG_INDIRECT_PIO, so the declarations could be under that #idef,
-too.
-
-In PCI code, I omit the "extern" from function declarations.  This
-isn't PCI code, and I don't know if there's a real consensus on this,
-but there is some precedent: 5bd085b5fbd8 ("x86: remove "extern" from
-function prototypes in <asm/proto.h>")
-
-> +#ifdef CONFIG_LOGIC_PIO
-> +extern struct logic_pio_hwaddr
-> +*find_io_range_by_fwnode(struct fwnode_handle *fwnode);
-
-If you have to split the line (this one would fit without the
-"extern"), the "*" goes with the type, e.g.,
-
-  struct logic_pio_hwaddr *
-  find_io_range_by_fwnode(struct fwnode_handle *fwnode);
-
-More occurrences below.
-
-> diff --git a/lib/logic_pio.c b/lib/logic_pio.c
-> new file mode 100644
-> index 0000000..4a960cd
-> --- /dev/null
-> +++ b/lib/logic_pio.c
-> ...
-
-> +#if defined(CONFIG_INDIRECT_PIO) && defined(PCI_IOBASE)
-> +#define BUILD_LOGIC_PIO(bw, type)\
-> +type logic_in##bw(unsigned long addr)\
-> +{\
-> +	type ret = -1;\
-> +\
-> +	if (addr < MMIO_UPPER_LIMIT) {\
-> +		ret = read##bw(PCI_IOBASE + addr);\
-> +	} else {\
-> +		struct logic_pio_hwaddr *entry = find_io_range(addr);\
-> +\
-> +		if (entry && entry->ops)\
-> +			ret = entry->ops->pfin(entry->devpara,\
-> +					addr, sizeof(type));\
-> +		else\
-> +			WARN_ON_ONCE(1);\
-> +	}	\
-> +	return ret;\
-> +}	\
-
-I think these would be slightly easier to read if the line continuation
-backslashes were aligned at the right, as with
-ACPI_DECLARE_PROBE_ENTRY(), __atomic_op_acquire(), DECLARE_EWMA(),
-etc.
-
-Bjorn
+W2NjICs9IGRyaS1kZXZlbCwgYW1kLWdmeF0KCk9uIEZyaSwgTWF5IDI2LCAyMDE3IGF0IDAyOjEz
+OjI5UE0gKzAyMDAsIEZsb3JpYW4gRWNodGxlciB3cm90ZToKPiBJJ20gcnVubmluZyBVYnVudHUg
+MTYuMDQuMiBvbiBhIDI3IiB1bmlib2R5IGlNYWMgMTAsMSBmcm9tIDIwMDkuIEhvd2V2ZXIsIGV2
+ZW4KPiB3aXRoIHRoZSBtb3N0IHJlY2VudCBIV0Ugc3RhY2sgKGtlcm5lbCA0LjgpLCB0aGUgZGlz
+cGxheSBzdGF5cyBibGFjayBhZnRlcgo+IHN1c3BlbmQuIEkgY2FuIHNzaCBpbnRvIHRoZSBtYWNo
+aW5lLCBzbyB3YWtldXAgaXMgT0ssIGJ1dCB0aGUgZGlzcGxheSBpcwo+IGVudGlyZWx5IGJsYWNr
+IChiYWNrbGlnaHQgc3RheXMgb2ZmKS4KPiAKPiBOb3RlOiB0aGlzIGFwcGVhcnMgdG8gYmUgZW50
+aXJlbHkgdW5yZWxhdGVkIHRvIHRoZSBURE0gc3R1ZmYgSSBwb3N0ZWQgYWJvdXQKPiBlYXJsaWVy
+LiBJbnRlcmVzdGluZ2x5LCB3aGVuIEkgZW5hYmxlIFRETSwgZXZlbiBhZnRlciBzdXNwZW5kLCB0
+aGUgZGlzcGxheSB3b3Jrcwo+IHdoaWxlIFRETSBpcyBhY3RpdmUuIE9uY2UgSSBkaXNhYmxlIFRE
+TSwgaXQncyBiYWNrIHRvIGJsYWNrICh1bmludGVudGlvbmFsIHNvbmcKPiByZWZlcmVuY2UgdGhl
+cmUpLgoKU291bmRzIGxpa2UgYSByYWRlb24gaXNzdWUgdG8gbWUuCgpUaGUgTENEX1BBTkVMX1BX
+UiBhbmQgTENEX0JLTF9PTl9NVVggcGlucyBhcmUgY29taW5nIGZyb20gYSBtdXguCgpJbiBURE0g
+bW9kZSwgdGhlIHBpbnMgYXJlIG11eGVkIHRvIHRoZSBTTUMsIHNvIGl0IGNhbiB0dXJuIHRoZSBw
+YW5lbCBvbgphbmQgb2ZmLiAgSWYgVERNIGlzIG5vdCBpbiB1c2UsIHRoZSBwaW5zIGFyZSBtdXhl
+ZCB0byB0aGUgQVRJIGNhcmQuCgpUaGUgQVRJIGNhcmQgaGFzIE1YTV9QTkxfUFdSX0VOIGFuZCBN
+WE1fUE5MX0JMX0VOIHBpbnMuICBUaG9zZSBtdXN0IGJlCmVuYWJsZWQgZm9yIHRoZSBwYW5lbCB0
+byBsaWdodCB1cC4gIFBlcmhhcHMgcmFkZW9uIG5lZWRzIHRvIGJlIGV4dGVuZGVkCnRvIGRvIHRo
+YXQuICBPbmUgdGhlb3J5IGlzIHRoYXQgdGhpcyBpcyBkb25lIHZpYSBBQ1BJLCBidXQgcGVyaGFw
+cwpvbmx5IGlmIGEgY2VydGFpbiBvcGVyYXRpbmcgc3lzdGVtIGlzIHJ1bm5pbmcuICBEdW1wIHRo
+ZSBBQ1BJIHRhYmxlcwphbmQgc2VhcmNoIERTRFQgYW5kIFNTRFQqIHRhYmxlcyBmb3IgbWV0aG9k
+cyByZWxhdGluZyB0byB0aGUgQVRJIGNhcmQKYW5kL29yIGJhY2tsaWdodC4gIElmIHlvdSBmaW5k
+IGNoZWNrcyBmb3IgT1NEVyB0aGVyZSAoZS5nLiBpbiBfUFMwLAppLmUuIG9uIHJlc3VtZSksIGl0
+IG1lYW5zIHRoZSBBTUwgY29kZSBpcyBvbmx5IGV4ZWN1dGVkIG9uIERhcndpbi4KQ29udmVyc2Vs
+eSAhT1NEVyBtZWFucyB0aGUgY29kZSBpcyBvbmx5IGV4ZWN1dGVkIG9uIFdpbmRvd3MgKEJvb3Qg
+Q2FtcCkuCkxpbnV4IG1hc3F1ZXJhZGVzIGFzIERhcndpbiwgYnV0IHRoaXMgY2FuIGJlIGRpc2Fi
+bGVkIHdpdGgKYWNwaV9vc2k9IURhcndpbiBvbiB0aGUgY29tbWFuZCBsaW5lLiAgSXQncyB3b3J0
+aCB0cnlpbmcgaWYgdGhhdCBjaGFuZ2VzCnRoZSBiZWhhdmlvdXIuICBJZiBpdCBkb2VzLCB0aGVu
+IG1hY09TIGxpa2VseSBzZXRzIHRob3NlIHBpbnMgb24gcmVzdW1lCmFuZCB3ZSBuZWVkIHRvIGRv
+IHRoZSBzYW1lIGluIHJhZGVvbi4KCkhUSCwKCkx1a2FzCgo+IAo+IEkndmUgbm90ZWQgdGhhdCBp
+biAvc3lzL2NsYXNzL2JhY2tsaWdodCwgdGhlcmUgYXJlIHR3byBkaWZmZXJlbnQgY29udHJvbAo+
+IGludGVyZmFjZXMsIGFwcGxlX2JhY2tsaWdodCBhbmQgcmFkZW9uX2JsMC4gQmVmb3JlIHN1c3Bl
+bmQsIEkgY2FuIGNvbnRyb2wgdGhlCj4gc2NyZWVuIGJyaWdodG5lc3MgZnJvbSBzeXN0ZW0gc2V0
+dGluZ3MsIGV2ZW4gaWYgb25seSBvbmUgb2YgdGhlbSBpcyBsb2FkZWQsIHNvCj4gYm90aCBicmln
+aHRuZXNzIGludGVyZmFjZXMgd29yay4KPiAKPiBXaGF0IEkndmUgYWxyZWFkeSB0cmllZCB3aXRo
+b3V0IHN1Y2Nlc3M6Cj4gCj4gLSBCbGluZGx5IHN3aXRjaGluZyB0byB0aGUgY29uc29sZSBhbmQg
+YmFjay4KPiAtIENhbGxpbmcgRElTUExBWT06MC4wIHhyYW5kciAtLW91dHB1dCBlRFAxIC0tYXV0
+byB2aWEgc3NoLgo+IC0gUmVzdGFydGluZyBYIHZpYSBzc2guCj4gLSBCbGFja2xpc3QgYXBwbGVf
+Ymwgb24gdGhlIGtlcm5lbCBjbWRsaW5lIChtb2Rwcm9iZS5ibGFja2xpc3Q9YXBwbGVfYmwpLgo+
+IC0gRGlzYWJsaW5nIHRoZSByYWRlb24gYmFja2xpZ2h0IG9uIHRoZSBrZXJuZWwgY21kbGluZSAo
+cmFkZW9uLmJhY2tsaWdodD0wKS4KPiAtIFVzaW5nIHJhZGVvbnRvb2wgdG8gdHVybiB0aGUgYmFj
+a2xpZ2h0IGJhY2sgb24gYWZ0ZXIgc3VzcGVuZC4KPiAtIERpcmVjdGx5IHVzaW5nIHRoZSBpbnRl
+cmZhY2UgaW4gL3N5cy9jbGFzcy9iYWNrbGlnaHQvIHRvIHR1cm4gaXQgYmFjayBvbi4KPiAKPiBJ
+J20gc3RhcnRpbmcgdG8gcnVuIG91dCBvZiBpZGVhcy4uLiBhbnkgaGludHM/Cj4gCj4gUmVnYXJk
+cywgRmxvcmlhbgo+IC0tIAo+IFNFTlQgRlJPTSBNWSBERUMgVlQ1MCBURVJNSU5BTApfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphbWQtZ2Z4IG1haWxpbmcg
+bGlzdAphbWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNr
+dG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2FtZC1nZngK
