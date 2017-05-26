@@ -1,87 +1,155 @@
-From: Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC PATCH v3 5/5] ACPI: button: Always notify kernel
-	space using _LID returning value
-Date: Sat, 27 May 2017 07:42:56 +0800
-Message-ID: <6a7418a5300e407ba3227d1c53e173ca5c981ddc.1495804411.git.lv.zheng@intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH v3 4/5] ACPI: button: Fix lid notification
+Date: Sat, 27 May 2017 07:42:49 +0800
+Message-ID: <f2bdbf4b10be0a8172813fd73301016125715a95.1495804411.git.lv.zheng@intel.com>
 References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Peter Hutterer <peter.hutterer-Pf4JEFdB4epeoWH0uzbU5w@public.gmane.org>, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <zetalog-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Tissoires <benjamin.tissoires-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:50118 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1948848AbdEZXkn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 May 2017 19:40:43 -0400
+In-Reply-To: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Hutterer <peter.hutterer@who-t.net>, Benjamin Tissoires <benjamin.tissoires@redhat.com>
 
-Qm90aCBub3V2ZWF1IGFuZCBpOTE1LCB0aGUgb25seSAyIGtlcm5lbCBzcGFjZSBsaWQgbm90aWZp
-Y2F0aW9uIGxpc3RlbmVycywKaW52b2tlIGFjcGlfbGlkX29wZW4oKSBBUEkgdG8gb2J0YWluIF9M
-SUQgcmV0dXJuaW5nIHZhbHVlIGluc3RlYWQgb2YgdXNpbmcKdGhlIG5vdGlmaWVkIHZhbHVlLgoK
-U28gdGhpcyBwYXRjaCBtb3ZlcyB0aGlzIGxvZ2ljIGZyb20gbGlzdGVuZXJzIHRvIGxpZCBkcml2
-ZXIsIGFsd2F5cyBub3RpZnkKa2VybmVsIHNwYWNlIGxpc3RlbmVycyB1c2luZyBfTElEIHJldHVy
-bmluZyB2YWx1ZS4KClRoaXMgaXMgYSBuby1vcCBjbGVhbnVwLCBidXQgZmFjaWxpdGF0ZXMgYWRt
-aW5pc3RyYXRvcnMgdG8gY29uZmlndXJlIHRvCm5vdGlmeSBrZXJuZWwgZHJpdmVycyB3aXRoIGZh
-a2VkIGxpZCBpbml0IHN0YXRlcyB2aWEgY29tbWFuZCBsaW5lCiJidXR0b24ubGlkX25vdGlmeV9p
-bml0X3N0YXRlPVkiLgoKQ2M6IDxpbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnPgpDYzog
-PG5vdXZlYXVAbGlzdHMuZnJlZWRlc2t0b3Aub3JnPgpDYzogQmVuamFtaW4gVGlzc29pcmVzIDxi
-ZW5qYW1pbi50aXNzb2lyZXNAcmVkaGF0LmNvbT4KQ2M6IFBldGVyIEh1dHRlcmVyIDxwZXRlci5o
-dXR0ZXJlckB3aG8tdC5uZXQ+ClNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRl
-bC5jb20+Ci0tLQogZHJpdmVycy9hY3BpL2J1dHRvbi5jICAgICAgICAgICAgIHwgMTYgKysrKysr
-KysrKysrKystLQogZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxfbHZkcy5jIHwgIDIgKy0KIDIg
-ZmlsZXMgY2hhbmdlZCwgMTUgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKCmRpZmYgLS1n
-aXQgYS9kcml2ZXJzL2FjcGkvYnV0dG9uLmMgYi9kcml2ZXJzL2FjcGkvYnV0dG9uLmMKaW5kZXgg
-NGFiZjhhZS4uZTA0N2QzNCAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL2J1dHRvbi5jCisrKyBi
-L2RyaXZlcnMvYWNwaS9idXR0b24uYwpAQCAtMTE5LDYgKzExOSw5IEBAIHN0YXRpYyB1OCBsaWRf
-aW5pdF9zdGF0ZSA9IEFDUElfQlVUVE9OX0xJRF9JTklUX09QRU47CiBzdGF0aWMgdW5zaWduZWQg
-bG9uZyBsaWRfcmVwb3J0X2ludGVydmFsIF9fcmVhZF9tb3N0bHkgPSA1MDA7CiBtb2R1bGVfcGFy
-YW0obGlkX3JlcG9ydF9pbnRlcnZhbCwgdWxvbmcsIDA2NDQpOwogTU9EVUxFX1BBUk1fREVTQyhs
-aWRfcmVwb3J0X2ludGVydmFsLCAiSW50ZXJ2YWwgKG1zKSBiZXR3ZWVuIGxpZCBrZXkgZXZlbnRz
-Iik7CitzdGF0aWMgYm9vbCBsaWRfbm90aWZ5X2luaXRfc3RhdGUgX19yZWFkX21vc3RseSA9IGZh
-bHNlOworbW9kdWxlX3BhcmFtKGxpZF9ub3RpZnlfaW5pdF9zdGF0ZSwgYm9vbCwgMDY0NCk7CitN
-T0RVTEVfUEFSTV9ERVNDKGxpZF9ub3RpZnlfaW5pdF9zdGF0ZSwgIk5vdGlmeSBpbml0IGxpZCBz
-dGF0ZSB0byBrZXJuZWwgZHJpdmVycyBhZnRlciBib290L3Jlc3VtZSIpOwogCiAvKiAtLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgRlMgSW50ZXJmYWNlICgv
-cHJvYykKQEAgLTIyNCw2ICsyMjcsMTUgQEAgc3RhdGljIHZvaWQgYWNwaV9saWRfbm90aWZ5X3N0
-YXRlKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlLAogCWlmIChzdGF0ZSkKIAkJcG1fd2FrZXVw
-X2V2ZW50KCZkZXZpY2UtPmRldiwgMCk7CiAKKwlpZiAoIWxpZF9ub3RpZnlfaW5pdF9zdGF0ZSkg
-eworCQkvKgorCQkgKiBUaGVyZSBhcmUgY2FzZXMgInN0YXRlIiBpcyBub3QgYSBfTElEIHJldHVy
-biB2YWx1ZSwgc28KKwkJICogY29ycmVjdCBpdCBiZWZvcmUgbm90aWZpY2F0aW9uLgorCQkgKi8K
-KwkJaWYgKCFiaW9zX25vdGlmeSAmJgorCQkgICAgbGlkX2luaXRfc3RhdGUgIT0gQUNQSV9CVVRU
-T05fTElEX0lOSVRfTUVUSE9EKQorCQkJc3RhdGUgPSBhY3BpX2xpZF9ldmFsdWF0ZV9zdGF0ZShk
-ZXZpY2UpOworCX0KIAlhY3BpX2xpZF9ub3RpZmllcl9jYWxsKGRldmljZSwgc3RhdGUpOwogfQog
-CkBAIC01NzIsMTAgKzU4NCwxMCBAQCBzdGF0aWMgaW50IHBhcmFtX3NldF9saWRfaW5pdF9zdGF0
-ZShjb25zdCBjaGFyICp2YWwsIHN0cnVjdCBrZXJuZWxfcGFyYW0gKmtwKQogCiAJaWYgKCFzdHJu
-Y21wKHZhbCwgIm9wZW4iLCBzaXplb2YoIm9wZW4iKSAtIDEpKSB7CiAJCWxpZF9pbml0X3N0YXRl
-ID0gQUNQSV9CVVRUT05fTElEX0lOSVRfT1BFTjsKLQkJcHJfaW5mbygiTm90aWZ5IGluaXRpYWwg
-bGlkIHN0YXRlIGFzIG9wZW5cbiIpOworCQlwcl9pbmZvKCJOb3RpZnkgaW5pdGlhbCBsaWQgc3Rh
-dGUgdG8gdXNlcnMgc3BhY2UgYXMgb3BlbiBhbmQga2VybmVsIGRyaXZlcnMgd2l0aCBfTElEIHJl
-dHVybiB2YWx1ZVxuIik7CiAJfSBlbHNlIGlmICghc3RybmNtcCh2YWwsICJtZXRob2QiLCBzaXpl
-b2YoIm1ldGhvZCIpIC0gMSkpIHsKIAkJbGlkX2luaXRfc3RhdGUgPSBBQ1BJX0JVVFRPTl9MSURf
-SU5JVF9NRVRIT0Q7Ci0JCXByX2luZm8oIk5vdGlmeSBpbml0aWFsIGxpZCBzdGF0ZSB3aXRoIF9M
-SUQgcmV0dXJuIHZhbHVlXG4iKTsKKwkJcHJfaW5mbygiTm90aWZ5IGluaXRpYWwgbGlkIHN0YXRl
-IHRvIHVzZXIva2VybmVsIHNwYWNlIHdpdGggX0xJRCByZXR1cm4gdmFsdWVcbiIpOwogCX0gZWxz
-ZSBpZiAoIXN0cm5jbXAodmFsLCAiaWdub3JlIiwgc2l6ZW9mKCJpZ25vcmUiKSAtIDEpKSB7CiAJ
-CWxpZF9pbml0X3N0YXRlID0gQUNQSV9CVVRUT05fTElEX0lOSVRfSUdOT1JFOwogCQlwcl9pbmZv
-KCJEbyBub3Qgbm90aWZ5IGluaXRpYWwgbGlkIHN0YXRlXG4iKTsKZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvZ3B1L2RybS9pOTE1L2ludGVsX2x2ZHMuYyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVs
-X2x2ZHMuYwppbmRleCA5Y2E0ZGM0Li44Y2E5MDgwIDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9k
-cm0vaTkxNS9pbnRlbF9sdmRzLmMKKysrIGIvZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxfbHZk
-cy5jCkBAIC01NDgsNyArNTQ4LDcgQEAgc3RhdGljIGludCBpbnRlbF9saWRfbm90aWZ5KHN0cnVj
-dCBub3RpZmllcl9ibG9jayAqbmIsIHVuc2lnbmVkIGxvbmcgdmFsLAogCS8qIERvbid0IGZvcmNl
-IG1vZGVzZXQgb24gbWFjaGluZXMgd2hlcmUgaXQgY2F1c2VzIGEgR1BVIGxvY2t1cCAqLwogCWlm
-IChkbWlfY2hlY2tfc3lzdGVtKGludGVsX25vX21vZGVzZXRfb25fbGlkKSkKIAkJZ290byBleGl0
-OwotCWlmICghYWNwaV9saWRfb3BlbigpKSB7CisJaWYgKCF2YWwpIHsKIAkJLyogZG8gbW9kZXNl
-dCBvbiBuZXh0IGxpZCBvcGVuIGV2ZW50ICovCiAJCWRldl9wcml2LT5tb2Rlc2V0X3Jlc3RvcmUg
-PSBNT0RFU0VUX09OX0xJRF9PUEVOOwogCQlnb3RvIGV4aXQ7Ci0tIAoyLjcuNAoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTm91dmVhdSBtYWlsaW5nIGxp
-c3QKTm91dmVhdUBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3Rv
-cC5vcmcvbWFpbG1hbi9saXN0aW5mby9ub3V2ZWF1Cg==
+In acpi_lid_notify_state(), it now contains logic to avoid frequently
+replayed events which originally was ensured by using blocking notifier.
+On the contrary, using blocking notifier is wrong as it could keep on
+returning NOTIFY_DONE, causing events lost.
+
+This patch thus changes lid notification to raw notifier in order not to
+have events lost.
+
+Cc: Peter Hutterer <peter.hutterer@who-t.net>
+Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/button.c | 53 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 29 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index d3f90c6..4abf8ae 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -112,7 +112,7 @@ struct acpi_button {
+ 	bool suspended;
+ };
+ 
+-static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
++static RAW_NOTIFIER_HEAD(acpi_lid_notifier);
+ static struct acpi_device *lid_device;
+ static u8 lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
+ 
+@@ -139,11 +139,16 @@ static int acpi_lid_evaluate_state(struct acpi_device *device)
+ 	return lid_state ? 1 : 0;
+ }
+ 
+-static int acpi_lid_notify_state(struct acpi_device *device,
++static inline void acpi_lid_notifier_call(struct acpi_device *device,
++					  int state)
++{
++	(void)raw_notifier_call_chain(&acpi_lid_notifier, state, device);
++}
++
++static void acpi_lid_notify_state(struct acpi_device *device,
+ 				 int state, bool bios_notify)
+ {
+ 	struct acpi_button *button = acpi_driver_data(device);
+-	int ret;
+ 	ktime_t next_report;
+ 
+ 	/*
+@@ -161,7 +166,7 @@ static int acpi_lid_notify_state(struct acpi_device *device,
+ 				ms_to_ktime(lid_report_interval));
+ 	if (button->last_is_bios && button->last_state == !!state &&
+ 	    !ktime_after(ktime_get(), next_report))
+-		return 0;
++		return;
+ 
+ 	/*
+ 	 * Send the unreliable complement switch event:
+@@ -219,18 +224,7 @@ static int acpi_lid_notify_state(struct acpi_device *device,
+ 	if (state)
+ 		pm_wakeup_event(&device->dev, 0);
+ 
+-	ret = blocking_notifier_call_chain(&acpi_lid_notifier, state, device);
+-	if (ret == NOTIFY_DONE)
+-		ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
+-						   device);
+-	if (ret == NOTIFY_DONE || ret == NOTIFY_OK) {
+-		/*
+-		 * It is also regarded as success if the notifier_chain
+-		 * returns NOTIFY_OK or NOTIFY_DONE.
+-		 */
+-		ret = 0;
+-	}
+-	return ret;
++	acpi_lid_notifier_call(device, state);
+ }
+ 
+ static int acpi_button_state_seq_show(struct seq_file *seq, void *offset)
+@@ -341,13 +335,24 @@ static int acpi_button_remove_fs(struct acpi_device *device)
+    -------------------------------------------------------------------------- */
+ int acpi_lid_notifier_register(struct notifier_block *nb)
+ {
+-	return blocking_notifier_chain_register(&acpi_lid_notifier, nb);
++	return raw_notifier_chain_register(&acpi_lid_notifier, nb);
+ }
+ EXPORT_SYMBOL(acpi_lid_notifier_register);
+ 
++static inline int __acpi_lid_notifier_unregister(struct notifier_block *nb,
++						 bool sync)
++{
++	int ret;
++
++	ret = raw_notifier_chain_unregister(&acpi_lid_notifier, nb);
++	if (sync)
++		synchronize_rcu();
++	return ret;
++}
++
+ int acpi_lid_notifier_unregister(struct notifier_block *nb)
+ {
+-	return blocking_notifier_chain_unregister(&acpi_lid_notifier, nb);
++	return __acpi_lid_notifier_unregister(nb, false);
+ }
+ EXPORT_SYMBOL(acpi_lid_notifier_unregister);
+ 
+@@ -360,26 +365,26 @@ int acpi_lid_open(void)
+ }
+ EXPORT_SYMBOL(acpi_lid_open);
+ 
+-static int acpi_lid_update_state(struct acpi_device *device,
+-				 bool bios_notify)
++static void acpi_lid_update_state(struct acpi_device *device,
++				  bool bios_notify)
+ {
+ 	int state;
+ 
+ 	state = acpi_lid_evaluate_state(device);
+ 	if (state < 0)
+-		return state;
++		return;
+ 
+-	return acpi_lid_notify_state(device, state, bios_notify);
++	acpi_lid_notify_state(device, state, bios_notify);
+ }
+ 
+ static void acpi_lid_initialize_state(struct acpi_device *device)
+ {
+ 	switch (lid_init_state) {
+ 	case ACPI_BUTTON_LID_INIT_OPEN:
+-		(void)acpi_lid_notify_state(device, 1, false);
++		acpi_lid_notify_state(device, 1, false);
+ 		break;
+ 	case ACPI_BUTTON_LID_INIT_METHOD:
+-		(void)acpi_lid_update_state(device, false);
++		acpi_lid_update_state(device, false);
+ 		break;
+ 	case ACPI_BUTTON_LID_INIT_IGNORE:
+ 	default:
+-- 
+2.7.4
+
