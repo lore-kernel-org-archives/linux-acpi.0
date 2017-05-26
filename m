@@ -1,127 +1,65 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v9 2/7] PCI: Apply the new generic I/O management on PCI
- IO hosts
-Date: Fri, 26 May 2017 16:20:01 -0500
-Message-ID: <20170526212001.GB21531@bhelgaas-glaptop.roam.corp.google.com>
-References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
- <1495712248-5232-3-git-send-email-gabriele.paoloni@huawei.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH v3 1/5] ACPI: button: Add indication of
+	BIOS notification and faked events
+Date: Sat, 27 May 2017 07:42:24 +0800
+Message-ID: <f3109abbd3294b63a00437e5d86d13caee84320b.1495804411.git.lv.zheng@intel.com>
+References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1495712248-5232-3-git-send-email-gabriele.paoloni@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, minyard@acm.org, arnd@arndb.de, rafael@kernel.org, linux-pci@vger.kernel.org, catalin.marinas@arm.com, john.garry@huawei.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, xuwei5@hisilicon.com, linuxarm@huawei.com, linux-acpi@vger.kernel.org, robh+dt@kernel.org, "zhichang.yuan" <yuanzhichang@hisilicon.com>, benh@kernel.crashing.org, bhelgaas@google.com, frowand.list@gmail.com, brian.starkey@arm.com, linux-arm-kernel@lists.infradead.org, olof@lixom.net
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <systemd-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/systemd-devel>
+List-Post: <mailto:systemd-devel@lists.freedesktop.org>
+List-Help: <mailto:systemd-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: systemd-devel-bounces@lists.freedesktop.org
+Sender: "systemd-devel" <systemd-devel-bounces@lists.freedesktop.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: systemd-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 25, 2017 at 12:37:23PM +0100, Gabriele Paoloni wrote:
-> From: "zhichang.yuan" <yuanzhichang@hisilicon.com>
-> 
-> After introducing the new generic I/O space management(LOGIC_IO), the
-> original PCI MMIO relevant helpers need to be updated based on the new
-> interfaces defined in LOGIC_IO.
-> This patch adapts the corresponding code to match the changes introduced
-> by LOGIC_IO.
-> 
-> Signed-off-by: zhichang.yuan <yuanzhichang@hisilicon.com>
-> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>        #earlier draft
-
-Not sure how you plan to merge this, but here's my ack:
-
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-
-If you split this as suggested below, add my ack to all three patches.
-
-> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> index b01bd5b..c9fe12b 100644
-> --- a/drivers/pci/pci.c
-> +++ b/drivers/pci/pci.c
->...
-
-> -int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
-> +int pci_register_io_range(struct fwnode_handle *fwnode, phys_addr_t addr,
-> +			resource_size_t	size)
-
-It's trivial and nit-picky, but I would do the __weak removal in its
-own patch.  It's obviously fine because there's only one
-implementation, but it's unrelated to the main point of this patch.
-
-I would split the signature change (fwnode addition) to a separate
-patch, too, just to make the actual change more obvious, especially
-since that's the only part that crosses subsystems (ACPI, PCI, OF).
-
->  {
-> -	int err = 0;
-> -
-> +	int ret = 0;
->  #ifdef PCI_IOBASE
-> -	struct io_range *range;
-> -	resource_size_t allocated_size = 0;
-> -
-> -	/* check if the range hasn't been previously recorded */
-> -	spin_lock(&io_range_lock);
-> -	list_for_each_entry(range, &io_range_list, list) {
-> -		if (addr >= range->start && addr + size <= range->start + size) {
-> -			/* range already registered, bail out */
-> -			goto end_register;
-> -		}
-> -		allocated_size += range->size;
-> -	}
-> -
-> -	/* range not registed yet, check for available space */
-> -	if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
-> -		/* if it's too big check if 64K space can be reserved */
-> -		if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
-> -			err = -E2BIG;
-> -			goto end_register;
-> -		}
-> -
-> -		size = SZ_64K;
-> -		pr_warn("Requested IO range too big, new size set to 64K\n");
-> -	}
-> +	struct logic_pio_hwaddr *range;
->  
-> -	/* add the range to the list */
-> -	range = kzalloc(sizeof(*range), GFP_ATOMIC);
-> -	if (!range) {
-> -		err = -ENOMEM;
-> -		goto end_register;
-> -	}
-> +	if (!size || addr + size < addr)
-> +		return -EINVAL;
->  
-> -	range->start = addr;
-> +	range = kzalloc(sizeof(*range), GFP_KERNEL);
-> +	if (!range)
-> +		return -ENOMEM;
-
-Add a blank line here.
-
-> +	range->fwnode = fwnode;
->  	range->size = size;
-> +	range->hw_start = addr;
-> +	range->flags = PIO_CPU_MMIO;
->  
-> -	list_add_tail(&range->list, &io_range_list);
-> -
-> -end_register:
-> -	spin_unlock(&io_range_lock);
-> +	ret = logic_pio_register_range(range);
-> +	if (ret)
-> +		kfree(range);
->  #endif
->  
-> -	return err;
-> +	return ret;
->  }
+VGhpcyBwYXRjaCBhZGRzIGEgcGFyYW1ldGVyIHRvIGFjcGlfbGlkX25vdGlmeV9zdGF0ZSgpIHNv
+IHRoYXQgaXQgY2FuIGFjdApkaWZmZXJlbnRseSBhZ2FpbnN0IEJJT1Mgbm90aWZpY2F0aW9uIGFu
+ZCBrZXJuZWwgZmFrZWQgZXZlbnRzLgoKQ2M6IDxzeXN0ZW1kLWRldmVsQGxpc3RzLmZyZWVkZXNr
+dG9wLm9yZz4KQ2M6IEJlbmphbWluIFRpc3NvaXJlcyA8YmVuamFtaW4udGlzc29pcmVzQHJlZGhh
+dC5jb20+CkNjOiBQZXRlciBIdXR0ZXJlciA8cGV0ZXIuaHV0dGVyZXJAd2hvLXQubmV0PgpTaWdu
+ZWQtb2ZmLWJ5OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPgotLS0KIGRyaXZlcnMvYWNw
+aS9idXR0b24uYyB8IDE0ICsrKysrKysrLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgOCBpbnNlcnRp
+b25zKCspLCA2IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9idXR0b24u
+YyBiL2RyaXZlcnMvYWNwaS9idXR0b24uYwppbmRleCA2ZDVhOGMxLi44NzRiYTYwIDEwMDY0NAot
+LS0gYS9kcml2ZXJzL2FjcGkvYnV0dG9uLmMKKysrIGIvZHJpdmVycy9hY3BpL2J1dHRvbi5jCkBA
+IC0xMzgsNyArMTM4LDggQEAgc3RhdGljIGludCBhY3BpX2xpZF9ldmFsdWF0ZV9zdGF0ZShzdHJ1
+Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkKIAlyZXR1cm4gbGlkX3N0YXRlID8gMSA6IDA7CiB9CiAK
+LXN0YXRpYyBpbnQgYWNwaV9saWRfbm90aWZ5X3N0YXRlKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2
+aWNlLCBpbnQgc3RhdGUpCitzdGF0aWMgaW50IGFjcGlfbGlkX25vdGlmeV9zdGF0ZShzdHJ1Y3Qg
+YWNwaV9kZXZpY2UgKmRldmljZSwKKwkJCQkgaW50IHN0YXRlLCBib29sIGJpb3Nfbm90aWZ5KQog
+ewogCXN0cnVjdCBhY3BpX2J1dHRvbiAqYnV0dG9uID0gYWNwaV9kcml2ZXJfZGF0YShkZXZpY2Up
+OwogCWludCByZXQ7CkBAIC0zNjAsNyArMzYxLDggQEAgaW50IGFjcGlfbGlkX29wZW4odm9pZCkK
+IH0KIEVYUE9SVF9TWU1CT0woYWNwaV9saWRfb3Blbik7CiAKLXN0YXRpYyBpbnQgYWNwaV9saWRf
+dXBkYXRlX3N0YXRlKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKQorc3RhdGljIGludCBhY3Bp
+X2xpZF91cGRhdGVfc3RhdGUoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UsCisJCQkJIGJvb2wg
+Ymlvc19ub3RpZnkpCiB7CiAJaW50IHN0YXRlOwogCkBAIC0zNjgsMTcgKzM3MCwxNyBAQCBzdGF0
+aWMgaW50IGFjcGlfbGlkX3VwZGF0ZV9zdGF0ZShzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkK
+IAlpZiAoc3RhdGUgPCAwKQogCQlyZXR1cm4gc3RhdGU7CiAKLQlyZXR1cm4gYWNwaV9saWRfbm90
+aWZ5X3N0YXRlKGRldmljZSwgc3RhdGUpOworCXJldHVybiBhY3BpX2xpZF9ub3RpZnlfc3RhdGUo
+ZGV2aWNlLCBzdGF0ZSwgYmlvc19ub3RpZnkpOwogfQogCiBzdGF0aWMgdm9pZCBhY3BpX2xpZF9p
+bml0aWFsaXplX3N0YXRlKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKQogewogCXN3aXRjaCAo
+bGlkX2luaXRfc3RhdGUpIHsKIAljYXNlIEFDUElfQlVUVE9OX0xJRF9JTklUX09QRU46Ci0JCSh2
+b2lkKWFjcGlfbGlkX25vdGlmeV9zdGF0ZShkZXZpY2UsIDEpOworCQkodm9pZClhY3BpX2xpZF9u
+b3RpZnlfc3RhdGUoZGV2aWNlLCAxLCBmYWxzZSk7CiAJCWJyZWFrOwogCWNhc2UgQUNQSV9CVVRU
+T05fTElEX0lOSVRfTUVUSE9EOgotCQkodm9pZClhY3BpX2xpZF91cGRhdGVfc3RhdGUoZGV2aWNl
+KTsKKwkJKHZvaWQpYWNwaV9saWRfdXBkYXRlX3N0YXRlKGRldmljZSwgZmFsc2UpOwogCQlicmVh
+azsKIAljYXNlIEFDUElfQlVUVE9OX0xJRF9JTklUX0lHTk9SRToKIAlkZWZhdWx0OgpAQCAtMzk4
+LDcgKzQwMCw3IEBAIHN0YXRpYyB2b2lkIGFjcGlfYnV0dG9uX25vdGlmeShzdHJ1Y3QgYWNwaV9k
+ZXZpY2UgKmRldmljZSwgdTMyIGV2ZW50KQogCWNhc2UgQUNQSV9CVVRUT05fTk9USUZZX1NUQVRV
+UzoKIAkJaW5wdXQgPSBidXR0b24tPmlucHV0OwogCQlpZiAoYnV0dG9uLT50eXBlID09IEFDUElf
+QlVUVE9OX1RZUEVfTElEKSB7Ci0JCQlhY3BpX2xpZF91cGRhdGVfc3RhdGUoZGV2aWNlKTsKKwkJ
+CWFjcGlfbGlkX3VwZGF0ZV9zdGF0ZShkZXZpY2UsIHRydWUpOwogCQl9IGVsc2UgewogCQkJaW50
+IGtleWNvZGU7CiAKLS0gCjIuNy40CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpzeXN0ZW1kLWRldmVsIG1haWxpbmcgbGlzdApzeXN0ZW1kLWRldmVsQGxp
+c3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL3N5c3RlbWQtZGV2ZWwK
