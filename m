@@ -1,28 +1,27 @@
 From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
- before scanning
-Date: Fri, 26 May 2017 08:03:01 +0800
-Message-ID: <201705260735.XlDFJKOH%fengguang.wu@intel.com>
-References: <1495712248-5232-6-git-send-email-gabriele.paoloni@huawei.com>
+Subject: Re: [PATCH v9 6/7] LPC: Add the ACPI LPC support
+Date: Fri, 26 May 2017 11:12:27 +0800
+Message-ID: <201705261155.i7TAp44f%fengguang.wu@intel.com>
+References: <1495712248-5232-7-git-send-email-gabriele.paoloni@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MGYHOYXEY6WxJCY8"
+Content-Type: multipart/mixed; boundary="wac7ysb48OaltWcw"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:2176 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:35600 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S966787AbdEZAEA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 25 May 2017 20:04:00 -0400
+        id S1163104AbdEZDNB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 25 May 2017 23:13:01 -0400
 Content-Disposition: inline
-In-Reply-To: <1495712248-5232-6-git-send-email-gabriele.paoloni@huawei.com>
+In-Reply-To: <1495712248-5232-7-git-send-email-gabriele.paoloni@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: kbuild-all@01.org, catalin.marinas@arm.com, will.deacon@arm.com, robh+dt@kernel.org, frowand.list@gmail.com, bhelgaas@google.com, rafael@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com, gabriele.paoloni@huawei.com, mark.rutland@arm.com, brian.starkey@arm.com, olof@lixom.net, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, john.garry@huawei.com, xuwei5@hisilicon.com
+Cc: kbuild-all@01.org, catalin.marinas@arm.com, will.deacon@arm.com, robh+dt@kernel.org, frowand.list@gmail.com, bhelgaas@google.com, rafael@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com, gabriele.paoloni@huawei.com, mark.rutland@arm.com, brian.starkey@arm.com, olof@lixom.net, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, john.garry@huawei.com, xuwei5@hisilicon.com, "zhichang.yuan" <yuanzhichang@hisilicon.com>
 
 
---MGYHOYXEY6WxJCY8
+--wac7ysb48OaltWcw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Hi Gabriele,
+Hi zhichang.yuan,
 
 [auto build test ERROR on linus/master]
 [also build test ERROR on v4.12-rc2 next-20170525]
@@ -39,19 +38,21 @@ reproduce:
 
 All errors (new ones prefixed by >>):
 
+   drivers/built-in.o: In function `lpc_host_io_setup':
+>> hisi_lpc.c:(.text+0x252): undefined reference to `acpi_set_logic_pio_resource'
    drivers/built-in.o: In function `acpi_scan_init':
->> (.init.text+0x6742): undefined reference to `acpi_indirectio_scan_init'
+   (.init.text+0x6742): undefined reference to `acpi_indirectio_scan_init'
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---MGYHOYXEY6WxJCY8
+--wac7ysb48OaltWcw
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICHNgJ1kAAy5jb25maWcAlDxdc9u2su/9FZr0PrQzt03spG47d/wAgqCEI5JAAFC2/MJx
+H4sICEmPJ1kAAy5jb25maWcAlDxdc9u2su/9FZr0PrQzt03spG47d/wAgqCEI5JAAFC2/MJx
 HCX11JZyZKU9vb/+7oJfAAhSuS+JubtYAIv9Bqnvv/t+Qb6eDs/3p8eH+6enfxafd/vd8f60
 +7j49Pi0+59FKhalMAuWcvMzEOeP+6//ef14f/Vu8e7ni8uf3/x0fLhcrHfH/e5pQQ/7T4+f
 v8Lwx8P+u++/o6LM+LKWS0OSnNU527BcX7/t4CnL2r9yrs31q9dPjx9ePx8+fn3avbz+r6ok
@@ -937,4 +938,4 @@ fNwSdPLGAxkJ+vw2mzsQZqhNhQIVNE0u4JhJoJ2/CS87cKDZwdvMfVo3uVBTQGeHb4dMtmh0
 90z5sYrGNLLcF5DmCg5Zc2t7YvsihOsoLgv+fOegNGqxjnMRqFBZ3OYgVC0/KHMF/eDO8P/b
 SWfgreQCAA==
 
---MGYHOYXEY6WxJCY8--
+--wac7ysb48OaltWcw--
