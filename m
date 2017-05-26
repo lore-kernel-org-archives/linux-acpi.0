@@ -1,74 +1,99 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH v9 6/7] LPC: Add the ACPI LPC support
-Date: Fri, 26 May 2017 10:12:43 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40A6CABE@FRAEML521-MBX.china.huawei.com>
-References: <1495712248-5232-7-git-send-email-gabriele.paoloni@huawei.com>
- <201705261155.i7TAp44f%fengguang.wu@intel.com>
+From: Mian Yousaf Kaukab <yousaf.kaukab@suse.com>
+Subject: Re: [PATCH] ACPI: processor: fix LPI when built as module
+Date: Fri, 26 May 2017 12:21:57 +0200
+Message-ID: <0d6edbd9-938c-a926-1480-c11de01ee38d@suse.com>
+References: <20170519092837.30991-1-yousaf.kaukab@suse.com>
+ <314aff9d-6c24-e533-ef08-c16bc0816474@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([45.249.212.189]:6922 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1764256AbdEZKNX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 26 May 2017 06:13:23 -0400
-In-Reply-To: <201705261155.i7TAp44f%fengguang.wu@intel.com>
+Received: from prv3-mh.provo.novell.com ([137.65.250.26]:60703 "EHLO
+        prv3-mh.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1947673AbdEZKWP (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Fri, 26 May 2017 06:22:15 -0400
+In-Reply-To: <314aff9d-6c24-e533-ef08-c16bc0816474@arm.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: "kbuild-all@01.org" <kbuild-all@01.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rafael@kernel.org" <rafael@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, rafael.j.wysocki@intel.com, catalin.marinas@arm.com, lorenzo.pieralisi@arm.com
 
-[...]
-
-> Hi zhichang.yuan,
+On 5/23/17 3:08 PM, Sudeep Holla wrote:
 > 
-> [auto build test ERROR on linus/master]
-> [also build test ERROR on v4.12-rc2 next-20170525]
-> [if your patch is applied to the wrong git tree, please drop us a note
-> to help improve the system]
 > 
-> url:    https://github.com/0day-ci/linux/commits/Gabriele-Paoloni/LPC-
-> legacy-ISA-I-O-support/20170526-033719
-> config: ia64-allmodconfig (attached as .config)
-> compiler: ia64-linux-gcc (GCC) 6.2.0
-> reproduce:
->         wget https://raw.githubusercontent.com/01org/lkp-
-> tests/master/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=ia64
+> On 19/05/17 10:28, Mian Yousaf Kaukab wrote:
+>> Low Power Idle(LPI) support added acpi_processor_ffh_lpi_probe() and
+>> acpi_processor_ffh_lpi_enter() as __weak functions and arch code is
+>> supposed to provide the actual callbacks. This breaks if
+>> ACPI_PROCESSOR is configured as a module.
+>>
+>> Add CONFIG_ARCH_HAS_ACPI_LPI configuration option to fix this.
+>>
 > 
-> All errors (new ones prefixed by >>):
+> Rafael didn't like the extra Kconfig option when I first posted
+> LPI patches.
 > 
->    drivers/built-in.o: In function `lpc_host_io_setup':
-> >> hisi_lpc.c:(.text+0x252): undefined reference to
-> `acpi_set_logic_pio_resource'
->    drivers/built-in.o: In function `acpi_scan_init':
->    (.init.text+0x6742): undefined reference to
-> `acpi_indirectio_scan_init'
-
-I believe the problem is in patch 4/7
-
-config HISILICON_LPC
-	bool "Support for ISA I/O space on Hisilicon Hip0X"
-	depends on (ARM64 && ARCH_HISI) || COMPILE_TEST
-                                         ^^^^^^^^^^^^
-
-the COMPILE_TEST above allowing HISILICON_LPC also for other architectures. 
-I think we can remove "|| COMPILE_TEST"...I will fix it in v10
-
-Gab
-
-+	select LOGIC_PIO
-+	select INDIRECT_PIO
-+	help
-+	  Driver needed for some legacy ISA devices attached to Low-Pin-Count
-+	  on Hisilicon Hip0X SoC.
-
+>> Signed-off-by: Mian Yousaf Kaukab <yousaf.kaukab@suse.com>
+>> ---
+>>   arch/arm64/Kconfig            | 1 +
+>>   arch/arm64/kernel/cpuidle.c   | 2 ++
+>>   drivers/acpi/Kconfig          | 3 +++
+>>   drivers/acpi/processor_idle.c | 9 +++++++--
+>>   4 files changed, 13 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+>> index 848a34116c67..de2f2779cdf5 100644
+>> --- a/arch/arm64/Kconfig
+>> +++ b/arch/arm64/Kconfig
+>> @@ -10,6 +10,7 @@ config ARM64
+>>   	select ARCH_HAS_DEBUG_VIRTUAL
+>>   	select ARCH_HAS_DEVMEM_IS_ALLOWED
+>>   	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
+>> +	select ARCH_HAS_ACPI_LPI if ACPI
+>>   	select ARCH_HAS_ELF_RANDOMIZE
+>>   	select ARCH_HAS_GCOV_PROFILE_ALL
+>>   	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
+>> diff --git a/arch/arm64/kernel/cpuidle.c b/arch/arm64/kernel/cpuidle.c
+>> index fd691087dc9a..002d9cb890bd 100644
+>> --- a/arch/arm64/kernel/cpuidle.c
+>> +++ b/arch/arm64/kernel/cpuidle.c
+>> @@ -51,9 +51,11 @@ int acpi_processor_ffh_lpi_probe(unsigned int cpu)
+>>   {
+>>   	return arm_cpuidle_init(cpu);
+>>   }
+>> +EXPORT_SYMBOL(acpi_processor_ffh_lpi_probe);
+>>   
+>>   int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
+>>   {
+>>   	return CPU_PM_CPU_IDLE_ENTER(arm_cpuidle_suspend, lpi->index);
+>>   }
+>> +EXPORT_SYMBOL(acpi_processor_ffh_lpi_enter);
 > 
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology
-> Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel
-> Corporation
+> Won't these 2 export suffice ? [...]
+No, they don't suffice.
+
+> [...] I am just curious why that won't work.
+I am not really sure. System.map shows the exported symbols as following:
+ffff000008095898 T acpi_processor_ffh_lpi_probe
+ffff0000080958f8 T acpi_processor_ffh_lpi_enter
+ffff000008c19160 R __ksymtab_acpi_processor_ffh_lpi_enter
+ffff000008c19170 R __ksymtab_acpi_processor_ffh_lpi_probe
+ffff000008c357f0 r __kcrctab_acpi_processor_ffh_lpi_enter
+ffff000008c357f8 r __kcrctab_acpi_processor_ffh_lpi_probe
+ffff000008c4361b r __kstrtab_acpi_processor_ffh_lpi_enter
+ffff000008c43638 r __kstrtab_acpi_processor_ffh_lpi_probe
+
+and 'nm processor.ko' shows that they are defined as weak:
+
+0000000000000d68 W acpi_processor_ffh_lpi_enter
+0000000000000cc8 W acpi_processor_ffh_lpi_probe
+
+But still weak symbols are happily used when the module is inserted.
+
+> Will weak function definitions be still picked when built as modules ?
+Yes.
+
+BR,
+Yousaf
