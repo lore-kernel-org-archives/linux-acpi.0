@@ -1,99 +1,50 @@
-From: Mian Yousaf Kaukab <yousaf.kaukab@suse.com>
-Subject: Re: [PATCH] ACPI: processor: fix LPI when built as module
-Date: Fri, 26 May 2017 12:21:57 +0200
-Message-ID: <0d6edbd9-938c-a926-1480-c11de01ee38d@suse.com>
-References: <20170519092837.30991-1-yousaf.kaukab@suse.com>
- <314aff9d-6c24-e533-ef08-c16bc0816474@arm.com>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [PATCH 0/8] i2c: refactor core and break out blocks
+Date: Fri, 26 May 2017 14:57:48 +0300
+Message-ID: <8737brn83n.fsf@intel.com>
+References: <20170526082101.4746-1-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from prv3-mh.provo.novell.com ([137.65.250.26]:60703 "EHLO
-        prv3-mh.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1947673AbdEZKWP (ORCPT
-        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-        Fri, 26 May 2017 06:22:15 -0400
-In-Reply-To: <314aff9d-6c24-e533-ef08-c16bc0816474@arm.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20170526082101.4746-1-wsa@the-dreams.de>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: linux-i2c@vger.kernel.org
+Cc: linux-doc@vger.kernel.org, intel-gfx@lists.freedesktop.org, Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jean Delvare <jdelvare@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, rafael.j.wysocki@intel.com, catalin.marinas@arm.com, lorenzo.pieralisi@arm.com
 
-On 5/23/17 3:08 PM, Sudeep Holla wrote:
-> 
-> 
-> On 19/05/17 10:28, Mian Yousaf Kaukab wrote:
->> Low Power Idle(LPI) support added acpi_processor_ffh_lpi_probe() and
->> acpi_processor_ffh_lpi_enter() as __weak functions and arch code is
->> supposed to provide the actual callbacks. This breaks if
->> ACPI_PROCESSOR is configured as a module.
->>
->> Add CONFIG_ARCH_HAS_ACPI_LPI configuration option to fix this.
->>
-> 
-> Rafael didn't like the extra Kconfig option when I first posted
-> LPI patches.
-> 
->> Signed-off-by: Mian Yousaf Kaukab <yousaf.kaukab@suse.com>
->> ---
->>   arch/arm64/Kconfig            | 1 +
->>   arch/arm64/kernel/cpuidle.c   | 2 ++
->>   drivers/acpi/Kconfig          | 3 +++
->>   drivers/acpi/processor_idle.c | 9 +++++++--
->>   4 files changed, 13 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 848a34116c67..de2f2779cdf5 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -10,6 +10,7 @@ config ARM64
->>   	select ARCH_HAS_DEBUG_VIRTUAL
->>   	select ARCH_HAS_DEVMEM_IS_ALLOWED
->>   	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
->> +	select ARCH_HAS_ACPI_LPI if ACPI
->>   	select ARCH_HAS_ELF_RANDOMIZE
->>   	select ARCH_HAS_GCOV_PROFILE_ALL
->>   	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
->> diff --git a/arch/arm64/kernel/cpuidle.c b/arch/arm64/kernel/cpuidle.c
->> index fd691087dc9a..002d9cb890bd 100644
->> --- a/arch/arm64/kernel/cpuidle.c
->> +++ b/arch/arm64/kernel/cpuidle.c
->> @@ -51,9 +51,11 @@ int acpi_processor_ffh_lpi_probe(unsigned int cpu)
->>   {
->>   	return arm_cpuidle_init(cpu);
->>   }
->> +EXPORT_SYMBOL(acpi_processor_ffh_lpi_probe);
->>   
->>   int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
->>   {
->>   	return CPU_PM_CPU_IDLE_ENTER(arm_cpuidle_suspend, lpi->index);
->>   }
->> +EXPORT_SYMBOL(acpi_processor_ffh_lpi_enter);
-> 
-> Won't these 2 export suffice ? [...]
-No, they don't suffice.
-
-> [...] I am just curious why that won't work.
-I am not really sure. System.map shows the exported symbols as following:
-ffff000008095898 T acpi_processor_ffh_lpi_probe
-ffff0000080958f8 T acpi_processor_ffh_lpi_enter
-ffff000008c19160 R __ksymtab_acpi_processor_ffh_lpi_enter
-ffff000008c19170 R __ksymtab_acpi_processor_ffh_lpi_probe
-ffff000008c357f0 r __kcrctab_acpi_processor_ffh_lpi_enter
-ffff000008c357f8 r __kcrctab_acpi_processor_ffh_lpi_probe
-ffff000008c4361b r __kstrtab_acpi_processor_ffh_lpi_enter
-ffff000008c43638 r __kstrtab_acpi_processor_ffh_lpi_probe
-
-and 'nm processor.ko' shows that they are defined as weak:
-
-0000000000000d68 W acpi_processor_ffh_lpi_enter
-0000000000000cc8 W acpi_processor_ffh_lpi_probe
-
-But still weak symbols are happily used when the module is inserted.
-
-> Will weak function definitions be still picked when built as modules ?
-Yes.
-
-BR,
-Yousaf
+T24gRnJpLCAyNiBNYXkgMjAxNywgV29sZnJhbSBTYW5nIDx3c2FAdGhlLWRyZWFtcy5kZT4gd3Jv
+dGU6Cj4gWWVzLCBJIHdhbnRlZCB0byBkbyB0aGlzIGZvciB5ZWFycyBub3cuLi4gVGhlIEkyQyBj
+b3JlIGJlY2FtZSBhIGh1Z2UgbW9ub2xpdGhpYwo+IGJsb2IgZ2V0dGluZyBoYXJkZXIgYW5kIGhh
+cmRlciB0byBtYWludGFpbi4gVGhpcyBzZXJpZXMgYnJlYWtzIG91dCBzb21lCj4gZnVuY3Rpb25h
+bCBwYXJ0cyBpbnRvIHNlcGVyYXRlIGZpbGVzLiBUaGlzIG1ha2VzIHRoZSBjb2RlIGVhc2llciB0
+byBoYW5kbGUKPiBiZWNhdXNlIG9mIHRoZSBzbWFsbGVyIGNodW5rcy4gSXQgcmVkdWNlcyBpZmRl
+ZmZlcnkgYmVjYXVzZSB3ZSBjYW4gbm93IGhhbmRsZQo+IGNvbXBpbGF0aW9uIGF0IHRoZSBNYWtl
+ZmlsZSBsZXZlbC4gQW5kIGl0IGhlbHBzIHRvIHNwcmVhZCByZXNwb25zaWJpbGl0eSwgZS5nLgo+
+IHRoZSBBQ1BJIG1haW50YWluZXJzIGRvIG5vdyBoYXZlIGEgZGVkaWNhdGVkIGZpbGUgbGlzdGVk
+IGluIE1BSU5UQUlORVJTLgo+Cj4gVGhpcyBzZXJpZXMgd2FzIHRlc3RlZCB3aXRoIGEgUmVuZXNh
+cyBMYWdlciBib2FyZCAoUi1DYXIgSDIgU29DKS4gSXQgYm9vdGVkCj4gbm9ybWFsbHkgYW5kIGFs
+bCBkZXZpY2UgZHJpdmVycyBmb3IgSTJDIGNsaWVudHMgc2VlbSB0byB3b3JrIG5vcm1hbGx5LiBJ
+IHdpcmVkCj4gdHdvIEkyQyBidXNzZXMgdG9nZXRoZXIgYW5kIHVzZWQgaTJjLXNsYXZlLWVlcHJv
+bSB0byBsZXQgb25lIEkyQyBJUCBjb3JlIHJlYWQKPiBvdXQgZGF0YSBmcm9tIHRoZSBvdGhlci4g
+VGhhdCBhbGwgd29ya2VkIGZpbmUuIEJ1aWxkYm90IGlzIGFsc28gaGFwcHksIGl0IGZvdW5kCj4g
+dHdvIGlzc3VlcyBvZiB0aGUgZmlyc3QgKG5vbiBwdWJsaWMpIGl0ZXJhdGlvbi4gVGhhbmtzIQo+
+Cj4gSSBkaWQgbm90IHRlc3QgQUNQSSBhbmQgaG9wZSBmb3Igc29tZSBhc3Npc3RhbmNlIGhlcmUg
+OikgSSdkIGFsc28gYmUgaGFwcHkgaWYKPiBwZW9wbGUgY291bGQgY2hlY2sgdGhlIGluY2x1ZGVz
+IG9mIHRoZSBuZXdseSBjcmVhdGVkIGZpbGVzLCB0aGVyZSBtaWdodCBiZQo+IG1pc3Npbmcgc29t
+ZS4KCklmIHlvdSBkb24ndCBtaW5kIHNlbmRpbmcgdGhlIHdob2xlIHNlcmllcyB0byB0aGUgaW50
+ZWwtZ2Z4IGxpc3QgKENjJ2QpLApvdXIgQ0kgd2lsbCBydW4gYSBidW5jaCBvZiB0ZXN0cyBvbiBp
+dCwgZXhlcmNpc2luZyBvdXIgdXNlIG9mIHRoZSBJMkMKYWRhcHRlciBpbnRlcmZhY2VzIGZvciBk
+aXNwbGF5IGRhdGEgY2hhbm5lbCBhbmQgSTJDIG92ZXIgRGlzcGxheSBQb3J0Cm5hdGl2ZSBhdXgu
+CgpCUiwKSmFuaS4KCi0tIApKYW5pIE5pa3VsYSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9n
+eSBDZW50ZXIKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+SW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
+dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
