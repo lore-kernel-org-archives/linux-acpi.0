@@ -1,50 +1,96 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [PATCH 0/8] i2c: refactor core and break out blocks
-Date: Fri, 26 May 2017 14:57:48 +0300
-Message-ID: <8737brn83n.fsf@intel.com>
-References: <20170526082101.4746-1-wsa@the-dreams.de>
+From: Florian Echtler <floe@butterbrot.org>
+Subject: iMac 10,1 with Ubuntu 16.04: black screen after suspend
+Date: Fri, 26 May 2017 14:13:29 +0200
+Message-ID: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20170526082101.4746-1-wsa@the-dreams.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: linux-i2c@vger.kernel.org
-Cc: linux-doc@vger.kernel.org, intel-gfx@lists.freedesktop.org, Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jean Delvare <jdelvare@suse.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="rq41emNfklMLM0hmxr0TSKnOIi3MIuAT0"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from butterbrot.org ([176.9.106.16]:38472 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1422818AbdEZMNm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 May 2017 08:13:42 -0400
+Received: from [192.168.188.25] (unknown [95.91.181.229])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by butterbrot.org (Postfix) with ESMTPSA id 4FD5B4AE02CC
+        for <linux-acpi@vger.kernel.org>; Fri, 26 May 2017 14:13:34 +0200 (CEST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-T24gRnJpLCAyNiBNYXkgMjAxNywgV29sZnJhbSBTYW5nIDx3c2FAdGhlLWRyZWFtcy5kZT4gd3Jv
-dGU6Cj4gWWVzLCBJIHdhbnRlZCB0byBkbyB0aGlzIGZvciB5ZWFycyBub3cuLi4gVGhlIEkyQyBj
-b3JlIGJlY2FtZSBhIGh1Z2UgbW9ub2xpdGhpYwo+IGJsb2IgZ2V0dGluZyBoYXJkZXIgYW5kIGhh
-cmRlciB0byBtYWludGFpbi4gVGhpcyBzZXJpZXMgYnJlYWtzIG91dCBzb21lCj4gZnVuY3Rpb25h
-bCBwYXJ0cyBpbnRvIHNlcGVyYXRlIGZpbGVzLiBUaGlzIG1ha2VzIHRoZSBjb2RlIGVhc2llciB0
-byBoYW5kbGUKPiBiZWNhdXNlIG9mIHRoZSBzbWFsbGVyIGNodW5rcy4gSXQgcmVkdWNlcyBpZmRl
-ZmZlcnkgYmVjYXVzZSB3ZSBjYW4gbm93IGhhbmRsZQo+IGNvbXBpbGF0aW9uIGF0IHRoZSBNYWtl
-ZmlsZSBsZXZlbC4gQW5kIGl0IGhlbHBzIHRvIHNwcmVhZCByZXNwb25zaWJpbGl0eSwgZS5nLgo+
-IHRoZSBBQ1BJIG1haW50YWluZXJzIGRvIG5vdyBoYXZlIGEgZGVkaWNhdGVkIGZpbGUgbGlzdGVk
-IGluIE1BSU5UQUlORVJTLgo+Cj4gVGhpcyBzZXJpZXMgd2FzIHRlc3RlZCB3aXRoIGEgUmVuZXNh
-cyBMYWdlciBib2FyZCAoUi1DYXIgSDIgU29DKS4gSXQgYm9vdGVkCj4gbm9ybWFsbHkgYW5kIGFs
-bCBkZXZpY2UgZHJpdmVycyBmb3IgSTJDIGNsaWVudHMgc2VlbSB0byB3b3JrIG5vcm1hbGx5LiBJ
-IHdpcmVkCj4gdHdvIEkyQyBidXNzZXMgdG9nZXRoZXIgYW5kIHVzZWQgaTJjLXNsYXZlLWVlcHJv
-bSB0byBsZXQgb25lIEkyQyBJUCBjb3JlIHJlYWQKPiBvdXQgZGF0YSBmcm9tIHRoZSBvdGhlci4g
-VGhhdCBhbGwgd29ya2VkIGZpbmUuIEJ1aWxkYm90IGlzIGFsc28gaGFwcHksIGl0IGZvdW5kCj4g
-dHdvIGlzc3VlcyBvZiB0aGUgZmlyc3QgKG5vbiBwdWJsaWMpIGl0ZXJhdGlvbi4gVGhhbmtzIQo+
-Cj4gSSBkaWQgbm90IHRlc3QgQUNQSSBhbmQgaG9wZSBmb3Igc29tZSBhc3Npc3RhbmNlIGhlcmUg
-OikgSSdkIGFsc28gYmUgaGFwcHkgaWYKPiBwZW9wbGUgY291bGQgY2hlY2sgdGhlIGluY2x1ZGVz
-IG9mIHRoZSBuZXdseSBjcmVhdGVkIGZpbGVzLCB0aGVyZSBtaWdodCBiZQo+IG1pc3Npbmcgc29t
-ZS4KCklmIHlvdSBkb24ndCBtaW5kIHNlbmRpbmcgdGhlIHdob2xlIHNlcmllcyB0byB0aGUgaW50
-ZWwtZ2Z4IGxpc3QgKENjJ2QpLApvdXIgQ0kgd2lsbCBydW4gYSBidW5jaCBvZiB0ZXN0cyBvbiBp
-dCwgZXhlcmNpc2luZyBvdXIgdXNlIG9mIHRoZSBJMkMKYWRhcHRlciBpbnRlcmZhY2VzIGZvciBk
-aXNwbGF5IGRhdGEgY2hhbm5lbCBhbmQgSTJDIG92ZXIgRGlzcGxheSBQb3J0Cm5hdGl2ZSBhdXgu
-CgpCUiwKSmFuaS4KCi0tIApKYW5pIE5pa3VsYSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9n
-eSBDZW50ZXIKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-SW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
-dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--rq41emNfklMLM0hmxr0TSKnOIi3MIuAT0
+Content-Type: multipart/mixed; boundary="HSL6Pp4hTLAceBBROuPiB2GB8XdG0fPVG";
+ protected-headers="v1"
+From: Florian Echtler <floe@butterbrot.org>
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Message-ID: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
+Subject: iMac 10,1 with Ubuntu 16.04: black screen after suspend
+
+--HSL6Pp4hTLAceBBROuPiB2GB8XdG0fPVG
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
+
+Hi everyone,
+
+I'm running Ubuntu 16.04.2 on a 27" unibody iMac 10,1 from 2009. However,=
+ even
+with the most recent HWE stack (kernel 4.8), the display stays black afte=
+r
+suspend. I can ssh into the machine, so wakeup is OK, but the display is
+entirely black (backlight stays off).
+
+Note: this appears to be entirely unrelated to the TDM stuff I posted abo=
+ut
+earlier. Interestingly, when I enable TDM, even after suspend, the displa=
+y works
+while TDM is active. Once I disable TDM, it's back to black (unintentiona=
+l song
+reference there).
+
+I've noted that in /sys/class/backlight, there are two different control
+interfaces, apple_backlight and radeon_bl0. Before suspend, I can control=
+ the
+screen brightness from system settings, even if only one of them is loade=
+d, so
+both brightness interfaces work.
+
+What I've already tried without success:
+
+- Blindly switching to the console and back.
+- Calling DISPLAY=3D:0.0 xrandr --output eDP1 --auto via ssh.
+- Restarting X via ssh.
+- Blacklist apple_bl on the kernel cmdline (modprobe.blacklist=3Dapple_bl=
+).
+- Disabling the radeon backlight on the kernel cmdline (radeon.backlight=3D=
+0).
+- Using radeontool to turn the backlight back on after suspend.
+- Directly using the interface in /sys/class/backlight/ to turn it back o=
+n.
+
+I'm starting to run out of ideas... any hints?
+
+Regards, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
+
+
+--HSL6Pp4hTLAceBBROuPiB2GB8XdG0fPVG--
+
+--rq41emNfklMLM0hmxr0TSKnOIi3MIuAT0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEARECAAYFAlkoG+kACgkQ7CzyshGvatisvQCg9Q2fMlNlm2+V58aBcDT/isTD
+I5MAn0Qr6RNv0CQmKjvixdaAnOFnXL+w
+=9hw8
+-----END PGP SIGNATURE-----
+
+--rq41emNfklMLM0hmxr0TSKnOIi3MIuAT0--
