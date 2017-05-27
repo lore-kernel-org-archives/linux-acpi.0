@@ -1,7 +1,7 @@
 From: Darren Hart <dvhart@infradead.org>
-Subject: [PATCH 04/16] platform/x86: wmi: Track wmi devices per ACPI device
-Date: Fri, 26 May 2017 22:31:18 -0700
-Message-ID: <d8d7a72ea2cb8c5288f00ea5383433e1912107ff.1495862272.git.dvhart@infradead.org>
+Subject: [PATCH 05/16] platform/x86: wmi: Turn WMI into a bus driver
+Date: Fri, 26 May 2017 22:31:19 -0700
+Message-ID: <7b5aaf0988eb9c093438fe586b467b9187b8ee94.1495862272.git.dvhart@infradead.org>
 References: <cover.1495862272.git.dvhart@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -17,19 +17,15 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Andy Lutomirski <luto@kernel.org>
 
-Currently we free all devices when we detach from any ACPI node.
-Instead, keep track of which node WMI devices are attached to and
-free them only as needed. While we are at it, match up notifications
-with the device they came from correctly.
+WMI is logically a bus: the WMI driver binds to an ACPI node (or
+more than one), and each instance of the WMI driver enumerates its
+children and hopes that drivers will attach to the children that are
+useful.
 
-This will make our behavior more straightforward on systems with
-more than one WMI node in the ACPI tables (e.g. the Dell XPS 13
-9350).
-
-This also adds a warning when GUIDs are not unique.
-
-NB: The guid_string parameter in guid_already_parsed was a
-little-endian binary GUID, not a string.
+This patch gives WMI a driver model bus type and the ability to
+match to drivers. The bus itself is a device in the new "wmi_bus"
+class, and all of the individual WMI devices are slotted into the
+device hierarchy correctly.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
 Cc: Andy Lutomirski <luto@amacapital.net>
@@ -41,161 +37,422 @@ Cc: platform-driver-x86@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org
 Signed-off-by: Darren Hart (VMware) <dvhart@infradead.org>
 ---
- drivers/platform/x86/wmi.c | 58 ++++++++++++++++++++++++++++------------------
- 1 file changed, 36 insertions(+), 22 deletions(-)
+ drivers/platform/x86/wmi.c | 197 +++++++++++++++++++++++++++++++++++----------
+ include/linux/wmi.h        |  47 +++++++++++
+ 2 files changed, 201 insertions(+), 43 deletions(-)
+ create mode 100644 include/linux/wmi.h
 
 diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index ac60a51..faaa9a7 100644
+index faaa9a7..f06b7c0 100644
 --- a/drivers/platform/x86/wmi.c
 +++ b/drivers/platform/x86/wmi.c
-@@ -64,7 +64,7 @@ struct guid_block {
+@@ -37,6 +37,7 @@
+ #include <linux/acpi.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
++#include <linux/wmi.h>
+ #include <linux/uuid.h>
+ 
+ ACPI_MODULE_NAME("wmi");
+@@ -44,8 +45,6 @@ MODULE_AUTHOR("Carlos Corbacho");
+ MODULE_DESCRIPTION("ACPI-WMI Mapping Driver");
+ MODULE_LICENSE("GPL");
+ 
+-#define ACPI_WMI_CLASS "wmi"
+-
+ static LIST_HEAD(wmi_block_list);
+ 
+ struct guid_block {
+@@ -62,12 +61,12 @@ struct guid_block {
+ };
+ 
  struct wmi_block {
++	struct wmi_device dev;
  	struct list_head list;
  	struct guid_block gblock;
--	acpi_handle handle;
-+	struct acpi_device *acpi_device;
+ 	struct acpi_device *acpi_device;
  	wmi_notify_handler handler;
  	void *handler_data;
- 	struct device dev;
-@@ -147,7 +147,7 @@ static acpi_status wmi_method_enable(struct wmi_block *wblock, int enable)
- 	acpi_handle handle;
+-	struct device dev;
+ };
  
- 	block = &wblock->gblock;
--	handle = wblock->handle;
-+	handle = wblock->acpi_device->handle;
  
- 	snprintf(method, 5, "WE%02X", block->notify_id);
- 	status = acpi_execute_simple_method(handle, method, enable);
-@@ -186,7 +186,7 @@ u32 method_id, const struct acpi_buffer *in, struct acpi_buffer *out)
- 		return AE_ERROR;
+@@ -102,8 +101,8 @@ static const struct acpi_device_id wmi_device_ids[] = {
+ MODULE_DEVICE_TABLE(acpi, wmi_device_ids);
  
- 	block = &wblock->gblock;
--	handle = wblock->handle;
-+	handle = wblock->acpi_device->handle;
- 
- 	if (!(block->flags & ACPI_WMI_METHOD))
- 		return AE_BAD_DATA;
-@@ -248,7 +248,7 @@ struct acpi_buffer *out)
- 		return AE_ERROR;
- 
- 	block = &wblock->gblock;
--	handle = wblock->handle;
-+	handle = wblock->acpi_device->handle;
- 
- 	if (block->instance_count < instance)
- 		return AE_BAD_PARAMETER;
-@@ -321,7 +321,7 @@ const struct acpi_buffer *in)
- 		return AE_ERROR;
- 
- 	block = &wblock->gblock;
--	handle = wblock->handle;
-+	handle = wblock->acpi_device->handle;
- 
- 	if (block->instance_count < instance)
- 		return AE_BAD_PARAMETER;
-@@ -525,8 +525,8 @@ acpi_status wmi_get_event_data(u32 event, struct acpi_buffer *out)
- 
- 		if ((gblock->flags & ACPI_WMI_EVENT) &&
- 			(gblock->notify_id == event))
--			return acpi_evaluate_object(wblock->handle, "_WED",
--				&input, out);
-+			return acpi_evaluate_object(wblock->acpi_device->handle,
-+				"_WED", &input, out);
- 	}
- 
- 	return AE_NOT_FOUND;
-@@ -618,27 +618,40 @@ static int wmi_create_device(const struct guid_block *gblock,
- 	return device_register(&wblock->dev);
+ static struct acpi_driver acpi_wmi_driver = {
+-	.name = "wmi",
+-	.class = ACPI_WMI_CLASS,
++	.name = "acpi-wmi",
++	.owner = THIS_MODULE,
+ 	.ids = wmi_device_ids,
+ 	.ops = {
+ 		.add = acpi_wmi_add,
+@@ -545,77 +544,146 @@ bool wmi_has_guid(const char *guid_string)
  }
+ EXPORT_SYMBOL_GPL(wmi_has_guid);
  
--static void wmi_free_devices(void)
-+static void wmi_free_devices(struct acpi_device *device)
++static struct wmi_block *dev_to_wblock(struct device *dev)
++{
++	return container_of(dev, struct wmi_block, dev.dev);
++}
++
++static struct wmi_device *dev_to_wdev(struct device *dev)
++{
++	return container_of(dev, struct wmi_device, dev);
++}
++
+ /*
+  * sysfs interface
+  */
+ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+ 			     char *buf)
  {
- 	struct wmi_block *wblock, *next;
+-	struct wmi_block *wblock;
+-
+-	wblock = dev_get_drvdata(dev);
+-	if (!wblock) {
+-		strcat(buf, "\n");
+-		return strlen(buf);
+-	}
++	struct wmi_block *wblock = dev_to_wblock(dev);
  
- 	/* Delete devices for all the GUIDs */
- 	list_for_each_entry_safe(wblock, next, &wmi_block_list, list) {
--		list_del(&wblock->list);
--		if (wblock->dev.class)
--			device_unregister(&wblock->dev);
--		else
--			kfree(wblock);
-+		if (wblock->acpi_device == device) {
-+			list_del(&wblock->list);
-+			if (wblock->dev.class)
-+				device_unregister(&wblock->dev);
-+			else
-+				kfree(wblock);
-+		}
- 	}
+ 	return sprintf(buf, "wmi:%pUL\n", wblock->gblock.guid);
  }
+ static DEVICE_ATTR_RO(modalias);
  
--static bool guid_already_parsed(const char *guid_string)
-+static bool guid_already_parsed(struct acpi_device *device,
-+				const u8 *guid)
++static ssize_t guid_show(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	struct wmi_block *wblock = dev_to_wblock(dev);
++
++	return sprintf(buf, "%pUL\n", wblock->gblock.guid);
++}
++static DEVICE_ATTR_RO(guid);
++
+ static struct attribute *wmi_attrs[] = {
+ 	&dev_attr_modalias.attr,
++	&dev_attr_guid.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(wmi);
+ 
+ static int wmi_dev_uevent(struct device *dev, struct kobj_uevent_env *env)
  {
- 	struct wmi_block *wblock;
+-	char guid_string[37];
+-
+-	struct wmi_block *wblock;
++	struct wmi_block *wblock = dev_to_wblock(dev);
  
--	list_for_each_entry(wblock, &wmi_block_list, list)
--		if (memcmp(wblock->gblock.guid, guid_string, 16) == 0)
-+	list_for_each_entry(wblock, &wmi_block_list, list) {
-+		if (memcmp(wblock->gblock.guid, guid, 16) == 0) {
-+			/*
-+			 * Because we historically didn't track the relationship
-+			 * between GUIDs and ACPI nodes, we don't know whether
-+			 * we need to suppress GUIDs that are unique on a
-+			 * given node but duplicated across nodes.
-+			 */
-+			dev_warn(&device->dev, "duplicate WMI GUID %pUL (first instance was on %s)\n",
-+				 guid, dev_name(&wblock->acpi_device->dev));
- 			return true;
-+		}
+-	if (add_uevent_var(env, "MODALIAS="))
++	if (add_uevent_var(env, "MODALIAS=wmi:%pUL", wblock->gblock.guid))
+ 		return -ENOMEM;
+ 
+-	wblock = dev_get_drvdata(dev);
+-	if (!wblock)
++	if (add_uevent_var(env, "WMI_GUID=%pUL", wblock->gblock.guid))
+ 		return -ENOMEM;
+ 
+-	sprintf(guid_string, "%pUL", wblock->gblock.guid);
++	return 0;
++}
++
++static void wmi_dev_release(struct device *dev)
++{
++	struct wmi_block *wblock = dev_to_wblock(dev);
++
++	kfree(wblock);
++}
++
++static int wmi_dev_match(struct device *dev, struct device_driver *driver)
++{
++	struct wmi_driver *wmi_driver =
++		container_of(driver, struct wmi_driver, driver);
++	struct wmi_block *wblock = dev_to_wblock(dev);
++	const struct wmi_device_id *id = wmi_driver->id_table;
+ 
+-	strcpy(&env->buf[env->buflen - 1], "wmi:");
+-	memcpy(&env->buf[env->buflen - 1 + 4], guid_string, 36);
+-	env->buflen += 40;
++	while (id->guid_string) {
++		uuid_le driver_guid;
++
++		if (WARN_ON(uuid_le_to_bin(id->guid_string, &driver_guid)))
++			continue;
++		if (!memcmp(&driver_guid, wblock->gblock.guid, 16))
++			return 1;
++
++		id++;
 +	}
- 
- 	return false;
- }
-@@ -680,7 +693,7 @@ static int parse_wdg(struct acpi_device *device)
- 		if (!wblock)
- 			return -ENOMEM;
- 
--		wblock->handle = device->handle;
-+		wblock->acpi_device = device;
- 		wblock->gblock = gblock[i];
- 
- 		/*
-@@ -689,10 +702,10 @@ static int parse_wdg(struct acpi_device *device)
- 		  case yet, so for now, we'll just ignore the duplicate
- 		  for device creation.
- 		*/
--		if (!guid_already_parsed(gblock[i].guid)) {
-+		if (!guid_already_parsed(device, gblock[i].guid)) {
- 			retval = wmi_create_device(&gblock[i], wblock, device);
- 			if (retval) {
--				wmi_free_devices();
-+				wmi_free_devices(device);
- 				goto out_free_pointer;
- 			}
- 		}
-@@ -767,8 +780,9 @@ static void acpi_wmi_notify(struct acpi_device *device, u32 event)
- 		wblock = list_entry(p, struct wmi_block, list);
- 		block = &wblock->gblock;
- 
--		if ((block->flags & ACPI_WMI_EVENT) &&
--			(block->notify_id == event)) {
-+		if (wblock->acpi_device == device &&
-+		    (block->flags & ACPI_WMI_EVENT) &&
-+		    (block->notify_id == event)) {
- 			if (wblock->handler)
- 				wblock->handler(event, wblock->handler_data);
- 			if (debug_event) {
-@@ -788,7 +802,7 @@ static int acpi_wmi_remove(struct acpi_device *device)
- {
- 	acpi_remove_address_space_handler(device->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
--	wmi_free_devices();
-+	wmi_free_devices(device);
  
  	return 0;
  }
+ 
+-static void wmi_dev_free(struct device *dev)
++static int wmi_dev_probe(struct device *dev)
+ {
+-	struct wmi_block *wmi_block = container_of(dev, struct wmi_block, dev);
++	struct wmi_block *wblock = dev_to_wblock(dev);
++	struct wmi_driver *wdriver =
++		container_of(dev->driver, struct wmi_driver, driver);
++	int ret = 0;
++
++	if (ACPI_FAILURE(wmi_method_enable(wblock, 1)))
++		dev_warn(dev, "failed to enable device -- probing anyway\n");
++
++	if (wdriver->probe) {
++		ret = wdriver->probe(dev_to_wdev(dev));
++		if (ret != 0 && ACPI_FAILURE(wmi_method_enable(wblock, 0)))
++			dev_warn(dev, "failed to disable device\n");
++	}
++
++	return ret;
++}
++
++static int wmi_dev_remove(struct device *dev)
++{
++	struct wmi_block *wblock = dev_to_wblock(dev);
++	struct wmi_driver *wdriver =
++		container_of(dev->driver, struct wmi_driver, driver);
++	int ret = 0;
++
++	if (wdriver->remove)
++		ret = wdriver->remove(dev_to_wdev(dev));
++
++	if (ACPI_FAILURE(wmi_method_enable(wblock, 0)))
++		dev_warn(dev, "failed to disable device\n");
+ 
+-	kfree(wmi_block);
++	return ret;
+ }
+ 
+-static struct class wmi_class = {
++static struct class wmi_bus_class = {
++	.name = "wmi_bus",
++};
++
++static struct bus_type wmi_bus_type = {
+ 	.name = "wmi",
+-	.dev_release = wmi_dev_free,
+-	.dev_uevent = wmi_dev_uevent,
+ 	.dev_groups = wmi_groups,
++	.match = wmi_dev_match,
++	.uevent = wmi_dev_uevent,
++	.probe = wmi_dev_probe,
++	.remove = wmi_dev_remove,
+ };
+ 
+-static int wmi_create_device(const struct guid_block *gblock,
++static int wmi_create_device(struct device *wmi_bus_dev,
++			     const struct guid_block *gblock,
+ 			     struct wmi_block *wblock,
+ 			     struct acpi_device *device)
+ {
+-	wblock->dev.class = &wmi_class;
++	wblock->dev.dev.bus = &wmi_bus_type;
++	wblock->dev.dev.parent = wmi_bus_dev;
+ 
+-	dev_set_name(&wblock->dev, "%pUL", gblock->guid);
++	dev_set_name(&wblock->dev.dev, "%pUL", gblock->guid);
+ 
+-	dev_set_drvdata(&wblock->dev, wblock);
++	wblock->dev.dev.release = wmi_dev_release;
+ 
+-	return device_register(&wblock->dev);
++	return device_register(&wblock->dev.dev);
+ }
+ 
+ static void wmi_free_devices(struct acpi_device *device)
+@@ -626,8 +694,8 @@ static void wmi_free_devices(struct acpi_device *device)
+ 	list_for_each_entry_safe(wblock, next, &wmi_block_list, list) {
+ 		if (wblock->acpi_device == device) {
+ 			list_del(&wblock->list);
+-			if (wblock->dev.class)
+-				device_unregister(&wblock->dev);
++			if (wblock->dev.dev.bus)
++				device_unregister(&wblock->dev.dev);
+ 			else
+ 				kfree(wblock);
+ 		}
+@@ -659,7 +727,7 @@ static bool guid_already_parsed(struct acpi_device *device,
+ /*
+  * Parse the _WDG method for the GUID data blocks
+  */
+-static int parse_wdg(struct acpi_device *device)
++static int parse_wdg(struct device *wmi_bus_dev, struct acpi_device *device)
+ {
+ 	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
+ 	union acpi_object *obj;
+@@ -703,7 +771,8 @@ static int parse_wdg(struct acpi_device *device)
+ 		  for device creation.
+ 		*/
+ 		if (!guid_already_parsed(device, gblock[i].guid)) {
+-			retval = wmi_create_device(&gblock[i], wblock, device);
++			retval = wmi_create_device(wmi_bus_dev, &gblock[i],
++						   wblock, device);
+ 			if (retval) {
+ 				wmi_free_devices(device);
+ 				goto out_free_pointer;
+@@ -803,12 +872,15 @@ static int acpi_wmi_remove(struct acpi_device *device)
+ 	acpi_remove_address_space_handler(device->handle,
+ 				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
+ 	wmi_free_devices(device);
++	device_unregister((struct device *)acpi_driver_data(device));
++	device->driver_data = NULL;
+ 
+ 	return 0;
+ }
+ 
+ static int acpi_wmi_add(struct acpi_device *device)
+ {
++	struct device *wmi_bus_dev;
+ 	acpi_status status;
+ 	int error;
+ 
+@@ -821,14 +893,25 @@ static int acpi_wmi_add(struct acpi_device *device)
+ 		return -ENODEV;
+ 	}
+ 
+-	error = parse_wdg(device);
++	wmi_bus_dev = device_create(&wmi_bus_class, &device->dev, MKDEV(0, 0),
++				    NULL, "wmi_bus-%s", dev_name(&device->dev));
++	if (IS_ERR(wmi_bus_dev)) {
++		error = PTR_ERR(wmi_bus_dev);
++		goto err_remove_handler;
++	}
++	device->driver_data = wmi_bus_dev;
++
++	error = parse_wdg(wmi_bus_dev, device);
+ 	if (error) {
+ 		pr_err("Failed to parse WDG method\n");
+-		goto err_remove_handler;
++		goto err_remove_busdev;
+ 	}
+ 
+ 	return 0;
+ 
++err_remove_busdev:
++	device_unregister(wmi_bus_dev);
++
+ err_remove_handler:
+ 	acpi_remove_address_space_handler(device->handle,
+ 					  ACPI_ADR_SPACE_EC,
+@@ -837,6 +920,22 @@ static int acpi_wmi_add(struct acpi_device *device)
+ 	return error;
+ }
+ 
++int __must_check __wmi_driver_register(struct wmi_driver *driver,
++				       struct module *owner)
++{
++	driver->driver.owner = owner;
++	driver->driver.bus = &wmi_bus_type;
++
++	return driver_register(&driver->driver);
++}
++EXPORT_SYMBOL(__wmi_driver_register);
++
++void wmi_driver_unregister(struct wmi_driver *driver)
++{
++	driver_unregister(&driver->driver);
++}
++EXPORT_SYMBOL(wmi_driver_unregister);
++
+ static int __init acpi_wmi_init(void)
+ {
+ 	int error;
+@@ -844,24 +943,36 @@ static int __init acpi_wmi_init(void)
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
+-	error = class_register(&wmi_class);
++	error = class_register(&wmi_bus_class);
+ 	if (error)
+ 		return error;
+ 
++	error = bus_register(&wmi_bus_type);
++	if (error)
++		goto err_unreg_class;
++
+ 	error = acpi_bus_register_driver(&acpi_wmi_driver);
+ 	if (error) {
+ 		pr_err("Error loading mapper\n");
+-		class_unregister(&wmi_class);
+-		return error;
++		goto err_unreg_bus;
+ 	}
+ 
+ 	return 0;
++
++err_unreg_class:
++	class_unregister(&wmi_bus_class);
++
++err_unreg_bus:
++	bus_unregister(&wmi_bus_type);
++
++	return error;
+ }
+ 
+ static void __exit acpi_wmi_exit(void)
+ {
+ 	acpi_bus_unregister_driver(&acpi_wmi_driver);
+-	class_unregister(&wmi_class);
++	class_unregister(&wmi_bus_class);
++	bus_unregister(&wmi_bus_type);
+ }
+ 
+ subsys_initcall(acpi_wmi_init);
+diff --git a/include/linux/wmi.h b/include/linux/wmi.h
+new file mode 100644
+index 0000000..29ed34b
+--- /dev/null
++++ b/include/linux/wmi.h
+@@ -0,0 +1,47 @@
++/*
++ * wmi.h - ACPI WMI interface
++ *
++ * Copyright (c) 2015 Andrew Lutomirski
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++
++#ifndef _LINUX_WMI_H
++#define _LINUX_WMI_H
++
++#include <linux/device.h>
++#include <linux/acpi.h>
++
++struct wmi_device {
++	struct device dev;
++};
++
++struct wmi_device_id {
++	const char *guid_string;
++};
++
++struct wmi_driver {
++	struct device_driver driver;
++	const struct wmi_device_id *id_table;
++
++	int (*probe)(struct wmi_device *wdev);
++	int (*remove)(struct wmi_device *wdev);
++};
++
++extern int __must_check __wmi_driver_register(struct wmi_driver *driver,
++					      struct module *owner);
++extern void wmi_driver_unregister(struct wmi_driver *driver);
++#define wmi_driver_register(driver) __wmi_driver_register((driver), THIS_MODULE)
++
++#define module_wmi_driver(__wmi_driver) \
++	module_driver(__wmi_driver, wmi_driver_register, \
++		      wmi_driver_unregister)
++
++#endif
 -- 
 2.9.4
