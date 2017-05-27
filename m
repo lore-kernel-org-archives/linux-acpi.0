@@ -1,83 +1,73 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v6 3/6] ACPI/IORT: Ignore all errors except EPROBE_DEFER
-Date: Sat, 27 May 2017 21:18:39 +0200
-Message-ID: <1564836.5iBbgoacpH@aspire.rjw.lan>
-References: <1495892865-9506-1-git-send-email-sricharan@codeaurora.org>
-	<1495892865-9506-3-git-send-email-sricharan@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 2/2] Revert "ACPI / button: Change default behavior to lid_init_state=open"
+Date: Sat, 27 May 2017 21:23:34 +0200
+Message-ID: <10472378.BstUXsYGq3@aspire.rjw.lan>
+References: <20170526073953.GA29786@jelly>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1495892865-9506-3-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.neuschaefer-hi6Y0CQ0nG0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:60267 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750737AbdE0TaY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 27 May 2017 15:30:24 -0400
+In-Reply-To: <20170526073953.GA29786@jelly>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Hutterer <peter.hutterer@who-t.net>
+Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Jiri Eischmann <jeischma@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Saturday, May 27, 2017 07:17:42 PM Sricharan R wrote:
-> While deferring the probe of IOMMU masters, xlate and
-> add_device callbacks called from iort_iommu_configure
-> can pass back error values like -ENODEV, which means
-> the IOMMU cannot be connected with that master for real
-> reasons. Before the IOMMU probe deferral, all such errors
-> were ignored. Now all those errors are propagated back,
-> killing the master's probe for such errors. Instead ignore
-> all the errors except EPROBE_DEFER, which is the only one
-> of concern and let the master work without IOMMU, thus
-> restoring the old behavior. Also make explicit that
-> acpi_dma_configure handles only -EPROBE_DEFER from
-> iort_iommu_configure.
+On Friday, May 26, 2017 05:39:53 PM Peter Hutterer wrote:
+> On May 25 2017, Benjamin Tissoires wrote:
+> > On May 15 2017 or thereabouts, Rafael J. Wysocki wrote:
 > 
-> Fixes: 5a1bb638d567 ("drivers: acpi: Handle IOMMU lookup failure with deferred probing or error")
-> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> ---
->  drivers/acpi/arm64/iort.c | 6 ++++++
->  drivers/acpi/scan.c       | 4 ++--
->  2 files changed, 8 insertions(+), 2 deletions(-)
+> > > >> >> Benjamin, my understanding is that this is the case, is it correct?
+> > > >> >
+> > > >> > That is correct. This patch I reverted introduces regression for professional
+> > > >> > laptops that expect the LID switch to be reported accurately.
+> > > >>
+> > > >> And from a user's perspective, what does not work any more?
+> > > >
+> > > > If you boot or resume your laptop with the lid closed on a docking
+> > > > station while using an external monitor connected to it, both internal
+> > > > and external displays will light on, while only the external should.
+> > > >
+> > > > There is a design choice in gdm to only provide the greater on the
+> > > > internal display when lit on, so users only see a gray area on the
+> > > > external monitor. Also, the cursor will not show up as it's by default
+> > > > on the internal display too.
+> > > >
+> > > > To "fix" that, users have to open the laptop once and close it once
+> > > > again to sync the state of the switch with the hardware state.
+> > >
+> > > OK
+> > >
+> > > Yeah, that sucks.
+> > >
+> > > So without the Lv's patch the behavior (on the systems in question) is
+> > > as expected, right?
+> > 
+> > Would you agree to take both these reverts without Lv's ACK? We already
+> > tried to explain for 2 weeks that they are valuable, but it seems we
+> > can't make change his mind.
+> > 
+> > I have more that 26 emails in my INBOX (not counting my replies) and I
+> > would really like switching to more valuable work than explaining again
+> > and again that when a regression is introduced, it needs to be fixed (or
+> > reverted in that case).
 > 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index c5fecf9..16e101f 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -782,6 +782,12 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
->  	if (err)
->  		ops = ERR_PTR(err);
->  
-> +	/* Ignore all other errors apart from EPROBE_DEFER */
-> +	if (IS_ERR(ops) && (PTR_ERR(ops) != -EPROBE_DEFER)) {
-> +		dev_dbg(dev, "Adding to IOMMU failed: %ld\n", PTR_ERR(ops));
-> +		ops = NULL;
-> +	}
-> +
->  	return ops;
->  }
->  
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index e39ec7b..3a10d757 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1371,8 +1371,8 @@ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
->  	iort_set_dma_mask(dev);
->  
->  	iommu = iort_iommu_configure(dev);
-> -	if (IS_ERR(iommu))
-> -		return PTR_ERR(iommu);
-> +	if (IS_ERR(iommu) && PTR_ERR(iommu) == -EPROBE_DEFER)
-> +		return -EPROBE_DEFER;
->  
->  	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
->  	/*
-> 
+> Yes please. This should have stopped right after "regression on basically
+> every decent laptop out there" and we should be discussing how to fix the
+> devices that actually need quirks because they're broken. Instead it 
+> turned into a discussion on why we should stick with the regression and
+> convince all of userspace to change and implement broken heuristics. I've
+> used up my time budget for that.
 
-ACK for the scan.c change and I'm assuming this to go in via ARM64.
+Appreciated.
+
+Also please note that it actually might help to make the decision.
 
 Thanks,
 Rafael
+
