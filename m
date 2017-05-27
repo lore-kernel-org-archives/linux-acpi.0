@@ -1,7 +1,7 @@
 From: Darren Hart <dvhart@infradead.org>
-Subject: [PATCH 03/16] platform/x86: wmi: Clean up acpi_wmi_add
-Date: Fri, 26 May 2017 22:31:17 -0700
-Message-ID: <f6afef556cadd0d6976e78754207cf74000b12e2.1495862272.git.dvhart@infradead.org>
+Subject: [PATCH 11/16] platform/x86: wmi: Add a new interface to read block data
+Date: Fri, 26 May 2017 22:31:25 -0700
+Message-ID: <a33aa2e6d19e33ef3f602498d7eaa5bdd749269d.1495862272.git.dvhart@infradead.org>
 References: <cover.1495862272.git.dvhart@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -17,7 +17,8 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Andy Lutomirski <luto@kernel.org>
 
-Rearrange acpi_wmi_add to use Linux's error handling conventions.
+wmi_query_block is unnecessarily indirect. Add a straightforward
+method for wmi bus drivers to use to read block data.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
 Cc: Andy Lutomirski <luto@amacapital.net>
@@ -29,42 +30,116 @@ Cc: platform-driver-x86@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org
 Signed-off-by: Darren Hart (VMware) <dvhart@infradead.org>
 ---
- drivers/platform/x86/wmi.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/platform/x86/wmi.c | 54 ++++++++++++++++++++++++++++++++--------------
+ include/linux/wmi.h        |  4 ++++
+ 2 files changed, 42 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index c6e11b5..ac60a51 100644
+index 208e187..483e4a6 100644
 --- a/drivers/platform/x86/wmi.c
 +++ b/drivers/platform/x86/wmi.c
-@@ -803,20 +803,24 @@ static int acpi_wmi_add(struct acpi_device *device)
- 						    &acpi_wmi_ec_space_handler,
- 						    NULL, NULL);
- 	if (ACPI_FAILURE(status)) {
--		pr_err("Error installing EC region handler\n");
-+		dev_err(&device->dev, "Error installing EC region handler\n");
- 		return -ENODEV;
- 	}
- 
- 	error = parse_wdg(device);
- 	if (error) {
--		acpi_remove_address_space_handler(device->handle,
--						  ACPI_ADR_SPACE_EC,
--						  &acpi_wmi_ec_space_handler);
- 		pr_err("Failed to parse WDG method\n");
--		return error;
-+		goto err_remove_handler;
- 	}
- 
- 	return 0;
-+
-+err_remove_handler:
-+	acpi_remove_address_space_handler(device->handle,
-+					  ACPI_ADR_SPACE_EC,
-+					  &acpi_wmi_ec_space_handler);
-+
-+	return error;
+@@ -244,19 +244,10 @@ u32 method_id, const struct acpi_buffer *in, struct acpi_buffer *out)
  }
+ EXPORT_SYMBOL_GPL(wmi_evaluate_method);
  
- static int __init acpi_wmi_init(void)
+-/**
+- * wmi_query_block - Return contents of a WMI block
+- * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
+- * @instance: Instance index
+- * &out: Empty buffer to return the contents of the data block to
+- *
+- * Return the contents of an ACPI-WMI data block to a buffer
+- */
+-acpi_status wmi_query_block(const char *guid_string, u8 instance,
+-struct acpi_buffer *out)
++static acpi_status __query_block(struct wmi_block *wblock, u8 instance,
++				 struct acpi_buffer *out)
+ {
+ 	struct guid_block *block = NULL;
+-	struct wmi_block *wblock = NULL;
+ 	acpi_handle handle;
+ 	acpi_status status, wc_status = AE_ERROR;
+ 	struct acpi_object_list input;
+@@ -264,12 +255,9 @@ struct acpi_buffer *out)
+ 	char method[5];
+ 	char wc_method[5] = "WC";
+ 
+-	if (!guid_string || !out)
++	if (!out)
+ 		return AE_BAD_PARAMETER;
+ 
+-	if (!find_guid(guid_string, &wblock))
+-		return AE_ERROR;
+-
+ 	block = &wblock->gblock;
+ 	handle = wblock->acpi_device->handle;
+ 
+@@ -320,8 +308,42 @@ struct acpi_buffer *out)
+ 
+ 	return status;
+ }
++
++/**
++ * wmi_query_block - Return contents of a WMI block (deprecated)
++ * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
++ * @instance: Instance index
++ * &out: Empty buffer to return the contents of the data block to
++ *
++ * Return the contents of an ACPI-WMI data block to a buffer
++ */
++acpi_status wmi_query_block(const char *guid_string, u8 instance,
++			    struct acpi_buffer *out)
++{
++	struct wmi_block *wblock;
++
++	if (!guid_string)
++		return AE_BAD_PARAMETER;
++
++	if (!find_guid(guid_string, &wblock))
++		return AE_ERROR;
++
++	return __query_block(wblock, instance, out);
++}
+ EXPORT_SYMBOL_GPL(wmi_query_block);
+ 
++union acpi_object *wmidev_block_query(struct wmi_device *wdev, u8 instance)
++{
++	struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
++	struct wmi_block *wblock = container_of(wdev, struct wmi_block, dev);
++
++	if (ACPI_FAILURE(__query_block(wblock, instance, &out)))
++		return NULL;
++
++	return (union acpi_object *)out.pointer;
++}
++EXPORT_SYMBOL_GPL(wmidev_block_query);
++
+ /**
+  * wmi_set_block - Write to a WMI block
+  * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
+@@ -331,7 +353,7 @@ EXPORT_SYMBOL_GPL(wmi_query_block);
+  * Write the contents of the input buffer to an ACPI-WMI data block
+  */
+ acpi_status wmi_set_block(const char *guid_string, u8 instance,
+-const struct acpi_buffer *in)
++			  const struct acpi_buffer *in)
+ {
+ 	struct guid_block *block = NULL;
+ 	struct wmi_block *wblock = NULL;
+diff --git a/include/linux/wmi.h b/include/linux/wmi.h
+index c6eedfd..0ab2540 100644
+--- a/include/linux/wmi.h
++++ b/include/linux/wmi.h
+@@ -29,6 +29,10 @@ struct wmi_device {
+ 	bool readable, writeable;
+ };
+ 
++/* Caller must kfree the result. */
++extern union acpi_object *wmidev_block_query(struct wmi_device *wdev,
++					     u8 instance);
++
+ struct wmi_device_id {
+ 	const char *guid_string;
+ };
 -- 
 2.9.4
