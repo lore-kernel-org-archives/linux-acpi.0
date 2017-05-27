@@ -1,46 +1,57 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 16/16] platform/x86: dell-wmi: Convert to the WMI bus infrastructure
-Date: Sat, 27 May 2017 09:17:21 -0700
-Message-ID: <3669DF37-7D17-40AD-852A-F8EDBE15A785@gmail.com>
-References: <cover.1495862272.git.dvhart@infradead.org> <4a4da770c8d0af7e3f31e79261b43573d70a6ea6.1495862272.git.dvhart@infradead.org> <201705271250.20338@pali> <CALCETrWic6ZWrjdmXTRX92U058B1SZ+xMd+5TBW+YL51ZrgeCA@mail.gmail.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH 0/8] i2c: refactor core and break out blocks
+Date: Sat, 27 May 2017 18:32:19 +0200
+Message-ID: <20170527163219.ffagajkuzs3naz3g@ninjato>
+References: <20170526082101.4746-1-wsa@the-dreams.de>
+ <8737brn83n.fsf@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <CALCETrWic6ZWrjdmXTRX92U058B1SZ+xMd+5TBW+YL51ZrgeCA@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Andy Lutomirski <luto@kernel.org>, =?ISO-8859-1?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Jiri Kosina <jikos@kernel.org>
-Cc: Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="daqqjeoh356pwimb"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sauhun.de ([88.99.104.3]:48616 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750714AbdE0QcX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 27 May 2017 12:32:23 -0400
+Content-Disposition: inline
+In-Reply-To: <8737brn83n.fsf@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On May 27, 2017 9:04:38 AM PDT, Andy Lutomirski <luto@kernel=2Eorg> wrote:
->On Sat, May 27, 2017 at 3:50 AM, Pali Roh=C3=A1r <pali=2Erohar@gmail=2Eco=
-m>
->wrote:
->> On Saturday 27 May 2017 07:31:30 Darren Hart wrote:
->>> -     dell_wmi_input_dev->name =3D "Dell WMI hotkeys";
->>> -     dell_wmi_input_dev->phys =3D "wmi/input0";
->>> -     dell_wmi_input_dev->id=2Ebustype =3D BUS_HOST;
->>> +     priv->input_dev->name =3D "Dell WMI hotkeys";
->>> +     priv->input_dev->id=2Ebustype =3D BUS_HOST;
->>
->> Is not there BUS_WMI, or something like that? (Just asking)
->>
->
->Jiri and/or Dmitry, what is bustype for, anyway?=20
-
-The bus type could be used to help further  identifying device if it used =
-same vendor/product for spi and i2c, for example, but there are not many if=
- them=2E I'm not sure if anyone actually makes decisions based on it, but i=
-t is part of abi now=2E
-
->I suppose we could add BUS_PLATFORM=2E
-
-What would be the difference from BUS_HOST?
+To: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: linux-i2c@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, intel-gfx@lists.freedesktop.org
 
 
-Thanks=2E
+--daqqjeoh356pwimb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
---=20
-Dmitry
+
+> If you don't mind sending the whole series to the intel-gfx list (Cc'd),
+> our CI will run a bunch of tests on it, exercising our use of the I2C
+> adapter interfaces for display data channel and I2C over Display Port
+> native aux.
+
+Cool, that sounds very helpful! Thanks for the offer, I'll resend the
+series there as RFT.
+
+
+--daqqjeoh356pwimb
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlkpqg4ACgkQFA3kzBSg
+KbYo4Q//eCi/dE8e7gkgEtLsDTqlkP/J399pEEPz16iNqH9tJ8QizZ75XTZbncN1
+Sy0e5PRrM3jgkYI+tB+CTR0NUCkm5qYUWqhXdznXTJRKoSWmVqUf2k6buPm6uYNA
+GWCQOWZz3XbpNoyvzg2ewUbFoJwsep1qfCg4CRr4HnGnlbgzPouzRvQQhubw2uuP
+C3WEMKmTJTnZIlbTZHNO6MGt0CVOwYU8W5kBkpsXlXq6hqEoqSJgnHEJYsOzurYz
+NjLu0uR06BPhNmHv2vBZIZgHX7yugY6NiO5LQY10k3pO4udyhoVwvv3A2eAxJjcX
+Ok1iggjRWLY8DsWePTpHT+TMyteFyfUoWeCZX/WlJ9EfxOgHE0WoEpHQks2WOug+
+Z2QgXVWpes78Akfny/bsexdQx/xr+4RVz71UiVk9pALIeYmcVDweyNJtuW9wVKVq
+P7ZggaoZQR226kbgdd4Sd7XOrqoDdGebYQKT+tu+Fo76ZUUgcLDqAd/3eUsmi/b0
+Ne4VjXG7iOIS0w6WP9WSeehw4ShHG+YwZXy6dG+Z/k9GDzszbkBuhldWAl4UkaAo
+Ljo7yNvxlcgAj5+2FfNIHmy1gRfKil9hMBiC302XKLJgkDS59/mN6fWEf4dQXcjD
+L0sIFQnp/rqiIGYGHbmWIPP+mwo4SoSmiwGWLRfjx3C/wgt01pU=
+=NP+V
+-----END PGP SIGNATURE-----
+
+--daqqjeoh356pwimb--
