@@ -1,69 +1,77 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5] gpio: Add driver for ACPI INT0002 Virtual GPIO device
-Date: Sat, 27 May 2017 21:28:48 +0200
-Message-ID: <1744835.16Pu4uV7uX@aspire.rjw.lan>
-References: <20170524104216.23643-1-hdegoede@redhat.com> <CAJZ5v0jogwciZcKG0HaK_40AjJF+kf7BEfZbV_U4N1ci327kaw@mail.gmail.com>
+Subject: Re: [PATCH 00/16] Convert WMI to a proper bus
+Date: Sat, 27 May 2017 21:49:25 +0200
+Message-ID: <3214691.4YNsAb1L33@aspire.rjw.lan>
+References: <cover.1495862272.git.dvhart@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49522 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42548 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750732AbdE0Tfh (ORCPT
+        by vger.kernel.org with ESMTP id S1750737AbdE0T4P (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 27 May 2017 15:35:37 -0400
-In-Reply-To: <CAJZ5v0jogwciZcKG0HaK_40AjJF+kf7BEfZbV_U4N1ci327kaw@mail.gmail.com>
+        Sat, 27 May 2017 15:56:15 -0400
+In-Reply-To: <cover.1495862272.git.dvhart@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-gpio@vger.kernel.org, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
+To: Darren Hart <dvhart@infradead.org>
+Cc: platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, May 25, 2017 01:12:37 AM Rafael J. Wysocki wrote:
-> On Wed, May 24, 2017 at 12:42 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> > Some peripherals on Bay Trail and Cherry Trail platforms signal PME to the
-> > PMC to wakeup the system. When this happens software needs to clear the
-> > PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
-> >
-> > This is modeled in ACPI through the INT0002 ACPI Virtual GPIO device.
-> >
-> > This commit adds a driver which registers the Virtual GPIOs expected
-> > by the DSDT on these devices, letting gpiolib-acpi claim the
-> > virtual GPIO and install a GPIO-interrupt handler which call the _L02
-> > handler as it would for a real GPIO controller.
-> >
-> > Cc: joeyli <jlee@suse.com>
-> > Cc: Takashi Iwai <tiwai@suse.de>
-> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > ---
-> > Changes in v2:
-> > -Remove dev_err after malloc failure
-> > -Remove unused empty runtime pm callbacks
-> > -s/GPE0A_PME_/GPE0A_PME_B0_/
-> > -Fixed some checkpatch warnings (I forgot to run checkpatch on v1)
-> > Changes in v3:
-> > -Rewrite as gpiochip driver letting gpiolib-acpi deal with claiming the pin
-> >  0x0002 and calling the _L02 event handler when the virtual gpio-irq triggers
-> > -Rebase on 4.12-rc1
-> > Changes in v4:
-> > -Drop device_init_wakeup() from _probe(), use pm_system_wakeup() instead
-> >  of pm_wakeup_hard_event(chip->parent)
-> > -Improve commit message
-> > Changes in v5:
-> > -Use BIT() macro for FOO_BIT defines
-> > -Drop unneeded ACPI_PTR macro usage
+On Friday, May 26, 2017 10:31:14 PM Darren Hart wrote:
+> From: "Darren Hart (VMware)" <dvhart@infradead.org>
 > 
-> LGTM
+> This series is based on the original work of
+> Andy Lutomirski <luto@amacapital.net> [1]. I have made minor edits, and in
+> one instance, squashed two patches in which the latter undid the former.
 > 
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> This series converts WMI [2] into a proper bus, adds some useful information via
+> sysfs, and exposes the embedded MOF [3] binary. It converts dell-wmi to use the
+> new WMI bus architecture.
+> 
+> This is the first part of an ongoing effort to enhance the WMI infrastructure
+> within the kernel, and eventually expose WMI to userspace for the consumption of
+> management utilities as it was intended.
+> 
+> 1. https://git.kernel.org/pub/scm/linux/kernel/git/luto/linux.git/log/?h=platform/wmi
+> 2. https://msdn.microsoft.com/en-us/library/windows/hardware/dn614028(v=vs.85).aspx
+> 3. https://msdn.microsoft.com/en-us/library/aa823192(v=vs.85).aspx
+> 
+> Andy Lutomirski (15):
+>   platform/x86: wmi: Drop "Mapper (un)loaded" messages
+>   platform/x86: wmi: Pass the acpi_device through to parse_wdg
+>   platform/x86: wmi: Clean up acpi_wmi_add
+>   platform/x86: wmi: Track wmi devices per ACPI device
+>   platform/x86: wmi: Turn WMI into a bus driver
+>   platform/x86: wmi: Fix error handling when creating devices
+>   platform/x86: wmi: Split devices into types and add basic sysfs attributes
+>   platform/x86: wmi: Probe data objects for read and write capabilities
+>   platform/x86: wmi: Instantiate all devices before adding them
+>   platform/x86: wmi: Incorporate acpi_install_notify_handler
+>   platform/x86: wmi: Add a new interface to read block data
+>   platform/x86: wmi: Bind the platform device, not the ACPI node
+>   platform/x86: wmi: Add an interface for subdrivers to access sibling devices
+>   platform/x86: wmi-mof: New driver to expose embedded WMI MOF metadata
+>   platform/x86: dell-wmi: Convert to the WMI bus infrastructure
+> 
+> Darren Hart (VMware) (1):
+>   platform/x86: wmi: Require query for data blocks, rename writable to setable
+> 
+>  drivers/platform/x86/Kconfig    |  12 +
+>  drivers/platform/x86/Makefile   |   1 +
+>  drivers/platform/x86/dell-wmi.c | 136 ++++----
+>  drivers/platform/x86/wmi-mof.c  | 125 ++++++++
+>  drivers/platform/x86/wmi.c      | 677 ++++++++++++++++++++++++++++++++--------
+>  include/linux/wmi.h             |  59 ++++
+>  6 files changed, 815 insertions(+), 195 deletions(-)
+>  create mode 100644 drivers/platform/x86/wmi-mof.c
+>  create mode 100644 include/linux/wmi.h
 
-Linus,
+All of this makes sense from the ACPI core perspective, so
 
-This would be nice to have in 4.12 to unbreak things in there after some recent
-ACPI changes (the feature in question have never worked entirely correctly to
-be precise, but with this patch on top of the current -rc it actually does work).
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I can queue it up if that's not a problem, but need your ACK for that.
+for the series and I'm assuming that it will go in via the platform/x86 tree.
 
 Thanks,
 Rafael
