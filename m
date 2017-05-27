@@ -1,117 +1,78 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 8/8] i2c: reformat core-base file header
-Date: Sat, 27 May 2017 14:17:59 +0300
-Message-ID: <CAHp75VdpJ54rXJY7QhtWeVBjdAr+Dg8JRO1Q1cqJbCML+hPuJQ@mail.gmail.com>
-References: <20170526082101.4746-1-wsa@the-dreams.de> <20170526082101.4746-9-wsa@the-dreams.de>
+From: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: [PATCH v6 2/6] iommu: of: Ignore all errors except EPROBE_DEFER
+Date: Sat, 27 May 2017 19:17:41 +0530
+Message-ID: <1495892865-9506-2-git-send-email-sricharan@codeaurora.org>
+References: <1495892865-9506-1-git-send-email-sricharan@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:35510 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756374AbdE0LSB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 May 2017 07:18:01 -0400
-In-Reply-To: <20170526082101.4746-9-wsa@the-dreams.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1495892865-9506-1-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: robin.murphy-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, j.neuschaefer-hi6Y0CQ0nG0@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nwatters-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, May 26, 2017 at 11:20 AM, Wolfram Sang <wsa@the-dreams.de> wrote:
-> Finally, apply modern comment rules to the file header. The old style
-> looked very non-Linuxish and challenged my eyes for some time now.
->
-> I took the liberty to a) drop the two credits for the multiplexing
-> support here in this file because there is no significant code in the
-> base file and the two guys are fully credited in the i2c-mux file and b)
-> add my own copyright for the period of me being the maintainer.
+While deferring the probe of IOMMU masters, xlate and
+add_device callbacks called from of_iommu_configure
+can pass back error values like -ENODEV, which means
+the IOMMU cannot be connected with that master for real
+reasons. Before the IOMMU probe deferral, all such errors
+were ignored. Now all those errors are propagated back,
+killing the master's probe for such errors. Instead ignore
+all the errors except EPROBE_DEFER, which is the only one
+of concern and let the master work without IOMMU, thus
+restoring the old behavior. Also make explicit that
+of_dma_configure handles only -EPROBE_DEFER from
+of_iommu_configure.
 
-FWIW: here is my
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Fixes: 7b07cbefb68d ("iommu: of: Handle IOMMU lookup failure with deferred probing or error")
+Reported-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Tested-by: Magnus Damn <magnus.damn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+---
+ drivers/iommu/of_iommu.c | 6 ++++++
+ drivers/of/device.c      | 4 ++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-for entire series _except_ this change. I'm obviously not a legal or
-author of that code, so, I can't speak for them.
-
->
-> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
-> ---
->  drivers/i2c/i2c-core-base.c | 40 +++++++++++++++++++--------------------=
--
->  1 file changed, 19 insertions(+), 21 deletions(-)
->
-> diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-> index 78135c1deaab59..2f742ffac8754c 100644
-> --- a/drivers/i2c/i2c-core-base.c
-> +++ b/drivers/i2c/i2c-core-base.c
-> @@ -1,21 +1,18 @@
-> -/* i2c-core.c - a device driver for the iic-bus interface               =
-    */
-> -/* ---------------------------------------------------------------------=
----- */
-> -/*   Copyright (C) 1995-99 Simon G. Vogl
-> -
-> -    This program is free software; you can redistribute it and/or modify
-> -    it under the terms of the GNU General Public License as published by
-> -    the Free Software Foundation; either version 2 of the License, or
-> -    (at your option) any later version.
-> -
-> -    This program is distributed in the hope that it will be useful,
-> -    but WITHOUT ANY WARRANTY; without even the implied warranty of
-> -    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> -    GNU General Public License for more details.                        =
-    */
-> -/* ---------------------------------------------------------------------=
----- */
-> -
-> -/* With some changes from Ky=C3=B6sti M=C3=A4lkki <kmalkki@cc.hut.fi>.
-> -   Mux support by Rodolfo Giometti <giometti@enneenne.com> and
-> -   Michael Lawnick <michael.lawnick.ext@nsn.com>
-> +/*
-> + * Linux I2C core
-> + *
-> + * Copyright (C) 1995-99 Simon G. Vogl
-> + *   With some changes from Ky=C3=B6sti M=C3=A4lkki <kmalkki@cc.hut.fi>
-> + * Copyright (C) 2013-2017 Wolfram Sang <wsa@the-dreams.de>
-> + *
-> + * This program is free software; you can redistribute it and/or modify =
-it
-> + * under the terms of the GNU General Public License as published by the=
- Free
-> + * Software Foundation; either version 2 of the License, or (at your opt=
-ion)
-> + * any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful, but W=
-ITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or=
- FITNESS
-> + * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more=
- details.
->   */
->
->  #define pr_fmt(fmt) "i2c-core: " fmt
-> @@ -57,9 +54,10 @@
->  #define I2C_ADDR_7BITS_MAX     0x77
->  #define I2C_ADDR_7BITS_COUNT   (I2C_ADDR_7BITS_MAX + 1)
->
-> -/* core_lock protects i2c_adapter_idr, and guarantees
-> -   that device detection, deletion of detected devices, and attach_adapt=
-er
-> -   calls are serialized */
-> +/*
-> + * core_lock protects i2c_adapter_idr, and guarantees that device detect=
-ion,
-> + * deletion of detected devices, and attach_adapter calls are serialized
-> + */
->  static DEFINE_MUTEX(core_lock);
->  static DEFINE_IDR(i2c_adapter_idr);
->
-> --
-> 2.11.0
->
-
-
-
---=20
-With Best Regards,
-Andy Shevchenko
+diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+index e6e9bec..19779b8 100644
+--- a/drivers/iommu/of_iommu.c
++++ b/drivers/iommu/of_iommu.c
+@@ -237,6 +237,12 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
+ 			ops = ERR_PTR(err);
+ 	}
+ 
++	/* Ignore all other errors apart from EPROBE_DEFER */
++	if (IS_ERR(ops) && (PTR_ERR(ops) != -EPROBE_DEFER)) {
++		dev_dbg(dev, "Adding to IOMMU failed: %ld\n", PTR_ERR(ops));
++		ops = NULL;
++	}
++
+ 	return ops;
+ }
+ 
+diff --git a/drivers/of/device.c b/drivers/of/device.c
+index 9416d05..28c38c7 100644
+--- a/drivers/of/device.c
++++ b/drivers/of/device.c
+@@ -144,8 +144,8 @@ int of_dma_configure(struct device *dev, struct device_node *np)
+ 		coherent ? " " : " not ");
+ 
+ 	iommu = of_iommu_configure(dev, np);
+-	if (IS_ERR(iommu))
+-		return PTR_ERR(iommu);
++	if (IS_ERR(iommu) && PTR_ERR(iommu) == -EPROBE_DEFER)
++		return -EPROBE_DEFER;
+ 
+ 	dev_dbg(dev, "device is%sbehind an iommu\n",
+ 		iommu ? " " : " not ");
+-- 
+QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
