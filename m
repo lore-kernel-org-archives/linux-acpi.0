@@ -1,35 +1,27 @@
 From: Darren Hart <dvhart@infradead.org>
-Subject: [PATCH 14/16] platform/x86: wmi: Require query for data blocks, rename writable to setable
-Date: Fri, 26 May 2017 22:31:28 -0700
-Message-ID: <f0af98813a0e37b26b42733f3e871b9435bacfe7.1495862272.git.dvhart@infradead.org>
+Subject: [PATCH 12/16] platform/x86: wmi: Bind the platform device, not the ACPI node
+Date: Fri, 26 May 2017 22:31:26 -0700
+Message-ID: <ee94a4f1383c5fd3bb6ad024c0d7f298b40c6dea.1495862272.git.dvhart@infradead.org>
 References: <cover.1495862272.git.dvhart@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1495862272.git.dvhart@infradead.org>
 In-Reply-To: <cover.1495862272.git.dvhart@infradead.org>
 References: <cover.1495862272.git.dvhart@infradead.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: platform-driver-x86@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Darren Hart (VMware)" <dvhart@infradead.org>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Darren Hart <dvhart@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: "Darren Hart (VMware)" <dvhart@infradead.org>
+From: Andy Lutomirski <luto@kernel.org>
 
-The Microsoft WMI documentation requires all data blocks to implement
-the Query Control Method (WQxx). If we encounter a data block not
-implementing this control method, issue a warning, and ignore the data
-block. Remove the "readable" attribute as all data blocks must be
-readable (query-able).
+We already have the PNP glue to instantiate platform devices for the
+ACPI devices that WMI drives. WMI should therefore attach to the
+platform device, not the ACPI node.
 
-Be consistent with the language in the documentation, replace the
-"writable" attribute with "setable".
-
-Simplify (flatten) the control flow of wmi_create_device a bit while
-we are updating it for the above changes.
-
-Signed-off-by: Darren Hart (VMware) <dvhart@infradead.org>
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Mario Limonciello <mario_limonciello@dell.com>
 Cc: Pali Rohár <pali.rohar@gmail.com>
@@ -37,202 +29,151 @@ Cc: Rafael Wysocki <rjw@rjwysocki.net>
 Cc: linux-kernel@vger.kernel.org
 Cc: platform-driver-x86@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Darren Hart (VMware) <dvhart@infradead.org>
 ---
- drivers/platform/x86/wmi.c | 117 +++++++++++++++++++++++----------------------
- include/linux/wmi.h        |   7 +--
- 2 files changed, 63 insertions(+), 61 deletions(-)
+ drivers/platform/x86/wmi.c | 57 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 33 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index 8dd9988..cc55952 100644
+index 483e4a6..f1c9464 100644
 --- a/drivers/platform/x86/wmi.c
 +++ b/drivers/platform/x86/wmi.c
-@@ -69,7 +69,7 @@ struct wmi_block {
- 	wmi_notify_handler handler;
- 	void *handler_data;
+@@ -37,6 +37,7 @@
+ #include <linux/acpi.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
++#include <linux/platform_device.h>
+ #include <linux/wmi.h>
+ #include <linux/uuid.h>
  
--	bool read_takes_no_args;	/* only defined if readable */
-+	bool read_takes_no_args;
+@@ -91,8 +92,8 @@ module_param(debug_dump_wdg, bool, 0444);
+ MODULE_PARM_DESC(debug_dump_wdg,
+ 		 "Dump available WMI interfaces [0/1]");
+ 
+-static int acpi_wmi_remove(struct acpi_device *device);
+-static int acpi_wmi_add(struct acpi_device *device);
++static int acpi_wmi_remove(struct platform_device *device);
++static int acpi_wmi_probe(struct platform_device *device);
+ 
+ static const struct acpi_device_id wmi_device_ids[] = {
+ 	{"PNP0C14", 0},
+@@ -101,14 +102,13 @@ static const struct acpi_device_id wmi_device_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(acpi, wmi_device_ids);
+ 
+-static struct acpi_driver acpi_wmi_driver = {
+-	.name = "acpi-wmi",
+-	.owner = THIS_MODULE,
+-	.ids = wmi_device_ids,
+-	.ops = {
+-		.add = acpi_wmi_add,
+-		.remove = acpi_wmi_remove,
++static struct platform_driver acpi_wmi_driver = {
++	.driver = {
++		.name = "acpi-wmi",
++		.acpi_match_table = wmi_device_ids,
+ 	},
++	.probe = acpi_wmi_probe,
++	.remove = acpi_wmi_remove,
  };
  
+ /*
+@@ -1113,26 +1113,34 @@ static void acpi_wmi_notify_handler(acpi_handle handle, u32 event,
  
-@@ -694,28 +694,18 @@ static ssize_t object_id_show(struct device *dev, struct device_attribute *attr,
  }
- static DEVICE_ATTR_RO(object_id);
  
--static ssize_t readable_show(struct device *dev, struct device_attribute *attr,
--			     char *buf)
-+static ssize_t setable_show(struct device *dev, struct device_attribute *attr,
-+			    char *buf)
+-static int acpi_wmi_remove(struct acpi_device *device)
++static int acpi_wmi_remove(struct platform_device *device)
  {
- 	struct wmi_device *wdev = dev_to_wdev(dev);
+-	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
++	struct acpi_device *acpi_device = ACPI_COMPANION(&device->dev);
++
++	acpi_remove_notify_handler(acpi_device->handle, ACPI_DEVICE_NOTIFY,
+ 				   acpi_wmi_notify_handler);
+-	acpi_remove_address_space_handler(device->handle,
++	acpi_remove_address_space_handler(acpi_device->handle,
+ 				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
+-	wmi_free_devices(device);
+-	device_unregister((struct device *)acpi_driver_data(device));
+-	device->driver_data = NULL;
++	wmi_free_devices(acpi_device);
++	device_unregister((struct device *)dev_get_drvdata(&device->dev));
  
--	return sprintf(buf, "%d\n", (int)wdev->readable);
-+	return sprintf(buf, "%d\n", (int)wdev->setable);
+ 	return 0;
  }
--static DEVICE_ATTR_RO(readable);
--
--static ssize_t writeable_show(struct device *dev, struct device_attribute *attr,
--			      char *buf)
--{
--	struct wmi_device *wdev = dev_to_wdev(dev);
--
--	return sprintf(buf, "%d\n", (int)wdev->writeable);
--}
--static DEVICE_ATTR_RO(writeable);
-+static DEVICE_ATTR_RO(setable);
  
- static struct attribute *wmi_data_attrs[] = {
- 	&dev_attr_object_id.attr,
--	&dev_attr_readable.attr,
--	&dev_attr_writeable.attr,
-+	&dev_attr_setable.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(wmi_data);
-@@ -833,63 +823,74 @@ static struct device_type wmi_type_data = {
- 	.release = wmi_dev_release,
- };
- 
--static void wmi_create_device(struct device *wmi_bus_dev,
-+static int wmi_create_device(struct device *wmi_bus_dev,
- 			     const struct guid_block *gblock,
- 			     struct wmi_block *wblock,
- 			     struct acpi_device *device)
+-static int acpi_wmi_add(struct acpi_device *device)
++static int acpi_wmi_probe(struct platform_device *device)
  {
--	wblock->dev.dev.bus = &wmi_bus_type;
--	wblock->dev.dev.parent = wmi_bus_dev;
--
--	dev_set_name(&wblock->dev.dev, "%pUL", gblock->guid);
-+	struct acpi_device_info *info;
-+	char method[5];
-+	int result;
++	struct acpi_device *acpi_device;
+ 	struct device *wmi_bus_dev;
+ 	acpi_status status;
+ 	int error;
  
- 	if (gblock->flags & ACPI_WMI_EVENT) {
- 		wblock->dev.dev.type = &wmi_type_event;
--	} else if (gblock->flags & ACPI_WMI_METHOD) {
-+		goto out_init;
+-	status = acpi_install_address_space_handler(device->handle,
++	acpi_device = ACPI_COMPANION(&device->dev);
++	if (!acpi_device) {
++		dev_err(&device->dev, "ACPI companion is missing\n");
++		return -ENODEV;
 +	}
 +
-+	if (gblock->flags & ACPI_WMI_METHOD) {
- 		wblock->dev.dev.type = &wmi_type_method;
--	} else {
--		struct acpi_device_info *info;
--		char method[5];
--		int result;
-+		goto out_init;
-+	}
++	status = acpi_install_address_space_handler(acpi_device->handle,
+ 						    ACPI_ADR_SPACE_EC,
+ 						    &acpi_wmi_ec_space_handler,
+ 						    NULL, NULL);
+@@ -1141,7 +1149,8 @@ static int acpi_wmi_add(struct acpi_device *device)
+ 		return -ENODEV;
+ 	}
  
--		wblock->dev.dev.type = &wmi_type_data;
-+	/*
-+	 * Data Block Query Control Method (WQxx by convention) is
-+	 * required per the WMI documentation. If it is not present,
-+	 * we ignore this data block.
-+	 */
-+	strcpy(method, "WQ");
-+	strncat(method, wblock->gblock.object_id, 2);
-+	result = get_subobj_info(device->handle, method, &info);
-+
-+	if (result) {
-+		dev_warn(wmi_bus_dev,
-+			 "%s data block query control method not found",
-+			 method);
-+		return result;
-+	}
+-	status = acpi_install_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
++	status = acpi_install_notify_handler(acpi_device->handle,
++					     ACPI_DEVICE_NOTIFY,
+ 					     acpi_wmi_notify_handler,
+ 					     NULL);
+ 	if (ACPI_FAILURE(status)) {
+@@ -1156,9 +1165,9 @@ static int acpi_wmi_add(struct acpi_device *device)
+ 		error = PTR_ERR(wmi_bus_dev);
+ 		goto err_remove_notify_handler;
+ 	}
+-	device->driver_data = wmi_bus_dev;
++	dev_set_drvdata(&device->dev, wmi_bus_dev);
  
--		strcpy(method, "WQ");
--		strncat(method, wblock->gblock.object_id, 2);
--		result = get_subobj_info(device->handle, method, &info);
-+	wblock->dev.dev.type = &wmi_type_data;
+-	error = parse_wdg(wmi_bus_dev, device);
++	error = parse_wdg(wmi_bus_dev, acpi_device);
+ 	if (error) {
+ 		pr_err("Failed to parse WDG method\n");
+ 		goto err_remove_busdev;
+@@ -1170,11 +1179,11 @@ static int acpi_wmi_add(struct acpi_device *device)
+ 	device_unregister(wmi_bus_dev);
  
--		if (result == 0) {
--			wblock->dev.readable = true;
-+	/*
-+	 * The Microsoft documentation specifically states:
-+	 *
-+	 *   Data blocks registered with only a single instance
-+	 *   can ignore the parameter.
-+	 *
-+	 * ACPICA will get mad at us if we call the method with the wrong number
-+	 * of arguments, so check what our method expects.  (On some Dell
-+	 * laptops, WQxx may not be a method at all.)
-+	 */
-+	if (info->type != ACPI_TYPE_METHOD || info->param_count == 0)
-+		wblock->read_takes_no_args = true;
+ err_remove_notify_handler:
+-	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
++	acpi_remove_notify_handler(acpi_device->handle, ACPI_DEVICE_NOTIFY,
+ 				   acpi_wmi_notify_handler);
  
--			/*
--			 * The Microsoft documentation specifically states:
--			 *
--			 *   Data blocks registered with only a single instance
--			 *   can ignore the parameter.
--			 *
--			 * ACPICA will get mad at us if we call the method
--			 * with the wrong number of arguments, so check what
--			 * our method expects.  (On some Dell laptops, WQxx
--			 * may not be a method at all.)
--			 */
--			if (info->type != ACPI_TYPE_METHOD ||
--			    info->param_count == 0)
--				wblock->read_takes_no_args = true;
-+	kfree(info);
+ err_remove_ec_handler:
+-	acpi_remove_address_space_handler(device->handle,
++	acpi_remove_address_space_handler(acpi_device->handle,
+ 					  ACPI_ADR_SPACE_EC,
+ 					  &acpi_wmi_ec_space_handler);
  
--			kfree(info);
--		}
-+	strcpy(method, "WS");
-+	strncat(method, wblock->gblock.object_id, 2);
-+	result = get_subobj_info(device->handle, method, NULL);
+@@ -1212,7 +1221,7 @@ static int __init acpi_wmi_init(void)
+ 	if (error)
+ 		goto err_unreg_class;
  
--		strcpy(method, "WS");
--		strncat(method, wblock->gblock.object_id, 2);
--		result = get_subobj_info(device->handle, method, NULL);
-+	if (result == 0)
-+		wblock->dev.setable = true;
+-	error = acpi_bus_register_driver(&acpi_wmi_driver);
++	error = platform_driver_register(&acpi_wmi_driver);
+ 	if (error) {
+ 		pr_err("Error loading mapper\n");
+ 		goto err_unreg_bus;
+@@ -1231,7 +1240,7 @@ static int __init acpi_wmi_init(void)
  
--		if (result == 0) {
--			wblock->dev.writeable = true;
--		}
-+ out_init:
-+	wblock->dev.dev.bus = &wmi_bus_type;
-+	wblock->dev.dev.parent = wmi_bus_dev;
- 
--	}
-+	dev_set_name(&wblock->dev.dev, "%pUL", gblock->guid);
- 
- 	device_initialize(&wblock->dev.dev);
-+
-+	return 0;
+ static void __exit acpi_wmi_exit(void)
+ {
+-	acpi_bus_unregister_driver(&acpi_wmi_driver);
++	platform_driver_unregister(&acpi_wmi_driver);
+ 	class_unregister(&wmi_bus_class);
+ 	bus_unregister(&wmi_bus_type);
  }
- 
- static void wmi_free_devices(struct acpi_device *device)
-@@ -985,7 +986,11 @@ static int parse_wdg(struct device *wmi_bus_dev, struct acpi_device *device)
- 		wblock->acpi_device = device;
- 		wblock->gblock = gblock[i];
- 
--		wmi_create_device(wmi_bus_dev, &gblock[i], wblock, device);
-+		retval = wmi_create_device(wmi_bus_dev, &gblock[i], wblock, device);
-+		if (retval) {
-+			kfree(wblock);
-+			continue;
-+		}
- 
- 		list_add_tail(&wblock->list, &wmi_block_list);
- 
-diff --git a/include/linux/wmi.h b/include/linux/wmi.h
-index a283768..cd0d773 100644
---- a/include/linux/wmi.h
-+++ b/include/linux/wmi.h
-@@ -22,11 +22,8 @@
- struct wmi_device {
- 	struct device dev;
- 
--	/*
--	 * These are true for data objects that support reads and writes,
--	 * respectively.
--	 */
--	bool readable, writeable;
-+	 /* True for data blocks implementing the Set Control Method */
-+	bool setable;
- };
- 
- /* Caller must kfree the result. */
 -- 
 2.9.4
