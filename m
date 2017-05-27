@@ -1,81 +1,74 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 00/16] Convert WMI to a proper bus
-Date: Sat, 27 May 2017 23:01:16 +0300
-Message-ID: <CAHp75Vc=fFvqf2OKEAisObkBkbHdD+RjE-kK2FDeg1GyX36v5w@mail.gmail.com>
-References: <cover.1495862272.git.dvhart@infradead.org> <3214691.4YNsAb1L33@aspire.rjw.lan>
+From: Andy Lutomirski <luto@kernel.org>
+Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose
+ embedded WMI MOF metadata
+Date: Sat, 27 May 2017 14:07:40 -0700
+Message-ID: <CALCETrWgFqhYCVmr+rox5GuwAO8HzenjRt7MeKJbAmV3gJCmng@mail.gmail.com>
+References: <cover.1495862272.git.dvhart@infradead.org> <27758381c6cb77efab75a266e21243a964cce0ba.1495862272.git.dvhart@infradead.org>
+ <201705271314.16241@pali>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:35058 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750744AbdE0UBS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 May 2017 16:01:18 -0400
-In-Reply-To: <3214691.4YNsAb1L33@aspire.rjw.lan>
+Received: from mail.kernel.org ([198.145.29.99]:55606 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750784AbdE0VIC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 27 May 2017 17:08:02 -0400
+Received: from mail-ua0-f178.google.com (mail-ua0-f178.google.com [209.85.217.178])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id C26D3239F3
+        for <linux-acpi@vger.kernel.org>; Sat, 27 May 2017 21:08:01 +0000 (UTC)
+Received: by mail-ua0-f178.google.com with SMTP id u10so20624519uaf.1
+        for <linux-acpi@vger.kernel.org>; Sat, 27 May 2017 14:08:01 -0700 (PDT)
+In-Reply-To: <201705271314.16241@pali>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Darren Hart <dvhart@infradead.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
+Cc: Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Sat, May 27, 2017 at 10:49 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Friday, May 26, 2017 10:31:14 PM Darren Hart wrote:
->> From: "Darren Hart (VMware)" <dvhart@infradead.org>
->>
->> This series is based on the original work of
->> Andy Lutomirski <luto@amacapital.net> [1]. I have made minor edits, and in
->> one instance, squashed two patches in which the latter undid the former.
->>
->> This series converts WMI [2] into a proper bus, adds some useful information via
->> sysfs, and exposes the embedded MOF [3] binary. It converts dell-wmi to use the
->> new WMI bus architecture.
->>
->> This is the first part of an ongoing effort to enhance the WMI infrastructure
->> within the kernel, and eventually expose WMI to userspace for the consumption of
->> management utilities as it was intended.
->>
->> 1. https://git.kernel.org/pub/scm/linux/kernel/git/luto/linux.git/log/?h=platform/wmi
->> 2. https://msdn.microsoft.com/en-us/library/windows/hardware/dn614028(v=vs.85).aspx
->> 3. https://msdn.microsoft.com/en-us/library/aa823192(v=vs.85).aspx
->>
->> Andy Lutomirski (15):
->>   platform/x86: wmi: Drop "Mapper (un)loaded" messages
->>   platform/x86: wmi: Pass the acpi_device through to parse_wdg
->>   platform/x86: wmi: Clean up acpi_wmi_add
->>   platform/x86: wmi: Track wmi devices per ACPI device
->>   platform/x86: wmi: Turn WMI into a bus driver
->>   platform/x86: wmi: Fix error handling when creating devices
->>   platform/x86: wmi: Split devices into types and add basic sysfs attributes
->>   platform/x86: wmi: Probe data objects for read and write capabilities
->>   platform/x86: wmi: Instantiate all devices before adding them
->>   platform/x86: wmi: Incorporate acpi_install_notify_handler
->>   platform/x86: wmi: Add a new interface to read block data
->>   platform/x86: wmi: Bind the platform device, not the ACPI node
->>   platform/x86: wmi: Add an interface for subdrivers to access sibling devices
->>   platform/x86: wmi-mof: New driver to expose embedded WMI MOF metadata
->>   platform/x86: dell-wmi: Convert to the WMI bus infrastructure
->>
->> Darren Hart (VMware) (1):
->>   platform/x86: wmi: Require query for data blocks, rename writable to setable
->>
->>  drivers/platform/x86/Kconfig    |  12 +
->>  drivers/platform/x86/Makefile   |   1 +
->>  drivers/platform/x86/dell-wmi.c | 136 ++++----
->>  drivers/platform/x86/wmi-mof.c  | 125 ++++++++
->>  drivers/platform/x86/wmi.c      | 677 ++++++++++++++++++++++++++++++++--------
->>  include/linux/wmi.h             |  59 ++++
->>  6 files changed, 815 insertions(+), 195 deletions(-)
->>  create mode 100644 drivers/platform/x86/wmi-mof.c
->>  create mode 100644 include/linux/wmi.h
+On Sat, May 27, 2017 at 4:14 AM, Pali Rohár <pali.rohar@gmail.com> wrote:
+> Hi! Note that in WMI is stored binary MOF (BMOF; .bmf file; compiled
+> MOF), not ordinary MOF data which are plain text. So maybe it could make
+> sense to include "B" into name of sysfs entry? Or not? (Just suggestion)
 >
-> All of this makes sense from the ACPI core perspective, so
+> On Saturday 27 May 2017 07:31:29 Darren Hart wrote:
+>> From: Andy Lutomirski <luto@kernel.org>
+>>
+>> Quite a few laptops (and maybe servers?) have embedded WMI MOF
 >
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Not "a few", but "lots of" :-)
+>
+>> metadata. I think that Samba has tools to interpret it, but there is
+>> currently no interface to get the data in the first place.
+>
+> No, there is no non-ms-windows tool for interpreting those binary MOF
+> (BMF) data yet.
+>
+>> +     priv->mofdata = wmidev_block_query(wdev, 0);
+>> +     if (!priv->mofdata) {
+>> +             dev_warn(&wdev->dev, "failed to read MOF\n");
+>> +             return -EIO;
+>> +     }
+>> +
+>> +     if (priv->mofdata->type != ACPI_TYPE_BUFFER) {
+>> +             dev_warn(&wdev->dev, "MOF is not a buffer\n");
+>> +             ret = -EIO;
+>> +             goto err_free;
+>> +     }
+>
+> Are not those problems fatal for driver and therefore dev_err() better?
+>
+>> +     sysfs_bin_attr_init(&priv->mof_bin_attr);
+>> +     priv->mof_bin_attr.attr.name = "mof";
+>> +     priv->mof_bin_attr.attr.mode = 0400;
+>
+> 0400 means to be readable only by root? Is there then reason why normal
+> user should not be able to read it?
+>
 
-Thanks, Rafael.
-
-> for the series and I'm assuming that it will go in via the platform/x86 tree.
-
-Correct.
-
--- 
-With Best Regards,
-Andy Shevchenko
+I have no specific objection to making it 0444, but in general I'd
+rather expose less information to unprivileged users rather than more.
+I'm also having trouble imagining what an unprivileged user would do
+with the MOF -- it's useful for reverse engineering and it may
+eventually be useful for making WMI calls from userspace, but neither
+of those is particularly useful to unprivileged users.
