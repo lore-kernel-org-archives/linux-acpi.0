@@ -1,27 +1,35 @@
 From: Darren Hart <dvhart@infradead.org>
-Subject: [PATCH 01/16] platform/x86: wmi: Drop "Mapper (un)loaded" messages
-Date: Fri, 26 May 2017 22:31:15 -0700
-Message-ID: <e12ef54a704a614659171cb825008fdc07ab4839.1495862272.git.dvhart@infradead.org>
+Subject: [PATCH 04/16] platform/x86: wmi: Track wmi devices per ACPI device
+Date: Fri, 26 May 2017 22:31:18 -0700
+Message-ID: <d8d7a72ea2cb8c5288f00ea5383433e1912107ff.1495862272.git.dvhart@infradead.org>
 References: <cover.1495862272.git.dvhart@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:55249 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750750AbdE0Fbl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 27 May 2017 01:31:41 -0400
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <cover.1495862272.git.dvhart@infradead.org>
 In-Reply-To: <cover.1495862272.git.dvhart@infradead.org>
 References: <cover.1495862272.git.dvhart@infradead.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: platform-driver-x86@vger.kernel.org
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Darren Hart <dvhart@infradead.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Andy Lutomirski <luto@kernel.org>
 
-WMI is just a driver. There is no need to announce when it is loaded.
+Currently we free all devices when we detach from any ACPI node.
+Instead, keep track of which node WMI devices are attached to and
+free them only as needed. While we are at it, match up notifications
+with the device they came from correctly.
+
+This will make our behavior more straightforward on systems with
+more than one WMI node in the ACPI tables (e.g. the Dell XPS 13
+9350).
+
+This also adds a warning when GUIDs are not unique.
+
+NB: The guid_string parameter in guid_already_parsed was a
+little-endian binary GUID, not a string.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
 Cc: Andy Lutomirski <luto@amacapital.net>
@@ -33,30 +41,161 @@ Cc: platform-driver-x86@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org
 Signed-off-by: Darren Hart (VMware) <dvhart@infradead.org>
 ---
- drivers/platform/x86/wmi.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/platform/x86/wmi.c | 58 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 36 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index ceeb8c1..0043581 100644
+index ac60a51..faaa9a7 100644
 --- a/drivers/platform/x86/wmi.c
 +++ b/drivers/platform/x86/wmi.c
-@@ -836,7 +836,6 @@ static int __init acpi_wmi_init(void)
- 		return error;
+@@ -64,7 +64,7 @@ struct guid_block {
+ struct wmi_block {
+ 	struct list_head list;
+ 	struct guid_block gblock;
+-	acpi_handle handle;
++	struct acpi_device *acpi_device;
+ 	wmi_notify_handler handler;
+ 	void *handler_data;
+ 	struct device dev;
+@@ -147,7 +147,7 @@ static acpi_status wmi_method_enable(struct wmi_block *wblock, int enable)
+ 	acpi_handle handle;
+ 
+ 	block = &wblock->gblock;
+-	handle = wblock->handle;
++	handle = wblock->acpi_device->handle;
+ 
+ 	snprintf(method, 5, "WE%02X", block->notify_id);
+ 	status = acpi_execute_simple_method(handle, method, enable);
+@@ -186,7 +186,7 @@ u32 method_id, const struct acpi_buffer *in, struct acpi_buffer *out)
+ 		return AE_ERROR;
+ 
+ 	block = &wblock->gblock;
+-	handle = wblock->handle;
++	handle = wblock->acpi_device->handle;
+ 
+ 	if (!(block->flags & ACPI_WMI_METHOD))
+ 		return AE_BAD_DATA;
+@@ -248,7 +248,7 @@ struct acpi_buffer *out)
+ 		return AE_ERROR;
+ 
+ 	block = &wblock->gblock;
+-	handle = wblock->handle;
++	handle = wblock->acpi_device->handle;
+ 
+ 	if (block->instance_count < instance)
+ 		return AE_BAD_PARAMETER;
+@@ -321,7 +321,7 @@ const struct acpi_buffer *in)
+ 		return AE_ERROR;
+ 
+ 	block = &wblock->gblock;
+-	handle = wblock->handle;
++	handle = wblock->acpi_device->handle;
+ 
+ 	if (block->instance_count < instance)
+ 		return AE_BAD_PARAMETER;
+@@ -525,8 +525,8 @@ acpi_status wmi_get_event_data(u32 event, struct acpi_buffer *out)
+ 
+ 		if ((gblock->flags & ACPI_WMI_EVENT) &&
+ 			(gblock->notify_id == event))
+-			return acpi_evaluate_object(wblock->handle, "_WED",
+-				&input, out);
++			return acpi_evaluate_object(wblock->acpi_device->handle,
++				"_WED", &input, out);
  	}
  
--	pr_info("Mapper loaded\n");
+ 	return AE_NOT_FOUND;
+@@ -618,27 +618,40 @@ static int wmi_create_device(const struct guid_block *gblock,
+ 	return device_register(&wblock->dev);
+ }
+ 
+-static void wmi_free_devices(void)
++static void wmi_free_devices(struct acpi_device *device)
+ {
+ 	struct wmi_block *wblock, *next;
+ 
+ 	/* Delete devices for all the GUIDs */
+ 	list_for_each_entry_safe(wblock, next, &wmi_block_list, list) {
+-		list_del(&wblock->list);
+-		if (wblock->dev.class)
+-			device_unregister(&wblock->dev);
+-		else
+-			kfree(wblock);
++		if (wblock->acpi_device == device) {
++			list_del(&wblock->list);
++			if (wblock->dev.class)
++				device_unregister(&wblock->dev);
++			else
++				kfree(wblock);
++		}
+ 	}
+ }
+ 
+-static bool guid_already_parsed(const char *guid_string)
++static bool guid_already_parsed(struct acpi_device *device,
++				const u8 *guid)
+ {
+ 	struct wmi_block *wblock;
+ 
+-	list_for_each_entry(wblock, &wmi_block_list, list)
+-		if (memcmp(wblock->gblock.guid, guid_string, 16) == 0)
++	list_for_each_entry(wblock, &wmi_block_list, list) {
++		if (memcmp(wblock->gblock.guid, guid, 16) == 0) {
++			/*
++			 * Because we historically didn't track the relationship
++			 * between GUIDs and ACPI nodes, we don't know whether
++			 * we need to suppress GUIDs that are unique on a
++			 * given node but duplicated across nodes.
++			 */
++			dev_warn(&device->dev, "duplicate WMI GUID %pUL (first instance was on %s)\n",
++				 guid, dev_name(&wblock->acpi_device->dev));
+ 			return true;
++		}
++	}
+ 
+ 	return false;
+ }
+@@ -680,7 +693,7 @@ static int parse_wdg(struct acpi_device *device)
+ 		if (!wblock)
+ 			return -ENOMEM;
+ 
+-		wblock->handle = device->handle;
++		wblock->acpi_device = device;
+ 		wblock->gblock = gblock[i];
+ 
+ 		/*
+@@ -689,10 +702,10 @@ static int parse_wdg(struct acpi_device *device)
+ 		  case yet, so for now, we'll just ignore the duplicate
+ 		  for device creation.
+ 		*/
+-		if (!guid_already_parsed(gblock[i].guid)) {
++		if (!guid_already_parsed(device, gblock[i].guid)) {
+ 			retval = wmi_create_device(&gblock[i], wblock, device);
+ 			if (retval) {
+-				wmi_free_devices();
++				wmi_free_devices(device);
+ 				goto out_free_pointer;
+ 			}
+ 		}
+@@ -767,8 +780,9 @@ static void acpi_wmi_notify(struct acpi_device *device, u32 event)
+ 		wblock = list_entry(p, struct wmi_block, list);
+ 		block = &wblock->gblock;
+ 
+-		if ((block->flags & ACPI_WMI_EVENT) &&
+-			(block->notify_id == event)) {
++		if (wblock->acpi_device == device &&
++		    (block->flags & ACPI_WMI_EVENT) &&
++		    (block->notify_id == event)) {
+ 			if (wblock->handler)
+ 				wblock->handler(event, wblock->handler_data);
+ 			if (debug_event) {
+@@ -788,7 +802,7 @@ static int acpi_wmi_remove(struct acpi_device *device)
+ {
+ 	acpi_remove_address_space_handler(device->handle,
+ 				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
+-	wmi_free_devices();
++	wmi_free_devices(device);
+ 
  	return 0;
  }
- 
-@@ -844,8 +843,6 @@ static void __exit acpi_wmi_exit(void)
- {
- 	acpi_bus_unregister_driver(&acpi_wmi_driver);
- 	class_unregister(&wmi_class);
--
--	pr_info("Mapper unloaded\n");
- }
- 
- subsys_initcall(acpi_wmi_init);
 -- 
 2.9.4
-
