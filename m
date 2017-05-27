@@ -1,63 +1,85 @@
 From: Darren Hart <dvhart@infradead.org>
-Subject: [PATCH 00/16] Convert WMI to a proper bus
-Date: Fri, 26 May 2017 22:31:14 -0700
-Message-ID: <cover.1495862272.git.dvhart@infradead.org>
+Subject: [PATCH 06/16] platform/x86: wmi: Fix error handling when creating devices
+Date: Fri, 26 May 2017 22:31:20 -0700
+Message-ID: <99f96cee64db588a3846332162aaccb11aa8641b.1495862272.git.dvhart@infradead.org>
+References: <cover.1495862272.git.dvhart@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1495862272.git.dvhart@infradead.org>
+In-Reply-To: <cover.1495862272.git.dvhart@infradead.org>
+References: <cover.1495862272.git.dvhart@infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: platform-driver-x86@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Darren Hart (VMware)" <dvhart@infradead.org>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Darren Hart <dvhart@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: "Darren Hart (VMware)" <dvhart@infradead.org>
+From: Andy Lutomirski <luto@kernel.org>
 
-This series is based on the original work of
-Andy Lutomirski <luto@amacapital.net> [1]. I have made minor edits, and in
-one instance, squashed two patches in which the latter undid the former.
+We have two memory leaks. If guid_already_parsed returned true, we leak
+the wmi_block. If wmi_create_device failed, we leak the device.
 
-This series converts WMI [2] into a proper bus, adds some useful information via
-sysfs, and exposes the embedded MOF [3] binary. It converts dell-wmi to use the
-new WMI bus architecture.
+Simplify the logic and fix both of them.
 
-This is the first part of an ongoing effort to enhance the WMI infrastructure
-within the kernel, and eventually expose WMI to userspace for the consumption of
-management utilities as it was intended.
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Mario Limonciello <mario_limonciello@dell.com>
+Cc: Pali Rohár <pali.rohar@gmail.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>
+Cc: linux-kernel@vger.kernel.org
+Cc: platform-driver-x86@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Darren Hart (VMware) <dvhart@infradead.org>
+---
+ drivers/platform/x86/wmi.c | 28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-1. https://git.kernel.org/pub/scm/linux/kernel/git/luto/linux.git/log/?h=platform/wmi
-2. https://msdn.microsoft.com/en-us/library/windows/hardware/dn614028(v=vs.85).aspx
-3. https://msdn.microsoft.com/en-us/library/aa823192(v=vs.85).aspx
-
-Andy Lutomirski (15):
-  platform/x86: wmi: Drop "Mapper (un)loaded" messages
-  platform/x86: wmi: Pass the acpi_device through to parse_wdg
-  platform/x86: wmi: Clean up acpi_wmi_add
-  platform/x86: wmi: Track wmi devices per ACPI device
-  platform/x86: wmi: Turn WMI into a bus driver
-  platform/x86: wmi: Fix error handling when creating devices
-  platform/x86: wmi: Split devices into types and add basic sysfs attributes
-  platform/x86: wmi: Probe data objects for read and write capabilities
-  platform/x86: wmi: Instantiate all devices before adding them
-  platform/x86: wmi: Incorporate acpi_install_notify_handler
-  platform/x86: wmi: Add a new interface to read block data
-  platform/x86: wmi: Bind the platform device, not the ACPI node
-  platform/x86: wmi: Add an interface for subdrivers to access sibling devices
-  platform/x86: wmi-mof: New driver to expose embedded WMI MOF metadata
-  platform/x86: dell-wmi: Convert to the WMI bus infrastructure
-
-Darren Hart (VMware) (1):
-  platform/x86: wmi: Require query for data blocks, rename writable to setable
-
- drivers/platform/x86/Kconfig    |  12 +
- drivers/platform/x86/Makefile   |   1 +
- drivers/platform/x86/dell-wmi.c | 136 ++++----
- drivers/platform/x86/wmi-mof.c  | 125 ++++++++
- drivers/platform/x86/wmi.c      | 677 ++++++++++++++++++++++++++++++++--------
- include/linux/wmi.h             |  59 ++++
- 6 files changed, 815 insertions(+), 195 deletions(-)
- create mode 100644 drivers/platform/x86/wmi-mof.c
- create mode 100644 include/linux/wmi.h
-
+diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+index f06b7c0..31c317f 100644
+--- a/drivers/platform/x86/wmi.c
++++ b/drivers/platform/x86/wmi.c
+@@ -757,6 +757,15 @@ static int parse_wdg(struct device *wmi_bus_dev, struct acpi_device *device)
+ 		if (debug_dump_wdg)
+ 			wmi_dump_wdg(&gblock[i]);
+ 
++		/*
++		 * Some WMI devices, like those for nVidia hooks, have a
++		 * duplicate GUID. It's not clear what we should do in this
++		 * case yet, so for now, we'll just ignore the duplicate
++		 * for device creation.
++		 */
++		if (guid_already_parsed(device, gblock[i].guid))
++			continue;
++
+ 		wblock = kzalloc(sizeof(struct wmi_block), GFP_KERNEL);
+ 		if (!wblock)
+ 			return -ENOMEM;
+@@ -764,19 +773,12 @@ static int parse_wdg(struct device *wmi_bus_dev, struct acpi_device *device)
+ 		wblock->acpi_device = device;
+ 		wblock->gblock = gblock[i];
+ 
+-		/*
+-		  Some WMI devices, like those for nVidia hooks, have a
+-		  duplicate GUID. It's not clear what we should do in this
+-		  case yet, so for now, we'll just ignore the duplicate
+-		  for device creation.
+-		*/
+-		if (!guid_already_parsed(device, gblock[i].guid)) {
+-			retval = wmi_create_device(wmi_bus_dev, &gblock[i],
+-						   wblock, device);
+-			if (retval) {
+-				wmi_free_devices(device);
+-				goto out_free_pointer;
+-			}
++		retval = wmi_create_device(wmi_bus_dev, &gblock[i],
++					   wblock, device);
++		if (retval) {
++			put_device(&wblock->dev.dev);
++			wmi_free_devices(device);
++			goto out_free_pointer;
+ 		}
+ 
+ 		list_add_tail(&wblock->list, &wmi_block_list);
 -- 
 2.9.4
