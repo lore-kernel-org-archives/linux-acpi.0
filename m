@@ -1,54 +1,83 @@
-From: Andy Lutomirski <luto@kernel.org>
-Subject: Re: [PATCH 16/16] platform/x86: dell-wmi: Convert to the WMI bus infrastructure
-Date: Sat, 27 May 2017 11:40:52 -0700
-Message-ID: <CALCETrWtkEazuMMrFZp4oybwjNO-8r6GNF2BLA39fJqfH8Crtw@mail.gmail.com>
-References: <cover.1495862272.git.dvhart@infradead.org> <4a4da770c8d0af7e3f31e79261b43573d70a6ea6.1495862272.git.dvhart@infradead.org>
- <201705271250.20338@pali> <CALCETrWic6ZWrjdmXTRX92U058B1SZ+xMd+5TBW+YL51ZrgeCA@mail.gmail.com>
- <3669DF37-7D17-40AD-852A-F8EDBE15A785@gmail.com>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH v6 3/6] ACPI/IORT: Ignore all errors except EPROBE_DEFER
+Date: Sat, 27 May 2017 21:18:39 +0200
+Message-ID: <1564836.5iBbgoacpH@aspire.rjw.lan>
+References: <1495892865-9506-1-git-send-email-sricharan@codeaurora.org>
+	<1495892865-9506-3-git-send-email-sricharan@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49792 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750744AbdE0SlO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 27 May 2017 14:41:14 -0400
-Received: from mail-ua0-f174.google.com (mail-ua0-f174.google.com [209.85.217.174])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 98337239DA
-        for <linux-acpi@vger.kernel.org>; Sat, 27 May 2017 18:41:13 +0000 (UTC)
-Received: by mail-ua0-f174.google.com with SMTP id y4so19849965uay.2
-        for <linux-acpi@vger.kernel.org>; Sat, 27 May 2017 11:41:13 -0700 (PDT)
-In-Reply-To: <3669DF37-7D17-40AD-852A-F8EDBE15A785@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1495892865-9506-3-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.neuschaefer-hi6Y0CQ0nG0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Andy Lutomirski <luto@kernel.org>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Jiri Kosina <jikos@kernel.org>, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Sat, May 27, 2017 at 9:17 AM, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> On May 27, 2017 9:04:38 AM PDT, Andy Lutomirski <luto@kernel.org> wrote:
->>On Sat, May 27, 2017 at 3:50 AM, Pali Rohár <pali.rohar@gmail.com>
->>wrote:
->>> On Saturday 27 May 2017 07:31:30 Darren Hart wrote:
->>>> -     dell_wmi_input_dev->name = "Dell WMI hotkeys";
->>>> -     dell_wmi_input_dev->phys = "wmi/input0";
->>>> -     dell_wmi_input_dev->id.bustype = BUS_HOST;
->>>> +     priv->input_dev->name = "Dell WMI hotkeys";
->>>> +     priv->input_dev->id.bustype = BUS_HOST;
->>>
->>> Is not there BUS_WMI, or something like that? (Just asking)
->>>
->>
->>Jiri and/or Dmitry, what is bustype for, anyway?
->
-> The bus type could be used to help further  identifying device if it used same vendor/product for spi and i2c, for example, but there are not many if them. I'm not sure if anyone actually makes decisions based on it, but it is part of abi now.
->
->>I suppose we could add BUS_PLATFORM.
->
-> What would be the difference from BUS_HOST?
->
+On Saturday, May 27, 2017 07:17:42 PM Sricharan R wrote:
+> While deferring the probe of IOMMU masters, xlate and
+> add_device callbacks called from iort_iommu_configure
+> can pass back error values like -ENODEV, which means
+> the IOMMU cannot be connected with that master for real
+> reasons. Before the IOMMU probe deferral, all such errors
+> were ignored. Now all those errors are propagated back,
+> killing the master's probe for such errors. Instead ignore
+> all the errors except EPROBE_DEFER, which is the only one
+> of concern and let the master work without IOMMU, thus
+> restoring the old behavior. Also make explicit that
+> acpi_dma_configure handles only -EPROBE_DEFER from
+> iort_iommu_configure.
+> 
+> Fixes: 5a1bb638d567 ("drivers: acpi: Handle IOMMU lookup failure with deferred probing or error")
+> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> ---
+>  drivers/acpi/arm64/iort.c | 6 ++++++
+>  drivers/acpi/scan.c       | 4 ++--
+>  2 files changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index c5fecf9..16e101f 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -782,6 +782,12 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+>  	if (err)
+>  		ops = ERR_PTR(err);
+>  
+> +	/* Ignore all other errors apart from EPROBE_DEFER */
+> +	if (IS_ERR(ops) && (PTR_ERR(ops) != -EPROBE_DEFER)) {
+> +		dev_dbg(dev, "Adding to IOMMU failed: %ld\n", PTR_ERR(ops));
+> +		ops = NULL;
+> +	}
+> +
+>  	return ops;
+>  }
+>  
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index e39ec7b..3a10d757 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1371,8 +1371,8 @@ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+>  	iort_set_dma_mask(dev);
+>  
+>  	iommu = iort_iommu_configure(dev);
+> -	if (IS_ERR(iommu))
+> -		return PTR_ERR(iommu);
+> +	if (IS_ERR(iommu) && PTR_ERR(iommu) == -EPROBE_DEFER)
+> +		return -EPROBE_DEFER;
+>  
+>  	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+>  	/*
+> 
 
-If BUS_HOST means that the device is part of the host as opposed to
-being plugged in, then it seems entirely reasonable.
+ACK for the scan.c change and I'm assuming this to go in via ARM64.
+
+Thanks,
+Rafael
