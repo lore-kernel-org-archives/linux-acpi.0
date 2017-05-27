@@ -1,7 +1,7 @@
 From: Darren Hart <dvhart@infradead.org>
-Subject: [PATCH 11/16] platform/x86: wmi: Add a new interface to read block data
-Date: Fri, 26 May 2017 22:31:25 -0700
-Message-ID: <a33aa2e6d19e33ef3f602498d7eaa5bdd749269d.1495862272.git.dvhart@infradead.org>
+Subject: [PATCH 10/16] platform/x86: wmi: Incorporate acpi_install_notify_handler
+Date: Fri, 26 May 2017 22:31:24 -0700
+Message-ID: <a868fcacf5342c40371084d183b205fc1d19bc88.1495862272.git.dvhart@infradead.org>
 References: <cover.1495862272.git.dvhart@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -17,10 +17,17 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Andy Lutomirski <luto@kernel.org>
 
-wmi_query_block is unnecessarily indirect. Add a straightforward
-method for wmi bus drivers to use to read block data.
+As a platform driver, acpi_driver.notify will not be available,
+so use acpi_install_notify_handler as we will be converting to a
+platform driver.
+
+This gives event drivers a simple way to handle events. It
+also seems closer to what the Windows docs suggest that Windows
+does: it sounds like, in Windows, the mapper is responsible for
+called _WED before dispatching to the subdriver.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
+[dvhart: merge two development commits and update commit message]
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Mario Limonciello <mario_limonciello@dell.com>
 Cc: Pali Rohár <pali.rohar@gmail.com>
@@ -30,116 +37,170 @@ Cc: platform-driver-x86@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org
 Signed-off-by: Darren Hart (VMware) <dvhart@infradead.org>
 ---
- drivers/platform/x86/wmi.c | 54 ++++++++++++++++++++++++++++++++--------------
- include/linux/wmi.h        |  4 ++++
- 2 files changed, 42 insertions(+), 16 deletions(-)
+ drivers/platform/x86/wmi.c | 89 +++++++++++++++++++++++++++++++++++++---------
+ include/linux/wmi.h        |  1 +
+ 2 files changed, 73 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index 208e187..483e4a6 100644
+index bfc0a3f..208e187 100644
 --- a/drivers/platform/x86/wmi.c
 +++ b/drivers/platform/x86/wmi.c
-@@ -244,19 +244,10 @@ u32 method_id, const struct acpi_buffer *in, struct acpi_buffer *out)
+@@ -93,7 +93,6 @@ MODULE_PARM_DESC(debug_dump_wdg,
+ 
+ static int acpi_wmi_remove(struct acpi_device *device);
+ static int acpi_wmi_add(struct acpi_device *device);
+-static void acpi_wmi_notify(struct acpi_device *device, u32 event);
+ 
+ static const struct acpi_device_id wmi_device_ids[] = {
+ 	{"PNP0C14", 0},
+@@ -109,7 +108,6 @@ static struct acpi_driver acpi_wmi_driver = {
+ 	.ops = {
+ 		.add = acpi_wmi_add,
+ 		.remove = acpi_wmi_remove,
+-		.notify = acpi_wmi_notify,
+ 	},
+ };
+ 
+@@ -1023,36 +1021,80 @@ acpi_wmi_ec_space_handler(u32 function, acpi_physical_address address,
+ 	}
  }
- EXPORT_SYMBOL_GPL(wmi_evaluate_method);
  
--/**
-- * wmi_query_block - Return contents of a WMI block
-- * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
-- * @instance: Instance index
-- * &out: Empty buffer to return the contents of the data block to
-- *
-- * Return the contents of an ACPI-WMI data block to a buffer
-- */
--acpi_status wmi_query_block(const char *guid_string, u8 instance,
--struct acpi_buffer *out)
-+static acpi_status __query_block(struct wmi_block *wblock, u8 instance,
-+				 struct acpi_buffer *out)
+-static void acpi_wmi_notify(struct acpi_device *device, u32 event)
++static void acpi_wmi_notify_handler(acpi_handle handle, u32 event,
++				    void *context)
  {
- 	struct guid_block *block = NULL;
--	struct wmi_block *wblock = NULL;
- 	acpi_handle handle;
- 	acpi_status status, wc_status = AE_ERROR;
- 	struct acpi_object_list input;
-@@ -264,12 +255,9 @@ struct acpi_buffer *out)
- 	char method[5];
- 	char wc_method[5] = "WC";
+ 	struct guid_block *block;
+ 	struct wmi_block *wblock;
+ 	struct list_head *p;
++	bool found_it = false;
  
--	if (!guid_string || !out)
-+	if (!out)
- 		return AE_BAD_PARAMETER;
+ 	list_for_each(p, &wmi_block_list) {
+ 		wblock = list_entry(p, struct wmi_block, list);
+ 		block = &wblock->gblock;
  
--	if (!find_guid(guid_string, &wblock))
--		return AE_ERROR;
+-		if (wblock->acpi_device == device &&
++		if (wblock->acpi_device->handle == handle &&
+ 		    (block->flags & ACPI_WMI_EVENT) &&
+-		    (block->notify_id == event)) {
+-			if (wblock->handler)
+-				wblock->handler(event, wblock->handler_data);
+-			if (debug_event) {
+-				pr_info("DEBUG Event GUID: %pUL\n",
+-					wblock->gblock.guid);
+-			}
 -
- 	block = &wblock->gblock;
- 	handle = wblock->acpi_device->handle;
- 
-@@ -320,8 +308,42 @@ struct acpi_buffer *out)
- 
- 	return status;
+-			acpi_bus_generate_netlink_event(
+-				device->pnp.device_class, dev_name(&device->dev),
+-				event, 0);
++		    (block->notify_id == event))
++		{
++			found_it = true;
+ 			break;
+ 		}
+ 	}
++
++	if (!found_it)
++		return;
++
++	/* If a driver is bound, then notify the driver. */
++	if (wblock->dev.dev.driver) {
++		struct wmi_driver *driver;
++		struct acpi_object_list input;
++		union acpi_object params[1];
++		struct acpi_buffer evdata = { ACPI_ALLOCATE_BUFFER, NULL };
++		acpi_status status;
++
++		driver = container_of(wblock->dev.dev.driver,
++				      struct wmi_driver, driver);
++
++		input.count = 1;
++		input.pointer = params;
++		params[0].type = ACPI_TYPE_INTEGER;
++		params[0].integer.value = event;
++
++		status = acpi_evaluate_object(wblock->acpi_device->handle,
++					      "_WED", &input, &evdata);
++		if (ACPI_FAILURE(status)) {
++			dev_warn(&wblock->dev.dev,
++				 "failed to get event data\n");
++			return;
++		}
++
++		if (driver->notify)
++			driver->notify(&wblock->dev,
++				       (union acpi_object *)evdata.pointer);
++
++		kfree(evdata.pointer);
++	} else if (wblock->handler) {
++		/* Legacy handler */
++		wblock->handler(event, wblock->handler_data);
++	}
++
++	if (debug_event) {
++		pr_info("DEBUG Event GUID: %pUL\n",
++			wblock->gblock.guid);
++	}
++
++	acpi_bus_generate_netlink_event(
++		wblock->acpi_device->pnp.device_class,
++		dev_name(&wblock->dev.dev),
++		event, 0);
++
  }
-+
-+/**
-+ * wmi_query_block - Return contents of a WMI block (deprecated)
-+ * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
-+ * @instance: Instance index
-+ * &out: Empty buffer to return the contents of the data block to
-+ *
-+ * Return the contents of an ACPI-WMI data block to a buffer
-+ */
-+acpi_status wmi_query_block(const char *guid_string, u8 instance,
-+			    struct acpi_buffer *out)
-+{
-+	struct wmi_block *wblock;
-+
-+	if (!guid_string)
-+		return AE_BAD_PARAMETER;
-+
-+	if (!find_guid(guid_string, &wblock))
-+		return AE_ERROR;
-+
-+	return __query_block(wblock, instance, out);
-+}
- EXPORT_SYMBOL_GPL(wmi_query_block);
  
-+union acpi_object *wmidev_block_query(struct wmi_device *wdev, u8 instance)
-+{
-+	struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct wmi_block *wblock = container_of(wdev, struct wmi_block, dev);
-+
-+	if (ACPI_FAILURE(__query_block(wblock, instance, &out)))
-+		return NULL;
-+
-+	return (union acpi_object *)out.pointer;
-+}
-+EXPORT_SYMBOL_GPL(wmidev_block_query);
-+
- /**
-  * wmi_set_block - Write to a WMI block
-  * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
-@@ -331,7 +353,7 @@ EXPORT_SYMBOL_GPL(wmi_query_block);
-  * Write the contents of the input buffer to an ACPI-WMI data block
-  */
- acpi_status wmi_set_block(const char *guid_string, u8 instance,
--const struct acpi_buffer *in)
-+			  const struct acpi_buffer *in)
+ static int acpi_wmi_remove(struct acpi_device *device)
  {
- 	struct guid_block *block = NULL;
- 	struct wmi_block *wblock = NULL;
++	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
++				   acpi_wmi_notify_handler);
+ 	acpi_remove_address_space_handler(device->handle,
+ 				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
+ 	wmi_free_devices(device);
+@@ -1077,11 +1119,20 @@ static int acpi_wmi_add(struct acpi_device *device)
+ 		return -ENODEV;
+ 	}
+ 
++	status = acpi_install_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
++					     acpi_wmi_notify_handler,
++					     NULL);
++	if (ACPI_FAILURE(status)) {
++		dev_err(&device->dev, "Error installing notify handler\n");
++		error = -ENODEV;
++		goto err_remove_ec_handler;
++	}
++
+ 	wmi_bus_dev = device_create(&wmi_bus_class, &device->dev, MKDEV(0, 0),
+ 				    NULL, "wmi_bus-%s", dev_name(&device->dev));
+ 	if (IS_ERR(wmi_bus_dev)) {
+ 		error = PTR_ERR(wmi_bus_dev);
+-		goto err_remove_handler;
++		goto err_remove_notify_handler;
+ 	}
+ 	device->driver_data = wmi_bus_dev;
+ 
+@@ -1096,7 +1147,11 @@ static int acpi_wmi_add(struct acpi_device *device)
+ err_remove_busdev:
+ 	device_unregister(wmi_bus_dev);
+ 
+-err_remove_handler:
++err_remove_notify_handler:
++	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
++				   acpi_wmi_notify_handler);
++
++err_remove_ec_handler:
+ 	acpi_remove_address_space_handler(device->handle,
+ 					  ACPI_ADR_SPACE_EC,
+ 					  &acpi_wmi_ec_space_handler);
 diff --git a/include/linux/wmi.h b/include/linux/wmi.h
-index c6eedfd..0ab2540 100644
+index 5309500..c6eedfd 100644
 --- a/include/linux/wmi.h
 +++ b/include/linux/wmi.h
-@@ -29,6 +29,10 @@ struct wmi_device {
- 	bool readable, writeable;
+@@ -39,6 +39,7 @@ struct wmi_driver {
+ 
+ 	int (*probe)(struct wmi_device *wdev);
+ 	int (*remove)(struct wmi_device *wdev);
++	void (*notify)(struct wmi_device *device, union acpi_object *data);
  };
  
-+/* Caller must kfree the result. */
-+extern union acpi_object *wmidev_block_query(struct wmi_device *wdev,
-+					     u8 instance);
-+
- struct wmi_device_id {
- 	const char *guid_string;
- };
+ extern int __must_check __wmi_driver_register(struct wmi_driver *driver,
 -- 
 2.9.4
