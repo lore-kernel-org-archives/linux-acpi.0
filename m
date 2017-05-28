@@ -1,25 +1,37 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal SoC management fixes for v4.12-rc3
-Date: Sat, 27 May 2017 17:39:39 -0700
-Message-ID: <20170528003938.GA5083@localhost.localdomain>
+Subject: [GIT PULL][RESEND] Thermal SoC management fixes for v4.12-rc3
+Date: Sun, 28 May 2017 09:14:54 -0700
+Message-ID: <20170528161451.GA11662@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
-Return-path: <linux-pm-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33150 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750791AbdE1QO6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 28 May 2017 12:14:58 -0400
 Content-Disposition: inline
-Sender: linux-pm-owner@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
 
---T4sUOijqQbZv57TR
+--liOOAslEiF7prFVr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Hello Rui,
+Hello Linus,
 
-I know this is late, but please send these six fixes for next rc3.
+I know this is (very) late, but please consider these six fixes for next rc3.
+I tried sending these via Rui, but I think I missed the window to get
+him still in office, so I am sending directly to you.
+
+Changelog in this pull:
+- Fixes on TI SoC driver, Broadcom, qoriq.
+- Small sparse warn fix on thermal core.
+
+On top of my local test, these went through linux-next and kerneci.
 
 The following changes since commit 08332893e37af6ae779367e78e444f8f9571511d:
 
@@ -54,26 +66,26 @@ Masahiro Yamada (1):
  drivers/thermal/ti-soc-thermal/ti-bandgap.c | 14 +++++---------
  4 files changed, 11 insertions(+), 17 deletions(-)
 
---T4sUOijqQbZv57TR
+--liOOAslEiF7prFVr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJZKhxDAAoJEA6VkvSQfF5Te0kP/Alxs+IkQc/30vhrusHz4QLW
-G2jF0wa34W81MEOZVsip04NJJt0uzHGDpwPVoubVqinodOXAlpuNsX66enjCWMqt
-1EUsWxte7AprFAahj8kEylZox7hKTzKPa6IYFirF4oQL8PX6BWTW2jlyAJrs9XGC
-B5rjNk5rofxOPAIyDKDRV1yqYLDkP9098v+9GIZbS3Nb6wXYduwusck8TFFQrG0X
-6NkJKJXI+IVyztmPUGrfydYqkjV8juG43nO+Pwj93lIz+EORK2IwRbQBCw9dJ9nj
-GqehVoMpf7SBjDfn2+Hl+IJPXRJz1l1NbfJwdUMsDUX5w8JCTT532Tj3hyP5Yv9O
-x/K+YqYrkehbRfO2HDRnqsyM4AoW+spZno2ddcNDoUFF7DQ9kCmGXOLemCt1Bsfa
-Cy5lCGe7Hh0egfHtXIM7QYbaKQLpnIQexDNZm/MM3Inw1Tw3G/63JitDoTeDUV2e
-rupvAIrexxbZLDa6IhtcivSEgM6hkdmRWYIEGA13EBj/x2NDXmDWLU0lqTtMfTWb
-AnNTM8Keykce0TtMdroODN/MoKRKPqehLVXaNzgM1LfQSYjFpYpnD+IgDp2ADwlj
-beANoV142Wgk3L9Z3Y0kti7BKR4CG9ACwuupMNOCP+hUdVvfi6W8tVb7vKhM4bFm
-AAQEcmynV5xMAc30ErQZ
-=JkWa
+iQIcBAEBCAAGBQJZKvd0AAoJEA6VkvSQfF5T4KEQALxOZsbK5fjP5nESqzKyhRPy
+oqxgBsJcYmisMrVaCgnwocWTuMqiIYnbof8bwpdEUhL0FyP03Jz/8v4Q6tCvwiyV
+RaoGM3fWyFjXK4F/5TloW5Q9aC8gof3wwSKhYJiyHZKuGlkYllikmWnYwGK7cmem
+fd7wtlVxQuywjJIRbMnYS0VdzVjwQXYySp024JYhrWb4WmlHlrQ89LrxF25nmiso
+p2e4TauNVeUxEtT65Dpos27B8KgwQLcfsdJuwGdGdxyzzXPujgKoYG4AcE7MQd2t
+6W/DcfwIJ1n626stJsAxEaRlHNC2+w7wYKmJsH0JEkM+m478kGV2igCV8vPmpPjR
+U3oIQ0XudIArZkX1cEHoaNdtG8Wb+B2H7wedVGY7jUmUXnu3OPvK+i/Z6l6rls9y
+VCbcNLFQ6MyFURzko6XZGZYPkeAk35q9caTgixQnG7bBzcHzHR0QWvl4pzVzfVIv
+VSDJSCGCVGb2Wn+qa661hLPaBIUMOlInS26T6vJjzCN6KmWP45Kx9upuqSRN5OYh
+qyDVoCr4wcqauA7d6MAoEwjun+TzYa/acVaFmHFcWN/Kxr1bX4HNyJ3orCw4IC7r
+K6DUj102c1h7IsukNAHYBJjG2cXfBn8hISLgYfyo1bTd4KhQyTiJgrLZfSK1Wtg8
+1EW1/P0T5GNOntx3rvgu
+=Q2vq
 -----END PGP SIGNATURE-----
 
---T4sUOijqQbZv57TR--
+--liOOAslEiF7prFVr--
