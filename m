@@ -1,74 +1,79 @@
-From: Andy Lutomirski <luto@kernel.org>
-Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose
- embedded WMI MOF metadata
-Date: Sat, 27 May 2017 14:07:40 -0700
-Message-ID: <CALCETrWgFqhYCVmr+rox5GuwAO8HzenjRt7MeKJbAmV3gJCmng@mail.gmail.com>
-References: <cover.1495862272.git.dvhart@infradead.org> <27758381c6cb77efab75a266e21243a964cce0ba.1495862272.git.dvhart@infradead.org>
- <201705271314.16241@pali>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal SoC management fixes for v4.12-rc3
+Date: Sat, 27 May 2017 17:39:39 -0700
+Message-ID: <20170528003938.GA5083@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55606 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750784AbdE0VIC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 27 May 2017 17:08:02 -0400
-Received: from mail-ua0-f178.google.com (mail-ua0-f178.google.com [209.85.217.178])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C26D3239F3
-        for <linux-acpi@vger.kernel.org>; Sat, 27 May 2017 21:08:01 +0000 (UTC)
-Received: by mail-ua0-f178.google.com with SMTP id u10so20624519uaf.1
-        for <linux-acpi@vger.kernel.org>; Sat, 27 May 2017 14:08:01 -0700 (PDT)
-In-Reply-To: <201705271314.16241@pali>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-pm-owner@vger.kernel.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
-Cc: Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Sat, May 27, 2017 at 4:14 AM, Pali Rohár <pali.rohar@gmail.com> wrote:
-> Hi! Note that in WMI is stored binary MOF (BMOF; .bmf file; compiled
-> MOF), not ordinary MOF data which are plain text. So maybe it could make
-> sense to include "B" into name of sysfs entry? Or not? (Just suggestion)
->
-> On Saturday 27 May 2017 07:31:29 Darren Hart wrote:
->> From: Andy Lutomirski <luto@kernel.org>
->>
->> Quite a few laptops (and maybe servers?) have embedded WMI MOF
->
-> Not "a few", but "lots of" :-)
->
->> metadata. I think that Samba has tools to interpret it, but there is
->> currently no interface to get the data in the first place.
->
-> No, there is no non-ms-windows tool for interpreting those binary MOF
-> (BMF) data yet.
->
->> +     priv->mofdata = wmidev_block_query(wdev, 0);
->> +     if (!priv->mofdata) {
->> +             dev_warn(&wdev->dev, "failed to read MOF\n");
->> +             return -EIO;
->> +     }
->> +
->> +     if (priv->mofdata->type != ACPI_TYPE_BUFFER) {
->> +             dev_warn(&wdev->dev, "MOF is not a buffer\n");
->> +             ret = -EIO;
->> +             goto err_free;
->> +     }
->
-> Are not those problems fatal for driver and therefore dev_err() better?
->
->> +     sysfs_bin_attr_init(&priv->mof_bin_attr);
->> +     priv->mof_bin_attr.attr.name = "mof";
->> +     priv->mof_bin_attr.attr.mode = 0400;
->
-> 0400 means to be readable only by root? Is there then reason why normal
-> user should not be able to read it?
->
 
-I have no specific objection to making it 0444, but in general I'd
-rather expose less information to unprivileged users rather than more.
-I'm also having trouble imagining what an unprivileged user would do
-with the MOF -- it's useful for reverse engineering and it may
-eventually be useful for making WMI calls from userspace, but neither
-of those is particularly useful to unprivileged users.
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hello Rui,
+
+I know this is late, but please send these six fixes for next rc3.
+
+The following changes since commit 08332893e37af6ae779367e78e444f8f9571511d:
+
+  Linux 4.12-rc2 (2017-05-21 19:30:23 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+
+for you to fetch changes up to a54c51863ed1294078a435151e625313b4365ac5:
+
+  thermal: broadcom: ns-thermal: default on iProc SoCs (2017-05-23 20:09:34 -0700)
+
+----------------------------------------------------------------
+Colin Ian King (1):
+      thermal: core: make thermal_emergency_poweroff static
+
+Jon Mason (1):
+      thermal: broadcom: ns-thermal: default on iProc SoCs
+
+Markus Elfring (3):
+      ti-soc-thermal: Use devm_kcalloc() in ti_bandgap_build()
+      ti-soc-thermal: Delete error messages for failed memory allocations in ti_bandgap_build()
+      ti-soc-thermal: Fix a typo in a comment line
+
+Masahiro Yamada (1):
+      thermal: qoriq: remove useless call for of_thermal_get_trip_points()
+
+ drivers/thermal/broadcom/Kconfig            |  9 +++++----
+ drivers/thermal/qoriq_thermal.c             |  3 ---
+ drivers/thermal/thermal_core.c              |  2 +-
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c | 14 +++++---------
+ 4 files changed, 11 insertions(+), 17 deletions(-)
+
+--T4sUOijqQbZv57TR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJZKhxDAAoJEA6VkvSQfF5Te0kP/Alxs+IkQc/30vhrusHz4QLW
+G2jF0wa34W81MEOZVsip04NJJt0uzHGDpwPVoubVqinodOXAlpuNsX66enjCWMqt
+1EUsWxte7AprFAahj8kEylZox7hKTzKPa6IYFirF4oQL8PX6BWTW2jlyAJrs9XGC
+B5rjNk5rofxOPAIyDKDRV1yqYLDkP9098v+9GIZbS3Nb6wXYduwusck8TFFQrG0X
+6NkJKJXI+IVyztmPUGrfydYqkjV8juG43nO+Pwj93lIz+EORK2IwRbQBCw9dJ9nj
+GqehVoMpf7SBjDfn2+Hl+IJPXRJz1l1NbfJwdUMsDUX5w8JCTT532Tj3hyP5Yv9O
+x/K+YqYrkehbRfO2HDRnqsyM4AoW+spZno2ddcNDoUFF7DQ9kCmGXOLemCt1Bsfa
+Cy5lCGe7Hh0egfHtXIM7QYbaKQLpnIQexDNZm/MM3Inw1Tw3G/63JitDoTeDUV2e
+rupvAIrexxbZLDa6IhtcivSEgM6hkdmRWYIEGA13EBj/x2NDXmDWLU0lqTtMfTWb
+AnNTM8Keykce0TtMdroODN/MoKRKPqehLVXaNzgM1LfQSYjFpYpnD+IgDp2ADwlj
+beANoV142Wgk3L9Z3Y0kti7BKR4CG9ACwuupMNOCP+hUdVvfi6W8tVb7vKhM4bFm
+AAQEcmynV5xMAc30ErQZ
+=JkWa
+-----END PGP SIGNATURE-----
+
+--T4sUOijqQbZv57TR--
