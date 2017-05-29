@@ -1,100 +1,38 @@
-From: Sricharan R <sricharan@codeaurora.org>
-Subject: Re: [PATCH v6 3/6] ACPI/IORT: Ignore all errors except EPROBE_DEFER
-Date: Mon, 29 May 2017 10:36:42 +0530
-Message-ID: <68bc9be5-22df-e7af-3fcd-182e935e681c@codeaurora.org>
-References: <1495892865-9506-1-git-send-email-sricharan@codeaurora.org>
- <1495892865-9506-3-git-send-email-sricharan@codeaurora.org>
- <1564836.5iBbgoacpH@aspire.rjw.lan>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 02/12] gpio: acpi: Align acpi_find_gpio() with DT version
+Date: Mon, 29 May 2017 11:16:38 +0200
+Message-ID: <CACRpkdazvNSVCGCXL4G0QBZvFo7-G+Ch_fqEa-5H7q5xrzLGzw@mail.gmail.com>
+References: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com> <20170523170327.18055-3-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:40410 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750837AbdE2FGy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2017 01:06:54 -0400
-In-Reply-To: <1564836.5iBbgoacpH@aspire.rjw.lan>
-Content-Language: en-US
+Received: from mail-it0-f50.google.com ([209.85.214.50]:37145 "EHLO
+        mail-it0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751100AbdE2JQk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2017 05:16:40 -0400
+Received: by mail-it0-f50.google.com with SMTP id g126so23986777ith.0
+        for <linux-acpi@vger.kernel.org>; Mon, 29 May 2017 02:16:39 -0700 (PDT)
+In-Reply-To: <20170523170327.18055-3-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, frowand.list@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, laurent.pinchart@ideasonboard.com, j.neuschaefer@gmx.net, geert@linux-m68k.org, magnus.damm@gmail.com, nwatters@codeaurora.org, linux@armlinux.org.uk
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jagadish Krishnamoorthy <jagadish.krishnamoorthy@intel.com>
 
-Hi Rafael,
+On Tue, May 23, 2017 at 7:03 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 
-On 5/28/2017 12:48 AM, Rafael J. Wysocki wrote:
-> On Saturday, May 27, 2017 07:17:42 PM Sricharan R wrote:
->> While deferring the probe of IOMMU masters, xlate and
->> add_device callbacks called from iort_iommu_configure
->> can pass back error values like -ENODEV, which means
->> the IOMMU cannot be connected with that master for real
->> reasons. Before the IOMMU probe deferral, all such errors
->> were ignored. Now all those errors are propagated back,
->> killing the master's probe for such errors. Instead ignore
->> all the errors except EPROBE_DEFER, which is the only one
->> of concern and let the master work without IOMMU, thus
->> restoring the old behavior. Also make explicit that
->> acpi_dma_configure handles only -EPROBE_DEFER from
->> iort_iommu_configure.
->>
->> Fixes: 5a1bb638d567 ("drivers: acpi: Handle IOMMU lookup failure with deferred probing or error")
->> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
->> ---
->>  drivers/acpi/arm64/iort.c | 6 ++++++
->>  drivers/acpi/scan.c       | 4 ++--
->>  2 files changed, 8 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index c5fecf9..16e101f 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -782,6 +782,12 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
->>  	if (err)
->>  		ops = ERR_PTR(err);
->>  
->> +	/* Ignore all other errors apart from EPROBE_DEFER */
->> +	if (IS_ERR(ops) && (PTR_ERR(ops) != -EPROBE_DEFER)) {
->> +		dev_dbg(dev, "Adding to IOMMU failed: %ld\n", PTR_ERR(ops));
->> +		ops = NULL;
->> +	}
->> +
->>  	return ops;
->>  }
->>  
->> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
->> index e39ec7b..3a10d757 100644
->> --- a/drivers/acpi/scan.c
->> +++ b/drivers/acpi/scan.c
->> @@ -1371,8 +1371,8 @@ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
->>  	iort_set_dma_mask(dev);
->>  
->>  	iommu = iort_iommu_configure(dev);
->> -	if (IS_ERR(iommu))
->> -		return PTR_ERR(iommu);
->> +	if (IS_ERR(iommu) && PTR_ERR(iommu) == -EPROBE_DEFER)
->> +		return -EPROBE_DEFER;
->>  
->>  	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
->>  	/*
->>
-> 
-> ACK for the scan.c change and I'm assuming this to go in via ARM64.
-> 
+> By some reason acpi_find_gpio() and acpi_gpio_count() have compared
+> connection ID to "gpios" when tries to check if suffix is needed or not.
+>
+> Don't do any assumptions about what connection ID can be and, when defined,
+> use it only with suffix as it's done in the device tree version.
+>
+> Reviewed-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Thanks for the ACK, should go through the IOMMU tree, since this fixes the IOMMU probe deferral
-that got merged through it.
+Patch applied.
 
-Regards,
- Sricharan
-
-> Thanks,
-> Rafael
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-arm-msm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
--- 
-"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+Yours,
+Linus Walleij
