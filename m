@@ -1,34 +1,32 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2 00/12] gpio: acpi: Make it working
-Date: Mon, 29 May 2017 11:31:04 +0200
-Message-ID: <CACRpkdZN33vNUg6of-2KdC0y1uB3DfY9NgeZnXtLTPVpW6e40Q@mail.gmail.com>
-References: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [PATCH 1/8] i2c: rename core source file to allow refactorization
+Date: Mon, 29 May 2017 12:44:28 +0300
+Message-ID: <3d19c8c4-339e-f24b-2475-5732be144f71@linux.intel.com>
+References: <20170526082101.4746-1-wsa@the-dreams.de>
+ <20170526082101.4746-2-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f45.google.com ([209.85.214.45]:35173 "EHLO
-        mail-it0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751002AbdE2JbL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2017 05:31:11 -0400
-Received: by mail-it0-f45.google.com with SMTP id c15so24244633ith.0
-        for <linux-acpi@vger.kernel.org>; Mon, 29 May 2017 02:31:11 -0700 (PDT)
-In-Reply-To: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20170526082101.4746-2-wsa@the-dreams.de>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org
+Cc: Jean Delvare <jdelvare@suse.de>, linux-acpi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jagadish Krishnamoorthy <jagadish.krishnamoorthy@intel.com>
 
-On Tue, May 23, 2017 at 7:03 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+On 05/26/2017 11:20 AM, Wolfram Sang wrote:
+> --- a/drivers/i2c/busses/i2c-designware-core.c
+> +++ b/drivers/i2c/busses/i2c-designware-core.c
+> @@ -583,7 +583,7 @@ i2c_dw_xfer_msg(struct dw_i2c_dev *dev)
+>  			 */
+>
+>  			/*
+> -			 * i2c-core.c always sets the buffer length of
+> +			 * i2c-core always sets the buffer length of
+>  			 * I2C_FUNC_SMBUS_BLOCK_DATA to 1. The length will
+>  			 * be adjusted when receiving the first byte.
+>  			 * Thus we can't stop the transaction here.
 
-> This is second iteration of the fix of GPIO ACPI library to make it
-> robust against different ACPI specification generations and thus
-> firmwares.
+FWIW,
 
-I applied it all so we get some rotation.
-
-Was a bit worried about hitting drivers/pnp/* but I suspect that is
-actually your turf so I just applied it.
-
-Yours,
-Linus Walleij
+Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
