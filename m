@@ -1,74 +1,54 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [GIT PULL][RESEND] Thermal SoC management fixes for v4.12-rc3
-Date: Mon, 29 May 2017 21:27:33 +0800
-Message-ID: <1496064453.2572.8.camel@intel.com>
-References: <20170528161451.GA11662@localhost.localdomain>
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Subject: Re: [RFC PATCH v3 1/5] ACPI: button: Add indication of BIOS
+ notification and faked events
+Date: Mon, 29 May 2017 18:04:00 +0200
+Message-ID: <20170529160400.GA28287@mail.corp.redhat.com>
+References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+ <f3109abbd3294b63a00437e5d86d13caee84320b.1495804411.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170528161451.GA11662@localhost.localdomain>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:44610 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750811AbdE2QEI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 29 May 2017 12:04:08 -0400
+Content-Disposition: inline
+In-Reply-To: <f3109abbd3294b63a00437e5d86d13caee84320b.1495804411.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, systemd-devel@lists.freedesktop.org, Peter Hutterer <peter.hutterer@who-t.net>
 
-On Sun, 2017-05-28 at 09:14 -0700, Eduardo Valentin wrote:
-> Hello Linus,
-> 
-> I know this is (very) late, but please consider these six fixes for
-> next rc3.
-> I tried sending these via Rui, but I think I missed the window to get
-> him still in office, so I am sending directly to you.
+Hi Lv,
 
-yes, I missed Eduardo' first pull request and I'm still on holiday till
-the day after tomorrow.
+On May 27 2017 or thereabouts, Lv Zheng wrote:
+> This patch adds a parameter to acpi_lid_notify_state() so that it can act
+> differently against BIOS notification and kernel faked events.
+> 
+> Cc: <systemd-devel@lists.freedesktop.org>
+> Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+> Cc: Peter Hutterer <peter.hutterer@who-t.net>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
 
-> Changelog in this pull:
-> - Fixes on TI SoC driver, Broadcom, qoriq.
-> - Small sparse warn fix on thermal core.
-> 
-I'm okay with the changes in this pull request.
+Answering to this one for the entire series:
+last week was a mix of public holidays and PTO from me. I was only
+able to review this series today, so sorry for the delay.
 
-thanks,
-rui
-> On top of my local test, these went through linux-next and kerneci.
-> 
-> The following changes since commit
-> 08332893e37af6ae779367e78e444f8f9571511d:
-> 
->   Linux 4.12-rc2 (2017-05-21 19:30:23 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-
-> thermal fixes
-> 
-> for you to fetch changes up to
-> a54c51863ed1294078a435151e625313b4365ac5:
-> 
->   thermal: broadcom: ns-thermal: default on iProc SoCs (2017-05-23
-> 20:09:34 -0700)
-> 
-> ----------------------------------------------------------------
-> Colin Ian King (1):
->       thermal: core: make thermal_emergency_poweroff static
-> 
-> Jon Mason (1):
->       thermal: broadcom: ns-thermal: default on iProc SoCs
-> 
-> Markus Elfring (3):
->       ti-soc-thermal: Use devm_kcalloc() in ti_bandgap_build()
->       ti-soc-thermal: Delete error messages for failed memory
-> allocations in ti_bandgap_build()
->       ti-soc-thermal: Fix a typo in a comment line
-> 
-> Masahiro Yamada (1):
->       thermal: qoriq: remove useless call for
-> of_thermal_get_trip_points()
-> 
->  drivers/thermal/broadcom/Kconfig            |  9 +++++----
->  drivers/thermal/qoriq_thermal.c             |  3 ---
->  drivers/thermal/thermal_core.c              |  2 +-
->  drivers/thermal/ti-soc-thermal/ti-bandgap.c | 14 +++++---------
->  4 files changed, 11 insertions(+), 17 deletions(-)
+I still have a feeling this driver is far too engineered for a simple
+input node. There are internal states, defers, mangle of events and too
+many kernel parameters.
+
+I still need to get my head around it, but the more I think of it, the
+more I think the solution provided by Lennart in
+https://github.com/systemd/systemd/issues/2807 is the simplest one:
+when we are not sure about the state of the LID switch because _LID
+might be wrong, we shouldn't export a LID input node.
+Which means that all broken cases would be fixed by just a quirk
+"unreliable lid switch".
+
+Give me a day or two to get this in a better shape.
+
+Cheers,
+Benjamin
+
