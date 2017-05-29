@@ -1,40 +1,74 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 00/12] gpio: acpi: Make it working
-Date: Mon, 29 May 2017 16:09:08 +0300
-Message-ID: <1496063348.28981.17.camel@linux.intel.com>
-References: <20170523170327.18055-1-andriy.shevchenko@linux.intel.com>
-         <CACRpkdZN33vNUg6of-2KdC0y1uB3DfY9NgeZnXtLTPVpW6e40Q@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [GIT PULL][RESEND] Thermal SoC management fixes for v4.12-rc3
+Date: Mon, 29 May 2017 21:27:33 +0800
+Message-ID: <1496064453.2572.8.camel@intel.com>
+References: <20170528161451.GA11662@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:41226 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750913AbdE2NKo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 29 May 2017 09:10:44 -0400
-In-Reply-To: <CACRpkdZN33vNUg6of-2KdC0y1uB3DfY9NgeZnXtLTPVpW6e40Q@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170528161451.GA11662@localhost.localdomain>
+Sender: linux-pm-owner@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jagadish Krishnamoorthy <jagadish.krishnamoorthy@intel.com>
 
-On Mon, 2017-05-29 at 11:31 +0200, Linus Walleij wrote:
-> On Tue, May 23, 2017 at 7:03 PM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
+On Sun, 2017-05-28 at 09:14 -0700, Eduardo Valentin wrote:
+> Hello Linus,
 > 
-> > This is second iteration of the fix of GPIO ACPI library to make it
-> > robust against different ACPI specification generations and thus
-> > firmwares.
-> 
-> I applied it all so we get some rotation.
-> 
-> Was a bit worried about hitting drivers/pnp/* but I suspect that is
-> actually your turf so I just applied it.
-> 
+> I know this is (very) late, but please consider these six fixes for
+> next rc3.
+> I tried sending these via Rui, but I think I missed the window to get
+> him still in office, so I am sending directly to you.
 
-Thanks!
+yes, I missed Eduardo' first pull request and I'm still on holiday till
+the day after tomorrow.
 
+> Changelog in this pull:
+> - Fixes on TI SoC driver, Broadcom, qoriq.
+> - Small sparse warn fix on thermal core.
+> 
+I'm okay with the changes in this pull request.
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+thanks,
+rui
+> On top of my local test, these went through linux-next and kerneci.
+> 
+> The following changes since commit
+> 08332893e37af6ae779367e78e444f8f9571511d:
+> 
+>   Linux 4.12-rc2 (2017-05-21 19:30:23 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-
+> thermal fixes
+> 
+> for you to fetch changes up to
+> a54c51863ed1294078a435151e625313b4365ac5:
+> 
+>   thermal: broadcom: ns-thermal: default on iProc SoCs (2017-05-23
+> 20:09:34 -0700)
+> 
+> ----------------------------------------------------------------
+> Colin Ian King (1):
+>       thermal: core: make thermal_emergency_poweroff static
+> 
+> Jon Mason (1):
+>       thermal: broadcom: ns-thermal: default on iProc SoCs
+> 
+> Markus Elfring (3):
+>       ti-soc-thermal: Use devm_kcalloc() in ti_bandgap_build()
+>       ti-soc-thermal: Delete error messages for failed memory
+> allocations in ti_bandgap_build()
+>       ti-soc-thermal: Fix a typo in a comment line
+> 
+> Masahiro Yamada (1):
+>       thermal: qoriq: remove useless call for
+> of_thermal_get_trip_points()
+> 
+>  drivers/thermal/broadcom/Kconfig            |  9 +++++----
+>  drivers/thermal/qoriq_thermal.c             |  3 ---
+>  drivers/thermal/thermal_core.c              |  2 +-
+>  drivers/thermal/ti-soc-thermal/ti-bandgap.c | 14 +++++---------
+>  4 files changed, 11 insertions(+), 17 deletions(-)
