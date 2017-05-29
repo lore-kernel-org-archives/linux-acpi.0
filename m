@@ -1,53 +1,100 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH] cpufreq: cpufreq_register_driver should return -ENODEV
- if init fails
-Date: Mon, 29 May 2017 10:02:15 +0530
-Message-ID: <20170529043215.GA5752@vireshk-i7>
-References: <1495813051-146077-1-git-send-email-darcari@redhat.com>
+From: Sricharan R <sricharan@codeaurora.org>
+Subject: Re: [PATCH v6 3/6] ACPI/IORT: Ignore all errors except EPROBE_DEFER
+Date: Mon, 29 May 2017 10:36:42 +0530
+Message-ID: <68bc9be5-22df-e7af-3fcd-182e935e681c@codeaurora.org>
+References: <1495892865-9506-1-git-send-email-sricharan@codeaurora.org>
+ <1495892865-9506-3-git-send-email-sricharan@codeaurora.org>
+ <1564836.5iBbgoacpH@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1495813051-146077-1-git-send-email-darcari@redhat.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: David Arcari <darcari@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
-Cc: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:40410 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750837AbdE2FGy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2017 01:06:54 -0400
+In-Reply-To: <1564836.5iBbgoacpH@aspire.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, frowand.list@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, laurent.pinchart@ideasonboard.com, j.neuschaefer@gmx.net, geert@linux-m68k.org, magnus.damm@gmail.com, nwatters@codeaurora.org, linux@armlinux.org.uk
 
-You sent it to the wrong list and missed Rafael too. MAINTAINERS file should
-help getting these details in the future.
+Hi Rafael,
 
-On 26-05-17, 11:37, David Arcari wrote:
-> For a driver that does not set the CPUFREQ_STICKY flag, if all of the
-> ->init() calls fail, cpufreq_register_driver() should return an error.
-> This will prevent the driver from loading.
+On 5/28/2017 12:48 AM, Rafael J. Wysocki wrote:
+> On Saturday, May 27, 2017 07:17:42 PM Sricharan R wrote:
+>> While deferring the probe of IOMMU masters, xlate and
+>> add_device callbacks called from iort_iommu_configure
+>> can pass back error values like -ENODEV, which means
+>> the IOMMU cannot be connected with that master for real
+>> reasons. Before the IOMMU probe deferral, all such errors
+>> were ignored. Now all those errors are propagated back,
+>> killing the master's probe for such errors. Instead ignore
+>> all the errors except EPROBE_DEFER, which is the only one
+>> of concern and let the master work without IOMMU, thus
+>> restoring the old behavior. Also make explicit that
+>> acpi_dma_configure handles only -EPROBE_DEFER from
+>> iort_iommu_configure.
+>>
+>> Fixes: 5a1bb638d567 ("drivers: acpi: Handle IOMMU lookup failure with deferred probing or error")
+>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+>> ---
+>>  drivers/acpi/arm64/iort.c | 6 ++++++
+>>  drivers/acpi/scan.c       | 4 ++--
+>>  2 files changed, 8 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>> index c5fecf9..16e101f 100644
+>> --- a/drivers/acpi/arm64/iort.c
+>> +++ b/drivers/acpi/arm64/iort.c
+>> @@ -782,6 +782,12 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+>>  	if (err)
+>>  		ops = ERR_PTR(err);
+>>  
+>> +	/* Ignore all other errors apart from EPROBE_DEFER */
+>> +	if (IS_ERR(ops) && (PTR_ERR(ops) != -EPROBE_DEFER)) {
+>> +		dev_dbg(dev, "Adding to IOMMU failed: %ld\n", PTR_ERR(ops));
+>> +		ops = NULL;
+>> +	}
+>> +
+>>  	return ops;
+>>  }
+>>  
+>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+>> index e39ec7b..3a10d757 100644
+>> --- a/drivers/acpi/scan.c
+>> +++ b/drivers/acpi/scan.c
+>> @@ -1371,8 +1371,8 @@ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+>>  	iort_set_dma_mask(dev);
+>>  
+>>  	iommu = iort_iommu_configure(dev);
+>> -	if (IS_ERR(iommu))
+>> -		return PTR_ERR(iommu);
+>> +	if (IS_ERR(iommu) && PTR_ERR(iommu) == -EPROBE_DEFER)
+>> +		return -EPROBE_DEFER;
+>>  
+>>  	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+>>  	/*
+>>
 > 
-> Fixes: ce1bcfe94db8 ("cpufreq: check cpufreq_policy_list instead of scanning policies for all CPUs")
+> ACK for the scan.c change and I'm assuming this to go in via ARM64.
 > 
-> Cc: Viresh Kumar <viresh.kumar@linaro.org>
-> Signed-off-by: David Arcari <darcari@redhat.com>
 
-+
-Cc: 4.0+ <stable@vger.kernel.org> # 4.0+
+Thanks for the ACK, should go through the IOMMU tree, since this fixes the IOMMU probe deferral
+that got merged through it.
 
-> ---
->  drivers/cpufreq/cpufreq.c | 1 +
->  1 file changed, 1 insertion(+)
+Regards,
+ Sricharan
+
+> Thanks,
+> Rafael
 > 
-> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-> index 0e3f649..26b643d 100644
-> --- a/drivers/cpufreq/cpufreq.c
-> +++ b/drivers/cpufreq/cpufreq.c
-> @@ -2468,6 +2468,7 @@ int cpufreq_register_driver(struct cpufreq_driver *driver_data)
->  	if (!(cpufreq_driver->flags & CPUFREQ_STICKY) &&
->  	    list_empty(&cpufreq_policy_list)) {
->  		/* if all ->init() calls failed, unregister */
-> +		ret = -ENODEV;
->  		pr_debug("%s: No CPU initialized for driver %s\n", __func__,
->  			 driver_data->name);
->  		goto err_if_unreg;
-
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-arm-msm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 -- 
-viresh
+"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
