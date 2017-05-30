@@ -1,30 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] cpufreq: cpufreq_register_driver should return -ENODEV if init fails
-Date: Tue, 30 May 2017 23:42:29 +0200
-Message-ID: <2895488.RT6FizubEO@aspire.rjw.lan>
-References: <1495813051-146077-1-git-send-email-darcari@redhat.com> <20170529043215.GA5752@vireshk-i7> <78060adf-a388-daea-e587-4670c269778e@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <78060adf-a388-daea-e587-4670c269778e@redhat.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: David Arcari <darcari@redhat.com>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [RFC PATCH] acpi: change memory allocations to GFP_NOIO
+Date: Tue, 30 May 2017 17:42:53 -0600
+Message-ID: <20170530234253.16510-1-vishal.l.verma@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:5586 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750902AbdE3XqH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 30 May 2017 19:46:07 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
 
-On Tuesday, May 30, 2017 08:05:44 AM David Arcari wrote:
-> On 05/29/2017 12:32 AM, Viresh Kumar wrote:
-> > You sent it to the wrong list and missed Rafael too. MAINTAINERS file should
-> > help getting these details in the future.
-> 
-> Oops - my bad.
-> 
-> Rafael - is this OK as is or would you prefer I resend this?
+With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
+Specifically, the DSM to clear media errors is called during writes, so
+that we can provide a writes-fix-errors model.
 
-No need to resend, thanks!
+However it is easy to imagine a scenario like:
+ - write through the nvdimm driver
+ - acpi allocation
+ - writeback, causes more IO through the nvdimm driver
+ - deadlock
 
-I've actually queued it up already.
+Making the acpi allocations GPF_NOIO would ensure that it doesn't
+trigger writeback, and avoids the above deadlock.
 
-Thanks,
-Rafael
+Cc: <linux-acpi@vger.kernel.org>
+Cc: <linux-nvdimm@lists.01.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+
+Is this too invasive a change? ACPI code in general appears
+to be good about error-checking allocations, and in our scenario
+above, a failed allocation would just mean the attempt to issue
+the DSM would fail, and the IO would simply fail.
+
+ include/acpi/platform/aclinuxex.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
+index efdff52..9bd54ec 100644
+--- a/include/acpi/platform/aclinuxex.h
++++ b/include/acpi/platform/aclinuxex.h
+@@ -83,12 +83,12 @@ acpi_status acpi_os_terminate(void);
+  */
+ static inline void *acpi_os_allocate(acpi_size size)
+ {
+-	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
+ }
+ 
+ static inline void *acpi_os_allocate_zeroed(acpi_size size)
+ {
+-	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
+ }
+ 
+ static inline void acpi_os_free(void *memory)
+@@ -99,7 +99,7 @@ static inline void acpi_os_free(void *memory)
+ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
+ {
+ 	return kmem_cache_zalloc(cache,
+-				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++				 irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
+ }
+ 
+ static inline acpi_thread_id acpi_os_get_thread_id(void)
+-- 
+2.9.3
+
