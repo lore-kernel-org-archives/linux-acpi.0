@@ -1,80 +1,67 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] ARM64/ACPI: Fix BAD_MADT_GICC_ENTRY() macro
- implementation
-Date: Tue, 30 May 2017 12:35:49 +0100
-Message-ID: <20170530113548.GG32289@arm.com>
-References: <20170526164002.30103-1-lorenzo.pieralisi@arm.com>
+From: David Arcari <darcari@redhat.com>
+Subject: Re: [PATCH] cpufreq: cpufreq_register_driver should return -ENODEV if
+ init fails
+Date: Tue, 30 May 2017 08:05:44 -0400
+Message-ID: <78060adf-a388-daea-e587-4670c269778e@redhat.com>
+References: <1495813051-146077-1-git-send-email-darcari@redhat.com>
+ <20170529043215.GA5752@vireshk-i7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:57838 "EHLO foss.arm.com"
+Received: from mx1.redhat.com ([209.132.183.28]:37678 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751773AbdE3Lfp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 30 May 2017 07:35:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20170526164002.30103-1-lorenzo.pieralisi@arm.com>
+        id S1750902AbdE3MFq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 30 May 2017 08:05:46 -0400
+In-Reply-To: <20170529043215.GA5752@vireshk-i7>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Julien Grall <julien.grall@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Al Stone <ahs3@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>
+To: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, May 26, 2017 at 05:40:02PM +0100, Lorenzo Pieralisi wrote:
-> The BAD_MADT_GICC_ENTRY() macro checks if a GICC MADT entry passes
-> muster from an ACPI specification standpoint. Current macro detects the
-> MADT GICC entry length through ACPI firmware version (it changed from 76
-> to 80 bytes in the transition from ACPI 5.1 to ACPI 6.0 specification)
-> but always uses (erroneously) the ACPICA (latest) struct (ie struct
-> acpi_madt_generic_interrupt - that is 80-bytes long) length to check if
-> the current GICC entry memory record exceeds the MADT table end in
-> memory as defined by the MADT table header itself, which may result in
-> false negatives depending on the ACPI firmware version and how the MADT
-> entries are laid out in memory (ie on ACPI 5.1 firmware MADT GICC
-> entries are 76 bytes long, so by adding 80 to a GICC entry start address
-> in memory the resulting address may well be past the actual MADT end,
-> triggering a false negative).
+On 05/29/2017 12:32 AM, Viresh Kumar wrote:
+> You sent it to the wrong list and missed Rafael too. MAINTAINERS file should
+> help getting these details in the future.
+
+Oops - my bad.
+
+Rafael - is this OK as is or would you prefer I resend this?
+
+Thanks,
+
+-DA
+
 > 
-> Fix the BAD_MADT_GICC_ENTRY() macro by reshuffling the condition checks
-> and update them to always use the firmware version specific MADT GICC
-> entry length in order to carry out boundary checks.
+> On 26-05-17, 11:37, David Arcari wrote:
+>> For a driver that does not set the CPUFREQ_STICKY flag, if all of the
+>> ->init() calls fail, cpufreq_register_driver() should return an error.
+>> This will prevent the driver from loading.
+>>
+>> Fixes: ce1bcfe94db8 ("cpufreq: check cpufreq_policy_list instead of scanning policies for all CPUs")
+>>
+>> Cc: Viresh Kumar <viresh.kumar@linaro.org>
+>> Signed-off-by: David Arcari <darcari@redhat.com>
 > 
-> Fixes: b6cfb277378e ("ACPI / ARM64: add BAD_MADT_GICC_ENTRY() macro")
-> Reported-by: Julien Grall <julien.grall@arm.com>
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Julien Grall <julien.grall@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Al Stone <ahs3@redhat.com>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->  arch/arm64/include/asm/acpi.h | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-
-Oh, nasty:
-
-Acked-by: Will Deacon <will.deacon@arm.com>
-
-I'm assuming Catalin will pick this up as a fix.
-
-Will
-
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 0e99978..59cca1d 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -23,9 +23,9 @@
->  #define ACPI_MADT_GICC_LENGTH	\
->  	(acpi_gbl_FADT.header.revision < 6 ? 76 : 80)
->  
-> -#define BAD_MADT_GICC_ENTRY(entry, end)						\
-> -	(!(entry) || (unsigned long)(entry) + sizeof(*(entry)) > (end) ||	\
-> -	 (entry)->header.length != ACPI_MADT_GICC_LENGTH)
-> +#define BAD_MADT_GICC_ENTRY(entry, end)					\
-> +	(!(entry) || (entry)->header.length != ACPI_MADT_GICC_LENGTH ||	\
-> +	(unsigned long)(entry) + ACPI_MADT_GICC_LENGTH > (end))
->  
->  /* Basic configuration for ACPI */
->  #ifdef	CONFIG_ACPI
-> -- 
-> 2.10.0
+> +
+> Cc: 4.0+ <stable@vger.kernel.org> # 4.0+
 > 
+>> ---
+>>  drivers/cpufreq/cpufreq.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+>> index 0e3f649..26b643d 100644
+>> --- a/drivers/cpufreq/cpufreq.c
+>> +++ b/drivers/cpufreq/cpufreq.c
+>> @@ -2468,6 +2468,7 @@ int cpufreq_register_driver(struct cpufreq_driver *driver_data)
+>>  	if (!(cpufreq_driver->flags & CPUFREQ_STICKY) &&
+>>  	    list_empty(&cpufreq_policy_list)) {
+>>  		/* if all ->init() calls failed, unregister */
+>> +		ret = -ENODEV;
+>>  		pr_debug("%s: No CPU initialized for driver %s\n", __func__,
+>>  			 driver_data->name);
+>>  		goto err_if_unreg;
+> 
+> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+> 
+
