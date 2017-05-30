@@ -1,47 +1,99 @@
-From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v6 1/6] iommu: of: Fix check for returning EPROBE_DEFER
-Date: Tue, 30 May 2017 11:32:13 +0200
-Message-ID: <20170530093212.GD2818@8bytes.org>
-References: <1495892865-9506-1-git-send-email-sricharan@codeaurora.org>
+From: Florian Echtler <floe@butterbrot.org>
+Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
+Date: Tue, 30 May 2017 11:34:17 +0200
+Message-ID: <1e60811b-a8ac-017c-d350-8a40e4323870@butterbrot.org>
+References: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
+ <20170526210340.GA5114@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1495892865-9506-1-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.neuschaefer-hi6Y0CQ0nG0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="LgtoB1uKisubUsSlaSTAUIJhtmqToj1BC"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from butterbrot.org ([176.9.106.16]:42640 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750951AbdE3JeT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 30 May 2017 05:34:19 -0400
+In-Reply-To: <20170526210340.GA5114@wunner.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
 
-On Sat, May 27, 2017 at 07:17:40PM +0530, Sricharan R wrote:
-> Now with IOMMU probe deferral, we return -EPROBE_DEFER
-> for masters that are connected to an IOMMU which is not
-> probed yet, but going to get probed, so that we can attach
-> the correct dma_ops. So while trying to defer the probe of
-> the master, check if the of_iommu node that it is connected
-> to is marked in DT as 'status=disabled', then the IOMMU is never
-> is going to get probed. So simply return NULL and let the master
-> work without an IOMMU.
-> 
-> Fixes: 7b07cbefb68d ("iommu: of: Handle IOMMU lookup failure with deferred probing or error")
-> Reported-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> Tested-by: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-> Tested-by: Magnus Damn <magnus.damn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Acked-by: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> ---
->  drivers/iommu/of_iommu.c | 1 +
->  1 file changed, 1 insertion(+)
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--LgtoB1uKisubUsSlaSTAUIJhtmqToj1BC
+Content-Type: multipart/mixed; boundary="qII9nGj8BN9GPGn45blROA8Jg54dbMDRP";
+ protected-headers="v1"
+From: Florian Echtler <floe@butterbrot.org>
+To: Lukas Wunner <lukas@wunner.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+ dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
+Message-ID: <1e60811b-a8ac-017c-d350-8a40e4323870@butterbrot.org>
+Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
+References: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
+ <20170526210340.GA5114@wunner.de>
+In-Reply-To: <20170526210340.GA5114@wunner.de>
 
-Sorry for the confusion, I meant to apply this version of the patch-set
-instead of v5.
+--qII9nGj8BN9GPGn45blROA8Jg54dbMDRP
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
+
+On 26.05.2017 23:03, Lukas Wunner wrote:
+> On Fri, May 26, 2017 at 02:13:29PM +0200, Florian Echtler wrote:
+>> I'm running Ubuntu 16.04.2 on a 27" unibody iMac 10,1 from 2009. Howev=
+er, even
+>> with the most recent HWE stack (kernel 4.8), the display stays black a=
+fter
+>> suspend. I can ssh into the machine, so wakeup is OK, but the display =
+is
+>> entirely black (backlight stays off).
+>>
+> The ATI card has MXM_PNL_PWR_EN and MXM_PNL_BL_EN pins.  Those must be
+> enabled for the panel to light up.  Perhaps radeon needs to be extended=
+
+> to do that.  One theory is that this is done via ACPI, but perhaps
+> only if a certain operating system is running.  Dump the ACPI tables
+> and search DSDT and SSDT* tables for methods relating to the ATI card
+> and/or backlight.  If you find checks for OSDW there (e.g. in _PS0,
+> i.e. on resume), it means the AML code is only executed on Darwin.
+I've already had a look at the ACPI tables; there seem to be no reference=
+s to
+the "official" backlight/display control functions (no _BL? or _DO? metho=
+ds).
+
+> Conversely !OSDW means the code is only executed on Windows (Boot Camp)=
+=2E
+> Linux masquerades as Darwin, but this can be disabled with
+> acpi_osi=3D!Darwin on the command line.  It's worth trying if that chan=
+ges
+> the behaviour.  If it does, then macOS likely sets those pins on resume=
+
+> and we need to do the same in radeon.
+There are OSDW checks present, however, booting with acpi_osi=3D!Darwin d=
+oesn't
+make a difference to the backlight behaviour.
+
+I'd be grateful for other suggestions...
+
+Best regards, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
+
+
+
+--qII9nGj8BN9GPGn45blROA8Jg54dbMDRP--
+
+--LgtoB1uKisubUsSlaSTAUIJhtmqToj1BC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEARECAAYFAlktPJkACgkQ7CzyshGvatjGTgCg8chDnYxLyo0K8gZJgnA/UDSX
+8e0AoNmRn8/uSChY8J4chCvjGnivReS4
+=KhIs
+-----END PGP SIGNATURE-----
+
+--LgtoB1uKisubUsSlaSTAUIJhtmqToj1BC--
