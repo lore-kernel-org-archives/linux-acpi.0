@@ -1,167 +1,92 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH v9 2/7] PCI: Apply the new generic I/O management on PCI
- IO hosts
-Date: Tue, 30 May 2017 08:12:06 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40A74D9E@FRAEML521-MBX.china.huawei.com>
-References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
- <1495712248-5232-3-git-send-email-gabriele.paoloni@huawei.com>
- <20170526212001.GB21531@bhelgaas-glaptop.roam.corp.google.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v6 3/6] ACPI/IORT: Ignore all errors except EPROBE_DEFER
+Date: Tue, 30 May 2017 10:06:52 +0100
+Message-ID: <20170530090652.GA1767@red-moon>
+References: <1495892865-9506-1-git-send-email-sricharan@codeaurora.org>
+ <1495892865-9506-3-git-send-email-sricharan@codeaurora.org>
+ <1564836.5iBbgoacpH@aspire.rjw.lan>
+ <68bc9be5-22df-e7af-3fcd-182e935e681c@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([45.249.212.188]:6835 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750839AbdE3IM1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 May 2017 04:12:27 -0400
-In-Reply-To: <20170526212001.GB21531@bhelgaas-glaptop.roam.corp.google.com>
-Content-Language: en-US
+Received: from foss.arm.com ([217.140.101.70]:55098 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750929AbdE3JFr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 30 May 2017 05:05:47 -0400
+Content-Disposition: inline
+In-Reply-To: <68bc9be5-22df-e7af-3fcd-182e935e681c@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rafael@kernel.org" <rafael@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "minyard@acm.org" <minyard@acm.org>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, John Garry <john.garry@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, Linuxarm <linuxarm@huawei.com>, linux-acpi@vg
+To: Sricharan R <sricharan@codeaurora.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org, robh+dt@kernel.org, frowand.list@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com, lenb@kernel.org, catalin.marinas@arm.com, arnd@arndb.de, linux-arch@vger.kernel.org, laurent.pinchart@ideasonboard.com, j.neuschaefer@gmx.net, geert@linux-m68k.org, magnus.damm@gmail.com, nwatters@codeaurora.org, linux@armlinux.org.uk
 
-Hi Bjorn
-
-> -----Original Message-----
-> From: Bjorn Helgaas [mailto:helgaas@kernel.org]
-> Sent: 26 May 2017 22:20
-> To: Gabriele Paoloni
-> Cc: catalin.marinas@arm.com; will.deacon@arm.com; robh+dt@kernel.org;
-> frowand.list@gmail.com; bhelgaas@google.com; rafael@kernel.org;
-> arnd@arndb.de; linux-arm-kernel@lists.infradead.org;
-> lorenzo.pieralisi@arm.com; mark.rutland@arm.com; minyard@acm.org;
-> benh@kernel.crashing.org; John Garry; linux-kernel@vger.kernel.org;
-> xuwei (O); Linuxarm; linux-acpi@vger.kernel.org; zhichang.yuan; linux-
-> pci@vger.kernel.org; olof@lixom.net; brian.starkey@arm.com
-> Subject: Re: [PATCH v9 2/7] PCI: Apply the new generic I/O management
-> on PCI IO hosts
+On Mon, May 29, 2017 at 10:36:42AM +0530, Sricharan R wrote:
+> Hi Rafael,
 > 
-> On Thu, May 25, 2017 at 12:37:23PM +0100, Gabriele Paoloni wrote:
-> > From: "zhichang.yuan" <yuanzhichang@hisilicon.com>
-> >
-> > After introducing the new generic I/O space management(LOGIC_IO), the
-> > original PCI MMIO relevant helpers need to be updated based on the
-> new
-> > interfaces defined in LOGIC_IO.
-> > This patch adapts the corresponding code to match the changes
-> introduced
-> > by LOGIC_IO.
-> >
-> > Signed-off-by: zhichang.yuan <yuanzhichang@hisilicon.com>
-> > Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>        #earlier draft
+> On 5/28/2017 12:48 AM, Rafael J. Wysocki wrote:
+> > On Saturday, May 27, 2017 07:17:42 PM Sricharan R wrote:
+> >> While deferring the probe of IOMMU masters, xlate and
+> >> add_device callbacks called from iort_iommu_configure
+> >> can pass back error values like -ENODEV, which means
+> >> the IOMMU cannot be connected with that master for real
+> >> reasons. Before the IOMMU probe deferral, all such errors
+> >> were ignored. Now all those errors are propagated back,
+> >> killing the master's probe for such errors. Instead ignore
+> >> all the errors except EPROBE_DEFER, which is the only one
+> >> of concern and let the master work without IOMMU, thus
+> >> restoring the old behavior. Also make explicit that
+> >> acpi_dma_configure handles only -EPROBE_DEFER from
+> >> iort_iommu_configure.
+> >>
+> >> Fixes: 5a1bb638d567 ("drivers: acpi: Handle IOMMU lookup failure with deferred probing or error")
+> >> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+> >> ---
+> >>  drivers/acpi/arm64/iort.c | 6 ++++++
+> >>  drivers/acpi/scan.c       | 4 ++--
+> >>  2 files changed, 8 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> >> index c5fecf9..16e101f 100644
+> >> --- a/drivers/acpi/arm64/iort.c
+> >> +++ b/drivers/acpi/arm64/iort.c
+> >> @@ -782,6 +782,12 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+> >>  	if (err)
+> >>  		ops = ERR_PTR(err);
+> >>  
+> >> +	/* Ignore all other errors apart from EPROBE_DEFER */
+> >> +	if (IS_ERR(ops) && (PTR_ERR(ops) != -EPROBE_DEFER)) {
+> >> +		dev_dbg(dev, "Adding to IOMMU failed: %ld\n", PTR_ERR(ops));
+> >> +		ops = NULL;
+> >> +	}
+> >> +
+> >>  	return ops;
+> >>  }
+> >>  
+> >> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> >> index e39ec7b..3a10d757 100644
+> >> --- a/drivers/acpi/scan.c
+> >> +++ b/drivers/acpi/scan.c
+> >> @@ -1371,8 +1371,8 @@ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+> >>  	iort_set_dma_mask(dev);
+> >>  
+> >>  	iommu = iort_iommu_configure(dev);
+> >> -	if (IS_ERR(iommu))
+> >> -		return PTR_ERR(iommu);
+> >> +	if (IS_ERR(iommu) && PTR_ERR(iommu) == -EPROBE_DEFER)
+> >> +		return -EPROBE_DEFER;
+> >>  
+> >>  	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+> >>  	/*
+> >>
+> > 
+> > ACK for the scan.c change and I'm assuming this to go in via ARM64.
+> > 
 > 
-> Not sure how you plan to merge this, but here's my ack:
-> 
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> Thanks for the ACK, should go through the IOMMU tree, since this fixes the IOMMU probe deferral
+> that got merged through it.
 
-Many thanks for your Ack :)
+Yes and it would be good to get them merged for -rc4 given that there
+are bug fixes there, I agree the IOMMU tree is the way they should
+go upstream.
 
-Maybe Arnd can take the whole patchset (or just the lib framework + DT part
-leaving the ACPI part to Lorenzo)....?
-
-> 
-> If you split this as suggested below, add my ack to all three patches.
-
-Sure I will
-
-> 
-> > diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> > index b01bd5b..c9fe12b 100644
-> > --- a/drivers/pci/pci.c
-> > +++ b/drivers/pci/pci.c
-> >...
-> 
-> > -int __weak pci_register_io_range(phys_addr_t addr, resource_size_t
-> size)
-> > +int pci_register_io_range(struct fwnode_handle *fwnode, phys_addr_t
-> addr,
-> > +			resource_size_t	size)
-> 
-> It's trivial and nit-picky, but I would do the __weak removal in its
-> own patch.  It's obviously fine because there's only one
-> implementation, but it's unrelated to the main point of this patch.
-
-Agreed
-
-> 
-> I would split the signature change (fwnode addition) to a separate
-> patch, too, just to make the actual change more obvious, especially
-> since that's the only part that crosses subsystems (ACPI, PCI, OF).
-
-Agreed too
-
-> 
-> >  {
-> > -	int err = 0;
-> > -
-> > +	int ret = 0;
-> >  #ifdef PCI_IOBASE
-> > -	struct io_range *range;
-> > -	resource_size_t allocated_size = 0;
-> > -
-> > -	/* check if the range hasn't been previously recorded */
-> > -	spin_lock(&io_range_lock);
-> > -	list_for_each_entry(range, &io_range_list, list) {
-> > -		if (addr >= range->start && addr + size <= range->start +
-> size) {
-> > -			/* range already registered, bail out */
-> > -			goto end_register;
-> > -		}
-> > -		allocated_size += range->size;
-> > -	}
-> > -
-> > -	/* range not registed yet, check for available space */
-> > -	if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
-> > -		/* if it's too big check if 64K space can be reserved */
-> > -		if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
-> > -			err = -E2BIG;
-> > -			goto end_register;
-> > -		}
-> > -
-> > -		size = SZ_64K;
-> > -		pr_warn("Requested IO range too big, new size set to
-> 64K\n");
-> > -	}
-> > +	struct logic_pio_hwaddr *range;
-> >
-> > -	/* add the range to the list */
-> > -	range = kzalloc(sizeof(*range), GFP_ATOMIC);
-> > -	if (!range) {
-> > -		err = -ENOMEM;
-> > -		goto end_register;
-> > -	}
-> > +	if (!size || addr + size < addr)
-> > +		return -EINVAL;
-> >
-> > -	range->start = addr;
-> > +	range = kzalloc(sizeof(*range), GFP_KERNEL);
-> > +	if (!range)
-> > +		return -ENOMEM;
-> 
-> Add a blank line here.
-
-Yep I will
-
-Cheers
-Gab
-
-> 
-> > +	range->fwnode = fwnode;
-> >  	range->size = size;
-> > +	range->hw_start = addr;
-> > +	range->flags = PIO_CPU_MMIO;
-> >
-> > -	list_add_tail(&range->list, &io_range_list);
-> > -
-> > -end_register:
-> > -	spin_unlock(&io_range_lock);
-> > +	ret = logic_pio_register_range(range);
-> > +	if (ret)
-> > +		kfree(range);
-> >  #endif
-> >
-> > -	return err;
-> > +	return ret;
-> >  }
+Lorenzo
