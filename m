@@ -1,76 +1,41 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH] ARM64/ACPI: Fix BAD_MADT_GICC_ENTRY() macro
- implementation
-Date: Tue, 30 May 2017 17:26:49 +0100
-Message-ID: <96af779c-c8ee-b468-9a5b-547bdd4ce835@arm.com>
-References: <20170526164002.30103-1-lorenzo.pieralisi@arm.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose
+ embedded WMI MOF metadata
+Date: Tue, 30 May 2017 09:46:27 -0700
+Message-ID: <20170530164627.GB118811@localhost.localdomain>
+References: <cover.1495862272.git.dvhart@infradead.org>
+ <27758381c6cb77efab75a266e21243a964cce0ba.1495862272.git.dvhart@infradead.org>
+ <201705271314.16241@pali>
+ <CALCETrWgFqhYCVmr+rox5GuwAO8HzenjRt7MeKJbAmV3gJCmng@mail.gmail.com>
+ <1496157894.28981.31.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:33158 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751074AbdE3Q1G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 30 May 2017 12:27:06 -0400
-In-Reply-To: <20170526164002.30103-1-lorenzo.pieralisi@arm.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:57859 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751002AbdE3Qqc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 May 2017 12:46:32 -0400
+Content-Disposition: inline
+In-Reply-To: <1496157894.28981.31.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-arm-kernel@lists.infradead.org
-Cc: linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Julien Grall <julien.grall@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Al Stone <ahs3@redhat.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On 26/05/17 17:40, Lorenzo Pieralisi wrote:
-> The BAD_MADT_GICC_ENTRY() macro checks if a GICC MADT entry passes
-> muster from an ACPI specification standpoint. Current macro detects the
-> MADT GICC entry length through ACPI firmware version (it changed from 76
-> to 80 bytes in the transition from ACPI 5.1 to ACPI 6.0 specification)
-> but always uses (erroneously) the ACPICA (latest) struct (ie struct
-> acpi_madt_generic_interrupt - that is 80-bytes long) length to check if
-> the current GICC entry memory record exceeds the MADT table end in
-> memory as defined by the MADT table header itself, which may result in
-> false negatives depending on the ACPI firmware version and how the MADT
-> entries are laid out in memory (ie on ACPI 5.1 firmware MADT GICC
-> entries are 76 bytes long, so by adding 80 to a GICC entry start address
-> in memory the resulting address may well be past the actual MADT end,
-> triggering a false negative).
+On Tue, May 30, 2017 at 06:24:54PM +0300, Andy Shevchenko wrote:
+> On Sat, 2017-05-27 at 14:07 -0700, Andy Lutomirski wrote:
+> > On Sat, May 27, 2017 at 4:14 AM, Pali Rohár <pali.rohar@gmail.com>
+> > wrote:
+> > > > Quite a few laptops (and maybe servers?) have embedded WMI MOF
+> > > 
+> > > Not "a few", but "lots of" :-)
 > 
-> Fix the BAD_MADT_GICC_ENTRY() macro by reshuffling the condition checks
-> and update them to always use the firmware version specific MADT GICC
-> entry length in order to carry out boundary checks.
-> 
-> Fixes: b6cfb277378e ("ACPI / ARM64: add BAD_MADT_GICC_ENTRY() macro")
-> Reported-by: Julien Grall <julien.grall@arm.com>
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Julien Grall <julien.grall@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Al Stone <ahs3@redhat.com>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->  arch/arm64/include/asm/acpi.h | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 0e99978..59cca1d 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -23,9 +23,9 @@
->  #define ACPI_MADT_GICC_LENGTH	\
->  	(acpi_gbl_FADT.header.revision < 6 ? 76 : 80)
->  
-> -#define BAD_MADT_GICC_ENTRY(entry, end)						\
-> -	(!(entry) || (unsigned long)(entry) + sizeof(*(entry)) > (end) ||	\
-> -	 (entry)->header.length != ACPI_MADT_GICC_LENGTH)
-> +#define BAD_MADT_GICC_ENTRY(entry, end)					\
-> +	(!(entry) || (entry)->header.length != ACPI_MADT_GICC_LENGTH ||	\
-> +	(unsigned long)(entry) + ACPI_MADT_GICC_LENGTH > (end))
->  
->  /* Basic configuration for ACPI */
->  #ifdef	CONFIG_ACPI
-> 
+> Aren't they are synonyms ("quite a few" vs "lots of")?
 
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+The difference is subtle enough that people we can probably get several
+different answers, but generally yes. I'm happy to update it in any case.
 
-	M.
 -- 
-Jazz is not dead. It just smells funny...
+Darren Hart
+VMware Open Source Technology Center
