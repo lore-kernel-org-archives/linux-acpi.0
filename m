@@ -1,35 +1,80 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Subject: Re: [PATCH 2/7] dt-bindings: PCI: Describe ATS property for root
- complex nodes
-Date: Tue, 30 May 2017 11:58:50 +0100
-Message-ID: <035be7ba-e850-a5a9-08fa-802a04feb600@arm.com>
-References: <20170524180143.19855-1-jean-philippe.brucker@arm.com>
- <20170524180143.19855-3-jean-philippe.brucker@arm.com>
- <20170530100153.GI2818@8bytes.org>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ARM64/ACPI: Fix BAD_MADT_GICC_ENTRY() macro
+ implementation
+Date: Tue, 30 May 2017 12:35:49 +0100
+Message-ID: <20170530113548.GG32289@arm.com>
+References: <20170526164002.30103-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170530100153.GI2818@8bytes.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org, bhelgaas@google.com, robh+dt@kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, robin.murphy@arm.com, okaya@codeaurora.org, sunil.kovvuri@gmail.com, thunder.leizhen@huawei.com, tn@semihalf.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:57838 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751773AbdE3Lfp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 30 May 2017 07:35:45 -0400
+Content-Disposition: inline
+In-Reply-To: <20170526164002.30103-1-lorenzo.pieralisi@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Julien Grall <julien.grall@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Al Stone <ahs3@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>
 
-On 30/05/17 11:01, Joerg Roedel wrote:
-> On Wed, May 24, 2017 at 07:01:38PM +0100, Jean-Philippe Brucker wrote:
->> +- ats-supported: if present, the root complex supports the Address
->> +  Translation Service (ATS). It is able to interpret the AT field in PCIe
->> +  Transaction Layer Packets, and forward Translation Completions or
->> +  Invalidation Requests to endpoints.
->> +
->> +  Device drivers should not enable ATS in endpoints unless this property
->> +  is present.
+On Fri, May 26, 2017 at 05:40:02PM +0100, Lorenzo Pieralisi wrote:
+> The BAD_MADT_GICC_ENTRY() macro checks if a GICC MADT entry passes
+> muster from an ACPI specification standpoint. Current macro detects the
+> MADT GICC entry length through ACPI firmware version (it changed from 76
+> to 80 bytes in the transition from ACPI 5.1 to ACPI 6.0 specification)
+> but always uses (erroneously) the ACPICA (latest) struct (ie struct
+> acpi_madt_generic_interrupt - that is 80-bytes long) length to check if
+> the current GICC entry memory record exceeds the MADT table end in
+> memory as defined by the MADT table header itself, which may result in
+> false negatives depending on the ACPI firmware version and how the MADT
+> entries are laid out in memory (ie on ACPI 5.1 firmware MADT GICC
+> entries are 76 bytes long, so by adding 80 to a GICC entry start address
+> in memory the resulting address may well be past the actual MADT end,
+> triggering a false negative).
 > 
-> Device drivers should never enable ATS, this is the job of the IOMMU
-> driver. This should be clarified in the text.
+> Fix the BAD_MADT_GICC_ENTRY() macro by reshuffling the condition checks
+> and update them to always use the firmware version specific MADT GICC
+> entry length in order to carry out boundary checks.
+> 
+> Fixes: b6cfb277378e ("ACPI / ARM64: add BAD_MADT_GICC_ENTRY() macro")
+> Reported-by: Julien Grall <julien.grall@arm.com>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Julien Grall <julien.grall@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Al Stone <ahs3@redhat.com>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>  arch/arm64/include/asm/acpi.h | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 
-Right, I will change this.
+Oh, nasty:
 
-Thanks,
-Jean
+Acked-by: Will Deacon <will.deacon@arm.com>
+
+I'm assuming Catalin will pick this up as a fix.
+
+Will
+
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index 0e99978..59cca1d 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -23,9 +23,9 @@
+>  #define ACPI_MADT_GICC_LENGTH	\
+>  	(acpi_gbl_FADT.header.revision < 6 ? 76 : 80)
+>  
+> -#define BAD_MADT_GICC_ENTRY(entry, end)						\
+> -	(!(entry) || (unsigned long)(entry) + sizeof(*(entry)) > (end) ||	\
+> -	 (entry)->header.length != ACPI_MADT_GICC_LENGTH)
+> +#define BAD_MADT_GICC_ENTRY(entry, end)					\
+> +	(!(entry) || (entry)->header.length != ACPI_MADT_GICC_LENGTH ||	\
+> +	(unsigned long)(entry) + ACPI_MADT_GICC_LENGTH > (end))
+>  
+>  /* Basic configuration for ACPI */
+>  #ifdef	CONFIG_ACPI
+> -- 
+> 2.10.0
+> 
