@@ -1,67 +1,72 @@
-From: David Arcari <darcari@redhat.com>
-Subject: Re: [PATCH] cpufreq: cpufreq_register_driver should return -ENODEV if
- init fails
-Date: Tue, 30 May 2017 08:05:44 -0400
-Message-ID: <78060adf-a388-daea-e587-4670c269778e@redhat.com>
-References: <1495813051-146077-1-git-send-email-darcari@redhat.com>
- <20170529043215.GA5752@vireshk-i7>
+From: Geetha sowjanya <gakula@caviumnetworks.com>
+Subject: [PATCH v7 0/3] Cavium ThunderX2 SMMUv3 errata workarounds
+Date: Tue, 30 May 2017 17:33:38 +0530
+Message-ID: <1496145821-3411-1-git-send-email-gakula@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37678 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750902AbdE3MFq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 30 May 2017 08:05:46 -0400
-In-Reply-To: <20170529043215.GA5752@vireshk-i7>
+Received: from mail-bl2nam02on0066.outbound.protection.outlook.com ([104.47.38.66]:53391
+        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750898AbdE3MXH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 30 May 2017 08:23:07 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: will.deacon@arm.com, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@rjwysocki.net, jcm@redhat.com, linux-kernel@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, devel@acpica.org, linu.cherian@cavium.com, Charles.Garcia-Tobin@arm.com, robh@kernel.org, Geetha sowjanya <gakula@caviumnetworks.com>
 
-On 05/29/2017 12:32 AM, Viresh Kumar wrote:
-> You sent it to the wrong list and missed Rafael too. MAINTAINERS file should
-> help getting these details in the future.
+Cavium ThunderX2 SMMUv3 implementation has two Silicon Erratas.
+1. Errata ID #74
+   SMMU register alias Page 1 is not implemented
+2. Errata ID #126
+   SMMU doesnt support unique IRQ lines and also MSI for gerror,
+   eventq and cmdq-sync
 
-Oops - my bad.
+The following patchset does software workaround for these two erratas.
 
-Rafael - is this OK as is or would you prefer I resend this?
+This series is based on patchset.
+https://www.spinics.net/lists/arm-kernel/msg578443.html
 
-Thanks,
+Changes since v6:
+   - Changed device tree compatible string to vendor specific.
+   - Rebased on Robin's latest "Update SMMU models for IORT rev. C" v2 patch.
+     https://www.spinics.net/lists/arm-kernel/msg582809.html
 
--DA
+Changes since v5:
+  - Rebased on Robin's "Update SMMU models for IORT rev. C" patch.
+     https://www.spinics.net/lists/arm-kernel/msg580728.html
+  - Replaced ACPI_IORT_SMMU_V3_CAVIUM_CN99XX macro with ACPI_IORT_SMMU_CAVIUM_CN99XX
 
-> 
-> On 26-05-17, 11:37, David Arcari wrote:
->> For a driver that does not set the CPUFREQ_STICKY flag, if all of the
->> ->init() calls fail, cpufreq_register_driver() should return an error.
->> This will prevent the driver from loading.
->>
->> Fixes: ce1bcfe94db8 ("cpufreq: check cpufreq_policy_list instead of scanning policies for all CPUs")
->>
->> Cc: Viresh Kumar <viresh.kumar@linaro.org>
->> Signed-off-by: David Arcari <darcari@redhat.com>
-> 
-> +
-> Cc: 4.0+ <stable@vger.kernel.org> # 4.0+
-> 
->> ---
->>  drivers/cpufreq/cpufreq.c | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
->> index 0e3f649..26b643d 100644
->> --- a/drivers/cpufreq/cpufreq.c
->> +++ b/drivers/cpufreq/cpufreq.c
->> @@ -2468,6 +2468,7 @@ int cpufreq_register_driver(struct cpufreq_driver *driver_data)
->>  	if (!(cpufreq_driver->flags & CPUFREQ_STICKY) &&
->>  	    list_empty(&cpufreq_policy_list)) {
->>  		/* if all ->init() calls failed, unregister */
->> +		ret = -ENODEV;
->>  		pr_debug("%s: No CPU initialized for driver %s\n", __func__,
->>  			 driver_data->name);
->>  		goto err_if_unreg;
-> 
-> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
-> 
+Changes since v4:
+ - Replaced all page1 offset macros ARM_SMMU_EVTQ/PRIQ_PROD/CONS with
+    arm_smmu_page1_fixup(ARM_SMMU_EVTQ/PRIQ_PROD/CONS, smmu)
+
+Changes since v3:
+ - Merged patches 1, 2 and 4 of Version 3.
+ - Modified the page1_offset_adjust() and get_irq_flags() implementation as
+   suggested by Robin.
+
+Changes since v2:
+ - Updated "Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt" document with
+   new SMMU option used to enable errata workaround.
+
+Changes since v1:
+ - Since the use of MIDR register is rejected and SMMU_IIDR is broken on this
+   silicon, as suggested by Will Deacon modified the patches to use ThunderX2
+   SMMUv3 IORT model number to enable errata workaround.
+
+Geetha Sowjanya (1):
+  iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #126
+
+Linu Cherian (2):
+  ACPI/IORT: Fixup SMMUv3 resource size for Cavium ThunderX2 SMMUv3
+    model
+  iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2      erratum
+    #74
+
+ Documentation/arm64/silicon-errata.txt             |    2 +
+ .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    6 ++
+ drivers/acpi/arm64/iort.c                          |   10 ++-
+ drivers/iommu/arm-smmu-v3.c                        |   93 ++++++++++++++++----
+ 4 files changed, 91 insertions(+), 20 deletions(-)
 
