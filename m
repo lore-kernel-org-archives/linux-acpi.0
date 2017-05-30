@@ -1,58 +1,167 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 16/16] platform/x86: dell-wmi: Convert to the WMI bus
- infrastructure
-Date: Mon, 29 May 2017 19:45:05 -0700
-Message-ID: <20170530024505.GC32841@dtor-ws>
-References: <cover.1495862272.git.dvhart@infradead.org>
- <4a4da770c8d0af7e3f31e79261b43573d70a6ea6.1495862272.git.dvhart@infradead.org>
- <201705271250.20338@pali>
- <CALCETrWic6ZWrjdmXTRX92U058B1SZ+xMd+5TBW+YL51ZrgeCA@mail.gmail.com>
- <3669DF37-7D17-40AD-852A-F8EDBE15A785@gmail.com>
- <CALCETrWtkEazuMMrFZp4oybwjNO-8r6GNF2BLA39fJqfH8Crtw@mail.gmail.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH v9 2/7] PCI: Apply the new generic I/O management on PCI
+ IO hosts
+Date: Tue, 30 May 2017 08:12:06 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40A74D9E@FRAEML521-MBX.china.huawei.com>
+References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1495712248-5232-3-git-send-email-gabriele.paoloni@huawei.com>
+ <20170526212001.GB21531@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f172.google.com ([209.85.192.172]:36420 "EHLO
-        mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750797AbdE3CpJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 May 2017 22:45:09 -0400
-Content-Disposition: inline
-In-Reply-To: <CALCETrWtkEazuMMrFZp4oybwjNO-8r6GNF2BLA39fJqfH8Crtw@mail.gmail.com>
+Received: from szxga02-in.huawei.com ([45.249.212.188]:6835 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750839AbdE3IM1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 May 2017 04:12:27 -0400
+In-Reply-To: <20170526212001.GB21531@bhelgaas-glaptop.roam.corp.google.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@kernel.org>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Jiri Kosina <jikos@kernel.org>, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rafael@kernel.org" <rafael@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "minyard@acm.org" <minyard@acm.org>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, John Garry <john.garry@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, Linuxarm <linuxarm@huawei.com>, linux-acpi@vg
 
-On Sat, May 27, 2017 at 11:40:52AM -0700, Andy Lutomirski wrote:
-> On Sat, May 27, 2017 at 9:17 AM, Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> wrote:
-> > On May 27, 2017 9:04:38 AM PDT, Andy Lutomirski <luto@kernel.org> wrote:
-> >>On Sat, May 27, 2017 at 3:50 AM, Pali Rohár <pali.rohar@gmail.com>
-> >>wrote:
-> >>> On Saturday 27 May 2017 07:31:30 Darren Hart wrote:
-> >>>> -     dell_wmi_input_dev->name = "Dell WMI hotkeys";
-> >>>> -     dell_wmi_input_dev->phys = "wmi/input0";
-> >>>> -     dell_wmi_input_dev->id.bustype = BUS_HOST;
-> >>>> +     priv->input_dev->name = "Dell WMI hotkeys";
-> >>>> +     priv->input_dev->id.bustype = BUS_HOST;
-> >>>
-> >>> Is not there BUS_WMI, or something like that? (Just asking)
-> >>>
-> >>
-> >>Jiri and/or Dmitry, what is bustype for, anyway?
-> >
-> > The bus type could be used to help further  identifying device if it used same vendor/product for spi and i2c, for example, but there are not many if them. I'm not sure if anyone actually makes decisions based on it, but it is part of abi now.
-> >
-> >>I suppose we could add BUS_PLATFORM.
-> >
-> > What would be the difference from BUS_HOST?
-> >
+Hi Bjorn
+
+> -----Original Message-----
+> From: Bjorn Helgaas [mailto:helgaas@kernel.org]
+> Sent: 26 May 2017 22:20
+> To: Gabriele Paoloni
+> Cc: catalin.marinas@arm.com; will.deacon@arm.com; robh+dt@kernel.org;
+> frowand.list@gmail.com; bhelgaas@google.com; rafael@kernel.org;
+> arnd@arndb.de; linux-arm-kernel@lists.infradead.org;
+> lorenzo.pieralisi@arm.com; mark.rutland@arm.com; minyard@acm.org;
+> benh@kernel.crashing.org; John Garry; linux-kernel@vger.kernel.org;
+> xuwei (O); Linuxarm; linux-acpi@vger.kernel.org; zhichang.yuan; linux-
+> pci@vger.kernel.org; olof@lixom.net; brian.starkey@arm.com
+> Subject: Re: [PATCH v9 2/7] PCI: Apply the new generic I/O management
+> on PCI IO hosts
 > 
-> If BUS_HOST means that the device is part of the host as opposed to
-> being plugged in, then it seems entirely reasonable.
+> On Thu, May 25, 2017 at 12:37:23PM +0100, Gabriele Paoloni wrote:
+> > From: "zhichang.yuan" <yuanzhichang@hisilicon.com>
+> >
+> > After introducing the new generic I/O space management(LOGIC_IO), the
+> > original PCI MMIO relevant helpers need to be updated based on the
+> new
+> > interfaces defined in LOGIC_IO.
+> > This patch adapts the corresponding code to match the changes
+> introduced
+> > by LOGIC_IO.
+> >
+> > Signed-off-by: zhichang.yuan <yuanzhichang@hisilicon.com>
+> > Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>        #earlier draft
+> 
+> Not sure how you plan to merge this, but here's my ack:
+> 
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Yes, it basically means platform-specific interface.
+Many thanks for your Ack :)
 
--- 
-Dmitry
+Maybe Arnd can take the whole patchset (or just the lib framework + DT part
+leaving the ACPI part to Lorenzo)....?
+
+> 
+> If you split this as suggested below, add my ack to all three patches.
+
+Sure I will
+
+> 
+> > diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> > index b01bd5b..c9fe12b 100644
+> > --- a/drivers/pci/pci.c
+> > +++ b/drivers/pci/pci.c
+> >...
+> 
+> > -int __weak pci_register_io_range(phys_addr_t addr, resource_size_t
+> size)
+> > +int pci_register_io_range(struct fwnode_handle *fwnode, phys_addr_t
+> addr,
+> > +			resource_size_t	size)
+> 
+> It's trivial and nit-picky, but I would do the __weak removal in its
+> own patch.  It's obviously fine because there's only one
+> implementation, but it's unrelated to the main point of this patch.
+
+Agreed
+
+> 
+> I would split the signature change (fwnode addition) to a separate
+> patch, too, just to make the actual change more obvious, especially
+> since that's the only part that crosses subsystems (ACPI, PCI, OF).
+
+Agreed too
+
+> 
+> >  {
+> > -	int err = 0;
+> > -
+> > +	int ret = 0;
+> >  #ifdef PCI_IOBASE
+> > -	struct io_range *range;
+> > -	resource_size_t allocated_size = 0;
+> > -
+> > -	/* check if the range hasn't been previously recorded */
+> > -	spin_lock(&io_range_lock);
+> > -	list_for_each_entry(range, &io_range_list, list) {
+> > -		if (addr >= range->start && addr + size <= range->start +
+> size) {
+> > -			/* range already registered, bail out */
+> > -			goto end_register;
+> > -		}
+> > -		allocated_size += range->size;
+> > -	}
+> > -
+> > -	/* range not registed yet, check for available space */
+> > -	if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
+> > -		/* if it's too big check if 64K space can be reserved */
+> > -		if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
+> > -			err = -E2BIG;
+> > -			goto end_register;
+> > -		}
+> > -
+> > -		size = SZ_64K;
+> > -		pr_warn("Requested IO range too big, new size set to
+> 64K\n");
+> > -	}
+> > +	struct logic_pio_hwaddr *range;
+> >
+> > -	/* add the range to the list */
+> > -	range = kzalloc(sizeof(*range), GFP_ATOMIC);
+> > -	if (!range) {
+> > -		err = -ENOMEM;
+> > -		goto end_register;
+> > -	}
+> > +	if (!size || addr + size < addr)
+> > +		return -EINVAL;
+> >
+> > -	range->start = addr;
+> > +	range = kzalloc(sizeof(*range), GFP_KERNEL);
+> > +	if (!range)
+> > +		return -ENOMEM;
+> 
+> Add a blank line here.
+
+Yep I will
+
+Cheers
+Gab
+
+> 
+> > +	range->fwnode = fwnode;
+> >  	range->size = size;
+> > +	range->hw_start = addr;
+> > +	range->flags = PIO_CPU_MMIO;
+> >
+> > -	list_add_tail(&range->list, &io_range_list);
+> > -
+> > -end_register:
+> > -	spin_unlock(&io_range_lock);
+> > +	ret = logic_pio_register_range(range);
+> > +	if (ret)
+> > +		kfree(range);
+> >  #endif
+> >
+> > -	return err;
+> > +	return ret;
+> >  }
