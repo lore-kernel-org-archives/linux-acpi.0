@@ -1,50 +1,102 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose
- embedded WMI MOF metadata
-Date: Tue, 30 May 2017 20:21:58 +0300
-Message-ID: <CAHp75Vd08=VG5521LXc80V94sOCA5JnW95P84E3Wp1YdiOTuaw@mail.gmail.com>
-References: <cover.1495862272.git.dvhart@infradead.org> <CALCETrWgFqhYCVmr+rox5GuwAO8HzenjRt7MeKJbAmV3gJCmng@mail.gmail.com>
- <1496157894.28981.31.camel@linux.intel.com> <201705301903.40406@pali>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH] ARM64/ACPI: Fix BAD_MADT_GICC_ENTRY() macro
+ implementation
+Date: Tue, 30 May 2017 11:55:48 -0600
+Message-ID: <08a67d3f-22a3-d097-edc0-e52ce2e43ec7@redhat.com>
+References: <20170526164002.30103-1-lorenzo.pieralisi@arm.com>
+ <20170530113548.GG32289@arm.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f178.google.com ([209.85.220.178]:34528 "EHLO
-        mail-qk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750871AbdE3RWA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 May 2017 13:22:00 -0400
-In-Reply-To: <201705301903.40406@pali>
+Received: from mail-qt0-f170.google.com ([209.85.216.170]:34900 "EHLO
+        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751192AbdE3Rzw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 May 2017 13:55:52 -0400
+Received: by mail-qt0-f170.google.com with SMTP id v27so76341029qtg.2
+        for <linux-acpi@vger.kernel.org>; Tue, 30 May 2017 10:55:52 -0700 (PDT)
+In-Reply-To: <20170530113548.GG32289@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Darren Hart <dvhart@infradead.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Julien Grall <julien.grall@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Marc Zyngier <marc.zyngier@arm.com>
 
-On Tue, May 30, 2017 at 8:03 PM, Pali Roh=C3=A1r <pali.rohar@gmail.com> wro=
-te:
-> On Tuesday 30 May 2017 17:24:54 Andy Shevchenko wrote:
->> On Sat, 2017-05-27 at 14:07 -0700, Andy Lutomirski wrote:
->> > On Sat, May 27, 2017 at 4:14 AM, Pali Roh=C3=A1r <pali.rohar@gmail.com=
->
->> > wrote:
+On 05/30/2017 05:35 AM, Will Deacon wrote:
+> On Fri, May 26, 2017 at 05:40:02PM +0100, Lorenzo Pieralisi wrote:
+>> The BAD_MADT_GICC_ENTRY() macro checks if a GICC MADT entry passes
+>> muster from an ACPI specification standpoint. Current macro detects the
+>> MADT GICC entry length through ACPI firmware version (it changed from 76
+>> to 80 bytes in the transition from ACPI 5.1 to ACPI 6.0 specification)
+>> but always uses (erroneously) the ACPICA (latest) struct (ie struct
+>> acpi_madt_generic_interrupt - that is 80-bytes long) length to check if
+>> the current GICC entry memory record exceeds the MADT table end in
+>> memory as defined by the MADT table header itself, which may result in
+>> false negatives depending on the ACPI firmware version and how the MADT
+>> entries are laid out in memory (ie on ACPI 5.1 firmware MADT GICC
+>> entries are 76 bytes long, so by adding 80 to a GICC entry start address
+>> in memory the resulting address may well be past the actual MADT end,
+>> triggering a false negative).
+>>
+>> Fix the BAD_MADT_GICC_ENTRY() macro by reshuffling the condition checks
+>> and update them to always use the firmware version specific MADT GICC
+>> entry length in order to carry out boundary checks.
+>>
+>> Fixes: b6cfb277378e ("ACPI / ARM64: add BAD_MADT_GICC_ENTRY() macro")
+>> Reported-by: Julien Grall <julien.grall@arm.com>
+>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Cc: Will Deacon <will.deacon@arm.com>
+>> Cc: Julien Grall <julien.grall@arm.com>
+>> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+>> Cc: Catalin Marinas <catalin.marinas@arm.com>
+>> Cc: Al Stone <ahs3@redhat.com>
+>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>> ---
+>>  arch/arm64/include/asm/acpi.h | 6 +++---
+>>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> Oh, nasty:
+> 
+> Acked-by: Will Deacon <will.deacon@arm.com>
+> 
+> I'm assuming Catalin will pick this up as a fix.
+> 
+> Will
 
->> > > > Quite a few laptops (and maybe servers?) have embedded WMI MOF
->> > > Not "a few", but "lots of" :-)
->> Aren't they are synonyms ("quite a few" vs "lots of")?
->
-> I understand "lots of" > "quite a few" > "a few". And synonyms do not
-> have exact meaning...
+Argh.  Yeah, I would hope so, too, though I suspect the existing code will
+accidentally work much of the time.  Sorry I missed this case originally.
 
-I figured those two:
+Nice catch.
 
-100% quite a lot -->> 50% <<-- quite a few 0%, which means (for my
-understanding)
-that with lim (n=E2=86=92=E2=88=9E) both are =3D 50% (n represents cases of=
- use the terms).
+>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+>> index 0e99978..59cca1d 100644
+>> --- a/arch/arm64/include/asm/acpi.h
+>> +++ b/arch/arm64/include/asm/acpi.h
+>> @@ -23,9 +23,9 @@
+>>  #define ACPI_MADT_GICC_LENGTH	\
+>>  	(acpi_gbl_FADT.header.revision < 6 ? 76 : 80)
+>>  
+>> -#define BAD_MADT_GICC_ENTRY(entry, end)						\
+>> -	(!(entry) || (unsigned long)(entry) + sizeof(*(entry)) > (end) ||	\
+>> -	 (entry)->header.length != ACPI_MADT_GICC_LENGTH)
+>> +#define BAD_MADT_GICC_ENTRY(entry, end)					\
+>> +	(!(entry) || (entry)->header.length != ACPI_MADT_GICC_LENGTH ||	\
+>> +	(unsigned long)(entry) + ACPI_MADT_GICC_LENGTH > (end))
+>>  
+>>  /* Basic configuration for ACPI */
+>>  #ifdef	CONFIG_ACPI
+>> -- 
+>> 2.10.0
+>>
 
-> So choose what you prefer or want...
 
-Same here!
-
---=20
-With Best Regards,
-Andy Shevchenko
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
