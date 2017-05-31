@@ -1,149 +1,75 @@
-From: Florian Echtler <floe@butterbrot.org>
-Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
-Date: Wed, 31 May 2017 10:48:37 +0200
-Message-ID: <64a4829c-3141-6ff6-9369-6ca9ed0facf4@butterbrot.org>
-References: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
- <20170526210340.GA5114@wunner.de>
- <1e60811b-a8ac-017c-d350-8a40e4323870@butterbrot.org>
- <20170530105404.GA29865@wunner.de>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: Re: [RFC PATCH v3 1/5] ACPI: button: Add indication
+ of BIOS notification and faked events
+Date: Wed, 31 May 2017 08:57:33 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEC0810@SHSMSX101.ccr.corp.intel.com>
+References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+ <f3109abbd3294b63a00437e5d86d13caee84320b.1495804411.git.lv.zheng@intel.com>
+ <20170529160400.GA28287@mail.corp.redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="DEk3OnxIxhROUmUIe23JTPq06d8MfX57Q"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:54554 "EHLO butterbrot.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750966AbdEaIsk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 May 2017 04:48:40 -0400
-In-Reply-To: <20170530105404.GA29865@wunner.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <systemd-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170529160400.GA28287@mail.corp.redhat.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/systemd-devel>
+List-Post: <mailto:systemd-devel@lists.freedesktop.org>
+List-Help: <mailto:systemd-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: systemd-devel-bounces@lists.freedesktop.org
+Sender: "systemd-devel" <systemd-devel-bounces@lists.freedesktop.org>
+To: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "Wysocki,
+ Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---DEk3OnxIxhROUmUIe23JTPq06d8MfX57Q
-Content-Type: multipart/mixed; boundary="WVwu0j8hOdktEiMDk9GvGoF4A3Jib953h";
- protected-headers="v1"
-From: Florian Echtler <floe@butterbrot.org>
-To: Lukas Wunner <lukas@wunner.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
- dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-Message-ID: <64a4829c-3141-6ff6-9369-6ca9ed0facf4@butterbrot.org>
-Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
-References: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
- <20170526210340.GA5114@wunner.de>
- <1e60811b-a8ac-017c-d350-8a40e4323870@butterbrot.org>
- <20170530105404.GA29865@wunner.de>
-In-Reply-To: <20170530105404.GA29865@wunner.de>
-
---WVwu0j8hOdktEiMDk9GvGoF4A3Jib953h
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
-
-On 30.05.2017 12:54, Lukas Wunner wrote:
-> On Tue, May 30, 2017 at 11:34:17AM +0200, Florian Echtler wrote:
->> On 26.05.2017 23:03, Lukas Wunner wrote:
->>> On Fri, May 26, 2017 at 02:13:29PM +0200, Florian Echtler wrote:
->>>> I'm running Ubuntu 16.04.2 on a 27" unibody iMac 10,1 from 2009. How=
-ever, even
->>>> with the most recent HWE stack (kernel 4.8), the display stays black=
- after
->>>> suspend. I can ssh into the machine, so wakeup is OK, but the displa=
-y is
->>>> entirely black (backlight stays off).
->=20
-> So, just to confirm, if you never plug in an external DP source and the=
- iMac
-> comes out of sleep, the display stays black?
-
-Correct, verified this just now.
-
-> If you log in via ssh and look at dmesg, was radeon able to train the D=
-P
-> link again?  No error messages, nothing?
-
-Here are the relevant dmesg lines after wakeup:
-
-[  157.622950] [drm] enabling PCIE gen 2 link speeds, disable with
-radeon.pcie_gen2=3D0
-[  157.626077] [drm] PCIE GART of 1024M enabled (table at 0x000000000014C=
-000).
-[  157.626094] radeon 0000:02:00.0: WB enabled
-[  157.626097] radeon 0000:02:00.0: fence driver on ring 0 use gpu addr
-0x0000000010000c00 and cpu addr 0xffffa1242dfd6c00
-[  157.626098] radeon 0000:02:00.0: fence driver on ring 3 use gpu addr
-0x0000000010000c0c and cpu addr 0xffffa1242dfd6c0c
-[  157.626315] radeon 0000:02:00.0: fence driver on ring 5 use gpu addr
-0x000000000005c598 and cpu addr 0xffffbc3081c1c598
-[  157.672183] [drm] ring test on 0 succeeded in 1 usecs
-[  157.672187] [drm] ring test on 3 succeeded in 2 usecs
-[  157.847098] [drm] ring test on 5 succeeded in 1 usecs
-[  157.847102] [drm] UVD initialized successfully.
-[  157.847121] [drm] ib test on ring 0 succeeded in 0 usecs
-[  157.847136] [drm] ib test on ring 3 succeeded in 0 usecs
-[  158.524061] [drm] ib test on ring 5 succeeded
-
-And this is logged in Xorg.0.log after wakeup:
-
-[   229.956] (II) RADEON(0): Allocate new frame buffer 320x200 stride 384=
-
-[   229.956] (II) RADEON(0): VRAM usage limit set to 219596K
-
-xrandr still shows the eDP output as connected and active with 2560x1440 =
-resolution.
-
-> Is the panel off or is it on but merely with 0% brightness?
-
-The backlight is definitely off. I've tried to shine a torch onto the pan=
-el and
-see if any content is visible, but it looks like the panel itself is off,=
- too.
-
-> There's a block of pins on the GPU for "system management" which contai=
-ns
-> a bunch of GPIO, OEM and reserved pins.  Three of these are used to con=
-trol
-> the panel when it's switched to the radeon card:
-> pin 23	   PNL_PWR_EN
-> pin 25	   PNL_BL_EN
-> pin 27	   PNL_BL_PWM
->=20
-> Basically you'd need to know what these are set to before and after sle=
-ep.
-> I don't know how to access them, presumably via a BAR register.  A quic=
-k
-> look at the RV730-specific registers in drivers/gpu/drm/radeon/*.h did =
-not
-> yield anything useful, but someone at AMD may be able to find this out.=
-
-
-Can I perhaps use radeontool for this? I.e. dump registers before and aft=
-er
-sleep and see if there's a difference? Or is radeontool too old to know a=
-bout
-the correct registers?
-
-Best, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
-
-
-
---WVwu0j8hOdktEiMDk9GvGoF4A3Jib953h--
-
---DEk3OnxIxhROUmUIe23JTPq06d8MfX57Q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEARECAAYFAlkug2UACgkQ7CzyshGvatibOgCglUrMFcfl5lvGW22qouqh/AkH
-/AcAn3SmrAHOupctnXDFserE4/vo0GnK
-=bqay
------END PGP SIGNATURE-----
-
---DEk3OnxIxhROUmUIe23JTPq06d8MfX57Q--
+SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
+aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEJlbmphbWluDQo+
+IFRpc3NvaXJlcw0KPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSCB2MyAxLzVdIEFDUEk6IGJ1dHRv
+bjogQWRkIGluZGljYXRpb24gb2YgQklPUyBub3RpZmljYXRpb24gYW5kIGZha2VkIGV2ZW50cw0K
+PiANCj4gSGkgTHYsDQo+IA0KPiBPbiBNYXkgMjcgMjAxNyBvciB0aGVyZWFib3V0cywgTHYgWmhl
+bmcgd3JvdGU6DQo+ID4gVGhpcyBwYXRjaCBhZGRzIGEgcGFyYW1ldGVyIHRvIGFjcGlfbGlkX25v
+dGlmeV9zdGF0ZSgpIHNvIHRoYXQgaXQgY2FuIGFjdA0KPiA+IGRpZmZlcmVudGx5IGFnYWluc3Qg
+QklPUyBub3RpZmljYXRpb24gYW5kIGtlcm5lbCBmYWtlZCBldmVudHMuDQo+ID4NCj4gPiBDYzog
+PHN5c3RlbWQtZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnPg0KPiA+IENjOiBCZW5qYW1pbiBU
+aXNzb2lyZXMgPGJlbmphbWluLnRpc3NvaXJlc0ByZWRoYXQuY29tPg0KPiA+IENjOiBQZXRlciBI
+dXR0ZXJlciA8cGV0ZXIuaHV0dGVyZXJAd2hvLXQubmV0Pg0KPiA+IFNpZ25lZC1vZmYtYnk6IEx2
+IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gLS0tDQo+IA0KPiBBbnN3ZXJpbmcgdG8g
+dGhpcyBvbmUgZm9yIHRoZSBlbnRpcmUgc2VyaWVzOg0KPiBsYXN0IHdlZWsgd2FzIGEgbWl4IG9m
+IHB1YmxpYyBob2xpZGF5cyBhbmQgUFRPIGZyb20gbWUuIEkgd2FzIG9ubHkNCj4gYWJsZSB0byBy
+ZXZpZXcgdGhpcyBzZXJpZXMgdG9kYXksIHNvIHNvcnJ5IGZvciB0aGUgZGVsYXkuDQoNCkhlcmUg
+d2Ugd2VyZSBoYXZpbmcgInRoZSBEcmFnb24gQm9hdCBGZXN0aXZhbCIuDQpCdXQgd2UgcmVhbGx5
+IHdvbid0IGhhdmUgY2hhbmNlcyBvZiBzZWVpbmcgc2VlIGRyYWdvbiBib2F0cyBpbiBtYWpvciBj
+aXRpZXMuDQoNCj4gSSBzdGlsbCBoYXZlIGEgZmVlbGluZyB0aGlzIGRyaXZlciBpcyBmYXIgdG9v
+IGVuZ2luZWVyZWQgZm9yIGEgc2ltcGxlDQo+IGlucHV0IG5vZGUuIFRoZXJlIGFyZSBpbnRlcm5h
+bCBzdGF0ZXMsIGRlZmVycywgbWFuZ2xlIG9mIGV2ZW50cyBhbmQgdG9vDQo+IG1hbnkga2VybmVs
+IHBhcmFtZXRlcnMuDQoNClRoYXQncyB0aGUgZmlybXdhcmUgd29ybGQgYW5kIHdpbmRvd3MgY29t
+cGxpYW5jZSB3b3JsZC4gOikNCg0KPiBJIHN0aWxsIG5lZWQgdG8gZ2V0IG15IGhlYWQgYXJvdW5k
+IGl0LCBidXQgdGhlIG1vcmUgSSB0aGluayBvZiBpdCwgdGhlDQo+IG1vcmUgSSB0aGluayB0aGUg
+c29sdXRpb24gcHJvdmlkZWQgYnkgTGVubmFydCBpbg0KPiBodHRwczovL2dpdGh1Yi5jb20vc3lz
+dGVtZC9zeXN0ZW1kL2lzc3Vlcy8yODA3IGlzIHRoZSBzaW1wbGVzdCBvbmU6DQo+IHdoZW4gd2Ug
+YXJlIG5vdCBzdXJlIGFib3V0IHRoZSBzdGF0ZSBvZiB0aGUgTElEIHN3aXRjaCBiZWNhdXNlIF9M
+SUQNCj4gbWlnaHQgYmUgd3JvbmcsIHdlIHNob3VsZG4ndCBleHBvcnQgYSBMSUQgaW5wdXQgbm9k
+ZS4NCj4gV2hpY2ggbWVhbnMgdGhhdCBhbGwgYnJva2VuIGNhc2VzIHdvdWxkIGJlIGZpeGVkIGJ5
+IGp1c3QgYSBxdWlyaw0KPiAidW5yZWxpYWJsZSBsaWQgc3dpdGNoIi4NCg0KSSBjaGVja2VkIHRo
+ZSBwb3N0IGFuZCBoYWQgbm8gaWRlYSBhYm91dCB3aGF0IHdhcyBnb2luZyBvbi4NCkhvd2V2ZXIs
+IG15IHRlc3Qgc2hvd3Mgc3lzdGVtZCAyMzMgd29ya3MgZmluZSB3aXRoIGJ1dHRvbi5saWRfaW5p
+dF9zdGF0ZT1pZ25vcmUuDQpJIGRvbid0IGtub3cgd2hhdCBoYXMgYmVlbiBpbXByb3ZlZC4NCg0K
+QnV0IGEgbm90aWNlYWJsZSB0aGluZyBvbiBvbGQgc3lzdGVtZCAyMjkgaXM6DQpFdmVuIHdpdGgg
+YnV0dG9uLmxpZF9pbml0X3N0YXRlPW9wZW4sIHN5c3RlbWQgc3RpbGwgYmVoYXZlcyBzdHJhbmdl
+bHkuDQpJdCBsb29rcyBzeXN0ZW1kIDIyOSByZWFsbHkgaGFzIGEgcHJvYmxlbSB3aXRoIGl0cyB0
+aW1lb3V0IGxvZ2ljLg0KQW5kIGluIHN5c3RlbWQgMjMzLCB0aGUgdGltZW91dCBtZWNoYW5pc20g
+c2VlbXMgdG8gd29yayBiZXR0ZXIuDQoNCkFueXdheSwgdGhlIHByb2JsZW0gZGlzYXBwZWFycyB3
+aGVuIHRoZXJlIGFyZSBvbmx5IHVzZXIgc3BhY2UgY2hhbmdlcy4NCg0KPiBHaXZlIG1lIGEgZGF5
+IG9yIHR3byB0byBnZXQgdGhpcyBpbiBhIGJldHRlciBzaGFwZS4NCg0KU3VyZS4NCg0KQ2hlZXJz
+LA0KTHYNCg0KPiANCj4gQ2hlZXJzLA0KPiBCZW5qYW1pbg0KPiANCj4gLS0NCj4gVG8gdW5zdWJz
+Y3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFj
+cGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwu
+b3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFq
+b3Jkb21vLWluZm8uaHRtbA0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18Kc3lzdGVtZC1kZXZlbCBtYWlsaW5nIGxpc3QKc3lzdGVtZC1kZXZlbEBsaXN0cy5m
+cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9zeXN0ZW1kLWRldmVsCg==
