@@ -1,12 +1,12 @@
 From: Prarit Bhargava <prarit@redhat.com>
-Subject: [PATCH] acpi/nfit: Fix memory corruption/Unregister mce decoder on failure
-Date: Wed, 31 May 2017 13:32:00 -0400
-Message-ID: <1496251920-6129-1-git-send-email-prarit@redhat.com>
+Subject: [PATCH v3] acpi/nfit: Fix memory corruption/Unregister mce decoder on failure
+Date: Wed, 31 May 2017 13:39:43 -0400
+Message-ID: <1496252383-6234-1-git-send-email-prarit@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57342 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:56536 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751297AbdEaRcD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 May 2017 13:32:03 -0400
+        id S1751000AbdEaRjq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 May 2017 13:39:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
