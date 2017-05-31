@@ -1,64 +1,84 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: Re: [PATCH 2/3] RTC: rtc-cmos: Fix wakeup from suspend-to-idle
-Date: Wed, 31 May 2017 11:25:44 +0200
-Message-ID: <20170531092544.rdhcmilywb5o6nay@piout.net>
-References: <2169867.RZcCZmJK9B@aspire.rjw.lan>
- <31830983.Z4sGoD3BOE@aspire.rjw.lan>
- <20170531092155.ofhimzxatz4kqbul@piout.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170531092155.ofhimzxatz4kqbul@piout.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, David Box <david.e.box@linux.intel.com>, Alessandro Zummo <a.zummo@towertech.it>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH v4 1/5] ACPI: button: Add indication of BIOS notification and faked events
+Date: Wed, 31 May 2017 17:41:50 +0800
+Message-ID: <236859123733c251757726cca329ca5b405d1ee8.1496221776.git.lv.zheng@intel.com>
+References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:56752 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750994AbdEaJl5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 May 2017 05:41:57 -0400
+In-Reply-To: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, systemd-devel@lists.freedesktop.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Peter Hutterer <peter.hutterer@who-t.net>
 
-On 31/05/2017 at 11:21:55 +0200, Alexandre Belloni wrote:
-> Hi Rafael,
-> 
-> On 14/05/2017 at 01:55:32 +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Commit eed4d47efe95 (ACPI / sleep: Ignore spurious SCI wakeups from
-> > suspend-to-idle) modified the core suspend-to-idle code to filter
-> > out spurious SCI interrupts received while suspended, which requires
-> > ACPI event source handlers to report wakeup events in a way that
-> > will trigger a wakeup from suspend to idle (or abort system suspends
-> > in progress, which is equivalent).
-> > 
-> > That needs to be done in the rtc-cmos driver too, which was overlooked
-> > by the above commit, so do that now.
-> > 
-> > Fixes: eed4d47efe95 (ACPI / sleep: Ignore spurious SCI wakeups from suspend-to-idle)
-> > Reported-by: David E. Box <david.e.box@linux.intel.com>
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/rtc/rtc-cmos.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > Index: linux-pm/drivers/rtc/rtc-cmos.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/rtc/rtc-cmos.c
-> > +++ linux-pm/drivers/rtc/rtc-cmos.c
-> > @@ -1085,7 +1085,7 @@ static u32 rtc_handler(void *context)
-> >  	}
-> >  	spin_unlock_irqrestore(&rtc_lock, flags);
-> >  
-> > -	pm_wakeup_event(dev, 0);
-> > +	pm_wakeup_hard_event(dev);
-> >  	acpi_clear_event(ACPI_EVENT_RTC);
-> >  	acpi_disable_event(ACPI_EVENT_RTC, 0);
-> >  	return ACPI_INTERRUPT_HANDLED;
-> > 
-> 
-> This seems good to me, do you expect it to go through my tree?
-> 
+This patch adds a parameter to acpi_lid_notify_state() so that it can act
+differently against BIOS notification and kernel faked events.
 
-OK, I see it has already been pulled by Linus.
+Cc: <systemd-devel@lists.freedesktop.org>
+Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Cc: Peter Hutterer <peter.hutterer@who-t.net>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/button.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 9ad8cdb..725a15a 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -138,7 +138,8 @@ static int acpi_lid_evaluate_state(struct acpi_device *device)
+ 	return lid_state ? 1 : 0;
+ }
+ 
+-static int acpi_lid_notify_state(struct acpi_device *device, int state)
++static int acpi_lid_notify_state(struct acpi_device *device,
++				 int state, bool is_bios_event)
+ {
+ 	struct acpi_button *button = acpi_driver_data(device);
+ 	int ret;
+@@ -360,7 +361,8 @@ int acpi_lid_open(void)
+ }
+ EXPORT_SYMBOL(acpi_lid_open);
+ 
+-static int acpi_lid_update_state(struct acpi_device *device)
++static int acpi_lid_update_state(struct acpi_device *device,
++				 bool is_bios_event)
+ {
+ 	int state;
+ 
+@@ -368,17 +370,17 @@ static int acpi_lid_update_state(struct acpi_device *device)
+ 	if (state < 0)
+ 		return state;
+ 
+-	return acpi_lid_notify_state(device, state);
++	return acpi_lid_notify_state(device, state, is_bios_event);
+ }
+ 
+ static void acpi_lid_initialize_state(struct acpi_device *device)
+ {
+ 	switch (lid_init_state) {
+ 	case ACPI_BUTTON_LID_INIT_OPEN:
+-		(void)acpi_lid_notify_state(device, 1);
++		(void)acpi_lid_notify_state(device, 1, false);
+ 		break;
+ 	case ACPI_BUTTON_LID_INIT_METHOD:
+-		(void)acpi_lid_update_state(device);
++		(void)acpi_lid_update_state(device, false);
+ 		break;
+ 	case ACPI_BUTTON_LID_INIT_IGNORE:
+ 	default:
+@@ -398,7 +400,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
+ 	case ACPI_BUTTON_NOTIFY_STATUS:
+ 		input = button->input;
+ 		if (button->type == ACPI_BUTTON_TYPE_LID) {
+-			acpi_lid_update_state(device);
++			acpi_lid_update_state(device, true);
+ 		} else {
+ 			int keycode;
+ 
 -- 
-Alexandre Belloni, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+2.7.4
+
