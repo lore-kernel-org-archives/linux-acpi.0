@@ -1,78 +1,69 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/7] dt-bindings: PCI: Describe ATS property for root
-	complex nodes
-Date: Wed, 31 May 2017 12:23:20 -0500
-Message-ID: <20170531172320.3u6bdctv44aqighy@rob-hp-laptop>
-References: <20170524180143.19855-1-jean-philippe.brucker@arm.com>
-	<20170524180143.19855-3-jean-philippe.brucker@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170524180143.19855-3-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, thunder.leizhen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, sunil.kovvuri-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [PATCH] acpi/nfit: Fix memory corruption/Unregister mce decoder on failure
+Date: Wed, 31 May 2017 13:32:00 -0400
+Message-ID: <1496251920-6129-1-git-send-email-prarit@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:57342 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751297AbdEaRcD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 May 2017 13:32:03 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, jmoyer@redhat.com, lszubowi@redhat.com
 
-On Wed, May 24, 2017 at 07:01:38PM +0100, Jean-Philippe Brucker wrote:
-> Address Translation Service (ATS) is an extension to PCIe allowing
-> endpoints to manage their own IOTLB, called Address Translation Cache
-> (ATC). Instead of having every memory transaction processed by the IOMMU,
-> the endpoint can first send an Address Translation Requests for an IOVA,
-> obtain the corresponding Physical Address from the IOMMU and store it in
-> its ATC. Subsequent transactions to this memory region can be performed on
-> the PA, in which case they are marked 'translated' and (partially) bypass
-> the IOMMU.
-> 
-> Since the extension uses fields that were previously reserved in the
-> PCIe Translation Layer Packet, it seems ill-advised to enabled it on a
-> system that doesn't fully support ATS.
-> 
-> To "old" root complexes that simply ignored the new AT field, an Address
-> Translation Request will look exactly like a Memory Read Request, so the
-> root bridge will forward a memory read to the IOMMU instead of a
-> translation request. If the access succeeds, the RC will send a Read
-> Completion, which looks like a Translation Completion, back to the
-> endpoint. As a result the endpoint might end up storing the content of
-> memory instead of a physical address in its ATC. In reality, it's more
-> likely that the size fields will be invalid and either end will detect the
-> error, but in any case, it is undesirable.
-> 
-> Add a way for firmware to tell the OS that ATS is supported by the PCI
-> root complex.
+nfit_init() calls nfit_mce_register() on module load.  When the module
+load fails the nfit mce decoder is not unregistered.  The module's
+memory is freed leaving the decoder chain referencing junk.  This will
+cause panics as future registrations will reference the free'd memory.
 
-Can't firmware have already enabled ATS? Often for things like this, not 
-present means "use firmware setting".
+Unregister the nfit mce decoder on module init failure.
 
-> 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/pci/pci-iommu.txt | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/pci/pci-iommu.txt b/Documentation/devicetree/bindings/pci/pci-iommu.txt
-> index 0def586fdcdf..f21a68ec471a 100644
-> --- a/Documentation/devicetree/bindings/pci/pci-iommu.txt
-> +++ b/Documentation/devicetree/bindings/pci/pci-iommu.txt
-> @@ -44,6 +44,14 @@ Optional properties
->  - iommu-map-mask: A mask to be applied to each Requester ID prior to being
->    mapped to an IOMMU specifier per the iommu-map property.
->  
-> +- ats-supported: if present, the root complex supports the Address
-> +  Translation Service (ATS). It is able to interpret the AT field in PCIe
-> +  Transaction Layer Packets, and forward Translation Completions or
-> +  Invalidation Requests to endpoints.
+[v2]: register and then unregister mce handler to avoid losing mce events
+[v3]: also cleanup nfit workqueue
 
-Why can't this be based on the compatible strings?
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Cc: Linda Knippers <linda.knippers@hpe.com>
+Cc: jmoyer@redhat.com
+Cc: lszubowi@redhat.com
+---
+ drivers/acpi/nfit/core.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-Rob
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 656acb5d7166..f3c3e9d4563c 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3043,6 +3043,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+ 
+ static __init int nfit_init(void)
+ {
++	int ret;
++
+ 	BUILD_BUG_ON(sizeof(struct acpi_table_nfit) != 40);
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 56);
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_memory_map) != 48);
+@@ -3070,8 +3072,14 @@ static __init int nfit_init(void)
+ 		return -ENOMEM;
+ 
+ 	nfit_mce_register();
++	ret = acpi_bus_register_driver(&acpi_nfit_driver);
++	if (ret) {
++		nfit_mce_unregister();
++		destroy_workqueue(nfit_wq);
++	}
++
++	return ret;
+ 
+-	return acpi_bus_register_driver(&acpi_nfit_driver);
+ }
+ 
+ static __exit void nfit_exit(void)
+-- 
+1.7.9.3
+
