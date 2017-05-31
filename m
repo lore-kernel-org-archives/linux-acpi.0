@@ -1,88 +1,62 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v6 1/6] ACPI: Constify argument to acpi_device_is_present()
-Date: Wed, 31 May 2017 15:27:07 +0300
-Message-ID: <1496233632-25518-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1496233632-25518-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1496233632-25518-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v6 0/3] Preparation for further fwnode property cleanup
+Date: Wed, 31 May 2017 15:28:49 +0300
+Message-ID: <20170531122849.GG1019@valkosipuli.retiisi.org.uk>
+References: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43216 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751000AbdEaM3B (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 May 2017 08:29:01 -0400
+Content-Disposition: inline
+In-Reply-To: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: robh@kernel.org
+Cc: devicetree@vger.kernel.org, frowand.list@gmail.com, linux-acpi@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, ahs3@redhat.com, kieran.bingham@ideasonboard.com
 
-This will be needed in constifying the fwnode API.
+Hi Rob,
 
-The side effects the function had have been moved to the callers.
+On Wed, May 24, 2017 at 05:53:52PM +0300, Sakari Ailus wrote:
+> Hi Rob, Frank, others,
+> 
+> Here's the 6th version of what used to be a single patch to prepare for
+> fwnode property cleanup.
+> 
+> Beyond this, I have a couple of other patchsets I'll post in the near
+> future:
+> 
+> - fwnode property cleanup (for linux-pm) which moves the property API 
+> implementation to FW specific locations; depends on these patches,
+> 
+> - V4L2 fwnode patches (for media_tree, no unmerged dependencies, pull
+>   request sent) and
+> 
+> - fwnode const patchset which allows making the fwnode argument for the 
+>   property API functions const. It depends on both of the previous sets.
+>   Might be for linux-pm.
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Reviewed-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
----
- drivers/acpi/device_pm.c | 4 +++-
- drivers/acpi/internal.h  | 2 +-
- drivers/acpi/scan.c      | 9 +++------
- 3 files changed, 7 insertions(+), 8 deletions(-)
+I figured out that others are starting to have patches that depend on my
+other patchsets getting merged. Those patches are for the fwnode property
+API that most likely should go through the linux-pm tree as well as for the
+media tree.
 
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index 798d500..b404604 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -262,8 +262,10 @@ int acpi_bus_init_power(struct acpi_device *device)
- 		return -EINVAL;
- 
- 	device->power.state = ACPI_STATE_UNKNOWN;
--	if (!acpi_device_is_present(device))
-+	if (!acpi_device_is_present(device)) {
-+		device->flags.initialized = false;
- 		return -ENXIO;
-+	}
- 
- 	result = acpi_device_get_power(device, &state);
- 	if (result)
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 66229ff..7300240 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -111,7 +111,7 @@ int acpi_device_setup_files(struct acpi_device *dev);
- void acpi_device_remove_files(struct acpi_device *dev);
- void acpi_device_add_finalize(struct acpi_device *device);
- void acpi_free_pnp_ids(struct acpi_device_pnp *pnp);
--bool acpi_device_is_present(struct acpi_device *adev);
-+bool acpi_device_is_present(const struct acpi_device *adev);
- bool acpi_device_is_battery(struct acpi_device *adev);
- bool acpi_device_is_first_physical_node(struct acpi_device *adev,
- 					const struct device *dev);
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index e39ec7b..b609cbf 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1567,13 +1567,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 	return 0;
- }
- 
--bool acpi_device_is_present(struct acpi_device *adev)
-+bool acpi_device_is_present(const struct acpi_device *adev)
- {
--	if (adev->status.present || adev->status.functional)
--		return true;
--
--	adev->flags.initialized = false;
--	return false;
-+	return adev->status.present || adev->status.functional;
- }
- 
- static bool acpi_scan_handler_matching(struct acpi_scan_handler *handler,
-@@ -1831,6 +1827,7 @@ static void acpi_bus_attach(struct acpi_device *device)
- 	acpi_bus_get_status(device);
- 	/* Skip devices that are not present. */
- 	if (!acpi_device_is_present(device)) {
-+		device->flags.initialized = false;
- 		acpi_device_clear_enumerated(device);
- 		device->flags.power_manageable = 0;
- 		return;
+<URL:http://www.spinics.net/lists/linux-media/msg115893.html>
+
+I have hopes of being able to get the fwnode cleanup patchset (which the
+aforementioned patches depend on) in within this merge window --- assuming I
+could have your ack on the OF portions.
+
+Would it be possible to have an immutable branch for these or would you
+accept a pull request on v4.12-rc1?
+
+Thanks.
+
 -- 
-2.7.4
+Kind regards,
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
