@@ -1,103 +1,72 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: configfs: Unload SSDT on configfs entry removal
-Date: Thu, 01 Jun 2017 00:47:03 +0200
-Message-ID: <8721796.Z5PgE6tXoI@aspire.rjw.lan>
-References: <5f535371-1053-09c3-25b4-0b75a79a0ff5@siemens.com> <CAJZ5v0ibeMhrdfs8x8gjqASGt8xf1wLXnN9sQf2A5zU6goeGSQ@mail.gmail.com> <794f48cc-eb2f-2e0e-3002-37892fbbe4da@siemens.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [RFC PATCH] usb: optimize acpi companion search for usb port
+ devices
+Date: Thu, 1 Jun 2017 01:01:48 +0200
+Message-ID: <eecdac13-cd08-3521-a57b-b3827ca8d038@intel.com>
+References: <1495631472-3828-1-git-send-email-mathias.nyman@linux.intel.com>
+ <20170524144414.GA13730@kroah.com> <5926F726.4070302@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:47472 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751032AbdEaWx4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 May 2017 18:53:56 -0400
-In-Reply-To: <794f48cc-eb2f-2e0e-3002-37892fbbe4da@siemens.com>
+Received: from mga11.intel.com ([192.55.52.93]:7473 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751032AbdEaXBw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 May 2017 19:01:52 -0400
+In-Reply-To: <5926F726.4070302@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Mathias Nyman <mathias.nyman@linux.intel.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, stern@rowland.harvard.edu, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wednesday, May 31, 2017 06:39:05 PM Jan Kiszka wrote:
-> On 2017-05-30 23:41, Rafael J. Wysocki wrote:
-> > On Tue, May 30, 2017 at 11:16 PM, Moore, Robert <robert.moore@intel.com> wrote:
-> >>
-> >>
-> >>> -----Original Message-----
-> >>> From: Jan Kiszka [mailto:jan.kiszka@siemens.com]
-> >>> Sent: Monday, May 29, 2017 5:53 AM
-> >>> To: Mika Westerberg <mika.westerberg@linux.intel.com>
-> >>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>;
-> >>> Zheng, Lv <lv.zheng@intel.com>; linux-acpi@vger.kernel.org; Linux Kernel
-> >>> Mailing List <linux-kernel@vger.kernel.org>; devel@acpica.org; Moore,
-> >>> Robert <robert.moore@intel.com>
-> >>> Subject: Re: [PATCH] acpi: configfs: Unload SSDT on configfs entry
-> >>> removal
-> >>>
-> >>> On 2017-05-29 14:47, Mika Westerberg wrote:
-> >>>> On Mon, May 29, 2017 at 01:33:29PM +0200, Jan Kiszka wrote:
-> >>>>> Enhance acpi_load_table to also return the table index. Use that
-> >>>>> index to unload the table again when the corresponding directory in
-> >>>>> configfs gets removed. This allows to change SSDTs without rebooting
-> >>> the system.
-> >>>>> It also allows to destroy devices again that a dynamically loaded
-> >>>>> SSDT created.
-> >>>>>
-> >>>>> This is widely similar to the DT overlay behavior.
-> >>>>>
-> >>>>> Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
-> >>>>> ---
-> >>>>>
-> >>>>> Can someone explain to me why an unloaded table still sticks around
-> >>>>> in sysfs and why we cannot release its ID and rather have to use a
-> >>>>> new one when loading a modified version?
-> >>>>
-> >>>> IIRC ACPICA relies the fact that SSDTs are never unloaded. Bob (CC'd)
-> >>>> can correct me if I got it wrong.
-> >>>
-> >>
-> >>
-> >> [Moore, Robert]
-> >>
-> >> I'm not entirely sure what the table manager code looks like at this time, but ACPICA does in fact support table unloading.
-> >>
-> >> It is a rather dangerous thing to do, however -- unless you are careful about it. Basically, all handles that reference the table to be unloaded will go bad.
-> > 
-> > Right.
-> > 
-> > Linux should handle that in theory, but the code in there is mostly
-> > very lightly tested AFAICS.
-> > 
-> >>> OK... Is that standard-driven or just a limitation of this
-> >>> implementation?
-> >>>
-> >>> Is there an upper limit of tables? I'm thinking of lengthy development
-> >>> sessions that play with tables, loading and unloading modified versions.
-> >>>
-> >>
-> >> [Moore, Robert]
-> >>
-> >> I think that the maximum number of loaded ACPI tables is 255 at any given time. However, things are cleaned up after an unload such that repeated load/unload cycles should not consume resources.
-> > 
-> > I'm not sure if this is going to work seamlessly right away, but it
-> > certainly can be made work.
-> > 
-> > That said, the change as proposed would be an API modification forcing
-> > all of the OSes using ACPICA to change (or to carry out-of-the-tree
-> > patches), so not nice.
-> > 
-> > What about adding a separate version of acpi_load_table() returning an
-> > index (or an error on failures) instead of the status and leaving the
-> > existing acpi_load_table() as is?
-> 
-> Sure. Any reference/preference in naming and locating that version?
-> Should I leave acpica/ untouched at best? acpi_table_load/unload look
-> simple enough to carry the logic in acpi_configfs directly.
+On 5/25/2017 5:24 PM, Mathias Nyman wrote:
+> On 24.05.2017 17:44, Greg KH wrote:
+>> On Wed, May 24, 2017 at 04:11:12PM +0300, Mathias Nyman wrote:
+>>> This optimization significantly reduces xhci driver load time.
+>>>
+>>> In ACPI tables the acpi companion port devices are children of
+>>> the hub device. The port devices are identified by their port number
+>>> returned by the ACPI _ADR method.
+>>> _ADR 0 is reserved for the root hub device.
+>>>
+>>> The current implementation to find a acpi companion port device
+>>> loops through all acpi port devices under that parent hub, calling
+>>> their _ADR method each time a new port device is added.
+>>>
+>>> for a xHC controller with 25 ports under its roothub it
+>>> will end up invoking ACPI bytecode 625 times before all ports
+>>> are ready, making it really slow.
+>>>
+>>> The _ADR values are already read and cached earler. So instead of
+>>> running the bytecode again we can check the cached _ADR value first,
+>>> and then fall back to the old way.
+>>>
+>>> As one of the more significant changes, the xhci load time on
+>>> Intel kabylake reduced by 70%, (28ms) from
+>>> initcall xhci_pci_init+0x0/0x49 returned 0 after 39537 usecs
+>>> to
+>>> initcall xhci_pci_init+0x0/0x49 returned 0 after 11270 usecs
+>>>
+>>> Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
+>>> ---
+>>>   drivers/usb/core/usb-acpi.c | 26 +++++++++++++++++++++++---
+>>>   1 file changed, 23 insertions(+), 3 deletions(-)
+>>
+>> Why is this RFC?  What's wrong with it as-is?
+>>
+>
+> Last minute doubt, nothing should be wrong, but I started to wonder if 
+> there is
+> any particular reason the ACPI part was done the way it was.
+>
+> Or if maybe other drivers could benefit from checking cached _ADR 
+> value first as
+> well, and this whole thing should be a part of drivers/acpi/glue.c 
+> instead?
+>
 
-Let's do that for the time being.
-
-Later on we may decide to move that back into upstream ACPICA, but let's
-get things to work on the Linux side first IMO.
+That or we should just evaluate _ADR if present during the very 
+initialization and store the value in a filed under struct acpi_device.
 
 Thanks,
 Rafael
