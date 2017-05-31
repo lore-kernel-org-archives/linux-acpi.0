@@ -1,223 +1,58 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: [PATCH] ACPI/IORT: Handle PCI aliases properly
-Date: Wed, 31 May 2017 18:52:30 +0100
-Message-ID: <20170531175230.16529-4-robin.murphy@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH 8/8] i2c: reformat core-base file header
+Date: Wed, 31 May 2017 21:05:27 +0200
+Message-ID: <20170531190527.67zaqpi55tihwp3c@ninjato>
+References: <20170526082101.4746-1-wsa@the-dreams.de>
+ <20170526082101.4746-9-wsa@the-dreams.de>
+ <CAHp75VdpJ54rXJY7QhtWeVBjdAr+Dg8JRO1Q1cqJbCML+hPuJQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="e2w6zgejla2k4wgd"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sauhun.de ([88.99.104.3]:35928 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750952AbdEaTFb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 May 2017 15:05:31 -0400
+Content-Disposition: inline
+In-Reply-To: <CAHp75VdpJ54rXJY7QhtWeVBjdAr+Dg8JRO1Q1cqJbCML+hPuJQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: linux-i2c@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-When a PCI device has DMA quirks, we need to ensure that an upstream
-IOMMU knows about all possible aliases, since the presence of a DMA
-quirk does not preclude the device still also emitting transactions
-(e.g. MSIs) on its 'real' RID. Similarly, the rules for bridge aliasing
-are relatively complex, and some bridges may only take ownership of
-transactions under particular transient circumstances, leading again to
-multiple RIDs potentially being seen at the IOMMU for the given device.
 
-Take all this into account in the IORT code by mapping every RID
-produced by the alias walk, not just whichever one comes out last. Since
-adding any more internal PTR_ERR() juggling would have confused me no
-end, a bit of refactoring happens in the process - we know where to find
-the ops if everything succeeded, so we're free to just pass regular error
-codes around up until then.
+--e2w6zgejla2k4wgd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Robin Murphy <robin.murphy@arm.com>
----
 
-This applies on top of the fixes currently queued in the IOMMU tree:
-"ACPI/IORT: Move the check to get iommu_ops from translated fwspec"
-"ACPI/IORT: Ignore all errors except EPROBE_DEFER"
+> for entire series _except_ this change. I'm obviously not a legal or
+> author of that code, so, I can't speak for them.
 
- drivers/acpi/arm64/iort.c | 113 ++++++++++++++++++++++++----------------------
- 1 file changed, 59 insertions(+), 54 deletions(-)
+I agree. I put their copyright back in. It is not much and they did the
+work. I guess I was in a cleanup-rush :)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 797b28dc7b34..50e2749eafdc 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -598,14 +598,6 @@ void acpi_configure_pmsi_domain(struct device *dev)
- 		dev_set_msi_domain(dev, msi_domain);
- }
- 
--static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
--{
--	u32 *rid = data;
--
--	*rid = alias;
--	return 0;
--}
--
- static int arm_smmu_iort_xlate(struct device *dev, u32 streamid,
- 			       struct fwnode_handle *fwnode,
- 			       const struct iommu_ops *ops)
-@@ -643,8 +635,7 @@ int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
- {
- 	int err = 0;
- 
--	if (!IS_ERR_OR_NULL(ops) && ops->add_device && dev->bus &&
--	    !dev->iommu_group)
-+	if (ops->add_device && dev->bus && !dev->iommu_group)
- 		err = ops->add_device(dev);
- 
- 	return err;
-@@ -658,36 +649,49 @@ int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
- { return 0; }
- #endif
- 
--static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
--					struct acpi_iort_node *node,
--					u32 streamid)
-+static int iort_iommu_xlate(struct device *dev, struct acpi_iort_node *node,
-+			    u32 streamid)
- {
--	const struct iommu_ops *ops = NULL;
--	int ret = -ENODEV;
-+	const struct iommu_ops *ops;
- 	struct fwnode_handle *iort_fwnode;
- 
--	if (node) {
--		iort_fwnode = iort_get_fwnode(node);
--		if (!iort_fwnode)
--			return NULL;
-+	if (!node)
-+		return -ENODEV;
- 
--		ops = iommu_ops_from_fwnode(iort_fwnode);
--		/*
--		 * If the ops look-up fails, this means that either
--		 * the SMMU drivers have not been probed yet or that
--		 * the SMMU drivers are not built in the kernel;
--		 * Depending on whether the SMMU drivers are built-in
--		 * in the kernel or not, defer the IOMMU configuration
--		 * or just abort it.
--		 */
--		if (!ops)
--			return iort_iommu_driver_enabled(node->type) ?
--			       ERR_PTR(-EPROBE_DEFER) : NULL;
-+	iort_fwnode = iort_get_fwnode(node);
-+	if (!iort_fwnode)
-+		return -ENODEV;
- 
--		ret = arm_smmu_iort_xlate(dev, streamid, iort_fwnode, ops);
--	}
-+	ops = iommu_ops_from_fwnode(iort_fwnode);
-+	/*
-+	 * If the ops look-up fails, this means that either
-+	 * the SMMU drivers have not been probed yet or that
-+	 * the SMMU drivers are not built in the kernel;
-+	 * Depending on whether the SMMU drivers are built-in
-+	 * in the kernel or not, defer the IOMMU configuration
-+	 * or just abort it.
-+	 */
-+	if (!ops)
-+		return iort_iommu_driver_enabled(node->type) ?
-+		       -EPROBE_DEFER : -ENODEV;
- 
--	return ret ? NULL : ops;
-+	return arm_smmu_iort_xlate(dev, streamid, iort_fwnode, ops);
-+}
-+
-+struct iort_pci_alias_info {
-+	struct device *dev;
-+	struct acpi_iort_node *node;
-+};
-+
-+static int iort_pci_iommu_init(struct pci_dev *pdev, u16 alias, void *data)
-+{
-+	struct iort_pci_alias_info *info = data;
-+	struct acpi_iort_node *parent;
-+	u32 streamid;
-+
-+	parent = iort_node_map_id(info->node, alias, &streamid,
-+				  IORT_IOMMU_TYPE);
-+	return iort_iommu_xlate(info->dev, parent, streamid);
- }
- 
- /**
-@@ -723,7 +727,7 @@ void iort_set_dma_mask(struct device *dev)
- const struct iommu_ops *iort_iommu_configure(struct device *dev)
- {
- 	struct acpi_iort_node *node, *parent;
--	const struct iommu_ops *ops = NULL;
-+	const struct iommu_ops *ops;
- 	u32 streamid = 0;
- 	int err;
- 
-@@ -737,21 +741,18 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
- 
- 	if (dev_is_pci(dev)) {
- 		struct pci_bus *bus = to_pci_dev(dev)->bus;
--		u32 rid;
--
--		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
--				       &rid);
-+		struct iort_pci_alias_info info = { .dev = dev };
- 
- 		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
- 				      iort_match_node_callback, &bus->dev);
- 		if (!node)
- 			return NULL;
- 
--		parent = iort_node_map_id(node, rid, &streamid,
--					  IORT_IOMMU_TYPE);
--
--		ops = iort_iommu_xlate(dev, parent, streamid);
--
-+		info.node = node;
-+		err = pci_for_each_dma_alias(to_pci_dev(dev),
-+					     iort_pci_iommu_init, &info);
-+		if (err)
-+			goto out_err;
- 	} else {
- 		int i = 0;
- 
-@@ -764,9 +765,9 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
- 						   IORT_IOMMU_TYPE, i++);
- 
- 		while (parent) {
--			ops = iort_iommu_xlate(dev, parent, streamid);
--			if (IS_ERR_OR_NULL(ops))
--				return ops;
-+			err = iort_iommu_xlate(dev, parent, streamid);
-+			if (err)
-+				goto out_err;
- 
- 			parent = iort_node_map_platform_id(node, &streamid,
- 							   IORT_IOMMU_TYPE,
-@@ -774,21 +775,25 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
- 		}
- 	}
- 
-+	ops = dev->iommu_fwspec->ops;
-+
- 	/*
- 	 * If we have reason to believe the IOMMU driver missed the initial
- 	 * add_device callback for dev, replay it to get things in order.
- 	 */
- 	err = iort_add_device_replay(ops, dev);
- 	if (err)
--		ops = ERR_PTR(err);
--
--	/* Ignore all other errors apart from EPROBE_DEFER */
--	if (IS_ERR(ops) && (PTR_ERR(ops) != -EPROBE_DEFER)) {
--		dev_dbg(dev, "Adding to IOMMU failed: %ld\n", PTR_ERR(ops));
--		ops = NULL;
--	}
-+		goto out_err;
- 
- 	return ops;
-+
-+	/* Ignore all other errors apart from EPROBE_DEFER */
-+out_err:
-+	if (err == -EPROBE_DEFER)
-+		return ERR_PTR(err);
-+
-+	dev_dbg(dev, "Adding to IOMMU failed: %d\n", err);
-+	return NULL;
- }
- 
- static void __init acpi_iort_register_irq(int hwirq, const char *name,
--- 
-2.12.2.dirty
+Thanks for the review!
+
+
+--e2w6zgejla2k4wgd
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlkvE/MACgkQFA3kzBSg
+KbacCxAApXFvpFUZ7TYAV7kj78hiEiYdpKuvaSzatOXOZX6T6oBcAECbQadaUrCG
+keNnUHGHXZXW7o1SdtZVW4XW9AGhgZ4hntqUAy49qNMA8Hn/5mU6iXfLCY/9RZ6h
+KJGe/AwEVhXIvcThk6Lk0HwkuotoFT4goAJ1K3fMpcVTUBuZnd+RrQV1cFQ2mnoQ
+YCwwjf4SLnKPh3ANvK8Jv/nsXSZgBhqqoXiT60GSTugWH9XciwKymVHUzkWpeDNa
+ymJOrmLyh0lK2EcUneBUFOGkt/85IhTReI4AxA7s5cVZQhhLwcd7ImKpYf8MgcJ8
++9R+2g/FFl9FoSw+x2Q/EK23KOI7lMoI/gf3bRrrZVDeryBLPalFnZ+9piiProfM
+D3BF745RmK5drm2s/b0lJMZc9DiFnggmuYU7VAcp5fmzf6BkUlQPOy6IiGrom32k
+sVybJS2pi2hbaYblcivOQmkIa7LoN3dZuCcQb4hX8G/6g7VUi8WIOUB1KpQ0hY2g
+zmDTLgtjL5r0KRo1wBmGVViOTD1jndgl+Hw33wOmio7u1/SxruVgAmJTql9vVFMR
+0reLHO9lTmPHzG7vw3546q0UlveGo7drZGBs2W0kJNd0U3J6lyMVLjZZ8g1vJsz5
+VlXBsWqwEOJ+SwaPcQDHkJ4lzdLxFENWxG6hxWxK+OU3Nhmf9sk=
+=BbGl
+-----END PGP SIGNATURE-----
+
+--e2w6zgejla2k4wgd--
