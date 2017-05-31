@@ -1,102 +1,68 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpi: configfs: Unload SSDT on configfs entry removal
-Date: Wed, 31 May 2017 14:30:42 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5BAF0B@ORSMSX110.amr.corp.intel.com>
-References: <5f535371-1053-09c3-25b4-0b75a79a0ff5@siemens.com>
- <20170529124755.GR2784@lahna.fi.intel.com>
- <fff98a5c-e18f-d326-e5de-7401173d9af4@siemens.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E5B8D42@ORSMSX110.amr.corp.intel.com>
- <CAJZ5v0ibeMhrdfs8x8gjqASGt8xf1wLXnN9sQf2A5zU6goeGSQ@mail.gmail.com>
+From: shameer <shameerali.kolothum.thodi@huawei.com>
+Subject: [RFCv2 0/2] iommu/smmu-v3: Workaround for hisilicon 161010801 erratum(reserve HW MSI)
+Date: Wed, 31 May 2017 15:32:11 +0100
+Message-ID: <20170531143213.82100-1-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:17461 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750916AbdEaObC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 May 2017 10:31:02 -0400
-In-Reply-To: <CAJZ5v0ibeMhrdfs8x8gjqASGt8xf1wLXnN9sQf2A5zU6goeGSQ@mail.gmail.com>
-Content-Language: en-US
+Received: from szxga01-in.huawei.com ([45.249.212.187]:7296 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751037AbdEaOd5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 May 2017 10:33:57 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, hanjun.guo@linaro.org
+Cc: gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com, shameer <shameerali.kolothum.thodi@huawei.com>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogcmp3eXNvY2tpQGdtYWls
-LmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFpbC5jb21dIE9uIEJlaGFsZiBPZg0KPiBSYWZhZWwg
-Si4gV3lzb2NraQ0KPiBTZW50OiBUdWVzZGF5LCBNYXkgMzAsIDIwMTcgMjo0MiBQTQ0KPiBUbzog
-TW9vcmUsIFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT47IEphbiBLaXN6a2ENCj4gPGph
-bi5raXN6a2FAc2llbWVucy5jb20+DQo+IENjOiBNaWthIFdlc3RlcmJlcmcgPG1pa2Eud2VzdGVy
-YmVyZ0BsaW51eC5pbnRlbC5jb20+OyBSYWZhZWwgSi4gV3lzb2NraQ0KPiA8cmp3QHJqd3lzb2Nr
-aS5uZXQ+OyBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9yZz47IFpoZW5nLCBMdg0KPiA8bHYuemhl
-bmdAaW50ZWwuY29tPjsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IExpbnV4IEtlcm5lbCBN
-YWlsaW5nDQo+IExpc3QgPGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+OyBkZXZlbEBhY3Bp
-Y2Eub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIGFjcGk6IGNvbmZpZ2ZzOiBVbmxvYWQgU1NE
-VCBvbiBjb25maWdmcyBlbnRyeQ0KPiByZW1vdmFsDQo+IA0KPiBPbiBUdWUsIE1heSAzMCwgMjAx
-NyBhdCAxMToxNiBQTSwgTW9vcmUsIFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4NCj4g
-d3JvdGU6DQo+ID4NCj4gPg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBG
-cm9tOiBKYW4gS2lzemthIFttYWlsdG86amFuLmtpc3prYUBzaWVtZW5zLmNvbV0NCj4gPj4gU2Vu
-dDogTW9uZGF5LCBNYXkgMjksIDIwMTcgNTo1MyBBTQ0KPiA+PiBUbzogTWlrYSBXZXN0ZXJiZXJn
-IDxtaWthLndlc3RlcmJlcmdAbGludXguaW50ZWwuY29tPg0KPiA+PiBDYzogUmFmYWVsIEouIFd5
-c29ja2kgPHJqd0Byand5c29ja2kubmV0PjsgTGVuIEJyb3duDQo+ID4+IDxsZW5iQGtlcm5lbC5v
-cmc+OyBaaGVuZywgTHYgPGx2LnpoZW5nQGludGVsLmNvbT47DQo+ID4+IGxpbnV4LWFjcGlAdmdl
-ci5rZXJuZWwub3JnOyBMaW51eCBLZXJuZWwgTWFpbGluZyBMaXN0DQo+ID4+IDxsaW51eC1rZXJu
-ZWxAdmdlci5rZXJuZWwub3JnPjsgZGV2ZWxAYWNwaWNhLm9yZzsgTW9vcmUsIFJvYmVydA0KPiA+
-PiA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4NCj4gPj4gU3ViamVjdDogUmU6IFtQQVRDSF0gYWNw
-aTogY29uZmlnZnM6IFVubG9hZCBTU0RUIG9uIGNvbmZpZ2ZzIGVudHJ5DQo+ID4+IHJlbW92YWwN
-Cj4gPj4NCj4gPj4gT24gMjAxNy0wNS0yOSAxNDo0NywgTWlrYSBXZXN0ZXJiZXJnIHdyb3RlOg0K
-PiA+PiA+IE9uIE1vbiwgTWF5IDI5LCAyMDE3IGF0IDAxOjMzOjI5UE0gKzAyMDAsIEphbiBLaXN6
-a2Egd3JvdGU6DQo+ID4+ID4+IEVuaGFuY2UgYWNwaV9sb2FkX3RhYmxlIHRvIGFsc28gcmV0dXJu
-IHRoZSB0YWJsZSBpbmRleC4gVXNlIHRoYXQNCj4gPj4gPj4gaW5kZXggdG8gdW5sb2FkIHRoZSB0
-YWJsZSBhZ2FpbiB3aGVuIHRoZSBjb3JyZXNwb25kaW5nIGRpcmVjdG9yeQ0KPiA+PiA+PiBpbiBj
-b25maWdmcyBnZXRzIHJlbW92ZWQuIFRoaXMgYWxsb3dzIHRvIGNoYW5nZSBTU0RUcyB3aXRob3V0
-DQo+ID4+ID4+IHJlYm9vdGluZw0KPiA+PiB0aGUgc3lzdGVtLg0KPiA+PiA+PiBJdCBhbHNvIGFs
-bG93cyB0byBkZXN0cm95IGRldmljZXMgYWdhaW4gdGhhdCBhIGR5bmFtaWNhbGx5IGxvYWRlZA0K
-PiA+PiA+PiBTU0RUIGNyZWF0ZWQuDQo+ID4+ID4+DQo+ID4+ID4+IFRoaXMgaXMgd2lkZWx5IHNp
-bWlsYXIgdG8gdGhlIERUIG92ZXJsYXkgYmVoYXZpb3IuDQo+ID4+ID4+DQo+ID4+ID4+IFNpZ25l
-ZC1vZmYtYnk6IEphbiBLaXN6a2EgPGphbi5raXN6a2FAc2llbWVucy5jb20+DQo+ID4+ID4+IC0t
-LQ0KPiA+PiA+Pg0KPiA+PiA+PiBDYW4gc29tZW9uZSBleHBsYWluIHRvIG1lIHdoeSBhbiB1bmxv
-YWRlZCB0YWJsZSBzdGlsbCBzdGlja3MNCj4gPj4gPj4gYXJvdW5kIGluIHN5c2ZzIGFuZCB3aHkg
-d2UgY2Fubm90IHJlbGVhc2UgaXRzIElEIGFuZCByYXRoZXIgaGF2ZQ0KPiA+PiA+PiB0byB1c2Ug
-YSBuZXcgb25lIHdoZW4gbG9hZGluZyBhIG1vZGlmaWVkIHZlcnNpb24/DQo+ID4+ID4NCj4gPj4g
-PiBJSVJDIEFDUElDQSByZWxpZXMgdGhlIGZhY3QgdGhhdCBTU0RUcyBhcmUgbmV2ZXIgdW5sb2Fk
-ZWQuIEJvYg0KPiA+PiA+IChDQydkKSBjYW4gY29ycmVjdCBtZSBpZiBJIGdvdCBpdCB3cm9uZy4N
-Cj4gPj4NCj4gPg0KPiA+DQo+ID4gW01vb3JlLCBSb2JlcnRdDQo+ID4NCj4gPiBJJ20gbm90IGVu
-dGlyZWx5IHN1cmUgd2hhdCB0aGUgdGFibGUgbWFuYWdlciBjb2RlIGxvb2tzIGxpa2UgYXQgdGhp
-cw0KPiB0aW1lLCBidXQgQUNQSUNBIGRvZXMgaW4gZmFjdCBzdXBwb3J0IHRhYmxlIHVubG9hZGlu
-Zy4NCj4gPg0KPiA+IEl0IGlzIGEgcmF0aGVyIGRhbmdlcm91cyB0aGluZyB0byBkbywgaG93ZXZl
-ciAtLSB1bmxlc3MgeW91IGFyZQ0KPiBjYXJlZnVsIGFib3V0IGl0LiBCYXNpY2FsbHksIGFsbCBo
-YW5kbGVzIHRoYXQgcmVmZXJlbmNlIHRoZSB0YWJsZSB0byBiZQ0KPiB1bmxvYWRlZCB3aWxsIGdv
-IGJhZC4NCj4gDQo+IFJpZ2h0Lg0KPiANCj4gTGludXggc2hvdWxkIGhhbmRsZSB0aGF0IGluIHRo
-ZW9yeSwgYnV0IHRoZSBjb2RlIGluIHRoZXJlIGlzIG1vc3RseSB2ZXJ5DQo+IGxpZ2h0bHkgdGVz
-dGVkIEFGQUlDUy4NCj4gDQpbTW9vcmUsIFJvYmVydF0gDQoNClRoZSBsb2FkL3VubG9hZCBmdW5j
-dGlvbmFsaXR5IHdvcmtzIHdpdGggdGhlIGN1cnJlbnQgdGFibGUgaW50ZXJmYWNlcy4gRm9yIGV4
-YW1wbGUsIHRoZSBBTUwgZGVidWdnZXIgc3VwcG9ydHMgYm90aCBMb2FkIGFuZCBVbmxvYWQgY29t
-bWFuZHM6DQoNCg0KICBMb2FkIDxJbnB1dCBGaWxlbmFtZT4gICAgICAgICAgIExvYWQgQUNQSSB0
-YWJsZSBmcm9tIGEgZmlsZQ0KICBVbmxvYWQgPE5hbWVwYXRoPiAgICAgICAgICAgICAgIFVubG9h
-ZCBhbiBBQ1BJIHRhYmxlIHZpYSBuYW1lc3BhY2Ugb2JqZWN0DQoNCg0KLSBsb2FkIHNzZHQuYW1s
-DQpJbnB1dCBmaWxlIHNzZHQuYW1sLCBMZW5ndGggMHgzQSAoNTgpIGJ5dGVzDQpBQ1BJOiBIb3N0
-LWRpcmVjdGVkIER5bmFtaWMgQUNQSSBUYWJsZSBMb2FkOg0KQUNQSTogU1NEVCAweDAwMDAwMDAw
-MDA0QTFCMTggMDAwMDNBICh2MDIgSW50ZWwgIF9TU0RUXzAxIDAwMDAwMDAxIElOVEwgMjAxNzAz
-MDMpDQpBQ1BJIEV4ZWM6IFRhYmxlIEV2ZW50IElOU1RBTEwsIFtTU0RUXSAwMDRBMUIxOA0KQUNQ
-SSBFeGVjOiBUYWJsZSBFdmVudCBMT0FELCBbU1NEVF0gMDA0QTFCMTgNCg0KDQotIHVubG9hZCBf
-VDMyDQpBQ1BJIEV4ZWM6IFRhYmxlIEV2ZW50IFVOTE9BRCwgW1NTRFRdIDAwNEExQjE4DQpQYXJl
-bnQgb2YgW19UMzJdICgwMDRBMTAyOCkgdW5sb2FkZWQgYW5kIHVuaW5zdGFsbGVkDQoNCg0KDQo+
-ID4+IE9LLi4uIElzIHRoYXQgc3RhbmRhcmQtZHJpdmVuIG9yIGp1c3QgYSBsaW1pdGF0aW9uIG9m
-IHRoaXMNCj4gPj4gaW1wbGVtZW50YXRpb24/DQo+ID4+DQo+ID4+IElzIHRoZXJlIGFuIHVwcGVy
-IGxpbWl0IG9mIHRhYmxlcz8gSSdtIHRoaW5raW5nIG9mIGxlbmd0aHkNCj4gPj4gZGV2ZWxvcG1l
-bnQgc2Vzc2lvbnMgdGhhdCBwbGF5IHdpdGggdGFibGVzLCBsb2FkaW5nIGFuZCB1bmxvYWRpbmcN
-Cj4gbW9kaWZpZWQgdmVyc2lvbnMuDQo+ID4+DQo+ID4NCj4gPiBbTW9vcmUsIFJvYmVydF0NCj4g
-Pg0KPiA+IEkgdGhpbmsgdGhhdCB0aGUgbWF4aW11bSBudW1iZXIgb2YgbG9hZGVkIEFDUEkgdGFi
-bGVzIGlzIDI1NSBhdCBhbnkNCj4gZ2l2ZW4gdGltZS4gSG93ZXZlciwgdGhpbmdzIGFyZSBjbGVh
-bmVkIHVwIGFmdGVyIGFuIHVubG9hZCBzdWNoIHRoYXQNCj4gcmVwZWF0ZWQgbG9hZC91bmxvYWQg
-Y3ljbGVzIHNob3VsZCBub3QgY29uc3VtZSByZXNvdXJjZXMuDQo+IA0KPiBJJ20gbm90IHN1cmUg
-aWYgdGhpcyBpcyBnb2luZyB0byB3b3JrIHNlYW1sZXNzbHkgcmlnaHQgYXdheSwgYnV0IGl0DQo+
-IGNlcnRhaW5seSBjYW4gYmUgbWFkZSB3b3JrLg0KPiANCj4gVGhhdCBzYWlkLCB0aGUgY2hhbmdl
-IGFzIHByb3Bvc2VkIHdvdWxkIGJlIGFuIEFQSSBtb2RpZmljYXRpb24gZm9yY2luZw0KPiBhbGwg
-b2YgdGhlIE9TZXMgdXNpbmcgQUNQSUNBIHRvIGNoYW5nZSAob3IgdG8gY2Fycnkgb3V0LW9mLXRo
-ZS10cmVlDQo+IHBhdGNoZXMpLCBzbyBub3QgbmljZS4NCj4gDQo+IFdoYXQgYWJvdXQgYWRkaW5n
-IGEgc2VwYXJhdGUgdmVyc2lvbiBvZiBhY3BpX2xvYWRfdGFibGUoKSByZXR1cm5pbmcgYW4NCj4g
-aW5kZXggKG9yIGFuIGVycm9yIG9uIGZhaWx1cmVzKSBpbnN0ZWFkIG9mIHRoZSBzdGF0dXMgYW5k
-IGxlYXZpbmcgdGhlDQo+IGV4aXN0aW5nIGFjcGlfbG9hZF90YWJsZSgpIGFzIGlzPw0KPiANCj4g
-VGhhbmtzLA0KPiBSYWZhZWwNCg==
+On certain HiSilicon platforms (Hip06/Hip07) the GIC ITS and
+PCIe RC deviates from the standard implementation and this breaks
+PCIe MSI functionality when SMMU is enabled.
+
+The HiSilicon erratum 161010801 describes this limitation of certain
+HiSilicon platforms to support the SMMU mappings for MSI transactions.
+On these platforms GICv3 ITS translator is presented with the deviceID
+by extending the MSI payload data to 64 bits to include the deviceID.
+Hence, the PCIe controller on this platforms has to differentiate the
+MSI payload against other DMA payload and has to modify the MSI payload.
+This basically makes it difficult for this platforms to have a SMMU
+translation for MSI.
+
+This patch implements a ACPI table based quirk to reserve the hw msi
+regions in the smmu-v3 driver which means these address regions will
+not be translated and will be excluded from iova allocations.
+
+To implement this quirk, the following changes are incorporated:
+
+1. Added a generic helper function to IORT code to retrieve the
+   associated ITS base address from a device IORT node.
+2. Added quirk to SMMUv3 to retrieve the HW ITS address and replace
+   the default SW MSI reserve address based on the IORT SMMU model.
+
+This is based on the following patches:
+1. https://patchwork.kernel.org/patch/9740733/
+2. https://patchwork.kernel.org/patch/9730491/
+
+Thanks,
+Shameer
+
+RFC v1 ---> v2
+ Based on Robin's review comments,
+        :Removed  the generic erratum framework.
+        :Using IORT/MADT tables to retrieve the ITS base addr instead
+         of vendor specific CSRT table.
+
+shameer (2):
+  acpi:iort: Add new helper function to retrieve ITS base addr from IORT
+    node
+  iommu/arm-smmu-v3:Enable ACPI based HiSilicon erratum 161010801
+
+ drivers/acpi/arm64/iort.c        | 47 +++++++++++++++++++++++++++++++++++---
+ drivers/iommu/arm-smmu-v3.c      | 49 +++++++++++++++++++++++++++++++++++++---
+ drivers/irqchip/irq-gic-v3-its.c |  3 ++-
+ include/linux/acpi_iort.h        |  8 ++++++-
+ 4 files changed, 99 insertions(+), 8 deletions(-)
+
+-- 
+1.9.1
+
+
