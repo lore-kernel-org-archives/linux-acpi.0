@@ -1,110 +1,63 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
-Date: Wed, 31 May 2017 11:21:45 +0200
-Message-ID: <20170531092145.ytc2d6shpukxziie@wunner.de>
-References: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
- <20170526210340.GA5114@wunner.de>
- <1e60811b-a8ac-017c-d350-8a40e4323870@butterbrot.org>
- <20170530105404.GA29865@wunner.de>
- <64a4829c-3141-6ff6-9369-6ca9ed0facf4@butterbrot.org>
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: Re: [PATCH 2/3] RTC: rtc-cmos: Fix wakeup from suspend-to-idle
+Date: Wed, 31 May 2017 11:21:55 +0200
+Message-ID: <20170531092155.ofhimzxatz4kqbul@piout.net>
+References: <2169867.RZcCZmJK9B@aspire.rjw.lan>
+ <31830983.Z4sGoD3BOE@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.hostsharing.net ([176.9.242.54]:37669 "EHLO
-        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751038AbdEaJVs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 May 2017 05:21:48 -0400
+Received: from mail.free-electrons.com ([62.4.15.54]:34536 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751021AbdEaJV6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 May 2017 05:21:58 -0400
 Content-Disposition: inline
-In-Reply-To: <64a4829c-3141-6ff6-9369-6ca9ed0facf4@butterbrot.org>
+In-Reply-To: <31830983.Z4sGoD3BOE@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Florian Echtler <floe@butterbrot.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, David Box <david.e.box@linux.intel.com>, Alessandro Zummo <a.zummo@towertech.it>
 
-On Wed, May 31, 2017 at 10:48:37AM +0200, Florian Echtler wrote:
-> On 30.05.2017 12:54, Lukas Wunner wrote:
-> > On Tue, May 30, 2017 at 11:34:17AM +0200, Florian Echtler wrote:
-> >> On 26.05.2017 23:03, Lukas Wunner wrote:
-> >>> On Fri, May 26, 2017 at 02:13:29PM +0200, Florian Echtler wrote:
-> >>>> I'm running Ubuntu 16.04.2 on a 27" unibody iMac 10,1 from 2009. However, even
-> >>>> with the most recent HWE stack (kernel 4.8), the display stays black after
-> >>>> suspend. I can ssh into the machine, so wakeup is OK, but the display is
-> >>>> entirely black (backlight stays off).
-> > 
-> > So, just to confirm, if you never plug in an external DP source and the iMac
-> > comes out of sleep, the display stays black?
-> 
-> Correct, verified this just now.
-> 
-> > If you log in via ssh and look at dmesg, was radeon able to train the DP
-> > link again?  No error messages, nothing?
-> 
-> Here are the relevant dmesg lines after wakeup:
-> 
-> [  157.622950] [drm] enabling PCIE gen 2 link speeds, disable with
-> radeon.pcie_gen2=0
-> [  157.626077] [drm] PCIE GART of 1024M enabled (table at 0x000000000014C000).
-> [  157.626094] radeon 0000:02:00.0: WB enabled
-> [  157.626097] radeon 0000:02:00.0: fence driver on ring 0 use gpu addr
-> 0x0000000010000c00 and cpu addr 0xffffa1242dfd6c00
-> [  157.626098] radeon 0000:02:00.0: fence driver on ring 3 use gpu addr
-> 0x0000000010000c0c and cpu addr 0xffffa1242dfd6c0c
-> [  157.626315] radeon 0000:02:00.0: fence driver on ring 5 use gpu addr
-> 0x000000000005c598 and cpu addr 0xffffbc3081c1c598
-> [  157.672183] [drm] ring test on 0 succeeded in 1 usecs
-> [  157.672187] [drm] ring test on 3 succeeded in 2 usecs
-> [  157.847098] [drm] ring test on 5 succeeded in 1 usecs
-> [  157.847102] [drm] UVD initialized successfully.
-> [  157.847121] [drm] ib test on ring 0 succeeded in 0 usecs
-> [  157.847136] [drm] ib test on ring 3 succeeded in 0 usecs
-> [  158.524061] [drm] ib test on ring 5 succeeded
+Hi Rafael,
 
-Hm, try booting with drm.debug=0xf to see if link training for the
-eDP connector succeeds.  If the link cannot be trained, it would
-explain that the screen stays black.  Should this indeed be the
-case, one possible explanation would be that the panel is muxed
-to the external port on resume and an appropriate command needs to
-be sent to the SMC to switch the mux to the radeon card.  This could
-be done in the ->resume_early hook of your APP000C platform driver.
-The apple-gmux driver contains something similar to power the discrete
-GPU down if it was off before suspend (because the BIOS always powers
-it up on resume).
-
-Another possible explanation would be that panel power needs to be
-enabled by writing to the registers which control the pins mentioned
-below.
-
-
-> And this is logged in Xorg.0.log after wakeup:
+On 14/05/2017 at 01:55:32 +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> [   229.956] (II) RADEON(0): Allocate new frame buffer 320x200 stride 384
-> [   229.956] (II) RADEON(0): VRAM usage limit set to 219596K
+> Commit eed4d47efe95 (ACPI / sleep: Ignore spurious SCI wakeups from
+> suspend-to-idle) modified the core suspend-to-idle code to filter
+> out spurious SCI interrupts received while suspended, which requires
+> ACPI event source handlers to report wakeup events in a way that
+> will trigger a wakeup from suspend to idle (or abort system suspends
+> in progress, which is equivalent).
 > 
-> xrandr still shows the eDP output as connected and active with 2560x1440 resolution.
+> That needs to be done in the rtc-cmos driver too, which was overlooked
+> by the above commit, so do that now.
 > 
-> > Is the panel off or is it on but merely with 0% brightness?
+> Fixes: eed4d47efe95 (ACPI / sleep: Ignore spurious SCI wakeups from suspend-to-idle)
+> Reported-by: David E. Box <david.e.box@linux.intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/rtc/rtc-cmos.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> The backlight is definitely off. I've tried to shine a torch onto the panel and
-> see if any content is visible, but it looks like the panel itself is off, too.
+> Index: linux-pm/drivers/rtc/rtc-cmos.c
+> ===================================================================
+> --- linux-pm.orig/drivers/rtc/rtc-cmos.c
+> +++ linux-pm/drivers/rtc/rtc-cmos.c
+> @@ -1085,7 +1085,7 @@ static u32 rtc_handler(void *context)
+>  	}
+>  	spin_unlock_irqrestore(&rtc_lock, flags);
+>  
+> -	pm_wakeup_event(dev, 0);
+> +	pm_wakeup_hard_event(dev);
+>  	acpi_clear_event(ACPI_EVENT_RTC);
+>  	acpi_disable_event(ACPI_EVENT_RTC, 0);
+>  	return ACPI_INTERRUPT_HANDLED;
 > 
-> > There's a block of pins on the GPU for "system management" which contains
-> > a bunch of GPIO, OEM and reserved pins.  Three of these are used to control
-> > the panel when it's switched to the radeon card:
-> > pin 23	   PNL_PWR_EN
-> > pin 25	   PNL_BL_EN
-> > pin 27	   PNL_BL_PWM
-> > 
-> > Basically you'd need to know what these are set to before and after sleep.
-> > I don't know how to access them, presumably via a BAR register.  A quick
-> > look at the RV730-specific registers in drivers/gpu/drm/radeon/*.h did not
-> > yield anything useful, but someone at AMD may be able to find this out.
-> 
-> Can I perhaps use radeontool for this? I.e. dump registers before and after
-> sleep and see if there's a difference? Or is radeontool too old to know about
-> the correct registers?
 
-*shrug*  Unfortunately I'm not familiar at all with radeontool. :-(
+This seems good to me, do you expect it to go through my tree?
 
-Best regards,
-
-Lukas
+-- 
+Alexandre Belloni, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
