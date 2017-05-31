@@ -1,69 +1,223 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: [PATCH v3] acpi/nfit: Fix memory corruption/Unregister mce decoder on failure
-Date: Wed, 31 May 2017 13:39:43 -0400
-Message-ID: <1496252383-6234-1-git-send-email-prarit@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56536 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751000AbdEaRjq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 May 2017 13:39:46 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: [PATCH] ACPI/IORT: Handle PCI aliases properly
+Date: Wed, 31 May 2017 18:52:30 +0100
+Message-ID: <20170531175230.16529-4-robin.murphy@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Prarit Bhargava <prarit@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, jmoyer@redhat.com, lszubowi@redhat.com
 
-nfit_init() calls nfit_mce_register() on module load.  When the module
-load fails the nfit mce decoder is not unregistered.  The module's
-memory is freed leaving the decoder chain referencing junk.  This will
-cause panics as future registrations will reference the free'd memory.
+When a PCI device has DMA quirks, we need to ensure that an upstream
+IOMMU knows about all possible aliases, since the presence of a DMA
+quirk does not preclude the device still also emitting transactions
+(e.g. MSIs) on its 'real' RID. Similarly, the rules for bridge aliasing
+are relatively complex, and some bridges may only take ownership of
+transactions under particular transient circumstances, leading again to
+multiple RIDs potentially being seen at the IOMMU for the given device.
 
-Unregister the nfit mce decoder on module init failure.
+Take all this into account in the IORT code by mapping every RID
+produced by the alias walk, not just whichever one comes out last. Since
+adding any more internal PTR_ERR() juggling would have confused me no
+end, a bit of refactoring happens in the process - we know where to find
+the ops if everything succeeded, so we're free to just pass regular error
+codes around up until then.
 
-[v2]: register and then unregister mce handler to avoid losing mce events
-[v3]: also cleanup nfit workqueue
-
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: Linda Knippers <linda.knippers@hpe.com>
-Cc: jmoyer@redhat.com
-Cc: lszubowi@redhat.com
+Signed-off-by: Robin Murphy <robin.murphy@arm.com>
 ---
- drivers/acpi/nfit/core.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 656acb5d7166..f3c3e9d4563c 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -3043,6 +3043,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- 
- static __init int nfit_init(void)
- {
-+	int ret;
-+
- 	BUILD_BUG_ON(sizeof(struct acpi_table_nfit) != 40);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 56);
- 	BUILD_BUG_ON(sizeof(struct acpi_nfit_memory_map) != 48);
-@@ -3070,8 +3072,14 @@ static __init int nfit_init(void)
- 		return -ENOMEM;
- 
- 	nfit_mce_register();
-+	ret = acpi_bus_register_driver(&acpi_nfit_driver);
-+	if (ret) {
-+		nfit_mce_unregister();
-+		destroy_workqueue(nfit_wq);
-+	}
-+
-+	return ret;
- 
--	return acpi_bus_register_driver(&acpi_nfit_driver);
+This applies on top of the fixes currently queued in the IOMMU tree:
+"ACPI/IORT: Move the check to get iommu_ops from translated fwspec"
+"ACPI/IORT: Ignore all errors except EPROBE_DEFER"
+
+ drivers/acpi/arm64/iort.c | 113 ++++++++++++++++++++++++----------------------
+ 1 file changed, 59 insertions(+), 54 deletions(-)
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 797b28dc7b34..50e2749eafdc 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -598,14 +598,6 @@ void acpi_configure_pmsi_domain(struct device *dev)
+ 		dev_set_msi_domain(dev, msi_domain);
  }
  
- static __exit void nfit_exit(void)
+-static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+-{
+-	u32 *rid = data;
+-
+-	*rid = alias;
+-	return 0;
+-}
+-
+ static int arm_smmu_iort_xlate(struct device *dev, u32 streamid,
+ 			       struct fwnode_handle *fwnode,
+ 			       const struct iommu_ops *ops)
+@@ -643,8 +635,7 @@ int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
+ {
+ 	int err = 0;
+ 
+-	if (!IS_ERR_OR_NULL(ops) && ops->add_device && dev->bus &&
+-	    !dev->iommu_group)
++	if (ops->add_device && dev->bus && !dev->iommu_group)
+ 		err = ops->add_device(dev);
+ 
+ 	return err;
+@@ -658,36 +649,49 @@ int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
+ { return 0; }
+ #endif
+ 
+-static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+-					struct acpi_iort_node *node,
+-					u32 streamid)
++static int iort_iommu_xlate(struct device *dev, struct acpi_iort_node *node,
++			    u32 streamid)
+ {
+-	const struct iommu_ops *ops = NULL;
+-	int ret = -ENODEV;
++	const struct iommu_ops *ops;
+ 	struct fwnode_handle *iort_fwnode;
+ 
+-	if (node) {
+-		iort_fwnode = iort_get_fwnode(node);
+-		if (!iort_fwnode)
+-			return NULL;
++	if (!node)
++		return -ENODEV;
+ 
+-		ops = iommu_ops_from_fwnode(iort_fwnode);
+-		/*
+-		 * If the ops look-up fails, this means that either
+-		 * the SMMU drivers have not been probed yet or that
+-		 * the SMMU drivers are not built in the kernel;
+-		 * Depending on whether the SMMU drivers are built-in
+-		 * in the kernel or not, defer the IOMMU configuration
+-		 * or just abort it.
+-		 */
+-		if (!ops)
+-			return iort_iommu_driver_enabled(node->type) ?
+-			       ERR_PTR(-EPROBE_DEFER) : NULL;
++	iort_fwnode = iort_get_fwnode(node);
++	if (!iort_fwnode)
++		return -ENODEV;
+ 
+-		ret = arm_smmu_iort_xlate(dev, streamid, iort_fwnode, ops);
+-	}
++	ops = iommu_ops_from_fwnode(iort_fwnode);
++	/*
++	 * If the ops look-up fails, this means that either
++	 * the SMMU drivers have not been probed yet or that
++	 * the SMMU drivers are not built in the kernel;
++	 * Depending on whether the SMMU drivers are built-in
++	 * in the kernel or not, defer the IOMMU configuration
++	 * or just abort it.
++	 */
++	if (!ops)
++		return iort_iommu_driver_enabled(node->type) ?
++		       -EPROBE_DEFER : -ENODEV;
+ 
+-	return ret ? NULL : ops;
++	return arm_smmu_iort_xlate(dev, streamid, iort_fwnode, ops);
++}
++
++struct iort_pci_alias_info {
++	struct device *dev;
++	struct acpi_iort_node *node;
++};
++
++static int iort_pci_iommu_init(struct pci_dev *pdev, u16 alias, void *data)
++{
++	struct iort_pci_alias_info *info = data;
++	struct acpi_iort_node *parent;
++	u32 streamid;
++
++	parent = iort_node_map_id(info->node, alias, &streamid,
++				  IORT_IOMMU_TYPE);
++	return iort_iommu_xlate(info->dev, parent, streamid);
+ }
+ 
+ /**
+@@ -723,7 +727,7 @@ void iort_set_dma_mask(struct device *dev)
+ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+ {
+ 	struct acpi_iort_node *node, *parent;
+-	const struct iommu_ops *ops = NULL;
++	const struct iommu_ops *ops;
+ 	u32 streamid = 0;
+ 	int err;
+ 
+@@ -737,21 +741,18 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+ 
+ 	if (dev_is_pci(dev)) {
+ 		struct pci_bus *bus = to_pci_dev(dev)->bus;
+-		u32 rid;
+-
+-		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
+-				       &rid);
++		struct iort_pci_alias_info info = { .dev = dev };
+ 
+ 		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+ 				      iort_match_node_callback, &bus->dev);
+ 		if (!node)
+ 			return NULL;
+ 
+-		parent = iort_node_map_id(node, rid, &streamid,
+-					  IORT_IOMMU_TYPE);
+-
+-		ops = iort_iommu_xlate(dev, parent, streamid);
+-
++		info.node = node;
++		err = pci_for_each_dma_alias(to_pci_dev(dev),
++					     iort_pci_iommu_init, &info);
++		if (err)
++			goto out_err;
+ 	} else {
+ 		int i = 0;
+ 
+@@ -764,9 +765,9 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+ 						   IORT_IOMMU_TYPE, i++);
+ 
+ 		while (parent) {
+-			ops = iort_iommu_xlate(dev, parent, streamid);
+-			if (IS_ERR_OR_NULL(ops))
+-				return ops;
++			err = iort_iommu_xlate(dev, parent, streamid);
++			if (err)
++				goto out_err;
+ 
+ 			parent = iort_node_map_platform_id(node, &streamid,
+ 							   IORT_IOMMU_TYPE,
+@@ -774,21 +775,25 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+ 		}
+ 	}
+ 
++	ops = dev->iommu_fwspec->ops;
++
+ 	/*
+ 	 * If we have reason to believe the IOMMU driver missed the initial
+ 	 * add_device callback for dev, replay it to get things in order.
+ 	 */
+ 	err = iort_add_device_replay(ops, dev);
+ 	if (err)
+-		ops = ERR_PTR(err);
+-
+-	/* Ignore all other errors apart from EPROBE_DEFER */
+-	if (IS_ERR(ops) && (PTR_ERR(ops) != -EPROBE_DEFER)) {
+-		dev_dbg(dev, "Adding to IOMMU failed: %ld\n", PTR_ERR(ops));
+-		ops = NULL;
+-	}
++		goto out_err;
+ 
+ 	return ops;
++
++	/* Ignore all other errors apart from EPROBE_DEFER */
++out_err:
++	if (err == -EPROBE_DEFER)
++		return ERR_PTR(err);
++
++	dev_dbg(dev, "Adding to IOMMU failed: %d\n", err);
++	return NULL;
+ }
+ 
+ static void __init acpi_iort_register_irq(int hwirq, const char *name,
 -- 
-1.7.9.3
-
+2.12.2.dirty
