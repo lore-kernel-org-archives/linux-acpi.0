@@ -1,128 +1,93 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v6 4/6] device property: Introduce fwnode_device_is_available()
-Date: Wed, 31 May 2017 15:27:10 +0300
-Message-ID: <1496233632-25518-5-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 6/6] device property: Add fwnode_graph_get_port_parent
+Date: Wed, 31 May 2017 15:27:12 +0300
+Message-ID: <1496233632-25518-7-git-send-email-sakari.ailus@linux.intel.com>
 References: <1496233632-25518-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:10666 "EHLO mga04.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:60266 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751015AbdEaM3B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 May 2017 08:29:01 -0400
+        id S1751138AbdEaM3E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 May 2017 08:29:04 -0400
 In-Reply-To: <1496233632-25518-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com
+Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com, Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Add fwnode_device_is_available() to tell whether the device corresponding
-to a certain fwnode_handle is available for use.
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
+Provide a helper to obtain the parent device fwnode without first
+parsing the remote-endpoint as per fwnode_graph_get_remote_port_parent.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/acpi/property.c  |  9 +++++++++
- drivers/base/property.c  | 10 ++++++++++
- drivers/of/property.c    |  6 ++++++
- include/linux/fwnode.h   |  1 +
- include/linux/property.h |  1 +
- 5 files changed, 27 insertions(+)
+ drivers/base/property.c  | 28 ++++++++++++++++++++++++----
+ include/linux/property.h |  2 ++
+ 2 files changed, 26 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index a24ca61..917c789 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -1121,6 +1121,14 @@ int acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
- 	return 0;
- }
- 
-+static bool acpi_fwnode_device_is_available(struct fwnode_handle *fwnode)
-+{
-+	if (!is_acpi_device_node(fwnode))
-+		return false;
-+
-+	return acpi_device_is_present(to_acpi_device_node(fwnode));
-+}
-+
- static bool acpi_fwnode_property_present(struct fwnode_handle *fwnode,
- 					 const char *propname)
- {
-@@ -1216,6 +1224,7 @@ static int acpi_fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
- }
- 
- const struct fwnode_operations acpi_fwnode_ops = {
-+	.device_is_available = acpi_fwnode_device_is_available,
- 	.property_present = acpi_fwnode_property_present,
- 	.property_read_int_array = acpi_fwnode_property_read_int_array,
- 	.property_read_string_array = acpi_fwnode_property_read_string_array,
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index e1a58ac..b979f8a 100644
+index ac3590b..692007e 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -1022,6 +1022,16 @@ void fwnode_handle_put(struct fwnode_handle *fwnode)
- EXPORT_SYMBOL_GPL(fwnode_handle_put);
+@@ -1171,6 +1171,26 @@ fwnode_graph_get_next_endpoint(struct fwnode_handle *fwnode,
+ EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
  
  /**
-+ * fwnode_device_is_available - check if a device is available for use
-+ * @fwnode: Pointer to the fwnode of the device.
++ * fwnode_graph_get_port_parent - Return the device fwnode of a port endpoint
++ * @endpoint: Endpoint firmware node of the port
++ *
++ * Return: the firmware node of the device the @endpoint belongs to.
 + */
-+bool fwnode_device_is_available(struct fwnode_handle *fwnode)
++struct fwnode_handle *
++fwnode_graph_get_port_parent(struct fwnode_handle *endpoint)
 +{
-+	return fwnode_call_int_op(fwnode, device_is_available);
++	struct fwnode_handle *port, *parent;
++
++	port = fwnode_get_parent(endpoint);
++	parent = fwnode_call_ptr_op(port, graph_get_port_parent);
++
++	fwnode_handle_put(port);
++
++	return parent;
 +}
-+EXPORT_SYMBOL_GPL(fwnode_device_is_available);
++EXPORT_SYMBOL_GPL(fwnode_graph_get_port_parent);
 +
 +/**
-  * device_get_child_node_count - return the number of child nodes for device
-  * @dev: Device to cound the child nodes for
-  */
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-index e859e41..c96389b 100644
---- a/drivers/of/property.c
-+++ b/drivers/of/property.c
-@@ -775,6 +775,11 @@ static void of_fwnode_put(struct fwnode_handle *fwnode)
- 	of_node_put(to_of_node(fwnode));
- }
- 
-+static bool of_fwnode_device_is_available(struct fwnode_handle *fwnode)
-+{
-+	return of_device_is_available(to_of_node(fwnode));
-+}
-+
- static bool of_fwnode_property_present(struct fwnode_handle *fwnode,
- 				       const char *propname)
+  * fwnode_graph_get_remote_port_parent - Return fwnode of a remote device
+  * @fwnode: Endpoint firmware node pointing to the remote endpoint
+  *
+@@ -1179,12 +1199,12 @@ EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
+ struct fwnode_handle *
+ fwnode_graph_get_remote_port_parent(struct fwnode_handle *fwnode)
  {
-@@ -895,6 +900,7 @@ static int of_fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
- const struct fwnode_operations of_fwnode_ops = {
- 	.get = of_fwnode_get,
- 	.put = of_fwnode_put,
-+	.device_is_available = of_fwnode_device_is_available,
- 	.property_present = of_fwnode_property_present,
- 	.property_read_int_array = of_fwnode_property_read_int_array,
- 	.property_read_string_array = of_fwnode_property_read_string_array,
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index e315d86..9ab3754 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -66,6 +66,7 @@ struct fwnode_endpoint {
- struct fwnode_operations {
- 	void (*get)(struct fwnode_handle *fwnode);
- 	void (*put)(struct fwnode_handle *fwnode);
-+	bool (*device_is_available)(struct fwnode_handle *fwnode);
- 	bool (*property_present)(struct fwnode_handle *fwnode,
- 				 const char *propname);
- 	int (*property_read_int_array)(struct fwnode_handle *fwnode,
+-	struct fwnode_handle *port, *parent;
++	struct fwnode_handle *endpoint, *parent;
+ 
+-	port = fwnode_graph_get_remote_port(fwnode);
+-	parent = fwnode_call_ptr_op(port, graph_get_port_parent);
++	endpoint = fwnode_graph_get_remote_endpoint(fwnode);
++	parent = fwnode_graph_get_port_parent(endpoint);
+ 
+-	fwnode_handle_put(port);
++	fwnode_handle_put(endpoint);
+ 
+ 	return parent;
+ }
 diff --git a/include/linux/property.h b/include/linux/property.h
-index 2f48261..7be014a 100644
+index 0597a74..7e77039 100644
 --- a/include/linux/property.h
 +++ b/include/linux/property.h
-@@ -51,6 +51,7 @@ int device_property_read_string(struct device *dev, const char *propname,
- int device_property_match_string(struct device *dev,
- 				 const char *propname, const char *string);
+@@ -275,6 +275,8 @@ void *device_get_mac_address(struct device *dev, char *addr, int alen);
  
-+bool fwnode_device_is_available(struct fwnode_handle *fwnode);
- bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname);
- int fwnode_property_read_u8_array(struct fwnode_handle *fwnode,
- 				  const char *propname, u8 *val,
+ struct fwnode_handle *fwnode_graph_get_next_endpoint(
+ 	struct fwnode_handle *fwnode, struct fwnode_handle *prev);
++struct fwnode_handle *
++fwnode_graph_get_port_parent(struct fwnode_handle *fwnode);
+ struct fwnode_handle *fwnode_graph_get_remote_port_parent(
+ 	struct fwnode_handle *fwnode);
+ struct fwnode_handle *fwnode_graph_get_remote_port(
 -- 
 2.7.4
 
