@@ -1,62 +1,128 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v6 0/3] Preparation for further fwnode property cleanup
-Date: Wed, 31 May 2017 15:28:49 +0300
-Message-ID: <20170531122849.GG1019@valkosipuli.retiisi.org.uk>
-References: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 4/6] device property: Introduce fwnode_device_is_available()
+Date: Wed, 31 May 2017 15:27:10 +0300
+Message-ID: <1496233632-25518-5-git-send-email-sakari.ailus@linux.intel.com>
+References: <1496233632-25518-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43216 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751000AbdEaM3B (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
+Received: from mga04.intel.com ([192.55.52.120]:10666 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751015AbdEaM3B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Wed, 31 May 2017 08:29:01 -0400
-Content-Disposition: inline
-In-Reply-To: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1496233632-25518-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: robh@kernel.org
-Cc: devicetree@vger.kernel.org, frowand.list@gmail.com, linux-acpi@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, ahs3@redhat.com, kieran.bingham@ideasonboard.com
+To: linux-acpi@vger.kernel.org
+Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com
 
-Hi Rob,
+Add fwnode_device_is_available() to tell whether the device corresponding
+to a certain fwnode_handle is available for use.
 
-On Wed, May 24, 2017 at 05:53:52PM +0300, Sakari Ailus wrote:
-> Hi Rob, Frank, others,
-> 
-> Here's the 6th version of what used to be a single patch to prepare for
-> fwnode property cleanup.
-> 
-> Beyond this, I have a couple of other patchsets I'll post in the near
-> future:
-> 
-> - fwnode property cleanup (for linux-pm) which moves the property API 
-> implementation to FW specific locations; depends on these patches,
-> 
-> - V4L2 fwnode patches (for media_tree, no unmerged dependencies, pull
->   request sent) and
-> 
-> - fwnode const patchset which allows making the fwnode argument for the 
->   property API functions const. It depends on both of the previous sets.
->   Might be for linux-pm.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/acpi/property.c  |  9 +++++++++
+ drivers/base/property.c  | 10 ++++++++++
+ drivers/of/property.c    |  6 ++++++
+ include/linux/fwnode.h   |  1 +
+ include/linux/property.h |  1 +
+ 5 files changed, 27 insertions(+)
 
-I figured out that others are starting to have patches that depend on my
-other patchsets getting merged. Those patches are for the fwnode property
-API that most likely should go through the linux-pm tree as well as for the
-media tree.
-
-<URL:http://www.spinics.net/lists/linux-media/msg115893.html>
-
-I have hopes of being able to get the fwnode cleanup patchset (which the
-aforementioned patches depend on) in within this merge window --- assuming I
-could have your ack on the OF portions.
-
-Would it be possible to have an immutable branch for these or would you
-accept a pull request on v4.12-rc1?
-
-Thanks.
-
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index a24ca61..917c789 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1121,6 +1121,14 @@ int acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
+ 	return 0;
+ }
+ 
++static bool acpi_fwnode_device_is_available(struct fwnode_handle *fwnode)
++{
++	if (!is_acpi_device_node(fwnode))
++		return false;
++
++	return acpi_device_is_present(to_acpi_device_node(fwnode));
++}
++
+ static bool acpi_fwnode_property_present(struct fwnode_handle *fwnode,
+ 					 const char *propname)
+ {
+@@ -1216,6 +1224,7 @@ static int acpi_fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
+ }
+ 
+ const struct fwnode_operations acpi_fwnode_ops = {
++	.device_is_available = acpi_fwnode_device_is_available,
+ 	.property_present = acpi_fwnode_property_present,
+ 	.property_read_int_array = acpi_fwnode_property_read_int_array,
+ 	.property_read_string_array = acpi_fwnode_property_read_string_array,
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index e1a58ac..b979f8a 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -1022,6 +1022,16 @@ void fwnode_handle_put(struct fwnode_handle *fwnode)
+ EXPORT_SYMBOL_GPL(fwnode_handle_put);
+ 
+ /**
++ * fwnode_device_is_available - check if a device is available for use
++ * @fwnode: Pointer to the fwnode of the device.
++ */
++bool fwnode_device_is_available(struct fwnode_handle *fwnode)
++{
++	return fwnode_call_int_op(fwnode, device_is_available);
++}
++EXPORT_SYMBOL_GPL(fwnode_device_is_available);
++
++/**
+  * device_get_child_node_count - return the number of child nodes for device
+  * @dev: Device to cound the child nodes for
+  */
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index e859e41..c96389b 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -775,6 +775,11 @@ static void of_fwnode_put(struct fwnode_handle *fwnode)
+ 	of_node_put(to_of_node(fwnode));
+ }
+ 
++static bool of_fwnode_device_is_available(struct fwnode_handle *fwnode)
++{
++	return of_device_is_available(to_of_node(fwnode));
++}
++
+ static bool of_fwnode_property_present(struct fwnode_handle *fwnode,
+ 				       const char *propname)
+ {
+@@ -895,6 +900,7 @@ static int of_fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
+ const struct fwnode_operations of_fwnode_ops = {
+ 	.get = of_fwnode_get,
+ 	.put = of_fwnode_put,
++	.device_is_available = of_fwnode_device_is_available,
+ 	.property_present = of_fwnode_property_present,
+ 	.property_read_int_array = of_fwnode_property_read_int_array,
+ 	.property_read_string_array = of_fwnode_property_read_string_array,
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index e315d86..9ab3754 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -66,6 +66,7 @@ struct fwnode_endpoint {
+ struct fwnode_operations {
+ 	void (*get)(struct fwnode_handle *fwnode);
+ 	void (*put)(struct fwnode_handle *fwnode);
++	bool (*device_is_available)(struct fwnode_handle *fwnode);
+ 	bool (*property_present)(struct fwnode_handle *fwnode,
+ 				 const char *propname);
+ 	int (*property_read_int_array)(struct fwnode_handle *fwnode,
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 2f48261..7be014a 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -51,6 +51,7 @@ int device_property_read_string(struct device *dev, const char *propname,
+ int device_property_match_string(struct device *dev,
+ 				 const char *propname, const char *string);
+ 
++bool fwnode_device_is_available(struct fwnode_handle *fwnode);
+ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname);
+ int fwnode_property_read_u8_array(struct fwnode_handle *fwnode,
+ 				  const char *propname, u8 *val,
 -- 
-Kind regards,
+2.7.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
