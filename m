@@ -1,55 +1,890 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 2/5] ACPI / APEI: Switch to use new generic
-	UUID API
-Date: Wed, 31 May 2017 22:41:49 +0300
-Message-ID: <20170531194152.65927-3-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 5/5] ACPI: Switch to use generic guid_t in acpi_evaluate_dsm()
+Date: Wed, 31 May 2017 22:41:52 +0300
+Message-ID: <20170531194152.65927-6-andriy.shevchenko@linux.intel.com>
 References: <20170531194152.65927-1-andriy.shevchenko@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:60992 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751138AbdEaTme (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 May 2017 15:42:34 -0400
 In-Reply-To: <20170531194152.65927-1-andriy.shevchenko@linux.intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki " <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Borislav Petkov <bp@suse.de>, intel-gfx@lists.freedesktop.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki " <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Borislav Petkov <bp@suse.de>, intel-gfx@lists.freedesktop.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Amir Goldstein <amir73il@gmail.com>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Ben Skeggs <bskeggs@redhat.com>, Adrian Hunter <adrian.hunter@intel.com>, Yisen Zhuang <yisen.zhuang@huawei.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
 
-VGhlcmUgYXJlIG5ldyB0eXBlcyBhbmQgaGVscGVycyB0aGF0IGFyZSBzdXBwb3NlZCB0byBiZSB1
-c2VkIGluIG5ldyBjb2RlLgoKQXMgYSBwcmVwYXJhdGlvbiB0byBnZXQgcmlkIG9mIGxlZ2FjeSB0
-eXBlcyBhbmQgQVBJIGZ1bmN0aW9ucyBkbwp0aGUgY29udmVyc2lvbiBoZXJlLgoKQ2M6IEJvcmlz
-bGF2IFBldGtvdiA8YnBAc3VzZS5kZT4KU2lnbmVkLW9mZi1ieTogQW5keSBTaGV2Y2hlbmtvIDxh
-bmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb20+Ci0tLQogZHJpdmVycy9hY3BpL2FwZWkv
-Z2hlcy5jIHwgOCArKysrLS0tLQogMSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgNCBk
-ZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYXBlaS9naGVzLmMgYi9kcml2
-ZXJzL2FjcGkvYXBlaS9naGVzLmMKaW5kZXggZDA4NTVjMDlmMzJmLi4wODQ0MTRhNGM1YjggMTAw
-NjQ0Ci0tLSBhL2RyaXZlcnMvYWNwaS9hcGVpL2doZXMuYworKysgYi9kcml2ZXJzL2FjcGkvYXBl
-aS9naGVzLmMKQEAgLTQzMSwxMiArNDMxLDEzIEBAIHN0YXRpYyB2b2lkIGdoZXNfZG9fcHJvYyhz
-dHJ1Y3QgZ2hlcyAqZ2hlcywKIHsKIAlpbnQgc2V2LCBzZWNfc2V2OwogCXN0cnVjdCBhY3BpX2hl
-c3RfZ2VuZXJpY19kYXRhICpnZGF0YTsKKwlndWlkX3QgKnNlY190eXBlOwogCiAJc2V2ID0gZ2hl
-c19zZXZlcml0eShlc3RhdHVzLT5lcnJvcl9zZXZlcml0eSk7CiAJYXBlaV9lc3RhdHVzX2Zvcl9l
-YWNoX3NlY3Rpb24oZXN0YXR1cywgZ2RhdGEpIHsKKwkJc2VjX3R5cGUgPSAoZ3VpZF90ICopZ2Rh
-dGEtPnNlY3Rpb25fdHlwZTsKIAkJc2VjX3NldiA9IGdoZXNfc2V2ZXJpdHkoZ2RhdGEtPmVycm9y
-X3NldmVyaXR5KTsKLQkJaWYgKCF1dWlkX2xlX2NtcCgqKHV1aWRfbGUgKilnZGF0YS0+c2VjdGlv
-bl90eXBlLAotCQkJCSBDUEVSX1NFQ19QTEFURk9STV9NRU0pKSB7CisJCWlmICghZ3VpZF9lcXVh
-bChzZWNfdHlwZSwgJkNQRVJfU0VDX1BMQVRGT1JNX01FTSkpIHsKIAkJCXN0cnVjdCBjcGVyX3Nl
-Y19tZW1fZXJyICptZW1fZXJyOwogCQkJbWVtX2VyciA9IChzdHJ1Y3QgY3Blcl9zZWNfbWVtX2Vy
-ciAqKShnZGF0YSsxKTsKIAkJCWdoZXNfZWRhY19yZXBvcnRfbWVtX2Vycm9yKGdoZXMsIHNldiwg
-bWVtX2Vycik7CkBAIC00NDUsOCArNDQ2LDcgQEAgc3RhdGljIHZvaWQgZ2hlc19kb19wcm9jKHN0
-cnVjdCBnaGVzICpnaGVzLAogCQkJZ2hlc19oYW5kbGVfbWVtb3J5X2ZhaWx1cmUoZ2RhdGEsIHNl
-dik7CiAJCX0KICNpZmRlZiBDT05GSUdfQUNQSV9BUEVJX1BDSUVBRVIKLQkJZWxzZSBpZiAoIXV1
-aWRfbGVfY21wKCoodXVpZF9sZSAqKWdkYXRhLT5zZWN0aW9uX3R5cGUsCi0JCQkJICAgICAgQ1BF
-Ul9TRUNfUENJRSkpIHsKKwkJZWxzZSBpZiAoIWd1aWRfZXF1YWwoc2VjX3R5cGUsICZDUEVSX1NF
-Q19QQ0lFKSkgewogCQkJc3RydWN0IGNwZXJfc2VjX3BjaWUgKnBjaWVfZXJyOwogCQkJcGNpZV9l
-cnIgPSAoc3RydWN0IGNwZXJfc2VjX3BjaWUgKikoZ2RhdGErMSk7CiAJCQlpZiAoc2V2ID09IEdI
-RVNfU0VWX1JFQ09WRVJBQkxFICYmCi0tIAoyLjExLjAKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4
-QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+acpi_evaluate_dsm() and friends take a pointer to a raw buffer of 16
+bytes. Instead we convert them to use guid_t type. At the same time we
+convert current users.
+
+acpi_str_to_uuid() becomes useless after the conversion and it's safe to
+get rid of it.
+
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Reviewed-by: Jani Nikula <jani.nikula@intel.com>
+Acked-by: Jani Nikula <jani.nikula@intel.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Acked-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Acked-by: Joerg Roedel <jroedel@suse.de>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Yisen Zhuang <yisen.zhuang@huawei.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+Acked-by: Mathias Nyman <mathias.nyman@linux.intel.com>
+Reviewed-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/acpi_extlog.c                         |  4 ++--
+ drivers/acpi/bus.c                                 | 23 ----------------------
+ drivers/acpi/nfit/core.c                           |  6 +++---
+ drivers/acpi/utils.c                               | 16 +++++++--------
+ drivers/char/tpm/tpm_crb.c                         |  9 ++++-----
+ drivers/char/tpm/tpm_ppi.c                         | 20 ++++++++-----------
+ drivers/gpu/drm/i915/intel_acpi.c                  | 14 +++++--------
+ drivers/gpu/drm/nouveau/nouveau_acpi.c             | 20 +++++++++----------
+ drivers/gpu/drm/nouveau/nvkm/subdev/mxm/base.c     |  9 ++++-----
+ drivers/hid/i2c-hid/i2c-hid.c                      |  9 ++++-----
+ drivers/iommu/dmar.c                               | 11 +++++------
+ drivers/mmc/host/sdhci-pci-core.c                  |  9 ++++-----
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c | 15 +++++++-------
+ drivers/pci/pci-acpi.c                             | 13 ++++++------
+ drivers/pci/pci-label.c                            |  4 ++--
+ drivers/usb/dwc3/dwc3-pci.c                        | 10 +++++-----
+ drivers/usb/host/xhci-pci.c                        |  9 ++++-----
+ drivers/usb/misc/ucsi.c                            |  6 +++---
+ drivers/usb/typec/typec_wcove.c                    |  8 ++++----
+ include/acpi/acpi_bus.h                            | 11 ++++++-----
+ include/linux/acpi.h                               |  3 +--
+ include/linux/pci-acpi.h                           |  2 +-
+ sound/soc/intel/skylake/skl-nhlt.c                 |  7 ++++---
+ tools/testing/nvdimm/test/iomap.c                  |  6 +++---
+ tools/testing/nvdimm/test/nfit.c                   |  2 +-
+ 25 files changed, 103 insertions(+), 143 deletions(-)
+
+diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+index 6b101d595ccc..c9c1d2af9a13 100644
+--- a/drivers/acpi/acpi_extlog.c
++++ b/drivers/acpi/acpi_extlog.c
+@@ -190,9 +190,9 @@ static bool __init extlog_get_l1addr(void)
+ 		return false;
+ 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
+ 		return false;
+-	if (!acpi_check_dsm(handle, guid.b, EXTLOG_DSM_REV, 1 << EXTLOG_FN_ADDR))
++	if (!acpi_check_dsm(handle, &guid, EXTLOG_DSM_REV, 1 << EXTLOG_FN_ADDR))
+ 		return false;
+-	obj = acpi_evaluate_dsm_typed(handle, guid.b, EXTLOG_DSM_REV,
++	obj = acpi_evaluate_dsm_typed(handle, &guid, EXTLOG_DSM_REV,
+ 				      EXTLOG_FN_ADDR, NULL, ACPI_TYPE_INTEGER);
+ 	if (!obj) {
+ 		return false;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 042cd16265b3..5a6fbe0fcaf2 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -196,29 +196,6 @@ static void acpi_print_osc_error(acpi_handle handle,
+ 	pr_debug("\n");
+ }
+ 
+-acpi_status acpi_str_to_uuid(char *str, u8 *uuid)
+-{
+-	int i;
+-	static int opc_map_to_uuid[16] = {6, 4, 2, 0, 11, 9, 16, 14, 19, 21,
+-		24, 26, 28, 30, 32, 34};
+-
+-	if (strlen(str) != 36)
+-		return AE_BAD_PARAMETER;
+-	for (i = 0; i < 36; i++) {
+-		if (i == 8 || i == 13 || i == 18 || i == 23) {
+-			if (str[i] != '-')
+-				return AE_BAD_PARAMETER;
+-		} else if (!isxdigit(str[i]))
+-			return AE_BAD_PARAMETER;
+-	}
+-	for (i = 0; i < 16; i++) {
+-		uuid[i] = hex_to_bin(str[opc_map_to_uuid[i]]) << 4;
+-		uuid[i] |= hex_to_bin(str[opc_map_to_uuid[i] + 1]);
+-	}
+-	return AE_OK;
+-}
+-EXPORT_SYMBOL_GPL(acpi_str_to_uuid);
+-
+ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
+ {
+ 	acpi_status status;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 50753582a0b1..56a5b2ca927a 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -289,7 +289,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 			in_buf.buffer.pointer,
+ 			min_t(u32, 256, in_buf.buffer.length), true);
+ 
+-	out_obj = acpi_evaluate_dsm(handle, guid.b, 1, func, &in_obj);
++	out_obj = acpi_evaluate_dsm(handle, guid, 1, func, &in_obj);
+ 	if (!out_obj) {
+ 		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
+ 				cmd_name);
+@@ -1476,7 +1476,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 
+ 	guid = to_nfit_uuid(nfit_mem->family);
+ 	for_each_set_bit(i, &dsm_mask, BITS_PER_LONG)
+-		if (acpi_check_dsm(adev_dimm->handle, guid.b, 1, 1ULL << i))
++		if (acpi_check_dsm(adev_dimm->handle, guid, 1, 1ULL << i))
+ 			set_bit(i, &nfit_mem->dsm_mask);
+ 
+ 	return 0;
+@@ -1621,7 +1621,7 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
+ 		return;
+ 
+ 	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_CLEAR_ERROR; i++)
+-		if (acpi_check_dsm(adev->handle, guid.b, 1, 1ULL << i))
++		if (acpi_check_dsm(adev->handle, guid, 1, 1ULL << i))
+ 			set_bit(i, &nd_desc->cmd_mask);
+ }
+ 
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 27d0dcfcf47d..52dec7a20d3f 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -613,19 +613,19 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
+ /**
+  * acpi_evaluate_dsm - evaluate device's _DSM method
+  * @handle: ACPI device handle
+- * @uuid: UUID of requested functions, should be 16 bytes
++ * @guid: GUID of requested functions, should be 16 bytes
+  * @rev: revision number of requested function
+  * @func: requested function number
+  * @argv4: the function specific parameter
+  *
+- * Evaluate device's _DSM method with specified UUID, revision id and
++ * Evaluate device's _DSM method with specified GUID, revision id and
+  * function number. Caller needs to free the returned object.
+  *
+  * Though ACPI defines the fourth parameter for _DSM should be a package,
+  * some old BIOSes do expect a buffer or an integer etc.
+  */
+ union acpi_object *
+-acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
++acpi_evaluate_dsm(acpi_handle handle, const guid_t *guid, u64 rev, u64 func,
+ 		  union acpi_object *argv4)
+ {
+ 	acpi_status ret;
+@@ -638,7 +638,7 @@ acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+ 
+ 	params[0].type = ACPI_TYPE_BUFFER;
+ 	params[0].buffer.length = 16;
+-	params[0].buffer.pointer = (char *)uuid;
++	params[0].buffer.pointer = (u8 *)&guid;
+ 	params[1].type = ACPI_TYPE_INTEGER;
+ 	params[1].integer.value = rev;
+ 	params[2].type = ACPI_TYPE_INTEGER;
+@@ -666,7 +666,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
+ /**
+  * acpi_check_dsm - check if _DSM method supports requested functions.
+  * @handle: ACPI device handle
+- * @uuid: UUID of requested functions, should be 16 bytes at least
++ * @guid: GUID of requested functions, should be 16 bytes at least
+  * @rev: revision number of requested functions
+  * @funcs: bitmap of requested functions
+  *
+@@ -674,7 +674,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
+  * functions. Currently only support 64 functions at maximum, should be
+  * enough for now.
+  */
+-bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
++bool acpi_check_dsm(acpi_handle handle, const guid_t *guid, u64 rev, u64 funcs)
+ {
+ 	int i;
+ 	u64 mask = 0;
+@@ -683,7 +683,7 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+ 	if (funcs == 0)
+ 		return false;
+ 
+-	obj = acpi_evaluate_dsm(handle, uuid, rev, 0, NULL);
++	obj = acpi_evaluate_dsm(handle, guid, rev, 0, NULL);
+ 	if (!obj)
+ 		return false;
+ 
+@@ -697,7 +697,7 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+ 
+ 	/*
+ 	 * Bit 0 indicates whether there's support for any functions other than
+-	 * function 0 for the specified UUID and revision.
++	 * function 0 for the specified GUID and revision.
+ 	 */
+ 	if ((mask & 0x1) && (mask & funcs) == funcs)
+ 		return true;
+diff --git a/drivers/char/tpm/tpm_crb.c b/drivers/char/tpm/tpm_crb.c
+index b917b9d5f710..245d82f0bdbc 100644
+--- a/drivers/char/tpm/tpm_crb.c
++++ b/drivers/char/tpm/tpm_crb.c
+@@ -27,10 +27,9 @@
+ 
+ #define ACPI_SIG_TPM2 "TPM2"
+ 
+-static const u8 CRB_ACPI_START_UUID[] = {
+-	/* 0000 */ 0xAB, 0x6C, 0xBF, 0x6B, 0x63, 0x54, 0x14, 0x47,
+-	/* 0008 */ 0xB7, 0xCD, 0xF0, 0x20, 0x3C, 0x03, 0x68, 0xD4
+-};
++static const guid_t crb_acpi_start_guid =
++	GUID(0x6BBF6CAB, 0x5463, 0x4714,
++	     0xB7, 0xCD, 0xF0, 0x20, 0x3C, 0x03, 0x68, 0xD4);
+ 
+ enum crb_defaults {
+ 	CRB_ACPI_START_REVISION_ID = 1,
+@@ -266,7 +265,7 @@ static int crb_do_acpi_start(struct tpm_chip *chip)
+ 	int rc;
+ 
+ 	obj = acpi_evaluate_dsm(chip->acpi_dev_handle,
+-				CRB_ACPI_START_UUID,
++				&crb_acpi_start_guid,
+ 				CRB_ACPI_START_REVISION_ID,
+ 				CRB_ACPI_START_INDEX,
+ 				NULL);
+diff --git a/drivers/char/tpm/tpm_ppi.c b/drivers/char/tpm/tpm_ppi.c
+index 692a2c6ae036..c3b70431c06b 100644
+--- a/drivers/char/tpm/tpm_ppi.c
++++ b/drivers/char/tpm/tpm_ppi.c
+@@ -32,20 +32,16 @@
+ #define PPI_VS_REQ_START	128
+ #define PPI_VS_REQ_END		255
+ 
+-static const u8 tpm_ppi_uuid[] = {
+-	0xA6, 0xFA, 0xDD, 0x3D,
+-	0x1B, 0x36,
+-	0xB4, 0x4E,
+-	0xA4, 0x24,
+-	0x8D, 0x10, 0x08, 0x9D, 0x16, 0x53
+-};
++static const guid_t tpm_ppi_guid =
++	GUID(0x3DDDFAA6, 0x361B, 0x4EB4,
++	     0xA4, 0x24, 0x8D, 0x10, 0x08, 0x9D, 0x16, 0x53);
+ 
+ static inline union acpi_object *
+ tpm_eval_dsm(acpi_handle ppi_handle, int func, acpi_object_type type,
+ 	     union acpi_object *argv4)
+ {
+ 	BUG_ON(!ppi_handle);
+-	return acpi_evaluate_dsm_typed(ppi_handle, tpm_ppi_uuid,
++	return acpi_evaluate_dsm_typed(ppi_handle, &tpm_ppi_guid,
+ 				       TPM_PPI_REVISION_ID,
+ 				       func, argv4, type);
+ }
+@@ -107,7 +103,7 @@ static ssize_t tpm_store_ppi_request(struct device *dev,
+ 	 * is updated with function index from SUBREQ to SUBREQ2 since PPI
+ 	 * version 1.1
+ 	 */
+-	if (acpi_check_dsm(chip->acpi_dev_handle, tpm_ppi_uuid,
++	if (acpi_check_dsm(chip->acpi_dev_handle, &tpm_ppi_guid,
+ 			   TPM_PPI_REVISION_ID, 1 << TPM_PPI_FN_SUBREQ2))
+ 		func = TPM_PPI_FN_SUBREQ2;
+ 
+@@ -268,7 +264,7 @@ static ssize_t show_ppi_operations(acpi_handle dev_handle, char *buf, u32 start,
+ 		"User not required",
+ 	};
+ 
+-	if (!acpi_check_dsm(dev_handle, tpm_ppi_uuid, TPM_PPI_REVISION_ID,
++	if (!acpi_check_dsm(dev_handle, &tpm_ppi_guid, TPM_PPI_REVISION_ID,
+ 			    1 << TPM_PPI_FN_GETOPR))
+ 		return -EPERM;
+ 
+@@ -341,12 +337,12 @@ void tpm_add_ppi(struct tpm_chip *chip)
+ 	if (!chip->acpi_dev_handle)
+ 		return;
+ 
+-	if (!acpi_check_dsm(chip->acpi_dev_handle, tpm_ppi_uuid,
++	if (!acpi_check_dsm(chip->acpi_dev_handle, &tpm_ppi_guid,
+ 			    TPM_PPI_REVISION_ID, 1 << TPM_PPI_FN_VERSION))
+ 		return;
+ 
+ 	/* Cache PPI version string. */
+-	obj = acpi_evaluate_dsm_typed(chip->acpi_dev_handle, tpm_ppi_uuid,
++	obj = acpi_evaluate_dsm_typed(chip->acpi_dev_handle, &tpm_ppi_guid,
+ 				      TPM_PPI_REVISION_ID, TPM_PPI_FN_VERSION,
+ 				      NULL, ACPI_TYPE_STRING);
+ 	if (obj) {
+diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
+index eb638a1e69d2..c888ea55b61f 100644
+--- a/drivers/gpu/drm/i915/intel_acpi.c
++++ b/drivers/gpu/drm/i915/intel_acpi.c
+@@ -15,13 +15,9 @@ static struct intel_dsm_priv {
+ 	acpi_handle dhandle;
+ } intel_dsm_priv;
+ 
+-static const u8 intel_dsm_guid[] = {
+-	0xd3, 0x73, 0xd8, 0x7e,
+-	0xd0, 0xc2,
+-	0x4f, 0x4e,
+-	0xa8, 0x54,
+-	0x0f, 0x13, 0x17, 0xb0, 0x1c, 0x2c
+-};
++static const guid_t intel_dsm_guid =
++	GUID(0x7ed873d3, 0xc2d0, 0x4e4f,
++	     0xa8, 0x54, 0x0f, 0x13, 0x17, 0xb0, 0x1c, 0x2c);
+ 
+ static char *intel_dsm_port_name(u8 id)
+ {
+@@ -80,7 +76,7 @@ static void intel_dsm_platform_mux_info(void)
+ 	int i;
+ 	union acpi_object *pkg, *connector_count;
+ 
+-	pkg = acpi_evaluate_dsm_typed(intel_dsm_priv.dhandle, intel_dsm_guid,
++	pkg = acpi_evaluate_dsm_typed(intel_dsm_priv.dhandle, &intel_dsm_guid,
+ 			INTEL_DSM_REVISION_ID, INTEL_DSM_FN_PLATFORM_MUX_INFO,
+ 			NULL, ACPI_TYPE_PACKAGE);
+ 	if (!pkg) {
+@@ -118,7 +114,7 @@ static bool intel_dsm_pci_probe(struct pci_dev *pdev)
+ 	if (!dhandle)
+ 		return false;
+ 
+-	if (!acpi_check_dsm(dhandle, intel_dsm_guid, INTEL_DSM_REVISION_ID,
++	if (!acpi_check_dsm(dhandle, &intel_dsm_guid, INTEL_DSM_REVISION_ID,
+ 			    1 << INTEL_DSM_FN_PLATFORM_MUX_INFO)) {
+ 		DRM_DEBUG_KMS("no _DSM method for intel device\n");
+ 		return false;
+diff --git a/drivers/gpu/drm/nouveau/nouveau_acpi.c b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+index 39468c218027..0c04ab229cdb 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_acpi.c
++++ b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+@@ -60,15 +60,13 @@ bool nouveau_is_v1_dsm(void) {
+ }
+ 
+ #ifdef CONFIG_VGA_SWITCHEROO
+-static const char nouveau_dsm_muid[] = {
+-	0xA0, 0xA0, 0x95, 0x9D, 0x60, 0x00, 0x48, 0x4D,
+-	0xB3, 0x4D, 0x7E, 0x5F, 0xEA, 0x12, 0x9F, 0xD4,
+-};
++static const guid_t nouveau_dsm_muid =
++	GUID(0x9D95A0A0, 0x0060, 0x4D48,
++	     0xB3, 0x4D, 0x7E, 0x5F, 0xEA, 0x12, 0x9F, 0xD4);
+ 
+-static const char nouveau_op_dsm_muid[] = {
+-	0xF8, 0xD8, 0x86, 0xA4, 0xDA, 0x0B, 0x1B, 0x47,
+-	0xA7, 0x2B, 0x60, 0x42, 0xA6, 0xB5, 0xBE, 0xE0,
+-};
++static const guid_t nouveau_op_dsm_muid =
++	GUID(0xA486D8F8, 0x0BDA, 0x471B,
++	     0xA7, 0x2B, 0x60, 0x42, 0xA6, 0xB5, 0xBE, 0xE0);
+ 
+ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
+ {
+@@ -86,7 +84,7 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
+ 		args_buff[i] = (arg >> i * 8) & 0xFF;
+ 
+ 	*result = 0;
+-	obj = acpi_evaluate_dsm_typed(handle, nouveau_op_dsm_muid, 0x00000100,
++	obj = acpi_evaluate_dsm_typed(handle, &nouveau_op_dsm_muid, 0x00000100,
+ 				      func, &argv4, ACPI_TYPE_BUFFER);
+ 	if (!obj) {
+ 		acpi_handle_info(handle, "failed to evaluate _DSM\n");
+@@ -138,7 +136,7 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg)
+ 		.integer.value = arg,
+ 	};
+ 
+-	obj = acpi_evaluate_dsm_typed(handle, nouveau_dsm_muid, 0x00000102,
++	obj = acpi_evaluate_dsm_typed(handle, &nouveau_dsm_muid, 0x00000102,
+ 				      func, &argv4, ACPI_TYPE_INTEGER);
+ 	if (!obj) {
+ 		acpi_handle_info(handle, "failed to evaluate _DSM\n");
+@@ -259,7 +257,7 @@ static void nouveau_dsm_pci_probe(struct pci_dev *pdev, acpi_handle *dhandle_out
+ 	if (!acpi_has_method(dhandle, "_DSM"))
+ 		return;
+ 
+-	supports_mux = acpi_check_dsm(dhandle, nouveau_dsm_muid, 0x00000102,
++	supports_mux = acpi_check_dsm(dhandle, &nouveau_dsm_muid, 0x00000102,
+ 				      1 << NOUVEAU_DSM_POWER);
+ 	optimus_funcs = nouveau_dsm_get_optimus_functions(dhandle);
+ 
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/mxm/base.c b/drivers/gpu/drm/nouveau/nvkm/subdev/mxm/base.c
+index e3e2f5e83815..d65b2804e905 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/mxm/base.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/mxm/base.c
+@@ -81,10 +81,9 @@ mxm_shadow_dsm(struct nvkm_mxm *mxm, u8 version)
+ {
+ 	struct nvkm_subdev *subdev = &mxm->subdev;
+ 	struct nvkm_device *device = subdev->device;
+-	static char muid[] = {
+-		0x00, 0xA4, 0x04, 0x40, 0x7D, 0x91, 0xF2, 0x4C,
+-		0xB8, 0x9C, 0x79, 0xB6, 0x2F, 0xD5, 0x56, 0x65
+-	};
++	static guid_t muid =
++		GUID(0x4004A400, 0x917D, 0x4CF2,
++		     0xB8, 0x9C, 0x79, 0xB6, 0x2F, 0xD5, 0x56, 0x65);
+ 	u32 mxms_args[] = { 0x00000000 };
+ 	union acpi_object argv4 = {
+ 		.buffer.type = ACPI_TYPE_BUFFER,
+@@ -105,7 +104,7 @@ mxm_shadow_dsm(struct nvkm_mxm *mxm, u8 version)
+ 	 * unless you pass in exactly the version it supports..
+ 	 */
+ 	rev = (version & 0xf0) << 4 | (version & 0x0f);
+-	obj = acpi_evaluate_dsm(handle, muid, rev, 0x00000010, &argv4);
++	obj = acpi_evaluate_dsm(handle, &muid, rev, 0x00000010, &argv4);
+ 	if (!obj) {
+ 		nvkm_debug(subdev, "DSM MXMS failed\n");
+ 		return false;
+diff --git a/drivers/hid/i2c-hid/i2c-hid.c b/drivers/hid/i2c-hid/i2c-hid.c
+index 8daa8ce64ebb..d10ff48e613a 100644
+--- a/drivers/hid/i2c-hid/i2c-hid.c
++++ b/drivers/hid/i2c-hid/i2c-hid.c
+@@ -872,10 +872,9 @@ static int i2c_hid_fetch_hid_descriptor(struct i2c_hid *ihid)
+ static int i2c_hid_acpi_pdata(struct i2c_client *client,
+ 		struct i2c_hid_platform_data *pdata)
+ {
+-	static u8 i2c_hid_guid[] = {
+-		0xF7, 0xF6, 0xDF, 0x3C, 0x67, 0x42, 0x55, 0x45,
+-		0xAD, 0x05, 0xB3, 0x0A, 0x3D, 0x89, 0x38, 0xDE,
+-	};
++	static guid_t i2c_hid_guid =
++		GUID(0x3CDFF6F7, 0x4267, 0x4555,
++		     0xAD, 0x05, 0xB3, 0x0A, 0x3D, 0x89, 0x38, 0xDE);
+ 	union acpi_object *obj;
+ 	struct acpi_device *adev;
+ 	acpi_handle handle;
+@@ -884,7 +883,7 @@ static int i2c_hid_acpi_pdata(struct i2c_client *client,
+ 	if (!handle || acpi_bus_get_device(handle, &adev))
+ 		return -ENODEV;
+ 
+-	obj = acpi_evaluate_dsm_typed(handle, i2c_hid_guid, 1, 1, NULL,
++	obj = acpi_evaluate_dsm_typed(handle, &i2c_hid_guid, 1, 1, NULL,
+ 				      ACPI_TYPE_INTEGER);
+ 	if (!obj) {
+ 		dev_err(&client->dev, "device _DSM execution failed\n");
+diff --git a/drivers/iommu/dmar.c b/drivers/iommu/dmar.c
+index cbf7763d8091..1b8af4fad78b 100644
+--- a/drivers/iommu/dmar.c
++++ b/drivers/iommu/dmar.c
+@@ -1808,10 +1808,9 @@ IOMMU_INIT_POST(detect_intel_iommu);
+  * for Directed-IO Architecture Specifiction, Rev 2.2, Section 8.8
+  * "Remapping Hardware Unit Hot Plug".
+  */
+-static u8 dmar_hp_uuid[] = {
+-	/* 0000 */    0xA6, 0xA3, 0xC1, 0xD8, 0x9B, 0xBE, 0x9B, 0x4C,
+-	/* 0008 */    0x91, 0xBF, 0xC3, 0xCB, 0x81, 0xFC, 0x5D, 0xAF
+-};
++static guid_t dmar_hp_guid =
++	GUID(0xD8C1A3A6, 0xBE9B, 0x4C9B,
++	     0x91, 0xBF, 0xC3, 0xCB, 0x81, 0xFC, 0x5D, 0xAF);
+ 
+ /*
+  * Currently there's only one revision and BIOS will not check the revision id,
+@@ -1824,7 +1823,7 @@ static u8 dmar_hp_uuid[] = {
+ 
+ static inline bool dmar_detect_dsm(acpi_handle handle, int func)
+ {
+-	return acpi_check_dsm(handle, dmar_hp_uuid, DMAR_DSM_REV_ID, 1 << func);
++	return acpi_check_dsm(handle, &dmar_hp_guid, DMAR_DSM_REV_ID, 1 << func);
+ }
+ 
+ static int dmar_walk_dsm_resource(acpi_handle handle, int func,
+@@ -1843,7 +1842,7 @@ static int dmar_walk_dsm_resource(acpi_handle handle, int func,
+ 	if (!dmar_detect_dsm(handle, func))
+ 		return 0;
+ 
+-	obj = acpi_evaluate_dsm_typed(handle, dmar_hp_uuid, DMAR_DSM_REV_ID,
++	obj = acpi_evaluate_dsm_typed(handle, &dmar_hp_guid, DMAR_DSM_REV_ID,
+ 				      func, NULL, ACPI_TYPE_BUFFER);
+ 	if (!obj)
+ 		return -ENODEV;
+diff --git a/drivers/mmc/host/sdhci-pci-core.c b/drivers/mmc/host/sdhci-pci-core.c
+index 92fc3f7c538d..c942ec102c6a 100644
+--- a/drivers/mmc/host/sdhci-pci-core.c
++++ b/drivers/mmc/host/sdhci-pci-core.c
+@@ -404,10 +404,9 @@ struct intel_host {
+ 	bool	d3_retune;
+ };
+ 
+-const u8 intel_dsm_uuid[] = {
+-	0xA5, 0x3E, 0xC1, 0xF6, 0xCD, 0x65, 0x1F, 0x46,
+-	0xAB, 0x7A, 0x29, 0xF7, 0xE8, 0xD5, 0xBD, 0x61,
+-};
++const guid_t intel_dsm_guid =
++	GUID(0xF6C13EA5, 0x65CD, 0x461F,
++	     0xAB, 0x7A, 0x29, 0xF7, 0xE8, 0xD5, 0xBD, 0x61);
+ 
+ static int __intel_dsm(struct intel_host *intel_host, struct device *dev,
+ 		       unsigned int fn, u32 *result)
+@@ -416,7 +415,7 @@ static int __intel_dsm(struct intel_host *intel_host, struct device *dev,
+ 	int err = 0;
+ 	size_t len;
+ 
+-	obj = acpi_evaluate_dsm(ACPI_HANDLE(dev), intel_dsm_uuid, 0, fn, NULL);
++	obj = acpi_evaluate_dsm(ACPI_HANDLE(dev), &intel_dsm_guid, 0, fn, NULL);
+ 	if (!obj)
+ 		return -EOPNOTSUPP;
+ 
+diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c
+index e13aa064a8e9..fb51877c4de2 100644
+--- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c
++++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c
+@@ -29,10 +29,9 @@ enum _dsm_rst_type {
+ 	HNS_ROCE_RESET_FUNC     = 0x7,
+ };
+ 
+-const u8 hns_dsaf_acpi_dsm_uuid[] = {
+-	0x1A, 0xAA, 0x85, 0x1A, 0x93, 0xE2, 0x5E, 0x41,
+-	0x8E, 0x28, 0x8D, 0x69, 0x0A, 0x0F, 0x82, 0x0A
+-};
++const guid_t hns_dsaf_acpi_dsm_guid =
++	GUID(0x1A85AA1A, 0xE293, 0x415E,
++	     0x8E, 0x28, 0x8D, 0x69, 0x0A, 0x0F, 0x82, 0x0A);
+ 
+ static void dsaf_write_sub(struct dsaf_device *dsaf_dev, u32 reg, u32 val)
+ {
+@@ -151,7 +150,7 @@ static void hns_dsaf_acpi_srst_by_port(struct dsaf_device *dsaf_dev, u8 op_type,
+ 	argv4.package.elements = obj_args;
+ 
+ 	obj = acpi_evaluate_dsm(ACPI_HANDLE(dsaf_dev->dev),
+-				hns_dsaf_acpi_dsm_uuid, 0, op_type, &argv4);
++				&hns_dsaf_acpi_dsm_guid, 0, op_type, &argv4);
+ 	if (!obj) {
+ 		dev_warn(dsaf_dev->dev, "reset port_type%d port%d fail!",
+ 			 port_type, port);
+@@ -434,7 +433,7 @@ static phy_interface_t hns_mac_get_phy_if_acpi(struct hns_mac_cb *mac_cb)
+ 	argv4.package.elements = &obj_args,
+ 
+ 	obj = acpi_evaluate_dsm(ACPI_HANDLE(mac_cb->dev),
+-				hns_dsaf_acpi_dsm_uuid, 0,
++				&hns_dsaf_acpi_dsm_guid, 0,
+ 				HNS_OP_GET_PORT_TYPE_FUNC, &argv4);
+ 
+ 	if (!obj || obj->type != ACPI_TYPE_INTEGER)
+@@ -474,7 +473,7 @@ int hns_mac_get_sfp_prsnt_acpi(struct hns_mac_cb *mac_cb, int *sfp_prsnt)
+ 	argv4.package.elements = &obj_args,
+ 
+ 	obj = acpi_evaluate_dsm(ACPI_HANDLE(mac_cb->dev),
+-				hns_dsaf_acpi_dsm_uuid, 0,
++				&hns_dsaf_acpi_dsm_guid, 0,
+ 				HNS_OP_GET_SFP_STAT_FUNC, &argv4);
+ 
+ 	if (!obj || obj->type != ACPI_TYPE_INTEGER)
+@@ -565,7 +564,7 @@ hns_mac_config_sds_loopback_acpi(struct hns_mac_cb *mac_cb, bool en)
+ 	argv4.package.elements = obj_args;
+ 
+ 	obj = acpi_evaluate_dsm(ACPI_HANDLE(mac_cb->dsaf_dev->dev),
+-				hns_dsaf_acpi_dsm_uuid, 0,
++				&hns_dsaf_acpi_dsm_guid, 0,
+ 				HNS_OP_SERDES_LP_FUNC, &argv4);
+ 	if (!obj) {
+ 		dev_warn(mac_cb->dsaf_dev->dev, "set port%d serdes lp fail!",
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 001860361434..0fafb71dc8ce 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -21,13 +21,12 @@
+ #include "pci.h"
+ 
+ /*
+- * The UUID is defined in the PCI Firmware Specification available here:
++ * The GUID is defined in the PCI Firmware Specification available here:
+  * https://www.pcisig.com/members/downloads/pcifw_r3_1_13Dec10.pdf
+  */
+-const u8 pci_acpi_dsm_uuid[] = {
+-	0xd0, 0x37, 0xc9, 0xe5, 0x53, 0x35, 0x7a, 0x4d,
+-	0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
+-};
++const guid_t pci_acpi_dsm_guid =
++	GUID(0xe5c937d0, 0x3553, 0x4d7a,
++	     0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d);
+ 
+ #if defined(CONFIG_PCI_QUIRKS) && defined(CONFIG_ARM64)
+ static int acpi_get_rc_addr(struct acpi_device *adev, struct resource *res)
+@@ -680,7 +679,7 @@ void acpi_pci_add_bus(struct pci_bus *bus)
+ 	if (!pci_is_root_bus(bus))
+ 		return;
+ 
+-	obj = acpi_evaluate_dsm(ACPI_HANDLE(bus->bridge), pci_acpi_dsm_uuid, 3,
++	obj = acpi_evaluate_dsm(ACPI_HANDLE(bus->bridge), &pci_acpi_dsm_guid, 3,
+ 				RESET_DELAY_DSM, NULL);
+ 	if (!obj)
+ 		return;
+@@ -745,7 +744,7 @@ static void pci_acpi_optimize_delay(struct pci_dev *pdev,
+ 	if (bridge->ignore_reset_delay)
+ 		pdev->d3cold_delay = 0;
+ 
+-	obj = acpi_evaluate_dsm(handle, pci_acpi_dsm_uuid, 3,
++	obj = acpi_evaluate_dsm(handle, &pci_acpi_dsm_guid, 3,
+ 				FUNCTION_DELAY_DSM, NULL);
+ 	if (!obj)
+ 		return;
+diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
+index 51357377efbc..2d8db3ead6e8 100644
+--- a/drivers/pci/pci-label.c
++++ b/drivers/pci/pci-label.c
+@@ -172,7 +172,7 @@ static int dsm_get_label(struct device *dev, char *buf,
+ 	if (!handle)
+ 		return -1;
+ 
+-	obj = acpi_evaluate_dsm(handle, pci_acpi_dsm_uuid, 0x2,
++	obj = acpi_evaluate_dsm(handle, &pci_acpi_dsm_guid, 0x2,
+ 				DEVICE_LABEL_DSM, NULL);
+ 	if (!obj)
+ 		return -1;
+@@ -212,7 +212,7 @@ static bool device_has_dsm(struct device *dev)
+ 	if (!handle)
+ 		return false;
+ 
+-	return !!acpi_check_dsm(handle, pci_acpi_dsm_uuid, 0x2,
++	return !!acpi_check_dsm(handle, &pci_acpi_dsm_guid, 0x2,
+ 				1 << DEVICE_LABEL_DSM);
+ }
+ 
+diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+index 84a2cebfc712..fe851544d7fb 100644
+--- a/drivers/usb/dwc3/dwc3-pci.c
++++ b/drivers/usb/dwc3/dwc3-pci.c
+@@ -42,7 +42,7 @@
+ #define PCI_DEVICE_ID_INTEL_CNPLP		0x9dee
+ #define PCI_DEVICE_ID_INTEL_CNPH		0xa36e
+ 
+-#define PCI_INTEL_BXT_DSM_UUID		"732b85d5-b7a7-4a1b-9ba0-4bbd00ffd511"
++#define PCI_INTEL_BXT_DSM_GUID		"732b85d5-b7a7-4a1b-9ba0-4bbd00ffd511"
+ #define PCI_INTEL_BXT_FUNC_PMU_PWR	4
+ #define PCI_INTEL_BXT_STATE_D0		0
+ #define PCI_INTEL_BXT_STATE_D3		3
+@@ -51,14 +51,14 @@
+  * struct dwc3_pci - Driver private structure
+  * @dwc3: child dwc3 platform_device
+  * @pci: our link to PCI bus
+- * @uuid: _DSM UUID
++ * @guid: _DSM GUID
+  * @has_dsm_for_pm: true for devices which need to run _DSM on runtime PM
+  */
+ struct dwc3_pci {
+ 	struct platform_device *dwc3;
+ 	struct pci_dev *pci;
+ 
+-	u8 uuid[16];
++	guid_t guid;
+ 
+ 	unsigned int has_dsm_for_pm:1;
+ };
+@@ -120,7 +120,7 @@ static int dwc3_pci_quirks(struct dwc3_pci *dwc)
+ 
+ 		if (pdev->device == PCI_DEVICE_ID_INTEL_BXT ||
+ 				pdev->device == PCI_DEVICE_ID_INTEL_BXT_M) {
+-			acpi_str_to_uuid(PCI_INTEL_BXT_DSM_UUID, dwc->uuid);
++			guid_parse(PCI_INTEL_BXT_DSM_GUID, &dwc->guid);
+ 			dwc->has_dsm_for_pm = true;
+ 		}
+ 
+@@ -292,7 +292,7 @@ static int dwc3_pci_dsm(struct dwc3_pci *dwc, int param)
+ 	tmp.type = ACPI_TYPE_INTEGER;
+ 	tmp.integer.value = param;
+ 
+-	obj = acpi_evaluate_dsm(ACPI_HANDLE(&dwc->pci->dev), dwc->uuid,
++	obj = acpi_evaluate_dsm(ACPI_HANDLE(&dwc->pci->dev), &dwc->guid,
+ 			1, PCI_INTEL_BXT_FUNC_PMU_PWR, &argv4);
+ 	if (!obj) {
+ 		dev_err(&dwc->pci->dev, "failed to evaluate _DSM\n");
+diff --git a/drivers/usb/host/xhci-pci.c b/drivers/usb/host/xhci-pci.c
+index fcf1f3f63e7a..954db866aff5 100644
+--- a/drivers/usb/host/xhci-pci.c
++++ b/drivers/usb/host/xhci-pci.c
+@@ -213,13 +213,12 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
+ #ifdef CONFIG_ACPI
+ static void xhci_pme_acpi_rtd3_enable(struct pci_dev *dev)
+ {
+-	static const u8 intel_dsm_uuid[] = {
+-		0xb7, 0x0c, 0x34, 0xac,	0x01, 0xe9, 0xbf, 0x45,
+-		0xb7, 0xe6, 0x2b, 0x34, 0xec, 0x93, 0x1e, 0x23,
+-	};
++	static const guid_t intel_dsm_guid =
++		GUID(0xac340cb7, 0xe901, 0x45bf,
++		     0xb7, 0xe6, 0x2b, 0x34, 0xec, 0x93, 0x1e, 0x23);
+ 	union acpi_object *obj;
+ 
+-	obj = acpi_evaluate_dsm(ACPI_HANDLE(&dev->dev), intel_dsm_uuid, 3, 1,
++	obj = acpi_evaluate_dsm(ACPI_HANDLE(&dev->dev), &intel_dsm_guid, 3, 1,
+ 				NULL);
+ 	ACPI_FREE(obj);
+ }
+diff --git a/drivers/usb/misc/ucsi.c b/drivers/usb/misc/ucsi.c
+index 07397bddefa3..a9949fc60fc0 100644
+--- a/drivers/usb/misc/ucsi.c
++++ b/drivers/usb/misc/ucsi.c
+@@ -55,13 +55,13 @@ struct ucsi {
+ 
+ static int ucsi_acpi_cmd(struct ucsi *ucsi, struct ucsi_control *ctrl)
+ {
+-	uuid_le uuid = UUID_LE(0x6f8398c2, 0x7ca4, 0x11e4,
+-			       0xad, 0x36, 0x63, 0x10, 0x42, 0xb5, 0x00, 0x8f);
++	guid_t guid = GUID(0x6f8398c2, 0x7ca4, 0x11e4,
++			   0xad, 0x36, 0x63, 0x10, 0x42, 0xb5, 0x00, 0x8f);
+ 	union acpi_object *obj;
+ 
+ 	ucsi->data->ctrl.raw_cmd = ctrl->raw_cmd;
+ 
+-	obj = acpi_evaluate_dsm(ACPI_HANDLE(ucsi->dev), uuid.b, 1, 1, NULL);
++	obj = acpi_evaluate_dsm(ACPI_HANDLE(ucsi->dev), &guid, 1, 1, NULL);
+ 	if (!obj) {
+ 		dev_err(ucsi->dev, "%s: failed to evaluate _DSM\n", __func__);
+ 		return -EIO;
+diff --git a/drivers/usb/typec/typec_wcove.c b/drivers/usb/typec/typec_wcove.c
+index d5a7b21fa3f1..62ce988fae21 100644
+--- a/drivers/usb/typec/typec_wcove.c
++++ b/drivers/usb/typec/typec_wcove.c
+@@ -105,8 +105,8 @@ enum wcove_typec_role {
+ 	WCOVE_ROLE_DEVICE,
+ };
+ 
+-static uuid_le uuid = UUID_LE(0x482383f0, 0x2876, 0x4e49,
+-			      0x86, 0x85, 0xdb, 0x66, 0x21, 0x1a, 0xf0, 0x37);
++static guid_t guid = GUID(0x482383f0, 0x2876, 0x4e49,
++			  0x86, 0x85, 0xdb, 0x66, 0x21, 0x1a, 0xf0, 0x37);
+ 
+ static int wcove_typec_func(struct wcove_typec *wcove,
+ 			    enum wcove_typec_func func, int param)
+@@ -118,7 +118,7 @@ static int wcove_typec_func(struct wcove_typec *wcove,
+ 	tmp.type = ACPI_TYPE_INTEGER;
+ 	tmp.integer.value = param;
+ 
+-	obj = acpi_evaluate_dsm(ACPI_HANDLE(wcove->dev), uuid.b, 1, func,
++	obj = acpi_evaluate_dsm(ACPI_HANDLE(wcove->dev), &guid, 1, func,
+ 				&argv4);
+ 	if (!obj) {
+ 		dev_err(wcove->dev, "%s: failed to evaluate _DSM\n", __func__);
+@@ -314,7 +314,7 @@ static int wcove_typec_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	if (!acpi_check_dsm(ACPI_HANDLE(&pdev->dev), uuid.b, 0, 0x1f)) {
++	if (!acpi_check_dsm(ACPI_HANDLE(&pdev->dev), &guid, 0, 0x1f)) {
+ 		dev_err(&pdev->dev, "Missing _DSM functions\n");
+ 		return -ENODEV;
+ 	}
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 197f3fffc9a7..ea7df16e71a7 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -61,17 +61,18 @@ bool acpi_ata_match(acpi_handle handle);
+ bool acpi_bay_match(acpi_handle handle);
+ bool acpi_dock_match(acpi_handle handle);
+ 
+-bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs);
+-union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
++bool acpi_check_dsm(acpi_handle handle, const guid_t *guid, u64 rev, u64 funcs);
++union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const guid_t *guid,
+ 			u64 rev, u64 func, union acpi_object *argv4);
+ 
+ static inline union acpi_object *
+-acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+-			union acpi_object *argv4, acpi_object_type type)
++acpi_evaluate_dsm_typed(acpi_handle handle, const guid_t *guid, u64 rev,
++			u64 func, union acpi_object *argv4,
++			acpi_object_type type)
+ {
+ 	union acpi_object *obj;
+ 
+-	obj = acpi_evaluate_dsm(handle, uuid, rev, func, argv4);
++	obj = acpi_evaluate_dsm(handle, guid, rev, func, argv4);
+ 	if (obj && obj->type != type) {
+ 		ACPI_FREE(obj);
+ 		obj = NULL;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index b0e1636ca5c3..ab19365c905f 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -458,7 +458,6 @@ struct acpi_osc_context {
+ 	struct acpi_buffer ret;		/* free by caller if success */
+ };
+ 
+-acpi_status acpi_str_to_uuid(char *str, u8 *uuid);
+ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
+ 
+ /* Indexes into _OSC Capabilities Buffer (DWORDs 2 & 3 are device-specific) */
+@@ -742,7 +741,7 @@ static inline bool acpi_driver_match_device(struct device *dev,
+ }
+ 
+ static inline union acpi_object *acpi_evaluate_dsm(acpi_handle handle,
+-						   const u8 *uuid,
++						   const guid_t *guid,
+ 						   int rev, int func,
+ 						   union acpi_object *argv4)
+ {
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index 7a4e83a8c89c..dd86c97f2454 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -105,7 +105,7 @@ static inline void acpiphp_remove_slots(struct pci_bus *bus) { }
+ static inline void acpiphp_check_host_bridge(struct acpi_device *adev) { }
+ #endif
+ 
+-extern const u8 pci_acpi_dsm_uuid[];
++extern const guid_t pci_acpi_dsm_guid;
+ #define DEVICE_LABEL_DSM	0x07
+ #define RESET_DELAY_DSM		0x08
+ #define FUNCTION_DELAY_DSM	0x09
+diff --git a/sound/soc/intel/skylake/skl-nhlt.c b/sound/soc/intel/skylake/skl-nhlt.c
+index e3f06672fd6d..554065dd518c 100644
+--- a/sound/soc/intel/skylake/skl-nhlt.c
++++ b/sound/soc/intel/skylake/skl-nhlt.c
+@@ -21,8 +21,9 @@
+ #include "skl.h"
+ 
+ /* Unique identification for getting NHLT blobs */
+-static u8 OSC_UUID[16] = {0x6E, 0x88, 0x9F, 0xA6, 0xEB, 0x6C, 0x94, 0x45,
+-				0xA4, 0x1F, 0x7B, 0x5D, 0xCE, 0x24, 0xC5, 0x53};
++static guid_t osc_guid =
++	GUID(0xA69F886E, 0x6CEB, 0x4594,
++	     0xA4, 0x1F, 0x7B, 0x5D, 0xCE, 0x24, 0xC5, 0x53);
+ 
+ struct nhlt_acpi_table *skl_nhlt_init(struct device *dev)
+ {
+@@ -37,7 +38,7 @@ struct nhlt_acpi_table *skl_nhlt_init(struct device *dev)
+ 		return NULL;
+ 	}
+ 
+-	obj = acpi_evaluate_dsm(handle, OSC_UUID, 1, 1, NULL);
++	obj = acpi_evaluate_dsm(handle, &osc_guid, 1, 1, NULL);
+ 	if (obj && obj->type == ACPI_TYPE_BUFFER) {
+ 		nhlt_ptr = (struct nhlt_resource_desc  *)obj->buffer.pointer;
+ 		nhlt_table = (struct nhlt_acpi_table *)
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index 64cae1a5deff..e1f75a1914a1 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -370,7 +370,7 @@ acpi_status __wrap_acpi_evaluate_object(acpi_handle handle, acpi_string path,
+ }
+ EXPORT_SYMBOL(__wrap_acpi_evaluate_object);
+ 
+-union acpi_object * __wrap_acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
++union acpi_object * __wrap_acpi_evaluate_dsm(acpi_handle handle, const guid_t *guid,
+ 		u64 rev, u64 func, union acpi_object *argv4)
+ {
+ 	union acpi_object *obj = ERR_PTR(-ENXIO);
+@@ -379,11 +379,11 @@ union acpi_object * __wrap_acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
+ 	rcu_read_lock();
+ 	ops = list_first_or_null_rcu(&iomap_head, typeof(*ops), list);
+ 	if (ops)
+-		obj = ops->evaluate_dsm(handle, uuid, rev, func, argv4);
++		obj = ops->evaluate_dsm(handle, guid, rev, func, argv4);
+ 	rcu_read_unlock();
+ 
+ 	if (IS_ERR(obj))
+-		return acpi_evaluate_dsm(handle, uuid, rev, func, argv4);
++		return acpi_evaluate_dsm(handle, guid, rev, func, argv4);
+ 	return obj;
+ }
+ EXPORT_SYMBOL(__wrap_acpi_evaluate_dsm);
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index c2187178fb13..28859da78edf 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -1559,7 +1559,7 @@ static unsigned long nfit_ctl_handle;
+ union acpi_object *result;
+ 
+ static union acpi_object *nfit_test_evaluate_dsm(acpi_handle handle,
+-		const u8 *uuid, u64 rev, u64 func, union acpi_object *argv4)
++		const guid_t *guid, u64 rev, u64 func, union acpi_object *argv4)
+ {
+ 	if (handle != &nfit_ctl_handle)
+ 		return ERR_PTR(-ENXIO);
+-- 
+2.11.0
+
