@@ -1,92 +1,136 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v5 6/6] device property: Add fwnode_graph_get_port_parent
-Date: Wed, 31 May 2017 14:52:12 +0300
-Message-ID: <1496231532-23601-7-git-send-email-sakari.ailus@linux.intel.com>
-References: <1496231532-23601-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH v5 0/6] Move firmware specific code to firmware specific locations
+Date: Wed, 31 May 2017 14:52:06 +0300
+Message-ID: <1496231532-23601-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:35451 "EHLO mga14.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:61488 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751131AbdEaLxg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 May 2017 07:53:36 -0400
-In-Reply-To: <1496231532-23601-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S1751131AbdEaLxk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 May 2017 07:53:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com, Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Hi folks, 
 
-Provide a helper to obtain the parent device fwnode without first
-parsing the remote-endpoint as per fwnode_graph_get_remote_port_parent.
+This set moves firmware specific implementations of the device / fwnode 
+property API to locations that are specific to firmware implementation, 
+still leaving property set (which isn't really firmware) implementation in
+drivers/base/property.c.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/base/property.c  | 28 ++++++++++++++++++++++++----
- include/linux/property.h |  2 ++
- 2 files changed, 26 insertions(+), 4 deletions(-)
+This set depends on the OF patches here:
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 519d290..c2776d7 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -1170,6 +1170,26 @@ fwnode_graph_get_next_endpoint(struct fwnode_handle *fwnode,
- EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
- 
- /**
-+ * fwnode_graph_get_port_parent - Return the device fwnode of a port endpoint
-+ * @endpoint: Endpoint firmware node of the port
-+ *
-+ * Return: the firmware node of the device the @endpoint belongs to.
-+ */
-+struct fwnode_handle *
-+fwnode_graph_get_port_parent(struct fwnode_handle *endpoint)
-+{
-+	struct fwnode_handle *port, *parent;
-+
-+	port = fwnode_get_parent(endpoint);
-+	parent = fwnode_call_ptr_op(port, graph_get_port_parent);
-+
-+	fwnode_handle_put(port);
-+
-+	return parent;
-+}
-+EXPORT_SYMBOL_GPL(fwnode_graph_get_port_parent);
-+
-+/**
-  * fwnode_graph_get_remote_port_parent - Return fwnode of a remote device
-  * @fwnode: Endpoint firmware node pointing to the remote endpoint
-  *
-@@ -1178,12 +1198,12 @@ EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
- struct fwnode_handle *
- fwnode_graph_get_remote_port_parent(struct fwnode_handle *fwnode)
- {
--	struct fwnode_handle *port, *parent;
-+	struct fwnode_handle *endpoint, *parent;
- 
--	port = fwnode_graph_get_remote_port(fwnode);
--	parent = fwnode_call_ptr_op(port, graph_get_port_parent);
-+	endpoint = fwnode_graph_get_remote_endpoint(fwnode);
-+	parent = fwnode_graph_get_port_parent(endpoint);
- 
--	fwnode_handle_put(port);
-+	fwnode_handle_put(endpoint);
- 
- 	return parent;
- }
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 0597a74..7e77039 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -275,6 +275,8 @@ void *device_get_mac_address(struct device *dev, char *addr, int alen);
- 
- struct fwnode_handle *fwnode_graph_get_next_endpoint(
- 	struct fwnode_handle *fwnode, struct fwnode_handle *prev);
-+struct fwnode_handle *
-+fwnode_graph_get_port_parent(struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_graph_get_remote_port_parent(
- 	struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_graph_get_remote_port(
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=of>
+
+NOTE: These patches are going in through another tree and may not be
+merged yet.
+
+The patches this set and the dependencies may be found with dependencies
+here:
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph-cleaned>
+
+since v4:
+
+- Address Mika's comments on line wrapping and indentation.
+
+- Order acpi_fwnode_get_parent() according to the list of operations in
+  struct fwnode_operations.
+
+- Add patch "device property: Add fwnode_graph_get_port_parent" to the set.
+
+since v3:
+
+- The two first patches have been already merged ("device property: Read
+  strings using string array reading functions" and "device property:
+  Implement fwnode_get_next_parent()).
+
+- Add "ACPI: Constify argument to acpi_device_is_present()".
+
+- Add patch "device property: Introduce fwnode_device_is_available()".
+
+- Add "device property: Add FW type agnostic fwnode_graph_get_remote_node".
+
+- Rebase on current linux-pm master and fwnode cleanup patchset here:
+
+  <URL:http://www.spinics.net/lists/devicetree/msg177549.html>
+
+- Add KernelDoc documentation for graph_parse_endpoint fwnode operation.
+
+since v2:
+
+- Move patches changing the implementation of reading strings and
+  implementing fwnode_get_next_parent() using the fwnode interface alone
+  in front of the set. I kept them separate as they do change the
+  implementation of these operations.
+
+- Merge patches adding the fwnode_operations and moving the
+  implementations of the non-graph portions of the fwnode property API to
+  firmware specific locations.
+
+- Merge moving graph operations to the same struct into another patch.
+  The graph operations in the ops struct are also added in this patch now.
+
+since v1: 
+
+- Move the three bugfixes in front of the set into a separate patchset. 
+There are no dependencies to those from the rest of the patches.
+
+- Rebase on current ACPI graph support patches (themselves on PM tree 
+4.11-rc1 merge).
+
+Sakari Ailus (5):
+  ACPI: Constify argument to acpi_device_is_present()
+  device property: Move FW type specific functionality to FW specific
+    files
+  device property: Move fwnode graph ops to firmware specific locations
+  device property: Introduce fwnode_device_is_available()
+  device property: Add FW type agnostic fwnode_graph_get_remote_node
+
+ drivers/acpi/device_pm.c |   4 +-
+ drivers/acpi/internal.h  |   2 +-
+ drivers/acpi/property.c  | 114 ++++++++++++++++
+ drivers/acpi/scan.c      |  10 +-
+ drivers/base/property.c  | 332 +++++++++++++++++++----------------------------
+ drivers/of/property.c    | 144 ++++++++++++++++++++
+ include/linux/acpi.h     |   4 +
+ include/linux/fwnode.h   |  67 ++++++++++
+ include/linux/of.h       |   2 +
+ include/linux/property.h |   3 +
+ 10 files changed, 472 insertions(+), 210 deletions(-)
+
+-- 
+2.7.4
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+Kieran Bingham (1):
+  device property: Add fwnode_graph_get_port_parent
+
+Sakari Ailus (5):
+  ACPI: Constify argument to acpi_device_is_present()
+  device property: Move FW type specific functionality to FW specific
+    files
+  device property: Move fwnode graph ops to firmware specific locations
+  device property: Introduce fwnode_device_is_available()
+  device property: Add FW type agnostic fwnode_graph_get_remote_node
+
+ drivers/acpi/device_pm.c |   4 +-
+ drivers/acpi/internal.h  |   2 +-
+ drivers/acpi/property.c  | 117 ++++++++++++++++
+ drivers/acpi/scan.c      |  10 +-
+ drivers/base/property.c  | 347 ++++++++++++++++++++---------------------------
+ drivers/of/property.c    | 148 ++++++++++++++++++++
+ include/linux/acpi.h     |   4 +
+ include/linux/fwnode.h   |  69 ++++++++++
+ include/linux/of.h       |   2 +
+ include/linux/property.h |   5 +
+ 10 files changed, 501 insertions(+), 207 deletions(-)
+
 -- 
 2.7.4
 
