@@ -1,59 +1,45 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v4 2/5] device property: Move FW type specific
- functionality to FW specific files
-Date: Wed, 31 May 2017 13:08:49 +0300
-Message-ID: <b5d632a9-4c35-13b0-0b80-1e58b78660cf@linux.intel.com>
+Subject: Re: [PATCH v4 4/5] device property: Introduce
+ fwnode_device_is_available()
+Date: Wed, 31 May 2017 13:12:35 +0300
+Message-ID: <9a32d562-8335-2b10-8aaa-e74d919636a0@linux.intel.com>
 References: <1495443202-22817-1-git-send-email-sakari.ailus@linux.intel.com>
- <1495443202-22817-3-git-send-email-sakari.ailus@linux.intel.com>
- <20170531094428.GB2784@lahna.fi.intel.com>
+ <1495443202-22817-5-git-send-email-sakari.ailus@linux.intel.com>
+ <20170531095804.GD2784@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:46304 "EHLO mga03.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:42176 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750966AbdEaKIy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 May 2017 06:08:54 -0400
-In-Reply-To: <20170531094428.GB2784@lahna.fi.intel.com>
+        id S1751063AbdEaKMt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 May 2017 06:12:49 -0400
+In-Reply-To: <20170531095804.GD2784@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com
 
-Hi Mika,
+On 05/31/17 12:58, Mika Westerberg wrote:
+> On Mon, May 22, 2017 at 11:53:21AM +0300, Sakari Ailus wrote:
+>>  /**
+>> + * fwnode_device_is_available - check if a device is available for use
+>> + * @fwnode: Pointer to the fwnode of the device.
+>> + */
+>> +bool fwnode_device_is_available(struct fwnode_handle *fwnode)
+> 
+> Can it be const instead? Ditto for of_fwnode_device_is_available() and
+> acpi_fwnode_device_is_available) and the .device_available() hook.
+> 
 
-Thanks for the review.
+In principle yes, but it will require other changes in the ACPI
+framework as well that do not suit well yet for this patchset.
 
-On 05/31/17 12:44, Mika Westerberg wrote:
-> On Mon, May 22, 2017 at 11:53:19AM +0300, Sakari Ailus wrote:
->> +static int acpi_fwnode_property_read_int_array(
-> 
-> Yuck!
-> 
->> +	struct fwnode_handle *fwnode, const char *propname,
->> +	unsigned int elem_size, void *val, size_t nval)
-> 
-> Can you please write it like:
-> 
-> static int acpi_fwnode_property_read_int_array(struct fwnode_handle *fwnode,
-> 	const char *propname, unsigned int elem_size, void *val, size_t nval)
-> 
-> or even
-> 
-> static int acpi_fwnode_property_read_int_array(struct fwnode_handle *fwnode,
-> 					       const char *propname,
-> 					       unsigned int elem_size,
-> 					       void *val, size_t nval)
-> 
-> Ditto to all similar constructs in this whole series.
+I have another patchset that makes fwnode arguments const whenever it's
+possible:
 
-Ah. I forgot you didn't like this wrapping and indentation. ;-)
-
-That's not uncommon e.g. in V4L2 but many have argued that it's not
-where you should look for examples. X-) I'll change them.
+<URL:http://www.spinics.net/lists/devicetree/msg177564.html>
 
 -- 
-Regards,
-
 Sakari Ailus
 sakari.ailus@linux.intel.com
