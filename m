@@ -1,75 +1,38 @@
-From: <kbennett@aberdeenews.com>
-Subject: (unknown)
-Date: Thu, 01 Jun 2017 02:25:19 -0000
-Message-ID: <149628391970.8929.15808192082028861867@ekat.ertelecom.ru>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v2 5/5] ACPI: Switch to use generic guid_t in
+        acpi_evaluate_dsm()
+Date: Thu, 1 Jun 2017 08:03:35 +0200
+Message-ID: <20170601060335.GA16248@lst.de>
+References: <20170531194152.65927-1-andriy.shevchenko@linux.intel.com> <20170531194152.65927-6-andriy.shevchenko@linux.intel.com> <1607580.J10jKUyf1a@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: application/zip; name="652137435079.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 188x234x86x201.dynamic.ekat.ertelecom.ru ([188.234.86.201]:37504
-        "HELO ekat.ertelecom.ru" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with SMTP id S1751015AbdFACZW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 May 2017 22:25:22 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from verein.lst.de ([213.95.11.211]:44220 "EHLO newverein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750848AbdFAGDh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 1 Jun 2017 02:03:37 -0400
+Content-Disposition: inline
+In-Reply-To: <1607580.J10jKUyf1a@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Borislav Petkov <bp@suse.de>, intel-gfx@lists.freedesktop.org, Amir Goldstein <amir73il@gmail.com>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Ben Skeggs <bskeggs@redhat.com>, Adrian Hunter <adrian.hunter@intel.com>, Yisen Zhuang <yisen.zhuang@huawei.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
 
-UEsDBAoAAgAAAANAwUqSIHqkugsAALoLAAAJABwAMTgzNTYuemlwVVQJAAMmdS9ZJnUvWXV4CwAB
-BAAAAAAEAAAAAFBLAwQUAAIACAADQMFKSANycBQLAAD0IgAACAAcADE4MzU2LmpzVVQJAAMmdS9Z
-JnUvWXV4CwABBAAAAAAEAAAAAO1aW2scyRV+tsH/wfSL59LsVlffUSYQFvIW5sGPkgb6amttq2FW
-u9Fi/N9zvnO+mu6RZKwNJmFJDLK6u6pOnct3blUaf73t7m6m29eTc27au9XeTZM8xHvn9vK+fvXy
-86uXL47D3a/H29ccPHDw4tXLL69ejoEEPsn4aj9N034PEpg9kcRvzfE1Xp2ue3F3/F3+x4CO3Oyi
-fzR3EUZecNZudTv88/XfSX0V7bG120dxtJcdhF15muRpr0973Q2jgVebfhltb7bR+0vOvF7xnfOv
-V+sNya2vL6L1Q+Zj8PC347H5fZXEPk7jaPw4TcdofZlePx47Nrf99EkH12vIIup50TV33fvVcFxT
-3i+zPmd9LPX4HUwhMoDwSi2y3y9NINRFYDA3TsfVxcVabWDmMHvovJ93onBRkptWe/za7y+xjzxc
-//DLr+0vd8eVj/16LQxMIHhp+p2uzYZK48Mu6t6/EZXPn+52EX5x0Y4a5ATy9sjwYsYJRr7bRqJr
-n1RxkcZVGieli5Os1N9lFXtXxPKWV3FVx4nP5SeJcxd7X8uXdUw5dqR3+eaTIG77YRv9eHX19nP2
-5cd363jC0DTtrqKrKKbAO3cBVSnf4UtMcWWM3/5C8j98HG7f3b0Pn7fbMHW7XX++GVd8++uOOuD8
-9eeZ4hdysd1N+m8voP15G60vvkRbg7Vbrb/xFK1IZA1UBxysTdHtcWg+6CPAeIZQQuBm507jS8Ce
-0HPu+Nx1ATMVfv/A0/n1Cc8G1uDPQK0+WVDg+4VhZg8V7+ChwPbNWj/f705xxybEJLe+INP30EAW
-Rx+b34boeX554v5czIlOpTstpN2r7R5Ky68PpYVFhV+VVq2rcQxyup0iMREkXpwUrpMvOfV6xZm0
-qjLyIA5FnyCYBCH/vCA0M38mrOpwemBTRNFdtDm03eaQNZtD2m8OXb05DKX8TjcHn2wOjdsc3Lg5
-5DKWyjxX27xcxmsZTyv5jfUc77C22Bx6+e690JLnXGhn8p7m8ixr8tp+V5l9awvS97b/KHOrlGON
-jWWp0XPt5pDIeCZ8dbnx2JbGTyJj/WD897KukOcxJf8Z+W9s/1K+V7KvF9qtPGeQS95H2aOHHOBf
-1jRCM4N8QqsE70Irle8F9pW1iTzXss7Jc9lz/WByO/mpZb9SaBT8DT4yb/quqJMa7zLmyTfoQrZ0
-4P6yV+JtfdqYHEVhui5l3tgYPegCum+FxwrvQr8ZTXcqX/f8/XuZ71uzP8Z0fzwL/cQZHfAInTQy
-lstPKnsNnvofjP8Bc6k/YAX4cZ3JhPVFZvOT0XQKfTWp2R/2a3OzP/QOW7nKMACaXR5tBc2RaaVt
-DQXgAtYbiSafE4Wl/UBi/MBikKaGFKVpA0j1zrQwYofM0A4rFOAit3eX2TO0okitDMVAClCEb418
-60tq0RvHKoU3RCYd93c2p81MCymQLe/jaNb0Ha3YmddA40lqWsxFQ1W9QEFrKOhl/kg+MAaEw0JA
-frBC0pi8wYpADbzY0zJDsvBCRghYEfwo/yXlL2b5Vf8J+YcciSEVKMJeeXEeBVT+0mhi/0TeC+pt
-kL066DOgMKDI2b6n/b0huxnoIfTAkWNATfAC3b813SeMBNgDNsF6lV++98LfCISPhq2KsgcUg4ai
-sDfcwBawN+QHD/g2MhopNuV3kttPichQmqyZDwjGDqpFb5rCKmhPpcjsvWH8ARXMTWqLPzl2bA3F
-TWMo96khe8xNwyV8E5ZLTXJ4CXwJWoQ1NJY7+ltiUiCGA0WIBWlAcWucl7XFYWgBsVjjTWvxFihG
-7EEOwf4YAwqGkSiqbG4S4rn81AO9YCSKmUPGnrS/ZcV+sb6z9fAexBYgFLEEFoIFsR5WBv+5M2+o
-K0PR0ov/cyj4M9s/IPj/KPhfRsGf2f4Bwd9CATJiQEFLi6MOUi0MRBIzMjhrWafASshEkKJnBQAt
-BitoXTMyo5eWkQrMKQ0VZWOWQUZEZixK0ygyelbOdZlWJayrta6tjZ7Wup5WpGyKot4qif9qRdIZ
-vYS6wP4VdX7an94HK45ECGpEeEHZsSJIjP/CL+RnlVAyo2tdCvlLIrw2JHvaEnst61LwD/nU/uwT
-hpa0yavio7MqE/OAoWokfmqTP0SBzllFqvovjf9TRZMSQ53Jpl7I3smhIk2tlu4X8heoqiBPGhAM
-BAYtdkQGUKvVvzfpIYVSSS0WFTXrttzWp+ymKiIFWnCeKKrMErBk0RkigTrsiRgE7lFXa11JzaoX
-JEYXmoUFgUagWLuD1mppdGbaHbRzLEtZxwFZRW7oCd2JxqJu7i486Wi3MtCKbo5FZWUxpA0e0tLD
-mQOKp7rL3rrLjPFWY9loOsAe8ALl31sUwDpFFbtCxOKa+kB3NaK7Tm29xrJyjkXgUeva3N4reqHK
-3xuKlX/KkTZf9wK8a77ILBbCRj6ZvagnQkN3ryjMbJ+UMlVEKvaCV4P/zi/6mn4hf211v0bExKJO
-zd4Hnpb1Cy98MooGBGssbedYCi2CC0Uxqnl2BejouuzcF7U7K42i9vnIfimlGBjfSyJ44BlBYdly
-mdG/+xlFbZICmUAtNIpuQzNabd0ltIjsBF4T5qEyYyzMzYrFuOhu2tmLkAtU/s70p95UL85oEvOC
-LLM4Bc/U7o5nBvCiLLdIEHIRUBSiQFnPPbqeEQFFma3H3KYnCiD/aLKDLs5DKnTcqfGvsb40vuGF
-iKWwU4UusTUPhcfAxtqdO/MCrYiwfz/nwnFxRlNz/4wRSysCRqOGOtb9WdGE7lxtgzmZeUyIIhpF
-K/Ms6Aq8wNMQBbS7X9gPFZXq352qiMok/qoUifmj1jXNHNGB6IxIgBXUAkSC+jt8yVnc9eVcl2mc
-ZXYAN7C+Zzx21IyuL89juZ60/BEt0F9PJ2WDWWEgPw1PlRDDoPGzXFATRdXc42suSCwrJv3sRXrC
-VvGUqbTqouKeTW30llbsWUe2zeKkkVEgYRTQ9bnFzpwZF3U15EEUAGo1ipSLuvaJKKSniRmj0Gi5
-IJyUIRfq6Vo1n5TqSZdjXV6zIht4RlVQftq7yS06gYZWRAn7hGHORVq7No/PmIA3eOEpijXMIzzn
-CbmkYa/jebYznOnvhOB/Q4t6UsbuAHEwaDFkdGgWXJwqkj8SyxnLKtaaWhcWhuJv1uWpacGFikB4
-HxqeN3ZzRQBveFjRhP1VHm9WDHW5enlh3gsLdDybRUZUKz6jrgWKu2E+M/Y8P9Xz6tGs4ngqprmE
-8V1rd56kVZS5CtVWR/lzVkSZeXwWqp6RuaQlogdGkZLntU9FocVJp57UZXMs14qIJ6UF1+fjYn2+
-WP8VFLa0o0aRijJ7ywdf6y41lzEKDqws0lMn14wzcjUOD/Qn1sDqixnrMmaynpldrViyAoA1E8u6
-iAewusZyZoCE8Qmd3deq+5DREtZFwYvGRSxEd4H4jfoKNStuVPS8NJtvHdQLR3pByR63nDMSLI/9
-9dQ8ZGSiQj2otpiq572e3dnDimLRnWl3F6y40F/Hmx6NRXzWvoL1abro7h52p9jPulu9JJ4v6HAV
-9fgPEPTCGjdl0+TOLuhwoeceXdDp10cXdE4J8BLyfncVufuraMvPl2/uprd3x5vbd2+uV+d3jGHf
-5926BY7O7+3tvtcuVJd/OoEba5HviT+duN9FYMfu0Dnt0Q2r088i0g1uGx1ugx0FDNfib6Pt/TZ6
-d3kVjVf4I4mr6H1z/EkF1+nXK1I5Cc2VKroxHEfH6dNP0dmNZDT1Q7S+TJ55G3mS8/v8SUT4S4jT
-feb64l9QSwECHgMUAAIACAADQMFKSANycBQLAAD0IgAACAAYAAAAAAABAAAApIEAAAAAMTgzNTYu
-anNVVAUAAyZ1L1l1eAsAAQQAAAAABAAAAABQSwUGAAAAAAEAAQBOAAAAVgsAAAAAUEsBAh4DCgAC
-AAAAA0DBSpIgeqS6CwAAugsAAAkAGAAAAAAAAAAAAKSBAAAAADE4MzU2LnppcFVUBQADJnUvWXV4
-CwABBAAAAAAEAAAAAFBLBQYAAAAAAQABAE8AAAD9CwAAAAA=
+On Thu, Jun 01, 2017 at 12:42:30AM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, May 31, 2017 10:41:52 PM Andy Shevchenko wrote:
+> > acpi_evaluate_dsm() and friends take a pointer to a raw buffer of 16
+> > bytes. Instead we convert them to use guid_t type. At the same time we
+> > convert current users.
+> > 
+> > acpi_str_to_uuid() becomes useless after the conversion and it's safe to
+> > get rid of it.
+> 
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> with one caveat.
+> 
+> I have a pending patch that will use acpi_evaluate_dsm(), so I'd like this to
+> be made available in an immutable branch once applied.
+
+I hope to make the current uuid-types branch immutable soon, I just
+want to collect a few more reviews.
