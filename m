@@ -1,88 +1,77 @@
-From: Tom Lanyon <tom@oneshoeco.com>
-Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
- recent Dell laptops
-Date: Thu, 1 Jun 2017 21:50:26 +1000
-Message-ID: <CA+b4KqcxKNaHMTEG3KQOQ98OFmwS+R8PLdfyZB1tastH5m0XVQ@mail.gmail.com>
-References: <1979543.KIEJ8uyRaT@aspire.rjw.lan> <3454366.uzaJljlWGm@aspire.rjw.lan>
- <1496313803.28981.45.camel@linux.intel.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [PATCH 0/7] Add PCI ATS support to SMMUv3
+Date: Thu, 1 Jun 2017 13:23:41 +0100
+Message-ID: <d95b6094-0c10-3669-00f4-6a365b2697b9@arm.com>
+References: <20170524180143.19855-1-jean-philippe.brucker@arm.com>
+ <2ae88519-7dbb-97ee-1ef9-8a92c31472d5@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:38221 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751058AbdFALut (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2017 07:50:49 -0400
-Received: by mail-wm0-f48.google.com with SMTP id n195so28743649wmg.1
-        for <linux-acpi@vger.kernel.org>; Thu, 01 Jun 2017 04:50:48 -0700 (PDT)
-In-Reply-To: <1496313803.28981.45.camel@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <2ae88519-7dbb-97ee-1ef9-8a92c31472d5@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Nate Watterson <nwatters@codeaurora.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org
+Cc: mark.rutland@arm.com, will.deacon@arm.com, thunder.leizhen@huawei.com, rjw@rjwysocki.net, okaya@codeaurora.org, robh+dt@kernel.org, sudeep.holla@arm.com, bhelgaas@google.com, tn@semihalf.com, sunil.kovvuri@gmail.com, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>
 
-[resend as text/plain]
+On 31/05/17 16:27, Nate Watterson wrote:
+> Hi Jean-Philippe,
+> 
+> On 5/24/2017 2:01 PM, Jean-Philippe Brucker wrote:
+>> PCIe devices can implement their own TLB, named Address Translation Cache
+>> (ATC). In order to support Address Translation Service (ATS), the
+>> following changes are needed in software:
+>>
+>> * Enable ATS on endpoints when the system supports it. Both PCI root
+>>    complex and associated SMMU must implement the ATS protocol.
+>>
+>> * When unmapping an IOVA, send an ATC invalidate request to the endpoint
+>>    in addition to the usual SMMU IOTLB invalidations.
+>>
+>> I previously sent this as part of a lengthy RFC [1] adding SVM (ATS +
+>> PASID + PRI) support to SMMUv3. The next PASID/PRI version is almost
+>> ready, but isn't likely to get merged because it needs hardware testing,
+>> so I will send it later. PRI depends on ATS, but ATS should be useful on
+>> its own.
+>>
+>> Without PASID and PRI, ATS is used for accelerating transactions. Instead
+>> of having all memory accesses go through SMMU translation, the endpoint
+>> can translate IOVA->PA once, store the result in its ATC, then issue
+>> subsequent transactions using the PA, partially bypassing the SMMU. So in
+>> theory it should be faster while keeping the advantages of an IOMMU,
+>> namely scatter-gather and access control.
+>>
+>> The ATS patches can now be tested on some hardware, even though the lack
+>> of compatible PCI endpoints makes it difficult to assess what performance
+>> optimizations we need. That's why the ATS implementation is a bit rough at
+>> the moment, and we will work on optimizing things like invalidation ranges
+>> later.
+> 
+> Sinan and I have tested this series on a QDF2400 development platform
+> using a PCIe exerciser card as the ATS capable endpoint. We were able
+> to verify that ATS requests complete with a valid translated address
+> and that DMA transactions using the pre-translated address "bypass"
+> the SMMU. Testing ATC invalidations was a bit more difficult as we
+> could not figure out how to get the exerciser card to automatically
+> send the completion message. We ended up having to write a debugger
+> script that would monitor the CMDQ and tell the exerciser to send
+> the completion when a hanging CMD_SYNC following a CMD_ATC_INV was
+> detected. Hopefully we'll get some real ATS capable endpoints to
+> test with soon.
 
-On Thu, 2017-06-01 at 01:23 +0200, Rafael J. Wysocki wrote:
-> Hi All,
->
-> This is a follow-up for a patch series posted some time ago:
->
-> http://marc.info/?l=linux-kernel&m=149324246701378&w=2
+That's still a big step forward from my software tests, thanks a lot for
+the report. If you get around testing a real endpoint, there are a few
+data points that would be really useful to compare, if only to see whether
+enabling ATS is at all viable, or if we end up getting stuck in
+queue_poll_cons in normal conditions:
 
-I've applied Rafael's s2idle-dell-test branch to 4.12.0-rc3 and tested
-on a Dell 9365 and, whilst it's significantly improved, it's not yet
-working correctly.
+* ATS enabled/disabled in endpoint
+* ATSCHK enabled/disabled in SMMU
+* Invalidation duration when ATC entry is present/absent, and the range is
+big/small
 
-Previously I could suspend (s2idle and deep), but it took an awkward
-~8 second press of the power button to get it to resume, and I could
-never get resume to work when triggering suspend/resume via close/open
-of the lid.
+Knowing this would indicate if more work is needed on invalidation sizing,
+batching, postponing or if we can optimize later.
 
-With this patchset applied, I can suspend (s2idle) and a momentary
-press of the power button resumes successfully.  I can also use the
-lid switch to both suspend and resume successfully.
-
-However, the EC events appear to trigger the machine to wake very
-frequently whilst it's supposed to be suspended. This is visible via
-the kernel messages at the end of this mail (leaving it in a suspended
-state for a few hours resulted in many thousands of these messages),
-and the high power draw witnessed.
-
-Let me know if there's anything I can do to help debug further.
-
-Tom
-
-[   43.669798] PM: Syncing filesystems ... done.
-[   43.675412] PM: Preparing system for sleep (freeze)
-[   43.695469] Freezing user space processes ... (elapsed 0.001 seconds) done.
-[   43.696769] OOM killer disabled.
-[   43.696770] Freezing remaining freezable tasks ... (elapsed 0.001
-seconds) done.
-[   43.697914] PM: Suspending system (freeze)
-[   43.910325] wlan0: deauthenticating from 9c:1c:12:c7:c2:f1 by local
-choice (Reason: 3=DEAUTH_LEAVING)
-[   44.112944] psmouse serio1: Failed to disable mouse on isa0060/serio1
-[   45.721790] PM: suspend of devices complete after 1811.701 msecs
-[   45.739769] PM: late suspend of devices complete after 17.956 msecs
-[   45.742599] ACPI : EC: interrupt blocked
-[   45.744774] xhci_hcd 0000:00:14.0: System wakeup enabled by ACPI
-[   45.776254] PM: noirq suspend of devices complete after 34.702 msecs
-[   45.776256] PM: suspend-to-idle
-[   47.029237] Suspended for 0.327 seconds
-[   47.029335] PM: resume from suspend-to-idle
-[   47.029587] ACPI : EC: interrupt unblocked
-[   47.064470] xhci_hcd 0000:00:14.0: System wakeup disabled by ACPI
-[   47.065268] PM: noirq resume of devices complete after 35.894 msecs
-[   47.066264] ACPI : EC: interrupt blocked
-[   47.079210] xhci_hcd 0000:00:14.0: System wakeup enabled by ACPI
-[   47.112461] PM: noirq suspend of devices complete after 47.019 msecs
-[   47.112538] ACPI : EC: interrupt unblocked
-[   47.147672] xhci_hcd 0000:00:14.0: System wakeup disabled by ACPI
-[   47.148516] PM: noirq resume of devices complete after 36.051 msecs
-[   47.149610] ACPI : EC: interrupt blocked
-[   47.161002] xhci_hcd 0000:00:14.0: System wakeup enabled by ACPI
-[   47.192546] PM: noirq suspend of devices complete after 43.955 msecs
-[   47.192551] PM: suspend-to-idle
-[   48.374756] Suspended for 1.836 seconds
-[   48.374870] PM: resume from suspend-to-idle
-[   48.375284] ACPI : EC: interrupt unblocked
+Thanks,
+Jean
