@@ -1,65 +1,75 @@
-From: Dave Young <dyoung@redhat.com>
-Subject: Re: PROBLEM: Kernel panic on EFI BGRT early init code (kernel
- 4.11/4.12rc2) [regression]
-Date: Thu, 1 Jun 2017 09:57:31 +0800
-Message-ID: <20170601015621.GA4306@dhcp-128-65.nay.redhat.com>
-References: <86c36f9b-f633-3354-d676-7693f35dae0d@gmail.com>
- <20170526012342.GA3096@dhcp-128-65.nay.redhat.com>
- <a32eea98-9576-1ee7-c27a-b165204d825f@gmail.com>
- <20170527051427.GA3492@dhcp-128-65.nay.redhat.com>
- <20170527053457.GB3492@dhcp-128-65.nay.redhat.com>
- <df8e83f9-9362-b5b5-462d-b11980baac01@gmail.com>
+From: <kbennett@aberdeenews.com>
+Subject: (unknown)
+Date: Thu, 01 Jun 2017 02:25:19 -0000
+Message-ID: <149628391970.8929.15808192082028861867@ekat.ertelecom.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: application/zip; name="652137435079.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39812 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751037AbdFAB5i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 May 2017 21:57:38 -0400
-Content-Disposition: inline
-In-Reply-To: <df8e83f9-9362-b5b5-462d-b11980baac01@gmail.com>
+Received: from 188x234x86x201.dynamic.ekat.ertelecom.ru ([188.234.86.201]:37504
+        "HELO ekat.ertelecom.ru" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with SMTP id S1751015AbdFACZW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 May 2017 22:25:22 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maniaxx <tripleshiftone@gmail.com>
-Cc: linux-efi@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Cc ACPI people for thoughts..
-
-On 06/01/17 at 03:17am, Maniaxx wrote:
-> On 27.05.2017 at 07:34 wrote Dave Young:
-> >> Can you double check it works before the commit of below? 
-> linux-git-4.10rc5.r115.gc4c39c70c5fe is fine (1 commit back)
-> linux-git-4.10rc5.r116.g7b0a911478c7 is not (early init BGRT patch)
-> 
-> >> If machine
-> >> boots fine then check /sys/firmware/acpi/bgrt/image see if it exists or
-> >> not. 
-> Not sure. /sys/firmware/acpi/bgrt/ doesn't exist here but i have
-> /sys/firmware/acpi/tables/ that contains all tables. BGRT is 60 bytes
-> and holds the same binary content as pr_info hex_dump (in dmesg log below).
-
-This means the efi_bgrt_init failed out originally before the early init BGRT
-patch. Checking the code the only difference is current code we have no
-below code:
-
-        status = acpi_get_table("BGRT", 0,
-                                (struct acpi_table_header **)&bgrt_tab);
-        if (ACPI_FAILURE(status))
-                return;
-
-So probably acpi_get_table has some more sanity checking and it failed
-early. Can you add a printk before above return to confirm it? Just test
-the old kernel without early init BGRT patch.
-
-> 
-> >> if you can manange to save full kernel log it would be also helpful.
-> Here is a log of linux-git-4.10rc5.r115.gc4c39c70c5fe with Sabrina
-> Dubroca's test code applied:
-> https://pastebin.com/ZkBNejrC
-> 
-> This is how i applied the patch. I hope its correct:
-> https://pastebin.com/see6V0Bk
-> 
-
-Thanks
-Dave
+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
