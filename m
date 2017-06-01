@@ -1,35 +1,69 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2 2/5] ACPI / APEI: Switch to use new
- generic UUID API
-Date: Thu, 1 Jun 2017 12:50:35 +0300
-Message-ID: <CAHp75VeMt43iCjptsSRc8ofjAMkkug6Ko6X+dfVjzN_Sy-mh8w@mail.gmail.com>
-References: <20170531194152.65927-3-andriy.shevchenko@linux.intel.com>
- <201706010752.hcSS3JQc%fengguang.wu@intel.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I
+ on recent Dell laptops
+Date: Thu, 01 Jun 2017 13:43:23 +0300
+Message-ID: <1496313803.28981.45.camel@linux.intel.com>
+References: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
+         <3454366.uzaJljlWGm@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <201706010752.hcSS3JQc%fengguang.wu@intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: kbuild test robot <lkp@intel.com>
-Cc: Borislav Petkov <bp@suse.de>, intel-gfx@lists.freedesktop.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, kbuild-all@01.org, Dan Williams <dan.j.williams@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Christoph Hellwig <hch@lst.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:12768 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751369AbdFAKn1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 1 Jun 2017 06:43:27 -0400
+In-Reply-To: <3454366.uzaJljlWGm@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>
 
-T24gVGh1LCBKdW4gMSwgMjAxNyBhdCAyOjU2IEFNLCBrYnVpbGQgdGVzdCByb2JvdCA8bGtwQGlu
-dGVsLmNvbT4gd3JvdGU6Cj4gSGkgQW5keSwKPgo+IFthdXRvIGJ1aWxkIHRlc3QgRVJST1Igb24g
-cG0vbGludXgtbmV4dF0KPiBbYWxzbyBidWlsZCB0ZXN0IEVSUk9SIG9uIHY0LjEyLXJjMyBuZXh0
-LTIwMTcwNTMxXQo+IFtpZiB5b3VyIHBhdGNoIGlzIGFwcGxpZWQgdG8gdGhlIHdyb25nIGdpdCB0
-cmVlLCBwbGVhc2UgZHJvcCB1cyBhIG5vdGUgdG8gaGVscCBpbXByb3ZlIHRoZSBzeXN0ZW1dCgpE
-cm9wcGVkIGFoZWFkLiBBcyBjb3ZlciBsZXR0ZXIgc2F5cyBpdCBpcyBiYXNlZCBvbiB0b3Agb2Yg
-dXVpZCB0cmVlLgoKLS0gCldpdGggQmVzdCBSZWdhcmRzLApBbmR5IFNoZXZjaGVua28KX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxp
-bmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJl
-ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+On Thu, 2017-06-01 at 01:23 +0200, Rafael J. Wysocki wrote:
+> Hi All,
+> 
+> This is a follow-up for a patch series posted some time ago:
+> 
+> http://marc.info/?l=linux-kernel&m=149324246701378&w=2
+> 
+> The first two patches from that series are in 4.12-rc already and the
+> rest
+> have been rearranged.
+> 
+
+...
+
+> The first two patches in the current series  update the drivers used
+> for button
+> events processing on the affected systems so that they signal wakeup
+> as
+> expected and avoid propagating the wakeup events as button events to
+> user
+> space.
+
+...
+
+> There is no code dependency between patches [1-2/3] and patch [3/3],
+> but all
+> of them together are necessary for the feature in question to work on
+> both the
+> affected systems, so IMO they should be applied together.
+> 
+> The series is available from a git branch at
+>  
+>   git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+> s2idle-dell-test
+>  
+> and has been included into the testing branch thereof.
+>  
+> If there are any concerns regarding this series, please let me know.
+
+Is this supposed to go via linux PM tree?
+
+I'm fine with the first two:
+Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
