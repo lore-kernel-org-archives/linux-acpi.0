@@ -1,37 +1,59 @@
-From: =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>
-Subject: Re: [PATCH 09/16] platform/x86: wmi: Instantiate all devices before
- adding them
-Date: Thu, 1 Jun 2017 22:43:39 +0200
-Message-ID: <20170601204339.GA1842@kmp-mobile.hq.kempniu.pl>
-References: <cover.1495862272.git.dvhart@infradead.org>
- <a25645295f6aaf80407ff851baa14ec039c885aa.1495862272.git.dvhart@infradead.org>
+From: Bastien Nocera <hadess@hadess.net>
+Subject: Re: [WIP PATCH 0/4] Rework the unreliable LID switch exported by
+ ACPI
+Date: Thu, 01 Jun 2017 23:43:54 +0200
+Message-ID: <1496353434.2570.5.camel@hadess.net>
+References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33026 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751050AbdFAUnn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2017 16:43:43 -0400
-Received: by mail-wm0-f66.google.com with SMTP id b84so14218596wmh.0
-        for <linux-acpi@vger.kernel.org>; Thu, 01 Jun 2017 13:43:42 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <a25645295f6aaf80407ff851baa14ec039c885aa.1495862272.git.dvhart@infradead.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Peter Hutterer <peter.hutterer@who-t.net>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, systemd-devel@lists.freedesktop.org, linux-input@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-I know I have probably started sounding like a broken record by now, but
-I still have not seen any response (apart from the typos getting fixed)
-to my comments on this patch which I posted in January 2016 [1].
+On Thu, 2017-06-01 at 20:46 +0200, Benjamin Tissoires wrote:
+> Hi,
+> 
+> Sending this as a WIP as it still need a few changes, but it mostly
+> works as
+> expected (still not fully compliant yet).
+> 
+> So this is based on Lennart's comment in [1]: if the LID state is not
+> reliable,
+> the kernel should not export the LID switch device as long as we are
+> not sure
+> about its state.
+> 
+> That is the basic idea, and here are some more general comments:
+> Lv described the 5 cases in "RFC PATCH v3" regarding the LID switch.
+> Let me rewrite them here (they are in patch 2):
+> 
+> 1. Some platforms send "open" ACPI notification to the OS and the
+> event
+>    arrive before the button driver is resumed;
+> 2. Some platforms send "open" ACPI notification to the OS, but the
+> event
+>    arrives after the button driver is resumed, ex., Samsung N210+;
+> 3. Some platforms never send an "open" ACPI notification to the OS,
+> but
+>    update the cached _LID return value to "open", and this update
+> arrives
+>    before the button driver is resumed;
+> 4. Some platforms never send an "open" ACPI notification to the OS,
+> but
+>    update the cached _LID return value to "open", but this update
+> arrives
+>    after the button driver is resumed, ex., Surface Pro 3;
+> 5. Some platforms never send an "open" ACPI notification to the OS,
+> and
+>    _LID ACPI method returns a value which stays to "close", ex.,
+>    Surface Pro 1.
 
-None of the issues I found back then are really critical, but I did
-point out a potential memory leak (granted, an unlikely one), so it
-might be a good idea to at least take a second look before merging.
+In which case does the Surface 3 lie? I believe we still needed your
+"gpiolib-acpi: make sure we trigger the events at least once" patch to
+make that one work.
 
-[1] https://www.spinics.net/lists/platform-driver-x86/msg08201.html
-
--- 
-Best regards,
-Michał Kępień
+Cheers
