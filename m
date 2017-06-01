@@ -1,70 +1,97 @@
-From: Alex Deucher <alexdeucher@gmail.com>
-Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
-Date: Thu, 1 Jun 2017 13:53:49 -0400
-Message-ID: <CADnq5_Mvyz1KUw26Emt8_d_XNeQ=MUqx8WF=iCxa6jagCXNCQQ@mail.gmail.com>
-References: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
- <20170526210340.GA5114@wunner.de> <1e60811b-a8ac-017c-d350-8a40e4323870@butterbrot.org>
- <20170530105404.GA29865@wunner.de> <64a4829c-3141-6ff6-9369-6ca9ed0facf4@butterbrot.org>
- <20170531092145.ytc2d6shpukxziie@wunner.de> <CADnq5_MGWOX47tcvkfjHRxRv_eTbo_kvpVKyTpo8WGNw+xBvPA@mail.gmail.com>
- <65c88b03-45d7-d67b-2a2c-6c7047a73c80@butterbrot.org>
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Subject: [WIP PATCH 1/4] ACPI: button: extract input
+	creation/destruction helpers
+Date: Thu,  1 Jun 2017 20:46:29 +0200
+Message-ID: <20170601184632.2980-2-benjamin.tissoires@redhat.com>
+References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f169.google.com ([209.85.161.169]:33184 "EHLO
-        mail-yw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751090AbdFARxu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2017 13:53:50 -0400
-Received: by mail-yw0-f169.google.com with SMTP id 63so11000268ywr.0
-        for <linux-acpi@vger.kernel.org>; Thu, 01 Jun 2017 10:53:50 -0700 (PDT)
-In-Reply-To: <65c88b03-45d7-d67b-2a2c-6c7047a73c80@butterbrot.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <systemd-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/systemd-devel>
+List-Post: <mailto:systemd-devel@lists.freedesktop.org>
+List-Help: <mailto:systemd-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: systemd-devel-bounces@lists.freedesktop.org
+Sender: "systemd-devel" <systemd-devel-bounces@lists.freedesktop.org>
+To: Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Peter Hutterer <peter.hutterer@who-t.net>
+Cc: linux-acpi@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, systemd-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Florian Echtler <floe@butterbrot.org>
-Cc: Lukas Wunner <lukas@wunner.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, amd-gfx list <amd-gfx@lists.freedesktop.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>
 
-On Thu, Jun 1, 2017 at 4:27 AM, Florian Echtler <floe@butterbrot.org> wrote:
-> On 31.05.2017 14:57, Alex Deucher wrote:
->> On Wed, May 31, 2017 at 5:21 AM, Lukas Wunner <lukas@wunner.de> wrote:
->>> On Wed, May 31, 2017 at 10:48:37AM +0200, Florian Echtler wrote:
->>>
->>> Hm, try booting with drm.debug=0xf to see if link training for the
->>> eDP connector succeeds.  If the link cannot be trained, it would
->>> explain that the screen stays black.  Should this indeed be the
->>> case, one possible explanation would be that the panel is muxed
->>> to the external port on resume and an appropriate command needs to
->>> be sent to the SMC to switch the mux to the radeon card.  This could
->>> be done in the ->resume_early hook of your APP000C platform driver.
->>> The apple-gmux driver contains something similar to power the discrete
->>> GPU down if it was off before suspend (because the BIOS always powers
->>> it up on resume).
->
-> Here's the (substantial) dmesg output, with drm.debug=0xf:
-> http://floe.butterbrot.org/external/radeon/dmesg_after_suspend
->
-> I haven't been able to find any references to link training, though.
-
-I need your dmesg from boot to confirm the display topology, but eDP
-with r7xx asics was pretty rare.  I suspect your system just uses
-LVDS; as such there is no link training involved.
-
-Alex
-
->
->>> *shrug*  Unfortunately I'm not familiar at all with radeontool. :-(
->>
->> You can use the radeonreg tool to dump the display registers:
->> https://cgit.freedesktop.org/~agd5f/radeontool/
->> radeonreg regs dce3
->> replace dce3 with whatever dce version your card has.
->
-> AFAICT the RV730 indeed has dce3, so I created a register dump before and after
-> suspend:
-> http://floe.butterbrot.org/external/radeon/regs_before_suspend.txt
-> http://floe.butterbrot.org/external/radeon/regs_after_suspend.txt
->
-> The diff, however, is quite large, I have no idea which registers to look for.
->
-> Best, Florian
-> --
-> SENT FROM MY DEC VT50 TERMINAL
->
+V2hlbiB0aGUgTElEIHN3aXRjaCBBQ1BJIGltcGxlbWVudGF0aW9uIGlzIHVucmVsaWFibGUsIHdl
+IG1pZ2h0IHdhbnQKdG8gcmVtb3ZlIHRoZSBkZXZpY2Ugd2hlbiB3ZSBhcmUgbm90IHN1cmUgYWJv
+dXQgdGhlIHN0YXRlLiBUaGlzIHNob3VsZApwcmV2ZW50IGFueSBzdXNwZW5kL3Jlc3VtZSBsb29w
+cyBnaXZlbiB0aGF0IGluIHRoYXQgY2FzZSwgdGhlcmUgd2lsbCBiZQpubyBtb3JlIExJRCBzd2l0
+Y2ggaW5wdXQgbm9kZS4KClRoaXMgcGF0Y2ggcHJlcGFyZXMgdGhlIGR5bmFtaWMgY3JlYXRpb24v
+ZGVzdHJ1Y3Rpb24gb2YgdGhlIGlucHV0IG5vZGUuCgpTaWduZWQtb2ZmLWJ5OiBCZW5qYW1pbiBU
+aXNzb2lyZXMgPGJlbmphbWluLnRpc3NvaXJlc0ByZWRoYXQuY29tPgotLS0KIGRyaXZlcnMvYWNw
+aS9idXR0b24uYyB8IDkwICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0t
+LS0tLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDU3IGluc2VydGlvbnMoKyksIDMzIGRlbGV0aW9u
+cygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9idXR0b24uYyBiL2RyaXZlcnMvYWNwaS9i
+dXR0b24uYwppbmRleCA5YWQ4Y2RiLi40OGJjZGNhIDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkv
+YnV0dG9uLmMKKysrIGIvZHJpdmVycy9hY3BpL2J1dHRvbi5jCkBAIC00NDgsMTAgKzQ0OCw2MSBA
+QCBzdGF0aWMgaW50IGFjcGlfYnV0dG9uX3Jlc3VtZShzdHJ1Y3QgZGV2aWNlICpkZXYpCiB9CiAj
+ZW5kaWYKIAorc3RhdGljIHZvaWQgYWNwaV9idXR0b25fcmVtb3ZlX2lucHV0KHN0cnVjdCBhY3Bp
+X2RldmljZSAqZGV2aWNlKQoreworCXN0cnVjdCBhY3BpX2J1dHRvbiAqYnV0dG9uID0gYWNwaV9k
+cml2ZXJfZGF0YShkZXZpY2UpOworCisJaW5wdXRfdW5yZWdpc3Rlcl9kZXZpY2UoYnV0dG9uLT5p
+bnB1dCk7CisJYnV0dG9uLT5pbnB1dCA9IE5VTEw7Cit9CisKK3N0YXRpYyBpbnQgYWNwaV9idXR0
+b25fYWRkX2lucHV0KHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKQoreworCXN0cnVjdCBhY3Bp
+X2J1dHRvbiAqYnV0dG9uID0gYWNwaV9kcml2ZXJfZGF0YShkZXZpY2UpOworCXN0cnVjdCBpbnB1
+dF9kZXYgKmlucHV0OworCWludCBlcnJvcjsKKworCWJ1dHRvbi0+aW5wdXQgPSBpbnB1dCA9IGlu
+cHV0X2FsbG9jYXRlX2RldmljZSgpOworCWlmICghaW5wdXQpIHsKKwkJZXJyb3IgPSAtRU5PTUVN
+OworCQlnb3RvIGVycjsKKwl9CisKKwlpbnB1dC0+bmFtZSA9IGFjcGlfZGV2aWNlX25hbWUoZGV2
+aWNlKTsKKwlpbnB1dC0+cGh5cyA9IGJ1dHRvbi0+cGh5czsKKwlpbnB1dC0+aWQuYnVzdHlwZSA9
+IEJVU19IT1NUOworCWlucHV0LT5pZC5wcm9kdWN0ID0gYnV0dG9uLT50eXBlOworCWlucHV0LT5k
+ZXYucGFyZW50ID0gJmRldmljZS0+ZGV2OworCisJc3dpdGNoIChidXR0b24tPnR5cGUpIHsKKwlj
+YXNlIEFDUElfQlVUVE9OX1RZUEVfUE9XRVI6CisJCWlucHV0X3NldF9jYXBhYmlsaXR5KGlucHV0
+LCBFVl9LRVksIEtFWV9QT1dFUik7CisJCWJyZWFrOworCisJY2FzZSBBQ1BJX0JVVFRPTl9UWVBF
+X1NMRUVQOgorCQlpbnB1dF9zZXRfY2FwYWJpbGl0eShpbnB1dCwgRVZfS0VZLCBLRVlfU0xFRVAp
+OworCQlicmVhazsKKworCWNhc2UgQUNQSV9CVVRUT05fVFlQRV9MSUQ6CisJCWlucHV0X3NldF9j
+YXBhYmlsaXR5KGlucHV0LCBFVl9TVywgU1dfTElEKTsKKwkJYnJlYWs7CisJfQorCisJZXJyb3Ig
+PSBpbnB1dF9yZWdpc3Rlcl9kZXZpY2UoaW5wdXQpOworCWlmIChlcnJvcikKKwkJZ290byBlcnI7
+CisKKwlyZXR1cm4gMDsKKworIGVycjoKKwlpbnB1dF9mcmVlX2RldmljZShpbnB1dCk7CisJYnV0
+dG9uLT5pbnB1dCA9IE5VTEw7CisJcmV0dXJuIGVycm9yOworfQorCiBzdGF0aWMgaW50IGFjcGlf
+YnV0dG9uX2FkZChzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkKIHsKIAlzdHJ1Y3QgYWNwaV9i
+dXR0b24gKmJ1dHRvbjsKLQlzdHJ1Y3QgaW5wdXRfZGV2ICppbnB1dDsKIAljb25zdCBjaGFyICpo
+aWQgPSBhY3BpX2RldmljZV9oaWQoZGV2aWNlKTsKIAljaGFyICpuYW1lLCAqY2xhc3M7CiAJaW50
+IGVycm9yOwpAQCAtNDYyLDEyICs1MTMsNiBAQCBzdGF0aWMgaW50IGFjcGlfYnV0dG9uX2FkZChz
+dHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkKIAogCWRldmljZS0+ZHJpdmVyX2RhdGEgPSBidXR0
+b247CiAKLQlidXR0b24tPmlucHV0ID0gaW5wdXQgPSBpbnB1dF9hbGxvY2F0ZV9kZXZpY2UoKTsK
+LQlpZiAoIWlucHV0KSB7Ci0JCWVycm9yID0gLUVOT01FTTsKLQkJZ290byBlcnJfZnJlZV9idXR0
+b247Ci0JfQotCiAJbmFtZSA9IGFjcGlfZGV2aWNlX25hbWUoZGV2aWNlKTsKIAljbGFzcyA9IGFj
+cGlfZGV2aWNlX2NsYXNzKGRldmljZSk7CiAKQEAgLTQ5MywzOCArNTM4LDE5IEBAIHN0YXRpYyBp
+bnQgYWNwaV9idXR0b25fYWRkKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKQogCX0gZWxzZSB7
+CiAJCXByaW50ayhLRVJOX0VSUiBQUkVGSVggIlVuc3VwcG9ydGVkIGhpZCBbJXNdXG4iLCBoaWQp
+OwogCQllcnJvciA9IC1FTk9ERVY7Ci0JCWdvdG8gZXJyX2ZyZWVfaW5wdXQ7CisJCWdvdG8gZXJy
+X2ZyZWVfYnV0dG9uOwogCX0KIAogCWVycm9yID0gYWNwaV9idXR0b25fYWRkX2ZzKGRldmljZSk7
+CiAJaWYgKGVycm9yKQotCQlnb3RvIGVycl9mcmVlX2lucHV0OworCQlnb3RvIGVycl9mcmVlX2J1
+dHRvbjsKIAogCXNucHJpbnRmKGJ1dHRvbi0+cGh5cywgc2l6ZW9mKGJ1dHRvbi0+cGh5cyksICIl
+cy9idXR0b24vaW5wdXQwIiwgaGlkKTsKIAotCWlucHV0LT5uYW1lID0gbmFtZTsKLQlpbnB1dC0+
+cGh5cyA9IGJ1dHRvbi0+cGh5czsKLQlpbnB1dC0+aWQuYnVzdHlwZSA9IEJVU19IT1NUOwotCWlu
+cHV0LT5pZC5wcm9kdWN0ID0gYnV0dG9uLT50eXBlOwotCWlucHV0LT5kZXYucGFyZW50ID0gJmRl
+dmljZS0+ZGV2OwotCi0Jc3dpdGNoIChidXR0b24tPnR5cGUpIHsKLQljYXNlIEFDUElfQlVUVE9O
+X1RZUEVfUE9XRVI6Ci0JCWlucHV0X3NldF9jYXBhYmlsaXR5KGlucHV0LCBFVl9LRVksIEtFWV9Q
+T1dFUik7Ci0JCWJyZWFrOwotCi0JY2FzZSBBQ1BJX0JVVFRPTl9UWVBFX1NMRUVQOgotCQlpbnB1
+dF9zZXRfY2FwYWJpbGl0eShpbnB1dCwgRVZfS0VZLCBLRVlfU0xFRVApOwotCQlicmVhazsKLQot
+CWNhc2UgQUNQSV9CVVRUT05fVFlQRV9MSUQ6Ci0JCWlucHV0X3NldF9jYXBhYmlsaXR5KGlucHV0
+LCBFVl9TVywgU1dfTElEKTsKLQkJYnJlYWs7Ci0JfQotCi0JZXJyb3IgPSBpbnB1dF9yZWdpc3Rl
+cl9kZXZpY2UoaW5wdXQpOworCWVycm9yID0gYWNwaV9idXR0b25fYWRkX2lucHV0KGRldmljZSk7
+CiAJaWYgKGVycm9yKQogCQlnb3RvIGVycl9yZW1vdmVfZnM7CisKIAlpZiAoYnV0dG9uLT50eXBl
+ID09IEFDUElfQlVUVE9OX1RZUEVfTElEKSB7CiAJCWFjcGlfbGlkX2luaXRpYWxpemVfc3RhdGUo
+ZGV2aWNlKTsKIAkJLyoKQEAgLTU0MCw4ICs1NjYsNiBAQCBzdGF0aWMgaW50IGFjcGlfYnV0dG9u
+X2FkZChzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkKIAogIGVycl9yZW1vdmVfZnM6CiAJYWNw
+aV9idXR0b25fcmVtb3ZlX2ZzKGRldmljZSk7Ci0gZXJyX2ZyZWVfaW5wdXQ6Ci0JaW5wdXRfZnJl
+ZV9kZXZpY2UoaW5wdXQpOwogIGVycl9mcmVlX2J1dHRvbjoKIAlrZnJlZShidXR0b24pOwogCXJl
+dHVybiBlcnJvcjsKQEAgLTU1Miw3ICs1NzYsNyBAQCBzdGF0aWMgaW50IGFjcGlfYnV0dG9uX3Jl
+bW92ZShzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkKIAlzdHJ1Y3QgYWNwaV9idXR0b24gKmJ1
+dHRvbiA9IGFjcGlfZHJpdmVyX2RhdGEoZGV2aWNlKTsKIAogCWFjcGlfYnV0dG9uX3JlbW92ZV9m
+cyhkZXZpY2UpOwotCWlucHV0X3VucmVnaXN0ZXJfZGV2aWNlKGJ1dHRvbi0+aW5wdXQpOworCWFj
+cGlfYnV0dG9uX3JlbW92ZV9pbnB1dChkZXZpY2UpOwogCWtmcmVlKGJ1dHRvbik7CiAJcmV0dXJu
+IDA7CiB9Ci0tIAoyLjkuNAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18Kc3lzdGVtZC1kZXZlbCBtYWlsaW5nIGxpc3QKc3lzdGVtZC1kZXZlbEBsaXN0cy5m
+cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9zeXN0ZW1kLWRldmVsCg==
