@@ -1,38 +1,37 @@
-From: Maniaxx <tripleshiftone-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: PROBLEM: Kernel panic on EFI BGRT early init code (kernel
- 4.11/4.12rc2) [regression]
-Date: Thu, 1 Jun 2017 21:13:20 +0200
-Message-ID: <e6d656c0-c76b-42c3-8413-0198efb8a33a@gmail.com>
-References: <86c36f9b-f633-3354-d676-7693f35dae0d@gmail.com>
- <20170526012342.GA3096@dhcp-128-65.nay.redhat.com>
- <a32eea98-9576-1ee7-c27a-b165204d825f@gmail.com>
- <20170527051427.GA3492@dhcp-128-65.nay.redhat.com>
- <20170527053457.GB3492@dhcp-128-65.nay.redhat.com>
- <df8e83f9-9362-b5b5-462d-b11980baac01@gmail.com>
- <20170601015621.GA4306@dhcp-128-65.nay.redhat.com>
+From: =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>
+Subject: Re: [PATCH 09/16] platform/x86: wmi: Instantiate all devices before
+ adding them
+Date: Thu, 1 Jun 2017 22:43:39 +0200
+Message-ID: <20170601204339.GA1842@kmp-mobile.hq.kempniu.pl>
+References: <cover.1495862272.git.dvhart@infradead.org>
+ <a25645295f6aaf80407ff851baa14ec039c885aa.1495862272.git.dvhart@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170601015621.GA4306-0VdLhd/A9Pl+NNSt+8eSiB/sF2h8X+2i0E9HWUfgJXw@public.gmane.org>
-Content-Language: de-DE
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33026 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751050AbdFAUnn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2017 16:43:43 -0400
+Received: by mail-wm0-f66.google.com with SMTP id b84so14218596wmh.0
+        for <linux-acpi@vger.kernel.org>; Thu, 01 Jun 2017 13:43:42 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <a25645295f6aaf80407ff851baa14ec039c885aa.1495862272.git.dvhart@infradead.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 01.06.2017 at 03:57 wrote Dave Young:
-> This means the efi_bgrt_init failed out originally before the early init BGRT
-> patch. Checking the code the only difference is current code we have no
-> below code:
-> 
->         status = acpi_get_table("BGRT", 0,
->                                 (struct acpi_table_header **)&bgrt_tab);
->         if (ACPI_FAILURE(status))
->                 return;
-> 
-> So probably acpi_get_table has some more sanity checking and it failed
-> early. Can you add a printk before above return to confirm it? Just test
-> the old kernel without early init BGRT patch.
+I know I have probably started sounding like a broken record by now, but
+I still have not seen any response (apart from the typos getting fixed)
+to my comments on this patch which I posted in January 2016 [1].
 
-Doesn't fail early. I can see the printk.
+None of the issues I found back then are really critical, but I did
+point out a potential memory leak (granted, an unlikely one), so it
+might be a good idea to at least take a second look before merging.
+
+[1] https://www.spinics.net/lists/platform-driver-x86/msg08201.html
+
+-- 
+Best regards,
+Michał Kępień
