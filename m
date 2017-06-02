@@ -1,44 +1,57 @@
-From: Tom Lanyon <tom@oneshoeco.com>
-Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
- recent Dell laptops
-Date: Fri, 2 Jun 2017 11:06:49 +1000
-Message-ID: <CA+b4Kqf9YN0x+Sc6Lk28FLD8-iaHnjS74MQV2yMyS599fe5HTw@mail.gmail.com>
-References: <1979543.KIEJ8uyRaT@aspire.rjw.lan> <3454366.uzaJljlWGm@aspire.rjw.lan>
- <1496313803.28981.45.camel@linux.intel.com> <CA+b4KqcxKNaHMTEG3KQOQ98OFmwS+R8PLdfyZB1tastH5m0XVQ@mail.gmail.com>
- <CAJZ5v0j_jA68cai4mV85DV7QTVh77BcrWv7mnotZ6XKtXO57Wg@mail.gmail.com>
+From: Dave Young <dyoung@redhat.com>
+Subject: Re: PROBLEM: Kernel panic on EFI BGRT early init code (kernel
+ 4.11/4.12rc2) [regression]
+Date: Fri, 2 Jun 2017 10:51:55 +0800
+Message-ID: <20170602025155.GA3637@dhcp-128-65.nay.redhat.com>
+References: <86c36f9b-f633-3354-d676-7693f35dae0d@gmail.com>
+ <20170526012342.GA3096@dhcp-128-65.nay.redhat.com>
+ <a32eea98-9576-1ee7-c27a-b165204d825f@gmail.com>
+ <20170527051427.GA3492@dhcp-128-65.nay.redhat.com>
+ <20170527053457.GB3492@dhcp-128-65.nay.redhat.com>
+ <df8e83f9-9362-b5b5-462d-b11980baac01@gmail.com>
+ <20170601015621.GA4306@dhcp-128-65.nay.redhat.com>
+ <e6d656c0-c76b-42c3-8413-0198efb8a33a@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0j_jA68cai4mV85DV7QTVh77BcrWv7mnotZ6XKtXO57Wg@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:38006 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751120AbdFBCwC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 1 Jun 2017 22:52:02 -0400
+Content-Disposition: inline
+In-Reply-To: <e6d656c0-c76b-42c3-8413-0198efb8a33a@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Maniaxx <tripleshiftone@gmail.com>
+Cc: linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 2 June 2017 at 00:59, Rafael J. Wysocki <rafael@kernel.org> wrote:
->
-> Quoting from my cover letter:
->
-> "After this series there still is a concern regarding the possible increase of
-> power draw that may result from the processing of non-wakeup EC events while
-> suspended which is why the change only affects Dell XPS13 9360 and 9365
-> for now."
->
-> So that is what happens, unfortunately, and we can't do much about it
-> at the moment.
+On 06/01/17 at 09:13pm, Maniaxx wrote:
+> On 01.06.2017 at 03:57 wrote Dave Young:
+> > This means the efi_bgrt_init failed out originally before the early init BGRT
+> > patch. Checking the code the only difference is current code we have no
+> > below code:
+> > 
+> >         status = acpi_get_table("BGRT", 0,
+> >                                 (struct acpi_table_header **)&bgrt_tab);
+> >         if (ACPI_FAILURE(status))
+> >                 return;
+> > 
+> > So probably acpi_get_table has some more sanity checking and it failed
+> > early. Can you add a printk before above return to confirm it? Just test
+> > the old kernel without early init BGRT patch.
+> 
+> Doesn't fail early. I can see the printk.
 
-OK, but at the moment this is a regression in functionality on those
-platforms. Without this patchset, I can successfully s2idle
-suspend/resume on an XPS 9365 (albeit with a little bit of awkward
-fiddling of the power button to resume). After the patchset, I can't
-realistically go into s2idle at all.
+Since you do not see /sys/firmware/acpi/bgrt, that means there must be
+somewhere failed early so bgrt image sysfs files are not created.
+for old kernel arch/x86/platform/efi/efi-bgrt.c copy the bgrt image
+then drivers/acpi/bgrt.c will populate the image in sysfs.
 
-> The only way to avoid that would be to reconfigure the EC during
-> suspend to stop generating non-wakeup events, but today we have no
-> reliable way to do that.
+Can you do more debugging ie. adding more printk see why bgrt image
+sysfs dir is not created?
 
-I thought I had read one one of the threads that this was possible in
-the same way that it is for Windows on these laptops.  What's missing
-to make this possible?
+If we get the reason then we can start to see what we missed in new
+code.
 
-Tom
+Thanks
+Dave
