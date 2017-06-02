@@ -1,7 +1,7 @@
 From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [RFC 1/6] ACPICA: add HMAT table definitions
-Date: Fri,  2 Jun 2017 14:59:51 -0600
-Message-ID: <20170602205956.28351-2-ross.zwisler@linux.intel.com>
+Subject: [RFC 3/6] acpi: HMAT support in acpi_parse_entries_array()
+Date: Fri,  2 Jun 2017 14:59:53 -0600
+Message-ID: <20170602205956.28351-4-ross.zwisler@linux.intel.com>
 References: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -29,154 +29,136 @@ Cc: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Box,
  Joonas" <joonas.lahtinen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tim Chen <tim.c.chen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Import HMAT table definitions from the ACPICA codebase.
+The current implementation of acpi_parse_entries_array() assumes that each
+subtable has a standard ACPI subtable entry of type struct
+acpi_sutbable_header.  This standard subtable header has a one byte length
+followed by a one byte type.
 
-This kernel patch was generated using an ACPICA patch from "Zheng, Lv"
-<lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>.  The actual upstream patch that adds these table
-definitions will come from the Intel ACPICA team as part of their greater
-ACPI 6.2 update.
+The HMAT subtables have to allow for a longer length so they have subtable
+headers of type struct acpi_hmat_structure which has a 2 byte type and a 4
+byte length.
+
+Enhance the subtable parsing in acpi_parse_entries_array() so that it can
+handle these new HMAT subtables.
 
 Signed-off-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- include/acpi/actbl1.h | 119 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 119 insertions(+)
+ drivers/acpi/numa.c   |  2 +-
+ drivers/acpi/tables.c | 52 ++++++++++++++++++++++++++++++++++++++++-----------
+ 2 files changed, 42 insertions(+), 12 deletions(-)
 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index b4ce55c..a5df3f3 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -65,6 +65,7 @@
- #define ACPI_SIG_ECDT           "ECDT"	/* Embedded Controller Boot Resources Table */
- #define ACPI_SIG_EINJ           "EINJ"	/* Error Injection table */
- #define ACPI_SIG_ERST           "ERST"	/* Error Record Serialization Table */
-+#define ACPI_SIG_HMAT           "HMAT"  /* Heterogeneous Memory Attributes Table */
- #define ACPI_SIG_HEST           "HEST"	/* Hardware Error Source Table */
- #define ACPI_SIG_MADT           "APIC"	/* Multiple APIC Description Table */
- #define ACPI_SIG_MSCT           "MSCT"	/* Maximum System Characteristics Table */
-@@ -688,6 +689,124 @@ struct acpi_hest_generic_data_v300 {
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index edb0c79..917f1cc 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -443,7 +443,7 @@ int __init acpi_numa_init(void)
+ 	 * So go over all cpu entries in SRAT to get apicid to node mapping.
+ 	 */
  
- /*******************************************************************************
+-	/* SRAT: Static Resource Affinity Table */
++	/* SRAT: System Resource Affinity Table */
+ 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
+ 		struct acpi_subtable_proc srat_proc[3];
+ 
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index ff42539..7979171 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -218,6 +218,33 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+ 	}
+ }
+ 
++static unsigned long __init
++acpi_get_entry_type(char *id, void *entry)
++{
++	if (!strncmp(id, ACPI_SIG_HMAT, 4))
++		return ((struct acpi_hmat_structure *)entry)->type;
++	else
++		return ((struct acpi_subtable_header *)entry)->type;
++}
++
++static unsigned long __init
++acpi_get_entry_length(char *id, void *entry)
++{
++	if (!strncmp(id, ACPI_SIG_HMAT, 4))
++		return ((struct acpi_hmat_structure *)entry)->length;
++	else
++		return ((struct acpi_subtable_header *)entry)->length;
++}
++
++static unsigned long __init
++acpi_get_subtable_header_length(char *id)
++{
++	if (!strncmp(id, ACPI_SIG_HMAT, 4))
++		return sizeof(struct acpi_hmat_structure);
++	else
++		return sizeof(struct acpi_subtable_header);
++}
++
+ /**
+  * acpi_parse_entries_array - for each proc_num find a suitable subtable
   *
-+ * HMAT - Heterogeneous Memory Attributes Table (ACPI 6.2)
-+ *        Version 1
-+ *
-+ ******************************************************************************/
+@@ -242,10 +269,10 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 		struct acpi_subtable_proc *proc, int proc_num,
+ 		unsigned int max_entries)
+ {
+-	struct acpi_subtable_header *entry;
+-	unsigned long table_end;
++	unsigned long table_end, subtable_header_length;
+ 	int count = 0;
+ 	int errs = 0;
++	void *entry;
+ 	int i;
+ 
+ 	if (acpi_disabled)
+@@ -263,19 +290,23 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 	}
+ 
+ 	table_end = (unsigned long)table_header + table_header->length;
++	subtable_header_length = acpi_get_subtable_header_length(id);
+ 
+ 	/* Parse all entries looking for a match. */
+ 
+-	entry = (struct acpi_subtable_header *)
+-	    ((unsigned long)table_header + table_size);
++	entry = (void *)table_header + table_size;
 +
-+struct acpi_table_hmat {
-+	struct acpi_table_header header; /* Common ACPI table header */
-+	u32 reserved;
-+};
++	while (((unsigned long)entry) + subtable_header_length  < table_end) {
++		unsigned long entry_type, entry_length;
+ 
+-	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
+-	       table_end) {
+ 		if (max_entries && count >= max_entries)
+ 			break;
+ 
++		entry_type = acpi_get_entry_type(id, entry);
++		entry_length = acpi_get_entry_length(id, entry);
 +
-+
-+/* Values for HMAT structure types */
-+
-+enum acpi_hmat_type {
-+	ACPI_HMAT_TYPE_ADDRESS_RANGE = 0, /* Memory subystem address range */
-+	ACPI_HMAT_TYPE_LOCALITY      = 1, /* System locality latency and bandwidth information */
-+	ACPI_HMAT_TYPE_CACHE         = 2, /* Memory side cache information */
-+	ACPI_HMAT_TYPE_RESERVED      = 3  /* 3 and greater are reserved */
-+};
-+
-+struct acpi_hmat_structure {
-+	u16 type;
-+	u16 reserved;
-+	u32 length;
-+};
-+
-+/*
-+ * HMAT Structures, correspond to Type in struct acpi_hmat_structure
-+ */
-+
-+/* 0: Memory subystem address range */
-+
-+struct acpi_hmat_address_range {
-+	struct acpi_hmat_structure header;
-+	u16 flags;
-+	u16 reserved1;
-+	u32 processor_PD;           /* Processor proximity domain */
-+	u32 memory_PD;              /* Memory proximity domain */
-+	u32 reserved2;
-+	u64 physical_address_base;  /* Physical address range base */
-+	u64 physical_address_length; /* Physical address range length */
-+};
-+
-+/* Masks for Flags field above */
-+
-+#define ACPI_HMAT_PROCESSOR_PD_VALID (1)    /* 1: processor_PD field is valid */
-+#define ACPI_HMAT_MEMORY_PD_VALID    (1<<1) /* 1: memory_PD field is valid */
-+#define ACPI_HMAT_RESERVATION_HINT   (1<<2) /* 1: Reservation hint */
-+
-+/* 1: System locality latency and bandwidth information */
-+
-+struct acpi_hmat_locality {
-+	struct acpi_hmat_structure header;
-+	u8  flags;
-+	u8  data_type;
-+	u16 reserved1;
-+	u32 number_of_initiator_Pds;
-+	u32 number_of_target_Pds;
-+	u32 reserved2;
-+	u64 entry_base_unit;
-+	u32 data[1]; /* initiator/target lists followed by entry matrix */
-+};
-+
-+/* Masks for Flags field above */
-+
-+#define ACPI_HMAT_MEMORY_HIERARCHY  (0x0F)
-+
-+/* Values for Memory Hierarchy flag */
-+
-+#define ACPI_HMAT_MEMORY            0
-+#define ACPI_HMAT_LAST_LEVEL_CACHE  1
-+#define ACPI_HMAT_1ST_LEVEL_CACHE   2
-+#define ACPI_HMAT_2ND_LEVEL_CACHE   3
-+#define ACPI_HMAT_3RD_LEVEL_CACHE   4
-+
-+/* Values for data_type field above */
-+
-+#define ACPI_HMAT_ACCESS_LATENCY    0
-+#define ACPI_HMAT_READ_LATENCY      1
-+#define ACPI_HMAT_WRITE_LATENCY     2
-+#define ACPI_HMAT_ACCESS_BANDWIDTH  3
-+#define ACPI_HMAT_READ_BANDWIDTH    4
-+#define ACPI_HMAT_WRITE_BANDWIDTH   5
-+
-+/* 2: Memory side cache information */
-+
-+struct acpi_hmat_cache {
-+	struct acpi_hmat_structure header;
-+	u32 memory_PD;
-+	u32 reserved1;
-+	u64 cache_size;
-+	u32 cache_attributes;
-+	u16 reserved2;
-+	u16 number_of_SMBIOShandles;
-+};
-+
-+/* Masks for cache_attributes field above */
-+
-+#define ACPI_HMAT_TOTAL_CACHE_LEVEL     (0x0000000F)
-+#define ACPI_HMAT_CACHE_LEVEL           (0x000000F0)
-+#define ACPI_HMAT_CACHE_ASSOCIATIVITY   (0x00000F00)
-+#define ACPI_HMAT_WRITE_POLICY          (0x0000F000)
-+#define ACPI_HMAT_CACHE_LINE_SIZE       (0xFFFF0000)
-+
-+/* Values for cache associativity flag */
-+
-+#define ACPI_HMAT_CA_NONE                     (0)
-+#define ACPI_HMAT_CA_DIRECT_MAPPED            (1)
-+#define ACPI_HMAT_CA_COMPLEX_CACHE_INDEXING   (2)
-+
-+/* Values for write policy flag */
-+
-+#define ACPI_HMAT_CP_NONE   (0)
-+#define ACPI_HMAT_CP_WB     (1)
-+#define ACPI_HMAT_CP_WT     (2)
-+
-+/*******************************************************************************
-+ *
-  * MADT - Multiple APIC Description Table
-  *        Version 3
-  *
+ 		for (i = 0; i < proc_num; i++) {
+-			if (entry->type != proc[i].id)
++			if (entry_type != proc[i].id)
+ 				continue;
+ 			if (!proc[i].handler ||
+ 			     (!errs && proc[i].handler(entry, table_end))) {
+@@ -290,16 +321,15 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 			count++;
+ 
+ 		/*
+-		 * If entry->length is 0, break from this loop to avoid
++		 * If entry_length is 0, break from this loop to avoid
+ 		 * infinite loop.
+ 		 */
+-		if (entry->length == 0) {
++		if (entry_length == 0) {
+ 			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, proc->id);
+ 			return -EINVAL;
+ 		}
+ 
+-		entry = (struct acpi_subtable_header *)
+-		    ((unsigned long)entry + entry->length);
++		entry += entry_length;
+ 	}
+ 
+ 	if (max_entries && count > max_entries) {
 -- 
 2.9.4
