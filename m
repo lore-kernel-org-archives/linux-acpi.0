@@ -1,57 +1,76 @@
-From: Dave Young <dyoung@redhat.com>
-Subject: Re: PROBLEM: Kernel panic on EFI BGRT early init code (kernel
- 4.11/4.12rc2) [regression]
-Date: Fri, 2 Jun 2017 10:51:55 +0800
-Message-ID: <20170602025155.GA3637@dhcp-128-65.nay.redhat.com>
-References: <86c36f9b-f633-3354-d676-7693f35dae0d@gmail.com>
- <20170526012342.GA3096@dhcp-128-65.nay.redhat.com>
- <a32eea98-9576-1ee7-c27a-b165204d825f@gmail.com>
- <20170527051427.GA3492@dhcp-128-65.nay.redhat.com>
- <20170527053457.GB3492@dhcp-128-65.nay.redhat.com>
- <df8e83f9-9362-b5b5-462d-b11980baac01@gmail.com>
- <20170601015621.GA4306@dhcp-128-65.nay.redhat.com>
- <e6d656c0-c76b-42c3-8413-0198efb8a33a@gmail.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH] acpi/iort, numa: Add numa node mapping for smmuv3 devices
+Date: Fri, 2 Jun 2017 11:50:29 +0800
+Message-ID: <5930E085.8000404@huawei.com>
+References: <1496325937-21113-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <20170601162142.GC19003@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38006 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751120AbdFBCwC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 1 Jun 2017 22:52:02 -0400
-Content-Disposition: inline
-In-Reply-To: <e6d656c0-c76b-42c3-8413-0198efb8a33a@gmail.com>
+Received: from szxga02-in.huawei.com ([45.249.212.188]:6861 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751122AbdFBDvR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2017 23:51:17 -0400
+In-Reply-To: <20170601162142.GC19003@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maniaxx <tripleshiftone@gmail.com>
-Cc: linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will.Deacon@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, robin.murphy@arm.com, joro@8bytes.org, rjw@rjwysocki.net, lenb@kernel.org, jnair@caviumnetworks.com, gpkulkarni@gmail.com, Lv Zheng <lv.zheng@intel.com>
 
-On 06/01/17 at 09:13pm, Maniaxx wrote:
-> On 01.06.2017 at 03:57 wrote Dave Young:
-> > This means the efi_bgrt_init failed out originally before the early init BGRT
-> > patch. Checking the code the only difference is current code we have no
-> > below code:
-> > 
-> >         status = acpi_get_table("BGRT", 0,
-> >                                 (struct acpi_table_header **)&bgrt_tab);
-> >         if (ACPI_FAILURE(status))
-> >                 return;
-> > 
-> > So probably acpi_get_table has some more sanity checking and it failed
-> > early. Can you add a printk before above return to confirm it? Just test
-> > the old kernel without early init BGRT patch.
-> 
-> Doesn't fail early. I can see the printk.
+[+Cc Lv Zheng]
 
-Since you do not see /sys/firmware/acpi/bgrt, that means there must be
-somewhere failed early so bgrt image sysfs files are not created.
-for old kernel arch/x86/platform/efi/efi-bgrt.c copy the bgrt image
-then drivers/acpi/bgrt.c will populate the image in sysfs.
+On 2017/6/2 0:21, Lorenzo Pieralisi wrote:
+> On Thu, Jun 01, 2017 at 07:35:37PM +0530, Ganapatrao Kulkarni wrote:
+>> ARM IORT specification has provision to define Proximity domain
+>> in SMMUv3 IORT table. Adding required code to parse Proximity domain of
+>> SMMUv3 IORT table. Parsed Proximity domain is used to set numa_node
+>> of SMMUv3 platform devices.
+>>
+>> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+>> ---
+>>  drivers/iommu/arm-smmu-v3.c | 6 ++++++
+>>  include/acpi/actbl2.h       | 4 ++++
+>>  2 files changed, 10 insertions(+)
+>>
+>> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+>> index 69d8506..98c2319 100644
+>> --- a/drivers/iommu/arm-smmu-v3.c
+>> +++ b/drivers/iommu/arm-smmu-v3.c
+>> @@ -2667,6 +2667,12 @@ static int arm_smmu_device_acpi_probe(struct platform_device *pdev,
+>>  	if (iort_smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE)
+>>  		smmu->features |= ARM_SMMU_FEAT_COHERENCY;
+>>  
+>> +	/* set numa proximity domain for smmv3 device */
+>> +	if (iort_smmu->flags & ACPI_IORT_SMMU_V3_PXM) {
+>> +		set_dev_node(dev, acpi_map_pxm_to_node(iort_smmu->pxm));
+>> +		dev_info(dev, "on NUMA node %d\n", dev_to_node(dev));
+> It should be done in acpi/arm64/iort.c at device creation time.
 
-Can you do more debugging ie. adding more printk see why bgrt image
-sysfs dir is not created?
+Agreed.
 
-If we get the reason then we can start to see what we missed in new
-code.
+>
+>> +	}
+>> +
+>>  	return 0;
+>>  }
+>>  #else
+>> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+>> index 4b306a6..c16ced8 100644
+>> --- a/include/acpi/actbl2.h
+>> +++ b/include/acpi/actbl2.h
+>> @@ -805,6 +805,9 @@ struct acpi_iort_smmu_v3 {
+>>  	u32 pri_gsiv;
+>>  	u32 gerr_gsiv;
+>>  	u32 sync_gsiv;
+>> +	u8 pxm;
+>> +	u8 reserved1;
+>> +	u16 reserved2;
+
+I think changes to actbl2.h need to be split as a new patch
+which go via ACPICA updates,  Lv, could you share
+your comments here?
 
 Thanks
-Dave
+Hanjun
+
