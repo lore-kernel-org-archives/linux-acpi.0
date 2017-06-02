@@ -1,43 +1,111 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [RFC 2/6] acpi: add missing include in acpi_numa.h
-Date: Fri,  2 Jun 2017 14:59:52 -0600
-Message-ID: <20170602205956.28351-3-ross.zwisler@linux.intel.com>
+From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [RFC 5/6] sysfs: add sysfs_add_group_link()
+Date: Fri,  2 Jun 2017 14:59:55 -0600
+Message-ID: <20170602205956.28351-6-ross.zwisler@linux.intel.com>
 References: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:55914 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750966AbdFBVAD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Jun 2017 17:00:03 -0400
-In-Reply-To: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170602205956.28351-1-ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Box,
+ David E" <david.e.box-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Zheng,
+ Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Anaczkowski,
+ Lukasz" <lukasz.anaczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore,
+ Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Odzioba,
+ Lukasz" <lukasz.odzioba-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Schmauss, Erik" <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, "Kogut,
+ Jaroslaw" <Jaroslaw.Kogut-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Nachimuthu,
+ Murugasamy" <murugasamy.nachimuthu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "Lahtinen,
+ Joonas" <joonas.lahtinen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tim Chen <tim.c.chen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-Right now if a file includes acpi_numa.h and they don't happen to include
-linux/numa.h before it, they get the following warning:
-
-./include/acpi/acpi_numa.h:9:5: warning: "MAX_NUMNODES" is not defined [-Wundef]
- #if MAX_NUMNODES > 256
-     ^~~~~~~~~~~~
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- include/acpi/acpi_numa.h | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/include/acpi/acpi_numa.h b/include/acpi/acpi_numa.h
-index d4b7294..1e3a74f 100644
---- a/include/acpi/acpi_numa.h
-+++ b/include/acpi/acpi_numa.h
-@@ -3,6 +3,7 @@
- 
- #ifdef CONFIG_ACPI_NUMA
- #include <linux/kernel.h>
-+#include <linux/numa.h>
- 
- /* Proximity bitmap length */
- #if MAX_NUMNODES > 256
--- 
-2.9.4
-
+VGhlIGN1cnJlbnQgX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooKSBjb2Rl
+IGFsbG93cyB1cyB0bwpjcmVhdGUgc3ltYm9saWMgbGlua3MgaW4gc3lzZnMgdG8gZ3JvdXBzIG9y
+IGF0dHJpYnV0ZXMuICBTb21ldGhpbmcgbGlrZToKCi9zeXMvLi4uL2VudHJ5MS9ncm91cEEgLT4g
+L3N5cy8uLi4vZW50cnkyL2dyb3VwQQoKVGhpcyBwYXRjaCBleHRlbmRzIHRoaXMgZnVuY3Rpb25h
+bGl0eSB3aXRoIGEgbmV3IHN5c2ZzX2FkZF9ncm91cF9saW5rKCkKY2FsbCB0aGF0IGFsbG93cyB0
+aGUgbGluayB0byBoYXZlIGEgZGlmZmVyZW50IG5hbWUgdGhhbiB0aGUgZ3JvdXAgb3IKYXR0cmli
+dXRlLCBzbzoKCi9zeXMvLi4uL2VudHJ5MS9saW5rX25hbWUgLT4gL3N5cy8uLi4vZW50cnkyL2dy
+b3VwQQoKX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooKSBub3cganVzdCBj
+YWxscwpzeXNmc19hZGRfZ3JvdXBfbGluaygpLCBwYXNzaW5nIGluIHRoZSBzYW1lIG5hbWUgZm9y
+IGJvdGggdGhlCmdyb3VwL2F0dHJpYnV0ZSBhbmQgZm9yIHRoZSBsaW5rIG5hbWUuCgpUaGlzIGlz
+IG5lZWRlZCBieSB0aGUgQUNQSSBITUFUIGVuYWJsaW5nIHdvcmsgYmVjYXVzZSB3ZSB3YW50IHRv
+IGhhdmUgYQpncm91cCBvZiBwZXJmb3JtYW5jZSBhdHRyaWJ1dGVzIHRoYXQgbGl2ZSBpbiBhIG1l
+bW9yeSB0YXJnZXQuICBUaGlzIGdyb3VwCnJlcHJlc2VudHMgdGhlIHBlcmZvcm1hbmNlIGJldHdl
+ZW4gdGhlIChpbml0aWF0b3IsdGFyZ2V0KSBwYWlyLCBhbmQgaW4gdGhlCnRhcmdldCB0aGUgYXR0
+cmlidXRlIGdyb3VwIGlzIG5hbWVkICJ2aWFfbWVtX2luaXRYIiB0byByZXByZXNlbnQgdGhpcwpw
+YWlyaW5nOgoKICAjIHRyZWUgbWVtX3RndDIvdmlhX21lbV9pbml0MC8KICBtZW1fdGd0Mi92aWFf
+bWVtX2luaXQwLwogIOKUnOKUgOKUgCBtZW1faW5pdDAgLT4gLi4vLi4vbWVtX2luaXQwCiAg4pSc
+4pSA4pSAIG1lbV90Z3QyIC0+IC4uLy4uL21lbV90Z3QyCiAg4pSc4pSA4pSAIHJlYWRfYndfTUJw
+cwogIOKUnOKUgOKUgCByZWFkX2xhdF9uc2VjCiAg4pSc4pSA4pSAIHdyaXRlX2J3X01CcHMKICDi
+lJTilIDilIAgd3JpdGVfbGF0X25zZWMKCldlIHRoZW4gd2FudCB0byBsaW5rIHRvIHRoaXMgYXR0
+cmlidXRlIGdyb3VwIGZyb20gdGhlIGluaXRpYXRvciwgYnV0IGNoYW5nZQp0aGUgbmFtZSB0byAi
+dmlhX21lbV90Z3RYIiBzaW5jZSB3ZSdyZSBub3cgbG9va2luZyBhdCBpdCBmcm9tIHRoZQppbml0
+aWF0b3IncyBwZXJzcGVjdGl2ZToKCiAgIyBscyAtbCBtZW1faW5pdDAvdmlhX21lbV90Z3QyCiAg
+bHJ3eHJ3eHJ3eC4gMSByb290IHJvb3QgMCBKdW4gIDEgMTA6MDAgbWVtX2luaXQwL3ZpYV9tZW1f
+dGd0MiAtPgogIC4uL21lbV90Z3QyL3ZpYV9tZW1faW5pdDAKClNpZ25lZC1vZmYtYnk6IFJvc3Mg
+Wndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4KLS0tCiBmcy9zeXNmcy9ncm91
+cC5jICAgICAgfCAzMCArKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0KIGluY2x1ZGUvbGlu
+dXgvc3lzZnMuaCB8ICAyICsrCiAyIGZpbGVzIGNoYW5nZWQsIDI1IGluc2VydGlvbnMoKyksIDcg
+ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZnMvc3lzZnMvZ3JvdXAuYyBiL2ZzL3N5c2ZzL2dy
+b3VwLmMKaW5kZXggYWMyZGUwZS4uMTlkYjU3YzggMTAwNjQ0Ci0tLSBhL2ZzL3N5c2ZzL2dyb3Vw
+LmMKKysrIGIvZnMvc3lzZnMvZ3JvdXAuYwpAQCAtMzY3LDE1ICszNjcsMTUgQEAgdm9pZCBzeXNm
+c19yZW1vdmVfbGlua19mcm9tX2dyb3VwKHN0cnVjdCBrb2JqZWN0ICprb2JqLCBjb25zdCBjaGFy
+ICpncm91cF9uYW1lLAogRVhQT1JUX1NZTUJPTF9HUEwoc3lzZnNfcmVtb3ZlX2xpbmtfZnJvbV9n
+cm91cCk7CiAKIC8qKgotICogX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmog
+LSBhZGQgYSBzeW1saW5rIHRvIGEga29iamVjdCBwb2ludGluZwotICogdG8gYSBncm91cCBvciBh
+biBhdHRyaWJ1dGUKKyAqIHN5c2ZzX2FkZF9ncm91cF9saW5rIC0gYWRkIGEgc3ltbGluayB0byBh
+IGtvYmplY3QgcG9pbnRpbmcgdG8gYSBncm91cCBvcgorICogYW4gYXR0cmlidXRlCiAgKiBAa29i
+ajoJCVRoZSBrb2JqZWN0IGNvbnRhaW5pbmcgdGhlIGdyb3VwLgogICogQHRhcmdldF9rb2JqOglU
+aGUgdGFyZ2V0IGtvYmplY3QuCiAgKiBAdGFyZ2V0X25hbWU6CVRoZSBuYW1lIG9mIHRoZSB0YXJn
+ZXQgZ3JvdXAgb3IgYXR0cmlidXRlLgorICogQGxpbmtfbmFtZToJCVRoZSBuYW1lIG9mIHRoZSBs
+aW5rIHRvIHRoZSB0YXJnZXQgZ3JvdXAgb3IgYXR0cmlidXRlLgogICovCi1pbnQgX19jb21wYXRf
+b25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooc3RydWN0IGtvYmplY3QgKmtvYmosCi0JCQkJ
+ICAgICAgc3RydWN0IGtvYmplY3QgKnRhcmdldF9rb2JqLAotCQkJCSAgICAgIGNvbnN0IGNoYXIg
+KnRhcmdldF9uYW1lKQoraW50IHN5c2ZzX2FkZF9ncm91cF9saW5rKHN0cnVjdCBrb2JqZWN0ICpr
+b2JqLCBzdHJ1Y3Qga29iamVjdCAqdGFyZ2V0X2tvYmosCisJCWNvbnN0IGNoYXIgKnRhcmdldF9u
+YW1lLCBjb25zdCBjaGFyICpsaW5rX25hbWUpCiB7CiAJc3RydWN0IGtlcm5mc19ub2RlICp0YXJn
+ZXQ7CiAJc3RydWN0IGtlcm5mc19ub2RlICplbnRyeTsKQEAgLTQwMCwxMiArNDAwLDI4IEBAIGlu
+dCBfX2NvbXBhdF9vbmx5X3N5c2ZzX2xpbmtfZW50cnlfdG9fa29iaihzdHJ1Y3Qga29iamVjdCAq
+a29iaiwKIAkJcmV0dXJuIC1FTk9FTlQ7CiAJfQogCi0JbGluayA9IGtlcm5mc19jcmVhdGVfbGlu
+ayhrb2JqLT5zZCwgdGFyZ2V0X25hbWUsIGVudHJ5KTsKKwlsaW5rID0ga2VybmZzX2NyZWF0ZV9s
+aW5rKGtvYmotPnNkLCBsaW5rX25hbWUsIGVudHJ5KTsKIAlpZiAoSVNfRVJSKGxpbmspICYmIFBU
+Ul9FUlIobGluaykgPT0gLUVFWElTVCkKLQkJc3lzZnNfd2Fybl9kdXAoa29iai0+c2QsIHRhcmdl
+dF9uYW1lKTsKKwkJc3lzZnNfd2Fybl9kdXAoa29iai0+c2QsIGxpbmtfbmFtZSk7CiAKIAlrZXJu
+ZnNfcHV0KGVudHJ5KTsKIAlrZXJuZnNfcHV0KHRhcmdldCk7CiAJcmV0dXJuIElTX0VSUihsaW5r
+KSA/IFBUUl9FUlIobGluaykgOiAwOwogfQorRVhQT1JUX1NZTUJPTF9HUEwoc3lzZnNfYWRkX2dy
+b3VwX2xpbmspOworCisvKioKKyAqIF9fY29tcGF0X29ubHlfc3lzZnNfbGlua19lbnRyeV90b19r
+b2JqIC0gYWRkIGEgc3ltbGluayB0byBhIGtvYmplY3QgcG9pbnRpbmcKKyAqIHRvIGEgZ3JvdXAg
+b3IgYW4gYXR0cmlidXRlCisgKiBAa29iajoJCVRoZSBrb2JqZWN0IGNvbnRhaW5pbmcgdGhlIGdy
+b3VwLgorICogQHRhcmdldF9rb2JqOglUaGUgdGFyZ2V0IGtvYmplY3QuCisgKiBAdGFyZ2V0X25h
+bWU6CVRoZSBuYW1lIG9mIHRoZSB0YXJnZXQgZ3JvdXAgb3IgYXR0cmlidXRlLgorICovCitpbnQg
+X19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooc3RydWN0IGtvYmplY3QgKmtv
+YmosCisJCQkJICAgICAgc3RydWN0IGtvYmplY3QgKnRhcmdldF9rb2JqLAorCQkJCSAgICAgIGNv
+bnN0IGNoYXIgKnRhcmdldF9uYW1lKQoreworCXJldHVybiBzeXNmc19hZGRfZ3JvdXBfbGluayhr
+b2JqLCB0YXJnZXRfa29iaiwgdGFyZ2V0X25hbWUsCisJCQl0YXJnZXRfbmFtZSk7Cit9CiBFWFBP
+UlRfU1lNQk9MX0dQTChfX2NvbXBhdF9vbmx5X3N5c2ZzX2xpbmtfZW50cnlfdG9fa29iaik7CmRp
+ZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L3N5c2ZzLmggYi9pbmNsdWRlL2xpbnV4L3N5c2ZzLmgK
+aW5kZXggYzZmMGYwZC4uODY1ZjQ5OSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9zeXNmcy5o
+CisrKyBiL2luY2x1ZGUvbGludXgvc3lzZnMuaApAQCAtMjc4LDYgKzI3OCw4IEBAIGludCBzeXNm
+c19hZGRfbGlua190b19ncm91cChzdHJ1Y3Qga29iamVjdCAqa29iaiwgY29uc3QgY2hhciAqZ3Jv
+dXBfbmFtZSwKIAkJCSAgICBzdHJ1Y3Qga29iamVjdCAqdGFyZ2V0LCBjb25zdCBjaGFyICpsaW5r
+X25hbWUpOwogdm9pZCBzeXNmc19yZW1vdmVfbGlua19mcm9tX2dyb3VwKHN0cnVjdCBrb2JqZWN0
+ICprb2JqLCBjb25zdCBjaGFyICpncm91cF9uYW1lLAogCQkJCSAgY29uc3QgY2hhciAqbGlua19u
+YW1lKTsKK2ludCBzeXNmc19hZGRfZ3JvdXBfbGluayhzdHJ1Y3Qga29iamVjdCAqa29iaiwgc3Ry
+dWN0IGtvYmplY3QgKnRhcmdldF9rb2JqLAorCQljb25zdCBjaGFyICp0YXJnZXRfbmFtZSwgY29u
+c3QgY2hhciAqbGlua19uYW1lKTsKIGludCBfX2NvbXBhdF9vbmx5X3N5c2ZzX2xpbmtfZW50cnlf
+dG9fa29iaihzdHJ1Y3Qga29iamVjdCAqa29iaiwKIAkJCQkgICAgICBzdHJ1Y3Qga29iamVjdCAq
+dGFyZ2V0X2tvYmosCiAJCQkJICAgICAgY29uc3QgY2hhciAqdGFyZ2V0X25hbWUpOwotLSAKMi45
+LjQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
+LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
+c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
