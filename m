@@ -1,76 +1,55 @@
-From: Jike Song <albcamus@gmail.com>
-Subject: Re: [PATCH 3/5] ACPI: update feature-removal.txt to reflect deleted
- acpi=ht option
-Date: Fri, 2 Jun 2017 17:30:19 +0800
-Message-ID: <CANE52KixWBLc6UEjbBQ3AdBoA+OkDFjPi_c=Deb2rS15fnyXgQ@mail.gmail.com>
-References: <d5a64513c6a171262082c250592c062e97a2c693.1275680785.git.len.brown@intel.com>
- <1275680845-8352-1-git-send-email-lenb@kernel.org> <0a76a34ff0804f1f413807b2e2d12117c2b602ca.1275680785.git.len.brown@intel.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v5] gpio: Add driver for ACPI INT0002 Virtual GPIO device
+Date: Fri, 02 Jun 2017 14:10:33 +0300
+Message-ID: <1496401833.28981.48.camel@linux.intel.com>
+References: <20170524104216.23643-1-hdegoede@redhat.com>
+         <CACRpkdb9C0+3SLm9guYqHA_e+F4Tt3mbJJA00+d5PsjeuwzrpA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:34868 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751125AbdFBJaU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jun 2017 05:30:20 -0400
-Received: by mail-qt0-f194.google.com with SMTP id r58so8781518qtb.2
-        for <linux-acpi@vger.kernel.org>; Fri, 02 Jun 2017 02:30:20 -0700 (PDT)
-In-Reply-To: <0a76a34ff0804f1f413807b2e2d12117c2b602ca.1275680785.git.len.brown@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdb9C0+3SLm9guYqHA_e+F4Tt3mbJJA00+d5PsjeuwzrpA@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>
 
-Hi Len,
+On Thu, 2017-06-01 at 17:23 +0200, Linus Walleij wrote:
+> On Wed, May 24, 2017 at 12:42 PM, Hans de Goede <hdegoede@redhat.com>
+> wrote:
+> 
+> Please move this thing to drivers/platform/x86.
 
-Sorry for replying such a old mail written ~7 years ago, but I
-actually found there is still "acpi=ht" documented in current kernel:
+I'm fine to take it as long it has your Ack.
 
-Documentation/x86/x86_64/boot-options.txt
+> > +         Some peripherals on Baytrail and Cherrytrail platforms
+> > signal
+> > +         PME to the PMC to wakeup the system. When this happens
+> > software
+> 
+> Spell out the acronyms.
 
-  acpi=ht Use ACPI boot table parsing, but don't enable ACPI interpreter
+PME is standard of PCI, Power Management Event.
 
+PMC — Power Management Controller
 
+PME_B0 — PME Bus 0
 
-On Sat, Jun 5, 2010 at 3:47 AM, Len Brown <lenb@kernel.org> wrote:
-> From: Len Brown <len.brown@intel.com>
->
-> Per plan, acpi=ht was removed in 2.6.35-rc1.
->
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  Documentation/feature-removal-schedule.txt |    9 ---------
->  1 files changed, 0 insertions(+), 9 deletions(-)
->
-> diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-> index 672be01..c268783 100644
-> --- a/Documentation/feature-removal-schedule.txt
-> +++ b/Documentation/feature-removal-schedule.txt
-> @@ -578,15 +578,6 @@ Who:       Avi Kivity <avi@redhat.com>
->
->  ----------------------------
->
-> -What:  "acpi=ht" boot option
-> -When:  2.6.35
-> -Why:   Useful in 2003, implementation is a hack.
-> -       Generally invoked by accident today.
-> -       Seen as doing more harm than good.
-> -Who:   Len Brown <len.brown@intel.com>
-> -
-> -----------------------------
-> -
->  What:  iwlwifi 50XX module parameters
->  When:  2.6.40
->  Why:   The "..50" modules parameters were used to configure 5000 series and
-> --
-> 1.6.0.6
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+STS — status (obviously :-) )
 
+GPE — General Purpose Event (in ACPI terms)
+
+> (...)
+> > + * Some peripherals on Bay Trail and Cherry Trail platforms signal
+> > PME to the
+> > + * PMC to wakeup the system. When this happens software needs to
+> > clear the
+> > + * PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm
+> > on IRQ 9.
+> 
+> Spell out acronyms.
 
 
 -- 
-Thanks,
-Jike
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
