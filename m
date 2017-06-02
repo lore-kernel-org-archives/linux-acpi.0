@@ -1,95 +1,145 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH v2 5/5] ACPI: Switch to use generic guid_t in
- acpi_evaluate_dsm()
-Date: Fri, 2 Jun 2017 15:25:03 +0300
-Message-ID: <71db99f1-edfc-db56-d05f-515b859c893e@intel.com>
-References: <20170531194152.65927-1-andriy.shevchenko@linux.intel.com>
- <20170531194152.65927-6-andriy.shevchenko@linux.intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v5] gpio: Add driver for ACPI INT0002 Virtual GPIO device
+Date: Fri, 2 Jun 2017 16:01:11 +0200
+Message-ID: <43d9ef7b-265d-44ed-b1ba-ed5ffaad48c4@redhat.com>
+References: <20170524104216.23643-1-hdegoede@redhat.com>
+ <CACRpkdb9C0+3SLm9guYqHA_e+F4Tt3mbJJA00+d5PsjeuwzrpA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:11566 "EHLO mga07.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:45020 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751141AbdFBMbE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Jun 2017 08:31:04 -0400
-In-Reply-To: <20170531194152.65927-6-andriy.shevchenko@linux.intel.com>
+        id S1750813AbdFBOBP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 2 Jun 2017 10:01:15 -0400
+In-Reply-To: <CACRpkdb9C0+3SLm9guYqHA_e+F4Tt3mbJJA00+d5PsjeuwzrpA@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Borislav Petkov <bp@suse.de>, intel-gfx@lists.freedesktop.org
-Cc: Amir Goldstein <amir73il@gmail.com>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Ben Skeggs <bskeggs@redhat.com>, Yisen Zhuang <yisen.zhuang@huawei.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
 
-On 31/05/17 22:41, Andy Shevchenko wrote:
-> acpi_evaluate_dsm() and friends take a pointer to a raw buffer of 16
-> bytes. Instead we convert them to use guid_t type. At the same time we
-> convert current users.
+Hi,
+
+On 06/01/2017 05:23 PM, Linus Walleij wrote:
+> On Wed, May 24, 2017 at 12:42 PM, Hans de Goede <hdegoede@redhat.com> wrote:
 > 
-> acpi_str_to_uuid() becomes useless after the conversion and it's safe to
-> get rid of it.
+>> Some peripherals on Bay Trail and Cherry Trail platforms signal PME to the
+>> PMC to wakeup the system. When this happens software needs to clear the
+>> PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
+>>
+>> This is modeled in ACPI through the INT0002 ACPI Virtual GPIO device.
+>>
+>> This commit adds a driver which registers the Virtual GPIOs expected
+>> by the DSDT on these devices, letting gpiolib-acpi claim the
+>> virtual GPIO and install a GPIO-interrupt handler which call the _L02
+>> handler as it would for a real GPIO controller.
+>>
+>> Cc: joeyli <jlee@suse.com>
+>> Cc: Takashi Iwai <tiwai@suse.de>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 > 
-> Cc: Borislav Petkov <bp@suse.de>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Amir Goldstein <amir73il@gmail.com>
-> Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-> Reviewed-by: Jani Nikula <jani.nikula@intel.com>
-> Acked-by: Jani Nikula <jani.nikula@intel.com>
-> Cc: Ben Skeggs <bskeggs@redhat.com>
-> Acked-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-> Acked-by: Joerg Roedel <jroedel@suse.de>
-> Cc: Adrian Hunter <adrian.hunter@intel.com>
-> Cc: Yisen Zhuang <yisen.zhuang@huawei.com>
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
-> Acked-by: Mathias Nyman <mathias.nyman@linux.intel.com>
-> Reviewed-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> Cc: Liam Girdwood <lgirdwood@gmail.com>
-> Cc: Mark Brown <broonie@kernel.org>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/acpi/acpi_extlog.c                         |  4 ++--
->  drivers/acpi/bus.c                                 | 23 ----------------------
->  drivers/acpi/nfit/core.c                           |  6 +++---
->  drivers/acpi/utils.c                               | 16 +++++++--------
->  drivers/char/tpm/tpm_crb.c                         |  9 ++++-----
->  drivers/char/tpm/tpm_ppi.c                         | 20 ++++++++-----------
->  drivers/gpu/drm/i915/intel_acpi.c                  | 14 +++++--------
->  drivers/gpu/drm/nouveau/nouveau_acpi.c             | 20 +++++++++----------
->  drivers/gpu/drm/nouveau/nvkm/subdev/mxm/base.c     |  9 ++++-----
->  drivers/hid/i2c-hid/i2c-hid.c                      |  9 ++++-----
->  drivers/iommu/dmar.c                               | 11 +++++------
->  drivers/mmc/host/sdhci-pci-core.c                  |  9 ++++-----
+>> diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+> 
+> Please move this thing to drivers/platform/x86.
+> 
+>> +config GPIO_INT0002
+>> +       tristate "Intel ACPI INT0002 Virtual GPIO"
+>> +       depends on ACPI
+>> +       select GPIOLIB_IRQCHIP
+>> +       ---help---
+>> +         Some peripherals on Baytrail and Cherrytrail platforms signal
+>> +         PME to the PMC to wakeup the system. When this happens software
+> 
+> Spell out the acronyms.
+> 
+>> +         needs to explicitly clear the interrupt source to avoid an IRQ
+>> +         storm on IRQ 9. This is modelled in ACPI through the INT0002
+>> +         Virtual GPIO ACPI device.
+> 
+> I.e. it is not really GPIO.
+> 
+> Virtual GPIO == not GPIO at all, obviously.
+> 
+> Please write something about this weird newspeak here.
+> 
+>> +++ b/drivers/gpio/gpio-int0002.c
+> (...)
+>> + * Some peripherals on Bay Trail and Cherry Trail platforms signal PME to the
+>> + * PMC to wakeup the system. When this happens software needs to clear the
+>> + * PME_B0_STS bit in the GPE0a_STS register to avoid an IRQ storm on IRQ 9.
+> 
+> Spell out acronyms.
+> 
+>> +#include <asm/cpu_device_id.h>
+>> +#include <asm/intel-family.h>
+>> +#include <linux/acpi.h>
+>> +#include <linux/gpio.h>
+> 
+> No <linux/gpio.h>, only:
+> #include <linux/gpio/driver.h>
+> 
+> in drivers.
 
-<SNIP>
+The above is all fixed for the next version.
 
-> diff --git a/drivers/mmc/host/sdhci-pci-core.c b/drivers/mmc/host/sdhci-pci-core.c
-> index 92fc3f7c538d..c942ec102c6a 100644
-> --- a/drivers/mmc/host/sdhci-pci-core.c
-> +++ b/drivers/mmc/host/sdhci-pci-core.c
-> @@ -404,10 +404,9 @@ struct intel_host {
->  	bool	d3_retune;
->  };
->  
-> -const u8 intel_dsm_uuid[] = {
-> -	0xA5, 0x3E, 0xC1, 0xF6, 0xCD, 0x65, 0x1F, 0x46,
-> -	0xAB, 0x7A, 0x29, 0xF7, 0xE8, 0xD5, 0xBD, 0x61,
-> -};
-> +const guid_t intel_dsm_guid =
-> +	GUID(0xF6C13EA5, 0x65CD, 0x461F,
-> +	     0xAB, 0x7A, 0x29, 0xF7, 0xE8, 0xD5, 0xBD, 0x61);
->  
->  static int __intel_dsm(struct intel_host *intel_host, struct device *dev,
->  		       unsigned int fn, u32 *result)
-> @@ -416,7 +415,7 @@ static int __intel_dsm(struct intel_host *intel_host, struct device *dev,
->  	int err = 0;
->  	size_t len;
->  
-> -	obj = acpi_evaluate_dsm(ACPI_HANDLE(dev), intel_dsm_uuid, 0, fn, NULL);
-> +	obj = acpi_evaluate_dsm(ACPI_HANDLE(dev), &intel_dsm_guid, 0, fn, NULL);
->  	if (!obj)
->  		return -EOPNOTSUPP;
->  
+>> +/* For some reason the virtual GPIO pin tied to the GPE is numbered pin 2 */
+>> +#define GPE0A_PME_B0_VIRT_GPIO_PIN     2
+> 
+> I think it's not weird at all, it is a 32bit word which is not a GPIO
+> register at all, but
+> misc IPC register, where bits 0 and 1 does something else.
 
-For sdhci:
+That is not true the bus 0 status bit we're reacting to and which we're
+clearing in this driver is bit 13 ...
 
-Acked-by: Adrian Hunter <adrian.hunter@intel.com>
+> 
+>> +static int int0002_gpio_get(struct gpio_chip *chip, unsigned int offset)
+>> +{
+>> +       return 0;
+>> +}
+>> +
+>> +static void int0002_gpio_set(struct gpio_chip *chip, unsigned int offset,
+>> +                            int value)
+>> +{
+>> +}
+>> +
+>> +static int int0002_gpio_direction_output(struct gpio_chip *chip,
+>> +                                        unsigned int offset, int value)
+>> +{
+>> +       return 0;
+>> +}
+> 
+> If you're anyways pretending to be a GPIO chip, then you could implement
+> these. But I guess you're not implementing them, because this is not
+> a GPIO chip, so let's add a big fat comment above these stating clearly
+> why they are not implemented proper.
+
+Done for v6.
+
+> 
+>> +static irqreturn_t int0002_irq(int irq, void *data)
+>> +{
+>> +       struct gpio_chip *chip = data;
+>> +       u32 gpe_sts_reg;
+>> +
+>> +       gpe_sts_reg = inl(GPE0A_STS_PORT);
+>> +       if (!(gpe_sts_reg & GPE0A_PME_B0_STS_BIT))
+>> +               return IRQ_NONE;
+> 
+> I wonder what happens the day an IRQ start arriving on the other
+> bits. Oh well, that day we handle that.
+> 
+>> +       for (i = 0; i < GPE0A_PME_B0_VIRT_GPIO_PIN; i++)
+>> +               clear_bit(i, chip->irq_valid_mask);
+> 
+> That's neat.
+> 
+> Yours,
+> Linus Walleij
+> 
+
+Regards,
+
+Hans
