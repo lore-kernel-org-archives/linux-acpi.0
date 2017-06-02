@@ -1,166 +1,182 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [RFC 0/6] Add support for Heterogeneous Memory Attribute Table
-Date: Fri,  2 Jun 2017 14:59:50 -0600
-Message-ID: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
+From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [RFC 1/6] ACPICA: add HMAT table definitions
+Date: Fri,  2 Jun 2017 14:59:51 -0600
+Message-ID: <20170602205956.28351-2-ross.zwisler@linux.intel.com>
+References: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:55914 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750966AbdFBVAB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Jun 2017 17:00:01 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170602205956.28351-1-ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Box,
+ David E" <david.e.box-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Zheng,
+ Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Anaczkowski,
+ Lukasz" <lukasz.anaczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore,
+ Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Odzioba,
+ Lukasz" <lukasz.odzioba-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Schmauss, Erik" <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, "Kogut,
+ Jaroslaw" <Jaroslaw.Kogut-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Nachimuthu,
+ Murugasamy" <murugasamy.nachimuthu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "Lahtinen,
+ Joonas" <joonas.lahtinen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tim Chen <tim.c.chen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-==== Quick summary ====
+Import HMAT table definitions from the ACPICA codebase.
 
-This series adds kernel support for the Heterogeneous Memory Attribute
-Table (HMAT) table, newly defined in ACPI 6.2:
+This kernel patch was generated using an ACPICA patch from "Zheng, Lv"
+<lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>.  The actual upstream patch that adds these table
+definitions will come from the Intel ACPICA team as part of their greater
+ACPI 6.2 update.
 
-http://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
+Signed-off-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+ include/acpi/actbl1.h | 119 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 119 insertions(+)
 
-The HMAT table, in concert with the existing System Resource Affinity Table
-(SRAT), provides users with information about memory initiators and memory
-targets in the system.
-
-A "memory initiator" in this case is any device such as a CPU or a separate
-memory I/O device that can initiate a memory request.  A "memory target" is
-a CPU-accessible physical address range.
-
-The HMAT provides performance information (expected latency and bandwidth,
-etc.) for various (initiator,target) pairs.  This is mostly motivated by
-the need to optimally use performance-differentiated DRAM, but it also
-allows us to describe the performance characteristics of persistent memory.
-
-The purpose of this RFC is to gather feedback on the different options for
-enabling the HMAT in the kernel and in userspace.
-
-==== Lots of details ====
-
-The HMAT only covers CPU-addressable memory types, not on-device memory
-like what we have with Jerome Glisse's HMM series:
-
-https://lkml.org/lkml/2017/5/24/731
-
-One major conceptual change in ACPI 6.2 related to this work is that
-proximity domains no longer need to contain a processor.  We can now have
-memory-only proximity domains, which means that we can now have memory-only
-Linux NUMA nodes.
-
-Here is an example configuration where we have a single processor, one
-range of regular memory and one range of High Bandwidth Memory (HBM):
-
-  +---------------+   +----------------+
-  | Processor     |   | Memory         |
-  | prox domain 0 +---+ prox domain 1  |
-  | NUMA node 1   |   | NUMA node 2    |
-  +-------+-------+   +----------------+
-          |
-  +-------+----------+
-  | HBM              |
-  | prox domain 2    |
-  | NUMA node 0      |
-  +------------------+
-
-This gives us one initiator (the processor) and two targets (the two memory
-ranges).  Each of these three has its own ACPI proximity domain and
-associated Linux NUMA node.  Note also that while there is a 1:1 mapping
-from each proximity domain to each NUMA node, the numbers don't necessarily
-match up.  Additionally we can have extra NUMA nodes that don't map back to
-ACPI proximity domains.
-
-The above configuration could also have the processor and one of the two
-memory ranges sharing a proximity domain and NUMA node, but for the
-purposes of the HMAT the two memory ranges will always need to be
-separated.
-
-The overall goal of this series and of the HMAT is to allow users to
-identify memory using its performance characteristics.  This can broadly be
-done in one of two ways:
-
-Option 1: Provide the user with a way to map between proximity domains and
-NUMA nodes and a way to access the HMAT directly (probably via
-/sys/firmware/acpi/tables).  Then, through possibly a library and a daemon,
-provide an API so that applications can either request information about
-memory ranges, or request memory allocations that meet a given set of
-performance characteristics.
-
-Option 2: Provide the user with HMAT performance data directly in sysfs,
-allowing applications to directly access it without the need for the
-library and daemon.
-
-The kernel work for option 1 is started by patches 1-4.  These just surface
-the minimal amount of information in sysfs to allow userspace to map
-between proximity domains and NUMA nodes so that the raw data in the HMAT
-table can be understood.
-
-Patches 5 and 6 enable option 2, adding performance information from the
-HMAT to sysfs.  The second option is complicated by the amount of HMAT data
-that could be present in very large systems, so in this series we only
-surface performance information for local (initiator,target) pairings.  The
-changelog for patch 6 discusses this in detail.
-
-==== Next steps ====
-
-There is still a lot of work to be done on this series, but the overall
-goal of this RFC is to gather feedback on which of the two options we
-should pursue, or whether some third option is preferred.  After that is
-done and we have a solid direction we can add support for ACPI hot add,
-test more complex configurations, etc.
-
-So, for applications that need to differentiate between memory ranges based
-on their performance, what option would work best for you?  Is the local
-(initiator,target) performance provided by patch 6 enough, or do you
-require performance information for all possible (initiator,target)
-pairings?
-
-If option 1 looks best, do we have ideas on what the userspace API would
-look like?
-
-For option 2 Dan Williams had suggested that it may be worthwhile to allow
-for multiple memory initiators to be listed as "local" if they all have the
-same performance, even if the HMAT's Memory Subsystem Address Range
-Structure table only defines a single local initiator.  Do others agree?
-
-What other things should we consider, or what needs do you have that aren't
-being addressed?
-
-Ross Zwisler (6):
-  ACPICA: add HMAT table definitions
-  acpi: add missing include in acpi_numa.h
-  acpi: HMAT support in acpi_parse_entries_array()
-  hmem: add heterogeneous memory sysfs support
-  sysfs: add sysfs_add_group_link()
-  hmem: add performance attributes
-
- MAINTAINERS                         |   5 +
- drivers/acpi/Kconfig                |   1 +
- drivers/acpi/Makefile               |   1 +
- drivers/acpi/hmem/Kconfig           |   7 +
- drivers/acpi/hmem/Makefile          |   2 +
- drivers/acpi/hmem/core.c            | 679 ++++++++++++++++++++++++++++++++++++
- drivers/acpi/hmem/hmem.h            |  56 +++
- drivers/acpi/hmem/initiator.c       |  61 ++++
- drivers/acpi/hmem/perf_attributes.c | 158 +++++++++
- drivers/acpi/hmem/target.c          |  97 ++++++
- drivers/acpi/numa.c                 |   2 +-
- drivers/acpi/tables.c               |  52 ++-
- fs/sysfs/group.c                    |  30 +-
- include/acpi/acpi_numa.h            |   1 +
- include/acpi/actbl1.h               | 119 +++++++
- include/linux/sysfs.h               |   2 +
- 16 files changed, 1254 insertions(+), 19 deletions(-)
- create mode 100644 drivers/acpi/hmem/Kconfig
- create mode 100644 drivers/acpi/hmem/Makefile
- create mode 100644 drivers/acpi/hmem/core.c
- create mode 100644 drivers/acpi/hmem/hmem.h
- create mode 100644 drivers/acpi/hmem/initiator.c
- create mode 100644 drivers/acpi/hmem/perf_attributes.c
- create mode 100644 drivers/acpi/hmem/target.c
-
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index b4ce55c..a5df3f3 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -65,6 +65,7 @@
+ #define ACPI_SIG_ECDT           "ECDT"	/* Embedded Controller Boot Resources Table */
+ #define ACPI_SIG_EINJ           "EINJ"	/* Error Injection table */
+ #define ACPI_SIG_ERST           "ERST"	/* Error Record Serialization Table */
++#define ACPI_SIG_HMAT           "HMAT"  /* Heterogeneous Memory Attributes Table */
+ #define ACPI_SIG_HEST           "HEST"	/* Hardware Error Source Table */
+ #define ACPI_SIG_MADT           "APIC"	/* Multiple APIC Description Table */
+ #define ACPI_SIG_MSCT           "MSCT"	/* Maximum System Characteristics Table */
+@@ -688,6 +689,124 @@ struct acpi_hest_generic_data_v300 {
+ 
+ /*******************************************************************************
+  *
++ * HMAT - Heterogeneous Memory Attributes Table (ACPI 6.2)
++ *        Version 1
++ *
++ ******************************************************************************/
++
++struct acpi_table_hmat {
++	struct acpi_table_header header; /* Common ACPI table header */
++	u32 reserved;
++};
++
++
++/* Values for HMAT structure types */
++
++enum acpi_hmat_type {
++	ACPI_HMAT_TYPE_ADDRESS_RANGE = 0, /* Memory subystem address range */
++	ACPI_HMAT_TYPE_LOCALITY      = 1, /* System locality latency and bandwidth information */
++	ACPI_HMAT_TYPE_CACHE         = 2, /* Memory side cache information */
++	ACPI_HMAT_TYPE_RESERVED      = 3  /* 3 and greater are reserved */
++};
++
++struct acpi_hmat_structure {
++	u16 type;
++	u16 reserved;
++	u32 length;
++};
++
++/*
++ * HMAT Structures, correspond to Type in struct acpi_hmat_structure
++ */
++
++/* 0: Memory subystem address range */
++
++struct acpi_hmat_address_range {
++	struct acpi_hmat_structure header;
++	u16 flags;
++	u16 reserved1;
++	u32 processor_PD;           /* Processor proximity domain */
++	u32 memory_PD;              /* Memory proximity domain */
++	u32 reserved2;
++	u64 physical_address_base;  /* Physical address range base */
++	u64 physical_address_length; /* Physical address range length */
++};
++
++/* Masks for Flags field above */
++
++#define ACPI_HMAT_PROCESSOR_PD_VALID (1)    /* 1: processor_PD field is valid */
++#define ACPI_HMAT_MEMORY_PD_VALID    (1<<1) /* 1: memory_PD field is valid */
++#define ACPI_HMAT_RESERVATION_HINT   (1<<2) /* 1: Reservation hint */
++
++/* 1: System locality latency and bandwidth information */
++
++struct acpi_hmat_locality {
++	struct acpi_hmat_structure header;
++	u8  flags;
++	u8  data_type;
++	u16 reserved1;
++	u32 number_of_initiator_Pds;
++	u32 number_of_target_Pds;
++	u32 reserved2;
++	u64 entry_base_unit;
++	u32 data[1]; /* initiator/target lists followed by entry matrix */
++};
++
++/* Masks for Flags field above */
++
++#define ACPI_HMAT_MEMORY_HIERARCHY  (0x0F)
++
++/* Values for Memory Hierarchy flag */
++
++#define ACPI_HMAT_MEMORY            0
++#define ACPI_HMAT_LAST_LEVEL_CACHE  1
++#define ACPI_HMAT_1ST_LEVEL_CACHE   2
++#define ACPI_HMAT_2ND_LEVEL_CACHE   3
++#define ACPI_HMAT_3RD_LEVEL_CACHE   4
++
++/* Values for data_type field above */
++
++#define ACPI_HMAT_ACCESS_LATENCY    0
++#define ACPI_HMAT_READ_LATENCY      1
++#define ACPI_HMAT_WRITE_LATENCY     2
++#define ACPI_HMAT_ACCESS_BANDWIDTH  3
++#define ACPI_HMAT_READ_BANDWIDTH    4
++#define ACPI_HMAT_WRITE_BANDWIDTH   5
++
++/* 2: Memory side cache information */
++
++struct acpi_hmat_cache {
++	struct acpi_hmat_structure header;
++	u32 memory_PD;
++	u32 reserved1;
++	u64 cache_size;
++	u32 cache_attributes;
++	u16 reserved2;
++	u16 number_of_SMBIOShandles;
++};
++
++/* Masks for cache_attributes field above */
++
++#define ACPI_HMAT_TOTAL_CACHE_LEVEL     (0x0000000F)
++#define ACPI_HMAT_CACHE_LEVEL           (0x000000F0)
++#define ACPI_HMAT_CACHE_ASSOCIATIVITY   (0x00000F00)
++#define ACPI_HMAT_WRITE_POLICY          (0x0000F000)
++#define ACPI_HMAT_CACHE_LINE_SIZE       (0xFFFF0000)
++
++/* Values for cache associativity flag */
++
++#define ACPI_HMAT_CA_NONE                     (0)
++#define ACPI_HMAT_CA_DIRECT_MAPPED            (1)
++#define ACPI_HMAT_CA_COMPLEX_CACHE_INDEXING   (2)
++
++/* Values for write policy flag */
++
++#define ACPI_HMAT_CP_NONE   (0)
++#define ACPI_HMAT_CP_WB     (1)
++#define ACPI_HMAT_CP_WT     (2)
++
++/*******************************************************************************
++ *
+  * MADT - Multiple APIC Description Table
+  *        Version 3
+  *
 -- 
 2.9.4
-
