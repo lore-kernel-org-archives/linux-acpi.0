@@ -1,134 +1,166 @@
-From: Florian Echtler <floe@butterbrot.org>
-Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
-Date: Fri, 2 Jun 2017 18:47:07 +0200
-Message-ID: <c1ed89a5-e6a1-1903-05ee-a9dfcdb2ef61@butterbrot.org>
-References: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
- <20170526210340.GA5114@wunner.de>
- <1e60811b-a8ac-017c-d350-8a40e4323870@butterbrot.org>
- <20170530105404.GA29865@wunner.de>
- <64a4829c-3141-6ff6-9369-6ca9ed0facf4@butterbrot.org>
- <20170531092145.ytc2d6shpukxziie@wunner.de>
- <CADnq5_MGWOX47tcvkfjHRxRv_eTbo_kvpVKyTpo8WGNw+xBvPA@mail.gmail.com>
- <65c88b03-45d7-d67b-2a2c-6c7047a73c80@butterbrot.org>
- <CADnq5_Mvyz1KUw26Emt8_d_XNeQ=MUqx8WF=iCxa6jagCXNCQQ@mail.gmail.com>
- <171a9895-b020-7630-b90c-d166f45e44e3@butterbrot.org>
- <CADnq5_P_H8ZZXnXOoUcxNOFece3BRyzhZh2Z3mkw53eA20KiMQ@mail.gmail.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [RFC 0/6] Add support for Heterogeneous Memory Attribute Table
+Date: Fri,  2 Jun 2017 14:59:50 -0600
+Message-ID: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="n10VEnUCq5mxSC13NlOB65eVkWNcGXNgF"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:46703 "EHLO butterbrot.org"
+Received: from mga01.intel.com ([192.55.52.88]:55914 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751140AbdFBQrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Jun 2017 12:47:16 -0400
-In-Reply-To: <CADnq5_P_H8ZZXnXOoUcxNOFece3BRyzhZh2Z3mkw53eA20KiMQ@mail.gmail.com>
+        id S1750966AbdFBVAB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 2 Jun 2017 17:00:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Deucher <alexdeucher@gmail.com>
-Cc: Lukas Wunner <lukas@wunner.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, amd-gfx list <amd-gfx@lists.freedesktop.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---n10VEnUCq5mxSC13NlOB65eVkWNcGXNgF
-Content-Type: multipart/mixed; boundary="4liRsGNuAwckBChcKsnE5tbJCeHnqQpIF";
- protected-headers="v1"
-From: Florian Echtler <floe@butterbrot.org>
-To: Alex Deucher <alexdeucher@gmail.com>
-Cc: Lukas Wunner <lukas@wunner.de>,
- "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
- amd-gfx list <amd-gfx@lists.freedesktop.org>,
- Maling list - DRI developers <dri-devel@lists.freedesktop.org>
-Message-ID: <c1ed89a5-e6a1-1903-05ee-a9dfcdb2ef61@butterbrot.org>
-Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
-References: <30380cb3-0f26-8aea-2689-d4886879129c@butterbrot.org>
- <20170526210340.GA5114@wunner.de>
- <1e60811b-a8ac-017c-d350-8a40e4323870@butterbrot.org>
- <20170530105404.GA29865@wunner.de>
- <64a4829c-3141-6ff6-9369-6ca9ed0facf4@butterbrot.org>
- <20170531092145.ytc2d6shpukxziie@wunner.de>
- <CADnq5_MGWOX47tcvkfjHRxRv_eTbo_kvpVKyTpo8WGNw+xBvPA@mail.gmail.com>
- <65c88b03-45d7-d67b-2a2c-6c7047a73c80@butterbrot.org>
- <CADnq5_Mvyz1KUw26Emt8_d_XNeQ=MUqx8WF=iCxa6jagCXNCQQ@mail.gmail.com>
- <171a9895-b020-7630-b90c-d166f45e44e3@butterbrot.org>
- <CADnq5_P_H8ZZXnXOoUcxNOFece3BRyzhZh2Z3mkw53eA20KiMQ@mail.gmail.com>
-In-Reply-To: <CADnq5_P_H8ZZXnXOoUcxNOFece3BRyzhZh2Z3mkw53eA20KiMQ@mail.gmail.com>
+==== Quick summary ====
 
---4liRsGNuAwckBChcKsnE5tbJCeHnqQpIF
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
+This series adds kernel support for the Heterogeneous Memory Attribute
+Table (HMAT) table, newly defined in ACPI 6.2:
 
-On 02.06.2017 17:12, Alex Deucher wrote:
-> On Fri, Jun 2, 2017 at 3:35 AM, Florian Echtler <floe@butterbrot.org> w=
-rote:
->>
->> [  166.853787] [drm:radeon_dp_link_train_cr] clock recovery at voltage=
- 0
->> pre-emphasis 0
->> [  166.853788] [drm:drm_detect_monitor_audio] Monitor has basic audio =
-support
->> [  166.855953] [drm:radeon_dp_link_train_ce] channel eq at voltage 0 p=
-re-emphasis 0
->=20
-> Yes, the link training appears to complete fine.  I guess it's
-> something to do with the proprietary mux or backlight controls.
+http://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
 
-OK, so back to square... well, not one, but definitely back to the regist=
-ers
-(SMC and GPU).
+The HMAT table, in concert with the existing System Resource Affinity Table
+(SRAT), provides users with information about memory initiators and memory
+targets in the system.
 
-As mentioned, the diff for the GPU registers before/after suspend is huge=
-,
-there's 117 register values that have changed. I assume that most of them=
- are
-actually internal frame pointers, but which ones? I tried to find some of=
- that
-information in drivers/gpu/drm/radeon/, but quickly got lost :-/
+A "memory initiator" in this case is any device such as a CPU or a separate
+memory I/O device that can initiate a memory request.  A "memory target" is
+a CPU-accessible physical address range.
 
-Regarding the SMC, there's actually only one key that consistently seems =
-to have
-a different value whether the display is on or off:
+The HMAT provides performance information (expected latency and bandwidth,
+etc.) for various (initiator,target) pairs.  This is mostly motivated by
+the need to optimally use performance-differentiated DRAM, but it also
+allows us to describe the performance characteristics of persistent memory.
 
---- blank	2017-05-05 08:40:53.694565045 +0200
-+++ non_blank	2017-05-05 08:40:53.702565066 +0200
-@@ -143,7 +143,7 @@
-   MSWR  [ui8 ]  0 (bytes 00)
-   MVBO  [hex_]  (bytes ff ff)
-   MVDC  [bin_]  (bytes 00)
--  MVDS  [bin_]  (bytes 08)
-+  MVDS  [bin_]  (bytes 0a)
-   MVE1  [si8 ]  (bytes 0d)
-   MVE5  [si8 ]  (bytes 0b)
-   MVHR  [flag]  (bytes 01)
+The purpose of this RFC is to gather feedback on the different options for
+enabling the HMAT in the kernel and in userspace.
 
-However, even with my modified SmcDumpKeys.c which I can use to enable TD=
-M, I
-cannot write to that key. Since other MV__ keys control the display, too,=
- it
-would make sense that that is related to the display state, but it seems =
-to be a
-read-only key :-/
+==== Lots of details ====
 
-Running out of ideas again... any suggestions?
+The HMAT only covers CPU-addressable memory types, not on-device memory
+like what we have with Jerome Glisse's HMM series:
 
-Best, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
+https://lkml.org/lkml/2017/5/24/731
 
+One major conceptual change in ACPI 6.2 related to this work is that
+proximity domains no longer need to contain a processor.  We can now have
+memory-only proximity domains, which means that we can now have memory-only
+Linux NUMA nodes.
 
---4liRsGNuAwckBChcKsnE5tbJCeHnqQpIF--
+Here is an example configuration where we have a single processor, one
+range of regular memory and one range of High Bandwidth Memory (HBM):
 
---n10VEnUCq5mxSC13NlOB65eVkWNcGXNgF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+  +---------------+   +----------------+
+  | Processor     |   | Memory         |
+  | prox domain 0 +---+ prox domain 1  |
+  | NUMA node 1   |   | NUMA node 2    |
+  +-------+-------+   +----------------+
+          |
+  +-------+----------+
+  | HBM              |
+  | prox domain 2    |
+  | NUMA node 0      |
+  +------------------+
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+This gives us one initiator (the processor) and two targets (the two memory
+ranges).  Each of these three has its own ACPI proximity domain and
+associated Linux NUMA node.  Note also that while there is a 1:1 mapping
+from each proximity domain to each NUMA node, the numbers don't necessarily
+match up.  Additionally we can have extra NUMA nodes that don't map back to
+ACPI proximity domains.
 
-iEYEARECAAYFAlkxlosACgkQ7CzyshGvatiU6QCfePg9aoDyVvIvBJHY+B/hgow2
-HbIAn23PdslQ5a8Y6wH5HoeiqwfKzgsq
-=fkdX
------END PGP SIGNATURE-----
+The above configuration could also have the processor and one of the two
+memory ranges sharing a proximity domain and NUMA node, but for the
+purposes of the HMAT the two memory ranges will always need to be
+separated.
 
---n10VEnUCq5mxSC13NlOB65eVkWNcGXNgF--
+The overall goal of this series and of the HMAT is to allow users to
+identify memory using its performance characteristics.  This can broadly be
+done in one of two ways:
+
+Option 1: Provide the user with a way to map between proximity domains and
+NUMA nodes and a way to access the HMAT directly (probably via
+/sys/firmware/acpi/tables).  Then, through possibly a library and a daemon,
+provide an API so that applications can either request information about
+memory ranges, or request memory allocations that meet a given set of
+performance characteristics.
+
+Option 2: Provide the user with HMAT performance data directly in sysfs,
+allowing applications to directly access it without the need for the
+library and daemon.
+
+The kernel work for option 1 is started by patches 1-4.  These just surface
+the minimal amount of information in sysfs to allow userspace to map
+between proximity domains and NUMA nodes so that the raw data in the HMAT
+table can be understood.
+
+Patches 5 and 6 enable option 2, adding performance information from the
+HMAT to sysfs.  The second option is complicated by the amount of HMAT data
+that could be present in very large systems, so in this series we only
+surface performance information for local (initiator,target) pairings.  The
+changelog for patch 6 discusses this in detail.
+
+==== Next steps ====
+
+There is still a lot of work to be done on this series, but the overall
+goal of this RFC is to gather feedback on which of the two options we
+should pursue, or whether some third option is preferred.  After that is
+done and we have a solid direction we can add support for ACPI hot add,
+test more complex configurations, etc.
+
+So, for applications that need to differentiate between memory ranges based
+on their performance, what option would work best for you?  Is the local
+(initiator,target) performance provided by patch 6 enough, or do you
+require performance information for all possible (initiator,target)
+pairings?
+
+If option 1 looks best, do we have ideas on what the userspace API would
+look like?
+
+For option 2 Dan Williams had suggested that it may be worthwhile to allow
+for multiple memory initiators to be listed as "local" if they all have the
+same performance, even if the HMAT's Memory Subsystem Address Range
+Structure table only defines a single local initiator.  Do others agree?
+
+What other things should we consider, or what needs do you have that aren't
+being addressed?
+
+Ross Zwisler (6):
+  ACPICA: add HMAT table definitions
+  acpi: add missing include in acpi_numa.h
+  acpi: HMAT support in acpi_parse_entries_array()
+  hmem: add heterogeneous memory sysfs support
+  sysfs: add sysfs_add_group_link()
+  hmem: add performance attributes
+
+ MAINTAINERS                         |   5 +
+ drivers/acpi/Kconfig                |   1 +
+ drivers/acpi/Makefile               |   1 +
+ drivers/acpi/hmem/Kconfig           |   7 +
+ drivers/acpi/hmem/Makefile          |   2 +
+ drivers/acpi/hmem/core.c            | 679 ++++++++++++++++++++++++++++++++++++
+ drivers/acpi/hmem/hmem.h            |  56 +++
+ drivers/acpi/hmem/initiator.c       |  61 ++++
+ drivers/acpi/hmem/perf_attributes.c | 158 +++++++++
+ drivers/acpi/hmem/target.c          |  97 ++++++
+ drivers/acpi/numa.c                 |   2 +-
+ drivers/acpi/tables.c               |  52 ++-
+ fs/sysfs/group.c                    |  30 +-
+ include/acpi/acpi_numa.h            |   1 +
+ include/acpi/actbl1.h               | 119 +++++++
+ include/linux/sysfs.h               |   2 +
+ 16 files changed, 1254 insertions(+), 19 deletions(-)
+ create mode 100644 drivers/acpi/hmem/Kconfig
+ create mode 100644 drivers/acpi/hmem/Makefile
+ create mode 100644 drivers/acpi/hmem/core.c
+ create mode 100644 drivers/acpi/hmem/hmem.h
+ create mode 100644 drivers/acpi/hmem/initiator.c
+ create mode 100644 drivers/acpi/hmem/perf_attributes.c
+ create mode 100644 drivers/acpi/hmem/target.c
+
+-- 
+2.9.4
+
