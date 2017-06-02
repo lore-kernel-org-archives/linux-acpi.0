@@ -1,59 +1,44 @@
-From: Bastien Nocera <hadess@hadess.net>
-Subject: Re: [WIP PATCH 0/4] Rework the unreliable LID switch exported by
- ACPI
-Date: Thu, 01 Jun 2017 23:43:54 +0200
-Message-ID: <1496353434.2570.5.camel@hadess.net>
-References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
+From: Tom Lanyon <tom@oneshoeco.com>
+Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
+ recent Dell laptops
+Date: Fri, 2 Jun 2017 11:06:49 +1000
+Message-ID: <CA+b4Kqf9YN0x+Sc6Lk28FLD8-iaHnjS74MQV2yMyS599fe5HTw@mail.gmail.com>
+References: <1979543.KIEJ8uyRaT@aspire.rjw.lan> <3454366.uzaJljlWGm@aspire.rjw.lan>
+ <1496313803.28981.45.camel@linux.intel.com> <CA+b4KqcxKNaHMTEG3KQOQ98OFmwS+R8PLdfyZB1tastH5m0XVQ@mail.gmail.com>
+ <CAJZ5v0j_jA68cai4mV85DV7QTVh77BcrWv7mnotZ6XKtXO57Wg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Peter Hutterer <peter.hutterer@who-t.net>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, systemd-devel@lists.freedesktop.org, linux-input@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0j_jA68cai4mV85DV7QTVh77BcrWv7mnotZ6XKtXO57Wg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2017-06-01 at 20:46 +0200, Benjamin Tissoires wrote:
-> Hi,
-> 
-> Sending this as a WIP as it still need a few changes, but it mostly
-> works as
-> expected (still not fully compliant yet).
-> 
-> So this is based on Lennart's comment in [1]: if the LID state is not
-> reliable,
-> the kernel should not export the LID switch device as long as we are
-> not sure
-> about its state.
-> 
-> That is the basic idea, and here are some more general comments:
-> Lv described the 5 cases in "RFC PATCH v3" regarding the LID switch.
-> Let me rewrite them here (they are in patch 2):
-> 
-> 1. Some platforms send "open" ACPI notification to the OS and the
-> event
->    arrive before the button driver is resumed;
-> 2. Some platforms send "open" ACPI notification to the OS, but the
-> event
->    arrives after the button driver is resumed, ex., Samsung N210+;
-> 3. Some platforms never send an "open" ACPI notification to the OS,
-> but
->    update the cached _LID return value to "open", and this update
-> arrives
->    before the button driver is resumed;
-> 4. Some platforms never send an "open" ACPI notification to the OS,
-> but
->    update the cached _LID return value to "open", but this update
-> arrives
->    after the button driver is resumed, ex., Surface Pro 3;
-> 5. Some platforms never send an "open" ACPI notification to the OS,
-> and
->    _LID ACPI method returns a value which stays to "close", ex.,
->    Surface Pro 1.
+On 2 June 2017 at 00:59, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> Quoting from my cover letter:
+>
+> "After this series there still is a concern regarding the possible increase of
+> power draw that may result from the processing of non-wakeup EC events while
+> suspended which is why the change only affects Dell XPS13 9360 and 9365
+> for now."
+>
+> So that is what happens, unfortunately, and we can't do much about it
+> at the moment.
 
-In which case does the Surface 3 lie? I believe we still needed your
-"gpiolib-acpi: make sure we trigger the events at least once" patch to
-make that one work.
+OK, but at the moment this is a regression in functionality on those
+platforms. Without this patchset, I can successfully s2idle
+suspend/resume on an XPS 9365 (albeit with a little bit of awkward
+fiddling of the power button to resume). After the patchset, I can't
+realistically go into s2idle at all.
 
-Cheers
+> The only way to avoid that would be to reconfigure the EC during
+> suspend to stop generating non-wakeup events, but today we have no
+> reliable way to do that.
+
+I thought I had read one one of the threads that this was possible in
+the same way that it is for Windows on these laptops.  What's missing
+to make this possible?
+
+Tom
