@@ -1,103 +1,109 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [RFC PATCH] acpi: indicate to platform when hot remove returns busy
-Date: Sat, 3 Jun 2017 20:37:51 +0300
-Message-ID: <CAHp75VcBd8e7Ce8KbyqtnoBKv7c5W9qb9o70-oViz6iCoRMShw@mail.gmail.com>
-References: <20170603172036.7645-1-jlee@suse.com>
+From: Maniaxx <tripleshiftone@gmail.com>
+Subject: Re: PROBLEM: Kernel panic on EFI BGRT early init code (kernel
+ 4.11/4.12rc2) [regression]
+Date: Sat, 3 Jun 2017 20:24:02 +0200
+Message-ID: <c1505b0e-8136-86d3-e6ab-019c17106e5b@gmail.com>
+References: <86c36f9b-f633-3354-d676-7693f35dae0d@gmail.com>
+ <20170526012342.GA3096@dhcp-128-65.nay.redhat.com>
+ <a32eea98-9576-1ee7-c27a-b165204d825f@gmail.com>
+ <20170527051427.GA3492@dhcp-128-65.nay.redhat.com>
+ <20170527053457.GB3492@dhcp-128-65.nay.redhat.com>
+ <df8e83f9-9362-b5b5-462d-b11980baac01@gmail.com>
+ <20170601015621.GA4306@dhcp-128-65.nay.redhat.com>
+ <e6d656c0-c76b-42c3-8413-0198efb8a33a@gmail.com>
+ <20170602025155.GA3637@dhcp-128-65.nay.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:35654 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750991AbdFCRhx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Jun 2017 13:37:53 -0400
-In-Reply-To: <20170603172036.7645-1-jlee@suse.com>
+Received: from [195.159.176.226] ([195.159.176.226]:38403 "EHLO
+        blaine.gmane.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1750991AbdFCS0G (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Jun 2017 14:26:06 -0400
+Received: from list by blaine.gmane.org with local (Exim 4.84_2)
+        (envelope-from <glad-acpi-devel@m.gmane.org>)
+        id 1dHDkM-0003ue-9r
+        for linux-acpi@vger.kernel.org; Sat, 03 Jun 2017 20:25:58 +0200
+In-Reply-To: <20170602025155.GA3637@dhcp-128-65.nay.redhat.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-efi@vger.kernel.org
 
-On Sat, Jun 3, 2017 at 8:20 PM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
-> In hotplug logic, it always indicates non-specific failure to
-> platform through _OST when handing acpi hot-remove event failed. Then
-> platform terminates the hot-remove process but it can not identify
-> the reason.
->
-> Base on current hot-remove code, there have two situations that it
-> returns busy:
->  - OSPM try to offline an individual device, but the device offline
->    function returns busy.
->  - When the ejection event is applied to an "not offlined yet" container.
->    OSPM send kobject change event to userspace and returns busy.
->
-> Both of them will returns -EBUSY to acpi device hotplug function then
-> hotplug function indicates non-specific failure to platform just like
-> any other error, e.g. -ENODEV or -EIO.
->
-> The benefit to platform for identifying the OS busy state is that
-> platform can be applied different approach to handle the busy but
-> not just terminate the hot-remove process by unknow reason. For
-> example, platform can wait for a while then triggers hot-remove
-> again.
->
-> This RFC patch adds one more parameter to the handler function of
-> acpi generic hotplug event to give the function a chance to propose
-> the return code of _OST. In this case, it sets ost return code to
-> ACPI_OST_SC_DEVICE_BUSY when the acpi hot remove function returns
-> -EBUSY.
+Isn't the image address invalid if bgrt_tab->status is 0
+(regarding ACPI specs below)?
+The image address could be total garbage and probably the
+reason why memremap (in efi-bgrt.c) leads to different 
+behavior on early_init.
 
-> -static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
-> +static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type,
-> +                                     u32 *ost_code)
->  {
-> +       int error = -EINVAL;
-> +
->         switch (type) {
->         case ACPI_NOTIFY_BUS_CHECK:
->                 return acpi_scan_bus_check(adev);
-> @@ -389,9 +392,11 @@ static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
->                 }
->                 acpi_evaluate_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
->                                   ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-> -               return acpi_scan_hot_remove(adev);
-> +               error = acpi_scan_hot_remove(adev);
-> +               if (error == -EBUSY && ost_code)
-> +                       *ost_code = ACPI_OST_SC_DEVICE_BUSY;
->         }
-> -       return -EINVAL;
-> +       return error;
->  }
+If so, you might need to add another condition to check
+status and bail out before memremap.
 
-Wit this change you spear a logic on two functions...
+**************************************************************************************
+Source: http://www.acpi.info/DOWNLOADS/ACPIspec50.pdf
 
->
->  void acpi_device_hotplug(struct acpi_device *adev, u32 src)
-> @@ -413,7 +418,7 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
->         if (adev->flags.is_dock_station) {
->                 error = dock_notify(adev, src);
->         } else if (adev->flags.hotplug_notify) {
-> -               error = acpi_generic_hotplug_event(adev, src);
-> +               error = acpi_generic_hotplug_event(adev, src, &ost_code);
->                 if (error == -EPERM) {
->                         ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
->                         goto err_out;
+5.2.22 Boot Graphics Resource Table (BGRT)
+[...]
+If the boot path is interrupted (e.g. by a key press), 
+the valid bit within the status field should be changed to 0 
+to indicate to the OS that the current image is invalidated.
 
-...instead (since the first one is defined as static) I would propose
-to change only here like
+5.2.22.2 Status
+The status field contains information about the current 
+status of the table.  The Valid bit is bit 0 of the lowest byte. 
+It should be set to 1 when the table is written, 
+and invalidated if there is reason to expect that the screen 
+state has been changed.
 
-switch (error) {
-case -EPERM:
-ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-break;
-case -EBUSY:
-ost_code = ACPI_OST_SC_DEVICE_BUSY;
-break;
-}
-if (error)
- goto err_out;
+5.2.22.4 Image Address
+The Image Address contains the location in memory where an in-memory 
+copy of the boot image can be found.
+The image should be stored in EfiBootServicesData, allowing the system 
+to reclaim the memory when the image is no longer needed.
 
-This is less intrusive and more flexible to modifications in the
-future (might be split to a helper, might be easily extended, etc).
+**************************************************************************************
+Decompiled BGRT table:
 
--- 
-With Best Regards,
-Andy Shevchenko
+$ sudo acpidump > acpi.dat
+$ acpixtract -a acpi.dat
+$ iasl -d bgrt.dat 
+$ cat bgrt.dsl
+
+/*
+ * Intel ACPI Component Architecture
+ * AML/ASL+ Disassembler version 20170303 (64-bit version)
+ * Copyright (c) 2000 - 2017 Intel Corporation
+ * 
+ * Disassembly of bgrt.dat, Sat Jun  3 15:33:10 2017
+ *
+ * ACPI Data Table [BGRT]
+ *
+ * Format: [HexOffset DecimalOffset ByteLength]  FieldName : FieldValue
+ */
+
+[000h 0000   4]                    Signature : "BGRT"    [Boot Graphics Resource Table]
+[004h 0004   4]                 Table Length : 0000003C
+[008h 0008   1]                     Revision : 00
+[009h 0009   1]                     Checksum : 89
+[00Ah 0010   6]                       Oem ID : "ALASKA"
+[010h 0016   8]                 Oem Table ID : "A M I"
+[018h 0024   4]                 Oem Revision : 01072009
+[01Ch 0028   4]              Asl Compiler ID : "AMI "
+[020h 0032   4]        Asl Compiler Revision : 00010013
+
+[024h 0036   2]                      Version : 0001
+[026h 0038   1]                       Status : 00
+[027h 0039   1]                   Image Type : 00
+[028h 0040   8]                Image Address : 0A08E01800000001
+[030h 0048   4]                Image OffsetX : 00000000
+[034h 0052   4]                Image OffsetY : 00000000
+
+Raw Table Data: Length 60 (0x3C)
+
+  0000: 42 47 52 54 3C 00 00 00 00 89 41 4C 41 53 4B 41  // BGRT<.....ALASKA
+  0010: 41 20 4D 20 49 00 00 00 09 20 07 01 41 4D 49 20  // A M I.... ..AMI 
+  0020: 13 00 01 00 01 00 00 00 01 00 00 00 18 E0 08 0A  // ................
+  0030: 00 00 00 00 00 00 00 00 00 00 00 00              // ............
+
+
