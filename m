@@ -1,91 +1,154 @@
-From: Ganapatrao Kulkarni <gpkulkarni-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] acpi/iort, numa: Add numa node mapping for smmuv3 devices
-Date: Sun, 4 Jun 2017 09:34:54 +0530
-Message-ID: <CAFpQJXWjxpiL=nfe2CFXBoUSL_a=h5kkZPpGFbJ9UxxfegKZ2Q@mail.gmail.com>
-References: <1496325937-21113-1-git-send-email-ganapatrao.kulkarni@cavium.com>
-	<20170601162142.GC19003@red-moon> <5930E085.8000404@huawei.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [RFC PATCH] acpi: indicate to platform when hot remove returns
+ busy
+Date: Sun, 4 Jun 2017 18:04:53 +0800
+Message-ID: <20170604100453.GK30622@linux-l9pv.suse>
+References: <20170603172036.7645-1-jlee@suse.com>
+ <CAHp75VcBd8e7Ce8KbyqtnoBKv7c5W9qb9o70-oViz6iCoRMShw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <5930E085.8000404-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Hanjun Guo <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, sudeep.holla-5wv7dgnIgG8@public.gmane.org, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jayachandran C <jnair-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Ganapatrao Kulkarni <ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.nue.novell.com ([195.135.221.5]:51336 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750847AbdFDKFM (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Sun, 4 Jun 2017 06:05:12 -0400
+Content-Disposition: inline
+In-Reply-To: <CAHp75VcBd8e7Ce8KbyqtnoBKv7c5W9qb9o70-oViz6iCoRMShw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Fri, Jun 2, 2017 at 9:20 AM, Hanjun Guo <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
-> [+Cc Lv Zheng]
->
-> On 2017/6/2 0:21, Lorenzo Pieralisi wrote:
->> On Thu, Jun 01, 2017 at 07:35:37PM +0530, Ganapatrao Kulkarni wrote:
->>> ARM IORT specification has provision to define Proximity domain
->>> in SMMUv3 IORT table. Adding required code to parse Proximity domain of
->>> SMMUv3 IORT table. Parsed Proximity domain is used to set numa_node
->>> of SMMUv3 platform devices.
->>>
->>> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
->>> ---
->>>  drivers/iommu/arm-smmu-v3.c | 6 ++++++
->>>  include/acpi/actbl2.h       | 4 ++++
->>>  2 files changed, 10 insertions(+)
->>>
->>> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
->>> index 69d8506..98c2319 100644
->>> --- a/drivers/iommu/arm-smmu-v3.c
->>> +++ b/drivers/iommu/arm-smmu-v3.c
->>> @@ -2667,6 +2667,12 @@ static int arm_smmu_device_acpi_probe(struct platform_device *pdev,
->>>      if (iort_smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE)
->>>              smmu->features |= ARM_SMMU_FEAT_COHERENCY;
->>>
->>> +    /* set numa proximity domain for smmv3 device */
->>> +    if (iort_smmu->flags & ACPI_IORT_SMMU_V3_PXM) {
->>> +            set_dev_node(dev, acpi_map_pxm_to_node(iort_smmu->pxm));
->>> +            dev_info(dev, "on NUMA node %d\n", dev_to_node(dev));
->> It should be done in acpi/arm64/iort.c at device creation time.
->
-> Agreed.
+Hi Andy,
 
-thanks Lorenzo, i will update in next patch version.
->
->>
->>> +    }
->>> +
->>>      return 0;
->>>  }
->>>  #else
->>> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
->>> index 4b306a6..c16ced8 100644
->>> --- a/include/acpi/actbl2.h
->>> +++ b/include/acpi/actbl2.h
->>> @@ -805,6 +805,9 @@ struct acpi_iort_smmu_v3 {
->>>      u32 pri_gsiv;
->>>      u32 gerr_gsiv;
->>>      u32 sync_gsiv;
->>> +    u8 pxm;
->>> +    u8 reserved1;
->>> +    u16 reserved2;
->
-> I think changes to actbl2.h need to be split as a new patch
-> which go via ACPICA updates,  Lv, could you share
-> your comments here?
+Thanks for your help to review my patch.
 
-thanks Hanjun, looks like the changes should go to acpica repo and it should get
-pulled in kernel.
-
-Lv, can you please suggest on what should be done?
->
-> Thanks
-> Hanjun
+On Sat, Jun 03, 2017 at 08:37:51PM +0300, Andy Shevchenko wrote:
+> On Sat, Jun 3, 2017 at 8:20 PM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
+> > In hotplug logic, it always indicates non-specific failure to
+> > platform through _OST when handing acpi hot-remove event failed. Then
+> > platform terminates the hot-remove process but it can not identify
+> > the reason.
+> >
+> > Base on current hot-remove code, there have two situations that it
+> > returns busy:
+> >  - OSPM try to offline an individual device, but the device offline
+> >    function returns busy.
+> >  - When the ejection event is applied to an "not offlined yet" container.
+> >    OSPM send kobject change event to userspace and returns busy.
+> >
+> > Both of them will returns -EBUSY to acpi device hotplug function then
+> > hotplug function indicates non-specific failure to platform just like
+> > any other error, e.g. -ENODEV or -EIO.
+> >
+> > The benefit to platform for identifying the OS busy state is that
+> > platform can be applied different approach to handle the busy but
+> > not just terminate the hot-remove process by unknow reason. For
+> > example, platform can wait for a while then triggers hot-remove
+> > again.
+> >
+> > This RFC patch adds one more parameter to the handler function of
+> > acpi generic hotplug event to give the function a chance to propose
+> > the return code of _OST. In this case, it sets ost return code to
+> > ACPI_OST_SC_DEVICE_BUSY when the acpi hot remove function returns
+> > -EBUSY.
+> 
+> > -static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
+> > +static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type,
+> > +                                     u32 *ost_code)
+> >  {
+> > +       int error = -EINVAL;
+> > +
+> >         switch (type) {
+> >         case ACPI_NOTIFY_BUS_CHECK:
+> >                 return acpi_scan_bus_check(adev);
+> > @@ -389,9 +392,11 @@ static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
+> >                 }
+> >                 acpi_evaluate_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
+> >                                   ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+> > -               return acpi_scan_hot_remove(adev);
+> > +               error = acpi_scan_hot_remove(adev);
+> > +               if (error == -EBUSY && ost_code)
+> > +                       *ost_code = ACPI_OST_SC_DEVICE_BUSY;
+> >         }
+> > -       return -EINVAL;
+> > +       return error;
+> >  }
+> 
+> Wit this change you spear a logic on two functions...
 >
 
-thanks
-Ganapat
+You are right.
+
+I want to give a chance to acpi_generic_hotplug_event()
+to propose a _OST code. But acpi_device_hotplug() can
+overwrite it. Not good...
+ 
+> >
+> >  void acpi_device_hotplug(struct acpi_device *adev, u32 src)
+> > @@ -413,7 +418,7 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
+> >         if (adev->flags.is_dock_station) {
+> >                 error = dock_notify(adev, src);
+> >         } else if (adev->flags.hotplug_notify) {
+> > -               error = acpi_generic_hotplug_event(adev, src);
+> > +               error = acpi_generic_hotplug_event(adev, src, &ost_code);
+> >                 if (error == -EPERM) {
+> >                         ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> >                         goto err_out;
+> 
+> ...instead (since the first one is defined as static) I would propose
+> to change only here like
+> 
+> switch (error) {
+> case -EPERM:
+> ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> break;
+> case -EBUSY:
+> ost_code = ACPI_OST_SC_DEVICE_BUSY;
+> break;
+> }
+> if (error)
+>  goto err_out;
+> 
+> This is less intrusive and more flexible to modifications in the
+> future (might be split to a helper, might be easily extended, etc).
+>
+
+this RFC patch changed the _OST code for BIOS that it may affects
+the behavior of shipped machines. And, I am not sure that the
+ACPI_OST_SC_DEVICE_BUSY approach is also useful for other hotplug
+event, like ACPI_NOTIFY_BUS_CHECK or ACPI_NOTIFY_DEVICE_CHECK.
+
+So, I prefer to apply this change only on the code path of
+ACPI_NOTIFY_EJECT_REQUEST/ACPI_OST_EC_OSPM_EJECT. 
+
+Here is my first version, that it just simply put if-else logic:
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 2433569..b105087 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -414,10 +414,14 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
+                error = dock_notify(adev, src);
+        } else if (adev->flags.hotplug_notify) {
+                error = acpi_generic_hotplug_event(adev, src);
+-               if (error == -EPERM) {
++               if (error == -EPERM)
+                        ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
++               else if ((error == -EBUSY) &&
++                        (src == ACPI_NOTIFY_EJECT_REQUEST ||
++                         src == ACPI_OST_EC_OSPM_EJECT))
++                       ost_code = ACPI_OST_SC_DEVICE_BUSY;
++               if (error)
+                        goto err_out;
+-               }
+        } else {
+                int (*notify)(struct acpi_device *, u32);
+
+Because it checks the event source that the logic is duplicate
+with the switch code in acpi_generic_hotplug_event(). So I
+reuse the switch code in acpi_generic_hotplug_event().
+
+Thanks a lot!
+Joey Lee
