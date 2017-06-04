@@ -1,41 +1,91 @@
-From: Maniaxx <tripleshiftone@gmail.com>
-Subject: Re: PROBLEM: Kernel panic on EFI BGRT early init code (kernel
- 4.11/4.12rc2) [regression]
-Date: Sun, 4 Jun 2017 04:45:57 +0200
-Message-ID: <d52020a7-21f8-0594-679d-54325235ca9f@gmail.com>
-References: <86c36f9b-f633-3354-d676-7693f35dae0d@gmail.com>
- <20170526012342.GA3096@dhcp-128-65.nay.redhat.com>
- <a32eea98-9576-1ee7-c27a-b165204d825f@gmail.com>
- <20170527051427.GA3492@dhcp-128-65.nay.redhat.com>
- <20170527053457.GB3492@dhcp-128-65.nay.redhat.com>
- <df8e83f9-9362-b5b5-462d-b11980baac01@gmail.com>
- <20170601015621.GA4306@dhcp-128-65.nay.redhat.com>
- <e6d656c0-c76b-42c3-8413-0198efb8a33a@gmail.com>
- <20170602025155.GA3637@dhcp-128-65.nay.redhat.com>
- <c1505b0e-8136-86d3-e6ab-019c17106e5b@gmail.com>
- <4b651aea-0fcc-4f70-cf39-3a46393d2e28@gmail.com>
+From: Ganapatrao Kulkarni <gpkulkarni-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] acpi/iort, numa: Add numa node mapping for smmuv3 devices
+Date: Sun, 4 Jun 2017 09:34:54 +0530
+Message-ID: <CAFpQJXWjxpiL=nfe2CFXBoUSL_a=h5kkZPpGFbJ9UxxfegKZ2Q@mail.gmail.com>
+References: <1496325937-21113-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+	<20170601162142.GC19003@red-moon> <5930E085.8000404@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [195.159.176.226] ([195.159.176.226]:43752 "EHLO
-        blaine.gmane.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1751077AbdFDCrk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Jun 2017 22:47:40 -0400
-Received: from list by blaine.gmane.org with local (Exim 4.84_2)
-        (envelope-from <glad-acpi-devel@m.gmane.org>)
-        id 1dHLZj-0006Vw-K7
-        for linux-acpi@vger.kernel.org; Sun, 04 Jun 2017 04:47:31 +0200
-In-Reply-To: <4b651aea-0fcc-4f70-cf39-3a46393d2e28@gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <5930E085.8000404-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Hanjun Guo <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, sudeep.holla-5wv7dgnIgG8@public.gmane.org, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jayachandran C <jnair-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Ganapatrao Kulkarni <ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-efi@vger.kernel.org
 
-I've reverted 66dbe99cfe30e113d2e571e68b9b6a1a8985a157 from 
-linux-git-4.11.r1.gaf8b4c0323e1 and it boots properly now indeed.
+On Fri, Jun 2, 2017 at 9:20 AM, Hanjun Guo <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
+> [+Cc Lv Zheng]
+>
+> On 2017/6/2 0:21, Lorenzo Pieralisi wrote:
+>> On Thu, Jun 01, 2017 at 07:35:37PM +0530, Ganapatrao Kulkarni wrote:
+>>> ARM IORT specification has provision to define Proximity domain
+>>> in SMMUv3 IORT table. Adding required code to parse Proximity domain of
+>>> SMMUv3 IORT table. Parsed Proximity domain is used to set numa_node
+>>> of SMMUv3 platform devices.
+>>>
+>>> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>>> ---
+>>>  drivers/iommu/arm-smmu-v3.c | 6 ++++++
+>>>  include/acpi/actbl2.h       | 4 ++++
+>>>  2 files changed, 10 insertions(+)
+>>>
+>>> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+>>> index 69d8506..98c2319 100644
+>>> --- a/drivers/iommu/arm-smmu-v3.c
+>>> +++ b/drivers/iommu/arm-smmu-v3.c
+>>> @@ -2667,6 +2667,12 @@ static int arm_smmu_device_acpi_probe(struct platform_device *pdev,
+>>>      if (iort_smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE)
+>>>              smmu->features |= ARM_SMMU_FEAT_COHERENCY;
+>>>
+>>> +    /* set numa proximity domain for smmv3 device */
+>>> +    if (iort_smmu->flags & ACPI_IORT_SMMU_V3_PXM) {
+>>> +            set_dev_node(dev, acpi_map_pxm_to_node(iort_smmu->pxm));
+>>> +            dev_info(dev, "on NUMA node %d\n", dev_to_node(dev));
+>> It should be done in acpi/arm64/iort.c at device creation time.
+>
+> Agreed.
 
-I've asked for some more BGRT dumps to get more image addresses:
-https://bbs.archlinux.org/viewtopic.php?pid=1715699#p1715699
+thanks Lorenzo, i will update in next patch version.
+>
+>>
+>>> +    }
+>>> +
+>>>      return 0;
+>>>  }
+>>>  #else
+>>> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+>>> index 4b306a6..c16ced8 100644
+>>> --- a/include/acpi/actbl2.h
+>>> +++ b/include/acpi/actbl2.h
+>>> @@ -805,6 +805,9 @@ struct acpi_iort_smmu_v3 {
+>>>      u32 pri_gsiv;
+>>>      u32 gerr_gsiv;
+>>>      u32 sync_gsiv;
+>>> +    u8 pxm;
+>>> +    u8 reserved1;
+>>> +    u16 reserved2;
+>
+> I think changes to actbl2.h need to be split as a new patch
+> which go via ACPICA updates,  Lv, could you share
+> your comments here?
 
+thanks Hanjun, looks like the changes should go to acpica repo and it should get
+pulled in kernel.
+
+Lv, can you please suggest on what should be done?
+>
+> Thanks
+> Hanjun
+>
+
+thanks
+Ganapat
