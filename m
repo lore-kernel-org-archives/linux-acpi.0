@@ -1,45 +1,46 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 12/53] ACPICA: Add support for _HMA as a predefined method
-Date: Mon,  5 Jun 2017 16:38:15 +0800
-Message-ID: <064bf306abdd9c6540c067916f825dd84ac009b9.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 13/53] ACPICA: Add new notify value for HEST table
+Date: Mon,  5 Jun 2017 16:38:20 +0800
+Message-ID: <8317602bfdadeb2edbd4fada395415cc768e25a0.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:16637 "EHLO mga05.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:20596 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751606AbdFEIiS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:38:18 -0400
+        id S1751512AbdFEIiX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:38:23 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Erik Schmauss <erik.schmauss@intel.com>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Erik Schmauss <erik.schmauss@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 223a647c72243359231865a64c1be04d208dcdbd
+ACPICA commit 35e06462f3186e1e6e9cb4fe97dfb43d4b3718a2
 
-Link: https://github.com/acpica/acpica/commit/223a647c
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+"Software Delegated Exception" - ACPI 6.2
+
+Link: https://github.com/acpica/acpica/commit/35e06462
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acpredef.h | 3 +++
- 1 file changed, 3 insertions(+)
+ include/acpi/actbl1.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
-index c777f02..cdfcad8 100644
---- a/drivers/acpi/acpica/acpredef.h
-+++ b/drivers/acpi/acpica/acpredef.h
-@@ -581,6 +581,9 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 	{{"_HID", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING)}},
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 070f322..87a12e1 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -514,7 +514,8 @@ enum acpi_hest_notify_types {
+ 	ACPI_HEST_NOTIFY_SEA = 8,	/* ACPI 6.1 */
+ 	ACPI_HEST_NOTIFY_SEI = 9,	/* ACPI 6.1 */
+ 	ACPI_HEST_NOTIFY_GSIV = 10,	/* ACPI 6.1 */
+-	ACPI_HEST_NOTIFY_RESERVED = 11	/* 11 and greater are reserved */
++	ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED = 11,	/* ACPI 6.2 */
++	ACPI_HEST_NOTIFY_RESERVED = 12	/* 12 and greater are reserved */
+ };
  
-+	{{"_HMA", METHOD_0ARGS,
-+	  METHOD_RETURNS(ACPI_RTYPE_BUFFER)}},
-+
- 	{{"_HOT", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
- 
+ /* Values for config_write_enable bitfield above */
 -- 
 2.7.4
 
