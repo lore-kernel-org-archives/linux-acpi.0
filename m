@@ -1,107 +1,152 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 2/7] dt-bindings: PCI: Describe ATS property for root
- complex nodes
-Date: Mon, 5 Jun 2017 12:20:25 -0500
-Message-ID: <20170605172025.qgnocl5ytexnklue@rob-hp-laptop>
-References: <20170524180143.19855-1-jean-philippe.brucker@arm.com>
- <20170524180143.19855-3-jean-philippe.brucker@arm.com>
- <20170531172320.3u6bdctv44aqighy@rob-hp-laptop>
- <cd63a2dc-8259-482d-19e9-9db60be866f7@arm.com>
+From: Linda Knippers <linda.knippers@hpe.com>
+Subject: Re: [PATCH 01/15] ACPICA: Disassembler: Enhance resource descriptor
+ detection
+Date: Mon, 5 Jun 2017 14:21:30 -0400
+Message-ID: <361261e5-ce98-9d33-f2de-88286288e2e1@hpe.com>
+References: <cover.1493194142.git.lv.zheng@intel.com>
+ <fe4a8655a06221df851d5781609058f16aa65e93.1493194142.git.lv.zheng@intel.com>
+ <59357F55.8050707@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:35490 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751942AbdFERU2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2017 13:20:28 -0400
-Content-Disposition: inline
-In-Reply-To: <cd63a2dc-8259-482d-19e9-9db60be866f7@arm.com>
+Received: from g9t1613g.houston.hpe.com ([15.241.32.99]:24894 "EHLO
+        g9t1613g.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751183AbdFESVm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2017 14:21:42 -0400
+Received: from g9t5008.houston.hpe.com (g9t5008.houston.hpe.com [15.241.48.72])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by g9t1613g.houston.hpe.com (Postfix) with ESMTPS id 29F856042C
+        for <linux-acpi@vger.kernel.org>; Mon,  5 Jun 2017 18:21:41 +0000 (UTC)
+In-Reply-To: <59357F55.8050707@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Cc: linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org, bhelgaas@google.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, robin.murphy@arm.com, joro@8bytes.org, okaya@codeaurora.org, sunil.kovvuri@gmail.com, thunder.leizhen@huawei.com, tn@semihalf.com
+To: Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, "David E . Box" <david.e.box@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Thu, Jun 01, 2017 at 01:28:01PM +0100, Jean-Philippe Brucker wrote:
-> On 31/05/17 18:23, Rob Herring wrote:
-> > On Wed, May 24, 2017 at 07:01:38PM +0100, Jean-Philippe Brucker wrote:
-> >> Address Translation Service (ATS) is an extension to PCIe allowing
-> >> endpoints to manage their own IOTLB, called Address Translation Cache
-> >> (ATC). Instead of having every memory transaction processed by the IOMMU,
-> >> the endpoint can first send an Address Translation Requests for an IOVA,
-> >> obtain the corresponding Physical Address from the IOMMU and store it in
-> >> its ATC. Subsequent transactions to this memory region can be performed on
-> >> the PA, in which case they are marked 'translated' and (partially) bypass
-> >> the IOMMU.
-> >>
-> >> Since the extension uses fields that were previously reserved in the
-> >> PCIe Translation Layer Packet, it seems ill-advised to enabled it on a
-> >> system that doesn't fully support ATS.
-> >>
-> >> To "old" root complexes that simply ignored the new AT field, an Address
-> >> Translation Request will look exactly like a Memory Read Request, so the
-> >> root bridge will forward a memory read to the IOMMU instead of a
-> >> translation request. If the access succeeds, the RC will send a Read
-> >> Completion, which looks like a Translation Completion, back to the
-> >> endpoint. As a result the endpoint might end up storing the content of
-> >> memory instead of a physical address in its ATC. In reality, it's more
-> >> likely that the size fields will be invalid and either end will detect the
-> >> error, but in any case, it is undesirable.
-> >>
-> >> Add a way for firmware to tell the OS that ATS is supported by the PCI
-> >> root complex.
-> > 
-> > Can't firmware have already enabled ATS? Often for things like this, not 
-> > present means "use firmware setting".
-> 
-> I don't think it's up to firmware to enable ATS in endpoints, because it
-> depends on IOMMU properties (e.g. configured page size). It must also be
-> enabled after the PASID capability, which the OS may or may not want to
-> enable.
-> 
-> While endpoints have ATS capability and config register, there is no
-> architected mechanism in root complexes as far as I know. So firmware may
-> have a mechanism outside the OS scope to toggle ATS in the root complex.
-> If there is a bug and firmware cannot enable ATS, then the OS must be made
-> aware of it, so that it doesn't enable ATS in endpoints, or else we might
-> end up with silent memory corruption as described above. (Lack of ATS may
-> slow the system down but shouldn't be fatal.)
-> 
-> If the SMMU supports ATS, then the root complex attached to it will most
-> likely supports ATS. The switch in this patch simply allows firmware to
-> confirm that.
-> 
-> >> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-> >> ---
-> >>  Documentation/devicetree/bindings/pci/pci-iommu.txt | 8 ++++++++
-> >>  1 file changed, 8 insertions(+)
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/pci/pci-iommu.txt b/Documentation/devicetree/bindings/pci/pci-iommu.txt
-> >> index 0def586fdcdf..f21a68ec471a 100644
-> >> --- a/Documentation/devicetree/bindings/pci/pci-iommu.txt
-> >> +++ b/Documentation/devicetree/bindings/pci/pci-iommu.txt
-> >> @@ -44,6 +44,14 @@ Optional properties
-> >>  - iommu-map-mask: A mask to be applied to each Requester ID prior to being
-> >>    mapped to an IOMMU specifier per the iommu-map property.
-> >>  
-> >> +- ats-supported: if present, the root complex supports the Address
-> >> +  Translation Service (ATS). It is able to interpret the AT field in PCIe
-> >> +  Transaction Layer Packets, and forward Translation Completions or
-> >> +  Invalidation Requests to endpoints.
-> > 
-> > Why can't this be based on the compatible strings?
-> 
-> Host controllers like the generic ECAM one should be able to advertise
-> ATS, if for instance the virtual IOMMU in Qemu offers a channel for ATS
-> invalidation. In that case we would have pci-host-{e,}cam-generic{-ats,}
-> compatible strings and double the number of compatible strings each time
-> we add a similar capability.
+On 6/5/2017 11:57 AM, Linda Knippers wrote:
+>
+> On 04/26/2017 04:17 AM, Lv Zheng wrote:
+>> From: Bob Moore <robert.moore@intel.com>
+>>
+>> ACPICA commit ba5020b2dbe1538e4ccd7ac2dfd8843a690c007f
+>>
+>> This change enhances the detection of resource descriptors
+>> within a buffer object. For the end_tag opcode, the second byte
+>> is defined to be either a checksum or zero. All known ASL compilers
+>> insert a zero for this byte. The disassembler now ensures this
+>> byte is zero before deciding that a buffer should be disassembled
+>> to a resource descriptor. This helps eliminate incorrect decisions
+>> when attempting to disassemble a buffer to a resource descriptor.
+>
+> This commit breaks things on my platform. I'm testing on an HPE ProLiant DL380Gen9
+> but I also see errors on other ProLiant servers, including much older ones.
+>
+> With this commit, I see errors like:
+>
+> [ 4.496926] acpi PNP0A03:00: [Firmware Bug]: no secondary bus range in _CRS
+> [ 4.496929] ACPI: PCI Root Bridge [UNC0] (domain 0000 [bus 7f-ff])
+> [ 4.496934] acpi PNP0A03:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
+> [ 4.496938] acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
+> [ 4.496949] acpi PNP0A03:00: failed to parse _CRS method, error code -5
+> [ 4.496950] acpi PNP0A03:00: Bus 0000:7f not present in PCI namespace
+> [ 4.499111] acpi PNP0A03:01: [Firmware Bug]: no secondary bus range in _CRS
+> [ 4.499113] ACPI: PCI Root Bridge [UNC1] (domain 0000 [bus ff])
+> [ 4.499115] acpi PNP0A03:01: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
+> [ 4.499118] acpi PNP0A03:01: _OSC failed (AE_NOT_FOUND); disabling ASPM
+> [ 4.499126] acpi PNP0A03:01: failed to parse _CRS method, error code -5
+> [ 4.499127] acpi PNP0A03:01: Bus 0000:ff not present in PCI namespace
+> [ 4.502133] acpi PNP0A08:00: [Firmware Bug]: no secondary bus range in _CRS
+> [ 4.502136] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+> [ 4.502138] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
+> [ 4.502268] acpi PNP0A08:00: _OSC: platform does not support [AER]
+> [ 4.502386] acpi PNP0A08:00: _OSC: OS now controls [PCIeHotplug PME PCIeCapability]
+> [ 4.502387] acpi PNP0A08:00: FADT indicates ASPM is unsupported, using BIOS configuration
+> [ 4.502646] acpi PNP0A08:00: failed to parse _CRS method, error code -5
+> [ 4.502647] acpi PNP0A08:00: Bus 0000:00 not present in PCI namespace
+> [ 4.504816] acpi PNP0A08:01: [Firmware Bug]: no secondary bus range in _CRS
+> [ 4.504819] ACPI: PCI Root Bridge [PCI1] (domain 0000 [bus 80-ff])
+> [ 4.504821] acpi PNP0A08:01: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
+> [ 4.504936] acpi PNP0A08:01: _OSC: platform does not support [AER]
+> [ 4.505042] acpi PNP0A08:01: _OSC: OS now controls [PCIeHotplug PME PCIeCapability]
+> [ 4.505043] acpi PNP0A08:01: FADT indicates ASPM is unsupported, using BIOS configuration
+> [ 4.505057] acpi PNP0A08:01: failed to parse _CRS method, error code -5
+> [ 4.505058] acpi PNP0A08:01: Bus 0000:80 not present in PCI namespace
+> ...
+> [ 4.524563] PCI: Using ACPI for IRQ routing
+> [ 4.524564] PCI: Discovered peer bus 00
+> [ 4.524565] PCI: root bus 00: using default resources
+> [ 4.524566] PCI: Probing PCI hardware (bus 00)
+> [ 4.524586] ACPI: \: failed to evaluate _DSM (0x1001)
+>
+> This causes random things to break, such as the ability for an ACPI method
+> to make IPMI calls because ipmi_si doesn't find the ACPI-specified BMC.
+>
+>>
+>> Link: https://github.com/acpica/acpica/commit/ba5020b2
+>> Signed-off-by: Bob Moore <robert.moore@intel.com>
+>> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+>> ---
+>>  drivers/acpi/acpica/utresrc.c | 9 +++++++++
+>>  1 file changed, 9 insertions(+)
+>>
+>> diff --git a/drivers/acpi/acpica/utresrc.c b/drivers/acpi/acpica/utresrc.c
+>> index ff096d9..e0587c8 100644
+>> --- a/drivers/acpi/acpica/utresrc.c
+>> +++ b/drivers/acpi/acpica/utresrc.c
+>> @@ -474,6 +474,15 @@ acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
+>>  				return_ACPI_STATUS(AE_AML_NO_RESOURCE_END_TAG);
+>>  			}
+>>
+>> +			/*
+>> +			 * The end_tag opcode must be followed by a zero byte.
+>> +			 * Although this byte is technically defined to be a checksum,
+>> +			 * in practice, all ASL compilers set this byte to zero.
+>> +			 */
+>> +			if (*(aml + 1) != 0) {
+>> +				return_ACPI_STATUS(AE_AML_NO_RESOURCE_END_TAG);
+>
+> If I replace the return with an ACPI_ERROR, I get output like this:
+>
+> [ 4.497662] ACPI Error: Non-zero value: 0xE5 (20170303/utresrc-484)
+> [ 4.500111] ACPI Error: Non-zero value: 0xE5 (20170303/utresrc-484)
+> [ 4.506862] ACPI Error: Non-zero value: 0xE5 (20170303/utresrc-484)
+> [ 4.509011] ACPI Error: Non-zero value: 0xE5 (20170303/utresrc-484)
+> [ 4.516777] ACPI Error: Non-zero value: 0x50 (20170303/utresrc-484)
+> [ 4.519710] ACPI Error: Non-zero value: 0x50 (20170303/utresrc-484)
+> [ 4.541214] ACPI Error: Non-zero value: 0xE4 (20170303/utresrc-484)
+> [ 4.543670] ACPI Error: Non-zero value: 0xE4 (20170303/utresrc-484)
+> [ 4.584594] ACPI Error: Non-zero value: 0x07 (20170303/utresrc-484)
+> [ 4.586754] ACPI Error: Non-zero value: 0x11 (20170303/utresrc-484)
+>
+> By not returning an error, I no longer see the other errors and everything
+> seems to work.
+>
+> I haven't yet determined whether the non-zero value is a valid checksum but
+> it's definitely not zero.
+>
+> If the byte is technically defined to be a checksum, then the code ought to
+> accept a valid checksum.  If it turns out that my platform isn't actually
+> providing a valid checksum, then I'd like to see a warning or something
+> rather than a error, since this change will break a lot of systems.
 
-It would not double the compatibles. A given SoC will either support ATS 
-or not, right? A given compatible will imply whether ATS is supported or 
-not.
 
-pci-host-{e,}cam-generic is a special case. I'm okay with having a 
-property for that I suppose. We should not require this property though 
-and allow for it to be implied by the SoC specific compatible as well.
+I talked to our FW team and we do generate checksums and not a zero for at
+least some
+of the AML. Please revert this change until you can also validate
+a checksum.  Or shall I post a patch to remove the check?
 
-Rob
+Thanks,
+
+-- ljk
+>
+> -- ljk
+>
+>> +			}
+>> +
+>>  			/* Return the pointer to the end_tag if requested */
+>>
+>>  			if (!user_function) {
+>>
+>
