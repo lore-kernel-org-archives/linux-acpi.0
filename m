@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 37/53] ACPICA: Update resource descriptor handling
-Date: Mon,  5 Jun 2017 16:40:50 +0800
-Message-ID: <0c6820111292a5a0f46991f6dec03270ec1b6d73.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 38/53] ACPICA: Split resource descriptor decode strings to a new file
+Date: Mon,  5 Jun 2017 16:40:57 +0800
+Message-ID: <576d70423f6a3737a65bb264e13258d82d43c980.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:51301 "EHLO mga07.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:23811 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751478AbdFEIkx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:40:53 -0400
+        id S1751404AbdFEIlA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:41:00 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,51 +16,630 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit c8eac10178b387f9eb1935694e509d4518da77bb
+ACPICA commit 00906ae0aff4c6b76abc232ef99700e7d7c0e325
 
-This change restores the change introduced by commit 23b5bbe and
-adds a comment concerning resource descriptor buffers that extend
-beyond the END_TAG descriptor.
+There are enough of these strings to justify a separate file.
+Also, these strings are only used for the disassembler and
+the debugger. Thus, this change improves ACPICA modularity.
 
-Link: https://github.com/acpica/acpica/commit/c8eac101
+Link: https://github.com/acpica/acpica/commit/00906ae0
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/utresrc.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/acpi/acpica/Makefile      |   1 +
+ drivers/acpi/acpica/utresdecode.c | 315 ++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/utresrc.c     | 264 --------------------------------
+ 3 files changed, 316 insertions(+), 264 deletions(-)
+ create mode 100644 drivers/acpi/acpica/utresdecode.c
 
+diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
+index dea6530..b125bdd 100644
+--- a/drivers/acpi/acpica/Makefile
++++ b/drivers/acpi/acpica/Makefile
+@@ -172,6 +172,7 @@ acpi-y +=		\
+ 	utosi.o		\
+ 	utownerid.o	\
+ 	utpredef.o	\
++	utresdecode.o	\
+ 	utresrc.o	\
+ 	utstate.o	\
+ 	utstring.o	\
+diff --git a/drivers/acpi/acpica/utresdecode.c b/drivers/acpi/acpica/utresdecode.c
+new file mode 100644
+index 0000000..e15a2538
+--- /dev/null
++++ b/drivers/acpi/acpica/utresdecode.c
+@@ -0,0 +1,315 @@
++/*******************************************************************************
++ *
++ * Module Name: utresdecode - Resource descriptor keyword strings
++ *
++ ******************************************************************************/
++
++/*
++ * Copyright (C) 2000 - 2017, Intel Corp.
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions, and the following disclaimer,
++ *    without modification.
++ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
++ *    substantially similar to the "NO WARRANTY" disclaimer below
++ *    ("Disclaimer") and any redistribution must be conditioned upon
++ *    including a substantially similar Disclaimer requirement for further
++ *    binary redistribution.
++ * 3. Neither the names of the above-listed copyright holders nor the names
++ *    of any contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * NO WARRANTY
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
++ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGES.
++ */
++
++#include <acpi/acpi.h>
++#include "accommon.h"
++#include "acresrc.h"
++
++#define _COMPONENT          ACPI_UTILITIES
++ACPI_MODULE_NAME("utresdecode")
++
++#if defined (ACPI_DEBUG_OUTPUT) || \
++	defined (ACPI_DISASSEMBLER) || \
++	defined (ACPI_DEBUGGER)
++/*
++ * Strings used to decode resource descriptors.
++ * Used by both the disassembler and the debugger resource dump routines
++ */
++const char *acpi_gbl_bm_decode[] = {
++	"NotBusMaster",
++	"BusMaster"
++};
++
++const char *acpi_gbl_config_decode[] = {
++	"0 - Good Configuration",
++	"1 - Acceptable Configuration",
++	"2 - Suboptimal Configuration",
++	"3 - ***Invalid Configuration***",
++};
++
++const char *acpi_gbl_consume_decode[] = {
++	"ResourceProducer",
++	"ResourceConsumer"
++};
++
++const char *acpi_gbl_dec_decode[] = {
++	"PosDecode",
++	"SubDecode"
++};
++
++const char *acpi_gbl_he_decode[] = {
++	"Level",
++	"Edge"
++};
++
++const char *acpi_gbl_io_decode[] = {
++	"Decode10",
++	"Decode16"
++};
++
++const char *acpi_gbl_ll_decode[] = {
++	"ActiveHigh",
++	"ActiveLow",
++	"ActiveBoth",
++	"Reserved"
++};
++
++const char *acpi_gbl_max_decode[] = {
++	"MaxNotFixed",
++	"MaxFixed"
++};
++
++const char *acpi_gbl_mem_decode[] = {
++	"NonCacheable",
++	"Cacheable",
++	"WriteCombining",
++	"Prefetchable"
++};
++
++const char *acpi_gbl_min_decode[] = {
++	"MinNotFixed",
++	"MinFixed"
++};
++
++const char *acpi_gbl_mtp_decode[] = {
++	"AddressRangeMemory",
++	"AddressRangeReserved",
++	"AddressRangeACPI",
++	"AddressRangeNVS"
++};
++
++const char *acpi_gbl_rng_decode[] = {
++	"InvalidRanges",
++	"NonISAOnlyRanges",
++	"ISAOnlyRanges",
++	"EntireRange"
++};
++
++const char *acpi_gbl_rw_decode[] = {
++	"ReadOnly",
++	"ReadWrite"
++};
++
++const char *acpi_gbl_shr_decode[] = {
++	"Exclusive",
++	"Shared",
++	"ExclusiveAndWake",	/* ACPI 5.0 */
++	"SharedAndWake"		/* ACPI 5.0 */
++};
++
++const char *acpi_gbl_siz_decode[] = {
++	"Transfer8",
++	"Transfer8_16",
++	"Transfer16",
++	"InvalidSize"
++};
++
++const char *acpi_gbl_trs_decode[] = {
++	"DenseTranslation",
++	"SparseTranslation"
++};
++
++const char *acpi_gbl_ttp_decode[] = {
++	"TypeStatic",
++	"TypeTranslation"
++};
++
++const char *acpi_gbl_typ_decode[] = {
++	"Compatibility",
++	"TypeA",
++	"TypeB",
++	"TypeF"
++};
++
++const char *acpi_gbl_ppc_decode[] = {
++	"PullDefault",
++	"PullUp",
++	"PullDown",
++	"PullNone"
++};
++
++const char *acpi_gbl_ior_decode[] = {
++	"IoRestrictionNone",
++	"IoRestrictionInputOnly",
++	"IoRestrictionOutputOnly",
++	"IoRestrictionNoneAndPreserve"
++};
++
++const char *acpi_gbl_dts_decode[] = {
++	"Width8bit",
++	"Width16bit",
++	"Width32bit",
++	"Width64bit",
++	"Width128bit",
++	"Width256bit",
++};
++
++/* GPIO connection type */
++
++const char *acpi_gbl_ct_decode[] = {
++	"Interrupt",
++	"I/O"
++};
++
++/* Serial bus type */
++
++const char *acpi_gbl_sbt_decode[] = {
++	"/* UNKNOWN serial bus type */",
++	"I2C",
++	"SPI",
++	"UART"
++};
++
++/* I2C serial bus access mode */
++
++const char *acpi_gbl_am_decode[] = {
++	"AddressingMode7Bit",
++	"AddressingMode10Bit"
++};
++
++/* I2C serial bus slave mode */
++
++const char *acpi_gbl_sm_decode[] = {
++	"ControllerInitiated",
++	"DeviceInitiated"
++};
++
++/* SPI serial bus wire mode */
++
++const char *acpi_gbl_wm_decode[] = {
++	"FourWireMode",
++	"ThreeWireMode"
++};
++
++/* SPI serial clock phase */
++
++const char *acpi_gbl_cph_decode[] = {
++	"ClockPhaseFirst",
++	"ClockPhaseSecond"
++};
++
++/* SPI serial bus clock polarity */
++
++const char *acpi_gbl_cpo_decode[] = {
++	"ClockPolarityLow",
++	"ClockPolarityHigh"
++};
++
++/* SPI serial bus device polarity */
++
++const char *acpi_gbl_dp_decode[] = {
++	"PolarityLow",
++	"PolarityHigh"
++};
++
++/* UART serial bus endian */
++
++const char *acpi_gbl_ed_decode[] = {
++	"LittleEndian",
++	"BigEndian"
++};
++
++/* UART serial bus bits per byte */
++
++const char *acpi_gbl_bpb_decode[] = {
++	"DataBitsFive",
++	"DataBitsSix",
++	"DataBitsSeven",
++	"DataBitsEight",
++	"DataBitsNine",
++	"/* UNKNOWN Bits per byte */",
++	"/* UNKNOWN Bits per byte */",
++	"/* UNKNOWN Bits per byte */"
++};
++
++/* UART serial bus stop bits */
++
++const char *acpi_gbl_sb_decode[] = {
++	"StopBitsZero",
++	"StopBitsOne",
++	"StopBitsOnePlusHalf",
++	"StopBitsTwo"
++};
++
++/* UART serial bus flow control */
++
++const char *acpi_gbl_fc_decode[] = {
++	"FlowControlNone",
++	"FlowControlHardware",
++	"FlowControlXON",
++	"/* UNKNOWN flow control keyword */"
++};
++
++/* UART serial bus parity type */
++
++const char *acpi_gbl_pt_decode[] = {
++	"ParityTypeNone",
++	"ParityTypeEven",
++	"ParityTypeOdd",
++	"ParityTypeMark",
++	"ParityTypeSpace",
++	"/* UNKNOWN parity keyword */",
++	"/* UNKNOWN parity keyword */",
++	"/* UNKNOWN parity keyword */"
++};
++
++/* pin_config type */
++
++const char *acpi_gbl_ptyp_decode[] = {
++	"Default",
++	"Bias Pull-up",
++	"Bias Pull-down",
++	"Bias Default",
++	"Bias Disable",
++	"Bias High Impedance",
++	"Bias Bus Hold",
++	"Drive Open Drain",
++	"Drive Open Source",
++	"Drive Push Pull",
++	"Drive Strength",
++	"Slew Rate",
++	"Input Debounce",
++	"Input Schmitt Trigger",
++};
++
++#endif
 diff --git a/drivers/acpi/acpica/utresrc.c b/drivers/acpi/acpica/utresrc.c
-index b4282ea..ddb9365 100644
+index ddb9365..a41bc64 100644
 --- a/drivers/acpi/acpica/utresrc.c
 +++ b/drivers/acpi/acpica/utresrc.c
-@@ -448,9 +448,11 @@ acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
+@@ -48,270 +48,6 @@
+ #define _COMPONENT          ACPI_UTILITIES
+ ACPI_MODULE_NAME("utresrc")
  
- 	ACPI_FUNCTION_TRACE(ut_walk_aml_resources);
- 
--	/* The absolute minimum resource template is one end_tag descriptor */
+-#if defined(ACPI_DEBUG_OUTPUT) || defined (ACPI_DISASSEMBLER) || defined (ACPI_DEBUGGER)
+-/*
+- * Strings used to decode resource descriptors.
+- * Used by both the disassembler and the debugger resource dump routines
+- */
+-const char *acpi_gbl_bm_decode[] = {
+-	"NotBusMaster",
+-	"BusMaster"
+-};
 -
--	if (aml_length < sizeof(struct aml_resource_end_tag)) {
-+	/*
-+	 * The absolute minimum resource template is one end_tag descriptor.
-+	 * However, we will treat a lone end_tag as just a simple buffer.
-+	 */
-+	if (aml_length <= sizeof(struct aml_resource_end_tag)) {
- 		return_ACPI_STATUS(AE_AML_NO_RESOURCE_END_TAG);
- 	}
- 
-@@ -516,8 +518,10 @@ acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
- 				*context = aml;
- 			}
- 
--			/* Normal exit */
+-const char *acpi_gbl_config_decode[] = {
+-	"0 - Good Configuration",
+-	"1 - Acceptable Configuration",
+-	"2 - Suboptimal Configuration",
+-	"3 - ***Invalid Configuration***",
+-};
 -
-+			/*
-+			 * Normal exit. Note: We allow the buffer to be larger than
-+			 * the resource template, as long as the END_TAG exists.
-+			 */
- 			return_ACPI_STATUS(AE_OK);
- 		}
- 
+-const char *acpi_gbl_consume_decode[] = {
+-	"ResourceProducer",
+-	"ResourceConsumer"
+-};
+-
+-const char *acpi_gbl_dec_decode[] = {
+-	"PosDecode",
+-	"SubDecode"
+-};
+-
+-const char *acpi_gbl_he_decode[] = {
+-	"Level",
+-	"Edge"
+-};
+-
+-const char *acpi_gbl_io_decode[] = {
+-	"Decode10",
+-	"Decode16"
+-};
+-
+-const char *acpi_gbl_ll_decode[] = {
+-	"ActiveHigh",
+-	"ActiveLow",
+-	"ActiveBoth",
+-	"Reserved"
+-};
+-
+-const char *acpi_gbl_max_decode[] = {
+-	"MaxNotFixed",
+-	"MaxFixed"
+-};
+-
+-const char *acpi_gbl_mem_decode[] = {
+-	"NonCacheable",
+-	"Cacheable",
+-	"WriteCombining",
+-	"Prefetchable"
+-};
+-
+-const char *acpi_gbl_min_decode[] = {
+-	"MinNotFixed",
+-	"MinFixed"
+-};
+-
+-const char *acpi_gbl_mtp_decode[] = {
+-	"AddressRangeMemory",
+-	"AddressRangeReserved",
+-	"AddressRangeACPI",
+-	"AddressRangeNVS"
+-};
+-
+-const char *acpi_gbl_rng_decode[] = {
+-	"InvalidRanges",
+-	"NonISAOnlyRanges",
+-	"ISAOnlyRanges",
+-	"EntireRange"
+-};
+-
+-const char *acpi_gbl_rw_decode[] = {
+-	"ReadOnly",
+-	"ReadWrite"
+-};
+-
+-const char *acpi_gbl_shr_decode[] = {
+-	"Exclusive",
+-	"Shared",
+-	"ExclusiveAndWake",	/* ACPI 5.0 */
+-	"SharedAndWake"		/* ACPI 5.0 */
+-};
+-
+-const char *acpi_gbl_siz_decode[] = {
+-	"Transfer8",
+-	"Transfer8_16",
+-	"Transfer16",
+-	"InvalidSize"
+-};
+-
+-const char *acpi_gbl_trs_decode[] = {
+-	"DenseTranslation",
+-	"SparseTranslation"
+-};
+-
+-const char *acpi_gbl_ttp_decode[] = {
+-	"TypeStatic",
+-	"TypeTranslation"
+-};
+-
+-const char *acpi_gbl_typ_decode[] = {
+-	"Compatibility",
+-	"TypeA",
+-	"TypeB",
+-	"TypeF"
+-};
+-
+-const char *acpi_gbl_ppc_decode[] = {
+-	"PullDefault",
+-	"PullUp",
+-	"PullDown",
+-	"PullNone"
+-};
+-
+-const char *acpi_gbl_ior_decode[] = {
+-	"IoRestrictionNone",
+-	"IoRestrictionInputOnly",
+-	"IoRestrictionOutputOnly",
+-	"IoRestrictionNoneAndPreserve"
+-};
+-
+-const char *acpi_gbl_dts_decode[] = {
+-	"Width8bit",
+-	"Width16bit",
+-	"Width32bit",
+-	"Width64bit",
+-	"Width128bit",
+-	"Width256bit",
+-};
+-
+-/* GPIO connection type */
+-
+-const char *acpi_gbl_ct_decode[] = {
+-	"Interrupt",
+-	"I/O"
+-};
+-
+-/* Serial bus type */
+-
+-const char *acpi_gbl_sbt_decode[] = {
+-	"/* UNKNOWN serial bus type */",
+-	"I2C",
+-	"SPI",
+-	"UART"
+-};
+-
+-/* I2C serial bus access mode */
+-
+-const char *acpi_gbl_am_decode[] = {
+-	"AddressingMode7Bit",
+-	"AddressingMode10Bit"
+-};
+-
+-/* I2C serial bus slave mode */
+-
+-const char *acpi_gbl_sm_decode[] = {
+-	"ControllerInitiated",
+-	"DeviceInitiated"
+-};
+-
+-/* SPI serial bus wire mode */
+-
+-const char *acpi_gbl_wm_decode[] = {
+-	"FourWireMode",
+-	"ThreeWireMode"
+-};
+-
+-/* SPI serial clock phase */
+-
+-const char *acpi_gbl_cph_decode[] = {
+-	"ClockPhaseFirst",
+-	"ClockPhaseSecond"
+-};
+-
+-/* SPI serial bus clock polarity */
+-
+-const char *acpi_gbl_cpo_decode[] = {
+-	"ClockPolarityLow",
+-	"ClockPolarityHigh"
+-};
+-
+-/* SPI serial bus device polarity */
+-
+-const char *acpi_gbl_dp_decode[] = {
+-	"PolarityLow",
+-	"PolarityHigh"
+-};
+-
+-/* UART serial bus endian */
+-
+-const char *acpi_gbl_ed_decode[] = {
+-	"LittleEndian",
+-	"BigEndian"
+-};
+-
+-/* UART serial bus bits per byte */
+-
+-const char *acpi_gbl_bpb_decode[] = {
+-	"DataBitsFive",
+-	"DataBitsSix",
+-	"DataBitsSeven",
+-	"DataBitsEight",
+-	"DataBitsNine",
+-	"/* UNKNOWN Bits per byte */",
+-	"/* UNKNOWN Bits per byte */",
+-	"/* UNKNOWN Bits per byte */"
+-};
+-
+-/* UART serial bus stop bits */
+-
+-const char *acpi_gbl_sb_decode[] = {
+-	"StopBitsZero",
+-	"StopBitsOne",
+-	"StopBitsOnePlusHalf",
+-	"StopBitsTwo"
+-};
+-
+-/* UART serial bus flow control */
+-
+-const char *acpi_gbl_fc_decode[] = {
+-	"FlowControlNone",
+-	"FlowControlHardware",
+-	"FlowControlXON",
+-	"/* UNKNOWN flow control keyword */"
+-};
+-
+-/* UART serial bus parity type */
+-
+-const char *acpi_gbl_pt_decode[] = {
+-	"ParityTypeNone",
+-	"ParityTypeEven",
+-	"ParityTypeOdd",
+-	"ParityTypeMark",
+-	"ParityTypeSpace",
+-	"/* UNKNOWN parity keyword */",
+-	"/* UNKNOWN parity keyword */",
+-	"/* UNKNOWN parity keyword */"
+-};
+-
+-/* pin_config type */
+-
+-const char *acpi_gbl_ptyp_decode[] = {
+-	"Default",
+-	"Bias Pull-up",
+-	"Bias Pull-down",
+-	"Bias Default",
+-	"Bias Disable",
+-	"Bias High Impedance",
+-	"Bias Bus Hold",
+-	"Drive Open Drain",
+-	"Drive Open Source",
+-	"Drive Push Pull",
+-	"Drive Strength",
+-	"Slew Rate",
+-	"Input Debounce",
+-	"Input Schmitt Trigger",
+-};
+-
+-#endif
+-
+ /*
+  * Base sizes of the raw AML resource descriptors, indexed by resource type.
+  * Zero indicates a reserved (and therefore invalid) resource type.
 -- 
 2.7.4
 
