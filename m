@@ -1,35 +1,53 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [resend RFC 1/6] ACPICA: add HMAT table definitions
-Date: Mon, 5 Jun 2017 22:44:11 +0200
-Message-ID: <CAJZ5v0iARt8WT+VHt21trSvYqqy6f4ExLEL3UVxJ4vbX_=_bcQ@mail.gmail.com>
-References: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
- <20170605195057.31492-1-ross.zwisler@linux.intel.com> <20170605195057.31492-2-ross.zwisler@linux.intel.com>
+From: Linda Knippers <linda.knippers@hpe.com>
+Subject: Re: [PATCH 01/15] ACPICA: Disassembler: Enhance resource descriptor
+ detection
+Date: Mon, 5 Jun 2017 16:51:00 -0400
+Message-ID: <9f2f3edd-74e9-e108-0eff-56564c94147b@hpe.com>
+References: <cover.1493194142.git.lv.zheng@intel.com>
+ <fe4a8655a06221df851d5781609058f16aa65e93.1493194142.git.lv.zheng@intel.com>
+ <59357F55.8050707@hpe.com> <361261e5-ce98-9d33-f2de-88286288e2e1@hpe.com>
+ <CAJZ5v0hUaiwZwi1a78zSO_hqp_QNdv9gYce-wwNESz1rnPs+sg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:34144 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751186AbdFEUoM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2017 16:44:12 -0400
-In-Reply-To: <20170605195057.31492-2-ross.zwisler@linux.intel.com>
+Received: from g2t1383g.austin.hpe.com ([15.233.16.89]:47062 "EHLO
+        g2t1383g.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751180AbdFEUvJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2017 16:51:09 -0400
+Received: from g4t3427.houston.hpe.com (g4t3427.houston.hpe.com [15.241.140.73])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by g2t1383g.austin.hpe.com (Postfix) with ESMTPS id DDDAAB0D
+        for <linux-acpi@vger.kernel.org>; Mon,  5 Jun 2017 20:51:08 +0000 (UTC)
+In-Reply-To: <CAJZ5v0hUaiwZwi1a78zSO_hqp_QNdv9gYce-wwNESz1rnPs+sg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Robert Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, "David E . Box" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, Jun 5, 2017 at 9:50 PM, Ross Zwisler
-<ross.zwisler@linux.intel.com> wrote:
-> Import HMAT table definitions from the ACPICA codebase.
+On 6/5/2017 4:42 PM, Rafael J. Wysocki wrote:
+<snip>
+
+>> I talked to our FW team and we do generate checksums and not a zero for at
+>> least some
+>> of the AML. Please revert this change until you can also validate
+>> a checksum.  Or shall I post a patch to remove the check?
 >
-> This kernel patch was generated using an ACPICA patch from "Zheng, Lv"
-> <lv.zheng@intel.com>.  The actual upstream patch that adds these table
-> definitions will come from the Intel ACPICA team as part of their greater
-> ACPI 6.2 update.
+> I'll skip this patch, no need to do anything else.  Thanks for your report!
+
+Thanks.  This patch is already in as of 4.12rc1 and not part of the most recent
+ACPICA drop.
+
+> Bob, can you revert this upstream, please?  It looks like the
+> assumption it is based on doesn't hold.
+
+Bob, I'm happy to test something if there is a new patch that looks for zero
+or a valid checksum.  TBH, I'm not 100% certain that our checksums are
+correct because nothing has ever tried to verify them.
+
+-- ljk
 >
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-
-Can you please hold on util we have integrated all of the pending
-ACPICA changes?
-
-Thanks,
-Rafael
+> Thanks,
+> Rafael
+>
