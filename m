@@ -1,169 +1,35 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 01/15] ACPICA: Disassembler: Enhance resource descriptor detection
-Date: Mon, 5 Jun 2017 22:42:35 +0200
-Message-ID: <CAJZ5v0hUaiwZwi1a78zSO_hqp_QNdv9gYce-wwNESz1rnPs+sg@mail.gmail.com>
-References: <cover.1493194142.git.lv.zheng@intel.com> <fe4a8655a06221df851d5781609058f16aa65e93.1493194142.git.lv.zheng@intel.com>
- <59357F55.8050707@hpe.com> <361261e5-ce98-9d33-f2de-88286288e2e1@hpe.com>
+Subject: Re: [resend RFC 1/6] ACPICA: add HMAT table definitions
+Date: Mon, 5 Jun 2017 22:44:11 +0200
+Message-ID: <CAJZ5v0iARt8WT+VHt21trSvYqqy6f4ExLEL3UVxJ4vbX_=_bcQ@mail.gmail.com>
+References: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
+ <20170605195057.31492-1-ross.zwisler@linux.intel.com> <20170605195057.31492-2-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:35991 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751253AbdFEUmh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2017 16:42:37 -0400
-Received: by mail-it0-f67.google.com with SMTP id i206so24235298ita.3
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Jun 2017 13:42:36 -0700 (PDT)
-In-Reply-To: <361261e5-ce98-9d33-f2de-88286288e2e1@hpe.com>
+Received: from mail-it0-f68.google.com ([209.85.214.68]:34144 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751186AbdFEUoM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2017 16:44:12 -0400
+In-Reply-To: <20170605195057.31492-2-ross.zwisler@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linda Knippers <linda.knippers@hpe.com>, Robert Moore <robert.moore@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, "David E . Box" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Len Brown <lenb@kernel.org>
 
-On Mon, Jun 5, 2017 at 8:21 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
-> On 6/5/2017 11:57 AM, Linda Knippers wrote:
->>
->>
->> On 04/26/2017 04:17 AM, Lv Zheng wrote:
->>>
->>> From: Bob Moore <robert.moore@intel.com>
->>>
->>> ACPICA commit ba5020b2dbe1538e4ccd7ac2dfd8843a690c007f
->>>
->>> This change enhances the detection of resource descriptors
->>> within a buffer object. For the end_tag opcode, the second byte
->>> is defined to be either a checksum or zero. All known ASL compilers
->>> insert a zero for this byte. The disassembler now ensures this
->>> byte is zero before deciding that a buffer should be disassembled
->>> to a resource descriptor. This helps eliminate incorrect decisions
->>> when attempting to disassemble a buffer to a resource descriptor.
->>
->>
->> This commit breaks things on my platform. I'm testing on an HPE ProLiant
->> DL380Gen9
->> but I also see errors on other ProLiant servers, including much older
->> ones.
->>
->> With this commit, I see errors like:
->>
->> [ 4.496926] acpi PNP0A03:00: [Firmware Bug]: no secondary bus range in
->> _CRS
->> [ 4.496929] ACPI: PCI Root Bridge [UNC0] (domain 0000 [bus 7f-ff])
->> [ 4.496934] acpi PNP0A03:00: _OSC: OS supports [ExtendedConfig ASPM
->> ClockPM Segments MSI]
->> [ 4.496938] acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
->> [ 4.496949] acpi PNP0A03:00: failed to parse _CRS method, error code -5
->> [ 4.496950] acpi PNP0A03:00: Bus 0000:7f not present in PCI namespace
->> [ 4.499111] acpi PNP0A03:01: [Firmware Bug]: no secondary bus range in
->> _CRS
->> [ 4.499113] ACPI: PCI Root Bridge [UNC1] (domain 0000 [bus ff])
->> [ 4.499115] acpi PNP0A03:01: _OSC: OS supports [ExtendedConfig ASPM
->> ClockPM Segments MSI]
->> [ 4.499118] acpi PNP0A03:01: _OSC failed (AE_NOT_FOUND); disabling ASPM
->> [ 4.499126] acpi PNP0A03:01: failed to parse _CRS method, error code -5
->> [ 4.499127] acpi PNP0A03:01: Bus 0000:ff not present in PCI namespace
->> [ 4.502133] acpi PNP0A08:00: [Firmware Bug]: no secondary bus range in
->> _CRS
->> [ 4.502136] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
->> [ 4.502138] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM
->> ClockPM Segments MSI]
->> [ 4.502268] acpi PNP0A08:00: _OSC: platform does not support [AER]
->> [ 4.502386] acpi PNP0A08:00: _OSC: OS now controls [PCIeHotplug PME
->> PCIeCapability]
->> [ 4.502387] acpi PNP0A08:00: FADT indicates ASPM is unsupported, using
->> BIOS configuration
->> [ 4.502646] acpi PNP0A08:00: failed to parse _CRS method, error code -5
->> [ 4.502647] acpi PNP0A08:00: Bus 0000:00 not present in PCI namespace
->> [ 4.504816] acpi PNP0A08:01: [Firmware Bug]: no secondary bus range in
->> _CRS
->> [ 4.504819] ACPI: PCI Root Bridge [PCI1] (domain 0000 [bus 80-ff])
->> [ 4.504821] acpi PNP0A08:01: _OSC: OS supports [ExtendedConfig ASPM
->> ClockPM Segments MSI]
->> [ 4.504936] acpi PNP0A08:01: _OSC: platform does not support [AER]
->> [ 4.505042] acpi PNP0A08:01: _OSC: OS now controls [PCIeHotplug PME
->> PCIeCapability]
->> [ 4.505043] acpi PNP0A08:01: FADT indicates ASPM is unsupported, using
->> BIOS configuration
->> [ 4.505057] acpi PNP0A08:01: failed to parse _CRS method, error code -5
->> [ 4.505058] acpi PNP0A08:01: Bus 0000:80 not present in PCI namespace
->> ...
->> [ 4.524563] PCI: Using ACPI for IRQ routing
->> [ 4.524564] PCI: Discovered peer bus 00
->> [ 4.524565] PCI: root bus 00: using default resources
->> [ 4.524566] PCI: Probing PCI hardware (bus 00)
->> [ 4.524586] ACPI: \: failed to evaluate _DSM (0x1001)
->>
->> This causes random things to break, such as the ability for an ACPI method
->> to make IPMI calls because ipmi_si doesn't find the ACPI-specified BMC.
->>
->>>
->>> Link: https://github.com/acpica/acpica/commit/ba5020b2
->>> Signed-off-by: Bob Moore <robert.moore@intel.com>
->>> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
->>> ---
->>>  drivers/acpi/acpica/utresrc.c | 9 +++++++++
->>>  1 file changed, 9 insertions(+)
->>>
->>> diff --git a/drivers/acpi/acpica/utresrc.c
->>> b/drivers/acpi/acpica/utresrc.c
->>> index ff096d9..e0587c8 100644
->>> --- a/drivers/acpi/acpica/utresrc.c
->>> +++ b/drivers/acpi/acpica/utresrc.c
->>> @@ -474,6 +474,15 @@ acpi_ut_walk_aml_resources(struct acpi_walk_state
->>> *walk_state,
->>>
->>> return_ACPI_STATUS(AE_AML_NO_RESOURCE_END_TAG);
->>>                         }
->>>
->>> +                       /*
->>> +                        * The end_tag opcode must be followed by a zero
->>> byte.
->>> +                        * Although this byte is technically defined to
->>> be a checksum,
->>> +                        * in practice, all ASL compilers set this byte
->>> to zero.
->>> +                        */
->>> +                       if (*(aml + 1) != 0) {
->>> +
->>> return_ACPI_STATUS(AE_AML_NO_RESOURCE_END_TAG);
->>
->>
->> If I replace the return with an ACPI_ERROR, I get output like this:
->>
->> [ 4.497662] ACPI Error: Non-zero value: 0xE5 (20170303/utresrc-484)
->> [ 4.500111] ACPI Error: Non-zero value: 0xE5 (20170303/utresrc-484)
->> [ 4.506862] ACPI Error: Non-zero value: 0xE5 (20170303/utresrc-484)
->> [ 4.509011] ACPI Error: Non-zero value: 0xE5 (20170303/utresrc-484)
->> [ 4.516777] ACPI Error: Non-zero value: 0x50 (20170303/utresrc-484)
->> [ 4.519710] ACPI Error: Non-zero value: 0x50 (20170303/utresrc-484)
->> [ 4.541214] ACPI Error: Non-zero value: 0xE4 (20170303/utresrc-484)
->> [ 4.543670] ACPI Error: Non-zero value: 0xE4 (20170303/utresrc-484)
->> [ 4.584594] ACPI Error: Non-zero value: 0x07 (20170303/utresrc-484)
->> [ 4.586754] ACPI Error: Non-zero value: 0x11 (20170303/utresrc-484)
->>
->> By not returning an error, I no longer see the other errors and everything
->> seems to work.
->>
->> I haven't yet determined whether the non-zero value is a valid checksum
->> but
->> it's definitely not zero.
->>
->> If the byte is technically defined to be a checksum, then the code ought
->> to
->> accept a valid checksum.  If it turns out that my platform isn't actually
->> providing a valid checksum, then I'd like to see a warning or something
->> rather than a error, since this change will break a lot of systems.
+On Mon, Jun 5, 2017 at 9:50 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> Import HMAT table definitions from the ACPICA codebase.
 >
+> This kernel patch was generated using an ACPICA patch from "Zheng, Lv"
+> <lv.zheng@intel.com>.  The actual upstream patch that adds these table
+> definitions will come from the Intel ACPICA team as part of their greater
+> ACPI 6.2 update.
 >
->
-> I talked to our FW team and we do generate checksums and not a zero for at
-> least some
-> of the AML. Please revert this change until you can also validate
-> a checksum.  Or shall I post a patch to remove the check?
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-I'll skip this patch, no need to do anything else.  Thanks for your report!
-
-Bob, can you revert this upstream, please?  It looks like the
-assumption it is based on doesn't hold.
+Can you please hold on util we have integrated all of the pending
+ACPICA changes?
 
 Thanks,
 Rafael
