@@ -1,83 +1,115 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 18/53] ACPICA: disassembler: improve Switch support
-Date: Mon,  5 Jun 2017 16:38:53 +0800
-Message-ID: <b9b4e0368e9663d28ccc0aa70939e46fe9a9a3e2.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 19/53] ACPICA: Add header support for TPM2 table changes
+Date: Mon,  5 Jun 2017 16:39:00 +0800
+Message-ID: <cb1d387f8ecd68c31bde5d7ff256854b3facfc2d.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:32933 "EHLO mga07.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:44507 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751449AbdFEIi4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:38:56 -0400
+        id S1751449AbdFEIjD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:39:03 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, "David E. Box" <david.e.box@linux.intel.com>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: "David E. Box" <david.e.box@linux.intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 3c36625deffdfb034378b1793e2ead9c8fdd767e
+ACPICA commit b922ecaf9053dae3b8933664e951ed1ee8f86f07
 
-Changes the resource descriptor parse tree walk to a general
-preprocessing walk and calls the Switch conversion code from here.
-Move Switch code to new dmswitch.c file. Also improves algorithm to
-handle multiple levels of Switch statements and perform legacy
-disassembly for older or otherwise non-spec compliant Switch
-implementations.
+Update to new version of the TCG/ACPI spec.
+Does not include table compiler or disassembler support.
 
-Link: https://github.com/acpica/acpica/commit/3c36625d
-Signed-off-by: David E. Box <david.e.box@linux.intel.com>
+Link: https://github.com/acpica/acpica/commit/b922ecaf
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acapps.h   | 4 ++--
- drivers/acpi/acpica/acglobal.h | 1 +
- drivers/acpi/acpica/aclocal.h  | 5 +++++
- 3 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/char/tpm/tpm_crb.c |  4 ++--
+ include/acpi/actbl2.h      | 37 ++++++++++++++++++++++++++++++++++---
+ 2 files changed, 36 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acapps.h b/drivers/acpi/acpica/acapps.h
-index b65f273..bb6a84b 100644
---- a/drivers/acpi/acpica/acapps.h
-+++ b/drivers/acpi/acpica/acapps.h
-@@ -158,8 +158,8 @@ acpi_dm_finish_namespace_load(union acpi_parse_object *parse_tree_root,
- 			      acpi_owner_id owner_id);
+diff --git a/drivers/char/tpm/tpm_crb.c b/drivers/char/tpm/tpm_crb.c
+index b917b9d..5736778 100644
+--- a/drivers/char/tpm/tpm_crb.c
++++ b/drivers/char/tpm/tpm_crb.c
+@@ -564,12 +564,12 @@ static int crb_acpi_add(struct acpi_device *device)
+ 	    sm == ACPI_TPM2_COMMAND_BUFFER_WITH_START_METHOD)
+ 		priv->flags |= CRB_FL_ACPI_START;
  
- void
--acpi_dm_convert_resource_indexes(union acpi_parse_object *parse_tree_root,
--				 struct acpi_namespace_node *namespace_root);
-+acpi_dm_convert_parse_objects(union acpi_parse_object *parse_tree_root,
-+			      struct acpi_namespace_node *namespace_root);
+-	if (sm == ACPI_TPM2_COMMAND_BUFFER_WITH_SMC) {
++	if (sm == ACPI_TPM2_COMMAND_BUFFER_WITH_ARM_SMC) {
+ 		if (buf->header.length < (sizeof(*buf) + sizeof(*crb_smc))) {
+ 			dev_err(dev,
+ 				FW_BUG "TPM2 ACPI table has wrong size %u for start method type %d\n",
+ 				buf->header.length,
+-				ACPI_TPM2_COMMAND_BUFFER_WITH_SMC);
++				ACPI_TPM2_COMMAND_BUFFER_WITH_ARM_SMC);
+ 			return -EINVAL;
+ 		}
+ 		crb_smc = ACPI_ADD_PTR(struct tpm2_crb_smc, buf, sizeof(*buf));
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index 724d9fc..707dda74 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -1221,7 +1221,8 @@ enum acpi_spmi_interface_types {
+  *        Version 2
+  *
+  * Conforms to "TCG ACPI Specification, Family 1.2 and 2.0",
+- * December 19, 2014
++ * Version 1.2, Revision 8
++ * February 27, 2017
+  *
+  * NOTE: There are two versions of the table with the same signature --
+  * the client version and the server version. The common platform_class
+@@ -1284,7 +1285,8 @@ struct acpi_table_tcpa_server {
+  *        Version 4
+  *
+  * Conforms to "TCG ACPI Specification, Family 1.2 and 2.0",
+- * December 19, 2014
++ * Version 1.2, Revision 8
++ * February 27, 2017
+  *
+  ******************************************************************************/
  
- /*
-  * adfile
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index abe8c31..896d548 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -315,6 +315,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_force_aml_disassembly, FALSE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_opt_verbose, TRUE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_emit_external_opcodes, FALSE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_do_disassembler_optimizations, TRUE);
-+ACPI_INIT_GLOBAL(ACPI_PARSE_OBJECT_LIST, *acpi_gbl_temp_list_head, NULL);
- 
- ACPI_GLOBAL(u8, acpi_gbl_dm_opt_disasm);
- ACPI_GLOBAL(u8, acpi_gbl_dm_opt_listing);
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index cd5016f..f63faa4 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -1182,6 +1182,11 @@ struct acpi_external_file {
- 	struct acpi_external_file *next;
- };
- 
-+struct acpi_parse_object_list {
-+	union acpi_parse_object *op;
-+	struct acpi_parse_object_list *next;
+@@ -1305,7 +1307,36 @@ struct acpi_table_tpm2 {
+ #define ACPI_TPM2_MEMORY_MAPPED                     6
+ #define ACPI_TPM2_COMMAND_BUFFER                    7
+ #define ACPI_TPM2_COMMAND_BUFFER_WITH_START_METHOD  8
+-#define ACPI_TPM2_COMMAND_BUFFER_WITH_SMC          11
++#define ACPI_TPM2_COMMAND_BUFFER_WITH_ARM_SMC       11	/* V1.2 Rev 8 */
++
++/* Trailer appears after any start_method subtables */
++
++struct acpi_tpm2_trailer {
++	u32 minimum_log_length;	/* Minimum length for the event log area */
++	u64 log_address;	/* Address of the event log area */
 +};
 +
- /*****************************************************************************
++/*
++ * Subtables (start_method-specific)
++ */
++
++/* 11: Start Method for ARM SMC (V1.2 Rev 8) */
++
++struct acpi_tpm2_arm_smc {
++	u32 global_interrupt;
++	u8 interrupt_flags;
++	u8 operation_flags;
++	u16 reserved;
++	u32 function_id;
++};
++
++/* Values for interrupt_flags above */
++
++#define ACPI_TPM2_INTERRUPT_SUPPORT     (1)
++
++/* Values for operation_flags above */
++
++#define ACPI_TPM2_IDLE_SUPPORT          (1)
+ 
+ /*******************************************************************************
   *
-  * Debugger
 -- 
 2.7.4
 
