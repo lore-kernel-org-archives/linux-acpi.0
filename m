@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 50/53] ACPICA: Simplify output for the ACPI Debug Object
-Date: Mon,  5 Jun 2017 16:42:17 +0800
-Message-ID: <53b2e761d6de49fe634feab3a5a2d64900857d54.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 49/53] ACPICA: Unix application OSL: Correctly handle control-c (EINTR)
+Date: Mon,  5 Jun 2017 16:42:07 +0800
+Message-ID: <d9d0f42ccc9d5f3286a552090ae1d11b61eb1002.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:46482 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:27817 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751632AbdFEImU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:42:20 -0400
+        id S1751495AbdFEImR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:42:17 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,34 +16,54 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit ea08cda9859d9f758f4832400b2d559847c2d52a
+ACPICA commit dfbb87c3a96cfd007375f34a96e6f4a8ee477f97
 
-Cleanup the output, change [Acpi Debug] to Acpi Debug:
+Handle EINTR from a sem_wait operation. Ignore a control-c.
 
-Link: https://github.com/acpica/acpica/commit/ea08cda9
+Link: https://github.com/acpica/acpica/commit/dfbb87c3
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/exdebug.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/power/acpi/os_specific/service_layers/osunixxf.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/exdebug.c b/drivers/acpi/acpica/exdebug.c
-index ec614f5..a8191d2 100644
---- a/drivers/acpi/acpica/exdebug.c
-+++ b/drivers/acpi/acpica/exdebug.c
-@@ -117,10 +117,10 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
- 			timer = ((u32)acpi_os_get_timer() / 10);
- 			timer &= 0x03FFFFFF;
+diff --git a/tools/power/acpi/os_specific/service_layers/osunixxf.c b/tools/power/acpi/os_specific/service_layers/osunixxf.c
+index c04e8fe..025c1b0 100644
+--- a/tools/power/acpi/os_specific/service_layers/osunixxf.c
++++ b/tools/power/acpi/os_specific/service_layers/osunixxf.c
+@@ -750,9 +750,9 @@ acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 msec_timeout)
+ {
+ 	acpi_status status = AE_OK;
+ 	sem_t *sem = (sem_t *) handle;
++	int ret_val;
+ #ifndef ACPI_USE_ALTERNATE_TIMEOUT
+ 	struct timespec time;
+-	int ret_val;
+ #endif
  
--			acpi_os_printf("[ACPI Debug T=0x%8.8X] %*s", timer,
-+			acpi_os_printf("ACPI Debug: T=0x%8.8X %*s", timer,
- 				       level, " ");
- 		} else {
--			acpi_os_printf("[ACPI Debug] %*s", level, " ");
-+			acpi_os_printf("ACPI Debug: %*s", level, " ");
+ 	if (!sem) {
+@@ -778,7 +778,10 @@ acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 msec_timeout)
+ 
+ 	case ACPI_WAIT_FOREVER:
+ 
+-		if (sem_wait(sem)) {
++		while (((ret_val = sem_wait(sem)) == -1) && (errno == EINTR)) {
++			continue;	/* Restart if interrupted */
++		}
++		if (ret_val != 0) {
+ 			status = (AE_TIME);
  		}
- 	}
+ 		break;
+@@ -831,7 +834,8 @@ acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 msec_timeout)
  
+ 		while (((ret_val = sem_timedwait(sem, &time)) == -1)
+ 		       && (errno == EINTR)) {
+-			continue;
++			continue;	/* Restart if interrupted */
++
+ 		}
+ 
+ 		if (ret_val != 0) {
 -- 
 2.7.4
 
