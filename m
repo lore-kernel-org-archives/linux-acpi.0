@@ -1,12 +1,12 @@
 From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [resend RFC 3/6] acpi: HMAT support in acpi_parse_entries_array()
-Date: Mon,  5 Jun 2017 13:50:54 -0600
-Message-ID: <20170605195057.31492-4-ross.zwisler@linux.intel.com>
+Subject: [resend RFC 5/6] sysfs: add sysfs_add_group_link()
+Date: Mon,  5 Jun 2017 13:50:56 -0600
+Message-ID: <20170605195057.31492-6-ross.zwisler@linux.intel.com>
 References: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
  <20170605195057.31492-1-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 In-Reply-To: <20170605195057.31492-1-ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -29,136 +29,83 @@ Cc: "Kogut, Jaroslaw" <Jaroslaw.Kogut-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 
  Erik" <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The current implementation of acpi_parse_entries_array() assumes that each
-subtable has a standard ACPI subtable entry of type struct
-acpi_sutbable_header.  This standard subtable header has a one byte length
-followed by a one byte type.
-
-The HMAT subtables have to allow for a longer length so they have subtable
-headers of type struct acpi_hmat_structure which has a 2 byte type and a 4
-byte length.
-
-Enhance the subtable parsing in acpi_parse_entries_array() so that it can
-handle these new HMAT subtables.
-
-Signed-off-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
----
- drivers/acpi/numa.c   |  2 +-
- drivers/acpi/tables.c | 52 ++++++++++++++++++++++++++++++++++++++++-----------
- 2 files changed, 42 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index edb0c79..917f1cc 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -443,7 +443,7 @@ int __init acpi_numa_init(void)
- 	 * So go over all cpu entries in SRAT to get apicid to node mapping.
- 	 */
- 
--	/* SRAT: Static Resource Affinity Table */
-+	/* SRAT: System Resource Affinity Table */
- 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
- 		struct acpi_subtable_proc srat_proc[3];
- 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index ff42539..7979171 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -218,6 +218,33 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
- 	}
- }
- 
-+static unsigned long __init
-+acpi_get_entry_type(char *id, void *entry)
-+{
-+	if (!strncmp(id, ACPI_SIG_HMAT, 4))
-+		return ((struct acpi_hmat_structure *)entry)->type;
-+	else
-+		return ((struct acpi_subtable_header *)entry)->type;
-+}
-+
-+static unsigned long __init
-+acpi_get_entry_length(char *id, void *entry)
-+{
-+	if (!strncmp(id, ACPI_SIG_HMAT, 4))
-+		return ((struct acpi_hmat_structure *)entry)->length;
-+	else
-+		return ((struct acpi_subtable_header *)entry)->length;
-+}
-+
-+static unsigned long __init
-+acpi_get_subtable_header_length(char *id)
-+{
-+	if (!strncmp(id, ACPI_SIG_HMAT, 4))
-+		return sizeof(struct acpi_hmat_structure);
-+	else
-+		return sizeof(struct acpi_subtable_header);
-+}
-+
- /**
-  * acpi_parse_entries_array - for each proc_num find a suitable subtable
-  *
-@@ -242,10 +269,10 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 		struct acpi_subtable_proc *proc, int proc_num,
- 		unsigned int max_entries)
- {
--	struct acpi_subtable_header *entry;
--	unsigned long table_end;
-+	unsigned long table_end, subtable_header_length;
- 	int count = 0;
- 	int errs = 0;
-+	void *entry;
- 	int i;
- 
- 	if (acpi_disabled)
-@@ -263,19 +290,23 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 	}
- 
- 	table_end = (unsigned long)table_header + table_header->length;
-+	subtable_header_length = acpi_get_subtable_header_length(id);
- 
- 	/* Parse all entries looking for a match. */
- 
--	entry = (struct acpi_subtable_header *)
--	    ((unsigned long)table_header + table_size);
-+	entry = (void *)table_header + table_size;
-+
-+	while (((unsigned long)entry) + subtable_header_length  < table_end) {
-+		unsigned long entry_type, entry_length;
- 
--	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
--	       table_end) {
- 		if (max_entries && count >= max_entries)
- 			break;
- 
-+		entry_type = acpi_get_entry_type(id, entry);
-+		entry_length = acpi_get_entry_length(id, entry);
-+
- 		for (i = 0; i < proc_num; i++) {
--			if (entry->type != proc[i].id)
-+			if (entry_type != proc[i].id)
- 				continue;
- 			if (!proc[i].handler ||
- 			     (!errs && proc[i].handler(entry, table_end))) {
-@@ -290,16 +321,15 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 			count++;
- 
- 		/*
--		 * If entry->length is 0, break from this loop to avoid
-+		 * If entry_length is 0, break from this loop to avoid
- 		 * infinite loop.
- 		 */
--		if (entry->length == 0) {
-+		if (entry_length == 0) {
- 			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, proc->id);
- 			return -EINVAL;
- 		}
- 
--		entry = (struct acpi_subtable_header *)
--		    ((unsigned long)entry + entry->length);
-+		entry += entry_length;
- 	}
- 
- 	if (max_entries && count > max_entries) {
--- 
-2.9.4
+VGhlIGN1cnJlbnQgX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooKSBjb2Rl
+IGFsbG93cyB1cyB0bwpjcmVhdGUgc3ltYm9saWMgbGlua3MgaW4gc3lzZnMgdG8gZ3JvdXBzIG9y
+IGF0dHJpYnV0ZXMuICBTb21ldGhpbmcgbGlrZToKCi9zeXMvLi4uL2VudHJ5MS9ncm91cEEgLT4g
+L3N5cy8uLi4vZW50cnkyL2dyb3VwQQoKVGhpcyBwYXRjaCBleHRlbmRzIHRoaXMgZnVuY3Rpb25h
+bGl0eSB3aXRoIGEgbmV3IHN5c2ZzX2FkZF9ncm91cF9saW5rKCkKY2FsbCB0aGF0IGFsbG93cyB0
+aGUgbGluayB0byBoYXZlIGEgZGlmZmVyZW50IG5hbWUgdGhhbiB0aGUgZ3JvdXAgb3IKYXR0cmli
+dXRlLCBzbzoKCi9zeXMvLi4uL2VudHJ5MS9saW5rX25hbWUgLT4gL3N5cy8uLi4vZW50cnkyL2dy
+b3VwQQoKX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooKSBub3cganVzdCBj
+YWxscwpzeXNmc19hZGRfZ3JvdXBfbGluaygpLCBwYXNzaW5nIGluIHRoZSBzYW1lIG5hbWUgZm9y
+IGJvdGggdGhlCmdyb3VwL2F0dHJpYnV0ZSBhbmQgZm9yIHRoZSBsaW5rIG5hbWUuCgpUaGlzIGlz
+IG5lZWRlZCBieSB0aGUgQUNQSSBITUFUIGVuYWJsaW5nIHdvcmsgYmVjYXVzZSB3ZSB3YW50IHRv
+IGhhdmUgYQpncm91cCBvZiBwZXJmb3JtYW5jZSBhdHRyaWJ1dGVzIHRoYXQgbGl2ZSBpbiBhIG1l
+bW9yeSB0YXJnZXQuICBUaGlzIGdyb3VwCnJlcHJlc2VudHMgdGhlIHBlcmZvcm1hbmNlIGJldHdl
+ZW4gdGhlIChpbml0aWF0b3IsdGFyZ2V0KSBwYWlyLCBhbmQgaW4gdGhlCnRhcmdldCB0aGUgYXR0
+cmlidXRlIGdyb3VwIGlzIG5hbWVkICJ2aWFfbWVtX2luaXRYIiB0byByZXByZXNlbnQgdGhpcwpw
+YWlyaW5nOgoKICAjIHRyZWUgbWVtX3RndDIvdmlhX21lbV9pbml0MC8KICBtZW1fdGd0Mi92aWFf
+bWVtX2luaXQwLwogIOKUnOKUgOKUgCBtZW1faW5pdDAgLT4gLi4vLi4vbWVtX2luaXQwCiAg4pSc
+4pSA4pSAIG1lbV90Z3QyIC0+IC4uLy4uL21lbV90Z3QyCiAg4pSc4pSA4pSAIHJlYWRfYndfTUJw
+cwogIOKUnOKUgOKUgCByZWFkX2xhdF9uc2VjCiAg4pSc4pSA4pSAIHdyaXRlX2J3X01CcHMKICDi
+lJTilIDilIAgd3JpdGVfbGF0X25zZWMKCldlIHRoZW4gd2FudCB0byBsaW5rIHRvIHRoaXMgYXR0
+cmlidXRlIGdyb3VwIGZyb20gdGhlIGluaXRpYXRvciwgYnV0IGNoYW5nZQp0aGUgbmFtZSB0byAi
+dmlhX21lbV90Z3RYIiBzaW5jZSB3ZSdyZSBub3cgbG9va2luZyBhdCBpdCBmcm9tIHRoZQppbml0
+aWF0b3IncyBwZXJzcGVjdGl2ZToKCiAgIyBscyAtbCBtZW1faW5pdDAvdmlhX21lbV90Z3QyCiAg
+bHJ3eHJ3eHJ3eC4gMSByb290IHJvb3QgMCBKdW4gIDEgMTA6MDAgbWVtX2luaXQwL3ZpYV9tZW1f
+dGd0MiAtPgogIC4uL21lbV90Z3QyL3ZpYV9tZW1faW5pdDAKClNpZ25lZC1vZmYtYnk6IFJvc3Mg
+Wndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4KLS0tCiBmcy9zeXNmcy9ncm91
+cC5jICAgICAgfCAzMCArKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0KIGluY2x1ZGUvbGlu
+dXgvc3lzZnMuaCB8ICAyICsrCiAyIGZpbGVzIGNoYW5nZWQsIDI1IGluc2VydGlvbnMoKyksIDcg
+ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZnMvc3lzZnMvZ3JvdXAuYyBiL2ZzL3N5c2ZzL2dy
+b3VwLmMKaW5kZXggYWMyZGUwZS4uMTlkYjU3YzggMTAwNjQ0Ci0tLSBhL2ZzL3N5c2ZzL2dyb3Vw
+LmMKKysrIGIvZnMvc3lzZnMvZ3JvdXAuYwpAQCAtMzY3LDE1ICszNjcsMTUgQEAgdm9pZCBzeXNm
+c19yZW1vdmVfbGlua19mcm9tX2dyb3VwKHN0cnVjdCBrb2JqZWN0ICprb2JqLCBjb25zdCBjaGFy
+ICpncm91cF9uYW1lLAogRVhQT1JUX1NZTUJPTF9HUEwoc3lzZnNfcmVtb3ZlX2xpbmtfZnJvbV9n
+cm91cCk7CiAKIC8qKgotICogX19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmog
+LSBhZGQgYSBzeW1saW5rIHRvIGEga29iamVjdCBwb2ludGluZwotICogdG8gYSBncm91cCBvciBh
+biBhdHRyaWJ1dGUKKyAqIHN5c2ZzX2FkZF9ncm91cF9saW5rIC0gYWRkIGEgc3ltbGluayB0byBh
+IGtvYmplY3QgcG9pbnRpbmcgdG8gYSBncm91cCBvcgorICogYW4gYXR0cmlidXRlCiAgKiBAa29i
+ajoJCVRoZSBrb2JqZWN0IGNvbnRhaW5pbmcgdGhlIGdyb3VwLgogICogQHRhcmdldF9rb2JqOglU
+aGUgdGFyZ2V0IGtvYmplY3QuCiAgKiBAdGFyZ2V0X25hbWU6CVRoZSBuYW1lIG9mIHRoZSB0YXJn
+ZXQgZ3JvdXAgb3IgYXR0cmlidXRlLgorICogQGxpbmtfbmFtZToJCVRoZSBuYW1lIG9mIHRoZSBs
+aW5rIHRvIHRoZSB0YXJnZXQgZ3JvdXAgb3IgYXR0cmlidXRlLgogICovCi1pbnQgX19jb21wYXRf
+b25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooc3RydWN0IGtvYmplY3QgKmtvYmosCi0JCQkJ
+ICAgICAgc3RydWN0IGtvYmplY3QgKnRhcmdldF9rb2JqLAotCQkJCSAgICAgIGNvbnN0IGNoYXIg
+KnRhcmdldF9uYW1lKQoraW50IHN5c2ZzX2FkZF9ncm91cF9saW5rKHN0cnVjdCBrb2JqZWN0ICpr
+b2JqLCBzdHJ1Y3Qga29iamVjdCAqdGFyZ2V0X2tvYmosCisJCWNvbnN0IGNoYXIgKnRhcmdldF9u
+YW1lLCBjb25zdCBjaGFyICpsaW5rX25hbWUpCiB7CiAJc3RydWN0IGtlcm5mc19ub2RlICp0YXJn
+ZXQ7CiAJc3RydWN0IGtlcm5mc19ub2RlICplbnRyeTsKQEAgLTQwMCwxMiArNDAwLDI4IEBAIGlu
+dCBfX2NvbXBhdF9vbmx5X3N5c2ZzX2xpbmtfZW50cnlfdG9fa29iaihzdHJ1Y3Qga29iamVjdCAq
+a29iaiwKIAkJcmV0dXJuIC1FTk9FTlQ7CiAJfQogCi0JbGluayA9IGtlcm5mc19jcmVhdGVfbGlu
+ayhrb2JqLT5zZCwgdGFyZ2V0X25hbWUsIGVudHJ5KTsKKwlsaW5rID0ga2VybmZzX2NyZWF0ZV9s
+aW5rKGtvYmotPnNkLCBsaW5rX25hbWUsIGVudHJ5KTsKIAlpZiAoSVNfRVJSKGxpbmspICYmIFBU
+Ul9FUlIobGluaykgPT0gLUVFWElTVCkKLQkJc3lzZnNfd2Fybl9kdXAoa29iai0+c2QsIHRhcmdl
+dF9uYW1lKTsKKwkJc3lzZnNfd2Fybl9kdXAoa29iai0+c2QsIGxpbmtfbmFtZSk7CiAKIAlrZXJu
+ZnNfcHV0KGVudHJ5KTsKIAlrZXJuZnNfcHV0KHRhcmdldCk7CiAJcmV0dXJuIElTX0VSUihsaW5r
+KSA/IFBUUl9FUlIobGluaykgOiAwOwogfQorRVhQT1JUX1NZTUJPTF9HUEwoc3lzZnNfYWRkX2dy
+b3VwX2xpbmspOworCisvKioKKyAqIF9fY29tcGF0X29ubHlfc3lzZnNfbGlua19lbnRyeV90b19r
+b2JqIC0gYWRkIGEgc3ltbGluayB0byBhIGtvYmplY3QgcG9pbnRpbmcKKyAqIHRvIGEgZ3JvdXAg
+b3IgYW4gYXR0cmlidXRlCisgKiBAa29iajoJCVRoZSBrb2JqZWN0IGNvbnRhaW5pbmcgdGhlIGdy
+b3VwLgorICogQHRhcmdldF9rb2JqOglUaGUgdGFyZ2V0IGtvYmplY3QuCisgKiBAdGFyZ2V0X25h
+bWU6CVRoZSBuYW1lIG9mIHRoZSB0YXJnZXQgZ3JvdXAgb3IgYXR0cmlidXRlLgorICovCitpbnQg
+X19jb21wYXRfb25seV9zeXNmc19saW5rX2VudHJ5X3RvX2tvYmooc3RydWN0IGtvYmplY3QgKmtv
+YmosCisJCQkJICAgICAgc3RydWN0IGtvYmplY3QgKnRhcmdldF9rb2JqLAorCQkJCSAgICAgIGNv
+bnN0IGNoYXIgKnRhcmdldF9uYW1lKQoreworCXJldHVybiBzeXNmc19hZGRfZ3JvdXBfbGluayhr
+b2JqLCB0YXJnZXRfa29iaiwgdGFyZ2V0X25hbWUsCisJCQl0YXJnZXRfbmFtZSk7Cit9CiBFWFBP
+UlRfU1lNQk9MX0dQTChfX2NvbXBhdF9vbmx5X3N5c2ZzX2xpbmtfZW50cnlfdG9fa29iaik7CmRp
+ZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L3N5c2ZzLmggYi9pbmNsdWRlL2xpbnV4L3N5c2ZzLmgK
+aW5kZXggYzZmMGYwZC4uODY1ZjQ5OSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9zeXNmcy5o
+CisrKyBiL2luY2x1ZGUvbGludXgvc3lzZnMuaApAQCAtMjc4LDYgKzI3OCw4IEBAIGludCBzeXNm
+c19hZGRfbGlua190b19ncm91cChzdHJ1Y3Qga29iamVjdCAqa29iaiwgY29uc3QgY2hhciAqZ3Jv
+dXBfbmFtZSwKIAkJCSAgICBzdHJ1Y3Qga29iamVjdCAqdGFyZ2V0LCBjb25zdCBjaGFyICpsaW5r
+X25hbWUpOwogdm9pZCBzeXNmc19yZW1vdmVfbGlua19mcm9tX2dyb3VwKHN0cnVjdCBrb2JqZWN0
+ICprb2JqLCBjb25zdCBjaGFyICpncm91cF9uYW1lLAogCQkJCSAgY29uc3QgY2hhciAqbGlua19u
+YW1lKTsKK2ludCBzeXNmc19hZGRfZ3JvdXBfbGluayhzdHJ1Y3Qga29iamVjdCAqa29iaiwgc3Ry
+dWN0IGtvYmplY3QgKnRhcmdldF9rb2JqLAorCQljb25zdCBjaGFyICp0YXJnZXRfbmFtZSwgY29u
+c3QgY2hhciAqbGlua19uYW1lKTsKIGludCBfX2NvbXBhdF9vbmx5X3N5c2ZzX2xpbmtfZW50cnlf
+dG9fa29iaihzdHJ1Y3Qga29iamVjdCAqa29iaiwKIAkJCQkgICAgICBzdHJ1Y3Qga29iamVjdCAq
+dGFyZ2V0X2tvYmosCiAJCQkJICAgICAgY29uc3QgY2hhciAqdGFyZ2V0X25hbWUpOwotLSAKMi45
+LjQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
+LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
+c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
