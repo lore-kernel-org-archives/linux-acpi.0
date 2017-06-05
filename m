@@ -1,250 +1,91 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [WIP PATCH 3/4] ACPI: button: Let input filter out the LID
- events
-Date: Mon, 5 Jun 2017 04:28:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEC614F@SHSMSX101.ccr.corp.intel.com>
-References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
- <20170601184632.2980-4-benjamin.tissoires@redhat.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [RFC PATCH] acpi: indicate to platform when hot remove returns
+ busy
+Date: Mon, 5 Jun 2017 13:44:27 +0800
+Message-ID: <20170605054427.GM30622@linux-l9pv.suse>
+References: <20170603172036.7645-1-jlee@suse.com>
+ <CAHp75VcBd8e7Ce8KbyqtnoBKv7c5W9qb9o70-oViz6iCoRMShw@mail.gmail.com>
+ <20170604100453.GK30622@linux-l9pv.suse>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:38037 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751234AbdFEE2R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 00:28:17 -0400
-In-Reply-To: <20170601184632.2980-4-benjamin.tissoires@redhat.com>
-Content-Language: en-US
+Received: from smtp.nue.novell.com ([195.135.221.5]:56915 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751241AbdFEFok (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Mon, 5 Jun 2017 01:44:40 -0400
+Content-Disposition: inline
+In-Reply-To: <20170604100453.GK30622@linux-l9pv.suse>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Peter Hutterer <peter.hutterer@who-t.net>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Hi, Benjamin
+On Sun, Jun 04, 2017 at 06:04:53PM +0800, joeyli wrote:
+> Hi Andy,
+> 
+> Thanks for your help to review my patch.
+> 
+> On Sat, Jun 03, 2017 at 08:37:51PM +0300, Andy Shevchenko wrote:
+> > On Sat, Jun 3, 2017 at 8:20 PM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
+> > > In hotplug logic, it always indicates non-specific failure to
+> > > platform through _OST when handing acpi hot-remove event failed. Then
+> > > platform terminates the hot-remove process but it can not identify
+> > > the reason.
+[...snip]
+> > >  }
+> > 
+> > Wit this change you spear a logic on two functions...
+> >
+> 
+> You are right.
+> 
+> I want to give a chance to acpi_generic_hotplug_event()
+> to propose a _OST code. But acpi_device_hotplug() can
+> overwrite it. Not good...
+>  
+> > >
+> > >  void acpi_device_hotplug(struct acpi_device *adev, u32 src)
+> > > @@ -413,7 +418,7 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
+> > >         if (adev->flags.is_dock_station) {
+> > >                 error = dock_notify(adev, src);
+> > >         } else if (adev->flags.hotplug_notify) {
+> > > -               error = acpi_generic_hotplug_event(adev, src);
+> > > +               error = acpi_generic_hotplug_event(adev, src, &ost_code);
+> > >                 if (error == -EPERM) {
+> > >                         ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> > >                         goto err_out;
+> > 
+> > ...instead (since the first one is defined as static) I would propose
+> > to change only here like
+> > 
+> > switch (error) {
+> > case -EPERM:
+> > ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> > break;
+> > case -EBUSY:
+> > ost_code = ACPI_OST_SC_DEVICE_BUSY;
+> > break;
+> > }
+> > if (error)
+> >  goto err_out;
+> > 
+> > This is less intrusive and more flexible to modifications in the
+> > future (might be split to a helper, might be easily extended, etc).
+> >
+> 
+> this RFC patch changed the _OST code for BIOS that it may affects
+> the behavior of shipped machines. And, I am not sure that the
+> ACPI_OST_SC_DEVICE_BUSY approach is also useful for other hotplug
+> event, like ACPI_NOTIFY_BUS_CHECK or ACPI_NOTIFY_DEVICE_CHECK.
+> 
+> So, I prefer to apply this change only on the code path of
+> ACPI_NOTIFY_EJECT_REQUEST/ACPI_OST_EC_OSPM_EJECT. 
+> 
 
-> From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
-> Subject: [WIP PATCH 3/4] ACPI: button: Let input filter out the LID events
-> 
-> The input stack already filters out the LID events. So instead of
-> filtering them out at the source, we can hook up after the input
-> processing and propagate the lid switch events when the input stack
-> tells us to.
-> 
-> An other benefit is that if userspace (think libinput) "fixes" the lid
-> switch state by some heuristics, this new state is forwarded to the
-> listeners in the kernel.
+Actually I forgot to mention one thing.  The ACPI_OST_SC_DEVICE_BUSY ost
+code is specific for ejection events, ACPI_NOTIFY_EJECT_REQUEST (0x03) and
+ACPI_OST_EC_OSPM_EJECT (0x103). Reference "Table 6-187" in ACPI spec v6.1.
 
-See my comments to PATCH 4.
-IMO, it sounds better that
-1. ACPI lid works as a driver of SW_LID, and
-2. i915 registers notification (the only user) via input layer.
-So it looks i915 rather than button driver should call input_register_handler().
-And input layer may help to provide a simplified interface for drivers to register key notifications.
-
-Thanks and best regards
-Lv
-
-> 
-> Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-> ---
->  drivers/acpi/button.c | 156 ++++++++++++++++++++++++++++++++++++++++++++------
->  1 file changed, 139 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 9ad7604..03e5981 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -109,8 +109,6 @@ struct acpi_button {
->  	struct input_dev *input;
->  	char phys[32];			/* for input device */
->  	unsigned long pushed;
-> -	int last_state;
-> -	ktime_t last_time;
->  	bool suspended;
->  };
-> 
-> @@ -184,7 +182,6 @@ static int acpi_lid_evaluate_state(struct acpi_device *device)
->  static int acpi_lid_notify_state(struct acpi_device *device, int state)
->  {
->  	struct acpi_button *button = acpi_driver_data(device);
-> -	int ret;
-> 
->  	/* button_input_lock must be held */
-> 
-> @@ -205,20 +202,129 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
->  	if (state)
->  		pm_wakeup_hard_event(&device->dev);
-> 
-> -	ret = blocking_notifier_call_chain(&acpi_lid_notifier, state, device);
-> -	if (ret == NOTIFY_DONE)
-> -		ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
-> -						   device);
-> -	if (ret == NOTIFY_DONE || ret == NOTIFY_OK) {
-> -		/*
-> -		 * It is also regarded as success if the notifier_chain
-> -		 * returns NOTIFY_OK or NOTIFY_DONE.
-> -		 */
-> -		ret = 0;
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Pass incoming event to all connected clients.
-> + */
-> +static void acpi_button_lid_events(struct input_handle *handle,
-> +				   const struct input_value *vals,
-> +				   unsigned int count)
-> +{
-> +	const struct input_value *v;
-> +	int state = -1;
-> +	int ret;
-> +
-> +	for (v = vals; v != vals + count; v++) {
-> +		switch (v->type) {
-> +		case EV_SYN:
-> +			if (v->code == SYN_REPORT && state >= 0) {
-> +				ret = blocking_notifier_call_chain(&acpi_lid_notifier,
-> +								state,
-> +								lid_device);
-> +				if (ret == NOTIFY_DONE)
-> +					ret = blocking_notifier_call_chain(&acpi_lid_notifier,
-> +								state,
-> +								lid_device);
-> +				if (ret == NOTIFY_DONE || ret == NOTIFY_OK) {
-> +					/*
-> +					 * It is also regarded as success if
-> +					 * the notifier_chain returns NOTIFY_OK
-> +					 * or NOTIFY_DONE.
-> +					 */
-> +					ret = 0;
-> +				}
-> +			}
-> +			break;
-> +		case EV_SW:
-> +			if (v->code == SW_LID)
-> +				state = !v->value;
-> +			break;
-> +		}
->  	}
-> -	return ret;
->  }
-> 
-> +static int acpi_button_lid_connect(struct input_handler *handler,
-> +				   struct input_dev *dev,
-> +				   const struct input_device_id *id)
-> +{
-> +	struct input_handle *handle;
-> +	int error;
-> +
-> +	handle = kzalloc(sizeof(struct input_handle), GFP_KERNEL);
-> +	if (!handle)
-> +		return -ENOMEM;
-> +
-> +	handle->dev = dev;
-> +	handle->handler = handler;
-> +	handle->name = "acpi-button-lid";
-> +
-> +	error = input_register_handle(handle);
-> +	if (error) {
-> +		dev_err(&lid_device->dev, "Error installing input handle\n");
-> +		goto err_free;
-> +	}
-> +
-> +	error = input_open_device(handle);
-> +	if (error) {
-> +		dev_err(&lid_device->dev, "Failed to open input device\n");
-> +		goto err_unregister;
-> +	}
-> +
-> +	return 0;
-> +
-> + err_unregister:
-> +	input_unregister_handle(handle);
-> + err_free:
-> +	kfree(handle);
-> +	return error;
-> +}
-> +
-> +static void acpi_button_lid_disconnect(struct input_handle *handle)
-> +{
-> +	input_close_device(handle);
-> +	input_unregister_handle(handle);
-> +	kfree(handle);
-> +}
-> +
-> +bool acpi_button_lid_match(struct input_handler *handler,
-> +			   struct input_dev *dev)
-> +{
-> +	struct acpi_button *button;
-> +
-> +	if (!lid_device)
-> +		return false;
-> +
-> +	button = acpi_driver_data(lid_device);
-> +
-> +	if (dev != button->input)
-> +		return false;
-> +
-> +	return true;
-> +}
-> +
-> +static const struct input_device_id acpi_button_lid_ids[] = {
-> +	{
-> +		.flags = INPUT_DEVICE_ID_MATCH_EVBIT,
-> +		.evbit = { BIT_MASK(EV_SW) },
-> +		.swbit = { BIT_MASK(SW_LID) },
-> +	},
-> +	{ },
-> +};
-> +
-> +MODULE_DEVICE_TABLE(input, acpi_button_lid_ids);
-> +
-> +static struct input_handler acpi_button_lid_handler = {
-> +	.match		= acpi_button_lid_match,
-> +	.connect	= acpi_button_lid_connect,
-> +	.disconnect	= acpi_button_lid_disconnect,
-> +	.events		= acpi_button_lid_events,
-> +	.name		= "acpi-lid-callchain",
-> +	.id_table	= acpi_button_lid_ids,
-> +};
-> +
-> +
->  static int acpi_button_state_seq_show(struct seq_file *seq, void *offset)
->  {
->  	struct acpi_device *device = seq->private;
-> @@ -581,8 +687,6 @@ static int acpi_button_add(struct acpi_device *device)
->  		strcpy(name, ACPI_BUTTON_DEVICE_NAME_LID);
->  		sprintf(class, "%s/%s",
->  			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_LID);
-> -		button->last_state = !!acpi_lid_evaluate_state(device);
-> -		button->last_time = ktime_get();
->  	} else {
->  		printk(KERN_ERR PREFIX "Unsupported hid [%s]\n", hid);
->  		error = -ENODEV;
-> @@ -674,4 +778,22 @@ module_param_call(lid_init_state,
->  		  NULL, 0644);
->  MODULE_PARM_DESC(lid_init_state, "Behavior for reporting LID initial state");
-> 
-> -module_acpi_driver(acpi_button_driver);
-> +static int __init acpi_button_init(void)
-> +{
-> +	int error;
-> +
-> +	error = input_register_handler(&acpi_button_lid_handler);
-> +	if (error)
-> +		return error;
-> +
-> +	return acpi_bus_register_driver(&acpi_button_driver);
-> +}
-> +
-> +static void __exit acpi_button_exit(void)
-> +{
-> +	acpi_bus_unregister_driver(&acpi_button_driver);
-> +	input_unregister_handler(&acpi_button_lid_handler);
-> +}
-> +
-> +module_init(acpi_button_init);
-> +module_exit(acpi_button_exit);
-> --
-> 2.9.4
-
+Thanks a lot!
+Joey Lee
