@@ -1,62 +1,83 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 17/53] ACPICA: Add support for new SRAT subtable
-Date: Mon,  5 Jun 2017 16:38:47 +0800
-Message-ID: <7385f815e3f1dbbae2658c2d0ecf6a5ce51a5db4.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 18/53] ACPICA: disassembler: improve Switch support
+Date: Mon,  5 Jun 2017 16:38:53 +0800
+Message-ID: <b9b4e0368e9663d28ccc0aa70939e46fe9a9a3e2.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:23602 "EHLO mga14.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:32933 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751449AbdFEIiu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:38:50 -0400
+        id S1751449AbdFEIi4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:38:56 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, "David E. Box" <david.e.box@linux.intel.com>, Bob Moore <robert.moore@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: "David E. Box" <david.e.box@linux.intel.com>
 
-ACPICA commit 5bc67f63918da249bfe279ee461d152bb3e6f55b
+ACPICA commit 3c36625deffdfb034378b1793e2ead9c8fdd767e
 
-GIC ITS Affinity (ACPI 6.2)
+Changes the resource descriptor parse tree walk to a general
+preprocessing walk and calls the Switch conversion code from here.
+Move Switch code to new dmswitch.c file. Also improves algorithm to
+handle multiple levels of Switch statements and perform legacy
+disassembly for older or otherwise non-spec compliant Switch
+implementations.
 
-Link: https://github.com/acpica/acpica/commit/5bc67f63
+Link: https://github.com/acpica/acpica/commit/3c36625d
+Signed-off-by: David E. Box <david.e.box@linux.intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl1.h | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/acpi/acpica/acapps.h   | 4 ++--
+ drivers/acpi/acpica/acglobal.h | 1 +
+ drivers/acpi/acpica/aclocal.h  | 5 +++++
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 171fc51..6b8714a 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -1406,7 +1406,8 @@ enum acpi_srat_type {
- 	ACPI_SRAT_TYPE_MEMORY_AFFINITY = 1,
- 	ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY = 2,
- 	ACPI_SRAT_TYPE_GICC_AFFINITY = 3,
--	ACPI_SRAT_TYPE_RESERVED = 4	/* 4 and greater are reserved */
-+	ACPI_SRAT_TYPE_GIC_ITS_AFFINITY = 4,	/* ACPI 6.2 */
-+	ACPI_SRAT_TYPE_RESERVED = 5	/* 5 and greater are reserved */
- };
+diff --git a/drivers/acpi/acpica/acapps.h b/drivers/acpi/acpica/acapps.h
+index b65f273..bb6a84b 100644
+--- a/drivers/acpi/acpica/acapps.h
++++ b/drivers/acpi/acpica/acapps.h
+@@ -158,8 +158,8 @@ acpi_dm_finish_namespace_load(union acpi_parse_object *parse_tree_root,
+ 			      acpi_owner_id owner_id);
+ 
+ void
+-acpi_dm_convert_resource_indexes(union acpi_parse_object *parse_tree_root,
+-				 struct acpi_namespace_node *namespace_root);
++acpi_dm_convert_parse_objects(union acpi_parse_object *parse_tree_root,
++			      struct acpi_namespace_node *namespace_root);
  
  /*
-@@ -1478,6 +1479,15 @@ struct acpi_srat_gicc_affinity {
+  * adfile
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index abe8c31..896d548 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -315,6 +315,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_force_aml_disassembly, FALSE);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_opt_verbose, TRUE);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_emit_external_opcodes, FALSE);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_do_disassembler_optimizations, TRUE);
++ACPI_INIT_GLOBAL(ACPI_PARSE_OBJECT_LIST, *acpi_gbl_temp_list_head, NULL);
  
- #define ACPI_SRAT_GICC_ENABLED     (1)	/* 00: Use affinity structure */
+ ACPI_GLOBAL(u8, acpi_gbl_dm_opt_disasm);
+ ACPI_GLOBAL(u8, acpi_gbl_dm_opt_listing);
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index cd5016f..f63faa4 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -1182,6 +1182,11 @@ struct acpi_external_file {
+ 	struct acpi_external_file *next;
+ };
  
-+/* 4: GCC ITS Affinity (ACPI 6.2) */
-+
-+struct acpi_srat_gic_its_affinity {
-+	struct acpi_subtable_header header;
-+	u32 proximity_domain;
-+	u16 reserved;
-+	u32 its_id;
++struct acpi_parse_object_list {
++	union acpi_parse_object *op;
++	struct acpi_parse_object_list *next;
 +};
 +
- /* Reset to default packing */
- 
- #pragma pack()
+ /*****************************************************************************
+  *
+  * Debugger
 -- 
 2.7.4
 
