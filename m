@@ -1,100 +1,65 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [RFC PATCH] acpi: indicate to platform when hot remove returns busy
-Date: Sun, 4 Jun 2017 22:02:20 +0300
-Message-ID: <CAHp75Vf92MYFG9xGmjw4YbOQzqTEHOXk-YzgzTzoksC4rfo9ew@mail.gmail.com>
-References: <20170603172036.7645-1-jlee@suse.com> <CAHp75VcBd8e7Ce8KbyqtnoBKv7c5W9qb9o70-oViz6iCoRMShw@mail.gmail.com>
- <20170604100453.GK30622@linux-l9pv.suse>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [GIT PULL] ACPI fixes for v4.12-rc4
+Date: Mon, 5 Jun 2017 02:02:42 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEC5086@SHSMSX101.ccr.corp.intel.com>
+References: <CAJZ5v0jKBAgw3U=QOuGNwhqEMb0nfSUUNUotV9oyMr5NznF-Fg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:34176 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751169AbdFDTCW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jun 2017 15:02:22 -0400
-In-Reply-To: <20170604100453.GK30622@linux-l9pv.suse>
+Received: from mga14.intel.com ([192.55.52.115]:14745 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751189AbdFECCr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 4 Jun 2017 22:02:47 -0400
+In-Reply-To: <CAJZ5v0jKBAgw3U=QOuGNwhqEMb0nfSUUNUotV9oyMr5NznF-Fg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Sun, Jun 4, 2017 at 1:04 PM, joeyli <jlee@suse.com> wrote:
-> On Sat, Jun 03, 2017 at 08:37:51PM +0300, Andy Shevchenko wrote:
->> On Sat, Jun 3, 2017 at 8:20 PM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
-
->> > -static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
->> > +static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type,
->> > +                                     u32 *ost_code)
->> >  {
->> > +       int error = -EINVAL;
->> > +
->> >         switch (type) {
->> >         case ACPI_NOTIFY_BUS_CHECK:
->> >                 return acpi_scan_bus_check(adev);
->> > @@ -389,9 +392,11 @@ static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
->> >                 }
->> >                 acpi_evaluate_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
->> >                                   ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
->> > -               return acpi_scan_hot_remove(adev);
->> > +               error = acpi_scan_hot_remove(adev);
->> > +               if (error == -EBUSY && ost_code)
->> > +                       *ost_code = ACPI_OST_SC_DEVICE_BUSY;
->> >         }
->> > -       return -EINVAL;
->> > +       return error;
->> >  }
->>
->> Wit this change you spear a logic on two functions...
->>
->
-> You are right.
->
-> I want to give a chance to acpi_generic_hotplug_event()
-> to propose a _OST code. But acpi_device_hotplug() can
-> overwrite it. Not good...
-
-...
-
->> This is less intrusive and more flexible to modifications in the
->> future (might be split to a helper, might be easily extended, etc).
->>
->
-> this RFC patch changed the _OST code for BIOS that it may affects
-> the behavior of shipped machines. And, I am not sure that the
-> ACPI_OST_SC_DEVICE_BUSY approach is also useful for other hotplug
-> event, like ACPI_NOTIFY_BUS_CHECK or ACPI_NOTIFY_DEVICE_CHECK.
->
-> So, I prefer to apply this change only on the code path of
-> ACPI_NOTIFY_EJECT_REQUEST/ACPI_OST_EC_OSPM_EJECT.
->
-> Here is my first version, that it just simply put if-else logic:
->
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 2433569..b105087 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -414,10 +414,14 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
->                 error = dock_notify(adev, src);
->         } else if (adev->flags.hotplug_notify) {
->                 error = acpi_generic_hotplug_event(adev, src);
-> -               if (error == -EPERM) {
-> +               if (error == -EPERM)
->                         ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-> +               else if ((error == -EBUSY) &&
-> +                        (src == ACPI_NOTIFY_EJECT_REQUEST ||
-> +                         src == ACPI_OST_EC_OSPM_EJECT))
-> +                       ost_code = ACPI_OST_SC_DEVICE_BUSY;
-> +               if (error)
->                         goto err_out;
-> -               }
->         } else {
->                 int (*notify)(struct acpi_device *, u32);
->
-> Because it checks the event source that the logic is duplicate
-> with the switch code in acpi_generic_hotplug_event(). So I
-> reuse the switch code in acpi_generic_hotplug_event().
-
-I see. Then I leave this to Rafael to decide.
-
--- 
-With Best Regards,
-Andy Shevchenko
+SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
+aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFJhZmFlbCBKLg0K
+PiBXeXNvY2tpDQo+IFN1YmplY3Q6IFtHSVQgUFVMTF0gQUNQSSBmaXhlcyBmb3IgdjQuMTItcmM0
+DQo+IA0KPiBIaSBMaW51cywNCj4gDQo+IFBsZWFzZSBwdWxsIGZyb20gdGhlIHRhZw0KPiANCj4g
+IGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9yYWZhZWwvbGlu
+dXgtcG0uZ2l0IFwNCj4gIGFjcGktNC4xMi1yYzQNCj4gDQo+IHdpdGggdG9wLW1vc3QgY29tbWl0
+IDYwMzE5MTMwMjU0MDg0YjMzN2UwMjQzOWQzYjRlYzMwMWI2MzI4YmINCj4gDQo+ICBNZXJnZSBi
+cmFuY2hlcyAnYWNwaS1idXR0b24nLCAnYWNwaWNhJyBhbmQgJ2FjcGktc3lzZnMnDQo+IA0KPiBv
+biB0b3Agb2YgY29tbWl0IDVlZDAyZGJiNDk3NDIyYmYyMjU3ODNmNDZlNmVhZGQyMzdkMjNkNmIN
+Cj4gDQo+ICBMaW51eCA0LjEyLXJjMw0KPiANCj4gdG8gcmVjZWl2ZSBBQ1BJIGZpeGVzIGZvciB2
+NC4xMi1yYzQuDQo+IA0KPiBUaGVzZSByZXZlcnQgb25lIG1vcmUgcHJvYmxlbWF0aWMgY29tbWl0
+IHJlbGF0ZWQgdG8gdGhlIEFDUEktYmFzZWQNCj4gaGFuZGxpbmcgb2YgbGFwdG9wIGxpZHMgYW5k
+IG1ha2Ugc29tZSB1bnVzZWZ1bCBlcnJvciBtZXNzYWdlcyBjb21pbmcNCj4gZnJvbSBBQ1BJQ0Eg
+Z28gYXdheS4NCj4gDQo+IFNwZWNpZmljczoNCj4gDQo+ICAtIFJldmVydCBvbmUgbW9yZSBjb21t
+aXQgcmVsYXRlZCB0byB0aGUgQUNQSS1iYXNlZCBoYW5kbGluZyBvZg0KPiAgICBsYXB0b3AgbGlk
+cyB0aGF0IGNoYW5nZWQgdGhlIGRlZmF1bHQgYmVoYXZpb3Igb24gbGFwdG9wcyB0aGF0DQo+ICAg
+IGJvb3RlZCB3aXRoIGNsb3NlZCBsaWRzIGFuZCBpbnRyb2R1Y2VkIGEgcmVncmVzc2lvbiB0aGVy
+ZQ0KPiAgICAoQmVuamFtaW4gVGlzc29pcmVzKS4NCj4gDQo+ICAtIEFkZCBhIG1pc3NpbmcgYWNw
+aV9wdXRfdGFibGUoKSB0byB0aGUgY29kZSBpbXBsZW1lbnRpbmcgdGhlDQo+ICAgIC9zeXMvZmly
+bXdhcmUvYWNwaS90YWJsZXMgaW50ZXJmYWNlIHRvIHByZXZlbnQgYSBjb3VudGVyIGluDQo+ICAg
+IHRoZSBBQ1BJQ0EgY29yZSBmcm9tIG92ZXJmbG93aW5nIChEYW4gV2lsbGlhbXMpLg0KPiANCj4g
+IC0gRHJvcCBlcnJvciBtZXNzYWdlcyBwcmludGVkIGJ5IEFDUElDQSBvbiBhY3BpX2dldF90YWJs
+ZSgpDQo+ICAgIHJlZmVyZW5jZSBjb3VudGluZyBtaXNtYXRjaGVzIGFzIHRoZXkgbmVlZCBub3Qg
+aW5kaWNhdGUgcmVhbA0KPiAgICBlcnJvcnMgYXQgdGhpcyBwb2ludCAoTHYgWmhlbmcpLg0KPiAN
+Cj4gVGhhbmtzIQ0KPiANCj4gDQo+IC0tLS0tLS0tLS0tLS0tLQ0KPiANCj4gQmVuamFtaW4gVGlz
+c29pcmVzICgxKToNCj4gICAgICAgUmV2ZXJ0ICJBQ1BJIC8gYnV0dG9uOiBDaGFuZ2UgZGVmYXVs
+dCBiZWhhdmlvciB0byBsaWRfaW5pdF9zdGF0ZT1vcGVuIg0KPiANCj4gRGFuIFdpbGxpYW1zICgx
+KToNCj4gICAgICAgQUNQSSAvIHN5c2ZzOiBmaXggYWNwaV9nZXRfdGFibGUoKSBsZWFrIC8gYWNw
+aS1zeXNmcyBkZW5pYWwgb2Ygc2VydmljZQ0KDQpUaGlzIGNvbW1pdCBjYW4gdHJpZ2dlciByZWdy
+ZXNzaW9uIGFzIG1lbnRpb25lZCBieSB0aGlzIGRpc2N1c3Npb246DQpodHRwczovL3BhdGNod29y
+ay5rZXJuZWwub3JnL3BhdGNoLzk3MTcwNzMvDQpTbyBpZiB0aGlzIGNvbW1pdCBpcyBhY2NlcHRl
+ZCBieSB0aGUgdXBzdHJlYW0sIHRoZSBhYm92ZSBjb21taXQgc2hvdWxkIGFsc28gYmUgaW4gdXBz
+dHJlYW0gaW4gb3JkZXIgbm90IHRvIHJlZ3Jlc3MuDQpEbyB5b3UgbmVlZCB0byBtZSByZWZpbmUg
+aXQgYW5kIHJlLXNlbmQgaXQgdG8gdGhlIGNvbW11bml0eT8NCkl0J3MgYSBiaXQgc2xvdyBpbiBB
+Q1BJQ0EgdXBzdHJlYW0gYXMgQUNQSUNBIHVwc3RyZWFtIGlzIGZyb3plbiBmb3Igc3BlYyA2LjIg
+c3VwcG9ydC4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2DQoNCj4gDQo+IEx2IFpoZW5n
+ICgxKToNCj4gICAgICAgQUNQSUNBOiBUYWJsZXM6IEZpeCByZWdyZXNzaW9uIGludHJvZHVjZWQg
+YnkgYSB0b28gZWFybHkNCj4gbWVjaGFuaXNtIGVuYWJsaW5nDQo+IA0KPiAtLS0tLS0tLS0tLS0t
+LS0NCj4gDQo+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL3RidXRpbHMuYyB8IDQgLS0tLQ0KPiAgZHJp
+dmVycy9hY3BpL2J1dHRvbi5jICAgICAgICAgfCAyICstDQo+ICBkcml2ZXJzL2FjcGkvc3lzZnMu
+YyAgICAgICAgICB8IDcgKysrKystLQ0KPiAgMyBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlvbnMo
+KyksIDcgZGVsZXRpb25zKC0pDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0
+OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1hY3BpIiBpbg0KPiB0aGUgYm9keSBv
+ZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9t
+byBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
