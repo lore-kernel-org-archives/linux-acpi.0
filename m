@@ -1,123 +1,136 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 46/53] ACPICA: Disassembler: add external op to namespace on first pass
-Date: Mon,  5 Jun 2017 16:41:49 +0800
-Message-ID: <cc9454fc5b6e3a475e97496e6c9d73c1b6666d10.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 48/53] ACPICA: Improvements for debug output only
+Date: Mon,  5 Jun 2017 16:42:02 +0800
+Message-ID: <cabf6f461cd34925533d55a20219eb2d85362a9c.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23851 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:37547 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751640AbdFEIly (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:41:54 -0400
+        id S1751792AbdFEImE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:42:04 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Erik Schmauss <erik.schmauss@intel.com>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Erik Schmauss <erik.schmauss@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 117be4819588df3b7146f6f01723639b1d61e775
+ACPICA commit c3f798b7b0e4f2403d3ce0cc1107ab0932efe1e3
 
-By doing so, external control method resolutions can be resolved like
-normal control methods. This eliminates the need to reparse the aml
-all over again for external control methods that were encoded within
-the aml with the 0x15 bytecode.
+Changes to debug print and debug function tracing.
 
-Link: https://github.com/acpica/acpica/commit/117be481
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+Link: https://github.com/acpica/acpica/commit/c3f798b7
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/dswload.c  | 40 +++++++++++++++++++++++++++++++++++++++-
- drivers/acpi/acpica/dswload2.c | 10 ++++++++--
- 2 files changed, 47 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/dsargs.c  |  5 +++--
+ drivers/acpi/acpica/dswexec.c |  4 ++--
+ drivers/acpi/acpica/exdump.c  | 30 ++++++++++++++++++++----------
+ 3 files changed, 25 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
-index 1dd5a98..eaa859a 100644
---- a/drivers/acpi/acpica/dswload.c
-+++ b/drivers/acpi/acpica/dswload.c
-@@ -434,6 +434,10 @@ acpi_status acpi_ds_load1_end_op(struct acpi_walk_state *walk_state)
- 	acpi_object_type object_type;
- 	acpi_status status = AE_OK;
+diff --git a/drivers/acpi/acpica/dsargs.c b/drivers/acpi/acpica/dsargs.c
+index 287b3fd..2873455 100644
+--- a/drivers/acpi/acpica/dsargs.c
++++ b/drivers/acpi/acpica/dsargs.c
+@@ -82,7 +82,7 @@ acpi_ds_execute_arguments(struct acpi_namespace_node *node,
+ 	union acpi_parse_object *op;
+ 	struct acpi_walk_state *walk_state;
  
-+#ifdef ACPI_ASL_COMPILER
-+	u8 param_count;
-+#endif
-+
- 	ACPI_FUNCTION_TRACE(ds_load1_end_op);
+-	ACPI_FUNCTION_TRACE(ds_execute_arguments);
++	ACPI_FUNCTION_TRACE_PTR(ds_execute_arguments, aml_start);
  
- 	op = walk_state->op;
-@@ -514,6 +518,38 @@ acpi_status acpi_ds_load1_end_op(struct acpi_walk_state *walk_state)
- 			}
- 		}
+ 	/* Allocate a new parser op to be the root of the parsed tree */
+ 
+@@ -338,7 +338,8 @@ acpi_status acpi_ds_get_package_arguments(union acpi_operand_object *obj_desc)
+ 		return_ACPI_STATUS(AE_AML_INTERNAL);
  	}
-+#ifdef ACPI_ASL_COMPILER
-+	/*
-+	 * For external opcode, get the object type from the argument and
-+	 * get the parameter count from the argument's next.
-+	 */
-+	if (acpi_gbl_disasm_flag &&
-+	    op->common.node && op->common.aml_opcode == AML_EXTERNAL_OP) {
-+		/*
-+		 * Note, if this external is not a method
-+		 * Op->Common.Value.Arg->Common.Next->Common.Value.Integer == 0
-+		 * Therefore, param_count will be 0.
-+		 */
-+		param_count =
-+		    (u8)op->common.value.arg->common.next->common.value.integer;
-+		object_type = (u8)op->common.value.arg->common.value.integer;
-+		op->common.node->flags |= ANOBJ_IS_EXTERNAL;
-+		op->common.node->type = (u8)object_type;
-+
-+		acpi_dm_create_subobject_for_external((u8)object_type,
-+						      &op->common.node,
-+						      param_count);
-+
-+		/*
-+		 * Add the external to the external list because we may be
-+		 * emitting code based off of the items within the external list.
-+		 */
-+		acpi_dm_add_op_to_external_list(op, op->named.path,
-+						(u8)object_type, param_count,
-+						ACPI_EXT_ORIGIN_FROM_OPCODE |
-+						ACPI_EXT_RESOLVED_REFERENCE);
-+	}
-+#endif
  
- 	/*
- 	 * If we are executing a method, do not create any namespace objects
-@@ -563,7 +599,9 @@ acpi_status acpi_ds_load1_end_op(struct acpi_walk_state *walk_state)
+-	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Package Arg Init\n"));
++	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Package Argument Init, AML Ptr: %p\n",
++			  obj_desc->package.aml_start));
  
- 	/* Pop the scope stack (only if loading a table) */
+ 	/* Execute the AML code for the term_arg arguments */
  
--	if (!walk_state->method_node && acpi_ns_opens_scope(object_type)) {
-+	if (!walk_state->method_node &&
-+	    op->common.aml_opcode != AML_EXTERNAL_OP &&
-+	    acpi_ns_opens_scope(object_type)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
- 				  "(%s): Popping scope for Op %p\n",
- 				  acpi_ut_get_type_name(object_type), op));
-diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
-index ab5d318..aad83ef 100644
---- a/drivers/acpi/acpica/dswload2.c
-+++ b/drivers/acpi/acpica/dswload2.c
-@@ -313,8 +313,14 @@ acpi_ds_load2_begin_op(struct acpi_walk_state *walk_state,
- #ifdef ACPI_ASL_COMPILER
+diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
+index a2ff8ad..20d7744 100644
+--- a/drivers/acpi/acpica/dswexec.c
++++ b/drivers/acpi/acpica/dswexec.c
+@@ -576,8 +576,8 @@ acpi_status acpi_ds_exec_end_op(struct acpi_walk_state *walk_state)
+ 		case AML_TYPE_CREATE_OBJECT:
  
- 		/*
--		 * Do not open a scope. This could be an external method
--		 * and open a scope.
-+		 * Do not open a scope for AML_EXTERNAL_OP
-+		 * acpi_ns_lookup can open a new scope based on the object type
-+		 * of this op. AML_EXTERNAL_OP is a declaration rather than a
-+		 * definition. In the case that this external is a method object,
-+		 * acpi_ns_lookup will open a new scope. However, an AML_EXTERNAL_OP
-+		 * associated with the ACPI_TYPE_METHOD is a declaration, rather than
-+		 * a definition. Flags is set to avoid opening a scope for any
-+		 * AML_EXTERNAL_OP.
- 		 */
- 		if (walk_state->opcode == AML_EXTERNAL_OP) {
- 			flags |= ACPI_NS_DONT_OPEN_SCOPE;
+ 			ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+-					  "Executing CreateObject (Buffer/Package) Op=%p\n",
+-					  op));
++					  "Executing CreateObject (Buffer/Package) Op=%p AMLPtr=%p\n",
++					  op, op->named.data));
+ 
+ 			switch (op->common.parent->common.aml_opcode) {
+ 			case AML_NAME_OP:
+diff --git a/drivers/acpi/acpica/exdump.c b/drivers/acpi/acpica/exdump.c
+index 970dc6c..44092f7 100644
+--- a/drivers/acpi/acpica/exdump.c
++++ b/drivers/acpi/acpica/exdump.c
+@@ -645,10 +645,12 @@ void acpi_ex_dump_operand(union acpi_operand_object *obj_desc, u32 depth)
+ 	/* obj_desc is a valid object */
+ 
+ 	if (depth > 0) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "%*s[%u] %p ",
+-				  depth, " ", depth, obj_desc));
++		ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "%*s[%u] %p Refs=%u ",
++				  depth, " ", depth, obj_desc,
++				  obj_desc->common.reference_count));
+ 	} else {
+-		ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "%p ", obj_desc));
++		ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "%p Refs=%u ",
++				  obj_desc, obj_desc->common.reference_count));
+ 	}
+ 
+ 	/* Decode object type */
+@@ -690,8 +692,11 @@ void acpi_ex_dump_operand(union acpi_operand_object *obj_desc, u32 depth)
+ 
+ 		case ACPI_REFCLASS_NAME:
+ 
+-			acpi_os_printf("- [%4.4s]\n",
+-				       obj_desc->reference.node->name.ascii);
++			acpi_ut_repair_name(obj_desc->reference.node->name.
++					    ascii);
++			acpi_os_printf("- [%4.4s] (Node %p)\n",
++				       obj_desc->reference.node->name.ascii,
++				       obj_desc->reference.node);
+ 			break;
+ 
+ 		case ACPI_REFCLASS_ARG:
+@@ -999,9 +1004,15 @@ static void acpi_ex_dump_reference_obj(union acpi_operand_object *obj_desc)
+ 		status = acpi_ns_handle_to_pathname(obj_desc->reference.node,
+ 						    &ret_buf, TRUE);
+ 		if (ACPI_FAILURE(status)) {
+-			acpi_os_printf(" Could not convert name to pathname\n");
++			acpi_os_printf
++			    (" Could not convert name to pathname: %s\n",
++			     acpi_format_exception(status));
+ 		} else {
+-			acpi_os_printf("%s\n", (char *)ret_buf.pointer);
++			acpi_os_printf("%s: %s\n",
++				       acpi_ut_get_type_name(obj_desc->
++							     reference.node->
++							     type),
++				       (char *)ret_buf.pointer);
+ 			ACPI_FREE(ret_buf.pointer);
+ 		}
+ 	} else if (obj_desc->reference.object) {
+@@ -1111,9 +1122,8 @@ acpi_ex_dump_package_obj(union acpi_operand_object *obj_desc,
+ 
+ 	case ACPI_TYPE_LOCAL_REFERENCE:
+ 
+-		acpi_os_printf("[Object Reference] Type [%s] %2.2X",
+-			       acpi_ut_get_reference_name(obj_desc),
+-			       obj_desc->reference.class);
++		acpi_os_printf("[Object Reference] Class [%s]",
++			       acpi_ut_get_reference_name(obj_desc));
+ 		acpi_ex_dump_reference_obj(obj_desc);
+ 		break;
+ 
 -- 
 2.7.4
 
