@@ -1,130 +1,45 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 14/53] ACPICA: Tables: Add PPTT table definitions
-Date: Mon,  5 Jun 2017 16:38:26 +0800
-Message-ID: <2abdd05b4987ff40fb885d8c1167f1f8210bb9a0.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 15/53] ACPICA: Add new flags to HEST subtables
+Date: Mon,  5 Jun 2017 16:38:32 +0800
+Message-ID: <141849e777a76908d4916cac60ccf0616d5bbaa3.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:58284 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:10809 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751563AbdFEIia (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:38:30 -0400
+        id S1751634AbdFEIii (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:38:38 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit c27465d07fd008ba71c1f687b2715267701bc8ad
+From: Bob Moore <robert.moore@intel.com>
 
-This patch adds PPTT (Processor Properties Topology Table, defined in ACPI
-spec 6.2) support in ACPICA core, including table definitions expressed in
-C structures and macros. Lv Zheng.
+ACPICA commit c2c3807adb8a67e6462b731dc64be35d8b8317f8
 
-Link: https://github.com/acpica/acpica/commit/c27465d0
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Add GHES_ASSIST flag for ACPI 6.2
+Add missing GLOBAL flag for AER structures
+
+Link: https://github.com/acpica/acpica/commit/c2c3807a
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl1.h | 80 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 80 insertions(+)
+ include/acpi/actbl1.h | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 87a12e1..f57e94c 100644
+index f57e94c..0673120 100644
 --- a/include/acpi/actbl1.h
 +++ b/include/acpi/actbl1.h
-@@ -69,6 +69,7 @@
- #define ACPI_SIG_HEST           "HEST"	/* Hardware Error Source Table */
- #define ACPI_SIG_MADT           "APIC"	/* Multiple APIC Description Table */
- #define ACPI_SIG_MSCT           "MSCT"	/* Maximum System Characteristics Table */
-+#define ACPI_SIG_PPTT           "PPTT"	/* Processor Properties Topology Table */
- #define ACPI_SIG_SBST           "SBST"	/* Smart Battery Specification Table */
- #define ACPI_SIG_SLIT           "SLIT"	/* System Locality Distance Information Table */
- #define ACPI_SIG_SRAT           "SRAT"	/* System Resource Affinity Table */
-@@ -1265,6 +1266,85 @@ struct acpi_nfit_flush_address {
+@@ -478,6 +478,7 @@ struct acpi_hest_aer_common {
  
- /*******************************************************************************
-  *
-+ * PPTT - Processor Properties Topology Table (ACPI 6.2)
-+ *        Version 1
-+ *
-+ ******************************************************************************/
-+
-+struct acpi_table_pptt {
-+	struct acpi_table_header header;	/* Common ACPI table header */
-+};
-+
-+/* Values for Type field above */
-+
-+enum acpi_pptt_type {
-+	ACPI_PPTT_TYPE_PROCESSOR = 0,
-+	ACPI_PPTT_TYPE_CACHE = 1,
-+	ACPI_PPTT_TYPE_ID = 2,
-+	ACPI_PPTT_TYPE_RESERVED = 3
-+};
-+
-+/* 0: Processor Hierarchy Node Structure */
-+
-+struct acpi_pptt_processor {
-+	struct acpi_subtable_header header;
-+	u16 reserved;
-+	u32 flags;
-+	u32 parent;
-+	u32 acpi_processor_id;
-+	u32 number_of_priv_resources;
-+};
-+
-+/* Flags */
-+
-+#define ACPI_PPTT_PHYSICAL_PACKAGE          (1)	/* Physical package */
-+#define ACPI_PPTT_ACPI_PROCESSOR_ID_VALID   (2)	/* ACPI Processor ID valid */
-+
-+/* 1: Cache Type Structure */
-+
-+struct acpi_pptt_cache {
-+	struct acpi_subtable_header header;
-+	u16 reserved;
-+	u32 flags;
-+	u32 next_level_of_cache;
-+	u32 size;
-+	u32 number_of_sets;
-+	u8 associativity;
-+	u8 attributes;
-+	u16 line_size;
-+};
-+
-+/* Flags */
-+
-+#define ACPI_PPTT_SIZE_PROPERTY_VALID       (1)	/* Physical property valid */
-+#define ACPI_PPTT_NUMBER_OF_SETS_VALID      (1<<1)	/* Number of sets valid */
-+#define ACPI_PPTT_ASSOCIATIVITY_VALID       (1<<2)	/* Associativity valid */
-+#define ACPI_PPTT_ALLOCATION_TYPE_VALID     (1<<3)	/* Allocation type valid */
-+#define ACPI_PPTT_CACHE_TYPE_VALID          (1<<4)	/* Cache type valid */
-+#define ACPI_PPTT_WRITE_POLICY_VALID        (1<<5)	/* Write policy valid */
-+#define ACPI_PPTT_LINE_SIZE_VALID           (1<<6)	/* Line size valid */
-+
-+/* Masks for Attributes */
-+
-+#define ACPI_PPTT_MASK_ALLOCATION_TYPE      (0x03)	/* Allocation type */
-+#define ACPI_PPTT_MASK_CACHE_TYPE           (0x0C)	/* Cache type */
-+#define ACPI_PPTT_MASK_WRITE_POLICY         (0x10)	/* Write policy */
-+
-+/* 2: ID Structure */
-+
-+struct acpi_pptt_id {
-+	struct acpi_subtable_header header;
-+	u16 reserved;
-+	u32 vendor_id;
-+	u64 level1_id;
-+	u64 level2_id;
-+	u16 major_rev;
-+	u16 minor_rev;
-+	u16 spin_rev;
-+};
-+
-+/*******************************************************************************
-+ *
-  * SBST - Smart Battery Specification Table
-  *        Version 1
-  *
+ #define ACPI_HEST_FIRMWARE_FIRST        (1)
+ #define ACPI_HEST_GLOBAL                (1<<1)
++#define ACPI_HEST_GHES_ASSIST           (1<<2)
+ 
+ /*
+  * Macros to access the bus/segment numbers in Bus field above:
 -- 
 2.7.4
 
