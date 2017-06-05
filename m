@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 34/53] ACPICA: Disassembler: Abort on an invalid/unknown AML opcode
-Date: Mon,  5 Jun 2017 16:40:34 +0800
-Message-ID: <cb6e67c861e21517cddfc6eb5a4a9cc5f1659c9f.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 35/53] ACPICA: Export the public mutex interfaces
+Date: Mon,  5 Jun 2017 16:40:39 +0800
+Message-ID: <0d57b720cf56d6663a70f394b321ef15bdc25865.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:44128 "EHLO mga07.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:9299 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751809AbdFEIkh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:40:37 -0400
+        id S1751636AbdFEIkm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:40:42 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,62 +16,45 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit ed0389cb11a61e63c568ac1f67948fc6a7bd1aeb
+ACPICA commit ff09dcf9eb69fe9318034c60c377436030e7feea
 
-An invalid opcode indicates something seriously wrong with the
-input AML file. The AML parser is immediately confused and lost,
-causing the resulting parse tree to be ill-formed. The actual
-disassembly can then cause numerous unrelated errors and faults.
+These interfaces are intended to be used by device drivers.
 
-This change aborts the disassembly upon discovery of such an
-opcode during the AML parse phase.
-
-Link: https://github.com/acpica/acpica/commit/ed0389cb
+Link: https://github.com/acpica/acpica/commit/ff09dcf9
+Reported-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/psobject.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/acpi/acpica/utxfmutex.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/psobject.c b/drivers/acpi/acpica/psobject.c
-index 5bcb618..ef6384e 100644
---- a/drivers/acpi/acpica/psobject.c
-+++ b/drivers/acpi/acpica/psobject.c
-@@ -122,6 +122,9 @@ static acpi_status acpi_ps_get_aml_opcode(struct acpi_walk_state *walk_state)
- 			     (u32)(aml_offset +
- 				   sizeof(struct acpi_table_header)));
+diff --git a/drivers/acpi/acpica/utxfmutex.c b/drivers/acpi/acpica/utxfmutex.c
+index c016211..0b85f11 100644
+--- a/drivers/acpi/acpica/utxfmutex.c
++++ b/drivers/acpi/acpica/utxfmutex.c
+@@ -151,6 +151,8 @@ acpi_acquire_mutex(acpi_handle handle, acpi_string pathname, u16 timeout)
+ 	return (status);
+ }
  
-+			ACPI_ERROR((AE_INFO,
-+				    "Aborting disassembly, AML byte code is corrupt"));
++ACPI_EXPORT_SYMBOL(acpi_acquire_mutex)
 +
- 			/* Dump the context surrounding the invalid opcode */
- 
- 			acpi_ut_dump_buffer(((u8 *)walk_state->parser_state.
-@@ -130,6 +133,14 @@ static acpi_status acpi_ps_get_aml_opcode(struct acpi_walk_state *walk_state)
- 					     sizeof(struct acpi_table_header) -
- 					     16));
- 			acpi_os_printf(" */\n");
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_release_mutex
+@@ -167,7 +169,6 @@ acpi_acquire_mutex(acpi_handle handle, acpi_string pathname, u16 timeout)
+  *              not both.
+  *
+  ******************************************************************************/
+-
+ acpi_status acpi_release_mutex(acpi_handle handle, acpi_string pathname)
+ {
+ 	acpi_status status;
+@@ -185,3 +186,5 @@ acpi_status acpi_release_mutex(acpi_handle handle, acpi_string pathname)
+ 	acpi_os_release_mutex(mutex_obj->mutex.os_mutex);
+ 	return (AE_OK);
+ }
 +
-+			/*
-+			 * Just abort the disassembly, cannot continue because the
-+			 * parser is essentially lost. The disassembler can then
-+			 * randomly fail because an ill-constructed parse tree
-+			 * can result.
-+			 */
-+			return_ACPI_STATUS(AE_AML_BAD_OPCODE);
- #endif
- 		}
- 
-@@ -331,6 +342,9 @@ acpi_ps_create_op(struct acpi_walk_state *walk_state,
- 	if (status == AE_CTRL_PARSE_CONTINUE) {
- 		return_ACPI_STATUS(AE_CTRL_PARSE_CONTINUE);
- 	}
-+	if (ACPI_FAILURE(status)) {
-+		return_ACPI_STATUS(status);
-+	}
- 
- 	/* Create Op structure and append to parent's argument list */
- 
++ACPI_EXPORT_SYMBOL(acpi_release_mutex)
 -- 
 2.7.4
 
