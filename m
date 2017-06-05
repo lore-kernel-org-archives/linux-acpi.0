@@ -1,46 +1,130 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 13/53] ACPICA: Add new notify value for HEST table
-Date: Mon,  5 Jun 2017 16:38:20 +0800
-Message-ID: <8317602bfdadeb2edbd4fada395415cc768e25a0.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 14/53] ACPICA: Tables: Add PPTT table definitions
+Date: Mon,  5 Jun 2017 16:38:26 +0800
+Message-ID: <2abdd05b4987ff40fb885d8c1167f1f8210bb9a0.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20596 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:58284 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751512AbdFEIiX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:38:23 -0400
+        id S1751563AbdFEIia (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:38:30 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+ACPICA commit c27465d07fd008ba71c1f687b2715267701bc8ad
 
-ACPICA commit 35e06462f3186e1e6e9cb4fe97dfb43d4b3718a2
+This patch adds PPTT (Processor Properties Topology Table, defined in ACPI
+spec 6.2) support in ACPICA core, including table definitions expressed in
+C structures and macros. Lv Zheng.
 
-"Software Delegated Exception" - ACPI 6.2
-
-Link: https://github.com/acpica/acpica/commit/35e06462
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/c27465d0
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- include/acpi/actbl1.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/acpi/actbl1.h | 80 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 80 insertions(+)
 
 diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 070f322..87a12e1 100644
+index 87a12e1..f57e94c 100644
 --- a/include/acpi/actbl1.h
 +++ b/include/acpi/actbl1.h
-@@ -514,7 +514,8 @@ enum acpi_hest_notify_types {
- 	ACPI_HEST_NOTIFY_SEA = 8,	/* ACPI 6.1 */
- 	ACPI_HEST_NOTIFY_SEI = 9,	/* ACPI 6.1 */
- 	ACPI_HEST_NOTIFY_GSIV = 10,	/* ACPI 6.1 */
--	ACPI_HEST_NOTIFY_RESERVED = 11	/* 11 and greater are reserved */
-+	ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED = 11,	/* ACPI 6.2 */
-+	ACPI_HEST_NOTIFY_RESERVED = 12	/* 12 and greater are reserved */
- };
+@@ -69,6 +69,7 @@
+ #define ACPI_SIG_HEST           "HEST"	/* Hardware Error Source Table */
+ #define ACPI_SIG_MADT           "APIC"	/* Multiple APIC Description Table */
+ #define ACPI_SIG_MSCT           "MSCT"	/* Maximum System Characteristics Table */
++#define ACPI_SIG_PPTT           "PPTT"	/* Processor Properties Topology Table */
+ #define ACPI_SIG_SBST           "SBST"	/* Smart Battery Specification Table */
+ #define ACPI_SIG_SLIT           "SLIT"	/* System Locality Distance Information Table */
+ #define ACPI_SIG_SRAT           "SRAT"	/* System Resource Affinity Table */
+@@ -1265,6 +1266,85 @@ struct acpi_nfit_flush_address {
  
- /* Values for config_write_enable bitfield above */
+ /*******************************************************************************
+  *
++ * PPTT - Processor Properties Topology Table (ACPI 6.2)
++ *        Version 1
++ *
++ ******************************************************************************/
++
++struct acpi_table_pptt {
++	struct acpi_table_header header;	/* Common ACPI table header */
++};
++
++/* Values for Type field above */
++
++enum acpi_pptt_type {
++	ACPI_PPTT_TYPE_PROCESSOR = 0,
++	ACPI_PPTT_TYPE_CACHE = 1,
++	ACPI_PPTT_TYPE_ID = 2,
++	ACPI_PPTT_TYPE_RESERVED = 3
++};
++
++/* 0: Processor Hierarchy Node Structure */
++
++struct acpi_pptt_processor {
++	struct acpi_subtable_header header;
++	u16 reserved;
++	u32 flags;
++	u32 parent;
++	u32 acpi_processor_id;
++	u32 number_of_priv_resources;
++};
++
++/* Flags */
++
++#define ACPI_PPTT_PHYSICAL_PACKAGE          (1)	/* Physical package */
++#define ACPI_PPTT_ACPI_PROCESSOR_ID_VALID   (2)	/* ACPI Processor ID valid */
++
++/* 1: Cache Type Structure */
++
++struct acpi_pptt_cache {
++	struct acpi_subtable_header header;
++	u16 reserved;
++	u32 flags;
++	u32 next_level_of_cache;
++	u32 size;
++	u32 number_of_sets;
++	u8 associativity;
++	u8 attributes;
++	u16 line_size;
++};
++
++/* Flags */
++
++#define ACPI_PPTT_SIZE_PROPERTY_VALID       (1)	/* Physical property valid */
++#define ACPI_PPTT_NUMBER_OF_SETS_VALID      (1<<1)	/* Number of sets valid */
++#define ACPI_PPTT_ASSOCIATIVITY_VALID       (1<<2)	/* Associativity valid */
++#define ACPI_PPTT_ALLOCATION_TYPE_VALID     (1<<3)	/* Allocation type valid */
++#define ACPI_PPTT_CACHE_TYPE_VALID          (1<<4)	/* Cache type valid */
++#define ACPI_PPTT_WRITE_POLICY_VALID        (1<<5)	/* Write policy valid */
++#define ACPI_PPTT_LINE_SIZE_VALID           (1<<6)	/* Line size valid */
++
++/* Masks for Attributes */
++
++#define ACPI_PPTT_MASK_ALLOCATION_TYPE      (0x03)	/* Allocation type */
++#define ACPI_PPTT_MASK_CACHE_TYPE           (0x0C)	/* Cache type */
++#define ACPI_PPTT_MASK_WRITE_POLICY         (0x10)	/* Write policy */
++
++/* 2: ID Structure */
++
++struct acpi_pptt_id {
++	struct acpi_subtable_header header;
++	u16 reserved;
++	u32 vendor_id;
++	u64 level1_id;
++	u64 level2_id;
++	u16 major_rev;
++	u16 minor_rev;
++	u16 spin_rev;
++};
++
++/*******************************************************************************
++ *
+  * SBST - Smart Battery Specification Table
+  *        Version 1
+  *
 -- 
 2.7.4
 
