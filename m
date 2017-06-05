@@ -1,59 +1,59 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v6 0/3] Preparation for further fwnode property cleanup
-Date: Mon, 5 Jun 2017 10:12:24 -0500
-Message-ID: <CAL_JsqJtB-UVNLo3SM6apB-MODOSWwZzgeAE+ifsmT7U-5WJmw@mail.gmail.com>
-References: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com> <20170531122849.GG1019@valkosipuli.retiisi.org.uk>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH 3/3] ACPI / sleep: EC-based wakeup from suspend-to-idle on
+ recent Dell systems
+Date: Mon, 5 Jun 2017 15:18:59 +0000
+Message-ID: <806f96fe75d84268a570b702490c686c@ausx13mpc120.AMER.DELL.COM>
+References: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
+ <3454366.uzaJljlWGm@aspire.rjw.lan> <2944956.jYmHlBxMl3@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47526 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751162AbdFEPMv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 11:12:51 -0400
-In-Reply-To: <20170531122849.GG1019@valkosipuli.retiisi.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2944956.jYmHlBxMl3@aspire.rjw.lan>
+Content-Language: en-US
+Sender: linux-pm-owner@vger.kernel.org
+To: rjw@rjwysocki.net, linux-pm@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, andriy.shevchenko@linux.intel.com, dvhart@infradead.org, linux-kernel@vger.kernel.org, srinivas.pandruvada@linux.intel.com, mika.westerberg@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Frank Rowand <frowand.list@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Al Stone <ahs3@redhat.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>
 
-On Wed, May 31, 2017 at 7:28 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Rob,
->
-> On Wed, May 24, 2017 at 05:53:52PM +0300, Sakari Ailus wrote:
->> Hi Rob, Frank, others,
->>
->> Here's the 6th version of what used to be a single patch to prepare for
->> fwnode property cleanup.
->>
->> Beyond this, I have a couple of other patchsets I'll post in the near
->> future:
->>
->> - fwnode property cleanup (for linux-pm) which moves the property API
->> implementation to FW specific locations; depends on these patches,
->>
->> - V4L2 fwnode patches (for media_tree, no unmerged dependencies, pull
->>   request sent) and
->>
->> - fwnode const patchset which allows making the fwnode argument for the
->>   property API functions const. It depends on both of the previous sets.
->>   Might be for linux-pm.
->
-> I figured out that others are starting to have patches that depend on my
-> other patchsets getting merged. Those patches are for the fwnode property
-> API that most likely should go through the linux-pm tree as well as for the
-> media tree.
->
-> <URL:http://www.spinics.net/lists/linux-media/msg115893.html>
->
-> I have hopes of being able to get the fwnode cleanup patchset (which the
-> aforementioned patches depend on) in within this merge window --- assuming I
-> could have your ack on the OF portions.
->
-> Would it be possible to have an immutable branch for these or would you
-> accept a pull request on v4.12-rc1?
+> +	/*
+> +	 * Enable the EC to wake up the system from suspend-to-idle to allow
+> +	 * power button events to it wake up.
+> +	 */
+> +	{
+> +	 .callback =3D init_ec_gpe_wakeup,
+> +	 .ident =3D "Dell XPS 13 9360",
+> +	 .matches =3D {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "XPS 13 9360"),
+> +		},
+> +	},
+> +	{
+> +	 .callback =3D init_ec_gpe_wakeup,
+> +	 .ident =3D "Dell XPS 13 9365",
+> +	 .matches =3D {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "XPS 13 9365"),
+> +		},
+> +	},
+>  	{},
+>  };
+>=20
 
-I've applied this series. The stable branch is here:
+Although the XPS 9360 and XPS 9365 are currently the only Dell products on
+the market that do the wakeup this way, this is part of Dell's BIOS and EC
+codebase.  As other Dell products start to ship Windows 10 with Modern Stan=
+dby
+and (eventually) Linux with Suspend-to-Idle I'd expect this list to be grow=
+ing.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git dt/property-move
+I know that we talked about this previously in relation to the EC notificat=
+ion
+of going in to suspend-to-idle and you had instead marked it across all Del=
+l Inc systems.
 
-Rob
+Rather than hardcode a whitelist of platform that can do this, could you do=
+ the
+same thing here and allow EC wakeups across Dell Inc. systems?
+
+Thanks,
