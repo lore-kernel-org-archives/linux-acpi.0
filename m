@@ -1,48 +1,107 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v3 1/5] acpi,
-	nfit: Switch to use new generic UUID API
-Date: Mon, 05 Jun 2017 20:10:42 +0300
-Message-ID: <1496682642.22624.23.camel@linux.intel.com>
-References: <20170605164046.82676-1-andriy.shevchenko@linux.intel.com>
- <20170605164046.82676-2-andriy.shevchenko@linux.intel.com>
- <CAPcyv4h4PY1JBxTB6Powf2y2uiHAZ4QtnZG16bBzdQqsQ2KAYQ@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 2/7] dt-bindings: PCI: Describe ATS property for root
+ complex nodes
+Date: Mon, 5 Jun 2017 12:20:25 -0500
+Message-ID: <20170605172025.qgnocl5ytexnklue@rob-hp-laptop>
+References: <20170524180143.19855-1-jean-philippe.brucker@arm.com>
+ <20170524180143.19855-3-jean-philippe.brucker@arm.com>
+ <20170531172320.3u6bdctv44aqighy@rob-hp-laptop>
+ <cd63a2dc-8259-482d-19e9-9db60be866f7@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <CAPcyv4h4PY1JBxTB6Powf2y2uiHAZ4QtnZG16bBzdQqsQ2KAYQ@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: intel-gfx@lists.freedesktop.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Christoph Hellwig <hch@lst.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:35490 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751942AbdFERU2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2017 13:20:28 -0400
+Content-Disposition: inline
+In-Reply-To: <cd63a2dc-8259-482d-19e9-9db60be866f7@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Cc: linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org, bhelgaas@google.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, robin.murphy@arm.com, joro@8bytes.org, okaya@codeaurora.org, sunil.kovvuri@gmail.com, thunder.leizhen@huawei.com, tn@semihalf.com
 
-T24gTW9uLCAyMDE3LTA2LTA1IGF0IDA5OjQ5IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
-T24gTW9uLCBKdW4gNSwgMjAxNyBhdCA5OjQwIEFNLCBBbmR5IFNoZXZjaGVua28KPiA8YW5kcml5
-LnNoZXZjaGVua29AbGludXguaW50ZWwuY29tPiB3cm90ZToKPiA+IFRoZXJlIGFyZSBuZXcgdHlw
-ZXMgYW5kIGhlbHBlcnMgdGhhdCBhcmUgc3VwcG9zZWQgdG8gYmUgdXNlZCBpbiBuZXcKPiA+IGNv
-ZGUuCj4gPiAKPiA+IEFzIGEgcHJlcGFyYXRpb24gdG8gZ2V0IHJpZCBvZiBsZWdhY3kgdHlwZXMg
-YW5kIEFQSSBmdW5jdGlvbnMgZG8KPiA+IHRoZSBjb252ZXJzaW9uIGhlcmUuCgpJIGhvcGUgQ2hy
-aXN0b3BoIGNhbiByZXBsYWNlIG9sZCB2ZXJzaW9uIG9mIHRoaXMgc2VyaWVzIHdpdGggbmV3IG9u
-ZSBpbgpoaXMgdXVpZCBicmFuY2guIFVSTCBpbiBjb3ZlciBsZXR0ZXIsIHJlcGVhdGluZyBmb3Ig
-eW91ciBjb252ZW5pZW5jZToKClsxXTogZ2l0Oi8vZ2l0LmluZnJhZGVhZC5vcmcvdXNlcnMvaGNo
-L3V1aWQuZ2l0Cgo+ID4gCj4gPiBSZXZpZXdlZC1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxs
-aWFtc0BpbnRlbC5jb20+Cj4gPiBTaWduZWQtb2ZmLWJ5OiBBbmR5IFNoZXZjaGVua28gPGFuZHJp
-eS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT4KPiA+IC0tLQo+ID4gwqBkcml2ZXJzL2FjcGkv
-bmZpdC9jb3JlLmMgfCA1NCArKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tCj4g
-PiAtLS0tLS0tLS0tLQo+ID4gwqBkcml2ZXJzL2FjcGkvbmZpdC9uZml0LmggfMKgwqAzICstLQo+
-ID4gwqBpbmNsdWRlL2xpbnV4L2FjcGkuaMKgwqDCoMKgwqB8wqDCoDEgKwo+ID4gwqAzIGZpbGVz
-IGNoYW5nZWQsIDI5IGluc2VydGlvbnMoKyksIDI5IGRlbGV0aW9ucygtKQo+IAo+IElzIHRoZXJl
-IGEgZ2l0IGJyYW5jaCB3aXRoIHRoZXNlIGF2YWlsYWJsZSwgc28gSSBjYW4gcnVuIGl0IHRocm91
-Z2gKPiB0aGUgbnZkaW1tIHJlZ3Jlc3Npb24gc3VpdGU/CgotLSAKQW5keSBTaGV2Y2hlbmtvIDxh
-bmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb20+CkludGVsIEZpbmxhbmQgT3kKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxp
-bmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJl
-ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+On Thu, Jun 01, 2017 at 01:28:01PM +0100, Jean-Philippe Brucker wrote:
+> On 31/05/17 18:23, Rob Herring wrote:
+> > On Wed, May 24, 2017 at 07:01:38PM +0100, Jean-Philippe Brucker wrote:
+> >> Address Translation Service (ATS) is an extension to PCIe allowing
+> >> endpoints to manage their own IOTLB, called Address Translation Cache
+> >> (ATC). Instead of having every memory transaction processed by the IOMMU,
+> >> the endpoint can first send an Address Translation Requests for an IOVA,
+> >> obtain the corresponding Physical Address from the IOMMU and store it in
+> >> its ATC. Subsequent transactions to this memory region can be performed on
+> >> the PA, in which case they are marked 'translated' and (partially) bypass
+> >> the IOMMU.
+> >>
+> >> Since the extension uses fields that were previously reserved in the
+> >> PCIe Translation Layer Packet, it seems ill-advised to enabled it on a
+> >> system that doesn't fully support ATS.
+> >>
+> >> To "old" root complexes that simply ignored the new AT field, an Address
+> >> Translation Request will look exactly like a Memory Read Request, so the
+> >> root bridge will forward a memory read to the IOMMU instead of a
+> >> translation request. If the access succeeds, the RC will send a Read
+> >> Completion, which looks like a Translation Completion, back to the
+> >> endpoint. As a result the endpoint might end up storing the content of
+> >> memory instead of a physical address in its ATC. In reality, it's more
+> >> likely that the size fields will be invalid and either end will detect the
+> >> error, but in any case, it is undesirable.
+> >>
+> >> Add a way for firmware to tell the OS that ATS is supported by the PCI
+> >> root complex.
+> > 
+> > Can't firmware have already enabled ATS? Often for things like this, not 
+> > present means "use firmware setting".
+> 
+> I don't think it's up to firmware to enable ATS in endpoints, because it
+> depends on IOMMU properties (e.g. configured page size). It must also be
+> enabled after the PASID capability, which the OS may or may not want to
+> enable.
+> 
+> While endpoints have ATS capability and config register, there is no
+> architected mechanism in root complexes as far as I know. So firmware may
+> have a mechanism outside the OS scope to toggle ATS in the root complex.
+> If there is a bug and firmware cannot enable ATS, then the OS must be made
+> aware of it, so that it doesn't enable ATS in endpoints, or else we might
+> end up with silent memory corruption as described above. (Lack of ATS may
+> slow the system down but shouldn't be fatal.)
+> 
+> If the SMMU supports ATS, then the root complex attached to it will most
+> likely supports ATS. The switch in this patch simply allows firmware to
+> confirm that.
+> 
+> >> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+> >> ---
+> >>  Documentation/devicetree/bindings/pci/pci-iommu.txt | 8 ++++++++
+> >>  1 file changed, 8 insertions(+)
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/pci/pci-iommu.txt b/Documentation/devicetree/bindings/pci/pci-iommu.txt
+> >> index 0def586fdcdf..f21a68ec471a 100644
+> >> --- a/Documentation/devicetree/bindings/pci/pci-iommu.txt
+> >> +++ b/Documentation/devicetree/bindings/pci/pci-iommu.txt
+> >> @@ -44,6 +44,14 @@ Optional properties
+> >>  - iommu-map-mask: A mask to be applied to each Requester ID prior to being
+> >>    mapped to an IOMMU specifier per the iommu-map property.
+> >>  
+> >> +- ats-supported: if present, the root complex supports the Address
+> >> +  Translation Service (ATS). It is able to interpret the AT field in PCIe
+> >> +  Transaction Layer Packets, and forward Translation Completions or
+> >> +  Invalidation Requests to endpoints.
+> > 
+> > Why can't this be based on the compatible strings?
+> 
+> Host controllers like the generic ECAM one should be able to advertise
+> ATS, if for instance the virtual IOMMU in Qemu offers a channel for ATS
+> invalidation. In that case we would have pci-host-{e,}cam-generic{-ats,}
+> compatible strings and double the number of compatible strings each time
+> we add a similar capability.
+
+It would not double the compatibles. A given SoC will either support ATS 
+or not, right? A given compatible will imply whether ATS is supported or 
+not.
+
+pci-host-{e,}cam-generic is a special case. I'm okay with having a 
+property for that I suppose. We should not require this property though 
+and allow for it to be implied by the SoC specific compatible as well.
+
+Rob
