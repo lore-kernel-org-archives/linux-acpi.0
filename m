@@ -1,179 +1,59 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: suspend-to-mem broken by eed4d47efe95 (ACPI / sleep: Ignore
- spurious SCI wakeups from suspend-to-idle)
-Date: Mon, 5 Jun 2017 17:09:15 +0200
-Message-ID: <20170605150915.GA1627@light.dominikbrodowski.net>
-References: <20170605090521.GA1912@light.dominikbrodowski.net>
- <21111815.riZgbS9lI9@aspire.rjw.lan>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v6 0/3] Preparation for further fwnode property cleanup
+Date: Mon, 5 Jun 2017 10:12:24 -0500
+Message-ID: <CAL_JsqJtB-UVNLo3SM6apB-MODOSWwZzgeAE+ifsmT7U-5WJmw@mail.gmail.com>
+References: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com> <20170531122849.GG1019@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="+HP7ph2BbKc20aGI"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar-4.linta.de ([136.243.71.142]:54132 "EHLO
-        isilmar-4.linta.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751340AbdFEPJn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2017 11:09:43 -0400
-Content-Disposition: inline
-In-Reply-To: <21111815.riZgbS9lI9@aspire.rjw.lan>
+Received: from mail.kernel.org ([198.145.29.99]:47526 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751162AbdFEPMv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 11:12:51 -0400
+In-Reply-To: <20170531122849.GG1019@valkosipuli.retiisi.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Frank Rowand <frowand.list@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Al Stone <ahs3@redhat.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>
 
+On Wed, May 31, 2017 at 7:28 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Rob,
+>
+> On Wed, May 24, 2017 at 05:53:52PM +0300, Sakari Ailus wrote:
+>> Hi Rob, Frank, others,
+>>
+>> Here's the 6th version of what used to be a single patch to prepare for
+>> fwnode property cleanup.
+>>
+>> Beyond this, I have a couple of other patchsets I'll post in the near
+>> future:
+>>
+>> - fwnode property cleanup (for linux-pm) which moves the property API
+>> implementation to FW specific locations; depends on these patches,
+>>
+>> - V4L2 fwnode patches (for media_tree, no unmerged dependencies, pull
+>>   request sent) and
+>>
+>> - fwnode const patchset which allows making the fwnode argument for the
+>>   property API functions const. It depends on both of the previous sets.
+>>   Might be for linux-pm.
+>
+> I figured out that others are starting to have patches that depend on my
+> other patchsets getting merged. Those patches are for the fwnode property
+> API that most likely should go through the linux-pm tree as well as for the
+> media tree.
+>
+> <URL:http://www.spinics.net/lists/linux-media/msg115893.html>
+>
+> I have hopes of being able to get the fwnode cleanup patchset (which the
+> aforementioned patches depend on) in within this merge window --- assuming I
+> could have your ack on the OF portions.
+>
+> Would it be possible to have an immutable branch for these or would you
+> accept a pull request on v4.12-rc1?
 
---+HP7ph2BbKc20aGI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I've applied this series. The stable branch is here:
 
-On Mon, Jun 05, 2017 at 03:08:57PM +0200, Rafael J. Wysocki wrote:
-> On Monday, June 05, 2017 11:05:21 AM Dominik Brodowski wrote:
-> > unfortunately, commit eed4d47efe95 (ACPI / sleep: Ignore spurious SCI
-> > wakeups from suspend-to-idle) breaks suspend-to-mem on my Dell XPS 13
-> > (9343) up to v4.12-rc4: Issuing
-> >=20
-> > 	$ echo "mem" > /sys/power/state
-> >=20
-> > in the initramfs returns, after a while, with "write error: Resource
-> > busy", and the system *not* having entered the sleep state in between.
->=20
-> Why initramfs?
+git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git dt/property-move
 
-Easiest and quickest to test, with no userspace in between to interfere.
-During normal operations, I see suspend-to-mem fail, then a fall-back to
-s2idle...
-
-> > In contrast thereto, 8a537ece3d94 (PM / wakeup: Integrate mechanism to =
-abort
-> > transitions in progress) still works fine, and allows to enter
-> > suspend-to-mem. No real difference is to be seen in dmesg, with the not=
-able
-> > exception of
-> >=20
-> > 	ACPI: Low-level resume complete
-> > 	ACPI : EC: EC started
-> > 	PM: Restoring platform NVS memory
-> > 	Suspended for N.NNNN seconds
-> >=20
-> > only showing up on working kernels. Reverting eed4d47efe95 on top of
-> > v4.12-rc4 restores suspend-to-mem to work as expected.
->=20
-> I'm sure it is not necessary to revert all of it.
-
-Thought so, just wanted to confirm that eed4d47efe95 is indeed the culprit.
-
-> I guess what happens is that you get a wakeup event during suspend which =
-is
-> aborted as a result.
->=20
-> Please apply the partial revert below and see if it makes the issue go aw=
-ay.
-
-Yes it does -- with this patch applied on top of v4.12-rc4, everything works
-as expected. Both in initramfs and during normal runtime operations. Only an
-(probably unrelated) issue still appears during resume, namely "cache"
-complaining that the non-boot CPUs should not be sleeping:
-
-[  140.773931] Suspended for 2.244 seconds
-[  140.776090] Enabling non-boot CPUs ...
-[  140.780214] x86: Booting SMP configuration:
-[  140.780216] smpboot: Booting Node 0 Processor 1 APIC 0x2
-[  140.781116]  cache: parent cpu1 should not be sleeping
-[  140.781325] microcode: sig=3D0x306d4, pf=3D0x40, revision=3D0x1f
-[  140.782400] CPU1 is up
-[  140.788172] smpboot: Booting Node 0 Processor 2 APIC 0x1
-[  140.788865]  cache: parent cpu2 should not be sleeping
-[  140.788987] microcode: sig=3D0x306d4, pf=3D0x40, revision=3D0x24
-[  140.789095] CPU2 is up
-[  140.797493] smpboot: Booting Node 0 Processor 3 APIC 0x3
-[  140.798208]  cache: parent cpu3 should not be sleeping
-[  140.798551] CPU3 is up
-[  140.802735] ACPI: Waking up from system sleep state S3
-
-
-Thanks!
-
-	Dominik
-
-
->  drivers/acpi/battery.c   |    2 +-
->  drivers/acpi/button.c    |    4 ++--
->  drivers/acpi/device_pm.c |    2 +-
->  3 files changed, 4 insertions(+), 4 deletions(-)
->=20
-> Index: linux-pm/drivers/acpi/battery.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-pm.orig/drivers/acpi/battery.c
-> +++ linux-pm/drivers/acpi/battery.c
-> @@ -782,7 +782,7 @@ static int acpi_battery_update(struct ac
->  	if ((battery->state & ACPI_BATTERY_STATE_CRITICAL) ||
->  	    (test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags) &&
->              (battery->capacity_now <=3D battery->alarm)))
-> -		pm_wakeup_hard_event(&battery->device->dev);
-> +		pm_wakeup_event(&battery->device->dev, 0);
-> =20
->  	return result;
->  }
-> Index: linux-pm/drivers/acpi/device_pm.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-pm.orig/drivers/acpi/device_pm.c
-> +++ linux-pm/drivers/acpi/device_pm.c
-> @@ -400,7 +400,7 @@ static void acpi_pm_notify_handler(acpi_
->  	mutex_lock(&acpi_pm_notifier_lock);
-> =20
->  	if (adev->wakeup.flags.notifier_present) {
-> -		pm_wakeup_ws_event(adev->wakeup.ws, 0, true);
-> +		__pm_wakeup_event(adev->wakeup.ws, 0);
->  		if (adev->wakeup.context.work.func)
->  			queue_pm_work(&adev->wakeup.context.work);
->  	}
-> Index: linux-pm/drivers/acpi/button.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-pm.orig/drivers/acpi/button.c
-> +++ linux-pm/drivers/acpi/button.c
-> @@ -217,7 +217,7 @@ static int acpi_lid_notify_state(struct
->  	}
-> =20
->  	if (state)
-> -		pm_wakeup_hard_event(&device->dev);
-> +		pm_wakeup_event(&device->dev, 0);
-> =20
->  	ret =3D blocking_notifier_call_chain(&acpi_lid_notifier, state, device);
->  	if (ret =3D=3D NOTIFY_DONE)
-> @@ -402,7 +402,7 @@ static void acpi_button_notify(struct ac
->  		} else {
->  			int keycode;
-> =20
-> -			pm_wakeup_hard_event(&device->dev);
-> +			pm_wakeup_event(&device->dev, 0);
->  			if (button->suspended)
->  				break;
-> =20
-
---+HP7ph2BbKc20aGI
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEmgXaWKgmjrvkPhLCmpdgiUyNow0FAlk1dBgACgkQmpdgiUyN
-ow2fog//QFkcuUUc/w3VWNFgxkWPTn2KDkRltmCaoiIPbWmKHSMKMKtpWyFrTQo8
-FEgGeq5yKuTANetA0Ka6Fg2k3xVk3mVv8RPzfY96ewHIL8iQAoamol7UgDRUxLcO
-owN5QMfhtfonczrSIx2nhhK4ExzhjPOM+8ca5jjK+czzth5LndvZhldwuUeFfwI/
-eLUXnjiIO+pMWoDxIVhVj6fa983AHrI+5dkxWxDS+/9zrD37p6V3h0p78r2DQ/RZ
-e8d8uTS6m11B16dhF9ex7WcS25RHuuXOOjxvqAKOWEWlerc43EVK5aZGkv1Bg5Jw
-4HSYLM1yXT9wOzeQQeEFKXEQzYCSLuwuCisMBpM64tnG1eEA+PmQZPS2/r10Ocg4
-TrSSJrAALTavSRlCfm7XvB1+q25bv6r8eGogUZcKbzOK5XUIpkq0EZ9G0XJ3xCDH
-R0tYsNZMAxBZKJ8/PQyeE4vpAhUekfmTsBFz2/X2G9XT6GUpNPIGM4fhhpKEkSVH
-zsbyXmueGKzGpim5dqa8584NwQmdSMC78iRQ17L70CH0S7HA3FrOdXuvOq+rgwyQ
-VdPQZpsh643TyXdj3FPqjSuqt3fUekWv01HYwOElnU4c54vWBuSVQ/og2uRcYV7I
-jk7KPSBCe08Ew7oJ2AjhnpEdFHaY/D9LN14bcvjuUzHCX6u24bI=
-=L+Vk
------END PGP SIGNATURE-----
-
---+HP7ph2BbKc20aGI--
+Rob
