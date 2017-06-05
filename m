@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 09/53] ACPICA: Add support for _LSI as a predefined method
-Date: Mon,  5 Jun 2017 16:37:55 +0800
-Message-ID: <ac3677495d881801dd13bb900d9eed4866be61d5.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 10/53] ACPICA: Add support for _LSR as a predefined method
+Date: Mon,  5 Jun 2017 16:38:04 +0800
+Message-ID: <33aebdded7a2cc0b657d0f63ea78c6b67be1e8f9.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:31663 "EHLO mga03.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:43514 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751471AbdFEIh7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:37:59 -0400
+        id S1751599AbdFEIiI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:38:08 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,27 +16,28 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger
 
 From: Erik Schmauss <erik.schmauss@intel.com>
 
-ACPICA commit f2f3813fb6b6a6ec1f406f05061c0e9270e86146
+ACPICA commit 89020347ada3f0ff5499a804178d574359e4730f
 
-Link: https://github.com/acpica/acpica/commit/f2f3813f
+Link: https://github.com/acpica/acpica/commit/89020347
 Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acpredef.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/acpica/acpredef.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
-index dcfc05d..d55ff5d 100644
+index d55ff5d..1b7ad31 100644
 --- a/drivers/acpi/acpica/acpredef.h
 +++ b/drivers/acpi/acpica/acpredef.h
-@@ -626,6 +626,10 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 		     ACPI_RTYPE_INTEGER | ACPI_RTYPE_BUFFER | ACPI_RTYPE_STRING,
- 		     10, 0),
+@@ -630,6 +630,11 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
+ 	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},
+ 	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 3, 0, 0, 0),
  
-+	{{"_LSI", METHOD_0ARGS,
++	{{"_LSR", METHOD_2ARGS(ACPI_TYPE_INTEGER, ACPI_TYPE_INTEGER),
 +	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},
-+	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 3, 0, 0, 0),
++	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 1,
++		     ACPI_RTYPE_BUFFER, 1, 0),
 +
  	{{"_MAT", METHOD_0ARGS,
  	  METHOD_RETURNS(ACPI_RTYPE_BUFFER)}},
