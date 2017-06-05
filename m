@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 21/53] ACPICA: ACPI 6.2: Add support for PinFunction() resource
-Date: Mon,  5 Jun 2017 16:39:14 +0800
-Message-ID: <4bc6f550f3d2f4cf5962aea7be1d55b4d37ee693.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 23/53] ACPICA: ACPI 6.2: Add support for PinGroup() resource
+Date: Mon,  5 Jun 2017 16:39:25 +0800
+Message-ID: <ee9ebba69f224e622e81a7d74265e047bf8d74f5.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:29905 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:26397 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751696AbdFEIjc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:39:32 -0400
+        id S1751706AbdFEIjd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:39:33 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,195 +16,246 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger
 
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-ACPICA commit 6bbc6357f7061f1243601adde0ea45f7a89274e0
+ACPICA commit 7d928e3174fb19d7dc0066b03c30bea07c001563
 
-ACPI 6.2 introduced a new resource that is used to describe how certain
-pins are muxed for a device. The ASL syntax of this new resource looks
-like below:
+ACPI 6.2 introduced a new resource that is used to declare set of pins
+belonging to a GPIO controller. This resource is referenced by new
+PinGroupFunction() and PinGroupConfig() resources using ResourceSource
+and ResourceLabel fields.
 
-  PinFunction(Shared, PinConfig, FunctionNumber, ResourceSource,
-              ResourceSourceIndex, ResourceUsage, DescriptorName,
-              VendorData) {Pin List}
+The PinGroup() resource looks like this:
 
-Which is pretty similar to GpioIo()/GpioInt() resources.
+  PinGroup (ResourceLabel, ResourceUsage, DescriptorName,
+            VendorData) {Pin List}
 
-Teach ACPICA about this new resource.
+This resource should be listed in _CRS under the GPIO/pincontroller
+device providing these pins.
 
-Link: https://github.com/acpica/acpica/commit/6bbc6357
+Link: https://github.com/acpica/acpica/commit/7d928e31
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h    |  1 +
- drivers/acpi/acpica/acresrc.h    |  2 ++
- drivers/acpi/acpica/amlresrc.h   | 22 ++++++++++++
- drivers/acpi/acpica/rscalc.c     | 34 ++++++++++++++++++
- drivers/acpi/acpica/rsdumpinfo.c | 23 ++++++++++++
- drivers/acpi/acpica/rsinfo.c     |  6 +++-
- drivers/acpi/acpica/rsserial.c   | 76 ++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/utresrc.c    |  4 +--
- include/acpi/acrestyp.h          | 16 ++++++++-
- 9 files changed, 180 insertions(+), 4 deletions(-)
+ drivers/acpi/acpica/aclocal.h    |  3 +-
+ drivers/acpi/acpica/acresrc.h    |  6 +++-
+ drivers/acpi/acpica/amlresrc.h   | 18 ++++++++++++
+ drivers/acpi/acpica/rscalc.c     | 22 ++++++++++++++
+ drivers/acpi/acpica/rsdump.c     | 38 ++++++++++++++++++++++++
+ drivers/acpi/acpica/rsdumpinfo.c | 19 ++++++++++++
+ drivers/acpi/acpica/rsinfo.c     |  5 ++++
+ drivers/acpi/acpica/rsserial.c   | 62 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/utresrc.c    |  2 ++
+ include/acpi/acrestyp.h          | 19 +++++++++++-
+ 10 files changed, 191 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index f63faa4..b73db9b 100644
+index 115cadd..01b961c 100644
 --- a/drivers/acpi/acpica/aclocal.h
 +++ b/drivers/acpi/acpica/aclocal.h
-@@ -1142,6 +1142,7 @@ struct acpi_port_info {
- #define ACPI_RESOURCE_NAME_ADDRESS64            0x8A
- #define ACPI_RESOURCE_NAME_EXTENDED_ADDRESS64   0x8B
- #define ACPI_RESOURCE_NAME_GPIO                 0x8C
-+#define ACPI_RESOURCE_NAME_PIN_FUNCTION         0x8D
+@@ -1145,7 +1145,8 @@ struct acpi_port_info {
+ #define ACPI_RESOURCE_NAME_PIN_FUNCTION         0x8D
  #define ACPI_RESOURCE_NAME_SERIAL_BUS           0x8E
- #define ACPI_RESOURCE_NAME_LARGE_MAX            0x8E
+ #define ACPI_RESOURCE_NAME_PIN_CONFIG           0x8F
+-#define ACPI_RESOURCE_NAME_LARGE_MAX            0x8F
++#define ACPI_RESOURCE_NAME_PIN_GROUP            0x90
++#define ACPI_RESOURCE_NAME_LARGE_MAX            0x90
  
+ /*****************************************************************************
+  *
 diff --git a/drivers/acpi/acpica/acresrc.h b/drivers/acpi/acpica/acresrc.h
-index b4d22f6..bd238b41 100644
+index 61d2ef3..63f2ab4 100644
 --- a/drivers/acpi/acpica/acresrc.h
 +++ b/drivers/acpi/acpica/acresrc.h
-@@ -329,6 +329,7 @@ extern struct acpi_rsconvert_info acpi_rs_convert_fixed_dma[];
- extern struct acpi_rsconvert_info acpi_rs_convert_i2c_serial_bus[];
- extern struct acpi_rsconvert_info acpi_rs_convert_spi_serial_bus[];
+@@ -148,7 +148,9 @@ typedef enum {
+ 	ACPI_RSD_UINT16,
+ 	ACPI_RSD_UINT32,
+ 	ACPI_RSD_UINT64,
+-	ACPI_RSD_WORDLIST
++	ACPI_RSD_WORDLIST,
++	ACPI_RSD_LABEL,
++
+ } ACPI_RSDUMP_OPCODES;
+ 
+ /* restore default alignment */
+@@ -331,6 +333,7 @@ extern struct acpi_rsconvert_info acpi_rs_convert_spi_serial_bus[];
  extern struct acpi_rsconvert_info acpi_rs_convert_uart_serial_bus[];
-+extern struct acpi_rsconvert_info acpi_rs_convert_pin_function[];
+ extern struct acpi_rsconvert_info acpi_rs_convert_pin_function[];
+ extern struct acpi_rsconvert_info acpi_rs_convert_pin_config[];
++extern struct acpi_rsconvert_info acpi_rs_convert_pin_group[];
  
  /* These resources require separate get/set tables */
  
-@@ -372,6 +373,7 @@ extern struct acpi_rsdump_info acpi_rs_dump_ext_address64[];
- extern struct acpi_rsdump_info acpi_rs_dump_ext_irq[];
- extern struct acpi_rsdump_info acpi_rs_dump_generic_reg[];
- extern struct acpi_rsdump_info acpi_rs_dump_gpio[];
-+extern struct acpi_rsdump_info acpi_rs_dump_pin_function[];
- extern struct acpi_rsdump_info acpi_rs_dump_fixed_dma[];
- extern struct acpi_rsdump_info acpi_rs_dump_common_serial_bus[];
- extern struct acpi_rsdump_info acpi_rs_dump_i2c_serial_bus[];
+@@ -382,6 +385,7 @@ extern struct acpi_rsdump_info acpi_rs_dump_spi_serial_bus[];
+ extern struct acpi_rsdump_info acpi_rs_dump_uart_serial_bus[];
+ extern struct acpi_rsdump_info acpi_rs_dump_general_flags[];
+ extern struct acpi_rsdump_info acpi_rs_dump_pin_config[];
++extern struct acpi_rsdump_info acpi_rs_dump_pin_group[];
+ #endif
+ 
+ #endif				/* __ACRESRC_H__ */
 diff --git a/drivers/acpi/acpica/amlresrc.h b/drivers/acpi/acpica/amlresrc.h
-index 653a3d1..e34396c 100644
+index 6f8d8f90..510c20d 100644
 --- a/drivers/acpi/acpica/amlresrc.h
 +++ b/drivers/acpi/acpica/amlresrc.h
-@@ -65,6 +65,7 @@
- #define ACPI_RESTAG_DRIVESTRENGTH               "_DRS"
- #define ACPI_RESTAG_ENDIANNESS                  "_END"
- #define ACPI_RESTAG_FLOWCONTROL                 "_FLC"
-+#define ACPI_RESTAG_FUNCTION                    "_FUN"
- #define ACPI_RESTAG_GRANULARITY                 "_GRA"
- #define ACPI_RESTAG_INTERRUPT                   "_INT"
- #define ACPI_RESTAG_INTERRUPTLEVEL              "_LL_"	/* active_lo(1), active_hi(0) */
-@@ -404,6 +405,26 @@ struct aml_resource_uart_serialbus {
- #define AML_RESOURCE_UART_TYPE_REVISION         1	/* ACPI 5.0 */
- #define AML_RESOURCE_UART_MIN_DATA_LEN          10
+@@ -447,6 +447,23 @@ struct aml_resource_pin_config {
  
-+struct aml_resource_pin_function {
+ #define AML_RESOURCE_PIN_CONFIG_REVISION      1	/* ACPI 6.2 */
+ 
++struct aml_resource_pin_group {
 +	AML_RESOURCE_LARGE_HEADER_COMMON u8 revision_id;
 +	u16 flags;
-+	u8 pin_config;
-+	u16 function_number;
 +	u16 pin_table_offset;
-+	u8 res_source_index;
-+	u16 res_source_offset;
++	u16 label_offset;
 +	u16 vendor_offset;
 +	u16 vendor_length;
 +	/*
 +	 * Optional fields follow immediately:
 +	 * 1) PIN list (Words)
-+	 * 2) Resource Source String
++	 * 2) Resource Label String
 +	 * 3) Vendor Data bytes
 +	 */
 +};
 +
-+#define AML_RESOURCE_PIN_FUNCTION_REVISION      1	/* ACPI 6.2 */
++#define AML_RESOURCE_PIN_GROUP_REVISION      1	/* ACPI 6.2 */
 +
  /* restore default alignment */
  
  #pragma pack()
-@@ -446,6 +467,7 @@ union aml_resource {
- 	struct aml_resource_spi_serialbus spi_serial_bus;
- 	struct aml_resource_uart_serialbus uart_serial_bus;
+@@ -491,6 +508,7 @@ union aml_resource {
  	struct aml_resource_common_serialbus common_serial_bus;
-+	struct aml_resource_pin_function pin_function;
+ 	struct aml_resource_pin_function pin_function;
+ 	struct aml_resource_pin_config pin_config;
++	struct aml_resource_pin_group pin_group;
  
  	/* Utility overlays */
  
 diff --git a/drivers/acpi/acpica/rscalc.c b/drivers/acpi/acpica/rscalc.c
-index 74e47f8..167ece9 100644
+index 9fdc9c1..39cc7ff 100644
 --- a/drivers/acpi/acpica/rscalc.c
 +++ b/drivers/acpi/acpica/rscalc.c
-@@ -340,6 +340,22 @@ acpi_rs_get_aml_length(struct acpi_resource *resource,
+@@ -389,6 +389,19 @@ acpi_rs_get_aml_length(struct acpi_resource *resource,
  
  			break;
  
-+		case ACPI_RESOURCE_TYPE_PIN_FUNCTION:
++		case ACPI_RESOURCE_TYPE_PIN_GROUP:
 +
 +			total_size = (acpi_rs_length)(total_size +
-+						      (resource->data.
-+						       pin_function.
++						      (resource->data.pin_group.
 +						       pin_table_length * 2) +
-+						      resource->data.
-+						      pin_function.
-+						      resource_source.
++						      resource->data.pin_group.
++						      resource_label.
 +						      string_length +
-+						      resource->data.
-+						      pin_function.
++						      resource->data.pin_group.
 +						      vendor_length);
 +
 +			break;
 +
- 		case ACPI_RESOURCE_TYPE_SERIAL_BUS:
+ 		default:
  
- 			total_size =
-@@ -537,6 +553,24 @@ acpi_rs_get_list_length(u8 *aml_buffer,
+ 			break;
+@@ -612,6 +625,15 @@ acpi_rs_get_list_length(u8 *aml_buffer,
  			}
  			break;
  
-+		case ACPI_RESOURCE_NAME_PIN_FUNCTION:
++		case ACPI_RESOURCE_NAME_PIN_GROUP:
 +
-+			/* Vendor data is optional */
++			extra_struct_bytes +=
++			    aml_resource->pin_group.vendor_offset -
++			    aml_resource->pin_group.pin_table_offset +
++			    aml_resource->pin_group.vendor_length;
 +
-+			if (aml_resource->pin_function.vendor_length) {
-+				extra_struct_bytes +=
-+				    aml_resource->pin_function.vendor_offset -
-+				    aml_resource->pin_function.
-+				    pin_table_offset +
-+				    aml_resource->pin_function.vendor_length;
-+			} else {
-+				extra_struct_bytes +=
-+				    aml_resource->large_header.resource_length +
-+				    sizeof(struct aml_resource_large_header) -
-+				    aml_resource->pin_function.pin_table_offset;
-+			}
 +			break;
 +
- 		case ACPI_RESOURCE_NAME_SERIAL_BUS:
+ 		default:
  
- 			minimum_aml_resource_length =
+ 			break;
+diff --git a/drivers/acpi/acpica/rsdump.c b/drivers/acpi/acpica/rsdump.c
+index f4cdf8d..608e36e 100644
+--- a/drivers/acpi/acpica/rsdump.c
++++ b/drivers/acpi/acpica/rsdump.c
+@@ -75,6 +75,10 @@ static void acpi_rs_dump_short_byte_list(u8 length, u8 *data);
+ static void
+ acpi_rs_dump_resource_source(struct acpi_resource_source *resource_source);
+ 
++static void
++acpi_rs_dump_resource_label(char *title,
++			    struct acpi_resource_label *resource_label);
++
+ static void acpi_rs_dump_address_common(union acpi_resource_data *resource);
+ 
+ static void
+@@ -371,6 +375,16 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
+ 								   target));
+ 			break;
+ 
++		case ACPI_RSD_LABEL:
++			/*
++			 * resource_label
++			 */
++			acpi_rs_dump_resource_label("Resource Label",
++						    ACPI_CAST_PTR(struct
++								  acpi_resource_label,
++								  target));
++			break;
++
+ 		default:
+ 
+ 			acpi_os_printf("**** Invalid table opcode [%X] ****\n",
+@@ -414,6 +428,30 @@ acpi_rs_dump_resource_source(struct acpi_resource_source *resource_source)
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_rs_dump_resource_label
++ *
++ * PARAMETERS:  title              - Title of the dumped resource field
++ *              resource_label     - Pointer to a Resource Label struct
++ *
++ * RETURN:      None
++ *
++ * DESCRIPTION: Common routine for dumping the resource_label
++ *
++ ******************************************************************************/
++
++static void
++acpi_rs_dump_resource_label(char *title,
++			    struct acpi_resource_label *resource_label)
++{
++	ACPI_FUNCTION_ENTRY();
++
++	acpi_rs_out_string(title,
++			   resource_label->string_ptr ?
++			   resource_label->string_ptr : "[Not Specified]");
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_rs_dump_address_common
+  *
+  * PARAMETERS:  resource        - Pointer to an internal resource descriptor
 diff --git a/drivers/acpi/acpica/rsdumpinfo.c b/drivers/acpi/acpica/rsdumpinfo.c
-index 8aacd28..afc0441 100644
+index e684722..30c34d5 100644
 --- a/drivers/acpi/acpica/rsdumpinfo.c
 +++ b/drivers/acpi/acpica/rsdumpinfo.c
-@@ -314,6 +314,29 @@ struct acpi_rsdump_info acpi_rs_dump_gpio[16] = {
- 	 NULL},
+@@ -362,6 +362,25 @@ struct acpi_rsdump_info acpi_rs_dump_pin_config[11] = {
+ 	 "VendorData", NULL},
  };
  
-+struct acpi_rsdump_info acpi_rs_dump_pin_function[10] = {
-+	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_pin_function),
-+	 "PinFunction", NULL},
-+	{ACPI_RSD_UINT8, ACPI_RSD_OFFSET(pin_function.revision_id),
-+	 "RevisionId", NULL},
-+	{ACPI_RSD_UINT8, ACPI_RSD_OFFSET(pin_function.pin_config), "PinConfig",
-+	 acpi_gbl_ppc_decode},
-+	{ACPI_RSD_1BITFLAG, ACPI_RSD_OFFSET(pin_function.sharable), "Sharing",
-+	 acpi_gbl_shr_decode},
-+	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(pin_function.function_number),
-+	 "FunctionNumber", NULL},
-+	{ACPI_RSD_SOURCE, ACPI_RSD_OFFSET(pin_function.resource_source),
-+	 "ResourceSource", NULL},
-+	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(pin_function.pin_table_length),
-+	 "PinTableLength", NULL},
-+	{ACPI_RSD_WORDLIST, ACPI_RSD_OFFSET(pin_function.pin_table), "PinTable",
++struct acpi_rsdump_info acpi_rs_dump_pin_group[8] = {
++	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_pin_group),
++	 "PinGroup", NULL},
++	{ACPI_RSD_UINT8, ACPI_RSD_OFFSET(pin_group.revision_id), "RevisionId",
 +	 NULL},
-+	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(pin_function.vendor_length),
++	{ACPI_RSD_1BITFLAG, ACPI_RSD_OFFSET(pin_group.producer_consumer),
++	 "ProducerConsumer", acpi_gbl_consume_decode},
++	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(pin_group.pin_table_length),
++	 "PinTableLength", NULL},
++	{ACPI_RSD_WORDLIST, ACPI_RSD_OFFSET(pin_group.pin_table), "PinTable",
++	 NULL},
++	{ACPI_RSD_LABEL, ACPI_RSD_OFFSET(pin_group.resource_label),
++	 "ResourceLabel", NULL},
++	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(pin_group.vendor_length),
 +	 "VendorLength", NULL},
-+	{ACPI_RSD_SHORTLISTX, ACPI_RSD_OFFSET(pin_function.vendor_data),
++	{ACPI_RSD_SHORTLISTX, ACPI_RSD_OFFSET(pin_group.vendor_data),
 +	 "VendorData", NULL},
 +};
 +
@@ -212,86 +263,80 @@ index 8aacd28..afc0441 100644
  	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_fixed_dma),
  	 "FixedDma", NULL},
 diff --git a/drivers/acpi/acpica/rsinfo.c b/drivers/acpi/acpica/rsinfo.c
-index 475da9d..e7310712 100644
+index 5634bd6..13c3d36 100644
 --- a/drivers/acpi/acpica/rsinfo.c
 +++ b/drivers/acpi/acpica/rsinfo.c
-@@ -80,6 +80,7 @@ struct acpi_rsconvert_info *acpi_gbl_set_resource_dispatch[] = {
- 	acpi_rs_convert_gpio,	/* 0x11, ACPI_RESOURCE_TYPE_GPIO */
- 	acpi_rs_convert_fixed_dma,	/* 0x12, ACPI_RESOURCE_TYPE_FIXED_DMA */
+@@ -82,6 +82,7 @@ struct acpi_rsconvert_info *acpi_gbl_set_resource_dispatch[] = {
  	NULL,			/* 0x13, ACPI_RESOURCE_TYPE_SERIAL_BUS - Use subtype table below */
-+	acpi_rs_convert_pin_function,	/* 0x14, ACPI_RESOURCE_TYPE_PIN_FUNCTION */
+ 	acpi_rs_convert_pin_function,	/* 0x14, ACPI_RESOURCE_TYPE_PIN_FUNCTION */
+ 	acpi_rs_convert_pin_config,	/* 0x15, ACPI_RESOURCE_TYPE_PIN_CONFIG */
++	acpi_rs_convert_pin_group,	/* 0x16, ACPI_RESOURCE_TYPE_PIN_GROUP */
  };
  
  /* Dispatch tables for AML-to-resource (Get Resource) conversion functions */
-@@ -119,7 +120,7 @@ struct acpi_rsconvert_info *acpi_gbl_get_resource_dispatch[] = {
- 	acpi_rs_convert_address64,	/* 0x0A, ACPI_RESOURCE_NAME_ADDRESS64 */
- 	acpi_rs_convert_ext_address64,	/* 0x0B, ACPI_RESOURCE_NAME_EXTENDED_ADDRESS64 */
- 	acpi_rs_convert_gpio,	/* 0x0C, ACPI_RESOURCE_NAME_GPIO */
--	NULL,			/* 0x0D, Reserved */
-+	acpi_rs_convert_pin_function,	/* 0x0D, ACPI_RESOURCE_NAME_PIN_FUNCTION */
+@@ -124,6 +125,7 @@ struct acpi_rsconvert_info *acpi_gbl_get_resource_dispatch[] = {
+ 	acpi_rs_convert_pin_function,	/* 0x0D, ACPI_RESOURCE_NAME_PIN_FUNCTION */
  	NULL,			/* 0x0E, ACPI_RESOURCE_NAME_SERIAL_BUS - Use subtype table below */
+ 	acpi_rs_convert_pin_config,	/* 0x0F, ACPI_RESOURCE_NAME_PIN_CONFIG */
++	acpi_rs_convert_pin_group,	/* 0x10, ACPI_RESOURCE_NAME_PIN_GROUP */
  };
  
-@@ -157,6 +158,7 @@ struct acpi_rsdump_info *acpi_gbl_dump_resource_dispatch[] = {
- 	acpi_rs_dump_gpio,	/* ACPI_RESOURCE_TYPE_GPIO */
- 	acpi_rs_dump_fixed_dma,	/* ACPI_RESOURCE_TYPE_FIXED_DMA */
+ /* Subtype table for serial_bus -- I2C, SPI, and UART */
+@@ -162,6 +164,7 @@ struct acpi_rsdump_info *acpi_gbl_dump_resource_dispatch[] = {
  	NULL,			/* ACPI_RESOURCE_TYPE_SERIAL_BUS */
-+	acpi_rs_dump_pin_function,	/* ACPI_RESOURCE_TYPE_PIN_FUNCTION */
+ 	acpi_rs_dump_pin_function,	/* ACPI_RESOURCE_TYPE_PIN_FUNCTION */
+ 	acpi_rs_dump_pin_config,	/* ACPI_RESOURCE_TYPE_PIN_CONFIG */
++	acpi_rs_dump_pin_group,	/* ACPI_RESOURCE_TYPE_PIN_GROUP */
  };
  
  struct acpi_rsdump_info *acpi_gbl_dump_serial_bus_dispatch[] = {
-@@ -193,6 +195,7 @@ const u8 acpi_gbl_aml_resource_sizes[] = {
- 	sizeof(struct aml_resource_gpio),	/* ACPI_RESOURCE_TYPE_GPIO */
- 	sizeof(struct aml_resource_fixed_dma),	/* ACPI_RESOURCE_TYPE_FIXED_DMA */
+@@ -200,6 +203,7 @@ const u8 acpi_gbl_aml_resource_sizes[] = {
  	sizeof(struct aml_resource_common_serialbus),	/* ACPI_RESOURCE_TYPE_SERIAL_BUS */
-+	sizeof(struct aml_resource_pin_function),	/* ACPI_RESOURCE_TYPE_PIN_FUNCTION */
+ 	sizeof(struct aml_resource_pin_function),	/* ACPI_RESOURCE_TYPE_PIN_FUNCTION */
+ 	sizeof(struct aml_resource_pin_config),	/* ACPI_RESOURCE_TYPE_PIN_CONFIG */
++	sizeof(struct aml_resource_pin_group),	/* ACPI_RESOURCE_TYPE_PIN_GROUP */
  };
  
  const u8 acpi_gbl_resource_struct_sizes[] = {
-@@ -230,6 +233,7 @@ const u8 acpi_gbl_resource_struct_sizes[] = {
- 	ACPI_RS_SIZE(struct acpi_resource_address64),
- 	ACPI_RS_SIZE(struct acpi_resource_extended_address64),
- 	ACPI_RS_SIZE(struct acpi_resource_gpio),
-+	ACPI_RS_SIZE(struct acpi_resource_pin_function),
- 	ACPI_RS_SIZE(struct acpi_resource_common_serialbus)
+@@ -240,6 +244,7 @@ const u8 acpi_gbl_resource_struct_sizes[] = {
+ 	ACPI_RS_SIZE(struct acpi_resource_pin_function),
+ 	ACPI_RS_SIZE(struct acpi_resource_common_serialbus),
+ 	ACPI_RS_SIZE(struct acpi_resource_pin_config),
++	ACPI_RS_SIZE(struct acpi_resource_pin_group),
  };
  
+ const u8 acpi_gbl_aml_resource_serial_bus_sizes[] = {
 diff --git a/drivers/acpi/acpica/rsserial.c b/drivers/acpi/acpica/rsserial.c
-index c20e6d0..fd11d0c 100644
+index 01bc851..4a15893 100644
 --- a/drivers/acpi/acpica/rsserial.c
 +++ b/drivers/acpi/acpica/rsserial.c
-@@ -147,6 +147,82 @@ struct acpi_rsconvert_info acpi_rs_convert_gpio[18] = {
- 
- /*******************************************************************************
-  *
-+ * acpi_rs_convert_pinfunction
+@@ -612,3 +612,65 @@ struct acpi_rsconvert_info acpi_rs_convert_pin_config[14] = {
+ 	 AML_OFFSET(pin_config.vendor_offset),
+ 	 0},
+ };
++
++/*******************************************************************************
++ *
++ * acpi_rs_convert_pin_group
 + *
 + ******************************************************************************/
 +
-+struct acpi_rsconvert_info acpi_rs_convert_pin_function[13] = {
-+	{ACPI_RSC_INITGET, ACPI_RESOURCE_TYPE_PIN_FUNCTION,
-+	 ACPI_RS_SIZE(struct acpi_resource_pin_function),
-+	 ACPI_RSC_TABLE_SIZE(acpi_rs_convert_pin_function)},
++struct acpi_rsconvert_info acpi_rs_convert_pin_group[10] = {
++	{ACPI_RSC_INITGET, ACPI_RESOURCE_TYPE_PIN_GROUP,
++	 ACPI_RS_SIZE(struct acpi_resource_pin_group),
++	 ACPI_RSC_TABLE_SIZE(acpi_rs_convert_pin_group)},
 +
-+	{ACPI_RSC_INITSET, ACPI_RESOURCE_NAME_PIN_FUNCTION,
-+	 sizeof(struct aml_resource_pin_function),
++	{ACPI_RSC_INITSET, ACPI_RESOURCE_NAME_PIN_GROUP,
++	 sizeof(struct aml_resource_pin_group),
 +	 0},
 +
-+	{ACPI_RSC_MOVE8, ACPI_RS_OFFSET(data.pin_function.revision_id),
-+	 AML_OFFSET(pin_function.revision_id),
++	{ACPI_RSC_MOVE8, ACPI_RS_OFFSET(data.pin_group.revision_id),
++	 AML_OFFSET(pin_group.revision_id),
 +	 1},
 +
-+	{ACPI_RSC_1BITFLAG, ACPI_RS_OFFSET(data.pin_function.sharable),
-+	 AML_OFFSET(pin_function.flags),
++	{ACPI_RSC_1BITFLAG, ACPI_RS_OFFSET(data.pin_group.producer_consumer),
++	 AML_OFFSET(pin_group.flags),
 +	 0},
-+
-+	{ACPI_RSC_MOVE8, ACPI_RS_OFFSET(data.pin_function.pin_config),
-+	 AML_OFFSET(pin_function.pin_config),
-+	 1},
-+
-+	{ACPI_RSC_MOVE16, ACPI_RS_OFFSET(data.pin_function.function_number),
-+	 AML_OFFSET(pin_function.function_number),
-+	 2},
 +
 +	/* Pin Table */
 +
@@ -301,108 +346,104 @@ index c20e6d0..fd11d0c 100644
 +	 */
 +
 +	{ACPI_RSC_COUNT_GPIO_PIN,
-+	 ACPI_RS_OFFSET(data.pin_function.pin_table_length),
-+	 AML_OFFSET(pin_function.pin_table_offset),
-+	 AML_OFFSET(pin_function.res_source_offset)},
++	 ACPI_RS_OFFSET(data.pin_group.pin_table_length),
++	 AML_OFFSET(pin_group.pin_table_offset),
++	 AML_OFFSET(pin_group.label_offset)},
 +
-+	{ACPI_RSC_MOVE_GPIO_PIN, ACPI_RS_OFFSET(data.pin_function.pin_table),
-+	 AML_OFFSET(pin_function.pin_table_offset),
++	{ACPI_RSC_MOVE_GPIO_PIN, ACPI_RS_OFFSET(data.pin_group.pin_table),
++	 AML_OFFSET(pin_group.pin_table_offset),
 +	 0},
 +
-+	/* Resource Source */
-+
-+	{ACPI_RSC_MOVE8,
-+	 ACPI_RS_OFFSET(data.pin_function.resource_source.index),
-+	 AML_OFFSET(pin_function.res_source_index),
-+	 1},
++	/* Resource Label */
 +
 +	{ACPI_RSC_COUNT_GPIO_RES,
-+	 ACPI_RS_OFFSET(data.pin_function.resource_source.string_length),
-+	 AML_OFFSET(pin_function.res_source_offset),
-+	 AML_OFFSET(pin_function.vendor_offset)},
++	 ACPI_RS_OFFSET(data.pin_group.resource_label.string_length),
++	 AML_OFFSET(pin_group.label_offset),
++	 AML_OFFSET(pin_group.vendor_offset)},
 +
 +	{ACPI_RSC_MOVE_GPIO_RES,
-+	 ACPI_RS_OFFSET(data.pin_function.resource_source.string_ptr),
-+	 AML_OFFSET(pin_function.res_source_offset),
++	 ACPI_RS_OFFSET(data.pin_group.resource_label.string_ptr),
++	 AML_OFFSET(pin_group.label_offset),
 +	 0},
 +
 +	/* Vendor Data */
 +
-+	{ACPI_RSC_COUNT_GPIO_VEN,
-+	 ACPI_RS_OFFSET(data.pin_function.vendor_length),
-+	 AML_OFFSET(pin_function.vendor_length),
++	{ACPI_RSC_COUNT_GPIO_VEN, ACPI_RS_OFFSET(data.pin_group.vendor_length),
++	 AML_OFFSET(pin_group.vendor_length),
 +	 1},
 +
-+	{ACPI_RSC_MOVE_GPIO_RES, ACPI_RS_OFFSET(data.pin_function.vendor_data),
-+	 AML_OFFSET(pin_function.vendor_offset),
++	{ACPI_RSC_MOVE_GPIO_RES, ACPI_RS_OFFSET(data.pin_group.vendor_data),
++	 AML_OFFSET(pin_group.vendor_offset),
 +	 0},
 +};
-+
-+/*******************************************************************************
-+ *
-  * acpi_rs_convert_i2c_serial_bus
-  *
-  ******************************************************************************/
 diff --git a/drivers/acpi/acpica/utresrc.c b/drivers/acpi/acpica/utresrc.c
-index e0587c8..8dd0995 100644
+index 2d3e988..946e1e2 100644
 --- a/drivers/acpi/acpica/utresrc.c
 +++ b/drivers/acpi/acpica/utresrc.c
-@@ -332,7 +332,7 @@ const u8 acpi_gbl_resource_aml_sizes[] = {
- 	ACPI_AML_SIZE_LARGE(struct aml_resource_address64),
- 	ACPI_AML_SIZE_LARGE(struct aml_resource_extended_address64),
- 	ACPI_AML_SIZE_LARGE(struct aml_resource_gpio),
--	0,
-+	ACPI_AML_SIZE_LARGE(struct aml_resource_pin_function),
+@@ -354,6 +354,7 @@ const u8 acpi_gbl_resource_aml_sizes[] = {
+ 	ACPI_AML_SIZE_LARGE(struct aml_resource_pin_function),
  	ACPI_AML_SIZE_LARGE(struct aml_resource_common_serialbus),
+ 	ACPI_AML_SIZE_LARGE(struct aml_resource_pin_config),
++	ACPI_AML_SIZE_LARGE(struct aml_resource_pin_group),
  };
  
-@@ -384,7 +384,7 @@ static const u8 acpi_gbl_resource_types[] = {
- 	ACPI_VARIABLE_LENGTH,	/* 0A Qword* address */
- 	ACPI_FIXED_LENGTH,	/* 0B Extended* address */
- 	ACPI_VARIABLE_LENGTH,	/* 0C Gpio* */
--	0,
-+	ACPI_VARIABLE_LENGTH,	/* 0D pin_function */
- 	ACPI_VARIABLE_LENGTH	/* 0E *serial_bus */
+ const u8 acpi_gbl_resource_aml_serial_bus_sizes[] = {
+@@ -407,6 +408,7 @@ static const u8 acpi_gbl_resource_types[] = {
+ 	ACPI_VARIABLE_LENGTH,	/* 0D pin_function */
+ 	ACPI_VARIABLE_LENGTH,	/* 0E *serial_bus */
+ 	ACPI_VARIABLE_LENGTH,	/* 0F pin_config */
++	ACPI_VARIABLE_LENGTH,	/* 10 pin_group */
  };
  
+ /*******************************************************************************
 diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h
-index f0f7403..cf6996e 100644
+index 2b41ed1..d29841b 100644
 --- a/include/acpi/acrestyp.h
 +++ b/include/acpi/acrestyp.h
-@@ -534,6 +534,18 @@ struct acpi_resource_uart_serialbus {
- #define ACPI_UART_CLEAR_TO_SEND                 (1<<6)
- #define ACPI_UART_REQUEST_TO_SEND               (1<<7)
+@@ -289,6 +289,11 @@ union acpi_resource_attribute {
+ 	u8 type_specific;
+ };
  
-+struct acpi_resource_pin_function {
++struct acpi_resource_label {
++	u16 string_length;
++	char *string_ptr;
++};
++
+ struct acpi_resource_source {
+ 	u8 index;
+ 	u16 string_length;
+@@ -576,6 +581,16 @@ struct acpi_resource_pin_config {
+ #define ACPI_PIN_CONFIG_INPUT_DEBOUNCE          12
+ #define ACPI_PIN_CONFIG_INPUT_SCHMITT_TRIGGER   13
+ 
++struct acpi_resource_pin_group {
 +	u8 revision_id;
-+	u8 pin_config;
-+	u8 sharable;		/* For values, see Interrupt Attributes above */
-+	u16 function_number;
++	u8 producer_consumer;	/* For values, see Producer/Consumer above */
 +	u16 pin_table_length;
 +	u16 vendor_length;
-+	struct acpi_resource_source resource_source;
 +	u16 *pin_table;
++	struct acpi_resource_label resource_label;
 +	u8 *vendor_data;
 +};
 +
  /* ACPI_RESOURCE_TYPEs */
  
  #define ACPI_RESOURCE_TYPE_IRQ                  0
-@@ -556,7 +568,8 @@ struct acpi_resource_uart_serialbus {
- #define ACPI_RESOURCE_TYPE_GPIO                 17	/* ACPI 5.0 */
- #define ACPI_RESOURCE_TYPE_FIXED_DMA            18	/* ACPI 5.0 */
+@@ -600,7 +615,8 @@ struct acpi_resource_pin_config {
  #define ACPI_RESOURCE_TYPE_SERIAL_BUS           19	/* ACPI 5.0 */
--#define ACPI_RESOURCE_TYPE_MAX                  19
-+#define ACPI_RESOURCE_TYPE_PIN_FUNCTION         20	/* ACPI 6.2 */
-+#define ACPI_RESOURCE_TYPE_MAX                  20
+ #define ACPI_RESOURCE_TYPE_PIN_FUNCTION         20	/* ACPI 6.2 */
+ #define ACPI_RESOURCE_TYPE_PIN_CONFIG           21	/* ACPI 6.2 */
+-#define ACPI_RESOURCE_TYPE_MAX                  21
++#define ACPI_RESOURCE_TYPE_PIN_GROUP            22	/* ACPI 6.2 */
++#define ACPI_RESOURCE_TYPE_MAX                  22
  
  /* Master union for resource descriptors */
  
-@@ -584,6 +597,7 @@ union acpi_resource_data {
- 	struct acpi_resource_spi_serialbus spi_serial_bus;
- 	struct acpi_resource_uart_serialbus uart_serial_bus;
+@@ -630,6 +646,7 @@ union acpi_resource_data {
  	struct acpi_resource_common_serialbus common_serial_bus;
-+	struct acpi_resource_pin_function pin_function;
+ 	struct acpi_resource_pin_function pin_function;
+ 	struct acpi_resource_pin_config pin_config;
++	struct acpi_resource_pin_group pin_group;
  
  	/* Common fields */
  
