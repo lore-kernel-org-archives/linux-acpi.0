@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 36/53] ACPICA: Remove extraneous status check
-Date: Mon,  5 Jun 2017 16:40:45 +0800
-Message-ID: <4b3d21192fe1d32e4292d2ec8c65a8a63c9e51ef.1496650343.git.lv.zheng@intel.com>
+Subject: [PATCH 37/53] ACPICA: Update resource descriptor handling
+Date: Mon,  5 Jun 2017 16:40:50 +0800
+Message-ID: <0c6820111292a5a0f46991f6dec03270ec1b6d73.1496650343.git.lv.zheng@intel.com>
 References: <cover.1496650343.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:9299 "EHLO mga11.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:51301 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751636AbdFEIkr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 04:40:47 -0400
+        id S1751478AbdFEIkx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:40:53 -0400
 In-Reply-To: <cover.1496650343.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,34 +16,51 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit a83f7212df71d4276d0057fa31bfdc9809660560
+ACPICA commit c8eac10178b387f9eb1935694e509d4518da77bb
 
-Removed an unnecessary status check after call to
-ns_build_normalized_path.
+This change restores the change introduced by commit 23b5bbe and
+adds a comment concerning resource descriptor buffers that extend
+beyond the END_TAG descriptor.
 
-Link: https://bugs.acpica.org/show_bug.cgi?id=1378
-Link: https://github.com/acpica/acpica/commit/a83f7212
-Reported-by: Colin King <colin.king@canonical.com>
+Link: https://github.com/acpica/acpica/commit/c8eac101
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/nsnames.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/acpi/acpica/utresrc.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
-index 3db9ca2..aa16aea 100644
---- a/drivers/acpi/acpica/nsnames.c
-+++ b/drivers/acpi/acpica/nsnames.c
-@@ -190,9 +190,6 @@ acpi_ns_handle_to_pathname(acpi_handle target_handle,
+diff --git a/drivers/acpi/acpica/utresrc.c b/drivers/acpi/acpica/utresrc.c
+index b4282ea..ddb9365 100644
+--- a/drivers/acpi/acpica/utresrc.c
++++ b/drivers/acpi/acpica/utresrc.c
+@@ -448,9 +448,11 @@ acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
  
- 	(void)acpi_ns_build_normalized_path(node, buffer->pointer,
- 					    required_size, no_trailing);
--	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
--	}
+ 	ACPI_FUNCTION_TRACE(ut_walk_aml_resources);
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "%s [%X]\n",
- 			  (char *)buffer->pointer, (u32) required_size));
+-	/* The absolute minimum resource template is one end_tag descriptor */
+-
+-	if (aml_length < sizeof(struct aml_resource_end_tag)) {
++	/*
++	 * The absolute minimum resource template is one end_tag descriptor.
++	 * However, we will treat a lone end_tag as just a simple buffer.
++	 */
++	if (aml_length <= sizeof(struct aml_resource_end_tag)) {
+ 		return_ACPI_STATUS(AE_AML_NO_RESOURCE_END_TAG);
+ 	}
+ 
+@@ -516,8 +518,10 @@ acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
+ 				*context = aml;
+ 			}
+ 
+-			/* Normal exit */
+-
++			/*
++			 * Normal exit. Note: We allow the buffer to be larger than
++			 * the resource template, as long as the END_TAG exists.
++			 */
+ 			return_ACPI_STATUS(AE_OK);
+ 		}
+ 
 -- 
 2.7.4
 
