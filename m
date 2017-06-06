@@ -1,17 +1,17 @@
 From: Darren Hart <dvhart@infradead.org>
 Subject: Re: [PATCH v2] platform/x86: wmi-bmof: New driver to expose embedded
  Binary WMI MOF metadata
-Date: Tue, 6 Jun 2017 09:34:42 -0700
-Message-ID: <20170606163442.GA32509@fury>
+Date: Tue, 6 Jun 2017 09:54:43 -0700
+Message-ID: <20170606165443.GB32509@fury>
 References: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org>
  <CAHp75VcEpnMzjomrnEQQEFp6zCJjcBugaRRHZO0GUc3FOyjF_Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:55437 "EHLO
+Received: from bombadil.infradead.org ([65.50.211.133]:51164 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751536AbdFFQep (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2017 12:34:45 -0400
+        with ESMTP id S1751388AbdFFQyr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2017 12:54:47 -0400
 Content-Disposition: inline
 In-Reply-To: <CAHp75VcEpnMzjomrnEQQEFp6zCJjcBugaRRHZO0GUc3FOyjF_Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -35,29 +35,6 @@ On Tue, Jun 06, 2017 at 12:30:38PM +0300, Andy Shevchenko wrote:
 > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 > 
 > 
-> > +config WMI_BMOF
-> > +       tristate "WMI embedded Binary MOF driver"
-> > +       depends on ACPI_WMI
-> 
-> > +       default y
-> 
-> Since it can be module it would be better to have more sane default
-> (distros usually prefers modules over built-in).
-> Thus, I would go, for example, with
-> 
-> default ACPI_WMI
-
-Good point, done.
-
-> 
-> > +       ---help---
-> > +         Say Y here if you want to be able to read a firmware-embedded
-> > +         WMI Binary MOF data. Using this requires userspace tools and may be
-> > +         rather tedious.
-> > +
-> > +         To compile this driver as a module, choose M here: the module will
-> > +         be called wmi-bmof.
-> 
 > > +#include <linux/kernel.h>
 > > +#include <linux/module.h>
 > > +#include <linux/init.h>
@@ -73,69 +50,51 @@ Good point, done.
 > 
 > Alphabetical order? Up to you.
 
-Hrm. There seems to be plenty of similar suggestions on the mailing lists, but
-nothing documented in coding-style.rst. If this is a thing we are going to ask
-of our contributors, it should be documented. I'm happy to reorder, would you
-consider sending the coding-style patch?
+OK, I failed to audit this... lots we don't need in here.
 
-> 
-> > +#define WMI_BMOF_GUID "05901221-D566-11D1-B2F0-00A0C9062910"
-> 
-> > +MODULE_ALIAS("wmi:" WMI_BMOF_GUID);
-> 
-> I would gather all MODULE_* together, but it's also matter of taste.
-> 
+The minimum to build is:
 
-Sure, done.
+#include <linux/wmi.h>
 
-> > +static ssize_t
-> > +read_bmof(struct file *filp, struct kobject *kobj,
-> > +        struct bin_attribute *attr,
-> > +        char *buf, loff_t off, size_t count)
-> > +{
-> > +       struct bmof_priv *priv =
-> > +               container_of(attr, struct bmof_priv, bmof_bin_attr);
-> > +
-> > +       if (off >= priv->bmofdata->buffer.length)
-> > +               return 0;
-> 
-> Shouldn't we return an error code here? -ERANGE or alike?
-> 
+So assuming this was copy/pasted from another file.
 
-I took some time and compared this with:
+Again, no guidance in coding-style.rst on includes. Seems to me we should
+include what we specifically require, regardless of whether or not another
+header also happens to include it. We need acpi for example, even though wmi
+also includes it.
 
-read(2)
-lseek(2)
-fseek(3)
-memory_read_from_buffer()
+We should include modules, even though acpi includes it.
 
-If offset is <0, we should return EINVAL
-If offset is >end_of_buffer.... it's not so cut and dry. It is simpler to just
-return 0, and as far as how it affects usage... returning 0 seems perfectly
-acceptable for typical read loop usage.
+We use several other things we aren't including for, like
 
-As loff_t is a long long, it could conceivably be < 0, so I've added a check for
-that and return -EINVAL in that case.
+memcpy
+dev_kzalloc
+sysfs_create_bin_file
 
-> > +static int wmi_bmof_probe(struct wmi_device *wdev)
-> > +{
-> 
-> > +       int ret;
-> > +
-> > +       struct bmof_priv *priv =
-> > +               devm_kzalloc(&wdev->dev, sizeof(struct bmof_priv), GFP_KERNEL);
-> 
-> I'm not a fan of memory allocation in definition block, so, I would rewrite this
-> 
->       struct bmof_priv *priv;
->       int ret;
-> 
->       priv = devm_kzalloc(&wdev->dev, sizeof(struct bmof_priv), GFP_KERNEL);
-> 
+So I suggest:
 
-Agreed, changed.
+#include <linux/acpi.h>
+#include <linux/device.h>
+#include <linux/fs.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/string.h>
+#include <linux/sysfs.h>
+#include <linux/types.h>
+#include <linux/wmi.h>
 
-Thanks for the review Andy.
+Which removes:
+#include <acpi/video.h>
+#include <linux/dmi.h>
+#include <linux/init.h>
+#include <linux/input.h>
+#include <linux/input/sparse-keymap.h>
+#include <linux/slab.h>
+
+And adds:
+#include <linux/device.h>
+#include <linux/fs.h>
+#include <linux/sysfs.h>
 
 -- 
 Darren Hart
