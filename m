@@ -1,35 +1,31 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v2 3/5] ACPI / bus: Switch to use new generic UUID API
-Date: Tue, 6 Jun 2017 11:58:49 +0200
-Message-ID: <20170606095849.GB20590@lst.de>
-References: <20170531194152.65927-1-andriy.shevchenko@linux.intel.com> <20170531194152.65927-4-andriy.shevchenko@linux.intel.com> <20170605160331.GC29981@lst.de> <1496679616.22624.16.camel@linux.intel.com> <CAJZ5v0jv_RKwiDLD_bDOxZfe_mZnaxfGkcwLaB8WvWncDvx6PA@mail.gmail.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2] platform/x86: wmi-bmof: New driver to expose embedded
+ Binary WMI MOF metadata
+Date: Tue, 6 Jun 2017 12:04:40 +0200
+Message-ID: <20170606100440.GA4690@pali>
+References: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:45360 "EHLO newverein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751329AbdFFJ6v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 6 Jun 2017 05:58:51 -0400
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:35182 "EHLO
+        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751329AbdFFKEr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2017 06:04:47 -0400
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jv_RKwiDLD_bDOxZfe_mZnaxfGkcwLaB8WvWncDvx6PA@mail.gmail.com>
+In-Reply-To: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Borislav Petkov <bp@suse.de>, intel-gfx <intel-gfx@lists.freedesktop.org>
+To: Andy Lutomirski <luto@kernel.org>
+Cc: platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Jun 05, 2017 at 10:37:41PM +0200, Rafael J. Wysocki wrote:
-> On Mon, Jun 5, 2017 at 6:20 PM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Mon, 2017-06-05 at 18:03 +0200, Christoph Hellwig wrote:
-> >> > +   in_params[0].buffer.pointer     = (u8 *)&guid;
-> >>
-> >> Any idea why the pointer is defined as a u8 * in union acpi_object
-> >> instead of a void?
-> >
-> > I guess this question to Rafael.
-> 
-> That data type is defined in upstream ACPICA and the reason why it is
-> defined the way it is has something to do with history I suppose.
+On Monday 05 June 2017 20:16:44 Andy Lutomirski wrote:
+> +#define WMI_BMOF_GUID "05901221-D566-11D1-B2F0-00A0C9062910"
+> +MODULE_ALIAS("wmi:" WMI_BMOF_GUID);
 
-Ok, I'll send a patch to fix it - just about every user of the field
-currently requires a cast, which is not a good thing.
+Cannot we generate MODULE_ALIAS from module_wmi_driver()? IIRC it is
+working for i2c drivers.
+
+-- 
+Pali Rohár
+pali.rohar@gmail.com
