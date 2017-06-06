@@ -1,239 +1,135 @@
-From: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-Subject: [PATCH 2/2] acpi, gicv3-its, numa: Adding numa node mapping for gic-its units
-Date: Tue,  6 Jun 2017 18:26:27 +0530
-Message-ID: <1496753787-27735-3-git-send-email-ganapatrao.kulkarni@cavium.com>
-References: <1496753787-27735-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v1 1/3] mfd: Add new mfd device TPS68470
+Date: Tue, 6 Jun 2017 15:59:49 +0300
+Message-ID: <CAHp75VfiTM2t=WxWpG4+kUfGA3DrfGfMOwxP6Cs42nGwHjAp7w@mail.gmail.com>
+References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com> <1496750118-5570-2-git-send-email-rajmohan.mani@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2nam02on0049.outbound.protection.outlook.com ([104.47.38.49]:51665
-        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751305AbdFFM52 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 6 Jun 2017 08:57:28 -0400
-In-Reply-To: <1496753787-27735-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:36680 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751305AbdFFM7u (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2017 08:59:50 -0400
+In-Reply-To: <1496750118-5570-2-git-send-email-rajmohan.mani@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: lv.zheng@intel.com, robert.moore@intel.com, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, jnair@caviumnetworks.com, gpkulkarni@gmail.com
+To: Rajmohan Mani <rajmohan.mani@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-Add code to parse SRAT ITS Affinity sub table as defined in ACPI 6.2
-Later in driver probe, its devices are mapped to numa node
-using its id to proximity domain mapping.
+On Tue, Jun 6, 2017 at 2:55 PM, Rajmohan Mani <rajmohan.mani@intel.com> wrote:
+> The TPS68470 device is an advanced power management
+> unit that powers a Compact Camera Module (CCM),
+> generates clocks for image sensors, drives a dual
+> LED for Flash and incorporates two LED drivers for
+> general purpose indicators.
+>
+> This patch adds support for TPS68470 mfd device.
 
-Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
----
- arch/arm64/include/asm/acpi.h    |  2 ++
- arch/arm64/kernel/acpi_numa.c    | 59 ++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/numa.c              | 32 +++++++++++++++++++++-
- drivers/irqchip/irq-gic-v3-its.c |  3 +-
- include/linux/acpi.h             |  3 ++
- 5 files changed, 97 insertions(+), 2 deletions(-)
+I dunno why you decide to send this out now, see my comments below.
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 0e99978..60ea7d1 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -143,9 +143,11 @@ static inline void arch_apei_flush_tlb_one(unsigned long addr)
- #ifdef CONFIG_ACPI_NUMA
- int arm64_acpi_numa_init(void);
- int acpi_numa_get_nid(unsigned int cpu, u64 hwid);
-+int acpi_numa_get_its_nid(u32 its_id);
- #else
- static inline int arm64_acpi_numa_init(void) { return -ENOSYS; }
- static inline int acpi_numa_get_nid(unsigned int cpu, u64 hwid) { return NUMA_NO_NODE; }
-+static inline int acpi_numa_get_its_nid(u32 its_id) { return NUMA_NO_NODE; }
- #endif /* CONFIG_ACPI_NUMA */
- 
- #define ACPI_TABLE_UPGRADE_MAX_PHYS MEMBLOCK_ALLOC_ACCESSIBLE
-diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
-index f01fab6..f7b2ea6 100644
---- a/arch/arm64/kernel/acpi_numa.c
-+++ b/arch/arm64/kernel/acpi_numa.c
-@@ -29,15 +29,24 @@
- #include <asm/numa.h>
- 
- static int cpus_in_srat;
-+static int its_in_srat;
- 
- struct __node_cpu_hwid {
- 	u32 node_id;    /* logical node containing this CPU */
- 	u64 cpu_hwid;   /* MPIDR for this CPU */
- };
- 
-+struct __node_its_id {
-+	u32 node_id;    /* numa node id */
-+	u32 its_id ;   /* GIC ITS ID */
-+};
-+
- static struct __node_cpu_hwid early_node_cpu_hwid[NR_CPUS] = {
- [0 ... NR_CPUS - 1] = {NUMA_NO_NODE, PHYS_CPUID_INVALID} };
- 
-+static struct __node_its_id early_node_its_id[MAX_NUMNODES] = {
-+[0 ... MAX_NUMNODES - 1] = {NUMA_NO_NODE, UINT_MAX} };
-+
- int acpi_numa_get_nid(unsigned int cpu, u64 hwid)
- {
- 	int i;
-@@ -50,6 +59,18 @@ int acpi_numa_get_nid(unsigned int cpu, u64 hwid)
- 	return NUMA_NO_NODE;
- }
- 
-+int acpi_numa_get_its_nid(u32 its_id)
-+{
-+	int i;
-+
-+	for (i = 0; i < its_in_srat; i++) {
-+		if (its_id == early_node_its_id[i].its_id)
-+			return early_node_its_id[i].node_id;
-+	}
-+
-+	return NUMA_NO_NODE;
-+}
-+
- /* Callback for Proximity Domain -> ACPI processor UID mapping */
- void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
- {
-@@ -100,6 +121,44 @@ void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
- 		pxm, mpidr, node);
- }
- 
-+/* Callback for ITS ACPI Proximity Domain mapping */
-+void __init acpi_numa_its_affinity_init(struct acpi_srat_its_affinity *pa)
-+{
-+	int pxm, node;
-+
-+	if (srat_disabled())
-+		return;
-+
-+	if (pa->header.length < sizeof(struct acpi_srat_its_affinity)) {
-+		pr_err("SRAT: Invalid SRAT header length: %d\n",
-+			pa->header.length);
-+		bad_srat();
-+		return;
-+	}
-+
-+	if (its_in_srat >= MAX_NUMNODES) {
-+		pr_warn_once("SRAT: its count exceeding max count[%d]\n",
-+			     MAX_NUMNODES);
-+		return;
-+	}
-+
-+	pxm = pa->proximity_domain;
-+	node = acpi_map_pxm_to_node(pxm);
-+
-+	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
-+		pr_err("SRAT: Too many proximity domains %d\n", pxm);
-+		bad_srat();
-+		return;
-+	}
-+
-+	early_node_its_id[its_in_srat].node_id = node;
-+	early_node_its_id[its_in_srat].its_id =  its_in_srat;
-+	node_set(node, numa_nodes_parsed);
-+	pr_info("SRAT: PXM %d -> ITS %d -> Node %d\n",
-+		pxm, its_in_srat, node);
-+	its_in_srat++;
-+}
-+
- int __init arm64_acpi_numa_init(void)
- {
- 	int ret;
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index edb0c79..9c04dba 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -182,6 +182,16 @@ int acpi_map_pxm_to_online_node(int pxm)
- 		}
- 		break;
- 
-+	case ACPI_SRAT_TYPE_GIC_ITS_AFFINITY:
-+		{
-+			struct acpi_srat_its_affinity *p =
-+			    (struct acpi_srat_its_affinity *)header;
-+			pr_debug("SRAT ITS [0x%04x]) in proximity domain %d\n",
-+				 p->its_id,
-+				 p->proximity_domain);
-+		}
-+		break;
-+
- 	default:
- 		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
- 			header->type);
-@@ -390,6 +400,24 @@ static int __init acpi_parse_slit(struct acpi_table_header *table)
- 	return 0;
- }
- 
-+static int __init
-+acpi_parse_its_affinity(struct acpi_subtable_header *header,
-+			 const unsigned long end)
-+{
-+	struct acpi_srat_its_affinity *its_affinity;
-+
-+	its_affinity = (struct acpi_srat_its_affinity *)header;
-+	if (!its_affinity)
-+		return -EINVAL;
-+
-+	acpi_table_print_srat_entry(header);
-+
-+	/* let architecture-dependent part to do it */
-+	acpi_numa_its_affinity_init(its_affinity);
-+
-+	return 0;
-+}
-+
- static int __initdata parsed_numa_memblks;
- 
- static int __init
-@@ -445,7 +473,7 @@ int __init acpi_numa_init(void)
- 
- 	/* SRAT: Static Resource Affinity Table */
- 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
--		struct acpi_subtable_proc srat_proc[3];
-+		struct acpi_subtable_proc srat_proc[4];
- 
- 		memset(srat_proc, 0, sizeof(srat_proc));
- 		srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
-@@ -454,6 +482,8 @@ int __init acpi_numa_init(void)
- 		srat_proc[1].handler = acpi_parse_x2apic_affinity;
- 		srat_proc[2].id = ACPI_SRAT_TYPE_GICC_AFFINITY;
- 		srat_proc[2].handler = acpi_parse_gicc_affinity;
-+		srat_proc[3].id = ACPI_SRAT_TYPE_GIC_ITS_AFFINITY;
-+		srat_proc[3].handler = acpi_parse_its_affinity;
- 
- 		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
- 					sizeof(struct acpi_table_srat),
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 45ea1933..84936da 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -1861,7 +1861,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
- 		goto dom_err;
- 	}
- 
--	err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
-+	err = its_probe_one(&res, dom_handle,
-+			acpi_numa_get_its_nid(its_entry->translation_id));
- 	if (!err)
- 		return 0;
- 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 137e4a3..e5e8ae3 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -260,9 +260,12 @@ int acpi_table_parse_madt(enum acpi_madt_type id,
- 
- #ifdef CONFIG_ARM64
- void acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa);
-+void acpi_numa_its_affinity_init(struct acpi_srat_its_affinity *pa);
- #else
- static inline void
- acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa) { }
-+static inline void
-+acpi_numa_its_affinity_init(struct acpi_srat_its_affinity *pa) { }
- #endif
- 
- int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
+> +static int tps68470_chip_init(struct tps68470 *tps)
+> +{
+> +       unsigned int version;
+> +       int ret;
+
+> +       /* FIXME: configure these dynamically */
+
+So, what prevents you to fix this?
+
+> +       /* Enable Daisy Chain LDO and configure relevant GPIOs as output */
+
+> +}
+
+> +static int tps68470_probe(struct i2c_client *client)
+> +{
+> +       struct tps68470 *tps;
+> +       int ret;
+> +
+> +       tps = devm_kzalloc(&client->dev, sizeof(*tps), GFP_KERNEL);
+> +       if (!tps)
+> +               return -ENOMEM;
+> +
+> +       mutex_init(&tps->lock);
+> +       i2c_set_clientdata(client, tps);
+> +       tps->dev = &client->dev;
+> +
+> +       tps->regmap = devm_regmap_init_i2c(client, &tps68470_regmap_config);
+> +       if (IS_ERR(tps->regmap)) {
+> +               dev_err(tps->dev, "devm_regmap_init_i2c Error %d\n", ret);
+> +               return PTR_ERR(tps->regmap);
+> +       }
+> +
+
+> +       ret = mfd_add_devices(tps->dev, -1, tps68470s,
+> +                             ARRAY_SIZE(tps68470s), NULL, 0, NULL);
+
+devm_?
+
+> +       if (ret < 0) {
+> +               dev_err(tps->dev, "mfd_add_devices failed: %d\n", ret);
+> +               return ret;
+> +       }
+> +
+> +       ret = tps68470_chip_init(tps);
+> +       if (ret < 0) {
+> +               dev_err(tps->dev, "TPS68470 Init Error %d\n", ret);
+> +               goto fail;
+> +       }
+> +
+> +       return 0;
+
+> +fail:
+> +       mutex_lock(&tps->lock);
+
+I'm not sure you need this mutex to be held here.
+Otherwise your code has a bug with locking.
+
+> +       mfd_remove_devices(tps->dev);
+> +       mutex_unlock(&tps->lock);
+> +
+> +       return ret;
+
+Taking above into consideration I suggest to clarify your locking scheme.
+
+> +}
+> +
+> +static int tps68470_remove(struct i2c_client *client)
+> +{
+> +       struct tps68470 *tps = i2c_get_clientdata(client);
+> +
+
+> +       mutex_lock(&tps->lock);
+> +       mfd_remove_devices(tps->dev);
+> +       mutex_unlock(&tps->lock);
+
+Ditto.
+
+> +       return 0;
+> +}
+
+> +/**
+> + * struct tps68470 - tps68470 sub-driver chip access routines
+> + *
+
+kbuild bot will be unhappy. You need to file a description per field.
+
+> + * Device data may be used to access the TPS68470 chip
+> + */
+> +
+> +struct tps68470 {
+> +       struct device *dev;
+> +       struct regmap *regmap;
+
+> +       /*
+> +        * Used to synchronize access to tps68470_ operations
+> +        * and addition and removal of mfd devices
+> +        */
+
+Move it to kernel-doc above.
+
+> +       struct mutex lock;
+> +};
+
 -- 
-1.8.1.4
-
+With Best Regards,
+Andy Shevchenko
