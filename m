@@ -1,97 +1,69 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2] platform/x86: wmi-bmof: New driver to expose embedded
- Binary WMI MOF metadata
-Date: Tue, 6 Jun 2017 21:45:57 +0300
-Message-ID: <CAHp75VeX0fTBcRA=GKyXVDqbi+WTSNOGBxfq0ZgB22c3+OXNTw@mail.gmail.com>
-References: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org>
- <CAHp75VcEpnMzjomrnEQQEFp6zCJjcBugaRRHZO0GUc3FOyjF_Q@mail.gmail.com> <20170606165443.GB32509@fury>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2] platform/x86: wmi-bmof: New driver to expose embedded Binary WMI MOF metadata
+Date: Tue, 6 Jun 2017 22:50:52 +0200
+Message-ID: <201706062250.52564@pali>
+References: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org> <20170606100440.GA4690@pali> <20170606170201.GC32509@fury>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170606165443.GB32509@fury>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Andy Lutomirski <luto@kernel.org>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: multipart/signed;
+  boundary="nextPart1637567.GHILeTuNXC";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34151 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751444AbdFFUu4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2017 16:50:56 -0400
+In-Reply-To: <20170606170201.GC32509@fury>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: Andy Lutomirski <luto@kernel.org>, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Jun 6, 2017 at 7:54 PM, Darren Hart <dvhart@infradead.org> wrote:
-> On Tue, Jun 06, 2017 at 12:30:38PM +0300, Andy Shevchenko wrote:
->> On Tue, Jun 6, 2017 at 6:16 AM, Andy Lutomirski <luto@kernel.org> wrote:
+--nextPart1637567.GHILeTuNXC
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
->> > +#include <linux/kernel.h>
->> > +#include <linux/module.h>
->> > +#include <linux/init.h>
->> > +#include <linux/slab.h>
->> > +#include <linux/types.h>
->> > +#include <linux/input.h>
->> > +#include <linux/input/sparse-keymap.h>
->> > +#include <linux/acpi.h>
->> > +#include <linux/string.h>
->> > +#include <linux/dmi.h>
->> > +#include <linux/wmi.h>
->> > +#include <acpi/video.h>
->>
->> Alphabetical order? Up to you.
->
-> OK, I failed to audit this... lots we don't need in here.
->
-> The minimum to build is:
->
-> #include <linux/wmi.h>
->
-> So assuming this was copy/pasted from another file.
+On Tuesday 06 June 2017 19:02:01 Darren Hart wrote:
+> On Tue, Jun 06, 2017 at 12:04:40PM +0200, Pali Roh=C3=A1r wrote:
+> > On Monday 05 June 2017 20:16:44 Andy Lutomirski wrote:
+> > > +#define WMI_BMOF_GUID "05901221-D566-11D1-B2F0-00A0C9062910"
+> > > +MODULE_ALIAS("wmi:" WMI_BMOF_GUID);
+> >=20
+> > Cannot we generate MODULE_ALIAS from module_wmi_driver()? IIRC it
+> > is working for i2c drivers.
+>=20
+> I could see this being automated since we always use wmi:GUID, but it
+> isn't currently. Happy to consider it as a follow on.
+>=20
+> Do you have a specific i2c example you think we should consider
+> following?
 
-> Again, no guidance in coding-style.rst on includes. Seems to me we should
-> include what we specifically require, regardless of whether or not another
-> header also happens to include it.
+=46or i2c you can specify in driver code:
 
-Usually it's a sane choice.
-Regarding to order the rationale I see there is easiest way to detect
-(on the glance) what headers are already there and there is no
-duplication. I saw in the past few patches to remove header
-duplication since the original list wasn't in order in the first
-place.
+MODULE_DEVICE_TABLE(i2c, id_table);
 
-Of course there might be exceptions.
+And it automatically provides (via file.mod.c) all needed MODULE_ALIAS.
 
-> We need acpi for example, even though wmi
-> also includes it.
->
-> We should include modules, even though acpi includes it.
->
-> We use several other things we aren't including for, like
->
-> memcpy
-> dev_kzalloc
-> sysfs_create_bin_file
->
-> So I suggest:
->
-> #include <linux/acpi.h>
-> #include <linux/device.h>
-> #include <linux/fs.h>
-> #include <linux/kernel.h>
-> #include <linux/module.h>
-> #include <linux/string.h>
-> #include <linux/sysfs.h>
-> #include <linux/types.h>
-> #include <linux/wmi.h>
->
-> Which removes:
-> #include <acpi/video.h>
-> #include <linux/dmi.h>
-> #include <linux/init.h>
-> #include <linux/input.h>
-> #include <linux/input/sparse-keymap.h>
-> #include <linux/slab.h>
->
-> And adds:
-> #include <linux/device.h>
-> #include <linux/fs.h>
-> #include <linux/sysfs.h>
+So when we have wmi_bmof_id_table in driver, cannot we use this?
 
-Works for me!
+MODULE_DEVICE_TABLE(wmi, wmi_bmof_id_table);
 
--- 
-With Best Regards,
-Andy Shevchenko
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1637567.GHILeTuNXC
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlk3FawACgkQi/DJPQPkQ1LIJQCgxOZDFt8Aq+3oCe0ywEgQc+X3
+5dEAn3Cx0LqfH6T436SFjZL6WDGqXDP4
+=BDP8
+-----END PGP SIGNATURE-----
+
+--nextPart1637567.GHILeTuNXC--
