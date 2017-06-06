@@ -1,41 +1,44 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [resend RFC 1/6] ACPICA: add HMAT table definitions
-Date: Mon, 5 Jun 2017 18:30:36 -0600
-Message-ID: <20170606003036.GA5997@linux.intel.com>
-References: <20170602205956.28351-1-ross.zwisler@linux.intel.com>
- <20170605195057.31492-1-ross.zwisler@linux.intel.com>
- <20170605195057.31492-2-ross.zwisler@linux.intel.com>
- <CAJZ5v0iARt8WT+VHt21trSvYqqy6f4ExLEL3UVxJ4vbX_=_bcQ@mail.gmail.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose
+ embedded WMI MOF metadata
+Date: Mon, 5 Jun 2017 19:33:25 -0700
+Message-ID: <20170606023325.GB27270@fury>
+References: <cover.1495862272.git.dvhart@infradead.org>
+ <201705271314.16241@pali>
+ <20170605221456.GA27270@fury>
+ <201706060019.26462@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:18490 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751194AbdFFAaj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Jun 2017 20:30:39 -0400
+Received: from bombadil.infradead.org ([65.50.211.133]:35585 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751215AbdFFCd2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2017 22:33:28 -0400
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0iARt8WT+VHt21trSvYqqy6f4ExLEL3UVxJ4vbX_=_bcQ@mail.gmail.com>
+In-Reply-To: <201706060019.26462@pali>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Greg Kroah-Hartman <gregkh@lin>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Jun 05, 2017 at 10:44:11PM +0200, Rafael J. Wysocki wrote:
-> On Mon, Jun 5, 2017 at 9:50 PM, Ross Zwisler
-> <ross.zwisler@linux.intel.com> wrote:
-> > Import HMAT table definitions from the ACPICA codebase.
-> >
-> > This kernel patch was generated using an ACPICA patch from "Zheng, Lv"
-> > <lv.zheng@intel.com>.  The actual upstream patch that adds these table
-> > definitions will come from the Intel ACPICA team as part of their greater
-> > ACPI 6.2 update.
-> >
-> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+On Tue, Jun 06, 2017 at 12:19:26AM +0200, Pali Rohár wrote:
+> On Tuesday 06 June 2017 00:14:56 Darren Hart wrote:
+> > On Sat, May 27, 2017 at 01:14:15PM +0200, Pali Rohár wrote:
+> > > > metadata. I think that Samba has tools to interpret it, but there
+> > > > is currently no interface to get the data in the first place.
+> > > 
+> > > No, there is no non-ms-windows tool for interpreting those binary
+> > > MOF (BMF) data yet.
+> > 
+> > Good point. Updated.
 > 
-> Can you please hold on util we have integrated all of the pending
-> ACPICA changes?
+> You are too late :-) Now there is my at https://github.com/pali/bmfdec 
+> See my email "Binary MOF buffer in WMI is finally decoded!".
 
-Sure, this is really just meant to spur discussion on the correct course.
-Comments welcome (encouraged!) on the series as a whole and especially the
-APIs needed by userspace, but ultimately patch 1 will be dropped and I'll just
-build on the ACPICA definitions.
+I've seen it, nice work. Will spend more time on it once I get the v2 for this
+out the door.
+
+-- 
+Darren Hart
+VMware Open Source Technology Center
