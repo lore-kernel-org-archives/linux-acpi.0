@@ -1,222 +1,105 @@
-From: Andy Lutomirski <luto@kernel.org>
-Subject: [PATCH v2] platform/x86: wmi-bmof: New driver to expose embedded
- Binary WMI MOF metadata
-Date: Mon, 5 Jun 2017 20:16:44 -0700
-Message-ID: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 1/2] ACPICA: IORT: Update SMMU models for IORT rev. C
+Date: Tue, 6 Jun 2017 16:43:32 +0800
+Message-ID: <ec4eeffe-9333-fa89-d471-6c88d8d03435@linaro.org>
+References: <11ef7d28c535c01d42b7b3c8e632934f0e0f1048.1495459319.git.robin.murphy@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: pali.rohar@gmail.com
-Cc: platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f177.google.com ([209.85.192.177]:34180 "EHLO
+        mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751184AbdFFInw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2017 04:43:52 -0400
+Received: by mail-pf0-f177.google.com with SMTP id 9so95377158pfj.1
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Jun 2017 01:43:51 -0700 (PDT)
+In-Reply-To: <11ef7d28c535c01d42b7b3c8e632934f0e0f1048.1495459319.git.robin.murphy@arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robin Murphy <robin.murphy@arm.com>, will.deacon@arm.com, joro@8bytes.org
+Cc: iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, gakula@caviumnetworks.com, linu.cherian@cavium.com, rrichter@cavium.com, lorenzo.pieralisi@arm.com, john.garry@huawei.com, shameerali.kolothum.thodi@huawei.com, gabriele.paoloni@huawei.com, rjw@rjwysocki.net, robert.moore@intel.com, lv.zheng@intel.comShameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
 
-Many laptops (and maybe servers?) have embedded WMI Binary MOF metadata.
-We do not yet have open-source tools for processing the data, although
-one is in the works thanks to Pali:
+On 2017/5/22 23:06, Robin Murphy wrote:
+> IORT revision C has been published with a number of new SMMU
+> implementation identifiers. Since IORT doesn't have any way of falling
+> back to a more generic model code, we really need Linux to know about
+> these before vendors start updating their firmware tables to use them.
+> 
+> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+> CC: Robert Moore <robert.moore@intel.com>
+> CC: Lv Zheng <lv.zheng@intel.com>
+> Acked-by: Robert Richter <rrichter@cavium.com>
+> Tested-by: Robert Richter <rrichter@cavium.com>
+> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+> ---
+> 
+> v2: Update more comments, add Robert's tags.
+> 
+> I'm including this here as a kernel patch just for context - once I've
+> figured out how we actually submit patches to ACPICA directly, I'll do
+> that per the preferred process.
+> 
+> Robin.
+> 
+>   include/acpi/actbl2.h | 12 ++++++++++--
+>   1 file changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+> index faa9f2c0d5de..f469ea41f2fd 100644
+> --- a/include/acpi/actbl2.h
+> +++ b/include/acpi/actbl2.h
+> @@ -663,7 +663,7 @@ struct acpi_ibft_target {
+>    * IORT - IO Remapping Table
+>    *
+>    * Conforms to "IO Remapping Table System Software on ARM Platforms",
+> - * Document number: ARM DEN 0049B, October 2015
+> + * Document number: ARM DEN 0049C, May 2017
+>    *
+>    ******************************************************************************/
+>   
+> @@ -778,6 +778,8 @@ struct acpi_iort_smmu {
+>   #define ACPI_IORT_SMMU_V2               0x00000001	/* Generic SMMUv2 */
+>   #define ACPI_IORT_SMMU_CORELINK_MMU400  0x00000002	/* ARM Corelink MMU-400 */
+>   #define ACPI_IORT_SMMU_CORELINK_MMU500  0x00000003	/* ARM Corelink MMU-500 */
+> +#define ACPI_IORT_SMMU_CORELINK_MMU401  0x00000004	/* ARM Corelink MMU-401 */
+> +#define ACPI_IORT_SMMU_CAVIUM_SMMUV2    0x00000005	/* Cavium ThunderX SMMUv2 */
+>   
+>   /* Masks for Flags field above */
+>   
+> @@ -798,13 +800,19 @@ struct acpi_iort_smmu_v3 {
+>   	u32 flags;
+>   	u32 reserved;
+>   	u64 vatos_address;
+> -	u32 model;		/* O: generic SMMUv3 */
+> +	u32 model;
+>   	u32 event_gsiv;
+>   	u32 pri_gsiv;
+>   	u32 gerr_gsiv;
+>   	u32 sync_gsiv;
+>   };
+>   
+> +/* Values for Model field above */
+> +
+> +#define ACPI_IORT_SMMU_V3               0x00000000	/* Generic SMMUv3 */
+> +#define ACPI_IORT_SMMU_HISILICON_HI161X 0x00000001	/* HiSilicon Hi161x SMMUv3 */
+> +#define ACPI_IORT_SMMU_CAVIUM_CN99XX    0x00000002	/* Cavium CN99xx SMMUv3 */
+> +
+>   /* Masks for Flags field above */
+>   
+>   #define ACPI_IORT_SMMU_V3_COHACC_OVERRIDE   (1)
+> 
 
-	https://github.com/pali/bmfdec
+Looks good to me,
 
-There is currently no interface to get the data in the first place. By
-exposing it, we facilitate the development of new tools.
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Mario Limonciello <mario_limonciello@dell.com>
-Cc: Pali Rohár <pali.rohar@gmail.com>
-Cc: linux-kernel@vger.kernel.org
-Cc: platform-driver-x86@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
-[dvhart: make sysfs mof binary read only, fixup comment block format]
-[dvhart: use bmof terminology and dev_err instead of dev_warn]
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Darren Hart (VMware) <dvhart@infradead.org>
----
-since-v1:
- * address Pali's comments:
-   * update the cover letter for clarity and accuracy
-   * update mof->bmof and MOF to Binary MOF throughout the patch
-   * use dev_err instead of dev_warn in wmi_bmof_probe
+By the way, how will this patch be merged? There are pending patches
+on top of it, Rafael suggested to work with ACPICA upstream first [1],
+Robin, will work on that?
 
+[1]: 
+https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1394295.html
 
- drivers/platform/x86/Kconfig    |  12 ++++
- drivers/platform/x86/Makefile   |   1 +
- drivers/platform/x86/wmi-bmof.c | 125 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 138 insertions(+)
- create mode 100644 drivers/platform/x86/wmi-bmof.c
-
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 49a1d01..6ebe393 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -656,6 +656,18 @@ config ACPI_WMI
- 	  It is safe to enable this driver even if your DSDT doesn't define
- 	  any ACPI-WMI devices.
- 
-+config WMI_BMOF
-+	tristate "WMI embedded Binary MOF driver"
-+	depends on ACPI_WMI
-+	default y
-+	---help---
-+	  Say Y here if you want to be able to read a firmware-embedded
-+	  WMI Binary MOF data. Using this requires userspace tools and may be
-+	  rather tedious.
-+
-+	  To compile this driver as a module, choose M here: the module will
-+	  be called wmi-bmof.
-+
- config MSI_WMI
- 	tristate "MSI WMI extras"
- 	depends on ACPI_WMI
-diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index 652d7c8..6a1063e 100644
---- a/drivers/platform/x86/Makefile
-+++ b/drivers/platform/x86/Makefile
-@@ -38,6 +38,7 @@ obj-$(CONFIG_MSI_WMI)		+= msi-wmi.o
- obj-$(CONFIG_PEAQ_WMI)		+= peaq-wmi.o
- obj-$(CONFIG_SURFACE3_WMI)	+= surface3-wmi.o
- obj-$(CONFIG_TOPSTAR_LAPTOP)	+= topstar-laptop.o
-+obj-$(CONFIG_WMI_BMOF)		+= wmi-bmof.o
- 
- # toshiba_acpi must link after wmi to ensure that wmi devices are found
- # before toshiba_acpi initializes
-diff --git a/drivers/platform/x86/wmi-bmof.c b/drivers/platform/x86/wmi-bmof.c
-new file mode 100644
-index 0000000..e1c0963
---- /dev/null
-+++ b/drivers/platform/x86/wmi-bmof.c
-@@ -0,0 +1,125 @@
-+/*
-+ * WMI embedded Binary MOF driver
-+ *
-+ * Copyright (c) 2015 Andrew Lutomirski
-+ *
-+ *  This program is free software; you can redistribute it and/or modify it
-+ *  under the terms of the GNU General Public License version 2 as published
-+ *  by the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/types.h>
-+#include <linux/input.h>
-+#include <linux/input/sparse-keymap.h>
-+#include <linux/acpi.h>
-+#include <linux/string.h>
-+#include <linux/dmi.h>
-+#include <linux/wmi.h>
-+#include <acpi/video.h>
-+
-+#define WMI_BMOF_GUID "05901221-D566-11D1-B2F0-00A0C9062910"
-+MODULE_ALIAS("wmi:" WMI_BMOF_GUID);
-+
-+struct bmof_priv {
-+	union acpi_object *bmofdata;
-+	struct bin_attribute bmof_bin_attr;
-+};
-+
-+static ssize_t
-+read_bmof(struct file *filp, struct kobject *kobj,
-+	 struct bin_attribute *attr,
-+	 char *buf, loff_t off, size_t count)
-+{
-+	struct bmof_priv *priv =
-+		container_of(attr, struct bmof_priv, bmof_bin_attr);
-+
-+	if (off >= priv->bmofdata->buffer.length)
-+		return 0;
-+
-+	if (count > priv->bmofdata->buffer.length - off)
-+		count = priv->bmofdata->buffer.length - off;
-+
-+	memcpy(buf, priv->bmofdata->buffer.pointer + off, count);
-+	return count;
-+}
-+
-+static int wmi_bmof_probe(struct wmi_device *wdev)
-+{
-+	int ret;
-+
-+	struct bmof_priv *priv =
-+		devm_kzalloc(&wdev->dev, sizeof(struct bmof_priv), GFP_KERNEL);
-+
-+	if (!priv)
-+		return -ENOMEM;
-+
-+	dev_set_drvdata(&wdev->dev, priv);
-+
-+	priv->bmofdata = wmidev_block_query(wdev, 0);
-+	if (!priv->bmofdata) {
-+		dev_err(&wdev->dev, "failed to read Binary MOF\n");
-+		return -EIO;
-+	}
-+
-+	if (priv->bmofdata->type != ACPI_TYPE_BUFFER) {
-+		dev_err(&wdev->dev, "Binary MOF is not a buffer\n");
-+		ret = -EIO;
-+		goto err_free;
-+	}
-+
-+	sysfs_bin_attr_init(&priv->bmof_bin_attr);
-+	priv->bmof_bin_attr.attr.name = "bmof";
-+	priv->bmof_bin_attr.attr.mode = 0400;
-+	priv->bmof_bin_attr.read = read_bmof;
-+	priv->bmof_bin_attr.size = priv->bmofdata->buffer.length;
-+
-+	ret = sysfs_create_bin_file(&wdev->dev.kobj, &priv->bmof_bin_attr);
-+	if (ret)
-+		goto err_free;
-+
-+	return 0;
-+
-+ err_free:
-+	kfree(priv->bmofdata);
-+	return ret;
-+}
-+
-+static int wmi_bmof_remove(struct wmi_device *wdev)
-+{
-+	struct bmof_priv *priv = dev_get_drvdata(&wdev->dev);
-+
-+	sysfs_remove_bin_file(&wdev->dev.kobj, &priv->bmof_bin_attr);
-+	kfree(priv->bmofdata);
-+	return 0;
-+}
-+
-+static const struct wmi_device_id wmi_bmof_id_table[] = {
-+	{ .guid_string = WMI_BMOF_GUID },
-+	{ },
-+};
-+
-+static struct wmi_driver wmi_bmof_driver = {
-+	.driver = {
-+		.name = "wmi-bmof",
-+	},
-+	.probe = wmi_bmof_probe,
-+	.remove = wmi_bmof_remove,
-+	.id_table = wmi_bmof_id_table,
-+};
-+
-+module_wmi_driver(wmi_bmof_driver);
-+
-+MODULE_AUTHOR("Andrew Lutomirski <luto@kernel.org>");
-+MODULE_DESCRIPTION("WMI embedded Binary MOF driver");
-+MODULE_LICENSE("GPL");
--- 
-2.9.4
-
-
--- 
-Darren Hart
-VMware Open Source Technology Center
+Thanks
+Hanjun
