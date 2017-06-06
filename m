@@ -1,69 +1,73 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2] platform/x86: wmi-bmof: New driver to expose embedded Binary WMI MOF metadata
-Date: Tue, 6 Jun 2017 22:50:52 +0200
-Message-ID: <201706062250.52564@pali>
-References: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org> <20170606100440.GA4690@pali> <20170606170201.GC32509@fury>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v3 5/7] docs-rst: media: Sort topic list alphabetically
+Date: Tue, 6 Jun 2017 23:57:55 +0300
+Message-ID: <4d1b8a9a-af82-c72d-3554-f1844d5a5b08@linux.intel.com>
+References: <1491829376-14791-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1491829376-14791-6-git-send-email-sakari.ailus@linux.intel.com>
+ <20170606094834.0152cd6f@vento.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1637567.GHILeTuNXC";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34151 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751444AbdFFUu4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2017 16:50:56 -0400
-In-Reply-To: <20170606170201.GC32509@fury>
+Received: from mga06.intel.com ([134.134.136.31]:9359 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751247AbdFFU6G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Jun 2017 16:58:06 -0400
+In-Reply-To: <20170606094834.0152cd6f@vento.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Andy Lutomirski <luto@kernel.org>, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
 
---nextPart1637567.GHILeTuNXC
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Mauro,
 
-On Tuesday 06 June 2017 19:02:01 Darren Hart wrote:
-> On Tue, Jun 06, 2017 at 12:04:40PM +0200, Pali Roh=C3=A1r wrote:
-> > On Monday 05 June 2017 20:16:44 Andy Lutomirski wrote:
-> > > +#define WMI_BMOF_GUID "05901221-D566-11D1-B2F0-00A0C9062910"
-> > > +MODULE_ALIAS("wmi:" WMI_BMOF_GUID);
-> >=20
-> > Cannot we generate MODULE_ALIAS from module_wmi_driver()? IIRC it
-> > is working for i2c drivers.
->=20
-> I could see this being automated since we always use wmi:GUID, but it
-> isn't currently. Happy to consider it as a follow on.
->=20
-> Do you have a specific i2c example you think we should consider
-> following?
+Mauro Carvalho Chehab wrote:
+> Em Mon, 10 Apr 2017 16:02:54 +0300
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+>
+>> Bring some order by alphabetically ordering the list of topics.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>  Documentation/media/kapi/v4l2-core.rst | 18 +++++++++---------
+>>  1 file changed, 9 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/Documentation/media/kapi/v4l2-core.rst b/Documentation/media/kapi/v4l2-core.rst
+>> index d8f6c46..2fbf532 100644
+>> --- a/Documentation/media/kapi/v4l2-core.rst
+>> +++ b/Documentation/media/kapi/v4l2-core.rst
+>> @@ -4,23 +4,23 @@ Video4Linux devices
+>>  .. toctree::
+>>      :maxdepth: 1
+>>
+>> -    v4l2-intro
+>
+> NACK.
+>
+> The order of the documentation should match what makes sense for the
+> user that will be reading the docs, and *not* an alphabetical order.
 
-=46or i2c you can specify in driver code:
+I wrote the patch to address some of the review comments I got over the 
+several versions of the patchset. I have no objections to maintaining 
+the current order.
 
-MODULE_DEVICE_TABLE(i2c, id_table);
+>
+> I didn't check what order you did, but for sure the introduction should
+> come first, and then the stuff that all drivers use, like
+> v4l2-dev, v4l2-device and v4l2-fh. Then, other stuff that it is part of
+> the framework but are used only by a subset of the drivers.
+>
+> That's said, it probably makes sense to use multiple toctrees here, and
+> add some description before each of them, in order to better organize
+> its contents. Something similar to what it was done with
+> 	Documentation/admin-guide/index.rst
+>
+> I'll rebase patch 6/7 to not depend on this one.
 
-And it automatically provides (via file.mod.c) all needed MODULE_ALIAS.
+Thanks!
 
-So when we have wmi_bmof_id_table in driver, cannot we use this?
+-- 
+Regards,
 
-MODULE_DEVICE_TABLE(wmi, wmi_bmof_id_table);
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1637567.GHILeTuNXC
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlk3FawACgkQi/DJPQPkQ1LIJQCgxOZDFt8Aq+3oCe0ywEgQc+X3
-5dEAn3Cx0LqfH6T436SFjZL6WDGqXDP4
-=BDP8
------END PGP SIGNATURE-----
-
---nextPart1637567.GHILeTuNXC--
+Sakari Ailus
+sakari.ailus@linux.intel.com
