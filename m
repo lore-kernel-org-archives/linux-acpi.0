@@ -1,105 +1,91 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 1/2] ACPICA: IORT: Update SMMU models for IORT rev. C
-Date: Tue, 6 Jun 2017 16:43:32 +0800
-Message-ID: <ec4eeffe-9333-fa89-d471-6c88d8d03435@linaro.org>
-References: <11ef7d28c535c01d42b7b3c8e632934f0e0f1048.1495459319.git.robin.murphy@arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Tue, 6 Jun 2017 09:55:53 +0100
+Message-ID: <20170606085553.GA20085@red-moon>
+References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1495712248-5232-6-git-send-email-gabriele.paoloni@huawei.com>
+ <20170530132408.GA2556@red-moon>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40A7B677@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f177.google.com ([209.85.192.177]:34180 "EHLO
-        mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751184AbdFFInw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2017 04:43:52 -0400
-Received: by mail-pf0-f177.google.com with SMTP id 9so95377158pfj.1
-        for <linux-acpi@vger.kernel.org>; Tue, 06 Jun 2017 01:43:51 -0700 (PDT)
-In-Reply-To: <11ef7d28c535c01d42b7b3c8e632934f0e0f1048.1495459319.git.robin.murphy@arm.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E40A7B677@FRAEML521-MBX.china.huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, rafael@kernel.org
+Cc: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "minyard@acm.org" <mi>
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, will.deacon@arm.com, joro@8bytes.org
-Cc: iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, gakula@caviumnetworks.com, linu.cherian@cavium.com, rrichter@cavium.com, lorenzo.pieralisi@arm.com, john.garry@huawei.com, shameerali.kolothum.thodi@huawei.com, gabriele.paoloni@huawei.com, rjw@rjwysocki.net, robert.moore@intel.com, lv.zheng@intel.comShameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
 
-On 2017/5/22 23:06, Robin Murphy wrote:
-> IORT revision C has been published with a number of new SMMU
-> implementation identifiers. Since IORT doesn't have any way of falling
-> back to a more generic model code, we really need Linux to know about
-> these before vendors start updating their firmware tables to use them.
-> 
-> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-> CC: Robert Moore <robert.moore@intel.com>
-> CC: Lv Zheng <lv.zheng@intel.com>
-> Acked-by: Robert Richter <rrichter@cavium.com>
-> Tested-by: Robert Richter <rrichter@cavium.com>
-> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
-> ---
-> 
-> v2: Update more comments, add Robert's tags.
-> 
-> I'm including this here as a kernel patch just for context - once I've
-> figured out how we actually submit patches to ACPICA directly, I'll do
-> that per the preferred process.
-> 
-> Robin.
-> 
->   include/acpi/actbl2.h | 12 ++++++++++--
->   1 file changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-> index faa9f2c0d5de..f469ea41f2fd 100644
-> --- a/include/acpi/actbl2.h
-> +++ b/include/acpi/actbl2.h
-> @@ -663,7 +663,7 @@ struct acpi_ibft_target {
->    * IORT - IO Remapping Table
->    *
->    * Conforms to "IO Remapping Table System Software on ARM Platforms",
-> - * Document number: ARM DEN 0049B, October 2015
-> + * Document number: ARM DEN 0049C, May 2017
->    *
->    ******************************************************************************/
->   
-> @@ -778,6 +778,8 @@ struct acpi_iort_smmu {
->   #define ACPI_IORT_SMMU_V2               0x00000001	/* Generic SMMUv2 */
->   #define ACPI_IORT_SMMU_CORELINK_MMU400  0x00000002	/* ARM Corelink MMU-400 */
->   #define ACPI_IORT_SMMU_CORELINK_MMU500  0x00000003	/* ARM Corelink MMU-500 */
-> +#define ACPI_IORT_SMMU_CORELINK_MMU401  0x00000004	/* ARM Corelink MMU-401 */
-> +#define ACPI_IORT_SMMU_CAVIUM_SMMUV2    0x00000005	/* Cavium ThunderX SMMUv2 */
->   
->   /* Masks for Flags field above */
->   
-> @@ -798,13 +800,19 @@ struct acpi_iort_smmu_v3 {
->   	u32 flags;
->   	u32 reserved;
->   	u64 vatos_address;
-> -	u32 model;		/* O: generic SMMUv3 */
-> +	u32 model;
->   	u32 event_gsiv;
->   	u32 pri_gsiv;
->   	u32 gerr_gsiv;
->   	u32 sync_gsiv;
->   };
->   
-> +/* Values for Model field above */
-> +
-> +#define ACPI_IORT_SMMU_V3               0x00000000	/* Generic SMMUv3 */
-> +#define ACPI_IORT_SMMU_HISILICON_HI161X 0x00000001	/* HiSilicon Hi161x SMMUv3 */
-> +#define ACPI_IORT_SMMU_CAVIUM_CN99XX    0x00000002	/* Cavium CN99xx SMMUv3 */
-> +
->   /* Masks for Flags field above */
->   
->   #define ACPI_IORT_SMMU_V3_COHACC_OVERRIDE   (1)
-> 
+Hi Gab, Rafael,
 
-Looks good to me,
+On Wed, May 31, 2017 at 10:24:47AM +0000, Gabriele Paoloni wrote:
 
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+[...]
 
-By the way, how will this patch be merged? There are pending patches
-on top of it, Rafael suggested to work with ACPICA upstream first [1],
-Robin, will work on that?
+> > > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > > index e39ec7b..37dd23c 100644
+> > > --- a/drivers/acpi/scan.c
+> > > +++ b/drivers/acpi/scan.c
+> > > @@ -2035,6 +2035,7 @@ int __init acpi_scan_init(void)
+> > >  	acpi_int340x_thermal_init();
+> > >  	acpi_amba_init();
+> > >  	acpi_watchdog_init();
+> > > +	acpi_indirectio_scan_init();
 
-[1]: 
-https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1394295.html
+Unfortunately this is becoming a pattern and we are ending up
+with a static ordering of "subsystems" init (even though for this
+LPC series it is just the Hisilicon driver that requires this call)
+and I am not sure I see any way of avoiding it. I think that's always
+been the case in x86, with fewer subsystems/kernel paths to care
+about, I wanted to flag this up though to check your opinion since
+I am not sure this is the right direction we are taking.
 
-Thanks
-Hanjun
+I also think that relying on _DEP to build any dependency is not
+entirely a) usable (owing to legacy bindings and previous _DEP misuse)
+and b) compliant with ACPI bindings given that _DEP has to be used
+for operation regions only.
+
+Thoughts ?
+
+Thanks,
+Lorenzo
+
+> > >  	acpi_scan_add_handler(&generic_device_handler);
+> > >
+> > > diff --git a/include/acpi/acpi_indirect_pio.h
+> > b/include/acpi/acpi_indirect_pio.h
+> > > new file mode 100644
+> > > index 0000000..efc5c43
+> > > --- /dev/null
+> > > +++ b/include/acpi/acpi_indirect_pio.h
+> > > @@ -0,0 +1,24 @@
+> > > +/*
+> > > + * ACPI support for indirect-PIO bus.
+> > > + *
+> > > + * Copyright (C) 2017 Hisilicon Limited, All Rights Reserved.
+> > > + * Author: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> > > + * Author: Zhichang Yuan <yuanzhichang@hisilicon.com>
+> > > + *
+> > > + * This program is free software; you can redistribute it and/or
+> > modify
+> > > + * it under the terms of the GNU General Public License version 2 as
+> > > + * published by the Free Software Foundation.
+> > > + */
+> > > +
+> > > +#ifndef _ACPI_INDIRECT_PIO_H
+> > > +#define _ACPI_INDIRECT_PIO_H
+> > > +
+> > > +struct indirect_pio_device_desc {
+> > > +	void *pdata; /* device relevant info data */
+> > > +	int (*pre_setup)(struct acpi_device *adev, void *pdata);
+> > > +};
+> > > +
+> > > +int acpi_set_logic_pio_resource(struct device *child,
+> > > +		struct device *hostdev);
+> > > +
+> > > +#endif
+> > > --
+> > > 2.7.4
+> > >
+> > >
