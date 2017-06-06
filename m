@@ -1,125 +1,53 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Subject: Re: [PATCH 2/7] dt-bindings: PCI: Describe ATS property for root
- complex nodes
-Date: Tue, 6 Jun 2017 12:11:04 +0100
-Message-ID: <65aea93f-d516-f045-f216-3f56e96bdeb6@arm.com>
-References: <20170524180143.19855-1-jean-philippe.brucker@arm.com>
- <20170524180143.19855-3-jean-philippe.brucker@arm.com>
- <20170531172320.3u6bdctv44aqighy@rob-hp-laptop>
- <cd63a2dc-8259-482d-19e9-9db60be866f7@arm.com>
- <20170605172025.qgnocl5ytexnklue@rob-hp-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:44384 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751393AbdFFLGv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 6 Jun 2017 07:06:51 -0400
-In-Reply-To: <20170605172025.qgnocl5ytexnklue@rob-hp-laptop>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Rajmohan Mani <rajmohan.mani@intel.com>
+Subject: [PATCH v1 0/3] TPS68470 PMIC drivers
+Date: Tue,  6 Jun 2017 04:55:15 -0700
+Message-ID: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rajmohan Mani <rajmohan.mani@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org, bhelgaas@google.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, robin.murphy@arm.com, joro@8bytes.org, okaya@codeaurora.org, sunil.kovvuri@gmail.com, thunder.leizhen@huawei.com, tn@semihalf.com
 
-On 05/06/17 18:20, Rob Herring wrote:
-> On Thu, Jun 01, 2017 at 01:28:01PM +0100, Jean-Philippe Brucker wrote:
->> On 31/05/17 18:23, Rob Herring wrote:
->>> On Wed, May 24, 2017 at 07:01:38PM +0100, Jean-Philippe Brucker wrote:
->>>> Address Translation Service (ATS) is an extension to PCIe allowing
->>>> endpoints to manage their own IOTLB, called Address Translation Cache
->>>> (ATC). Instead of having every memory transaction processed by the IOMMU,
->>>> the endpoint can first send an Address Translation Requests for an IOVA,
->>>> obtain the corresponding Physical Address from the IOMMU and store it in
->>>> its ATC. Subsequent transactions to this memory region can be performed on
->>>> the PA, in which case they are marked 'translated' and (partially) bypass
->>>> the IOMMU.
->>>>
->>>> Since the extension uses fields that were previously reserved in the
->>>> PCIe Translation Layer Packet, it seems ill-advised to enabled it on a
->>>> system that doesn't fully support ATS.
->>>>
->>>> To "old" root complexes that simply ignored the new AT field, an Address
->>>> Translation Request will look exactly like a Memory Read Request, so the
->>>> root bridge will forward a memory read to the IOMMU instead of a
->>>> translation request. If the access succeeds, the RC will send a Read
->>>> Completion, which looks like a Translation Completion, back to the
->>>> endpoint. As a result the endpoint might end up storing the content of
->>>> memory instead of a physical address in its ATC. In reality, it's more
->>>> likely that the size fields will be invalid and either end will detect the
->>>> error, but in any case, it is undesirable.
->>>>
->>>> Add a way for firmware to tell the OS that ATS is supported by the PCI
->>>> root complex.
->>>
->>> Can't firmware have already enabled ATS? Often for things like this, not 
->>> present means "use firmware setting".
->>
->> I don't think it's up to firmware to enable ATS in endpoints, because it
->> depends on IOMMU properties (e.g. configured page size). It must also be
->> enabled after the PASID capability, which the OS may or may not want to
->> enable.
->>
->> While endpoints have ATS capability and config register, there is no
->> architected mechanism in root complexes as far as I know. So firmware may
->> have a mechanism outside the OS scope to toggle ATS in the root complex.
->> If there is a bug and firmware cannot enable ATS, then the OS must be made
->> aware of it, so that it doesn't enable ATS in endpoints, or else we might
->> end up with silent memory corruption as described above. (Lack of ATS may
->> slow the system down but shouldn't be fatal.)
->>
->> If the SMMU supports ATS, then the root complex attached to it will most
->> likely supports ATS. The switch in this patch simply allows firmware to
->> confirm that.
->>
->>>> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
->>>> ---
->>>>  Documentation/devicetree/bindings/pci/pci-iommu.txt | 8 ++++++++
->>>>  1 file changed, 8 insertions(+)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/pci/pci-iommu.txt b/Documentation/devicetree/bindings/pci/pci-iommu.txt
->>>> index 0def586fdcdf..f21a68ec471a 100644
->>>> --- a/Documentation/devicetree/bindings/pci/pci-iommu.txt
->>>> +++ b/Documentation/devicetree/bindings/pci/pci-iommu.txt
->>>> @@ -44,6 +44,14 @@ Optional properties
->>>>  - iommu-map-mask: A mask to be applied to each Requester ID prior to being
->>>>    mapped to an IOMMU specifier per the iommu-map property.
->>>>  
->>>> +- ats-supported: if present, the root complex supports the Address
->>>> +  Translation Service (ATS). It is able to interpret the AT field in PCIe
->>>> +  Transaction Layer Packets, and forward Translation Completions or
->>>> +  Invalidation Requests to endpoints.
->>>
->>> Why can't this be based on the compatible strings?
->>
->> Host controllers like the generic ECAM one should be able to advertise
->> ATS, if for instance the virtual IOMMU in Qemu offers a channel for ATS
->> invalidation. In that case we would have pci-host-{e,}cam-generic{-ats,}
->> compatible strings and double the number of compatible strings each time
->> we add a similar capability.
-> 
-> It would not double the compatibles. A given SoC will either support ATS 
-> or not, right? A given compatible will imply whether ATS is supported or 
-> not.
-> 
-> pci-host-{e,}cam-generic is a special case. I'm okay with having a 
-> property for that I suppose. We should not require this property though 
-> and allow for it to be implied by the SoC specific compatible as well.
+This is the patch series for TPS68470 PMIC that works as a camera PMIC.
 
-The property isn't useful for host-generic since a host like Qemu can
-easily disable ATS in the IOMMU. It would only be here for consistency.
-Changing IOMMU registers wouldn't be as simple for a firmware running on
-real hardware.
+The patch series provide the following 3 drivers.
 
-The ats-supported property aimed to provide a mechanism identical to what
-IORT provides in root complex nodes, since I have to add support for that
-in Linux anyway. But it is not clear what their rationale is.
+TPS68470 MFD driver:
+This is the multi function driver that initializes the TPS68470
+PMIC and supports the GPIO and Op Region functions.
 
-I couldn't see any more reason to add it, so I'll gladly drop the patch
-and replace it with something based on compatible, if you think that the
-case I described above (bug in hardware, firmware cannot enable ATS in
-root complex) is superfluous.
+TPS68470 GPIO driver:
+This is the PMIC GPIO driver that will be used by the OS GPIO layer,
+when the BIOS / firmware triggered GPIO access is done.
 
-Thanks,
-Jean
+TPS68470 Op Region driver:
+This is the driver that will be invoked, when the BIOS / firmware
+configures the voltage / clock for the sensors / vcm devices
+connected to the PMIC.
+
+---
+
+Rajmohan Mani (3):
+  mfd: Add new mfd device TPS68470
+  gpio: Add support for TPS68470 GPIOs
+  ACPI / PMIC: Add TI PMIC TPS68470 operation region driver
+
+ drivers/acpi/Kconfig              |  12 +
+ drivers/acpi/Makefile             |   2 +
+ drivers/acpi/pmic/pmic_tps68470.c | 454 ++++++++++++++++++++++++++++++++++++++
+ drivers/gpio/Kconfig              |  10 +
+ drivers/gpio/Makefile             |   1 +
+ drivers/gpio/gpio-tps68470.c      | 185 ++++++++++++++++
+ drivers/mfd/Kconfig               |  12 +
+ drivers/mfd/Makefile              |   1 +
+ drivers/mfd/tps68470.c            | 227 +++++++++++++++++++
+ include/linux/mfd/tps68470.h      | 167 ++++++++++++++
+ 10 files changed, 1071 insertions(+)
+ create mode 100644 drivers/acpi/pmic/pmic_tps68470.c
+ create mode 100644 drivers/gpio/gpio-tps68470.c
+ create mode 100644 drivers/mfd/tps68470.c
+ create mode 100644 include/linux/mfd/tps68470.h
+
+-- 
+1.9.1
 
