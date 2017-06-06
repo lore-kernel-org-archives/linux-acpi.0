@@ -1,131 +1,130 @@
-From: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v7 3/3] iommu/arm-smmu-v3: Add workaround for Cavium
-	ThunderX2 erratum #126
-Date: Tue, 6 Jun 2017 12:03:59 +0100
-Message-ID: <17f9e235-179c-38cf-c76f-c8d2af60965f@huawei.com>
-References: <1496145821-3411-1-git-send-email-gakula@caviumnetworks.com>
-	<1496145821-3411-4-git-send-email-gakula@caviumnetworks.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose
+ embedded WMI MOF metadata
+Date: Tue, 6 Jun 2017 13:05:54 +0200
+Message-ID: <20170606110554.GB4690@pali>
+References: <cover.1495862272.git.dvhart@infradead.org>
+ <201705271314.16241@pali>
+ <20170605221456.GA27270@fury>
+ <201706060019.26462@pali>
+ <CALCETrXTejMgbQZaHOKuEM_rF4bMduEzwWZ6+7R2M+gbFo5LMg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1496145821-3411-4-git-send-email-gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, will.deacon-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CALCETrXTejMgbQZaHOKuEM_rF4bMduEzwWZ6+7R2M+gbFo5LMg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 30/05/2017 13:03, Geetha sowjanya wrote:
-> From: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
->
-> Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
+On Monday 05 June 2017 15:39:44 Andy Lutomirski wrote:
+> On Mon, Jun 5, 2017 at 3:19 PM, Pali Rohár <pali.rohar@gmail.com> wrote:
+> > On Tuesday 06 June 2017 00:14:56 Darren Hart wrote:
+> >> On Sat, May 27, 2017 at 01:14:15PM +0200, Pali Rohár wrote:
+> >> > > metadata. I think that Samba has tools to interpret it, but there
+> >> > > is currently no interface to get the data in the first place.
+> >> >
+> >> > No, there is no non-ms-windows tool for interpreting those binary
+> >> > MOF (BMF) data yet.
+> >>
+> >> Good point. Updated.
+> >
+> > You are too late :-) Now there is my at https://github.com/pali/bmfdec
+> > See my email "Binary MOF buffer in WMI is finally decoded!".
+> >
+> 
+> It comes out like this on my laptop.  I don't know enough about MOF to
+> know what we're supposed to do with this, but I suspect it at least
+> gives us the sizes of buffers that we should be passing to the various
+> methods.
 
-separate irq lines
+There are two tools bmfparse and bmf2mof. Difference is just output
+format.
 
-> lines for gerror, eventq and cmdq-sync.
->
-> This patch addresses the issue by checking if any interrupt sources are
-> using same irq number, then they are registered as shared irqs.
->
-> Signed-off-by: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> ---
->  Documentation/arm64/silicon-errata.txt |    1 +
->  drivers/iommu/arm-smmu-v3.c            |   29 +++++++++++++++++++++++++----
->  2 files changed, 26 insertions(+), 4 deletions(-)
->
-> diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
-> index 4693a32..42422f6 100644
-> --- a/Documentation/arm64/silicon-errata.txt
-> +++ b/Documentation/arm64/silicon-errata.txt
-> @@ -63,6 +63,7 @@ stable kernels.
->  | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
->  | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
->  | Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
-> +| Cavium         | ThunderX2 SMMUv3| #126            | N/A                         |
->  |                |                 |                 |                             |
->  | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
->  |                |                 |                 |                             |
-> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-> index 4e80205..d2db01f 100644
-> --- a/drivers/iommu/arm-smmu-v3.c
-> +++ b/drivers/iommu/arm-smmu-v3.c
-> @@ -2232,6 +2232,25 @@ static void arm_smmu_setup_msis(struct arm_smmu_device *smmu)
->  	devm_add_action(dev, arm_smmu_free_msis, dev);
->  }
->
-> +static int get_irq_flags(struct arm_smmu_device *smmu, int irq)
-> +{
-> +	int match_count = 0;
-> +
-> +	if (irq == smmu->evtq.q.irq)
-> +		match_count++;
-> +	if (irq == smmu->cmdq.q.irq)
-> +		match_count++;
-> +	if (irq == smmu->gerr_irq)
-> +		match_count++;
-> +	if (irq == smmu->priq.q.irq)
-> +		match_count++;
-> +
-> +	if (match_count > 1)
-> +		return IRQF_SHARED | IRQF_ONESHOT;
-> +
-> +	return IRQF_ONESHOT;
-> +}
-> +
->  static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
->  {
->  	int ret, irq;
-> @@ -2252,7 +2271,7 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
->  	if (irq) {
->  		ret = devm_request_threaded_irq(smmu->dev, irq, NULL,
->  						arm_smmu_evtq_thread,
-> -						IRQF_ONESHOT,
-> +						get_irq_flags(smmu, irq),
->  						"arm-smmu-v3-evtq", smmu);
->  		if (ret < 0)
->  			dev_warn(smmu->dev, "failed to enable evtq irq\n");
-> @@ -2261,7 +2280,8 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
->  	irq = smmu->cmdq.q.irq;
->  	if (irq) {
->  		ret = devm_request_irq(smmu->dev, irq,
-> -				       arm_smmu_cmdq_sync_handler, 0,
+Important are WmiDataId and WmiMethodId qualifiers. Those define ids are
+what are passed to kernel function wmi_evaluate_method(). Ids are
+processed by corresponding WMxx ACPI function.
 
-If it is indeed ok to change this to having IRQF_ONESHOT set now 
-(right?), then can you add a note to the commit message?
+So instead of
 
-> +				       arm_smmu_cmdq_sync_handler,
-> +					   get_irq_flags(smmu, irq),
+  wmi_evaluate_method(guid, instance, method_id, acpi_in, acpi_out);
 
-indentation looks inconsistent
+it should be possible to call:
 
->  				       "arm-smmu-v3-cmdq-sync", smmu);
->  		if (ret < 0)
->  			dev_warn(smmu->dev, "failed to enable cmdq-sync irq\n");
-> @@ -2270,7 +2290,8 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
->  	irq = smmu->gerr_irq;
->  	if (irq) {
->  		ret = devm_request_irq(smmu->dev, irq, arm_smmu_gerror_handler,
-> -				       0, "arm-smmu-v3-gerror", smmu);
-> +						get_irq_flags(smmu, irq),
-> +						"arm-smmu-v3-gerror", smmu);
->  		if (ret < 0)
->  			dev_warn(smmu->dev, "failed to enable gerror irq\n");
->  	}
-> @@ -2280,7 +2301,7 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
->  		if (irq) {
->  			ret = devm_request_threaded_irq(smmu->dev, irq, NULL,
->  							arm_smmu_priq_thread,
-> -							IRQF_ONESHOT,
-> +							get_irq_flags(smmu, irq),
->  							"arm-smmu-v3-priq",
->  							smmu);
->  			if (ret < 0)
->
+  wmi_evaluate_method_name(class, name, input_params, output_params);
+
+(once somebody implement wmi_evaluate_method_name function)
+
+It is more readable in code to use class and function names instead of
+some guids and random meaningless numbers. Also it would allow to check
+size of input buffer (or types).
+
+E.g.
+
+  BDat data_in;
+  BDat data_out;
+  // fill data_in.Bytes
+  wmi_evaluate_method_name("BFn", "DoBFn", &data_in, &data_out);
+  // output is in data_out.Bytes
+
+could be translated to:
+
+  wmi_evaluate_method("A80593CE-A997-11DA-B012-B622A1EF5492", 0, 1, acpi_in, acpi_out);
+
+Sometimes method_id is random number and hard to guess it. One of
+possible solution is to trace ACPI calls on Windows, another is decode
+that BMOF buffer and take correct method_id.
+
+I will probably write another one tool which prints just important WMI
+functions and their mapping to WMI ids + input/output parameters.
+Without all other MOF data which are not relevant to ACPI-WMI.
+
+> class WMIEvent : __ExtrinsicEvent {
+> };
+> 
+> [WMI, Locale("MS\0x409"), Description("QDATA"),
+> guid("{ABBC0F60-8EA1-11d1-00A0-C90629100000}")]
+> class QDat {
+>   [WmiDataId(1), read, write, Description("qdata")] uint8 Bytes[128];
+> };
+> 
+> [WMI, Dynamic, Provider("WmiProv"), Locale("MS\0x409"),
+> Description("BIOS WMI Query"),
+> guid("{8D9DDCBC-A997-11DA-B012-B622A1EF5492}")]
+> class WMI_Query {
+>   [key, read] String InstanceName;
+>   [read] Boolean Active;
+>   [WmiDataId(1), read, write, Description("BIOS WMI info")] QDat QDATA;
+> };
+> 
+> [WMI, Locale("MS\0x409"), Description("Data"),
+> guid("{a3776ce0-1e88-11db-a98b-0800200c9a66}")]
+> class BDat {
+>   [WmiDataId(1), read, write, Description("data")] uint8 Bytes[4096];
+> };
+> 
+> [WMI, Dynamic, Provider("WmiProv"), Locale("MS\0x409"),
+> Description("Interface"),
+> guid("{A80593CE-A997-11DA-B012-B622A1EF5492}")]
+> class BFn {
+>   [key, read] String InstanceName;
+>   [read] Boolean Active;
+> 
+>   [WmiMethodId(1), Implemented, read, write, Description("Do BFn")]
+> void DoBFn([in, Description("Fn buf"), ID(0)] BDat Data, [out,
+> Description("Fn buf"), ID(0)] BDat Data);
+> };
+> 
+> [WMI, Dynamic, Provider("WmiProv"), Locale("MS\0x409"),
+> Description("Event"), guid("{9DBB5994-A997-11DA-B012-B622A1EF5492}")]
+> class BIOSEvent : WmiEvent {
+>   [key, read] String InstanceName;
+>   [read] Boolean Active;
+>   [WmiDataId(1), read, write, Description("Ev buf")] QDat Data;
+> };
+
+-- 
+Pali Rohár
+pali.rohar@gmail.com
