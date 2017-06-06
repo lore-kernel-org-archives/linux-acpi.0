@@ -1,569 +1,112 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v1 3/3] ACPI / PMIC: Add TI PMIC TPS68470 operation region driver
-Date: Tue, 6 Jun 2017 17:23:56 +0300
-Message-ID: <CAHp75VcvV_AbLJCq9Rm_8yab3nViPm6ikxxme4oyw9vm4Kz7Gg@mail.gmail.com>
-References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com> <1496750118-5570-4-git-send-email-rajmohan.mani@intel.com>
+From: Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: =?UTF-8?B?5Zue5aSN77ya?= Alibaba-kernel
+Date: Tue, 6 Jun 2017 07:36:32 -0700
+Message-ID: <20170606073632.535b1b8d@jacob-builder>
+References: <20170531143213.82100-1-shameerali.kolothum.thodi@huawei.com>
+	<20170531143213.82100-2-shameerali.kolothum.thodi@huawei.com>
+	<tencent_159A581A4E3E9E7D35F82179@qq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:35809 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751489AbdFFOYD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2017 10:24:03 -0400
-In-Reply-To: <1496750118-5570-4-git-send-email-rajmohan.mani@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <tencent_159A581A4E3E9E7D35F82179-9uewiaClKEY@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: =?UTF-8?B?6Iul57++?= <eva6688-OlFFNeSka43QT0dZR+AlfA@public.gmane.org>
+Cc: gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rajmohan Mani <rajmohan.mani@intel.com>, Hans de Goede <hdegoede@redhat.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-+Cc Hans (that's why didn't delete anything from original mail, just
-adding my comments).
-
-Hans, if you have few minutes it would be appreciated to glance on the
-below for some issues if any since you did pass quite a good quest
-with other PMIC drivers.
-
-On Tue, Jun 6, 2017 at 2:55 PM, Rajmohan Mani <rajmohan.mani@intel.com> wrote:
-> The Kabylake platform coreboot (Chrome OS equivalent of
-> BIOS) has defined 4 operation regions for the TI TPS68470 PMIC.
-> These operation regions are to enable/disable voltage
-> regulators, configure voltage regulators, enable/disable
-> clocks and to configure clocks.
->
-> This config adds ACPI operation region support for TI TPS68470 PMIC.
-> TPS68470 device is an advanced power management unit that powers
-> a Compact Camera Module (CCM), generates clocks for image sensors,
-> drives a dual LED for flash and incorporates two LED drivers for
-> general purpose indicators.
-> This driver enables ACPI operation region support to control voltage
-> regulators and clocks for the TPS68470 PMIC.
->
-> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> ---
->  drivers/acpi/Kconfig              |  12 +
->  drivers/acpi/Makefile             |   2 +
-
->  drivers/acpi/pmic/pmic_tps68470.c | 454 ++++++++++++++++++++++++++++++++++++++
-
-Follow the pattern, please, I suppose
-ti_pmic_tps68470.c
-
->  3 files changed, 468 insertions(+)
->  create mode 100644 drivers/acpi/pmic/pmic_tps68470.c
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 1ce52f8..218d22d 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -535,4 +535,16 @@ if ARM64
->  source "drivers/acpi/arm64/Kconfig"
->  endif
->
-> +config TPS68470_PMIC_OPREGION
-> +       bool "ACPI operation region support for TPS68470 PMIC"
-> +       help
-> +         This config adds ACPI operation region support for TI TPS68470 PMIC.
-> +         TPS68470 device is an advanced power management unit that powers
-> +         a Compact Camera Module (CCM), generates clocks for image sensors,
-> +         drives a dual LED for flash and incorporates two LED drivers for
-> +         general purpose indicators.
-> +         This driver enables ACPI operation region support control voltage
-> +         regulators and clocks.
-> +
-
-> +
-
-Extra line, remove.
-
->  endif  # ACPI
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index b1aacfc..7113d05 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -106,6 +106,8 @@ obj-$(CONFIG_CHT_WC_PMIC_OPREGION) += pmic/intel_pmic_chtwc.o
->
->  obj-$(CONFIG_ACPI_CONFIGFS)    += acpi_configfs.o
->
-> +obj-$(CONFIG_TPS68470_PMIC_OPREGION)   += pmic/pmic_tps68470.o
-> +
->  video-objs                     += acpi_video.o video_detect.o
->  obj-y                          += dptf/
->
-> diff --git a/drivers/acpi/pmic/pmic_tps68470.c b/drivers/acpi/pmic/pmic_tps68470.c
-> new file mode 100644
-> index 0000000..b2d608b
-> --- /dev/null
-> +++ b/drivers/acpi/pmic/pmic_tps68470.c
-> @@ -0,0 +1,454 @@
-> +/*
-> + * TI TPS68470 PMIC operation region driver
-> + *
-> + * Copyright (C) 2017 Intel Corporation. All rights reserved.
-> + * Author: Rajmohan Mani <rajmohan.mani@intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License version
-> + * 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * Based on drivers/acpi/pmic/intel_pmic* drivers
-> + *
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/mfd/tps68470.h>
-> +#include <linux/init.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/regmap.h>
-> +
-> +struct ti_pmic_table {
-> +       u32 address;            /* operation region address */
-> +       u32 reg;                /* corresponding register */
-> +       u32 bitmask;            /* bit mask for power, clock */
-> +};
-> +
-> +#define TI_PMIC_POWER_OPREGION_ID              0xB0
-> +#define TI_PMIC_VR_VAL_OPREGION_ID             0xB1
-> +#define TI_PMIC_CLOCK_OPREGION_ID              0xB2
-> +#define TI_PMIC_CLKFREQ_OPREGION_ID            0xB3
-> +
-> +struct ti_pmic_opregion {
-> +       struct mutex lock;
-> +       struct regmap *regmap;
-> +};
-> +
-> +#define S_IO_I2C_EN    (BIT(0) | BIT(1))
-> +
-> +static const struct ti_pmic_table power_table[] = {
-> +       {
-> +               .address = 0x00,
-> +               .reg = TPS68470_REG_S_I2C_CTL,
-> +               .bitmask = S_IO_I2C_EN,
-> +               /* S_I2C_CTL */
-> +       },
-> +       {
-> +               .address = 0x04,
-> +               .reg = TPS68470_REG_VCMCTL,
-> +               .bitmask = BIT(0),
-> +               /* VCMCTL */
-> +       },
-> +       {
-> +               .address = 0x08,
-> +               .reg = TPS68470_REG_VAUX1CTL,
-> +               .bitmask = BIT(0),
-> +               /* VAUX1_CTL */
-> +       },
-> +       {
-> +               .address = 0x0C,
-> +               .reg = TPS68470_REG_VAUX2CTL,
-> +               .bitmask = BIT(0),
-> +               /* VAUX2CTL */
-> +       },
-> +       {
-> +               .address = 0x10,
-> +               .reg = TPS68470_REG_VACTL,
-> +               .bitmask = BIT(0),
-> +               /* VACTL */
-> +       },
-> +       {
-> +               .address = 0x14,
-> +               .reg = TPS68470_REG_VDCTL,
-> +               .bitmask = BIT(0),
-> +               /* VDCTL */
-> +       },
-> +};
-> +
-> +/* Table to set voltage regulator value */
-> +static const struct ti_pmic_table vr_val_table[] = {
-> +       {
-> +               .address = 0x00,
-> +               .reg = TPS68470_REG_VSIOVAL,
-> +               .bitmask = TPS68470_VSIOVAL_IOVOLT_MASK,
-> +               /* TPS68470_REG_VSIOVAL */
-> +       },
-> +       {
-> +               .address = 0x04,
-> +               .reg = TPS68470_REG_VIOVAL,
-> +               .bitmask = TPS68470_VIOVAL_IOVOLT_MASK,
-> +               /* TPS68470_REG_VIOVAL */
-> +       },
-> +       {
-> +               .address = 0x08,
-> +               .reg = TPS68470_REG_VCMVAL,
-> +               .bitmask = TPS68470_VCMVAL_VCVOLT_MASK,
-> +               /* TPS68470_REG_VCMVAL */
-> +       },
-> +       {
-> +               .address = 0x0C,
-> +               .reg = TPS68470_REG_VAUX1VAL,
-> +               .bitmask = TPS68470_VAUX1VAL_AUX1VOLT_MASK,
-> +               /* TPS68470_REG_VAUX1VAL */
-> +       },
-> +       {
-> +               .address = 0x10,
-> +               .reg = TPS68470_REG_VAUX2VAL,
-> +               .bitmask = TPS68470_VAUX2VAL_AUX2VOLT_MASK,
-> +               /* TPS68470_REG_VAUX2VAL */
-> +       },
-> +       {
-> +               .address = 0x14,
-> +               .reg = TPS68470_REG_VAVAL,
-> +               .bitmask = TPS68470_VAVAL_AVOLT_MASK,
-> +               /* TPS68470_REG_VAVAL */
-> +       },
-> +       {
-> +               .address = 0x18,
-> +               .reg = TPS68470_REG_VDVAL,
-> +               .bitmask = TPS68470_VDVAL_DVOLT_MASK,
-> +               /* TPS68470_REG_VDVAL */
-> +       },
-> +};
-> +
-> +/* Table to configure clock frequency */
-> +static const struct ti_pmic_table clk_freq_table[] = {
-> +       {
-> +               .address = 0x00,
-> +               .reg = TPS68470_REG_POSTDIV2,
-> +               .bitmask = BIT(0) | BIT(1),
-> +               /* TPS68470_REG_POSTDIV2 */
-> +       },
-> +       {
-> +               .address = 0x04,
-> +               .reg = TPS68470_REG_BOOSTDIV,
-> +               .bitmask = 0x1F,
-> +               /* TPS68470_REG_BOOSTDIV */
-> +       },
-> +       {
-> +               .address = 0x08,
-> +               .reg = TPS68470_REG_BUCKDIV,
-> +               .bitmask = 0x0F,
-> +               /* TPS68470_REG_BUCKDIV */
-> +       },
-> +       {
-> +               .address = 0x0C,
-> +               .reg = TPS68470_REG_PLLSWR,
-> +               .bitmask = 0x13,
-> +               /* TPS68470_REG_PLLSWR */
-> +       },
-> +       {
-> +               .address = 0x10,
-> +               .reg = TPS68470_REG_XTALDIV,
-> +               .bitmask = 0xFF,
-> +               /* TPS68470_REG_XTALDIV */
-> +       },
-> +       {
-> +               .address = 0x14,
-> +               .reg = TPS68470_REG_PLLDIV,
-> +               .bitmask = 0xFF,
-> +               /* TPS68470_REG_PLLDIV */
-> +       },
-> +       {
-> +               .address = 0x18,
-> +               .reg = TPS68470_REG_POSTDIV,
-> +               .bitmask = 0x83,
-> +               /* TPS68470_REG_POSTDIV */
-> +       },
-> +};
-> +
-> +/* Table to configure and enable clocks */
-> +static const struct ti_pmic_table clk_table[] = {
-> +       {
-> +               .address = 0x00,
-> +               .reg = TPS68470_REG_PLLCTL,
-> +               .bitmask = 0xF5,
-> +               /* TPS68470_REG_PLLCTL */
-> +       },
-> +       {
-> +               .address = 0x04,
-> +               .reg = TPS68470_REG_PLLCTL2,
-> +               .bitmask = BIT(0),
-> +               /* TPS68470_REG_PLLCTL2 */
-> +       },
-> +       {
-> +               .address = 0x08,
-> +               .reg = TPS68470_REG_CLKCFG1,
-> +               .bitmask = TPS68470_CLKCFG1_MODE_A_MASK |
-> +                       TPS68470_CLKCFG1_MODE_B_MASK,
-> +               /* TPS68470_REG_CLKCFG1 */
-> +       },
-> +       {
-> +               .address = 0x0C,
-> +               .reg = TPS68470_REG_CLKCFG2,
-> +               .bitmask = TPS68470_CLKCFG1_MODE_A_MASK |
-> +                       TPS68470_CLKCFG1_MODE_B_MASK,
-> +               /* TPS68470_REG_CLKCFG2 */
-> +       },
-> +};
-> +
-> +static int pmic_get_reg_bit(u64 address, struct ti_pmic_table *table,
-> +                           int count, int *reg, int *bitmask)
-> +{
-> +       u64 i;
-> +
-
-> +       i = address / 4;
-
-
-> +
-
-Remove this line.
-
-> +       if (i >= count)
-> +               return -ENOENT;
-> +
-> +       if (!reg || !bitmask)
-> +               return -EINVAL;
-> +
-> +       *reg = table[i].reg;
-> +       *bitmask = table[i].bitmask;
-> +
-> +       return 0;
-> +}
-> +
-> +static int ti_tps68470_pmic_get_power(struct regmap *regmap, int reg,
-> +                                      int bitmask, u64 *value)
-> +{
-> +       int data;
-> +
-> +       if (regmap_read(regmap, reg, &data))
-> +               return -EIO;
-> +
-> +       *value = (data & bitmask) ? 1 : 0;
-> +       return 0;
-> +}
-> +
-> +static int ti_tps68470_pmic_get_vr_val(struct regmap *regmap, int reg,
-> +                                      int bitmask, u64 *value)
-> +{
-> +       int data;
-> +
-> +       if (regmap_read(regmap, reg, &data))
-> +               return -EIO;
-> +
-> +       *value = data & bitmask;
-> +       return 0;
-> +}
-> +
-> +static int ti_tps68470_pmic_get_clk(struct regmap *regmap, int reg,
-> +                                      int bitmask, u64 *value)
-> +{
-> +       int data;
-> +
-> +       if (regmap_read(regmap, reg, &data))
-> +               return -EIO;
-> +
-> +       *value = (data & bitmask) ? 1 : 0;
-> +       return 0;
-> +}
-> +
-> +static int ti_tps68470_pmic_get_clk_freq(struct regmap *regmap, int reg,
-> +                                      int bitmask, u64 *value)
-> +{
-> +       int data;
-> +
-> +       if (regmap_read(regmap, reg, &data))
-> +               return -EIO;
-> +
-> +       *value = data & bitmask;
-> +       return 0;
-> +}
-> +
-> +static int ti_tps68470_regmap_update_bits(struct regmap *regmap, int reg,
-> +                                       int bitmask, u64 value)
-> +{
-> +       return regmap_update_bits(regmap, reg, bitmask, value);
-> +}
-> +
-> +static acpi_status ti_pmic_common_handler(u32 function,
-> +                                         acpi_physical_address address,
-> +                                         u32 bits, u64 *value,
-> +                                         void *handler_context,
-> +                                         void *region_context,
-> +                                         int (*get)(struct regmap *,
-> +                                                    int, int, u64 *),
-> +                                         int (*update)(struct regmap *,
-> +                                                       int, int, u64),
-> +                                         struct ti_pmic_table *table,
-> +                                         int table_size)
-> +{
-> +       struct ti_pmic_opregion *opregion = region_context;
-> +       struct regmap *regmap = opregion->regmap;
-> +       int reg, ret, bitmask;
-> +
-> +       if (bits != 32)
-> +               return AE_BAD_PARAMETER;
-> +
-> +       ret = pmic_get_reg_bit(address, table,
-> +                                 table_size, &reg, &bitmask);
-> +       if (ret < 0)
-> +               return AE_BAD_PARAMETER;
-> +
-> +       if (function == ACPI_WRITE && (*value > bitmask))
-> +               return AE_BAD_PARAMETER;
-> +
-> +       mutex_lock(&opregion->lock);
-> +
-> +       ret = (function == ACPI_READ) ?
-> +               get(regmap, reg, bitmask, value) :
-> +               update(regmap, reg, bitmask, *value);
-> +
-> +       mutex_unlock(&opregion->lock);
-> +
-> +       return ret ? AE_ERROR : AE_OK;
-> +}
-> +
-> +static acpi_status ti_pmic_clk_freq_handler(u32 function,
-> +                                           acpi_physical_address address,
-> +                                           u32 bits, u64 *value,
-> +                                           void *handler_context,
-> +                                           void *region_context)
-> +{
-> +       return ti_pmic_common_handler(function, address, bits, value,
-> +                               handler_context, region_context,
-> +                               ti_tps68470_pmic_get_clk_freq,
-> +                               ti_tps68470_regmap_update_bits,
-> +                               (struct ti_pmic_table *) &clk_freq_table,
-> +                               ARRAY_SIZE(clk_freq_table));
-> +}
-> +
-> +static acpi_status ti_pmic_clk_handler(u32 function,
-> +                                      acpi_physical_address address, u32 bits,
-> +                                      u64 *value, void *handler_context,
-> +                                      void *region_context)
-> +{
-> +       return ti_pmic_common_handler(function, address, bits, value,
-> +                               handler_context, region_context,
-> +                               ti_tps68470_pmic_get_clk,
-> +                               ti_tps68470_regmap_update_bits,
-> +                               (struct ti_pmic_table *) &clk_table,
-> +                                ARRAY_SIZE(clk_table));
-> +}
-> +
-> +static acpi_status ti_pmic_vr_val_handler(u32 function,
-> +                                         acpi_physical_address address,
-> +                                         u32 bits, u64 *value,
-> +                                         void *handler_context,
-> +                                         void *region_context)
-> +{
-> +       return ti_pmic_common_handler(function, address, bits, value,
-> +                               handler_context, region_context,
-> +                               ti_tps68470_pmic_get_vr_val,
-> +                               ti_tps68470_regmap_update_bits,
-> +                               (struct ti_pmic_table *) &vr_val_table,
-> +                               ARRAY_SIZE(vr_val_table));
-> +}
-> +
-> +static acpi_status ti_pmic_power_handler(u32 function,
-> +                                        acpi_physical_address address,
-> +                                        u32 bits, u64 *value,
-> +                                        void *handler_context,
-> +                                        void *region_context)
-> +{
-> +       if (bits != 32)
-> +               return AE_BAD_PARAMETER;
-> +
-> +       /* set/clear for bit 0, bits 0 and 1 together */
-> +       if (function == ACPI_WRITE &&
-> +           !(*value == 0 || *value == 1 || *value == 3)) {
-> +               return AE_BAD_PARAMETER;
-> +       }
-> +
-> +       return ti_pmic_common_handler(function, address, bits, value,
-> +                               handler_context, region_context,
-> +                               ti_tps68470_pmic_get_power,
-> +                               ti_tps68470_regmap_update_bits,
-> +                               (struct ti_pmic_table *) &power_table,
-> +                               ARRAY_SIZE(power_table));
-> +}
-> +
-> +static int ti_tps68470_pmic_opregion_probe(struct platform_device *pdev)
-> +{
-> +       struct tps68470 *pmic = dev_get_drvdata(pdev->dev.parent);
-> +       acpi_handle handle = ACPI_HANDLE(pdev->dev.parent);
-> +       struct device *dev = &pdev->dev;
-> +       struct ti_pmic_opregion *opregion;
-> +       acpi_status status;
-> +
-
-> +       if (!dev || !pmic->regmap) {
-> +               WARN(1, "dev or regmap is NULL\n");
-> +               return -EINVAL;
-> +       }
-> +
-> +       if (!handle) {
-> +               WARN(1, "acpi handle is NULL\n");
-> +               return -ENODEV;
-> +       }
-
-I dunno if WARNs make user experience any better.
-Besides that I would double check you may have such cases.
-
-> +
-> +       opregion = devm_kzalloc(dev, sizeof(*opregion), GFP_KERNEL);
-> +       if (!opregion)
-> +               return -ENOMEM;
-> +
-> +       mutex_init(&opregion->lock);
-> +       opregion->regmap = pmic->regmap;
-> +
-> +       status = acpi_install_address_space_handler(handle,
-> +                                                   TI_PMIC_POWER_OPREGION_ID,
-> +                                                   ti_pmic_power_handler,
-> +                                                   NULL, opregion);
-> +       if (ACPI_FAILURE(status))
-> +               return -ENODEV;
-> +
-> +       status = acpi_install_address_space_handler(handle,
-> +                                                   TI_PMIC_VR_VAL_OPREGION_ID,
-> +                                                   ti_pmic_vr_val_handler,
-> +                                                   NULL, opregion);
-> +       if (ACPI_FAILURE(status))
-> +               goto out_remove_power_handler;
-> +
-> +       status = acpi_install_address_space_handler(handle,
-> +                                                   TI_PMIC_CLOCK_OPREGION_ID,
-> +                                                   ti_pmic_clk_handler,
-> +                                                   NULL, opregion);
-> +       if (ACPI_FAILURE(status))
-> +               goto out_remove_vr_val_handler;
-> +
-> +       status = acpi_install_address_space_handler(handle,
-> +                                                   TI_PMIC_CLKFREQ_OPREGION_ID,
-> +                                                   ti_pmic_clk_freq_handler,
-> +                                                   NULL, opregion);
-> +       if (ACPI_FAILURE(status))
-> +               goto out_remove_clk_handler;
-> +
-> +       return 0;
-> +
-> +out_remove_clk_handler:
-> +       acpi_remove_address_space_handler(handle, TI_PMIC_CLOCK_OPREGION_ID,
-> +                                         ti_pmic_clk_handler);
-> +out_remove_vr_val_handler:
-> +       acpi_remove_address_space_handler(handle, TI_PMIC_VR_VAL_OPREGION_ID,
-> +                                         ti_pmic_vr_val_handler);
-> +out_remove_power_handler:
-> +       acpi_remove_address_space_handler(handle, TI_PMIC_POWER_OPREGION_ID,
-> +                                         ti_pmic_power_handler);
-> +       return -ENODEV;
-> +}
-> +
-> +static struct platform_driver ti_tps68470_pmic_opregion_driver = {
-> +       .probe = ti_tps68470_pmic_opregion_probe,
-> +       .driver = {
-> +               .name = "tps68470_pmic_opregion",
-> +       },
-> +};
-> +
-> +builtin_platform_driver(ti_tps68470_pmic_opregion_driver)
-> --
-> 1.9.1
->
-
--- 
-With Best Regards,
-Andy Shevchenko
+T24gVHVlLCA2IEp1biAyMDE3IDEzOjI1OjAwICswODAwCiLoi6Xnv74iIDxldmE2Njg4QHZpcC5x
+cS5jb20+IHdyb3RlOgoKPiBIae+8jEphY29i77yMCj4gVGhhbmsgeW91IGZvciB5b3VyIHJlcGx5
+77yMCj4gYWxpYmFiYSBpbiAgU2FuIE1hdGVvIO+8jAo+IERvIHlvdSBoYXZlIGEgV2VDaGF0PyBZ
+b3UgY2FuIGFkZCBtZQo+IFdlQ2hhdDE1OTAwNzc5NzA0Cj4gCkkgc2VlLCBJIGFtIG5vdCBwbGFu
+bmluZyB0byByZWxvY2F0ZSBhdCB0aGUgbW9tZW50IGJ1dCBJIHdpbGwga2VlcCBpdAppbiBtaW5k
+LgoKVGhhbmtzLAo+IAo+IAo+IAo+IAo+IC0tLS0tLS0tLS0tLS0tLS0tLQo+IAo+IEV2YSB3YW5n
+ICAKPiDkuK3lm70g5LiK5rW36YOK5Yy6IHwgQkFU6auY56eR5oqA5YWs5Y+46auY56uv5oqA5pyv
+57G75bKX5L2N5oub6IGYCj4g5LqS6IGU572RIHwg5p+Q55+l5ZCN5YWs5Y+4Cj4gCj4gCj4gCj4g
+IAo+IAo+IAo+IAo+IAo+IC0tLS0tLS0tLS0tLS0tLS0tLSDljp/lp4vpgq7ku7YgLS0tLS0tLS0t
+LS0tLS0tLS0tCj4g5Y+R5Lu25Lq6OiAiamFjb2IuanVuLnBhbiI7PGphY29iLmp1bi5wYW5AbGlu
+dXguaW50ZWwuY29tPjsKPiDlj5HpgIHml7bpl7Q6IDIwMTflubQ25pyINuaXpSjmmJ/mnJ/kuowp
+IOS4reWNiDE6MDYKPiDmlLbku7bkuro6ICLoi6Xnv74iPGV2YTY2ODhAdmlwLnFxLmNvbT47IAo+
+IOaKhOmAgTogImphY29iLmp1bi5wYW4iPGphY29iLmp1bi5wYW5AbGludXguaW50ZWwuY29tPjsg
+Cj4g5Li76aKYOiBSZTogQWxpYmFiYS1rZXJuZWwKPiAKPiAKPiAKPiBPbiBNb24sIDUgSnVuIDIw
+MTcgMTg6MzU6MjcgKzA4MDAKPiAi6Iul57++IiA8ZXZhNjY4OEB2aXAucXEuY29tPiB3cm90ZToK
+PiAKPiA+IOaCqOWlve+8jOaIkeaYr+eMjuWktGV2YeOAggo+ID4gIAo+ID4g5b6I5YaS5pin55qE
+5omT5omw5oKoLOaDs+WSjOaCqOiBiuS4gOS4i+mYv+mHjOeahOacuuS8muOAgiAgCj4gPiAgCj4g
+PiAgCj4gPiAg6Zi/6YeM5be05be06aaW5bit5oqA5pyv5a6Y77yM6KGM55mr5Y+R5Ye66YCa55+l
+77ya6Zi/6YeM5pW05ZCIOeS4quS6i+S4mumDqOWKoOWOn+acieeahOS4remXtOS7tuaKgOacr+mD
+qOe7hOaIkOaWsOeahOWfuuehgOiuvuaWveS6i+S4mue+pO+8jOaQuuaJi+WFseWQjOaJk+mAoOWF
+t+Wkh+WFqOeQg+ernuS6ieWKm+eahOmYv+mHjOW3tOW3tOe7j+a1juS9k+i9r+ehrOS7tuWfuueh
+gOiuvuaWveOAgiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCj4gPiAgIAo+ID4gIOaI
+kOeri+ezu+e7n+i9r+S7tuS6i+S4mumDqAo+ID4gIOeUseW5s+WPsOaetuaehOmDqOWboumYn+OA
+gUFJU+eahEpWTeOAgUtlcm5lbOWboumYn+WFseWQjOe7hOaIkO+8jOWQkeavleeOhOaxh+aKpeOA
+ggo+ID4gICAKPiA+ICDnm67liY3miJHku6zpnIDopoHpq5jnq6/nmoTmioDmnK/nrqHnkIblnots
+ZWFkZXLvvI/mioDmnK/lnovotYTmt7HnoJTlj5HkuJPlrrblkozpq5jnuqfkuJPlrrYvCj4gPiDo
+oYzkuJrnmoTmoIfmnYblkozpooblhpvkurrniakgMe+8ieiZmuaLn+WMlumihuWfn++8muWvuXhl
+bi9LVk0vVm13YXJl54af5oKJ55qE44CCCj4gPiAy77yJT1PlhoXmoLjpoobln5/vvJrnhp/mgolM
+aW51eOWGheaguOacuuWItu+8muWGheWtmOOAgeiwg+W6puOAgeaWh+S7tuezu+e7n+OAgee9kee7
+nOetie+8m+eGn+e7g+S9v+eUqOWkmuenjUxpbnV45YaF5qC46LCD6K+V5YiG5p6Q5bel5YW3KGtn
+ZGIsCj4gPiBjcmFzaOetiSnvvJvmgKfog73liIbmnpDlt6XlhbfvvIhnY292ZXIsIGJsa3RyYWNl
+LCBmdHJhY2XvvInnrYnnu4/pqozvvJsKPiA+IAo+ID4gIAo+ID4gCj4gPiAg5LqL5Lia6YOo5LuL
+57uN77yaCj4gPiAg6Zi/6YeM5be05be05pON5L2c57O757uf56CU5Y+R5Zui6Zif6LSf6LSj5YWo
+6ZuG5Zui55qE5pyN5Yqh5Zmo5pON5L2c57O757uf5Lul5Y+KTGludXjlhoXmoLjnmoTnoJTlj5Hk
+uI7kuqflk4HljJbjgIIKPiA+ICDlm6LpmJ/pkojlr7npmL/ph4zlt7Tlt7TlkITkuJrliqHnmoTp
+nIDmsYLvvIzmlrDmioDmnK/nmoTlj5HlsZXvvIzmlrDnoazku7bnmoTlvJXlhaXvvIzlnKjlhoXm
+oLjkuI7mk43kvZzns7vnu5/nrYnln7rnoYDpoobln5/ov5vooYznoJTnqbbliJvmlrDjgIIKPiA+
+ICDnm67liY3lt7Lnu4/lvaLmiJBhbGlvc+S4jmFsaWtlcm5lbOetieWkmuS4quS6p+WTgeOAguWK
+oOWFpeaIkeS7rO+8jOS9oOWPr+S7pei3n+S8oOivtOS4reeahOWkmumahuWkp+elnuS4gOi1t+W3
+peS9nO+8jOS9oOWPr+S7peS4jeaWreaMkeaImOWfuuehgOi9r+S7tumihuWfn+eahOaWsOaKgOac
+r++8jOS9oOWPr+S7peWQkeekvuWMuuaPkFBhdGNo77yM5L2g55qE5bel5L2c5Y+v5Lul5bqU55So
+5Yiw6Zi/6YeM5be05be055qE5pWw5Y2B5LiH5Y+w5pyN5Yqh5Zmo5LiK44CC6Zi/6YeM5be05be0
+5pON5L2c57O757uf56CU5Y+R5Zui6Zif77yM5pyf5b6F5L2g55qE5Yqg5YWl44CCIAo+ID4gICBU
+ZWFtIEludHJvZHVjdGlvbu+8myAKPiA+ICBUaGUgT3BlcmF0aW9uIFN5c3RlbSBSJkQgVGVhbSBv
+ZiBBbGliYWJhIEdyb3VwIGlzIHJlc3BvbnNpYmxlIGZvcgo+ID4gcmVzZWFyY2ggJiBkZXZlbG9w
+bWVudCBhbmQgcHJvZHVjdGlvbiBvZiB0aGUgc2VydmVyIG9wZXJhdGlvbiBzeXN0ZW0KPiA+IGFu
+ZCBsaW51eCBrZXJuZWwgLiBJZiB5b3UgYXJlIGludGVyZXN0ZWQgaW4gY2hhbGxlbmdpbmcgYW5k
+Cj4gPiBlZGdlLWN1dHRpbmcgdGVjaG5vbG9naWVzIGluIGZvdW5kYXRpb25hbCBzb2Z0d2FyZSBk
+b21haW4sIHBsZWFzZQo+ID4gZG9uJ3QgaGVzaXRhdGUgdG8gam9pbiB1cy4gCj4gPiAgIAo+IEhp
+IEV2YSwKPiAKPiBUaGFua3MgZm9yIHJlYWNoaW5nIG91dCwgc291bmRzIGxpa2UgZ3JlYXQgb3Bw
+b3J0dW5pdHkuIFdoYXQgYXJlIHRoZQo+IFVTIGxvY2F0aW9ucz8gSSBhbSBiYXNlZCBpbiBQb3J0
+bGFuZCBPcmVnb24uCj4gCj4gSmFjb2IKPiA+ICAKPiA+IAo+ID4gIOWcsOeCue+8mue+juWbveOA
+geWMl+S6rOOAgea3seWcs+OAgeadreW3ngo+ID4gCj4gPiAgSkTlj4LogIPku4vnu40KPiA+ICDn
+s7vnu5/ova/ku7bkuovkuJrpg6gtTGludXjlhoXmoLjnoJTlj5HkuJPlrrYKPiA+ICBSZXNwb25z
+aWJpbGl0aWVz77yaIAo+ID4gIDHCt1Jlc3BvbnNpYmxlIGZvciBMaW51eCBrZXJuZWwgZGV2ZWxv
+cG1lbnQgCj4gPiAgMsK3UmVzcG9uc2libGUgZm9yIExpbnV4IGtlcm5lbCByZWxhdGVkIHRvb2xz
+IGRldmVsb3BtZW50IAo+ID4gIDPCt1Jlc3BvbnNpYmxlIGZvciBMaW51eCBrZXJuZWwgc2VjdXJp
+dHkgcGF0Y2hpbmcgCj4gPiAgNMK3TGludXgga2VybmVsIGRlYnVnZ2luZwo+ID4gIOWyl+S9jeim
+geaxggo+ID4gIDHCt0V4cGVydGlzZSBpbiBhdCBsZWFzdCBvbmUga2VybmVsIHN1Yi1zeXN0ZW0s
+IGZvciBleGFtcGxlcywKPiA+IG5ldHdvcmssIGZpbGUgc3lzdGVtIChleHQ0LCB4ZnMpLCBtZW1v
+cnkgbWFuYWdlbWVudCwgcHJvY2Vzcwo+ID4gc2NoZWR1bGVyIDLCt0ZpdmUgeWVhcnMgb3IgbW9y
+ZSBvZiBMaW51eCBrZXJuZWwgZGV2ZWxvcG1lbnQKPiA+IGV4cGVyaWVuY2VzIDPCt0tub3dsZWRn
+ZWFibGUgYWJvdXQgeDg2IG9yIGFybSA0wrdFeHBlcmllbmNlZCB3aXRoCj4gPiBrZXJuZWwgZGVi
+dWdnaW5nIDXCt0tlcm5lbCBjb21tdW5pdHkgY29udHJpYnV0b3IgYXMgYSBwbHVzCj4gPiAKPiA+
+ICBMaW51eOWGheaguOa1i+ivleS4k+Wutgo+ID4gIOWFt+S9k+iBjOi0o++8miAKPiA+ICAxLgo+
+ID4g5qC55o2u5Lia5Yqh6ZyA5rGC5Yi25a6a5rWL6K+V5pa55qGI77yM5rWL6K+V5omn6KGM5ZKM
+57uT5p6c5YiG5p6Q77yM5L+d6K+B5pON5L2c57O757uf55qE6auY6LSo6YeP6YOo572y5Lqk5LuY
+44CCCj4gPiAyLiDotJ/otKNsaW51eOWGheaguOa1i+ivleezu+e7n+OAgea1i+ivleW3peWFt+WS
+jOa1i+ivlembhueahOW8gOWPkeOAgiAzLgo+ID4g5a+55YaF5qC45ZCE5a2Q5qih5Z2X5oCn6IO9
+5pWw5o2u6YeH6ZuG5ZKM6YeP5YyW5YiG5p6Q77yM5Y+R546w5oCn6IO955O26aKI77yM5o+Q5Ye6
+6Kej5Yaz5pa55qGI44CC5bKX5L2N6KaB5rGCCj4gPiAgMS4g5LqU5bm05Lul5LiK6L2v5Lu25byA
+5Y+R5oiW5rWL6K+V6L2v5Lu25byA5Y+R57uP6aqM44CCIAo+ID4gIDIu54af5oKJbGludXjmk43k
+vZzns7vnu5/lkITnu4Tku7bljp/nkIbvvIzkuobop6PlhoXmoLjlvIDlj5Hlt6XlhbflkozosIPo
+r5Xlt6XlhbfnmoTov5DnlKjvvIzmnInlhoXmoLjlvIDlj5HmiJbosIPkvJjnu4/pqoznmoTkvJjl
+hYjjgIIgCj4gPiAgMy4g57K+6YCa6Iez5bCR5LiA5Yiw5Lik56eN6ISa5pys6K+t6KiA5ZKMQ+iv
+reiogOeahOW8gOWPkeOAgiAKPiA+ICA0LiDlhbflpIflpI3mnYLpnIDmsYLlj4rmioDmnK/nmoTn
+oJTnqbbog73lipvvvIzlloTkuo7ov5vooYzku7vliqHliIbop6PvvIzmipPkvY/lhbPplK7ngrnj
+gIIgCj4gPiAgNS4g6Imv5aW955qE5rKf6YCa5Y2P6LCD6IO95Yqb5ZKM5Zui6Zif5ZCI5L2c5oSP
+6K+G77yM6IO95om/5Y+X5aSn55qE5bel5L2c5Y6L5Yqb44CCCj4gPiAgCj4gPiAgCj4gPiAgCj4g
+PiAgIAo+ID4gIEV2YSBXYW5nCj4gPiAgY29uc3VsdGFudCAtIFNoYW5naGFpCj4gPiAgTW9iaWxl
+OjE1OTAwNzc5NzA0Cj4gPiAgV2VpeGluOjE1OTAwNzc5NzA0Cj4gPiAgIAo+ID4gIC0tLS0tLS0t
+LS0tLS0tLS0tLQo+ID4gICAKPiA+IAo+ID4gIEV2YSB3YW5nICAKPiA+ICDkuK3lm70g5LiK5rW3
+6YOK5Yy6IHwgQkFU6auY56uv5oqA5pyv57G75bKX5L2N5oub6IGYCj4gPiAg5LqS6IGU572RIHwg
+55+l5ZCN5LqS6IGU572R5YWs5Y+4ICAKPiBbSmFjb2IgUGFuXQpbSmFjb2IgUGFuXQpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwppb21tdSBtYWlsaW5nIGxp
+c3QKaW9tbXVAbGlzdHMubGludXgtZm91bmRhdGlvbi5vcmcKaHR0cHM6Ly9saXN0cy5saW51eGZv
+dW5kYXRpb24ub3JnL21haWxtYW4vbGlzdGluZm8vaW9tbXU=
