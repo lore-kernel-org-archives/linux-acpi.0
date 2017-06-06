@@ -1,108 +1,44 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2] platform/x86: wmi-bmof: New driver to expose embedded
- Binary WMI MOF metadata
-Date: Tue, 6 Jun 2017 12:30:38 +0300
-Message-ID: <CAHp75VcEpnMzjomrnEQQEFp6zCJjcBugaRRHZO0GUc3FOyjF_Q@mail.gmail.com>
-References: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [v6 2/3] iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2
+ erratum #74
+Date: Tue, 6 Jun 2017 17:38:37 +0800
+Message-ID: <9ab6fba9-5270-a618-d149-2e4c11d4cbf6@linaro.org>
+References: <1494592866-14076-1-git-send-email-gakula@caviumnetworks.com>
+ <1494592866-14076-3-git-send-email-gakula@caviumnetworks.com>
+ <5FC3163CFD30C246ABAA99954A238FA838351762@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Andy Lutomirski <luto@kernel.org>
-Cc: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f46.google.com ([74.125.83.46]:36154 "EHLO
+        mail-pg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751382AbdFFJir (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2017 05:38:47 -0400
+Received: by mail-pg0-f46.google.com with SMTP id a70so25742501pge.3
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Jun 2017 02:38:46 -0700 (PDT)
+In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA838351762@FRAEML521-MBX.china.huawei.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>, Geetha sowjanya <gakula@caviumnetworks.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Cc: "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, Geetha Sowjanya <geethasowjanya.akula@cavium.com>, "geethasowjanya.akula@gmail.com" <geethasowjanya.akula@gmail.com>, "jcm@redhat.com" <jcm@redhat.com>, "linu.cherian@cavium.com" <linu.cherian@cavium.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "robert.moore@intel.com" <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "robert.richter@cavium.com" <robert.richter@cavium.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "sgoutham@cavium.com" <sgoutham@cavium.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, devel@acpica.o
 
-On Tue, Jun 6, 2017 at 6:16 AM, Andy Lutomirski <luto@kernel.org> wrote:
-> Many laptops (and maybe servers?) have embedded WMI Binary MOF metadata.
-> We do not yet have open-source tools for processing the data, although
-> one is in the works thanks to Pali:
->
->         https://github.com/pali/bmfdec
->
-> There is currently no interface to get the data in the first place. By
-> exposing it, we facilitate the development of new tools.
+On 2017/5/17 18:13, Shameerali Kolothum Thodi wrote:
+>>   #ifdef CONFIG_ACPI
+>> +static void acpi_smmu_get_options(u32 model, struct arm_smmu_device
+>> +*smmu) {
+>> +	if (model == ACPI_IORT_SMMU_CAVIUM_CN99XX)
+>> +		smmu->options |= ARM_SMMU_OPT_PAGE0_REGS_ONLY;
+ >
+> HiSIlicon hip06/07 boards have a similar existing option to enable,
+> ARM_SMMU_OPT_SKIP_PREFETCH. I have just sent out a similar patch to enable
+> It-" [PATCH] iommu/arm-smmu-v3: Enable ACPI based HiSilicon CMD_PREFETCH
+>   quirk(erratum 161010701)".  May be it can be merged here, if this series goes through.
+>   Not sure about the protocol though.
 
-My comments below.
-Overall, FWIW,
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+I think you can add a patch on top of Geetha's, and clarify
+the dependency in the change log, then it will be easy for
+maintainer to apply.
 
-
-> +config WMI_BMOF
-> +       tristate "WMI embedded Binary MOF driver"
-> +       depends on ACPI_WMI
-
-> +       default y
-
-Since it can be module it would be better to have more sane default
-(distros usually prefers modules over built-in).
-Thus, I would go, for example, with
-
-default ACPI_WMI
-
-> +       ---help---
-> +         Say Y here if you want to be able to read a firmware-embedded
-> +         WMI Binary MOF data. Using this requires userspace tools and may be
-> +         rather tedious.
-> +
-> +         To compile this driver as a module, choose M here: the module will
-> +         be called wmi-bmof.
-
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/slab.h>
-> +#include <linux/types.h>
-> +#include <linux/input.h>
-> +#include <linux/input/sparse-keymap.h>
-> +#include <linux/acpi.h>
-> +#include <linux/string.h>
-> +#include <linux/dmi.h>
-> +#include <linux/wmi.h>
-> +#include <acpi/video.h>
-
-Alphabetical order? Up to you.
-
-> +#define WMI_BMOF_GUID "05901221-D566-11D1-B2F0-00A0C9062910"
-
-> +MODULE_ALIAS("wmi:" WMI_BMOF_GUID);
-
-I would gather all MODULE_* together, but it's also matter of taste.
-
-> +static ssize_t
-> +read_bmof(struct file *filp, struct kobject *kobj,
-> +        struct bin_attribute *attr,
-> +        char *buf, loff_t off, size_t count)
-> +{
-> +       struct bmof_priv *priv =
-> +               container_of(attr, struct bmof_priv, bmof_bin_attr);
-> +
-> +       if (off >= priv->bmofdata->buffer.length)
-> +               return 0;
-
-Shouldn't we return an error code here? -ERANGE or alike?
-
-> +static int wmi_bmof_probe(struct wmi_device *wdev)
-> +{
-
-> +       int ret;
-> +
-> +       struct bmof_priv *priv =
-> +               devm_kzalloc(&wdev->dev, sizeof(struct bmof_priv), GFP_KERNEL);
-
-I'm not a fan of memory allocation in definition block, so, I would rewrite this
-
-      struct bmof_priv *priv;
-      int ret;
-
-      priv = devm_kzalloc(&wdev->dev, sizeof(struct bmof_priv), GFP_KERNEL);
-
-(sizeof(*priv) by your choice)
-
-> +
-> +       if (!priv)
-> +               return -ENOMEM;
-
--- 
-With Best Regards,
-Andy Shevchenko
+Thanks
+Hanjun
