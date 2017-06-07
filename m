@@ -1,52 +1,47 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose
- embedded WMI MOF metadata
-Date: Wed, 7 Jun 2017 20:23:08 +0000
-Message-ID: <bc0dbbfcb0084f758d28b9000fa9f9e0@ausx13mpc124.AMER.DELL.COM>
-References: <cover.1495862272.git.dvhart@infradead.org>
- <8aa135f430b441eb82614b22d662d1ff@ausx13mpc120.AMER.DELL.COM>
- <20170606135621.GC4690@pali> <201706071939.25681@pali>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v1 3/3] ACPI / PMIC: Add TI PMIC TPS68470 operation region driver
+Date: Wed, 7 Jun 2017 23:40:27 +0300
+Message-ID: <CAHp75Vfz=5Siysbzmtyv8TUKs+S+EMBHd8T7zSV-vF+-FEoSaA@mail.gmail.com>
+References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
+ <1496750118-5570-4-git-send-email-rajmohan.mani@intel.com>
+ <CAHp75VcvV_AbLJCq9Rm_8yab3nViPm6ikxxme4oyw9vm4Kz7Gg@mail.gmail.com>
+ <20170607121503.GA1019@valkosipuli.retiisi.org.uk> <CAHp75Vef=c54O8Xd+aM+eWWVt7nLsczT48WbgrdiOVyWv6xMcg@mail.gmail.com>
+ <20170607201050.GE1019@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from esa3.dell-outbound.iphmx.com ([68.232.153.94]:63083 "EHLO
-        esa3.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751405AbdFGUXL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 16:23:11 -0400
-In-Reply-To: <201706071939.25681@pali>
-Content-Language: en-US
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:33983 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751425AbdFGUk2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 16:40:28 -0400
+In-Reply-To: <20170607201050.GE1019@valkosipuli.retiisi.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: pali.rohar@gmail.com
-Cc: luto@amacapital.net, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, andriy.shevchenko@linux.intel.com, luto@kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Rajmohan Mani <rajmohan.mani@intel.com>, Hans de Goede <hdegoede@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBQYWxpIFJvaMOhciBbbWFpbHRv
-OnBhbGkucm9oYXJAZ21haWwuY29tXQ0KPiBTZW50OiBXZWRuZXNkYXksIEp1bmUgNywgMjAxNyAx
-MjozOSBQTQ0KPiBUbzogTGltb25jaWVsbG8sIE1hcmlvIDxNYXJpb19MaW1vbmNpZWxsb0BEZWxs
-LmNvbT4NCj4gQ2M6IGx1dG9AYW1hY2FwaXRhbC5uZXQ7IGR2aGFydEBpbmZyYWRlYWQub3JnOyBw
-bGF0Zm9ybS1kcml2ZXItDQo+IHg4NkB2Z2VyLmtlcm5lbC5vcmc7IGFuZHJpeS5zaGV2Y2hlbmtv
-QGxpbnV4LmludGVsLmNvbTsgbHV0b0BrZXJuZWwub3JnOw0KPiByandAcmp3eXNvY2tpLm5ldDsg
-bGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcN
-Cj4gU3ViamVjdDogUmU6IFtQQVRDSCAxNS8xNl0gcGxhdGZvcm0veDg2OiB3bWktbW9mOiBOZXcg
-ZHJpdmVyIHRvIGV4cG9zZQ0KPiBlbWJlZGRlZCBXTUkgTU9GIG1ldGFkYXRhDQo+IA0KPiBPbiBU
-dWVzZGF5IDA2IEp1bmUgMjAxNyAxNTo1NjoyMSBQYWxpIFJvaMOhciB3cm90ZToNCj4gPiBPbiBU
-dWVzZGF5IDA2IEp1bmUgMjAxNyAxMzo0NjoxNiBNYXJpby5MaW1vbmNpZWxsb0BkZWxsLmNvbSB3
-cm90ZToNCj4gPiA+IDIpIE9uIG15IHN5c3RlbSB3aGVuIHlvdSBleHBhbmQgdGhlIGFyZ3VtZW50
-cyBmb3IgInZvaWQgRG9CRm4iIHRoZQ0KPiA+ID4gc291cmNlIGRvZXNuJ3QgZGVzY3JpYmUgaW5k
-aXZpZHVhbCBhcmd1bWVudHMgbGlrZSB5b3UgZG8uIEFnYWluDQo+ID4gPiB0aGlzIG1pZ2h0IG5v
-dCBtYXR0ZXIgdG8gTU9GIHBhcnNpbmcgdG9vbHMgYnV0IHdhbnRlZCB0byBsZXQgeW91DQo+ID4g
-PiBrbm93IGluIGNhc2UgaXQgZG9lcy4NCj4gPg0KPiA+IEkga25vdywgdGhpcyBwYXJ0IGlzIG1p
-c3NpbmcuIE9yZGVyIG9mIGFyZ3VtZW50cyBhcmUgb25seSBpbiBJRA0KPiA+IHF1YWxpZmllciBh
-bmQgbm90IHNvcnRlZCArIGluL291dCBkZS1kdXBsaWNhdGVkLg0KPiANCj4gSW1wbGVtZW50ZWQh
-IE5vdyBhcmd1bWVudHMgYXJlIGNvcnJlY3RseSBwbGFjZWQgYmFzZWQgb24gSUQgcXVhbGlmaWVy
-Lg0KSSB0aGluayBpdCdzIHN0aWxsIG9mZiBhIGxpdHRsZSB0aG91Z2guDQoNCldoYXQgSSdtIGdl
-dHRpbmcgYmFjayBub3cgZnJvbSBibWYybW9mIGlzOg0KCXZvaWQgRG9CRm4oW2luLCBEZXNjcmlw
-dGlvbigiRm4gYnVmIiksIG91dF0gQkRhdCBEYXRhKTsNCg0KV2hlcmVhcyBzb3VyY2UgcHV0cyBE
-ZXNjcmlwdGlvbiBhcyB0aGUgbGFzdCBhcmd1bWVudDogDQoJdm9pZCBEb0JGbihbaW4sIG91dCwg
-RGVzY3JpcHRpb24oIkZuIGJ1ZiIpXSBCRGF0IERhdGEpOw0KDQo+IA0KPiA+ID4gc291cmNlOg0K
-PiA+ID4gCXZvaWQgRG9CRm4oW2luLCBvdXQsIERlc2NyaXB0aW9uKCJGbiBidWYiKV0gQkRhdCBE
-YXRhKTsNCj4gPiA+DQo+ID4gPiBibWYybW9mOg0KPiA+ID4gCXZvaWQgZG9CRm4oW2luLCBEZXNj
-cmlwdGlvbigiRm4gYnVmIiksIElEKDApXSBCRGF0IERhdGEsIFtvdXQsDQo+ID4gPiAJRGVzY3Jp
-cHRpb24oIkZuIGJ1ZiIpLCBJRCgwKV0gQkRhdCBEYXRhKTsNCj4gDQo+IC0tDQo+IFBhbGkgUm9o
-w6FyDQo+IHBhbGkucm9oYXJAZ21haWwuY29tDQo=
+On Wed, Jun 7, 2017 at 11:10 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> On Wed, Jun 07, 2017 at 04:40:13PM +0300, Andy Shevchenko wrote:
+>> On Wed, Jun 7, 2017 at 3:15 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>> > On Tue, Jun 06, 2017 at 05:23:56PM +0300, Andy Shevchenko wrote:
+
+>> >> Follow the pattern, please, I suppose
+>> >> ti_pmic_tps68470.c
+>>
+>> Would it work for you?
+>
+> This is still a different driver from the tps68470 driver which is an MFD
+> driver. For clarity, I'd keep pmic as part of the name (and I'd use
+> tps68470_pmic_ prefix for internal symbols, too).
+>
+> As PMICs are typically linked to the kernel (vs. being modules), there's no
+> issue with the module name. I would suppose few if any PMICs will be
+> compiled as modules in general.
+>
+> It's not a big deal though. I'm fine either way.
+
+Okay, let's agree on  tps68470_pmic for internal prefix and for file name?
+
+-- 
+With Best Regards,
+Andy Shevchenko
