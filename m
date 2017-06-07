@@ -1,89 +1,67 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [RFC PATCH] acpi: indicate to platform when hot remove returns busy
-Date: Wed, 7 Jun 2017 11:50:13 +0300
-Message-ID: <CAHp75VcmMcxVT3LZNU2Vr2qNGigkNUoa3BFJmyE+WSvPG6QCwg@mail.gmail.com>
-References: <20170607060727.23712-1-jlee@suse.com>
+From: Dave Young <dyoung@redhat.com>
+Subject: Re: PROBLEM: Kernel panic on EFI BGRT early init code (kernel
+ 4.11/4.12rc2) [regression]
+Date: Wed, 7 Jun 2017 16:57:16 +0800
+Message-ID: <20170607085716.GA24648@dhcp-128-65.nay.redhat.com>
+References: <86c36f9b-f633-3354-d676-7693f35dae0d@gmail.com>
+ <20170526012342.GA3096@dhcp-128-65.nay.redhat.com>
+ <a32eea98-9576-1ee7-c27a-b165204d825f@gmail.com>
+ <20170527051427.GA3492@dhcp-128-65.nay.redhat.com>
+ <20170527053457.GB3492@dhcp-128-65.nay.redhat.com>
+ <df8e83f9-9362-b5b5-462d-b11980baac01@gmail.com>
+ <20170601015621.GA4306@dhcp-128-65.nay.redhat.com>
+ <e6d656c0-c76b-42c3-8413-0198efb8a33a@gmail.com>
+ <20170602025155.GA3637@dhcp-128-65.nay.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:36278 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751207AbdFGIuP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 04:50:15 -0400
-In-Reply-To: <20170607060727.23712-1-jlee@suse.com>
+Received: from mx1.redhat.com ([209.132.183.28]:32772 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750739AbdFGI5X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 7 Jun 2017 04:57:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20170602025155.GA3637@dhcp-128-65.nay.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>
+To: Maniaxx <tripleshiftone@gmail.com>
+Cc: linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Jun 7, 2017 at 9:07 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
-> In hotplug logic, it always indicates non-specific failure to
-> platform through _OST when handing acpi hot-remove event failed. Then
-> platform terminates the hot-remove process but it can not identify
-> the reason.
->
-> Base on current hot-remove code, there have two situations that it
-> returns busy:
->  - OSPM try to offline an individual device, but the device offline
->    function returns busy.
->  - When the ejection event is applied to an "not offlined yet" container.
->    OSPM send kobject change event to userspace and returns busy.
->
-> Both of them will returns -EBUSY to acpi device hotplug function then
-> hotplug function indicates non-specific failure to platform just like
-> any other error, e.g. -ENODEV or -EIO.
->
-> The benefit to platform for identifying the OS busy state is that
-> platform can be applied different approach to handle the busy but
-> not just terminate the hot-remove process by unknow reason. For
-> example, platform can wait for a while then triggers hot-remove
-> again.
->
-> This RFC patch adds one more parameter to the handler function of
-> acpi generic hotplug event to give the function a chance to propose
-> the return code of _OST. In this case, it sets ost return code to
-> ACPI_OST_SC_DEVICE_BUSY when the acpi hot remove function returns
-> -EBUSY.
+On 06/02/17 at 10:51am, Dave Young wrote:
+> On 06/01/17 at 09:13pm, Maniaxx wrote:
+> > On 01.06.2017 at 03:57 wrote Dave Young:
+> > > This means the efi_bgrt_init failed out originally before the early init BGRT
+> > > patch. Checking the code the only difference is current code we have no
+> > > below code:
+> > > 
+> > >         status = acpi_get_table("BGRT", 0,
+> > >                                 (struct acpi_table_header **)&bgrt_tab);
+> > >         if (ACPI_FAILURE(status))
+> > >                 return;
+> > > 
+> > > So probably acpi_get_table has some more sanity checking and it failed
+> > > early. Can you add a printk before above return to confirm it? Just test
+> > > the old kernel without early init BGRT patch.
+> > 
+> > Doesn't fail early. I can see the printk.
+> 
+> Since you do not see /sys/firmware/acpi/bgrt, that means there must be
+> somewhere failed early so bgrt image sysfs files are not created.
+> for old kernel arch/x86/platform/efi/efi-bgrt.c copy the bgrt image
+> then drivers/acpi/bgrt.c will populate the image in sysfs.
+> 
+> Can you do more debugging ie. adding more printk see why bgrt image
+> sysfs dir is not created?
+> 
+> If we get the reason then we can start to see what we missed in new
+> code.
 
-> -static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
-> +static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type,
-> +                                     u32 *ost_code)
->  {
-> +       int error = -EINVAL;
-> +
->         switch (type) {
->         case ACPI_NOTIFY_BUS_CHECK:
->                 return acpi_scan_bus_check(adev);
-> @@ -389,9 +392,11 @@ static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
->                 }
->                 acpi_evaluate_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
->                                   ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-> -               return acpi_scan_hot_remove(adev);
-> +               error = acpi_scan_hot_remove(adev);
-> +               if (error == -EBUSY && ost_code)
-> +                       *ost_code = ACPI_OST_SC_DEVICE_BUSY;
->         }
-> -       return -EINVAL;
-> +       return error;
->  }
->
->  void acpi_device_hotplug(struct acpi_device *adev, u32 src)
-> @@ -413,7 +418,7 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
->         if (adev->flags.is_dock_station) {
->                 error = dock_notify(adev, src);
->         } else if (adev->flags.hotplug_notify) {
-> -               error = acpi_generic_hotplug_event(adev, src);
-> +               error = acpi_generic_hotplug_event(adev, src, &ost_code);
->                 if (error == -EPERM) {
->                         ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+Please ignore the request, I observed in your old kernel boot log there
+is a ioremap error message about invalid physical address, so that is
+clear since ioremap failed then efi_bgrt_init bails out.
 
-Looking again to the code I still think you may easily do all stuff
-here in shorter and cleaner manner.
-Do we anticipate that there will be more callers that would like to
-get ost_code for one specific type of event?
-Above intrusion to the acpi_generic_hotplug_event() looks to me like
-non-generic hack.
+In new code we use early_memremap, it seems lacks of checking invalid
+physical address, The firmware provides garbage in efi bgrt image
+addresses, I will work on a fix for this. 
 
--- 
-With Best Regards,
-Andy Shevchenko
+Thanks
+Dave
