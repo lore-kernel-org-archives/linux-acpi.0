@@ -1,74 +1,82 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] acpi: handle the acpi hotplug schedule error
-Date: Wed, 7 Jun 2017 23:39:33 +0800
-Message-ID: <20170607153933.GY30622@linux-l9pv.suse>
-References: <20170607060527.23407-1-jlee@suse.com>
- <CAHp75Vdeagae37PHoD4yw4dncFQJ2tmuxRu0zzbH_b+SnY4pEQ@mail.gmail.com>
- <20170607101832.GW30622@linux-l9pv.suse>
- <CAHp75VcBG-gHEOPkPBHMXzpY7G3hJxtXKKAjPesjBHVW-gx6qA@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 2/2] acpi/iort: numa: Add numa node mapping for smmuv3
+ devices
+Date: Wed, 7 Jun 2017 17:38:42 +0100
+Message-ID: <20170607163842.GA7937@red-moon>
+References: <1496746065-11082-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1496746065-11082-3-git-send-email-ganapatrao.kulkarni@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:35234 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751321AbdFGQh2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 7 Jun 2017 12:37:28 -0400
 Content-Disposition: inline
-In-Reply-To: <CAHp75VcBG-gHEOPkPBHMXzpY7G3hJxtXKKAjPesjBHVW-gx6qA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+In-Reply-To: <1496746065-11082-3-git-send-email-ganapatrao.kulkarni@cavium.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will.Deacon@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, robin.murphy@arm.com, lv.zheng@intel.com, joro@8bytes.org, rjw@rjwysocki.net, lenb@kernel.org, jnair@caviumnetworks.com, gpkulkarni@gmail.com
 
-On Wed, Jun 07, 2017 at 01:46:37PM +0300, Andy Shevchenko wrote:
-> On Wed, Jun 7, 2017 at 1:18 PM, joeyli <jlee@suse.com> wrote:
-> > On Wed, Jun 07, 2017 at 11:36:55AM +0300, Andy Shevchenko wrote:
-> >> On Wed, Jun 7, 2017 at 9:05 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
-> >> > Kernel should decrements the reference count of acpi device
-> >> > when scheduling acpi hotplug work is failed, and also evaluates
-> >> > _OST to notify BIOS the failure.
+On Tue, Jun 06, 2017 at 04:17:45PM +0530, Ganapatrao Kulkarni wrote:
+> Add code to parse proximity domain in SMMUv3 IORT table to
+> set numa node mapping for smmuv3 devices.
 > 
-> > So, do you mean like this?
+> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+> ---
+>  drivers/acpi/arm64/iort.c | 20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
 > 
-> Yes, see below.
-> 
-> >
-> >         -       if (hotplug_event && ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
-> >         -               return;
-> >         +       if (hotplug_event) {
-> 
-> >         +               if (ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
-> >         +                       return;
-> 
-> >         +               else
-> 
-> It's redundant...
->
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index bba2b59..b4f328f 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -882,6 +882,23 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+>  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
+>  }
+>  
+> +/*
+> + * set numa proximity domain for smmv3 device
+> + */
+> +static void  __init iort_set_proximity(struct acpi_iort_node *node,
+> +		struct device *dev)
+> +{
+> +	struct acpi_iort_smmu_v3 *smmu;
+> +
+> +	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+> +	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
+> +		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
+> +		pr_info("SMMUV3[%llx] Mapped to Proximity domain %d\n",
+> +			smmu->base_address,
+> +			smmu->pxm);
+> +	}
+> +}
+> +
+>  static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
+>  {
+>  	struct acpi_iort_smmu *smmu;
+> @@ -1002,6 +1019,9 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+>  	if (!pdev)
+>  		return -ENOMEM;
+>  
+> +	if (node->type == ACPI_IORT_NODE_SMMU_V3)
+> +		iort_set_proximity(node, &pdev->dev);
 
-Oh~ Yes, you are right. The 'else' can be removed
- 
-> >         +                       goto err_put_device;
-> 
-> ...perhaps
-> 
->          if (ACPI_FAILURE(acpi_hotplug_schedule(adev, type)))
->                  goto err_put_device;
->          return;
-> 
+Nit: while at it you may add an ops hook to set the proximity
+(NULL for SMMU v2) and call it if present, it is just to make
+the code adding devices more uniform.
 
-I think normally it should be success. So how about:
+Who is queueing these patches ? I am asking to make sure we sort
+the ACPICA dependency (there are other IORT/ACPICA patches to consider
+too).
 
-	if (hotplug_event) {
-		if (ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
-			return;
-		goto err_put_device;
-	}
- 
-> >
-> >                 acpi_bus_put_acpi_device(adev);
-> >                 return;
-> >
-> >         +err_put_device:
-> >         +       acpi_bus_put_acpi_device(adev);
-> >          err:
-> >                 acpi_evaluate_ost(handle, type, ost_code, NULL);
-> >         }
+Thanks,
+Lorenzo
 
-Thanks a lot!
-Joey Lee
+>  	count = ops->iommu_count_resources(node);
+>  
+>  	r = kcalloc(count, sizeof(*r), GFP_KERNEL);
+> -- 
+> 1.8.1.4
+> 
