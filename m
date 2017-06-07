@@ -1,67 +1,55 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH] acpi: handle the acpi hotplug schedule error
-Date: Wed, 7 Jun 2017 13:46:37 +0300
-Message-ID: <CAHp75VcBG-gHEOPkPBHMXzpY7G3hJxtXKKAjPesjBHVW-gx6qA@mail.gmail.com>
-References: <20170607060527.23407-1-jlee@suse.com> <CAHp75Vdeagae37PHoD4yw4dncFQJ2tmuxRu0zzbH_b+SnY4pEQ@mail.gmail.com>
- <20170607101832.GW30622@linux-l9pv.suse>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v6 0/3] Preparation for further fwnode property cleanup
+Date: Wed, 7 Jun 2017 14:42:45 +0300
+Message-ID: <20170607114244.GX1019@valkosipuli.retiisi.org.uk>
+References: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20170531122849.GG1019@valkosipuli.retiisi.org.uk>
+ <CAL_JsqJtB-UVNLo3SM6apB-MODOSWwZzgeAE+ifsmT7U-5WJmw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f178.google.com ([209.85.216.178]:34951 "EHLO
-        mail-qt0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751206AbdFGKqi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 06:46:38 -0400
-In-Reply-To: <20170607101832.GW30622@linux-l9pv.suse>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45298 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751481AbdFGLn3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 07:43:29 -0400
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqJtB-UVNLo3SM6apB-MODOSWwZzgeAE+ifsmT7U-5WJmw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Al Stone <ahs3@redhat.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>
 
-On Wed, Jun 7, 2017 at 1:18 PM, joeyli <jlee@suse.com> wrote:
-> On Wed, Jun 07, 2017 at 11:36:55AM +0300, Andy Shevchenko wrote:
->> On Wed, Jun 7, 2017 at 9:05 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
->> > Kernel should decrements the reference count of acpi device
->> > when scheduling acpi hotplug work is failed, and also evaluates
->> > _OST to notify BIOS the failure.
+Hi Rob / Frank,
 
-> So, do you mean like this?
+On Mon, Jun 05, 2017 at 10:12:24AM -0500, Rob Herring wrote:
+> > I figured out that others are starting to have patches that depend on my
+> > other patchsets getting merged. Those patches are for the fwnode property
+> > API that most likely should go through the linux-pm tree as well as for the
+> > media tree.
+> >
+> > <URL:http://www.spinics.net/lists/linux-media/msg115893.html>
+> >
+> > I have hopes of being able to get the fwnode cleanup patchset (which the
+> > aforementioned patches depend on) in within this merge window --- assuming I
+> > could have your ack on the OF portions.
+> >
+> > Would it be possible to have an immutable branch for these or would you
+> > accept a pull request on v4.12-rc1?
+> 
+> I've applied this series. The stable branch is here:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git dt/property-move
 
-Yes, see below.
+Thanks you!
 
->
->         -       if (hotplug_event && ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
->         -               return;
->         +       if (hotplug_event) {
+Could I still have yours / Frank's ack on the fwnode cleanup set patches
+2--4 that touch the OF framework, please (naturally assuming you're fine
+with them)?
 
->         +               if (ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
->         +                       return;
-
->         +               else
-
-It's redundant...
-
->         +                       goto err_put_device;
-
-...perhaps
-
-         if (ACPI_FAILURE(acpi_hotplug_schedule(adev, type)))
-                 goto err_put_device;
-         return;
-
-
->         +       }
-
->
->                 acpi_bus_put_acpi_device(adev);
->                 return;
->
->         +err_put_device:
->         +       acpi_bus_put_acpi_device(adev);
->          err:
->                 acpi_evaluate_ost(handle, type, ost_code, NULL);
->         }
-
+<URL:http://www.spinics.net/lists/devicetree/msg179939.html>
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
