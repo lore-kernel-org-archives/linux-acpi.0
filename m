@@ -1,97 +1,61 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose embedded WMI MOF metadata
-Date: Wed, 7 Jun 2017 22:50:25 +0200
-Message-ID: <201706072250.25953@pali>
-References: <cover.1495862272.git.dvhart@infradead.org> <201706071939.25681@pali> <bc0dbbfcb0084f758d28b9000fa9f9e0@ausx13mpc124.AMER.DELL.COM>
+From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH] Add support of NVDIMM memory error notification in ACPI
+ 6.2
+Date: Wed, 7 Jun 2017 20:57:57 +0000
+Message-ID: <1496869051.9288.1.camel@hpe.com>
+References: <20170607184947.18733-1-toshi.kani@hpe.com>
+ <CAPcyv4i7bLU17QEmdUBQrtWP3AZxPRyKK0NN105XrTj8K3nAAQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart13373760.eSfPYzL9aO";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <bc0dbbfcb0084f758d28b9000fa9f9e0@ausx13mpc124.AMER.DELL.COM>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mario.Limonciello@dell.com
-Cc: luto@amacapital.net, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, andriy.shevchenko@linux.intel.com, luto@kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAPcyv4i7bLU17QEmdUBQrtWP3AZxPRyKK0NN105XrTj8K3nAAQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Content-ID: <8D0D1EC9E3B52B41AB5518D3BC20446D-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
---nextPart13373760.eSfPYzL9aO
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wednesday 07 June 2017 22:23:08 Mario.Limonciello@dell.com wrote:
-> > -----Original Message-----
-> > From: Pali Roh=C3=A1r [mailto:pali.rohar@gmail.com]
-> > Sent: Wednesday, June 7, 2017 12:39 PM
-> > To: Limonciello, Mario <Mario_Limonciello@Dell.com>
-> > Cc: luto@amacapital.net; dvhart@infradead.org; platform-driver-
-> > x86@vger.kernel.org; andriy.shevchenko@linux.intel.com;
-> > luto@kernel.org; rjw@rjwysocki.net; linux-kernel@vger.kernel.org;
-> > linux-acpi@vger.kernel.org Subject: Re: [PATCH 15/16]
-> > platform/x86: wmi-mof: New driver to expose embedded WMI MOF
-> > metadata
-> >=20
-> > On Tuesday 06 June 2017 15:56:21 Pali Roh=C3=A1r wrote:
-> > > On Tuesday 06 June 2017 13:46:16 Mario.Limonciello@dell.com wrote:
-> > > > 2) On my system when you expand the arguments for "void DoBFn"
-> > > > the source doesn't describe individual arguments like you do.
-> > > > Again this might not matter to MOF parsing tools but wanted to
-> > > > let you know in case it does.
-> > >=20
-> > > I know, this part is missing. Order of arguments are only in ID
-> > > qualifier and not sorted + in/out de-duplicated.
-> >=20
-> > Implemented! Now arguments are correctly placed based on ID
-> > qualifier.
->=20
-> I think it's still off a little though.
->=20
-> What I'm getting back now from bmf2mof is:
-> 	void DoBFn([in, Description("Fn buf"), out] BDat Data);
->=20
-> Whereas source puts Description as the last argument:
-> 	void DoBFn([in, out, Description("Fn buf")] BDat Data);
-
-In BMOF from my Latitude E6440 there are specified two parameters with=20
-index 0. One with qualifiers ("in", Description("Fn buf")) and one with=20
-("out", Description("Fn buf")). I think you have similar/same data in=20
-BMOF.
-
-In my bmf2mof I just combined those two parameters into one (when name,=20
-type and index matches) and concatenate also qualifiers with removing=20
-duplicates.
-
-Do not know what is correct way, but I think qualifiers are just=20
-unordered set. MS decompiler probably put "in" and "out" qualifiers=20
-before any other for better readability.
-
-> > > > source:
-> > > > 	void DoBFn([in, out, Description("Fn buf")] BDat Data);
-> > > >=20
-> > > > bmf2mof:
-> > > > 	void doBFn([in, Description("Fn buf"), ID(0)] BDat Data, [out,
-> > > > 	Description("Fn buf"), ID(0)] BDat Data);
-> >=20
-> > --
-> > Pali Roh=C3=A1r
-> > pali.rohar@gmail.com
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart13373760.eSfPYzL9aO
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlk4ZxEACgkQi/DJPQPkQ1KoNgCgnkpE0iqdhdvgE0K8Fie/Lqy3
-s60AnjxLxkon9s9cM11T89/dUfzoDtEK
-=KDLr
------END PGP SIGNATURE-----
-
---nextPart13373760.eSfPYzL9aO--
+T24gV2VkLCAyMDE3LTA2LTA3IGF0IDEyOjA5IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIFdlZCwgSnVuIDcsIDIwMTcgYXQgMTE6NDkgQU0sIFRvc2hpIEthbmkgPHRvc2hpLmthbmlA
+aHBlLmNvbT4NCj4gd3JvdGU6DQogOg0KPiA+ICsNCj4gPiArc3RhdGljIHZvaWQgYWNwaV9uZml0
+X3VjX2Vycm9yX25vdGlmeShzdHJ1Y3QgZGV2aWNlICpkZXYsDQo+ID4gYWNwaV9oYW5kbGUgaGFu
+ZGxlKQ0KPiA+ICt7DQo+ID4gK8KgwqDCoMKgwqDCoMKgc3RydWN0IGFjcGlfbmZpdF9kZXNjICph
+Y3BpX2Rlc2MgPSBkZXZfZ2V0X2RydmRhdGEoZGV2KTsNCj4gPiArDQo+ID4gK8KgwqDCoMKgwqDC
+oMKgYWNwaV9uZml0X2Fyc19yZXNjYW4oYWNwaV9kZXNjKTsNCj4gDQo+IEkgd29uZGVyIGlmIHdl
+IHNob3VsZCBnYXRlIHJlLXNjYW5uaW5nIHdpdGggYSBzaW1pbGFyOg0KPiANCj4gwqDCoMKgwqBp
+ZiAoYWNwaV9kZXNjLT5zY3J1Yl9tb2RlID09IEhXX0VSUk9SX1NDUlVCX09OKQ0KPiANCj4gLi4u
+Y2hlY2sgdGhhdCB3ZSBkbyBpbiB0aGUgbWNlIG5vdGlmaWNhdGlvbiBjYXNlPyBNYXliZSBub3Qg
+c2luY2Ugd2UNCj4gZG9uJ3QgZ2V0IGFuIGluZGljYXRpb24gb2Ygd2hlcmUgdGhlIGVycm9yIGlz
+IHdpdGhvdXQgYSByZXNjYW4uDQoNCkkgdGhpbmsgdGhpcyBtY2UgY2FzZSBpcyBkaWZmZXJlbnQg
+c2luY2UgdGhlIE1DRSBoYW5kbGVyIGFscmVhZHkga25vd3MNCndoZXJlIHRoZSBuZXcgcG9pc29u
+IGxvY2F0aW9uIGlzIGFuZCBjYW4gdXBkYXRlIGJhZGJsb2NrcyBpbmZvcm1hdGlvbg0KZm9yIGl0
+LiAgU3RhcnRpbmcgQVJTIGlzIGFuIG9wdGlvbmFsIHByZWNhdXRpb24uDQoNCj4gSG93ZXZlciwg
+YXQgYSBtaW5pbXVtIEkgdGhpbmsgd2UgbmVlZCBzdXBwb3J0IGZvciB0aGUgbmV3IFN0YXJ0IEFS
+Uw0KPiBmbGFnICgiSWYgc2V0IHRvIDEgdGhlIGZpcm13YXJlIHNoYWxsIHJldHVybiBkYXRhIGZy
+b20gYSBwcmV2aW91cw0KPiBzY3J1YiwgaWYgYW55LCB3aXRob3V0IHN0YXJ0aW5nIGEgbmV3IHNj
+cnViIikgYW5kIHVzZSB0aGF0IGZvciB0aGlzDQo+IGNhc2UuDQoNClRoYXQncyBhbiBpbnRlcmVz
+dGluZyBpZGVhLiAgQnV0IEkgd29uZGVyIGhvdyB1c2VycyBrbm93IGlmIGl0IGlzIE9LIHRvDQpz
+ZXQgdGhpcyBmbGFnIGFzIGl0IHJlbGllcyBvbiBCSU9TIGltcGxlbWVudGF0aW9uIHRoYXQgaXMg
+bm90IGRlc2NyaWJlZA0KaW4gQUNQSS4uLg0KDQo+IEFub3RoZXIgdGhpbmcgdGhhdCBzZWVtcyB0
+byBiZSBtaXNzaW5nIGluIGJvdGggdGhpcyBhbmQgdGhlIG1jZSBjYXNlDQo+IGlzIGEgbm90aWZp
+Y2F0aW9uIHRvIHVzZXJzcGFjZSB0aGF0IHNvbWV0aGluZyBjaGFuZ2VkLiBXZSBoYXZlIGNhbGxz
+DQo+IHRvIHN5c2ZzX25vdGlmeV9kaXJlbnQoKSB0byBub3RpZnkgc2NydWIgY29tcGxldGlvbiBl
+dmVudHMgYW5kIERJTU0NCj4gaGVhbHRoIHN0YXR1cyBjaGFuZ2UgZXZlbnRzLCBJIHRoaW5rIHdl
+IG5lZWQgYSBzaW1pbGFyIG5vdGlmaWVyDQo+IG1lY2hhbmlzbSBmb3IgbmV3IHVuLWNvcnJlY3Rh
+YmxlIGVycm9ycy4NCg0KR29vZCBwb2ludC4gIEkgdGhpbmsgdGhpcyBjYW4gYmUgYSBiYWRibG9j
+a3MgcG9wdWxhdGlvbiBldmVudCwgd2hpY2gNCmdldHMgZ2VuZXJhdGVkIHdoZW4gYmFkYmxvY2tz
+IGluZm9ybWF0aW9uIGlzIHVwZGF0ZWQgYXQgYm9vdC10aW1lIGFuZA0KcnVuLXRpbWUgdmlhIHRo
+aXMgbm90aWZpY2F0aW9uIGFuZCBNQ0UuDQoNClRoYW5rcywNCi1Ub3NoaQpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
+aXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1h
+bi9saXN0aW5mby9saW51eC1udmRpbW0K
