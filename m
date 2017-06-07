@@ -1,45 +1,88 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH] acpi: handle the acpi hotplug schedule error
-Date: Wed, 7 Jun 2017 11:36:55 +0300
-Message-ID: <CAHp75Vdeagae37PHoD4yw4dncFQJ2tmuxRu0zzbH_b+SnY4pEQ@mail.gmail.com>
-References: <20170607060527.23407-1-jlee@suse.com>
+Subject: Re: [RFC PATCH] acpi: indicate to platform when hot remove returns busy
+Date: Wed, 7 Jun 2017 11:50:13 +0300
+Message-ID: <CAHp75VcmMcxVT3LZNU2Vr2qNGigkNUoa3BFJmyE+WSvPG6QCwg@mail.gmail.com>
+References: <20170607060727.23712-1-jlee@suse.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f173.google.com ([209.85.220.173]:33586 "EHLO
-        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751428AbdFGIg4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 04:36:56 -0400
-In-Reply-To: <20170607060527.23407-1-jlee@suse.com>
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:36278 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751207AbdFGIuP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 04:50:15 -0400
+In-Reply-To: <20170607060727.23712-1-jlee@suse.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
 Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>
 
-On Wed, Jun 7, 2017 at 9:05 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
-> Kernel should decrements the reference count of acpi device
-> when scheduling acpi hotplug work is failed, and also evaluates
-> _OST to notify BIOS the failure.
+On Wed, Jun 7, 2017 at 9:07 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
+> In hotplug logic, it always indicates non-specific failure to
+> platform through _OST when handing acpi hot-remove event failed. Then
+> platform terminates the hot-remove process but it can not identify
+> the reason.
+>
+> Base on current hot-remove code, there have two situations that it
+> returns busy:
+>  - OSPM try to offline an individual device, but the device offline
+>    function returns busy.
+>  - When the ejection event is applied to an "not offlined yet" container.
+>    OSPM send kobject change event to userspace and returns busy.
+>
+> Both of them will returns -EBUSY to acpi device hotplug function then
+> hotplug function indicates non-specific failure to platform just like
+> any other error, e.g. -ENODEV or -EIO.
+>
+> The benefit to platform for identifying the OS busy state is that
+> platform can be applied different approach to handle the busy but
+> not just terminate the hot-remove process by unknow reason. For
+> example, platform can wait for a while then triggers hot-remove
+> again.
+>
+> This RFC patch adds one more parameter to the handler function of
+> acpi generic hotplug event to give the function a chance to propose
+> the return code of _OST. In this case, it sets ost return code to
+> ACPI_OST_SC_DEVICE_BUSY when the acpi hot remove function returns
+> -EBUSY.
 
-> -       if (hotplug_event && ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
-> -               return;
-> +       if (hotplug_event) {
-> +               if (ACPI_FAILURE(acpi_hotplug_schedule(adev, type))) {
-> +                       acpi_bus_put_acpi_device(adev);
-> +                       goto err;
-> +               } else {
-> +                       return;
-> +               }
-> +       }
+> -static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
+> +static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type,
+> +                                     u32 *ost_code)
+>  {
+> +       int error = -EINVAL;
+> +
+>         switch (type) {
+>         case ACPI_NOTIFY_BUS_CHECK:
+>                 return acpi_scan_bus_check(adev);
+> @@ -389,9 +392,11 @@ static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
+>                 }
+>                 acpi_evaluate_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
+>                                   ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+> -               return acpi_scan_hot_remove(adev);
+> +               error = acpi_scan_hot_remove(adev);
+> +               if (error == -EBUSY && ost_code)
+> +                       *ost_code = ACPI_OST_SC_DEVICE_BUSY;
+>         }
+> -       return -EINVAL;
+> +       return error;
+>  }
+>
+>  void acpi_device_hotplug(struct acpi_device *adev, u32 src)
+> @@ -413,7 +418,7 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
+>         if (adev->flags.is_dock_station) {
+>                 error = dock_notify(adev, src);
+>         } else if (adev->flags.hotplug_notify) {
+> -               error = acpi_generic_hotplug_event(adev, src);
+> +               error = acpi_generic_hotplug_event(adev, src, &ost_code);
+>                 if (error == -EPERM) {
+>                         ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
 
-Wouldn't be simpler to
-
--               return;
-+               goto err_put_device;
-
-+ err_put_device:
-+       acpi_bus_put_acpi_device(adev);
- err:
+Looking again to the code I still think you may easily do all stuff
+here in shorter and cleaner manner.
+Do we anticipate that there will be more callers that would like to
+get ost_code for one specific type of event?
+Above intrusion to the acpi_generic_hotplug_event() looks to me like
+non-generic hack.
 
 -- 
 With Best Regards,
