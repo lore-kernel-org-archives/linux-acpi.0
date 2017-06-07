@@ -1,59 +1,55 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH] Add support of NVDIMM memory error notification in ACPI
- 6.2
-Date: Wed, 7 Jun 2017 21:33:31 +0000
-Message-ID: <1496871186.9288.3.camel@hpe.com>
-References: <20170607184947.18733-1-toshi.kani@hpe.com>
-         <CAPcyv4i7bLU17QEmdUBQrtWP3AZxPRyKK0NN105XrTj8K3nAAQ@mail.gmail.com>
-         <1496869051.9288.1.camel@hpe.com>
-         <CAPcyv4hwhRc6+JW8m3zVn_tKz__wE9BHOfpjy69RS6OwiqV-PA@mail.gmail.com>
+From: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?=
+        <jerome.debretagne@gmail.com>
+Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
+ recent Dell laptops
+Date: Thu, 8 Jun 2017 01:05:44 +0200
+Message-ID: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3425.houston.hpe.com ([15.241.140.78]:5300 "EHLO
-        g4t3425.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751072AbdFGVeH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 17:34:07 -0400
-In-Reply-To: <CAPcyv4hwhRc6+JW8m3zVn_tKz__wE9BHOfpjy69RS6OwiqV-PA@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <343E154C7E43AF46AFC6168967726141@NAMPRD84.PROD.OUTLOOK.COM>
+Received: from mail-io0-f170.google.com ([209.85.223.170]:35324 "EHLO
+        mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753067AbdFGXGb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 19:06:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario_limonciello@dell.com>
 
-T24gV2VkLCAyMDE3LTA2LTA3IGF0IDE0OjA2IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIFdlZCwgSnVuIDcsIDIwMTcgYXQgMTo1NyBQTSwgS2FuaSwgVG9zaGltaXRzdSA8dG9zaGku
-a2FuaUBocGUuY29tPg0KPiB3cm90ZToNCj4gPiBPbiBXZWQsIDIwMTctMDYtMDcgYXQgMTI6MDkg
-LTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4gPiA+IE9uIFdlZCwgSnVuIDcsIDIwMTcgYXQg
-MTE6NDkgQU0sIFRvc2hpIEthbmkgPHRvc2hpLmthbmlAaHBlLmNvbT4NCj4gPiA+IHdyb3RlOg0K
-PiA+IA0KPiA+IMKgOg0KPiA+ID4gPiArDQo+ID4gPiA+ICtzdGF0aWMgdm9pZCBhY3BpX25maXRf
-dWNfZXJyb3Jfbm90aWZ5KHN0cnVjdCBkZXZpY2UgKmRldiwNCj4gPiA+ID4gYWNwaV9oYW5kbGUg
-aGFuZGxlKQ0KPiA+ID4gPiArew0KPiA+ID4gPiArwqDCoMKgwqDCoMKgwqBzdHJ1Y3QgYWNwaV9u
-Zml0X2Rlc2MgKmFjcGlfZGVzYyA9DQo+ID4gPiA+IGRldl9nZXRfZHJ2ZGF0YShkZXYpOw0KPiA+
-ID4gPiArDQo+ID4gPiA+ICvCoMKgwqDCoMKgwqDCoGFjcGlfbmZpdF9hcnNfcmVzY2FuKGFjcGlf
-ZGVzYyk7DQo+ID4gPiANCj4gPiA+IEkgd29uZGVyIGlmIHdlIHNob3VsZCBnYXRlIHJlLXNjYW5u
-aW5nIHdpdGggYSBzaW1pbGFyOg0KPiA+ID4gDQo+ID4gPiDCoMKgwqDCoGlmIChhY3BpX2Rlc2Mt
-PnNjcnViX21vZGUgPT0gSFdfRVJST1JfU0NSVUJfT04pDQo+ID4gPiANCj4gPiA+IC4uLmNoZWNr
-IHRoYXQgd2UgZG8gaW4gdGhlIG1jZSBub3RpZmljYXRpb24gY2FzZT8gTWF5YmUgbm90IHNpbmNl
-DQo+ID4gPiB3ZQ0KPiA+ID4gZG9uJ3QgZ2V0IGFuIGluZGljYXRpb24gb2Ygd2hlcmUgdGhlIGVy
-cm9yIGlzIHdpdGhvdXQgYSByZXNjYW4uDQo+ID4gDQo+ID4gSSB0aGluayB0aGlzIG1jZSBjYXNl
-IGlzIGRpZmZlcmVudCBzaW5jZSB0aGUgTUNFIGhhbmRsZXIgYWxyZWFkeQ0KPiA+IGtub3dzIHdo
-ZXJlIHRoZSBuZXcgcG9pc29uIGxvY2F0aW9uIGlzIGFuZCBjYW4gdXBkYXRlIGJhZGJsb2Nrcw0K
-PiA+IGluZm9ybWF0aW9uIGZvciBpdC7CoMKgU3RhcnRpbmcgQVJTIGlzIGFuIG9wdGlvbmFsIHBy
-ZWNhdXRpb24uDQo+ID4gDQo+ID4gPiBIb3dldmVyLCBhdCBhIG1pbmltdW0gSSB0aGluayB3ZSBu
-ZWVkIHN1cHBvcnQgZm9yIHRoZSBuZXcgU3RhcnQNCj4gPiA+IEFSUyBmbGFnICgiSWYgc2V0IHRv
-IDEgdGhlIGZpcm13YXJlIHNoYWxsIHJldHVybiBkYXRhIGZyb20gYQ0KPiA+ID4gcHJldmlvdXMg
-c2NydWIsIGlmIGFueSwgd2l0aG91dCBzdGFydGluZyBhIG5ldyBzY3J1YiIpIGFuZCB1c2UNCj4g
-PiA+IHRoYXQgZm9yIHRoaXMgY2FzZS4NCj4gPiANCj4gPiBUaGF0J3MgYW4gaW50ZXJlc3Rpbmcg
-aWRlYS7CoMKgQnV0IEkgd29uZGVyIGhvdyB1c2VycyBrbm93IGlmIGl0IGlzDQo+ID4gT0sgdG8g
-c2V0IHRoaXMgZmxhZyBhcyBpdCByZWxpZXMgb24gQklPUyBpbXBsZW1lbnRhdGlvbiB0aGF0IGlz
-IG5vdA0KPiA+IGRlc2NyaWJlZCBpbiBBQ1BJLi4uDQo+IA0KPiBVZ2gsIHlvdSdyZSByaWdodC4g
-V2UgbWlnaHQgbmVlZCBhIHJldmlzaW9uLWlkPTIgdmVyc2lvbiBvZiBTdGFydCBBUlMNCj4gc28g
-c29mdHdhcmUga25vd3MgdGhhdCB0aGUgQklPUyBpcyBhd2FyZSBvZiB0aGUgbmV3IGZsYWcuDQoN
-Ck15IGJhZC4gIExvb2tpbmcgYXQgQUNQSSA2LjIsIGl0IGFjdHVhbGx5IGRlZmluZXMgd2hhdCB5
-b3UgZGVzY3JpYmVkLiANClN0YXJ0IEFSUyBub3cgZGVmaW5lcyBiaXRbMV0gaW4gRmxhZ3Mgd2hp
-Y2ggY2FuIGJlIHNldCB0byBhdm9pZA0Kc2Nhbm5pbmcgZm9yIHRoaXMgbm90aWZpY2F0aW9uLiAg
-SSB3aWxsIHVwZGF0ZSB0aGUgcGF0Y2ggdG8gc2V0IHRoaXMNCmZsYWcgd2hlbiBIV19FUlJPUl9T
-Q1JVQl9PTiBpcyBub3Qgc2V0Lg0KDQpUaGFua3MsDQotVG9zaGk=
+Hi,
+
+Here is some feedback for Dell Latitude 7275, as suggested by Srinivas
+in https://bugzilla.kernel.org/show_bug.cgi?id=3D195897#c15 .
+
+For some context on that model, suspend-to-RAM is not safe as the
+system hangs (raised in the above bug report). I'm wondering if this
+is expected somehow, due to S3 not being supported on that model, as
+discussed for the XPS 13 9365. Maybe Mario or someone else from Dell
+would be able to confirm this point.
+
+While it's not set by default, suspend-to-idle works fine. However the
+power button needs a very long press of about 6-7s to trigger the
+wake-up (quite surprising at first).
+
+I've applied Rafael's patch series on 4.12-rc4, with the 3rd patch
+modified to add the Latitude 7275 DMI values, to check if the proposed
+fix for the XPS 13 9360 and 9365 could also work for this other quite
+recent Dell model.
+
+Sadly with the latest BIOS 1.1.31, this patch set doesn't seem to
+change anything: the long press is still needed.
+
+Surprisingly and more for reference I suppose, this patch set works as
+intended with an older BIOS 1.1.20 : the system can then be woken up
+from system-to-idle with a usual short press. Cf.
+https://bugzilla.kernel.org/show_bug.cgi?id=3D195897#c9 for more details
+about why I've downgraded to and tested that specific older BIOS.
+
+I'm wondering if there could be ways to modify slightly this patch
+series to also cover the Latitude 7275 when running the current BIOS.
+If I can provide any inputs that could be useful to investigate,
+please let me know.
+
+Thanks,
+J=C3=A9rome
