@@ -1,67 +1,66 @@
-From: Dave Young <dyoung@redhat.com>
-Subject: Re: PROBLEM: Kernel panic on EFI BGRT early init code (kernel
- 4.11/4.12rc2) [regression]
-Date: Wed, 7 Jun 2017 16:57:16 +0800
-Message-ID: <20170607085716.GA24648@dhcp-128-65.nay.redhat.com>
-References: <86c36f9b-f633-3354-d676-7693f35dae0d@gmail.com>
- <20170526012342.GA3096@dhcp-128-65.nay.redhat.com>
- <a32eea98-9576-1ee7-c27a-b165204d825f@gmail.com>
- <20170527051427.GA3492@dhcp-128-65.nay.redhat.com>
- <20170527053457.GB3492@dhcp-128-65.nay.redhat.com>
- <df8e83f9-9362-b5b5-462d-b11980baac01@gmail.com>
- <20170601015621.GA4306@dhcp-128-65.nay.redhat.com>
- <e6d656c0-c76b-42c3-8413-0198efb8a33a@gmail.com>
- <20170602025155.GA3637@dhcp-128-65.nay.redhat.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3 1/5] acpi,
+	nfit: Switch to use new generic UUID API
+Date: Wed, 07 Jun 2017 12:37:51 +0300
+Message-ID: <1496828271.22624.38.camel@linux.intel.com>
+References: <20170605164046.82676-1-andriy.shevchenko@linux.intel.com>
+ <20170605164046.82676-2-andriy.shevchenko@linux.intel.com>
+ <CAPcyv4h4PY1JBxTB6Powf2y2uiHAZ4QtnZG16bBzdQqsQ2KAYQ@mail.gmail.com>
+ <1496682642.22624.23.camel@linux.intel.com> <20170605212250.GA3772@lst.de>
+ <1496816744.6978.6.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32772 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750739AbdFGI5X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Jun 2017 04:57:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20170602025155.GA3637@dhcp-128-65.nay.redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <1496816744.6978.6.camel@intel.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "hch@lst.de" <hch@lst.de>
+Cc: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bp@suse.de" <bp@suse.de>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Maniaxx <tripleshiftone@gmail.com>
-Cc: linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 06/02/17 at 10:51am, Dave Young wrote:
-> On 06/01/17 at 09:13pm, Maniaxx wrote:
-> > On 01.06.2017 at 03:57 wrote Dave Young:
-> > > This means the efi_bgrt_init failed out originally before the early init BGRT
-> > > patch. Checking the code the only difference is current code we have no
-> > > below code:
-> > > 
-> > >         status = acpi_get_table("BGRT", 0,
-> > >                                 (struct acpi_table_header **)&bgrt_tab);
-> > >         if (ACPI_FAILURE(status))
-> > >                 return;
-> > > 
-> > > So probably acpi_get_table has some more sanity checking and it failed
-> > > early. Can you add a printk before above return to confirm it? Just test
-> > > the old kernel without early init BGRT patch.
-> > 
-> > Doesn't fail early. I can see the printk.
-> 
-> Since you do not see /sys/firmware/acpi/bgrt, that means there must be
-> somewhere failed early so bgrt image sysfs files are not created.
-> for old kernel arch/x86/platform/efi/efi-bgrt.c copy the bgrt image
-> then drivers/acpi/bgrt.c will populate the image in sysfs.
-> 
-> Can you do more debugging ie. adding more printk see why bgrt image
-> sysfs dir is not created?
-> 
-> If we get the reason then we can start to see what we missed in new
-> code.
-
-Please ignore the request, I observed in your old kernel boot log there
-is a ioremap error message about invalid physical address, so that is
-clear since ioremap failed then efi_bgrt_init bails out.
-
-In new code we use early_memremap, it seems lacks of checking invalid
-physical address, The firmware provides garbage in efi bgrt image
-addresses, I will work on a fix for this. 
-
-Thanks
-Dave
+T24gV2VkLCAyMDE3LTA2LTA3IGF0IDA2OjI1ICswMDAwLCBXaWxsaWFtcywgRGFuIEogd3JvdGU6
+Cj4gT24gTW9uLCAyMDE3LTA2LTA1IGF0IDIzOjIyICswMjAwLCBDaHJpc3RvcGggSGVsbHdpZyB3
+cm90ZToKPiA+IE9uIE1vbiwgSnVuIDA1LCAyMDE3IGF0IDA4OjEwOjQyUE0gKzAzMDAsIEFuZHkg
+U2hldmNoZW5rbyB3cm90ZToKPiA+ID4gCj4gPiA+IEkgaG9wZSBDaHJpc3RvcGggY2FuIHJlcGxh
+Y2Ugb2xkIHZlcnNpb24gb2YgdGhpcyBzZXJpZXMgd2l0aCBuZXcKPiA+ID4gb25lIGluCj4gPiA+
+IGhpcyB1dWlkIGJyYW5jaC4gVVJMIGluIGNvdmVyIGxldHRlciwgcmVwZWF0aW5nIGZvciB5b3Vy
+Cj4gPiA+IGNvbnZlbmllbmNlOgo+ID4gPiAKPiA+ID4gWzFdOiBnaXQ6Ly9naXQuaW5mcmFkZWFk
+Lm9yZy91c2Vycy9oY2gvdXVpZC5naXQKPiA+IAo+ID4gWWVhaCwgYnV0IEkgaGFkIHRvIGRyb3Ag
+aXQgYWdhaW4gYWZ0ZXIgbm90aWNpbmcgdGhlIGd1aWRfZXF1YWxzCj4gPiBiaXRzLAo+ID4gYW5k
+IGFmdGVyIG5vdCBmaXhpbmcgdXAgdGhlIEdVSUQgLT4gR1VJRF9JTklUIHJlbmFtZS4KPiA+IAo+
+ID4gZm9yLW5leHQgaW4gdGhlIGFib3ZlIHJlcG8gc2hvdWxkIGhhdmUgdGhlIHByb3BlciBiYXNl
+IG5vdywgYW5kIGFjcGkKPiA+IGhhcyB0aGUgQUNQSSBiaXRzIGZvciBEYW4gdG8gdGVzdC4KPiAK
+PiBXaXRoIG9uZSBjb21waWxlIGZpeCBiZWxvdyB0aGUgJ2FjcGknIGJyYW5jaCB3b3JrcyBmb3Ig
+bWUuIFBsZWFzZSBmZWVsCj4gZnJlZSB0byBhZGQ6Cj4gCj4gVGVzdGVkLWJ5OiBEYW4gV2lsbGlh
+bXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KClRoYW5rcywgRGFuIQoKSSBwcm9iYWJseSBt
+aXNzZWQgc29tZSBjb25maWd1cmF0aW9uIG9wdGlvbiBzaW5jZSBJIGhhdmUgZG9uZQpjb21waWxh
+dGlvbiBtYW55IHRpbWVzLgoKPiAKPiAuLi50byB0aGUgY2hhbmdlcyB0aGF0IHRvdWNoIGRyaXZl
+cnMvYWNwaS9uZml0LywgZHJpdmVycy9udmRpbW0vLCBhbmQKPiB0b29scy90ZXN0aW5nL252ZGlt
+bSwgYnV0IEknbSBvayBpZiB5b3Ugb21pdCBpdCBpZiB0aGUgYnJhbmNoIGlzIGFib3V0Cj4gdG8g
+Z28gaW1tdXRhYmxlLiBTcGVha2luZyBvZiB3aGljaCwgbGV0IG1lIGtub3cgd2hlbiBpdCBkb2Vz
+IGdvCj4gaW1tdXRhYmxlIGJlY2F1c2UgdGhlIG5ldyBsaWJudmRpbW0gZW5hYmxpbmcgZm9yIEFD
+UEkgNi4yIGFuZCBFRkkgMi43Cj4gbmVlZHMgc29tZSBuZXcgZ3VpZCBoYW5kbGluZyBjb2RlLgo+
+IAoKPiBQbGVhc2UgYXBwbHkgdGhlIGZvbGxvd2luZyBvciBmb2xkIGl0IGludG8gY29tbWl0wqBj
+NzkzZWQ3Y2NmNDIgIkFDUEk6Cj4gU3dpdGNoIHRvIHVzZSBnZW5lcmljIGd1aWRfdCBpbiBhY3Bp
+X2V2YWx1YXRlX2RzbSgpIgoKSXQgdGhpbmsgd2UgbWF5IGZvbGQgaXQuCgpCZXNpZGVzIHRoYXQg
+d2UgbWlnaHQgbmVlZCB0aGUgZm9sbG93aW5nIGZpeCBhcyB3ZWxsLgoKLS0tIGEvZHJpdmVycy9h
+Y3BpL3V0aWxzLmMKKysrIGIvZHJpdmVycy9hY3BpL3V0aWxzLmMKQEAgLTYzOCw3ICs2MzgsNyBA
+QCBhY3BpX2V2YWx1YXRlX2RzbShhY3BpX2hhbmRsZSBoYW5kbGUsIGNvbnN0IGd1aWRfdAoqZ3Vp
+ZCwgdTY0IHJldiwgdTY0IGZ1bmMsCsKgCsKgCXBhcmFtc1swXS50eXBlID0gQUNQSV9UWVBFX0JV
+RkZFUjsKwqAJcGFyYW1zWzBdLmJ1ZmZlci5sZW5ndGggPSAxNjsKLQlwYXJhbXNbMF0uYnVmZmVy
+LnBvaW50ZXIgPSAodTggKikmZ3VpZDsKKwlwYXJhbXNbMF0uYnVmZmVyLnBvaW50ZXIgPSAodTgg
+KilndWlkOwrCoAlwYXJhbXNbMV0udHlwZSA9IEFDUElfVFlQRV9JTlRFR0VSOwogCXBhcmFtc1sx
+XS5pbnRlZ2VyLnZhbHVlID0gcmV2OwogCXBhcmFtc1syXS50eXBlID0gQUNQSV9UWVBFX0lOVEVH
+RVI7CgotLSAKQW5keSBTaGV2Y2hlbmtvIDxhbmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5j
+b20+CkludGVsIEZpbmxhbmQgT3kKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8v
+aW50ZWwtZ2Z4Cg==
