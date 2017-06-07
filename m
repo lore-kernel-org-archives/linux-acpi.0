@@ -1,63 +1,98 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose embedded WMI MOF metadata
-Date: Wed, 7 Jun 2017 19:39:25 +0200
-Message-ID: <201706071939.25681@pali>
-References: <cover.1495862272.git.dvhart@infradead.org> <8aa135f430b441eb82614b22d662d1ff@ausx13mpc120.AMER.DELL.COM> <20170606135621.GC4690@pali>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1625338.1nyMpfXXsq";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33792 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751433AbdFGRja (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 13:39:30 -0400
-In-Reply-To: <20170606135621.GC4690@pali>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH] Add support of NVDIMM memory error notification in ACPI 6.2
+Date: Wed,  7 Jun 2017 12:49:47 -0600
+Message-ID: <20170607184947.18733-1-toshi.kani@hpe.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dan.j.williams@intel.com
+Cc: rjw@rjwysocki.net, vishal.l.verma@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mario.Limonciello@dell.com
-Cc: luto@amacapital.net, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, andriy.shevchenko@linux.intel.com, luto@kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
---nextPart1625338.1nyMpfXXsq
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+ACPI 6.2 defines a new ACPI notification value to NVDIMM Root Device
+in Table 5-169.
 
-On Tuesday 06 June 2017 15:56:21 Pali Roh=C3=A1r wrote:
-> On Tuesday 06 June 2017 13:46:16 Mario.Limonciello@dell.com wrote:
-> > 2) On my system when you expand the arguments for "void DoBFn" the
-> > source doesn't describe individual arguments like you do. Again
-> > this might not matter to MOF parsing tools but wanted to let you
-> > know in case it does.
->=20
-> I know, this part is missing. Order of arguments are only in ID
-> qualifier and not sorted + in/out de-duplicated.
+ 0x81 Unconsumed Uncorrectable Memory Error Detected
+      Used to pro-actively notify OSPM of uncorrectable memory errors
+      detected (for example a memory scrubbing engine that continuously
+      scans the NVDIMMs memory). This is an optional notification. Only
+      locations that were mapped in to SPA by the platform will generate
+      a notification.
 
-Implemented! Now arguments are correctly placed based on ID qualifier.
+Add support of this notification value by initiating an ARS scan. This
+will find new error locations and add their badblocks information.
 
-> > source:
-> > 	void DoBFn([in, out, Description("Fn buf")] BDat Data);
-> >=20
-> > bmf2mof:
-> > 	void doBFn([in, Description("Fn buf"), ID(0)] BDat Data, [out,
-> > 	Description("Fn buf"), ID(0)] BDat Data);
+Link: http://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/acpi/nfit/core.c |   28 ++++++++++++++++++++++------
+ drivers/acpi/nfit/nfit.h |    1 +
+ 2 files changed, 23 insertions(+), 6 deletions(-)
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1625338.1nyMpfXXsq
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlk4Ok0ACgkQi/DJPQPkQ1JjzwCdFg4CIAQUKKt6pRxU748j3kHx
-iakAoMytEZ7DNq4mMduutdSfxpr4BaHp
-=Sap/
------END PGP SIGNATURE-----
-
---nextPart1625338.1nyMpfXXsq--
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 656acb5..cc22778 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2967,7 +2967,7 @@ static int acpi_nfit_remove(struct acpi_device *adev)
+ 	return 0;
+ }
+ 
+-void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
++static void acpi_nfit_update_notify(struct device *dev, acpi_handle handle)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(dev);
+ 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+@@ -2975,11 +2975,6 @@ void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
+ 	acpi_status status;
+ 	int ret;
+ 
+-	dev_dbg(dev, "%s: event: %d\n", __func__, event);
+-
+-	if (event != NFIT_NOTIFY_UPDATE)
+-		return;
+-
+ 	if (!dev->driver) {
+ 		/* dev->driver may be null if we're being removed */
+ 		dev_dbg(dev, "%s: no driver found for dev\n", __func__);
+@@ -3016,6 +3011,27 @@ void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
+ 		dev_err(dev, "Invalid _FIT\n");
+ 	kfree(buf.pointer);
+ }
++
++static void acpi_nfit_uc_error_notify(struct device *dev, acpi_handle handle)
++{
++	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(dev);
++
++	acpi_nfit_ars_rescan(acpi_desc);
++}
++
++void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
++{
++	dev_dbg(dev, "%s: event: 0x%x\n", __func__, event);
++
++	switch (event) {
++	case NFIT_NOTIFY_UPDATE:
++		return acpi_nfit_update_notify(dev, handle);
++	case NFIT_NOTIFY_UC_MEMORY_ERROR:
++		return acpi_nfit_uc_error_notify(dev, handle);
++	default:
++		return;
++	}
++}
+ EXPORT_SYMBOL_GPL(__acpi_nfit_notify);
+ 
+ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 58fb7d6..6cf9d21 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -80,6 +80,7 @@ enum {
+ 
+ enum nfit_root_notifiers {
+ 	NFIT_NOTIFY_UPDATE = 0x80,
++	NFIT_NOTIFY_UC_MEMORY_ERROR = 0x81,
+ };
+ 
+ enum nfit_dimm_notifiers {
