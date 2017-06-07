@@ -1,55 +1,47 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v6 0/3] Preparation for further fwnode property cleanup
-Date: Wed, 7 Jun 2017 14:42:45 +0300
-Message-ID: <20170607114244.GX1019@valkosipuli.retiisi.org.uk>
-References: <1495637635-26057-1-git-send-email-sakari.ailus@linux.intel.com>
- <20170531122849.GG1019@valkosipuli.retiisi.org.uk>
- <CAL_JsqJtB-UVNLo3SM6apB-MODOSWwZzgeAE+ifsmT7U-5WJmw@mail.gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH V17 00/11] Add UEFI 2.6 and ACPI 6.1 updates for RAS on
+ ARM64
+Date: Wed, 7 Jun 2017 12:50:12 +0100
+Message-ID: <20170607115012.GZ30263@arm.com>
+References: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45298 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751481AbdFGLn3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 07:43:29 -0400
+Received: from foss.arm.com ([217.140.101.70]:59790 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751481AbdFGLuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 7 Jun 2017 07:50:05 -0400
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqJtB-UVNLo3SM6apB-MODOSWwZzgeAE+ifsmT7U-5WJmw@mail.gmail.com>
+In-Reply-To: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Al Stone <ahs3@redhat.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, Suzuki.Poulose@arm.
 
-Hi Rob / Frank,
+On Fri, May 19, 2017 at 02:32:02PM -0600, Tyler Baicar wrote:
+> When a memory error, CPU error, PCIe error, or other type of hardware error
+> that's covered by RAS occurs, firmware should populate the shared GHES memory
+> location with the proper GHES structures to notify the OS of the error.
+> For example, platforms that implement firmware first handling may implement
+> separate GHES sources for corrected errors and uncorrected errors. If the
+> error is an uncorrectable error, then the firmware will notify the OS
+> immediately since the error needs to be handled ASAP. The OS will then be able
+> to take the appropriate action needed such as offlining a page. If the error
+> is a corrected error, then the firmware will not interrupt the OS immediately.
+> Instead, the OS will see and report the error the next time it's GHES timer
+> expires. The kernel will first parse the GHES structures and report the errors
+> through the kernel logs and then notify the user space through RAS trace
+> events. This allows user space applications such as RAS Daemon to see the
+> errors and report them however the user desires. This patchset extends the
+> kernel functionality for RAS errors based on updates in the UEFI 2.6 and
+> ACPI 6.1 specifications.
 
-On Mon, Jun 05, 2017 at 10:12:24AM -0500, Rob Herring wrote:
-> > I figured out that others are starting to have patches that depend on my
-> > other patchsets getting merged. Those patches are for the fwnode property
-> > API that most likely should go through the linux-pm tree as well as for the
-> > media tree.
-> >
-> > <URL:http://www.spinics.net/lists/linux-media/msg115893.html>
-> >
-> > I have hopes of being able to get the fwnode cleanup patchset (which the
-> > aforementioned patches depend on) in within this merge window --- assuming I
-> > could have your ack on the OF portions.
-> >
-> > Would it be possible to have an immutable branch for these or would you
-> > accept a pull request on v4.12-rc1?
-> 
-> I've applied this series. The stable branch is here:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git dt/property-move
+Thanks, I've pushed this out as:
 
-Thanks you!
+  git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/ras-apei
 
-Could I still have yours / Frank's ack on the fwnode cleanup set patches
-2--4 that touch the OF framework, please (naturally assuming you're fine
-with them)?
+which I'll merge into for-next/core (and therefore linux-next) either the
+end of this week or the beginning of next week. Please take a look if you
+get a chance.
 
-<URL:http://www.spinics.net/lists/devicetree/msg179939.html>
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Will
