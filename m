@@ -1,65 +1,43 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v5] ACPICA: Tables: Add mechanism to allow to balance late
- stage acpi_get_table() independently
-Date: Tue, 6 Jun 2017 23:41:59 -0700
-Message-ID: <CAA9_cmdmokPM0+MSiMzGPzkvUkKPELrVyRPoO2bZZZoNJ2sr3w@mail.gmail.com>
-References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
- <cb1126b2eb1b83a5a97a33c1c5c37a02c32fd688.1496811175.git.lv.zheng@intel.com>
+From: Lennart Poettering <mzxreary@0pointer.de>
+Subject: Re: [WIP PATCH 0/4] Rework the unreliable LID
+ switch exported by ACPI
+Date: Wed, 7 Jun 2017 09:48:48 +0200
+Message-ID: <20170607074848.GE27006@gardel-login>
+References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f180.google.com ([74.125.82.180]:33178 "EHLO
-        mail-ot0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750868AbdFGGmB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 02:42:01 -0400
-In-Reply-To: <cb1126b2eb1b83a5a97a33c1c5c37a02c32fd688.1496811175.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <systemd-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/systemd-devel>
+List-Post: <mailto:systemd-devel@lists.freedesktop.org>
+List-Help: <mailto:systemd-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: systemd-devel-bounces@lists.freedesktop.org
+Sender: "systemd-devel" <systemd-devel-bounces@lists.freedesktop.org>
+To: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Cc: Len Brown <len.brown@intel.com>, systemd-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Lv Zheng <zetalog@gmail.com>, Lv Zheng <lv.zheng@intel.com>, linux-input@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Tue, Jun 6, 2017 at 9:54 PM, Lv Zheng <lv.zheng@intel.com> wrote:
-> Considering this case:
-> 1. A program opens a sysfs table file 65535 times, it can increase
->    validation_count and first increment cause the table to be mapped:
->     validation_count = 65535
-> 2. AML execution causes "Load" to be executed on the same table, this time
->    it cannot increase validation_count, so validation_count remains:
->     validation_count = 65535
-> 3. The program closes sysfs table file 65535 times, it can decrease
->    validation_count and the last decrement cause the table to be unmapped:
->     validation_count = 0
-> 4. AML code still accessing the loaded table, kernel crash can be observed.
->
-> This is because orginally ACPICA doesn't support unmapping tables during
-> OS late stage. So the current code only allows unmapping tables during OS
-> early stage, and for late stage, no acpi_put_table() clones should be
-> invoked, especially cases that can trigger frequent invocations of
-> acpi_get_table()/acpi_put_table() are forbidden:
-> 1. sysfs table accesses
-> 2. dynamic Load/Unload opcode executions
-> 3. acpi_load_table()
-> 4. etc.
-> Such frequent acpi_put_table() balance changes have to be done altogether.
->
-> This philosophy is not convenient for Linux driver writers. Since the API
-> is just there, developers will start to use acpi_put_table() during late
-> stage. So we need to consider a better mechanism to allow them to safely
-> invoke acpi_put_table().
->
-> This patch provides such a mechanism by adding a validation_count
-> threashold. When it is reached, the validation_count can no longer be
-> incremented/decremented to invalidate the table descriptor (means
-> preventing table unmappings) so that acpi_put_table() balance changes can be
-> done independently to each others.
->
-> Note: code added in acpi_tb_put_table() is actually a no-op but changes the
-> warning message into a warning once message. Lv Zheng.
->
-
-This still seems to be unnecessary gymnastics to keep the validation
-count around and make it work for random drivers. Which ACPI tables
-might be hot removed? If it's only a small handful of tables why not
-teach the code that handles those exceptional cases to manage a
-dedicated reference count mechanism? That way the other cases can be
-left alone and not worry about balancing their references.
+T24gVGh1LCAwMS4wNi4xNyAyMDo0NiwgQmVuamFtaW4gVGlzc29pcmVzIChiZW5qYW1pbi50aXNz
+b2lyZXNAcmVkaGF0LmNvbSkgd3JvdGU6Cgo+IEhpLAo+IAo+IFNlbmRpbmcgdGhpcyBhcyBhIFdJ
+UCBhcyBpdCBzdGlsbCBuZWVkIGEgZmV3IGNoYW5nZXMsIGJ1dCBpdCBtb3N0bHkgd29ya3MgYXMK
+PiBleHBlY3RlZCAoc3RpbGwgbm90IGZ1bGx5IGNvbXBsaWFudCB5ZXQpLgo+IAo+IFNvIHRoaXMg
+aXMgYmFzZWQgb24gTGVubmFydCdzIGNvbW1lbnQgaW4gWzFdOiBpZiB0aGUgTElEIHN0YXRlIGlz
+IG5vdCByZWxpYWJsZSwKPiB0aGUga2VybmVsIHNob3VsZCBub3QgZXhwb3J0IHRoZSBMSUQgc3dp
+dGNoIGRldmljZSBhcyBsb25nIGFzIHdlIGFyZSBub3Qgc3VyZQo+IGFib3V0IGl0cyBzdGF0ZS4K
+CkFoIG5pY2UhIEkgKG9idmlvdXNseSkgbGlrZSB0aGlzIGFwcHJvYWNoLgoKPiBOb3RlIHRoYXQg
+c3lzdGVtZCBjdXJyZW50bHkgZG9lc24ndCBzeW5jIHRoZSBzdGF0ZSB3aGVuIHRoZSBpbnB1dCBu
+b2RlIGp1c3QKPiBhcHBlYXJzLiBUaGlzIGlzIGEgc3lzdGVtZCBidWcsIGFuZCBpdCBzaG91bGQg
+bm90IGJlIGhhbmRsZWQgYnkgdGhlIGtlcm5lbAo+IGNvbW11bml0eS4KClVoIGlmIHRoaXMgaXMg
+Ym9ya2VkLCB3ZSBzaG91bGQgaW5kZWVkIGZpeCB0aGlzIGluIHN5c3RlbWQuIElzIHRoZXJlCmFs
+cmVhZHkgYSBzeXN0ZW1kIGdpdGh1YiBidWcgYWJvdXQgdGhpcz8gSWYgbm90LCBwbGVhc2UgY3Jl
+YXRlIG9uZSwKYW5kIHdlJ2xsIGxvb2sgaW50byBpdCEKClRoYW5rcyBmb3Igd29ya2luZyBvbiB0
+aGlzLAoKTGVubmFydAoKLS0gCkxlbm5hcnQgUG9ldHRlcmluZywgUmVkIEhhdApfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpzeXN0ZW1kLWRldmVsIG1haWxp
+bmcgbGlzdApzeXN0ZW1kLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3Rz
+LmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL3N5c3RlbWQtZGV2ZWwK
