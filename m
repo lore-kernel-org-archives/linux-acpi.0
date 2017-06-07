@@ -1,47 +1,46 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH V17 00/11] Add UEFI 2.6 and ACPI 6.1 updates for RAS on
- ARM64
-Date: Wed, 7 Jun 2017 12:50:12 +0100
-Message-ID: <20170607115012.GZ30263@arm.com>
-References: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v1 1/3] mfd: Add new mfd device TPS68470
+Date: Wed, 7 Jun 2017 14:58:30 +0300
+Message-ID: <20170607115827.GY1019@valkosipuli.retiisi.org.uk>
+References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
+ <1496750118-5570-2-git-send-email-rajmohan.mani@intel.com>
+ <CAHp75VfiTM2t=WxWpG4+kUfGA3DrfGfMOwxP6Cs42nGwHjAp7w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59790 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751481AbdFGLuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Jun 2017 07:50:05 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CAHp75VfiTM2t=WxWpG4+kUfGA3DrfGfMOwxP6Cs42nGwHjAp7w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Rajmohan Mani <rajmohan.mani@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, Suzuki.Poulose@arm.
 
-On Fri, May 19, 2017 at 02:32:02PM -0600, Tyler Baicar wrote:
-> When a memory error, CPU error, PCIe error, or other type of hardware error
-> that's covered by RAS occurs, firmware should populate the shared GHES memory
-> location with the proper GHES structures to notify the OS of the error.
-> For example, platforms that implement firmware first handling may implement
-> separate GHES sources for corrected errors and uncorrected errors. If the
-> error is an uncorrectable error, then the firmware will notify the OS
-> immediately since the error needs to be handled ASAP. The OS will then be able
-> to take the appropriate action needed such as offlining a page. If the error
-> is a corrected error, then the firmware will not interrupt the OS immediately.
-> Instead, the OS will see and report the error the next time it's GHES timer
-> expires. The kernel will first parse the GHES structures and report the errors
-> through the kernel logs and then notify the user space through RAS trace
-> events. This allows user space applications such as RAS Daemon to see the
-> errors and report them however the user desires. This patchset extends the
-> kernel functionality for RAS errors based on updates in the UEFI 2.6 and
-> ACPI 6.1 specifications.
+Hi Andy,
 
-Thanks, I've pushed this out as:
+On Tue, Jun 06, 2017 at 03:59:49PM +0300, Andy Shevchenko wrote:
+> On Tue, Jun 6, 2017 at 2:55 PM, Rajmohan Mani <rajmohan.mani@intel.com> wrote:
+> > The TPS68470 device is an advanced power management
+> > unit that powers a Compact Camera Module (CCM),
+> > generates clocks for image sensors, drives a dual
+> > LED for Flash and incorporates two LED drivers for
+> > general purpose indicators.
+> >
+> > This patch adds support for TPS68470 mfd device.
+> 
+> I dunno why you decide to send this out now, see my comments below.
+> 
+> > +static int tps68470_chip_init(struct tps68470 *tps)
+> > +{
+> > +       unsigned int version;
+> > +       int ret;
+> 
+> > +       /* FIXME: configure these dynamically */
+> 
+> So, what prevents you to fix this?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/ras-apei
+Nothing I suppose. They're however not needed right now and can be
+implemented later on if they're ever needed.
 
-which I'll merge into for-next/core (and therefore linux-next) either the
-end of this week or the beginning of next week. Please take a look if you
-get a chance.
-
-Will
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
