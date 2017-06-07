@@ -1,47 +1,97 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v1 3/3] ACPI / PMIC: Add TI PMIC TPS68470 operation region driver
-Date: Wed, 7 Jun 2017 23:40:27 +0300
-Message-ID: <CAHp75Vfz=5Siysbzmtyv8TUKs+S+EMBHd8T7zSV-vF+-FEoSaA@mail.gmail.com>
-References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
- <1496750118-5570-4-git-send-email-rajmohan.mani@intel.com>
- <CAHp75VcvV_AbLJCq9Rm_8yab3nViPm6ikxxme4oyw9vm4Kz7Gg@mail.gmail.com>
- <20170607121503.GA1019@valkosipuli.retiisi.org.uk> <CAHp75Vef=c54O8Xd+aM+eWWVt7nLsczT48WbgrdiOVyWv6xMcg@mail.gmail.com>
- <20170607201050.GE1019@valkosipuli.retiisi.org.uk>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose embedded WMI MOF metadata
+Date: Wed, 7 Jun 2017 22:50:25 +0200
+Message-ID: <201706072250.25953@pali>
+References: <cover.1495862272.git.dvhart@infradead.org> <201706071939.25681@pali> <bc0dbbfcb0084f758d28b9000fa9f9e0@ausx13mpc124.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:33983 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751425AbdFGUk2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 16:40:28 -0400
-In-Reply-To: <20170607201050.GE1019@valkosipuli.retiisi.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart13373760.eSfPYzL9aO";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <bc0dbbfcb0084f758d28b9000fa9f9e0@ausx13mpc124.AMER.DELL.COM>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mario.Limonciello@dell.com
+Cc: luto@amacapital.net, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, andriy.shevchenko@linux.intel.com, luto@kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Rajmohan Mani <rajmohan.mani@intel.com>, Hans de Goede <hdegoede@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-On Wed, Jun 7, 2017 at 11:10 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> On Wed, Jun 07, 2017 at 04:40:13PM +0300, Andy Shevchenko wrote:
->> On Wed, Jun 7, 2017 at 3:15 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
->> > On Tue, Jun 06, 2017 at 05:23:56PM +0300, Andy Shevchenko wrote:
+--nextPart13373760.eSfPYzL9aO
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
->> >> Follow the pattern, please, I suppose
->> >> ti_pmic_tps68470.c
->>
->> Would it work for you?
->
-> This is still a different driver from the tps68470 driver which is an MFD
-> driver. For clarity, I'd keep pmic as part of the name (and I'd use
-> tps68470_pmic_ prefix for internal symbols, too).
->
-> As PMICs are typically linked to the kernel (vs. being modules), there's no
-> issue with the module name. I would suppose few if any PMICs will be
-> compiled as modules in general.
->
-> It's not a big deal though. I'm fine either way.
+On Wednesday 07 June 2017 22:23:08 Mario.Limonciello@dell.com wrote:
+> > -----Original Message-----
+> > From: Pali Roh=C3=A1r [mailto:pali.rohar@gmail.com]
+> > Sent: Wednesday, June 7, 2017 12:39 PM
+> > To: Limonciello, Mario <Mario_Limonciello@Dell.com>
+> > Cc: luto@amacapital.net; dvhart@infradead.org; platform-driver-
+> > x86@vger.kernel.org; andriy.shevchenko@linux.intel.com;
+> > luto@kernel.org; rjw@rjwysocki.net; linux-kernel@vger.kernel.org;
+> > linux-acpi@vger.kernel.org Subject: Re: [PATCH 15/16]
+> > platform/x86: wmi-mof: New driver to expose embedded WMI MOF
+> > metadata
+> >=20
+> > On Tuesday 06 June 2017 15:56:21 Pali Roh=C3=A1r wrote:
+> > > On Tuesday 06 June 2017 13:46:16 Mario.Limonciello@dell.com wrote:
+> > > > 2) On my system when you expand the arguments for "void DoBFn"
+> > > > the source doesn't describe individual arguments like you do.
+> > > > Again this might not matter to MOF parsing tools but wanted to
+> > > > let you know in case it does.
+> > >=20
+> > > I know, this part is missing. Order of arguments are only in ID
+> > > qualifier and not sorted + in/out de-duplicated.
+> >=20
+> > Implemented! Now arguments are correctly placed based on ID
+> > qualifier.
+>=20
+> I think it's still off a little though.
+>=20
+> What I'm getting back now from bmf2mof is:
+> 	void DoBFn([in, Description("Fn buf"), out] BDat Data);
+>=20
+> Whereas source puts Description as the last argument:
+> 	void DoBFn([in, out, Description("Fn buf")] BDat Data);
 
-Okay, let's agree on  tps68470_pmic for internal prefix and for file name?
+In BMOF from my Latitude E6440 there are specified two parameters with=20
+index 0. One with qualifiers ("in", Description("Fn buf")) and one with=20
+("out", Description("Fn buf")). I think you have similar/same data in=20
+BMOF.
 
--- 
-With Best Regards,
-Andy Shevchenko
+In my bmf2mof I just combined those two parameters into one (when name,=20
+type and index matches) and concatenate also qualifiers with removing=20
+duplicates.
+
+Do not know what is correct way, but I think qualifiers are just=20
+unordered set. MS decompiler probably put "in" and "out" qualifiers=20
+before any other for better readability.
+
+> > > > source:
+> > > > 	void DoBFn([in, out, Description("Fn buf")] BDat Data);
+> > > >=20
+> > > > bmf2mof:
+> > > > 	void doBFn([in, Description("Fn buf"), ID(0)] BDat Data, [out,
+> > > > 	Description("Fn buf"), ID(0)] BDat Data);
+> >=20
+> > --
+> > Pali Roh=C3=A1r
+> > pali.rohar@gmail.com
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart13373760.eSfPYzL9aO
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlk4ZxEACgkQi/DJPQPkQ1KoNgCgnkpE0iqdhdvgE0K8Fie/Lqy3
+s60AnjxLxkon9s9cM11T89/dUfzoDtEK
+=KDLr
+-----END PGP SIGNATURE-----
+
+--nextPart13373760.eSfPYzL9aO--
