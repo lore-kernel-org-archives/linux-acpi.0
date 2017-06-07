@@ -1,243 +1,141 @@
-From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
-Subject: Re: [PATCH 2/2] acpi, gicv3-its, numa: Adding numa node mapping for
- gic-its units
-Date: Wed, 7 Jun 2017 09:09:39 +0530
-Message-ID: <CAFpQJXVRJH33NCJobF6oWUbJXkH0HChDmBYmVnSdSACdgf4mcw@mail.gmail.com>
-References: <1496753787-27735-1-git-send-email-ganapatrao.kulkarni@cavium.com> <1496753787-27735-3-git-send-email-ganapatrao.kulkarni@cavium.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v5] ACPICA: Tables: Add mechanism to allow to balance late stage acpi_get_table() independently
+Date: Wed,  7 Jun 2017 12:54:58 +0800
+Message-ID: <cb1126b2eb1b83a5a97a33c1c5c37a02c32fd688.1496811175.git.lv.zheng@intel.com>
+References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:35573 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751517AbdFGDjk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Jun 2017 23:39:40 -0400
-In-Reply-To: <1496753787-27735-3-git-send-email-ganapatrao.kulkarni@cavium.com>
+Received: from mga03.intel.com ([134.134.136.65]:62681 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751003AbdFGEzC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 7 Jun 2017 00:55:02 -0400
+In-Reply-To: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Jayachandran C <jnair@caviumnetworks.com>
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Adding  Lorenzo and  Hanzun.
+Considering this case:
+1. A program opens a sysfs table file 65535 times, it can increase
+   validation_count and first increment cause the table to be mapped:
+    validation_count = 65535
+2. AML execution causes "Load" to be executed on the same table, this time
+   it cannot increase validation_count, so validation_count remains:
+    validation_count = 65535
+3. The program closes sysfs table file 65535 times, it can decrease
+   validation_count and the last decrement cause the table to be unmapped:
+    validation_count = 0
+4. AML code still accessing the loaded table, kernel crash can be observed.
 
-On Tue, Jun 6, 2017 at 6:26 PM, Ganapatrao Kulkarni
-<ganapatrao.kulkarni@cavium.com> wrote:
-> Add code to parse SRAT ITS Affinity sub table as defined in ACPI 6.2
-> Later in driver probe, its devices are mapped to numa node
-> using its id to proximity domain mapping.
->
-> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-> ---
->  arch/arm64/include/asm/acpi.h    |  2 ++
->  arch/arm64/kernel/acpi_numa.c    | 59 ++++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/numa.c              | 32 +++++++++++++++++++++-
->  drivers/irqchip/irq-gic-v3-its.c |  3 +-
->  include/linux/acpi.h             |  3 ++
->  5 files changed, 97 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 0e99978..60ea7d1 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -143,9 +143,11 @@ static inline void arch_apei_flush_tlb_one(unsigned long addr)
->  #ifdef CONFIG_ACPI_NUMA
->  int arm64_acpi_numa_init(void);
->  int acpi_numa_get_nid(unsigned int cpu, u64 hwid);
-> +int acpi_numa_get_its_nid(u32 its_id);
->  #else
->  static inline int arm64_acpi_numa_init(void) { return -ENOSYS; }
->  static inline int acpi_numa_get_nid(unsigned int cpu, u64 hwid) { return NUMA_NO_NODE; }
-> +static inline int acpi_numa_get_its_nid(u32 its_id) { return NUMA_NO_NODE; }
->  #endif /* CONFIG_ACPI_NUMA */
->
->  #define ACPI_TABLE_UPGRADE_MAX_PHYS MEMBLOCK_ALLOC_ACCESSIBLE
-> diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
-> index f01fab6..f7b2ea6 100644
-> --- a/arch/arm64/kernel/acpi_numa.c
-> +++ b/arch/arm64/kernel/acpi_numa.c
-> @@ -29,15 +29,24 @@
->  #include <asm/numa.h>
->
->  static int cpus_in_srat;
-> +static int its_in_srat;
->
->  struct __node_cpu_hwid {
->         u32 node_id;    /* logical node containing this CPU */
->         u64 cpu_hwid;   /* MPIDR for this CPU */
->  };
->
-> +struct __node_its_id {
-> +       u32 node_id;    /* numa node id */
-> +       u32 its_id ;   /* GIC ITS ID */
-> +};
-> +
->  static struct __node_cpu_hwid early_node_cpu_hwid[NR_CPUS] = {
->  [0 ... NR_CPUS - 1] = {NUMA_NO_NODE, PHYS_CPUID_INVALID} };
->
-> +static struct __node_its_id early_node_its_id[MAX_NUMNODES] = {
-> +[0 ... MAX_NUMNODES - 1] = {NUMA_NO_NODE, UINT_MAX} };
-> +
->  int acpi_numa_get_nid(unsigned int cpu, u64 hwid)
->  {
->         int i;
-> @@ -50,6 +59,18 @@ int acpi_numa_get_nid(unsigned int cpu, u64 hwid)
->         return NUMA_NO_NODE;
->  }
->
-> +int acpi_numa_get_its_nid(u32 its_id)
-> +{
-> +       int i;
-> +
-> +       for (i = 0; i < its_in_srat; i++) {
-> +               if (its_id == early_node_its_id[i].its_id)
-> +                       return early_node_its_id[i].node_id;
-> +       }
-> +
-> +       return NUMA_NO_NODE;
-> +}
-> +
->  /* Callback for Proximity Domain -> ACPI processor UID mapping */
->  void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
->  {
-> @@ -100,6 +121,44 @@ void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
->                 pxm, mpidr, node);
->  }
->
-> +/* Callback for ITS ACPI Proximity Domain mapping */
-> +void __init acpi_numa_its_affinity_init(struct acpi_srat_its_affinity *pa)
-> +{
-> +       int pxm, node;
-> +
-> +       if (srat_disabled())
-> +               return;
-> +
-> +       if (pa->header.length < sizeof(struct acpi_srat_its_affinity)) {
-> +               pr_err("SRAT: Invalid SRAT header length: %d\n",
-> +                       pa->header.length);
-> +               bad_srat();
-> +               return;
-> +       }
-> +
-> +       if (its_in_srat >= MAX_NUMNODES) {
-> +               pr_warn_once("SRAT: its count exceeding max count[%d]\n",
-> +                            MAX_NUMNODES);
-> +               return;
-> +       }
-> +
-> +       pxm = pa->proximity_domain;
-> +       node = acpi_map_pxm_to_node(pxm);
-> +
-> +       if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
-> +               pr_err("SRAT: Too many proximity domains %d\n", pxm);
-> +               bad_srat();
-> +               return;
-> +       }
-> +
-> +       early_node_its_id[its_in_srat].node_id = node;
-> +       early_node_its_id[its_in_srat].its_id =  its_in_srat;
-> +       node_set(node, numa_nodes_parsed);
-> +       pr_info("SRAT: PXM %d -> ITS %d -> Node %d\n",
-> +               pxm, its_in_srat, node);
-> +       its_in_srat++;
-> +}
-> +
->  int __init arm64_acpi_numa_init(void)
->  {
->         int ret;
-> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-> index edb0c79..9c04dba 100644
-> --- a/drivers/acpi/numa.c
-> +++ b/drivers/acpi/numa.c
-> @@ -182,6 +182,16 @@ int acpi_map_pxm_to_online_node(int pxm)
->                 }
->                 break;
->
-> +       case ACPI_SRAT_TYPE_GIC_ITS_AFFINITY:
-> +               {
-> +                       struct acpi_srat_its_affinity *p =
-> +                           (struct acpi_srat_its_affinity *)header;
-> +                       pr_debug("SRAT ITS [0x%04x]) in proximity domain %d\n",
-> +                                p->its_id,
-> +                                p->proximity_domain);
-> +               }
-> +               break;
-> +
->         default:
->                 pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
->                         header->type);
-> @@ -390,6 +400,24 @@ static int __init acpi_parse_slit(struct acpi_table_header *table)
->         return 0;
->  }
->
-> +static int __init
-> +acpi_parse_its_affinity(struct acpi_subtable_header *header,
-> +                        const unsigned long end)
-> +{
-> +       struct acpi_srat_its_affinity *its_affinity;
-> +
-> +       its_affinity = (struct acpi_srat_its_affinity *)header;
-> +       if (!its_affinity)
-> +               return -EINVAL;
-> +
-> +       acpi_table_print_srat_entry(header);
-> +
-> +       /* let architecture-dependent part to do it */
-> +       acpi_numa_its_affinity_init(its_affinity);
-> +
-> +       return 0;
-> +}
-> +
->  static int __initdata parsed_numa_memblks;
->
->  static int __init
-> @@ -445,7 +473,7 @@ int __init acpi_numa_init(void)
->
->         /* SRAT: Static Resource Affinity Table */
->         if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
-> -               struct acpi_subtable_proc srat_proc[3];
-> +               struct acpi_subtable_proc srat_proc[4];
->
->                 memset(srat_proc, 0, sizeof(srat_proc));
->                 srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
-> @@ -454,6 +482,8 @@ int __init acpi_numa_init(void)
->                 srat_proc[1].handler = acpi_parse_x2apic_affinity;
->                 srat_proc[2].id = ACPI_SRAT_TYPE_GICC_AFFINITY;
->                 srat_proc[2].handler = acpi_parse_gicc_affinity;
-> +               srat_proc[3].id = ACPI_SRAT_TYPE_GIC_ITS_AFFINITY;
-> +               srat_proc[3].handler = acpi_parse_its_affinity;
->
->                 acpi_table_parse_entries_array(ACPI_SIG_SRAT,
->                                         sizeof(struct acpi_table_srat),
-> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-> index 45ea1933..84936da 100644
-> --- a/drivers/irqchip/irq-gic-v3-its.c
-> +++ b/drivers/irqchip/irq-gic-v3-its.c
-> @@ -1861,7 +1861,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
->                 goto dom_err;
->         }
->
-> -       err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
-> +       err = its_probe_one(&res, dom_handle,
-> +                       acpi_numa_get_its_nid(its_entry->translation_id));
->         if (!err)
->                 return 0;
->
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 137e4a3..e5e8ae3 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -260,9 +260,12 @@ int acpi_table_parse_madt(enum acpi_madt_type id,
->
->  #ifdef CONFIG_ARM64
->  void acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa);
-> +void acpi_numa_its_affinity_init(struct acpi_srat_its_affinity *pa);
->  #else
->  static inline void
->  acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa) { }
-> +static inline void
-> +acpi_numa_its_affinity_init(struct acpi_srat_its_affinity *pa) { }
->  #endif
->
->  int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
-> --
-> 1.8.1.4
->
+This is because orginally ACPICA doesn't support unmapping tables during
+OS late stage. So the current code only allows unmapping tables during OS
+early stage, and for late stage, no acpi_put_table() clones should be
+invoked, especially cases that can trigger frequent invocations of
+acpi_get_table()/acpi_put_table() are forbidden:
+1. sysfs table accesses
+2. dynamic Load/Unload opcode executions
+3. acpi_load_table()
+4. etc.
+Such frequent acpi_put_table() balance changes have to be done altogether.
+
+This philosophy is not convenient for Linux driver writers. Since the API
+is just there, developers will start to use acpi_put_table() during late
+stage. So we need to consider a better mechanism to allow them to safely
+invoke acpi_put_table().
+
+This patch provides such a mechanism by adding a validation_count
+threashold. When it is reached, the validation_count can no longer be
+incremented/decremented to invalidate the table descriptor (means
+preventing table unmappings) so that acpi_put_table() balance changes can be
+done independently to each others.
+
+Note: code added in acpi_tb_put_table() is actually a no-op but changes the
+warning message into a warning once message. Lv Zheng.
+
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/tbutils.c | 36 +++++++++++++++++++++++++++---------
+ include/acpi/actbl.h          | 13 +++++++++++++
+ 2 files changed, 40 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index cd96026..4048523 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -416,9 +416,19 @@ acpi_tb_get_table(struct acpi_table_desc *table_desc,
+ 		}
+ 	}
+ 
+-	table_desc->validation_count++;
+-	if (table_desc->validation_count == 0) {
+-		table_desc->validation_count--;
++	if (table_desc->validation_count < ACPI_MAX_TABLE_VALIDATIONS) {
++		table_desc->validation_count++;
++
++		/*
++		 * Ensure the warning message can only be displayed once. The
++		 * warning message occurs when the "get" operations are performed
++		 * more than "put" operations, causing count overflow.
++		 */
++		if (table_desc->validation_count >= ACPI_MAX_TABLE_VALIDATIONS) {
++			ACPI_WARNING((AE_INFO,
++				      "Table %p, Validation count overflows\n",
++				      table_desc));
++		}
+ 	}
+ 
+ 	*out_table = table_desc->pointer;
+@@ -445,13 +455,21 @@ void acpi_tb_put_table(struct acpi_table_desc *table_desc)
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_tb_put_table);
+ 
+-	if (table_desc->validation_count == 0) {
+-		ACPI_WARNING((AE_INFO,
+-			      "Table %p, Validation count is zero before decrement\n",
+-			      table_desc));
+-		return_VOID;
++	if (table_desc->validation_count < ACPI_MAX_TABLE_VALIDATIONS) {
++		table_desc->validation_count--;
++
++		/*
++		 * Ensure the warning message can only be displayed once. The
++		 * warning message occurs when the "put" operations are performed
++		 * more than "get" operations, causing count underflow.
++		 */
++		if (table_desc->validation_count >= ACPI_MAX_TABLE_VALIDATIONS) {
++			ACPI_WARNING((AE_INFO,
++				      "Table %p, Validation count underflows\n",
++				      table_desc));
++			return_VOID;
++		}
+ 	}
+-	table_desc->validation_count--;
+ 
+ 	if (table_desc->validation_count == 0) {
+ 
+diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
+index d92543f..f42e6d5 100644
+--- a/include/acpi/actbl.h
++++ b/include/acpi/actbl.h
+@@ -374,6 +374,19 @@ struct acpi_table_desc {
+ 	u16 validation_count;
+ };
+ 
++/*
++ * Maximum validation count, when it is reached, validation count can no
++ * longer be changed. Which means, the table can no longer be invalidated.
++ * This mechanism is implemented for backward compatibility, where in OS
++ * late stage, old drivers are not facilitated with paired validations and
++ * invalidations.
++ * The maximum validation count can be defined to any value, but should be
++ * greater than the maximum number of OS early stage mapping slots as it
++ * must be ensured that no early stage mappings can be leaked to the late
++ * stage.
++ */
++#define ACPI_MAX_TABLE_VALIDATIONS          ACPI_UINT16_MAX
++
+ /* Masks for Flags field above */
+ 
+ #define ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL  (0)	/* Virtual address, external maintained */
+-- 
+2.7.4
+
