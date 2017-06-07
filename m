@@ -1,61 +1,143 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 0/2] ACPI: button: Fix button.lid_init_state=method mode
-Date: Wed,  7 Jun 2017 17:43:28 +0800
-Message-ID: <cover.1496828498.git.lv.zheng@intel.com>
+Subject: [RFC PATCH v5 1/2] ACPI: button: Fix issue that
+	button notify cannot report stateful SW_LID state
+Date: Wed,  7 Jun 2017 17:43:39 +0800
+Message-ID: <58f7af6e2945603ca4ff6647eeb5ff6fee753a57.1496828498.git.lv.zheng@intel.com>
 References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:49701 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751207AbdFGJni (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Jun 2017 05:43:38 -0400
-In-Reply-To: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+ <cover.1496828498.git.lv.zheng@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <systemd-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <cover.1496828498.git.lv.zheng@intel.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/systemd-devel>
+List-Post: <mailto:systemd-devel@lists.freedesktop.org>
+List-Help: <mailto:systemd-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: systemd-devel-bounces@lists.freedesktop.org
+Sender: "systemd-devel" <systemd-devel-bounces@lists.freedesktop.org>
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, systemd-devel@lists.freedesktop.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Peter Hutterer <peter.hutterer@who-t.net>
+Cc: systemd-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-The following approach fixes button.lid_init_state=method mode for
-systemd 233:
- https://patchwork.kernel.org/patch/9756457/
- https://patchwork.kernel.org/patch/9756467/
-But it is not working well with old systemd 229. This solution tries to
-make a more comfortable approach for systemd 229.
-
-There are platform variations implementing ACPI lid device in different
-way:
-1. Some platforms send "open" events to OS and the events arrive before
-   button driver is resumed;
-2. Some platforms send "open" events to OS, but the events arrive after
-   button driver is resumed, ex., Samsung N210+;
-3. Some platforms never send "open" events to OS, but send "open" events to
-   update the cached _LID return value, and the update events arrive before
-   button driver is resumed;
-4. Some platforms never send "open" events to OS, but send "open" events to
-   update the cached _LID return value, but the update events arrive after
-   button driver is resumed, ex., Surface Pro 3;
-5. Some platforms never send "open" events, _LID returns value sticks to
-   "close", ex., Surface Pro 1.
-
-[PATCH 1] tries to fix case 2,4, making them working with any systemd.
-[PATCH 2] tries to fix case 5, making it working with systemd 233.
-          This is also a replacement of the following solution:
-           https://patchwork.kernel.org/patch/9760867/
-          It seems adding/removing input node and requesting systemd to
-          change again is unnecessary for such platforms, so this patch
-          simply converts "lid_unreliable" into
-          "button.lid_init_state=ignore".
-
-This material is just sent to demonstrate solutions and issues, the
-final solution is not determined yet. So marking them as RFC.
-
-Lv Zheng (2):
-  ACPI: button: Fix issue that button notify cannot report stateful
-    SW_LID state
-  ACPI: button: Add a quirk mode for Surface Pro 1 like laptop
-
- drivers/acpi/button.c | 188 ++++++++++++++++++++++++--------------------------
- 1 file changed, 89 insertions(+), 99 deletions(-)
-
--- 
-2.7.4
-
+VGhlcmUgYXJlIHBsYXRmb3JtIHZhcmlhdGlvbnMgaW1wbGVtZW50aW5nIEFDUEkgbGlkIGRldmlj
+ZSBpbiBkaWZmZXJlbnQKd2F5czoKMS4gU29tZSBwbGF0Zm9ybXMgc2VuZCAib3BlbiIgZXZlbnRz
+IHRvIE9TIGFuZCB0aGUgZXZlbnRzIGFycml2ZSBiZWZvcmUKICAgYnV0dG9uIGRyaXZlciBpcyBy
+ZXN1bWVkOwoyLiBTb21lIHBsYXRmb3JtcyBzZW5kICJvcGVuIiBldmVudHMgdG8gT1MsIGJ1dCB0
+aGUgZXZlbnRzIGFycml2ZSBhZnRlcgogICBidXR0b24gZHJpdmVyIGlzIHJlc3VtZWQsIGV4Liwg
+U2Ftc3VuZyBOMjEwKzsKMy4gU29tZSBwbGF0Zm9ybXMgbmV2ZXIgc2VuZCAib3BlbiIgZXZlbnRz
+IHRvIE9TLCBidXQgc2VuZCAib3BlbiIgZXZlbnRzIHRvCiAgIHVwZGF0ZSB0aGUgY2FjaGVkIF9M
+SUQgcmV0dXJuIHZhbHVlLCBhbmQgdGhlIHVwZGF0ZSBldmVudHMgYXJyaXZlIGJlZm9yZQogICBi
+dXR0b24gZHJpdmVyIGlzIHJlc3VtZWQ7CjQuIFNvbWUgcGxhdGZvcm1zIG5ldmVyIHNlbmQgIm9w
+ZW4iIGV2ZW50cyB0byBPUywgYnV0IHNlbmQgIm9wZW4iIGV2ZW50cyB0bwogICB1cGRhdGUgdGhl
+IGNhY2hlZCBfTElEIHJldHVybiB2YWx1ZSwgYnV0IHRoZSB1cGRhdGUgZXZlbnRzIGFycml2ZSBh
+ZnRlcgogICBidXR0b24gZHJpdmVyIGlzIHJlc3VtZWQsIGV4LiwgU3VyZmFjZSBQcm8gMzsKNS4g
+U29tZSBwbGF0Zm9ybXMgbmV2ZXIgc2VuZCAib3BlbiIgZXZlbnRzLCBfTElEIHJldHVybnMgdmFs
+dWUgc3RpY2tzIHRvCiAgICJjbG9zZSIsIGV4LiwgU3VyZmFjZSBQcm8gMS4KQ3VycmVudGx5LCBv
+bmx5IGNhc2UgMSwzIHdvcmtzIGZpbmUgd2l0aCBzeXN0ZW1kIDIyOS4KCkNhc2UgMiw0IGNhbiBi
+ZSB0cmVhdGVkIGFzIGFuIG9yZGVyIGlzc3VlLiBUaGlzIHBhdGNoIGZpcnN0IGZpeGVzIHRoaXMK
+aXNzdWUgYnkgZGVmZXIgc2VuZGluZyBpbml0aWFsIGxpZCBzdGF0ZSAxMCBzZWNvbmRzIGxhdGVy
+IGFmdGVyIHJlc3VtZSwKd2hpY2ggZW5zdXJlcyBhY3BpX2VjX3Jlc3VtZSgpIGlzIGFsd2F5cyBp
+bnZva2VkIGJlZm9yZQphY3BpX2J1dHRvbl9yZXN1bWUoKS4KCkhvd2V2ZXIgd2UgY2FuIHNlZSBk
+aWZmZXJlbnQgcHJvYmxlbXMgZHVlIHRvIHN5c3RlbWQgYnVnczoKICBzeXN0ZW1kIHdvbid0IHN1
+c3BlbmQgcmlnaHQgYWZ0ZXIgc2VlaW5nICJjbG9zZSIgZXZlbnQsIGl0IGhhcyBhIHRpbWVvdXQs
+CiAgd2l0aGluIHRoZSB0aW1lb3V0LCB1c2VyIG1heSBvcGVucyBsaWQgYWdhaW4uIEJ1dCBldmVu
+IGxpZAogIGZpcm13YXJlL2RyaXZlciBwcm9wZXJseSBkZWxpdmVyIHRoaXMgIm9wZW4iIHRvIHVz
+ZXIgc3BhY2UsIHdoZW4gdGhlCiAgdGltZW91dCB0aWNrZXMsIHN5c3RlbWQgc3RpbGwgc3VzcGVu
+ZHMgdGhlIHBsYXRmb3JtLgogIFRoZW4gdXNlciBoYXMgdG8gY2xvc2Uvb3BlbiBhZ2FpbiB0byB3
+YWtlIHRoZSBzeXN0ZW0gdXAuIE5vdGljaW5nIHRoYXQKICB0aGUgZmlyc3QgY2xvc2UgZXZlbnQg
+d2lsbCByZW1haW4gaW4gZmlybXdhcmUsIGFmdGVyIHJlc3VtZSwgdXNlciBzcGFjZQogIGNhbiBz
+dGlsbCBzZWUgYSAiY2xvc2UiIGZvbGxvd2VkIGJ5ICJvcGVuIiwgYW5kIG5vdGhpbmcgY2FuIHN0
+b3Agc3lzdGVtZAogIGZyb20gc3VzcGVuZGluZyBhZ2Fpbi4KVGhpcyBwcm9ibGVtIGNhbiBvbmx5
+IGJlIGZpeGVkIGJ5IGNvbnRpbm91c2x5IHVwZGF0aW5nIGxpZCBzdGF0ZS4gVGh1cwp0aGlzIHBh
+dGNoIGRvZXNuJ3Qga2lsbCB0aGUgdGltZXIgYWZ0ZXIgc2VlaW5nIHRoZSBCSU9TIG5vdGlmaWNh
+dGlvbiwgYnV0CmNvbnRpbm91c2x5IHNlbmRpbmcgX0xJRCByZXR1cm4gdmFsdWUgdG8gdGhlIGlu
+cHV0IGxheWVyIGZvcgpidXR0b24ubGlkX2luaXRfc3RhdGU9bWV0aG9kIG1vZGUuCgpUaGUgdXNl
+cnMgY2FuIGNvbmZpZ3VyZSB1cGRhdGUgaW50ZXJ2YWwgdmlhIGJ1dHRvbi5saWRfdXBkYXRlX2lu
+dGVydmFsLgoKQ2M6IDxzeXN0ZW1kLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZz4KQ2M6IEJl
+bmphbWluIFRpc3NvaXJlcyA8YmVuamFtaW4udGlzc29pcmVzQHJlZGhhdC5jb20+CkNjOiBQZXRl
+ciBIdXR0ZXJlciA8cGV0ZXIuaHV0dGVyZXJAd2hvLXQubmV0PgpTaWduZWQtb2ZmLWJ5OiBMdiBa
+aGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPgotLS0KIGRyaXZlcnMvYWNwaS9idXR0b24uYyB8IDM2
+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDI5
+IGluc2VydGlvbnMoKyksIDcgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3Bp
+L2J1dHRvbi5jIGIvZHJpdmVycy9hY3BpL2J1dHRvbi5jCmluZGV4IGUxOWY1MzAuLmZkOGVmZjYg
+MTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNwaS9idXR0b24uYworKysgYi9kcml2ZXJzL2FjcGkvYnV0
+dG9uLmMKQEAgLTI4LDYgKzI4LDcgQEAKICNpbmNsdWRlIDxsaW51eC9wcm9jX2ZzLmg+CiAjaW5j
+bHVkZSA8bGludXgvc2VxX2ZpbGUuaD4KICNpbmNsdWRlIDxsaW51eC9pbnB1dC5oPgorI2luY2x1
+ZGUgPGxpbnV4L3RpbWVyLmg+CiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPgogI2luY2x1ZGUgPGxp
+bnV4L2FjcGkuaD4KICNpbmNsdWRlIDxhY3BpL2J1dHRvbi5oPgpAQCAtNzksNiArODAsNyBAQCBN
+T0RVTEVfREVWSUNFX1RBQkxFKGFjcGksIGJ1dHRvbl9kZXZpY2VfaWRzKTsKIHN0YXRpYyBpbnQg
+YWNwaV9idXR0b25fYWRkKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKTsKIHN0YXRpYyBpbnQg
+YWNwaV9idXR0b25fcmVtb3ZlKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKTsKIHN0YXRpYyB2
+b2lkIGFjcGlfYnV0dG9uX25vdGlmeShzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSwgdTMyIGV2
+ZW50KTsKK3N0YXRpYyB2b2lkIGFjcGlfbGlkX3RpbWVvdXQodWxvbmcgYXJnKTsKIAogI2lmZGVm
+IENPTkZJR19QTV9TTEVFUAogc3RhdGljIGludCBhY3BpX2J1dHRvbl9zdXNwZW5kKHN0cnVjdCBk
+ZXZpY2UgKmRldik7CkBAIC0xMDQsNiArMTA2LDcgQEAgc3RhdGljIHN0cnVjdCBhY3BpX2RyaXZl
+ciBhY3BpX2J1dHRvbl9kcml2ZXIgPSB7CiBzdHJ1Y3QgYWNwaV9idXR0b24gewogCXVuc2lnbmVk
+IGludCB0eXBlOwogCXN0cnVjdCBpbnB1dF9kZXYgKmlucHV0OworCXN0cnVjdCB0aW1lcl9saXN0
+IGxpZF90aW1lcjsKIAljaGFyIHBoeXNbMzJdOwkJCS8qIGZvciBpbnB1dCBkZXZpY2UgKi8KIAl1
+bnNpZ25lZCBsb25nIHB1c2hlZDsKIAlpbnQgbGFzdF9zdGF0ZTsKQEAgLTExOSw2ICsxMjIsMTAg
+QEAgc3RhdGljIHVuc2lnbmVkIGxvbmcgbGlkX3JlcG9ydF9pbnRlcnZhbCBfX3JlYWRfbW9zdGx5
+ID0gNTAwOwogbW9kdWxlX3BhcmFtKGxpZF9yZXBvcnRfaW50ZXJ2YWwsIHVsb25nLCAwNjQ0KTsK
+IE1PRFVMRV9QQVJNX0RFU0MobGlkX3JlcG9ydF9pbnRlcnZhbCwgIkludGVydmFsIChtcykgYmV0
+d2VlbiBsaWQga2V5IGV2ZW50cyIpOwogCitzdGF0aWMgdW5zaWduZWQgbG9uZyBsaWRfdXBkYXRl
+X2ludGVydmFsIF9fcmVhZF9tb3N0bHkgPSAxMCAqIE1TRUNfUEVSX1NFQzsKK21vZHVsZV9wYXJh
+bShsaWRfdXBkYXRlX2ludGVydmFsLCB1bG9uZywgMDY0NCk7CitNT0RVTEVfUEFSTV9ERVNDKGxp
+ZF91cGRhdGVfaW50ZXJ2YWwsICJJbnRlcnZhbCAobXMpIGJldHdlZW4gbGlkIHN0YXRlIHVwZGF0
+ZXMiKTsKKwogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIEZTIEludGVyZmFjZSAoL3Byb2MpCiAgICAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwpAQCAtMzcx
+LDE3ICszNzgsMjUgQEAgc3RhdGljIGludCBhY3BpX2xpZF91cGRhdGVfc3RhdGUoc3RydWN0IGFj
+cGlfZGV2aWNlICpkZXZpY2UpCiAJcmV0dXJuIGFjcGlfbGlkX25vdGlmeV9zdGF0ZShkZXZpY2Us
+IHN0YXRlKTsKIH0KIAotc3RhdGljIHZvaWQgYWNwaV9saWRfaW5pdGlhbGl6ZV9zdGF0ZShzdHJ1
+Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkKK3N0YXRpYyB2b2lkIGFjcGlfbGlkX3RpY2soc3RydWN0
+IGFjcGlfZGV2aWNlICpkZXZpY2UpCit7CisJc3RydWN0IGFjcGlfYnV0dG9uICpidXR0b24gPSBh
+Y3BpX2RyaXZlcl9kYXRhKGRldmljZSk7CisKKwltb2RfdGltZXIoJmJ1dHRvbi0+bGlkX3RpbWVy
+LAorCQkgIGppZmZpZXMgKyBtc2Vjc190b19qaWZmaWVzKGxpZF91cGRhdGVfaW50ZXJ2YWwpKTsK
+K30KKworc3RhdGljIHZvaWQgYWNwaV9saWRfdGltZW91dCh1bG9uZyBhcmcpCiB7CisJc3RydWN0
+IGFjcGlfZGV2aWNlICpkZXZpY2UgPSAoc3RydWN0IGFjcGlfZGV2aWNlICopYXJnOworCiAJc3dp
+dGNoIChsaWRfaW5pdF9zdGF0ZSkgewogCWNhc2UgQUNQSV9CVVRUT05fTElEX0lOSVRfT1BFTjoK
+IAkJKHZvaWQpYWNwaV9saWRfbm90aWZ5X3N0YXRlKGRldmljZSwgMSk7CiAJCWJyZWFrOwogCWNh
+c2UgQUNQSV9CVVRUT05fTElEX0lOSVRfTUVUSE9EOgotCQkodm9pZClhY3BpX2xpZF91cGRhdGVf
+c3RhdGUoZGV2aWNlKTsKLQkJYnJlYWs7Ci0JY2FzZSBBQ1BJX0JVVFRPTl9MSURfSU5JVF9JR05P
+UkU6Ci0JZGVmYXVsdDoKKwkJYWNwaV9saWRfdXBkYXRlX3N0YXRlKGRldmljZSk7CisJCWFjcGlf
+bGlkX3RpY2soZGV2aWNlKTsKIAkJYnJlYWs7CiAJfQogfQpAQCAtNDMyLDYgKzQ0Nyw4IEBAIHN0
+YXRpYyBpbnQgYWNwaV9idXR0b25fc3VzcGVuZChzdHJ1Y3QgZGV2aWNlICpkZXYpCiAJc3RydWN0
+IGFjcGlfZGV2aWNlICpkZXZpY2UgPSB0b19hY3BpX2RldmljZShkZXYpOwogCXN0cnVjdCBhY3Bp
+X2J1dHRvbiAqYnV0dG9uID0gYWNwaV9kcml2ZXJfZGF0YShkZXZpY2UpOwogCisJaWYgKGJ1dHRv
+bi0+dHlwZSA9PSBBQ1BJX0JVVFRPTl9UWVBFX0xJRCkKKwkJZGVsX3RpbWVyKCZidXR0b24tPmxp
+ZF90aW1lcik7CiAJYnV0dG9uLT5zdXNwZW5kZWQgPSB0cnVlOwogCXJldHVybiAwOwogfQpAQCAt
+NDQzLDcgKzQ2MCw3IEBAIHN0YXRpYyBpbnQgYWNwaV9idXR0b25fcmVzdW1lKHN0cnVjdCBkZXZp
+Y2UgKmRldikKIAogCWJ1dHRvbi0+c3VzcGVuZGVkID0gZmFsc2U7CiAJaWYgKGJ1dHRvbi0+dHlw
+ZSA9PSBBQ1BJX0JVVFRPTl9UWVBFX0xJRCkKLQkJYWNwaV9saWRfaW5pdGlhbGl6ZV9zdGF0ZShk
+ZXZpY2UpOworCQlhY3BpX2xpZF90aWNrKGRldmljZSk7CiAJcmV0dXJuIDA7CiB9CiAjZW5kaWYK
+QEAgLTQ2Nyw2ICs0ODQsNyBAQCBzdGF0aWMgaW50IGFjcGlfYnV0dG9uX2FkZChzdHJ1Y3QgYWNw
+aV9kZXZpY2UgKmRldmljZSkKIAkJZXJyb3IgPSAtRU5PTUVNOwogCQlnb3RvIGVycl9mcmVlX2J1
+dHRvbjsKIAl9CisJaW5pdF90aW1lcigmYnV0dG9uLT5saWRfdGltZXIpOwogCiAJbmFtZSA9IGFj
+cGlfZGV2aWNlX25hbWUoZGV2aWNlKTsKIAljbGFzcyA9IGFjcGlfZGV2aWNlX2NsYXNzKGRldmlj
+ZSk7CkBAIC00OTAsNiArNTA4LDggQEAgc3RhdGljIGludCBhY3BpX2J1dHRvbl9hZGQoc3RydWN0
+IGFjcGlfZGV2aWNlICpkZXZpY2UpCiAJCQlBQ1BJX0JVVFRPTl9DTEFTUywgQUNQSV9CVVRUT05f
+U1VCQ0xBU1NfTElEKTsKIAkJYnV0dG9uLT5sYXN0X3N0YXRlID0gISFhY3BpX2xpZF9ldmFsdWF0
+ZV9zdGF0ZShkZXZpY2UpOwogCQlidXR0b24tPmxhc3RfdGltZSA9IGt0aW1lX2dldCgpOworCQlz
+ZXR1cF90aW1lcigmYnV0dG9uLT5saWRfdGltZXIsCisJCQkgICAgYWNwaV9saWRfdGltZW91dCwg
+KHVsb25nKWRldmljZSk7CiAJfSBlbHNlIHsKIAkJcHJpbnRrKEtFUk5fRVJSIFBSRUZJWCAiVW5z
+dXBwb3J0ZWQgaGlkIFslc11cbiIsIGhpZCk7CiAJCWVycm9yID0gLUVOT0RFVjsKQEAgLTUyNiw3
+ICs1NDYsNyBAQCBzdGF0aWMgaW50IGFjcGlfYnV0dG9uX2FkZChzdHJ1Y3QgYWNwaV9kZXZpY2Ug
+KmRldmljZSkKIAlpZiAoZXJyb3IpCiAJCWdvdG8gZXJyX3JlbW92ZV9mczsKIAlpZiAoYnV0dG9u
+LT50eXBlID09IEFDUElfQlVUVE9OX1RZUEVfTElEKSB7Ci0JCWFjcGlfbGlkX2luaXRpYWxpemVf
+c3RhdGUoZGV2aWNlKTsKKwkJYWNwaV9saWRfdGljayhkZXZpY2UpOwogCQkvKgogCQkgKiBUaGlz
+IGFzc3VtZXMgdGhlcmUncyBvbmx5IG9uZSBsaWQgZGV2aWNlLCBvciBpZiB0aGVyZSBhcmUKIAkJ
+ICogbW9yZSB3ZSBvbmx5IGNhcmUgYWJvdXQgdGhlIGxhc3Qgb25lLi4uCkBAIC01NTAsNiArNTcw
+LDggQEAgc3RhdGljIGludCBhY3BpX2J1dHRvbl9yZW1vdmUoc3RydWN0IGFjcGlfZGV2aWNlICpk
+ZXZpY2UpCiB7CiAJc3RydWN0IGFjcGlfYnV0dG9uICpidXR0b24gPSBhY3BpX2RyaXZlcl9kYXRh
+KGRldmljZSk7CiAKKwlpZiAoYnV0dG9uLT50eXBlID09IEFDUElfQlVUVE9OX1RZUEVfTElEKQor
+CQlkZWxfdGltZXIoJmJ1dHRvbi0+bGlkX3RpbWVyKTsKIAlhY3BpX2J1dHRvbl9yZW1vdmVfZnMo
+ZGV2aWNlKTsKIAlpbnB1dF91bnJlZ2lzdGVyX2RldmljZShidXR0b24tPmlucHV0KTsKIAlrZnJl
+ZShidXR0b24pOwotLSAKMi43LjQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCnN5c3RlbWQtZGV2ZWwgbWFpbGluZyBsaXN0CnN5c3RlbWQtZGV2ZWxAbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
+bGlzdGluZm8vc3lzdGVtZC1kZXZlbAo=
