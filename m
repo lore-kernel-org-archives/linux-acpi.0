@@ -1,119 +1,43 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [RFCv2 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
-	erratum 161010801
-Date: Thu, 8 Jun 2017 11:43:59 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA838363EC5@FRAEML521-MBX.china.huawei.com>
-References: <20170531143213.82100-1-shameerali.kolothum.thodi@huawei.com>
-	<20170531143213.82100-3-shameerali.kolothum.thodi@huawei.com>
-	<20170606135623.GB20126@red-moon>
-	<5FC3163CFD30C246ABAA99954A238FA838362082@FRAEML521-MBX.china.huawei.com>
-	<20170608084851.GA8607@red-moon>
-	<5FC3163CFD30C246ABAA99954A238FA838363D5D@FRAEML521-MBX.china.huawei.com>
-	<20170608101508.GA8644@red-moon>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/6] ACPI / PM: Suspend-to-idle rework to deal with spurious ACPI wakeups
+Date: Thu, 08 Jun 2017 13:56:27 +0200
+Message-ID: <1608348.3fBTUHhLaN@aspire.rjw.lan>
+References: <8918199.uo13RZ8hZk@aspire.rjw.lan> <20170608084202.GA1609@light.dominikbrodowski.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20170608101508.GA8644@red-moon>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: "Guohanjun (Hanjun Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "marc.zyngier-5wv7dgnIgG8@public.gmane.org" <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20170608084202.GA1609@light.dominikbrodowski.net>
+Sender: linux-pci-owner@vger.kernel.org
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux USB <linux-usb@vger.kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Felipe Balbi <balbi@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans De Goede <hdegoede@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org]
-> Sent: Thursday, June 08, 2017 11:15 AM
-> To: Shameerali Kolothum Thodi
-> Cc: marc.zyngier-5wv7dgnIgG8@public.gmane.org; sudeep.holla-5wv7dgnIgG8@public.gmane.org; will.deacon-5wv7dgnIgG8@public.gmane.org;
-> robin.murphy-5wv7dgnIgG8@public.gmane.org; hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; Gabriele Paoloni; John
-> Garry; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-arm-
-> kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org;
-> Linuxarm; Wangzhou (B); Guohanjun (Hanjun Guo)
-> Subject: Re: [RFCv2 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
-> erratum 161010801
+On Thursday, June 08, 2017 10:42:02 AM Dominik Brodowski wrote:
+> Rafael,
 > 
-> On Thu, Jun 08, 2017 at 09:09:28AM +0000, Shameerali Kolothum Thodi
-> wrote:
-> >
-> >
-> > > -----Original Message-----
-> > > From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org]
-> > > Sent: Thursday, June 08, 2017 9:49 AM
-> > > To: Shameerali Kolothum Thodi
-> > > Cc: marc.zyngier-5wv7dgnIgG8@public.gmane.org; sudeep.holla-5wv7dgnIgG8@public.gmane.org;
-> will.deacon-5wv7dgnIgG8@public.gmane.org;
-> > > robin.murphy-5wv7dgnIgG8@public.gmane.org; hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; Gabriele Paoloni; John
-> > > Garry; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-arm-
-> > > kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org;
-> > > Linuxarm; Wangzhou (B); Guohanjun (Hanjun Guo)
-> > > Subject: Re: [RFCv2 2/2] iommu/arm-smmu-v3:Enable ACPI based
-> HiSilicon
-> > > erratum 161010801
-> > >
-> > > On Tue, Jun 06, 2017 at 03:01:36PM +0000, Shameerali Kolothum Thodi
-> > > wrote:
-> > >
-> > > [...]
-> > >
-> > > > > > +	irq_dom = pci_msi_get_device_domain(to_pci_dev(dev));
-> > > > > > +	if (irq_dom) {
-> > > > > > +		int	ret;
-> > > > > > +		u32	rid;
-> > > > > > +
-> > > > > > +		rid = pci_msi_domain_get_msi_rid(irq_dom,
-> > > > > to_pci_dev(dev));
-> > > > > > +		ret = iort_dev_find_its_base(dev, rid, 0, &base);
-> > > > >
-> > > > > Well, here we use ITS id 0 which is fine as long as code in IORT
-> > > > > uses the same policy for getting the irq_domain (ie we want to
-> > > > > reserve the ITS address space that is actually used by the device to
-> > > > > send IRQs not a a different one) it is just a heads-up because I find
-> this
-> > > confusing.
-> > > >
-> > > > Ok. Just to make it clear, 0 is the index into the ITS identifier
-> > > > list.  I noted that iort_get_device_domain() uses index 0 while
-> > > > retrieving the ITS identifier.  May be use the same approach here as
-> > > > well? ie, remove the index from function call?
-> > > >
-> > > > I am not sure, how we can get the index info  though theoretically It
-> > > > is possible for the ITS group node having multiple ITSs.
-> > >
-> > > Actually I think it would make sense to reserve ALL ITS regions a device
-> may
-> > > be mapped to instead of just index 0 (ie in your case it is equivalent); this
-> > > leaves us some leeway as to choose which ITS the device will be actually
-> > > mapped to and this code does not have to care.
-> >
-> > Ok. That make sense. Just a quick one, is it ok to add another helper
-> function in
-> > iort code to retrieve the its->its_count then?
+> On Thu, Jun 08, 2017 at 02:00:40AM +0200, Rafael J. Wysocki wrote:
+> > Hi All,
+> > 
+> > This series is a replacement for commit eed4d47efe95 (ACPI / sleep: Ignore
+> > spurious SCI wakeups from suspend-to-idle) which is still there in 4.12-rc4 but
+> > will be reverted shortly, because it triggered issues on quite a few systems.
+> > 
+> > The last patch in the series is a counterpart of the above commit with a few
+> > modifications, mostly to avoid affecting suspend-to-RAM and to reorder messages
+> > printed to kernel logs to make them somewhat less confusing.
+> > 
+> > The previous patches are pre-requisite changes plus some cleanups.  The major
+> > ones are [1-2/6] and [4/6] that are really needed for things to work as expected
+> > after [6/6].
+> > 
+> > In addition to that, this patch from Hans: https://patchwork.kernel.org/patch/9762815/
+> > is needed for USB wakeup on Bay Trail and Cherry Trail systems to work in general.
 > 
-> While at it, given that the pci API code to retrieve domain and rid falls
-> back to IORT anyway, I would add the whole reservation to IORT (mind,
-> it depends on IOMMU_API) as one function instead of fiddling about with
-> indexes.
+> with eed4d47efe95 reverted and this patch series applied, suspend-to-mem
+> works as expected. Thanks!
 
-Ok. I will take a look at this. 
+Cool, thanks for the confirmation!
 
-> Side note: why Hilisicon dts upstream (eg hip07.dtsi) report ITS size
-> as 256K ? I was just checking whether the ITS reg map size is system
-> dependent and I bumped into them, I suspect there may be some dts
-> patching needed here.
-> 
-
-Thanks for catching this. I will check with the team and update.
-
-Shameer
+Cheers,
+Rafael
