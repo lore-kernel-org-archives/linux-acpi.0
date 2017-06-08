@@ -1,67 +1,81 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] acpi:  acpica:  dsutils: fixanoff-by-one index
-Date: Thu, 8 Jun 2017 07:31:04 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CECB52A@SHSMSX101.ccr.corp.intel.com>
-References: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5BF38C@ORSMSX110.amr.corp.intel.com>
- <20170607171814.zjvrikbjonp5n3gd@macchiaveli>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: [PATCH 0/6] ACPI / PM: Suspend-to-idle rework to deal with
+ spurious ACPI wakeups
+Date: Thu, 8 Jun 2017 10:42:02 +0200
+Message-ID: <20170608084202.GA1609@light.dominikbrodowski.net>
+References: <8918199.uo13RZ8hZk@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:59720 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751035AbdFHHbJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 8 Jun 2017 03:31:09 -0400
-In-Reply-To: <20170607171814.zjvrikbjonp5n3gd@macchiaveli>
-Content-Language: en-US
+Received: from isilmar-4.linta.de ([136.243.71.142]:41066 "EHLO
+        isilmar-4.linta.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751427AbdFHIm0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2017 04:42:26 -0400
+Content-Disposition: inline
+In-Reply-To: <8918199.uo13RZ8hZk@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Seraphime Kirkovski <kirkseraph@gmail.com>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "devel@acpica.org" <devel@acpica.org>, "afael.j.wysocki@intel.com" <afael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux USB <linux-usb@vger.kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Felipe Balbi <balbi@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans De Goede <hdegoede@redhat.com>
 
-Hi,
 
-> From: Seraphime Kirkovski
-> 
-> On Wed, Jun 07, 2017 at 03:14:46PM +0000, Moore, Robert wrote:
-> > I believe that the rationale for this is that at that point in the code, it is *guaranteed* that
-> there is at least one operand; therefore the -1 would always be valid.
-> >
-> > In the end, we just deleted that call to
-> > acpi_db_display_argument_object.
+--PNTmBPCT7hxwcZjr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, the AcpiDbDisplayArgumentObject() invocation itself here is not proper.
-It can mess up debugging messages.
+Rafael,
 
-In debugging console, AcpiDbDisplayArgumentObject() can be enabled to display stacked objects.
-In single step mode, it dumps stacked objects on the debugging console for each step.
-It means AcpiDbDisplayArgumentObject() should be invoked for each AcpiDsObjStackPush().
-There are only 2 AcpiDsObjStackPush() invocations.
-Both of them have have already been paired with AcpiDbDisplayArgumentObject() in AcpiDsCreateOperand().
+On Thu, Jun 08, 2017 at 02:00:40AM +0200, Rafael J. Wysocki wrote:
+> Hi All,
+>=20
+> This series is a replacement for commit eed4d47efe95 (ACPI / sleep: Ignore
+> spurious SCI wakeups from suspend-to-idle) which is still there in 4.12-r=
+c4 but
+> will be reverted shortly, because it triggered issues on quite a few syst=
+ems.
+>=20
+> The last patch in the series is a counterpart of the above commit with a =
+few
+> modifications, mostly to avoid affecting suspend-to-RAM and to reorder me=
+ssages
+> printed to kernel logs to make them somewhat less confusing.
+>=20
+> The previous patches are pre-requisite changes plus some cleanups.  The m=
+ajor
+> ones are [1-2/6] and [4/6] that are really needed for things to work as e=
+xpected
+> after [6/6].
+>=20
+> In addition to that, this patch from Hans: https://patchwork.kernel.org/p=
+atch/9762815/
+> is needed for USB wakeup on Bay Trail and Cherry Trail systems to work in=
+ general.
 
-This isolated AcpiDbDisplayArgumentObject() tries to find back missing stacked object debugging information.
-			ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
- 					  "Argument previously created, already stacked\n"));
-However there won't be such a missing object as all operands are created via AcpiDsCreateOperand().
-Finally this invocation only generates redundant debugging logs on console:
- ArgObj: 00ADA610 Integer 0000000000000000
- ArgObj: 00ADA4F0 Integer 00000000FFFF00FF
- ArgObj: 00ADA4F0 Integer 00000000FFFF00FF <= redundant log generated by this line
- ArgObj: 00ADA580 Integer 0000000000000000
- ResultObj: 00ADA710 Integer 0000000000000000
-So we just removed it.
+with eed4d47efe95 reverted and this patch series applied, suspend-to-mem
+works as expected. Thanks!
 
-> > I don't know if this change has made it into Linux yet.
-> >
-> The latest rc actually produces the UBSAN splat in my previous message.
-> So I suppose, I have some buggy hardware/firmware.
+	Dominik
 
-It's in recent ACPICA release and hasn't been merged by Linux upstream.
-It's still in community review list:
-https://patchwork.kernel.org/project/linux-acpi/list/
-named as:
-[33/53] ACPICA: Dispatcher: Remove unnecessary call to debugger
-You'll see it merged in the next 1-2 RCs if everything works smoothly.
+--PNTmBPCT7hxwcZjr
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Thanks
-Lv
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEmgXaWKgmjrvkPhLCmpdgiUyNow0FAlk5DdYACgkQmpdgiUyN
+ow09iBAAmGePWAkgKbG/WUruF0gtdYq30TPk4ZePBWmvyRtTGkAB4tqtsA8xhQZU
+SkIvSDgtL/R+a3jkPTxL6ay4iu5WUJfa7ZwU9JCFKK0CcIBqx1jLwTq8oT3LZw1J
+X6nMrLPDd3h+NznSsoTEwfFE5J8vDN99nUoaDaiO9eYmyeU0ZLkesaauFzEDot5e
+Rhv8uyYry4KMwO6Pk4hGpukRTHZmeo8x/DJPCE8kID+7dNtON1HTz66K9Pr3c0+G
+pUACUeGJ50pNaOdv8O82HQp5D534tfA+/5kebC6C7e/aRHC2FRd+Wpf2rXYmdMW8
+nt/s61+hZyyLmiN3iUGPGhFQ+dpr5/zPMHwYhx7RVxRDlGxdXSg6lKaBOwlIxHGD
+hNf5M3lL6Z++oDSTzsQhVMIDapmCx5fTE0vsZp+WfcwwrMnLrcHIU3BxMA/z9M6H
+og7NG6Lp5sJe157qaZQJTUcfH6C2Q2JTNAEgsEjt1BMx0ecRZyiGcCQAmRCmL/45
+627yxeOLf/5/OyZBWJn7Ggzie30CLr+KvyCLA89oJXZcGgN+HZ+IPpcUoWVzR8aC
+TdNHaJdDKW5kdw3bDYbLclZapCzO4aJGaGpd/Rn2HQisHgwkZbjr2Lmu+bVKc8Kg
+SRIzMzleFiouf/BUTA+gyctekpC/B6u9NQrqxSQ10i95R/m+ioI=
+=SpuP
+-----END PGP SIGNATURE-----
+
+--PNTmBPCT7hxwcZjr--
