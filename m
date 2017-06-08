@@ -1,104 +1,88 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v5] ACPICA: Tables: Add mechanism to allow to balance
- late stage acpi_get_table() independently
-Date: Thu, 8 Jun 2017 02:24:19 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CECB2C1@SHSMSX101.ccr.corp.intel.com>
-References: <5361b51c7c257b3216475018a3a5cc4f8b6b21c6.1493281247.git.lv.zheng@intel.com>
- <cb1126b2eb1b83a5a97a33c1c5c37a02c32fd688.1496811175.git.lv.zheng@intel.com>
- <CAA9_cmdmokPM0+MSiMzGPzkvUkKPELrVyRPoO2bZZZoNJ2sr3w@mail.gmail.com>
- <CAJZ5v0j6ZB=JXvDX3hjoRK-Eir3ZWVda2yvqkyT31X0EWLa03g@mail.gmail.com>
- <CAPcyv4gF00UnF2+cnVxrGm_7vCqCb6Fr=qHnd2aBaBudvVR40Q@mail.gmail.com>
+From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
+Subject: Re: [PATCH v2 2/2] acpi/iort: numa: Add numa node mapping for smmuv3 devices
+Date: Thu, 8 Jun 2017 08:57:02 +0530
+Message-ID: <CAFpQJXUxHuaRC4JYsahLb2_gO_ZY7aR=gBkHm31zv1=A_esb0Q@mail.gmail.com>
+References: <1496746065-11082-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1496746065-11082-3-git-send-email-ganapatrao.kulkarni@cavium.com> <20170607163842.GA7937@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:41768 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751382AbdFHCYY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Jun 2017 22:24:24 -0400
-In-Reply-To: <CAPcyv4gF00UnF2+cnVxrGm_7vCqCb6Fr=qHnd2aBaBudvVR40Q@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:33120 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751433AbdFHD1D (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2017 23:27:03 -0400
+In-Reply-To: <20170607163842.GA7937@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will Deacon <Will.Deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, sudeep.holla@arm.com, robin.murphy@arm.com, Lv Zheng <lv.zheng@intel.com>, joro@8bytes.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jayachandran C <jnair@caviumnetworks.com>
 
-SGksIERhbg0KDQo+IEZyb206IERhbiBXaWxsaWFtcyBbbWFpbHRvOmRhbi5qLndpbGxpYW1zQGlu
-dGVsLmNvbV0NCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2NV0gQUNQSUNBOiBUYWJsZXM6IEFkZCBt
-ZWNoYW5pc20gdG8gYWxsb3cgdG8gYmFsYW5jZSBsYXRlIHN0YWdlIGFjcGlfZ2V0X3RhYmxlKCkN
-Cj4gaW5kZXBlbmRlbnRseQ0KPiANCj4gT24gV2VkLCBKdW4gNywgMjAxNyBhdCAyOjE0IFBNLCBS
-YWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+IHdyb3RlOg0KPiA+IE9uIFdlZCwg
-SnVuIDcsIDIwMTcgYXQgODo0MSBBTSwgRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRl
-bC5jb20+IHdyb3RlOg0KPiA+PiBPbiBUdWUsIEp1biA2LCAyMDE3IGF0IDk6NTQgUE0sIEx2IFpo
-ZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+Pj4gQ29uc2lkZXJpbmcgdGhpcyBj
-YXNlOg0KPiA+Pj4gMS4gQSBwcm9ncmFtIG9wZW5zIGEgc3lzZnMgdGFibGUgZmlsZSA2NTUzNSB0
-aW1lcywgaXQgY2FuIGluY3JlYXNlDQo+ID4+PiAgICB2YWxpZGF0aW9uX2NvdW50IGFuZCBmaXJz
-dCBpbmNyZW1lbnQgY2F1c2UgdGhlIHRhYmxlIHRvIGJlIG1hcHBlZDoNCj4gPj4+ICAgICB2YWxp
-ZGF0aW9uX2NvdW50ID0gNjU1MzUNCj4gPj4+IDIuIEFNTCBleGVjdXRpb24gY2F1c2VzICJMb2Fk
-IiB0byBiZSBleGVjdXRlZCBvbiB0aGUgc2FtZSB0YWJsZSwgdGhpcyB0aW1lDQo+ID4+PiAgICBp
-dCBjYW5ub3QgaW5jcmVhc2UgdmFsaWRhdGlvbl9jb3VudCwgc28gdmFsaWRhdGlvbl9jb3VudCBy
-ZW1haW5zOg0KPiA+Pj4gICAgIHZhbGlkYXRpb25fY291bnQgPSA2NTUzNQ0KPiA+Pj4gMy4gVGhl
-IHByb2dyYW0gY2xvc2VzIHN5c2ZzIHRhYmxlIGZpbGUgNjU1MzUgdGltZXMsIGl0IGNhbiBkZWNy
-ZWFzZQ0KPiA+Pj4gICAgdmFsaWRhdGlvbl9jb3VudCBhbmQgdGhlIGxhc3QgZGVjcmVtZW50IGNh
-dXNlIHRoZSB0YWJsZSB0byBiZSB1bm1hcHBlZDoNCj4gPj4+ICAgICB2YWxpZGF0aW9uX2NvdW50
-ID0gMA0KPiA+Pj4gNC4gQU1MIGNvZGUgc3RpbGwgYWNjZXNzaW5nIHRoZSBsb2FkZWQgdGFibGUs
-IGtlcm5lbCBjcmFzaCBjYW4gYmUgb2JzZXJ2ZWQuDQo+ID4+Pg0KPiA+Pj4gVGhpcyBpcyBiZWNh
-dXNlIG9yZ2luYWxseSBBQ1BJQ0EgZG9lc24ndCBzdXBwb3J0IHVubWFwcGluZyB0YWJsZXMgZHVy
-aW5nDQo+ID4+PiBPUyBsYXRlIHN0YWdlLiBTbyB0aGUgY3VycmVudCBjb2RlIG9ubHkgYWxsb3dz
-IHVubWFwcGluZyB0YWJsZXMgZHVyaW5nIE9TDQo+ID4+PiBlYXJseSBzdGFnZSwgYW5kIGZvciBs
-YXRlIHN0YWdlLCBubyBhY3BpX3B1dF90YWJsZSgpIGNsb25lcyBzaG91bGQgYmUNCj4gPj4+IGlu
-dm9rZWQsIGVzcGVjaWFsbHkgY2FzZXMgdGhhdCBjYW4gdHJpZ2dlciBmcmVxdWVudCBpbnZvY2F0
-aW9ucyBvZg0KPiA+Pj4gYWNwaV9nZXRfdGFibGUoKS9hY3BpX3B1dF90YWJsZSgpIGFyZSBmb3Ji
-aWRkZW46DQo+ID4+PiAxLiBzeXNmcyB0YWJsZSBhY2Nlc3Nlcw0KPiA+Pj4gMi4gZHluYW1pYyBM
-b2FkL1VubG9hZCBvcGNvZGUgZXhlY3V0aW9ucw0KPiA+Pj4gMy4gYWNwaV9sb2FkX3RhYmxlKCkN
-Cj4gPj4+IDQuIGV0Yy4NCj4gPj4+IFN1Y2ggZnJlcXVlbnQgYWNwaV9wdXRfdGFibGUoKSBiYWxh
-bmNlIGNoYW5nZXMgaGF2ZSB0byBiZSBkb25lIGFsdG9nZXRoZXIuDQo+ID4+Pg0KPiA+Pj4gVGhp
-cyBwaGlsb3NvcGh5IGlzIG5vdCBjb252ZW5pZW50IGZvciBMaW51eCBkcml2ZXIgd3JpdGVycy4g
-U2luY2UgdGhlIEFQSQ0KPiA+Pj4gaXMganVzdCB0aGVyZSwgZGV2ZWxvcGVycyB3aWxsIHN0YXJ0
-IHRvIHVzZSBhY3BpX3B1dF90YWJsZSgpIGR1cmluZyBsYXRlDQo+ID4+PiBzdGFnZS4gU28gd2Ug
-bmVlZCB0byBjb25zaWRlciBhIGJldHRlciBtZWNoYW5pc20gdG8gYWxsb3cgdGhlbSB0byBzYWZl
-bHkNCj4gPj4+IGludm9rZSBhY3BpX3B1dF90YWJsZSgpLg0KPiA+Pj4NCj4gPj4+IFRoaXMgcGF0
-Y2ggcHJvdmlkZXMgc3VjaCBhIG1lY2hhbmlzbSBieSBhZGRpbmcgYSB2YWxpZGF0aW9uX2NvdW50
-DQo+ID4+PiB0aHJlYXNob2xkLiBXaGVuIGl0IGlzIHJlYWNoZWQsIHRoZSB2YWxpZGF0aW9uX2Nv
-dW50IGNhbiBubyBsb25nZXIgYmUNCj4gPj4+IGluY3JlbWVudGVkL2RlY3JlbWVudGVkIHRvIGlu
-dmFsaWRhdGUgdGhlIHRhYmxlIGRlc2NyaXB0b3IgKG1lYW5zDQo+ID4+PiBwcmV2ZW50aW5nIHRh
-YmxlIHVubWFwcGluZ3MpIHNvIHRoYXQgYWNwaV9wdXRfdGFibGUoKSBiYWxhbmNlIGNoYW5nZXMg
-Y2FuIGJlDQo+ID4+PiBkb25lIGluZGVwZW5kZW50bHkgdG8gZWFjaCBvdGhlcnMuDQo+ID4+Pg0K
-PiA+Pj4gTm90ZTogY29kZSBhZGRlZCBpbiBhY3BpX3RiX3B1dF90YWJsZSgpIGlzIGFjdHVhbGx5
-IGEgbm8tb3AgYnV0IGNoYW5nZXMgdGhlDQo+ID4+PiB3YXJuaW5nIG1lc3NhZ2UgaW50byBhIHdh
-cm5pbmcgb25jZSBtZXNzYWdlLiBMdiBaaGVuZy4NCj4gPj4+DQo+ID4+DQo+ID4+IFRoaXMgc3Rp
-bGwgc2VlbXMgdG8gYmUgdW5uZWNlc3NhcnkgZ3ltbmFzdGljcyB0byBrZWVwIHRoZSB2YWxpZGF0
-aW9uDQo+ID4+IGNvdW50IGFyb3VuZCBhbmQgbWFrZSBpdCB3b3JrIGZvciByYW5kb20gZHJpdmVy
-cy4NCj4gPg0KPiA+IFdlbGwsIEknbSBub3Qgc3VyZSBJIGFncmVlIGhlcmUuDQo+ID4NCj4gPiBJ
-ZiB3ZSBjYW4gbWFrZSBpdCB3b3JrIGF0IG9uZSBwb2ludCwgaXQgc2hvdWxkIG5vdCBiZSB0b28g
-aGFyZCB0bw0KPiA+IG1haW50YWluIHRoYXQgc3RhdHVzLg0KPiA+DQo+IA0KPiBJIGFncmVlIHdp
-dGggdGhhdCwgbXkgY29uY2VybiB3YXMgd2l0aCBkcml2ZXIgd3JpdGVycyBuZWVkaW5nIHRvIGJl
-DQo+IHdvcnJpZWQgYWJvdXQgd2hlbiBpdCBpcyBzYWZlIHRvIGNhbGwgYWNwaV9wdXRfdGFibGUo
-KS4gVGhpcyByZWZlcmVuY2UNCj4gY291bnQgYmVoYXZlcyBkaWZmZXJlbnRseSB0aGFuIG90aGVy
-IHJlZmVyZW5jZSBjb3VudHMgbGlrZSBrb2JqZWN0cy4NCg0KSSBkb24ndCB0aGluayB0aGV5IGJl
-aGF2ZSBkaWZmZXJlbnRseS4NCg0KImtyZWYiIG5lZWRuJ3QgY29uc2lkZXIgdW5iYWxhbmNlZCAi
-Z2V0L3B1dCIuDQpCZWNhdXNlIHdoZW4gdGhlIGRyaXZlcnModXNlcnMpIGFyZSBkZXBsb3lpbmcg
-ImtyZWYiLA0KdGhleSBhcmUgcmVzcG9uc2libGUgZm9yIGVuc3VyaW5nIGJhbGFuY2VkICJnZXQv
-cHV0Ii4NCiJrcmVmIiBuZWVkbid0IHRha2UgdG9vIG11Y2ggY2FyZSBhYm91dCAib3ZlcmZsb3cv
-dW5kZXJmbG93Ig0KYXMgaWYgYWxsIHVzZXJzIGVuc3VyZSBiYWxhbmNlZCAiZ2V0L3B1dCIsDQoi
-b3ZlcmZsb3cvdW5kZXJmbG93IiBpcyBub3QgcG9zc2libGUuDQpPY2N1cnJlbmNlIG9mICJvdmVy
-Zmxvdy91bmRlcmZsb3ciIG1lYW5zIGJ1Z3MuDQpBbmQgY2FuIGJlIGZ1cnRoZXIgY2FwdHVyZWQg
-YXMgInBhbmljIi4NCg0KSWYgImtyZWYiIGNvbnNpZGVycyB0byAid2Fybl9vbmNlIiBvdmVyZmxv
-dy91bmRlcmZsb3cgdXNlcnMsDQp0aGUgbG9naWMgaW4gdGhpcyBjb21taXQgY2FuIGFsc28gYmUg
-aW50cm9kdWNlZCB0byBrcmVmLg0KSG93ZXZlciBpdCdzIHVzZWxlc3MgYXMgYWxsIHVzZXJzIGhh
-dmUgZW5zdXJlZCBiYWxhbmNlZCAiZ2V0L3B1dCIuDQpQdXR0aW5nIHVzZWxlc3MgY2hlY2sgdGhh
-biBwYW5pYyBvbiBob3QgcGF0aCBjb3VsZCBiZSBhIHdhc3RlLg0KDQo+IFRoZSBkaWZmZXJlbmNl
-IGlzIG5vdCBuZWNlc3NhcmlseSBiYWQsIGJ1dCBob3BlZnVsbHkgaXQgY2FuIGJlDQo+IGNvbnRh
-aW5lZCB3aXRoaW4gdGhlIGFjcGkgY29yZS4NCg0KVGhlIG9sZCB3YXJuaW5nIGxvZ2ljIGZvciB0
-YWJsZSBkZXNjIGlzIGp1c3QgZGVyaXZlZCBmcm9tIHV0ZGVsZXRlLmMuDQpXaGljaCByZWR1Y2Vz
-IGNvbW11bmljYXRpb24gY29zdCB3aGVuIHRoZSBtZWNoYW5pc20gaXMgdXBzdHJlYW1lZC4NCg0K
-QUNQSUNBIHRhYmxlICJ2YWxpZGF0aW9uX2NvdW50IiBpcyBkZXBsb3llZCBvbiB0b3Agb2Ygb2xk
-IGRlc2lnbi4NCldoZXJlICJ0YWJsZSB1bm1hcCIgaXMgZm9yYmlkZGVuIGZvciBsYXRlIHN0YWdl
-Lg0KVGh1cyB0aGVyZSBpcyBubyB1c2VycyBlbnN1cmluZyBiYWxhbmNlZCAiZ2V0L3B1dCIuDQpV
-bmRlciB0aGlzIGNpcmN1bXN0YW5jZXMsIHdoZW4gd2Ugc3RhcnQgdG8gZGVwbG95IGJhbGFuY2Vk
-ICJnZXQvcHV0IiwNCndlIG5lZWQgdG8gY29uc2lkZXIgYWxsIHVzZXJzIGFzIGEgd2hvbGUuDQpZ
-b3UgY2Fubm90IHNheSBjdXJyZW50IHVuYmFsYW5jZWQgImdldC9wdXQiIHVzZXJzIGhhdmUgYnVn
-cy4NClRoZXkgYXJlIHRoZXJlIGp1c3QgYmVjYXVzZSBvZiBoaXN0b3JpY2FsIHJlYXNvbnMuDQoN
-CkZvcnR1bmF0ZWx5IGFmdGVyIGFwcGx5aW5nIHRoaXMgcGF0Y2gsDQpkcml2ZXJzIHNob3VsZCBi
-ZSBhYmxlIHRvIGhhdmUgYSBiZXR0ZXIgZW52aXJvbm1lbnQgdG8gdXNlIHRoZSBuZXcgQVBJcy4N
-Cg0KQ2hlZXJzLA0KTHYNCg==
+On Wed, Jun 7, 2017 at 10:08 PM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> On Tue, Jun 06, 2017 at 04:17:45PM +0530, Ganapatrao Kulkarni wrote:
+>> Add code to parse proximity domain in SMMUv3 IORT table to
+>> set numa node mapping for smmuv3 devices.
+>>
+>> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+>> ---
+>>  drivers/acpi/arm64/iort.c | 20 ++++++++++++++++++++
+>>  1 file changed, 20 insertions(+)
+>>
+>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>> index bba2b59..b4f328f 100644
+>> --- a/drivers/acpi/arm64/iort.c
+>> +++ b/drivers/acpi/arm64/iort.c
+>> @@ -882,6 +882,23 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+>>       return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
+>>  }
+>>
+>> +/*
+>> + * set numa proximity domain for smmv3 device
+>> + */
+>> +static void  __init iort_set_proximity(struct acpi_iort_node *node,
+>> +             struct device *dev)
+>> +{
+>> +     struct acpi_iort_smmu_v3 *smmu;
+>> +
+>> +     smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+>> +     if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
+>> +             set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
+>> +             pr_info("SMMUV3[%llx] Mapped to Proximity domain %d\n",
+>> +                     smmu->base_address,
+>> +                     smmu->pxm);
+>> +     }
+>> +}
+>> +
+>>  static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
+>>  {
+>>       struct acpi_iort_smmu *smmu;
+>> @@ -1002,6 +1019,9 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+>>       if (!pdev)
+>>               return -ENOMEM;
+>>
+>> +     if (node->type == ACPI_IORT_NODE_SMMU_V3)
+>> +             iort_set_proximity(node, &pdev->dev);
+>
+> Nit: while at it you may add an ops hook to set the proximity
+> (NULL for SMMU v2) and call it if present, it is just to make
+> the code adding devices more uniform.
+
+thanks, will do
+
+>
+> Who is queueing these patches ? I am asking to make sure we sort
+> the ACPICA dependency (there are other IORT/ACPICA patches to consider
+> too).
+>
+> Thanks,
+> Lorenzo
+>
+>>       count = ops->iommu_count_resources(node);
+>>
+>>       r = kcalloc(count, sizeof(*r), GFP_KERNEL);
+>> --
+>> 1.8.1.4
+>>
+
+thanks
+Ganapat
