@@ -1,81 +1,106 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: [PATCH 0/6] ACPI / PM: Suspend-to-idle rework to deal with
- spurious ACPI wakeups
-Date: Thu, 8 Jun 2017 10:42:02 +0200
-Message-ID: <20170608084202.GA1609@light.dominikbrodowski.net>
-References: <8918199.uo13RZ8hZk@aspire.rjw.lan>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [RFCv2 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+ erratum 161010801
+Date: Thu, 8 Jun 2017 09:48:51 +0100
+Message-ID: <20170608084851.GA8607@red-moon>
+References: <20170531143213.82100-1-shameerali.kolothum.thodi@huawei.com>
+ <20170531143213.82100-3-shameerali.kolothum.thodi@huawei.com>
+ <20170606135623.GB20126@red-moon>
+ <5FC3163CFD30C246ABAA99954A238FA838362082@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar-4.linta.de ([136.243.71.142]:41066 "EHLO
-        isilmar-4.linta.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751427AbdFHIm0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2017 04:42:26 -0400
+Received: from foss.arm.com ([217.140.101.70]:44154 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751554AbdFHIrh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Jun 2017 04:47:37 -0400
 Content-Disposition: inline
-In-Reply-To: <8918199.uo13RZ8hZk@aspire.rjw.lan>
+In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA838362082@FRAEML521-MBX.china.huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux USB <linux-usb@vger.kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Felipe Balbi <balbi@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans De Goede <hdegoede@redhat.com>
+To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Cc: "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linuxarm <linuxarm@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>
 
+On Tue, Jun 06, 2017 at 03:01:36PM +0000, Shameerali Kolothum Thodi wrote:
 
---PNTmBPCT7hxwcZjr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+[...]
 
-Rafael,
+> > > +	irq_dom = pci_msi_get_device_domain(to_pci_dev(dev));
+> > > +	if (irq_dom) {
+> > > +		int	ret;
+> > > +		u32	rid;
+> > > +
+> > > +		rid = pci_msi_domain_get_msi_rid(irq_dom,
+> > to_pci_dev(dev));
+> > > +		ret = iort_dev_find_its_base(dev, rid, 0, &base);
+> > 
+> > Well, here we use ITS id 0 which is fine as long as code in IORT uses the same
+> > policy for getting the irq_domain (ie we want to reserve the ITS address
+> > space that is actually used by the device to send IRQs not a a different one) it
+> > is just a heads-up because I find this confusing.
+> 
+> Ok. Just to make it clear, 0 is the index into the ITS identifier
+> list.  I noted that iort_get_device_domain() uses index 0 while
+> retrieving the ITS identifier.  May be use the same approach here as
+> well? ie, remove the index from function call?
+> 
+> I am not sure, how we can get the index info  though theoretically It
+> is possible for the ITS group node having multiple ITSs.
 
-On Thu, Jun 08, 2017 at 02:00:40AM +0200, Rafael J. Wysocki wrote:
-> Hi All,
->=20
-> This series is a replacement for commit eed4d47efe95 (ACPI / sleep: Ignore
-> spurious SCI wakeups from suspend-to-idle) which is still there in 4.12-r=
-c4 but
-> will be reverted shortly, because it triggered issues on quite a few syst=
-ems.
->=20
-> The last patch in the series is a counterpart of the above commit with a =
-few
-> modifications, mostly to avoid affecting suspend-to-RAM and to reorder me=
-ssages
-> printed to kernel logs to make them somewhat less confusing.
->=20
-> The previous patches are pre-requisite changes plus some cleanups.  The m=
-ajor
-> ones are [1-2/6] and [4/6] that are really needed for things to work as e=
-xpected
-> after [6/6].
->=20
-> In addition to that, this patch from Hans: https://patchwork.kernel.org/p=
-atch/9762815/
-> is needed for USB wakeup on Bay Trail and Cherry Trail systems to work in=
- general.
+Actually I think it would make sense to reserve ALL ITS regions a device
+may be mapped to instead of just index 0 (ie in your case it is
+equivalent); this leaves us some leeway as to choose which ITS the
+device will be actually mapped to and this code does not have to care.
 
-with eed4d47efe95 reverted and this patch series applied, suspend-to-mem
-works as expected. Thanks!
+Lorenzo
 
-	Dominik
-
---PNTmBPCT7hxwcZjr
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEmgXaWKgmjrvkPhLCmpdgiUyNow0FAlk5DdYACgkQmpdgiUyN
-ow09iBAAmGePWAkgKbG/WUruF0gtdYq30TPk4ZePBWmvyRtTGkAB4tqtsA8xhQZU
-SkIvSDgtL/R+a3jkPTxL6ay4iu5WUJfa7ZwU9JCFKK0CcIBqx1jLwTq8oT3LZw1J
-X6nMrLPDd3h+NznSsoTEwfFE5J8vDN99nUoaDaiO9eYmyeU0ZLkesaauFzEDot5e
-Rhv8uyYry4KMwO6Pk4hGpukRTHZmeo8x/DJPCE8kID+7dNtON1HTz66K9Pr3c0+G
-pUACUeGJ50pNaOdv8O82HQp5D534tfA+/5kebC6C7e/aRHC2FRd+Wpf2rXYmdMW8
-nt/s61+hZyyLmiN3iUGPGhFQ+dpr5/zPMHwYhx7RVxRDlGxdXSg6lKaBOwlIxHGD
-hNf5M3lL6Z++oDSTzsQhVMIDapmCx5fTE0vsZp+WfcwwrMnLrcHIU3BxMA/z9M6H
-og7NG6Lp5sJe157qaZQJTUcfH6C2Q2JTNAEgsEjt1BMx0ecRZyiGcCQAmRCmL/45
-627yxeOLf/5/OyZBWJn7Ggzie30CLr+KvyCLA89oJXZcGgN+HZ+IPpcUoWVzR8aC
-TdNHaJdDKW5kdw3bDYbLclZapCzO4aJGaGpd/Rn2HQisHgwkZbjr2Lmu+bVKc8Kg
-SRIzMzleFiouf/BUTA+gyctekpC/B6u9NQrqxSQ10i95R/m+ioI=
-=SpuP
------END PGP SIGNATURE-----
-
---PNTmBPCT7hxwcZjr--
+>  
+> > > +		if (!ret) {
+> > > +			dev_info(dev, "SMMUv3:HW MSI resv addr
+> > 0x%pa\n", &base);
+> > > +			region = iommu_alloc_resv_region(base, SZ_128K,
+> > > +							 prot,
+> > IOMMU_RESV_MSI);
+> > > +			return region;
+> > > +		}
+> > > +	}
+> > > +
+> > > +	return NULL;
+> > > +}
+> > > +#else
+> > > +static struct iommu_resv_region *arm_smmu_acpi_alloc_hw_msi(struct
+> > > +device *dev) {
+> > > +	return NULL;
+> > > +}
+> > > +#endif
+> > > +
+> > >  static int arm_smmu_add_device(struct device *dev)  {
+> > >  	int i, ret;
+> > > @@ -1903,11 +1936,20 @@ static int arm_smmu_of_xlate(struct device
+> > > *dev, struct of_phandle_args *args)  static void
+> > arm_smmu_get_resv_regions(struct device *dev,
+> > >  				      struct list_head *head)
+> > >  {
+> > > -	struct iommu_resv_region *region;
+> > > +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
+> > > +	struct iommu_resv_region *region = NULL;
+> > >  	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+> > > +	struct arm_smmu_device *smmu;
+> > > +
+> > > +	smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
+> > >
+> > > -	region = iommu_alloc_resv_region(MSI_IOVA_BASE,
+> > MSI_IOVA_LENGTH,
+> > > -					 prot, IOMMU_RESV_SW_MSI);
+> > > +	if (smmu && (smmu->options & ARM_SMMU_OPT_RESV_HW_MSI)
+> > &&
+> > > +		      dev_is_pci(dev))
+> > > +		region = arm_smmu_acpi_alloc_hw_msi(dev);
+> > 
+> > Is it safe to carry on if arm_smmu_acpi_alloc_hw_msi() returns NULL here ?
+> 
+> It is just that PCIe devices won't be functional on this platforms as the endpoint will 
+> be configured with ITS IOVA address. May be I should add some dev_warn() here.
+> 
+> Thanks,
+> Shameer
