@@ -1,63 +1,49 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 2/6] USB / PCI / PM: Allow the PCI core to do the resume
- cleanup
-Date: Thu, 8 Jun 2017 11:24:55 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1706081124310.1949-100000@iolanthe.rowland.org>
-References: <1565826.hIbT8kZpDn@aspire.rjw.lan>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH v6] platform/x86: Add driver for ACPI INT0002 Virtual
+ GPIO device
+Date: Thu, 8 Jun 2017 08:45:41 -0700
+Message-ID: <20170608154541.GH32509@fury>
+References: <20170602151507.22391-1-hdegoede@redhat.com>
+ <20170602151507.22391-2-hdegoede@redhat.com>
+ <CAHp75Vcdznj2mB+msNvysrvRi3L-0j4c6vthOS8oAv1S9iYWKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1565826.hIbT8kZpDn@aspire.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux USB <linux-usb@vger.kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Felipe Balbi <balbi@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dominik Brodowski <linux@dominikbrodowski.net>, Hans De Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([65.50.211.133]:44603 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751620AbdFHPpp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2017 11:45:45 -0400
+Content-Disposition: inline
+In-Reply-To: <CAHp75Vcdznj2mB+msNvysrvRi3L-0j4c6vthOS8oAv1S9iYWKA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
 
-On Thu, 8 Jun 2017, Rafael J. Wysocki wrote:
+On Wed, Jun 07, 2017 at 05:53:38PM +0300, Andy Shevchenko wrote:
+> On Fri, Jun 2, 2017 at 6:15 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> > Some peripherals on Bay Trail and Cherry Trail platforms signal a
+> > Power Management Event (PME) to the Power Management Controller (PMC)
+> > to wakeup the system. When this happens software needs to explicitly
+> > clear the PME bus 0 status bit in the GPE0a_STS register to avoid an
+> > IRQ storm on IRQ 9.
+> >
+> > This is modelled in ACPI through the INT0002 ACPI device, which is
+> > called a "Virtual GPIO controller" in ACPI because it defines the
+> > event handler to call when the PME triggers through _AEI and _L02
+> > methods as would be done for a real GPIO interrupt in ACPI.
+> >
+> > This commit adds a driver which registers the Virtual GPIOs expected
+> > by the DSDT on these devices, letting gpiolib-acpi claim the
+> > virtual GPIO and install a GPIO-interrupt handler which call the _L02
+> > handler as it would for a real GPIO controller.
+> >
+> 
+> Pushed to testing w/o Linus' tag (there is no one yet)
 
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> hcd_pci_resume_noirq() used as a universal _resume_noirq handler for
-> PCI USB controllers calls pci_back_from_sleep() which is unnecessary
-> and may become problematic.
-> 
-> It is unnecessary, because the PCI bus type carries out post-suspend
-> cleanup of all PCI devices during resume and that covers all things
-> done by the pci_back_from_sleep().  There is no reason why USB cannot
-> follow all of the other PCI devices in that respect.
-> 
-> It will become problematic after subsequent changes that make it
-> possible to go back to sleep again after executing dpm_resume_noirq()
-> if no valid system wakeup events have been detected at that point.
-> Namely, calling pci_back_from_sleep() at the _resume_noirq stage
-> will cause the wakeup status of the devices in question to be cleared
-> and if any of them has triggered system wakeup, that event may be
-> missed then.
-> 
-> For the above reasons, drop the pci_back_from_sleep() invocation
-> from hcd_pci_resume_noirq().
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/usb/core/hcd-pci.c |    7 +------
->  1 file changed, 1 insertion(+), 6 deletions(-)
-> 
-> Index: linux-pm/drivers/usb/core/hcd-pci.c
-> ===================================================================
-> --- linux-pm.orig/drivers/usb/core/hcd-pci.c
-> +++ linux-pm/drivers/usb/core/hcd-pci.c
-> @@ -584,12 +584,7 @@ static int hcd_pci_suspend_noirq(struct
->  
->  static int hcd_pci_resume_noirq(struct device *dev)
->  {
-> -	struct pci_dev		*pci_dev = to_pci_dev(dev);
-> -
-> -	powermac_set_asic(pci_dev, 1);
-> -
-> -	/* Go back to D0 and disable remote wakeup */
-> -	pci_back_from_sleep(pci_dev);
-> +	powermac_set_asic(to_pci_dev(dev), 1);
->  	return 0;
->  }
+Will you be taking this through fixes Andy? For a 4.12-rc* target per Hans'
+response to the cover letter?
 
-Acked-by: Alan Stern <stern@rowland.harvard.edu>
+-- 
+Darren Hart
+VMware Open Source Technology Center
