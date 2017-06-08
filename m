@@ -1,66 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/6] USB / PCI / PM: Allow the PCI core to do the resume cleanup
-Date: Fri, 09 Jun 2017 01:01:45 +0200
-Message-ID: <4103609.n9yJNxPNSu@aspire.rjw.lan>
-References: <Pine.LNX.4.44L0.1706081124310.1949-100000@iolanthe.rowland.org>
+From: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?=
+        <jerome.debretagne@gmail.com>
+Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
+ recent Dell laptops
+Date: Fri, 9 Jun 2017 01:44:29 +0200
+Message-ID: <CA+kEDGFUuSC1CpCEgOT+HMTrDa-r1y59kM9-CYn0PSgtuKaG5Q@mail.gmail.com>
+References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
+ <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1706081124310.1949-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux USB <linux-usb@vger.kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Felipe Balbi <balbi@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dominik Brodowski <linux@dominikbrodowski.net>, Hans De Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f174.google.com ([209.85.223.174]:35441 "EHLO
+        mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751382AbdFHXpM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2017 19:45:12 -0400
+In-Reply-To: <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mario.Limonciello@dell.com
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Thursday, June 08, 2017 11:24:55 AM Alan Stern wrote:
-> On Thu, 8 Jun 2017, Rafael J. Wysocki wrote:
-> 
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > hcd_pci_resume_noirq() used as a universal _resume_noirq handler for
-> > PCI USB controllers calls pci_back_from_sleep() which is unnecessary
-> > and may become problematic.
-> > 
-> > It is unnecessary, because the PCI bus type carries out post-suspend
-> > cleanup of all PCI devices during resume and that covers all things
-> > done by the pci_back_from_sleep().  There is no reason why USB cannot
-> > follow all of the other PCI devices in that respect.
-> > 
-> > It will become problematic after subsequent changes that make it
-> > possible to go back to sleep again after executing dpm_resume_noirq()
-> > if no valid system wakeup events have been detected at that point.
-> > Namely, calling pci_back_from_sleep() at the _resume_noirq stage
-> > will cause the wakeup status of the devices in question to be cleared
-> > and if any of them has triggered system wakeup, that event may be
-> > missed then.
-> > 
-> > For the above reasons, drop the pci_back_from_sleep() invocation
-> > from hcd_pci_resume_noirq().
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/usb/core/hcd-pci.c |    7 +------
-> >  1 file changed, 1 insertion(+), 6 deletions(-)
-> > 
-> > Index: linux-pm/drivers/usb/core/hcd-pci.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/usb/core/hcd-pci.c
-> > +++ linux-pm/drivers/usb/core/hcd-pci.c
-> > @@ -584,12 +584,7 @@ static int hcd_pci_suspend_noirq(struct
-> >  
-> >  static int hcd_pci_resume_noirq(struct device *dev)
-> >  {
-> > -	struct pci_dev		*pci_dev = to_pci_dev(dev);
-> > -
-> > -	powermac_set_asic(pci_dev, 1);
-> > -
-> > -	/* Go back to D0 and disable remote wakeup */
-> > -	pci_back_from_sleep(pci_dev);
-> > +	powermac_set_asic(to_pci_dev(dev), 1);
-> >  	return 0;
-> >  }
-> 
-> Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Hi Mario,
 
-Thanks!
+>> Here is some feedback for Dell Latitude 7275, as suggested by Srinivas
+>> in https://bugzilla.kernel.org/show_bug.cgi?id=3D195897#c15 .
+>>
+>> For some context on that model, suspend-to-RAM is not safe as the
+>> system hangs (raised in the above bug report). I'm wondering if this
+>> is expected somehow, due to S3 not being supported on that model, as
+>> discussed for the XPS 13 9365. Maybe Mario or someone else from Dell
+>> would be able to confirm this point.
+>>
+> The Latitude 7275 was not a machine that was tested with Linux during
+> development.
+> This machine shipped with Windows 8, right?
+
+I've read that this machine shipped at first with the option to have it eit=
+her
+with Windows 10 or Windows 8.1. Mine came with Windows 10.
+
+> I believe this machine also supports Connected Standby (the precursor
+> to Modern Standby that behaves very similarly).
+
+I've in fact found some WinHEC slides stating that it was among the first
+systems to support Modern Standby, here for reference:
+https://f.ch9.ms/public/WinHEC/06_WinHECDec2016-DesigningPowerEfficient_v02=
+.pptx
+
+> I have an ask out to someone who can confirm that.
+
+Thanks. I'm hoping there's a chance to make it work with suspend-to-RAM
+on Linux still, in addition to suspend-to-idle, by fixing the current hang.
+
+Thanks,
+J=C3=A9rome
