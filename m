@@ -1,60 +1,67 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 0/6] ACPI / PM: Suspend-to-idle rework to deal with
- spurious ACPI wakeups
-Date: Thu, 8 Jun 2017 09:24:37 +0200
-Message-ID: <7579a28c-6237-e16a-6eda-9b41cc657ddf@redhat.com>
-References: <8918199.uo13RZ8hZk@aspire.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] acpi:  acpica:  dsutils: fixanoff-by-one index
+Date: Thu, 8 Jun 2017 07:31:04 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CECB52A@SHSMSX101.ccr.corp.intel.com>
+References: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5BF38C@ORSMSX110.amr.corp.intel.com>
+ <20170607171814.zjvrikbjonp5n3gd@macchiaveli>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33352 "EHLO mx1.redhat.com"
+Received: from mga05.intel.com ([192.55.52.43]:59720 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750822AbdFHHYm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 8 Jun 2017 03:24:42 -0400
-In-Reply-To: <8918199.uo13RZ8hZk@aspire.rjw.lan>
+        id S1751035AbdFHHbJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Jun 2017 03:31:09 -0400
+In-Reply-To: <20170607171814.zjvrikbjonp5n3gd@macchiaveli>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux USB <linux-usb@vger.kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Felipe Balbi <balbi@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dominik Brodowski <linux@dominikbrodowski.net>
+To: Seraphime Kirkovski <kirkseraph@gmail.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "devel@acpica.org" <devel@acpica.org>, "afael.j.wysocki@intel.com" <afael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
 Hi,
 
-On 08-06-17 02:00, Rafael J. Wysocki wrote:
-> Hi All,
+> From: Seraphime Kirkovski
 > 
-> This series is a replacement for commit eed4d47efe95 (ACPI / sleep: Ignore
-> spurious SCI wakeups from suspend-to-idle) which is still there in 4.12-rc4 but
-> will be reverted shortly, because it triggered issues on quite a few systems.
-> 
-> The last patch in the series is a counterpart of the above commit with a few
-> modifications, mostly to avoid affecting suspend-to-RAM and to reorder messages
-> printed to kernel logs to make them somewhat less confusing.
-> 
-> The previous patches are pre-requisite changes plus some cleanups.  The major
-> ones are [1-2/6] and [4/6] that are really needed for things to work as expected
-> after [6/6].
-> 
-> In addition to that, this patch from Hans: https://patchwork.kernel.org/patch/9762815/
-> is needed for USB wakeup on Bay Trail and Cherry Trail systems to work in general.
+> On Wed, Jun 07, 2017 at 03:14:46PM +0000, Moore, Robert wrote:
+> > I believe that the rationale for this is that at that point in the code, it is *guaranteed* that
+> there is at least one operand; therefore the -1 would always be valid.
+> >
+> > In the end, we just deleted that call to
+> > acpi_db_display_argument_object.
 
-Small correction, that patch currently only influences Cherry Trail devices, it has:
+Yes, the AcpiDbDisplayArgumentObject() invocation itself here is not proper.
+It can mess up debugging messages.
 
-static const struct x86_cpu_id int0002_cpu_ids[] = {
-/*
-  * Limit ourselves to Cherry Trail for now, until testing shows we
-  * need to handle the INT0002 device on Baytrail too.
-  *     ICPU(INTEL_FAM6_ATOM_SILVERMONT1),       * Valleyview, Bay Trail *
-  */
-        ICPU(INTEL_FAM6_ATOM_AIRMONT),          /* Braswell, Cherry Trail */
-        {}
-};
+In debugging console, AcpiDbDisplayArgumentObject() can be enabled to display stacked objects.
+In single step mode, it dumps stacked objects on the debugging console for each step.
+It means AcpiDbDisplayArgumentObject() should be invoked for each AcpiDsObjStackPush().
+There are only 2 AcpiDsObjStackPush() invocations.
+Both of them have have already been paired with AcpiDbDisplayArgumentObject() in AcpiDsCreateOperand().
 
-If anyone sees any issues where the SCI (typically irq 9) gets a nobody
-cared message on Bay Trail try the linked patch with the Bay Trail line
-above uncommented.
+This isolated AcpiDbDisplayArgumentObject() tries to find back missing stacked object debugging information.
+			ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+ 					  "Argument previously created, already stacked\n"));
+However there won't be such a missing object as all operands are created via AcpiDsCreateOperand().
+Finally this invocation only generates redundant debugging logs on console:
+ ArgObj: 00ADA610 Integer 0000000000000000
+ ArgObj: 00ADA4F0 Integer 00000000FFFF00FF
+ ArgObj: 00ADA4F0 Integer 00000000FFFF00FF <= redundant log generated by this line
+ ArgObj: 00ADA580 Integer 0000000000000000
+ ResultObj: 00ADA710 Integer 0000000000000000
+So we just removed it.
 
-Regards,
+> > I don't know if this change has made it into Linux yet.
+> >
+> The latest rc actually produces the UBSAN splat in my previous message.
+> So I suppose, I have some buggy hardware/firmware.
 
-Hans
+It's in recent ACPICA release and hasn't been merged by Linux upstream.
+It's still in community review list:
+https://patchwork.kernel.org/project/linux-acpi/list/
+named as:
+[33/53] ACPICA: Dispatcher: Remove unnecessary call to debugger
+You'll see it merged in the next 1-2 RCs if everything works smoothly.
+
+Thanks
+Lv
