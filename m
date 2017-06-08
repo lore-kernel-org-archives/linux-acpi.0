@@ -1,61 +1,67 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPICA: Remove unnecessary call to debugger
-Date: Thu, 8 Jun 2017 23:43:35 +0200
-Message-ID: <CAJZ5v0i=7CyVNT=CeEbB2Xrn7mEmi21URtS8gCZ_CinzAgLCHQ@mail.gmail.com>
-References: <20170608213106.11982-1-kilobyte@angband.pl>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
+ recent Dell laptops
+Date: Thu, 8 Jun 2017 22:28:23 +0000
+Message-ID: <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
+References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:34187 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751475AbdFHVnj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2017 17:43:39 -0400
-Received: by mail-io0-f194.google.com with SMTP id a96so4418077ioj.1
-        for <linux-acpi@vger.kernel.org>; Thu, 08 Jun 2017 14:43:38 -0700 (PDT)
-In-Reply-To: <20170608213106.11982-1-kilobyte@angband.pl>
+Received: from esa4.dell-outbound.iphmx.com ([68.232.149.214]:23243 "EHLO
+        esa4.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751547AbdFHW20 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2017 18:28:26 -0400
+In-Reply-To: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adam Borowski <kilobyte@angband.pl>, Lv Zheng <lv.zheng@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: jerome.debretagne@gmail.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, rjw@rjwysocki.net
+Cc: andriy.shevchenko@linux.intel.com, dvhart@infradead.org, srinivas.pandruvada@linux.intel.com, mika.westerberg@linux.intel.com
 
-On Thu, Jun 8, 2017 at 11:31 PM, Adam Borowski <kilobyte@angband.pl> wrote:
-> This is a port of https://github.com/acpica/acpica/commit/eaa455ac by
-> Robert Moore to the kernel:
->
->> This call was simply wrong, and resulted in a -1 index into the operand
->> stack.
->
-> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=120351
-> Signed-off-by: Adam Borowski <kilobyte@angband.pl>
-> ---
-> You guys fixed this in your tool months ago, but it's still unfixed in the
-> kernel.  Let's apply that patch, then.  The coding styles differ so much the
-> patch is hardly recognizable, but it's a direct port.
-
-Lv, any comments?
-
->  drivers/acpi/acpica/dsutils.c | 9 ---------
->  1 file changed, 9 deletions(-)
->
-> diff --git a/drivers/acpi/acpica/dsutils.c b/drivers/acpi/acpica/dsutils.c
-> index 406edec20de7..0dabd9b95684 100644
-> --- a/drivers/acpi/acpica/dsutils.c
-> +++ b/drivers/acpi/acpica/dsutils.c
-> @@ -633,15 +633,6 @@ acpi_ds_create_operand(struct acpi_walk_state *walk_state,
->
->                 if ((op_info->flags & AML_HAS_RETVAL) ||
->                     (arg->common.flags & ACPI_PARSEOP_IN_STACK)) {
-> -                       ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
-> -                                         "Argument previously created, already stacked\n"));
-> -
-> -                       acpi_db_display_argument_object(walk_state->
-> -                                                       operands[walk_state->
-> -                                                                num_operands -
-> -                                                                1],
-> -                                                       walk_state);
-> -
->                         /*
->                          * Use value that was already previously returned
->                          * by the evaluation of this argument
-> --
-> 2.11.0
+SGkgSmVyb21lLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IErDqXLD
+tG1lIGRlIEJyZXRhZ25lIFttYWlsdG86amVyb21lLmRlYnJldGFnbmVAZ21haWwuY29tXQ0KPiBT
+ZW50OiBXZWRuZXNkYXksIEp1bmUgNywgMjAxNyA2OjA2IFBNDQo+IFRvOiBBQ1BJIERldmVsIE1h
+bGluZyBMaXN0IDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZz47IGxpbnV4LQ0KPiBwbUB2Z2Vy
+Lmtlcm5lbC5vcmc7IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD4NCj4gQ2M6
+IEFuZHkgU2hldmNoZW5rbyA8YW5kcml5LnNoZXZjaGVua29AbGludXguaW50ZWwuY29tPjsgRGFy
+cmVuIEhhcnQNCj4gPGR2aGFydEBpbmZyYWRlYWQub3JnPjsgU3Jpbml2YXMgUGFuZHJ1dmFkYQ0K
+PiA8c3Jpbml2YXMucGFuZHJ1dmFkYUBsaW51eC5pbnRlbC5jb20+OyBNaWthIFdlc3RlcmJlcmcN
+Cj4gPG1pa2Eud2VzdGVyYmVyZ0BsaW51eC5pbnRlbC5jb20+OyBMaW1vbmNpZWxsbywgTWFyaW8N
+Cj4gPE1hcmlvX0xpbW9uY2llbGxvQERlbGwuY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDAv
+M10gQUNQSSAvIHNsZWVwOiBTdXBwb3J0IHBvd2VyIGJ1dHRvbiB3YWtldXAgZnJvbSBTMkkgb24N
+Cj4gcmVjZW50IERlbGwgbGFwdG9wcw0KPiANCj4gSGksDQo+IA0KPiBIZXJlIGlzIHNvbWUgZmVl
+ZGJhY2sgZm9yIERlbGwgTGF0aXR1ZGUgNzI3NSwgYXMgc3VnZ2VzdGVkIGJ5IFNyaW5pdmFzDQo+
+IGluIGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTk1ODk3I2Mx
+NSAuDQo+IA0KPiBGb3Igc29tZSBjb250ZXh0IG9uIHRoYXQgbW9kZWwsIHN1c3BlbmQtdG8tUkFN
+IGlzIG5vdCBzYWZlIGFzIHRoZQ0KPiBzeXN0ZW0gaGFuZ3MgKHJhaXNlZCBpbiB0aGUgYWJvdmUg
+YnVnIHJlcG9ydCkuIEknbSB3b25kZXJpbmcgaWYgdGhpcw0KPiBpcyBleHBlY3RlZCBzb21laG93
+LCBkdWUgdG8gUzMgbm90IGJlaW5nIHN1cHBvcnRlZCBvbiB0aGF0IG1vZGVsLCBhcw0KPiBkaXNj
+dXNzZWQgZm9yIHRoZSBYUFMgMTMgOTM2NS4gTWF5YmUgTWFyaW8gb3Igc29tZW9uZSBlbHNlIGZy
+b20gRGVsbA0KPiB3b3VsZCBiZSBhYmxlIHRvIGNvbmZpcm0gdGhpcyBwb2ludC4NCj4gDQpUaGUg
+TGF0aXR1ZGUgNzI3NSB3YXMgbm90IGEgbWFjaGluZSB0aGF0IHdhcyB0ZXN0ZWQgd2l0aCBMaW51
+eCBkdXJpbmcgDQpkZXZlbG9wbWVudC4NClRoaXMgbWFjaGluZSBzaGlwcGVkIHdpdGggV2luZG93
+cyA4LCByaWdodD8NCkkgYmVsaWV2ZSB0aGlzIG1hY2hpbmUgYWxzbyBzdXBwb3J0cyBDb25uZWN0
+ZWQgU3RhbmRieSAodGhlIHByZWN1cnNvcg0KdG8gTW9kZXJuIFN0YW5kYnkgdGhhdCBiZWhhdmVz
+IHZlcnkgc2ltaWxhcmx5KS4NCg0KSSBoYXZlIGFuIGFzayBvdXQgdG8gc29tZW9uZSB3aG8gY2Fu
+IGNvbmZpcm0gdGhhdC4JDQoNCj4gV2hpbGUgaXQncyBub3Qgc2V0IGJ5IGRlZmF1bHQsIHN1c3Bl
+bmQtdG8taWRsZSB3b3JrcyBmaW5lLiBIb3dldmVyIHRoZQ0KPiBwb3dlciBidXR0b24gbmVlZHMg
+YSB2ZXJ5IGxvbmcgcHJlc3Mgb2YgYWJvdXQgNi03cyB0byB0cmlnZ2VyIHRoZQ0KPiB3YWtlLXVw
+IChxdWl0ZSBzdXJwcmlzaW5nIGF0IGZpcnN0KS4NCj4gDQo+IEkndmUgYXBwbGllZCBSYWZhZWwn
+cyBwYXRjaCBzZXJpZXMgb24gNC4xMi1yYzQsIHdpdGggdGhlIDNyZCBwYXRjaA0KPiBtb2RpZmll
+ZCB0byBhZGQgdGhlIExhdGl0dWRlIDcyNzUgRE1JIHZhbHVlcywgdG8gY2hlY2sgaWYgdGhlIHBy
+b3Bvc2VkDQo+IGZpeCBmb3IgdGhlIFhQUyAxMyA5MzYwIGFuZCA5MzY1IGNvdWxkIGFsc28gd29y
+ayBmb3IgdGhpcyBvdGhlciBxdWl0ZQ0KPiByZWNlbnQgRGVsbCBtb2RlbC4NCj4gDQo+IFNhZGx5
+IHdpdGggdGhlIGxhdGVzdCBCSU9TIDEuMS4zMSwgdGhpcyBwYXRjaCBzZXQgZG9lc24ndCBzZWVt
+IHRvDQo+IGNoYW5nZSBhbnl0aGluZzogdGhlIGxvbmcgcHJlc3MgaXMgc3RpbGwgbmVlZGVkLg0K
+PiANCj4gU3VycHJpc2luZ2x5IGFuZCBtb3JlIGZvciByZWZlcmVuY2UgSSBzdXBwb3NlLCB0aGlz
+IHBhdGNoIHNldCB3b3JrcyBhcw0KPiBpbnRlbmRlZCB3aXRoIGFuIG9sZGVyIEJJT1MgMS4xLjIw
+IDogdGhlIHN5c3RlbSBjYW4gdGhlbiBiZSB3b2tlbiB1cA0KPiBmcm9tIHN5c3RlbS10by1pZGxl
+IHdpdGggYSB1c3VhbCBzaG9ydCBwcmVzcy4gQ2YuDQo+IGh0dHBzOi8vYnVnemlsbGEua2VybmVs
+Lm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTk1ODk3I2M5IGZvciBtb3JlIGRldGFpbHMNCj4gYWJvdXQg
+d2h5IEkndmUgZG93bmdyYWRlZCB0byBhbmQgdGVzdGVkIHRoYXQgc3BlY2lmaWMgb2xkZXIgQklP
+Uy4NCj4gDQo+IEknbSB3b25kZXJpbmcgaWYgdGhlcmUgY291bGQgYmUgd2F5cyB0byBtb2RpZnkg
+c2xpZ2h0bHkgdGhpcyBwYXRjaA0KPiBzZXJpZXMgdG8gYWxzbyBjb3ZlciB0aGUgTGF0aXR1ZGUg
+NzI3NSB3aGVuIHJ1bm5pbmcgdGhlIGN1cnJlbnQgQklPUy4NCj4gSWYgSSBjYW4gcHJvdmlkZSBh
+bnkgaW5wdXRzIHRoYXQgY291bGQgYmUgdXNlZnVsIHRvIGludmVzdGlnYXRlLA0KPiBwbGVhc2Ug
+bGV0IG1lIGtub3cuDQo+IA0KPiBUaGFua3MsDQo+IErDqXJvbWUNCg==
