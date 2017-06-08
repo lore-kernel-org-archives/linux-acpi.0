@@ -1,68 +1,82 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v7 0/3] Cavium ThunderX2 SMMUv3 errata workarounds
-Date: Thu, 8 Jun 2017 18:22:43 +0100
-Message-ID: <f240a847-0799-860e-fa82-97e6d4faf15f@arm.com>
-References: <1496145821-3411-1-git-send-email-gakula@caviumnetworks.com>
- <20170608163213.GA2216@red-moon>
- <CAJZ5v0gnjxwBXEQ--u6Sbviks74MXLFWTfN+J90cdDZbO2Q7+w@mail.gmail.com>
+From: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH] Add support of NVDIMM memory error notification in ACPI
+ 6.2
+Date: Thu, 8 Jun 2017 13:30:51 -0400
+Message-ID: <b91c4a7b-3e19-df5d-12e7-61cdf1bc2c84@hpe.com>
+References: <20170607184947.18733-1-toshi.kani@hpe.com>
+ <CAPcyv4i7bLU17QEmdUBQrtWP3AZxPRyKK0NN105XrTj8K3nAAQ@mail.gmail.com>
+ <1496869051.9288.1.camel@hpe.com>
+ <CAPcyv4hwhRc6+JW8m3zVn_tKz__wE9BHOfpjy69RS6OwiqV-PA@mail.gmail.com>
+ <1496871186.9288.3.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:55690 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751132AbdFHRWs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 8 Jun 2017 13:22:48 -0400
-In-Reply-To: <CAJZ5v0gnjxwBXEQ--u6Sbviks74MXLFWTfN+J90cdDZbO2Q7+w@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1496871186.9288.3.camel-ZPxbGqLxI0U@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Lv <lv.zheng@intel.com>
-Cc: Geetha sowjanya <gakula@caviumnetworks.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, Robert Moore <robert.moore@intel.com>, Jon Masters <jcm@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, robert.richter@cavium.com, Catalin Marinas <catalin.marinas@arm.com>, Sunil Goutham <sgoutham@cavium.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, geethasowjanya.akula@gmail.com, "devel@acpica.org" <devel@acpica.org>, linu.cherian@cavium.com, Charles Garcia Tobin <Charles.Garcia>
 
-On 08/06/17 18:13, Rafael J. Wysocki wrote:
-> On Thu, Jun 8, 2017 at 6:32 PM, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
->> On Tue, May 30, 2017 at 05:33:38PM +0530, Geetha sowjanya wrote:
->>> Cavium ThunderX2 SMMUv3 implementation has two Silicon Erratas.
->>> 1. Errata ID #74
->>>    SMMU register alias Page 1 is not implemented
->>> 2. Errata ID #126
->>>    SMMU doesnt support unique IRQ lines and also MSI for gerror,
->>>    eventq and cmdq-sync
->>>
->>> The following patchset does software workaround for these two erratas.
->>>
->>> This series is based on patchset.
->>> https://www.spinics.net/lists/arm-kernel/msg578443.html
->>
->> Yes so it is not standalone. How are we going to merge these
->> ACPI IORT/ACPICA/SMMU patches - inclusive of:
->>
->> [1] https://www.spinics.net/lists/arm-kernel/msg586458.html
->>
->> Rafael, do ACPICA patches go upstream via the ACPI tree pull request ?
-> 
-> Not as a rule.
-> 
->> To remove dependency on ACPICA changes this series needs updating
->> anyway and for [1] above I think the only solution is for all the
->> patches to go via the ACPI tree (if ACPICA updates go upstream with it).
-> 
-> I think we may ask Lv to backport the header changes once they have
-> been merged into Linux.
-> 
-> Lv, would that work?
-
-FWIW, I have already sent a PR for the header patch for the new model
-IDs to ACPICA upstream. I briefly considered the actual table update as
-well, but didn't find time to comprehend the code changes that appeared
-to be necessary for that.
-
-Robin.
-
-> 
-> Thanks,
-> Rafael
-> 
-
+CgpPbiA2LzcvMjAxNyA1OjMzIFBNLCBLYW5pLCBUb3NoaW1pdHN1IHdyb3RlOgo+IE9uIFdlZCwg
+MjAxNy0wNi0wNyBhdCAxNDowNiAtMDcwMCwgRGFuIFdpbGxpYW1zIHdyb3RlOgo+PiBPbiBXZWQs
+IEp1biA3LCAyMDE3IGF0IDE6NTcgUE0sIEthbmksIFRvc2hpbWl0c3UgPHRvc2hpLmthbmlAaHBl
+LmNvbT4KPj4gd3JvdGU6Cj4+PiBPbiBXZWQsIDIwMTctMDYtMDcgYXQgMTI6MDkgLTA3MDAsIERh
+biBXaWxsaWFtcyB3cm90ZToKPj4+PiBPbiBXZWQsIEp1biA3LCAyMDE3IGF0IDExOjQ5IEFNLCBU
+b3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+Cj4+Pj4gd3JvdGU6Cj4+Pgo+Pj4gIDoKPj4+
+Pj4gKwo+Pj4+PiArc3RhdGljIHZvaWQgYWNwaV9uZml0X3VjX2Vycm9yX25vdGlmeShzdHJ1Y3Qg
+ZGV2aWNlICpkZXYsCj4+Pj4+IGFjcGlfaGFuZGxlIGhhbmRsZSkKPj4+Pj4gK3sKPj4+Pj4gKyAg
+ICAgICBzdHJ1Y3QgYWNwaV9uZml0X2Rlc2MgKmFjcGlfZGVzYyA9Cj4+Pj4+IGRldl9nZXRfZHJ2
+ZGF0YShkZXYpOwo+Pj4+PiArCj4+Pj4+ICsgICAgICAgYWNwaV9uZml0X2Fyc19yZXNjYW4oYWNw
+aV9kZXNjKTsKPj4+Pgo+Pj4+IEkgd29uZGVyIGlmIHdlIHNob3VsZCBnYXRlIHJlLXNjYW5uaW5n
+IHdpdGggYSBzaW1pbGFyOgo+Pj4+Cj4+Pj4gICAgIGlmIChhY3BpX2Rlc2MtPnNjcnViX21vZGUg
+PT0gSFdfRVJST1JfU0NSVUJfT04pCj4+Pj4KPj4+PiAuLi5jaGVjayB0aGF0IHdlIGRvIGluIHRo
+ZSBtY2Ugbm90aWZpY2F0aW9uIGNhc2U/IE1heWJlIG5vdCBzaW5jZQo+Pj4+IHdlCj4+Pj4gZG9u
+J3QgZ2V0IGFuIGluZGljYXRpb24gb2Ygd2hlcmUgdGhlIGVycm9yIGlzIHdpdGhvdXQgYSByZXNj
+YW4uCj4+Pgo+Pj4gSSB0aGluayB0aGlzIG1jZSBjYXNlIGlzIGRpZmZlcmVudCBzaW5jZSB0aGUg
+TUNFIGhhbmRsZXIgYWxyZWFkeQo+Pj4ga25vd3Mgd2hlcmUgdGhlIG5ldyBwb2lzb24gbG9jYXRp
+b24gaXMgYW5kIGNhbiB1cGRhdGUgYmFkYmxvY2tzCj4+PiBpbmZvcm1hdGlvbiBmb3IgaXQuICBT
+dGFydGluZyBBUlMgaXMgYW4gb3B0aW9uYWwgcHJlY2F1dGlvbi4KPj4+Cj4+Pj4gSG93ZXZlciwg
+YXQgYSBtaW5pbXVtIEkgdGhpbmsgd2UgbmVlZCBzdXBwb3J0IGZvciB0aGUgbmV3IFN0YXJ0Cj4+
+Pj4gQVJTIGZsYWcgKCJJZiBzZXQgdG8gMSB0aGUgZmlybXdhcmUgc2hhbGwgcmV0dXJuIGRhdGEg
+ZnJvbSBhCj4+Pj4gcHJldmlvdXMgc2NydWIsIGlmIGFueSwgd2l0aG91dCBzdGFydGluZyBhIG5l
+dyBzY3J1YiIpIGFuZCB1c2UKPj4+PiB0aGF0IGZvciB0aGlzIGNhc2UuCj4+Pgo+Pj4gVGhhdCdz
+IGFuIGludGVyZXN0aW5nIGlkZWEuICBCdXQgSSB3b25kZXIgaG93IHVzZXJzIGtub3cgaWYgaXQg
+aXMKPj4+IE9LIHRvIHNldCB0aGlzIGZsYWcgYXMgaXQgcmVsaWVzIG9uIEJJT1MgaW1wbGVtZW50
+YXRpb24gdGhhdCBpcyBub3QKPj4+IGRlc2NyaWJlZCBpbiBBQ1BJLi4uCj4+Cj4+IFVnaCwgeW91
+J3JlIHJpZ2h0LiBXZSBtaWdodCBuZWVkIGEgcmV2aXNpb24taWQ9MiB2ZXJzaW9uIG9mIFN0YXJ0
+IEFSUwo+PiBzbyBzb2Z0d2FyZSBrbm93cyB0aGF0IHRoZSBCSU9TIGlzIGF3YXJlIG9mIHRoZSBu
+ZXcgZmxhZy4KPgo+IE15IGJhZC4gIExvb2tpbmcgYXQgQUNQSSA2LjIsIGl0IGFjdHVhbGx5IGRl
+ZmluZXMgd2hhdCB5b3UgZGVzY3JpYmVkLgo+IFN0YXJ0IEFSUyBub3cgZGVmaW5lcyBiaXRbMV0g
+aW4gRmxhZ3Mgd2hpY2ggY2FuIGJlIHNldCB0byBhdm9pZAo+IHNjYW5uaW5nIGZvciB0aGlzIG5v
+dGlmaWNhdGlvbi4gIEkgd2lsbCB1cGRhdGUgdGhlIHBhdGNoIHRvIHNldCB0aGlzCj4gZmxhZyB3
+aGVuIEhXX0VSUk9SX1NDUlVCX09OIGlzIG5vdCBzZXQuCgpXYXNuJ3QgRGFuIGNvbmNlcm5lZCBh
+Ym91dCBob3cgdGhlIE9TIGNhbiBrbm93IHdoZXRoZXIgdGhlIEZXIHN1cHBvcnRzCnRoYXQgYml0
+IGluIHRoZSBTdGFydCBBUlM/CgpUaGUgUXVlcnkgQVJTIENhcGFiaWxpdGllcyBEU00gaGFzIGEg
+Yml0IHRoYXQgdGVsbHMgdGhlIE9TIHdoZXRoZXIgdGhlCnBsYXRmb3JtIHN1cHBvcnRzIHRoZSBu
+b3RpZmljYXRpb24gYW5kIHRoZSBwb2ludCBvZiB0aGUgbm90aWZpY2F0aW9uIHdhcwp0byB0ZWxs
+IHRoZSBPUyBpdCBjb3VsZCBkbyBhIFN0YXJ0IEFSUyB3aXRoIGJpdCAxIHNldC4gIE9mIGNvdXJz
+ZSwgaWYKeW91IGdldCB0aGUgbm90aWZpY2F0aW9uIHRoZW4gdGhhdCBtZWFucyB0aGUgcGxhdGZv
+cm0gaGFzIHRoZSBjYXBhYmlsaXR5CnRvIGRlbGl2ZXIgaXQsIGJ1dCBpdCBtaWdodCBub3QgaHVy
+dCB0byBjaGVjayB0aGUgZmxhZyBmcm9tIHRoZSBRdWVyeQpDYXBhYmlsaXRpZXMgYml0LgoKSWYg
+dGhlIHNwZWMgaXNuJ3QgY2xlYXIgYWJvdXQgdGhlIHJlbGF0aW9uc2hpcCBiZXR3ZWVuIHRoZSBi
+aXRzLCB3ZSBjb3VsZApjbGFyaWZ5IHRoYXQgaW4gdGhlIHNwZWMgd2l0aG91dCBidW1waW5nIHRo
+ZSByZXZpc2lvbiBudW1iZXIgZm9yIHRoZSBjYWxsLgoKV2UgY291bGQgYWxzbyBjaGVjayB0byBz
+ZWUgd2hhdCBhIHBsYXRmb3JtIGRvZXMgaWYgaXQgZ2V0cyBhIGZsYWcgaXQKZG9lc24ndCBrbm93
+IGFib3V0LiAgV291bGQgdGhhdCBiZSBhbiBJbnZhbGlkIElucHV0IFBhcmFtZXRlcj8KCi0tIGxq
+awo+Cj4gVGhhbmtzLAo+IC1Ub3NoaRPvv73vv73subsc77+9Ju+/vX7vv70m77+9GO+/ve+/vSst
+77+977+93bYX77+977+9d++/ve+/vcub77+977+977+9be+/vWLvv73vv71acu+/ve+/ve+/ve+/
+vV5u77+9cu+/ve+/ve+/vXrvv70a77+977+9aO+/ve+/ve+/ve+/vSbvv73vv70e77+9R++/ve+/
+ve+/vWjvv70DKO+/vemaju+/vd2iaiLvv73vv70a77+9G23vv73vv73vv73vv73vv71677+93pbv
+v73vv73vv71m77+977+977+9aO+/ve+/ve+/vX7vv71t77+9Cj4KX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
+aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
+dGluZm8vbGludXgtbnZkaW1tCg==
