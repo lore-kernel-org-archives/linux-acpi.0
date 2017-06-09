@@ -1,73 +1,56 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: Remove unnecessary call to debugger
-Date: Fri, 9 Jun 2017 02:56:56 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CECBCD5@SHSMSX101.ccr.corp.intel.com>
-References: <20170608213106.11982-1-kilobyte@angband.pl>
- <1AE640813FDE7649BE1B193DEA596E886CECBBA1@SHSMSX101.ccr.corp.intel.com>
- <20170609013351.fvpuwqcxw2jxp2dv@angband.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH v2] acpi: handle the acpi hotplug schedule error
+Date: Fri,  9 Jun 2017 12:33:45 +0800
+Message-ID: <20170609043345.14561-1-jlee@suse.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:63753 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751479AbdFIC5A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 8 Jun 2017 22:57:00 -0400
-In-Reply-To: <20170609013351.fvpuwqcxw2jxp2dv@angband.pl>
-Content-Language: en-US
+Received: from mail-it0-f65.google.com ([209.85.214.65]:33647 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750934AbdFIEe3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2017 00:34:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adam Borowski <kilobyte@angband.pl>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>
 
-SGksDQoNCj4gRnJvbTogQWRhbSBCb3Jvd3NraSBbbWFpbHRvOmtpbG9ieXRlQGFuZ2JhbmQucGxd
-DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIEFDUElDQTogUmVtb3ZlIHVubmVjZXNzYXJ5IGNhbGwg
-dG8gZGVidWdnZXINCj4gDQo+IE9uIEZyaSwgSnVuIDA5LCAyMDE3IGF0IDAxOjE4OjI1QU0gKzAw
-MDAsIFpoZW5nLCBMdiB3cm90ZToNCj4gPiA+IFN1YmplY3Q6IFtQQVRDSF0gQUNQSUNBOiBSZW1v
-dmUgdW5uZWNlc3NhcnkgY2FsbCB0byBkZWJ1Z2dlcg0KPiA+ID4NCj4gPiA+IFRoaXMgaXMgYSBw
-b3J0IG9mIGh0dHBzOi8vZ2l0aHViLmNvbS9hY3BpY2EvYWNwaWNhL2NvbW1pdC9lYWE0NTVhYyBi
-eQ0KPiA+ID4gUm9iZXJ0IE1vb3JlIHRvIHRoZSBrZXJuZWw6DQo+ID4gPg0KPiA+ID4gPiBUaGlz
-IGNhbGwgd2FzIHNpbXBseSB3cm9uZywgYW5kIHJlc3VsdGVkIGluIGEgLTEgaW5kZXggaW50byB0
-aGUgb3BlcmFuZA0KPiA+ID4gPiBzdGFjay4NCj4gPiA+DQo+ID4gPiBCdWd6aWxsYTogaHR0cHM6
-Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0xMjAzNTENCj4gPiA+IFNpZ25l
-ZC1vZmYtYnk6IEFkYW0gQm9yb3dza2kgPGtpbG9ieXRlQGFuZ2JhbmQucGw+DQo+ID4NCj4gPiBJ
-IHRoaW5rIG15IGZpcnN0IGZpeCBhbHNvIHdvcmtlZCBhbmQgeW91ciB0ZXN0IG9uIGJ1ZyAxMjAz
-NTEgd2FzIHdyb25nLg0KPiA+IEkganVzdCBhZGRlZCBjb21tZW50IGEgbW9tZW50IGFnby4NCj4g
-Pg0KPiA+IEhvd2V2ZXIgSSBqdXN0IHB1c2hlZCB0aGUgcmVtb3ZhbCBvZiB0aGUgd3JvbmcgZGVi
-dWdnaW5nIHN0YXRlbWVudCBmaXggdG8gdGhlIHVwc3RyZWFtLg0KPiA+IEl0J3MgcmVhbGx5IHJl
-ZHVuZGFudCwgeW91IG5lZWQgdG8gZW5hYmxlIHRoZSBsb2cgYW5kIGNoZWNrIHRoZW0uDQo+ID4N
-Cj4gPiBUaGUgcGF0Y2ggaGFzIGFscmVhZHkgYmVlbiBzZW50IGhlcmU6DQo+ID4gaHR0cHM6Ly9w
-YXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85NzY1ODM3Lw0KPiA+IFNvIHlvdSBkb24ndCBoYXZl
-IHRvIHNlbmQgaXQgYWdhaW4uDQo+IA0KPiBEYXRlOiBKdW5lIDUsIGFuZCBpdCdzIG5vdCBldmVu
-IGluIG5leHQtMjAxNzA2MDggeWV0LCBzbyBJIG9idmlvdXNseSBkaWRuJ3QNCj4gc2VlIHlvdSBh
-cHBseWluZyB0aGUgZml4IChpdCBzZWVtZWQgc3RhbGxlZCBzaW5jZSBBcHIgNCkuICBJZiBpdCdz
-IGFscmVhZHkNCj4gb24gdGhlIHdheSwgdGhhdCdzIGdvb2QuDQoNClllcywgQUNQSUNBIHJlbGVh
-c2Ugd2FzIGZyb3plbiwgd2FpdGluZyBmb3Igc3BlYyA2LjIgcmVsZWFzZS4NCg0KPiANCj4gSG93
-ZXZlciwgaXQgaXMgbm90IHJlZHVuZGFudDogd2l0aG91dCB0aGlzIHJlbW92YWwsIEkgc2VlIHRo
-ZSBVQlNBTiBlcnJvcg0KPiAoYXQgbGVhc3QgaW4gY3VycmVudCBtYWlubGluZSkuDQoNCldlIGhh
-dmUgZGlmZmVyZW50IG1lYW5pbmcgb2YgcmVkdW5kYW50LiA6KQ0KDQpJIG1lYW46DQpJIG1hbmFn
-ZWQgdG8gZW5hYmxlIHRoZSBkZWJ1Z2dpbmcgbG9nLCBhbmQgaXQgYWx3YXlzIGR1bXBzIHRoaW5n
-cyBpbiB0aGlzIHdheToNCiBBcmdPYmo6IDAwQURBNjEwIEludGVnZXIgMDAwMDAwMDAwMDAwMDAw
-MA0KIEFyZ09iajogMDBBREE0RjAgSW50ZWdlciAwMDAwMDAwMEZGRkYwMEZGDQogQXJnT2JqOiAw
-MEFEQTRGMCBJbnRlZ2VyIDAwMDAwMDAwRkZGRjAwRkYgPD0gcmVkdW5kYW50IGxvZyBnZW5lcmF0
-ZWQgYnkgdGhpcyBsaW5lDQogQXJnT2JqOiAwMEFEQTU4MCBJbnRlZ2VyIDAwMDAwMDAwMDAwMDAw
-MDANCiBSZXN1bHRPYmo6IDAwQURBNzEwIEludGVnZXIgMDAwMDAwMDAwMDAwMDAwMA0KSW4gdGhl
-b3J5LCBBY3BpRGJEaXNwbGF5QXJndW1lbnRPYmplY3QoKSBzaG91bGQgYmUgaW52b2tlZCBmb3Ig
-ZWFjaCBBY3BpRHNPYmpTdGFja1B1c2goKS4NClRoZXJlIGFyZSBvbmx5IDIgQWNwaURzT2JqU3Rh
-Y2tQdXNoKCkgaW52b2NhdGlvbnMuDQpCb3RoIG9mIHRoZW0gaGF2ZSBhbHJlYWR5IGJlZW4gcGFp
-cmVkIHdpdGggQWNwaURiRGlzcGxheUFyZ3VtZW50T2JqZWN0KCkgaW4gQWNwaURzQ3JlYXRlT3Bl
-cmFuZCgpLg0KDQpUaGlzIGlzb2xhdGVkIEFjcGlEYkRpc3BsYXlBcmd1bWVudE9iamVjdCgpIHRy
-aWVzIHRvIGZpbmQgYmFjayBtaXNzaW5nIHN0YWNrZWQgb2JqZWN0IGRlYnVnZ2luZyBpbmZvcm1h
-dGlvbi4NCgkJCUFDUElfREVCVUdfUFJJTlQoKEFDUElfREJfRElTUEFUQ0gsDQogCQkJCQkgICJB
-cmd1bWVudCBwcmV2aW91c2x5IGNyZWF0ZWQsIGFscmVhZHkgc3RhY2tlZFxuIikpOw0KSG93ZXZl
-ciB0aGVyZSB3b24ndCBiZSBzdWNoIGEgbWlzc2luZyBvYmplY3QgYXMgYWxsIG9wZXJhbmRzIGFy
-ZSBjcmVhdGVkIHZpYSBBY3BpRHNDcmVhdGVPcGVyYW5kKCkuDQpGaW5hbGx5IHRoaXMgaW52b2Nh
-dGlvbiBvbmx5IGdlbmVyYXRlcyBhYm92ZSByZWR1bmRhbnQgZGVidWdnaW5nIGxvZ3MuDQoNCkNo
-ZWVycywNCkx2DQoNCj4gDQo+IFdoZXRoZXIgYW4gYWx0ZXJuYXRlIGZpeCB3b3VsZCBiZSBlbm91
-Z2ggaXMgYW5vdGhlciBxdWVzdGlvbi4gIFlvdSBndXlzIGtub3cNCj4gbW9yZSBhYm91dCB0aGUg
-aXNzdWUsIGFsbCBJIGtub3cgaXMgd2hldGhlciBJIHNlZSB3YXJuaW5ncyBzcGV3ZWQgaW50byBt
-eQ0KPiBkbWVzZyA6KQ0KPiANCj4gDQo+IE1lb3chDQo+IC0tDQo+IOKigOKjtOKgvuKgu+KituKj
-puKggCBBIHRpdCBhIGRheSBrZWVwcyB0aGUgdmV0IGF3YXkuDQo+IOKjvuKggeKisOKgkuKggOKj
-v+KhgQ0KPiDior/ioYTioJjioLfioJrioIvioIAgKFJlam9pY2UgYXMgbXkgc21hbGwtYW5pbWFs
-LW11cmRlci1tYWNoaW5lIGdvdCB1bmJyb2tlbiBhZnRlcg0KPiDioIjioLPio4TioIDioIDioIDi
-oIAgbmVhcmx5IHR3byB5ZWFycyBvZiBubyBjYXRjaCEpDQo=
+Kernel should decrements the reference count of acpi device
+when the scheduling of acpi hotplug work is failed, and
+evaluates _OST to notify BIOS the failure.
+
+v2:
+To simplify the code. (Andy Shevchenko)
+
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
+---
+ drivers/acpi/bus.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 34fbe02..91adb71 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -427,12 +427,17 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+ 	    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
+ 		driver->ops.notify(adev, type);
+ 
+-	if (hotplug_event && ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
+-		return;
++	if (hotplug_event) {
++		if (ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
++			return;
++		goto err_put_device;
++	}
+ 
+ 	acpi_bus_put_acpi_device(adev);
+ 	return;
+ 
++ err_put_device:
++	acpi_bus_put_acpi_device(adev);
+  err:
+ 	acpi_evaluate_ost(handle, type, ost_code, NULL);
+ }
+-- 
+2.10.2
+
