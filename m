@@ -1,71 +1,86 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
 Subject: RE: [PATCH] ACPICA: Remove unnecessary call to debugger
-Date: Fri, 9 Jun 2017 00:35:21 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CECBB71@SHSMSX101.ccr.corp.intel.com>
+Date: Fri, 9 Jun 2017 01:18:25 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CECBBA1@SHSMSX101.ccr.corp.intel.com>
 References: <20170608213106.11982-1-kilobyte@angband.pl>
- <CAJZ5v0i=7CyVNT=CeEbB2Xrn7mEmi21URtS8gCZ_CinzAgLCHQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:59044 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:35593 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751428AbdFIAf3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 8 Jun 2017 20:35:29 -0400
-In-Reply-To: <CAJZ5v0i=7CyVNT=CeEbB2Xrn7mEmi21URtS8gCZ_CinzAgLCHQ@mail.gmail.com>
+        id S1751445AbdFIBSa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Jun 2017 21:18:30 -0400
+In-Reply-To: <20170608213106.11982-1-kilobyte@angband.pl>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Adam Borowski <kilobyte@angband.pl>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Adam Borowski <kilobyte@angband.pl>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-SGksDQoNCj4gRnJvbTogcmp3eXNvY2tpQGdtYWlsLmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFp
-bC5jb21dIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTdWJqZWN0OiBSZTogW1BB
-VENIXSBBQ1BJQ0E6IFJlbW92ZSB1bm5lY2Vzc2FyeSBjYWxsIHRvIGRlYnVnZ2VyDQo+IA0KPiBP
-biBUaHUsIEp1biA4LCAyMDE3IGF0IDExOjMxIFBNLCBBZGFtIEJvcm93c2tpIDxraWxvYnl0ZUBh
-bmdiYW5kLnBsPiB3cm90ZToNCj4gPiBUaGlzIGlzIGEgcG9ydCBvZiBodHRwczovL2dpdGh1Yi5j
-b20vYWNwaWNhL2FjcGljYS9jb21taXQvZWFhNDU1YWMgYnkNCj4gPiBSb2JlcnQgTW9vcmUgdG8g
-dGhlIGtlcm5lbDoNCj4gPg0KPiA+PiBUaGlzIGNhbGwgd2FzIHNpbXBseSB3cm9uZywgYW5kIHJl
-c3VsdGVkIGluIGEgLTEgaW5kZXggaW50byB0aGUgb3BlcmFuZA0KPiA+PiBzdGFjay4NCj4gPg0K
-PiA+IEJ1Z3ppbGxhOiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lk
-PTEyMDM1MQ0KPiA+IFNpZ25lZC1vZmYtYnk6IEFkYW0gQm9yb3dza2kgPGtpbG9ieXRlQGFuZ2Jh
-bmQucGw+DQo+ID4gLS0tDQo+ID4gWW91IGd1eXMgZml4ZWQgdGhpcyBpbiB5b3VyIHRvb2wgbW9u
-dGhzIGFnbywgYnV0IGl0J3Mgc3RpbGwgdW5maXhlZCBpbiB0aGUNCj4gPiBrZXJuZWwuICBMZXQn
-cyBhcHBseSB0aGF0IHBhdGNoLCB0aGVuLiAgVGhlIGNvZGluZyBzdHlsZXMgZGlmZmVyIHNvIG11
-Y2ggdGhlDQo+ID4gcGF0Y2ggaXMgaGFyZGx5IHJlY29nbml6YWJsZSwgYnV0IGl0J3MgYSBkaXJl
-Y3QgcG9ydC4NCj4gDQo+IEx2LCBhbnkgY29tbWVudHM/DQoNClRoZSBjb21taXQgd2FzIG9yaWdp
-bmFsbHkgc2VudCBieSBtZSB3aXRoIHRoaXMgY29tbWl0Og0KaHR0cHM6Ly9naXRodWIuY29tL3pl
-dGFsb2cvbGludXgvY29tbWl0LzJjZDY0MGU1ZmQ1MA0KWW91IGNhbiBzZWUgZnVsbCBidWcgdHJp
-YWdlIHN0b3J5IGhlcmU6DQpodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dp
-P2lkPTE5NDg0NQ0KQW5kIHVwc3RyZWFtIEFDUElDQSBkaXNjdXNzaW9uIGhlcmU6DQpodHRwczov
-L2dpdGh1Yi5jb20vYWNwaWNhL2FjcGljYS9wdWxsLzI0NQ0KQWZ0ZXIgdGhlIG1lcmdlLCBib2Ig
-aGVscGVkIHRvIGNsb3NlIGFub3RoZXIgYnVnIHJlcG9ydDoNCmh0dHBzOi8vYnVnemlsbGEua2Vy
-bmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTIwMzUxDQoNCkkgYWxyZWFkeSBzZW50IGxpbnV4aXpl
-ZCBjb21taXQgdG8geW91IGluIHRoZSBBQ1BJQ0EgcmVsZWFzZSB3aXRoIHJlc3RvcmVkIHBhdGNo
-IGRlc2NyaXB0aW9uOg0KaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85NzY1ODM3
-Lw0KU3VjaCBtb2RpZmljYXRpb24gaXMgd2hhdCB3ZSBuZWVkIHRvIGRvIGluIHJlbGVhc2UgY3lj
-bGUgYWNjb3JkaW5nIHRvIHRoZSBjb21tdW5pdHkgd29yay4NCllvdSBkb24ndCBuZWVkIHRvIHRh
-a2UgdGhpcyBvbmUuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQpMdg0KDQo+ID4gIGRyaXZl
-cnMvYWNwaS9hY3BpY2EvZHN1dGlscy5jIHwgOSAtLS0tLS0tLS0NCj4gPiAgMSBmaWxlIGNoYW5n
-ZWQsIDkgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2Fj
-cGljYS9kc3V0aWxzLmMgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2RzdXRpbHMuYw0KPiA+IGluZGV4
-IDQwNmVkZWMyMGRlNy4uMGRhYmQ5Yjk1Njg0IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNw
-aS9hY3BpY2EvZHN1dGlscy5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS9kc3V0aWxz
-LmMNCj4gPiBAQCAtNjMzLDE1ICs2MzMsNiBAQCBhY3BpX2RzX2NyZWF0ZV9vcGVyYW5kKHN0cnVj
-dCBhY3BpX3dhbGtfc3RhdGUgKndhbGtfc3RhdGUsDQo+ID4NCj4gPiAgICAgICAgICAgICAgICAg
-aWYgKChvcF9pbmZvLT5mbGFncyAmIEFNTF9IQVNfUkVUVkFMKSB8fA0KPiA+ICAgICAgICAgICAg
-ICAgICAgICAgKGFyZy0+Y29tbW9uLmZsYWdzICYgQUNQSV9QQVJTRU9QX0lOX1NUQUNLKSkgew0K
-PiA+IC0gICAgICAgICAgICAgICAgICAgICAgIEFDUElfREVCVUdfUFJJTlQoKEFDUElfREJfRElT
-UEFUQ0gsDQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIkFy
-Z3VtZW50IHByZXZpb3VzbHkgY3JlYXRlZCwgYWxyZWFkeSBzdGFja2VkXG4iKSk7DQo+ID4gLQ0K
-PiA+IC0gICAgICAgICAgICAgICAgICAgICAgIGFjcGlfZGJfZGlzcGxheV9hcmd1bWVudF9vYmpl
-Y3Qod2Fsa19zdGF0ZS0+DQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBvcGVyYW5kc1t3YWxrX3N0YXRlLT4NCj4gPiAtICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG51
-bV9vcGVyYW5kcyAtDQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAxXSwNCj4gPiAtICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHdhbGtfc3RhdGUpOw0KPiA+IC0NCj4g
-PiAgICAgICAgICAgICAgICAgICAgICAgICAvKg0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAg
-ICAqIFVzZSB2YWx1ZSB0aGF0IHdhcyBhbHJlYWR5IHByZXZpb3VzbHkgcmV0dXJuZWQNCj4gPiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgKiBieSB0aGUgZXZhbHVhdGlvbiBvZiB0aGlzIGFyZ3Vt
-ZW50DQo+ID4gLS0NCj4gPiAyLjExLjANCg==
+Hi, Adam
+
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Adam
+> Borowski
+> Sent: Friday, June 9, 2017 5:31 AM
+> To: Moore, Robert <robert.moore@intel.com>; Zheng, Lv <lv.zheng@intel.com>; Wysocki, Rafael J
+> <rafael.j.wysocki@intel.com>; Len Brown <lenb@kernel.org>; linux-acpi@vger.kernel.org;
+> devel@acpica.org
+> Cc: Adam Borowski <kilobyte@angband.pl>
+> Subject: [PATCH] ACPICA: Remove unnecessary call to debugger
+> 
+> This is a port of https://github.com/acpica/acpica/commit/eaa455ac by
+> Robert Moore to the kernel:
+> 
+> > This call was simply wrong, and resulted in a -1 index into the operand
+> > stack.
+> 
+> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=120351
+> Signed-off-by: Adam Borowski <kilobyte@angband.pl>
+
+I think my first fix also worked and your test on bug 120351 was wrong.
+I just added comment a moment ago.
+
+However I just pushed the removal of the wrong debugging statement fix to the upstream.
+It's really redundant, you need to enable the log and check them.
+
+The patch has already been sent here:
+https://patchwork.kernel.org/patch/9765837/
+So you don't have to send it again.
+
+Thanks
+Lv
+
+> You guys fixed this in your tool months ago, but it's still unfixed in the
+> kernel.  Let's apply that patch, then.  The coding styles differ so much the
+> patch is hardly recognizable, but it's a direct port.
+> 
+>  drivers/acpi/acpica/dsutils.c | 9 ---------
+>  1 file changed, 9 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/dsutils.c b/drivers/acpi/acpica/dsutils.c
+> index 406edec20de7..0dabd9b95684 100644
+> --- a/drivers/acpi/acpica/dsutils.c
+> +++ b/drivers/acpi/acpica/dsutils.c
+> @@ -633,15 +633,6 @@ acpi_ds_create_operand(struct acpi_walk_state *walk_state,
+> 
+>  		if ((op_info->flags & AML_HAS_RETVAL) ||
+>  		    (arg->common.flags & ACPI_PARSEOP_IN_STACK)) {
+> -			ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+> -					  "Argument previously created, already stacked\n"));
+> -
+> -			acpi_db_display_argument_object(walk_state->
+> -							operands[walk_state->
+> -								 num_operands -
+> -								 1],
+> -							walk_state);
+> -
+>  			/*
+>  			 * Use value that was already previously returned
+>  			 * by the evaluation of this argument
+> --
+> 2.11.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
