@@ -1,68 +1,69 @@
-From: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?=
-        <jerome.debretagne@gmail.com>
-Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
- recent Dell laptops
-Date: Sat, 10 Jun 2017 01:11:15 +0200
-Message-ID: <CA+kEDGFVgmXf_B=qHfhWS1HCD+Ei6KSp_rSJBOGYtNZVkm+MeA@mail.gmail.com>
-References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
- <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
- <CA+kEDGFUuSC1CpCEgOT+HMTrDa-r1y59kM9-CYn0PSgtuKaG5Q@mail.gmail.com> <343a8430fb144adf8d65ef9d0b2bfd40@ausx13mpc124.AMER.DELL.COM>
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [PATCH v1 3/3] ACPI / PMIC: Add TI PMIC TPS68470 operation
+ region driver
+Date: Fri, 9 Jun 2017 23:38:33 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725BED10@FMSMSX114.amr.corp.intel.com>
+References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
+ <1496750118-5570-4-git-send-email-rajmohan.mani@intel.com>
+ <CAHp75VcvV_AbLJCq9Rm_8yab3nViPm6ikxxme4oyw9vm4Kz7Gg@mail.gmail.com>
+ <20170607121503.GA1019@valkosipuli.retiisi.org.uk>
+ <CAHp75Vef=c54O8Xd+aM+eWWVt7nLsczT48WbgrdiOVyWv6xMcg@mail.gmail.com>
+ <20170607201050.GE1019@valkosipuli.retiisi.org.uk>
+ <CAHp75Vfz=5Siysbzmtyv8TUKs+S+EMBHd8T7zSV-vF+-FEoSaA@mail.gmail.com>
+ <20170607211256.GF1019@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f176.google.com ([209.85.223.176]:33854 "EHLO
-        mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751560AbdFIXL5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2017 19:11:57 -0400
-In-Reply-To: <343a8430fb144adf8d65ef9d0b2bfd40@ausx13mpc124.AMER.DELL.COM>
+Received: from mga03.intel.com ([134.134.136.65]:31429 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751584AbdFIXif (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Jun 2017 19:38:35 -0400
+In-Reply-To: <20170607211256.GF1019@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario.Limonciello@dell.com
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>, Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-> I got a response back that confirmed that this machine only is supported
-> with CS/MS.  I would not expect S3 to work properly.
+Hi Sakari, Andy,
 
-Thanks for the confirmation, that's what I expected following the feedback on
-other recent Dell machines.
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> Sent: Wednesday, June 07, 2017 2:13 PM
+> To: Andy Shevchenko <andy.shevchenko@gmail.com>
+> Cc: Mani, Rajmohan <rajmohan.mani@intel.com>; Hans de Goede
+> <hdegoede@redhat.com>; linux-kernel@vger.kernel.org; linux-
+> gpio@vger.kernel.org; linux-acpi@vger.kernel.org; Lee Jones
+> <lee.jones@linaro.org>; Linus Walleij <linus.walleij@linaro.org>; Alexandre
+> Courbot <gnurou@gmail.com>; Rafael J. Wysocki <rjw@rjwysocki.net>; Len
+> Brown <lenb@kernel.org>
+> Subject: Re: [PATCH v1 3/3] ACPI / PMIC: Add TI PMIC TPS68470 operation
+> region driver
+> 
+> On Wed, Jun 07, 2017 at 11:40:27PM +0300, Andy Shevchenko wrote:
+> > On Wed, Jun 7, 2017 at 11:10 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > > On Wed, Jun 07, 2017 at 04:40:13PM +0300, Andy Shevchenko wrote:
+> > >> On Wed, Jun 7, 2017 at 3:15 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > >> > On Tue, Jun 06, 2017 at 05:23:56PM +0300, Andy Shevchenko wrote:
+> >
+> > >> >> Follow the pattern, please, I suppose ti_pmic_tps68470.c
+> > >>
+> > >> Would it work for you?
+> > >
+> > > This is still a different driver from the tps68470 driver which is
+> > > an MFD driver. For clarity, I'd keep pmic as part of the name (and
+> > > I'd use tps68470_pmic_ prefix for internal symbols, too).
+> > >
+> > > As PMICs are typically linked to the kernel (vs. being modules),
+> > > there's no issue with the module name. I would suppose few if any
+> > > PMICs will be compiled as modules in general.
+> > >
+> > > It's not a big deal though. I'm fine either way.
+> >
+> > Okay, let's agree on  tps68470_pmic for internal prefix and for file name?
+> 
+> Ack. Thanks!
+> 
 
-> Even if S3 is part of the ACPI namespace, the behavior that Windows follows
-> is that S3 is not offered when the low power idle bit is set in FADT.
->
-> I know that the current behavior in Linux does not review low power idle
-> bit to determine whether to offer S2I or S3
-
-Is it something that is envisioned already as a future evolution in Linux as
-well, if more and more systems are now designed with S2I in mind?
-
-> so I'm inquiring if we can remove
-> S3 from a future BIOS update on this platform to let Linux work better
-> even though we don't ship this platform with Linux.
-
-That would be a great fix, removing the default to S3 for this system on Linux.
-
-> For now I would recommend that you focus efforts exclusively on making
-> S2I work, and ignore S3 problems.
-
-Well noted!
-
-> It's unclear to me exactly when you tested s2idle-dell-test.
-> Can you re-test with Rafael's newest submissions and changes to s2idle-dell-test
-> committed 28 hours ago?
-> You'll still have to add your system to the DMI whitelist for the last patch
-> but he has reworked a bunch of related wakeup code that has also changed.
-
-I've just done so, using the updated s2idle-dell-test branch + my DMI
-adaptation.
-
-I still get exactly the same results than during my previous tests:
-- it provides the expected fix when running BIOS 1.1.20: short press to wake-up
-- it doesn't fix with the current BIOS 1.1.31: long press still needed
-to wake-up
-so something has clearly changed between these 2 versions. Btw, the EC is
-explicitly updated when flashing version 1.1.31, that's one of the
-visible steps.
-
-Some assumptions now: either the SCI is ignored erroneously or it's
-not interpreted correctly by the expected driver? I guess that's the 2
-possibilities I'll try to investigate.
+Ack
