@@ -1,70 +1,82 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 9/9] libnvdimm, label: switch to using v1.2 labels by default
-Date: Thu, 08 Jun 2017 22:09:38 -0700
-Message-ID: <149698497813.11651.7323633285531215656.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Geetha Akula <geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v7 1/3] ACPI/IORT: Fixup SMMUv3 resource size for Cavium
+	ThunderX2 SMMUv3 model
+Date: Fri, 9 Jun 2017 11:30:53 +0530
+Message-ID: <CANHdaib+mNgVS7g=vft-5ZtabSKkeyXO7Jp1EQhL3jduhu5F7g@mail.gmail.com>
+References: <1496145821-3411-1-git-send-email-gakula@caviumnetworks.com>
+	<1496145821-3411-2-git-send-email-gakula@caviumnetworks.com>
+	<20170608085857.GB8607@red-moon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <149698493023.11651.13036549892428981091.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20170608085857.GB8607@red-moon>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Charles Garcia-Tobin <Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Robert Richter <robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux IOMMU <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Sunil Goutham <sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The rules for which version of the label specification are in effect at
-any given point in time are as follows:
+On Thu, Jun 8, 2017 at 2:28 PM, Lorenzo Pieralisi
+<lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
+> On Tue, May 30, 2017 at 05:33:39PM +0530, Geetha sowjanya wrote:
+>> From: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>>
+>> Cavium ThunderX2 implementation doesn't support second page in SMMU
+>> register space. Hence, resource size is set as 64k for this model.
+>>
+>> Signed-off-by: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>> ---
+>>  drivers/acpi/arm64/iort.c |   10 +++++++++-
+>>  1 files changed, 9 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>> index c5fecf9..bba2b59 100644
+>> --- a/drivers/acpi/arm64/iort.c
+>> +++ b/drivers/acpi/arm64/iort.c
+>> @@ -833,12 +833,20 @@ static void __init arm_smmu_v3_init_resources(struct resource *res,
+>>  {
+>>       struct acpi_iort_smmu_v3 *smmu;
+>>       int num_res = 0;
+>> +     unsigned long size = SZ_128K;
+>>
+>>       /* Retrieve SMMUv3 specific data */
+>>       smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+>>
+>> +     /*
+>> +      * Override the size, for Cavium ThunderX2 implementation
+>> +      * which doesn't support the page 1 SMMU register space.
+>> +      */
+>> +     if (smmu->model == ACPI_IORT_SMMU_CAVIUM_CN99XX)
+>> +             size = SZ_64K;
+>
+> Nit: add a function, say arm_smmu_v3_resource_size() with the logic
+> above that by default returns SZ_128K, I do not like this switch
+> in the middle of this function.
 
-1/ If a DIMM has an existing / valid index block then the version
-   specified is used regardless if it is a previous version.
+I will resubmit the patch with suggested changes.
 
-2/ By default when the kernel is initializing new index blocks the
-   latest specification version (v1.2 at time of writing) is used.
 
-3/ An environment that wants to force create v1.1 label-sets must
-   arrange for userspace to disable all active regions / namespaces /
-   dimms and write a valid set of v1.1 index blocks to the dimms.
-
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/nvdimm/label.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 837bf21c8555..235f2089fab2 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -222,9 +222,10 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
- 	 * need to know the size of the labels, and we can't trust the
- 	 * size of the labels until we validate the index blocks.
- 	 * Resolve this dependency loop by probing for known label
--	 * sizes.
-+	 * sizes, but default to v1.2 256-byte namespace labels if
-+	 * discovery fails.
- 	 */
--	int label_size[] = { 256, 128 };
-+	int label_size[] = { 128, 256 };
- 	int i, rc;
- 
- 	for (i = 0; i < ARRAY_SIZE(label_size); i++) {
-@@ -532,7 +533,10 @@ static int nd_label_write_index(struct nvdimm_drvdata *ndd, int index, u32 seq,
- 	nsindex->labeloff = __cpu_to_le64(offset);
- 	nsindex->nslot = __cpu_to_le32(nslot);
- 	nsindex->major = __cpu_to_le16(1);
--	nsindex->minor = __cpu_to_le16(1);
-+	if (sizeof_namespace_label(ndd) < 256)
-+		nsindex->minor = __cpu_to_le16(1);
-+	else
-+		nsindex->minor = __cpu_to_le16(2);
- 	nsindex->checksum = __cpu_to_le64(0);
- 	if (flags & ND_NSINDEX_INIT) {
- 		unsigned long *free = (unsigned long *) nsindex->free;
+Thanks,
+Geetha.
+>
+> Lorenzo
+>
+>> +
+>>       res[num_res].start = smmu->base_address;
+>> -     res[num_res].end = smmu->base_address + SZ_128K - 1;
+>> +     res[num_res].end = smmu->base_address + size - 1;
+>>       res[num_res].flags = IORESOURCE_MEM;
+>>
+>>       num_res++;
+>> --
+>> 1.7.1
+>>
