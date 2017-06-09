@@ -1,53 +1,71 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6] platform/x86: Add driver for ACPI INT0002 Virtual GPIO device
-Date: Fri, 9 Jun 2017 02:30:14 +0200
-Message-ID: <CAJZ5v0guq1zRwU8ETe5+n6QSj+ytg_HewnrP7h2TsJFQNE9gxg@mail.gmail.com>
-References: <20170602151507.22391-1-hdegoede@redhat.com> <20170602151507.22391-2-hdegoede@redhat.com>
- <CAHp75Vcdznj2mB+msNvysrvRi3L-0j4c6vthOS8oAv1S9iYWKA@mail.gmail.com>
- <20170608154541.GH32509@fury> <d41ff55b-e28f-85bf-d088-392e363fb41f@redhat.com>
- <CAJZ5v0jw3Rzjkb3J2_XE7TPBjT+7FUW90B7kg15z6_WpdNGjzA@mail.gmail.com> <CAHp75Vc-Vz-QRAkrq2z3B9MaAPFEVX06ePAJuxjwqcLULjRbFw@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPICA: Remove unnecessary call to debugger
+Date: Fri, 9 Jun 2017 00:35:21 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CECBB71@SHSMSX101.ccr.corp.intel.com>
+References: <20170608213106.11982-1-kilobyte@angband.pl>
+ <CAJZ5v0i=7CyVNT=CeEbB2Xrn7mEmi21URtS8gCZ_CinzAgLCHQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f180.google.com ([209.85.223.180]:34796 "EHLO
-        mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751416AbdFIAaQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2017 20:30:16 -0400
-In-Reply-To: <CAHp75Vc-Vz-QRAkrq2z3B9MaAPFEVX06ePAJuxjwqcLULjRbFw@mail.gmail.com>
+Received: from mga03.intel.com ([134.134.136.65]:59044 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751428AbdFIAf3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Jun 2017 20:35:29 -0400
+In-Reply-To: <CAJZ5v0i=7CyVNT=CeEbB2Xrn7mEmi21URtS8gCZ_CinzAgLCHQ@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Adam Borowski <kilobyte@angband.pl>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Thu, Jun 8, 2017 at 7:40 PM, Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
-> On Thu, Jun 8, 2017 at 8:15 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->> On Thu, Jun 8, 2017 at 6:45 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->>> On 06/08/2017 05:45 PM, Darren Hart wrote:
->>>> On Wed, Jun 07, 2017 at 05:53:38PM +0300, Andy Shevchenko wrote:
->>>>> On Fri, Jun 2, 2017 at 6:15 PM, Hans de Goede <hdegoede@redhat.com>
->>>>> wrote:
->
->>>> Will you be taking this through fixes Andy? For a 4.12-rc* target per
->>>> Hans'
->>>> response to the cover letter?
->
->>> Note that Rafael is planning to drop (revert) the commit which makes
->>> it (extra) desirable for this driver to get into 4.12, so we should
->>> perhaps reconsider that. I'm fine either way, but the primary reason
->>> to push this as a fix for 4.12 is no longer valid AFAICT.
->>
->> Maybe I will just queue it up along with this series:
->> http://marc.info/?l=linux-kernel&m=149688087904433&w=2
->> if Andy and Darren agree?
->
-> Looks like it has ties to your series, so, I see no obstacles to go via PM tree.
-
-OK, thanks!
-
-> Darren?
-
-An ACK or equivalent from Linus W would be good to have too ...
-
-Thanks,
-Rafael
+SGksDQoNCj4gRnJvbTogcmp3eXNvY2tpQGdtYWlsLmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFp
+bC5jb21dIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTdWJqZWN0OiBSZTogW1BB
+VENIXSBBQ1BJQ0E6IFJlbW92ZSB1bm5lY2Vzc2FyeSBjYWxsIHRvIGRlYnVnZ2VyDQo+IA0KPiBP
+biBUaHUsIEp1biA4LCAyMDE3IGF0IDExOjMxIFBNLCBBZGFtIEJvcm93c2tpIDxraWxvYnl0ZUBh
+bmdiYW5kLnBsPiB3cm90ZToNCj4gPiBUaGlzIGlzIGEgcG9ydCBvZiBodHRwczovL2dpdGh1Yi5j
+b20vYWNwaWNhL2FjcGljYS9jb21taXQvZWFhNDU1YWMgYnkNCj4gPiBSb2JlcnQgTW9vcmUgdG8g
+dGhlIGtlcm5lbDoNCj4gPg0KPiA+PiBUaGlzIGNhbGwgd2FzIHNpbXBseSB3cm9uZywgYW5kIHJl
+c3VsdGVkIGluIGEgLTEgaW5kZXggaW50byB0aGUgb3BlcmFuZA0KPiA+PiBzdGFjay4NCj4gPg0K
+PiA+IEJ1Z3ppbGxhOiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lk
+PTEyMDM1MQ0KPiA+IFNpZ25lZC1vZmYtYnk6IEFkYW0gQm9yb3dza2kgPGtpbG9ieXRlQGFuZ2Jh
+bmQucGw+DQo+ID4gLS0tDQo+ID4gWW91IGd1eXMgZml4ZWQgdGhpcyBpbiB5b3VyIHRvb2wgbW9u
+dGhzIGFnbywgYnV0IGl0J3Mgc3RpbGwgdW5maXhlZCBpbiB0aGUNCj4gPiBrZXJuZWwuICBMZXQn
+cyBhcHBseSB0aGF0IHBhdGNoLCB0aGVuLiAgVGhlIGNvZGluZyBzdHlsZXMgZGlmZmVyIHNvIG11
+Y2ggdGhlDQo+ID4gcGF0Y2ggaXMgaGFyZGx5IHJlY29nbml6YWJsZSwgYnV0IGl0J3MgYSBkaXJl
+Y3QgcG9ydC4NCj4gDQo+IEx2LCBhbnkgY29tbWVudHM/DQoNClRoZSBjb21taXQgd2FzIG9yaWdp
+bmFsbHkgc2VudCBieSBtZSB3aXRoIHRoaXMgY29tbWl0Og0KaHR0cHM6Ly9naXRodWIuY29tL3pl
+dGFsb2cvbGludXgvY29tbWl0LzJjZDY0MGU1ZmQ1MA0KWW91IGNhbiBzZWUgZnVsbCBidWcgdHJp
+YWdlIHN0b3J5IGhlcmU6DQpodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dp
+P2lkPTE5NDg0NQ0KQW5kIHVwc3RyZWFtIEFDUElDQSBkaXNjdXNzaW9uIGhlcmU6DQpodHRwczov
+L2dpdGh1Yi5jb20vYWNwaWNhL2FjcGljYS9wdWxsLzI0NQ0KQWZ0ZXIgdGhlIG1lcmdlLCBib2Ig
+aGVscGVkIHRvIGNsb3NlIGFub3RoZXIgYnVnIHJlcG9ydDoNCmh0dHBzOi8vYnVnemlsbGEua2Vy
+bmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTIwMzUxDQoNCkkgYWxyZWFkeSBzZW50IGxpbnV4aXpl
+ZCBjb21taXQgdG8geW91IGluIHRoZSBBQ1BJQ0EgcmVsZWFzZSB3aXRoIHJlc3RvcmVkIHBhdGNo
+IGRlc2NyaXB0aW9uOg0KaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85NzY1ODM3
+Lw0KU3VjaCBtb2RpZmljYXRpb24gaXMgd2hhdCB3ZSBuZWVkIHRvIGRvIGluIHJlbGVhc2UgY3lj
+bGUgYWNjb3JkaW5nIHRvIHRoZSBjb21tdW5pdHkgd29yay4NCllvdSBkb24ndCBuZWVkIHRvIHRh
+a2UgdGhpcyBvbmUuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQpMdg0KDQo+ID4gIGRyaXZl
+cnMvYWNwaS9hY3BpY2EvZHN1dGlscy5jIHwgOSAtLS0tLS0tLS0NCj4gPiAgMSBmaWxlIGNoYW5n
+ZWQsIDkgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2Fj
+cGljYS9kc3V0aWxzLmMgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2RzdXRpbHMuYw0KPiA+IGluZGV4
+IDQwNmVkZWMyMGRlNy4uMGRhYmQ5Yjk1Njg0IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNw
+aS9hY3BpY2EvZHN1dGlscy5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS9kc3V0aWxz
+LmMNCj4gPiBAQCAtNjMzLDE1ICs2MzMsNiBAQCBhY3BpX2RzX2NyZWF0ZV9vcGVyYW5kKHN0cnVj
+dCBhY3BpX3dhbGtfc3RhdGUgKndhbGtfc3RhdGUsDQo+ID4NCj4gPiAgICAgICAgICAgICAgICAg
+aWYgKChvcF9pbmZvLT5mbGFncyAmIEFNTF9IQVNfUkVUVkFMKSB8fA0KPiA+ICAgICAgICAgICAg
+ICAgICAgICAgKGFyZy0+Y29tbW9uLmZsYWdzICYgQUNQSV9QQVJTRU9QX0lOX1NUQUNLKSkgew0K
+PiA+IC0gICAgICAgICAgICAgICAgICAgICAgIEFDUElfREVCVUdfUFJJTlQoKEFDUElfREJfRElT
+UEFUQ0gsDQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIkFy
+Z3VtZW50IHByZXZpb3VzbHkgY3JlYXRlZCwgYWxyZWFkeSBzdGFja2VkXG4iKSk7DQo+ID4gLQ0K
+PiA+IC0gICAgICAgICAgICAgICAgICAgICAgIGFjcGlfZGJfZGlzcGxheV9hcmd1bWVudF9vYmpl
+Y3Qod2Fsa19zdGF0ZS0+DQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICBvcGVyYW5kc1t3YWxrX3N0YXRlLT4NCj4gPiAtICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG51
+bV9vcGVyYW5kcyAtDQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAxXSwNCj4gPiAtICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHdhbGtfc3RhdGUpOw0KPiA+IC0NCj4g
+PiAgICAgICAgICAgICAgICAgICAgICAgICAvKg0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAg
+ICAqIFVzZSB2YWx1ZSB0aGF0IHdhcyBhbHJlYWR5IHByZXZpb3VzbHkgcmV0dXJuZWQNCj4gPiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgKiBieSB0aGUgZXZhbHVhdGlvbiBvZiB0aGlzIGFyZ3Vt
+ZW50DQo+ID4gLS0NCj4gPiAyLjExLjANCg==
