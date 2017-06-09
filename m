@@ -1,74 +1,61 @@
-From: <durrant@iupui.edu>
-Subject: (unknown)
-Date: Fri, 09 Jun 2017 01:31:35 -0000
-Message-ID: <149697189535.30693.10631071858880201096@vnpt-hanoi.com.vn>
+From: Adam Borowski <kilobyte@angband.pl>
+Subject: Re: [PATCH] ACPICA: Remove unnecessary call to debugger
+Date: Fri, 9 Jun 2017 03:33:51 +0200
+Message-ID: <20170609013351.fvpuwqcxw2jxp2dv@angband.pl>
+References: <20170608213106.11982-1-kilobyte@angband.pl>
+ <1AE640813FDE7649BE1B193DEA596E886CECBBA1@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="48480.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static.vnpt-hanoi.com.vn ([113.190.232.120]:41974 "HELO
-        vnpt-hanoi.com.vn" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1751442AbdFIBbm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2017 21:31:42 -0400
-Subject: 
-Content-Disposition: attachment
+Received: from tartarus.angband.pl ([89.206.35.136]:54523 "EHLO
+        tartarus.angband.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751547AbdFIBeM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2017 21:34:12 -0400
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CECBBA1@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-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
-AAQAAAAAUEsFBgAAAAABAAEATgAAAPcLAAAAAA==
+On Fri, Jun 09, 2017 at 01:18:25AM +0000, Zheng, Lv wrote:
+> > Subject: [PATCH] ACPICA: Remove unnecessary call to debugger
+> > 
+> > This is a port of https://github.com/acpica/acpica/commit/eaa455ac by
+> > Robert Moore to the kernel:
+> > 
+> > > This call was simply wrong, and resulted in a -1 index into the operand
+> > > stack.
+> > 
+> > Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=120351
+> > Signed-off-by: Adam Borowski <kilobyte@angband.pl>
+> 
+> I think my first fix also worked and your test on bug 120351 was wrong.
+> I just added comment a moment ago.
+> 
+> However I just pushed the removal of the wrong debugging statement fix to the upstream.
+> It's really redundant, you need to enable the log and check them.
+> 
+> The patch has already been sent here:
+> https://patchwork.kernel.org/patch/9765837/
+> So you don't have to send it again.
+
+Date: June 5, and it's not even in next-20170608 yet, so I obviously didn't
+see you applying the fix (it seemed stalled since Apr 4).  If it's already
+on the way, that's good.
+
+However, it is not redundant: without this removal, I see the UBSAN error
+(at least in current mainline).
+
+Whether an alternate fix would be enough is another question.  You guys know
+more about the issue, all I know is whether I see warnings spewed into my
+dmesg :)
+
+
+Meow!
+-- 
+⢀⣴⠾⠻⢶⣦⠀ A tit a day keeps the vet away.
+⣾⠁⢰⠒⠀⣿⡁
+⢿⡄⠘⠷⠚⠋⠀ (Rejoice as my small-animal-murder-machine got unbroken after
+⠈⠳⣄⠀⠀⠀⠀ nearly two years of no catch!)
