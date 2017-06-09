@@ -1,8 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 6/9] libnvdimm,
- label: update 'nlabel' and 'position' handling for local namespaces
-Date: Thu, 08 Jun 2017 22:09:22 -0700
-Message-ID: <149698496243.11651.2837723446573437905.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 7/9] libnvdimm, label: add v1.2 label checksum support
+Date: Thu, 08 Jun 2017 22:09:27 -0700
+Message-ID: <149698496760.11651.5395658910793252806.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <149698493023.11651.13036549892428981091.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,80 +21,103 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The v1.2 namespace label specification requires 'nlabel' and 'position'
-to be valid for the first ("lowest dpa") label in the set. It also
-requires all non-first labels to set those fields to 0xff.
-
-Linux does not much care if these values are correct, because we can
-just trust the count of labels with the matching uuid like the v1.1
-case. However, we set them correctly in case other environments care.
+The v1.2 namespace label specification adds a fletcher checksum to each
+label instance. Add generation and validation support for the new field.
 
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/nvdimm/label.c |   33 +++++++++++++++++++++++++++------
- 1 file changed, 27 insertions(+), 6 deletions(-)
+ drivers/nvdimm/label.c |   39 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index ba0582fb0e21..d7f9916c6ed5 100644
+index d7f9916c6ed5..c503362a03c7 100644
 --- a/drivers/nvdimm/label.c
 +++ b/drivers/nvdimm/label.c
-@@ -696,6 +696,7 @@ static int __blk_label_update(struct nd_region *nd_region,
- 	struct resource *res, **old_res_list;
- 	struct nd_label_id label_id;
- 	u8 uuid[NSLABEL_UUID_LEN];
-+	int min_dpa_idx = 0;
- 	LIST_HEAD(list);
- 	u32 nslot, slot;
+@@ -326,7 +326,8 @@ static bool preamble_next(struct nvdimm_drvdata *ndd,
+ 			free, nslot);
+ }
  
-@@ -767,6 +768,18 @@ static int __blk_label_update(struct nd_region *nd_region,
- 		}
- 	}
+-static bool slot_valid(struct nd_namespace_label *nd_label, u32 slot)
++static bool slot_valid(struct nvdimm_drvdata *ndd,
++		struct nd_namespace_label *nd_label, u32 slot)
+ {
+ 	/* check that we are written where we expect to be written */
+ 	if (slot != __le32_to_cpu(nd_label->slot))
+@@ -337,6 +338,21 @@ static bool slot_valid(struct nd_namespace_label *nd_label, u32 slot)
+ 				| __le64_to_cpu(nd_label->rawsize)) % SZ_4K)
+ 		return false;
  
-+	/*
-+	 * Find the resource associated with the first label in the set
-+	 * per the v1.2 namespace specification.
-+	 */
-+	for (i = 0; i < nsblk->num_resources; i++) {
-+		struct resource *min = nsblk->res[min_dpa_idx];
++	/* check checksum */
++	if (namespace_label_has(ndd, checksum)) {
++		u64 sum, sum_save;
 +
-+		res = nsblk->res[i];
-+		if (res->start < min->start)
-+			min_dpa_idx = i;
++		sum_save = __le64_to_cpu(nd_label->checksum);
++		nd_label->checksum = __cpu_to_le64(0);
++		sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
++		nd_label->checksum = __cpu_to_le64(sum_save);
++		if (sum != sum_save) {
++			dev_dbg(ndd->dev, "%s fail checksum. slot: %d expect: %#llx\n",
++				__func__, slot, sum);
++			return false;
++		}
 +	}
 +
- 	for (i = 0; i < nsblk->num_resources; i++) {
- 		size_t offset;
+ 	return true;
+ }
  
-@@ -785,18 +798,26 @@ static int __blk_label_update(struct nd_region *nd_region,
- 			memcpy(nd_label->name, nsblk->alt_name,
- 					NSLABEL_NAME_LEN);
- 		nd_label->flags = __cpu_to_le32(NSLABEL_FLAG_LOCAL);
--		nd_label->nlabel = __cpu_to_le16(0); /* N/A */
--		nd_label->position = __cpu_to_le16(0); /* N/A */
+@@ -359,7 +375,7 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
  
- 		/*
- 		 * Use the presence of the type_guid as a flag to
--		 * determine isetcookie usage for blk-aperture
--		 * namespaces.
-+		 * determine isetcookie usage and nlabel + position
-+		 * policy for blk-aperture namespaces.
- 		 */
--		if (namespace_label_has(ndd, type_guid))
-+		if (namespace_label_has(ndd, type_guid)) {
-+			if (i == min_dpa_idx) {
-+				nd_label->nlabel = __cpu_to_le16(nsblk->num_resources);
-+				nd_label->position = __cpu_to_le16(0);
-+			} else {
-+				nd_label->nlabel = __cpu_to_le16(0xffff);
-+				nd_label->position = __cpu_to_le16(0xffff);
-+			}
- 			nd_label->isetcookie = __cpu_to_le64(nd_set->cookie2);
--		else
-+		} else {
-+			nd_label->nlabel = __cpu_to_le16(0); /* N/A */
-+			nd_label->position = __cpu_to_le16(0); /* N/A */
- 			nd_label->isetcookie = __cpu_to_le64(0); /* N/A */
+ 		nd_label = to_label(ndd, slot);
+ 
+-		if (!slot_valid(nd_label, slot))
++		if (!slot_valid(ndd, nd_label, slot))
+ 			continue;
+ 
+ 		memcpy(label_uuid, nd_label->uuid, NSLABEL_UUID_LEN);
+@@ -391,7 +407,7 @@ int nd_label_active_count(struct nvdimm_drvdata *ndd)
+ 
+ 		nd_label = to_label(ndd, slot);
+ 
+-		if (!slot_valid(nd_label, slot)) {
++		if (!slot_valid(ndd, nd_label, slot)) {
+ 			u32 label_slot = __le32_to_cpu(nd_label->slot);
+ 			u64 size = __le64_to_cpu(nd_label->rawsize);
+ 			u64 dpa = __le64_to_cpu(nd_label->dpa);
+@@ -419,7 +435,7 @@ struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
+ 		struct nd_namespace_label *nd_label;
+ 
+ 		nd_label = to_label(ndd, slot);
+-		if (!slot_valid(nd_label, slot))
++		if (!slot_valid(ndd, nd_label, slot))
+ 			continue;
+ 
+ 		if (n-- == 0)
+@@ -600,6 +616,13 @@ static int __pmem_label_update(struct nd_region *nd_region,
+ 	nd_label->slot = __cpu_to_le32(slot);
+ 	if (namespace_label_has(ndd, type_guid))
+ 		guid_copy(&nd_label->type_guid, &nd_set->type_guid);
++	if (namespace_label_has(ndd, checksum)) {
++		u64 sum;
++
++		nd_label->checksum = __cpu_to_le64(0);
++		sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
++		nd_label->checksum = __cpu_to_le64(sum);
++	}
+ 	nd_dbg_dpa(nd_region, ndd, res, "%s\n", __func__);
+ 
+ 	/* update label */
+@@ -825,6 +848,14 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 		nd_label->slot = __cpu_to_le32(slot);
+ 		if (namespace_label_has(ndd, type_guid))
+ 			guid_copy(&nd_label->type_guid, &nd_set->type_guid);
++		if (namespace_label_has(ndd, checksum)) {
++			u64 sum;
++
++			nd_label->checksum = __cpu_to_le64(0);
++			sum = nd_fletcher64(nd_label,
++					sizeof_namespace_label(ndd), 1);
++			nd_label->checksum = __cpu_to_le64(sum);
 +		}
  
- 		nd_label->dpa = __cpu_to_le64(res->start);
- 		nd_label->rawsize = __cpu_to_le64(resource_size(res));
+ 		/* update label */
+ 		offset = nd_label_offset(ndd, nd_label);
