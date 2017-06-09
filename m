@@ -1,121 +1,279 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose embedded WMI MOF metadata
-Date: Fri, 9 Jun 2017 23:51:32 +0200
-Message-ID: <201706092351.32996@pali>
-References: <cover.1495862272.git.dvhart@infradead.org> <201706072250.25953@pali> <67cc75c9e0ef4a21a168ab3b4dd1e727@ausx13mpc124.AMER.DELL.COM>
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [PATCH v1 1/3] mfd: Add new mfd device TPS68470
+Date: Fri, 9 Jun 2017 22:04:21 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725BEC8F@FMSMSX114.amr.corp.intel.com>
+References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
+ <1496750118-5570-2-git-send-email-rajmohan.mani@intel.com>
+ <20170606124848.GA10936@kuha.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart12380891.cyckeXfetz";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <67cc75c9e0ef4a21a168ab3b4dd1e727@ausx13mpc124.AMER.DELL.COM>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mario.Limonciello@dell.com
-Cc: luto@amacapital.net, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, andriy.shevchenko@linux.intel.com, luto@kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:29019 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751571AbdFIWEX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Jun 2017 18:04:23 -0400
+In-Reply-To: <20170606124848.GA10936@kuha.fi.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Alan Cox <alan@linux.intel.com>
 
---nextPart12380891.cyckeXfetz
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Heikki,
 
-On Friday 09 June 2017 17:46:12 Mario.Limonciello@dell.com wrote:
-> > -----Original Message-----
-> > From: Pali Roh=C3=A1r [mailto:pali.rohar@gmail.com]
-> > Sent: Wednesday, June 7, 2017 3:50 PM
-> > To: Limonciello, Mario <Mario_Limonciello@Dell.com>
-> > Cc: luto@amacapital.net; dvhart@infradead.org; platform-driver-
-> > x86@vger.kernel.org; andriy.shevchenko@linux.intel.com;
-> > luto@kernel.org; rjw@rjwysocki.net; linux-kernel@vger.kernel.org;
-> > linux-acpi@vger.kernel.org Subject: Re: [PATCH 15/16]
-> > platform/x86: wmi-mof: New driver to expose embedded WMI MOF
-> > metadata
-> >=20
-> > On Wednesday 07 June 2017 22:23:08 Mario.Limonciello@dell.com wrote:
-> > > > -----Original Message-----
-> > > > From: Pali Roh=C3=A1r [mailto:pali.rohar@gmail.com]
-> > > > Sent: Wednesday, June 7, 2017 12:39 PM
-> > > > To: Limonciello, Mario <Mario_Limonciello@Dell.com>
-> > > > Cc: luto@amacapital.net; dvhart@infradead.org; platform-driver-
-> > > > x86@vger.kernel.org; andriy.shevchenko@linux.intel.com;
-> > > > luto@kernel.org; rjw@rjwysocki.net;
-> > > > linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
-> > > > Subject: Re: [PATCH 15/16]
-> > > > platform/x86: wmi-mof: New driver to expose embedded WMI MOF
-> > > > metadata
-> > > >=20
-> > > > On Tuesday 06 June 2017 15:56:21 Pali Roh=C3=A1r wrote:
-> > > > > On Tuesday 06 June 2017 13:46:16 Mario.Limonciello@dell.com
-> > > > > wrote:
-> > > > > > 2) On my system when you expand the arguments for "void
-> > > > > > DoBFn" the source doesn't describe individual arguments
-> > > > > > like you do. Again this might not matter to MOF parsing
-> > > > > > tools but wanted to let you know in case it does.
-> > > > >=20
-> > > > > I know, this part is missing. Order of arguments are only in
-> > > > > ID qualifier and not sorted + in/out de-duplicated.
-> > > >=20
-> > > > Implemented! Now arguments are correctly placed based on ID
-> > > > qualifier.
-> > >=20
-> > > I think it's still off a little though.
-> > >=20
-> > > What I'm getting back now from bmf2mof is:
-> > > 	void DoBFn([in, Description("Fn buf"), out] BDat Data);
-> > >=20
-> > > Whereas source puts Description as the last argument:
-> > > 	void DoBFn([in, out, Description("Fn buf")] BDat Data);
-> >=20
-> > In BMOF from my Latitude E6440 there are specified two parameters
-> > with index 0. One with qualifiers ("in", Description("Fn buf"))
-> > and one with ("out", Description("Fn buf")). I think you have
-> > similar/same data in BMOF.
-> >=20
-> > In my bmf2mof I just combined those two parameters into one (when
-> > name, type and index matches) and concatenate also qualifiers with
-> > removing duplicates.
-> >=20
-> > Do not know what is correct way, but I think qualifiers are just
-> > unordered set. MS decompiler probably put "in" and "out" qualifiers
-> > before any other for better readability.
->=20
-> Have you tried to run it through mofcomp.exe and then decompile again
-> with bmf2mof?  As long as it's coming out the same you're probably
-> right.
+Thanks for the reviews and patience.
 
-Yes, bmf2mof+mofcomp.exe+bmf2mof gives same output as just bmf2mof.
+> -----Original Message-----
+> From: Heikki Krogerus [mailto:heikki.krogerus@linux.intel.com]
+> Sent: Tuesday, June 06, 2017 5:49 AM
+> To: Mani, Rajmohan <rajmohan.mani@intel.com>
+> Cc: linux-kernel@vger.kernel.org; linux-gpio@vger.kernel.org; linux-
+> acpi@vger.kernel.org; Lee Jones <lee.jones@linaro.org>; Linus Walleij
+> <linus.walleij@linaro.org>; Alexandre Courbot <gnurou@gmail.com>; Rafael J.
+> Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>
+> Subject: Re: [PATCH v1 1/3] mfd: Add new mfd device TPS68470
+> 
+> Hi Rajmohan,
+> 
+> On Tue, Jun 06, 2017 at 04:55:16AM -0700, Rajmohan Mani wrote:
+> > +/*
+> > + * tps68470_reg_read: Read a single tps68470 register.
+> > + *
+> > + * @tps: Device to read from.
+> > + * @reg: Register to read.
+> > + * @val: Contains the value
+> > + */
+> > +int tps68470_reg_read(struct tps68470 *tps, unsigned int reg,
+> > +			unsigned int *val)
+> > +{
+> > +	int ret;
+> > +
+> > +	mutex_lock(&tps->lock);
+> > +	ret = regmap_read(tps->regmap, reg, val);
+> > +	mutex_unlock(&tps->lock);
+> > +	return ret;
+> > +}
+> > +EXPORT_SYMBOL_GPL(tps68470_reg_read);
+> > +
+> > +/*
+> > + * tps68470_reg_write: Write a single tps68470 register.
+> > + *
+> > + * @tps68470: Device to write to.
+> > + * @reg: Register to write to.
+> > + * @val: Value to write.
+> > + */
+> > +int tps68470_reg_write(struct tps68470 *tps, unsigned int reg,
+> > +			unsigned int val)
+> > +{
+> > +	int ret;
+> > +
+> > +	mutex_lock(&tps->lock);
+> > +	ret = regmap_write(tps->regmap, reg, val);
+> > +	mutex_unlock(&tps->lock);
+> > +	return ret;
+> > +}
+> > +EXPORT_SYMBOL_GPL(tps68470_reg_write);
+> > +
+> > +/*
+> > + * tps68470_update_bits: Modify bits w.r.t mask and val.
+> > + *
+> > + * @tps68470: Device to write to.
+> > + * @reg: Register to read-write to.
+> > + * @mask: Mask.
+> > + * @val: Value to write.
+> > + */
+> > +int tps68470_update_bits(struct tps68470 *tps, unsigned int reg,
+> > +				unsigned int mask, unsigned int val) {
+> > +	int ret;
+> > +
+> > +	mutex_lock(&tps->lock);
+> > +	ret = regmap_update_bits(tps->regmap, reg, mask, val);
+> > +	mutex_unlock(&tps->lock);
+> > +	return ret;
+> > +}
+> > +EXPORT_SYMBOL_GPL(tps68470_update_bits);
+> 
+> I'm not sure you need those above wrappers at all, regmap is handling locking in
+> any case.
+> 
 
-> > > > > > source:
-> > > > > > 	void DoBFn([in, out, Description("Fn buf")] BDat Data);
-> > > > > >=20
-> > > > > > bmf2mof:
-> > > > > > 	void doBFn([in, Description("Fn buf"), ID(0)] BDat Data,
-> > > > > > 	[out, Description("Fn buf"), ID(0)] BDat Data);
-> > > >=20
-> > > > --
-> > > > Pali Roh=C3=A1r
-> > > > pali.rohar@gmail.com
-> >=20
-> > --
-> > Pali Roh=C3=A1r
-> > pali.rohar@gmail.com
+I had this following question from Alan Cox on the original code without these wrappers.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+"What is the model for insuring that no interrupt or thread of a driver is not in parallel issuing a tps68470_ operation when the device goes away (eg if I down the i2c controller) ?"
 
---nextPart12380891.cyckeXfetz
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+To address the above concerns, I got extra cautious and implemented locks around the regmap_* calls.
+Now, I have been asked from more than one reviewer about the necessity of the same.
+With the use of devm_* calls, tps68470_remove() goes away and leaves the driver just with regmap_* calls.
+Unless I hear from Alan or other reviewers otherwise, I will drop these wrappers around regmap_* calls.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+> > +static const struct regmap_config tps68470_regmap_config = {
+> > +	.reg_bits = 8,
+> > +	.val_bits = 8,
+> > +	.max_register = TPS68470_REG_MAX,
+> > +};
+> > +
+> > +static int tps68470_chip_init(struct tps68470 *tps) {
+> > +	unsigned int version;
+> > +	int ret;
+> > +
+> > +	ret = tps68470_reg_read(tps, TPS68470_REG_REVID, &version);
+> > +	if (ret < 0) {
+> > +		dev_err(tps->dev,
+> > +			"Failed to read revision register: %d\n", ret);
+> > +		return ret;
+> > +	}
+> > +
+> > +	dev_info(tps->dev, "TPS68470 REVID: 0x%x\n", version);
+> > +
+> > +	ret = tps68470_reg_write(tps, TPS68470_REG_RESET, 0xff);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	/* FIXME: configure these dynamically */
+> > +	/* Enable Daisy Chain LDO and configure relevant GPIOs as output */
+> > +	ret = tps68470_reg_write(tps, TPS68470_REG_S_I2C_CTL, 2);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	ret = tps68470_reg_write(tps, TPS68470_REG_GPCTL4A, 2);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	ret = tps68470_reg_write(tps, TPS68470_REG_GPCTL5A, 2);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	ret = tps68470_reg_write(tps, TPS68470_REG_GPCTL6A, 2);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	/*
+> > +	 * When SDA and SCL are routed to GPIO1 and GPIO2, the mode
+> > +	 * for these GPIOs must be configured using their respective
+> > +	 * GPCTLxA registers as inputs with no pull-ups.
+> > +	 */
+> > +	ret = tps68470_reg_write(tps, TPS68470_REG_GPCTL1A, 0);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	ret = tps68470_reg_write(tps, TPS68470_REG_GPCTL2A, 0);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	/* Enable daisy chain */
+> > +	ret = tps68470_update_bits(tps, TPS68470_REG_S_I2C_CTL, 1, 1);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	usleep_range(TPS68470_DAISY_CHAIN_DELAY_US,
+> > +			TPS68470_DAISY_CHAIN_DELAY_US + 10);
+> > +	return 0;
+> > +}
+> > +
+> > +static int tps68470_probe(struct i2c_client *client) {
+> > +	struct tps68470 *tps;
+> > +	int ret;
+> > +
+> > +	tps = devm_kzalloc(&client->dev, sizeof(*tps), GFP_KERNEL);
+> > +	if (!tps)
+> > +		return -ENOMEM;
+> > +
+> > +	mutex_init(&tps->lock);
+> > +	i2c_set_clientdata(client, tps);
+> > +	tps->dev = &client->dev;
+> > +
+> > +	tps->regmap = devm_regmap_init_i2c(client,
+> &tps68470_regmap_config);
+> > +	if (IS_ERR(tps->regmap)) {
+> > +		dev_err(tps->dev, "devm_regmap_init_i2c Error %d\n", ret);
+> > +		return PTR_ERR(tps->regmap);
+> > +	}
+> > +
+> > +	ret = mfd_add_devices(tps->dev, -1, tps68470s,
+> > +			      ARRAY_SIZE(tps68470s), NULL, 0, NULL);
+> > +	if (ret < 0) {
+> > +		dev_err(tps->dev, "mfd_add_devices failed: %d\n", ret);
+> > +		return ret;
+> > +	}
+> 
+> devm_mfd_add_devices()?
+> 
 
-iEYEABECAAYFAlk7GGQACgkQi/DJPQPkQ1IUrQCdHqU4uHacMAOz3oa/Z3s8hqez
-7mMAn2icUy0Ub9iarxWFigepK7FsjV0q
-=Nac4
------END PGP SIGNATURE-----
+Ack
 
---nextPart12380891.cyckeXfetz--
+> > +	ret = tps68470_chip_init(tps);
+> > +	if (ret < 0) {
+> > +		dev_err(tps->dev, "TPS68470 Init Error %d\n", ret);
+> > +		goto fail;
+> > +	}
+> > +
+> > +	return 0;
+> > +fail:
+> > +	mutex_lock(&tps->lock);
+> 
+> Why do you need to lock here?
+> 
+
+Same as explained above (to address Alan's comments)
+
+> > +	mfd_remove_devices(tps->dev);
+> > +	mutex_unlock(&tps->lock);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static int tps68470_remove(struct i2c_client *client) {
+> > +	struct tps68470 *tps = i2c_get_clientdata(client);
+> > +
+> > +	mutex_lock(&tps->lock);
+> > +	mfd_remove_devices(tps->dev);
+> > +	mutex_unlock(&tps->lock);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static const struct acpi_device_id tps68470_acpi_ids[] = {
+> > +	{"INT3472"},
+> > +	{},
+> > +};
+> > +
+> > +MODULE_DEVICE_TABLE(acpi, tps68470_acpi_ids);
+> > +
+> > +static struct i2c_driver tps68470_driver = {
+> > +	.driver = {
+> > +		   .name = "tps68470",
+> > +		   .acpi_match_table = ACPI_PTR(tps68470_acpi_ids),
+> > +	},
+> > +	.probe_new = tps68470_probe,
+> > +	.remove = tps68470_remove,
+> > +};
+> 
+> <snip>
+> 
+> > +/**
+> > + * struct tps68470 - tps68470 sub-driver chip access routines
+> > + *
+> > + * Device data may be used to access the TPS68470 chip  */
+> > +
+> > +struct tps68470 {
+> > +	struct device *dev;
+> > +	struct regmap *regmap;
+> > +	/*
+> > +	 * Used to synchronize access to tps68470_ operations
+> > +	 * and addition and removal of mfd devices
+> > +	 */
+> > +	struct mutex lock;
+> 
+> Is this lock really necessary at all? Actually, you probable don't even need this
+> structure at all if you just rely on regmap functions in the drivers.
+> 
+
+Ack
+I am looking into this and will get back with v2.
+
+> 
+> Thanks,
+> 
+> --
+> heikki
