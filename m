@@ -1,76 +1,242 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose
- embedded WMI MOF metadata
-Date: Fri, 9 Jun 2017 15:46:12 +0000
-Message-ID: <67cc75c9e0ef4a21a168ab3b4dd1e727@ausx13mpc124.AMER.DELL.COM>
-References: <cover.1495862272.git.dvhart@infradead.org>
- <201706071939.25681@pali>
- <bc0dbbfcb0084f758d28b9000fa9f9e0@ausx13mpc124.AMER.DELL.COM>
- <201706072250.25953@pali>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] ACPI/IORT: Handle PCI aliases properly
+Date: Fri, 9 Jun 2017 17:42:16 +0100
+Message-ID: <20170609164207.GA19520@red-moon>
+References: <20170531175230.16529-4-robin.murphy@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <201706072250.25953@pali>
-Content-Language: en-US
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: pali.rohar@gmail.com
-Cc: luto@amacapital.net, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, andriy.shevchenko@linux.intel.com, luto@kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:43778 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751650AbdFIQlD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Jun 2017 12:41:03 -0400
+Content-Disposition: inline
+In-Reply-To: <20170531175230.16529-4-robin.murphy@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBQYWxpIFJvaMOhciBbbWFpbHRv
-OnBhbGkucm9oYXJAZ21haWwuY29tXQ0KPiBTZW50OiBXZWRuZXNkYXksIEp1bmUgNywgMjAxNyAz
-OjUwIFBNDQo+IFRvOiBMaW1vbmNpZWxsbywgTWFyaW8gPE1hcmlvX0xpbW9uY2llbGxvQERlbGwu
-Y29tPg0KPiBDYzogbHV0b0BhbWFjYXBpdGFsLm5ldDsgZHZoYXJ0QGluZnJhZGVhZC5vcmc7IHBs
-YXRmb3JtLWRyaXZlci0NCj4geDg2QHZnZXIua2VybmVsLm9yZzsgYW5kcml5LnNoZXZjaGVua29A
-bGludXguaW50ZWwuY29tOyBsdXRvQGtlcm5lbC5vcmc7DQo+IHJqd0Byand5c29ja2kubmV0OyBs
-aW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZw0K
-PiBTdWJqZWN0OiBSZTogW1BBVENIIDE1LzE2XSBwbGF0Zm9ybS94ODY6IHdtaS1tb2Y6IE5ldyBk
-cml2ZXIgdG8gZXhwb3NlDQo+IGVtYmVkZGVkIFdNSSBNT0YgbWV0YWRhdGENCj4gDQo+IE9uIFdl
-ZG5lc2RheSAwNyBKdW5lIDIwMTcgMjI6MjM6MDggTWFyaW8uTGltb25jaWVsbG9AZGVsbC5jb20g
-d3JvdGU6DQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+ID4gRnJvbTogUGFs
-aSBSb2jDoXIgW21haWx0bzpwYWxpLnJvaGFyQGdtYWlsLmNvbV0NCj4gPiA+IFNlbnQ6IFdlZG5l
-c2RheSwgSnVuZSA3LCAyMDE3IDEyOjM5IFBNDQo+ID4gPiBUbzogTGltb25jaWVsbG8sIE1hcmlv
-IDxNYXJpb19MaW1vbmNpZWxsb0BEZWxsLmNvbT4NCj4gPiA+IENjOiBsdXRvQGFtYWNhcGl0YWwu
-bmV0OyBkdmhhcnRAaW5mcmFkZWFkLm9yZzsgcGxhdGZvcm0tZHJpdmVyLQ0KPiA+ID4geDg2QHZn
-ZXIua2VybmVsLm9yZzsgYW5kcml5LnNoZXZjaGVua29AbGludXguaW50ZWwuY29tOw0KPiA+ID4g
-bHV0b0BrZXJuZWwub3JnOyByandAcmp3eXNvY2tpLm5ldDsgbGludXgta2VybmVsQHZnZXIua2Vy
-bmVsLm9yZzsNCj4gPiA+IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnIFN1YmplY3Q6IFJlOiBb
-UEFUQ0ggMTUvMTZdDQo+ID4gPiBwbGF0Zm9ybS94ODY6IHdtaS1tb2Y6IE5ldyBkcml2ZXIgdG8g
-ZXhwb3NlIGVtYmVkZGVkIFdNSSBNT0YNCj4gPiA+IG1ldGFkYXRhDQo+ID4gPg0KPiA+ID4gT24g
-VHVlc2RheSAwNiBKdW5lIDIwMTcgMTU6NTY6MjEgUGFsaSBSb2jDoXIgd3JvdGU6DQo+ID4gPiA+
-IE9uIFR1ZXNkYXkgMDYgSnVuZSAyMDE3IDEzOjQ2OjE2IE1hcmlvLkxpbW9uY2llbGxvQGRlbGwu
-Y29tIHdyb3RlOg0KPiA+ID4gPiA+IDIpIE9uIG15IHN5c3RlbSB3aGVuIHlvdSBleHBhbmQgdGhl
-IGFyZ3VtZW50cyBmb3IgInZvaWQgRG9CRm4iDQo+ID4gPiA+ID4gdGhlIHNvdXJjZSBkb2Vzbid0
-IGRlc2NyaWJlIGluZGl2aWR1YWwgYXJndW1lbnRzIGxpa2UgeW91IGRvLg0KPiA+ID4gPiA+IEFn
-YWluIHRoaXMgbWlnaHQgbm90IG1hdHRlciB0byBNT0YgcGFyc2luZyB0b29scyBidXQgd2FudGVk
-IHRvDQo+ID4gPiA+ID4gbGV0IHlvdSBrbm93IGluIGNhc2UgaXQgZG9lcy4NCj4gPiA+ID4NCj4g
-PiA+ID4gSSBrbm93LCB0aGlzIHBhcnQgaXMgbWlzc2luZy4gT3JkZXIgb2YgYXJndW1lbnRzIGFy
-ZSBvbmx5IGluIElEDQo+ID4gPiA+IHF1YWxpZmllciBhbmQgbm90IHNvcnRlZCArIGluL291dCBk
-ZS1kdXBsaWNhdGVkLg0KPiA+ID4NCj4gPiA+IEltcGxlbWVudGVkISBOb3cgYXJndW1lbnRzIGFy
-ZSBjb3JyZWN0bHkgcGxhY2VkIGJhc2VkIG9uIElEDQo+ID4gPiBxdWFsaWZpZXIuDQo+ID4NCj4g
-PiBJIHRoaW5rIGl0J3Mgc3RpbGwgb2ZmIGEgbGl0dGxlIHRob3VnaC4NCj4gPg0KPiA+IFdoYXQg
-SSdtIGdldHRpbmcgYmFjayBub3cgZnJvbSBibWYybW9mIGlzOg0KPiA+IAl2b2lkIERvQkZuKFtp
-biwgRGVzY3JpcHRpb24oIkZuIGJ1ZiIpLCBvdXRdIEJEYXQgRGF0YSk7DQo+ID4NCj4gPiBXaGVy
-ZWFzIHNvdXJjZSBwdXRzIERlc2NyaXB0aW9uIGFzIHRoZSBsYXN0IGFyZ3VtZW50Og0KPiA+IAl2
-b2lkIERvQkZuKFtpbiwgb3V0LCBEZXNjcmlwdGlvbigiRm4gYnVmIildIEJEYXQgRGF0YSk7DQo+
-IA0KPiBJbiBCTU9GIGZyb20gbXkgTGF0aXR1ZGUgRTY0NDAgdGhlcmUgYXJlIHNwZWNpZmllZCB0
-d28gcGFyYW1ldGVycyB3aXRoDQo+IGluZGV4IDAuIE9uZSB3aXRoIHF1YWxpZmllcnMgKCJpbiIs
-IERlc2NyaXB0aW9uKCJGbiBidWYiKSkgYW5kIG9uZSB3aXRoDQo+ICgib3V0IiwgRGVzY3JpcHRp
-b24oIkZuIGJ1ZiIpKS4gSSB0aGluayB5b3UgaGF2ZSBzaW1pbGFyL3NhbWUgZGF0YSBpbg0KPiBC
-TU9GLg0KPiANCj4gSW4gbXkgYm1mMm1vZiBJIGp1c3QgY29tYmluZWQgdGhvc2UgdHdvIHBhcmFt
-ZXRlcnMgaW50byBvbmUgKHdoZW4gbmFtZSwNCj4gdHlwZSBhbmQgaW5kZXggbWF0Y2hlcykgYW5k
-IGNvbmNhdGVuYXRlIGFsc28gcXVhbGlmaWVycyB3aXRoIHJlbW92aW5nDQo+IGR1cGxpY2F0ZXMu
-DQo+IA0KPiBEbyBub3Qga25vdyB3aGF0IGlzIGNvcnJlY3Qgd2F5LCBidXQgSSB0aGluayBxdWFs
-aWZpZXJzIGFyZSBqdXN0DQo+IHVub3JkZXJlZCBzZXQuIE1TIGRlY29tcGlsZXIgcHJvYmFibHkg
-cHV0ICJpbiIgYW5kICJvdXQiIHF1YWxpZmllcnMNCj4gYmVmb3JlIGFueSBvdGhlciBmb3IgYmV0
-dGVyIHJlYWRhYmlsaXR5Lg0KDQpIYXZlIHlvdSB0cmllZCB0byBydW4gaXQgdGhyb3VnaCBtb2Zj
-b21wLmV4ZSBhbmQgdGhlbiBkZWNvbXBpbGUgYWdhaW4NCndpdGggYm1mMm1vZj8gIEFzIGxvbmcg
-YXMgaXQncyBjb21pbmcgb3V0IHRoZSBzYW1lIHlvdSdyZSBwcm9iYWJseSByaWdodC4NCg0KPiAN
-Cj4gPiA+ID4gPiBzb3VyY2U6DQo+ID4gPiA+ID4gCXZvaWQgRG9CRm4oW2luLCBvdXQsIERlc2Ny
-aXB0aW9uKCJGbiBidWYiKV0gQkRhdCBEYXRhKTsNCj4gPiA+ID4gPg0KPiA+ID4gPiA+IGJtZjJt
-b2Y6DQo+ID4gPiA+ID4gCXZvaWQgZG9CRm4oW2luLCBEZXNjcmlwdGlvbigiRm4gYnVmIiksIElE
-KDApXSBCRGF0IERhdGEsIFtvdXQsDQo+ID4gPiA+ID4gCURlc2NyaXB0aW9uKCJGbiBidWYiKSwg
-SUQoMCldIEJEYXQgRGF0YSk7DQo+ID4gPg0KPiA+ID4gLS0NCj4gPiA+IFBhbGkgUm9ow6FyDQo+
-ID4gPiBwYWxpLnJvaGFyQGdtYWlsLmNvbQ0KPiANCj4gLS0NCj4gUGFsaSBSb2jDoXINCj4gcGFs
-aS5yb2hhckBnbWFpbC5jb20NCg==
+On Wed, May 31, 2017 at 06:52:30PM +0100, Robin Murphy wrote:
+> When a PCI device has DMA quirks, we need to ensure that an upstream
+> IOMMU knows about all possible aliases, since the presence of a DMA
+> quirk does not preclude the device still also emitting transactions
+> (e.g. MSIs) on its 'real' RID. Similarly, the rules for bridge aliasing
+> are relatively complex, and some bridges may only take ownership of
+> transactions under particular transient circumstances, leading again to
+> multiple RIDs potentially being seen at the IOMMU for the given device.
+> 
+> Take all this into account in the IORT code by mapping every RID
+> produced by the alias walk, not just whichever one comes out last. Since
+> adding any more internal PTR_ERR() juggling would have confused me no
+> end, a bit of refactoring happens in the process - we know where to find
+> the ops if everything succeeded, so we're free to just pass regular error
+> codes around up until then.
+> 
+> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+> ---
+> 
+> This applies on top of the fixes currently queued in the IOMMU tree:
+> "ACPI/IORT: Move the check to get iommu_ops from translated fwspec"
+> "ACPI/IORT: Ignore all errors except EPROBE_DEFER"
+> 
+>  drivers/acpi/arm64/iort.c | 113 ++++++++++++++++++++++++----------------------
+
+It is a bit hard to read (and it is certainly not your fault) but the
+patch makes sense to me, I wonder whether it is not better to split it
+into two patches, one refactoring the return value and second one
+managing the aliases, _properly_ :), anyway:
+
+Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
+>  1 file changed, 59 insertions(+), 54 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 797b28dc7b34..50e2749eafdc 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -598,14 +598,6 @@ void acpi_configure_pmsi_domain(struct device *dev)
+>  		dev_set_msi_domain(dev, msi_domain);
+>  }
+>  
+> -static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+> -{
+> -	u32 *rid = data;
+> -
+> -	*rid = alias;
+> -	return 0;
+> -}
+> -
+>  static int arm_smmu_iort_xlate(struct device *dev, u32 streamid,
+>  			       struct fwnode_handle *fwnode,
+>  			       const struct iommu_ops *ops)
+> @@ -643,8 +635,7 @@ int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
+>  {
+>  	int err = 0;
+>  
+> -	if (!IS_ERR_OR_NULL(ops) && ops->add_device && dev->bus &&
+> -	    !dev->iommu_group)
+> +	if (ops->add_device && dev->bus && !dev->iommu_group)
+>  		err = ops->add_device(dev);
+>  
+>  	return err;
+> @@ -658,36 +649,49 @@ int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
+>  { return 0; }
+>  #endif
+>  
+> -static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+> -					struct acpi_iort_node *node,
+> -					u32 streamid)
+> +static int iort_iommu_xlate(struct device *dev, struct acpi_iort_node *node,
+> +			    u32 streamid)
+>  {
+> -	const struct iommu_ops *ops = NULL;
+> -	int ret = -ENODEV;
+> +	const struct iommu_ops *ops;
+>  	struct fwnode_handle *iort_fwnode;
+>  
+> -	if (node) {
+> -		iort_fwnode = iort_get_fwnode(node);
+> -		if (!iort_fwnode)
+> -			return NULL;
+> +	if (!node)
+> +		return -ENODEV;
+>  
+> -		ops = iommu_ops_from_fwnode(iort_fwnode);
+> -		/*
+> -		 * If the ops look-up fails, this means that either
+> -		 * the SMMU drivers have not been probed yet or that
+> -		 * the SMMU drivers are not built in the kernel;
+> -		 * Depending on whether the SMMU drivers are built-in
+> -		 * in the kernel or not, defer the IOMMU configuration
+> -		 * or just abort it.
+> -		 */
+> -		if (!ops)
+> -			return iort_iommu_driver_enabled(node->type) ?
+> -			       ERR_PTR(-EPROBE_DEFER) : NULL;
+> +	iort_fwnode = iort_get_fwnode(node);
+> +	if (!iort_fwnode)
+> +		return -ENODEV;
+>  
+> -		ret = arm_smmu_iort_xlate(dev, streamid, iort_fwnode, ops);
+> -	}
+> +	ops = iommu_ops_from_fwnode(iort_fwnode);
+> +	/*
+> +	 * If the ops look-up fails, this means that either
+> +	 * the SMMU drivers have not been probed yet or that
+> +	 * the SMMU drivers are not built in the kernel;
+> +	 * Depending on whether the SMMU drivers are built-in
+> +	 * in the kernel or not, defer the IOMMU configuration
+> +	 * or just abort it.
+> +	 */
+> +	if (!ops)
+> +		return iort_iommu_driver_enabled(node->type) ?
+> +		       -EPROBE_DEFER : -ENODEV;
+>  
+> -	return ret ? NULL : ops;
+> +	return arm_smmu_iort_xlate(dev, streamid, iort_fwnode, ops);
+> +}
+> +
+> +struct iort_pci_alias_info {
+> +	struct device *dev;
+> +	struct acpi_iort_node *node;
+> +};
+> +
+> +static int iort_pci_iommu_init(struct pci_dev *pdev, u16 alias, void *data)
+> +{
+> +	struct iort_pci_alias_info *info = data;
+> +	struct acpi_iort_node *parent;
+> +	u32 streamid;
+> +
+> +	parent = iort_node_map_id(info->node, alias, &streamid,
+> +				  IORT_IOMMU_TYPE);
+> +	return iort_iommu_xlate(info->dev, parent, streamid);
+>  }
+>  
+>  /**
+> @@ -723,7 +727,7 @@ void iort_set_dma_mask(struct device *dev)
+>  const struct iommu_ops *iort_iommu_configure(struct device *dev)
+>  {
+>  	struct acpi_iort_node *node, *parent;
+> -	const struct iommu_ops *ops = NULL;
+> +	const struct iommu_ops *ops;
+>  	u32 streamid = 0;
+>  	int err;
+>  
+> @@ -737,21 +741,18 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+>  
+>  	if (dev_is_pci(dev)) {
+>  		struct pci_bus *bus = to_pci_dev(dev)->bus;
+> -		u32 rid;
+> -
+> -		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
+> -				       &rid);
+> +		struct iort_pci_alias_info info = { .dev = dev };
+>  
+>  		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+>  				      iort_match_node_callback, &bus->dev);
+>  		if (!node)
+>  			return NULL;
+>  
+> -		parent = iort_node_map_id(node, rid, &streamid,
+> -					  IORT_IOMMU_TYPE);
+> -
+> -		ops = iort_iommu_xlate(dev, parent, streamid);
+> -
+> +		info.node = node;
+> +		err = pci_for_each_dma_alias(to_pci_dev(dev),
+> +					     iort_pci_iommu_init, &info);
+> +		if (err)
+> +			goto out_err;
+>  	} else {
+>  		int i = 0;
+>  
+> @@ -764,9 +765,9 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+>  						   IORT_IOMMU_TYPE, i++);
+>  
+>  		while (parent) {
+> -			ops = iort_iommu_xlate(dev, parent, streamid);
+> -			if (IS_ERR_OR_NULL(ops))
+> -				return ops;
+> +			err = iort_iommu_xlate(dev, parent, streamid);
+> +			if (err)
+> +				goto out_err;
+>  
+>  			parent = iort_node_map_platform_id(node, &streamid,
+>  							   IORT_IOMMU_TYPE,
+> @@ -774,21 +775,25 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+>  		}
+>  	}
+>  
+> +	ops = dev->iommu_fwspec->ops;
+> +
+>  	/*
+>  	 * If we have reason to believe the IOMMU driver missed the initial
+>  	 * add_device callback for dev, replay it to get things in order.
+>  	 */
+>  	err = iort_add_device_replay(ops, dev);
+>  	if (err)
+> -		ops = ERR_PTR(err);
+> -
+> -	/* Ignore all other errors apart from EPROBE_DEFER */
+> -	if (IS_ERR(ops) && (PTR_ERR(ops) != -EPROBE_DEFER)) {
+> -		dev_dbg(dev, "Adding to IOMMU failed: %ld\n", PTR_ERR(ops));
+> -		ops = NULL;
+> -	}
+> +		goto out_err;
+>  
+>  	return ops;
+> +
+> +	/* Ignore all other errors apart from EPROBE_DEFER */
+> +out_err:
+> +	if (err == -EPROBE_DEFER)
+> +		return ERR_PTR(err);
+> +
+> +	dev_dbg(dev, "Adding to IOMMU failed: %d\n", err);
+> +	return NULL;
+>  }
+>  
+>  static void __init acpi_iort_register_irq(int hwirq, const char *name,
+> -- 
+> 2.12.2.dirty
+> 
