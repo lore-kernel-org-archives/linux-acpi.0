@@ -1,279 +1,109 @@
 From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
 Subject: RE: [PATCH v1 1/3] mfd: Add new mfd device TPS68470
-Date: Fri, 9 Jun 2017 22:04:21 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725BEC8F@FMSMSX114.amr.corp.intel.com>
+Date: Fri, 9 Jun 2017 22:09:27 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725BEC9C@FMSMSX114.amr.corp.intel.com>
 References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
  <1496750118-5570-2-git-send-email-rajmohan.mani@intel.com>
- <20170606124848.GA10936@kuha.fi.intel.com>
+ <CAHp75VfiTM2t=WxWpG4+kUfGA3DrfGfMOwxP6Cs42nGwHjAp7w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:29019 "EHLO mga09.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:6194 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751571AbdFIWEX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 9 Jun 2017 18:04:23 -0400
-In-Reply-To: <20170606124848.GA10936@kuha.fi.intel.com>
+        id S1751647AbdFIWJ3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Jun 2017 18:09:29 -0400
+In-Reply-To: <CAHp75VfiTM2t=WxWpG4+kUfGA3DrfGfMOwxP6Cs42nGwHjAp7w@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Alan Cox <alan@linux.intel.com>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-Hi Heikki,
-
-Thanks for the reviews and patience.
-
-> -----Original Message-----
-> From: Heikki Krogerus [mailto:heikki.krogerus@linux.intel.com]
-> Sent: Tuesday, June 06, 2017 5:49 AM
-> To: Mani, Rajmohan <rajmohan.mani@intel.com>
-> Cc: linux-kernel@vger.kernel.org; linux-gpio@vger.kernel.org; linux-
-> acpi@vger.kernel.org; Lee Jones <lee.jones@linaro.org>; Linus Walleij
-> <linus.walleij@linaro.org>; Alexandre Courbot <gnurou@gmail.com>; Rafael J.
-> Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>
-> Subject: Re: [PATCH v1 1/3] mfd: Add new mfd device TPS68470
-> 
-> Hi Rajmohan,
-> 
-> On Tue, Jun 06, 2017 at 04:55:16AM -0700, Rajmohan Mani wrote:
-> > +/*
-> > + * tps68470_reg_read: Read a single tps68470 register.
-> > + *
-> > + * @tps: Device to read from.
-> > + * @reg: Register to read.
-> > + * @val: Contains the value
-> > + */
-> > +int tps68470_reg_read(struct tps68470 *tps, unsigned int reg,
-> > +			unsigned int *val)
-> > +{
-> > +	int ret;
-> > +
-> > +	mutex_lock(&tps->lock);
-> > +	ret = regmap_read(tps->regmap, reg, val);
-> > +	mutex_unlock(&tps->lock);
-> > +	return ret;
-> > +}
-> > +EXPORT_SYMBOL_GPL(tps68470_reg_read);
-> > +
-> > +/*
-> > + * tps68470_reg_write: Write a single tps68470 register.
-> > + *
-> > + * @tps68470: Device to write to.
-> > + * @reg: Register to write to.
-> > + * @val: Value to write.
-> > + */
-> > +int tps68470_reg_write(struct tps68470 *tps, unsigned int reg,
-> > +			unsigned int val)
-> > +{
-> > +	int ret;
-> > +
-> > +	mutex_lock(&tps->lock);
-> > +	ret = regmap_write(tps->regmap, reg, val);
-> > +	mutex_unlock(&tps->lock);
-> > +	return ret;
-> > +}
-> > +EXPORT_SYMBOL_GPL(tps68470_reg_write);
-> > +
-> > +/*
-> > + * tps68470_update_bits: Modify bits w.r.t mask and val.
-> > + *
-> > + * @tps68470: Device to write to.
-> > + * @reg: Register to read-write to.
-> > + * @mask: Mask.
-> > + * @val: Value to write.
-> > + */
-> > +int tps68470_update_bits(struct tps68470 *tps, unsigned int reg,
-> > +				unsigned int mask, unsigned int val) {
-> > +	int ret;
-> > +
-> > +	mutex_lock(&tps->lock);
-> > +	ret = regmap_update_bits(tps->regmap, reg, mask, val);
-> > +	mutex_unlock(&tps->lock);
-> > +	return ret;
-> > +}
-> > +EXPORT_SYMBOL_GPL(tps68470_update_bits);
-> 
-> I'm not sure you need those above wrappers at all, regmap is handling locking in
-> any case.
-> 
-
-I had this following question from Alan Cox on the original code without these wrappers.
-
-"What is the model for insuring that no interrupt or thread of a driver is not in parallel issuing a tps68470_ operation when the device goes away (eg if I down the i2c controller) ?"
-
-To address the above concerns, I got extra cautious and implemented locks around the regmap_* calls.
-Now, I have been asked from more than one reviewer about the necessity of the same.
-With the use of devm_* calls, tps68470_remove() goes away and leaves the driver just with regmap_* calls.
-Unless I hear from Alan or other reviewers otherwise, I will drop these wrappers around regmap_* calls.
-
-> > +static const struct regmap_config tps68470_regmap_config = {
-> > +	.reg_bits = 8,
-> > +	.val_bits = 8,
-> > +	.max_register = TPS68470_REG_MAX,
-> > +};
-> > +
-> > +static int tps68470_chip_init(struct tps68470 *tps) {
-> > +	unsigned int version;
-> > +	int ret;
-> > +
-> > +	ret = tps68470_reg_read(tps, TPS68470_REG_REVID, &version);
-> > +	if (ret < 0) {
-> > +		dev_err(tps->dev,
-> > +			"Failed to read revision register: %d\n", ret);
-> > +		return ret;
-> > +	}
-> > +
-> > +	dev_info(tps->dev, "TPS68470 REVID: 0x%x\n", version);
-> > +
-> > +	ret = tps68470_reg_write(tps, TPS68470_REG_RESET, 0xff);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	/* FIXME: configure these dynamically */
-> > +	/* Enable Daisy Chain LDO and configure relevant GPIOs as output */
-> > +	ret = tps68470_reg_write(tps, TPS68470_REG_S_I2C_CTL, 2);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	ret = tps68470_reg_write(tps, TPS68470_REG_GPCTL4A, 2);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	ret = tps68470_reg_write(tps, TPS68470_REG_GPCTL5A, 2);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	ret = tps68470_reg_write(tps, TPS68470_REG_GPCTL6A, 2);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	/*
-> > +	 * When SDA and SCL are routed to GPIO1 and GPIO2, the mode
-> > +	 * for these GPIOs must be configured using their respective
-> > +	 * GPCTLxA registers as inputs with no pull-ups.
-> > +	 */
-> > +	ret = tps68470_reg_write(tps, TPS68470_REG_GPCTL1A, 0);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	ret = tps68470_reg_write(tps, TPS68470_REG_GPCTL2A, 0);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	/* Enable daisy chain */
-> > +	ret = tps68470_update_bits(tps, TPS68470_REG_S_I2C_CTL, 1, 1);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	usleep_range(TPS68470_DAISY_CHAIN_DELAY_US,
-> > +			TPS68470_DAISY_CHAIN_DELAY_US + 10);
-> > +	return 0;
-> > +}
-> > +
-> > +static int tps68470_probe(struct i2c_client *client) {
-> > +	struct tps68470 *tps;
-> > +	int ret;
-> > +
-> > +	tps = devm_kzalloc(&client->dev, sizeof(*tps), GFP_KERNEL);
-> > +	if (!tps)
-> > +		return -ENOMEM;
-> > +
-> > +	mutex_init(&tps->lock);
-> > +	i2c_set_clientdata(client, tps);
-> > +	tps->dev = &client->dev;
-> > +
-> > +	tps->regmap = devm_regmap_init_i2c(client,
-> &tps68470_regmap_config);
-> > +	if (IS_ERR(tps->regmap)) {
-> > +		dev_err(tps->dev, "devm_regmap_init_i2c Error %d\n", ret);
-> > +		return PTR_ERR(tps->regmap);
-> > +	}
-> > +
-> > +	ret = mfd_add_devices(tps->dev, -1, tps68470s,
-> > +			      ARRAY_SIZE(tps68470s), NULL, 0, NULL);
-> > +	if (ret < 0) {
-> > +		dev_err(tps->dev, "mfd_add_devices failed: %d\n", ret);
-> > +		return ret;
-> > +	}
-> 
-> devm_mfd_add_devices()?
-> 
-
-Ack
-
-> > +	ret = tps68470_chip_init(tps);
-> > +	if (ret < 0) {
-> > +		dev_err(tps->dev, "TPS68470 Init Error %d\n", ret);
-> > +		goto fail;
-> > +	}
-> > +
-> > +	return 0;
-> > +fail:
-> > +	mutex_lock(&tps->lock);
-> 
-> Why do you need to lock here?
-> 
-
-Same as explained above (to address Alan's comments)
-
-> > +	mfd_remove_devices(tps->dev);
-> > +	mutex_unlock(&tps->lock);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int tps68470_remove(struct i2c_client *client) {
-> > +	struct tps68470 *tps = i2c_get_clientdata(client);
-> > +
-> > +	mutex_lock(&tps->lock);
-> > +	mfd_remove_devices(tps->dev);
-> > +	mutex_unlock(&tps->lock);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static const struct acpi_device_id tps68470_acpi_ids[] = {
-> > +	{"INT3472"},
-> > +	{},
-> > +};
-> > +
-> > +MODULE_DEVICE_TABLE(acpi, tps68470_acpi_ids);
-> > +
-> > +static struct i2c_driver tps68470_driver = {
-> > +	.driver = {
-> > +		   .name = "tps68470",
-> > +		   .acpi_match_table = ACPI_PTR(tps68470_acpi_ids),
-> > +	},
-> > +	.probe_new = tps68470_probe,
-> > +	.remove = tps68470_remove,
-> > +};
-> 
-> <snip>
-> 
-> > +/**
-> > + * struct tps68470 - tps68470 sub-driver chip access routines
-> > + *
-> > + * Device data may be used to access the TPS68470 chip  */
-> > +
-> > +struct tps68470 {
-> > +	struct device *dev;
-> > +	struct regmap *regmap;
-> > +	/*
-> > +	 * Used to synchronize access to tps68470_ operations
-> > +	 * and addition and removal of mfd devices
-> > +	 */
-> > +	struct mutex lock;
-> 
-> Is this lock really necessary at all? Actually, you probable don't even need this
-> structure at all if you just rely on regmap functions in the drivers.
-> 
-
-Ack
-I am looking into this and will get back with v2.
-
-> 
-> Thanks,
-> 
-> --
-> heikki
+SGkgQW5keSwNCg0KVGhhbmtzIGZvciB0aGUgcmV2aWV3cyBhbmQgcGF0aWVuY2UuDQoNCj4gLS0t
+LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBTaGV2Y2hlbmtvIFttYWlsdG86
+YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbV0NCj4gU2VudDogVHVlc2RheSwgSnVuZSAwNiwgMjAx
+NyA2OjAwIEFNDQo+IFRvOiBNYW5pLCBSYWptb2hhbiA8cmFqbW9oYW4ubWFuaUBpbnRlbC5jb20+
+DQo+IENjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBsaW51eC1ncGlvQHZnZXIua2Vy
+bmVsLm9yZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnOyBMZWUgSm9uZXMgPGxlZS5q
+b25lc0BsaW5hcm8ub3JnPjsgTGludXMgV2FsbGVpag0KPiA8bGludXMud2FsbGVpakBsaW5hcm8u
+b3JnPjsgQWxleGFuZHJlIENvdXJib3QgPGdudXJvdUBnbWFpbC5jb20+OyBSYWZhZWwgSi4NCj4g
+V3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9yZz4N
+Cj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MSAxLzNdIG1mZDogQWRkIG5ldyBtZmQgZGV2aWNlIFRQ
+UzY4NDcwDQo+IA0KPiBPbiBUdWUsIEp1biA2LCAyMDE3IGF0IDI6NTUgUE0sIFJham1vaGFuIE1h
+bmkgPHJham1vaGFuLm1hbmlAaW50ZWwuY29tPg0KPiB3cm90ZToNCj4gPiBUaGUgVFBTNjg0NzAg
+ZGV2aWNlIGlzIGFuIGFkdmFuY2VkIHBvd2VyIG1hbmFnZW1lbnQgdW5pdCB0aGF0IHBvd2VycyBh
+DQo+ID4gQ29tcGFjdCBDYW1lcmEgTW9kdWxlIChDQ00pLCBnZW5lcmF0ZXMgY2xvY2tzIGZvciBp
+bWFnZSBzZW5zb3JzLA0KPiA+IGRyaXZlcyBhIGR1YWwgTEVEIGZvciBGbGFzaCBhbmQgaW5jb3Jw
+b3JhdGVzIHR3byBMRUQgZHJpdmVycyBmb3INCj4gPiBnZW5lcmFsIHB1cnBvc2UgaW5kaWNhdG9y
+cy4NCj4gPg0KPiA+IFRoaXMgcGF0Y2ggYWRkcyBzdXBwb3J0IGZvciBUUFM2ODQ3MCBtZmQgZGV2
+aWNlLg0KPiANCj4gSSBkdW5ubyB3aHkgeW91IGRlY2lkZSB0byBzZW5kIHRoaXMgb3V0IG5vdywg
+c2VlIG15IGNvbW1lbnRzIGJlbG93Lg0KPiANCg0KV2UgZGVjaWRlZCB0byBnbyB3aXRoIHRoZSBz
+dWJtaXNzaW9uIG9mIHRoZXNlIGRyaXZlcnMgZm9yIHVwc3RyZWFtIHJldmlldyBzb29uZXIgcmF0
+aGVyIHRoYW4gbGF0ZXIuDQoNCj4gPiArc3RhdGljIGludCB0cHM2ODQ3MF9jaGlwX2luaXQoc3Ry
+dWN0IHRwczY4NDcwICp0cHMpIHsNCj4gPiArICAgICAgIHVuc2lnbmVkIGludCB2ZXJzaW9uOw0K
+PiA+ICsgICAgICAgaW50IHJldDsNCj4gDQo+ID4gKyAgICAgICAvKiBGSVhNRTogY29uZmlndXJl
+IHRoZXNlIGR5bmFtaWNhbGx5ICovDQo+IA0KPiBTbywgd2hhdCBwcmV2ZW50cyB5b3UgdG8gZml4
+IHRoaXM/DQo+IA0KDQpJIHdpbGwgcmVzcG9uZCBvbiB0b3Agb2YgU2FrYXJpJ3MgcmVzcG9uc2Uu
+DQoNCj4gPiArICAgICAgIC8qIEVuYWJsZSBEYWlzeSBDaGFpbiBMRE8gYW5kIGNvbmZpZ3VyZSBy
+ZWxldmFudCBHUElPcyBhcw0KPiA+ICsgb3V0cHV0ICovDQo+IA0KPiA+ICt9DQo+IA0KPiA+ICtz
+dGF0aWMgaW50IHRwczY4NDcwX3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpIHsNCj4g
+PiArICAgICAgIHN0cnVjdCB0cHM2ODQ3MCAqdHBzOw0KPiA+ICsgICAgICAgaW50IHJldDsNCj4g
+PiArDQo+ID4gKyAgICAgICB0cHMgPSBkZXZtX2t6YWxsb2MoJmNsaWVudC0+ZGV2LCBzaXplb2Yo
+KnRwcyksIEdGUF9LRVJORUwpOw0KPiA+ICsgICAgICAgaWYgKCF0cHMpDQo+ID4gKyAgICAgICAg
+ICAgICAgIHJldHVybiAtRU5PTUVNOw0KPiA+ICsNCj4gPiArICAgICAgIG11dGV4X2luaXQoJnRw
+cy0+bG9jayk7DQo+ID4gKyAgICAgICBpMmNfc2V0X2NsaWVudGRhdGEoY2xpZW50LCB0cHMpOw0K
+PiA+ICsgICAgICAgdHBzLT5kZXYgPSAmY2xpZW50LT5kZXY7DQo+ID4gKw0KPiA+ICsgICAgICAg
+dHBzLT5yZWdtYXAgPSBkZXZtX3JlZ21hcF9pbml0X2kyYyhjbGllbnQsDQo+ICZ0cHM2ODQ3MF9y
+ZWdtYXBfY29uZmlnKTsNCj4gPiArICAgICAgIGlmIChJU19FUlIodHBzLT5yZWdtYXApKSB7DQo+
+ID4gKyAgICAgICAgICAgICAgIGRldl9lcnIodHBzLT5kZXYsICJkZXZtX3JlZ21hcF9pbml0X2ky
+YyBFcnJvciAlZFxuIiwgcmV0KTsNCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIFBUUl9FUlIo
+dHBzLT5yZWdtYXApOw0KPiA+ICsgICAgICAgfQ0KPiA+ICsNCj4gDQo+ID4gKyAgICAgICByZXQg
+PSBtZmRfYWRkX2RldmljZXModHBzLT5kZXYsIC0xLCB0cHM2ODQ3MHMsDQo+ID4gKyAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgQVJSQVlfU0laRSh0cHM2ODQ3MHMpLCBOVUxMLCAwLCBOVUxM
+KTsNCj4gDQo+IGRldm1fPw0KPiANCg0KQWNrDQoNCj4gPiArICAgICAgIGlmIChyZXQgPCAwKSB7
+DQo+ID4gKyAgICAgICAgICAgICAgIGRldl9lcnIodHBzLT5kZXYsICJtZmRfYWRkX2RldmljZXMg
+ZmFpbGVkOiAlZFxuIiwgcmV0KTsNCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIHJldDsNCj4g
+PiArICAgICAgIH0NCj4gPiArDQo+ID4gKyAgICAgICByZXQgPSB0cHM2ODQ3MF9jaGlwX2luaXQo
+dHBzKTsNCj4gPiArICAgICAgIGlmIChyZXQgPCAwKSB7DQo+ID4gKyAgICAgICAgICAgICAgIGRl
+dl9lcnIodHBzLT5kZXYsICJUUFM2ODQ3MCBJbml0IEVycm9yICVkXG4iLCByZXQpOw0KPiA+ICsg
+ICAgICAgICAgICAgICBnb3RvIGZhaWw7DQo+ID4gKyAgICAgICB9DQo+ID4gKw0KPiA+ICsgICAg
+ICAgcmV0dXJuIDA7DQo+IA0KPiA+ICtmYWlsOg0KPiA+ICsgICAgICAgbXV0ZXhfbG9jaygmdHBz
+LT5sb2NrKTsNCj4gDQo+IEknbSBub3Qgc3VyZSB5b3UgbmVlZCB0aGlzIG11dGV4IHRvIGJlIGhl
+bGQgaGVyZS4NCj4gT3RoZXJ3aXNlIHlvdXIgY29kZSBoYXMgYSBidWcgd2l0aCBsb2NraW5nLg0K
+PiANCg0KUmVwZWF0aW5nIHRoZSByZXNwb25zZSB0byBIZWlra2kgaGVyZQ0KDQpJIGhhZCB0aGlz
+IGZvbGxvd2luZyBxdWVzdGlvbiBmcm9tIEFsYW4gQ294IG9uIHRoZSBvcmlnaW5hbCBjb2RlIHdp
+dGhvdXQgdGhlc2Ugd3JhcHBlcnMuDQoNCiJXaGF0IGlzIHRoZSBtb2RlbCBmb3IgaW5zdXJpbmcg
+dGhhdCBubyBpbnRlcnJ1cHQgb3IgdGhyZWFkIG9mIGEgZHJpdmVyIGlzIG5vdCBpbiBwYXJhbGxl
+bCBpc3N1aW5nIGEgdHBzNjg0NzBfIG9wZXJhdGlvbiB3aGVuIHRoZSBkZXZpY2UgZ29lcyBhd2F5
+IChlZyBpZiBJIGRvd24gdGhlIGkyYyBjb250cm9sbGVyKSA/Ig0KDQpUbyBhZGRyZXNzIHRoZSBh
+Ym92ZSBjb25jZXJucywgSSBnb3QgZXh0cmEgY2F1dGlvdXMgYW5kIGltcGxlbWVudGVkIGxvY2tz
+IGFyb3VuZCB0aGUgcmVnbWFwXyogY2FsbHMuDQpOb3csIEkgaGF2ZSBiZWVuIGFza2VkIGZyb20g
+bW9yZSB0aGFuIG9uZSByZXZpZXdlciBhYm91dCB0aGUgbmVjZXNzaXR5IG9mIHRoZSBzYW1lLg0K
+V2l0aCB0aGUgdXNlIG9mIGRldm1fKiBjYWxscywgdHBzNjg0NzBfcmVtb3ZlKCkgZ29lcyBhd2F5
+IGFuZCBsZWF2ZXMgdGhlIGRyaXZlciBqdXN0IHdpdGggcmVnbWFwXyogY2FsbHMuDQpVbmxlc3Mg
+SSBoZWFyIGZyb20gQWxhbiBvciBvdGhlciByZXZpZXdlcnMgb3RoZXJ3aXNlLCBJIHdpbGwgZHJv
+cCB0aGVzZSB3cmFwcGVycyBhcm91bmQgcmVnbWFwXyogY2FsbHMuDQoNCj4gPiArICAgICAgIG1m
+ZF9yZW1vdmVfZGV2aWNlcyh0cHMtPmRldik7DQo+ID4gKyAgICAgICBtdXRleF91bmxvY2soJnRw
+cy0+bG9jayk7DQo+ID4gKw0KPiA+ICsgICAgICAgcmV0dXJuIHJldDsNCj4gDQo+IFRha2luZyBh
+Ym92ZSBpbnRvIGNvbnNpZGVyYXRpb24gSSBzdWdnZXN0IHRvIGNsYXJpZnkgeW91ciBsb2NraW5n
+IHNjaGVtZS4NCj4gDQoNClNhbWUgYXMgYWJvdmUuDQoNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3Rh
+dGljIGludCB0cHM2ODQ3MF9yZW1vdmUoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCkgew0KPiA+
+ICsgICAgICAgc3RydWN0IHRwczY4NDcwICp0cHMgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50
+KTsNCj4gPiArDQo+IA0KPiA+ICsgICAgICAgbXV0ZXhfbG9jaygmdHBzLT5sb2NrKTsNCj4gPiAr
+ICAgICAgIG1mZF9yZW1vdmVfZGV2aWNlcyh0cHMtPmRldik7DQo+ID4gKyAgICAgICBtdXRleF91
+bmxvY2soJnRwcy0+bG9jayk7DQo+IA0KPiBEaXR0by4NCj4gDQoNClNhbWUgYXMgYWJvdmUNCg0K
+PiA+ICsgICAgICAgcmV0dXJuIDA7DQo+ID4gK30NCj4gDQo+ID4gKy8qKg0KPiA+ICsgKiBzdHJ1
+Y3QgdHBzNjg0NzAgLSB0cHM2ODQ3MCBzdWItZHJpdmVyIGNoaXAgYWNjZXNzIHJvdXRpbmVzDQo+
+ID4gKyAqDQo+IA0KPiBrYnVpbGQgYm90IHdpbGwgYmUgdW5oYXBweS4gWW91IG5lZWQgdG8gZmls
+ZSBhIGRlc2NyaXB0aW9uIHBlciBmaWVsZC4NCj4gDQoNCkFjaw0KSXQgbG9va3MgbGlrZSB0aGlz
+IHN0cnVjdHVyZSB3aWxsIGdvIGF3YXksIG9uY2UgSSBpbXBsZW1lbnQgdGhlIGZlZWRiYWNrIGZy
+b20gSGVpa2tpLg0KDQo+ID4gKyAqIERldmljZSBkYXRhIG1heSBiZSB1c2VkIHRvIGFjY2VzcyB0
+aGUgVFBTNjg0NzAgY2hpcCAqLw0KPiA+ICsNCj4gPiArc3RydWN0IHRwczY4NDcwIHsNCj4gPiAr
+ICAgICAgIHN0cnVjdCBkZXZpY2UgKmRldjsNCj4gPiArICAgICAgIHN0cnVjdCByZWdtYXAgKnJl
+Z21hcDsNCj4gDQo+ID4gKyAgICAgICAvKg0KPiA+ICsgICAgICAgICogVXNlZCB0byBzeW5jaHJv
+bml6ZSBhY2Nlc3MgdG8gdHBzNjg0NzBfIG9wZXJhdGlvbnMNCj4gPiArICAgICAgICAqIGFuZCBh
+ZGRpdGlvbiBhbmQgcmVtb3ZhbCBvZiBtZmQgZGV2aWNlcw0KPiA+ICsgICAgICAgICovDQo+IA0K
+PiBNb3ZlIGl0IHRvIGtlcm5lbC1kb2MgYWJvdmUuDQo+IA0KDQpTYW1lIGFzIGFib3ZlDQoNCj4g
+PiArICAgICAgIHN0cnVjdCBtdXRleCBsb2NrOw0KPiA+ICt9Ow0KPiANCj4gLS0NCj4gV2l0aCBC
+ZXN0IFJlZ2FyZHMsDQo+IEFuZHkgU2hldmNoZW5rbw0K
