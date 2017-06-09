@@ -1,112 +1,55 @@
-From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: [PATCH v3] acpi: configfs: Unload SSDT on configfs entry removal
-Date: Fri, 9 Jun 2017 20:36:31 +0200
-Message-ID: <e5c56c3f-5c9a-d689-90f0-b8e4c499199e@siemens.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v7 2/6] device property: Move FW type specific
+ functionality to FW specific files
+Date: Fri, 9 Jun 2017 15:21:59 -0500
+Message-ID: <CAL_JsqKqW42pTOsw=1iTrCyHgF5E0WZqBC0k9QwVQ2uW5RFutA@mail.gmail.com>
+References: <1496741861-8240-1-git-send-email-sakari.ailus@linux.intel.com> <1496741861-8240-3-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from david.siemens.de ([192.35.17.14]:55417 "EHLO david.siemens.de"
+Received: from mail.kernel.org ([198.145.29.99]:44892 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751748AbdFISgn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 9 Jun 2017 14:36:43 -0400
-Content-Language: en-US
+        id S1751538AbdFIUWV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Jun 2017 16:22:21 -0400
+In-Reply-To: <1496741861-8240-3-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, devel@acpica.org, "Moore, Robert" <robert.moore@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Al Stone <ahs3@redhat.com>, Frank Rowand <frowand.list@gmail.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>
 
-Call directly into acpica to load a table to obtain its index on return.
-We choose the direct call of acpica internal functions to avoid having
-to modify its API which is used outside of Linux as well.
+On Tue, Jun 6, 2017 at 4:37 AM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> The device and fwnode property API supports Devicetree, ACPI and pset
+> properties. The implementation of this functionality for each firmware
+> type was embedded in the fwnode property core. Move it out to firmware
+> type specific locations, making it easier to maintain.
+>
+> Depends-on: ("of: Move OF property and graph API from base.c to property.c")
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/acpi/property.c |  68 ++++++++++++++++
+>  drivers/acpi/scan.c     |   1 +
+>  drivers/base/property.c | 208 +++++++++++++++++++-----------------------------
+>  drivers/of/property.c   |  90 +++++++++++++++++++++
+>  include/linux/acpi.h    |   4 +
+>  include/linux/fwnode.h  |  54 +++++++++++++
+>  include/linux/of.h      |   2 +
+>  7 files changed, 302 insertions(+), 125 deletions(-)
+>
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 9364398..14013f6 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -57,6 +57,7 @@ static bool acpi_nondev_subnode_extract(const union acpi_object *desc,
+>
+>         dn->name = link->package.elements[0].string.pointer;
+>         dn->fwnode.type = FWNODE_ACPI_DATA;
+> +       dn->fwnode.ops = &acpi_fwnode_ops;
 
-Use that index to unload the table again when the corresponding
-directory in configfs gets removed. This allows to change SSDTs without
-rebooting the system. It also allows to destroy devices again that a
-dynamically loaded SSDT created.
+Mainly in interest of not growing fwnode_handle, we could remove .type
+and just have checks like "ops == &acpi_fwnode_ops".
 
-This is widely similar to the DT overlay behavior.
+Otherwise, for patches 2,3,4:
 
-Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
----
-
-Change in v3:
- - fix breakage if acpi_configfs is modular
-
- drivers/acpi/acpi_configfs.c | 20 +++++++++++++++++++-
- drivers/acpi/acpica/tbdata.c |  4 ++++
- 2 files changed, 23 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/acpi_configfs.c b/drivers/acpi/acpi_configfs.c
-index 146a77fb762d..853bc7fc673f 100644
---- a/drivers/acpi/acpi_configfs.c
-+++ b/drivers/acpi/acpi_configfs.c
-@@ -15,11 +15,15 @@
- #include <linux/configfs.h>
- #include <linux/acpi.h>
- 
-+#include "acpica/accommon.h"
-+#include "acpica/actables.h"
-+
- static struct config_group *acpi_table_group;
- 
- struct acpi_table {
- 	struct config_item cfg;
- 	struct acpi_table_header *header;
-+	u32 index;
- };
- 
- static ssize_t acpi_table_aml_write(struct config_item *cfg,
-@@ -52,7 +56,11 @@ static ssize_t acpi_table_aml_write(struct config_item *cfg,
- 	if (!table->header)
- 		return -ENOMEM;
- 
--	ret = acpi_load_table(table->header);
-+	ACPI_INFO(("Host-directed Dynamic ACPI Table Load:"));
-+	ret = acpi_tb_install_and_load_table(
-+			ACPI_PTR_TO_PHYSADDR(table->header),
-+			ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL, FALSE,
-+			&table->index);
- 	if (ret) {
- 		kfree(table->header);
- 		table->header = NULL;
-@@ -215,8 +223,18 @@ static struct config_item *acpi_table_make_item(struct config_group *group,
- 	return &table->cfg;
- }
- 
-+static void acpi_table_drop_item(struct config_group *group,
-+				 struct config_item *cfg)
-+{
-+	struct acpi_table *table = container_of(cfg, struct acpi_table, cfg);
-+
-+	ACPI_INFO(("Host-directed Dynamic ACPI Table Unload"));
-+	acpi_tb_unload_table(table->index);
-+}
-+
- struct configfs_group_operations acpi_table_group_ops = {
- 	.make_item = acpi_table_make_item,
-+	.drop_item = acpi_table_drop_item,
- };
- 
- static struct config_item_type acpi_tables_type = {
-diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
-index 27c5c27d4818..c9d6fa6d7cc6 100644
---- a/drivers/acpi/acpica/tbdata.c
-+++ b/drivers/acpi/acpica/tbdata.c
-@@ -867,6 +867,8 @@ acpi_tb_install_and_load_table(acpi_physical_address address,
- 	return_ACPI_STATUS(status);
- }
- 
-+ACPI_EXPORT_SYMBOL(acpi_tb_install_and_load_table)
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_tb_unload_table
-@@ -914,3 +916,5 @@ acpi_status acpi_tb_unload_table(u32 table_index)
- 	acpi_tb_set_table_loaded_flag(table_index, FALSE);
- 	return_ACPI_STATUS(status);
- }
-+
-+ACPI_EXPORT_SYMBOL(acpi_tb_unload_table)
--- 
-2.12.3
+Acked-by: Rob Herring <robh@kernel.org>
