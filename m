@@ -1,84 +1,112 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
- recent Dell laptops
-Date: Fri, 9 Jun 2017 16:49:58 +0000
-Message-ID: <343a8430fb144adf8d65ef9d0b2bfd40@ausx13mpc124.AMER.DELL.COM>
-References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
- <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
- <CA+kEDGFUuSC1CpCEgOT+HMTrDa-r1y59kM9-CYn0PSgtuKaG5Q@mail.gmail.com>
+From: Jan Kiszka <jan.kiszka@siemens.com>
+Subject: [PATCH v3] acpi: configfs: Unload SSDT on configfs entry removal
+Date: Fri, 9 Jun 2017 20:36:31 +0200
+Message-ID: <e5c56c3f-5c9a-d689-90f0-b8e4c499199e@siemens.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from esa4.dell-outbound.iphmx.com ([68.232.149.214]:21776 "EHLO
-        esa4.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751750AbdFIQuW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2017 12:50:22 -0400
-In-Reply-To: <CA+kEDGFUuSC1CpCEgOT+HMTrDa-r1y59kM9-CYn0PSgtuKaG5Q@mail.gmail.com>
+Received: from david.siemens.de ([192.35.17.14]:55417 "EHLO david.siemens.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751748AbdFISgn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Jun 2017 14:36:43 -0400
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jerome.debretagne@gmail.com
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com, dvhart@infradead.org, srinivas.pandruvada@linux.intel.com, mika.westerberg@linux.intel.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, devel@acpica.org, "Moore, Robert" <robert.moore@intel.com>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKw6lyw7RtZSBkZSBCcmV0YWdu
-ZSBbbWFpbHRvOmplcm9tZS5kZWJyZXRhZ25lQGdtYWlsLmNvbV0NCj4gU2VudDogVGh1cnNkYXks
-IEp1bmUgOCwgMjAxNyA2OjQ0IFBNDQo+IFRvOiBMaW1vbmNpZWxsbywgTWFyaW8gPE1hcmlvX0xp
-bW9uY2llbGxvQERlbGwuY29tPg0KPiBDYzogQUNQSSBEZXZlbCBNYWxpbmcgTGlzdCA8bGludXgt
-YWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBMaW51eCBQTSA8bGludXgtDQo+IHBtQHZnZXIua2VybmVs
-Lm9yZz47IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IEFuZHkgU2hldmNo
-ZW5rbw0KPiA8YW5kcml5LnNoZXZjaGVua29AbGludXguaW50ZWwuY29tPjsgRGFycmVuIEhhcnQg
-PGR2aGFydEBpbmZyYWRlYWQub3JnPjsNCj4gU3Jpbml2YXMgUGFuZHJ1dmFkYSA8c3Jpbml2YXMu
-cGFuZHJ1dmFkYUBsaW51eC5pbnRlbC5jb20+OyBNaWthIFdlc3RlcmJlcmcNCj4gPG1pa2Eud2Vz
-dGVyYmVyZ0BsaW51eC5pbnRlbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMC8zXSBBQ1BJ
-IC8gc2xlZXA6IFN1cHBvcnQgcG93ZXIgYnV0dG9uIHdha2V1cCBmcm9tIFMySSBvbg0KPiByZWNl
-bnQgRGVsbCBsYXB0b3BzDQo+IA0KPiBIaSBNYXJpbywNCj4gDQo+ID4+IEhlcmUgaXMgc29tZSBm
-ZWVkYmFjayBmb3IgRGVsbCBMYXRpdHVkZSA3Mjc1LCBhcyBzdWdnZXN0ZWQgYnkgU3Jpbml2YXMN
-Cj4gPj4gaW4gaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0xOTU4
-OTcjYzE1IC4NCj4gPj4NCj4gPj4gRm9yIHNvbWUgY29udGV4dCBvbiB0aGF0IG1vZGVsLCBzdXNw
-ZW5kLXRvLVJBTSBpcyBub3Qgc2FmZSBhcyB0aGUNCj4gPj4gc3lzdGVtIGhhbmdzIChyYWlzZWQg
-aW4gdGhlIGFib3ZlIGJ1ZyByZXBvcnQpLiBJJ20gd29uZGVyaW5nIGlmIHRoaXMNCj4gPj4gaXMg
-ZXhwZWN0ZWQgc29tZWhvdywgZHVlIHRvIFMzIG5vdCBiZWluZyBzdXBwb3J0ZWQgb24gdGhhdCBt
-b2RlbCwgYXMNCj4gPj4gZGlzY3Vzc2VkIGZvciB0aGUgWFBTIDEzIDkzNjUuIE1heWJlIE1hcmlv
-IG9yIHNvbWVvbmUgZWxzZSBmcm9tIERlbGwNCj4gPj4gd291bGQgYmUgYWJsZSB0byBjb25maXJt
-IHRoaXMgcG9pbnQuDQo+ID4+DQo+ID4gVGhlIExhdGl0dWRlIDcyNzUgd2FzIG5vdCBhIG1hY2hp
-bmUgdGhhdCB3YXMgdGVzdGVkIHdpdGggTGludXggZHVyaW5nDQo+ID4gZGV2ZWxvcG1lbnQuDQo+
-ID4gVGhpcyBtYWNoaW5lIHNoaXBwZWQgd2l0aCBXaW5kb3dzIDgsIHJpZ2h0Pw0KPiANCj4gSSd2
-ZSByZWFkIHRoYXQgdGhpcyBtYWNoaW5lIHNoaXBwZWQgYXQgZmlyc3Qgd2l0aCB0aGUgb3B0aW9u
-IHRvIGhhdmUgaXQgZWl0aGVyDQo+IHdpdGggV2luZG93cyAxMCBvciBXaW5kb3dzIDguMS4gTWlu
-ZSBjYW1lIHdpdGggV2luZG93cyAxMC4NCj4gDQo+ID4gSSBiZWxpZXZlIHRoaXMgbWFjaGluZSBh
-bHNvIHN1cHBvcnRzIENvbm5lY3RlZCBTdGFuZGJ5ICh0aGUgcHJlY3Vyc29yDQo+ID4gdG8gTW9k
-ZXJuIFN0YW5kYnkgdGhhdCBiZWhhdmVzIHZlcnkgc2ltaWxhcmx5KS4NCj4gDQo+IEkndmUgaW4g
-ZmFjdCBmb3VuZCBzb21lIFdpbkhFQyBzbGlkZXMgc3RhdGluZyB0aGF0IGl0IHdhcyBhbW9uZyB0
-aGUgZmlyc3QNCj4gc3lzdGVtcyB0byBzdXBwb3J0IE1vZGVybiBTdGFuZGJ5LCBoZXJlIGZvciBy
-ZWZlcmVuY2U6DQo+IGh0dHBzOi8vZi5jaDkubXMvcHVibGljL1dpbkhFQy8wNl9XaW5IRUNEZWMy
-MDE2LQ0KPiBEZXNpZ25pbmdQb3dlckVmZmljaWVudF92MDIucHB0eA0KPiANCj4gPiBJIGhhdmUg
-YW4gYXNrIG91dCB0byBzb21lb25lIHdobyBjYW4gY29uZmlybSB0aGF0LgkNCj4gDQo+IFRoYW5r
-cy4gSSdtIGhvcGluZyB0aGVyZSdzIGEgY2hhbmNlIHRvIG1ha2UgaXQgd29yayB3aXRoIHN1c3Bl
-bmQtdG8tUkFNDQo+IG9uIExpbnV4IHN0aWxsLCBpbiBhZGRpdGlvbiB0byBzdXNwZW5kLXRvLWlk
-bGUsIGJ5IGZpeGluZyB0aGUgY3VycmVudCBoYW5nLg0KDQpJIGdvdCBhIHJlc3BvbnNlIGJhY2sg
-dGhhdCBjb25maXJtZWQgdGhhdCB0aGlzIG1hY2hpbmUgb25seSBpcyBzdXBwb3J0ZWQNCndpdGgg
-Q1MvTVMuICBJIHdvdWxkIG5vdCBleHBlY3QgUzMgdG8gd29yayBwcm9wZXJseS4NCg0KRXZlbiBp
-ZiBTMyBpcyBwYXJ0IG9mIHRoZSBBQ1BJIG5hbWVzcGFjZSwgdGhlIGJlaGF2aW9yIHRoYXQgV2lu
-ZG93cyBmb2xsb3dzDQppcyB0aGF0IFMzIGlzIG5vdCBvZmZlcmVkIHdoZW4gdGhlIGxvdyBwb3dl
-ciBpZGxlIGJpdCBpcyBzZXQgaW4gRkFEVC4NCg0KSSBrbm93IHRoYXQgdGhlIGN1cnJlbnQgYmVo
-YXZpb3IgaW4gTGludXggZG9lcyBub3QgcmV2aWV3IGxvdyBwb3dlciBpZGxlDQpiaXQgdG8gZGV0
-ZXJtaW5lIHdoZXRoZXIgdG8gb2ZmZXIgUzJJIG9yIFMzIHNvIEknbSBpbnF1aXJpbmcgaWYgd2Ug
-Y2FuIHJlbW92ZQ0KUzMgZnJvbSBhIGZ1dHVyZSBCSU9TIHVwZGF0ZSBvbiB0aGlzIHBsYXRmb3Jt
-IHRvIGxldCBMaW51eCB3b3JrIGJldHRlcg0KZXZlbiB0aG91Z2ggd2UgZG9uJ3Qgc2hpcCB0aGlz
-IHBsYXRmb3JtIHdpdGggTGludXguDQoNCkZvciBub3cgSSB3b3VsZCByZWNvbW1lbmQgdGhhdCB5
-b3UgZm9jdXMgZWZmb3J0cyBleGNsdXNpdmVseSBvbiBtYWtpbmcNClMySSB3b3JrLCBhbmQgaWdu
-b3JlIFMzIHByb2JsZW1zLg0KDQoNClJlZ2FyZGluZyB0aGUgbG9uZyBidXR0b24gcHJlc3MgbmVj
-ZXNzYXJ5IHRvIHdha2UgdGhlIHN5c3RlbSwgeW91IG1pZ2h0DQpub3QgaGF2ZSBzZWVuIHRoZSBk
-aXNjdXNzaW9ucyBhbmQgdGhyZWFkcyB0aGF0IGV4cGxhaW4gdGhpcy4NCkVzc2VudGlhbGx5IHRo
-ZSBFQyBpcyBzZW5kaW5nIGEgU0NJIHdoZW4geW91IHByZXNzIHRoZSBidXR0b24gcHJlc3MsIGFu
-ZCBpdCdzDQpzdXBwb3NlZCBiZSBpbnRlcnByZXRlZCBieSBhIGRyaXZlciBhbmQgdGhhdCBkcml2
-ZXIgd291bGQgd2FrZSB0aGUgc3lzdGVtLg0KKGludGVsLWhpZCBvciBpbnRlbC12YnRuIG9uIExp
-bnV4KS4NCklmIHlvdSBsb25nIHByZXNzIHRoZSBwb3dlciBidXR0b24sIGFmdGVyIGEgY2VydGFp
-biBwZXJpb2Qgb2YgIHRpbWUgaXQgdXNlcw0KYSBHUElPIHRvIHdha2UgdXAgdGhlIHN5c3RlbS4N
-Cg0KSXQncyB1bmNsZWFyIHRvIG1lIGV4YWN0bHkgd2hlbiB5b3UgdGVzdGVkIHMyaWRsZS1kZWxs
-LXRlc3QuDQpDYW4geW91IHJlLXRlc3Qgd2l0aCBSYWZhZWwncyBuZXdlc3Qgc3VibWlzc2lvbnMg
-YW5kIGNoYW5nZXMgdG8gczJpZGxlLWRlbGwtdGVzdA0KY29tbWl0dGVkIDI4IGhvdXJzIGFnbz8N
-CllvdSdsbCBzdGlsbCBoYXZlIHRvIGFkZCB5b3VyIHN5c3RlbSB0byB0aGUgRE1JIHdoaXRlbGlz
-dCBmb3IgdGhlIGxhc3QgcGF0Y2gNCmJ1dCBoZSBoYXMgcmV3b3JrZWQgYSBidW5jaCBvZiByZWxh
-dGVkIHdha2V1cCBjb2RlIHRoYXQgaGFzIGFsc28gY2hhbmdlZC4NCg0KVGhhbmtzLA0K
+Call directly into acpica to load a table to obtain its index on return.
+We choose the direct call of acpica internal functions to avoid having
+to modify its API which is used outside of Linux as well.
+
+Use that index to unload the table again when the corresponding
+directory in configfs gets removed. This allows to change SSDTs without
+rebooting the system. It also allows to destroy devices again that a
+dynamically loaded SSDT created.
+
+This is widely similar to the DT overlay behavior.
+
+Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+---
+
+Change in v3:
+ - fix breakage if acpi_configfs is modular
+
+ drivers/acpi/acpi_configfs.c | 20 +++++++++++++++++++-
+ drivers/acpi/acpica/tbdata.c |  4 ++++
+ 2 files changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/acpi_configfs.c b/drivers/acpi/acpi_configfs.c
+index 146a77fb762d..853bc7fc673f 100644
+--- a/drivers/acpi/acpi_configfs.c
++++ b/drivers/acpi/acpi_configfs.c
+@@ -15,11 +15,15 @@
+ #include <linux/configfs.h>
+ #include <linux/acpi.h>
+ 
++#include "acpica/accommon.h"
++#include "acpica/actables.h"
++
+ static struct config_group *acpi_table_group;
+ 
+ struct acpi_table {
+ 	struct config_item cfg;
+ 	struct acpi_table_header *header;
++	u32 index;
+ };
+ 
+ static ssize_t acpi_table_aml_write(struct config_item *cfg,
+@@ -52,7 +56,11 @@ static ssize_t acpi_table_aml_write(struct config_item *cfg,
+ 	if (!table->header)
+ 		return -ENOMEM;
+ 
+-	ret = acpi_load_table(table->header);
++	ACPI_INFO(("Host-directed Dynamic ACPI Table Load:"));
++	ret = acpi_tb_install_and_load_table(
++			ACPI_PTR_TO_PHYSADDR(table->header),
++			ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL, FALSE,
++			&table->index);
+ 	if (ret) {
+ 		kfree(table->header);
+ 		table->header = NULL;
+@@ -215,8 +223,18 @@ static struct config_item *acpi_table_make_item(struct config_group *group,
+ 	return &table->cfg;
+ }
+ 
++static void acpi_table_drop_item(struct config_group *group,
++				 struct config_item *cfg)
++{
++	struct acpi_table *table = container_of(cfg, struct acpi_table, cfg);
++
++	ACPI_INFO(("Host-directed Dynamic ACPI Table Unload"));
++	acpi_tb_unload_table(table->index);
++}
++
+ struct configfs_group_operations acpi_table_group_ops = {
+ 	.make_item = acpi_table_make_item,
++	.drop_item = acpi_table_drop_item,
+ };
+ 
+ static struct config_item_type acpi_tables_type = {
+diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
+index 27c5c27d4818..c9d6fa6d7cc6 100644
+--- a/drivers/acpi/acpica/tbdata.c
++++ b/drivers/acpi/acpica/tbdata.c
+@@ -867,6 +867,8 @@ acpi_tb_install_and_load_table(acpi_physical_address address,
+ 	return_ACPI_STATUS(status);
+ }
+ 
++ACPI_EXPORT_SYMBOL(acpi_tb_install_and_load_table)
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_tb_unload_table
+@@ -914,3 +916,5 @@ acpi_status acpi_tb_unload_table(u32 table_index)
+ 	acpi_tb_set_table_loaded_flag(table_index, FALSE);
+ 	return_ACPI_STATUS(status);
+ }
++
++ACPI_EXPORT_SYMBOL(acpi_tb_unload_table)
+-- 
+2.12.3
