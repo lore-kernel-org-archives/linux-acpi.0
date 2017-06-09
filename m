@@ -1,44 +1,68 @@
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v1 3/3] ACPI / PMIC: Add TI PMIC TPS68470 operation
- region driver
-Date: Fri, 9 Jun 2017 22:20:59 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725BECD0@FMSMSX114.amr.corp.intel.com>
-References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
- <1496750118-5570-4-git-send-email-rajmohan.mani@intel.com>
- <CAHp75VcvV_AbLJCq9Rm_8yab3nViPm6ikxxme4oyw9vm4Kz7Gg@mail.gmail.com>
- <831b2236-29d9-ecaf-e7ca-74e6d1686080@redhat.com>
+From: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?=
+        <jerome.debretagne@gmail.com>
+Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
+ recent Dell laptops
+Date: Sat, 10 Jun 2017 01:11:15 +0200
+Message-ID: <CA+kEDGFVgmXf_B=qHfhWS1HCD+Ei6KSp_rSJBOGYtNZVkm+MeA@mail.gmail.com>
+References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
+ <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
+ <CA+kEDGFUuSC1CpCEgOT+HMTrDa-r1y59kM9-CYn0PSgtuKaG5Q@mail.gmail.com> <343a8430fb144adf8d65ef9d0b2bfd40@ausx13mpc124.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:20917 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751640AbdFIWVB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 9 Jun 2017 18:21:01 -0400
-In-Reply-To: <831b2236-29d9-ecaf-e7ca-74e6d1686080@redhat.com>
-Content-Language: en-US
+Received: from mail-io0-f176.google.com ([209.85.223.176]:33854 "EHLO
+        mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751560AbdFIXL5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2017 19:11:57 -0400
+In-Reply-To: <343a8430fb144adf8d65ef9d0b2bfd40@ausx13mpc124.AMER.DELL.COM>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: Mario.Limonciello@dell.com
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-SGkgSGFucywNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBIYW5zIGRl
-IEdvZWRlIFttYWlsdG86aGRlZ29lZGVAcmVkaGF0LmNvbV0NCj4gU2VudDogVHVlc2RheSwgSnVu
-ZSAwNiwgMjAxNyA4OjIyIEFNDQo+IFRvOiBBbmR5IFNoZXZjaGVua28gPGFuZHkuc2hldmNoZW5r
-b0BnbWFpbC5jb20+OyBNYW5pLCBSYWptb2hhbg0KPiA8cmFqbW9oYW4ubWFuaUBpbnRlbC5jb20+
-DQo+IENjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBsaW51eC1ncGlvQHZnZXIua2Vy
-bmVsLm9yZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnOyBMZWUgSm9uZXMgPGxlZS5q
-b25lc0BsaW5hcm8ub3JnPjsgTGludXMgV2FsbGVpag0KPiA8bGludXMud2FsbGVpakBsaW5hcm8u
-b3JnPjsgQWxleGFuZHJlIENvdXJib3QgPGdudXJvdUBnbWFpbC5jb20+OyBSYWZhZWwgSi4NCj4g
-V3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9yZz4N
-Cj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MSAzLzNdIEFDUEkgLyBQTUlDOiBBZGQgVEkgUE1JQyBU
-UFM2ODQ3MCBvcGVyYXRpb24NCj4gcmVnaW9uIGRyaXZlcg0KPiANCj4gSGksDQo+IA0KPiBPbiAw
-Ni8wNi8yMDE3IDA0OjIzIFBNLCBBbmR5IFNoZXZjaGVua28gd3JvdGU6DQo+ID4gK0NjIEhhbnMg
-KHRoYXQncyB3aHkgZGlkbid0IGRlbGV0ZSBhbnl0aGluZyBmcm9tIG9yaWdpbmFsIG1haWwsIGp1
-c3QNCj4gPiBhZGRpbmcgbXkgY29tbWVudHMpLg0KPiA+DQo+ID4gSGFucywgaWYgeW91IGhhdmUg
-ZmV3IG1pbnV0ZXMgaXQgd291bGQgYmUgYXBwcmVjaWF0ZWQgdG8gZ2xhbmNlIG9uIHRoZQ0KPiA+
-IGJlbG93IGZvciBzb21lIGlzc3VlcyBpZiBhbnkgc2luY2UgeW91IGRpZCBwYXNzIHF1aXRlIGEg
-Z29vZCBxdWVzdA0KPiA+IHdpdGggb3RoZXIgUE1JQyBkcml2ZXJzLg0KPiANCj4gSSd2ZSBnb25l
-IG92ZXIgdGhpcyBkcml2ZXIsIG5vdGhpbmcgc3RhbmRzIG91dCBpbiBhIGJhZCB3YXkgdG8gbWUs
-IElPVyB0aGlzDQo+IHNlZW1zIGxpa2UgYSBub3JtYWwgUE1JQyBPcFJlZ2lvbiBoYW5kbGVyIHRv
-IG1lLg0KPiANCg0KVGhhbmtzIGZvciB0aGUgcmV2aWV3cyBhbmQgdGltZS4NCg==
+> I got a response back that confirmed that this machine only is supported
+> with CS/MS.  I would not expect S3 to work properly.
+
+Thanks for the confirmation, that's what I expected following the feedback on
+other recent Dell machines.
+
+> Even if S3 is part of the ACPI namespace, the behavior that Windows follows
+> is that S3 is not offered when the low power idle bit is set in FADT.
+>
+> I know that the current behavior in Linux does not review low power idle
+> bit to determine whether to offer S2I or S3
+
+Is it something that is envisioned already as a future evolution in Linux as
+well, if more and more systems are now designed with S2I in mind?
+
+> so I'm inquiring if we can remove
+> S3 from a future BIOS update on this platform to let Linux work better
+> even though we don't ship this platform with Linux.
+
+That would be a great fix, removing the default to S3 for this system on Linux.
+
+> For now I would recommend that you focus efforts exclusively on making
+> S2I work, and ignore S3 problems.
+
+Well noted!
+
+> It's unclear to me exactly when you tested s2idle-dell-test.
+> Can you re-test with Rafael's newest submissions and changes to s2idle-dell-test
+> committed 28 hours ago?
+> You'll still have to add your system to the DMI whitelist for the last patch
+> but he has reworked a bunch of related wakeup code that has also changed.
+
+I've just done so, using the updated s2idle-dell-test branch + my DMI
+adaptation.
+
+I still get exactly the same results than during my previous tests:
+- it provides the expected fix when running BIOS 1.1.20: short press to wake-up
+- it doesn't fix with the current BIOS 1.1.31: long press still needed
+to wake-up
+so something has clearly changed between these 2 versions. Btw, the EC is
+explicitly updated when flashing version 1.1.31, that's one of the
+visible steps.
+
+Some assumptions now: either the SCI is ignored erroneously or it's
+not interpreted correctly by the expected driver? I guess that's the 2
+possibilities I'll try to investigate.
