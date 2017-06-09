@@ -1,66 +1,121 @@
-From: Graeme Gregory <graeme.gregory@linaro.org>
-Subject: Re: [PATCH 01/15] ACPICA: Disassembler: Enhance resource descriptor detection
-Date: Fri, 9 Jun 2017 21:29:23 +0100
-Message-ID: <CAGCh1+=g8MZWfUXt8=JQenh_E5JdkC9uNN3Sv3iGgaBuWWt-pg@mail.gmail.com>
-References: <cover.1493194142.git.lv.zheng@intel.com> <fe4a8655a06221df851d5781609058f16aa65e93.1493194142.git.lv.zheng@intel.com>
- <59357F55.8050707@hpe.com> <361261e5-ce98-9d33-f2de-88286288e2e1@hpe.com>
- <CAJZ5v0hUaiwZwi1a78zSO_hqp_QNdv9gYce-wwNESz1rnPs+sg@mail.gmail.com>
- <9f2f3edd-74e9-e108-0eff-56564c94147b@hpe.com> <CAJZ5v0jExmFeYwbq2CwCGEetf=JJevePcUJNarb6OKnf0Bb0GQ@mail.gmail.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose embedded WMI MOF metadata
+Date: Fri, 9 Jun 2017 23:51:32 +0200
+Message-ID: <201706092351.32996@pali>
+References: <cover.1495862272.git.dvhart@infradead.org> <201706072250.25953@pali> <67cc75c9e0ef4a21a168ab3b4dd1e727@ausx13mpc124.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f43.google.com ([209.85.214.43]:36193 "EHLO
-        mail-it0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751548AbdFIU3Z (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2017 16:29:25 -0400
-Received: by mail-it0-f43.google.com with SMTP id m47so3027986iti.1
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Jun 2017 13:29:24 -0700 (PDT)
-In-Reply-To: <CAJZ5v0jExmFeYwbq2CwCGEetf=JJevePcUJNarb6OKnf0Bb0GQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart12380891.cyckeXfetz";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <67cc75c9e0ef4a21a168ab3b4dd1e727@ausx13mpc124.AMER.DELL.COM>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mario.Limonciello@dell.com
+Cc: luto@amacapital.net, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, andriy.shevchenko@linux.intel.com, luto@kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linda Knippers <linda.knippers@hpe.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, "David E . Box" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 5 June 2017 at 21:55, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Mon, Jun 5, 2017 at 10:51 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
->> On 6/5/2017 4:42 PM, Rafael J. Wysocki wrote:
->> <snip>
->>
->>>> I talked to our FW team and we do generate checksums and not a zero for
->>>> at
->>>> least some
->>>> of the AML. Please revert this change until you can also validate
->>>> a checksum.  Or shall I post a patch to remove the check?
->>>
->>>
->>> I'll skip this patch, no need to do anything else.  Thanks for your
->>> report!
->>
->>
->> Thanks.  This patch is already in as of 4.12rc1 and not part of the most
->> recent
->> ACPICA drop.
->
-> Ah, OK.
->
-> I should have checked I guess. :-)
->
-> Anyway, I'll revert it, then.
->
->>> Bob, can you revert this upstream, please?  It looks like the
->>> assumption it is based on doesn't hold.
->>
->> Bob, I'm happy to test something if there is a new patch that looks for zero
->> or a valid checksum.  TBH, I'm not 100% certain that our checksums are
->> correct because nothing has ever tried to verify them.
->
-> Well, that's part of the problem here I guess.  If they have never
-> been tested, they cannot be trusted.
->
-> Still, the commit in question clearly assumed that value to always be
-> 0 and it clearly is not the case here.
->
-Just stumbled across this on the moonshot m400 and breaks the parsing
-of the PNP0A08 _CRS on that platform.
+--nextPart12380891.cyckeXfetz
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Graeme
+On Friday 09 June 2017 17:46:12 Mario.Limonciello@dell.com wrote:
+> > -----Original Message-----
+> > From: Pali Roh=C3=A1r [mailto:pali.rohar@gmail.com]
+> > Sent: Wednesday, June 7, 2017 3:50 PM
+> > To: Limonciello, Mario <Mario_Limonciello@Dell.com>
+> > Cc: luto@amacapital.net; dvhart@infradead.org; platform-driver-
+> > x86@vger.kernel.org; andriy.shevchenko@linux.intel.com;
+> > luto@kernel.org; rjw@rjwysocki.net; linux-kernel@vger.kernel.org;
+> > linux-acpi@vger.kernel.org Subject: Re: [PATCH 15/16]
+> > platform/x86: wmi-mof: New driver to expose embedded WMI MOF
+> > metadata
+> >=20
+> > On Wednesday 07 June 2017 22:23:08 Mario.Limonciello@dell.com wrote:
+> > > > -----Original Message-----
+> > > > From: Pali Roh=C3=A1r [mailto:pali.rohar@gmail.com]
+> > > > Sent: Wednesday, June 7, 2017 12:39 PM
+> > > > To: Limonciello, Mario <Mario_Limonciello@Dell.com>
+> > > > Cc: luto@amacapital.net; dvhart@infradead.org; platform-driver-
+> > > > x86@vger.kernel.org; andriy.shevchenko@linux.intel.com;
+> > > > luto@kernel.org; rjw@rjwysocki.net;
+> > > > linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
+> > > > Subject: Re: [PATCH 15/16]
+> > > > platform/x86: wmi-mof: New driver to expose embedded WMI MOF
+> > > > metadata
+> > > >=20
+> > > > On Tuesday 06 June 2017 15:56:21 Pali Roh=C3=A1r wrote:
+> > > > > On Tuesday 06 June 2017 13:46:16 Mario.Limonciello@dell.com
+> > > > > wrote:
+> > > > > > 2) On my system when you expand the arguments for "void
+> > > > > > DoBFn" the source doesn't describe individual arguments
+> > > > > > like you do. Again this might not matter to MOF parsing
+> > > > > > tools but wanted to let you know in case it does.
+> > > > >=20
+> > > > > I know, this part is missing. Order of arguments are only in
+> > > > > ID qualifier and not sorted + in/out de-duplicated.
+> > > >=20
+> > > > Implemented! Now arguments are correctly placed based on ID
+> > > > qualifier.
+> > >=20
+> > > I think it's still off a little though.
+> > >=20
+> > > What I'm getting back now from bmf2mof is:
+> > > 	void DoBFn([in, Description("Fn buf"), out] BDat Data);
+> > >=20
+> > > Whereas source puts Description as the last argument:
+> > > 	void DoBFn([in, out, Description("Fn buf")] BDat Data);
+> >=20
+> > In BMOF from my Latitude E6440 there are specified two parameters
+> > with index 0. One with qualifiers ("in", Description("Fn buf"))
+> > and one with ("out", Description("Fn buf")). I think you have
+> > similar/same data in BMOF.
+> >=20
+> > In my bmf2mof I just combined those two parameters into one (when
+> > name, type and index matches) and concatenate also qualifiers with
+> > removing duplicates.
+> >=20
+> > Do not know what is correct way, but I think qualifiers are just
+> > unordered set. MS decompiler probably put "in" and "out" qualifiers
+> > before any other for better readability.
+>=20
+> Have you tried to run it through mofcomp.exe and then decompile again
+> with bmf2mof?  As long as it's coming out the same you're probably
+> right.
+
+Yes, bmf2mof+mofcomp.exe+bmf2mof gives same output as just bmf2mof.
+
+> > > > > > source:
+> > > > > > 	void DoBFn([in, out, Description("Fn buf")] BDat Data);
+> > > > > >=20
+> > > > > > bmf2mof:
+> > > > > > 	void doBFn([in, Description("Fn buf"), ID(0)] BDat Data,
+> > > > > > 	[out, Description("Fn buf"), ID(0)] BDat Data);
+> > > >=20
+> > > > --
+> > > > Pali Roh=C3=A1r
+> > > > pali.rohar@gmail.com
+> >=20
+> > --
+> > Pali Roh=C3=A1r
+> > pali.rohar@gmail.com
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart12380891.cyckeXfetz
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlk7GGQACgkQi/DJPQPkQ1IUrQCdHqU4uHacMAOz3oa/Z3s8hqez
+7mMAn2icUy0Ub9iarxWFigepK7FsjV0q
+=Nac4
+-----END PGP SIGNATURE-----
+
+--nextPart12380891.cyckeXfetz--
