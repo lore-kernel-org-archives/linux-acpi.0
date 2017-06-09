@@ -1,109 +1,51 @@
 From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
 Subject: RE: [PATCH v1 1/3] mfd: Add new mfd device TPS68470
-Date: Fri, 9 Jun 2017 22:09:27 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725BEC9C@FMSMSX114.amr.corp.intel.com>
+Date: Fri, 9 Jun 2017 22:12:06 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725BECB0@FMSMSX114.amr.corp.intel.com>
 References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
  <1496750118-5570-2-git-send-email-rajmohan.mani@intel.com>
  <CAHp75VfiTM2t=WxWpG4+kUfGA3DrfGfMOwxP6Cs42nGwHjAp7w@mail.gmail.com>
+ <20170607115827.GY1019@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:6194 "EHLO mga04.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:54044 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751647AbdFIWJ3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 9 Jun 2017 18:09:29 -0400
-In-Reply-To: <CAHp75VfiTM2t=WxWpG4+kUfGA3DrfGfMOwxP6Cs42nGwHjAp7w@mail.gmail.com>
+        id S1751560AbdFIWMH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Jun 2017 18:12:07 -0400
+In-Reply-To: <20170607115827.GY1019@valkosipuli.retiisi.org.uk>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>, Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-SGkgQW5keSwNCg0KVGhhbmtzIGZvciB0aGUgcmV2aWV3cyBhbmQgcGF0aWVuY2UuDQoNCj4gLS0t
-LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBTaGV2Y2hlbmtvIFttYWlsdG86
-YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbV0NCj4gU2VudDogVHVlc2RheSwgSnVuZSAwNiwgMjAx
-NyA2OjAwIEFNDQo+IFRvOiBNYW5pLCBSYWptb2hhbiA8cmFqbW9oYW4ubWFuaUBpbnRlbC5jb20+
-DQo+IENjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBsaW51eC1ncGlvQHZnZXIua2Vy
-bmVsLm9yZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnOyBMZWUgSm9uZXMgPGxlZS5q
-b25lc0BsaW5hcm8ub3JnPjsgTGludXMgV2FsbGVpag0KPiA8bGludXMud2FsbGVpakBsaW5hcm8u
-b3JnPjsgQWxleGFuZHJlIENvdXJib3QgPGdudXJvdUBnbWFpbC5jb20+OyBSYWZhZWwgSi4NCj4g
-V3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9yZz4N
-Cj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MSAxLzNdIG1mZDogQWRkIG5ldyBtZmQgZGV2aWNlIFRQ
-UzY4NDcwDQo+IA0KPiBPbiBUdWUsIEp1biA2LCAyMDE3IGF0IDI6NTUgUE0sIFJham1vaGFuIE1h
-bmkgPHJham1vaGFuLm1hbmlAaW50ZWwuY29tPg0KPiB3cm90ZToNCj4gPiBUaGUgVFBTNjg0NzAg
-ZGV2aWNlIGlzIGFuIGFkdmFuY2VkIHBvd2VyIG1hbmFnZW1lbnQgdW5pdCB0aGF0IHBvd2VycyBh
-DQo+ID4gQ29tcGFjdCBDYW1lcmEgTW9kdWxlIChDQ00pLCBnZW5lcmF0ZXMgY2xvY2tzIGZvciBp
-bWFnZSBzZW5zb3JzLA0KPiA+IGRyaXZlcyBhIGR1YWwgTEVEIGZvciBGbGFzaCBhbmQgaW5jb3Jw
-b3JhdGVzIHR3byBMRUQgZHJpdmVycyBmb3INCj4gPiBnZW5lcmFsIHB1cnBvc2UgaW5kaWNhdG9y
-cy4NCj4gPg0KPiA+IFRoaXMgcGF0Y2ggYWRkcyBzdXBwb3J0IGZvciBUUFM2ODQ3MCBtZmQgZGV2
-aWNlLg0KPiANCj4gSSBkdW5ubyB3aHkgeW91IGRlY2lkZSB0byBzZW5kIHRoaXMgb3V0IG5vdywg
-c2VlIG15IGNvbW1lbnRzIGJlbG93Lg0KPiANCg0KV2UgZGVjaWRlZCB0byBnbyB3aXRoIHRoZSBz
-dWJtaXNzaW9uIG9mIHRoZXNlIGRyaXZlcnMgZm9yIHVwc3RyZWFtIHJldmlldyBzb29uZXIgcmF0
-aGVyIHRoYW4gbGF0ZXIuDQoNCj4gPiArc3RhdGljIGludCB0cHM2ODQ3MF9jaGlwX2luaXQoc3Ry
-dWN0IHRwczY4NDcwICp0cHMpIHsNCj4gPiArICAgICAgIHVuc2lnbmVkIGludCB2ZXJzaW9uOw0K
-PiA+ICsgICAgICAgaW50IHJldDsNCj4gDQo+ID4gKyAgICAgICAvKiBGSVhNRTogY29uZmlndXJl
-IHRoZXNlIGR5bmFtaWNhbGx5ICovDQo+IA0KPiBTbywgd2hhdCBwcmV2ZW50cyB5b3UgdG8gZml4
-IHRoaXM/DQo+IA0KDQpJIHdpbGwgcmVzcG9uZCBvbiB0b3Agb2YgU2FrYXJpJ3MgcmVzcG9uc2Uu
-DQoNCj4gPiArICAgICAgIC8qIEVuYWJsZSBEYWlzeSBDaGFpbiBMRE8gYW5kIGNvbmZpZ3VyZSBy
-ZWxldmFudCBHUElPcyBhcw0KPiA+ICsgb3V0cHV0ICovDQo+IA0KPiA+ICt9DQo+IA0KPiA+ICtz
-dGF0aWMgaW50IHRwczY4NDcwX3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpIHsNCj4g
-PiArICAgICAgIHN0cnVjdCB0cHM2ODQ3MCAqdHBzOw0KPiA+ICsgICAgICAgaW50IHJldDsNCj4g
-PiArDQo+ID4gKyAgICAgICB0cHMgPSBkZXZtX2t6YWxsb2MoJmNsaWVudC0+ZGV2LCBzaXplb2Yo
-KnRwcyksIEdGUF9LRVJORUwpOw0KPiA+ICsgICAgICAgaWYgKCF0cHMpDQo+ID4gKyAgICAgICAg
-ICAgICAgIHJldHVybiAtRU5PTUVNOw0KPiA+ICsNCj4gPiArICAgICAgIG11dGV4X2luaXQoJnRw
-cy0+bG9jayk7DQo+ID4gKyAgICAgICBpMmNfc2V0X2NsaWVudGRhdGEoY2xpZW50LCB0cHMpOw0K
-PiA+ICsgICAgICAgdHBzLT5kZXYgPSAmY2xpZW50LT5kZXY7DQo+ID4gKw0KPiA+ICsgICAgICAg
-dHBzLT5yZWdtYXAgPSBkZXZtX3JlZ21hcF9pbml0X2kyYyhjbGllbnQsDQo+ICZ0cHM2ODQ3MF9y
-ZWdtYXBfY29uZmlnKTsNCj4gPiArICAgICAgIGlmIChJU19FUlIodHBzLT5yZWdtYXApKSB7DQo+
-ID4gKyAgICAgICAgICAgICAgIGRldl9lcnIodHBzLT5kZXYsICJkZXZtX3JlZ21hcF9pbml0X2ky
-YyBFcnJvciAlZFxuIiwgcmV0KTsNCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIFBUUl9FUlIo
-dHBzLT5yZWdtYXApOw0KPiA+ICsgICAgICAgfQ0KPiA+ICsNCj4gDQo+ID4gKyAgICAgICByZXQg
-PSBtZmRfYWRkX2RldmljZXModHBzLT5kZXYsIC0xLCB0cHM2ODQ3MHMsDQo+ID4gKyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgQVJSQVlfU0laRSh0cHM2ODQ3MHMpLCBOVUxMLCAwLCBOVUxM
-KTsNCj4gDQo+IGRldm1fPw0KPiANCg0KQWNrDQoNCj4gPiArICAgICAgIGlmIChyZXQgPCAwKSB7
-DQo+ID4gKyAgICAgICAgICAgICAgIGRldl9lcnIodHBzLT5kZXYsICJtZmRfYWRkX2RldmljZXMg
-ZmFpbGVkOiAlZFxuIiwgcmV0KTsNCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIHJldDsNCj4g
-PiArICAgICAgIH0NCj4gPiArDQo+ID4gKyAgICAgICByZXQgPSB0cHM2ODQ3MF9jaGlwX2luaXQo
-dHBzKTsNCj4gPiArICAgICAgIGlmIChyZXQgPCAwKSB7DQo+ID4gKyAgICAgICAgICAgICAgIGRl
-dl9lcnIodHBzLT5kZXYsICJUUFM2ODQ3MCBJbml0IEVycm9yICVkXG4iLCByZXQpOw0KPiA+ICsg
-ICAgICAgICAgICAgICBnb3RvIGZhaWw7DQo+ID4gKyAgICAgICB9DQo+ID4gKw0KPiA+ICsgICAg
-ICAgcmV0dXJuIDA7DQo+IA0KPiA+ICtmYWlsOg0KPiA+ICsgICAgICAgbXV0ZXhfbG9jaygmdHBz
-LT5sb2NrKTsNCj4gDQo+IEknbSBub3Qgc3VyZSB5b3UgbmVlZCB0aGlzIG11dGV4IHRvIGJlIGhl
-bGQgaGVyZS4NCj4gT3RoZXJ3aXNlIHlvdXIgY29kZSBoYXMgYSBidWcgd2l0aCBsb2NraW5nLg0K
-PiANCg0KUmVwZWF0aW5nIHRoZSByZXNwb25zZSB0byBIZWlra2kgaGVyZQ0KDQpJIGhhZCB0aGlz
-IGZvbGxvd2luZyBxdWVzdGlvbiBmcm9tIEFsYW4gQ294IG9uIHRoZSBvcmlnaW5hbCBjb2RlIHdp
-dGhvdXQgdGhlc2Ugd3JhcHBlcnMuDQoNCiJXaGF0IGlzIHRoZSBtb2RlbCBmb3IgaW5zdXJpbmcg
-dGhhdCBubyBpbnRlcnJ1cHQgb3IgdGhyZWFkIG9mIGEgZHJpdmVyIGlzIG5vdCBpbiBwYXJhbGxl
-bCBpc3N1aW5nIGEgdHBzNjg0NzBfIG9wZXJhdGlvbiB3aGVuIHRoZSBkZXZpY2UgZ29lcyBhd2F5
-IChlZyBpZiBJIGRvd24gdGhlIGkyYyBjb250cm9sbGVyKSA/Ig0KDQpUbyBhZGRyZXNzIHRoZSBh
-Ym92ZSBjb25jZXJucywgSSBnb3QgZXh0cmEgY2F1dGlvdXMgYW5kIGltcGxlbWVudGVkIGxvY2tz
-IGFyb3VuZCB0aGUgcmVnbWFwXyogY2FsbHMuDQpOb3csIEkgaGF2ZSBiZWVuIGFza2VkIGZyb20g
-bW9yZSB0aGFuIG9uZSByZXZpZXdlciBhYm91dCB0aGUgbmVjZXNzaXR5IG9mIHRoZSBzYW1lLg0K
-V2l0aCB0aGUgdXNlIG9mIGRldm1fKiBjYWxscywgdHBzNjg0NzBfcmVtb3ZlKCkgZ29lcyBhd2F5
-IGFuZCBsZWF2ZXMgdGhlIGRyaXZlciBqdXN0IHdpdGggcmVnbWFwXyogY2FsbHMuDQpVbmxlc3Mg
-SSBoZWFyIGZyb20gQWxhbiBvciBvdGhlciByZXZpZXdlcnMgb3RoZXJ3aXNlLCBJIHdpbGwgZHJv
-cCB0aGVzZSB3cmFwcGVycyBhcm91bmQgcmVnbWFwXyogY2FsbHMuDQoNCj4gPiArICAgICAgIG1m
-ZF9yZW1vdmVfZGV2aWNlcyh0cHMtPmRldik7DQo+ID4gKyAgICAgICBtdXRleF91bmxvY2soJnRw
-cy0+bG9jayk7DQo+ID4gKw0KPiA+ICsgICAgICAgcmV0dXJuIHJldDsNCj4gDQo+IFRha2luZyBh
-Ym92ZSBpbnRvIGNvbnNpZGVyYXRpb24gSSBzdWdnZXN0IHRvIGNsYXJpZnkgeW91ciBsb2NraW5n
-IHNjaGVtZS4NCj4gDQoNClNhbWUgYXMgYWJvdmUuDQoNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3Rh
-dGljIGludCB0cHM2ODQ3MF9yZW1vdmUoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCkgew0KPiA+
-ICsgICAgICAgc3RydWN0IHRwczY4NDcwICp0cHMgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50
-KTsNCj4gPiArDQo+IA0KPiA+ICsgICAgICAgbXV0ZXhfbG9jaygmdHBzLT5sb2NrKTsNCj4gPiAr
-ICAgICAgIG1mZF9yZW1vdmVfZGV2aWNlcyh0cHMtPmRldik7DQo+ID4gKyAgICAgICBtdXRleF91
-bmxvY2soJnRwcy0+bG9jayk7DQo+IA0KPiBEaXR0by4NCj4gDQoNClNhbWUgYXMgYWJvdmUNCg0K
-PiA+ICsgICAgICAgcmV0dXJuIDA7DQo+ID4gK30NCj4gDQo+ID4gKy8qKg0KPiA+ICsgKiBzdHJ1
-Y3QgdHBzNjg0NzAgLSB0cHM2ODQ3MCBzdWItZHJpdmVyIGNoaXAgYWNjZXNzIHJvdXRpbmVzDQo+
-ID4gKyAqDQo+IA0KPiBrYnVpbGQgYm90IHdpbGwgYmUgdW5oYXBweS4gWW91IG5lZWQgdG8gZmls
-ZSBhIGRlc2NyaXB0aW9uIHBlciBmaWVsZC4NCj4gDQoNCkFjaw0KSXQgbG9va3MgbGlrZSB0aGlz
-IHN0cnVjdHVyZSB3aWxsIGdvIGF3YXksIG9uY2UgSSBpbXBsZW1lbnQgdGhlIGZlZWRiYWNrIGZy
-b20gSGVpa2tpLg0KDQo+ID4gKyAqIERldmljZSBkYXRhIG1heSBiZSB1c2VkIHRvIGFjY2VzcyB0
-aGUgVFBTNjg0NzAgY2hpcCAqLw0KPiA+ICsNCj4gPiArc3RydWN0IHRwczY4NDcwIHsNCj4gPiAr
-ICAgICAgIHN0cnVjdCBkZXZpY2UgKmRldjsNCj4gPiArICAgICAgIHN0cnVjdCByZWdtYXAgKnJl
-Z21hcDsNCj4gDQo+ID4gKyAgICAgICAvKg0KPiA+ICsgICAgICAgICogVXNlZCB0byBzeW5jaHJv
-bml6ZSBhY2Nlc3MgdG8gdHBzNjg0NzBfIG9wZXJhdGlvbnMNCj4gPiArICAgICAgICAqIGFuZCBh
-ZGRpdGlvbiBhbmQgcmVtb3ZhbCBvZiBtZmQgZGV2aWNlcw0KPiA+ICsgICAgICAgICovDQo+IA0K
-PiBNb3ZlIGl0IHRvIGtlcm5lbC1kb2MgYWJvdmUuDQo+IA0KDQpTYW1lIGFzIGFib3ZlDQoNCj4g
-PiArICAgICAgIHN0cnVjdCBtdXRleCBsb2NrOw0KPiA+ICt9Ow0KPiANCj4gLS0NCj4gV2l0aCBC
-ZXN0IFJlZ2FyZHMsDQo+IEFuZHkgU2hldmNoZW5rbw0K
+Hi Andy,
+
+> On Tue, Jun 06, 2017 at 03:59:49PM +0300, Andy Shevchenko wrote:
+> > On Tue, Jun 6, 2017 at 2:55 PM, Rajmohan Mani
+> <rajmohan.mani@intel.com> wrote:
+> > > The TPS68470 device is an advanced power management unit that powers
+> > > a Compact Camera Module (CCM), generates clocks for image sensors,
+> > > drives a dual LED for Flash and incorporates two LED drivers for
+> > > general purpose indicators.
+> > >
+> > > This patch adds support for TPS68470 mfd device.
+> >
+> > I dunno why you decide to send this out now, see my comments below.
+> >
+> > > +static int tps68470_chip_init(struct tps68470 *tps) {
+> > > +       unsigned int version;
+> > > +       int ret;
+> >
+> > > +       /* FIXME: configure these dynamically */
+> >
+> > So, what prevents you to fix this?
+> 
+> Nothing I suppose. They're however not needed right now and can be
+> implemented later on if they're ever needed.
+> 
+
+Ack
+
