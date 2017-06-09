@@ -1,70 +1,53 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management fixes for v4.12-rc5
-Date: Fri, 9 Jun 2017 02:19:20 +0200
-Message-ID: <CAJZ5v0jQ03WFNOs9n=rzTanmhwLmNG4fkjenD+gZ3SzdrtJWxw@mail.gmail.com>
+Subject: Re: [PATCH v6] platform/x86: Add driver for ACPI INT0002 Virtual GPIO device
+Date: Fri, 9 Jun 2017 02:30:14 +0200
+Message-ID: <CAJZ5v0guq1zRwU8ETe5+n6QSj+ytg_HewnrP7h2TsJFQNE9gxg@mail.gmail.com>
+References: <20170602151507.22391-1-hdegoede@redhat.com> <20170602151507.22391-2-hdegoede@redhat.com>
+ <CAHp75Vcdznj2mB+msNvysrvRi3L-0j4c6vthOS8oAv1S9iYWKA@mail.gmail.com>
+ <20170608154541.GH32509@fury> <d41ff55b-e28f-85bf-d088-392e363fb41f@redhat.com>
+ <CAJZ5v0jw3Rzjkb3J2_XE7TPBjT+7FUW90B7kg15z6_WpdNGjzA@mail.gmail.com> <CAHp75Vc-Vz-QRAkrq2z3B9MaAPFEVX06ePAJuxjwqcLULjRbFw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:33157 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751393AbdFIATX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2017 20:19:23 -0400
+Received: from mail-io0-f180.google.com ([209.85.223.180]:34796 "EHLO
+        mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751416AbdFIAaQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2017 20:30:16 -0400
+In-Reply-To: <CAHp75Vc-Vz-QRAkrq2z3B9MaAPFEVX06ePAJuxjwqcLULjRbFw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
 
-Hi Linus,
+On Thu, Jun 8, 2017 at 7:40 PM, Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+> On Thu, Jun 8, 2017 at 8:15 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>> On Thu, Jun 8, 2017 at 6:45 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+>>> On 06/08/2017 05:45 PM, Darren Hart wrote:
+>>>> On Wed, Jun 07, 2017 at 05:53:38PM +0300, Andy Shevchenko wrote:
+>>>>> On Fri, Jun 2, 2017 at 6:15 PM, Hans de Goede <hdegoede@redhat.com>
+>>>>> wrote:
+>
+>>>> Will you be taking this through fixes Andy? For a 4.12-rc* target per
+>>>> Hans'
+>>>> response to the cover letter?
+>
+>>> Note that Rafael is planning to drop (revert) the commit which makes
+>>> it (extra) desirable for this driver to get into 4.12, so we should
+>>> perhaps reconsider that. I'm fine either way, but the primary reason
+>>> to push this as a fix for 4.12 is no longer valid AFAICT.
+>>
+>> Maybe I will just queue it up along with this series:
+>> http://marc.info/?l=linux-kernel&m=149688087904433&w=2
+>> if Andy and Darren agree?
+>
+> Looks like it has ties to your series, so, I see no obstacles to go via PM tree.
 
-Please pull from the tag
+OK, thanks!
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm-4.12-rc5
+> Darren?
 
-with top-most commit fbd78afe34d9cc3a86aff7cc214d9f06e815e63e
+An ACK or equivalent from Linus W would be good to have too ...
 
- Merge branches 'intel_pstate' and 'pm-sleep'
-
-on top of commit 3c2993b8c6143d8a5793746a54eba8f86f95240f
-
- Linux 4.12-rc4
-
-to receive power management fixes for v4.12-rc5.
-
-These revert one problematic commit related to system sleep and fix
-one recent intel_pstate regression.
-
-Specifics:
-
- - Revert a recent commit that attempted to avoid spurious wakeups
-   from suspend-to-idle via ACPI SCI, but introduced regressions on
-   some systems (Rafael Wysocki).
-
-   We will get back to the problem it tried to address in the next
-   cycle.
-
- - Fix a possible division by 0 during intel_pstate initialization
-   due to a missing check (Rafael Wysocki).
-
-Thanks!
-
-
----------------
-
-Rafael J. Wysocki (2):
-      cpufreq: intel_pstate: Avoid division by 0 in min_perf_pct_min()
-      Revert "ACPI / sleep: Ignore spurious SCI wakeups from suspend-to-idle"
-
----------------
-
- drivers/acpi/battery.c         |  2 +-
- drivers/acpi/button.c          |  5 ++---
- drivers/acpi/device_pm.c       |  3 +--
- drivers/acpi/sleep.c           | 28 ----------------------------
- drivers/base/power/main.c      |  5 +++++
- drivers/base/power/wakeup.c    | 18 ++++++------------
- drivers/cpufreq/intel_pstate.c |  5 +++--
- include/linux/suspend.h        |  7 ++-----
- kernel/power/process.c         |  2 +-
- kernel/power/suspend.c         | 29 ++++-------------------------
- 10 files changed, 25 insertions(+), 79 deletions(-)
+Thanks,
+Rafael
