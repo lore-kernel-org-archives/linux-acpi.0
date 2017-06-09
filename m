@@ -1,75 +1,76 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v6] platform/x86: Add driver for ACPI INT0002 Virtual
- GPIO device
-Date: Fri, 09 Jun 2017 11:22:32 +0300
-Message-ID: <1496996552.22624.60.camel@linux.intel.com>
-References: <20170602151507.22391-1-hdegoede@redhat.com>
-         <20170602151507.22391-2-hdegoede@redhat.com>
-         <CAHp75Vcdznj2mB+msNvysrvRi3L-0j4c6vthOS8oAv1S9iYWKA@mail.gmail.com>
-         <20170608154541.GH32509@fury>
-         <d41ff55b-e28f-85bf-d088-392e363fb41f@redhat.com>
-         <CAJZ5v0jw3Rzjkb3J2_XE7TPBjT+7FUW90B7kg15z6_WpdNGjzA@mail.gmail.com>
-         <CAHp75Vc-Vz-QRAkrq2z3B9MaAPFEVX06ePAJuxjwqcLULjRbFw@mail.gmail.com>
-         <CAJZ5v0guq1zRwU8ETe5+n6QSj+ytg_HewnrP7h2TsJFQNE9gxg@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v6] platform/x86: Add driver for ACPI INT0002 Virtual GPIO device
+Date: Fri, 9 Jun 2017 11:02:37 +0200
+Message-ID: <CACRpkdYmu34BLvSGR840+psUVwgqe1v+mBzPyKQj25R7HTQnpw@mail.gmail.com>
+References: <20170602151507.22391-1-hdegoede@redhat.com> <20170602151507.22391-2-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:42470 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751524AbdFIIYH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 9 Jun 2017 04:24:07 -0400
-In-Reply-To: <CAJZ5v0guq1zRwU8ETe5+n6QSj+ytg_HewnrP7h2TsJFQNE9gxg@mail.gmail.com>
+Received: from mail-io0-f175.google.com ([209.85.223.175]:34030 "EHLO
+        mail-io0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751528AbdFIJCj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2017 05:02:39 -0400
+Received: by mail-io0-f175.google.com with SMTP id i7so30519071ioe.1
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Jun 2017 02:02:39 -0700 (PDT)
+In-Reply-To: <20170602151507.22391-2-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@infradead.org>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, platform-driver-x86 <platform-driver-x86@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, joeyli <jlee@suse.com>, Takashi Iwai <tiwai@suse.de>
 
-On Fri, 2017-06-09 at 02:30 +0200, Rafael J. Wysocki wrote:
-> On Thu, Jun 8, 2017 at 7:40 PM, Andy Shevchenko
-> <andy.shevchenko@gmail.com> wrote:
-> > On Thu, Jun 8, 2017 at 8:15 PM, Rafael J. Wysocki <rafael@kernel.org
-> > > wrote:
-> > > On Thu, Jun 8, 2017 at 6:45 PM, Hans de Goede <hdegoede@redhat.com
-> > > > wrote:
-> > > > On 06/08/2017 05:45 PM, Darren Hart wrote:
-> > > > > On Wed, Jun 07, 2017 at 05:53:38PM +0300, Andy Shevchenko
-> > > > > wrote:
-> > > > > > On Fri, Jun 2, 2017 at 6:15 PM, Hans de Goede <hdegoede@redh
-> > > > > > at.com>
-> > > > > > wrote:
-> > > > > Will you be taking this through fixes Andy? For a 4.12-rc*
-> > > > > target per
-> > > > > Hans'
-> > > > > response to the cover letter?
-> > > > Note that Rafael is planning to drop (revert) the commit which
-> > > > makes
-> > > > it (extra) desirable for this driver to get into 4.12, so we
-> > > > should
-> > > > perhaps reconsider that. I'm fine either way, but the primary
-> > > > reason
-> > > > to push this as a fix for 4.12 is no longer valid AFAICT.
-> > > 
-> > > Maybe I will just queue it up along with this series:
-> > > http://marc.info/?l=linux-kernel&m=149688087904433&w=2
-> > > if Andy and Darren agree?
-> > 
-> > Looks like it has ties to your series, so, I see no obstacles to go
-> > via PM tree.
-> 
-> OK, thanks!
+On Fri, Jun 2, 2017 at 5:15 PM, Hans de Goede <hdegoede@redhat.com> wrote:
 
-I removed it from our testing branch, feel free to apply any time.
+> Some peripherals on Bay Trail and Cherry Trail platforms signal a
+> Power Management Event (PME) to the Power Management Controller (PMC)
+> to wakeup the system. When this happens software needs to explicitly
+> clear the PME bus 0 status bit in the GPE0a_STS register to avoid an
+> IRQ storm on IRQ 9.
+>
+> This is modelled in ACPI through the INT0002 ACPI device, which is
+> called a "Virtual GPIO controller" in ACPI because it defines the
+> event handler to call when the PME triggers through _AEI and _L02
+> methods as would be done for a real GPIO interrupt in ACPI.
+>
+> This commit adds a driver which registers the Virtual GPIOs expected
+> by the DSDT on these devices, letting gpiolib-acpi claim the
+> virtual GPIO and install a GPIO-interrupt handler which call the _L02
+> handler as it would for a real GPIO controller.
+>
+> Cc: joeyli <jlee@suse.com>
+> Cc: Takashi Iwai <tiwai@suse.de>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> Changes in v2:
+> -Remove dev_err after malloc failure
+> -Remove unused empty runtime pm callbacks
+> -s/GPE0A_PME_/GPE0A_PME_B0_/
+> -Fixed some checkpatch warnings (I forgot to run checkpatch on v1)
+> Changes in v3:
+> -Rewrite as gpiochip driver letting gpiolib-acpi deal with claiming the pin
+>  0x0002 and calling the _L02 event handler when the virtual gpio-irq triggers
+> -Rebase on 4.12-rc1
+> Changes in v4:
+> -Drop device_init_wakeup() from _probe(), use pm_system_wakeup() instead
+>  of pm_wakeup_hard_event(chip->parent)
+> -Improve commit message
+> Changes in v5:
+> -Use BIT() macro for FOO_BIT defines
+> -Drop unneeded ACPI_PTR macro usage
+> Changes in v6:
+> -Move back to drivers/platform/x86
+> -Expand certain acronyms (PME, PMC)
+> -Use linux/gpio/driver.h include instead of linux/gpio.h
+> -Document why the get / set / direction_output functions are dummys
+> -No functional changes
 
-> > Darren?
-> 
-> An ACK or equivalent from Linus W would be good to have too ...
-> 
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
-I was waiting for it about week and decided to proceed w.o. one.
-Linus is overloaded by something, though he appears from time to time in
-mailing lists.
+With Andy's changes.
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Please feel free to push this upstream through the platform tree
+or similar.
+
+Yours,
+Linus Walleij
