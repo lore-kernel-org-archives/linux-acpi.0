@@ -1,103 +1,326 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v1 2/3] gpio: Add support for TPS68470 GPIOs
-Date: Fri, 9 Jun 2017 13:15:21 +0200
-Message-ID: <CACRpkda4v=QaFzAsR1903Ybx3+2Faz-q+YrPN5dBiLDsRMj5TA@mail.gmail.com>
-References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com> <1496750118-5570-3-git-send-email-rajmohan.mani@intel.com>
+From: Jayachandran C <jnair-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
+Subject: Re: Fwd: [PATCH v7 2/3] iommu/arm-smmu-v3: Add workaround for Cavium
+	ThunderX2 erratum #74
+Date: Fri, 9 Jun 2017 11:38:32 +0000
+Message-ID: <20170609113832.GB106079@localhost>
+References: <1496145821-3411-1-git-send-email-gakula@caviumnetworks.com>
+	<1496145821-3411-3-git-send-email-gakula@caviumnetworks.com>
+	<9263562d-03a3-d02e-6b7e-01613a4bd296@arm.com>
+	<CA+7sy7C_44dTy0-nAE=b5BCXmc8ACQx2O6A1jCOCsemZDD5j4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f41.google.com ([209.85.214.41]:37143 "EHLO
-        mail-it0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751528AbdFILPX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2017 07:15:23 -0400
-Received: by mail-it0-f41.google.com with SMTP id m47so30388287iti.0
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Jun 2017 04:15:22 -0700 (PDT)
-In-Reply-To: <1496750118-5570-3-git-send-email-rajmohan.mani@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CA+7sy7C_44dTy0-nAE=b5BCXmc8ACQx2O6A1jCOCsemZDD5j4w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rajmohan Mani <rajmohan.mani@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-On Tue, Jun 6, 2017 at 1:55 PM, Rajmohan Mani <rajmohan.mani@intel.com> wrote:
+On Fri, Jun 09, 2017 Robin Murphy wrote:
+> 
+> On 30/05/17 13:03, Geetha sowjanya wrote:
+> > From: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> >
+> > Cavium ThunderX2 SMMU implementation doesn't support page 1 register space
+> > and PAGE0_REGS_ONLY option is enabled as an errata workaround.
+> > This option when turned on, replaces all page 1 offsets used for
+> > EVTQ_PROD/CONS, PRIQ_PROD/CONS register access with page 0 offsets.
+> >
+> > SMMU resource size checks are now based on SMMU option PAGE0_REGS_ONLY,
+> > since resource size can be either 64k/128k.
+> > For this, arm_smmu_device_dt_probe/acpi_probe has been moved before
+> > platform_get_resource call, so that SMMU options are set beforehand.
+> >
+> > Signed-off-by: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  Documentation/arm64/silicon-errata.txt             |    1 +
+> >  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    6 ++
+> >  drivers/iommu/arm-smmu-v3.c                        |   64 +++++++++++++++-----
+> >  3 files changed, 56 insertions(+), 15 deletions(-)
+> >
+> > diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
+> > index 10f2ddd..4693a32 100644
+> > --- a/Documentation/arm64/silicon-errata.txt
+> > +++ b/Documentation/arm64/silicon-errata.txt
+> > @@ -62,6 +62,7 @@ stable kernels.
+> >  | Cavium         | ThunderX GICv3  | #23154          | CAVIUM_ERRATUM_23154        |
+> >  | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
+> >  | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
+> > +| Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
+> >  |                |                 |                 |                             |
+> >  | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
+> >  |                |                 |                 |                             |
+> > diff --git a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
+> > index be57550..607e270 100644
+> > --- a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
+> > +++ b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
+> > @@ -49,6 +49,12 @@ the PCIe specification.
+> >  - hisilicon,broken-prefetch-cmd
+> >                      : Avoid sending CMD_PREFETCH_* commands to the SMMU.
+> >
+> > +- cavium,cn9900-broken-page1-regspace
+> > +                    : Replaces all page 1 offsets used for EVTQ_PROD/CONS,
+> > +                                             PRIQ_PROD/CONS register access with page 0 offsets.
+> > +                                             Set for Caviun ThunderX2 silicon that doesn't support
+> > +                                             SMMU page1 register space.
+> 
+> The indentation's a bit funky here - the rest of this file is actually
+> indented with spaces, but either way it's clear your editor isn't set to
+> 8-space tabs ;)
+> 
+> > +
+> >  ** Example
+> >
+> >          smmu@2b400000 {
+> > diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+> > index 380969a..4e80205 100644
+> > --- a/drivers/iommu/arm-smmu-v3.c
+> > +++ b/drivers/iommu/arm-smmu-v3.c
+> > @@ -412,6 +412,9 @@
+> >  #define MSI_IOVA_BASE                        0x8000000
+> >  #define MSI_IOVA_LENGTH                      0x100000
+> >
+> > +#define ARM_SMMU_PAGE0_REGS_ONLY(smmu)               \
+> > +     ((smmu)->options & ARM_SMMU_OPT_PAGE0_REGS_ONLY)
+> 
+> At the two places we use this macro, frankly I think it would be clearer
+> to just reference smmu->options directly, as we currently do for
+> SKIP_PREFETCH. The abstraction also adds more lines than it saves...
+> 
+> > +
+> >  static bool disable_bypass;
+> >  module_param_named(disable_bypass, disable_bypass, bool, S_IRUGO);
+> >  MODULE_PARM_DESC(disable_bypass,
+> > @@ -597,6 +600,7 @@ struct arm_smmu_device {
+> >       u32                             features;
+> >
+> >  #define ARM_SMMU_OPT_SKIP_PREFETCH   (1 << 0)
+> > +#define ARM_SMMU_OPT_PAGE0_REGS_ONLY    (1 << 1)
+> 
+> Whitespace again, although this time it's spaces where there should be a
+> tab.
+> 
+> >       u32                             options;
+> >
+> >       struct arm_smmu_cmdq            cmdq;
+> > @@ -663,9 +667,19 @@ struct arm_smmu_option_prop {
+> >
+> >  static struct arm_smmu_option_prop arm_smmu_options[] = {
+> >       { ARM_SMMU_OPT_SKIP_PREFETCH, "hisilicon,broken-prefetch-cmd" },
+> > +     { ARM_SMMU_OPT_PAGE0_REGS_ONLY, "cavium,cn9900-broken-page1-regspace"},
+> >       { 0, NULL},
+> >  };
+> >
+> > +static inline void __iomem *arm_smmu_page1_fixup(unsigned long offset,
+> > +                                              struct arm_smmu_device *smmu)
+> > +{
+> > +     if (offset > SZ_64K && ARM_SMMU_PAGE0_REGS_ONLY(smmu))
+> > +             offset -= SZ_64K;
+> > +
+> > +     return smmu->base + offset;
+> > +}
+> > +
+> >  static struct arm_smmu_domain *to_smmu_domain(struct iommu_domain *dom)
+> >  {
+> >       return container_of(dom, struct arm_smmu_domain, domain);
+> > @@ -1961,8 +1975,8 @@ static int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
+> >               return -ENOMEM;
+> >       }
+> >
+> > -     q->prod_reg     = smmu->base + prod_off;
+> > -     q->cons_reg     = smmu->base + cons_off;
+> > +     q->prod_reg     = arm_smmu_page1_fixup(prod_off, smmu);
+> > +     q->cons_reg     = arm_smmu_page1_fixup(cons_off, smmu);
+> >       q->ent_dwords   = dwords;
+> >
+> >       q->q_base  = Q_BASE_RWA;
+> > @@ -2363,8 +2377,10 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
+> >
+> >       /* Event queue */
+> >       writeq_relaxed(smmu->evtq.q.q_base, smmu->base + ARM_SMMU_EVTQ_BASE);
+> > -     writel_relaxed(smmu->evtq.q.prod, smmu->base + ARM_SMMU_EVTQ_PROD);
+> > -     writel_relaxed(smmu->evtq.q.cons, smmu->base + ARM_SMMU_EVTQ_CONS);
+> > +     writel_relaxed(smmu->evtq.q.prod,
+> > +                    arm_smmu_page1_fixup(ARM_SMMU_EVTQ_PROD, smmu));
+> > +     writel_relaxed(smmu->evtq.q.cons,
+> > +                    arm_smmu_page1_fixup(ARM_SMMU_EVTQ_CONS, smmu));
 
-> This patch adds support for TPS68470 GPIOs.
-> There are 7 GPIOs and a few sensor related GPIOs.
-> These GPIOs can be requested and configured as
-> appropriate.
->
-> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+This sequence and the arm_smmu_page1_fixup() call is repeated in quite a few
+places. I think this errata code is messy because the original driver does not
+make the alias page usage explicit. 
 
-Same comments as Andy already sent, plus:
+A patch like the one below (no functional changes) would clean up the original
+driver and make the errata change much simpler - any comments?
 
-> +static inline struct tps68470_gpio_data *to_gpio_data(struct gpio_chip *gpiochp)
-> +{
-> +       return container_of(gpiochp, struct tps68470_gpio_data, gc);
-> +}
+-- >8 --
 
-Please use the data pointe inside gpio_chip.
+Date: Tue, 30 May 2017 15:43:29 +0000
+Subject: [PATCH] iommu: arm-smmu-v3: make alias page usage explicit
 
-struct tps68470_gpio_data *foo = gpiochip_get_data(gc);
+---
+ drivers/iommu/arm-smmu-v3.c | 76 +++++++++++++++++++++++++++------------------
+ 1 file changed, 46 insertions(+), 30 deletions(-)
 
-> +       ret = tps68470_reg_read(tps, reg, &val);
-(...)
-> +       tps68470_update_bits(tps, reg, BIT(offset), value ? BIT(offset) : 0);
-(...)
-> +       return tps68470_update_bits(tps, TPS68470_GPIO_CTL_REG_A(offset),
-> +                                TPS68470_GPIO_MODE_MASK,
-> +                                TPS68470_GPIO_MODE_OUT_CMOS);
-(...)
-> +       return tps68470_update_bits(tps, TPS68470_GPIO_CTL_REG_A(offset),
-> +                                  TPS68470_GPIO_MODE_MASK, 0x00);
-
-This looks like a reimplementation of regmap. Is it not possible
-to create a regmap in the MFD driver and pass that around instead?
-
-> +struct gpiod_lookup_table gpios_table = {
-> +       .dev_id = NULL,
-> +       .table = {
-> +                 GPIO_LOOKUP("tps68470-gpio", 0, "gpio.0", GPIO_ACTIVE_HIGH),
-> +                 GPIO_LOOKUP("tps68470-gpio", 1, "gpio.1", GPIO_ACTIVE_HIGH),
-> +                 GPIO_LOOKUP("tps68470-gpio", 2, "gpio.2", GPIO_ACTIVE_HIGH),
-> +                 GPIO_LOOKUP("tps68470-gpio", 3, "gpio.3", GPIO_ACTIVE_HIGH),
-> +                 GPIO_LOOKUP("tps68470-gpio", 4, "gpio.4", GPIO_ACTIVE_HIGH),
-> +                 GPIO_LOOKUP("tps68470-gpio", 5, "gpio.5", GPIO_ACTIVE_HIGH),
-> +                 GPIO_LOOKUP("tps68470-gpio", 6, "gpio.6", GPIO_ACTIVE_HIGH),
-> +                 GPIO_LOOKUP("tps68470-gpio", 7, "s_enable", GPIO_ACTIVE_HIGH),
-> +                 GPIO_LOOKUP("tps68470-gpio", 8, "s_idle", GPIO_ACTIVE_HIGH),
-> +                 GPIO_LOOKUP("tps68470-gpio", 9, "s_resetn", GPIO_ACTIVE_HIGH),
-> +                 {},
-> +       },
-> +};
-
-Hm that's why you include <linux/gpio/machine.h> I guess.
-
-This warrants a big comment above it explaining why this is done like
-that and what the use is inside any system with this chip mounted.
-
-> +       tps68470_gpio->gc.label = "tps68470-gpio";
-> +       tps68470_gpio->gc.owner = THIS_MODULE;
-> +       tps68470_gpio->gc.direction_input = tps68470_gpio_input;
-> +       tps68470_gpio->gc.direction_output = tps68470_gpio_output;
-
-Please implement .get_direction()
-
-> +       tps68470_gpio->gc.get = tps68470_gpio_get;
-> +       tps68470_gpio->gc.set = tps68470_gpio_set;
-> +       tps68470_gpio->gc.can_sleep = true;
-> +       tps68470_gpio->gc.ngpio = TPS68470_N_GPIO;
-> +       tps68470_gpio->gc.base = -1;
-> +       tps68470_gpio->gc.parent = &pdev->dev;
-
-Consider assigning the .names() array some sensible line names.
-
-> +static int tps68470_gpio_remove(struct platform_device *pdev)
-> +{
-> +       struct tps68470_gpio_data *tps68470_gpio = platform_get_drvdata(pdev);
-> +
-> +       gpiod_remove_lookup_table(&gpios_table);
-> +       gpiochip_remove(&tps68470_gpio->gc);
-
-You can't use devm_gpiochip_add()?
-
-Yours,
-Linus Walleij
+diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+index 380969a..11fdb4f 100644
+--- a/drivers/iommu/arm-smmu-v3.c
++++ b/drivers/iommu/arm-smmu-v3.c
+@@ -171,20 +171,19 @@
+ #define STRTAB_BASE_CFG_FMT_LINEAR	(0 << STRTAB_BASE_CFG_FMT_SHIFT)
+ #define STRTAB_BASE_CFG_FMT_2LVL	(1 << STRTAB_BASE_CFG_FMT_SHIFT)
+ 
++#define ARM_SMMU_Q_PROD(qbase)		((qbase) + 0x8)
++#define ARM_SMMU_Q_PROD_PAGE1(qbase)	((qbase) + 0x10008)
++#define ARM_SMMU_Q_CONS(qbase)		((qbase) + 0xc)
++#define ARM_SMMU_Q_CONS_PAGE1(qbase)	((qbase) + 0x1000c)
++
+ #define ARM_SMMU_CMDQ_BASE		0x90
+-#define ARM_SMMU_CMDQ_PROD		0x98
+-#define ARM_SMMU_CMDQ_CONS		0x9c
+ 
+ #define ARM_SMMU_EVTQ_BASE		0xa0
+-#define ARM_SMMU_EVTQ_PROD		0x100a8
+-#define ARM_SMMU_EVTQ_CONS		0x100ac
+ #define ARM_SMMU_EVTQ_IRQ_CFG0		0xb0
+ #define ARM_SMMU_EVTQ_IRQ_CFG1		0xb8
+ #define ARM_SMMU_EVTQ_IRQ_CFG2		0xbc
+ 
+ #define ARM_SMMU_PRIQ_BASE		0xc0
+-#define ARM_SMMU_PRIQ_PROD		0x100c8
+-#define ARM_SMMU_PRIQ_CONS		0x100cc
+ #define ARM_SMMU_PRIQ_IRQ_CFG0		0xd0
+ #define ARM_SMMU_PRIQ_IRQ_CFG1		0xd8
+ #define ARM_SMMU_PRIQ_IRQ_CFG2		0xdc
+@@ -1946,11 +1945,30 @@ static struct iommu_ops arm_smmu_ops = {
+ };
+ 
+ /* Probing and initialisation functions */
++static int arm_smmu_reset_one_queue(struct arm_smmu_device *smmu,
++				    struct arm_smmu_queue *q,
++				    unsigned long qoffset,
++				    int page_to_use)
++{
++	unsigned long prod, cons;
++
++	writeq_relaxed(q->q_base, smmu->base + qoffset);
++	if (page_to_use == 1) {
++		prod = ARM_SMMU_Q_PROD_PAGE1(qoffset);
++		cons = ARM_SMMU_Q_CONS_PAGE1(qoffset);
++	} else {
++		prod = ARM_SMMU_Q_PROD(qoffset);
++		cons = ARM_SMMU_Q_CONS(qoffset);
++	}
++	writeq_relaxed(q->prod, smmu->base + prod);
++	writeq_relaxed(q->cons, smmu->base + cons);
++}
++
+ static int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
+ 				   struct arm_smmu_queue *q,
+-				   unsigned long prod_off,
+-				   unsigned long cons_off,
+-				   size_t dwords)
++				   unsigned long qoffset,
++				   size_t dwords,
++				   int page_to_use)
+ {
+ 	size_t qsz = ((1 << q->max_n_shift) * dwords) << 3;
+ 
+@@ -1961,8 +1979,13 @@ static int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
+ 		return -ENOMEM;
+ 	}
+ 
+-	q->prod_reg	= smmu->base + prod_off;
+-	q->cons_reg	= smmu->base + cons_off;
++	if (page_to_use == 1) {
++		q->prod_reg	= smmu->base + ARM_SMMU_Q_PROD_PAGE1(qoffset);
++		q->cons_reg	= smmu->base + ARM_SMMU_Q_CONS_PAGE1(qoffset);
++	} else {
++		q->prod_reg	= smmu->base + ARM_SMMU_Q_PROD(qoffset);
++		q->cons_reg	= smmu->base + ARM_SMMU_Q_CONS(qoffset);
++	}
+ 	q->ent_dwords	= dwords;
+ 
+ 	q->q_base  = Q_BASE_RWA;
+@@ -1980,14 +2003,14 @@ static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
+ 
+ 	/* cmdq */
+ 	spin_lock_init(&smmu->cmdq.lock);
+-	ret = arm_smmu_init_one_queue(smmu, &smmu->cmdq.q, ARM_SMMU_CMDQ_PROD,
+-				      ARM_SMMU_CMDQ_CONS, CMDQ_ENT_DWORDS);
++	ret = arm_smmu_init_one_queue(smmu, &smmu->cmdq.q, ARM_SMMU_CMDQ_BASE,
++				      CMDQ_ENT_DWORDS, 0);
+ 	if (ret)
+ 		return ret;
+ 
+ 	/* evtq */
+-	ret = arm_smmu_init_one_queue(smmu, &smmu->evtq.q, ARM_SMMU_EVTQ_PROD,
+-				      ARM_SMMU_EVTQ_CONS, EVTQ_ENT_DWORDS);
++	ret = arm_smmu_init_one_queue(smmu, &smmu->evtq.q, ARM_SMMU_EVTQ_BASE,
++				      EVTQ_ENT_DWORDS, USE_PAGE1);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -1995,8 +2018,8 @@ static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
+ 	if (!(smmu->features & ARM_SMMU_FEAT_PRI))
+ 		return 0;
+ 
+-	return arm_smmu_init_one_queue(smmu, &smmu->priq.q, ARM_SMMU_PRIQ_PROD,
+-				       ARM_SMMU_PRIQ_CONS, PRIQ_ENT_DWORDS);
++	return arm_smmu_init_one_queue(smmu, &smmu->priq.q, ARM_SMMU_PRIQ_BASE,
++				       PRIQ_ENT_DWORDS, 1);
+ }
+ 
+ static int arm_smmu_init_l1_strtab(struct arm_smmu_device *smmu)
+@@ -2332,9 +2355,8 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
+ 		       smmu->base + ARM_SMMU_STRTAB_BASE_CFG);
+ 
+ 	/* Command queue */
+-	writeq_relaxed(smmu->cmdq.q.q_base, smmu->base + ARM_SMMU_CMDQ_BASE);
+-	writel_relaxed(smmu->cmdq.q.prod, smmu->base + ARM_SMMU_CMDQ_PROD);
+-	writel_relaxed(smmu->cmdq.q.cons, smmu->base + ARM_SMMU_CMDQ_CONS);
++	arm_smmu_reset_one_queue(smmu, &smmu->evtq.q,
++				 ARM_SMMU_CMDQ_BASE, 0);
+ 
+ 	enables = CR0_CMDQEN;
+ 	ret = arm_smmu_write_reg_sync(smmu, enables, ARM_SMMU_CR0,
+@@ -2362,9 +2384,8 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
+ 	arm_smmu_cmdq_issue_cmd(smmu, &cmd);
+ 
+ 	/* Event queue */
+-	writeq_relaxed(smmu->evtq.q.q_base, smmu->base + ARM_SMMU_EVTQ_BASE);
+-	writel_relaxed(smmu->evtq.q.prod, smmu->base + ARM_SMMU_EVTQ_PROD);
+-	writel_relaxed(smmu->evtq.q.cons, smmu->base + ARM_SMMU_EVTQ_CONS);
++	arm_smmu_reset_one_queue(smmu, &smmu->evtq.q,
++				 ARM_SMMU_EVTQ_BASE, 1);
+ 
+ 	enables |= CR0_EVTQEN;
+ 	ret = arm_smmu_write_reg_sync(smmu, enables, ARM_SMMU_CR0,
+@@ -2376,13 +2397,8 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
+ 
+ 	/* PRI queue */
+ 	if (smmu->features & ARM_SMMU_FEAT_PRI) {
+-		writeq_relaxed(smmu->priq.q.q_base,
+-			       smmu->base + ARM_SMMU_PRIQ_BASE);
+-		writel_relaxed(smmu->priq.q.prod,
+-			       smmu->base + ARM_SMMU_PRIQ_PROD);
+-		writel_relaxed(smmu->priq.q.cons,
+-			       smmu->base + ARM_SMMU_PRIQ_CONS);
+-
++		arm_smmu_reset_one_queue(smmu, &smmu->priq.q,
++					 ARM_SMMU_PRIQ_BASE, 1);
+ 		enables |= CR0_PRIQEN;
+ 		ret = arm_smmu_write_reg_sync(smmu, enables, ARM_SMMU_CR0,
+ 					      ARM_SMMU_CR0ACK);
+-- 
+2.7.4
