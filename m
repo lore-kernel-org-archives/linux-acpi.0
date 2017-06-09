@@ -1,55 +1,66 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v7 2/6] device property: Move FW type specific
- functionality to FW specific files
-Date: Fri, 9 Jun 2017 15:21:59 -0500
-Message-ID: <CAL_JsqKqW42pTOsw=1iTrCyHgF5E0WZqBC0k9QwVQ2uW5RFutA@mail.gmail.com>
-References: <1496741861-8240-1-git-send-email-sakari.ailus@linux.intel.com> <1496741861-8240-3-git-send-email-sakari.ailus@linux.intel.com>
+From: Graeme Gregory <graeme.gregory@linaro.org>
+Subject: Re: [PATCH 01/15] ACPICA: Disassembler: Enhance resource descriptor detection
+Date: Fri, 9 Jun 2017 21:29:23 +0100
+Message-ID: <CAGCh1+=g8MZWfUXt8=JQenh_E5JdkC9uNN3Sv3iGgaBuWWt-pg@mail.gmail.com>
+References: <cover.1493194142.git.lv.zheng@intel.com> <fe4a8655a06221df851d5781609058f16aa65e93.1493194142.git.lv.zheng@intel.com>
+ <59357F55.8050707@hpe.com> <361261e5-ce98-9d33-f2de-88286288e2e1@hpe.com>
+ <CAJZ5v0hUaiwZwi1a78zSO_hqp_QNdv9gYce-wwNESz1rnPs+sg@mail.gmail.com>
+ <9f2f3edd-74e9-e108-0eff-56564c94147b@hpe.com> <CAJZ5v0jExmFeYwbq2CwCGEetf=JJevePcUJNarb6OKnf0Bb0GQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44892 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751538AbdFIUWV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 9 Jun 2017 16:22:21 -0400
-In-Reply-To: <1496741861-8240-3-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-it0-f43.google.com ([209.85.214.43]:36193 "EHLO
+        mail-it0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751548AbdFIU3Z (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2017 16:29:25 -0400
+Received: by mail-it0-f43.google.com with SMTP id m47so3027986iti.1
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Jun 2017 13:29:24 -0700 (PDT)
+In-Reply-To: <CAJZ5v0jExmFeYwbq2CwCGEetf=JJevePcUJNarb6OKnf0Bb0GQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Al Stone <ahs3@redhat.com>, Frank Rowand <frowand.list@gmail.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linda Knippers <linda.knippers@hpe.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, "David E . Box" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Jun 6, 2017 at 4:37 AM, Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
-> The device and fwnode property API supports Devicetree, ACPI and pset
-> properties. The implementation of this functionality for each firmware
-> type was embedded in the fwnode property core. Move it out to firmware
-> type specific locations, making it easier to maintain.
+On 5 June 2017 at 21:55, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Mon, Jun 5, 2017 at 10:51 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
+>> On 6/5/2017 4:42 PM, Rafael J. Wysocki wrote:
+>> <snip>
+>>
+>>>> I talked to our FW team and we do generate checksums and not a zero for
+>>>> at
+>>>> least some
+>>>> of the AML. Please revert this change until you can also validate
+>>>> a checksum.  Or shall I post a patch to remove the check?
+>>>
+>>>
+>>> I'll skip this patch, no need to do anything else.  Thanks for your
+>>> report!
+>>
+>>
+>> Thanks.  This patch is already in as of 4.12rc1 and not part of the most
+>> recent
+>> ACPICA drop.
 >
-> Depends-on: ("of: Move OF property and graph API from base.c to property.c")
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
->  drivers/acpi/property.c |  68 ++++++++++++++++
->  drivers/acpi/scan.c     |   1 +
->  drivers/base/property.c | 208 +++++++++++++++++++-----------------------------
->  drivers/of/property.c   |  90 +++++++++++++++++++++
->  include/linux/acpi.h    |   4 +
->  include/linux/fwnode.h  |  54 +++++++++++++
->  include/linux/of.h      |   2 +
->  7 files changed, 302 insertions(+), 125 deletions(-)
+> Ah, OK.
 >
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 9364398..14013f6 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -57,6 +57,7 @@ static bool acpi_nondev_subnode_extract(const union acpi_object *desc,
+> I should have checked I guess. :-)
 >
->         dn->name = link->package.elements[0].string.pointer;
->         dn->fwnode.type = FWNODE_ACPI_DATA;
-> +       dn->fwnode.ops = &acpi_fwnode_ops;
+> Anyway, I'll revert it, then.
+>
+>>> Bob, can you revert this upstream, please?  It looks like the
+>>> assumption it is based on doesn't hold.
+>>
+>> Bob, I'm happy to test something if there is a new patch that looks for zero
+>> or a valid checksum.  TBH, I'm not 100% certain that our checksums are
+>> correct because nothing has ever tried to verify them.
+>
+> Well, that's part of the problem here I guess.  If they have never
+> been tested, they cannot be trusted.
+>
+> Still, the commit in question clearly assumed that value to always be
+> 0 and it clearly is not the case here.
+>
+Just stumbled across this on the moonshot m400 and breaks the parsing
+of the PNP0A08 _CRS on that platform.
 
-Mainly in interest of not growing fwnode_handle, we could remove .type
-and just have checks like "ops == &acpi_fwnode_ops".
-
-Otherwise, for patches 2,3,4:
-
-Acked-by: Rob Herring <robh@kernel.org>
+Graeme
