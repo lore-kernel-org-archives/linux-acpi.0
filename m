@@ -1,85 +1,153 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
- recent Dell laptops
-Date: Sat, 10 Jun 2017 00:23:37 +0000
-Message-ID: <24ac3bb8850c4b7a8fa9c0c2d9e3cbc4@ausx13mpc124.AMER.DELL.COM>
-References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
- <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
- <CA+kEDGFUuSC1CpCEgOT+HMTrDa-r1y59kM9-CYn0PSgtuKaG5Q@mail.gmail.com>
- <343a8430fb144adf8d65ef9d0b2bfd40@ausx13mpc124.AMER.DELL.COM>
- <CA+kEDGFVgmXf_B=qHfhWS1HCD+Ei6KSp_rSJBOGYtNZVkm+MeA@mail.gmail.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH v2] acpi: indicate to platform when hot remove returns
+ busy
+Date: Sat, 10 Jun 2017 08:59:29 +0800
+Message-ID: <20170610005929.GL16674@linux-l9pv.suse>
+References: <20170609105451.461-1-jlee@suse.com>
+ <CAHp75VeA9d5HWD_vyxMvoAG7PWR9nwTi4DL=Vdb9GxLsKzjY-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from esa7.dell-outbound.iphmx.com ([68.232.153.96]:50490 "EHLO
-        esa7.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751545AbdFJAXk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2017 20:23:40 -0400
-In-Reply-To: <CA+kEDGFVgmXf_B=qHfhWS1HCD+Ei6KSp_rSJBOGYtNZVkm+MeA@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp.nue.novell.com ([195.135.221.5]:53920 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751623AbdFJA7q (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Fri, 9 Jun 2017 20:59:46 -0400
+Content-Disposition: inline
+In-Reply-To: <CAHp75VeA9d5HWD_vyxMvoAG7PWR9nwTi4DL=Vdb9GxLsKzjY-w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jerome.debretagne@gmail.com
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com, dvhart@infradead.org, srinivas.pandruvada@linux.intel.com, mika.westerberg@linux.intel.com
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKw6lyw7RtZSBkZSBCcmV0YWdu
-ZSBbbWFpbHRvOmplcm9tZS5kZWJyZXRhZ25lQGdtYWlsLmNvbV0NCj4gU2VudDogRnJpZGF5LCBK
-dW5lIDksIDIwMTcgNjoxMSBQTQ0KPiBUbzogTGltb25jaWVsbG8sIE1hcmlvIDxNYXJpb19MaW1v
-bmNpZWxsb0BEZWxsLmNvbT4NCj4gQ2M6IEFDUEkgRGV2ZWwgTWFsaW5nIExpc3QgPGxpbnV4LWFj
-cGlAdmdlci5rZXJuZWwub3JnPjsgTGludXggUE0gPGxpbnV4LQ0KPiBwbUB2Z2VyLmtlcm5lbC5v
-cmc+OyBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBBbmR5IFNoZXZjaGVu
-a28NCj4gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT47IERhcnJlbiBIYXJ0IDxk
-dmhhcnRAaW5mcmFkZWFkLm9yZz47DQo+IFNyaW5pdmFzIFBhbmRydXZhZGEgPHNyaW5pdmFzLnBh
-bmRydXZhZGFAbGludXguaW50ZWwuY29tPjsgTWlrYSBXZXN0ZXJiZXJnDQo+IDxtaWthLndlc3Rl
-cmJlcmdAbGludXguaW50ZWwuY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDAvM10gQUNQSSAv
-IHNsZWVwOiBTdXBwb3J0IHBvd2VyIGJ1dHRvbiB3YWtldXAgZnJvbSBTMkkgb24NCj4gcmVjZW50
-IERlbGwgbGFwdG9wcw0KPiANCj4gPiBJIGdvdCBhIHJlc3BvbnNlIGJhY2sgdGhhdCBjb25maXJt
-ZWQgdGhhdCB0aGlzIG1hY2hpbmUgb25seSBpcyBzdXBwb3J0ZWQNCj4gPiB3aXRoIENTL01TLiAg
-SSB3b3VsZCBub3QgZXhwZWN0IFMzIHRvIHdvcmsgcHJvcGVybHkuDQo+IA0KPiBUaGFua3MgZm9y
-IHRoZSBjb25maXJtYXRpb24sIHRoYXQncyB3aGF0IEkgZXhwZWN0ZWQgZm9sbG93aW5nIHRoZSBm
-ZWVkYmFjayBvbg0KPiBvdGhlciByZWNlbnQgRGVsbCBtYWNoaW5lcy4NCg0KU3BlY2lmaWNhbGx5
-IHRoZSBEZWxsIG1hY2hpbmVzIHRoYXQgYXJlbid0IHNvbGQgd2l0aCBMaW51eC4gIFRoZSBtYWNo
-aW5lcyBzb2xkDQp3aXRoIExpbnV4IGRvIHVuZGVyZ28gUzMgdGVzdGluZyBhbmQgQklPUyBpc3N1
-ZXMgYXJlIHNvcnRlZCBvdXQgZm9yIFMzLg0KDQpUaG9zZSBpdCBtYWtlcyBzZW5zZSB0byBsZWF2
-ZSBTMyBpbiB0aGUgQklPUyB1bnRpbCBTMkkgaXMgd29ya2luZyB3ZWxsIG9uIExpbnV4DQphdCBs
-ZWFzdC4NCg0KPiANCj4gPiBFdmVuIGlmIFMzIGlzIHBhcnQgb2YgdGhlIEFDUEkgbmFtZXNwYWNl
-LCB0aGUgYmVoYXZpb3IgdGhhdCBXaW5kb3dzIGZvbGxvd3MNCj4gPiBpcyB0aGF0IFMzIGlzIG5v
-dCBvZmZlcmVkIHdoZW4gdGhlIGxvdyBwb3dlciBpZGxlIGJpdCBpcyBzZXQgaW4gRkFEVC4NCj4g
-Pg0KPiA+IEkga25vdyB0aGF0IHRoZSBjdXJyZW50IGJlaGF2aW9yIGluIExpbnV4IGRvZXMgbm90
-IHJldmlldyBsb3cgcG93ZXIgaWRsZQ0KPiA+IGJpdCB0byBkZXRlcm1pbmUgd2hldGhlciB0byBv
-ZmZlciBTMkkgb3IgUzMNCj4gDQo+IElzIGl0IHNvbWV0aGluZyB0aGF0IGlzIGVudmlzaW9uZWQg
-YWxyZWFkeSBhcyBhIGZ1dHVyZSBldm9sdXRpb24gaW4gTGludXggYXMNCj4gd2VsbCwgaWYgbW9y
-ZSBhbmQgbW9yZSBzeXN0ZW1zIGFyZSBub3cgZGVzaWduZWQgd2l0aCBTMkkgaW4gbWluZD8NCg0K
-RXZlbnR1YWxseSB0aGlzIHdpbGwgY2hhbmdlLCBidXQgZm9yIG5vdyBmaXJzdCB3ZSBuZWVkIHRv
-IHNvcnQgb3V0IHRoZSBwcm9ibGVtcw0Kd2l0aCB0aGUgc3lzdGVtcyB0aGF0IGRvIFMySS4NCg0K
-PiANCj4gPiBzbyBJJ20gaW5xdWlyaW5nIGlmIHdlIGNhbiByZW1vdmUNCj4gPiBTMyBmcm9tIGEg
-ZnV0dXJlIEJJT1MgdXBkYXRlIG9uIHRoaXMgcGxhdGZvcm0gdG8gbGV0IExpbnV4IHdvcmsgYmV0
-dGVyDQo+ID4gZXZlbiB0aG91Z2ggd2UgZG9uJ3Qgc2hpcCB0aGlzIHBsYXRmb3JtIHdpdGggTGlu
-dXguDQo+IA0KPiBUaGF0IHdvdWxkIGJlIGEgZ3JlYXQgZml4LCByZW1vdmluZyB0aGUgZGVmYXVs
-dCB0byBTMyBmb3IgdGhpcyBzeXN0ZW0gb24gTGludXguDQo+IA0KPiA+IEZvciBub3cgSSB3b3Vs
-ZCByZWNvbW1lbmQgdGhhdCB5b3UgZm9jdXMgZWZmb3J0cyBleGNsdXNpdmVseSBvbiBtYWtpbmcN
-Cj4gPiBTMkkgd29yaywgYW5kIGlnbm9yZSBTMyBwcm9ibGVtcy4NCj4gDQo+IFdlbGwgbm90ZWQh
-DQo+IA0KPiA+IEl0J3MgdW5jbGVhciB0byBtZSBleGFjdGx5IHdoZW4geW91IHRlc3RlZCBzMmlk
-bGUtZGVsbC10ZXN0Lg0KPiA+IENhbiB5b3UgcmUtdGVzdCB3aXRoIFJhZmFlbCdzIG5ld2VzdCBz
-dWJtaXNzaW9ucyBhbmQgY2hhbmdlcyB0byBzMmlkbGUtZGVsbC10ZXN0DQo+ID4gY29tbWl0dGVk
-IDI4IGhvdXJzIGFnbz8NCj4gPiBZb3UnbGwgc3RpbGwgaGF2ZSB0byBhZGQgeW91ciBzeXN0ZW0g
-dG8gdGhlIERNSSB3aGl0ZWxpc3QgZm9yIHRoZSBsYXN0IHBhdGNoDQo+ID4gYnV0IGhlIGhhcyBy
-ZXdvcmtlZCBhIGJ1bmNoIG9mIHJlbGF0ZWQgd2FrZXVwIGNvZGUgdGhhdCBoYXMgYWxzbyBjaGFu
-Z2VkLg0KPiANCj4gSSd2ZSBqdXN0IGRvbmUgc28sIHVzaW5nIHRoZSB1cGRhdGVkIHMyaWRsZS1k
-ZWxsLXRlc3QgYnJhbmNoICsgbXkgRE1JDQo+IGFkYXB0YXRpb24uDQo+IA0KPiBJIHN0aWxsIGdl
-dCBleGFjdGx5IHRoZSBzYW1lIHJlc3VsdHMgdGhhbiBkdXJpbmcgbXkgcHJldmlvdXMgdGVzdHM6
-DQo+IC0gaXQgcHJvdmlkZXMgdGhlIGV4cGVjdGVkIGZpeCB3aGVuIHJ1bm5pbmcgQklPUyAxLjEu
-MjA6IHNob3J0IHByZXNzIHRvIHdha2UtdXANCj4gLSBpdCBkb2Vzbid0IGZpeCB3aXRoIHRoZSBj
-dXJyZW50IEJJT1MgMS4xLjMxOiBsb25nIHByZXNzIHN0aWxsIG5lZWRlZA0KPiB0byB3YWtlLXVw
-DQo+IHNvIHNvbWV0aGluZyBoYXMgY2xlYXJseSBjaGFuZ2VkIGJldHdlZW4gdGhlc2UgMiB2ZXJz
-aW9ucy4gQnR3LCB0aGUgRUMgaXMNCj4gZXhwbGljaXRseSB1cGRhdGVkIHdoZW4gZmxhc2hpbmcg
-dmVyc2lvbiAxLjEuMzEsIHRoYXQncyBvbmUgb2YgdGhlDQo+IHZpc2libGUgc3RlcHMuDQo+IA0K
-PiBTb21lIGFzc3VtcHRpb25zIG5vdzogZWl0aGVyIHRoZSBTQ0kgaXMgaWdub3JlZCBlcnJvbmVv
-dXNseSBvciBpdCdzDQo+IG5vdCBpbnRlcnByZXRlZCBjb3JyZWN0bHkgYnkgdGhlIGV4cGVjdGVk
-IGRyaXZlcj8gSSBndWVzcyB0aGF0J3MgdGhlIDINCj4gcG9zc2liaWxpdGllcyBJJ2xsIHRyeSB0
-byBpbnZlc3RpZ2F0ZS4NCg0KV2VsbCB0aGF0J3MgdG9vIGJhZC4gIFllcywgeW91J3JlIGNvcnJl
-Y3QgdGhhdCB0aGUgRUMgaGFzIGNoYW5nZWQgYmV0d2Vlbg0KdGhvc2UgdmVyc2lvbnMuICBBcmUg
-eW91IHRlc3Rpbmcgb24gb3Igb2ZmIEFDIGFkYXB0ZXI/ICBBcyBmYXIgYXMgSSBjYW4gdGVsbCAN
-CnRoZSBmaXggdGhhdCB3ZW50ICBpbnRvIHRoYXQgd2FzIHNwZWNpZmljYWxseSByZWxhdGVkIHRv
-IHBvd2VyIGJ1dHRvbiANCmhhbmRsaW5nIG9mZiBBQyBhZGFwdGVyLg0K
+On Fri, Jun 09, 2017 at 06:36:32PM +0300, Andy Shevchenko wrote:
+> On Fri, Jun 9, 2017 at 1:54 PM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
+> > In hotplug logic, it always indicates non-specific failure to
+> > platform through _OST when handing acpi hot-remove event failed. Then
+> > platform terminates the hot-remove process but it can not identify
+> > the reason.
+> >
+> > Base on current hot-remove code, there have two situations that it
+> > returns busy:
+> >  - OSPM try to offline an individual device, but the device offline
+> >    function returns busy.
+> >  - When the ejection event is applied to an "not offlined yet" container.
+> >    OSPM send kobject change event to userspace and returns busy.
+> >
+> > Both of them will returns -EBUSY to acpi device hotplug function then
+> > hotplug function indicates non-specific failure to platform just like
+> > any other error, e.g. -ENODEV or -EIO.
+> >
+> > The benefit to platform for identifying the OS busy state is that
+> > platform can be applied different approach to handle the busy but
+> > not just terminate the hot-remove process by unknown reason. For
+> > example, platform can wait for a while then triggers hot-remove
+> > again.
+> >
+> > This RFC patch adds one more parameter to the handler function of
+> > acpi generic hotplug event to give the function a chance to propose
+> > the return code of _OST. In this case, it sets ost return code to
+> > ACPI_OST_SC_DEVICE_BUSY when the acpi hot remove function returns
+> > -EBUSY.
+> 
+> Below looks better for my taste.
+> See also comments.
+> 
+
+Still thanks for your review.
+
+> > +static int acpi_ost_status_code(u32 src, int error)
+> > +{
+> > +       switch (src) {
+> > +       case ACPI_NOTIFY_EJECT_REQUEST:
+> > +       case ACPI_OST_EC_OSPM_EJECT:
+> 
+> > +               if (error == -EPERM)
+> > +                       return ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> > +               else if (error == -EBUSY)
+> 
+> Redundant else...
+>
+
+You are right, I will remove it.
+ 
+> > +                       return ACPI_OST_SC_DEVICE_BUSY;
+> 
+> Perhaps switch case here as well?
+> switch (error) {
+>  case -EPERM;
+>    return X;
+>  case -EBUSY:
+>    return Y;
+> }
+>
+
+I want to use the event source as the target of switch because
+different event source has different ost_src definition. If I
+add the support of insertion event then the code will be like
+this:
+
+static int acpi_ost_status_code(u32 src, int error)
+{
+        switch (src) {
+        case ACPI_NOTIFY_EJECT_REQUEST:
+        case ACPI_OST_EC_OSPM_EJECT:
+                if (error == -EPERM)
+                        return ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+                if (error == -EBUSY)
+                        return ACPI_OST_SC_DEVICE_BUSY;
+                break;
+        case ACPI_OST_EC_OSPM_INSERTION:
+                if (error == -EPERM)
+                        return ACPI_OST_SC_INSERT_NOT_SUPPORTED;
+                if (error == -EBUSY)
+                        return ACPI_OST_SC_INSERT_IN_PROGRESS;
+                break;
+        }
+        return error ? ACPI_OST_SC_NON_SPECIFIC_FAILURE : ACPI_OST_SC_SUCCESS;
+}
+
+The ACPI_OST_EC_OSPM_INSERTION represents "Insertion Processing
+(Source Event: 0x200)" that it has different ost code definition.
+Just we didn't support it in kernel (maybe just didn't see any
+machine used it).
+ 
+> > +               break;
+> > +       }
+> > +       return error ? ACPI_OST_SC_NON_SPECIFIC_FAILURE : ACPI_OST_SC_SUCCESS;
+> > +}
+> 
+> 
+> > +       ost_code = acpi_ost_status_code(src, error);
+> >   err_out:
+> 
+> I guess you need to swap those lines.
+>
+
+Do you mean move the "err_out:" to the position before
+acpi_ost_status_code()? The err_out tag used by the
+validation checking of acpi handler that it wants to
+jump to evaluate _OST: 
+
+void acpi_device_hotplug(struct acpi_device *adev, u32 src)
+{
+        u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
+        int error = -ENODEV;
+
+        lock_device_hotplug();
+        mutex_lock(&acpi_scan_lock);
+
+	/*
+	 * The device object's ACPI handle cannot become invalid as long as we
+	 * are holding acpi_scan_lock, but it might have become invalid before
+	 * that lock was acquired.
+	 */
+	if (adev->handle == INVALID_ACPI_HANDLE)
+		goto err_out;
+	[...snip]
+> >   err_out:
+> >         acpi_evaluate_ost(adev->handle, src, ost_code, NULL);
+>
+
+Thanks a lot!
+Joey Lee 
