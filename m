@@ -1,59 +1,85 @@
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v1 3/3] ACPI / PMIC: Add TI PMIC TPS68470 operation
- region driver
-Date: Sat, 10 Jun 2017 00:10:41 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725BED6B@FMSMSX114.amr.corp.intel.com>
-References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
- <1496750118-5570-4-git-send-email-rajmohan.mani@intel.com>
- <CAHp75VcvV_AbLJCq9Rm_8yab3nViPm6ikxxme4oyw9vm4Kz7Gg@mail.gmail.com>
- <20170607121503.GA1019@valkosipuli.retiisi.org.uk>
- <CAHp75Vef=c54O8Xd+aM+eWWVt7nLsczT48WbgrdiOVyWv6xMcg@mail.gmail.com>
- <20170607201050.GE1019@valkosipuli.retiisi.org.uk>
- <CAHp75Vfz=5Siysbzmtyv8TUKs+S+EMBHd8T7zSV-vF+-FEoSaA@mail.gmail.com>
- <20170607211256.GF1019@valkosipuli.retiisi.org.uk>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
+ recent Dell laptops
+Date: Sat, 10 Jun 2017 00:23:37 +0000
+Message-ID: <24ac3bb8850c4b7a8fa9c0c2d9e3cbc4@ausx13mpc124.AMER.DELL.COM>
+References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
+ <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
+ <CA+kEDGFUuSC1CpCEgOT+HMTrDa-r1y59kM9-CYn0PSgtuKaG5Q@mail.gmail.com>
+ <343a8430fb144adf8d65ef9d0b2bfd40@ausx13mpc124.AMER.DELL.COM>
+ <CA+kEDGFVgmXf_B=qHfhWS1HCD+Ei6KSp_rSJBOGYtNZVkm+MeA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:26649 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751620AbdFJAKn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 9 Jun 2017 20:10:43 -0400
-In-Reply-To: <20170607211256.GF1019@valkosipuli.retiisi.org.uk>
+Received: from esa7.dell-outbound.iphmx.com ([68.232.153.96]:50490 "EHLO
+        esa7.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751545AbdFJAXk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2017 20:23:40 -0400
+In-Reply-To: <CA+kEDGFVgmXf_B=qHfhWS1HCD+Ei6KSp_rSJBOGYtNZVkm+MeA@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>, Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: jerome.debretagne@gmail.com
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com, dvhart@infradead.org, srinivas.pandruvada@linux.intel.com, mika.westerberg@linux.intel.com
 
-Hi Sakari, Andy,
-
-> Subject: Re: [PATCH v1 3/3] ACPI / PMIC: Add TI PMIC TPS68470 operation
-> region driver
-> 
-> On Wed, Jun 07, 2017 at 11:40:27PM +0300, Andy Shevchenko wrote:
-> > On Wed, Jun 7, 2017 at 11:10 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > > On Wed, Jun 07, 2017 at 04:40:13PM +0300, Andy Shevchenko wrote:
-> > >> On Wed, Jun 7, 2017 at 3:15 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > >> > On Tue, Jun 06, 2017 at 05:23:56PM +0300, Andy Shevchenko wrote:
-> >
-> > >> >> Follow the pattern, please, I suppose ti_pmic_tps68470.c
-> > >>
-> > >> Would it work for you?
-> > >
-> > > This is still a different driver from the tps68470 driver which is
-> > > an MFD driver. For clarity, I'd keep pmic as part of the name (and
-> > > I'd use tps68470_pmic_ prefix for internal symbols, too).
-> > >
-> > > As PMICs are typically linked to the kernel (vs. being modules),
-> > > there's no issue with the module name. I would suppose few if any
-> > > PMICs will be compiled as modules in general.
-> > >
-> > > It's not a big deal though. I'm fine either way.
-> >
-> > Okay, let's agree on  tps68470_pmic for internal prefix and for file name?
-> 
-> Ack. Thanks!
-> 
-
-Ack
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKw6lyw7RtZSBkZSBCcmV0YWdu
+ZSBbbWFpbHRvOmplcm9tZS5kZWJyZXRhZ25lQGdtYWlsLmNvbV0NCj4gU2VudDogRnJpZGF5LCBK
+dW5lIDksIDIwMTcgNjoxMSBQTQ0KPiBUbzogTGltb25jaWVsbG8sIE1hcmlvIDxNYXJpb19MaW1v
+bmNpZWxsb0BEZWxsLmNvbT4NCj4gQ2M6IEFDUEkgRGV2ZWwgTWFsaW5nIExpc3QgPGxpbnV4LWFj
+cGlAdmdlci5rZXJuZWwub3JnPjsgTGludXggUE0gPGxpbnV4LQ0KPiBwbUB2Z2VyLmtlcm5lbC5v
+cmc+OyBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBBbmR5IFNoZXZjaGVu
+a28NCj4gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT47IERhcnJlbiBIYXJ0IDxk
+dmhhcnRAaW5mcmFkZWFkLm9yZz47DQo+IFNyaW5pdmFzIFBhbmRydXZhZGEgPHNyaW5pdmFzLnBh
+bmRydXZhZGFAbGludXguaW50ZWwuY29tPjsgTWlrYSBXZXN0ZXJiZXJnDQo+IDxtaWthLndlc3Rl
+cmJlcmdAbGludXguaW50ZWwuY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDAvM10gQUNQSSAv
+IHNsZWVwOiBTdXBwb3J0IHBvd2VyIGJ1dHRvbiB3YWtldXAgZnJvbSBTMkkgb24NCj4gcmVjZW50
+IERlbGwgbGFwdG9wcw0KPiANCj4gPiBJIGdvdCBhIHJlc3BvbnNlIGJhY2sgdGhhdCBjb25maXJt
+ZWQgdGhhdCB0aGlzIG1hY2hpbmUgb25seSBpcyBzdXBwb3J0ZWQNCj4gPiB3aXRoIENTL01TLiAg
+SSB3b3VsZCBub3QgZXhwZWN0IFMzIHRvIHdvcmsgcHJvcGVybHkuDQo+IA0KPiBUaGFua3MgZm9y
+IHRoZSBjb25maXJtYXRpb24sIHRoYXQncyB3aGF0IEkgZXhwZWN0ZWQgZm9sbG93aW5nIHRoZSBm
+ZWVkYmFjayBvbg0KPiBvdGhlciByZWNlbnQgRGVsbCBtYWNoaW5lcy4NCg0KU3BlY2lmaWNhbGx5
+IHRoZSBEZWxsIG1hY2hpbmVzIHRoYXQgYXJlbid0IHNvbGQgd2l0aCBMaW51eC4gIFRoZSBtYWNo
+aW5lcyBzb2xkDQp3aXRoIExpbnV4IGRvIHVuZGVyZ28gUzMgdGVzdGluZyBhbmQgQklPUyBpc3N1
+ZXMgYXJlIHNvcnRlZCBvdXQgZm9yIFMzLg0KDQpUaG9zZSBpdCBtYWtlcyBzZW5zZSB0byBsZWF2
+ZSBTMyBpbiB0aGUgQklPUyB1bnRpbCBTMkkgaXMgd29ya2luZyB3ZWxsIG9uIExpbnV4DQphdCBs
+ZWFzdC4NCg0KPiANCj4gPiBFdmVuIGlmIFMzIGlzIHBhcnQgb2YgdGhlIEFDUEkgbmFtZXNwYWNl
+LCB0aGUgYmVoYXZpb3IgdGhhdCBXaW5kb3dzIGZvbGxvd3MNCj4gPiBpcyB0aGF0IFMzIGlzIG5v
+dCBvZmZlcmVkIHdoZW4gdGhlIGxvdyBwb3dlciBpZGxlIGJpdCBpcyBzZXQgaW4gRkFEVC4NCj4g
+Pg0KPiA+IEkga25vdyB0aGF0IHRoZSBjdXJyZW50IGJlaGF2aW9yIGluIExpbnV4IGRvZXMgbm90
+IHJldmlldyBsb3cgcG93ZXIgaWRsZQ0KPiA+IGJpdCB0byBkZXRlcm1pbmUgd2hldGhlciB0byBv
+ZmZlciBTMkkgb3IgUzMNCj4gDQo+IElzIGl0IHNvbWV0aGluZyB0aGF0IGlzIGVudmlzaW9uZWQg
+YWxyZWFkeSBhcyBhIGZ1dHVyZSBldm9sdXRpb24gaW4gTGludXggYXMNCj4gd2VsbCwgaWYgbW9y
+ZSBhbmQgbW9yZSBzeXN0ZW1zIGFyZSBub3cgZGVzaWduZWQgd2l0aCBTMkkgaW4gbWluZD8NCg0K
+RXZlbnR1YWxseSB0aGlzIHdpbGwgY2hhbmdlLCBidXQgZm9yIG5vdyBmaXJzdCB3ZSBuZWVkIHRv
+IHNvcnQgb3V0IHRoZSBwcm9ibGVtcw0Kd2l0aCB0aGUgc3lzdGVtcyB0aGF0IGRvIFMySS4NCg0K
+PiANCj4gPiBzbyBJJ20gaW5xdWlyaW5nIGlmIHdlIGNhbiByZW1vdmUNCj4gPiBTMyBmcm9tIGEg
+ZnV0dXJlIEJJT1MgdXBkYXRlIG9uIHRoaXMgcGxhdGZvcm0gdG8gbGV0IExpbnV4IHdvcmsgYmV0
+dGVyDQo+ID4gZXZlbiB0aG91Z2ggd2UgZG9uJ3Qgc2hpcCB0aGlzIHBsYXRmb3JtIHdpdGggTGlu
+dXguDQo+IA0KPiBUaGF0IHdvdWxkIGJlIGEgZ3JlYXQgZml4LCByZW1vdmluZyB0aGUgZGVmYXVs
+dCB0byBTMyBmb3IgdGhpcyBzeXN0ZW0gb24gTGludXguDQo+IA0KPiA+IEZvciBub3cgSSB3b3Vs
+ZCByZWNvbW1lbmQgdGhhdCB5b3UgZm9jdXMgZWZmb3J0cyBleGNsdXNpdmVseSBvbiBtYWtpbmcN
+Cj4gPiBTMkkgd29yaywgYW5kIGlnbm9yZSBTMyBwcm9ibGVtcy4NCj4gDQo+IFdlbGwgbm90ZWQh
+DQo+IA0KPiA+IEl0J3MgdW5jbGVhciB0byBtZSBleGFjdGx5IHdoZW4geW91IHRlc3RlZCBzMmlk
+bGUtZGVsbC10ZXN0Lg0KPiA+IENhbiB5b3UgcmUtdGVzdCB3aXRoIFJhZmFlbCdzIG5ld2VzdCBz
+dWJtaXNzaW9ucyBhbmQgY2hhbmdlcyB0byBzMmlkbGUtZGVsbC10ZXN0DQo+ID4gY29tbWl0dGVk
+IDI4IGhvdXJzIGFnbz8NCj4gPiBZb3UnbGwgc3RpbGwgaGF2ZSB0byBhZGQgeW91ciBzeXN0ZW0g
+dG8gdGhlIERNSSB3aGl0ZWxpc3QgZm9yIHRoZSBsYXN0IHBhdGNoDQo+ID4gYnV0IGhlIGhhcyBy
+ZXdvcmtlZCBhIGJ1bmNoIG9mIHJlbGF0ZWQgd2FrZXVwIGNvZGUgdGhhdCBoYXMgYWxzbyBjaGFu
+Z2VkLg0KPiANCj4gSSd2ZSBqdXN0IGRvbmUgc28sIHVzaW5nIHRoZSB1cGRhdGVkIHMyaWRsZS1k
+ZWxsLXRlc3QgYnJhbmNoICsgbXkgRE1JDQo+IGFkYXB0YXRpb24uDQo+IA0KPiBJIHN0aWxsIGdl
+dCBleGFjdGx5IHRoZSBzYW1lIHJlc3VsdHMgdGhhbiBkdXJpbmcgbXkgcHJldmlvdXMgdGVzdHM6
+DQo+IC0gaXQgcHJvdmlkZXMgdGhlIGV4cGVjdGVkIGZpeCB3aGVuIHJ1bm5pbmcgQklPUyAxLjEu
+MjA6IHNob3J0IHByZXNzIHRvIHdha2UtdXANCj4gLSBpdCBkb2Vzbid0IGZpeCB3aXRoIHRoZSBj
+dXJyZW50IEJJT1MgMS4xLjMxOiBsb25nIHByZXNzIHN0aWxsIG5lZWRlZA0KPiB0byB3YWtlLXVw
+DQo+IHNvIHNvbWV0aGluZyBoYXMgY2xlYXJseSBjaGFuZ2VkIGJldHdlZW4gdGhlc2UgMiB2ZXJz
+aW9ucy4gQnR3LCB0aGUgRUMgaXMNCj4gZXhwbGljaXRseSB1cGRhdGVkIHdoZW4gZmxhc2hpbmcg
+dmVyc2lvbiAxLjEuMzEsIHRoYXQncyBvbmUgb2YgdGhlDQo+IHZpc2libGUgc3RlcHMuDQo+IA0K
+PiBTb21lIGFzc3VtcHRpb25zIG5vdzogZWl0aGVyIHRoZSBTQ0kgaXMgaWdub3JlZCBlcnJvbmVv
+dXNseSBvciBpdCdzDQo+IG5vdCBpbnRlcnByZXRlZCBjb3JyZWN0bHkgYnkgdGhlIGV4cGVjdGVk
+IGRyaXZlcj8gSSBndWVzcyB0aGF0J3MgdGhlIDINCj4gcG9zc2liaWxpdGllcyBJJ2xsIHRyeSB0
+byBpbnZlc3RpZ2F0ZS4NCg0KV2VsbCB0aGF0J3MgdG9vIGJhZC4gIFllcywgeW91J3JlIGNvcnJl
+Y3QgdGhhdCB0aGUgRUMgaGFzIGNoYW5nZWQgYmV0d2Vlbg0KdGhvc2UgdmVyc2lvbnMuICBBcmUg
+eW91IHRlc3Rpbmcgb24gb3Igb2ZmIEFDIGFkYXB0ZXI/ICBBcyBmYXIgYXMgSSBjYW4gdGVsbCAN
+CnRoZSBmaXggdGhhdCB3ZW50ICBpbnRvIHRoYXQgd2FzIHNwZWNpZmljYWxseSByZWxhdGVkIHRv
+IHBvd2VyIGJ1dHRvbiANCmhhbmRsaW5nIG9mZiBBQyBhZGFwdGVyLg0K
