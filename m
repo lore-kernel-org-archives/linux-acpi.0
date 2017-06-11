@@ -1,105 +1,81 @@
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v1 2/3] gpio: Add support for TPS68470 GPIOs
-Date: Sun, 11 Jun 2017 05:04:27 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725BF127@FMSMSX114.amr.corp.intel.com>
-References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
- <1496750118-5570-3-git-send-email-rajmohan.mani@intel.com>
- <CACRpkda4v=QaFzAsR1903Ybx3+2Faz-q+YrPN5dBiLDsRMj5TA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:18052 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751675AbdFKFEa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 11 Jun 2017 01:04:30 -0400
-In-Reply-To: <CACRpkda4v=QaFzAsR1903Ybx3+2Faz-q+YrPN5dBiLDsRMj5TA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Rajmohan Mani <rajmohan.mani@intel.com>
+Subject: [PATCH v2 0/3] TPS68470 PMIC drivers
+Date: Sat, 10 Jun 2017 23:09:52 -0700
+Message-ID: <1497161395-36504-1-git-send-email-rajmohan.mani@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rajmohan Mani <rajmohan.mani@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-SGkgTGludXMsDQoNClRoYW5rcyBmb3IgdGhlIHJldmlld3MuDQoNCj4gLS0tLS1PcmlnaW5hbCBN
-ZXNzYWdlLS0tLS0NCj4gRnJvbTogTGludXMgV2FsbGVpaiBbbWFpbHRvOmxpbnVzLndhbGxlaWpA
-bGluYXJvLm9yZ10NCj4gU2VudDogRnJpZGF5LCBKdW5lIDA5LCAyMDE3IDQ6MTUgQU0NCj4gVG86
-IE1hbmksIFJham1vaGFuIDxyYWptb2hhbi5tYW5pQGludGVsLmNvbT4NCj4gQ2M6IGxpbnV4LWtl
-cm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWdwaW9Admdlci5rZXJuZWwub3JnOyBBQ1BJIERl
-dmVsDQo+IE1hbGluZyBMaXN0IDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZz47IExlZSBKb25l
-cyA8bGVlLmpvbmVzQGxpbmFyby5vcmc+Ow0KPiBBbGV4YW5kcmUgQ291cmJvdCA8Z251cm91QGdt
-YWlsLmNvbT47IFJhZmFlbCBKLiBXeXNvY2tpDQo+IDxyandAcmp3eXNvY2tpLm5ldD47IExlbiBC
-cm93biA8bGVuYkBrZXJuZWwub3JnPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYxIDIvM10gZ3Bp
-bzogQWRkIHN1cHBvcnQgZm9yIFRQUzY4NDcwIEdQSU9zDQo+IA0KPiBPbiBUdWUsIEp1biA2LCAy
-MDE3IGF0IDE6NTUgUE0sIFJham1vaGFuIE1hbmkgPHJham1vaGFuLm1hbmlAaW50ZWwuY29tPg0K
-PiB3cm90ZToNCj4gDQo+ID4gVGhpcyBwYXRjaCBhZGRzIHN1cHBvcnQgZm9yIFRQUzY4NDcwIEdQ
-SU9zLg0KPiA+IFRoZXJlIGFyZSA3IEdQSU9zIGFuZCBhIGZldyBzZW5zb3IgcmVsYXRlZCBHUElP
-cy4NCj4gPiBUaGVzZSBHUElPcyBjYW4gYmUgcmVxdWVzdGVkIGFuZCBjb25maWd1cmVkIGFzIGFw
-cHJvcHJpYXRlLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogUmFqbW9oYW4gTWFuaSA8cmFqbW9o
-YW4ubWFuaUBpbnRlbC5jb20+DQo+IA0KPiBTYW1lIGNvbW1lbnRzIGFzIEFuZHkgYWxyZWFkeSBz
-ZW50LCBwbHVzOg0KPiANCj4gPiArc3RhdGljIGlubGluZSBzdHJ1Y3QgdHBzNjg0NzBfZ3Bpb19k
-YXRhICp0b19ncGlvX2RhdGEoc3RydWN0DQo+ID4gK2dwaW9fY2hpcCAqZ3Bpb2NocCkgew0KPiA+
-ICsgICAgICAgcmV0dXJuIGNvbnRhaW5lcl9vZihncGlvY2hwLCBzdHJ1Y3QgdHBzNjg0NzBfZ3Bp
-b19kYXRhLCBnYyk7IH0NCj4gDQo+IFBsZWFzZSB1c2UgdGhlIGRhdGEgcG9pbnRlIGluc2lkZSBn
-cGlvX2NoaXAuDQo+IA0KDQpUaGlzIGlzIG5vdCBjbGVhciB0byBtZS4NClRoZSBkcml2ZXIgYWxy
-ZWFkeSBnZXRzIHRoZSBkYXRhIHBvaW50ZXIgaW5zaWRlIGdwaW9fY2hpcCAod2hpY2ggaXMgZ3Bp
-b2NocCkNCklzIHRoZSBuYW1lIGdwaW9jaHAgbWlzbGVhZGluZz8gDQpJIGhhZCB0byBnZXQgcmlk
-IG9mICJpIiBpbiBncGlvY2hpcCwgdG8gbWVldCA4MCBjaGFyIGxpbWl0Lg0KDQo+IHN0cnVjdCB0
-cHM2ODQ3MF9ncGlvX2RhdGEgKmZvbyA9IGdwaW9jaGlwX2dldF9kYXRhKGdjKTsNCj4gDQo+ID4g
-KyAgICAgICByZXQgPSB0cHM2ODQ3MF9yZWdfcmVhZCh0cHMsIHJlZywgJnZhbCk7DQo+ICguLi4p
-DQo+ID4gKyAgICAgICB0cHM2ODQ3MF91cGRhdGVfYml0cyh0cHMsIHJlZywgQklUKG9mZnNldCks
-IHZhbHVlID8NCj4gPiArIEJJVChvZmZzZXQpIDogMCk7DQo+ICguLi4pDQo+ID4gKyAgICAgICBy
-ZXR1cm4gdHBzNjg0NzBfdXBkYXRlX2JpdHModHBzLCBUUFM2ODQ3MF9HUElPX0NUTF9SRUdfQShv
-ZmZzZXQpLA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRQUzY4NDcwX0dQ
-SU9fTU9ERV9NQVNLLA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRQUzY4
-NDcwX0dQSU9fTU9ERV9PVVRfQ01PUyk7DQo+ICguLi4pDQo+ID4gKyAgICAgICByZXR1cm4gdHBz
-Njg0NzBfdXBkYXRlX2JpdHModHBzLCBUUFM2ODQ3MF9HUElPX0NUTF9SRUdfQShvZmZzZXQpLA0K
-PiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgVFBTNjg0NzBfR1BJT19NT0RF
-X01BU0ssIDB4MDApOw0KPiANCj4gVGhpcyBsb29rcyBsaWtlIGEgcmVpbXBsZW1lbnRhdGlvbiBv
-ZiByZWdtYXAuIElzIGl0IG5vdCBwb3NzaWJsZSB0byBjcmVhdGUgYQ0KPiByZWdtYXAgaW4gdGhl
-IE1GRCBkcml2ZXIgYW5kIHBhc3MgdGhhdCBhcm91bmQgaW5zdGVhZD8NCj4gDQoNCkFjaw0KV2ls
-bCBiZSBhZGRyZXNzZWQgaW4gdjIgb2YgdGhpcyBwYXRjaCBzZXJpZXMuDQoNCj4gPiArc3RydWN0
-IGdwaW9kX2xvb2t1cF90YWJsZSBncGlvc190YWJsZSA9IHsNCj4gPiArICAgICAgIC5kZXZfaWQg
-PSBOVUxMLA0KPiA+ICsgICAgICAgLnRhYmxlID0gew0KPiA+ICsgICAgICAgICAgICAgICAgIEdQ
-SU9fTE9PS1VQKCJ0cHM2ODQ3MC1ncGlvIiwgMCwgImdwaW8uMCIsIEdQSU9fQUNUSVZFX0hJR0gp
-LA0KPiA+ICsgICAgICAgICAgICAgICAgIEdQSU9fTE9PS1VQKCJ0cHM2ODQ3MC1ncGlvIiwgMSwg
-ImdwaW8uMSIsIEdQSU9fQUNUSVZFX0hJR0gpLA0KPiA+ICsgICAgICAgICAgICAgICAgIEdQSU9f
-TE9PS1VQKCJ0cHM2ODQ3MC1ncGlvIiwgMiwgImdwaW8uMiIsIEdQSU9fQUNUSVZFX0hJR0gpLA0K
-PiA+ICsgICAgICAgICAgICAgICAgIEdQSU9fTE9PS1VQKCJ0cHM2ODQ3MC1ncGlvIiwgMywgImdw
-aW8uMyIsIEdQSU9fQUNUSVZFX0hJR0gpLA0KPiA+ICsgICAgICAgICAgICAgICAgIEdQSU9fTE9P
-S1VQKCJ0cHM2ODQ3MC1ncGlvIiwgNCwgImdwaW8uNCIsIEdQSU9fQUNUSVZFX0hJR0gpLA0KPiA+
-ICsgICAgICAgICAgICAgICAgIEdQSU9fTE9PS1VQKCJ0cHM2ODQ3MC1ncGlvIiwgNSwgImdwaW8u
-NSIsIEdQSU9fQUNUSVZFX0hJR0gpLA0KPiA+ICsgICAgICAgICAgICAgICAgIEdQSU9fTE9PS1VQ
-KCJ0cHM2ODQ3MC1ncGlvIiwgNiwgImdwaW8uNiIsIEdQSU9fQUNUSVZFX0hJR0gpLA0KPiA+ICsg
-ICAgICAgICAgICAgICAgIEdQSU9fTE9PS1VQKCJ0cHM2ODQ3MC1ncGlvIiwgNywgInNfZW5hYmxl
-IiwNCj4gR1BJT19BQ1RJVkVfSElHSCksDQo+ID4gKyAgICAgICAgICAgICAgICAgR1BJT19MT09L
-VVAoInRwczY4NDcwLWdwaW8iLCA4LCAic19pZGxlIiwgR1BJT19BQ1RJVkVfSElHSCksDQo+ID4g
-KyAgICAgICAgICAgICAgICAgR1BJT19MT09LVVAoInRwczY4NDcwLWdwaW8iLCA5LCAic19yZXNl
-dG4iLA0KPiBHUElPX0FDVElWRV9ISUdIKSwNCj4gPiArICAgICAgICAgICAgICAgICB7fSwNCj4g
-PiArICAgICAgIH0sDQo+ID4gK307DQo+IA0KPiBIbSB0aGF0J3Mgd2h5IHlvdSBpbmNsdWRlIDxs
-aW51eC9ncGlvL21hY2hpbmUuaD4gSSBndWVzcy4NCj4gDQoNCkFjaw0KDQo+IFRoaXMgd2FycmFu
-dHMgYSBiaWcgY29tbWVudCBhYm92ZSBpdCBleHBsYWluaW5nIHdoeSB0aGlzIGlzIGRvbmUgbGlr
-ZSB0aGF0IGFuZA0KPiB3aGF0IHRoZSB1c2UgaXMgaW5zaWRlIGFueSBzeXN0ZW0gd2l0aCB0aGlz
-IGNoaXAgbW91bnRlZC4NCj4gDQoNCkFjaw0KSSBoYXZlIGFkZGVkIGNvbW1lbnRzIGluIHRoZSBN
-RkQgZHJpdmVyLCBpbnNpZGUgd2hpY2ggdGhlIGxvb2t1cCB0YWJsZSBoYXMgbW92ZWQuDQoNCj4g
-PiArICAgICAgIHRwczY4NDcwX2dwaW8tPmdjLmxhYmVsID0gInRwczY4NDcwLWdwaW8iOw0KPiA+
-ICsgICAgICAgdHBzNjg0NzBfZ3Bpby0+Z2Mub3duZXIgPSBUSElTX01PRFVMRTsNCj4gPiArICAg
-ICAgIHRwczY4NDcwX2dwaW8tPmdjLmRpcmVjdGlvbl9pbnB1dCA9IHRwczY4NDcwX2dwaW9faW5w
-dXQ7DQo+ID4gKyAgICAgICB0cHM2ODQ3MF9ncGlvLT5nYy5kaXJlY3Rpb25fb3V0cHV0ID0gdHBz
-Njg0NzBfZ3Bpb19vdXRwdXQ7DQo+IA0KPiBQbGVhc2UgaW1wbGVtZW50IC5nZXRfZGlyZWN0aW9u
-KCkNCj4gDQoNCkFjaw0KDQo+ID4gKyAgICAgICB0cHM2ODQ3MF9ncGlvLT5nYy5nZXQgPSB0cHM2
-ODQ3MF9ncGlvX2dldDsNCj4gPiArICAgICAgIHRwczY4NDcwX2dwaW8tPmdjLnNldCA9IHRwczY4
-NDcwX2dwaW9fc2V0Ow0KPiA+ICsgICAgICAgdHBzNjg0NzBfZ3Bpby0+Z2MuY2FuX3NsZWVwID0g
-dHJ1ZTsNCj4gPiArICAgICAgIHRwczY4NDcwX2dwaW8tPmdjLm5ncGlvID0gVFBTNjg0NzBfTl9H
-UElPOw0KPiA+ICsgICAgICAgdHBzNjg0NzBfZ3Bpby0+Z2MuYmFzZSA9IC0xOw0KPiA+ICsgICAg
-ICAgdHBzNjg0NzBfZ3Bpby0+Z2MucGFyZW50ID0gJnBkZXYtPmRldjsNCj4gDQo+IENvbnNpZGVy
-IGFzc2lnbmluZyB0aGUgLm5hbWVzKCkgYXJyYXkgc29tZSBzZW5zaWJsZSBsaW5lIG5hbWVzLg0K
-PiANCg0KQWNrDQoNCj4gPiArc3RhdGljIGludCB0cHM2ODQ3MF9ncGlvX3JlbW92ZShzdHJ1Y3Qg
-cGxhdGZvcm1fZGV2aWNlICpwZGV2KSB7DQo+ID4gKyAgICAgICBzdHJ1Y3QgdHBzNjg0NzBfZ3Bp
-b19kYXRhICp0cHM2ODQ3MF9ncGlvID0NCj4gPiArcGxhdGZvcm1fZ2V0X2RydmRhdGEocGRldik7
-DQo+ID4gKw0KPiA+ICsgICAgICAgZ3Bpb2RfcmVtb3ZlX2xvb2t1cF90YWJsZSgmZ3Bpb3NfdGFi
-bGUpOw0KPiA+ICsgICAgICAgZ3Bpb2NoaXBfcmVtb3ZlKCZ0cHM2ODQ3MF9ncGlvLT5nYyk7DQo+
-IA0KPiBZb3UgY2FuJ3QgdXNlIGRldm1fZ3Bpb2NoaXBfYWRkKCk/DQo+IA0KDQpPcmlnaW5hbGx5
-IEkgY291bGRuJ3QsIGJlY2F1c2UgdGhlIGRyaXZlciBjYW4gbm90IHJlbW92ZSB0aGUgbG9va3Vw
-IHRhYmxlIHVwb24gZXhpdC9yZW1vdmFsLiBJIG1vdmVkIHRoaXMgY29kZSBpbnNpZGUgdGhlIE1G
-RCBkcml2ZXIsIHdoaWNoIGlzIG1vZGlmaWVkIHRvIHVzZSAuc2h1dGRvd24oKSB0byByZW1vdmUg
-dGhlIGxvb2t1cCB0YWJsZSwgc28gaXQgY2FuIHVzZSBkZXZfbWZkXyogY2FsbC4NCg0K
+This is the patch series for TPS68470 PMIC that works as a camera PMIC.
+
+The patch series provide the following 3 drivers, to help configure
+the voltage regulators, clocks and GPIOs provided by the TPS68470
+PMIC, to be able to use the camera sensors connected to this PMIC.
+
+TPS68470 MFD driver:
+This is the multi function driver that initializes the TPS68470
+PMIC and supports the GPIO and Op Region functions.
+
+TPS68470 GPIO driver:
+This is the PMIC GPIO driver that will be used by the OS GPIO layer,
+when the BIOS / firmware triggered GPIO access is done.
+
+TPS68470 Op Region driver:
+This is the driver that will be invoked, when the BIOS / firmware
+configures the voltage / clock for the sensors / vcm devices
+connected to the PMIC.
+
+---
+Changes in v2:
+	- MFD driver:
+	- Removed tps68470_* wrappers around regmap_* calls
+	- Removed "struct tps68470"
+	- used devm_mfd_add_devices and removed mutex in mfd driver
+	- Added reasoning about the need of having mfd driver
+	  as bool/builtin
+
+	- Opregion driver:
+	- renamed opregion driver file / internal symbol names
+	  with tps68470_pmic*
+	- Made opregion driver tables as const
+	- Removed unused *handler_context in common handler
+	- Replaced "int" with "unsigned int"
+	- Changed to WARN macro to dev_warn()
+	- Destroyed mutex on error
+	- Added reasoning about the need of having Opregion driver
+	  as bool/builtin
+	
+	- GPIO driver:
+	- Implemented get_direction() in the GPIO driver
+	- Setup gpio_chip.names
+	- Moved the GPIO lookup table code inside mfd driver
+	- Added reasoning about the need of having GPIO driver
+	  as bool/builtin
+
+---
+
+Rajmohan Mani (3):
+  mfd: Add new mfd device TPS68470
+  gpio: Add support for TPS68470 GPIOs
+  ACPI / PMIC: Add TI PMIC TPS68470 operation region driver
+
+ drivers/acpi/Kconfig              |  15 ++
+ drivers/acpi/Makefile             |   2 +
+ drivers/acpi/pmic/tps68470_pmic.c | 456 ++++++++++++++++++++++++++++++++++++++
+ drivers/gpio/Kconfig              |  14 ++
+ drivers/gpio/Makefile             |   1 +
+ drivers/gpio/gpio-tps68470.c      | 186 ++++++++++++++++
+ drivers/mfd/Kconfig               |  18 ++
+ drivers/mfd/Makefile              |   1 +
+ drivers/mfd/tps68470.c            | 192 ++++++++++++++++
+ include/linux/mfd/tps68470.h      | 144 ++++++++++++
+ 10 files changed, 1029 insertions(+)
+ create mode 100644 drivers/acpi/pmic/tps68470_pmic.c
+ create mode 100644 drivers/gpio/gpio-tps68470.c
+ create mode 100644 drivers/mfd/tps68470.c
+ create mode 100644 include/linux/mfd/tps68470.h
+
+-- 
+1.9.1
