@@ -1,256 +1,126 @@
-From: Rajmohan Mani <rajmohan.mani@intel.com>
-Subject: [PATCH v2 2/3] gpio: Add support for TPS68470 GPIOs
-Date: Sat, 10 Jun 2017 23:09:54 -0700
-Message-ID: <1497161395-36504-3-git-send-email-rajmohan.mani@intel.com>
-References: <1497161395-36504-1-git-send-email-rajmohan.mani@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1497161395-36504-1-git-send-email-rajmohan.mani@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rajmohan Mani <rajmohan.mani@intel.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v1 2/3] gpio: Add support for TPS68470 GPIOs
+Date: Sun, 11 Jun 2017 14:30:07 +0300
+Message-ID: <20170611113007.GV1019@valkosipuli.retiisi.org.uk>
+References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
+ <1496750118-5570-3-git-send-email-rajmohan.mani@intel.com>
+ <CAHp75Vc6PSDqc=Vxj2z-d49p+E-7tciunhki=8a7HPjQGuSwXQ@mail.gmail.com>
+ <6F87890CF0F5204F892DEA1EF0D77A59725BF110@FMSMSX114.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A59725BF110@FMSMSX114.amr.corp.intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds support for TPS68470 GPIOs.
-There are 7 GPIOs and a few sensor related GPIOs.
-These GPIOs can be requested and configured as
-appropriate.
+Hi Rajmohan and Andy,
 
-Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
----
- drivers/gpio/Kconfig         |  14 ++++
- drivers/gpio/Makefile        |   1 +
- drivers/gpio/gpio-tps68470.c | 186 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 201 insertions(+)
- create mode 100644 drivers/gpio/gpio-tps68470.c
+On Sun, Jun 11, 2017 at 03:49:18AM +0000, Mani, Rajmohan wrote:
+> Hi Andy,
+> 
+> Thanks for the reviews and patience.
+> 
+> > 
+> > On Tue, Jun 6, 2017 at 2:55 PM, Rajmohan Mani <rajmohan.mani@intel.com>
+> > wrote:
+> > > This patch adds support for TPS68470 GPIOs.
+> > > There are 7 GPIOs and a few sensor related GPIOs.
+> > > These GPIOs can be requested and configured as appropriate.
+> > 
+> > Besides my below comments, just put it here that I recommended earlier to
+> > provide 2 GPIO chips (one per bank of GPIOs).
+> > It's up to Linus to decide since you didn't follow the recommendation.
+> > 
+> 
+> Ack.
+> Did you mean to add this in Kconfig or this source file?
+> 
+> Here's some more details on these GPIOs.
+> Each of these 7 GPIOs has 2 registers to control the mode, level, drive strength, polarity, hysteresis control among other things. Also there are GPDI and GPDO registers to control the input and output values of these 7 GPIOs. These GPIOs are numbered 0 through 6.
+> The remaining 3 GPIOs are more of special purpose GPIOs that are output only, with one register to control all of their output values and drive strengths. These GPIOs are named with a special purpose (ENABLE, IDLE and RESET of the sensor).
+> 
+> > > +#include <linux/gpio.h>
+> > > +#include <linux/gpio/machine.h>
+> > 
+> > These shouldn't be in the driver.
+> > Instead use
+> > #include <linux/gpio/driver.h>
+> > 
+> 
+> Ack
+> 
+> > > +#include <linux/mfd/tps68470.h>
+> > > +#include <linux/module.h>
+> > > +#include <linux/platform_device.h>
+> > 
+> > > +       if (offset >= TPS68470_N_REGULAR_GPIO) {
+> > > +               offset -= TPS68470_N_REGULAR_GPIO;
+> > > +               reg = TPS68470_REG_SGPO;
+> > > +       }
+> > 
+> > Two GPIO chips makes this gone.
 
-diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-index 23ca51e..9ba647e 100644
---- a/drivers/gpio/Kconfig
-+++ b/drivers/gpio/Kconfig
-@@ -1041,6 +1041,20 @@ config GPIO_TPS65912
- 	help
- 	  This driver supports TPS65912 gpio chip
- 
-+config GPIO_TPS68470
-+	bool "TPS68470 GPIO"
-+	depends on MFD_TPS68470
-+	help
-+	  Select this option to enable GPIO driver for the TPS68470
-+	  chip family.
-+	  There are 7 GPIOs and few sensor related GPIOs supported
-+	  by the TPS68470. While the 7 GPIOs can be configured as
-+	  input or output as appropriate, the sensor related GPIOs
-+	  are "output only" GPIOs.
-+
-+	  This driver config is bool, as the GPIO functionality
-+	  of the TPS68470 must be available before dependent
-+	  drivers are loaded.
- config GPIO_TWL4030
- 	tristate "TWL4030, TWL5030, and TPS659x0 GPIOs"
- 	depends on TWL4030_CORE
-diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
-index 68b9627..a2659cb 100644
---- a/drivers/gpio/Makefile
-+++ b/drivers/gpio/Makefile
-@@ -120,6 +120,7 @@ obj-$(CONFIG_GPIO_TPS65218)	+= gpio-tps65218.o
- obj-$(CONFIG_GPIO_TPS6586X)	+= gpio-tps6586x.o
- obj-$(CONFIG_GPIO_TPS65910)	+= gpio-tps65910.o
- obj-$(CONFIG_GPIO_TPS65912)	+= gpio-tps65912.o
-+obj-$(CONFIG_GPIO_TPS68470)	+= gpio-tps68470.o
- obj-$(CONFIG_GPIO_TS4800)	+= gpio-ts4800.o
- obj-$(CONFIG_GPIO_TS4900)	+= gpio-ts4900.o
- obj-$(CONFIG_GPIO_TS5500)	+= gpio-ts5500.o
-diff --git a/drivers/gpio/gpio-tps68470.c b/drivers/gpio/gpio-tps68470.c
-new file mode 100644
-index 0000000..548eea9
---- /dev/null
-+++ b/drivers/gpio/gpio-tps68470.c
-@@ -0,0 +1,186 @@
-+/*
-+ * GPIO driver for TPS68470 PMIC
-+ *
-+ * Copyright (C) 2017 Intel Corporation
-+ * Authors:
-+ * Antti Laakso <antti.laakso@intel.com>
-+ * Tianshu Qiu <tian.shu.qiu@intel.com>
-+ * Jian Xu Zheng <jian.xu.zheng@intel.com>
-+ * Yuning Pu <yuning.pu@intel.com>
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/gpio/driver.h>
-+#include <linux/mfd/tps68470.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+
-+#define TPS68470_N_LOGIC_OUTPUT	3
-+#define TPS68470_N_REGULAR_GPIO	7
-+#define TPS68470_N_GPIO	(TPS68470_N_LOGIC_OUTPUT + TPS68470_N_REGULAR_GPIO)
-+
-+struct tps68470_gpio_data {
-+	struct regmap *tps68470_regmap;
-+	struct gpio_chip gc;
-+};
-+
-+static inline struct tps68470_gpio_data *to_gpio_data(struct gpio_chip *gpiochp)
-+{
-+	return container_of(gpiochp, struct tps68470_gpio_data, gc);
-+}
-+
-+static int tps68470_gpio_get(struct gpio_chip *gc, unsigned int offset)
-+{
-+	struct tps68470_gpio_data *tps68470_gpio = to_gpio_data(gc);
-+	struct regmap *regmap = tps68470_gpio->tps68470_regmap;
-+	unsigned int reg = TPS68470_REG_GPDO;
-+	int val, ret;
-+
-+	if (offset >= TPS68470_N_REGULAR_GPIO) {
-+		offset -= TPS68470_N_REGULAR_GPIO;
-+		reg = TPS68470_REG_SGPO;
-+	}
-+
-+	ret = regmap_read(regmap, reg, &val);
-+	if (ret) {
-+		dev_err(tps68470_gpio->gc.parent, "reg 0x%x read failed\n",
-+			TPS68470_REG_SGPO);
-+		return ret;
-+	}
-+	return !!(val & BIT(offset));
-+}
-+
-+/* Return 0 if output, 1 if input */
-+static int tps68470_gpio_get_direction(struct gpio_chip *gc,
-+				       unsigned int offset)
-+{
-+	struct tps68470_gpio_data *tps68470_gpio = to_gpio_data(gc);
-+	struct regmap *regmap = tps68470_gpio->tps68470_regmap;
-+	int val, ret;
-+
-+	/* rest are always outputs */
-+	if (offset >= TPS68470_N_REGULAR_GPIO)
-+		return 0;
-+
-+	ret = regmap_read(regmap, TPS68470_GPIO_CTL_REG_A(offset), &val);
-+	if (ret) {
-+		dev_err(tps68470_gpio->gc.parent, "reg 0x%x read failed\n",
-+			TPS68470_GPIO_CTL_REG_A(offset));
-+		return ret;
-+	}
-+
-+	val &= TPS68470_GPIO_MODE_MASK;
-+	return val >= TPS68470_GPIO_MODE_OUT_CMOS ? 0 : 1;
-+}
-+
-+static void tps68470_gpio_set(struct gpio_chip *gc, unsigned int offset,
-+				int value)
-+{
-+	struct tps68470_gpio_data *tps68470_gpio = to_gpio_data(gc);
-+	struct regmap *regmap = tps68470_gpio->tps68470_regmap;
-+	unsigned int reg = TPS68470_REG_GPDO;
-+
-+	if (offset >= TPS68470_N_REGULAR_GPIO) {
-+		reg = TPS68470_REG_SGPO;
-+		offset -= TPS68470_N_REGULAR_GPIO;
-+	}
-+
-+	regmap_update_bits(regmap, reg, BIT(offset), value ? BIT(offset) : 0);
-+}
-+
-+static int tps68470_gpio_output(struct gpio_chip *gc, unsigned int offset,
-+				int value)
-+{
-+	struct tps68470_gpio_data *tps68470_gpio = to_gpio_data(gc);
-+	struct regmap *regmap = tps68470_gpio->tps68470_regmap;
-+
-+	/* rest are always outputs */
-+	if (offset >= TPS68470_N_REGULAR_GPIO)
-+		return 0;
-+
-+	/* Set the initial value */
-+	tps68470_gpio_set(gc, offset, value);
-+
-+	return regmap_update_bits(regmap, TPS68470_GPIO_CTL_REG_A(offset),
-+				 TPS68470_GPIO_MODE_MASK,
-+				 TPS68470_GPIO_MODE_OUT_CMOS);
-+}
-+
-+static int tps68470_gpio_input(struct gpio_chip *gc, unsigned int offset)
-+{
-+	struct tps68470_gpio_data *tps68470_gpio = to_gpio_data(gc);
-+	struct regmap *regmap = tps68470_gpio->tps68470_regmap;
-+
-+	/* rest are always outputs */
-+	if (offset >= TPS68470_N_REGULAR_GPIO)
-+		return -EINVAL;
-+
-+	return regmap_update_bits(regmap, TPS68470_GPIO_CTL_REG_A(offset),
-+				   TPS68470_GPIO_MODE_MASK, 0x00);
-+}
-+
-+static const char *tps68470_names[TPS68470_N_GPIO] = {
-+	"gpio.0", "gpio.1", "gpio.2", "gpio.3",
-+	"gpio.4", "gpio.5", "gpio.6",
-+	"s_enable", "s_idle", "s_resetn",
-+};
-+
-+static int tps68470_gpio_probe(struct platform_device *pdev)
-+{
-+	struct tps68470_gpio_data *tps68470_gpio;
-+	int i, ret;
-+
-+	tps68470_gpio = devm_kzalloc(&pdev->dev, sizeof(*tps68470_gpio),
-+				     GFP_KERNEL);
-+	if (!tps68470_gpio)
-+		return -ENOMEM;
-+
-+	tps68470_gpio->tps68470_regmap = dev_get_drvdata(pdev->dev.parent);
-+	tps68470_gpio->gc.label = "tps68470-gpio";
-+	tps68470_gpio->gc.owner = THIS_MODULE;
-+	tps68470_gpio->gc.direction_input = tps68470_gpio_input;
-+	tps68470_gpio->gc.direction_output = tps68470_gpio_output;
-+	tps68470_gpio->gc.get = tps68470_gpio_get;
-+	tps68470_gpio->gc.get_direction = tps68470_gpio_get_direction;
-+	tps68470_gpio->gc.set = tps68470_gpio_set;
-+	tps68470_gpio->gc.can_sleep = true;
-+	tps68470_gpio->gc.names = tps68470_names;
-+	tps68470_gpio->gc.ngpio = TPS68470_N_GPIO;
-+	tps68470_gpio->gc.base = -1;
-+	tps68470_gpio->gc.parent = &pdev->dev;
-+
-+	ret = devm_gpiochip_add_data(&pdev->dev, &tps68470_gpio->gc, NULL);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "Failed to register gpio_chip: %d\n", ret);
-+		return ret;
-+	}
-+
-+	platform_set_drvdata(pdev, tps68470_gpio);
-+
-+	/*
-+	 * Initialize all the GPIOs to 0, just to make sure all
-+	 * GPIOs start with known default values. This protects against
-+	 * any GPIOs getting set with a value of 1, after TPS68470 reset
-+	 */
-+	for (i = 0; i < tps68470_gpio->gc.ngpio; i++)
-+		tps68470_gpio_set(&tps68470_gpio->gc, i, 0);
-+
-+	return ret;
-+}
-+
-+static struct platform_driver tps68470_gpio_driver = {
-+	.driver = {
-+		   .name = "tps68470-gpio",
-+	},
-+	.probe = tps68470_gpio_probe,
-+};
-+
-+builtin_platform_driver(tps68470_gpio_driver)
+Again, I'm not really worried about this driver, but the ACPI tables. How
+does the difference show there?
+
+The outputs (s_enable, s_idle and s_resetn) are not numbered in the
+documentation. There grouped, though, but the order in that grouping varies.
+
+> > > +struct gpiod_lookup_table gpios_table = {
+> > > +       .dev_id = NULL,
+> > > +       .table = {
+> > > +                 GPIO_LOOKUP("tps68470-gpio", 0, "gpio.0", GPIO_ACTIVE_HIGH),
+> > > +                 GPIO_LOOKUP("tps68470-gpio", 1, "gpio.1", GPIO_ACTIVE_HIGH),
+> > > +                 GPIO_LOOKUP("tps68470-gpio", 2, "gpio.2", GPIO_ACTIVE_HIGH),
+> > > +                 GPIO_LOOKUP("tps68470-gpio", 3, "gpio.3", GPIO_ACTIVE_HIGH),
+> > > +                 GPIO_LOOKUP("tps68470-gpio", 4, "gpio.4", GPIO_ACTIVE_HIGH),
+> > > +                 GPIO_LOOKUP("tps68470-gpio", 5, "gpio.5", GPIO_ACTIVE_HIGH),
+> > > +                 GPIO_LOOKUP("tps68470-gpio", 6, "gpio.6", GPIO_ACTIVE_HIGH),
+> > > +                 GPIO_LOOKUP("tps68470-gpio", 7, "s_enable",
+> > GPIO_ACTIVE_HIGH),
+> > > +                 GPIO_LOOKUP("tps68470-gpio", 8, "s_idle", GPIO_ACTIVE_HIGH),
+> > > +                 GPIO_LOOKUP("tps68470-gpio", 9, "s_resetn",
+> > GPIO_ACTIVE_HIGH),
+> > > +                 {},
+> > > +       },
+> > > +};
+> > 
+> > This doesn't belong to the driver.
+> > 
+> 
+> Ack
+> I have moved this code to the MFD driver
+
+This information should come from the ACPI tables, it should not be present
+in drivers. Why do you need it?
+
+> > > +       /*
+> > > +        * Initialize all the GPIOs to 0, just to make sure all
+> > > +        * GPIOs start with known default values. This protects against
+> > > +        * any GPIOs getting set with a value of 1, after TPS68470
+> > > + reset
+> > 
+> > So, this is hardware bug. Right? Or misconfiguration of the chip we may avoid?
+> > 
+> 
+> The tps68470 PMIC upon reset, does not have the "power on reset" values.
+> We just initialize the GPIOs with their known default values.
+
+If that was the case, I bet you could expect interesting behaviour from the
+hardware connected to these pins.
+
+For what it's worth, the chip documentation states that the reset value for
+the SGPO and GPDO registers is zero, as well as that GPIOs are configured as
+input and the reset value of the s_* outputs is low.
+
+In other words, I don't think that explicitly setting the values to zero has
+an effect.
+
 -- 
-1.9.1
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
