@@ -1,105 +1,356 @@
-From: <webmaster@lancashirebeekeepers.org.uk>
-Subject: (unknown)
-Date: Mon, 12 Jun 2017 07:28:25 -0000
-Message-ID: <149725250505.23067.15933145710667221075@vnpt.vn>
+From: Jayachandran C <jnair-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
+Subject: Re: Fwd: [PATCH v7 2/3] iommu/arm-smmu-v3: Add workaround for Cavium
+	ThunderX2 erratum #74
+Date: Mon, 12 Jun 2017 08:12:00 +0000
+Message-ID: <20170612081158.GA2435@localhost>
+References: <1496145821-3411-1-git-send-email-gakula@caviumnetworks.com>
+	<1496145821-3411-3-git-send-email-gakula@caviumnetworks.com>
+	<9263562d-03a3-d02e-6b7e-01613a4bd296@arm.com>
+	<CA+7sy7C_44dTy0-nAE=b5BCXmc8ACQx2O6A1jCOCsemZDD5j4w@mail.gmail.com>
+	<20170609113832.GB106079@localhost>
+	<ee0fb6c3-1c5c-f6d1-b063-ead8102d0c67@arm.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="24874228775.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static.vnpt.vn ([14.162.199.253]:39115 "HELO vnpt.vn"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1752311AbdFLH23 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Jun 2017 03:28:29 -0400
-Content-Disposition: attachment
-Subject: 
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <ee0fb6c3-1c5c-f6d1-b063-ead8102d0c67-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-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
-AQABAFkAAADFEgAAAAA=
+On Fri, Jun 09, 2017 at 04:43:07PM +0100, Robin Murphy wrote:
+> On 09/06/17 12:38, Jayachandran C wrote:
+> > On Fri, Jun 09, 2017 Robin Murphy wrote:
+> >>
+> >> On 30/05/17 13:03, Geetha sowjanya wrote:
+> >>> From: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> >>>
+> >>> Cavium ThunderX2 SMMU implementation doesn't support page 1 register space
+> >>> and PAGE0_REGS_ONLY option is enabled as an errata workaround.
+> >>> This option when turned on, replaces all page 1 offsets used for
+> >>> EVTQ_PROD/CONS, PRIQ_PROD/CONS register access with page 0 offsets.
+> >>>
+> >>> SMMU resource size checks are now based on SMMU option PAGE0_REGS_ONLY,
+> >>> since resource size can be either 64k/128k.
+> >>> For this, arm_smmu_device_dt_probe/acpi_probe has been moved before
+> >>> platform_get_resource call, so that SMMU options are set beforehand.
+> >>>
+> >>> Signed-off-by: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> >>> Signed-off-by: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> >>> ---
+> >>>  Documentation/arm64/silicon-errata.txt             |    1 +
+> >>>  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    6 ++
+> >>>  drivers/iommu/arm-smmu-v3.c                        |   64 +++++++++++++++-----
+> >>>  3 files changed, 56 insertions(+), 15 deletions(-)
+> >>>
+> >>> diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
+> >>> index 10f2ddd..4693a32 100644
+> >>> --- a/Documentation/arm64/silicon-errata.txt
+> >>> +++ b/Documentation/arm64/silicon-errata.txt
+> >>> @@ -62,6 +62,7 @@ stable kernels.
+> >>>  | Cavium         | ThunderX GICv3  | #23154          | CAVIUM_ERRATUM_23154        |
+> >>>  | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
+> >>>  | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
+> >>> +| Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
+> >>>  |                |                 |                 |                             |
+> >>>  | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
+> >>>  |                |                 |                 |                             |
+> >>> diff --git a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
+> >>> index be57550..607e270 100644
+> >>> --- a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
+> >>> +++ b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
+> >>> @@ -49,6 +49,12 @@ the PCIe specification.
+> >>>  - hisilicon,broken-prefetch-cmd
+> >>>                      : Avoid sending CMD_PREFETCH_* commands to the SMMU.
+> >>>
+> >>> +- cavium,cn9900-broken-page1-regspace
+> >>> +                    : Replaces all page 1 offsets used for EVTQ_PROD/CONS,
+> >>> +                                             PRIQ_PROD/CONS register access with page 0 offsets.
+> >>> +                                             Set for Caviun ThunderX2 silicon that doesn't support
+> >>> +                                             SMMU page1 register space.
+> >>
+> >> The indentation's a bit funky here - the rest of this file is actually
+> >> indented with spaces, but either way it's clear your editor isn't set to
+> >> 8-space tabs ;)
+> >>
+> >>> +
+> >>>  ** Example
+> >>>
+> >>>          smmu@2b400000 {
+> >>> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+> >>> index 380969a..4e80205 100644
+> >>> --- a/drivers/iommu/arm-smmu-v3.c
+> >>> +++ b/drivers/iommu/arm-smmu-v3.c
+> >>> @@ -412,6 +412,9 @@
+> >>>  #define MSI_IOVA_BASE                        0x8000000
+> >>>  #define MSI_IOVA_LENGTH                      0x100000
+> >>>
+> >>> +#define ARM_SMMU_PAGE0_REGS_ONLY(smmu)               \
+> >>> +     ((smmu)->options & ARM_SMMU_OPT_PAGE0_REGS_ONLY)
+> >>
+> >> At the two places we use this macro, frankly I think it would be clearer
+> >> to just reference smmu->options directly, as we currently do for
+> >> SKIP_PREFETCH. The abstraction also adds more lines than it saves...
+> >>
+> >>> +
+> >>>  static bool disable_bypass;
+> >>>  module_param_named(disable_bypass, disable_bypass, bool, S_IRUGO);
+> >>>  MODULE_PARM_DESC(disable_bypass,
+> >>> @@ -597,6 +600,7 @@ struct arm_smmu_device {
+> >>>       u32                             features;
+> >>>
+> >>>  #define ARM_SMMU_OPT_SKIP_PREFETCH   (1 << 0)
+> >>> +#define ARM_SMMU_OPT_PAGE0_REGS_ONLY    (1 << 1)
+> >>
+> >> Whitespace again, although this time it's spaces where there should be a
+> >> tab.
+> >>
+> >>>       u32                             options;
+> >>>
+> >>>       struct arm_smmu_cmdq            cmdq;
+> >>> @@ -663,9 +667,19 @@ struct arm_smmu_option_prop {
+> >>>
+> >>>  static struct arm_smmu_option_prop arm_smmu_options[] = {
+> >>>       { ARM_SMMU_OPT_SKIP_PREFETCH, "hisilicon,broken-prefetch-cmd" },
+> >>> +     { ARM_SMMU_OPT_PAGE0_REGS_ONLY, "cavium,cn9900-broken-page1-regspace"},
+> >>>       { 0, NULL},
+> >>>  };
+> >>>
+> >>> +static inline void __iomem *arm_smmu_page1_fixup(unsigned long offset,
+> >>> +                                              struct arm_smmu_device *smmu)
+> >>> +{
+> >>> +     if (offset > SZ_64K && ARM_SMMU_PAGE0_REGS_ONLY(smmu))
+> >>> +             offset -= SZ_64K;
+> >>> +
+> >>> +     return smmu->base + offset;
+> >>> +}
+> >>> +
+> >>>  static struct arm_smmu_domain *to_smmu_domain(struct iommu_domain *dom)
+> >>>  {
+> >>>       return container_of(dom, struct arm_smmu_domain, domain);
+> >>> @@ -1961,8 +1975,8 @@ static int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
+> >>>               return -ENOMEM;
+> >>>       }
+> >>>
+> >>> -     q->prod_reg     = smmu->base + prod_off;
+> >>> -     q->cons_reg     = smmu->base + cons_off;
+> >>> +     q->prod_reg     = arm_smmu_page1_fixup(prod_off, smmu);
+> >>> +     q->cons_reg     = arm_smmu_page1_fixup(cons_off, smmu);
+> >>>       q->ent_dwords   = dwords;
+> >>>
+> >>>       q->q_base  = Q_BASE_RWA;
+> >>> @@ -2363,8 +2377,10 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
+> >>>
+> >>>       /* Event queue */
+> >>>       writeq_relaxed(smmu->evtq.q.q_base, smmu->base + ARM_SMMU_EVTQ_BASE);
+> >>> -     writel_relaxed(smmu->evtq.q.prod, smmu->base + ARM_SMMU_EVTQ_PROD);
+> >>> -     writel_relaxed(smmu->evtq.q.cons, smmu->base + ARM_SMMU_EVTQ_CONS);
+> >>> +     writel_relaxed(smmu->evtq.q.prod,
+> >>> +                    arm_smmu_page1_fixup(ARM_SMMU_EVTQ_PROD, smmu));
+> >>> +     writel_relaxed(smmu->evtq.q.cons,
+> >>> +                    arm_smmu_page1_fixup(ARM_SMMU_EVTQ_CONS, smmu));
+> > 
+> > This sequence and the arm_smmu_page1_fixup() call is repeated in quite a few
+> > places. I think this errata code is messy because the original driver does not
+> > make the alias page usage explicit.
+> 
+> It *is* explicit - the architecture says the event queue and PRI queue
+> pointers exist only on page 1, and that is the offset we define for
+> them. The architecture also says "The equivalent Page 0 offsets of
+> registers that are defined on Page 1 are Reserved and ARM recommends
+> that they are not accessed. Access to these offsets is CONSTRAINED
+> UNPREDICTABLE..."
+ 
+Ok. The patch makes the page used for producer/consumer queue registers
+explicit fo cmdq (page 0) and the eventq/priq(page1). There is no suggestion
+here to use page 0 address for eventq/priq.
+
+> This workaround is a bodge dependent on a specific implementation always
+> having a specific CONSTRAINED UNPREDICTABLE behaviour, and I see no
+> point in trying to dress it up as anything else. Yes, it could be
+> considered a little bit messy, but messy is what you get when you step
+> outside the spec. The fixup is invoked a grand total of 6 times, over 3
+> locations, and there's no way of factoring it out further that doesn't
+> just add significantly more code and complexity than it would save.
+ 
+With the changes below, the fixup are simpler and will be needed only in
+2 places - and it gets the hardware init repeated 3 times in the driver
+into a single place. That bikeshed will look real nice :)
+
+JC.
+
+> 
+> > A patch like the one below (no functional changes) would clean up the original
+> > driver and make the errata change much simpler - any comments?
+> > 
+> > -- >8 --
+> > 
+> > Date: Tue, 30 May 2017 15:43:29 +0000
+> > Subject: [PATCH] iommu: arm-smmu-v3: make alias page usage explicit
+> > 
+> > ---
+> >  drivers/iommu/arm-smmu-v3.c | 76 +++++++++++++++++++++++++++------------------
+> >  1 file changed, 46 insertions(+), 30 deletions(-)
+> > 
+> > diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+> > index 380969a..11fdb4f 100644
+> > --- a/drivers/iommu/arm-smmu-v3.c
+> > +++ b/drivers/iommu/arm-smmu-v3.c
+> > @@ -171,20 +171,19 @@
+> >  #define STRTAB_BASE_CFG_FMT_LINEAR	(0 << STRTAB_BASE_CFG_FMT_SHIFT)
+> >  #define STRTAB_BASE_CFG_FMT_2LVL	(1 << STRTAB_BASE_CFG_FMT_SHIFT)
+> >  
+> > +#define ARM_SMMU_Q_PROD(qbase)		((qbase) + 0x8)
+> > +#define ARM_SMMU_Q_PROD_PAGE1(qbase)	((qbase) + 0x10008)
+> > +#define ARM_SMMU_Q_CONS(qbase)		((qbase) + 0xc)
+> > +#define ARM_SMMU_Q_CONS_PAGE1(qbase)	((qbase) + 0x1000c)
+> > +
+> >  #define ARM_SMMU_CMDQ_BASE		0x90
+> > -#define ARM_SMMU_CMDQ_PROD		0x98
+> > -#define ARM_SMMU_CMDQ_CONS		0x9c
+> >  
+> >  #define ARM_SMMU_EVTQ_BASE		0xa0
+> > -#define ARM_SMMU_EVTQ_PROD		0x100a8
+> > -#define ARM_SMMU_EVTQ_CONS		0x100ac
+> >  #define ARM_SMMU_EVTQ_IRQ_CFG0		0xb0
+> >  #define ARM_SMMU_EVTQ_IRQ_CFG1		0xb8
+> >  #define ARM_SMMU_EVTQ_IRQ_CFG2		0xbc
+> >  
+> >  #define ARM_SMMU_PRIQ_BASE		0xc0
+> > -#define ARM_SMMU_PRIQ_PROD		0x100c8
+> > -#define ARM_SMMU_PRIQ_CONS		0x100cc
+> >  #define ARM_SMMU_PRIQ_IRQ_CFG0		0xd0
+> >  #define ARM_SMMU_PRIQ_IRQ_CFG1		0xd8
+> >  #define ARM_SMMU_PRIQ_IRQ_CFG2		0xdc
+> > @@ -1946,11 +1945,30 @@ static struct iommu_ops arm_smmu_ops = {
+> >  };
+> >  
+> >  /* Probing and initialisation functions */
+> > +static int arm_smmu_reset_one_queue(struct arm_smmu_device *smmu,
+> > +				    struct arm_smmu_queue *q,
+> > +				    unsigned long qoffset,
+> > +				    int page_to_use)
+> > +{
+> > +	unsigned long prod, cons;
+> > +
+> > +	writeq_relaxed(q->q_base, smmu->base + qoffset);
+> > +	if (page_to_use == 1) {
+> > +		prod = ARM_SMMU_Q_PROD_PAGE1(qoffset);
+> > +		cons = ARM_SMMU_Q_CONS_PAGE1(qoffset);
+> > +	} else {
+> > +		prod = ARM_SMMU_Q_PROD(qoffset);
+> > +		cons = ARM_SMMU_Q_CONS(qoffset);
+> > +	}
+> > +	writeq_relaxed(q->prod, smmu->base + prod);
+> > +	writeq_relaxed(q->cons, smmu->base + cons);
+> > +}
+> > +
+> >  static int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
+> >  				   struct arm_smmu_queue *q,
+> > -				   unsigned long prod_off,
+> > -				   unsigned long cons_off,
+> > -				   size_t dwords)
+> > +				   unsigned long qoffset,
+> > +				   size_t dwords,
+> > +				   int page_to_use)
+> >  {
+> >  	size_t qsz = ((1 << q->max_n_shift) * dwords) << 3;
+> >  
+> > @@ -1961,8 +1979,13 @@ static int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
+> >  		return -ENOMEM;
+> >  	}
+> >  
+> > -	q->prod_reg	= smmu->base + prod_off;
+> > -	q->cons_reg	= smmu->base + cons_off;
+> > +	if (page_to_use == 1) {
+> > +		q->prod_reg	= smmu->base + ARM_SMMU_Q_PROD_PAGE1(qoffset);
+> > +		q->cons_reg	= smmu->base + ARM_SMMU_Q_CONS_PAGE1(qoffset);
+> > +	} else {
+> > +		q->prod_reg	= smmu->base + ARM_SMMU_Q_PROD(qoffset);
+> > +		q->cons_reg	= smmu->base + ARM_SMMU_Q_CONS(qoffset);
+> > +	}
+> >  	q->ent_dwords	= dwords;
+> >  
+> >  	q->q_base  = Q_BASE_RWA;
+> > @@ -1980,14 +2003,14 @@ static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
+> >  
+> >  	/* cmdq */
+> >  	spin_lock_init(&smmu->cmdq.lock);
+> > -	ret = arm_smmu_init_one_queue(smmu, &smmu->cmdq.q, ARM_SMMU_CMDQ_PROD,
+> > -				      ARM_SMMU_CMDQ_CONS, CMDQ_ENT_DWORDS);
+> > +	ret = arm_smmu_init_one_queue(smmu, &smmu->cmdq.q, ARM_SMMU_CMDQ_BASE,
+> > +				      CMDQ_ENT_DWORDS, 0);
+> >  	if (ret)
+> >  		return ret;
+> >  
+> >  	/* evtq */
+> > -	ret = arm_smmu_init_one_queue(smmu, &smmu->evtq.q, ARM_SMMU_EVTQ_PROD,
+> > -				      ARM_SMMU_EVTQ_CONS, EVTQ_ENT_DWORDS);
+> > +	ret = arm_smmu_init_one_queue(smmu, &smmu->evtq.q, ARM_SMMU_EVTQ_BASE,
+> > +				      EVTQ_ENT_DWORDS, USE_PAGE1);
+> >  	if (ret)
+> >  		return ret;
+> >  
+> > @@ -1995,8 +2018,8 @@ static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
+> >  	if (!(smmu->features & ARM_SMMU_FEAT_PRI))
+> >  		return 0;
+> >  
+> > -	return arm_smmu_init_one_queue(smmu, &smmu->priq.q, ARM_SMMU_PRIQ_PROD,
+> > -				       ARM_SMMU_PRIQ_CONS, PRIQ_ENT_DWORDS);
+> > +	return arm_smmu_init_one_queue(smmu, &smmu->priq.q, ARM_SMMU_PRIQ_BASE,
+> > +				       PRIQ_ENT_DWORDS, 1);
+> >  }
+> >  
+> >  static int arm_smmu_init_l1_strtab(struct arm_smmu_device *smmu)
+> > @@ -2332,9 +2355,8 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
+> >  		       smmu->base + ARM_SMMU_STRTAB_BASE_CFG);
+> >  
+> >  	/* Command queue */
+> > -	writeq_relaxed(smmu->cmdq.q.q_base, smmu->base + ARM_SMMU_CMDQ_BASE);
+> > -	writel_relaxed(smmu->cmdq.q.prod, smmu->base + ARM_SMMU_CMDQ_PROD);
+> > -	writel_relaxed(smmu->cmdq.q.cons, smmu->base + ARM_SMMU_CMDQ_CONS);
+> > +	arm_smmu_reset_one_queue(smmu, &smmu->evtq.q,
+> > +				 ARM_SMMU_CMDQ_BASE, 0);
+> >  
+> >  	enables = CR0_CMDQEN;
+> >  	ret = arm_smmu_write_reg_sync(smmu, enables, ARM_SMMU_CR0,
+> > @@ -2362,9 +2384,8 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
+> >  	arm_smmu_cmdq_issue_cmd(smmu, &cmd);
+> >  
+> >  	/* Event queue */
+> > -	writeq_relaxed(smmu->evtq.q.q_base, smmu->base + ARM_SMMU_EVTQ_BASE);
+> > -	writel_relaxed(smmu->evtq.q.prod, smmu->base + ARM_SMMU_EVTQ_PROD);
+> > -	writel_relaxed(smmu->evtq.q.cons, smmu->base + ARM_SMMU_EVTQ_CONS);
+> > +	arm_smmu_reset_one_queue(smmu, &smmu->evtq.q,
+> > +				 ARM_SMMU_EVTQ_BASE, 1);
+> >  
+> >  	enables |= CR0_EVTQEN;
+> >  	ret = arm_smmu_write_reg_sync(smmu, enables, ARM_SMMU_CR0,
+> > @@ -2376,13 +2397,8 @@ static int arm_smmu_device_reset(struct arm_smmu_device *smmu, bool bypass)
+> >  
+> >  	/* PRI queue */
+> >  	if (smmu->features & ARM_SMMU_FEAT_PRI) {
+> > -		writeq_relaxed(smmu->priq.q.q_base,
+> > -			       smmu->base + ARM_SMMU_PRIQ_BASE);
+> > -		writel_relaxed(smmu->priq.q.prod,
+> > -			       smmu->base + ARM_SMMU_PRIQ_PROD);
+> > -		writel_relaxed(smmu->priq.q.cons,
+> > -			       smmu->base + ARM_SMMU_PRIQ_CONS);
+> > -
+> > +		arm_smmu_reset_one_queue(smmu, &smmu->priq.q,
+> > +					 ARM_SMMU_PRIQ_BASE, 1);
+> >  		enables |= CR0_PRIQEN;
+> >  		ret = arm_smmu_write_reg_sync(smmu, enables, ARM_SMMU_CR0,
+> >  					      ARM_SMMU_CR0ACK);
+> > 
+> 
