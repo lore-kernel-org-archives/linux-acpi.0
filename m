@@ -1,69 +1,73 @@
-From: Alan Ott <alan@softiron.com>
-Subject: Hotplug of Platform Device
-Date: Mon, 12 Jun 2017 18:02:23 -0400
-Message-ID: <deafa120-7562-7b58-5cb5-f7cb9d0bb304@softiron.com>
+From: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?=
+        <jerome.debretagne@gmail.com>
+Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
+ recent Dell laptops
+Date: Tue, 13 Jun 2017 00:38:49 +0200
+Message-ID: <CA+kEDGEM7PmMTonmoFKoJrMU6hxLh_zauLRt_fq=2v_Jxo35NQ@mail.gmail.com>
+References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
+ <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
+ <CA+kEDGFUuSC1CpCEgOT+HMTrDa-r1y59kM9-CYn0PSgtuKaG5Q@mail.gmail.com>
+ <343a8430fb144adf8d65ef9d0b2bfd40@ausx13mpc124.AMER.DELL.COM>
+ <CA+kEDGFVgmXf_B=qHfhWS1HCD+Ei6KSp_rSJBOGYtNZVkm+MeA@mail.gmail.com>
+ <24ac3bb8850c4b7a8fa9c0c2d9e3cbc4@ausx13mpc124.AMER.DELL.COM>
+ <CA+kEDGHev9XYQr=BEVZ8od+nX_cQ637eY0cF81_v3auQZvBKRQ@mail.gmail.com>
+ <CAJZ5v0haCFYW8FRXtuLREFscLq_QRbyhnGf39u0P7xzUaGYVVQ@mail.gmail.com>
+ <88366b425cce41358ae8f88e43f3d201@ausx13mpc120.AMER.DELL.COM> <CA+kEDGEXEYEV+tGnswvHsFmOX5W_GAYPTYxk0YUUt0D1pdr92A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-03.1984.is ([93.95.224.70]:34016 "EHLO mail-03.1984.is"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752383AbdFLWhi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Jun 2017 18:37:38 -0400
-Received: from localhost
-        by mail-03.1984.is with esmtpsa (TLSv1.2:DHE-RSA-AES128-SHA:128)
-        (Exim 4.84_2)
-        (envelope-from <alan@softiron.com>)
-        id 1dKXPn-00029i-Fn
-        for linux-acpi@vger.kernel.org; Mon, 12 Jun 2017 22:02:27 +0000
+Received: from mail-io0-f178.google.com ([209.85.223.178]:35202 "EHLO
+        mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752383AbdFLWjb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jun 2017 18:39:31 -0400
+In-Reply-To: <CA+kEDGEXEYEV+tGnswvHsFmOX5W_GAYPTYxk0YUUt0D1pdr92A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Mario.Limonciello@dell.com
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi all,
+2017-06-12 22:35 GMT+02:00 J=C3=A9r=C3=B4me de Bretagne <jerome.debretagne@=
+gmail.com>:
+>> I don't see HEBC in the ASL for the 7275.  It would be good to provide
+>> this information across both of the BIOS versions (working and non-worki=
+ng).
+>>
+>> As well as what
+>>         status =3D acpi_evaluate_integer(handle, "BTNC", NULL, &button_c=
+ap);
+>> evaluates as on both too.
+>
+> I'll provide both BTNC and HEBC log results to compare, with both BIOS
+> versions, a bit later today.
 
-I'm creating a hardware platform and I want to make a platform device 
-hot-pluggable using ACPI. The SoC I'm using (AMD A11xx) has ethernet 
-on-board, and the main board has a plug-in card which contains a media 
-converter and the actual network media jack. When the plug-in card is 
-present I want the ethernet device to be shown in tools like ifconfig 
-(-a), and when it's not present I want the ethernet device to not be shown.
+Here are both requested logs, with BIOS 1.1.31 first:
 
-In reading the spec, I feel like this could be implemented like a 
-docking station or port replicator and that I should be able to make an 
-ACPI device which is a dock (containing _DCK) and have my ethernet 
-device be an ejection-dependent device (_EJD) of the dock, much like the 
-example in section 6.3.2 of the ACPI spec.
+* right after status =3D acpi_evaluate_integer(handle, "HEBC", NULL, &event=
+_cap);
+[    4.167874] intel-hid INT33D5:00: intel_hid_probe: event_cap =3D
+0xffff9bfe71bdc410
+[    4.167875] intel-hid INT33D5:00: intel_hid_probe: status =3D 5
 
-When I do this though, it doesn't work. In the device removal case, the 
-execution in the kernel goes through dock_notify() and 
-hot_remove_dock_devices() which calls dock_hotplug_event() which fails 
-because adev->hp is NULL, as there is no hotplug context. This makes 
-some sense because the ethernet IP block on the SoC is memory-mapped and 
-not capable of being hot-plugged.
+* right after status =3D acpi_evaluate_integer(handle, "BTNC", NULL, &butto=
+n_cap);
+=3D> No log output for that one
 
-My naive ideas about this are that even without a hotplug context, if 
-the ACPI reports the device to be gone (and not to be used), that 
-device_release_driver() could be called on each physical node in 
-adev->physical_node_list, causing the driver(s) to be unloaded.
 
-I've also tried doing this without using a docking station device[1], 
-but the same things ultimately happen. Without a hotplug context, 
-nothing happens to the physical device.
+And with BIOS 1.1.20 then:
 
-One thing that's not clear to me is whether a _DCK docking station 
-Device is valid if it's not under a PCI node. The spec doesn't say this, 
-but all the examples I can find in ACPI documents are this way.
+* right after status =3D acpi_evaluate_integer(handle, "HEBC", NULL, &event=
+_cap);
+[    4.172543] intel-hid INT33D5:00: intel_hid_probe: event_cap =3D
+0xffff8d1f70950810
+[    4.172545] intel-hid INT33D5:00: intel_hid_probe: status =3D 5
 
-Is there a way to do what I'm wanting to do that I'm missing, or am I 
-completely misunderstanding how this works? Unfortunately the spec is 
-ambiguous and real life examples are hard to come by.
+* right after status =3D acpi_evaluate_integer(handle, "BTNC", NULL, &butto=
+n_cap);
+=3D> No log output for that one
 
-Thanks for any help,
 
-Alan.
+Status =3D 5 confirms the assumption that HEBC is not found in both cases.
+I guess the absence of logs for BTNC is more surprising, isn't it?
 
-[1] This second method is where the Notify() is called for the ethernet 
-device itself (rather than using a dock device) and an _STA in the 
-ethernet device returns that it's not present. I've seen this in one 
-example.
+J=C3=A9rome
