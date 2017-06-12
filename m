@@ -1,99 +1,135 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I
- on recent Dell laptops
-Date: Mon, 12 Jun 2017 08:54:12 -0700
-Message-ID: <1497282852.195383.56.camel@linux.intel.com>
-References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
-         <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
-         <CA+kEDGFUuSC1CpCEgOT+HMTrDa-r1y59kM9-CYn0PSgtuKaG5Q@mail.gmail.com>
-         <343a8430fb144adf8d65ef9d0b2bfd40@ausx13mpc124.AMER.DELL.COM>
-         <CA+kEDGFVgmXf_B=qHfhWS1HCD+Ei6KSp_rSJBOGYtNZVkm+MeA@mail.gmail.com>
-         <24ac3bb8850c4b7a8fa9c0c2d9e3cbc4@ausx13mpc124.AMER.DELL.COM>
-         <CA+kEDGHev9XYQr=BEVZ8od+nX_cQ637eY0cF81_v3auQZvBKRQ@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Mon, 12 Jun 2017 16:57:00 +0100
+Message-ID: <20170612155700.GA31930@red-moon>
+References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1495712248-5232-6-git-send-email-gabriele.paoloni@huawei.com>
+ <20170530132408.GA2556@red-moon>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40A7B677@FRAEML521-MBX.china.huawei.com>
+ <20170606085553.GA20085@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CA+kEDGHev9XYQr=BEVZ8od+nX_cQ637eY0cF81_v3auQZvBKRQ@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: =?ISO-8859-1?Q?J=E9r=F4me?= de Bretagne <jerome.debretagne@gmail.com>, Mario.Limonciello@dell.com
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20170606085553.GA20085@red-moon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, rafael@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "minyard@acm.org" <minyard@acm.org>, "arnd@arndb.de" <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, John Garry <john.garry@huawei.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, Linuxarm <linuxarm@huawei.com>, "olof@lixom.net" <olof@lixom.net>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2017-06-12 at 00:01 +0200, Jérôme de Bretagne wrote:
-> Hi Mario, Hi Rafael,
-> 
-> > 
-> > > 
-> > > Some assumptions now: either the SCI is ignored erroneously or
-> > > it's
-> > > not interpreted correctly by the expected driver? I guess that's
-> > > the 2
-> > > possibilities I'll try to investigate.
-> > 
-> > Well that's too bad.  Yes, you're correct that the EC has changed
-> > between
-> > those versions.  Are you testing on or off AC adapter?
-> 
-> I haven't detected a pattern specific to the state of the AC adapter.
-> 
-> Good news on another front. By adding some more logs in the
-> s2idle-dell-test branch, I've been able to check and confirm that
-> notify_handler() from intel-hid.c is actually called upon short power
-> key
-> press during s2idle on my Latitude 7275.
-> 
-> However, the system with BIOS 1.1.31 doesn't match (anymore?) the
-> current criteria to call pm_wakeup_hard_event introduced in commit:
-> 
-> platform: x86: intel-hid: Wake up the system from suspend-to-idle
-> 7871dc61497a71be93c4f80d43ac109152510e7e
-> 
-> This ugly 3-line modification I've added on the actual patch here:
-> 
-> + if (priv->wakeup_mode) {
-> +
-> + /* Wake up Dell Latitude 7275 BIOS 1.1.31. */
-> + if (event == 0xce)
-> + pm_wakeup_hard_event(&device->dev);
-0xce is a 5 button array press and 0xcf is release.
+[+Mika]
 
-> +
-> + /* Wake up on 5-button array events only. */
-> + if (event == 0xc0 || !priv->array)
-> + return;
-I don't think 0xc0 is any valid 5 button code.
+Gab, Rafael,
 
-> +
-> + if (sparse_keymap_entry_from_scancode(priv->array, event))
-> + pm_wakeup_hard_event(&device->dev);
-> + else
-> + dev_info(&device->dev, "unknown event 0x%x\n", event);
-> +
-> + return;
-> + }
+On Tue, Jun 06, 2017 at 09:55:53AM +0100, Lorenzo Pieralisi wrote:
+> Hi Gab, Rafael,
 > 
-> make the system wake up on a standard short press finally!
+> On Wed, May 31, 2017 at 10:24:47AM +0000, Gabriele Paoloni wrote:
 > 
-> Is the "Wake up on 5-button array events only." assumption broad
-> enough to cover the various Intel systems that need this behavior?
-For the platforms which supported Win 8.1 only the event should be
-handled by vbtn driver.
+> [...]
+> 
+> > > > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > > > index e39ec7b..37dd23c 100644
+> > > > --- a/drivers/acpi/scan.c
+> > > > +++ b/drivers/acpi/scan.c
+> > > > @@ -2035,6 +2035,7 @@ int __init acpi_scan_init(void)
+> > > >  	acpi_int340x_thermal_init();
+> > > >  	acpi_amba_init();
+> > > >  	acpi_watchdog_init();
+> > > > +	acpi_indirectio_scan_init();
+> 
+> Unfortunately this is becoming a pattern and we are ending up
+> with a static ordering of "subsystems" init (even though for this
+> LPC series it is just the Hisilicon driver that requires this call)
+> and I am not sure I see any way of avoiding it. I think that's always
+> been the case in x86, with fewer subsystems/kernel paths to care
+> about, I wanted to flag this up though to check your opinion since
+> I am not sure this is the right direction we are taking.
+> 
+> I also think that relying on _DEP to build any dependency is not
+> entirely a) usable (owing to legacy bindings and previous _DEP misuse)
+> and b) compliant with ACPI bindings given that _DEP has to be used
+> for operation regions only.
 
-Thanks,
-Srinivas
+I had a more in-depth look at this series and from my understanding
+the problem are the following to manage the LPC bindings in ACPI.
+
+(1) Child devices of an LPC controller require special handling when
+    filling their resources (ie they need to be translated - in DT
+    that's guaranteed by the "isa" binding, in ACPI it has to be
+    done by new code)
+(2) In DT systems, LPC child devices are created by the LPC bus
+    controller driver through an of_platform_populate() call with
+    the LPC controller node as the fwnode root. For ACPI to work
+    the same way there must be a way to prevent LPC children to
+    be enumerated in acpi_default_enumeration() something like
+    I2C does (and then the LPC driver would enumerate its children as
+    DT does)
+
+I am not sure how (1) and (2) can be managed with current ACPI bindings
+and kernel code - I suspect it may be done by mirroring what's done
+for I2C but I am not sure, that's why I CC'ed Mika (ie the LPC adapter
+is matched as a platform device and it takes care of enumerating its
+children - problem though is preventing enumeration from core ACPI code).
+
+I will let Gabriele and Hisilicon guys chime in if I missed something,
+which is likely, please let me know your opinion on how this code
+can be made functional on ACPI systems - it is uncharted territory.
+
+Thank you !
+Lorenzo
 
 > 
-> Or am I just detecting another ACPI issue in fact that prevents this
-> system from setting up properly the 5 button array with BIOS 1.1.31?
-> How would you recommend me to test that 2nd assumption?
+> Thoughts ?
 > 
 > Thanks,
-> Jérome
+> Lorenzo
 > 
-> 
-> P.S. I've gone in that direction after seeing the following messages
-> in
->  /var/log/kernel.log on normal power key press at runtime:
-> [ 2727.596359] intel-hid INT33D5:00: unknown event 0xce
-> [ 2727.769140] intel-hid INT33D5:00: unknown event 0xcf
+> > > >  	acpi_scan_add_handler(&generic_device_handler);
+> > > >
+> > > > diff --git a/include/acpi/acpi_indirect_pio.h
+> > > b/include/acpi/acpi_indirect_pio.h
+> > > > new file mode 100644
+> > > > index 0000000..efc5c43
+> > > > --- /dev/null
+> > > > +++ b/include/acpi/acpi_indirect_pio.h
+> > > > @@ -0,0 +1,24 @@
+> > > > +/*
+> > > > + * ACPI support for indirect-PIO bus.
+> > > > + *
+> > > > + * Copyright (C) 2017 Hisilicon Limited, All Rights Reserved.
+> > > > + * Author: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> > > > + * Author: Zhichang Yuan <yuanzhichang@hisilicon.com>
+> > > > + *
+> > > > + * This program is free software; you can redistribute it and/or
+> > > modify
+> > > > + * it under the terms of the GNU General Public License version 2 as
+> > > > + * published by the Free Software Foundation.
+> > > > + */
+> > > > +
+> > > > +#ifndef _ACPI_INDIRECT_PIO_H
+> > > > +#define _ACPI_INDIRECT_PIO_H
+> > > > +
+> > > > +struct indirect_pio_device_desc {
+> > > > +	void *pdata; /* device relevant info data */
+> > > > +	int (*pre_setup)(struct acpi_device *adev, void *pdata);
+> > > > +};
+> > > > +
+> > > > +int acpi_set_logic_pio_resource(struct device *child,
+> > > > +		struct device *hostdev);
+> > > > +
+> > > > +#endif
+> > > > --
+> > > > 2.7.4
+> > > >
+> > > >
