@@ -1,94 +1,106 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
  recent Dell laptops
-Date: Mon, 12 Jun 2017 21:13:05 +0200
-Message-ID: <CAJZ5v0i=Oz91tWRwHLqvys-+HK8JkaO28QaGSpS+_VJTrR8jzQ@mail.gmail.com>
+Date: Mon, 12 Jun 2017 20:00:19 +0000
+Message-ID: <88366b425cce41358ae8f88e43f3d201@ausx13mpc120.AMER.DELL.COM>
 References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
  <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
  <CA+kEDGFUuSC1CpCEgOT+HMTrDa-r1y59kM9-CYn0PSgtuKaG5Q@mail.gmail.com>
  <343a8430fb144adf8d65ef9d0b2bfd40@ausx13mpc124.AMER.DELL.COM>
  <CA+kEDGFVgmXf_B=qHfhWS1HCD+Ei6KSp_rSJBOGYtNZVkm+MeA@mail.gmail.com>
  <24ac3bb8850c4b7a8fa9c0c2d9e3cbc4@ausx13mpc124.AMER.DELL.COM>
- <CA+kEDGHev9XYQr=BEVZ8od+nX_cQ637eY0cF81_v3auQZvBKRQ@mail.gmail.com> <1497282852.195383.56.camel@linux.intel.com>
+ <CA+kEDGHev9XYQr=BEVZ8od+nX_cQ637eY0cF81_v3auQZvBKRQ@mail.gmail.com>
+ <CAJZ5v0haCFYW8FRXtuLREFscLq_QRbyhnGf39u0P7xzUaGYVVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:33271 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752086AbdFLTNR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jun 2017 15:13:17 -0400
-In-Reply-To: <1497282852.195383.56.camel@linux.intel.com>
+Received: from esa1.dell-outbound.iphmx.com ([68.232.153.90]:7686 "EHLO
+        esa1.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752135AbdFLUAX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 12 Jun 2017 16:00:23 -0400
+In-Reply-To: <CAJZ5v0haCFYW8FRXtuLREFscLq_QRbyhnGf39u0P7xzUaGYVVQ@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>, Mario Limonciello <Mario.Limonciello@dell.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: rafael@kernel.org, jerome.debretagne@gmail.com
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com, dvhart@infradead.org, srinivas.pandruvada@linux.intel.com, mika.westerberg@linux.intel.com
 
-On Mon, Jun 12, 2017 at 5:54 PM, Srinivas Pandruvada
-<srinivas.pandruvada@linux.intel.com> wrote:
-> On Mon, 2017-06-12 at 00:01 +0200, J=C3=A9r=C3=B4me de Bretagne wrote:
->> Hi Mario, Hi Rafael,
->>
->> >
->> > >
->> > > Some assumptions now: either the SCI is ignored erroneously or
->> > > it's
->> > > not interpreted correctly by the expected driver? I guess that's
->> > > the 2
->> > > possibilities I'll try to investigate.
->> >
->> > Well that's too bad.  Yes, you're correct that the EC has changed
->> > between
->> > those versions.  Are you testing on or off AC adapter?
->>
->> I haven't detected a pattern specific to the state of the AC adapter.
->>
->> Good news on another front. By adding some more logs in the
->> s2idle-dell-test branch, I've been able to check and confirm that
->> notify_handler() from intel-hid.c is actually called upon short power
->> key
->> press during s2idle on my Latitude 7275.
->>
->> However, the system with BIOS 1.1.31 doesn't match (anymore?) the
->> current criteria to call pm_wakeup_hard_event introduced in commit:
->>
->> platform: x86: intel-hid: Wake up the system from suspend-to-idle
->> 7871dc61497a71be93c4f80d43ac109152510e7e
->>
->> This ugly 3-line modification I've added on the actual patch here:
->>
->> + if (priv->wakeup_mode) {
->> +
->> + /* Wake up Dell Latitude 7275 BIOS 1.1.31. */
->> + if (event =3D=3D 0xce)
->> + pm_wakeup_hard_event(&device->dev);
-> 0xce is a 5 button array press and 0xcf is release.
-
-Right.  And it is there in intel_array_keymap[].
-
->> +
->> + /* Wake up on 5-button array events only. */
->> + if (event =3D=3D 0xc0 || !priv->array)
->> + return;
-> I don't think 0xc0 is any valid 5 button code.
->
->> +
->> + if (sparse_keymap_entry_from_scancode(priv->array, event))
->> + pm_wakeup_hard_event(&device->dev);
->> + else
->> + dev_info(&device->dev, "unknown event 0x%x\n", event);
->> +
->> + return;
->> + }
->>
->> make the system wake up on a standard short press finally!
->>
->> Is the "Wake up on 5-button array events only." assumption broad
->> enough to cover the various Intel systems that need this behavior?
-> For the platforms which supported Win 8.1 only the event should be
-> handled by vbtn driver.
-
-This is not intel-vbtn, but intel-hid.
-
-Thanks,
-Rafael
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiByand5c29ja2lAZ21haWwuY29t
+IFttYWlsdG86cmp3eXNvY2tpQGdtYWlsLmNvbV0gT24gQmVoYWxmIE9mIFJhZmFlbCBKLg0KPiBX
+eXNvY2tpDQo+IFNlbnQ6IE1vbmRheSwgSnVuZSAxMiwgMjAxNyAyOjEyIFBNDQo+IFRvOiBKw6ly
+w7RtZSBkZSBCcmV0YWduZSA8amVyb21lLmRlYnJldGFnbmVAZ21haWwuY29tPg0KPiBDYzogTGlt
+b25jaWVsbG8sIE1hcmlvIDxNYXJpb19MaW1vbmNpZWxsb0BEZWxsLmNvbT47IEFDUEkgRGV2ZWwg
+TWFsaW5nIExpc3QNCj4gPGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnPjsgTGludXggUE0gPGxp
+bnV4LXBtQHZnZXIua2VybmVsLm9yZz47IFJhZmFlbCBKLg0KPiBXeXNvY2tpIDxyandAcmp3eXNv
+Y2tpLm5ldD47IEFuZHkgU2hldmNoZW5rbw0KPiA8YW5kcml5LnNoZXZjaGVua29AbGludXguaW50
+ZWwuY29tPjsgRGFycmVuIEhhcnQgPGR2aGFydEBpbmZyYWRlYWQub3JnPjsNCj4gU3Jpbml2YXMg
+UGFuZHJ1dmFkYSA8c3Jpbml2YXMucGFuZHJ1dmFkYUBsaW51eC5pbnRlbC5jb20+OyBNaWthIFdl
+c3RlcmJlcmcNCj4gPG1pa2Eud2VzdGVyYmVyZ0BsaW51eC5pbnRlbC5jb20+DQo+IFN1YmplY3Q6
+IFJlOiBbUEFUQ0ggMC8zXSBBQ1BJIC8gc2xlZXA6IFN1cHBvcnQgcG93ZXIgYnV0dG9uIHdha2V1
+cCBmcm9tIFMySSBvbg0KPiByZWNlbnQgRGVsbCBsYXB0b3BzDQo+IA0KPiBPbiBNb24sIEp1biAx
+MiwgMjAxNyBhdCAxMjowMSBBTSwgSsOpcsO0bWUgZGUgQnJldGFnbmUNCj4gPGplcm9tZS5kZWJy
+ZXRhZ25lQGdtYWlsLmNvbT4gd3JvdGU6DQo+ID4gSGkgTWFyaW8sIEhpIFJhZmFlbCwNCj4gPg0K
+PiA+Pj4gU29tZSBhc3N1bXB0aW9ucyBub3c6IGVpdGhlciB0aGUgU0NJIGlzIGlnbm9yZWQgZXJy
+b25lb3VzbHkgb3IgaXQncw0KPiA+Pj4gbm90IGludGVycHJldGVkIGNvcnJlY3RseSBieSB0aGUg
+ZXhwZWN0ZWQgZHJpdmVyPyBJIGd1ZXNzIHRoYXQncyB0aGUgMg0KPiA+Pj4gcG9zc2liaWxpdGll
+cyBJJ2xsIHRyeSB0byBpbnZlc3RpZ2F0ZS4NCj4gPj4NCj4gPj4gV2VsbCB0aGF0J3MgdG9vIGJh
+ZC4gIFllcywgeW91J3JlIGNvcnJlY3QgdGhhdCB0aGUgRUMgaGFzIGNoYW5nZWQgYmV0d2Vlbg0K
+PiA+PiB0aG9zZSB2ZXJzaW9ucy4gIEFyZSB5b3UgdGVzdGluZyBvbiBvciBvZmYgQUMgYWRhcHRl
+cj8NCj4gPg0KPiA+IEkgaGF2ZW4ndCBkZXRlY3RlZCBhIHBhdHRlcm4gc3BlY2lmaWMgdG8gdGhl
+IHN0YXRlIG9mIHRoZSBBQyBhZGFwdGVyLg0KPiA+DQo+ID4gR29vZCBuZXdzIG9uIGFub3RoZXIg
+ZnJvbnQuIEJ5IGFkZGluZyBzb21lIG1vcmUgbG9ncyBpbiB0aGUNCj4gPiBzMmlkbGUtZGVsbC10
+ZXN0IGJyYW5jaCwgSSd2ZSBiZWVuIGFibGUgdG8gY2hlY2sgYW5kIGNvbmZpcm0gdGhhdA0KPiA+
+IG5vdGlmeV9oYW5kbGVyKCkgZnJvbSBpbnRlbC1oaWQuYyBpcyBhY3R1YWxseSBjYWxsZWQgdXBv
+biBzaG9ydCBwb3dlciBrZXkNCj4gPiBwcmVzcyBkdXJpbmcgczJpZGxlIG9uIG15IExhdGl0dWRl
+IDcyNzUuDQo+ID4NCj4gPiBIb3dldmVyLCB0aGUgc3lzdGVtIHdpdGggQklPUyAxLjEuMzEgZG9l
+c24ndCBtYXRjaCAoYW55bW9yZT8pIHRoZQ0KPiA+IGN1cnJlbnQgY3JpdGVyaWEgdG8gY2FsbCBw
+bV93YWtldXBfaGFyZF9ldmVudCBpbnRyb2R1Y2VkIGluIGNvbW1pdDoNCj4gPg0KPiA+IHBsYXRm
+b3JtOiB4ODY6IGludGVsLWhpZDogV2FrZSB1cCB0aGUgc3lzdGVtIGZyb20gc3VzcGVuZC10by1p
+ZGxlDQo+ID4gNzg3MWRjNjE0OTdhNzFiZTkzYzRmODBkNDNhYzEwOTE1MjUxMGU3ZQ0KPiA+DQo+
+ID4gVGhpcyB1Z2x5IDMtbGluZSBtb2RpZmljYXRpb24gSSd2ZSBhZGRlZCBvbiB0aGUgYWN0dWFs
+IHBhdGNoIGhlcmU6DQo+ID4NCj4gPiArIGlmIChwcml2LT53YWtldXBfbW9kZSkgew0KPiA+ICsN
+Cj4gPiArIC8qIFdha2UgdXAgRGVsbCBMYXRpdHVkZSA3Mjc1IEJJT1MgMS4xLjMxLiAqLw0KPiA+
+ICsgaWYgKGV2ZW50ID09IDB4Y2UpDQo+ID4gKyBwbV93YWtldXBfaGFyZF9ldmVudCgmZGV2aWNl
+LT5kZXYpOw0KPiA+ICsNCj4gPiArIC8qIFdha2UgdXAgb24gNS1idXR0b24gYXJyYXkgZXZlbnRz
+IG9ubHkuICovDQo+ID4gKyBpZiAoZXZlbnQgPT0gMHhjMCB8fCAhcHJpdi0+YXJyYXkpDQo+ID4g
+KyByZXR1cm47DQo+ID4gKw0KPiA+ICsgaWYgKHNwYXJzZV9rZXltYXBfZW50cnlfZnJvbV9zY2Fu
+Y29kZShwcml2LT5hcnJheSwgZXZlbnQpKQ0KPiA+ICsgcG1fd2FrZXVwX2hhcmRfZXZlbnQoJmRl
+dmljZS0+ZGV2KTsNCj4gPiArIGVsc2UNCj4gPiArIGRldl9pbmZvKCZkZXZpY2UtPmRldiwgInVu
+a25vd24gZXZlbnQgMHgleFxuIiwgZXZlbnQpOw0KPiA+ICsNCj4gPiArIHJldHVybjsNCj4gPiAr
+IH0NCj4gPg0KPiA+IG1ha2UgdGhlIHN5c3RlbSB3YWtlIHVwIG9uIGEgc3RhbmRhcmQgc2hvcnQg
+cHJlc3MgZmluYWxseSENCj4gPg0KPiA+IElzIHRoZSAiV2FrZSB1cCBvbiA1LWJ1dHRvbiBhcnJh
+eSBldmVudHMgb25seS4iIGFzc3VtcHRpb24gYnJvYWQNCj4gPiBlbm91Z2ggdG8gY292ZXIgdGhl
+IHZhcmlvdXMgSW50ZWwgc3lzdGVtcyB0aGF0IG5lZWQgdGhpcyBiZWhhdmlvcj8NCj4gPg0KPiA+
+IE9yIGFtIEkganVzdCBkZXRlY3RpbmcgYW5vdGhlciBBQ1BJIGlzc3VlIGluIGZhY3QgdGhhdCBw
+cmV2ZW50cyB0aGlzDQo+ID4gc3lzdGVtIGZyb20gc2V0dGluZyB1cCBwcm9wZXJseSB0aGUgNSBi
+dXR0b24gYXJyYXkgd2l0aCBCSU9TIDEuMS4zMT8NCj4gDQo+IEl0IGxvb2tzIGxpa2UgcHJpdi0+
+YXJyYXkgaXMgbm90IHNldCBvbiB5b3VyIHN5c3RlbSB3aXRoIHRoZSBuZXcgQklPUywNCj4gd2hp
+Y2ggbWVhbnMgdGhhdCBpbnRlbF9idXR0b25fYXJyYXlfaW5wdXRfc2V0dXAoKSBpcyBub3QgY2Fs
+bGVkIGFueQ0KPiBtb3JlLCBzbyBlaXRoZXIgZXZhbHVhdGluZyB0aGUgSEVCQyBtZXRob2QgZmFp
+bHMgZW50aXJlbHksIG9yIGl0cw0KPiByZXR1cm4gdmFsdWUgaXMgbm90IGFzIGV4cGVjdGVkLg0K
+PiANCj4gPiBIb3cgd291bGQgeW91IHJlY29tbWVuZCBtZSB0byB0ZXN0IHRoYXQgMm5kIGFzc3Vt
+cHRpb24/DQo+IA0KPiBMb2cgdGhlIHN0YXR1cyBhbmQgZXZlbnRfY2FwIHJpZ2h0IGFmdGVyIHRo
+ZQ0KPiANCj4gc3RhdHVzID0gYWNwaV9ldmFsdWF0ZV9pbnRlZ2VyKGhhbmRsZSwgIkhFQkMiLCBO
+VUxMLCAmZXZlbnRfY2FwKTsNCj4gDQo+IHN0YXRlbWVudCBpbiBpbnRlbF9oaWRfcHJvYmUoKS4N
+Cj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQoNCkkgZG9uJ3Qgc2VlIEhFQkMgaW4gdGhlIEFTTCBm
+b3IgdGhlIDcyNzUuICBJdCB3b3VsZCBiZSBnb29kIHRvIHByb3ZpZGUNCnRoaXMgaW5mb3JtYXRp
+b24gYWNyb3NzIGJvdGggb2YgdGhlIEJJT1MgdmVyc2lvbnMgKHdvcmtpbmcgYW5kIG5vbi13b3Jr
+aW5nKS4NCg0KQXMgd2VsbCBhcyB3aGF0IA0KCXN0YXR1cyA9IGFjcGlfZXZhbHVhdGVfaW50ZWdl
+cihoYW5kbGUsICJCVE5DIiwgTlVMTCwgJmJ1dHRvbl9jYXApOw0KZXZhbHVhdGVzIGFzIG9uIGJv
+dGggdG9vLg0KDQpTaW5jZSB0aGlzIHBsYXRmb3JtIHNoaXBwZWQgd2l0aCBXaW4gOC4xIGluaXRp
+YWxseSByYXRoZXIgdGhhbiBXaW4xMCwNCkl0J3MgcG9zc2libGUgNSBidXR0b24gYXJyYXkgd2Fz
+IG5vdCBwYXJ0IG9mIHRoZSBJTlQzM0Q1IHNwZWMgYXQgdGhhdCB0aW1lIA0KYW5kIHdhc24ndCB1
+c2VkIGJ5IHRoZSBXaW5kb3dzIEludGVsIEhJRCBmaWx0ZXIgZHJpdmVyLg0KDQpNeSBzdXNwaWNp
+b246DQpXaW4gOC4xIGRpZG4ndCBzdXBwb3J0IDUgYnV0dG9uIGFycmF5IGRlZmluaXRpb24geWV0
+IGFuZCB0aG9zZSBldmVudHMgdGhhdCANCmFyZSBub3JtYWxseSBwYXJ0IG9mIDUgYnV0dG9uIGFy
+cmF5IChhcyBkZXRlY3RlZCBieSBiaXQgMTcpIHdlcmUgY29taW5nDQphY3Jvc3MgYXMgcmVndWxh
+ciBISUQgZXZlbnQgY29kZXMgKGxpa2UgeW91IHdlcmUgc2VlaW5nIDB4Q0UgYW5kIDB4Q0YNCnVu
+a25vd24gZXZlbnRzIGZyb20gZGVidWcgbG9nIHdoZW4gT1Mgd2FzIHJ1bm5pbmcpLg0KDQpQZXJo
+YXBzIHNvbWVvbmUgZnJvbSBJbnRlbCBjYW4gY29uZmlybSB0aGF0ICh0aGUgc3BlYyBpcyBub3Qg
+cHVibGljKS4NCg0KSWYgdGhhdCdzIGNvcnJlY3QsIHRoZSBpbnRlbC1oaWQgZHJpdmVyIHdvdWxk
+IG5lZWQgc29tZSBjaGFuZ2luZyB0byBub3QNCmNoZWNrIEhFQkMsIGJ1dCBqdXN0IGNoZWNrIEJU
+TkMgZGlyZWN0bHkgZXZlcnkgdGltZSBhbmQgUmFmYWVsJ3MgcGF0Y2gNCndvdWxkIG5lZWQgc29t
+ZSBjaGFuZ2luZyB0b28gc2luY2UgaXQncyBvbmx5IGxvb2tpbmcgYXQgYnV0dG9uIGFycmF5IGV2
+ZW50DQpub3QgSElEIGV2ZW50Lg0KDQoNCg==
