@@ -2,72 +2,95 @@ From: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?=
         <jerome.debretagne@gmail.com>
 Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
  recent Dell laptops
-Date: Tue, 13 Jun 2017 00:38:49 +0200
-Message-ID: <CA+kEDGEM7PmMTonmoFKoJrMU6hxLh_zauLRt_fq=2v_Jxo35NQ@mail.gmail.com>
+Date: Tue, 13 Jun 2017 00:50:37 +0200
+Message-ID: <CA+kEDGHHVJS9vgNVdowVQ4+eACFFdqTXR04e1V5qFcs_pZ0_yA@mail.gmail.com>
 References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
- <31f516ad46d74225a5d6324c5fd24751@ausx13mpc124.AMER.DELL.COM>
- <CA+kEDGFUuSC1CpCEgOT+HMTrDa-r1y59kM9-CYn0PSgtuKaG5Q@mail.gmail.com>
- <343a8430fb144adf8d65ef9d0b2bfd40@ausx13mpc124.AMER.DELL.COM>
- <CA+kEDGFVgmXf_B=qHfhWS1HCD+Ei6KSp_rSJBOGYtNZVkm+MeA@mail.gmail.com>
- <24ac3bb8850c4b7a8fa9c0c2d9e3cbc4@ausx13mpc124.AMER.DELL.COM>
- <CA+kEDGHev9XYQr=BEVZ8od+nX_cQ637eY0cF81_v3auQZvBKRQ@mail.gmail.com>
- <CAJZ5v0haCFYW8FRXtuLREFscLq_QRbyhnGf39u0P7xzUaGYVVQ@mail.gmail.com>
- <88366b425cce41358ae8f88e43f3d201@ausx13mpc120.AMER.DELL.COM> <CA+kEDGEXEYEV+tGnswvHsFmOX5W_GAYPTYxk0YUUt0D1pdr92A@mail.gmail.com>
+ <88366b425cce41358ae8f88e43f3d201@ausx13mpc120.AMER.DELL.COM>
+ <CA+kEDGEXEYEV+tGnswvHsFmOX5W_GAYPTYxk0YUUt0D1pdr92A@mail.gmail.com> <1872413.KDFIRZOQLU@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f178.google.com ([209.85.223.178]:35202 "EHLO
-        mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752383AbdFLWjb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jun 2017 18:39:31 -0400
-In-Reply-To: <CA+kEDGEXEYEV+tGnswvHsFmOX5W_GAYPTYxk0YUUt0D1pdr92A@mail.gmail.com>
+Received: from mail-it0-f65.google.com ([209.85.214.65]:34937 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752969AbdFLWvT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jun 2017 18:51:19 -0400
+In-Reply-To: <1872413.KDFIRZOQLU@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario.Limonciello@dell.com
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mario.Limonciello@dell.com, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-2017-06-12 22:35 GMT+02:00 J=C3=A9r=C3=B4me de Bretagne <jerome.debretagne@=
-gmail.com>:
->> I don't see HEBC in the ASL for the 7275.  It would be good to provide
->> this information across both of the BIOS versions (working and non-worki=
-ng).
->>
->> As well as what
->>         status =3D acpi_evaluate_integer(handle, "BTNC", NULL, &button_c=
-ap);
->> evaluates as on both too.
+>> That was my assumption also, since my earlier 3-liner patch was doing
+>> this exactly: trying to wake up on a regular 0xCE event. And it did work=
+.
 >
-> I'll provide both BTNC and HEBC log results to compare, with both BIOS
-> versions, a bit later today.
+> OK
+>
+> Can you try the patch below, please?
 
-Here are both requested logs, with BIOS 1.1.31 first:
+Thank you for this patch proposal. I've applied it but the system with
+BIOS 1.1.31 doesn't wake up on short press.
 
-* right after status =3D acpi_evaluate_integer(handle, "HEBC", NULL, &event=
-_cap);
-[    4.167874] intel-hid INT33D5:00: intel_hid_probe: event_cap =3D
-0xffff9bfe71bdc410
-[    4.167875] intel-hid INT33D5:00: intel_hid_probe: status =3D 5
+I can see the following (added) messages in the logs for info:
 
-* right after status =3D acpi_evaluate_integer(handle, "BTNC", NULL, &butto=
-n_cap);
-=3D> No log output for that one
+- short press first while suspended -> no wake-up
+[  702.567912] intel-hid INT33D5:00: notify_handler with event 0xce
+[  702.567913] intel-hid INT33D5:00: 0xce =3D=3D 0xc0 || !priv->array
+[  702.765067] intel-hid INT33D5:00: notify_handler with event 0xcf
+[  702.765072] intel-hid INT33D5:00: 0xcf =3D=3D 0xc0 || !priv->array
+- long press then -> waking up the system
+[  704.954703] intel-hid INT33D5:00: notify_handler with event 0xce
+[  704.954704] intel-hid INT33D5:00: 0xce =3D=3D 0xc0 || !priv->array
+[  711.646088] intel-hid INT33D5:00: notify_handler with event 0xcf
+[  711.646092] intel-hid INT33D5:00: unknown event 0xcf
 
+confirming that priv->array is indeed not set, even with the patch below.
 
-And with BIOS 1.1.20 then:
-
-* right after status =3D acpi_evaluate_integer(handle, "HEBC", NULL, &event=
-_cap);
-[    4.172543] intel-hid INT33D5:00: intel_hid_probe: event_cap =3D
-0xffff8d1f70950810
-[    4.172545] intel-hid INT33D5:00: intel_hid_probe: status =3D 5
-
-* right after status =3D acpi_evaluate_integer(handle, "BTNC", NULL, &butto=
-n_cap);
-=3D> No log output for that one
-
-
-Status =3D 5 confirms the assumption that HEBC is not found in both cases.
-I guess the absence of logs for BTNC is more surprising, isn't it?
+With BIOS 1.1.20, I don't have such logs, notify_handler seems never called=
+.
 
 J=C3=A9rome
+
+> ---
+>  drivers/platform/x86/intel-hid.c |   17 +++++++++++------
+>  1 file changed, 11 insertions(+), 6 deletions(-)
+>
+> Index: linux-pm/drivers/platform/x86/intel-hid.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-pm.orig/drivers/platform/x86/intel-hid.c
+> +++ linux-pm/drivers/platform/x86/intel-hid.c
+> @@ -270,12 +270,17 @@ static int intel_hid_probe(struct platfo
+>         }
+>
+>         /* Setup 5 button array */
+> -       status =3D acpi_evaluate_integer(handle, "HEBC", NULL, &event_cap=
+);
+> -       if (ACPI_SUCCESS(status) && (event_cap & 0x20000)) {
+> -               dev_info(&device->dev, "platform supports 5 button array\=
+n");
+> -               err =3D intel_button_array_input_setup(device);
+> -               if (err)
+> -                       pr_err("Failed to setup Intel 5 button array hotk=
+eys\n");
+> +       if (acpi_has_method(handle, "BTNC") && acpi_has_method(handle, "B=
+TNE")) {
+> +               unsigned long long event_cap;
+> +
+> +               status =3D acpi_evaluate_integer(handle, "HEBC", NULL, &e=
+vent_cap);
+> +               if ((ACPI_SUCCESS(status) && (event_cap & 0x20000)) ||
+> +                   status =3D=3D AE_NOT_FOUND) {
+> +                       dev_info(&device->dev, "5-button array supported\=
+n");
+> +                       err =3D intel_button_array_input_setup(device);
+> +                       if (err)
+> +                               dev_dbg(&device->dev, "5-button array set=
+up failure\n");
+> +               }
+>         }
+>
+>         status =3D acpi_install_notify_handler(handle,
+>
