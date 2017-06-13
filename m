@@ -1,224 +1,358 @@
-From: shameer <shameerali.kolothum.thodi@huawei.com>
-Subject: [PATCH 1/2] acpi:iort: Add an IORT helper function to reserve HW ITS address regions for IOMMU drivers
-Date: Tue, 13 Jun 2017 12:48:28 +0100
-Message-ID: <20170613114829.188036-2-shameerali.kolothum.thodi@huawei.com>
-References: <20170613114829.188036-1-shameerali.kolothum.thodi@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v7.1 7/7] device property: Get rid of struct fwnode_handle type field
+Date: Tue, 13 Jun 2017 14:49:08 +0300
+Message-ID: <1497354548-17502-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1496741861-8240-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([45.249.212.189]:7411 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753128AbdFMLuN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jun 2017 07:50:13 -0400
-In-Reply-To: <20170613114829.188036-1-shameerali.kolothum.thodi@huawei.com>
+Received: from mga03.intel.com ([134.134.136.65]:14680 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752259AbdFMLvP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Jun 2017 07:51:15 -0400
+In-Reply-To: <1496741861-8240-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, hanjun.guo@linaro.org
-Cc: gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com, shameer <shameerali.kolothum.thodi@huawei.com>
+To: linux-acpi@vger.kernel.org
+Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com
 
-The helper function retrieves ITS address regions through IORT
-device <-> ITS mappings and reserves it so that these regions
-will not be translated by IOMMU and will be excluded from IOVA
-allocations. IOMMU drivers can use this to implement their
-.get_resv_regions callback.
+Instead of relying on the struct fwnode_handle type field, define
+fwnode_operations structs for all separate types of fwnodes. To find out
+the type, compare to the ops field to relevant ops structs.
 
-Signed-off-by: shameer <shameerali.kolothum.thodi@huawei.com>
+This change has two benefits:
+
+1. it avoids adding the type field to each and every instance of struct
+fwnode_handle, thus saving memory and
+
+2. makes the ops field the single factor that defines both the types of
+the fwnode as well as defines the implementation of its operations,
+decreasing the possibility of bugs when developing code dealing with
+fwnode internals.
+
+The drawback is that there are a few fwnode_operations structs that are
+essentially used only for the pointer value.
+
+Suggested-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/arm64/iort.c        | 92 ++++++++++++++++++++++++++++++++++++++--
- drivers/irqchip/irq-gic-v3-its.c |  3 +-
- include/linux/acpi_iort.h        |  7 ++-
- 3 files changed, 97 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index c5fecf9..0ee9965 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -34,6 +34,7 @@
- struct iort_its_msi_chip {
- 	struct list_head	list;
- 	struct fwnode_handle	*fw_node;
-+	phys_addr_t		base_addr;
- 	u32			translation_id;
- };
+Hi Rob and others,
+
+This gets rid of the type field. The end result is perhaps somewhat more
+muddled (no explicit list of types, extra fwnode_operations structs) but
+the number of places where the node type is needed is really, really low.
+Let me know what do you think --- should we proceed with this approach (or
+not)?
+
+Tested on both DT (ARM) and ACPI (x86-64).
+
+Regards,
+Sakari
+
+ drivers/acpi/property.c   | 47 ++++++++++++++++++++++++++++-------------------
+ drivers/acpi/scan.c       |  3 +--
+ drivers/base/property.c   |  5 +++--
+ drivers/of/property.c     |  1 +
+ include/acpi/acpi_bus.h   | 19 +++++++++++++++----
+ include/linux/acpi.h      |  8 ++------
+ include/linux/fwnode.h    | 11 -----------
+ include/linux/irqdomain.h |  4 +++-
+ include/linux/of.h        |  3 +--
+ kernel/irq/irqdomain.c    |  4 +++-
+ 10 files changed, 57 insertions(+), 48 deletions(-)
+
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 917c789..0c56161 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -56,8 +56,7 @@ static bool acpi_nondev_subnode_extract(const union acpi_object *desc,
+ 		return false;
  
-@@ -131,14 +132,16 @@ typedef acpi_status (*iort_find_node_callback)
- static DEFINE_SPINLOCK(iort_msi_chip_lock);
+ 	dn->name = link->package.elements[0].string.pointer;
+-	dn->fwnode.type = FWNODE_ACPI_DATA;
+-	dn->fwnode.ops = &acpi_fwnode_ops;
++	dn->fwnode.ops = &acpi_data_fwnode_ops;
+ 	dn->parent = parent;
+ 	INIT_LIST_HEAD(&dn->data.subnodes);
  
- /**
-- * iort_register_domain_token() - register domain token and related ITS ID
-- * to the list from where we can get it back later on.
-+ * iort_register_domain_token() - register domain token along with related
-+ * ITS ID and base address to the list from where we can get it back later on.
-  * @trans_id: ITS ID.
-+ * @base: ITS base address.
-  * @fw_node: Domain token.
-  *
-  * Returns: 0 on success, -ENOMEM if no memory when allocating list element
-  */
--int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node)
-+int iort_register_domain_token(int trans_id, phys_addr_t base,
-+			       struct fwnode_handle *fw_node)
+@@ -469,10 +468,10 @@ EXPORT_SYMBOL_GPL(acpi_dev_get_property);
+ 
+ static struct acpi_device_data *acpi_device_data_of_node(struct fwnode_handle *fwnode)
  {
- 	struct iort_its_msi_chip *its_msi_chip;
+-	if (fwnode->type == FWNODE_ACPI) {
++	if (is_acpi_device_node(fwnode)) {
+ 		struct acpi_device *adev = to_acpi_device_node(fwnode);
+ 		return &adev->data;
+-	} else if (fwnode->type == FWNODE_ACPI_DATA) {
++	} else if (is_acpi_data_node(fwnode)) {
+ 		struct acpi_data_node *dn = to_acpi_data_node(fwnode);
+ 		return &dn->data;
+ 	}
+@@ -903,7 +902,7 @@ struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
+ 	struct acpi_device *adev = to_acpi_device_node(fwnode);
+ 	struct list_head *head, *next;
  
-@@ -148,6 +151,7 @@ int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node)
- 
- 	its_msi_chip->fw_node = fw_node;
- 	its_msi_chip->translation_id = trans_id;
-+	its_msi_chip->base_addr = base;
- 
- 	spin_lock(&iort_msi_chip_lock);
- 	list_add(&its_msi_chip->list, &iort_msi_chip_list);
-@@ -491,6 +495,24 @@ int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
- 	return -ENODEV;
- }
- 
-+static int iort_find_its_base(u32 its_id, phys_addr_t *base)
-+{
-+	struct iort_its_msi_chip *its_msi_chip;
-+	bool match = false;
-+
-+	spin_lock(&iort_msi_chip_lock);
-+	list_for_each_entry(its_msi_chip, &iort_msi_chip_list, list) {
-+		if (its_msi_chip->translation_id == its_id) {
-+			*base = its_msi_chip->base_addr;
-+			match = true;
-+			break;
-+		}
-+	}
-+	spin_unlock(&iort_msi_chip_lock);
-+
-+	return match ? 0 : -ENODEV;
-+}
-+
- /**
-  * iort_dev_find_its_id() - Find the ITS identifier for a device
-  * @dev: The device.
-@@ -649,6 +671,68 @@ int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
- 
- 	return err;
- }
-+
-+/**
-+ * iort_iommu_its_get_resv_regions - Reserved region driver helper
-+ * @dev: Device from iommu_get_resv_regions()
-+ * @list: Reserved region list from iommu_get_resv_regions()
-+ *
-+ * Returns: 0 on at least one ITS address region reservation,
-+ *          appropriate error value otherwise.
-+ *
-+ * IOMMU drivers can use this to implement their .get_resv_regions callback
-+ * for reserving the HW ITS address regions.
-+ */
-+int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head)
-+{
-+	int i;
-+	struct acpi_iort_node *node;
-+	struct acpi_iort_its_group *its;
-+	bool resv = false;
-+
-+	node = iort_find_dev_node(dev);
-+	if (!node)
-+		return -ENODEV;
-+
-+	if (dev_is_pci(dev)) {
-+		u32 rid;
-+
-+		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid, &rid);
-+		node = iort_node_map_id(node, rid, NULL, IORT_MSI_TYPE);
-+
-+	} else {
-+		for (i = 0; i < node->mapping_count; i++) {
-+			node = iort_node_map_platform_id(node, NULL,
-+							 IORT_MSI_TYPE, i);
-+			if (node)
-+				break;
-+		}
-+	}
-+
-+	if (!node)
-+		return -ENODEV;
-+
-+	/* Move to ITS specific data */
-+	its = (struct acpi_iort_its_group *)node->node_data;
-+
-+	for (i = 0; i < its->its_count; i++) {
-+		phys_addr_t base;
-+
-+		if (!iort_find_its_base(its->identifiers[i], &base)) {
-+			int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
-+			struct iommu_resv_region *region;
-+
-+			region = iommu_alloc_resv_region(base, SZ_128K, prot,
-+							 IOMMU_RESV_MSI);
-+			if (region) {
-+				list_add_tail(&region->list, head);
-+				resv = true;
-+			}
-+		}
-+	}
-+
-+	return resv ? 0 : -ENODEV;
-+}
- #else
- static inline
- const struct iommu_ops *iort_fwspec_iommu_ops(struct iommu_fwspec *fwspec)
-@@ -656,6 +740,8 @@ const struct iommu_ops *iort_fwspec_iommu_ops(struct iommu_fwspec *fwspec)
- static inline
- int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
- { return 0; }
-+int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head)
-+{ return -ENODEV; }
- #endif
- 
- static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 45ea1933..c45a2ad 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -1854,7 +1854,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
- 		return -ENOMEM;
+-	if (!child || child->type == FWNODE_ACPI) {
++	if (!child || is_acpi_device_node(child)) {
+ 		if (adev)
+ 			head = &adev->children;
+ 		else
+@@ -927,7 +926,7 @@ struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
  	}
  
--	err = iort_register_domain_token(its_entry->translation_id, dom_handle);
-+	err = iort_register_domain_token(its_entry->translation_id, res.start,
-+					 dom_handle);
- 	if (err) {
- 		pr_err("ITS@%pa: Unable to register GICv3 ITS domain token (ITS ID %d) to IORT\n",
- 		       &res.start, its_entry->translation_id);
-diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-index 3ff9ace..35cf45c 100644
---- a/include/linux/acpi_iort.h
-+++ b/include/linux/acpi_iort.h
-@@ -26,7 +26,8 @@
- #define IORT_IRQ_MASK(irq)		(irq & 0xffffffffULL)
- #define IORT_IRQ_TRIGGER_MASK(irq)	((irq >> 32) & 0xffffffffULL)
+  nondev:
+-	if (!child || child->type == FWNODE_ACPI_DATA) {
++	if (!child || is_acpi_data_node(child)) {
+ 		struct acpi_data_node *data = to_acpi_data_node(fwnode);
+ 		struct acpi_data_node *dn;
  
--int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node);
-+int iort_register_domain_token(int trans_id, phys_addr_t base,
-+			       struct fwnode_handle *fw_node);
- void iort_deregister_domain_token(int trans_id);
- struct fwnode_handle *iort_find_domain_token(int trans_id);
- #ifdef CONFIG_ACPI_IORT
-@@ -39,6 +40,7 @@
- /* IOMMU interface */
- void iort_set_dma_mask(struct device *dev);
- const struct iommu_ops *iort_iommu_configure(struct device *dev);
-+int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head);
- #else
- static inline void acpi_iort_init(void) { }
- static inline bool iort_node_match(u8 type) { return false; }
-@@ -53,6 +55,9 @@ static inline void iort_set_dma_mask(struct device *dev) { }
+@@ -1223,16 +1222,26 @@ static int acpi_fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
+ 	return 0;
+ }
+ 
+-const struct fwnode_operations acpi_fwnode_ops = {
+-	.device_is_available = acpi_fwnode_device_is_available,
+-	.property_present = acpi_fwnode_property_present,
+-	.property_read_int_array = acpi_fwnode_property_read_int_array,
+-	.property_read_string_array = acpi_fwnode_property_read_string_array,
+-	.get_parent = acpi_node_get_parent,
+-	.get_next_child_node = acpi_get_next_subnode,
+-	.get_named_child_node = acpi_fwnode_get_named_child_node,
+-	.graph_get_next_endpoint = acpi_fwnode_graph_get_next_endpoint,
+-	.graph_get_remote_endpoint = acpi_fwnode_graph_get_remote_endpoint,
+-	.graph_get_port_parent = acpi_node_get_parent,
+-	.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint,
+-};
++#define DECLARE_ACPI_FWNODE_OPS(ops) \
++	const struct fwnode_operations ops = { \
++		.device_is_available = acpi_fwnode_device_is_available, \
++		.property_present = acpi_fwnode_property_present, \
++		.property_read_int_array = \
++			acpi_fwnode_property_read_int_array, \
++		.property_read_string_array = \
++			acpi_fwnode_property_read_string_array, \
++		.get_parent = acpi_node_get_parent, \
++		.get_next_child_node = acpi_get_next_subnode, \
++		.get_named_child_node = acpi_fwnode_get_named_child_node, \
++		.graph_get_next_endpoint = \
++			acpi_fwnode_graph_get_next_endpoint, \
++		.graph_get_remote_endpoint = \
++			acpi_fwnode_graph_get_remote_endpoint, \
++		.graph_get_port_parent = acpi_node_get_parent, \
++		.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint, \
++	}; \
++	EXPORT_SYMBOL_GPL(ops)
++
++DECLARE_ACPI_FWNODE_OPS(acpi_device_fwnode_ops);
++DECLARE_ACPI_FWNODE_OPS(acpi_data_fwnode_ops);
++DECLARE_ACPI_FWNODE_OPS(acpi_static_fwnode_ops);
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index fe379a0..53e268b 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1435,8 +1435,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+ 	device->device_type = type;
+ 	device->handle = handle;
+ 	device->parent = acpi_bus_get_parent(handle);
+-	device->fwnode.type = FWNODE_ACPI;
+-	device->fwnode.ops = &acpi_fwnode_ops;
++	device->fwnode.ops = &acpi_device_fwnode_ops;
+ 	acpi_set_device_status(device, sta);
+ 	acpi_device_get_busid(device);
+ 	acpi_set_pnp_ids(handle, &device->pnp, type);
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 692007e..09770fc 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -25,9 +25,11 @@ struct property_set {
+ 	const struct property_entry *properties;
+ };
+ 
++static const struct fwnode_operations pset_fwnode_ops;
++
+ static inline bool is_pset_node(struct fwnode_handle *fwnode)
+ {
+-	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_PDATA;
++	return !IS_ERR_OR_NULL(fwnode) && fwnode->ops == &pset_fwnode_ops;
+ }
+ 
+ static inline struct property_set *to_pset_node(struct fwnode_handle *fwnode)
+@@ -900,7 +902,6 @@ int device_add_properties(struct device *dev,
+ 	if (IS_ERR(p))
+ 		return PTR_ERR(p);
+ 
+-	p->fwnode.type = FWNODE_PDATA;
+ 	p->fwnode.ops = &pset_fwnode_ops;
+ 	set_secondary_fwnode(dev, &p->fwnode);
+ 	return 0;
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index c96389b..edd629b 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -912,3 +912,4 @@ const struct fwnode_operations of_fwnode_ops = {
+ 	.graph_get_port_parent = of_fwnode_graph_get_port_parent,
+ 	.graph_parse_endpoint = of_fwnode_graph_parse_endpoint,
+ };
++EXPORT_SYMBOL_GPL(of_fwnode_ops);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 197f3ff..e724afc 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -394,15 +394,21 @@ struct acpi_data_node {
+ 	struct completion kobj_done;
+ };
+ 
++extern const struct fwnode_operations acpi_device_fwnode_ops;
++extern const struct fwnode_operations acpi_data_fwnode_ops;
++extern const struct fwnode_operations acpi_static_fwnode_ops;
++
+ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+ {
+-	return !IS_ERR_OR_NULL(fwnode) && (fwnode->type == FWNODE_ACPI
+-		|| fwnode->type == FWNODE_ACPI_DATA);
++	return !IS_ERR_OR_NULL(fwnode) &&
++		(fwnode->ops == &acpi_device_fwnode_ops
++		 || fwnode->ops == &acpi_data_fwnode_ops);
+ }
+ 
+ static inline bool is_acpi_device_node(struct fwnode_handle *fwnode)
+ {
+-	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_ACPI;
++	return !IS_ERR_OR_NULL(fwnode) &&
++		fwnode->ops == &acpi_device_fwnode_ops;
+ }
+ 
+ static inline struct acpi_device *to_acpi_device_node(struct fwnode_handle *fwnode)
+@@ -413,7 +419,12 @@ static inline struct acpi_device *to_acpi_device_node(struct fwnode_handle *fwno
+ 
+ static inline bool is_acpi_data_node(struct fwnode_handle *fwnode)
+ {
+-	return fwnode && fwnode->type == FWNODE_ACPI_DATA;
++	return fwnode && fwnode->ops == &acpi_data_fwnode_ops;
++}
++
++static inline bool is_acpi_static_node(struct fwnode_handle *fwnode)
++{
++	return fwnode && fwnode->ops == &acpi_static_fwnode_ops;
+ }
+ 
+ static inline struct acpi_data_node *to_acpi_data_node(struct fwnode_handle *fwnode)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index b8f23c5..ad19760 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -56,9 +56,6 @@ static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
+ 	acpi_fwnode_handle(adev) : NULL)
+ #define ACPI_HANDLE(dev)		acpi_device_handle(ACPI_COMPANION(dev))
+ 
+-
+-extern const struct fwnode_operations acpi_fwnode_ops;
+-
+ static inline struct fwnode_handle *acpi_alloc_fwnode_static(void)
+ {
+ 	struct fwnode_handle *fwnode;
+@@ -67,15 +64,14 @@ static inline struct fwnode_handle *acpi_alloc_fwnode_static(void)
+ 	if (!fwnode)
+ 		return NULL;
+ 
+-	fwnode->type = FWNODE_ACPI_STATIC;
+-	fwnode->ops = &acpi_fwnode_ops;
++	fwnode->ops = &acpi_static_fwnode_ops;
+ 
+ 	return fwnode;
+ }
+ 
+ static inline void acpi_free_fwnode_static(struct fwnode_handle *fwnode)
+ {
+-	if (WARN_ON(!fwnode || fwnode->type != FWNODE_ACPI_STATIC))
++	if (WARN_ON(!fwnode || !is_acpi_static_node(fwnode)))
+ 		return;
+ 
+ 	kfree(fwnode);
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 9ab3754..e7ca4c5 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -14,20 +14,9 @@
+ 
+ #include <linux/types.h>
+ 
+-enum fwnode_type {
+-	FWNODE_INVALID = 0,
+-	FWNODE_OF,
+-	FWNODE_ACPI,
+-	FWNODE_ACPI_DATA,
+-	FWNODE_ACPI_STATIC,
+-	FWNODE_PDATA,
+-	FWNODE_IRQCHIP
+-};
+-
+ struct fwnode_operations;
+ 
+ struct fwnode_handle {
+-	enum fwnode_type type;
+ 	struct fwnode_handle *secondary;
+ 	const struct fwnode_operations *ops;
+ };
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index 9f36160..ee1910c 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -233,9 +233,11 @@ static inline struct fwnode_handle *of_node_to_fwnode(struct device_node *node)
+ 	return node ? &node->fwnode : NULL;
+ }
+ 
++extern const struct fwnode_operations irqchip_fwnode_ops;
++
+ static inline bool is_fwnode_irqchip(struct fwnode_handle *fwnode)
+ {
+-	return fwnode && fwnode->type == FWNODE_IRQCHIP;
++	return fwnode && fwnode->ops == &irqchip_fwnode_ops;
+ }
+ 
  static inline
- const struct iommu_ops *iort_iommu_configure(struct device *dev)
- { return NULL; }
-+static inline
-+int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head)
-+{ return -ENODEV; }
- #endif
+diff --git a/include/linux/of.h b/include/linux/of.h
+index cdbfa88..6e39aa1 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -104,7 +104,6 @@ extern const struct fwnode_operations of_fwnode_ops;
+ static inline void of_node_init(struct device_node *node)
+ {
+ 	kobject_init(&node->kobj, &of_node_ktype);
+-	node->fwnode.type = FWNODE_OF;
+ 	node->fwnode.ops = &of_fwnode_ops;
+ }
  
- #endif /* __ACPI_IORT_H__ */
+@@ -152,7 +151,7 @@ void of_core_init(void);
+ 
+ static inline bool is_of_node(const struct fwnode_handle *fwnode)
+ {
+-	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_OF;
++	return !IS_ERR_OR_NULL(fwnode) && fwnode->ops == &of_fwnode_ops;
+ }
+ 
+ #define to_of_node(__fwnode)						\
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index 31805f2..e746c42 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -31,6 +31,8 @@ struct irqchip_fwid {
+ 	void *data;
+ };
+ 
++const struct fwnode_operations irqchip_fwnode_ops;
++
+ /**
+  * irq_domain_alloc_fwnode - Allocate a fwnode_handle suitable for
+  *                           identifying an irq domain
+@@ -55,7 +57,7 @@ struct fwnode_handle *irq_domain_alloc_fwnode(void *data)
+ 
+ 	fwid->name = name;
+ 	fwid->data = data;
+-	fwid->fwnode.type = FWNODE_IRQCHIP;
++	fwid->fwnode.ops = &irqchip_fwnode_ops;
+ 	return &fwid->fwnode;
+ }
+ EXPORT_SYMBOL_GPL(irq_domain_alloc_fwnode);
 -- 
-1.9.1
-
+2.7.4
 
