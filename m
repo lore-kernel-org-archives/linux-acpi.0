@@ -1,71 +1,49 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 01/15] ACPICA: Disassembler: Enhance resource descriptor
- detection
-Date: Tue, 13 Jun 2017 20:22:10 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5C06B5@ORSMSX110.amr.corp.intel.com>
-References: <cover.1493194142.git.lv.zheng@intel.com>
- <fe4a8655a06221df851d5781609058f16aa65e93.1493194142.git.lv.zheng@intel.com>
- <59357F55.8050707@hpe.com> <361261e5-ce98-9d33-f2de-88286288e2e1@hpe.com>
- <CAJZ5v0hUaiwZwi1a78zSO_hqp_QNdv9gYce-wwNESz1rnPs+sg@mail.gmail.com>
- <9f2f3edd-74e9-e108-0eff-56564c94147b@hpe.com>
- <CAJZ5v0jExmFeYwbq2CwCGEetf=JJevePcUJNarb6OKnf0Bb0GQ@mail.gmail.com>
- <d1e64425-29cf-3d2a-2b5b-51cc67e9ca89@hpe.com>
+From: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?=
+        <jerome.debretagne@gmail.com>
+Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
+ recent Dell laptops
+Date: Tue, 13 Jun 2017 23:11:46 +0200
+Message-ID: <CA+kEDGHS0JAoPiXowBEYCRwgi43-Ss_sJa9ngiuwP_xYt3rtaA@mail.gmail.com>
+References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
+ <88366b425cce41358ae8f88e43f3d201@ausx13mpc120.AMER.DELL.COM>
+ <CA+kEDGEXEYEV+tGnswvHsFmOX5W_GAYPTYxk0YUUt0D1pdr92A@mail.gmail.com>
+ <1872413.KDFIRZOQLU@aspire.rjw.lan> <CA+kEDGHHVJS9vgNVdowVQ4+eACFFdqTXR04e1V5qFcs_pZ0_yA@mail.gmail.com>
+ <CA+kEDGF57sfz+f8_9XMqGQqPt-5LmtvceO70_gOpdaZ548tT-g@mail.gmail.com>
+ <CAJZ5v0jHf3zDJ6K8pN3DQZa2Xq14Cz5XQMpwxqJfwH=nS8jGdA@mail.gmail.com>
+ <CA+kEDGFiyynapLQPgnxNxuphBFYNpp7OYu9dn7vv-Z9PJNG6dA@mail.gmail.com> <CAJZ5v0h=GVjqwZ7fdJGHWrQN5GuNotk5xCH-nYynFUadVAH0Xg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:34478 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751793AbdFMUWN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 13 Jun 2017 16:22:13 -0400
-In-Reply-To: <d1e64425-29cf-3d2a-2b5b-51cc67e9ca89@hpe.com>
-Content-Language: en-US
+Received: from mail-io0-f193.google.com ([209.85.223.193]:34170 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753680AbdFMVM1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jun 2017 17:12:27 -0400
+In-Reply-To: <CAJZ5v0h=GVjqwZ7fdJGHWrQN5GuNotk5xCH-nYynFUadVAH0Xg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linda Knippers <linda.knippers@hpe.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, "Box, David E" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mario Limonciello <Mario.Limonciello@dell.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTGluZGEgS25pcHBlcnMg
-W21haWx0bzpsaW5kYS5rbmlwcGVyc0BocGUuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBKdW5lIDEz
-LCAyMDE3IDY6NDIgQU0NCj4gVG86IFJhZmFlbCBKLiBXeXNvY2tpIDxyYWZhZWxAa2VybmVsLm9y
-Zz4NCj4gQ2M6IE1vb3JlLCBSb2JlcnQgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+OyBaaGVuZywg
-THYNCj4gPGx2LnpoZW5nQGludGVsLmNvbT47IFd5c29ja2ksIFJhZmFlbCBKIDxyYWZhZWwuai53
-eXNvY2tpQGludGVsLmNvbT47DQo+IFJhZmFlbCBKIC4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5u
-ZXQ+OyBCcm93biwgTGVuDQo+IDxsZW4uYnJvd25AaW50ZWwuY29tPjsgQm94LCBEYXZpZCBFIDxk
-YXZpZC5lLmJveEBpbnRlbC5jb20+OyBMdiBaaGVuZw0KPiA8emV0YWxvZ0BnbWFpbC5jb20+OyBB
-Q1BJIERldmVsIE1hbGluZyBMaXN0IDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZz4NCj4gU3Vi
-amVjdDogUmU6IFtQQVRDSCAwMS8xNV0gQUNQSUNBOiBEaXNhc3NlbWJsZXI6IEVuaGFuY2UgcmVz
-b3VyY2UNCj4gZGVzY3JpcHRvciBkZXRlY3Rpb24NCj4gDQo+IA0KPiANCj4gT24gNi81LzIwMTcg
-NDo1NSBQTSwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6DQo+ID4gT24gTW9uLCBKdW4gNSwgMjAx
-NyBhdCAxMDo1MSBQTSwgTGluZGEgS25pcHBlcnMNCj4gPGxpbmRhLmtuaXBwZXJzQGhwZS5jb20+
-IHdyb3RlOg0KPiA+PiBPbiA2LzUvMjAxNyA0OjQyIFBNLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90
-ZToNCj4gPj4gPHNuaXA+DQo+ID4+DQo+ID4+Pj4gSSB0YWxrZWQgdG8gb3VyIEZXIHRlYW0gYW5k
-IHdlIGRvIGdlbmVyYXRlIGNoZWNrc3VtcyBhbmQgbm90IGEgemVybw0KPiA+Pj4+IGZvciBhdCBs
-ZWFzdCBzb21lIG9mIHRoZSBBTUwuIFBsZWFzZSByZXZlcnQgdGhpcyBjaGFuZ2UgdW50aWwgeW91
-DQo+ID4+Pj4gY2FuIGFsc28gdmFsaWRhdGUgYSBjaGVja3N1bS4gIE9yIHNoYWxsIEkgcG9zdCBh
-IHBhdGNoIHRvIHJlbW92ZQ0KPiA+Pj4+IHRoZSBjaGVjaz8NCj4gPj4+DQo+ID4+Pg0KPiA+Pj4g
-SSdsbCBza2lwIHRoaXMgcGF0Y2gsIG5vIG5lZWQgdG8gZG8gYW55dGhpbmcgZWxzZS4gIFRoYW5r
-cyBmb3IgeW91cg0KPiA+Pj4gcmVwb3J0IQ0KPiA+Pg0KPiA+Pg0KPiA+PiBUaGFua3MuICBUaGlz
-IHBhdGNoIGlzIGFscmVhZHkgaW4gYXMgb2YgNC4xMnJjMSBhbmQgbm90IHBhcnQgb2YgdGhlDQo+
-ID4+IG1vc3QgcmVjZW50IEFDUElDQSBkcm9wLg0KPiA+DQo+ID4gQWgsIE9LLg0KPiA+DQo+ID4g
-SSBzaG91bGQgaGF2ZSBjaGVja2VkIEkgZ3Vlc3MuIDotKQ0KPiA+DQo+ID4gQW55d2F5LCBJJ2xs
-IHJldmVydCBpdCwgdGhlbi4NCj4gDQo+IEhpIFJhZmFlbCwgSXMgdGhpcyBzdGlsbCBpbiB0aGUg
-cXVldWUgdG8gYmUgcmV2ZXJ0ZWQ/DQo+IEkgc2VlIGl0J3Mgc3RpbGwgaW4gcmM1IGJ1dCBpdCBy
-ZWFsbHkgbmVlZHMgdG8gZ28gYmVmb3JlIDQuMTIgaXMNCj4gcmVsZWFzZWQuDQo+IFdlJ3ZlIGJl
-ZW4gYnJva2VuIHNpbmNlIHJjMS4NCj4gDQo+IFRoYW5rcywNCj4gDQo+IC0tIGxqaw0KPiA+DQo+
-ID4+PiBCb2IsIGNhbiB5b3UgcmV2ZXJ0IHRoaXMgdXBzdHJlYW0sIHBsZWFzZT8gIEl0IGxvb2tz
-IGxpa2UgdGhlDQo+ID4+PiBhc3N1bXB0aW9uIGl0IGlzIGJhc2VkIG9uIGRvZXNuJ3QgaG9sZC4N
-Cj4gPj4NCltNb29yZSwgUm9iZXJ0XSANCg0KSXQgaXMgb24gb3VyIGxpc3Qgb2YgdGhpbmdzIHRv
-IGxvb2sgYXQsIG5vdyB0aGF0IGFjcGkgNi4yIGlzIHJlbGVhc2VkLg0KDQpUaGlzIGhhcyBiZWVu
-IGEgcmF0aGVyIG9kZCBwcm9ibGVtIHRoYXQgd2UgaGF2ZSBiZWVuIHRyeWluZyB0byBmaXggZm9y
-IHNvbWUgdGltZSBub3c7IHNvIHdlIHdpbGwgb2YgY291cnNlIG5lZWQgdG8gY29tZSB1cCB3aXRo
-IGEgcGVybWFuZW50IGZpeC4NCg0KDQoNCj4gPj4gQm9iLCBJJ20gaGFwcHkgdG8gdGVzdCBzb21l
-dGhpbmcgaWYgdGhlcmUgaXMgYSBuZXcgcGF0Y2ggdGhhdCBsb29rcw0KPiA+PiBmb3IgemVybyBv
-ciBhIHZhbGlkIGNoZWNrc3VtLiAgVEJILCBJJ20gbm90IDEwMCUgY2VydGFpbiB0aGF0IG91cg0K
-PiA+PiBjaGVja3N1bXMgYXJlIGNvcnJlY3QgYmVjYXVzZSBub3RoaW5nIGhhcyBldmVyIHRyaWVk
-IHRvIHZlcmlmeSB0aGVtLg0KPiA+DQo+ID4gV2VsbCwgdGhhdCdzIHBhcnQgb2YgdGhlIHByb2Js
-ZW0gaGVyZSBJIGd1ZXNzLiAgSWYgdGhleSBoYXZlIG5ldmVyDQo+ID4gYmVlbiB0ZXN0ZWQsIHRo
-ZXkgY2Fubm90IGJlIHRydXN0ZWQuDQo+ID4NCj4gPiBTdGlsbCwgdGhlIGNvbW1pdCBpbiBxdWVz
-dGlvbiBjbGVhcmx5IGFzc3VtZWQgdGhhdCB2YWx1ZSB0byBhbHdheXMgYmUNCj4gPiAwIGFuZCBp
-dCBjbGVhcmx5IGlzIG5vdCB0aGUgY2FzZSBoZXJlLg0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+IFJh
-ZmFlbA0KPiA+DQo=
+>>> However, the bottom line is that there is no way for the kernel at all
+>>> to know in advance that these events are going to be generated.
+>>
+>> Would a patch to handle this specific case be acceptable in the kernel though?
+>
+> We have quirks. :-)
+>
+> That said I think intel-hid could check the 0xCE event unconditionally
+> in the "wakeup" mode, but that will be a separate patch on top of my
+> series.
+
+Thank you again, Rafael and Mario, to have helped understand the
+special behavior implemented on this system / BIOS combination. I
+guess I'll wait for your s2-idle-dell-test patch series to land first, to
+discuss then how to handle this other Dell model (with Alex Hung?).
+
+Or do you have another suggestion about how to proceed?
+
+In the meantime, I'll update the bug report I had created:
+https://bugzilla.kernel.org/show_bug.cgi?id=195897
+to track and share there all the discoveries from this thread.
+
+Jerome
