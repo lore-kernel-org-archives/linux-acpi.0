@@ -1,55 +1,57 @@
-From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Subject: Re: [WIP PATCH 0/4] Rework the unreliable LID
- switch exported by ACPI
-Date: Tue, 13 Jun 2017 12:06:17 +0200
-Message-ID: <20170613100617.GD29589@mail.corp.redhat.com>
-References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
- <20170607074848.GE27006@gardel-login>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <systemd-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20170607074848.GE27006@gardel-login>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/systemd-devel>,
- <mailto:systemd-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/systemd-devel>
-List-Post: <mailto:systemd-devel@lists.freedesktop.org>
-List-Help: <mailto:systemd-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/systemd-devel>,
- <mailto:systemd-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: systemd-devel-bounces@lists.freedesktop.org
-Sender: "systemd-devel" <systemd-devel-bounces@lists.freedesktop.org>
-To: Lennart Poettering <mzxreary@0pointer.de>
-Cc: Len Brown <len.brown@intel.com>, systemd-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Lv Zheng <zetalog@gmail.com>, Lv Zheng <lv.zheng@intel.com>, linux-input@vger.kernel.org
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH v2] acpi: handle the acpi hotplug schedule error
+Date: Tue, 13 Jun 2017 19:11:34 +0800
+Message-ID: <20170613111134.13703-1-jlee@suse.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35538 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752211AbdFMLLo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jun 2017 07:11:44 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Michal Hocko <mhocko@suse.cz>
 
-SGksCgpbU29ycnkgZm9yIHRoZSBkZWxheSwgSSBoYXZlIGJlZW4gc2lkZXRyYWNrZWQgZnJvbSB0
-aGlzXQoKT24gSnVuIDA3IDIwMTcgb3IgdGhlcmVhYm91dHMsIExlbm5hcnQgUG9ldHRlcmluZyB3
-cm90ZToKPiBPbiBUaHUsIDAxLjA2LjE3IDIwOjQ2LCBCZW5qYW1pbiBUaXNzb2lyZXMgKGJlbmph
-bWluLnRpc3NvaXJlc0ByZWRoYXQuY29tKSB3cm90ZToKPiAKPiA+IEhpLAo+ID4gCj4gPiBTZW5k
-aW5nIHRoaXMgYXMgYSBXSVAgYXMgaXQgc3RpbGwgbmVlZCBhIGZldyBjaGFuZ2VzLCBidXQgaXQg
-bW9zdGx5IHdvcmtzIGFzCj4gPiBleHBlY3RlZCAoc3RpbGwgbm90IGZ1bGx5IGNvbXBsaWFudCB5
-ZXQpLgo+ID4gCj4gPiBTbyB0aGlzIGlzIGJhc2VkIG9uIExlbm5hcnQncyBjb21tZW50IGluIFsx
-XTogaWYgdGhlIExJRCBzdGF0ZSBpcyBub3QgcmVsaWFibGUsCj4gPiB0aGUga2VybmVsIHNob3Vs
-ZCBub3QgZXhwb3J0IHRoZSBMSUQgc3dpdGNoIGRldmljZSBhcyBsb25nIGFzIHdlIGFyZSBub3Qg
-c3VyZQo+ID4gYWJvdXQgaXRzIHN0YXRlLgo+IAo+IEFoIG5pY2UhIEkgKG9idmlvdXNseSkgbGlr
-ZSB0aGlzIGFwcHJvYWNoLgoKSGVoLiBOb3cgSSBqdXN0IG5lZWQgdG8gY29udmluY2UgTHYgdGhh
-dCBpdCdzIHRoZSByaWdodCBhcHByb2FjaC4KCj4gCj4gPiBOb3RlIHRoYXQgc3lzdGVtZCBjdXJy
-ZW50bHkgZG9lc24ndCBzeW5jIHRoZSBzdGF0ZSB3aGVuIHRoZSBpbnB1dCBub2RlIGp1c3QKPiA+
-IGFwcGVhcnMuIFRoaXMgaXMgYSBzeXN0ZW1kIGJ1ZywgYW5kIGl0IHNob3VsZCBub3QgYmUgaGFu
-ZGxlZCBieSB0aGUga2VybmVsCj4gPiBjb21tdW5pdHkuCj4gCj4gVWggaWYgdGhpcyBpcyBib3Jr
-ZWQsIHdlIHNob3VsZCBpbmRlZWQgZml4IHRoaXMgaW4gc3lzdGVtZC4gSXMgdGhlcmUKPiBhbHJl
-YWR5IGEgc3lzdGVtZCBnaXRodWIgYnVnIGFib3V0IHRoaXM/IElmIG5vdCwgcGxlYXNlIGNyZWF0
-ZSBvbmUsCj4gYW5kIHdlJ2xsIGxvb2sgaW50byBpdCEKCkkgZG9uJ3QgdGhpbmsgdGhlcmUgaXMu
-IEkgaGF2ZW4ndCByYWlzZWQgaXQgeWV0IGJlY2F1c2UgSSBhbSBub3Qgc28gc3VyZQp0aGlzIHdp
-bGwgbm90IGJyZWFrIGFnYWluIHRob3NlIHdvcnRobGVzcyB1bnJlbGlhYmxlIExJRCwgYW5kIGlm
-IHdlIHBsYXkKd2hhY2sgYSBtb2xlIGJldHdlZW4gdGhlIGtlcm5lbCBhbmQgdXNlciBzcGFjZSwg
-dGhpbmdzIGFyZSBnb2luZyB0byBiZQpuYXN0eS4gU28gSSdkIHJhdGhlciBoYXZlIHRoaXMgZml4
-ZWQgaW4gc3lzdGVtZCBhbG9uZyB3aXRoIHRoZQp1bnJlbGlhYmxlIExJRCBzd2l0Y2gga25vd2xl
-ZGdlLCBzbyB3ZSBhcmUgc3VyZSB0aGF0IHRoZSBrZXJuZWwgYmVoYXZlcwp0aGUgd2F5IHdlIGV4
-cGVjdCBpdCB0byBiZS4KCj4gCj4gVGhhbmtzIGZvciB3b3JraW5nIG9uIHRoaXMsCj4gCgpObyB3
-b3JyaWVzLgoKQ2hlZXJzLApCZW5qYW1pbgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18Kc3lzdGVtZC1kZXZlbCBtYWlsaW5nIGxpc3QKc3lzdGVtZC1kZXZl
-bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9zeXN0ZW1kLWRldmVsCg==
+Kernel should decrements the reference count of acpi device
+when the scheduling of acpi hotplug work is failed, and
+evaluates _OST to notify BIOS the failure.
+
+v2:
+To simplify the code. (Andy Shevchenko)
+
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
+---
+ drivers/acpi/bus.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 34fbe02..91adb71 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -427,12 +427,17 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+ 	    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
+ 		driver->ops.notify(adev, type);
+ 
+-	if (hotplug_event && ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
+-		return;
++	if (hotplug_event) {
++		if (ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
++			return;
++		goto err_put_device;
++	}
+ 
+ 	acpi_bus_put_acpi_device(adev);
+ 	return;
+ 
++ err_put_device:
++	acpi_bus_put_acpi_device(adev);
+  err:
+ 	acpi_evaluate_ost(handle, type, ost_code, NULL);
+ }
+-- 
+2.10.2
+
