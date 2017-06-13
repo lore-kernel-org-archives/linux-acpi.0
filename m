@@ -1,59 +1,46 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
- recent Dell laptops
-Date: Tue, 13 Jun 2017 02:22:37 +0200
-Message-ID: <CAJZ5v0h=GVjqwZ7fdJGHWrQN5GuNotk5xCH-nYynFUadVAH0Xg@mail.gmail.com>
-References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
- <88366b425cce41358ae8f88e43f3d201@ausx13mpc120.AMER.DELL.COM>
- <CA+kEDGEXEYEV+tGnswvHsFmOX5W_GAYPTYxk0YUUt0D1pdr92A@mail.gmail.com>
- <1872413.KDFIRZOQLU@aspire.rjw.lan> <CA+kEDGHHVJS9vgNVdowVQ4+eACFFdqTXR04e1V5qFcs_pZ0_yA@mail.gmail.com>
- <CA+kEDGF57sfz+f8_9XMqGQqPt-5LmtvceO70_gOpdaZ548tT-g@mail.gmail.com>
- <CAJZ5v0jHf3zDJ6K8pN3DQZa2Xq14Cz5XQMpwxqJfwH=nS8jGdA@mail.gmail.com> <CA+kEDGFiyynapLQPgnxNxuphBFYNpp7OYu9dn7vv-Z9PJNG6dA@mail.gmail.com>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: [PATCH v2 0/8] ACPI / PM: Suspend-to-idle rework to deal with
+ spurious ACPI wakeups
+Date: Tue, 13 Jun 2017 07:54:22 +0200
+Message-ID: <20170613055422.GA1911@light.dominikbrodowski.net>
+References: <8918199.uo13RZ8hZk@aspire.rjw.lan>
+ <1615075.mBkoKApGGc@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:34037 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752313AbdFMAWi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jun 2017 20:22:38 -0400
-In-Reply-To: <CA+kEDGFiyynapLQPgnxNxuphBFYNpp7OYu9dn7vv-Z9PJNG6dA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1615075.mBkoKApGGc@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux USB <linux-usb@vger.kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Felipe Balbi <balbi@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans De Goede <hdegoede@redhat.com>, Alan Stern <stern@rowland.harvard.edu>
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mario Limonciello <Mario.Limonciello@dell.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Tue, Jun 13, 2017 at 2:00 AM, J=C3=A9r=C3=B4me de Bretagne
-<jerome.debretagne@gmail.com> wrote:
->>> One more ouput for tonight. After doing a diff of the acpidump from
->>> both BIOS versions, I've found explicit references to the two 0xCE and
->>> 0xCF values right in the delta, in the dsdt.dsl files.
->>
->> Right.  That's what my last message was about. :-)
->
-> Indeed, our messages have crossed each other :-)
->
->>> I'm new to ACPI but could that ECBT mean "EC Button" maybe?
->>
->> That's just a method name which may or may not mean the above.
->>
->> \_SB.PCI0.LPCB.ECDV is the EC, so it is all related.
->>
->> However, the bottom line is that there is no way for the kernel at all
->> to know in advance that these events are going to be generated.
->
-> Ok, so I understand that this is totally device-specific :-(
+Rafael,
 
-Well, device-and-BIOS-version-specific even.
+On Mon, Jun 12, 2017 at 10:46:47PM +0200, Rafael J. Wysocki wrote:
+> Hi All,
+> 
+> On Thursday, June 08, 2017 02:00:40 AM Rafael J. Wysocki wrote:
+> > Hi All,
+> > 
+> > This series is a replacement for commit eed4d47efe95 (ACPI / sleep: Ignore
+> > spurious SCI wakeups from suspend-to-idle) which is still there in 4.12-rc4 but
+> > will be reverted shortly, because it triggered issues on quite a few systems.
+> > 
+> > The last patch in the series is a counterpart of the above commit with a few
+> > modifications, mostly to avoid affecting suspend-to-RAM and to reorder messages
+> > printed to kernel logs to make them somewhat less confusing.
+> 
+> Here's a v2 which is very similar to the previous one, except for 3 things:
+> - There are few build fixes in the last patch.
+> - The patch from Hans mentioned previously is included now (as [7/8]).
+> - There is an additional PCI change related to config space saving/restoring
+>   and PME.
+> 
+> If anyone has any objections or concerns regarding this, please speak up now,
+> as I'm going to put it into linux-next shortly to allow it to receive some more
+> testing than commit eed4d47efe95 had had before it went it.
 
-> Would a patch to handle this specific case be acceptable in the kernel th=
-ough?
+suspend-to-mem works as expected, also with this v2 applied. Thanks!
 
-We have quirks. :-)
-
-That said I think intel-hid could check the 0xCE event unconditionally
-in the "wakeup" mode, but that will be a separate patch on top of my
-series.
-
-Thanks,
-Rafael
+	Dominik
