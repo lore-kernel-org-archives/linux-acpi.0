@@ -1,45 +1,79 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
- before scanning
-Date: Tue, 13 Jun 2017 11:48:31 +0300
-Message-ID: <20170613084831.GP3187@lahna.fi.intel.com>
-References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
- <1495712248-5232-6-git-send-email-gabriele.paoloni@huawei.com>
- <20170530132408.GA2556@red-moon>
- <EE11001F9E5DDD47B7634E2F8A612F2E40A7B677@FRAEML521-MBX.china.huawei.com>
- <20170606085553.GA20085@red-moon>
- <20170612155700.GA31930@red-moon>
+From: <lizdebeth_@hotmail.com>
+Subject: (unknown)
+Date: Tue, 13 Jun 2017 09:59:25 -0000
+Message-ID: <149734796573.29695.18124213578271337395@impuls-perm.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170612155700.GA31930@red-moon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, rafael@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Li
+Content-Type: application/zip; name="6313991237204.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 77.236.71.225.impuls-perm.ru ([77.236.71.225]:50240 "HELO
+        impuls-perm.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with SMTP id S1752211AbdFMJ7a (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jun 2017 05:59:30 -0400
+Subject: 
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Mon, Jun 12, 2017 at 04:57:00PM +0100, Lorenzo Pieralisi wrote:
-> I had a more in-depth look at this series and from my understanding
-> the problem are the following to manage the LPC bindings in ACPI.
-> 
-> (1) Child devices of an LPC controller require special handling when
->     filling their resources (ie they need to be translated - in DT
->     that's guaranteed by the "isa" binding, in ACPI it has to be
->     done by new code)
-> (2) In DT systems, LPC child devices are created by the LPC bus
->     controller driver through an of_platform_populate() call with
->     the LPC controller node as the fwnode root. For ACPI to work
->     the same way there must be a way to prevent LPC children to
->     be enumerated in acpi_default_enumeration() something like
->     I2C does (and then the LPC driver would enumerate its children as
->     DT does)
-> 
-> I am not sure how (1) and (2) can be managed with current ACPI bindings
-> and kernel code - I suspect it may be done by mirroring what's done
-> for I2C but I am not sure, that's why I CC'ed Mika (ie the LPC adapter
-> is matched as a platform device and it takes care of enumerating its
-> children - problem though is preventing enumeration from core ACPI code).
-
-Is there an example ASL showing how these LPC devices are
-currently presented in ACPI?
+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
