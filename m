@@ -1,140 +1,70 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO
- devices before scanning
-Date: Tue, 13 Jun 2017 19:01:38 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Tue, 13 Jun 2017 23:03:39 +0300
+Message-ID: <20170613200339.GX3187@lahna.fi.intel.com>
 References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
  <1495712248-5232-6-git-send-email-gabriele.paoloni@huawei.com>
  <20170530132408.GA2556@red-moon>
  <EE11001F9E5DDD47B7634E2F8A612F2E40A7B677@FRAEML521-MBX.china.huawei.com>
- <20170606085553.GA20085@red-moon> <20170612155700.GA31930@red-moon>
+ <20170606085553.GA20085@red-moon>
+ <20170612155700.GA31930@red-moon>
  <20170613084831.GP3187@lahna.fi.intel.com>
  <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
  <20170613151013.GT3187@lahna.fi.intel.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([45.249.212.188]:7820 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751826AbdFMTCW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jun 2017 15:02:22 -0400
-In-Reply-To: <20170613151013.GT3187@lahna.fi.intel.com>
-Content-Language: en-US
+Received: from mga14.intel.com ([192.55.52.115]:1658 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751793AbdFMUDr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Jun 2017 16:03:47 -0400
+Content-Disposition: inline
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi>
 
-Hi Mika
-
-> -----Original Message-----
-> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
-> Sent: 13 June 2017 16:10
-> To: Gabriele Paoloni
-> Cc: Lorenzo Pieralisi; rafael@kernel.org; Rafael J. Wysocki;
-> catalin.marinas@arm.com; will.deacon@arm.com; robh+dt@kernel.org;
-> frowand.list@gmail.com; bhelgaas@google.com; arnd@arndb.de; linux-arm-
-> kernel@lists.infradead.org; mark.rutland@arm.com;
-> brian.starkey@arm.com; olof@lixom.net; benh@kernel.crashing.org; linux-
-> kernel@vger.kernel.org; linux-acpi@vger.kernel.org; Linuxarm; linux-
-> pci@vger.kernel.org; minyard@acm.org; John Garry; xuwei (O)
-> Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO
-> devices before scanning
+On Tue, Jun 13, 2017 at 07:01:38PM +0000, Gabriele Paoloni wrote:
+> I am not very familiar with Linux MFD however the main issue here is that
+> 1) for IPMI we want to re-use the standard IPMI driver without touching it:
+>    see 
 > 
-> On Tue, Jun 13, 2017 at 02:38:26PM +0000, Gabriele Paoloni wrote:
-> > > Is there an example ASL showing how these LPC devices are
-> > > currently presented in ACPI?
-> >
-> > Please find below the asl sketch for our LPC and IPMI
-> >
-> > //
-> > // LPC
-> > //
-> >
-> > Scope(_SB) {
-> >   Device (LPC0) {
-> >     Name (_HID, "HISI0191")  // HiSi LPC
-> >     Name (_CRS, ResourceTemplate () {
-> >       Memory32Fixed (ReadWrite, 0xa01b0000, 0x1000)
-> >     })
-> >   }
-> >
-> >   Device (LPC0.IPMI) {
-> >     Name (_HID, "IPI0001")
-> >     Method (_IFT) {
-> >       Return (0x03)
-> >     }
-> >     Name (LORS, ResourceTemplate() {
-> >       QWordIO (
-> >         ResourceConsumer,
-> > 	MinNotFixed,     // _MIF
-> > 	MaxNotFixed,     // _MAF
-> > 	PosDecode,
-> > 	EntireRange,
-> > 	0x0,             // _GRA
-> > 	0xe4,            // _MIN
-> > 	0x3fff,          // _MAX
-> > 	0x0,             // _TRA
-> > 	0x04,            // _LEN
-> > 	, ,
-> > 	BTIO
-> >       )
-> >     })
-> >     CreateQWordField (LORS, BTIO._MIN, CMIN)
-> >     CreateQWordField (LORS, BTIO._MAX, CMAX)
-> >     CreateQWordField (LORS, BTIO._LEN, CLEN)
-> >
-> >     Method (_PRS, 0) {
-> >       Return (LORS)
-> >     }
-> >
-> >     Method (_CRS, 0) {
-> >       Return (LORS)
-> >     }
-> >     Method (_SRS, 1) {
-> >       CreateQWordField (Arg0, \_SB.LPC0.IPMI.BTIO._MIN, IMIN)
-> >       Store (IMIN, CMIN)
-> >       CreateQWordField (Arg0, \_SB.LPC0.IPMI.BTIO._MAX, IMAX)
-> >       Store (IMAX, CMAX)
-> >     }
-> >   }
-> > [...]
-> > }
+>    static const struct acpi_device_id acpi_ipmi_match[] = {
+>          { "IPI0001", 0 },
+>          { },
+>    };
 > 
-> Thanks. So this looks pretty much like normal Linux MFD device which we
-> already have support for adding ACPI bindings to child devices. It
-> should also support splitting resources to child devices IIRC.
+>    in "drivers/char/ipmi/ipmi_si_intf.c" (and in general any standard driver
+>    of an LPC child)
+> 
+> 2) We need a way to guarantee that all LPC children are not enumerated
+>    by acpi_default_enumeration() (so for example if an ipmi node is an LPC#
+>    child it should not be enumerated, otherwise it should be)
+>    Currently acpi_default_enumeration() skips spi/i2c slaves by checking:
+>    1) if the acpi resource type is a serial bus
+>    2) if the type of serial bus descriptor is I2C or SPI
+> 
+>    For LPC we cannot leverage on any ACPI property to "recognize" that our
+>    devices are LPC children; hence before I proposed for acpi_default_enumeration()
+>    to skip devices that have already been enumerated (by calling 
+>    acpi_device_enumerated() ).
+> 
+> So in the current scenario, how do you think that MFD can help?
 
-I am not very familiar with Linux MFD however the main issue here is that
-1) for IPMI we want to re-use the standard IPMI driver without touching it:
-   see 
+If you look at Documentation/acpi/enumeration.txt there is a chapter
+"MFD devices". I think it pretty much maches what you have here. An LPC
+device (MFD device) and bunch of child devices. The driver for your LPC
+device can specify _HID for each child device. Those are then mached by
+the MFD ACPI code to the corresponding ACPI nodes from which platform
+devices are created including "IPI0001".
 
-   static const struct acpi_device_id acpi_ipmi_match[] = {
-         { "IPI0001", 0 },
-         { },
-   };
+It causes acpi_default_enumeration() to be called but it should be fine
+as we are dealing with platform device anyway.
 
-   in "drivers/char/ipmi/ipmi_si_intf.c" (and in general any standard driver
-   of an LPC child)
+Once the platform device is created your ipmi driver will be probed by
+the driver core.
 
-2) We need a way to guarantee that all LPC children are not enumerated
-   by acpi_default_enumeration() (so for example if an ipmi node is an LPC#
-   child it should not be enumerated, otherwise it should be)
-   Currently acpi_default_enumeration() skips spi/i2c slaves by checking:
-   1) if the acpi resource type is a serial bus
-   2) if the type of serial bus descriptor is I2C or SPI
-
-   For LPC we cannot leverage on any ACPI property to "recognize" that our
-   devices are LPC children; hence before I proposed for acpi_default_enumeration()
-   to skip devices that have already been enumerated (by calling 
-   acpi_device_enumerated() ).
-
-So in the current scenario, how do you think that MFD can help?
-Do you see any possible solution?
-
-Many thanks
-Gab
-  
-
-
+Does that make sense?
