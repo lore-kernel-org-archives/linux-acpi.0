@@ -1,45 +1,45 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH v2 2/8] USB / PCI / PM: Allow the PCI core to do the
- resume cleanup
-Date: Tue, 13 Jun 2017 10:52:52 +0200
-Message-ID: <20170613085252.GA21068@kroah.com>
-References: <8918199.uo13RZ8hZk@aspire.rjw.lan>
- <1615075.mBkoKApGGc@aspire.rjw.lan>
- <38416217.53MZsF26VB@aspire.rjw.lan>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Tue, 13 Jun 2017 11:48:31 +0300
+Message-ID: <20170613084831.GP3187@lahna.fi.intel.com>
+References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1495712248-5232-6-git-send-email-gabriele.paoloni@huawei.com>
+ <20170530132408.GA2556@red-moon>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40A7B677@FRAEML521-MBX.china.huawei.com>
+ <20170606085553.GA20085@red-moon>
+ <20170612155700.GA31930@red-moon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <38416217.53MZsF26VB@aspire.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux USB <linux-usb@vger.kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Felipe Balbi <balbi@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dominik Brodowski <linux@dominikbrodowski.net>, Hans De Goede <hdegoede@redhat.com>, Alan Stern <stern@rowland.harvard.edu>
+In-Reply-To: <20170612155700.GA31930@red-moon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, rafael@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Li
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 12, 2017 at 10:49:40PM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, Jun 12, 2017 at 04:57:00PM +0100, Lorenzo Pieralisi wrote:
+> I had a more in-depth look at this series and from my understanding
+> the problem are the following to manage the LPC bindings in ACPI.
 > 
-> hcd_pci_resume_noirq() used as a universal _resume_noirq handler for
-> PCI USB controllers calls pci_back_from_sleep() which is unnecessary
-> and may become problematic.
+> (1) Child devices of an LPC controller require special handling when
+>     filling their resources (ie they need to be translated - in DT
+>     that's guaranteed by the "isa" binding, in ACPI it has to be
+>     done by new code)
+> (2) In DT systems, LPC child devices are created by the LPC bus
+>     controller driver through an of_platform_populate() call with
+>     the LPC controller node as the fwnode root. For ACPI to work
+>     the same way there must be a way to prevent LPC children to
+>     be enumerated in acpi_default_enumeration() something like
+>     I2C does (and then the LPC driver would enumerate its children as
+>     DT does)
 > 
-> It is unnecessary, because the PCI bus type carries out post-suspend
-> cleanup of all PCI devices during resume and that covers all things
-> done by the pci_back_from_sleep().  There is no reason why USB cannot
-> follow all of the other PCI devices in that respect.
-> 
-> It will become problematic after subsequent changes that make it
-> possible to go back to sleep again after executing dpm_resume_noirq()
-> if no valid system wakeup events have been detected at that point.
-> Namely, calling pci_back_from_sleep() at the _resume_noirq stage
-> will cause the wakeup status of the devices in question to be cleared
-> and if any of them has triggered system wakeup, that event may be
-> missed then.
-> 
-> For the above reasons, drop the pci_back_from_sleep() invocation
-> from hcd_pci_resume_noirq().
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Acked-by: Alan Stern <stern@rowland.harvard.edu>
+> I am not sure how (1) and (2) can be managed with current ACPI bindings
+> and kernel code - I suspect it may be done by mirroring what's done
+> for I2C but I am not sure, that's why I CC'ed Mika (ie the LPC adapter
+> is matched as a platform device and it takes care of enumerating its
+> children - problem though is preventing enumeration from core ACPI code).
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Is there an example ASL showing how these LPC devices are
+currently presented in ACPI?
