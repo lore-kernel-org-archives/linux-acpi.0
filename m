@@ -1,51 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 2/8] USB / PCI / PM: Allow the PCI core to do the resume cleanup
-Date: Tue, 13 Jun 2017 13:14:27 +0200
-Message-ID: <2860180.RSLfeucCac@aspire.rjw.lan>
-References: <8918199.uo13RZ8hZk@aspire.rjw.lan> <38416217.53MZsF26VB@aspire.rjw.lan> <20170613085252.GA21068@kroah.com>
+From: shameer <shameerali.kolothum.thodi@huawei.com>
+Subject: [PATCH 0/2] iommu/smmu-v3: Workaround for hisilicon 161010801 erratum(reserve HW MSI)
+Date: Tue, 13 Jun 2017 12:48:27 +0100
+Message-ID: <20170613114829.188036-1-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42168 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753155AbdFMLVf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 13 Jun 2017 07:21:35 -0400
-In-Reply-To: <20170613085252.GA21068@kroah.com>
+Received: from szxga01-in.huawei.com ([45.249.212.187]:8272 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753128AbdFMLuA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jun 2017 07:50:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux USB <linux-usb@vger.kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Felipe Balbi <balbi@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dominik Brodowski <linux@dominikbrodowski.net>, Hans De Goede <hdegoede@redhat.com>, Alan Stern <stern@rowland.harvard.edu>
+To: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, hanjun.guo@linaro.org
+Cc: gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com, shameer <shameerali.kolothum.thodi@huawei.com>
 
-On Tuesday, June 13, 2017 10:52:52 AM Greg KH wrote:
-> On Mon, Jun 12, 2017 at 10:49:40PM +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > hcd_pci_resume_noirq() used as a universal _resume_noirq handler for
-> > PCI USB controllers calls pci_back_from_sleep() which is unnecessary
-> > and may become problematic.
-> > 
-> > It is unnecessary, because the PCI bus type carries out post-suspend
-> > cleanup of all PCI devices during resume and that covers all things
-> > done by the pci_back_from_sleep().  There is no reason why USB cannot
-> > follow all of the other PCI devices in that respect.
-> > 
-> > It will become problematic after subsequent changes that make it
-> > possible to go back to sleep again after executing dpm_resume_noirq()
-> > if no valid system wakeup events have been detected at that point.
-> > Namely, calling pci_back_from_sleep() at the _resume_noirq stage
-> > will cause the wakeup status of the devices in question to be cleared
-> > and if any of them has triggered system wakeup, that event may be
-> > missed then.
-> > 
-> > For the above reasons, drop the pci_back_from_sleep() invocation
-> > from hcd_pci_resume_noirq().
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Acked-by: Alan Stern <stern@rowland.harvard.edu>
-> 
-> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+On certain HiSilicon platforms (Hip06/Hip07) the GIC ITS and
+PCIe RC deviates from the standard implementation and this breaks
+PCIe MSI functionality when SMMU is enabled.
 
-Thanks!
+The HiSilicon erratum 161010801 describes this limitation of certain
+HiSilicon platforms to support the SMMU mappings for MSI transactions.
+On these platforms GICv3 ITS translator is presented with the deviceID
+by extending the MSI payload data to 64 bits to include the deviceID.
+Hence, the PCIe controller on this platforms has to differentiate the
+MSI payload against other DMA payload and has to modify the MSI payload.
+This basically makes it difficult for this platforms to have a SMMU
+translation for MSI.
+
+This patch implements a ACPI table based quirk to reserve the hw msi
+regions in the smmu-v3 driver which means these address regions will
+not be translated and will be excluded from iova allocations.
+
+To implement this quirk, the following changes are incorporated:
+
+1. Added a generic helper function to IORT code to retrieve and
+   reserve the HW ITS address regions.
+2. Added quirk to SMMUv3 to reserve HW ITS address regions based
+   on IORT SMMUv3 model.
+
+This is based on the following patches:
+1. https://patchwork.kernel.org/patch/9740733/
+2. https://patchwork.kernel.org/patch/9730491/
+
+Thanks,
+Shameer
+
+RFCv2 -->PATCH
+
+Incorporated Lorenzo's review comments.
+
+RFC v1 -->v2
+
+Based on Robin's review comments,
+-Removed  the generic erratum framework.
+-Using IORT/MADT tables to retrieve the ITS base addr instead
+ of vendor specific CSRT table.
+
+shameer (2):
+  acpi:iort: Add an IORT helper function to reserve HW ITS address
+    regions for IOMMU drivers
+  iommu/arm-smmu-v3:Enable ACPI based HiSilicon erratum 161010801
+
+ drivers/acpi/arm64/iort.c        | 92 ++++++++++++++++++++++++++++++++++++++--
+ drivers/iommu/arm-smmu-v3.c      | 27 +++++++++---
+ drivers/irqchip/irq-gic-v3-its.c |  3 +-
+ include/linux/acpi_iort.h        |  7 ++-
+ 4 files changed, 119 insertions(+), 10 deletions(-)
+
+-- 
+1.9.1
+
 
