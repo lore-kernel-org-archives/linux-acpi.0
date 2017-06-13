@@ -1,71 +1,90 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 01/15] ACPICA: Disassembler: Enhance resource descriptor detection
-Date: Tue, 13 Jun 2017 17:13:12 +0200
-Message-ID: <CAJZ5v0jNPKu91=OKpXihisudc19fpRabNmWM_-PFg3QOEMHXTQ@mail.gmail.com>
-References: <cover.1493194142.git.lv.zheng@intel.com> <fe4a8655a06221df851d5781609058f16aa65e93.1493194142.git.lv.zheng@intel.com>
- <59357F55.8050707@hpe.com> <361261e5-ce98-9d33-f2de-88286288e2e1@hpe.com>
- <CAJZ5v0hUaiwZwi1a78zSO_hqp_QNdv9gYce-wwNESz1rnPs+sg@mail.gmail.com>
- <9f2f3edd-74e9-e108-0eff-56564c94147b@hpe.com> <CAJZ5v0jExmFeYwbq2CwCGEetf=JJevePcUJNarb6OKnf0Bb0GQ@mail.gmail.com>
- <d1e64425-29cf-3d2a-2b5b-51cc67e9ca89@hpe.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Tue, 13 Jun 2017 18:10:13 +0300
+Message-ID: <20170613151013.GT3187@lahna.fi.intel.com>
+References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1495712248-5232-6-git-send-email-gabriele.paoloni@huawei.com>
+ <20170530132408.GA2556@red-moon>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40A7B677@FRAEML521-MBX.china.huawei.com>
+ <20170606085553.GA20085@red-moon>
+ <20170612155700.GA31930@red-moon>
+ <20170613084831.GP3187@lahna.fi.intel.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f172.google.com ([209.85.223.172]:34084 "EHLO
-        mail-io0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753360AbdFMPNN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jun 2017 11:13:13 -0400
-Received: by mail-io0-f172.google.com with SMTP id i7so75239669ioe.1
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Jun 2017 08:13:13 -0700 (PDT)
-In-Reply-To: <d1e64425-29cf-3d2a-2b5b-51cc67e9ca89@hpe.com>
+Received: from mga11.intel.com ([192.55.52.93]:30826 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752456AbdFMPQy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Jun 2017 11:16:54 -0400
+Content-Disposition: inline
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linda Knippers <linda.knippers@hpe.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, "David E . Box" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi>
 
-On Tue, Jun 13, 2017 at 3:42 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
->
->
-> On 6/5/2017 4:55 PM, Rafael J. Wysocki wrote:
->>
->> On Mon, Jun 5, 2017 at 10:51 PM, Linda Knippers <linda.knippers@hpe.com>
->> wrote:
->>>
->>> On 6/5/2017 4:42 PM, Rafael J. Wysocki wrote:
->>> <snip>
->>>
->>>>> I talked to our FW team and we do generate checksums and not a zero for
->>>>> at
->>>>> least some
->>>>> of the AML. Please revert this change until you can also validate
->>>>> a checksum.  Or shall I post a patch to remove the check?
->>>>
->>>>
->>>>
->>>> I'll skip this patch, no need to do anything else.  Thanks for your
->>>> report!
->>>
->>>
->>>
->>> Thanks.  This patch is already in as of 4.12rc1 and not part of the most
->>> recent
->>> ACPICA drop.
->>
->>
->> Ah, OK.
->>
->> I should have checked I guess. :-)
->>
->> Anyway, I'll revert it, then.
->
->
-> Hi Rafael, Is this still in the queue to be reverted?
+On Tue, Jun 13, 2017 at 02:38:26PM +0000, Gabriele Paoloni wrote:
+> > Is there an example ASL showing how these LPC devices are
+> > currently presented in ACPI?
+> 
+> Please find below the asl sketch for our LPC and IPMI
+> 
+> //
+> // LPC
+> //
+> 
+> Scope(_SB) {
+>   Device (LPC0) {
+>     Name (_HID, "HISI0191")  // HiSi LPC
+>     Name (_CRS, ResourceTemplate () {
+>       Memory32Fixed (ReadWrite, 0xa01b0000, 0x1000)
+>     })
+>   }
+> 
+>   Device (LPC0.IPMI) {
+>     Name (_HID, "IPI0001")
+>     Method (_IFT) {
+>       Return (0x03)
+>     }
+>     Name (LORS, ResourceTemplate() {
+>       QWordIO (
+>         ResourceConsumer,
+> 	MinNotFixed,     // _MIF
+> 	MaxNotFixed,     // _MAF
+> 	PosDecode,
+> 	EntireRange,
+> 	0x0,             // _GRA
+> 	0xe4,            // _MIN
+> 	0x3fff,          // _MAX
+> 	0x0,             // _TRA
+> 	0x04,            // _LEN
+> 	, ,
+> 	BTIO
+>       )
+>     })
+>     CreateQWordField (LORS, BTIO._MIN, CMIN)
+>     CreateQWordField (LORS, BTIO._MAX, CMAX)
+>     CreateQWordField (LORS, BTIO._LEN, CLEN)
+> 
+>     Method (_PRS, 0) {
+>       Return (LORS)
+>     }
+> 
+>     Method (_CRS, 0) {
+>       Return (LORS)
+>     }
+>     Method (_SRS, 1) {
+>       CreateQWordField (Arg0, \_SB.LPC0.IPMI.BTIO._MIN, IMIN)
+>       Store (IMIN, CMIN)
+>       CreateQWordField (Arg0, \_SB.LPC0.IPMI.BTIO._MAX, IMAX)
+>       Store (IMAX, CMAX)
+>     }
+>   } 
+> [...]
+> }
 
-Yes, it is.
-
-> I see it's still in rc5 but it really needs to go before 4.12 is released.
-> We've been broken since rc1.
-
-I will push it for -rc6.
-
-Thanks,
-Rafael
+Thanks. So this looks pretty much like normal Linux MFD device which we
+already have support for adding ACPI bindings to child devices. It
+should also support splitting resources to child devices IIRC.
