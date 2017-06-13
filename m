@@ -1,108 +1,47 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [RFC PATCH v3] acpi: indicate to platform when hot remove returns busy
-Date: Tue, 13 Jun 2017 19:18:37 +0800
-Message-ID: <20170613111837.14170-1-jlee@suse.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:33470 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752081AbdFMLSs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jun 2017 07:18:48 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 0/8] ACPI / PM: Suspend-to-idle rework to deal with spurious ACPI wakeups
+Date: Tue, 13 Jun 2017 13:14 +0200
+Message-ID: <2234878.06ThIWXpcP@aspire.rjw.lan>
+References: <8918199.uo13RZ8hZk@aspire.rjw.lan> <1615075.mBkoKApGGc@aspire.rjw.lan> <20170613055422.GA1911@light.dominikbrodowski.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170613055422.GA1911@light.dominikbrodowski.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux USB <linux-usb@vger.kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Felipe Balbi <balbi@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans De Goede <hdegoede@redhat.com>, Alan Stern <stern@rowland.harvard.edu>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Michal Hocko <mhocko@suse.cz>
 
-In hotplug logic, it always indicates non-specific failure to
-platform through _OST when handing acpi hot-remove event failed. Then
-platform terminates the hot-remove process but it can not identify
-the reason.
+On Tuesday, June 13, 2017 07:54:22 AM Dominik Brodowski wrote:
+> Rafael,
+> 
+> On Mon, Jun 12, 2017 at 10:46:47PM +0200, Rafael J. Wysocki wrote:
+> > Hi All,
+> > 
+> > On Thursday, June 08, 2017 02:00:40 AM Rafael J. Wysocki wrote:
+> > > Hi All,
+> > > 
+> > > This series is a replacement for commit eed4d47efe95 (ACPI / sleep: Ignore
+> > > spurious SCI wakeups from suspend-to-idle) which is still there in 4.12-rc4 but
+> > > will be reverted shortly, because it triggered issues on quite a few systems.
+> > > 
+> > > The last patch in the series is a counterpart of the above commit with a few
+> > > modifications, mostly to avoid affecting suspend-to-RAM and to reorder messages
+> > > printed to kernel logs to make them somewhat less confusing.
+> > 
+> > Here's a v2 which is very similar to the previous one, except for 3 things:
+> > - There are few build fixes in the last patch.
+> > - The patch from Hans mentioned previously is included now (as [7/8]).
+> > - There is an additional PCI change related to config space saving/restoring
+> >   and PME.
+> > 
+> > If anyone has any objections or concerns regarding this, please speak up now,
+> > as I'm going to put it into linux-next shortly to allow it to receive some more
+> > testing than commit eed4d47efe95 had had before it went it.
+> 
+> suspend-to-mem works as expected, also with this v2 applied. Thanks!
 
-Base on current hot-remove code, there have two situations that it
-returns busy:
- - OSPM try to offline an individual device, but the device offline
-   function returns busy.
- - When the ejection event is applied to an "not offlined yet" container.
-   OSPM send kobject change event to userspace and returns busy.
+Thanks for the confirmation!
 
-Both of them will returns -EBUSY to acpi device hotplug function then
-hotplug function indicates non-specific failure to platform just like
-any other error, e.g. -ENODEV or -EIO.
-
-The benefit to platform for identifying the OS busy state is that
-platform can be applied different approach to handle the busy but
-not just terminate the hot-remove process by unknown reason. For
-example, platform can wait for a while then triggers hot-remove
-again.
-
-This RFC patch adds one more parameter to the handler function of
-acpi generic hotplug event to give the function a chance to propose
-the return code of _OST. In this case, it sets ost return code to
-ACPI_OST_SC_DEVICE_BUSY when the acpi hot remove function returns
--EBUSY.
-
-v3:
-Removed redundant 'else' in acpi_ost_status_code(). (Andy Shevchenko)
-
-v2:
-Do not overwrite ost code in acpi_generic_hotplug_event(). Move
-the "error code to ost code" logic to a help function. (Andy Shevchenko)
-
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
----
- drivers/acpi/scan.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 3a10d7573477..41f5065190c7 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -384,6 +384,20 @@ static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
- 	return -EINVAL;
- }
- 
-+static int acpi_ost_status_code(u32 src, int error)
-+{
-+	switch (src) {
-+	case ACPI_NOTIFY_EJECT_REQUEST:
-+	case ACPI_OST_EC_OSPM_EJECT:
-+		if (error == -EPERM)
-+			return ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-+		if (error == -EBUSY)
-+			return ACPI_OST_SC_DEVICE_BUSY;
-+		break;
-+	}
-+	return error ? ACPI_OST_SC_NON_SPECIFIC_FAILURE : ACPI_OST_SC_SUCCESS;
-+}
-+
- void acpi_device_hotplug(struct acpi_device *adev, u32 src)
- {
- 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
-@@ -404,10 +418,6 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
- 		error = dock_notify(adev, src);
- 	} else if (adev->flags.hotplug_notify) {
- 		error = acpi_generic_hotplug_event(adev, src);
--		if (error == -EPERM) {
--			ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
--			goto err_out;
--		}
- 	} else {
- 		int (*notify)(struct acpi_device *, u32);
- 
-@@ -423,9 +433,8 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
- 		else
- 			goto out;
- 	}
--	if (!error)
--		ost_code = ACPI_OST_SC_SUCCESS;
- 
-+	ost_code = acpi_ost_status_code(src, error);
-  err_out:
- 	acpi_evaluate_ost(adev->handle, src, ost_code, NULL);
- 
--- 
-2.12.0
-
+Rafael
