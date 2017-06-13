@@ -1,70 +1,71 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
- before scanning
-Date: Tue, 13 Jun 2017 23:03:39 +0300
-Message-ID: <20170613200339.GX3187@lahna.fi.intel.com>
-References: <1495712248-5232-1-git-send-email-gabriele.paoloni@huawei.com>
- <1495712248-5232-6-git-send-email-gabriele.paoloni@huawei.com>
- <20170530132408.GA2556@red-moon>
- <EE11001F9E5DDD47B7634E2F8A612F2E40A7B677@FRAEML521-MBX.china.huawei.com>
- <20170606085553.GA20085@red-moon>
- <20170612155700.GA31930@red-moon>
- <20170613084831.GP3187@lahna.fi.intel.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
- <20170613151013.GT3187@lahna.fi.intel.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 01/15] ACPICA: Disassembler: Enhance resource descriptor
+ detection
+Date: Tue, 13 Jun 2017 20:22:10 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5C06B5@ORSMSX110.amr.corp.intel.com>
+References: <cover.1493194142.git.lv.zheng@intel.com>
+ <fe4a8655a06221df851d5781609058f16aa65e93.1493194142.git.lv.zheng@intel.com>
+ <59357F55.8050707@hpe.com> <361261e5-ce98-9d33-f2de-88286288e2e1@hpe.com>
+ <CAJZ5v0hUaiwZwi1a78zSO_hqp_QNdv9gYce-wwNESz1rnPs+sg@mail.gmail.com>
+ <9f2f3edd-74e9-e108-0eff-56564c94147b@hpe.com>
+ <CAJZ5v0jExmFeYwbq2CwCGEetf=JJevePcUJNarb6OKnf0Bb0GQ@mail.gmail.com>
+ <d1e64425-29cf-3d2a-2b5b-51cc67e9ca89@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:1658 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:34478 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751793AbdFMUDr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 13 Jun 2017 16:03:47 -0400
-Content-Disposition: inline
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
+        id S1751793AbdFMUWN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Jun 2017 16:22:13 -0400
+In-Reply-To: <d1e64425-29cf-3d2a-2b5b-51cc67e9ca89@hpe.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi>
+To: Linda Knippers <linda.knippers@hpe.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, "Box, David E" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Jun 13, 2017 at 07:01:38PM +0000, Gabriele Paoloni wrote:
-> I am not very familiar with Linux MFD however the main issue here is that
-> 1) for IPMI we want to re-use the standard IPMI driver without touching it:
->    see 
-> 
->    static const struct acpi_device_id acpi_ipmi_match[] = {
->          { "IPI0001", 0 },
->          { },
->    };
-> 
->    in "drivers/char/ipmi/ipmi_si_intf.c" (and in general any standard driver
->    of an LPC child)
-> 
-> 2) We need a way to guarantee that all LPC children are not enumerated
->    by acpi_default_enumeration() (so for example if an ipmi node is an LPC#
->    child it should not be enumerated, otherwise it should be)
->    Currently acpi_default_enumeration() skips spi/i2c slaves by checking:
->    1) if the acpi resource type is a serial bus
->    2) if the type of serial bus descriptor is I2C or SPI
-> 
->    For LPC we cannot leverage on any ACPI property to "recognize" that our
->    devices are LPC children; hence before I proposed for acpi_default_enumeration()
->    to skip devices that have already been enumerated (by calling 
->    acpi_device_enumerated() ).
-> 
-> So in the current scenario, how do you think that MFD can help?
-
-If you look at Documentation/acpi/enumeration.txt there is a chapter
-"MFD devices". I think it pretty much maches what you have here. An LPC
-device (MFD device) and bunch of child devices. The driver for your LPC
-device can specify _HID for each child device. Those are then mached by
-the MFD ACPI code to the corresponding ACPI nodes from which platform
-devices are created including "IPI0001".
-
-It causes acpi_default_enumeration() to be called but it should be fine
-as we are dealing with platform device anyway.
-
-Once the platform device is created your ipmi driver will be probed by
-the driver core.
-
-Does that make sense?
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTGluZGEgS25pcHBlcnMg
+W21haWx0bzpsaW5kYS5rbmlwcGVyc0BocGUuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBKdW5lIDEz
+LCAyMDE3IDY6NDIgQU0NCj4gVG86IFJhZmFlbCBKLiBXeXNvY2tpIDxyYWZhZWxAa2VybmVsLm9y
+Zz4NCj4gQ2M6IE1vb3JlLCBSb2JlcnQgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+OyBaaGVuZywg
+THYNCj4gPGx2LnpoZW5nQGludGVsLmNvbT47IFd5c29ja2ksIFJhZmFlbCBKIDxyYWZhZWwuai53
+eXNvY2tpQGludGVsLmNvbT47DQo+IFJhZmFlbCBKIC4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5u
+ZXQ+OyBCcm93biwgTGVuDQo+IDxsZW4uYnJvd25AaW50ZWwuY29tPjsgQm94LCBEYXZpZCBFIDxk
+YXZpZC5lLmJveEBpbnRlbC5jb20+OyBMdiBaaGVuZw0KPiA8emV0YWxvZ0BnbWFpbC5jb20+OyBB
+Q1BJIERldmVsIE1hbGluZyBMaXN0IDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZz4NCj4gU3Vi
+amVjdDogUmU6IFtQQVRDSCAwMS8xNV0gQUNQSUNBOiBEaXNhc3NlbWJsZXI6IEVuaGFuY2UgcmVz
+b3VyY2UNCj4gZGVzY3JpcHRvciBkZXRlY3Rpb24NCj4gDQo+IA0KPiANCj4gT24gNi81LzIwMTcg
+NDo1NSBQTSwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6DQo+ID4gT24gTW9uLCBKdW4gNSwgMjAx
+NyBhdCAxMDo1MSBQTSwgTGluZGEgS25pcHBlcnMNCj4gPGxpbmRhLmtuaXBwZXJzQGhwZS5jb20+
+IHdyb3RlOg0KPiA+PiBPbiA2LzUvMjAxNyA0OjQyIFBNLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90
+ZToNCj4gPj4gPHNuaXA+DQo+ID4+DQo+ID4+Pj4gSSB0YWxrZWQgdG8gb3VyIEZXIHRlYW0gYW5k
+IHdlIGRvIGdlbmVyYXRlIGNoZWNrc3VtcyBhbmQgbm90IGEgemVybw0KPiA+Pj4+IGZvciBhdCBs
+ZWFzdCBzb21lIG9mIHRoZSBBTUwuIFBsZWFzZSByZXZlcnQgdGhpcyBjaGFuZ2UgdW50aWwgeW91
+DQo+ID4+Pj4gY2FuIGFsc28gdmFsaWRhdGUgYSBjaGVja3N1bS4gIE9yIHNoYWxsIEkgcG9zdCBh
+IHBhdGNoIHRvIHJlbW92ZQ0KPiA+Pj4+IHRoZSBjaGVjaz8NCj4gPj4+DQo+ID4+Pg0KPiA+Pj4g
+SSdsbCBza2lwIHRoaXMgcGF0Y2gsIG5vIG5lZWQgdG8gZG8gYW55dGhpbmcgZWxzZS4gIFRoYW5r
+cyBmb3IgeW91cg0KPiA+Pj4gcmVwb3J0IQ0KPiA+Pg0KPiA+Pg0KPiA+PiBUaGFua3MuICBUaGlz
+IHBhdGNoIGlzIGFscmVhZHkgaW4gYXMgb2YgNC4xMnJjMSBhbmQgbm90IHBhcnQgb2YgdGhlDQo+
+ID4+IG1vc3QgcmVjZW50IEFDUElDQSBkcm9wLg0KPiA+DQo+ID4gQWgsIE9LLg0KPiA+DQo+ID4g
+SSBzaG91bGQgaGF2ZSBjaGVja2VkIEkgZ3Vlc3MuIDotKQ0KPiA+DQo+ID4gQW55d2F5LCBJJ2xs
+IHJldmVydCBpdCwgdGhlbi4NCj4gDQo+IEhpIFJhZmFlbCwgSXMgdGhpcyBzdGlsbCBpbiB0aGUg
+cXVldWUgdG8gYmUgcmV2ZXJ0ZWQ/DQo+IEkgc2VlIGl0J3Mgc3RpbGwgaW4gcmM1IGJ1dCBpdCBy
+ZWFsbHkgbmVlZHMgdG8gZ28gYmVmb3JlIDQuMTIgaXMNCj4gcmVsZWFzZWQuDQo+IFdlJ3ZlIGJl
+ZW4gYnJva2VuIHNpbmNlIHJjMS4NCj4gDQo+IFRoYW5rcywNCj4gDQo+IC0tIGxqaw0KPiA+DQo+
+ID4+PiBCb2IsIGNhbiB5b3UgcmV2ZXJ0IHRoaXMgdXBzdHJlYW0sIHBsZWFzZT8gIEl0IGxvb2tz
+IGxpa2UgdGhlDQo+ID4+PiBhc3N1bXB0aW9uIGl0IGlzIGJhc2VkIG9uIGRvZXNuJ3QgaG9sZC4N
+Cj4gPj4NCltNb29yZSwgUm9iZXJ0XSANCg0KSXQgaXMgb24gb3VyIGxpc3Qgb2YgdGhpbmdzIHRv
+IGxvb2sgYXQsIG5vdyB0aGF0IGFjcGkgNi4yIGlzIHJlbGVhc2VkLg0KDQpUaGlzIGhhcyBiZWVu
+IGEgcmF0aGVyIG9kZCBwcm9ibGVtIHRoYXQgd2UgaGF2ZSBiZWVuIHRyeWluZyB0byBmaXggZm9y
+IHNvbWUgdGltZSBub3c7IHNvIHdlIHdpbGwgb2YgY291cnNlIG5lZWQgdG8gY29tZSB1cCB3aXRo
+IGEgcGVybWFuZW50IGZpeC4NCg0KDQoNCj4gPj4gQm9iLCBJJ20gaGFwcHkgdG8gdGVzdCBzb21l
+dGhpbmcgaWYgdGhlcmUgaXMgYSBuZXcgcGF0Y2ggdGhhdCBsb29rcw0KPiA+PiBmb3IgemVybyBv
+ciBhIHZhbGlkIGNoZWNrc3VtLiAgVEJILCBJJ20gbm90IDEwMCUgY2VydGFpbiB0aGF0IG91cg0K
+PiA+PiBjaGVja3N1bXMgYXJlIGNvcnJlY3QgYmVjYXVzZSBub3RoaW5nIGhhcyBldmVyIHRyaWVk
+IHRvIHZlcmlmeSB0aGVtLg0KPiA+DQo+ID4gV2VsbCwgdGhhdCdzIHBhcnQgb2YgdGhlIHByb2Js
+ZW0gaGVyZSBJIGd1ZXNzLiAgSWYgdGhleSBoYXZlIG5ldmVyDQo+ID4gYmVlbiB0ZXN0ZWQsIHRo
+ZXkgY2Fubm90IGJlIHRydXN0ZWQuDQo+ID4NCj4gPiBTdGlsbCwgdGhlIGNvbW1pdCBpbiBxdWVz
+dGlvbiBjbGVhcmx5IGFzc3VtZWQgdGhhdCB2YWx1ZSB0byBhbHdheXMgYmUNCj4gPiAwIGFuZCBp
+dCBjbGVhcmx5IGlzIG5vdCB0aGUgY2FzZSBoZXJlLg0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+IFJh
+ZmFlbA0KPiA+DQo=
