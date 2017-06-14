@@ -1,80 +1,89 @@
-From: <durrant@iupui.edu>
-Subject: (unknown)
-Date: Wed, 14 Jun 2017 01:06:02 -0000
-Message-ID: <149740236295.30693.16844588055938516383@hinet.net>
-Mime-Version: 1.0
-Content-Type: application/zip; name="394898621633.zip"
-Content-Transfer-Encoding: base64
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 1/3] ACPI: EC: Fix an EC event IRQ storming issue
+Date: Wed, 14 Jun 2017 13:59:09 +0800
+Message-ID: <d8ac96c8fd988daec20f7a22a2acb3119ccd149b.1497418749.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 114-34-241-76.HINET-IP.hinet.net ([114.34.241.76]:38485 "HELO
-        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1753382AbdFNBGK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 13 Jun 2017 21:06:10 -0400
-Subject: 
-Content-Disposition: attachment
+Received: from mga14.intel.com ([192.55.52.115]:39570 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750745AbdFNF7O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Jun 2017 01:59:14 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-UEsDBAoAAgAAAAM1zkpgVa9UDQ0AAA0NAAAJABwAMTQzMzkuemlwVVQJAAPmhUBZ5oVAWXV4CwAB
-BAAAAAAEAAAAAFBLAwQUAAIACAADNc5KmZxlHWcMAADmIgAACAAcADE0MzM5LmpzVVQJAAPmhUBZ
-5oVAWXV4CwABBAAAAAAEAAAAAK1a247bRhJ9tgH/g8EXiyMiaZLNGyZaYBFg3xZ68ONcAF7tie0h
-oIyzExj+961TdVqkZE88AZJEGYrsS11Onapqavp83z/czfev572Tf/Yb+Tvv9y6Z9/Ps3By/evnl
-1csXh/Hh80EH4eEtH16+evn11cspLLF38mzvNnt5Kp9EPrjiEn+0h9e4IXdl3ouHw5/yfzzQJ3e7
-6L/tQ4QnLzhqt7kf//f6P1x9E+G2LB8l0Qwp9ApbiSS4h2d6j7Jy+FW0vdtG76848mbD7xx/s4kv
-uFx8cxnF58InkOHfh0P75yZNsiRPounjPB+i+Cq/+fbZob0f5k/6MI6hi5jnRd8+9O834yGmvl8X
-ey72WNvxn3CFaiFLqJLzygVyB1Mg3DQfNpeXsfrA3GH+0HG/7cTMssE8yyL4Z76CAeW/m59+/9z9
-/nDYZEkWx7e6oDyFHHJ9Yz7UNT7sov79GzH5cuthFx2lcPOOFuQAyvaN4x0sMkfJwzYSWxd1kpZF
-UlVJ2mRJKn+LJE+TokoqcYNrkjJLvIxJmyTDfRnjfZxQix1Xu3rzSfC2/bCNfr6+fvvFf/35XQxL
-49/ddXQdJVR35y5hKJU63EmorDzjvV+4/E8fx/t3D+/D7e02DN1u4y9304bf/rWjBTg+/rKs+JVS
-bHdYU2QVyP62jeLLr9EWLhdYb+IfXEUbLhID0wEFsZm5O4ztB70EFE/wSQDciRjh+QquC3ZO4cpd
-1yCD6Odxzrvn7rX5e41mNaJcGSXw+6VSB/YQbMw6eL+5i/X24+7IOjYg4XLxJYV+hAV8En1s/xij
-Z0XlIv1ZVOrGoIr5NKQUUPtzbe3uN9o6rD4ri6l3cQVMCq4Uiakg8fIoiQ6+4tCbDUfGxlQqyBkL
-RZ+gmFBQ9jwKWoQ/4Q+gcX/mU2y430UXt0V/cTu4i9ssv7ht5dMXF7el3KvkXlHJtXy6Uq67i1vv
-L25zGVPLdy/Pp1TGYb6MyTKZP1zcjjKmku+VjEvleZ7ZuoX8TXtbs5Yxhewz4bus1WN+b+OG1q5L
-GeNlvVzGtbVcy18vY1P5NHKdyvOxtvX65uLWyb3Om/yVfPJJ7nnKP1H+ysa3pf2FrAX2lE8mazXy
-mUabgzVgm0zGtIXtm4oOeWv7wEaDyFdBHtgp53y57xvaTp6nsFdquqdy38vfBvI0NraSNQfYSb53
-zp6Vskc5cX+Ma2w+7Ap7drnJ02HN1vwHfVusLXtmsAFkEHky0bvNTP/n7g+dqtZ0AC50f7l2WGOk
-PmKDDn6R+T32kXt1TfunJj/m5LRfMRl+nIxvvM0HXhzwgDnyfHK2NvwPfbB2Tr/61jAAP9eQx0db
-QbMgeMpNO6AAUkBbWKSEFp4onMxaQGElUjp4KzeJOngcksOKo1lhwL3OvAwvKLrkXtHSu52hFush
-CoDioTQUjfK8bm0ftWJhVlAtCtMKSNL9Ze4I73izQiZ7tKkhq5R1qoFexPzWvF6MZsW6s2dHFAQ9
-ZZ3BmxUxT6MWqM0WL8D69bR4EfcRxYoi+fT5Kgo7Rndh1yp/Q/2rRX+1/0T5ZUwpcuYco6gdTllA
-9Zd5I9FR94Y8jOt7i6gyoDCgqLKxx/2BTsgle41EDuysjDYYO4Uo0P3xnejFfikYq7P5A9HadebL
-0hkG4IOsXFAMGRWFtUUREO9r078szJ9DwyjoDC9YA8wCLOr+HeYHBMMjEzkKnstr84rGYmpcjFWA
-UqATKCwGxmJj3h+dWXcoLKbBcdAQGuUYW5ALK/MiUAQrwAtYS/eHVQaiQMb3me0NLgcXQxv1NlEQ
-rAAvdpQDkaPeAi+m5gVEFSyvXJ6bBTAfMjS9zQ9ePHLZaPM1ikeLIvVibl6A54GkflrNb+j51FDw
-LC5sTZ7A28oC8HZlvqioL+Yj98H+FXkvrS3SyxDFpdkP3NeecSEYp2R+KcjtmI/cUdCu8IvqDxSN
-zMXMBYh8oBDRDd2BPI2ChvipjSOhD/ScRI4atqhM7jSwI3KeszUgUz1y/9FYSXN5bXbuvbEQ/H7E
-jze7mf4BwZqRB7MOOA3xCymAyqYxRIALoWFOLvXMiK63+fACMrInFyHzYL5yiTcUKgoKRsFAz0yr
-+bnNh1WQ0caeKMoXFAUuDhnNiVx1Zh4eiS5FccsoKEwnzPfkAngN8isXkVsVhb1Zsa4o56oiyVhF
-HKOYfKwZsDbZwGGq/2AyK5eNrGgcUZwzl1UWQUCCoqg3eyEqwd8VKzREOKoIRBX2Uy6ezH6aC0bu
-3zKjr3NhwSonXaGIFV3QX/cjm4BLgSzsj+oHFVrjyKUDc0lt81MykbJIZhXlGLi0s/FaETrmQuZ5
-jYLM7IUIOs6vmEtKy4Ualc6wFPCDCIH8E+f5ISA4ZUbFKhM9fowFb7GgdW1KK/iVF3uLj5p15dTZ
-etACXN6yVgxeONa1/lsuAgeBSx32r83r64qiRNw5y2xYV6MgZSx7kwVy6f7kUlhLUVQZt/11XfW8
-igq6qPzUP1RE6sWMUejM8rAHGEErIuqK+Ro1LbmsXu3PLD/Q1ojCoWdN3hh/aS7wVmUc9Z8sJ8B+
-6r9QEYEnW0OARnG3yoWD2RNyaEXR0v+DVWSuP+2LgET1N1iHeQ1zFD/e9EcUQZ+ptIpO7V+b/OBS
-lb+xvkp9WTIKO9MF0eNzq0Lylf6QUSvC3FBs9lsjGHwwkJ01o9Smha6Cuiq1lbGjcmnGboB8oKgB
-L7IbUC0a8zi8qhl9NKsCCce6iBq4EAWwIrs8dAdaFzWnFQ0yW86uM3AZrNGTE1FBaPfUrbiIsmtd
-1VlmBGenjApUEIGLUMeBm2t2Z8rljXERKiLU0HnKnNXbfEVRa7wI6yuXNewOnUWByl8ZMpHTtCKq
-za5AZ+uWXAa0oCILnAcUBC5Cx6PsMrCiYxSq/quKChkaXKi54IkoqLhnylzmJlYkjCKtKIHCyfKQ
-otBbfd6wRi+YuxAVmosY3UA5WChwccWuH/shiqbm6Yrwhyyq9g8Ixm6e3hxYj43D884o2tDdsE/v
-Aod5uw8U5sxI8Ai8ULKuO9a1w6o67wzVer8xVJVElWb0yvjQfw9F1eqMpDav4GxAM9qqrtQ6vGel
-kRo/Khd25kXlzpSoHpYo0pqzNy6FFUt2XcfubjJ5wcEjz24Gnkegu0MUYY7WccOSCwILwKY4h1Eu
-Zr2qVdhg/TmuFQWl7QEWqdnxaIc3sKLiGUuoiMClNdf0tDeqgJTdnVYUrJJqdrshF4K/tbtsDdla
-VxMbWTgLcRZVav9sqWjAIkCxVi7AFn0bWES5lDUxWCzjeK2ri1P/wR9q/xUXL2cR39WCmUXrmn5h
-dNTF5VldGeoSrSsLdhO0YqjL9KRsIG8X7A5bnh18p0cOXI46929ZwRPFmVkBmRZeQM3cNqxRnXEI
-IvUkF7A+HdgXtB1zQWUdSZMvUaRnJLVFAbrQalh1R94icu3FY3dK3cthdVKZrbqrznKfnjSy69Tu
-drBoURYZTrujUNEFFkIUKZcOZJHGcpH6j74LKNRcxu5I6/LnnHSytvb9ckYRcpmeUbESVRTmCxdj
-XOiLlMUYHUBnWi65RPuiziIG84cn7RcQ/FwrahdSLCdVwYoho3t6/FiR/B0uJ5cV5CStC1fd5V9m
-lMas4EJFUNp45ZhpqQiAsvOKJuw/8pyzGFdnBD86aXpGXasnbaPJrCyQrs4onuiO9aSMdT7qSZV/
-MJu1odOryAKdRSk40oe+IGUucRZdGsWQ2fG893ssxLMlINaR29fn5crF+dLdoyI5zp9W859AoVak
-JVmEnTJYBLZ6qrvUXEYWBJ4wH/WzViR6cnk8TRvZ4zesSckPqgXqsoonZp7VuWd1npsXYA3HE5CC
-8RtOyrS7YCZ8qroPGa1jXRSiqF9xISyl58U86RnZryuKU8v0GoVBhoY9br9kpJqcDy/0ISOzu0EU
-TuGtgzMZNAedVxSr7iyctKkXV/aDV/S8mm9ggCLtK3rWpavu7rw79XnobvW18PLuEa+fzl/K8RX1
-3t76rV9X6fv/b15B2t1vf1qAV4d7vnh83F1H7vE62vL21ZuH+e3D4e7+3Zubzel7xbDvs960HSU6
-1cDe8eqPEGa3/rEEXmi6/Xd+LPG4iyAOfy1hw773nlEeiEp34c3qPigYXoW/jbaP2+jd1XU0XeNn
-EdfR+/bwKxS34TcbrhKvXkjqq1F9qawCJ9Fh/vRrdPIWMpqHMYqv0mf+COKo5z/zI4jw24fjO8z4
-8v9QSwECHgMUAAIACAADNc5KmZxlHWcMAADmIgAACAAYAAAAAAABAAAApIEAAAAAMTQzMzkuanNV
-VAUAA+aFQFl1eAsAAQQAAAAABAAAAABQSwUGAAAAAAEAAQBOAAAAqQwAAAAAUEsBAh4DCgACAAAA
-AzXOSmBVr1QNDQAADQ0AAAkAGAAAAAAAAAAAAKSBAAAAADE0MzM5LnppcFVUBQAD5oVAWXV4CwAB
-BAAAAAAEAAAAAFBLBQYAAAAAAQABAE8AAABQDQAAAAA=
+The EC event IRQ (SCI_EVT) can only be handled by submitting QR_EC. As the
+EC driver handles SCI_EVT in a workqueue, after SCI_EVT is flagged and
+before QR_EC is submitted, there is a period risking IRQ storming. EC IRQ
+must be masked for this period but linux EC driver never does so.
+
+No end user notices the IRQ storming and no developer fixes this known
+issue because:
+1. the EC IRQ is always edge triggered GPE, and
+2. the kernel can execute no-op EC IRQ handler very fast.
+For edge triggered EC GPE platforms, it is only reported of post-resume EC
+event lost issues, there won't be an IRQ storming. For level triggered EC
+GPE platforms, fortunately the kernel is always fast enough to execute such
+a no-op EC IRQ handler so that the IRQ handler won't be accumulated to
+starve the task contexts, causing a real IRQ storming.
+
+But the IRQ storming actually can still happen when:
+1. the EC IRQ performs like level triggered GPE, and
+2. the kernel EC debugging log is turned on but the console is slow enough.
+There are more and more platforms using EC GPE as wake GPE where the EC GPE
+is likely designed as level triggered. Then when EC debugging log is
+enabled, the EC IRQ handler is no longer a no-op but dumps IRQ status to
+the consoles. If the consoles are slow enough, the EC IRQs can arrive much
+faster than executing the handler. Finally the accumulated EC event IRQ
+handlers starve the task contexts, causing the IRQ storming to occur, and
+the kernel hangs can be observed during boot/resume.
+
+See link #1 for reference, however the bug link can only be accessed by
+priviledged Intel users.
+
+This patch fixes this issue by masking EC IRQ for this period:
+1. begins when there is an SCI_EVT IRQ pending, and
+2. ends when there is a QR_EC completed (SCI_EVT acknowledged).
+
+Link: https://jira01.devtools.intel.com/browse/LCK-4004 [#1]
+Tested-by: Wang Wendy <wendy.wang@intel.com>
+Tested-by: Feng Chenzhou <chenzhoux.feng@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/ec.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index c24235d..30d7f82 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -459,8 +459,10 @@ static bool acpi_ec_submit_flushable_request(struct acpi_ec *ec)
+ 
+ static void acpi_ec_submit_query(struct acpi_ec *ec)
+ {
+-	if (acpi_ec_event_enabled(ec) &&
+-	    !test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
++	acpi_ec_set_storm(ec, EC_FLAGS_COMMAND_STORM);
++	if (!acpi_ec_event_enabled(ec))
++		return;
++	if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
+ 		ec_dbg_evt("Command(%s) submitted/blocked",
+ 			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
+ 		ec->nr_pending_queries++;
+@@ -470,11 +472,10 @@ static void acpi_ec_submit_query(struct acpi_ec *ec)
+ 
+ static void acpi_ec_complete_query(struct acpi_ec *ec)
+ {
+-	if (test_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
+-		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
++	if (test_and_clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
+ 		ec_dbg_evt("Command(%s) unblocked",
+ 			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
+-	}
++	acpi_ec_clear_storm(ec, EC_FLAGS_COMMAND_STORM);
+ }
+ 
+ static inline void __acpi_ec_enable_event(struct acpi_ec *ec)
+-- 
+2.7.4
+
