@@ -1,164 +1,66 @@
-From: Seunghun Han <kkamagui@gmail.com>
-Subject: [PATCH] acpi: acpica: fix acpi parse and parseext cache leaks
-Date: Wed, 14 Jun 2017 20:08:10 +0900
-Message-ID: <1497438490-22268-1-git-send-email-kkamagui@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH 1/2] ARM64/irqchip: Update ACPI_IORT symbol selection logic
+Date: Wed, 14 Jun 2017 17:37:12 +0100
+Message-ID: <20170614163713.14574-1-lorenzo.pieralisi@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34786 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750756AbdFNLJs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jun 2017 07:09:48 -0400
+Received: from foss.arm.com ([217.140.101.70]:36032 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751938AbdFNQfz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Jun 2017 12:35:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lv.zheng@intel.com, robert.moore@intel.com, rafael.j.wysocki@intel.com
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Seunghun Han <kkamagui@gmail.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-I'm Seunghun Han, and I work for National Security Research Institute of
-South Korea.
+ACPI IORT is an ACPI addendum to describe the connection topology of
+devices with IOMMUs and interrupt controllers on ARM64 ACPI systems.
 
-I have been doing a research on ACPI and found an ACPI cache leak in ACPI
-early abort cases.
+Currently the ACPI IORT Kbuild symbol is selected whenever the Kbuild
+symbol ARM_GIC_V3_ITS is enabled, which in turn is selected by ARM64
+Kbuild defaults. This makes the logic behind ACPI_IORT selection a bit
+twisted and not easy to follow. On ARM64 systems enabling ACPI the
+kbuild symbol ACPI_IORT should always be selected in that it is a kernel
+layer provided to the ARM64 arch code to parse and enable ACPI firmware
+bindings.
 
-Boot log of ACPI cache leak is as follows:
-[    0.352414] ACPI: Added _OSI(Module Device)
-[    0.353182] ACPI: Added _OSI(Processor Device)
-[    0.353182] ACPI: Added _OSI(3.0 _SCP Extensions)
-[    0.353182] ACPI: Added _OSI(Processor Aggregator Device)
-[    0.356028] ACPI: Unable to start the ACPI Interpreter
-[    0.356799] ACPI Error: Could not remove SCI handler (20170303/evmisc-281)
-[    0.360215] kmem_cache_destroy Acpi-State: Slab cache still has objects
-[    0.360648] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W
-4.12.0-rc4-next-20170608+ #10
-[    0.361273] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS
-VirtualBox 12/01/2006
-[    0.361873] Call Trace:
-[    0.362243]  ? dump_stack+0x5c/0x81
-[    0.362591]  ? kmem_cache_destroy+0x1aa/0x1c0
-[    0.362944]  ? acpi_sleep_proc_init+0x27/0x27
-[    0.363296]  ? acpi_os_delete_cache+0xa/0x10
-[    0.363646]  ? acpi_ut_delete_caches+0x6d/0x7b
-[    0.364000]  ? acpi_terminate+0xa/0x14
-[    0.364000]  ? acpi_init+0x2af/0x34f
-[    0.364000]  ? __class_create+0x4c/0x80
-[    0.364000]  ? video_setup+0x7f/0x7f
-[    0.364000]  ? acpi_sleep_proc_init+0x27/0x27
-[    0.364000]  ? do_one_initcall+0x4e/0x1a0
-[    0.364000]  ? kernel_init_freeable+0x189/0x20a
-[    0.364000]  ? rest_init+0xc0/0xc0
-[    0.364000]  ? kernel_init+0xa/0x100
-[    0.364000]  ? ret_from_fork+0x25/0x30
+Make the ACPI_IORT selection explicit in ARM64 Kbuild and remove the
+selection from ARM_GIC_V3_ITS entry, making the ACPI_IORT selection
+logic clearer to follow.
 
-I analyzed this memory leak detailed. I found that “Acpi-State” cache and
-“Acpi-Parse” cache were merged because the size of cache objects was same
-slab cache size.
-
-I finally found “Acpi-Parse” cache and “Acpi-ParseExt” cache were leaked
-using SLAB_NEVER_MERGE flag in kmem_cache_create() function.
-
-Real ACPI cache leak point is as follows:
-[    0.360101] ACPI: Added _OSI(Module Device)
-[    0.360101] ACPI: Added _OSI(Processor Device)
-[    0.360101] ACPI: Added _OSI(3.0 _SCP Extensions)
-[    0.361043] ACPI: Added _OSI(Processor Aggregator Device)
-[    0.364016] ACPI: Unable to start the ACPI Interpreter
-[    0.365061] ACPI Error: Could not remove SCI handler (20170303/evmisc-281)
-[    0.368174] kmem_cache_destroy Acpi-Parse: Slab cache still has objects
-[    0.369332] CPU: 1 PID: 1 Comm: swapper/0 Tainted: G        W
-4.12.0-rc4-next-20170608+ #8
-[    0.371256] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS
-VirtualBox 12/01/2006
-[    0.372000] Call Trace:
-[    0.372000]  ? dump_stack+0x5c/0x81
-[    0.372000]  ? kmem_cache_destroy+0x1aa/0x1c0
-[    0.372000]  ? acpi_sleep_proc_init+0x27/0x27
-[    0.372000]  ? acpi_os_delete_cache+0xa/0x10
-[    0.372000]  ? acpi_ut_delete_caches+0x56/0x7b
-[    0.372000]  ? acpi_terminate+0xa/0x14
-[    0.372000]  ? acpi_init+0x2af/0x34f
-[    0.372000]  ? __class_create+0x4c/0x80
-[    0.372000]  ? video_setup+0x7f/0x7f
-[    0.372000]  ? acpi_sleep_proc_init+0x27/0x27
-[    0.372000]  ? do_one_initcall+0x4e/0x1a0
-[    0.372000]  ? kernel_init_freeable+0x189/0x20a
-[    0.372000]  ? rest_init+0xc0/0xc0
-[    0.372000]  ? kernel_init+0xa/0x100
-[    0.372000]  ? ret_from_fork+0x25/0x30
-[    0.388039] kmem_cache_destroy Acpi-ParseExt: Slab cache still has objects
-[    0.389063] CPU: 1 PID: 1 Comm: swapper/0 Tainted: G        W
-4.12.0-rc4-next-20170608+ #8
-[    0.390557] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS
-VirtualBox 12/01/2006
-[    0.392000] Call Trace:
-[    0.392000]  ? dump_stack+0x5c/0x81
-[    0.392000]  ? kmem_cache_destroy+0x1aa/0x1c0
-[    0.392000]  ? acpi_sleep_proc_init+0x27/0x27
-[    0.392000]  ? acpi_os_delete_cache+0xa/0x10
-[    0.392000]  ? acpi_ut_delete_caches+0x6d/0x7b
-[    0.392000]  ? acpi_terminate+0xa/0x14
-[    0.392000]  ? acpi_init+0x2af/0x34f
-[    0.392000]  ? __class_create+0x4c/0x80
-[    0.392000]  ? video_setup+0x7f/0x7f
-[    0.392000]  ? acpi_sleep_proc_init+0x27/0x27
-[    0.392000]  ? do_one_initcall+0x4e/0x1a0
-[    0.392000]  ? kernel_init_freeable+0x189/0x20a
-[    0.392000]  ? rest_init+0xc0/0xc0
-[    0.392000]  ? kernel_init+0xa/0x100
-[    0.392000]  ? ret_from_fork+0x25/0x30
-
-When early abort is occurred due to invalid ACPI information, Linux kernel
-terminates ACPI by calling acpi_terminate() function. The function calls
-acpi_ut_delete_caches() function to delete local caches (acpi_gbl_namespace_
-cache, state_cache, operand_cache, ps_node_cache, ps_node_ext_cache).
-
-But the deletion codes in acpi_ut_delete_caches() function only delete
-slab caches using kmem_cache_destroy() function, therefore the cache
-objects should be flushed before acpi_ut_delete_caches() function.
-
-“Acpi-Parse” cache and “Acpi-ParseExt” cache are used in an AML parse
-function, acpi_ps_parse_loop(). The function should have flush codes to
-handle an error state due to invalid AML codes.
-
-This cache leak has a security threat because an old kernel (<= 4.9) shows
-memory locations of kernel functions in stack dump. Some malicious users
-could use this information to neutralize kernel ASLR.
-
-To fix ACPI cache leak for enhancing security, I made a patch which has
-flush codes in acpi_ps_parse_loop() function.
-
-I hope that this patch improves the security of Linux kernel.
-
-Thank you.
-
-Signed-off-by: Seunghun Han <kkamagui@gmail.com>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/acpi/acpica/psloop.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ arch/arm64/Kconfig      | 1 +
+ drivers/irqchip/Kconfig | 1 -
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
-index b422400..5d06383 100644
---- a/drivers/acpi/acpica/psloop.c
-+++ b/drivers/acpi/acpica/psloop.c
-@@ -658,5 +658,18 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
- 	}			/* while parser_state->Aml */
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index b2024db..2424fb4 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -3,6 +3,7 @@ config ARM64
+ 	select ACPI_CCA_REQUIRED if ACPI
+ 	select ACPI_GENERIC_GSI if ACPI
+ 	select ACPI_GTDT if ACPI
++	select ACPI_IORT if ACPI
+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+ 	select ACPI_MCFG if ACPI
+ 	select ACPI_SPCR_TABLE if ACPI
+diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
+index 478f8ac..4a57b8f 100644
+--- a/drivers/irqchip/Kconfig
++++ b/drivers/irqchip/Kconfig
+@@ -39,7 +39,6 @@ config ARM_GIC_V3_ITS
+ 	bool
+ 	depends on PCI
+ 	depends on PCI_MSI
+-	select ACPI_IORT if ACPI
  
- 	status = acpi_ps_complete_final_op(walk_state, op, status);
-+	if (ACPI_FAILURE(status)) {
-+		/* Flush pushed op objects */
-+
-+		do {
-+			acpi_ps_pop_scope(&(walk_state->parser_state), &op,
-+					  &walk_state->arg_types,
-+					  &walk_state->arg_count);
-+			if (op) {
-+				acpi_ps_complete_this_op(walk_state, op);
-+			}
-+		} while (op);
-+	}
-+
- 	return_ACPI_STATUS(status);
- }
+ config ARM_NVIC
+ 	bool
 -- 
-2.1.4
+2.10.0
 
