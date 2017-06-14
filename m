@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 2/3] ACPI: EC: Fix EC command visibility for dynamic debug
-Date: Wed, 14 Jun 2017 13:59:18 +0800
-Message-ID: <c283b9157c1d602631d723b35925dc1c6bf42752.1497418749.git.lv.zheng@intel.com>
+Subject: [PATCH 3/3] ACPI: EC: Change EC noirq tuning to be an optional behavior
+Date: Wed, 14 Jun 2017 13:59:24 +0800
+Message-ID: <157972fa5572b0f0c157142ea151b8508e7640b4.1497418749.git.lv.zheng@intel.com>
 References: <d8ac96c8fd988daec20f7a22a2acb3119ccd149b.1497418749.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <d8ac96c8fd988daec20f7a22a2acb3119ccd149b.1497418749.git.lv.zheng@intel.com>
@@ -10,33 +10,77 @@ To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-acpi_ec_cmd_string() currently is only enabled for "DEBUG" macro, but users
-trend to use CONFIG_DYNAMIC_DEBUG and enable ec.c pr_debug() print-outs by
-"dyndbg='file ec.c +p'". In this use case, all command names are turned
-into UNDEF and the log is confusing. This affects bugzilla triage work.
+According to the bug report, though the busy polling mode can make noirq
+stages executed faster, it causes abnormal fan blowing in noirq stages.
 
-This patch fixes this issue by enabling acpi_ec_cmd_string() for
-CONFIG_DYNAMIC_DEBUG.
+This patch prepares an option so that the automatic busy polling mode
+switching for noirq stages can be enabled by who wants to tune it, not all
+users.
+Noticed that the new global option cannot be changed during noirq stages.
+There is no need to lock its value changes to sync with polling mode
+settings switches.
 
-Tested-by: Wang Wendy <wendy.wang@intel.com>
-Tested-by: Feng Chenzhou <chenzhoux.feng@intel.com>
+For reporters and testers in the thread, as there are too many reporters
+on the bug link, this patch only picks names from most active commenters.
+Sorry for the neglet.
+
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=191181
+Reported-by: Tatsuyuki Ishi <ishitatsuyuki@gmail.com>
+Reported-by: Claudio Sacerdoti Coen <claudio.sacerdoticoen@unibo.it>
+Tested-by: Nicolo' <nicolopiazzalunga@gmail.com>
+Reported-by: Jens Axboe <axboe@kernel.dk>
+Tested-by: Gjorgji Jankovski <j.gjorgji@gmail.com>
+Tested-by: Damjan Georgievski <gdamjan@gmail.com>
+Tested-by: Fernando Chaves <nanochaves@gmail.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/ec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/ec.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 30d7f82..f3ff591 100644
+index f3ff591..de5dde6 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -316,7 +316,7 @@ static inline void acpi_ec_write_data(struct acpi_ec *ec, u8 data)
- 	ec->timestamp = jiffies;
+@@ -151,6 +151,10 @@ static bool ec_freeze_events __read_mostly = true;
+ module_param(ec_freeze_events, bool, 0644);
+ MODULE_PARM_DESC(ec_freeze_events, "Disabling event handling during suspend/resume");
+ 
++static bool ec_tune_noirq __read_mostly = false;
++module_param(ec_tune_noirq, bool, 0644);
++MODULE_PARM_DESC(ec_tune_noirq, "Automatic enabling busy polling to tune noirq stages faster");
++
+ struct acpi_ec_query_handler {
+ 	struct list_head node;
+ 	acpi_ec_query_func func;
+@@ -979,9 +983,11 @@ static void acpi_ec_enter_noirq(struct acpi_ec *ec)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&ec->lock, flags);
+-	ec->busy_polling = true;
+-	ec->polling_guard = 0;
+-	ec_log_drv("interrupt blocked");
++	if (ec_tune_noirq) {
++		ec->busy_polling = true;
++		ec->polling_guard = 0;
++		ec_log_drv("interrupt blocked");
++	}
+ 	spin_unlock_irqrestore(&ec->lock, flags);
  }
  
--#ifdef DEBUG
-+#if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
- static const char *acpi_ec_cmd_string(u8 cmd)
- {
- 	switch (cmd) {
+@@ -990,9 +996,11 @@ static void acpi_ec_leave_noirq(struct acpi_ec *ec)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&ec->lock, flags);
+-	ec->busy_polling = ec_busy_polling;
+-	ec->polling_guard = ec_polling_guard;
+-	ec_log_drv("interrupt unblocked");
++	if (ec_tune_noirq) {
++		ec->busy_polling = ec_busy_polling;
++		ec->polling_guard = ec_polling_guard;
++		ec_log_drv("interrupt unblocked");
++	}
+ 	spin_unlock_irqrestore(&ec->lock, flags);
+ }
+ 
 -- 
 2.7.4
