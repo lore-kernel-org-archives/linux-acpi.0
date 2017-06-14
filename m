@@ -1,49 +1,80 @@
-From: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?=
-        <jerome.debretagne@gmail.com>
-Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
- recent Dell laptops
-Date: Tue, 13 Jun 2017 23:11:46 +0200
-Message-ID: <CA+kEDGHS0JAoPiXowBEYCRwgi43-Ss_sJa9ngiuwP_xYt3rtaA@mail.gmail.com>
-References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
- <88366b425cce41358ae8f88e43f3d201@ausx13mpc120.AMER.DELL.COM>
- <CA+kEDGEXEYEV+tGnswvHsFmOX5W_GAYPTYxk0YUUt0D1pdr92A@mail.gmail.com>
- <1872413.KDFIRZOQLU@aspire.rjw.lan> <CA+kEDGHHVJS9vgNVdowVQ4+eACFFdqTXR04e1V5qFcs_pZ0_yA@mail.gmail.com>
- <CA+kEDGF57sfz+f8_9XMqGQqPt-5LmtvceO70_gOpdaZ548tT-g@mail.gmail.com>
- <CAJZ5v0jHf3zDJ6K8pN3DQZa2Xq14Cz5XQMpwxqJfwH=nS8jGdA@mail.gmail.com>
- <CA+kEDGFiyynapLQPgnxNxuphBFYNpp7OYu9dn7vv-Z9PJNG6dA@mail.gmail.com> <CAJZ5v0h=GVjqwZ7fdJGHWrQN5GuNotk5xCH-nYynFUadVAH0Xg@mail.gmail.com>
+From: <durrant@iupui.edu>
+Subject: (unknown)
+Date: Wed, 14 Jun 2017 01:06:02 -0000
+Message-ID: <149740236295.30693.16844588055938516383@hinet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: application/zip; name="394898621633.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:34170 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753680AbdFMVM1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jun 2017 17:12:27 -0400
-In-Reply-To: <CAJZ5v0h=GVjqwZ7fdJGHWrQN5GuNotk5xCH-nYynFUadVAH0Xg@mail.gmail.com>
+Received: from 114-34-241-76.HINET-IP.hinet.net ([114.34.241.76]:38485 "HELO
+        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1753382AbdFNBGK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Jun 2017 21:06:10 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mario Limonciello <Mario.Limonciello@dell.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: linux-acpi@vger.kernel.org
 
->>> However, the bottom line is that there is no way for the kernel at all
->>> to know in advance that these events are going to be generated.
->>
->> Would a patch to handle this specific case be acceptable in the kernel though?
->
-> We have quirks. :-)
->
-> That said I think intel-hid could check the 0xCE event unconditionally
-> in the "wakeup" mode, but that will be a separate patch on top of my
-> series.
-
-Thank you again, Rafael and Mario, to have helped understand the
-special behavior implemented on this system / BIOS combination. I
-guess I'll wait for your s2-idle-dell-test patch series to land first, to
-discuss then how to handle this other Dell model (with Alex Hung?).
-
-Or do you have another suggestion about how to proceed?
-
-In the meantime, I'll update the bug report I had created:
-https://bugzilla.kernel.org/show_bug.cgi?id=195897
-to track and share there all the discoveries from this thread.
-
-Jerome
+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
