@@ -1,49 +1,44 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 0/4] ACPI / EC: Add quirk modes for boot EC support
-Date: Thu, 15 Jun 2017 09:41:27 +0800
-Message-ID: <cover.1497490457.git.lv.zheng@intel.com>
-References: <cover.1494927504.git.lv.zheng@intel.com>
+Subject: [PATCH v3 1/4] ACPI / EC: Enhance boot EC sanity check
+Date: Thu, 15 Jun 2017 09:41:35 +0800
+Message-ID: <029653eabd94021790cf4fc5bca30b697920f7f4.1497490457.git.lv.zheng@intel.com>
+References: <cover.1494927504.git.lv.zheng@intel.com> <cover.1497490457.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:48058 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:51685 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750768AbdFOBlc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Jun 2017 21:41:32 -0400
-In-Reply-To: <cover.1494927504.git.lv.zheng@intel.com>
+        id S1752019AbdFOBlp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Jun 2017 21:41:45 -0400
+In-Reply-To: <cover.1497490457.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-It's reported that Asus laptop X580VD/X550VXK/GL720VMK/FX502VD/FX502VE have
-a BIOS bug where the ECDT correctly states that EC events trigger GPE 0x23,
-but the DSDT _GPE method incorrectly returns GPE 0x33.
+It's reported that some buggy BIOS tables can contain 2 DSDT ECs, one of
+them is invalid but acpi_ec_dsdt_probe() fails to pick the valid one.
+This patch simply enhances sanity checks in ec_parse_device() as a
+workaround to skip probing wrong namespace ECs.
 
-This patchset fixes this issue.
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=195651
+Tested-by: Daniel Drake <drake@endlessm.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/ec.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Link: https://www.spinics.net/lists/linux-acpi/msg73763.html
-      https://bugzilla.kernel.org/show_bug.cgi?id=195651
-
-v2: Stops doing craps related to EC_ID (it's already too complicated), and
-    reduces one unnecessary boot parameter. For the final bug fix, prefers
-    the fix from endlessm.com developers.
-v3: Removes improper statments related to _STA as acpi_get_devices() has
-    executed _STA before invoking ec_parse_device() adds detailed
-    explanation for why acpi_ec_dsdt_probe() is a wrong approach.
-    Carlo Caione helps to add a new quirk for GL720VMK.
-
-Carlo Caione (1):
-  ACPI / EC: Add quirk for GL720VMK
-
-Chris Chiu (1):
-  ACPI / EC: Fix media keys not working problem on some Asus laptops
-
-Lv Zheng (2):
-  ACPI / EC: Enhance boot EC sanity check
-  ACPI / EC: Add support to skip boot stage DSDT probe
-
- drivers/acpi/ec.c | 77 ++++++++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 71 insertions(+), 6 deletions(-)
-
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index c24235d..c1f480b 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1362,6 +1362,8 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
+ 				     ec_parse_io_ports, ec);
+ 	if (ACPI_FAILURE(status))
+ 		return status;
++	if (ec->data_addr == 0 || ec->command_addr == 0)
++		return AE_OK;
+ 
+ 	/* Get GPE bit assignment (EC events). */
+ 	/* TODO: Add support for _GPE returning a package */
 -- 
 2.7.4
 
