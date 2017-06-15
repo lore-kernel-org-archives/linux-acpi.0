@@ -1,127 +1,106 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: [PATCH] ACPI / scan: Fix enumeration for special SPI and I2C devices
-Date: Thu, 15 Jun 2017 15:40:49 +0300
-Message-ID: <20170615124049.19787-1-jarkko.nikula@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v3 2/2] acpi/iort: numa: Add numa node mapping for smmuv3
+ devices
+Date: Thu, 15 Jun 2017 14:46:03 +0100
+Message-ID: <20170615134603.GA16292@red-moon>
+References: <1496897059-8272-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1496897059-8272-3-git-send-email-ganapatrao.kulkarni@cavium.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:14723 "EHLO mga09.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:45546 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751623AbdFOMkz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 15 Jun 2017 08:40:55 -0400
+        id S1750923AbdFONoo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Jun 2017 09:44:44 -0400
+Content-Disposition: inline
+In-Reply-To: <1496897059-8272-3-git-send-email-ganapatrao.kulkarni@cavium.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
+To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, lv.zheng@intel.com, rjw@rjwysocki.net
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will.Deacon@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, robin.murphy@arm.com, joro@8bytes.org, lenb@kernel.org, jnair@caviumnetworks.com, gpkulkarni@gmail.com
 
-Commit f406270bf73d ("ACPI / scan: Set the visited flag for all
-enumerated devices") caused that two group of special SPI or I2C
-devices do not enumerate. SPI and I2C devices are expected to be
-enumerated by the SPI and I2C subsystems but change caused that
-acpi_bus_attach() marks those devices with acpi_device_set_enumerated().
+Hi,
 
-First group of devices are matched using Device Tree compatible property
-with special _HID "PRP0001". Those devices have matched scan handler,
-acpi_scan_attach_handler() retuns 1 and acpi_bus_attach() marks them
-with acpi_device_set_enumerated().
+On Thu, Jun 08, 2017 at 10:14:19AM +0530, Ganapatrao Kulkarni wrote:
+> Add code to parse proximity domain in SMMUv3 IORT table to
+> set numa node mapping for smmuv3 devices.
+> 
+> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+> ---
+>  drivers/acpi/arm64/iort.c | 28 ++++++++++++++++++++++++++--
+>  1 file changed, 26 insertions(+), 2 deletions(-)
 
-Second group of devices without valid _HID such as "LNXVIDEO" have
-device->pnp.type.platform_id set to zero and change again marks them
-with acpi_device_set_enumerated().
+I am happy to take this but I want to know what we shall do with
+patch 1 and related ACPICA changes first.
 
-Fix this by checking is the device SPI or I2C device and let the code go
-through the device_attach() and acpi_default_enumeration() path for all
-SPI and I2C devices.
+Thanks,
+Lorenzo
 
-Fixes: f406270bf73d ("ACPI / scan: Set the visited flag for all enumerated devices")
-Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
----
-This should go to linux-stable v4.9+ but it doesn't apply due the commit
-f5beabfe6179 ("ACPI / scan: Apply default enumeration to devices with
-ACPI drivers"). Should both be queued or have another version from this
-for linux-stable?
----
- drivers/acpi/scan.c | 31 ++++++++++++++++++++-----------
- 1 file changed, 20 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 3a10d7573477..38b9a319b0c4 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1745,20 +1745,27 @@ static int acpi_check_spi_i2c_slave(struct acpi_resource *ares, void *data)
- 	return -1;
- }
- 
--static void acpi_default_enumeration(struct acpi_device *device)
-+static bool acpi_is_spi_i2c_slave(struct acpi_device *device)
- {
- 	struct list_head resource_list;
- 	bool is_spi_i2c_slave = false;
- 
--	/*
--	 * Do not enumerate SPI/I2C slaves as they will be enumerated by their
--	 * respective parents.
--	 */
- 	INIT_LIST_HEAD(&resource_list);
- 	acpi_dev_get_resources(device, &resource_list, acpi_check_spi_i2c_slave,
- 			       &is_spi_i2c_slave);
- 	acpi_dev_free_resource_list(&resource_list);
--	if (!is_spi_i2c_slave) {
-+
-+	return is_spi_i2c_slave;
-+}
-+
-+static void acpi_default_enumeration(struct acpi_device *device,
-+				     bool spi_i2c_slave)
-+{
-+	/*
-+	 * Do not enumerate SPI/I2C slaves as they will be enumerated by their
-+	 * respective parents.
-+	 */
-+	if (!spi_i2c_slave) {
- 		acpi_create_platform_device(device, NULL);
- 		acpi_device_set_enumerated(device);
- 	} else {
-@@ -1780,7 +1787,7 @@ static int acpi_generic_device_attach(struct acpi_device *adev,
- 	 * below can be unconditional.
- 	 */
- 	if (adev->data.of_compatible)
--		acpi_default_enumeration(adev);
-+		acpi_default_enumeration(adev, acpi_is_spi_i2c_slave(adev));
- 
- 	return 1;
- }
-@@ -1823,6 +1830,7 @@ static void acpi_bus_attach(struct acpi_device *device)
- {
- 	struct acpi_device *child;
- 	acpi_handle ejd;
-+	bool spi_i2c_slave;
- 	int ret;
- 
- 	if (ACPI_SUCCESS(acpi_bus_get_ejd(device->handle, &ejd)))
-@@ -1853,8 +1861,9 @@ static void acpi_bus_attach(struct acpi_device *device)
- 	if (ret < 0)
- 		return;
- 
-+	spi_i2c_slave = acpi_is_spi_i2c_slave(device);
- 	device->flags.match_driver = true;
--	if (ret > 0) {
-+	if (ret > 0 && !spi_i2c_slave) {
- 		acpi_device_set_enumerated(device);
- 		goto ok;
- 	}
-@@ -1863,10 +1872,10 @@ static void acpi_bus_attach(struct acpi_device *device)
- 	if (ret < 0)
- 		return;
- 
--	if (device->pnp.type.platform_id)
--		acpi_default_enumeration(device);
--	else
-+	if (!device->pnp.type.platform_id && !spi_i2c_slave)
- 		acpi_device_set_enumerated(device);
-+	else
-+		acpi_default_enumeration(device, spi_i2c_slave);
- 
-  ok:
- 	list_for_each_entry(child, &device->children, node)
--- 
-2.11.0
-
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index bba2b59..e804386 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -882,6 +882,23 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+>  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
+>  }
+>  
+> +/*
+> + * set numa proximity domain for smmuv3 device
+> + */
+> +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
+> +		struct device *dev)
+> +{
+> +	struct acpi_iort_smmu_v3 *smmu;
+> +
+> +	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+> +	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
+> +		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
+> +		pr_info("SMMUV3[%llx] Mapped to Proximity domain %d\n",
+> +			smmu->base_address,
+> +			smmu->pxm);
+> +	}
+> +}
+> +
+>  static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
+>  {
+>  	struct acpi_iort_smmu *smmu;
+> @@ -951,20 +968,24 @@ struct iort_iommu_config {
+>  	int (*iommu_count_resources)(struct acpi_iort_node *node);
+>  	void (*iommu_init_resources)(struct resource *res,
+>  				     struct acpi_iort_node *node);
+> +	void (*iommu_set_proximity)(struct acpi_iort_node *node,
+> +				     struct device *dev);
+>  };
+>  
+>  static const struct iort_iommu_config iort_arm_smmu_v3_cfg __initconst = {
+>  	.name = "arm-smmu-v3",
+>  	.iommu_is_coherent = arm_smmu_v3_is_coherent,
+>  	.iommu_count_resources = arm_smmu_v3_count_resources,
+> -	.iommu_init_resources = arm_smmu_v3_init_resources
+> +	.iommu_init_resources = arm_smmu_v3_init_resources,
+> +	.iommu_set_proximity = arm_smmu_v3_set_proximity
+>  };
+>  
+>  static const struct iort_iommu_config iort_arm_smmu_cfg __initconst = {
+>  	.name = "arm-smmu",
+>  	.iommu_is_coherent = arm_smmu_is_coherent,
+>  	.iommu_count_resources = arm_smmu_count_resources,
+> -	.iommu_init_resources = arm_smmu_init_resources
+> +	.iommu_init_resources = arm_smmu_init_resources,
+> +	.iommu_set_proximity = NULL
+>  };
+>  
+>  static __init
+> @@ -1002,6 +1023,9 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+>  	if (!pdev)
+>  		return -ENOMEM;
+>  
+> +	if (ops->iommu_set_proximity)
+> +		ops->iommu_set_proximity(node, &pdev->dev);
+> +
+>  	count = ops->iommu_count_resources(node);
+>  
+>  	r = kcalloc(count, sizeof(*r), GFP_KERNEL);
+> -- 
+> 1.8.1.4
+> 
