@@ -1,63 +1,49 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.12-rc6
-Date: Thu, 15 Jun 2017 02:36:04 +0200
-Message-ID: <CAJZ5v0i81Egcp8=-bDCc8-9b0JcRV=k8zfmcsRfpz-bsDPxVvQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v3 0/4] ACPI / EC: Add quirk modes for boot EC support
+Date: Thu, 15 Jun 2017 09:41:27 +0800
+Message-ID: <cover.1497490457.git.lv.zheng@intel.com>
+References: <cover.1494927504.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:33241 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750768AbdFOAgG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jun 2017 20:36:06 -0400
+Received: from mga09.intel.com ([134.134.136.24]:48058 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750768AbdFOBlc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Jun 2017 21:41:32 -0400
+In-Reply-To: <cover.1494927504.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Linus,
+It's reported that Asus laptop X580VD/X550VXK/GL720VMK/FX502VD/FX502VE have
+a BIOS bug where the ECDT correctly states that EC events trigger GPE 0x23,
+but the DSDT _GPE method incorrectly returns GPE 0x33.
 
-Please pull from the tag
+This patchset fixes this issue.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.12-rc6
+Link: https://www.spinics.net/lists/linux-acpi/msg73763.html
+      https://bugzilla.kernel.org/show_bug.cgi?id=195651
 
-with top-most commit 9522933454f4c4bd5bedf3d71c538708b7c5de5b
+v2: Stops doing craps related to EC_ID (it's already too complicated), and
+    reduces one unnecessary boot parameter. For the final bug fix, prefers
+    the fix from endlessm.com developers.
+v3: Removes improper statments related to _STA as acpi_get_devices() has
+    executed _STA before invoking ec_parse_device() adds detailed
+    explanation for why acpi_ec_dsdt_probe() is a wrong approach.
+    Carlo Caione helps to add a new quirk for GL720VMK.
 
- Merge branch 'acpica-fixes'
+Carlo Caione (1):
+  ACPI / EC: Add quirk for GL720VMK
 
-on top of commit 32c1431eea4881a6b17bd7c639315010aeefa452
+Chris Chiu (1):
+  ACPI / EC: Fix media keys not working problem on some Asus laptops
 
- Linux 4.12-rc5
+Lv Zheng (2):
+  ACPI / EC: Enhance boot EC sanity check
+  ACPI / EC: Add support to skip boot stage DSDT probe
 
-to receive ACPI fixes for v4.12-rc6.
+ drivers/acpi/ec.c | 77 ++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 71 insertions(+), 6 deletions(-)
 
-These revert an ACPICA commit from the 4.11 cycle that causes
-problems to happen on some systems and add a protection against
-possible kernel crashes due to table reference counter imbalance.
+-- 
+2.7.4
 
-Specifics:
-
- - Revert a 4.11 ACPICA change that made assumptions which are not
-   satisfied on some systems and caused the enumeration of resources
-   to fail on them (Rafael Wysocki).
-
- - Add a mechanism to prevent tables from being unmapped prematurely
-   due to reference counter overflows (Lv Zheng).
-
-Thanks!
-
-
----------------
-
-Lv Zheng (1):
-      ACPICA: Tables: Mechanism to handle late stage acpi_get_table() imbalance
-
-Rafael J. Wysocki (1):
-      Revert "ACPICA: Disassembler: Enhance resource descriptor detection"
-
----------------
-
- drivers/acpi/acpica/tbutils.c | 34 +++++++++++++++++++++++++---------
- drivers/acpi/acpica/utresrc.c |  9 ---------
- include/acpi/actbl.h          | 14 ++++++++++++++
- 3 files changed, 39 insertions(+), 18 deletions(-)
