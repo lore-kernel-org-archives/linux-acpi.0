@@ -1,145 +1,201 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpi: acpica: fix acpi parse and parseext cache leaks
-Date: Thu, 15 Jun 2017 19:52:59 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5C0D49@ORSMSX110.amr.corp.intel.com>
-References: <1497438490-22268-1-git-send-email-kkamagui@gmail.com>
+From: Seunghun Han <kkamagui@gmail.com>
+Subject: Re: [PATCH] acpi: acpica: fix acpi parse and parseext cache leaks
+Date: Fri, 16 Jun 2017 05:54:58 +0900
+Message-ID: <CAHjaAcT+SdJxVjiJ4rUwWP=NvoKLBv5GRm9dN1Jb5nMy+d-usw@mail.gmail.com>
+References: <1497438490-22268-1-git-send-email-kkamagui@gmail.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37E5C0D49@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:10292 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750749AbdFOTxB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 15 Jun 2017 15:53:01 -0400
-In-Reply-To: <1497438490-22268-1-git-send-email-kkamagui@gmail.com>
-Content-Language: en-US
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36304 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751590AbdFOUzA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jun 2017 16:55:00 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5C0D49@ORSMSX110.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Seunghun Han <kkamagui@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-VGhpcyBtaWdodCBiZSBhIGR1bWIgcXVlc3Rpb24sIGJ1dCBpc24ndCB0aGUgc3lzdGVtIGJhc2lj
-YWxseSBob3NlZCBvbmNlIHRoZSBBQ1BJIHN1YnN5c3RlbSBpcyBzaHV0ZG93bj8NCg0KDQo+IC0t
-LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFNldW5naHVuIEhhbiBbbWFpbHRvOmtr
-YW1hZ3VpQGdtYWlsLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBKdW5lIDE0LCAyMDE3IDQ6MDgg
-QU0NCj4gVG86IFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPjsgTW9vcmUsIFJvYmVydA0K
-PiA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT47IFd5c29ja2ksIFJhZmFlbCBKIDxyYWZhZWwuai53
-eXNvY2tpQGludGVsLmNvbT4NCj4gQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBkZXZl
-bEBhY3BpY2Eub3JnOyBsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZzsgU2V1bmdodW4g
-SGFuIDxra2FtYWd1aUBnbWFpbC5jb20+DQo+IFN1YmplY3Q6IFtQQVRDSF0gYWNwaTogYWNwaWNh
-OiBmaXggYWNwaSBwYXJzZSBhbmQgcGFyc2VleHQgY2FjaGUgbGVha3MNCj4gDQo+IEknbSBTZXVu
-Z2h1biBIYW4sIGFuZCBJIHdvcmsgZm9yIE5hdGlvbmFsIFNlY3VyaXR5IFJlc2VhcmNoIEluc3Rp
-dHV0ZSBvZg0KPiBTb3V0aCBLb3JlYS4NCj4gDQo+IEkgaGF2ZSBiZWVuIGRvaW5nIGEgcmVzZWFy
-Y2ggb24gQUNQSSBhbmQgZm91bmQgYW4gQUNQSSBjYWNoZSBsZWFrIGluDQo+IEFDUEkgZWFybHkg
-YWJvcnQgY2FzZXMuDQo+IA0KPiBCb290IGxvZyBvZiBBQ1BJIGNhY2hlIGxlYWsgaXMgYXMgZm9s
-bG93czoNCj4gWyAgICAwLjM1MjQxNF0gQUNQSTogQWRkZWQgX09TSShNb2R1bGUgRGV2aWNlKQ0K
-PiBbICAgIDAuMzUzMTgyXSBBQ1BJOiBBZGRlZCBfT1NJKFByb2Nlc3NvciBEZXZpY2UpDQo+IFsg
-ICAgMC4zNTMxODJdIEFDUEk6IEFkZGVkIF9PU0koMy4wIF9TQ1AgRXh0ZW5zaW9ucykNCj4gWyAg
-ICAwLjM1MzE4Ml0gQUNQSTogQWRkZWQgX09TSShQcm9jZXNzb3IgQWdncmVnYXRvciBEZXZpY2Up
-DQo+IFsgICAgMC4zNTYwMjhdIEFDUEk6IFVuYWJsZSB0byBzdGFydCB0aGUgQUNQSSBJbnRlcnBy
-ZXRlcg0KPiBbICAgIDAuMzU2Nzk5XSBBQ1BJIEVycm9yOiBDb3VsZCBub3QgcmVtb3ZlIFNDSSBo
-YW5kbGVyDQo+ICgyMDE3MDMwMy9ldm1pc2MtMjgxKQ0KPiBbICAgIDAuMzYwMjE1XSBrbWVtX2Nh
-Y2hlX2Rlc3Ryb3kgQWNwaS1TdGF0ZTogU2xhYiBjYWNoZSBzdGlsbCBoYXMNCj4gb2JqZWN0cw0K
-PiBbICAgIDAuMzYwNjQ4XSBDUFU6IDAgUElEOiAxIENvbW06IHN3YXBwZXIvMCBUYWludGVkOiBH
-ICAgICAgICBXDQo+IDQuMTIuMC1yYzQtbmV4dC0yMDE3MDYwOCsgIzEwDQo+IFsgICAgMC4zNjEy
-NzNdIEhhcmR3YXJlIG5hbWU6IGlubm90ZWsgR21iSCBWaXJ0dWFsQm94L1ZpcnR1YWxCb3gsIEJJ
-T1MNCj4gVmlydHVhbEJveCAxMi8wMS8yMDA2DQo+IFsgICAgMC4zNjE4NzNdIENhbGwgVHJhY2U6
-DQo+IFsgICAgMC4zNjIyNDNdICA/IGR1bXBfc3RhY2srMHg1Yy8weDgxDQo+IFsgICAgMC4zNjI1
-OTFdICA/IGttZW1fY2FjaGVfZGVzdHJveSsweDFhYS8weDFjMA0KPiBbICAgIDAuMzYyOTQ0XSAg
-PyBhY3BpX3NsZWVwX3Byb2NfaW5pdCsweDI3LzB4MjcNCj4gWyAgICAwLjM2MzI5Nl0gID8gYWNw
-aV9vc19kZWxldGVfY2FjaGUrMHhhLzB4MTANCj4gWyAgICAwLjM2MzY0Nl0gID8gYWNwaV91dF9k
-ZWxldGVfY2FjaGVzKzB4NmQvMHg3Yg0KPiBbICAgIDAuMzY0MDAwXSAgPyBhY3BpX3Rlcm1pbmF0
-ZSsweGEvMHgxNA0KPiBbICAgIDAuMzY0MDAwXSAgPyBhY3BpX2luaXQrMHgyYWYvMHgzNGYNCj4g
-WyAgICAwLjM2NDAwMF0gID8gX19jbGFzc19jcmVhdGUrMHg0Yy8weDgwDQo+IFsgICAgMC4zNjQw
-MDBdICA/IHZpZGVvX3NldHVwKzB4N2YvMHg3Zg0KPiBbICAgIDAuMzY0MDAwXSAgPyBhY3BpX3Ns
-ZWVwX3Byb2NfaW5pdCsweDI3LzB4MjcNCj4gWyAgICAwLjM2NDAwMF0gID8gZG9fb25lX2luaXRj
-YWxsKzB4NGUvMHgxYTANCj4gWyAgICAwLjM2NDAwMF0gID8ga2VybmVsX2luaXRfZnJlZWFibGUr
-MHgxODkvMHgyMGENCj4gWyAgICAwLjM2NDAwMF0gID8gcmVzdF9pbml0KzB4YzAvMHhjMA0KPiBb
-ICAgIDAuMzY0MDAwXSAgPyBrZXJuZWxfaW5pdCsweGEvMHgxMDANCj4gWyAgICAwLjM2NDAwMF0g
-ID8gcmV0X2Zyb21fZm9yaysweDI1LzB4MzANCj4gDQo+IEkgYW5hbHl6ZWQgdGhpcyBtZW1vcnkg
-bGVhayBkZXRhaWxlZC4gSSBmb3VuZCB0aGF0IOKAnEFjcGktU3RhdGXigJ0gY2FjaGUNCj4gYW5k
-IOKAnEFjcGktUGFyc2XigJ0gY2FjaGUgd2VyZSBtZXJnZWQgYmVjYXVzZSB0aGUgc2l6ZSBvZiBj
-YWNoZSBvYmplY3RzIHdhcw0KPiBzYW1lIHNsYWIgY2FjaGUgc2l6ZS4NCj4gDQo+IEkgZmluYWxs
-eSBmb3VuZCDigJxBY3BpLVBhcnNl4oCdIGNhY2hlIGFuZCDigJxBY3BpLVBhcnNlRXh04oCdIGNh
-Y2hlIHdlcmUgbGVha2VkDQo+IHVzaW5nIFNMQUJfTkVWRVJfTUVSR0UgZmxhZyBpbiBrbWVtX2Nh
-Y2hlX2NyZWF0ZSgpIGZ1bmN0aW9uLg0KPiANCj4gUmVhbCBBQ1BJIGNhY2hlIGxlYWsgcG9pbnQg
-aXMgYXMgZm9sbG93czoNCj4gWyAgICAwLjM2MDEwMV0gQUNQSTogQWRkZWQgX09TSShNb2R1bGUg
-RGV2aWNlKQ0KPiBbICAgIDAuMzYwMTAxXSBBQ1BJOiBBZGRlZCBfT1NJKFByb2Nlc3NvciBEZXZp
-Y2UpDQo+IFsgICAgMC4zNjAxMDFdIEFDUEk6IEFkZGVkIF9PU0koMy4wIF9TQ1AgRXh0ZW5zaW9u
-cykNCj4gWyAgICAwLjM2MTA0M10gQUNQSTogQWRkZWQgX09TSShQcm9jZXNzb3IgQWdncmVnYXRv
-ciBEZXZpY2UpDQo+IFsgICAgMC4zNjQwMTZdIEFDUEk6IFVuYWJsZSB0byBzdGFydCB0aGUgQUNQ
-SSBJbnRlcnByZXRlcg0KPiBbICAgIDAuMzY1MDYxXSBBQ1BJIEVycm9yOiBDb3VsZCBub3QgcmVt
-b3ZlIFNDSSBoYW5kbGVyDQo+ICgyMDE3MDMwMy9ldm1pc2MtMjgxKQ0KPiBbICAgIDAuMzY4MTc0
-XSBrbWVtX2NhY2hlX2Rlc3Ryb3kgQWNwaS1QYXJzZTogU2xhYiBjYWNoZSBzdGlsbCBoYXMNCj4g
-b2JqZWN0cw0KPiBbICAgIDAuMzY5MzMyXSBDUFU6IDEgUElEOiAxIENvbW06IHN3YXBwZXIvMCBU
-YWludGVkOiBHICAgICAgICBXDQo+IDQuMTIuMC1yYzQtbmV4dC0yMDE3MDYwOCsgIzgNCj4gWyAg
-ICAwLjM3MTI1Nl0gSGFyZHdhcmUgbmFtZTogaW5ub3RlayBHbWJIIFZpcnR1YWxCb3gvVmlydHVh
-bEJveCwgQklPUw0KPiBWaXJ0dWFsQm94IDEyLzAxLzIwMDYNCj4gWyAgICAwLjM3MjAwMF0gQ2Fs
-bCBUcmFjZToNCj4gWyAgICAwLjM3MjAwMF0gID8gZHVtcF9zdGFjaysweDVjLzB4ODENCj4gWyAg
-ICAwLjM3MjAwMF0gID8ga21lbV9jYWNoZV9kZXN0cm95KzB4MWFhLzB4MWMwDQo+IFsgICAgMC4z
-NzIwMDBdICA/IGFjcGlfc2xlZXBfcHJvY19pbml0KzB4MjcvMHgyNw0KPiBbICAgIDAuMzcyMDAw
-XSAgPyBhY3BpX29zX2RlbGV0ZV9jYWNoZSsweGEvMHgxMA0KPiBbICAgIDAuMzcyMDAwXSAgPyBh
-Y3BpX3V0X2RlbGV0ZV9jYWNoZXMrMHg1Ni8weDdiDQo+IFsgICAgMC4zNzIwMDBdICA/IGFjcGlf
-dGVybWluYXRlKzB4YS8weDE0DQo+IFsgICAgMC4zNzIwMDBdICA/IGFjcGlfaW5pdCsweDJhZi8w
-eDM0Zg0KPiBbICAgIDAuMzcyMDAwXSAgPyBfX2NsYXNzX2NyZWF0ZSsweDRjLzB4ODANCj4gWyAg
-ICAwLjM3MjAwMF0gID8gdmlkZW9fc2V0dXArMHg3Zi8weDdmDQo+IFsgICAgMC4zNzIwMDBdICA/
-IGFjcGlfc2xlZXBfcHJvY19pbml0KzB4MjcvMHgyNw0KPiBbICAgIDAuMzcyMDAwXSAgPyBkb19v
-bmVfaW5pdGNhbGwrMHg0ZS8weDFhMA0KPiBbICAgIDAuMzcyMDAwXSAgPyBrZXJuZWxfaW5pdF9m
-cmVlYWJsZSsweDE4OS8weDIwYQ0KPiBbICAgIDAuMzcyMDAwXSAgPyByZXN0X2luaXQrMHhjMC8w
-eGMwDQo+IFsgICAgMC4zNzIwMDBdICA/IGtlcm5lbF9pbml0KzB4YS8weDEwMA0KPiBbICAgIDAu
-MzcyMDAwXSAgPyByZXRfZnJvbV9mb3JrKzB4MjUvMHgzMA0KPiBbICAgIDAuMzg4MDM5XSBrbWVt
-X2NhY2hlX2Rlc3Ryb3kgQWNwaS1QYXJzZUV4dDogU2xhYiBjYWNoZSBzdGlsbCBoYXMNCj4gb2Jq
-ZWN0cw0KPiBbICAgIDAuMzg5MDYzXSBDUFU6IDEgUElEOiAxIENvbW06IHN3YXBwZXIvMCBUYWlu
-dGVkOiBHICAgICAgICBXDQo+IDQuMTIuMC1yYzQtbmV4dC0yMDE3MDYwOCsgIzgNCj4gWyAgICAw
-LjM5MDU1N10gSGFyZHdhcmUgbmFtZTogaW5ub3RlayBHbWJIIFZpcnR1YWxCb3gvVmlydHVhbEJv
-eCwgQklPUw0KPiBWaXJ0dWFsQm94IDEyLzAxLzIwMDYNCj4gWyAgICAwLjM5MjAwMF0gQ2FsbCBU
-cmFjZToNCj4gWyAgICAwLjM5MjAwMF0gID8gZHVtcF9zdGFjaysweDVjLzB4ODENCj4gWyAgICAw
-LjM5MjAwMF0gID8ga21lbV9jYWNoZV9kZXN0cm95KzB4MWFhLzB4MWMwDQo+IFsgICAgMC4zOTIw
-MDBdICA/IGFjcGlfc2xlZXBfcHJvY19pbml0KzB4MjcvMHgyNw0KPiBbICAgIDAuMzkyMDAwXSAg
-PyBhY3BpX29zX2RlbGV0ZV9jYWNoZSsweGEvMHgxMA0KPiBbICAgIDAuMzkyMDAwXSAgPyBhY3Bp
-X3V0X2RlbGV0ZV9jYWNoZXMrMHg2ZC8weDdiDQo+IFsgICAgMC4zOTIwMDBdICA/IGFjcGlfdGVy
-bWluYXRlKzB4YS8weDE0DQo+IFsgICAgMC4zOTIwMDBdICA/IGFjcGlfaW5pdCsweDJhZi8weDM0
-Zg0KPiBbICAgIDAuMzkyMDAwXSAgPyBfX2NsYXNzX2NyZWF0ZSsweDRjLzB4ODANCj4gWyAgICAw
-LjM5MjAwMF0gID8gdmlkZW9fc2V0dXArMHg3Zi8weDdmDQo+IFsgICAgMC4zOTIwMDBdICA/IGFj
-cGlfc2xlZXBfcHJvY19pbml0KzB4MjcvMHgyNw0KPiBbICAgIDAuMzkyMDAwXSAgPyBkb19vbmVf
-aW5pdGNhbGwrMHg0ZS8weDFhMA0KPiBbICAgIDAuMzkyMDAwXSAgPyBrZXJuZWxfaW5pdF9mcmVl
-YWJsZSsweDE4OS8weDIwYQ0KPiBbICAgIDAuMzkyMDAwXSAgPyByZXN0X2luaXQrMHhjMC8weGMw
-DQo+IFsgICAgMC4zOTIwMDBdICA/IGtlcm5lbF9pbml0KzB4YS8weDEwMA0KPiBbICAgIDAuMzky
-MDAwXSAgPyByZXRfZnJvbV9mb3JrKzB4MjUvMHgzMA0KPiANCj4gV2hlbiBlYXJseSBhYm9ydCBp
-cyBvY2N1cnJlZCBkdWUgdG8gaW52YWxpZCBBQ1BJIGluZm9ybWF0aW9uLCBMaW51eA0KPiBrZXJu
-ZWwgdGVybWluYXRlcyBBQ1BJIGJ5IGNhbGxpbmcgYWNwaV90ZXJtaW5hdGUoKSBmdW5jdGlvbi4g
-VGhlDQo+IGZ1bmN0aW9uIGNhbGxzDQo+IGFjcGlfdXRfZGVsZXRlX2NhY2hlcygpIGZ1bmN0aW9u
-IHRvIGRlbGV0ZSBsb2NhbCBjYWNoZXMNCj4gKGFjcGlfZ2JsX25hbWVzcGFjZV8gY2FjaGUsIHN0
-YXRlX2NhY2hlLCBvcGVyYW5kX2NhY2hlLCBwc19ub2RlX2NhY2hlLA0KPiBwc19ub2RlX2V4dF9j
-YWNoZSkuDQo+IA0KPiBCdXQgdGhlIGRlbGV0aW9uIGNvZGVzIGluIGFjcGlfdXRfZGVsZXRlX2Nh
-Y2hlcygpIGZ1bmN0aW9uIG9ubHkgZGVsZXRlDQo+IHNsYWIgY2FjaGVzIHVzaW5nIGttZW1fY2Fj
-aGVfZGVzdHJveSgpIGZ1bmN0aW9uLCB0aGVyZWZvcmUgdGhlIGNhY2hlDQo+IG9iamVjdHMgc2hv
-dWxkIGJlIGZsdXNoZWQgYmVmb3JlIGFjcGlfdXRfZGVsZXRlX2NhY2hlcygpIGZ1bmN0aW9uLg0K
-PiANCj4g4oCcQWNwaS1QYXJzZeKAnSBjYWNoZSBhbmQg4oCcQWNwaS1QYXJzZUV4dOKAnSBjYWNo
-ZSBhcmUgdXNlZCBpbiBhbiBBTUwgcGFyc2UNCj4gZnVuY3Rpb24sIGFjcGlfcHNfcGFyc2VfbG9v
-cCgpLiBUaGUgZnVuY3Rpb24gc2hvdWxkIGhhdmUgZmx1c2ggY29kZXMgdG8NCj4gaGFuZGxlIGFu
-IGVycm9yIHN0YXRlIGR1ZSB0byBpbnZhbGlkIEFNTCBjb2Rlcy4NCj4gDQo+IFRoaXMgY2FjaGUg
-bGVhayBoYXMgYSBzZWN1cml0eSB0aHJlYXQgYmVjYXVzZSBhbiBvbGQga2VybmVsICg8PSA0Ljkp
-DQo+IHNob3dzIG1lbW9yeSBsb2NhdGlvbnMgb2Yga2VybmVsIGZ1bmN0aW9ucyBpbiBzdGFjayBk
-dW1wLiBTb21lIG1hbGljaW91cw0KPiB1c2VycyBjb3VsZCB1c2UgdGhpcyBpbmZvcm1hdGlvbiB0
-byBuZXV0cmFsaXplIGtlcm5lbCBBU0xSLg0KPiANCj4gVG8gZml4IEFDUEkgY2FjaGUgbGVhayBm
-b3IgZW5oYW5jaW5nIHNlY3VyaXR5LCBJIG1hZGUgYSBwYXRjaCB3aGljaCBoYXMNCj4gZmx1c2gg
-Y29kZXMgaW4gYWNwaV9wc19wYXJzZV9sb29wKCkgZnVuY3Rpb24uDQo+IA0KPiBJIGhvcGUgdGhh
-dCB0aGlzIHBhdGNoIGltcHJvdmVzIHRoZSBzZWN1cml0eSBvZiBMaW51eCBrZXJuZWwuDQo+IA0K
-PiBUaGFuayB5b3UuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBTZXVuZ2h1biBIYW4gPGtrYW1hZ3Vp
-QGdtYWlsLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL3BzbG9vcC5jIHwgMTMg
-KysrKysrKysrKysrKw0KPiAgMSBmaWxlIGNoYW5nZWQsIDEzIGluc2VydGlvbnMoKykNCj4gDQo+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNhL3BzbG9vcC5jIGIvZHJpdmVycy9hY3Bp
-L2FjcGljYS9wc2xvb3AuYw0KPiBpbmRleCBiNDIyNDAwLi41ZDA2MzgzIDEwMDY0NA0KPiAtLS0g
-YS9kcml2ZXJzL2FjcGkvYWNwaWNhL3BzbG9vcC5jDQo+ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3Bp
-Y2EvcHNsb29wLmMNCj4gQEAgLTY1OCw1ICs2NTgsMTggQEAgYWNwaV9zdGF0dXMgYWNwaV9wc19w
-YXJzZV9sb29wKHN0cnVjdA0KPiBhY3BpX3dhbGtfc3RhdGUgKndhbGtfc3RhdGUpDQo+ICAJfQkJ
-CS8qIHdoaWxlIHBhcnNlcl9zdGF0ZS0+QW1sICovDQo+IA0KPiAgCXN0YXR1cyA9IGFjcGlfcHNf
-Y29tcGxldGVfZmluYWxfb3Aod2Fsa19zdGF0ZSwgb3AsIHN0YXR1cyk7DQo+ICsJaWYgKEFDUElf
-RkFJTFVSRShzdGF0dXMpKSB7DQo+ICsJCS8qIEZsdXNoIHB1c2hlZCBvcCBvYmplY3RzICovDQo+
-ICsNCj4gKwkJZG8gew0KPiArCQkJYWNwaV9wc19wb3Bfc2NvcGUoJih3YWxrX3N0YXRlLT5wYXJz
-ZXJfc3RhdGUpLCAmb3AsDQo+ICsJCQkJCSAgJndhbGtfc3RhdGUtPmFyZ190eXBlcywNCj4gKwkJ
-CQkJICAmd2Fsa19zdGF0ZS0+YXJnX2NvdW50KTsNCj4gKwkJCWlmIChvcCkgew0KPiArCQkJCWFj
-cGlfcHNfY29tcGxldGVfdGhpc19vcCh3YWxrX3N0YXRlLCBvcCk7DQo+ICsJCQl9DQo+ICsJCX0g
-d2hpbGUgKG9wKTsNCj4gKwl9DQo+ICsNCj4gIAlyZXR1cm5fQUNQSV9TVEFUVVMoc3RhdHVzKTsN
-Cj4gIH0NCj4gLS0NCj4gMi4xLjQNCg0K
+Hello, Robert.
+
+My research system are based on virtual machine and Intel NUC machine,
+and they are still working despite of ACPI subsystem shutdown.
+So, I can find the acpi memory leaks by using "dmesg" command.
+
+Best regards.
+
+2017-06-16 4:52 GMT+09:00 Moore, Robert <robert.moore@intel.com>:
+> This might be a dumb question, but isn't the system basically hosed once =
+the ACPI subsystem is shutdown?
+>
+>
+>> -----Original Message-----
+>> From: Seunghun Han [mailto:kkamagui@gmail.com]
+>> Sent: Wednesday, June 14, 2017 4:08 AM
+>> To: Zheng, Lv <lv.zheng@intel.com>; Moore, Robert
+>> <robert.moore@intel.com>; Wysocki, Rafael J <rafael.j.wysocki@intel.com>
+>> Cc: linux-acpi@vger.kernel.org; devel@acpica.org; linux-
+>> kernel@vger.kernel.org; Seunghun Han <kkamagui@gmail.com>
+>> Subject: [PATCH] acpi: acpica: fix acpi parse and parseext cache leaks
+>>
+>> I'm Seunghun Han, and I work for National Security Research Institute of
+>> South Korea.
+>>
+>> I have been doing a research on ACPI and found an ACPI cache leak in
+>> ACPI early abort cases.
+>>
+>> Boot log of ACPI cache leak is as follows:
+>> [    0.352414] ACPI: Added _OSI(Module Device)
+>> [    0.353182] ACPI: Added _OSI(Processor Device)
+>> [    0.353182] ACPI: Added _OSI(3.0 _SCP Extensions)
+>> [    0.353182] ACPI: Added _OSI(Processor Aggregator Device)
+>> [    0.356028] ACPI: Unable to start the ACPI Interpreter
+>> [    0.356799] ACPI Error: Could not remove SCI handler
+>> (20170303/evmisc-281)
+>> [    0.360215] kmem_cache_destroy Acpi-State: Slab cache still has
+>> objects
+>> [    0.360648] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W
+>> 4.12.0-rc4-next-20170608+ #10
+>> [    0.361273] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS
+>> VirtualBox 12/01/2006
+>> [    0.361873] Call Trace:
+>> [    0.362243]  ? dump_stack+0x5c/0x81
+>> [    0.362591]  ? kmem_cache_destroy+0x1aa/0x1c0
+>> [    0.362944]  ? acpi_sleep_proc_init+0x27/0x27
+>> [    0.363296]  ? acpi_os_delete_cache+0xa/0x10
+>> [    0.363646]  ? acpi_ut_delete_caches+0x6d/0x7b
+>> [    0.364000]  ? acpi_terminate+0xa/0x14
+>> [    0.364000]  ? acpi_init+0x2af/0x34f
+>> [    0.364000]  ? __class_create+0x4c/0x80
+>> [    0.364000]  ? video_setup+0x7f/0x7f
+>> [    0.364000]  ? acpi_sleep_proc_init+0x27/0x27
+>> [    0.364000]  ? do_one_initcall+0x4e/0x1a0
+>> [    0.364000]  ? kernel_init_freeable+0x189/0x20a
+>> [    0.364000]  ? rest_init+0xc0/0xc0
+>> [    0.364000]  ? kernel_init+0xa/0x100
+>> [    0.364000]  ? ret_from_fork+0x25/0x30
+>>
+>> I analyzed this memory leak detailed. I found that =E2=80=9CAcpi-State=
+=E2=80=9D cache
+>> and =E2=80=9CAcpi-Parse=E2=80=9D cache were merged because the size of c=
+ache objects was
+>> same slab cache size.
+>>
+>> I finally found =E2=80=9CAcpi-Parse=E2=80=9D cache and =E2=80=9CAcpi-Par=
+seExt=E2=80=9D cache were leaked
+>> using SLAB_NEVER_MERGE flag in kmem_cache_create() function.
+>>
+>> Real ACPI cache leak point is as follows:
+>> [    0.360101] ACPI: Added _OSI(Module Device)
+>> [    0.360101] ACPI: Added _OSI(Processor Device)
+>> [    0.360101] ACPI: Added _OSI(3.0 _SCP Extensions)
+>> [    0.361043] ACPI: Added _OSI(Processor Aggregator Device)
+>> [    0.364016] ACPI: Unable to start the ACPI Interpreter
+>> [    0.365061] ACPI Error: Could not remove SCI handler
+>> (20170303/evmisc-281)
+>> [    0.368174] kmem_cache_destroy Acpi-Parse: Slab cache still has
+>> objects
+>> [    0.369332] CPU: 1 PID: 1 Comm: swapper/0 Tainted: G        W
+>> 4.12.0-rc4-next-20170608+ #8
+>> [    0.371256] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS
+>> VirtualBox 12/01/2006
+>> [    0.372000] Call Trace:
+>> [    0.372000]  ? dump_stack+0x5c/0x81
+>> [    0.372000]  ? kmem_cache_destroy+0x1aa/0x1c0
+>> [    0.372000]  ? acpi_sleep_proc_init+0x27/0x27
+>> [    0.372000]  ? acpi_os_delete_cache+0xa/0x10
+>> [    0.372000]  ? acpi_ut_delete_caches+0x56/0x7b
+>> [    0.372000]  ? acpi_terminate+0xa/0x14
+>> [    0.372000]  ? acpi_init+0x2af/0x34f
+>> [    0.372000]  ? __class_create+0x4c/0x80
+>> [    0.372000]  ? video_setup+0x7f/0x7f
+>> [    0.372000]  ? acpi_sleep_proc_init+0x27/0x27
+>> [    0.372000]  ? do_one_initcall+0x4e/0x1a0
+>> [    0.372000]  ? kernel_init_freeable+0x189/0x20a
+>> [    0.372000]  ? rest_init+0xc0/0xc0
+>> [    0.372000]  ? kernel_init+0xa/0x100
+>> [    0.372000]  ? ret_from_fork+0x25/0x30
+>> [    0.388039] kmem_cache_destroy Acpi-ParseExt: Slab cache still has
+>> objects
+>> [    0.389063] CPU: 1 PID: 1 Comm: swapper/0 Tainted: G        W
+>> 4.12.0-rc4-next-20170608+ #8
+>> [    0.390557] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS
+>> VirtualBox 12/01/2006
+>> [    0.392000] Call Trace:
+>> [    0.392000]  ? dump_stack+0x5c/0x81
+>> [    0.392000]  ? kmem_cache_destroy+0x1aa/0x1c0
+>> [    0.392000]  ? acpi_sleep_proc_init+0x27/0x27
+>> [    0.392000]  ? acpi_os_delete_cache+0xa/0x10
+>> [    0.392000]  ? acpi_ut_delete_caches+0x6d/0x7b
+>> [    0.392000]  ? acpi_terminate+0xa/0x14
+>> [    0.392000]  ? acpi_init+0x2af/0x34f
+>> [    0.392000]  ? __class_create+0x4c/0x80
+>> [    0.392000]  ? video_setup+0x7f/0x7f
+>> [    0.392000]  ? acpi_sleep_proc_init+0x27/0x27
+>> [    0.392000]  ? do_one_initcall+0x4e/0x1a0
+>> [    0.392000]  ? kernel_init_freeable+0x189/0x20a
+>> [    0.392000]  ? rest_init+0xc0/0xc0
+>> [    0.392000]  ? kernel_init+0xa/0x100
+>> [    0.392000]  ? ret_from_fork+0x25/0x30
+>>
+>> When early abort is occurred due to invalid ACPI information, Linux
+>> kernel terminates ACPI by calling acpi_terminate() function. The
+>> function calls
+>> acpi_ut_delete_caches() function to delete local caches
+>> (acpi_gbl_namespace_ cache, state_cache, operand_cache, ps_node_cache,
+>> ps_node_ext_cache).
+>>
+>> But the deletion codes in acpi_ut_delete_caches() function only delete
+>> slab caches using kmem_cache_destroy() function, therefore the cache
+>> objects should be flushed before acpi_ut_delete_caches() function.
+>>
+>> =E2=80=9CAcpi-Parse=E2=80=9D cache and =E2=80=9CAcpi-ParseExt=E2=80=9D c=
+ache are used in an AML parse
+>> function, acpi_ps_parse_loop(). The function should have flush codes to
+>> handle an error state due to invalid AML codes.
+>>
+>> This cache leak has a security threat because an old kernel (<=3D 4.9)
+>> shows memory locations of kernel functions in stack dump. Some malicious
+>> users could use this information to neutralize kernel ASLR.
+>>
+>> To fix ACPI cache leak for enhancing security, I made a patch which has
+>> flush codes in acpi_ps_parse_loop() function.
+>>
+>> I hope that this patch improves the security of Linux kernel.
+>>
+>> Thank you.
+>>
+>> Signed-off-by: Seunghun Han <kkamagui@gmail.com>
+>> ---
+>>  drivers/acpi/acpica/psloop.c | 13 +++++++++++++
+>>  1 file changed, 13 insertions(+)
+>>
+>> diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+>> index b422400..5d06383 100644
+>> --- a/drivers/acpi/acpica/psloop.c
+>> +++ b/drivers/acpi/acpica/psloop.c
+>> @@ -658,5 +658,18 @@ acpi_status acpi_ps_parse_loop(struct
+>> acpi_walk_state *walk_state)
+>>       }                       /* while parser_state->Aml */
+>>
+>>       status =3D acpi_ps_complete_final_op(walk_state, op, status);
+>> +     if (ACPI_FAILURE(status)) {
+>> +             /* Flush pushed op objects */
+>> +
+>> +             do {
+>> +                     acpi_ps_pop_scope(&(walk_state->parser_state), &op=
+,
+>> +                                       &walk_state->arg_types,
+>> +                                       &walk_state->arg_count);
+>> +                     if (op) {
+>> +                             acpi_ps_complete_this_op(walk_state, op);
+>> +                     }
+>> +             } while (op);
+>> +     }
+>> +
+>>       return_ACPI_STATUS(status);
+>>  }
+>> --
+>> 2.1.4
+>
