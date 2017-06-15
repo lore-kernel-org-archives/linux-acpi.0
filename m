@@ -1,61 +1,85 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID
- switch exported by ACPI
-Date: Thu, 15 Jun 2017 02:52:57 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CED0386@SHSMSX101.ccr.corp.intel.com>
-References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
- <20170607074848.GE27006@gardel-login>
- <20170613100617.GD29589@mail.corp.redhat.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 1/2] ARM64/irqchip: Update ACPI_IORT symbol selection logic
+Date: Thu, 15 Jun 2017 11:59:59 +0800
+Message-ID: <a5733e34-22f7-2ae9-b873-fee222a3f1c0@linaro.org>
+References: <20170614163713.14574-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:61733 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752121AbdFOC43 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Jun 2017 22:56:29 -0400
-In-Reply-To: <20170613100617.GD29589@mail.corp.redhat.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170614163713.14574-1-lorenzo.pieralisi@arm.com>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-arm-kernel@lists.infradead.org
+Cc: Marc Zyngier <marc.zyngier@arm.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lennart Poettering <mzxreary@0pointer.de>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Peter Hutterer <peter.hutterer@who-t.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 
-SGksIEJlbmphbWluDQoNCj4gRnJvbTogQmVuamFtaW4gVGlzc29pcmVzIFttYWlsdG86YmVuamFt
-aW4udGlzc29pcmVzQHJlZGhhdC5jb21dDQo+IFN1YmplY3Q6IFJlOiBbc3lzdGVtZC1kZXZlbF0g
-W1dJUCBQQVRDSCAwLzRdIFJld29yayB0aGUgdW5yZWxpYWJsZSBMSUQgc3dpdGNoIGV4cG9ydGVk
-IGJ5IEFDUEkNCj4gDQo+IEhpLA0KPiANCj4gW1NvcnJ5IGZvciB0aGUgZGVsYXksIEkgaGF2ZSBi
-ZWVuIHNpZGV0cmFja2VkIGZyb20gdGhpc10NCj4gDQo+IE9uIEp1biAwNyAyMDE3IG9yIHRoZXJl
-YWJvdXRzLCBMZW5uYXJ0IFBvZXR0ZXJpbmcgd3JvdGU6DQo+ID4gT24gVGh1LCAwMS4wNi4xNyAy
-MDo0NiwgQmVuamFtaW4gVGlzc29pcmVzIChiZW5qYW1pbi50aXNzb2lyZXNAcmVkaGF0LmNvbSkg
-d3JvdGU6DQo+ID4NCj4gPiA+IEhpLA0KPiA+ID4NCj4gPiA+IFNlbmRpbmcgdGhpcyBhcyBhIFdJ
-UCBhcyBpdCBzdGlsbCBuZWVkIGEgZmV3IGNoYW5nZXMsIGJ1dCBpdCBtb3N0bHkgd29ya3MgYXMN
-Cj4gPiA+IGV4cGVjdGVkIChzdGlsbCBub3QgZnVsbHkgY29tcGxpYW50IHlldCkuDQo+ID4gPg0K
-PiA+ID4gU28gdGhpcyBpcyBiYXNlZCBvbiBMZW5uYXJ0J3MgY29tbWVudCBpbiBbMV06IGlmIHRo
-ZSBMSUQgc3RhdGUgaXMgbm90IHJlbGlhYmxlLA0KPiA+ID4gdGhlIGtlcm5lbCBzaG91bGQgbm90
-IGV4cG9ydCB0aGUgTElEIHN3aXRjaCBkZXZpY2UgYXMgbG9uZyBhcyB3ZSBhcmUgbm90IHN1cmUN
-Cj4gPiA+IGFib3V0IGl0cyBzdGF0ZS4NCj4gPg0KPiA+IEFoIG5pY2UhIEkgKG9idmlvdXNseSkg
-bGlrZSB0aGlzIGFwcHJvYWNoLg0KPiANCj4gSGVoLiBOb3cgSSBqdXN0IG5lZWQgdG8gY29udmlu
-Y2UgTHYgdGhhdCBpdCdzIHRoZSByaWdodCBhcHByb2FjaC4NCg0KSSBmZWVsIHdlIGRvbid0IGhh
-dmUgYmlnIGNvbmZsaWN0cy4NCkFuZCBJIGFscmVhZHkgdG9vayBwYXJ0IG9mIHlvdXIgaWRlYSBp
-bnRvIHRoaXMgcGF0Y2hzZXQ6DQpodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzk3
-NzExMjEvDQpodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzk3NzExMTkvDQpJIHRl
-c3RlZCBteSBzdXJmYWNlIHByb3Mgd2l0aCBVYnVudHUsIHRoZXkgYXJlIHdvcmtpbmcgYXMgZXhw
-ZWN0ZWQuDQoNCj4gPiA+IE5vdGUgdGhhdCBzeXN0ZW1kIGN1cnJlbnRseSBkb2Vzbid0IHN5bmMg
-dGhlIHN0YXRlIHdoZW4gdGhlIGlucHV0IG5vZGUganVzdA0KPiA+ID4gYXBwZWFycy4gVGhpcyBp
-cyBhIHN5c3RlbWQgYnVnLCBhbmQgaXQgc2hvdWxkIG5vdCBiZSBoYW5kbGVkIGJ5IHRoZSBrZXJu
-ZWwNCj4gPiA+IGNvbW11bml0eS4NCj4gPg0KPiA+IFVoIGlmIHRoaXMgaXMgYm9ya2VkLCB3ZSBz
-aG91bGQgaW5kZWVkIGZpeCB0aGlzIGluIHN5c3RlbWQuIElzIHRoZXJlDQo+ID4gYWxyZWFkeSBh
-IHN5c3RlbWQgZ2l0aHViIGJ1ZyBhYm91dCB0aGlzPyBJZiBub3QsIHBsZWFzZSBjcmVhdGUgb25l
-LA0KPiA+IGFuZCB3ZSdsbCBsb29rIGludG8gaXQhDQo+IA0KPiBJIGRvbid0IHRoaW5rIHRoZXJl
-IGlzLiBJIGhhdmVuJ3QgcmFpc2VkIGl0IHlldCBiZWNhdXNlIEkgYW0gbm90IHNvIHN1cmUNCj4g
-dGhpcyB3aWxsIG5vdCBicmVhayBhZ2FpbiB0aG9zZSB3b3J0aGxlc3MgdW5yZWxpYWJsZSBMSUQs
-IGFuZCBpZiB3ZSBwbGF5DQo+IHdoYWNrIGEgbW9sZSBiZXR3ZWVuIHRoZSBrZXJuZWwgYW5kIHVz
-ZXIgc3BhY2UsIHRoaW5ncyBhcmUgZ29pbmcgdG8gYmUNCj4gbmFzdHkuIFNvIEknZCByYXRoZXIg
-aGF2ZSB0aGlzIGZpeGVkIGluIHN5c3RlbWQgYWxvbmcgd2l0aCB0aGUNCj4gdW5yZWxpYWJsZSBM
-SUQgc3dpdGNoIGtub3dsZWRnZSwgc28gd2UgYXJlIHN1cmUgdGhhdCB0aGUga2VybmVsIGJlaGF2
-ZXMNCj4gdGhlIHdheSB3ZSBleHBlY3QgaXQgdG8gYmUuDQoNClRoaXMgaXMgbXkgZmVlbGluZzoN
-CldlIG5lZWRuJ3QgZ28gdGhhdCBmYXIuDQpXZSBjYW4gaW50ZXJwcmV0ICJpbnB1dCBub2RlIGFw
-cGVhcnMiIGludG8gImRlZmF1bHQgaW5wdXQgbm9kZSBzdGF0ZSIuDQpUaGF0J3Mgd2hhdCB5b3Ug
-d2FudCBmb3IgYWNwaSBidXR0b24gZHJpdmVyIC0gd2Ugbm93IGRlZmF1bHRzIHRvICJtZXRob2Qi
-IG1vZGUuDQoNCldoYXQncyB5b3VyIG9waW5pb24/DQoNClRoYW5rcw0KTHYNCg==
+On 2017/6/15 0:37, Lorenzo Pieralisi wrote:
+> ACPI IORT is an ACPI addendum to describe the connection topology of
+> devices with IOMMUs and interrupt controllers on ARM64 ACPI systems.
+> 
+> Currently the ACPI IORT Kbuild symbol is selected whenever the Kbuild
+> symbol ARM_GIC_V3_ITS is enabled, which in turn is selected by ARM64
+> Kbuild defaults. This makes the logic behind ACPI_IORT selection a bit
+> twisted and not easy to follow. On ARM64 systems enabling ACPI the
+> kbuild symbol ACPI_IORT should always be selected in that it is a kernel
+> layer provided to the ARM64 arch code to parse and enable ACPI firmware
+> bindings.
+> 
+> Make the ACPI_IORT selection explicit in ARM64 Kbuild and remove the
+> selection from ARM_GIC_V3_ITS entry, making the ACPI_IORT selection
+> logic clearer to follow.
+> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>   arch/arm64/Kconfig      | 1 +
+>   drivers/irqchip/Kconfig | 1 -
+>   2 files changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index b2024db..2424fb4 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -3,6 +3,7 @@ config ARM64
+>   	select ACPI_CCA_REQUIRED if ACPI
+>   	select ACPI_GENERIC_GSI if ACPI
+>   	select ACPI_GTDT if ACPI
+> +	select ACPI_IORT if ACPI
+>   	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>   	select ACPI_MCFG if ACPI
+>   	select ACPI_SPCR_TABLE if ACPI
+> diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
+> index 478f8ac..4a57b8f 100644
+> --- a/drivers/irqchip/Kconfig
+> +++ b/drivers/irqchip/Kconfig
+> @@ -39,7 +39,6 @@ config ARM_GIC_V3_ITS
+>   	bool
+>   	depends on PCI
+>   	depends on PCI_MSI
+> -	select ACPI_IORT if ACPI
+
+Make sense to me, IORT also describe SMMU+IO topology. I
+give this patch a light test with CONFIG combination compile
+test, and see no issues,
+
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks
+Hanjun
+
+>   
+>   config ARM_NVIC
+>   	bool
+> 
