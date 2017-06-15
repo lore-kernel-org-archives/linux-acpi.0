@@ -1,103 +1,61 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 2/4] ACPI / EC: Add support to skip boot stage DSDT probe
-Date: Thu, 15 Jun 2017 09:41:41 +0800
-Message-ID: <40ce1fcc531f3bdf82a765e1ae69ff426ffcd61e.1497490457.git.lv.zheng@intel.com>
-References: <cover.1494927504.git.lv.zheng@intel.com> <cover.1497490457.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1497490457.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID
+ switch exported by ACPI
+Date: Thu, 15 Jun 2017 02:52:57 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CED0386@SHSMSX101.ccr.corp.intel.com>
+References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
+ <20170607074848.GE27006@gardel-login>
+ <20170613100617.GD29589@mail.corp.redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:61733 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752121AbdFOC43 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Jun 2017 22:56:29 -0400
+In-Reply-To: <20170613100617.GD29589@mail.corp.redhat.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lennart Poettering <mzxreary@0pointer.de>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Peter Hutterer <peter.hutterer@who-t.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 
-We prepared _INI/_STA methods for \_SB, \_SB.PCI0, \_SB.LID0 and \_SB.EC,
-_HID(PNP0C09)/_CRS/_GPE for \_SB.EC to poke Windows behavior with qemu, we
-got the following execution sequence:
- \_SB._INI
- \_SB.PCI0._STA
- \_SB.LID0._STA
- \_SB.EC._STA
- \_SB.PCI0._INI
- \_SB.LID0._INI
- \_SB.EC._INI
-There is no extra DSDT EC device enumeration process occurring before the
-main ACPI device enumeration process. That means acpi_ec_dsdt_probe() is
-not a Windows compliant approach, it's just a linux workaround.
-
-Tracking back, we can see a long time ago, Linux EC driver won't probe DSDT
-EC during boot. It was added by the following commit (see link #1 for bug
-report):
-  Commit: c5279dee26c0e8d7c4200993bfc4b540d2469598
-  Subject: ACPI: EC: Add some basic check for ECDT data
-This commit simply drivers Linux EC driver to a wrong direction.
-
-Why we shouldn't enumerate DSDT EC before the main ACPI device enumeration?
-The only way to know if the DSDT EC is valid is to evaluate its _STA
-control method, but it's not proper to evaluate this control method that
-early and out of the ACPI enumeration process because _STA may contain
-other devices' initialization code and such devices may not have been
-initialized before OSPM starts to enumerate them via the main ACPI device
-enumeration.
-
-But after we reverted back to the expected behavior, someone reported a
-regression (see link #2 for reference). On that platform, there is no ECDT,
-but the platform control methods access EC operation region earlier than
-Linux expects, causing some ACPI method execution errors. According to the
-regression rule, we just revert back to old behavior to still probe DSDT EC
-as boot EC.
-
-Now we've been reported 3rd functional breakage (link #3). In order to
-handle both issues (link #2 and link #3), we could just skip boot stage
-DSDT probe when ECDT exists so that a later quirk can always use correct
-ECDT GPE setting.
-
-Link: http://bugzilla.kernel.org/show_bug.cgi?id=11880 [#1]
-Link: http://bugzilla.kernel.org/show_bug.cgi?id=119261 [#2]
-Link: http://bugzilla.kernel.org/show_bug.cgi?id=195651 [#3]
-Tested-by: Daniel Drake <drake@endlessm.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index c1f480b..44b973e 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1667,12 +1667,34 @@ static const struct acpi_device_id ec_device_ids[] = {
- 	{"", 0},
- };
- 
-+/*
-+ * This function is not Windows compliant as Windows never enumerates the
-+ * namespace EC before the main ACPI device enumeration process. This
-+ * function is kept for historical reason and will be deprecated in the
-+ * future.
-+ *
-+ * It's added due to a non-root-caused bug fix:
-+ *  http://bugzilla.kernel.org/show_bug.cgi?id=11880
-+ * But removing it now unfortunately triggers user noticable regression:
-+ *  http://bugzilla.kernel.org/show_bug.cgi?id=119261
-+ */
- int __init acpi_ec_dsdt_probe(void)
- {
- 	acpi_status status;
- 	struct acpi_ec *ec;
- 	int ret;
- 
-+	/*
-+	 * If a platform has ECDT, there is no need to proceed as the
-+	 * following probe is not a part of the ACPI device enumeration,
-+	 * executing _STA is not safe, and thus this probe may risk of
-+	 * picking up an invalid EC device.
-+	 * So we should catch any possible chance to avoid applying this
-+	 * quirk.
-+	 */
-+	if (boot_ec)
-+		return -ENODEV;
-+
- 	ec = acpi_ec_alloc();
- 	if (!ec)
- 		return -ENOMEM;
--- 
-2.7.4
+SGksIEJlbmphbWluDQoNCj4gRnJvbTogQmVuamFtaW4gVGlzc29pcmVzIFttYWlsdG86YmVuamFt
+aW4udGlzc29pcmVzQHJlZGhhdC5jb21dDQo+IFN1YmplY3Q6IFJlOiBbc3lzdGVtZC1kZXZlbF0g
+W1dJUCBQQVRDSCAwLzRdIFJld29yayB0aGUgdW5yZWxpYWJsZSBMSUQgc3dpdGNoIGV4cG9ydGVk
+IGJ5IEFDUEkNCj4gDQo+IEhpLA0KPiANCj4gW1NvcnJ5IGZvciB0aGUgZGVsYXksIEkgaGF2ZSBi
+ZWVuIHNpZGV0cmFja2VkIGZyb20gdGhpc10NCj4gDQo+IE9uIEp1biAwNyAyMDE3IG9yIHRoZXJl
+YWJvdXRzLCBMZW5uYXJ0IFBvZXR0ZXJpbmcgd3JvdGU6DQo+ID4gT24gVGh1LCAwMS4wNi4xNyAy
+MDo0NiwgQmVuamFtaW4gVGlzc29pcmVzIChiZW5qYW1pbi50aXNzb2lyZXNAcmVkaGF0LmNvbSkg
+d3JvdGU6DQo+ID4NCj4gPiA+IEhpLA0KPiA+ID4NCj4gPiA+IFNlbmRpbmcgdGhpcyBhcyBhIFdJ
+UCBhcyBpdCBzdGlsbCBuZWVkIGEgZmV3IGNoYW5nZXMsIGJ1dCBpdCBtb3N0bHkgd29ya3MgYXMN
+Cj4gPiA+IGV4cGVjdGVkIChzdGlsbCBub3QgZnVsbHkgY29tcGxpYW50IHlldCkuDQo+ID4gPg0K
+PiA+ID4gU28gdGhpcyBpcyBiYXNlZCBvbiBMZW5uYXJ0J3MgY29tbWVudCBpbiBbMV06IGlmIHRo
+ZSBMSUQgc3RhdGUgaXMgbm90IHJlbGlhYmxlLA0KPiA+ID4gdGhlIGtlcm5lbCBzaG91bGQgbm90
+IGV4cG9ydCB0aGUgTElEIHN3aXRjaCBkZXZpY2UgYXMgbG9uZyBhcyB3ZSBhcmUgbm90IHN1cmUN
+Cj4gPiA+IGFib3V0IGl0cyBzdGF0ZS4NCj4gPg0KPiA+IEFoIG5pY2UhIEkgKG9idmlvdXNseSkg
+bGlrZSB0aGlzIGFwcHJvYWNoLg0KPiANCj4gSGVoLiBOb3cgSSBqdXN0IG5lZWQgdG8gY29udmlu
+Y2UgTHYgdGhhdCBpdCdzIHRoZSByaWdodCBhcHByb2FjaC4NCg0KSSBmZWVsIHdlIGRvbid0IGhh
+dmUgYmlnIGNvbmZsaWN0cy4NCkFuZCBJIGFscmVhZHkgdG9vayBwYXJ0IG9mIHlvdXIgaWRlYSBp
+bnRvIHRoaXMgcGF0Y2hzZXQ6DQpodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzk3
+NzExMjEvDQpodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzk3NzExMTkvDQpJIHRl
+c3RlZCBteSBzdXJmYWNlIHByb3Mgd2l0aCBVYnVudHUsIHRoZXkgYXJlIHdvcmtpbmcgYXMgZXhw
+ZWN0ZWQuDQoNCj4gPiA+IE5vdGUgdGhhdCBzeXN0ZW1kIGN1cnJlbnRseSBkb2Vzbid0IHN5bmMg
+dGhlIHN0YXRlIHdoZW4gdGhlIGlucHV0IG5vZGUganVzdA0KPiA+ID4gYXBwZWFycy4gVGhpcyBp
+cyBhIHN5c3RlbWQgYnVnLCBhbmQgaXQgc2hvdWxkIG5vdCBiZSBoYW5kbGVkIGJ5IHRoZSBrZXJu
+ZWwNCj4gPiA+IGNvbW11bml0eS4NCj4gPg0KPiA+IFVoIGlmIHRoaXMgaXMgYm9ya2VkLCB3ZSBz
+aG91bGQgaW5kZWVkIGZpeCB0aGlzIGluIHN5c3RlbWQuIElzIHRoZXJlDQo+ID4gYWxyZWFkeSBh
+IHN5c3RlbWQgZ2l0aHViIGJ1ZyBhYm91dCB0aGlzPyBJZiBub3QsIHBsZWFzZSBjcmVhdGUgb25l
+LA0KPiA+IGFuZCB3ZSdsbCBsb29rIGludG8gaXQhDQo+IA0KPiBJIGRvbid0IHRoaW5rIHRoZXJl
+IGlzLiBJIGhhdmVuJ3QgcmFpc2VkIGl0IHlldCBiZWNhdXNlIEkgYW0gbm90IHNvIHN1cmUNCj4g
+dGhpcyB3aWxsIG5vdCBicmVhayBhZ2FpbiB0aG9zZSB3b3J0aGxlc3MgdW5yZWxpYWJsZSBMSUQs
+IGFuZCBpZiB3ZSBwbGF5DQo+IHdoYWNrIGEgbW9sZSBiZXR3ZWVuIHRoZSBrZXJuZWwgYW5kIHVz
+ZXIgc3BhY2UsIHRoaW5ncyBhcmUgZ29pbmcgdG8gYmUNCj4gbmFzdHkuIFNvIEknZCByYXRoZXIg
+aGF2ZSB0aGlzIGZpeGVkIGluIHN5c3RlbWQgYWxvbmcgd2l0aCB0aGUNCj4gdW5yZWxpYWJsZSBM
+SUQgc3dpdGNoIGtub3dsZWRnZSwgc28gd2UgYXJlIHN1cmUgdGhhdCB0aGUga2VybmVsIGJlaGF2
+ZXMNCj4gdGhlIHdheSB3ZSBleHBlY3QgaXQgdG8gYmUuDQoNClRoaXMgaXMgbXkgZmVlbGluZzoN
+CldlIG5lZWRuJ3QgZ28gdGhhdCBmYXIuDQpXZSBjYW4gaW50ZXJwcmV0ICJpbnB1dCBub2RlIGFw
+cGVhcnMiIGludG8gImRlZmF1bHQgaW5wdXQgbm9kZSBzdGF0ZSIuDQpUaGF0J3Mgd2hhdCB5b3Ug
+d2FudCBmb3IgYWNwaSBidXR0b24gZHJpdmVyIC0gd2Ugbm93IGRlZmF1bHRzIHRvICJtZXRob2Qi
+IG1vZGUuDQoNCldoYXQncyB5b3VyIG9waW5pb24/DQoNClRoYW5rcw0KTHYNCg==
