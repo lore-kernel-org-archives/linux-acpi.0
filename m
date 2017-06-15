@@ -1,106 +1,129 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v3 2/2] acpi/iort: numa: Add numa node mapping for smmuv3
- devices
-Date: Thu, 15 Jun 2017 14:46:03 +0100
-Message-ID: <20170615134603.GA16292@red-moon>
-References: <1496897059-8272-1-git-send-email-ganapatrao.kulkarni@cavium.com>
- <1496897059-8272-3-git-send-email-ganapatrao.kulkarni@cavium.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 15/16] platform/x86: wmi-mof: New driver to expose embedded WMI MOF metadata
+Date: Thu, 15 Jun 2017 18:46:21 +0200
+Message-ID: <201706151846.22230@pali>
+References: <cover.1495862272.git.dvhart@infradead.org> <67cc75c9e0ef4a21a168ab3b4dd1e727@ausx13mpc124.AMER.DELL.COM> <201706092351.32996@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:45546 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750923AbdFONoo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 15 Jun 2017 09:44:44 -0400
-Content-Disposition: inline
-In-Reply-To: <1496897059-8272-3-git-send-email-ganapatrao.kulkarni@cavium.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart2786954.xfPGS941Hr";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201706092351.32996@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mario.Limonciello@dell.com
+Cc: luto@amacapital.net, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, andriy.shevchenko@linux.intel.com, luto@kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, lv.zheng@intel.com, rjw@rjwysocki.net
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will.Deacon@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, robin.murphy@arm.com, joro@8bytes.org, lenb@kernel.org, jnair@caviumnetworks.com, gpkulkarni@gmail.com
 
-Hi,
+--nextPart2786954.xfPGS941Hr
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 08, 2017 at 10:14:19AM +0530, Ganapatrao Kulkarni wrote:
-> Add code to parse proximity domain in SMMUv3 IORT table to
-> set numa node mapping for smmuv3 devices.
-> 
-> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-> ---
->  drivers/acpi/arm64/iort.c | 28 ++++++++++++++++++++++++++--
->  1 file changed, 26 insertions(+), 2 deletions(-)
+On Friday 09 June 2017 23:51:32 Pali Roh=C3=A1r wrote:
+> On Friday 09 June 2017 17:46:12 Mario.Limonciello@dell.com wrote:
+> > > -----Original Message-----
+> > > From: Pali Roh=C3=A1r [mailto:pali.rohar@gmail.com]
+> > > Sent: Wednesday, June 7, 2017 3:50 PM
+> > > To: Limonciello, Mario <Mario_Limonciello@Dell.com>
+> > > Cc: luto@amacapital.net; dvhart@infradead.org; platform-driver-
+> > > x86@vger.kernel.org; andriy.shevchenko@linux.intel.com;
+> > > luto@kernel.org; rjw@rjwysocki.net; linux-kernel@vger.kernel.org;
+> > > linux-acpi@vger.kernel.org Subject: Re: [PATCH 15/16]
+> > > platform/x86: wmi-mof: New driver to expose embedded WMI MOF
+> > > metadata
+> > >=20
+> > > On Wednesday 07 June 2017 22:23:08 Mario.Limonciello@dell.com
+> > > wrote:
+> > > > > -----Original Message-----
+> > > > > From: Pali Roh=C3=A1r [mailto:pali.rohar@gmail.com]
+> > > > > Sent: Wednesday, June 7, 2017 12:39 PM
+> > > > > To: Limonciello, Mario <Mario_Limonciello@Dell.com>
+> > > > > Cc: luto@amacapital.net; dvhart@infradead.org;
+> > > > > platform-driver- x86@vger.kernel.org;
+> > > > > andriy.shevchenko@linux.intel.com; luto@kernel.org;
+> > > > > rjw@rjwysocki.net;
+> > > > > linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
+> > > > > Subject: Re: [PATCH 15/16]
+> > > > > platform/x86: wmi-mof: New driver to expose embedded WMI MOF
+> > > > > metadata
+> > > > >=20
+> > > > > On Tuesday 06 June 2017 15:56:21 Pali Roh=C3=A1r wrote:
+> > > > > > On Tuesday 06 June 2017 13:46:16 Mario.Limonciello@dell.com
+> > > > > >=20
+> > > > > > wrote:
+> > > > > > > 2) On my system when you expand the arguments for "void
+> > > > > > > DoBFn" the source doesn't describe individual arguments
+> > > > > > > like you do. Again this might not matter to MOF parsing
+> > > > > > > tools but wanted to let you know in case it does.
+> > > > > >=20
+> > > > > > I know, this part is missing. Order of arguments are only
+> > > > > > in ID qualifier and not sorted + in/out de-duplicated.
+> > > > >=20
+> > > > > Implemented! Now arguments are correctly placed based on ID
+> > > > > qualifier.
+> > > >=20
+> > > > I think it's still off a little though.
+> > > >=20
+> > > > What I'm getting back now from bmf2mof is:
+> > > > 	void DoBFn([in, Description("Fn buf"), out] BDat Data);
+> > > >=20
+> > > > Whereas source puts Description as the last argument:
+> > > > 	void DoBFn([in, out, Description("Fn buf")] BDat Data);
+> > >=20
+> > > In BMOF from my Latitude E6440 there are specified two parameters
+> > > with index 0. One with qualifiers ("in", Description("Fn buf"))
+> > > and one with ("out", Description("Fn buf")). I think you have
+> > > similar/same data in BMOF.
+> > >=20
+> > > In my bmf2mof I just combined those two parameters into one (when
+> > > name, type and index matches) and concatenate also qualifiers
+> > > with removing duplicates.
+> > >=20
+> > > Do not know what is correct way, but I think qualifiers are just
+> > > unordered set. MS decompiler probably put "in" and "out"
+> > > qualifiers before any other for better readability.
+> >=20
+> > Have you tried to run it through mofcomp.exe and then decompile
+> > again with bmf2mof?  As long as it's coming out the same you're
+> > probably right.
+>=20
+> Yes, bmf2mof+mofcomp.exe+bmf2mof gives same output as just bmf2mof.
 
-I am happy to take this but I want to know what we shall do with
-patch 1 and related ACPICA changes first.
+I changed order for printing qualifiers in bmf2mof. "in" and "out" are=20
+now printed before all others. So you should see now same output.
 
-Thanks,
-Lorenzo
+> > > > > > > source:
+> > > > > > > 	void DoBFn([in, out, Description("Fn buf")] BDat Data);
+> > > > > > >=20
+> > > > > > > bmf2mof:
+> > > > > > > 	void doBFn([in, Description("Fn buf"), ID(0)] BDat
+> > > > > > > 	Data,
+> > > > > > > 	[out, Description("Fn buf"), ID(0)] BDat Data);
+> > > > >=20
+> > > > > --
+> > > > > Pali Roh=C3=A1r
+> > > > > pali.rohar@gmail.com
+> > >=20
+> > > --
+> > > Pali Roh=C3=A1r
+> > > pali.rohar@gmail.com
 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index bba2b59..e804386 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -882,6 +882,23 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
->  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
->  }
->  
-> +/*
-> + * set numa proximity domain for smmuv3 device
-> + */
-> +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
-> +		struct device *dev)
-> +{
-> +	struct acpi_iort_smmu_v3 *smmu;
-> +
-> +	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
-> +	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
-> +		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
-> +		pr_info("SMMUV3[%llx] Mapped to Proximity domain %d\n",
-> +			smmu->base_address,
-> +			smmu->pxm);
-> +	}
-> +}
-> +
->  static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
->  {
->  	struct acpi_iort_smmu *smmu;
-> @@ -951,20 +968,24 @@ struct iort_iommu_config {
->  	int (*iommu_count_resources)(struct acpi_iort_node *node);
->  	void (*iommu_init_resources)(struct resource *res,
->  				     struct acpi_iort_node *node);
-> +	void (*iommu_set_proximity)(struct acpi_iort_node *node,
-> +				     struct device *dev);
->  };
->  
->  static const struct iort_iommu_config iort_arm_smmu_v3_cfg __initconst = {
->  	.name = "arm-smmu-v3",
->  	.iommu_is_coherent = arm_smmu_v3_is_coherent,
->  	.iommu_count_resources = arm_smmu_v3_count_resources,
-> -	.iommu_init_resources = arm_smmu_v3_init_resources
-> +	.iommu_init_resources = arm_smmu_v3_init_resources,
-> +	.iommu_set_proximity = arm_smmu_v3_set_proximity
->  };
->  
->  static const struct iort_iommu_config iort_arm_smmu_cfg __initconst = {
->  	.name = "arm-smmu",
->  	.iommu_is_coherent = arm_smmu_is_coherent,
->  	.iommu_count_resources = arm_smmu_count_resources,
-> -	.iommu_init_resources = arm_smmu_init_resources
-> +	.iommu_init_resources = arm_smmu_init_resources,
-> +	.iommu_set_proximity = NULL
->  };
->  
->  static __init
-> @@ -1002,6 +1023,9 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
->  	if (!pdev)
->  		return -ENOMEM;
->  
-> +	if (ops->iommu_set_proximity)
-> +		ops->iommu_set_proximity(node, &pdev->dev);
-> +
->  	count = ops->iommu_count_resources(node);
->  
->  	r = kcalloc(count, sizeof(*r), GFP_KERNEL);
-> -- 
-> 1.8.1.4
-> 
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart2786954.xfPGS941Hr
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAllCud4ACgkQi/DJPQPkQ1K3OACfbZmoWi1JWWtiEVSR0q6sSKoX
+JZQAn3gpnoFagkyti8viZ+fahwWi54oz
+=dzFs
+-----END PGP SIGNATURE-----
+
+--nextPart2786954.xfPGS941Hr--
