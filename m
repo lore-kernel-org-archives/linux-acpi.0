@@ -1,126 +1,127 @@
-From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
-Subject: Re: [PATCH 2/2] acpi, gicv3-its, numa: Adding numa node mapping for
- gic-its units
-Date: Thu, 15 Jun 2017 16:25:15 +0530
-Message-ID: <CAFpQJXUG2fZT2jQu5_z1UCOOX6hCHe-pBE5CLkTXi7Fb+0b5ug@mail.gmail.com>
-References: <1496753787-27735-1-git-send-email-ganapatrao.kulkarni@cavium.com>
- <1496753787-27735-3-git-send-email-ganapatrao.kulkarni@cavium.com>
- <20170612105335.GA30594@red-moon> <CAFpQJXVFGnfMeHRGfsvxZAR_CQBLU6tgLsCuTrW8giQekgndvw@mail.gmail.com>
- <20170615103508.GA15815@red-moon> <889cbfe3-e381-2805-7925-11dca09aaa2a@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: [PATCH] ACPI / scan: Fix enumeration for special SPI and I2C devices
+Date: Thu, 15 Jun 2017 15:40:49 +0300
+Message-ID: <20170615124049.19787-1-jarkko.nikula@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f194.google.com ([74.125.82.194]:34557 "EHLO
-        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752345AbdFOKzQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jun 2017 06:55:16 -0400
-In-Reply-To: <889cbfe3-e381-2805-7925-11dca09aaa2a@arm.com>
+Received: from mga09.intel.com ([134.134.136.24]:14723 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751623AbdFOMkz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Jun 2017 08:40:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, linux-acpi@vger.kernel.org, devel@acpica.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Jayachandran C <jnair@caviumnetworks.com>, Hanjun Guo <hanjun.guo@linaro.org>
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-On Thu, Jun 15, 2017 at 4:13 PM, Marc Zyngier <marc.zyngier@arm.com> wrote:
-> On 15/06/17 11:35, Lorenzo Pieralisi wrote:
->> On Wed, Jun 14, 2017 at 03:23:17PM +0530, Ganapatrao Kulkarni wrote:
->>
->> [...]
->>
->>>>> +static int __init
->>>>> +acpi_parse_its_affinity(struct acpi_subtable_header *header,
->>>>> +                      const unsigned long end)
->>>>> +{
->>>>> +     struct acpi_srat_its_affinity *its_affinity;
->>>>> +
->>>>> +     its_affinity = (struct acpi_srat_its_affinity *)header;
->>>>> +     if (!its_affinity)
->>>>> +             return -EINVAL;
->>>>> +
->>>>> +     acpi_table_print_srat_entry(header);
->>
->> You can leave this info printing but see below.
+Commit f406270bf73d ("ACPI / scan: Set the visited flag for all
+enumerated devices") caused that two group of special SPI or I2C
+devices do not enumerate. SPI and I2C devices are expected to be
+enumerated by the SPI and I2C subsystems but change caused that
+acpi_bus_attach() marks those devices with acpi_device_set_enumerated().
 
-ok.
->>
->>>>> +
->>>>> +     /* let architecture-dependent part to do it */
->>>>> +     acpi_numa_its_affinity_init(its_affinity);
->>>>> +
->>>>> +     return 0;
->>>>> +}
->>>>> +
->>>>>  static int __initdata parsed_numa_memblks;
->>>>>
->>>>>  static int __init
->>>>> @@ -445,7 +473,7 @@ int __init acpi_numa_init(void)
->>>>>
->>>>>       /* SRAT: Static Resource Affinity Table */
->>>>>       if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
->>>>> -             struct acpi_subtable_proc srat_proc[3];
->>>>> +             struct acpi_subtable_proc srat_proc[4];
->>>>>
->>>>>               memset(srat_proc, 0, sizeof(srat_proc));
->>>>>               srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
->>>>> @@ -454,6 +482,8 @@ int __init acpi_numa_init(void)
->>>>>               srat_proc[1].handler = acpi_parse_x2apic_affinity;
->>>>>               srat_proc[2].id = ACPI_SRAT_TYPE_GICC_AFFINITY;
->>>>>               srat_proc[2].handler = acpi_parse_gicc_affinity;
->>>>> +             srat_proc[3].id = ACPI_SRAT_TYPE_GIC_ITS_AFFINITY;
->>>>> +             srat_proc[3].handler = acpi_parse_its_affinity;
->>>>>
->>>>>               acpi_table_parse_entries_array(ACPI_SIG_SRAT,
->>>>>                                       sizeof(struct acpi_table_srat),
->>>>> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
->>>>> index 45ea1933..84936da 100644
->>>>> --- a/drivers/irqchip/irq-gic-v3-its.c
->>>>> +++ b/drivers/irqchip/irq-gic-v3-its.c
->>>>> @@ -1861,7 +1861,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
->>>>>               goto dom_err;
->>>>>       }
->>>>>
->>>>> -     err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
->>>>> +     err = its_probe_one(&res, dom_handle,
->>>>> +                     acpi_numa_get_its_nid(its_entry->translation_id));
->>>>
->>>> If that's the only usage I wonder whether we really need all arm64
->>>> arch code/data, instead of parsing the SRAT in ITS code driver straight
->>>> away at probe, retrieve its node and be done with this.
->>>>
->>>> I understand you replicated what x86/GICC does with APIC code, I would
->>>> like to understand though if we see a reason why (or better, why we keep
->>>> the relevant stashed data in arch/arm64 instead of the ITS driver).
->>>
->>> it is been thought to do ITS sub table parse along with other SRAT
->>> tables.  and use the mapping later when ITS devices are
->>> initialised/probed.  IMO, it is more appropriate to keep all SRAT sub
->>> table parsing to same function/place rather than moving to driver.
->>
->> I do not follow. If it is just used in ITS driver code to set the ITS
->> affinity node what's the point of stashing data and adding callbacks
->> when you can simply parse the SRAT and be done with it ?
->>
->> Or you have something on top of these patches that require ITS node
->> information and the calls you added ? If so post the code please.
->>
->> Regardless, it's ITS specific information, ITS is managed through an
->> irqchip driver on ARM64 so even if you decided to stash the SRAT ITS
->> information it does not belong in arch/arm64 IMO, you can implement
->> acpi_numa_its_affinity_init() in the ITS driver but AFAICS for the time
->> being it would be just useless that's the point I am making.
->
-> Agreed. As long as there is only the ITS as a consumer of that
-> information, there is no need to pollute the rest of the kernel with it.
-> Once we have another consumer, we can look at making that code common.
-> In the meantime, keeping it in the ITS code is the right thing to do.
+First group of devices are matched using Device Tree compatible property
+with special _HID "PRP0001". Those devices have matched scan handler,
+acpi_scan_attach_handler() retuns 1 and acpi_bus_attach() marks them
+with acpi_device_set_enumerated().
 
-agreed, i will change it in next version.
+Second group of devices without valid _HID such as "LNXVIDEO" have
+device->pnp.type.platform_id set to zero and change again marks them
+with acpi_device_set_enumerated().
 
->
-> Thanks,
->
->         M.
-> --
-> Jazz is not dead. It just smells funny...
+Fix this by checking is the device SPI or I2C device and let the code go
+through the device_attach() and acpi_default_enumeration() path for all
+SPI and I2C devices.
 
-thanks
-Ganapat
+Fixes: f406270bf73d ("ACPI / scan: Set the visited flag for all enumerated devices")
+Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+---
+This should go to linux-stable v4.9+ but it doesn't apply due the commit
+f5beabfe6179 ("ACPI / scan: Apply default enumeration to devices with
+ACPI drivers"). Should both be queued or have another version from this
+for linux-stable?
+---
+ drivers/acpi/scan.c | 31 ++++++++++++++++++++-----------
+ 1 file changed, 20 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 3a10d7573477..38b9a319b0c4 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1745,20 +1745,27 @@ static int acpi_check_spi_i2c_slave(struct acpi_resource *ares, void *data)
+ 	return -1;
+ }
+ 
+-static void acpi_default_enumeration(struct acpi_device *device)
++static bool acpi_is_spi_i2c_slave(struct acpi_device *device)
+ {
+ 	struct list_head resource_list;
+ 	bool is_spi_i2c_slave = false;
+ 
+-	/*
+-	 * Do not enumerate SPI/I2C slaves as they will be enumerated by their
+-	 * respective parents.
+-	 */
+ 	INIT_LIST_HEAD(&resource_list);
+ 	acpi_dev_get_resources(device, &resource_list, acpi_check_spi_i2c_slave,
+ 			       &is_spi_i2c_slave);
+ 	acpi_dev_free_resource_list(&resource_list);
+-	if (!is_spi_i2c_slave) {
++
++	return is_spi_i2c_slave;
++}
++
++static void acpi_default_enumeration(struct acpi_device *device,
++				     bool spi_i2c_slave)
++{
++	/*
++	 * Do not enumerate SPI/I2C slaves as they will be enumerated by their
++	 * respective parents.
++	 */
++	if (!spi_i2c_slave) {
+ 		acpi_create_platform_device(device, NULL);
+ 		acpi_device_set_enumerated(device);
+ 	} else {
+@@ -1780,7 +1787,7 @@ static int acpi_generic_device_attach(struct acpi_device *adev,
+ 	 * below can be unconditional.
+ 	 */
+ 	if (adev->data.of_compatible)
+-		acpi_default_enumeration(adev);
++		acpi_default_enumeration(adev, acpi_is_spi_i2c_slave(adev));
+ 
+ 	return 1;
+ }
+@@ -1823,6 +1830,7 @@ static void acpi_bus_attach(struct acpi_device *device)
+ {
+ 	struct acpi_device *child;
+ 	acpi_handle ejd;
++	bool spi_i2c_slave;
+ 	int ret;
+ 
+ 	if (ACPI_SUCCESS(acpi_bus_get_ejd(device->handle, &ejd)))
+@@ -1853,8 +1861,9 @@ static void acpi_bus_attach(struct acpi_device *device)
+ 	if (ret < 0)
+ 		return;
+ 
++	spi_i2c_slave = acpi_is_spi_i2c_slave(device);
+ 	device->flags.match_driver = true;
+-	if (ret > 0) {
++	if (ret > 0 && !spi_i2c_slave) {
+ 		acpi_device_set_enumerated(device);
+ 		goto ok;
+ 	}
+@@ -1863,10 +1872,10 @@ static void acpi_bus_attach(struct acpi_device *device)
+ 	if (ret < 0)
+ 		return;
+ 
+-	if (device->pnp.type.platform_id)
+-		acpi_default_enumeration(device);
+-	else
++	if (!device->pnp.type.platform_id && !spi_i2c_slave)
+ 		acpi_device_set_enumerated(device);
++	else
++		acpi_default_enumeration(device, spi_i2c_slave);
+ 
+  ok:
+ 	list_for_each_entry(child, &device->children, node)
+-- 
+2.11.0
+
