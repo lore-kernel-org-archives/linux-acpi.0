@@ -1,94 +1,63 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID
- switch exported by ACPI
-Date: Wed, 14 Jun 2017 23:50:17 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CED024F@SHSMSX101.ccr.corp.intel.com>
-References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
- <20170607074848.GE27006@gardel-login>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fixes for v4.12-rc6
+Date: Thu, 15 Jun 2017 02:36:04 +0200
+Message-ID: <CAJZ5v0i81Egcp8=-bDCc8-9b0JcRV=k8zfmcsRfpz-bsDPxVvQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:21413 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750735AbdFNXuZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Jun 2017 19:50:25 -0400
-In-Reply-To: <20170607074848.GE27006@gardel-login>
-Content-Language: en-US
+Received: from mail-io0-f195.google.com ([209.85.223.195]:33241 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750768AbdFOAgG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jun 2017 20:36:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lennart Poettering <mzxreary@0pointer.de>, Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Peter Hutterer <peter.hutterer@who-t.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi,
+Hi Linus,
 
-> From: Lennart Poettering [mailto:mzxreary@0pointer.de]
-> Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID switch exported by ACPI
-> 
-> On Thu, 01.06.17 20:46, Benjamin Tissoires (benjamin.tissoires@redhat.com) wrote:
-> 
-> > Hi,
-> >
-> > Sending this as a WIP as it still need a few changes, but it mostly works as
-> > expected (still not fully compliant yet).
-> >
-> > So this is based on Lennart's comment in [1]: if the LID state is not reliable,
-> > the kernel should not export the LID switch device as long as we are not sure
-> > about its state.
-> 
-> Ah nice! I (obviously) like this approach.
-> 
-> > Note that systemd currently doesn't sync the state when the input node just
-> > appears. This is a systemd bug, and it should not be handled by the kernel
-> > community.
-> 
-> Uh if this is borked, we should indeed fix this in systemd. Is there
-> already a systemd github bug about this? If not, please create one,
-> and we'll look into it!
+Please pull from the tag
 
-This is not my opinion.
-My opinion is as follows.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.12-rc6
 
-We confirmed Ubuntu shipped systemd (version 229) with "reliable|unreliable" platforms.
-We can see 2 problems:
-1. LID_OPEN cannot cancel an on-going suspend sequence
-   After boot, if user space receives "LID_CLOSE" key event,
-   systemd may not suspend the platform right after seeing the event,
-   it may suspend the platform several seconds later.
-   This is not a problem.
+with top-most commit 9522933454f4c4bd5bedf3d71c538708b7c5de5b
 
-   The problem is, if "LID_OPEN" is sent within this deferring period,
-   Systemd doesn't cancel previously scheduled "suspend".
-   And the platform may be suspended with lid opened.
-   Then users need to close and re-open the lid to wake the system up.
-   Causing another "LID_CLOSE/LID_OPEN" sequence delivered to the user space after resume.
-   Users then can see a suspend/resume loop.
-   This problem can even be seen on "reliable" platforms.
-   It can be easily triggered by user actions.
-2. Need explicit LID_OPEN to stay woken-up
-   After boot, systemd seems to be wait for a significant "LID_OPEN".
-   If it cannot see a "LID_OPEN" within several seconds,
-   it suspends the platform.
-   So if a platform doesn't send "LID_OPEN" or fails to send "LID_OPEN" within this period.
-   Users then can see a suspend/resume loop.
+ Merge branch 'acpica-fixes'
 
-However we've tested with github cloned systemd (version 233).
-The 2 problems seem to have been fixed.
-It works well with current ACPI button driver,
-but you need to boot linux kernel with button.lid_init_state=ignore.
-I don't know the story of the improvement.
-Systemd developers should know that better than me.
+on top of commit 32c1431eea4881a6b17bd7c639315010aeefa452
 
-So IMO, systemd needn't do any further improvement.
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Linux 4.12-rc5
 
-But the kernel button driver implements several "lid_init_state" modes.
-It appears "method" mode is determined to be the default mode.
-Thus we need to do:
-1. improve button driver "method" mode to make systemd 233 work well with it.
-2. determine if we need to improve button driver to make it work well with systemd 229.
+to receive ACPI fixes for v4.12-rc6.
 
-Thanks and best regards
-Lv 
+These revert an ACPICA commit from the 4.11 cycle that causes
+problems to happen on some systems and add a protection against
+possible kernel crashes due to table reference counter imbalance.
 
+Specifics:
+
+ - Revert a 4.11 ACPICA change that made assumptions which are not
+   satisfied on some systems and caused the enumeration of resources
+   to fail on them (Rafael Wysocki).
+
+ - Add a mechanism to prevent tables from being unmapped prematurely
+   due to reference counter overflows (Lv Zheng).
+
+Thanks!
+
+
+---------------
+
+Lv Zheng (1):
+      ACPICA: Tables: Mechanism to handle late stage acpi_get_table() imbalance
+
+Rafael J. Wysocki (1):
+      Revert "ACPICA: Disassembler: Enhance resource descriptor detection"
+
+---------------
+
+ drivers/acpi/acpica/tbutils.c | 34 +++++++++++++++++++++++++---------
+ drivers/acpi/acpica/utresrc.c |  9 ---------
+ include/acpi/actbl.h          | 14 ++++++++++++++
+ 3 files changed, 39 insertions(+), 18 deletions(-)
