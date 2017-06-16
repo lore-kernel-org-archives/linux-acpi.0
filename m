@@ -1,162 +1,35 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: [PATCH v4] ACPI / APEI: Boot Error Record Table processing was needlessly complicated
-Date: Thu, 15 Jun 2017 15:41:21 -0700
-Message-ID: <20170615224121.23949-1-tony.luck@intel.com>
+From: =?UTF-8?q?Micha=C5=82=20K=C4=99pie=C5=84?= <kernel@kempniu.pl>
+Subject: [PATCH 0/7] fujitsu-laptop: ACPI-related cleanups
+Date: Fri, 16 Jun 2017 06:40:51 +0200
+Message-ID: <20170616044058.30443-1-kernel@kempniu.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:28527 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750830AbdFOWlb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 15 Jun 2017 18:41:31 -0400
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36109 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750792AbdFPElL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jun 2017 00:41:11 -0400
+Received: by mail-wm0-f67.google.com with SMTP id d17so2754800wme.3
+        for <linux-acpi@vger.kernel.org>; Thu, 15 Jun 2017 21:41:10 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Borislav Petkov <bp@suse.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jonathan Zhang <zjzhang@codeaurora.org>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org
+To: Jonathan Woithe <jwoithe@just42.net>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>
+Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Tony Luck <tony.luck@intel.com>
+In preparation for splitting fujitsu-laptop into two separate modules, I
+prepared two more cleanup series to minimize the amount of code being
+moved around.  This first series contains all patches that touch ACPI in
+some way, which is why I am CCing linux-acpi as per Rafael's previous
+advice.
 
-Quoting version 6.1 of the ACPI specification. Section 18.3.1 "Boot
-Error Source" says:
+This patch series was based on platform-driver-x86/for-next and tested
+on a Lifebook S7020.
 
-  The Boot Error Region is a range of addressable memory OSPM can access
-  during initialization to determine if an unhandled error condition
-  occurred. System firmware must report this memory range as firmware
-  reserved. The format of the Boot Error Region follow that of an Error
-  Status Block, this is defined in Section 18.3.2.7. The format of the
-  error status block is described by Table 18-342.
+ drivers/platform/x86/Kconfig          |  10 --
+ drivers/platform/x86/fujitsu-laptop.c | 187 +++++++++-------------------------
+ 2 files changed, 48 insertions(+), 149 deletions(-)
 
-This clarifies some points that were obfuscated in earlier versions.
-E.g. there is no longer a separate table to describe the format of the
-"Boot Error Region" (which was identical to the "Error Status Block").
-Also saying "follow that of *an* Error Status Block" makes it clear that
-there is just one block (which can still contain multiple "Generic Error
-Data Entry structures").
-
-The loop inside bert_print_all() is unnecessary (but probably harmless
-as the "while (remain > sizeof(struct acpi_bert_region))" loop should
-terminate after we skipped over the first entry.
-
-We can drop the "bert_print_all()" function and just move the four
-relevant lines inline in "bert_init()".
-
-Also this driver clears the "block_status" status field of the error
-status block in ACPI memory. I can see no justification for doing this
-in the ACPI spec.  It is also highly kernel-ego-centric.  There are
-user mode BERT harvesting tools that dig into /sys/firmware/acpi/tables/BERT
-which might like to see this summary value.
-
-Drop the:
-	estatus->block_status = 0;
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org
-Signed-off-by: Tony Luck <tony.luck@intel.com>
----
- drivers/acpi/apei/bert.c | 59 ++++++++++--------------------------------------
- 1 file changed, 12 insertions(+), 47 deletions(-)
-
-v4: don't clear block_status
-
-previous version was
-	Reviewed-by: Borislav Petkov <bp@suse.de>
-	Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-
-
-diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
-index 12771fcf0417..3b9b296dc84e 100644
---- a/drivers/acpi/apei/bert.c
-+++ b/drivers/acpi/apei/bert.c
-@@ -34,50 +34,6 @@
- 
- static int bert_disable;
- 
--static void __init bert_print_all(struct acpi_bert_region *region,
--				  unsigned int region_len)
--{
--	struct acpi_hest_generic_status *estatus =
--		(struct acpi_hest_generic_status *)region;
--	int remain = region_len;
--	u32 estatus_len;
--
--	if (!estatus->block_status)
--		return;
--
--	while (remain > sizeof(struct acpi_bert_region)) {
--		if (cper_estatus_check(estatus)) {
--			pr_err(FW_BUG "Invalid error record.\n");
--			return;
--		}
--
--		estatus_len = cper_estatus_len(estatus);
--		if (remain < estatus_len) {
--			pr_err(FW_BUG "Truncated status block (length: %u).\n",
--			       estatus_len);
--			return;
--		}
--
--		pr_info_once("Error records from previous boot:\n");
--
--		cper_estatus_print(KERN_INFO HW_ERR, estatus);
--
--		/*
--		 * Because the boot error source is "one-time polled" type,
--		 * clear Block Status of current Generic Error Status Block,
--		 * once it's printed.
--		 */
--		estatus->block_status = 0;
--
--		estatus = (void *)estatus + estatus_len;
--		/* No more error records. */
--		if (!estatus->block_status)
--			return;
--
--		remain -= estatus_len;
--	}
--}
--
- static int __init setup_bert_disable(char *str)
- {
- 	bert_disable = 1;
-@@ -89,7 +45,7 @@ __setup("bert_disable", setup_bert_disable);
- static int __init bert_check_table(struct acpi_table_bert *bert_tab)
- {
- 	if (bert_tab->header.length < sizeof(struct acpi_table_bert) ||
--	    bert_tab->region_length < sizeof(struct acpi_bert_region))
-+	    bert_tab->region_length < sizeof(struct acpi_hest_generic_status))
- 		return -EINVAL;
- 
- 	return 0;
-@@ -98,7 +54,7 @@ static int __init bert_check_table(struct acpi_table_bert *bert_tab)
- static int __init bert_init(void)
- {
- 	struct apei_resources bert_resources;
--	struct acpi_bert_region *boot_error_region;
-+	struct acpi_hest_generic_status *boot_error_region;
- 	struct acpi_table_bert *bert_tab;
- 	unsigned int region_len;
- 	acpi_status status;
-@@ -138,7 +94,16 @@ static int __init bert_init(void)
- 		goto out_fini;
- 	boot_error_region = ioremap_cache(bert_tab->address, region_len);
- 	if (boot_error_region) {
--		bert_print_all(boot_error_region, region_len);
-+		if (boot_error_region->block_status) {
-+			rc = cper_estatus_check(boot_error_region);
-+			if (rc) {
-+				pr_err(FW_BUG "Invalid error record.\n");
-+				iounmap(boot_error_region);
-+				return rc;
-+			}
-+			pr_info("Error records from previous boot:\n");
-+			cper_estatus_print(KERN_INFO HW_ERR, boot_error_region);
-+		}
- 		iounmap(boot_error_region);
- 	} else {
- 		rc = -ENOMEM;
 -- 
-2.11.0
+2.13.1
 
