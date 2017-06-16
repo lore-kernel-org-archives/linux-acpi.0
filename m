@@ -1,7 +1,7 @@
 From: =?UTF-8?q?Micha=C5=82=20K=C4=99pie=C5=84?= <kernel@kempniu.pl>
-Subject: [PATCH 3/7] platform/x86: fujitsu-laptop: use strcpy to set ACPI device names and classes
-Date: Fri, 16 Jun 2017 06:40:54 +0200
-Message-ID: <20170616044058.30443-4-kernel@kempniu.pl>
+Subject: [PATCH 6/7] platform/x86: fujitsu-laptop: do not evaluate ACPI _INI methods
+Date: Fri, 16 Jun 2017 06:40:57 +0200
+Message-ID: <20170616044058.30443-7-kernel@kempniu.pl>
 References: <20170616044058.30443-1-kernel@kempniu.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -13,40 +13,57 @@ To: Jonathan Woithe <jwoithe@just42.net>, Darren Hart <dvhart@infradead.org>, An
 Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-No formatting is needed when setting ACPI device name and class, so
-switch to using strcpy() for this purpose.
+acpi_ns_initialize_devices(), which is called during system-wide ACPI
+initialization, already detects and calls all _INI methods belonging to
+objects present in ACPI tables.  There is no need to call these methods
+again every time the module is loaded because they only initialize
+status flags and hotkey-related variables; status flags are effectively
+constants, hotkey-related variables may be assigned non-zero values
+before acpi_fujitsu_laptop_add() is called, but that does not really
+matter as we drain the scancodes queued in the firmware's ring buffer
+before doing anything else.
+
+Remove sections of code which invoke and check evaluation status of the
+_INI methods belonging to the ACPI devices handled by the driver.
 
 Signed-off-by: Michał Kępień <kernel@kempniu.pl>
 ---
- drivers/platform/x86/fujitsu-laptop.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/platform/x86/fujitsu-laptop.c | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
 diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-index c64d5305ff37..06d04500dac0 100644
+index b9f3ede4d567..0861be36305d 100644
 --- a/drivers/platform/x86/fujitsu-laptop.c
 +++ b/drivers/platform/x86/fujitsu-laptop.c
-@@ -411,8 +411,8 @@ static int acpi_fujitsu_bl_add(struct acpi_device *device)
- 		return -ENOMEM;
+@@ -421,14 +421,6 @@ static int acpi_fujitsu_bl_add(struct acpi_device *device)
+ 	pr_info("ACPI: %s [%s]\n",
+ 		acpi_device_name(device), acpi_device_bid(device));
  
- 	fujitsu_bl = priv;
--	sprintf(acpi_device_name(device), "%s", ACPI_FUJITSU_BL_DEVICE_NAME);
--	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
-+	strcpy(acpi_device_name(device), ACPI_FUJITSU_BL_DEVICE_NAME);
-+	strcpy(acpi_device_class(device), ACPI_FUJITSU_CLASS);
- 	device->driver_data = priv;
+-	if (acpi_has_method(device->handle, METHOD_NAME__INI)) {
+-		vdbg_printk(FUJLAPTOP_DBG_INFO, "Invoking _INI\n");
+-		if (ACPI_FAILURE
+-		    (acpi_evaluate_object
+-		     (device->handle, METHOD_NAME__INI, NULL, NULL)))
+-			pr_err("_INI Method failed\n");
+-	}
+-
+ 	if (get_max_brightness(device) <= 0)
+ 		priv->max_brightness = FUJITSU_LCD_N_LEVELS;
+ 	get_lcd_level(device);
+@@ -801,14 +793,6 @@ static int acpi_fujitsu_laptop_add(struct acpi_device *device)
+ 	pr_info("ACPI: %s [%s]\n",
+ 		acpi_device_name(device), acpi_device_bid(device));
  
- 	error = acpi_fujitsu_bl_input_setup(device);
-@@ -800,9 +800,8 @@ static int acpi_fujitsu_laptop_add(struct acpi_device *device)
- 	WARN_ONCE(fext, "More than one FUJ02E3 ACPI device was found.  Driver may not work as intended.");
- 	fext = device;
- 
--	sprintf(acpi_device_name(device), "%s",
--		ACPI_FUJITSU_LAPTOP_DEVICE_NAME);
--	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
-+	strcpy(acpi_device_name(device), ACPI_FUJITSU_LAPTOP_DEVICE_NAME);
-+	strcpy(acpi_device_class(device), ACPI_FUJITSU_CLASS);
- 	device->driver_data = priv;
- 
- 	error = acpi_fujitsu_laptop_input_setup(device);
+-	if (acpi_has_method(device->handle, METHOD_NAME__INI)) {
+-		vdbg_printk(FUJLAPTOP_DBG_INFO, "Invoking _INI\n");
+-		if (ACPI_FAILURE
+-		    (acpi_evaluate_object
+-		     (device->handle, METHOD_NAME__INI, NULL, NULL)))
+-			pr_err("_INI Method failed\n");
+-	}
+-
+ 	i = 0;
+ 	while (call_fext_func(device, FUNC_BUTTONS, 0x1, 0x0, 0x0) != 0
+ 		&& (i++) < MAX_HOTKEY_RINGBUFFER_SIZE)
 -- 
 2.13.1
