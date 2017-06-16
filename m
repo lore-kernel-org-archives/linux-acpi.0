@@ -1,39 +1,51 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
- before scanning
-Date: Fri, 16 Jun 2017 14:22:51 +0200
-Message-ID: <CAJZ5v0g+qVui6RU=Hy3c_3qAAWngqaAu6B3JxGOpqF06kitbzA@mail.gmail.com>
-References: <20170606085553.GA20085@red-moon> <20170612155700.GA31930@red-moon>
- <20170613084831.GP3187@lahna.fi.intel.com> <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
- <20170613151013.GT3187@lahna.fi.intel.com> <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
- <20170613200339.GX3187@lahna.fi.intel.com> <EE11001F9E5DDD47B7634E2F8A612F2E40AB537A@FRAEML521-MBX.china.huawei.com>
- <20170616083313.GY3187@lahna.fi.intel.com> <CAJZ5v0gWGL=M1+T2DxFfwAi=gCbBBnLFVyp4u+1EVem-mcSNQg@mail.gmail.com>
- <20170616120048.GC629@lahna.fi.intel.com>
+From: Lennart Poettering <mzxreary@0pointer.de>
+Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID switch
+ exported by ACPI
+Date: Fri, 16 Jun 2017 18:32:55 +0200
+Message-ID: <20170616163255.GA3461@gardel-login>
+References: <1AE640813FDE7649BE1B193DEA596E886CED0386@SHSMSX101.ccr.corp.intel.com>
+ <20170615064715.GA6195@jelly>
+ <1AE640813FDE7649BE1B193DEA596E886CED047B@SHSMSX101.ccr.corp.intel.com>
+ <20170615075755.GA10001@jelly>
+ <1AE640813FDE7649BE1B193DEA596E886CED0A03@SHSMSX101.ccr.corp.intel.com>
+ <20170616072322.GL5085@mail.corp.redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CED0AC1@SHSMSX101.ccr.corp.intel.com>
+ <20170616080950.GM5085@mail.corp.redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CED0C5E@SHSMSX101.ccr.corp.intel.com>
+ <33C872C7-EFB2-4CA0-8CAD-8B6E8916180C@hadess.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f44.google.com ([209.85.214.44]:36799 "EHLO
-        mail-it0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753619AbdFPMWy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jun 2017 08:22:54 -0400
-In-Reply-To: <20170616120048.GC629@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <33C872C7-EFB2-4CA0-8CAD-8B6E8916180C@hadess.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bastien Nocera <hadess@hadess.net>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Brown, Len" <len.brown@intel.com>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lv Zheng <zetalog@gmail.com>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kerne>
 
-On Fri, Jun 16, 2017 at 2:00 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Fri, Jun 16, 2017 at 01:24:32PM +0200, Rafael J. Wysocki wrote:
->> > In fact it may be that it is not sufficient in this case because the
->> > ACPI core might enumerate child devices before the LPC driver even gets
->> > a chance to probe so you would need to add also scan handler to the
->> > child devices and mark them already enumerated or something like that.
->>
->> Or extend the special I2C/SPI handling to them.
->
-> Sure but those have I2c/SpiSerialBus() resources which we can use to
-> identify them but for the ipmi thing there is nothing else than _HID so
-> we would need to keep a list of such devices in ACPI core.
+On Fri, 16.06.17 11:06, Bastien Nocera (hadess@hadess.net) wrote:
 
-OK, so adding a scan handler for that would be the way to go IMO.
+> > Let's consider this case with delay:
+> > After resume, gnome-setting-daemon queries SW_LID and got "close".
+> > Then it lights up the wrong monitors.
+> > Then I believe "open" will be delivered to it several seconds later.
+> > Should gnome-setting-daemon light-up correct monitors this time?
+> > So it just looks like user programs behave with a delay accordingly because of the "platform turnaround" delay.
+> 
+> If you implement it in such a way that GNOME settings daemon behaves weirdly, you'll get my revert request in the mail. Do. Not. Ever. Lie.
+
+Just to mention this:
+
+the reason logind applies the timeout and doesn't immediately react to
+lid changes is to be friendly to users, if they quickly close and
+reopen the lid. It's not supposed to be a work-around around broken
+input drivers.
+
+I am very sure that input drivers shouldn't lie to userspace. If you
+don't know the state of the switch, then you don#t know it, and should
+clarify that to userspace somehow.
+
+Lennart
+
+-- 
+Lennart Poettering, Red Hat
