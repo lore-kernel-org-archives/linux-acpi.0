@@ -1,40 +1,39 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
  before scanning
-Date: Fri, 16 Jun 2017 15:00:48 +0300
-Message-ID: <20170616120048.GC629@lahna.fi.intel.com>
-References: <20170606085553.GA20085@red-moon>
- <20170612155700.GA31930@red-moon>
- <20170613084831.GP3187@lahna.fi.intel.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
- <20170613151013.GT3187@lahna.fi.intel.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
- <20170613200339.GX3187@lahna.fi.intel.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E40AB537A@FRAEML521-MBX.china.huawei.com>
- <20170616083313.GY3187@lahna.fi.intel.com>
- <CAJZ5v0gWGL=M1+T2DxFfwAi=gCbBBnLFVyp4u+1EVem-mcSNQg@mail.gmail.com>
+Date: Fri, 16 Jun 2017 14:22:51 +0200
+Message-ID: <CAJZ5v0g+qVui6RU=Hy3c_3qAAWngqaAu6B3JxGOpqF06kitbzA@mail.gmail.com>
+References: <20170606085553.GA20085@red-moon> <20170612155700.GA31930@red-moon>
+ <20170613084831.GP3187@lahna.fi.intel.com> <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
+ <20170613151013.GT3187@lahna.fi.intel.com> <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
+ <20170613200339.GX3187@lahna.fi.intel.com> <EE11001F9E5DDD47B7634E2F8A612F2E40AB537A@FRAEML521-MBX.china.huawei.com>
+ <20170616083313.GY3187@lahna.fi.intel.com> <CAJZ5v0gWGL=M1+T2DxFfwAi=gCbBBnLFVyp4u+1EVem-mcSNQg@mail.gmail.com>
+ <20170616120048.GC629@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:5731 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752619AbdFPMFW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 16 Jun 2017 08:05:22 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gWGL=M1+T2DxFfwAi=gCbBBnLFVyp4u+1EVem-mcSNQg@mail.gmail.com>
+Received: from mail-it0-f44.google.com ([209.85.214.44]:36799 "EHLO
+        mail-it0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753619AbdFPMWy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jun 2017 08:22:54 -0400
+In-Reply-To: <20170616120048.GC629@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>"linux-acpi@vger.kernel.org" <lin>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kerne>
 
-On Fri, Jun 16, 2017 at 01:24:32PM +0200, Rafael J. Wysocki wrote:
-> > In fact it may be that it is not sufficient in this case because the
-> > ACPI core might enumerate child devices before the LPC driver even gets
-> > a chance to probe so you would need to add also scan handler to the
-> > child devices and mark them already enumerated or something like that.
-> 
-> Or extend the special I2C/SPI handling to them.
+On Fri, Jun 16, 2017 at 2:00 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> On Fri, Jun 16, 2017 at 01:24:32PM +0200, Rafael J. Wysocki wrote:
+>> > In fact it may be that it is not sufficient in this case because the
+>> > ACPI core might enumerate child devices before the LPC driver even gets
+>> > a chance to probe so you would need to add also scan handler to the
+>> > child devices and mark them already enumerated or something like that.
+>>
+>> Or extend the special I2C/SPI handling to them.
+>
+> Sure but those have I2c/SpiSerialBus() resources which we can use to
+> identify them but for the ipmi thing there is nothing else than _HID so
+> we would need to keep a list of such devices in ACPI core.
 
-Sure but those have I2c/SpiSerialBus() resources which we can use to
-identify them but for the ipmi thing there is nothing else than _HID so
-we would need to keep a list of such devices in ACPI core.
+OK, so adding a scan handler for that would be the way to go IMO.
