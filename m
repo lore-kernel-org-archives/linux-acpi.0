@@ -1,158 +1,111 @@
-From: Bastien Nocera <hadess@hadess.net>
-Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID switch exported by ACPI
-Date: Fri, 16 Jun 2017 11:06:28 +0200
-Message-ID: <33C872C7-EFB2-4CA0-8CAD-8B6E8916180C@hadess.net>
-References: <20170601184632.2980-1-benjamin.tissoires@redhat.com> <20170607074848.GE27006@gardel-login> <20170613100617.GD29589@mail.corp.redhat.com> <1AE640813FDE7649BE1B193DEA596E886CED0386@SHSMSX101.ccr.corp.intel.com> <20170615064715.GA6195@jelly> <1AE640813FDE7649BE1B193DEA596E886CED047B@SHSMSX101.ccr.corp.intel.com> <20170615075755.GA10001@jelly> <1AE640813FDE7649BE1B193DEA596E886CED0A03@SHSMSX101.ccr.corp.intel.com> <20170616072322.GL5085@mail.corp.redhat.com> <1AE640813FDE7649BE1B193DEA596E886CED0AC1@SHSMSX101.ccr.corp.intel.com> <20170616080950.GM5085@mail.corp.redhat.com> <1AE640813FDE7649BE1B193DEA596E886CED0C5E@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:55797 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753228AbdFPJGk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jun 2017 05:06:40 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CED0C5E@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+	erratum 161010801
+Date: Fri, 16 Jun 2017 09:43:52 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA83836B212@FRAEML521-MBX.china.huawei.com>
+References: <20170613114829.188036-1-shameerali.kolothum.thodi@huawei.com>
+	<20170613114829.188036-3-shameerali.kolothum.thodi@huawei.com>
+	<20170613131317.GB2868@red-moon>
+	<5FC3163CFD30C246ABAA99954A238FA838368BC6@FRAEML521-MBX.china.huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA838368BC6-WFPaWmAhWqtUuCJht5byYAK1hpo4iccwjNknBlVQO8k@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: "marc.zyngier-5wv7dgnIgG8@public.gmane.org" <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Peter Hutterer <peter.hutterer@who-t.net>, Lennart Poettering <mzxreary@0pointer.de>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 
+Hi Lorenzo,
 
+> -----Original Message-----
+> From: linuxarm-bounces-hv44wF8Li93QT0dZR+AlfA@public.gmane.org [mailto:linuxarm-
+> bounces-hv44wF8Li93QT0dZR+AlfA@public.gmane.org] On Behalf Of Shameerali Kolothum Thodi
+> Sent: Tuesday, June 13, 2017 3:53 PM
+> To: Lorenzo Pieralisi
+> Cc: marc.zyngier-5wv7dgnIgG8@public.gmane.org; will.deacon-5wv7dgnIgG8@public.gmane.org; Linuxarm; linux-
+> acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org;
+> hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; sudeep.holla-5wv7dgnIgG8@public.gmane.org; robin.murphy-5wv7dgnIgG8@public.gmane.org;
+> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+> Subject: RE: [PATCH 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+> erratum 161010801
 
-> On 16 Jun 2017, at 10:53, Zheng, Lv <lv.zheng@intel.com> wrote:
+[...]
+ > > > ---
+> > >  drivers/iommu/arm-smmu-v3.c | 27 ++++++++++++++++++++++-----
+> > >  1 file changed, 22 insertions(+), 5 deletions(-)
+> > >
+> > > diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-
+> > v3.c
+> > > index abe4b88..2636c85 100644
+> > > --- a/drivers/iommu/arm-smmu-v3.c
+> > > +++ b/drivers/iommu/arm-smmu-v3.c
+> > > @@ -597,6 +597,7 @@ struct arm_smmu_device {
+> > >  	u32				features;
+> > >
+> > >  #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
+> > > +#define ARM_SMMU_OPT_RESV_HW_MSI	(1 << 1)
+> > >  	u32				options;
+> > >
+> > >  	struct arm_smmu_cmdq		cmdq;
+> > > @@ -1904,14 +1905,29 @@ static void
+> arm_smmu_get_resv_regions(struct
+> > device *dev,
+> > >  				      struct list_head *head)
+> > >  {
+> > >  	struct iommu_resv_region *region;
+> > > +	struct arm_smmu_device *smmu;
+> > > +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
+> > >  	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+> > >
+> > > -	region = iommu_alloc_resv_region(MSI_IOVA_BASE,
+> > MSI_IOVA_LENGTH,
+> > > -					 prot, IOMMU_RESV_SW_MSI);
+> > > -	if (!region)
+> > > -		return;
+> > > +	smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
+> > >
+> > > -	list_add_tail(&region->list, head);
+> > > +	if (smmu && (smmu->options & ARM_SMMU_OPT_RESV_HW_MSI)
+> > &&
+> > > +		      dev_is_pci(dev)) {
+> > > +		int ret;
+> > > +
+> > > +		ret = iort_iommu_its_get_resv_regions(dev, head);
+> >
+> > This should be made fwnode dependent, it makes precious little sense to
+> call
+> > IORT to reserve regions on a DT based platforms (I know the
+> > ARM_SMMU_OPT_RESV_HW_MSI option is only selected in ACPI (?) but
+> > comment applies regardless - have you prototyped a DT version too ?).
 > 
-> Hi,
-> 
->> From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
->> Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID switch exported by ACPI
->> 
->>> On Jun 16 2017 or thereabouts, Zheng, Lv wrote:
->>> Hi, Benjamin
->>> 
->>> Let me just say something one more time.
->>> 
->>>> From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
->> 
->> [snip]
->>>>>>> 
->>>>>>> We can see:
->>>>>>> "logind" has already implemented a timeout, and will not respond lid state
->>>>>>> unless it can be stable within this timeout period.
->>>>>>> I'm not an expert of logind, maybe this is because of "HoldOffTimeoutSec"?
->>>>>>> 
->>>>>>> I feel "removing the input node for a period where its state is not trustful"
->>>>>>> is technically identical to this mechanism.
->>>>>> 
->>>>>> but you'd be making kernel policy based on one userspace implementation.
->>>>>> e.g. libinput doesn't have a timeout period, it assumes the state is
->>>>>> correct when an input node is present.
->>>>> 
->>>>> Do you see practical issues?
->>>> 
->>>> Yes, libinput can't rely on the LID switch information to disable
->>>> touchpads/touchscreens that are potentially sending false positive.
->>> 
->>> "potential" doesn't mean "practical", right?
->> 
->> I was using potential to say that some actual devices are sending
->> rightful states, while others are not (we already named them a lot in
->> those countless threads). So potential here is from a user space
->> perspective where you are not sure if the state is reliable or not
->> (given we currently don't have this information about reliability).
->> 
->>> After applying my last version.
->>> There are no false-positives IMO.
->>> There are only delays for the reliable key events.
->>>               ^^^^^^
->>> While the "delay" is very common in computing world.
->> 
->> No, if there is a delay, there is a false positive, because the initial
->> state is wrong with respect to the device physical state.
->> 
->>> 
->>>>> After resume, SW_LID state could remain unreliable "close" for a while.
->>>> 
->>>> This is not an option. It is not part of the protocol, having an
->>>> unreliable state.
->>>> 
->>>>> But that's just a kind of delay happens in all computing programs.
->>>>> I suppose all power managing programs have already handled that.
->>>>> I confirmed no breakage for systemd 233.
->>>>> For systemd 229, it cannot handle it well due to bugs.
->>>>> But my latest patch series has worked the bug around.
->>>>> So I don't see any breakage related to post-resume incorrect state period.
->>>>> Do you see problems that my tests haven't covered?
->>>> 
->>>> The problems are that you are not following the protocol. And if systemd
->>>> 233 works around it, that's good, but systemd is not the only listener
->>>> of the LID switch input node, and you are still breaking those by
->>>> refusing to follow the specification of the evdev protocol.
->>> 
->>> As you are talking about protocol, let me just ask once.
->>> 
->>> In computing world,
->>> 1. delay is very common
->>>   There are bus turnaround, network turnaround, ...
->>>   Even measurement itself has delay described by Shannon sampling.
->>>   Should the delay be a part of the protocol?
->> 
->> Please, you are either trolling or just kidding. If there are delays in
->> the "computing world", these has to be handled by the kernel, and not
->> exported to the user space if the kernel protocol says that the state is
->> reliable.
->> 
->>> 2. programs are acting according to rules (we call state machines)
->>>   States are only determined after measurement (like "quantum states")
->>>   I have Schroedinger's cat in my mind.
->>>   Events are determined as they always occur after measurement to trigger "quantum jumps".
->>>   So for EV_SW protocol,
->>>   Should programs rely on the reliable "quantum jumps",
->>>   Or should programs rely on the unreliable "quantum states"?
->> 
->> No comments, this won't get us anywhere.
->> 
->>> 
->>> I think most UI programs care no about state stored in the input node,
->>> they only receive events raised from the input node.
->> 
->> Bullshit. When you launch such a program, you need to query the state
->> because you won't receive the event that happened way before the launch.
->> 
->>> Why should the kernel export a fade-in/fade-out input node to the UI programs and ask them to change?
->>> 
->>> The only program that cares about the state stored in the input node is libinput.
->>> So why should every user program be changed to make libinput easier?
->> 
->> No, all program that listen to LID switches input nodes care about the
->> state. We already told you that, you just don't listen:
->> 
->> - systemd cares about the state as it does polling on the input node in
->>  case it misses an event
->> - libinput cares about the state as previously mentioned
->> - gnome-setting-daemons cares about the state given it decides whether
->>  or not lighting up the monitors depending on the state. And if you
->>  relaunch the daemon, it'll query the state to decide what is the best
->>  arrangement for the screens
-> 
-> Let's consider this case with delay:
-> After resume, gnome-setting-daemon queries SW_LID and got "close".
-> Then it lights up the wrong monitors.
-> Then I believe "open" will be delivered to it several seconds later.
-> Should gnome-setting-daemon light-up correct monitors this time?
-> So it just looks like user programs behave with a delay accordingly because of the "platform turnaround" delay.
+> Ok. I will add a check here. 
 
-If you implement it in such a way that GNOME settings daemon behaves weirdly, you'll get my revert request in the mail. Do. Not. Ever. Lie.
+This is what I have in mind. Please take a look and let me know. I will send out
+a v2 of this series soon.
+....
+if (smmu && (smmu->options & ARM_SMMU_OPT_RESV_HW_MSI) &&
+			dev_is_pci(dev)) {
+	int ret = -EINVAL;
 
-> 
->> - KDE should do the same (as it is not a daemon that can catch any
->>  events)
-> 
-> Cheers,
-> Lv
-> ¢éì¹»
-®&Þ~º&¶¬–+-±éÝ¶¥Šw®žË›±Êâmébžìbž›­Š{ayº
-Ê‡Ú™ë,j­¢f£¢·hš‹àz¹
-®w¥¢¸
-¢·¦j:+v‰¨ŠwèjØm¶Ÿÿ¾«‘êçzZ+ƒùšŽŠÝ¢j"ú!¶i
+	if (!is_of_node(smmu->dev->fwnode))
+		ret = iort_iommu_its_get_resv_regions(dev, head);
 
+	if (ret) {
+		dev_warn(dev, "HW MSI region resv failed: %d\n", ret);
+		return;
+	}
+} else {
+---
+Many thanks,
+Shameer
