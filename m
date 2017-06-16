@@ -1,172 +1,126 @@
-From: =?UTF-8?q?Micha=C5=82=20K=C4=99pie=C5=84?= <kernel@kempniu.pl>
-Subject: [PATCH 1/7] platform/x86: fujitsu-laptop: do not use kfifo for storing hotkey scancodes
-Date: Fri, 16 Jun 2017 06:40:52 +0200
-Message-ID: <20170616044058.30443-2-kernel@kempniu.pl>
-References: <20170616044058.30443-1-kernel@kempniu.pl>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID
+ switch exported by ACPI
+Date: Fri, 16 Jun 2017 05:37:21 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CED0A03@SHSMSX101.ccr.corp.intel.com>
+References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
+ <20170607074848.GE27006@gardel-login>
+ <20170613100617.GD29589@mail.corp.redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CED0386@SHSMSX101.ccr.corp.intel.com>
+ <20170615064715.GA6195@jelly>
+ <1AE640813FDE7649BE1B193DEA596E886CED047B@SHSMSX101.ccr.corp.intel.com>
+ <20170615075755.GA10001@jelly>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20170616044058.30443-1-kernel@kempniu.pl>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Jonathan Woithe <jwoithe@just42.net>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>
-Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:52977 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750891AbdFPFh1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 16 Jun 2017 01:37:27 -0400
+In-Reply-To: <20170615075755.GA10001@jelly>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Hutterer <peter.hutterer@who-t.net>
+Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lennart Poettering <mzxreary@0pointer.de>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 
-All ACPI device notify callbacks are invoked using acpi_os_execute(),
-which causes the supplied callback to be queued to a static workqueue
-which always executes on CPU 0.  This means that there is no possibility
-for any ACPI device notify callback to be concurrently executed on
-multiple CPUs, which in the case of fujitsu-laptop means that using a
-locked kfifo for handling hotkeys is redundant: as hotkey scancodes are
-only pushed and popped from within acpi_fujitsu_laptop_notify(), no risk
-of concurrent pushing and popping exists.
+Hi,
 
-Instead of a kfifo, use a fixed-size integer table for storing pushed
-scancodes and an associated variable holding the number of scancodes
-currently stored in that table.  Change debug messages so that they no
-longer contain the term "ringbuffer".
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Peter
+> Hutterer
+> Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID switch exported by ACPI
+> 
+> On Thu, Jun 15, 2017 at 07:33:58AM +0000, Zheng, Lv wrote:
+> > Hi, Peter
+> >
+> > > From: Peter Hutterer [mailto:peter.hutterer@who-t.net]
+> > > Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID switch exported by ACPI
+> > >
+> > > On Thu, Jun 15, 2017 at 02:52:57AM +0000, Zheng, Lv wrote:
+> > > > Hi, Benjamin
+> > > >
+> > > > > From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
+> > > > > Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID switch exported by ACPI
+> > > > >
+> > > > > Hi,
+> > > > >
+> > > > > [Sorry for the delay, I have been sidetracked from this]
+> > > > >
+> > > > > On Jun 07 2017 or thereabouts, Lennart Poettering wrote:
+> > > > > > On Thu, 01.06.17 20:46, Benjamin Tissoires (benjamin.tissoires@redhat.com) wrote:
+> > > > > >
+> > > > > > > Hi,
+> > > > > > >
+> > > > > > > Sending this as a WIP as it still need a few changes, but it mostly works as
+> > > > > > > expected (still not fully compliant yet).
+> > > > > > >
+> > > > > > > So this is based on Lennart's comment in [1]: if the LID state is not reliable,
+> > > > > > > the kernel should not export the LID switch device as long as we are not sure
+> > > > > > > about its state.
+> > > > > >
+> > > > > > Ah nice! I (obviously) like this approach.
+> > > > >
+> > > > > Heh. Now I just need to convince Lv that it's the right approach.
+> > > >
+> > > > I feel we don't have big conflicts.
+> > > > And I already took part of your idea into this patchset:
+> > > > https://patchwork.kernel.org/patch/9771121/
+> > > > https://patchwork.kernel.org/patch/9771119/
+> > > > I tested my surface pros with Ubuntu, they are working as expected.
+> > > >
+> > > > > > > Note that systemd currently doesn't sync the state when the input node just
+> > > > > > > appears. This is a systemd bug, and it should not be handled by the kernel
+> > > > > > > community.
+> > > > > >
+> > > > > > Uh if this is borked, we should indeed fix this in systemd. Is there
+> > > > > > already a systemd github bug about this? If not, please create one,
+> > > > > > and we'll look into it!
+> > > > >
+> > > > > I don't think there is. I haven't raised it yet because I am not so sure
+> > > > > this will not break again those worthless unreliable LID, and if we play
+> > > > > whack a mole between the kernel and user space, things are going to be
+> > > > > nasty. So I'd rather have this fixed in systemd along with the
+> > > > > unreliable LID switch knowledge, so we are sure that the kernel behaves
+> > > > > the way we expect it to be.
+> > > >
+> > > > This is my feeling:
+> > > > We needn't go that far.
+> > > > We can interpret "input node appears" into "default input node state".
+> > >
+> > > Sorry, can you clarify this bit please? I'm not sure what you mean here.
+> > > Note that there's an unknown amount of time between "device node appearing
+> > > in the system" and when a userspace process actually opens it and looks at
+> > > its state. By then, the node may have changed state again.
+> >
+> > We can see:
+> > "logind" has already implemented a timeout, and will not respond lid state
+> > unless it can be stable within this timeout period.
+> > I'm not an expert of logind, maybe this is because of "HoldOffTimeoutSec"?
+> >
+> > I feel "removing the input node for a period where its state is not trustful"
+> > is technically identical to this mechanism.
+> 
+> but you'd be making kernel policy based on one userspace implementation.
+> e.g. libinput doesn't have a timeout period, it assumes the state is
+> correct when an input node is present.
 
-In order to simplify implementation, hotkey input device behavior is
-slightly changed (from FIFO to LIFO).  The order of release events
-generated by the input device should not matter from end user
-perspective as upon releasing any hotkey the firmware only produces a
-single event which means "all hotkeys were released".
+Do you see practical issues?
+If not, should we avoid over-engineering at this moment?
 
-Signed-off-by: Michał Kępień <kernel@kempniu.pl>
----
- drivers/platform/x86/fujitsu-laptop.c | 54 +++++++++--------------------------
- 1 file changed, 14 insertions(+), 40 deletions(-)
+After resume, SW_LID state could remain unreliable "close" for a while.
+But that's just a kind of delay happens in all computing programs.
+I suppose all power managing programs have already handled that.
+I confirmed no breakage for systemd 233.
+For systemd 229, it cannot handle it well due to bugs.
+But my latest patch series has worked the bug around.
+So I don't see any breakage related to post-resume incorrect state period.
+Do you see problems that my tests haven't covered?
 
-diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-index 1c6fdd952c75..54cb7ae541d4 100644
---- a/drivers/platform/x86/fujitsu-laptop.c
-+++ b/drivers/platform/x86/fujitsu-laptop.c
-@@ -58,7 +58,6 @@
- #include <linux/fb.h>
- #include <linux/input.h>
- #include <linux/input/sparse-keymap.h>
--#include <linux/kfifo.h>
- #include <linux/leds.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
-@@ -110,7 +109,6 @@
- #define KEY5_CODE	0x420
- 
- #define MAX_HOTKEY_RINGBUFFER_SIZE 100
--#define RINGBUFFERSIZE 40
- 
- /* Debugging */
- #define FUJLAPTOP_DBG_ERROR	  0x0001
-@@ -146,8 +144,8 @@ struct fujitsu_laptop {
- 	struct input_dev *input;
- 	char phys[32];
- 	struct platform_device *pf_device;
--	struct kfifo fifo;
--	spinlock_t fifo_lock;
-+	int scancode_buf[40];
-+	int scancode_count;
- 	int flags_supported;
- 	int flags_state;
- };
-@@ -813,23 +811,14 @@ static int acpi_fujitsu_laptop_add(struct acpi_device *device)
- 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
- 	device->driver_data = priv;
- 
--	/* kfifo */
--	spin_lock_init(&priv->fifo_lock);
--	error = kfifo_alloc(&priv->fifo, RINGBUFFERSIZE * sizeof(int),
--			    GFP_KERNEL);
--	if (error) {
--		pr_err("kfifo_alloc failed\n");
--		goto err_stop;
--	}
--
- 	error = acpi_fujitsu_laptop_input_setup(device);
- 	if (error)
--		goto err_free_fifo;
-+		return error;
- 
- 	error = acpi_bus_update_power(device->handle, &state);
- 	if (error) {
- 		pr_err("Error reading power state\n");
--		goto err_free_fifo;
-+		return error;
- 	}
- 
- 	pr_info("ACPI: %s [%s] (%s)\n",
-@@ -877,62 +866,47 @@ static int acpi_fujitsu_laptop_add(struct acpi_device *device)
- 
- 	error = acpi_fujitsu_laptop_leds_register(device);
- 	if (error)
--		goto err_free_fifo;
-+		return error;
- 
- 	error = fujitsu_laptop_platform_add(device);
- 	if (error)
--		goto err_free_fifo;
-+		return error;
- 
- 	return 0;
--
--err_free_fifo:
--	kfifo_free(&priv->fifo);
--err_stop:
--	return error;
- }
- 
- static int acpi_fujitsu_laptop_remove(struct acpi_device *device)
- {
--	struct fujitsu_laptop *priv = acpi_driver_data(device);
--
- 	fujitsu_laptop_platform_remove(device);
- 
--	kfifo_free(&priv->fifo);
--
- 	return 0;
- }
- 
- static void acpi_fujitsu_laptop_press(struct acpi_device *device, int scancode)
- {
- 	struct fujitsu_laptop *priv = acpi_driver_data(device);
--	int status;
- 
--	status = kfifo_in_locked(&priv->fifo, (unsigned char *)&scancode,
--				 sizeof(scancode), &priv->fifo_lock);
--	if (status != sizeof(scancode)) {
-+	if (priv->scancode_count == ARRAY_SIZE(priv->scancode_buf)) {
- 		vdbg_printk(FUJLAPTOP_DBG_WARN,
- 			    "Could not push scancode [0x%x]\n", scancode);
- 		return;
- 	}
-+	priv->scancode_buf[priv->scancode_count++] = scancode;
- 	sparse_keymap_report_event(priv->input, scancode, 1, false);
- 	vdbg_printk(FUJLAPTOP_DBG_TRACE,
--		    "Push scancode into ringbuffer [0x%x]\n", scancode);
-+		    "Push scancode into buffer [0x%x]\n", scancode);
- }
- 
- static void acpi_fujitsu_laptop_release(struct acpi_device *device)
- {
- 	struct fujitsu_laptop *priv = acpi_driver_data(device);
--	int scancode, status;
--
--	while (true) {
--		status = kfifo_out_locked(&priv->fifo,
--					  (unsigned char *)&scancode,
--					  sizeof(scancode), &priv->fifo_lock);
--		if (status != sizeof(scancode))
--			return;
-+	int scancode;
-+
-+	while (priv->scancode_count > 0) {
-+		scancode = priv->scancode_buf[--priv->scancode_count];
- 		sparse_keymap_report_event(priv->input, scancode, 0, false);
- 		vdbg_printk(FUJLAPTOP_DBG_TRACE,
--			    "Pop scancode from ringbuffer [0x%x]\n", scancode);
-+			    "Pop scancode from buffer [0x%x]\n", scancode);
- 	}
- }
- 
--- 
-2.13.1
+So I wonder if you mean:
+After boot, button driver should create input node right before sending first input report.
+Is this exactly what you want me to improve?
+If so, please also let me know if you have seen real issues related to this?
+
+Cheers,
+Lv
