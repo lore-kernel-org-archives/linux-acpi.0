@@ -1,131 +1,110 @@
-From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Subject: Re: [WIP PATCH 0/4] Rework the unreliable LID
- switch exported by ACPI
-Date: Fri, 16 Jun 2017 10:09:50 +0200
-Message-ID: <20170616080950.GM5085@mail.corp.redhat.com>
-References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
- <20170607074848.GE27006@gardel-login>
- <20170613100617.GD29589@mail.corp.redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CED0386@SHSMSX101.ccr.corp.intel.com>
- <20170615064715.GA6195@jelly>
- <1AE640813FDE7649BE1B193DEA596E886CED047B@SHSMSX101.ccr.corp.intel.com>
- <20170615075755.GA10001@jelly>
- <1AE640813FDE7649BE1B193DEA596E886CED0A03@SHSMSX101.ccr.corp.intel.com>
- <20170616072322.GL5085@mail.corp.redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CED0AC1@SHSMSX101.ccr.corp.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Fri, 16 Jun 2017 11:33:13 +0300
+Message-ID: <20170616083313.GY3187@lahna.fi.intel.com>
+References: <20170530132408.GA2556@red-moon>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40A7B677@FRAEML521-MBX.china.huawei.com>
+ <20170606085553.GA20085@red-moon>
+ <20170612155700.GA31930@red-moon>
+ <20170613084831.GP3187@lahna.fi.intel.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
+ <20170613151013.GT3187@lahna.fi.intel.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
+ <20170613200339.GX3187@lahna.fi.intel.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40AB537A@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <systemd-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CED0AC1@SHSMSX101.ccr.corp.intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/systemd-devel>,
- <mailto:systemd-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/systemd-devel>
-List-Post: <mailto:systemd-devel@lists.freedesktop.org>
-List-Help: <mailto:systemd-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/systemd-devel>,
- <mailto:systemd-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: systemd-devel-bounces@lists.freedesktop.org
-Sender: "systemd-devel" <systemd-devel-bounces@lists.freedesktop.org>
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki,
- Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lv Zheng <zetalog@gmail.com>, Lennart Poettering <mzxreary@0pointer.de>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E40AB537A@FRAEML521-MBX.china.huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gSnVuIDE2IDIwMTcgb3IgdGhlcmVhYm91dHMsIFpoZW5nLCBMdiB3cm90ZToKPiBIaSwgQmVu
-amFtaW4KPiAKPiBMZXQgbWUganVzdCBzYXkgc29tZXRoaW5nIG9uZSBtb3JlIHRpbWUuCj4gCj4g
-PiBGcm9tOiBCZW5qYW1pbiBUaXNzb2lyZXMgW21haWx0bzpiZW5qYW1pbi50aXNzb2lyZXNAcmVk
-aGF0LmNvbV0KCltzbmlwXQo+ID4gPiA+ID4KPiA+ID4gPiA+IFdlIGNhbiBzZWU6Cj4gPiA+ID4g
-PiAibG9naW5kIiBoYXMgYWxyZWFkeSBpbXBsZW1lbnRlZCBhIHRpbWVvdXQsIGFuZCB3aWxsIG5v
-dCByZXNwb25kIGxpZCBzdGF0ZQo+ID4gPiA+ID4gdW5sZXNzIGl0IGNhbiBiZSBzdGFibGUgd2l0
-aGluIHRoaXMgdGltZW91dCBwZXJpb2QuCj4gPiA+ID4gPiBJJ20gbm90IGFuIGV4cGVydCBvZiBs
-b2dpbmQsIG1heWJlIHRoaXMgaXMgYmVjYXVzZSBvZiAiSG9sZE9mZlRpbWVvdXRTZWMiPwo+ID4g
-PiA+ID4KPiA+ID4gPiA+IEkgZmVlbCAicmVtb3ZpbmcgdGhlIGlucHV0IG5vZGUgZm9yIGEgcGVy
-aW9kIHdoZXJlIGl0cyBzdGF0ZSBpcyBub3QgdHJ1c3RmdWwiCj4gPiA+ID4gPiBpcyB0ZWNobmlj
-YWxseSBpZGVudGljYWwgdG8gdGhpcyBtZWNoYW5pc20uCj4gPiA+ID4KPiA+ID4gPiBidXQgeW91
-J2QgYmUgbWFraW5nIGtlcm5lbCBwb2xpY3kgYmFzZWQgb24gb25lIHVzZXJzcGFjZSBpbXBsZW1l
-bnRhdGlvbi4KPiA+ID4gPiBlLmcuIGxpYmlucHV0IGRvZXNuJ3QgaGF2ZSBhIHRpbWVvdXQgcGVy
-aW9kLCBpdCBhc3N1bWVzIHRoZSBzdGF0ZSBpcwo+ID4gPiA+IGNvcnJlY3Qgd2hlbiBhbiBpbnB1
-dCBub2RlIGlzIHByZXNlbnQuCj4gPiA+Cj4gPiA+IERvIHlvdSBzZWUgcHJhY3RpY2FsIGlzc3Vl
-cz8KPiA+IAo+ID4gWWVzLCBsaWJpbnB1dCBjYW4ndCByZWx5IG9uIHRoZSBMSUQgc3dpdGNoIGlu
-Zm9ybWF0aW9uIHRvIGRpc2FibGUKPiA+IHRvdWNocGFkcy90b3VjaHNjcmVlbnMgdGhhdCBhcmUg
-cG90ZW50aWFsbHkgc2VuZGluZyBmYWxzZSBwb3NpdGl2ZS4KPiAKPiAicG90ZW50aWFsIiBkb2Vz
-bid0IG1lYW4gInByYWN0aWNhbCIsIHJpZ2h0PwoKSSB3YXMgdXNpbmcgcG90ZW50aWFsIHRvIHNh
-eSB0aGF0IHNvbWUgYWN0dWFsIGRldmljZXMgYXJlIHNlbmRpbmcKcmlnaHRmdWwgc3RhdGVzLCB3
-aGlsZSBvdGhlcnMgYXJlIG5vdCAod2UgYWxyZWFkeSBuYW1lZCB0aGVtIGEgbG90IGluCnRob3Nl
-IGNvdW50bGVzcyB0aHJlYWRzKS4gU28gcG90ZW50aWFsIGhlcmUgaXMgZnJvbSBhIHVzZXIgc3Bh
-Y2UKcGVyc3BlY3RpdmUgd2hlcmUgeW91IGFyZSBub3Qgc3VyZSBpZiB0aGUgc3RhdGUgaXMgcmVs
-aWFibGUgb3Igbm90CihnaXZlbiB3ZSBjdXJyZW50bHkgZG9uJ3QgaGF2ZSB0aGlzIGluZm9ybWF0
-aW9uIGFib3V0IHJlbGlhYmlsaXR5KS4KCj4gQWZ0ZXIgYXBwbHlpbmcgbXkgbGFzdCB2ZXJzaW9u
-Lgo+IFRoZXJlIGFyZSBubyBmYWxzZS1wb3NpdGl2ZXMgSU1PLgo+IFRoZXJlIGFyZSBvbmx5IGRl
-bGF5cyBmb3IgdGhlIHJlbGlhYmxlIGtleSBldmVudHMuCj4gICAgICAgICAgICAgICAgXl5eXl5e
-Cj4gV2hpbGUgdGhlICJkZWxheSIgaXMgdmVyeSBjb21tb24gaW4gY29tcHV0aW5nIHdvcmxkLgoK
-Tm8sIGlmIHRoZXJlIGlzIGEgZGVsYXksIHRoZXJlIGlzIGEgZmFsc2UgcG9zaXRpdmUsIGJlY2F1
-c2UgdGhlIGluaXRpYWwKc3RhdGUgaXMgd3Jvbmcgd2l0aCByZXNwZWN0IHRvIHRoZSBkZXZpY2Ug
-cGh5c2ljYWwgc3RhdGUuCgo+IAo+ID4gPiBBZnRlciByZXN1bWUsIFNXX0xJRCBzdGF0ZSBjb3Vs
-ZCByZW1haW4gdW5yZWxpYWJsZSAiY2xvc2UiIGZvciBhIHdoaWxlLgo+ID4gCj4gPiBUaGlzIGlz
-IG5vdCBhbiBvcHRpb24uIEl0IGlzIG5vdCBwYXJ0IG9mIHRoZSBwcm90b2NvbCwgaGF2aW5nIGFu
-Cj4gPiB1bnJlbGlhYmxlIHN0YXRlLgo+ID4gCj4gPiA+IEJ1dCB0aGF0J3MganVzdCBhIGtpbmQg
-b2YgZGVsYXkgaGFwcGVucyBpbiBhbGwgY29tcHV0aW5nIHByb2dyYW1zLgo+ID4gPiBJIHN1cHBv
-c2UgYWxsIHBvd2VyIG1hbmFnaW5nIHByb2dyYW1zIGhhdmUgYWxyZWFkeSBoYW5kbGVkIHRoYXQu
-Cj4gPiA+IEkgY29uZmlybWVkIG5vIGJyZWFrYWdlIGZvciBzeXN0ZW1kIDIzMy4KPiA+ID4gRm9y
-IHN5c3RlbWQgMjI5LCBpdCBjYW5ub3QgaGFuZGxlIGl0IHdlbGwgZHVlIHRvIGJ1Z3MuCj4gPiA+
-IEJ1dCBteSBsYXRlc3QgcGF0Y2ggc2VyaWVzIGhhcyB3b3JrZWQgdGhlIGJ1ZyBhcm91bmQuCj4g
-PiA+IFNvIEkgZG9uJ3Qgc2VlIGFueSBicmVha2FnZSByZWxhdGVkIHRvIHBvc3QtcmVzdW1lIGlu
-Y29ycmVjdCBzdGF0ZSBwZXJpb2QuCj4gPiA+IERvIHlvdSBzZWUgcHJvYmxlbXMgdGhhdCBteSB0
-ZXN0cyBoYXZlbid0IGNvdmVyZWQ/Cj4gPiAKPiA+IFRoZSBwcm9ibGVtcyBhcmUgdGhhdCB5b3Ug
-YXJlIG5vdCBmb2xsb3dpbmcgdGhlIHByb3RvY29sLiBBbmQgaWYgc3lzdGVtZAo+ID4gMjMzIHdv
-cmtzIGFyb3VuZCBpdCwgdGhhdCdzIGdvb2QsIGJ1dCBzeXN0ZW1kIGlzIG5vdCB0aGUgb25seSBs
-aXN0ZW5lcgo+ID4gb2YgdGhlIExJRCBzd2l0Y2ggaW5wdXQgbm9kZSwgYW5kIHlvdSBhcmUgc3Rp
-bGwgYnJlYWtpbmcgdGhvc2UgYnkKPiA+IHJlZnVzaW5nIHRvIGZvbGxvdyB0aGUgc3BlY2lmaWNh
-dGlvbiBvZiB0aGUgZXZkZXYgcHJvdG9jb2wuCj4gCj4gQXMgeW91IGFyZSB0YWxraW5nIGFib3V0
-IHByb3RvY29sLCBsZXQgbWUganVzdCBhc2sgb25jZS4KPiAKPiBJbiBjb21wdXRpbmcgd29ybGQs
-Cj4gMS4gZGVsYXkgaXMgdmVyeSBjb21tb24KPiAgICBUaGVyZSBhcmUgYnVzIHR1cm5hcm91bmQs
-IG5ldHdvcmsgdHVybmFyb3VuZCwgLi4uCj4gICAgRXZlbiBtZWFzdXJlbWVudCBpdHNlbGYgaGFz
-IGRlbGF5IGRlc2NyaWJlZCBieSBTaGFubm9uIHNhbXBsaW5nLgo+ICAgIFNob3VsZCB0aGUgZGVs
-YXkgYmUgYSBwYXJ0IG9mIHRoZSBwcm90b2NvbD8KClBsZWFzZSwgeW91IGFyZSBlaXRoZXIgdHJv
-bGxpbmcgb3IganVzdCBraWRkaW5nLiBJZiB0aGVyZSBhcmUgZGVsYXlzIGluCnRoZSAiY29tcHV0
-aW5nIHdvcmxkIiwgdGhlc2UgaGFzIHRvIGJlIGhhbmRsZWQgYnkgdGhlIGtlcm5lbCwgYW5kIG5v
-dApleHBvcnRlZCB0byB0aGUgdXNlciBzcGFjZSBpZiB0aGUga2VybmVsIHByb3RvY29sIHNheXMg
-dGhhdCB0aGUgc3RhdGUgaXMKcmVsaWFibGUuCgo+IDIuIHByb2dyYW1zIGFyZSBhY3RpbmcgYWNj
-b3JkaW5nIHRvIHJ1bGVzICh3ZSBjYWxsIHN0YXRlIG1hY2hpbmVzKQo+ICAgIFN0YXRlcyBhcmUg
-b25seSBkZXRlcm1pbmVkIGFmdGVyIG1lYXN1cmVtZW50IChsaWtlICJxdWFudHVtIHN0YXRlcyIp
-Cj4gICAgSSBoYXZlIFNjaHJvZWRpbmdlcidzIGNhdCBpbiBteSBtaW5kLgo+ICAgIEV2ZW50cyBh
-cmUgZGV0ZXJtaW5lZCBhcyB0aGV5IGFsd2F5cyBvY2N1ciBhZnRlciBtZWFzdXJlbWVudCB0byB0
-cmlnZ2VyICJxdWFudHVtIGp1bXBzIi4KPiAgICBTbyBmb3IgRVZfU1cgcHJvdG9jb2wsCj4gICAg
-U2hvdWxkIHByb2dyYW1zIHJlbHkgb24gdGhlIHJlbGlhYmxlICJxdWFudHVtIGp1bXBzIiwKPiAg
-ICBPciBzaG91bGQgcHJvZ3JhbXMgcmVseSBvbiB0aGUgdW5yZWxpYWJsZSAicXVhbnR1bSBzdGF0
-ZXMiPwoKTm8gY29tbWVudHMsIHRoaXMgd29uJ3QgZ2V0IHVzIGFueXdoZXJlLgoKPiAKPiBJIHRo
-aW5rIG1vc3QgVUkgcHJvZ3JhbXMgY2FyZSBubyBhYm91dCBzdGF0ZSBzdG9yZWQgaW4gdGhlIGlu
-cHV0IG5vZGUsCj4gdGhleSBvbmx5IHJlY2VpdmUgZXZlbnRzIHJhaXNlZCBmcm9tIHRoZSBpbnB1
-dCBub2RlLgoKQnVsbHNoaXQuIFdoZW4geW91IGxhdW5jaCBzdWNoIGEgcHJvZ3JhbSwgeW91IG5l
-ZWQgdG8gcXVlcnkgdGhlIHN0YXRlCmJlY2F1c2UgeW91IHdvbid0IHJlY2VpdmUgdGhlIGV2ZW50
-IHRoYXQgaGFwcGVuZWQgd2F5IGJlZm9yZSB0aGUgbGF1bmNoLgoKPiBXaHkgc2hvdWxkIHRoZSBr
-ZXJuZWwgZXhwb3J0IGEgZmFkZS1pbi9mYWRlLW91dCBpbnB1dCBub2RlIHRvIHRoZSBVSSBwcm9n
-cmFtcyBhbmQgYXNrIHRoZW0gdG8gY2hhbmdlPwo+IAo+IFRoZSBvbmx5IHByb2dyYW0gdGhhdCBj
-YXJlcyBhYm91dCB0aGUgc3RhdGUgc3RvcmVkIGluIHRoZSBpbnB1dCBub2RlIGlzIGxpYmlucHV0
-Lgo+IFNvIHdoeSBzaG91bGQgZXZlcnkgdXNlciBwcm9ncmFtIGJlIGNoYW5nZWQgdG8gbWFrZSBs
-aWJpbnB1dCBlYXNpZXI/CgpObywgYWxsIHByb2dyYW0gdGhhdCBsaXN0ZW4gdG8gTElEIHN3aXRj
-aGVzIGlucHV0IG5vZGVzIGNhcmUgYWJvdXQgdGhlCnN0YXRlLiBXZSBhbHJlYWR5IHRvbGQgeW91
-IHRoYXQsIHlvdSBqdXN0IGRvbid0IGxpc3RlbjoKCi0gc3lzdGVtZCBjYXJlcyBhYm91dCB0aGUg
-c3RhdGUgYXMgaXQgZG9lcyBwb2xsaW5nIG9uIHRoZSBpbnB1dCBub2RlIGluCiAgY2FzZSBpdCBt
-aXNzZXMgYW4gZXZlbnQKLSBsaWJpbnB1dCBjYXJlcyBhYm91dCB0aGUgc3RhdGUgYXMgcHJldmlv
-dXNseSBtZW50aW9uZWQKLSBnbm9tZS1zZXR0aW5nLWRhZW1vbnMgY2FyZXMgYWJvdXQgdGhlIHN0
-YXRlIGdpdmVuIGl0IGRlY2lkZXMgd2hldGhlcgogIG9yIG5vdCBsaWdodGluZyB1cCB0aGUgbW9u
-aXRvcnMgZGVwZW5kaW5nIG9uIHRoZSBzdGF0ZS4gQW5kIGlmIHlvdQogIHJlbGF1bmNoIHRoZSBk
-YWVtb24sIGl0J2xsIHF1ZXJ5IHRoZSBzdGF0ZSB0byBkZWNpZGUgd2hhdCBpcyB0aGUgYmVzdAog
-IGFycmFuZ2VtZW50IGZvciB0aGUgc2NyZWVucwotIEtERSBzaG91bGQgZG8gdGhlIHNhbWUgKGFz
-IGl0IGlzIG5vdCBhIGRhZW1vbiB0aGF0IGNhbiBjYXRjaCBhbnkKICBldmVudHMpCgpBbmQgSSBy
-ZWFsbHkgZG9uJ3Qga25vdyB3aHkgSSBhbSB0ZWxsaW5nIHlvdSB0aGF0LiBUaGUgcnVsZSBpcyBz
-aW1wbGU6CnRoZXJlIGlzIGEga2VybmVsIHByb3RvY29sLCB3aGljaCBpcyBhIGNvbnRyYWN0IGJl
-dHdlZW4gdGhlIGtlcm5lbCBhbmQKdGhlIHVzZXIgc3BhY2UuIFdpdGggc3VjaCAiZGVsYXlzIiB0
-aGlzIGFjcGkvYnV0dG9uLmMgZHJpdmVyIGRvZXNuJ3QKZm9sbG93IHRoZSBwcm90b2NvbC4gU28g
-aXQncyBhIGJ1Zy4gRW5kIG9mIHRoZSBzdG9yeS4KCklmIHlvdSB3YW50IHRvIGhhdmUgYSB0cmFu
-c2llbnQgc3RhdGUgd2l0aCBkZWxheSBvciBzdWNoLCBmZWVsIGZyZWUgdG8Kd3JpdGUgZG93biBh
-IHByb3RvY29sIGZvciBzdWNoIHRyaS1zdGF0ZSBzd2l0Y2gsIGJ1dCBJIGRvdWJ0IHRoaXMgd2ls
-bApiZSBhY2NlcHRlZCBieSB0aGUgaW5wdXQgbWFpbnRhaW5lci4KCkNoZWVycywKQmVuamFtaW4K
-Cj4gCj4gQ2hlZXJzLAo+IEx2Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCnN5c3RlbWQtZGV2ZWwgbWFpbGluZyBsaXN0CnN5c3RlbWQtZGV2ZWxAbGlzdHMu
-ZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlz
-dGluZm8vc3lzdGVtZC1kZXZlbAo=
+On Thu, Jun 15, 2017 at 06:01:02PM +0000, Gabriele Paoloni wrote:
+> Hi Mika
+> 
+> > -----Original Message-----
+> > From: linux-pci-owner@vger.kernel.org [mailto:linux-pci-
+> > owner@vger.kernel.org] On Behalf Of Mika Westerberg
+> > Sent: 13 June 2017 21:04
+> > To: Gabriele Paoloni
+> > Cc: Lorenzo Pieralisi; rafael@kernel.org; Rafael J. Wysocki;
+> > catalin.marinas@arm.com; will.deacon@arm.com; robh+dt@kernel.org;
+> > frowand.list@gmail.com; bhelgaas@google.com; arnd@arndb.de; linux-arm-
+> > kernel@lists.infradead.org; mark.rutland@arm.com;
+> > brian.starkey@arm.com; olof@lixom.net; benh@kernel.crashing.org; linux-
+> > kernel@vger.kernel.org; linux-acpi@vger.kernel.org; Linuxarm; linux-
+> > pci@vger.kernel.org; minyard@acm.org; John Garry; xuwei (O)
+> > Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO
+> > devices before scanning
+> > 
+> > On Tue, Jun 13, 2017 at 07:01:38PM +0000, Gabriele Paoloni wrote:
+> > > I am not very familiar with Linux MFD however the main issue here is
+> > that
+> > > 1) for IPMI we want to re-use the standard IPMI driver without
+> > touching it:
+> > >    see
+> > >
+> > >    static const struct acpi_device_id acpi_ipmi_match[] = {
+> > >          { "IPI0001", 0 },
+> > >          { },
+> > >    };
+> > >
+> > >    in "drivers/char/ipmi/ipmi_si_intf.c" (and in general any standard
+> > driver
+> > >    of an LPC child)
+> > >
+> > > 2) We need a way to guarantee that all LPC children are not
+> > enumerated
+> > >    by acpi_default_enumeration() (so for example if an ipmi node is
+> > an LPC#
+> > >    child it should not be enumerated, otherwise it should be)
+> > >    Currently acpi_default_enumeration() skips spi/i2c slaves by
+> > checking:
+> > >    1) if the acpi resource type is a serial bus
+> > >    2) if the type of serial bus descriptor is I2C or SPI
+> > >
+> > >    For LPC we cannot leverage on any ACPI property to "recognize"
+> > that our
+> > >    devices are LPC children; hence before I proposed for
+> > acpi_default_enumeration()
+> > >    to skip devices that have already been enumerated (by calling
+> > >    acpi_device_enumerated() ).
+> > >
+> > > So in the current scenario, how do you think that MFD can help?
+> > 
+> > If you look at Documentation/acpi/enumeration.txt there is a chapter
+> > "MFD devices". I think it pretty much maches what you have here. An LPC
+> > device (MFD device) and bunch of child devices. The driver for your LPC
+> > device can specify _HID for each child device. Those are then mached by
+> > the MFD ACPI code to the corresponding ACPI nodes from which platform
+> > devices are created including "IPI0001".
+> 
+> So I guess here in the LPC driver I would have an MFD cell for IPMI. I.e.:
+> 
+> 	static struct mfd_cell_acpi_match hisi_lpc_ipmi_acpi_match = {
+> 		.pnpid = "IPI0001",
+> 	};
+> 
+> correct?
+
+Yes.
+
+> > 
+> > It causes acpi_default_enumeration() to be called but it should be fine
+> > as we are dealing with platform device anyway.
+> 
+> I do not quite understand how declaring such MFD cell above would make sure
+> that the LPC probe is called before the IPMI device is enumerated...
+
+In fact it may be that it is not sufficient in this case because the
+ACPI core might enumerate child devices before the LPC driver even gets
+a chance to probe so you would need to add also scan handler to the
+child devices and mark them already enumerated or something like that.
+
+> Could you point me to the code that does this?
+
+Check for example drivers/mfd/intel-lpss.c.
