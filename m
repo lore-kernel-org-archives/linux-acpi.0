@@ -1,158 +1,40 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
- erratum 161010801
-Date: Fri, 16 Jun 2017 11:31:06 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA83836B2DC@FRAEML521-MBX.china.huawei.com>
-References: <20170613114829.188036-1-shameerali.kolothum.thodi@huawei.com>
- <20170613114829.188036-3-shameerali.kolothum.thodi@huawei.com>
- <20170613131317.GB2868@red-moon>
- <5FC3163CFD30C246ABAA99954A238FA838368BC6@FRAEML521-MBX.china.huawei.com>
- <5FC3163CFD30C246ABAA99954A238FA83836B212@FRAEML521-MBX.china.huawei.com>
- <20170616111729.GB22323@red-moon>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Fri, 16 Jun 2017 15:00:48 +0300
+Message-ID: <20170616120048.GC629@lahna.fi.intel.com>
+References: <20170606085553.GA20085@red-moon>
+ <20170612155700.GA31930@red-moon>
+ <20170613084831.GP3187@lahna.fi.intel.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
+ <20170613151013.GT3187@lahna.fi.intel.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
+ <20170613200339.GX3187@lahna.fi.intel.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40AB537A@FRAEML521-MBX.china.huawei.com>
+ <20170616083313.GY3187@lahna.fi.intel.com>
+ <CAJZ5v0gWGL=M1+T2DxFfwAi=gCbBBnLFVyp4u+1EVem-mcSNQg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170616111729.GB22323@red-moon>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:5731 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752619AbdFPMFW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 16 Jun 2017 08:05:22 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0gWGL=M1+T2DxFfwAi=gCbBBnLFVyp4u+1EVem-mcSNQg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>"linux-acpi@vger.kernel.org" <lin>
 
+On Fri, Jun 16, 2017 at 01:24:32PM +0200, Rafael J. Wysocki wrote:
+> > In fact it may be that it is not sufficient in this case because the
+> > ACPI core might enumerate child devices before the LPC driver even gets
+> > a chance to probe so you would need to add also scan handler to the
+> > child devices and mark them already enumerated or something like that.
+> 
+> Or extend the special I2C/SPI handling to them.
 
-
-> -----Original Message-----
-> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
-> Sent: Friday, June 16, 2017 12:17 PM
-> To: Shameerali Kolothum Thodi
-> Cc: marc.zyngier@arm.com; will.deacon@arm.com; Linuxarm; linux-
-> acpi@vger.kernel.org; iommu@lists.linux-foundation.org;
-> hanjun.guo@linaro.org; sudeep.holla@arm.com; robin.murphy@arm.com;
-> linux-arm-kernel@lists.infradead.org; devel@acpica.org
-> Subject: Re: [PATCH 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
-> erratum 161010801
-> 
-> On Fri, Jun 16, 2017 at 09:43:52AM +0000, Shameerali Kolothum Thodi wrote:
-> > Hi Lorenzo,
-> >
-> > > -----Original Message-----
-> > > From: linuxarm-bounces@huawei.com [mailto:linuxarm-
-> > > bounces@huawei.com] On Behalf Of Shameerali Kolothum Thodi
-> > > Sent: Tuesday, June 13, 2017 3:53 PM
-> > > To: Lorenzo Pieralisi
-> > > Cc: marc.zyngier@arm.com; will.deacon@arm.com; Linuxarm; linux-
-> > > acpi@vger.kernel.org; iommu@lists.linux-foundation.org;
-> > > hanjun.guo@linaro.org; sudeep.holla@arm.com;
-> robin.murphy@arm.com;
-> > > linux-arm-kernel@lists.infradead.org; devel@acpica.org
-> > > Subject: RE: [PATCH 2/2] iommu/arm-smmu-v3:Enable ACPI based
-> HiSilicon
-> > > erratum 161010801
-> >
-> > [...]
-> >  > > > ---
-> > > > >  drivers/iommu/arm-smmu-v3.c | 27 ++++++++++++++++++++++----
-> -
-> > > > >  1 file changed, 22 insertions(+), 5 deletions(-)
-> > > > >
-> > > > > diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-
-> smmu-
-> > > > v3.c
-> > > > > index abe4b88..2636c85 100644
-> > > > > --- a/drivers/iommu/arm-smmu-v3.c
-> > > > > +++ b/drivers/iommu/arm-smmu-v3.c
-> > > > > @@ -597,6 +597,7 @@ struct arm_smmu_device {
-> > > > >  	u32				features;
-> > > > >
-> > > > >  #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
-> > > > > +#define ARM_SMMU_OPT_RESV_HW_MSI	(1 << 1)
-> > > > >  	u32				options;
-> > > > >
-> > > > >  	struct arm_smmu_cmdq		cmdq;
-> > > > > @@ -1904,14 +1905,29 @@ static void
-> > > arm_smmu_get_resv_regions(struct
-> > > > device *dev,
-> > > > >  				      struct list_head *head)
-> > > > >  {
-> > > > >  	struct iommu_resv_region *region;
-> > > > > +	struct arm_smmu_device *smmu;
-> > > > > +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> > > > >  	int prot = IOMMU_WRITE | IOMMU_NOEXEC |
-> IOMMU_MMIO;
-> > > > >
-> > > > > -	region = iommu_alloc_resv_region(MSI_IOVA_BASE,
-> > > > MSI_IOVA_LENGTH,
-> > > > > -					 prot,
-> IOMMU_RESV_SW_MSI);
-> > > > > -	if (!region)
-> > > > > -		return;
-> > > > > +	smmu = arm_smmu_get_by_fwnode(fwspec-
-> >iommu_fwnode);
-> > > > >
-> > > > > -	list_add_tail(&region->list, head);
-> > > > > +	if (smmu && (smmu->options &
-> ARM_SMMU_OPT_RESV_HW_MSI)
-> > > > &&
-> > > > > +		      dev_is_pci(dev)) {
-> > > > > +		int ret;
-> > > > > +
-> > > > > +		ret = iort_iommu_its_get_resv_regions(dev, head);
-> > > >
-> > > > This should be made fwnode dependent, it makes precious little sense
-> to
-> > > call
-> > > > IORT to reserve regions on a DT based platforms (I know the
-> > > > ARM_SMMU_OPT_RESV_HW_MSI option is only selected in ACPI (?)
-> but
-> > > > comment applies regardless - have you prototyped a DT version too ?).
-> > >
-> > > Ok. I will add a check here.
-> >
-> > This is what I have in mind. Please take a look and let me know. I will send
-> out
-> > a v2 of this series soon.
-> > ....
-> > if (smmu && (smmu->options & ARM_SMMU_OPT_RESV_HW_MSI) &&
-> > 			dev_is_pci(dev)) {
-> > 	int ret = -EINVAL;
-> >
-> > 	if (!is_of_node(smmu->dev->fwnode))
-> > 		ret = iort_iommu_its_get_resv_regions(dev, head);
-> >
-> > 	if (ret) {
-> > 		dev_warn(dev, "HW MSI region resv failed: %d\n", ret);
-> > 		return;
-> > 	}
-> > } else {
-> 
-> The fwnode handling is fine, I do not like much the:
-> 
-> dev_is_pci()
-> 
-> check because it relies on implicit knowledge of the platform and
-> the quirks you need (ie you know that it is _just_ a PCI RC quirk
-> implicitly), the logic behind reserving the regions is a bit
-> convoluted and not easy to understand at all.
-> 
-> Let me try to rephrase it: you know, through an SMMU model number,
-> that your PCI RC handles MSI in a specific way, but by reading the
-> code above this is not clear at all, at least to me. This is a PCI
-> RC quirk but it does not depend on any PCI RC specific firmware binding
-> whatsoever, that's what is a bit hard to understand.
-
-Right.  I had a thought of limiting the iort_iommu_its_get_resv_regions
-to pci devices only. Just like the way iommu_dma_get_resv_regions()
-does now. But not sure there will ever be a platform which requires this
-for non-pci devices as well.
-
-Thanks,
-Shameer
+Sure but those have I2c/SpiSerialBus() resources which we can use to
+identify them but for the ipmi thing there is nothing else than _HID so
+we would need to keep a list of such devices in ACPI core.
