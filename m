@@ -1,46 +1,62 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: RE: [PATCH v2 2/2] acpi/nfit: Issue Start ARS to retrieve existing
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] acpi/nfit: Issue Start ARS to retrieve existing
  records
-Date: Sat, 17 Jun 2017 00:01:44 +0000
-Message-ID: <DF4PR84MB01051FBBC0ADDFF41A9534F282C60@DF4PR84MB0105.NAMPRD84.PROD.OUTLOOK.COM>
+Date: Fri, 16 Jun 2017 17:10:03 -0700
+Message-ID: <CAPcyv4h4bkkrb0_6C0DiNGb0=LYFxqm0QhN15BsS4uyO+mNcpw@mail.gmail.com>
 References: <20170608183658.24731-1-toshi.kani@hpe.com>
  <20170608183658.24731-3-toshi.kani@hpe.com>
  <CAPcyv4j8vjw9arcNyHrszDNbX5xWzBOtTB5cS81rY9H_tJzhug@mail.gmail.com>
+ <DF4PR84MB01051FBBC0ADDFF41A9534F282C60@DF4PR84MB0105.NAMPRD84.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t5009.houston.hpe.com ([15.241.48.73]:33903 "EHLO
-        g9t5009.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751812AbdFQADe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jun 2017 20:03:34 -0400
-In-Reply-To: <CAPcyv4j8vjw9arcNyHrszDNbX5xWzBOtTB5cS81rY9H_tJzhug@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <DF4PR84MB01051FBBC0ADDFF41A9534F282C60-g2Ljlah8a+iUIPMqSboeKdicc1VoeDReZmpNikb/MY7jO8Y7rvWZVA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vishal L Verma <vishal.l.verma@intel.com>, "Knippers, Linda" <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-PiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9uZml0L2NvcmUuYw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNw
-aS9uZml0L2NvcmUuYw0KPiA+IEBAIC0xMDMxLDcgKzEwMzEsNyBAQCBzdGF0aWMgc3NpemVfdCBz
-Y3J1Yl9zdG9yZShzdHJ1Y3QgZGV2aWNlICpkZXYsDQo+ID4gICAgICAgICBpZiAobmRfZGVzYykg
-ew0KPiA+ICAgICAgICAgICAgICAgICBzdHJ1Y3QgYWNwaV9uZml0X2Rlc2MgKmFjcGlfZGVzYyA9
-IHRvX2FjcGlfZGVzYyhuZF9kZXNjKTsNCj4gPg0KPiA+IC0gICAgICAgICAgICAgICByYyA9IGFj
-cGlfbmZpdF9hcnNfcmVzY2FuKGFjcGlfZGVzYyk7DQo+ID4gKyAgICAgICAgICAgICAgIHJjID0g
-YWNwaV9uZml0X2Fyc19yZXNjYW4oYWNwaV9kZXNjLCAwKTsNCj4gPiAgICAgICAgIH0NCj4gPiAg
-ICAgICAgIGRldmljZV91bmxvY2soZGV2KTsNCj4gPiAgICAgICAgIGlmIChyYykNCj4gPiBAQCAt
-MjA1Nyw2ICsyMDU3LDEwIEBAIHN0YXRpYyBpbnQgYXJzX3N0YXJ0KHN0cnVjdCBhY3BpX25maXRf
-ZGVzYw0KPiAqYWNwaV9kZXNjLCBzdHJ1Y3QgbmZpdF9zcGEgKm5maXRfc3BhDQo+ID4gICAgICAg
-ICAgICAgICAgIGFyc19zdGFydC50eXBlID0gTkRfQVJTX1ZPTEFUSUxFOw0KPiA+ICAgICAgICAg
-ZWxzZQ0KPiA+ICAgICAgICAgICAgICAgICByZXR1cm4gLUVOT1RUWTsNCj4gPiArICAgICAgIGlm
-IChuZml0X3NwYS0+YXJzX3ByZXZfZGF0YSkgew0KPiA+ICsgICAgICAgICAgICAgICBhcnNfc3Rh
-cnQuZmxhZ3MgfD0gTkRfQVJTX1JFVFVSTl9QUkVWX0RBVEE7DQo+ID4gKyAgICAgICAgICAgICAg
-IG5maXRfc3BhLT5hcnNfcHJldl9kYXRhID0gMDsNCj4gPiArICAgICAgIH0NCj4gDQo+IEknZCBy
-YXRoZXIgeW91IHBsdW1iIGEgbmV3ICdmbGFncycgcGFyYW1ldGVyIGFsbCB0aGUgd2F5IHRocm91
-Z2ggZnJvbQ0KPiBhY3BpX25maXRfYXJzX3Jlc2NhbigpIHRvIGFyc19zdGFydCgpIHJhdGhlciB0
-aGFuIGNhcnJ5aW5nIHRoaXMgYXMgYQ0KPiBwcm9wZXJ0eSBvZiBuZml0X3NwYS4NCg0KWWVzLCBJ
-IHdhbnRlZCB0byBjYXJyeSAnZmxhZ3MnIGFsbCB0aGUgd2F5LCBidXQgc2luY2UgYWNwaV9uZml0
-X2Fyc19yZXNjYW4oKQ0KY2FsbHMgYWNwaV9uZml0X3NjcnViKCkgdmlhIGFjcGlfZGVzYy0+d29y
-aywgYWxsIGluZm8gbmVlZHMgdG8gYmUgbWFyc2hhbGxlZA0KaW50byBzdHJ1Y3QgYWNwaV9uZml0
-X2Rlc2MuICBVc2luZyBuZml0X3NwYSBhbGxvd3MgYSByZXF1ZXN0IHRvIGJlIGNhcnJpZWQgYXMN
-CnBlci1zcGEgYmFzaXMuLi4NCg0KVGhhbmtzLA0KLVRvc2hpDQoNCg0K
+On Fri, Jun 16, 2017 at 5:01 PM, Kani, Toshimitsu <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
+>> > --- a/drivers/acpi/nfit/core.c
+>> > +++ b/drivers/acpi/nfit/core.c
+>> > @@ -1031,7 +1031,7 @@ static ssize_t scrub_store(struct device *dev,
+>> >         if (nd_desc) {
+>> >                 struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+>> >
+>> > -               rc = acpi_nfit_ars_rescan(acpi_desc);
+>> > +               rc = acpi_nfit_ars_rescan(acpi_desc, 0);
+>> >         }
+>> >         device_unlock(dev);
+>> >         if (rc)
+>> > @@ -2057,6 +2057,10 @@ static int ars_start(struct acpi_nfit_desc
+>> *acpi_desc, struct nfit_spa *nfit_spa
+>> >                 ars_start.type = ND_ARS_VOLATILE;
+>> >         else
+>> >                 return -ENOTTY;
+>> > +       if (nfit_spa->ars_prev_data) {
+>> > +               ars_start.flags |= ND_ARS_RETURN_PREV_DATA;
+>> > +               nfit_spa->ars_prev_data = 0;
+>> > +       }
+>>
+>> I'd rather you plumb a new 'flags' parameter all the way through from
+>> acpi_nfit_ars_rescan() to ars_start() rather than carrying this as a
+>> property of nfit_spa.
+>
+> Yes, I wanted to carry 'flags' all the way, but since acpi_nfit_ars_rescan()
+> calls acpi_nfit_scrub() via acpi_desc->work, all info needs to be marshalled
+> into struct acpi_nfit_desc.  Using nfit_spa allows a request to be carried as
+> per-spa basis...
+
+Ah ok, but I still think it does not belong to a spa. This is control
+/ context information for the workqueue and that belongs with
+acpi_nfit_desc. It think it's fine if all spas get re-scrubbed with
+the "prev_data" flag in the the notification case.
