@@ -1,50 +1,71 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v7.1 7/7] device property: Get rid of struct
- fwnode_handle type field
-Date: Sun, 18 Jun 2017 09:58:53 +0300
-Message-ID: <20170618065853.GO629@lahna.fi.intel.com>
-References: <1496741861-8240-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497354548-17502-1-git-send-email-sakari.ailus@linux.intel.com>
+From: Jonathan Woithe <jwoithe@just42.net>
+Subject: Re: [PATCH 0/7] fujitsu-laptop: ACPI-related cleanups
+Date: Sun, 18 Jun 2017 20:05:15 +0930
+Message-ID: <20170618103515.GH26810@marvin.atrad.com.au>
+References: <20170616044058.30443-1-kernel@kempniu.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:40405 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750946AbdFRG67 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 18 Jun 2017 02:58:59 -0400
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1497354548-17502-1-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20170616044058.30443-1-kernel@kempniu.pl>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Micha?? K??pie?? <kernel@kempniu.pl>
+Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com
 
-On Tue, Jun 13, 2017 at 02:49:08PM +0300, Sakari Ailus wrote:
-> +#define DECLARE_ACPI_FWNODE_OPS(ops) \
-> +	const struct fwnode_operations ops = { \
-> +		.device_is_available = acpi_fwnode_device_is_available, \
-> +		.property_present = acpi_fwnode_property_present, \
-> +		.property_read_int_array = \
-> +			acpi_fwnode_property_read_int_array, \
-> +		.property_read_string_array = \
-> +			acpi_fwnode_property_read_string_array, \
-> +		.get_parent = acpi_node_get_parent, \
-> +		.get_next_child_node = acpi_get_next_subnode, \
-> +		.get_named_child_node = acpi_fwnode_get_named_child_node, \
-> +		.graph_get_next_endpoint = \
-> +			acpi_fwnode_graph_get_next_endpoint, \
-> +		.graph_get_remote_endpoint = \
-> +			acpi_fwnode_graph_get_remote_endpoint, \
-> +		.graph_get_port_parent = acpi_node_get_parent, \
-> +		.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint, \
-> +	}; \
-> +	EXPORT_SYMBOL_GPL(ops)
+Hi Michel
 
-Can you align those backslashes, like
+On Fri, Jun 16, 2017 at 06:40:51AM +0200, Micha?? K??pie?? wrote:
+> In preparation for splitting fujitsu-laptop into two separate modules, I
+> prepared two more cleanup series to minimize the amount of code being
+> moved around.  This first series contains all patches that touch ACPI in
+> some way, which is why I am CCing linux-acpi as per Rafael's previous
+> advice.
+> 
+> This patch series was based on platform-driver-x86/for-next and tested
+> on a Lifebook S7020.
 
-	const struct fwnode_operations ops = { 				\
-		.device_is_available = acpi_fwnode_device_is_available, \
-		.property_present = acpi_fwnode_property_present,	\
-		...
+As far as I can tell this series looks good.  It is, as you said, another
+step towards the splitting of this driver into two separate modules.  I have
+a few brief comments.
 
-other than that the patch looks good.
+Patch 1: 
+ - The argument for this change assumes that the execution methodology of
+   the acpi_os_execute() remains as is, since this is what guarantees the
+   absence of concurrency concerns.  If it is fair to assume that we don't
+   have to worry about such things which may never happen then there's no
+   problem with this patch.
+
+Patch 2:
+ - No problem.
+
+Patch 3: 
+ - No problem.
+
+Patch 4: 
+ - Presumedly the change in device path doesn't count as an API change. 
+   Given that, I have no objection since the argument put forward makes
+   sense.
+
+Patch 5:
+ - I am not overly familiar with the power management infrastructure within 
+   the ACPI subsystem, but the presented argument seems sensible to me. 
+   This patch is therefore fine if the given assumptions hold.
+
+Patch 6:
+ - This seems fair.
+
+Patch 7: 
+ - The motivations which lead to the creation of the debug Kconfig option
+   are now moot.  The elimination of this and the custom logging code is
+   therefore entirely justified.
+
+To summarise, I see no major issues with this patch set so long as the minor
+details noted above are of no consequence.  Applying this will assist with
+the end-goal of splitting the driver into two modules since it will minimise
+the changes needed at the time the split is carried out.
+
+Reviewed-by: Jonathan Woithe <jwoithe@just42.net>
+
+Regards
+  jonathan
