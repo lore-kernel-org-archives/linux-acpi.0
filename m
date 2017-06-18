@@ -1,71 +1,43 @@
-From: Jonathan Woithe <jwoithe@just42.net>
-Subject: Re: [PATCH 0/7] fujitsu-laptop: ACPI-related cleanups
-Date: Sun, 18 Jun 2017 20:05:15 +0930
-Message-ID: <20170618103515.GH26810@marvin.atrad.com.au>
-References: <20170616044058.30443-1-kernel@kempniu.pl>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / scan: Fix enumeration for special SPI and I2C
+ devices
+Date: Sun, 18 Jun 2017 14:07:04 +0300
+Message-ID: <20170618110704.GR629@lahna.fi.intel.com>
+References: <20170615124049.19787-1-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:41454 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752976AbdFRLHH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 18 Jun 2017 07:07:07 -0400
 Content-Disposition: inline
-In-Reply-To: <20170616044058.30443-1-kernel@kempniu.pl>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Micha?? K??pie?? <kernel@kempniu.pl>
-Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170615124049.19787-1-jarkko.nikula@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>
 
-Hi Michel
+On Thu, Jun 15, 2017 at 03:40:49PM +0300, Jarkko Nikula wrote:
+> -static void acpi_default_enumeration(struct acpi_device *device)
+> +static bool acpi_is_spi_i2c_slave(struct acpi_device *device)
+>  {
+>  	struct list_head resource_list;
+>  	bool is_spi_i2c_slave = false;
+>  
+> -	/*
+> -	 * Do not enumerate SPI/I2C slaves as they will be enumerated by their
+> -	 * respective parents.
+> -	 */
+>  	INIT_LIST_HEAD(&resource_list);
+>  	acpi_dev_get_resources(device, &resource_list, acpi_check_spi_i2c_slave,
+>  			       &is_spi_i2c_slave);
+>  	acpi_dev_free_resource_list(&resource_list);
+> -	if (!is_spi_i2c_slave) {
+> +
+> +	return is_spi_i2c_slave;
+> +}
 
-On Fri, Jun 16, 2017 at 06:40:51AM +0200, Micha?? K??pie?? wrote:
-> In preparation for splitting fujitsu-laptop into two separate modules, I
-> prepared two more cleanup series to minimize the amount of code being
-> moved around.  This first series contains all patches that touch ACPI in
-> some way, which is why I am CCing linux-acpi as per Rafael's previous
-> advice.
-> 
-> This patch series was based on platform-driver-x86/for-next and tested
-> on a Lifebook S7020.
-
-As far as I can tell this series looks good.  It is, as you said, another
-step towards the splitting of this driver into two separate modules.  I have
-a few brief comments.
-
-Patch 1: 
- - The argument for this change assumes that the execution methodology of
-   the acpi_os_execute() remains as is, since this is what guarantees the
-   absence of concurrency concerns.  If it is fair to assume that we don't
-   have to worry about such things which may never happen then there's no
-   problem with this patch.
-
-Patch 2:
- - No problem.
-
-Patch 3: 
- - No problem.
-
-Patch 4: 
- - Presumedly the change in device path doesn't count as an API change. 
-   Given that, I have no objection since the argument put forward makes
-   sense.
-
-Patch 5:
- - I am not overly familiar with the power management infrastructure within 
-   the ACPI subsystem, but the presented argument seems sensible to me. 
-   This patch is therefore fine if the given assumptions hold.
-
-Patch 6:
- - This seems fair.
-
-Patch 7: 
- - The motivations which lead to the creation of the debug Kconfig option
-   are now moot.  The elimination of this and the custom logging code is
-   therefore entirely justified.
-
-To summarise, I see no major issues with this patch set so long as the minor
-details noted above are of no consequence.  Applying this will assist with
-the end-goal of splitting the driver into two modules since it will minimise
-the changes needed at the time the split is carried out.
-
-Reviewed-by: Jonathan Woithe <jwoithe@just42.net>
-
-Regards
-  jonathan
+I wonder if it would be better idea flag the acpi_device and then check
+that flag in acpi_default_enumeration()? Now you need to pass
+spi_i2c_slave from many call sites which looks quite overkill.
