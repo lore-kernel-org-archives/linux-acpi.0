@@ -1,98 +1,78 @@
-From: shameer <shameerali.kolothum.thodi@huawei.com>
-Subject: [PATCH v2 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon erratum 161010801
-Date: Mon, 19 Jun 2017 16:45:00 +0100
-Message-ID: <20170619154500.92336-3-shameerali.kolothum.thodi@huawei.com>
-References: <20170619154500.92336-1-shameerali.kolothum.thodi@huawei.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH v4] ACPI / APEI: Boot Error Record Table processing was
+ needlessly complicated
+Date: Mon, 19 Jun 2017 17:58:54 +0200
+Message-ID: <20170619155854.gtcowx3cityb3gqt@pd.tnic>
+References: <20170615224121.23949-1-tony.luck@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([45.249.212.187]:8761 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753070AbdFSPrn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jun 2017 11:47:43 -0400
-In-Reply-To: <20170619154500.92336-1-shameerali.kolothum.thodi@huawei.com>
+Received: from mx2.suse.de ([195.135.220.15]:50017 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751004AbdFSP7O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 19 Jun 2017 11:59:14 -0400
+Content-Disposition: inline
+In-Reply-To: <20170615224121.23949-1-tony.luck@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, hanjun.guo@linaro.org
-Cc: gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com, shameer <shameerali.kolothum.thodi@huawei.com>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jonathan Zhang <zjzhang@codeaurora.org>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org
 
-The HiSilicon erratum 161010801 describes the limitation of HiSilicon
-platforms Hip06/Hip07 to support the SMMU mappings for MSI transactions.
+On Thu, Jun 15, 2017 at 03:41:21PM -0700, Luck, Tony wrote:
+> From: Tony Luck <tony.luck@intel.com>
+> 
+> Quoting version 6.1 of the ACPI specification. Section 18.3.1 "Boot
+> Error Source" says:
+> 
+>   The Boot Error Region is a range of addressable memory OSPM can access
+>   during initialization to determine if an unhandled error condition
+>   occurred. System firmware must report this memory range as firmware
+>   reserved. The format of the Boot Error Region follow that of an Error
+>   Status Block, this is defined in Section 18.3.2.7. The format of the
+>   error status block is described by Table 18-342.
+> 
+> This clarifies some points that were obfuscated in earlier versions.
+> E.g. there is no longer a separate table to describe the format of the
+> "Boot Error Region" (which was identical to the "Error Status Block").
 
-On these platforms GICv3 ITS translator is presented with the deviceID
-by extending the MSI payload data to 64 bits to include the deviceID.
-Hence, the PCIe controller on this platforms has to differentiate the
-MSI payload against other DMA payload and has to modify the MSI payload.
-This basically makes it difficult for this platforms to have a SMMU
-translation for MSI.
+Hmm, ok, so do we know whether some fw writers "misunderstood" the
+previous version of the spec and actually added that separate table and
+now we need to handle the different layout?
 
-This patch implements a ACPI table based quirk to reserve the hw msi
-regions in the smmu-v3 driver which means these address regions will
-not be translated and will be excluded from iova allocations.
+Probably not but I'm not going to be surprised someone did. At all.
 
-Signed-off-by: shameer <shameerali.kolothum.thodi@huawei.com>
----
- drivers/iommu/arm-smmu-v3.c | 29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+> Also saying "follow that of *an* Error Status Block" makes it clear that
+> there is just one block (which can still contain multiple "Generic Error
+> Data Entry structures").
+> 
+> The loop inside bert_print_all() is unnecessary (but probably harmless
+> as the "while (remain > sizeof(struct acpi_bert_region))" loop should
+> terminate after we skipped over the first entry.
+> 
+> We can drop the "bert_print_all()" function and just move the four
+> relevant lines inline in "bert_init()".
+> 
+> Also this driver clears the "block_status" status field of the error
+> status block in ACPI memory. I can see no justification for doing this
+> in the ACPI spec.  It is also highly kernel-ego-centric.  There are
+> user mode BERT harvesting tools that dig into /sys/firmware/acpi/tables/BERT
+> which might like to see this summary value.
+> 
+> Drop the:
+> 	estatus->block_status = 0;
 
-diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index abe4b88..f03c63b 100644
---- a/drivers/iommu/arm-smmu-v3.c
-+++ b/drivers/iommu/arm-smmu-v3.c
-@@ -597,6 +597,7 @@ struct arm_smmu_device {
- 	u32				features;
- 
- #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
-+#define ARM_SMMU_OPT_RESV_HW_MSI	(1 << 1)
- 	u32				options;
- 
- 	struct arm_smmu_cmdq		cmdq;
-@@ -1904,14 +1905,31 @@ static void arm_smmu_get_resv_regions(struct device *dev,
- 				      struct list_head *head)
- {
- 	struct iommu_resv_region *region;
-+	struct arm_smmu_device *smmu;
-+	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
- 	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
- 
--	region = iommu_alloc_resv_region(MSI_IOVA_BASE, MSI_IOVA_LENGTH,
--					 prot, IOMMU_RESV_SW_MSI);
--	if (!region)
--		return;
-+	smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
-+
-+	if (smmu && (smmu->options & ARM_SMMU_OPT_RESV_HW_MSI) &&
-+		      dev_is_pci(dev)) {
-+		int ret = -EINVAL;
-+
-+		if (!is_of_node(smmu->dev->fwnode))
-+			ret = iort_iommu_its_get_resv_regions(dev, head);
- 
--	list_add_tail(&region->list, head);
-+		if (ret) {
-+			dev_warn(dev, "HW MSI region resv failed: %d\n", ret);
-+			return;
-+		}
-+	} else {
-+		region = iommu_alloc_resv_region(MSI_IOVA_BASE, MSI_IOVA_LENGTH,
-+						 prot, IOMMU_RESV_SW_MSI);
-+		if (!region)
-+			return;
-+
-+		list_add_tail(&region->list, head);
-+	}
- 
- 	iommu_dma_get_resv_regions(dev, head);
- }
-@@ -2611,6 +2629,7 @@ static void parse_driver_acpi_options(struct acpi_iort_smmu_v3 *iort_smmu,
- 	switch (iort_smmu->model) {
- 	case ACPI_IORT_SMMU_HISILICON_HI161X:
- 		smmu->options |= ARM_SMMU_OPT_SKIP_PREFETCH;
-+		smmu->options |= ARM_SMMU_OPT_RESV_HW_MSI;
- 		break;
- 	default:
- 		break;
+This whole treatise of the clearing of block_status should most likely
+be a separate patch, though. As it is clearly a fix. Probably make it
+the first patch and the second one removing bert_print_all().
+
+Something like that.
+
+Thanks.
+
 -- 
-1.9.1
+Regards/Gruss,
+    Boris.
 
-
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
