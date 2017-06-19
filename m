@@ -1,89 +1,109 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [PATCH v2] platform/x86: wmi-bmof: New driver to expose embedded
- Binary WMI MOF metadata
-Date: Mon, 19 Jun 2017 09:23:45 -0700
-Message-ID: <CALCETrXKLLfBr_pA45u+-VB_cGda6MrehQoSfoHQSn4Dgvgo7g@mail.gmail.com>
-References: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org>
- <201706191807.42574@pali> <074e9d5668864a81b255df178ed28814@ausx13mpc120.AMER.DELL.COM>
- <201706191819.37016@pali>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v2 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+ erratum 161010801
+Date: Mon, 19 Jun 2017 18:41:49 +0100
+Message-ID: <311de3aa-aec9-f403-d9a8-48b3e3de54c3@arm.com>
+References: <20170619154500.92336-1-shameerali.kolothum.thodi@huawei.com>
+ <20170619154500.92336-3-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <201706191819.37016@pali>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
-Cc: Mario.Limonciello@dell.com, Andrew Lutomirski <luto@kernel.org>, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:55326 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750780AbdFSRly (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 19 Jun 2017 13:41:54 -0400
+In-Reply-To: <20170619154500.92336-3-shameerali.kolothum.thodi@huawei.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: shameer <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org
+Cc: gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com
 
-On Mon, Jun 19, 2017 at 9:19 AM, Pali Roh=C3=A1r <pali.rohar@gmail.com> wro=
-te:
-> On Monday 19 June 2017 18:13:13 Mario.Limonciello@dell.com wrote:
->> > -----Original Message-----
->> > From: Pali Roh=C3=A1r [mailto:pali.rohar@gmail.com]
->> > Sent: Monday, June 19, 2017 11:08 AM
->> > To: Andy Lutomirski <luto@kernel.org>
->> > Cc: platform-driver-x86@vger.kernel.org; Andy Shevchenko
->> > <andriy.shevchenko@linux.intel.com>; Andy Lutomirski
->> > <luto@amacapital.net>; Limonciello, Mario
->> > <Mario_Limonciello@Dell.com>; Rafael Wysocki <rjw@rjwysocki.net>;
->> > linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org Subject:
->> > Re: [PATCH v2] platform/x86: wmi-bmof: New driver to expose
->> > embedded Binary WMI MOF metadata
->> >
->> > On Tuesday 06 June 2017 05:16:44 Andy Lutomirski wrote:
->> > > Many laptops (and maybe servers?) have embedded WMI Binary MOF
->> > > metadata. We do not yet have open-source tools for processing the
->> > >
->> > > data, although one is in the works thanks to Pali:
->> > >   https://github.com/pali/bmfdec
->> > >
->> > > There is currently no interface to get the data in the first
->> > > place. By exposing it, we facilitate the development of new
->> > > tools.
->> > >
->> > > Signed-off-by: Andy Lutomirski <luto@kernel.org>
->> > > Cc: Andy Lutomirski <luto@amacapital.net>
->> > > Cc: Mario Limonciello <mario_limonciello@dell.com>
->> > > Cc: Pali Roh=C3=A1r <pali.rohar@gmail.com>
->> > > Cc: linux-kernel@vger.kernel.org
->> > > Cc: platform-driver-x86@vger.kernel.org
->> > > Cc: linux-acpi@vger.kernel.org
->> > > [dvhart: make sysfs mof binary read only, fixup comment block
->> > > format] [dvhart: use bmof terminology and dev_err instead of
->> > > dev_warn] Acked-by: Rafael J. Wysocki
->> > > <rafael.j.wysocki@intel.com> Signed-off-by: Darren Hart (VMware)
->> > > <dvhart@infradead.org> ---
->> > >
->> > > since-v1:
->> > >  * address Pali's comments:
->> > >    * update the cover letter for clarity and accuracy
->> > >    * update mof->bmof and MOF to Binary MOF throughout the patch
->> > >    * use dev_err instead of dev_warn in wmi_bmof_probe
->> > >
->> > >  drivers/platform/x86/Kconfig    |  12 ++++
->> > >  drivers/platform/x86/Makefile   |   1 +
->> > >  drivers/platform/x86/wmi-bmof.c | 125
->> >
->> > Another suggestion (unrelated to this patch): For working with
->> > ACPI-WMI, this binary MOF buffer is not enough. It is needed also
->> > content of _WDG buffer. What about exporting it too via sysfs?
->> > Probably not part of of wmi-bmof driver, but wmi driver itself.
->>
->> I think this depends upon how the userspace access to WMI methods
->> gets implemented, no?  If userpsace access to WMI methods show up as
->> /dev/wmi-$GUID-$INSTANCE and those internally to the kernel map to
->> the proper ASL methods for example, what you get from wmi-bmof
->> should be enough shouldn't it?
->
-> Ok. Such interface for userspace application could be enough.
->
-> But for debugging purposes or writing new WMI driver it is needed to
-> have both _WDG + BMOF.
+On 19/06/17 16:45, shameer wrote:
+> The HiSilicon erratum 161010801 describes the limitation of HiSilicon
+> platforms Hip06/Hip07 to support the SMMU mappings for MSI transactions.
+> 
+> On these platforms GICv3 ITS translator is presented with the deviceID
+> by extending the MSI payload data to 64 bits to include the deviceID.
+> Hence, the PCIe controller on this platforms has to differentiate the
+> MSI payload against other DMA payload and has to modify the MSI payload.
+> This basically makes it difficult for this platforms to have a SMMU
+> translation for MSI.
+> 
+> This patch implements a ACPI table based quirk to reserve the hw msi
+> regions in the smmu-v3 driver which means these address regions will
+> not be translated and will be excluded from iova allocations.
+> 
+> Signed-off-by: shameer <shameerali.kolothum.thodi@huawei.com>
+> ---
+>  drivers/iommu/arm-smmu-v3.c | 29 ++++++++++++++++++++++++-----
+>  1 file changed, 24 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+> index abe4b88..f03c63b 100644
+> --- a/drivers/iommu/arm-smmu-v3.c
+> +++ b/drivers/iommu/arm-smmu-v3.c
+> @@ -597,6 +597,7 @@ struct arm_smmu_device {
+>  	u32				features;
+>  
+>  #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
+> +#define ARM_SMMU_OPT_RESV_HW_MSI	(1 << 1)
+>  	u32				options;
+>  
+>  	struct arm_smmu_cmdq		cmdq;
+> @@ -1904,14 +1905,31 @@ static void arm_smmu_get_resv_regions(struct device *dev,
+>  				      struct list_head *head)
+>  {
+>  	struct iommu_resv_region *region;
+> +	struct arm_smmu_device *smmu;
+> +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
+>  	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+>  
+> -	region = iommu_alloc_resv_region(MSI_IOVA_BASE, MSI_IOVA_LENGTH,
+> -					 prot, IOMMU_RESV_SW_MSI);
+> -	if (!region)
+> -		return;
+> +	smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
+> +
+> +	if (smmu && (smmu->options & ARM_SMMU_OPT_RESV_HW_MSI) &&
 
-With the busification patches applied, all the _WDG data should be
-available in sysfs in parsed form.  I have no particular objection to
-adding a new sysfs for debugfs file to give the raw binary blob, but
-I'm not sure it's needed.
+AFAICS, iommu_get_resv_regions is only ever called on devices which are
+at least already part of an iommu_group, so smmu should never
+legitimately be NULL. I'd say if you really want to be robust against
+flagrant API misuse, at least WARN_ON and bail out immediately.
 
---Andy
+Robin.
+
+> +		      dev_is_pci(dev)) {
+> +		int ret = -EINVAL;
+> +
+> +		if (!is_of_node(smmu->dev->fwnode))
+> +			ret = iort_iommu_its_get_resv_regions(dev, head);
+>  
+> -	list_add_tail(&region->list, head);
+> +		if (ret) {
+> +			dev_warn(dev, "HW MSI region resv failed: %d\n", ret);
+> +			return;
+> +		}
+> +	} else {
+> +		region = iommu_alloc_resv_region(MSI_IOVA_BASE, MSI_IOVA_LENGTH,
+> +						 prot, IOMMU_RESV_SW_MSI);
+> +		if (!region)
+> +			return;
+> +
+> +		list_add_tail(&region->list, head);
+> +	}
+>  
+>  	iommu_dma_get_resv_regions(dev, head);
+>  }
+> @@ -2611,6 +2629,7 @@ static void parse_driver_acpi_options(struct acpi_iort_smmu_v3 *iort_smmu,
+>  	switch (iort_smmu->model) {
+>  	case ACPI_IORT_SMMU_HISILICON_HI161X:
+>  		smmu->options |= ARM_SMMU_OPT_SKIP_PREFETCH;
+> +		smmu->options |= ARM_SMMU_OPT_RESV_HW_MSI;
+>  		break;
+>  	default:
+>  		break;
+> 
+
