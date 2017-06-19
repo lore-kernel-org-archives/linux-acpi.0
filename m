@@ -1,78 +1,82 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v4] ACPI / APEI: Boot Error Record Table processing was
- needlessly complicated
-Date: Mon, 19 Jun 2017 17:58:54 +0200
-Message-ID: <20170619155854.gtcowx3cityb3gqt@pd.tnic>
-References: <20170615224121.23949-1-tony.luck@intel.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2] platform/x86: wmi-bmof: New driver to expose embedded Binary WMI MOF metadata
+Date: Mon, 19 Jun 2017 18:07:42 +0200
+Message-ID: <201706191807.42574@pali>
+References: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed;
+  boundary="nextPart4090464.NfPQAyo2nT";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:50017 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751004AbdFSP7O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Jun 2017 11:59:14 -0400
-Content-Disposition: inline
-In-Reply-To: <20170615224121.23949-1-tony.luck@intel.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34432 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752879AbdFSQH4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jun 2017 12:07:56 -0400
+In-Reply-To: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jonathan Zhang <zjzhang@codeaurora.org>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org
+To: Andy Lutomirski <luto@kernel.org>
+Cc: platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Jun 15, 2017 at 03:41:21PM -0700, Luck, Tony wrote:
-> From: Tony Luck <tony.luck@intel.com>
-> 
-> Quoting version 6.1 of the ACPI specification. Section 18.3.1 "Boot
-> Error Source" says:
-> 
->   The Boot Error Region is a range of addressable memory OSPM can access
->   during initialization to determine if an unhandled error condition
->   occurred. System firmware must report this memory range as firmware
->   reserved. The format of the Boot Error Region follow that of an Error
->   Status Block, this is defined in Section 18.3.2.7. The format of the
->   error status block is described by Table 18-342.
-> 
-> This clarifies some points that were obfuscated in earlier versions.
-> E.g. there is no longer a separate table to describe the format of the
-> "Boot Error Region" (which was identical to the "Error Status Block").
+--nextPart4090464.NfPQAyo2nT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hmm, ok, so do we know whether some fw writers "misunderstood" the
-previous version of the spec and actually added that separate table and
-now we need to handle the different layout?
+On Tuesday 06 June 2017 05:16:44 Andy Lutomirski wrote:
+> Many laptops (and maybe servers?) have embedded WMI Binary MOF
+> metadata. We do not yet have open-source tools for processing the
+> data, although one is in the works thanks to Pali:
+>=20
+> 	https://github.com/pali/bmfdec
+>=20
+> There is currently no interface to get the data in the first place.
+> By exposing it, we facilitate the development of new tools.
+>=20
+> Signed-off-by: Andy Lutomirski <luto@kernel.org>
+> Cc: Andy Lutomirski <luto@amacapital.net>
+> Cc: Mario Limonciello <mario_limonciello@dell.com>
+> Cc: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> Cc: linux-kernel@vger.kernel.org
+> Cc: platform-driver-x86@vger.kernel.org
+> Cc: linux-acpi@vger.kernel.org
+> [dvhart: make sysfs mof binary read only, fixup comment block format]
+> [dvhart: use bmof terminology and dev_err instead of dev_warn]
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Darren Hart (VMware) <dvhart@infradead.org>
+> ---
+> since-v1:
+>  * address Pali's comments:
+>    * update the cover letter for clarity and accuracy
+>    * update mof->bmof and MOF to Binary MOF throughout the patch
+>    * use dev_err instead of dev_warn in wmi_bmof_probe
+>=20
+>=20
+>  drivers/platform/x86/Kconfig    |  12 ++++
+>  drivers/platform/x86/Makefile   |   1 +
+>  drivers/platform/x86/wmi-bmof.c | 125
 
-Probably not but I'm not going to be surprised someone did. At all.
+Another suggestion (unrelated to this patch): For working with ACPI-WMI,=20
+this binary MOF buffer is not enough. It is needed also content of _WDG=20
+buffer. What about exporting it too via sysfs? Probably not part of of=20
+wmi-bmof driver, but wmi driver itself.
 
-> Also saying "follow that of *an* Error Status Block" makes it clear that
-> there is just one block (which can still contain multiple "Generic Error
-> Data Entry structures").
-> 
-> The loop inside bert_print_all() is unnecessary (but probably harmless
-> as the "while (remain > sizeof(struct acpi_bert_region))" loop should
-> terminate after we skipped over the first entry.
-> 
-> We can drop the "bert_print_all()" function and just move the four
-> relevant lines inline in "bert_init()".
-> 
-> Also this driver clears the "block_status" status field of the error
-> status block in ACPI memory. I can see no justification for doing this
-> in the ACPI spec.  It is also highly kernel-ego-centric.  There are
-> user mode BERT harvesting tools that dig into /sys/firmware/acpi/tables/BERT
-> which might like to see this summary value.
-> 
-> Drop the:
-> 	estatus->block_status = 0;
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-This whole treatise of the clearing of block_status should most likely
-be a separate patch, though. As it is clearly a fix. Probably make it
-the first patch and the second one removing bert_print_all().
+--nextPart4090464.NfPQAyo2nT
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-Something like that.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Thanks.
+iEYEABECAAYFAllH9s4ACgkQi/DJPQPkQ1KafwCaA5egKGDBynfCAT1/7YiW9zLG
+c9AAoJdFJmAtvmXyPGKSl2CaTIOTDUcy
+=MfeX
+-----END PGP SIGNATURE-----
 
--- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+--nextPart4090464.NfPQAyo2nT--
