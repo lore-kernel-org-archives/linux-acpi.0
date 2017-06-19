@@ -1,81 +1,92 @@
-From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v3 1/2] acpica: iort: Update SMMUv3 header for proximity
-	domain mapping
-Date: Mon, 19 Jun 2017 18:54:52 +0100
-Message-ID: <0d0d6cb6-7674-5751-d780-af5114ddd569@arm.com>
-References: <1496897059-8272-1-git-send-email-ganapatrao.kulkarni@cavium.com>
-	<1496897059-8272-2-git-send-email-ganapatrao.kulkarni@cavium.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1496897059-8272-2-git-send-email-ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Ganapatrao Kulkarni <ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, gpkulkarni-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Will.Deacon-5wv7dgnIgG8@public.gmane.org, jnair-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Willy Tarreau <w@1wt.eu>
+Subject: [PATCH 3.10 261/268] ftrace/x86: Fix triple fault with graph tracing and suspend-to-ram
+Date: Mon, 19 Jun 2017 20:32:40 +0200
+Message-ID: <1497897167-14556-262-git-send-email-w@1wt.eu>
+References: <1497897167-14556-1-git-send-email-w@1wt.eu>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1497897167-14556-1-git-send-email-w@1wt.eu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux@roeck-us.net
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Willy Tarreau <w@1wt.eu>
 List-Id: linux-acpi@vger.kernel.org
 
-On 08/06/17 05:44, Ganapatrao Kulkarni wrote:
-> ARM IORT specification (rev. C) has added two new fields to define
-> proximity domain for the SMMUv3 node in the IORT table.
-> 
-> Proximity Domain Valid:
-> 	Set to 1 if the value provided in the Proximity Domain field is
-> 	valid. Set to 0 otherwise.
-> 
-> Proximity domain:
-> 	If the Proximity Domain Valid flag is set to 1, this entry
-> 	provides the proximity domain to which this SMMU
-> 	instance belongs.
-> 
-> Update header file to reflect this.
-> 
-> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> ---
->  include/acpi/actbl2.h | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-> index 4b306a6..389e91f 100644
-> --- a/include/acpi/actbl2.h
-> +++ b/include/acpi/actbl2.h
-> @@ -805,6 +805,9 @@ struct acpi_iort_smmu_v3 {
->  	u32 pri_gsiv;
->  	u32 gerr_gsiv;
->  	u32 sync_gsiv;
-> +	u8 pxm;
-> +	u8 reserved1;
-> +	u16 reserved2;
+From: Josh Poimboeuf <jpoimboe@redhat.com>
 
-Why add the padding if you're not also adding the following field that
-it aligns? (side note: could it not just be a u8[3]?)
+commit 34a477e5297cbaa6ecc6e17c042a866e1cbe80d6 upstream.
 
-If the actual structure definition is changing, do there not need to be
-corresponding IASL changes too?
+On x86-32, with CONFIG_FIRMWARE and multiple CPUs, if you enable function
+graph tracing and then suspend to RAM, it will triple fault and reboot when
+it resumes.
 
->  };
->  
->  /* Values for Model field above */
-> @@ -817,6 +820,7 @@ struct acpi_iort_smmu_v3 {
->  
->  #define ACPI_IORT_SMMU_V3_COHACC_OVERRIDE   (1)
->  #define ACPI_IORT_SMMU_V3_HTTU_OVERRIDE     (1<<1)
-> +#define ACPI_IORT_SMMU_V3_PXM_VALID         (1<<3)
+The first fault happens when booting a secondary CPU:
 
-Maybe it's just me, but "PXM" seems incredibly cryptic.
+startup_32_smp()
+  load_ucode_ap()
+    prepare_ftrace_return()
+      ftrace_graph_is_dead()
+        (accesses 'kill_ftrace_graph')
 
-Robin.
+The early head_32.S code calls into load_ucode_ap(), which has an an
+ftrace hook, so it calls prepare_ftrace_return(), which calls
+ftrace_graph_is_dead(), which tries to access the global
+'kill_ftrace_graph' variable with a virtual address, causing a fault
+because the CPU is still in real mode.
 
->  
->  /*******************************************************************************
->   *
-> 
+The fix is to add a check in prepare_ftrace_return() to make sure it's
+running in protected mode before continuing.  The check makes sure the
+stack pointer is a virtual kernel address.  It's a bit of a hack, but
+it's not very intrusive and it works well enough.
+
+For reference, here are a few other (more difficult) ways this could
+have potentially been fixed:
+
+- Move startup_32_smp()'s call to load_ucode_ap() down to *after* paging
+  is enabled.  (No idea what that would break.)
+
+- Track down load_ucode_ap()'s entire callee tree and mark all the
+  functions 'notrace'.  (Probably not realistic.)
+
+- Pause graph tracing in ftrace_suspend_notifier_call() or bringup_cpu()
+  or __cpu_up(), and ensure that the pause facility can be queried from
+  real mode.
+
+Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Len Brown <lenb@kernel.org>
+Link: http://lkml.kernel.org/r/5c1272269a580660703ed2eccf44308e790c7a98.1492123841.git.jpoimboe@redhat.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Willy Tarreau <w@1wt.eu>
+---
+ arch/x86/kernel/ftrace.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/x86/kernel/ftrace.c b/arch/x86/kernel/ftrace.c
+index 1ffc32d..8c43930 100644
+--- a/arch/x86/kernel/ftrace.c
++++ b/arch/x86/kernel/ftrace.c
+@@ -744,6 +744,18 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr,
+ 	unsigned long return_hooker = (unsigned long)
+ 				&return_to_handler;
+ 
++	/*
++	 * When resuming from suspend-to-ram, this function can be indirectly
++	 * called from early CPU startup code while the CPU is in real mode,
++	 * which would fail miserably.  Make sure the stack pointer is a
++	 * virtual address.
++	 *
++	 * This check isn't as accurate as virt_addr_valid(), but it should be
++	 * good enough for this purpose, and it's fast.
++	 */
++	if (unlikely((long)__builtin_frame_address(0) >= 0))
++		return;
++
+ 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
+ 		return;
+ 
+-- 
+2.8.0.rc2.1.gbe9624a
