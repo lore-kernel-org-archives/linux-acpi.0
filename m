@@ -1,61 +1,31 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v7.1 7/7] device property: Get rid of struct
- fwnode_handle type field
-Date: Tue, 20 Jun 2017 11:51:51 +0300
-Message-ID: <20170620085150.GZ12407@valkosipuli.retiisi.org.uk>
-References: <1496741861-8240-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497354548-17502-1-git-send-email-sakari.ailus@linux.intel.com>
- <20170618065853.GO629@lahna.fi.intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v3 2/3] gpio: Add support for TPS68470 GPIOs
+Date: Tue, 20 Jun 2017 10:52:56 +0200
+Message-ID: <CACRpkdZU2kuBGh84DL8naHitoj3Y-pFXLyw5vec36fWMHLnyQA@mail.gmail.com>
+References: <1497259612-38401-1-git-send-email-rajmohan.mani@intel.com> <1497259612-38401-3-git-send-email-rajmohan.mani@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46538 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751082AbdFTIwE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 20 Jun 2017 04:52:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20170618065853.GO629@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1497259612-38401-3-git-send-email-rajmohan.mani@intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Rajmohan Mani <rajmohan.mani@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com
 
-On Sun, Jun 18, 2017 at 09:58:53AM +0300, Mika Westerberg wrote:
-> On Tue, Jun 13, 2017 at 02:49:08PM +0300, Sakari Ailus wrote:
-> > +#define DECLARE_ACPI_FWNODE_OPS(ops) \
-> > +	const struct fwnode_operations ops = { \
-> > +		.device_is_available = acpi_fwnode_device_is_available, \
-> > +		.property_present = acpi_fwnode_property_present, \
-> > +		.property_read_int_array = \
-> > +			acpi_fwnode_property_read_int_array, \
-> > +		.property_read_string_array = \
-> > +			acpi_fwnode_property_read_string_array, \
-> > +		.get_parent = acpi_node_get_parent, \
-> > +		.get_next_child_node = acpi_get_next_subnode, \
-> > +		.get_named_child_node = acpi_fwnode_get_named_child_node, \
-> > +		.graph_get_next_endpoint = \
-> > +			acpi_fwnode_graph_get_next_endpoint, \
-> > +		.graph_get_remote_endpoint = \
-> > +			acpi_fwnode_graph_get_remote_endpoint, \
-> > +		.graph_get_port_parent = acpi_node_get_parent, \
-> > +		.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint, \
-> > +	}; \
-> > +	EXPORT_SYMBOL_GPL(ops)
-> 
-> Can you align those backslashes, like
-> 
-> 	const struct fwnode_operations ops = { 				\
-> 		.device_is_available = acpi_fwnode_device_is_available, \
-> 		.property_present = acpi_fwnode_property_present,	\
-> 		...
-> 
-> other than that the patch looks good.
+On Mon, Jun 12, 2017 at 11:26 AM, Rajmohan Mani <rajmohan.mani@intel.com> wrote:
 
-Thanks for the review.
+> This patch adds support for TPS68470 GPIOs.
+> There are 7 GPIOs and a few sensor related GPIOs.
+> These GPIOs can be requested and configured as
+> appropriate.
+>
+> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
 
-Fixed in v7.2.
+This is some fine code.
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Feel free to merge this through MFD or tell me if I should
+merge it if there are no compile-time dependencies.
+
+Yours,
+Linus Walleij
