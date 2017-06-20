@@ -1,37 +1,132 @@
 From: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-Subject: [PATCH v2 0/2] acpi, gicv3-its, numa: Adding numa node mapping for ITS
-Date: Tue, 20 Jun 2017 12:37:15 +0530
-Message-ID: <1497942437-1390-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+Subject: [PATCH v2 2/2] acpi, gicv3-its, numa: Adding numa node mapping for gic-its units
+Date: Tue, 20 Jun 2017 12:37:17 +0530
+Message-ID: <1497942437-1390-3-git-send-email-ganapatrao.kulkarni@cavium.com>
+References: <1497942437-1390-1-git-send-email-ganapatrao.kulkarni@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn3nam01on0076.outbound.protection.outlook.com ([104.47.33.76]:47424
+Received: from mail-bn3nam01on0068.outbound.protection.outlook.com ([104.47.33.68]:29463
         "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751135AbdFTHHy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 20 Jun 2017 03:07:54 -0400
+        id S1751135AbdFTHIP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 20 Jun 2017 03:08:15 -0400
+In-Reply-To: <1497942437-1390-1-git-send-email-ganapatrao.kulkarni@cavium.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: lv.zheng@intel.com, robert.moore@intel.com, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, tglx@linutronix.de, jason@lakedaemon.net, jnair@caviumnetworks.com, gpkulkarni@gmail.com
 
-ACPI 6.2 have added SRAT subtable to define proximity domain for ITS
-devices. This patchset updates acpi header file from acpica repo and
-adds numa node mapping for ITS devices.
+Add code to parse SRAT ITS Affinity sub table as defined in ACPI 6.2
+Later in per device probe, ITS devices are mapped to
+numa node using ITS id to proximity domain mapping.
 
-v2:
- - Incorporated comments from Lorenzo Pieralisi and Marc Zyngier.
-
-v1: first patch
-
-Ganapatrao Kulkarni (2):
-  ACPICA: ACPI 6.2: Add support for new SRAT subtable
-  acpi, gicv3-its, numa: Adding numa node mapping for gic-its units
-
+Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+---
  drivers/irqchip/irq-gic-v3-its.c | 76 +++++++++++++++++++++++++++++++++++++++-
- include/acpi/actbl1.h            | 12 ++++++-
- 2 files changed, 86 insertions(+), 2 deletions(-)
+ 1 file changed, 75 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+index 45ea1933..5865a75 100644
+--- a/drivers/irqchip/irq-gic-v3-its.c
++++ b/drivers/irqchip/irq-gic-v3-its.c
+@@ -1833,6 +1833,78 @@ static int __init its_of_probe(struct device_node *node)
+ 
+ #define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
+ 
++#ifdef CONFIG_ACPI_NUMA
++struct its_srat_map {
++	u32			numa_node;  /* numa node id */
++	u32			its_id;  /* GIC ITS ID */
++	struct list_head	entry;
++};
++
++static LIST_HEAD(its_srat_maps);
++
++static int acpi_get_its_numa_node(u32 its_id)
++{
++	struct its_srat_map *srat_map;
++
++	list_for_each_entry(srat_map, &its_srat_maps, entry) {
++		if (its_id == srat_map->its_id)
++			return srat_map->numa_node;
++	}
++	return NUMA_NO_NODE;
++}
++
++static int __init
++gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
++			 const unsigned long end)
++{
++	int pxm, node;
++	struct its_srat_map *srat_map;
++	struct acpi_srat_its_affinity *its_affinity;
++
++	its_affinity = (struct acpi_srat_its_affinity *)header;
++	if (!its_affinity)
++		return -EINVAL;
++
++	if (its_affinity->header.length <
++			sizeof(struct acpi_srat_its_affinity)) {
++		pr_err("SRAT:ITS: Invalid SRAT header length: %d\n",
++			its_affinity->header.length);
++		return -EINVAL;
++	}
++
++	pxm = its_affinity->proximity_domain;
++	node = acpi_map_pxm_to_node(pxm);
++
++	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
++		pr_err("SRAT:ITS Invalid numa node %d\n", node);
++		return -EINVAL;
++	}
++
++	srat_map = kzalloc(sizeof(*srat_map), GFP_KERNEL);
++	if (!srat_map)
++		return -ENOMEM;
++
++	srat_map->numa_node = node;
++	srat_map->its_id = its_affinity->its_id;
++	list_add(&srat_map->entry, &its_srat_maps);
++	pr_info("ACPI: NUMA: SRAT: ITS: PXM %d -> ITS_ID %d -> NODE %d\n",
++		srat_map->its_id, pxm, node);
++
++	return 0;
++}
++
++static int __init acpi_table_parse_srat_its(void)
++{
++	return acpi_table_parse_entries(ACPI_SIG_SRAT,
++					sizeof(struct acpi_table_srat),
++					ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
++					gic_acpi_parse_srat_its, 0);
++}
++#else
++#define acpi_table_parse_srat_its(void) { }
++#define acpi_get_its_numa_node(its_id) NUMA_NO_NODE
++#endif
++
+ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+ 					  const unsigned long end)
+ {
+@@ -1861,7 +1933,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+ 		goto dom_err;
+ 	}
+ 
+-	err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
++	err = its_probe_one(&res, dom_handle,
++			acpi_get_its_numa_node(its_entry->translation_id));
+ 	if (!err)
+ 		return 0;
+ 
+@@ -1873,6 +1946,7 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+ 
+ static void __init its_acpi_probe(void)
+ {
++	acpi_table_parse_srat_its();
+ 	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
+ 			      gic_acpi_parse_madt_its, 0);
+ }
 -- 
 1.8.1.4
 
