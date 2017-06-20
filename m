@@ -1,74 +1,63 @@
-From: <durrant@iupui.edu>
-Subject: (unknown)
-Date: Tue, 20 Jun 2017 00:47:21 -0000
-Message-ID: <149791964154.30695.2732332789824313012@myrepublic.com.sg>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 3/3] ACPI / sleep: EC-based wakeup from suspend-to-idle
+ on recent Dell systems
+Date: Tue, 20 Jun 2017 03:13:07 +0200
+Message-ID: <CAJZ5v0iH-nv3Ziu+JhcERit1oykmYxkPZE6j6zswL-LssnhQbQ@mail.gmail.com>
+References: <1979543.KIEJ8uyRaT@aspire.rjw.lan> <3454366.uzaJljlWGm@aspire.rjw.lan>
+ <3689795.xuIczRHZsl@aspire.rjw.lan> <2026371.DVJN39QYJi@aspire.rjw.lan> <CA+55aFwywLewxDenVcH1GxeigpS30B_+rvYh+=ff76EQpOcuOg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="1142760447.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 10-215-96-66.myrepublic.com.sg ([66.96.215.10]:53563 "HELO
-        myrepublic.com.sg" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1751963AbdFTAr3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jun 2017 20:47:29 -0400
-Content-Disposition: attachment
-Subject: 
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CA+55aFwywLewxDenVcH1GxeigpS30B_+rvYh+=ff76EQpOcuOg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>, Tom Lanyon <tom@oneshoeco.com>, =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-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
+On Tue, Jun 20, 2017 at 2:07 AM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Tue, Jun 20, 2017 at 5:53 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>
+>> -> v2: Added acpi_sleep=no_ec_wakeup to prevent EC events from waking up
+>>           the system from s2idle on systems where they do that by default.
+>
+> This seems a big hacky.
+>
+> Is there no way to simply make acpi_ec_suspend() smarter while going
+> to sleep? Instead of just unconditionally disabling every EC GPE, can
+> we see that "this gpe is the power botton" somehow?
+
+Unfortunately, the connection between the GPE and the power button is
+not direct.
+
+The EC GPE handler has no idea that it will generate power button
+events.  It simply executes an AML method doing that.
+
+The AML method, in turn, executes Notify(power button device) and the
+"power button device" driver has to register a notify handler that
+will recognize and process the events.  It doesn't know in principle
+where the events will come from, though.  They may come from the EC or
+from a different GPE etc.
+
+Neither the EC driver, nor the "power button device" driver can figure
+out that the connection is there.
+
+> Disabling the power button event sounds fundamentally broken, and it
+> sounds like Windows doesn't do that. I doubt Windows has some hacky
+> whitelist. So I'd rather fix a deeper issue than have these kinds of
+> hacks, if at all possible.
+
+My understanding is that Windows uses the ACPI_FADT_LOW_POWER_S0 flag.
+It generally enables non-S3 suspend/resume when this flag is set and
+it doesn't touch S3 then.  Keeping the EC GPE (and other GPEs for that
+matter) enabled over suspend/resume is part of that if my
+understanding is correct.
+
+During suspend we generally disable all GPEs that are not expected to
+generate wakeup events in order to avoid spurious wakeups, but we can
+try to keep them enabled if ACPI_FADT_LOW_POWER_S0 is set.  That will
+reduce the ugliness, but the cost may be more energy used while
+suspended on some systems.
+
+Thanks,
+Rafael
