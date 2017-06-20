@@ -1,47 +1,91 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH v2 3/3] ACPI / sleep: EC-based wakeup from suspend-to-idle
- on recent Dell systems
-Date: Tue, 20 Jun 2017 10:00:18 +0800
-Message-ID: <CA+55aFy1=pVbkKLH4p8prioOQ_Qb43ojM=8d9GsgXYWkaEN93A@mail.gmail.com>
-References: <1979543.KIEJ8uyRaT@aspire.rjw.lan> <3454366.uzaJljlWGm@aspire.rjw.lan>
- <3689795.xuIczRHZsl@aspire.rjw.lan> <2026371.DVJN39QYJi@aspire.rjw.lan>
- <CA+55aFwywLewxDenVcH1GxeigpS30B_+rvYh+=ff76EQpOcuOg@mail.gmail.com> <CAJZ5v0iH-nv3Ziu+JhcERit1oykmYxkPZE6j6zswL-LssnhQbQ@mail.gmail.com>
+From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
+Subject: Re: [PATCH v3 1/2] acpica: iort: Update SMMUv3 header for proximity
+ domain mapping
+Date: Tue, 20 Jun 2017 07:57:09 +0530
+Message-ID: <CAFpQJXVE8pfmbn5b+5ngiJ01OVLH-pLn7zhpzWX2+62SR1L_qA@mail.gmail.com>
+References: <1496897059-8272-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1496897059-8272-2-git-send-email-ganapatrao.kulkarni@cavium.com> <0d0d6cb6-7674-5751-d780-af5114ddd569@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0iH-nv3Ziu+JhcERit1oykmYxkPZE6j6zswL-LssnhQbQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>, Tom Lanyon <tom@oneshoeco.com>, =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:33844 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750869AbdFTC1K (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jun 2017 22:27:10 -0400
+In-Reply-To: <0d0d6cb6-7674-5751-d780-af5114ddd569@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, sudeep.holla@arm.com, Lv Zheng <lv.zheng@intel.com>, joro@8bytes.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jayachandran C <jnair@caviumnetworks.com>
 
-On Tue, Jun 20, 2017 at 9:13 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+On Mon, Jun 19, 2017 at 11:24 PM, Robin Murphy <robin.murphy@arm.com> wrote:
+> On 08/06/17 05:44, Ganapatrao Kulkarni wrote:
+>> ARM IORT specification (rev. C) has added two new fields to define
+>> proximity domain for the SMMUv3 node in the IORT table.
+>>
+>> Proximity Domain Valid:
+>>       Set to 1 if the value provided in the Proximity Domain field is
+>>       valid. Set to 0 otherwise.
+>>
+>> Proximity domain:
+>>       If the Proximity Domain Valid flag is set to 1, this entry
+>>       provides the proximity domain to which this SMMU
+>>       instance belongs.
+>>
+>> Update header file to reflect this.
+>>
+>> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+>> ---
+>>  include/acpi/actbl2.h | 4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+>> index 4b306a6..389e91f 100644
+>> --- a/include/acpi/actbl2.h
+>> +++ b/include/acpi/actbl2.h
+>> @@ -805,6 +805,9 @@ struct acpi_iort_smmu_v3 {
+>>       u32 pri_gsiv;
+>>       u32 gerr_gsiv;
+>>       u32 sync_gsiv;
+>> +     u8 pxm;
+>> +     u8 reserved1;
+>> +     u16 reserved2;
 >
-> My understanding is that Windows uses the ACPI_FADT_LOW_POWER_S0 flag.
-> It generally enables non-S3 suspend/resume when this flag is set and
-> it doesn't touch S3 then.  Keeping the EC GPE (and other GPEs for that
-> matter) enabled over suspend/resume is part of that if my
-> understanding is correct.
+> Why add the padding if you're not also adding the following field that
+> it aligns? (side note: could it not just be a u8[3]?)
+
+added to align as well to comply with  the spec.
+
 >
-> During suspend we generally disable all GPEs that are not expected to
-> generate wakeup events in order to avoid spurious wakeups, but we can
-> try to keep them enabled if ACPI_FADT_LOW_POWER_S0 is set.  That will
-> reduce the ugliness, but the cost may be more energy used while
-> suspended on some systems.
+> If the actual structure definition is changing, do there not need to be
+> corresponding IASL changes too?
 
-I think trying to do something similar to what windows does is likely
-the right thing, since that is (sadly) the only thing that tends to
-get extensive testing still.
+yes, it is been added and sent to acpica devel ML.
+https://lists.acpica.org/pipermail/devel/2017-June/001243.html
 
-Of course, different versions of Windows then probably do different
-things, but I guess ACPI_FADT_LOW_POWER_S0 ends up being a good sign
-of "new machine designed for windows 10", so it's probably a good
-thing to trigger that behavior on.
+>
+>>  };
+>>
+>>  /* Values for Model field above */
+>> @@ -817,6 +820,7 @@ struct acpi_iort_smmu_v3 {
+>>
+>>  #define ACPI_IORT_SMMU_V3_COHACC_OVERRIDE   (1)
+>>  #define ACPI_IORT_SMMU_V3_HTTU_OVERRIDE     (1<<1)
+>> +#define ACPI_IORT_SMMU_V3_PXM_VALID         (1<<3)
+>
+> Maybe it's just me, but "PXM" seems incredibly cryptic.
 
-So I suspect it's worth testing, particularly if we're going to be in
-the situation that a lot of machines are going to do this going
-forward (ie the "all Dell" may end up being more than just Dell too?
-Dell usually doesn't do particularly odd and out-of-the-norm design
-choices like some vendors do).
+PXM stands for proximity(refer ACPI spec)
+it is widely used in spec and also in Linux kernel.
 
-              Linus
+>
+> Robin.
+>
+>>
+>>  /*******************************************************************************
+>>   *
+>>
+>
+
+thanks
+Ganapat
