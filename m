@@ -1,56 +1,48 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v7 1/3] ACPI/IORT: Fixup SMMUv3 resource size for Cavium
- ThunderX2 SMMUv3 model
-Date: Tue, 20 Jun 2017 11:31:46 +0100
-Message-ID: <20170620103146.GB26908@red-moon>
-References: <1496145821-3411-1-git-send-email-gakula@caviumnetworks.com>
- <1496145821-3411-2-git-send-email-gakula@caviumnetworks.com>
- <20170620081943.GT658@rric.localdomain>
- <20170620085123.GF16981@rric.localdomain>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH 2/7] dt-bindings: PCI: Describe ATS property for root
+	complex nodes
+Date: Tue, 20 Jun 2017 12:38:26 +0100
+Message-ID: <1754b317-767e-7afd-5608-6ef6ea80a162@arm.com>
+References: <20170524180143.19855-1-jean-philippe.brucker@arm.com>
+	<20170524180143.19855-3-jean-philippe.brucker@arm.com>
+	<20170531172320.3u6bdctv44aqighy@rob-hp-laptop>
+	<cd63a2dc-8259-482d-19e9-9db60be866f7@arm.com>
+	<20170605172025.qgnocl5ytexnklue@rob-hp-laptop>
+	<65aea93f-d516-f045-f216-3f56e96bdeb6@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35970 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750992AbdFTKaW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 20 Jun 2017 06:30:22 -0400
-Content-Disposition: inline
-In-Reply-To: <20170620085123.GF16981@rric.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <65aea93f-d516-f045-f216-3f56e96bdeb6-5wv7dgnIgG8@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, thunder.leizhen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, sunil.kovvuri-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Richter <robert.richter@cavium.com>
-Cc: Geetha sowjanya <gakula@caviumnetworks.com>, rjw@rjwysocki.net, robert.moore@intel.com, will.deacon@arm.com, robin.murphy@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, lv.zheng@intel.com, jcm@redhat.com, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, devel@acpica.org, linu.cherian@cavium.com, Charles.Garcia-Tobin@arm.com, robh@kernel.org, Geetha Sowjanya <geethasowjanya.akula@cavium.com>
 
-On Tue, Jun 20, 2017 at 10:51:23AM +0200, Robert Richter wrote:
-> On 20.06.17 10:19:43, Robert Richter wrote:
-> > On 30.05.17 17:33:39, Geetha sowjanya wrote:
-> > > From: Linu Cherian <linu.cherian@cavium.com>
+On 06/06/2017 12:11 PM, Jean-Philippe Brucker wrote:
+> On 05/06/17 18:20, Rob Herring wrote:
+>> pci-host-{e,}cam-generic is a special case. I'm okay with having a 
+>> property for that I suppose. We should not require this property though 
+>> and allow for it to be implied by the SoC specific compatible as well.
 > 
-> > > +	/*
-> > > +	 * Override the size, for Cavium ThunderX2 implementation
-> > > +	 * which doesn't support the page 1 SMMU register space.
-> > > +	 */
-> > > +	if (smmu->model == ACPI_IORT_SMMU_CAVIUM_CN99XX)
-> > 
-> > Geetha,
-> > 
-> > please resubmit the series since the macro changed to
-> > ACPI_IORT_SMMU_V3_CAVIUM_CN99XX:
-> > 
-> >  https://github.com/acpica/acpica/commit/d00a4eb86e64bb4fa70f57ab5e5ca0a4ca2ad8ef#diff-a572aac2ccc26fe4a901616d7fdba859R1053
-> 
-> Rafael, Bob,
-> 
-> btw, I haven't seen
-> 
->  https://github.com/acpica/acpica/commit/d00a4eb86e64
-> 
-> yet in linux-pm:linux-next. We would like to see this in 4.13 also. Is
-> it on the way already?
+> The property isn't useful for host-generic since a host like Qemu can
+> easily disable ATS in the IOMMU. It would only be here for consistency.
+> Changing IOMMU registers wouldn't be as simple for a firmware running on
+> real hardware.
 
-Yes it would be great to understand how we can make sure IORT and
-related ACPICA changes can be kept in sync for this merge window, it
-is -rc6 already so it is getting a bit late in the cycle.
+Sorry I was mistaken here. AMD Seattle hardware, for instance, implements
+a pure host-ecam-generic. So it's not exclusively used by Qemu. A quick
+search in the kernel also brings up alpine and thunder2. So I guess I'll
+move ats-supported documentation to host-generic-pci.txt.
 
 Thanks,
-Lorenzo
+Jean
