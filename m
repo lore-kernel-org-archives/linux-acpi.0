@@ -1,48 +1,40 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH 2/7] dt-bindings: PCI: Describe ATS property for root
-	complex nodes
-Date: Tue, 20 Jun 2017 12:38:26 +0100
-Message-ID: <1754b317-767e-7afd-5608-6ef6ea80a162@arm.com>
-References: <20170524180143.19855-1-jean-philippe.brucker@arm.com>
-	<20170524180143.19855-3-jean-philippe.brucker@arm.com>
-	<20170531172320.3u6bdctv44aqighy@rob-hp-laptop>
-	<cd63a2dc-8259-482d-19e9-9db60be866f7@arm.com>
-	<20170605172025.qgnocl5ytexnklue@rob-hp-laptop>
-	<65aea93f-d516-f045-f216-3f56e96bdeb6@arm.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v7.2 7/7] device property: Get rid of struct
+ fwnode_handle type field
+Date: Tue, 20 Jun 2017 15:03:34 +0300
+Message-ID: <20170620120334.GX629@lahna.fi.intel.com>
+References: <1497354548-17502-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497948596-1009-1-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <65aea93f-d516-f045-f216-3f56e96bdeb6-5wv7dgnIgG8@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, thunder.leizhen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, sunil.kovvuri-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:56074 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750884AbdFTMFt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 20 Jun 2017 08:05:49 -0400
+Content-Disposition: inline
+In-Reply-To: <1497948596-1009-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com
 
-On 06/06/2017 12:11 PM, Jean-Philippe Brucker wrote:
-> On 05/06/17 18:20, Rob Herring wrote:
->> pci-host-{e,}cam-generic is a special case. I'm okay with having a 
->> property for that I suppose. We should not require this property though 
->> and allow for it to be implied by the SoC specific compatible as well.
+On Tue, Jun 20, 2017 at 11:49:56AM +0300, Sakari Ailus wrote:
+> Instead of relying on the struct fwnode_handle type field, define
+> fwnode_operations structs for all separate types of fwnodes. To find out
+> the type, compare to the ops field to relevant ops structs.
 > 
-> The property isn't useful for host-generic since a host like Qemu can
-> easily disable ATS in the IOMMU. It would only be here for consistency.
-> Changing IOMMU registers wouldn't be as simple for a firmware running on
-> real hardware.
+> This change has two benefits:
+> 
+> 1. it avoids adding the type field to each and every instance of struct
+> fwnode_handle, thus saving memory and
+> 
+> 2. makes the ops field the single factor that defines both the types of
+> the fwnode as well as defines the implementation of its operations,
+> decreasing the possibility of bugs when developing code dealing with
+> fwnode internals.
+> 
+> Suggested-by: Rob Herring <robh@kernel.org>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Sorry I was mistaken here. AMD Seattle hardware, for instance, implements
-a pure host-ecam-generic. So it's not exclusively used by Qemu. A quick
-search in the kernel also brings up alpine and thunder2. So I guess I'll
-move ats-supported documentation to host-generic-pci.txt.
-
-Thanks,
-Jean
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
