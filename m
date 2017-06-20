@@ -1,76 +1,211 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v8 1/3] ACPI/IORT: Fixup SMMUv3 resource size for Cavium
-	ThunderX2 SMMUv3 model
-Date: Tue, 20 Jun 2017 20:27:47 +0100
-Message-ID: <20170620192747.GA30990@red-moon>
-References: <1497968259-16390-1-git-send-email-gakula@caviumnetworks.com>
-	<1497968259-16390-2-git-send-email-gakula@caviumnetworks.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 3/4] randstruct: Disable randomization of ACPICA structs
+Date: Tue, 20 Jun 2017 13:35:49 -0700
+Message-ID: <20170620203549.GA4049@infradead.org>
+References: <1497905801-69164-1-git-send-email-keescook@chromium.org>
+ <1497905801-69164-4-git-send-email-keescook@chromium.org>
+ <20170620065631.GA25354@infradead.org>
+ <CAGXu5jLkvqbV1=xGrvwLZPiAbswA6M5C3BB0M5MytRabLtEfLg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([65.50.211.133]:44457 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751041AbdFTUfv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jun 2017 16:35:51 -0400
 Content-Disposition: inline
-In-Reply-To: <1497968259-16390-2-git-send-email-gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, sudeep.holla-5wv7dgnIgG8@public.gmane.org, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+In-Reply-To: <CAGXu5jLkvqbV1=xGrvwLZPiAbswA6M5C3BB0M5MytRabLtEfLg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: Christoph Hellwig <hch@infradead.org>, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Tue, Jun 20, 2017 at 07:47:37PM +0530, Geetha sowjanya wrote:
-> From: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> 
-> Cavium ThunderX2 implementation doesn't support second page in SMMU
-> register space. Hence, resource size is set as 64k for this model.
-> 
-> Signed-off-by: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/acpi/arm64/iort.c |   15 ++++++++++++++-
->  1 files changed, 14 insertions(+), 1 deletions(-)
+On Tue, Jun 20, 2017 at 12:25:53PM -0700, Kees Cook wrote:
+> Can you send the patch to https://github.com/acpica/acpica ? My change
+> was finally accepted, so this whole issue will go away on the next
+> refresh. Until then, I don't want to block the entire automatic
+> structure selection logic of randstruct on a three-function table. :)
 
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+I do not have a github account and no such thing is required for kernel
+development.
 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index c5fecf9..c166f3e 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -828,6 +828,18 @@ static int __init arm_smmu_v3_count_resources(struct acpi_iort_node *node)
->  	return num_res;
->  }
->  
-> +static unsigned long arm_smmu_v3_resource_size(struct acpi_iort_smmu_v3 *smmu)
-> +{
-> +	/*
-> +	 * Override the size, for Cavium ThunderX2 implementation
-> +	 * which doesn't support the page 1 SMMU register space.
-> +	 */
-> +	if (smmu->model == ACPI_IORT_SMMU_V3_CAVIUM_CN99XX)
-> +		return SZ_64K;
-> +
-> +	return SZ_128K;
-> +}
-> +
->  static void __init arm_smmu_v3_init_resources(struct resource *res,
->  					      struct acpi_iort_node *node)
->  {
-> @@ -838,7 +850,8 @@ static void __init arm_smmu_v3_init_resources(struct resource *res,
->  	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
->  
->  	res[num_res].start = smmu->base_address;
-> -	res[num_res].end = smmu->base_address + SZ_128K - 1;
-> +	res[num_res].end = smmu->base_address +
-> +				arm_smmu_v3_resource_size(smmu) - 1;
->  	res[num_res].flags = IORESOURCE_MEM;
->  
->  	num_res++;
-> -- 
-> 1.7.1
-> 
+I've already CCed the ACPI maintainer the last time I sent the patch,
+and I would much prefer if they'd just include it to play silly games.
+Ccing them and Linus once again to sort this process mess out.
+
+> Given that it's a tiny exclusion for randstruct, and there is already
+> a path in motion to fix it, I think this patch is trivial and
+> sufficient.
+
+But it's pointless - just do the right thing.
+
+---
+>From e8046f6507c2ed60bc501a0c0caa5a3f15f5e3e4 Mon Sep 17 00:00:00 2001
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 28 May 2017 09:53:45 +0300
+Subject: acpi: get rid of acpi_sleep_dispatch
+
+No need for the array of structs of function pointers when we can just
+call the handfull of functions directly.
+
+This could be further cleaned up if acpi_gbl_reduced_hardware was defined
+true in the ACPI_REDUCED_HARDWARE case, but that's material for the next
+round.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/acpi/acpica/hwxfsleep.c | 89 +++++++++--------------------------------
+ include/acpi/actypes.h          |  9 -----
+ 2 files changed, 18 insertions(+), 80 deletions(-)
+
+diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
+index 5733b1167e46..66fa3ebddd57 100644
+--- a/drivers/acpi/acpica/hwxfsleep.c
++++ b/drivers/acpi/acpica/hwxfsleep.c
+@@ -57,26 +57,6 @@ acpi_hw_set_firmware_waking_vector(struct acpi_table_facs *facs,
+ 				   acpi_physical_address physical_address64);
+ #endif
+ 
+-static acpi_status acpi_hw_sleep_dispatch(u8 sleep_state, u32 function_id);
+-
+-/*
+- * Dispatch table used to efficiently branch to the various sleep
+- * functions.
+- */
+-#define ACPI_SLEEP_FUNCTION_ID         0
+-#define ACPI_WAKE_PREP_FUNCTION_ID     1
+-#define ACPI_WAKE_FUNCTION_ID          2
+-
+-/* Legacy functions are optional, based upon ACPI_REDUCED_HARDWARE */
+-
+-static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
+-	{ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_sleep),
+-	 acpi_hw_extended_sleep},
+-	{ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake_prep),
+-	 acpi_hw_extended_wake_prep},
+-	{ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake), acpi_hw_extended_wake}
+-};
+-
+ /*
+  * These functions are removed for the ACPI_REDUCED_HARDWARE case:
+  *      acpi_set_firmware_waking_vector
+@@ -236,53 +216,6 @@ acpi_status acpi_enter_sleep_state_s4bios(void)
+ 
+ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state_s4bios)
+ #endif				/* !ACPI_REDUCED_HARDWARE */
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_hw_sleep_dispatch
+- *
+- * PARAMETERS:  sleep_state         - Which sleep state to enter/exit
+- *              function_id         - Sleep, wake_prep, or Wake
+- *
+- * RETURN:      Status from the invoked sleep handling function.
+- *
+- * DESCRIPTION: Dispatch a sleep/wake request to the appropriate handling
+- *              function.
+- *
+- ******************************************************************************/
+-static acpi_status acpi_hw_sleep_dispatch(u8 sleep_state, u32 function_id)
+-{
+-	acpi_status status;
+-	struct acpi_sleep_functions *sleep_functions =
+-	    &acpi_sleep_dispatch[function_id];
+-
+-#if (!ACPI_REDUCED_HARDWARE)
+-	/*
+-	 * If the Hardware Reduced flag is set (from the FADT), we must
+-	 * use the extended sleep registers (FADT). Note: As per the ACPI
+-	 * specification, these extended registers are to be used for HW-reduced
+-	 * platforms only. They are not general-purpose replacements for the
+-	 * legacy PM register sleep support.
+-	 */
+-	if (acpi_gbl_reduced_hardware) {
+-		status = sleep_functions->extended_function(sleep_state);
+-	} else {
+-		/* Legacy sleep */
+-
+-		status = sleep_functions->legacy_function(sleep_state);
+-	}
+-
+-	return (status);
+-
+-#else
+-	/*
+-	 * For the case where reduced-hardware-only code is being generated,
+-	 * we know that only the extended sleep registers are available
+-	 */
+-	status = sleep_functions->extended_function(sleep_state);
+-	return (status);
+-
+-#endif				/* !ACPI_REDUCED_HARDWARE */
+-}
+ 
+ /*******************************************************************************
+  *
+@@ -389,7 +322,12 @@ acpi_status acpi_enter_sleep_state(u8 sleep_state)
+ 		return_ACPI_STATUS(AE_AML_OPERAND_VALUE);
+ 	}
+ 
+-	status = acpi_hw_sleep_dispatch(sleep_state, ACPI_SLEEP_FUNCTION_ID);
++#if !ACPI_REDUCED_HARDWARE
++	if (!acpi_gbl_reduced_hardware)
++		status = acpi_hw_legacy_sleep(sleep_state);
++	else
++#endif
++		status = acpi_hw_extended_sleep(sleep_state);
+ 	return_ACPI_STATUS(status);
+ }
+ 
+@@ -415,8 +353,12 @@ acpi_status acpi_leave_sleep_state_prep(u8 sleep_state)
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state_prep);
+ 
+-	status =
+-	    acpi_hw_sleep_dispatch(sleep_state, ACPI_WAKE_PREP_FUNCTION_ID);
++#if !ACPI_REDUCED_HARDWARE
++	if (!acpi_gbl_reduced_hardware)
++		status = acpi_hw_legacy_wake_prep(sleep_state);
++	else
++#endif
++		status = acpi_hw_extended_wake_prep(sleep_state);
+ 	return_ACPI_STATUS(status);
+ }
+ 
+@@ -440,7 +382,12 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state);
+ 
+-	status = acpi_hw_sleep_dispatch(sleep_state, ACPI_WAKE_FUNCTION_ID);
++#if !ACPI_REDUCED_HARDWARE
++	if (!acpi_gbl_reduced_hardware)
++		status = acpi_hw_legacy_wake(sleep_state);
++	else
++#endif
++		status = acpi_hw_extended_wake(sleep_state);
+ 	return_ACPI_STATUS(status);
+ }
+ 
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index d549e31c6d18..cfcb3abc65b9 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -894,15 +894,6 @@ typedef u8 acpi_adr_space_type;
+ #define ACPI_ENABLE_EVENT                       1
+ #define ACPI_DISABLE_EVENT                      0
+ 
+-/* Sleep function dispatch */
+-
+-typedef acpi_status (*acpi_sleep_function) (u8 sleep_state);
+-
+-struct acpi_sleep_functions {
+-	acpi_sleep_function legacy_function;
+-	acpi_sleep_function extended_function;
+-};
+-
+ /*
+  * External ACPI object definition
+  */
+-- 
+2.11.0
+
