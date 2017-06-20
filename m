@@ -1,178 +1,149 @@
-From: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v8 3/3] iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2
-	erratum #126
-Date: Tue, 20 Jun 2017 19:47:39 +0530
-Message-ID: <1497968259-16390-4-git-send-email-gakula@caviumnetworks.com>
-References: <1497968259-16390-1-git-send-email-gakula@caviumnetworks.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 2/2] acpi, gicv3-its, numa: Adding numa node mapping
+ for gic-its units
+Date: Tue, 20 Jun 2017 16:17:33 +0100
+Message-ID: <20170620151733.GC11351@red-moon>
+References: <1497942437-1390-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1497942437-1390-3-git-send-email-ganapatrao.kulkarni@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1497968259-16390-1-git-send-email-gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: will.deacon-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1497942437-1390-3-git-send-email-ganapatrao.kulkarni@cavium.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+Cc: linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lv.zheng@intel.com, robert.moore@intel.com, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, tglx@linutronix.de, jason@lakedaemon.net, jnair@caviumnetworks.com, gpkulkarni@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Hi Ganapatrao,
 
-Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
-lines for gerror, eventq and cmdq-sync.
+On Tue, Jun 20, 2017 at 12:37:17PM +0530, Ganapatrao Kulkarni wrote:
+> Add code to parse SRAT ITS Affinity sub table as defined in ACPI 6.2
+> Later in per device probe, ITS devices are mapped to
+> numa node using ITS id to proximity domain mapping.
+> 
+> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+> ---
+>  drivers/irqchip/irq-gic-v3-its.c | 76 +++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 75 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+> index 45ea1933..5865a75 100644
+> --- a/drivers/irqchip/irq-gic-v3-its.c
+> +++ b/drivers/irqchip/irq-gic-v3-its.c
+> @@ -1833,6 +1833,78 @@ static int __init its_of_probe(struct device_node *node)
+>  
+>  #define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
+>  
+> +#ifdef CONFIG_ACPI_NUMA
+> +struct its_srat_map {
+> +	u32			numa_node;  /* numa node id */
+> +	u32			its_id;  /* GIC ITS ID */
+> +	struct list_head	entry;
+> +};
+> +
+> +static LIST_HEAD(its_srat_maps);
+> +
+> +static int acpi_get_its_numa_node(u32 its_id)
+> +{
+> +	struct its_srat_map *srat_map;
+> +
+> +	list_for_each_entry(srat_map, &its_srat_maps, entry) {
+> +		if (its_id == srat_map->its_id)
+> +			return srat_map->numa_node;
+> +	}
+> +	return NUMA_NO_NODE;
+> +}
 
-SHARED_IRQ option is set as a errata workaround, which allows to share the irq
-line by register single irq handler for all the interrupts.
+I do not want to come across as pedantic and I understand that the API
+to parse static ACPI tables sucks (ie in theory you could avoid stashing
+nodes altogether and just use a global variable to parse an ITS ID at
+a time but it sucks to go through the SRAT multiple times) but would not
+it be easier to just declare an __initdata static array and counter and
+be done with this ? We do not need this stuff after boot so I do not see
+a point in keeping it in memory and in allocating the nodes dynamically.
 
-Signed-off-by: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
----
- .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    5 ++
- drivers/iommu/arm-smmu-v3.c                        |   73 ++++++++++++++++----
- 2 files changed, 64 insertions(+), 14 deletions(-)
+Apologies if I was not clear in my comments to the previous set, I did
+not like stashing ITS PXM values in arch/arm64 code but I understand you
+need an array (__initdata) to avoid reading the SRAT multiple times.
 
-diff --git a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-index 6ecc48c..44b40e0 100644
---- a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-+++ b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-@@ -55,6 +55,11 @@ the PCIe specification.
- 		      Set for Caviun ThunderX2 silicon that doesn't support
- 		      SMMU page1 register space.
- 
-+- cavium,cn9900-broken-unique-irqline
-+                    : Use single irq line for all the SMMUv3 interrupts.
-+		      Set for Caviun ThunderX2 silicon that doesn't support
-+		      MSI and also doesn't have unique irq lines for gerror,
-+		      eventq and cmdq-sync.
- ** Example
- 
-         smmu@2b400000 {
-diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index 2dea4a9..6c0c632 100644
---- a/drivers/iommu/arm-smmu-v3.c
-+++ b/drivers/iommu/arm-smmu-v3.c
-@@ -598,6 +598,7 @@ struct arm_smmu_device {
- 
- #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
- #define ARM_SMMU_OPT_PAGE0_REGS_ONLY	(1 << 1)
-+#define ARM_SMMU_OPT_SHARED_IRQ	(1 << 2)
- 	u32				options;
- 
- 	struct arm_smmu_cmdq		cmdq;
-@@ -665,6 +666,7 @@ struct arm_smmu_option_prop {
- static struct arm_smmu_option_prop arm_smmu_options[] = {
- 	{ ARM_SMMU_OPT_SKIP_PREFETCH, "hisilicon,broken-prefetch-cmd" },
- 	{ ARM_SMMU_OPT_PAGE0_REGS_ONLY, "cavium,cn9900-broken-page1-regspace"},
-+	{ ARM_SMMU_OPT_SHARED_IRQ, "cavium,cn9900-broken-unique-irqline"},
- 	{ 0, NULL},
- };
- 
-@@ -1313,6 +1315,21 @@ static irqreturn_t arm_smmu_gerror_handler(int irq, void *dev)
- 	writel(gerror, smmu->base + ARM_SMMU_GERRORN);
- 	return IRQ_HANDLED;
- }
-+/* Shared irq handler*/
-+static irqreturn_t arm_smmu_shared_irq_thread(int irq, void *dev)
-+{
-+	struct arm_smmu_device *smmu = dev;
-+	irqreturn_t ret;
-+
-+	ret = arm_smmu_gerror_handler(irq, dev);
-+	if (ret == IRQ_NONE) {
-+		arm_smmu_evtq_thread(irq, dev);
-+		arm_smmu_cmdq_sync_handler(irq, dev);
-+		if (smmu->features & ARM_SMMU_FEAT_PRI)
-+			arm_smmu_priq_thread(irq, dev);
-+	}
-+	return IRQ_HANDLED;
-+}
- 
- /* IO_PGTABLE API */
- static void __arm_smmu_tlb_sync(struct arm_smmu_device *smmu)
-@@ -2230,18 +2247,9 @@ static void arm_smmu_setup_msis(struct arm_smmu_device *smmu)
- 	devm_add_action(dev, arm_smmu_free_msis, dev);
- }
- 
--static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
-+static void arm_smmu_setup_unique_irqs(struct arm_smmu_device *smmu)
- {
--	int ret, irq;
--	u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
--
--	/* Disable IRQs first */
--	ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
--				      ARM_SMMU_IRQ_CTRLACK);
--	if (ret) {
--		dev_err(smmu->dev, "failed to disable irqs\n");
--		return ret;
--	}
-+	int irq, ret;
- 
- 	arm_smmu_setup_msis(smmu);
- 
-@@ -2284,10 +2292,46 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
- 			if (ret < 0)
- 				dev_warn(smmu->dev,
- 					 "failed to enable priq irq\n");
--			else
--				irqen_flags |= IRQ_CTRL_PRIQ_IRQEN;
- 		}
- 	}
-+}
-+
-+static void arm_smmu_setup_shared_irqs(struct arm_smmu_device *smmu)
-+{
-+	int ret, irq;
-+
-+	/* Single irq is used for all queues, request single interrupt lines */
-+	irq = smmu->evtq.q.irq;
-+	if (irq) {
-+		ret = devm_request_threaded_irq(smmu->dev, irq, NULL,
-+					arm_smmu_shared_irq_thread,
-+					IRQF_ONESHOT | IRQF_SHARED,
-+					"arm-smmu-v3-shared_irq", smmu);
-+		if (ret < 0)
-+			dev_warn(smmu->dev, "failed to enable shared irq\n");
-+	}
-+}
-+
-+static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
-+{
-+	int ret;
-+	u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
-+
-+	/* Disable IRQs first */
-+	ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
-+				      ARM_SMMU_IRQ_CTRLACK);
-+	if (ret) {
-+		dev_err(smmu->dev, "failed to disable irqs\n");
-+		return ret;
-+	}
-+
-+	if (smmu->options & ARM_SMMU_OPT_SHARED_IRQ)
-+		arm_smmu_setup_shared_irqs(smmu);
-+	else
-+		arm_smmu_setup_unique_irqs(smmu);
-+
-+	if (smmu->features & ARM_SMMU_FEAT_PRI)
-+		irqen_flags |= IRQ_CTRL_PRIQ_IRQEN;
- 
- 	/* Enable interrupt generation on the SMMU */
- 	ret = arm_smmu_write_reg_sync(smmu, irqen_flags,
-@@ -2622,7 +2666,8 @@ static int arm_smmu_device_hw_probe(struct arm_smmu_device *smmu)
- static void acpi_smmu_get_options(u32 model, struct arm_smmu_device *smmu)
- {
- 	if (model == ACPI_IORT_SMMU_V3_CAVIUM_CN99XX)
--		smmu->options |= ARM_SMMU_OPT_PAGE0_REGS_ONLY;
-+		smmu->options |= ARM_SMMU_OPT_PAGE0_REGS_ONLY
-+				| ARM_SMMU_OPT_SHARED_IRQ;
- 
- 	dev_notice(smmu->dev, "option mask 0x%x\n", smmu->options);
- }
--- 
-1.7.1
+Thanks,
+Lorenzo
+
+> +
+> +static int __init
+> +gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+> +			 const unsigned long end)
+> +{
+> +	int pxm, node;
+> +	struct its_srat_map *srat_map;
+> +	struct acpi_srat_its_affinity *its_affinity;
+> +
+> +	its_affinity = (struct acpi_srat_its_affinity *)header;
+> +	if (!its_affinity)
+> +		return -EINVAL;
+> +
+> +	if (its_affinity->header.length <
+> +			sizeof(struct acpi_srat_its_affinity)) {
+> +		pr_err("SRAT:ITS: Invalid SRAT header length: %d\n",
+> +			its_affinity->header.length);
+> +		return -EINVAL;
+> +	}
+> +
+> +	pxm = its_affinity->proximity_domain;
+> +	node = acpi_map_pxm_to_node(pxm);
+> +
+> +	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
+> +		pr_err("SRAT:ITS Invalid numa node %d\n", node);
+> +		return -EINVAL;
+> +	}
+> +
+> +	srat_map = kzalloc(sizeof(*srat_map), GFP_KERNEL);
+> +	if (!srat_map)
+> +		return -ENOMEM;
+> +
+> +	srat_map->numa_node = node;
+> +	srat_map->its_id = its_affinity->its_id;
+> +	list_add(&srat_map->entry, &its_srat_maps);
+> +	pr_info("ACPI: NUMA: SRAT: ITS: PXM %d -> ITS_ID %d -> NODE %d\n",
+> +		srat_map->its_id, pxm, node);
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init acpi_table_parse_srat_its(void)
+> +{
+> +	return acpi_table_parse_entries(ACPI_SIG_SRAT,
+> +					sizeof(struct acpi_table_srat),
+> +					ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
+> +					gic_acpi_parse_srat_its, 0);
+> +}
+> +#else
+> +#define acpi_table_parse_srat_its(void) { }
+> +#define acpi_get_its_numa_node(its_id) NUMA_NO_NODE
+> +#endif
+> +
+>  static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>  					  const unsigned long end)
+>  {
+> @@ -1861,7 +1933,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>  		goto dom_err;
+>  	}
+>  
+> -	err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
+> +	err = its_probe_one(&res, dom_handle,
+> +			acpi_get_its_numa_node(its_entry->translation_id));
+>  	if (!err)
+>  		return 0;
+>  
+> @@ -1873,6 +1946,7 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>  
+>  static void __init its_acpi_probe(void)
+>  {
+> +	acpi_table_parse_srat_its();
+>  	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
+>  			      gic_acpi_parse_madt_its, 0);
+>  }
+> -- 
+> 1.8.1.4
+> 
