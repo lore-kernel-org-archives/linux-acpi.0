@@ -1,56 +1,61 @@
-From: Robert Richter <robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v7 1/3] ACPI/IORT: Fixup SMMUv3 resource size for Cavium
-	ThunderX2 SMMUv3 model
-Date: Tue, 20 Jun 2017 10:51:23 +0200
-Message-ID: <20170620085123.GF16981@rric.localdomain>
-References: <1496145821-3411-1-git-send-email-gakula@caviumnetworks.com>
-	<1496145821-3411-2-git-send-email-gakula@caviumnetworks.com>
-	<20170620081943.GT658@rric.localdomain>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v7.1 7/7] device property: Get rid of struct
+ fwnode_handle type field
+Date: Tue, 20 Jun 2017 11:51:51 +0300
+Message-ID: <20170620085150.GZ12407@valkosipuli.retiisi.org.uk>
+References: <1496741861-8240-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497354548-17502-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20170618065853.GO629@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46538 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751082AbdFTIwE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 20 Jun 2017 04:52:04 -0400
 Content-Disposition: inline
-In-Reply-To: <20170620081943.GT658-vWBEXY7mpu582hYKe6nXyg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, sudeep.holla-5wv7dgnIgG8@public.gmane.org, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+In-Reply-To: <20170618065853.GO629@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com
 
-On 20.06.17 10:19:43, Robert Richter wrote:
-> On 30.05.17 17:33:39, Geetha sowjanya wrote:
-> > From: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-
-> > +	/*
-> > +	 * Override the size, for Cavium ThunderX2 implementation
-> > +	 * which doesn't support the page 1 SMMU register space.
-> > +	 */
-> > +	if (smmu->model == ACPI_IORT_SMMU_CAVIUM_CN99XX)
+On Sun, Jun 18, 2017 at 09:58:53AM +0300, Mika Westerberg wrote:
+> On Tue, Jun 13, 2017 at 02:49:08PM +0300, Sakari Ailus wrote:
+> > +#define DECLARE_ACPI_FWNODE_OPS(ops) \
+> > +	const struct fwnode_operations ops = { \
+> > +		.device_is_available = acpi_fwnode_device_is_available, \
+> > +		.property_present = acpi_fwnode_property_present, \
+> > +		.property_read_int_array = \
+> > +			acpi_fwnode_property_read_int_array, \
+> > +		.property_read_string_array = \
+> > +			acpi_fwnode_property_read_string_array, \
+> > +		.get_parent = acpi_node_get_parent, \
+> > +		.get_next_child_node = acpi_get_next_subnode, \
+> > +		.get_named_child_node = acpi_fwnode_get_named_child_node, \
+> > +		.graph_get_next_endpoint = \
+> > +			acpi_fwnode_graph_get_next_endpoint, \
+> > +		.graph_get_remote_endpoint = \
+> > +			acpi_fwnode_graph_get_remote_endpoint, \
+> > +		.graph_get_port_parent = acpi_node_get_parent, \
+> > +		.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint, \
+> > +	}; \
+> > +	EXPORT_SYMBOL_GPL(ops)
 > 
-> Geetha,
+> Can you align those backslashes, like
 > 
-> please resubmit the series since the macro changed to
-> ACPI_IORT_SMMU_V3_CAVIUM_CN99XX:
+> 	const struct fwnode_operations ops = { 				\
+> 		.device_is_available = acpi_fwnode_device_is_available, \
+> 		.property_present = acpi_fwnode_property_present,	\
+> 		...
 > 
->  https://github.com/acpica/acpica/commit/d00a4eb86e64bb4fa70f57ab5e5ca0a4ca2ad8ef#diff-a572aac2ccc26fe4a901616d7fdba859R1053
+> other than that the patch looks good.
 
-Rafael, Bob,
+Thanks for the review.
 
-btw, I haven't seen
+Fixed in v7.2.
 
- https://github.com/acpica/acpica/commit/d00a4eb86e64
-
-yet in linux-pm:linux-next. We would like to see this in 4.13 also. Is
-it on the way already?
-
-Thanks,
-
--Robert
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
