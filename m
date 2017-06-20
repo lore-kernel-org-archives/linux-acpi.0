@@ -1,91 +1,99 @@
-From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
-Subject: Re: [PATCH v3 1/2] acpica: iort: Update SMMUv3 header for proximity
- domain mapping
-Date: Tue, 20 Jun 2017 07:57:09 +0530
-Message-ID: <CAFpQJXVE8pfmbn5b+5ngiJ01OVLH-pLn7zhpzWX2+62SR1L_qA@mail.gmail.com>
-References: <1496897059-8272-1-git-send-email-ganapatrao.kulkarni@cavium.com>
- <1496897059-8272-2-git-send-email-ganapatrao.kulkarni@cavium.com> <0d0d6cb6-7674-5751-d780-af5114ddd569@arm.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID
+ switch exported by ACPI
+Date: Tue, 20 Jun 2017 02:45:09 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CED1C41@SHSMSX101.ccr.corp.intel.com>
+References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
+         <20170607074848.GE27006@gardel-login>
+         <20170613100617.GD29589@mail.corp.redhat.com>
+         <1AE640813FDE7649BE1B193DEA596E886CED0386@SHSMSX101.ccr.corp.intel.com>
+         <20170615064715.GA6195@jelly>
+         <1AE640813FDE7649BE1B193DEA596E886CED047B@SHSMSX101.ccr.corp.intel.com>
+         <20170615075755.GA10001@jelly>
+         <1AE640813FDE7649BE1B193DEA596E886CED0A03@SHSMSX101.ccr.corp.intel.com>
+         <20170616072322.GL5085@mail.corp.redhat.com>
+         <1AE640813FDE7649BE1B193DEA596E886CED0AC1@SHSMSX101.ccr.corp.intel.com>
+         <20170616080950.GM5085@mail.corp.redhat.com>
+         <1AE640813FDE7649BE1B193DEA596E886CED0C5E@SHSMSX101.ccr.corp.intel.com>
+         <33C872C7-EFB2-4CA0-8CAD-8B6E8916180C@hadess.net>
+         <1AE640813FDE7649BE1B193DEA596E886CED1419@SHSMSX101.ccr.corp.intel.com>
+ <1497910127.2559.1.camel@hadess.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:33844 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750869AbdFTC1K (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jun 2017 22:27:10 -0400
-In-Reply-To: <0d0d6cb6-7674-5751-d780-af5114ddd569@arm.com>
+Received: from mga06.intel.com ([134.134.136.31]:32103 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750905AbdFTCpU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 19 Jun 2017 22:45:20 -0400
+In-Reply-To: <1497910127.2559.1.camel@hadess.net>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, sudeep.holla@arm.com, Lv Zheng <lv.zheng@intel.com>, joro@8bytes.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jayachandran C <jnair@caviumnetworks.com>
+To: Bastien Nocera <hadess@hadess.net>
+Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Peter Hutterer <peter.hutterer@who-t.net>, Lennart Poettering <mzxreary@0pointer.de>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 
-On Mon, Jun 19, 2017 at 11:24 PM, Robin Murphy <robin.murphy@arm.com> wrote:
-> On 08/06/17 05:44, Ganapatrao Kulkarni wrote:
->> ARM IORT specification (rev. C) has added two new fields to define
->> proximity domain for the SMMUv3 node in the IORT table.
->>
->> Proximity Domain Valid:
->>       Set to 1 if the value provided in the Proximity Domain field is
->>       valid. Set to 0 otherwise.
->>
->> Proximity domain:
->>       If the Proximity Domain Valid flag is set to 1, this entry
->>       provides the proximity domain to which this SMMU
->>       instance belongs.
->>
->> Update header file to reflect this.
->>
->> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
->> ---
->>  include/acpi/actbl2.h | 4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
->> index 4b306a6..389e91f 100644
->> --- a/include/acpi/actbl2.h
->> +++ b/include/acpi/actbl2.h
->> @@ -805,6 +805,9 @@ struct acpi_iort_smmu_v3 {
->>       u32 pri_gsiv;
->>       u32 gerr_gsiv;
->>       u32 sync_gsiv;
->> +     u8 pxm;
->> +     u8 reserved1;
->> +     u16 reserved2;
->
-> Why add the padding if you're not also adding the following field that
-> it aligns? (side note: could it not just be a u8[3]?)
-
-added to align as well to comply with  the spec.
-
->
-> If the actual structure definition is changing, do there not need to be
-> corresponding IASL changes too?
-
-yes, it is been added and sent to acpica devel ML.
-https://lists.acpica.org/pipermail/devel/2017-June/001243.html
-
->
->>  };
->>
->>  /* Values for Model field above */
->> @@ -817,6 +820,7 @@ struct acpi_iort_smmu_v3 {
->>
->>  #define ACPI_IORT_SMMU_V3_COHACC_OVERRIDE   (1)
->>  #define ACPI_IORT_SMMU_V3_HTTU_OVERRIDE     (1<<1)
->> +#define ACPI_IORT_SMMU_V3_PXM_VALID         (1<<3)
->
-> Maybe it's just me, but "PXM" seems incredibly cryptic.
-
-PXM stands for proximity(refer ACPI spec)
-it is widely used in spec and also in Linux kernel.
-
->
-> Robin.
->
->>
->>  /*******************************************************************************
->>   *
->>
->
-
-thanks
-Ganapat
+SGksDQoNCj4gRnJvbTogQmFzdGllbiBOb2NlcmEgW21haWx0bzpoYWRlc3NAaGFkZXNzLm5ldF0N
+Cj4gU3ViamVjdDogUmU6IFtzeXN0ZW1kLWRldmVsXSBbV0lQIFBBVENIIDAvNF0gUmV3b3JrIHRo
+ZSB1bnJlbGlhYmxlIExJRCBzd2l0Y2ggZXhwb3J0ZWQgYnkgQUNQSQ0KPiANCj4gT24gTW9uLCAy
+MDE3LTA2LTE5IGF0IDAxOjQzICswMDAwLCBaaGVuZywgTHYgd3JvdGU6DQo+ID4gPHNuaXA+DQo+
+ID4gPg0KPiA+ID4gSWYgeW91IGltcGxlbWVudCBpdCBpbiBzdWNoIGEgd2F5IHRoYXQgR05PTUUg
+c2V0dGluZ3MgZGFlbW9uDQo+ID4gPiBiZWhhdmVzIHdlaXJkbHksIHlvdSdsbCBnZXQgbXkgcmV2
+ZXJ0DQo+ID4gPiByZXF1ZXN0IGluIHRoZSBtYWlsLiBEby4gTm90LiBFdmVyLiBMaWUuDQo+ID4N
+Cj4gPiBGaXJzdCwgSSBkb24ndCBrbm93IHdoYXQgc2hvdWxkIGJlIHJldmVydGVkLi4uDQo+ID4g
+SSBoYXZlIDIgc29sdXRpb25zIGhlcmUgZm9yIHJldmlldywgYW5kIEJlbmphbWluIGhhcyAxLg0K
+PiA+IEFuZCBub25lIG9mIHRoZW0gaGFzIGJlZW4gdXBzdHJlYW1lZC4NCj4gPiBXZSBhcmUganVz
+dCBkaXNjdXNzaW5nLg0KPiANCj4gVGhlIGRpc2N1c3Npb24gaXMgZ2V0dGluZyB0aXJpbmcgcXVp
+dGUgZnJhbmtseS4gV2UndmUgYmVlbiBvdmVyIHRoaXMNCj4gZm9yIG5lYXJseSBhIHllYXIgbm93
+LCBhbmQgd2l0aCBubyBlbmQgaW4gc2lnaHQuDQoNCldlIGhhdmUgY29uY2VybnMgdG8gaW50cm9k
+dWNlIHRvbyBjb21wbGljYXRlZCBsb2dpY3MgdG8gc3VjaCBhDQpzaW1wbGUgYnV0dG9uIGRyaXZl
+ciBlc3BlY2lhbGx5IHRoZSBsb2dpY3MgYXJlIHJlbGF0ZWQgdG8gcGxhdGZvcm0NCmZpcm13YXJl
+LCBpbnB1dCBBQkkgYW5kIHVzZXIgc3BhY2UgYmVoYXZpb3JzLg0KDQpJIHVuZGVyc3RhbmQgdGhl
+IHNpdHVhdGlvbi4NCkFueXdheSB0aGlzIHNob3VsZG4ndCBiZSBhIGJpZyBkZWFsLg0KTGV0J3Mg
+cHJlcGFyZSBhIHNtYXJ0ZXIgc2VyaWVzIHRvIGNvbGxlY3QgYWxsIGZpeGVzIGFuZCBzb2x1dGlv
+bnMNCndpdGggcnVudGltZSBjb25maWd1cmFibGVzIGFuZCBnZXQgdGhhdCB0byB0aGUgZW5kIHVz
+ZXJzLg0KU28gdGhhdCB3ZSBjYW4gZmlndXJlIG91dCB3aGljaCBpcyB0aGUgc2ltcGxlc3Qgc29s
+dXRpb24uDQoNCkJ1dCBiZWZvcmUgdGhhdCwgbGV0IG1lIGFzayBzZXZlcmFsIHF1ZXN0aW9ucyBh
+Ym91dCBnbm9tZS1zZXR0aW5nLWRlYW1vbi4NCg0KPiANCj4gPiBIb3dldmVyIHdlIG5lZWQgdG8g
+Z2V0IDEgb2YgdGhlbSB1cHN0cmVhbWVkIGluIG5leHQgY3ljbGUuDQo+ID4NCj4gPiBJIHRoaW5r
+IHVzZXJzIHdvbid0IHN0YXJ0dXAgZ25vbWUtc2V0dGluZy1kYWVtb24gcmlnaHQgYWZ0ZXIgcmVz
+dW1lLg0KPiA+IEl0IHNob3VsZCBoYXZlIGFscmVhZHkgYmVlbiBzdGFydGVkLg0KPiA+DQo+ID4g
+VGhlcmUgaXMgb25seSAxIHBsYXRmb3JtIG1heSBzZWUgZGVsYXllZCBzdGF0ZSB1cGRhdGUgYWZ0
+ZXIgcmVzdW1lLg0KPiA+IExldCdzIHNlZSBpZiB0aGVyZSBpcyBhIHByYWN0aWNhbCBpc3N1ZS4N
+Cj4gPiAxLiBCZWZvcmUgc3VzcGVuZCwgdGhlICJsaWQgc3RhdGUiIGlzICJjbG9zZSIsIGFuZA0K
+PiA+IDIuIEFmdGVyIHJlc3VtZSwgdGhlIHN0YXRlIG1pZ2h0IHJlbWFpbiAiY2xvc2UiIGZvciBh
+IHdoaWxlDQo+ID4gICAgU2luY2UgbGliaW5wdXQgd29uJ3QgZGVsaXZlciBjbG9zZSB0byB1c2Vy
+c3BhY2UsDQo+ID4gICAgYW5kIGdub21lLXNldHRpbmctZGFlbW9uIGxpc3RlbnMgdG8ga2V5IHN3
+aXRjaGVzLCB0aGVyZSBpcyBubw0KPiA+IHdyb25nIGJlaGF2aW9yLg0KPiANCj4gSXQgZG9lc24n
+dC4gSXQgbGlzdGVucyB0byBVUG93ZXIsIHdoaWNoIHRlbGxzIHVzZXItc3BhY2Ugd2hldGhlciB0
+aGVyZQ0KPiBpcyBhIGxpZCBzd2l0Y2gsIGFuZCB3aGV0aGVyIGl0J3Mgb3BlbmVkIG9yIGNsb3Nl
+ZC4NCg0KVGhhbmtzIGZvciB0aGUgaW5mb3JtYXRpb24uDQpIb3dldmVyIEkgZG9uJ3Qgc2VlIGRp
+ZmZlcmVuY2VzIGhlcmUuDQoNCj4gDQo+ID4gMy4gVGhlbiBhZnRlciBzZXZlcmFsIHNlY29uZHMs
+ICJvcGVuIiBhcnJpdmVzLg0KPiA+ICAgIGdub21lLXNldHRpbmctZGFlbW9uIHJlLWFycmFuZ2Ug
+bW9uaXRvcnMgYW5kIHNjcmVlbiBsYXlvdXRzIGluDQo+ID4gcmVzcG9uc2UgdG8gdGhlIG5ldyBl
+dmVudC4NCj4gDQo+IEp1c3QgaG93IGlzIGFueW9uZSBzdXBwb3NlZCB0byBrbm93IHRoYXQgdGhl
+cmUgaXMgYW4gZXZlbnQgY29taW5nPw0KDQpXaWxsIFVQb3dlciBkZWxpdmVyIEVWX1NXIGtleSBl
+dmVudHMgdG8gZ25vbWUtc2V0dGluZy1kYWVtb24/DQoNCj4gDQo+ID4gU28gdGhlcmUgaXMgbm8g
+cHJvYmxlbS4gSU1PLCB0aGVyZSBpcyBubyBuZWVkIHRvIGltcHJvdmUgZm9yIHBvc3QtDQo+ID4g
+cmVzdW1lIGNhc2UuDQo+ID4NCj4gPiBVc2VycyB3aWxsIGp1c3Qgc3RhcnR1cCBnbm9tZS1zZXR0
+aW5nLWRhZW1vbiBvbmNlIGFmdGVyIGJvb3QuDQo+ID4gQW5kIGl0J3MgbGlrZWx5IHRoYXQgd2hl
+biBpdCBpcyBzdGFydGVkLCB0aGUgc3RhdGUgaXMgY29ycmVjdC4NCj4gDQo+IFlvdSBjYW5ub3Qg
+cmVseSBvbiB3aGVuIGdub21lLXNldHRpbmdzLWRhZW1vbiB3aWxsIGJlIHN0YXJ0ZWQgdG8gbWFr
+ZQ0KPiAqYW55KiBkZWNpc2lvbi4gQ2VydGFpbmx5IG5vdCBkZWNpc2lvbnMgb24gaG93IHRoZSBr
+ZXJuZWwgc2hvdWxkDQo+IGJlaGF2ZS4NCg0KTXkgYmFkIHdvcmRpbmcsIEkganVzdCBtZWFudDoN
+CldoZW4gZ25vbWUtc2V0dGluZ3MtZGFlbW9uIGlzIHN0YXJ0ZWQgaXMgbm90IHJlbGF0ZWQgdG8g
+d2hhdCB3ZSBhcmUNCmRpc2N1c3NpbmcuDQoNCkRvIHlvdSB3YW50IHRvIGZpeCByZWdyZXNzaW9u
+cz8NCk9yIHlvdSB3YW50IHRvIGZpeCBuZXcgaXNzdWVzIG9uIHJlY2VudCBwbGF0Zm9ybXM/DQpJ
+ZiB5b3Ugd2FudCB0byBmaXggcmVncmVzc2lvbnMsIEkgdGhpbmsgQmVuamFtaW4gaGFzIHN1Ym1p
+dHRlZCBhIHJldmlzaW9uDQp0byB1c2Ugb2xkIG1ldGhvZCBtb2RlLCB0aGVyZSBzaG91bGRuJ3Qg
+YmUgcmVncmVzc2lvbnMgZm9yDQpnbm9tZS1zZXR0aW5ncy1kYWVtb24uDQoNCldoYXQgZWxzZSB3
+ZSB3YW50IHRvIGRvIGlzIHRvIGZpeCByZWdyZXNzaW9ucyByZWxhdGVkIHRvIHN5c3RlbWQgd2hl
+bg0Kd2UgZ28gYmFjayB0byBkZWZhdWx0IG1ldGhvZCBtb2RlLiBTaW5jZSB0aGVyZSBpcyBubyBp
+c3N1ZSB3aXRoIHN5c3RlbWQNCjIzMyBhbmQgYWZ0ZXIganVzdCBhcHBseWluZyBhIHNtYWxsIGNo
+YW5nZSwgc3lzdGVtZCAyMjkgY2FuIGFsc28gYmUNCndvcmtlZCBhcm91bmQsIEkgbWVhbiBkeW5h
+bWljYWxseSBhZGQvcmVtb3ZlIGlucHV0IG5vZGUgaXMgbm90IHN0cmljdGx5DQpyZXF1aXJlZCBm
+b3IgYWNoaWV2aW5nIG91ciBwdXJwb3Nlcy4NCg0KQnV0IGlmIHlvdSB3YW50IHRvIGZpeCBuZXcg
+aXNzdWVzIG9uIG5ldyBwbGF0Zm9ybXMsIHdlIGNhbiBkaXNjdXNzDQpmdXJ0aGVyIGFuZCBkZXRl
+cm1pbmUgd2hpY2ggcHJvZ3JhbSBzaG91bGQgYmUgY2hhbmdlZCBhbmQgd2hpY2ggcHJvZ3JhbQ0K
+aXMgdGhlIGJlc3QgY2FuZGlkYXRlIHRvIHN0b3AgYWxsIHByb2JsZW1zIC0gdGhlIEFDUEkgYnV0
+dG9uIGRyaXZlciBvcg0KdGhlIHVzZXIgc3BhY2UuDQoNCkNoZWVycw0KTHYNCg==
