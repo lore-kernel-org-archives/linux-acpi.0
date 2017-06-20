@@ -1,70 +1,155 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v8 2/3] iommu/arm-smmu-v3: Add workaround for Cavium
- ThunderX2 erratum #74
-Date: Tue, 20 Jun 2017 19:06:19 +0100
-Message-ID: <20170620180618.GE28035@arm.com>
-References: <1497968259-16390-1-git-send-email-gakula@caviumnetworks.com>
- <1497968259-16390-3-git-send-email-gakula@caviumnetworks.com>
+From: Loc Ho <lho@apm.com>
+Subject: Re: [PATCH] ACPI: SPCR: Use access width to determine mmio usage
+Date: Tue, 20 Jun 2017 11:33:04 -0700
+Message-ID: <CAPw-ZT=rbM05RBxL8Ym8yZiF6C+8PxJx_xi8rCC1byrcAgfuVA@mail.gmail.com>
+References: <1493910330-17913-1-git-send-email-jon.mason@broadcom.com>
+ <4e11bb2b-7cec-6a7b-ca2b-88be31a98b7d@redhat.com> <CAPw-ZTkF2KnC2TWwxWLTKoM5LPkipHvJeQGaBp30JjDNQ76VEA@mail.gmail.com>
+ <f122adfb-872e-9ee6-db61-b55c75903b63@redhat.com> <CAPw-ZTnu+YvBN8PAZfMEKuY_3xTPDgr4qmNqi0JOCPXH_k0SDg@mail.gmail.com>
+ <CAC3K-4oK9FF_7QfoQCBvgBCoprk+VbRVD-YvC9fm7aRT8Uo+rQ@mail.gmail.com>
+ <CAPw-ZTkwwuwCSw0Q=8W53e7t5FDEF-hKshOoWvdJ7QhCTRvuqA@mail.gmail.com>
+ <20170508212347.GA3601@broadcom.com> <CAPw-ZT=+WjtMLFPmw5q7qJkH9AAJcxPUt9KCn5wvxN-1MA68rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:42802 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750927AbdFTSGH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 20 Jun 2017 14:06:07 -0400
-Content-Disposition: inline
-In-Reply-To: <1497968259-16390-3-git-send-email-gakula@caviumnetworks.com>
+Received: from mail-io0-f173.google.com ([209.85.223.173]:33766 "EHLO
+        mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750927AbdFTSdG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jun 2017 14:33:06 -0400
+Received: by mail-io0-f173.google.com with SMTP id t87so90224926ioe.0
+        for <linux-acpi@vger.kernel.org>; Tue, 20 Jun 2017 11:33:06 -0700 (PDT)
+In-Reply-To: <CAPw-ZT=+WjtMLFPmw5q7qJkH9AAJcxPUt9KCn5wvxN-1MA68rg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Geetha sowjanya <gakula@caviumnetworks.com>
-Cc: robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, robert.moore@intel.com, lv.zheng@intel.com, rjw@rjwysocki.net, jcm@redhat.com, linux-kernel@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, devel@acpica.org, linu.cherian@cavium.com, Charles.Garcia-Tobin@arm.com, robh@kernel.org, Geetha Sowjanya <geethasowjanya.akula@cavium.com>
+To: Jon Mason <jon.mason@broadcom.com>
+Cc: Jon Masters <jcm@redhat.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, devel@acpica.org, BCM Kernel Feedback <bcm-kernel-feedback-list@broadcom.com>
 
-On Tue, Jun 20, 2017 at 07:47:38PM +0530, Geetha sowjanya wrote:
-> From: Linu Cherian <linu.cherian@cavium.com>
-> 
-> Cavium ThunderX2 SMMU implementation doesn't support page 1 register space
-> and PAGE0_REGS_ONLY option is enabled as an errata workaround.
-> This option when turned on, replaces all page 1 offsets used for
-> EVTQ_PROD/CONS, PRIQ_PROD/CONS register access with page 0 offsets.
-> 
-> SMMU resource size checks are now based on SMMU option PAGE0_REGS_ONLY,
-> since resource size can be either 64k/128k.
-> For this, arm_smmu_device_dt_probe/acpi_probe has been moved before
-> platform_get_resource call, so that SMMU options are set beforehand.
-> 
-> Signed-off-by: Linu Cherian <linu.cherian@cavium.com>
-> Signed-off-by: Geetha Sowjanya <geethasowjanya.akula@cavium.com>
+Hi Jon,
+
+>
+> >> >>>>>> The current SPCR code does not check the access width of the mmio, and
+> >> >>>>>> uses a default of 8bit register accesses.  This prevents devices that
+> >> >>>>>> only do 16 or 32bit register accesses from working.  By simply checking
+> >> >>>>>> this field and setting the mmio string appropriately, this issue can be
+> >> >>>>>> corrected.  To prevent any legacy issues, the code will default to 8bit
+> >> >>>>>> accesses if the value is anything but 16 or 32.
+> >> >>>>>
+> >> >>>>> Thanks for this. Just as an FYI I've a running discussion with Microsoft
+> >> >>>>> about defining additional UART subtypes in the DBG2 for special case
+> >> >>>>> UARTs. Specifically, I want to address AppliedMicro's special 8250 dw IP
+> >> >>>>> that also has a non-standard clock. At this time, there is general
+> >> >>>>> agreement to use the access width for some cases rather than defining
+> >> >>>>> yet more subtypes - so your patch is good.
+> >> >>>>>
+> >> >>>>> Loc/Applied: please track this thread, incorporate feedback, and also
+> >> >>>>> track the other general recent discussions of 8250 dw from this week.
+> >> >>>>
+> >> >>>> Thanks for forward me this patch. This patch does not work with X-Gene
+> >> >>>> v1 and v2 SoC's. As BIOS SPCR encodes these info as:
+> >> >>>>
+> >> >>>> Bit Width: 32
+> >> >>>> Bit Offset: 0
+> >> >>>> Encoded Access Width: 01 (Byte Access)
+> >> >>>>
+> >> >>>> With this patch, it would use the "mmio" instead the "mmio32" as with
+> >> >>>> this patch - https://patchwork.kernel.org/patch/9460959
+> >> >>>
+> >> >>> I think this is why we need the DBG2 subtype for Applied X-Gene1. I'm
+> >> >>> hoping the update to the SPCR/DBG2 spec is done soon.
+> >> >>
+> >> >> We can't rely on the BIOS change to support this new subtype as we
+> >> >> have system that is already in production deployment. When these
+> >> >> system upgrade to new version of the OS (stock, RHELSA, or whatever),
+> >> >> they will break. We need the patch from
+> >> >> https://patchwork.kernel.org/patch/9460959/ rolled upstream.
+> >> >
+> >> > There is no reason why the patch you reference cannot co-exist with
+> >> > the one I am submitting here.  In this case, my patch would set it to
+> >> > mmio, then the patch you link above would reset it to mmio32.
+> >> > Personally, I would recommend a big, fat comment on why this extra
+> >> > step is necessary, but it should work as desired.  Alternatively, we
+> >> > could add some kind of quirk library (similar to
+> >> > qdf2400_erratum_44_present) where the OEM/OEM Table ID is referenced
+> >> > and workaround applied.  Thoughts?
+> >>
+> >> That's was my first version but after seeing both versions, I think
+> >> they are better solution as it works for more SoC's than just our. As
+> >> you had suggested, we should apply your patch and
+> >> https://patchwork.kernel.org/patch/9460959. The third patch -
+> >> https://patchwork.kernel.org/patch/9462183/ - conflicts with your.
+> >>
+> >> Summary:
+> >> 1. Applied your - https://lkml.org/lkml/2017/5/4/450
+> >> 2. Applied this one - https://patchwork.kernel.org/patch/9460959/
+> >>
+> >> -Loc
+> >
+> > What if we simply applied the following (100% untested) patch to add
+> > the quirk framework I was suggesting?  It can be applied on top of the
+> > patch I submitted previously.
+>
+> It is a bit more complex that this simple patch. How about this one
+> (my original version). As for Jon Master question on McDivitt, not
+> sure what they use for the ACPI table for SPCR. If they used our
+> reference, then this might work for them too. This version would limit
+> to just the existent firmware or until the SPCR table gets changed.
+>
+>
+> tty: 8250: Workaround for APM X-Gene 8250 UART 32-alignment errata
+>
+> APM X-Gene verion 1 and 2 have an 8250 UART with its register
+> aligned to 32-bit. The SPCR always assumes fully compatible
+> 8250. This causes no console with ACPI boot as the console
+> will not match X-Gene UART port due to the lack of mmio32
+> option.
+>
+> Signed-off-by: Loc Ho <lho@apm.com>
 > ---
->  Documentation/arm64/silicon-errata.txt             |    1 +
->  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    6 ++
->  drivers/iommu/arm-smmu-v3.c                        |   68 ++++++++++++++-----
->  3 files changed, 57 insertions(+), 18 deletions(-)
-> 
-> diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
-> index 10f2ddd..4693a32 100644
-> --- a/Documentation/arm64/silicon-errata.txt
-> +++ b/Documentation/arm64/silicon-errata.txt
-> @@ -62,6 +62,7 @@ stable kernels.
->  | Cavium         | ThunderX GICv3  | #23154          | CAVIUM_ERRATUM_23154        |
->  | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
->  | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
-> +| Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
->  |                |                 |                 |                             |
->  | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
->  |                |                 |                 |                             |
-> diff --git a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-> index be57550..6ecc48c 100644
-> --- a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-> +++ b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-> @@ -49,6 +49,12 @@ the PCIe specification.
->  - hisilicon,broken-prefetch-cmd
->                      : Avoid sending CMD_PREFETCH_* commands to the SMMU.
->  
-> +- cavium,cn9900-broken-page1-regspace
-> +                    : Replaces all page 1 offsets used for EVTQ_PROD/CONS,
-> +		      PRIQ_PROD/CONS register access with page 0 offsets.
-> +		      Set for Caviun ThunderX2 silicon that doesn't support
+>  drivers/acpi/spcr.c | 21 +++++++++++++++++++++
+>  1 file changed, 21 insertions(+)
+>
+> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+> index 3afa8c1..77b45a0 100644
+> --- a/drivers/acpi/spcr.c
+> +++ b/drivers/acpi/spcr.c
+> @@ -36,6 +36,25 @@ static bool qdf2400_erratum_44_present(struct
+> acpi_table_header *h)
+>         return false;
+>  }
+>
+> +/*
+> + * APM X-Gene v1 and v2 UART hardware is an 16550 like device but has its
+> + * register aligned to 32-bit. This function detects this errata condition.
+> + */
+> +static bool xgene_8250_erratum_present(struct acpi_table_spcr *tb)
+> +{
+> +       if (tb->interface_type != ACPI_DBG2_16550_COMPATIBLE)
+> +               return false;
+> +
+> +       if (memcmp(tb->header.oem_id, "APMC0D", ACPI_OEM_ID_SIZE))
+> +               return false;
+> +
+> +       if (!memcmp(tb->header.oem_table_id, "XGENESPC",
+> +                   ACPI_OEM_TABLE_ID_SIZE) && tb->header.oem_revision == 0)
+> +               return true;
+> +
+> +       return false;
+> +}
+> +
+>  /**
+>   * parse_spcr() - parse ACPI SPCR table and add preferred console
+>   *
+> @@ -115,6 +134,8 @@ int __init parse_spcr(bool earlycon)
+>
+>         if (qdf2400_erratum_44_present(&table->header))
+>                 uart = "qdf2400_e44";
+> +       if (xgene_8250_erratum_present(table))
+> +               iotype = "mmio32";
+>
+>         snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d", uart, iotype,
+>                  table->serial_port.address, baud_rate);
+>
 
-s/Caviun/Cavium/
+I didn't see a follow up email on this. What was the conclusion to
+this patch series?
 
-Will
+-Loc
