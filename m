@@ -1,159 +1,173 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
- erratum 161010801
-Date: Tue, 20 Jun 2017 17:27:23 +0100
-Message-ID: <20170620162723.GE11351@red-moon>
-References: <20170619154500.92336-1-shameerali.kolothum.thodi@huawei.com>
- <20170619154500.92336-3-shameerali.kolothum.thodi@huawei.com>
- <20170620102906.GA26908@red-moon>
- <5FC3163CFD30C246ABAA99954A238FA83838617D@FRAEML521-MBS.china.huawei.com>
- <d6e824b0-17bd-dd41-2d11-0491d8f66759@arm.com>
- <5FC3163CFD30C246ABAA99954A238FA8383866C7@FRAEML521-MBS.china.huawei.com>
+From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
+Subject: Re: [PATCH v2 2/2] acpi, gicv3-its, numa: Adding numa node mapping
+ for gic-its units
+Date: Tue, 20 Jun 2017 22:47:24 +0530
+Message-ID: <CAFpQJXW3oDc-R=j5Jzok_5W+tTcut9b9f_=6q9Q0PwWy+pq3=w@mail.gmail.com>
+References: <1497942437-1390-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1497942437-1390-3-git-send-email-ganapatrao.kulkarni@cavium.com> <20170620151733.GC11351@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41732 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750925AbdFTQZ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 20 Jun 2017 12:25:58 -0400
-Content-Disposition: inline
-In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA8383866C7@FRAEML521-MBS.china.huawei.com>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:34061 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750823AbdFTRR0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jun 2017 13:17:26 -0400
+In-Reply-To: <20170620151733.GC11351@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Cc: Robin Murphy <robin.murphy@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linuxarm <linuxarm@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, linux-acpi@vger.kernel.org, devel@acpica.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "tglx@linutronix.de" <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Jayachandran C <jnair@caviumnetworks.com>
 
-On Tue, Jun 20, 2017 at 03:39:30PM +0000, Shameerali Kolothum Thodi wrote:
-> 
-> 
-> > -----Original Message-----
-> > From: Robin Murphy [mailto:robin.murphy@arm.com]
-> > Sent: Tuesday, June 20, 2017 4:16 PM
-> > To: Shameerali Kolothum Thodi; Lorenzo Pieralisi
-> > Cc: marc.zyngier@arm.com; sudeep.holla@arm.com; will.deacon@arm.com;
-> > hanjun.guo@linaro.org; Gabriele Paoloni; John Garry; iommu@lists.linux-
-> > foundation.org; linux-arm-kernel@lists.infradead.org; linux-
-> > acpi@vger.kernel.org; devel@acpica.org; Linuxarm; Wangzhou (B);
-> > Guohanjun (Hanjun Guo)
-> > Subject: Re: [PATCH v2 2/2] iommu/arm-smmu-v3:Enable ACPI based
-> > HiSilicon erratum 161010801
-> > 
-> > On 20/06/17 15:07, Shameerali Kolothum Thodi wrote:
-> > >
-> > >
-> > >> -----Original Message-----
-> > >> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
-> > >> Sent: Tuesday, June 20, 2017 11:29 AM
-> > >> To: Shameerali Kolothum Thodi
-> > >> Cc: marc.zyngier@arm.com; sudeep.holla@arm.com;
-> > will.deacon@arm.com;
-> > >> robin.murphy@arm.com; hanjun.guo@linaro.org; Gabriele Paoloni; John
-> > >> Garry; iommu@lists.linux-foundation.org; linux-arm-
-> > >> kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
-> > devel@acpica.org;
-> > >> Linuxarm; Wangzhou (B); Guohanjun (Hanjun Guo)
-> > >> Subject: Re: [PATCH v2 2/2] iommu/arm-smmu-v3:Enable ACPI based
-> > >> HiSilicon erratum 161010801
-> > >>
-> > >> Hi Shameer,
-> > >>
-> > >> On Mon, Jun 19, 2017 at 04:45:00PM +0100, shameer wrote:
-> > >>> The HiSilicon erratum 161010801 describes the limitation of HiSilicon
-> > >>> platforms Hip06/Hip07 to support the SMMU mappings for MSI
-> > >> transactions.
-> > >>>
-> > >>> On these platforms GICv3 ITS translator is presented with the deviceID
-> > >>> by extending the MSI payload data to 64 bits to include the deviceID.
-> > >>> Hence, the PCIe controller on this platforms has to differentiate the
-> > >>> MSI payload against other DMA payload and has to modify the MSI
-> > >> payload.
-> > >>> This basically makes it difficult for this platforms to have a SMMU
-> > >>> translation for MSI.
-> > >>>
-> > >>> This patch implements a ACPI table based quirk to reserve the hw msi
-> > >>> regions in the smmu-v3 driver which means these address regions will
-> > >>> not be translated and will be excluded from iova allocations.
-> > >>>
-> > >>> Signed-off-by: shameer <shameerali.kolothum.thodi@huawei.com>
-> > >>> ---
-> > >>>  drivers/iommu/arm-smmu-v3.c | 29 ++++++++++++++++++++++++-----
-> > >>>  1 file changed, 24 insertions(+), 5 deletions(-)
-> > >>>
-> > >>> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-
-> > smmu-
-> > >> v3.c
-> > >>> index abe4b88..f03c63b 100644
-> > >>> --- a/drivers/iommu/arm-smmu-v3.c
-> > >>> +++ b/drivers/iommu/arm-smmu-v3.c
-> > >>> @@ -597,6 +597,7 @@ struct arm_smmu_device {
-> > >>>  	u32				features;
-> > >>>
-> > >>>  #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
-> > >>> +#define ARM_SMMU_OPT_RESV_HW_MSI	(1 << 1)
-> > >>>  	u32				options;
-> > >>>
-> > >>>  	struct arm_smmu_cmdq		cmdq;
-> > >>> @@ -1904,14 +1905,31 @@ static void
-> > arm_smmu_get_resv_regions(struct
-> > >> device *dev,
-> > >>>  				      struct list_head *head)
-> > >>>  {
-> > >>>  	struct iommu_resv_region *region;
-> > >>> +	struct arm_smmu_device *smmu;
-> > >>> +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> > >>>  	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
-> > >>>
-> > >>> -	region = iommu_alloc_resv_region(MSI_IOVA_BASE,
-> > >> MSI_IOVA_LENGTH,
-> > >>> -					 prot, IOMMU_RESV_SW_MSI);
-> > >>> -	if (!region)
-> > >>> -		return;
-> > >>> +	smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
-> > >>> +
-> > >>> +	if (smmu && (smmu->options & ARM_SMMU_OPT_RESV_HW_MSI)
-> > >> &&
-> > >>> +		      dev_is_pci(dev)) {
-> > >>
-> > >> IORT changes are fine to me, I am still no big fan of this supposedly
-> > >> generic option that is _really_ platform specific (in particular as I
-> > >> said before the quirk depends on the PCI host bridge but in this
-> > >> patchset I see no such dependency. In short - the quirk is hooked off
-> > >> the SMMUv3 model which implicitly implies a PCI host bridge
-> > >> configuration IIUC). It is Will and Robin decision though, I am not sure
-> > >> you can make it any tidier (given that on ACPI you may not even have
-> > >> a PCI host bridge specific _HID to base your check above on).
-> > >
-> > > Thanks Lorenzo. I understand your point. As far as our platform is
-> > > concerned, I think It is ok to remove the dev_is_pci() check and make
-> > > it generic, if that helps.  I don't think it will harm us other than couple of
-> > >  "HW MSI region resv failed: " logs  for our platform devices.
-> > 
-> > I think the answer there is that iort_iommu_its_get_resv_regions()
-> > really should distinguish between "this device just doesn't have an ITS
-> > mapping" and "something actually went wrong", such that you don't treat
-> > the former as an error. That's almost certainly cleaner than e.g. trying
-> > to check if dev has an associated MSI domain here before calling it.
-> 
-> If I understood that correctly, the suggestion is to treat cases where device
-> doesn’t have any ITS node associated with it as "success".
-> 
-> +int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head)
-> +{
-> [....]
-> +	if (!its_node)
-> +		return -ENODEV;
-> 
-> ie, return success above from patch 1/2.
-> 
-> Lorenzo, 
-> 
-> Please let me know if that’s a correct thing to do as I am not sure
-> about all the error scenarios here.
+Hi Lorenzo,
 
-Yes it is, you need to add specific return values that you can then
-handle in the SMMU callback accordingly (reverting to SW_MSI in case the
-device does not map to an ITS).
+On Tue, Jun 20, 2017 at 8:47 PM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> Hi Ganapatrao,
+>
+> On Tue, Jun 20, 2017 at 12:37:17PM +0530, Ganapatrao Kulkarni wrote:
+>> Add code to parse SRAT ITS Affinity sub table as defined in ACPI 6.2
+>> Later in per device probe, ITS devices are mapped to
+>> numa node using ITS id to proximity domain mapping.
+>>
+>> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+>> ---
+>>  drivers/irqchip/irq-gic-v3-its.c | 76 +++++++++++++++++++++++++++++++++++++++-
+>>  1 file changed, 75 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+>> index 45ea1933..5865a75 100644
+>> --- a/drivers/irqchip/irq-gic-v3-its.c
+>> +++ b/drivers/irqchip/irq-gic-v3-its.c
+>> @@ -1833,6 +1833,78 @@ static int __init its_of_probe(struct device_node *node)
+>>
+>>  #define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
+>>
+>> +#ifdef CONFIG_ACPI_NUMA
+>> +struct its_srat_map {
+>> +     u32                     numa_node;  /* numa node id */
+>> +     u32                     its_id;  /* GIC ITS ID */
+>> +     struct list_head        entry;
+>> +};
+>> +
+>> +static LIST_HEAD(its_srat_maps);
+>> +
+>> +static int acpi_get_its_numa_node(u32 its_id)
+>> +{
+>> +     struct its_srat_map *srat_map;
+>> +
+>> +     list_for_each_entry(srat_map, &its_srat_maps, entry) {
+>> +             if (its_id == srat_map->its_id)
+>> +                     return srat_map->numa_node;
+>> +     }
+>> +     return NUMA_NO_NODE;
+>> +}
+>
+> I do not want to come across as pedantic and I understand that the API
+> to parse static ACPI tables sucks (ie in theory you could avoid stashing
+> nodes altogether and just use a global variable to parse an ITS ID at
+> a time but it sucks to go through the SRAT multiple times) but would not
+> it be easier to just declare an __initdata static array and counter and
+> be done with this ? We do not need this stuff after boot so I do not see
+> a point in keeping it in memory and in allocating the nodes dynamically.
 
-Thanks,
-Lorenzo
+yes, it was my initial thought (as done v1), and i have replaced to
+dynamic array in this series. I might have misunderstood your comments.
+if you have no objection for the static array of size MAX_NUMNODES
+as done v1 [1], i can send v3 with that change?
+
+[1] https://patchwork.kernel.org/patch/9768869/
+
+>
+> Apologies if I was not clear in my comments to the previous set, I did
+> not like stashing ITS PXM values in arch/arm64 code but I understand you
+> need an array (__initdata) to avoid reading the SRAT multiple times.
+
+yes, having static array to hold parsed table is required to avoid
+multiple iterations
+of parsing functions.
+This array can go in __initdata.
+
+>
+> Thanks,
+> Lorenzo
+>
+>> +
+>> +static int __init
+>> +gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+>> +                      const unsigned long end)
+>> +{
+>> +     int pxm, node;
+>> +     struct its_srat_map *srat_map;
+>> +     struct acpi_srat_its_affinity *its_affinity;
+>> +
+>> +     its_affinity = (struct acpi_srat_its_affinity *)header;
+>> +     if (!its_affinity)
+>> +             return -EINVAL;
+>> +
+>> +     if (its_affinity->header.length <
+>> +                     sizeof(struct acpi_srat_its_affinity)) {
+>> +             pr_err("SRAT:ITS: Invalid SRAT header length: %d\n",
+>> +                     its_affinity->header.length);
+>> +             return -EINVAL;
+>> +     }
+>> +
+>> +     pxm = its_affinity->proximity_domain;
+>> +     node = acpi_map_pxm_to_node(pxm);
+>> +
+>> +     if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
+>> +             pr_err("SRAT:ITS Invalid numa node %d\n", node);
+>> +             return -EINVAL;
+>> +     }
+>> +
+>> +     srat_map = kzalloc(sizeof(*srat_map), GFP_KERNEL);
+>> +     if (!srat_map)
+>> +             return -ENOMEM;
+>> +
+>> +     srat_map->numa_node = node;
+>> +     srat_map->its_id = its_affinity->its_id;
+>> +     list_add(&srat_map->entry, &its_srat_maps);
+>> +     pr_info("ACPI: NUMA: SRAT: ITS: PXM %d -> ITS_ID %d -> NODE %d\n",
+>> +             srat_map->its_id, pxm, node);
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int __init acpi_table_parse_srat_its(void)
+>> +{
+>> +     return acpi_table_parse_entries(ACPI_SIG_SRAT,
+>> +                                     sizeof(struct acpi_table_srat),
+>> +                                     ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
+>> +                                     gic_acpi_parse_srat_its, 0);
+>> +}
+>> +#else
+>> +#define acpi_table_parse_srat_its(void) { }
+>> +#define acpi_get_its_numa_node(its_id) NUMA_NO_NODE
+>> +#endif
+>> +
+>>  static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>>                                         const unsigned long end)
+>>  {
+>> @@ -1861,7 +1933,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>>               goto dom_err;
+>>       }
+>>
+>> -     err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
+>> +     err = its_probe_one(&res, dom_handle,
+>> +                     acpi_get_its_numa_node(its_entry->translation_id));
+>>       if (!err)
+>>               return 0;
+>>
+>> @@ -1873,6 +1946,7 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>>
+>>  static void __init its_acpi_probe(void)
+>>  {
+>> +     acpi_table_parse_srat_its();
+>>       acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
+>>                             gic_acpi_parse_madt_its, 0);
+>>  }
+>> --
+>> 1.8.1.4
+>>
+
+thanks
+Ganapat
