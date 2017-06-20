@@ -1,117 +1,266 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v2 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
-	erratum 161010801
-Date: Tue, 20 Jun 2017 14:07:18 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA83838617D@FRAEML521-MBS.china.huawei.com>
-References: <20170619154500.92336-1-shameerali.kolothum.thodi@huawei.com>
-	<20170619154500.92336-3-shameerali.kolothum.thodi@huawei.com>
-	<20170620102906.GA26908@red-moon>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v7.2 7/7] device property: Get rid of struct
+ fwnode_handle type field
+Date: Tue, 20 Jun 2017 15:14:14 +0100
+Message-ID: <20170620141414.GA11351@red-moon>
+References: <1497354548-17502-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497948596-1009-1-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20170620102906.GA26908@red-moon>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: "Guohanjun (Hanjun Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "marc.zyngier-5wv7dgnIgG8@public.gmane.org" <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:39480 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751025AbdFTOMv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 20 Jun 2017 10:12:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1497948596-1009-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com
 
+On Tue, Jun 20, 2017 at 11:49:56AM +0300, Sakari Ailus wrote:
 
+[...]
 
-> -----Original Message-----
-> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org]
-> Sent: Tuesday, June 20, 2017 11:29 AM
-> To: Shameerali Kolothum Thodi
-> Cc: marc.zyngier-5wv7dgnIgG8@public.gmane.org; sudeep.holla-5wv7dgnIgG8@public.gmane.org; will.deacon-5wv7dgnIgG8@public.gmane.org;
-> robin.murphy-5wv7dgnIgG8@public.gmane.org; hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; Gabriele Paoloni; John
-> Garry; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-arm-
-> kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org;
-> Linuxarm; Wangzhou (B); Guohanjun (Hanjun Guo)
-> Subject: Re: [PATCH v2 2/2] iommu/arm-smmu-v3:Enable ACPI based
-> HiSilicon erratum 161010801
-> 
-> Hi Shameer,
-> 
-> On Mon, Jun 19, 2017 at 04:45:00PM +0100, shameer wrote:
-> > The HiSilicon erratum 161010801 describes the limitation of HiSilicon
-> > platforms Hip06/Hip07 to support the SMMU mappings for MSI
-> transactions.
-> >
-> > On these platforms GICv3 ITS translator is presented with the deviceID
-> > by extending the MSI payload data to 64 bits to include the deviceID.
-> > Hence, the PCIe controller on this platforms has to differentiate the
-> > MSI payload against other DMA payload and has to modify the MSI
-> payload.
-> > This basically makes it difficult for this platforms to have a SMMU
-> > translation for MSI.
-> >
-> > This patch implements a ACPI table based quirk to reserve the hw msi
-> > regions in the smmu-v3 driver which means these address regions will
-> > not be translated and will be excluded from iova allocations.
-> >
-> > Signed-off-by: shameer <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/iommu/arm-smmu-v3.c | 29 ++++++++++++++++++++++++-----
-> >  1 file changed, 24 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-
-> v3.c
-> > index abe4b88..f03c63b 100644
-> > --- a/drivers/iommu/arm-smmu-v3.c
-> > +++ b/drivers/iommu/arm-smmu-v3.c
-> > @@ -597,6 +597,7 @@ struct arm_smmu_device {
-> >  	u32				features;
-> >
-> >  #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
-> > +#define ARM_SMMU_OPT_RESV_HW_MSI	(1 << 1)
-> >  	u32				options;
-> >
-> >  	struct arm_smmu_cmdq		cmdq;
-> > @@ -1904,14 +1905,31 @@ static void arm_smmu_get_resv_regions(struct
-> device *dev,
-> >  				      struct list_head *head)
-> >  {
-> >  	struct iommu_resv_region *region;
-> > +	struct arm_smmu_device *smmu;
-> > +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> >  	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
-> >
-> > -	region = iommu_alloc_resv_region(MSI_IOVA_BASE,
-> MSI_IOVA_LENGTH,
-> > -					 prot, IOMMU_RESV_SW_MSI);
-> > -	if (!region)
-> > -		return;
-> > +	smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
-> > +
-> > +	if (smmu && (smmu->options & ARM_SMMU_OPT_RESV_HW_MSI)
-> &&
-> > +		      dev_is_pci(dev)) {
-> 
-> IORT changes are fine to me, I am still no big fan of this supposedly
-> generic option that is _really_ platform specific (in particular as I
-> said before the quirk depends on the PCI host bridge but in this
-> patchset I see no such dependency. In short - the quirk is hooked off
-> the SMMUv3 model which implicitly implies a PCI host bridge
-> configuration IIUC). It is Will and Robin decision though, I am not sure
-> you can make it any tidier (given that on ACPI you may not even have
-> a PCI host bridge specific _HID to base your check above on).
+> +#define DECLARE_ACPI_FWNODE_OPS(ops) \
+> +	const struct fwnode_operations ops = {				\
+> +		.device_is_available = acpi_fwnode_device_is_available, \
+> +		.property_present = acpi_fwnode_property_present,	\
+> +		.property_read_int_array =				\
+> +			acpi_fwnode_property_read_int_array,		\
+> +		.property_read_string_array =				\
+> +			acpi_fwnode_property_read_string_array,		\
+> +		.get_parent = acpi_node_get_parent,			\
+> +		.get_next_child_node = acpi_get_next_subnode,		\
+> +		.get_named_child_node = acpi_fwnode_get_named_child_node, \
+> +		.graph_get_next_endpoint =				\
+> +			acpi_fwnode_graph_get_next_endpoint,		\
+> +		.graph_get_remote_endpoint =				\
+> +			acpi_fwnode_graph_get_remote_endpoint,		\
+> +		.graph_get_port_parent = acpi_node_get_parent,		\
+> +		.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint, \
+> +	};								\
+> +	EXPORT_SYMBOL_GPL(ops)
+> +
+> +DECLARE_ACPI_FWNODE_OPS(acpi_device_fwnode_ops);
+> +DECLARE_ACPI_FWNODE_OPS(acpi_data_fwnode_ops);
+> +DECLARE_ACPI_FWNODE_OPS(acpi_static_fwnode_ops);
 
-Thanks Lorenzo. I understand your point. As far as our platform is 
-concerned, I think It is ok to remove the dev_is_pci() check and make
-it generic, if that helps.  I don't think it will harm us other than couple of
- "HW MSI region resv failed: " logs  for our platform devices.
-
-Hi Will/Robin,
-Please let me know your thoughts.
+I do not think it is a great idea to associate valid fwnode_operations
+to a static ACPI fwnode (which is just a tag - like the IRQCHIP one).
 
 Thanks,
-Shameer
+Lorenzo
+
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index fe379a0..53e268b 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1435,8 +1435,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+>  	device->device_type = type;
+>  	device->handle = handle;
+>  	device->parent = acpi_bus_get_parent(handle);
+> -	device->fwnode.type = FWNODE_ACPI;
+> -	device->fwnode.ops = &acpi_fwnode_ops;
+> +	device->fwnode.ops = &acpi_device_fwnode_ops;
+>  	acpi_set_device_status(device, sta);
+>  	acpi_device_get_busid(device);
+>  	acpi_set_pnp_ids(handle, &device->pnp, type);
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 692007e..09770fc 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -25,9 +25,11 @@ struct property_set {
+>  	const struct property_entry *properties;
+>  };
+>  
+> +static const struct fwnode_operations pset_fwnode_ops;
+> +
+>  static inline bool is_pset_node(struct fwnode_handle *fwnode)
+>  {
+> -	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_PDATA;
+> +	return !IS_ERR_OR_NULL(fwnode) && fwnode->ops == &pset_fwnode_ops;
+>  }
+>  
+>  static inline struct property_set *to_pset_node(struct fwnode_handle *fwnode)
+> @@ -900,7 +902,6 @@ int device_add_properties(struct device *dev,
+>  	if (IS_ERR(p))
+>  		return PTR_ERR(p);
+>  
+> -	p->fwnode.type = FWNODE_PDATA;
+>  	p->fwnode.ops = &pset_fwnode_ops;
+>  	set_secondary_fwnode(dev, &p->fwnode);
+>  	return 0;
+> diff --git a/drivers/of/property.c b/drivers/of/property.c
+> index c96389b..edd629b 100644
+> --- a/drivers/of/property.c
+> +++ b/drivers/of/property.c
+> @@ -912,3 +912,4 @@ const struct fwnode_operations of_fwnode_ops = {
+>  	.graph_get_port_parent = of_fwnode_graph_get_port_parent,
+>  	.graph_parse_endpoint = of_fwnode_graph_parse_endpoint,
+>  };
+> +EXPORT_SYMBOL_GPL(of_fwnode_ops);
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 197f3ff..e724afc 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -394,15 +394,21 @@ struct acpi_data_node {
+>  	struct completion kobj_done;
+>  };
+>  
+> +extern const struct fwnode_operations acpi_device_fwnode_ops;
+> +extern const struct fwnode_operations acpi_data_fwnode_ops;
+> +extern const struct fwnode_operations acpi_static_fwnode_ops;
+> +
+>  static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+>  {
+> -	return !IS_ERR_OR_NULL(fwnode) && (fwnode->type == FWNODE_ACPI
+> -		|| fwnode->type == FWNODE_ACPI_DATA);
+> +	return !IS_ERR_OR_NULL(fwnode) &&
+> +		(fwnode->ops == &acpi_device_fwnode_ops
+> +		 || fwnode->ops == &acpi_data_fwnode_ops);
+>  }
+>  
+>  static inline bool is_acpi_device_node(struct fwnode_handle *fwnode)
+>  {
+> -	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_ACPI;
+> +	return !IS_ERR_OR_NULL(fwnode) &&
+> +		fwnode->ops == &acpi_device_fwnode_ops;
+>  }
+>  
+>  static inline struct acpi_device *to_acpi_device_node(struct fwnode_handle *fwnode)
+> @@ -413,7 +419,12 @@ static inline struct acpi_device *to_acpi_device_node(struct fwnode_handle *fwno
+>  
+>  static inline bool is_acpi_data_node(struct fwnode_handle *fwnode)
+>  {
+> -	return fwnode && fwnode->type == FWNODE_ACPI_DATA;
+> +	return fwnode && fwnode->ops == &acpi_data_fwnode_ops;
+> +}
+> +
+> +static inline bool is_acpi_static_node(struct fwnode_handle *fwnode)
+> +{
+> +	return fwnode && fwnode->ops == &acpi_static_fwnode_ops;
+>  }
+>  
+>  static inline struct acpi_data_node *to_acpi_data_node(struct fwnode_handle *fwnode)
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index b8f23c5..ad19760 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -56,9 +56,6 @@ static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
+>  	acpi_fwnode_handle(adev) : NULL)
+>  #define ACPI_HANDLE(dev)		acpi_device_handle(ACPI_COMPANION(dev))
+>  
+> -
+> -extern const struct fwnode_operations acpi_fwnode_ops;
+> -
+>  static inline struct fwnode_handle *acpi_alloc_fwnode_static(void)
+>  {
+>  	struct fwnode_handle *fwnode;
+> @@ -67,15 +64,14 @@ static inline struct fwnode_handle *acpi_alloc_fwnode_static(void)
+>  	if (!fwnode)
+>  		return NULL;
+>  
+> -	fwnode->type = FWNODE_ACPI_STATIC;
+> -	fwnode->ops = &acpi_fwnode_ops;
+> +	fwnode->ops = &acpi_static_fwnode_ops;
+>  
+>  	return fwnode;
+>  }
+>  
+>  static inline void acpi_free_fwnode_static(struct fwnode_handle *fwnode)
+>  {
+> -	if (WARN_ON(!fwnode || fwnode->type != FWNODE_ACPI_STATIC))
+> +	if (WARN_ON(!fwnode || !is_acpi_static_node(fwnode)))
+>  		return;
+>  
+>  	kfree(fwnode);
+> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+> index 9ab3754..e7ca4c5 100644
+> --- a/include/linux/fwnode.h
+> +++ b/include/linux/fwnode.h
+> @@ -14,20 +14,9 @@
+>  
+>  #include <linux/types.h>
+>  
+> -enum fwnode_type {
+> -	FWNODE_INVALID = 0,
+> -	FWNODE_OF,
+> -	FWNODE_ACPI,
+> -	FWNODE_ACPI_DATA,
+> -	FWNODE_ACPI_STATIC,
+> -	FWNODE_PDATA,
+> -	FWNODE_IRQCHIP
+> -};
+> -
+>  struct fwnode_operations;
+>  
+>  struct fwnode_handle {
+> -	enum fwnode_type type;
+>  	struct fwnode_handle *secondary;
+>  	const struct fwnode_operations *ops;
+>  };
+> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+> index 9f36160..ee1910c 100644
+> --- a/include/linux/irqdomain.h
+> +++ b/include/linux/irqdomain.h
+> @@ -233,9 +233,11 @@ static inline struct fwnode_handle *of_node_to_fwnode(struct device_node *node)
+>  	return node ? &node->fwnode : NULL;
+>  }
+>  
+> +extern const struct fwnode_operations irqchip_fwnode_ops;
+> +
+>  static inline bool is_fwnode_irqchip(struct fwnode_handle *fwnode)
+>  {
+> -	return fwnode && fwnode->type == FWNODE_IRQCHIP;
+> +	return fwnode && fwnode->ops == &irqchip_fwnode_ops;
+>  }
+>  
+>  static inline
+> diff --git a/include/linux/of.h b/include/linux/of.h
+> index cdbfa88..6e39aa1 100644
+> --- a/include/linux/of.h
+> +++ b/include/linux/of.h
+> @@ -104,7 +104,6 @@ extern const struct fwnode_operations of_fwnode_ops;
+>  static inline void of_node_init(struct device_node *node)
+>  {
+>  	kobject_init(&node->kobj, &of_node_ktype);
+> -	node->fwnode.type = FWNODE_OF;
+>  	node->fwnode.ops = &of_fwnode_ops;
+>  }
+>  
+> @@ -152,7 +151,7 @@ void of_core_init(void);
+>  
+>  static inline bool is_of_node(const struct fwnode_handle *fwnode)
+>  {
+> -	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_OF;
+> +	return !IS_ERR_OR_NULL(fwnode) && fwnode->ops == &of_fwnode_ops;
+>  }
+>  
+>  #define to_of_node(__fwnode)						\
+> diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+> index 31805f2..e746c42 100644
+> --- a/kernel/irq/irqdomain.c
+> +++ b/kernel/irq/irqdomain.c
+> @@ -31,6 +31,8 @@ struct irqchip_fwid {
+>  	void *data;
+>  };
+>  
+> +const struct fwnode_operations irqchip_fwnode_ops;
+> +
+>  /**
+>   * irq_domain_alloc_fwnode - Allocate a fwnode_handle suitable for
+>   *                           identifying an irq domain
+> @@ -55,7 +57,7 @@ struct fwnode_handle *irq_domain_alloc_fwnode(void *data)
+>  
+>  	fwid->name = name;
+>  	fwid->data = data;
+> -	fwid->fwnode.type = FWNODE_IRQCHIP;
+> +	fwid->fwnode.ops = &irqchip_fwnode_ops;
+>  	return &fwid->fwnode;
+>  }
+>  EXPORT_SYMBOL_GPL(irq_domain_alloc_fwnode);
+> -- 
+> 2.7.4
+> 
