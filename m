@@ -1,99 +1,38 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID
- switch exported by ACPI
-Date: Tue, 20 Jun 2017 02:45:09 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CED1C41@SHSMSX101.ccr.corp.intel.com>
-References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
-         <20170607074848.GE27006@gardel-login>
-         <20170613100617.GD29589@mail.corp.redhat.com>
-         <1AE640813FDE7649BE1B193DEA596E886CED0386@SHSMSX101.ccr.corp.intel.com>
-         <20170615064715.GA6195@jelly>
-         <1AE640813FDE7649BE1B193DEA596E886CED047B@SHSMSX101.ccr.corp.intel.com>
-         <20170615075755.GA10001@jelly>
-         <1AE640813FDE7649BE1B193DEA596E886CED0A03@SHSMSX101.ccr.corp.intel.com>
-         <20170616072322.GL5085@mail.corp.redhat.com>
-         <1AE640813FDE7649BE1B193DEA596E886CED0AC1@SHSMSX101.ccr.corp.intel.com>
-         <20170616080950.GM5085@mail.corp.redhat.com>
-         <1AE640813FDE7649BE1B193DEA596E886CED0C5E@SHSMSX101.ccr.corp.intel.com>
-         <33C872C7-EFB2-4CA0-8CAD-8B6E8916180C@hadess.net>
-         <1AE640813FDE7649BE1B193DEA596E886CED1419@SHSMSX101.ccr.corp.intel.com>
- <1497910127.2559.1.camel@hadess.net>
+From: Robert Richter <robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V17 00/11] Add UEFI 2.6 and ACPI 6.1 updates for RAS on
+ ARM64
+Date: Tue, 20 Jun 2017 08:34:39 +0200
+Message-ID: <20170620063439.GS658@rric.localdomain>
+References: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
+ <20170607115012.GZ30263@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:32103 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750905AbdFTCpU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Jun 2017 22:45:20 -0400
-In-Reply-To: <1497910127.2559.1.camel@hadess.net>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170607115012.GZ30263-5wv7dgnIgG8@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+Cc: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi@vger.
 List-Id: linux-acpi@vger.kernel.org
-To: Bastien Nocera <hadess@hadess.net>
-Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Peter Hutterer <peter.hutterer@who-t.net>, Lennart Poettering <mzxreary@0pointer.de>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogQmFzdGllbiBOb2NlcmEgW21haWx0bzpoYWRlc3NAaGFkZXNzLm5ldF0N
-Cj4gU3ViamVjdDogUmU6IFtzeXN0ZW1kLWRldmVsXSBbV0lQIFBBVENIIDAvNF0gUmV3b3JrIHRo
-ZSB1bnJlbGlhYmxlIExJRCBzd2l0Y2ggZXhwb3J0ZWQgYnkgQUNQSQ0KPiANCj4gT24gTW9uLCAy
-MDE3LTA2LTE5IGF0IDAxOjQzICswMDAwLCBaaGVuZywgTHYgd3JvdGU6DQo+ID4gPHNuaXA+DQo+
-ID4gPg0KPiA+ID4gSWYgeW91IGltcGxlbWVudCBpdCBpbiBzdWNoIGEgd2F5IHRoYXQgR05PTUUg
-c2V0dGluZ3MgZGFlbW9uDQo+ID4gPiBiZWhhdmVzIHdlaXJkbHksIHlvdSdsbCBnZXQgbXkgcmV2
-ZXJ0DQo+ID4gPiByZXF1ZXN0IGluIHRoZSBtYWlsLiBEby4gTm90LiBFdmVyLiBMaWUuDQo+ID4N
-Cj4gPiBGaXJzdCwgSSBkb24ndCBrbm93IHdoYXQgc2hvdWxkIGJlIHJldmVydGVkLi4uDQo+ID4g
-SSBoYXZlIDIgc29sdXRpb25zIGhlcmUgZm9yIHJldmlldywgYW5kIEJlbmphbWluIGhhcyAxLg0K
-PiA+IEFuZCBub25lIG9mIHRoZW0gaGFzIGJlZW4gdXBzdHJlYW1lZC4NCj4gPiBXZSBhcmUganVz
-dCBkaXNjdXNzaW5nLg0KPiANCj4gVGhlIGRpc2N1c3Npb24gaXMgZ2V0dGluZyB0aXJpbmcgcXVp
-dGUgZnJhbmtseS4gV2UndmUgYmVlbiBvdmVyIHRoaXMNCj4gZm9yIG5lYXJseSBhIHllYXIgbm93
-LCBhbmQgd2l0aCBubyBlbmQgaW4gc2lnaHQuDQoNCldlIGhhdmUgY29uY2VybnMgdG8gaW50cm9k
-dWNlIHRvbyBjb21wbGljYXRlZCBsb2dpY3MgdG8gc3VjaCBhDQpzaW1wbGUgYnV0dG9uIGRyaXZl
-ciBlc3BlY2lhbGx5IHRoZSBsb2dpY3MgYXJlIHJlbGF0ZWQgdG8gcGxhdGZvcm0NCmZpcm13YXJl
-LCBpbnB1dCBBQkkgYW5kIHVzZXIgc3BhY2UgYmVoYXZpb3JzLg0KDQpJIHVuZGVyc3RhbmQgdGhl
-IHNpdHVhdGlvbi4NCkFueXdheSB0aGlzIHNob3VsZG4ndCBiZSBhIGJpZyBkZWFsLg0KTGV0J3Mg
-cHJlcGFyZSBhIHNtYXJ0ZXIgc2VyaWVzIHRvIGNvbGxlY3QgYWxsIGZpeGVzIGFuZCBzb2x1dGlv
-bnMNCndpdGggcnVudGltZSBjb25maWd1cmFibGVzIGFuZCBnZXQgdGhhdCB0byB0aGUgZW5kIHVz
-ZXJzLg0KU28gdGhhdCB3ZSBjYW4gZmlndXJlIG91dCB3aGljaCBpcyB0aGUgc2ltcGxlc3Qgc29s
-dXRpb24uDQoNCkJ1dCBiZWZvcmUgdGhhdCwgbGV0IG1lIGFzayBzZXZlcmFsIHF1ZXN0aW9ucyBh
-Ym91dCBnbm9tZS1zZXR0aW5nLWRlYW1vbi4NCg0KPiANCj4gPiBIb3dldmVyIHdlIG5lZWQgdG8g
-Z2V0IDEgb2YgdGhlbSB1cHN0cmVhbWVkIGluIG5leHQgY3ljbGUuDQo+ID4NCj4gPiBJIHRoaW5r
-IHVzZXJzIHdvbid0IHN0YXJ0dXAgZ25vbWUtc2V0dGluZy1kYWVtb24gcmlnaHQgYWZ0ZXIgcmVz
-dW1lLg0KPiA+IEl0IHNob3VsZCBoYXZlIGFscmVhZHkgYmVlbiBzdGFydGVkLg0KPiA+DQo+ID4g
-VGhlcmUgaXMgb25seSAxIHBsYXRmb3JtIG1heSBzZWUgZGVsYXllZCBzdGF0ZSB1cGRhdGUgYWZ0
-ZXIgcmVzdW1lLg0KPiA+IExldCdzIHNlZSBpZiB0aGVyZSBpcyBhIHByYWN0aWNhbCBpc3N1ZS4N
-Cj4gPiAxLiBCZWZvcmUgc3VzcGVuZCwgdGhlICJsaWQgc3RhdGUiIGlzICJjbG9zZSIsIGFuZA0K
-PiA+IDIuIEFmdGVyIHJlc3VtZSwgdGhlIHN0YXRlIG1pZ2h0IHJlbWFpbiAiY2xvc2UiIGZvciBh
-IHdoaWxlDQo+ID4gICAgU2luY2UgbGliaW5wdXQgd29uJ3QgZGVsaXZlciBjbG9zZSB0byB1c2Vy
-c3BhY2UsDQo+ID4gICAgYW5kIGdub21lLXNldHRpbmctZGFlbW9uIGxpc3RlbnMgdG8ga2V5IHN3
-aXRjaGVzLCB0aGVyZSBpcyBubw0KPiA+IHdyb25nIGJlaGF2aW9yLg0KPiANCj4gSXQgZG9lc24n
-dC4gSXQgbGlzdGVucyB0byBVUG93ZXIsIHdoaWNoIHRlbGxzIHVzZXItc3BhY2Ugd2hldGhlciB0
-aGVyZQ0KPiBpcyBhIGxpZCBzd2l0Y2gsIGFuZCB3aGV0aGVyIGl0J3Mgb3BlbmVkIG9yIGNsb3Nl
-ZC4NCg0KVGhhbmtzIGZvciB0aGUgaW5mb3JtYXRpb24uDQpIb3dldmVyIEkgZG9uJ3Qgc2VlIGRp
-ZmZlcmVuY2VzIGhlcmUuDQoNCj4gDQo+ID4gMy4gVGhlbiBhZnRlciBzZXZlcmFsIHNlY29uZHMs
-ICJvcGVuIiBhcnJpdmVzLg0KPiA+ICAgIGdub21lLXNldHRpbmctZGFlbW9uIHJlLWFycmFuZ2Ug
-bW9uaXRvcnMgYW5kIHNjcmVlbiBsYXlvdXRzIGluDQo+ID4gcmVzcG9uc2UgdG8gdGhlIG5ldyBl
-dmVudC4NCj4gDQo+IEp1c3QgaG93IGlzIGFueW9uZSBzdXBwb3NlZCB0byBrbm93IHRoYXQgdGhl
-cmUgaXMgYW4gZXZlbnQgY29taW5nPw0KDQpXaWxsIFVQb3dlciBkZWxpdmVyIEVWX1NXIGtleSBl
-dmVudHMgdG8gZ25vbWUtc2V0dGluZy1kYWVtb24/DQoNCj4gDQo+ID4gU28gdGhlcmUgaXMgbm8g
-cHJvYmxlbS4gSU1PLCB0aGVyZSBpcyBubyBuZWVkIHRvIGltcHJvdmUgZm9yIHBvc3QtDQo+ID4g
-cmVzdW1lIGNhc2UuDQo+ID4NCj4gPiBVc2VycyB3aWxsIGp1c3Qgc3RhcnR1cCBnbm9tZS1zZXR0
-aW5nLWRhZW1vbiBvbmNlIGFmdGVyIGJvb3QuDQo+ID4gQW5kIGl0J3MgbGlrZWx5IHRoYXQgd2hl
-biBpdCBpcyBzdGFydGVkLCB0aGUgc3RhdGUgaXMgY29ycmVjdC4NCj4gDQo+IFlvdSBjYW5ub3Qg
-cmVseSBvbiB3aGVuIGdub21lLXNldHRpbmdzLWRhZW1vbiB3aWxsIGJlIHN0YXJ0ZWQgdG8gbWFr
-ZQ0KPiAqYW55KiBkZWNpc2lvbi4gQ2VydGFpbmx5IG5vdCBkZWNpc2lvbnMgb24gaG93IHRoZSBr
-ZXJuZWwgc2hvdWxkDQo+IGJlaGF2ZS4NCg0KTXkgYmFkIHdvcmRpbmcsIEkganVzdCBtZWFudDoN
-CldoZW4gZ25vbWUtc2V0dGluZ3MtZGFlbW9uIGlzIHN0YXJ0ZWQgaXMgbm90IHJlbGF0ZWQgdG8g
-d2hhdCB3ZSBhcmUNCmRpc2N1c3NpbmcuDQoNCkRvIHlvdSB3YW50IHRvIGZpeCByZWdyZXNzaW9u
-cz8NCk9yIHlvdSB3YW50IHRvIGZpeCBuZXcgaXNzdWVzIG9uIHJlY2VudCBwbGF0Zm9ybXM/DQpJ
-ZiB5b3Ugd2FudCB0byBmaXggcmVncmVzc2lvbnMsIEkgdGhpbmsgQmVuamFtaW4gaGFzIHN1Ym1p
-dHRlZCBhIHJldmlzaW9uDQp0byB1c2Ugb2xkIG1ldGhvZCBtb2RlLCB0aGVyZSBzaG91bGRuJ3Qg
-YmUgcmVncmVzc2lvbnMgZm9yDQpnbm9tZS1zZXR0aW5ncy1kYWVtb24uDQoNCldoYXQgZWxzZSB3
-ZSB3YW50IHRvIGRvIGlzIHRvIGZpeCByZWdyZXNzaW9ucyByZWxhdGVkIHRvIHN5c3RlbWQgd2hl
-bg0Kd2UgZ28gYmFjayB0byBkZWZhdWx0IG1ldGhvZCBtb2RlLiBTaW5jZSB0aGVyZSBpcyBubyBp
-c3N1ZSB3aXRoIHN5c3RlbWQNCjIzMyBhbmQgYWZ0ZXIganVzdCBhcHBseWluZyBhIHNtYWxsIGNo
-YW5nZSwgc3lzdGVtZCAyMjkgY2FuIGFsc28gYmUNCndvcmtlZCBhcm91bmQsIEkgbWVhbiBkeW5h
-bWljYWxseSBhZGQvcmVtb3ZlIGlucHV0IG5vZGUgaXMgbm90IHN0cmljdGx5DQpyZXF1aXJlZCBm
-b3IgYWNoaWV2aW5nIG91ciBwdXJwb3Nlcy4NCg0KQnV0IGlmIHlvdSB3YW50IHRvIGZpeCBuZXcg
-aXNzdWVzIG9uIG5ldyBwbGF0Zm9ybXMsIHdlIGNhbiBkaXNjdXNzDQpmdXJ0aGVyIGFuZCBkZXRl
-cm1pbmUgd2hpY2ggcHJvZ3JhbSBzaG91bGQgYmUgY2hhbmdlZCBhbmQgd2hpY2ggcHJvZ3JhbQ0K
-aXMgdGhlIGJlc3QgY2FuZGlkYXRlIHRvIHN0b3AgYWxsIHByb2JsZW1zIC0gdGhlIEFDUEkgYnV0
-dG9uIGRyaXZlciBvcg0KdGhlIHVzZXIgc3BhY2UuDQoNCkNoZWVycw0KTHYNCg==
+Will,
+
+On 07.06.17 12:50:12, Will Deacon wrote:
+
+> Thanks, I've pushed this out as:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/ras-apei
+>
+> which I'll merge into for-next/core (and therefore linux-next) either the
+> end of this week or the beginning of next week. Please take a look if you
+> get a chance.
+
+any reason why there was a roll back of for-next/core?
+
+ + 0870f692c2ed...e27c7fa015d6 for-next/core -> arm64/for-next/core  (forced update)
+
+Is it because for-next/ras-apei goes through tip?
+
+Thanks,
+
+-Robert
