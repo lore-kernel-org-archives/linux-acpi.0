@@ -1,155 +1,76 @@
-From: Loc Ho <lho@apm.com>
-Subject: Re: [PATCH] ACPI: SPCR: Use access width to determine mmio usage
-Date: Tue, 20 Jun 2017 11:33:04 -0700
-Message-ID: <CAPw-ZT=rbM05RBxL8Ym8yZiF6C+8PxJx_xi8rCC1byrcAgfuVA@mail.gmail.com>
-References: <1493910330-17913-1-git-send-email-jon.mason@broadcom.com>
- <4e11bb2b-7cec-6a7b-ca2b-88be31a98b7d@redhat.com> <CAPw-ZTkF2KnC2TWwxWLTKoM5LPkipHvJeQGaBp30JjDNQ76VEA@mail.gmail.com>
- <f122adfb-872e-9ee6-db61-b55c75903b63@redhat.com> <CAPw-ZTnu+YvBN8PAZfMEKuY_3xTPDgr4qmNqi0JOCPXH_k0SDg@mail.gmail.com>
- <CAC3K-4oK9FF_7QfoQCBvgBCoprk+VbRVD-YvC9fm7aRT8Uo+rQ@mail.gmail.com>
- <CAPw-ZTkwwuwCSw0Q=8W53e7t5FDEF-hKshOoWvdJ7QhCTRvuqA@mail.gmail.com>
- <20170508212347.GA3601@broadcom.com> <CAPw-ZT=+WjtMLFPmw5q7qJkH9AAJcxPUt9KCn5wvxN-1MA68rg@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v8 1/3] ACPI/IORT: Fixup SMMUv3 resource size for Cavium
+	ThunderX2 SMMUv3 model
+Date: Tue, 20 Jun 2017 20:27:47 +0100
+Message-ID: <20170620192747.GA30990@red-moon>
+References: <1497968259-16390-1-git-send-email-gakula@caviumnetworks.com>
+	<1497968259-16390-2-git-send-email-gakula@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f173.google.com ([209.85.223.173]:33766 "EHLO
-        mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750927AbdFTSdG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jun 2017 14:33:06 -0400
-Received: by mail-io0-f173.google.com with SMTP id t87so90224926ioe.0
-        for <linux-acpi@vger.kernel.org>; Tue, 20 Jun 2017 11:33:06 -0700 (PDT)
-In-Reply-To: <CAPw-ZT=+WjtMLFPmw5q7qJkH9AAJcxPUt9KCn5wvxN-1MA68rg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1497968259-16390-2-git-send-email-gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, sudeep.holla-5wv7dgnIgG8@public.gmane.org, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Mason <jon.mason@broadcom.com>
-Cc: Jon Masters <jcm@redhat.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, devel@acpica.org, BCM Kernel Feedback <bcm-kernel-feedback-list@broadcom.com>
 
-Hi Jon,
-
->
-> >> >>>>>> The current SPCR code does not check the access width of the mmio, and
-> >> >>>>>> uses a default of 8bit register accesses.  This prevents devices that
-> >> >>>>>> only do 16 or 32bit register accesses from working.  By simply checking
-> >> >>>>>> this field and setting the mmio string appropriately, this issue can be
-> >> >>>>>> corrected.  To prevent any legacy issues, the code will default to 8bit
-> >> >>>>>> accesses if the value is anything but 16 or 32.
-> >> >>>>>
-> >> >>>>> Thanks for this. Just as an FYI I've a running discussion with Microsoft
-> >> >>>>> about defining additional UART subtypes in the DBG2 for special case
-> >> >>>>> UARTs. Specifically, I want to address AppliedMicro's special 8250 dw IP
-> >> >>>>> that also has a non-standard clock. At this time, there is general
-> >> >>>>> agreement to use the access width for some cases rather than defining
-> >> >>>>> yet more subtypes - so your patch is good.
-> >> >>>>>
-> >> >>>>> Loc/Applied: please track this thread, incorporate feedback, and also
-> >> >>>>> track the other general recent discussions of 8250 dw from this week.
-> >> >>>>
-> >> >>>> Thanks for forward me this patch. This patch does not work with X-Gene
-> >> >>>> v1 and v2 SoC's. As BIOS SPCR encodes these info as:
-> >> >>>>
-> >> >>>> Bit Width: 32
-> >> >>>> Bit Offset: 0
-> >> >>>> Encoded Access Width: 01 (Byte Access)
-> >> >>>>
-> >> >>>> With this patch, it would use the "mmio" instead the "mmio32" as with
-> >> >>>> this patch - https://patchwork.kernel.org/patch/9460959
-> >> >>>
-> >> >>> I think this is why we need the DBG2 subtype for Applied X-Gene1. I'm
-> >> >>> hoping the update to the SPCR/DBG2 spec is done soon.
-> >> >>
-> >> >> We can't rely on the BIOS change to support this new subtype as we
-> >> >> have system that is already in production deployment. When these
-> >> >> system upgrade to new version of the OS (stock, RHELSA, or whatever),
-> >> >> they will break. We need the patch from
-> >> >> https://patchwork.kernel.org/patch/9460959/ rolled upstream.
-> >> >
-> >> > There is no reason why the patch you reference cannot co-exist with
-> >> > the one I am submitting here.  In this case, my patch would set it to
-> >> > mmio, then the patch you link above would reset it to mmio32.
-> >> > Personally, I would recommend a big, fat comment on why this extra
-> >> > step is necessary, but it should work as desired.  Alternatively, we
-> >> > could add some kind of quirk library (similar to
-> >> > qdf2400_erratum_44_present) where the OEM/OEM Table ID is referenced
-> >> > and workaround applied.  Thoughts?
-> >>
-> >> That's was my first version but after seeing both versions, I think
-> >> they are better solution as it works for more SoC's than just our. As
-> >> you had suggested, we should apply your patch and
-> >> https://patchwork.kernel.org/patch/9460959. The third patch -
-> >> https://patchwork.kernel.org/patch/9462183/ - conflicts with your.
-> >>
-> >> Summary:
-> >> 1. Applied your - https://lkml.org/lkml/2017/5/4/450
-> >> 2. Applied this one - https://patchwork.kernel.org/patch/9460959/
-> >>
-> >> -Loc
-> >
-> > What if we simply applied the following (100% untested) patch to add
-> > the quirk framework I was suggesting?  It can be applied on top of the
-> > patch I submitted previously.
->
-> It is a bit more complex that this simple patch. How about this one
-> (my original version). As for Jon Master question on McDivitt, not
-> sure what they use for the ACPI table for SPCR. If they used our
-> reference, then this might work for them too. This version would limit
-> to just the existent firmware or until the SPCR table gets changed.
->
->
-> tty: 8250: Workaround for APM X-Gene 8250 UART 32-alignment errata
->
-> APM X-Gene verion 1 and 2 have an 8250 UART with its register
-> aligned to 32-bit. The SPCR always assumes fully compatible
-> 8250. This causes no console with ACPI boot as the console
-> will not match X-Gene UART port due to the lack of mmio32
-> option.
->
-> Signed-off-by: Loc Ho <lho@apm.com>
+On Tue, Jun 20, 2017 at 07:47:37PM +0530, Geetha sowjanya wrote:
+> From: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> 
+> Cavium ThunderX2 implementation doesn't support second page in SMMU
+> register space. Hence, resource size is set as 64k for this model.
+> 
+> Signed-off-by: Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 > ---
->  drivers/acpi/spcr.c | 21 +++++++++++++++++++++
->  1 file changed, 21 insertions(+)
->
-> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-> index 3afa8c1..77b45a0 100644
-> --- a/drivers/acpi/spcr.c
-> +++ b/drivers/acpi/spcr.c
-> @@ -36,6 +36,25 @@ static bool qdf2400_erratum_44_present(struct
-> acpi_table_header *h)
->         return false;
+>  drivers/acpi/arm64/iort.c |   15 ++++++++++++++-
+>  1 files changed, 14 insertions(+), 1 deletions(-)
+
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index c5fecf9..c166f3e 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -828,6 +828,18 @@ static int __init arm_smmu_v3_count_resources(struct acpi_iort_node *node)
+>  	return num_res;
 >  }
->
-> +/*
-> + * APM X-Gene v1 and v2 UART hardware is an 16550 like device but has its
-> + * register aligned to 32-bit. This function detects this errata condition.
-> + */
-> +static bool xgene_8250_erratum_present(struct acpi_table_spcr *tb)
+>  
+> +static unsigned long arm_smmu_v3_resource_size(struct acpi_iort_smmu_v3 *smmu)
 > +{
-> +       if (tb->interface_type != ACPI_DBG2_16550_COMPATIBLE)
-> +               return false;
+> +	/*
+> +	 * Override the size, for Cavium ThunderX2 implementation
+> +	 * which doesn't support the page 1 SMMU register space.
+> +	 */
+> +	if (smmu->model == ACPI_IORT_SMMU_V3_CAVIUM_CN99XX)
+> +		return SZ_64K;
 > +
-> +       if (memcmp(tb->header.oem_id, "APMC0D", ACPI_OEM_ID_SIZE))
-> +               return false;
-> +
-> +       if (!memcmp(tb->header.oem_table_id, "XGENESPC",
-> +                   ACPI_OEM_TABLE_ID_SIZE) && tb->header.oem_revision == 0)
-> +               return true;
-> +
-> +       return false;
+> +	return SZ_128K;
 > +}
 > +
->  /**
->   * parse_spcr() - parse ACPI SPCR table and add preferred console
->   *
-> @@ -115,6 +134,8 @@ int __init parse_spcr(bool earlycon)
->
->         if (qdf2400_erratum_44_present(&table->header))
->                 uart = "qdf2400_e44";
-> +       if (xgene_8250_erratum_present(table))
-> +               iotype = "mmio32";
->
->         snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d", uart, iotype,
->                  table->serial_port.address, baud_rate);
->
-
-I didn't see a follow up email on this. What was the conclusion to
-this patch series?
-
--Loc
+>  static void __init arm_smmu_v3_init_resources(struct resource *res,
+>  					      struct acpi_iort_node *node)
+>  {
+> @@ -838,7 +850,8 @@ static void __init arm_smmu_v3_init_resources(struct resource *res,
+>  	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+>  
+>  	res[num_res].start = smmu->base_address;
+> -	res[num_res].end = smmu->base_address + SZ_128K - 1;
+> +	res[num_res].end = smmu->base_address +
+> +				arm_smmu_v3_resource_size(smmu) - 1;
+>  	res[num_res].flags = IORESOURCE_MEM;
+>  
+>  	num_res++;
+> -- 
+> 1.7.1
+> 
