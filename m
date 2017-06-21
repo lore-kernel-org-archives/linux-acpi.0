@@ -1,141 +1,55 @@
-From: Bastien Nocera <hadess@hadess.net>
-Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID
- switch exported by ACPI
-Date: Wed, 21 Jun 2017 12:23:08 +0200
-Message-ID: <1498040588.2559.30.camel@hadess.net>
-References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
-         <20170607074848.GE27006@gardel-login>
-         <20170613100617.GD29589@mail.corp.redhat.com>
-         <1AE640813FDE7649BE1B193DEA596E886CED0386@SHSMSX101.ccr.corp.intel.com>
-         <20170615064715.GA6195@jelly>
-         <1AE640813FDE7649BE1B193DEA596E886CED047B@SHSMSX101.ccr.corp.intel.com>
-         <20170615075755.GA10001@jelly>
-         <1AE640813FDE7649BE1B193DEA596E886CED0A03@SHSMSX101.ccr.corp.intel.com>
-         <20170616072322.GL5085@mail.corp.redhat.com>
-         <1AE640813FDE7649BE1B193DEA596E886CED0AC1@SHSMSX101.ccr.corp.intel.com>
-         <20170616080950.GM5085@mail.corp.redhat.com>
-         <1AE640813FDE7649BE1B193DEA596E886CED0C5E@SHSMSX101.ccr.corp.intel.com>
-         <33C872C7-EFB2-4CA0-8CAD-8B6E8916180C@hadess.net>
-         <1AE640813FDE7649BE1B193DEA596E886CED1419@SHSMSX101.ccr.corp.intel.com>
-         <1497910127.2559.1.camel@hadess.net>
-         <1AE640813FDE7649BE1B193DEA596E886CED1C41@SHSMSX101.ccr.corp.intel.com>
+From: Robert Richter <robert.richter@cavium.com>
+Subject: Re: [PATCH V17 00/11] Add UEFI 2.6 and ACPI 6.1 updates for RAS on
+ ARM64
+Date: Wed, 21 Jun 2017 15:00:25 +0200
+Message-ID: <20170621130025.GD16981@rric.localdomain>
+References: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
+ <20170607115012.GZ30263@arm.com>
+ <20170620063439.GS658@rric.localdomain>
+ <20170620084931.GB30664@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CED1C41@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Peter Hutterer <peter.hutterer@who-t.net>, Lennart Poettering <mzxreary@0pointer.de>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bl2nam02on0083.outbound.protection.outlook.com ([104.47.38.83]:62388
+        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750992AbdFUNAt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 21 Jun 2017 09:00:49 -0400
+Content-Disposition: inline
+In-Reply-To: <20170620084931.GB30664@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Tyler Baicar <tbaicar@codeaurora.org>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.
 
-On Tue, 2017-06-20 at 02:45 +0000, Zheng, Lv wrote:
-> Hi,
+On 20.06.17 09:49:32, Will Deacon wrote:
+> Hi Robert,
 > 
-> > From: Bastien Nocera [mailto:hadess@hadess.net]
-> > Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable
-> > LID switch exported by ACPI
+> On Tue, Jun 20, 2017 at 08:34:39AM +0200, Robert Richter wrote:
+> > On 07.06.17 12:50:12, Will Deacon wrote:
 > > 
-> > On Mon, 2017-06-19 at 01:43 +0000, Zheng, Lv wrote:
-> > > <snip>
-> > > > 
-> > > > If you implement it in such a way that GNOME settings daemon
-> > > > behaves weirdly, you'll get my revert
-> > > > request in the mail. Do. Not. Ever. Lie.
-> > > 
-> > > First, I don't know what should be reverted...
-> > > I have 2 solutions here for review, and Benjamin has 1.
-> > > And none of them has been upstreamed.
-> > > We are just discussing.
+> > > Thanks, I've pushed this out as:
+> > >
+> > >   git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/ras-apei
+> > >
+> > > which I'll merge into for-next/core (and therefore linux-next) either the
+> > > end of this week or the beginning of next week. Please take a look if you
+> > > get a chance.
 > > 
-> > The discussion is getting tiring quite frankly. We've been over
-> > this
-> > for nearly a year now, and with no end in sight.
-> 
-> We have concerns to introduce too complicated logics to such a
-> simple button driver especially the logics are related to platform
-> firmware, input ABI and user space behaviors.
-> 
-> I understand the situation.
-> Anyway this shouldn't be a big deal.
-> Let's prepare a smarter series to collect all fixes and solutions
-> with runtime configurables and get that to the end users.
-> So that we can figure out which is the simplest solution.
-> 
-> But before that, let me ask several questions about gnome-setting-
-> deamon.
-> 
+> > any reason why there was a roll back of for-next/core?
 > > 
-> > > However we need to get 1 of them upstreamed in next cycle.
-> > > 
-> > > I think users won't startup gnome-setting-daemon right after
-> > > resume.
-> > > It should have already been started.
-> > > 
-> > > There is only 1 platform may see delayed state update after
-> > > resume.
-> > > Let's see if there is a practical issue.
-> > > 1. Before suspend, the "lid state" is "close", and
-> > > 2. After resume, the state might remain "close" for a while
-> > >    Since libinput won't deliver close to userspace,
-> > >    and gnome-setting-daemon listens to key switches, there is no
-> > > wrong behavior.
+> >  + 0870f692c2ed...e27c7fa015d6 for-next/core -> arm64/for-next/core  (forced update)
 > > 
-> > It doesn't. It listens to UPower, which tells user-space whether
-> > there
-> > is a lid switch, and whether it's opened or closed.
+> > Is it because for-next/ras-apei goes through tip?
 > 
-> Thanks for the information.
-> However I don't see differences here.
+> No, it's because the RAS stuff ran into horrible conflicts with the UUID
+> tree:
 > 
-> > 
-> > > 3. Then after several seconds, "open" arrives.
-> > >    gnome-setting-daemon re-arrange monitors and screen layouts in
-> > > response to the new event.
-> > 
-> > Just how is anyone supposed to know that there is an event coming?
+> https://lkml.org/lkml/2017/6/16/22
 > 
-> Will UPower deliver EV_SW key events to gnome-setting-daemon?
-> 
-> > 
-> > > So there is no problem. IMO, there is no need to improve for
-> > > post-
-> > > resume case.
-> > > 
-> > > Users will just startup gnome-setting-daemon once after boot.
-> > > And it's likely that when it is started, the state is correct.
-> > 
-> > You cannot rely on when gnome-settings-daemon will be started to
-> > make
-> > *any* decision. Certainly not decisions on how the kernel should
-> > behave.
-> 
-> My bad wording, I just meant:
-> When gnome-settings-daemon is started is not related to what we are
-> discussing.
-> 
-> Do you want to fix regressions?
-> Or you want to fix new issues on recent platforms?
-> If you want to fix regressions, I think Benjamin has submitted a
-> revision
-> to use old method mode, there shouldn't be regressions for
-> gnome-settings-daemon.
-> 
-> What else we want to do is to fix regressions related to systemd when
-> we go back to default method mode. Since there is no issue with
-> systemd
-> 233 and after just applying a small change, systemd 229 can also be
-> worked around, I mean dynamically add/remove input node is not
-> strictly
-> required for achieving our purposes.
-> 
-> But if you want to fix new issues on new platforms, we can discuss
-> further and determine which program should be changed and which
-> program
-> is the best candidate to stop all problems - the ACPI button driver
-> or
-> the user space.
+> Tyler should be rebasing that soon, so hopefully I can requeue that stuff
+> this week.
 
-I'm happy with Benjamin's patches which don't introduce any
-dependencies on new user-space, and don't rely on undocumented
-heuristics. What was the API is still the API.
+Note there are also conflicts with tip-ras from Borsis' tree.
+
+-Robert
