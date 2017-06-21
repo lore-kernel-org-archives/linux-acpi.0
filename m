@@ -1,57 +1,153 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH v2] acpi: handle the acpi hotplug schedule error
-Date: Wed, 21 Jun 2017 15:04:34 +0800
-Message-ID: <20170621070434.16570-1-jlee@suse.com>
+From: Jayachandran C <jnair@caviumnetworks.com>
+Subject: Re: [PATCH v3 2/2] acpi, gicv3-its, numa: Adding numa node mapping
+ for gic-its units
+Date: Wed, 21 Jun 2017 07:09:42 +0000
+Message-ID: <20170621070941.GA6124@localhost>
+References: <1498025743-6340-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1498025743-6340-3-git-send-email-ganapatrao.kulkarni@cavium.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:33346 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750927AbdFUHFD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 03:05:03 -0400
+Received: from mail-sn1nam02on0046.outbound.protection.outlook.com ([104.47.36.46]:15680
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751082AbdFUHJz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 21 Jun 2017 03:09:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1498025743-6340-3-git-send-email-ganapatrao.kulkarni@cavium.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Michal Hocko <mhocko@suse.cz>
+To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+Cc: linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lv.zheng@intel.com, robert.moore@intel.com, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, tglx@linutronix.de, jason@lakedaemon.net, gpkulkarni@gmail.com
 
-Kernel should decrements the reference count of acpi device
-when the scheduling of acpi hotplug work is failed, and
-evaluates _OST to notify BIOS the failure.
+On Wed, Jun 21, 2017 at 11:45:43AM +0530, Ganapatrao Kulkarni wrote:
+> Add code to parse SRAT ITS Affinity sub table as defined in ACPI 6.2
+> Later in per device probe, ITS devices are mapped to
+> numa node using ITS id to proximity domain mapping.
+> 
+> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+> ---
+>  drivers/irqchip/irq-gic-v3-its.c | 80 +++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 79 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+> index 45ea1933..88cfb32 100644
+> --- a/drivers/irqchip/irq-gic-v3-its.c
+> +++ b/drivers/irqchip/irq-gic-v3-its.c
+> @@ -1833,6 +1833,82 @@ static int __init its_of_probe(struct device_node *node)
+>  
+>  #define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
+>  
+> +#ifdef CONFIG_ACPI_NUMA
+> +struct its_srat_map {
+> +	u32	numa_node;  /* numa node id */
+> +	u32	its_id;  /* GIC ITS ID */
+> +};
+> +
+> +static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata = {
+> +	[0 ... MAX_NUMNODES - 1] = {NUMA_NO_NODE, UINT_MAX} };
+> +
+> +static int its_in_srat __initdata;
+> +
+> +static int __init
+> +acpi_get_its_numa_node(u32 its_id)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < its_in_srat; i++) {
+> +		if (its_id == its_srat_maps[i].its_id)
+> +			return its_srat_maps[i].numa_node;
+> +	}
+> +	return NUMA_NO_NODE;
+> +}
+> +
+> +static int __init
+> +gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+> +			 const unsigned long end)
+> +{
+> +	int pxm, node;
+> +	struct acpi_srat_its_affinity *its_affinity;
+> +
+> +	its_affinity = (struct acpi_srat_its_affinity *)header;
+> +	if (!its_affinity)
+> +		return -EINVAL;
+> +
+> +	if (its_affinity->header.length <
+> +			sizeof(struct acpi_srat_its_affinity)) {
+> +		pr_err("SRAT:ITS: Invalid SRAT header length: %d\n",
+> +			its_affinity->header.length);
 
-v2:
-To simplify the code. (Andy Shevchenko)
+The original driver does not use pr_fmt properly, it may be worth
+fixing that up rather than having prefixes, here...
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
----
- drivers/acpi/bus.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (its_in_srat >= MAX_NUMNODES) {
+> +		pr_err("SRAT:ITS: ITS devices exceeding max count[%d]\n",
+> +				MAX_NUMNODES);
+> +		return -EINVAL;
+> +	}
+> +
+> +	pxm = its_affinity->proximity_domain;
+> +	node = acpi_map_pxm_to_node(pxm);
+> +
+> +	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
+> +		pr_err("SRAT:ITS: Invalid numa node %d\n", node);
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 34fbe02..91adb71 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -427,12 +427,17 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
- 	    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
- 		driver->ops.notify(adev, type);
- 
--	if (hotplug_event && ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
--		return;
-+	if (hotplug_event) {
-+		if (ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
-+			return;
-+		goto err_put_device;
-+	}
- 
- 	acpi_bus_put_acpi_device(adev);
- 	return;
- 
-+ err_put_device:
-+	acpi_bus_put_acpi_device(adev);
-  err:
- 	acpi_evaluate_ost(handle, type, ost_code, NULL);
- }
--- 
-2.10.2
+here.
 
+> +		return -EINVAL;
+> +	}
+> +
+> +	its_srat_maps[its_in_srat].numa_node = node;
+> +	its_srat_maps[its_in_srat].its_id = its_affinity->its_id;
+> +	its_in_srat++;
+> +	pr_info("ACPI: NUMA: SRAT: ITS: PXM %d -> ITS_ID %d -> NODE %d\n",
+> +		pxm, its_affinity->its_id, node);
+
+also here.
+
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init acpi_table_parse_srat_its(void)
+> +{
+> +	return acpi_table_parse_entries(ACPI_SIG_SRAT,
+> +					sizeof(struct acpi_table_srat),
+> +					ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
+> +					gic_acpi_parse_srat_its, 0);
+> +}
+> +#else
+> +#define acpi_table_parse_srat_its()	do { } while (0)
+
+The function implementation returns a value, but this does not, it is
+better to be consistent here.
+
+> +#define acpi_get_its_numa_node(its_id)	NUMA_NO_NODE
+> +#endif
+> +
+>  static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>  					  const unsigned long end)
+>  {
+> @@ -1861,7 +1937,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>  		goto dom_err;
+>  	}
+>  
+> -	err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
+> +	err = its_probe_one(&res, dom_handle,
+> +			acpi_get_its_numa_node(its_entry->translation_id));
+>  	if (!err)
+>  		return 0;
+>  
+> @@ -1873,6 +1950,7 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>  
+>  static void __init its_acpi_probe(void)
+>  {
+> +	acpi_table_parse_srat_its();
+>  	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
+>  			      gic_acpi_parse_madt_its, 0);
+>  }
+
+JC.
