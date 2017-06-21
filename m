@@ -1,170 +1,159 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH v6 4/5] ACPI: button: extract input creation/destruction helpers
-Date: Wed, 21 Jun 2017 16:55:23 +0800
-Message-ID: <c02daeff53107577169fa64910d2bea3236b0b6f.1498034513.git.lv.zheng@intel.com>
-References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com> <cover.1498034513.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1498034513.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v3 2/2] acpi, gicv3-its, numa: Adding numa node mapping
+ for gic-its units
+Date: Wed, 21 Jun 2017 09:58:21 +0100
+Message-ID: <89b8b97d-1f4c-4938-9932-b2d637797e14@arm.com>
+References: <1498025743-6340-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1498025743-6340-3-git-send-email-ganapatrao.kulkarni@cavium.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:48884 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752310AbdFUI6Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 21 Jun 2017 04:58:25 -0400
+In-Reply-To: <1498025743-6340-3-git-send-email-ganapatrao.kulkarni@cavium.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: lv.zheng@intel.com, robert.moore@intel.com, catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, tglx@linutronix.de, jason@lakedaemon.net, jnair@caviumnetworks.com, gpkulkarni@gmail.com
 
-From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+On 21/06/17 07:15, Ganapatrao Kulkarni wrote:
+> Add code to parse SRAT ITS Affinity sub table as defined in ACPI 6.2
+> Later in per device probe, ITS devices are mapped to
+> numa node using ITS id to proximity domain mapping.
+> 
+> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+> ---
+>  drivers/irqchip/irq-gic-v3-its.c | 80 +++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 79 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+> index 45ea1933..88cfb32 100644
+> --- a/drivers/irqchip/irq-gic-v3-its.c
+> +++ b/drivers/irqchip/irq-gic-v3-its.c
+> @@ -1833,6 +1833,82 @@ static int __init its_of_probe(struct device_node *node)
+>  
+>  #define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
+>  
+> +#ifdef CONFIG_ACPI_NUMA
+> +struct its_srat_map {
+> +	u32	numa_node;  /* numa node id */
+> +	u32	its_id;  /* GIC ITS ID */
+> +};
+> +
+> +static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata = {
+> +	[0 ... MAX_NUMNODES - 1] = {NUMA_NO_NODE, UINT_MAX} };
+> +
+> +static int its_in_srat __initdata;
+> +
+> +static int __init
+> +acpi_get_its_numa_node(u32 its_id)
 
-When the LID switch ACPI implementation is unreliable, we might want
-to remove the device when we are not sure about the state. This should
-prevent any suspend/resume loops given that in that case, there will be
-no more LID switch input node.
+Please keep these on the same line.
 
-This patch prepares the dynamic creation/destruction of the input node.
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < its_in_srat; i++) {
+> +		if (its_id == its_srat_maps[i].its_id)
+> +			return its_srat_maps[i].numa_node;
+> +	}
+> +	return NUMA_NO_NODE;
+> +}
+> +
+> +static int __init
+> +gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+> +			 const unsigned long end)
 
-Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/button.c | 86 +++++++++++++++++++++++++++++++--------------------
- 1 file changed, 53 insertions(+), 33 deletions(-)
+Same remark.
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 1256a8c..91c9989 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -302,6 +302,54 @@ int acpi_lid_open(void)
- }
- EXPORT_SYMBOL(acpi_lid_open);
- 
-+static void acpi_button_remove_input(struct acpi_device *device)
-+{
-+	struct acpi_button *button = acpi_driver_data(device);
-+
-+	input_unregister_device(button->input);
-+	button->input = NULL;
-+}
-+
-+static int acpi_button_add_input(struct acpi_device *device)
-+{
-+	struct acpi_button *button = acpi_driver_data(device);
-+	struct input_dev *input;
-+	int error;
-+
-+	input = input_allocate_device();
-+	if (!input) {
-+		error = -ENOMEM;
-+		goto err;
-+	}
-+
-+	input->name = acpi_device_name(device);
-+	input->phys = button->phys;
-+	input->id.bustype = BUS_HOST;
-+	input->id.product = button->type;
-+	input->dev.parent = &device->dev;
-+	switch (button->type) {
-+	case ACPI_BUTTON_TYPE_POWER:
-+		input_set_capability(input, EV_KEY, KEY_POWER);
-+		break;
-+	case ACPI_BUTTON_TYPE_SLEEP:
-+		input_set_capability(input, EV_KEY, KEY_SLEEP);
-+		break;
-+	case ACPI_BUTTON_TYPE_LID:
-+		input_set_capability(input, EV_SW, SW_LID);
-+		break;
-+	}
-+
-+	error = input_register_device(input);
-+	if (error)
-+		goto err;
-+
-+	button->input = input;
-+	return 0;
-+ err:
-+	input_free_device(input);
-+	return error;
-+}
-+
- static int acpi_lid_update_state(struct acpi_device *device)
- {
- 	int state;
-@@ -414,7 +462,6 @@ static int acpi_button_resume(struct device *dev)
- static int acpi_button_add(struct acpi_device *device)
- {
- 	struct acpi_button *button;
--	struct input_dev *input;
- 	const char *hid = acpi_device_hid(device);
- 	char *name, *class;
- 	int error;
-@@ -425,12 +472,6 @@ static int acpi_button_add(struct acpi_device *device)
- 
- 	device->driver_data = button;
- 
--	button->input = input = input_allocate_device();
--	if (!input) {
--		error = -ENOMEM;
--		goto err_free_button;
--	}
--
- 	name = acpi_device_name(device);
- 	class = acpi_device_class(device);
- 
-@@ -457,38 +498,19 @@ static int acpi_button_add(struct acpi_device *device)
- 	} else {
- 		printk(KERN_ERR PREFIX "Unsupported hid [%s]\n", hid);
- 		error = -ENODEV;
--		goto err_free_input;
-+		goto err_free_button;
- 	}
- 
- 	error = acpi_button_add_fs(device);
- 	if (error)
--		goto err_free_input;
-+		goto err_free_button;
- 
- 	snprintf(button->phys, sizeof(button->phys), "%s/button/input0", hid);
- 
--	input->name = name;
--	input->phys = button->phys;
--	input->id.bustype = BUS_HOST;
--	input->id.product = button->type;
--	input->dev.parent = &device->dev;
--
--	switch (button->type) {
--	case ACPI_BUTTON_TYPE_POWER:
--		input_set_capability(input, EV_KEY, KEY_POWER);
--		break;
--
--	case ACPI_BUTTON_TYPE_SLEEP:
--		input_set_capability(input, EV_KEY, KEY_SLEEP);
--		break;
--
--	case ACPI_BUTTON_TYPE_LID:
--		input_set_capability(input, EV_SW, SW_LID);
--		break;
--	}
--
--	error = input_register_device(input);
-+	error = acpi_button_add_input(device);
- 	if (error)
- 		goto err_remove_fs;
-+
- 	if (button->type == ACPI_BUTTON_TYPE_LID) {
- 		/*
- 		 * This assumes there's only one lid device, or if there are
-@@ -507,8 +529,6 @@ static int acpi_button_add(struct acpi_device *device)
- 
-  err_remove_fs:
- 	acpi_button_remove_fs(device);
-- err_free_input:
--	input_free_device(input);
-  err_free_button:
- 	kfree(button);
- 	return error;
-@@ -521,7 +541,7 @@ static int acpi_button_remove(struct acpi_device *device)
- 	acpi_button_remove_fs(device);
- 	if (button->type == ACPI_BUTTON_TYPE_LID)
- 		del_timer_sync(&button->lid_timer);
--	input_unregister_device(button->input);
-+	acpi_button_remove_input(device);
- 	kfree(button);
- 	return 0;
- }
+> +{
+> +	int pxm, node;
+> +	struct acpi_srat_its_affinity *its_affinity;
+> +
+> +	its_affinity = (struct acpi_srat_its_affinity *)header;
+> +	if (!its_affinity)
+> +		return -EINVAL;
+> +
+> +	if (its_affinity->header.length <
+> +			sizeof(struct acpi_srat_its_affinity)) {
+
+Same thing.
+
+> +		pr_err("SRAT:ITS: Invalid SRAT header length: %d\n",
+> +			its_affinity->header.length);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (its_in_srat >= MAX_NUMNODES) {
+> +		pr_err("SRAT:ITS: ITS devices exceeding max count[%d]\n",
+> +				MAX_NUMNODES);
+> +		return -EINVAL;
+> +	}
+> +
+> +	pxm = its_affinity->proximity_domain;
+> +	node = acpi_map_pxm_to_node(pxm);
+> +
+> +	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
+> +		pr_err("SRAT:ITS: Invalid numa node %d\n", node);
+> +		return -EINVAL;
+> +	}
+
+So if you find an entry that doesn't match the current kernel
+configuration, you drop all the subsequent entries? That doesn't feel right.
+
+> +
+> +	its_srat_maps[its_in_srat].numa_node = node;
+> +	its_srat_maps[its_in_srat].its_id = its_affinity->its_id;
+> +	its_in_srat++;
+> +	pr_info("ACPI: NUMA: SRAT: ITS: PXM %d -> ITS_ID %d -> NODE %d\n",
+> +		pxm, its_affinity->its_id, node);
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init acpi_table_parse_srat_its(void)
+> +{
+> +	return acpi_table_parse_entries(ACPI_SIG_SRAT,
+> +					sizeof(struct acpi_table_srat),
+> +					ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
+> +					gic_acpi_parse_srat_its, 0);
+
+If you don't check the return value, there is no point returning it.
+
+> +}
+> +#else
+> +#define acpi_table_parse_srat_its()	do { } while (0)
+> +#define acpi_get_its_numa_node(its_id)	NUMA_NO_NODE
+> +#endif
+> +
+>  static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>  					  const unsigned long end)
+>  {
+> @@ -1861,7 +1937,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>  		goto dom_err;
+>  	}
+>  
+> -	err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
+> +	err = its_probe_one(&res, dom_handle,
+> +			acpi_get_its_numa_node(its_entry->translation_id));
+>  	if (!err)
+>  		return 0;
+>  
+> @@ -1873,6 +1950,7 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>  
+>  static void __init its_acpi_probe(void)
+>  {
+> +	acpi_table_parse_srat_its();
+>  	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
+>  			      gic_acpi_parse_madt_its, 0);
+>  }
+> 
+
+Thanks,
+
+	M.
 -- 
-2.7.4
+Jazz is not dead. It just smells funny...
