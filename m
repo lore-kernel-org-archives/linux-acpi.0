@@ -1,109 +1,113 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [v3] ACPI / PMIC: xpower: Add support for the GPI1 regulator to
- the OpRegion handler
-Date: Wed, 21 Jun 2017 15:27:30 +0200
-Message-ID: <3aaa700d-168a-9f4e-bf1b-06e3694359a8@redhat.com>
-References: <20170514213539.20231-1-hdegoede@redhat.com>
+From: Jayachandran C <jnair@caviumnetworks.com>
+Subject: Re: [PATCH v3 2/2] acpi, gicv3-its, numa: Adding numa node mapping
+ for gic-its units
+Date: Wed, 21 Jun 2017 15:25:10 +0000
+Message-ID: <20170621152509.GA4485@localhost>
+References: <1498025743-6340-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1498025743-6340-3-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <20170621070941.GA6124@localhost>
+ <a3550a73-9345-b360-44e6-949f0b6c42da@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34006 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751052AbdFUN1e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 21 Jun 2017 09:27:34 -0400
-In-Reply-To: <20170514213539.20231-1-hdegoede@redhat.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <a3550a73-9345-b360-44e6-949f0b6c42da@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: lorenzo.pieralisi@arm.com, jason@lakedaemon.net, hanjun.guo@linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, lv.zheng@intel.com, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, tglx@linutronix.de, gpkulkarni@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org
 
-Hi,
-
-On 14-05-17 23:35, Hans de Goede wrote:
-> Some Bay Trail devices use a GPI1 regulator field (address 0x4c) in
-> their 0x8d power OpRegion, add support for this.
+On Wed, Jun 21, 2017 at 09:44:58AM +0100, Marc Zyngier wrote:
+> On 21/06/17 08:09, Jayachandran C wrote:
+> > On Wed, Jun 21, 2017 at 11:45:43AM +0530, Ganapatrao Kulkarni wrote:
+> >> Add code to parse SRAT ITS Affinity sub table as defined in ACPI 6.2
+> >> Later in per device probe, ITS devices are mapped to
+> >> numa node using ITS id to proximity domain mapping.
+> >>
+> >> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+> >> ---
+> >>  drivers/irqchip/irq-gic-v3-its.c | 80 +++++++++++++++++++++++++++++++++++++++-
+> >>  1 file changed, 79 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+> >> index 45ea1933..88cfb32 100644
+> >> --- a/drivers/irqchip/irq-gic-v3-its.c
+> >> +++ b/drivers/irqchip/irq-gic-v3-its.c
+> >> @@ -1833,6 +1833,82 @@ static int __init its_of_probe(struct device_node *node)
+> >>  
+> >>  #define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
+> >>  
+> >> +#ifdef CONFIG_ACPI_NUMA
+> >> +struct its_srat_map {
+> >> +	u32	numa_node;  /* numa node id */
+> >> +	u32	its_id;  /* GIC ITS ID */
+> >> +};
+> >> +
+> >> +static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata = {
+> >> +	[0 ... MAX_NUMNODES - 1] = {NUMA_NO_NODE, UINT_MAX} };
+> >> +
+> >> +static int its_in_srat __initdata;
+> >> +
+> >> +static int __init
+> >> +acpi_get_its_numa_node(u32 its_id)
+> >> +{
+> >> +	int i;
+> >> +
+> >> +	for (i = 0; i < its_in_srat; i++) {
+> >> +		if (its_id == its_srat_maps[i].its_id)
+> >> +			return its_srat_maps[i].numa_node;
+> >> +	}
+> >> +	return NUMA_NO_NODE;
+> >> +}
+> >> +
+> >> +static int __init
+> >> +gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+> >> +			 const unsigned long end)
+> >> +{
+> >> +	int pxm, node;
+> >> +	struct acpi_srat_its_affinity *its_affinity;
+> >> +
+> >> +	its_affinity = (struct acpi_srat_its_affinity *)header;
+> >> +	if (!its_affinity)
+> >> +		return -EINVAL;
+> >> +
+> >> +	if (its_affinity->header.length <
+> >> +			sizeof(struct acpi_srat_its_affinity)) {
+> >> +		pr_err("SRAT:ITS: Invalid SRAT header length: %d\n",
+> >> +			its_affinity->header.length);
+> > 
+> > The original driver does not use pr_fmt properly, it may be worth
+> > fixing that up rather than having prefixes, here...
 > 
-> This fixes AE_BAD_PARAMETER errors getting thrown on these devices and
-> fixes these errors causing these devices to not suspend.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
-> Changes in v2:
-> -Simplify reg == 0x92 handling (suggested by Andy Shevchenko)
-> -Add special handling for reg == 0x92 to intel_xpower_pmic_get_power() too
-> Changes in v3:
-> -Use defines for GPI1 reg and bits, rather then hardcoded hex values
+> Irrespective of what the "proper" usage is
 
-What is the status of this patch ? AFAICT this patch has not been
-merged yet, even though it has a Reviewe-by.
+The prefixes of the prints in this driver are a bit inconsistent. And
+there are a few error messages like the "Failed to allocate PROPBASE"
+and "Bad LPI chunk %d\n" without any prefix at all. pr_fmt would be
+helpful to clean it up.
 
-Note this patch is necessary to fix suspend/resume on some devices,
-as such it would be nic if we can get this merged soon.
+> this kind of cleanup doesn't belong in this series.
 
-Regards,
+Right. I think the printed messages in this patch can be improved quite
+a bit. currently the tags and spacing are inconsistent, something like:
+|  pr_err("SRAT: Invalid header length %d in ITS affinity\n", ...
+|  pr_err("SRAT: Invalid NUMA node %d in ITS affinity\n", node);
+|  pr_info("SRAT: PXM %d -> ITS %d -> Node %d\n",
+would be better in my opinion.
 
-Hans
+> Feel free to submit a separate patch.
 
+The driver also prints 2 lines per CPU on boot which can get to a few
+hundred lines on our test machines. So there are a few things worth
+fixing up here... maybe in another kernel dev cycle.
 
-
-> ---
->   drivers/acpi/pmic/intel_pmic_xpower.c | 21 ++++++++++++++++++++-
->   1 file changed, 20 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-> index 1a76c784cd4c..3b7d5be5b7ed 100644
-> --- a/drivers/acpi/pmic/intel_pmic_xpower.c
-> +++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-> @@ -21,6 +21,11 @@
->   #include "intel_pmic.h"
->   
->   #define XPOWER_GPADC_LOW	0x5b
-> +#define XPOWER_GPI1_CTRL	0x92
-> +
-> +#define GPI1_LDO_MASK		GENMASK(2, 0)
-> +#define GPI1_LDO_ON		(3 << 0)
-> +#define GPI1_LDO_OFF		(4 << 0)
->   
->   static struct pmic_table power_table[] = {
->   	{
-> @@ -118,6 +123,10 @@ static struct pmic_table power_table[] = {
->   		.reg = 0x10,
->   		.bit = 0x00
->   	}, /* BUC6 */
-> +	{
-> +		.address = 0x4c,
-> +		.reg = 0x92,
-> +	}, /* GPI1 */
->   };
->   
->   /* TMP0 - TMP5 are the same, all from GPADC */
-> @@ -156,7 +165,12 @@ static int intel_xpower_pmic_get_power(struct regmap *regmap, int reg,
->   	if (regmap_read(regmap, reg, &data))
->   		return -EIO;
->   
-> -	*value = (data & BIT(bit)) ? 1 : 0;
-> +	/* GPIO1 LDO regulator needs special handling */
-> +	if (reg == XPOWER_GPI1_CTRL)
-> +		*value = ((data & GPI1_LDO_MASK) == GPI1_LDO_ON);
-> +	else
-> +		*value = (data & BIT(bit)) ? 1 : 0;
-> +
->   	return 0;
->   }
->   
-> @@ -165,6 +179,11 @@ static int intel_xpower_pmic_update_power(struct regmap *regmap, int reg,
->   {
->   	int data;
->   
-> +	/* GPIO1 LDO regulator needs special handling */
-> +	if (reg == XPOWER_GPI1_CTRL)
-> +		return regmap_update_bits(regmap, reg, GPI1_LDO_MASK,
-> +					  on ? GPI1_LDO_ON : GPI1_LDO_OFF);
-> +
->   	if (regmap_read(regmap, reg, &data))
->   		return -EIO;
->   
-> 
+JC.
