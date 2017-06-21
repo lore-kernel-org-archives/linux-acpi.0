@@ -1,50 +1,46 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v9 0/3] Cavium ThunderX2 SMMUv3 errata workarounds
-Date: Thu, 22 Jun 2017 19:58:22 +0100
-Message-ID: <20170622185822.GK15336@arm.com>
-References: <1498133138-20244-1-git-send-email-gakula@caviumnetworks.com>
- <20170622182257.GI15336@arm.com>
+From: Oakley Sunglass Warehouse <linux-acpi@vger.kernel.org>
+Subject: Oakley Sunglass Warehouse
+Date: Wed, 21 Jun 2017 20:01:33 +0000
+Message-ID: <a5718f271bb6e3d9c1dc1b595f59d6f9@fashionoakley.biz>
+Reply-To: Oakley Sunglass Warehouse <linux-acpi@vger.kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:43048 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751221AbdFVS6K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 22 Jun 2017 14:58:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20170622182257.GI15336@arm.com>
+Received: from [50.93.200.212] ([50.93.200.212]:37305 "EHLO
+        kick.osafjlagoef.com" rhost-flags-FAIL-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752493AbdFVTOQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 22 Jun 2017 15:14:16 -0400
+Received: from admin by kick.osafjlagoef.com with local (Exim 4.82)
+        (envelope-from <linux-acpi@vger.kernel.org>)
+        id 1dNloj-00026Y-8W
+        for linux-acpi@vger.kernel.org; Wed, 21 Jun 2017 20:01:33 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Geetha sowjanya <gakula@caviumnetworks.com>
-Cc: robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, robert.moore@intel.com, lv.zheng@intel.com, rjw@rjwysocki.net, jcm@redhat.com, linux-kernel@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, devel@acpica.org, linu.cherian@cavium.com, Charles.Garcia-Tobin@arm.com, robh@kernel.org
+To: Oakley Sunglass Warehouse <linux-acpi@vger.kernel.org>
 
-On Thu, Jun 22, 2017 at 07:22:57PM +0100, Will Deacon wrote:
-> On Thu, Jun 22, 2017 at 05:35:35PM +0530, Geetha sowjanya wrote:
-> > Cavium ThunderX2 SMMUv3 implementation has two Silicon Erratas.
-> > 1. Errata ID #74
-> >    SMMU register alias Page 1 is not implemented
-> > 2. Errata ID #126
-> >    SMMU doesnt support unique IRQ lines and also MSI for gerror,
-> >    eventq and cmdq-sync
-> > 
-> > The following patchset does software workaround for these two erratas.
-> 
-> I've picked up the first two patches, and left comments on the final patch.
+From:	Oakley Sunglass Warehouse
+Email:	linux-acpi@vger.kernel.org
 
-... except that it doesn't build:
+------------------------------------------------------
+
+Hi
+
+It's our birthday and we are celebrating 2 years of our outlet.  We'd like to offer you only 19.95 USD for all styles of Oakley and Ray Ban Sunglasses. 
+Please visit our online store for more details: http://www.oksunglass.store  
 
 
-drivers/acpi/arm64/iort.c: In function ‘arm_smmu_v3_resource_size’:
-drivers/acpi/arm64/iort.c:837:21: error: ‘ACPI_IORT_SMMU_V3_CAVIUM_CN99XX’ undeclared (first use in this function)
-  if (smmu->model == ACPI_IORT_SMMU_V3_CAVIUM_CN99XX)
-                     ^
-drivers/acpi/arm64/iort.c:837:21: note: each undeclared identifier is reported only once for each function it appears in
-make[4]: *** [drivers/acpi/arm64/iort.o] Error 1
+YOU WON'T WANT TO MISS THESE OFFERS
 
 
-I don't see ACPI_IORT_SMMU_V3_CAVIUM_CN99XX defined, even in linux-next.
+To your success!
 
-What's the plan here?
+Regards, 
 
-Will
+Mila
+
+Oakley Sunglass Warehouse
+
+------------------------------------------------------
+
+
