@@ -1,58 +1,85 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/9] i2c: designware: Fix system suspend
-Date: Thu, 22 Jun 2017 01:31:51 +0200
-Message-ID: <CAJZ5v0iYwPE8rpn=aZ9n6LV-qbAK3kynRqVZ7xxuB+gYar_fyg@mail.gmail.com>
-References: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org> <1498072888-14782-2-git-send-email-ulf.hansson@linaro.org>
+From: Jonathan Woithe <jwoithe@just42.net>
+Subject: Re: [PATCH 1/7] platform/x86: fujitsu-laptop: do not use kfifo for
+ storing hotkey scancodes
+Date: Thu, 22 Jun 2017 09:20:21 +0930
+Message-ID: <20170621235021.GA32131@marvin.atrad.com.au>
+References: <20170616044058.30443-1-kernel@kempniu.pl>
+ <20170616044058.30443-2-kernel@kempniu.pl>
+ <20170621181543.GB25900@fury>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:34584 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750936AbdFUXbw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 19:31:52 -0400
-In-Reply-To: <1498072888-14782-2-git-send-email-ulf.hansson@linaro.org>
+Received: from server.atrad.com.au ([150.101.241.2]:55552 "EHLO
+        server.atrad.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752002AbdFUXvR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 19:51:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20170621181543.GB25900@fury>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>, stable@vger.linux.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: Micha?? K??pie?? <kernel@kempniu.pl>, Rafael Wysocki <rjw@rjwysocki.net>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Jun 21, 2017 at 9:21 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
-> The commit 8503ff166504 ("i2c: designware: Avoid unnecessary resuming
-> during system suspend"), may suggest to the PM core to try out the so
-> called direct_complete path for system sleep. In this path, the PM core
-> treats a runtime suspended device as it's already in a proper low power
-> state for system sleep, which makes it skip calling the system sleep
-> callbacks for the device, except for the ->prepare() and the ->complete()
-> callback.
->
-> Moreover, under certain circumstances the PM core may unset the
-> direct_complete flag for a parent device, in case its child device are
-> being system suspended before. In other words, the PM core doesn't skip
-> calling the system sleep callbacks, no matter if the device is runtime
-> suspended or not.
->
-> In cases of an i2c slave device, the above situation is triggered.
-> Unfortunate, this also breaks the assumption that the i2c device is always
-> runtime resumed, whenever the dw_i2c_plat_suspend() callback is being
-> invoked, which then leads to a regression.
->
-> More precisely, dw_i2c_plat_suspend() then calls clk_core_disable() and
-> clk_core_unprepare(), for an already disabled/unprepared clock, leading to
-> complaints about clocks calls being wrongly balanced.
->
-> In cases when the i2c device is attached to the ACPI PM domain, the problem
-> doesn't occur. That's because ACPI's ->suspend() callback, assigned to
-> acpi_subsys_suspend(), calls pm_runtime_resume() for the i2c device.
+On Wed, Jun 21, 2017 at 11:15:43AM -0700, Darren Hart wrote:
+> On Fri, Jun 16, 2017 at 06:40:52AM +0200, Micha?? K??pie?? wrote:
+> > -#define RINGBUFFERSIZE 40
+> >  
+> >  /* Debugging */
+> >  #define FUJLAPTOP_DBG_ERROR	  0x0001
+> > @@ -146,8 +144,8 @@ struct fujitsu_laptop {
+> >  	struct input_dev *input;
+> >  	char phys[32];
+> >  	struct platform_device *pf_device;
+> > -	struct kfifo fifo;
+> > -	spinlock_t fifo_lock;
+> > +	int scancode_buf[40];
+> 
+> Do we know why 40 was used here? A single use magic number is fine, but it
+> would be good to document why it is what it is if we know.
 
-Which really is expected to happen, so direct_complete should only be
-used along with the ACPI PM domain in this case.
+I am unsure as to why 40 was chosen as the size.  The support for the
+hotkeys was contributed by Peter Gruber in 2008 who had a Fujitsu laptop
+which featured this functionality (mine doesn't).  I obviously can't speak
+for Peter but I suspect that he simply picked a number which seemed
+reasonable at the time.  I am unaware of any specific reason why the size
+was set at 40, and to be honest never throught to ask at the time the patch
+was proposed.
 
-Moreover, in the ACPI PM domain case acpi_subsys_prepare() is supposed
-to do the right thing without dw_i2c_plat_prepare() and the return
-value of the latter will be ignored anyway, so dw_i2c_plat_prepare()
-will only have effect without ACPI PM domain AFAICS.
+If we need a reason to justify the value of 40, I guess the best option is
+"because it seems reasonable".
 
-It looks like commit 8503ff166504 is entirely misguided.
+I think the buffer size could probably be reduced a little without impacting
+on functionality.  I suspect the value was chosen so as to be well above the
+number of events which could be generated ahead of a button release (which
+effectively releases all buttons held at that stage).  The number of hot
+keys is limited (I don't think any model has more than 5), so reducing the
+buffer somewhat appears safe (perhaps to 32 if there were any advantages to
+having the size be a power of two).  There seems little point doing this in
+the name of memory saving since the amount saved is trivially small.
 
-Thanks,
-Rafael
+Looking through my correspondance with Peter from 2008 (which was largely
+off-list for reasons I do not recall), it seems the reason the kfifo was
+used was due to Peter's concern about concurrent processing of mulitple
+events across different CPUs.  Since at the time we couldn't determine
+whether this was a real issue Peter took the safe route and used a kfifo. 
+If the assumption that it cannot happen is known to hold in all cases there
+is clearly no need for the more complex construct (at least on the basis of
+concurrency arguments).
+
+I've given some more thought to the following point (from the original patch
+submission):
+> In order to simplify implementation, hotkey input device behavior is
+> slightly changed (from FIFO to LIFO).  The order of release events
+> generated by the input device should not matter from end user
+> perspective as upon releasing any hotkey the firmware only produces a
+> single event which means "all hotkeys were released".
+
+This will effectively alter the order the button events are seen by
+userspace though, won't it?  It would mean that (for example) a user who
+presses (and holds) the "media" key before "email" will end up with "email"
+being acted on first.  This may surprise them.  Then again, I suppose it
+could be argued that such usage is unusual and therefore is likely to be
+rare - and therefore not worth bothering about.
+
+Regards
+  jonathan
