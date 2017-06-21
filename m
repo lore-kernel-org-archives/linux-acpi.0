@@ -1,91 +1,56 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v3 2/2] acpi, gicv3-its, numa: Adding numa node mapping
- for gic-its units
-Date: Wed, 21 Jun 2017 09:44:58 +0100
-Message-ID: <a3550a73-9345-b360-44e6-949f0b6c42da@arm.com>
-References: <1498025743-6340-1-git-send-email-ganapatrao.kulkarni@cavium.com>
- <1498025743-6340-3-git-send-email-ganapatrao.kulkarni@cavium.com>
- <20170621070941.GA6124@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:48634 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751038AbdFUIpD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 21 Jun 2017 04:45:03 -0400
-In-Reply-To: <20170621070941.GA6124@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH v6 0/5] ACPI: button: Fix button.lid_init_state=method mode
+Date: Wed, 21 Jun 2017 16:54:57 +0800
+Message-ID: <cover.1498034513.git.lv.zheng@intel.com>
+References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jayachandran C <jnair@caviumnetworks.com>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lv.zheng@intel.com, robert.moore@intel.com, catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, tglx@linutronix.de, jason@lakedaemon.net, gpkulkarni@gmail.com
 
-On 21/06/17 08:09, Jayachandran C wrote:
-> On Wed, Jun 21, 2017 at 11:45:43AM +0530, Ganapatrao Kulkarni wrote:
->> Add code to parse SRAT ITS Affinity sub table as defined in ACPI 6.2
->> Later in per device probe, ITS devices are mapped to
->> numa node using ITS id to proximity domain mapping.
->>
->> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
->> ---
->>  drivers/irqchip/irq-gic-v3-its.c | 80 +++++++++++++++++++++++++++++++++++++++-
->>  1 file changed, 79 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
->> index 45ea1933..88cfb32 100644
->> --- a/drivers/irqchip/irq-gic-v3-its.c
->> +++ b/drivers/irqchip/irq-gic-v3-its.c
->> @@ -1833,6 +1833,82 @@ static int __init its_of_probe(struct device_node *node)
->>  
->>  #define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
->>  
->> +#ifdef CONFIG_ACPI_NUMA
->> +struct its_srat_map {
->> +	u32	numa_node;  /* numa node id */
->> +	u32	its_id;  /* GIC ITS ID */
->> +};
->> +
->> +static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata = {
->> +	[0 ... MAX_NUMNODES - 1] = {NUMA_NO_NODE, UINT_MAX} };
->> +
->> +static int its_in_srat __initdata;
->> +
->> +static int __init
->> +acpi_get_its_numa_node(u32 its_id)
->> +{
->> +	int i;
->> +
->> +	for (i = 0; i < its_in_srat; i++) {
->> +		if (its_id == its_srat_maps[i].its_id)
->> +			return its_srat_maps[i].numa_node;
->> +	}
->> +	return NUMA_NO_NODE;
->> +}
->> +
->> +static int __init
->> +gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
->> +			 const unsigned long end)
->> +{
->> +	int pxm, node;
->> +	struct acpi_srat_its_affinity *its_affinity;
->> +
->> +	its_affinity = (struct acpi_srat_its_affinity *)header;
->> +	if (!its_affinity)
->> +		return -EINVAL;
->> +
->> +	if (its_affinity->header.length <
->> +			sizeof(struct acpi_srat_its_affinity)) {
->> +		pr_err("SRAT:ITS: Invalid SRAT header length: %d\n",
->> +			its_affinity->header.length);
-> 
-> The original driver does not use pr_fmt properly, it may be worth
-> fixing that up rather than having prefixes, here...
+There are platform variations implementing ACPI lid device in different
+way:
+1. Some platforms send "open" events to OS and the events arrive before
+   button driver is resumed;
+2. Some platforms send "open" events to OS, but the events arrive after
+   button driver is resumed, ex., Samsung N210+;
+3. Some platforms never send "open" events to OS, but send "open" events to
+   update the cached _LID return value, and the update events arrive before
+   button driver is resumed;
+4. Some platforms never send "open" events to OS, but send "open" events to
+   update the cached _LID return value, but the update events arrive after
+   button driver is resumed, ex., Surface Pro 3;
+5. Some platforms never send "open" events, _LID returns value sticks to
+   "close", ex., Surface Pro 1.
 
-Irrespective of what the "proper" usage is, this kind of cleanup doesn't
-belong in this series. Feel free to submit a separate patch.
+This series tries to provide solutions to fix all cases for old userspace
+programs. These solutions include:
+1. Fix order issue in case 2,4. Enabled by default.
+2. Fix event missing issue in case 3,4. As newer systemd doesn't require
+   this fix, and this fix is not power friendly, it is not enabled by
+   default, but can be enabled by:
+   2.1. button.lid_periodic_update=1: periodically sends _LID value to
+        the input layer.
+3. Fix persistate close issue in case 5, as newer systemd doesn't require
+   this fix, it is not enabled by default, but can be enabled in 2 means:
+   3.1. button.lid_init_state=ignore: only adds complement open events.
+   3.2. lid_unreliable=1: dymamically adds/removes input node.
 
-Thanks,
+Benjamin Tissoires (2):
+  ACPI: button: extract input creation/destruction helpers
+  ACPI: button: Add an optional workaround to fix a persistent close
+    issue for old userspace
 
-	M.
+Lv Zheng (3):
+  ACPI: button: Add a workaround to fix an order issue for old userspace
+  ACPI: button: Add an optional workaround to fix an event missing issue
+    for old userspace
+  ACPI: button: Rework lid_init_state=ignore mode
+
+ drivers/acpi/button.c | 302 +++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 186 insertions(+), 116 deletions(-)
+
 -- 
-Jazz is not dead. It just smells funny...
+2.7.4
