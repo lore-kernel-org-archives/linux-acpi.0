@@ -1,58 +1,47 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: efi/reboot: Fall back to original power-off method if
- EFI_RESET_SHUTDOWN returns
-Date: Wed, 21 Jun 2017 15:15:09 +0200
-Message-ID: <430d6ff2-264a-80f8-24e0-0d9af4377844@redhat.com>
-References: <20170423123655.13015-1-hdegoede@redhat.com>
+Subject: Re: [v3] ACPI / PMIC: xpower: Add support for the GPI1 regulator to
+ the OpRegion handler
+Date: Wed, 21 Jun 2017 15:27:30 +0200
+Message-ID: <3aaa700d-168a-9f4e-bf1b-06e3694359a8@redhat.com>
+References: <20170514213539.20231-1-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35076 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34006 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750823AbdFUNPM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 21 Jun 2017 09:15:12 -0400
-In-Reply-To: <20170423123655.13015-1-hdegoede@redhat.com>
+        id S1751052AbdFUN1e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 21 Jun 2017 09:27:34 -0400
+In-Reply-To: <20170514213539.20231-1-hdegoede@redhat.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, Peter Jones <pjones@redhat.com>, linux-efi@vger.kernel.org, Mark Salter <msalter@redhat.com>
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org
 
-HI,
+Hi,
 
-On 23-04-17 14:36, Hans de Goede wrote:
-> Commit 44be28e9dd98 ("x86/reboot: Add EFI reboot quirk for ACPI Hardware
-> Reduced flag") sets pm_power_off to efi_power_off() when the
-> acpi_gbl_reduced_hardware flag is set.
+On 14-05-17 23:35, Hans de Goede wrote:
+> Some Bay Trail devices use a GPI1 regulator field (address 0x4c) in
+> their 0x8d power OpRegion, add support for this.
 > 
-> According to its commit message this is necessary because: "BayTrail-T
-> class of hardware requires EFI in order to powerdown and reboot and no
-> other reliable method exists"
+> This fixes AE_BAD_PARAMETER errors getting thrown on these devices and
+> fixes these errors causing these devices to not suspend.
 > 
-> But I have a Bay Trail CR tablet where the EFI_RESET_SHUTDOWN call does
-> not work, it simply returns without doing anything (AFAICT).
-> 
-> So it seems that some Bay Trail devices must use EFI for power-off, while
-> for others only ACPI works.
-> 
-> Note that efi_power_off() only gets used if the platform code defines
-> efi_poweroff_required() and that returns true, this currently only ever
-> happens on x86.
-> 
-> Since on the devices which need ACPI for power-off the EFI_RESET_SHUTDOWN
-> call simply returns, this patch makes the efi-reboot code remember the
-> old pm_power_off handler and if EFI_RESET_SHUTDOWN returns it falls back
-> to calling that.
-> 
-> This seems preferable to dmi-quirking our way out of this, since there
-> are likely quite a few devices suffering from this.
-> 
-> Cc: Mark Salter <msalter@redhat.com>
 > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+> Changes in v2:
+> -Simplify reg == 0x92 handling (suggested by Andy Shevchenko)
+> -Add special handling for reg == 0x92 to intel_xpower_pmic_get_power() too
+> Changes in v3:
+> -Use defines for GPI1 reg and bits, rather then hardcoded hex values
 
-What is the status of this patch ? It has had 2 somewhat favorable
-reviews and then things went silent ?
+What is the status of this patch ? AFAICT this patch has not been
+merged yet, even though it has a Reviewe-by.
+
+Note this patch is necessary to fix suspend/resume on some devices,
+as such it would be nic if we can get this merged soon.
 
 Regards,
 
@@ -61,45 +50,60 @@ Hans
 
 
 > ---
->   drivers/firmware/efi/reboot.c | 12 +++++++++++-
->   1 file changed, 11 insertions(+), 1 deletion(-)
+>   drivers/acpi/pmic/intel_pmic_xpower.c | 21 ++++++++++++++++++++-
+>   1 file changed, 20 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/firmware/efi/reboot.c b/drivers/firmware/efi/reboot.c
-> index 62ead9b..7117e2d 100644
-> --- a/drivers/firmware/efi/reboot.c
-> +++ b/drivers/firmware/efi/reboot.c
-> @@ -5,6 +5,8 @@
->   #include <linux/efi.h>
->   #include <linux/reboot.h>
+> diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
+> index 1a76c784cd4c..3b7d5be5b7ed 100644
+> --- a/drivers/acpi/pmic/intel_pmic_xpower.c
+> +++ b/drivers/acpi/pmic/intel_pmic_xpower.c
+> @@ -21,6 +21,11 @@
+>   #include "intel_pmic.h"
 >   
-> +void (*orig_pm_power_off)(void);
+>   #define XPOWER_GPADC_LOW	0x5b
+> +#define XPOWER_GPI1_CTRL	0x92
 > +
->   int efi_reboot_quirk_mode = -1;
+> +#define GPI1_LDO_MASK		GENMASK(2, 0)
+> +#define GPI1_LDO_ON		(3 << 0)
+> +#define GPI1_LDO_OFF		(4 << 0)
 >   
->   void efi_reboot(enum reboot_mode reboot_mode, const char *__unused)
-> @@ -51,6 +53,12 @@ bool __weak efi_poweroff_required(void)
->   static void efi_power_off(void)
->   {
->   	efi.reset_system(EFI_RESET_SHUTDOWN, EFI_SUCCESS, 0, NULL);
-> +	/*
-> +	 * The above call should not return, if it does fall back to
-> +	 * the original power off method (typically ACPI poweroff).
-> +	 */
-> +	if (orig_pm_power_off)
-> +		orig_pm_power_off();
->   }
+>   static struct pmic_table power_table[] = {
+>   	{
+> @@ -118,6 +123,10 @@ static struct pmic_table power_table[] = {
+>   		.reg = 0x10,
+>   		.bit = 0x00
+>   	}, /* BUC6 */
+> +	{
+> +		.address = 0x4c,
+> +		.reg = 0x92,
+> +	}, /* GPI1 */
+>   };
 >   
->   static int __init efi_shutdown_init(void)
-> @@ -58,8 +66,10 @@ static int __init efi_shutdown_init(void)
->   	if (!efi_enabled(EFI_RUNTIME_SERVICES))
->   		return -ENODEV;
+>   /* TMP0 - TMP5 are the same, all from GPADC */
+> @@ -156,7 +165,12 @@ static int intel_xpower_pmic_get_power(struct regmap *regmap, int reg,
+>   	if (regmap_read(regmap, reg, &data))
+>   		return -EIO;
 >   
-> -	if (efi_poweroff_required())
-> +	if (efi_poweroff_required()) {
-> +		orig_pm_power_off = pm_power_off;
->   		pm_power_off = efi_power_off;
-> +	}
->   
+> -	*value = (data & BIT(bit)) ? 1 : 0;
+> +	/* GPIO1 LDO regulator needs special handling */
+> +	if (reg == XPOWER_GPI1_CTRL)
+> +		*value = ((data & GPI1_LDO_MASK) == GPI1_LDO_ON);
+> +	else
+> +		*value = (data & BIT(bit)) ? 1 : 0;
+> +
 >   	return 0;
 >   }
+>   
+> @@ -165,6 +179,11 @@ static int intel_xpower_pmic_update_power(struct regmap *regmap, int reg,
+>   {
+>   	int data;
+>   
+> +	/* GPIO1 LDO regulator needs special handling */
+> +	if (reg == XPOWER_GPI1_CTRL)
+> +		return regmap_update_bits(regmap, reg, GPI1_LDO_MASK,
+> +					  on ? GPI1_LDO_ON : GPI1_LDO_OFF);
+> +
+>   	if (regmap_read(regmap, reg, &data))
+>   		return -EIO;
+>   
 > 
