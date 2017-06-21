@@ -1,35 +1,65 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 5/7] platform/x86: fujitsu-laptop: do not update ACPI
- device power status
-Date: Wed, 21 Jun 2017 13:17:27 -0700
-Message-ID: <20170621201727.GC25900@fury>
-References: <20170616044058.30443-1-kernel@kempniu.pl>
- <20170616044058.30443-6-kernel@kempniu.pl>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 4/9] PM / ACPI: Split code validating need for runtime
+ resume in ->prepare()
+Date: Wed, 21 Jun 2017 23:35:14 +0200
+Message-ID: <CAJZ5v0j3oLUmg-8fW4372yE-uy0kM28E06jFQCPp14xb66aY+A@mail.gmail.com>
+References: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org> <1498072888-14782-5-git-send-email-ulf.hansson@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170616044058.30443-6-kernel@kempniu.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>
-Cc: Jonathan Woithe <jwoithe@just42.net>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f196.google.com ([209.85.223.196]:35129 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751893AbdFUVfQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 17:35:16 -0400
+In-Reply-To: <1498072888-14782-5-git-send-email-ulf.hansson@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
 
-On Fri, Jun 16, 2017 at 06:40:56AM +0200, Michał Kępień wrote:
-> Calling acpi_bus_update_power() for ACPI devices FUJ02B1 and FUJ02E3 is
-> pointless as they are not power manageable (neither _PS0 nor _PR0 is
-> defined for any of them), which causes their power state to be inherited
-> from their parent devices.  Given the ACPI paths of these two devices
-> (\_SB.PCI0.LPCB.FJEX, \_SB.FEXT), their parent devices are also not
-> power manageable.  These parent devices will thus have their power state
-> initialized to ACPI_STATE_D0, which in turn causes the power state for
-> both FUJ02B1 and FUJ02E3 to always be ACPI_STATE_D0 ("on").
-> 
+On Wed, Jun 21, 2017 at 9:21 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> Move the code dealing with validation of whether runtime resuming the
+> device is needed during system suspend.
+>
+> In this way it becomes more clear for what circumstances ACPI is prevented
+> from trying the direct_complete path.
+>
+> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+> ---
+>  drivers/acpi/device_pm.c | 37 ++++++++++++++++++++++++-------------
+>  1 file changed, 24 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+> index d38acbc..ee51e75 100644
+> --- a/drivers/acpi/device_pm.c
+> +++ b/drivers/acpi/device_pm.c
+> @@ -933,6 +933,27 @@ int acpi_dev_resume_early(struct device *dev)
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_dev_resume_early);
+>
+> +static bool acpi_dev_needs_resume(struct device *dev, struct acpi_device *adev)
+> +{
+> +       u32 sys_target = acpi_target_system_state();
+> +       int ret, state;
+> +
+> +       if (device_may_wakeup(dev) != !!adev->wakeup.prepare_count)
+> +               return true;
+> +
+> +       if (sys_target == ACPI_STATE_S0)
+> +               return false;
+> +
+> +       if (adev->power.flags.dsw_present)
+> +               return true;
+> +
+> +       ret = acpi_dev_pm_get_state(dev, adev, sys_target, NULL, &state);
+> +       if (ret)
+> +               return true;
+> +
+> +       return !(state == adev->power.state);
 
-How confident are we that all implementations of these two ACPI devices lack
-_PS0 and _PR0 ?
+Nit: I would write this as
 
--- 
-Darren Hart
-VMware Open Source Technology Center
+  return state != adev->power.state;
+
+Thanks,
+Rafael
