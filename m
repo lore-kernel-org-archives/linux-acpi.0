@@ -1,113 +1,52 @@
-From: Jayachandran C <jnair@caviumnetworks.com>
-Subject: Re: [PATCH v3 2/2] acpi, gicv3-its, numa: Adding numa node mapping
- for gic-its units
-Date: Wed, 21 Jun 2017 15:25:10 +0000
-Message-ID: <20170621152509.GA4485@localhost>
-References: <1498025743-6340-1-git-send-email-ganapatrao.kulkarni@cavium.com>
- <1498025743-6340-3-git-send-email-ganapatrao.kulkarni@cavium.com>
- <20170621070941.GA6124@localhost>
- <a3550a73-9345-b360-44e6-949f0b6c42da@arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [v3] ACPI / PMIC: xpower: Add support for the GPI1 regulator to
+ the OpRegion handler
+Date: Wed, 21 Jun 2017 17:27:18 +0200
+Message-ID: <CAJZ5v0hSSRpqk8-yEZ3OozK1V=LO-y5d0OUiNS2V-0bs0qK52Q@mail.gmail.com>
+References: <20170514213539.20231-1-hdegoede@redhat.com> <3aaa700d-168a-9f4e-bf1b-06e3694359a8@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <a3550a73-9345-b360-44e6-949f0b6c42da@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: lorenzo.pieralisi@arm.com, jason@lakedaemon.net, hanjun.guo@linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, lv.zheng@intel.com, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, tglx@linutronix.de, gpkulkarni@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-it0-f42.google.com ([209.85.214.42]:38728 "EHLO
+        mail-it0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751789AbdFUQaN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 12:30:13 -0400
+Received: by mail-it0-f42.google.com with SMTP id b205so6395828itg.1
+        for <linux-acpi@vger.kernel.org>; Wed, 21 Jun 2017 09:30:13 -0700 (PDT)
+In-Reply-To: <3aaa700d-168a-9f4e-bf1b-06e3694359a8@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wed, Jun 21, 2017 at 09:44:58AM +0100, Marc Zyngier wrote:
-> On 21/06/17 08:09, Jayachandran C wrote:
-> > On Wed, Jun 21, 2017 at 11:45:43AM +0530, Ganapatrao Kulkarni wrote:
-> >> Add code to parse SRAT ITS Affinity sub table as defined in ACPI 6.2
-> >> Later in per device probe, ITS devices are mapped to
-> >> numa node using ITS id to proximity domain mapping.
-> >>
-> >> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-> >> ---
-> >>  drivers/irqchip/irq-gic-v3-its.c | 80 +++++++++++++++++++++++++++++++++++++++-
-> >>  1 file changed, 79 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-> >> index 45ea1933..88cfb32 100644
-> >> --- a/drivers/irqchip/irq-gic-v3-its.c
-> >> +++ b/drivers/irqchip/irq-gic-v3-its.c
-> >> @@ -1833,6 +1833,82 @@ static int __init its_of_probe(struct device_node *node)
-> >>  
-> >>  #define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
-> >>  
-> >> +#ifdef CONFIG_ACPI_NUMA
-> >> +struct its_srat_map {
-> >> +	u32	numa_node;  /* numa node id */
-> >> +	u32	its_id;  /* GIC ITS ID */
-> >> +};
-> >> +
-> >> +static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata = {
-> >> +	[0 ... MAX_NUMNODES - 1] = {NUMA_NO_NODE, UINT_MAX} };
-> >> +
-> >> +static int its_in_srat __initdata;
-> >> +
-> >> +static int __init
-> >> +acpi_get_its_numa_node(u32 its_id)
-> >> +{
-> >> +	int i;
-> >> +
-> >> +	for (i = 0; i < its_in_srat; i++) {
-> >> +		if (its_id == its_srat_maps[i].its_id)
-> >> +			return its_srat_maps[i].numa_node;
-> >> +	}
-> >> +	return NUMA_NO_NODE;
-> >> +}
-> >> +
-> >> +static int __init
-> >> +gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
-> >> +			 const unsigned long end)
-> >> +{
-> >> +	int pxm, node;
-> >> +	struct acpi_srat_its_affinity *its_affinity;
-> >> +
-> >> +	its_affinity = (struct acpi_srat_its_affinity *)header;
-> >> +	if (!its_affinity)
-> >> +		return -EINVAL;
-> >> +
-> >> +	if (its_affinity->header.length <
-> >> +			sizeof(struct acpi_srat_its_affinity)) {
-> >> +		pr_err("SRAT:ITS: Invalid SRAT header length: %d\n",
-> >> +			its_affinity->header.length);
-> > 
-> > The original driver does not use pr_fmt properly, it may be worth
-> > fixing that up rather than having prefixes, here...
-> 
-> Irrespective of what the "proper" usage is
+On Wed, Jun 21, 2017 at 3:27 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> Hi,
+>
+> On 14-05-17 23:35, Hans de Goede wrote:
+>>
+>> Some Bay Trail devices use a GPI1 regulator field (address 0x4c) in
+>> their 0x8d power OpRegion, add support for this.
+>>
+>> This fixes AE_BAD_PARAMETER errors getting thrown on these devices and
+>> fixes these errors causing these devices to not suspend.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>> ---
+>> Changes in v2:
+>> -Simplify reg == 0x92 handling (suggested by Andy Shevchenko)
+>> -Add special handling for reg == 0x92 to intel_xpower_pmic_get_power() too
+>> Changes in v3:
+>> -Use defines for GPI1 reg and bits, rather then hardcoded hex values
+>
+>
+> What is the status of this patch ? AFAICT this patch has not been
+> merged yet, even though it has a Reviewe-by.
+>
+> Note this patch is necessary to fix suspend/resume on some devices,
+> as such it would be nic if we can get this merged soon.
 
-The prefixes of the prints in this driver are a bit inconsistent. And
-there are a few error messages like the "Failed to allocate PROPBASE"
-and "Bad LPI chunk %d\n" without any prefix at all. pr_fmt would be
-helpful to clean it up.
+It will go into 4.13, sorry for the delay.
 
-> this kind of cleanup doesn't belong in this series.
-
-Right. I think the printed messages in this patch can be improved quite
-a bit. currently the tags and spacing are inconsistent, something like:
-|  pr_err("SRAT: Invalid header length %d in ITS affinity\n", ...
-|  pr_err("SRAT: Invalid NUMA node %d in ITS affinity\n", node);
-|  pr_info("SRAT: PXM %d -> ITS %d -> Node %d\n",
-would be better in my opinion.
-
-> Feel free to submit a separate patch.
-
-The driver also prints 2 lines per CPU on boot which can get to a few
-hundred lines on our test machines. So there are a few things worth
-fixing up here... maybe in another kernel dev cycle.
-
-JC.
+Thanks,
+Rafael
