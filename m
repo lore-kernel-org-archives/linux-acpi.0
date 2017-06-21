@@ -1,109 +1,57 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: [PATCH 3/3] spi: Use Apple device properties in absence of ACPI
- resources
-Date: Wed, 21 Jun 2017 20:05:53 +0200
-Message-ID: <19c49c0351e452bff28199abcc6b3a11ec6949b2.1498044532.git.lukas@wunner.de>
-References: <cover.1498044532.git.lukas@wunner.de>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 1/7] platform/x86: fujitsu-laptop: do not use kfifo for
+ storing hotkey scancodes
+Date: Wed, 21 Jun 2017 11:15:43 -0700
+Message-ID: <20170621181543.GB25900@fury>
+References: <20170616044058.30443-1-kernel@kempniu.pl>
+ <20170616044058.30443-2-kernel@kempniu.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout2.hostsharing.net ([83.223.90.233]:37933 "EHLO
-        mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752149AbdFUSHN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 14:07:13 -0400
-In-Reply-To: <cover.1498044532.git.lukas@wunner.de>
+Received: from bombadil.infradead.org ([65.50.211.133]:40473 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751028AbdFUSPu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 14:15:50 -0400
+Content-Disposition: inline
+In-Reply-To: <20170616044058.30443-2-kernel@kempniu.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mark Brown <broonie@kernel.org>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org
+To: =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>, Rafael Wysocki <rjw@rjwysocki.net>
+Cc: Jonathan Woithe <jwoithe@just42.net>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-MacBooks and MacBook Pros introduced since 2015 return empty _CRS data
-for SPI slaves, causing device initialization to fail.  Most of the
-information that would normally be conveyed via _CRS is available
-through ACPI device properties instead, so take advantage of them.
+On Fri, Jun 16, 2017 at 06:40:52AM +0200, Michał Kępień wrote:
+> All ACPI device notify callbacks are invoked using acpi_os_execute(),
+> which causes the supplied callback to be queued to a static workqueue
+> which always executes on CPU 0.  This means that there is no possibility
+> for any ACPI device notify callback to be concurrently executed on
+> multiple CPUs, which in the case of fujitsu-laptop means that using a
+> locked kfifo for handling hotkeys is redundant: as hotkey scancodes are
+> only pushed and popped from within acpi_fujitsu_laptop_notify(), no risk
+> of concurrent pushing and popping exists.
 
-The meaning and appropriate usage of the device properties was reverse
-engineered by Ronald Tschalär and carried over from these commits
-authored by him:
+Was the kfifo causing a problem currently or for the migration to separate
+modules? Is this purely a simplification?
 
-https://github.com/cb22/macbook12-spi-driver/commit/9a416d699ef4
-https://github.com/cb22/macbook12-spi-driver/commit/0c34936ed9a1
+Rafael, the above rationale appears sound to me. Do you have any concerns?
 
-According to Ronald, the device properties have the following meaning:
+...
 
-spiSclkPeriod   /* period in ns */
-spiWordSize     /* in number of bits */
-spiBitOrder     /* 1 = MSB_FIRST, 0 = LSB_FIRST */
-spiSPO          /* clock polarity: 0 = low, 1 = high */
-spiSPH          /* clock phase: 0 = first, 1 = second */
-spiCSDelay      /* delay between cs and receive on reads in 10 us */
-resetA2RUsec    /* active-to-receive delay? */
-resetRecUsec    /* receive delay? */
+> -#define RINGBUFFERSIZE 40
+>  
+>  /* Debugging */
+>  #define FUJLAPTOP_DBG_ERROR	  0x0001
+> @@ -146,8 +144,8 @@ struct fujitsu_laptop {
+>  	struct input_dev *input;
+>  	char phys[32];
+>  	struct platform_device *pf_device;
+> -	struct kfifo fifo;
+> -	spinlock_t fifo_lock;
+> +	int scancode_buf[40];
 
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Federico Lorenzi <florenzi@gmail.com>
-Cc: Ronald Tschalär <ronald@innovation.ch>
-Signed-off-by: Lukas Wunner <lukas@wunner.de>
----
- drivers/spi/spi.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+Do we know why 40 was used here? A single use magic number is fine, but it would
+be good to document why it is what it is if we know.
 
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 89254a55eb2e..a4066b75d02b 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -21,6 +21,8 @@
- #include <linux/cache.h>
- #include <linux/dma-mapping.h>
- #include <linux/dmaengine.h>
-+#include <linux/dmi.h>
-+#include <linux/math64.h>
- #include <linux/mutex.h>
- #include <linux/of_device.h>
- #include <linux/of_irq.h>
-@@ -1685,6 +1687,29 @@ static void of_register_spi_devices(struct spi_master *master) { }
- #endif
- 
- #ifdef CONFIG_ACPI
-+static void acpi_spi_parse_apple_properties(struct spi_device *spi)
-+{
-+	struct acpi_device *dev = ACPI_COMPANION(&spi->dev);
-+	const union acpi_object *o;
-+
-+	if (!acpi_dev_get_property(dev, "spiSclkPeriod", ACPI_TYPE_BUFFER, &o))
-+		spi->max_speed_hz  = div64_u64(NSEC_PER_SEC,
-+					       *(u64 *)o->buffer.pointer);
-+
-+	if (!acpi_dev_get_property(dev, "spiWordSize", ACPI_TYPE_BUFFER, &o))
-+		spi->bits_per_word = *(u64 *)o->buffer.pointer;
-+
-+	if (!acpi_dev_get_property(dev, "spiBitOrder", ACPI_TYPE_BUFFER, &o) &&
-+	    !*(u64 *)o->buffer.pointer)
-+		spi->mode |= SPI_LSB_FIRST;
-+	if (!acpi_dev_get_property(dev, "spiSPO", ACPI_TYPE_BUFFER, &o) &&
-+	     *(u64 *)o->buffer.pointer)
-+		spi->mode |= SPI_CPOL;
-+	if (!acpi_dev_get_property(dev, "spiSPH", ACPI_TYPE_BUFFER, &o) &&
-+	     *(u64 *)o->buffer.pointer)
-+		spi->mode |= SPI_CPHA;
-+}
-+
- static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
- {
- 	struct spi_device *spi = data;
-@@ -1758,6 +1783,11 @@ static acpi_status acpi_register_spi_device(struct spi_master *master,
- 				     acpi_spi_add_resource, spi);
- 	acpi_dev_free_resource_list(&resource_list);
- 
-+	/* Zero ACPI resources?  Try Apple device properties instead. */
-+	if (!ret && IS_ENABLED(CONFIG_X86) &&
-+	    dmi_match(DMI_SYS_VENDOR, "Apple Inc."))
-+		acpi_spi_parse_apple_properties(spi);
-+
- 	if (ret < 0 || !spi->max_speed_hz) {
- 		spi_dev_put(spi);
- 		return AE_OK;
 -- 
-2.11.0
-
+Darren Hart
+VMware Open Source Technology Center
