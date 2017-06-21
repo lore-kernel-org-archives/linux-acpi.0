@@ -1,133 +1,262 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH v6 3/5] ACPI: button: Rework
-	lid_init_state=ignore mode
-Date: Wed, 21 Jun 2017 16:55:15 +0800
-Message-ID: <e34148c2a76c4391105415769e69a02608e1ee2a.1498034513.git.lv.zheng@intel.com>
-References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
- <cover.1498034513.git.lv.zheng@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <systemd-devel-bounces@lists.freedesktop.org>
+Subject: [RFC PATCH v6 5/5] ACPI: button: Add an optional workaround to fix a persistent close issue for old userspace
+Date: Wed, 21 Jun 2017 16:55:29 +0800
+Message-ID: <5a66477ba6096b51d1b012919c5f6fe4e8f0e6a4.1498034513.git.lv.zheng@intel.com>
+References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com> <cover.1498034513.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1498034513.git.lv.zheng@intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/systemd-devel>,
- <mailto:systemd-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/systemd-devel>
-List-Post: <mailto:systemd-devel@lists.freedesktop.org>
-List-Help: <mailto:systemd-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/systemd-devel>,
- <mailto:systemd-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: systemd-devel-bounces@lists.freedesktop.org
-Sender: "systemd-devel" <systemd-devel-bounces@lists.freedesktop.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: systemd-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-VGhlcmUgYXJlIHBsYXRmb3JtIHZhcmlhdGlvbnMgaW1wbGVtZW50aW5nIEFDUEkgbGlkIGRldmlj
-ZSBpbiBkaWZmZXJlbnQKd2F5czoKMS4gU29tZSBwbGF0Zm9ybXMgc2VuZCAib3BlbiIgZXZlbnRz
-IHRvIE9TIGFuZCB0aGUgZXZlbnRzIGFycml2ZSBiZWZvcmUKICAgYnV0dG9uIGRyaXZlciBpcyBy
-ZXN1bWVkOwoyLiBTb21lIHBsYXRmb3JtcyBzZW5kICJvcGVuIiBldmVudHMgdG8gT1MsIGJ1dCB0
-aGUgZXZlbnRzIGFycml2ZSBhZnRlcgogICBidXR0b24gZHJpdmVyIGlzIHJlc3VtZWQsIGV4Liwg
-U2Ftc3VuZyBOMjEwKzsKMy4gU29tZSBwbGF0Zm9ybXMgbmV2ZXIgc2VuZCAib3BlbiIgZXZlbnRz
-IHRvIE9TLCBidXQgc2VuZCAib3BlbiIgZXZlbnRzIHRvCiAgIHVwZGF0ZSB0aGUgY2FjaGVkIF9M
-SUQgcmV0dXJuIHZhbHVlLCBhbmQgdGhlIHVwZGF0ZSBldmVudHMgYXJyaXZlIGJlZm9yZQogICBi
-dXR0b24gZHJpdmVyIGlzIHJlc3VtZWQ7CjQuIFNvbWUgcGxhdGZvcm1zIG5ldmVyIHNlbmQgIm9w
-ZW4iIGV2ZW50cyB0byBPUywgYnV0IHNlbmQgIm9wZW4iIGV2ZW50cyB0bwogICB1cGRhdGUgdGhl
-IGNhY2hlZCBfTElEIHJldHVybiB2YWx1ZSwgYnV0IHRoZSB1cGRhdGUgZXZlbnRzIGFycml2ZSBh
-ZnRlcgogICBidXR0b24gZHJpdmVyIGlzIHJlc3VtZWQsIGV4LiwgU3VyZmFjZSBQcm8gMzsKNS4g
-U29tZSBwbGF0Zm9ybXMgbmV2ZXIgc2VuZCAib3BlbiIgZXZlbnRzLCBfTElEIHJldHVybnMgdmFs
-dWUgc3RpY2tzIHRvCiAgICJjbG9zZSIsIGV4LiwgU3VyZmFjZSBQcm8gMS4KQ3VycmVudGx5LCBh
-bGwgY2FzZXMgd29yayBmaW5kIHdpdGggc3lzdGVtZCAyMzMsIGJ1dCBvbmx5IGNhc2UgMSwyLDMs
-NCB3b3JrCmZpbmUgd2l0aCBzeXN0ZW1kIDIyOS4KCkFmdGVyIGZpeGluZyBhbGwgdGhlIG90aGVy
-IGlzc3VlcyBmb3Igb2xkIHVzZXJzcGFjZSBwcm9ncmFtcywgY2FzZSA1IGlzIHRoZQpvbmx5IGNh
-c2UgdGhhdCB0aGUgZXhwb3J0ZWQgaW5wdXQgbm9kZSBpcyBzdGlsbCBub3QgZnVsbHkgY29tcGxp
-YW50IHRvClNXX0xJRCBBQkkgYW5kIHRodXMgbmVlZHMgcXVpcmtzIG9yIEFCSSBjaGFuZ2VzLgoK
-VGhlIG9yaWdpbmFsIGJ1dHRvbi5saWRfaW5pdF9zdGF0ZT1pZ25vcmUgQUJJIGNoYW5nZSBzb2x1
-dGlvbiBpcyBub3cgdG9vCmNvbXBsaWNhdGVkIGlmIGl0cyBwdXJwb3NlIGlzIHRvIG9ubHkgc29s
-dmUgdGhpcyBmaW5hbCBpbmNvbXBsaWFudCB1c2UKY2FzZS4gVGhpcyBwYXRjaCByZS13b3JrcyBp
-dCBieSB1bmNvbmRpdGlvbmFsbHkgcHJlcGVuZGluZyAib3BlbiIKY29tcGxlbWVudCBldmVudHMu
-CgpDYzogPHN5c3RlbWQtZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnPgpDYzogQmVuamFtaW4g
-VGlzc29pcmVzIDxiZW5qYW1pbi50aXNzb2lyZXNAcmVkaGF0LmNvbT4KQ2M6IFBldGVyIEh1dHRl
-cmVyIDxwZXRlci5odXR0ZXJlckB3aG8tdC5uZXQ+ClNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxs
-di56aGVuZ0BpbnRlbC5jb20+Ci0tLQogZHJpdmVycy9hY3BpL2J1dHRvbi5jIHwgODUgKysrLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGUgY2hh
-bmdlZCwgNSBpbnNlcnRpb25zKCspLCA4MCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2
-ZXJzL2FjcGkvYnV0dG9uLmMgYi9kcml2ZXJzL2FjcGkvYnV0dG9uLmMKaW5kZXggYThiMTE5ZS4u
-MTI1NmE4YyAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL2J1dHRvbi5jCisrKyBiL2RyaXZlcnMv
-YWNwaS9idXR0b24uYwpAQCAtMTA5LDggKzEwOSw2IEBAIHN0cnVjdCBhY3BpX2J1dHRvbiB7CiAJ
-c3RydWN0IHRpbWVyX2xpc3QgbGlkX3RpbWVyOwogCWNoYXIgcGh5c1szMl07CQkJLyogZm9yIGlu
-cHV0IGRldmljZSAqLwogCXVuc2lnbmVkIGxvbmcgcHVzaGVkOwotCWludCBsYXN0X3N0YXRlOwot
-CWt0aW1lX3QgbGFzdF90aW1lOwogCWJvb2wgc3VzcGVuZGVkOwogfTsKIApAQCAtMTE4LDEwICsx
-MTYsNiBAQCBzdGF0aWMgQkxPQ0tJTkdfTk9USUZJRVJfSEVBRChhY3BpX2xpZF9ub3RpZmllcik7
-CiBzdGF0aWMgc3RydWN0IGFjcGlfZGV2aWNlICpsaWRfZGV2aWNlOwogc3RhdGljIHU4IGxpZF9p
-bml0X3N0YXRlID0gQUNQSV9CVVRUT05fTElEX0lOSVRfTUVUSE9EOwogCi1zdGF0aWMgdW5zaWdu
-ZWQgbG9uZyBsaWRfcmVwb3J0X2ludGVydmFsIF9fcmVhZF9tb3N0bHkgPSA1MDA7Ci1tb2R1bGVf
-cGFyYW0obGlkX3JlcG9ydF9pbnRlcnZhbCwgdWxvbmcsIDA2NDQpOwotTU9EVUxFX1BBUk1fREVT
-QyhsaWRfcmVwb3J0X2ludGVydmFsLCAiSW50ZXJ2YWwgKG1zKSBiZXR3ZWVuIGxpZCBrZXkgZXZl
-bnRzIik7Ci0KIHN0YXRpYyB1bnNpZ25lZCBsb25nIGxpZF9ub3RpZnlfdGltZW91dCBfX3JlYWRf
-bW9zdGx5ID0gMTA7CiBtb2R1bGVfcGFyYW0obGlkX25vdGlmeV90aW1lb3V0LCB1bG9uZywgMDY0
-NCk7CiBNT0RVTEVfUEFSTV9ERVNDKGxpZF9ub3RpZnlfdGltZW91dCwgIlRpbWVvdXQgKHMpIGJl
-Zm9yZSByZWNlaXZpbmcgbGlkIG5vdGlmaWNhdGlvbiIpOwpAQCAtMTU3LDc5ICsxNTEsMTIgQEAg
-c3RhdGljIGludCBhY3BpX2xpZF9ub3RpZnlfc3RhdGUoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZp
-Y2UsIGludCBzdGF0ZSkKIHsKIAlzdHJ1Y3QgYWNwaV9idXR0b24gKmJ1dHRvbiA9IGFjcGlfZHJp
-dmVyX2RhdGEoZGV2aWNlKTsKIAlpbnQgcmV0OwotCWt0aW1lX3QgbmV4dF9yZXBvcnQ7Ci0JYm9v
-bCBkb191cGRhdGU7Ci0KLQkvKgotCSAqIEluIGxpZF9pbml0X3N0YXRlPWlnbm9yZSBtb2RlLCBp
-ZiB1c2VyIG9wZW5zL2Nsb3NlcyBsaWQKLQkgKiBmcmVxdWVudGx5IHdpdGggIm9wZW4iIG1pc3Np
-bmcsIGFuZCAibGFzdF90aW1lIiBpcyBhbHNvIHVwZGF0ZWQKLQkgKiBmcmVxdWVudGx5LCAiY2xv
-c2UiIGNhbm5vdCBiZSBkZWxpdmVyZWQgdG8gdGhlIHVzZXJzcGFjZS4KLQkgKiBTbyAibGFzdF90
-aW1lIiBpcyBvbmx5IHVwZGF0ZWQgYWZ0ZXIgYSB0aW1lb3V0IG9yIGFuIGFjdHVhbAotCSAqIHN3
-aXRjaC4KLQkgKi8KLQlpZiAobGlkX2luaXRfc3RhdGUgIT0gQUNQSV9CVVRUT05fTElEX0lOSVRf
-SUdOT1JFIHx8Ci0JICAgIGJ1dHRvbi0+bGFzdF9zdGF0ZSAhPSAhIXN0YXRlKQotCQlkb191cGRh
-dGUgPSB0cnVlOwotCWVsc2UKLQkJZG9fdXBkYXRlID0gZmFsc2U7Ci0KLQluZXh0X3JlcG9ydCA9
-IGt0aW1lX2FkZChidXR0b24tPmxhc3RfdGltZSwKLQkJCQltc190b19rdGltZShsaWRfcmVwb3J0
-X2ludGVydmFsKSk7Ci0JaWYgKGJ1dHRvbi0+bGFzdF9zdGF0ZSA9PSAhIXN0YXRlICYmCi0JICAg
-IGt0aW1lX2FmdGVyKGt0aW1lX2dldCgpLCBuZXh0X3JlcG9ydCkpIHsKLQkJLyogQ29tcGxhaW4g
-dGhlIGJ1Z2d5IGZpcm13YXJlICovCi0JCXByX3dhcm5fb25jZSgiVGhlIGxpZCBkZXZpY2UgaXMg
-bm90IGNvbXBsaWFudCB0byBTV19MSUQuXG4iKTsKIAotCQkvKgotCQkgKiBTZW5kIHRoZSB1bnJl
-bGlhYmxlIGNvbXBsZW1lbnQgc3dpdGNoIGV2ZW50OgotCQkgKgotCQkgKiBPbiBtb3N0IHBsYXRm
-b3JtcywgdGhlIGxpZCBkZXZpY2UgaXMgcmVsaWFibGUuIEhvd2V2ZXIKLQkJICogdGhlcmUgYXJl
-IGV4Y2VwdGlvbnM6Ci0JCSAqIDEuIFBsYXRmb3JtcyByZXR1cm5pbmcgaW5pdGlhbCBsaWQgc3Rh
-dGUgYXMgImNsb3NlIiBieQotCQkgKiAgICBkZWZhdWx0IGFmdGVyIGJvb3RpbmcvcmVzdW1pbmc6
-Ci0JCSAqICAgICBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTg5
-MjExCi0JCSAqICAgICBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lk
-PTEwNjE1MQotCQkgKiAyLiBQbGF0Zm9ybXMgbmV2ZXIgcmVwb3J0aW5nICJvcGVuIiBldmVudHM6
-Ci0JCSAqICAgICBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTEw
-Njk0MQotCQkgKiBPbiB0aGVzZSBidWdneSBwbGF0Zm9ybXMsIHRoZSB1c2FnZSBtb2RlbCBvZiB0
-aGUgQUNQSQotCQkgKiBsaWQgZGV2aWNlIGFjdHVhbGx5IGlzOgotCQkgKiAxLiBUaGUgaW5pdGlh
-bCByZXR1cm5pbmcgdmFsdWUgb2YgX0xJRCBtYXkgbm90IGJlCi0JCSAqICAgIHJlbGlhYmxlLgot
-CQkgKiAyLiBUaGUgb3BlbiBldmVudCBtYXkgbm90IGJlIHJlbGlhYmxlLgotCQkgKiAzLiBUaGUg
-Y2xvc2UgZXZlbnQgaXMgcmVsaWFibGUuCi0JCSAqCi0JCSAqIEJ1dCBTV19MSUQgaXMgdHlwZWQg
-YXMgaW5wdXQgc3dpdGNoIGV2ZW50LCB0aGUgaW5wdXQKLQkJICogbGF5ZXIgY2hlY2tzIGlmIHRo
-ZSBldmVudCBpcyByZWR1bmRhbnQuIEhlbmNlIGlmIHRoZQotCQkgKiBzdGF0ZSBpcyBub3Qgc3dp
-dGNoZWQsIHRoZSB1c2Vyc3BhY2UgY2Fubm90IHNlZSB0aGlzCi0JCSAqIHBsYXRmb3JtIHRyaWdn
-ZXJlZCByZWxpYWJsZSBldmVudC4gQnkgaW5zZXJ0aW5nIGEKLQkJICogY29tcGxlbWVudCBzd2l0
-Y2ggZXZlbnQsIGl0IHRoZW4gaXMgZ3VhcmFudGVlZCB0aGF0IHRoZQotCQkgKiBwbGF0Zm9ybSB0
-cmlnZ2VyZWQgcmVsaWFibGUgb25lIGNhbiBhbHdheXMgYmUgc2VlbiBieQotCQkgKiB0aGUgdXNl
-cnNwYWNlLgotCQkgKi8KLQkJaWYgKGxpZF9pbml0X3N0YXRlID09IEFDUElfQlVUVE9OX0xJRF9J
-TklUX0lHTk9SRSkgewotCQkJZG9fdXBkYXRlID0gdHJ1ZTsKLQkJCS8qCi0JCQkgKiBEbyBnZW5l
-cmF0ZSBjb21wbGVtZW50IHN3aXRjaCBldmVudCBmb3IgImNsb3NlIgotCQkJICogYXMgImNsb3Nl
-IiBpcyByZWxpYWJsZSBhbmQgd3JvbmcgIm9wZW4iIHdvbid0Ci0JCQkgKiB0cmlnZ2VyIHVuZXhw
-ZWN0ZWQgYmVoYXZpb3JzLgotCQkJICogRG8gbm90IGdlbmVyYXRlIGNvbXBsZW1lbnQgc3dpdGNo
-IGV2ZW50IGZvcgotCQkJICogIm9wZW4iIGFzICJvcGVuIiBpcyBub3QgcmVsaWFibGUgYW5kIHdy
-b25nCi0JCQkgKiAiY2xvc2UiIHdpbGwgdHJpZ2dlciB1bmV4cGVjdGVkIGJlaGF2aW9ycy4KLQkJ
-CSAqLwotCQkJaWYgKCFzdGF0ZSkgewotCQkJCWlucHV0X3JlcG9ydF9zd2l0Y2goYnV0dG9uLT5p
-bnB1dCwKLQkJCQkJCSAgICBTV19MSUQsIHN0YXRlKTsKLQkJCQlpbnB1dF9zeW5jKGJ1dHRvbi0+
-aW5wdXQpOwotCQkJfQotCQl9Ci0JfQotCS8qIFNlbmQgdGhlIHBsYXRmb3JtIHRyaWdnZXJlZCBy
-ZWxpYWJsZSBldmVudCAqLwotCWlmIChkb191cGRhdGUpIHsKLQkJaW5wdXRfcmVwb3J0X3N3aXRj
-aChidXR0b24tPmlucHV0LCBTV19MSUQsICFzdGF0ZSk7Ci0JCWlucHV0X3N5bmMoYnV0dG9uLT5p
-bnB1dCk7Ci0JCWJ1dHRvbi0+bGFzdF9zdGF0ZSA9ICEhc3RhdGU7Ci0JCWJ1dHRvbi0+bGFzdF90
-aW1lID0ga3RpbWVfZ2V0KCk7Ci0JfQorCWlmIChsaWRfaW5pdF9zdGF0ZSA9PSBBQ1BJX0JVVFRP
-Tl9MSURfSU5JVF9JR05PUkUpCisJCWlucHV0X3JlcG9ydF9zd2l0Y2goYnV0dG9uLT5pbnB1dCwg
-U1dfTElELCAwKTsKKworCWlucHV0X3JlcG9ydF9zd2l0Y2goYnV0dG9uLT5pbnB1dCwgU1dfTElE
-LCAhc3RhdGUpOworCWlucHV0X3N5bmMoYnV0dG9uLT5pbnB1dCk7CiAKIAlpZiAoc3RhdGUpCiAJ
-CXBtX3dha2V1cF9ldmVudCgmZGV2aWNlLT5kZXYsIDApOwpAQCAtNTI0LDggKzQ1MSw2IEBAIHN0
-YXRpYyBpbnQgYWNwaV9idXR0b25fYWRkKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKQogCQlz
-dHJjcHkobmFtZSwgQUNQSV9CVVRUT05fREVWSUNFX05BTUVfTElEKTsKIAkJc3ByaW50ZihjbGFz
-cywgIiVzLyVzIiwKIAkJCUFDUElfQlVUVE9OX0NMQVNTLCBBQ1BJX0JVVFRPTl9TVUJDTEFTU19M
-SUQpOwotCQlidXR0b24tPmxhc3Rfc3RhdGUgPSAhIWFjcGlfbGlkX2V2YWx1YXRlX3N0YXRlKGRl
-dmljZSk7Ci0JCWJ1dHRvbi0+bGFzdF90aW1lID0ga3RpbWVfZ2V0KCk7CiAJCWluaXRfdGltZXIo
-JmJ1dHRvbi0+bGlkX3RpbWVyKTsKIAkJc2V0dXBfdGltZXIoJmJ1dHRvbi0+bGlkX3RpbWVyLAog
-CQkJICAgIGFjcGlfbGlkX3RpbWVvdXQsICh1bG9uZylkZXZpY2UpOwotLSAKMi43LjQKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCnN5c3RlbWQtZGV2ZWwg
-bWFpbGluZyBsaXN0CnN5c3RlbWQtZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8v
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vc3lzdGVtZC1kZXZlbAo=
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+
+Because of the variation of firmware implementation, there is a chance
+the LID state is unknown:
+1. Some platforms send "open" ACPI notification to the OS and the event
+   arrive before the button driver is resumed;
+2. Some platforms send "open" ACPI notification to the OS, but the
+event
+   arrives after the button driver is resumed, ex., Samsung N210+;
+3. Some platforms never send an "open" ACPI notification to the OS, but
+   update the cached _LID return value to "open", and this update
+arrives
+   before the button driver is resumed;
+4. Some platforms never send an "open" ACPI notification to the OS, but
+   update the cached _LID return value to "open", but this update
+arrives
+   after the button driver is resumed, ex., Surface Pro 3;
+5. Some platforms never send an "open" ACPI notification to the OS, and
+   _LID ACPI method returns a value which stays to "close", ex.,
+   Surface Pro 1.
+Currently, all cases work find with systemd 233, but only case 1,2,3,4 work
+fine with old userspace.
+
+After fixing all the other issues for old userspace programs, case 5 is the
+only case that the exported input node is still not fully compliant to
+SW_LID ABI and thus needs quirks or ABI changes.
+
+This patch provides a dynamic SW_LID input node solution to make sure we do
+not export an input node with an unknown state to prevent suspend loops.
+
+The database of unreliable devices is left to userspace to handle with a
+hwdb file and a udev rule.
+
+Reworked by Lv to make this solution optional, code based on top of old
+"ignore" mode and make lid_reliable configurable to all lid devices to
+eliminate the difficulties of synchronously handling global lid_device.
+
+Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/button.c | 96 ++++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 88 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 91c9989..f11045d 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -107,11 +107,13 @@ struct acpi_button {
+ 	unsigned int type;
+ 	struct input_dev *input;
+ 	struct timer_list lid_timer;
++	bool lid_reliable;
+ 	char phys[32];			/* for input device */
+ 	unsigned long pushed;
+ 	bool suspended;
+ };
+ 
++static DEFINE_MUTEX(lid_input_lock);
+ static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
+ static struct acpi_device *lid_device;
+ static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
+@@ -128,6 +130,10 @@ static unsigned long lid_update_interval __read_mostly = 1 * MSEC_PER_SEC;
+ module_param(lid_update_interval, ulong, 0644);
+ MODULE_PARM_DESC(lid_update_interval, "Interval (ms) between lid periodic updates");
+ 
++static bool lid_unreliable __read_mostly = false;
++module_param(lid_unreliable, bool, 0644);
++MODULE_PARM_DESC(lid_unreliable, "Dynamically adding/removing input node for unreliable lids");
++
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+@@ -152,6 +158,9 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
+ 	struct acpi_button *button = acpi_driver_data(device);
+ 	int ret;
+ 
++	if (!button->input)
++		return -EINVAL;
++
+ 	if (lid_init_state == ACPI_BUTTON_LID_INIT_IGNORE)
+ 		input_report_switch(button->input, SW_LID, 0);
+ 
+@@ -306,6 +315,8 @@ static void acpi_button_remove_input(struct acpi_device *device)
+ {
+ 	struct acpi_button *button = acpi_driver_data(device);
+ 
++	if (!button->input)
++		return;
+ 	input_unregister_device(button->input);
+ 	button->input = NULL;
+ }
+@@ -316,6 +327,9 @@ static int acpi_button_add_input(struct acpi_device *device)
+ 	struct input_dev *input;
+ 	int error;
+ 
++	if (button->input)
++		return 0;
++
+ 	input = input_allocate_device();
+ 	if (!input) {
+ 		error = -ENOMEM;
+@@ -378,8 +392,10 @@ static void acpi_lid_initialize_state(struct acpi_device *device)
+ 		break;
+ 	case ACPI_BUTTON_LID_INIT_METHOD:
+ 		(void)acpi_lid_update_state(device);
++		mutex_unlock(&lid_input_lock);
+ 		if (lid_periodic_update)
+ 			acpi_lid_start_timer(device, lid_update_interval);
++		mutex_lock(&lid_input_lock);
+ 		break;
+ 	case ACPI_BUTTON_LID_INIT_IGNORE:
+ 	default:
+@@ -391,7 +407,9 @@ static void acpi_lid_timeout(ulong arg)
+ {
+ 	struct acpi_device *device = (struct acpi_device *)arg;
+ 
++	mutex_lock(&lid_input_lock);
+ 	acpi_lid_initialize_state(device);
++	mutex_unlock(&lid_input_lock);
+ }
+ 
+ static void acpi_button_notify(struct acpi_device *device, u32 event)
+@@ -406,7 +424,11 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
+ 	case ACPI_BUTTON_NOTIFY_STATUS:
+ 		input = button->input;
+ 		if (button->type == ACPI_BUTTON_TYPE_LID) {
++			mutex_lock(&lid_input_lock);
++			if (!button->input)
++				acpi_button_add_input(device);
+ 			acpi_lid_update_state(device);
++			mutex_unlock(&lid_input_lock);
+ 		} else {
+ 			int keycode;
+ 
+@@ -440,8 +462,13 @@ static int acpi_button_suspend(struct device *dev)
+ 	struct acpi_device *device = to_acpi_device(dev);
+ 	struct acpi_button *button = acpi_driver_data(device);
+ 
+-	if (button->type == ACPI_BUTTON_TYPE_LID)
++	if (button->type == ACPI_BUTTON_TYPE_LID) {
++		mutex_lock(&lid_input_lock);
++		if (!button->lid_reliable)
++			acpi_button_remove_input(device);
++		mutex_unlock(&lid_input_lock);
+ 		del_timer(&button->lid_timer);
++	}
+ 	button->suspended = true;
+ 	return 0;
+ }
+@@ -459,6 +486,38 @@ static int acpi_button_resume(struct device *dev)
+ }
+ #endif
+ 
++static ssize_t lid_reliable_show(struct device *dev,
++				 struct device_attribute *attr, char *buf)
++{
++	struct acpi_device *device = to_acpi_device(dev);
++	struct acpi_button *button = acpi_driver_data(device);
++
++	return snprintf(buf, PAGE_SIZE, "%d\n", button->lid_reliable);
++}
++static ssize_t lid_reliable_store(struct device *dev,
++				  struct device_attribute *attr,
++				  const char *buf, size_t count)
++{
++	struct acpi_device *device = to_acpi_device(dev);
++	struct acpi_button *button = acpi_driver_data(device);
++
++	mutex_lock(&lid_input_lock);
++	if (strtobool(buf, &button->lid_reliable) < 0) {
++		mutex_unlock(&lid_input_lock);
++		return -EINVAL;
++	}
++	if (button->lid_reliable)
++		acpi_button_add_input(device);
++	else {
++		lid_init_state = ACPI_BUTTON_LID_INIT_IGNORE;
++		acpi_button_remove_input(device);
++	}
++	acpi_lid_initialize_state(device);
++	mutex_unlock(&lid_input_lock);
++	return count;
++}
++static DEVICE_ATTR_RW(lid_reliable);
++
+ static int acpi_button_add(struct acpi_device *device)
+ {
+ 	struct acpi_button *button;
+@@ -507,21 +566,37 @@ static int acpi_button_add(struct acpi_device *device)
+ 
+ 	snprintf(button->phys, sizeof(button->phys), "%s/button/input0", hid);
+ 
+-	error = acpi_button_add_input(device);
+-	if (error)
+-		goto err_remove_fs;
+-
+ 	if (button->type == ACPI_BUTTON_TYPE_LID) {
+ 		/*
+ 		 * This assumes there's only one lid device, or if there are
+ 		 * more we only care about the last one...
+ 		 */
+ 		lid_device = device;
++		device_create_file(&device->dev, &dev_attr_lid_reliable);
++		mutex_lock(&lid_input_lock);
++		error = acpi_button_add_input(device);
++		if (error) {
++			mutex_unlock(&lid_input_lock);
++			goto err_remove_fs;
++		}
++		if (lid_unreliable) {
++			lid_init_state = ACPI_BUTTON_LID_INIT_IGNORE;
++			button->lid_reliable = false;
++		} else
++			button->lid_reliable = true;
+ 		if (lid_periodic_update)
+ 			acpi_lid_initialize_state(device);
+-		else
++		else {
++			mutex_unlock(&lid_input_lock);
+ 			acpi_lid_start_timer(device,
+ 				lid_notify_timeout * MSEC_PER_SEC);
++			mutex_lock(&lid_input_lock);
++		}
++		mutex_unlock(&lid_input_lock);
++	} else {
++		error = acpi_button_add_input(device);
++		if (error)
++			goto err_remove_fs;
+ 	}
+ 
+ 	printk(KERN_INFO PREFIX "%s [%s]\n", name, acpi_device_bid(device));
+@@ -539,9 +614,14 @@ static int acpi_button_remove(struct acpi_device *device)
+ 	struct acpi_button *button = acpi_driver_data(device);
+ 
+ 	acpi_button_remove_fs(device);
+-	if (button->type == ACPI_BUTTON_TYPE_LID)
++	if (button->type == ACPI_BUTTON_TYPE_LID) {
++		mutex_lock(&lid_input_lock);
++		acpi_button_remove_input(device);
++		mutex_unlock(&lid_input_lock);
+ 		del_timer_sync(&button->lid_timer);
+-	acpi_button_remove_input(device);
++		device_remove_file(&device->dev, &dev_attr_lid_reliable);
++	} else
++		acpi_button_remove_input(device);
+ 	kfree(button);
+ 	return 0;
+ }
+-- 
+2.7.4
