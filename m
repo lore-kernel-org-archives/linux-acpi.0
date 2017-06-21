@@ -1,58 +1,83 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 7/9] PM / ACPI: Enable the runtime PM centric approach for
- system sleep
-Date: Wed, 21 Jun 2017 23:47:53 +0200
-Message-ID: <CAJZ5v0jL-0TKUv5nK7tFLm+X7nE7J2e3hm21i=+FBFBzQLQ=Xw@mail.gmail.com>
-References: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org> <1498072888-14782-8-git-send-email-ulf.hansson@linaro.org>
+From: John Stultz <john.stultz@linaro.org>
+Subject: Re: [PATCH 0/9] PM / ACPI / i2c: Fix system suspend and deploy
+ runtime PM centric path for ACPI
+Date: Wed, 21 Jun 2017 15:39:21 -0700
+Message-ID: <CALAqxLXe0mTN=RizWroJE3p=dcr8JbV+jTws6WjtG1SpWJd5mg@mail.gmail.com>
+References: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f54.google.com ([209.85.214.54]:37794 "EHLO
-        mail-it0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751689AbdFUVrz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 17:47:55 -0400
-In-Reply-To: <1498072888-14782-8-git-send-email-ulf.hansson@linaro.org>
+Received: from mail-wr0-f182.google.com ([209.85.128.182]:34905 "EHLO
+        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751979AbdFUWjX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 18:39:23 -0400
+Received: by mail-wr0-f182.google.com with SMTP id k67so3887971wrc.2
+        for <linux-acpi@vger.kernel.org>; Wed, 21 Jun 2017 15:39:23 -0700 (PDT)
+In-Reply-To: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
+Cc: Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c@vger.kernel.org
 
-On Wed, Jun 21, 2017 at 9:21 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
-> This change extends the interpretation of the ACPI's no_direct_complete
-> flag to be used to enable the so called runtime PM centric approach, for
-> devices being attached to the ACPI PM domain.
+On Wed, Jun 21, 2017 at 12:21 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> The i2c designware platform driver, drivers/i2c/busses/i2c-designware-platdrv.c,
+> currently suffers from a regression, which easily can be triggerd during system
+> suspend/resume.
 >
-> The principle behind the runtime PM centric approach is to re-use the
-> runtime PM callbacks to implement system sleep for drivers/subsystems.
-> Moreover, using the runtime PM centric approach gives an optimized
-> behaviour around avoiding to wake up a device from its low power state
-> during system sleep, unless really needed.
+> In particular the regression concerns those SoCs, which doesn't have the i2c
+> device being attached to the ACPI PM domain.
 >
-> To deploy the runtime PM centric approach for a subsystem/driver, the
-> following adaptations needs to be made.
+> The regression, introduced in commit 8503ff166504 ("i2c: designware: Avoid
+> unnecessary resuming during system suspend"), takes advantage of the so called
+> direct_complete path during system sleep, which works well when using the ACPI
+> PM domain, however as stated, that's not the case for other SoCs.
 >
-> First, the runtime PM callbacks may be called when runtime PM has been
-> disabled for the device. This serves as an indication for the callbacks to
-> understand they are running in the system sleep sequence, instead of in the
-> regular runtime PM path. In some cases, a callback needs to take different
-> actions depending in what path it is being executed in, as is the case for
-> the ACPI PM domain.
+> In this series, patch 1, takes a very simplistic approach to solve the problem
+> and the change is limited to the i2c driver itself. The aim with this change is
+> to make it acceptable as a fix for v4.2+.
 >
-> In particular for the ACPI PM domain's ->runtime_suspend|resume()
-> callbacks, when those finds runtime PM being disabled for the device, it
-> instead executes the same operations as normally being run when
-> ->suspend_late() and ->resume_early() callbacks are invoked during system
-> sleep.
+> However, patch 1 is unfortunate also reverting back to the old behaviour,
+> avoiding the direct_complete path, by always runtime resuming the device in the
+> device_prepare() phase during system sleep. In many cases this is a waste,
+> especially when the device could have remained runtime suspended during the
+> entire system sleep sequence.
 >
-> Second, at the PM domain level, it is expected that the driver for the
-> device makes use of pm_runtime_force_suspend|resume(), to re-use the
-> runtime PM callbacks to put the device into low power state and to wake it
-> up when needed during system sleep.
+> The rest of the changes in this series, addresses the above problem, avoiding
+> to runtime resume the device unless it's really needed. One could have tried
+> out other local hacks, limited to the i2c driver, but I believe the problem
+> could exist for other drivers/devices as well, thus I aim for a more generic
+> solution.
+>
+> In principle, this series enables the proven runtime PM centric approach to
+> implement system sleep in the i2c driver. However, to do that the ACPI PM
+> domain have to collaborate and understand this behaviour. Therefore a number of
+> changes, patch 2 to patch 8, makes the needed changes to the ACPI PM domain.
+> In the last change, patch9, the i2c driver converts to the runtime PM centric
+> approach.
+>
+> It shall be noted, the behaviour of the ACPI PM domain should remain intact,
+> still taking benefit of using the direct_complete path during system sleep,
+> except for those devices that explicitly request it not to.
+>
+> This series has been tested on an ARM64 Hikey board, not having its i2c device
+> attach to the ACPI PM domain. This means that the ACPI changes has so far only
+> been compile tested. Any help in testing on relevant Intel SoCs is greatly
+> appreciated and so is of course review comments.
+>
+> The series is based upon Rafael's pm tree and linux-next branch. It's also
+> available at the following git:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git acpi_pm_i2c_rpm_path
 
-What if it doesn't do that?
+With this patchset I'm not seeing any i2c errors on resume w/ the
+HiKey (which I do see if I remove these patches).
 
-Do all drivers of devices that may fall into the ACPI PM domain use
-pm_runtime_force_suspend|resume()?
+Tested-by: John Stultz <john.stultz@linaro.org>
 
-Thanks,
-Rafael
+Unfortunately... that said, in testing I did just find a regression
+elsewhere with suspend/resume on HiKey, where we'll not go all the way
+to suspend if wifi is enabled. So If anyone else is having trouble
+testing these patches on HiKey, turn off wifi for now.
+
+thanks
+-john
