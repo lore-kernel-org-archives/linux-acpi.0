@@ -1,160 +1,141 @@
-From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
-Subject: Re: [PATCH v3 2/2] acpi, gicv3-its, numa: Adding numa node mapping
- for gic-its units
-Date: Wed, 21 Jun 2017 15:36:21 +0530
-Message-ID: <CAFpQJXVXQq_cFYxxamStN4aRktL_o6wvQWfK1KVU1SEYXpOORA@mail.gmail.com>
-References: <1498025743-6340-1-git-send-email-ganapatrao.kulkarni@cavium.com>
- <1498025743-6340-3-git-send-email-ganapatrao.kulkarni@cavium.com> <20170621092853.GA31599@red-moon>
+From: Bastien Nocera <hadess@hadess.net>
+Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable LID
+ switch exported by ACPI
+Date: Wed, 21 Jun 2017 12:23:08 +0200
+Message-ID: <1498040588.2559.30.camel@hadess.net>
+References: <20170601184632.2980-1-benjamin.tissoires@redhat.com>
+         <20170607074848.GE27006@gardel-login>
+         <20170613100617.GD29589@mail.corp.redhat.com>
+         <1AE640813FDE7649BE1B193DEA596E886CED0386@SHSMSX101.ccr.corp.intel.com>
+         <20170615064715.GA6195@jelly>
+         <1AE640813FDE7649BE1B193DEA596E886CED047B@SHSMSX101.ccr.corp.intel.com>
+         <20170615075755.GA10001@jelly>
+         <1AE640813FDE7649BE1B193DEA596E886CED0A03@SHSMSX101.ccr.corp.intel.com>
+         <20170616072322.GL5085@mail.corp.redhat.com>
+         <1AE640813FDE7649BE1B193DEA596E886CED0AC1@SHSMSX101.ccr.corp.intel.com>
+         <20170616080950.GM5085@mail.corp.redhat.com>
+         <1AE640813FDE7649BE1B193DEA596E886CED0C5E@SHSMSX101.ccr.corp.intel.com>
+         <33C872C7-EFB2-4CA0-8CAD-8B6E8916180C@hadess.net>
+         <1AE640813FDE7649BE1B193DEA596E886CED1419@SHSMSX101.ccr.corp.intel.com>
+         <1497910127.2559.1.camel@hadess.net>
+         <1AE640813FDE7649BE1B193DEA596E886CED1C41@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35341 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751971AbdFUKGW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 06:06:22 -0400
-In-Reply-To: <20170621092853.GA31599@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CED1C41@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Peter Hutterer <peter.hutterer@who-t.net>, Lennart Poettering <mzxreary@0pointer.de>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "systemd-devel@lists.freedesktop.org" <systemd-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, linux-acpi@vger.kernel.org, devel@acpica.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "tglx@linutronix.de" <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Jayachandran C <jnair@caviumnetworks.com>
 
-On Wed, Jun 21, 2017 at 2:58 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On Wed, Jun 21, 2017 at 11:45:43AM +0530, Ganapatrao Kulkarni wrote:
->> Add code to parse SRAT ITS Affinity sub table as defined in ACPI 6.2
->> Later in per device probe, ITS devices are mapped to
->> numa node using ITS id to proximity domain mapping.
->>
->> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
->> ---
->>  drivers/irqchip/irq-gic-v3-its.c | 80 +++++++++++++++++++++++++++++++++++++++-
->>  1 file changed, 79 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
->> index 45ea1933..88cfb32 100644
->> --- a/drivers/irqchip/irq-gic-v3-its.c
->> +++ b/drivers/irqchip/irq-gic-v3-its.c
->> @@ -1833,6 +1833,82 @@ static int __init its_of_probe(struct device_node *node)
->>
->>  #define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
->>
->> +#ifdef CONFIG_ACPI_NUMA
->> +struct its_srat_map {
->> +     u32     numa_node;  /* numa node id */
->> +     u32     its_id;  /* GIC ITS ID */
->> +};
->> +
->> +static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata = {
->> +     [0 ... MAX_NUMNODES - 1] = {NUMA_NO_NODE, UINT_MAX} };
->
-> Nit: UINT_MAX is as valid as 0 as its_id (but the intent here is to make
-> it look like an invalid value), given that the its_in_srat counter
-> defines what entries are valid I do not necessarily see the point in
-> initializing with something that is a valid value != 0.
+On Tue, 2017-06-20 at 02:45 +0000, Zheng, Lv wrote:
+> Hi,
+> 
+> > From: Bastien Nocera [mailto:hadess@hadess.net]
+> > Subject: Re: [systemd-devel] [WIP PATCH 0/4] Rework the unreliable
+> > LID switch exported by ACPI
+> > 
+> > On Mon, 2017-06-19 at 01:43 +0000, Zheng, Lv wrote:
+> > > <snip>
+> > > > 
+> > > > If you implement it in such a way that GNOME settings daemon
+> > > > behaves weirdly, you'll get my revert
+> > > > request in the mail. Do. Not. Ever. Lie.
+> > > 
+> > > First, I don't know what should be reverted...
+> > > I have 2 solutions here for review, and Benjamin has 1.
+> > > And none of them has been upstreamed.
+> > > We are just discussing.
+> > 
+> > The discussion is getting tiring quite frankly. We've been over
+> > this
+> > for nearly a year now, and with no end in sight.
+> 
+> We have concerns to introduce too complicated logics to such a
+> simple button driver especially the logics are related to platform
+> firmware, input ABI and user space behaviors.
+> 
+> I understand the situation.
+> Anyway this shouldn't be a big deal.
+> Let's prepare a smarter series to collect all fixes and solutions
+> with runtime configurables and get that to the end users.
+> So that we can figure out which is the simplest solution.
+> 
+> But before that, let me ask several questions about gnome-setting-
+> deamon.
+> 
+> > 
+> > > However we need to get 1 of them upstreamed in next cycle.
+> > > 
+> > > I think users won't startup gnome-setting-daemon right after
+> > > resume.
+> > > It should have already been started.
+> > > 
+> > > There is only 1 platform may see delayed state update after
+> > > resume.
+> > > Let's see if there is a practical issue.
+> > > 1. Before suspend, the "lid state" is "close", and
+> > > 2. After resume, the state might remain "close" for a while
+> > >    Since libinput won't deliver close to userspace,
+> > >    and gnome-setting-daemon listens to key switches, there is no
+> > > wrong behavior.
+> > 
+> > It doesn't. It listens to UPower, which tells user-space whether
+> > there
+> > is a lid switch, and whether it's opened or closed.
+> 
+> Thanks for the information.
+> However I don't see differences here.
+> 
+> > 
+> > > 3. Then after several seconds, "open" arrives.
+> > >    gnome-setting-daemon re-arrange monitors and screen layouts in
+> > > response to the new event.
+> > 
+> > Just how is anyone supposed to know that there is an event coming?
+> 
+> Will UPower deliver EV_SW key events to gnome-setting-daemon?
+> 
+> > 
+> > > So there is no problem. IMO, there is no need to improve for
+> > > post-
+> > > resume case.
+> > > 
+> > > Users will just startup gnome-setting-daemon once after boot.
+> > > And it's likely that when it is started, the state is correct.
+> > 
+> > You cannot rely on when gnome-settings-daemon will be started to
+> > make
+> > *any* decision. Certainly not decisions on how the kernel should
+> > behave.
+> 
+> My bad wording, I just meant:
+> When gnome-settings-daemon is started is not related to what we are
+> discussing.
+> 
+> Do you want to fix regressions?
+> Or you want to fix new issues on recent platforms?
+> If you want to fix regressions, I think Benjamin has submitted a
+> revision
+> to use old method mode, there shouldn't be regressions for
+> gnome-settings-daemon.
+> 
+> What else we want to do is to fix regressions related to systemd when
+> we go back to default method mode. Since there is no issue with
+> systemd
+> 233 and after just applying a small change, systemd 229 can also be
+> worked around, I mean dynamically add/remove input node is not
+> strictly
+> required for achieving our purposes.
+> 
+> But if you want to fix new issues on new platforms, we can discuss
+> further and determine which program should be changed and which
+> program
+> is the best candidate to stop all problems - the ACPI button driver
+> or
+> the user space.
 
-ok, this array may not need any init,
-
->
->> +static int its_in_srat __initdata;
->> +
->> +static int __init
->> +acpi_get_its_numa_node(u32 its_id)
->> +{
->> +     int i;
->> +
->> +     for (i = 0; i < its_in_srat; i++) {
->> +             if (its_id == its_srat_maps[i].its_id)
->> +                     return its_srat_maps[i].numa_node;
->> +     }
->> +     return NUMA_NO_NODE;
->> +}
->> +
->> +static int __init
->> +gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
->> +                      const unsigned long end)
->> +{
->> +     int pxm, node;
->> +     struct acpi_srat_its_affinity *its_affinity;
->> +
->> +     its_affinity = (struct acpi_srat_its_affinity *)header;
->> +     if (!its_affinity)
->> +             return -EINVAL;
->> +
->> +     if (its_affinity->header.length <
->> +                     sizeof(struct acpi_srat_its_affinity)) {
->> +             pr_err("SRAT:ITS: Invalid SRAT header length: %d\n",
->> +                     its_affinity->header.length);
->> +             return -EINVAL;
->> +     }
->> +
->> +     if (its_in_srat >= MAX_NUMNODES) {
->> +             pr_err("SRAT:ITS: ITS devices exceeding max count[%d]\n",
->> +                             MAX_NUMNODES);
->> +             return -EINVAL;
->> +     }
->> +
->> +     pxm = its_affinity->proximity_domain;
->> +     node = acpi_map_pxm_to_node(pxm);
->> +
->> +     if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
->> +             pr_err("SRAT:ITS: Invalid numa node %d\n", node);
->> +             return -EINVAL;
->
-> As Marc mentioned you should bail out here but continue parsing entries,
-> aka "return 0";
-
-agreed.
->
-> Thanks,
-> Lorenzo
->
->> +     }
->> +
->> +     its_srat_maps[its_in_srat].numa_node = node;
->> +     its_srat_maps[its_in_srat].its_id = its_affinity->its_id;
->> +     its_in_srat++;
->> +     pr_info("ACPI: NUMA: SRAT: ITS: PXM %d -> ITS_ID %d -> NODE %d\n",
->> +             pxm, its_affinity->its_id, node);
->> +
->> +     return 0;
->> +}
->> +
->> +static int __init acpi_table_parse_srat_its(void)
->> +{
->> +     return acpi_table_parse_entries(ACPI_SIG_SRAT,
->> +                                     sizeof(struct acpi_table_srat),
->> +                                     ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
->> +                                     gic_acpi_parse_srat_its, 0);
->> +}
->> +#else
->> +#define acpi_table_parse_srat_its()  do { } while (0)
->> +#define acpi_get_its_numa_node(its_id)       NUMA_NO_NODE
->> +#endif
->> +
->>  static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
->>                                         const unsigned long end)
->>  {
->> @@ -1861,7 +1937,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
->>               goto dom_err;
->>       }
->>
->> -     err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
->> +     err = its_probe_one(&res, dom_handle,
->> +                     acpi_get_its_numa_node(its_entry->translation_id));
->>       if (!err)
->>               return 0;
->>
->> @@ -1873,6 +1950,7 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
->>
->>  static void __init its_acpi_probe(void)
->>  {
->> +     acpi_table_parse_srat_its();
->>       acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
->>                             gic_acpi_parse_madt_its, 0);
->>  }
->> --
->> 1.8.1.4
->>
-
-thanks
-Ganapat
+I'm happy with Benjamin's patches which don't introduce any
+dependencies on new user-space, and don't rely on undocumented
+heuristics. What was the API is still the API.
