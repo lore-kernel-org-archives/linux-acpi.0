@@ -1,55 +1,143 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 3/3] spi: Use Apple device properties in absence of ACPI
- resources
-Date: Thu, 22 Jun 2017 10:28:06 +0100
-Message-ID: <20170622092806.pyj7ganyeoerqr6k@sirena.org.uk>
-References: <cover.1498044532.git.lukas@wunner.de>
- <19c49c0351e452bff28199abcc6b3a11ec6949b2.1498044532.git.lukas@wunner.de>
- <20170622081048.GT629@lahna.fi.intel.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 6/9] PM / ACPI: Provide option to disable direct_complete
+ for ACPI devices
+Date: Thu, 22 Jun 2017 11:35:35 +0200
+Message-ID: <CAPDyKFqW+QhzMhVgdp9-7t0eP0ePdV8pHqysQZU1OWT3A8Q56Q@mail.gmail.com>
+References: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org>
+ <1498072888-14782-7-git-send-email-ulf.hansson@linaro.org> <CAJZ5v0h71LNPgmU1ri3S0VJMPb-1_AHkGksNAaYn68rrLyAR2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mgfllhks6wa67wbo"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:33730 "EHLO
-        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752621AbdFVJ2f (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 05:28:35 -0400
-Content-Disposition: inline
-In-Reply-To: <20170622081048.GT629@lahna.fi.intel.com>
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:35463 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751163AbdFVJfh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 05:35:37 -0400
+Received: by mail-qt0-f172.google.com with SMTP id f92so7352199qtb.2
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2017 02:35:36 -0700 (PDT)
+In-Reply-To: <CAJZ5v0h71LNPgmU1ri3S0VJMPb-1_AHkGksNAaYn68rrLyAR2A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Lukas Wunner <lukas@wunner.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
 
+On 21 June 2017 at 23:42, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Wed, Jun 21, 2017 at 9:21 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+>> In some cases a driver for an ACPI device needs to be able to prevent the
+>> ACPI PM domain from using the direct_complete path during system sleep.
+>>
+>> One typical case is when the driver for the device needs its device to stay
+>> runtime enabled, during the __device_suspend phase. This isn't the case
+>> when the direct_complete path is being executed by the PM core, as it then
+>> disables runtime PM for the device in __device_suspend(). Any following
+>> attempts to runtime resume the device after that point, just fails.
+>>
+>> A workaround to this problem is to let the driver runtime resume its device
+>> from its ->prepare() callback, as that would prevent the direct_complete
+>> path from being executed. However, that may often be a waste, especially if
+>> it turned out that no one really needed the device.
+>>
+>> For this reason, invent acpi_dev_disable|enable_direct_complete(), to allow
+>> drivers to inform the ACPI PM domain to change its default behaviour during
+>> system sleep, and thus control whether it may use the direct_complete path
+>> or not.
+>>
+>> Typically a driver should call acpi_dev_disable_direct_comlete() during
+>> ->probe() and acpi_dev_enable_direct_complete() in ->remove().
+>>
+>> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+>> ---
+>>  drivers/acpi/device_pm.c | 37 ++++++++++++++++++++++++++++++++++++-
+>>  include/acpi/acpi_bus.h  |  1 +
+>>  include/linux/acpi.h     |  4 ++++
+>>  3 files changed, 41 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+>> index ee51e75..2393a1a 100644
+>> --- a/drivers/acpi/device_pm.c
+>> +++ b/drivers/acpi/device_pm.c
+>> @@ -879,6 +879,41 @@ EXPORT_SYMBOL_GPL(acpi_subsys_runtime_resume);
+>>
+>>  #ifdef CONFIG_PM_SLEEP
+>>  /**
+>> + * acpi_dev_disable_direct_complete - Disable the direct_complete path for ACPI.
+>> + * @dev: Device to disable the path for.
+>> + *
+>> + * Per default the ACPI PM domain tries to use the direct_complete path for its
+>> + * devices during system sleep. This function allows a user, typically a driver
+>> + * during probe, to disable the direct_complete path from being used by ACPI.
+>> + */
+>> +void acpi_dev_disable_direct_complete(struct device *dev)
+>> +{
+>> +       struct acpi_device *adev = ACPI_COMPANION(dev);
+>> +
+>> +       if (adev)
+>> +               adev->no_direct_complete = true;
+>
+> We have an analogous flag in PCI now and it is called needs_resume, so
+> it would be good to be consistent with that.
 
---mgfllhks6wa67wbo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I was trying to come up with a nice name, however I couldn't find
+anything better than no_direct_complete.
 
-On Thu, Jun 22, 2017 at 11:10:48AM +0300, Mika Westerberg wrote:
-> On Wed, Jun 21, 2017 at 08:05:53PM +0200, Lukas Wunner wrote:
-> > MacBooks and MacBook Pros introduced since 2015 return empty _CRS data
-> > for SPI slaves, causing device initialization to fail.  Most of the
-> > information that would normally be conveyed via _CRS is available
+However as the next patch somewhat, extends the flag to also be use
+for the runtime PM centric path, I should perhaps choose something
+more related to that?
 
-Please delete unneeded context from mails when replying.  Doing this
-makes it much easier to find your reply in the message, helping ensure
-it won't be missed by people scrolling through the irrelevant quoted
-material.
+I think make "needs_resume" is going to e bit confusing, especially
+while extending the usage for the flag it in the next patch, no?
 
---mgfllhks6wa67wbo
-Content-Type: application/pgp-signature; name="signature.asc"
+>
+>> +}
+>> +EXPORT_SYMBOL_GPL(acpi_dev_disable_direct_complete);
+>> +
+>> +/**
+>> + * acpi_dev_enable_direct_complete - Enable the direct_complete path for ACPI.
+>> + * @dev: Device to enable the path for.
+>> + *
+>> + * Enable the direct_complete path to be used during system suspend for the ACPI
+>> + * PM domain, which is the default option. Typically a driver that disabled the
+>> + * path during ->probe(), must call this function during ->remove() to re-enable
+>> + * the direct_complete path to be used by ACPI.
+>> + */
+>> +void acpi_dev_enable_direct_complete(struct device *dev)
+>> +{
+>> +       struct acpi_device *adev = ACPI_COMPANION(dev);
+>> +
+>> +       if (adev)
+>> +               adev->no_direct_complete = false;
+>> +}
+>> +EXPORT_SYMBOL_GPL(acpi_dev_enable_direct_complete);
+>> +
+>> +/**
+>>   * acpi_dev_suspend_late - Put device into a low-power state using ACPI.
+>>   * @dev: Device to put into a low-power state.
+>>   *
+>> @@ -967,7 +1002,7 @@ int acpi_subsys_prepare(struct device *dev)
+>>         if (ret < 0)
+>>                 return ret;
+>>
+>> -       if (!adev || !pm_runtime_suspended(dev))
+>> +       if (!adev || adev->no_direct_complete || !pm_runtime_suspended(dev))
+>>                 return 0;
+>>
+>>         return !acpi_dev_needs_resume(dev, adev);
+>> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+>> index 63a90a6..2293d24 100644
+>> --- a/include/acpi/acpi_bus.h
+>> +++ b/include/acpi/acpi_bus.h
+>> @@ -380,6 +380,7 @@ struct acpi_device {
+>>         struct list_head physical_node_list;
+>>         struct mutex physical_node_lock;
+>>         void (*remove)(struct acpi_device *);
+>> +       bool no_direct_complete;
+>
+> Also what about adding this to struct acpi_device_power instead?
 
------BEGIN PGP SIGNATURE-----
+Yes, thanks for the suggestion!
 
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAllLjaYACgkQJNaLcl1U
-h9AQlAf+IlSeHe4CghYYCAz4ddy3LdcrnOiAcnDX752a4/8VlcVp4jQdizVpk9kX
-NjAWenIxP9pZ/nX8hHy1MItF3SwkWL1EXixHcpwk4ACjv14PhzbKtxMAO3TjIrbX
-9LfXxsb3maZgTPDGE7m56cD2HRl7Ke+ttgMi9N8efxI+UFlE+598jOsYOGMbIFDx
-dWcRq5YmA7D/VL4xF/omajXFdPeSKf2S+/5Oj5oaYz9zWrrdJE23wWW1OwRvAaK/
-i7JftEgb2PVIhwVTjVpVpMLSsPHjJzPeqeGUMKNi/KA173oxsFDC/SDyi0aOQKwt
-JVGfQ1q/GGMm5VwC2z+TL16G4HGdKw==
-=09sr
------END PGP SIGNATURE-----
+>
+> Thanks,
+> Rafael
 
---mgfllhks6wa67wbo--
+Kind regards
+Uffe
