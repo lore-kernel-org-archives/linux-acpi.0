@@ -1,73 +1,79 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 7/9] PM / ACPI: Enable the runtime PM centric approach for
- system sleep
-Date: Thu, 22 Jun 2017 11:42:11 +0200
-Message-ID: <CAPDyKFpYpLqPiyfqp16JT8fA7xwhanAcfhdnYm6MgeXyq0QfNQ@mail.gmail.com>
-References: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org>
- <1498072888-14782-8-git-send-email-ulf.hansson@linaro.org> <CAJZ5v0jL-0TKUv5nK7tFLm+X7nE7J2e3hm21i=+FBFBzQLQ=Xw@mail.gmail.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH 2/3] ACPI / property: Support Apple _DSM properties
+Date: Thu, 22 Jun 2017 11:54:39 +0200
+Message-ID: <20170622095439.vquuet562i5scl3n@wunner.de>
+References: <cover.1498044532.git.lukas@wunner.de>
+ <8ce38be1389dfb0527961ccd0dedb609802b59c1.1498044532.git.lukas@wunner.de>
+ <20170622080655.GS629@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f176.google.com ([209.85.220.176]:34513 "EHLO
-        mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751191AbdFVJmM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 05:42:12 -0400
-Received: by mail-qk0-f176.google.com with SMTP id d14so7600605qkb.1
-        for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2017 02:42:12 -0700 (PDT)
-In-Reply-To: <CAJZ5v0jL-0TKUv5nK7tFLm+X7nE7J2e3hm21i=+FBFBzQLQ=Xw@mail.gmail.com>
+Received: from mailout1.hostsharing.net ([83.223.95.204]:44153 "EHLO
+        mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751674AbdFVJyr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 05:54:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20170622080655.GS629@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mark Brown <broonie@kernel.org>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org
 
-On 21 June 2017 at 23:47, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Wed, Jun 21, 2017 at 9:21 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
->> This change extends the interpretation of the ACPI's no_direct_complete
->> flag to be used to enable the so called runtime PM centric approach, for
->> devices being attached to the ACPI PM domain.
->>
->> The principle behind the runtime PM centric approach is to re-use the
->> runtime PM callbacks to implement system sleep for drivers/subsystems.
->> Moreover, using the runtime PM centric approach gives an optimized
->> behaviour around avoiding to wake up a device from its low power state
->> during system sleep, unless really needed.
->>
->> To deploy the runtime PM centric approach for a subsystem/driver, the
->> following adaptations needs to be made.
->>
->> First, the runtime PM callbacks may be called when runtime PM has been
->> disabled for the device. This serves as an indication for the callbacks to
->> understand they are running in the system sleep sequence, instead of in the
->> regular runtime PM path. In some cases, a callback needs to take different
->> actions depending in what path it is being executed in, as is the case for
->> the ACPI PM domain.
->>
->> In particular for the ACPI PM domain's ->runtime_suspend|resume()
->> callbacks, when those finds runtime PM being disabled for the device, it
->> instead executes the same operations as normally being run when
->> ->suspend_late() and ->resume_early() callbacks are invoked during system
->> sleep.
->>
->> Second, at the PM domain level, it is expected that the driver for the
->> device makes use of pm_runtime_force_suspend|resume(), to re-use the
->> runtime PM callbacks to put the device into low power state and to wake it
->> up when needed during system sleep.
->
-> What if it doesn't do that?
->
-> Do all drivers of devices that may fall into the ACPI PM domain use
-> pm_runtime_force_suspend|resume()?
+On Thu, Jun 22, 2017 at 11:06:55AM +0300, Mika Westerberg wrote:
+> On Wed, Jun 21, 2017 at 08:05:53PM +0200, Lukas Wunner wrote:
+> > +	props = acpi_evaluate_dsm_typed(adev->handle, apple_prp_uuid, 1, 0,
+> > +					NULL, ACPI_TYPE_BUFFER);
+> > +	if (!props || !props->buffer.length)
+> > +		goto out_free;
+> > +
+> > +	version = props->buffer.pointer[0];
+> > +	ACPI_FREE(props);
+> > +	if (version != 3) {
+> > +		acpi_handle_err(adev->handle,
+> > +				"unsupported properties version %u\n", version);
+> 
+> I don't think this is error. More like debug if anything.
 
-No, no - the runtime PM centric path is optional by all ACPI
-devices/drivers. The default is still for the ACPI PM domain to try
-the direct_complete path.
+It would be good to be able to google for this message to detect if there
+are ever Macs out there which return something different than "3" to this
+_DSM call.  How about KERN_WARN or KERN_INFO?
 
-However if an ACPI device/driver (i2c designware in this case) likes
-to do that, they need to inform the ACPI PM domain about it. Then they
-call acpi_dev_disable_direct_complete() and makes use of
-pm_runtime_force_suspend|resume() to deal with system sleep.
+The AppleACPIPlatform.kext which shipped with 10.4.11 (2007) already checked
+for a return value of 3 and the newest Macs still return "3", so this has
+never changed in at least 10 years and the whole issue is thus theoretical.
+I just wanted to be compatible to what macOS does, they check for "3" and
+abort if the return value is different.
 
-Does that makes sense?
 
-Kind regards
-Uffe
+> > +	if (skipped)
+> > +		acpi_handle_err(adev->handle,
+> > +				"skipped %u properties: wrong type\n", skipped);
+> 
+> Same here.
+
+This would be a firmware bug.  We've got FW_BUG, FW_WARN, FW_INFO defined in
+include/linux/printk.h.  Granted this is not high priority, but FW_WARN or
+at least FW_INFO would seem to be justified.
+
+
+> > +	WARN_ON(free_space != (void *)newprops + newsize);
+> 
+> Again, there is not need to scare the user if we can't parse these. We
+> can log an error here and give up but definitely no need to trigger
+> backtrace and register dump.
+
+This is not for parse errors but programming errors.  free_space is a
+pointer into the newprops allocation.
+
+If (free_space < newprops + newsize) then the allocation was too large
+and we're wasting memory.
+
+If (free_space > newprops + newsize) then the allocation was too small
+and we've corrupted memory behind the allocation.
+
+I'm fairly sure the WARN_ON will never trigger but what do I know? :-)
+
+
+Thanks!
+
+Lukas
