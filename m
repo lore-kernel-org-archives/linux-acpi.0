@@ -1,57 +1,55 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v7.2 7/7] device property: Get rid of struct fwnode_handle
- type field
-Date: Thu, 22 Jun 2017 02:57:08 +0200
-Message-ID: <CAJZ5v0iTmeXAhjb47L8OeGBxue6tsMEEPeDGco+ZDkXo4MqLzg@mail.gmail.com>
-References: <1497354548-17502-1-git-send-email-sakari.ailus@linux.intel.com>
- <1497948596-1009-1-git-send-email-sakari.ailus@linux.intel.com> <20170620141414.GA11351@red-moon>
+From: <ecaterinasuciu09@yahoo.com>
+Subject: (unknown)
+Date: Thu, 22 Jun 2017 02:13:03 -0000
+Message-ID: <149809758312.19456.13088666520599737457@hinet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: application/zip; name="83837.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:34834 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751083AbdFVA5K (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 20:57:10 -0400
-In-Reply-To: <20170620141414.GA11351@red-moon>
+Received: from 36-231-163-112.dynamic-ip.hinet.net ([36.231.163.112]:50339
+        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with SMTP id S1751901AbdFVCNW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 22:13:22 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>, Frank Rowand <frowand.list@gmail.com>, kieran.bingham@ideasonboard.com
+To: linux-acpi@vger.kernel.org
 
-On Tue, Jun 20, 2017 at 4:14 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On Tue, Jun 20, 2017 at 11:49:56AM +0300, Sakari Ailus wrote:
->
-> [...]
->
->> +#define DECLARE_ACPI_FWNODE_OPS(ops) \
->> +     const struct fwnode_operations ops = {                          \
->> +             .device_is_available = acpi_fwnode_device_is_available, \
->> +             .property_present = acpi_fwnode_property_present,       \
->> +             .property_read_int_array =                              \
->> +                     acpi_fwnode_property_read_int_array,            \
->> +             .property_read_string_array =                           \
->> +                     acpi_fwnode_property_read_string_array,         \
->> +             .get_parent = acpi_node_get_parent,                     \
->> +             .get_next_child_node = acpi_get_next_subnode,           \
->> +             .get_named_child_node = acpi_fwnode_get_named_child_node, \
->> +             .graph_get_next_endpoint =                              \
->> +                     acpi_fwnode_graph_get_next_endpoint,            \
->> +             .graph_get_remote_endpoint =                            \
->> +                     acpi_fwnode_graph_get_remote_endpoint,          \
->> +             .graph_get_port_parent = acpi_node_get_parent,          \
->> +             .graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint, \
->> +     };                                                              \
->> +     EXPORT_SYMBOL_GPL(ops)
->> +
->> +DECLARE_ACPI_FWNODE_OPS(acpi_device_fwnode_ops);
->> +DECLARE_ACPI_FWNODE_OPS(acpi_data_fwnode_ops);
->> +DECLARE_ACPI_FWNODE_OPS(acpi_static_fwnode_ops);
->
-> I do not think it is a great idea to associate valid fwnode_operations
-> to a static ACPI fwnode (which is just a tag - like the IRQCHIP one).
-
-Sakari, care to address this comment?
-
-Thanks,
-Rafael
+UEsDBBQAAAAIAMcQ1koCSEiHigcAAJAHAAAIAAAANzcwMi56aXB1VWk0EwAAHmbOMjHxKjmTlZli
+W5JQVM6ph0XJSMpZ5L6ba3MkhbltyZn7rEVmLCRX7vsmkntuOt/rvd7r+977vvd97/v/obVYgPwA
+AIAd8AHcpbmK4+TeAQEAh08CAGw/WiQSfgZm7VRqbOJwSB/sg1y6aIsQVbPmPywrqXO8IsaaFxhA
+WML603ILXn+MYabvfyM3NL32Siy29npQdaE7bvPeVNPoY8p6vFHKVran6+dMbWtq9duS5A7KXH60
+/vvSngombCg6aZtjMyCPw5n9gEFrxlO9FbaaaEqOasvbCR2lJ4RWlkhStQ0fJ8cnhFmciVo4NXG7
+bUdeNOEVJvaJzfGT62Gt8a0lRSJeNJu7MEy0EBVBmgpWKBLuZ0SYhd6ciWA/yC73aIj4yUUaM8De
+LGFghvepvRlYJdbMvt7DLaOA/eIGiW1l7y1nfAOhYry7QCXAsw412+G4zqgqTVuPAie0MZM0f6SU
+Xj22iz2p12+uk6jOqnxK7eq13TRjoMUWkxgmfCKbLwABzj4ib9oc9G7W+kDnVFuUSowv4ymneWWA
+IuhEC+b6vatE35JDS3ndjfXHSYXoljSIaFbyw4534s4jmZXTcf7LfpFi4qA5oYLy4A5J4JqGQGLB
+EMiHNGzuGu7+ABRiJa6vRjpT7iiObhjbiHA+ngI3o3LoIYhgk4iR93FgbTk6JwNq5Ftf5JCVyxr0
+ljuDE8S3KonIpIrlWDaklsmNf/GW/hjJtsy7F4MupEsNe4Idj5VdRKlUbUFcokD9d7k0Y6Go05a7
+l2d21k6RpleOZtCOkroPC+QrMXk4Y/IvoJbzE9ZltswqtVZGBTN7AdfFGtSx/J2XyGfwBhc/3Js5
+00vmXqZX44NqHNIoqX2p4HTWtgCJcTweNFmUKoyB8iuLZF4Zuj/o9L5McJhFaMFvzfWSiD0X8fxR
+HuYL5cUuz5W1JWGRWYFXEfyViXD4vJnuaK3OCKqvlxPed2DAqE97MeWK59RYQ934FaPJfJxrnV3P
+/mKWz2DPlXJEf0OfFSMU6dKRY0wtYuzlIl/nQStPbh+HOfcvu3XfcllnKRWdOWQM1uR7u84/qkAS
+bWFAiJZ8attA6eCHMa00j3gyj5xItPitIBZ291n/Ap+7/gocViqGzloFqvfh0z5meDRl/U1ZN6/h
+CAQXl/JwjXPkfjagkGv3m7QUDwPLTEhFmkxpYLGVbDPuhzQXVdryowvDupo9/Chsb9IfczypQbr1
+2VmouOUFgYbqhJvjO/0nJCaI8zNnjQGk4Dy05STeQA+djAN+GFtAxXADzyuVaGSyoFd80dxXBFB0
+eLcc4QAVVhFENXAonu5wCFCMSLbXVXVWQ+J1snic7D/S4MhnsmSTh3ktb+bBbsGOsZGi9vJFsHqB
++auG9Vsgt/D6vfS0FEdzXtOTSL936hLugTIsE5xuSFc8SyxW+VEeqCYpVaF1ZQyXyvOoLIg3TAug
+tggMifuKASskFqJDoaMQqR5enoPVptI090+Dx0rDXg1ZmCzqOnp/1p8T2VoV3SGg8Z7j4R8IM+UC
+4dNb5kE3nqOs01sHWRAHrWZ5i4F8TGSqWQWzouKqpY5yNE60tniPvL6+oVRWFDn7AoAJRErKo3IU
+QonfJBgyGeQyzTtvHMVhwouF+riMmD0V21SiVQrBylzDCDIEzYIOYDSN/QjOPfu0SMsuDy1V2xvq
+oYbnrolJSB9xrDLZDDvXrgFjGzFs5nYPM7TPmHUEyqqyTjakfTqlTeLFlMrNwl4ai0g9v9koTT1r
+/RWmEmUEVyS3HzbkITfPyi9xpJW4z1+GdVo9I+8tJhUSOGTfLd/dzhC5rB7K2KBYcUY1EmZZe+6H
+6Ah/CdHYxKkhpMU9zg3z38CfOoVFwlTN65JvPNioyeDOwC5DW6mlFcyrMs8s9YUHNxsxZSuAW/xV
+KOd9pWTJcCk7kE1t8oao5AvzMfb7s6GrAtAZL11icj28DnIVSKmdgBzwkVm428ssBvGI8e84MVeU
+XJgkVHTdtL26Xqgh+P2KUPudJq6Az2qlfXkV3a6YOKjVZ1YTrTu4rT5tpEInT29t7P5OoVwEPthr
+X10+VqDpq2KW9HXdGsUKIjyBcCRltEzJIDQQfWlgv5rEB3UDbS13QRU1M5QWKm7pDoR0vyjWRp7F
+BNANwWvxUXWHBUJiEYkJsiLDDSulKLGPiFFu0p0Fwew7idqelFHGbadNhoXNsa4dmgn9cmCbBV0K
+svsIRwul29q+ejm8kVt0JPvx1FkiQzKpECabS0tVA1dQVh30JOJaemWF5hIUXJHjDDtB7nzF3QdO
++Zpasn1LM/sjyayNT00LDBS3ytMbu/T6d5R35KNami/7zmtL3Jxm3GtPMsTZ2bkaQW3JpR3022lU
+RBxXTsnppiOmlK+yT7oMvAfmqp7S9/eMV7a7LuZapQx255/f7hy0Ra6aDNIS+uO8Cyy0j85ty94Y
+1B1ysd4eGvVn7I6ecxlE9ZxYH5vcdEd4cDVXRpxe0mq2wB/M2QGgtZiYLwL+d5ESgN8Q+Sl/D5Pz
+T8EEEAREpws2Iebamf51tBYr6NfmB2/+cFG2n+k7UEsBAj8AFAAAAAgAxxDWSgJISIeKBwAAkAcA
+AAgAJAAAAAAAAAAgAAAAAAAAADc3MDIuemlwCgAgAAAAAAABABgAOWsdzDbr0gF0CRvMNuvSAXQJ
+G8w269IBUEsFBgAAAAABAAEAWgAAALAHAAAAAA==
