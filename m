@@ -1,66 +1,103 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/3] ACPI / property: Support Apple _DSM properties
-Date: Thu, 22 Jun 2017 16:18:11 +0200
-Message-ID: <1651258.xZOMav1BfQ@aspire.rjw.lan>
-References: <cover.1498044532.git.lukas@wunner.de> <2340666.WAr8RzfG0T@aspire.rjw.lan> <20170622085710.fmuftzt2soqpppyk@wunner.de>
+Subject: Re: [PATCH v4 1/2] ACPICA: ACPI 6.2: Add support for new SRAT subtable
+Date: Thu, 22 Jun 2017 16:27:18 +0200
+Message-ID: <7426901.eKsnQBecvM@aspire.rjw.lan>
+References: <1498111812-17053-1-git-send-email-ganapatrao.kulkarni@cavium.com> <20170622134303.GA9732@red-moon> <94F2FBAB4432B54E8AACC7DFDE6C92E37E5C3067@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:60232 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:45424 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753222AbdFVOZb (ORCPT
+        by vger.kernel.org with ESMTP id S1750847AbdFVOeh (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 22 Jun 2017 10:25:31 -0400
-In-Reply-To: <20170622085710.fmuftzt2soqpppyk@wunner.de>
+        Thu, 22 Jun 2017 10:34:37 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5C3067@ORSMSX110.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: Mark Brown <broonie@kernel.org>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "jnair@caviumnetworks.com" <jnair@caviumnetworks.com>, "gpkulkarni@gmail.com" <gpkulkarni@gmail.com>
 
-On Thursday, June 22, 2017 10:57:10 AM Lukas Wunner wrote:
-> On Thu, Jun 22, 2017 at 01:05:24AM +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, June 21, 2017 08:05:53 PM Lukas Wunner wrote:
-> > > +/* Apple _DSM device properties GUID: a0b5b7c6-1318-441c-b0c9-fe695eaf949b */
-> > > +static const u8 apple_prp_uuid[16] = {
-> > > +	0xc6, 0xb7, 0xb5, 0xa0, 0x18, 0x13, 0x1c, 0x44,
-> > > +	0xb0, 0xc9, 0xfe, 0x69, 0x5e, 0xaf, 0x94, 0x9b
-> > > +};
-> > > +
-> > > +/**
-> > > + * acpi_retrieve_apple_properties - retrieve and convert Apple _DSM properties
-> > > + * @adev: ACPI device for which to retrieve the properties
-> > > + *
-> > > + * Invoke Apple's custom _DSM once to check the protocol version and once more
-> > > + * to retrieve the properties.  They are marshalled up in a single package as
-> > > + * alternating key/value elements, unlike _DSD which stores them as a package
-> > > + * of 2-element packages.  Convert to _DSD format and make them available under
-> > > + * the primary fwnode.
-> > > + */
-> > > +static void acpi_retrieve_apple_properties(struct acpi_device *adev)
-> > > +{
-> > > +	unsigned int i, j, version, newsize = 0, numprops, skipped = 0;
-> > > +	union acpi_object *props, *newprops;
-> > > +	void *free_space;
-> > > +
-> > > +	props = acpi_evaluate_dsm_typed(adev->handle, apple_prp_uuid, 1, 0,
-> > > +					NULL, ACPI_TYPE_BUFFER);
-> > 
-> > The handling of UUIDs is going to change in 4.13, so this needs to be rebased.
-> 
-> Right.  The series is based on your "bleeding-edge" branch, which hasn't
-> merged the "uuid-types" branch into it.  I'll base future revisions on
-> "bleeding-edge" with "uuid-types" manually merged into it, but then you'll
-> have to remember not to apply the series until the uuid-types branch
-> has landed in Linus' tree and you've backmerged Linus' master branch.
-> 
-> Alternatively, you could merge the uuid-types branch.  There are no conflicts
-> and Andy says it's to be considered immutable:
-> 
-> http://git.infradead.org/users/hch/uuid.git/shortlog/refs/heads/uuid-types
+On Thursday, June 22, 2017 02:13:18 PM Moore, Robert wrote:
+> This support is already in the ACPICA code base, but I can't speak to when it will be upstreamed to Linux. Lv would know this.
 
-Yes, that's what I'm going to do.  I actually have other reasons to do that. :-)
+It should be there in linux-next already AFAICS.
+
+Lorenzo, can you please double check?
 
 Thanks,
 Rafael
+
+
+> > -----Original Message-----
+> > From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
+> > Sent: Thursday, June 22, 2017 6:43 AM
+> > To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>; Zheng, Lv
+> > <lv.zheng@intel.com>; Moore, Robert <robert.moore@intel.com>; Rafael J.
+> > Wysocki <rjw@rjwysocki.net>
+> > Cc: linux-acpi@vger.kernel.org; devel@acpica.org; linux-
+> > kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> > marc.zyngier@arm.com; catalin.marinas@arm.com; will.deacon@arm.com;
+> > hanjun.guo@linaro.org; tglx@linutronix.de; jason@lakedaemon.net;
+> > jnair@caviumnetworks.com; gpkulkarni@gmail.com
+> > Subject: Re: [PATCH v4 1/2] ACPICA: ACPI 6.2: Add support for new SRAT
+> > subtable
+> > 
+> > Hi Rafael, Lv, Robert,
+> > 
+> > On Thu, Jun 22, 2017 at 11:40:11AM +0530, Ganapatrao Kulkarni wrote:
+> > > Add GIC ITS Affinity (ACPI 6.2) subtable to SRAT table.
+> > >
+> > > ACPICA commit 5bc67f63918da249bfe279ee461d152bb3e6f55b
+> > > Link: https://github.com/acpica/acpica/commit/5bc67f6
+> > >
+> > > Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+> > > ---
+> > >  include/acpi/actbl1.h | 12 +++++++++++-
+> > >  1 file changed, 11 insertions(+), 1 deletion(-)
+> > 
+> > This patch is fine to me but it is up to you or who sends the ACPICA
+> > pull request to send it upstream or give us an ACK so that it can go via
+> > irqchip.
+> > 
+> > We need to know how this commit (and other ACPICA changes) will be sent
+> > upstream to handle trees dependencies, please advise it is a bit urgent,
+> > thank you.
+> > 
+> > Lorenzo
+> > 
+> > > diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index
+> > > b4ce55c..253c9db 100644
+> > > --- a/include/acpi/actbl1.h
+> > > +++ b/include/acpi/actbl1.h
+> > > @@ -1192,7 +1192,8 @@ enum acpi_srat_type {
+> > >  	ACPI_SRAT_TYPE_MEMORY_AFFINITY = 1,
+> > >  	ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY = 2,
+> > >  	ACPI_SRAT_TYPE_GICC_AFFINITY = 3,
+> > > -	ACPI_SRAT_TYPE_RESERVED = 4	/* 4 and greater are reserved */
+> > > +	ACPI_SRAT_TYPE_GIC_ITS_AFFINITY = 4,	/* ACPI 6.2 */
+> > > +	ACPI_SRAT_TYPE_RESERVED = 5	/* 5 and greater are reserved */
+> > >  };
+> > >
+> > >  /*
+> > > @@ -1260,6 +1261,15 @@ struct acpi_srat_gicc_affinity {
+> > >  	u32 clock_domain;
+> > >  };
+> > >
+> > > +/* 4: GIC ITS Affinity (ACPI 6.2) */
+> > > +
+> > > +struct acpi_srat_its_affinity {
+> > > +	struct acpi_subtable_header header;
+> > > +	u32 proximity_domain;
+> > > +	u16 reserved;
+> > > +	u32 its_id;
+> > > +};
+> > > +
+> > >  /* Flags for struct acpi_srat_gicc_affinity */
+> > >
+> > >  #define ACPI_SRAT_GICC_ENABLED     (1)	/* 00: Use affinity structure
+> > */
+> > > --
+> > > 1.8.1.4
+> > >
 
