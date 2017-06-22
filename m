@@ -1,36 +1,66 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 0/7] fujitsu-laptop: ACPI-related cleanups
-Date: Thu, 22 Jun 2017 16:57:04 -0700
-Message-ID: <20170622235704.GA27213@fury>
-References: <20170616044058.30443-1-kernel@kempniu.pl>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH 3/4] randstruct: Disable randomization of ACPICA structs
+Date: Thu, 22 Jun 2017 16:57:39 -0700
+Message-ID: <CAGXu5jJWZos+uUgyc6hiHko=ei4b_6aCyZqRLDESfih1ybxR=w@mail.gmail.com>
+References: <1497905801-69164-1-git-send-email-keescook@chromium.org>
+ <1497905801-69164-4-git-send-email-keescook@chromium.org> <20170620065631.GA25354@infradead.org>
+ <CAGXu5jLkvqbV1=xGrvwLZPiAbswA6M5C3BB0M5MytRabLtEfLg@mail.gmail.com>
+ <20170620203549.GA4049@infradead.org> <CAJZ5v0hqRbsivmnG5iKMsR_ZMg+i_vxA7n-NOkuu3jh-TJ6pHw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:46501 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752832AbdFVX5I (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 19:57:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20170616044058.30443-1-kernel@kempniu.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0hqRbsivmnG5iKMsR_ZMg+i_vxA7n-NOkuu3jh-TJ6pHw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>
-Cc: Jonathan Woithe <jwoithe@just42.net>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Jun 16, 2017 at 06:40:51AM +0200, Michał Kępień wrote:
-> In preparation for splitting fujitsu-laptop into two separate modules, I
-> prepared two more cleanup series to minimize the amount of code being
-> moved around.  This first series contains all patches that touch ACPI in
-> some way, which is why I am CCing linux-acpi as per Rafael's previous
-> advice.
-> 
-> This patch series was based on platform-driver-x86/for-next and tested
-> on a Lifebook S7020.
+On Tue, Jun 20, 2017 at 2:34 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Tue, Jun 20, 2017 at 10:35 PM, Christoph Hellwig <hch@infradead.org> wrote:
+>> On Tue, Jun 20, 2017 at 12:25:53PM -0700, Kees Cook wrote:
+>>> Can you send the patch to https://github.com/acpica/acpica ? My change
+>>> was finally accepted, so this whole issue will go away on the next
+>>> refresh. Until then, I don't want to block the entire automatic
+>>> structure selection logic of randstruct on a three-function table. :)
+>>
+>> I do not have a github account and no such thing is required for kernel
+>> development.
+>
+> It isn't required for the ACPICA material either.
+>
+> You just need to CC the ACPICA maintainers, as per MAINTAINERS, on
+> your ACPICA patches.  They pick up stuff that looks good to them.
+>
+> And we tend to prefer routing ACPICA changes through the upstream,
+> because failing to do so usually turns out to be painful in the long
+> term.  I don't think it is unreasonable to ask for cooperation in that
+> respect.
 
-I'm satisfied with the responses to all questions on this series. Queued to
-testing. Thanks Michal and Jonathan.
+I'd like to unblock randstruct, so what's the easiest way to move
+this? My version of changes have already landed upstream in ACPICA,
+but I don't know how frequently they get flushed back into the kernel.
+
+I can't turn on randstruct auto-selection in -next without either
+ACPICA using (or not needing) designated initializers or just
+blacklisting it in the randstruct plugin itself. I would much prefer
+the latter as the problem is solved in ACPICA upstream already but
+just isn't in the kernel yet, and I want to get testing of the
+auto-selection ASAP. Once it's in the kernel I can drop the blacklist.
+
+Christoph: how about a middle ground where randstruct blacklists
+ACPICA in -next and if ACPICA is fixed by the time the merge window
+opens, I'll drop the blacklist. That gets the testing coverage without
+what you see as an ugly hack right now. I just really don't want to
+waste any more time on this since there are SO many other randomized
+structures I'd like to be sure are getting testing.
+
+Alternatively, if the ACPICA folks Ack Christoph's patch, I can carry
+that in the randstruct tree for -next instead?
+
+Thanks,
+
+-Kees
 
 -- 
-Darren Hart
-VMware Open Source Technology Center
+Kees Cook
+Pixel Security
