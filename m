@@ -1,45 +1,54 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCH 1/9] i2c: designware: Fix system suspend
-Date: Thu, 22 Jun 2017 14:16:18 +0300
-Message-ID: <5540bae1-b1bf-0e15-1fa0-977076fa0753@linux.intel.com>
-References: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org>
- <1498072888-14782-2-git-send-email-ulf.hansson@linaro.org>
- <CAJZ5v0iYwPE8rpn=aZ9n6LV-qbAK3kynRqVZ7xxuB+gYar_fyg@mail.gmail.com>
- <20170622104933.GY629@lahna.fi.intel.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH 2/3] ACPI / property: Support Apple _DSM properties
+Date: Thu, 22 Jun 2017 13:24:28 +0200
+Message-ID: <20170622112428.q3hpwpfs4xwumued@wunner.de>
+References: <cover.1498044532.git.lukas@wunner.de>
+ <8ce38be1389dfb0527961ccd0dedb609802b59c1.1498044532.git.lukas@wunner.de>
+ <20170622080655.GS629@lahna.fi.intel.com>
+ <20170622095439.vquuet562i5scl3n@wunner.de>
+ <20170622100422.GX629@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:28852 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753295AbdFVLQ1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 22 Jun 2017 07:16:27 -0400
-In-Reply-To: <20170622104933.GY629@lahna.fi.intel.com>
+Received: from mailout3.hostsharing.net ([176.9.242.54]:45129 "EHLO
+        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752719AbdFVLYb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 07:24:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20170622100422.GX629@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>, stable@vger.linux.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mark Brown <broonie@kernel.org>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org
 
-On 06/22/2017 01:49 PM, Mika Westerberg wrote:
-> On Thu, Jun 22, 2017 at 01:31:51AM +0200, Rafael J. Wysocki wrote:
->> On Wed, Jun 21, 2017 at 9:21 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
-> Thanks Ulf for taking care of this!
->
-Indeed!
+On Thu, Jun 22, 2017 at 01:04:22PM +0300, Mika Westerberg wrote:
+> On Thu, Jun 22, 2017 at 11:54:39AM +0200, Lukas Wunner wrote:
+> > On Thu, Jun 22, 2017 at 11:06:55AM +0300, Mika Westerberg wrote:
+> > > On Wed, Jun 21, 2017 at 08:05:53PM +0200, Lukas Wunner wrote:
+> > > > +	props = acpi_evaluate_dsm_typed(adev->handle, apple_prp_uuid, 1, 0,
+> > > > +					NULL, ACPI_TYPE_BUFFER);
+> > > > +	if (!props || !props->buffer.length)
+> > > > +		goto out_free;
+> > > > +
+> > > > +	version = props->buffer.pointer[0];
+> > > > +	ACPI_FREE(props);
+> > > > +	if (version != 3) {
+> > > > +		acpi_handle_err(adev->handle,
+> > > > +				"unsupported properties version %u\n", version);
+> > > 
+> > > I don't think this is error. More like debug if anything.
+> > 
+> > It would be good to be able to google for this message to detect if there
+> > are ever Macs out there which return something different than "3" to this
+> > _DSM call.  How about KERN_WARN or KERN_INFO?
+> 
+> Well, this is something the user might see and then gets confused on the
+> grounds: is my machine somehow broken?
 
-> I tested this series on Dell XPS 9350 which has touch panel connected to
-> I2C and suspend/resume still works fine and I can see the controller
-> going to D3 when the touch panel is idle.
->
-> I can perform more comprehensive testing next week.
->
-Unfortunately I'm seeing interrupt storm during suspend/resume on 
-platform using PM domain from drivers/acpi/acpi_lpss.c straight after 
-this patch. Maybe some timing related as I see it only if I have debug 
-messages on (i2c_designware_core.dyndbg=+p). But it occurs only after 
-this patch.
+And indeed it might be:  Conceivably, Apple may change the format of the
+properties and then once again the SPI slave won't be able to initialize.
+In that case it seems beneficial to provide a clue as to the cause in dmesg.
 
-Have to dig more deeply next week.
+Thanks,
 
--- 
-Jarkko
+Lukas
