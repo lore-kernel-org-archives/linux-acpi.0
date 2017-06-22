@@ -1,106 +1,64 @@
-From: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Subject: [PATCH] acpi: thermal: honor "mode" sysfs file setting
-Date: Thu, 22 Jun 2017 14:45:42 +0200
-Message-ID: <20170622124542.12063-1-enric.balletbo@collabora.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:46334 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751094AbdFVMpx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 08:45:53 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/3] ACPI / property: Support Apple _DSM properties
+Date: Thu, 22 Jun 2017 14:25:41 +0100
+Message-ID: <20170622132541.qvnkngd4nmwvlbnk@sirena.org.uk>
+References: <cover.1498044532.git.lukas@wunner.de>
+ <8ce38be1389dfb0527961ccd0dedb609802b59c1.1498044532.git.lukas@wunner.de>
+ <20170622080655.GS629@lahna.fi.intel.com>
+ <20170622095439.vquuet562i5scl3n@wunner.de>
+ <20170622100422.GX629@lahna.fi.intel.com>
+ <20170622112428.q3hpwpfs4xwumued@wunner.de>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="j3s7sbuy5gqemui4"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170622112428.q3hpwpfs4xwumued-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
+Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ronald Tschalaer <ronald-Cgq6lnktLNMTaf21n8AfGQ@public.gmane.org>, Federico Lorenzi <florenzi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Leif Liddy <leif.liddy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Daniel Roschka <danielroschka-d2qyoUQsf3ABe69/dCFm4g@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Guenter Roeck <groeck@chromium.org>, Sameer Nanda <snanda@chromium.org>
 
-From: Sameer Nanda <snanda@chromium.org>
 
-Under each thermal zone there is a file called "mode". Writing enabled
-or disabled to this file allows a given thermal zone to be enabled or
-disabled. Honor writes to this file by enabling or disabling the
-polling timers.
+--j3s7sbuy5gqemui4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-With this change, in the acpi_thermal_add path, acpi_thermal_get_info
-gets called before acpi_thermal_register_thermal_zone. Since tz_enabled
-was getting set to 1 only in acpi_thermal_register_thermal_zone,
-acpi_thermal_get_info ended up disabling thermal polling so moved the
-setting of tz_enabled to 1 into acpi_thermal_add itself.
+On Thu, Jun 22, 2017 at 01:24:28PM +0200, Lukas Wunner wrote:
+> On Thu, Jun 22, 2017 at 01:04:22PM +0300, Mika Westerberg wrote:
+> > On Thu, Jun 22, 2017 at 11:54:39AM +0200, Lukas Wunner wrote:
 
-After this patch echoing enabled|disabled to "mode" sysfs will start/stop
-the polling of the temperature.
+> > > It would be good to be able to google for this message to detect if there
+> > > are ever Macs out there which return something different than "3" to this
+> > > _DSM call.  How about KERN_WARN or KERN_INFO?
 
-Signed-off-by: Sameer Nanda <snanda@chromium.org>
-Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
----
- drivers/acpi/thermal.c | 28 +++++++++++++++++++++-------
- 1 file changed, 21 insertions(+), 7 deletions(-)
+> > Well, this is something the user might see and then gets confused on the
+> > grounds: is my machine somehow broken?
 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 1d0417b..68ad9fe 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -223,6 +223,17 @@ static int acpi_thermal_get_polling_frequency(struct acpi_thermal *tz)
- 	if (!tz)
- 		return -EINVAL;
- 
-+	if (tz->tz_enabled == THERMAL_DEVICE_DISABLED) {
-+		tz->polling_frequency = 0;
-+		return 0;
-+	}
-+
-+	/* Get default polling frequency [_TZP] (optional) */
-+	if (tzp) {
-+		tz->polling_frequency = tzp;
-+		return 0;
-+	}
-+
- 	status = acpi_evaluate_integer(tz->device->handle, "_TZP", NULL, &tmp);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
-@@ -582,6 +593,14 @@ static int thermal_set_mode(struct thermal_zone_device *thermal,
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			"%s kernel ACPI thermal control\n",
- 			tz->tz_enabled ? "Enable" : "Disable"));
-+
-+		acpi_thermal_get_polling_frequency(tz);
-+
-+		mutex_lock(&tz->thermal_zone->lock);
-+		tz->thermal_zone->polling_delay = tz->polling_frequency * 100;
-+		tz->thermal_zone->passive_delay = tz->polling_frequency * 100;
-+		mutex_unlock(&tz->thermal_zone->lock);
-+
- 		acpi_thermal_check(tz);
- 	}
- 	return 0;
-@@ -930,8 +949,6 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	tz->tz_enabled = 1;
--
- 	dev_info(&tz->device->dev, "registered as thermal_zone%d\n",
- 		 tz->thermal_zone->id);
- 	return 0;
-@@ -1039,11 +1056,7 @@ static int acpi_thermal_get_info(struct acpi_thermal *tz)
- 	if (!result)
- 		tz->flags.cooling_mode = 1;
- 
--	/* Get default polling frequency [_TZP] (optional) */
--	if (tzp)
--		tz->polling_frequency = tzp;
--	else
--		acpi_thermal_get_polling_frequency(tz);
-+	acpi_thermal_get_polling_frequency(tz);
- 
- 	return 0;
- }
-@@ -1088,6 +1101,7 @@ static int acpi_thermal_add(struct acpi_device *device)
- 		return -ENOMEM;
- 
- 	tz->device = device;
-+	tz->tz_enabled = 1;
- 	strcpy(tz->name, device->pnp.bus_id);
- 	strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
--- 
-2.9.3
+> And indeed it might be:  Conceivably, Apple may change the format of the
+> properties and then once again the SPI slave won't be able to initialize.
+> In that case it seems beneficial to provide a clue as to the cause in dmesg.
 
+This seems especially important when we're working with a reverse
+engineered binding.
+
+--j3s7sbuy5gqemui4
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAllLxVQACgkQJNaLcl1U
+h9BeyAf/aAyU6IO0seK92R1Rq34nQ3Uf5330Gkd8CpyRXG4S7tBlYyLXWKnkQLBE
+8FNJ/5n7IwwcM4l/ExVwdjlcFpJ3jeQ0je/ZzndcvXFrPh1HLSRiE6oDClfpQ2jN
+nSDFkiIwiNgSKSlUS9iwMD4/vEsVw6VOENh/9MeT/47/HisErVg9USEB1Ak+9rIP
+GI0Byo+o9pldf1vaDhx0EthEKVmy0pESx4cnQByTjSKgGeSxI8D0Ytj4Ef5KGh/D
+wZx2mp7OZfcMnhGIwxn3811Nvr7VvWWP/9yVvsFgNi2fdxmKwTHlWpkDF6vA7Dhp
+d516nptO/0Am1DPqHmZqVQeDW08Hjg==
+=SLKy
+-----END PGP SIGNATURE-----
+
+--j3s7sbuy5gqemui4--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
