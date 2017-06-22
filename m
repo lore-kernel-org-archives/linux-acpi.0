@@ -1,53 +1,120 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 0/6] PM: Unify the handling of device wakeup settings
-Date: Thu, 22 Jun 2017 11:22:10 +0300
-Message-ID: <20170622082210.GU629@lahna.fi.intel.com>
-References: <12296383.UdE5HVtyng@aspire.rjw.lan>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH 3/3] spi: Use Apple device properties in absence of ACPI
+ resources
+Date: Thu, 22 Jun 2017 10:44:06 +0200
+Message-ID: <20170622084406.nneykpq2jv3p3jqg@wunner.de>
+References: <cover.1498044532.git.lukas@wunner.de>
+ <19c49c0351e452bff28199abcc6b3a11ec6949b2.1498044532.git.lukas@wunner.de>
+ <20170622081048.GT629@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:6447 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752188AbdFVIY0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 22 Jun 2017 04:24:26 -0400
+Received: from mailout3.hostsharing.net ([176.9.242.54]:39983 "EHLO
+        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752989AbdFVIoU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 04:44:20 -0400
 Content-Disposition: inline
-In-Reply-To: <12296383.UdE5HVtyng@aspire.rjw.lan>
+In-Reply-To: <20170622081048.GT629@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mark Brown <broonie@kernel.org>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org
 
-On Mon, Jun 19, 2017 at 11:31:58PM +0200, Rafael J. Wysocki wrote:
-> Hi All,
+On Thu, Jun 22, 2017 at 11:10:48AM +0300, Mika Westerberg wrote:
+> On Wed, Jun 21, 2017 at 08:05:53PM +0200, Lukas Wunner wrote:
+> > MacBooks and MacBook Pros introduced since 2015 return empty _CRS data
+> > for SPI slaves, causing device initialization to fail.  Most of the
+> > information that would normally be conveyed via _CRS is available
+> > through ACPI device properties instead, so take advantage of them.
+> > 
+> > The meaning and appropriate usage of the device properties was reverse
+> > engineered by Ronald Tschalär and carried over from these commits
+> > authored by him:
+> > 
+> > https://github.com/cb22/macbook12-spi-driver/commit/9a416d699ef4
+> > https://github.com/cb22/macbook12-spi-driver/commit/0c34936ed9a1
+> > 
+> > According to Ronald, the device properties have the following meaning:
+> > 
+> > spiSclkPeriod   /* period in ns */
+> > spiWordSize     /* in number of bits */
+> > spiBitOrder     /* 1 = MSB_FIRST, 0 = LSB_FIRST */
+> > spiSPO          /* clock polarity: 0 = low, 1 = high */
+> > spiSPH          /* clock phase: 0 = first, 1 = second */
+> > spiCSDelay      /* delay between cs and receive on reads in 10 us */
+> > resetA2RUsec    /* active-to-receive delay? */
+> > resetRecUsec    /* receive delay? */
+> > 
+> > Cc: Mark Brown <broonie@kernel.org>
+> > Cc: Federico Lorenzi <florenzi@gmail.com>
+> > Cc: Ronald Tschalär <ronald@innovation.ch>
+> > Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> > ---
+> >  drivers/spi/spi.c | 30 ++++++++++++++++++++++++++++++
+> >  1 file changed, 30 insertions(+)
+> > 
+> > diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+> > index 89254a55eb2e..a4066b75d02b 100644
+> > --- a/drivers/spi/spi.c
+> > +++ b/drivers/spi/spi.c
+> > @@ -21,6 +21,8 @@
+> >  #include <linux/cache.h>
+> >  #include <linux/dma-mapping.h>
+> >  #include <linux/dmaengine.h>
+> > +#include <linux/dmi.h>
+> > +#include <linux/math64.h>
+> >  #include <linux/mutex.h>
+> >  #include <linux/of_device.h>
+> >  #include <linux/of_irq.h>
+> > @@ -1685,6 +1687,29 @@ static void of_register_spi_devices(struct spi_master *master) { }
+> >  #endif
+> >  
+> >  #ifdef CONFIG_ACPI
+> > +static void acpi_spi_parse_apple_properties(struct spi_device *spi)
+> > +{
+> > +	struct acpi_device *dev = ACPI_COMPANION(&spi->dev);
+> > +	const union acpi_object *o;
+> > +
+> > +	if (!acpi_dev_get_property(dev, "spiSclkPeriod", ACPI_TYPE_BUFFER, &o))
+> > +		spi->max_speed_hz  = div64_u64(NSEC_PER_SEC,
+> > +					       *(u64 *)o->buffer.pointer);
+> > +
+> > +	if (!acpi_dev_get_property(dev, "spiWordSize", ACPI_TYPE_BUFFER, &o))
+> > +		spi->bits_per_word = *(u64 *)o->buffer.pointer;
+> > +
+> > +	if (!acpi_dev_get_property(dev, "spiBitOrder", ACPI_TYPE_BUFFER, &o) &&
+> > +	    !*(u64 *)o->buffer.pointer)
+> > +		spi->mode |= SPI_LSB_FIRST;
+> > +	if (!acpi_dev_get_property(dev, "spiSPO", ACPI_TYPE_BUFFER, &o) &&
+> > +	     *(u64 *)o->buffer.pointer)
+> > +		spi->mode |= SPI_CPOL;
+> > +	if (!acpi_dev_get_property(dev, "spiSPH", ACPI_TYPE_BUFFER, &o) &&
+> > +	     *(u64 *)o->buffer.pointer)
+> > +		spi->mode |= SPI_CPHA;
+> > +}
+> > +
+> >  static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
+> >  {
+> >  	struct spi_device *spi = data;
+> > @@ -1758,6 +1783,11 @@ static acpi_status acpi_register_spi_device(struct spi_master *master,
+> >  				     acpi_spi_add_resource, spi);
+> >  	acpi_dev_free_resource_list(&resource_list);
+> >  
+> > +	/* Zero ACPI resources?  Try Apple device properties instead. */
+> > +	if (!ret && IS_ENABLED(CONFIG_X86) &&
+> > +	    dmi_match(DMI_SYS_VENDOR, "Apple Inc."))
+> > +		acpi_spi_parse_apple_properties(spi);
 > 
-> The handling of device wakeup settings, especially in the ACPI core and the PCI
-> bus type, depends on whether it is about system wakeup from sleep states or
-> remote wakeup in the working state (runtime).  However, that distinction is
-> mostly based on the ACPI concept of "wakeup" and "runtime" GPEs, which is
-> somewhat artificial, because the underlying hardware mechanism is basically
-> the same in both cases.
+> Same comment here, move the conditionals to
+> acpi_spi_parse_apple_properties() and then do
 > 
-> Moreover, suspend-to-idle is now supported as a sleep state and wakeup from it
-> is based on exactly the same hardware capabilities as the working-state
-> (runtime) remote wakeup.
-> 
-> The following patch series removes that distinction and unifies the handling of
-> device wakeup settings between system sleep and runtime.  It also fixes one
-> issue related to wakeup signaling through PCI bridges.
-> 
-> [1/6]: Get rid of the "runtime wakeup" concept from the ACPI core.
-> [2/6]: Unify device wakeup settings code paths in the ACPI core.
-> [3-4/6]: Unify device wakeup settings code paths in the PCI bus type code.
-> [5/6]: Fix wakeup-related issue with bridges in the PCI bus type code.
-> [6/6]: Get rid of the "runtime wakeup" concept from the driver core.
-> 
-> The series is based on current linux-next and will be made available for
-> testing in the linux-pm.git tree in a couple of days.
+> 	if (!ret)
+> 		acpi_spi_parse_apple_properties(spi);
 
-Apart from that one minor comment, this looks good to me. I'm happy that
-we get rid of those run_wake things which I always find really
-confusing :)
+Good idea.  Actually, I think I'll just call the function unconditionally
+to let it augment or take precedence over _CRS data.
 
-For the whole series,
+Thanks!
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Lukas
