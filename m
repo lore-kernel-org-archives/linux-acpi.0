@@ -1,64 +1,77 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/3] ACPI / property: Support Apple _DSM properties
-Date: Thu, 22 Jun 2017 14:25:41 +0100
-Message-ID: <20170622132541.qvnkngd4nmwvlbnk@sirena.org.uk>
-References: <cover.1498044532.git.lukas@wunner.de>
- <8ce38be1389dfb0527961ccd0dedb609802b59c1.1498044532.git.lukas@wunner.de>
- <20170622080655.GS629@lahna.fi.intel.com>
- <20170622095439.vquuet562i5scl3n@wunner.de>
- <20170622100422.GX629@lahna.fi.intel.com>
- <20170622112428.q3hpwpfs4xwumued@wunner.de>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v4 1/2] ACPICA: ACPI 6.2: Add support for new SRAT
+ subtable
+Date: Thu, 22 Jun 2017 14:43:03 +0100
+Message-ID: <20170622134303.GA9732@red-moon>
+References: <1498111812-17053-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1498111812-17053-2-git-send-email-ganapatrao.kulkarni@cavium.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="j3s7sbuy5gqemui4"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170622112428.q3hpwpfs4xwumued-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ronald Tschalaer <ronald-Cgq6lnktLNMTaf21n8AfGQ@public.gmane.org>, Federico Lorenzi <florenzi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Leif Liddy <leif.liddy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Daniel Roschka <danielroschka-d2qyoUQsf3ABe69/dCFm4g@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: linux-acpi@vger.kernel.org
-
-
---j3s7sbuy5gqemui4
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:38538 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752972AbdFVNlt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 22 Jun 2017 09:41:49 -0400
 Content-Disposition: inline
+In-Reply-To: <1498111812-17053-2-git-send-email-ganapatrao.kulkarni@cavium.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, lv.zheng@intel.com, robert.moore@intel.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, tglx@linutronix.de, jason@lakedaemon.net, jnair@caviumnetworks.com, gpkulkarni@gmail.com
 
-On Thu, Jun 22, 2017 at 01:24:28PM +0200, Lukas Wunner wrote:
-> On Thu, Jun 22, 2017 at 01:04:22PM +0300, Mika Westerberg wrote:
-> > On Thu, Jun 22, 2017 at 11:54:39AM +0200, Lukas Wunner wrote:
+Hi Rafael, Lv, Robert,
 
-> > > It would be good to be able to google for this message to detect if there
-> > > are ever Macs out there which return something different than "3" to this
-> > > _DSM call.  How about KERN_WARN or KERN_INFO?
+On Thu, Jun 22, 2017 at 11:40:11AM +0530, Ganapatrao Kulkarni wrote:
+> Add GIC ITS Affinity (ACPI 6.2) subtable to SRAT table.
+> 
+> ACPICA commit 5bc67f63918da249bfe279ee461d152bb3e6f55b
+> Link: https://github.com/acpica/acpica/commit/5bc67f6
+> 
+> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+> ---
+>  include/acpi/actbl1.h | 12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
 
-> > Well, this is something the user might see and then gets confused on the
-> > grounds: is my machine somehow broken?
+This patch is fine to me but it is up to you or who sends the ACPICA
+pull request to send it upstream or give us an ACK so that it can go
+via irqchip.
 
-> And indeed it might be:  Conceivably, Apple may change the format of the
-> properties and then once again the SPI slave won't be able to initialize.
-> In that case it seems beneficial to provide a clue as to the cause in dmesg.
+We need to know how this commit (and other ACPICA changes) will be sent
+upstream to handle trees dependencies, please advise it is a bit urgent,
+thank you.
 
-This seems especially important when we're working with a reverse
-engineered binding.
+Lorenzo
 
---j3s7sbuy5gqemui4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAllLxVQACgkQJNaLcl1U
-h9BeyAf/aAyU6IO0seK92R1Rq34nQ3Uf5330Gkd8CpyRXG4S7tBlYyLXWKnkQLBE
-8FNJ/5n7IwwcM4l/ExVwdjlcFpJ3jeQ0je/ZzndcvXFrPh1HLSRiE6oDClfpQ2jN
-nSDFkiIwiNgSKSlUS9iwMD4/vEsVw6VOENh/9MeT/47/HisErVg9USEB1Ak+9rIP
-GI0Byo+o9pldf1vaDhx0EthEKVmy0pESx4cnQByTjSKgGeSxI8D0Ytj4Ef5KGh/D
-wZx2mp7OZfcMnhGIwxn3811Nvr7VvWWP/9yVvsFgNi2fdxmKwTHlWpkDF6vA7Dhp
-d516nptO/0Am1DPqHmZqVQeDW08Hjg==
-=SLKy
------END PGP SIGNATURE-----
-
---j3s7sbuy5gqemui4--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+> index b4ce55c..253c9db 100644
+> --- a/include/acpi/actbl1.h
+> +++ b/include/acpi/actbl1.h
+> @@ -1192,7 +1192,8 @@ enum acpi_srat_type {
+>  	ACPI_SRAT_TYPE_MEMORY_AFFINITY = 1,
+>  	ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY = 2,
+>  	ACPI_SRAT_TYPE_GICC_AFFINITY = 3,
+> -	ACPI_SRAT_TYPE_RESERVED = 4	/* 4 and greater are reserved */
+> +	ACPI_SRAT_TYPE_GIC_ITS_AFFINITY = 4,	/* ACPI 6.2 */
+> +	ACPI_SRAT_TYPE_RESERVED = 5	/* 5 and greater are reserved */
+>  };
+>  
+>  /*
+> @@ -1260,6 +1261,15 @@ struct acpi_srat_gicc_affinity {
+>  	u32 clock_domain;
+>  };
+>  
+> +/* 4: GIC ITS Affinity (ACPI 6.2) */
+> +
+> +struct acpi_srat_its_affinity {
+> +	struct acpi_subtable_header header;
+> +	u32 proximity_domain;
+> +	u16 reserved;
+> +	u32 its_id;
+> +};
+> +
+>  /* Flags for struct acpi_srat_gicc_affinity */
+>  
+>  #define ACPI_SRAT_GICC_ENABLED     (1)	/* 00: Use affinity structure */
+> -- 
+> 1.8.1.4
+> 
