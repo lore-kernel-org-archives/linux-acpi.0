@@ -1,137 +1,46 @@
-From: Robert Richter <rric@kernel.org>
-Subject: Re: [Devel] [PATCH v9 0/3] Cavium ThunderX2 SMMUv3 errata workarounds
-Date: Thu, 22 Jun 2017 21:35:35 +0200
-Message-ID: <20170622193535.GA10237@rric.localdomain>
-References: <1498133138-20244-1-git-send-email-gakula@caviumnetworks.com>
- <20170622182257.GI15336@arm.com>
- <20170622185822.GK15336@arm.com>
+From: =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>
+Subject: Re: [PATCH 1/7] platform/x86: fujitsu-laptop: do not use kfifo for
+ storing hotkey scancodes
+Date: Thu, 22 Jun 2017 22:08:56 +0200
+Message-ID: <20170622200856.GA4194@kmp-mobile.hq.kempniu.pl>
+References: <20170616044058.30443-1-kernel@kempniu.pl>
+ <20170616044058.30443-2-kernel@kempniu.pl>
+ <20170621181543.GB25900@fury>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:34508 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753599AbdFVTfk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 15:35:40 -0400
+Received: from mail-wr0-f172.google.com ([209.85.128.172]:36247 "EHLO
+        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751202AbdFVUJB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 16:09:01 -0400
+Received: by mail-wr0-f172.google.com with SMTP id c11so37887686wrc.3
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2017 13:09:00 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20170622185822.GK15336@arm.com>
+In-Reply-To: <20170621181543.GB25900@fury>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Geetha sowjanya <gakula@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, robh@kernel.org, devel@acpica.org, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, Charles.Garcia-Tobin@arm.com, geethasowjanya.akula@gmail.com, jcm@redhat.com, linu.cherian@cavium.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, sgoutham@cavium.com, robin.murphy@arm.com, robert.richter@cavium.com
+To: Darren Hart <dvhart@infradead.org>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Jonathan Woithe <jwoithe@just42.net>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 22.06.17 19:58:22, Will Deacon wrote:
-> On Thu, Jun 22, 2017 at 07:22:57PM +0100, Will Deacon wrote:
-> > On Thu, Jun 22, 2017 at 05:35:35PM +0530, Geetha sowjanya wrote:
-> > > Cavium ThunderX2 SMMUv3 implementation has two Silicon Erratas.
-> > > 1. Errata ID #74
-> > >    SMMU register alias Page 1 is not implemented
-> > > 2. Errata ID #126
-> > >    SMMU doesnt support unique IRQ lines and also MSI for gerror,
-> > >    eventq and cmdq-sync
-> > > 
-> > > The following patchset does software workaround for these two erratas.
-> > 
-> > I've picked up the first two patches, and left comments on the final patch.
+> On Fri, Jun 16, 2017 at 06:40:52AM +0200, Michał Kępień wrote:
+> > All ACPI device notify callbacks are invoked using acpi_os_execute(),
+> > which causes the supplied callback to be queued to a static workqueue
+> > which always executes on CPU 0.  This means that there is no possibility
+> > for any ACPI device notify callback to be concurrently executed on
+> > multiple CPUs, which in the case of fujitsu-laptop means that using a
+> > locked kfifo for handling hotkeys is redundant: as hotkey scancodes are
+> > only pushed and popped from within acpi_fujitsu_laptop_notify(), no risk
+> > of concurrent pushing and popping exists.
 > 
-> ... except that it doesn't build:
-> 
-> 
-> drivers/acpi/arm64/iort.c: In function ‘arm_smmu_v3_resource_size’:
-> drivers/acpi/arm64/iort.c:837:21: error: ‘ACPI_IORT_SMMU_V3_CAVIUM_CN99XX’ undeclared (first use in this function)
->   if (smmu->model == ACPI_IORT_SMMU_V3_CAVIUM_CN99XX)
->                      ^
-> drivers/acpi/arm64/iort.c:837:21: note: each undeclared identifier is reported only once for each function it appears in
-> make[4]: *** [drivers/acpi/arm64/iort.o] Error 1
-> 
-> 
-> I don't see ACPI_IORT_SMMU_V3_CAVIUM_CN99XX defined, even in linux-next.
-> 
-> What's the plan here?
+> Was the kfifo causing a problem currently or for the migration to separate
+> modules? Is this purely a simplification?
 
-It is defined already in acpica and we actually waiting for the acpi
-maintainers to include it:
+It is just another step in stripping fujitsu-laptop down to its bare
+essentials.  If my reasoning quoted above is correct, using a locked
+kfifo needlessly suggests potential concurrency issues, but it is
+definitely not an error.
 
- https://github.com/acpica/acpica/commit/d00a4eb86e64
-
-We could add
-
-/* Until ACPICA headers cover IORT rev. C */
-#ifndef ACPI_IORT_SMMU_V3_CAVIUM_CN99XX
-#define ACPI_IORT_SMMU_V3_CAVIUM_CN99XX		0x2
-#endif
-
-to both files:
-
- drivers/acpi/arm64/iort.c
- drivers/iommu/arm-smmu-v3.c
-
-This is similar to what Robin did.
-
-(I checked arm64 include files and the closest was
-arch/arm64/include/asm/acpi.h, bug this seems not really suitable to
-me.)
-
-I have created a separate patch to be applied at first below. We can
-revert it after acpica was updated.
-
--Robert
-
-
-
-
->From ad7f0112a2a71059c32bd315835c33cc7bc660b8 Mon Sep 17 00:00:00 2001
-From: Robert Richter <rrichter@cavium.com>
-Date: Thu, 22 Jun 2017 21:20:54 +0200
-Subject: [PATCH] iommu/arm-smmu-v3: Add temporary Cavium SMMU-V3 model nuber
- definitions
-
-The model number is already defined in acpica and we actually waiting
-for the acpi maintainers to include it:
-
- https://github.com/acpica/acpica/commit/d00a4eb86e64
-
-Adding those temporary definitions until the change makes it into
-include/acpi/actbl2.h.
-
-Signed-off-by: Robert Richter <rrichter@cavium.com>
----
- drivers/acpi/arm64/iort.c   | 5 +++++
- drivers/iommu/arm-smmu-v3.c | 5 +++++
- 2 files changed, 10 insertions(+)
-
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 797b28dc7b34..15491237a657 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -31,6 +31,11 @@
- #define IORT_IOMMU_TYPE		((1 << ACPI_IORT_NODE_SMMU) |	\
- 				(1 << ACPI_IORT_NODE_SMMU_V3))
- 
-+/* Until ACPICA headers cover IORT rev. C */
-+#ifndef ACPI_IORT_SMMU_V3_CAVIUM_CN99XX
-+#define ACPI_IORT_SMMU_V3_CAVIUM_CN99XX		0x2
-+#endif
-+
- struct iort_its_msi_chip {
- 	struct list_head	list;
- 	struct fwnode_handle	*fw_node;
-diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index 380969aa60d5..c759dfa7442d 100644
---- a/drivers/iommu/arm-smmu-v3.c
-+++ b/drivers/iommu/arm-smmu-v3.c
-@@ -412,6 +412,11 @@
- #define MSI_IOVA_BASE			0x8000000
- #define MSI_IOVA_LENGTH			0x100000
- 
-+/* Until ACPICA headers cover IORT rev. C */
-+#ifndef ACPI_IORT_SMMU_V3_CAVIUM_CN99XX
-+#define ACPI_IORT_SMMU_V3_CAVIUM_CN99XX		0x2
-+#endif
-+
- static bool disable_bypass;
- module_param_named(disable_bypass, disable_bypass, bool, S_IRUGO);
- MODULE_PARM_DESC(disable_bypass,
 -- 
-2.11.0
-
+Best regards,
+Michał Kępień
