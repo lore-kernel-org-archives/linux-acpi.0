@@ -1,56 +1,34 @@
-From: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-Subject: [PATCH v4 1/2] ACPICA: ACPI 6.2: Add support for new SRAT subtable
-Date: Thu, 22 Jun 2017 11:40:11 +0530
-Message-ID: <1498111812-17053-2-git-send-email-ganapatrao.kulkarni@cavium.com>
-References: <1498111812-17053-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/6] ACPI / PM: Consolidate device wakeup settings code
+Date: Thu, 22 Jun 2017 10:39:37 +0300
+Message-ID: <20170622073937.GR629@lahna.fi.intel.com>
+References: <12296383.UdE5HVtyng@aspire.rjw.lan>
+ <4424061.UyS4hGnq0F@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1498111812-17053-1-git-send-email-ganapatrao.kulkarni@cavium.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: lv.zheng@intel.com, robert.moore@intel.com, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, tglx@linutronix.de, jason@lakedaemon.net, jnair@caviumnetworks.com, gpkulkarni@gmail.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:25113 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751116AbdFVHjm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 22 Jun 2017 03:39:42 -0400
+Content-Disposition: inline
+In-Reply-To: <4424061.UyS4hGnq0F@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-Add GIC ITS Affinity (ACPI 6.2) subtable to SRAT table.
+On Mon, Jun 19, 2017 at 11:33:52PM +0200, Rafael J. Wysocki wrote:
+> -#ifdef CONFIG_PM_SLEEP
+> -/**
+> - * acpi_pm_device_sleep_wake - Enable or disable device to wake up the system.
+> - * @dev: Device to enable/desible to wake up the system from sleep states.
+> - * @enable: Whether to enable or disable @dev to wake up the system.
+> - */
+> -int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
+> +int acpi_pm_device_wakeup(struct device *dev, bool enable)
 
-ACPICA commit 5bc67f63918da249bfe279ee461d152bb3e6f55b
-Link: https://github.com/acpica/acpica/commit/5bc67f6
-
-Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
----
- include/acpi/actbl1.h | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index b4ce55c..253c9db 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -1192,7 +1192,8 @@ enum acpi_srat_type {
- 	ACPI_SRAT_TYPE_MEMORY_AFFINITY = 1,
- 	ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY = 2,
- 	ACPI_SRAT_TYPE_GICC_AFFINITY = 3,
--	ACPI_SRAT_TYPE_RESERVED = 4	/* 4 and greater are reserved */
-+	ACPI_SRAT_TYPE_GIC_ITS_AFFINITY = 4,	/* ACPI 6.2 */
-+	ACPI_SRAT_TYPE_RESERVED = 5	/* 5 and greater are reserved */
- };
- 
- /*
-@@ -1260,6 +1261,15 @@ struct acpi_srat_gicc_affinity {
- 	u32 clock_domain;
- };
- 
-+/* 4: GIC ITS Affinity (ACPI 6.2) */
-+
-+struct acpi_srat_its_affinity {
-+	struct acpi_subtable_header header;
-+	u32 proximity_domain;
-+	u16 reserved;
-+	u32 its_id;
-+};
-+
- /* Flags for struct acpi_srat_gicc_affinity */
- 
- #define ACPI_SRAT_GICC_ENABLED     (1)	/* 00: Use affinity structure */
--- 
-1.8.1.4
+Can we call it acpi_pm_device_enable_wakeup() and then provide
+corresponding acpi_pm_device_disable_wakeup()? I find those easier to
+understand than acpi_pm_device_wakeup() that sounds like the device
+should be woken up now.
