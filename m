@@ -1,113 +1,191 @@
-From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
-Subject: Re: [PATCH v4 1/2] ACPICA: ACPI 6.2: Add support for new SRAT subtable
-Date: Thu, 22 Jun 2017 21:51:10 +0530
-Message-ID: <CAFpQJXUUaR7K6e_3jan1uXq8h4Au1633yfpvgG0Cm3eEJydQ9w@mail.gmail.com>
-References: <1498111812-17053-1-git-send-email-ganapatrao.kulkarni@cavium.com>
- <20170622134303.GA9732@red-moon> <94F2FBAB4432B54E8AACC7DFDE6C92E37E5C3067@ORSMSX110.amr.corp.intel.com>
- <7426901.eKsnQBecvM@aspire.rjw.lan>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v9 3/3] iommu/arm-smmu-v3: Add workaround for Cavium
+ ThunderX2 erratum #126
+Date: Thu, 22 Jun 2017 19:22:26 +0100
+Message-ID: <20170622182226.GH15336@arm.com>
+References: <1498133138-20244-1-git-send-email-gakula@caviumnetworks.com>
+ <1498133138-20244-4-git-send-email-gakula@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7426901.eKsnQBecvM@aspire.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Moore, Robert" <robert.moore@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "jnair@caviumnetworks.com" <jnair@caviumnetworks.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:42618 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751221AbdFVSWO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 22 Jun 2017 14:22:14 -0400
+Content-Disposition: inline
+In-Reply-To: <1498133138-20244-4-git-send-email-gakula@caviumnetworks.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Geetha sowjanya <gakula@caviumnetworks.com>
+Cc: robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, robert.moore@intel.com, lv.zheng@intel.com, rjw@rjwysocki.net, jcm@redhat.com, linux-kernel@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, devel@acpica.org, linu.cherian@cavium.com, Charles.Garcia-Tobin@arm.com, robh@kernel.org, Geetha Sowjanya <geethasowjanya.akula@cavium.com>
 
-On Thu, Jun 22, 2017 at 7:57 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Thursday, June 22, 2017 02:13:18 PM Moore, Robert wrote:
->> This support is already in the ACPICA code base, but I can't speak to when it will be upstreamed to Linux. Lv would know this.
->
-> It should be there in linux-next already AFAICS.
->
-> Lorenzo, can you please double check?
+Hi Geetha,
 
-thanks Rafael, this is added to linux-next on june12 [1].
+On Thu, Jun 22, 2017 at 05:35:38PM +0530, Geetha sowjanya wrote:
+> From: Geetha Sowjanya <geethasowjanya.akula@cavium.com>
+> 
+> Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
+> lines for gerror, eventq and cmdq-sync.
+> 
+> New named irq "combined" is set as a errata workaround, which allows to
+> share the irq line by register single irq handler for all the interrupts.
+> 
+> Signed-off-by: Geetha sowjanya <gakula@caviumnetworks.com>
+> ---
+>  Documentation/arm64/silicon-errata.txt             |    1 +
+>  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    1 +
+>  drivers/acpi/arm64/iort.c                          |   54 +++++++----
+>  drivers/iommu/arm-smmu-v3.c                        |  105 +++++++++++++++-----
+>  4 files changed, 116 insertions(+), 45 deletions(-)
 
-When i sent my first version i.e on June 6, it was not there, hence i
-have added to this series.
-my bad, i have not checked when i sent subsequent versions.
-this patch can be dropped.
+Thanks, this looks much better. Two things to change below, and I'd like to
+see Lorenzo ack the iort changes.
 
-[1] https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/commit/include/acpi/actbl1.h?id=a618c7f89a02f3c67a8f200855cff398855e3888
+> diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
+> index 4693a32..42422f6 100644
+> --- a/Documentation/arm64/silicon-errata.txt
+> +++ b/Documentation/arm64/silicon-errata.txt
+> @@ -63,6 +63,7 @@ stable kernels.
+>  | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
+>  | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
+>  | Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
+> +| Cavium         | ThunderX2 SMMUv3| #126            | N/A                         |
+>  |                |                 |                 |                             |
+>  | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
+>  |                |                 |                 |                             |
+> diff --git a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
+> index 6ecc48c..a5a1ca4 100644
+> --- a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
+> +++ b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
+> @@ -26,6 +26,7 @@ the PCIe specification.
+>                        * "priq"      - PRI Queue not empty
+>                        * "cmdq-sync" - CMD_SYNC complete
+>                        * "gerror"    - Global Error activated
+> +                      * "combined"  - Handles above all 4 interrupts.
 
->
-> Thanks,
-> Rafael
->
->
->> > -----Original Message-----
->> > From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
->> > Sent: Thursday, June 22, 2017 6:43 AM
->> > To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>; Zheng, Lv
->> > <lv.zheng@intel.com>; Moore, Robert <robert.moore@intel.com>; Rafael J.
->> > Wysocki <rjw@rjwysocki.net>
->> > Cc: linux-acpi@vger.kernel.org; devel@acpica.org; linux-
->> > kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
->> > marc.zyngier@arm.com; catalin.marinas@arm.com; will.deacon@arm.com;
->> > hanjun.guo@linaro.org; tglx@linutronix.de; jason@lakedaemon.net;
->> > jnair@caviumnetworks.com; gpkulkarni@gmail.com
->> > Subject: Re: [PATCH v4 1/2] ACPICA: ACPI 6.2: Add support for new SRAT
->> > subtable
->> >
->> > Hi Rafael, Lv, Robert,
->> >
->> > On Thu, Jun 22, 2017 at 11:40:11AM +0530, Ganapatrao Kulkarni wrote:
->> > > Add GIC ITS Affinity (ACPI 6.2) subtable to SRAT table.
->> > >
->> > > ACPICA commit 5bc67f63918da249bfe279ee461d152bb3e6f55b
->> > > Link: https://github.com/acpica/acpica/commit/5bc67f6
->> > >
->> > > Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
->> > > ---
->> > >  include/acpi/actbl1.h | 12 +++++++++++-
->> > >  1 file changed, 11 insertions(+), 1 deletion(-)
->> >
->> > This patch is fine to me but it is up to you or who sends the ACPICA
->> > pull request to send it upstream or give us an ACK so that it can go via
->> > irqchip.
->> >
->> > We need to know how this commit (and other ACPICA changes) will be sent
->> > upstream to handle trees dependencies, please advise it is a bit urgent,
->> > thank you.
->> >
->> > Lorenzo
->> >
->> > > diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index
->> > > b4ce55c..253c9db 100644
->> > > --- a/include/acpi/actbl1.h
->> > > +++ b/include/acpi/actbl1.h
->> > > @@ -1192,7 +1192,8 @@ enum acpi_srat_type {
->> > >   ACPI_SRAT_TYPE_MEMORY_AFFINITY = 1,
->> > >   ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY = 2,
->> > >   ACPI_SRAT_TYPE_GICC_AFFINITY = 3,
->> > > - ACPI_SRAT_TYPE_RESERVED = 4     /* 4 and greater are reserved */
->> > > + ACPI_SRAT_TYPE_GIC_ITS_AFFINITY = 4,    /* ACPI 6.2 */
->> > > + ACPI_SRAT_TYPE_RESERVED = 5     /* 5 and greater are reserved */
->> > >  };
->> > >
->> > >  /*
->> > > @@ -1260,6 +1261,15 @@ struct acpi_srat_gicc_affinity {
->> > >   u32 clock_domain;
->> > >  };
->> > >
->> > > +/* 4: GIC ITS Affinity (ACPI 6.2) */
->> > > +
->> > > +struct acpi_srat_its_affinity {
->> > > + struct acpi_subtable_header header;
->> > > + u32 proximity_domain;
->> > > + u16 reserved;
->> > > + u32 its_id;
->> > > +};
->> > > +
->> > >  /* Flags for struct acpi_srat_gicc_affinity */
->> > >
->> > >  #define ACPI_SRAT_GICC_ENABLED     (1)   /* 00: Use affinity structure
->> > */
->> > > --
->> > > 1.8.1.4
->> > >
->
+Please make it clear that:
 
-thanks
-Ganapat
+  * The combined interrupt is optional, and should only be provided if
+    the hardware supports just a single, combined interrupt line.
+
+  * If provided, then the combined interrupt will be used in preference
+    to any others.
+
+>  - #iommu-cells      : See the generic IOMMU binding described in
+>                          devicetree/bindings/pci/pci-iommu.txt
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index c166f3e..43e1f13 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -828,6 +828,18 @@ static int __init arm_smmu_v3_count_resources(struct acpi_iort_node *node)
+>  	return num_res;
+>  }
+>  
+> +static bool arm_smmu_v3_is_combined_irq(struct acpi_iort_smmu_v3 *smmu)
+> +{
+> +	/*
+> +	 * Cavium ThunderX2 implementation doesn't not support unique
+> +	 * irq line. Use single irq line for all the SMMUv3 interrupts.
+> +	 */
+> +	if (smmu->model == ACPI_IORT_SMMU_V3_CAVIUM_CN99XX)
+> +		return true;
+> +
+> +	return false;
+> +}
+> +
+>  static unsigned long arm_smmu_v3_resource_size(struct acpi_iort_smmu_v3 *smmu)
+>  {
+>  	/*
+> @@ -855,26 +867,32 @@ static void __init arm_smmu_v3_init_resources(struct resource *res,
+>  	res[num_res].flags = IORESOURCE_MEM;
+>  
+>  	num_res++;
+> -
+> -	if (smmu->event_gsiv)
+> -		acpi_iort_register_irq(smmu->event_gsiv, "eventq",
+> -				       ACPI_EDGE_SENSITIVE,
+> -				       &res[num_res++]);
+> -
+> -	if (smmu->pri_gsiv)
+> -		acpi_iort_register_irq(smmu->pri_gsiv, "priq",
+> -				       ACPI_EDGE_SENSITIVE,
+> -				       &res[num_res++]);
+> -
+> -	if (smmu->gerr_gsiv)
+> -		acpi_iort_register_irq(smmu->gerr_gsiv, "gerror",
+> -				       ACPI_EDGE_SENSITIVE,
+> -				       &res[num_res++]);
+> -
+> -	if (smmu->sync_gsiv)
+> -		acpi_iort_register_irq(smmu->sync_gsiv, "cmdq-sync",
+> +	if (arm_smmu_v3_is_combined_irq(smmu))
+> +		acpi_iort_register_irq(smmu->event_gsiv, "combined",
+>  				       ACPI_EDGE_SENSITIVE,
+>  				       &res[num_res++]);
+> +	else {
+> +
+> +		if (smmu->event_gsiv)
+> +			acpi_iort_register_irq(smmu->event_gsiv, "eventq",
+> +					       ACPI_EDGE_SENSITIVE,
+> +					       &res[num_res++]);
+> +
+> +		if (smmu->pri_gsiv)
+> +			acpi_iort_register_irq(smmu->pri_gsiv, "priq",
+> +					       ACPI_EDGE_SENSITIVE,
+> +					       &res[num_res++]);
+> +
+> +		if (smmu->gerr_gsiv)
+> +			acpi_iort_register_irq(smmu->gerr_gsiv, "gerror",
+> +					       ACPI_EDGE_SENSITIVE,
+> +					       &res[num_res++]);
+> +
+> +		if (smmu->sync_gsiv)
+> +			acpi_iort_register_irq(smmu->sync_gsiv, "cmdq-sync",
+> +					       ACPI_EDGE_SENSITIVE,
+> +					       &res[num_res++]);
+> +	}
+>  }
+>  
+>  static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+> index 2dea4a9..0f83f7d 100644
+> --- a/drivers/iommu/arm-smmu-v3.c
+> +++ b/drivers/iommu/arm-smmu-v3.c
+> @@ -605,6 +605,7 @@ struct arm_smmu_device {
+>  	struct arm_smmu_priq		priq;
+>  
+>  	int				gerr_irq;
+> +	int				combined_irq;
+>  
+>  	unsigned long			ias; /* IPA */
+>  	unsigned long			oas; /* PA */
+> @@ -1314,6 +1315,29 @@ static irqreturn_t arm_smmu_gerror_handler(int irq, void *dev)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> +static irqreturn_t arm_smmu_combined_irq_thread(int irq, void *dev)
+> +{
+> +	struct arm_smmu_device *smmu = dev;
+> +
+> +	arm_smmu_evtq_thread(irq, dev);
+> +	if (smmu->features & ARM_SMMU_FEAT_PRI)
+> +		arm_smmu_priq_thread(irq, dev);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static irqreturn_t arm_smmu_combined_irq_handler(int irq, void *dev)
+> +{
+> +	irqreturn_t ret;
+> +
+> +	ret = arm_smmu_gerror_handler(irq, dev);
+> +	if (ret == IRQ_NONE) {
+
+I don't think you can play that trick if the irq is an edge-triggered
+interrupt, since you could lose an interrupt that fired whilst we were
+in the handler.
+
+The easiest thing is to always run the gerror and cmdq_sync handlers, and
+then always return IRQ_WAKE_THREAD.
+
+Will
