@@ -1,55 +1,95 @@
-From: <ecaterinasuciu09@yahoo.com>
-Subject: (unknown)
-Date: Thu, 22 Jun 2017 02:13:03 -0000
-Message-ID: <149809758312.19456.13088666520599737457@hinet.net>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 1/7] platform/x86: fujitsu-laptop: do not use kfifo for
+ storing hotkey scancodes
+Date: Wed, 21 Jun 2017 19:44:13 -0700
+Message-ID: <20170622024413.GE25900@fury>
+References: <20170616044058.30443-1-kernel@kempniu.pl>
+ <20170616044058.30443-2-kernel@kempniu.pl>
+ <20170621181543.GB25900@fury>
+ <20170621235021.GA32131@marvin.atrad.com.au>
 Mime-Version: 1.0
-Content-Type: application/zip; name="83837.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 36-231-163-112.dynamic-ip.hinet.net ([36.231.163.112]:50339
-        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with SMTP id S1751901AbdFVCNW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 22:13:22 -0400
-Content-Disposition: attachment
-Subject: 
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170621235021.GA32131@marvin.atrad.com.au>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Jonathan Woithe <jwoithe@just42.net>
+Cc: Micha?? K??pie?? <kernel@kempniu.pl>, Rafael Wysocki <rjw@rjwysocki.net>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-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
-G8w269IBUEsFBgAAAAABAAEAWgAAALAHAAAAAA==
+On Thu, Jun 22, 2017 at 09:20:21AM +0930, Jonathan Woithe wrote:
+> On Wed, Jun 21, 2017 at 11:15:43AM -0700, Darren Hart wrote:
+> > On Fri, Jun 16, 2017 at 06:40:52AM +0200, Micha?? K??pie?? wrote:
+> > > -#define RINGBUFFERSIZE 40
+> > >  
+> > >  /* Debugging */
+> > >  #define FUJLAPTOP_DBG_ERROR	  0x0001
+> > > @@ -146,8 +144,8 @@ struct fujitsu_laptop {
+> > >  	struct input_dev *input;
+> > >  	char phys[32];
+> > >  	struct platform_device *pf_device;
+> > > -	struct kfifo fifo;
+> > > -	spinlock_t fifo_lock;
+> > > +	int scancode_buf[40];
+> > 
+> > Do we know why 40 was used here? A single use magic number is fine, but it
+> > would be good to document why it is what it is if we know.
+> 
+> I am unsure as to why 40 was chosen as the size.  The support for the
+> hotkeys was contributed by Peter Gruber in 2008 who had a Fujitsu laptop
+> which featured this functionality (mine doesn't).  I obviously can't speak
+> for Peter but I suspect that he simply picked a number which seemed
+> reasonable at the time.  I am unaware of any specific reason why the size
+> was set at 40, and to be honest never throught to ask at the time the patch
+> was proposed.
+> 
+> If we need a reason to justify the value of 40, I guess the best option is
+> "because it seems reasonable".
+
+That's not surprising, and it's fine. If we know, it's worth documenting. If
+not, well, we do what we can :-)
+
+> 
+> I think the buffer size could probably be reduced a little without impacting
+> on functionality.  I suspect the value was chosen so as to be well above the
+> number of events which could be generated ahead of a button release (which
+> effectively releases all buttons held at that stage).  The number of hot
+> keys is limited (I don't think any model has more than 5), so reducing the
+> buffer somewhat appears safe (perhaps to 32 if there were any advantages to
+> having the size be a power of two).  There seems little point doing this in
+> the name of memory saving since the amount saved is trivially small.
+> 
+
+It's not a problem as far as I'm concerned. Plenty more lower hanging fruit if
+people want to reduce memory footprint.
+
+> Looking through my correspondance with Peter from 2008 (which was largely
+> off-list for reasons I do not recall), it seems the reason the kfifo was
+> used was due to Peter's concern about concurrent processing of mulitple
+> events across different CPUs.  Since at the time we couldn't determine
+> whether this was a real issue Peter took the safe route and used a kfifo. 
+> If the assumption that it cannot happen is known to hold in all cases there
+> is clearly no need for the more complex construct (at least on the basis of
+> concurrency arguments).
+> 
+> I've given some more thought to the following point (from the original patch
+> submission):
+> > In order to simplify implementation, hotkey input device behavior is
+> > slightly changed (from FIFO to LIFO).  The order of release events
+> > generated by the input device should not matter from end user
+> > perspective as upon releasing any hotkey the firmware only produces a
+> > single event which means "all hotkeys were released".
+> 
+> This will effectively alter the order the button events are seen by
+> userspace though, won't it?  It would mean that (for example) a user who
+> presses (and holds) the "media" key before "email" will end up with "email"
+> being acted on first.  This may surprise them.  Then again, I suppose it
+> could be argued that such usage is unusual and therefore is likely to be
+> rare - and therefore not worth bothering about.
+
+Michal noted there is only one event to release all keys so the order wouldn't
+be noticed in userspace. Has this been confirmed with testing?
+
+-- 
+Darren Hart
+VMware Open Source Technology Center
