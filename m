@@ -1,85 +1,57 @@
-From: Jonathan Woithe <jwoithe@just42.net>
-Subject: Re: [PATCH 1/7] platform/x86: fujitsu-laptop: do not use kfifo for
- storing hotkey scancodes
-Date: Thu, 22 Jun 2017 09:20:21 +0930
-Message-ID: <20170621235021.GA32131@marvin.atrad.com.au>
-References: <20170616044058.30443-1-kernel@kempniu.pl>
- <20170616044058.30443-2-kernel@kempniu.pl>
- <20170621181543.GB25900@fury>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v7.2 7/7] device property: Get rid of struct fwnode_handle
+ type field
+Date: Thu, 22 Jun 2017 02:57:08 +0200
+Message-ID: <CAJZ5v0iTmeXAhjb47L8OeGBxue6tsMEEPeDGco+ZDkXo4MqLzg@mail.gmail.com>
+References: <1497354548-17502-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497948596-1009-1-git-send-email-sakari.ailus@linux.intel.com> <20170620141414.GA11351@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from server.atrad.com.au ([150.101.241.2]:55552 "EHLO
-        server.atrad.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752002AbdFUXvR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 19:51:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20170621181543.GB25900@fury>
+Received: from mail-it0-f66.google.com ([209.85.214.66]:34834 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751083AbdFVA5K (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2017 20:57:10 -0400
+In-Reply-To: <20170620141414.GA11351@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Micha?? K??pie?? <kernel@kempniu.pl>, Rafael Wysocki <rjw@rjwysocki.net>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>, Frank Rowand <frowand.list@gmail.com>, kieran.bingham@ideasonboard.com
 
-On Wed, Jun 21, 2017 at 11:15:43AM -0700, Darren Hart wrote:
-> On Fri, Jun 16, 2017 at 06:40:52AM +0200, Micha?? K??pie?? wrote:
-> > -#define RINGBUFFERSIZE 40
-> >  
-> >  /* Debugging */
-> >  #define FUJLAPTOP_DBG_ERROR	  0x0001
-> > @@ -146,8 +144,8 @@ struct fujitsu_laptop {
-> >  	struct input_dev *input;
-> >  	char phys[32];
-> >  	struct platform_device *pf_device;
-> > -	struct kfifo fifo;
-> > -	spinlock_t fifo_lock;
-> > +	int scancode_buf[40];
-> 
-> Do we know why 40 was used here? A single use magic number is fine, but it
-> would be good to document why it is what it is if we know.
+On Tue, Jun 20, 2017 at 4:14 PM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> On Tue, Jun 20, 2017 at 11:49:56AM +0300, Sakari Ailus wrote:
+>
+> [...]
+>
+>> +#define DECLARE_ACPI_FWNODE_OPS(ops) \
+>> +     const struct fwnode_operations ops = {                          \
+>> +             .device_is_available = acpi_fwnode_device_is_available, \
+>> +             .property_present = acpi_fwnode_property_present,       \
+>> +             .property_read_int_array =                              \
+>> +                     acpi_fwnode_property_read_int_array,            \
+>> +             .property_read_string_array =                           \
+>> +                     acpi_fwnode_property_read_string_array,         \
+>> +             .get_parent = acpi_node_get_parent,                     \
+>> +             .get_next_child_node = acpi_get_next_subnode,           \
+>> +             .get_named_child_node = acpi_fwnode_get_named_child_node, \
+>> +             .graph_get_next_endpoint =                              \
+>> +                     acpi_fwnode_graph_get_next_endpoint,            \
+>> +             .graph_get_remote_endpoint =                            \
+>> +                     acpi_fwnode_graph_get_remote_endpoint,          \
+>> +             .graph_get_port_parent = acpi_node_get_parent,          \
+>> +             .graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint, \
+>> +     };                                                              \
+>> +     EXPORT_SYMBOL_GPL(ops)
+>> +
+>> +DECLARE_ACPI_FWNODE_OPS(acpi_device_fwnode_ops);
+>> +DECLARE_ACPI_FWNODE_OPS(acpi_data_fwnode_ops);
+>> +DECLARE_ACPI_FWNODE_OPS(acpi_static_fwnode_ops);
+>
+> I do not think it is a great idea to associate valid fwnode_operations
+> to a static ACPI fwnode (which is just a tag - like the IRQCHIP one).
 
-I am unsure as to why 40 was chosen as the size.  The support for the
-hotkeys was contributed by Peter Gruber in 2008 who had a Fujitsu laptop
-which featured this functionality (mine doesn't).  I obviously can't speak
-for Peter but I suspect that he simply picked a number which seemed
-reasonable at the time.  I am unaware of any specific reason why the size
-was set at 40, and to be honest never throught to ask at the time the patch
-was proposed.
+Sakari, care to address this comment?
 
-If we need a reason to justify the value of 40, I guess the best option is
-"because it seems reasonable".
-
-I think the buffer size could probably be reduced a little without impacting
-on functionality.  I suspect the value was chosen so as to be well above the
-number of events which could be generated ahead of a button release (which
-effectively releases all buttons held at that stage).  The number of hot
-keys is limited (I don't think any model has more than 5), so reducing the
-buffer somewhat appears safe (perhaps to 32 if there were any advantages to
-having the size be a power of two).  There seems little point doing this in
-the name of memory saving since the amount saved is trivially small.
-
-Looking through my correspondance with Peter from 2008 (which was largely
-off-list for reasons I do not recall), it seems the reason the kfifo was
-used was due to Peter's concern about concurrent processing of mulitple
-events across different CPUs.  Since at the time we couldn't determine
-whether this was a real issue Peter took the safe route and used a kfifo. 
-If the assumption that it cannot happen is known to hold in all cases there
-is clearly no need for the more complex construct (at least on the basis of
-concurrency arguments).
-
-I've given some more thought to the following point (from the original patch
-submission):
-> In order to simplify implementation, hotkey input device behavior is
-> slightly changed (from FIFO to LIFO).  The order of release events
-> generated by the input device should not matter from end user
-> perspective as upon releasing any hotkey the firmware only produces a
-> single event which means "all hotkeys were released".
-
-This will effectively alter the order the button events are seen by
-userspace though, won't it?  It would mean that (for example) a user who
-presses (and holds) the "media" key before "email" will end up with "email"
-being acted on first.  This may surprise them.  Then again, I suppose it
-could be argued that such usage is unusual and therefore is likely to be
-rare - and therefore not worth bothering about.
-
-Regards
-  jonathan
+Thanks,
+Rafael
