@@ -1,56 +1,67 @@
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH] ACPI: nfit: constify *_attribute_group.
-Date: Thu, 22 Jun 2017 15:44:41 +0530
-Message-ID: <4c4644aea76ce2f098719c333125ceb6a3244145.1498126084.git.arvind.yadav.cs@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v7.2 7/7] device property: Get rid of struct
+ fwnode_handle type field
+Date: Thu, 22 Jun 2017 13:29:21 +0300
+Message-ID: <20170622102921.GE12407@valkosipuli.retiisi.org.uk>
+References: <1497354548-17502-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1497948596-1009-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20170620141414.GA11351@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52072 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752897AbdFVK32 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 22 Jun 2017 06:29:28 -0400
+Content-Disposition: inline
+In-Reply-To: <20170620141414.GA11351@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, kieran.bingham@ideasonboard.com
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-  20792	   1580	    994	  23366	   5b46	drivers/acpi/nfit/core.o
+Hi Lorenzo,
 
-File size After adding 'const':
-   text	   data	    bss	    dec	    hex	filename
-  20968	   1388	    994	  23350	   5b36	drivers/acpi/nfit/core.o
+On Tue, Jun 20, 2017 at 03:14:14PM +0100, Lorenzo Pieralisi wrote:
+> On Tue, Jun 20, 2017 at 11:49:56AM +0300, Sakari Ailus wrote:
+> 
+> [...]
+> 
+> > +#define DECLARE_ACPI_FWNODE_OPS(ops) \
+> > +	const struct fwnode_operations ops = {				\
+> > +		.device_is_available = acpi_fwnode_device_is_available, \
+> > +		.property_present = acpi_fwnode_property_present,	\
+> > +		.property_read_int_array =				\
+> > +			acpi_fwnode_property_read_int_array,		\
+> > +		.property_read_string_array =				\
+> > +			acpi_fwnode_property_read_string_array,		\
+> > +		.get_parent = acpi_node_get_parent,			\
+> > +		.get_next_child_node = acpi_get_next_subnode,		\
+> > +		.get_named_child_node = acpi_fwnode_get_named_child_node, \
+> > +		.graph_get_next_endpoint =				\
+> > +			acpi_fwnode_graph_get_next_endpoint,		\
+> > +		.graph_get_remote_endpoint =				\
+> > +			acpi_fwnode_graph_get_remote_endpoint,		\
+> > +		.graph_get_port_parent = acpi_node_get_parent,		\
+> > +		.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint, \
+> > +	};								\
+> > +	EXPORT_SYMBOL_GPL(ops)
+> > +
+> > +DECLARE_ACPI_FWNODE_OPS(acpi_device_fwnode_ops);
+> > +DECLARE_ACPI_FWNODE_OPS(acpi_data_fwnode_ops);
+> > +DECLARE_ACPI_FWNODE_OPS(acpi_static_fwnode_ops);
+> 
+> I do not think it is a great idea to associate valid fwnode_operations
+> to a static ACPI fwnode (which is just a tag - like the IRQCHIP one).
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/acpi/nfit/core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Thanks for the review!
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 656acb5..1871bec 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1066,7 +1066,7 @@ static umode_t nfit_visible(struct kobject *kobj, struct attribute *a, int n)
- 	NULL,
- };
- 
--static struct attribute_group acpi_nfit_attribute_group = {
-+static const struct attribute_group acpi_nfit_attribute_group = {
- 	.name = "nfit",
- 	.attrs = acpi_nfit_attributes,
- 	.is_visible = nfit_visible,
-@@ -1346,7 +1346,7 @@ static umode_t acpi_nfit_dimm_attr_visible(struct kobject *kobj,
- 	return a->mode;
- }
- 
--static struct attribute_group acpi_nfit_dimm_attribute_group = {
-+static const struct attribute_group acpi_nfit_dimm_attribute_group = {
- 	.name = "nfit",
- 	.attrs = acpi_nfit_dimm_attributes,
- 	.is_visible = acpi_nfit_dimm_attr_visible,
-@@ -1640,7 +1640,7 @@ static ssize_t range_index_show(struct device *dev,
- 	NULL,
- };
- 
--static struct attribute_group acpi_nfit_region_attribute_group = {
-+static const struct attribute_group acpi_nfit_region_attribute_group = {
- 	.name = "nfit",
- 	.attrs = acpi_nfit_region_attributes,
- };
+I'll fix that in v8 of the set (by using a struct with all ops being NULL,
+just as for IRQCHIP).
+
 -- 
-1.9.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
