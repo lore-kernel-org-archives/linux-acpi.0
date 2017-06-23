@@ -1,51 +1,84 @@
-From: Jonathan Woithe <jwoithe@just42.net>
-Subject: Re: [PATCH 5/7] platform/x86: fujitsu-laptop: do not update ACPI
- device power status
-Date: Fri, 23 Jun 2017 09:46:59 +0930
-Message-ID: <20170623001659.GF24368@marvin.atrad.com.au>
-References: <20170616044058.30443-1-kernel@kempniu.pl>
- <20170616044058.30443-6-kernel@kempniu.pl>
- <20170621201727.GC25900@fury>
- <20170622210235.GC4194@kmp-mobile.hq.kempniu.pl>
- <20170622235843.GC27213@fury>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH 3/4] randstruct: Disable randomization of ACPICA structs
+Date: Thu, 22 Jun 2017 17:20:31 -0700
+Message-ID: <CAGXu5jLr5mS0x6faLm-XM3G18vShjuGgjd0OcdTRn=qxgsXtwQ@mail.gmail.com>
+References: <1497905801-69164-1-git-send-email-keescook@chromium.org>
+ <CAJZ5v0hqRbsivmnG5iKMsR_ZMg+i_vxA7n-NOkuu3jh-TJ6pHw@mail.gmail.com>
+ <CAGXu5jJWZos+uUgyc6hiHko=ei4b_6aCyZqRLDESfih1ybxR=w@mail.gmail.com> <3395263.N2PfeMfNmG@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170622235843.GC27213@fury>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Micha?? K??pie?? <kernel@kempniu.pl>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f181.google.com ([209.85.223.181]:35419 "EHLO
+        mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753841AbdFWAUc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 20:20:32 -0400
+Received: by mail-io0-f181.google.com with SMTP id h134so24023546iof.2
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2017 17:20:32 -0700 (PDT)
+In-Reply-To: <3395263.N2PfeMfNmG@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Christoph Hellwig <hch@infradead.org>, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Robert Moore <robert.moore@intel.com>
 
-On Thu, Jun 22, 2017 at 04:58:43PM -0700, Darren Hart wrote:
-> On Thu, Jun 22, 2017 at 11:02:35PM +0200, Micha?? K??pie?? wrote:
-> > > On Fri, Jun 16, 2017 at 06:40:56AM +0200, Micha?? K??pie?? wrote:
-> > > > Calling acpi_bus_update_power() for ACPI devices FUJ02B1 and FUJ02E3 is
-> > > > pointless as they are not power manageable (neither _PS0 nor _PR0 is
-> > > > defined for any of them), which causes their power state to be inherited
-> > > > from their parent devices.  Given the ACPI paths of these two devices
-> > > > (\_SB.PCI0.LPCB.FJEX, \_SB.FEXT), their parent devices are also not
-> > > > power manageable.  These parent devices will thus have their power state
-> > > > initialized to ACPI_STATE_D0, which in turn causes the power state for
-> > > > both FUJ02B1 and FUJ02E3 to always be ACPI_STATE_D0 ("on").
-> > > > 
-> > > 
-> > > How confident are we that all implementations of these two ACPI devices lack
-> > > _PS0 and _PR0 ?
-> > 
-> > I looked at DSDT dumps of four different Fujitsu laptops released in the
-> > past ten years or so for which at least one of these two ACPI devices is
-> > present and found no traces of either of these methods being defined for
-> > them.  I do not think we have a way of ensuring that the above holds
-> > true for every other model out there, but I will point out that
-> > fujitsu-laptop is the only user of acpi_bus_update_power() outside of
-> > drivers/acpi.
-> 
-> OK, thanks. Queueing to testing.
+On Thu, Jun 22, 2017 at 4:59 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, June 22, 2017 04:57:39 PM Kees Cook wrote:
+>> On Tue, Jun 20, 2017 at 2:34 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>> > On Tue, Jun 20, 2017 at 10:35 PM, Christoph Hellwig <hch@infradead.org> wrote:
+>> >> On Tue, Jun 20, 2017 at 12:25:53PM -0700, Kees Cook wrote:
+>> >>> Can you send the patch to https://github.com/acpica/acpica ? My change
+>> >>> was finally accepted, so this whole issue will go away on the next
+>> >>> refresh. Until then, I don't want to block the entire automatic
+>> >>> structure selection logic of randstruct on a three-function table. :)
+>> >>
+>> >> I do not have a github account and no such thing is required for kernel
+>> >> development.
+>> >
+>> > It isn't required for the ACPICA material either.
+>> >
+>> > You just need to CC the ACPICA maintainers, as per MAINTAINERS, on
+>> > your ACPICA patches.  They pick up stuff that looks good to them.
+>> >
+>> > And we tend to prefer routing ACPICA changes through the upstream,
+>> > because failing to do so usually turns out to be painful in the long
+>> > term.  I don't think it is unreasonable to ask for cooperation in that
+>> > respect.
+>>
+>> I'd like to unblock randstruct, so what's the easiest way to move
+>> this? My version of changes have already landed upstream in ACPICA,
+>> but I don't know how frequently they get flushed back into the kernel.
+>
+> Usually, when there's a new ACPICA release, but occasionally that happens
+> faster.
+>
+> Which commit in upstream ACPICA is this?
 
-Thanks.  In case it was missed, I supplied my reviewed-by message and
-sign-off in an earlier post.
+https://github.com/acpica/acpica/commit/2058b3bf5deecb9644d676703bd97d1bce5e612a
 
-Regards
-  jonathan
+>> I can't turn on randstruct auto-selection in -next without either
+>> ACPICA using (or not needing) designated initializers or just
+>> blacklisting it in the randstruct plugin itself. I would much prefer
+>> the latter as the problem is solved in ACPICA upstream already but
+>> just isn't in the kernel yet, and I want to get testing of the
+>> auto-selection ASAP. Once it's in the kernel I can drop the blacklist.
+>>
+>> Christoph: how about a middle ground where randstruct blacklists
+>> ACPICA in -next and if ACPICA is fixed by the time the merge window
+>> opens, I'll drop the blacklist. That gets the testing coverage without
+>> what you see as an ugly hack right now. I just really don't want to
+>> waste any more time on this since there are SO many other randomized
+>> structures I'd like to be sure are getting testing.
+>>
+>> Alternatively, if the ACPICA folks Ack Christoph's patch, I can carry
+>> that in the randstruct tree for -next instead?
+>
+> Maybe we can simply forward port the ACPICA commit right away.
+>
+> Lv, can you take care of this, please?
+
+That would be great, thanks!
+
+-Kees
+
+-- 
+Kees Cook
+Pixel Security
