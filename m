@@ -1,61 +1,284 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 1/7] platform/x86: fujitsu-laptop: do not use kfifo for
- storing hotkey scancodes
-Date: Thu, 22 Jun 2017 22:54:00 -0700
-Message-ID: <20170623055400.GE27213@fury>
-References: <20170616044058.30443-1-kernel@kempniu.pl>
- <20170616044058.30443-2-kernel@kempniu.pl>
- <20170621181543.GB25900@fury>
- <20170621235021.GA32131@marvin.atrad.com.au>
- <20170622024413.GE25900@fury>
- <20170622030120.GF32131@marvin.atrad.com.au>
- <20170622204619.GB4194@kmp-mobile.hq.kempniu.pl>
- <20170622235809.GB27213@fury>
- <20170623001458.GE24368@marvin.atrad.com.au>
+From: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH v9 3/3] iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2
+	erratum #126
+Date: Fri, 23 Jun 2017 11:28:05 +0530
+Message-ID: <1498197485-32008-1-git-send-email-gakula@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:54489 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754282AbdFWFyF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Jun 2017 01:54:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20170623001458.GE24368@marvin.atrad.com.au>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: will.deacon-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Woithe <jwoithe@just42.net>
-Cc: Micha?? K??pie?? <kernel@kempniu.pl>, Rafael Wysocki <rjw@rjwysocki.net>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Jun 23, 2017 at 09:44:58AM +0930, Jonathan Woithe wrote:
-> On Thu, Jun 22, 2017 at 04:58:09PM -0700, Darren Hart wrote:
-> > On Thu, Jun 22, 2017 at 10:46:19PM +0200, Micha?? K??pie?? wrote:
-> > > > The events seen by userspace with the original code would be "A-press",
-> > > > "B-press", "A-release", "B-release".  With the revised code the order of the
-> > > > release events would be reversed compared to the previous behaviour.  That
-> > > > is, unless I've misunderstood how sparse_keymap_report_event() works.
-> > > 
-> > > All you wrote above is correct and this patch does change the order of
-> > > release events sent to userspace when multiple hotkeys are pressed
-> > > simultaneously.  The question is: is it relevant for any practical
-> > > scenario?
-> > > 
-> > > Anyway, I find this matter to be of secondary importance.  The primary
-> > > objective of this patch is to get rid of the kfifo.  If anyone has
-> > > strong feelings about the change in event ordering, I will be happy to
-> > > revert to FIFO in v2.
-> > 
-> > This all looks reasonable to me, I don't see anything requiring a respin.
-> 
-> I agree it is of seconary importance.  To me, using LIFO release order is
-> counter-intuitive, but it's the sort of question that if put to 100 people
-> you'll get a 50/50 split of opinions.
-> 
-> Especially since the whole "multiple buttons held at once" scenario is
-> rather unusual we can go with switching the order if others don't see a
-> problem with the behavioural change.
+From: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
-Yes. If anyone notices the implementation difference, I'll be rather surprised.
-If they do, we can convert back to FIFO as you say.
+Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
+lines for gerror, eventq and cmdq-sync.
+
+New named irq "combined" is set as a errata workaround, which allows to
+share the irq line by register single irq handler for all the interrupts.
+
+Signed-off-by: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
+---
+ Documentation/arm64/silicon-errata.txt             |    1 +
+ .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    6 +
+ drivers/acpi/arm64/iort.c                          |   54 +++++++----
+ drivers/iommu/arm-smmu-v3.c                        |  100 ++++++++++++++-----
+ 4 files changed, 116 insertions(+), 45 deletions(-)
+
+diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
+index 4693a32..42422f6 100644
+--- a/Documentation/arm64/silicon-errata.txt
++++ b/Documentation/arm64/silicon-errata.txt
+@@ -63,6 +63,7 @@ stable kernels.
+ | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
+ | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
+ | Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
++| Cavium         | ThunderX2 SMMUv3| #126            | N/A                         |
+ |                |                 |                 |                             |
+ | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
+ |                |                 |                 |                             |
+diff --git a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
+index e7855cf..c9abbf3 100644
+--- a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
++++ b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
+@@ -26,6 +26,12 @@ the PCIe specification.
+                       * "priq"      - PRI Queue not empty
+                       * "cmdq-sync" - CMD_SYNC complete
+                       * "gerror"    - Global Error activated
++                      * "combined"  - The combined interrupt is optional,
++				      and should only be provided if the
++				      hardware supports just a single,
++				      combined interrupt line.
++				      If provided, then the combined interrupt
++				      will be used in preference to any others.
+ 
+ - #iommu-cells      : See the generic IOMMU binding described in
+                         devicetree/bindings/pci/pci-iommu.txt
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index bd97b7d..4e9523b 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -828,6 +828,18 @@ static int __init arm_smmu_v3_count_resources(struct acpi_iort_node *node)
+ 	return num_res;
+ }
+ 
++static bool arm_smmu_v3_is_combined_irq(struct acpi_iort_smmu_v3 *smmu)
++{
++	/*
++	 * Cavium ThunderX2 implementation doesn't not support unique
++	 * irq line. Use single irq line for all the SMMUv3 interrupts.
++	 */
++	if (smmu->model == ACPI_IORT_SMMU_V3_CAVIUM_CN99XX)
++		return true;
++
++	return false;
++}
++
+ static unsigned long arm_smmu_v3_resource_size(struct acpi_iort_smmu_v3 *smmu)
+ {
+ 	/*
+@@ -855,26 +867,32 @@ static void __init arm_smmu_v3_init_resources(struct resource *res,
+ 	res[num_res].flags = IORESOURCE_MEM;
+ 
+ 	num_res++;
+-
+-	if (smmu->event_gsiv)
+-		acpi_iort_register_irq(smmu->event_gsiv, "eventq",
+-				       ACPI_EDGE_SENSITIVE,
+-				       &res[num_res++]);
+-
+-	if (smmu->pri_gsiv)
+-		acpi_iort_register_irq(smmu->pri_gsiv, "priq",
+-				       ACPI_EDGE_SENSITIVE,
+-				       &res[num_res++]);
+-
+-	if (smmu->gerr_gsiv)
+-		acpi_iort_register_irq(smmu->gerr_gsiv, "gerror",
+-				       ACPI_EDGE_SENSITIVE,
+-				       &res[num_res++]);
+-
+-	if (smmu->sync_gsiv)
+-		acpi_iort_register_irq(smmu->sync_gsiv, "cmdq-sync",
++	if (arm_smmu_v3_is_combined_irq(smmu))
++		acpi_iort_register_irq(smmu->event_gsiv, "combined",
+ 				       ACPI_EDGE_SENSITIVE,
+ 				       &res[num_res++]);
++	else {
++
++		if (smmu->event_gsiv)
++			acpi_iort_register_irq(smmu->event_gsiv, "eventq",
++					       ACPI_EDGE_SENSITIVE,
++					       &res[num_res++]);
++
++		if (smmu->pri_gsiv)
++			acpi_iort_register_irq(smmu->pri_gsiv, "priq",
++					       ACPI_EDGE_SENSITIVE,
++					       &res[num_res++]);
++
++		if (smmu->gerr_gsiv)
++			acpi_iort_register_irq(smmu->gerr_gsiv, "gerror",
++					       ACPI_EDGE_SENSITIVE,
++					       &res[num_res++]);
++
++		if (smmu->sync_gsiv)
++			acpi_iort_register_irq(smmu->sync_gsiv, "cmdq-sync",
++					       ACPI_EDGE_SENSITIVE,
++					       &res[num_res++]);
++	}
+ }
+ 
+ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+index 2dea4a9..fd5a48c 100644
+--- a/drivers/iommu/arm-smmu-v3.c
++++ b/drivers/iommu/arm-smmu-v3.c
+@@ -605,6 +605,7 @@ struct arm_smmu_device {
+ 	struct arm_smmu_priq		priq;
+ 
+ 	int				gerr_irq;
++	int				combined_irq;
+ 
+ 	unsigned long			ias; /* IPA */
+ 	unsigned long			oas; /* PA */
+@@ -1314,6 +1315,24 @@ static irqreturn_t arm_smmu_gerror_handler(int irq, void *dev)
+ 	return IRQ_HANDLED;
+ }
+ 
++static irqreturn_t arm_smmu_combined_irq_thread(int irq, void *dev)
++{
++	struct arm_smmu_device *smmu = dev;
++
++	arm_smmu_evtq_thread(irq, dev);
++	if (smmu->features & ARM_SMMU_FEAT_PRI)
++		arm_smmu_priq_thread(irq, dev);
++
++	return IRQ_HANDLED;
++}
++
++static irqreturn_t arm_smmu_combined_irq_handler(int irq, void *dev)
++{
++	arm_smmu_gerror_handler(irq, dev);
++	arm_smmu_cmdq_sync_handler(irq, dev);
++	return IRQ_WAKE_THREAD;
++}
++
+ /* IO_PGTABLE API */
+ static void __arm_smmu_tlb_sync(struct arm_smmu_device *smmu)
+ {
+@@ -2230,18 +2249,9 @@ static void arm_smmu_setup_msis(struct arm_smmu_device *smmu)
+ 	devm_add_action(dev, arm_smmu_free_msis, dev);
+ }
+ 
+-static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
++static void arm_smmu_setup_unique_irqs(struct arm_smmu_device *smmu)
+ {
+-	int ret, irq;
+-	u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
+-
+-	/* Disable IRQs first */
+-	ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
+-				      ARM_SMMU_IRQ_CTRLACK);
+-	if (ret) {
+-		dev_err(smmu->dev, "failed to disable irqs\n");
+-		return ret;
+-	}
++	int irq, ret;
+ 
+ 	arm_smmu_setup_msis(smmu);
+ 
+@@ -2284,10 +2294,41 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
+ 			if (ret < 0)
+ 				dev_warn(smmu->dev,
+ 					 "failed to enable priq irq\n");
+-			else
+-				irqen_flags |= IRQ_CTRL_PRIQ_IRQEN;
+ 		}
+ 	}
++}
++
++static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
++{
++	int ret, irq;
++	u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
++
++	/* Disable IRQs first */
++	ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
++				      ARM_SMMU_IRQ_CTRLACK);
++	if (ret) {
++		dev_err(smmu->dev, "failed to disable irqs\n");
++		return ret;
++	}
++
++	irq = smmu->combined_irq;
++	if (irq) {
++		/*
++		 * Cavium ThunderX2 implementation doesn't not support unique
++		 * irq lines. Use single irq line for all the SMMUv3 interrupts.
++		 */
++		ret = devm_request_threaded_irq(smmu->dev, irq,
++					arm_smmu_combined_irq_handler,
++					arm_smmu_combined_irq_thread,
++					IRQF_ONESHOT,
++					"arm-smmu-v3-combined-irq", smmu);
++		if (ret < 0)
++			dev_warn(smmu->dev, "failed to enable combined irq\n");
++	} else
++		arm_smmu_setup_unique_irqs(smmu);
++
++	if (smmu->features & ARM_SMMU_FEAT_PRI)
++		irqen_flags |= IRQ_CTRL_PRIQ_IRQEN;
+ 
+ 	/* Enable interrupt generation on the SMMU */
+ 	ret = arm_smmu_write_reg_sync(smmu, irqen_flags,
+@@ -2724,22 +2765,27 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
+ 		return PTR_ERR(smmu->base);
+ 
+ 	/* Interrupt lines */
+-	irq = platform_get_irq_byname(pdev, "eventq");
+-	if (irq > 0)
+-		smmu->evtq.q.irq = irq;
+ 
+-	irq = platform_get_irq_byname(pdev, "priq");
++	irq = platform_get_irq_byname(pdev, "combined");
+ 	if (irq > 0)
+-		smmu->priq.q.irq = irq;
++		smmu->combined_irq = irq;
++	else {
++		irq = platform_get_irq_byname(pdev, "eventq");
++		if (irq > 0)
++			smmu->evtq.q.irq = irq;
+ 
+-	irq = platform_get_irq_byname(pdev, "cmdq-sync");
+-	if (irq > 0)
+-		smmu->cmdq.q.irq = irq;
++		irq = platform_get_irq_byname(pdev, "priq");
++		if (irq > 0)
++			smmu->priq.q.irq = irq;
+ 
+-	irq = platform_get_irq_byname(pdev, "gerror");
+-	if (irq > 0)
+-		smmu->gerr_irq = irq;
++		irq = platform_get_irq_byname(pdev, "cmdq-sync");
++		if (irq > 0)
++			smmu->cmdq.q.irq = irq;
+ 
++		irq = platform_get_irq_byname(pdev, "gerror");
++		if (irq > 0)
++			smmu->gerr_irq = irq;
++	}
+ 	/* Probe the h/w */
+ 	ret = arm_smmu_device_hw_probe(smmu);
+ 	if (ret)
 -- 
-Darren Hart
-VMware Open Source Technology Center
+1.7.1
