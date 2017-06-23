@@ -1,42 +1,243 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH v2] ACPI / sleep: EC-based wakeup from suspend-to-idle
- on recent systems
-Date: Fri, 23 Jun 2017 09:06:28 -0700
-Message-ID: <1498233988.7952.45.camel@linux.intel.com>
-References: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
-         <2026371.DVJN39QYJi@aspire.rjw.lan> <2368998.dmCsnrcXZy@aspire.rjw.lan>
-         <2279758.LZ0rCGQtcH@aspire.rjw.lan>
-         <3f1cbd8cd7e54576b17c788f4eae2205@ausx13mpc120.AMER.DELL.COM>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v3 1/2] acpi:iort: Add an IORT helper function to reserve
+ HW ITS address regions for IOMMU drivers
+Date: Fri, 23 Jun 2017 17:54:06 +0100
+Message-ID: <20170623165406.GA6412@red-moon>
+References: <20170623145801.325244-1-shameerali.kolothum.thodi@huawei.com>
+ <20170623145801.325244-2-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3f1cbd8cd7e54576b17c788f4eae2205@ausx13mpc120.AMER.DELL.COM>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mario.Limonciello@dell.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
-Cc: linux-pm@vger.kernel.org, andriy.shevchenko@linux.intel.com, dvhart@infradead.org, linux-kernel@vger.kernel.org, mika.westerberg@linux.intel.com, tom@oneshoeco.com, jerome.debretagne@gmail.com, torvalds@linux-foundation.org, lv.zheng@intel.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:54558 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752116AbdFWQwl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 23 Jun 2017 12:52:41 -0400
+Content-Disposition: inline
+In-Reply-To: <20170623145801.325244-2-shameerali.kolothum.thodi@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: shameer <shameerali.kolothum.thodi@huawei.com>
+Cc: marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, hanjun.guo@linaro.org, gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com
 
-On Fri, 2017-06-23 at 15:37 +0000, Mario.Limonciello@dell.com wrote:
-
-[...]
-
-> > 
-> > +#define ACPI_LPS0_SCREEN_ON	4
-> > +#define ACPI_LPS0_ENTRY		5
-> > +#define ACPI_LPS0_EXIT		6
-> The spec you shared also defines device constraints (function 1). It
-> would be very 
-> useful if these constraints  could be parsed and compared against the
-> actual power 
-> states of devices on the system at least for debugging purposes.  I'm
-> not sure if you 
-> already had a plan for that in a future series.
+On Fri, Jun 23, 2017 at 03:58:00PM +0100, shameer wrote:
+> The helper function retrieves ITS address regions through IORT
+> device <-> ITS mappings and reserves it so that these regions
+> will not be translated by IOMMU and will be excluded from IOVA
+> allocations. IOMMU drivers can use this to implement their
+> .get_resv_regions callback.
 > 
-For debug purpose, I have worked on a patch to dump the constraint
-table in debugfs. But in the freeze path whether we meet the
-constraints or not will not make any difference, other than for just
-debugging.
+> Signed-off-by: shameer <shameerali.kolothum.thodi@huawei.com>
+> ---
+>  drivers/acpi/arm64/iort.c        | 91 ++++++++++++++++++++++++++++++++++++++--
+>  drivers/irqchip/irq-gic-v3-its.c |  3 +-
+>  include/linux/acpi_iort.h        |  7 +++-
+>  3 files changed, 96 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index c5fecf9..cf0a6b8 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -34,6 +34,7 @@
+>  struct iort_its_msi_chip {
+>  	struct list_head	list;
+>  	struct fwnode_handle	*fw_node;
+> +	phys_addr_t		base_addr;
+>  	u32			translation_id;
+>  };
+>  
+> @@ -131,14 +132,16 @@ typedef acpi_status (*iort_find_node_callback)
+>  static DEFINE_SPINLOCK(iort_msi_chip_lock);
+>  
+>  /**
+> - * iort_register_domain_token() - register domain token and related ITS ID
+> - * to the list from where we can get it back later on.
+> + * iort_register_domain_token() - register domain token along with related
+> + * ITS ID and base address to the list from where we can get it back later on.
+>   * @trans_id: ITS ID.
+> + * @base: ITS base address.
+>   * @fw_node: Domain token.
+>   *
+>   * Returns: 0 on success, -ENOMEM if no memory when allocating list element
+>   */
+> -int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node)
+> +int iort_register_domain_token(int trans_id, phys_addr_t base,
+> +			       struct fwnode_handle *fw_node)
+>  {
+>  	struct iort_its_msi_chip *its_msi_chip;
+>  
+> @@ -148,6 +151,7 @@ int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node)
+>  
+>  	its_msi_chip->fw_node = fw_node;
+>  	its_msi_chip->translation_id = trans_id;
+> +	its_msi_chip->base_addr = base;
+>  
+>  	spin_lock(&iort_msi_chip_lock);
+>  	list_add(&its_msi_chip->list, &iort_msi_chip_list);
+> @@ -491,6 +495,24 @@ int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
+>  	return -ENODEV;
+>  }
+>  
+> +static int iort_find_its_base(u32 its_id, phys_addr_t *base)
+> +{
+> +	struct iort_its_msi_chip *its_msi_chip;
+> +	bool match = false;
+> +
+> +	spin_lock(&iort_msi_chip_lock);
+> +	list_for_each_entry(its_msi_chip, &iort_msi_chip_list, list) {
+> +		if (its_msi_chip->translation_id == its_id) {
+> +			*base = its_msi_chip->base_addr;
+> +			match = true;
+> +			break;
+> +		}
+> +	}
+> +	spin_unlock(&iort_msi_chip_lock);
+> +
+> +	return match ? 0 : -ENODEV;
+> +}
+> +
+>  /**
+>   * iort_dev_find_its_id() - Find the ITS identifier for a device
+>   * @dev: The device.
+> @@ -649,6 +671,67 @@ int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
+>  
+>  	return err;
+>  }
+> +
+> +/**
+> + * iort_iommu_its_get_resv_regions - Reserved region driver helper
+> + * @dev: Device from iommu_get_resv_regions()
+> + * @list: Reserved region list from iommu_get_resv_regions()
+> + *
+> + * Returns: Number of reserved regions on success(0 if no associated ITS),
+> + *          appropriate error value otherwise.
+> + *
+> + * IOMMU drivers can use this to implement their .get_resv_regions callback
+> + * for reserving the HW ITS address regions.
+> + */
+> +int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head)
+> +{
+> +	int i;
+> +	struct acpi_iort_its_group *its;
+> +	struct acpi_iort_node *node, *its_node = NULL;
+> +	int resv = 0;
+> +
+> +	node = iort_find_dev_node(dev);
+> +	if (!node)
+> +		return -ENODEV;
+> +
+> +	if (dev_is_pci(dev)) {
+> +		u32 rid;
+> +
+> +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid, &rid);
+> +		its_node = iort_node_map_id(node, rid, NULL, IORT_MSI_TYPE);
+> +	} else {
+> +		for (i = 0; i < node->mapping_count; i++) {
+> +			its_node = iort_node_map_platform_id(node, NULL,
+> +							 IORT_MSI_TYPE, i);
+> +			if (its_node)
+> +				break;
+> +		}
+> +	}
+> +
+> +	if (!its_node)
+> +		return 0;
+> +
+> +	/* Move to ITS specific data */
+> +	its = (struct acpi_iort_its_group *)its_node->node_data;
+> +
+> +	for (i = 0; i < its->its_count; i++) {
+> +		phys_addr_t base;
+> +
+> +		if (!iort_find_its_base(its->identifiers[i], &base)) {
+> +			int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+> +			struct iommu_resv_region *region;
+> +
+> +			region = iommu_alloc_resv_region(base, SZ_128K, prot,
+> +							 IOMMU_RESV_MSI);
+> +			if (region) {
+> +				list_add_tail(&region->list, head);
+> +				resv++;
+> +			}
+> +		}
+> +	}
+> +
+> +	return resv ? : -ENODEV;
 
-Thanks,
-Srinivas
+IIUC I think this is not right (ie resv < its_count should count as a
+failure).
+
+This should be easy to fix-up but I am not sure there is still time for
+these patches to be merged for this merge window, I take the blame since
+I am the cause of the delay but I thought the logic in the SMMU driver
+should have been clarified and this version does it IMO.
+
+Thanks and apologies,
+Lorenzo
+
+> +}
+>  #else
+>  static inline
+>  const struct iommu_ops *iort_fwspec_iommu_ops(struct iommu_fwspec *fwspec)
+> @@ -656,6 +739,8 @@ const struct iommu_ops *iort_fwspec_iommu_ops(struct iommu_fwspec *fwspec)
+>  static inline
+>  int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
+>  { return 0; }
+> +int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head)
+> +{ return -ENODEV; }
+>  #endif
+>  
+>  static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+> index 45ea1933..c45a2ad 100644
+> --- a/drivers/irqchip/irq-gic-v3-its.c
+> +++ b/drivers/irqchip/irq-gic-v3-its.c
+> @@ -1854,7 +1854,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>  		return -ENOMEM;
+>  	}
+>  
+> -	err = iort_register_domain_token(its_entry->translation_id, dom_handle);
+> +	err = iort_register_domain_token(its_entry->translation_id, res.start,
+> +					 dom_handle);
+>  	if (err) {
+>  		pr_err("ITS@%pa: Unable to register GICv3 ITS domain token (ITS ID %d) to IORT\n",
+>  		       &res.start, its_entry->translation_id);
+> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> index 3ff9ace..35cf45c 100644
+> --- a/include/linux/acpi_iort.h
+> +++ b/include/linux/acpi_iort.h
+> @@ -26,7 +26,8 @@
+>  #define IORT_IRQ_MASK(irq)		(irq & 0xffffffffULL)
+>  #define IORT_IRQ_TRIGGER_MASK(irq)	((irq >> 32) & 0xffffffffULL)
+>  
+> -int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node);
+> +int iort_register_domain_token(int trans_id, phys_addr_t base,
+> +			       struct fwnode_handle *fw_node);
+>  void iort_deregister_domain_token(int trans_id);
+>  struct fwnode_handle *iort_find_domain_token(int trans_id);
+>  #ifdef CONFIG_ACPI_IORT
+> @@ -39,6 +40,7 @@
+>  /* IOMMU interface */
+>  void iort_set_dma_mask(struct device *dev);
+>  const struct iommu_ops *iort_iommu_configure(struct device *dev);
+> +int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head);
+>  #else
+>  static inline void acpi_iort_init(void) { }
+>  static inline bool iort_node_match(u8 type) { return false; }
+> @@ -53,6 +55,9 @@ static inline void iort_set_dma_mask(struct device *dev) { }
+>  static inline
+>  const struct iommu_ops *iort_iommu_configure(struct device *dev)
+>  { return NULL; }
+> +static inline
+> +int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head)
+> +{ return -ENODEV; }
+>  #endif
+>  
+>  #endif /* __ACPI_IORT_H__ */
+> -- 
+> 1.9.1
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
