@@ -1,285 +1,164 @@
-From: Geetha sowjanya <gakula@caviumnetworks.com>
-Subject: [RESEND PATCH v9 3/3] iommu/arm-smmu-v3: Add workaround for Cavium ThunderX2 erratum #126
-Date: Fri, 23 Jun 2017 19:04:36 +0530
-Message-ID: <1498224876-5200-1-git-send-email-gakula@caviumnetworks.com>
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Subject: Re: [RFC PATCH v6 1/5] ACPI: button: Add a
+ workaround to fix an order issue for old userspace
+Date: Fri, 23 Jun 2017 16:02:48 +0200
+Message-ID: <20170623140248.GO26073@mail.corp.redhat.com>
+References: <2a779ae8c280c968b3237ac4a3d9580df7262a46.1493951798.git.lv.zheng@intel.com>
+ <cover.1498034513.git.lv.zheng@intel.com>
+ <45932b46ea84bfbab2120092f23aff2c522a3945.1498034513.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0046.outbound.protection.outlook.com ([104.47.37.46]:16700
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751488AbdFWNy1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 23 Jun 2017 09:54:27 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <systemd-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <45932b46ea84bfbab2120092f23aff2c522a3945.1498034513.git.lv.zheng@intel.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/systemd-devel>
+List-Post: <mailto:systemd-devel@lists.freedesktop.org>
+List-Help: <mailto:systemd-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/systemd-devel>,
+ <mailto:systemd-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: systemd-devel-bounces@lists.freedesktop.org
+Sender: "systemd-devel" <systemd-devel-bounces@lists.freedesktop.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <len.brown@intel.com>, systemd-devel@lists.freedesktop.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: will.deacon@arm.com, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@rjwysocki.net, jcm@redhat.com, linux-kernel@vger.kernel.org, robert.richter@cavium.com, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, geethasowjanya.akula@gmail.com, devel@acpica.org, linu.cherian@cavium.com, Charles.Garcia-Tobin@arm.com, robh@kernel.org, Geetha Sowjanya <geethasowjanya.akula@cavium.com>, Geetha sowjanya <gakula@caviumnetworks.com>
 
-From: Geetha Sowjanya <geethasowjanya.akula@cavium.com>
-
-Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
-lines for gerror, eventq and cmdq-sync.
-
-New named irq "combined" is set as a errata workaround, which allows to
-share the irq line by register single irq handler for all the interrupts.
-
-Signed-off-by: Geetha sowjanya <gakula@caviumnetworks.com>
----
- Documentation/arm64/silicon-errata.txt             |    1 +
- .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    6 +
- drivers/acpi/arm64/iort.c                          |   57 ++++++++---
- drivers/iommu/arm-smmu-v3.c                        |  100 ++++++++++++++-----
- 4 files changed, 121 insertions(+), 43 deletions(-)
-
-diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
-index 4693a32..42422f6 100644
---- a/Documentation/arm64/silicon-errata.txt
-+++ b/Documentation/arm64/silicon-errata.txt
-@@ -63,6 +63,7 @@ stable kernels.
- | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
- | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
- | Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
-+| Cavium         | ThunderX2 SMMUv3| #126            | N/A                         |
- |                |                 |                 |                             |
- | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
- |                |                 |                 |                             |
-diff --git a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-index e7855cf..c9abbf3 100644
---- a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-+++ b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
-@@ -26,6 +26,12 @@ the PCIe specification.
-                       * "priq"      - PRI Queue not empty
-                       * "cmdq-sync" - CMD_SYNC complete
-                       * "gerror"    - Global Error activated
-+                      * "combined"  - The combined interrupt is optional,
-+				      and should only be provided if the
-+				      hardware supports just a single,
-+				      combined interrupt line.
-+				      If provided, then the combined interrupt
-+				      will be used in preference to any others.
- 
- - #iommu-cells      : See the generic IOMMU binding described in
-                         devicetree/bindings/pci/pci-iommu.txt
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index bd97b7d..21c1ed3 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -828,6 +828,18 @@ static int __init arm_smmu_v3_count_resources(struct acpi_iort_node *node)
- 	return num_res;
- }
- 
-+static bool arm_smmu_v3_is_combined_irq(struct acpi_iort_smmu_v3 *smmu)
-+{
-+	/*
-+	 * Cavium ThunderX2 implementation doesn't not support unique
-+	 * irq line. Use single irq line for all the SMMUv3 interrupts.
-+	 */
-+	if (smmu->model == ACPI_IORT_SMMU_V3_CAVIUM_CN99XX)
-+		return true;
-+
-+	return false;
-+}
-+
- static unsigned long arm_smmu_v3_resource_size(struct acpi_iort_smmu_v3 *smmu)
- {
- 	/*
-@@ -855,26 +867,39 @@ static void __init arm_smmu_v3_init_resources(struct resource *res,
- 	res[num_res].flags = IORESOURCE_MEM;
- 
- 	num_res++;
-+	if (arm_smmu_v3_is_combined_irq(smmu)) {
-+		int irq = smmu->event_gsiv;
- 
--	if (smmu->event_gsiv)
--		acpi_iort_register_irq(smmu->event_gsiv, "eventq",
--				       ACPI_EDGE_SENSITIVE,
--				       &res[num_res++]);
--
--	if (smmu->pri_gsiv)
--		acpi_iort_register_irq(smmu->pri_gsiv, "priq",
--				       ACPI_EDGE_SENSITIVE,
--				       &res[num_res++]);
--
--	if (smmu->gerr_gsiv)
--		acpi_iort_register_irq(smmu->gerr_gsiv, "gerror",
-+		if (!(irq == smmu->pri_gsiv && irq == smmu->gerr_gsiv &&
-+		    irq == smmu->sync_gsiv)) {
-+			pr_warn(FW_BUG "Incosistent combined GSIV configuration\n");
-+			return;
-+		}
-+		acpi_iort_register_irq(smmu->event_gsiv, "combined",
- 				       ACPI_EDGE_SENSITIVE,
- 				       &res[num_res++]);
-+	} else {
- 
--	if (smmu->sync_gsiv)
--		acpi_iort_register_irq(smmu->sync_gsiv, "cmdq-sync",
--				       ACPI_EDGE_SENSITIVE,
--				       &res[num_res++]);
-+		if (smmu->event_gsiv)
-+			acpi_iort_register_irq(smmu->event_gsiv, "eventq",
-+					       ACPI_EDGE_SENSITIVE,
-+					       &res[num_res++]);
-+
-+		if (smmu->pri_gsiv)
-+			acpi_iort_register_irq(smmu->pri_gsiv, "priq",
-+					       ACPI_EDGE_SENSITIVE,
-+					       &res[num_res++]);
-+
-+		if (smmu->gerr_gsiv)
-+			acpi_iort_register_irq(smmu->gerr_gsiv, "gerror",
-+					       ACPI_EDGE_SENSITIVE,
-+					       &res[num_res++]);
-+
-+		if (smmu->sync_gsiv)
-+			acpi_iort_register_irq(smmu->sync_gsiv, "cmdq-sync",
-+					       ACPI_EDGE_SENSITIVE,
-+					       &res[num_res++]);
-+	}
- }
- 
- static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
-diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index 2dea4a9..fd5a48c 100644
---- a/drivers/iommu/arm-smmu-v3.c
-+++ b/drivers/iommu/arm-smmu-v3.c
-@@ -605,6 +605,7 @@ struct arm_smmu_device {
- 	struct arm_smmu_priq		priq;
- 
- 	int				gerr_irq;
-+	int				combined_irq;
- 
- 	unsigned long			ias; /* IPA */
- 	unsigned long			oas; /* PA */
-@@ -1314,6 +1315,24 @@ static irqreturn_t arm_smmu_gerror_handler(int irq, void *dev)
- 	return IRQ_HANDLED;
- }
- 
-+static irqreturn_t arm_smmu_combined_irq_thread(int irq, void *dev)
-+{
-+	struct arm_smmu_device *smmu = dev;
-+
-+	arm_smmu_evtq_thread(irq, dev);
-+	if (smmu->features & ARM_SMMU_FEAT_PRI)
-+		arm_smmu_priq_thread(irq, dev);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t arm_smmu_combined_irq_handler(int irq, void *dev)
-+{
-+	arm_smmu_gerror_handler(irq, dev);
-+	arm_smmu_cmdq_sync_handler(irq, dev);
-+	return IRQ_WAKE_THREAD;
-+}
-+
- /* IO_PGTABLE API */
- static void __arm_smmu_tlb_sync(struct arm_smmu_device *smmu)
- {
-@@ -2230,18 +2249,9 @@ static void arm_smmu_setup_msis(struct arm_smmu_device *smmu)
- 	devm_add_action(dev, arm_smmu_free_msis, dev);
- }
- 
--static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
-+static void arm_smmu_setup_unique_irqs(struct arm_smmu_device *smmu)
- {
--	int ret, irq;
--	u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
--
--	/* Disable IRQs first */
--	ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
--				      ARM_SMMU_IRQ_CTRLACK);
--	if (ret) {
--		dev_err(smmu->dev, "failed to disable irqs\n");
--		return ret;
--	}
-+	int irq, ret;
- 
- 	arm_smmu_setup_msis(smmu);
- 
-@@ -2284,10 +2294,41 @@ static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
- 			if (ret < 0)
- 				dev_warn(smmu->dev,
- 					 "failed to enable priq irq\n");
--			else
--				irqen_flags |= IRQ_CTRL_PRIQ_IRQEN;
- 		}
- 	}
-+}
-+
-+static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
-+{
-+	int ret, irq;
-+	u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
-+
-+	/* Disable IRQs first */
-+	ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
-+				      ARM_SMMU_IRQ_CTRLACK);
-+	if (ret) {
-+		dev_err(smmu->dev, "failed to disable irqs\n");
-+		return ret;
-+	}
-+
-+	irq = smmu->combined_irq;
-+	if (irq) {
-+		/*
-+		 * Cavium ThunderX2 implementation doesn't not support unique
-+		 * irq lines. Use single irq line for all the SMMUv3 interrupts.
-+		 */
-+		ret = devm_request_threaded_irq(smmu->dev, irq,
-+					arm_smmu_combined_irq_handler,
-+					arm_smmu_combined_irq_thread,
-+					IRQF_ONESHOT,
-+					"arm-smmu-v3-combined-irq", smmu);
-+		if (ret < 0)
-+			dev_warn(smmu->dev, "failed to enable combined irq\n");
-+	} else
-+		arm_smmu_setup_unique_irqs(smmu);
-+
-+	if (smmu->features & ARM_SMMU_FEAT_PRI)
-+		irqen_flags |= IRQ_CTRL_PRIQ_IRQEN;
- 
- 	/* Enable interrupt generation on the SMMU */
- 	ret = arm_smmu_write_reg_sync(smmu, irqen_flags,
-@@ -2724,22 +2765,27 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
- 		return PTR_ERR(smmu->base);
- 
- 	/* Interrupt lines */
--	irq = platform_get_irq_byname(pdev, "eventq");
--	if (irq > 0)
--		smmu->evtq.q.irq = irq;
- 
--	irq = platform_get_irq_byname(pdev, "priq");
-+	irq = platform_get_irq_byname(pdev, "combined");
- 	if (irq > 0)
--		smmu->priq.q.irq = irq;
-+		smmu->combined_irq = irq;
-+	else {
-+		irq = platform_get_irq_byname(pdev, "eventq");
-+		if (irq > 0)
-+			smmu->evtq.q.irq = irq;
- 
--	irq = platform_get_irq_byname(pdev, "cmdq-sync");
--	if (irq > 0)
--		smmu->cmdq.q.irq = irq;
-+		irq = platform_get_irq_byname(pdev, "priq");
-+		if (irq > 0)
-+			smmu->priq.q.irq = irq;
- 
--	irq = platform_get_irq_byname(pdev, "gerror");
--	if (irq > 0)
--		smmu->gerr_irq = irq;
-+		irq = platform_get_irq_byname(pdev, "cmdq-sync");
-+		if (irq > 0)
-+			smmu->cmdq.q.irq = irq;
- 
-+		irq = platform_get_irq_byname(pdev, "gerror");
-+		if (irq > 0)
-+			smmu->gerr_irq = irq;
-+	}
- 	/* Probe the h/w */
- 	ret = arm_smmu_device_hw_probe(smmu);
- 	if (ret)
--- 
-1.7.1
-
+T24gSnVuIDIxIDIwMTcgb3IgdGhlcmVhYm91dHMsIEx2IFpoZW5nIHdyb3RlOgo+IFRoZXJlIGFy
+ZSBwbGF0Zm9ybSB2YXJpYXRpb25zIGltcGxlbWVudGluZyBBQ1BJIGxpZCBkZXZpY2UgaW4gZGlm
+ZmVyZW50Cj4gd2F5czoKPiAxLiBTb21lIHBsYXRmb3JtcyBzZW5kICJvcGVuIiBldmVudHMgdG8g
+T1MgYW5kIHRoZSBldmVudHMgYXJyaXZlIGJlZm9yZQo+ICAgIGJ1dHRvbiBkcml2ZXIgaXMgcmVz
+dW1lZDsKPiAyLiBTb21lIHBsYXRmb3JtcyBzZW5kICJvcGVuIiBldmVudHMgdG8gT1MsIGJ1dCB0
+aGUgZXZlbnRzIGFycml2ZSBhZnRlcgo+ICAgIGJ1dHRvbiBkcml2ZXIgaXMgcmVzdW1lZCwgZXgu
+LCBTYW1zdW5nIE4yMTArOwo+IDMuIFNvbWUgcGxhdGZvcm1zIG5ldmVyIHNlbmQgIm9wZW4iIGV2
+ZW50cyB0byBPUywgYnV0IHNlbmQgIm9wZW4iIGV2ZW50cyB0bwo+ICAgIHVwZGF0ZSB0aGUgY2Fj
+aGVkIF9MSUQgcmV0dXJuIHZhbHVlLCBhbmQgdGhlIHVwZGF0ZSBldmVudHMgYXJyaXZlIGJlZm9y
+ZQo+ICAgIGJ1dHRvbiBkcml2ZXIgaXMgcmVzdW1lZDsKPiA0LiBTb21lIHBsYXRmb3JtcyBuZXZl
+ciBzZW5kICJvcGVuIiBldmVudHMgdG8gT1MsIGJ1dCBzZW5kICJvcGVuIiBldmVudHMgdG8KPiAg
+ICB1cGRhdGUgdGhlIGNhY2hlZCBfTElEIHJldHVybiB2YWx1ZSwgYnV0IHRoZSB1cGRhdGUgZXZl
+bnRzIGFycml2ZSBhZnRlcgo+ICAgIGJ1dHRvbiBkcml2ZXIgaXMgcmVzdW1lZCwgZXguLCBTdXJm
+YWNlIFBybyAzOwo+IDUuIFNvbWUgcGxhdGZvcm1zIG5ldmVyIHNlbmQgIm9wZW4iIGV2ZW50cywg
+X0xJRCByZXR1cm5zIHZhbHVlIHN0aWNrcyB0bwo+ICAgICJjbG9zZSIsIGV4LiwgU3VyZmFjZSBQ
+cm8gMS4KPiBDdXJyZW50bHksIGFsbCBjYXNlcyB3b3JrIGZpbmQgd2l0aCBzeXN0ZW1kIDIzMywg
+YnV0IG9ubHkgY2FzZSAxIHdvcmtzIGZpbmUKPiB3aXRoIHN5c3RlbWQgMjI5Lgo+IAo+IENhc2Ug
+Miw0IGNhbiBiZSB0cmVhdGVkIGFzIGFuIG9yZGVyIGlzc3VlOgo+ICAgIElmIHRoZSBidXR0b24g
+ZHJpdmVyIGFsd2F5cyBldmFsdWF0ZXMgX0xJRCBhZnRlciBzZWVpbmcgYSBMSUQKPiAgICBub3Rp
+ZmljYXRpb24sIHRoZXJlIHNob3VsZG4ndCBiZSBzdWNoIGEgcHJvYmxlbS4KPiAKPiBOb3RlIHRo
+YXQgdGhpcyBvcmRlciBpc3N1ZSBjYW5ub3QgYmUgZml4ZWQgYnkgc29ydGluZyBPUyBkcml2ZXJz
+JyByZXN1bWUKPiBjb2RlOgo+IDEuIFdoZW4gYWNwaS5lY19mcmVlemVfZXZlbnRzPVksIHRoZSBv
+cmRlciBkZXBlbmRzIG9uIHdoZXRoZXIgUE5QMEMwRChMSUQpCj4gICAgb3IgUE5QMEMwOShFQykg
+YXBwZWFycyBmaXJzdCBpbiB0aGUgbmFtZXNwYWNlIChwcm9iZSBvcmRlcikuCj4gMi4gRXZlbiB3
+aGVuIGFjcGkuZWNfZnJlZXplX2V2ZW50cz1OLCB3aGljaCBmb3JjZXMgT1MgdG8gaGFuZGxlIEVD
+IGV2ZW50cwo+ICAgIGFzIGVhcmx5IGFzIHBvc3NpYmxlLCB0aGUgb3JkZXIgaXNzdWUgY2FuIHN0
+aWxsIGJlIHJlcHJvZHVjZWQgZHVlIHRvCj4gICAgcGxhdGZvcm0gZGVsYXlzIChyZXByb2R1Y2Ug
+cmF0aW8gaXMgbG93ZXIgdGhhbiBjYXNlIDEpLgo+IDMuIFNvbWUgcGxhdGZvcm0gc2ltcGx5IGhh
+cyBhIHZlcnkgYmlnIGRlbGF5IGZvciBMSUQgb3BlbiBldmVudHMuCj4gCj4gVGhpcyBwYXRjaCB0
+cmllcyB0byBmaXggdGhpcyBpc3N1ZSBmb3Igc3lzdGVtZCAyMjkgYnkgZGVmZXIgc2VuZGluZyBp
+bml0aWFsCj4gbGlkIHN0YXRlIDEwIHNlY29uZHMgbGF0ZXIgYWZ0ZXIgcmVzdW1lLCB3aGljaCBl
+bnN1cmVzIEVDIGV2ZW50cyBjYW4gYWx3YXlzCj4gYXJyaXZlIGJlZm9yZSBidXR0b24gZHJpdmVy
+IGV2YWx1YXRlcyBfTElELiBJdCBmaW5hbGx5IG9ubHkgZml4ZXMgY2FzZSAyCj4gcGxhdGZvcm1z
+IGFzIGZpeGluZyBjYXNlIDQgcGxhdGZvcm1zIG5lZWRzIGFkZGl0aW9uYWwgZWZmb3J0cyAoc2Vl
+IGtub3duCj4gaXNzdWUgYmVsb3cpLgo+IAo+IFRoZSB1c2VycyBjYW4gY29uZmlndXJlIHdhaXQg
+dGltZW91dCB2aWEgYnV0dG9uLmxpZF9ub3RpZnlfdGltZW91dC4KPiAKPiBLbm93biBpc3N1Ogo+
+IDEuIHN5c3RlbWQvbG9naW5kIDIyOSBzdGlsbCBtaXMtYmFoYXZlcyB3aXRoIGNhc2UgMyw0IHBs
+YXRmb3Jtcwo+ICAgIEFmdGVyIHNlZWluZyBhIExJRCAiY2xvc2UiIGV2ZW50LCBzeXN0ZW1kIDIy
+OSB3aWxsIHdhaXQgc2V2ZXJhbCBzZWNvbmRzCj4gICAgKEhvbGRvZmZUaW1lb3V0U2VjKSBiZWZv
+cmUgc3VzcGVuZGluZyB0aGUgcGxhdGZvcm0uIFRodXMgb24gY2FzZSA0Cj4gICAgcGxhdGZvcm1z
+LCBpZiB1c2VycyBjbG9zZSBsaWQsIGFuZCByZS1vcGVuIGl0IGR1cmluZyB0aGUKPiAgICBIb2xk
+b2ZmVGltZW91dFNlYyBwZXJpb2QsIHRoZXJlIGlzIHN0aWxsIG5vICJvcGVuIiBldmVudHMgc2Vl
+biBieSB0aGUKPiAgICB1c2Vyc3BhY2UuIFRodXMgc3lzdGVtZCBzdGlsbCBjb25zaWRlcnMgdGhl
+IGxhc3Qgc3RhdGUgYXMgImNsb3NlIiBhbmQKPiAgICBzdXNwZW5kcyB0aGUgcGxhdGZvcm0gYWZ0
+ZXIgdGhlIEhvbGRvZmZUaW1lb3V0U2VjIHRpbWVzIG91dC4KPiAKPiBDYzogPHN5c3RlbWQtZGV2
+ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnPgo+IENjOiBCZW5qYW1pbiBUaXNzb2lyZXMgPGJlbmph
+bWluLnRpc3NvaXJlc0ByZWRoYXQuY29tPgo+IENjOiBQZXRlciBIdXR0ZXJlciA8cGV0ZXIuaHV0
+dGVyZXJAd2hvLXQubmV0Pgo+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRl
+bC5jb20+Cj4gLS0tCgpOQUNLIG9uIHRoaXMgb25lIChhdCBsZWFzdCBpbiB0aGlzIGN1cnJlbnQg
+Zm9ybSk6IFlvdSBhcmUgcHJlc2VudGluZyBhCmRldmljZSB0byB1c2VyIHNwYWNlIHdpdGggYW4g
+dW5rbm93biBzdGF0ZS4KSWYgeW91IHdhbnQgdG8gZGVsYXkgdGhlIHF1ZXJ5IG9mIHRoZSBzdGF0
+ZSwgeW91IGFsc28gbmVlZCB0byBkZWxheSB0aGUKY2FsbCBvZiBpbnB1dF9yZWdpc3Rlcl9kZXZp
+Y2UoKS4KCkNoZWVycywKQmVuamFtaW4KCj4gIGRyaXZlcnMvYWNwaS9idXR0b24uYyB8IDM2ICsr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLQo+ICAxIGZpbGUgY2hhbmdlZCwgMzQg
+aW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9h
+Y3BpL2J1dHRvbi5jIGIvZHJpdmVycy9hY3BpL2J1dHRvbi5jCj4gaW5kZXggZTE5ZjUzMC4uNjdh
+MGQ3OCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2FjcGkvYnV0dG9uLmMKPiArKysgYi9kcml2ZXJz
+L2FjcGkvYnV0dG9uLmMKPiBAQCAtMjgsNiArMjgsNyBAQAo+ICAjaW5jbHVkZSA8bGludXgvcHJv
+Y19mcy5oPgo+ICAjaW5jbHVkZSA8bGludXgvc2VxX2ZpbGUuaD4KPiAgI2luY2x1ZGUgPGxpbnV4
+L2lucHV0Lmg+Cj4gKyNpbmNsdWRlIDxsaW51eC90aW1lci5oPgo+ICAjaW5jbHVkZSA8bGludXgv
+c2xhYi5oPgo+ICAjaW5jbHVkZSA8bGludXgvYWNwaS5oPgo+ICAjaW5jbHVkZSA8YWNwaS9idXR0
+b24uaD4KPiBAQCAtNzksNiArODAsNyBAQCBNT0RVTEVfREVWSUNFX1RBQkxFKGFjcGksIGJ1dHRv
+bl9kZXZpY2VfaWRzKTsKPiAgc3RhdGljIGludCBhY3BpX2J1dHRvbl9hZGQoc3RydWN0IGFjcGlf
+ZGV2aWNlICpkZXZpY2UpOwo+ICBzdGF0aWMgaW50IGFjcGlfYnV0dG9uX3JlbW92ZShzdHJ1Y3Qg
+YWNwaV9kZXZpY2UgKmRldmljZSk7Cj4gIHN0YXRpYyB2b2lkIGFjcGlfYnV0dG9uX25vdGlmeShz
+dHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSwgdTMyIGV2ZW50KTsKPiArc3RhdGljIHZvaWQgYWNw
+aV9saWRfdGltZW91dCh1bG9uZyBhcmcpOwo+ICAKPiAgI2lmZGVmIENPTkZJR19QTV9TTEVFUAo+
+ICBzdGF0aWMgaW50IGFjcGlfYnV0dG9uX3N1c3BlbmQoc3RydWN0IGRldmljZSAqZGV2KTsKPiBA
+QCAtMTA0LDYgKzEwNiw3IEBAIHN0YXRpYyBzdHJ1Y3QgYWNwaV9kcml2ZXIgYWNwaV9idXR0b25f
+ZHJpdmVyID0gewo+ICBzdHJ1Y3QgYWNwaV9idXR0b24gewo+ICAJdW5zaWduZWQgaW50IHR5cGU7
+Cj4gIAlzdHJ1Y3QgaW5wdXRfZGV2ICppbnB1dDsKPiArCXN0cnVjdCB0aW1lcl9saXN0IGxpZF90
+aW1lcjsKPiAgCWNoYXIgcGh5c1szMl07CQkJLyogZm9yIGlucHV0IGRldmljZSAqLwo+ICAJdW5z
+aWduZWQgbG9uZyBwdXNoZWQ7Cj4gIAlpbnQgbGFzdF9zdGF0ZTsKPiBAQCAtMTE5LDYgKzEyMiwx
+MCBAQCBzdGF0aWMgdW5zaWduZWQgbG9uZyBsaWRfcmVwb3J0X2ludGVydmFsIF9fcmVhZF9tb3N0
+bHkgPSA1MDA7Cj4gIG1vZHVsZV9wYXJhbShsaWRfcmVwb3J0X2ludGVydmFsLCB1bG9uZywgMDY0
+NCk7Cj4gIE1PRFVMRV9QQVJNX0RFU0MobGlkX3JlcG9ydF9pbnRlcnZhbCwgIkludGVydmFsICht
+cykgYmV0d2VlbiBsaWQga2V5IGV2ZW50cyIpOwo+ICAKPiArc3RhdGljIHVuc2lnbmVkIGxvbmcg
+bGlkX25vdGlmeV90aW1lb3V0IF9fcmVhZF9tb3N0bHkgPSAxMDsKPiArbW9kdWxlX3BhcmFtKGxp
+ZF9ub3RpZnlfdGltZW91dCwgdWxvbmcsIDA2NDQpOwo+ICtNT0RVTEVfUEFSTV9ERVNDKGxpZF9u
+b3RpZnlfdGltZW91dCwgIlRpbWVvdXQgKHMpIGJlZm9yZSByZWNlaXZpbmcgbGlkIG5vdGlmaWNh
+dGlvbiIpOwo+ICsKPiAgLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgRlMgSW50ZXJmYWNlICgvcHJvYykKPiAgICAgLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0g
+Ki8KPiBAQCAtMzcxLDYgKzM3OCwxNSBAQCBzdGF0aWMgaW50IGFjcGlfbGlkX3VwZGF0ZV9zdGF0
+ZShzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkKPiAgCXJldHVybiBhY3BpX2xpZF9ub3RpZnlf
+c3RhdGUoZGV2aWNlLCBzdGF0ZSk7Cj4gIH0KPiAgCj4gK3N0YXRpYyB2b2lkIGFjcGlfbGlkX3N0
+YXJ0X3RpbWVyKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlLAo+ICsJCQkJIHVuc2lnbmVkIGxv
+bmcgbXNlY3MpCj4gK3sKPiArCXN0cnVjdCBhY3BpX2J1dHRvbiAqYnV0dG9uID0gYWNwaV9kcml2
+ZXJfZGF0YShkZXZpY2UpOwo+ICsKPiArCW1vZF90aW1lcigmYnV0dG9uLT5saWRfdGltZXIsCj4g
+KwkJICBqaWZmaWVzICsgbXNlY3NfdG9famlmZmllcyhtc2VjcykpOwo+ICt9Cj4gKwo+ICBzdGF0
+aWMgdm9pZCBhY3BpX2xpZF9pbml0aWFsaXplX3N0YXRlKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2
+aWNlKQo+ICB7Cj4gIAlzd2l0Y2ggKGxpZF9pbml0X3N0YXRlKSB7Cj4gQEAgLTM4Niw2ICs0MDIs
+MTMgQEAgc3RhdGljIHZvaWQgYWNwaV9saWRfaW5pdGlhbGl6ZV9zdGF0ZShzdHJ1Y3QgYWNwaV9k
+ZXZpY2UgKmRldmljZSkKPiAgCX0KPiAgfQo+ICAKPiArc3RhdGljIHZvaWQgYWNwaV9saWRfdGlt
+ZW91dCh1bG9uZyBhcmcpCj4gK3sKPiArCXN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlID0gKHN0
+cnVjdCBhY3BpX2RldmljZSAqKWFyZzsKPiArCj4gKwlhY3BpX2xpZF9pbml0aWFsaXplX3N0YXRl
+KGRldmljZSk7Cj4gK30KPiArCj4gIHN0YXRpYyB2b2lkIGFjcGlfYnV0dG9uX25vdGlmeShzdHJ1
+Y3QgYWNwaV9kZXZpY2UgKmRldmljZSwgdTMyIGV2ZW50KQo+ICB7Cj4gIAlzdHJ1Y3QgYWNwaV9i
+dXR0b24gKmJ1dHRvbiA9IGFjcGlfZHJpdmVyX2RhdGEoZGV2aWNlKTsKPiBAQCAtNDMyLDYgKzQ1
+NSw4IEBAIHN0YXRpYyBpbnQgYWNwaV9idXR0b25fc3VzcGVuZChzdHJ1Y3QgZGV2aWNlICpkZXYp
+Cj4gIAlzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSA9IHRvX2FjcGlfZGV2aWNlKGRldik7Cj4g
+IAlzdHJ1Y3QgYWNwaV9idXR0b24gKmJ1dHRvbiA9IGFjcGlfZHJpdmVyX2RhdGEoZGV2aWNlKTsK
+PiAgCj4gKwlpZiAoYnV0dG9uLT50eXBlID09IEFDUElfQlVUVE9OX1RZUEVfTElEKQo+ICsJCWRl
+bF90aW1lcigmYnV0dG9uLT5saWRfdGltZXIpOwo+ICAJYnV0dG9uLT5zdXNwZW5kZWQgPSB0cnVl
+Owo+ICAJcmV0dXJuIDA7Cj4gIH0KPiBAQCAtNDQzLDcgKzQ2OCw4IEBAIHN0YXRpYyBpbnQgYWNw
+aV9idXR0b25fcmVzdW1lKHN0cnVjdCBkZXZpY2UgKmRldikKPiAgCj4gIAlidXR0b24tPnN1c3Bl
+bmRlZCA9IGZhbHNlOwo+ICAJaWYgKGJ1dHRvbi0+dHlwZSA9PSBBQ1BJX0JVVFRPTl9UWVBFX0xJ
+RCkKPiAtCQlhY3BpX2xpZF9pbml0aWFsaXplX3N0YXRlKGRldmljZSk7Cj4gKwkJYWNwaV9saWRf
+c3RhcnRfdGltZXIoZGV2aWNlLAo+ICsJCQlsaWRfbm90aWZ5X3RpbWVvdXQgKiBNU0VDX1BFUl9T
+RUMpOwo+ICAJcmV0dXJuIDA7Cj4gIH0KPiAgI2VuZGlmCj4gQEAgLTQ5MCw2ICs1MTYsOSBAQCBz
+dGF0aWMgaW50IGFjcGlfYnV0dG9uX2FkZChzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkKPiAg
+CQkJQUNQSV9CVVRUT05fQ0xBU1MsIEFDUElfQlVUVE9OX1NVQkNMQVNTX0xJRCk7Cj4gIAkJYnV0
+dG9uLT5sYXN0X3N0YXRlID0gISFhY3BpX2xpZF9ldmFsdWF0ZV9zdGF0ZShkZXZpY2UpOwo+ICAJ
+CWJ1dHRvbi0+bGFzdF90aW1lID0ga3RpbWVfZ2V0KCk7Cj4gKwkJaW5pdF90aW1lcigmYnV0dG9u
+LT5saWRfdGltZXIpOwo+ICsJCXNldHVwX3RpbWVyKCZidXR0b24tPmxpZF90aW1lciwKPiArCQkJ
+ICAgIGFjcGlfbGlkX3RpbWVvdXQsICh1bG9uZylkZXZpY2UpOwo+ICAJfSBlbHNlIHsKPiAgCQlw
+cmludGsoS0VSTl9FUlIgUFJFRklYICJVbnN1cHBvcnRlZCBoaWQgWyVzXVxuIiwgaGlkKTsKPiAg
+CQllcnJvciA9IC1FTk9ERVY7Cj4gQEAgLTUyNiwxMiArNTU1LDEzIEBAIHN0YXRpYyBpbnQgYWNw
+aV9idXR0b25fYWRkKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKQo+ICAJaWYgKGVycm9yKQo+
+ICAJCWdvdG8gZXJyX3JlbW92ZV9mczsKPiAgCWlmIChidXR0b24tPnR5cGUgPT0gQUNQSV9CVVRU
+T05fVFlQRV9MSUQpIHsKPiAtCQlhY3BpX2xpZF9pbml0aWFsaXplX3N0YXRlKGRldmljZSk7Cj4g
+IAkJLyoKPiAgCQkgKiBUaGlzIGFzc3VtZXMgdGhlcmUncyBvbmx5IG9uZSBsaWQgZGV2aWNlLCBv
+ciBpZiB0aGVyZSBhcmUKPiAgCQkgKiBtb3JlIHdlIG9ubHkgY2FyZSBhYm91dCB0aGUgbGFzdCBv
+bmUuLi4KPiAgCQkgKi8KPiAgCQlsaWRfZGV2aWNlID0gZGV2aWNlOwo+ICsJCWFjcGlfbGlkX3N0
+YXJ0X3RpbWVyKGRldmljZSwKPiArCQkJbGlkX25vdGlmeV90aW1lb3V0ICogTVNFQ19QRVJfU0VD
+KTsKPiAgCX0KPiAgCj4gIAlwcmludGsoS0VSTl9JTkZPIFBSRUZJWCAiJXMgWyVzXVxuIiwgbmFt
+ZSwgYWNwaV9kZXZpY2VfYmlkKGRldmljZSkpOwo+IEBAIC01NTEsNiArNTgxLDggQEAgc3RhdGlj
+IGludCBhY3BpX2J1dHRvbl9yZW1vdmUoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UpCj4gIAlz
+dHJ1Y3QgYWNwaV9idXR0b24gKmJ1dHRvbiA9IGFjcGlfZHJpdmVyX2RhdGEoZGV2aWNlKTsKPiAg
+Cj4gIAlhY3BpX2J1dHRvbl9yZW1vdmVfZnMoZGV2aWNlKTsKPiArCWlmIChidXR0b24tPnR5cGUg
+PT0gQUNQSV9CVVRUT05fVFlQRV9MSUQpCj4gKwkJZGVsX3RpbWVyX3N5bmMoJmJ1dHRvbi0+bGlk
+X3RpbWVyKTsKPiAgCWlucHV0X3VucmVnaXN0ZXJfZGV2aWNlKGJ1dHRvbi0+aW5wdXQpOwo+ICAJ
+a2ZyZWUoYnV0dG9uKTsKPiAgCXJldHVybiAwOwo+IC0tIAo+IDIuNy40Cj4gCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCnN5c3RlbWQtZGV2ZWwgbWFpbGlu
+ZyBsaXN0CnN5c3RlbWQtZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vc3lzdGVtZC1kZXZlbAo=
