@@ -1,192 +1,310 @@
-From: Geetha Akula <geethasowjanya.akula@gmail.com>
-Subject: Re: [PATCH v9 3/3] iommu/arm-smmu-v3: Add workaround for Cavium
- ThunderX2 erratum #126
-Date: Fri, 23 Jun 2017 11:51:12 +0530
-Message-ID: <CANHdaiZ_upqJA-+Dvq3LpnP92ALyZRdp43ZvYBc8MeSJ0aZD4Q@mail.gmail.com>
-References: <1498133138-20244-1-git-send-email-gakula@caviumnetworks.com>
- <1498133138-20244-4-git-send-email-gakula@caviumnetworks.com> <20170622182226.GH15336@arm.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI / sleep: EC-based wakeup from suspend-to-idle on
+ recent systems
+Date: Fri, 23 Jun 2017 06:30:35 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CED4669@SHSMSX101.ccr.corp.intel.com>
+References: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
+ <3689795.xuIczRHZsl@aspire.rjw.lan> <2026371.DVJN39QYJi@aspire.rjw.lan>
+ <2368998.dmCsnrcXZy@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170622182226.GH15336@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Geetha sowjanya <gakula@caviumnetworks.com>, Robin Murphy <robin.murphy@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Linux IOMMU <iommu@lists.linux-foundation.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, jcm@redhat.com, linux-kernel@vger.kernel.org, Robert Richter <robert.richter@cavium.com>, Catalin Marinas <catalin.marinas@arm.com>, Sunil Goutham <sgoutham@cavium.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, Linu Cherian <linu.cherian@cavium.com>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Rob Herring <robh@kernel.org>, Geetha Sowjanya <geet>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:9212 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754426AbdFWGal (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 23 Jun 2017 02:30:41 -0400
+In-Reply-To: <2368998.dmCsnrcXZy@aspire.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>, Tom Lanyon <tom@oneshoeco.com>, =?iso-8859-1?Q?J=E9r=3Fme_de_Bretagne?= <jerome.debretagne@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Thu, Jun 22, 2017 at 11:52 PM, Will Deacon <will.deacon@arm.com> wrote:
-> Hi Geetha,
->
-> On Thu, Jun 22, 2017 at 05:35:38PM +0530, Geetha sowjanya wrote:
->> From: Geetha Sowjanya <geethasowjanya.akula@cavium.com>
->>
->> Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
->> lines for gerror, eventq and cmdq-sync.
->>
->> New named irq "combined" is set as a errata workaround, which allows to
->> share the irq line by register single irq handler for all the interrupts.
->>
->> Signed-off-by: Geetha sowjanya <gakula@caviumnetworks.com>
->> ---
->>  Documentation/arm64/silicon-errata.txt             |    1 +
->>  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    1 +
->>  drivers/acpi/arm64/iort.c                          |   54 +++++++----
->>  drivers/iommu/arm-smmu-v3.c                        |  105 +++++++++++++++-----
->>  4 files changed, 116 insertions(+), 45 deletions(-)
->
-> Thanks, this looks much better. Two things to change below, and I'd like to
-> see Lorenzo ack the iort changes.
+Hi, Rafael
 
-Thanks Will. I have resend the patch with suggested changes.
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Subject: [PATCH] ACPI / sleep: EC-based wakeup from suspend-to-idle on recent systems
+> 
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Some recent Dell laptops, including the XPS13 model numbers 9360 and
+> 9365, cannot be woken up from suspend-to-idle by pressing the power
+> button which is unexpected and makes that feature less usable on
+> those systems.  Moreover, on the 9365 ACPI S3 (suspend-to-RAM) is
+> not expected to be used at all (the OS these systems ship with never
+> exercises the ACPI S3 path in the firmware) and suspend-to-idle is
+> the only viable system suspend mechanism there.
+> 
+> The reason why the power button wakeup from suspend-to-idle doesn't
+> work on those systems is because their power button events are
+> signaled by the EC (Embedded Controller), whose GPE (General Purpose
+> Event) line is disabled during suspend-to-idle transitions in Linux.
+> That is done on purpose, because in general the EC tends to be noisy
+> for various reasons (battery and thermal updates and similar, for
+> example) and all events signaled by it would kick the CPUs out of
+> deep idle states while in suspend-to-idle, which effectively might
+> defeat its purpose.
+> 
+> Of course, on the Dell systems in question the EC GPE must be enabled
+> during suspend-to-idle transitions for the button press events to
+> be signaled while suspended at all, but fortunately there is a way
+> out of this puzzle.
+> 
+> First of all, those systems have the ACPI_FADT_LOW_POWER_S0 flag set
+> in their ACPI tables, which means that the OS is expected to prefer
+> the "low power S0 idle" system state over ACPI S3 on them.  That
+> causes the most recent versions of other OSes to simply ignore ACPI
+> S3 on those systems, so it is reasonable to expect that it should not
+> be necessary to block GPEs during suspend-to-idle on them.
+> 
+> Second, in addition to that, the systems in question provide a special
+> firmware interface that can be used to indicate to the platform that
+> the OS is transitioning into a system-wide low-power state in which
+> certain types of activity are not desirable or that it is leaving
+> such a state and that (in principle) should allow the platform to
+> adjust its operation mode accordingly.
+> 
+> That interface is a special _DSM object under a System Power
+> Management Controller device (PNP0D80).  The expected way to use it
+> is to invoke function 0 from it on system initialization, functions
+> 3 and 5 during suspend transitions and functions 4 and 6 during
+> resume transitions (to reverse the actions carried out by the
+> former).  In particular, function 5 from the "Low-Power S0" device
+> _DSM is expected to cause the platform to put itself into a low-power
+> operation mode which should include making the EC less verbose (so to
+> speak).  Next, on resume, function 6 switches the platform back to
+> the "working-state" operation mode.
+> 
+> In accordance with the above, modify the ACPI suspend-to-idle code
+> to look for the "Low-Power S0" _DSM interface on platforms with the
+> ACPI_FADT_LOW_POWER_S0 flag set in the ACPI tables.  If it's there,
+> use it during suspend-to-idle transitions as prescribed and avoid
+> changing the GPE configuration in that case.  [That should reflect
+> what the most recent versions of other OSes do.]
+> 
+> Also modify the ACPI EC driver to make it handle events during
+> suspend-to-idle in the usual way if the "Low-Power S0" _DSM interface
+> is going to be used to make the power button events work while
+> suspended on the Dell machines mentioned above
+> 
+> Link: http://www.uefi.org/sites/default/files/resources/Intel_ACPI_Low_Power_S0_Idle.pdf
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> This is a replacement for https://patchwork.kernel.org/patch/9797909/
+> 
+> The changelog describes what is going on (and now the "Low-Power S0" _DSM
+> specification is public, so it can be used officially here) and it gets the job
+> done on the XPS13 9360.  [The additional sort of "bonus" is that the machine
+> looks "suspended" in s2idle now, as one of the effects of the _DSM appears
+> to be turning off the lights in a quite literal sense.]
+> 
+> The patch is based on https://patchwork.kernel.org/patch/9797913/ and
+> https://patchwork.kernel.org/patch/9797903/ on top of the current linux-next.
+> 
+> Thanks,
+> Rafael
+> 
+> ---
+>  drivers/acpi/ec.c       |    2
+>  drivers/acpi/internal.h |    2
+>  drivers/acpi/sleep.c    |  107 ++++++++++++++++++++++++++++++++++++++++++++++--
+>  3 files changed, 107 insertions(+), 4 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/sleep.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/sleep.c
+> +++ linux-pm/drivers/acpi/sleep.c
+> @@ -652,6 +652,84 @@ static const struct platform_suspend_ops
+> 
+>  static bool s2idle_wakeup;
+> 
+> +/*
+> + * On platforms supporting the Low Power S0 Idle interface there is an ACPI
+> + * device object with the PNP0D80 compatible device ID (System Power Management
+> + * Controller) and a specific _DSM method under it.  That method, if present,
+> + * can be used to indicate to the platform that the OS is transitioning into a
+> + * low-power state in which certain types of activity are not desirable or that
+> + * it is leaving such a state, which allows the platform to adjust its operation
+> + * mode accordingly.
+> + */
+> +static const struct acpi_device_id lps0_device_ids[] = {
+> +	{"PNP0D80", },
+> +	{"", },
+> +};
+> +
+> +#define ACPI_LPS0_DSM_UUID	"c4eb40a0-6cd2-11e2-bcfd-0800200c9a66"
+> +
+> +#define ACPI_LPS0_SCREEN_OFF	3
+> +#define ACPI_LPS0_SCREEN_ON	4
+> +#define ACPI_LPS0_ENTRY		5
+> +#define ACPI_LPS0_EXIT		6
+> +
+> +#define ACPI_S2IDLE_FUNC_MASK	((1 << ACPI_LPS0_ENTRY) | (1 << ACPI_LPS0_EXIT))
+> +
+> +static acpi_handle lps0_device_handle;
+> +static guid_t lps0_dsm_guid;
+> +static char lps0_dsm_func_mask;
+> +
+> +static void acpi_sleep_run_lps0_dsm(unsigned int func)
+> +{
+> +	union acpi_object *out_obj;
+> +
+> +	if (!(lps0_dsm_func_mask & (1 << func)))
+> +		return;
+> +
+> +	out_obj = acpi_evaluate_dsm(lps0_device_handle, &lps0_dsm_guid, 1, func, NULL);
+> +	ACPI_FREE(out_obj);
+> +
+> +	acpi_handle_debug(lps0_device_handle, "_DSM function %u evaluation %s\n",
+> +			  func, out_obj ? "successful" : "failed");
+> +}
+> +
+> +static int lps0_device_attach(struct acpi_device *adev,
+> +			      const struct acpi_device_id *not_used)
+> +{
+> +	union acpi_object *out_obj;
+> +
+> +	if (lps0_device_handle)
+> +		return 0;
+> +
+> +	if (!(acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0))
+> +		return 0;
+> +
+> +	guid_parse(ACPI_LPS0_DSM_UUID, &lps0_dsm_guid);
+> +	/* Check if the _DSM is present and as expected. */
+> +	out_obj = acpi_evaluate_dsm(adev->handle, &lps0_dsm_guid, 1, 0, NULL);
+> +	if (out_obj && out_obj->type == ACPI_TYPE_BUFFER) {
+> +		char bitmask = *(char *)out_obj->buffer.pointer;
+> +
+> +		if ((bitmask & ACPI_S2IDLE_FUNC_MASK) == ACPI_S2IDLE_FUNC_MASK) {
+> +			lps0_dsm_func_mask = bitmask;
+> +			lps0_device_handle = adev->handle;
+> +		}
+> +
+> +		acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
+> +				  bitmask);
+> +	} else {
+> +		acpi_handle_debug(adev->handle,
+> +				  "_DSM function 0 evaluation failed\n");
+> +	}
+> +	ACPI_FREE(out_obj);
+> +	return 0;
+> +}
+> +
+> +static struct acpi_scan_handler lps0_handler = {
+> +	.ids = lps0_device_ids,
+> +	.attach = lps0_device_attach,
+> +};
+> +
+>  static int acpi_freeze_begin(void)
+>  {
+>  	acpi_scan_lock_acquire();
+> @@ -660,8 +738,18 @@ static int acpi_freeze_begin(void)
+> 
+>  static int acpi_freeze_prepare(void)
+>  {
+> -	acpi_enable_all_wakeup_gpes();
+> -	acpi_os_wait_events_complete();
+> +	if (lps0_device_handle) {
+> +		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF);
+> +		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY);
+> +	} else {
+> +		/*
+> +		 * The configuration of GPEs is changed here to avoid spurious
+> +		 * wakeups, but that should not be necessary if this is a
+> +		 * "low-power S0" platform and the low-power S0 _DSM is present.
+> +		 */
+> +		acpi_enable_all_wakeup_gpes();
+> +		acpi_os_wait_events_complete();
+> +	}
+>  	if (acpi_sci_irq_valid())
+>  		enable_irq_wake(acpi_sci_irq);
+> 
+> @@ -700,7 +788,12 @@ static void acpi_freeze_restore(void)
+>  	if (acpi_sci_irq_valid())
+>  		disable_irq_wake(acpi_sci_irq);
+> 
+> -	acpi_enable_all_runtime_gpes();
+> +	if (lps0_device_handle) {
+> +		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT);
+> +		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON);
+> +	} else {
+> +		acpi_enable_all_runtime_gpes();
+> +	}
+>  }
+> 
+>  static void acpi_freeze_end(void)
+> @@ -727,11 +820,14 @@ static void acpi_sleep_suspend_setup(voi
+> 
+>  	suspend_set_ops(old_suspend_ordering ?
+>  		&acpi_suspend_ops_old : &acpi_suspend_ops);
+> +
+> +	acpi_scan_add_handler(&lps0_handler);
+>  	freeze_set_ops(&acpi_freeze_ops);
+>  }
+> 
+>  #else /* !CONFIG_SUSPEND */
+>  #define s2idle_wakeup	(false)
+> +#define lps0_device_handle	(NULL)
+>  static inline void acpi_sleep_suspend_setup(void) {}
+>  #endif /* !CONFIG_SUSPEND */
+> 
+> @@ -740,6 +836,11 @@ bool acpi_s2idle_wakeup(void)
+>  	return s2idle_wakeup;
+>  }
+> 
+> +bool acpi_sleep_no_ec_events(void)
+> +{
+> +	return pm_suspend_via_firmware() || !lps0_device_handle;
+> +}
+> +
+>  #ifdef CONFIG_PM_SLEEP
+>  static u32 saved_bm_rld;
+> 
+> Index: linux-pm/drivers/acpi/ec.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/ec.c
+> +++ linux-pm/drivers/acpi/ec.c
+> @@ -1835,7 +1835,7 @@ static int acpi_ec_suspend(struct device
+>  	struct acpi_ec *ec =
+>  		acpi_driver_data(to_acpi_device(dev));
+> 
+> -	if (ec_freeze_events)
+> +	if (acpi_sleep_no_ec_events() && ec_freeze_events)
+>  		acpi_ec_disable_event(ec);
+>  	return 0;
+>  }
 
+I just notice a slight pontential issue.
+Should we add a similar change to acpi_ec_stop()?
+acpi_ec_stop() will be invoked by acpi_block_transactions(). When
+ec_freeze_events=Y, acpi_ec_suspend() takes care of disabling
+event before noirq stage - I introduced this recently in order to
+avoid implementing event polling mode in noirq stage while still
+can fix event loss issue.
+When ec_freeze_events=N, acpi_block_transactions() takes care of
+disabling event after noirq stage - old EC driver logic, risking
+event loss issues on some platforms.
 
-Geetha.
->
->> diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
->> index 4693a32..42422f6 100644
->> --- a/Documentation/arm64/silicon-errata.txt
->> +++ b/Documentation/arm64/silicon-errata.txt
->> @@ -63,6 +63,7 @@ stable kernels.
->>  | Cavium         | ThunderX Core   | #27456          | CAVIUM_ERRATUM_27456        |
->>  | Cavium         | ThunderX SMMUv2 | #27704          | N/A                         |
->>  | Cavium         | ThunderX2 SMMUv3| #74             | N/A                         |
->> +| Cavium         | ThunderX2 SMMUv3| #126            | N/A                         |
->>  |                |                 |                 |                             |
->>  | Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
->>  |                |                 |                 |                             |
->> diff --git a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
->> index 6ecc48c..a5a1ca4 100644
->> --- a/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
->> +++ b/Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt
->> @@ -26,6 +26,7 @@ the PCIe specification.
->>                        * "priq"      - PRI Queue not empty
->>                        * "cmdq-sync" - CMD_SYNC complete
->>                        * "gerror"    - Global Error activated
->> +                      * "combined"  - Handles above all 4 interrupts.
->
-> Please make it clear that:
->
->   * The combined interrupt is optional, and should only be provided if
->     the hardware supports just a single, combined interrupt line.
->
->   * If provided, then the combined interrupt will be used in preference
->     to any others.
->
->>  - #iommu-cells      : See the generic IOMMU binding described in
->>                          devicetree/bindings/pci/pci-iommu.txt
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index c166f3e..43e1f13 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -828,6 +828,18 @@ static int __init arm_smmu_v3_count_resources(struct acpi_iort_node *node)
->>       return num_res;
->>  }
->>
->> +static bool arm_smmu_v3_is_combined_irq(struct acpi_iort_smmu_v3 *smmu)
->> +{
->> +     /*
->> +      * Cavium ThunderX2 implementation doesn't not support unique
->> +      * irq line. Use single irq line for all the SMMUv3 interrupts.
->> +      */
->> +     if (smmu->model == ACPI_IORT_SMMU_V3_CAVIUM_CN99XX)
->> +             return true;
->> +
->> +     return false;
->> +}
->> +
->>  static unsigned long arm_smmu_v3_resource_size(struct acpi_iort_smmu_v3 *smmu)
->>  {
->>       /*
->> @@ -855,26 +867,32 @@ static void __init arm_smmu_v3_init_resources(struct resource *res,
->>       res[num_res].flags = IORESOURCE_MEM;
->>
->>       num_res++;
->> -
->> -     if (smmu->event_gsiv)
->> -             acpi_iort_register_irq(smmu->event_gsiv, "eventq",
->> -                                    ACPI_EDGE_SENSITIVE,
->> -                                    &res[num_res++]);
->> -
->> -     if (smmu->pri_gsiv)
->> -             acpi_iort_register_irq(smmu->pri_gsiv, "priq",
->> -                                    ACPI_EDGE_SENSITIVE,
->> -                                    &res[num_res++]);
->> -
->> -     if (smmu->gerr_gsiv)
->> -             acpi_iort_register_irq(smmu->gerr_gsiv, "gerror",
->> -                                    ACPI_EDGE_SENSITIVE,
->> -                                    &res[num_res++]);
->> -
->> -     if (smmu->sync_gsiv)
->> -             acpi_iort_register_irq(smmu->sync_gsiv, "cmdq-sync",
->> +     if (arm_smmu_v3_is_combined_irq(smmu))
->> +             acpi_iort_register_irq(smmu->event_gsiv, "combined",
->>                                      ACPI_EDGE_SENSITIVE,
->>                                      &res[num_res++]);
->> +     else {
->> +
->> +             if (smmu->event_gsiv)
->> +                     acpi_iort_register_irq(smmu->event_gsiv, "eventq",
->> +                                            ACPI_EDGE_SENSITIVE,
->> +                                            &res[num_res++]);
->> +
->> +             if (smmu->pri_gsiv)
->> +                     acpi_iort_register_irq(smmu->pri_gsiv, "priq",
->> +                                            ACPI_EDGE_SENSITIVE,
->> +                                            &res[num_res++]);
->> +
->> +             if (smmu->gerr_gsiv)
->> +                     acpi_iort_register_irq(smmu->gerr_gsiv, "gerror",
->> +                                            ACPI_EDGE_SENSITIVE,
->> +                                            &res[num_res++]);
->> +
->> +             if (smmu->sync_gsiv)
->> +                     acpi_iort_register_irq(smmu->sync_gsiv, "cmdq-sync",
->> +                                            ACPI_EDGE_SENSITIVE,
->> +                                            &res[num_res++]);
->> +     }
->>  }
->>
->>  static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
->> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
->> index 2dea4a9..0f83f7d 100644
->> --- a/drivers/iommu/arm-smmu-v3.c
->> +++ b/drivers/iommu/arm-smmu-v3.c
->> @@ -605,6 +605,7 @@ struct arm_smmu_device {
->>       struct arm_smmu_priq            priq;
->>
->>       int                             gerr_irq;
->> +     int                             combined_irq;
->>
->>       unsigned long                   ias; /* IPA */
->>       unsigned long                   oas; /* PA */
->> @@ -1314,6 +1315,29 @@ static irqreturn_t arm_smmu_gerror_handler(int irq, void *dev)
->>       return IRQ_HANDLED;
->>  }
->>
->> +static irqreturn_t arm_smmu_combined_irq_thread(int irq, void *dev)
->> +{
->> +     struct arm_smmu_device *smmu = dev;
->> +
->> +     arm_smmu_evtq_thread(irq, dev);
->> +     if (smmu->features & ARM_SMMU_FEAT_PRI)
->> +             arm_smmu_priq_thread(irq, dev);
->> +
->> +     return IRQ_HANDLED;
->> +}
->> +
->> +static irqreturn_t arm_smmu_combined_irq_handler(int irq, void *dev)
->> +{
->> +     irqreturn_t ret;
->> +
->> +     ret = arm_smmu_gerror_handler(irq, dev);
->> +     if (ret == IRQ_NONE) {
->
-> I don't think you can play that trick if the irq is an edge-triggered
-> interrupt, since you could lose an interrupt that fired whilst we were
-> in the handler.
->
-> The easiest thing is to always run the gerror and cmdq_sync handlers, and
-> then always return IRQ_WAKE_THREAD.
->
-> Will
+Thanks and best regards
+Lv
+
+> Index: linux-pm/drivers/acpi/internal.h
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/internal.h
+> +++ linux-pm/drivers/acpi/internal.h
+> @@ -199,9 +199,11 @@ void acpi_ec_remove_query_handler(struct
+>    -------------------------------------------------------------------------- */
+>  #ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
+>  extern bool acpi_s2idle_wakeup(void);
+> +extern bool acpi_sleep_no_ec_events(void);
+>  extern int acpi_sleep_init(void);
+>  #else
+>  static inline bool acpi_s2idle_wakeup(void) { return false; }
+> +static inline bool acpi_sleep_no_ec_events(void) { return true; }
+>  static inline int acpi_sleep_init(void) { return -ENXIO; }
+>  #endif
+> 
+
