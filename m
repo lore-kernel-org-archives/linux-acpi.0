@@ -1,75 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/4] randstruct: Disable randomization of ACPICA structs
-Date: Fri, 23 Jun 2017 01:59:37 +0200
-Message-ID: <3395263.N2PfeMfNmG@aspire.rjw.lan>
-References: <1497905801-69164-1-git-send-email-keescook@chromium.org> <CAJZ5v0hqRbsivmnG5iKMsR_ZMg+i_vxA7n-NOkuu3jh-TJ6pHw@mail.gmail.com> <CAGXu5jJWZos+uUgyc6hiHko=ei4b_6aCyZqRLDESfih1ybxR=w@mail.gmail.com>
+From: Jonathan Woithe <jwoithe@just42.net>
+Subject: Re: [PATCH 1/7] platform/x86: fujitsu-laptop: do not use kfifo for
+ storing hotkey scancodes
+Date: Fri, 23 Jun 2017 09:44:58 +0930
+Message-ID: <20170623001458.GE24368@marvin.atrad.com.au>
+References: <20170616044058.30443-1-kernel@kempniu.pl>
+ <20170616044058.30443-2-kernel@kempniu.pl>
+ <20170621181543.GB25900@fury>
+ <20170621235021.GA32131@marvin.atrad.com.au>
+ <20170622024413.GE25900@fury>
+ <20170622030120.GF32131@marvin.atrad.com.au>
+ <20170622204619.GB4194@kmp-mobile.hq.kempniu.pl>
+ <20170622235809.GB27213@fury>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:64662 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752832AbdFWAG5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 22 Jun 2017 20:06:57 -0400
-In-Reply-To: <CAGXu5jJWZos+uUgyc6hiHko=ei4b_6aCyZqRLDESfih1ybxR=w@mail.gmail.com>
+Received: from server.atrad.com.au ([150.101.241.2]:56568 "EHLO
+        server.atrad.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753557AbdFWAP6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 20:15:58 -0400
+Content-Disposition: inline
+In-Reply-To: <20170622235809.GB27213@fury>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>, Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Christoph Hellwig <hch@infradead.org>, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Robert Moore <robert.moore@intel.com>
+To: Darren Hart <dvhart@infradead.org>
+Cc: Micha?? K??pie?? <kernel@kempniu.pl>, Rafael Wysocki <rjw@rjwysocki.net>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, June 22, 2017 04:57:39 PM Kees Cook wrote:
-> On Tue, Jun 20, 2017 at 2:34 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> > On Tue, Jun 20, 2017 at 10:35 PM, Christoph Hellwig <hch@infradead.org> wrote:
-> >> On Tue, Jun 20, 2017 at 12:25:53PM -0700, Kees Cook wrote:
-> >>> Can you send the patch to https://github.com/acpica/acpica ? My change
-> >>> was finally accepted, so this whole issue will go away on the next
-> >>> refresh. Until then, I don't want to block the entire automatic
-> >>> structure selection logic of randstruct on a three-function table. :)
-> >>
-> >> I do not have a github account and no such thing is required for kernel
-> >> development.
-> >
-> > It isn't required for the ACPICA material either.
-> >
-> > You just need to CC the ACPICA maintainers, as per MAINTAINERS, on
-> > your ACPICA patches.  They pick up stuff that looks good to them.
-> >
-> > And we tend to prefer routing ACPICA changes through the upstream,
-> > because failing to do so usually turns out to be painful in the long
-> > term.  I don't think it is unreasonable to ask for cooperation in that
-> > respect.
+On Thu, Jun 22, 2017 at 04:58:09PM -0700, Darren Hart wrote:
+> On Thu, Jun 22, 2017 at 10:46:19PM +0200, Micha?? K??pie?? wrote:
+> > > The events seen by userspace with the original code would be "A-press",
+> > > "B-press", "A-release", "B-release".  With the revised code the order of the
+> > > release events would be reversed compared to the previous behaviour.  That
+> > > is, unless I've misunderstood how sparse_keymap_report_event() works.
+> > 
+> > All you wrote above is correct and this patch does change the order of
+> > release events sent to userspace when multiple hotkeys are pressed
+> > simultaneously.  The question is: is it relevant for any practical
+> > scenario?
+> > 
+> > Anyway, I find this matter to be of secondary importance.  The primary
+> > objective of this patch is to get rid of the kfifo.  If anyone has
+> > strong feelings about the change in event ordering, I will be happy to
+> > revert to FIFO in v2.
 > 
-> I'd like to unblock randstruct, so what's the easiest way to move
-> this? My version of changes have already landed upstream in ACPICA,
-> but I don't know how frequently they get flushed back into the kernel.
+> This all looks reasonable to me, I don't see anything requiring a respin.
 
-Usually, when there's a new ACPICA release, but occasionally that happens
-faster.
+I agree it is of seconary importance.  To me, using LIFO release order is
+counter-intuitive, but it's the sort of question that if put to 100 people
+you'll get a 50/50 split of opinions.
 
-Which commit in upstream ACPICA is this?
+Especially since the whole "multiple buttons held at once" scenario is
+rather unusual we can go with switching the order if others don't see a
+problem with the behavioural change.
 
-> I can't turn on randstruct auto-selection in -next without either
-> ACPICA using (or not needing) designated initializers or just
-> blacklisting it in the randstruct plugin itself. I would much prefer
-> the latter as the problem is solved in ACPICA upstream already but
-> just isn't in the kernel yet, and I want to get testing of the
-> auto-selection ASAP. Once it's in the kernel I can drop the blacklist.
-> 
-> Christoph: how about a middle ground where randstruct blacklists
-> ACPICA in -next and if ACPICA is fixed by the time the merge window
-> opens, I'll drop the blacklist. That gets the testing coverage without
-> what you see as an ugly hack right now. I just really don't want to
-> waste any more time on this since there are SO many other randomized
-> structures I'd like to be sure are getting testing.
-> 
-> Alternatively, if the ACPICA folks Ack Christoph's patch, I can carry
-> that in the randstruct tree for -next instead?
-
-Maybe we can simply forward port the ACPICA commit right away.
-
-Lv, can you take care of this, please?
-
-Thanks,
-Rafael
-
+Regards
+  jonathan
