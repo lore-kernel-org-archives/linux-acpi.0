@@ -1,84 +1,47 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH 3/4] randstruct: Disable randomization of ACPICA structs
-Date: Thu, 22 Jun 2017 17:20:31 -0700
-Message-ID: <CAGXu5jLr5mS0x6faLm-XM3G18vShjuGgjd0OcdTRn=qxgsXtwQ@mail.gmail.com>
-References: <1497905801-69164-1-git-send-email-keescook@chromium.org>
- <CAJZ5v0hqRbsivmnG5iKMsR_ZMg+i_vxA7n-NOkuu3jh-TJ6pHw@mail.gmail.com>
- <CAGXu5jJWZos+uUgyc6hiHko=ei4b_6aCyZqRLDESfih1ybxR=w@mail.gmail.com> <3395263.N2PfeMfNmG@aspire.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 2/6] ACPI / PM: Consolidate device wakeup settings code
+Date: Fri, 23 Jun 2017 03:05:57 +0200
+Message-ID: <8111646.zzkDnlQnPE@aspire.rjw.lan>
+References: <12296383.UdE5HVtyng@aspire.rjw.lan> <20170622073937.GR629@lahna.fi.intel.com> <4634255.ux8TmyfYTx@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f181.google.com ([209.85.223.181]:35419 "EHLO
-        mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753841AbdFWAUc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2017 20:20:32 -0400
-Received: by mail-io0-f181.google.com with SMTP id h134so24023546iof.2
-        for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2017 17:20:32 -0700 (PDT)
-In-Reply-To: <3395263.N2PfeMfNmG@aspire.rjw.lan>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:43036 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753833AbdFWBNS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 22 Jun 2017 21:13:18 -0400
+In-Reply-To: <4634255.ux8TmyfYTx@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Christoph Hellwig <hch@infradead.org>, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Robert Moore <robert.moore@intel.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On Thu, Jun 22, 2017 at 4:59 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Thursday, June 22, 2017 04:57:39 PM Kees Cook wrote:
->> On Tue, Jun 20, 2017 at 2:34 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->> > On Tue, Jun 20, 2017 at 10:35 PM, Christoph Hellwig <hch@infradead.org> wrote:
->> >> On Tue, Jun 20, 2017 at 12:25:53PM -0700, Kees Cook wrote:
->> >>> Can you send the patch to https://github.com/acpica/acpica ? My change
->> >>> was finally accepted, so this whole issue will go away on the next
->> >>> refresh. Until then, I don't want to block the entire automatic
->> >>> structure selection logic of randstruct on a three-function table. :)
->> >>
->> >> I do not have a github account and no such thing is required for kernel
->> >> development.
->> >
->> > It isn't required for the ACPICA material either.
->> >
->> > You just need to CC the ACPICA maintainers, as per MAINTAINERS, on
->> > your ACPICA patches.  They pick up stuff that looks good to them.
->> >
->> > And we tend to prefer routing ACPICA changes through the upstream,
->> > because failing to do so usually turns out to be painful in the long
->> > term.  I don't think it is unreasonable to ask for cooperation in that
->> > respect.
->>
->> I'd like to unblock randstruct, so what's the easiest way to move
->> this? My version of changes have already landed upstream in ACPICA,
->> but I don't know how frequently they get flushed back into the kernel.
->
-> Usually, when there's a new ACPICA release, but occasionally that happens
-> faster.
->
-> Which commit in upstream ACPICA is this?
+On Thursday, June 22, 2017 04:38:49 PM Rafael J. Wysocki wrote:
+> On Thursday, June 22, 2017 10:39:37 AM Mika Westerberg wrote:
+> > On Mon, Jun 19, 2017 at 11:33:52PM +0200, Rafael J. Wysocki wrote:
+> > > -#ifdef CONFIG_PM_SLEEP
+> > > -/**
+> > > - * acpi_pm_device_sleep_wake - Enable or disable device to wake up the system.
+> > > - * @dev: Device to enable/desible to wake up the system from sleep states.
+> > > - * @enable: Whether to enable or disable @dev to wake up the system.
+> > > - */
+> > > -int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
+> > > +int acpi_pm_device_wakeup(struct device *dev, bool enable)
+> > 
+> > Can we call it acpi_pm_device_enable_wakeup() and then provide
+> > corresponding acpi_pm_device_disable_wakeup()? I find those easier to
+> > understand than acpi_pm_device_wakeup() that sounds like the device
+> > should be woken up now.
+> 
+> OK, fair enough.  I'll change it this way.
 
-https://github.com/acpica/acpica/commit/2058b3bf5deecb9644d676703bd97d1bce5e612a
+Well, sorry, I'd rather not to, or we'll have to add a wrapper around them in
+pci-acpi.c. :-)
 
->> I can't turn on randstruct auto-selection in -next without either
->> ACPICA using (or not needing) designated initializers or just
->> blacklisting it in the randstruct plugin itself. I would much prefer
->> the latter as the problem is solved in ACPICA upstream already but
->> just isn't in the kernel yet, and I want to get testing of the
->> auto-selection ASAP. Once it's in the kernel I can drop the blacklist.
->>
->> Christoph: how about a middle ground where randstruct blacklists
->> ACPICA in -next and if ACPICA is fixed by the time the merge window
->> opens, I'll drop the blacklist. That gets the testing coverage without
->> what you see as an ugly hack right now. I just really don't want to
->> waste any more time on this since there are SO many other randomized
->> structures I'd like to be sure are getting testing.
->>
->> Alternatively, if the ACPICA folks Ack Christoph's patch, I can carry
->> that in the randstruct tree for -next instead?
->
-> Maybe we can simply forward port the ACPICA commit right away.
->
-> Lv, can you take care of this, please?
+I can rename it to acpi_pm_device_set_wakeup(), though.
 
-That would be great, thanks!
+Thanks,
+Rafael
 
--Kees
-
--- 
-Kees Cook
-Pixel Security
