@@ -1,45 +1,52 @@
-From: Certitude Loan Firm <rajesh.ard@brri.gov.bd>
-Subject: Get Fast certified loan
-Date: Sun, 25 Jun 2017 21:49:48 +0600 (BDT)
-Message-ID: <465782851.48221.1498405788158.JavaMail.zimbra@brri.gov.bd>
-References: <1733222284.48220.1498405775737.JavaMail.zimbra@brri.gov.bd>
-Reply-To: " certitudeloansservices@outlook.com" <rajesh.ard@brri.gov.bd>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH V4] acpi: acpica: fix acpi parse and parseext cache leaks
+Date: Sun, 25 Jun 2017 19:13:19 +0300
+Message-ID: <CAHp75VfssiqaMG0Qm_0EG1pMotGg5pMt1_bZobAFYkoRUv1W3w@mail.gmail.com>
+References: <1498210597-112293-1-git-send-email-kkamagui@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zimbra.bcc.gov.bd ([114.130.54.201]:35224 "EHLO
-        zimbra.bcc.gov.bd" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751128AbdFYQAj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Jun 2017 12:00:39 -0400
-In-Reply-To: <1733222284.48220.1498405775737.JavaMail.zimbra@brri.gov.bd>
+Received: from mail-qt0-f175.google.com ([209.85.216.175]:36680 "EHLO
+        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751172AbdFYQNV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Jun 2017 12:13:21 -0400
+In-Reply-To: <1498210597-112293-1-git-send-email-kkamagui@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Seunghun Han <kkamagui@gmail.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, devel@acpica.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hello Mr. / Mrs,
-
-Certitude loan firm is a charity loan firm organize to help people in need of financial help.
-We give loans from the range of $1,000 - $70,000,000. Our loan is well insured and maximum
-security is our priority, Our interested rate is 2%.
-
-We offer the following types of loans to individuals-
-
-* Commercial loans.
-* Personal Loans.
-* Business Loans.
-* And much more:
-
-Interested client should please fill our form below and send it to : certitudeloansservices@outlook.com
-
-1. Full name:
-2. Loan amount needed:
-3. Loan duration:
-4. Phone:
-5. Sex:
-6. Age:
-7. Occupation:
+On Fri, Jun 23, 2017 at 12:36 PM, Seunghun Han <kkamagui@gmail.com> wrote:
+> I'm Seunghun Han, and I work for National Security Research Institute of
+> South Korea.
 
 
-Certitude Loan Firm
-RAJESH TAYLOR,
-Loan Account Executive
+> -                                       /* Clean up */
+> -                                       do {
+> -                                               if (op) {
+> -                                                       status2 =
+> -                                                           acpi_ps_complete_this_op
+> -                                                           (walk_state, op);
+> -                                                       if (ACPI_FAILURE
+> -                                                           (status2)) {
+> -                                                               return_ACPI_STATUS
+> -                                                                   (status2);
+> -                                                       }
+> -                                               }
+> -
+> -                                               acpi_ps_pop_scope(&
+> -                                                                 (walk_state->
+> -                                                                  parser_state),
+> -                                                                 &op,
+> -                                                                 &walk_state->
+> -                                                                 arg_types,
+> -                                                                 &walk_state->
+> -                                                                 arg_count);
+> -
+> -                                       } while (op);
+
+I didn't get, do you send an incremental patch as a new version?!
+
+-- 
+With Best Regards,
+Andy Shevchenko
