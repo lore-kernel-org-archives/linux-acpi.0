@@ -1,110 +1,52 @@
-From: joeyli <jlee@suse.com>
-Subject: A udev rule to serve the change event of ACPI container?
-Date: Mon, 26 Jun 2017 14:26:57 +0800
-Message-ID: <20170626062657.GE4229@linux-l9pv.suse>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: ACPICA regression for empty ResourceTemplates
+Date: Mon, 26 Jun 2017 10:38:15 +0200
+Message-ID: <20170626083815.zxlohrjz64delbae@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:40656 "EHLO
-        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751008AbdFZG1M (ORCPT
-        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-        Mon, 26 Jun 2017 02:27:12 -0400
+Received: from mailout1.hostsharing.net ([83.223.95.204]:50003 "EHLO
+        mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751364AbdFZIiS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jun 2017 04:38:18 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Michal Hocko <mhocko@suse.cz>
+To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Ronald Tschalaer <ronald@innovation.ch>, linux-acpi@vger.kernel.org
 
-Hi all,
+Hi Robert,
 
-If ACPI received ejection request for a ACPI container, kernel
-emits KOBJ_CHANGE uevent when it found online children devices
-below the acpi container.
+ACPICA commit c8eac101 (= Linux commit a83019eb9f1f, "ACPICA: Update
+resource descriptor handling") is causing a regression when parsing
+an empty ResourceTemplate:
 
-Base on the description of caa73ea15 kernel patch, user space
-is expected to offline all devices below the container and the
-container itself. Then, user space can finalize the removal of
-the container with the help of its ACPI device object's eject
-attribute in sysfs.
+acpi_dev_get_resources() now returns -EIO because acpi_walk_resources()
+returns AE_AML_NO_RESOURCE_END_TAG for a buffer than contains just a
+lone end_tag.
 
-That means that kernel relies on users space to peform the offline
-and ejection jobs to acpi container and children devices. The
-discussion is here:
-	https://lkml.org/lkml/2013/11/28/520
+The ACPI 6.1 spec, page 800 explicitly allows empty resource templates:
 
-The mail loop didn't explain why the userspace is responsible for
-the whole container offlining. Is it possible to do that transparently
-from the kernel? What's the difference between offlining memory and
-processors which happends without any cleanup and container which
-does essentially the same except it happens at once? 
- 
- - After a couple of years, can we let the container hot-remove
-   process transparently?
- - Except udev rule, does there have any other mechanism to trigger
-   auto offline/ejection?
+    ResourceTemplateTerm :=
+        ResourceTemplate () {ResourceMacroList} => Buffer
+    ResourceMacroList :=
+        Nothing | <ResourceMacroTerm ResourceMacroList>
+        ^^^^^^^
 
-The attached patch is a udev rule that it's used to perform the
-offlien/ejection jobs on user space. I want to send it to systemd.
+Thus a term such as "ResourceTemplate () {}" is legal and should not cause
+an error to be returned.
 
-Thanks a lot!
-Joey Lee
+The commit claims to revert Rafael's Linux commit 1315f01632da ("Revert
+"ACPICA: Resources: Not a valid resource if buffer length too long"),
+but in fact does something different.
 
->From 6c95d4858e0e7c280e490491c1a00c1b5226a029 Mon Sep 17 00:00:00 2001
-From: "Lee, Chun-Yi" <jlee@suse.com>
-Date: Mon, 26 Jun 2017 11:40:03 +0800
-Subject: [PATCH] rules: handle the change event of ACPI container
+Please fix at your earliest convenience.  The issue was discovered and
+root-caused by Ronald Tschalär, please credit him in the fix, I'm merely
+relaying the information:
 
-Currently the ACPI in kernel emits KOBJ_CHANGE uevent when there
-have online children devices below the acpi container.
+Reported-by: Ronald Tschalär <ronald@innovation.ch>
 
-Base on the description of caa73ea15 kernel patch, user space
-is expected to offline all devices below the container and the
-container itself. Then, user space can finalize the removal of
-the container with the help of its ACPI device object's eject
-attribute in sysfs.
+Thanks,
 
-This udev rule can be a default user space application to meet
-kernel's expectations. This rule walks through the sysfs tree
-to trigger the offline of each child device then ejects the
-container.
-
-The ACPI_CONTAINER_EJECT environoment variable can be used to
-turn off the the ejection logic of container if the ejection
-will be triggered by other ways, e.g. BIOS or other user space
-application.
-
-Reference: https://lkml.org/lkml/2013/11/28/520
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
----
- rules/80-acpi-container-hotremove.rules | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
- create mode 100644 rules/80-acpi-container-hotremove.rules
-
-diff --git a/rules/80-acpi-container-hotremove.rules b/rules/80-acpi-container-hotremove.rules
-new file mode 100644
-index 000000000..ef4ceb5fb
---- /dev/null
-+++ b/rules/80-acpi-container-hotremove.rules
-@@ -0,0 +1,16 @@
-+# do not edit this file, it will be overwritten on update
-+
-+SUBSYSTEM=="container", ACTION=="change", DEVPATH=="*/ACPI0004:??", ENV{ACPI_CONTAINER_EJECT}="1"\
-+RUN+="/bin/sh -c ' \
-+if [ $(cat /sys/$env{DEVPATH}/online) -eq 1 ]; then \
-+        find -L /sys/$env{DEVPATH}/firmware_node/*/physical_node* -maxdepth 1 -name online | \
-+        while read line; do \
-+                if [ $(cat $line) -eq 1 ]; then \
-+                        /bin/echo 0 > $line; \
-+                fi \
-+        done; \
-+        /bin/echo 0 > /sys/$env{DEVPATH}/online; \
-+        if [$env{ACPI_CONTAINER_EJECT} -eq 1] && [ $(cat /sys/$env{DEVPATH}/online) -eq 0 ]; then \
-+                /bin/echo 1 > /sys/$env{DEVPATH}/firmware_node/eject; \
-+        fi \
-+fi'"
--- 
-2.12.0
+Lukas
