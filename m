@@ -1,33 +1,48 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: ACPICA regression for empty ResourceTemplates
-Date: Mon, 26 Jun 2017 14:38:53 +0200
-Message-ID: <20170626123853.GA14363@wunner.de>
-References: <20170626083815.zxlohrjz64delbae@wunner.de>
- <CAJZ5v0gsNAooprhJ4thgd184hB+gCeU_mo=fC=16TncAfAPqbw@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/6] ACPI / PM: Consolidate device wakeup settings code
+Date: Mon, 26 Jun 2017 16:29:41 +0300
+Message-ID: <20170626132941.GD629@lahna.fi.intel.com>
+References: <12296383.UdE5HVtyng@aspire.rjw.lan>
+ <20170622073937.GR629@lahna.fi.intel.com>
+ <4634255.ux8TmyfYTx@aspire.rjw.lan>
+ <8111646.zzkDnlQnPE@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout1.hostsharing.net ([83.223.95.204]:34549 "EHLO
-        mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751520AbdFZMiz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jun 2017 08:38:55 -0400
+Received: from mga14.intel.com ([192.55.52.115]:17225 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751963AbdFZNgz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 26 Jun 2017 09:36:55 -0400
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gsNAooprhJ4thgd184hB+gCeU_mo=fC=16TncAfAPqbw@mail.gmail.com>
+In-Reply-To: <8111646.zzkDnlQnPE@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ronald Tschalaer <ronald@innovation.ch>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On Mon, Jun 26, 2017 at 01:49:03PM +0200, Rafael J. Wysocki wrote:
-> On Mon, Jun 26, 2017 at 10:38 AM, Lukas Wunner <lukas@wunner.de> wrote:
-> > Hi Robert,
-> >
-> > ACPICA commit c8eac101 (= Linux commit a83019eb9f1f, "ACPICA: Update
-> > resource descriptor handling") is causing a regression when parsing
-> > an empty ResourceTemplate:
+On Fri, Jun 23, 2017 at 03:05:57AM +0200, Rafael J. Wysocki wrote:
+> On Thursday, June 22, 2017 04:38:49 PM Rafael J. Wysocki wrote:
+> > On Thursday, June 22, 2017 10:39:37 AM Mika Westerberg wrote:
+> > > On Mon, Jun 19, 2017 at 11:33:52PM +0200, Rafael J. Wysocki wrote:
+> > > > -#ifdef CONFIG_PM_SLEEP
+> > > > -/**
+> > > > - * acpi_pm_device_sleep_wake - Enable or disable device to wake up the system.
+> > > > - * @dev: Device to enable/desible to wake up the system from sleep states.
+> > > > - * @enable: Whether to enable or disable @dev to wake up the system.
+> > > > - */
+> > > > -int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
+> > > > +int acpi_pm_device_wakeup(struct device *dev, bool enable)
+> > > 
+> > > Can we call it acpi_pm_device_enable_wakeup() and then provide
+> > > corresponding acpi_pm_device_disable_wakeup()? I find those easier to
+> > > understand than acpi_pm_device_wakeup() that sounds like the device
+> > > should be woken up now.
+> > 
+> > OK, fair enough.  I'll change it this way.
 > 
-> This is a linux-next commit, right?
+> Well, sorry, I'd rather not to, or we'll have to add a wrapper around them in
+> pci-acpi.c. :-)
+> 
+> I can rename it to acpi_pm_device_set_wakeup(), though.
 
-Yes.
-
-Lukas
+Works for me :)
