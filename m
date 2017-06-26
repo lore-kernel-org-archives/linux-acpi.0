@@ -1,29 +1,42 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: CPPC patches from Prashanth
-Date: Mon, 26 Jun 2017 16:38:20 -0500
-Message-ID: <CAOZdJXUc5YiHYoH6Q=iYUWpvBBAygY5xnTdV3iiOR4J4Yxg7xg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: CPPC patches from Prashanth
+Date: Mon, 26 Jun 2017 23:33:12 +0200
+Message-ID: <2429607.Bmg7t1DNJ4@aspire.rjw.lan>
+References: <CAOZdJXUc5YiHYoH6Q=iYUWpvBBAygY5xnTdV3iiOR4J4Yxg7xg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:51522 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751466AbdFZViX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jun 2017 17:38:23 -0400
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63531 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751403AbdFZVkh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 26 Jun 2017 17:40:37 -0400
+In-Reply-To: <CAOZdJXUc5YiHYoH6Q=iYUWpvBBAygY5xnTdV3iiOR4J4Yxg7xg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-pm@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Prashanth Prakash <pprakash@codeaurora.org>
+To: Timur Tabi <timur@codeaurora.org>
+Cc: linux-pm@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Prashanth Prakash <pprakash@codeaurora.org>
 
-Rafael,
+On Monday, June 26, 2017 04:38:20 PM Timur Tabi wrote:
+> Rafael,
+> 
+> If you haven't already, can you pick up these two patch from Prashanth?
+> 
+> https://patchwork.codeaurora.org/patch/247325/
+> https://patchwork.codeaurora.org/patch/241917/
+> 
+> We'd like these in 4.13.
+> 
+> 
 
-If you haven't already, can you pick up these two patch from Prashanth?
+I'm actually unsure about the first one.
 
-https://patchwork.codeaurora.org/patch/247325/
-https://patchwork.codeaurora.org/patch/241917/
+I'll reply to the patch later today (or tomorrow).
 
-We'd like these in 4.13.
+The second one is in my TODO list for things to apply, but I need to look at
+it more closely still.
 
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
-Technologies, Inc.  Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+Thanks,
+Rafael
+
