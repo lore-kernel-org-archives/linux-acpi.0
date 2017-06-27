@@ -1,65 +1,49 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH] ACPI / sleep: EC-based wakeup from suspend-to-idle on
- recent systems
-Date: Tue, 27 Jun 2017 11:10:13 +0000
-Message-ID: <17c669c9562747319f743ef8d76e3114@ausx13mpc120.AMER.DELL.COM>
-References: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
- <3689795.xuIczRHZsl@aspire.rjw.lan> <2026371.DVJN39QYJi@aspire.rjw.lan>
- <2368998.dmCsnrcXZy@aspire.rjw.lan>
- <CA+55aFyBfHVyh=TMifF+0KGEVy6JEyDz=gbHdP7nM2roa++X4Q@mail.gmail.com>
- <CA+b4Kqd9qV0Pc7wJ2eHKcA-7+a23tY9gfe2Abm4=Bd08SKkh8w@mail.gmail.com>
+From: Jonathan Woithe <jwoithe@just42.net>
+Subject: Re: [PATCH 1/7] platform/x86: fujitsu-laptop: do not use kfifo for
+ storing hotkey scancodes
+Date: Tue, 27 Jun 2017 21:46:47 +0930
+Message-ID: <20170627121647.GA28877@marvin.atrad.com.au>
+References: <20170616044058.30443-1-kernel@kempniu.pl>
+ <20170616044058.30443-2-kernel@kempniu.pl>
+ <20170621181543.GB25900@fury>
+ <40512901.HXkrFCdsVg@aspire.rjw.lan>
+ <20170627000718.GA11146@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CA+b4Kqd9qV0Pc7wJ2eHKcA-7+a23tY9gfe2Abm4=Bd08SKkh8w@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: tom@oneshoeco.com, rjw@rjwysocki.net
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, andriy.shevchenko@linux.intel.com, dvhart@infradead.org, linux-kernel@vger.kernel.org, srinivas.pandruvada@linux.intel.com, mika.westerberg@linux.intel.com, jerome.debretagne@gmail.com, lv.zheng@intel.com, torvalds@linux-foundation.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from server.atrad.com.au ([150.101.241.2]:60526 "EHLO
+        server.atrad.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752335AbdF0MSE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Jun 2017 08:18:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20170627000718.GA11146@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Micha?? K??pie?? <kernel@kempniu.pl>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBUb20gTGFueW9uIFttYWlsdG86
-dG9tQG9uZXNob2Vjby5jb21dDQo+IFNlbnQ6IFR1ZXNkYXksIEp1bmUgMjcsIDIwMTcgMTI6NTEg
-QU0NCj4gVG86IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD4NCj4gQ2M6IExp
-bnV4IEFDUEkgPGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnPjsgTGludXggUE0gPGxpbnV4LQ0K
-PiBwbUB2Z2VyLmtlcm5lbC5vcmc+OyBBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtv
-QGxpbnV4LmludGVsLmNvbT47DQo+IERhcnJlbiBIYXJ0IDxkdmhhcnRAaW5mcmFkZWFkLm9yZz47
-IExLTUwgPGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+Ow0KPiBTcmluaXZhcyBQYW5kcnV2
-YWRhIDxzcmluaXZhcy5wYW5kcnV2YWRhQGxpbnV4LmludGVsLmNvbT47IE1pa2EgV2VzdGVyYmVy
-Zw0KPiA8bWlrYS53ZXN0ZXJiZXJnQGxpbnV4LmludGVsLmNvbT47IExpbW9uY2llbGxvLCBNYXJp
-bw0KPiA8TWFyaW9fTGltb25jaWVsbG9ARGVsbC5jb20+OyBKw6lyw7RtZSBkZSBCcmV0YWduZQ0K
-PiA8amVyb21lLmRlYnJldGFnbmVAZ21haWwuY29tPjsgWmhlbmcsIEx2IDxsdi56aGVuZ0BpbnRl
-bC5jb20+OyBMaW51cyBUb3J2YWxkcw0KPiA8dG9ydmFsZHNAbGludXgtZm91bmRhdGlvbi5vcmc+
-DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIEFDUEkgLyBzbGVlcDogRUMtYmFzZWQgd2FrZXVwIGZy
-b20gc3VzcGVuZC10by1pZGxlIG9uIHJlY2VudA0KPiBzeXN0ZW1zDQo+IA0KPiBPbiAyMyBKdW5l
-IDIwMTcgYXQgMTI6NDAsIExpbnVzIFRvcnZhbGRzIDx0b3J2YWxkc0BsaW51eC1mb3VuZGF0aW9u
-Lm9yZz4gd3JvdGU6DQo+ID4gT24gVGh1LCBKdW4gMjIsIDIwMTcgYXQgNDo1NiBQTSwgUmFmYWVs
-IEouIFd5c29ja2kgPHJqd0Byand5c29ja2kubmV0PiB3cm90ZToNCj4gPj4NCj4gPj4gU29tZSBy
-ZWNlbnQgRGVsbCBsYXB0b3BzLCBpbmNsdWRpbmcgdGhlIFhQUzEzIG1vZGVsIG51bWJlcnMgOTM2
-MCBhbmQNCj4gPj4gOTM2NSwgY2Fubm90IGJlIHdva2VuIHVwIGZyb20gc3VzcGVuZC10by1pZGxl
-IGJ5IHByZXNzaW5nIHRoZSBwb3dlcg0KPiA+PiBidXR0b24gd2hpY2ggaXMgdW5leHBlY3RlZCBh
-bmQgbWFrZXMgdGhhdCBmZWF0dXJlIGxlc3MgdXNhYmxlIG9uDQo+ID4+IHRob3NlIHN5c3RlbXMu
-ICBbIGRldGFpbHMgcmVtb3ZlZCBdDQo+ID4NCj4gPiBUaGlzIGxvb2tzIG11Y2ggbW9yZSByZWFz
-b25hYmxlIGFuZCBtb3JlIGxpa2VseSB0byB3b3JrIG9uIGZ1dHVyZSBtYWNoaW5lcyB0b28uDQo+
-ID4NCj4gPiBPZiBjb3Vyc2UsIHdobyBrbm93cyB3aGF0IGJyb2tlbiBtYWNoaW5lcyBpdCB3aWxs
-IGNhdXNlIHByb2JsZW1zIG9uLA0KPiA+IGJ1dCBpdCBzb3VuZHMgbGlrZSB0aGUgY29kZSBub3cg
-ZG9lcyB3aGF0IGl0J3Mgc3VwcG9zZWQgdG8gYW5kIHdoYXQNCj4gPiBXaW4xMCBkb2VzLCBzbyBt
-YXliZSBpdCBKdXN0V29ya3ModG0pLiBIYWguDQo+IA0KPiBSYWZhZWwgLSB0aGFua3MgZm9yIHlv
-dXIgZWZmb3J0cyBvbiB0aGlzLg0KPiANCj4gSSB3YW50ZWQgdG8gcHJvdmlkZSBzb21lIGZlZWRi
-YWNrIGZyb20gc29tZSBxdWljayBhbmQgbmFpdmUgdGVzdHMgb24NCj4gYW4gWFBTIDEzIDkzNjUg
-aW4gY2FzZSBpdCB3YXMgdXNlZnVsLCBhcyBpdCBzZWVtcyBsaWtlIHRoZXJlJ3Mgc3RpbGwNCj4g
-c29tZSB3YXkgdG8gZ28gYmVmb3JlIG1hdGNoaW5nIFdpbjEwJ3MgYmVoYXZpb3VyLg0KPiANCj4g
-ICAgIExpbnV4IGlkbGluZyB3LyBzY3JlZW4gT04gPT4gMTclIGJhdHRlcnkgZHJhaW4gcGVyIGhv
-dXIuDQo+ICAgICBMaW51eCBpZGxpbmcgdy8gc2NyZWVuIE9GRiA9PiAxMiUgYmF0dGVyeSBkcmFp
-biBwZXIgaG91ci4NCj4gICAgIExpbnV4IGR1cmluZyBzMmlkbGUgPT4gNiUgYmF0dGVyeSBkcmFp
-biBwZXIgaG91ci4NCj4gICAgIFdpbjEwIGR1cmluZyBzbGVlcCA9PiAxJSBiYXR0ZXJ5IGRyYWlu
-IHBlciBob3VyLg0KPiANCj4gd2hlcmUgTGludXggPSA0LjEyLXJjNiArIHRoZSBsYXRlc3QgcGF0
-Y2ggZnJvbSB5b3VyIGFjcGktcG0tdGVzdCBicmFuY2guDQo+IA0KPiBTbyB3aGlsc3QgczJpZGxl
-IGhhbHZlcyB0aGUgYmF0dGVyeSBkcmFpbiBjb21wYXJlZCB0byB0aGUgbWFjaGluZQ0KPiBzdGF5
-aW5nIHBvd2VyZWQgb24sIGl0J3Mgc3RpbGwgc2lnbmlmaWNhbnRseSBtb3JlIGRyYWluaW5nIHRo
-YW4gV2luMTAuDQo+IExldCBtZSBrbm93IGlmIHRoZXJlJ3MgYW55IG1vcmUgdXNlZnVsIGFuYWx5
-c2lzIEkgY2FuIGRvLg0KPiANCj4gLVRvbQ0KDQpUb20sDQoNClRoaXMgaXMgcXVpdGUgdXNlZnVs
-IGRhdGEgcG9pbnRzIHRvIHByb3ZpZGUsIHRoYW5rcy4NCg0KV291bGQgeW91IG1pbmQgZG9pbmcg
-b24gbW9yZSB0ZXN0IGluIHlvdXIgTGludXggY29tcGFyaXNvbiBvZiB0dXJuaW5nIG9mZiBTRCBj
-YXJkIHJlYWRlciBpbiB0aGUgQklPUyBzZXR1cD8NCg0KVGhhbmtzLA0K
+On Mon, Jun 26, 2017 at 05:07:18PM -0700, Darren Hart wrote:
+> On Sat, Jun 24, 2017 at 02:25:46AM +0200, Rafael Wysocki wrote:
+> > > Rafael, the above rationale appears sound to me. Do you have any concerns?
+> > 
+> > I actually do.
+> > 
+> > While this is the case today, making the driver code depend on it in a hard way
+> > sort of makes it difficult to change in the future if need be.
+> 
+> OK, if we aren't guaranteed for this to run on CPU 0 in the future, and
+> this will be annoying to debug if it does changes, let's skip the kfifo
+> change.
+> 
+> I have removed this patch, and fixed up the merge conflicts of the
+> remaining 6 patches here:
+> 
+> http://git.infradead.org/linux-platform-drivers-x86.git/shortlog/refs/heads/fujitsu
+> 
+> Michal / Jonathan, would you please review and let me know if this is what
+> you would have done / approve the rebase?
+
+The rebase looks reasonable to me.
+
+Regards
+  jonathan
