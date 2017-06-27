@@ -1,79 +1,67 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: ACPICA regression for empty ResourceTemplates
-Date: Tue, 27 Jun 2017 15:08:53 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5C3C2C@ORSMSX110.amr.corp.intel.com>
-References: <20170626083815.zxlohrjz64delbae@wunner.de>
- <CAJZ5v0gsNAooprhJ4thgd184hB+gCeU_mo=fC=16TncAfAPqbw@mail.gmail.com>
- <20170626123853.GA14363@wunner.de>
- <1AE640813FDE7649BE1B193DEA596E886CED58AD@SHSMSX101.ccr.corp.intel.com>
- <20170627092425.GB5776@wunner.de>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / sleep: EC-based wakeup from suspend-to-idle on recent systems
+Date: Tue, 27 Jun 2017 17:03:48 +0200
+Message-ID: <1908911.91yT2N6t2f@aspire.rjw.lan>
+References: <1979543.KIEJ8uyRaT@aspire.rjw.lan> <CA+55aFyBfHVyh=TMifF+0KGEVy6JEyDz=gbHdP7nM2roa++X4Q@mail.gmail.com> <CA+b4Kqd9qV0Pc7wJ2eHKcA-7+a23tY9gfe2Abm4=Bd08SKkh8w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:29350 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751613AbdF0PJB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 27 Jun 2017 11:09:01 -0400
-In-Reply-To: <20170627092425.GB5776@wunner.de>
-Content-Language: en-US
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:56998 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752500AbdF0PLV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 27 Jun 2017 11:11:21 -0400
+In-Reply-To: <CA+b4Kqd9qV0Pc7wJ2eHKcA-7+a23tY9gfe2Abm4=Bd08SKkh8w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Ronald Tschalaer <ronald@innovation.ch>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Tom Lanyon <tom@oneshoeco.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>, =?ISO-8859-1?Q?J=E9r=F4me?= de Bretagne <jerome.debretagne@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>
 
-
-
-> -----Original Message-----
-> From: Lukas Wunner [mailto:lukas@wunner.de]
-> Sent: Tuesday, June 27, 2017 2:24 AM
-> To: Zheng, Lv <lv.zheng@intel.com>
-> Cc: Rafael J. Wysocki <rafael@kernel.org>; Moore, Robert
-> <robert.moore@intel.com>; Wysocki, Rafael J
-> <rafael.j.wysocki@intel.com>; Ronald Tschalaer <ronald@innovation.ch>;
-> ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-> Subject: Re: ACPICA regression for empty ResourceTemplates
-> 
-> On Tue, Jun 27, 2017 at 01:19:31AM +0000, Zheng, Lv wrote:
-> > > On Mon, Jun 26, 2017 at 01:49:03PM +0200, Rafael J. Wysocki wrote:
-> > > > On Mon, Jun 26, 2017 at 10:38 AM, Lukas Wunner <lukas@wunner.de>
-> wrote:
-> > > > > Hi Robert,
-> > > > >
-> > > > > ACPICA commit c8eac101 (= Linux commit a83019eb9f1f, "ACPICA:
-> > > > > Update resource descriptor handling") is causing a regression
-> > > > > when parsing an empty ResourceTemplate:
+On Tuesday, June 27, 2017 03:50:33 PM Tom Lanyon wrote:
+> On 23 June 2017 at 12:40, Linus Torvalds <torvalds@linux-foundation.org> wrote:
+> > On Thu, Jun 22, 2017 at 4:56 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >>
+> >> Some recent Dell laptops, including the XPS13 model numbers 9360 and
+> >> 9365, cannot be woken up from suspend-to-idle by pressing the power
+> >> button which is unexpected and makes that feature less usable on
+> >> those systems.  [ details removed ]
 > >
-> > Can it be fixed by using this logic:
-> > if (AmlLength < sizeof (AML_RESOURCE_END_TAG) && AmlLength) Instead of
-> > the logic introduced in commit a83019eb9f1f?
-> > if (AmlLength < sizeof (AML_RESOURCE_END_TAG))
+> > This looks much more reasonable and more likely to work on future machines too.
+> >
+> > Of course, who knows what broken machines it will cause problems on,
+> > but it sounds like the code now does what it's supposed to and what
+> > Win10 does, so maybe it JustWorks(tm). Hah.
 > 
-> Unfortunately not, AmlLength is not 0 but 2 in this case (=
-> sizeof(struct aml_resource_end_tag)).
+> Rafael - thanks for your efforts on this.
+
+You're welcome!
+
+> I wanted to provide some feedback from some quick and naive tests on
+> an XPS 13 9365 in case it was useful, as it seems like there's still
+> some way to go before matching Win10's behaviour.
 > 
+>     Linux idling w/ screen ON => 17% battery drain per hour.
+>     Linux idling w/ screen OFF => 12% battery drain per hour.
+>     Linux during s2idle => 6% battery drain per hour.
+>     Win10 during sleep => 1% battery drain per hour.
 > 
-> > If so, could you please offer a fix for upstream?
-[Moore, Robert] 
-
-Is the problem seen with something like this?
-
-    Name (BUF1, ResourceTemplate ()
-    {
-    })
-
-When BUF1 is evaluated, the exception happens?
-
-I think we have all of the ResourceTemplate issues resolved for the next release of ACPICA.
-Bob
-
-
-
+> where Linux = 4.12-rc6 + the latest patch from your acpi-pm-test branch.
 > 
-> I'd suggest just reverting the commit, a buffer containing a lone end
-> tag seems to be legal according to the spec, so returning an error seems
-> wrong.
-> 
-> Thanks,
-> 
-> Lukas
+> So whilst s2idle halves the battery drain compared to the machine
+> staying powered on, it's still significantly more draining than Win10.
+
+Thanks for the data.
+
+> Let me know if there's any more useful analysis I can do.
+
+I would carry out s2idle under turbostat to see how much PC10 residency is
+there while suspended.  That may be a significant factor.
+
+Most likely there is a device preventing the SoC from reaching its deepest
+low-power states under Linux on your system and it needs to be identified
+and dealt with.
+
+Thanks,
+Rafael
+
