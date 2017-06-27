@@ -1,62 +1,48 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: ACPICA regression for empty ResourceTemplates
-Date: Tue, 27 Jun 2017 01:19:31 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CED58AD@SHSMSX101.ccr.corp.intel.com>
-References: <20170626083815.zxlohrjz64delbae@wunner.de>
- <CAJZ5v0gsNAooprhJ4thgd184hB+gCeU_mo=fC=16TncAfAPqbw@mail.gmail.com>
- <20170626123853.GA14363@wunner.de>
+From: Tom Lanyon <tom@oneshoeco.com>
+Subject: Re: [PATCH] ACPI / sleep: EC-based wakeup from suspend-to-idle on
+ recent systems
+Date: Tue, 27 Jun 2017 15:50:33 +1000
+Message-ID: <CA+b4Kqd9qV0Pc7wJ2eHKcA-7+a23tY9gfe2Abm4=Bd08SKkh8w@mail.gmail.com>
+References: <1979543.KIEJ8uyRaT@aspire.rjw.lan> <3689795.xuIczRHZsl@aspire.rjw.lan>
+ <2026371.DVJN39QYJi@aspire.rjw.lan> <2368998.dmCsnrcXZy@aspire.rjw.lan> <CA+55aFyBfHVyh=TMifF+0KGEVy6JEyDz=gbHdP7nM2roa++X4Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:15320 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751484AbdF0BTg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 26 Jun 2017 21:19:36 -0400
-In-Reply-To: <20170626123853.GA14363@wunner.de>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CA+55aFyBfHVyh=TMifF+0KGEVy6JEyDz=gbHdP7nM2roa++X4Q@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>, =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Ronald Tschalaer <ronald@innovation.ch>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi,
+On 23 June 2017 at 12:40, Linus Torvalds <torvalds@linux-foundation.org> wrote:
+> On Thu, Jun 22, 2017 at 4:56 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>
+>> Some recent Dell laptops, including the XPS13 model numbers 9360 and
+>> 9365, cannot be woken up from suspend-to-idle by pressing the power
+>> button which is unexpected and makes that feature less usable on
+>> those systems.  [ details removed ]
+>
+> This looks much more reasonable and more likely to work on future machines too.
+>
+> Of course, who knows what broken machines it will cause problems on,
+> but it sounds like the code now does what it's supposed to and what
+> Win10 does, so maybe it JustWorks(tm). Hah.
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Lukas
-> Wunner
-> Sent: Monday, June 26, 2017 8:39 PM
-> To: Rafael J. Wysocki <rafael@kernel.org>
-> Cc: Moore, Robert <robert.moore@intel.com>; Zheng, Lv <lv.zheng@intel.com>; Wysocki, Rafael J
-> <rafael.j.wysocki@intel.com>; Ronald Tschalaer <ronald@innovation.ch>; ACPI Devel Maling List <linux-
-> acpi@vger.kernel.org>
-> Subject: Re: ACPICA regression for empty ResourceTemplates
-> 
-> On Mon, Jun 26, 2017 at 01:49:03PM +0200, Rafael J. Wysocki wrote:
-> > On Mon, Jun 26, 2017 at 10:38 AM, Lukas Wunner <lukas@wunner.de> wrote:
-> > > Hi Robert,
-> > >
-> > > ACPICA commit c8eac101 (= Linux commit a83019eb9f1f, "ACPICA: Update
-> > > resource descriptor handling") is causing a regression when parsing
-> > > an empty ResourceTemplate:
-> >
-> > This is a linux-next commit, right?
-> 
-> Yes.
+Rafael - thanks for your efforts on this.
 
-Can it be fixed by using this logic:
-if (AmlLength < sizeof (AML_RESOURCE_END_TAG) && AmlLength)
-Instead of the logic introduced in commit a83019eb9f1f?
-if (AmlLength < sizeof (AML_RESOURCE_END_TAG))
+I wanted to provide some feedback from some quick and naive tests on
+an XPS 13 9365 in case it was useful, as it seems like there's still
+some way to go before matching Win10's behaviour.
 
-If so, could you please offer a fix for upstream?
+    Linux idling w/ screen ON => 17% battery drain per hour.
+    Linux idling w/ screen OFF => 12% battery drain per hour.
+    Linux during s2idle => 6% battery drain per hour.
+    Win10 during sleep => 1% battery drain per hour.
 
-Thanks and best regards
-Lv
+where Linux = 4.12-rc6 + the latest patch from your acpi-pm-test branch.
 
-> 
-> Lukas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So whilst s2idle halves the battery drain compared to the machine
+staying powered on, it's still significantly more draining than Win10.
+Let me know if there's any more useful analysis I can do.
+
+-Tom
