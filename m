@@ -1,104 +1,75 @@
-From: Robert Richter <robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Devel] [RESEND PATCH v9 3/3] iommu/arm-smmu-v3: Add workaround
-	for Cavium ThunderX2 erratum #126
-Date: Tue, 27 Jun 2017 15:56:10 +0200
-Message-ID: <20170627135610.GX658@rric.localdomain>
-References: <1498224876-5200-1-git-send-email-gakula@caviumnetworks.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 2/2] ACPI / LPSS: Remove lpss_iosf_enter_d3_state()
+Date: Tue, 27 Jun 2017 15:56:30 +0200
+Message-ID: <015e7c83-9ee1-5d0f-5c79-1db71278aa79@redhat.com>
+References: <20170626215700.14445-1-hdegoede@redhat.com>
+ <20170626215700.14445-2-hdegoede@redhat.com>
+ <1498570276.22624.191.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1498224876-5200-1-git-send-email-gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-Cc: robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:34892 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751512AbdF0N4d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 27 Jun 2017 09:56:33 -0400
+In-Reply-To: <1498570276.22624.191.camel@linux.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On 23.06.17 19:04:36, Geetha sowjanya wrote:
-> From: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Hi,
+
+On 06/27/2017 03:31 PM, Andy Shevchenko wrote:
+> On Mon, 2017-06-26 at 23:57 +0200, Hans de Goede wrote:
 > 
-> Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
-> lines for gerror, eventq and cmdq-sync.
+> I didn't get why the first patch exists if you effectively remove what
+> it brought here.
+
+The first patch calls lpss_iosf_exit_d3_state() on activate, but
+if you're right that the probe functions will cause a runtime_resume
+when enabling runtime-pm then that may not be necessary. If that is
+right it does make one wonder why we have the activate function at all
+though? I guess to de-assert the reset ? But shouldn't that then not be
+all it does ?
+
 > 
-> New named irq "combined" is set as a errata workaround, which allows to
-> share the irq line by register single irq handler for all the interrupts.
+>> If lpss_iosf_enter_d3_state() hits the code path where it actually
+>> puts the DMA controllers into D3, then, at least on Bay Trail, the
+>> LPSS
+>> PWM controller will stop working / gets stuck. After this happening
+>> the
+>> PWM controller's control reg will always reads 0x00010000 and writes
+>> seem to be ignored.
+>>
+>> Note that the chances of this code-path actually being hit are
+>> actually
+>> very low. On Bay Trail devices with an AXP288 PMIC and on any Cherry
+>> Trail
+>> device, the I2C controller connected to the PMIC has (runtime) suspend
+>> disabled, so the condition of all LPSS and SCC devices being in D3
+>> will
+>> never happen.
+>>
+>> Even on Bay Trail devices with another PMIC testing has shown that
+>> lpss_iosf_enter_d3_state() will only put the DMA controllers in D3
+>> during
+>> early boot when not all devices have been initialized yet, which is
+>> enough
+>> to get the PWM controller stuck, while not resulting in any
+>> significant
+>> power saving as this only happens during boot.
+>>
+>> So in practice lpss_iosf_enter_d3_state() is almost always a no-op and
+>> when it is not, it is causing problems. Therefor this commit simply
+>> removes it.
 > 
-> Signed-off-by: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-> ---
->  Documentation/arm64/silicon-errata.txt             |    1 +
->  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    6 +
->  drivers/acpi/arm64/iort.c                          |   57 ++++++++---
->  drivers/iommu/arm-smmu-v3.c                        |  100 ++++++++++++++-----
->  4 files changed, 121 insertions(+), 43 deletions(-)
+> Let's continue discuss in your letter regarding IOSF LPSS stuff.
 
-> +static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
-> +{
-> +	int ret, irq;
-> +	u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
-> +
-> +	/* Disable IRQs first */
-> +	ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
-> +				      ARM_SMMU_IRQ_CTRLACK);
-> +	if (ret) {
-> +		dev_err(smmu->dev, "failed to disable irqs\n");
-> +		return ret;
-> +	}
-> +
-> +	irq = smmu->combined_irq;
-> +	if (irq) {
-> +		/*
-> +		 * Cavium ThunderX2 implementation doesn't not support unique
-> +		 * irq lines. Use single irq line for all the SMMUv3 interrupts.
-> +		 */
-> +		ret = devm_request_threaded_irq(smmu->dev, irq,
-> +					arm_smmu_combined_irq_handler,
-> +					arm_smmu_combined_irq_thread,
-> +					IRQF_ONESHOT,
+Ok.
 
-Without the IRQF_SHARED flag set I see the following on a dual node
-system now:
+Regards,
 
-[   17.403260] arm-smmu-v3 arm-smmu-v3.0.auto: option mask 0x2
-[   17.408853] arm-smmu-v3 arm-smmu-v3.0.auto: ias 44-bit, oas 44-bit (features 0x0000172d)
-[   17.417259] arm-smmu-v3 arm-smmu-v3.1.auto: option mask 0x2
-[   17.422856] arm-smmu-v3 arm-smmu-v3.1.auto: ias 44-bit, oas 44-bit (features 0x0000172d)
-[   17.431193] arm-smmu-v3 arm-smmu-v3.2.auto: option mask 0x2
-[   17.436787] arm-smmu-v3 arm-smmu-v3.2.auto: ias 44-bit, oas 44-bit (features 0x0000172d)
-[   17.445123] arm-smmu-v3 arm-smmu-v3.3.auto: option mask 0x2
-[   17.450697] arm-smmu-v3 arm-smmu-v3.3.auto: ias 44-bit, oas 44-bit (features 0x0000172d)
-[   17.458984] genirq: Flags mismatch irq 5. 00002001 (arm-smmu-v3-combined-irq) vs. 00002001 (arm-smmu-v3-combined-irq)
-[   17.610636] arm-smmu-v3 arm-smmu-v3.3.auto: failed to enable combined irq
-[   17.617491] arm-smmu-v3 arm-smmu-v3.4.auto: option mask 0x2
-[   17.623073] arm-smmu-v3 arm-smmu-v3.4.auto: ias 44-bit, oas 44-bit (features 0x0000172d)
-[   17.631339] genirq: Flags mismatch irq 6. 00002001 (arm-smmu-v3-combined-irq) vs. 00002001 (arm-smmu-v3-combined-irq)
-[   17.782944] arm-smmu-v3 arm-smmu-v3.4.auto: failed to enable combined irq
-[   17.789780] arm-smmu-v3 arm-smmu-v3.5.auto: option mask 0x2
-[   17.795367] arm-smmu-v3 arm-smmu-v3.5.auto: ias 44-bit, oas 44-bit (features 0x0000172d)
-[   17.803640] genirq: Flags mismatch irq 7. 00002001 (arm-smmu-v3-combined-irq) vs. 00002001 (arm-smmu-v3-combined-irq)
-[   17.955248] arm-smmu-v3 arm-smmu-v3.5.auto: failed to enable combined irq
-
-In __setup_irq() in kernel/irq/manage.c there is a check if that flag
-is set which causes the error is shown.
-
--Robert
-
-> +					"arm-smmu-v3-combined-irq", smmu);
-> +		if (ret < 0)
-> +			dev_warn(smmu->dev, "failed to enable combined irq\n");
-> +	} else
-> +		arm_smmu_setup_unique_irqs(smmu);
-> +
-> +	if (smmu->features & ARM_SMMU_FEAT_PRI)
-> +		irqen_flags |= IRQ_CTRL_PRIQ_IRQEN;
->  
->  	/* Enable interrupt generation on the SMMU */
->  	ret = arm_smmu_write_reg_sync(smmu, irqen_flags,
+Hans
