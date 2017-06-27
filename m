@@ -1,90 +1,79 @@
-From: Geetha Akula <geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Devel] [RESEND PATCH v9 3/3] iommu/arm-smmu-v3: Add workaround
-	for Cavium ThunderX2 erratum #126
-Date: Tue, 27 Jun 2017 20:28:14 +0530
-Message-ID: <CANHdaibSGtbdQfZ2kv1E9t4eE+JY2wtsDP7=rEw-mj059yhyHA@mail.gmail.com>
-References: <1498224876-5200-1-git-send-email-gakula@caviumnetworks.com>
-	<20170627135610.GX658@rric.localdomain>
-	<20170627140559.GK14041@arm.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: ACPICA regression for empty ResourceTemplates
+Date: Tue, 27 Jun 2017 15:08:53 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5C3C2C@ORSMSX110.amr.corp.intel.com>
+References: <20170626083815.zxlohrjz64delbae@wunner.de>
+ <CAJZ5v0gsNAooprhJ4thgd184hB+gCeU_mo=fC=16TncAfAPqbw@mail.gmail.com>
+ <20170626123853.GA14363@wunner.de>
+ <1AE640813FDE7649BE1B193DEA596E886CED58AD@SHSMSX101.ccr.corp.intel.com>
+ <20170627092425.GB5776@wunner.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20170627140559.GK14041-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux IOMMU <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Robert Richter <robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Sunil Goutham <sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Charles Garcia-Tobin <Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:29350 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751613AbdF0PJB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 27 Jun 2017 11:09:01 -0400
+In-Reply-To: <20170627092425.GB5776@wunner.de>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On Tue, Jun 27, 2017 at 7:36 PM, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org> wrote:
-> On Tue, Jun 27, 2017 at 03:56:10PM +0200, Robert Richter wrote:
->> On 23.06.17 19:04:36, Geetha sowjanya wrote:
->> > From: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
->> >
->> > Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
->> > lines for gerror, eventq and cmdq-sync.
->> >
->> > New named irq "combined" is set as a errata workaround, which allows to
->> > share the irq line by register single irq handler for all the interrupts.
->> >
->> > Signed-off-by: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
->> > ---
->> >  Documentation/arm64/silicon-errata.txt             |    1 +
->> >  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    6 +
->> >  drivers/acpi/arm64/iort.c                          |   57 ++++++++---
->> >  drivers/iommu/arm-smmu-v3.c                        |  100 ++++++++++++++-----
->> >  4 files changed, 121 insertions(+), 43 deletions(-)
->>
->> > +static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
->> > +{
->> > +   int ret, irq;
->> > +   u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
->> > +
->> > +   /* Disable IRQs first */
->> > +   ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
->> > +                                 ARM_SMMU_IRQ_CTRLACK);
->> > +   if (ret) {
->> > +           dev_err(smmu->dev, "failed to disable irqs\n");
->> > +           return ret;
->> > +   }
->> > +
->> > +   irq = smmu->combined_irq;
->> > +   if (irq) {
->> > +           /*
->> > +            * Cavium ThunderX2 implementation doesn't not support unique
->> > +            * irq lines. Use single irq line for all the SMMUv3 interrupts.
->> > +            */
->> > +           ret = devm_request_threaded_irq(smmu->dev, irq,
->> > +                                   arm_smmu_combined_irq_handler,
->> > +                                   arm_smmu_combined_irq_thread,
->> > +                                   IRQF_ONESHOT,
->>
->> Without the IRQF_SHARED flag set I see the following on a dual node
->> system now:
-Node1 SMMU interrupts are programmed wrong in the firmware.
-Node 0 and Node1 SMMU do not share interrupts.
-I have verified the patch on dual node with correct interrupt numbers
-programmed in firmware.
+To: Lukas Wunner <lukas@wunner.de>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Ronald Tschalaer <ronald@innovation.ch>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
 
-Thanks,
-Geetha.
->
-> We asked about that before:
->
-> https://marc.info/?l=linux-arm-kernel&m=149803613513068&w=2
-> https://marc.info/?l=linux-acpi&m=149803744713475&w=2
->
-> and Geetha didn't reply, but the next version of the patch dropped the flag.
-> Is it just that firmware is misprogramming something here, or something
-> more fundamental?
->
-> Will
+
+> -----Original Message-----
+> From: Lukas Wunner [mailto:lukas@wunner.de]
+> Sent: Tuesday, June 27, 2017 2:24 AM
+> To: Zheng, Lv <lv.zheng@intel.com>
+> Cc: Rafael J. Wysocki <rafael@kernel.org>; Moore, Robert
+> <robert.moore@intel.com>; Wysocki, Rafael J
+> <rafael.j.wysocki@intel.com>; Ronald Tschalaer <ronald@innovation.ch>;
+> ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+> Subject: Re: ACPICA regression for empty ResourceTemplates
+> 
+> On Tue, Jun 27, 2017 at 01:19:31AM +0000, Zheng, Lv wrote:
+> > > On Mon, Jun 26, 2017 at 01:49:03PM +0200, Rafael J. Wysocki wrote:
+> > > > On Mon, Jun 26, 2017 at 10:38 AM, Lukas Wunner <lukas@wunner.de>
+> wrote:
+> > > > > Hi Robert,
+> > > > >
+> > > > > ACPICA commit c8eac101 (= Linux commit a83019eb9f1f, "ACPICA:
+> > > > > Update resource descriptor handling") is causing a regression
+> > > > > when parsing an empty ResourceTemplate:
+> >
+> > Can it be fixed by using this logic:
+> > if (AmlLength < sizeof (AML_RESOURCE_END_TAG) && AmlLength) Instead of
+> > the logic introduced in commit a83019eb9f1f?
+> > if (AmlLength < sizeof (AML_RESOURCE_END_TAG))
+> 
+> Unfortunately not, AmlLength is not 0 but 2 in this case (=
+> sizeof(struct aml_resource_end_tag)).
+> 
+> 
+> > If so, could you please offer a fix for upstream?
+[Moore, Robert] 
+
+Is the problem seen with something like this?
+
+    Name (BUF1, ResourceTemplate ()
+    {
+    })
+
+When BUF1 is evaluated, the exception happens?
+
+I think we have all of the ResourceTemplate issues resolved for the next release of ACPICA.
+Bob
+
+
+
+> 
+> I'd suggest just reverting the commit, a buffer containing a lone end
+> tag seems to be legal according to the spec, so returning an error seems
+> wrong.
+> 
+> Thanks,
+> 
+> Lukas
