@@ -1,76 +1,191 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [Devel] [RESEND PATCH v9 3/3] iommu/arm-smmu-v3: Add workaround
- for Cavium ThunderX2 erratum #126
-Date: Tue, 27 Jun 2017 15:06:00 +0100
-Message-ID: <20170627140559.GK14041@arm.com>
-References: <1498224876-5200-1-git-send-email-gakula@caviumnetworks.com>
- <20170627135610.GX658@rric.localdomain>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: lpss_iosf_enter_d3_state breaks PWM on Baytrail
+Date: Tue, 27 Jun 2017 16:15:43 +0200
+Message-ID: <6f19cff9-f367-248e-0c5e-9e6ce9587281@redhat.com>
+References: <f28e3a7a-1ea7-5f2d-4cfa-ab2cb85bdb45@redhat.com>
+ <1498570163.22624.188.camel@linux.intel.com>
+ <1498570916.22624.194.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:57068 "EHLO foss.arm.com"
+Received: from mx1.redhat.com ([209.132.183.28]:36440 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751479AbdF0OGB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 27 Jun 2017 10:06:01 -0400
-Content-Disposition: inline
-In-Reply-To: <20170627135610.GX658@rric.localdomain>
+        id S1751795AbdF0OPw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 27 Jun 2017 10:15:52 -0400
+In-Reply-To: <1498570916.22624.194.camel@linux.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Richter <robert.richter@cavium.com>
-Cc: Geetha sowjanya <gakula@caviumnetworks.com>, robin.murphy@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, iommu@lists.linux-foundation.org, robh@kernel.org, Charles.Garcia-Tobin@arm.com, Geetha Sowjanya <geethasowjanya.akula@cavium.com>, geethasowjanya.akula@gmail.com, jcm@redhat.com, linu.cherian@cavium.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, catalin.marinas@arm.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, "Mikkola, Jarkko" <jarkko.mikkola@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Tue, Jun 27, 2017 at 03:56:10PM +0200, Robert Richter wrote:
-> On 23.06.17 19:04:36, Geetha sowjanya wrote:
-> > From: Geetha Sowjanya <geethasowjanya.akula@cavium.com>
-> > 
-> > Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
-> > lines for gerror, eventq and cmdq-sync.
-> > 
-> > New named irq "combined" is set as a errata workaround, which allows to
-> > share the irq line by register single irq handler for all the interrupts.
-> > 
-> > Signed-off-by: Geetha sowjanya <gakula@caviumnetworks.com>
-> > ---
-> >  Documentation/arm64/silicon-errata.txt             |    1 +
-> >  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    6 +
-> >  drivers/acpi/arm64/iort.c                          |   57 ++++++++---
-> >  drivers/iommu/arm-smmu-v3.c                        |  100 ++++++++++++++-----
-> >  4 files changed, 121 insertions(+), 43 deletions(-)
+Hi,
+
+On 06/27/2017 03:41 PM, Andy Shevchenko wrote:
+> +Cc: Jarkko and Ulf (they are discussing patch series regarding to I2C
+> and ACPI LPSS as well)
+
+Hmm, do you have a link to this patch series?
+
+> +Cc: Mika, he might have a sight on this as well.
+
+I've added everyone in me reply to your first reply, but Jarkko's
+email address seems to not work.
+
+Regards,
+
+Hans
+
+
 > 
-> > +static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
-> > +{
-> > +	int ret, irq;
-> > +	u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
-> > +
-> > +	/* Disable IRQs first */
-> > +	ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
-> > +				      ARM_SMMU_IRQ_CTRLACK);
-> > +	if (ret) {
-> > +		dev_err(smmu->dev, "failed to disable irqs\n");
-> > +		return ret;
-> > +	}
-> > +
-> > +	irq = smmu->combined_irq;
-> > +	if (irq) {
-> > +		/*
-> > +		 * Cavium ThunderX2 implementation doesn't not support unique
-> > +		 * irq lines. Use single irq line for all the SMMUv3 interrupts.
-> > +		 */
-> > +		ret = devm_request_threaded_irq(smmu->dev, irq,
-> > +					arm_smmu_combined_irq_handler,
-> > +					arm_smmu_combined_irq_thread,
-> > +					IRQF_ONESHOT,
+> On Tue, 2017-06-27 at 16:29 +0300, Andy Shevchenko wrote:
+>> On Mon, 2017-06-26 at 11:31 +0200, Hans de Goede wrote:
+>>> Hi Andy, et al.,
+>>>
+>>> I've spend quite some time this weekend debugging an issue
+>>> an a Bay Trail laptop with a Crystal Cove PMIC which uses
+>>> the LPSS PWM for backlight control rather then the PMIC's
+>>> PWM.
+>>>
+>>> The problem is lpss_iosf_enter_d3_state. Specifically when
+>>> called when the PWM runtime-suspends during i915 driver load,
+>>> during which the i915 driver disables then re-enables the PWM.
+>>>
+>>> This is the only time (including normal suspend(to-idle)
+>>> and resume) when this check:
+>>>
+>>>           pmc_status = (~(d3_sts_0 | func_dis)) & pmc_mask;
+>>>           if (pmc_status)
+>>>                   goto exit;
+>>>
+>>> Does not hit the goto exit path
+>>
+>> ...meaning all LPSS devices (except maybe DMA) are in D3hot.
+>>
+>>>   and lpss_iosf_enter_d3_state
+>>> actually executes these 3 statements:
+>>>
+>>>           iosf_mbi_modify(LPSS_IOSF_UNIT_LPIO1, MBI_CFG_WRITE,
+>>>                           LPSS_IOSF_PMCSR, value2, mask2);
+>>>
+>>>           iosf_mbi_modify(LPSS_IOSF_UNIT_LPIO2, MBI_CFG_WRITE,
+>>>                           LPSS_IOSF_PMCSR, value2, mask2);
+>>>
+>>>           iosf_mbi_modify(LPSS_IOSF_UNIT_LPIOEP, MBI_CR_WRITE,
+>>>                           LPSS_IOSF_GPIODEF0, value1, mask1);
+>>>
+>>> If I comment out these 3 statements then everything works fine,
+>>> with these 3 statements in place though, then the PWM controller
+>>> gets stuck when the i915 driver tries to re-enable it (and it
+>>> runtime-resumes). After these 3 statements have been run once
+>>> then any subsequent reads from the PWM's control register
+>>> always return 0x00010000 and writes seem to be ignored.
+>>
+>> Sounds like powered off LPSS power island.
+>>
+>>> Given the past troubles with the LPSS DMA controller suspend,
+>>> see all the links in this commit message (which introduces
+>>> the current fix) :
+>>> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/c
+>>> om
+>>> mit/?id=eebb3e8d8aaf2
+>>>
+>>> I'm tempted to just rip out lpss_iosf_enter_d3_state,
+>>> especially since it does not seem to do anything other
+>>> then during early boot when not all drivers are loaded yet.
+>>
+>> Interesting...
+>>
+>> You are telling that there is guaranteed that at least one LPSS device
+>> (except DMA) will be on at any time?
+>>
+>>> Note that on Bay Trail devices with an AXP288 PMIC (most new
+>>> Bay Trail devices) and on any Cherry Trail device the LPSS I2C
+>>> controller connected to the PMIC will never suspend because
+>>> some DSTDs make ACPI OpRegion calls during late suspend /
+>>> early resume and as such we need to keep the I2C bus alive
+>>> the whole time. This means that the check in
+>>> lpss_iosf_enter_d3_state will always hit the goto exit path
+>>> on these devices,
+>>
+>> Looks like an answer to the previous question.
+>>
+>>>   leaving just (older) Bay Trail + non AXP288
+>>> PMIC devices as potentially hitting the code path where
+>>> lpss_iosf_enter_d3_state actually does something and these are
+>>> exactly the devices with which people are having a lot of
+>>> problems with freezes / hangs.
+>>>
+>>> So I believe that the best approach would be to simply remove
+>>> lpss_iosf_enter_d3_state. Which leaves me wondering what it
+>>> actually does. It would be nice for the future if undocumented
+>>> (not publicly documented) registers are used that some comments
+>>> are added describing what each register write actually does.
+>>
+>> Do the commit messages describe this enough along with several
+>> comments
+>> inside acpi_lpss.c?
+>>
+>>> These seem to simply put the DMA controller into D3:
+>>>
+>>>           u32 value2 = LPSS_PMCSR_D3hot;
+>>>           u32 mask2 = LPSS_PMCSR_Dx_MASK;
+>>>
+>>>           iosf_mbi_modify(LPSS_IOSF_UNIT_LPIO1, MBI_CFG_WRITE,
+>>>                           LPSS_IOSF_PMCSR, value2, mask2);
+>>>
+>>>           iosf_mbi_modify(LPSS_IOSF_UNIT_LPIO2, MBI_CFG_WRITE,
+>>>                           LPSS_IOSF_PMCSR, value2, mask2);
+>>
+>> It overrides the lines which propagate clock and reset signals to the
+>> entire LPSS islands.
+>>
+>> DMA just happened to be a function 0 (in terms of PCI), so, if it is
+>> off
+>> the rest of the functions can not be on.
+>>
+>>> But what does this one do?   :
+>>>
+>>>           u32 value1 = 0;
+>>>           u32 mask1 = LPSS_GPIODEF0_DMA_D3_MASK |
+>>> LPSS_GPIODEF0_DMA_LLP;
+>>
+>> (this one is a chicken bit to enable hardware linked list transfers on
+>> DMA)
+>>
+>>>
+>>>           iosf_mbi_modify(LPSS_IOSF_UNIT_LPIOEP, MBI_CR_WRITE,
+>>>                           LPSS_IOSF_GPIODEF0, value1, mask1);
+>>>
+>>> I guess this turns on(?) the automatically down powering of the
+>>> DMA controllers ? If so then why not just do only that ?
+>>
+>> No, automatic power gating is a *hardware* (PMC firmware? I do not
+>> remember details now) feature which is overridden by the code above.
+>>
+>> It's something like logical gates where one of the input is what we
+>> supply through these chicken bits.
+>>
+>>> And if this turns it on
+>>>   then lpss_iosf_exit_d3_state turns the
+>>> automagic off, if that is true,
+>>
+>> The proper wording here I suppose *it allows or forbids the automatic
+>> power gating*. It's one layer up I would say. It means it might be a
+>> latency between writing these bits and actual hardware response on
+>> them.
+>>
+>>>   then there is an ordering issue.
+>>> lpss_iosf_exit_d3_state gets only run on (runtime)resume, not
+>>> on the initial probe of LPSS devices, so that would mean that
+>>> between
+>>> the initial probe and the first resume we have the undesirable
+>>> auto-off feature active ?
+>>
+>> Looks like ACPI PM for LPSS should take care of this at probe. When I
+>> wrote the code I was assuming that ACPI enumerated devices are runtime
+>> powered on during ->probe(). For such I did explicit calls in DMA
+>> driver: bb32baf76e56 ("dmaengine: dw: enable runtime PM").
+>>
 > 
-> Without the IRQF_SHARED flag set I see the following on a dual node
-> system now:
-
-We asked about that before:
-
-https://marc.info/?l=linux-arm-kernel&m=149803613513068&w=2
-https://marc.info/?l=linux-acpi&m=149803744713475&w=2
-
-and Geetha didn't reply, but the next version of the patch dropped the flag.
-Is it just that firmware is misprogramming something here, or something
-more fundamental?
-
-Will
