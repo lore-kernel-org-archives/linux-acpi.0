@@ -1,67 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / sleep: EC-based wakeup from suspend-to-idle on recent systems
-Date: Tue, 27 Jun 2017 17:03:48 +0200
-Message-ID: <1908911.91yT2N6t2f@aspire.rjw.lan>
-References: <1979543.KIEJ8uyRaT@aspire.rjw.lan> <CA+55aFyBfHVyh=TMifF+0KGEVy6JEyDz=gbHdP7nM2roa++X4Q@mail.gmail.com> <CA+b4Kqd9qV0Pc7wJ2eHKcA-7+a23tY9gfe2Abm4=Bd08SKkh8w@mail.gmail.com>
+From: Robert Richter <robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Devel] [RESEND PATCH v9 3/3] iommu/arm-smmu-v3: Add workaround
+	for Cavium ThunderX2 erratum #126
+Date: Tue, 27 Jun 2017 17:18:01 +0200
+Message-ID: <20170627151801.GT31368@rric.localdomain>
+References: <1498224876-5200-1-git-send-email-gakula@caviumnetworks.com>
+	<20170627135610.GX658@rric.localdomain>
+	<20170627140559.GK14041@arm.com>
+	<CANHdaibSGtbdQfZ2kv1E9t4eE+JY2wtsDP7=rEw-mj059yhyHA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:56998 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752500AbdF0PLV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 27 Jun 2017 11:11:21 -0400
-In-Reply-To: <CA+b4Kqd9qV0Pc7wJ2eHKcA-7+a23tY9gfe2Abm4=Bd08SKkh8w@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CANHdaibSGtbdQfZ2kv1E9t4eE+JY2wtsDP7=rEw-mj059yhyHA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Geetha Akula <geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Linux IOMMU <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Sunil Goutham <sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Charles Garcia-Tobin <Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tom Lanyon <tom@oneshoeco.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>, =?ISO-8859-1?Q?J=E9r=F4me?= de Bretagne <jerome.debretagne@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Tuesday, June 27, 2017 03:50:33 PM Tom Lanyon wrote:
-> On 23 June 2017 at 12:40, Linus Torvalds <torvalds@linux-foundation.org> wrote:
-> > On Thu, Jun 22, 2017 at 4:56 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+On 27.06.17 20:28:14, Geetha Akula wrote:
+> On Tue, Jun 27, 2017 at 7:36 PM, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org> wrote:
+> > On Tue, Jun 27, 2017 at 03:56:10PM +0200, Robert Richter wrote:
+> >> On 23.06.17 19:04:36, Geetha sowjanya wrote:
+> >> > From: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> >> >
+> >> > Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
+> >> > lines for gerror, eventq and cmdq-sync.
+> >> >
+> >> > New named irq "combined" is set as a errata workaround, which allows to
+> >> > share the irq line by register single irq handler for all the interrupts.
+> >> >
+> >> > Signed-off-by: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
+> >> > ---
+> >> >  Documentation/arm64/silicon-errata.txt             |    1 +
+> >> >  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    6 +
+> >> >  drivers/acpi/arm64/iort.c                          |   57 ++++++++---
+> >> >  drivers/iommu/arm-smmu-v3.c                        |  100 ++++++++++++++-----
+> >> >  4 files changed, 121 insertions(+), 43 deletions(-)
 > >>
-> >> Some recent Dell laptops, including the XPS13 model numbers 9360 and
-> >> 9365, cannot be woken up from suspend-to-idle by pressing the power
-> >> button which is unexpected and makes that feature less usable on
-> >> those systems.  [ details removed ]
-> >
-> > This looks much more reasonable and more likely to work on future machines too.
-> >
-> > Of course, who knows what broken machines it will cause problems on,
-> > but it sounds like the code now does what it's supposed to and what
-> > Win10 does, so maybe it JustWorks(tm). Hah.
-> 
-> Rafael - thanks for your efforts on this.
+> >> > +static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
+> >> > +{
+> >> > +   int ret, irq;
+> >> > +   u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
+> >> > +
+> >> > +   /* Disable IRQs first */
+> >> > +   ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
+> >> > +                                 ARM_SMMU_IRQ_CTRLACK);
+> >> > +   if (ret) {
+> >> > +           dev_err(smmu->dev, "failed to disable irqs\n");
+> >> > +           return ret;
+> >> > +   }
+> >> > +
+> >> > +   irq = smmu->combined_irq;
+> >> > +   if (irq) {
+> >> > +           /*
+> >> > +            * Cavium ThunderX2 implementation doesn't not support unique
+> >> > +            * irq lines. Use single irq line for all the SMMUv3 interrupts.
+> >> > +            */
+> >> > +           ret = devm_request_threaded_irq(smmu->dev, irq,
+> >> > +                                   arm_smmu_combined_irq_handler,
+> >> > +                                   arm_smmu_combined_irq_thread,
+> >> > +                                   IRQF_ONESHOT,
+> >>
+> >> Without the IRQF_SHARED flag set I see the following on a dual node
+> >> system now:
+> Node1 SMMU interrupts are programmed wrong in the firmware.
+> Node 0 and Node1 SMMU do not share interrupts.
+> I have verified the patch on dual node with correct interrupt numbers
+> programmed in firmware.
 
-You're welcome!
-
-> I wanted to provide some feedback from some quick and naive tests on
-> an XPS 13 9365 in case it was useful, as it seems like there's still
-> some way to go before matching Win10's behaviour.
-> 
->     Linux idling w/ screen ON => 17% battery drain per hour.
->     Linux idling w/ screen OFF => 12% battery drain per hour.
->     Linux during s2idle => 6% battery drain per hour.
->     Win10 during sleep => 1% battery drain per hour.
-> 
-> where Linux = 4.12-rc6 + the latest patch from your acpi-pm-test branch.
-> 
-> So whilst s2idle halves the battery drain compared to the machine
-> staying powered on, it's still significantly more draining than Win10.
-
-Thanks for the data.
-
-> Let me know if there's any more useful analysis I can do.
-
-I would carry out s2idle under turbostat to see how much PC10 residency is
-there while suspended.  That may be a significant factor.
-
-Most likely there is a device preventing the SoC from reaching its deepest
-low-power states under Linux on your system and it needs to be identified
-and dealt with.
+Ah, ok, will update to latest fw.
 
 Thanks,
-Rafael
 
+-Robert
