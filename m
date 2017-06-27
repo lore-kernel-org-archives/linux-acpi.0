@@ -1,84 +1,91 @@
-From: Robert Richter <robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Devel] [RESEND PATCH v9 3/3] iommu/arm-smmu-v3: Add workaround
-	for Cavium ThunderX2 erratum #126
-Date: Tue, 27 Jun 2017 17:18:01 +0200
-Message-ID: <20170627151801.GT31368@rric.localdomain>
-References: <1498224876-5200-1-git-send-email-gakula@caviumnetworks.com>
-	<20170627135610.GX658@rric.localdomain>
-	<20170627140559.GK14041@arm.com>
-	<CANHdaibSGtbdQfZ2kv1E9t4eE+JY2wtsDP7=rEw-mj059yhyHA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 1/9] i2c: designware: Fix system suspend
+Date: Tue, 27 Jun 2017 17:25:59 +0200
+Message-ID: <CAJZ5v0i6zEmb1anxL2ge5YqDJ6jMZA2v4W-u65AtoZv8b7Z89w@mail.gmail.com>
+References: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org>
+ <CAJZ5v0iYwPE8rpn=aZ9n6LV-qbAK3kynRqVZ7xxuB+gYar_fyg@mail.gmail.com>
+ <20170622104933.GY629@lahna.fi.intel.com> <2842386.AFZiXzV2Sq@aspire.rjw.lan>
+ <CAPDyKFo80QWYhU_SFexr_riPSZS3QEXDyBcywa5qBYa3sJXcjw@mail.gmail.com>
+ <CAJZ5v0irHvYXHv1GykatTH+XROZyL0nR0c=KfdSrpH395s6V8g@mail.gmail.com>
+ <CAPDyKFov=08AQw0PPPgcFbrerTskoPGfLZcJL9gjikfQfZUJpw@mail.gmail.com>
+ <4324e2c8-ab79-5a21-a8ab-c660920cba59@ti.com> <CAJZ5v0i-AgTDTOX+O41abVsnahU9V=NV+HEW0vajhBqGfJuUEg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CANHdaibSGtbdQfZ2kv1E9t4eE+JY2wtsDP7=rEw-mj059yhyHA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Geetha Akula <geethasowjanya.akula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Linu Cherian <linu.cherian-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Linux IOMMU <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Sunil Goutham <sgoutham-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Charles Garcia-Tobin <Charles.Garcia-Tobin-5wv7dgnIgG8@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-it0-f65.google.com ([209.85.214.65]:35766 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752424AbdF0P0H (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Jun 2017 11:26:07 -0400
+In-Reply-To: <CAJZ5v0i-AgTDTOX+O41abVsnahU9V=NV+HEW0vajhBqGfJuUEg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@>
 
-On 27.06.17 20:28:14, Geetha Akula wrote:
-> On Tue, Jun 27, 2017 at 7:36 PM, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org> wrote:
-> > On Tue, Jun 27, 2017 at 03:56:10PM +0200, Robert Richter wrote:
-> >> On 23.06.17 19:04:36, Geetha sowjanya wrote:
-> >> > From: Geetha Sowjanya <geethasowjanya.akula-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> >> >
-> >> > Cavium ThunderX2 SMMU doesn't support MSI and also doesn't have unique irq
-> >> > lines for gerror, eventq and cmdq-sync.
-> >> >
-> >> > New named irq "combined" is set as a errata workaround, which allows to
-> >> > share the irq line by register single irq handler for all the interrupts.
-> >> >
-> >> > Signed-off-by: Geetha sowjanya <gakula-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-> >> > ---
-> >> >  Documentation/arm64/silicon-errata.txt             |    1 +
-> >> >  .../devicetree/bindings/iommu/arm,smmu-v3.txt      |    6 +
-> >> >  drivers/acpi/arm64/iort.c                          |   57 ++++++++---
-> >> >  drivers/iommu/arm-smmu-v3.c                        |  100 ++++++++++++++-----
-> >> >  4 files changed, 121 insertions(+), 43 deletions(-)
-> >>
-> >> > +static int arm_smmu_setup_irqs(struct arm_smmu_device *smmu)
-> >> > +{
-> >> > +   int ret, irq;
-> >> > +   u32 irqen_flags = IRQ_CTRL_EVTQ_IRQEN | IRQ_CTRL_GERROR_IRQEN;
-> >> > +
-> >> > +   /* Disable IRQs first */
-> >> > +   ret = arm_smmu_write_reg_sync(smmu, 0, ARM_SMMU_IRQ_CTRL,
-> >> > +                                 ARM_SMMU_IRQ_CTRLACK);
-> >> > +   if (ret) {
-> >> > +           dev_err(smmu->dev, "failed to disable irqs\n");
-> >> > +           return ret;
-> >> > +   }
-> >> > +
-> >> > +   irq = smmu->combined_irq;
-> >> > +   if (irq) {
-> >> > +           /*
-> >> > +            * Cavium ThunderX2 implementation doesn't not support unique
-> >> > +            * irq lines. Use single irq line for all the SMMUv3 interrupts.
-> >> > +            */
-> >> > +           ret = devm_request_threaded_irq(smmu->dev, irq,
-> >> > +                                   arm_smmu_combined_irq_handler,
-> >> > +                                   arm_smmu_combined_irq_thread,
-> >> > +                                   IRQF_ONESHOT,
-> >>
-> >> Without the IRQF_SHARED flag set I see the following on a dual node
-> >> system now:
-> Node1 SMMU interrupts are programmed wrong in the firmware.
-> Node 0 and Node1 SMMU do not share interrupts.
-> I have verified the patch on dual node with correct interrupt numbers
-> programmed in firmware.
+On Mon, Jun 26, 2017 at 11:11 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Mon, Jun 26, 2017 at 9:39 PM, Grygorii Strashko
+> <grygorii.strashko@ti.com> wrote:
+>> On 06/26/2017 11:49 AM, Ulf Hansson wrote:
+>
+> [cut]
+>
+>>>>> This makes it worse in that sense, that then you don't even need an
+>>>>> i2c slave to trigger the problem.
+>>>>
+>>>> In that case your changelog is a bit misleading.
+>>>
+>>> Yeah, it is! I didn't realize that until I fully investigated the revert option.
+>>>
+>>>>
+>>>> It looks like the commit in question attempted to fix exactly this
+>>>> issue, but it failed, so it should be replaced with something else
+>>>> which is what your patch is effectively doing.
+>>>>
+>>>> IMO you should describe the original problem, explain why that commit
+>>>> is not sufficient to fix it and then describe the final fix.
+>>>>
+>>>> Anyway, after reading the changelog it should be clear that things
+>>>> were broken before the commit in question.
+>>>>
+>>>> And BTW I'm not really sure how the rest of the series is related to this?
+>>>
+>>> Going back in history, I realize the system sleep support in this
+>>> driver has been broken even before the commit $subject patch intends
+>>> to fix.
+>>> However it has been working fine for the ACPI case, because of how the
+>>> ACPI PM domain manages its devices during system sleep.
+>>>
+>>> The commit in question, adds an improvement to the driver, because it
+>>> enables the direct_complete path. For ACPI, that was already working,
+>>> but not for the other cases. So to be able to support the similar
+>>> improvement as the direct_complete path offers, as that isn't working
+>>> for this driver, I tried out using the runtime PM centric path
+>>> instead. That is what the rest of the changes in this series takes
+>>> care of.
+>>>
+>>> Now, as the system sleep support is broken I wanted to make a simple
+>>> fix for that first, via $subject patch. I guess what makes this a bit
+>>> confusing is that I shouldn't point to a certain commit, but rather
+>>> just add a stable tag and update the changelog accordingly.
+>
+> I agree, modulo the below.
+>
+>>
+>> Wouldn't it fix suspend for this driver if you will just replace
+>> dw_i2c_plat_suspend() with pm_runtime_force_suspend() in SET_SYSTEM_SLEEP_PM_OPS() as
+>> you've done in patch 9?
+>>
+>> And, I think, direct_complete path should still work after this also.
+>
+> That's a good point and I was about to mention that.
+>
+> In any case, even if the pm_runtime_resume() added by the $subject
+> patch is necessary to start with, it could be added to the ->suspend
 
-Ah, ok, will update to latest fw.
+I meant ->resume, sorry.
+
+> callback of the driver instead of the ->complete one, in which case
+> the ACPI path would not be affected by this change.
 
 Thanks,
-
--Robert
+Rafael
