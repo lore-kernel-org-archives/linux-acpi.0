@@ -1,46 +1,51 @@
-From: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
-Subject: Cannot access force_remove sysfs
-Date: Wed, 28 Jun 2017 14:16:57 -0400
-Message-ID: <4034c534-ea67-03ca-f1ee-bc55e0ce487d@gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v2 4/4] spi: Use Apple device properties in absence of
+ ACPI resources
+Date: Wed, 28 Jun 2017 19:27:22 +0100
+Message-ID: <20170628182722.mwak7afo5rtwt6zw@sirena.org.uk>
+References: <cover.1498636759.git.lukas@wunner.de>
+ <bca7fb9e406bbfa9ee7e8457cacd34418ef689be.1498636759.git.lukas@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="5tzaeas3i5ilwizs"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:33134 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751528AbdF1SRA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jun 2017 14:17:00 -0400
-Received: by mail-qt0-f195.google.com with SMTP id c20so8484788qte.0
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Jun 2017 11:17:00 -0700 (PDT)
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:35696 "EHLO
+        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751538AbdF1S1u (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jun 2017 14:27:50 -0400
+Content-Disposition: inline
+In-Reply-To: <bca7fb9e406bbfa9ee7e8457cacd34418ef689be.1498636759.git.lukas@wunner.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Michal Hocko <mhocko@kernel.org>, rafael.j.wysocki@intel.com
+To: Lukas Wunner <lukas@wunner.de>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org
 
-Our sever supports system board (defined as ACPI0004) hotplug. And to hot-remove the device safely,
-we control force_remove sysfs. But due to the following commit, ACPI0004 hotplug does not work.
 
-commit ffc10d82ff5df7087a9b737de55a69ac4f89bf56
-Author: Michal Hocko <mhocko@suse.com>
-Date:   Mon Apr 3 09:40:23 2017 +0200
+--5tzaeas3i5ilwizs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-    ACPI / scan: Drop support for force_remove
+On Wed, Jun 28, 2017 at 07:20:19PM +0200, Lukas Wunner wrote:
+> MacBooks and MacBook Pros introduced since 2015 return empty _CRS data
+> for SPI slaves, causing device initialization to fail.  Most of the
+> information that would normally be conveyed via _CRS is available
+> through ACPI device properties instead, so take advantage of them.
 
-ACPI0004 is defined as module device in ACPI specification. So we don't know what devices mounts on ACPI0004.
-So to hot-remove ACPI0004 safely, we implemented that ACPI004 can be hot removed only when acpi_force_hot_remove
-is set to 1 via force_remove sysfs. And if acpi_force_hot_remove is set to 0, kernel just notifies REMOVE request
-of ACPI0004 to udev so that user can offline the devices on ACPI0004 by udev rule.
+Acked-by: Mark Brown <broonie@kernel.org>
 
-In our udev script, we hot-removes ACPI0004 safely as follows:
+--5tzaeas3i5ilwizs
+Content-Type: application/pgp-signature; name="signature.asc"
 
-  1. udev catches REMOVE request of a ACPI0004 and run our script
-  2. Our script offline all devices on the ACPI0004
-  3. Our script write 1 to force_remove sysfs so that ACPI0004 can be hot-removed.
-  4. Our script write 1 to eject sysfs of the ACPI0004 to hot remove ACPI0004
-  5. Our script write 0 to force_remove sysfs so that the ACPI0004 cannot be hot-removed.
+-----BEGIN PGP SIGNATURE-----
 
-But due to the commit ffc10d82ff5d, there is no way to hot remove ACPI0004.
-So please revert the commit.
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAllT9QkACgkQJNaLcl1U
+h9BoCgf/ReA+WPMF1swrVd1jqaZHTAvdpP4W1qdM0BLBi70TzVc1X6OpvNTueh7W
+zRvYE62KF/VuNsUzyKFWcZP2ajI/zHzwS8PjGTg+KtrlSoTxFUARFX9A4Ffh0cWm
+3sObdqlG/qHAFYz+lAyWuzetxQ9HjWM75aKYdlTuC7MdTueKM0NaVXCFF9RG+eon
+lhRva35OLPYKO52yuS6iwMdk93K64s2AUPzKoM3pUwtKqhv52het4a8ve1CL38aU
+bwGnFpsQpmMAEbSuPX/zjrhC/dSK7uFpEyfr1X2/y3B3h1/QsIU/0hpYUMu0zAj7
+Ad6lMZ+dEZ0PUllEDWl/lvNgSfJdYw==
+=8VHs
+-----END PGP SIGNATURE-----
 
-Thanks,
-Yasuaki Ishimatsu
+--5tzaeas3i5ilwizs--
