@@ -1,64 +1,75 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 1/9] i2c: designware: Fix system suspend
-Date: Wed, 28 Jun 2017 17:06:07 +0200
-Message-ID: <CAPDyKFqJ5y0wnu8r=J+d0K=6K3N-bhbGUKwtCkBCMP4zsO_fdg@mail.gmail.com>
-References: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org>
- <a7881812-0da6-478c-7eed-faf8a6e30891@linux.intel.com> <CAPDyKFqShg+9rYfjMwKU6ri7nWt3nAqv_A+N-hHitRLwDi0_5g@mail.gmail.com>
- <2931814.Q2Ytvoipjr@aspire.rjw.lan>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 1/7] platform/x86: fujitsu-laptop: do not use kfifo for
+ storing hotkey scancodes
+Date: Wed, 28 Jun 2017 09:03:38 -0700
+Message-ID: <20170628160338.GA20795@localhost.localdomain>
+References: <20170616044058.30443-1-kernel@kempniu.pl>
+ <20170616044058.30443-2-kernel@kempniu.pl>
+ <20170621181543.GB25900@fury>
+ <40512901.HXkrFCdsVg@aspire.rjw.lan>
+ <20170627000718.GA11146@localhost.localdomain>
+ <20170628043044.GA3422@kmp-mobile.hq.kempniu.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <2931814.Q2Ytvoipjr@aspire.rjw.lan>
-Sender: linux-i2c-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>, stable@vger.linux.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([65.50.211.133]:50806 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751566AbdF1QDo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jun 2017 12:03:44 -0400
+Content-Disposition: inline
+In-Reply-To: <20170628043044.GA3422@kmp-mobile.hq.kempniu.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jonathan Woithe <jwoithe@just42.net>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 28 June 2017 at 16:51, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Wednesday, June 28, 2017 04:01:39 PM Ulf Hansson wrote:
->> On 27 June 2017 at 09:55, Jarkko Nikula <jarkko.nikula@linux.intel.com> wrote:
->> > On 06/22/2017 02:16 PM, Jarkko Nikula wrote:
->> >>
->> >> On 06/22/2017 01:49 PM, Mika Westerberg wrote:
->> >>>
->> >>> On Thu, Jun 22, 2017 at 01:31:51AM +0200, Rafael J. Wysocki wrote:
->> >>>>
->> >>>> On Wed, Jun 21, 2017 at 9:21 PM, Ulf Hansson <ulf.hansson@linaro.org>
->> >>>> wrote:
->> >>>
->> >>> Thanks Ulf for taking care of this!
->> >>>
->> >> Indeed!
->> >>
->> >>> I tested this series on Dell XPS 9350 which has touch panel connected to
->> >>> I2C and suspend/resume still works fine and I can see the controller
->> >>> going to D3 when the touch panel is idle.
->> >>>
->> >>> I can perform more comprehensive testing next week.
->> >>>
->> >> Unfortunately I'm seeing interrupt storm during suspend/resume on
->> >> platform using PM domain from drivers/acpi/acpi_lpss.c straight after
->> >> this patch. Maybe some timing related as I see it only if I have debug
->> >> messages on (i2c_designware_core.dyndbg=+p). But it occurs only after
->> >> this patch.
->> >>
->> > Sorry the noise, this was bogus. That platform is doing this interrupt storm
->> > randomly and it occurs also without the patch.
->>
->>
->> Okay, then it seems like we should go with $subject patch, although
->> allow me to update the changelog and post a new version.
->
-> But as I said, it would be better to do the pm_runtime_resume() in ->resume
-> (unless that breaks something), for two reasons.
->
-> The first reason is that ->complete is synchronous and ->resume can be done
-> in parallel with other devices which potentially saves time.  The second reason
-> is that it wouldn't interfere with direct_complete on systems where that
-> actually works.
+On Wed, Jun 28, 2017 at 06:30:44AM +0200, Michał Kępień wrote:
+> > On Sat, Jun 24, 2017 at 02:25:46AM +0200, Rafael Wysocki wrote:
+> > > On Wednesday, June 21, 2017 11:15:43 AM Darren Hart wrote:
+> > > > On Fri, Jun 16, 2017 at 06:40:52AM +0200, Michał Kępień wrote:
+> > > > > All ACPI device notify callbacks are invoked using acpi_os_execute(),
+> > > > > which causes the supplied callback to be queued to a static workqueue
+> > > > > which always executes on CPU 0.  This means that there is no possibility
+> > > > > for any ACPI device notify callback to be concurrently executed on
+> > > > > multiple CPUs, which in the case of fujitsu-laptop means that using a
+> > > > > locked kfifo for handling hotkeys is redundant: as hotkey scancodes are
+> > > > > only pushed and popped from within acpi_fujitsu_laptop_notify(), no risk
+> > > > > of concurrent pushing and popping exists.
+> > > > 
+> > > > Was the kfifo causing a problem currently or for the migration to separate
+> > > > modules? Is this purely a simplification?
+> > > > 
+> > > > Rafael, the above rationale appears sound to me. Do you have any concerns?
+> > > 
+> > > I actually do.
+> > > 
+> > > While this is the case today, making the driver code depend on it in a hard way
+> > > sort of makes it difficult to change in the future if need be.
+> > 
+> > OK, if we aren't guaranteed for this to run on CPU 0 in the future, and this
+> > will be annoying to debug if it does changes, let's skip the kfifo change.
+> > 
+> > I have removed this patch, and fixed up the merge conflicts of the remaining 6
+> > patches here:
+> > 
+> > http://git.infradead.org/linux-platform-drivers-x86.git/shortlog/refs/heads/fujitsu
+> > 
+> > Michal / Jonathan, would you please review and let me know if this is what you
+> > would have done / approve the rebase?
+> 
+> The only issue I can see is that the push/pop debug messages in the last
+> patch contain the word "buffer" instead of the original "ringbuffer".
+> The dropped kfifo patch changed the wording from "ringbuffer" to
+> "buffer" as applying it means there is no ringbuffer any more, but since
+> it was not applied in the end, I guess the original wording should stay
+> in place.
+> 
+> The rest looks good to me.
 
-Yes, that's good points - and I don't see any obvious reasons to why
-it shouldn't work.
+Good catch, thank you. The testing branch has been rebased to reflect these
+changes.
 
-Kind regards
-Uffe
+-- 
+Darren Hart
+VMware Open Source Technology Center
