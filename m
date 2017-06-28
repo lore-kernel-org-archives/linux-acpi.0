@@ -1,56 +1,167 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v5 0/2] Fixes for ACPI BERT table
-Date: Wed, 28 Jun 2017 18:38:36 +0200
-Message-ID: <20170628163836.dwhbqq4ojxuwyo2y@pd.tnic>
-References: <20170619155854.gtcowx3cityb3gqt@pd.tnic>
- <cover.1498065055.git.tony.luck@intel.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 1/9] i2c: designware: Fix system suspend
+Date: Wed, 28 Jun 2017 11:52:41 -0500
+Message-ID: <e5da7776-2086-f393-c87b-5b1d94a38e76@ti.com>
+References: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org>
+ <CAJZ5v0iYwPE8rpn=aZ9n6LV-qbAK3kynRqVZ7xxuB+gYar_fyg@mail.gmail.com>
+ <20170622104933.GY629@lahna.fi.intel.com> <2842386.AFZiXzV2Sq@aspire.rjw.lan>
+ <CAPDyKFo80QWYhU_SFexr_riPSZS3QEXDyBcywa5qBYa3sJXcjw@mail.gmail.com>
+ <CAJZ5v0irHvYXHv1GykatTH+XROZyL0nR0c=KfdSrpH395s6V8g@mail.gmail.com>
+ <CAPDyKFov=08AQw0PPPgcFbrerTskoPGfLZcJL9gjikfQfZUJpw@mail.gmail.com>
+ <4324e2c8-ab79-5a21-a8ab-c660920cba59@ti.com>
+ <CAPDyKFoNq2ssCtuBovvCE0jByjnh74=VHFHLuf3ZPXPK6TXJCg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:48558 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751646AbdF1QjH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Jun 2017 12:39:07 -0400
-Content-Disposition: inline
-In-Reply-To: <cover.1498065055.git.tony.luck@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAPDyKFoNq2ssCtuBovvCE0jByjnh74=VHFHLuf3ZPXPK6TXJCg@mail.gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Jisheng Zhang <jszhang@marvell.com>, stable@vger.linux.org, Guodong Xu <guodong.xu@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Kevin Hilman <khilman@kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, John Stultz <john.stultz@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sumit Semwal <sumit.semwal@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jonathan Zhang <zjzhang@codeaurora.org>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org
 
-On Wed, Jun 21, 2017 at 10:20:40AM -0700, Luck, Tony wrote:
-> From: Tony Luck <tony.luck@intel.com>
-> 
-> At Boris' suggestion I've split this into two parts for version 5.
-> First one stops the driver from clearing the block_status field as:
->  1) it is unnecessary
->  2) not mentioned in the spec
->  3) may upset user mode tools that extract information from the BERT table.
-> 
-> Second is the code simplification that you've seen before in ealier
-> versions of this patch.
-> 
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Huang Ying <ying.huang@intel.com>
-> Cc: Borislav Petkov <bp@suse.de>
-> Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> Cc: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> Cc: Tyler Baicar <tbaicar@codeaurora.org>
-> Cc: linux-acpi@vger.kernel.org
-> 
-> Tony Luck (2):
->   ACPI / APEI / BERT: Don't clear "block_status" in header
->   ACPI / APEI: Boot Error Record Table processing was needlessly
->     complicated
 
-Both:
 
-Reviewed-by: Borislav Petkov <bp@suse.de>
+On 06/28/2017 09:31 AM, Ulf Hansson wrote:
+> On 26 June 2017 at 21:39, Grygorii Strashko <grygorii.strashko@ti.com> wrote:
+>>
+>>
+>> On 06/26/2017 11:49 AM, Ulf Hansson wrote:
+>>> On 23 June 2017 at 00:01, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>>> On Thu, Jun 22, 2017 at 11:37 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+>>>>> On 22 June 2017 at 16:41, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>>>>> On Thursday, June 22, 2017 01:49:33 PM Mika Westerberg wrote:
+>>>>>>> On Thu, Jun 22, 2017 at 01:31:51AM +0200, Rafael J. Wysocki wrote:
+>>>>>>>> On Wed, Jun 21, 2017 at 9:21 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+>>>>>>>>> The commit 8503ff166504 ("i2c: designware: Avoid unnecessary resuming
+>>>>>>>>> during system suspend"), may suggest to the PM core to try out the so
+>>>>>>>>> called direct_complete path for system sleep. In this path, the PM core
+>>>>>>>>> treats a runtime suspended device as it's already in a proper low power
+>>>>>>>>> state for system sleep, which makes it skip calling the system sleep
+>>>>>>>>> callbacks for the device, except for the ->prepare() and the ->complete()
+>>>>>>>>> callback.
+>>>>>>>>>
+>>>>>>>>> Moreover, under certain circumstances the PM core may unset the
+>>>>>>>>> direct_complete flag for a parent device, in case its child device are
+>>>>>>>>> being system suspended before. In other words, the PM core doesn't skip
+>>>>>>>>> calling the system sleep callbacks, no matter if the device is runtime
+>>>>>>>>> suspended or not.
+>>>>>>>>>
+>>>>>>>>> In cases of an i2c slave device, the above situation is triggered.
+>>>>>>>>> Unfortunate, this also breaks the assumption that the i2c device is always
+>>>>>>>>> runtime resumed, whenever the dw_i2c_plat_suspend() callback is being
+>>>>>>>>> invoked, which then leads to a regression.
+>>>>>>>>>
+>>>>>>>>> More precisely, dw_i2c_plat_suspend() then calls clk_core_disable() and
+>>>>>>>>> clk_core_unprepare(), for an already disabled/unprepared clock, leading to
+>>>>>>>>> complaints about clocks calls being wrongly balanced.
+>>>>>>>>>
+>>>>>>>>> In cases when the i2c device is attached to the ACPI PM domain, the problem
+>>>>>>>>> doesn't occur. That's because ACPI's ->suspend() callback, assigned to
+>>>>>>>>> acpi_subsys_suspend(), calls pm_runtime_resume() for the i2c device.
+>>>>>>>>
+>>>>>>>> Which really is expected to happen, so direct_complete should only be
+>>>>>>>> used along with the ACPI PM domain in this case.
+>>>>>>>>
+>>>>>>>> Moreover, in the ACPI PM domain case acpi_subsys_prepare() is supposed
+>>>>>>>> to do the right thing without dw_i2c_plat_prepare() and the return
+>>>>>>>> value of the latter will be ignored anyway, so dw_i2c_plat_prepare()
+>>>>>>>> will only have effect without ACPI PM domain AFAICS.
+>>>>>>>>
+>>>>>>>> It looks like commit 8503ff166504 is entirely misguided.
+>>>>>>>
+>>>>>>> Indeed it is. At the time I suggested that change I did not really
+>>>>>>> understand how the direct complete is supposed to be used :-/
+>>>>>>
+>>>>>> So can we go for a full revert, please, and then fix up things properly?
+>>>>>
+>>>>> Unfortunate I think a revert is going to make it worse, for the non ACPI case.
+>>>>>
+>>>>> Because in that case, unless I am reading the code wrong, I think when
+>>>>> the device is runtime suspended during system sleep, then the system
+>>>>> suspend callback will also be called (because the direct_complete
+>>>>> isn't run), again causing clock unbalance issues.
+>>>>>
+>>>>> This makes it worse in that sense, that then you don't even need an
+>>>>> i2c slave to trigger the problem.
+>>>>
+>>>> In that case your changelog is a bit misleading.
+>>>
+>>> Yeah, it is! I didn't realize that until I fully investigated the revert option.
+>>>
+>>>>
+>>>> It looks like the commit in question attempted to fix exactly this
+>>>> issue, but it failed, so it should be replaced with something else
+>>>> which is what your patch is effectively doing.
+>>>>
+>>>> IMO you should describe the original problem, explain why that commit
+>>>> is not sufficient to fix it and then describe the final fix.
+>>>>
+>>>> Anyway, after reading the changelog it should be clear that things
+>>>> were broken before the commit in question.
+>>>>
+>>>> And BTW I'm not really sure how the rest of the series is related to this?
+>>>
+>>> Going back in history, I realize the system sleep support in this
+>>> driver has been broken even before the commit $subject patch intends
+>>> to fix.
+>>> However it has been working fine for the ACPI case, because of how the
+>>> ACPI PM domain manages its devices during system sleep.
+>>>
+>>> The commit in question, adds an improvement to the driver, because it
+>>> enables the direct_complete path. For ACPI, that was already working,
+>>> but not for the other cases. So to be able to support the similar
+>>> improvement as the direct_complete path offers, as that isn't working
+>>> for this driver, I tried out using the runtime PM centric path
+>>> instead. That is what the rest of the changes in this series takes
+>>> care of.
+>>>
+>>> Now, as the system sleep support is broken I wanted to make a simple
+>>> fix for that first, via $subject patch. I guess what makes this a bit
+>>> confusing is that I shouldn't point to a certain commit, but rather
+>>> just add a stable tag and update the changelog accordingly.
+>>>
+>>
+>> Wouldn't it fix suspend for this driver if you will just replace
+>> dw_i2c_plat_suspend() with pm_runtime_force_suspend() in SET_SYSTEM_SLEEP_PM_OPS() as
+>> you've done in patch 9?
+> 
+> For the non-ACPI case - yes.
+> 
+> For the ACPI case - no. Here we need to adapt the ACPI PM domain
+> first, as it currently doesn't support the runtime PM centric path for
+> system sleep.
+
+Yeah. 
+
+> 
+>>
+>> And, I think, direct_complete path should still work after this also.
+> 
+> I don't understand why we want or need that?
+> 
+> To me it would only make the code in the ACPI PM domain more
+> complicated, comparing to the changes I have posted in rest of this
+> series.
+> 
+
+I'm not sure about benefits with this particular driver - everything
+depend on power on/off latencies, if they are big direct_complete make sense.
+
+The main point of my comment was based on fact that dw_i2c driver uses
+the same function for PM runtime and System suspend callbacks, but this is
+definitely wrong (ACPI or not), because PM runtime and System suspend
+are not synchronized.
 
 -- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+regards,
+-grygorii
