@@ -1,56 +1,124 @@
-From: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 4/4] spi: Use Apple device properties in absence of
- ACPI resources
-Date: Wed, 28 Jun 2017 22:14:23 +0300
-Message-ID: <CAHp75Ved89cCzTCt-7VnNp+xAgpkFxUmG2v9=5Mn=VBB_WzD5A@mail.gmail.com>
-References: <cover.1498636759.git.lukas@wunner.de> <bca7fb9e406bbfa9ee7e8457cacd34418ef689be.1498636759.git.lukas@wunner.de>
+From: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
+Subject: Re: A udev rule to serve the change event of ACPI container?
+Date: Wed, 28 Jun 2017 15:53:16 -0400
+Message-ID: <1f1b0229-84c8-f95f-dab4-76588834b6e6@gmail.com>
+References: <20170626062657.GE4229@linux-l9pv.suse>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <bca7fb9e406bbfa9ee7e8457cacd34418ef689be.1498636759.git.lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ronald Tschalaer <ronald-Cgq6lnktLNMTaf21n8AfGQ@public.gmane.org>, Federico Lorenzi <florenzi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Leif Liddy <leif.liddy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Daniel Roschka <danielroschka-d2qyoUQsf3ABe69/dCFm4g@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170626062657.GE4229@linux-l9pv.suse>
+Sender: linux-kernel-owner@vger.kernel.org
+To: joeyli <jlee@suse.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Michal Hocko <mhocko@suse.cz>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 28, 2017 at 8:20 PM, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org> wrote:
-> MacBooks and MacBook Pros introduced since 2015 return empty _CRS data
-> for SPI slaves, causing device initialization to fail.  Most of the
-> information that would normally be conveyed via _CRS is available
-> through ACPI device properties instead, so take advantage of them.
 
-> spiSclkPeriod   /* period in ns */
+On 06/26/2017 02:26 AM, joeyli wrote:
+> Hi all,
+> 
+> If ACPI received ejection request for a ACPI container, kernel
+> emits KOBJ_CHANGE uevent when it found online children devices
+> below the acpi container.
+> 
+> Base on the description of caa73ea15 kernel patch, user space
+> is expected to offline all devices below the container and the
+> container itself. Then, user space can finalize the removal of
+> the container with the help of its ACPI device object's eject
+> attribute in sysfs.
+> 
+> That means that kernel relies on users space to peform the offline
+> and ejection jobs to acpi container and children devices. The
+> discussion is here:
+> 	https://lkml.org/lkml/2013/11/28/520
+> 
+> The mail loop didn't explain why the userspace is responsible for
+> the whole container offlining. Is it possible to do that transparently
+> from the kernel? What's the difference between offlining memory and
+> processors which happends without any cleanup and container which
+> does essentially the same except it happens at once? 
 
-> +#include <linux/math64.h>
+We don't know what devices mount on the container device. I think
+devices mount on the container device are different each vendor's server.
 
-> +       if (!acpi_dev_get_property(dev, "spiSclkPeriod", ACPI_TYPE_BUFFER, &o))
-> +               spi->max_speed_hz  = div64_u64(NSEC_PER_SEC,
-> +                                              *(u64 *)o->buffer.pointer);
+If memory device mounts on the container, memory offline easily fails.
+Other devices may have other concerns. So the following udev rule you
+write does not work correctly.
 
-Why do you need 64 bit division here? It's obviously 32. It makes
-nonsense to have variable more than NSEC_PER_SEC (if one paranoid
-enough it could be checked).
+I think we need to change offline processing for each device. So currently
+the userspace is responsible for the whole container offlining.
 
-> +       if (!acpi_dev_get_property(dev, "spiWordSize", ACPI_TYPE_BUFFER, &o))
-> +               spi->bits_per_word = *(u64 *)o->buffer.pointer;
+
+Thanks,
+Yasuaki Ishimatsu
+`
+
+>  
+>  - After a couple of years, can we let the container hot-remove
+>    process transparently?
+>  - Except udev rule, does there have any other mechanism to trigger
+>    auto offline/ejection?
+> 
+> The attached patch is a udev rule that it's used to perform the
+> offlien/ejection jobs on user space. I want to send it to systemd.
+> 
+> Thanks a lot!
+> Joey Lee
+> 
+> From 6c95d4858e0e7c280e490491c1a00c1b5226a029 Mon Sep 17 00:00:00 2001
+> From: "Lee, Chun-Yi" <jlee@suse.com>
+> Date: Mon, 26 Jun 2017 11:40:03 +0800
+> Subject: [PATCH] rules: handle the change event of ACPI container
+> 
+> Currently the ACPI in kernel emits KOBJ_CHANGE uevent when there
+> have online children devices below the acpi container.
+> 
+> Base on the description of caa73ea15 kernel patch, user space
+> is expected to offline all devices below the container and the
+> container itself. Then, user space can finalize the removal of
+> the container with the help of its ACPI device object's eject
+> attribute in sysfs.
+> 
+> This udev rule can be a default user space application to meet
+> kernel's expectations. This rule walks through the sysfs tree
+> to trigger the offline of each child device then ejects the
+> container.
+> 
+> The ACPI_CONTAINER_EJECT environoment variable can be used to
+> turn off the the ejection logic of container if the ejection
+> will be triggered by other ways, e.g. BIOS or other user space
+> application.
+> 
+> Reference: https://lkml.org/lkml/2013/11/28/520
+> Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Cc: Michal Hocko <mhocko@suse.cz>
+> Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
+> ---
+>  rules/80-acpi-container-hotremove.rules | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+>  create mode 100644 rules/80-acpi-container-hotremove.rules
+> 
+> diff --git a/rules/80-acpi-container-hotremove.rules b/rules/80-acpi-container-hotremove.rules
+> new file mode 100644;a
+> index 000000000..ef4ceb5fb
+> --- /dev/null
+> +++ b/rules/80-acpi-container-hotremove.rules
+> @@ -0,0 +1,16 @@
+> +# do not edit this file, it will be overwritten on update
 > +
-
-> +       if (!acpi_dev_get_property(dev, "spiBitOrder", ACPI_TYPE_BUFFER, &o) &&
-> +           !*(u64 *)o->buffer.pointer)
-
-In such cases I would prefer the notation like
-ret = func();
-if (!ret && ...)
- ...
-
-Also we usually name object variable as obj, though it's minor here.
-
-> +               spi->mode |= SPI_LSB_FIRST;
-
--- 
-With Best Regards,
-Andy Shevchenko
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +SUBSYSTEM=="container", ACTION=="change", DEVPATH=="*/ACPI0004:??", ENV{ACPI_CONTAINER_EJECT}="1"\
+> +RUN+="/bin/sh -c ' \
+> +if [ $(cat /sys/$env{DEVPATH}/online) -eq 1 ]; then \
+> +        find -L /sys/$env{DEVPATH}/firmware_node/*/physical_node* -maxdepth 1 -name online | \
+> +        while read line; do \
+> +                if [ $(cat $line) -eq 1 ]; then \
+> +                        /bin/echo 0 > $line; \
+> +                fi \
+> +        done; \
+> +        /bin/echo 0 > /sys/$env{DEVPATH}/online; \
+> +        if [$env{ACPI_CONTAINER_EJECT} -eq 1] && [ $(cat /sys/$env{DEVPATH}/online) -eq 0 ]; then \
+> +                /bin/echo 1 > /sys/$env{DEVPATH}/firmware_node/eject; \
+> +        fi \
+> +fi
+> 
