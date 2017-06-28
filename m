@@ -1,35 +1,49 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH] ACPI: nfit: constify *_attribute_group.
-Date: Tue, 27 Jun 2017 21:42:39 -0700
-Message-ID: <CAPcyv4jYtx-TcUqqFm4UUbEixmmMkOKWJtkFK_7XRDxp3Y64qA@mail.gmail.com>
-References: <4c4644aea76ce2f098719c333125ceb6a3244145.1498126084.git.arvind.yadav.cs@gmail.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: ACPICA regression for empty ResourceTemplates
+Date: Wed, 28 Jun 2017 10:59:13 +0200
+Message-ID: <20170628085913.qq3vzqrb6mvwiirg@wunner.de>
+References: <20170627185917.GA14927@innovation.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yb0-f179.google.com ([209.85.213.179]:33322 "EHLO
-        mail-yb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751300AbdF1Emk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jun 2017 00:42:40 -0400
-Received: by mail-yb0-f179.google.com with SMTP id 84so15602609ybe.0
-        for <linux-acpi@vger.kernel.org>; Tue, 27 Jun 2017 21:42:40 -0700 (PDT)
-In-Reply-To: <4c4644aea76ce2f098719c333125ceb6a3244145.1498126084.git.arvind.yadav.cs@gmail.com>
+Received: from mailout1.hostsharing.net ([83.223.95.204]:39351 "EHLO
+        mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751533AbdF1I7Q (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jun 2017 04:59:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20170627185917.GA14927@innovation.ch>
+ <CAJZ5v0iXWdz2TfHdfCZ-gyi9G=CTKc+cnFCY9bzUJFAGkoLHHQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, "Life is hard, and then you die" <ronald@innovation.ch>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Thu, Jun 22, 2017 at 3:14 AM, Arvind Yadav <arvind.yadav.cs@gmail.com> wrote:
-> File size before:
->    text    data     bss     dec     hex filename
->   20792    1580     994   23366    5b46 drivers/acpi/nfit/core.o
->
-> File size After adding 'const':
->    text    data     bss     dec     hex filename
->   20968    1388     994   23350    5b36 drivers/acpi/nfit/core.o
->
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-> ---
->  drivers/acpi/nfit/core.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+On Tue, Jun 27, 2017 at 11:59:17AM -0700, Life is hard, and then you die wrote:
+> On Tue, Jun 27, 2017 at 11:24:25AM +0200, Lukas Wunner wrote:
+> > On Tue, Jun 27, 2017 at 01:19:31AM +0000, Zheng, Lv wrote:
+> > > > On Mon, Jun 26, 2017 at 10:38 AM, Lukas Wunner <lukas@wunner.de> wrote:
+> > > > > ACPICA commit c8eac101 (= Linux commit a83019eb9f1f, "ACPICA: Update
+> > > > > resource descriptor handling") is causing a regression when parsing
+> > > > > an empty ResourceTemplate:
+> > > 
+> > > Can it be fixed by using this logic:
+> > > if (AmlLength < sizeof (AML_RESOURCE_END_TAG) && AmlLength)
+> > > Instead of the logic introduced in commit a83019eb9f1f?
+> > > if (AmlLength < sizeof (AML_RESOURCE_END_TAG))
+> > 
+> > Unfortunately not, AmlLength is not 0 but 2 in this case
+> > (= sizeof(struct aml_resource_end_tag)).
+> 
+> Actually, that will work here (the use of '<' ensures that).
 
-Looks good to me, applied.
+Ugh, right, I had missed that the = was gone in Lv's suggestion, sorry.
+
+
+On Tue, Jun 27, 2017 at 05:31:52PM +0200, Rafael J. Wysocki wrote:
+> So I will drop this commit for now and I will add it again along with
+> the next release material to avoid triggering regressions in the
+> meantime.
+
+Okay, thanks for the speedy response Rafael and Robert!
+
+Lukas
