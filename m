@@ -1,49 +1,59 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: ACPICA regression for empty ResourceTemplates
-Date: Wed, 28 Jun 2017 10:59:13 +0200
-Message-ID: <20170628085913.qq3vzqrb6mvwiirg@wunner.de>
-References: <20170627185917.GA14927@innovation.ch>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 1/9] i2c: designware: Fix system suspend
+Date: Wed, 28 Jun 2017 16:01:39 +0200
+Message-ID: <CAPDyKFqShg+9rYfjMwKU6ri7nWt3nAqv_A+N-hHitRLwDi0_5g@mail.gmail.com>
+References: <1498072888-14782-1-git-send-email-ulf.hansson@linaro.org>
+ <1498072888-14782-2-git-send-email-ulf.hansson@linaro.org>
+ <CAJZ5v0iYwPE8rpn=aZ9n6LV-qbAK3kynRqVZ7xxuB+gYar_fyg@mail.gmail.com>
+ <20170622104933.GY629@lahna.fi.intel.com> <5540bae1-b1bf-0e15-1fa0-977076fa0753@linux.intel.com>
+ <a7881812-0da6-478c-7eed-faf8a6e30891@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout1.hostsharing.net ([83.223.95.204]:39351 "EHLO
-        mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751533AbdF1I7Q (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jun 2017 04:59:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20170627185917.GA14927@innovation.ch>
- <CAJZ5v0iXWdz2TfHdfCZ-gyi9G=CTKc+cnFCY9bzUJFAGkoLHHQ@mail.gmail.com>
+Received: from mail-qt0-f170.google.com ([209.85.216.170]:36454 "EHLO
+        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751920AbdF1OBq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jun 2017 10:01:46 -0400
+Received: by mail-qt0-f170.google.com with SMTP id i2so49932025qta.3
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Jun 2017 07:01:40 -0700 (PDT)
+In-Reply-To: <a7881812-0da6-478c-7eed-faf8a6e30891@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, "Life is hard, and then you die" <ronald@innovation.ch>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>, stable@vger.linux.org
 
-On Tue, Jun 27, 2017 at 11:59:17AM -0700, Life is hard, and then you die wrote:
-> On Tue, Jun 27, 2017 at 11:24:25AM +0200, Lukas Wunner wrote:
-> > On Tue, Jun 27, 2017 at 01:19:31AM +0000, Zheng, Lv wrote:
-> > > > On Mon, Jun 26, 2017 at 10:38 AM, Lukas Wunner <lukas@wunner.de> wrote:
-> > > > > ACPICA commit c8eac101 (= Linux commit a83019eb9f1f, "ACPICA: Update
-> > > > > resource descriptor handling") is causing a regression when parsing
-> > > > > an empty ResourceTemplate:
-> > > 
-> > > Can it be fixed by using this logic:
-> > > if (AmlLength < sizeof (AML_RESOURCE_END_TAG) && AmlLength)
-> > > Instead of the logic introduced in commit a83019eb9f1f?
-> > > if (AmlLength < sizeof (AML_RESOURCE_END_TAG))
-> > 
-> > Unfortunately not, AmlLength is not 0 but 2 in this case
-> > (= sizeof(struct aml_resource_end_tag)).
-> 
-> Actually, that will work here (the use of '<' ensures that).
+On 27 June 2017 at 09:55, Jarkko Nikula <jarkko.nikula@linux.intel.com> wrote:
+> On 06/22/2017 02:16 PM, Jarkko Nikula wrote:
+>>
+>> On 06/22/2017 01:49 PM, Mika Westerberg wrote:
+>>>
+>>> On Thu, Jun 22, 2017 at 01:31:51AM +0200, Rafael J. Wysocki wrote:
+>>>>
+>>>> On Wed, Jun 21, 2017 at 9:21 PM, Ulf Hansson <ulf.hansson@linaro.org>
+>>>> wrote:
+>>>
+>>> Thanks Ulf for taking care of this!
+>>>
+>> Indeed!
+>>
+>>> I tested this series on Dell XPS 9350 which has touch panel connected to
+>>> I2C and suspend/resume still works fine and I can see the controller
+>>> going to D3 when the touch panel is idle.
+>>>
+>>> I can perform more comprehensive testing next week.
+>>>
+>> Unfortunately I'm seeing interrupt storm during suspend/resume on
+>> platform using PM domain from drivers/acpi/acpi_lpss.c straight after
+>> this patch. Maybe some timing related as I see it only if I have debug
+>> messages on (i2c_designware_core.dyndbg=+p). But it occurs only after
+>> this patch.
+>>
+> Sorry the noise, this was bogus. That platform is doing this interrupt storm
+> randomly and it occurs also without the patch.
 
-Ugh, right, I had missed that the = was gone in Lv's suggestion, sorry.
 
+Okay, then it seems like we should go with $subject patch, although
+allow me to update the changelog and post a new version.
 
-On Tue, Jun 27, 2017 at 05:31:52PM +0200, Rafael J. Wysocki wrote:
-> So I will drop this commit for now and I will add it again along with
-> the next release material to avoid triggering regressions in the
-> meantime.
-
-Okay, thanks for the speedy response Rafael and Robert!
-
-Lukas
+Kind regards
+Uffe
