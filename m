@@ -1,49 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/2] Make cppc acpi driver aware of pcc subspace ids
-Date: Wed, 28 Jun 2017 23:20:13 +0200
-Message-ID: <2438938.qNZk1AErMU@aspire.rjw.lan>
-References: <1497363431-10002-1-git-send-email-george.cherian@cavium.com>
+Subject: Re: [PATCH 1/3] ACPI: EC: Fix an EC event IRQ storming issue
+Date: Wed, 28 Jun 2017 23:23:05 +0200
+Message-ID: <2567863.EKXPT4SnGi@aspire.rjw.lan>
+References: <d8ac96c8fd988daec20f7a22a2acb3119ccd149b.1497418749.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42430 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:58095 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751581AbdF1V1k (ORCPT
+        by vger.kernel.org with ESMTP id S1751580AbdF1Vac (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Jun 2017 17:27:40 -0400
-In-Reply-To: <1497363431-10002-1-git-send-email-george.cherian@cavium.com>
+        Wed, 28 Jun 2017 17:30:32 -0400
+In-Reply-To: <d8ac96c8fd988daec20f7a22a2acb3119ccd149b.1497418749.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: George Cherian <george.cherian@cavium.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, lenb@kernel.org, jassisinghbrar@gmail.com, robert.moore@intel.com, lv.zheng@intel.com, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Ashwin Chaugule <ashwinch@google.com>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, June 13, 2017 02:17:09 PM George Cherian wrote:
-> The current cppc acpi driver works with only one pcc subspace id.
-> It maintains and registers only one pcc channel even if the acpi table has 
-> different pcc subspace ids. 
+On Wednesday, June 14, 2017 01:59:09 PM Lv Zheng wrote:
+> The EC event IRQ (SCI_EVT) can only be handled by submitting QR_EC. As the
+> EC driver handles SCI_EVT in a workqueue, after SCI_EVT is flagged and
+> before QR_EC is submitted, there is a period risking IRQ storming. EC IRQ
+> must be masked for this period but linux EC driver never does so.
 > 
-> As per ACPI 6.2 spec  all PCC registers, for all processors in the same 
-> performance domain (as defined by _PSD), must be defined to be in the same
-> subspace. The series tries to address the same by making cppc acpi driver 
-> aware of multiple possible pcc subspace ids.
+> No end user notices the IRQ storming and no developer fixes this known
+> issue because:
+> 1. the EC IRQ is always edge triggered GPE, and
+> 2. the kernel can execute no-op EC IRQ handler very fast.
+> For edge triggered EC GPE platforms, it is only reported of post-resume EC
+> event lost issues, there won't be an IRQ storming. For level triggered EC
+> GPE platforms, fortunately the kernel is always fast enough to execute such
+> a no-op EC IRQ handler so that the IRQ handler won't be accumulated to
+> starve the task contexts, causing a real IRQ storming.
 > 
-> Patch 1 : In preparation to share the MAX_PCC_SUBSPACE definition with cppc acpi
->           driver
-> Patch 2 : Make the cppc acpi driver aware of multiple pcc subspace ids.
+> But the IRQ storming actually can still happen when:
+> 1. the EC IRQ performs like level triggered GPE, and
+> 2. the kernel EC debugging log is turned on but the console is slow enough.
+> There are more and more platforms using EC GPE as wake GPE where the EC GPE
+> is likely designed as level triggered. Then when EC debugging log is
+> enabled, the EC IRQ handler is no longer a no-op but dumps IRQ status to
+> the consoles. If the consoles are slow enough, the EC IRQs can arrive much
+> faster than executing the handler. Finally the accumulated EC event IRQ
+> handlers starve the task contexts, causing the IRQ storming to occur, and
+> the kernel hangs can be observed during boot/resume.
 > 
+> See link #1 for reference, however the bug link can only be accessed by
+> priviledged Intel users.
 > 
-> George Cherian (2):
->   mailbox: PCC: Move the MAX_PCC_SUBSPACES definition to header file
->   ACPI / CPPC: Make cppc acpi driver aware of pcc subspace ids
+> This patch fixes this issue by masking EC IRQ for this period:
+> 1. begins when there is an SCI_EVT IRQ pending, and
+> 2. ends when there is a QR_EC completed (SCI_EVT acknowledged).
 > 
->  drivers/acpi/cppc_acpi.c | 179 +++++++++++++++++++++++++----------------------
->  drivers/mailbox/pcc.c    |   1 -
->  include/acpi/pcc.h       |   1 +
->  3 files changed, 97 insertions(+), 84 deletions(-)
+> Link: https://jira01.devtools.intel.com/browse/LCK-4004 [#1]
+> Tested-by: Wang Wendy <wendy.wang@intel.com>
+> Tested-by: Feng Chenzhou <chenzhoux.feng@intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-I need Ashwing and Prashanth to look at this series and let me know what they
-think.
+I've applied this and the [2/3], but I'm not sure about the [3/3].
+
+I'll reply to that patch.
 
 Thanks,
 Rafael
