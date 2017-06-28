@@ -1,137 +1,116 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH v3] acpi: indicate to platform when hot remove returns busy
-Date: Thu, 29 Jun 2017 00:13:18 +0200
-Message-ID: <136250372.B1LmTaN194@aspire.rjw.lan>
-References: <20170621074544.18436-1-jlee@suse.com>
+Subject: Re: [PATCH] acpi: thermal: honor "mode" sysfs file setting
+Date: Thu, 29 Jun 2017 00:14:35 +0200
+Message-ID: <3358778.pxacZRAVRa@aspire.rjw.lan>
+References: <20170622124542.12063-1-enric.balletbo@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:47360 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:53060 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751559AbdF1WUp (ORCPT
+        by vger.kernel.org with ESMTP id S1751888AbdF1WWC (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Jun 2017 18:20:45 -0400
-In-Reply-To: <20170621074544.18436-1-jlee@suse.com>
+        Wed, 28 Jun 2017 18:22:02 -0400
+In-Reply-To: <20170622124542.12063-1-enric.balletbo@collabora.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Michal Hocko <mhocko@suse.cz>
+To: Enric Balletbo i Serra <enric.balletbo@collabora.com>, Zhang Rui <rui.zhang@intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <groeck@chromium.org>, Sameer Nanda <snanda@chromium.org>
 
-On Wednesday, June 21, 2017 03:45:44 PM Lee, Chun-Yi wrote:
-> In hotplug logic, it always indicates non-specific failure to
-> platform through _OST when handing acpi hot-remove event failed. Then
-> platform terminates the hot-remove process but it can not identify
-> the reason.
+On Thursday, June 22, 2017 02:45:42 PM Enric Balletbo i Serra wrote:
+> From: Sameer Nanda <snanda@chromium.org>
 > 
-> Base on current hot-remove code, there have two situations that it
-> returns busy:
->  - OSPM try to offline an individual device, but the device offline
->    function returns busy.
->  - When the ejection event is applied to an "not offlined yet" container.
->    OSPM send kobject change event to userspace and returns busy.
+> Under each thermal zone there is a file called "mode". Writing enabled
+> or disabled to this file allows a given thermal zone to be enabled or
+> disabled. Honor writes to this file by enabling or disabling the
+> polling timers.
 > 
-> Both of them will returns -EBUSY to acpi device hotplug function then
-> hotplug function indicates non-specific failure to platform just like
-> any other error, e.g. -ENODEV or -EIO.
+> With this change, in the acpi_thermal_add path, acpi_thermal_get_info
+> gets called before acpi_thermal_register_thermal_zone. Since tz_enabled
+> was getting set to 1 only in acpi_thermal_register_thermal_zone,
+> acpi_thermal_get_info ended up disabling thermal polling so moved the
+> setting of tz_enabled to 1 into acpi_thermal_add itself.
 > 
-> The benefit to platform for identifying the OS busy state is that
-> platform can be applied different approach to handle the busy but
-> not just terminate the hot-remove process by unknown reason. For
-> example, platform can wait for a while then triggers hot-remove
-> again.
+> After this patch echoing enabled|disabled to "mode" sysfs will start/stop
+> the polling of the temperature.
 > 
-> This RFC patch adds one more parameter to the handler function of
-> acpi generic hotplug event to give the function a chance to propose
-> the return code of _OST. In this case, it sets ost return code to
-> ACPI_OST_SC_DEVICE_BUSY when the acpi hot remove function returns
-> -EBUSY.
-> 
-> v3:
-> Removed redundant 'else' in acpi_ost_status_code(). (Andy Shevchenko)
-> 
-> v2:
-> Do not overwrite ost code in acpi_generic_hotplug_event(). Move
-> the "error code to ost code" logic to a help function. (Andy Shevchenko)
-> 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-> Cc: Michal Hocko <mhocko@suse.cz>
-> Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
+> Signed-off-by: Sameer Nanda <snanda@chromium.org>
+> Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+
+Rui, Srinivas, can you please have a look at this one and let me know what you
+think?
+
 > ---
->  drivers/acpi/scan.c | 21 +++++++++++++++------
->  1 file changed, 15 insertions(+), 6 deletions(-)
+>  drivers/acpi/thermal.c | 28 +++++++++++++++++++++-------
+>  1 file changed, 21 insertions(+), 7 deletions(-)
 > 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 3a10d7573477..41f5065190c7 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -384,6 +384,20 @@ static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
->  	return -EINVAL;
->  }
+> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> index 1d0417b..68ad9fe 100644
+> --- a/drivers/acpi/thermal.c
+> +++ b/drivers/acpi/thermal.c
+> @@ -223,6 +223,17 @@ static int acpi_thermal_get_polling_frequency(struct acpi_thermal *tz)
+>  	if (!tz)
+>  		return -EINVAL;
 >  
-> +static int acpi_ost_status_code(u32 src, int error)
-> +{
-> +	switch (src) {
-> +	case ACPI_NOTIFY_EJECT_REQUEST:
-> +	case ACPI_OST_EC_OSPM_EJECT:
-> +		if (error == -EPERM)
-> +			return ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-> +		if (error == -EBUSY)
-> +			return ACPI_OST_SC_DEVICE_BUSY;
-> +		break;
+> +	if (tz->tz_enabled == THERMAL_DEVICE_DISABLED) {
+> +		tz->polling_frequency = 0;
+> +		return 0;
 > +	}
-> +	return error ? ACPI_OST_SC_NON_SPECIFIC_FAILURE : ACPI_OST_SC_SUCCESS;
-> +}
-
-I'm not sure why you need the function above?
-
-It only has one user anyway.
-
 > +
->  void acpi_device_hotplug(struct acpi_device *adev, u32 src)
->  {
->  	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
-> @@ -404,10 +418,6 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
->  		error = dock_notify(adev, src);
->  	} else if (adev->flags.hotplug_notify) {
->  		error = acpi_generic_hotplug_event(adev, src);
-> -		if (error == -EPERM) {
-> -			ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-> -			goto err_out;
-> -		}
->  	} else {
->  		int (*notify)(struct acpi_device *, u32);
->  
-> @@ -423,9 +433,8 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
->  		else
->  			goto out;
+> +	/* Get default polling frequency [_TZP] (optional) */
+> +	if (tzp) {
+> +		tz->polling_frequency = tzp;
+> +		return 0;
+> +	}
+> +
+>  	status = acpi_evaluate_integer(tz->device->handle, "_TZP", NULL, &tmp);
+>  	if (ACPI_FAILURE(status))
+>  		return -ENODEV;
+> @@ -582,6 +593,14 @@ static int thermal_set_mode(struct thermal_zone_device *thermal,
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>  			"%s kernel ACPI thermal control\n",
+>  			tz->tz_enabled ? "Enable" : "Disable"));
+> +
+> +		acpi_thermal_get_polling_frequency(tz);
+> +
+> +		mutex_lock(&tz->thermal_zone->lock);
+> +		tz->thermal_zone->polling_delay = tz->polling_frequency * 100;
+> +		tz->thermal_zone->passive_delay = tz->polling_frequency * 100;
+> +		mutex_unlock(&tz->thermal_zone->lock);
+> +
+>  		acpi_thermal_check(tz);
 >  	}
-> -	if (!error)
-> -		ost_code = ACPI_OST_SC_SUCCESS;
-
-I just would do:
-
-    switch (error) {
-    case 0:
-        ost_code = ACPI_OST_SC_SUCCESS;
-        break;
-    case -EBUSY:
-        ost_code = ACPI_OST_SC_DEVICE_BUSY;
-        break;
-    default:
-        ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
-        break;
-    }
-
+>  	return 0;
+> @@ -930,8 +949,6 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+>  	if (ACPI_FAILURE(status))
+>  		return -ENODEV;
 >  
-> +	ost_code = acpi_ost_status_code(src, error);
->   err_out:
->  	acpi_evaluate_ost(adev->handle, src, ost_code, NULL);
+> -	tz->tz_enabled = 1;
+> -
+>  	dev_info(&tz->device->dev, "registered as thermal_zone%d\n",
+>  		 tz->thermal_zone->id);
+>  	return 0;
+> @@ -1039,11 +1056,7 @@ static int acpi_thermal_get_info(struct acpi_thermal *tz)
+>  	if (!result)
+>  		tz->flags.cooling_mode = 1;
 >  
+> -	/* Get default polling frequency [_TZP] (optional) */
+> -	if (tzp)
+> -		tz->polling_frequency = tzp;
+> -	else
+> -		acpi_thermal_get_polling_frequency(tz);
+> +	acpi_thermal_get_polling_frequency(tz);
+>  
+>  	return 0;
+>  }
+> @@ -1088,6 +1101,7 @@ static int acpi_thermal_add(struct acpi_device *device)
+>  		return -ENOMEM;
+>  
+>  	tz->device = device;
+> +	tz->tz_enabled = 1;
+>  	strcpy(tz->name, device->pnp.bus_id);
+>  	strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
+>  	strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
 > 
-
-Thanks,
-Rafael
 
