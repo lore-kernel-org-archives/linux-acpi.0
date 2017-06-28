@@ -1,115 +1,128 @@
-From: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-Subject: [PATCH v2 4/4] spi: Use Apple device properties in absence of ACPI
- resources
-Date: Wed, 28 Jun 2017 19:20:19 +0200
-Message-ID: <bca7fb9e406bbfa9ee7e8457cacd34418ef689be.1498636759.git.lukas@wunner.de>
-References: <cover.1498636759.git.lukas@wunner.de>
+From: Robert Richter <robert.richter@cavium.com>
+Subject: Re: [PATCH v3 2/2] acpi/iort: numa: Add numa node mapping for smmuv3
+ devices
+Date: Wed, 28 Jun 2017 19:47:50 +0200
+Message-ID: <20170628174750.GY658@rric.localdomain>
+References: <1496897059-8272-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1496897059-8272-3-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <20170615134603.GA16292@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1498636759.git.lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ronald Tschalaer <ronald-Cgq6lnktLNMTaf21n8AfGQ@public.gmane.org>, Federico Lorenzi <florenzi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Leif Liddy <leif.liddy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Daniel Roschka <danielroschka-d2qyoUQsf3ABe69/dCFm4g@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn3nam01on0086.outbound.protection.outlook.com ([104.47.33.86]:63456
+        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751532AbdF1RsI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 28 Jun 2017 13:48:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20170615134603.GA16292@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, lv.zheng@intel.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will.Deacon@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, robin.murphy@arm.com, joro@8bytes.org, lenb@kernel.org, jnair@caviumnetworks.com, gpkulkarni@gmail.com
 
-MacBooks and MacBook Pros introduced since 2015 return empty _CRS data
-for SPI slaves, causing device initialization to fail.  Most of the
-information that would normally be conveyed via _CRS is available
-through ACPI device properties instead, so take advantage of them.
+On 15.06.17 14:46:03, Lorenzo Pieralisi wrote:
+> On Thu, Jun 08, 2017 at 10:14:19AM +0530, Ganapatrao Kulkarni wrote:
+> > Add code to parse proximity domain in SMMUv3 IORT table to
+> > set numa node mapping for smmuv3 devices.
+> > 
+> > Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+> > ---
+> >  drivers/acpi/arm64/iort.c | 28 ++++++++++++++++++++++++++--
+> >  1 file changed, 26 insertions(+), 2 deletions(-)
+> 
+> I am happy to take this but I want to know what we shall do with
+> patch 1 and related ACPICA changes first.
 
-The meaning and appropriate usage of the device properties was reverse
-engineered by Ronald Tschalär and carried over from these commits
-authored by him:
+The change is now in acpica:
 
-https://github.com/cb22/macbook12-spi-driver/commit/9a416d699ef4
-https://github.com/cb22/macbook12-spi-driver/commit/0c34936ed9a1
+ https://github.com/acpica/acpica/commit/8cadc4fb500e2aa52241e367c87a0f95d9760c58
 
-According to Ronald, the device properties have the following meaning:
+So we could guard the code with an #ifdef until that patch is pulled
+in via acpica tree:
 
-spiSclkPeriod   /* period in ns */
-spiWordSize     /* in number of bits */
-spiBitOrder     /* 1 = MSB_FIRST, 0 = LSB_FIRST */
-spiSPO          /* clock polarity: 0 = low, 1 = high */
-spiSPH          /* clock phase: 0 = first, 1 = second */
-spiCSDelay      /* delay between cs and receive on reads in 10 us */
-resetA2RUsec    /* active-to-receive delay? */
-resetRecUsec    /* receive delay? */
+> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> > index bba2b59..e804386 100644
+> > --- a/drivers/acpi/arm64/iort.c
+> > +++ b/drivers/acpi/arm64/iort.c
+> > @@ -882,6 +882,23 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+> >  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
+> >  }
+> >  
+> > +/*
+> > + * set numa proximity domain for smmuv3 device
+> > + */
+> > +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
+> > +		struct device *dev)
+> > +{
 
-Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Federico Lorenzi <florenzi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Reported-by: Leif Liddy <leif.liddy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Tested-by: Ronald Tschalär <ronald-Cgq6lnktLNMTaf21n8AfGQ@public.gmane.org>
-Signed-off-by: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
----
-Changes v1 -> v2:
-- Move IS_ENABLED() and dmi_match() conditionals into callee. (Mika)
-- Allow acpi_spi_parse_apple_properties() to augment or override _CRS
-  by calling it unconditionally rather than only if _CRS is empty.
+#ifdef ACPI_IORT_SMMU_V3_PXM_VALID
 
- drivers/spi/spi.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+> > +	struct acpi_iort_smmu_v3 *smmu;
+> > +
+> > +	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+> > +	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
+> > +		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
+> > +		pr_info("SMMUV3[%llx] Mapped to Proximity domain %d\n",
+> > +			smmu->base_address,
+> > +			smmu->pxm);
+> > +	}
 
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 89254a55eb2e..51b7bdf841e4 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -21,6 +21,8 @@
- #include <linux/cache.h>
- #include <linux/dma-mapping.h>
- #include <linux/dmaengine.h>
-+#include <linux/dmi.h>
-+#include <linux/math64.h>
- #include <linux/mutex.h>
- #include <linux/of_device.h>
- #include <linux/of_irq.h>
-@@ -1685,6 +1687,32 @@ static void of_register_spi_devices(struct spi_master *master) { }
- #endif
- 
- #ifdef CONFIG_ACPI
-+static void acpi_spi_parse_apple_properties(struct spi_device *spi)
-+{
-+	struct acpi_device *dev = ACPI_COMPANION(&spi->dev);
-+	const union acpi_object *o;
-+
-+	if (!IS_ENABLED(CONFIG_X86) || !dmi_match(DMI_SYS_VENDOR, "Apple Inc."))
-+		return;
-+
-+	if (!acpi_dev_get_property(dev, "spiSclkPeriod", ACPI_TYPE_BUFFER, &o))
-+		spi->max_speed_hz  = div64_u64(NSEC_PER_SEC,
-+					       *(u64 *)o->buffer.pointer);
-+
-+	if (!acpi_dev_get_property(dev, "spiWordSize", ACPI_TYPE_BUFFER, &o))
-+		spi->bits_per_word = *(u64 *)o->buffer.pointer;
-+
-+	if (!acpi_dev_get_property(dev, "spiBitOrder", ACPI_TYPE_BUFFER, &o) &&
-+	    !*(u64 *)o->buffer.pointer)
-+		spi->mode |= SPI_LSB_FIRST;
-+	if (!acpi_dev_get_property(dev, "spiSPO", ACPI_TYPE_BUFFER, &o) &&
-+	     *(u64 *)o->buffer.pointer)
-+		spi->mode |= SPI_CPOL;
-+	if (!acpi_dev_get_property(dev, "spiSPH", ACPI_TYPE_BUFFER, &o) &&
-+	     *(u64 *)o->buffer.pointer)
-+		spi->mode |= SPI_CPHA;
-+}
-+
- static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
- {
- 	struct spi_device *spi = data;
-@@ -1758,6 +1786,8 @@ static acpi_status acpi_register_spi_device(struct spi_master *master,
- 				     acpi_spi_add_resource, spi);
- 	acpi_dev_free_resource_list(&resource_list);
- 
-+	acpi_spi_parse_apple_properties(spi);
-+
- 	if (ret < 0 || !spi->max_speed_hz) {
- 		spi_dev_put(spi);
- 		return AE_OK;
--- 
-2.11.0
+#endif
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > +}
+> > +
+
+Could the patch be applied with this change?
+
+Thanks,
+
+-Robert
+
+> >  static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
+> >  {
+> >  	struct acpi_iort_smmu *smmu;
+> > @@ -951,20 +968,24 @@ struct iort_iommu_config {
+> >  	int (*iommu_count_resources)(struct acpi_iort_node *node);
+> >  	void (*iommu_init_resources)(struct resource *res,
+> >  				     struct acpi_iort_node *node);
+> > +	void (*iommu_set_proximity)(struct acpi_iort_node *node,
+> > +				     struct device *dev);
+> >  };
+> >  
+> >  static const struct iort_iommu_config iort_arm_smmu_v3_cfg __initconst = {
+> >  	.name = "arm-smmu-v3",
+> >  	.iommu_is_coherent = arm_smmu_v3_is_coherent,
+> >  	.iommu_count_resources = arm_smmu_v3_count_resources,
+> > -	.iommu_init_resources = arm_smmu_v3_init_resources
+> > +	.iommu_init_resources = arm_smmu_v3_init_resources,
+> > +	.iommu_set_proximity = arm_smmu_v3_set_proximity
+> >  };
+> >  
+> >  static const struct iort_iommu_config iort_arm_smmu_cfg __initconst = {
+> >  	.name = "arm-smmu",
+> >  	.iommu_is_coherent = arm_smmu_is_coherent,
+> >  	.iommu_count_resources = arm_smmu_count_resources,
+> > -	.iommu_init_resources = arm_smmu_init_resources
+> > +	.iommu_init_resources = arm_smmu_init_resources,
+> > +	.iommu_set_proximity = NULL
+> >  };
+> >  
+> >  static __init
+> > @@ -1002,6 +1023,9 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+> >  	if (!pdev)
+> >  		return -ENOMEM;
+> >  
+> > +	if (ops->iommu_set_proximity)
+> > +		ops->iommu_set_proximity(node, &pdev->dev);
+> > +
+> >  	count = ops->iommu_count_resources(node);
+> >  
+> >  	r = kcalloc(count, sizeof(*r), GFP_KERNEL);
+> > -- 
+> > 1.8.1.4
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
