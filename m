@@ -1,57 +1,83 @@
-From: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
-Subject: Re: Cannot access force_remove sysfs
-Date: Wed, 28 Jun 2017 16:41:25 -0400
-Message-ID: <0d5b7fb4-4079-6c42-333a-b9cbe575575c@gmail.com>
-References: <4034c534-ea67-03ca-f1ee-bc55e0ce487d@gmail.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3] acpi/nfit: Issue Start ARS to retrieve existing records
+Date: Wed, 28 Jun 2017 14:26:24 -0700
+Message-ID: <CAPcyv4i_cCPsurej1YDVgocTiuxzT0uKFYSg1Hzn40GQc0PJvQ@mail.gmail.com>
+References: <20170617082218.8955-1-toshi.kani@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:34836 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751592AbdF1Ul2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jun 2017 16:41:28 -0400
-Received: by mail-qt0-f193.google.com with SMTP id w12so8940032qta.2
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Jun 2017 13:41:28 -0700 (PDT)
-In-Reply-To: <4034c534-ea67-03ca-f1ee-bc55e0ce487d@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170617082218.8955-1-toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Michal Hocko <mhocko@kernel.org>, rafael.j.wysocki@intel.com
 
-Please ignore the e-mail.
-I found a way to hot remove ACPI0004 device. If I found anything related to force_remove sysfs,
-I'll let you know.
+On Sat, Jun 17, 2017 at 1:22 AM, Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
+> ACPI 6.2 defines in section 9.20.7.2 that the OSPM may call a Start
+> ARS with Flags Bit [1] set upon receiving the 0x81 notification.
+>
+>   Upon receiving the notification, the OSPM may decide to issue
+>   a Start ARS with Flags Bit [1] set to prepare for the retrieval
+>   of existing records and issue the Query ARS Status function to
+>   retrieve the records.
+>
+> Add support to call a Start ARS from acpi_nfit_uc_error_notify()
+> with ND_ARS_RETURN_PREV_DATA set when HW_ERROR_SCRUB_ON is not set.
+>
+> Link: http://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
+> Signed-off-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+> Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Rafael J. Wysocki <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+> Cc: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
+> ---
+> v3 (2/2): Add flags info to acpi_nfit_desc (Dan Williams)
+> ---
+>  drivers/acpi/nfit/core.c   |   11 ++++++++---
+>  drivers/acpi/nfit/mce.c    |    2 +-
+>  drivers/acpi/nfit/nfit.h   |    3 ++-
+>  include/uapi/linux/ndctl.h |    1 +
+>  4 files changed, 12 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index cc22778..7e08ee0 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1031,7 +1031,7 @@ static ssize_t scrub_store(struct device *dev,
+>         if (nd_desc) {
+>                 struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+>
+> -               rc = acpi_nfit_ars_rescan(acpi_desc);
+> +               rc = acpi_nfit_ars_rescan(acpi_desc, 0);
+>         }
+>         device_unlock(dev);
+>         if (rc)
+> @@ -2051,6 +2051,7 @@ static int ars_start(struct acpi_nfit_desc *acpi_desc, struct nfit_spa *nfit_spa
+>         memset(&ars_start, 0, sizeof(ars_start));
+>         ars_start.address = spa->address;
+>         ars_start.length = spa->length;
+> +       ars_start.flags = acpi_desc->ars_start_flags;
 
-Thanks,
-Yasuaki Ishimatsu
+Hmm don't we also need a statement like this in ars_continue()?
 
-On 06/28/2017 02:16 PM, YASUAKI ISHIMATSU wrote:
-> Our sever supports system board (defined as ACPI0004) hotplug. And to hot-remove the device safely,
-> we control force_remove sysfs. But due to the following commit, ACPI0004 hotplug does not work.
-> 
-> commit ffc10d82ff5df7087a9b737de55a69ac4f89bf56
-> Author: Michal Hocko <mhocko@suse.com>
-> Date:   Mon Apr 3 09:40:23 2017 +0200
-> 
->     ACPI / scan: Drop support for force_remove
-> 
-> ACPI0004 is defined as module device in ACPI specification. So we don't know what devices mounts on ACPI0004.
-> So to hot-remove ACPI0004 safely, we implemented that ACPI004 can be hot removed only when acpi_force_hot_remove
-> is set to 1 via force_remove sysfs. And if acpi_force_hot_remove is set to 0, kernel just notifies REMOVE request
-> of ACPI0004 to udev so that user can offline the devices on ACPI0004 by udev rule.
-> 
-> In our udev script, we hot-removes ACPI0004 safely as follows:
-> 
->   1. udev catches REMOVE request of a ACPI0004 and run our script
->   2. Our script offline all devices on the ACPI0004
->   3. Our script write 1 to force_remove sysfs so that ACPI0004 can be hot-removed.
->   4. Our script write 1 to eject sysfs of the ACPI0004 to hot remove ACPI0004
->   5. Our script write 0 to force_remove sysfs so that the ACPI0004 cannot be hot-removed.
-> 
-> But due to the commit ffc10d82ff5d, there is no way to hot remove ACPI0004.
-> So please revert the commit.
-> 
-> Thanks,
-> Yasuaki Ishimatsu
-> 
+>         if (nfit_spa_type(spa) == NFIT_SPA_PM)
+>                 ars_start.type = ND_ARS_PERSISTENT;
+>         else if (nfit_spa_type(spa) == NFIT_SPA_VOLATILE)
+> @@ -2613,6 +2614,7 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+>                                 return rc;
+>                 }
+>
+> +       acpi_desc->ars_start_flags = 0;
+
+...and I would think the ND_ARS_RETURN_PREV_DATA context would only be
+valid for the duration of the current scrub, so we should clear the
+flags at the end of acpi_nfit_scrub().
