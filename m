@@ -1,57 +1,83 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/3] ACPI: EC: Change EC noirq tuning to be an optional behavior
-Date: Wed, 28 Jun 2017 23:31:16 +0200
-Message-ID: <1792284.us4mECpxNF@aspire.rjw.lan>
-References: <d8ac96c8fd988daec20f7a22a2acb3119ccd149b.1497418749.git.lv.zheng@intel.com> <157972fa5572b0f0c157142ea151b8508e7640b4.1497418749.git.lv.zheng@intel.com>
+Subject: Re: [PATCH v2] acpi: handle the acpi hotplug schedule error
+Date: Thu, 29 Jun 2017 00:06:20 +0200
+Message-ID: <2576656.sje5KLSpq7@aspire.rjw.lan>
+References: <20170621070434.16570-1-jlee@suse.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:45949 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:41512 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751541AbdF1Vio (ORCPT
+        by vger.kernel.org with ESMTP id S1751537AbdF1WNr (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Jun 2017 17:38:44 -0400
-In-Reply-To: <157972fa5572b0f0c157142ea151b8508e7640b4.1497418749.git.lv.zheng@intel.com>
+        Wed, 28 Jun 2017 18:13:47 -0400
+In-Reply-To: <20170621070434.16570-1-jlee@suse.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Michal Hocko <mhocko@suse.cz>
 
-On Wednesday, June 14, 2017 01:59:24 PM Lv Zheng wrote:
-> According to the bug report, though the busy polling mode can make noirq
-> stages executed faster, it causes abnormal fan blowing in noirq stages.
+On Wednesday, June 21, 2017 03:04:34 PM Lee, Chun-Yi wrote:
+> Kernel should decrements the reference count of acpi device
+> when the scheduling of acpi hotplug work is failed, and
+> evaluates _OST to notify BIOS the failure.
 > 
-> This patch prepares an option so that the automatic busy polling mode
-> switching for noirq stages can be enabled by who wants to tune it, not all
-> users.
-> Noticed that the new global option cannot be changed during noirq stages.
-> There is no need to lock its value changes to sync with polling mode
-> settings switches.
+> v2:
+> To simplify the code. (Andy Shevchenko)
 > 
-> For reporters and testers in the thread, as there are too many reporters
-> on the bug link, this patch only picks names from most active commenters.
-> Sorry for the neglet.
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Michal Hocko <mhocko@suse.cz>
+> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
+
+Well, what about:
+
+    if (!hotplug_event) {
+        acpi_bus_put_acpi_device(adev);
+        return;
+    }
+
+    if (ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
+        return;
+
+    acpi_bus_put_acpi_device(adev);
+
+err:
+    acpi_evaluate_ost(handle, type, ost_code, NULL);
+
+This achieves the same as the patch below to my eyes, but looks
+less convoluted IMO.
+
+
+> ---
+>  drivers/acpi/bus.c | 9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
 > 
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=191181
-> Reported-by: Tatsuyuki Ishi <ishitatsuyuki@gmail.com>
-> Reported-by: Claudio Sacerdoti Coen <claudio.sacerdoticoen@unibo.it>
-> Tested-by: Nicolo' <nicolopiazzalunga@gmail.com>
-> Reported-by: Jens Axboe <axboe@kernel.dk>
-> Tested-by: Gjorgji Jankovski <j.gjorgji@gmail.com>
-> Tested-by: Damjan Georgievski <gdamjan@gmail.com>
-> Tested-by: Fernando Chaves <nanochaves@gmail.com>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-
-First of all, this seems to be a fix for commit c3a696b6e8f8 (ACPI / EC: Use busy polling
-mode when GPE is not enabled), so there should be a Fixes: tag pointing to that
-one.
-
-Moreover, if that is just a performance optimization and not a matter of correctness,
-why don't we simply drop acpi_ec_enter/leave_noirq() entirely?
-
-What is going to break if we do that?
-
-Thanks,
-Rafael
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 34fbe02..91adb71 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -427,12 +427,17 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+>  	    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
+>  		driver->ops.notify(adev, type);
+>  
+> -	if (hotplug_event && ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
+> -		return;
+> +	if (hotplug_event) {
+> +		if (ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
+> +			return;
+> +		goto err_put_device;
+> +	}
+>  
+>  	acpi_bus_put_acpi_device(adev);
+>  	return;
+>  
+> + err_put_device:
+> +	acpi_bus_put_acpi_device(adev);
+>   err:
+>  	acpi_evaluate_ost(handle, type, ost_code, NULL);
+>  }
+> 
 
