@@ -1,128 +1,46 @@
-From: Robert Richter <robert.richter@cavium.com>
-Subject: Re: [PATCH v3 2/2] acpi/iort: numa: Add numa node mapping for smmuv3
- devices
-Date: Wed, 28 Jun 2017 19:47:50 +0200
-Message-ID: <20170628174750.GY658@rric.localdomain>
-References: <1496897059-8272-1-git-send-email-ganapatrao.kulkarni@cavium.com>
- <1496897059-8272-3-git-send-email-ganapatrao.kulkarni@cavium.com>
- <20170615134603.GA16292@red-moon>
+From: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
+Subject: Cannot access force_remove sysfs
+Date: Wed, 28 Jun 2017 14:16:57 -0400
+Message-ID: <4034c534-ea67-03ca-f1ee-bc55e0ce487d@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn3nam01on0086.outbound.protection.outlook.com ([104.47.33.86]:63456
-        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751532AbdF1RsI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Jun 2017 13:48:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20170615134603.GA16292@red-moon>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:33134 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751528AbdF1SRA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jun 2017 14:17:00 -0400
+Received: by mail-qt0-f195.google.com with SMTP id c20so8484788qte.0
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Jun 2017 11:17:00 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, lv.zheng@intel.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will.Deacon@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, robin.murphy@arm.com, joro@8bytes.org, lenb@kernel.org, jnair@caviumnetworks.com, gpkulkarni@gmail.com
+To: linux-acpi@vger.kernel.org
+Cc: Michal Hocko <mhocko@kernel.org>, rafael.j.wysocki@intel.com
 
-On 15.06.17 14:46:03, Lorenzo Pieralisi wrote:
-> On Thu, Jun 08, 2017 at 10:14:19AM +0530, Ganapatrao Kulkarni wrote:
-> > Add code to parse proximity domain in SMMUv3 IORT table to
-> > set numa node mapping for smmuv3 devices.
-> > 
-> > Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-> > ---
-> >  drivers/acpi/arm64/iort.c | 28 ++++++++++++++++++++++++++--
-> >  1 file changed, 26 insertions(+), 2 deletions(-)
-> 
-> I am happy to take this but I want to know what we shall do with
-> patch 1 and related ACPICA changes first.
+Our sever supports system board (defined as ACPI0004) hotplug. And to hot-remove the device safely,
+we control force_remove sysfs. But due to the following commit, ACPI0004 hotplug does not work.
 
-The change is now in acpica:
+commit ffc10d82ff5df7087a9b737de55a69ac4f89bf56
+Author: Michal Hocko <mhocko@suse.com>
+Date:   Mon Apr 3 09:40:23 2017 +0200
 
- https://github.com/acpica/acpica/commit/8cadc4fb500e2aa52241e367c87a0f95d9760c58
+    ACPI / scan: Drop support for force_remove
 
-So we could guard the code with an #ifdef until that patch is pulled
-in via acpica tree:
+ACPI0004 is defined as module device in ACPI specification. So we don't know what devices mounts on ACPI0004.
+So to hot-remove ACPI0004 safely, we implemented that ACPI004 can be hot removed only when acpi_force_hot_remove
+is set to 1 via force_remove sysfs. And if acpi_force_hot_remove is set to 0, kernel just notifies REMOVE request
+of ACPI0004 to udev so that user can offline the devices on ACPI0004 by udev rule.
 
-> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> > index bba2b59..e804386 100644
-> > --- a/drivers/acpi/arm64/iort.c
-> > +++ b/drivers/acpi/arm64/iort.c
-> > @@ -882,6 +882,23 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
-> >  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
-> >  }
-> >  
-> > +/*
-> > + * set numa proximity domain for smmuv3 device
-> > + */
-> > +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
-> > +		struct device *dev)
-> > +{
+In our udev script, we hot-removes ACPI0004 safely as follows:
 
-#ifdef ACPI_IORT_SMMU_V3_PXM_VALID
+  1. udev catches REMOVE request of a ACPI0004 and run our script
+  2. Our script offline all devices on the ACPI0004
+  3. Our script write 1 to force_remove sysfs so that ACPI0004 can be hot-removed.
+  4. Our script write 1 to eject sysfs of the ACPI0004 to hot remove ACPI0004
+  5. Our script write 0 to force_remove sysfs so that the ACPI0004 cannot be hot-removed.
 
-> > +	struct acpi_iort_smmu_v3 *smmu;
-> > +
-> > +	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
-> > +	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
-> > +		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
-> > +		pr_info("SMMUV3[%llx] Mapped to Proximity domain %d\n",
-> > +			smmu->base_address,
-> > +			smmu->pxm);
-> > +	}
-
-#endif
-
-> > +}
-> > +
-
-Could the patch be applied with this change?
+But due to the commit ffc10d82ff5d, there is no way to hot remove ACPI0004.
+So please revert the commit.
 
 Thanks,
-
--Robert
-
-> >  static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
-> >  {
-> >  	struct acpi_iort_smmu *smmu;
-> > @@ -951,20 +968,24 @@ struct iort_iommu_config {
-> >  	int (*iommu_count_resources)(struct acpi_iort_node *node);
-> >  	void (*iommu_init_resources)(struct resource *res,
-> >  				     struct acpi_iort_node *node);
-> > +	void (*iommu_set_proximity)(struct acpi_iort_node *node,
-> > +				     struct device *dev);
-> >  };
-> >  
-> >  static const struct iort_iommu_config iort_arm_smmu_v3_cfg __initconst = {
-> >  	.name = "arm-smmu-v3",
-> >  	.iommu_is_coherent = arm_smmu_v3_is_coherent,
-> >  	.iommu_count_resources = arm_smmu_v3_count_resources,
-> > -	.iommu_init_resources = arm_smmu_v3_init_resources
-> > +	.iommu_init_resources = arm_smmu_v3_init_resources,
-> > +	.iommu_set_proximity = arm_smmu_v3_set_proximity
-> >  };
-> >  
-> >  static const struct iort_iommu_config iort_arm_smmu_cfg __initconst = {
-> >  	.name = "arm-smmu",
-> >  	.iommu_is_coherent = arm_smmu_is_coherent,
-> >  	.iommu_count_resources = arm_smmu_count_resources,
-> > -	.iommu_init_resources = arm_smmu_init_resources
-> > +	.iommu_init_resources = arm_smmu_init_resources,
-> > +	.iommu_set_proximity = NULL
-> >  };
-> >  
-> >  static __init
-> > @@ -1002,6 +1023,9 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
-> >  	if (!pdev)
-> >  		return -ENOMEM;
-> >  
-> > +	if (ops->iommu_set_proximity)
-> > +		ops->iommu_set_proximity(node, &pdev->dev);
-> > +
-> >  	count = ops->iommu_count_resources(node);
-> >  
-> >  	r = kcalloc(count, sizeof(*r), GFP_KERNEL);
-> > -- 
-> > 1.8.1.4
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yasuaki Ishimatsu
