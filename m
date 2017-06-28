@@ -1,124 +1,57 @@
 From: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
-Subject: Re: A udev rule to serve the change event of ACPI container?
-Date: Wed, 28 Jun 2017 15:53:16 -0400
-Message-ID: <1f1b0229-84c8-f95f-dab4-76588834b6e6@gmail.com>
-References: <20170626062657.GE4229@linux-l9pv.suse>
+Subject: Re: Cannot access force_remove sysfs
+Date: Wed, 28 Jun 2017 16:41:25 -0400
+Message-ID: <0d5b7fb4-4079-6c42-333a-b9cbe575575c@gmail.com>
+References: <4034c534-ea67-03ca-f1ee-bc55e0ce487d@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170626062657.GE4229@linux-l9pv.suse>
-Sender: linux-kernel-owner@vger.kernel.org
-To: joeyli <jlee@suse.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Michal Hocko <mhocko@suse.cz>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:34836 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751592AbdF1Ul2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jun 2017 16:41:28 -0400
+Received: by mail-qt0-f193.google.com with SMTP id w12so8940032qta.2
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Jun 2017 13:41:28 -0700 (PDT)
+In-Reply-To: <4034c534-ea67-03ca-f1ee-bc55e0ce487d@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Michal Hocko <mhocko@kernel.org>, rafael.j.wysocki@intel.com
 
-
-On 06/26/2017 02:26 AM, joeyli wrote:
-> Hi all,
-> 
-> If ACPI received ejection request for a ACPI container, kernel
-> emits KOBJ_CHANGE uevent when it found online children devices
-> below the acpi container.
-> 
-> Base on the description of caa73ea15 kernel patch, user space
-> is expected to offline all devices below the container and the
-> container itself. Then, user space can finalize the removal of
-> the container with the help of its ACPI device object's eject
-> attribute in sysfs.
-> 
-> That means that kernel relies on users space to peform the offline
-> and ejection jobs to acpi container and children devices. The
-> discussion is here:
-> 	https://lkml.org/lkml/2013/11/28/520
-> 
-> The mail loop didn't explain why the userspace is responsible for
-> the whole container offlining. Is it possible to do that transparently
-> from the kernel? What's the difference between offlining memory and
-> processors which happends without any cleanup and container which
-> does essentially the same except it happens at once? 
-
-We don't know what devices mount on the container device. I think
-devices mount on the container device are different each vendor's server.
-
-If memory device mounts on the container, memory offline easily fails.
-Other devices may have other concerns. So the following udev rule you
-write does not work correctly.
-
-I think we need to change offline processing for each device. So currently
-the userspace is responsible for the whole container offlining.
-
+Please ignore the e-mail.
+I found a way to hot remove ACPI0004 device. If I found anything related to force_remove sysfs,
+I'll let you know.
 
 Thanks,
 Yasuaki Ishimatsu
-`
 
->  
->  - After a couple of years, can we let the container hot-remove
->    process transparently?
->  - Except udev rule, does there have any other mechanism to trigger
->    auto offline/ejection?
+On 06/28/2017 02:16 PM, YASUAKI ISHIMATSU wrote:
+> Our sever supports system board (defined as ACPI0004) hotplug. And to hot-remove the device safely,
+> we control force_remove sysfs. But due to the following commit, ACPI0004 hotplug does not work.
 > 
-> The attached patch is a udev rule that it's used to perform the
-> offlien/ejection jobs on user space. I want to send it to systemd.
+> commit ffc10d82ff5df7087a9b737de55a69ac4f89bf56
+> Author: Michal Hocko <mhocko@suse.com>
+> Date:   Mon Apr 3 09:40:23 2017 +0200
 > 
-> Thanks a lot!
-> Joey Lee
+>     ACPI / scan: Drop support for force_remove
 > 
-> From 6c95d4858e0e7c280e490491c1a00c1b5226a029 Mon Sep 17 00:00:00 2001
-> From: "Lee, Chun-Yi" <jlee@suse.com>
-> Date: Mon, 26 Jun 2017 11:40:03 +0800
-> Subject: [PATCH] rules: handle the change event of ACPI container
+> ACPI0004 is defined as module device in ACPI specification. So we don't know what devices mounts on ACPI0004.
+> So to hot-remove ACPI0004 safely, we implemented that ACPI004 can be hot removed only when acpi_force_hot_remove
+> is set to 1 via force_remove sysfs. And if acpi_force_hot_remove is set to 0, kernel just notifies REMOVE request
+> of ACPI0004 to udev so that user can offline the devices on ACPI0004 by udev rule.
 > 
-> Currently the ACPI in kernel emits KOBJ_CHANGE uevent when there
-> have online children devices below the acpi container.
+> In our udev script, we hot-removes ACPI0004 safely as follows:
 > 
-> Base on the description of caa73ea15 kernel patch, user space
-> is expected to offline all devices below the container and the
-> container itself. Then, user space can finalize the removal of
-> the container with the help of its ACPI device object's eject
-> attribute in sysfs.
+>   1. udev catches REMOVE request of a ACPI0004 and run our script
+>   2. Our script offline all devices on the ACPI0004
+>   3. Our script write 1 to force_remove sysfs so that ACPI0004 can be hot-removed.
+>   4. Our script write 1 to eject sysfs of the ACPI0004 to hot remove ACPI0004
+>   5. Our script write 0 to force_remove sysfs so that the ACPI0004 cannot be hot-removed.
 > 
-> This udev rule can be a default user space application to meet
-> kernel's expectations. This rule walks through the sysfs tree
-> to trigger the offline of each child device then ejects the
-> container.
+> But due to the commit ffc10d82ff5d, there is no way to hot remove ACPI0004.
+> So please revert the commit.
 > 
-> The ACPI_CONTAINER_EJECT environoment variable can be used to
-> turn off the the ejection logic of container if the ejection
-> will be triggered by other ways, e.g. BIOS or other user space
-> application.
-> 
-> Reference: https://lkml.org/lkml/2013/11/28/520
-> Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Cc: Michal Hocko <mhocko@suse.cz>
-> Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
-> ---
->  rules/80-acpi-container-hotremove.rules | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
->  create mode 100644 rules/80-acpi-container-hotremove.rules
-> 
-> diff --git a/rules/80-acpi-container-hotremove.rules b/rules/80-acpi-container-hotremove.rules
-> new file mode 100644;a
-> index 000000000..ef4ceb5fb
-> --- /dev/null
-> +++ b/rules/80-acpi-container-hotremove.rules
-> @@ -0,0 +1,16 @@
-> +# do not edit this file, it will be overwritten on update
-> +
-> +SUBSYSTEM=="container", ACTION=="change", DEVPATH=="*/ACPI0004:??", ENV{ACPI_CONTAINER_EJECT}="1"\
-> +RUN+="/bin/sh -c ' \
-> +if [ $(cat /sys/$env{DEVPATH}/online) -eq 1 ]; then \
-> +        find -L /sys/$env{DEVPATH}/firmware_node/*/physical_node* -maxdepth 1 -name online | \
-> +        while read line; do \
-> +                if [ $(cat $line) -eq 1 ]; then \
-> +                        /bin/echo 0 > $line; \
-> +                fi \
-> +        done; \
-> +        /bin/echo 0 > /sys/$env{DEVPATH}/online; \
-> +        if [$env{ACPI_CONTAINER_EJECT} -eq 1] && [ $(cat /sys/$env{DEVPATH}/online) -eq 0 ]; then \
-> +                /bin/echo 1 > /sys/$env{DEVPATH}/firmware_node/eject; \
-> +        fi \
-> +fi
+> Thanks,
+> Yasuaki Ishimatsu
 > 
