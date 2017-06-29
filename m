@@ -1,60 +1,57 @@
-From: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Subject: [PATCH v2 2/2] thermal: core: Allow to disable polling when disabling thermal zone.
-Date: Thu, 29 Jun 2017 18:50:35 +0200
-Message-ID: <20170629165035.23101-2-enric.balletbo@collabora.com>
-References: <20170629165035.23101-1-enric.balletbo@collabora.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2] ACPI: surface3_power: MSHW0011 rev-eng implementation
+Date: Thu, 29 Jun 2017 22:22:50 +0200
+Message-ID: <CAJZ5v0hq1YSECBGD9QvqKuzmaFW2+jhWPSzvTb64yTxd6yH06w@mail.gmail.com>
+References: <20170629121009.30234-1-benjamin.tissoires@redhat.com> <CAHp75Vdn1-m0gDSHtZXX2A=Q07xG9j1eBiV8iM4e11Qk=oJfZg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:35227 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752136AbdF2Qux (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Jun 2017 12:50:53 -0400
-In-Reply-To: <20170629165035.23101-1-enric.balletbo@collabora.com>
+Received: from mail-it0-f65.google.com ([209.85.214.65]:36321 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751615AbdF2UWv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Jun 2017 16:22:51 -0400
+In-Reply-To: <CAHp75Vdn1-m0gDSHtZXX2A=Q07xG9j1eBiV8iM4e11Qk=oJfZg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Guenter Roeck <groeck@chromium.org>, Sameer Nanda <snanda@chromium.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, Bastien Nocera <hadess@hadess.net>, Stephen Just <stephenjust@gmail.com>, Sebastian Reichel <sre@kernel.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Under each thermal zone there is a optional file called "mode". Writing
-enabled or disabled to this file allows a given thermal zone to be enabled
-or disabled, but in current code, the monitoring queue doesn't stops. Add
-the code to disable polling when disabling thermal zone and enable polling
-when enabling the thermal zone.
+On Thu, Jun 29, 2017 at 4:22 PM, Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+> +Cc: Hans (he might give some advice regarding to the below)
+>
+> On Thu, Jun 29, 2017 at 3:10 PM, Benjamin Tissoires
+> <benjamin.tissoires@redhat.com> wrote:
+>> MSHW0011 replaces the battery firmware by using ACPI operation regions.
+>> The values have been obtained by reverse engineering, and are subject to
+>> errors. Looks like it works on overall pretty well.
+>
+> What devices (laptops, tablets) have it?
+> Surface 3. What else?
+>
+>> I couldn't manage to get the IRQ correctly triggered, so I am using a
+>> good old polling thread to check for changes.
+>
+> It might be
+>
+>>
+>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=106231
+>
+>> +config ACPI_SURFACE3_POWER_OPREGION
+>> +       tristate "Surface 3 battery platform operation region support"
+>
+> depends on ACPI ?
+>
+>> +       help
+>> +         Select this option to enable support for ACPI operation
+>> +         region of the Surface 3 battery platform driver.
+>
+>> +/*
+>> + * Supports for the power IC on the Surface 3 tablet.
+>
+> Shouldn't it go to drivers/acpi/pmic folder ?
 
-This patch is based on the original Sameer Nanda <snanda@chromium.org>
-patch that implemented this idea for the ACPI thermal driver.
+Surely not directly into drivers/acpi/ in any case.
 
-Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
----
-Changes since v1:
- - Implement in thermal subsystem instead of ACPI thermal driver (Zhang Rui)
-
-v1: https://patchwork.kernel.org/patch/9804229/
-
- drivers/thermal/thermal_core.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index 5a51c74..869c8f3 100644
---- a/drivers/thermal/thermal_core.c
-+++ b/drivers/thermal/thermal_core.c
-@@ -292,6 +292,17 @@ static void thermal_unregister_governors(void)
- static void thermal_zone_device_set_polling(struct thermal_zone_device *tz,
- 					    int delay)
- {
-+	enum thermal_device_mode mode;
-+
-+	if (tz->ops->get_mode) {
-+		/* When the thermal zone is disabled stop the polling */
-+		tz->ops->get_mode(tz, &mode);
-+		if (mode == THERMAL_DEVICE_DISABLED) {
-+			cancel_delayed_work(&tz->poll_queue);
-+			return;
-+		}
-+	}
-+
- 	if (delay > 1000)
- 		mod_delayed_work(system_freezable_wq, &tz->poll_queue,
- 				 round_jiffies(msecs_to_jiffies(delay)));
--- 
-2.9.3
-
+Thanks,
+Rafael
