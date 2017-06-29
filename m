@@ -1,40 +1,94 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH] acpi, nfit: quiet invalid block-aperture-region warnings
-Date: Thu, 29 Jun 2017 13:50:10 -0700
-Message-ID: <149876941080.10690.5544516251617645982.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH v2] acpi: handle the acpi hotplug schedule error
+Date: Fri, 30 Jun 2017 07:16:49 +0800
+Message-ID: <20170629231649.GA13714@linux-l9pv.suse>
+References: <20170621070434.16570-1-jlee@suse.com>
+ <2576656.sje5KLSpq7@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:1530 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751626AbdF2U4i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 29 Jun 2017 16:56:38 -0400
+Received: from smtp.nue.novell.com ([195.135.221.5]:55460 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751532AbdF2XR3 (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Thu, 29 Jun 2017 19:17:29 -0400
+Content-Disposition: inline
+In-Reply-To: <2576656.sje5KLSpq7@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Michal Hocko <mhocko@suse.cz>
 
-This state is already visible by userspace since the BLK region will not
-be enabled, and it is otherwise benign as it usually indicates that the
-DIMM is not configured.
+Hi Rafael, 
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/region_devs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for your review.
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 282b8991ea83..ab141f8b5140 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -833,7 +833,7 @@ int nd_blk_region_init(struct nd_region *nd_region)
- 		return 0;
- 
- 	if (nd_region->ndr_mappings < 1) {
--		dev_err(dev, "invalid BLK region\n");
-+		dev_dbg(dev, "invalid BLK region\n");
- 		return -ENXIO;
- 	}
- 
+On Thu, Jun 29, 2017 at 12:06:20AM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, June 21, 2017 03:04:34 PM Lee, Chun-Yi wrote:
+> > Kernel should decrements the reference count of acpi device
+> > when the scheduling of acpi hotplug work is failed, and
+> > evaluates _OST to notify BIOS the failure.
+> > 
+> > v2:
+> > To simplify the code. (Andy Shevchenko)
+> > 
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > Cc: Len Brown <lenb@kernel.org>
+> > Cc: Michal Hocko <mhocko@suse.cz>
+> > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> > Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
+> 
+> Well, what about:
+> 
+>     if (!hotplug_event) {
+>         acpi_bus_put_acpi_device(adev);
+>         return;
+>     }
+> 
+>     if (ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
+>         return;
+> 
+>     acpi_bus_put_acpi_device(adev);
+> 
+> err:
+>     acpi_evaluate_ost(handle, type, ost_code, NULL);
+> 
+> This achieves the same as the patch below to my eyes, but looks
+> less convoluted IMO.
+> 
 
+Yes, that's better. I will send v3 patch.
+
+Joey Lee
+
+> 
+> > ---
+> >  drivers/acpi/bus.c | 9 +++++++--
+> >  1 file changed, 7 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> > index 34fbe02..91adb71 100644
+> > --- a/drivers/acpi/bus.c
+> > +++ b/drivers/acpi/bus.c
+> > @@ -427,12 +427,17 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+> >  	    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
+> >  		driver->ops.notify(adev, type);
+> >  
+> > -	if (hotplug_event && ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
+> > -		return;
+> > +	if (hotplug_event) {
+> > +		if (ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
+> > +			return;
+> > +		goto err_put_device;
+> > +	}
+> >  
+> >  	acpi_bus_put_acpi_device(adev);
+> >  	return;
+> >  
+> > + err_put_device:
+> > +	acpi_bus_put_acpi_device(adev);
+> >   err:
+> >  	acpi_evaluate_ost(handle, type, ost_code, NULL);
+> >  }
+> > 
+> 
