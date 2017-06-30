@@ -1,67 +1,82 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
- before scanning
-Date: Fri, 30 Jun 2017 10:28:36 +0100
-Message-ID: <b2bc9134-9944-bd6a-2daf-8f1a1ff49a62@huawei.com>
-References: <20170612155700.GA31930@red-moon>
- <20170613084831.GP3187@lahna.fi.intel.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
- <20170613151013.GT3187@lahna.fi.intel.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
- <20170613200339.GX3187@lahna.fi.intel.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E40AB537A@FRAEML521-MBX.china.huawei.com>
- <20170616083313.GY3187@lahna.fi.intel.com>
- <CAJZ5v0gWGL=M1+T2DxFfwAi=gCbBBnLFVyp4u+1EVem-mcSNQg@mail.gmail.com>
- <808a7db0-7844-b263-0216-1fe943ac819a@huawei.com>
- <20170630090515.GU629@lahna.fi.intel.com>
+From: Robert Richter <robert.richter@cavium.com>
+Subject: Re: [PATCH V17 01/11] acpi: apei: read ack upon ghes record
+ consumption
+Date: Fri, 30 Jun 2017 12:10:43 +0200
+Message-ID: <20170630101043.GZ658@rric.localdomain>
+References: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
+ <1495225933-4410-2-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170630090515.GU629@lahna.fi.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kerne>
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <1495225933-4410-2-git-send-email-tbaicar@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, rafael@kernel.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, bp@alien8.de, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, tony.luck@intel.com, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.comsh
 List-Id: linux-acpi@vger.kernel.org
 
-On 30/06/2017 10:05, Mika Westerberg wrote:
-> On Thu, Jun 29, 2017 at 05:16:15PM +0100, John Garry wrote:
->> On 16/06/2017 12:24, Rafael J. Wysocki wrote:
->>>>>>>>>
->>>>>>>>> It causes acpi_default_enumeration() to be called but it should be fine
->>>>>>>>> as we are dealing with platform device anyway.
->>>>>>>
->>>>>>> I do not quite understand how declaring such MFD cell above would make sure
->>>>>>> that the LPC probe is called before the IPMI device is enumerated...
->>>>>
->>>>> In fact it may be that it is not sufficient in this case because the
->>>>> ACPI core might enumerate child devices before the LPC driver even gets
->>>>> a chance to probe so you would need to add also scan handler to the
->>>>> child devices and mark them already enumerated or something like that.
->>> Or extend the special I2C/SPI handling to them.
->>>
->>
->> For this, is it possible to just configure the ACPI table so we spoof that
->> the LPC slave (IPI0001), is an i2c/spi slave? Could we just add a resource
->> of type ACPI_RESOURCE_TYPE_SERIAL_BUS, and common serial bus type i2c/spi to
->> solve this?
->
-> But is the device connected to a I2C or SPI bus? If not, then it does
-> not make much sense to declare it as I2C or SPI slave. Instead it should
-> be platform device which is the type we use when there is no explicit
-> bus specified in ACPI.
->
+Tyler,
 
-No, it's not a SPI nor an I2C bus. I actually would say that my idea is 
-generally wrong, as the ACPI definition is not a real reflection of the 
-bus/slave.
+On 19.05.17 14:32:03, Tyler Baicar wrote:
+> A RAS (Reliability, Availability, Serviceability) controller
+> may be a separate processor running in parallel with OS
+> execution, and may generate error records for consumption by
+> the OS. If the RAS controller produces multiple error records,
+> then they may be overwritten before the OS has consumed them.
+> 
+> The Generic Hardware Error Source (GHES) v2 structure
+> introduces the capability for the OS to acknowledge the
+> consumption of the error record generated by the RAS
+> controller. A RAS controller supporting GHESv2 shall wait for
+> the acknowledgment before writing a new error record, thus
+> eliminating the race condition.
+> 
+> Add support for parsing of GHESv2 sub-tables as well.
+> 
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> CC: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> Reviewed-by: James Morse <james.morse@arm.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 59 +++++++++++++++++++++++++++++++++++++++++++++---
+>  drivers/acpi/apei/hest.c |  7 ++++--
+>  include/acpi/ghes.h      |  5 +++-
+>  3 files changed, 65 insertions(+), 6 deletions(-)
 
-However, Rafael did suggest extending special I2C/SPI handling to them. 
-In this case, I don't see how the LPC slave can be identified like an 
-I2C or SPI slave is.
+>  static int ghes_proc(struct ghes *ghes)
+>  {
+>  	int rc;
+> @@ -661,6 +704,16 @@ static int ghes_proc(struct ghes *ghes)
+>  			ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+>  	}
+>  	ghes_do_proc(ghes, ghes->estatus);
+> +
+> +	/*
+> +	 * GHESv2 type HEST entries introduce support for error acknowledgment,
+> +	 * so only acknowledge the error if this support is present.
+> +	 */
+> +	if (is_hest_type_generic_v2(ghes)) {
+> +		rc = ghes_ack_error(ghes->generic_v2);
+> +		if (rc)
+> +			return rc;
+> +	}
+>  out:
+>  	ghes_clear_estatus(ghes);
+>  	return rc;
 
-Thanks,
-John
+was there any specific reason why the ack is sent before clearing the
+block status? Spec says the ack should be sent at last.
 
-> .
->
+Also, the block is never cleared if ghes_ack_error() returns an error.
+IMO we should fall through and clear the block status (this will
+change anyway if the bloc status is cleared first).
+
+-Robert
