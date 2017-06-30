@@ -1,163 +1,216 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v4] acpi/nfit: Issue Start ARS to retrieve existing records
-Date: Thu, 29 Jun 2017 20:41:30 -0600
-Message-ID: <20170630024130.716-1-toshi.kani@hpe.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH v2 2/2] thermal: core: Allow to disable polling when
+ disabling thermal zone.
+Date: Fri, 30 Jun 2017 13:05:09 +0800
+Message-ID: <1498799109.2520.15.camel@intel.com>
+References: <20170629165035.23101-1-enric.balletbo@collabora.com>
+         <20170629165035.23101-2-enric.balletbo@collabora.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t2354.austin.hpe.com ([15.233.44.27]:30440 "EHLO
-        g2t2354.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751817AbdF3CuZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Jun 2017 22:50:25 -0400
+Received: from mga09.intel.com ([134.134.136.24]:16202 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751696AbdF3FFL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 30 Jun 2017 01:05:11 -0400
+In-Reply-To: <20170629165035.23101-2-enric.balletbo@collabora.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: dan.j.williams@intel.com
-Cc: rjw@rjwysocki.net, vishal.l.verma@intel.com, linda.knippers@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+To: Enric Balletbo i Serra <enric.balletbo@collabora.com>, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Guenter Roeck <groeck@chromium.org>, Sameer Nanda <snanda@chromium.org>, Eduardo Valentin <edubezval@gmail.com>, Linux PM list <linux-pm@vger.kernel.org>
 
-ACPI 6.2 defines in section 9.20.7.2 that the OSPM may call a Start
-ARS with Flags Bit [1] set upon receiving the 0x81 notification.
+On Thu, 2017-06-29 at 18:50 +0200, Enric Balletbo i Serra wrote:
+> Under each thermal zone there is a optional file called "mode".
+> Writing
+> enabled or disabled to this file allows a given thermal zone to be
+> enabled
+> or disabled, but in current code, the monitoring queue doesn't stops.
+> Add
+> the code to disable polling when disabling thermal zone and enable
+> polling
+> when enabling the thermal zone.
+> 
+> This patch is based on the original Sameer Nanda <snanda@chromium.org
+> >
+> patch that implemented this idea for the ACPI thermal driver.
+> 
 
-  Upon receiving the notification, the OSPM may decide to issue
-  a Start ARS with Flags Bit [1] set to prepare for the retrieval
-  of existing records and issue the Query ARS Status function to
-  retrieve the records.
+Before these two patches, only platform thermal driver cares about
+"mode", thermal core does nothing but invokes platform .set_mode()
+callback upon sysfs I/F write.
+But after this patch set, "mode" becomes something that we should
+take into account in thermal core as well.
+Thus, IMO, we have a couple of things more to do, like the prototype
+patch attached, which I have not tested yet.
 
-Add support to call a Start ARS from acpi_nfit_uc_error_notify()
-with ND_ARS_RETURN_PREV_DATA set when HW_ERROR_SCRUB_ON is not set.
+>From 8bf51fe65bd386b7e8c3c2ca8b9f7d321c92b22f Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Fri, 30 Jun 2017 11:11:45 +0800
+Subject: [RFC PATCH] Thermal: introduce thermal zone device mode control
 
-Link: http://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Linda Knippers <linda.knippers@hpe.com>
+Thermal "mode" sysfs attribute is introduced to enable/disable a thermal zone,
+and .get_mode()/.set_mode() callback is introduced for platform thermal driver
+to enable/disable the hardware thermal control logic. And thermal core takes
+no action upon thermal zone enable/disable.
+
+Actually, this is not quite right because thermal core still pokes those
+disabled thermal zones occasionally, e.g. upon system resume.
+
+To fix this, a new flag 'mode' is introduced in struct thermal_zone_device
+to represent the thermal zone mode, and several decisions have been made
+based on this flag, including
+1. check the thermal zone mode right after it's registered.
+2. skip updating thermal zone if the zone is disabled
+3. stop the polling timer when the thermal zone is disabled
+
+Note: basically, this patch doesn't affect the existing always-enabled
+thermal zones much, with just one exception -
+thermal zone .get_mode() must be well prepared to reflect the real thermal
+zone status upon the thermal zone registration.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
-v4:
- - Set ars_start.flags in ars_continue(). (Dan Williams)
- - Clear acpi_desc->ars_start_flags at end of acpi_nfit_scrub()
-   (Dan Williams)
----
- drivers/acpi/nfit/core.c   |   13 ++++++++++---
- drivers/acpi/nfit/mce.c    |    2 +-
- drivers/acpi/nfit/nfit.h   |    3 ++-
- include/uapi/linux/ndctl.h |    1 +
- 4 files changed, 14 insertions(+), 5 deletions(-)
+ drivers/thermal/thermal_core.c  | 37 +++++++++++++++++++++++++++++++++++--
+ drivers/thermal/thermal_sysfs.c | 22 ++++++----------------
+ include/linux/thermal.h         |  3 +++
+ 3 files changed, 44 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index cc22778..c4a9a3e 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1031,7 +1031,7 @@ static ssize_t scrub_store(struct device *dev,
- 	if (nd_desc) {
- 		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 
--		rc = acpi_nfit_ars_rescan(acpi_desc);
-+		rc = acpi_nfit_ars_rescan(acpi_desc, 0);
- 	}
- 	device_unlock(dev);
- 	if (rc)
-@@ -2051,6 +2051,7 @@ static int ars_start(struct acpi_nfit_desc *acpi_desc, struct nfit_spa *nfit_spa
- 	memset(&ars_start, 0, sizeof(ars_start));
- 	ars_start.address = spa->address;
- 	ars_start.length = spa->length;
-+	ars_start.flags = acpi_desc->ars_start_flags;
- 	if (nfit_spa_type(spa) == NFIT_SPA_PM)
- 		ars_start.type = ND_ARS_PERSISTENT;
- 	else if (nfit_spa_type(spa) == NFIT_SPA_VOLATILE)
-@@ -2077,6 +2078,7 @@ static int ars_continue(struct acpi_nfit_desc *acpi_desc)
- 	ars_start.address = ars_status->restart_address;
- 	ars_start.length = ars_status->restart_length;
- 	ars_start.type = ars_status->type;
-+	ars_start.flags = acpi_desc->ars_start_flags;
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_START, &ars_start,
- 			sizeof(ars_start), &cmd_rc);
- 	if (rc < 0)
-@@ -2595,6 +2597,7 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
- 		acpi_nfit_async_scrub(acpi_desc, nfit_spa);
- 	acpi_desc->scrub_count++;
-+	acpi_desc->ars_start_flags = 0;
- 	if (acpi_desc->scrub_count_state)
- 		sysfs_notify_dirent(acpi_desc->scrub_count_state);
- 	mutex_unlock(&acpi_desc->init_mutex);
-@@ -2613,6 +2616,7 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
- 				return rc;
- 		}
- 
-+	acpi_desc->ars_start_flags = 0;
- 	if (!acpi_desc->cancel)
- 		queue_work(nfit_wq, &acpi_desc->work);
- 	return 0;
-@@ -2817,7 +2821,7 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
- 	return 0;
- }
- 
--int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc)
-+int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, u8 flags)
- {
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_spa *nfit_spa;
-@@ -2839,6 +2843,7 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc)
- 
- 		nfit_spa->ars_required = 1;
- 	}
-+	acpi_desc->ars_start_flags = flags;
- 	queue_work(nfit_wq, &acpi_desc->work);
- 	dev_dbg(dev, "%s: ars_scan triggered\n", __func__);
- 	mutex_unlock(&acpi_desc->init_mutex);
-@@ -3015,8 +3020,10 @@ static void acpi_nfit_update_notify(struct device *dev, acpi_handle handle)
- static void acpi_nfit_uc_error_notify(struct device *dev, acpi_handle handle)
- {
- 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(dev);
-+	u8 flags = (acpi_desc->scrub_mode == HW_ERROR_SCRUB_ON) ?
-+			0 : ND_ARS_RETURN_PREV_DATA;
- 
--	acpi_nfit_ars_rescan(acpi_desc);
-+	acpi_nfit_ars_rescan(acpi_desc, flags);
- }
- 
- void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
-diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
-index fd86bec..feeb95d 100644
---- a/drivers/acpi/nfit/mce.c
-+++ b/drivers/acpi/nfit/mce.c
-@@ -79,7 +79,7 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
- 			 * already in progress, just let that be the last
- 			 * authoritative one
- 			 */
--			acpi_nfit_ars_rescan(acpi_desc);
-+			acpi_nfit_ars_rescan(acpi_desc, 0);
- 		}
- 		break;
- 	}
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 6cf9d21..d98f0db 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -156,6 +156,7 @@ struct acpi_nfit_desc {
- 	struct list_head idts;
- 	struct nvdimm_bus *nvdimm_bus;
- 	struct device *dev;
-+	u8 ars_start_flags;
- 	struct nd_cmd_ars_status *ars_status;
- 	size_t ars_status_size;
- 	struct work_struct work;
-@@ -208,7 +209,7 @@ struct nfit_blk {
- 
- extern struct list_head acpi_descs;
- extern struct mutex acpi_desc_lock;
--int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc);
-+int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, u8 flags);
- 
- #ifdef CONFIG_X86_MCE
- void nfit_mce_register(void);
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 7ad3863..70a89f7 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -169,6 +169,7 @@ enum {
- enum {
- 	ND_ARS_VOLATILE = 1,
- 	ND_ARS_PERSISTENT = 2,
-+	ND_ARS_RETURN_PREV_DATA = 1 << 1,
- 	ND_CONFIG_LOCKED = 1,
- };
- 
+diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
+index 5a51c74..89b2254 100644
+--- a/drivers/thermal/thermal_core.c
++++ b/drivers/thermal/thermal_core.c
+@@ -306,9 +306,9 @@ static void monitor_thermal_zone(struct thermal_zone_device *tz)
+ {
+ 	mutex_lock(&tz->lock);
+ 
+-	if (tz->passive)
++	if (tz->enabled == THERMAL_DEVICE_ENABLED && tz->passive)
+ 		thermal_zone_device_set_polling(tz, tz->passive_delay);
+-	else if (tz->polling_delay)
++	else if (tz->enabled == THERMAL_DEVICE_ENABLED && tz->polling_delay)
+ 		thermal_zone_device_set_polling(tz, tz->polling_delay);
+ 	else
+ 		thermal_zone_device_set_polling(tz, 0);
+@@ -464,11 +464,35 @@ static void thermal_zone_device_reset(struct thermal_zone_device *tz)
+ 		pos->initialized = false;
+ }
+ 
++int thermal_zone_set_mode(struct thermal_zone_device *tz,
++				 enum thermal_device_mode mode)
++{
++	int result;
++
++	if (!tz->ops->set_mode)
++		return -EPERM;
++
++	result = tz->ops->set_mode(tz, mode);
++	if (result)
++		return result;
++
++	if (tz->mode != mode) {
++		tz->mode = mode;
++		monitor_thermal_zone(tz);
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(thermal_zone_set_mode);
++
+ void thermal_zone_device_update(struct thermal_zone_device *tz,
+ 				enum thermal_notify_event event)
+ {
+ 	int count;
+ 
++	/* Do nothing if the thermal zone is disabled */
++	if (tz->mode == THERMAL_DEVICE_DISABLED)
++		return;
++
+ 	if (atomic_read(&in_suspend))
+ 		return;
+ 
+@@ -1287,6 +1311,15 @@ thermal_zone_device_register(const char *type, int trips, int mask,
+ 	INIT_DELAYED_WORK(&tz->poll_queue, thermal_zone_device_check);
+ 
+ 	thermal_zone_device_reset(tz);
++
++	if (tz->ops->get_mode()) {
++		enum thermal_device_mode mode;
++
++		result = tz->ops->get_mode(tz, &mode);
++		tz->mode = result ? THERMAL_DEVICE_ENABLED : mode;
++	} else
++		tz->mode = THERMAL_DEVICE_ENABLED;
++
+ 	/* Update the new thermal zone and mark it as already updated. */
+ 	if (atomic_cmpxchg(&tz->need_update, 1, 0))
+ 		thermal_zone_device_update(tz, THERMAL_EVENT_UNSPECIFIED);
+diff --git a/drivers/thermal/thermal_sysfs.c b/drivers/thermal/thermal_sysfs.c
+index a694de9..95d2587 100644
+--- a/drivers/thermal/thermal_sysfs.c
++++ b/drivers/thermal/thermal_sysfs.c
+@@ -51,17 +51,8 @@ static ssize_t
+ mode_show(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct thermal_zone_device *tz = to_thermal_zone(dev);
+-	enum thermal_device_mode mode;
+-	int result;
+-
+-	if (!tz->ops->get_mode)
+-		return -EPERM;
+ 
+-	result = tz->ops->get_mode(tz, &mode);
+-	if (result)
+-		return result;
+-
+-	return sprintf(buf, "%s\n", mode == THERMAL_DEVICE_ENABLED ? "enabled"
++	return sprintf(buf, "%s\n", tz->mode == THERMAL_DEVICE_ENABLED ? "enabled"
+ 		       : "disabled");
+ }
+ 
+@@ -70,18 +61,17 @@ mode_store(struct device *dev, struct device_attribute *attr,
+ 	   const char *buf, size_t count)
+ {
+ 	struct thermal_zone_device *tz = to_thermal_zone(dev);
++	enum thermal_device_mode mode;
+ 	int result;
+ 
+-	if (!tz->ops->set_mode)
+-		return -EPERM;
+-
+ 	if (!strncmp(buf, "enabled", sizeof("enabled") - 1))
+-		result = tz->ops->set_mode(tz, THERMAL_DEVICE_ENABLED);
++		mode = THERMAL_DEVICE_ENABLED;
+ 	else if (!strncmp(buf, "disabled", sizeof("disabled") - 1))
+-		result = tz->ops->set_mode(tz, THERMAL_DEVICE_DISABLED);
++		mode = THERMAL_DEVICE_DISABLED;
+ 	else
+-		result = -EINVAL;
++		return -EINVAL;
+ 
++	result = thermal_zone_set_mode(tz, mode)
+ 	if (result)
+ 		return result;
+ 
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index dab11f9..2f427de 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -210,6 +210,7 @@ struct thermal_zone_device {
+ 	struct thermal_attr *trip_type_attrs;
+ 	struct thermal_attr *trip_hyst_attrs;
+ 	void *devdata;
++	enum thermal_device_mode mode;
+ 	int trips;
+ 	unsigned long trips_disabled;	/* bitmap for disabled trips */
+ 	int passive_delay;
+@@ -465,6 +466,8 @@ struct thermal_zone_device *thermal_zone_get_zone_by_name(const char *name);
+ int thermal_zone_get_temp(struct thermal_zone_device *tz, int *temp);
+ int thermal_zone_get_slope(struct thermal_zone_device *tz);
+ int thermal_zone_get_offset(struct thermal_zone_device *tz);
++int thermal_zone_set_mode(struct thermal_zone_device *tz,
++			  enum thermal_device_mode mode);
+ 
+ int get_tz_trend(struct thermal_zone_device *, int);
+ struct thermal_instance *get_thermal_instance(struct thermal_zone_device *,
+-- 
+2.7.4
+
