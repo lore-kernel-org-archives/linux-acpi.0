@@ -1,143 +1,86 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2] ACPI: surface3_power: MSHW0011 rev-eng implementation
-Date: Fri, 30 Jun 2017 19:37:15 +0300
-Message-ID: <CAHp75VdLU57x2YuDH+SkB1jR3rSpqcVNszhq5fDUVZZt+sqxyQ@mail.gmail.com>
-References: <20170629121009.30234-1-benjamin.tissoires@redhat.com>
- <CAHp75Vdn1-m0gDSHtZXX2A=Q07xG9j1eBiV8iM4e11Qk=oJfZg@mail.gmail.com> <20170630155706.GL26073@mail.corp.redhat.com>
+From: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH V17 01/11] acpi: apei: read ack upon ghes record
+ consumption
+Date: Fri, 30 Jun 2017 10:47:17 -0600
+Message-ID: <fc05bd05-274d-3491-bbf8-f38dc0a16e49@codeaurora.org>
+References: <1495225933-4410-1-git-send-email-tbaicar@codeaurora.org>
+ <1495225933-4410-2-git-send-email-tbaicar@codeaurora.org>
+ <20170630101043.GZ658@rric.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170630155706.GL26073@mail.corp.redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, Bastien Nocera <hadess@hadess.net>, Stephen Just <stephenjust@gmail.com>, Sebastian Reichel <sre@kernel.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, devel@acpica.org, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170630101043.GZ658-vWBEXY7mpu582hYKe6nXyg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert Richter <robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 30, 2017 at 6:57 PM, Benjamin Tissoires
-<benjamin.tissoires@redhat.com> wrote:
-> On Jun 29 2017 or thereabouts, Andy Shevchenko wrote:
->> On Thu, Jun 29, 2017 at 3:10 PM, Benjamin Tissoires
->> <benjamin.tissoires@redhat.com> wrote:
-
->> What devices (laptops, tablets) have it?
->> Surface 3. What else?
+On 6/30/2017 4:10 AM, Robert Richter wrote:
+> Tyler,
 >
-> So far, Surface 3 only. It's a Microsoft PNPId, so I guess they control
-> which device has it. Maybe the model after the Surface 3 (reduced
-> platform) will have such chip, but for now, it's unknown.
-
-Please, extend introduction in commit message to state above.
-
->> > I couldn't manage to get the IRQ correctly triggered, so I am using a
->> > good old polling thread to check for changes.
+> On 19.05.17 14:32:03, Tyler Baicar wrote:
+>> A RAS (Reliability, Availability, Serviceability) controller
+>> may be a separate processor running in parallel with OS
+>> execution, and may generate error records for consumption by
+>> the OS. If the RAS controller produces multiple error records,
+>> then they may be overwritten before the OS has consumed them.
 >>
->> It might be
-
-It seems I didn't finished the sentence here.
-
-I though it might be actually ACPI event, GPE or direct IRQ (when GPIO
-chip should not disable it, though if it's the case it likely a BIOS
-bug for this hardware).
-
->> > +       help
->> > +         Select this option to enable support for ACPI operation
->> > +         region of the Surface 3 battery platform driver.
+>> The Generic Hardware Error Source (GHES) v2 structure
+>> introduces the capability for the OS to acknowledge the
+>> consumption of the error record generated by the RAS
+>> controller. A RAS controller supporting GHESv2 shall wait for
+>> the acknowledgment before writing a new error record, thus
+>> eliminating the race condition.
 >>
->> > +/*
->> > + * Supports for the power IC on the Surface 3 tablet.
+>> Add support for parsing of GHESv2 sub-tables as well.
 >>
->> Shouldn't it go to drivers/acpi/pmic folder ?
+>> Signed-off-by: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+>> CC: Jonathan (Zhixiong) Zhang <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+>> Reviewed-by: James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>
+>> ---
+>>   drivers/acpi/apei/ghes.c | 59 +++++++++++++++++++++++++++++++++++++++++++++---
+>>   drivers/acpi/apei/hest.c |  7 ++++--
+>>   include/acpi/ghes.h      |  5 +++-
+>>   3 files changed, 65 insertions(+), 6 deletions(-)
+>>   static int ghes_proc(struct ghes *ghes)
+>>   {
+>>   	int rc;
+>> @@ -661,6 +704,16 @@ static int ghes_proc(struct ghes *ghes)
+>>   			ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+>>   	}
+>>   	ghes_do_proc(ghes, ghes->estatus);
+>> +
+>> +	/*
+>> +	 * GHESv2 type HEST entries introduce support for error acknowledgment,
+>> +	 * so only acknowledge the error if this support is present.
+>> +	 */
+>> +	if (is_hest_type_generic_v2(ghes)) {
+>> +		rc = ghes_ack_error(ghes->generic_v2);
+>> +		if (rc)
+>> +			return rc;
+>> +	}
+>>   out:
+>>   	ghes_clear_estatus(ghes);
+>>   	return rc;
+> was there any specific reason why the ack is sent before clearing the
+> block status? Spec says the ack should be sent at last.
 >
-> Already answered later in the thread, so yes, I'll move it there.
+> Also, the block is never cleared if ghes_ack_error() returns an error.
+> IMO we should fall through and clear the block status (this will
+> change anyway if the bloc status is cleared first).
+Hello Robert,
 
-Actually Hans did a good point, so, feel free to use drivers/platform/x86.
+Thank you for pointing this out. I will send a patch to move the ack 
+after the ghes_clear_estatus. This is probably the right thing to do 
+since right now if the FW populates an invalid estatus, we will fail to 
+read the estatus, jump to 'out:', and never send the ack.
 
->> And did you check if it have actual chip IP vendor name and model?
->> Most likely it's a TI (based?) solution.
->
-> As mentioned, I have strictly no idea. I can not crack open the Surface
-> 3 without breaking the warranty (I already had to return it once because
-> the disk crashed).
-
-We have one indeed cracked (screen is broken for good :-) ), so, I
-would check what I can find there.
-
-> And I do not find anything brand-related under Windows either:
-> - it's called "Surface Platform Power Driver"
-> - and the driver is provided by Microsoft
-
-Fair enough.
-
->> > +static int mshw0011_bix(struct mshw0011_data *cdata, struct bix *bix)
->> > +{
->>
->> > +       memcpy(bix->serial, buf + 7, 3);
->> > +       memcpy(bix->serial + 3, buf, 6);
->> > +       bix->serial[9] = '\0';
->>
->> snprintf()?
->
-> probably :)
-
-I would do this until we have an evidence that it contains non-printable symbols
-(or, in case you want to fix ahead, make the buffer 4 times bigger and use %*pE)
-
->> > +       memcpy(bix->OEM, buf, 3);
->> > +       bix->OEM[4] = '\0';
->>
->> snprintf() ?
-
-Ditto.
-
->> > +       snprintf(prefix, ARRAY_SIZE(prefix), "%s: ", bat0->name);
->>
->> > +       prefix[127] = '\0';
->>
->> Why?
->
-> Just me being paranoid in case the code doesn't follow the spec... Yeah, I'll
-> remove it.
-
-snprintf() despite n in the name takes care of terminating NUL.
-
->> > +static int mshw0011_probe(struct i2c_client *client,
->> > +                         const struct i2c_device_id *id)
->> > +{
->>
->> > +       data->notify_version = version == MSHW0011_EV_2_5;
->>
->> 0x1ff as version sounds hmm suspicious.
->
-> So after a little bit of digging, it appears those values were taken
-> from the DSDT:
-> https://bugzilla.kernel.org/attachment.cgi?id=187171 line 11694.
->
-> It appears 0x3F is EV 2.1 and before, and 0x1FF is EV 2.5 and above.
-> The returned value is not a version of the chip, just a flag to know
-> which path we are taking in the DSM.
->
-> The name is probably not the best.
-
-63 and 511 looks too suspicious to be a version. Rather block size, a
-mask or alike.
-
->> > +static const struct i2c_device_id mshw0011_id[] = {
->> > +       { }
->> > +};
->> > +MODULE_DEVICE_TABLE(i2c, mshw0011_id);
->>
->> ->probe_new(), please.
->
-> Correct
->
->>
->> If I2C framework is _still_ broken we need to fix that part.
->
-> I haven't check, so let's see for v3.
-
-Cc: Wolfram for v3 and ask him directly. Last time I checked it looks
-like I2C core doesn't care about ACPI when ->probe_new() is used.
+Thanks,
+Tyler
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
