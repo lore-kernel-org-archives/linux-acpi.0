@@ -1,72 +1,59 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: RE: [PATCH v3] acpi/nfit: Issue Start ARS to retrieve existing
- records
-Date: Fri, 30 Jun 2017 01:47:21 +0000
-Message-ID: <CS1PR84MB0104920CF7AFD294A5E5C25782D30@CS1PR84MB0104.NAMPRD84.PROD.OUTLOOK.COM>
-References: <20170617082218.8955-1-toshi.kani@hpe.com>
- <CAPcyv4i_cCPsurej1YDVgocTiuxzT0uKFYSg1Hzn40GQc0PJvQ@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH v2 1/2] acpi: thermal: update thermal_zone after enable
+ the driver.
+Date: Fri, 30 Jun 2017 10:40:34 +0800
+Message-ID: <1498790434.2520.5.camel@intel.com>
+References: <20170629165035.23101-1-enric.balletbo@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t5008.houston.hpe.com ([15.241.48.72]:57157 "EHLO
-        g9t5008.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751333AbdF3Br0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Jun 2017 21:47:26 -0400
-In-Reply-To: <CAPcyv4i_cCPsurej1YDVgocTiuxzT0uKFYSg1Hzn40GQc0PJvQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170629165035.23101-1-enric.balletbo@collabora.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Enric Balletbo i Serra <enric.balletbo@collabora.com>, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Guenter Roeck <groeck@chromium.org>, Sameer Nanda <snanda@chromium.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vishal L Verma <vishal.l.verma@intel.com>, "Knippers, Linda" <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-PiA+IEFDUEkgNi4yIGRlZmluZXMgaW4gc2VjdGlvbiA5LjIwLjcuMiB0aGF0IHRoZSBPU1BNIG1h
-eSBjYWxsIGEgU3RhcnQNCj4gPiBBUlMgd2l0aCBGbGFncyBCaXQgWzFdIHNldCB1cG9uIHJlY2Vp
-dmluZyB0aGUgMHg4MSBub3RpZmljYXRpb24uDQo+ID4NCj4gPiAgIFVwb24gcmVjZWl2aW5nIHRo
-ZSBub3RpZmljYXRpb24sIHRoZSBPU1BNIG1heSBkZWNpZGUgdG8gaXNzdWUNCj4gPiAgIGEgU3Rh
-cnQgQVJTIHdpdGggRmxhZ3MgQml0IFsxXSBzZXQgdG8gcHJlcGFyZSBmb3IgdGhlIHJldHJpZXZh
-bA0KPiA+ICAgb2YgZXhpc3RpbmcgcmVjb3JkcyBhbmQgaXNzdWUgdGhlIFF1ZXJ5IEFSUyBTdGF0
-dXMgZnVuY3Rpb24gdG8NCj4gPiAgIHJldHJpZXZlIHRoZSByZWNvcmRzLg0KPiA+DQo+ID4gQWRk
-IHN1cHBvcnQgdG8gY2FsbCBhIFN0YXJ0IEFSUyBmcm9tIGFjcGlfbmZpdF91Y19lcnJvcl9ub3Rp
-ZnkoKQ0KPiA+IHdpdGggTkRfQVJTX1JFVFVSTl9QUkVWX0RBVEEgc2V0IHdoZW4gSFdfRVJST1Jf
-U0NSVUJfT04gaXMgbm90DQo+IHNldC4NCj4gPg0KPiA+IExpbms6IGh0dHA6Ly93d3cudWVmaS5v
-cmcvc2l0ZXMvZGVmYXVsdC9maWxlcy9yZXNvdXJjZXMvQUNQSV82XzIucGRmDQo+ID4gU2lnbmVk
-LW9mZi1ieTogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPg0KPiA+IENjOiBEYW4gV2ls
-bGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gPiBDYzogUmFmYWVsIEouIFd5c29j
-a2kgPHJqd0Byand5c29ja2kubmV0Pg0KPiA+IENjOiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZl
-cm1hQGludGVsLmNvbT4NCj4gPiBDYzogTGluZGEgS25pcHBlcnMgPGxpbmRhLmtuaXBwZXJzQGhw
-ZS5jb20+DQo+ID4gLS0tDQo+ID4gdjMgKDIvMik6IEFkZCBmbGFncyBpbmZvIHRvIGFjcGlfbmZp
-dF9kZXNjIChEYW4gV2lsbGlhbXMpDQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9uZml0L2Nv
-cmUuYyAgIHwgICAxMSArKysrKysrKy0tLQ0KPiA+ICBkcml2ZXJzL2FjcGkvbmZpdC9tY2UuYyAg
-ICB8ICAgIDIgKy0NCj4gPiAgZHJpdmVycy9hY3BpL25maXQvbmZpdC5oICAgfCAgICAzICsrLQ0K
-PiA+ICBpbmNsdWRlL3VhcGkvbGludXgvbmRjdGwuaCB8ICAgIDEgKw0KPiA+ICA0IGZpbGVzIGNo
-YW5nZWQsIDEyIGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9hY3BpL25maXQvY29yZS5jIGIvZHJpdmVycy9hY3BpL25maXQvY29yZS5j
-DQo+ID4gaW5kZXggY2MyMjc3OC4uN2UwOGVlMCAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2Fj
-cGkvbmZpdC9jb3JlLmMNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkvbmZpdC9jb3JlLmMNCj4gPiBA
-QCAtMTAzMSw3ICsxMDMxLDcgQEAgc3RhdGljIHNzaXplX3Qgc2NydWJfc3RvcmUoc3RydWN0IGRl
-dmljZSAqZGV2LA0KPiA+ICAgICAgICAgaWYgKG5kX2Rlc2MpIHsNCj4gPiAgICAgICAgICAgICAg
-ICAgc3RydWN0IGFjcGlfbmZpdF9kZXNjICphY3BpX2Rlc2MgPSB0b19hY3BpX2Rlc2MobmRfZGVz
-Yyk7DQo+ID4NCj4gPiAtICAgICAgICAgICAgICAgcmMgPSBhY3BpX25maXRfYXJzX3Jlc2Nhbihh
-Y3BpX2Rlc2MpOw0KPiA+ICsgICAgICAgICAgICAgICByYyA9IGFjcGlfbmZpdF9hcnNfcmVzY2Fu
-KGFjcGlfZGVzYywgMCk7DQo+ID4gICAgICAgICB9DQo+ID4gICAgICAgICBkZXZpY2VfdW5sb2Nr
-KGRldik7DQo+ID4gICAgICAgICBpZiAocmMpDQo+ID4gQEAgLTIwNTEsNiArMjA1MSw3IEBAIHN0
-YXRpYyBpbnQgYXJzX3N0YXJ0KHN0cnVjdCBhY3BpX25maXRfZGVzYyAqYWNwaV9kZXNjLA0KPiBz
-dHJ1Y3QgbmZpdF9zcGEgKm5maXRfc3BhDQo+ID4gICAgICAgICBtZW1zZXQoJmFyc19zdGFydCwg
-MCwgc2l6ZW9mKGFyc19zdGFydCkpOw0KPiA+ICAgICAgICAgYXJzX3N0YXJ0LmFkZHJlc3MgPSBz
-cGEtPmFkZHJlc3M7DQo+ID4gICAgICAgICBhcnNfc3RhcnQubGVuZ3RoID0gc3BhLT5sZW5ndGg7
-DQo+ID4gKyAgICAgICBhcnNfc3RhcnQuZmxhZ3MgPSBhY3BpX2Rlc2MtPmFyc19zdGFydF9mbGFn
-czsNCj4gDQo+IEhtbSBkb24ndCB3ZSBhbHNvIG5lZWQgYSBzdGF0ZW1lbnQgbGlrZSB0aGlzIGlu
-IGFyc19jb250aW51ZSgpPw0KDQpHb29kIHBvaW50LiAgV2lsbCBzZXQgZmxhZ3MgaW4gYXJzX2Nv
-bnRpbnVlKCkuDQogDQo+ID4gICAgICAgICBpZiAobmZpdF9zcGFfdHlwZShzcGEpID09IE5GSVRf
-U1BBX1BNKQ0KPiA+ICAgICAgICAgICAgICAgICBhcnNfc3RhcnQudHlwZSA9IE5EX0FSU19QRVJT
-SVNURU5UOw0KPiA+ICAgICAgICAgZWxzZSBpZiAobmZpdF9zcGFfdHlwZShzcGEpID09IE5GSVRf
-U1BBX1ZPTEFUSUxFKQ0KPiA+IEBAIC0yNjEzLDYgKzI2MTQsNyBAQCBzdGF0aWMgaW50IGFjcGlf
-bmZpdF9yZWdpc3Rlcl9yZWdpb25zKHN0cnVjdA0KPiBhY3BpX25maXRfZGVzYyAqYWNwaV9kZXNj
-KQ0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHJjOw0KPiA+ICAg
-ICAgICAgICAgICAgICB9DQo+ID4NCj4gPiArICAgICAgIGFjcGlfZGVzYy0+YXJzX3N0YXJ0X2Zs
-YWdzID0gMDsNCj4gDQo+IC4uLmFuZCBJIHdvdWxkIHRoaW5rIHRoZSBORF9BUlNfUkVUVVJOX1BS
-RVZfREFUQSBjb250ZXh0IHdvdWxkIG9ubHkgYmUNCj4gdmFsaWQgZm9yIHRoZSBkdXJhdGlvbiBv
-ZiB0aGUgY3VycmVudCBzY3J1Yiwgc28gd2Ugc2hvdWxkIGNsZWFyIHRoZQ0KPiBmbGFncyBhdCB0
-aGUgZW5kIG9mIGFjcGlfbmZpdF9zY3J1YigpLg0KDQpBZ3JlZWQuDQoNClRoYW5rcyENCi1Ub3No
-aQ0KDQo=
+On Thu, 2017-06-29 at 18:50 +0200, Enric Balletbo i Serra wrote:
+> Use thermal_set_mode instead of just set the tz_enable variable when
+> enabling the ACPI thermal driver. The purpose of this change is
+> trigger
+> a thermal_zone_device_update when driver switches from disabled to
+> enabled mode so thermal_zone data is up-to-date.
+> 
+> Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+> ---
+> This patch is new from v1 [1]
+> 
+> [1] https://patchwork.kernel.org/patch/9804229/
+> 
+>  drivers/acpi/thermal.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> index 1d0417b..9949458 100644
+> --- a/drivers/acpi/thermal.c
+> +++ b/drivers/acpi/thermal.c
+> @@ -930,7 +930,9 @@ static int
+> acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+>  	if (ACPI_FAILURE(status))
+>  		return -ENODEV;
+>  
+> -	tz->tz_enabled = 1;
+> +	result = thermal_set_mode(tz->thermal_zone,
+> THERMAL_DEVICE_ENABLED);
+> +	if (result)
+> +		return result;
+
+thermal core is responsible for checking the thermal zone "mode", and
+set the polling properly, right after thermal_zone_device_being
+registered.
+
+Thus we need to do nothing, but just make sure tz->tz_enabled is set
+properly before registering the zone.
+
+thanks,
+rui
+>  
+>  	dev_info(&tz->device->dev, "registered as thermal_zone%d\n",
+>  		 tz->thermal_zone->id);
