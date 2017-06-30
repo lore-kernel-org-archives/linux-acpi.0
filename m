@@ -1,63 +1,77 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] i2c: i801: Allow ACPI SystemIO OpRegion to
- conflict harder
-Date: Fri, 30 Jun 2017 13:56:50 +0300
-Message-ID: <20170630105650.GY629@lahna.fi.intel.com>
-References: <20170626204009.32607-1-lyude@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20170626204009.32607-1-lyude@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Lyude <lyude@redhat.com>
-Cc: Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Benjamin Tissoires <btissoir@redhat.com>, intel-gfx@lists.freedesktop.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Jean Delvare <jdelvare@suse.de>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH] ACPI / power: constify attribute_group structures.
+Date: Fri, 30 Jun 2017 17:39:05 +0530
+Message-ID: <2726b2dee8cf2e4c6fe81bf8833e00c8931e1d59.1498823717.git.arvind.yadav.cs@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gTW9uLCBKdW4gMjYsIDIwMTcgYXQgMDQ6NDA6MDhQTSAtMDQwMCwgTHl1ZGUgd3JvdGU6Cj4g
-VGhlcmUncyBxdWl0ZSBhIG51bWJlciBvZiBtYWNoaW5lcyBvbiB0aGUgbWFya2V0LCBtYWlubHkg
-TGVub3ZvCj4gVGhpbmtQYWRzLCB0aGF0IG1ha2UgdGhlIGhvcnJpYmxlIG1pc3Rha2UgaW4gdGhl
-aXIgZmlybXdhcmUgb2YgcmV1c2luZwo+IHRoZSBQQ0lCQVIgc3BhY2UgcmVzZXJ2ZWQgZm9yIHRo
-ZSBTTUJ1cyBmb3IgdGhpbmdzIHRoYXQgYXJlIGNvbXBsZXRlbHkKPiB1bnJlbGF0ZWQgdG8gdGhl
-IFNNQnVzIGNvbnRyb2xsZXIsIHN1Y2ggYXMgdGhlIE9wUmVnaW9uIHVzZWQgZm9yIGk5MTUuCj4g
-VGhpcyBpcyB2ZXJ5IGJhZCBhbmQgZW50aXJlbHkgZXZpbCwgYnV0IHdpdGggTGVub3ZvJ3MgaGlz
-dG9yaWNhbGx5IHBvb3IKPiB0cmFjayByZWNvcmQgb2YgZml4aW5nIHRoZWlyIGZpcm13YXJlLCBp
-dCBpcyBleHRyZW1lbHkgdW5saWtlbHkgdGhpcyBpcwo+IGV2ZXIgZ29pbmcgdG8gYmUgcHJvcGVy
-bHkgZml4ZWQuCj4gCj4gU28sIHdoaWxlIGl0IHdvdWxkIGJlIG5pY2UgaWYgd2UgY291bGQganVz
-dCBjdXQgb2ZmIHRoZSBTTUJ1cyBjb250cm9sbGVyCj4gYW5kIGNhbGwgaXQgYSBkYXkgdGhpcyB1
-bmZvcnR1bmF0ZWx5IGJyZWFrcyBSTUk0IG1vZGUgY29tcGxldGVseSBmb3IKPiBtb3N0IG9mIHRo
-ZSBUaGlua1BhZHMuIEV2ZW4gdGhvdWdoIHRoaXMgYmVoYXZpb3IgaXMgZXh0cmVtZWx5IHdyb25n
-LCBmb3IKPiB3aGF0ZXZlciByZWFzb24gc2hhcmluZyB0aGUgUENJQkFSIGJldHdlZW4gdGhlIE9w
-UmVnaW9uIGFuZCBTTUJ1cyBzZWVtcwo+IHRvIGJlIGp1c3QgZmluZS4gUmVnYXJkbGVzcyBob3dl
-dmVyLCBJIHRoaW5rIGl0J3Mgc2FmZSB0byBhc3N1bWUgdGhhdAo+IHdoZW4gdGhlIEJJT1MgYWNj
-ZXNzZXMgdGhlIFBDSUJBUiBzcGFjZSBvZiB0aGUgU01CdXMgY29udHJvbGxlciBsaWtlCj4gdGhp
-cyB0aGF0IGl0J3MgdHJ5aW5nIHRvIGdldCB0byBzb21ldGhpbmcgZWxzZSB0aGF0IHdlIG1hcHBl
-ZCB0aGUgU01CdXMKPiBjb250cm9sbGVyIG92ZXIuCj4gCj4gT24gbXkgWDEgQ2FyYm9uLCB0aGlz
-IGFzc3VtcHRpb24gYXBwZWFycyB0byBiZSBjb3JyZWN0LiBJJ3ZlIHRyYWNlZCBkb3duCj4gdGhl
-IGZpcm13YXJlIGFjY2Vzc2VzIHRvIGJlaW5nIGNhdXNlZCBieSB0aGUgZmlybXdhcmUgbWlzdGFr
-ZW5seSBwbGFjaW5nCj4gdGhlIFNXU0NJIG1haWxib3ggZm9yIGk5MTUgb24gdG9wIG9mIHRoZSBT
-TUJ1cyBob3N0IGNvbnRyb2xsZXIgcmVnaW9uLgo+IEFuZCBpbmRlZWQsIGJsYWNrbGlzdGluZyBp
-OTE1IGNhdXNlcyB0aGUgZmlybXdhcmUgdG8gbmV2ZXIgYXR0ZW1wdCB0bwo+IHRvdWNoIHRoaXMg
-cmVnaW9uLgo+IAo+IFNvLCBpbiBvcmRlciB0byB0cnkgdG8gd29ya2Fyb3VuZCB0aGlzIGFuZCBu
-b3QgYnJlYWsgZWl0aGVyIFNNQnVzIG9yCj4gaTkxNSwgd2UgdGVtcG9yYXJpbHkgdW5tYXAgdGhl
-IFBDSSBkZXZpY2UgZm9yIHRoZSBTTUJ1cyBjb250cm9sbGVyLAo+IGRvIHRoZSB0aGluZyB0aGF0
-IHRoZSBmaXJtd2FyZSB3YW50ZWQgdG8gZG8sIHRoZW4gcmVtYXAgdGhlIGRldmljZSBhbmQKPiBy
-ZXBvcnQgYSBmaXJtd2FyZSBidWcuCgpBcmUgdGhlIHJlZ2lzdGVycyBpdCB0cmllcyB0byBhY2Nl
-c3Mgc2VwYXJhdGUgZnJvbSBTTUJ1cyBvbmVzPyBXZQphbHJlYWR5IGhhdmUgVENPIHJlZ2lzdGVy
-cyBwbGFjZWQgdG8gdGhpcyBkZXZpY2Ugc3RhcnRpbmcgZnJvbSBTa3lsYWtlCnNvIHRoZXJlIG1p
-Z2h0IGJlIHNvbWV0aGluZyBlbHNlIGFzIHdlbGwuCgpQb2ludCBoZXJlIGlzIHRoYXQgaWYgdGhl
-IGFjY2VzcyBpcyBub3QgdG8gdGhlIFNNQnVzIHJlZ2lzdGVycyB3ZSBjYW4KcXVpcmsgaXQgaW4g
-dGhlIGRyaXZlciBhbmQgbGV0IHRoZSBhY2Nlc3MgaGFwcGVuIGJlY2F1c2UgaXQgZG9lcyBub3QK
-bWVzcyBvdXIgc3RhdGUuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9w
-Lm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVs
-LWdmeAo=
+attribute_groups are not supposed to change at runtime. All functions
+working with attribute_groups provided by <linux/sysfs.h> work with const
+attribute_group. So mark the non-const structs as const.
+
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+   4622	    304	      8	   4934	   1346	drivers/acpi/power.o
+
+File size After adding 'const':
+   text	   data	    bss	    dec	    hex	filename
+   4846	     80	      8	   4934	   1346	drivers/acpi/power.o
+
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/acpi/power.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index 3a6c9b7..1b475bc 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -352,7 +352,7 @@ static int acpi_power_on_list(struct list_head *list)
+ 	NULL,
+ };
+ 
+-static struct attribute_group attr_groups[] = {
++static const struct attribute_group attr_groups[] = {
+ 	[ACPI_STATE_D0] = {
+ 		.name = "power_resources_D0",
+ 		.attrs = attrs,
+@@ -371,14 +371,14 @@ static int acpi_power_on_list(struct list_head *list)
+ 	},
+ };
+ 
+-static struct attribute_group wakeup_attr_group = {
++static const struct attribute_group wakeup_attr_group = {
+ 	.name = "power_resources_wakeup",
+ 	.attrs = attrs,
+ };
+ 
+ static void acpi_power_hide_list(struct acpi_device *adev,
+ 				 struct list_head *resources,
+-				 struct attribute_group *attr_group)
++				 const struct attribute_group *attr_group)
+ {
+ 	struct acpi_power_resource_entry *entry;
+ 
+@@ -397,7 +397,7 @@ static void acpi_power_hide_list(struct acpi_device *adev,
+ 
+ static void acpi_power_expose_list(struct acpi_device *adev,
+ 				   struct list_head *resources,
+-				   struct attribute_group *attr_group)
++				   const struct attribute_group *attr_group)
+ {
+ 	struct acpi_power_resource_entry *entry;
+ 	int ret;
+@@ -425,7 +425,7 @@ static void acpi_power_expose_list(struct acpi_device *adev,
+ 
+ static void acpi_power_expose_hide(struct acpi_device *adev,
+ 				   struct list_head *resources,
+-				   struct attribute_group *attr_group,
++				   const struct attribute_group *attr_group,
+ 				   bool expose)
+ {
+ 	if (expose)
+-- 
+1.9.1
