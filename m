@@ -1,216 +1,163 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH v2 2/2] thermal: core: Allow to disable polling when
- disabling thermal zone.
-Date: Fri, 30 Jun 2017 13:05:09 +0800
-Message-ID: <1498799109.2520.15.camel@intel.com>
-References: <20170629165035.23101-1-enric.balletbo@collabora.com>
-         <20170629165035.23101-2-enric.balletbo@collabora.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [RFC PATCH v3] acpi: indicate to platform when hot remove
+ returns busy
+Date: Fri, 30 Jun 2017 13:49:07 +0800
+Message-ID: <20170630054907.GB13714@linux-l9pv.suse>
+References: <20170621074544.18436-1-jlee@suse.com>
+ <136250372.B1LmTaN194@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:16202 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751696AbdF3FFL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 30 Jun 2017 01:05:11 -0400
-In-Reply-To: <20170629165035.23101-2-enric.balletbo@collabora.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <136250372.B1LmTaN194@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Michal Hocko <mhocko@suse.cz>
 List-Id: linux-acpi@vger.kernel.org
-To: Enric Balletbo i Serra <enric.balletbo@collabora.com>, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Guenter Roeck <groeck@chromium.org>, Sameer Nanda <snanda@chromium.org>, Eduardo Valentin <edubezval@gmail.com>, Linux PM list <linux-pm@vger.kernel.org>
 
-On Thu, 2017-06-29 at 18:50 +0200, Enric Balletbo i Serra wrote:
-> Under each thermal zone there is a optional file called "mode".
-> Writing
-> enabled or disabled to this file allows a given thermal zone to be
-> enabled
-> or disabled, but in current code, the monitoring queue doesn't stops.
-> Add
-> the code to disable polling when disabling thermal zone and enable
-> polling
-> when enabling the thermal zone.
+Hi Rafael,
+
+On Thu, Jun 29, 2017 at 12:13:18AM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, June 21, 2017 03:45:44 PM Lee, Chun-Yi wrote:
+> > In hotplug logic, it always indicates non-specific failure to
+> > platform through _OST when handing acpi hot-remove event failed. Then
+> > platform terminates the hot-remove process but it can not identify
+> > the reason.
+> > 
+> > Base on current hot-remove code, there have two situations that it
+> > returns busy:
+> >  - OSPM try to offline an individual device, but the device offline
+> >    function returns busy.
+> >  - When the ejection event is applied to an "not offlined yet" container.
+> >    OSPM send kobject change event to userspace and returns busy.
+> > 
+> > Both of them will returns -EBUSY to acpi device hotplug function then
+> > hotplug function indicates non-specific failure to platform just like
+> > any other error, e.g. -ENODEV or -EIO.
+> > 
+> > The benefit to platform for identifying the OS busy state is that
+> > platform can be applied different approach to handle the busy but
+> > not just terminate the hot-remove process by unknown reason. For
+> > example, platform can wait for a while then triggers hot-remove
+> > again.
+> > 
+> > This RFC patch adds one more parameter to the handler function of
+> > acpi generic hotplug event to give the function a chance to propose
+> > the return code of _OST. In this case, it sets ost return code to
+> > ACPI_OST_SC_DEVICE_BUSY when the acpi hot remove function returns
+> > -EBUSY.
+> > 
+> > v3:
+> > Removed redundant 'else' in acpi_ost_status_code(). (Andy Shevchenko)
+> > 
+> > v2:
+> > Do not overwrite ost code in acpi_generic_hotplug_event(). Move
+> > the "error code to ost code" logic to a help function. (Andy Shevchenko)
+> > 
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > Cc: Len Brown <lenb@kernel.org>
+> > Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+> > Cc: Michal Hocko <mhocko@suse.cz>
+> > Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
+> > ---
+> >  drivers/acpi/scan.c | 21 +++++++++++++++------
+> >  1 file changed, 15 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > index 3a10d7573477..41f5065190c7 100644
+> > --- a/drivers/acpi/scan.c
+> > +++ b/drivers/acpi/scan.c
+> > @@ -384,6 +384,20 @@ static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
+> >  	return -EINVAL;
+> >  }
+> >  
+> > +static int acpi_ost_status_code(u32 src, int error)
+> > +{
+> > +	switch (src) {
+> > +	case ACPI_NOTIFY_EJECT_REQUEST:
+> > +	case ACPI_OST_EC_OSPM_EJECT:
+> > +		if (error == -EPERM)
+> > +			return ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> > +		if (error == -EBUSY)
+> > +			return ACPI_OST_SC_DEVICE_BUSY;
+> > +		break;
+> > +	}
+> > +	return error ? ACPI_OST_SC_NON_SPECIFIC_FAILURE : ACPI_OST_SC_SUCCESS;
+> > +}
 > 
-> This patch is based on the original Sameer Nanda <snanda@chromium.org
-> >
-> patch that implemented this idea for the ACPI thermal driver.
+> I'm not sure why you need the function above?
 > 
+> It only has one user anyway.
+>
 
-Before these two patches, only platform thermal driver cares about
-"mode", thermal core does nothing but invokes platform .set_mode()
-callback upon sysfs I/F write.
-But after this patch set, "mode" becomes something that we should
-take into account in thermal core as well.
-Thus, IMO, we have a couple of things more to do, like the prototype
-patch attached, which I have not tested yet.
+Because different hotplug source event may has different
+OST code definition. So I want to use a function to handle
+the the complexity. The originial function like this: 
 
->From 8bf51fe65bd386b7e8c3c2ca8b9f7d321c92b22f Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Fri, 30 Jun 2017 11:11:45 +0800
-Subject: [RFC PATCH] Thermal: introduce thermal zone device mode control
+static int acpi_ost_status_code(u32 src, int error)
+{
+        switch (src) {
+        case ACPI_NOTIFY_EJECT_REQUEST:
+        case ACPI_OST_EC_OSPM_EJECT:
+                if (error == -EPERM)
+                        return ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+                if (error == -EBUSY)
+                        return ACPI_OST_SC_DEVICE_BUSY;
+                break;
+        case ACPI_OST_EC_OSPM_INSERTION:
+                if (error == -EPERM)
+                        return ACPI_OST_SC_INSERT_NOT_SUPPORTED;
+                if (error == -EBUSY)
+                        return ACPI_OST_SC_INSERT_IN_PROGRESS;
+                break;
+        }
+        return error ? ACPI_OST_SC_NON_SPECIFIC_FAILURE : ACPI_OST_SC_SUCCESS;
+}
 
-Thermal "mode" sysfs attribute is introduced to enable/disable a thermal zone,
-and .get_mode()/.set_mode() callback is introduced for platform thermal driver
-to enable/disable the hardware thermal control logic. And thermal core takes
-no action upon thermal zone enable/disable.
+The ACPI_OST_EC_OSPM_INSERTION represents "Insertion Processing
+(Source Event: 0x200)" that it has different ost code definition.
+Because the machine supports "Insertion" that has not yet appeared.
+So I removed the ACPI_OST_EC_OSPM_INSERTION case block.  
+ 
+> > +
+> >  void acpi_device_hotplug(struct acpi_device *adev, u32 src)
+> >  {
+> >  	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
+> > @@ -404,10 +418,6 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
+> >  		error = dock_notify(adev, src);
+> >  	} else if (adev->flags.hotplug_notify) {
+> >  		error = acpi_generic_hotplug_event(adev, src);
+> > -		if (error == -EPERM) {
+> > -			ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> > -			goto err_out;
+> > -		}
+> >  	} else {
+> >  		int (*notify)(struct acpi_device *, u32);
+> >  
+> > @@ -423,9 +433,8 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
+> >  		else
+> >  			goto out;
+> >  	}
+> > -	if (!error)
+> > -		ost_code = ACPI_OST_SC_SUCCESS;
+> 
+> I just would do:
+> 
+>     switch (error) {
+>     case 0:
+>         ost_code = ACPI_OST_SC_SUCCESS;
+>         break;
+>     case -EBUSY:
+>         ost_code = ACPI_OST_SC_DEVICE_BUSY;
+>         break;
+>     default:
+>         ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
+>         break;
+>     }
+>
 
-Actually, this is not quite right because thermal core still pokes those
-disabled thermal zones occasionally, e.g. upon system resume.
+Currently the above switch-case works. But if considering
+ACPI_OST_EC_OSPM_INSERTION in the future then it's not enough.
 
-To fix this, a new flag 'mode' is introduced in struct thermal_zone_device
-to represent the thermal zone mode, and several decisions have been made
-based on this flag, including
-1. check the thermal zone mode right after it's registered.
-2. skip updating thermal zone if the zone is disabled
-3. stop the polling timer when the thermal zone is disabled
-
-Note: basically, this patch doesn't affect the existing always-enabled
-thermal zones much, with just one exception -
-thermal zone .get_mode() must be well prepared to reflect the real thermal
-zone status upon the thermal zone registration.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/thermal/thermal_core.c  | 37 +++++++++++++++++++++++++++++++++++--
- drivers/thermal/thermal_sysfs.c | 22 ++++++----------------
- include/linux/thermal.h         |  3 +++
- 3 files changed, 44 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index 5a51c74..89b2254 100644
---- a/drivers/thermal/thermal_core.c
-+++ b/drivers/thermal/thermal_core.c
-@@ -306,9 +306,9 @@ static void monitor_thermal_zone(struct thermal_zone_device *tz)
- {
- 	mutex_lock(&tz->lock);
- 
--	if (tz->passive)
-+	if (tz->enabled == THERMAL_DEVICE_ENABLED && tz->passive)
- 		thermal_zone_device_set_polling(tz, tz->passive_delay);
--	else if (tz->polling_delay)
-+	else if (tz->enabled == THERMAL_DEVICE_ENABLED && tz->polling_delay)
- 		thermal_zone_device_set_polling(tz, tz->polling_delay);
- 	else
- 		thermal_zone_device_set_polling(tz, 0);
-@@ -464,11 +464,35 @@ static void thermal_zone_device_reset(struct thermal_zone_device *tz)
- 		pos->initialized = false;
- }
- 
-+int thermal_zone_set_mode(struct thermal_zone_device *tz,
-+				 enum thermal_device_mode mode)
-+{
-+	int result;
-+
-+	if (!tz->ops->set_mode)
-+		return -EPERM;
-+
-+	result = tz->ops->set_mode(tz, mode);
-+	if (result)
-+		return result;
-+
-+	if (tz->mode != mode) {
-+		tz->mode = mode;
-+		monitor_thermal_zone(tz);
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(thermal_zone_set_mode);
-+
- void thermal_zone_device_update(struct thermal_zone_device *tz,
- 				enum thermal_notify_event event)
- {
- 	int count;
- 
-+	/* Do nothing if the thermal zone is disabled */
-+	if (tz->mode == THERMAL_DEVICE_DISABLED)
-+		return;
-+
- 	if (atomic_read(&in_suspend))
- 		return;
- 
-@@ -1287,6 +1311,15 @@ thermal_zone_device_register(const char *type, int trips, int mask,
- 	INIT_DELAYED_WORK(&tz->poll_queue, thermal_zone_device_check);
- 
- 	thermal_zone_device_reset(tz);
-+
-+	if (tz->ops->get_mode()) {
-+		enum thermal_device_mode mode;
-+
-+		result = tz->ops->get_mode(tz, &mode);
-+		tz->mode = result ? THERMAL_DEVICE_ENABLED : mode;
-+	} else
-+		tz->mode = THERMAL_DEVICE_ENABLED;
-+
- 	/* Update the new thermal zone and mark it as already updated. */
- 	if (atomic_cmpxchg(&tz->need_update, 1, 0))
- 		thermal_zone_device_update(tz, THERMAL_EVENT_UNSPECIFIED);
-diff --git a/drivers/thermal/thermal_sysfs.c b/drivers/thermal/thermal_sysfs.c
-index a694de9..95d2587 100644
---- a/drivers/thermal/thermal_sysfs.c
-+++ b/drivers/thermal/thermal_sysfs.c
-@@ -51,17 +51,8 @@ static ssize_t
- mode_show(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct thermal_zone_device *tz = to_thermal_zone(dev);
--	enum thermal_device_mode mode;
--	int result;
--
--	if (!tz->ops->get_mode)
--		return -EPERM;
- 
--	result = tz->ops->get_mode(tz, &mode);
--	if (result)
--		return result;
--
--	return sprintf(buf, "%s\n", mode == THERMAL_DEVICE_ENABLED ? "enabled"
-+	return sprintf(buf, "%s\n", tz->mode == THERMAL_DEVICE_ENABLED ? "enabled"
- 		       : "disabled");
- }
- 
-@@ -70,18 +61,17 @@ mode_store(struct device *dev, struct device_attribute *attr,
- 	   const char *buf, size_t count)
- {
- 	struct thermal_zone_device *tz = to_thermal_zone(dev);
-+	enum thermal_device_mode mode;
- 	int result;
- 
--	if (!tz->ops->set_mode)
--		return -EPERM;
--
- 	if (!strncmp(buf, "enabled", sizeof("enabled") - 1))
--		result = tz->ops->set_mode(tz, THERMAL_DEVICE_ENABLED);
-+		mode = THERMAL_DEVICE_ENABLED;
- 	else if (!strncmp(buf, "disabled", sizeof("disabled") - 1))
--		result = tz->ops->set_mode(tz, THERMAL_DEVICE_DISABLED);
-+		mode = THERMAL_DEVICE_DISABLED;
- 	else
--		result = -EINVAL;
-+		return -EINVAL;
- 
-+	result = thermal_zone_set_mode(tz, mode)
- 	if (result)
- 		return result;
- 
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index dab11f9..2f427de 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -210,6 +210,7 @@ struct thermal_zone_device {
- 	struct thermal_attr *trip_type_attrs;
- 	struct thermal_attr *trip_hyst_attrs;
- 	void *devdata;
-+	enum thermal_device_mode mode;
- 	int trips;
- 	unsigned long trips_disabled;	/* bitmap for disabled trips */
- 	int passive_delay;
-@@ -465,6 +466,8 @@ struct thermal_zone_device *thermal_zone_get_zone_by_name(const char *name);
- int thermal_zone_get_temp(struct thermal_zone_device *tz, int *temp);
- int thermal_zone_get_slope(struct thermal_zone_device *tz);
- int thermal_zone_get_offset(struct thermal_zone_device *tz);
-+int thermal_zone_set_mode(struct thermal_zone_device *tz,
-+			  enum thermal_device_mode mode);
- 
- int get_tz_trend(struct thermal_zone_device *, int);
- struct thermal_instance *get_thermal_instance(struct thermal_zone_device *,
--- 
-2.7.4
-
+Thanks a lot!
+Joey Lee
