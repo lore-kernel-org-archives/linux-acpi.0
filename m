@@ -1,72 +1,287 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v2] ACPI: surface3_power: MSHW0011 rev-eng implementation
-Date: Sat, 1 Jul 2017 02:47:32 +0200
-Message-ID: <20170701004731.e55fbqh76bkmy7hr@earth>
-References: <20170629121009.30234-1-benjamin.tissoires@redhat.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH v2 2/2] thermal: core: Allow to disable polling when
+ disabling thermal zone.
+Date: Sat, 01 Jul 2017 11:06:07 +0800
+Message-ID: <1498878367.2584.6.camel@intel.com>
+References: <20170629165035.23101-1-enric.balletbo@collabora.com>
+         <20170629165035.23101-2-enric.balletbo@collabora.com>
+         <1498799109.2520.15.camel@intel.com>
+         <CAFqH_50_Lz-xG74LbojSps1vfosRuejQWY483c8RhiZi3XiJPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="k6at4n5jimjo5jai"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40962 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751072AbdGAArh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 30 Jun 2017 20:47:37 -0400
-Content-Disposition: inline
-In-Reply-To: <20170629121009.30234-1-benjamin.tissoires@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAFqH_50_Lz-xG74LbojSps1vfosRuejQWY483c8RhiZi3XiJPA@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Enric Balletbo Serra <eballetbo@gmail.com>
+Cc: Enric Balletbo i Serra <enric.balletbo@collabora.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Guenter Roeck <groeck@chromium.org>, Sameer Nanda <snanda@chromium.org>, Eduardo Valentin <edubezval@gmail.com>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Julia Lawall <julia.lawall@lip6.fr>
-Cc: Bastien Nocera <hadess@hadess.net>, Stephen Just <stephenjust@gmail.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Hi, Enric,
 
---k6at4n5jimjo5jai
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Fri, 2017-06-30 at 10:15 +0200, Enric Balletbo Serra wrote:
+> Hi Rui,
+> 
+> 2017-06-30 7:05 GMT+02:00 Zhang Rui <rui.zhang@intel.com>:
+> > 
+> > On Thu, 2017-06-29 at 18:50 +0200, Enric Balletbo i Serra wrote:
+> > > 
+> > > Under each thermal zone there is a optional file called "mode".
+> > > Writing
+> > > enabled or disabled to this file allows a given thermal zone to
+> > > be
+> > > enabled
+> > > or disabled, but in current code, the monitoring queue doesn't
+> > > stops.
+> > > Add
+> > > the code to disable polling when disabling thermal zone and
+> > > enable
+> > > polling
+> > > when enabling the thermal zone.
+> > > 
+> > > This patch is based on the original Sameer Nanda <snanda@chromium
+> > > .org
+> > > > 
+> > > > 
+> > > patch that implemented this idea for the ACPI thermal driver.
+> > > 
+> > Before these two patches, only platform thermal driver cares about
+> > "mode", thermal core does nothing but invokes platform .set_mode()
+> > callback upon sysfs I/F write.
+> > But after this patch set, "mode" becomes something that we should
+> > take into account in thermal core as well.
+> > Thus, IMO, we have a couple of things more to do, like the
+> > prototype
+> > patch attached, which I have not tested yet.
+> > 
+> > From 8bf51fe65bd386b7e8c3c2ca8b9f7d321c92b22f Mon Sep 17 00:00:00
+> > 2001
+> > From: Zhang Rui <rui.zhang@intel.com>
+> > Date: Fri, 30 Jun 2017 11:11:45 +0800
+> > Subject: [RFC PATCH] Thermal: introduce thermal zone device mode
+> > control
+> > 
+> > Thermal "mode" sysfs attribute is introduced to enable/disable a
+> > thermal zone,
+> > and .get_mode()/.set_mode() callback is introduced for platform
+> > thermal driver
+> > to enable/disable the hardware thermal control logic. And thermal
+> > core takes
+> > no action upon thermal zone enable/disable.
+> > 
+> > Actually, this is not quite right because thermal core still pokes
+> > those
+> > disabled thermal zones occasionally, e.g. upon system resume.
+> > 
+> > To fix this, a new flag 'mode' is introduced in struct
+> > thermal_zone_device
+> > to represent the thermal zone mode, and several decisions have been
+> > made
+> > based on this flag, including
+> > 1. check the thermal zone mode right after it's registered.
+> > 2. skip updating thermal zone if the zone is disabled
+> > 3. stop the polling timer when the thermal zone is disabled
+> > 
+> > Note: basically, this patch doesn't affect the existing always-
+> > enabled
+> > thermal zones much, with just one exception -
+> > thermal zone .get_mode() must be well prepared to reflect the real
+> > thermal
+> > zone status upon the thermal zone registration.
+> > 
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > ---
+> >  drivers/thermal/thermal_core.c  | 37
+> > +++++++++++++++++++++++++++++++++++--
+> >  drivers/thermal/thermal_sysfs.c | 22 ++++++----------------
+> >  include/linux/thermal.h         |  3 +++
+> >  3 files changed, 44 insertions(+), 18 deletions(-)
+> > 
+> > diff --git a/drivers/thermal/thermal_core.c
+> > b/drivers/thermal/thermal_core.c
+> > index 5a51c74..89b2254 100644
+> > --- a/drivers/thermal/thermal_core.c
+> > +++ b/drivers/thermal/thermal_core.c
+> > @@ -306,9 +306,9 @@ static void monitor_thermal_zone(struct
+> > thermal_zone_device *tz)
+> >  {
+> >         mutex_lock(&tz->lock);
+> > 
+> > -       if (tz->passive)
+> > +       if (tz->enabled == THERMAL_DEVICE_ENABLED && tz->passive)
+> tz->mode
+> 
+> > 
+> >                 thermal_zone_device_set_polling(tz, tz-
+> > >passive_delay);
+> > -       else if (tz->polling_delay)
+> > +       else if (tz->enabled == THERMAL_DEVICE_ENABLED && tz-
+> > >polling_delay)
+> tz->mode
+> 
+> > 
+> >                 thermal_zone_device_set_polling(tz, tz-
+> > >polling_delay);
+> >         else
+> >                 thermal_zone_device_set_polling(tz, 0);
+> > @@ -464,11 +464,35 @@ static void thermal_zone_device_reset(struct
+> > thermal_zone_device *tz)
+> >                 pos->initialized = false;
+> >  }
+> > 
+> > +int thermal_zone_set_mode(struct thermal_zone_device *tz,
+> > +                                enum thermal_device_mode mode)
+> > +{
+> > +       int result;
+> > +
+> > +       if (!tz->ops->set_mode)
+> > +               return -EPERM;
+> > +
+> > +       result = tz->ops->set_mode(tz, mode);
+> > +       if (result)
+> > +               return result;
+> > +
+> > +       if (tz->mode != mode) {
+> > +               tz->mode = mode;
+> > +               monitor_thermal_zone(tz);
+> > +       }
+> > +       return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(thermal_zone_set_mode);
+> > +
+> >  void thermal_zone_device_update(struct thermal_zone_device *tz,
+> >                                 enum thermal_notify_event event)
+> >  {
+> >         int count;
+> > 
+> > +       /* Do nothing if the thermal zone is disabled */
+> > +       if (tz->mode == THERMAL_DEVICE_DISABLED)
+> > +               return;
+> > +
+> >         if (atomic_read(&in_suspend))
+> >                 return;
+> > 
+> > @@ -1287,6 +1311,15 @@ thermal_zone_device_register(const char
+> > *type, int trips, int mask,
+> >         INIT_DELAYED_WORK(&tz->poll_queue,
+> > thermal_zone_device_check);
+> > 
+> >         thermal_zone_device_reset(tz);
+> > +
+> > +       if (tz->ops->get_mode()) {
+> remove the ()
+> 
+> > 
+> > +               enum thermal_device_mode mode;
+> > +
+> > +               result = tz->ops->get_mode(tz, &mode);
+> > +               tz->mode = result ? THERMAL_DEVICE_ENABLED : mode;
+> > +       } else
+> > +               tz->mode = THERMAL_DEVICE_ENABLED;
+> > +
+> >         /* Update the new thermal zone and mark it as already
+> > updated. */
+> >         if (atomic_cmpxchg(&tz->need_update, 1, 0))
+> >                 thermal_zone_device_update(tz,
+> > THERMAL_EVENT_UNSPECIFIED);
+> > diff --git a/drivers/thermal/thermal_sysfs.c
+> > b/drivers/thermal/thermal_sysfs.c
+> > index a694de9..95d2587 100644
+> > --- a/drivers/thermal/thermal_sysfs.c
+> > +++ b/drivers/thermal/thermal_sysfs.c
+> > @@ -51,17 +51,8 @@ static ssize_t
+> >  mode_show(struct device *dev, struct device_attribute *attr, char
+> > *buf)
+> >  {
+> >         struct thermal_zone_device *tz = to_thermal_zone(dev);
+> > -       enum thermal_device_mode mode;
+> > -       int result;
+> > -
+> > -       if (!tz->ops->get_mode)
+> > -               return -EPERM;
+> > 
+> > -       result = tz->ops->get_mode(tz, &mode);
+> > -       if (result)
+> > -               return result;
+> > -
+> > -       return sprintf(buf, "%s\n", mode == THERMAL_DEVICE_ENABLED
+> > ? "enabled"
+> > +       return sprintf(buf, "%s\n", tz->mode ==
+> > THERMAL_DEVICE_ENABLED ? "enabled"
+> >                        : "disabled");
+> >  }
+> > 
+> > @@ -70,18 +61,17 @@ mode_store(struct device *dev, struct
+> > device_attribute *attr,
+> >            const char *buf, size_t count)
+> >  {
+> >         struct thermal_zone_device *tz = to_thermal_zone(dev);
+> > +       enum thermal_device_mode mode;
+> >         int result;
+> > 
+> > -       if (!tz->ops->set_mode)
+> > -               return -EPERM;
+> > -
+> >         if (!strncmp(buf, "enabled", sizeof("enabled") - 1))
+> > -               result = tz->ops->set_mode(tz,
+> > THERMAL_DEVICE_ENABLED);
+> > +               mode = THERMAL_DEVICE_ENABLED;
+> >         else if (!strncmp(buf, "disabled", sizeof("disabled") - 1))
+> > -               result = tz->ops->set_mode(tz,
+> > THERMAL_DEVICE_DISABLED);
+> > +               mode = THERMAL_DEVICE_DISABLED;
+> >         else
+> > -               result = -EINVAL;
+> > +               return -EINVAL;
+> > 
+> > +       result = thermal_zone_set_mode(tz, mode)
+> >         if (result)
+> >                 return result;
+> > 
+> > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> > index dab11f9..2f427de 100644
+> > --- a/include/linux/thermal.h
+> > +++ b/include/linux/thermal.h
+> > @@ -210,6 +210,7 @@ struct thermal_zone_device {
+> >         struct thermal_attr *trip_type_attrs;
+> >         struct thermal_attr *trip_hyst_attrs;
+> >         void *devdata;
+> > +       enum thermal_device_mode mode;
+> >         int trips;
+> >         unsigned long trips_disabled;   /* bitmap for disabled
+> > trips */
+> >         int passive_delay;
+> > @@ -465,6 +466,8 @@ struct thermal_zone_device
+> > *thermal_zone_get_zone_by_name(const char *name);
+> >  int thermal_zone_get_temp(struct thermal_zone_device *tz, int
+> > *temp);
+> >  int thermal_zone_get_slope(struct thermal_zone_device *tz);
+> >  int thermal_zone_get_offset(struct thermal_zone_device *tz);
+> > +int thermal_zone_set_mode(struct thermal_zone_device *tz,
+> > +                         enum thermal_device_mode mode);
+> > 
+> >  int get_tz_trend(struct thermal_zone_device *, int);
+> >  struct thermal_instance *get_thermal_instance(struct
+> > thermal_zone_device *,
+> > --
+> > 2.7.4
+> > 
+> There are some build issues but once fixed the patch works as
+> expected, many thanks.
+> 
+> Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+> 
+> Rui, do you want I send a fixed version of this patch?
 
-Hi,
+Please send out a fixed version.
+But for this patch, I'd like to leave it in linux-next for sometime
+before pushing it, as it makes some functional changes. And it will be
+queued for 4.14 if there is no other problems.
 
-On Thu, Jun 29, 2017 at 02:10:09PM +0200, Benjamin Tissoires wrote:
-> [...]
->
-> +	/* get design capacity */
-> +	ret = i2c_smbus_read_word_data(client,
-> +				       MSHW0011_BAT0_REG_DESIGN_CAPACITY);
-> +	if (ret < 0) {
-> +		dev_err(&client->dev, "Error reading design capacity: %d\n",
-> +			ret);
-> +		return ret;
-> +	}
-> +	bix->design_capacity = le16_to_cpu(ret);
-
-i2c_smbus_read_word_data() returns native endianess for
-little-endian bus (it basically has builtin le16_to_cpu).
-Your conversion actually _breaks_ support on big endian
-machines by converting it back.
-
-That seems to be a common mistake in the kernel and it
-might be a good idea to add some Coccinelle script for
-it?
-
--- Sebastian
-
---k6at4n5jimjo5jai
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllW8RsACgkQ2O7X88g7
-+poCsg/8CD6lUQ0aAu3uMSexrU66F7O9HfmK4XG3FcBGjMG/PMknG7TzQiRDASza
-xhAcP1noFqv9HCb83iV3dj0/0GuiITmjV7Wp0NZlaGXgsGHnDmXWSCAIIyxB8LbV
-UYUGPUHXzv/wwSSUcq2XHCp/A5jw+l1T1mOBcCUMuHAFwhMlJ2HrPXu5K8PsKFfP
-TPRulUrc88EIMmjfRmURkGkdMelp0DTUuW47He6UVNImPel7po+GjDVYF9Z2p/Sc
-cS6UolaE+2how35a20jyXIAB905Ysu+cKGCEtekdgaLLE3IaDMjVyQWaKB070Fao
-mz4eCxa1QucrXzC0E7XGnv9e8dPasOQzMZppKKel5qVsjyQSKHQc+aPlEERtb0l2
-4pvpAmmeOGHFBOl32390xppPb9whgBKTOr3+2eYQKIn9+KZ3Jry/Y5U1Favqtw46
-WmNCQGlLJOXcSfsNHOrOHro8NEqpMWctOp3xMEl6keUW+aj7i1lGAa3nErKdh5wx
-Yclmuk+AypF39M/pY5cxqZMhOTViYQgtCTxY3RlfPAGdx/kLh+boYhWNn/wh5/6e
-x6FEIZaJCXdQtd2HBx7WntGDybntyupZSBkP2dQTxrLO8DYouajPZXZJjljrYyFe
-1s8MuX4z/IQvjftvqMEChvRXTQcRrzY/3BKkSDOsEYSvUjm8MwY=
-=yunr
------END PGP SIGNATURE-----
-
---k6at4n5jimjo5jai--
+thanks,
+rui
+>  Or do you want
+> to fix yourself?
+> 
+> Best regards,
+>   Enric
