@@ -1,41 +1,72 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
+From: Sebastian Reichel <sre@kernel.org>
 Subject: Re: [PATCH v2] ACPI: surface3_power: MSHW0011 rev-eng implementation
-Date: Fri, 30 Jun 2017 20:58:34 +0300
-Message-ID: <CAHp75VffMTJeM4unCLGP3cEBxcPevTk7_P7Arv72Up8PrGzvnw@mail.gmail.com>
+Date: Sat, 1 Jul 2017 02:47:32 +0200
+Message-ID: <20170701004731.e55fbqh76bkmy7hr@earth>
 References: <20170629121009.30234-1-benjamin.tissoires@redhat.com>
- <CAHp75Vdn1-m0gDSHtZXX2A=Q07xG9j1eBiV8iM4e11Qk=oJfZg@mail.gmail.com>
- <20170630155706.GL26073@mail.corp.redhat.com> <CAHp75VdLU57x2YuDH+SkB1jR3rSpqcVNszhq5fDUVZZt+sqxyQ@mail.gmail.com>
- <7d8201bf-b05e-6235-7eb0-54b1a393f99f@redhat.com> <CAHp75VfWmAvaASLZOhmMBW7v+E10_7xvD11OSMKdQ0HbY_yHVg@mail.gmail.com>
- <eb6ad1a4-3538-a8f8-e8c2-c3781a90c37f@redhat.com> <CAHp75VdLkt4VJE_M51E66y3rhWtD0ALhorV3Kq=Y_Z_9GTbVLw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VdLkt4VJE_M51E66y3rhWtD0ALhorV3Kq=Y_Z_9GTbVLw@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bastien Nocera <hadess@hadess.net>, Stephen Just <stephenjust@gmail.com>, Sebastian Reichel <sre@kernel.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, devel@acpica.org, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="k6at4n5jimjo5jai"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:40962 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751072AbdGAArh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 30 Jun 2017 20:47:37 -0400
+Content-Disposition: inline
+In-Reply-To: <20170629121009.30234-1-benjamin.tissoires@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Julia Lawall <julia.lawall@lip6.fr>
+Cc: Bastien Nocera <hadess@hadess.net>, Stephen Just <stephenjust@gmail.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Jun 30, 2017 at 8:55 PM, Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
-> On Fri, Jun 30, 2017 at 8:42 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->> On 30-06-17 19:40, Andy Shevchenko wrote:
->>> On Fri, Jun 30, 2017 at 8:37 PM, Hans de Goede <hdegoede@redhat.com>
->>> wrote:
->>>> On 30-06-17 18:37, Andy Shevchenko wrote:
->>>>> On Fri, Jun 30, 2017 at 6:57 PM, Benjamin Tissoires
+
+--k6at4n5jimjo5jai
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi,
+
+On Thu, Jun 29, 2017 at 02:10:09PM +0200, Benjamin Tissoires wrote:
+> [...]
 >
->> Care to share that? Between me and Benjamin one of us can hopefully
->> find the time to test / finish it (should be trivial really).
->
-> Not tested at all.
+> +	/* get design capacity */
+> +	ret = i2c_smbus_read_word_data(client,
+> +				       MSHW0011_BAT0_REG_DESIGN_CAPACITY);
+> +	if (ret < 0) {
+> +		dev_err(&client->dev, "Error reading design capacity: %d\n",
+> +			ret);
+> +		return ret;
+> +	}
+> +	bix->design_capacity = le16_to_cpu(ret);
 
-Should have
+i2c_smbus_read_word_data() returns native endianess for
+little-endian bus (it basically has builtin le16_to_cpu).
+Your conversion actually _breaks_ support on big endian
+machines by converting it back.
 
-Fixes: da10c06a044b ("i2c: Make I2C ID tables non-mandatory for DT'ed devices")
+That seems to be a common mistake in the kernel and it
+might be a good idea to add some Coccinelle script for
+it?
 
-also.
+-- Sebastian
 
--- 
-With Best Regards,
-Andy Shevchenko
+--k6at4n5jimjo5jai
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllW8RsACgkQ2O7X88g7
++poCsg/8CD6lUQ0aAu3uMSexrU66F7O9HfmK4XG3FcBGjMG/PMknG7TzQiRDASza
+xhAcP1noFqv9HCb83iV3dj0/0GuiITmjV7Wp0NZlaGXgsGHnDmXWSCAIIyxB8LbV
+UYUGPUHXzv/wwSSUcq2XHCp/A5jw+l1T1mOBcCUMuHAFwhMlJ2HrPXu5K8PsKFfP
+TPRulUrc88EIMmjfRmURkGkdMelp0DTUuW47He6UVNImPel7po+GjDVYF9Z2p/Sc
+cS6UolaE+2how35a20jyXIAB905Ysu+cKGCEtekdgaLLE3IaDMjVyQWaKB070Fao
+mz4eCxa1QucrXzC0E7XGnv9e8dPasOQzMZppKKel5qVsjyQSKHQc+aPlEERtb0l2
+4pvpAmmeOGHFBOl32390xppPb9whgBKTOr3+2eYQKIn9+KZ3Jry/Y5U1Favqtw46
+WmNCQGlLJOXcSfsNHOrOHro8NEqpMWctOp3xMEl6keUW+aj7i1lGAa3nErKdh5wx
+Yclmuk+AypF39M/pY5cxqZMhOTViYQgtCTxY3RlfPAGdx/kLh+boYhWNn/wh5/6e
+x6FEIZaJCXdQtd2HBx7WntGDybntyupZSBkP2dQTxrLO8DYouajPZXZJjljrYyFe
+1s8MuX4z/IQvjftvqMEChvRXTQcRrzY/3BKkSDOsEYSvUjm8MwY=
+=yunr
+-----END PGP SIGNATURE-----
+
+--k6at4n5jimjo5jai--
