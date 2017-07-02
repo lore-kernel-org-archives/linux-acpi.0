@@ -1,71 +1,74 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH v2 2/4] ACPI / property: Support Apple _DSM properties
-Date: Sun, 2 Jul 2017 13:07:19 +0200
-Message-ID: <20170702110719.GA825@wunner.de>
-References: <cover.1498636759.git.lukas@wunner.de>
- <e72ce423489dd604ae98ad3b76e07caf944cb581.1498636759.git.lukas@wunner.de>
- <CAHp75VdjOcPkd0_g05_OW6amxHjf2zdJ9jKyH7q2AgzGMr-h4w@mail.gmail.com>
+From: <tabiadhawatef@yahoo.fr>
+Subject: (unknown)
+Date: Sun, 02 Jul 2017 20:26:37 -0000
+Message-ID: <149902719759.30695.8902115034756130331@v4.ngi.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: application/zip; name="EMAIL_7709270_linux-acpi.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout1.hostsharing.net ([83.223.95.204]:56821 "EHLO
-        mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751984AbdGBLFx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2017 07:05:53 -0400
-Content-Disposition: inline
-In-Reply-To: <CAHp75VdjOcPkd0_g05_OW6amxHjf2zdJ9jKyH7q2AgzGMr-h4w@mail.gmail.com>
+Received: from 88-149-159-194.v4.ngi.it ([88.149.159.194]:46262 "HELO
+        v4.ngi.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751876AbdGBU0n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 2 Jul 2017 16:26:43 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mark Brown <broonie@kernel.org>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, x86@kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Wed, Jun 28, 2017 at 09:53:49PM +0300, Andy Shevchenko wrote:
-> On Wed, Jun 28, 2017 at 8:20 PM, Lukas Wunner <lukas@wunner.de> wrote:
-> > While the rest of the world has standardized on _DSD as the way to store
-> > device properties in AML (introduced with ACPI 5.1 in 2014), Apple has
-> > been using a custom _DSM to achieve the same for much longer (ever since
-> > they switched from DeviceTree-based PowerPC to Intel in 2005, verified
-> > with MacOS X 10.4.11).
-[snip]
-> > +static void acpi_retrieve_apple_properties(struct acpi_device *adev)
-> > +{
-> > +       unsigned int i, j, newsize = 0, numprops, skipped = 0;
-> > +       union acpi_object *props, *newprops;
-> > +       void *free_space;
-> > +
-> > +       if (!IS_ENABLED(CONFIG_X86) || !dmi_match(DMI_SYS_VENDOR, "Apple Inc."))
-> > +               return;
-> 
-> You are using this in few places, perhaps it makes sense to do in
-> (maybe) header like
-> drivers/acpi/apple.h
-> 
-> static inline bool is_apple_system(void)
-> {
->    return IS_ENABLED(CONFIG_X86) && dmi_match(DMI_SYS_VENDOR, "Apple Inc.");
-> }
-> 
-> I know this makes more LOCs, the rationale is to keep such
-> deterministic things in one place (basically maintenance).
-
-You mean like is_uv_system() for SGI UltraViolet?
-
-I could add a global bool is_apple_system which is set early during boot,
-then the DMI check would only have to be performed once.  The bool would
-be #defined to false on non-x86 arches via a header file which would have
-to live in include/linux/.  I could add an x86-specific config option
-such as CONFIG_X86_APPLE which would allow removal of all Mac-specific
-quirks and behaviour by likewise #defining is_apple_system to false.
-
-I'm not sure if the x86 maintainers will approve of this.  Next thing
-you know, someone wants to add the same thing for Dell or whatever.
-OTOH the amount of code to deal with Apple quirks may justify it.
-Adding x86 maintainers to cc.  Ingo, Thomas, Peter, any opinion?
-
-My concern is that this series is bikeshedded / postponed indefinitely
-if it is made to depend on such bigger changes.  (The discussion of
-which is legitimate of course.)
-
-Thanks,
-
-Lukas
+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
+AAAAAAEAAQBPAAAA7AsAAAAA
