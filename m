@@ -1,101 +1,153 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [RFC PATCH v4] acpi: indicate to platform when hot remove returns busy
-Date: Mon,  3 Jul 2017 21:26:10 +0800
-Message-ID: <20170703132610.21719-1-jlee@suse.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34722 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754089AbdGCN0O (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jul 2017 09:26:14 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: Re: [PATCH] coccinelle: api: detect unnecessary le16_to_cpu
+Date: Mon, 3 Jul 2017 15:36:02 +0200
+Message-ID: <20170703133602.ejcdu35ku3i63cj2@earth>
+References: <1498937290-12285-1-git-send-email-Julia.Lawall@lip6.fr>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="bh35jazzbablkmhm"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1498937290-12285-1-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-pm-owner@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: kernel-janitors@vger.kernel.org, Gilles Muller <Gilles.Muller@lip6.fr>, Nicolas Palix <nicolas.palix@imag.fr>, Michal Marek <mmarek@suse.com>, cocci@systeme.lip6.fr, linux-kernel@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bastien Nocera <hadess@hadess.net>, Stephen Just <stephenjust@gmail.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Michal Hocko <mhocko@suse.cz>
 
-In hotplug logic, it always indicates non-specific failure to
-platform through _OST when handing acpi hot-remove event failed. Then
-platform terminates the hot-remove process but it can not identify
-the reason.
 
-Base on current hot-remove code, there have two situations that it
-returns busy:
- - OSPM try to offline an individual device, but the device offline
-   function returns busy.
- - When the ejection event is applied to an "not offlined yet" container.
-   OSPM send kobject change event to userspace and returns busy.
+--bh35jazzbablkmhm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Both of them will returns -EBUSY to acpi device hotplug function then
-hotplug function indicates non-specific failure to platform just like
-any other error, e.g. -ENODEV or -EIO.
+Hi Julia,
 
-The benefit to platform for identifying the OS busy state is that
-platform can be applied different approach to handle the busy but
-not just terminate the hot-remove process by unknown reason. For
-example, platform can wait for a while then triggers hot-remove
-again.
+On Sat, Jul 01, 2017 at 09:28:10PM +0200, Julia Lawall wrote:
+> As reported by Sebastian Reichel, i2c_smbus_read_word_data() returns nati=
+ve
+> endianness for little-endian bus (it basically has builtin
+> le16_to_cpu). Calling le16_to_cpu on the result breaks support on big
+> endian machines by converting it back.
 
-This RFC patch adds one more parameter to the handler function of
-acpi generic hotplug event to give the function a chance to propose
-the return code of _OST. In this case, it sets ost return code to
-ACPI_OST_SC_DEVICE_BUSY when the acpi hot remove function returns
--EBUSY.
+Thanks, you are fast :)
 
-v4:
-Use switch-case statements to simplify code. (Andy Shevchenko, Rafael J. Wysocki)
+> This semantic patch give no reports on kernel code currently, but the
+> issue is somewhat obscure and has occurred in a sumitted patch, so it cou=
+ld
+> be good to have a check for it.
 
-v3:
-Removed redundant 'else' in acpi_ost_status_code(). (Andy Shevchenko)
+Ok, so problem is not as bad as I feared. I found a few issues with
+simple git grep, though:
 
-v2:
-Do not overwrite ost code in acpi_generic_hotplug_event(). Move
-the "error code to ost code" logic to a help function. (Andy Shevchenko)
+git grep -C100 i2c_smbus_read_word_data | grep le16_to_cpu
+git grep -C100 i2c_smbus_write_word_data | grep cpu_to_le16
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
----
- drivers/acpi/scan.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+It returned just a few files on v4.12 and all of them look buggy
+after manual inspection:
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index d531629..ce88175 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -404,10 +404,6 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
- 		error = dock_notify(adev, src);
- 	} else if (adev->flags.hotplug_notify) {
- 		error = acpi_generic_hotplug_event(adev, src);
--		if (error == -EPERM) {
--			ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
--			goto err_out;
--		}
- 	} else {
- 		int (*notify)(struct acpi_device *, u32);
- 
-@@ -423,8 +419,20 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
- 		else
- 			goto out;
- 	}
--	if (!error)
-+	switch (error) {
-+	case 0:
- 		ost_code = ACPI_OST_SC_SUCCESS;
-+		break;
-+	case -EPERM:
-+		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-+		break;
-+	case -EBUSY:
-+		ost_code = ACPI_OST_SC_DEVICE_BUSY;
-+		break;
-+	default:
-+		ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
-+		break;
-+	}
- 
-  err_out:
- 	acpi_evaluate_ost(adev->handle, src, ost_code, NULL);
--- 
-2.10.2
+ * drivers/macintosh/windfarm_lm75_sensor.c (line 71)
+ * drivers/macintosh/windfarm_smu_sat.c (line 80-91)
+ * drivers/gpio/gpio-pca953x.c (line 190-192)
+ * drivers/power/supply/bq24735-charger.c
+   - fixed in linux-next by 48f680c0a9ca
+ * drivers/power/supply/sbs-battery.c
+   - fixed in linux-next by a1bbec72f9fe
 
+> Suggested-by: Sebastian Reichel <sre@kernel.org>
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>=20
+> ---
+>=20
+> The rule could easily be extended with more such functions.  Let me know =
+if
+> anything else should be taken into account.
+
+I guess the write function should also be covered.
+
+-- Sebastian
+
+>  scripts/coccinelle/api/smbus_word.cocci |   45 +++++++++++++++++++++++++=
++++++++
+>  1 file changed, 45 insertions(+)
+>=20
+> diff --git a/scripts/coccinelle/api/smbus_word.cocci b/scripts/coccinelle=
+/api/smbus_word.cocci
+> new file mode 100644
+> index 0000000..b167cf0
+> --- /dev/null
+> +++ b/scripts/coccinelle/api/smbus_word.cocci
+> @@ -0,0 +1,45 @@
+> +/// i2c_smbus_read_word_data() returns native endianness for little-endi=
+an
+> +/// bus (it basically has builtin le16_to_cpu). Calling le16_to_cpu on t=
+he
+> +/// result breaks support on big endian machines by converting it back.
+> +///
+> +// Confidence: Moderate
+> +// Copyright: (C) 2017 Julia Lawall, Inria. GPLv2.
+> +// URL: http://coccinelle.lip6.fr/
+> +// Options: --no-includes --include-headers
+> +// Keywords: i2c_smbus_read_word_data, le16_to_cpu
+> +
+> +virtual context
+> +virtual org
+> +virtual report
+> +
+> +// ---------------------------------------------------------------------=
+-------
+> +
+> +@r depends on context || org || report exists@
+> +expression e, x;
+> +position j0, j1;
+> +@@
+> +
+> +* x@j0 =3D i2c_smbus_read_word_data(...)
+> +... when !=3D x =3D e
+> +* le16_to_cpu@j1(x)
+> +
+> +// ---------------------------------------------------------------------=
+-------
+> +
+> +@script:python r_org depends on org@
+> +j0 << r.j0;
+> +j1 << r.j1;
+> +@@
+> +
+> +msg =3D "le16_to_cpu not needed on i2c_smbus_read_word_data result."
+> +coccilib.org.print_todo(j0[0], msg)
+> +coccilib.org.print_link(j1[0], "")
+> +
+> +// ---------------------------------------------------------------------=
+-------
+> +
+> +@script:python r_report depends on report@
+> +j0 << r.j0;
+> +j1 << r.j1;
+> +@@
+> +
+> +msg =3D "le16_to_cpu not needed on i2c_smbus_read_word_data result aroun=
+d line %s." % (j1[0].line)
+> +coccilib.report.print_report(j0[0], msg)
+>=20
+
+--bh35jazzbablkmhm
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllaSD4ACgkQ2O7X88g7
++ppmnA/8C+N/4AqBw81+Gc4ZscPU5IuydzcGKoVUqpA5Fo3Qkye7IbGIghS7hGub
+U2of/+N8sE/kUa4nRrLyIfe3QK/3KfgVi+4gWRe7WaWGUUJbZys2ontyBie2f94n
+I4KdKVf4dfNx+K6Zaac0JNcgGqVUMfTGRvxEaUALpaMiw/edPbF6enLsOa5xchXx
+KgpIG9uR+NuMDrSSVPM9jdm8jachSbU4iTpjsq3MrK8SIuja4bP3Tr5BogzRhCJR
+nrE1FfQnhdoQStKl2kM3yNgI90Eusrvdw6bbKr4TE6GazPZJKrIs22YCOKfe6/S1
+bNDMQpzPy3PPF9R/6qt7WsWyou38VbhnjbUn0+mwy6Fnh78JEUdeP6w1mjjyzUvh
+e6sKbvIAoRFSMTvoU9ce+sZQy7whOoNzA06BmXb0IioLYjf3edYpbn4iRUz7rVq0
+Kzj8q5LARz4vGDuPWjgyT2PqSOboYHLu7IjtWSvFRTrHa0xQLqny78nrOCYFEIpF
+if/3yl19vxmEYvSNmtumXIFNlsi8CeYIv+7KCKCUPi9ljnuzKZCmcBTpCztKHcj5
+oLX8UMOpX7r5Cl8XubpmE/c9m+iUQJD+p1bLgEqB0C8yRL5wKOPPFp3OtExsGvgO
+7DX/+6hUSfYw+nhpmTjf9/OKuID9ksLAR4Yu1WZIH8L7I3U+xXc=
+=1wgC
+-----END PGP SIGNATURE-----
+
+--bh35jazzbablkmhm--
