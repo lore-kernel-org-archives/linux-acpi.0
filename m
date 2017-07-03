@@ -1,74 +1,68 @@
-From: <h.piontek@mistravel.pl>
-Subject: (unknown)
-Date: Mon, 03 Jul 2017 01:28:25 -0000
-Message-ID: <149904530582.29695.4142716495380841107@zaural.ru>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 3/3] ACPI: EC: Change EC noirq tuning to be an optional
+ behavior
+Date: Mon, 3 Jul 2017 05:15:26 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CED9515@SHSMSX101.ccr.corp.intel.com>
+References: <d8ac96c8fd988daec20f7a22a2acb3119ccd149b.1497418749.git.lv.zheng@intel.com>
+ <157972fa5572b0f0c157142ea151b8508e7640b4.1497418749.git.lv.zheng@intel.com>
+ <1792284.us4mECpxNF@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_8799211_linux-acpi.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ws170.zone31-163-142.zaural.ru ([31.163.142.170]:44784 "HELO
-        zaural.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1752179AbdGCB2b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 2 Jul 2017 21:28:31 -0400
-Subject: 
-Content-Disposition: attachment
+Received: from mga06.intel.com ([134.134.136.31]:45766 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750776AbdGCFPh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 3 Jul 2017 01:15:37 -0400
+In-Reply-To: <1792284.us4mECpxNF@aspire.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Chen, Yu C" <yu.c.chen@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-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
+Hi, Rafael
+
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Subject: Re: [PATCH 3/3] ACPI: EC: Change EC noirq tuning to be an optional behavior
+> 
+> On Wednesday, June 14, 2017 01:59:24 PM Lv Zheng wrote:
+> > According to the bug report, though the busy polling mode can make noirq
+> > stages executed faster, it causes abnormal fan blowing in noirq stages.
+> >
+> > This patch prepares an option so that the automatic busy polling mode
+> > switching for noirq stages can be enabled by who wants to tune it, not all
+> > users.
+> > Noticed that the new global option cannot be changed during noirq stages.
+> > There is no need to lock its value changes to sync with polling mode
+> > settings switches.
+> >
+> > For reporters and testers in the thread, as there are too many reporters
+> > on the bug link, this patch only picks names from most active commenters.
+> > Sorry for the neglet.
+> >
+> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=191181
+> > Reported-by: Tatsuyuki Ishi <ishitatsuyuki@gmail.com>
+> > Reported-by: Claudio Sacerdoti Coen <claudio.sacerdoticoen@unibo.it>
+> > Tested-by: Nicolo' <nicolopiazzalunga@gmail.com>
+> > Reported-by: Jens Axboe <axboe@kernel.dk>
+> > Tested-by: Gjorgji Jankovski <j.gjorgji@gmail.com>
+> > Tested-by: Damjan Georgievski <gdamjan@gmail.com>
+> > Tested-by: Fernando Chaves <nanochaves@gmail.com>
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> 
+> First of all, this seems to be a fix for commit c3a696b6e8f8 (ACPI / EC: Use busy polling
+> mode when GPE is not enabled), so there should be a Fixes: tag pointing to that
+> one.
+> 
+> Moreover, if that is just a performance optimization and not a matter of correctness,
+> why don't we simply drop acpi_ec_enter/leave_noirq() entirely?
+> 
+> What is going to break if we do that?
+
+Let me Cc Yu for justification.
+I just added busy poll support for suspend/boot according to the root cause reported by him.
+He should know the end user requirements better than me.
+
+Thanks and best regards
+Lv
