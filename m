@@ -1,73 +1,76 @@
 From: Loc Ho <lho@apm.com>
-Subject: [PATCH v2 2/2] ACPI: SPCR: Workaround for APM X-Gene 8250 UART 32-alignment errata
-Date: Mon,  3 Jul 2017 14:33:09 -0700
-Message-ID: <1499117589-4829-3-git-send-email-lho@apm.com>
+Subject: [PATCH v2 1/2] ACPI: SPCR: Use access width to determine mmio usage
+Date: Mon,  3 Jul 2017 14:33:08 -0700
+Message-ID: <1499117589-4829-2-git-send-email-lho@apm.com>
 References: <1499117589-4829-1-git-send-email-lho@apm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f169.google.com ([209.85.192.169]:35397 "EHLO
-        mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752833AbdGCVdP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jul 2017 17:33:15 -0400
-Received: by mail-pf0-f169.google.com with SMTP id c73so105327907pfk.2
-        for <linux-acpi@vger.kernel.org>; Mon, 03 Jul 2017 14:33:14 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1499117589-4829-1-git-send-email-lho@apm.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rafael@kernel.org, jon.mason@broadcom.com
 Cc: jcm@redhat.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, bcm-kernel-feedback-list@broadcom.com, aleksey.makarov@linaro.org, gregkh@linuxfoundation.org, patches@apm.com, Loc Ho <lho@apm.com>
+List-Id: linux-acpi@vger.kernel.org
 
-APM X-Gene verion 1 and 2 have an 8250 UART with its register
-aligned to 32-bit. In addition, the latest released BIOS
-encodes the access field as 8-bit access instead 32-bit access.
-This causes no console with ACPI boot as the console
-will not match X-Gene UART port due to the lack of mmio32
-option.
+The current SPCR code does not check the access width of the mmio, and
+uses a default of 8bit register accesses.  This prevents devices that
+only do 16 or 32bit register accesses from working.  By simply checking
+this field and setting the mmio string appropriately, this issue can be
+corrected.  To prevent any legacy issues, the code will default to 8bit
+accesses if the value is anything but 16 or 32.
 
 Signed-off-by: Loc Ho <lho@apm.com>
+[Re-send as single patch set]
+Signed-off-by: Jon Mason <jon.mason@broadcom.com>
 ---
- drivers/acpi/spcr.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/acpi/spcr.c     | 18 ++++++++++++++++--
+ include/acpi/acrestyp.h |  7 +++++++
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-index 2905063..4ac3e06 100644
+index 3afa8c1..2905063 100644
 --- a/drivers/acpi/spcr.c
 +++ b/drivers/acpi/spcr.c
-@@ -36,6 +36,26 @@ static bool qdf2400_erratum_44_present(struct acpi_table_header *h)
- 	return false;
- }
+@@ -74,8 +74,22 @@ int __init parse_spcr(bool earlycon)
+ 		goto done;
+ 	}
  
-+/*
-+ * APM X-Gene v1 and v2 UART hardware is an 16550 like device but has its
-+ * register aligned to 32-bit. In addition, the BIOS also encoded the
-+ * access width to be 8 bits. This function detects this errata condition.
-+ */
-+static bool xgene_8250_erratum_present(struct acpi_table_spcr *tb)
-+{
-+	if (tb->interface_type != ACPI_DBG2_16550_COMPATIBLE)
-+		return false;
-+
-+	if (memcmp(tb->header.oem_id, "APMC0D", ACPI_OEM_ID_SIZE))
-+		return false;
-+
-+	if (!memcmp(tb->header.oem_table_id, "XGENESPC",
-+	    ACPI_OEM_TABLE_ID_SIZE) && tb->header.oem_revision == 0)
-+		return true;
-+
-+	return false;
-+}
-+
- /**
-  * parse_spcr() - parse ACPI SPCR table and add preferred console
-  *
-@@ -129,6 +149,8 @@ int __init parse_spcr(bool earlycon)
+-	iotype = table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY ?
+-			"mmio" : "io";
++	if (table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
++		switch (table->serial_port.access_width) {
++		default:
++			pr_err("Unexpected SPCR Access Width.  Defaulting to byte size\n");
++		case ACPI_ACCESS_SIZE_BYTE:
++			iotype = "mmio";
++			break;
++		case ACPI_ACCESS_SIZE_WORD:
++			iotype = "mmio16";
++			break;
++		case ACPI_ACCESS_SIZE_DWORD:
++			iotype = "mmio32";
++			break;
++		}
++	} else
++		iotype = "io";
  
- 	if (qdf2400_erratum_44_present(&table->header))
- 		uart = "qdf2400_e44";
-+	if (xgene_8250_erratum_present(table))
-+		iotype = "mmio32";
+ 	switch (table->interface_type) {
+ 	case ACPI_DBG2_ARM_SBSA_32BIT:
+diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h
+index f0f7403..781cb55 100644
+--- a/include/acpi/acrestyp.h
++++ b/include/acpi/acrestyp.h
+@@ -372,6 +372,13 @@ struct acpi_resource_generic_register {
+ 	u64 address;
+ };
  
- 	snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d", uart, iotype,
- 		 table->serial_port.address, baud_rate);
++/* Generic Address Space Access Sizes */
++#define ACPI_ACCESS_SIZE_UNDEFINED		0
++#define ACPI_ACCESS_SIZE_BYTE			1
++#define ACPI_ACCESS_SIZE_WORD			2
++#define ACPI_ACCESS_SIZE_DWORD			3
++#define ACPI_ACCESS_SIZE_QWORD			4
++
+ struct acpi_resource_gpio {
+ 	u8 revision_id;
+ 	u8 connection_type;
 -- 
 1.8.3.1
-
