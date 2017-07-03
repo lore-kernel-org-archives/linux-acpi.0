@@ -1,185 +1,211 @@
-From: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Subject: [PATCH v3 2/2] thermal: core: introduce thermal zone device mode control
-Date: Mon,  3 Jul 2017 10:00:40 +0200
-Message-ID: <20170703080040.13750-2-enric.balletbo@collabora.com>
-References: <20170703080040.13750-1-enric.balletbo@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170703080040.13750-1-enric.balletbo@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Guenter Roeck <groeck@chromium.org>, Sameer Nanda <snanda@chromium.org>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v3 1/2] acpi:iort: Add an IORT helper function to
+	reserve HW ITS address regions for IOMMU drivers
+Date: Mon, 3 Jul 2017 08:18:45 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA838399F10@FRAEML521-MBX.china.huawei.com>
+References: <20170623145801.325244-1-shameerali.kolothum.thodi@huawei.com>
+	<20170623145801.325244-2-shameerali.kolothum.thodi@huawei.com>
+	<20170623165406.GA6412@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20170623165406.GA6412@red-moon>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: "Guohanjun (Hanjun Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "marc.zyngier-5wv7dgnIgG8@public.gmane.org" <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Zhang Rui <rui.zhang@intel.com>
 
-Thermal "mode" sysfs attribute is introduced to enable/disable a thermal zone,
-and .get_mode()/.set_mode() callback is introduced for platform thermal driver
-to enable/disable the hardware thermal control logic. And thermal core takes
-no action upon thermal zone enable/disable.
 
-Actually, this is not quite right because thermal core still pokes those
-disabled thermal zones occasionally, e.g. upon system resume.
+> -----Original Message-----
+> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org]
+> Sent: Friday, June 23, 2017 5:54 PM
+> To: Shameerali Kolothum Thodi
+> Cc: marc.zyngier-5wv7dgnIgG8@public.gmane.org; sudeep.holla-5wv7dgnIgG8@public.gmane.org; will.deacon-5wv7dgnIgG8@public.gmane.org;
+> robin.murphy-5wv7dgnIgG8@public.gmane.org; hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; Gabriele Paoloni; John
+> Garry; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-arm-
+> kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org;
+> Linuxarm; Wangzhou (B); Guohanjun (Hanjun Guo)
+> Subject: Re: [PATCH v3 1/2] acpi:iort: Add an IORT helper function to reserve
+> HW ITS address regions for IOMMU drivers
+> 
+> On Fri, Jun 23, 2017 at 03:58:00PM +0100, shameer wrote:
+> > The helper function retrieves ITS address regions through IORT device
+> > <-> ITS mappings and reserves it so that these regions will not be
+> > translated by IOMMU and will be excluded from IOVA allocations. IOMMU
+> > drivers can use this to implement their .get_resv_regions callback.
+> >
+> > Signed-off-by: shameer <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/acpi/arm64/iort.c        | 91
+> ++++++++++++++++++++++++++++++++++++++--
+> >  drivers/irqchip/irq-gic-v3-its.c |  3 +-
+> >  include/linux/acpi_iort.h        |  7 +++-
+> >  3 files changed, 96 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> > index c5fecf9..cf0a6b8 100644
+> > --- a/drivers/acpi/arm64/iort.c
+> > +++ b/drivers/acpi/arm64/iort.c
+> > @@ -34,6 +34,7 @@
+> >  struct iort_its_msi_chip {
+> >  	struct list_head	list;
+> >  	struct fwnode_handle	*fw_node;
+> > +	phys_addr_t		base_addr;
+> >  	u32			translation_id;
+> >  };
+> >
+> > @@ -131,14 +132,16 @@ typedef acpi_status (*iort_find_node_callback)
+> > static DEFINE_SPINLOCK(iort_msi_chip_lock);
+> >
+> >  /**
+> > - * iort_register_domain_token() - register domain token and related
+> > ITS ID
+> > - * to the list from where we can get it back later on.
+> > + * iort_register_domain_token() - register domain token along with
+> > + related
+> > + * ITS ID and base address to the list from where we can get it back later
+> on.
+> >   * @trans_id: ITS ID.
+> > + * @base: ITS base address.
+> >   * @fw_node: Domain token.
+> >   *
+> >   * Returns: 0 on success, -ENOMEM if no memory when allocating list
+> element
+> >   */
+> > -int iort_register_domain_token(int trans_id, struct fwnode_handle
+> > *fw_node)
+> > +int iort_register_domain_token(int trans_id, phys_addr_t base,
+> > +			       struct fwnode_handle *fw_node)
+> >  {
+> >  	struct iort_its_msi_chip *its_msi_chip;
+> >
+> > @@ -148,6 +151,7 @@ int iort_register_domain_token(int trans_id,
+> > struct fwnode_handle *fw_node)
+> >
+> >  	its_msi_chip->fw_node = fw_node;
+> >  	its_msi_chip->translation_id = trans_id;
+> > +	its_msi_chip->base_addr = base;
+> >
+> >  	spin_lock(&iort_msi_chip_lock);
+> >  	list_add(&its_msi_chip->list, &iort_msi_chip_list); @@ -491,6
+> > +495,24 @@ int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
+> >  	return -ENODEV;
+> >  }
+> >
+> > +static int iort_find_its_base(u32 its_id, phys_addr_t *base) {
+> > +	struct iort_its_msi_chip *its_msi_chip;
+> > +	bool match = false;
+> > +
+> > +	spin_lock(&iort_msi_chip_lock);
+> > +	list_for_each_entry(its_msi_chip, &iort_msi_chip_list, list) {
+> > +		if (its_msi_chip->translation_id == its_id) {
+> > +			*base = its_msi_chip->base_addr;
+> > +			match = true;
+> > +			break;
+> > +		}
+> > +	}
+> > +	spin_unlock(&iort_msi_chip_lock);
+> > +
+> > +	return match ? 0 : -ENODEV;
+> > +}
+> > +
+> >  /**
+> >   * iort_dev_find_its_id() - Find the ITS identifier for a device
+> >   * @dev: The device.
+> > @@ -649,6 +671,67 @@ int iort_add_device_replay(const struct
+> iommu_ops
+> > *ops, struct device *dev)
+> >
+> >  	return err;
+> >  }
+> > +
+> > +/**
+> > + * iort_iommu_its_get_resv_regions - Reserved region driver helper
+> > + * @dev: Device from iommu_get_resv_regions()
+> > + * @list: Reserved region list from iommu_get_resv_regions()
+> > + *
+> > + * Returns: Number of reserved regions on success(0 if no associated ITS),
+> > + *          appropriate error value otherwise.
+> > + *
+> > + * IOMMU drivers can use this to implement their .get_resv_regions
+> > +callback
+> > + * for reserving the HW ITS address regions.
+> > + */
+> > +int iort_iommu_its_get_resv_regions(struct device *dev, struct
+> > +list_head *head) {
+> > +	int i;
+> > +	struct acpi_iort_its_group *its;
+> > +	struct acpi_iort_node *node, *its_node = NULL;
+> > +	int resv = 0;
+> > +
+> > +	node = iort_find_dev_node(dev);
+> > +	if (!node)
+> > +		return -ENODEV;
+> > +
+> > +	if (dev_is_pci(dev)) {
+> > +		u32 rid;
+> > +
+> > +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
+> &rid);
+> > +		its_node = iort_node_map_id(node, rid, NULL,
+> IORT_MSI_TYPE);
+> > +	} else {
+> > +		for (i = 0; i < node->mapping_count; i++) {
+> > +			its_node = iort_node_map_platform_id(node, NULL,
+> > +							 IORT_MSI_TYPE, i);
+> > +			if (its_node)
+> > +				break;
+> > +		}
+> > +	}
+> > +
+> > +	if (!its_node)
+> > +		return 0;
+> > +
+> > +	/* Move to ITS specific data */
+> > +	its = (struct acpi_iort_its_group *)its_node->node_data;
+> > +
+> > +	for (i = 0; i < its->its_count; i++) {
+> > +		phys_addr_t base;
+> > +
+> > +		if (!iort_find_its_base(its->identifiers[i], &base)) {
+> > +			int prot = IOMMU_WRITE | IOMMU_NOEXEC |
+> IOMMU_MMIO;
+> > +			struct iommu_resv_region *region;
+> > +
+> > +			region = iommu_alloc_resv_region(base, SZ_128K,
+> prot,
+> > +							 IOMMU_RESV_MSI);
+> > +			if (region) {
+> > +				list_add_tail(&region->list, head);
+> > +				resv++;
+> > +			}
+> > +		}
+> > +	}
+> > +
+> > +	return resv ? : -ENODEV;
+> 
+> IIUC I think this is not right (ie resv < its_count should count as a failure).
 
-To fix this, a new flag 'mode' is introduced in struct thermal_zone_device
-to represent the thermal zone mode, and several decisions have been made
-based on this flag, including
-1. check the thermal zone mode right after it's registered.
-2. skip updating thermal zone if the zone is disabled
-3. stop the polling timer when the thermal zone is disabled
+Yes, that is a valid error.
 
-Note: basically, this patch doesn't affect the existing always-enabled
-thermal zones much, with just one exception -
-thermal zone .get_mode() must be well prepared to reflect the real thermal
-zone status upon the thermal zone registration.
+> This should be easy to fix-up but I am not sure there is still time for these
+> patches to be merged for this merge window, I take the blame since I am the
+> cause of the delay but I thought the logic in the SMMU driver should have
+> been clarified and this version does it IMO.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
----
-Changes since v2:
- - Rework by Zhang Rui.
-Changes since v1:
- - Implement in thermal subsystem instead of ACPI thermal driver (Zhang Rui)
+No problem and thanks for your support. I could rebase this on  rc1 and send
+the next version. Please let me know.
 
- drivers/thermal/thermal_core.c  | 37 +++++++++++++++++++++++++++++++++++--
- drivers/thermal/thermal_sysfs.c | 22 ++++++----------------
- include/linux/thermal.h         |  3 +++
- 3 files changed, 44 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index 5a51c74..1959257 100644
---- a/drivers/thermal/thermal_core.c
-+++ b/drivers/thermal/thermal_core.c
-@@ -306,9 +306,9 @@ static void monitor_thermal_zone(struct thermal_zone_device *tz)
- {
- 	mutex_lock(&tz->lock);
+Shameer
  
--	if (tz->passive)
-+	if (tz->mode == THERMAL_DEVICE_ENABLED && tz->passive)
- 		thermal_zone_device_set_polling(tz, tz->passive_delay);
--	else if (tz->polling_delay)
-+	else if (tz->mode == THERMAL_DEVICE_ENABLED && tz->polling_delay)
- 		thermal_zone_device_set_polling(tz, tz->polling_delay);
- 	else
- 		thermal_zone_device_set_polling(tz, 0);
-@@ -464,11 +464,35 @@ static void thermal_zone_device_reset(struct thermal_zone_device *tz)
- 		pos->initialized = false;
- }
- 
-+int thermal_zone_set_mode(struct thermal_zone_device *tz,
-+				 enum thermal_device_mode mode)
-+{
-+	int result;
-+
-+	if (!tz->ops->set_mode)
-+		return -EPERM;
-+
-+	result = tz->ops->set_mode(tz, mode);
-+	if (result)
-+		return result;
-+
-+	if (tz->mode != mode) {
-+		tz->mode = mode;
-+		monitor_thermal_zone(tz);
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(thermal_zone_set_mode);
-+
- void thermal_zone_device_update(struct thermal_zone_device *tz,
- 				enum thermal_notify_event event)
- {
- 	int count;
- 
-+	/* Do nothing if the thermal zone is disabled */
-+	if (tz->mode == THERMAL_DEVICE_DISABLED)
-+		return;
-+
- 	if (atomic_read(&in_suspend))
- 		return;
- 
-@@ -1287,6 +1311,15 @@ thermal_zone_device_register(const char *type, int trips, int mask,
- 	INIT_DELAYED_WORK(&tz->poll_queue, thermal_zone_device_check);
- 
- 	thermal_zone_device_reset(tz);
-+
-+	if (tz->ops->get_mode) {
-+		enum thermal_device_mode mode;
-+
-+		result = tz->ops->get_mode(tz, &mode);
-+		tz->mode = result ? THERMAL_DEVICE_ENABLED : mode;
-+	} else
-+		tz->mode = THERMAL_DEVICE_ENABLED;
-+
- 	/* Update the new thermal zone and mark it as already updated. */
- 	if (atomic_cmpxchg(&tz->need_update, 1, 0))
- 		thermal_zone_device_update(tz, THERMAL_EVENT_UNSPECIFIED);
-diff --git a/drivers/thermal/thermal_sysfs.c b/drivers/thermal/thermal_sysfs.c
-index a694de9..1b25dc8 100644
---- a/drivers/thermal/thermal_sysfs.c
-+++ b/drivers/thermal/thermal_sysfs.c
-@@ -51,17 +51,8 @@ static ssize_t
- mode_show(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct thermal_zone_device *tz = to_thermal_zone(dev);
--	enum thermal_device_mode mode;
--	int result;
--
--	if (!tz->ops->get_mode)
--		return -EPERM;
- 
--	result = tz->ops->get_mode(tz, &mode);
--	if (result)
--		return result;
--
--	return sprintf(buf, "%s\n", mode == THERMAL_DEVICE_ENABLED ? "enabled"
-+	return sprintf(buf, "%s\n", tz->mode == THERMAL_DEVICE_ENABLED ? "enabled"
- 		       : "disabled");
- }
- 
-@@ -70,18 +61,17 @@ mode_store(struct device *dev, struct device_attribute *attr,
- 	   const char *buf, size_t count)
- {
- 	struct thermal_zone_device *tz = to_thermal_zone(dev);
-+	enum thermal_device_mode mode;
- 	int result;
- 
--	if (!tz->ops->set_mode)
--		return -EPERM;
--
- 	if (!strncmp(buf, "enabled", sizeof("enabled") - 1))
--		result = tz->ops->set_mode(tz, THERMAL_DEVICE_ENABLED);
-+		mode = THERMAL_DEVICE_ENABLED;
- 	else if (!strncmp(buf, "disabled", sizeof("disabled") - 1))
--		result = tz->ops->set_mode(tz, THERMAL_DEVICE_DISABLED);
-+		mode = THERMAL_DEVICE_DISABLED;
- 	else
--		result = -EINVAL;
-+		return -EINVAL;
- 
-+	result = thermal_zone_set_mode(tz, mode);
- 	if (result)
- 		return result;
- 
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index dab11f9..2f427de 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -210,6 +210,7 @@ struct thermal_zone_device {
- 	struct thermal_attr *trip_type_attrs;
- 	struct thermal_attr *trip_hyst_attrs;
- 	void *devdata;
-+	enum thermal_device_mode mode;
- 	int trips;
- 	unsigned long trips_disabled;	/* bitmap for disabled trips */
- 	int passive_delay;
-@@ -465,6 +466,8 @@ struct thermal_zone_device *thermal_zone_get_zone_by_name(const char *name);
- int thermal_zone_get_temp(struct thermal_zone_device *tz, int *temp);
- int thermal_zone_get_slope(struct thermal_zone_device *tz);
- int thermal_zone_get_offset(struct thermal_zone_device *tz);
-+int thermal_zone_set_mode(struct thermal_zone_device *tz,
-+			  enum thermal_device_mode mode);
- 
- int get_tz_trend(struct thermal_zone_device *, int);
- struct thermal_instance *get_thermal_instance(struct thermal_zone_device *,
--- 
-2.9.3
