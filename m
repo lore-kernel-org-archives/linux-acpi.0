@@ -1,341 +1,267 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management updates for v4.13-rc1
-Date: Mon, 3 Jul 2017 23:48:58 +0200
-Message-ID: <CAJZ5v0h2OXNS3xOWHOs4dM6RXd9zY8LzT4JR6joeZ9UqmCyH+w@mail.gmail.com>
+Subject: [GIT PULL] ACPI updates for v4.13-rc1
+Date: Mon, 3 Jul 2017 23:50:41 +0200
+Message-ID: <CAJZ5v0gCrQ=iNXXK+X1uCpM7ZzQpG4ewjO-pLHUwbUJZj2AdXA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:36300 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750835AbdGCVtA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jul 2017 17:49:00 -0400
+Received: from mail-it0-f47.google.com ([209.85.214.47]:38481 "EHLO
+        mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752378AbdGCVum (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jul 2017 17:50:42 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
 Hi Linus,
 
 Please pull from the tag
 
  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm-4.13-rc1
+ acpi-4.13-rc1
 
-with top-most commit 8f8e5c3e2796eaf150d6262115af12707c2616dd
+with top-most commit 03471c06d02f80f9338a5df45f2a92ef38ca1233
 
- Merge branch 'acpi-pm'
+ Merge branches 'acpi-ec' and 'acpi-video'
 
 on top of commit c0bc126f97fb929b3ae02c1c62322645d70eb408
 
  Linux 4.12-rc7
 
-to receive power management updates for v4.13-rc1.
+to receive ACPI updates for v4.13-rc1.
 
-The big ticket items here are the rework of suspend-to-idle in order
-to add proper support for power button wakeup from it on recent Dell
-laptops and the rework of interfaces exporting the current CPU
-frequency on x86.
+These mostly update the ACPICA code in the kernel to upstream
+revision 20170531 which covers all of the new material from ACPI 6.2,
+including new tables (WSMT, HMAT, PPTT), new subtables and definition
+changes for some existing tables (BGRT, HEST, SRAT, TPM2, PCCT),
+new resource descriptor macros for pin control, support for new
+predefined methods (_LSI, _LSR, _LSW, _HMA), fixes and cleanups.
 
-In addition to that, support for a few new pieces of hardware is
-added, the PCI/ACPI device wakeup infrastructure is simplified
-significantly and the wakeup IRQ framework is fixed to unbreak the
-IRQ bus locking infrastructure.
+On top of that, an additional ACPICA change from Kees (which also
+is upstream already) switches all of the definitions of function
+pointer structures in ACPICA to use designated initializers so as
+to make the structure layout randomization GCC plugin work with it.
 
-Also, there are some functional improvements for intel_pstate,
-tools updates and small fixes and cleanups all over.
-
-The uuid-types branch from the Christoph's tree at
-git://git.infradead.org/users/hch/uuid.git (not shown in the appended
-stats) is included to satisfy dependencies in the new ACPI PM code
-related to the suspend-to-idle rework.
+The rest is a few fixes and cleanups in the EC driver, an xpower PMIC
+driver update, a new backlight blacklist entry, and update of the
+tables configfs interface and a messages formatting cleanup.
 
 Specifics:
 
- - Rework suspend-to-idle to allow it to take wakeup events signaled
-   by the EC into account on ACPI-based platforms in order to properly
-   support power button wakeup from suspend-to-idle on recent Dell
-   laptops (Rafael Wysocki).
+ - Update the ACPICA code in the kernel to upstream revision
+   revision 20170531 (which covers all of the new material from
+   ACPI 6.2) including:
+   * Support for the PinFunction(), PinConfig(), PinGroup(),
+     PinGroupFunction(), and PinGroupConfig() resource descriptors
+     (Mika Westerberg).
+   * Support for new subtables in HEST and SRAT, new notify value
+     for HEST, header support for TPM2 table changes, and BGRT
+     Status field update (Bob Moore).
+   * Support for new PCCT subtables (David Box).
+   * Support for _LSI, _LSR, _LSW, and _HMA as predefined methods
+     (Erik Schmauss).
+   * Support for the new WSMT, HMAT, and PPTT tables (Lv Zheng).
+   * New UUID values for Processor Properties (Bob Moore).
+   * New notify values for memory attributes and graceful shutdown
+     (Bob Moore).
+   * Fix related to the PCAT_COMPAT MADT flag (Janosch Hildebrand).
+   * Resource to AML conversion fix for resources containing GPIOs
+     (Mika Westerberg).
+   * Disassembler-related updates (Bob Moore, David Box, Erik
+     Schmauss).
+   * Assorted fixes and cleanups (Bob Moore, Erik Schmauss, Lv Zheng,
+     Cao Jin).
 
-   That includes the core suspend-to-idle code rework, support for
-   the Low Power S0 _DSM interface, and support for the ACPI INT0002
-   Virtual GPIO device from Hans de Goede (required for USB keyboard
-   wakeup from suspend-to-idle to work on some machines).
+ - Modify ACPICA to always use designated initializers for function
+   pointer structures to make the structure layout randomization GCC
+   plugin work with it (Kees Cook).
 
- - Stop trying to export the current CPU frequency via /proc/cpuinfo
-   on x86 as that is inaccurate and confusing (Len Brown).
+ - Update the tables configfs interface to unload SSDTs on configfs
+   entry removal (Jan Kiszka).
 
- - Rework the way in which the current CPU frequency is exported by
-   the kernel (over the cpufreq sysfs interface) on x86 systems with
-   the APERF and MPERF registers by always using values read from
-   these registers, when available, to compute the current frequency
-   regardless of which cpufreq driver is in use (Len Brown).
+ - Add support for the GPI1 regulator to the xpower PMIC Operation
+   Region handler (Hans de Goede).
 
- - Rework the PCI/ACPI device wakeup infrastructure to remove the
-   questionable and artificial distinction between "devices that
-   can wake up the system from sleep states" and "devices that can
-   generate wakeup signals in the working state" from it, which
-   allows the code to be simplified quite a bit (Rafael Wysocki).
+ - Fix ACPI EC issues related to conflicting EC definitions in the
+   ECDT and in the ACPI namespace (Lv Zheng, Carlo Caione, Chris
+   Chiu).
 
- - Fix the wakeup IRQ framework by making it use SRCU instead of
-   RCU which doesn't allow sleeping in the read-side critical
-   sections, but which in turn is expected to be allowed by the
-   IRQ bus locking infrastructure (Thomas Gleixner).
+ - Fix an interrupt storm issue in the EC driver and make its debug
+   output work with dynamic debug as expected (Lv Zheng).
 
- - Modify some computations in the intel_pstate driver to avoid
-   rounding errors resulting from them (Srinivas Pandruvada).
+ - Add ACPI backlight quirk for Dell Precision 7510 (Shih-Yuan Lee).
 
- - Reduce the overhead of the intel_pstate driver in the HWP
-   (hardware-managed P-states) mode and when the "performance"
-   P-state selection algorithm is in use by making it avoid
-   registering scheduler callbacks in those cases (Len Brown).
-
- - Rework the energy_performance_preference sysfs knob in
-   intel_pstate by changing the values that correspond to
-   different symbolic hint names used by it (Len Brown).
-
- - Make it possible to use more than one cpuidle driver at the same
-   time on ARM (Daniel Lezcano).
-
- - Make it possible to prevent the cpuidle menu governor from using
-   the 0 state by disabling it via sysfs (Nicholas Piggin).
-
- - Add support for FFH (Fixed Functional Hardware) MWAIT in ACPI C1
-   on AMD systems (Yazen Ghannam).
-
- - Make the CPPC cpufreq driver take the lowest nonlinear performance
-   information into account (Prashanth Prakash).
-
- - Add support for hi3660 to the cpufreq-dt driver, fix the
-   imx6q driver and clean up the sfi, exynos5440 and intel_pstate
-   drivers (Colin Ian King, Krzysztof Kozlowski, Octavian Purdila,
-   Rafael Wysocki, Tao Wang).
-
- - Fix a few minor issues in the generic power domains (genpd)
-   framework and clean it up somewhat (Krzysztof Kozlowski,
-   Mikko Perttunen, Viresh Kumar).
-
- - Fix a couple of minor issues in the operating performance points
-   (OPP) framework and clean it up somewhat (Viresh Kumar).
-
- - Fix a CONFIG dependency in the hibernation core and clean it up
-   slightly (Balbir Singh, Arvind Yadav, BaoJun Luo).
-
- - Add rk3228 support to the rockchip-io adaptive voltage scaling
-   (AVS) driver (David Wu).
-
- - Fix an incorrect bit shift operation in the RAPL power capping
-   driver (Adam Lessnau).
-
- - Add support for the EPP field in the HWP (hardware managed
-   P-states) control register, HWP.EPP, to the x86_energy_perf_policy
-   tool and update msr-index.h with HWP.EPP values (Len Brown).
-
- - Fix some minor issues in the turbostat tool (Len Brown).
-
- - Add support for AMD family 0x17 CPUs to the cpupower tool and fix
-   a minor issue in it (Sherry Hurwitz).
-
- - Assorted cleanups, mostly related to the constification of some
-   data structures (Arvind Yadav, Joe Perches, Kees Cook, Krzysztof
-   Kozlowski).
+ - Fix whitespace in pr_fmt() to align log entries properly in some
+   places in the ACPI subsystem (Vincent Legoll).
 
 Thanks!
 
 
 ---------------
 
-Adam Lessnau (1):
-      powercap/RAPL: prevent overridding bits outside of the mask
+Bob Moore (25):
+      ACPICA: Add new notify value for memory attributes update
+      ACPICA: Added two new UUID values
+      ACPICA: Utilities: Make a notify value reserved
+      ACPICA: Update Status field for BGRT table
+      ACPICA: Add new notify value for HEST table
+      ACPICA: Add new flags to HEST subtables
+      ACPICA: Add support for new HEST subtable
+      ACPICA: Add support for new SRAT subtable
+      ACPICA: Add header support for TPM2 table changes
+      ACPICA: Fix a type value overlap in the AML support file
+      ACPICA: Update error message for field beyond buffer case
+      ACPICA: Debugger/acpiexec: Cleanup error messages
+      ACPICA: Disassembler: Abort on an invalid/unknown AML opcode
+      ACPICA: Export the public mutex interfaces
+      ACPICA: Remove extraneous status check
+      ACPICA: Split resource descriptor decode strings to a new file
+      ACPICA: Comment update: spelling/format. No functional change
+      ACPICA: Fix for Device/Thermal objects with ObjectType and DerefOf
+      ACPICA: Update two error messages to emit control method name
+      ACPICA: Improvements for debug output only
+      ACPICA: Unix application OSL: Correctly handle control-c (EINTR)
+      ACPICA: Simplify output for the ACPI Debug Object
+      ACPICA: acpiexec: enhance local signal handler
+      ACPICA: Update a couple of debug output messages
+      ACPICA: Update version to 20170531
 
-Arvind Yadav (2):
-      PM / QoS: constify *_attribute_group.
-      PM: hibernate: constify attribute_group structures.
+Cao Jin (1):
+      ACPICA: Update comments, no functional change
 
-Balbir Singh (1):
-      PM / hibernate: Use CONFIG_HAVE_SET_MEMORY for include condition
+Carlo Caione (1):
+      ACPI / EC: Add quirk for GL720VMK
 
-BaoJun Luo (1):
-      PM / hibernate: Drop redundant parameter of swsusp_alloc()
+Chris Chiu (1):
+      ACPI / EC: Fix media keys not working problem on some Asus laptops
 
-Colin Ian King (1):
-      cpufreq: sfi: make freq_table static
+David E. Box (2):
+      ACPICA: disassembler: improve Switch support
+      ACPICA: Add support for new PCCT subtables
 
-Daniel Lezcano (1):
-      ARM: cpuidle: Support asymmetric idle definition
-
-David Wu (1):
-      PM / AVS: rockchip-io: add io selectors and supplies for rk3228
+Erik Schmauss (11):
+      ACPICA: Change path's type from u8* to char*
+      ACPICA: Add support for _LSI as a predefined method
+      ACPICA: Add support for _LSR as a predefined method
+      ACPICA: Add support for _LSW as a predefined method
+      ACPICA: Add support for _HMA as a predefined method
+      ACPICA: Explicitly cast 1 to u32
+      ACPICA: Changing External to a named object
+      ACPICA: Changed Gbl_disasm_flag to acpi_gbl_disasm_flag
+      ACPICA: Disassembler: prevent external op's from opening a new scope
+      ACPICA: Disassembler: add external op to namespace on first pass
+      ACPICA: Disassembler: allow conflicting external declarations to
+be emitted.
 
 Hans de Goede (1):
-      platform/x86: Add driver for ACPI INT0002 Virtual GPIO device
+      ACPI / PMIC: xpower: Add support for the GPI1 regulator to the
+OpRegion handler
 
-Joe Perches (1):
-      intel_idle: Use more common logging style
+Jan Kiszka (1):
+      ACPI: configfs: Unload SSDT on configfs entry removal
+
+Janosch Hildebrand (1):
+      ACPICA: Tables: Fix defined values for MADT PCAT_COMPAT flag
 
 Kees Cook (1):
-      x86/power/64: Use char arrays for asm function names
+      ACPICA: Use designated initializers
 
-Krzysztof Kozlowski (10):
-      cpufreq: exynos5440: Fix inconsistent indenting
-      PM / Domains: Constify genpd pointer
-      PM: Constify returned PM event name
-      PM: Constify info string used in messages
-      PM / sysfs: Constify attribute groups
-      PM / Domains: Handle safely genpd_syscore_switch() call on
-non-genpd device
-      PM / Domains: Fix unsafe iteration over modified list of device links
-      PM / Domains: Fix unsafe iteration over modified list of domain providers
-      PM / Domains: Fix unsafe iteration over modified list of domains
-      PM / Domains: Fix missing default_power_down_ok comment
+Lv Zheng (10):
+      ACPICA: Tables: Add WSMT support
+      ACPICA: Tables: Add HMAT table definitions
+      ACPICA: Tables: Add PPTT table definitions
+      ACPICA: OSL: Add support to exclude stdarg.h
+      ACPICA: Events: Add runtime stub support for event APIs
+      ACPICA: Dispatcher: Remove unnecessary call to debugger
+      ACPI: EC: Fix an EC event IRQ storming issue
+      ACPI: EC: Fix EC command visibility for dynamic debug
+      ACPI / EC: Enhance boot EC sanity check
+      ACPI / EC: Add support to skip boot stage DSDT probe
 
-Len Brown (14):
-      x86: msr-index.h: define EPB mid-points
-      x86: msr-index.h: define HWP.EPP values
-      x86: msr-index.h: fix shifts to ULL results in HWP macros.
-      tools/power x86_energy_perf_policy: support HWP.EPP
-      intel_pstate: use updated msr-index.h HWP.EPP values
-      x86: do not use cpufreq_quick_get() for /proc/cpuinfo "cpu MHz"
-      tools/power turbostat: hide SKL counters, when not requested
-      tools/power turbostat: if  --debug, print sampling overhead
-      tools/power turbostat: stop migrating, unless '-m'
-      tools/power turbostat: decode MSR_IA32_MISC_ENABLE only on Intel
-      tools/power turbostat: update version number
-      x86: use common aperfmperf_khz_on_cpu() to calculate KHz using APERF/MPERF
-      intel_pstate: delete scheduler hook in HWP mode
-      intel_pstate: skip scheduler hook when in "performance" mode
+Mika Westerberg (6):
+      ACPICA: ACPI 6.2: Add support for PinFunction() resource
+      ACPICA: ACPI 6.2: Add support for PinConfig() resource
+      ACPICA: ACPI 6.2: Add support for PinGroup() resource
+      ACPICA: ACPI 6.2: Add support for PinGroupFunction() resource
+      ACPICA: ACPI 6.2: Add support for PinGroupConfig() resource
+      ACPICA: Core: Always set GPIO VendorOffset
 
-Mikko Perttunen (1):
-      PM / Domains: Call driver's noirq callbacks
+Shih-Yuan Lee (FourDollars) (1):
+      ACPI / video: Add quirks for the Dell Precision 7510
 
-Nicholas Piggin (1):
-      cpuidle: menu: allow state 0 to be disabled
-
-Octavian Purdila (1):
-      cpufreq: imx6q: imx6ull should use the same flow as imx6ul
-
-Prakash, Prashanth (1):
-      cpufreq / CPPC: Initialize policy->min to lowest nonlinear performance
-
-Rafael J. Wysocki (17):
-      ACPI / PM: Run wakeup notify handlers synchronously
-      USB / PCI / PM: Allow the PCI core to do the resume cleanup
-      ACPI / PM: Change log level of wakeup-related message
-      ACPI / PM: Clean up device wakeup enable/disable code
-      PM / sleep: Print timing information if debug is enabled
-      PCI / PM: Restore PME Enable if skipping wakeup setup
-      ACPI / PM: Ignore spurious SCI wakeups from suspend-to-idle
-      platform: x86: intel-vbtn: Wake up the system from suspend-to-idle
-      platform: x86: intel-hid: Wake up the system from suspend-to-idle
-      ACPI / sleep: EC-based wakeup from suspend-to-idle on recent systems
-      ACPI / PM: Drop run_wake from struct acpi_device_wakeup_flags
-      ACPI / PM: Consolidate device wakeup settings code
-      PCI / PM: Drop pme_interrupt flag from struct pci_dev
-      PCI / PM: Simplify device wakeup settings code
-      PM / core: Drop run_wake flag from struct dev_pm_info
-      cpufreq: intel_pstate: Clean up after performance governor changes
-      cpufreq: Update scaling_cur_freq documentation
-
-Sherry Hurwitz (2):
-      cpupower: Fix bug where return value was not used
-      cpupower: Add support for new AMD family 0x17
-
-Srinivas Pandruvada (1):
-      cpufreq: intel_pstate: Remove max/min fractions to limit performance
-
-Tao Wang (1):
-      cpufreq: dt: Add support for hi3660
-
-Thomas Gleixner (1):
-      PM / wakeirq: Convert to SRCU
-
-Viresh Kumar (7):
-      PM / Domains: pdd->dev can't be NULL in genpd_dev_pm_qos_notifier()
-      PM / OPP: Reorganize _generic_set_opp_regulator()
-      PM / OPP: Don't create copy of regulators unnecessarily
-      PM / OPP: opp-microvolt is not optional if regulators are set
-      PM / OPP: Don't create debugfs "supply-0" directory unnecessarily
-      PM / OPP: Use - instead of @ for DT entries
-      PM / OPP: Add dev_pm_opp_{set|put}_clkname()
-
-Yazen Ghannam (1):
-      x86/ACPI/cstate: Allow ACPI C1 FFH MWAIT use on AMD systems
+Vincent Legoll (1):
+      ACPI: fix whitespace in pr_fmt() to align log entries
 
 ---------------
 
- Documentation/admin-guide/pm/cpufreq.rst           |   12 +-
- Documentation/admin-guide/pm/intel_pstate.rst      |    6 +-
- Documentation/devicetree/bindings/opp/opp.txt      |   38 +-
- .../bindings/power/rockchip-io-domain.txt          |    7 +
- Documentation/power/runtime_pm.txt                 |    7 +-
- arch/x86/include/asm/msr-index.h                   |   18 +-
- arch/x86/include/asm/suspend_64.h                  |    5 +-
- arch/x86/kernel/acpi/cstate.c                      |    3 +-
- arch/x86/kernel/cpu/Makefile                       |    1 +
- arch/x86/kernel/cpu/aperfmperf.c                   |   79 +
- arch/x86/kernel/cpu/proc.c                         |   10 +-
- arch/x86/power/hibernate_64.c                      |    6 +-
- drivers/acpi/battery.c                             |    2 +-
- drivers/acpi/button.c                              |    5 +-
- drivers/acpi/device_pm.c                           |  102 +-
- drivers/acpi/ec.c                                  |    2 +-
- drivers/acpi/internal.h                            |    4 +
- drivers/acpi/pci_root.c                            |    5 +-
- drivers/acpi/proc.c                                |    4 +-
- drivers/acpi/scan.c                                |   23 +-
- drivers/acpi/sleep.c                               |  152 +-
- drivers/ata/libata-zpodd.c                         |    9 +-
- drivers/base/power/domain.c                        |  103 +-
- drivers/base/power/domain_governor.c               |   12 +-
- drivers/base/power/main.c                          |   40 +-
- drivers/base/power/opp/core.c                      |  154 +-
- drivers/base/power/opp/debugfs.c                   |    7 +-
- drivers/base/power/opp/of.c                        |   10 +-
- drivers/base/power/sysfs.c                         |   12 +-
- drivers/base/power/wakeup.c                        |   50 +-
- drivers/cpufreq/cppc_cpufreq.c                     |   19 +-
- drivers/cpufreq/cpufreq-dt-platdev.c               |    1 +
- drivers/cpufreq/cpufreq.c                          |   12 +-
- drivers/cpufreq/exynos5440-cpufreq.c               |    6 +-
- drivers/cpufreq/imx6q-cpufreq.c                    |    6 +-
- drivers/cpufreq/intel_pstate.c                     |  172 ++-
- drivers/cpufreq/sfi-cpufreq.c                      |    2 +-
- drivers/cpuidle/Kconfig.arm                        |    1 +
- drivers/cpuidle/cpuidle-arm.c                      |   62 +-
- drivers/cpuidle/governors/menu.c                   |   20 +-
- drivers/idle/intel_idle.c                          |   32 +-
- drivers/pci/pci-acpi.c                             |   90 +-
- drivers/pci/pci-driver.c                           |    2 +-
- drivers/pci/pci-mid.c                              |   10 +-
- drivers/pci/pci.c                                  |   68 +-
- drivers/pci/pci.h                                  |    9 +-
- drivers/pci/pcie/pme.c                             |   16 +-
- drivers/platform/x86/Kconfig                       |   19 +
- drivers/platform/x86/Makefile                      |    1 +
- drivers/platform/x86/intel-hid.c                   |   40 +-
- drivers/platform/x86/intel-vbtn.c                  |   39 +-
- drivers/platform/x86/intel_int0002_vgpio.c         |  219 +++
- drivers/pnp/pnpacpi/core.c                         |    6 +-
- drivers/power/avs/rockchip-io-domain.c             |   14 +
- drivers/powercap/intel_rapl.c                      |    4 +-
- drivers/usb/core/hcd-pci.c                         |    7 +-
- drivers/usb/dwc3/dwc3-pci.c                        |    3 +-
- drivers/usb/host/uhci-pci.c                        |    2 +-
- include/acpi/acpi_bus.h                            |   29 +-
- include/linux/cpufreq.h                            |    2 +
- include/linux/pci.h                                |   10 +-
- include/linux/pm.h                                 |    1 -
- include/linux/pm_opp.h                             |    9 +
- include/linux/pm_runtime.h                         |   12 -
- include/linux/suspend.h                            |    7 +-
- kernel/power/hibernate.c                           |    2 +-
- kernel/power/process.c                             |    2 +-
- kernel/power/snapshot.c                            |   11 +-
- kernel/power/suspend.c                             |   35 +-
- tools/power/cpupower/utils/helpers/amd.c           |   31 +-
- tools/power/cpupower/utils/helpers/helpers.h       |    2 +
- tools/power/cpupower/utils/helpers/misc.c          |   23 +-
- tools/power/x86/turbostat/turbostat.c              |   94 +-
- tools/power/x86/x86_energy_perf_policy/Makefile    |   27 +-
- .../x86_energy_perf_policy.8                       |  241 +++-
- .../x86_energy_perf_policy.c                       | 1504 +++++++++++++++++---
- 76 files changed, 2887 insertions(+), 925 deletions(-)
+ drivers/acpi/acpi_configfs.c                       |  20 +-
+ drivers/acpi/acpi_dbg.c                            |   2 +-
+ drivers/acpi/acpica/Makefile                       |   1 +
+ drivers/acpi/acpica/acapps.h                       |   4 +-
+ drivers/acpi/acpica/acglobal.h                     |   3 +
+ drivers/acpi/acpica/aclocal.h                      |  15 +-
+ drivers/acpi/acpica/acopcode.h                     |   2 +-
+ drivers/acpi/acpica/acpredef.h                     |  16 +
+ drivers/acpi/acpica/acresrc.h                      |  15 +-
+ drivers/acpi/acpica/acutils.h                      |   1 +
+ drivers/acpi/acpica/amlcode.h                      |  61 ++--
+ drivers/acpi/acpica/amlresrc.h                     | 104 ++++++
+ drivers/acpi/acpica/dbexec.c                       |  12 +
+ drivers/acpi/acpica/dbobject.c                     |   6 +-
+ drivers/acpi/acpica/dbxface.c                      |   2 +-
+ drivers/acpi/acpica/dsargs.c                       |   5 +-
+ drivers/acpi/acpica/dsdebug.c                      |   1 +
+ drivers/acpi/acpica/dsmethod.c                     |  12 +-
+ drivers/acpi/acpica/dsopcode.c                     |  11 +-
+ drivers/acpi/acpica/dsutils.c                      |   9 -
+ drivers/acpi/acpica/dswexec.c                      |   4 +-
+ drivers/acpi/acpica/dswload.c                      |  42 ++-
+ drivers/acpi/acpica/dswload2.c                     |  16 +
+ drivers/acpi/acpica/evxfevnt.c                     |  18 +
+ drivers/acpi/acpica/exdebug.c                      |   4 +-
+ drivers/acpi/acpica/exdump.c                       |  30 +-
+ drivers/acpi/acpica/exoparg1.c                     |  25 +-
+ drivers/acpi/acpica/exresolv.c                     |  23 +-
+ drivers/acpi/acpica/hwxfsleep.c                    |  14 +-
+ drivers/acpi/acpica/nsaccess.c                     |  27 ++
+ drivers/acpi/acpica/nsnames.c                      |   3 -
+ drivers/acpi/acpica/nsutils.c                      |   2 +-
+ drivers/acpi/acpica/nsxfeval.c                     |  39 ++-
+ drivers/acpi/acpica/psobject.c                     |  14 +
+ drivers/acpi/acpica/psopcode.c                     |   8 +-
+ drivers/acpi/acpica/psparse.c                      |  14 +-
+ drivers/acpi/acpica/rscalc.c                       | 139 ++++++++
+ drivers/acpi/acpica/rsdump.c                       |  48 +++
+ drivers/acpi/acpica/rsdumpinfo.c                   | 114 +++++++
+ drivers/acpi/acpica/rsinfo.c                       |  28 +-
+ drivers/acpi/acpica/rsmisc.c                       |   4 +-
+ drivers/acpi/acpica/rsserial.c                     | 373 +++++++++++++++++++++
+ drivers/acpi/acpica/tbdata.c                       |   4 +
+ drivers/acpi/acpica/tbfadt.c                       |   4 +-
+ drivers/acpi/acpica/tbutils.c                      |   6 +-
+ drivers/acpi/acpica/utdecode.c                     |   8 +-
+ drivers/acpi/acpica/utownerid.c                    |  12 +-
+ drivers/acpi/acpica/utresdecode.c                  | 315 +++++++++++++++++
+ drivers/acpi/acpica/utresrc.c                      | 259 +-------------
+ drivers/acpi/acpica/utxfmutex.c                    |   5 +-
+ drivers/acpi/button.c                              |   2 +-
+ drivers/acpi/ec.c                                  |  84 ++++-
+ drivers/acpi/ioapic.c                              |   2 +-
+ drivers/acpi/pmic/intel_pmic_xpower.c              |  21 +-
+ drivers/acpi/video_detect.c                        |   8 +
+ drivers/char/tpm/tpm_crb.c                         |   4 +-
+ drivers/mailbox/pcc.c                              |  10 +-
+ include/acpi/acpixf.h                              |   2 +-
+ include/acpi/acrestyp.h                            |  92 ++++-
+ include/acpi/actbl1.h                              | 238 ++++++++++++-
+ include/acpi/actbl2.h                              |  59 +++-
+ include/acpi/actbl3.h                              |  82 ++++-
+ include/acpi/actypes.h                             |  67 ++--
+ include/acpi/acuuid.h                              |   5 +
+ include/acpi/platform/acenv.h                      |   4 +
+ include/acpi/platform/acgcc.h                      |  10 +
+ include/acpi/platform/acintel.h                    |   2 +
+ include/acpi/platform/aclinux.h                    |   2 +
+ .../acpi/os_specific/service_layers/osunixxf.c     |  10 +-
+ 69 files changed, 2156 insertions(+), 452 deletions(-)
