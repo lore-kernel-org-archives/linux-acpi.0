@@ -1,115 +1,72 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [RFC PATCH v4] acpi: indicate to platform when hot remove returns busy
-Date: Mon, 3 Jul 2017 20:08:51 +0300
-Message-ID: <CAHp75Vcyyp2m70mCy6DJi=N4HuC8CVf=3RyRoT3yZK9j3Ue0aw@mail.gmail.com>
-References: <20170703132610.21719-1-jlee@suse.com>
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: Re: [PATCH] coccinelle: api: detect unnecessary le16_to_cpu
+Date: Mon, 3 Jul 2017 19:14:27 +0200
+Message-ID: <20170703171427.qtpodt7watymphac@earth>
+References: <1498937290-12285-1-git-send-email-Julia.Lawall@lip6.fr>
+ <20170703133602.ejcdu35ku3i63cj2@earth>
+ <CAHp75VeJY8Xr2H8XK8A7Piu-38TnAeKu5Gn+edtkZmbw2quW0g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:33935 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754744AbdGCRIw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jul 2017 13:08:52 -0400
-In-Reply-To: <20170703132610.21719-1-jlee@suse.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="q423twwc3cpjnt2c"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAHp75VeJY8Xr2H8XK8A7Piu-38TnAeKu5Gn+edtkZmbw2quW0g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Julia Lawall <Julia.Lawall@lip6.fr>, kernel-janitors@vger.kernel.org, Gilles Muller <Gilles.Muller@lip6.fr>, Nicolas Palix <nicolas.palix@imag.fr>, Michal Marek <mmarek@suse.com>, cocci@systeme.lip6.fr, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bastien Nocera <hadess@hadess.net>, Stephen Just <stephenjust@gmail.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, devel@acpica.org, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Michal Hocko <mhocko@suse.cz>
-
-On Mon, Jul 3, 2017 at 4:26 PM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
-> In hotplug logic, it always indicates non-specific failure to
-> platform through _OST when handing acpi hot-remove event failed. Then
-> platform terminates the hot-remove process but it can not identify
-> the reason.
->
-> Base on current hot-remove code, there have two situations that it
-> returns busy:
->  - OSPM try to offline an individual device, but the device offline
->    function returns busy.
->  - When the ejection event is applied to an "not offlined yet" container.
->    OSPM send kobject change event to userspace and returns busy.
->
-> Both of them will returns -EBUSY to acpi device hotplug function then
-> hotplug function indicates non-specific failure to platform just like
-> any other error, e.g. -ENODEV or -EIO.
->
-> The benefit to platform for identifying the OS busy state is that
-> platform can be applied different approach to handle the busy but
-> not just terminate the hot-remove process by unknown reason. For
-> example, platform can wait for a while then triggers hot-remove
-> again.
->
-> This RFC patch adds one more parameter to the handler function of
-> acpi generic hotplug event to give the function a chance to propose
-> the return code of _OST. In this case, it sets ost return code to
-> ACPI_OST_SC_DEVICE_BUSY when the acpi hot remove function returns
-> -EBUSY.
->
-
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-
-> v4:
-> Use switch-case statements to simplify code. (Andy Shevchenko, Rafael J. Wysocki)
->
-> v3:
-> Removed redundant 'else' in acpi_ost_status_code(). (Andy Shevchenko)
->
-> v2:
-> Do not overwrite ost code in acpi_generic_hotplug_event(). Move
-> the "error code to ost code" logic to a help function. (Andy Shevchenko)
->
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-> Cc: Michal Hocko <mhocko@suse.cz>
-> Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
-> ---
->  drivers/acpi/scan.c | 18 +++++++++++++-----
->  1 file changed, 13 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index d531629..ce88175 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -404,10 +404,6 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
->                 error = dock_notify(adev, src);
->         } else if (adev->flags.hotplug_notify) {
->                 error = acpi_generic_hotplug_event(adev, src);
-> -               if (error == -EPERM) {
-> -                       ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-> -                       goto err_out;
-> -               }
->         } else {
->                 int (*notify)(struct acpi_device *, u32);
->
-> @@ -423,8 +419,20 @@ void acpi_device_hotplug(struct acpi_device *adev, u32 src)
->                 else
->                         goto out;
->         }
-> -       if (!error)
-> +       switch (error) {
-> +       case 0:
->                 ost_code = ACPI_OST_SC_SUCCESS;
-> +               break;
-> +       case -EPERM:
-> +               ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-> +               break;
-> +       case -EBUSY:
-> +               ost_code = ACPI_OST_SC_DEVICE_BUSY;
-> +               break;
-> +       default:
-> +               ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
-> +               break;
-> +       }
->
->   err_out:
->         acpi_evaluate_ost(adev->handle, src, ost_code, NULL);
-> --
-> 2.10.2
->
 
 
+--q423twwc3cpjnt2c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-With Best Regards,
-Andy Shevchenko
+Hi,
+
+On Mon, Jul 03, 2017 at 07:37:59PM +0300, Andy Shevchenko wrote:
+> On Mon, Jul 3, 2017 at 4:36 PM, Sebastian Reichel
+> <sebastian.reichel@collabora.co.uk> wrote:
+> > On Sat, Jul 01, 2017 at 09:28:10PM +0200, Julia Lawall wrote:
+>=20
+> >  * drivers/gpio/gpio-pca953x.c (line 190-192)
+>=20
+> It has double conversion there:
+> 1. LE CPU: Read as LE and converted to LE (no-op), so, just u16
+> 2. BE CPU: Read as BE and converted to LE, makes it __le16
+>=20
+> Looks like the conversion is not needed, only get_unaligned() is necessar=
+y.
+>
+> P.S. What about lines 244-245 there? I think they are no-op.
+> Interesting that those two parts were added in quite different
+> commits.
+
+val[0] =3D (u16)ret & 0xFF;
+val[1] =3D (u16)ret >> 8;
+
+looks like cpu_to_be16()?
+
+-- Sebastian
+
+--q423twwc3cpjnt2c
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllae3AACgkQ2O7X88g7
++po8OA//d9JWbNuF91GTv7k5o+dDCtUU7lICKhKm3wepov1DCRG4zUU57J/xPuI0
+AxhTJQaF34E+2hs5+6WW+FC1IB/WA+nGpOS5dd+mKgno79AhMG0k424qbLQeNSfk
+HploHIYSYmq7ndaLdRzeUDpC4kJ4+5eDxa3jVcC5d88Wc9mtX6UghzRsGEiw18EY
+dOYbfYOZl3ANIAOFH6sP9p4g0j6BmX5bayOTP0hcPVoEZitYvoSaJMJczEwEgymK
+rOpNpQFoXrbv5M/V9me2Qx8IOQ/uLYmgsJZbd3lotk3NsJvhuK2FkYAodNF4XC2R
+ifkDovn2e4FzWLtbfSXrTdg5t6kWL6VCGGwW+V6sFl1hT6cHfIijsU1CGW3MTT4A
+Njq8xRm0aOenaivh4DgPAtceE4ddsc7DJHGPKiqOYmiPhcxKckWSZbWuJD4n4Al4
+crkYvIzsmX82F9S7xXfmW4Nt9mGiFiNnIFYfSrz8kbrA9Oj3/SUv0x/DqHULYAzf
+8mfc5JWnEoVbIBQZ0m0EEu4zBbjMXE1Mk1CyiXWacb0J1OMpMpiwnmis/6lvPshL
+ZnnDYVTjthwlukiOm3tVIXzZFCdlhkPpjFwFiP68OEYquJImWgl6ezaG3Rg85MM/
+TwxqRJJrfXtGAnX0i3PgDLi/LQtCXK3FFEQBqtw/+7010a6jc+o=
+=JFid
+-----END PGP SIGNATURE-----
+
+--q423twwc3cpjnt2c--
