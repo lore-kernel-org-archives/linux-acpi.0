@@ -1,153 +1,131 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCH] coccinelle: api: detect unnecessary le16_to_cpu
-Date: Mon, 3 Jul 2017 15:36:02 +0200
-Message-ID: <20170703133602.ejcdu35ku3i63cj2@earth>
-References: <1498937290-12285-1-git-send-email-Julia.Lawall@lip6.fr>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO
+ devices before scanning
+Date: Mon, 3 Jul 2017 16:08:02 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40B10487@FRAEML521-MBX.china.huawei.com>
+References: <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
+ <20170613151013.GT3187@lahna.fi.intel.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
+ <20170613200339.GX3187@lahna.fi.intel.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40AB537A@FRAEML521-MBX.china.huawei.com>
+ <20170616083313.GY3187@lahna.fi.intel.com>
+ <CAJZ5v0gWGL=M1+T2DxFfwAi=gCbBBnLFVyp4u+1EVem-mcSNQg@mail.gmail.com>
+ <20170616120048.GC629@lahna.fi.intel.com>
+ <CAJZ5v0g+qVui6RU=Hy3c_3qAAWngqaAu6B3JxGOpqF06kitbzA@mail.gmail.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40ACFB8D@FRAEML521-MBX.china.huawei.com>
+ <20170619100209.GC629@lahna.fi.intel.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40ACFC3D@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="bh35jazzbablkmhm"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1498937290-12285-1-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-pm-owner@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: kernel-janitors@vger.kernel.org, Gilles Muller <Gilles.Muller@lip6.fr>, Nicolas Palix <nicolas.palix@imag.fr>, Michal Marek <mmarek@suse.com>, cocci@systeme.lip6.fr, linux-kernel@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bastien Nocera <hadess@hadess.net>, Stephen Just <stephenjust@gmail.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([45.249.212.189]:8420 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753467AbdGCQJZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jul 2017 12:09:25 -0400
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E40ACFC3D@FRAEML521-MBX.china.huawei.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi>
 
+Hi Mika
 
---bh35jazzbablkmhm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> -----Original Message-----
+> From: linux-pci-owner@vger.kernel.org [mailto:linux-pci-
+> owner@vger.kernel.org] On Behalf Of Gabriele Paoloni
+> Sent: 19 June 2017 11:05
+> To: Mika Westerberg
+> Cc: Rafael J. Wysocki; Lorenzo Pieralisi; Rafael J. Wysocki;
+> catalin.marinas@arm.com; will.deacon@arm.com; robh+dt@kernel.org;
+> frowand.list@gmail.com; bhelgaas@google.com; arnd@arndb.de; linux-arm-
+> kernel@lists.infradead.org; mark.rutland@arm.com;
+> brian.starkey@arm.com; olof@lixom.net; benh@kernel.crashing.org; linux-
+> kernel@vger.kernel.org; linux-acpi@vger.kernel.org; Linuxarm; linux-
+> pci@vger.kernel.org; minyard@acm.org; John Garry; xuwei (O)
+> Subject: RE: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO
+> devices before scanning
+> 
+> Hi Mika
+> 
+> > -----Original Message-----
+> > From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
+> > Sent: 19 June 2017 11:02
+> > To: Gabriele Paoloni
+> > Cc: Rafael J. Wysocki; Lorenzo Pieralisi; Rafael J. Wysocki;
+> > catalin.marinas@arm.com; will.deacon@arm.com; robh+dt@kernel.org;
+> > frowand.list@gmail.com; bhelgaas@google.com; arnd@arndb.de; linux-
+> arm-
+> > kernel@lists.infradead.org; mark.rutland@arm.com;
+> > brian.starkey@arm.com; olof@lixom.net; benh@kernel.crashing.org;
+> linux-
+> > kernel@vger.kernel.org; linux-acpi@vger.kernel.org; Linuxarm; linux-
+> > pci@vger.kernel.org; minyard@acm.org; John Garry; xuwei (O)
+> > Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO
+> > devices before scanning
+> >
+> > On Mon, Jun 19, 2017 at 09:50:49AM +0000, Gabriele Paoloni wrote:
+> > > Many thanks for your response and your help here.
+> > >
+> > > I guess that as conclusion with respect to the current v9 patchset
+> we
+> > can
+> > > disregard the idea of MFD and modify the current v9 so that it
+> > doesn't
+> > > touch directly ACPI resources.
+> > > Instead as I proposed before we can have the scan handler to
+> > enumerate
+> > > the children devices and translate its addresses filling dev-
+> > >resources[] and
+> > > at the same time we can modify acpi_default_enumeration to check
+> > > acpi_device_enumerated() before continuing with device
+> > enumeration...?
+> > >
+> > > Do you think it as a viable solution?
+> >
+> > No, I think MFD + scan handler inside the MFD driver is the way to
+> go.
+> > We don't want to trash ACPI core with stuff that does not belong
+> there
+> > IMHO.
+> 
+> Ok Many thanks I will investigate this direction
 
-Hi Julia,
+I had a look into the MFD framework. If my understanding is correct the mfd
+framework create a platform device for each declared mfd_cell that is passed
+to mfd_add_devices().
+However there is something that I do not quite understand:
+from
+http://elixir.free-electrons.com/linux/latest/source/drivers/mfd/mfd-core.c#L207
+it seems that mfd_add_device() will create the platform device using the
+resources that are statically declared in the respective mfd_cell.
 
-On Sat, Jul 01, 2017 at 09:28:10PM +0200, Julia Lawall wrote:
-> As reported by Sebastian Reichel, i2c_smbus_read_word_data() returns nati=
-ve
-> endianness for little-endian bus (it basically has builtin
-> le16_to_cpu). Calling le16_to_cpu on the result breaks support on big
-> endian machines by converting it back.
+In my case I'd like to have a platform device using the resources that are
+parsed from the ACPI table (i.e. as it is done now by 
+acpi_create_platform_device()).
 
-Thanks, you are fast :)
+If my understanding is correct, if I declared an mfd_cell for my IPMI child
+the mfd subsystem would create a platform device for such child and
+therefore acpi_create_platform_device() would fail to create a new platform
+device as adev->physical_node_count will be non zero.
+However as things stand now mfd_cell devices can only use the resources
+that are statically defined in the code (and therefore not the ones in the
+ACPI nodes)...am I right?
 
-> This semantic patch give no reports on kernel code currently, but the
-> issue is somewhat obscure and has occurred in a sumitted patch, so it cou=
-ld
-> be good to have a check for it.
+Thanks
+Gab
 
-Ok, so problem is not as bad as I feared. I found a few issues with
-simple git grep, though:
+> 
+> >
+> > Also you don't need to modify acpi_default_enumeration() because you
+> > can
+> > mark your device enumerated in the MFD driver. So all the dirty
+> details
+> > will be in the MFD driver and not in ACPI core.
+> 
+> Ok got it :)
+> 
+> Cheers
+> Gab
 
-git grep -C100 i2c_smbus_read_word_data | grep le16_to_cpu
-git grep -C100 i2c_smbus_write_word_data | grep cpu_to_le16
-
-It returned just a few files on v4.12 and all of them look buggy
-after manual inspection:
-
- * drivers/macintosh/windfarm_lm75_sensor.c (line 71)
- * drivers/macintosh/windfarm_smu_sat.c (line 80-91)
- * drivers/gpio/gpio-pca953x.c (line 190-192)
- * drivers/power/supply/bq24735-charger.c
-   - fixed in linux-next by 48f680c0a9ca
- * drivers/power/supply/sbs-battery.c
-   - fixed in linux-next by a1bbec72f9fe
-
-> Suggested-by: Sebastian Reichel <sre@kernel.org>
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
->=20
-> ---
->=20
-> The rule could easily be extended with more such functions.  Let me know =
-if
-> anything else should be taken into account.
-
-I guess the write function should also be covered.
-
--- Sebastian
-
->  scripts/coccinelle/api/smbus_word.cocci |   45 +++++++++++++++++++++++++=
-+++++++
->  1 file changed, 45 insertions(+)
->=20
-> diff --git a/scripts/coccinelle/api/smbus_word.cocci b/scripts/coccinelle=
-/api/smbus_word.cocci
-> new file mode 100644
-> index 0000000..b167cf0
-> --- /dev/null
-> +++ b/scripts/coccinelle/api/smbus_word.cocci
-> @@ -0,0 +1,45 @@
-> +/// i2c_smbus_read_word_data() returns native endianness for little-endi=
-an
-> +/// bus (it basically has builtin le16_to_cpu). Calling le16_to_cpu on t=
-he
-> +/// result breaks support on big endian machines by converting it back.
-> +///
-> +// Confidence: Moderate
-> +// Copyright: (C) 2017 Julia Lawall, Inria. GPLv2.
-> +// URL: http://coccinelle.lip6.fr/
-> +// Options: --no-includes --include-headers
-> +// Keywords: i2c_smbus_read_word_data, le16_to_cpu
-> +
-> +virtual context
-> +virtual org
-> +virtual report
-> +
-> +// ---------------------------------------------------------------------=
--------
-> +
-> +@r depends on context || org || report exists@
-> +expression e, x;
-> +position j0, j1;
-> +@@
-> +
-> +* x@j0 =3D i2c_smbus_read_word_data(...)
-> +... when !=3D x =3D e
-> +* le16_to_cpu@j1(x)
-> +
-> +// ---------------------------------------------------------------------=
--------
-> +
-> +@script:python r_org depends on org@
-> +j0 << r.j0;
-> +j1 << r.j1;
-> +@@
-> +
-> +msg =3D "le16_to_cpu not needed on i2c_smbus_read_word_data result."
-> +coccilib.org.print_todo(j0[0], msg)
-> +coccilib.org.print_link(j1[0], "")
-> +
-> +// ---------------------------------------------------------------------=
--------
-> +
-> +@script:python r_report depends on report@
-> +j0 << r.j0;
-> +j1 << r.j1;
-> +@@
-> +
-> +msg =3D "le16_to_cpu not needed on i2c_smbus_read_word_data result aroun=
-d line %s." % (j1[0].line)
-> +coccilib.report.print_report(j0[0], msg)
->=20
-
---bh35jazzbablkmhm
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllaSD4ACgkQ2O7X88g7
-+ppmnA/8C+N/4AqBw81+Gc4ZscPU5IuydzcGKoVUqpA5Fo3Qkye7IbGIghS7hGub
-U2of/+N8sE/kUa4nRrLyIfe3QK/3KfgVi+4gWRe7WaWGUUJbZys2ontyBie2f94n
-I4KdKVf4dfNx+K6Zaac0JNcgGqVUMfTGRvxEaUALpaMiw/edPbF6enLsOa5xchXx
-KgpIG9uR+NuMDrSSVPM9jdm8jachSbU4iTpjsq3MrK8SIuja4bP3Tr5BogzRhCJR
-nrE1FfQnhdoQStKl2kM3yNgI90Eusrvdw6bbKr4TE6GazPZJKrIs22YCOKfe6/S1
-bNDMQpzPy3PPF9R/6qt7WsWyou38VbhnjbUn0+mwy6Fnh78JEUdeP6w1mjjyzUvh
-e6sKbvIAoRFSMTvoU9ce+sZQy7whOoNzA06BmXb0IioLYjf3edYpbn4iRUz7rVq0
-Kzj8q5LARz4vGDuPWjgyT2PqSOboYHLu7IjtWSvFRTrHa0xQLqny78nrOCYFEIpF
-if/3yl19vxmEYvSNmtumXIFNlsi8CeYIv+7KCKCUPi9ljnuzKZCmcBTpCztKHcj5
-oLX8UMOpX7r5Cl8XubpmE/c9m+iUQJD+p1bLgEqB0C8yRL5wKOPPFp3OtExsGvgO
-7DX/+6hUSfYw+nhpmTjf9/OKuID9ksLAR4Yu1WZIH8L7I3U+xXc=
-=1wgC
------END PGP SIGNATURE-----
-
---bh35jazzbablkmhm--
