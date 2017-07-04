@@ -1,46 +1,121 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: Re: [PATCH] gpio: drop unnecessary includes from include/linux/gpio/driver.h
-Date: Tue, 4 Jul 2017 19:39:28 +0900
-Message-ID: <CAK7LNASmcg5CZ5OSBxakZ2LZgDe1F3RDEtvJ5F9Tk29pXrbQxg@mail.gmail.com>
-References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com> <1499162760.22624.246.camel@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v3] acpi: configfs: Unload SSDT on configfs entry removal
+Date: Tue, 4 Jul 2017 14:05:20 +0200
+Message-ID: <CAJZ5v0j_UMDqkr82v6OEcmUW5Lqn-fae2wsSmFLC8zsCyprx0w@mail.gmail.com>
+References: <e5c56c3f-5c9a-d689-90f0-b8e4c499199e@siemens.com> <ba9505c1-1412-42be-9af7-57972fc50d3f@siemens.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1499162760.22624.246.camel@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-gpio@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, William Breathitt Gray <vilhelm.gray@gmail.com>, Ray Jui <rjui@broadcom.com>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, David Cohen <david.a.cohen@linux.intel.com>, Scott Branden <sbranden@broadcom.com>, linux-acpi@vger.kernel.org, Broadcom Kernel Feedback List <bcm-kernel-feedback-list@broadcom.com>, Florian Fainelli <f.fainelli@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Alexander Shiyan <shc_work@mail.ru>, Michal Simek <michal.simek@xilinx.com>, Kevin Hilman <khilman@kernel.org>, linux-tegra@vger.kernel.org, Joel Stanley <joel@jms.id.au>, linux-omap@vger.kernel.
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f194.google.com ([209.85.223.194]:34434 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752051AbdGDMFV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jul 2017 08:05:21 -0400
+In-Reply-To: <ba9505c1-1412-42be-9af7-57972fc50d3f@siemens.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Moore, Robert" <robert.moore@intel.com>
 
-2017-07-04 19:06 GMT+09:00 Andy Shevchenko <andriy.shevchenko@linux.intel.com>:
-> On Tue, 2017-07-04 at 12:53 +0900, Masahiro Yamada wrote:
->> Some of include directives in include/linux/gpio/driver.h are
->> unneeded because the header does not need to know the content of
->> struct device, irq_chip, etc.  Just declare they are structures.
+On Tue, Jul 4, 2017 at 8:14 AM, Jan Kiszka <jan.kiszka@siemens.com> wrote:
+> On 2017-06-09 20:36, Jan Kiszka wrote:
+>> Call directly into acpica to load a table to obtain its index on return.
+>> We choose the direct call of acpica internal functions to avoid having
+>> to modify its API which is used outside of Linux as well.
 >>
->> On the other hand, <linux/irqhandler.h> and <linux/spinlock_types.h>
->> turned out to be necessary for irq_flow_handler_t and spinlock_t,
->> respectively.
+>> Use that index to unload the table again when the corresponding
+>> directory in configfs gets removed. This allows to change SSDTs without
+>> rebooting the system. It also allows to destroy devices again that a
+>> dynamically loaded SSDT created.
 >>
->> Each driver should include what it needs without relying on what is
->> implicitly included from <linux/gpio/driver.h>.  This will cut down
->> unnecessary header parsing.
+>> This is widely similar to the DT overlay behavior.
+>>
+>> Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+>> ---
+>>
+>> Change in v3:
+>>  - fix breakage if acpi_configfs is modular
+>>
+>>  drivers/acpi/acpi_configfs.c | 20 +++++++++++++++++++-
+>>  drivers/acpi/acpica/tbdata.c |  4 ++++
+>>  2 files changed, 23 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/acpi_configfs.c b/drivers/acpi/acpi_configfs.c
+>> index 146a77fb762d..853bc7fc673f 100644
+>> --- a/drivers/acpi/acpi_configfs.c
+>> +++ b/drivers/acpi/acpi_configfs.c
+>> @@ -15,11 +15,15 @@
+>>  #include <linux/configfs.h>
+>>  #include <linux/acpi.h>
+>>
+>> +#include "acpica/accommon.h"
+>> +#include "acpica/actables.h"
+>> +
+>>  static struct config_group *acpi_table_group;
+>>
+>>  struct acpi_table {
+>>       struct config_item cfg;
+>>       struct acpi_table_header *header;
+>> +     u32 index;
+>>  };
+>>
+>>  static ssize_t acpi_table_aml_write(struct config_item *cfg,
+>> @@ -52,7 +56,11 @@ static ssize_t acpi_table_aml_write(struct config_item *cfg,
+>>       if (!table->header)
+>>               return -ENOMEM;
+>>
+>> -     ret = acpi_load_table(table->header);
+>> +     ACPI_INFO(("Host-directed Dynamic ACPI Table Load:"));
+>> +     ret = acpi_tb_install_and_load_table(
+>> +                     ACPI_PTR_TO_PHYSADDR(table->header),
+>> +                     ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL, FALSE,
+>> +                     &table->index);
+>>       if (ret) {
+>>               kfree(table->header);
+>>               table->header = NULL;
+>> @@ -215,8 +223,18 @@ static struct config_item *acpi_table_make_item(struct config_group *group,
+>>       return &table->cfg;
+>>  }
+>>
+>> +static void acpi_table_drop_item(struct config_group *group,
+>> +                              struct config_item *cfg)
+>> +{
+>> +     struct acpi_table *table = container_of(cfg, struct acpi_table, cfg);
+>> +
+>> +     ACPI_INFO(("Host-directed Dynamic ACPI Table Unload"));
+>> +     acpi_tb_unload_table(table->index);
+>> +}
+>> +
+>>  struct configfs_group_operations acpi_table_group_ops = {
+>>       .make_item = acpi_table_make_item,
+>> +     .drop_item = acpi_table_drop_item,
+>>  };
+>>
+>>  static struct config_item_type acpi_tables_type = {
+>> diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
+>> index 27c5c27d4818..c9d6fa6d7cc6 100644
+>> --- a/drivers/acpi/acpica/tbdata.c
+>> +++ b/drivers/acpi/acpica/tbdata.c
+>> @@ -867,6 +867,8 @@ acpi_tb_install_and_load_table(acpi_physical_address address,
+>>       return_ACPI_STATUS(status);
+>>  }
+>>
+>> +ACPI_EXPORT_SYMBOL(acpi_tb_install_and_load_table)
+>> +
+>>  /*******************************************************************************
+>>   *
+>>   * FUNCTION:    acpi_tb_unload_table
+>> @@ -914,3 +916,5 @@ acpi_status acpi_tb_unload_table(u32 table_index)
+>>       acpi_tb_set_table_loaded_flag(table_index, FALSE);
+>>       return_ACPI_STATUS(status);
+>>  }
+>> +
+>> +ACPI_EXPORT_SYMBOL(acpi_tb_unload_table)
+>>
 >
-> If Linus is okay with the following proposal I would rather go with it,
-> i.e. logical split the series to
->
-> 1. Fix IRQ related headers inclusion
-> 2. Fix pinconf-generic.h inclusion
-> 3. Fix OF headers inclusion (btw, of_gpio.h is not enough there?)
+> Ping for this patch.
 
-Maybe
-  4.  Fix (platform_)device inclusion
+Pushed to Linus and is waiting for merging (along with the other ACPI
+changes for 4.13).
 
-
-But, I do not see much sense to touch headers multiple times.
-
-
-
--- 
-Best Regards
-Masahiro Yamada
+Thanks,
+Rafael
