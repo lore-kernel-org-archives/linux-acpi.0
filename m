@@ -1,70 +1,76 @@
-From: Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
-Subject: Re: [PATCH] gpio: drop unnecessary includes from include/linux/gpio/driver.h
-Date: Wed, 5 Jul 2017 00:43:08 +0900
-Message-ID: <CAK7LNATRrngmVFPDSKmUm3Td7RXnSZSPGNF9Ds_y+DU=i7mRag@mail.gmail.com>
-References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com> <20170704125851.GA20504@sophia>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v9 5/7] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Tue, 4 Jul 2017 18:46:59 +0300
+Message-ID: <CAHp75VccwpesvDxMcxZ+349rhrAq8QxNoau9XmquMnv9DBLBfA@mail.gmail.com>
+References: <EE11001F9E5DDD47B7634E2F8A612F2E40AAE3DA@FRAEML521-MBX.china.huawei.com>
+ <20170613151013.GT3187@lahna.fi.intel.com> <EE11001F9E5DDD47B7634E2F8A612F2E40AAF0BF@FRAEML521-MBX.china.huawei.com>
+ <20170613200339.GX3187@lahna.fi.intel.com> <EE11001F9E5DDD47B7634E2F8A612F2E40AB537A@FRAEML521-MBX.china.huawei.com>
+ <20170616083313.GY3187@lahna.fi.intel.com> <CAJZ5v0gWGL=M1+T2DxFfwAi=gCbBBnLFVyp4u+1EVem-mcSNQg@mail.gmail.com>
+ <20170616120048.GC629@lahna.fi.intel.com> <CAJZ5v0g+qVui6RU=Hy3c_3qAAWngqaAu6B3JxGOpqF06kitbzA@mail.gmail.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40ACFB8D@FRAEML521-MBX.china.huawei.com>
+ <20170619100209.GC629@lahna.fi.intel.com> <EE11001F9E5DDD47B7634E2F8A612F2E40ACFC3D@FRAEML521-MBX.china.huawei.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E40B10487@FRAEML521-MBX.china.huawei.com>
+ <CAHp75VevOno613gk8QHDA7kmLZJj9TLZRiu7oJUs_xaRzcbpnw@mail.gmail.com> <EE11001F9E5DDD47B7634E2F8A612F2E40B15AA2@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170704125851.GA20504@sophia>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: William Breathitt Gray <vilhelm.gray-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ray Jui <rjui-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, David Cohen <david.a.cohen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Scott Branden <sbranden-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Broadcom Kernel Feedback List <bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Alexander Shiyan <shc_work-JGs/UdohzUI@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel <linux-arm-kerne>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qk0-f176.google.com ([209.85.220.176]:35578 "EHLO
+        mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752249AbdGDPrB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jul 2017 11:47:01 -0400
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E40B15AA2@FRAEML521-MBX.china.huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.ke>
 
-2017-07-04 21:58 GMT+09:00 William Breathitt Gray <vilhelm.gray-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
-> On Tue, Jul 04, 2017 at 12:53:34PM +0900, Masahiro Yamada wrote:
->>Some of include directives in include/linux/gpio/driver.h are
->>unneeded because the header does not need to know the content of
->>struct device, irq_chip, etc.  Just declare they are structures.
+On Tue, Jul 4, 2017 at 6:14 PM, Gabriele Paoloni
+<gabriele.paoloni@huawei.com> wrote:
+
+>> > In my case I'd like to have a platform device using the resources
+>> that are
+>> > parsed from the ACPI table (i.e. as it is done now by
+>> > acpi_create_platform_device()).
 >>
->>On the other hand, <linux/irqhandler.h> and <linux/spinlock_types.h>
->>turned out to be necessary for irq_flow_handler_t and spinlock_t,
->>respectively.
+>> So far so good. Nothing prevents you to do that.
 >>
->>Each driver should include what it needs without relying on what is
->>implicitly included from <linux/gpio/driver.h>.  This will cut down
->>unnecessary header parsing.
+>> > If my understanding is correct, if I declared an mfd_cell for my IPMI
+>> child
+>> > the mfd subsystem would create a platform device for such child and
+>> > therefore acpi_create_platform_device() would fail to create a new
+>> platform
+>> > device as adev->physical_node_count will be non zero.
+>> > However as things stand now mfd_cell devices can only use the
+>> resources
+>> > that are statically defined in the code (and therefore not the ones
+>> in the
+>> > ACPI nodes)...am I right?
 >>
->>Signed-off-by: Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
->>---
->>
->> drivers/gpio/gpio-104-dio-48e.c  |  1 +
->> drivers/gpio/gpio-104-idi-48.c   |  1 +
->> drivers/gpio/gpio-104-idio-16.c  |  1 +
->> drivers/gpio/gpio-pci-idio-16.c  |  2 ++
->> drivers/gpio/gpio-ws16c48.c      |  1 +
+>> You may file resources first and then register MFD cells. See many
+>> existing examples in the kernel.
 >
-> The changes to the above drivers look fine to me:
+> Well I had a look around the Kernel I have seen no mfd cells using
+> Resources that are not statically defined:
+> i.e. cell->resources in mfd_add_device() always points to statically
+> defined resource structures.
 >
-> Acked-by: William Breathitt Gray <vilhelm.gray-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Usually for ACPI devices first you need to parse the ACPI resources
+> from the table calling acpi_dev_get_resources(), then you iterate
+> over the resource list and fill the resource array by calling
+> acpi_platform_fill_resurces() (as in acpi_create_platform_device())
 >
-> However, this patch as a whole does too many things; I'd like to see it
-> split-up logically similar to how Andy Shevchenko suggested in his
-> reply. That should allow ACKs by respective driver maintainers to be
-> accounted more properly.
->
-> William Breathitt Gray
+> With respect to my case are you suggesting dynamically allocate a
+> resource array and fill it using the same fashion as
+> acpi_create_platform_device(), then point cell->resources to such
+> array before calling mfd_add_device() ?
 
-
-I was missing a very important thing.
-
-<linux/gpio/driver.h> is used in various subsystems.
-
-I tested only under drivers/gpio/, but
-drivers/pinctrl/ is one of the biggest source of compile errors.
-
-(Probably I will get reports from kbuild test robot.)
-
-
-So, I need to think about how to merge this (if the basic idea of this is OK).
-
-Maybe,
-
-[1] Send patches to subsystems (gpio, pinctrl, etc.) for v4.14
-[2] Drop unneeded includes from linux/gpio/driver.h for v4.15
-
+You may do it on stack. Define your cell statically (but not const)
+and apply resources just before mfd_add_devices() call.
+There are examples in the existing drivers. Intel LPC comes to my mind
+and perhaps PMC (Broxton), though latter has too much other stuff
+around.
 
 -- 
-Best Regards
-Masahiro Yamada
+With Best Regards,
+Andy Shevchenko
