@@ -1,52 +1,55 @@
-From: William Breathitt Gray <vilhelm.gray@gmail.com>
-Subject: Re: [PATCH] gpio: drop unnecessary includes from
- include/linux/gpio/driver.h
-Date: Tue, 4 Jul 2017 08:58:51 -0400
-Message-ID: <20170704125851.GA20504@sophia>
-References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2] platform/x86: wmi-bmof: New driver to expose embedded
+ Binary WMI MOF metadata
+Date: Tue, 4 Jul 2017 15:28:19 +0200
+Message-ID: <20170704132819.GE2102@pali>
+References: <cd020900567e5c26af29e0735a3945a855d26a30.1496718529.git.dvhart@infradead.org>
+ <20170606100440.GA4690@pali>
+ <20170606170201.GC32509@fury>
+ <201706062250.52564@pali>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:34074 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752254AbdGDM7L (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jul 2017 08:59:11 -0400
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:34921 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750891AbdGDN2W (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jul 2017 09:28:22 -0400
 Content-Disposition: inline
-In-Reply-To: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
+In-Reply-To: <201706062250.52564@pali>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: linux-gpio@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Ray Jui <rjui@broadcom.com>, =?utf-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>, David Cohen <david.a.cohen@linux.intel.com>, Scott Branden <sbranden@broadcom.com>, linux-acpi@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com, Florian Fainelli <f.fainelli@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Alexander Shiyan <shc_work@mail.ru>, Michal Simek <michal.simek@xilinx.com>, Kevin Hilman <khilman@kernel.org>, linux-tegra@vger.kernel.org, Joel Stanley <joel@jms.id.au>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.o
+To: Darren Hart <dvhart@infradead.org>
+Cc: Andy Lutomirski <luto@kernel.org>, platform-driver-x86@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <mario_limonciello@dell.com>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Jul 04, 2017 at 12:53:34PM +0900, Masahiro Yamada wrote:
->Some of include directives in include/linux/gpio/driver.h are
->unneeded because the header does not need to know the content of
->struct device, irq_chip, etc.  Just declare they are structures.
->
->On the other hand, <linux/irqhandler.h> and <linux/spinlock_types.h>
->turned out to be necessary for irq_flow_handler_t and spinlock_t,
->respectively.
->
->Each driver should include what it needs without relying on what is
->implicitly included from <linux/gpio/driver.h>.  This will cut down
->unnecessary header parsing.
->
->Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
->---
->
-> drivers/gpio/gpio-104-dio-48e.c  |  1 +
-> drivers/gpio/gpio-104-idi-48.c   |  1 +
-> drivers/gpio/gpio-104-idio-16.c  |  1 +
-> drivers/gpio/gpio-pci-idio-16.c  |  2 ++
-> drivers/gpio/gpio-ws16c48.c      |  1 +
+On Tuesday 06 June 2017 22:50:52 Pali Rohár wrote:
+> On Tuesday 06 June 2017 19:02:01 Darren Hart wrote:
+> > On Tue, Jun 06, 2017 at 12:04:40PM +0200, Pali Rohár wrote:
+> > > On Monday 05 June 2017 20:16:44 Andy Lutomirski wrote:
+> > > > +#define WMI_BMOF_GUID "05901221-D566-11D1-B2F0-00A0C9062910"
+> > > > +MODULE_ALIAS("wmi:" WMI_BMOF_GUID);
+> > > 
+> > > Cannot we generate MODULE_ALIAS from module_wmi_driver()? IIRC it
+> > > is working for i2c drivers.
+> > 
+> > I could see this being automated since we always use wmi:GUID, but it
+> > isn't currently. Happy to consider it as a follow on.
+> > 
+> > Do you have a specific i2c example you think we should consider
+> > following?
+> 
+> For i2c you can specify in driver code:
+> 
+> MODULE_DEVICE_TABLE(i2c, id_table);
+> 
+> And it automatically provides (via file.mod.c) all needed MODULE_ALIAS.
+> 
+> So when we have wmi_bmof_id_table in driver, cannot we use this?
+> 
+> MODULE_DEVICE_TABLE(wmi, wmi_bmof_id_table);
 
-The changes to the above drivers look fine to me:
+Just reminder for above idea ↑↑↑
 
-Acked-by: William Breathitt Gray <vilhelm.gray@gmail.com>
-
-However, this patch as a whole does too many things; I'd like to see it
-split-up logically similar to how Andy Shevchenko suggested in his
-reply. That should allow ACKs by respective driver maintainers to be
-accounted more properly.
-
-William Breathitt Gray
+-- 
+Pali Rohár
+pali.rohar@gmail.com
