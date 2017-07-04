@@ -1,41 +1,50 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2 1/2] ACPI: SPCR: Use access width to determine mmio
- usage
-Date: Tue, 4 Jul 2017 09:22:51 +0200
-Message-ID: <20170704072251.GA17867@kroah.com>
-References: <1499117589-4829-1-git-send-email-lho@apm.com>
- <1499117589-4829-2-git-send-email-lho@apm.com>
- <CAJZ5v0gw82WcRomx0b=ZmxdXG4VFP8iCXSoQ_BvArQvOoi90TA@mail.gmail.com>
+From: Charles Keepax <ckeepax@opensource.cirrus.com>
+Subject: Re: [PATCH] gpio: drop unnecessary includes from
+ include/linux/gpio/driver.h
+Date: Tue, 4 Jul 2017 09:30:45 +0100
+Message-ID: <20170704083045.fqruqn6i5sxhfhu6@localhost.localdomain>
+References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34024 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751631AbdGDHWw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jul 2017 03:22:52 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gw82WcRomx0b=ZmxdXG4VFP8iCXSoQ_BvArQvOoi90TA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Thor Thayer <thor.thayer@linux.intel.com>, Tien Hock Loh <thloh@altera.com>, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Thierry Reding <thierry.reding@gmail.com>, Alban Bedel <albeu@free.fr>, Florian Fainelli <f.fainelli@gmail.com>, Alexander Shiyan <shc_work@mail.ru>, Kevin Hilman <khilman@kernel.org>, Michal Simek <michal.simek@xilinx.com>, Jonathan Hunter <jonathanh@nvidia.com>, linux-acpi@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com, Joel Stanley <joel@jms.id.au>, Grygorii Strashko <grygorii.strashko@ti.com>, Ray Jui <rjui@broadcom.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, linux-gpio@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-arm-kernel@lists.infradead.org, =?iso-885
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Loc Ho <lho@apm.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, Jon Mason <jon.mason@broadcom.com>, Jon Masters <jcm@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Broadcom Kernel List <bcm-kernel-feedback-list@broadcom.com>, patches@apm.com
 
-On Mon, Jul 03, 2017 at 11:44:30PM +0200, Rafael J. Wysocki wrote:
-> On Mon, Jul 3, 2017 at 11:33 PM, Loc Ho <lho@apm.com> wrote:
-> > The current SPCR code does not check the access width of the mmio, and
-> > uses a default of 8bit register accesses.  This prevents devices that
-> > only do 16 or 32bit register accesses from working.  By simply checking
-> > this field and setting the mmio string appropriately, this issue can be
-> > corrected.  To prevent any legacy issues, the code will default to 8bit
-> > accesses if the value is anything but 16 or 32.
-> >
-> > Signed-off-by: Loc Ho <lho@apm.com>
-> > [Re-send as single patch set]
-> > Signed-off-by: Jon Mason <jon.mason@broadcom.com>
+On Tue, Jul 04, 2017 at 12:53:34PM +0900, Masahiro Yamada wrote:
+> Some of include directives in include/linux/gpio/driver.h are
+> unneeded because the header does not need to know the content of
+> struct device, irq_chip, etc.  Just declare they are structures.
 > 
-> Greg, Aleksey, any objections here?
+> On the other hand, <linux/irqhandler.h> and <linux/spinlock_types.h>
+> turned out to be necessary for irq_flow_handler_t and spinlock_t,
+> respectively.
 > 
-> If not, I'll route this through the ACPI tree.
+> Each driver should include what it needs without relying on what is
+> implicitly included from <linux/gpio/driver.h>.  This will cut down
+> unnecessary header parsing.
+> 
+> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> ---
+> 
+>  drivers/gpio/gpio-wm831x.c       |  1 +
+>  drivers/gpio/gpio-wm8994.c       |  1 +
 
-No objections from me for either of these patches:
-	Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+For the Wolfson Micro bits:
+
+Acked-by: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+
+Thanks,
+Charles
