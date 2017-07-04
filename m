@@ -1,85 +1,90 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 2/4] ACPI / property: Support Apple _DSM properties
-Date: Tue, 4 Jul 2017 00:47:00 +0200
-Message-ID: <CAJZ5v0g9wq4-PTHP8-ubVhCDvTa_G677NcQet4DYEJKEqpbKjg@mail.gmail.com>
-References: <cover.1498636759.git.lukas@wunner.de> <e72ce423489dd604ae98ad3b76e07caf944cb581.1498636759.git.lukas@wunner.de>
- <CAHp75VdjOcPkd0_g05_OW6amxHjf2zdJ9jKyH7q2AgzGMr-h4w@mail.gmail.com> <20170702110719.GA825@wunner.de>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH v3 1/2] acpi: thermal: initialize tz_enabled to 1
+Date: Tue, 04 Jul 2017 09:43:15 +0800
+Message-ID: <1499132595.2654.7.camel@intel.com>
+References: <20170703080040.13750-1-enric.balletbo@collabora.com>
+         <CAJZ5v0joeKd+0TC4ik23zOLKxw0F42aYeZ7XugK=1LpDae3OtQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170702110719.GA825-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-Cc: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ronald Tschalaer <ronald-Cgq6lnktLNMTaf21n8AfGQ@public.gmane.org>, Federico Lorenzi <florenzi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Leif Liddy <leif.liddy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Daniel Roschka <danielroschka-d2qyoUQsf3ABe69/dCFm4g@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, the arch/x86 maintainers <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:27252 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750861AbdGDBmn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 3 Jul 2017 21:42:43 -0400
+In-Reply-To: <CAJZ5v0joeKd+0TC4ik23zOLKxw0F42aYeZ7XugK=1LpDae3OtQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Guenter Roeck <groeck@chromium.org>, Sameer Nanda <snanda@chromium.org>
 
-On Sun, Jul 2, 2017 at 1:07 PM, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org> wrote:
-> On Wed, Jun 28, 2017 at 09:53:49PM +0300, Andy Shevchenko wrote:
->> On Wed, Jun 28, 2017 at 8:20 PM, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org> wrote:
->> > While the rest of the world has standardized on _DSD as the way to store
->> > device properties in AML (introduced with ACPI 5.1 in 2014), Apple has
->> > been using a custom _DSM to achieve the same for much longer (ever since
->> > they switched from DeviceTree-based PowerPC to Intel in 2005, verified
->> > with MacOS X 10.4.11).
-> [snip]
->> > +static void acpi_retrieve_apple_properties(struct acpi_device *adev)
->> > +{
->> > +       unsigned int i, j, newsize = 0, numprops, skipped = 0;
->> > +       union acpi_object *props, *newprops;
->> > +       void *free_space;
->> > +
->> > +       if (!IS_ENABLED(CONFIG_X86) || !dmi_match(DMI_SYS_VENDOR, "Apple Inc."))
->> > +               return;
->>
->> You are using this in few places, perhaps it makes sense to do in
->> (maybe) header like
->> drivers/acpi/apple.h
->>
->> static inline bool is_apple_system(void)
->> {
->>    return IS_ENABLED(CONFIG_X86) && dmi_match(DMI_SYS_VENDOR, "Apple Inc.");
->> }
->>
->> I know this makes more LOCs, the rationale is to keep such
->> deterministic things in one place (basically maintenance).
->
-> You mean like is_uv_system() for SGI UltraViolet?
->
-> I could add a global bool is_apple_system which is set early during boot,
-> then the DMI check would only have to be performed once.  The bool would
-> be #defined to false on non-x86 arches via a header file which would have
-> to live in include/linux/.  I could add an x86-specific config option
-> such as CONFIG_X86_APPLE which would allow removal of all Mac-specific
-> quirks and behaviour by likewise #defining is_apple_system to false.
->
-> I'm not sure if the x86 maintainers will approve of this.  Next thing
-> you know, someone wants to add the same thing for Dell or whatever.
-> OTOH the amount of code to deal with Apple quirks may justify it.
-> Adding x86 maintainers to cc.  Ingo, Thomas, Peter, any opinion?
+On Mon, 2017-07-03 at 23:08 +0200, Rafael J. Wysocki wrote:
+> On Mon, Jul 3, 2017 at 10:00 AM, Enric Balletbo i Serra
+> <enric.balletbo@collabora.com> wrote:
+> > 
+> > From: Sameer Nanda <snanda@chromium.org>
+> > 
+> > In the acpi_thermal_add path, acpi_thermal_get_info gets called
+> > before
+> > acpi_thermal_register_thermal_zone.  Since tz_enabled was getting
+> > set to
+> > 1 only in acpi_thermal_register_thermal_zone, acpi_thermal_get_info
+> > ended up disabling thermal polling.
+> > 
+> > Moved setting of tz_enabled to 1 into acpi_thermal_add itself.
+> > 
+> > Signed-off-by: Sameer Nanda <snanda@chromium.org>
+> > Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com
+> > >
+> > ---
+> > Changes since v2:
+> >  - Zhang Rui:
+> >    - Make sure tz->tz_enabled is set properly before registering
+> > the zone.
+> > 
+> > Changes since v1:
+> >  - This patch is new from v1 [1]
+> > 
+> >  [1] https://patchwork.kernel.org/patch/9804229/
+> > 
+> >  drivers/acpi/thermal.c | 3 +--
+> >  1 file changed, 1 insertion(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> > index 1d0417b..cd0fe92 100644
+> > --- a/drivers/acpi/thermal.c
+> > +++ b/drivers/acpi/thermal.c
+> > @@ -930,8 +930,6 @@ static int
+> > acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+> >         if (ACPI_FAILURE(status))
+> >                 return -ENODEV;
+> > 
+> > -       tz->tz_enabled = 1;
+> > -
+> >         dev_info(&tz->device->dev, "registered as
+> > thermal_zone%d\n",
+> >                  tz->thermal_zone->id);
+> >         return 0;
+> > @@ -1088,6 +1086,7 @@ static int acpi_thermal_add(struct
+> > acpi_device *device)
+> >                 return -ENOMEM;
+> > 
+> >         tz->device = device;
+> > +       tz->tz_enabled = 1;
+> >         strcpy(tz->name, device->pnp.bus_id);
+> >         strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
+> >         strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
+> > --
+> Rui,
+> 
+> Can I just apply this, or do I need to work for a thermal core
+> update?
+>  In the latter case, can you take care of this one too, please?
+> 
+Yes, I will take both of the patches.
 
-Well, it doesn't have to go into arch/x86/.
+thanks,
+rui
 
-We have drivers/acpi/x86/ now, so you can put it in there, say into
-apple.c that will only be built for CONFIG_X86 set.
-
-Then, instead of using a concealed #ifdef in-line, you could do that
-openly in a header.
-
-Moreover, having a static bool variable in drivers/acpi/x86/apple.c
-would not be super-objectionable IMO.
-
-> My concern is that this series is bikeshedded / postponed indefinitely
-> if it is made to depend on such bigger changes.  (The discussion of
-> which is legitimate of course.)
-
-Of course, the Apple properties check in scan.c only makes sense if
-the system is Apple, but then the dmi_match() adds a bit of overhead
-for everything x86 that isn't Apple, which I guess is the majority.
-So I'd like that overhead to be reduced if possible.
-
-Thanks,
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thanks,
+> Rafael
