@@ -1,109 +1,126 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal SoC management updates for v4.13-rc1 #1
-Date: Tue, 4 Jul 2017 11:49:55 -0700
-Message-ID: <20170704184952.GA18084@localhost.localdomain>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v3 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+ erratum 161010801
+Date: Wed, 5 Jul 2017 09:48:53 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA83839DB59@FRAEML521-MBX.china.huawei.com>
+References: <20170623145801.325244-1-shameerali.kolothum.thodi@huawei.com>
+ <20170623145801.325244-3-shameerali.kolothum.thodi@huawei.com>
+ <20170704173820.GO22175@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:33111 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752127AbdGDSuA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jul 2017 14:50:00 -0400
-Content-Disposition: inline
+Received: from szxga01-in.huawei.com ([45.249.212.187]:9278 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750867AbdGEJtM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2017 05:49:12 -0400
+In-Reply-To: <20170704173820.GO22175@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Will Deacon <will.deacon@arm.com>
+Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 
 
---u3/rZRmxL6MmkK24
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-Hello Rui,
+> -----Original Message-----
+> From: Will Deacon [mailto:will.deacon@arm.com]
+> Sent: Tuesday, July 04, 2017 6:38 PM
+> To: Shameerali Kolothum Thodi
+> Cc: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
+> sudeep.holla@arm.com; robin.murphy@arm.com; hanjun.guo@linaro.org;
+> Gabriele Paoloni; John Garry; Linuxarm; linux-acpi@vger.kernel.org;
+> iommu@lists.linux-foundation.org; Wangzhou (B); Guohanjun (Hanjun Guo);
+> linux-arm-kernel@lists.infradead.org; devel@acpica.org
+> Subject: Re: [PATCH v3 2/2] iommu/arm-smmu-v3:Enable ACPI based
+> HiSilicon erratum 161010801
+> 
+> On Fri, Jun 23, 2017 at 03:58:01PM +0100, shameer wrote:
+> > The HiSilicon erratum 161010801 describes the limitation of HiSilicon
+> > platforms Hip06/Hip07 to support the SMMU mappings for MSI
+> transactions.
+> >
+> > On these platforms GICv3 ITS translator is presented with the deviceID
+> > by extending the MSI payload data to 64 bits to include the deviceID.
+> > Hence, the PCIe controller on this platforms has to differentiate the
+> > MSI payload against other DMA payload and has to modify the MSI
+> payload.
+> > This basically makes it difficult for this platforms to have a SMMU
+> > translation for MSI.
+> >
+> > This patch implements a ACPI table based quirk to reserve the hw msi
+> > regions in the smmu-v3 driver which means these address regions will
+> > not be translated and will be excluded from iova allocations.
+> >
+> > Signed-off-by: shameer <shameerali.kolothum.thodi@huawei.com>
+> > ---
+> >  drivers/iommu/arm-smmu-v3.c | 30 ++++++++++++++++++++++++++----
+> >  1 file changed, 26 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-
+> v3.c
+> > index abe4b88..c9346f2 100644
+> > --- a/drivers/iommu/arm-smmu-v3.c
+> > +++ b/drivers/iommu/arm-smmu-v3.c
+> > @@ -597,6 +597,7 @@ struct arm_smmu_device {
+> >  	u32				features;
+> >
+> >  #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
+> > +#define ARM_SMMU_OPT_RESV_HW_MSI	(1 << 1)
+> >  	u32				options;
+> >
+> >  	struct arm_smmu_cmdq		cmdq;
+> > @@ -1904,14 +1905,34 @@ static void arm_smmu_get_resv_regions(struct
+> device *dev,
+> >  				      struct list_head *head)
+> >  {
+> >  	struct iommu_resv_region *region;
+> > +	struct arm_smmu_device *smmu;
+> > +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
+> >  	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+> > +	int resv = 0;
+> >
+> > -	region = iommu_alloc_resv_region(MSI_IOVA_BASE,
+> MSI_IOVA_LENGTH,
+> > -					 prot, IOMMU_RESV_SW_MSI);
+> > -	if (!region)
+> > +	smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
+> 
+> Does this callback actually get called without a prior ->add_device callback
+> for the master in question? If not, then we can already claw the structure
+> out via the iommu_priv field in the fwspec.
 
-Please pull the following changes to get the Thermal SoC updates
-for 4.13-rc1. Here we have:
+Thanks Will for going through this.
 
-- Refactoring of cpucooling device driver to improve cpufreq data handling
-- Small fixes on different drivers: IMX, hisilicon, and BCM.
+Yes, from the logs I have, it looks like _resv callback is always called after
+ ->add_device. I will double check this with vfio bind case as well.
 
-The following changes since commit 2ea659a9ef488125eb46da6eb571de5eae5c43f6:
+And I guess, this is what you are proposing to retrieve the smmu,
 
-  Linux 4.12-rc1 (2017-05-13 13:19:49 -0700)
+master = dev->iommu_fwspec->iommu_priv;
+smmu = master->smmu;
 
-are available in the git repository at:
+> > +	if (WARN_ON(!smmu))
+>
+> Again, how does this trigger?
+> >  		return;
+> >
+> > -	list_add_tail(&region->list, head);
+> > +	if ((smmu->options & ARM_SMMU_OPT_RESV_HW_MSI)) {
+> > +
+> > +		if (!is_of_node(smmu->dev->fwnode))
+> > +			resv = iort_iommu_its_get_resv_regions(dev, head);
+> 
+> How does this work when we're not using ACPI? Shouldn't of vs ACPI be
+> abstracted from the driver?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal linus
+At present ARM_SMMU_OPT_RESV_HW_MSI is only set for ACPI and  DT support for
+this is a low priority for us at the moment. Is the suggestion is to have a common function
+outside the smmu driver for _iommu_its_get_resv_regions() ? I am not sure what
+is the best way here. 
 
-for you to fetch changes up to 1fe3854a83b580727c9464b37b62ba77ead1d6f6:
+Thanks,
+Shameer
 
-  thermal: bcm2835: fix an error code in probe() (2017-06-30 16:46:11 -0700)
 
-----------------------------------------------------------------
-Arvind Yadav (2):
-      thermal: imx: Handle return value of clk_prepare_enable
-      thermal: hisilicon: Handle return value of clk_prepare_enable
 
-Dan Carpenter (1):
-      thermal: bcm2835: fix an error code in probe()
-
-Viresh Kumar (18):
-      thermal: cpu_cooling: Avoid accessing potentially freed structures
-      thermal: cpu_cooling: rearrange globals
-      thermal: cpu_cooling: Name cpufreq cooling devices as cpufreq_cdev
-      thermal: cpu_cooling: replace cool_dev with cdev
-      thermal: cpu_cooling: remove cpufreq_cooling_get_level()
-      thermal: cpu_cooling: get rid of a variable in cpufreq_set_cur_state()
-      thermal: cpu_cooling: use cpufreq_policy to register cooling device
-      cpufreq: create cpufreq_table_count_valid_entries()
-      thermal: cpu_cooling: store cpufreq policy
-      thermal: cpu_cooling: OPPs are registered for all CPUs
-      thermal: cpu_cooling: get rid of 'allowed_cpus'
-      thermal: cpu_cooling: merge frequency and power tables
-      thermal: cpu_cooling: create structure for idle time stats
-      thermal: cpu_cooling: get_level() can't fail
-      thermal: cpu_cooling: don't store cpu_dev in cpufreq_cdev
-      thermal: cpu_cooling: 'freq' can't be zero in cpufreq_state2power()
-      thermal: cpu_cooling: Rearrange struct cpufreq_cooling_device
-      thermal: cpu_cooling: Replace kmalloc with kmalloc_array
-
- drivers/cpufreq/arm_big_little.c                   |   2 +-
- drivers/cpufreq/cpufreq-dt.c                       |   2 +-
- drivers/cpufreq/cpufreq_stats.c                    |  13 +-
- drivers/cpufreq/dbx500-cpufreq.c                   |   2 +-
- drivers/cpufreq/mt8173-cpufreq.c                   |   4 +-
- drivers/cpufreq/qoriq-cpufreq.c                    |   3 +-
- drivers/thermal/broadcom/bcm2835_thermal.c         |   1 -
- drivers/thermal/cpu_cooling.c                      | 609 +++++++++------------
- drivers/thermal/hisi_thermal.c                     |   5 +-
- drivers/thermal/imx_thermal.c                      |  27 +-
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  22 +-
- include/linux/cpu_cooling.h                        |  32 +-
- include/linux/cpufreq.h                            |  14 +
- 13 files changed, 325 insertions(+), 411 deletions(-)
-
---u3/rZRmxL6MmkK24
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJZW+NJAAoJEA6VkvSQfF5THz0P+gL/UuP3j9FGCrgtHPhhcU8X
-rFac027BQI8n8j4VhKQQ+wmPzmllhmbpEdBw/96J9f/cW/cnP7X7hcgTsVKzndvC
-QMfTM4IjE4zZpqlaSHfDPgl0UI+8W0C6eOWqmlU08v08tgBvAO/zSQDenWSGctsW
-Hhw52ZwbDG2fY+GV/HuQBHkjoo3fbocFxJx9uaRCptyhOg5YenEOmQfzXSawY59S
-vZBBtiRFxdBdkzSjNAHi3feX9XGNuRzCaP+wPNfRMkkSs/CWVw75lcPQTpmGpNXk
-5vVh9k8W6GcpcGTWF2f+G47ZppEtL58vRIRQGbFrmebdiCLdvIQ3RRqme4OvD0Qq
-XuTQnahf0qfW9eXuQ44kpI7chf+bFPME9UjyhlPy7ozPqUIzE9zh0anC3sAgPfDk
-otXhEJ1YGGDlecx7ew6fIFEuCC1GdGceExKsJeYtzjai9l1ioJabZzQ6LYh1dRE4
-T6YbcSTK/PTk7j+5SV1Oa9keBaO6u+/5APqiX+J2WmLgot0r3dCZe+JpvE2hWaPC
-Nv5XSLeidyM6KYwjXMGl/N9LRudHthhJNq6eMu+Ga/DPoVbWak3Z2Acpxo26ZNGa
-+eJY2rkDhJ27mnBT3cOI7MvfBu9SJK8MhddsBDfTXiXLWKh6lmiyR7IQ9dxd+h/W
-GuEsUm6cWk3BwyascSFc
-=XGcx
------END PGP SIGNATURE-----
-
---u3/rZRmxL6MmkK24--
