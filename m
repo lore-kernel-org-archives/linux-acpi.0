@@ -1,165 +1,108 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
+From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Subject: Re: [RFC v2 2/5] acpi: HMAT support in acpi_parse_entries_array()
-Date: Fri, 7 Jul 2017 00:13:54 +0200
-Message-ID: <CAJZ5v0gUA4d+NFqEdsXPVktXf+2AX9MurEQAiCFGxU_eaoYE5A@mail.gmail.com>
-References: <20170706215233.11329-1-ross.zwisler@linux.intel.com> <20170706215233.11329-3-ross.zwisler@linux.intel.com>
+Date: Thu, 6 Jul 2017 16:22:00 -0600
+Message-ID: <20170706222200.GA31795@linux.intel.com>
+References: <20170706215233.11329-1-ross.zwisler@linux.intel.com>
+ <20170706215233.11329-3-ross.zwisler@linux.intel.com>
+ <CAJZ5v0gUA4d+NFqEdsXPVktXf+2AX9MurEQAiCFGxU_eaoYE5A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:35312 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751943AbdGFWN4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Jul 2017 18:13:56 -0400
-In-Reply-To: <20170706215233.11329-3-ross.zwisler@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0gUA4d+NFqEdsXPVktXf+2AX9MurEQAiCFGxU_eaoYE5A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Box, David E" <david.e.box-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Anaczkowski,
+ Lukasz" <lukasz.anaczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore,
+ Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Odzioba,
+ Lukasz" <lukasz.odzioba-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Schmauss, Erik" <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>, "Kogut,
+ Jaroslaw" <Jaroslaw.Kogut-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Memory Management List <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Nachimuthu,
+ Murugasamy" <murugasamy.nachimuthu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lahtinen,
+ Joo
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Greg Kroah-Hartman <gregkh@linuxfounda>
 
-On Thu, Jul 6, 2017 at 11:52 PM, Ross Zwisler
-<ross.zwisler@linux.intel.com> wrote:
-> The current implementation of acpi_parse_entries_array() assumes that each
-> subtable has a standard ACPI subtable entry of type struct
-> acpi_sutbable_header.  This standard subtable header has a one byte length
-> followed by a one byte type.
->
-> The HMAT subtables have to allow for a longer length so they have subtable
-> headers of type struct acpi_hmat_structure which has a 2 byte type and a 4
-> byte length.
->
-> Enhance the subtable parsing in acpi_parse_entries_array() so that it can
-> handle these new HMAT subtables.
->
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> ---
->  drivers/acpi/numa.c   |  2 +-
->  drivers/acpi/tables.c | 52 ++++++++++++++++++++++++++++++++++++++++-----------
->  2 files changed, 42 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-> index edb0c79..917f1cc 100644
-> --- a/drivers/acpi/numa.c
-> +++ b/drivers/acpi/numa.c
-> @@ -443,7 +443,7 @@ int __init acpi_numa_init(void)
->          * So go over all cpu entries in SRAT to get apicid to node mapping.
->          */
->
-> -       /* SRAT: Static Resource Affinity Table */
-> +       /* SRAT: System Resource Affinity Table */
->         if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
->                 struct acpi_subtable_proc srat_proc[3];
->
+On Fri, Jul 07, 2017 at 12:13:54AM +0200, Rafael J. Wysocki wrote:
+> On Thu, Jul 6, 2017 at 11:52 PM, Ross Zwisler
+> <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+> > The current implementation of acpi_parse_entries_array() assumes that each
+> > subtable has a standard ACPI subtable entry of type struct
+> > acpi_sutbable_header.  This standard subtable header has a one byte length
+> > followed by a one byte type.
+> >
+> > The HMAT subtables have to allow for a longer length so they have subtable
+> > headers of type struct acpi_hmat_structure which has a 2 byte type and a 4
+> > byte length.
+> >
+> > Enhance the subtable parsing in acpi_parse_entries_array() so that it can
+> > handle these new HMAT subtables.
+> >
+> > Signed-off-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> > ---
+> >  drivers/acpi/numa.c   |  2 +-
+> >  drivers/acpi/tables.c | 52 ++++++++++++++++++++++++++++++++++++++++-----------
+> >  2 files changed, 42 insertions(+), 12 deletions(-)
+> >
+> > diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+> > index edb0c79..917f1cc 100644
+> > --- a/drivers/acpi/numa.c
+> > +++ b/drivers/acpi/numa.c
+> > @@ -443,7 +443,7 @@ int __init acpi_numa_init(void)
+> >          * So go over all cpu entries in SRAT to get apicid to node mapping.
+> >          */
+> >
+> > -       /* SRAT: Static Resource Affinity Table */
+> > +       /* SRAT: System Resource Affinity Table */
+> >         if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
+> >                 struct acpi_subtable_proc srat_proc[3];
+> >
+> 
+> This change is unrelated to the rest of the patch.
+> 
+> Maybe send it separately?
 
-This change is unrelated to the rest of the patch.
+Sure, will do.
 
-Maybe send it separately?
+> > diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> > index ff42539..7979171 100644
+> > --- a/drivers/acpi/tables.c
+> > +++ b/drivers/acpi/tables.c
+> > @@ -218,6 +218,33 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+> >         }
+> >  }
+> >
+> > +static unsigned long __init
+> > +acpi_get_entry_type(char *id, void *entry)
+> > +{
+> > +       if (!strncmp(id, ACPI_SIG_HMAT, 4))
+> > +               return ((struct acpi_hmat_structure *)entry)->type;
+> > +       else
+> > +               return ((struct acpi_subtable_header *)entry)->type;
+> > +}
+> 
+> I slightly prefer to use ? : in similar situations.
 
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index ff42539..7979171 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -218,6 +218,33 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
->         }
->  }
->
-> +static unsigned long __init
-> +acpi_get_entry_type(char *id, void *entry)
-> +{
-> +       if (!strncmp(id, ACPI_SIG_HMAT, 4))
-> +               return ((struct acpi_hmat_structure *)entry)->type;
-> +       else
-> +               return ((struct acpi_subtable_header *)entry)->type;
-> +}
+Hmm..that becomes rather long, and seems complex for the already hard to read
+?: operator?  Let's see, this:
 
-I slightly prefer to use ? : in similar situations.
+	if (!strncmp(id, ACPI_SIG_HMAT, 4))
+		return ((struct acpi_hmat_structure *)entry)->type;
+	else
+		return ((struct acpi_subtable_header *)entry)->type;
 
-> +
-> +static unsigned long __init
-> +acpi_get_entry_length(char *id, void *entry)
-> +{
-> +       if (!strncmp(id, ACPI_SIG_HMAT, 4))
-> +               return ((struct acpi_hmat_structure *)entry)->length;
-> +       else
-> +               return ((struct acpi_subtable_header *)entry)->length;
-> +}
-> +
-> +static unsigned long __init
-> +acpi_get_subtable_header_length(char *id)
-> +{
-> +       if (!strncmp(id, ACPI_SIG_HMAT, 4))
-> +               return sizeof(struct acpi_hmat_structure);
-> +       else
-> +               return sizeof(struct acpi_subtable_header);
-> +}
-> +
->  /**
->   * acpi_parse_entries_array - for each proc_num find a suitable subtable
->   *
-> @@ -242,10 +269,10 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
->                 struct acpi_subtable_proc *proc, int proc_num,
->                 unsigned int max_entries)
->  {
-> -       struct acpi_subtable_header *entry;
-> -       unsigned long table_end;
-> +       unsigned long table_end, subtable_header_length;
->         int count = 0;
->         int errs = 0;
-> +       void *entry;
->         int i;
->
->         if (acpi_disabled)
-> @@ -263,19 +290,23 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
->         }
->
->         table_end = (unsigned long)table_header + table_header->length;
-> +       subtable_header_length = acpi_get_subtable_header_length(id);
->
->         /* Parse all entries looking for a match. */
->
-> -       entry = (struct acpi_subtable_header *)
-> -           ((unsigned long)table_header + table_size);
-> +       entry = (void *)table_header + table_size;
-> +
-> +       while (((unsigned long)entry) + subtable_header_length  < table_end) {
-> +               unsigned long entry_type, entry_length;
->
-> -       while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
-> -              table_end) {
->                 if (max_entries && count >= max_entries)
->                         break;
->
-> +               entry_type = acpi_get_entry_type(id, entry);
-> +               entry_length = acpi_get_entry_length(id, entry);
-> +
->                 for (i = 0; i < proc_num; i++) {
-> -                       if (entry->type != proc[i].id)
-> +                       if (entry_type != proc[i].id)
->                                 continue;
->                         if (!proc[i].handler ||
->                              (!errs && proc[i].handler(entry, table_end))) {
-> @@ -290,16 +321,15 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
->                         count++;
->
->                 /*
-> -                * If entry->length is 0, break from this loop to avoid
-> +                * If entry_length is 0, break from this loop to avoid
->                  * infinite loop.
->                  */
-> -               if (entry->length == 0) {
-> +               if (entry_length == 0) {
->                         pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, proc->id);
->                         return -EINVAL;
->                 }
->
-> -               entry = (struct acpi_subtable_header *)
-> -                   ((unsigned long)entry + entry->length);
-> +               entry += entry_length;
->         }
->
->         if (max_entries && count > max_entries) {
-> --
+becomes
 
-The rest is fine by me.
+	return strncmp(id, ACPI_SIG_HMAT, 4)) ?
+		((struct acpi_subtable_header *)entry)->type :
+		((struct acpi_hmat_structure *)entry)->type;
 
-Thanks,
-Rafael
+Hmm...we only save one line, and I personally find that a lot harder to read,
+but that being said if you feel strongly about it I'll make the change.
