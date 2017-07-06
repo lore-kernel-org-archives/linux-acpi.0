@@ -1,94 +1,52 @@
-From: Robert Richter <robert.richter@cavium.com>
-Subject: Re: [PATCH v3 2/2] acpi/iort: numa: Add numa node mapping for smmuv3
- devices
-Date: Thu, 6 Jul 2017 13:20:17 +0200
-Message-ID: <20170706112017.GA16981@rric.localdomain>
-References: <1496897059-8272-1-git-send-email-ganapatrao.kulkarni@cavium.com>
- <1496897059-8272-3-git-send-email-ganapatrao.kulkarni@cavium.com>
- <20170615134603.GA16292@red-moon>
- <20170628174750.GY658@rric.localdomain>
- <20170704100759.GA17491@red-moon>
+From: Tom Lanyon <tom@oneshoeco.com>
+Subject: Re: [PATCH] ACPI / sleep: EC-based wakeup from suspend-to-idle on
+ recent systems
+Date: Thu, 6 Jul 2017 21:41:36 +1000
+Message-ID: <CA+b4Kqd5qO2Q6drnfvhCyj_q33Hjg1nT7vbgm-uoc+wjpX=e3Q@mail.gmail.com>
+References: <1979543.KIEJ8uyRaT@aspire.rjw.lan> <CA+55aFyBfHVyh=TMifF+0KGEVy6JEyDz=gbHdP7nM2roa++X4Q@mail.gmail.com>
+ <CA+b4Kqd9qV0Pc7wJ2eHKcA-7+a23tY9gfe2Abm4=Bd08SKkh8w@mail.gmail.com>
+ <1908911.91yT2N6t2f@aspire.rjw.lan> <1498580081.7952.91.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0054.outbound.protection.outlook.com ([104.47.41.54]:12016
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750977AbdGFLUg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 6 Jul 2017 07:20:36 -0400
-Content-Disposition: inline
-In-Reply-To: <20170704100759.GA17491@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1498580081.7952.91.camel@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>, =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, lv.zheng@intel.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will.Deacon@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, robin.murphy@arm.com, joro@8bytes.org, lenb@kernel.org, jnair@caviumnetworks.com, gpkulkarni@gmail.com
 
-On 04.07.17 11:07:59, Lorenzo Pieralisi wrote:
-> On Wed, Jun 28, 2017 at 07:47:50PM +0200, Robert Richter wrote:
-> > On 15.06.17 14:46:03, Lorenzo Pieralisi wrote:
-> > > On Thu, Jun 08, 2017 at 10:14:19AM +0530, Ganapatrao Kulkarni wrote:
-> > > > Add code to parse proximity domain in SMMUv3 IORT table to
-> > > > set numa node mapping for smmuv3 devices.
-> > > > 
-> > > > Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-> > > > ---
-> > > >  drivers/acpi/arm64/iort.c | 28 ++++++++++++++++++++++++++--
-> > > >  1 file changed, 26 insertions(+), 2 deletions(-)
-> > > 
-> > > I am happy to take this but I want to know what we shall do with
-> > > patch 1 and related ACPICA changes first.
-> > 
-> > The change is now in acpica:
-> > 
-> >  https://github.com/acpica/acpica/commit/8cadc4fb500e2aa52241e367c87a0f95d9760c58
-> > 
-> > So we could guard the code with an #ifdef until that patch is pulled
-> > in via acpica tree:
-> > 
-> > > > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> > > > index bba2b59..e804386 100644
-> > > > --- a/drivers/acpi/arm64/iort.c
-> > > > +++ b/drivers/acpi/arm64/iort.c
-> > > > @@ -882,6 +882,23 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
-> > > >  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
-> > > >  }
-> > > >  
-> > > > +/*
-> > > > + * set numa proximity domain for smmuv3 device
-> > > > + */
-> > > > +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
-> > > > +		struct device *dev)
-> > > > +{
-> > 
-> > #ifdef ACPI_IORT_SMMU_V3_PXM_VALID
-> > 
-> > > > +	struct acpi_iort_smmu_v3 *smmu;
-> > > > +
-> > > > +	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
-> > > > +	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
-> > > > +		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
-> > > > +		pr_info("SMMUV3[%llx] Mapped to Proximity domain %d\n",
-> > > > +			smmu->base_address,
-> > > > +			smmu->pxm);
-> > > > +	}
-> > 
-> > #endif
-> > 
-> > > > +}
-> > > > +
-> > 
-> > Could the patch be applied with this change?
-> 
-> Sorry I was away (and the ARM64 tree was not accepting any new code last
-> week anyway), I will send the patch upstream for 4.14 (with your change
-> above - or whatever ACPICA guard make it safe - since we will depend on
-> ACPICA changes merge timing anyway - they won't be merged this cycle).
-> 
-> Bad timing, apologies, I hope it is not a burden to carry it for one
-> cycle.
+Sorry for the slow response - I've just had a chance to run some more tests.
 
-No problem. Good to hear this is accepted for 4.14.
+I tried to disable the SD card reader in the BIOS as suggested earlier
+in the thread, but that didn't seem to make a significant change.
+More inline below.
 
-Thanks,
+On Tue, 2017-06-27 at 17:03 +0200, Rafael J. Wysocki wrote:
+> I would carry out s2idle under turbostat to see how much PC10
+> residency is there while suspended.  That may be a significant factor.
+>
+> Most likely there is a device preventing the SoC from reaching its
+> deepest low-power states under Linux on your system and it needs to be
+> identified and dealt with.
 
--Robert
+I'm not entirely sure how turbostat records metrics so wasn't sure how
+to measure correctly.  I kept turbostat running while performing a
+s2idle and recorded the output:
+
+https://gist.githubusercontent.com/tomlanyon/3238e742a155e7fa27658aa0960bdee4/raw/98b5f050e5eb2f88af47b2afd17080e7dd85d20f/turbostat
+
+I'm not familiar with the output format - I see some high percentages
+of C10, but nothing in Pkg%pc10. Which is of interest in this
+scenario?
+
+On 28 June 2017 at 02:14, Srinivas Pandruvada
+<srinivas.pandruvada@linux.intel.com> wrote:
+> Also make sure that you have no FW loading error for i915.
+> #dmesg | grep i915
+> It will display that Guc FW was loaded etc..
+> The latest FW can be downloaded from
+> https://01.org/linuxgraphics/downloads/firmware
+>
+> If you don't see PC10 residency, we can try something more.
+
+I've confirmed that there's no FW errors for the i915.
