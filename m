@@ -1,52 +1,85 @@
-From: Tom Lanyon <tom@oneshoeco.com>
-Subject: Re: [PATCH] ACPI / sleep: EC-based wakeup from suspend-to-idle on
- recent systems
-Date: Thu, 6 Jul 2017 21:41:36 +1000
-Message-ID: <CA+b4Kqd5qO2Q6drnfvhCyj_q33Hjg1nT7vbgm-uoc+wjpX=e3Q@mail.gmail.com>
-References: <1979543.KIEJ8uyRaT@aspire.rjw.lan> <CA+55aFyBfHVyh=TMifF+0KGEVy6JEyDz=gbHdP7nM2roa++X4Q@mail.gmail.com>
- <CA+b4Kqd9qV0Pc7wJ2eHKcA-7+a23tY9gfe2Abm4=Bd08SKkh8w@mail.gmail.com>
- <1908911.91yT2N6t2f@aspire.rjw.lan> <1498580081.7952.91.camel@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1498580081.7952.91.camel@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>, =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] ACPI / LPSS: Only call pwm_add_table for the first PWM controller
+Date: Thu,  6 Jul 2017 18:49:27 +0200
+Message-ID: <20170706164927.15076-1-hdegoede@redhat.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Sorry for the slow response - I've just had a chance to run some more tests.
+At least on the UP board SBC both PWMs are enabled leading to us
+trying to add the same pwm_lookup twice, which leads to the following:
 
-I tried to disable the SD card reader in the BIOS as suggested earlier
-in the thread, but that didn't seem to make a significant change.
-More inline below.
+[    0.902224] list_add double add: new=ffffffffb8efd400,
+               prev=ffffffffb8efd400, next=ffffffffb8eeede0.
+[    0.912466] ------------[ cut here ]------------
+[    0.917624] kernel BUG at lib/list_debug.c:31!
+[    0.922588] invalid opcode: 0000 [#1] SMP
+...
+[    1.027450] Call Trace:
+[    1.030185]  pwm_add_table+0x4c/0x90
+[    1.034181]  bsw_pwm_setup+0x1a/0x20
+[    1.038175]  acpi_lpss_create_device+0xfe/0x420
+...
 
-On Tue, 2017-06-27 at 17:03 +0200, Rafael J. Wysocki wrote:
-> I would carry out s2idle under turbostat to see how much PC10
-> residency is there while suspended.  That may be a significant factor.
->
-> Most likely there is a device preventing the SoC from reaching its
-> deepest low-power states under Linux on your system and it needs to be
-> identified and dealt with.
+This commit fixes this by only calling pwm_add_table for the first
+PWM controller (which is the one used for the backlight).
 
-I'm not entirely sure how turbostat records metrics so wasn't sure how
-to measure correctly.  I kept turbostat running while performing a
-s2idle and recorded the output:
+Cc: stable@vger.kernel.org
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1458599
+Fixes: bf7696a12071 ("acpi: lpss: call pwm_add_table() for BSW...")
+Fixes: 04434ab5120a ("ACPI / LPSS: Call pwm_add_table() for Bay Trail...")
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/acpi_lpss.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-https://gist.githubusercontent.com/tomlanyon/3238e742a155e7fa27658aa0960bdee4/raw/98b5f050e5eb2f88af47b2afd17080e7dd85d20f/turbostat
-
-I'm not familiar with the output format - I see some high percentages
-of C10, but nothing in Pkg%pc10. Which is of interest in this
-scenario?
-
-On 28 June 2017 at 02:14, Srinivas Pandruvada
-<srinivas.pandruvada@linux.intel.com> wrote:
-> Also make sure that you have no FW loading error for i915.
-> #dmesg | grep i915
-> It will display that Guc FW was loaded etc..
-> The latest FW can be downloaded from
-> https://01.org/linuxgraphics/downloads/firmware
->
-> If you don't see PC10 residency, we can try something more.
-
-I've confirmed that there's no FW errors for the i915.
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 10347e3d73ad..5bd58bd4ab05 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -85,6 +85,7 @@ static const struct lpss_device_desc lpss_dma_desc = {
+ };
+ 
+ struct lpss_private_data {
++	struct acpi_device *adev;
+ 	void __iomem *mmio_base;
+ 	resource_size_t mmio_size;
+ 	unsigned int fixed_clk_rate;
+@@ -155,6 +156,12 @@ static struct pwm_lookup byt_pwm_lookup[] = {
+ 
+ static void byt_pwm_setup(struct lpss_private_data *pdata)
+ {
++	struct acpi_device *adev = pdata->adev;
++
++	/* Only call pwm_add_table for the first PWM controller */
++	if (!adev->pnp.unique_id || strcmp(adev->pnp.unique_id, "1"))
++		return;
++
+ 	if (!acpi_dev_present("INT33FD", NULL, -1))
+ 		pwm_add_table(byt_pwm_lookup, ARRAY_SIZE(byt_pwm_lookup));
+ }
+@@ -180,6 +187,12 @@ static struct pwm_lookup bsw_pwm_lookup[] = {
+ 
+ static void bsw_pwm_setup(struct lpss_private_data *pdata)
+ {
++	struct acpi_device *adev = pdata->adev;
++
++	/* Only call pwm_add_table for the first PWM controller */
++	if (!adev->pnp.unique_id || strcmp(adev->pnp.unique_id, "1"))
++		return;
++
+ 	pwm_add_table(bsw_pwm_lookup, ARRAY_SIZE(bsw_pwm_lookup));
+ }
+ 
+@@ -456,6 +469,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 		goto err_out;
+ 	}
+ 
++	pdata->adev = adev;
+ 	pdata->dev_desc = dev_desc;
+ 
+ 	if (dev_desc->setup)
+-- 
+2.13.0
