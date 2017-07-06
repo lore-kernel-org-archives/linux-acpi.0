@@ -1,58 +1,198 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPSS: Only call pwm_add_table for the first PWM controller
-Date: Thu, 06 Jul 2017 22:44:55 +0200
-Message-ID: <6978852.i014fFYBpT@aspire.rjw.lan>
-References: <20170706164927.15076-1-hdegoede@redhat.com> <1499361099.22624.292.camel@linux.intel.com> <5a6aa544-fbe5-6eb2-901f-39a3814cea1d@redhat.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [RFC v2 0/5] surface heterogeneous memory performance information
+Date: Thu,  6 Jul 2017 15:52:28 -0600
+Message-ID: <20170706215233.11329-1-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49665 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751974AbdGFUwm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Jul 2017 16:52:42 -0400
-In-Reply-To: <5a6aa544-fbe5-6eb2-901f-39a3814cea1d@redhat.com>
+Received: from mga07.intel.com ([134.134.136.100]:28557 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751943AbdGFVwo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 6 Jul 2017 17:52:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On Thursday, July 06, 2017 08:08:03 PM Hans de Goede wrote:
-> Hi,
-> 
-> On 06-07-17 19:11, Andy Shevchenko wrote:
-> > On Thu, 2017-07-06 at 18:49 +0200, Hans de Goede wrote:
-> >> At least on the UP board SBC both PWMs are enabled leading to us
-> >> trying to add the same pwm_lookup twice, which leads to the following:
-> >>
-> >> [    0.902224] list_add double add: new=ffffffffb8efd400,
-> >>                 prev=ffffffffb8efd400, next=ffffffffb8eeede0.
-> >> [    0.912466] ------------[ cut here ]------------
-> >> [    0.917624] kernel BUG at lib/list_debug.c:31!
-> >> [    0.922588] invalid opcode: 0000 [#1] SMP
-> >> ...
-> >> [    1.027450] Call Trace:
-> >> [    1.030185]  pwm_add_table+0x4c/0x90
-> >> [    1.034181]  bsw_pwm_setup+0x1a/0x20
-> >> [    1.038175]  acpi_lpss_create_device+0xfe/0x420
-> >> ...
-> >>
-> >> This commit fixes this by only calling pwm_add_table for the first
-> >> PWM controller (which is the one used for the backlight).
-> >>
-> > 
-> > Thanks, my comment below.
-> > 
-> > For the quick fix I agree on this:
-> > Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> 
-> Thank you.
-> 
-> Rafael, can we get this added to 4.13 soonish please ? One of the 2
-> commits this fixes has been causing trouble for some users since 4.11.3.
+==== Quick Summary ====
 
-Should be possible.
+Platforms in the very near future will have multiple types of memory
+attached to a single CPU.  These disparate memory ranges will have some
+characteristics in common, such as CPU cache coherence, but they can have
+wide ranges of performance both in terms of latency and bandwidth.
 
-Thanks,
-Rafael
+For example, consider a system that contains persistent memory, standard
+DDR memory and High Bandwidth Memory (HBM), all attached to the same CPU.
+There could potentially be an order of magnitude or more difference in
+performance between the slowest and fastest memory attached to that CPU.
+
+With the current Linux code NUMA nodes are CPU-centric, so all the memory
+attached to a given CPU will be lumped into the same NUMA node.  This makes
+it very difficult for userspace applications to understand the performance
+of different memory ranges on a given CPU.
+
+We solve this issue by providing userspace with performance information on
+individual memory ranges.  This performance information is exposed via
+sysfs:
+
+  # grep . mem_tgt2/* mem_tgt2/local_init/* 2>/dev/null
+  mem_tgt2/firmware_id:1
+  mem_tgt2/is_cached:0
+  mem_tgt2/is_enabled:1
+  mem_tgt2/is_isolated:0
+  mem_tgt2/phys_addr_base:0x0
+  mem_tgt2/phys_length_bytes:0x800000000
+  mem_tgt2/local_init/read_bw_MBps:30720
+  mem_tgt2/local_init/read_lat_nsec:100
+  mem_tgt2/local_init/write_bw_MBps:30720
+  mem_tgt2/local_init/write_lat_nsec:100
+
+This allows applications to easily find the memory that they want to use.
+We expect that the existing NUMA APIs will be enhanced to use this new
+information so that applications can continue to use them to select their
+desired memory.
+
+This series is built upon acpica-1705:
+
+https://github.com/zetalog/linux/commits/acpica-1705
+
+And you can find a working tree here:
+
+https://git.kernel.org/pub/scm/linux/kernel/git/zwisler/linux.git/log/?h=hmem_sysfs
+
+==== Lots of Details ====
+
+This patch set is only concerned with CPU-addressable memory types, not
+on-device memory like what we have with Jerome Glisse's HMM series:
+
+https://lwn.net/Articles/726691/
+
+This patch set works by enabling the new Heterogeneous Memory Attribute
+Table (HMAT) table, newly defined in ACPI 6.2. One major conceptual change
+in ACPI 6.2 related to this work is that proximity domains no longer need
+to contain a processor.  We can now have memory-only proximity domains,
+which means that we can now have memory-only Linux NUMA nodes.
+
+Here is an example configuration where we have a single processor, one
+range of regular memory and one range of HBM:
+
+  +---------------+   +----------------+
+  | Processor     |   | Memory         |
+  | prox domain 0 +---+ prox domain 1  |
+  | NUMA node 1   |   | NUMA node 2    |
+  +-------+-------+   +----------------+
+          |
+  +-------+----------+
+  | HBM              |
+  | prox domain 2    |
+  | NUMA node 0      |
+  +------------------+
+
+This gives us one initiator (the processor) and two targets (the two memory
+ranges).  Each of these three has its own ACPI proximity domain and
+associated Linux NUMA node.  Note also that while there is a 1:1 mapping
+from each proximity domain to each NUMA node, the numbers don't necessarily
+match up.  Additionally we can have extra NUMA nodes that don't map back to
+ACPI proximity domains.
+
+The above configuration could also have the processor and one of the two
+memory ranges sharing a proximity domain and NUMA node, but for the
+purposes of the HMAT the two memory ranges will always need to be
+separated.
+
+The overall goal of this series and of the HMAT is to allow users to
+identify memory using its performance characteristics.  This can broadly be
+done in one of two ways:
+
+Option 1: Provide the user with a way to map between proximity domains and
+NUMA nodes and a way to access the HMAT directly (probably via
+/sys/firmware/acpi/tables).  Then, through possibly a library and a daemon,
+provide an API so that applications can either request information about
+memory ranges, or request memory allocations that meet a given set of
+performance characteristics.
+
+Option 2: Provide the user with HMAT performance data directly in sysfs,
+allowing applications to directly access it without the need for the
+library and daemon.
+
+The kernel work for option 1 is started by patches 1-3.  These just surface
+the minimal amount of information in sysfs to allow userspace to map
+between proximity domains and NUMA nodes so that the raw data in the HMAT
+table can be understood.
+
+Patches 4 and 5 enable option 2, adding performance information from the
+HMAT to sysfs.  The second option is complicated by the amount of HMAT data
+that could be present in very large systems, so in this series we only
+surface performance information for local (initiator,target) pairings.  The
+changelog for patch 5 discusses this in detail.
+
+The naming collision between Jerome's "Heterogeneous Memory Management
+(HMM)" and this "Heterogeneous Memory (HMEM)" series is unfortunate, but I
+was trying to stick with the word "Heterogeneous" because of the naming of
+the ACPI 6.2 Heterogeneous Memory Attribute Table table.  Suggestions for
+better naming are welcome.
+
+==== Next steps ====
+
+There is still a lot of work to be done on this series, but the overall
+goal of this RFC is to gather feedback on which of the two options we
+should pursue, or whether some third option is preferred.  After that is
+done and we have a solid direction we can add support for ACPI hot add,
+test more complex configurations, etc.
+
+So, for applications that need to differentiate between memory ranges based
+on their performance, what option would work best for you?  Is the local
+(initiator,target) performance provided by patch 5 enough, or do you
+require performance information for all possible (initiator,target)
+pairings?
+
+If option 1 looks best, do we have ideas on what the userspace API would
+look like?
+
+What other things should we consider, or what needs do you have that aren't
+being addressed?
+
+---
+Changes from previous RFC (https://lwn.net/Articles/724562/):
+
+ - Allow multiple initiators to be local to a given memory target, as long
+   as they all have the same performance characteristics. (Dan Williams)
+
+ - A few small fixes to the ACPI parsing to allow for configurations I
+   hadn't previously considered.
+
+Ross Zwisler (5):
+  acpi: add missing include in acpi_numa.h
+  acpi: HMAT support in acpi_parse_entries_array()
+  hmem: add heterogeneous memory sysfs support
+  sysfs: add sysfs_add_group_link()
+  hmem: add performance attributes
+
+ MAINTAINERS                         |   5 +
+ drivers/acpi/Kconfig                |   1 +
+ drivers/acpi/Makefile               |   1 +
+ drivers/acpi/hmem/Kconfig           |   7 +
+ drivers/acpi/hmem/Makefile          |   2 +
+ drivers/acpi/hmem/core.c            | 835 ++++++++++++++++++++++++++++++++++++
+ drivers/acpi/hmem/hmem.h            |  64 +++
+ drivers/acpi/hmem/initiator.c       |  61 +++
+ drivers/acpi/hmem/perf_attributes.c |  56 +++
+ drivers/acpi/hmem/target.c          |  97 +++++
+ drivers/acpi/numa.c                 |   2 +-
+ drivers/acpi/tables.c               |  52 ++-
+ fs/sysfs/group.c                    |  30 +-
+ include/acpi/acpi_numa.h            |   1 +
+ include/linux/sysfs.h               |   2 +
+ 15 files changed, 1197 insertions(+), 19 deletions(-)
+ create mode 100644 drivers/acpi/hmem/Kconfig
+ create mode 100644 drivers/acpi/hmem/Makefile
+ create mode 100644 drivers/acpi/hmem/core.c
+ create mode 100644 drivers/acpi/hmem/hmem.h
+ create mode 100644 drivers/acpi/hmem/initiator.c
+ create mode 100644 drivers/acpi/hmem/perf_attributes.c
+ create mode 100644 drivers/acpi/hmem/target.c
+
+-- 
+2.9.4
 
