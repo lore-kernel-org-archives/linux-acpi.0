@@ -1,126 +1,58 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v3 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
- erratum 161010801
-Date: Wed, 5 Jul 2017 09:48:53 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA83839DB59@FRAEML521-MBX.china.huawei.com>
-References: <20170623145801.325244-1-shameerali.kolothum.thodi@huawei.com>
- <20170623145801.325244-3-shameerali.kolothum.thodi@huawei.com>
- <20170704173820.GO22175@arm.com>
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [PATCH v2 2/3] gpio: Add support for TPS68470 GPIOs
+Date: Thu, 6 Jul 2017 01:49:28 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725D5A39@FMSMSX114.amr.corp.intel.com>
+References: <1497161395-36504-1-git-send-email-rajmohan.mani@intel.com>
+ <1497161395-36504-3-git-send-email-rajmohan.mani@intel.com>
+ <CAHp75Ve5zabpmRoAYbg7ONcp8WM_cCB=xiSLhSnU6QzC0CnJ3g@mail.gmail.com>
+ <6F87890CF0F5204F892DEA1EF0D77A59725BF44A@FMSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([45.249.212.187]:9278 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750867AbdGEJtM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2017 05:49:12 -0400
-In-Reply-To: <20170704173820.GO22175@arm.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A59725BF44A@FMSMSX114.amr.corp.intel.com>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: 'Andy Shevchenko' <andy.shevchenko@gmail.com>
+Cc: "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'linux-gpio@vger.kernel.org'" <linux-gpio@vger.kernel.org>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, 'Lee Jones' <lee.jones@linaro.org>, 'Linus Walleij' <linus.walleij@linaro.org>, 'Alexandre Courbot' <gnurou@gmail.com>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, 'Len Brown' <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 
-
-
-> -----Original Message-----
-> From: Will Deacon [mailto:will.deacon@arm.com]
-> Sent: Tuesday, July 04, 2017 6:38 PM
-> To: Shameerali Kolothum Thodi
-> Cc: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
-> sudeep.holla@arm.com; robin.murphy@arm.com; hanjun.guo@linaro.org;
-> Gabriele Paoloni; John Garry; Linuxarm; linux-acpi@vger.kernel.org;
-> iommu@lists.linux-foundation.org; Wangzhou (B); Guohanjun (Hanjun Guo);
-> linux-arm-kernel@lists.infradead.org; devel@acpica.org
-> Subject: Re: [PATCH v3 2/2] iommu/arm-smmu-v3:Enable ACPI based
-> HiSilicon erratum 161010801
-> 
-> On Fri, Jun 23, 2017 at 03:58:01PM +0100, shameer wrote:
-> > The HiSilicon erratum 161010801 describes the limitation of HiSilicon
-> > platforms Hip06/Hip07 to support the SMMU mappings for MSI
-> transactions.
-> >
-> > On these platforms GICv3 ITS translator is presented with the deviceID
-> > by extending the MSI payload data to 64 bits to include the deviceID.
-> > Hence, the PCIe controller on this platforms has to differentiate the
-> > MSI payload against other DMA payload and has to modify the MSI
-> payload.
-> > This basically makes it difficult for this platforms to have a SMMU
-> > translation for MSI.
-> >
-> > This patch implements a ACPI table based quirk to reserve the hw msi
-> > regions in the smmu-v3 driver which means these address regions will
-> > not be translated and will be excluded from iova allocations.
-> >
-> > Signed-off-by: shameer <shameerali.kolothum.thodi@huawei.com>
-> > ---
-> >  drivers/iommu/arm-smmu-v3.c | 30 ++++++++++++++++++++++++++----
-> >  1 file changed, 26 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-
-> v3.c
-> > index abe4b88..c9346f2 100644
-> > --- a/drivers/iommu/arm-smmu-v3.c
-> > +++ b/drivers/iommu/arm-smmu-v3.c
-> > @@ -597,6 +597,7 @@ struct arm_smmu_device {
-> >  	u32				features;
-> >
-> >  #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
-> > +#define ARM_SMMU_OPT_RESV_HW_MSI	(1 << 1)
-> >  	u32				options;
-> >
-> >  	struct arm_smmu_cmdq		cmdq;
-> > @@ -1904,14 +1905,34 @@ static void arm_smmu_get_resv_regions(struct
-> device *dev,
-> >  				      struct list_head *head)
-> >  {
-> >  	struct iommu_resv_region *region;
-> > +	struct arm_smmu_device *smmu;
-> > +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> >  	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
-> > +	int resv = 0;
-> >
-> > -	region = iommu_alloc_resv_region(MSI_IOVA_BASE,
-> MSI_IOVA_LENGTH,
-> > -					 prot, IOMMU_RESV_SW_MSI);
-> > -	if (!region)
-> > +	smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
-> 
-> Does this callback actually get called without a prior ->add_device callback
-> for the master in question? If not, then we can already claw the structure
-> out via the iommu_priv field in the fwspec.
-
-Thanks Will for going through this.
-
-Yes, from the logs I have, it looks like _resv callback is always called after
- ->add_device. I will double check this with vfio bind case as well.
-
-And I guess, this is what you are proposing to retrieve the smmu,
-
-master = dev->iommu_fwspec->iommu_priv;
-smmu = master->smmu;
-
-> > +	if (WARN_ON(!smmu))
->
-> Again, how does this trigger?
-> >  		return;
-> >
-> > -	list_add_tail(&region->list, head);
-> > +	if ((smmu->options & ARM_SMMU_OPT_RESV_HW_MSI)) {
-> > +
-> > +		if (!is_of_node(smmu->dev->fwnode))
-> > +			resv = iort_iommu_its_get_resv_regions(dev, head);
-> 
-> How does this work when we're not using ACPI? Shouldn't of vs ACPI be
-> abstracted from the driver?
-
-At present ARM_SMMU_OPT_RESV_HW_MSI is only set for ACPI and  DT support for
-this is a low priority for us at the moment. Is the suggestion is to have a common function
-outside the smmu driver for _iommu_its_get_resv_regions() ? I am not sure what
-is the best way here. 
-
-Thanks,
-Shameer
-
-
-
+SGkgQW5keSBhbmQgYWxsLA0KDQpUaGFua3MgZm9yIHlvdXIgcGF0aWVuY2UuDQoNCj4gPg0KPiA+
+IE1haW4gcG9pbnRzIChzb21lIEkgYWxyZWFkeSB0b2xkIGluIGFuIGFuc3dlciB0byBTYWthcmkn
+cyBtYWlsKToNCj4gPiAxLiBDb25zaWRlciAyIEdQSU8gY2hpcHMgb3ZlciAxLg0KPiANCj4gSSBh
+bSBsb29raW5nIGludG8gdGhpcy4NCj4gDQoNCkZvciB0aGUgc2Vjb25kIEdQSU8gY2hpcCwgdGhl
+IGNhbGwgdG8gYWNwaV9hdHRhY2hfZGF0YSgpIGZhaWxzIHdpdGggQUVfQUxSRUFEWV9FWElTVFMs
+IGFzIGJlbG93IHdpdGggNC4xMiByYzMga2VybmVsLg0KDQphY3BpX2dwaW9jaGlwX2FkZCgpDQoJ
+YWNwaV9hdHRhY2hfZGF0YSgpIA0KCQlhY3BpX25zX2F0dGFjaF9kYXRhKCkgZmFpbHMgd2l0aCBB
+RV9BTFJFQURZX0VYSVNUUyBmb3IgdGhlIHNlY29uZCBHUElPIGNoaXAuDQoJCS8qIFdlIG9ubHkg
+YWxsb3cgb25lIGF0dGFjaG1lbnQgcGVyIGhhbmRsZXIgKi8gZHJpdmVycy9hY3BpL2FjcGljYS9u
+c29iamVjdC5jDQoNCkFsc28sIEkgdHJpZWQgdGhlIGZvbGxvd2luZyBleHBlcmltZW50LCBzaW5j
+ZSB3ZSBrbm93IHRoZSBudW1iZXIgb2YgR1BJT3MgZm9yIHRoZSBzZWNvbmQgR1BJTyBjaGlwIGlz
+IDMsIGp1c3QgdG8gc2VlIGlmIEkgY2FuIGdldCBmdXJ0aGVyIGFsb25nIGFmdGVyIGEgc3VjY2Vz
+c2Z1bCBjYWxsIHRvIGFjcGlfYXR0YWNoX2RhdGEoKS4NCg0KU2luY2UgdGhlIGFjcGlfZ3Bpb19j
+aGlwX2RoIGlzIHVzZWQgYXMgdGhlIGhhbmRsZXIgaW4gYWxsIGFjcGlfZ3Bpb2NoaXBfKiBjYWxs
+cywgSSB0cmllZCB0byB1c2UgYW5vdGhlciBoYW5kbGVyIChhY3BpX2dwaW9fY2hpcF9kaDIpLiBC
+dXQgbm93LCBhcyBleHBlY3RlZCwgYWNwaV9ncGlvY2hpcF9yZXF1ZXN0X3JlZ2lvbnMoKSBmYWls
+ZWQgaW5zaWRlIGFjcGlfZ3Bpb2NoaXBfYWRkKCksIGFzIG9ubHkgb25lIE9wUmVnaW9uIGhhbmRs
+ZXIgY2FuIGJlIGluc3RhbGxlZCBmb3IgYSBnaXZlbiBPcFJlZ2lvbiBjb2RlLiBEdWUgdG8gdGhp
+cywgd2hlbiBJIHRyeSB0byBzZXQgdGhlIEdQSU8gOSAod2hpY2ggaXMgbm93IEdQSU8gMiBvZiB0
+aGUgc2Vjb25kIEdQSU8gY2hpcCBvZiAyIEdQSU8gY2hpcHMgaW1wbGVtZW50YXRpb24pLCB0aGUg
+T3BSZWdpb24gaGFuZGxlciBpcyBjYWxsZWQgd2l0aCB0aGUgaW5mb3JtYXRpb24gLyByZWdpb25f
+Y29udGV4dCBwb2ludGVyIG9mIHRoZSBmaXJzdCBHUElPIGNoaXAsIHdoaWNoIGlzIG5vdCBkZXNp
+cmVkLg0KDQpJdCBzb3VuZHMgbGlrZSB0aGVyZSBhcmUgMiBpc3N1ZXMgd2l0aCB0aGUgMiBHUElP
+IGNoaXBzIGltcGxlbWVudGF0aW9uLg0KDQoxKSBIb3cgdG8gZ2V0IGFjcGlfbnNfYXR0YWNoX2Rh
+dGEoKSBkb25lIHN1Y2Nlc3NmdWxseSBmb3IgdGhlIHNlY29uZCBHUElPIGNoaXAsIGdpdmVuIHRo
+ZSBvYnNlcnZhdGlvbiBhYm92ZSBhbmQNCg0KMikgSG93IHRvIGdldCB0aGUgR1BJTyBPcFJlZ2lv
+biBoYW5kbGVyIHRvIGJlIGNhbGxlZCB3aXRoIHRoZSByaWdodCBHUElPIGNoaXAgaW5mb3JtYXRp
+b24gLyByZWdpb25fY29udGV4dCBwb2ludGVyDQoNCkkgbmVlZCBwb2ludGVycyB0byBtYWtlIGZ1
+cnRoZXIgcHJvZ3Jlc3MgaGVyZS4NCg0KPiA+IDIuIEZpeCBGSVhNRShzKS4NCj4gDQo+IExlYXZp
+bmcgdGhpcyBvbiwgdW50aWwgSSBzZWUgaG93IHRoaXMgY2FuIGJlIGZpeGVkLg0KPiANCg0KVGhl
+c2UgRklYTUUgY29kZSB3aWxsIGJlIHJlbW92ZWQgZnJvbSB0aGUgZHJpdmVyLCBhcyB3ZSBhcmUg
+d29ya2luZyB0byBnZXQgdGhpcyBkb25lIHRocm91Z2ggcGxhdGZvcm0gZmlybXdhcmUuDQoNCj4g
+PiAzLiBJZiB0aGVyZSBpcyBoYXJkd2FyZSBidWcgd2Ugc2hvdWxkIHdvcmsgYXJvdW5kIGl0IG11
+c3QgYmUgY2xhcmlmaWVkLg0KPiANCj4gQWNrDQo+IElmIHRoaXMgaXMgYWJvdXQgaW5pdGlhbGl6
+aW5nIHRoZSBHUElPcyB3aXRoIHplcm8sIEkgaGF2ZSByZW1vdmVkIHRoaXMgY29kZSBmb3INCj4g
+bm93Lg0KPiANCj4gPiA0LiBZb3UgbWlzc2VkIExpbnVzJyBjb21tZW50cyBoZXJlIChzd2l0Y2gg
+dG8gdGhlIGRhdGEgcG9pbnRlciBpbnNpZGUNCj4gPiBHUElPIGNoaXAgYW5kIHJlbW92ZSBwbGF0
+Zm9ybSBkcml2ZXIgZGF0YSBzdHVmZiBmcm9tIHRoZSBkcml2ZXIpLg0KPiA+DQo+IA0KPiBJIGhh
+dmUgZml4ZWQgdGhpcyB3aXRoIHYzDQo=
