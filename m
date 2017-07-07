@@ -1,77 +1,58 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH] ACPI / sleep: EC-based wakeup from suspend-to-idle on
- recent systems
-Date: Thu, 06 Jul 2017 17:38:53 -0700
-Message-ID: <1499387933.22531.15.camel@linux.intel.com>
-References: <1979543.KIEJ8uyRaT@aspire.rjw.lan>
-         <CA+55aFyBfHVyh=TMifF+0KGEVy6JEyDz=gbHdP7nM2roa++X4Q@mail.gmail.com>
-         <CA+b4Kqd9qV0Pc7wJ2eHKcA-7+a23tY9gfe2Abm4=Bd08SKkh8w@mail.gmail.com>
-         <1908911.91yT2N6t2f@aspire.rjw.lan>
-         <1498580081.7952.91.camel@linux.intel.com>
-         <CA+b4Kqd5qO2Q6drnfvhCyj_q33Hjg1nT7vbgm-uoc+wjpX=e3Q@mail.gmail.com>
+From: John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC v2 0/5] surface heterogeneous memory performance information
+Date: Thu, 6 Jul 2017 22:30:46 -0700
+Message-ID: <7cb3b9c4-9082-97e9-ebfd-542243bf652b@nvidia.com>
+References: <20170706215233.11329-1-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23269 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753058AbdGGAiz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 6 Jul 2017 20:38:55 -0400
-In-Reply-To: <CA+b4Kqd5qO2Q6drnfvhCyj_q33Hjg1nT7vbgm-uoc+wjpX=e3Q@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170706215233.11329-1-ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Box, David E" <david.e.box-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Anaczkowski,
+ Lukasz" <lukasz.anaczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore,
+ Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Odzioba,
+ Lukasz" <lukasz.odzioba-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Schmauss, Erik" <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, "Kogut, Jaroslaw" <Jaroslaw.Kogut-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "Lahtinen,
+ Joonas" <joonas.lahtinen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Tim Chen <tim.c.chen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tom Lanyon <tom@oneshoeco.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>, =?ISO-8859-1?Q?J=E9r=F4me?= de Bretagne <jerome.debretagne@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Thu, 2017-07-06 at 21:41 +1000, Tom Lanyon wrote:
-> Sorry for the slow response - I've just had a chance to run some more
-> tests.
+On 07/06/2017 02:52 PM, Ross Zwisler wrote:
+[...]
 > 
-> I tried to disable the SD card reader in the BIOS as suggested
-> earlier
-> in the thread, but that didn't seem to make a significant change.
-> More inline below.
+> The naming collision between Jerome's "Heterogeneous Memory Management
+> (HMM)" and this "Heterogeneous Memory (HMEM)" series is unfortunate, but I
+> was trying to stick with the word "Heterogeneous" because of the naming of
+> the ACPI 6.2 Heterogeneous Memory Attribute Table table.  Suggestions for
+> better naming are welcome.
 > 
-> On Tue, 2017-06-27 at 17:03 +0200, Rafael J. Wysocki wrote:
-> > 
-> > I would carry out s2idle under turbostat to see how much PC10
-> > residency is there while suspended.  That may be a significant
-> > factor.
-> > 
-> > Most likely there is a device preventing the SoC from reaching its
-> > deepest low-power states under Linux on your system and it needs to
-> > be
-> > identified and dealt with.
-> I'm not entirely sure how turbostat records metrics so wasn't sure
-> how
-> to measure correctly.  I kept turbostat running while performing a
-> s2idle and recorded the output:
-> 
-> https://gist.githubusercontent.com/tomlanyon/3238e742a155e7fa27658aa0
-> 960bdee4/raw/98b5f050e5eb2f88af47b2afd17080e7dd85d20f/turbostat
-> 
-> I'm not familiar with the output format - I see some high percentages
-> of C10, but nothing in Pkg%pc10. Which is of interest in this
-> scenario?
-I see that you do have Pkg%pc10 of 86.56 in one interval. The system
-was in Pkg%pc8 for multiple intervals before Pkg%pc10. So can you try
-this also before your test?
 
-# cd /sys/kernel/debug/pmc_core
-# for i in {0..32}; do echo $i > ltr_ignore; done
+Hi Ross,
 
-Thanks,
-Srinivas	
+Say, most of the places (file names, function and variable names, and even
+print statements) where this patchset uses hmem or HMEM, it really seems to
+mean, the Heterogeneous Memory Attribute Table. That's not *always* true, but
+given that it's a pretty severe naming conflict, how about just changing:
 
-> 
-> On 28 June 2017 at 02:14, Srinivas Pandruvada
-> <srinivas.pandruvada@linux.intel.com> wrote:
-> > 
-> > Also make sure that you have no FW loading error for i915.
-> > #dmesg | grep i915
-> > It will display that Guc FW was loaded etc..
-> > The latest FW can be downloaded from
-> > https://01.org/linuxgraphics/downloads/firmware
-> > 
-> > If you don't see PC10 residency, we can try something more.
-> I've confirmed that there's no FW errors for the i915.
+hmem --> hmat
+HMEM --> HMAT
+
+...everywhere? Then you still have Heterogeneous Memory in the name, but
+there is enough lexical distance (is that a thing? haha) between HMM and HMAT
+to keep us all sane. :)
+
+With or without the above suggestion, there are a few places (Kconfig, comments,
+prints) where we can more easily make it clear that HMM != HMEM (or HMAT), 
+so for those I can just comment on them separately in the individual patches.
+
+thanks,
+john h
