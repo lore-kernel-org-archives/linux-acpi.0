@@ -1,58 +1,251 @@
-From: John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC v2 0/5] surface heterogeneous memory performance information
-Date: Thu, 6 Jul 2017 22:30:46 -0700
-Message-ID: <7cb3b9c4-9082-97e9-ebfd-542243bf652b@nvidia.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [RFC v2 3/5] hmem: add heterogeneous memory sysfs support
+Date: Thu, 6 Jul 2017 22:53:39 -0700
+Message-ID: <9ea40a37-3549-2294-8605-036b37aec023@nvidia.com>
 References: <20170706215233.11329-1-ross.zwisler@linux.intel.com>
+ <20170706215233.11329-4-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170706215233.11329-1-ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hqemgate15.nvidia.com ([216.228.121.64]:17045 "EHLO
+        hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750984AbdGGFxl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Jul 2017 01:53:41 -0400
+In-Reply-To: <20170706215233.11329-4-ross.zwisler@linux.intel.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "Box, David E" <david.e.box-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Anaczkowski,
- Lukasz" <lukasz.anaczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore,
- Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Odzioba,
- Lukasz" <lukasz.odzioba-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Schmauss, Erik" <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, "Kogut, Jaroslaw" <Jaroslaw.Kogut-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "Lahtinen,
- Joonas" <joonas.lahtinen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Tim Chen <tim.c.chen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org
+Cc: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jerome Glisse <jglisse@redhat.com>, Len
 
 On 07/06/2017 02:52 PM, Ross Zwisler wrote:
 [...]
-> 
-> The naming collision between Jerome's "Heterogeneous Memory Management
-> (HMM)" and this "Heterogeneous Memory (HMEM)" series is unfortunate, but I
-> was trying to stick with the word "Heterogeneous" because of the naming of
-> the ACPI 6.2 Heterogeneous Memory Attribute Table table.  Suggestions for
-> better naming are welcome.
-> 
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index b1aacfc..31e3f20 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -72,6 +72,7 @@ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+>  obj-$(CONFIG_ACPI)		+= container.o
+>  obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+>  obj-$(CONFIG_ACPI_NFIT)		+= nfit/
+> +obj-$(CONFIG_ACPI_HMEM)		+= hmem/
+>  obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
+>  obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
+>  obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
 
 Hi Ross,
 
-Say, most of the places (file names, function and variable names, and even
-print statements) where this patchset uses hmem or HMEM, it really seems to
-mean, the Heterogeneous Memory Attribute Table. That's not *always* true, but
-given that it's a pretty severe naming conflict, how about just changing:
+Following are a series of suggestions, intended to clarify naming just
+enough so that, when Jerome's HMM patchset lands, we'll be able to
+tell the difference between the two types of Heterogeneous Memory.
 
-hmem --> hmat
-HMEM --> HMAT
 
-...everywhere? Then you still have Heterogeneous Memory in the name, but
-there is enough lexical distance (is that a thing? haha) between HMM and HMAT
-to keep us all sane. :)
+> diff --git a/drivers/acpi/hmem/Kconfig b/drivers/acpi/hmem/Kconfig
+> new file mode 100644
+> index 0000000..09282be
+> --- /dev/null
+> +++ b/drivers/acpi/hmem/Kconfig
+> @@ -0,0 +1,7 @@
+> +config ACPI_HMEM
+> +	bool "ACPI Heterogeneous Memory Support"
 
-With or without the above suggestion, there are a few places (Kconfig, comments,
-prints) where we can more easily make it clear that HMM != HMEM (or HMAT), 
-so for those I can just comment on them separately in the individual patches.
+How about:
 
-thanks,
+   bool "ACPI Heterogeneous Memory Attribute Table Support"
+
+The idea here, and throughout, is that this type of 
+Heterogeneous Memory support is all about "the Heterogeneous Memory
+that you found via ACPI's Heterogeneous Memory Attribute Table".
+
+That's different from "the Heterogeneous Memory that you found
+when you installed a PCIe device that supports HMM". Or, at least
+it is different, until the day that someone decides to burn in
+support for an HMM device, into the ACPI tables. Seems unlikely,
+though. :) And even so, I think it would still work.
+
+
+> +	depends on ACPI_NUMA
+> +	depends on SYSFS
+> +	help
+> +	  Exports a sysfs representation of the ACPI Heterogeneous Memory
+> +	  Attributes Table (HMAT).
+> diff --git a/drivers/acpi/hmem/Makefile b/drivers/acpi/hmem/Makefile
+> new file mode 100644
+> index 0000000..d2aa546
+> --- /dev/null
+> +++ b/drivers/acpi/hmem/Makefile
+> @@ -0,0 +1,2 @@
+> +obj-$(CONFIG_ACPI_HMEM) := hmem.o
+> +hmem-y := core.o initiator.o target.o
+> diff --git a/drivers/acpi/hmem/core.c b/drivers/acpi/hmem/core.c
+> new file mode 100644
+> index 0000000..f7638db
+> --- /dev/null
+> +++ b/drivers/acpi/hmem/core.c
+> @@ -0,0 +1,569 @@
+> +/*
+> + * Heterogeneous memory representation in sysfs
+
+Heterogeneous memory, as discovered via ACPI's Heterogeneous Memory
+Attribute Table: representation in sysfs
+
+> + *
+> + * Copyright (c) 2017, Intel Corporation.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + */
+> +
+> +#include <acpi/acpi_numa.h>
+
+[...]
+
+> diff --git a/drivers/acpi/hmem/hmem.h b/drivers/acpi/hmem/hmem.h
+> new file mode 100644
+> index 0000000..38ff540
+> --- /dev/null
+> +++ b/drivers/acpi/hmem/hmem.h
+> @@ -0,0 +1,47 @@
+> +/*
+> + * Heterogeneous memory representation in sysfs
+
+Heterogeneous memory, as discovered via ACPI's Heterogeneous Memory
+Attribute Table: representation in sysfs
+
+> + *
+> + * Copyright (c) 2017, Intel Corporation.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + */
+> +
+> +#ifndef _ACPI_HMEM_H_
+> +#define _ACPI_HMEM_H_
+> +
+> +struct memory_initiator {
+> +	struct list_head list;
+> +	struct device dev;
+> +
+> +	/* only one of the following three will be set */
+> +	struct acpi_srat_cpu_affinity *cpu;
+> +	struct acpi_srat_x2apic_cpu_affinity *x2apic;
+> +	struct acpi_srat_gicc_affinity *gicc;
+> +
+> +	int pxm;
+> +	bool is_registered;
+> +};
+> +#define to_memory_initiator(d) container_of((d), struct memory_initiator, dev)
+> +
+> +struct memory_target {
+> +	struct list_head list;
+> +	struct device dev;
+> +	struct acpi_srat_mem_affinity *ma;
+> +	struct acpi_hmat_address_range *spa;
+> +	struct memory_initiator *local_init;
+> +
+> +	bool is_cached;
+> +	bool is_registered;
+> +};
+> +#define to_memory_target(d) container_of((d), struct memory_target, dev)
+> +
+> +extern const struct attribute_group *memory_initiator_attribute_groups[];
+> +extern const struct attribute_group *memory_target_attribute_groups[];
+> +#endif /* _ACPI_HMEM_H_ */
+> diff --git a/drivers/acpi/hmem/initiator.c b/drivers/acpi/hmem/initiator.c
+> new file mode 100644
+> index 0000000..905f030
+> --- /dev/null
+> +++ b/drivers/acpi/hmem/initiator.c
+> @@ -0,0 +1,61 @@
+> +/*
+> + * Heterogeneous memory initiator sysfs attributes
+
+HMAT (Heterogeneous Memory Attribute Table)-based memory: initiator sysfs attributes
+
+> + *
+> + * Copyright (c) 2017, Intel Corporation.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + */
+> +
+> +#include <acpi/acpi_numa.h>
+> +#include <linux/acpi.h>
+> +#include <linux/device.h>
+> +#include <linux/sysfs.h>
+> +#include "hmem.h"
+> +
+> +static ssize_t firmware_id_show(struct device *dev,
+> +			struct device_attribute *attr, char *buf)
+> +{
+> +	struct memory_initiator *init = to_memory_initiator(dev);
+> +
+> +	return sprintf(buf, "%d\n", init->pxm);
+> +}
+> +static DEVICE_ATTR_RO(firmware_id);
+> +
+> +static ssize_t is_enabled_show(struct device *dev,
+> +		struct device_attribute *attr, char *buf)
+> +{
+> +	struct memory_initiator *init = to_memory_initiator(dev);
+> +	int is_enabled;
+> +
+> +	if (init->cpu)
+> +		is_enabled = !!(init->cpu->flags & ACPI_SRAT_CPU_ENABLED);
+> +	else if (init->x2apic)
+> +		is_enabled = !!(init->x2apic->flags & ACPI_SRAT_CPU_ENABLED);
+> +	else
+> +		is_enabled = !!(init->gicc->flags & ACPI_SRAT_GICC_ENABLED);
+> +
+> +	return sprintf(buf, "%d\n", is_enabled);
+> +}
+> +static DEVICE_ATTR_RO(is_enabled);
+> +
+> +static struct attribute *memory_initiator_attributes[] = {
+> +	&dev_attr_firmware_id.attr,
+> +	&dev_attr_is_enabled.attr,
+> +	NULL,
+> +};
+> +
+> +static struct attribute_group memory_initiator_attribute_group = {
+> +	.attrs = memory_initiator_attributes,
+> +};
+> +
+> +const struct attribute_group *memory_initiator_attribute_groups[] = {
+> +	&memory_initiator_attribute_group,
+> +	NULL,
+> +};
+> diff --git a/drivers/acpi/hmem/target.c b/drivers/acpi/hmem/target.c
+> new file mode 100644
+> index 0000000..dd57437
+> --- /dev/null
+> +++ b/drivers/acpi/hmem/target.c
+> @@ -0,0 +1,97 @@
+> +/*
+> + * Heterogeneous memory target sysfs attributes
+
+HMAT (Heterogeneous Memory Attribute Table)-based memory: target sysfs attributes
+
+So, maybe those will help.
+
+thanks
 john h
