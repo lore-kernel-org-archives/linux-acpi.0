@@ -1,45 +1,60 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH] ACPI / PMIC: xpower: Do pinswitch magic when reading
- GPADC
-Date: Sat, 08 Jul 2017 16:58:03 +0300
-Message-ID: <1499522283.22624.309.camel@linux.intel.com>
-References: <20170708134008.13930-1-hdegoede@redhat.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v1] i2c: core: Allow empty id_table in ACPI case as well
+Date: Sat, 8 Jul 2017 21:57:09 +0200
+Message-ID: <20170708195709.422s6tdxqxsz6sbo@ninjato>
+References: <20170706180140.49391-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="yogxssowf2mhhidk"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:22607 "EHLO mga01.intel.com"
+Received: from sauhun.de ([88.99.104.3]:34993 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750930AbdGHODi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 8 Jul 2017 10:03:38 -0400
-In-Reply-To: <20170708134008.13930-1-hdegoede@redhat.com>
+        id S1753059AbdGHT5L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 8 Jul 2017 15:57:11 -0400
+Content-Disposition: inline
+In-Reply-To: <20170706180140.49391-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-i2c@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Sat, 2017-07-08 at 15:40 +0200, Hans de Goede wrote:
-> Testing has shown that the TS-pin's bias-current needs to be disabled
-> when reading the GPIO0 pin in GPADC mode.
-> 
-> It seems that there is only 1 bias current source and to be able to
-> use it
-> for the GPIO0 pin in GPADC mode it must be temporarily turned off for
-> the
-> TS pin, but the datasheet does not mention this.
-> 
-> This commit adds the necessary writes to turn the TS pin BIAS current
-> off before and back on after reading the GPADC. This fixes the GPADC
-> always returning a reading of 0.
-> 
-> 
 
-> +	/* After switching to the GPADC pin give things some time to
-> settle */
-> +	usleep_range(6000, 10000);
+--yogxssowf2mhhidk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-msleep(6); ?
+On Thu, Jul 06, 2017 at 09:01:40PM +0300, Andy Shevchenko wrote:
+> For now empty ID table is not allowed with ACPI and prevents driver to be
+> probed.
+>=20
+> Add a check to allow empty ID table.
+>=20
+> Fixes: da10c06a044b ("i2c: Make I2C ID tables non-mandatory for DT'ed dev=
+ices")
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Do we need this for 4.13 already?
+
+
+--yogxssowf2mhhidk
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAllhORUACgkQFA3kzBSg
+Kba9Xw//Zf2pFXU94RfdHBNXeB8YBa6aXXoj8PklXiuumQbMRSDuPfUN0SJZRpLL
+Iqad7+7X2xzGoVTVVWtg2oFW1F22AzduRps4hDcCWRkrdK12kdkMHS2C2IybxW+f
+/gX4pDE+2AQSc4ZhiIYH75wqvR2t9gt/SSSGn/csWcTtAK2Y3QLjvXGrrMx2khzZ
+FA242HGJsATX3mKWHaY7gAuD/ZMuUoPmFlt0KgYQvAD9ugtuWefkeN07zPxkNZNo
+o2OVNeGdtuzRszlkdJ3oo4oz9Z1jRAO6UTeJU7JGiHU4TOx+FcWsyxa/cvp9ayEd
+WG7Ea3s7HYGpkC7hUSr9p45NMfo9PCLrIWeouiILBcTiRGTUD7QvPZY+ma6c5ZSu
+r11m0Utf/K1FHle2hdLGX/6HreURPafVUHaq0COU4oSD9kMXUdUiy3n/JY26YI6c
+4Ix30DAHZafbw6Y2vHdcSYTLIq7e3MBnK6iOZaymJfGFQwnzqZBxmR/+Je4StcWm
+jPVsM2Q9dmDdbcpwwsrtpFS5Wt2pO2rffjOghCUp8rpiupA8rsovIlbwEcU28w7K
+BzR+2DZYVwNqEl4RDezz1GdAamk9D/+DmD2fIppDcp/O1HUFbUvARoSRmZ7fOQd9
+lv0CexH3l8gGeU5qSaUbV7Lc8AuLs2whs4I5AXpXXJYcoxiysNg=
+=8Xzp
+-----END PGP SIGNATURE-----
+
+--yogxssowf2mhhidk--
