@@ -1,52 +1,78 @@
-From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [RFC v2 3/5] hmem: add heterogeneous memory sysfs support
-Date: Fri, 7 Jul 2017 10:32:13 -0600
-Message-ID: <20170707163213.GC22856@linux.intel.com>
-References: <20170706215233.11329-1-ross.zwisler@linux.intel.com>
- <20170706215233.11329-4-ross.zwisler@linux.intel.com>
- <9ea40a37-3549-2294-8605-036b37aec023@nvidia.com>
+From: jlee@suse.com
+Subject: Re: [PATCH v3] acpi: handle the acpi hotplug schedule error
+Date: Sat, 8 Jul 2017 11:25:12 +0800
+Message-ID: <20170708032512.jz7bxgmobzrf7dzp@linux-rasp2>
+References: <20170707062242.29588-1-jlee@suse.com>
+ <1704918.scVG4c48Sb@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.nue.novell.com ([195.135.221.5]:48480 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751812AbdGHDZj (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Fri, 7 Jul 2017 23:25:39 -0400
 Content-Disposition: inline
-In-Reply-To: <9ea40a37-3549-2294-8605-036b37aec023-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: "Box, David E" <david.e.box-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Anaczkowski,
- Lukasz" <lukasz.anaczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore,
- Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Odzioba,
- Lukasz" <lukasz.odzioba-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Schmauss, Erik" <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, "Kogut, Jaroslaw" <Jaroslaw.Kogut-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Lahtinen, Joonas" <joonas.lahtinen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Tim Chen <tim.c.chen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+In-Reply-To: <1704918.scVG4c48Sb@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Michal Hocko <mhocko@suse.cz>
 
-On Thu, Jul 06, 2017 at 10:53:39PM -0700, John Hubbard wrote:
-> On 07/06/2017 02:52 PM, Ross Zwisler wrote:
-> [...]
-> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> > index b1aacfc..31e3f20 100644
-> > --- a/drivers/acpi/Makefile
-> > +++ b/drivers/acpi/Makefile
-> > @@ -72,6 +72,7 @@ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
-> >  obj-$(CONFIG_ACPI)		+= container.o
-> >  obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
-> >  obj-$(CONFIG_ACPI_NFIT)		+= nfit/
-> > +obj-$(CONFIG_ACPI_HMEM)		+= hmem/
-> >  obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
-> >  obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
-> >  obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
-> 
-> Hi Ross,
-> 
-> Following are a series of suggestions, intended to clarify naming just
-> enough so that, when Jerome's HMM patchset lands, we'll be able to
-> tell the difference between the two types of Heterogeneous Memory.
+Hi Rafael,
 
-Sure, these all seem sane to me, thanks.  I'll fix this up in v3.
+On Fri, Jul 07, 2017 at 03:16:40PM +0200, Rafael J. Wysocki wrote:
+> On Friday, July 07, 2017 02:22:42 PM Lee, Chun-Yi wrote:
+> > Kernel should decrements the reference count of acpi device
+> > when the scheduling of acpi hotplug work failed, and evaluates
+> > _OST to notify BIOS the failure.
+> > 
+> > v3:
+> > More simplify the code. (Rafael J. Wysocki)
+> > 
+> > v2:
+> > To simplify the code. (Andy Shevchenko)
+> > 
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > Cc: Len Brown <lenb@kernel.org>
+> > Cc: Michal Hocko <mhocko@suse.cz>
+> > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> > Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
+> 
+> This has been applied too AFAICS.
+> 
+
+I saw patches in linux-next.
+
+Thanks for your review.
+
+Joey Lee
+
+> > ---
+> >  drivers/acpi/bus.c | 8 ++++++--
+> >  1 file changed, 6 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> > index 784bda6..9d4fea6 100644
+> > --- a/drivers/acpi/bus.c
+> > +++ b/drivers/acpi/bus.c
+> > @@ -432,11 +432,15 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+> >  	    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
+> >  		driver->ops.notify(adev, type);
+> >  
+> > -	if (hotplug_event && ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
+> > +	if (!hotplug_event) {
+> > +		acpi_bus_put_acpi_device(adev);
+> > +		return;
+> > +	}
+> > +
+> > +	if (ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
+> >  		return;
+> >  
+> >  	acpi_bus_put_acpi_device(adev);
+> > -	return;
+> >  
+> >   err:
+> >  	acpi_evaluate_ost(handle, type, ost_code, NULL);
+> > 
+> 
