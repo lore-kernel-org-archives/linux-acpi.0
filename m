@@ -1,155 +1,57 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1] i2c: core: Protect acpi_match_device() against NULL
-Date: Sun, 09 Jul 2017 16:18:19 +0300
-Message-ID: <1499606299.22624.315.camel@linux.intel.com>
-References: <20170709131618.12121-1-andriy.shevchenko@linux.intel.com>
+From: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?=
+        <jerome.debretagne@gmail.com>
+Subject: Re: [PATCH 0/3] ACPI / sleep: Support power button wakeup from S2I on
+ recent Dell laptops
+Date: Sun, 9 Jul 2017 18:45:01 +0200
+Message-ID: <CA+kEDGFBre3Uvei9SNpdM9LR8xV8g10zde81stt9OFU=Wax_Mg@mail.gmail.com>
+References: <CA+kEDGHNOQboMy34=EmH6zVSgtdVz1afOz5hwx5HBKshWhackA@mail.gmail.com>
+ <88366b425cce41358ae8f88e43f3d201@ausx13mpc120.AMER.DELL.COM>
+ <CA+kEDGEXEYEV+tGnswvHsFmOX5W_GAYPTYxk0YUUt0D1pdr92A@mail.gmail.com>
+ <1872413.KDFIRZOQLU@aspire.rjw.lan> <CA+kEDGHHVJS9vgNVdowVQ4+eACFFdqTXR04e1V5qFcs_pZ0_yA@mail.gmail.com>
+ <CA+kEDGF57sfz+f8_9XMqGQqPt-5LmtvceO70_gOpdaZ548tT-g@mail.gmail.com>
+ <CAJZ5v0jHf3zDJ6K8pN3DQZa2Xq14Cz5XQMpwxqJfwH=nS8jGdA@mail.gmail.com>
+ <CA+kEDGFiyynapLQPgnxNxuphBFYNpp7OYu9dn7vv-Z9PJNG6dA@mail.gmail.com>
+ <CAJZ5v0h=GVjqwZ7fdJGHWrQN5GuNotk5xCH-nYynFUadVAH0Xg@mail.gmail.com> <CA+kEDGHS0JAoPiXowBEYCRwgi43-Ss_sJa9ngiuwP_xYt3rtaA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:41847 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752050AbdGINSZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 9 Jul 2017 09:18:25 -0400
-In-Reply-To: <20170709131618.12121-1-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CA+kEDGHS0JAoPiXowBEYCRwgi43-Ss_sJa9ngiuwP_xYt3rtaA@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mario Limonciello <Mario.Limonciello@dell.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Sun, 2017-07-09 at 16:16 +0300, Andy Shevchenko wrote:
-> The commit 09b3b246acba
-> 	("i2c: core: Allow empty id_table in ACPI case as well")
-> brought an additional check for ACPI match table entry, though missed
-> NULL check for table itself.
-> 
-> Do it here by introducing a helper i2c_acpi_match_device().
-> 
-> Note, we rename some static function in i2c-core-acpi.c to distinguish
-> with public API.
-> 
+Hi Rafael,
 
-Wolfram, feel free to squash it into the original commit if it looks
-better. 
+>>> Would a patch to handle this specific case be acceptable in the kernel though?
+>>
+>> We have quirks. :-)
+>>
+>> That said I think intel-hid could check the 0xCE event unconditionally
+>> in the "wakeup" mode, but that will be a separate patch on top of my
+>> series.
+>
+> I guess I'll wait for your s2-idle-dell-test patch series to land first, to
+> discuss then how to handle this other Dell model (with Alex Hung?).
+>
+> In the meantime, I'll update the bug report I had created:
+> https://bugzilla.kernel.org/show_bug.cgi?id=195897
 
-> Fixes: 09b3b246acba ("i2c: core: Allow empty id_table in ACPI case as
-> well")
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/i2c/i2c-core-acpi.c | 19 +++++++++++++++----
->  drivers/i2c/i2c-core-base.c |  2 +-
->  drivers/i2c/i2c-core.h      |  9 +++++++++
->  3 files changed, 25 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-> index 4842ec3a5451..a9126b3cda61 100644
-> --- a/drivers/i2c/i2c-core-acpi.c
-> +++ b/drivers/i2c/i2c-core-acpi.c
-> @@ -230,6 +230,16 @@ void i2c_acpi_register_devices(struct i2c_adapter
-> *adap)
->  		dev_warn(&adap->dev, "failed to enumerate I2C
-> slaves\n");
->  }
->  
-> +const struct acpi_device_id *
-> +i2c_acpi_match_device(const struct acpi_device_id *matches,
-> +		      struct i2c_client *client)
-> +{
-> +	if (!(client && matches))
-> +		return NULL;
-> +
-> +	return acpi_match_device(matches, &client->dev);
-> +}
-> +
->  static acpi_status i2c_acpi_lookup_speed(acpi_handle handle, u32
-> level,
->  					   void *data, void
-> **return_value)
->  {
-> @@ -289,7 +299,7 @@ u32 i2c_acpi_find_bus_speed(struct device *dev)
->  }
->  EXPORT_SYMBOL_GPL(i2c_acpi_find_bus_speed);
->  
-> -static int i2c_acpi_match_adapter(struct device *dev, void *data)
-> +static int i2c_acpi_find_match_adapter(struct device *dev, void
-> *data)
->  {
->  	struct i2c_adapter *adapter = i2c_verify_adapter(dev);
->  
-> @@ -299,7 +309,7 @@ static int i2c_acpi_match_adapter(struct device
-> *dev, void *data)
->  	return ACPI_HANDLE(dev) == (acpi_handle)data;
->  }
->  
-> -static int i2c_acpi_match_device(struct device *dev, void *data)
-> +static int i2c_acpi_find_match_device(struct device *dev, void *data)
->  {
->  	return ACPI_COMPANION(dev) == data;
->  }
-> @@ -309,7 +319,7 @@ static struct i2c_adapter
-> *i2c_acpi_find_adapter_by_handle(acpi_handle handle)
->  	struct device *dev;
->  
->  	dev = bus_find_device(&i2c_bus_type, NULL, handle,
-> -			      i2c_acpi_match_adapter);
-> +			      i2c_acpi_find_match_adapter);
->  	return dev ? i2c_verify_adapter(dev) : NULL;
->  }
->  
-> @@ -317,7 +327,8 @@ static struct i2c_client
-> *i2c_acpi_find_client_by_adev(struct acpi_device *adev)
->  {
->  	struct device *dev;
->  
-> -	dev = bus_find_device(&i2c_bus_type, NULL, adev,
-> i2c_acpi_match_device);
-> +	dev = bus_find_device(&i2c_bus_type, NULL, adev,
-> +			      i2c_acpi_find_match_device);
->  	return dev ? i2c_verify_client(dev) : NULL;
->  }
->  
-> diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-> index 45231d2257ad..ba51551c3077 100644
-> --- a/drivers/i2c/i2c-core-base.c
-> +++ b/drivers/i2c/i2c-core-base.c
-> @@ -357,7 +357,7 @@ static int i2c_device_probe(struct device *dev)
->  	 * Tree or ACPI match table entry is supplied for the probing
-> device.
->  	 */
->  	if (!driver->id_table &&
-> -	    !acpi_match_device(dev->driver->acpi_match_table,
-> &client->dev) &&
-> +	    !i2c_acpi_match_device(dev->driver->acpi_match_table,
-> client) &&
->  	    !i2c_of_match_device(dev->driver->of_match_table,
-> client))
->  		return -ENODEV;
->  
-> diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
-> index 3b63f5e5b89c..3d3d9bf02101 100644
-> --- a/drivers/i2c/i2c-core.h
-> +++ b/drivers/i2c/i2c-core.h
-> @@ -31,9 +31,18 @@ int i2c_check_addr_validity(unsigned addr, unsigned
-> short flags);
->  int i2c_check_7bit_addr_validity_strict(unsigned short addr);
->  
->  #ifdef CONFIG_ACPI
-> +const struct acpi_device_id *
-> +i2c_acpi_match_device(const struct acpi_device_id *matches,
-> +		      struct i2c_client *client);
->  void i2c_acpi_register_devices(struct i2c_adapter *adap);
->  #else /* CONFIG_ACPI */
->  static inline void i2c_acpi_register_devices(struct i2c_adapter
-> *adap) { }
-> +static inline const struct acpi_device_id *
-> +i2c_acpi_match_device(const struct acpi_device_id *matches,
-> +		      struct i2c_client *client)
-> +{
-> +	return NULL;
-> +}
->  #endif /* CONFIG_ACPI */
->  extern struct notifier_block i2c_acpi_notifier;
->  
+It seems your series should land in 4.13 so I'm looking at proposing a
+patch on top of it, as discussed.
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+However, I realize that I only know how to handle the wakeup case but
+not the suspend one which doesn't work either. Indeed I've always
+triggered suspend via the command line so far.
+
+In intel-hid.c I see no obvious code referring to suspend. With added
+debug logs, I can see that notify_handler receives the same 0xce / 0xcf
+Notify events upon power button press when the system is running.
+
+What would be the expected way then to trigger a normal suspend
+sequence, when catching these uncommon events? Should a more
+standard event be created instead? If that's a right approach, is
+there existing kernel code to do so ?
+
+Thank you,
+Jerome
