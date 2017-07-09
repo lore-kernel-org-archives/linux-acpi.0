@@ -1,55 +1,104 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 3/3] ACPI / X86: Add KIOX000A accelerometer on GPD win to always_present_ids array
-Date: Sun,  9 Jul 2017 21:05:14 +0200
-Message-ID: <20170709190514.3437-3-hdegoede@redhat.com>
-References: <20170709190514.3437-1-hdegoede@redhat.com>
+Subject: [PATCH 1/3] ACPI / X86: Allow matching always_present_id array entries by DMI
+Date: Sun,  9 Jul 2017 21:05:12 +0200
+Message-ID: <20170709190514.3437-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36910 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34542 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752547AbdGITFU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 9 Jul 2017 15:05:20 -0400
-In-Reply-To: <20170709190514.3437-1-hdegoede@redhat.com>
+        id S1752467AbdGITFR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 9 Jul 2017 15:05:17 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
 
-The GPD win BIOS dated 20170320 has disabled the accelerometer, the
-drivers sometimes cause crashes under Windows and this is how the
-manufacturer has solved this :|
+On some X86 systems the DSDT hides APCI devices to work around Windows
+driver bugs. On one such system the device is even hidden until a certain
+time after _SB.PCI0.GFX0.LCD.LCD1._ON gets called has passed *and*
+_STA has been called at least 3 times since. TL;DR: it is a mess.
 
-I see no other way to keep the accelerometer working under Windows then
-adding it to the always_present_ids array.
+Until now the always_present_id matching was used to force status
+for a whole class of devices, e.g. always enable PWM1 on CHerry Trail
+devices.
+
+This commit extends the always_present_id matching code to optionally
+als check for a DMI match so that we can also add system specific
+quirks to the always_present_id array.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/x86/utils.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/acpi/x86/utils.c | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-index eb6caf6f708b..b4fbb9929482 100644
+index bd86b809c848..b0e16516adfd 100644
 --- a/drivers/acpi/x86/utils.c
 +++ b/drivers/acpi/x86/utils.c
-@@ -70,6 +70,19 @@ static const struct always_present_id always_present_ids[] = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
- 		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7130"),
- 	      }),
-+	/*
-+	 * The GPD win BIOS dated 20170320 has disabled the accelerometer, the
-+	 * drivers sometimes cause crashes under Windows and this is how the
-+	 * manufacturer has solved this :| Note that the the DMI data is less
-+	 * generic then it seems, a board_vendor of "AMI Corporation" is quite
-+	 * rare and a board_name of "Default String" also is rare.
-+	 */
-+	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
-+		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
-+		DMI_MATCH(DMI_BIOS_DATE, "03/20/2017")
-+	      }),
+@@ -12,6 +12,7 @@
+  */
+ 
+ #include <linux/acpi.h>
++#include <linux/dmi.h>
+ #include <asm/cpu_device_id.h>
+ #include <asm/intel-family.h>
+ #include "../internal.h"
+@@ -20,6 +21,10 @@
+  * Some ACPI devices are hidden (status == 0x0) in recent BIOS-es because
+  * some recent Windows drivers bind to one device but poke at multiple
+  * devices at the same time, so the others get hidden.
++ *
++ * Some BIOS-es (temporarily) hide specific APCI devices to work around Windows
++ * driver bugs. We use DMI matching to match known cases of this.
++ *
+  * We work around this by always reporting ACPI_STA_DEFAULT for these
+  * devices. Note this MUST only be done for devices where this is safe.
+  *
+@@ -31,14 +36,16 @@
+ struct always_present_id {
+ 	struct acpi_device_id hid[2];
+ 	struct x86_cpu_id cpu_ids[2];
++	struct dmi_system_id dmi_ids[2]; /* Optional */
+ 	const char *uid;
+ };
+ 
+ #define ICPU(model)	{ X86_VENDOR_INTEL, 6, model, X86_FEATURE_ANY, }
+ 
+-#define ENTRY(hid, uid, cpu_models) {					\
++#define ENTRY(hid, uid, cpu_models, dmi...) {				\
+ 	{ { hid, }, {} },						\
+ 	{ cpu_models, {} },						\
++	{ { .matches = dmi }, {} },					\
+ 	uid,								\
+ }
+ 
+@@ -47,13 +54,13 @@ static const struct always_present_id always_present_ids[] = {
+ 	 * Bay / Cherry Trail PWM directly poked by GPU driver in win10,
+ 	 * but Linux uses a separate PWM driver, harmless if not used.
+ 	 */
+-	ENTRY("80860F09", "1", ICPU(INTEL_FAM6_ATOM_SILVERMONT1)),
+-	ENTRY("80862288", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT)),
++	ENTRY("80860F09", "1", ICPU(INTEL_FAM6_ATOM_SILVERMONT1), {}),
++	ENTRY("80862288", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {}),
+ 	/*
+ 	 * The INT0002 device is necessary to clear wakeup interrupt sources
+ 	 * on Cherry Trail devices, without it we get nobody cared IRQ msgs.
+ 	 */
+-	ENTRY("INT0002", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT)),
++	ENTRY("INT0002", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {}),
  };
  
  bool acpi_device_always_present(struct acpi_device *adev)
+@@ -76,6 +83,10 @@ bool acpi_device_always_present(struct acpi_device *adev)
+ 		if (!x86_match_cpu(always_present_ids[i].cpu_ids))
+ 			continue;
+ 
++		if (always_present_ids[i].dmi_ids[0].matches[0].slot &&
++		    !dmi_check_system(always_present_ids[i].dmi_ids))
++			continue;
++
+ 		if (old_status != ACPI_STA_DEFAULT) /* Log only once */
+ 			dev_info(&adev->dev,
+ 				 "Device [%s] is in always present list\n",
 -- 
 2.13.0
 
