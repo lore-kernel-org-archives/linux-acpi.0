@@ -1,60 +1,52 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v1] i2c: core: Allow empty id_table in ACPI case as well
-Date: Sat, 8 Jul 2017 22:58:48 +0200
-Message-ID: <20170708205848.c554fbyztvxavldv@ninjato>
-References: <20170706180140.49391-1-andriy.shevchenko@linux.intel.com>
+From: Arthur Marsh <arthur.marsh@internode.on.net>
+Subject: ATK0110 GITM[0x6020011] ACPI exception: AE_BAD_PARAMETER errors
+Date: Sun, 9 Jul 2017 14:05:12 +0930
+Message-ID: <c3774583-930e-a683-bf2f-0684689e12a4@internode.on.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ja5pdzfin35uvoav"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:35096 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750929AbdGHU6u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 8 Jul 2017 16:58:50 -0400
-Content-Disposition: inline
-In-Reply-To: <20170706180140.49391-1-andriy.shevchenko@linux.intel.com>
+Received: from ipmail05.adl6.internode.on.net ([150.101.137.143]:23481 "EHLO
+        ipmail05.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750836AbdGIEke (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2017 00:40:34 -0400
+Content-Language: en-AU
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-i2c@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: kronos.it@gmail.com
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
+On post 4.12.0 kernels on an ASUS M3A7A Pro motherboard, I've been 
+getting messages about the asus_atk0110 module:
 
---ja5pdzfin35uvoav
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+am64:/usr/src/linux# dmesg|grep -i atk
+[   12.517304] ATK0110 ATK0110:00: hwmon_device_register() is 
+deprecated. Please convert the driver to use 
+hwmon_device_register_with_info().
+[   54.749748] ATK0110 ATK0110:00: GITM[0x6020011] ACPI exception: 
+AE_BAD_PARAMETER
+[   54.752680] ATK0110 ATK0110:00: GITM[0x6020061] ACPI exception: 
+AE_BAD_PARAMETER
+[   54.755502] ATK0110 ATK0110:00: GITM[0x6020062] ACPI exception: 
+AE_BAD_PARAMETER
+[   54.758310] ATK0110 ATK0110:00: GITM[0x6020063] ACPI exception: 
+AE_BAD_PARAMETER
+[   54.758390] ATK0110 ATK0110:00: GITM[0x6040013] ACPI exception: 
+AE_BAD_PARAMETER
+[   54.758466] ATK0110 ATK0110:00: GITM[0x6040073] ACPI exception: 
+AE_BAD_PARAMETER
+[   54.758527] ATK0110 ATK0110:00: GITM[0x60400c3] ACPI exception: 
+AE_BAD_PARAMETER
+[   54.758579] ATK0110 ATK0110:00: GITM[0x6030012] ACPI exception: 
+AE_BAD_PARAMETER
+[   54.758631] ATK0110 ATK0110:00: GITM[0x6030074] ACPI exception: 
+AE_BAD_PARAMETER
 
-On Thu, Jul 06, 2017 at 09:01:40PM +0300, Andy Shevchenko wrote:
-> For now empty ID table is not allowed with ACPI and prevents driver to be
-> probed.
->=20
-> Add a check to allow empty ID table.
->=20
-> Fixes: da10c06a044b ("i2c: Make I2C ID tables non-mandatory for DT'ed dev=
-ices")
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+This might be related to hard CPU lock-ups that I see later on, so for 
+now I've unloaded the asus_atk0110 module to see if that prevents later 
+lock-ups.
 
-Applied to for-4.13, thanks!
+I can supply more configuration/log information and run tests if anyone 
+want them.
 
-
---ja5pdzfin35uvoav
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAllhR4QACgkQFA3kzBSg
-KbanIA//VZh2BoIbOgW6FrrGiVYx7+uU2EaoJJL+ggQWUIndr0yQYZtH6uzKHr2F
-Cv9penv18rkEsYgfVlP97L9NRWNossT7ecuhSQgSj0hb4bOC8XGzlOaLiI0nlK2A
-g4Yh908A0qJw4J6Ph3qpyqOGMKI7bCvmrflcbfZylkHnBb1DIm5lIFK6LPpr8MnG
-WSkUGWEpxmolBPv37PboRRbpuMmnoD3zXbA8YPrhceVagiiJ9RTl/S7TTQKko+/A
-epRXDtvwI0wbu9SMp0VhhAfcby9FTNGpPoTuYOUN9DQXOdONXJZG0D5lMcN7V1ZZ
-yl5kwE4fdRLIpKRX7rmRZhDDGrGPZBOPZrG/fMJoxVMIA6Q4DzR1VvIaVIISrcu5
-WOAKgZPMF7pBc/rUjs+wCLVowLu+40UVgTt1NjBI17BsKkEXl2oB+9KoevWrEZT4
-AJXRUvzpAtn/nlDSOa7TyMKR/lKrPImSgmwD3qW4/R1Xuis0bXjkkhmYwBYy2onB
-7qLra/knmbnGcfsjli/vKgOSys+Y9/Xfnx5bh4UT7Jm3ZmQQaLZenYwmhQNDIvqP
-fS44TUAfDnj1Kqzmw8x4iGm9ZTybrVRnO/Gh03VMeaa0kzMCbRNbf2VM4o56gOnA
-VFp6wMB4G32SfwemY2aaOkBP/g/YPyq4kOXUhOfjPdPYM2d3A/U=
-=d21h
------END PGP SIGNATURE-----
-
---ja5pdzfin35uvoav--
+Arthur.
