@@ -1,55 +1,55 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] ACPI / PMIC: xpower: Do pinswitch magic when reading
- GPADC
-Date: Sun, 9 Jul 2017 20:16:11 +0200
-Message-ID: <fc38898b-c612-876e-6a75-b84bc8dc9123@redhat.com>
-References: <20170708134008.13930-1-hdegoede@redhat.com>
- <1499522283.22624.309.camel@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 3/3] ACPI / X86: Add KIOX000A accelerometer on GPD win to always_present_ids array
+Date: Sun,  9 Jul 2017 21:05:14 +0200
+Message-ID: <20170709190514.3437-3-hdegoede@redhat.com>
+References: <20170709190514.3437-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46954 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:36910 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752268AbdGISQO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 9 Jul 2017 14:16:14 -0400
-In-Reply-To: <1499522283.22624.309.camel@linux.intel.com>
-Content-Language: en-US
+        id S1752547AbdGITFU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 9 Jul 2017 15:05:20 -0400
+In-Reply-To: <20170709190514.3437-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
 
-Hi,
+The GPD win BIOS dated 20170320 has disabled the accelerometer, the
+drivers sometimes cause crashes under Windows and this is how the
+manufacturer has solved this :|
 
-On 08-07-17 15:58, Andy Shevchenko wrote:
-> On Sat, 2017-07-08 at 15:40 +0200, Hans de Goede wrote:
->> Testing has shown that the TS-pin's bias-current needs to be disabled
->> when reading the GPIO0 pin in GPADC mode.
->>
->> It seems that there is only 1 bias current source and to be able to
->> use it
->> for the GPIO0 pin in GPADC mode it must be temporarily turned off for
->> the
->> TS pin, but the datasheet does not mention this.
->>
->> This commit adds the necessary writes to turn the TS pin BIAS current
->> off before and back on after reading the GPADC. This fixes the GPADC
->> always returning a reading of 0.
->>
->>
-> 
->> +	/* After switching to the GPADC pin give things some time to
->> settle */
->> +	usleep_range(6000, 10000);
-> 
-> msleep(6); ?
+I see no other way to keep the accelerometer working under Windows then
+adding it to the always_present_ids array.
 
-That will make checkpatch unhappy and may sleep for as long as 20ms, also see:
-Documentation/timers/timers-howto.txt which advices against using msleep for
-short sleeps.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/x86/utils.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-Regards,
-
-Hans
+diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
+index eb6caf6f708b..b4fbb9929482 100644
+--- a/drivers/acpi/x86/utils.c
++++ b/drivers/acpi/x86/utils.c
+@@ -70,6 +70,19 @@ static const struct always_present_id always_present_ids[] = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7130"),
+ 	      }),
++	/*
++	 * The GPD win BIOS dated 20170320 has disabled the accelerometer, the
++	 * drivers sometimes cause crashes under Windows and this is how the
++	 * manufacturer has solved this :| Note that the the DMI data is less
++	 * generic then it seems, a board_vendor of "AMI Corporation" is quite
++	 * rare and a board_name of "Default String" also is rare.
++	 */
++	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
++		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
++		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
++		DMI_MATCH(DMI_BIOS_DATE, "03/20/2017")
++	      }),
+ };
+ 
+ bool acpi_device_always_present(struct acpi_device *adev)
+-- 
+2.13.0
 
