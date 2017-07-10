@@ -1,63 +1,57 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Subject: Re: ATK0110 GITM[0x6020011] ACPI exception: AE_BAD_PARAMETER errors
-Date: Mon, 10 Jul 2017 11:05:18 +0100
-Message-ID: <CAKPcRGqKkUu3124kO+teFvDRuVkQHj1mgQxrmPfda7534HYQbQ@mail.gmail.com>
-References: <c3774583-930e-a683-bf2f-0684689e12a4@internode.on.net>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [PATCH v8 4/5] platform/x86: Enable Atom PMC platform clocks
+Date: Mon, 10 Jul 2017 12:19:23 +0200
+Message-ID: <CAFqH_52JO5eWa9sZk+1OcmfFjsydLk+ajajqTnLprSJfCCSM7g@mail.gmail.com>
+References: <1485194865-10400-1-git-send-email-pierre-louis.bossart@linux.intel.com>
+ <1485194865-10400-5-git-send-email-pierre-louis.bossart@linux.intel.com> <20170127002344.GZ8801@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ua0-f176.google.com ([209.85.217.176]:35315 "EHLO
-        mail-ua0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752295AbdGJKFU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2017 06:05:20 -0400
-Received: by mail-ua0-f176.google.com with SMTP id j53so50832477uaa.2
-        for <linux-acpi@vger.kernel.org>; Mon, 10 Jul 2017 03:05:20 -0700 (PDT)
-In-Reply-To: <c3774583-930e-a683-bf2f-0684689e12a4@internode.on.net>
+Received: from mail-it0-f52.google.com ([209.85.214.52]:38581 "EHLO
+        mail-it0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752457AbdGJKT0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2017 06:19:26 -0400
+In-Reply-To: <20170127002344.GZ8801@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arthur Marsh <arthur.marsh@internode.on.net>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, alsa-devel@alsa-project.org, Irina Tirdea <irina.tirdea@intel.com>, Michael Turquette <mturquette@baylibre.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Takashi Iwai <tiwai@suse.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H . Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-Hi,
+Hi all,
 
-On 9 July 2017 at 05:35, Arthur Marsh <arthur.marsh@internode.on.net> wrote:
-> On post 4.12.0 kernels
-
-So 4.11.9 works but 4.12 doesn't, correct?
-
-> on an ASUS M3A7A Pro motherboard, I've been getting
-> messages about the asus_atk0110 module:
+2017-01-27 1:23 GMT+01:00 Stephen Boyd <sboyd@codeaurora.org>:
+> On 01/23, Pierre-Louis Bossart wrote:
+>> From: Irina Tirdea <irina.tirdea@intel.com>
+>>
+>> The BayTrail and CherryTrail platforms provide platform clocks
+>> through their Power Management Controller (PMC).
+>>
+>> The SoC supports up to 6 clocks (PMC_PLT_CLK[0..5]) with a
+>> frequency of either 19.2 MHz (PLL) or 25 MHz (XTAL) for BayTrail
+>> and a frequency of 19.2 MHz (XTAL) for CherryTrail. These clocks
+>> are available for general system use, where appropriate. For example,
+>> the usage for platform clocks suggested in the datasheet is the
+>> following:
+>>   PLT_CLK[0..2] - Camera
+>>   PLT_CLK[3] - Audio Codec
+>>   PLT_CLK[4] -
+>>   PLT_CLK[5] - COMMs
+>>
+>> Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+>> Signed-off-by: Irina Tirdea <irina.tirdea@intel.com>
+>> ---
 >
-> am64:/usr/src/linux# dmesg|grep -i atk
-> [   12.517304] ATK0110 ATK0110:00: hwmon_device_register() is deprecated.
-> Please convert the driver to use hwmon_device_register_with_info().
-> [   54.749748] ATK0110 ATK0110:00: GITM[0x6020011] ACPI exception:
-> AE_BAD_PARAMETER
-> [   54.752680] ATK0110 ATK0110:00: GITM[0x6020061] ACPI exception:
-> AE_BAD_PARAMETER
-> [   54.755502] ATK0110 ATK0110:00: GITM[0x6020062] ACPI exception:
-> AE_BAD_PARAMETER
-> [   54.758310] ATK0110 ATK0110:00: GITM[0x6020063] ACPI exception:
-> AE_BAD_PARAMETER
-> [   54.758390] ATK0110 ATK0110:00: GITM[0x6040013] ACPI exception:
-> AE_BAD_PARAMETER
-> [   54.758466] ATK0110 ATK0110:00: GITM[0x6040073] ACPI exception:
-> AE_BAD_PARAMETER
-> [   54.758527] ATK0110 ATK0110:00: GITM[0x60400c3] ACPI exception:
-> AE_BAD_PARAMETER
-> [   54.758579] ATK0110 ATK0110:00: GITM[0x6030012] ACPI exception:
-> AE_BAD_PARAMETER
-> [   54.758631] ATK0110 ATK0110:00: GITM[0x6030074] ACPI exception:
-> AE_BAD_PARAMETER
+> Applied to clk-next
 >
-> This might be related to hard CPU lock-ups that I see later on, so for now
-> I've unloaded the asus_atk0110 module to see if that prevents later
-> lock-ups.
->
-> I can supply more configuration/log information and run tests if anyone want
-> them.
 
-Can you please supply the full dmesg when booting with loglevel=7?
-Also please attach a copy of the DSDT table (/sys/firmware/acpi/tables/DSDT).
+I just noticed that I need to revert this patch on kernel 4.12 to get
+audio working again on my Acer C200 (Baytrail). Any clue on what could
+be wrong?
 
-L.
+Thanks in advance,
+ Enric
+
+
+> --
+> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+> a Linux Foundation Collaborative Project
