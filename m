@@ -1,14 +1,14 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] More power management updates for v4.13-rc1
-Date: Tue, 11 Jul 2017 00:00:13 +0200
-Message-ID: <CAJZ5v0gGfaqBnex1Hk3qpNugQv0_gs3Zz3=n=1z9Ti2d-eLgCg@mail.gmail.com>
+Subject: [GIT PULL] More ACPI updates for v4.13-rc1
+Date: Tue, 11 Jul 2017 00:01:36 +0200
+Message-ID: <CAJZ5v0jPqdzMfpuOPWUfrnpbbzbeNg59F8xHh5rBkM+T8e09nw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:33660 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754041AbdGJWAP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2017 18:00:15 -0400
+Received: from mail-it0-f68.google.com ([209.85.214.68]:34232 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754106AbdGJWBi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2017 18:01:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
@@ -19,56 +19,69 @@ Hi Linus,
 Please pull from the tag
 
  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm-extra-4.13-rc1
+ acpi-extra-4.13-rc1
 
-with top-most commit 15d56b3921d2e52c7747af21fcdf04e940aeb09b
+with top-most commit f19e80b394808ed763e2669b08aea480adcc46be
 
- Merge branches 'pm-domains', 'pm-sleep' and 'pm-cpufreq'
+ Merge branches 'acpi-spcr', 'acpi-osi', 'acpi-bus', 'acpi-scan' and 'acpi-misc'
 
-on top of commit 408c9861c6979db974455b9e7a9bcadd60e0934c
+on top of commit eceeae414edccb07fad683011c0c65abe8a3a554
 
- Merge tag 'pm-4.13-rc1' of
+ Merge tag 'acpi-4.13-rc1' of
 git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
 
-to receive more power management updates for v4.13-rc1.
+to receive more ACPI updates for v4.13-rc1.
 
-These revert one recent change in the generic power domains
-framework, fix a recently introduced build issue in there and
-constify attribute_group structures in some places.
+These fix the ACPI SPCR table handling and add a workaround for
+APM X-Gene 8250 UART on top of that, fix two ACPI hotplug issues
+related to hot-remove failures, add a missing "static" to one
+function and constify some attribute_group structures.
 
 Specifics:
 
- - Revert a recent change in the generic power domains (genpd)
-   framework that led to regressions and turned out the be misguided
-   (Rafael Wysocki).
+ - Fix the ACPI code handling the SPCR table to check access
+   width of MMIO regions and add a workaround for APM X-Gene
+   8250 UART to use 32-bit MMIO accesses with its register
+   (Loc Ho).
 
- - Fix a recently introduced build issue in the generic power domains
-   (genpd) framework (Arnd Bergmann).
+ - Fix two ACPI-based hotplug issues related to the handling of
+   hot-remove failures on the OS side (Chun-Yi Lee).
 
- - Constify attribute_group structures in the PM core, the cpufreq
-   stats code and in intel_pstate (Arvind Yadav).
+ - Constify attribute_group structures in a few places (Arvind Yadav).
+
+ - Make one local function static (Colin Ian King).
 
 Thanks!
 
 
 ---------------
 
-Arnd Bergmann (1):
-      PM / Domains: provide pm_genpd_poweroff_noirq() stub
+Arvind Yadav (4):
+      ACPI / power: constify attribute_group structures
+      ACPI: BGRT: constify attribute_group structures
+      ACPI / LPSS: constify attribute_group structures
+      ACPI / DPTF: constify attribute_group structures
 
-Arvind Yadav (3):
-      PM / sleep: constify attribute_group structures
-      cpufreq: cpufreq_stats: constify attribute_group structures
-      cpufreq: intel_pstate: constify attribute_group structures
+Colin Ian King (1):
+      ACPI / osi: Make local function acpi_osi_dmi_linux() static
 
-Rafael J. Wysocki (1):
-      Revert "PM / Domains: Handle safely genpd_syscore_switch() call
-on non-genpd device"
+Lee, Chun-Yi (2):
+      ACPI / bus: handle ACPI hotplug schedule errors completely
+      ACPI / scan: Indicate to platform when hot remove returns busy
+
+Loc Ho (2):
+      ACPI: SPCR: Use access width to determine mmio usage
+      ACPI: SPCR: Workaround for APM X-Gene 8250 UART 32-alignment errata
 
 ---------------
 
- drivers/base/power/domain.c     | 5 +++--
- drivers/cpufreq/cpufreq_stats.c | 2 +-
- drivers/cpufreq/intel_pstate.c  | 2 +-
- kernel/power/main.c             | 2 +-
- 4 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/acpi/acpi_lpss.c       |  2 +-
+ drivers/acpi/bgrt.c            |  2 +-
+ drivers/acpi/bus.c             |  8 ++++++--
+ drivers/acpi/dptf/dptf_power.c |  2 +-
+ drivers/acpi/osi.c             |  3 ++-
+ drivers/acpi/power.c           | 10 +++++-----
+ drivers/acpi/scan.c            | 18 +++++++++++++-----
+ drivers/acpi/spcr.c            | 40 ++++++++++++++++++++++++++++++++++++++--
+ include/acpi/acrestyp.h        |  7 +++++++
+ 9 files changed, 74 insertions(+), 18 deletions(-)
