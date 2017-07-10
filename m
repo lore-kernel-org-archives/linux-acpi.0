@@ -1,83 +1,90 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 04/16] ACPICA: iASL compiler: allow compilation of externals with paths that refer to existing names
-Date: Mon, 10 Jul 2017 15:23:02 +0800
-Message-ID: <6f2fb73928649f8f4e8adde5901a9fb368c2465f.1499671181.git.lv.zheng@intel.com>
+Subject: [PATCH 06/16] ACPICA: linuxize: cleanup typedef definitions
+Date: Mon, 10 Jul 2017 15:23:15 +0800
+Message-ID: <b8b298d1b5b511e085f3bcae2308dbaa2d7d1a72.1499671182.git.lv.zheng@intel.com>
 References: <cover.1499671181.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:16097 "EHLO mga02.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:28301 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753418AbdGJHXH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 10 Jul 2017 03:23:07 -0400
+        id S1751835AbdGJHXS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 10 Jul 2017 03:23:18 -0400
 In-Reply-To: <cover.1499671181.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Erik Schmauss <erik.schmauss@intel.com>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Erik Schmauss <erik.schmauss@intel.com>
+ACPICA commit 894e49ef22db354eb1685cdb6f5f991766351d3c
 
-ACPICA commit 9a252114197409290813bee570e9d53c22b99d32
+acpisrc now has capability to convert both the followings:
+1. Form 1:
+  typedef struct/union foo {         struct/union foo {
+     ....                       -->      ...
+  } FOO;                             }
+2. Form 2:
+  typedef struct/union foo FOO; -->  typedef struct/union foo foo;
+It becomes unable to handle the following:
+3. Form3:
+  typedef struct/union foo { /* comment */
+      ...
+  } FOO;
+    -->
+  strut/union foo { /* comment */
+      ...
+  };
 
-This change allows compilation of code like the following:
+As:
+1. The purpose of acpisrc is to convert formatted code (ACPICA coding
+   style) into linux coding style,
+2. acpisrc is a very simple tool that doesn't fully handle C language.
+This commit changes the definitions side in order not to regress and we
+shall make "no comments in struct/union line" as a new ACPICA coding style
+rule. Lv Zheng.
 
-definition_block (...)
-{
-    External (ABCD.EFGH)
-    Device (ABCD)
-    {
-        Name (IJLK,0)
-    }
-}
-
-but does not allow compilation of code like the following:
-
-definition_block (...)
-{
-    External (ABCD)
-    Device (ABCD)
-    {
-        Name (EFGH,0)
-    }
-}
-
-Link: https://github.com/acpica/acpica/commit/9a252114
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/894e49ef
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h  | 1 +
- drivers/acpi/acpica/nsaccess.c | 6 ++++++
- 2 files changed, 7 insertions(+)
+ drivers/acpi/acpica/acobject.h | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 822dbc5..bae943b 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -199,6 +199,7 @@ struct acpi_namespace_node {
- #define ANOBJ_EVALUATED                 0x20	/* Set on first evaluation of node */
- #define ANOBJ_ALLOCATED_BUFFER          0x40	/* Method AML buffer is dynamic (install_method) */
+diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
+index 27c3f98..549f227 100644
+--- a/drivers/acpi/acpica/acobject.h
++++ b/drivers/acpi/acpica/acobject.h
+@@ -122,7 +122,9 @@ struct acpi_object_integer {
+ 	_type                           *pointer; \
+ 	u32                             length;
  
-+#define IMPLICIT_EXTERNAL               0x02	/* iASL only: This object created implicitly via External */
- #define ANOBJ_IS_EXTERNAL               0x08	/* iASL only: This object created via External() */
- #define ANOBJ_METHOD_NO_RETVAL          0x10	/* iASL only: Method has no return value */
- #define ANOBJ_METHOD_SOME_NO_RETVAL     0x20	/* iASL only: Method has at least one return value */
-diff --git a/drivers/acpi/acpica/nsaccess.c b/drivers/acpi/acpica/nsaccess.c
-index e5f4fa4..14be12f 100644
---- a/drivers/acpi/acpica/nsaccess.c
-+++ b/drivers/acpi/acpica/nsaccess.c
-@@ -634,6 +634,12 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
- 					    this_node->object;
- 				}
- 			}
-+#ifdef ACPI_ASL_COMPILER
-+			if (!acpi_gbl_disasm_flag &&
-+			    (this_node->flags & ANOBJ_IS_EXTERNAL)) {
-+				this_node->flags |= IMPLICIT_EXTERNAL;
-+			}
-+#endif
- 		}
+-struct acpi_object_string {	/* Null terminated, ASCII characters only */
++/* Null terminated, ASCII characters only */
++
++struct acpi_object_string {
+ 	ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_BUFFER_INFO(char)	/* String in AML stream or allocated string */
+ };
  
- 		/* Special handling for the last segment (num_segments == 0) */
+@@ -211,7 +213,9 @@ struct acpi_object_method {
+ 	union acpi_operand_object       *notify_list[2];    /* Handlers for system/device notifies */\
+ 	union acpi_operand_object       *handler;	/* Handler for Address space */
+ 
+-struct acpi_object_notify_common {	/* COMMON NOTIFY for POWER, PROCESSOR, DEVICE, and THERMAL */
++/* COMMON NOTIFY for POWER, PROCESSOR, DEVICE, and THERMAL */
++
++struct acpi_object_notify_common {
+ ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_NOTIFY_INFO};
+ 
+ struct acpi_object_device {
+@@ -258,7 +262,9 @@ ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_NOTIFY_INFO};
+ 	u8                              access_length;	/* For serial regions/fields */
+ 
+ 
+-struct acpi_object_field_common {	/* COMMON FIELD (for BUFFER, REGION, BANK, and INDEX fields) */
++/* COMMON FIELD (for BUFFER, REGION, BANK, and INDEX fields) */
++
++struct acpi_object_field_common {
+ 	ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_FIELD_INFO union acpi_operand_object *region_obj;	/* Parent Operation Region object (REGION/BANK fields only) */
+ };
+ 
 -- 
 2.7.4
 
