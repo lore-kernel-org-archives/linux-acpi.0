@@ -1,82 +1,56 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Device properties framework updates for v4.13-rc1
-Date: Tue, 11 Jul 2017 00:03:06 +0200
-Message-ID: <CAJZ5v0i_D089gXArcghZa6cmEfQrXP3J-zwDRfrDf8PjE3G3vw@mail.gmail.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH 0/2] Make cppc acpi driver aware of pcc subspace ids
+Date: Mon, 10 Jul 2017 16:07:47 -0600
+Message-ID: <3533fce6-2616-aad4-cee3-a9ff38ed37d9@codeaurora.org>
+References: <1497363431-10002-1-git-send-email-george.cherian@cavium.com>
+ <2438938.qNZk1AErMU@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:33591 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754420AbdGJWDI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2017 18:03:08 -0400
+Received: from smtp.codeaurora.org ([198.145.29.96]:58902 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754221AbdGJWHu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2017 18:07:50 -0400
+In-Reply-To: <2438938.qNZk1AErMU@aspire.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh@kernel.org>
-
-Hi Linus,
-
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- devprop-4.13-rc1
-
-with top-most commit 6a71d8d77795e0f7d887baa95bfc0d1d2bc74899
-
- device property: Add fwnode_graph_get_port_parent
-
-on top of commit 41f1830f5a7af77cf5c86359aba3cbd706687e52
-
- Linux 4.12-rc6
-
-to receive device properties framework updates for v4.13-rc1.
-
-These mostly rearrange the device properties core code and add a few
-helper functions to it as a foundation for future work.
-
-Specifics:
-
- - Rearrange the core device properties code by moving the code
-   specific to each supported platform configuration framework
-   (ACPI, DT and build-in) into a separate file (Sakari Ailus).
-
- - Add helper functions for accessing device properties in a
-   firmware-agnostic way (Sakari Ailus, Kieran Bingham).
-
-This includes the dt/property-move branch pulled from the Rob's tree
-at git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux to
-satisfy dependencies.
-
-Thanks!
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, George Cherian <george.cherian@cavium.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, lenb@kernel.org, jassisinghbrar@gmail.com, robert.moore@intel.com, lv.zheng@intel.com, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Ashwin Chaugule <ashwinch@google.com>
 
 
----------------
+On 6/28/2017 3:20 PM, Rafael J. Wysocki wrote:
+> On Tuesday, June 13, 2017 02:17:09 PM George Cherian wrote:
+>> The current cppc acpi driver works with only one pcc subspace id.
+>> It maintains and registers only one pcc channel even if the acpi table has 
+>> different pcc subspace ids. 
+>>
+>> As per ACPI 6.2 spec  all PCC registers, for all processors in the same 
+>> performance domain (as defined by _PSD), must be defined to be in the same
+>> subspace. The series tries to address the same by making cppc acpi driver 
+>> aware of multiple possible pcc subspace ids.
+>>
+>> Patch 1 : In preparation to share the MAX_PCC_SUBSPACE definition with cppc acpi
+>>           driver
+>> Patch 2 : Make the cppc acpi driver aware of multiple pcc subspace ids.
+>>
+>>
+>> George Cherian (2):
+>>   mailbox: PCC: Move the MAX_PCC_SUBSPACES definition to header file
+>>   ACPI / CPPC: Make cppc acpi driver aware of pcc subspace ids
+>>
+>>  drivers/acpi/cppc_acpi.c | 179 +++++++++++++++++++++++++----------------------
+>>  drivers/mailbox/pcc.c    |   1 -
+>>  include/acpi/pcc.h       |   1 +
+>>  3 files changed, 97 insertions(+), 84 deletions(-)
+> I need Ashwing and Prashanth to look at this series and let me know what they
+> think.
+Rafael/George,
 
-Kieran Bingham (1):
-      device property: Add fwnode_graph_get_port_parent
+I was on vacation last few weeks, I will go through this series this week and provide
+feedback. Sorry about the delay.
 
-Sakari Ailus (8):
-      of: Move OF property and graph API from base.c to property.c
-      of: Make of_fwnode_handle() safer
-      of: Support const and non-const use for to_of_node()
-      ACPI: Constify argument to acpi_device_is_present()
-      device property: Move FW type specific functionality to FW specific files
-      device property: Move fwnode graph ops to firmware specific locations
-      device property: Introduce fwnode_device_is_available()
-      device property: Add FW type agnostic fwnode_graph_get_remote_node
-
----------------
-
- drivers/acpi/device_pm.c |   4 +-
- drivers/acpi/internal.h  |   2 +-
- drivers/acpi/property.c  | 117 ++++++
- drivers/acpi/scan.c      |  10 +-
- drivers/base/property.c  | 348 ++++++++----------
- drivers/of/Makefile      |   2 +-
- drivers/of/base.c        | 733 -------------------------------------
- drivers/of/property.c    | 914 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/acpi.h     |   4 +
- include/linux/fwnode.h   |  69 ++++
- include/linux/of.h       |  32 +-
- include/linux/property.h |   5 +
- 12 files changed, 1289 insertions(+), 951 deletions(-)
+--
+Thanks,
+Prashanth
