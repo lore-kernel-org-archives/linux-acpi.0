@@ -1,12 +1,12 @@
 From: Lv Zheng <lv.zheng@intel.com>
 Subject: [PATCH 00/16] ACPICA 20170629 Release
-Date: Mon, 10 Jul 2017 15:19:14 +0800
-Message-ID: <cover.1499670225.git.lv.zheng@intel.com>
+Date: Mon, 10 Jul 2017 15:22:39 +0800
+Message-ID: <cover.1499671181.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:26625 "EHLO mga06.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:53434 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751130AbdGJHTR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 10 Jul 2017 03:19:17 -0400
+        id S1751161AbdGJHWn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 10 Jul 2017 03:22:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
@@ -50,11 +50,9 @@ Alex James (1):
   ACPICA: iASL: Ensure that the target node is valid in
     acpi_ex_create_alias
 
-Arvind Yadav (1):
-  ACPI / DPTF: constify attribute_group structures
-
-Bob Moore (1):
+Bob Moore (2):
   ACPICA: Small indentation changes, no functional change
+  ACPICA: Update version to 20170629
 
 Erik Schmauss (3):
   ACPICA: Tools: Deallocate memory allocated by
@@ -63,12 +61,13 @@ Erik Schmauss (3):
     refer to existing names
   ACPICA: Disassembler: skip parsing of incorrect external declarations
 
+Ganapatrao Kulkarni (1):
+  ACPICA: iasl: Update to IORT SMMUv3 disassembling
+
 Kees Cook (1):
   Back port of "ACPICA: Use designated initializers"
 
-Lv Zheng (8):
-  Revert "scripts/spelling.txt: add "an union" pattern and fix typo
-    instances"
+Lv Zheng (7):
   ACPICA: linuxize: cleanup typedef definitions
   ACPICA: Tables: Add sanity check in acpi_put_table()
   ACPICA: Tables: Cleanup table handler invokers
@@ -80,4 +79,28 @@ Lv Zheng (8):
 
 Robin Murphy (1):
   ACPICA: IORT: Update SMMU models for revision C
+
+ drivers/acpi/acpica/acapps.h    |   2 +
+ drivers/acpi/acpica/aclocal.h   |   5 +-
+ drivers/acpi/acpica/acobject.h  |  12 ++-
+ drivers/acpi/acpica/actables.h  |   5 +-
+ drivers/acpi/acpica/excreate.c  |   5 +
+ drivers/acpi/acpica/hwxfsleep.c |   9 +-
+ drivers/acpi/acpica/nsaccess.c  |   6 ++
+ drivers/acpi/acpica/psobject.c  |  26 +++++
+ drivers/acpi/acpica/tbdata.c    | 230 +++++++++++++++++++++++++++++++++++-----
+ drivers/acpi/acpica/tbinstal.c  | 161 ++++------------------------
+ drivers/acpi/acpica/tbxface.c   |  39 ++++++-
+ drivers/acpi/acpica/tbxfload.c  |   2 +-
+ drivers/acpi/bus.c              |   3 -
+ drivers/acpi/tables.c           |   4 +-
+ include/acpi/acpixf.h           |  15 +--
+ include/acpi/actbl.h            |   1 +
+ include/acpi/actbl2.h           |  16 ++-
+ include/acpi/platform/acenv.h   |   9 +-
+ include/acpi/platform/aclinux.h |   3 +
+ 19 files changed, 356 insertions(+), 197 deletions(-)
+
+-- 
+2.7.4
 
