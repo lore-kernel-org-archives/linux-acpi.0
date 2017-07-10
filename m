@@ -1,72 +1,57 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 13/16] ACPICA: iASL: Ensure that the target node is valid in acpi_ex_create_alias
-Date: Mon, 10 Jul 2017 15:24:02 +0800
-Message-ID: <8b2008a06d325888551846dd7f610cf80c64946c.1499671182.git.lv.zheng@intel.com>
+Subject: [PATCH 15/16] ACPICA: iasl: Update to IORT SMMUv3 disassembling
+Date: Mon, 10 Jul 2017 15:24:15 +0800
+Message-ID: <0c3d2dee0cb7c9727d207d4d353ecf1a6a69782a.1499671182.git.lv.zheng@intel.com>
 References: <cover.1499671181.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:63493 "EHLO mga02.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:6895 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752427AbdGJHYU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 10 Jul 2017 03:24:20 -0400
+        id S1752427AbdGJHYY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 10 Jul 2017 03:24:24 -0400
 In-Reply-To: <cover.1499671181.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Alex James <theracermaster@gmail.com>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, Bob Moore <robert.moore@intel.com>
 
-From: Alex James <theracermaster@gmail.com>
+From: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
 
-ACPICA commit 8b14afac65d983610cc5387ede6d85ea5ee075be
+ACPICA commit 8cadc4fb500e2aa52241e367c87a0f95d9760c58
 
-The following ACPI table contains an invalid target node within the
-Alias operator:
+ARM IORT specification has provision to define Proximity domain
+in SMMUv3 IORT table. Adding required changes to decode
+Proximity domain of SMMUv3 IORT table.
 
-definition_block ("", "SSDT", 1, "Bug", "BugTable", 0x00001000)
-{
-    Scope (_SB)
-    {
-        Device (DEV0)
-        {
-            Name (_ADR, 1)
-
-            Device (DEV1)
-            {
-                Alias (_ADR, _ADR)
-            }
-        }
-    }
-}
-
-If an ACPI table contains such an invalid target node in an Alias
-operator, a segmentation fault will occur when the target node is
-dereferenced within acpi_ex_create_alias. Add a check for such an invalid
-target node in acpi_ex_create_alias and return AE_NULL_OBJECT as suggested
-by @acpibob.
-
-Link: https://github.com/acpica/acpica/commit/8b14afac
-Signed-off-by: Alex James <theracermaster@gmail.com>
+Link: https://github.com/acpica/acpica/commit/8cadc4fb
+Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/excreate.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ include/acpi/actbl2.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/acpi/acpica/excreate.c b/drivers/acpi/acpica/excreate.c
-index d43d7da..6867586 100644
---- a/drivers/acpi/acpica/excreate.c
-+++ b/drivers/acpi/acpica/excreate.c
-@@ -87,6 +87,11 @@ acpi_status acpi_ex_create_alias(struct acpi_walk_state *walk_state)
- 				  target_node->object);
- 	}
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index 5829eed..d568948 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -806,6 +806,9 @@ struct acpi_iort_smmu_v3 {
+ 	u32 pri_gsiv;
+ 	u32 gerr_gsiv;
+ 	u32 sync_gsiv;
++	u8 pxm;
++	u8 reserved1;
++	u16 reserved2;
+ };
  
-+	/* Ensure that the target node is valid */
-+	if (!target_node) {
-+		return_ACPI_STATUS(AE_NULL_OBJECT);
-+	}
-+
- 	/*
- 	 * For objects that can never change (i.e., the NS node will
- 	 * permanently point to the same object), we can simply attach
+ /* Values for Model field above */
+@@ -818,6 +821,7 @@ struct acpi_iort_smmu_v3 {
+ 
+ #define ACPI_IORT_SMMU_V3_COHACC_OVERRIDE   (1)
+ #define ACPI_IORT_SMMU_V3_HTTU_OVERRIDE     (1<<1)
++#define ACPI_IORT_SMMU_V3_PXM_VALID         (1<<3)
+ 
+ /*******************************************************************************
+  *
 -- 
 2.7.4
 
