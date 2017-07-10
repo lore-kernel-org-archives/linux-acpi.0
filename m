@@ -1,90 +1,52 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 06/16] ACPICA: linuxize: cleanup typedef definitions
-Date: Mon, 10 Jul 2017 15:23:15 +0800
-Message-ID: <b8b298d1b5b511e085f3bcae2308dbaa2d7d1a72.1499671182.git.lv.zheng@intel.com>
+Subject: [PATCH 07/16] ACPICA: Tables: Add sanity check in acpi_put_table()
+Date: Mon, 10 Jul 2017 15:23:21 +0800
+Message-ID: <8ef4ab2e50e5aad6eca3db2131ba33e676e2dff7.1499671182.git.lv.zheng@intel.com>
 References: <cover.1499671181.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:28301 "EHLO mga05.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:63750 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751835AbdGJHXS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 10 Jul 2017 03:23:18 -0400
+        id S1751224AbdGJHXZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 10 Jul 2017 03:23:25 -0400
 In-Reply-To: <cover.1499671181.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 894e49ef22db354eb1685cdb6f5f991766351d3c
+ACPICA commit 73512384c9eb1e7f1b28d0a7372df26a3732f96b
 
-acpisrc now has capability to convert both the followings:
-1. Form 1:
-  typedef struct/union foo {         struct/union foo {
-     ....                       -->      ...
-  } FOO;                             }
-2. Form 2:
-  typedef struct/union foo FOO; -->  typedef struct/union foo foo;
-It becomes unable to handle the following:
-3. Form3:
-  typedef struct/union foo { /* comment */
-      ...
-  } FOO;
-    -->
-  strut/union foo { /* comment */
-      ...
-  };
+To avoid caller to trigger unexpected warning messages (Link #1):
+  ACPI Warning: Table ffffffffbb461d20, Validation count is zero before decrement
+Which is reported from acpi_tb_put_table(). When the table is validated, the
+pointer must be non-zero. Thus the message is not suitable for invalidated
+tables. This patch fixes the callee side based on this fact. Reported by
+Cristian Aravena Romero, Fixed by Lv Zheng.
 
-As:
-1. The purpose of acpisrc is to convert formatted code (ACPICA coding
-   style) into linux coding style,
-2. acpisrc is a very simple tool that doesn't fully handle C language.
-This commit changes the definitions side in order not to regress and we
-shall make "no comments in struct/union line" as a new ACPICA coding style
-rule. Lv Zheng.
-
-Link: https://github.com/acpica/acpica/commit/894e49ef
+Link: https://github.com/acpica/acpica/commit/73512384
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=191221 [#1]
+Reported-by: Cristian Aravena Romero <caravena@gmail.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acobject.h | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/tbxface.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
-index 27c3f98..549f227 100644
---- a/drivers/acpi/acpica/acobject.h
-+++ b/drivers/acpi/acpica/acobject.h
-@@ -122,7 +122,9 @@ struct acpi_object_integer {
- 	_type                           *pointer; \
- 	u32                             length;
+diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+index 010b1c43..18508b2 100644
+--- a/drivers/acpi/acpica/tbxface.c
++++ b/drivers/acpi/acpica/tbxface.c
+@@ -369,6 +369,10 @@ void acpi_put_table(struct acpi_table_header *table)
  
--struct acpi_object_string {	/* Null terminated, ASCII characters only */
-+/* Null terminated, ASCII characters only */
+ 	ACPI_FUNCTION_TRACE(acpi_put_table);
+ 
++	if (!table) {
++		return_VOID;
++	}
 +
-+struct acpi_object_string {
- 	ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_BUFFER_INFO(char)	/* String in AML stream or allocated string */
- };
+ 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
  
-@@ -211,7 +213,9 @@ struct acpi_object_method {
- 	union acpi_operand_object       *notify_list[2];    /* Handlers for system/device notifies */\
- 	union acpi_operand_object       *handler;	/* Handler for Address space */
- 
--struct acpi_object_notify_common {	/* COMMON NOTIFY for POWER, PROCESSOR, DEVICE, and THERMAL */
-+/* COMMON NOTIFY for POWER, PROCESSOR, DEVICE, and THERMAL */
-+
-+struct acpi_object_notify_common {
- ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_NOTIFY_INFO};
- 
- struct acpi_object_device {
-@@ -258,7 +262,9 @@ ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_NOTIFY_INFO};
- 	u8                              access_length;	/* For serial regions/fields */
- 
- 
--struct acpi_object_field_common {	/* COMMON FIELD (for BUFFER, REGION, BANK, and INDEX fields) */
-+/* COMMON FIELD (for BUFFER, REGION, BANK, and INDEX fields) */
-+
-+struct acpi_object_field_common {
- 	ACPI_OBJECT_COMMON_HEADER ACPI_COMMON_FIELD_INFO union acpi_operand_object *region_obj;	/* Parent Operation Region object (REGION/BANK fields only) */
- };
- 
+ 	/* Walk the root table list */
 -- 
 2.7.4
 
