@@ -1,55 +1,70 @@
 From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH 0/2] Make cppc acpi driver aware of pcc subspace ids
-Date: Mon, 10 Jul 2017 16:07:47 -0600
-Message-ID: <3533fce6-2616-aad4-cee3-a9ff38ed37d9@codeaurora.org>
-References: <1497363431-10002-1-git-send-email-george.cherian@cavium.com>
- <2438938.qNZk1AErMU@aspire.rjw.lan>
+Subject: Re: [PATCH] ACPI / Processor: add sysfs support for low power idle
+Date: Mon, 10 Jul 2017 16:47:00 -0600
+Message-ID: <9ab90c21-6bae-c586-8755-88714f0339f7@codeaurora.org>
+References: <1495221578-10612-1-git-send-email-pprakash@codeaurora.org>
+ <CAJZ5v0is=AjNUfMdD4MgoSttgZh_jU80Cm9FPJBo8QqryOdKJw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:58902 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:40522 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754221AbdGJWHu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2017 18:07:50 -0400
-In-Reply-To: <2438938.qNZk1AErMU@aspire.rjw.lan>
+        with ESMTP id S1754657AbdGJWrC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2017 18:47:02 -0400
+In-Reply-To: <CAJZ5v0is=AjNUfMdD4MgoSttgZh_jU80Cm9FPJBo8QqryOdKJw@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, George Cherian <george.cherian@cavium.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, lenb@kernel.org, jassisinghbrar@gmail.com, robert.moore@intel.com, lv.zheng@intel.com, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Ashwin Chaugule <ashwinch@google.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sudeep Holla <sudeep.holla@arm.com>
 
+Hi Rafael,
 
-On 6/28/2017 3:20 PM, Rafael J. Wysocki wrote:
-> On Tuesday, June 13, 2017 02:17:09 PM George Cherian wrote:
->> The current cppc acpi driver works with only one pcc subspace id.
->> It maintains and registers only one pcc channel even if the acpi table has 
->> different pcc subspace ids. 
+On 6/27/2017 5:59 PM, Rafael J. Wysocki wrote:
+> On Fri, May 19, 2017 at 9:19 PM, Prashanth Prakash
+> <pprakash@codeaurora.org> wrote:
+>> Add support to expose idle statistics maintained by platform to
+>> userspace via sysfs in addition to other data of interest from
+>> each LPI(Low Power Idle) state.
 >>
->> As per ACPI 6.2 spec  all PCC registers, for all processors in the same 
->> performance domain (as defined by _PSD), must be defined to be in the same
->> subspace. The series tries to address the same by making cppc acpi driver 
->> aware of multiple possible pcc subspace ids.
+>> LPI described in section 8.4.4 of ACPI spec 6.1 provides different
+>> methods to obtain idle statistics maintained by the platform. These
+>> show a granular view of how each of the LPI state is being used at
+>> different level of hierarchy. sysfs data is exposed at each level in
+>> the hierarchy by creating a directory named 'lpi' at each level and
+>> the LPI state information is presented under it. Below is the
+>> representation of LPI information at one such level in the hierarchy
 >>
->> Patch 1 : In preparation to share the MAX_PCC_SUBSPACE definition with cppc acpi
->>           driver
->> Patch 2 : Make the cppc acpi driver aware of multiple pcc subspace ids.
+>> .../ACPI00XX: XX/lpi
+>>         |-> state0
+>>         |       |-> desc
+>>         |       |-> time
+>>         |       |-> usage
+>>         |       |-> latency
+>>         |       |-> min_residency
+>>         |
+>>         <<more states>>
 >>
+>> ACPI00XX can be ACPI0007(processor) or ACPI0010(processor container)
 >>
->> George Cherian (2):
->>   mailbox: PCC: Move the MAX_PCC_SUBSPACES definition to header file
->>   ACPI / CPPC: Make cppc acpi driver aware of pcc subspace ids
->>
->>  drivers/acpi/cppc_acpi.c | 179 +++++++++++++++++++++++++----------------------
->>  drivers/mailbox/pcc.c    |   1 -
->>  include/acpi/pcc.h       |   1 +
->>  3 files changed, 97 insertions(+), 84 deletions(-)
-> I need Ashwing and Prashanth to look at this series and let me know what they
-> think.
-Rafael/George,
-
-I was on vacation last few weeks, I will go through this series this week and provide
-feedback. Sorry about the delay.
+>> stateX contains information related to a specific LPI state defined
+>> in the LPI ACPI tables.
+> That needs to be documented under Documentation/ABI/.
+Sure, I will create a patch updating the ABI documentation.
+>> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+>> index c1ba00f..b99b84b 100644
+>> --- a/include/acpi/processor.h
+>> +++ b/include/acpi/processor.h
+>> @@ -79,6 +79,19 @@ struct acpi_lpi_state {
+>>         u8 index;
+>>         u8 entry_method;
+>>         char desc[ACPI_CX_DESC_LEN];
+>> +       struct acpi_generic_address res_cntr;
+>> +       struct acpi_generic_address usage_cntr;
+> Is there any reason why these two cannot be of type struct acpi_power_register?
+acpi_read() API required reference to acpi_generic_address (our only use case is to read the
+register), so keeping this data in acpi_generic_address makes the code little simpler.
 
 --
 Thanks,
