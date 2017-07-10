@@ -1,421 +1,68 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 11/16] ACPICA: Tables: Combine checksum/duplication verification together
-Date: Mon, 10 Jul 2017 15:23:50 +0800
-Message-ID: <add78a7bdac7ca42bfb1f3fc9fa006ccf6ccb92c.1499671182.git.lv.zheng@intel.com>
+Subject: [PATCH 14/16] ACPICA: Disassembler: skip parsing of incorrect external declarations
+Date: Mon, 10 Jul 2017 15:24:09 +0800
+Message-ID: <f82247189958a27961f9a76fec772c2b6579d984.1499671182.git.lv.zheng@intel.com>
 References: <cover.1499671181.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:12320 "EHLO mga01.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:11974 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752618AbdGJHXy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 10 Jul 2017 03:23:54 -0400
+        id S1751130AbdGJHYN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 10 Jul 2017 03:24:13 -0400
 In-Reply-To: <cover.1499671181.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Erik Schmauss <erik.schmauss@intel.com>, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 182bdffc0644f568be614a6d4debd651e29ca587
+From: Erik Schmauss <erik.schmauss@intel.com>
 
-They are all mechanisms used to verify if a table is qualified to be
-installed and controlled by acpi_gbl_enable_table_validation, so combine them
-together. By doing so, table duplication check is applied to the statically
-loaded tables (however whether it is actually enabled is still determined
-by acpi_gbl_enable_table_validation). Lv Zheng.
+ACPICA commit ed25461901d34120067b07ec280af30abc0458f1
 
-Link: https://github.com/acpica/acpica/commit/182bdffc
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Link: https://github.com/acpica/acpica/commit/ed254619
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/actables.h |   3 +-
- drivers/acpi/acpica/tbdata.c   | 151 +++++++++++++++++++++++++++++++++++++++--
- drivers/acpi/acpica/tbinstal.c | 125 ++++++----------------------------
- 3 files changed, 169 insertions(+), 110 deletions(-)
+ drivers/acpi/acpica/psobject.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 89ed31b..84a3ceb 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -76,7 +76,8 @@ void acpi_tb_release_temp_table(struct acpi_table_desc *table_desc);
- acpi_status acpi_tb_validate_temp_table(struct acpi_table_desc *table_desc);
- 
- acpi_status
--acpi_tb_verify_temp_table(struct acpi_table_desc *table_desc, char *signature);
-+acpi_tb_verify_temp_table(struct acpi_table_desc *table_desc,
-+			  char *signature, u32 *table_index);
- 
- u8 acpi_tb_is_table_loaded(u32 table_index);
- 
-diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
-index 24d99711..577361b 100644
---- a/drivers/acpi/acpica/tbdata.c
-+++ b/drivers/acpi/acpica/tbdata.c
-@@ -50,6 +50,57 @@
- #define _COMPONENT          ACPI_TABLES
- ACPI_MODULE_NAME("tbdata")
- 
-+/* Local prototypes */
-+static acpi_status
-+acpi_tb_check_duplication(struct acpi_table_desc *table_desc, u32 *table_index);
+diff --git a/drivers/acpi/acpica/psobject.c b/drivers/acpi/acpica/psobject.c
+index ef6384e..0bef6df 100644
+--- a/drivers/acpi/acpica/psobject.c
++++ b/drivers/acpi/acpica/psobject.c
+@@ -359,6 +359,32 @@ acpi_ps_create_op(struct acpi_walk_state *walk_state,
+ 		    acpi_ps_build_named_op(walk_state, aml_op_start, op,
+ 					   &named_op);
+ 		acpi_ps_free_op(op);
 +
-+static u8
-+acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index);
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_tb_compare_tables
-+ *
-+ * PARAMETERS:  table_desc          - Table 1 descriptor to be compared
-+ *              table_index         - Index of table 2 to be compared
-+ *
-+ * RETURN:      TRUE if both tables are identical.
-+ *
-+ * DESCRIPTION: This function compares a table with another table that has
-+ *              already been installed in the root table list.
-+ *
-+ ******************************************************************************/
-+
-+static u8
-+acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index)
-+{
-+	acpi_status status = AE_OK;
-+	u8 is_identical;
-+	struct acpi_table_header *table;
-+	u32 table_length;
-+	u8 table_flags;
-+
-+	status =
-+	    acpi_tb_acquire_table(&acpi_gbl_root_table_list.tables[table_index],
-+				  &table, &table_length, &table_flags);
-+	if (ACPI_FAILURE(status)) {
-+		return (FALSE);
-+	}
-+
-+	/*
-+	 * Check for a table match on the entire table length,
-+	 * not just the header.
-+	 */
-+	is_identical = (u8)((table_desc->length != table_length ||
-+			     memcmp(table_desc->pointer, table, table_length)) ?
-+			    FALSE : TRUE);
-+
-+	/* Release the acquired table */
-+
-+	acpi_tb_release_table(table, table_length, table_flags);
-+	return (is_identical);
-+}
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_tb_init_table_descriptor
-@@ -64,6 +115,7 @@ ACPI_MODULE_NAME("tbdata")
-  * DESCRIPTION: Initialize a new table descriptor
-  *
-  ******************************************************************************/
-+
- void
- acpi_tb_init_table_descriptor(struct acpi_table_desc *table_desc,
- 			      acpi_physical_address address,
-@@ -354,12 +406,78 @@ acpi_status acpi_tb_validate_temp_table(struct acpi_table_desc *table_desc)
- 	return (acpi_tb_validate_table(table_desc));
- }
- 
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_tb_check_duplication
-+ *
-+ * PARAMETERS:  table_desc          - Table descriptor
-+ *              table_index         - Where the table index is returned
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Avoid installing duplicated tables. However table override and
-+ *              user aided dynamic table load is allowed, thus comparing the
-+ *              address of the table is not sufficient, and checking the entire
-+ *              table content is required.
-+ *
-+ ******************************************************************************/
-+
-+static acpi_status
-+acpi_tb_check_duplication(struct acpi_table_desc *table_desc, u32 *table_index)
-+{
-+	u32 i;
-+
-+	ACPI_FUNCTION_TRACE(tb_check_duplication);
-+
-+	/* Check if table is already registered */
-+
-+	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
-+		/*
-+		 * Check for a table match on the entire table length,
-+		 * not just the header.
-+		 */
-+		if (!acpi_tb_compare_tables(table_desc, i)) {
-+			continue;
++#ifdef ACPI_ASL_COMPILER
++		if (acpi_gbl_disasm_flag
++		    && walk_state->opcode == AML_EXTERNAL_OP
++		    && status == AE_NOT_FOUND) {
++			/*
++			 * If parsing of AML_EXTERNAL_OP's name path fails, then skip
++			 * past this opcode and keep parsing. This is a much better
++			 * alternative than to abort the entire disassembler. At this
++			 * point, the parser_state is at the end of the namepath of the
++			 * external declaration opcode. Setting walk_state->Aml to
++			 * walk_state->parser_state.Aml + 2 moves increments the
++			 * walk_state->Aml past the object type and the paramcount of the
++			 * external opcode. For the error message, only print the AML
++			 * offset. We could attempt to print the name but this may cause
++			 * a segmentation fault when printing the namepath because the
++			 * AML may be incorrect.
++			 */
++			acpi_os_printf
++			    ("// Invalid external declaration at AML offset 0x%x.\n",
++			     walk_state->aml -
++			     walk_state->parser_state.aml_start);
++			walk_state->aml = walk_state->parser_state.aml + 2;
++			return_ACPI_STATUS(AE_CTRL_PARSE_CONTINUE);
 +		}
-+
-+		/*
-+		 * Note: the current mechanism does not unregister a table if it is
-+		 * dynamically unloaded. The related namespace entries are deleted,
-+		 * but the table remains in the root table list.
-+		 *
-+		 * The assumption here is that the number of different tables that
-+		 * will be loaded is actually small, and there is minimal overhead
-+		 * in just keeping the table in case it is needed again.
-+		 *
-+		 * If this assumption changes in the future (perhaps on large
-+		 * machines with many table load/unload operations), tables will
-+		 * need to be unregistered when they are unloaded, and slots in the
-+		 * root table list should be reused when empty.
-+		 */
-+		if (acpi_gbl_root_table_list.tables[i].flags &
-+		    ACPI_TABLE_IS_LOADED) {
-+
-+			/* Table is still loaded, this is an error */
-+
-+			return_ACPI_STATUS(AE_ALREADY_EXISTS);
-+		} else {
-+			*table_index = i;
-+			return_ACPI_STATUS(AE_CTRL_TERMINATE);
-+		}
-+	}
-+
-+	/* Indicate no duplication to the caller */
-+
-+	return_ACPI_STATUS(AE_OK);
-+}
-+
- /******************************************************************************
-  *
-  * FUNCTION:    acpi_tb_verify_temp_table
-  *
-  * PARAMETERS:  table_desc          - Table descriptor
-  *              signature           - Table signature to verify
-+ *              table_index         - Where the table index is returned
-  *
-  * RETURN:      Status
-  *
-@@ -369,7 +487,8 @@ acpi_status acpi_tb_validate_temp_table(struct acpi_table_desc *table_desc)
-  *****************************************************************************/
- 
- acpi_status
--acpi_tb_verify_temp_table(struct acpi_table_desc *table_desc, char *signature)
-+acpi_tb_verify_temp_table(struct acpi_table_desc *table_desc,
-+			  char *signature, u32 *table_index)
- {
- 	acpi_status status = AE_OK;
- 
-@@ -392,9 +511,10 @@ acpi_tb_verify_temp_table(struct acpi_table_desc *table_desc, char *signature)
- 		goto invalidate_and_exit;
- 	}
- 
--	/* Verify the checksum */
--
- 	if (acpi_gbl_enable_table_validation) {
-+
-+		/* Verify the checksum */
-+
- 		status =
- 		    acpi_tb_verify_checksum(table_desc->pointer,
- 					    table_desc->length);
-@@ -411,9 +531,32 @@ acpi_tb_verify_temp_table(struct acpi_table_desc *table_desc, char *signature)
- 
- 			goto invalidate_and_exit;
++#endif
+ 		if (ACPI_FAILURE(status)) {
+ 			return_ACPI_STATUS(status);
  		}
-+
-+		/* Avoid duplications */
-+
-+		if (table_index) {
-+			status =
-+			    acpi_tb_check_duplication(table_desc, table_index);
-+			if (ACPI_FAILURE(status)) {
-+				if (status != AE_CTRL_TERMINATE) {
-+					ACPI_EXCEPTION((AE_INFO, AE_NO_MEMORY,
-+							"%4.4s 0x%8.8X%8.8X"
-+							" Table is duplicated",
-+							acpi_ut_valid_nameseg
-+							(table_desc->signature.
-+							 ascii) ? table_desc->
-+							signature.
-+							ascii : "????",
-+							ACPI_FORMAT_UINT64
-+							(table_desc->address)));
-+				}
-+
-+				goto invalidate_and_exit;
-+			}
-+		}
- 	}
- 
--	return_ACPI_STATUS(AE_OK);
-+	return_ACPI_STATUS(status);
- 
- invalidate_and_exit:
- 	acpi_tb_invalidate_table(table_desc);
-diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index f7bc362..0dfc0ac 100644
---- a/drivers/acpi/acpica/tbinstal.c
-+++ b/drivers/acpi/acpica/tbinstal.c
-@@ -48,54 +48,6 @@
- #define _COMPONENT          ACPI_TABLES
- ACPI_MODULE_NAME("tbinstal")
- 
--/* Local prototypes */
--static u8
--acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index);
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_tb_compare_tables
-- *
-- * PARAMETERS:  table_desc          - Table 1 descriptor to be compared
-- *              table_index         - Index of table 2 to be compared
-- *
-- * RETURN:      TRUE if both tables are identical.
-- *
-- * DESCRIPTION: This function compares a table with another table that has
-- *              already been installed in the root table list.
-- *
-- ******************************************************************************/
--
--static u8
--acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index)
--{
--	acpi_status status = AE_OK;
--	u8 is_identical;
--	struct acpi_table_header *table;
--	u32 table_length;
--	u8 table_flags;
--
--	status =
--	    acpi_tb_acquire_table(&acpi_gbl_root_table_list.tables[table_index],
--				  &table, &table_length, &table_flags);
--	if (ACPI_FAILURE(status)) {
--		return (FALSE);
--	}
--
--	/*
--	 * Check for a table match on the entire table length,
--	 * not just the header.
--	 */
--	is_identical = (u8)((table_desc->length != table_length ||
--			     memcmp(table_desc->pointer, table, table_length)) ?
--			    FALSE : TRUE);
--
--	/* Release the acquired table */
--
--	acpi_tb_release_table(table, table_length, table_flags);
--	return (is_identical);
--}
--
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_tb_install_table_with_override
-@@ -112,7 +64,6 @@ acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index)
-  *              table array.
-  *
-  ******************************************************************************/
--
- void
- acpi_tb_install_table_with_override(struct acpi_table_desc *new_table_desc,
- 				    u8 override, u32 *table_index)
-@@ -210,67 +161,29 @@ acpi_tb_install_standard_table(acpi_physical_address address,
- 		goto release_and_exit;
- 	}
- 
--	/* Validate and verify a table before installation */
--
--	status = acpi_tb_verify_temp_table(&new_table_desc, NULL);
--	if (ACPI_FAILURE(status)) {
--		goto release_and_exit;
--	}
--
- 	/* Acquire the table lock */
- 
- 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
- 
--	if (acpi_gbl_enable_table_validation) {
--
--		/* Check if table is already registered */
--
--		for (i = 0; i < acpi_gbl_root_table_list.current_table_count;
--		     ++i) {
--			/*
--			 * Check for a table match on the entire table length,
--			 * not just the header.
--			 */
--			if (!acpi_tb_compare_tables(&new_table_desc, i)) {
--				continue;
--			}
-+	/* Validate and verify a table before installation */
- 
-+	status = acpi_tb_verify_temp_table(&new_table_desc, NULL, &i);
-+	if (ACPI_FAILURE(status)) {
-+		if (status == AE_CTRL_TERMINATE) {
- 			/*
--			 * Note: the current mechanism does not unregister a table if it is
--			 * dynamically unloaded. The related namespace entries are deleted,
--			 * but the table remains in the root table list.
--			 *
--			 * The assumption here is that the number of different tables that
--			 * will be loaded is actually small, and there is minimal overhead
--			 * in just keeping the table in case it is needed again.
--			 *
--			 * If this assumption changes in the future (perhaps on large
--			 * machines with many table load/unload operations), tables will
--			 * need to be unregistered when they are unloaded, and slots in the
--			 * root table list should be reused when empty.
-+			 * Table was unloaded, allow it to be reloaded.
-+			 * As we are going to return AE_OK to the caller, we should
-+			 * take the responsibility of freeing the input descriptor.
-+			 * Refill the input descriptor to ensure
-+			 * acpi_tb_install_table_with_override() can be called again to
-+			 * indicate the re-installation.
- 			 */
--			if (acpi_gbl_root_table_list.tables[i].flags &
--			    ACPI_TABLE_IS_LOADED) {
--
--				/* Table is still loaded, this is an error */
--
--				status = AE_ALREADY_EXISTS;
--				goto unlock_and_exit;
--			} else {
--				/*
--				 * Table was unloaded, allow it to be reloaded.
--				 * As we are going to return AE_OK to the caller, we should
--				 * take the responsibility of freeing the input descriptor.
--				 * Refill the input descriptor to ensure
--				 * acpi_tb_install_table_with_override() can be called again to
--				 * indicate the re-installation.
--				 */
--				acpi_tb_uninstall_table(&new_table_desc);
--				(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
--				*table_index = i;
--				return_ACPI_STATUS(AE_OK);
--			}
-+			acpi_tb_uninstall_table(&new_table_desc);
-+			(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
-+			*table_index = i;
-+			return_ACPI_STATUS(AE_OK);
- 		}
-+		goto unlock_and_exit;
- 	}
- 
- 	/* Add the table to the global root table list */
-@@ -350,9 +263,11 @@ void acpi_tb_override_table(struct acpi_table_desc *old_table_desc)
- 
- finish_override:
- 
--	/* Validate and verify a table before overriding */
--
--	status = acpi_tb_verify_temp_table(&new_table_desc, NULL);
-+	/*
-+	 * Validate and verify a table before overriding, no nested table
-+	 * duplication check as it's too complicated and unnecessary.
-+	 */
-+	status = acpi_tb_verify_temp_table(&new_table_desc, NULL, NULL);
- 	if (ACPI_FAILURE(status)) {
- 		return;
- 	}
 -- 
 2.7.4
 
