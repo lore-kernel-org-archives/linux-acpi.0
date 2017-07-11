@@ -1,54 +1,82 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1] i2c: core: Protect acpi_match_device() against NULL
-Date: Tue, 11 Jul 2017 13:14:14 +0300
-Message-ID: <1499768054.22624.338.camel@linux.intel.com>
-References: <20170709131618.12121-1-andriy.shevchenko@linux.intel.com>
-         <1499606299.22624.315.camel@linux.intel.com>
-         <20170710182151.xes5biaaj7jwkhzz@ninjato>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: A question about acpi_early_init(), and want to invoke
+ acpi_early_init() earlier
+Date: Tue, 11 Jul 2017 21:26:35 +0800
+Message-ID: <b94f8c2e-394f-108b-155b-17fb3f9c4772@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="gbk"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:4946 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753749AbdGKKOR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 11 Jul 2017 06:14:17 -0400
-In-Reply-To: <20170710182151.xes5biaaj7jwkhzz@ninjato>
+Received: from cn.fujitsu.com ([59.151.112.132]:23922 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752619AbdGKN0j (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Jul 2017 09:26:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Mon, 2017-07-10 at 20:21 +0200, Wolfram Sang wrote:
-> On Sun, Jul 09, 2017 at 04:18:19PM +0300, Andy Shevchenko wrote:
-> > On Sun, 2017-07-09 at 16:16 +0300, Andy Shevchenko wrote:
-> > > The commit 09b3b246acba
-> > > 	("i2c: core: Allow empty id_table in ACPI case as well")
-> > > brought an additional check for ACPI match table entry, though
-> > > missed
-> > > NULL check for table itself.
-> > > 
-> > > Do it here by introducing a helper i2c_acpi_match_device().
-> > > 
-> > > Note, we rename some static function in i2c-core-acpi.c to
-> > > distinguish
-> > > with public API.
-> > > 
-> > 
-> > Wolfram, feel free to squash it into the original commit if it looks
-> > better. 
-> 
-> I didn't want to send Linus a branch which too many last minute fixes.
-> That's why I dropped the original patch and would like to ask you to
-> resend a combined patch after rc1. If it is a bugfix, we will have no
-> problems getting it into v4.13 but it seems a bit more testing is
-> needed.
+Hi, Rafael
 
-Okay, let's do this way.
+Recently, I worked for unify the interrupt delivery mode and do its 
+setup earlier[1]. And I met a bug about ACPI[2].
 
-I may also try to convert existing users (some coccinelle script I
-suppose).
+When I investigated it, I got your commit c4e1acbb35e4 (ACPI / init:
+Run acpi_early_init() before timekeeping_init()).  And I reproduced the
+problem you said.
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Question:
+--------
+
+In the changelog of commit:
+
+ > Commit 73f7d1ca3263 (ACPI / init: Run acpi_early_init() before
+ > timekeeping_init()) optimistically moved the early ACPI initialization
+ > before timekeeping_init(), but that didn't work, because it broke fast
+ > TSC calibration for Julian Wollrath on Thinkpad x121e (and most likely
+
+Here, does the fast TSC calibration means *quick_pit_calibrate()* ?
+
+ > for others too).  The reason is that acpi_early_init() enables the SCI
+ > and that interferes with the fast TSC calibration mechanism.
+
+I reproduced it by the following command line:
+     ...noapic acpi_sci=level...
+
+the original dmesg is:
+
+[    0.000000] tsc: Fast TSC calibration using PIT
+
+the broken dmesg is:
+
+[    0.001000] tsc: PIT calibration matches HPET. 1 loops
+
+Is it right? If it is wrong, please give the right process for
+reproducing.
+
+ >
+ > Thus follow the original idea to execute acpi_early_init() before
+ > efi_enter_virtual_mode() to help the EFI people for now and we can
+ > revisit the other problem that commit 73f7d1ca3263 attempted to
+ > address in the future (if really necessary).
+
+If the result which I reproduced was right, I think we can do what
+the commit 73f7d1ca3263 attempted to do now. And it also can fix the
+bug[2].
+
+Because my patchset[1] will setup the interrupt delivery mode earlier
+than TSC initialization. So, in Fast TSC calibration, kernel is in its
+final interrupt mode, not just PIC mode. The change of trigger type
+will never break the Fast TSC calibration(I have tested in my box).
+
+
+[1] https://lkml.org/lkml/2017/6/30/17
+[2] https://lists.gt.net/xen/devel/483350
+
+
+Thanks,
+
+	dou.
+
+
+
