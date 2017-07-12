@@ -1,32 +1,42 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v2 1/1] device property: Introduce fwnode_call_bool_op() for ops that return bool
-Date: Wed, 12 Jul 2017 23:18:33 +0200
-Message-ID: <7716030.edOFY8x2UM@aspire.rjw.lan>
-References: <1499858433-17655-1-git-send-email-sakari.ailus@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi: Fix proper return code for function acpi_gsi_to_irq
+Date: Wed, 12 Jul 2017 23:19:13 +0200
+Message-ID: <3621133.l64SNjHUuW@aspire.rjw.lan>
+References: <20170711164543.23439-1-msalter@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499858433-17655-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44383 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753588AbdGLV04 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 Jul 2017 17:26:56 -0400
+In-Reply-To: <20170711164543.23439-1-msalter@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Salter <msalter@redhat.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, July 12, 2017 02:20:33 PM Sakari Ailus wrote:
-> fwnode_call_int_op() isn't suitable for calling ops that return bool since
-> it effectively causes the result returned to the user to be true when an
-> op hasn't been defined or the fwnode is NULL. Address this by introducing
-> fwnode_call_bool_op() for calling ops that return bool.
+On Tuesday, July 11, 2017 12:45:43 PM Mark Salter wrote:
+> The function acpi_gsi_to_irq must return 0 on success as the caller
+> ghes_probe expects an 0 for success. This change also matches x86
+> implementation.
 > 
-> Fixes: 3708184afc77 ("device property: Move FW type specific functionality to FW specific files")
-> Fixes: 2294b3af05e9 ("device property: Introduce fwnode_device_is_available()")
-> Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> This patch was submitted around 4.5 timeframe but wasn't pushed because
+> it didn't fix a real problem. Now that RAS/GHES patches are in kernel,
+> this fixes an error seen on a Mustang (arm64) platform:
+> 
+>     GHES: Failed to map GSI to IRQ for generic hardware error source: 2
+>     GHES: probe of GHES.2 failed with error 81
+> 
+> Signed-off-by: Tuan Phan <tphan@apm.com>
+> Signed-off-by: Loc Ho <lho@apm.com>
+> [rebased to v4.12-rc]
+> Signed-off-by: Mark Salter <msalter@redhat.com>
 
-Applied, thanks!
+Applied with the Lorenzo's ACK.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
+
