@@ -1,73 +1,122 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH] acpi: Fix proper return code for function acpi_gsi_to_irq
-Date: Tue, 11 Jul 2017 18:46:36 +0100
-Message-ID: <20170711174636.GA31526@red-moon>
-References: <20170711164543.23439-1-msalter@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] PCI / PM: Restore PME Enable after config space restoration
+Date: Wed, 12 Jul 2017 03:05:39 +0200
+Message-ID: <4782965.eeHMKbM6vL@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:47692 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932462AbdGKRo5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 11 Jul 2017 13:44:57 -0400
-Content-Disposition: inline
-In-Reply-To: <20170711164543.23439-1-msalter@redhat.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48280 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755997AbdGLBNX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 11 Jul 2017 21:13:23 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Salter <msalter@redhat.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Linux PCI <linux-pci@vger.kernel.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Tue, Jul 11, 2017 at 12:45:43PM -0400, Mark Salter wrote:
-> The function acpi_gsi_to_irq must return 0 on success as the caller
-> ghes_probe expects an 0 for success. This change also matches x86
-> implementation.
-> 
-> This patch was submitted around 4.5 timeframe but wasn't pushed because
-> it didn't fix a real problem. Now that RAS/GHES patches are in kernel,
-> this fixes an error seen on a Mustang (arm64) platform:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Nit: I think you can rephrase the log, ie it is a bug and you are fixing
-it, that's it.
+Commit dc15e71eefc7 (PCI / PM: Restore PME Enable if skipping wakeup
+setup) introduced a mechanism by which the PME Enable bit can be
+restored by pci_enable_wake() if dev->wakeup_prepared is set in
+case it has been overwritten by PCI config space restoration.
 
->     GHES: Failed to map GSI to IRQ for generic hardware error source: 2
->     GHES: probe of GHES.2 failed with error 81
-> 
-> Signed-off-by: Tuan Phan <tphan@apm.com>
-> Signed-off-by: Loc Ho <lho@apm.com>
-> [rebased to v4.12-rc]
-> Signed-off-by: Mark Salter <msalter@redhat.com>
-> ---
->  drivers/acpi/irq.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+However, that commit overlooked the fact that on some systems (Dell
+XPS13 9360 in particular) the AML handling wakeup events checks PME
+Status and PME Enable and it won't trigger a Notify() for devices
+where those bits are not set while it is running.
 
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+That happens during resume from suspend-to-idle when pci_restore_state()
+invoked by pci_pm_default_resume_early() clears PME Enable before the
+wakeup events are processed by AML, effectively causing those wakeup
+events to be ignored.
 
-> diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
-> index 830299a..7c352cb 100644
-> --- a/drivers/acpi/irq.c
-> +++ b/drivers/acpi/irq.c
-> @@ -24,7 +24,7 @@ static struct fwnode_handle *acpi_gsi_domain_id;
->   *
->   * irq location updated with irq value [>0 on success, 0 on failure]
->   *
-> - * Returns: linux IRQ number on success (>0)
-> + * Returns: 0 on success
->   *          -EINVAL on failure
->   */
->  int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
-> @@ -37,7 +37,7 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
->  	 * *irq == 0 means no mapping, that should
->  	 * be reported as a failure
->  	 */
-> -	return (*irq > 0) ? *irq : -EINVAL;
-> +	return (*irq > 0) ? 0 : -EINVAL;
->  }
->  EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
->  
-> -- 
-> 2.9.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fix this issue by restoring the PME Enable configuration right after
+pci_restore_state() has been called instead of doing that in
+pci_enable_wake().
+
+Fixes: dc15e71eefc7 (PCI / PM: Restore PME Enable if skipping wakeup setup)
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/pci/pci-driver.c |    2 ++
+ drivers/pci/pci.c        |   16 ++++++++--------
+ drivers/pci/pci.h        |    1 +
+ 3 files changed, 11 insertions(+), 8 deletions(-)
+
+Index: linux-pm/drivers/pci/pci-driver.c
+===================================================================
+--- linux-pm.orig/drivers/pci/pci-driver.c
++++ linux-pm/drivers/pci/pci-driver.c
+@@ -506,6 +506,7 @@ static int pci_restore_standard_config(s
+ 	}
+ 
+ 	pci_restore_state(pci_dev);
++	pci_pme_restore(pci_dev);
+ 	return 0;
+ }
+ 
+@@ -517,6 +518,7 @@ static void pci_pm_default_resume_early(
+ {
+ 	pci_power_up(pci_dev);
+ 	pci_restore_state(pci_dev);
++	pci_pme_restore(pci_dev);
+ 	pci_fixup_device(pci_fixup_resume_early, pci_dev);
+ }
+ 
+Index: linux-pm/drivers/pci/pci.c
+===================================================================
+--- linux-pm.orig/drivers/pci/pci.c
++++ linux-pm/drivers/pci/pci.c
+@@ -1798,7 +1798,11 @@ static void __pci_pme_active(struct pci_
+ 	pci_write_config_word(dev, dev->pm_cap + PCI_PM_CTRL, pmcsr);
+ }
+ 
+-static void pci_pme_restore(struct pci_dev *dev)
++/**
++ * pci_pme_restore - Restore PME configuration after config space restore.
++ * @dev: PCI device to update.
++ */
++void pci_pme_restore(struct pci_dev *dev)
+ {
+ 	u16 pmcsr;
+ 
+@@ -1808,6 +1812,7 @@ static void pci_pme_restore(struct pci_d
+ 	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
+ 	if (dev->wakeup_prepared) {
+ 		pmcsr |= PCI_PM_CTRL_PME_ENABLE;
++		pmcsr &= ~PCI_PM_CTRL_PME_STATUS;
+ 	} else {
+ 		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
+ 		pmcsr |= PCI_PM_CTRL_PME_STATUS;
+@@ -1904,14 +1909,9 @@ int pci_enable_wake(struct pci_dev *dev,
+ {
+ 	int ret = 0;
+ 
+-	/*
+-	 * Don't do the same thing twice in a row for one device, but restore
+-	 * PME Enable in case it has been updated by config space restoration.
+-	 */
+-	if (!!enable == !!dev->wakeup_prepared) {
+-		pci_pme_restore(dev);
++	/* Don't do the same thing twice in a row for one device. */
++	if (!!enable == !!dev->wakeup_prepared)
+ 		return 0;
+-	}
+ 
+ 	/*
+ 	 * According to "PCI System Architecture" 4th ed. by Tom Shanley & Don
+Index: linux-pm/drivers/pci/pci.h
+===================================================================
+--- linux-pm.orig/drivers/pci/pci.h
++++ linux-pm/drivers/pci/pci.h
+@@ -71,6 +71,7 @@ void pci_power_up(struct pci_dev *dev);
+ void pci_disable_enabled_device(struct pci_dev *dev);
+ int pci_finish_runtime_suspend(struct pci_dev *dev);
+ int __pci_pme_wakeup(struct pci_dev *dev, void *ign);
++void pci_pme_restore(struct pci_dev *dev);
+ bool pci_dev_keep_suspended(struct pci_dev *dev);
+ void pci_dev_complete_resume(struct pci_dev *pci_dev);
+ void pci_config_pm_runtime_get(struct pci_dev *dev);
+
