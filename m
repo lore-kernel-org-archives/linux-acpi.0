@@ -1,122 +1,169 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] PCI / PM: Restore PME Enable after config space restoration
-Date: Wed, 12 Jul 2017 03:05:39 +0200
-Message-ID: <4782965.eeHMKbM6vL@aspire.rjw.lan>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [x86/time] f61a8e12b5:
+ ACPI_Error:Table[DMAR]is_not_invalidated_during_early_boot_stage(#/tbxface-#)
+Date: Wed, 12 Jul 2017 10:52:27 +0800
+Message-ID: <955aa34f-f221-0de8-18d9-9c624092d172@cn.fujitsu.com>
+References: <20170708034805.GA129853@inn.lkp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48280 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755997AbdGLBNX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 11 Jul 2017 21:13:23 -0400
+Received: from cn.fujitsu.com ([59.151.112.132]:8153 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755735AbdGLCwg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Jul 2017 22:52:36 -0400
+In-Reply-To: <20170708034805.GA129853@inn.lkp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux PCI <linux-pci@vger.kernel.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: kernel test robot <xiaolong.ye@intel.com>
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, bhe@redhat.com, peterz@infradead.org, mingo@kernel.org, ebiederm@xmission.com, hpa@zytor.com, izumi.taku@jp.fujitsu.com, boris.ostrovsky@oracle.com, tglx@linutronix.de, lkp@01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, joeyli.kernel@gmail.com, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Takao Indoh <indou.takao@jp.fujitsu.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi, Xiaolong
 
-Commit dc15e71eefc7 (PCI / PM: Restore PME Enable if skipping wakeup
-setup) introduced a mechanism by which the PME Enable bit can be
-restored by pci_enable_wake() if dev->wakeup_prepared is set in
-case it has been overwritten by PCI config space restoration.
+Thank you very much for testing. I have got the reason why the ACPI
+error happened and will give a fix patch below.
 
-However, that commit overlooked the fact that on some systems (Dell
-XPS13 9360 in particular) the AML handling wakeup events checks PME
-Status and PME Enable and it won't trigger a Notify() for devices
-where those bits are not set while it is running.
+Also cc ACPI maintainers..
 
-That happens during resume from suspend-to-idle when pci_restore_state()
-invoked by pci_pm_default_resume_early() clears PME Enable before the
-wakeup events are processed by AML, effectively causing those wakeup
-events to be ignored.
+At 07/08/2017 11:48 AM, kernel test robot wrote:
+> FYI, we noticed the following commit:
+>
+> commit: f61a8e12b5972879f8decfe059e54c813dc4416b ("x86/time: Initialize interrupt mode behind timer init")
+> url: https://github.com/0day-ci/linux/commits/Dou-Liyang/Unify-the-interrupt-delivery-mode-and-do-its-setup-in-advance/20170705-124610
+>
+>
+> in testcase: will-it-scale
+> with following parameters:
+>
+> 	nr_task: 50%
+> 	mode: process
+> 	test: writeseek3
+> 	cpufreq_governor: performance
+>
+> test-description: Will It Scale takes a testcase and runs it from 1 through to n parallel copies to see if the testcase will scale. It builds both a process and threads based test in order to see any differences between the two.
+> test-url: https://github.com/antonblanchard/will-it-scale
+>
+>
+> on test machine: 88 threads Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz with 64G memory
+>
+> caused below changes (please refer to attached dmesg/kmsg for entire log/backtrace):
+>
+>
+> +-------------------------------------------------------------------------------+------------+------------+
+> |                                                                               | d021c73124 | f61a8e12b5 |
+> +-------------------------------------------------------------------------------+------------+------------+
+> | boot_successes                                                                | 0          | 6          |
+> | boot_failures                                                                 | 2          | 4          |
+> | invoked_oom-killer:gfp_mask=0x                                                | 2          |            |
+> | Mem-Info                                                                      | 2          |            |
+> | Kernel_panic-not_syncing:Out_of_memory_and_no_killable_processes              | 2          |            |
+> | ACPI_Error:Table[DMAR]is_not_invalidated_during_early_boot_stage(#/tbxface-#) | 0          | 4          |
+> | WARNING:at_mm/early_ioremap.c:#check_early_ioremap_leak                       | 0          | 4          |
+> +-------------------------------------------------------------------------------+------------+------------+
+>
+>
+>
+> kern  :info  : [    0.005000] tsc: Fast TSC calibration using PIT
+> kern  :info  : [    0.006000] tsc: Detected 2194.957 MHz processor
+> kern  :info  : [    0.007000] Calibrating delay loop (skipped), value calculated using timer frequency.. 4389.91 BogoMIPS (lpj=2194957)
+> kern  :info  : [    0.008002] pid_max: default: 90112 minimum: 704
+> kern  :info  : [    0.009034] ACPI: Core revision 20170303
+> kern  :err   : [    0.010002] ACPI Error: Table [DMAR] is not invalidated during early boot stage (20170303/tbxface-193)
 
-Fix this issue by restoring the PME Enable configuration right after
-pci_restore_state() has been called instead of doing that in
-pci_enable_wake().
+Here is the ACPI error.
 
-Fixes: dc15e71eefc7 (PCI / PM: Restore PME Enable if skipping wakeup setup)
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pci/pci-driver.c |    2 ++
- drivers/pci/pci.c        |   16 ++++++++--------
- drivers/pci/pci.h        |    1 +
- 3 files changed, 11 insertions(+), 8 deletions(-)
+The reason:
+-----------
 
-Index: linux-pm/drivers/pci/pci-driver.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci-driver.c
-+++ linux-pm/drivers/pci/pci-driver.c
-@@ -506,6 +506,7 @@ static int pci_restore_standard_config(s
- 	}
- 
- 	pci_restore_state(pci_dev);
-+	pci_pme_restore(pci_dev);
- 	return 0;
- }
- 
-@@ -517,6 +518,7 @@ static void pci_pm_default_resume_early(
- {
- 	pci_power_up(pci_dev);
- 	pci_restore_state(pci_dev);
-+	pci_pme_restore(pci_dev);
- 	pci_fixup_device(pci_fixup_resume_early, pci_dev);
- }
- 
-Index: linux-pm/drivers/pci/pci.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci.c
-+++ linux-pm/drivers/pci/pci.c
-@@ -1798,7 +1798,11 @@ static void __pci_pme_active(struct pci_
- 	pci_write_config_word(dev, dev->pm_cap + PCI_PM_CTRL, pmcsr);
- }
- 
--static void pci_pme_restore(struct pci_dev *dev)
-+/**
-+ * pci_pme_restore - Restore PME configuration after config space restore.
-+ * @dev: PCI device to update.
-+ */
-+void pci_pme_restore(struct pci_dev *dev)
- {
- 	u16 pmcsr;
- 
-@@ -1808,6 +1812,7 @@ static void pci_pme_restore(struct pci_d
- 	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
- 	if (dev->wakeup_prepared) {
- 		pmcsr |= PCI_PM_CTRL_PME_ENABLE;
-+		pmcsr &= ~PCI_PM_CTRL_PME_STATUS;
- 	} else {
- 		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
- 		pmcsr |= PCI_PM_CTRL_PME_STATUS;
-@@ -1904,14 +1909,9 @@ int pci_enable_wake(struct pci_dev *dev,
- {
- 	int ret = 0;
- 
--	/*
--	 * Don't do the same thing twice in a row for one device, but restore
--	 * PME Enable in case it has been updated by config space restoration.
--	 */
--	if (!!enable == !!dev->wakeup_prepared) {
--		pci_pme_restore(dev);
-+	/* Don't do the same thing twice in a row for one device. */
-+	if (!!enable == !!dev->wakeup_prepared)
- 		return 0;
--	}
- 
- 	/*
- 	 * According to "PCI System Architecture" 4th ed. by Tom Shanley & Don
-Index: linux-pm/drivers/pci/pci.h
-===================================================================
---- linux-pm.orig/drivers/pci/pci.h
-+++ linux-pm/drivers/pci/pci.h
-@@ -71,6 +71,7 @@ void pci_power_up(struct pci_dev *dev);
- void pci_disable_enabled_device(struct pci_dev *dev);
- int pci_finish_runtime_suspend(struct pci_dev *dev);
- int __pci_pme_wakeup(struct pci_dev *dev, void *ign);
-+void pci_pme_restore(struct pci_dev *dev);
- bool pci_dev_keep_suspended(struct pci_dev *dev);
- void pci_dev_complete_resume(struct pci_dev *pci_dev);
- void pci_config_pm_runtime_get(struct pci_dev *dev);
+As we know, Linux divides the ACPI table management into two stages:
+1) the early stage:
+   the mapped ACPI tables is temporary and should be unmapped before the
+early stage ends.
+
+2) the late stage.
+   the mapped ACPI tables is permanent.
+
+And Linux uses *acpi_permanent_mmap* to distinguish the early stage and
+the late stage. the default of *acpi_permanent_mmap* is false and will
+be set to true in *acpi_early_init()*, which means that Linux regards
+*acpi_early_init()* as the dividing line.
+
+Linux maps the ACPI DMAR table in the late stage, But this patch make 
+the mapping earlier in the early stage, so the ACPI error happened.
+
+The solution:
+-------------
+
+There are two solution we can use:
+
+1) After use the DMAR table, we unmap it, which likes following
+
+  acpi_get_table();
+  parse the DMAR table and use it...
+  acpi_put_table();
+
+2) Invoke the *acpi_early_init()* earlier.
+
+The 1) has influence on the initialization of IOMMU, not work well.
+The 2) is suitable, and it also can make the change of interrupt trigger 
+type earlier than Linux enter into the final interrupt delivery
+mode.
+
+The patch:
+----------
+   it will be added in my next version.
+
+
+diff --git a/init/main.c b/init/main.c
+index df58a41..7a09467 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -654,12 +654,12 @@ asmlinkage __visible void __init start_kernel(void)
+         kmemleak_init();
+         setup_per_cpu_pageset();
+         numa_policy_init();
++       acpi_early_init();
+         if (late_time_init)
+                 late_time_init();
+         calibrate_delay();
+         pidmap_init();
+         anon_vma_init();
+-       acpi_early_init();
+  #ifdef CONFIG_X86
+         if (efi_enabled(EFI_RUNTIME_SERVICES))
+                 efi_enter_virtual_mode();
+
+BTY, cc Lee
+
+I try to invoke acpi_early_init() earlier before
+timekeeping_init() for accessing ACPI TAD device to set system clock.
+Now the testing is OK, but There are a lot of operations between them,
+I think we need more investigation.
+
+
+Thanks,
+
+	dou.
+
+> kern  :info  : [    0.125364] ACPI: 4 ACPI AML tables successfully acquired and loaded
+> kern  :info  : [    0.126116] Security Framework initialized
+> kern  :info  : [    0.127003] SELinux:  Initializing.
+> kern  :debug : [    0.128012] SELinux:  Starting in permissive mode
+> kern  :info  : [    0.131850] Dentry cache hash table entries: 8388608 (order: 14, 67108864 bytes)
+>
+>
+> To reproduce:
+>
+>         git clone https://github.com/01org/lkp-tests.git
+>         cd lkp-tests
+>         bin/lkp install job.yaml  # job file is attached in this email
+>         bin/lkp run     job.yaml
+>
+>
+>
+> Thanks,
+> Kernel Test Robot
+>
+>
+
 
