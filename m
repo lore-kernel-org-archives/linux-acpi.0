@@ -1,45 +1,76 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 2/2] ACPI: EC: Revert "ACPI / EC: Enable event freeze mode..." to fix a regression
-Date: Wed, 12 Jul 2017 11:09:17 +0800
-Message-ID: <c649e0a8ced621d0577d48a2b400f1a21a3a20ee.1499828705.git.lv.zheng@intel.com>
-References: <26498770711bbb36ca2888b33b56a0a56dc29083.1499828705.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <26498770711bbb36ca2888b33b56a0a56dc29083.1499828705.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Stable # 4 . 9+" <stable@vger.kernel.org>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v2 1/1] device property: Introduce fwnode_call_bool_op() for ops that return bool
+Date: Wed, 12 Jul 2017 14:20:33 +0300
+Message-ID: <1499858433-17655-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Lenovo ThinkPad X1 Carbon - the 5th Generation, enabling an earlier EC
-event freezing timing causes acpitz-virtual-0 to report a stucked 48C
-temparature. And with EC firmware revisioned as 1.14, without reverting
-back to old EC event freezing timing, the fan still blows up after a system
-resume (see comment 168 on link #1).
+fwnode_call_int_op() isn't suitable for calling ops that return bool since
+it effectively causes the result returned to the user to be true when an
+op hasn't been defined or the fwnode is NULL. Address this by introducing
+fwnode_call_bool_op() for calling ops that return bool.
 
-This reverts the culprit change so that the regression can be fixed without
-upgrading the EC firmware.
-
-Fixes: d30283057ecd ("ACPI / EC: Enable event freeze mode to improve event handling")
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=191181 [#1]
-Tested-by: Damjan Georgievski <gdamjan@gmail.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Cc: Stable <stable@vger.kernel.org> # 4.9+
+Fixes: 3708184afc77 ("device property: Move FW type specific functionality to FW specific files")
+Fixes: 2294b3af05e9 ("device property: Introduce fwnode_device_is_available()")
+Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/acpi/ec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+since v1:
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 05e4eb5..ddb01e9 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -147,7 +147,7 @@ static unsigned int ec_storm_threshold  __read_mostly = 8;
- module_param(ec_storm_threshold, uint, 0644);
- MODULE_PARM_DESC(ec_storm_threshold, "Maxim false GPE numbers not considered as GPE storm");
+- Added missing Reported-by: tag.
+
+ drivers/base/property.c | 6 +++---
+ include/linux/fwnode.h  | 4 ++++
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 692007e..edf02c1 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -253,10 +253,10 @@ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
+ {
+ 	bool ret;
  
--static bool ec_freeze_events __read_mostly = true;
-+static bool ec_freeze_events __read_mostly = false;
- module_param(ec_freeze_events, bool, 0644);
- MODULE_PARM_DESC(ec_freeze_events, "Disabling event handling during suspend/resume");
+-	ret = fwnode_call_int_op(fwnode, property_present, propname);
++	ret = fwnode_call_bool_op(fwnode, property_present, propname);
+ 	if (ret == false && !IS_ERR_OR_NULL(fwnode) &&
+ 	    !IS_ERR_OR_NULL(fwnode->secondary))
+-		ret = fwnode_call_int_op(fwnode->secondary, property_present,
++		ret = fwnode_call_bool_op(fwnode->secondary, property_present,
+ 					 propname);
+ 	return ret;
+ }
+@@ -1027,7 +1027,7 @@ EXPORT_SYMBOL_GPL(fwnode_handle_put);
+  */
+ bool fwnode_device_is_available(struct fwnode_handle *fwnode)
+ {
+-	return fwnode_call_int_op(fwnode, device_is_available);
++	return fwnode_call_bool_op(fwnode, device_is_available);
+ }
+ EXPORT_SYMBOL_GPL(fwnode_device_is_available);
  
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 9ab3754..50893a1 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -99,6 +99,10 @@ struct fwnode_operations {
+ 	(fwnode ? (fwnode_has_op(fwnode, op) ?				\
+ 		   (fwnode)->ops->op(fwnode, ## __VA_ARGS__) : -ENXIO) : \
+ 	 -EINVAL)
++#define fwnode_call_bool_op(fwnode, op, ...)				\
++	(fwnode ? (fwnode_has_op(fwnode, op) ?				\
++		   (fwnode)->ops->op(fwnode, ## __VA_ARGS__) : false) : \
++	 false)
+ #define fwnode_call_ptr_op(fwnode, op, ...)		\
+ 	(fwnode_has_op(fwnode, op) ?			\
+ 	 (fwnode)->ops->op(fwnode, ## __VA_ARGS__) : NULL)
 -- 
 2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
