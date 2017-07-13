@@ -1,85 +1,127 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v2 3/7] ACPI: Prepare for constifying acpi_get_next_subnode() fwnode argument
-Date: Thu, 13 Jul 2017 16:27:03 +0300
-Message-ID: <1499952427-16130-4-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 6/7] device property: Constify argument to pset fwnode backend
+Date: Thu, 13 Jul 2017 16:27:06 +0300
+Message-ID: <1499952427-16130-7-git-send-email-sakari.ailus@linux.intel.com>
 References: <1499952427-16130-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499952427-16130-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:31615 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751267AbdGMN3F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 13 Jul 2017 09:29:05 -0400
+In-Reply-To: <1499952427-16130-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com
 
-Make local variables const (head) or add new variables; adev was used for
-two purposes: to refer the root device node and its children. The two
-purposes are separated by this patch.
+Internally constify pset fwnode backend. Do not touch the pset fwnode
+operations yet.
 
-This is preparation for making fwnode arguments const for fwnode ops.
-Don't constify the argument itself quite yet as this is used as a callback
-function.
-
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c | 23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ drivers/base/property.c | 36 ++++++++++++++++++++----------------
+ 1 file changed, 20 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index cb6a3b3..04c60a2 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -899,8 +899,10 @@ int acpi_node_prop_read(struct fwnode_handle *fwnode,  const char *propname,
- struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
- 					    struct fwnode_handle *child)
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 857e4d3..8fde824 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -27,19 +27,23 @@ struct property_set {
+ 
+ static const struct fwnode_operations pset_fwnode_ops;
+ 
+-static inline bool is_pset_node(struct fwnode_handle *fwnode)
++static inline bool is_pset_node(const struct fwnode_handle *fwnode)
  {
--	struct acpi_device *adev = to_acpi_device_node(fwnode);
--	struct list_head *head, *next;
-+	const struct acpi_device *adev = to_acpi_device_node(fwnode);
-+	struct acpi_device *child_adev = NULL;
-+	const struct list_head *head;
-+	struct list_head *next;
+ 	return !IS_ERR_OR_NULL(fwnode) && fwnode->ops == &pset_fwnode_ops;
+ }
  
- 	if (!child || is_acpi_device_node(child)) {
- 		if (adev)
-@@ -912,26 +914,27 @@ struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
- 			goto nondev;
+-static inline struct property_set *to_pset_node(struct fwnode_handle *fwnode)
+-{
+-	return is_pset_node(fwnode) ?
+-		container_of(fwnode, struct property_set, fwnode) : NULL;
+-}
+-
+-static const struct property_entry *pset_prop_get(struct property_set *pset,
+-						  const char *name)
++#define to_pset_node(__fwnode)						\
++	({								\
++		typeof(__fwnode) __to_pset_node_fwnode = __fwnode;	\
++									\
++		is_pset_node(__to_pset_node_fwnode) ?			\
++			container_of(__to_pset_node_fwnode,		\
++				     struct property_set, fwnode) :	\
++			NULL;						\
++	})
++
++static const struct property_entry *
++pset_prop_get(const struct property_set *pset, const char *name)
+ {
+ 	const struct property_entry *prop;
  
- 		if (child) {
--			adev = to_acpi_device_node(child);
--			next = adev->node.next;
-+			child_adev = to_acpi_device_node(child);
-+			next = child_adev->node.next;
- 			if (next == head) {
- 				child = NULL;
- 				goto nondev;
- 			}
--			adev = list_entry(next, struct acpi_device, node);
-+			child_adev = list_entry(next, struct acpi_device, node);
- 		} else {
--			adev = list_first_entry(head, struct acpi_device, node);
-+			child_adev = list_first_entry(head, struct acpi_device,
-+						      node);
- 		}
--		return acpi_fwnode_handle(adev);
-+		return acpi_fwnode_handle(child_adev);
- 	}
+@@ -53,7 +57,7 @@ static const struct property_entry *pset_prop_get(struct property_set *pset,
+ 	return NULL;
+ }
  
-  nondev:
- 	if (!child || is_acpi_data_node(child)) {
--		struct acpi_data_node *data = to_acpi_data_node(fwnode);
-+		const struct acpi_data_node *data = to_acpi_data_node(fwnode);
- 		struct acpi_data_node *dn;
+-static const void *pset_prop_find(struct property_set *pset,
++static const void *pset_prop_find(const struct property_set *pset,
+ 				  const char *propname, size_t length)
+ {
+ 	const struct property_entry *prop;
+@@ -73,7 +77,7 @@ static const void *pset_prop_find(struct property_set *pset,
+ 	return pointer;
+ }
  
--		if (adev)
--			head = &adev->data.subnodes;
-+		if (child_adev)
-+			head = &child_adev->data.subnodes;
- 		else if (data)
- 			head = &data->data.subnodes;
- 		else
+-static int pset_prop_read_u8_array(struct property_set *pset,
++static int pset_prop_read_u8_array(const struct property_set *pset,
+ 				   const char *propname,
+ 				   u8 *values, size_t nval)
+ {
+@@ -88,7 +92,7 @@ static int pset_prop_read_u8_array(struct property_set *pset,
+ 	return 0;
+ }
+ 
+-static int pset_prop_read_u16_array(struct property_set *pset,
++static int pset_prop_read_u16_array(const struct property_set *pset,
+ 				    const char *propname,
+ 				    u16 *values, size_t nval)
+ {
+@@ -103,7 +107,7 @@ static int pset_prop_read_u16_array(struct property_set *pset,
+ 	return 0;
+ }
+ 
+-static int pset_prop_read_u32_array(struct property_set *pset,
++static int pset_prop_read_u32_array(const struct property_set *pset,
+ 				    const char *propname,
+ 				    u32 *values, size_t nval)
+ {
+@@ -118,7 +122,7 @@ static int pset_prop_read_u32_array(struct property_set *pset,
+ 	return 0;
+ }
+ 
+-static int pset_prop_read_u64_array(struct property_set *pset,
++static int pset_prop_read_u64_array(const struct property_set *pset,
+ 				    const char *propname,
+ 				    u64 *values, size_t nval)
+ {
+@@ -133,7 +137,7 @@ static int pset_prop_read_u64_array(struct property_set *pset,
+ 	return 0;
+ }
+ 
+-static int pset_prop_count_elems_of_size(struct property_set *pset,
++static int pset_prop_count_elems_of_size(const struct property_set *pset,
+ 					 const char *propname, size_t length)
+ {
+ 	const struct property_entry *prop;
+@@ -145,7 +149,7 @@ static int pset_prop_count_elems_of_size(struct property_set *pset,
+ 	return prop->length / length;
+ }
+ 
+-static int pset_prop_read_string_array(struct property_set *pset,
++static int pset_prop_read_string_array(const struct property_set *pset,
+ 				       const char *propname,
+ 				       const char **strings, size_t nval)
+ {
 -- 
 2.7.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
