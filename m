@@ -1,42 +1,91 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 1/7] ACPI: Use IS_ERR_OR_NULL() instead of non-NULL check in is_acpi_data_node
-Date: Thu, 13 Jul 2017 16:27:01 +0300
-Message-ID: <1499952427-16130-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1499952427-16130-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:18051 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751267AbdGMN3b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 13 Jul 2017 09:29:31 -0400
-In-Reply-To: <1499952427-16130-1-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v2 0/7] Remove fwnode type field, constify property fwnode arguments
+Date: Thu, 13 Jul 2017 16:27:00 +0300
+Message-ID: <1499952427-16130-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com
 
-The is_acpi_data_node() function takes a struct fwnode_handle pointer as
-its argument. The validity of the pointer is first checked. Extend the
-check to cover error values as is done by similar is_acpi_node() and
-is_acpi_device_node() functions.
+Hello everyone,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/acpi/acpi_bus.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This set removes the struct fwnode_handle type field and constifies the
+fwnode arguments in the fwnode property API more or less the way they are
+const in OF property API.
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 68bc6be..7569123 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -414,7 +414,7 @@ static inline struct acpi_device *to_acpi_device_node(struct fwnode_handle *fwno
- 
- static inline bool is_acpi_data_node(struct fwnode_handle *fwnode)
- {
--	return fwnode && fwnode->type == FWNODE_ACPI_DATA;
-+	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_ACPI_DATA;
- }
- 
- static inline struct acpi_data_node *to_acpi_data_node(struct fwnode_handle *fwnode)
+Comments are welcome.
+
+All the dependent patches apart from the fix to the previous fwnode
+patches are merged except (which is in linux-pm tree linux-next branch):
+
+<URL:http://www.spinics.net/lists/linux-acpi/msg75957.html>
+
+v1 can be found here:
+
+<URL:http://www.spinics.net/lists/linux-acpi/msg74564.html>
+
+changes since v1:
+
+- Rebase and resolve the conflicts. As there is no longer fwnode->type
+  field, __irq_domain_add() won't print the wrong type in an error
+  message anymore.
+
+- Add patch "device property: Get rid of struct fwnode_handle type field"
+  which wasn't merged from set "Move firmware specific code to firmware
+  specific locations". Addressed the ACPI static node bug in that patch
+  --- static ACPI nodes have NULL ops now, just like the old IRQCHIP type.
+
+- Add patch "ACPI: Use IS_ERR_OR_NULL() instead of non-NULL check in
+  is_acpi_data_node" which extends the error code checks for ACPI data
+  node. s. This is in line with existing is_acpi_node() and
+  is_acpi_device_node().
+
+- Dropped the V4L2 patches from the set; they're better suitable to be
+  merged through the media tree. (For more patches touching the same areas
+  are being worked on.)
+
+- Rename fwnode argument in to_pset_node() macro as __to_pset_node_fwnode
+  in order to avoid masking local variables where the macro is used. (The
+  compiler won't warn about this. Ouch.)
+
+- Clean up patch "ACPI: Constify acpi_get_next_subnode() fwnode argument"
+  by separating the root device node (adev) from the child device node
+  (child_adev, which is const). Also rename the patch as "ACPI: Prepare
+  for constifying acpi_get_next_subnode() fwnode argument".
+
+- Squash patch "ACPI: Constify acpi_graph_get_child_prop_value() fwnode
+  argument" with "device property: Constify fwnode property API". The
+  former makes a change which is interdependent with the changes made by
+  latter (for const-ness).
+
+Sakari Ailus (7):
+  ACPI: Use IS_ERR_OR_NULL() instead of non-NULL check in
+    is_acpi_data_node
+  device property: Get rid of struct fwnode_handle type field
+  ACPI: Prepare for constifying acpi_get_next_subnode() fwnode argument
+  ACPI: Constify acpi_bus helper functions, switch to macros
+  ACPI: Constify internal fwnode arguments
+  device property: Constify argument to pset fwnode backend
+  device property: Constify fwnode property API
+
+ drivers/acpi/property.c   | 154 +++++++++++++++++++++++++++-------------------
+ drivers/acpi/scan.c       |   3 +-
+ drivers/base/property.c   | 103 +++++++++++++++++--------------
+ drivers/of/property.c     |  35 ++++++-----
+ include/acpi/acpi_bus.h   |  52 +++++++++++-----
+ include/linux/acpi.h      |  68 ++++++++++----------
+ include/linux/fwnode.h    |  37 +++++------
+ include/linux/irqdomain.h |   4 +-
+ include/linux/of.h        |   3 +-
+ include/linux/property.h  |  63 ++++++++++---------
+ kernel/irq/irqdomain.c    |  10 +--
+ 11 files changed, 293 insertions(+), 239 deletions(-)
+
 -- 
 2.7.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
