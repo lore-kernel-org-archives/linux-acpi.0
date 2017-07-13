@@ -1,56 +1,96 @@
-From: Alex Hung <alex.hung@canonical.com>
-Subject: [PATCH] ACPI / video: Add force_none quirk for Dell OptiPlex 9020M
-Date: Wed, 12 Jul 2017 17:45:57 -0700
-Message-ID: <1499906757-8562-1-git-send-email-alex.hung@canonical.com>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: A question about acpi_early_init(), and want to invoke
+ acpi_early_init() earlier
+Date: Thu, 13 Jul 2017 13:53:47 +0800
+Message-ID: <66904bb8-36ca-beb3-f19c-4796aae743df@cn.fujitsu.com>
+References: <b94f8c2e-394f-108b-155b-17fb3f9c4772@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="gbk"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:54420 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751067AbdGMAqE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jul 2017 20:46:04 -0400
+Received: from cn.fujitsu.com ([59.151.112.132]:59365 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750748AbdGMFyB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Jul 2017 01:54:01 -0400
+In-Reply-To: <b94f8c2e-394f-108b-155b-17fb3f9c4772@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, alex.hung@canonical.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Julian Wollrath <jwollrath@web.de>
 
-Dell OptiPlex 9020M is a micro PC desktop that has no built-in
-LCD panel and it's acpi_video does not work.
+Hi, Rafael
 
-Signed-off-by: Alex Hung <alex.hung@canonical.com>
----
- drivers/acpi/video_detect.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+At 07/11/2017 09:26 PM, Dou Liyang wrote:
+> Hi, Rafael
+>
+> Recently, I worked for unify the interrupt delivery mode and do its
+> setup earlier[1]. And I met a bug about ACPI[2].
+>
+> When I investigated it, I got your *commit c4e1acbb35e4 (ACPI / init:
+> Invoke early ACPI initialization later).*  And I reproduced the
+> problem you said.
+>
+> Question:
+> --------
+>
+> In the changelog of commit c4e1acbb35e4:
+>
+>> Commit 73f7d1ca3263 (ACPI / init: Run acpi_early_init() before
+>> timekeeping_init()) optimistically moved the early ACPI initialization
+>> before timekeeping_init(), but that didn't work, because it broke fast
+>> TSC calibration for Julian Wollrath on Thinkpad x121e (and most likely
+>
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index d179e8d..601e5d3 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -103,6 +103,12 @@ static int video_detect_force_native(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int video_detect_force_none(const struct dmi_system_id *d)
-+{
-+	acpi_backlight_dmi = acpi_backlight_none;
-+	return 0;
-+}
-+
- static const struct dmi_system_id video_detect_dmi_table[] = {
- 	/* On Samsung X360, the BIOS will set a flag (VDRV) if generic
- 	 * ACPI backlight device is used. This flag will definitively break
-@@ -313,6 +319,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "Precision 7510"),
- 		},
- 	},
-+	{
-+	 .callback = video_detect_force_none,
-+	 .ident = "Dell OptiPlex 9020M",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 9020M"),
-+		},
-+	},
- 	{ },
- };
- 
--- 
-2.7.4
+Sorry to trouble you again, I forgot cc Julian who reported it. :)
+
+Add Cc: Julian Wollrath.
+
+Thanks,
+
+	dou.
+
+> Here, does the fast TSC calibration means *quick_pit_calibrate()* ?
+>
+>> for others too).  The reason is that acpi_early_init() enables the SCI
+>> and that interferes with the fast TSC calibration mechanism.
+>
+> I reproduced it by the following command line:
+>     ...noapic acpi_sci=level...
+>
+> the original dmesg is:
+>
+> [    0.000000] tsc: Fast TSC calibration using PIT
+>
+> the broken dmesg is:
+>
+> [    0.001000] tsc: PIT calibration matches HPET. 1 loops
+>
+> Is it right? If it is wrong, please give the right process for
+> reproducing.
+>
+>>
+>> Thus follow the original idea to execute acpi_early_init() before
+>> efi_enter_virtual_mode() to help the EFI people for now and we can
+>> revisit the other problem that commit 73f7d1ca3263 attempted to
+>> address in the future (if really necessary).
+>
+> If the result which I reproduced was right, I think we can do what
+> the commit 73f7d1ca3263 attempted to do now. And it also can fix the
+> bug[2].
+>
+> Because my patchset[1] will setup the interrupt delivery mode earlier
+> than TSC initialization. So, in Fast TSC calibration, kernel is in its
+> final interrupt mode, not just PIC mode. The change of trigger type
+> will never break the Fast TSC calibration(I have tested in my box).
+>
+>
+> [1] https://lkml.org/lkml/2017/6/30/17
+> [2] https://lists.gt.net/xen/devel/483350
+>
+>
+> Thanks,
+>
+>     dou.
+>
+
 
