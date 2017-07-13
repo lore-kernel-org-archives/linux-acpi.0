@@ -1,96 +1,74 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: A question about acpi_early_init(), and want to invoke
- acpi_early_init() earlier
-Date: Thu, 13 Jul 2017 13:53:47 +0800
-Message-ID: <66904bb8-36ca-beb3-f19c-4796aae743df@cn.fujitsu.com>
-References: <b94f8c2e-394f-108b-155b-17fb3f9c4772@cn.fujitsu.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: A udev rule to serve the change event of ACPI container?
+Date: Thu, 13 Jul 2017 14:58:06 +0800
+Message-ID: <20170713065806.GB2901@linux-l9pv.suse>
+References: <20170626062657.GE4229@linux-l9pv.suse>
+ <20170626085907.GE11534@dhcp22.suse.cz>
+ <20170711082532.GA6927@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:59365 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750748AbdGMFyB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Jul 2017 01:54:01 -0400
-In-Reply-To: <b94f8c2e-394f-108b-155b-17fb3f9c4772@cn.fujitsu.com>
+Received: from smtp.nue.novell.com ([195.135.221.5]:57817 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750854AbdGMG6T (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Thu, 13 Jul 2017 02:58:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20170711082532.GA6927@dhcp22.suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Julian Wollrath <jwollrath@web.de>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Hi, Rafael
+Hi Michal, 
 
-At 07/11/2017 09:26 PM, Dou Liyang wrote:
-> Hi, Rafael
->
-> Recently, I worked for unify the interrupt delivery mode and do its
-> setup earlier[1]. And I met a bug about ACPI[2].
->
-> When I investigated it, I got your *commit c4e1acbb35e4 (ACPI / init:
-> Invoke early ACPI initialization later).*  And I reproduced the
-> problem you said.
->
-> Question:
-> --------
->
-> In the changelog of commit c4e1acbb35e4:
->
->> Commit 73f7d1ca3263 (ACPI / init: Run acpi_early_init() before
->> timekeeping_init()) optimistically moved the early ACPI initialization
->> before timekeeping_init(), but that didn't work, because it broke fast
->> TSC calibration for Julian Wollrath on Thinkpad x121e (and most likely
->
+Sorry for my delay.
 
-Sorry to trouble you again, I forgot cc Julian who reported it. :)
+On Tue, Jul 11, 2017 at 10:25:32AM +0200, Michal Hocko wrote:
+> On Mon 26-06-17 10:59:07, Michal Hocko wrote:
+> > On Mon 26-06-17 14:26:57, Joey Lee wrote:
+> > > Hi all,
+> > > 
+> > > If ACPI received ejection request for a ACPI container, kernel
+> > > emits KOBJ_CHANGE uevent when it found online children devices
+> > > below the acpi container.
+> > > 
+> > > Base on the description of caa73ea15 kernel patch, user space
+> > > is expected to offline all devices below the container and the
+> > > container itself. Then, user space can finalize the removal of
+> > > the container with the help of its ACPI device object's eject
+> > > attribute in sysfs.
+> > > 
+> > > That means that kernel relies on users space to peform the offline
+> > > and ejection jobs to acpi container and children devices. The
+> > > discussion is here:
+> > > 	https://lkml.org/lkml/2013/11/28/520
+> > > 
+> > > The mail loop didn't explain why the userspace is responsible for
+> > > the whole container offlining. Is it possible to do that transparently
+> > > from the kernel? What's the difference between offlining memory and
+> > > processors which happends without any cleanup and container which
+> > > does essentially the same except it happens at once? 
+> > >  
+> > >  - After a couple of years, can we let the container hot-remove
+> > >    process transparently?
+> > >  - Except udev rule, does there have any other mechanism to trigger
+> > >    auto offline/ejection?
+> > 
+> > I would be also interested whether the kernel can simply send an udev event
+> > to all devices in the container.
+> 
+> Any opinion on this?
 
-Add Cc: Julian Wollrath.
+If BIOS emits ejection event for a ACPI0004 container, someone needs
+to handle the offline/eject jobs of container. Either kernel or user
+space.
 
-Thanks,
+Only sending uevent to individual child device can simplify udev rule,
+but it also means that the kernel needs to offline/eject container
+after all children devices are offlined. Maybe adding a ejection flag
+on the ACPI0004 object to indicate the container state. But, if userland
+doesn't do his job, then the timing to reset the flag will be the problem. 
 
-	dou.
-
-> Here, does the fast TSC calibration means *quick_pit_calibrate()* ?
->
->> for others too).  The reason is that acpi_early_init() enables the SCI
->> and that interferes with the fast TSC calibration mechanism.
->
-> I reproduced it by the following command line:
->     ...noapic acpi_sci=level...
->
-> the original dmesg is:
->
-> [    0.000000] tsc: Fast TSC calibration using PIT
->
-> the broken dmesg is:
->
-> [    0.001000] tsc: PIT calibration matches HPET. 1 loops
->
-> Is it right? If it is wrong, please give the right process for
-> reproducing.
->
->>
->> Thus follow the original idea to execute acpi_early_init() before
->> efi_enter_virtual_mode() to help the EFI people for now and we can
->> revisit the other problem that commit 73f7d1ca3263 attempted to
->> address in the future (if really necessary).
->
-> If the result which I reproduced was right, I think we can do what
-> the commit 73f7d1ca3263 attempted to do now. And it also can fix the
-> bug[2].
->
-> Because my patchset[1] will setup the interrupt delivery mode earlier
-> than TSC initialization. So, in Fast TSC calibration, kernel is in its
-> final interrupt mode, not just PIC mode. The change of trigger type
-> will never break the Fast TSC calibration(I have tested in my box).
->
->
-> [1] https://lkml.org/lkml/2017/6/30/17
-> [2] https://lists.gt.net/xen/devel/483350
->
->
-> Thanks,
->
->     dou.
->
-
-
+Thanks a lot!
+Joey Lee 
