@@ -1,57 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/3] ACPI / X86: Allow matching always_present_id array entries by DMI
-Date: Wed, 12 Jul 2017 23:22:29 +0200
-Message-ID: <3621134.B5yKqrfy72@aspire.rjw.lan>
-References: <20170709190514.3437-1-hdegoede@redhat.com> <20605f11-e788-6dd5-74e7-28a31b00d599@redhat.com> <1499711994.22624.330.camel@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Alex Hung <alex.hung@canonical.com>
+Subject: [PATCH] ACPI / video: Add force_none quirk for Dell OptiPlex 9020M
+Date: Wed, 12 Jul 2017 17:45:57 -0700
+Message-ID: <1499906757-8562-1-git-send-email-alex.hung@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:56080 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752614AbdGLVaM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Jul 2017 17:30:12 -0400
-In-Reply-To: <1499711994.22624.330.camel@linux.intel.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:54420 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751067AbdGMAqE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jul 2017 20:46:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, alex.hung@canonical.com
 
-On Monday, July 10, 2017 09:39:54 PM Andy Shevchenko wrote:
-> On Mon, 2017-07-10 at 20:13 +0200, Hans de Goede wrote:
-> > Hi,
-> > 
-> > On 10-07-17 16:25, Andy Shevchenko wrote:
-> > > On Sun, 2017-07-09 at 21:05 +0200, Hans de Goede wrote:
-> > > > On some X86 systems the DSDT hides APCI devices to work around
-> > > > Windows
-> > > > driver bugs. On one such system the device is even hidden until a
-> > > > certain
-> > > > time after _SB.PCI0.GFX0.LCD.LCD1._ON gets called has passed *and*
-> > > > _STA has been called at least 3 times since. TL;DR: it is a mess.
-> > > > 
-> > > > Until now the always_present_id matching was used to force status
-> > > > for a whole class of devices, e.g. always enable PWM1 on CHerry
-> > > > Trail
-> > > 
-> > > Cherry
-> > > 
-> > > > devices.
-> > > > 
-> > > > This commit extends the always_present_id matching code to
-> > > > optionally
-> > > > als check for a DMI match so that we can also add system specific
-> > > > quirks to the always_present_id array.
-> > > > 
-> > > 
-> > > I got answers to my questions (see thread), thus, FWIW,
-> > > 
-> > > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > 
-> > Thank you, does that apply to the entire set or just the first patch ?
-> 
-> Entire series.
+Dell OptiPlex 9020M is a micro PC desktop that has no built-in
+LCD panel and it's acpi_video does not work.
 
-OK, series applied with your Reviewed-by, thanks!
+Signed-off-by: Alex Hung <alex.hung@canonical.com>
+---
+ drivers/acpi/video_detect.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index d179e8d..601e5d3 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -103,6 +103,12 @@ static int video_detect_force_native(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
++static int video_detect_force_none(const struct dmi_system_id *d)
++{
++	acpi_backlight_dmi = acpi_backlight_none;
++	return 0;
++}
++
+ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 	/* On Samsung X360, the BIOS will set a flag (VDRV) if generic
+ 	 * ACPI backlight device is used. This flag will definitively break
+@@ -313,6 +319,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Precision 7510"),
+ 		},
+ 	},
++	{
++	 .callback = video_detect_force_none,
++	 .ident = "Dell OptiPlex 9020M",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 9020M"),
++		},
++	},
+ 	{ },
+ };
+ 
+-- 
+2.7.4
 
