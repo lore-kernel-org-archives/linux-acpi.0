@@ -1,116 +1,85 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: A udev rule to serve the change event of ACPI container?
-Date: Thu, 13 Jul 2017 20:45:21 +0800
-Message-ID: <20170713124521.GE2901@linux-l9pv.suse>
-References: <20170626062657.GE4229@linux-l9pv.suse>
- <20170626085907.GE11534@dhcp22.suse.cz>
- <20170711082532.GA6927@dhcp22.suse.cz>
- <20170713065806.GB2901@linux-l9pv.suse>
- <20170713070618.GC14492@dhcp22.suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:33013 "EHLO
-        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751165AbdGMMpk (ORCPT
-        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-        Thu, 13 Jul 2017 08:45:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20170713070618.GC14492@dhcp22.suse.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v2 3/7] ACPI: Prepare for constifying acpi_get_next_subnode() fwnode argument
+Date: Thu, 13 Jul 2017 16:27:03 +0300
+Message-ID: <1499952427-16130-4-git-send-email-sakari.ailus@linux.intel.com>
+References: <1499952427-16130-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1499952427-16130-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Hocko <mhocko@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-On Thu, Jul 13, 2017 at 09:06:19AM +0200, Michal Hocko wrote:
-> On Thu 13-07-17 14:58:06, Joey Lee wrote:
-> > Hi Michal, 
-> > 
-> > Sorry for my delay.
-> > 
-> > On Tue, Jul 11, 2017 at 10:25:32AM +0200, Michal Hocko wrote:
-> > > On Mon 26-06-17 10:59:07, Michal Hocko wrote:
-> > > > On Mon 26-06-17 14:26:57, Joey Lee wrote:
-> > > > > Hi all,
-> > > > > 
-> > > > > If ACPI received ejection request for a ACPI container, kernel
-> > > > > emits KOBJ_CHANGE uevent when it found online children devices
-> > > > > below the acpi container.
-> > > > > 
-> > > > > Base on the description of caa73ea15 kernel patch, user space
-> > > > > is expected to offline all devices below the container and the
-> > > > > container itself. Then, user space can finalize the removal of
-> > > > > the container with the help of its ACPI device object's eject
-> > > > > attribute in sysfs.
-> > > > > 
-> > > > > That means that kernel relies on users space to peform the offline
-> > > > > and ejection jobs to acpi container and children devices. The
-> > > > > discussion is here:
-> > > > > 	https://lkml.org/lkml/2013/11/28/520
-> > > > > 
-> > > > > The mail loop didn't explain why the userspace is responsible for
-> > > > > the whole container offlining. Is it possible to do that transparently
-> > > > > from the kernel? What's the difference between offlining memory and
-> > > > > processors which happends without any cleanup and container which
-> > > > > does essentially the same except it happens at once? 
-> > > > >  
-> > > > >  - After a couple of years, can we let the container hot-remove
-> > > > >    process transparently?
-> > > > >  - Except udev rule, does there have any other mechanism to trigger
-> > > > >    auto offline/ejection?
-> > > > 
-> > > > I would be also interested whether the kernel can simply send an udev event
-> > > > to all devices in the container.
-> > > 
-> > > Any opinion on this?
-> > 
-> > If BIOS emits ejection event for a ACPI0004 container, someone needs
-> > to handle the offline/eject jobs of container. Either kernel or user
-> > space.
-> > 
-> > Only sending uevent to individual child device can simplify udev rule,
-> > but it also means that the kernel needs to offline/eject container
-> > after all children devices are offlined.
-> 
-> Why cannot kernel send this eject command to the BIOS if the whole
-> container is offline? If it is not then the kernel would send EBUSY to
+Make local variables const (head) or add new variables; adev was used for
+two purposes: to refer the root device node and its children. The two
+purposes are separated by this patch.
 
-Current kernel container hot-remove process:
+This is preparation for making fwnode arguments const for fwnode ops.
+Don't constify the argument itself quite yet as this is used as a callback
+function.
 
-  BIOS -> SCI event -> Kernel ACPI -> uevent -> userland
-              
-Then, kernel just calls _OST to expose state to BIOS, then process is
-stopped. Kernel doesn't wait there for userland to offline each child
-devices. Either BIOS or userland needs to trigger the container
-ejection.
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+ drivers/acpi/property.c | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-> container is offline? If it is not then the kernel would send EBUSY to
-> the BIOS and BIOS would have to retry after some timeout. Or is it a
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index cb6a3b3..04c60a2 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -899,8 +899,10 @@ int acpi_node_prop_read(struct fwnode_handle *fwnode,  const char *propname,
+ struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
+ 					    struct fwnode_handle *child)
+ {
+-	struct acpi_device *adev = to_acpi_device_node(fwnode);
+-	struct list_head *head, *next;
++	const struct acpi_device *adev = to_acpi_device_node(fwnode);
++	struct acpi_device *child_adev = NULL;
++	const struct list_head *head;
++	struct list_head *next;
+ 
+ 	if (!child || is_acpi_device_node(child)) {
+ 		if (adev)
+@@ -912,26 +914,27 @@ struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
+ 			goto nondev;
+ 
+ 		if (child) {
+-			adev = to_acpi_device_node(child);
+-			next = adev->node.next;
++			child_adev = to_acpi_device_node(child);
++			next = child_adev->node.next;
+ 			if (next == head) {
+ 				child = NULL;
+ 				goto nondev;
+ 			}
+-			adev = list_entry(next, struct acpi_device, node);
++			child_adev = list_entry(next, struct acpi_device, node);
+ 		} else {
+-			adev = list_first_entry(head, struct acpi_device, node);
++			child_adev = list_first_entry(head, struct acpi_device,
++						      node);
+ 		}
+-		return acpi_fwnode_handle(adev);
++		return acpi_fwnode_handle(child_adev);
+ 	}
+ 
+  nondev:
+ 	if (!child || is_acpi_data_node(child)) {
+-		struct acpi_data_node *data = to_acpi_data_node(fwnode);
++		const struct acpi_data_node *data = to_acpi_data_node(fwnode);
+ 		struct acpi_data_node *dn;
+ 
+-		if (adev)
+-			head = &adev->data.subnodes;
++		if (child_adev)
++			head = &child_adev->data.subnodes;
+ 		else if (data)
+ 			head = &data->data.subnodes;
+ 		else
+-- 
+2.7.4
 
-The d429e5c122 patch is merged to mainline. So kernel will send
-DEVICE_BUSY to BIOS after it emits uevent to userland. BIOS can choice
-to apply the retry approach until OS returns process failure exactly or
-BIOS timeout.
-
-> problem that currently implemented BIOS firmwares do not implement this
-> retry?
-
-Yes, we should consider the behavior of old BIOS. Old BIOS doesn't
-retry/resend the ejection event. So kernel or userland need to take the
-retry job. Obviously userland runs the retry since the caa73ea15 patch
-is merged.
-
-IMHO there have two different expectation from user space application.
-
-Applications like DVD player or Burner expect that kernel should
-info userspace for the ejection, then application can do their cleaning
-job and re-trigger ejection from userland.
-
-But, some other applications like database don't want that their service
-be stopped when the devices offline/eject. The hot-remove sholud be done by
-kernel transparently.
-
-We need a way for fill two situations.
-
-Thanks a lot!
-Joey Lee
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
