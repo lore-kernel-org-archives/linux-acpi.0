@@ -1,52 +1,37 @@
-From: Julian Wollrath <jwollrath@web.de>
-Subject: Re: A question about acpi_early_init(), and want to invoke
- acpi_early_init() earlier
-Date: Fri, 14 Jul 2017 17:01:01 +0200
-Message-ID: <20170714170101.3edfaf46@saldaea>
-References: <b94f8c2e-394f-108b-155b-17fb3f9c4772@cn.fujitsu.com>
-        <66904bb8-36ca-beb3-f19c-4796aae743df@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Prashanth Prakash <pprakash@codeaurora.org>
+Subject: [PATCH 0/2] User-friendly description for thermal zones
+Date: Fri, 14 Jul 2017 11:48:53 -0600
+Message-ID: <1500054535-975-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:61102 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753968AbdGNPBP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Jul 2017 11:01:15 -0400
-In-Reply-To: <66904bb8-36ca-beb3-f19c-4796aae743df@cn.fujitsu.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:38046 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750788AbdGNR7C (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Jul 2017 13:59:02 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: rui.zhang@intel.com, edubezval@gmail.com, Prashanth Prakash <pprakash@codeaurora.org>
 
-Hi,
+ACPI 6.2 spec allows a _STR(string) object to be defined under a thermal
+zone optionally, which return a string name/description for that thermal
+zone. See section 11.4 of ACPI spec 6.2 for more details.
 
-> > I reproduced it by the following command line:
-> >     ...noapic acpi_sci=level...
-> >
-> > the original dmesg is:
-> >
-> > [    0.000000] tsc: Fast TSC calibration using PIT
-> >
-> > the broken dmesg is:
-> >
-> > [    0.001000] tsc: PIT calibration matches HPET. 1 loops
-> >
-> > Is it right? If it is wrong, please give the right process for
-> > reproducing.
-yes, this is right, see [1] for the original thread.
+This series adds support to read the _STR object under a thermal zone and
+expose it to the userspace via sysfs interface.
 
-The earliest I could move the call of acpi_early_init() without
-triggering the bug back than is shown in the patch at [2] but
-unforunately I do not have access to the Thinkpad X121e I had back than
-anymore, so I cannot help with regression testing.
 
-Cheers,
-Julian
+Prashanth Prakash (2):
+  thermal: add a sysfs entry for thermal zone description
+  ACPI/thermal: support for thermal zone description
 
-[1] https://lkml.org/lkml/2014/3/10/123
-[2] https://lkml.org/lkml/2014/3/11/424
+ Documentation/thermal/sysfs-api.txt |  6 ++++++
+ drivers/acpi/thermal.c              | 38 +++++++++++++++++++++++++++++++++++++
+ drivers/thermal/thermal_sysfs.c     | 19 +++++++++++++++++++
+ include/linux/thermal.h             |  4 ++++
+ 4 files changed, 67 insertions(+)
 
 -- 
- ()  ascii ribbon campaign - against html e-mail 
- /\                        - against proprietary attachments
+Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
+
