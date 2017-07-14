@@ -1,127 +1,52 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: A udev rule to serve the change event of ACPI container?
-Date: Fri, 14 Jul 2017 22:44:14 +0800
-Message-ID: <20170714144414.GM2901@linux-l9pv.suse>
-References: <20170626062657.GE4229@linux-l9pv.suse>
- <20170626085907.GE11534@dhcp22.suse.cz>
- <20170711082532.GA6927@dhcp22.suse.cz>
- <20170713065806.GB2901@linux-l9pv.suse>
- <20170713070618.GC14492@dhcp22.suse.cz>
- <20170713124521.GE2901@linux-l9pv.suse>
- <20170714083713.GB2618@dhcp22.suse.cz>
+From: Julian Wollrath <jwollrath@web.de>
+Subject: Re: A question about acpi_early_init(), and want to invoke
+ acpi_early_init() earlier
+Date: Fri, 14 Jul 2017 17:01:01 +0200
+Message-ID: <20170714170101.3edfaf46@saldaea>
+References: <b94f8c2e-394f-108b-155b-17fb3f9c4772@cn.fujitsu.com>
+        <66904bb8-36ca-beb3-f19c-4796aae743df@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:33792 "EHLO
-        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754031AbdGNOoc (ORCPT
-        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-        Fri, 14 Jul 2017 10:44:32 -0400
-Content-Disposition: inline
-In-Reply-To: <20170714083713.GB2618@dhcp22.suse.cz>
+Received: from mout.web.de ([217.72.192.78]:61102 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753968AbdGNPBP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Jul 2017 11:01:15 -0400
+In-Reply-To: <66904bb8-36ca-beb3-f19c-4796aae743df@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Hocko <mhocko@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Fri, Jul 14, 2017 at 10:37:13AM +0200, Michal Hocko wrote:
-> On Thu 13-07-17 20:45:21, Joey Lee wrote:
-> > On Thu, Jul 13, 2017 at 09:06:19AM +0200, Michal Hocko wrote:
-> > > On Thu 13-07-17 14:58:06, Joey Lee wrote:
-> [...]
-> > > > If BIOS emits ejection event for a ACPI0004 container, someone needs
-> > > > to handle the offline/eject jobs of container. Either kernel or user
-> > > > space.
-> > > > 
-> > > > Only sending uevent to individual child device can simplify udev rule,
-> > > > but it also means that the kernel needs to offline/eject container
-> > > > after all children devices are offlined.
-> > > 
-> > > Why cannot kernel send this eject command to the BIOS if the whole
-> > > container is offline? If it is not then the kernel would send EBUSY to
-> > 
-> > Current kernel container hot-remove process:
-> > 
-> >   BIOS -> SCI event -> Kernel ACPI -> uevent -> userland
-> >               
-> > Then, kernel just calls _OST to expose state to BIOS, then process is
-> > stopped. Kernel doesn't wait there for userland to offline each child
-> > devices. Either BIOS or userland needs to trigger the container
-> > ejection.
-> > 
-> > > container is offline? If it is not then the kernel would send EBUSY to
-> > > the BIOS and BIOS would have to retry after some timeout. Or is it a
-> > 
-> > The d429e5c122 patch is merged to mainline. So kernel will send
-> > DEVICE_BUSY to BIOS after it emits uevent to userland. BIOS can choice
-> > to apply the retry approach until OS returns process failure exactly or
-> > BIOS timeout.
-> > 
-> > > problem that currently implemented BIOS firmwares do not implement this
-> > > retry?
-> > 
-> > Yes, we should consider the behavior of old BIOS. Old BIOS doesn't
-> > retry/resend the ejection event. So kernel or userland need to take the
-> > retry job. Obviously userland runs the retry since the caa73ea15 patch
-> > is merged.
-> > 
-> > IMHO there have two different expectation from user space application.
-> > 
-> > Applications like DVD player or Burner expect that kernel should
-> > info userspace for the ejection, then application can do their cleaning
-> > job and re-trigger ejection from userland.
-> 
-> I am not sure I understand the DVD example because I do not see how it
-> fits into the container and online/offline scenario.
->
+Hi,
 
-At least Yasuaki raised similar behavior for container in 2013.
-It's similar to the DVD player case, user space application needs
-to do something then trigger children offline and ejection of
-container.
+> > I reproduced it by the following command line:
+> >     ...noapic acpi_sci=level...
+> >
+> > the original dmesg is:
+> >
+> > [    0.000000] tsc: Fast TSC calibration using PIT
+> >
+> > the broken dmesg is:
+> >
+> > [    0.001000] tsc: PIT calibration matches HPET. 1 loops
+> >
+> > Is it right? If it is wrong, please give the right process for
+> > reproducing.
+yes, this is right, see [1] for the original thread.
 
-Base on Yasuaki's explanation, the reason of that he requested the
-userland ejection approach is that he got memory hot-remove problem
-in 2013. Maybe his problem is already fixed by your patches in current
-mainline.
+The earliest I could move the call of acpi_early_init() without
+triggering the bug back than is shown in the patch at [2] but
+unforunately I do not have access to the Thinkpad X121e I had back than
+anymore, so I cannot help with regression testing.
 
-Hi Yasuaki, could you please check that your memory hot-remove problem
-is fixed on mainline kernel?  
+Cheers,
+Julian
 
-If Yasuaki's issue is already fixed, then we should consider to let
-kernel does the container hot-remove transparently. 
+[1] https://lkml.org/lkml/2014/3/10/123
+[2] https://lkml.org/lkml/2014/3/11/424
 
-> > But, some other applications like database don't want that their service
-> > be stopped when the devices offline/eject. The hot-remove sholud be done by
-> > kernel transparently.
-> > 
-> > We need a way for fill two situations.
-> 
-> Hmm, so can we trigger the eject from the _kernel_ when the last child
-> is offlined?
-
-Kernel needs to remember that the container is under a _EJECTION_ state
-that it should waits all children be offlined. Then kernel checks the
-container offline state when each individual device is offlined. If
-kernel found a container offlined (means that all children are offlined),
-and the container is under ejection state, then kernel runs ejection
-jobs (removing objects and calls _EJ0). 
-
-To achieve this, I think that the container object needs a _EJECTION_
-flag. It helps kernel to remember the state that it set by BIOS's
-ejection event.
-
-This approach has some problems: If userland doesn't finish his offline
-jobs or userland doesn't do anything, when should kernel clears the 
-ejection flag and responses failure by _OST to BIOS?
-
-And, for new BIOS that it has time out mechanism. Currently there have
-no way for BIOS to tell kernel that it gives up. It's hard to sync the
-kernel container's ejection flag with BIOS. 
-
-Of course the better is that Yasuaki's problem got fixed. Kernel does
-the hot-removes container transparently (again). Then we don't need
-to worry how to maintain a ejection state in kernel.  
-
-Thanks a lot!
-Joey Lee 
+-- 
+ ()  ascii ribbon campaign - against html e-mail 
+ /\                        - against proprietary attachments
