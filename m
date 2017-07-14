@@ -1,47 +1,127 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Device properties framework fix for v4.13-rc1
-Date: Fri, 14 Jul 2017 15:06:21 +0200
-Message-ID: <CAJZ5v0jSwyM+va_79KWyLFXxXvz+mNAw5dpR0FUj2pDsW41vsQ@mail.gmail.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: A udev rule to serve the change event of ACPI container?
+Date: Fri, 14 Jul 2017 22:44:14 +0800
+Message-ID: <20170714144414.GM2901@linux-l9pv.suse>
+References: <20170626062657.GE4229@linux-l9pv.suse>
+ <20170626085907.GE11534@dhcp22.suse.cz>
+ <20170711082532.GA6927@dhcp22.suse.cz>
+ <20170713065806.GB2901@linux-l9pv.suse>
+ <20170713070618.GC14492@dhcp22.suse.cz>
+ <20170713124521.GE2901@linux-l9pv.suse>
+ <20170714083713.GB2618@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.nue.novell.com ([195.135.221.5]:33792 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754031AbdGNOoc (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Fri, 14 Jul 2017 10:44:32 -0400
+Content-Disposition: inline
+In-Reply-To: <20170714083713.GB2618@dhcp22.suse.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Michal Hocko <mhocko@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Hi Linus,
+On Fri, Jul 14, 2017 at 10:37:13AM +0200, Michal Hocko wrote:
+> On Thu 13-07-17 20:45:21, Joey Lee wrote:
+> > On Thu, Jul 13, 2017 at 09:06:19AM +0200, Michal Hocko wrote:
+> > > On Thu 13-07-17 14:58:06, Joey Lee wrote:
+> [...]
+> > > > If BIOS emits ejection event for a ACPI0004 container, someone needs
+> > > > to handle the offline/eject jobs of container. Either kernel or user
+> > > > space.
+> > > > 
+> > > > Only sending uevent to individual child device can simplify udev rule,
+> > > > but it also means that the kernel needs to offline/eject container
+> > > > after all children devices are offlined.
+> > > 
+> > > Why cannot kernel send this eject command to the BIOS if the whole
+> > > container is offline? If it is not then the kernel would send EBUSY to
+> > 
+> > Current kernel container hot-remove process:
+> > 
+> >   BIOS -> SCI event -> Kernel ACPI -> uevent -> userland
+> >               
+> > Then, kernel just calls _OST to expose state to BIOS, then process is
+> > stopped. Kernel doesn't wait there for userland to offline each child
+> > devices. Either BIOS or userland needs to trigger the container
+> > ejection.
+> > 
+> > > container is offline? If it is not then the kernel would send EBUSY to
+> > > the BIOS and BIOS would have to retry after some timeout. Or is it a
+> > 
+> > The d429e5c122 patch is merged to mainline. So kernel will send
+> > DEVICE_BUSY to BIOS after it emits uevent to userland. BIOS can choice
+> > to apply the retry approach until OS returns process failure exactly or
+> > BIOS timeout.
+> > 
+> > > problem that currently implemented BIOS firmwares do not implement this
+> > > retry?
+> > 
+> > Yes, we should consider the behavior of old BIOS. Old BIOS doesn't
+> > retry/resend the ejection event. So kernel or userland need to take the
+> > retry job. Obviously userland runs the retry since the caa73ea15 patch
+> > is merged.
+> > 
+> > IMHO there have two different expectation from user space application.
+> > 
+> > Applications like DVD player or Burner expect that kernel should
+> > info userspace for the ejection, then application can do their cleaning
+> > job and re-trigger ejection from userland.
+> 
+> I am not sure I understand the DVD example because I do not see how it
+> fits into the container and online/offline scenario.
+>
 
-Please pull from the tag
+At least Yasuaki raised similar behavior for container in 2013.
+It's similar to the DVD player case, user space application needs
+to do something then trigger children offline and ejection of
+container.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- devprop-fix-4.13-rc1
+Base on Yasuaki's explanation, the reason of that he requested the
+userland ejection approach is that he got memory hot-remove problem
+in 2013. Maybe his problem is already fixed by your patches in current
+mainline.
 
-with top-most commit e8158b486d5f3f55cf372c5a32b42f263bf7f123
+Hi Yasuaki, could you please check that your memory hot-remove problem
+is fixed on mainline kernel?  
 
- device property: Introduce fwnode_call_bool_op() for ops that return bool
+If Yasuaki's issue is already fixed, then we should consider to let
+kernel does the container hot-remove transparently. 
 
-on top of commit 6a71d8d77795e0f7d887baa95bfc0d1d2bc74899
+> > But, some other applications like database don't want that their service
+> > be stopped when the devices offline/eject. The hot-remove sholud be done by
+> > kernel transparently.
+> > 
+> > We need a way for fill two situations.
+> 
+> Hmm, so can we trigger the eject from the _kernel_ when the last child
+> is offlined?
 
- device property: Add fwnode_graph_get_port_parent
+Kernel needs to remember that the container is under a _EJECTION_ state
+that it should waits all children be offlined. Then kernel checks the
+container offline state when each individual device is offlined. If
+kernel found a container offlined (means that all children are offlined),
+and the container is under ejection state, then kernel runs ejection
+jobs (removing objects and calls _EJ0). 
 
-to receive a device properties framework fix for v4.13-rc1.
+To achieve this, I think that the container object needs a _EJECTION_
+flag. It helps kernel to remember the state that it set by BIOS's
+ejection event.
 
-This fixes a problem with bool properties that could be seen as
-"true" when the property was not present at all by adding a special
-helper for bool properties with checks for all of the requisute
-conditions (Sakari Ailus).
+This approach has some problems: If userland doesn't finish his offline
+jobs or userland doesn't do anything, when should kernel clears the 
+ejection flag and responses failure by _OST to BIOS?
 
-Thanks!
+And, for new BIOS that it has time out mechanism. Currently there have
+no way for BIOS to tell kernel that it gives up. It's hard to sync the
+kernel container's ejection flag with BIOS. 
 
+Of course the better is that Yasuaki's problem got fixed. Kernel does
+the hot-removes container transparently (again). Then we don't need
+to worry how to maintain a ejection state in kernel.  
 
----------------
-
-Sakari Ailus (1):
-      device property: Introduce fwnode_call_bool_op() for ops that return bool
-
----------------
-
- drivers/base/property.c | 6 +++---
- include/linux/fwnode.h  | 4 ++++
- 2 files changed, 7 insertions(+), 3 deletions(-)
+Thanks a lot!
+Joey Lee 
