@@ -1,126 +1,67 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v3 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
- erratum 161010801
-Date: Fri, 14 Jul 2017 20:33:23 +0100
-Message-ID: <20170714193322.GH26488@arm.com>
-References: <20170623145801.325244-1-shameerali.kolothum.thodi@huawei.com>
- <20170623145801.325244-3-shameerali.kolothum.thodi@huawei.com>
- <20170704173820.GO22175@arm.com>
- <5FC3163CFD30C246ABAA99954A238FA83839DB59@FRAEML521-MBX.china.huawei.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 18/22] gpio: acpi: fix string overflow for large pin numbers
+Date: Fri, 14 Jul 2017 21:59:50 +0200
+Message-ID: <CAK8P3a1tozFc7Rmmv04dovtieHcLpg1VHaeZpW_NKFw4w-fZug@mail.gmail.com>
+References: <20170714120720.906842-1-arnd@arndb.de> <20170714120720.906842-19-arnd@arndb.de>
+ <1500036740.29303.7.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51934 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750917AbdGNTdU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Jul 2017 15:33:20 -0400
-Content-Disposition: inline
-In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA83839DB59@FRAEML521-MBX.china.huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1500036740.29303.7.camel@linux.intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Guenter Roeck <linux@roeck-us.net>, Andrew Morton <akpm@linux-foundation.org>, Networking <netdev@vger.kernel.org>, "David S . Miller" <davem@davemloft.net>, "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K . Petersen" <martin.petersen@oracle.com>, linux-scsi <linux-scsi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Wei Yongjun <weiyongjun1@huawei.com>, linux-gpio@vger.kernel.org, ACPI
 List-Id: linux-acpi@vger.kernel.org
-To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Wed, Jul 05, 2017 at 09:48:53AM +0000, Shameerali Kolothum Thodi wrote:
-> 
-> 
-> > -----Original Message-----
-> > From: Will Deacon [mailto:will.deacon@arm.com]
-> > Sent: Tuesday, July 04, 2017 6:38 PM
-> > To: Shameerali Kolothum Thodi
-> > Cc: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
-> > sudeep.holla@arm.com; robin.murphy@arm.com; hanjun.guo@linaro.org;
-> > Gabriele Paoloni; John Garry; Linuxarm; linux-acpi@vger.kernel.org;
-> > iommu@lists.linux-foundation.org; Wangzhou (B); Guohanjun (Hanjun Guo);
-> > linux-arm-kernel@lists.infradead.org; devel@acpica.org
-> > Subject: Re: [PATCH v3 2/2] iommu/arm-smmu-v3:Enable ACPI based
-> > HiSilicon erratum 161010801
-> > 
-> > On Fri, Jun 23, 2017 at 03:58:01PM +0100, shameer wrote:
-> > > The HiSilicon erratum 161010801 describes the limitation of HiSilicon
-> > > platforms Hip06/Hip07 to support the SMMU mappings for MSI
-> > transactions.
-> > >
-> > > On these platforms GICv3 ITS translator is presented with the deviceID
-> > > by extending the MSI payload data to 64 bits to include the deviceID.
-> > > Hence, the PCIe controller on this platforms has to differentiate the
-> > > MSI payload against other DMA payload and has to modify the MSI
-> > payload.
-> > > This basically makes it difficult for this platforms to have a SMMU
-> > > translation for MSI.
-> > >
-> > > This patch implements a ACPI table based quirk to reserve the hw msi
-> > > regions in the smmu-v3 driver which means these address regions will
-> > > not be translated and will be excluded from iova allocations.
-> > >
-> > > Signed-off-by: shameer <shameerali.kolothum.thodi@huawei.com>
-> > > ---
-> > >  drivers/iommu/arm-smmu-v3.c | 30 ++++++++++++++++++++++++++----
-> > >  1 file changed, 26 insertions(+), 4 deletions(-)
-> > >
-> > > diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-
-> > v3.c
-> > > index abe4b88..c9346f2 100644
-> > > --- a/drivers/iommu/arm-smmu-v3.c
-> > > +++ b/drivers/iommu/arm-smmu-v3.c
-> > > @@ -597,6 +597,7 @@ struct arm_smmu_device {
-> > >  	u32				features;
-> > >
-> > >  #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
-> > > +#define ARM_SMMU_OPT_RESV_HW_MSI	(1 << 1)
-> > >  	u32				options;
-> > >
-> > >  	struct arm_smmu_cmdq		cmdq;
-> > > @@ -1904,14 +1905,34 @@ static void arm_smmu_get_resv_regions(struct
-> > device *dev,
-> > >  				      struct list_head *head)
-> > >  {
-> > >  	struct iommu_resv_region *region;
-> > > +	struct arm_smmu_device *smmu;
-> > > +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> > >  	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
-> > > +	int resv = 0;
-> > >
-> > > -	region = iommu_alloc_resv_region(MSI_IOVA_BASE,
-> > MSI_IOVA_LENGTH,
-> > > -					 prot, IOMMU_RESV_SW_MSI);
-> > > -	if (!region)
-> > > +	smmu = arm_smmu_get_by_fwnode(fwspec->iommu_fwnode);
-> > 
-> > Does this callback actually get called without a prior ->add_device callback
-> > for the master in question? If not, then we can already claw the structure
-> > out via the iommu_priv field in the fwspec.
-> 
-> Thanks Will for going through this.
-> 
-> Yes, from the logs I have, it looks like _resv callback is always called after
->  ->add_device. I will double check this with vfio bind case as well.
-> 
-> And I guess, this is what you are proposing to retrieve the smmu,
-> 
-> master = dev->iommu_fwspec->iommu_priv;
-> smmu = master->smmu;
-> 
-> > > +	if (WARN_ON(!smmu))
-> >
-> > Again, how does this trigger?
-> > >  		return;
-> > >
-> > > -	list_add_tail(&region->list, head);
-> > > +	if ((smmu->options & ARM_SMMU_OPT_RESV_HW_MSI)) {
-> > > +
-> > > +		if (!is_of_node(smmu->dev->fwnode))
-> > > +			resv = iort_iommu_its_get_resv_regions(dev, head);
-> > 
-> > How does this work when we're not using ACPI? Shouldn't of vs ACPI be
-> > abstracted from the driver?
-> 
-> At present ARM_SMMU_OPT_RESV_HW_MSI is only set for ACPI and  DT support for
-> this is a low priority for us at the moment. Is the suggestion is to have a common function
-> outside the smmu driver for _iommu_its_get_resv_regions() ? I am not sure what
-> is the best way here. 
+On Fri, Jul 14, 2017 at 2:52 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> On Fri, 2017-07-14 at 14:07 +0200, Arnd Bergmann wrote:
+>> gcc-7 notices that the pin_table is an array of 16-bit numbers,
+>> but we assume it can be printed as a two-character hexadecimal
+>> string:
+>>
+>> drivers/gpio/gpiolib-acpi.c: In function
+>> 'acpi_gpiochip_request_interrupt':
+>> drivers/gpio/gpiolib-acpi.c:206:24: warning: '%02X' directive writing
+>> between 2 and 4 bytes into a region of size 3 [-Wformat-overflow=]
+>>    sprintf(ev_name, "_%c%02X",
+>>                         ^~~~
+>> drivers/gpio/gpiolib-acpi.c:206:20: note: directive argument in the
+>> range [0, 65535]
+>>    sprintf(ev_name, "_%c%02X",
+>>                     ^~~~~~~~~
+>> drivers/gpio/gpiolib-acpi.c:206:3: note: 'sprintf' output between 5
+>> and 7 bytes into a destination of size 5
+>>    sprintf(ev_name, "_%c%02X",
+>>    ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>     agpio->triggering == ACPI_EDGE_SENSITIVE ? 'E' : 'L',
+>>     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>     pin);
+>>     ~~~~
+>
+>
+> This is obviously a false positive warning.
+>
+> Here we have
+> int pin = u16 pin_table[0] <= 255 (implying >= 0).
+>
+> I see few options how to make it more clear
+> 1) your proposal;
+> 2) use "%02hhX" instead;
+> 3) use if (ret >= 0 && ret <= 255) condition.
+>
+> I would choose one of the 2-3.
+>
+> In case gcc will complain about 3), file a bug to gcc crazy warning.
 
-Right, something like that. The driver shouldn't need to care whether or not
-it's using ACPI or DT when setting these options.
+Makes sense. I didn't remember the syntax for 2) and couldn't find
+it in the man page when I first looked. This seems like a good solution
+here.
 
-Will
+I'm pretty sure I tried 3) a few times when the warning first showed
+up last year, but couldn't get that to work. Filing a gcc bug also seems
+like a good idea, but I should first see if it's already fixed. The version
+I use for testing at the moment is from late April, and others may
+have complained about that already.
+
+      Arnd
