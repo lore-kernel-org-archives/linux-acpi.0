@@ -1,63 +1,70 @@
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 1/6] btt: fix a missed NVDIMM_IO_ATOMIC case in the write path
-Date: Fri, 14 Jul 2017 16:11:43 -0600
-Message-ID: <20170714221148.11232-2-vishal.l.verma@intel.com>
+From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 3/6] btt: ensure that flags were also unchanged during a
+ map_read
+Date: Fri, 14 Jul 2017 16:11:45 -0600
+Message-ID: <20170714221148.11232-4-vishal.l.verma@intel.com>
 References: <20170714221148.11232-1-vishal.l.verma@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:17627 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751035AbdGNWN2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Jul 2017 18:13:28 -0400
-In-Reply-To: <20170714221148.11232-1-vishal.l.verma@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170714221148.11232-1-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>
 
-The IO context conversion for rw_bytes missed a case in the BTT write
-path (btt_map_write) which should've been marked as atomic.
+In btt_map_read, we read the map twice to make sure that the map entry
+didn't change after we added it to the read tracking table. In
+anticipation of expanding the use of the error bit, also make sure that
+the error and zero flags are constant across the two map reads.
 
-In reality this should not cause a problem, because map writes are to
-small for nsio_rw_bytes to attempt error clearing, but it should be
-fixed for posterity.
-
-Add a might_sleep() in the non-atomic section of nsio_rw_bytes so that
-things like the nfit unit tests, which don't actually sleep, can catch
-bugs like this.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/nvdimm/btt.c   | 3 ++-
- drivers/nvdimm/claim.c | 1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/nvdimm/btt.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 2af329d..52aa96f 100644
+index 3aa6bc0..304dac4 100644
 --- a/drivers/nvdimm/btt.c
 +++ b/drivers/nvdimm/btt.c
-@@ -1155,7 +1155,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		if (ret)
- 			goto out_map;
+@@ -1031,6 +1031,7 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		 */
+ 		while (1) {
+ 			u32 new_map;
++			int new_t, new_e;
  
--		ret = btt_map_write(arena, premap, new_postmap, 0, 0, 0);
-+		ret = btt_map_write(arena, premap, new_postmap, 0, 0,
-+			NVDIMM_IO_ATOMIC);
- 		if (ret)
- 			goto out_map;
+ 			if (t_flag) {
+ 				zero_fill_data(page, off, cur_len);
+@@ -1049,15 +1050,18 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			 */
+ 			barrier();
  
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index f8ad92b..8f29937 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -292,6 +292,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 				&& !(flags & NVDIMM_IO_ATOMIC)) {
- 			long cleared;
+-			ret = btt_map_read(arena, premap, &new_map, &t_flag,
+-						&e_flag, NVDIMM_IO_ATOMIC);
++			ret = btt_map_read(arena, premap, &new_map, &new_t,
++						&new_e, NVDIMM_IO_ATOMIC);
+ 			if (ret)
+ 				goto out_rtt;
  
-+			might_sleep();
- 			cleared = nvdimm_clear_poison(&ndns->dev,
- 					nsio->res.start + offset, size);
- 			if (cleared < size)
+-			if (postmap == new_map)
++			if ((postmap == new_map) && (t_flag == new_t) &&
++					(e_flag == new_e))
+ 				break;
+ 
+ 			postmap = new_map;
++			t_flag = new_t;
++			e_flag = new_e;
+ 		}
+ 
+ 		ret = btt_data_read(arena, page, off, postmap, cur_len);
 -- 
 2.9.3
-
