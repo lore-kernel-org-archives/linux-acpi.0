@@ -1,84 +1,51 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: A udev rule to serve the change event of ACPI container?
-Date: Fri, 14 Jul 2017 10:37:13 +0200
-Message-ID: <20170714083713.GB2618@dhcp22.suse.cz>
-References: <20170626062657.GE4229@linux-l9pv.suse>
- <20170626085907.GE11534@dhcp22.suse.cz>
- <20170711082532.GA6927@dhcp22.suse.cz>
- <20170713065806.GB2901@linux-l9pv.suse>
- <20170713070618.GC14492@dhcp22.suse.cz>
- <20170713124521.GE2901@linux-l9pv.suse>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 06/14] acpi: thermal: fix gcc-6/ccache warning
+Date: Fri, 14 Jul 2017 11:25:18 +0200
+Message-ID: <20170714092540.1217397-7-arnd@arndb.de>
+References: <20170714092540.1217397-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:49200 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750799AbdGNIhR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Jul 2017 04:37:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20170713124521.GE2901@linux-l9pv.suse>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, dri-devel@lists.freedesktop.org, linux-ide@vger.kernel.org, Tejun Heo <tj@kernel.org>, akpm@linux-foundation.org, Linus Torvalds <torvalds@linux-foundation.org>, Guenter Roeck <linux@roeck-us.net>, linux-media@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-On Thu 13-07-17 20:45:21, Joey Lee wrote:
-> On Thu, Jul 13, 2017 at 09:06:19AM +0200, Michal Hocko wrote:
-> > On Thu 13-07-17 14:58:06, Joey Lee wrote:
-[...]
-> > > If BIOS emits ejection event for a ACPI0004 container, someone needs
-> > > to handle the offline/eject jobs of container. Either kernel or user
-> > > space.
-> > > 
-> > > Only sending uevent to individual child device can simplify udev rule,
-> > > but it also means that the kernel needs to offline/eject container
-> > > after all children devices are offlined.
-> > 
-> > Why cannot kernel send this eject command to the BIOS if the whole
-> > container is offline? If it is not then the kernel would send EBUSY to
-> 
-> Current kernel container hot-remove process:
-> 
->   BIOS -> SCI event -> Kernel ACPI -> uevent -> userland
->               
-> Then, kernel just calls _OST to expose state to BIOS, then process is
-> stopped. Kernel doesn't wait there for userland to offline each child
-> devices. Either BIOS or userland needs to trigger the container
-> ejection.
-> 
-> > container is offline? If it is not then the kernel would send EBUSY to
-> > the BIOS and BIOS would have to retry after some timeout. Or is it a
-> 
-> The d429e5c122 patch is merged to mainline. So kernel will send
-> DEVICE_BUSY to BIOS after it emits uevent to userland. BIOS can choice
-> to apply the retry approach until OS returns process failure exactly or
-> BIOS timeout.
-> 
-> > problem that currently implemented BIOS firmwares do not implement this
-> > retry?
-> 
-> Yes, we should consider the behavior of old BIOS. Old BIOS doesn't
-> retry/resend the ejection event. So kernel or userland need to take the
-> retry job. Obviously userland runs the retry since the caa73ea15 patch
-> is merged.
-> 
-> IMHO there have two different expectation from user space application.
-> 
-> Applications like DVD player or Burner expect that kernel should
-> info userspace for the ejection, then application can do their cleaning
-> job and re-trigger ejection from userland.
-
-I am not sure I understand the DVD example because I do not see how it
-fits into the container and online/offline scenario.
-
-> But, some other applications like database don't want that their service
-> be stopped when the devices offline/eject. The hot-remove sholud be done by
-> kernel transparently.
-> 
-> We need a way for fill two situations.
-
-Hmm, so can we trigger the eject from the _kernel_ when the last child
-is offlined?
--- 
-Michal Hocko
-SUSE Labs
+SW4gc29tZSBjb25maWd1cmF0aW9ucywgdG9wb2xvZ3lfcGh5c2ljYWxfcGFja2FnZV9pZCgpIGlz
+IHRyaXZpYWxseQpkZWZpbmVkIGFzICctMScgZm9yIGFueSBpbnB1dCwgcmVzdWx0aW5nIGEgY29t
+cGFyaXNvbiB0aGF0IGlzCmFsd2F5cyB0cnVlOgoKZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl90aGVy
+bWFsLmM6IEluIGZ1bmN0aW9uIOKAmGNwdWZyZXFfc2V0X2N1cl9zdGF0ZeKAmToKZHJpdmVycy9h
+Y3BpL3Byb2Nlc3Nvcl90aGVybWFsLmM6MTM3OjM2OiBlcnJvcjogc2VsZi1jb21wYXJpc29uIGFs
+d2F5cyBldmFsdWF0ZXMgdG8gdHJ1ZSBbLVdlcnJvcj10YXV0b2xvZ2ljYWwtY29tcGFyZV0KCkJ5
+IGludHJvZHVjaW5nIGEgdGVtcG9yYXJ5IHZhcmlhYmxlLCB3ZSBjYW4gdGVsbCBnY2MgdGhhdCB0
+aGlzIGlzCmludGVudGlvbmFsLgoKU2lnbmVkLW9mZi1ieTogQXJuZCBCZXJnbWFubiA8YXJuZEBh
+cm5kYi5kZT4KLS0tCiBkcml2ZXJzL2FjcGkvcHJvY2Vzc29yX3RoZXJtYWwuYyB8IDYgKysrKy0t
+CiAxIGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAt
+LWdpdCBhL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfdGhlcm1hbC5jIGIvZHJpdmVycy9hY3BpL3By
+b2Nlc3Nvcl90aGVybWFsLmMKaW5kZXggNTljM2E1ZDFlNjAwLi40MTFmM2E3ZjRhN2MgMTAwNjQ0
+Ci0tLSBhL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfdGhlcm1hbC5jCisrKyBiL2RyaXZlcnMvYWNw
+aS9wcm9jZXNzb3JfdGhlcm1hbC5jCkBAIC0xMjIsMjAgKzEyMiwyMiBAQCBzdGF0aWMgaW50IGNw
+dWZyZXFfZ2V0X2N1cl9zdGF0ZSh1bnNpZ25lZCBpbnQgY3B1KQogc3RhdGljIGludCBjcHVmcmVx
+X3NldF9jdXJfc3RhdGUodW5zaWduZWQgaW50IGNwdSwgaW50IHN0YXRlKQogewogCWludCBpOwor
+CWludCBpZDsKIAogCWlmICghY3B1X2hhc19jcHVmcmVxKGNwdSkpCiAJCXJldHVybiAwOwogCiAJ
+cmVkdWN0aW9uX3BjdGcoY3B1KSA9IHN0YXRlOwogCisJaWQgPSB0b3BvbG9neV9waHlzaWNhbF9w
+YWNrYWdlX2lkKGNwdSk7CisKIAkvKgogCSAqIFVwZGF0ZSBhbGwgdGhlIENQVXMgaW4gdGhlIHNh
+bWUgcGFja2FnZSBiZWNhdXNlIHRoZXkgYWxsCiAJICogY29udHJpYnV0ZSB0byB0aGUgdGVtcGVy
+YXR1cmUgYW5kIG9mdGVuIHNoYXJlIHRoZSBzYW1lCiAJICogZnJlcXVlbmN5LgogCSAqLwogCWZv
+cl9lYWNoX29ubGluZV9jcHUoaSkgewotCQlpZiAodG9wb2xvZ3lfcGh5c2ljYWxfcGFja2FnZV9p
+ZChpKSA9PQotCQkgICAgdG9wb2xvZ3lfcGh5c2ljYWxfcGFja2FnZV9pZChjcHUpKQorCQlpZiAo
+dG9wb2xvZ3lfcGh5c2ljYWxfcGFja2FnZV9pZChpKSA9PSBpZCkKIAkJCWNwdWZyZXFfdXBkYXRl
+X3BvbGljeShpKTsKIAl9CiAJcmV0dXJuIDA7Ci0tIAoyLjkuMAoKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmkt
+ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
