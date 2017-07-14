@@ -1,91 +1,104 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 18/22] gpio: acpi: fix string overflow for large pin
- numbers
-Date: Fri, 14 Jul 2017 15:52:20 +0300
-Message-ID: <1500036740.29303.7.camel@linux.intel.com>
-References: <20170714120720.906842-1-arnd@arndb.de>
-         <20170714120720.906842-19-arnd@arndb.de>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management fixes for v4.13-rc1
+Date: Fri, 14 Jul 2017 15:03:33 +0200
+Message-ID: <CAJZ5v0gqGooQGdBJw8jV77BPB5gwKUDKBas5N8VM-P7gQQ=8VA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:20992 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753124AbdGNMwi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Jul 2017 08:52:38 -0400
-In-Reply-To: <20170714120720.906842-19-arnd@arndb.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Guenter Roeck <linux@roeck-us.net>, akpm@linux-foundation.org, netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K . Petersen" <martin.petersen@oracle.com>, linux-scsi@vger.kernel.org, x86@kernel.org, Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Wei Yongjun <weiyongjun1@huawei.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 2017-07-14 at 14:07 +0200, Arnd Bergmann wrote:
-> gcc-7 notices that the pin_table is an array of 16-bit numbers,
-> but we assume it can be printed as a two-character hexadecimal
-> string:
-> 
-> drivers/gpio/gpiolib-acpi.c: In function
-> 'acpi_gpiochip_request_interrupt':
-> drivers/gpio/gpiolib-acpi.c:206:24: warning: '%02X' directive writing
-> between 2 and 4 bytes into a region of size 3 [-Wformat-overflow=]
->    sprintf(ev_name, "_%c%02X",
->                         ^~~~
-> drivers/gpio/gpiolib-acpi.c:206:20: note: directive argument in the
-> range [0, 65535]
->    sprintf(ev_name, "_%c%02X",
->                     ^~~~~~~~~
-> drivers/gpio/gpiolib-acpi.c:206:3: note: 'sprintf' output between 5
-> and 7 bytes into a destination of size 5
->    sprintf(ev_name, "_%c%02X",
->    ^~~~~~~~~~~~~~~~~~~~~~~~~~~
->     agpio->triggering == ACPI_EDGE_SENSITIVE ? 'E' : 'L',
->     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->     pin);
->     ~~~~
+Hi Linus,
+
+Please pull from the tag
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-fixes-4.13-rc1
+
+with top-most commit 6df609b24b23845d2ad85b01814e7ad27f607e92
+
+ Merge branches 'pm-qos' and 'pm-devfreq'
+
+on top of commit 1633b396105b69efe8bfc83e33662276cc8a7675
+
+ Merge tag 'pm-extra-4.13-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+to receive power management fixes for v4.13-rc1.
+
+These fix a recently exposed issue in the PCI device wakeup code and
+one older problem related to PCI device wakeup that has been reported
+recently, modify one more piece of computations in intel_pstate to get
+rid of a rounding error, fix a possible race in the schedutil cpufreq
+governor, fix the device PM QoS sysfs interface to correctly handle
+invalid user input, fix return values of two probe routines in
+devfreq drivers and constify an attribute_group structure in devfreq.
+
+Specifics:
+
+ - Avoid clearing the PCI PME Enable bit for devices as a result of
+   config space restoration which confuses AML executed afterward and
+   causes wakeup events to be lost on some systems (Rafael Wysocki).
+
+ - Fix the native PCIe PME interrupts handling in the cases when the
+   PME IRQ is set up as a system wakeup one so that runtime PM remote
+   wakeup works as expected after system resume on systems where that
+   happens (Rafael Wysocki).
+
+ - Fix the device PM QoS sysfs interface to handle invalid user input
+   correctly instead of using an unititialized variable value as the
+   latency tolerance for the device at hand (Dan Carpenter).
+
+ - Get rid of one more rounding error from intel_pstate computations
+   (Srinivas Pandruvada).
+
+ - Fix the schedutil cpufreq governor to prevent it from possibly
+   accessing unititialized data structures from governor callbacks in
+   some cases on systems when multiple CPUs share a single cpufreq
+   policy object (Vikram Mulukutla).
+
+ - Fix the return values of probe routines in two devfreq drivers
+   (Gustavo Silva).
+
+ - Constify an attribute_group structure in devfreq (Arvind Yadav).
+
+Thanks!
 
 
-This is obviously a false positive warning.
+---------------
 
-Here we have
-int pin = u16 pin_table[0] <= 255 (implying >= 0).
+Arvind Yadav (1):
+      PM / devfreq: constify attribute_group structures.
 
-I see few options how to make it more clear
-1) your proposal;
-2) use "%02hhX" instead;
-3) use if (ret >= 0 && ret <= 255) condition.
+Dan Carpenter (1):
+      PM / QoS: return -EINVAL for bogus strings
 
-I would choose one of the 2-3.
+Gustavo A. R. Silva (2):
+      PM / devfreq: rk3399_dmc: fix error return code in rk3399_dmcfreq_probe()
+      PM / devfreq: tegra: fix error return code in tegra_devfreq_probe()
 
-In case gcc will complain about 3), file a bug to gcc crazy warning.
+Rafael J. Wysocki (2):
+      PCI / PM: Restore PME Enable after config space restoration
+      PCI / PM: Fix native PME handling during system suspend/resume
 
-> 
-> This can't be right, so this changes it to truncate the number to
-> an 8-bit pin number.
-> 
-> Fixes: 0d1c28a449c6 ("gpiolib-acpi: Add ACPI5 event model support to
-> gpio.")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/gpio/gpiolib-acpi.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index c9b42dd12dfa..c3faea724af8 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -205,7 +205,7 @@ static acpi_status
-> acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
->  		char ev_name[5];
->  		sprintf(ev_name, "_%c%02X",
->  			agpio->triggering == ACPI_EDGE_SENSITIVE ?
-> 'E' : 'L',
-> -			pin);
-> +			(u8)pin);
->  		if (ACPI_SUCCESS(acpi_get_handle(handle, ev_name,
-> &evt_handle)))
->  			handler = acpi_gpio_irq_handler;
->  	}
+Srinivas Pandruvada (1):
+      cpufreq: intel_pstate: Fix ratio setting for min_perf_pct
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Vikram Mulukutla (1):
+      cpufreq: schedutil: Fix sugov_start() versus sugov_update_shared() race
+
+---------------
+
+ drivers/base/power/sysfs.c           |  2 ++
+ drivers/cpufreq/intel_pstate.c       |  2 +-
+ drivers/devfreq/governor_userspace.c |  2 +-
+ drivers/devfreq/rk3399_dmc.c         |  5 +++--
+ drivers/devfreq/tegra-devfreq.c      |  6 +++---
+ drivers/pci/pci-driver.c             |  2 ++
+ drivers/pci/pci.c                    | 16 ++++++++--------
+ drivers/pci/pci.h                    |  1 +
+ drivers/pci/pcie/pme.c               | 35 +++++++++++++----------------------
+ kernel/sched/cpufreq_schedutil.c     |  5 +++++
+ 10 files changed, 39 insertions(+), 37 deletions(-)
