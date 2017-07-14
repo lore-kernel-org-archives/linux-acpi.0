@@ -1,79 +1,47 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.13-rc1
-Date: Fri, 14 Jul 2017 15:05:14 +0200
-Message-ID: <CAJZ5v0h+9TP=Bt+0HzOj28oq=MiBKfjzknp9-Hbaiu04Xy-RHQ@mail.gmail.com>
+Subject: [GIT PULL] Device properties framework fix for v4.13-rc1
+Date: Fri, 14 Jul 2017 15:06:21 +0200
+Message-ID: <CAJZ5v0jSwyM+va_79KWyLFXxXvz+mNAw5dpR0FUj2pDsW41vsQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:33546 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753577AbdGNNFP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Jul 2017 09:05:15 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 Hi Linus,
 
 Please pull from the tag
 
  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-fixes-4.13-rc1
+ devprop-fix-4.13-rc1
 
-with top-most commit 9636603da3c3367139b46e19a38fb2e4850e7420
+with top-most commit e8158b486d5f3f55cf372c5a32b42f263bf7f123
 
- Merge branches 'acpi-ec', 'acpi-irq' and 'acpi-quirks'
+ device property: Introduce fwnode_call_bool_op() for ops that return bool
 
-on top of commit 322618684353315e14f586b33d8a016286ffa700
+on top of commit 6a71d8d77795e0f7d887baa95bfc0d1d2bc74899
 
- Merge tag 'acpi-extra-4.13-rc1' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+ device property: Add fwnode_graph_get_port_parent
 
-to receive ACPI fixes for v4.13-rc1.
+to receive a device properties framework fix for v4.13-rc1.
 
-These fix the return value of an IRQ mapping routine in the ACPI
-core, fix an EC driver issue causing abnormal fan behavior after
-system resume on some systems and add quirks for ACPI device objects
-that need to be treated as "always present" to work around bogus
-implementations of the _STA control method.
-
-Specifics:
-
- - Fix the return value of acpi_gsi_to_irq() to make the GSI to
-   IRQ mapping work on the Mustang (ARM64) platform (Mark Salter).
-
- - Fix an EC driver issue that causes fans to behave abnormally
-   after system resume on some systems which turns out to be
-   related to switching over the EC into the polling mode during
-   the noirq stages of system suspend and resume (Lv Zheng).
-
- - Add quirks for ACPI device objects that need to be treated as
-   "always present", because their _STA methods are designed to
-   work around Windows driver bugs and return garbage from our
-   perspective (Hans de Goede).
+This fixes a problem with bool properties that could be seen as
+"true" when the property was not present at all by adding a special
+helper for bool properties with checks for all of the requisute
+conditions (Sakari Ailus).
 
 Thanks!
 
 
 ---------------
 
-Hans de Goede (3):
-      ACPI / x86: Allow matching always_present_id array entries by DMI
-      ACPI / x86: Add Dell Venue 11 Pro 7130 touchscreen to always_present_ids
-      ACPI / x86: Add KIOX000A accelerometer on GPD win to
-always_present_ids array
-
-Lv Zheng (2):
-      ACPI / EC: Drop EC noirq hooks to fix a regression
-      Revert "ACPI / EC: Enable event freeze mode..." to fix a regression
-
-Mark Salter (1):
-      ACPI / irq: Fix return code of acpi_gsi_to_irq()
+Sakari Ailus (1):
+      device property: Introduce fwnode_call_bool_op() for ops that return bool
 
 ---------------
 
- drivers/acpi/ec.c        | 21 +--------------------
- drivers/acpi/irq.c       |  4 ++--
- drivers/acpi/x86/utils.c | 41 +++++++++++++++++++++++++++++++++++++----
- 3 files changed, 40 insertions(+), 26 deletions(-)
+ drivers/base/property.c | 6 +++---
+ include/linux/fwnode.h  | 4 ++++
+ 2 files changed, 7 insertions(+), 3 deletions(-)
