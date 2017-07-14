@@ -1,70 +1,69 @@
-From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/6] btt: ensure that flags were also unchanged during a
- map_read
-Date: Fri, 14 Jul 2017 16:11:45 -0600
-Message-ID: <20170714221148.11232-4-vishal.l.verma@intel.com>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH 5/6] acpi: change memory allocations to GFP_NOIO
+Date: Fri, 14 Jul 2017 16:11:47 -0600
+Message-ID: <20170714221148.11232-6-vishal.l.verma@intel.com>
 References: <20170714221148.11232-1-vishal.l.verma@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170714221148.11232-1-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:30967 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751118AbdGNWNc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Jul 2017 18:13:32 -0400
+In-Reply-To: <20170714221148.11232-1-vishal.l.verma@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>
 
-In btt_map_read, we read the map twice to make sure that the map entry
-didn't change after we added it to the read tracking table. In
-anticipation of expanding the use of the error bit, also make sure that
-the error and zero flags are constant across the two map reads.
+With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
+Specifically, the DSM to clear media errors is called during writes, so
+that we can provide a writes-fix-errors model.
 
-Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+However it is easy to imagine a scenario like:
+ - write through the nvdimm driver
+ - acpi allocation
+ - writeback, causes more IO through the nvdimm driver
+ - deadlock
+
+Making the acpi allocations GPF_NOIO would ensure that it doesn't
+trigger writeback, and avoids the above deadlock.
+
+Cc: <linux-acpi@vger.kernel.org>
+Cc: <linux-nvdimm@lists.01.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/btt.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ include/acpi/platform/aclinuxex.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 3aa6bc0..304dac4 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1031,6 +1031,7 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		 */
- 		while (1) {
- 			u32 new_map;
-+			int new_t, new_e;
+diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
+index efdff52..9bd54ec 100644
+--- a/include/acpi/platform/aclinuxex.h
++++ b/include/acpi/platform/aclinuxex.h
+@@ -83,12 +83,12 @@ acpi_status acpi_os_terminate(void);
+  */
+ static inline void *acpi_os_allocate(acpi_size size)
+ {
+-	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
+ }
  
- 			if (t_flag) {
- 				zero_fill_data(page, off, cur_len);
-@@ -1049,15 +1050,18 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 			 */
- 			barrier();
+ static inline void *acpi_os_allocate_zeroed(acpi_size size)
+ {
+-	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
+ }
  
--			ret = btt_map_read(arena, premap, &new_map, &t_flag,
--						&e_flag, NVDIMM_IO_ATOMIC);
-+			ret = btt_map_read(arena, premap, &new_map, &new_t,
-+						&new_e, NVDIMM_IO_ATOMIC);
- 			if (ret)
- 				goto out_rtt;
+ static inline void acpi_os_free(void *memory)
+@@ -99,7 +99,7 @@ static inline void acpi_os_free(void *memory)
+ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
+ {
+ 	return kmem_cache_zalloc(cache,
+-				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
++				 irqs_disabled()? GFP_ATOMIC : GFP_NOIO);
+ }
  
--			if (postmap == new_map)
-+			if ((postmap == new_map) && (t_flag == new_t) &&
-+					(e_flag == new_e))
- 				break;
- 
- 			postmap = new_map;
-+			t_flag = new_t;
-+			e_flag = new_e;
- 		}
- 
- 		ret = btt_data_read(arena, page, off, postmap, cur_len);
+ static inline acpi_thread_id acpi_os_get_thread_id(void)
 -- 
 2.9.3
+
