@@ -1,109 +1,60 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: [PATCH v3 6/6] spi: Use Apple device properties in absence of ACPI
- resources
-Date: Fri, 14 Jul 2017 00:36:19 +0200
-Message-ID: <c137d15be96c954f405bda5acaaf730cccc8e601.1499983092.git.lukas@wunner.de>
-References: <cover.1499983092.git.lukas@wunner.de>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization earlier
+Date: Fri, 14 Jul 2017 13:52:33 +0800
+Message-ID: <1500011554-9784-13-git-send-email-douly.fnst@cn.fujitsu.com>
+References: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.hostsharing.net ([176.9.242.54]:55085 "EHLO
-        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751216AbdGMWir (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Jul 2017 18:38:47 -0400
-In-Reply-To: <cover.1499983092.git.lukas@wunner.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: x86@kernel.org, linux-kernel@vger.kernel.org
+Cc: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, ebiederm@xmission.com, bhe@redhat.com, peterz@infradead.org, izumi.taku@jp.fujitsu.com, tokunaga.keiich@jp.fujitsu.com, Dou Liyang <douly.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Julian Wollrath <jwollrath@web.de>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org
 
-MacBooks and MacBook Pros introduced since 2015 return empty _CRS data
-for SPI slaves, causing device initialization to fail.  Most of the
-information that would normally be conveyed via _CRS is available
-through ACPI device properties instead, so take advantage of them.
+Linux uses acpi_early_init() to put the ACPI table management into
+the late stage from the early stage where the mapped ACPI tables is
+temporary and should be unmapped.
 
-The meaning and appropriate usage of the device properties was reverse
-engineered by Ronald Tschalär and carried over from these commits
-authored by him:
+But, now initializing interrupt delivery mode should map and parse the
+DMAR table earlier in the early stage. This causes an ACPI error when
+Linux reallocates the ACPI root tables. Because Linux doesn't unmapped
+the DMAR table after using in the early stage.
 
-https://github.com/cb22/macbook12-spi-driver/commit/9a416d699ef4
-https://github.com/cb22/macbook12-spi-driver/commit/0c34936ed9a1
+Invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
+be mapped and parsed in late stage like before.
 
-According to Ronald, the device properties have the following meaning:
-
-spiSclkPeriod   /* period in ns */
-spiWordSize     /* in number of bits */
-spiBitOrder     /* 1 = MSB_FIRST, 0 = LSB_FIRST */
-spiSPO          /* clock polarity: 0 = low, 1 = high */
-spiSPH          /* clock phase: 0 = first, 1 = second */
-spiCSDelay      /* delay between cs and receive on reads in 10 us */
-resetA2RUsec    /* active-to-receive delay? */
-resetRecUsec    /* receive delay? */
-
-Cc: Federico Lorenzi <florenzi@gmail.com>
-Reported-by: Leif Liddy <leif.liddy@gmail.com>
-Tested-by: Ronald Tschalär <ronald@innovation.ch>
-Acked-by: Mark Brown <broonie@kernel.org>
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: Lukas Wunner <lukas@wunner.de>
+Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
+Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Zheng, Lv <lv.zheng@intel.com>
+Cc: Julian Wollrath <jwollrath@web.de>
 ---
-Changes v2 -> v3:
-- Check buffer length for extra safety.  Rename "o" to "obj",
-  use 32 bit division to calculate max_speed_hz. (Andy)
+Test in my own PC(Lenovo M4340). 
+Ask help for doing regression testing for the bug said in commit c4e1acbb35e4 
+("ACPI / init: Invoke early ACPI initialization later").
 
- drivers/spi/spi.c | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ init/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 4fcbb0aa71d3..cce133057700 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -1693,6 +1693,35 @@ static void of_register_spi_devices(struct spi_controller *ctlr) { }
- #endif
- 
- #ifdef CONFIG_ACPI
-+static void acpi_spi_parse_apple_properties(struct spi_device *spi)
-+{
-+	struct acpi_device *dev = ACPI_COMPANION(&spi->dev);
-+	const union acpi_object *obj;
-+
-+	if (!is_apple_system)
-+		return;
-+
-+	if (!acpi_dev_get_property(dev, "spiSclkPeriod", ACPI_TYPE_BUFFER, &obj)
-+	    && obj->buffer.length >= 4)
-+		spi->max_speed_hz  = NSEC_PER_SEC / *(u32 *)obj->buffer.pointer;
-+
-+	if (!acpi_dev_get_property(dev, "spiWordSize", ACPI_TYPE_BUFFER, &obj)
-+	    && obj->buffer.length == 8)
-+		spi->bits_per_word = *(u64 *)obj->buffer.pointer;
-+
-+	if (!acpi_dev_get_property(dev, "spiBitOrder", ACPI_TYPE_BUFFER, &obj)
-+	    && obj->buffer.length == 8 && !*(u64 *)obj->buffer.pointer)
-+		spi->mode |= SPI_LSB_FIRST;
-+
-+	if (!acpi_dev_get_property(dev, "spiSPO", ACPI_TYPE_BUFFER, &obj)
-+	    && obj->buffer.length == 8 &&  *(u64 *)obj->buffer.pointer)
-+		spi->mode |= SPI_CPOL;
-+
-+	if (!acpi_dev_get_property(dev, "spiSPH", ACPI_TYPE_BUFFER, &obj)
-+	    && obj->buffer.length == 8 &&  *(u64 *)obj->buffer.pointer)
-+		spi->mode |= SPI_CPHA;
-+}
-+
- static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
- {
- 	struct spi_device *spi = data;
-@@ -1766,6 +1795,8 @@ static acpi_status acpi_register_spi_device(struct spi_controller *ctlr,
- 				     acpi_spi_add_resource, spi);
- 	acpi_dev_free_resource_list(&resource_list);
- 
-+	acpi_spi_parse_apple_properties(spi);
-+
- 	if (ret < 0 || !spi->max_speed_hz) {
- 		spi_dev_put(spi);
- 		return AE_OK;
+diff --git a/init/main.c b/init/main.c
+index df58a41..7a09467 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -654,12 +654,12 @@ asmlinkage __visible void __init start_kernel(void)
+ 	kmemleak_init();
+ 	setup_per_cpu_pageset();
+ 	numa_policy_init();
++	acpi_early_init();
+ 	if (late_time_init)
+ 		late_time_init();
+ 	calibrate_delay();
+ 	pidmap_init();
+ 	anon_vma_init();
+-	acpi_early_init();
+ #ifdef CONFIG_X86
+ 	if (efi_enabled(EFI_RUNTIME_SERVICES))
+ 		efi_enter_virtual_mode();
 -- 
-2.11.0
-
+2.5.5
