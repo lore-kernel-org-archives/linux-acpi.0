@@ -1,67 +1,72 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 18/22] gpio: acpi: fix string overflow for large pin numbers
-Date: Fri, 14 Jul 2017 21:59:50 +0200
-Message-ID: <CAK8P3a1tozFc7Rmmv04dovtieHcLpg1VHaeZpW_NKFw4w-fZug@mail.gmail.com>
-References: <20170714120720.906842-1-arnd@arndb.de> <20170714120720.906842-19-arnd@arndb.de>
- <1500036740.29303.7.camel@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 2/6] ACPI / x86: Consolidate Apple DMI checks
+Date: Sat, 15 Jul 2017 00:03:31 +0200
+Message-ID: <14565365.Cyeb0SINmK@aspire.rjw.lan>
+References: <cover.1499983092.git.lukas@wunner.de> <a0c795358306954294e7fe31ec974f3c51b56f4c.1499983092.git.lukas@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1500036740.29303.7.camel@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Guenter Roeck <linux@roeck-us.net>, Andrew Morton <akpm@linux-foundation.org>, Networking <netdev@vger.kernel.org>, "David S . Miller" <davem@davemloft.net>, "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K . Petersen" <martin.petersen@oracle.com>, linux-scsi <linux-scsi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Wei Yongjun <weiyongjun1@huawei.com>, linux-gpio@vger.kernel.org, ACPI
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:45321 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751012AbdGNWLR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Jul 2017 18:11:17 -0400
+In-Reply-To: <a0c795358306954294e7fe31ec974f3c51b56f4c.1499983092.git.lukas@wunner.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org
 
-On Fri, Jul 14, 2017 at 2:52 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> On Fri, 2017-07-14 at 14:07 +0200, Arnd Bergmann wrote:
->> gcc-7 notices that the pin_table is an array of 16-bit numbers,
->> but we assume it can be printed as a two-character hexadecimal
->> string:
->>
->> drivers/gpio/gpiolib-acpi.c: In function
->> 'acpi_gpiochip_request_interrupt':
->> drivers/gpio/gpiolib-acpi.c:206:24: warning: '%02X' directive writing
->> between 2 and 4 bytes into a region of size 3 [-Wformat-overflow=]
->>    sprintf(ev_name, "_%c%02X",
->>                         ^~~~
->> drivers/gpio/gpiolib-acpi.c:206:20: note: directive argument in the
->> range [0, 65535]
->>    sprintf(ev_name, "_%c%02X",
->>                     ^~~~~~~~~
->> drivers/gpio/gpiolib-acpi.c:206:3: note: 'sprintf' output between 5
->> and 7 bytes into a destination of size 5
->>    sprintf(ev_name, "_%c%02X",
->>    ^~~~~~~~~~~~~~~~~~~~~~~~~~~
->>     agpio->triggering == ACPI_EDGE_SENSITIVE ? 'E' : 'L',
->>     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>     pin);
->>     ~~~~
->
->
-> This is obviously a false positive warning.
->
-> Here we have
-> int pin = u16 pin_table[0] <= 255 (implying >= 0).
->
-> I see few options how to make it more clear
-> 1) your proposal;
-> 2) use "%02hhX" instead;
-> 3) use if (ret >= 0 && ret <= 255) condition.
->
-> I would choose one of the 2-3.
->
-> In case gcc will complain about 3), file a bug to gcc crazy warning.
+On Friday, July 14, 2017 12:36:19 AM Lukas Wunner wrote:
+> We're about to amend device scan with multiple checks whether we're
+> running on a Mac.  Speed that up by performing the DMI match only once
+> and caching the result.
+> 
+> Switch over existing Apple DMI checks, thereby fixing two deficiencies:
+> 
+> * They only match "Apple Inc." but not "Apple Computer, Inc.", which is
+>   used by BIOSes released between January 2006 (when the first x86 Macs
+>   started shipping) and January 2007 (when the company name changed upon
+>   introduction of the iPhone).
+> 
+> * They are now #defined to false on non-x86 arches and can thus be
+>   optimized away by the compiler.
+> 
+> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> ---
+> Changes v2 -> v3:
+> - Newly inserted patch in v3 to avoid repeated DMI checks for Apple
+>   hardware:  The result of the first DMI check in osi.c is cached.
+>   Two other existing DMI checks are converted to use the result.
+>   Because one of them is in a module (sbs.ko), the bool is_apple_system
+>   needs to be exported.  On non-x86, the DMI checks and Apple-specific
+>   code are omitted altogether. (Andy, Rafael)
+> 
+>  drivers/acpi/osi.c      |  4 ++++
+>  drivers/acpi/pci_root.c |  3 +--
+>  drivers/acpi/sbs.c      | 24 +-----------------------
+>  include/linux/acpi.h    |  6 ++++++
+>  4 files changed, 12 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
+> index cd953ae10238..6c253d4006b4 100644
+> --- a/drivers/acpi/osi.c
+> +++ b/drivers/acpi/osi.c
+> @@ -258,12 +258,16 @@ bool acpi_osi_is_win8(void)
+>  EXPORT_SYMBOL(acpi_osi_is_win8);
+>  
+>  #ifdef CONFIG_X86
+> +bool is_apple_system;
+> +EXPORT_SYMBOL(is_apple_system);
 
-Makes sense. I didn't remember the syntax for 2) and couldn't find
-it in the man page when I first looked. This seems like a good solution
-here.
+Maybe prepend the name of this variable with acpi_ to indicate that this is
+ACPI-specific.
 
-I'm pretty sure I tried 3) a few times when the warning first showed
-up last year, but couldn't get that to work. Filing a gcc bug also seems
-like a good idea, but I should first see if it's already fixed. The version
-I use for testing at the moment is from late April, and others may
-have complained about that already.
+Other than that, I'm basically fine with the changes in this series, but
+I need to have a closer look at them.
 
-      Arnd
+Thanks,
+Rafael
+
