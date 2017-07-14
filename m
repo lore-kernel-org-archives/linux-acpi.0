@@ -1,71 +1,60 @@
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 2/6] btt: refactor map entry operations with macros
-Date: Fri, 14 Jul 2017 16:11:44 -0600
-Message-ID: <20170714221148.11232-3-vishal.l.verma@intel.com>
+Subject: [PATCH 4/6] btt: cache sector_size in arena_info
+Date: Fri, 14 Jul 2017 16:11:46 -0600
+Message-ID: <20170714221148.11232-5-vishal.l.verma@intel.com>
 References: <20170714221148.11232-1-vishal.l.verma@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:17627 "EHLO mga06.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:46348 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751035AbdGNWN3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 14 Jul 2017 18:13:29 -0400
+        id S1751130AbdGNWNb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 14 Jul 2017 18:13:31 -0400
 In-Reply-To: <20170714221148.11232-1-vishal.l.verma@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
 Cc: linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>
 
-Add helpers for converting a raw map entry to just the block number, or
-either of the 'e' or 'z' flags in preparation for actually using the
-error flag to mark blocks with media errors.
+In preparation for the error clearing rework, add sector_size in the
+arena_info struct.
 
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/btt.c | 8 ++++----
- drivers/nvdimm/btt.h | 4 ++++
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/nvdimm/btt.c | 1 +
+ drivers/nvdimm/btt.h | 2 ++
+ 2 files changed, 3 insertions(+)
 
 diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 52aa96f..3aa6bc0 100644
+index 304dac4..6b84eae 100644
 --- a/drivers/nvdimm/btt.c
 +++ b/drivers/nvdimm/btt.c
-@@ -106,7 +106,7 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
- 	 * This 'mapping' is supposed to be just the LBA mapping, without
- 	 * any flags set, so strip the flag bits.
- 	 */
--	mapping &= MAP_LBA_MASK;
-+	mapping = ent_lba(mapping);
+@@ -566,6 +566,7 @@ static struct arena_info *alloc_arena(struct btt *btt, size_t size,
+ 	if (!arena)
+ 		return NULL;
+ 	arena->nd_btt = btt->nd_btt;
++	arena->sector_size = btt->sector_size;
  
- 	ze = (z_flag << 1) + e_flag;
- 	switch (ze) {
-@@ -155,10 +155,10 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
- 
- 	raw_mapping = le32_to_cpu(in);
- 
--	z_flag = (raw_mapping & MAP_TRIM_MASK) >> MAP_TRIM_SHIFT;
--	e_flag = (raw_mapping & MAP_ERR_MASK) >> MAP_ERR_SHIFT;
-+	z_flag = ent_z_flag(raw_mapping);
-+	e_flag = ent_e_flag(raw_mapping);
- 	ze = (z_flag << 1) + e_flag;
--	postmap = raw_mapping & MAP_LBA_MASK;
-+	postmap = ent_lba(raw_mapping);
- 
- 	/* Reuse the {z,e}_flag variables for *trim and *error */
- 	z_flag = 0;
+ 	if (!size)
+ 		return arena;
 diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 888e862..09fabf5 100644
+index 09fabf5..2bc0d10b 100644
 --- a/drivers/nvdimm/btt.h
 +++ b/drivers/nvdimm/btt.h
-@@ -38,6 +38,10 @@
- #define IB_FLAG_ERROR 0x00000001
- #define IB_FLAG_ERROR_MASK 0x00000001
- 
-+#define ent_lba(ent) (ent & MAP_LBA_MASK)
-+#define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
-+#define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
-+
- enum btt_init_state {
- 	INIT_UNCHECKED = 0,
- 	INIT_NOTFOUND,
+@@ -108,6 +108,7 @@ struct aligned_lock {
+  *			handle incoming writes.
+  * @version_major:	Metadata layout version major.
+  * @version_minor:	Metadata layout version minor.
++ * @sector_size:	The Linux sector size - 512 or 4096
+  * @nextoff:		Offset in bytes to the start of the next arena.
+  * @infooff:		Offset in bytes to the info block of this arena.
+  * @dataoff:		Offset in bytes to the data area of this arena.
+@@ -135,6 +136,7 @@ struct arena_info {
+ 	u32 nfree;
+ 	u16 version_major;
+ 	u16 version_minor;
++	u32 sector_size;
+ 	/* Byte offsets to the different on-media structures */
+ 	u64 nextoff;
+ 	u64 infooff;
 -- 
 2.9.3
 
