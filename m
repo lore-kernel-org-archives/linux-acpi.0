@@ -1,26 +1,21 @@
 From: Ben Hutchings <ben@decadent.org.uk>
-Subject: [PATCH 3.2 79/95] ftrace/x86: Fix triple fault with graph tracing
- and suspend-to-ram
-Date: Sun, 16 Jul 2017 14:56:38 +0100
-Message-ID: <lsq.1500213398.46811066@decadent.org.uk>
-References: <lsq.1500213394.718669679@decadent.org.uk>
+Subject: [PATCH 3.16 153/178] ftrace/x86: Fix triple fault with graph
+ tracing and suspend-to-ram
+Date: Sun, 16 Jul 2017 14:56:46 +0100
+Message-ID: <lsq.1500213406.78385016@decadent.org.uk>
+References: <lsq.1500213404.466735591@decadent.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:43206 "EHLO
-        shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751731AbdGPN55 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 16 Jul 2017 09:57:57 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <lsq.1500213394.718669679@decadent.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <lsq.1500213404.466735591@decadent.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: akpm@linux-foundation.org, Josh Poimboeuf <jpoimboe@redhat.com>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, Paul Menzel <pmenzel@molgen.mpg.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org
+Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, Josh Poimboeuf <jpoimboe@redhat.com>, Jiri Slaby <jslaby@suse.cz>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Paul Menzel <pmenzel@molgen.mpg.de>
+List-Id: linux-acpi@vger.kernel.org
 
-3.2.91-rc1 review patch.  If anyone has any objections, please let me know.
+3.16.46-rc1 review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -74,7 +69,7 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Len Brown <lenb@kernel.org>
 Link: http://lkml.kernel.org/r/5c1272269a580660703ed2eccf44308e790c7a98.1492123841.git.jpoimboe@redhat.com
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  arch/x86/kernel/ftrace.c | 12 ++++++++++++
@@ -82,7 +77,7 @@ Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 
 --- a/arch/x86/kernel/ftrace.c
 +++ b/arch/x86/kernel/ftrace.c
-@@ -404,6 +404,18 @@ void prepare_ftrace_return(unsigned long
+@@ -703,6 +703,18 @@ void prepare_ftrace_return(unsigned long
  	unsigned long return_hooker = (unsigned long)
  				&return_to_handler;
  
@@ -101,4 +96,3 @@ Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
  	if (unlikely(atomic_read(&current->tracing_graph_pause)))
  		return;
  
-
