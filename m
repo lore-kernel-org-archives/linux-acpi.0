@@ -1,47 +1,104 @@
-From: Ryan Kennedy <ryan5544@gmail.com>
-Subject: [PATCH] ACPI / watchdog: Fix init failure with overlapping register regions
-Date: Sat, 15 Jul 2017 17:48:18 -0400
-Message-ID: <20170715214818.24979-1-ryan5544@gmail.com>
+From: Ben Hutchings <ben@decadent.org.uk>
+Subject: [PATCH 3.2 79/95] ftrace/x86: Fix triple fault with graph tracing
+ and suspend-to-ram
+Date: Sun, 16 Jul 2017 14:56:38 +0100
+Message-ID: <lsq.1500213398.46811066@decadent.org.uk>
+References: <lsq.1500213394.718669679@decadent.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:36693 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751182AbdGOVsq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Jul 2017 17:48:46 -0400
-Received: by mail-qt0-f193.google.com with SMTP id v31so14189082qtb.3
-        for <linux-acpi@vger.kernel.org>; Sat, 15 Jul 2017 14:48:45 -0700 (PDT)
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:43206 "EHLO
+        shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751731AbdGPN55 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 16 Jul 2017 09:57:57 -0400
+Content-Disposition: inline
+In-Reply-To: <lsq.1500213394.718669679@decadent.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, Ryan Kennedy <ryan5544@gmail.com>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org, Josh Poimboeuf <jpoimboe@redhat.com>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, Paul Menzel <pmenzel@molgen.mpg.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org
 
-Partially overlapping regions cause platform device creation
-to fail. The latter of two overlapping resources will fail to be
-reserved. Fix this by merging overlapping resource ranges while
-enumerating WDAT table entries.
+3.2.91-rc1 review patch.  If anyone has any objections, please let me know.
 
-Signed-off-by: Ryan Kennedy <ryan5544@gmail.com>
+------------------
+
+From: Josh Poimboeuf <jpoimboe@redhat.com>
+
+commit 34a477e5297cbaa6ecc6e17c042a866e1cbe80d6 upstream.
+
+On x86-32, with CONFIG_FIRMWARE and multiple CPUs, if you enable function
+graph tracing and then suspend to RAM, it will triple fault and reboot when
+it resumes.
+
+The first fault happens when booting a secondary CPU:
+
+startup_32_smp()
+  load_ucode_ap()
+    prepare_ftrace_return()
+      ftrace_graph_is_dead()
+        (accesses 'kill_ftrace_graph')
+
+The early head_32.S code calls into load_ucode_ap(), which has an an
+ftrace hook, so it calls prepare_ftrace_return(), which calls
+ftrace_graph_is_dead(), which tries to access the global
+'kill_ftrace_graph' variable with a virtual address, causing a fault
+because the CPU is still in real mode.
+
+The fix is to add a check in prepare_ftrace_return() to make sure it's
+running in protected mode before continuing.  The check makes sure the
+stack pointer is a virtual kernel address.  It's a bit of a hack, but
+it's not very intrusive and it works well enough.
+
+For reference, here are a few other (more difficult) ways this could
+have potentially been fixed:
+
+- Move startup_32_smp()'s call to load_ucode_ap() down to *after* paging
+  is enabled.  (No idea what that would break.)
+
+- Track down load_ucode_ap()'s entire callee tree and mark all the
+  functions 'notrace'.  (Probably not realistic.)
+
+- Pause graph tracing in ftrace_suspend_notifier_call() or bringup_cpu()
+  or __cpu_up(), and ensure that the pause facility can be queried from
+  real mode.
+
+Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Len Brown <lenb@kernel.org>
+Link: http://lkml.kernel.org/r/5c1272269a580660703ed2eccf44308e790c7a98.1492123841.git.jpoimboe@redhat.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/acpi/acpi_watchdog.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/x86/kernel/ftrace.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/acpi/acpi_watchdog.c b/drivers/acpi/acpi_watchdog.c
-index 8c4e0a1..bf22c29 100644
---- a/drivers/acpi/acpi_watchdog.c
-+++ b/drivers/acpi/acpi_watchdog.c
-@@ -86,7 +86,12 @@ void __init acpi_watchdog_init(void)
+--- a/arch/x86/kernel/ftrace.c
++++ b/arch/x86/kernel/ftrace.c
+@@ -404,6 +404,18 @@ void prepare_ftrace_return(unsigned long
+ 	unsigned long return_hooker = (unsigned long)
+ 				&return_to_handler;
  
- 		found = false;
- 		resource_list_for_each_entry(rentry, &resource_list) {
--			if (resource_contains(rentry->res, &res)) {
-+			if (rentry->res->flags == res.flags &&
-+			    resource_overlaps(rentry->res, &res)) {
-+				if (res.start < rentry->res->start)
-+					rentry->res->start = res.start;
-+				if (res.end > rentry->res->end)
-+					rentry->res->end = res.end;
- 				found = true;
- 				break;
- 			}
--- 
-2.9.4
++	/*
++	 * When resuming from suspend-to-ram, this function can be indirectly
++	 * called from early CPU startup code while the CPU is in real mode,
++	 * which would fail miserably.  Make sure the stack pointer is a
++	 * virtual address.
++	 *
++	 * This check isn't as accurate as virt_addr_valid(), but it should be
++	 * good enough for this purpose, and it's fast.
++	 */
++	if (unlikely((long)__builtin_frame_address(0) >= 0))
++		return;
++
+ 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
+ 		return;
+ 
 
