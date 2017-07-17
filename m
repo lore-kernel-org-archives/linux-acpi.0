@@ -1,129 +1,90 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [Resend, PATCH v2] i2c: core: Allow empty id_table in ACPI case as well
-Date: Mon, 17 Jul 2017 17:13:28 +0300
-Message-ID: <20170717141328.52286-1-andriy.shevchenko@linux.intel.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH v3] acpi/nfit: Fix memory corruption/Unregister mce
+ decoder on failure
+Date: Mon, 17 Jul 2017 11:19:03 -0400
+Message-ID: <a0c81e37-74e3-aec1-af93-538750d38c47@redhat.com>
+References: <1496252383-6234-1-git-send-email-prarit@redhat.com>
+ <20170531194651.GA30167@omniknight.lm.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:14474 "EHLO mga06.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:36864 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751286AbdGQONd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 17 Jul 2017 10:13:33 -0400
+        id S1751356AbdGQPTF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 17 Jul 2017 11:19:05 -0400
+In-Reply-To: <20170531194651.GA30167@omniknight.lm.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, jmoyer@redhat.com, lszubowi@redhat.com
 
-For now empty ID table is not allowed with ACPI and prevents driver to
-be probed.
 
-Add a check to allow empty ID table.
+Rafael?
 
-This introduces a helper i2c_acpi_match_device().
+ping?  It's been almost two months ...
 
-Note, we rename some static function in i2c-core-acpi.c to distinguish
-with public API.
+P.
 
-Fixes: da10c06a044b ("i2c: Make I2C ID tables non-mandatory for DT'ed devices")
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-- twice linux-i2c@ instead of i2c and acpi MLs, thus, resent
- drivers/i2c/i2c-core-acpi.c | 19 +++++++++++++++----
- drivers/i2c/i2c-core-base.c |  1 +
- drivers/i2c/i2c-core.h      |  9 +++++++++
- 3 files changed, 25 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index 4842ec3a5451..a9126b3cda61 100644
---- a/drivers/i2c/i2c-core-acpi.c
-+++ b/drivers/i2c/i2c-core-acpi.c
-@@ -230,6 +230,16 @@ void i2c_acpi_register_devices(struct i2c_adapter *adap)
- 		dev_warn(&adap->dev, "failed to enumerate I2C slaves\n");
- }
- 
-+const struct acpi_device_id *
-+i2c_acpi_match_device(const struct acpi_device_id *matches,
-+		      struct i2c_client *client)
-+{
-+	if (!(client && matches))
-+		return NULL;
-+
-+	return acpi_match_device(matches, &client->dev);
-+}
-+
- static acpi_status i2c_acpi_lookup_speed(acpi_handle handle, u32 level,
- 					   void *data, void **return_value)
- {
-@@ -289,7 +299,7 @@ u32 i2c_acpi_find_bus_speed(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(i2c_acpi_find_bus_speed);
- 
--static int i2c_acpi_match_adapter(struct device *dev, void *data)
-+static int i2c_acpi_find_match_adapter(struct device *dev, void *data)
- {
- 	struct i2c_adapter *adapter = i2c_verify_adapter(dev);
- 
-@@ -299,7 +309,7 @@ static int i2c_acpi_match_adapter(struct device *dev, void *data)
- 	return ACPI_HANDLE(dev) == (acpi_handle)data;
- }
- 
--static int i2c_acpi_match_device(struct device *dev, void *data)
-+static int i2c_acpi_find_match_device(struct device *dev, void *data)
- {
- 	return ACPI_COMPANION(dev) == data;
- }
-@@ -309,7 +319,7 @@ static struct i2c_adapter *i2c_acpi_find_adapter_by_handle(acpi_handle handle)
- 	struct device *dev;
- 
- 	dev = bus_find_device(&i2c_bus_type, NULL, handle,
--			      i2c_acpi_match_adapter);
-+			      i2c_acpi_find_match_adapter);
- 	return dev ? i2c_verify_adapter(dev) : NULL;
- }
- 
-@@ -317,7 +327,8 @@ static struct i2c_client *i2c_acpi_find_client_by_adev(struct acpi_device *adev)
- {
- 	struct device *dev;
- 
--	dev = bus_find_device(&i2c_bus_type, NULL, adev, i2c_acpi_match_device);
-+	dev = bus_find_device(&i2c_bus_type, NULL, adev,
-+			      i2c_acpi_find_match_device);
- 	return dev ? i2c_verify_client(dev) : NULL;
- }
- 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index c89dac7fd2e7..12822a4b8f8f 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -357,6 +357,7 @@ static int i2c_device_probe(struct device *dev)
- 	 * Tree match table entry is supplied for the probing device.
- 	 */
- 	if (!driver->id_table &&
-+	    !i2c_acpi_match_device(dev->driver->acpi_match_table, client) &&
- 	    !i2c_of_match_device(dev->driver->of_match_table, client))
- 		return -ENODEV;
- 
-diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h
-index 3b63f5e5b89c..3d3d9bf02101 100644
---- a/drivers/i2c/i2c-core.h
-+++ b/drivers/i2c/i2c-core.h
-@@ -31,9 +31,18 @@ int i2c_check_addr_validity(unsigned addr, unsigned short flags);
- int i2c_check_7bit_addr_validity_strict(unsigned short addr);
- 
- #ifdef CONFIG_ACPI
-+const struct acpi_device_id *
-+i2c_acpi_match_device(const struct acpi_device_id *matches,
-+		      struct i2c_client *client);
- void i2c_acpi_register_devices(struct i2c_adapter *adap);
- #else /* CONFIG_ACPI */
- static inline void i2c_acpi_register_devices(struct i2c_adapter *adap) { }
-+static inline const struct acpi_device_id *
-+i2c_acpi_match_device(const struct acpi_device_id *matches,
-+		      struct i2c_client *client)
-+{
-+	return NULL;
-+}
- #endif /* CONFIG_ACPI */
- extern struct notifier_block i2c_acpi_notifier;
- 
--- 
-2.11.0
-
+On 05/31/2017 03:46 PM, Vishal Verma wrote:
+> On 05/31, Prarit Bhargava wrote:
+>> nfit_init() calls nfit_mce_register() on module load.  When the module
+>> load fails the nfit mce decoder is not unregistered.  The module's
+>> memory is freed leaving the decoder chain referencing junk.  This will
+>> cause panics as future registrations will reference the free'd memory.
+>>
+>> Unregister the nfit mce decoder on module init failure.
+>>
+>> [v2]: register and then unregister mce handler to avoid losing mce events
+>> [v3]: also cleanup nfit workqueue
+>>
+>> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> Cc: Len Brown <lenb@kernel.org>
+>> Cc: Dan Williams <dan.j.williams@intel.com>
+>> Cc: Vishal Verma <vishal.l.verma@intel.com>
+>> Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+>> Cc: Linda Knippers <linda.knippers@hpe.com>
+>> Cc: jmoyer@redhat.com
+>> Cc: lszubowi@redhat.com
+>> ---
+>>  drivers/acpi/nfit/core.c |   10 +++++++++-
+>>  1 file changed, 9 insertions(+), 1 deletion(-)
+> 
+> Looks good, you can add:
+> Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+> 
+>>
+>> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+>> index 656acb5d7166..f3c3e9d4563c 100644
+>> --- a/drivers/acpi/nfit/core.c
+>> +++ b/drivers/acpi/nfit/core.c
+>> @@ -3043,6 +3043,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+>>  
+>>  static __init int nfit_init(void)
+>>  {
+>> +	int ret;
+>> +
+>>  	BUILD_BUG_ON(sizeof(struct acpi_table_nfit) != 40);
+>>  	BUILD_BUG_ON(sizeof(struct acpi_nfit_system_address) != 56);
+>>  	BUILD_BUG_ON(sizeof(struct acpi_nfit_memory_map) != 48);
+>> @@ -3070,8 +3072,14 @@ static __init int nfit_init(void)
+>>  		return -ENOMEM;
+>>  
+>>  	nfit_mce_register();
+>> +	ret = acpi_bus_register_driver(&acpi_nfit_driver);
+>> +	if (ret) {
+>> +		nfit_mce_unregister();
+>> +		destroy_workqueue(nfit_wq);
+>> +	}
+>> +
+>> +	return ret;
+>>  
+>> -	return acpi_bus_register_driver(&acpi_nfit_driver);
+>>  }
+>>  
+>>  static __exit void nfit_exit(void)
+>> -- 
+>> 1.7.9.3
+>>
