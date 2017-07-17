@@ -1,129 +1,62 @@
-From: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v3 6/6] spi: Use Apple device properties in absence of
- ACPI resources
-Date: Sun, 16 Jul 2017 20:57:28 +0300
-Message-ID: <1500227848.29303.24.camel@linux.intel.com>
-References: <cover.1499983092.git.lukas@wunner.de>
-         <c137d15be96c954f405bda5acaaf730cccc8e601.1499983092.git.lukas@wunner.de>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
+Date: Mon, 17 Jul 2017 11:02:35 +0200
+Message-ID: <20170717090235.GB3993@wunner.de>
+References: <1e60811b-a8ac-017c-d350-8a40e4323870@butterbrot.org>
+ <20170530105404.GA29865@wunner.de>
+ <64a4829c-3141-6ff6-9369-6ca9ed0facf4@butterbrot.org>
+ <20170531092145.ytc2d6shpukxziie@wunner.de>
+ <CADnq5_MGWOX47tcvkfjHRxRv_eTbo_kvpVKyTpo8WGNw+xBvPA@mail.gmail.com>
+ <65c88b03-45d7-d67b-2a2c-6c7047a73c80@butterbrot.org>
+ <CADnq5_Mvyz1KUw26Emt8_d_XNeQ=MUqx8WF=iCxa6jagCXNCQQ@mail.gmail.com>
+ <171a9895-b020-7630-b90c-d166f45e44e3@butterbrot.org>
+ <CADnq5_P_H8ZZXnXOoUcxNOFece3BRyzhZh2Z3mkw53eA20KiMQ@mail.gmail.com>
+ <c1ed89a5-e6a1-1903-05ee-a9dfcdb2ef61@butterbrot.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c137d15be96c954f405bda5acaaf730cccc8e601.1499983092.git.lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ronald Tschalaer <ronald-Cgq6lnktLNMTaf21n8AfGQ@public.gmane.org>, Federico Lorenzi <florenzi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leif Liddy <leif.liddy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Daniel Roschka <danielroschka-d2qyoUQsf3ABe69/dCFm4g@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout3.hostsharing.net ([176.9.242.54]:59881 "EHLO
+        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751324AbdGQJCh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jul 2017 05:02:37 -0400
+Content-Disposition: inline
+In-Reply-To: <c1ed89a5-e6a1-1903-05ee-a9dfcdb2ef61@butterbrot.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Florian Echtler <floe@butterbrot.org>
+Cc: Alex Deucher <alexdeucher@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, amd-gfx list <amd-gfx@lists.freedesktop.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, Mario Kleiner <mario.kleiner.de@gmail.com>
 
-On Fri, 2017-07-14 at 00:36 +0200, Lukas Wunner wrote:
-> MacBooks and MacBook Pros introduced since 2015 return empty _CRS data
-> for SPI slaves, causing device initialization to fail.  Most of the
-> information that would normally be conveyed via _CRS is available
-> through ACPI device properties instead, so take advantage of them.
+On Fri, Jun 02, 2017 at 06:47:07PM +0200, Florian Echtler wrote:
+> Regarding the SMC, there's actually only one key that consistently seems to have
+> a different value whether the display is on or off:
 > 
-> The meaning and appropriate usage of the device properties was reverse
-> engineered by Ronald Tschalär and carried over from these commits
-> authored by him:
+> --- blank	2017-05-05 08:40:53.694565045 +0200
+> +++ non_blank	2017-05-05 08:40:53.702565066 +0200
+> @@ -143,7 +143,7 @@
+>    MSWR  [ui8 ]  0 (bytes 00)
+>    MVBO  [hex_]  (bytes ff ff)
+>    MVDC  [bin_]  (bytes 00)
+> -  MVDS  [bin_]  (bytes 08)
+> +  MVDS  [bin_]  (bytes 0a)
+>    MVE1  [si8 ]  (bytes 0d)
+>    MVE5  [si8 ]  (bytes 0b)
+>    MVHR  [flag]  (bytes 01)
 > 
-> https://github.com/cb22/macbook12-spi-driver/commit/9a416d699ef4
-> https://github.com/cb22/macbook12-spi-driver/commit/0c34936ed9a1
+> However, even with my modified SmcDumpKeys.c which I can use to enable TDM, I
+> cannot write to that key. Since other MV__ keys control the display, too, it
+> would make sense that that is related to the display state, but it seems to be a
+> read-only key :-/
 > 
-> According to Ronald, the device properties have the following meaning:
-> 
-> spiSclkPeriod   /* period in ns */
-> spiWordSize     /* in number of bits */
-> spiBitOrder     /* 1 = MSB_FIRST, 0 = LSB_FIRST */
-> spiSPO          /* clock polarity: 0 = low, 1 = high */
-> spiSPH          /* clock phase: 0 = first, 1 = second */
-> spiCSDelay      /* delay between cs and receive on reads in 10 us */
-> resetA2RUsec    /* active-to-receive delay? */
-> resetRecUsec    /* receive delay? */
-> 
+> Running out of ideas again... any suggestions?
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sorry for the delay Florian.  Commit 564d8a2cf3ab by Mario Kleiner (+cc)
+landed in Linus' tree last week and is included in 4.13-rc1.  It is
+supposed to fix black screen issues with the iMac10,1 that you're also
+using, though in Mario's case they seem to occur upon boot, rather than
+on suspend, still might be worth a try:
 
-(obj is better than o)
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=564d8a2cf3abf16575af48bdc3e86e92ee8a617d
 
-> Cc: Federico Lorenzi <florenzi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Reported-by: Leif Liddy <leif.liddy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Tested-by: Ronald Tschalär <ronald-Cgq6lnktLNMTaf21n8AfGQ@public.gmane.org>
-> Acked-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Acked-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Signed-off-by: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
-> ---
-> Changes v2 -> v3:
-> - Check buffer length for extra safety.  Rename "o" to "obj",
->   use 32 bit division to calculate max_speed_hz. (Andy)
-> 
->  drivers/spi/spi.c | 31 +++++++++++++++++++++++++++++++
->  1 file changed, 31 insertions(+)
-> 
-> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-> index 4fcbb0aa71d3..cce133057700 100644
-> --- a/drivers/spi/spi.c
-> +++ b/drivers/spi/spi.c
-> @@ -1693,6 +1693,35 @@ static void of_register_spi_devices(struct
-> spi_controller *ctlr) { }
->  #endif
->  
->  #ifdef CONFIG_ACPI
-> +static void acpi_spi_parse_apple_properties(struct spi_device *spi)
-> +{
-> +	struct acpi_device *dev = ACPI_COMPANION(&spi->dev);
-> +	const union acpi_object *obj;
-> +
-> +	if (!is_apple_system)
-> +		return;
-> +
-> +	if (!acpi_dev_get_property(dev, "spiSclkPeriod",
-> ACPI_TYPE_BUFFER, &obj)
-> +	    && obj->buffer.length >= 4)
-> +		spi->max_speed_hz  = NSEC_PER_SEC / *(u32 *)obj-
-> >buffer.pointer;
-> +
-> +	if (!acpi_dev_get_property(dev, "spiWordSize",
-> ACPI_TYPE_BUFFER, &obj)
-> +	    && obj->buffer.length == 8)
-> +		spi->bits_per_word = *(u64 *)obj->buffer.pointer;
-> +
-> +	if (!acpi_dev_get_property(dev, "spiBitOrder",
-> ACPI_TYPE_BUFFER, &obj)
-> +	    && obj->buffer.length == 8 && !*(u64 *)obj-
-> >buffer.pointer)
-> +		spi->mode |= SPI_LSB_FIRST;
-> +
-> +	if (!acpi_dev_get_property(dev, "spiSPO", ACPI_TYPE_BUFFER,
-> &obj)
-> +	    && obj->buffer.length == 8 &&  *(u64 *)obj-
-> >buffer.pointer)
-> +		spi->mode |= SPI_CPOL;
-> +
-> +	if (!acpi_dev_get_property(dev, "spiSPH", ACPI_TYPE_BUFFER,
-> &obj)
-> +	    && obj->buffer.length == 8 &&  *(u64 *)obj-
-> >buffer.pointer)
-> +		spi->mode |= SPI_CPHA;
-> +}
-> +
->  static int acpi_spi_add_resource(struct acpi_resource *ares, void
-> *data)
->  {
->  	struct spi_device *spi = data;
-> @@ -1766,6 +1795,8 @@ static acpi_status
-> acpi_register_spi_device(struct spi_controller *ctlr,
->  				     acpi_spi_add_resource, spi);
->  	acpi_dev_free_resource_list(&resource_list);
->  
-> +	acpi_spi_parse_apple_properties(spi);
-> +
->  	if (ret < 0 || !spi->max_speed_hz) {
->  		spi_dev_put(spi);
->  		return AE_OK;
+Thanks,
 
--- 
-Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Intel Finland Oy
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Lukas
