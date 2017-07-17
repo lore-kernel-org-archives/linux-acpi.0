@@ -1,115 +1,43 @@
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 6/6] pmem, btt: fix potential deadlock while clearing errors
-Date: Mon, 17 Jul 2017 15:27:39 -0600
-Message-ID: <20170717212739.5411-7-vishal.l.verma@intel.com>
-References: <20170717212739.5411-1-vishal.l.verma@intel.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 0/3] enable ghes_edac on selected platforms
+Date: Mon, 17 Jul 2017 15:59:09 -0600
+Message-ID: <20170717215912.26070-1-toshi.kani@hpe.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:20874 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751956AbdGQV3i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 17 Jul 2017 17:29:38 -0400
-In-Reply-To: <20170717212739.5411-1-vishal.l.verma@intel.com>
+Received: from g9t5008.houston.hpe.com ([15.241.48.72]:44316 "EHLO
+        g9t5008.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751351AbdGQWI1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jul 2017 18:08:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>
+To: rjw@rjwysocki.net, bp@alien8.de
+Cc: mchehab@kernel.org, tglx@linutronix.de, srinivas.pandruvada@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
 
-With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
-Specifically, the DSM to clear media errors is called during writes, so
-that we can provide a writes-fix-errors model.
+The ghes_edac driver was introduced in 2013 [1], but it has not been
+enabled by any distro yet.  This is because the driver obtains error
+info from firmware interfaces, which are not properly implemented on
+many platforms.
 
-However it is easy to imagine a scenario like:
- -> write through the nvdimm driver
-   -> acpi allocation
-     -> writeback, causes more IO through the nvdimm driver
-       -> deadlock
+To get out from this situation, add a platform check to selectively
+enable the driver on the platforms that are known to have proper
+firmware implementation.  Platform vendors can add their platforms to
+the list when they support ghes_edac.
 
-Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
-flag for the current scope when issuing commands/IOs that are expected
-to clear errors.
+Patch 1 moves the platform check in acpi_blacklisted() to a common
+utility func, acpi_match_oemlist().
+Patch 2 converts the intel_pstate driver to use acpi_match_oemlist().
+Patch 3 introduces a platform check to the ghes_edac driver.
 
-Cc: <linux-acpi@vger.kernel.org>
-Cc: <linux-nvdimm@lists.01.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/btt.c  | 8 +++++++-
- drivers/nvdimm/pmem.c | 4 ++++
- 2 files changed, 11 insertions(+), 1 deletion(-)
+Toshi Kani (3):
+ 1/3 ACPI / blacklist: add acpi_match_oemlist() interface
+ 2/3 intel_pstate: convert to use acpi_match_oemlist()
+ 3/3 ghes_edac: add platform check to enable ghes_edac
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 48382ca9..25b576d 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -11,6 +11,7 @@
-  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  * more details.
-  */
-+#include <linux/sched/mm.h>
- #include <linux/highmem.h>
- #include <linux/debugfs.h>
- #include <linux/blkdev.h>
-@@ -494,17 +495,22 @@ static int arena_clear_freelist_error(struct arena_info *arena, u32 lane)
- 	if (arena->freelist[lane].has_err) {
- 		u32 lba = arena->freelist[lane].block;
- 		u64 nsoff = to_namespace_offset(arena, lba);
-+		unsigned int noio_flag;
- 		void *zerobuf;
- 
-+		noio_flag = memalloc_noio_save();
- 		zerobuf = kzalloc(arena->sector_size, GFP_KERNEL);
--		if (!zerobuf)
-+		if (!zerobuf) {
-+			memalloc_noio_restore(noio_flag);
- 			return -ENOMEM;
-+		}
- 
- 		mutex_lock(&arena->freelist[lane].err_lock);
- 		ret = arena_write_bytes(arena, nsoff, zerobuf,
- 			arena->sector_size, 0);
- 		arena->freelist[lane].has_err = 0;
- 		mutex_unlock(&arena->freelist[lane].err_lock);
-+		memalloc_noio_restore(noio_flag);
- 		kfree(zerobuf);
- 	}
- 	return ret;
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 5c45e17..468e032 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -24,6 +24,7 @@
- #include <linux/moduleparam.h>
- #include <linux/badblocks.h>
- #include <linux/memremap.h>
-+#include <linux/sched/mm.h>
- #include <linux/vmalloc.h>
- #include <linux/blk-mq.h>
- #include <linux/pfn_t.h>
-@@ -53,12 +54,14 @@ static int pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
- 		unsigned int len)
- {
- 	struct device *dev = to_dev(pmem);
-+	unsigned int noio_flag;
- 	sector_t sector;
- 	long cleared;
- 	int rc = 0;
- 
- 	sector = (offset - pmem->data_offset) / 512;
- 
-+	noio_flag = memalloc_noio_save();
- 	cleared = nvdimm_clear_poison(dev, pmem->phys_addr + offset, len);
- 	if (cleared < len)
- 		rc = -EIO;
-@@ -69,6 +72,7 @@ static int pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
- 				cleared > 1 ? "s" : "");
- 		badblocks_clear(&pmem->bb, sector, cleared);
- 	}
-+	memalloc_noio_restore(noio_flag);
- 
- 	invalidate_pmem(pmem->virt_addr + offset, len);
- 
--- 
-2.9.3
+---
+ drivers/acpi/blacklist.c       | 84 ++++++++----------------------------------
+ drivers/acpi/utils.c           | 40 ++++++++++++++++++++
+ drivers/cpufreq/intel_pstate.c | 64 +++++++++++++-------------------
+ drivers/edac/ghes_edac.c       | 28 +++++++++++---
+ include/linux/acpi.h           | 19 ++++++++++
+ 5 files changed, 122 insertions(+), 113 deletions(-)
 
