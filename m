@@ -1,74 +1,38 @@
-From: <h.piontek@mistravel.pl>
-Subject: (unknown)
-Date: Mon, 17 Jul 2017 23:02:44 -0000
-Message-ID: <150033256469.17373.16889371072313179672@permonline.ru>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RESEND PATCH] acpi/apei/erst: Remove "Error" from initialization and disable output
+Date: Tue, 18 Jul 2017 01:21:48 +0200
+Message-ID: <3542781.klTDLhfVDa@aspire.rjw.lan>
+References: <1495639838-28099-1-git-send-email-prarit@redhat.com> <CAGXu5jJ4qrfKA9wb8kaCAyVct7dPzcuqBW+bv-6XRZTSp3g=Sw@mail.gmail.com> <1848099a-69a6-75ff-f243-7aa6d66165fb@redhat.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_50994155839_linux-acpi.zip
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dsl-188-17-153-147.permonline.ru ([188.17.153.147]:37674 "HELO
-        permonline.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1751435AbdGQXCt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jul 2017 19:02:49 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:41118 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751343AbdGQX3h (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 17 Jul 2017 19:29:37 -0400
+In-Reply-To: <1848099a-69a6-75ff-f243-7aa6d66165fb@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: Kees Cook <keescook@google.com>, Huang Ying <ying.huang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>
 
-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
+On Monday, July 17, 2017 11:20:16 AM Prarit Bhargava wrote:
+> 
+> On 05/24/2017 12:27 PM, Kees Cook wrote:
+> > On Wed, May 24, 2017 at 8:30 AM, Prarit Bhargava <prarit@redhat.com> wrote:
+> >> Sent a few weeks back ... no reply.
+> > 
+> > I've added Huang Ying to CC, as the original author of this code. It
+> > looks fine to me, FWIW.
+> > 
+> > -Kees
+> 
+> ping -- Huang?  Rafael?
+
+Please resend this with a CC to Boris Petkov.
+
+Thanks,
+Rafael
+
