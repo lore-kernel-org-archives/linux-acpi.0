@@ -1,38 +1,85 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RESEND PATCH] acpi/apei/erst: Remove "Error" from initialization and disable output
-Date: Tue, 18 Jul 2017 01:21:48 +0200
-Message-ID: <3542781.klTDLhfVDa@aspire.rjw.lan>
-References: <1495639838-28099-1-git-send-email-prarit@redhat.com> <CAGXu5jJ4qrfKA9wb8kaCAyVct7dPzcuqBW+bv-6XRZTSp3g=Sw@mail.gmail.com> <1848099a-69a6-75ff-f243-7aa6d66165fb@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v3 6/6] libnvdimm: fix potential deadlock while clearing errors
+Date: Mon, 17 Jul 2017 17:56:55 -0600
+Message-ID: <20170717235655.26424-7-vishal.l.verma@intel.com>
+References: <20170717235655.26424-1-vishal.l.verma@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:41118 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751343AbdGQX3h (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 17 Jul 2017 19:29:37 -0400
-In-Reply-To: <1848099a-69a6-75ff-f243-7aa6d66165fb@redhat.com>
+Received: from mga07.intel.com ([134.134.136.100]:53424 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751351AbdGQX6j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 17 Jul 2017 19:58:39 -0400
+In-Reply-To: <20170717235655.26424-1-vishal.l.verma@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: Kees Cook <keescook@google.com>, Huang Ying <ying.huang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>
+To: linux-nvdimm@lists.01.org
+Cc: Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>
 
-On Monday, July 17, 2017 11:20:16 AM Prarit Bhargava wrote:
-> 
-> On 05/24/2017 12:27 PM, Kees Cook wrote:
-> > On Wed, May 24, 2017 at 8:30 AM, Prarit Bhargava <prarit@redhat.com> wrote:
-> >> Sent a few weeks back ... no reply.
-> > 
-> > I've added Huang Ying to CC, as the original author of this code. It
-> > looks fine to me, FWIW.
-> > 
-> > -Kees
-> 
-> ping -- Huang?  Rafael?
+With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
+Specifically, the DSM to clear media errors is called during writes, so
+that we can provide a writes-fix-errors model.
 
-Please resend this with a CC to Boris Petkov.
+However it is easy to imagine a scenario like:
+ -> write through the nvdimm driver
+   -> acpi allocation
+     -> writeback, causes more IO through the nvdimm driver
+       -> deadlock
 
-Thanks,
-Rafael
+Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
+flag for the current scope when issuing commands/IOs that are expected
+to clear errors.
+
+Cc: <linux-acpi@vger.kernel.org>
+Cc: <linux-nvdimm@lists.01.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/nvdimm/bus.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index e9361bf..56c81ac 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -11,6 +11,7 @@
+  * General Public License for more details.
+  */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/sched/mm.h>
+ #include <linux/vmalloc.h>
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
+@@ -231,6 +232,7 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	struct nd_cmd_clear_error clear_err;
+ 	struct nd_cmd_ars_cap ars_cap;
+ 	u32 clear_err_unit, mask;
++	unsigned int noio_flag;
+ 	int cmd_rc, rc;
+ 
+ 	if (!nvdimm_bus)
+@@ -247,8 +249,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	memset(&ars_cap, 0, sizeof(ars_cap));
+ 	ars_cap.address = phys;
+ 	ars_cap.length = len;
++	noio_flag = memalloc_noio_save();
+ 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, &ars_cap,
+ 			sizeof(ars_cap), &cmd_rc);
++	memalloc_noio_restore(noio_flag);
+ 	if (rc < 0)
+ 		return rc;
+ 	if (cmd_rc < 0)
+@@ -263,8 +267,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	memset(&clear_err, 0, sizeof(clear_err));
+ 	clear_err.address = phys;
+ 	clear_err.length = len;
++	noio_flag = memalloc_noio_save();
+ 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CLEAR_ERROR, &clear_err,
+ 			sizeof(clear_err), &cmd_rc);
++	memalloc_noio_restore(noio_flag);
+ 	if (rc < 0)
+ 		return rc;
+ 	if (cmd_rc < 0)
+-- 
+2.9.3
 
