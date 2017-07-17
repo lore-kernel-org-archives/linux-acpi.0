@@ -1,106 +1,120 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Mon, 17 Jul 2017 15:59:12 -0600
-Message-ID: <20170717215912.26070-4-toshi.kani@hpe.com>
+Subject: [PATCH 2/3] intel_pstate: convert to use acpi_match_oemlist()
+Date: Mon, 17 Jul 2017 15:59:11 -0600
+Message-ID: <20170717215912.26070-3-toshi.kani@hpe.com>
 References: <20170717215912.26070-1-toshi.kani@hpe.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3425.houston.hpe.com ([15.241.140.78]:57534 "EHLO
+        g4t3425.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751549AbdGQWIb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jul 2017 18:08:31 -0400
 In-Reply-To: <20170717215912.26070-1-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: rjw@rjwysocki.net, bp@alien8.de
 Cc: mchehab@kernel.org, tglx@linutronix.de, srinivas.pandruvada@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
-List-Id: linux-acpi@vger.kernel.org
 
-The ghes_edac driver was introduced in 2013 [1], but it has not
-been enabled by any distro yet.  This driver obtains error info
-from firmware interfaces, which are not properly implemented on
-many platforms, as the driver always emits the messages below:
+Convert to use acpi_match_oemlist() for the platform type check.
+There is no change in functionality.
 
- This EDAC driver relies on BIOS to enumerate memory and get error reports.
- Unfortunately, not all BIOSes reflect the memory layout correctly
- So, the end result of using this driver varies from vendor to vendor
- If you find incorrect reports, please contact your hardware vendor
- to correct its BIOS.
-
-To get out from this situation, add a platform type check to
-selectively enable the driver on the platforms that are known to
-have proper firmware implementation.  Platform vendors can add
-their platforms to the list when they support ghes_edac.
-
-"ghes_edac.any_oem=1" skips the platform type check.
-
-[1]: https://lwn.net/Articles/538438/
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/edac/ghes_edac.c |   28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ drivers/cpufreq/intel_pstate.c |   64 ++++++++++++++++------------------------
+ 1 file changed, 25 insertions(+), 39 deletions(-)
 
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index 4e61a62..00588a3 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -34,6 +34,9 @@ static LIST_HEAD(ghes_reglist);
- static DEFINE_MUTEX(ghes_edac_lock);
- static int ghes_edac_mc_num;
+diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
+index b7fb8b7..8f7703c 100644
+--- a/drivers/cpufreq/intel_pstate.c
++++ b/drivers/cpufreq/intel_pstate.c
+@@ -2458,39 +2458,31 @@ enum {
+ 	PPC,
+ };
  
-+/* Set 1 to skip the platform check */
-+static bool __read_mostly ghes_edac_any_oem;
-+module_param_named(any_oem, ghes_edac_any_oem, bool, 0);
- 
- /* Memory Device - Type 17 of SMBIOS spec */
- struct memdev_dmi_entry {
-@@ -405,6 +408,15 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
- }
- EXPORT_SYMBOL_GPL(ghes_edac_report_mem_error);
- 
-+/*
-+ * Known systems that are safe to enable this module.
-+ * "ghes_edac.any_oem=1" skips this check if necessary.
-+ */
-+static struct acpi_oemlist oemlist[] = {
-+	{"HPE   ", "Server  ", 0, ACPI_SIG_FADT, all_versions},
+-struct hw_vendor_info {
+-	u16  valid;
+-	char oem_id[ACPI_OEM_ID_SIZE];
+-	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
+-	int  oem_pwr_table;
+-};
+-
+ /* Hardware vendor-specific info that has its own power management modes */
+-static struct hw_vendor_info vendor_info[] __initdata = {
+-	{1, "HP    ", "ProLiant", PSS},
+-	{1, "ORACLE", "X4-2    ", PPC},
+-	{1, "ORACLE", "X4-2L   ", PPC},
+-	{1, "ORACLE", "X4-2B   ", PPC},
+-	{1, "ORACLE", "X3-2    ", PPC},
+-	{1, "ORACLE", "X3-2L   ", PPC},
+-	{1, "ORACLE", "X3-2B   ", PPC},
+-	{1, "ORACLE", "X4470M2 ", PPC},
+-	{1, "ORACLE", "X4270M3 ", PPC},
+-	{1, "ORACLE", "X4270M2 ", PPC},
+-	{1, "ORACLE", "X4170M2 ", PPC},
+-	{1, "ORACLE", "X4170 M3", PPC},
+-	{1, "ORACLE", "X4275 M3", PPC},
+-	{1, "ORACLE", "X6-2    ", PPC},
+-	{1, "ORACLE", "Sudbury ", PPC},
+-	{0, "", ""},
++static struct acpi_oemlist oemlist[] __initdata = {
++	{"HP    ", "ProLiant", 0, ACPI_SIG_FADT, all_versions, 0, PSS},
++	{"ORACLE", "X4-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X3-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X3-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X3-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4470M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4270M3 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4270M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4170M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4170 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4275 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X6-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "Sudbury ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
 +	{ } /* End */
-+};
-+
- int ghes_edac_register(struct ghes *ghes, struct device *dev)
+ };
+ 
+ static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
  {
- 	bool fake = false;
-@@ -413,6 +425,12 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	struct edac_mc_layer layers[1];
- 	struct ghes_edac_pvt *pvt;
- 	struct ghes_edac_dimm_fill dimm_fill;
+-	struct acpi_table_header hdr;
+-	struct hw_vendor_info *v_info;
+ 	const struct x86_cpu_id *id;
+ 	u64 misc_pwr;
 +	int idx;
-+
-+	/* Check if safe to enable on this system */
-+	idx = acpi_match_oemlist(oemlist);
-+	if (!ghes_edac_any_oem && idx < 0)
-+		return 0;
  
- 	/* Get the number of DIMMs */
- 	dmi_walk(ghes_edac_count_dimms, &num_dimm);
-@@ -456,7 +474,11 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	mci->dev_name = "ghes";
- 
- 	if (!ghes_edac_mc_num) {
--		if (!fake) {
-+		if (fake) {
-+			pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
-+			pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
-+			pr_info("work on such system. Use this driver with caution\n");
-+		} else if (idx < 0) {
- 			pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
- 			pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
- 			pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
-@@ -464,10 +486,6 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 			pr_info("to correct its BIOS.\n");
- 			pr_info("This system has %d DIMM sockets.\n",
- 				num_dimm);
--		} else {
--			pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
--			pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
--			pr_info("work on such system. Use this driver with caution\n");
- 		}
+ 	id = x86_match_cpu(intel_pstate_cpu_oob_ids);
+ 	if (id) {
+@@ -2499,21 +2491,15 @@ static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
+ 			return true;
  	}
  
+-	if (acpi_disabled ||
+-	    ACPI_FAILURE(acpi_get_table_header(ACPI_SIG_FADT, 0, &hdr)))
++	idx = acpi_match_oemlist(oemlist);
++	if (idx < 0)
+ 		return false;
+ 
+-	for (v_info = vendor_info; v_info->valid; v_info++) {
+-		if (!strncmp(hdr.oem_id, v_info->oem_id, ACPI_OEM_ID_SIZE) &&
+-			!strncmp(hdr.oem_table_id, v_info->oem_table_id,
+-						ACPI_OEM_TABLE_ID_SIZE))
+-			switch (v_info->oem_pwr_table) {
+-			case PSS:
+-				return intel_pstate_no_acpi_pss();
+-			case PPC:
+-				return intel_pstate_has_acpi_ppc() &&
+-					(!force_load);
+-			}
++	switch (oemlist[idx].data) {
++	case PSS:
++		return intel_pstate_no_acpi_pss();
++	case PPC:
++		return intel_pstate_has_acpi_ppc() && !force_load;
+ 	}
+ 
+ 	return false;
