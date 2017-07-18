@@ -1,85 +1,64 @@
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 6/6] libnvdimm: fix potential deadlock while clearing errors
-Date: Mon, 17 Jul 2017 17:56:55 -0600
-Message-ID: <20170717235655.26424-7-vishal.l.verma@intel.com>
-References: <20170717235655.26424-1-vishal.l.verma@intel.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [PATCH] acpi/apei/erst: Remove "Error" from initialization and disable output
+Date: Mon, 17 Jul 2017 20:21:23 -0400
+Message-ID: <1500337283-25734-1-git-send-email-prarit@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:53424 "EHLO mga07.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49464 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751351AbdGQX6j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 17 Jul 2017 19:58:39 -0400
-In-Reply-To: <20170717235655.26424-1-vishal.l.verma@intel.com>
+        id S1751842AbdGRAVa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 17 Jul 2017 20:21:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>
+To: linux-acpi@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>, Kees Cook <keescook@chromium.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@suse.de>, ying.huang@intel.com
 
-With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
-Specifically, the DSM to clear media errors is called during writes, so
-that we can provide a writes-fix-errors model.
+The word "Error" is used by many QA groups and users as a keyword to
+indicate that there is a critical failure during system bootup. The ESRT
+code would interact better with these scripts if the word "Error" was
+dropped from non-error messages.  Other ACPI features only use the acronym
+for initialization and disable messages so the ESRT code should do the
+same.
 
-However it is easy to imagine a scenario like:
- -> write through the nvdimm driver
-   -> acpi allocation
-     -> writeback, causes more IO through the nvdimm driver
-       -> deadlock
+Remove "Error Record Serialization Table" and replace it with "ACPI ESRT"
+in the messages.
 
-Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
-flag for the current scope when issuing commands/IOs that are expected
-to clear errors.
-
-Cc: <linux-acpi@vger.kernel.org>
-Cc: <linux-nvdimm@lists.01.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Anton Vorontsov <anton@enomsg.org>
+Cc: Colin Cross <ccross@android.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: ying.huang@intel.com
 ---
- drivers/nvdimm/bus.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/acpi/apei/erst.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index e9361bf..56c81ac 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -11,6 +11,7 @@
-  * General Public License for more details.
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/sched/mm.h>
- #include <linux/vmalloc.h>
- #include <linux/uaccess.h>
- #include <linux/module.h>
-@@ -231,6 +232,7 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	struct nd_cmd_clear_error clear_err;
- 	struct nd_cmd_ars_cap ars_cap;
- 	u32 clear_err_unit, mask;
-+	unsigned int noio_flag;
- 	int cmd_rc, rc;
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index ec4f507b524f..a796b9d91e20 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -1129,8 +1129,7 @@ static int __init erst_init(void)
+ 		goto err;
  
- 	if (!nvdimm_bus)
-@@ -247,8 +249,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&ars_cap, 0, sizeof(ars_cap));
- 	ars_cap.address = phys;
- 	ars_cap.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, &ars_cap,
- 			sizeof(ars_cap), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
-@@ -263,8 +267,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&clear_err, 0, sizeof(clear_err));
- 	clear_err.address = phys;
- 	clear_err.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CLEAR_ERROR, &clear_err,
- 			sizeof(clear_err), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
+ 	if (erst_disable) {
+-		pr_info(
+-	"Error Record Serialization Table (ERST) support is disabled.\n");
++		pr_info("ACPI ERST support is disabled.\n");
+ 		goto err;
+ 	}
+ 
+@@ -1187,8 +1186,7 @@ static int __init erst_init(void)
+ 	if (!erst_erange.vaddr)
+ 		goto err_release_erange;
+ 
+-	pr_info(
+-	"Error Record Serialization Table (ERST) support is initialized.\n");
++	pr_info("ACPI ERST support is initialized.\n");
+ 
+ 	buf = kmalloc(erst_erange.size, GFP_KERNEL);
+ 	spin_lock_init(&erst_info.buf_lock);
 -- 
-2.9.3
+1.8.5.5
 
