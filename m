@@ -1,50 +1,47 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH 1/3] ACPI / blacklist: add acpi_match_oemlist() interface
-Date: Tue, 18 Jul 2017 15:48:54 +0000
-Message-ID: <1500392379.2042.13.camel@hpe.com>
+From: Jeffrey Hugo <jhugo@codeaurora.org>
+Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Tue, 18 Jul 2017 10:24:27 -0600
+Message-ID: <591a9373-11d0-db6b-b345-87ad3c706ffb@codeaurora.org>
 References: <20170717215912.26070-1-toshi.kani@hpe.com>
-         <20170717215912.26070-2-toshi.kani@hpe.com>
-         <20170718053455.GA8736@nazgul.tnic>
+ <20170717215912.26070-4-toshi.kani@hpe.com>
+ <c6b2f416-964f-2283-56b6-899485f39652@codeaurora.org>
+ <1500391630.2042.11.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170718053455.GA8736@nazgul.tnic>
+In-Reply-To: <1500391630.2042.11.camel@hpe.com>
 Content-Language: en-US
-Content-ID: <4CB520251833004FA64699DDB21EC922@NAMPRD84.PROD.OUTLOOK.COM>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "bp@alien8.de" <bp@alien8.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>, "bp@alien8.de" <bp@alien8.de>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: "tglx@linutronix.de" <tglx@linutronix.de>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "mchehab@kernel.org" <mchehab@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVHVlLCAyMDE3LTA3LTE4IGF0IDA3OjM0ICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
-DQo+IE9uIE1vbiwgSnVsIDE3LCAyMDE3IGF0IDAzOjU5OjEwUE0gLTA2MDAsIFRvc2hpIEthbmkg
-d3JvdGU6DQo+ID4gQUNQSSBPRU0gSUQgLyBPRU0gVGFibGUgSUQgLyBSZXZpc2lvbiBjYW4gYmUg
-dXNlZCB0byBpZGVudGlmeQ0KPiA+IHBsYXRmb3JtIHR5cGUgYmFzZWQgb24gQUNQSSBmaXJtd2Fy
-ZS7CoMKgYWNwaV9ibGFja2xpc3RlZCgpLA0KPiA+IGludGVsX3BzdGF0ZV9wbGF0Zm9ybV9wd3Jf
-bWdtdF9leGlzdHMoKSBhbmQgc29tZSBvdGhlciBmdW5jcw0KPiA+IGhhdmUgYmVlbiB1c2luZyB0
-aGlzIHR5cGUgb2YgY2hlY2sgdG8gZGV0ZWN0IGEgbGlzdCBvZiBwbGF0Zm9ybXMNCj4gPiB0aGF0
-IHJlcXVpcmUgc3BlY2lhbCBoYW5kbGluZ3MuDQo+ID4gDQo+ID4gTW92ZSB0aGUgcGxhdGZvcm0g
-dHlwZSBjaGVjayBpbiBhY3BpX2JsYWNrbGlzdGVkKCkgdG8gYSBjb21tb24NCj4gPiB1dGlsaXR5
-IGZ1bmN0aW9uLCBhY3BpX21hdGNoX29lbWxpc3QoKSwgc28gdGhhdCBvdGhlciBkcml2ZXJzDQo+
-ID4gZG8gbm90IGhhdmUgdG8gaW1wbGVtZW50IHRoZWlyIG93bi4NCj4gPiANCj4gPiBUaGVyZSBp
-cyBubyBjaGFuZ2UgaW4gZnVuY3Rpb25hbGl0eS4NCiA6DQo+ID4gwqAvKg0KPiA+IMKgICogUE9M
-SUNZOiBJZiAqYW55dGhpbmcqIGRvZXNuJ3Qgd29yaywgcHV0IGl0IG9uIHRoZSBibGFja2xpc3Qu
-DQo+ID4gwqAgKgnCoMKgwqBJZiB0aGV5IGFyZSBjcml0aWNhbCBlcnJvcnMsIG1hcmsgaXQgY3Jp
-dGljYWwsIGFuZA0KPiA+IGFib3J0IGRyaXZlciBsb2FkLg0KPiA+IMKgICovDQo+ID4gLXN0YXRp
-YyBzdHJ1Y3QgYWNwaV9ibGFja2xpc3RfaXRlbSBhY3BpX2JsYWNrbGlzdFtdIF9faW5pdGRhdGEg
-PSB7DQo+ID4gK3N0YXRpYyBzdHJ1Y3QgYWNwaV9vZW1saXN0IGFjcGlfYmxhY2tsaXN0W10gX19p
-bml0ZGF0YSA9IHsNCj4gDQo+IFdoeSB0aGUgYXJiaXRyYXJ5IHJlbmFtZT8NCg0KVGhpcyBwYXRj
-aCBkZWZpbmVzICdzdHJ1Y3QgYWNwaV9vZW1saXN0JyBpbiAiaW5jbHVkZS9saW51eC9hY3BpLmgi
-IGFzIGENCmNvbW1vbiBzdHJ1Y3R1cmUsIGFuZCByZXBsYWNlcyB0aGlzIHNwZWNpZmljICdzdHJ1
-Y3QgYWNwaV9ibGFja2xpc3QnLg0KDQo+IElmIGFueXRoaW5nLCB5b3Ugc2hvdWxkIHNob3J0ZW4g
-dGhhdA0KPiANCj4gCWVudW0gYWNwaV9ibGFja2xpc3RfcHJlZGljYXRlcyBvZW1fcmV2aXNpb25f
-cHJlZGljYXRlOw0KPiANCj4gdW5yZWFkYWJsZSBpbnNhbml0eS4NCg0KQWdyZWVkLiAgV2lsbCBj
-aGFuZ2UgdG8gYSBzaG9ydGVyIG5hbWUgbGlrZSBiZWxvdy4gDQoNCgllbnVtIGFjcGlfb2VtbGlz
-dF9wcmVkIHByZWRpY2F0ZTsNCg0KKwlpID0gYWNwaV9tYXRjaF9vZW1saXN0KGFjcGlfYmxhY2ts
-aXN0KTsNCj4gPiArCWlmIChpID49IDApIHsNCj4gPiArCQlwcl9lcnIoUFJFRklYICJWZW5kb3Ig
-XCIlNi42c1wiIFN5c3RlbSBcIiU4LjhzXCIgIg0KPiA+ICsJCcKgwqDCoMKgwqDCoMKgIlJldmlz
-aW9uIDB4JXggaGFzIGEga25vd24gQUNQSSBCSU9TDQo+ID4gcHJvYmxlbS5cbiIsDQo+IA0KPiBQ
-dXQgdGhhdCBzdHJpbmcgb24gYSBzaW5nbGUgbGluZSBmb3IgZ3JlcHBpbmcuIGNoZWNrcGF0Y2gg
-Y2F0Y2hlcw0KPiB0aGF0IGVycm9yLCBkaWRuJ3QgeW91IHNlZSBpdD8NCg0KV2lsbCBkby4NCg0K
-VGhhbmtzIQ0KLVRvc2hpDQo=
+On 7/18/2017 9:36 AM, Kani, Toshimitsu wrote:
+> On Tue, 2017-07-18 at 08:39 -0600, Jeffrey Hugo wrote:
+>> On 7/17/2017 3:59 PM, Toshi Kani wrote:
+>>> The ghes_edac driver was introduced in 2013 [1], but it has not
+>>> been enabled by any distro yet.
+>>
+>> Ubuntu is expected to enable this soon.
+> 
+> Interesting.  I was told from other distro that there were many buggy
+> firmwares out there that prevented to enable ghes_edac.  Do you know if
+> Ubuntu has any plan to address such issue?  Or do they not see such
+> issue?  I do not test with other vendors' platforms, so I cannot tell
+> exactly what those bugs are...
+> 
+
+I do not know if Ubuntu intends to address any "known issues".  I know a 
+request was made to Canonical to enable the option, and it appears the 
+request is being considered, although the option may be limited to 
+ARM64, depending on how Canonical's evaluation goes.  I am not aware of 
+any particular issues, so I cannot say what the side effects are, or 
+what platforms are considered to exhibit such issues.
+
+-- 
+Jeffrey Hugo
+Qualcomm Datacenter Technologies as an affiliate of Qualcomm 
+Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
