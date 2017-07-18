@@ -1,47 +1,50 @@
-From: Linda Knippers <linda.knippers@hpe.com>
-Subject: Re: [PATCH] acpi/apei/erst: Remove "Error" from initialization and
- disable output
-Date: Tue, 18 Jul 2017 11:46:11 -0400
-Message-ID: <0eb11ba0-4923-5c08-d7a5-1c7a29dbfb20@hpe.com>
-References: <1500337283-25734-1-git-send-email-prarit@redhat.com>
- <20170718052627.GA8741@nazgul.tnic>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH 1/3] ACPI / blacklist: add acpi_match_oemlist() interface
+Date: Tue, 18 Jul 2017 15:48:54 +0000
+Message-ID: <1500392379.2042.13.camel@hpe.com>
+References: <20170717215912.26070-1-toshi.kani@hpe.com>
+         <20170717215912.26070-2-toshi.kani@hpe.com>
+         <20170718053455.GA8736@nazgul.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t1613g.houston.hpe.com ([15.241.32.99]:50181 "EHLO
-        g9t1613g.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751348AbdGRPrM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jul 2017 11:47:12 -0400
-Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by g9t1613g.houston.hpe.com (Postfix) with ESMTPS id 5739A60D01
-        for <linux-acpi@vger.kernel.org>; Tue, 18 Jul 2017 15:47:11 +0000 (UTC)
-In-Reply-To: <20170718052627.GA8741@nazgul.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170718053455.GA8736@nazgul.tnic>
+Content-Language: en-US
+Content-ID: <4CB520251833004FA64699DDB21EC922@NAMPRD84.PROD.OUTLOOK.COM>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "bp@alien8.de" <bp@alien8.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>, Prarit Bhargava <prarit@redhat.com>
-Cc: linux-acpi@vger.kernel.org, Kees Cook <keescook@chromium.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ying.huang@intel.com
 
-
-
-On 7/18/2017 1:26 AM, Borislav Petkov wrote:
-> On Mon, Jul 17, 2017 at 08:21:23PM -0400, Prarit Bhargava wrote:
->> The word "Error" is used by many QA groups and users as a keyword to
->> indicate that there is a critical failure during system bootup. The ESRT
->> code would interact better with these scripts
->
-> ... which is a thinly veiled way of saying: my scripts can't
-> differentiate between an error being reported and the word "error" so
-> let's "fix" the kernel.
->
-> Jeez. Fix your scripts instead.
-
-I'll risk exposing myself to ridicule by agreeing with Prarit.
-
-Most ACPI tables are referenced by their 4 letter abbreviations
-anyway so this seems like a simple and helpful change, consistent
-with other ACPI table references.
-
--- ljk
+T24gVHVlLCAyMDE3LTA3LTE4IGF0IDA3OjM0ICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
+DQo+IE9uIE1vbiwgSnVsIDE3LCAyMDE3IGF0IDAzOjU5OjEwUE0gLTA2MDAsIFRvc2hpIEthbmkg
+d3JvdGU6DQo+ID4gQUNQSSBPRU0gSUQgLyBPRU0gVGFibGUgSUQgLyBSZXZpc2lvbiBjYW4gYmUg
+dXNlZCB0byBpZGVudGlmeQ0KPiA+IHBsYXRmb3JtIHR5cGUgYmFzZWQgb24gQUNQSSBmaXJtd2Fy
+ZS7CoMKgYWNwaV9ibGFja2xpc3RlZCgpLA0KPiA+IGludGVsX3BzdGF0ZV9wbGF0Zm9ybV9wd3Jf
+bWdtdF9leGlzdHMoKSBhbmQgc29tZSBvdGhlciBmdW5jcw0KPiA+IGhhdmUgYmVlbiB1c2luZyB0
+aGlzIHR5cGUgb2YgY2hlY2sgdG8gZGV0ZWN0IGEgbGlzdCBvZiBwbGF0Zm9ybXMNCj4gPiB0aGF0
+IHJlcXVpcmUgc3BlY2lhbCBoYW5kbGluZ3MuDQo+ID4gDQo+ID4gTW92ZSB0aGUgcGxhdGZvcm0g
+dHlwZSBjaGVjayBpbiBhY3BpX2JsYWNrbGlzdGVkKCkgdG8gYSBjb21tb24NCj4gPiB1dGlsaXR5
+IGZ1bmN0aW9uLCBhY3BpX21hdGNoX29lbWxpc3QoKSwgc28gdGhhdCBvdGhlciBkcml2ZXJzDQo+
+ID4gZG8gbm90IGhhdmUgdG8gaW1wbGVtZW50IHRoZWlyIG93bi4NCj4gPiANCj4gPiBUaGVyZSBp
+cyBubyBjaGFuZ2UgaW4gZnVuY3Rpb25hbGl0eS4NCiA6DQo+ID4gwqAvKg0KPiA+IMKgICogUE9M
+SUNZOiBJZiAqYW55dGhpbmcqIGRvZXNuJ3Qgd29yaywgcHV0IGl0IG9uIHRoZSBibGFja2xpc3Qu
+DQo+ID4gwqAgKgnCoMKgwqBJZiB0aGV5IGFyZSBjcml0aWNhbCBlcnJvcnMsIG1hcmsgaXQgY3Jp
+dGljYWwsIGFuZA0KPiA+IGFib3J0IGRyaXZlciBsb2FkLg0KPiA+IMKgICovDQo+ID4gLXN0YXRp
+YyBzdHJ1Y3QgYWNwaV9ibGFja2xpc3RfaXRlbSBhY3BpX2JsYWNrbGlzdFtdIF9faW5pdGRhdGEg
+PSB7DQo+ID4gK3N0YXRpYyBzdHJ1Y3QgYWNwaV9vZW1saXN0IGFjcGlfYmxhY2tsaXN0W10gX19p
+bml0ZGF0YSA9IHsNCj4gDQo+IFdoeSB0aGUgYXJiaXRyYXJ5IHJlbmFtZT8NCg0KVGhpcyBwYXRj
+aCBkZWZpbmVzICdzdHJ1Y3QgYWNwaV9vZW1saXN0JyBpbiAiaW5jbHVkZS9saW51eC9hY3BpLmgi
+IGFzIGENCmNvbW1vbiBzdHJ1Y3R1cmUsIGFuZCByZXBsYWNlcyB0aGlzIHNwZWNpZmljICdzdHJ1
+Y3QgYWNwaV9ibGFja2xpc3QnLg0KDQo+IElmIGFueXRoaW5nLCB5b3Ugc2hvdWxkIHNob3J0ZW4g
+dGhhdA0KPiANCj4gCWVudW0gYWNwaV9ibGFja2xpc3RfcHJlZGljYXRlcyBvZW1fcmV2aXNpb25f
+cHJlZGljYXRlOw0KPiANCj4gdW5yZWFkYWJsZSBpbnNhbml0eS4NCg0KQWdyZWVkLiAgV2lsbCBj
+aGFuZ2UgdG8gYSBzaG9ydGVyIG5hbWUgbGlrZSBiZWxvdy4gDQoNCgllbnVtIGFjcGlfb2VtbGlz
+dF9wcmVkIHByZWRpY2F0ZTsNCg0KKwlpID0gYWNwaV9tYXRjaF9vZW1saXN0KGFjcGlfYmxhY2ts
+aXN0KTsNCj4gPiArCWlmIChpID49IDApIHsNCj4gPiArCQlwcl9lcnIoUFJFRklYICJWZW5kb3Ig
+XCIlNi42c1wiIFN5c3RlbSBcIiU4LjhzXCIgIg0KPiA+ICsJCcKgwqDCoMKgwqDCoMKgIlJldmlz
+aW9uIDB4JXggaGFzIGEga25vd24gQUNQSSBCSU9TDQo+ID4gcHJvYmxlbS5cbiIsDQo+IA0KPiBQ
+dXQgdGhhdCBzdHJpbmcgb24gYSBzaW5nbGUgbGluZSBmb3IgZ3JlcHBpbmcuIGNoZWNrcGF0Y2gg
+Y2F0Y2hlcw0KPiB0aGF0IGVycm9yLCBkaWRuJ3QgeW91IHNlZSBpdD8NCg0KV2lsbCBkby4NCg0K
+VGhhbmtzIQ0KLVRvc2hpDQo=
