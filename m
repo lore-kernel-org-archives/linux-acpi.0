@@ -1,57 +1,34 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 4/5] ACPI / boot: Not all platform require acpi_reduced_hw_init()
-Date: Tue, 18 Jul 2017 18:04:19 +0300
-Message-ID: <20170718150420.61600-5-andriy.shevchenko@linux.intel.com>
-References: <20170718150420.61600-1-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170718150420.61600-1-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-pm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Tue, 18 Jul 2017 15:36:25 +0000
+Message-ID: <1500391630.2042.11.camel@hpe.com>
+References: <20170717215912.26070-1-toshi.kani@hpe.com>
+         <20170717215912.26070-4-toshi.kani@hpe.com>
+         <c6b2f416-964f-2283-56b6-899485f39652@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3425.houston.hpe.com ([15.241.140.78]:59910 "EHLO
+        g4t3425.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751338AbdGRPiB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jul 2017 11:38:01 -0400
+In-Reply-To: <c6b2f416-964f-2283-56b6-899485f39652@codeaurora.org>
+Content-Language: en-US
+Content-ID: <8A80433843D69349B89D1336C3591843@NAMPRD84.PROD.OUTLOOK.COM>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "bp@alien8.de" <bp@alien8.de>, "jhugo@codeaurora.org" <jhugo@codeaurora.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: "tglx@linutronix.de" <tglx@linutronix.de>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "mchehab@kernel.org" <mchehab@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Some platform might take care of legacy devices on theirs own.
-Let's allow them to do that by exporting a weak function.
-
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- arch/x86/kernel/acpi/boot.c | 2 +-
- include/linux/acpi.h        | 3 +++
- 2 files changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 0186d3bae610..71c0feae60a4 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -1348,7 +1348,7 @@ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
-  *
-  * We initialize the Hardware-reduced ACPI model here:
-  */
--static void __init acpi_reduced_hw_init(void)
-+void __init __weak acpi_reduced_hw_init(void)
- {
- 	if (acpi_gbl_reduced_hardware) {
- 		/*
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 7443af1d16e7..5a19b2090db1 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -230,6 +230,8 @@ struct acpi_subtable_proc {
- 
- void __iomem *__acpi_map_table(unsigned long phys, unsigned long size);
- void __acpi_unmap_table(void __iomem *map, unsigned long size);
-+
-+void acpi_reduced_hw_init(void);
- int early_acpi_boot_init(void);
- int acpi_boot_init (void);
- void acpi_boot_table_init (void);
-@@ -682,6 +684,7 @@ static inline struct device *acpi_get_first_physical_node(struct acpi_device *ad
- static inline void acpi_early_init(void) { }
- static inline void acpi_subsystem_init(void) { }
- 
-+static inline void acpi_reduced_hw_init(void) { }
- static inline int early_acpi_boot_init(void)
- {
- 	return 0;
--- 
-2.11.0
+T24gVHVlLCAyMDE3LTA3LTE4IGF0IDA4OjM5IC0wNjAwLCBKZWZmcmV5IEh1Z28gd3JvdGU6DQo+
+IE9uIDcvMTcvMjAxNyAzOjU5IFBNLCBUb3NoaSBLYW5pIHdyb3RlOg0KPiA+IFRoZSBnaGVzX2Vk
+YWMgZHJpdmVyIHdhcyBpbnRyb2R1Y2VkIGluIDIwMTMgWzFdLCBidXQgaXQgaGFzIG5vdA0KPiA+
+IGJlZW4gZW5hYmxlZCBieSBhbnkgZGlzdHJvIHlldC7CoMKgwqANCj4gDQo+IFVidW50dSBpcyBl
+eHBlY3RlZCB0byBlbmFibGUgdGhpcyBzb29uLg0KDQpJbnRlcmVzdGluZy4gIEkgd2FzIHRvbGQg
+ZnJvbSBvdGhlciBkaXN0cm8gdGhhdCB0aGVyZSB3ZXJlIG1hbnkgYnVnZ3kNCmZpcm13YXJlcyBv
+dXQgdGhlcmUgdGhhdCBwcmV2ZW50ZWQgdG8gZW5hYmxlIGdoZXNfZWRhYy4gIERvIHlvdSBrbm93
+IGlmDQpVYnVudHUgaGFzIGFueSBwbGFuIHRvIGFkZHJlc3Mgc3VjaCBpc3N1ZT8gIE9yIGRvIHRo
+ZXkgbm90IHNlZSBzdWNoDQppc3N1ZT8gIEkgZG8gbm90IHRlc3Qgd2l0aCBvdGhlciB2ZW5kb3Jz
+JyBwbGF0Zm9ybXMsIHNvIEkgY2Fubm90IHRlbGwNCmV4YWN0bHkgd2hhdCB0aG9zZSBidWdzIGFy
+ZS4uLg0KDQpUaGFua3MsIA0KLVRvc2hpDQoNCg==
