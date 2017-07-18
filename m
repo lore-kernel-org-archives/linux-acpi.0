@@ -1,34 +1,47 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Tue, 18 Jul 2017 15:36:25 +0000
-Message-ID: <1500391630.2042.11.camel@hpe.com>
-References: <20170717215912.26070-1-toshi.kani@hpe.com>
-         <20170717215912.26070-4-toshi.kani@hpe.com>
-         <c6b2f416-964f-2283-56b6-899485f39652@codeaurora.org>
+From: Linda Knippers <linda.knippers@hpe.com>
+Subject: Re: [PATCH] acpi/apei/erst: Remove "Error" from initialization and
+ disable output
+Date: Tue, 18 Jul 2017 11:46:11 -0400
+Message-ID: <0eb11ba0-4923-5c08-d7a5-1c7a29dbfb20@hpe.com>
+References: <1500337283-25734-1-git-send-email-prarit@redhat.com>
+ <20170718052627.GA8741@nazgul.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3425.houston.hpe.com ([15.241.140.78]:59910 "EHLO
-        g4t3425.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751338AbdGRPiB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jul 2017 11:38:01 -0400
-In-Reply-To: <c6b2f416-964f-2283-56b6-899485f39652@codeaurora.org>
-Content-Language: en-US
-Content-ID: <8A80433843D69349B89D1336C3591843@NAMPRD84.PROD.OUTLOOK.COM>
+Received: from g9t1613g.houston.hpe.com ([15.241.32.99]:50181 "EHLO
+        g9t1613g.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751348AbdGRPrM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jul 2017 11:47:12 -0400
+Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by g9t1613g.houston.hpe.com (Postfix) with ESMTPS id 5739A60D01
+        for <linux-acpi@vger.kernel.org>; Tue, 18 Jul 2017 15:47:11 +0000 (UTC)
+In-Reply-To: <20170718052627.GA8741@nazgul.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "bp@alien8.de" <bp@alien8.de>, "jhugo@codeaurora.org" <jhugo@codeaurora.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "tglx@linutronix.de" <tglx@linutronix.de>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "mchehab@kernel.org" <mchehab@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Borislav Petkov <bp@suse.de>, Prarit Bhargava <prarit@redhat.com>
+Cc: linux-acpi@vger.kernel.org, Kees Cook <keescook@chromium.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ying.huang@intel.com
 
-T24gVHVlLCAyMDE3LTA3LTE4IGF0IDA4OjM5IC0wNjAwLCBKZWZmcmV5IEh1Z28gd3JvdGU6DQo+
-IE9uIDcvMTcvMjAxNyAzOjU5IFBNLCBUb3NoaSBLYW5pIHdyb3RlOg0KPiA+IFRoZSBnaGVzX2Vk
-YWMgZHJpdmVyIHdhcyBpbnRyb2R1Y2VkIGluIDIwMTMgWzFdLCBidXQgaXQgaGFzIG5vdA0KPiA+
-IGJlZW4gZW5hYmxlZCBieSBhbnkgZGlzdHJvIHlldC7CoMKgwqANCj4gDQo+IFVidW50dSBpcyBl
-eHBlY3RlZCB0byBlbmFibGUgdGhpcyBzb29uLg0KDQpJbnRlcmVzdGluZy4gIEkgd2FzIHRvbGQg
-ZnJvbSBvdGhlciBkaXN0cm8gdGhhdCB0aGVyZSB3ZXJlIG1hbnkgYnVnZ3kNCmZpcm13YXJlcyBv
-dXQgdGhlcmUgdGhhdCBwcmV2ZW50ZWQgdG8gZW5hYmxlIGdoZXNfZWRhYy4gIERvIHlvdSBrbm93
-IGlmDQpVYnVudHUgaGFzIGFueSBwbGFuIHRvIGFkZHJlc3Mgc3VjaCBpc3N1ZT8gIE9yIGRvIHRo
-ZXkgbm90IHNlZSBzdWNoDQppc3N1ZT8gIEkgZG8gbm90IHRlc3Qgd2l0aCBvdGhlciB2ZW5kb3Jz
-JyBwbGF0Zm9ybXMsIHNvIEkgY2Fubm90IHRlbGwNCmV4YWN0bHkgd2hhdCB0aG9zZSBidWdzIGFy
-ZS4uLg0KDQpUaGFua3MsIA0KLVRvc2hpDQoNCg==
+
+
+On 7/18/2017 1:26 AM, Borislav Petkov wrote:
+> On Mon, Jul 17, 2017 at 08:21:23PM -0400, Prarit Bhargava wrote:
+>> The word "Error" is used by many QA groups and users as a keyword to
+>> indicate that there is a critical failure during system bootup. The ESRT
+>> code would interact better with these scripts
+>
+> ... which is a thinly veiled way of saying: my scripts can't
+> differentiate between an error being reported and the word "error" so
+> let's "fix" the kernel.
+>
+> Jeez. Fix your scripts instead.
+
+I'll risk exposing myself to ridicule by agreeing with Prarit.
+
+Most ACPI tables are referenced by their 4 letter abbreviations
+anyway so this seems like a simple and helpful change, consistent
+with other ACPI table references.
+
+-- ljk
