@@ -1,30 +1,44 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 5/5] ACPI / boot: Don't handle SCI on HW reduced
- platforms
-Date: Tue, 18 Jul 2017 13:11:16 +0300
-Message-ID: <1500372676.29303.65.camel@linux.intel.com>
-References: <20170717132946.20892-1-andriy.shevchenko@linux.intel.com>
-         <20170717132946.20892-6-andriy.shevchenko@linux.intel.com>
-         <596DD9BF.5000509@huawei.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH] acpi/apei/erst: Remove "Error" from initialization and
+ disable output
+Date: Tue, 18 Jul 2017 07:29:40 -0400
+Message-ID: <0fb91e9d-5446-aa6e-2eea-c455538c4c1a@redhat.com>
+References: <1500337283-25734-1-git-send-email-prarit@redhat.com>
+ <20170718052627.GA8741@nazgul.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <596DD9BF.5000509@huawei.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-pm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:34556 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751550AbdGRL3m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 18 Jul 2017 07:29:42 -0400
+In-Reply-To: <20170718052627.GA8741@nazgul.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@suse.de>
+Cc: linux-acpi@vger.kernel.org, Kees Cook <keescook@chromium.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ying.huang@intel.com
 
-On Tue, 2017-07-18 at 17:49 +0800, Hanjun Guo wrote:
-> On 2017/7/17 21:29, Andy Shevchenko wrote:
-> > WIP
+
+
+On 07/18/2017 01:26 AM, Borislav Petkov wrote:
+> On Mon, Jul 17, 2017 at 08:21:23PM -0400, Prarit Bhargava wrote:
+>> The word "Error" is used by many QA groups and users as a keyword to
+>> indicate that there is a critical failure during system bootup. The ESRT
+>> code would interact better with these scripts
 > 
-> Does it mean not ready for upstream yet?
+> ... which is a thinly veiled way of saying: my scripts can't
+> differentiate between an error being reported and the word "error" so
+> let's "fix" the kernel.
+> 
+> Jeez. Fix your scripts instead.
+> 
 
-Yep, this patch is subject to discussion. I will update it in v3, though
-it would be nice to discuss anyway (and test on some hardware reduced
-platforms).
+Boris, I'd agree with you but this is one of those places where I think we
+should bend a bit.  Error and Warning are indications of a failure, and we
+should consider special casing them.  I would agree if this were one or two
+scripts but I've heard complaints from 3 different companies about this.
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+It's a minor fix in the grander scheme of things.
+
+P.
