@@ -1,45 +1,63 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 1/3] ACPI / blacklist: add acpi_match_oemlist() interface
-Date: Tue, 18 Jul 2017 21:32:08 +0200
-Message-ID: <20170718193208.GA23126@nazgul.tnic>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Tue, 18 Jul 2017 19:58:54 +0000
+Message-ID: <1500407379.2042.21.camel@hpe.com>
 References: <20170717215912.26070-1-toshi.kani@hpe.com>
- <20170717215912.26070-2-toshi.kani@hpe.com>
- <20170718053455.GA8736@nazgul.tnic>
- <1500392379.2042.13.camel@hpe.com>
- <20170718164350.GB22334@nazgul.tnic>
- <1500398136.2042.17.camel@hpe.com>
- <20170718174245.GA22817@nazgul.tnic>
- <1500403237.2042.19.camel@hpe.com>
+         <20170717215912.26070-4-toshi.kani@hpe.com>
+         <20170718060007.GB8736@nazgul.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([5.9.137.197]:43040 "EHLO mail.skyhub.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751485AbdGRTc0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 18 Jul 2017 15:32:26 -0400
-Content-Disposition: inline
-In-Reply-To: <1500403237.2042.19.camel@hpe.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170718060007.GB8736@nazgul.tnic>
+Content-Language: en-US
+Content-ID: <AEFC1038B08AF84DBD0596156BBFE5D3@NAMPRD84.PROD.OUTLOOK.COM>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "tony.luck@intel.com" <tony.luck@intel.com>, "bp@alien8.de" <bp@alien8.de>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 18, 2017 at 06:49:51PM +0000, Kani, Toshimitsu wrote:
-> ghes_edac uses this structure as a while-list, so the term backlist is
-> misleading.
-
-So this matching function gets both blacklists and whitelists. No wonder
-it is confusing. Now I finally understand what you wanna do: you want to
-call all those lists something agnostic as platform_list or so because
-they contain exactly that: platforms - not OEMs.
-
-And then you want to match *platforms*. *Not* OEMs.
-
-*Now* I understand what you're trying to tell me.
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+T24gVHVlLCAyMDE3LTA3LTE4IGF0IDA4OjAwICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
+DQo+IE9uIE1vbiwgSnVsIDE3LCAyMDE3IGF0IDAzOjU5OjEyUE0gLTA2MDAsIFRvc2hpIEthbmkg
+d3JvdGU6DQo+ID4gVGhlIGdoZXNfZWRhYyBkcml2ZXIgd2FzIGludHJvZHVjZWQgaW4gMjAxMyBb
+MV0sIGJ1dCBpdCBoYXMgbm90DQo+ID4gYmVlbiBlbmFibGVkIGJ5IGFueSBkaXN0cm8geWV0LsKg
+wqBUaGlzIGRyaXZlciBvYnRhaW5zIGVycm9yIGluZm8NCj4gPiBmcm9tIGZpcm13YXJlIGludGVy
+ZmFjZXMsIHdoaWNoIGFyZSBub3QgcHJvcGVybHkgaW1wbGVtZW50ZWQgb24NCj4gPiBtYW55IHBs
+YXRmb3JtcywgYXMgdGhlIGRyaXZlciBhbHdheXMgZW1pdHMgdGhlIG1lc3NhZ2VzIGJlbG93Og0K
+PiA+IA0KPiA+IMKgVGhpcyBFREFDIGRyaXZlciByZWxpZXMgb24gQklPUyB0byBlbnVtZXJhdGUg
+bWVtb3J5IGFuZCBnZXQgZXJyb3INCj4gPiByZXBvcnRzLiDCoFVuZm9ydHVuYXRlbHksIG5vdCBh
+bGwgQklPU2VzIHJlZmxlY3QgdGhlIG1lbW9yeSBsYXlvdXQNCj4gPiBjb3JyZWN0bHkgwqBTbywg
+dGhlIGVuZCByZXN1bHQgb2YgdXNpbmcgdGhpcyBkcml2ZXIgdmFyaWVzIGZyb20NCj4gPiB2ZW5k
+b3IgdG8gdmVuZG9yIMKgSWYgeW91IGZpbmQgaW5jb3JyZWN0IHJlcG9ydHMsIHBsZWFzZSBjb250
+YWN0DQo+ID4geW91ciBoYXJkd2FyZSB2ZW5kb3IgwqB0byBjb3JyZWN0IGl0cyBCSU9TLg0KPiA+
+IA0KPiA+IFRvIGdldCBvdXQgZnJvbSB0aGlzIHNpdHVhdGlvbiwgYWRkIGEgcGxhdGZvcm0gdHlw
+ZSBjaGVjayB0bw0KPiA+IHNlbGVjdGl2ZWx5IGVuYWJsZSB0aGUgZHJpdmVyIG9uIHRoZSBwbGF0
+Zm9ybXMgdGhhdCBhcmUga25vd24gdG8NCj4gPiBoYXZlIHByb3BlciBmaXJtd2FyZSBpbXBsZW1l
+bnRhdGlvbi7CoMKgUGxhdGZvcm0gdmVuZG9ycyBjYW4gYWRkDQo+ID4gdGhlaXIgcGxhdGZvcm1z
+IHRvIHRoZSBsaXN0IHdoZW4gdGhleSBzdXBwb3J0IGdoZXNfZWRhYy4NCj4gDQo+IFNvIG1haW50
+YWluaW5nIHdoaXRlbGlzdHMgZm9yIHRoaW5ncyBoYXMgYWx3YXlzIGJlZW4gYSBQSVRBIGFuZCB3
+ZQ0KPiBzaG91bGQgdHJ5IHRvIGF2b2lkIGl0LCBpZiBwb3NzaWJsZS4gKFdlIGNhbiBhbHdheXMg
+ZG8gaXQgaWYgbm90aGluZw0KPiBzYW5lciBjb21lcyBhbG9uZy4pDQoNCkFncmVlZC4NCg0KPiBO
+b3csIGJlbG93IGlzIGEgZGlydHkgcGF0Y2ggY29udmVydGluZyBnaGVzX2VkYWMgdG8gYSBub3Jt
+YWwgbW9kdWxlLg0KPiBPbiBzeXN0ZW1zIHdoZXJlIHdlIGhhdmUgR0hFUywgdGhlIGZpcm13YXJl
+IGdlbmVyYWxseSBkaXNhYmxlcyB0aGUNCj4gZGV0ZWN0aW9uIG9mIHRoZSBwcmVzZW5jZSBvZiBF
+Q0MgaGFyZHdhcmUsIHRodXMgcHJldmVudGluZyB0aGUNCj4gcGxhdGZvcm0gRURBQyBkcml2ZXIg
+ZnJvbSBsb2FkaW5nLg0KDQpJIGhhdmUgSFBFIEhhc3dlbGwgYW5kIFNreWxha2UgdGVzdCBzeXN0
+ZW1zIHdpdGggR0hFUywgYnV0IHRoZXkgZG8gbm90DQpoaWRlIElNQ3MgZnJvbSB0aGUgT1MuICBT
+bywgdGhlIHNiX2VkYWMgYW5kIHNreF9lZGFjIGRyaXZlcnMgZ2V0DQphdHRhY2hlZCBvbiB0aGVz
+ZSBzeXN0ZW1zIHdoZW4gZ2hlc19lZGFjIGlzIGRpc2FibGVkLg0KDQo+IExldCBtZSBjbGFyaWZ5
+OiBJIGhhdmUgYW4gQU1EIEhQIGJveCB3aGljaCwgd2hlbiBHSEVTIGlzIGVuYWJsZWQgaW4NCj4g
+dGhlIEJJT1MsIHNheXMgdGhhdCBFQ0MgaXMgZGlzYWJsZWQgaW4gdGhlIG1lbW9yeSBjb250cm9s
+bGVyIGFuZCB0aGUNCj4gYW1kNjRfZWRhYyBkcml2ZXIgZG9lc24ndCBsb2FkIGZvciB0aGF0IG1l
+bW9yeSBjb250cm9sbGVyLg0KDQpIbW0uLi4gd2hhdCdzIHRoZSBwbGF0Zm9ybSBuYW1lIG9mIHRo
+aXMgYm94PyAgSSBjYW4gbG9vayBpbnRvIHRoaXMgY2FzZQ0KaWYgeW91IG5lZWQuDQoNCj4gQW5k
+IEkgdGhpbmsgd2Ugc2hvdWxkIHRyeSB0aGlzIGZpcnN0OiBoYXZlIHRoZSBmaXJtd2FyZSBkaXNh
+YmxlDQo+IGRldGVjdGlvbiBtZXRob2RzIHNvIHRoYXQgdGhlIHBsYXRmb3JtIGRyaXZlcnMgZG9u
+J3QgbG9hZC4NCg0KSSBkbyBub3QgdGhpbmsgd2UgY2FuIHJlbHkgb24gdGhpcyBtZXRob2QuDQoN
+Cj4gVGhlbiwgZ2hlc19lZGFjIGNhbiBiZSBhIHNpbXBsZSBtb2R1bGUgYW5kIG5vIG90aGVyIGRy
+aXZlciB3b3VsZA0KPiBhdHRlbXB0IGxvYWRpbmcuDQoNCkkgbGlrZSB0aGUgdXNlIG9mIG5vdGlm
+aWVyIGNoYWluLCB3aGljaCBpcyBtdWNoIGNsZWFuZXIuDQoNCj4gVGhlIHF1ZXN0aW9uIGlzOiBk
+b2VzIHRoZSBwbGF0Zm9ybSBkbyB0aGlzIGRpc2FibGluZyBub3c/DQoNClVuZm9ydHVuYXRlbHks
+IHRoYXQgaXMgbm90IHRoZSBjYXNlIHRvZGF5LiAgVGhlIElNQ3MgY2Fubm90IGJlIGhpZGRlbg0K
+d2l0aCB0aGUgRGV2aWNlIEhpZGUgcmVnaXN0ZXJzIGZvciBTa3lsYWtlIGF0IGxlYXN0Lg0KDQpU
+aGFua3MsDQotVG9zaGkNCg0K
