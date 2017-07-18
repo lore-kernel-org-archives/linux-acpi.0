@@ -1,53 +1,33 @@
-From: "Mrs.Meliana Trump" <ugochukwuonuorah12@gmail.com>
-Subject: Attention To me and get back to me urgent
-Date: Tue, 18 Jul 2017 07:24:21 -0700
-Message-ID: <CAOYsR4hk+0xa6UyyuKoRJ+7C96+OjJrRz2-N_h0=iNj7C6ZsnQ@mail.gmail.com>
-Reply-To: mrs.melianatrump@yahoo.com
+From: Jeffrey Hugo <jhugo@codeaurora.org>
+Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Tue, 18 Jul 2017 08:39:49 -0600
+Message-ID: <c6b2f416-964f-2283-56b6-899485f39652@codeaurora.org>
+References: <20170717215912.26070-1-toshi.kani@hpe.com>
+ <20170717215912.26070-4-toshi.kani@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:34483 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751618AbdGROYY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jul 2017 10:24:24 -0400
-Received: by mail-lf0-f66.google.com with SMTP id p11so1992402lfd.1
-        for <linux-acpi@vger.kernel.org>; Tue, 18 Jul 2017 07:24:23 -0700 (PDT)
+Received: from smtp.codeaurora.org ([198.145.29.96]:42174 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751499AbdGROjx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jul 2017 10:39:53 -0400
+In-Reply-To: <20170717215912.26070-4-toshi.kani@hpe.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>, rjw@rjwysocki.net, bp@alien8.de
+Cc: mchehab@kernel.org, tglx@linutronix.de, srinivas.pandruvada@linux.intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Attention:Beneficiary
+On 7/17/2017 3:59 PM, Toshi Kani wrote:
+> The ghes_edac driver was introduced in 2013 [1], but it has not
+> been enabled by any distro yet.   
 
-I am  Meliana Trump, and I am writing to inform you about your Bank
-Check Draft brought back 16/07/2017 by the United Embassy Mr John
-Moore from the government of Benin Republic in the white house
-Washington DC been mandated to be deliver to your home address once
-you reconfirm it with the one we have here with us to avoid wrong
-delivery of your check draft Eighteen million united states dollars
-$18,000,000,00usd that was assigned to be delivered to your humble
-home address by Honorable president Donald Trump the president of this
-great country this week by a delivery agent Mr John Moore
+Ubuntu is expected to enable this soon.
 
-Also reconfirm your details for the check delivery by filling the form
-below and send it immediately to our mrs.melianatrump@yahoo.com  in
-for verification and for prompt collection of your fund.
-
-Fill The Form Below:
-
-1. Residential Address :
-2. Next of Kin :
-3. Mobile Number:
-4. Fax Number :
-5. Occupation :
-6. Sex :
-7. Age :
-8. Nationality :
-9. Country :
-10. Marital Status :
-
-
-Accept my hearty congratulation again!
-
-Yours Sincerely,
-MRS MELIANA TRUMP
-FIRST_LADY
-1600 Pennsylvania Ave NW, Washington, DC 20500, United States
+-- 
+Jeffrey Hugo
+Qualcomm Datacenter Technologies as an affiliate of Qualcomm 
+Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
