@@ -1,40 +1,48 @@
-From: Dave Hansen <dave.hansen@intel.com>
-Subject: Re: [RFC v2 0/5] surface heterogeneous memory performance information
-Date: Wed, 19 Jul 2017 08:25:13 -0700
-Message-ID: <0e72ed92-75d0-3fe1-0ab7-ffa069d11b46@intel.com>
-References: <20170706215233.11329-1-ross.zwisler@linux.intel.com>
- <dc224433-3d09-8f2e-d278-fee98ada2afc@huawei.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Wed, 19 Jul 2017 17:57:18 +0200
+Message-ID: <20170719155718.GD16124@nazgul.tnic>
+References: <20170717215912.26070-1-toshi.kani@hpe.com>
+ <20170717215912.26070-4-toshi.kani@hpe.com>
+ <20170718060007.GB8736@nazgul.tnic>
+ <1500407379.2042.21.camel@hpe.com>
+ <20170718181545.32bd9181@vento.lan>
+ <20170719055838.GF26030@nazgul.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F6130D126@ORSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:40156 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751452AbdGSPZO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Jul 2017 11:25:14 -0400
-In-Reply-To: <dc224433-3d09-8f2e-d278-fee98ada2afc@huawei.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F6130D126@ORSMSX114.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, "Kani, Toshimitsu" <toshi.kani@hpe.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bob Liu <liubo95@huawei.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org
-Cc: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jerome Glisse <jglisse@redhat.com>, Len Brown <lenb@kernel.org>Tim Chen <t>
 
-On 07/19/2017 02:48 AM, Bob Liu wrote:
->> Option 2: Provide the user with HMAT performance data directly in
->> sysfs, allowing applications to directly access it without the need
->> for the library and daemon.
->> 
-> Is it possible to do the memory allocation automatically by the
-> kernel and transparent to users? It sounds like unreasonable that
-> most users should aware this detail memory topology.
+On Wed, Jul 19, 2017 at 03:14:32PM +0000, Luck, Tony wrote:
+> Later when GHES gives you a NODE/CARD/MODULE) in an error record.  You need
+> to match these up. But SMBIOS only gave you two strings "Locator" and "Bank
+> Locator" which have no defined syntax. You are at the mercy of the BIOS writer
+> to put in something parseable.
 
-It's possible, but I'm not sure this is something we automatically want
-to see added to the kernel.
+Well, at some point it is only so much we can do, right?
 
-I look at it like NUMA.  We have lots of details available about how
-things are connected.  But, "most users" are totally unaware of this.
-We give them decent default policies and the ones that need more can do
-so with the NUMA APIs.
+I mean, if FW says it wants to do firmware-first and we go and adhere
+to that, it should be expected that said FW vendor marks the silkscreen
+labels and DMI data accordingly.
 
-These patches provide the framework to help users/apps who *do* care and
-want to make intelligent, topology-aware decisions.
+I mean, it is time for FW to put its money where its mouth is, no?
+
+How else would you do this?
+
+Firmware First but the kernel does the figuring out which DIMMs are
+where. So FW can't have the cake and eat it too.
+
+:-)
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+--
