@@ -1,48 +1,53 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v1 4/6] vmbus: Switch to use new generic UUID API
-Date: Thu, 20 Jul 2017 00:54:42 +0300
-Message-ID: <CAHp75VdYnKGdyy=OwHoWw5Sch9t+E7gd1tqg0YfZjiicR-Q3Jw@mail.gmail.com>
-References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
- <20170719182857.73693-5-andriy.shevchenko@linux.intel.com> <MWHPR21MB04791ED8A0F0F935176AE9B3CAA60@MWHPR21MB0479.namprd21.prod.outlook.com>
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [PATCH v1 1/3] mfd: Add new mfd device TPS68470
+Date: Wed, 19 Jul 2017 23:23:51 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725DCCC2@FMSMSX114.amr.corp.intel.com>
+References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
+ <1496750118-5570-2-git-send-email-rajmohan.mani@intel.com>
+ <CAHp75VfiTM2t=WxWpG4+kUfGA3DrfGfMOwxP6Cs42nGwHjAp7w@mail.gmail.com>
+ <20170607115827.GY1019@valkosipuli.retiisi.org.uk>
+ <6F87890CF0F5204F892DEA1EF0D77A59725BECB0@FMSMSX114.amr.corp.intel.com>
+ <20170612082038.x6z3rx2bknxmfyfp@dell>
+ <6F87890CF0F5204F892DEA1EF0D77A59725BF469@FMSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:34916 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754932AbdGSVyn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jul 2017 17:54:43 -0400
-In-Reply-To: <MWHPR21MB04791ED8A0F0F935176AE9B3CAA60@MWHPR21MB0479.namprd21.prod.outlook.com>
+Received: from mga06.intel.com ([134.134.136.31]:25936 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753580AbdGSXXy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 19 Jul 2017 19:23:54 -0400
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A59725BF469@FMSMSX114.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>, "sparmaintainer@unisys.com" <sparmaintainer@unisys.com>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>, KY Srinivasan <kys@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
+To: 'Lee Jones' <lee.jones@linaro.org>
+Cc: 'Sakari Ailus' <sakari.ailus@iki.fi>, 'Andy Shevchenko' <andy.shevchenko@gmail.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'linux-gpio@vger.kernel.org'" <linux-gpio@vger.kernel.org>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, 'Linus Walleij' <linus.walleij@linaro.org>, 'Alexandre Courbot' <gnurou@gmail.com>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, 'Len Brown' <lenb@kernel.org>
 
-On Wed, Jul 19, 2017 at 11:18 PM, Haiyang Zhang <haiyangz@microsoft.com> wrote:
-
->>  struct hv_fcopy_hdr {
->>       __u32 operation;
->> -     uuid_le service_id0; /* currently unused */
->> -     uuid_le service_id1; /* currently unused */
->> +     __u8 service_id0[16]; /* currently unused */
->> +     __u8 service_id1[16]; /* currently unused */
->>  } __attribute__((packed));
->
-> Even user space may not have all guid_t operations, could you still
-> put guid_t here for consistency?
-
-I'm not sure how this code has been designed, though uuid_le followed
-by guid_t are kernel internal types mistakenly put to UAPI in the
-first place.
-
-Consistency here is how we treat those types in user space, starting
-from v4.13 uuid_be gone from that header. uuid_le is luckily will be
-gone soon.
-
-> This file is also used by our kernel
-> mode code.
-
-It will work still the same after this change.
-
--- 
-With Best Regards,
-Andy Shevchenko
+SGkgTGVlLA0KDQo+ID4gT24gRnJpLCAwOSBKdW4gMjAxNywgTWFuaSwgUmFqbW9oYW4gd3JvdGU6
+DQo+ID4NCj4gPiA+IEhpIEFuZHksDQo+ID4gPg0KPiA+ID4gPiBPbiBUdWUsIEp1biAwNiwgMjAx
+NyBhdCAwMzo1OTo0OVBNICswMzAwLCBBbmR5IFNoZXZjaGVua28gd3JvdGU6DQo+ID4gPiA+ID4g
+T24gVHVlLCBKdW4gNiwgMjAxNyBhdCAyOjU1IFBNLCBSYWptb2hhbiBNYW5pDQo+ID4gPiA+IDxy
+YWptb2hhbi5tYW5pQGludGVsLmNvbT4gd3JvdGU6DQo+ID4gPiA+ID4gPiBUaGUgVFBTNjg0NzAg
+ZGV2aWNlIGlzIGFuIGFkdmFuY2VkIHBvd2VyIG1hbmFnZW1lbnQgdW5pdCB0aGF0DQo+ID4gPiA+
+ID4gPiBwb3dlcnMgYSBDb21wYWN0IENhbWVyYSBNb2R1bGUgKENDTSksIGdlbmVyYXRlcyBjbG9j
+a3MgZm9yDQo+ID4gPiA+ID4gPiBpbWFnZSBzZW5zb3JzLCBkcml2ZXMgYSBkdWFsIExFRCBmb3Ig
+Rmxhc2ggYW5kIGluY29ycG9yYXRlcw0KPiA+ID4gPiA+ID4gdHdvIExFRCBkcml2ZXJzIGZvciBn
+ZW5lcmFsIHB1cnBvc2UgaW5kaWNhdG9ycy4NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBUaGlz
+IHBhdGNoIGFkZHMgc3VwcG9ydCBmb3IgVFBTNjg0NzAgbWZkIGRldmljZS4NCj4gPiA+ID4gPg0K
+PiA+ID4gPiA+IEkgZHVubm8gd2h5IHlvdSBkZWNpZGUgdG8gc2VuZCB0aGlzIG91dCBub3csIHNl
+ZSBteSBjb21tZW50cw0KPiBiZWxvdy4NCj4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gK3N0YXRpYyBp
+bnQgdHBzNjg0NzBfY2hpcF9pbml0KHN0cnVjdCB0cHM2ODQ3MCAqdHBzKSB7DQo+ID4gPiA+ID4g
+PiArICAgICAgIHVuc2lnbmVkIGludCB2ZXJzaW9uOw0KPiA+ID4gPiA+ID4gKyAgICAgICBpbnQg
+cmV0Ow0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiArICAgICAgIC8qIEZJWE1FOiBjb25maWd1cmUg
+dGhlc2UgZHluYW1pY2FsbHkgKi8NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IFNvLCB3aGF0IHByZXZl
+bnRzIHlvdSB0byBmaXggdGhpcz8NCj4gPiA+ID4NCj4gPiA+ID4gTm90aGluZyBJIHN1cHBvc2Uu
+IFRoZXkncmUgaG93ZXZlciBub3QgbmVlZGVkIHJpZ2h0IG5vdyBhbmQgY2FuIGJlDQo+ID4gPiA+
+IGltcGxlbWVudGVkIGxhdGVyIG9uIGlmIHRoZXkncmUgZXZlciBuZWVkZWQuDQo+ID4gPiA+DQo+
+ID4gPg0KPiA+ID4gQWNrDQo+ID4NCj4gPiBXaGF0IGRvZXMgdGhpcyBtZWFuPyAgSXMgdGhlIHBs
+YW4gdG8gZml4IGl0IG9yIG5vdD8gIEkgZG9uJ3Qgd2FudA0KPiA+IEZJWE1FcyBpbiB0aGUgY29k
+ZSB0aGF0IGEpIGNhbiBiZSBmaXhlZCByaWdodCBhd2F5IG9yIGIpIG1pZ2h0IG5ldmVyIGJlDQo+
+IGZpeGVkLg0KPiA+DQo+IA0KPiBJIG1lYW50IHRoYXQgdGhpcyBjYW4gYmUgaW1wbGVtZW50ZWQg
+bGF0ZXIgb24sIGlmIHRoZXJlJ3MgYSBuZWVkLg0KPiBJIHdpbGwgbG9vayBpbnRvIHRoaXMgYW5k
+IHNlZSBob3cgdGhpcyBjYW4gYmUgZml4ZWQuDQo+IA0KDQpUaGFua3MgZm9yIHlvdXIgcGF0aWVu
+Y2UuDQpUaGlzIGlzIGZpeGVkIHdpdGggdjQgb2YgdGhpcyBzZXJpZXMuDQoNClJhag0K
