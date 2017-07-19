@@ -1,44 +1,87 @@
-From: Borislav Petkov <bp@alien8.de>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Wed, 19 Jul 2017 18:22:04 +0200
-Message-ID: <20170719162204.GE16124@nazgul.tnic>
+Date: Wed, 19 Jul 2017 16:40:25 +0000
+Message-ID: <1500481869.2042.29.camel@hpe.com>
 References: <20170717215912.26070-1-toshi.kani@hpe.com>
- <20170717215912.26070-4-toshi.kani@hpe.com>
- <20170718060007.GB8736@nazgul.tnic>
- <20170718080836.GB8372@nazgul.tnic>
- <1500412288.2042.25.camel@hpe.com>
- <20170719055235.GD26030@nazgul.tnic>
- <1500480051.2042.27.camel@hpe.com>
+         <20170717215912.26070-4-toshi.kani@hpe.com>
+         <20170718060007.GB8736@nazgul.tnic> <1500407379.2042.21.camel@hpe.com>
+         <20170718181545.32bd9181@vento.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([5.9.137.197]:60990 "EHLO mail.skyhub.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753513AbdGSQWP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Jul 2017 12:22:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1500480051.2042.27.camel@hpe.com>
+Received: from g4t3425.houston.hpe.com ([15.241.140.78]:47986 "EHLO
+        g4t3425.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933501AbdGSQk1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jul 2017 12:40:27 -0400
+In-Reply-To: <20170718181545.32bd9181@vento.lan>
+Content-Language: en-US
+Content-ID: <EFF7B37275259642922ED0E09AEB1FCB@NAMPRD84.PROD.OUTLOOK.COM>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+To: "mchehab@s-opensource.com" <mchehab@s-opensource.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "bp@alien8.de" <bp@alien8.de>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-On Wed, Jul 19, 2017 at 04:10:07PM +0000, Kani, Toshimitsu wrote:
-> I do prefer to avoid any white / black listing.  But I do not see how
-> it solves the buggy DMI/SMBIOS info as an example of firmware bugs we
-> may have to deal with.
-
-So how do you want to deal with this?
-
-Maintain an evergrowing whitelist of platforms which are OK and then the
-moment a new platform comes along, you send a patch to add it to that
-whitelist?
-
-I'm sure you can see the problems with that approach.
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+T24gVHVlLCAyMDE3LTA3LTE4IGF0IDE4OjE1IC0wMzAwLCBNYXVybyBDYXJ2YWxobyBDaGVoYWIg
+d3JvdGU6DQo+IEVtIFR1ZSwgMTggSnVsIDIwMTcgMTk6NTg6NTQgKzAwMDANCiA6DQo+IFdlIGhh
+ZCBhIHNpbWlsYXIgZGlzY3Vzc2lvbiBzZXZlcmFsIHllYXJzIGFnbyB3aGVuIEkgd3JvdGUgdGhp
+cw0KPiBkcml2ZXIuIE9uIHRoYXQgdGltZSwgSSB0YWxrZWQgd2l0aCBSZWQgSGF0LCBIUCwgRGVs
+bCwgSW50ZWwgcGVvcGxlDQo+IGFuZCB3aXRoIHNvbWUgY3VzdG9tZXJzIHdpdGggbGFyZ2UgY2x1
+c3RlcnMuDQo+IA0KPiBUaGUgd2F5IGl0IGlzLCBnaGVzX2VkYWMgaXMgYSBwb29yIG1hbidzIGRy
+aXZlci4gV2hhdCBpdCBob3BlZnVsbHkNCj4gcHJvdmlkZSBpcyBhIGRldGVjdGlvbiB0aGF0IGFu
+IGVycm9yIGhhcHBlbmVkLCB3aXRob3V0IHJlYWxseSB0ZWxsaW5nDQo+IHRoZSB1c2VyIHdoYXQg
+Y29tcG9uZW50IHNob3VsZCBiZSByZXBsYWNlZC4NCg0KInBvb3IgbWFuJ3MgZHJpdmVyIiBpcyBh
+IGJpdCBtaXNsZWFkaW5nLCBidXQgeWVzLCBmaXJtd2FyZS1maXJzdA0KcGxhdGZvcm1zIGhhdmUg
+UkFTIGZlYXR1cmVzIGJ1aWx0LWludG8gdGhlIHBsYXRmb3JtcywgYW5kIHRoZXkgZG8gbm90DQpu
+ZWVkIGludGVsbGlnZW5jZSBpbiBFREFDIGRyaXZlcnMsIHdoaWNoIG1heSBjb25mbGljdCB3aXRo
+IHRoZQ0KcGxhdGZvcm0ncyBSQVMgZmVhdHVyZXMuICBJIGNhbm5vdCBzcGVhayBmb3Igb3RoZXIg
+dmVuZG9ycywgYnV0IEhQRQ0KcGxhdGZvcm1zIGxvZyBlcnJvcnMgYW5kIHByb3ZpZGUgRlJVIGlu
+Zm8uICBnaGVzX2VkYWMgYWxsb3dzIHRvIHJlcG9ydA0KZXJyb3JzIHRvIE9TIG1hbmFnZW1lbnQg
+dG9vbHMgbGlrZSByYXNkYWVtb24gaW4gYWRkaXRpb24gdG8gcGxhdGZvcm0tDQpzcGVjaWZpYyBt
+YW5hZ2VtZW50cy4NCg0KPiBPaywgb24gbWFjaGluZXMgd2l0aCB0aGVpciBvd24gZXJyb3IgcmVw
+b3J0aW5nIG1lY2hhbmlzbSAobGlrZQ0KPiBIUCBzZXJ2ZXJzKSwgYSBzeXMgYWRtaW4gY2FuIGxv
+b2sgb24gc29tZSBwcm9wcmlldGFyeSBzb2Z0d2FyZQ0KPiAob3IgYmlvcyksIGluIG9yZGVyIHRv
+IGlkZW50aWZ5IHdoYXQgaGFwcGVuZWQuDQo+IA0KPiBZZXQsIEJJT1MgZG9lc24ndCBwcm92aWRl
+IGFueSBnbHVlIGFib3V0IHdoYXQncyB0aGUgbWVtb3J5DQo+IGFyY2hpdGVjdHVyZSwgYXMgaXQg
+bWFwcyBtZW1vcnkgYXMgaWYgaXQgd2FzIGEgc2luZ2xlIERJTU0gbWVtb3J5Og0KPiANCj4gKGZy
+b20gZ2hlc19lZGFjX3JlZ2lzdGVyKQ0KPiANCj4gCWxheWVyc1swXS50eXBlID0gRURBQ19NQ19M
+QVlFUl9BTExfTUVNOw0KPiAJbGF5ZXJzWzBdLnNpemUgPSBudW1fZGltbTsNCj4gCWxheWVyc1sw
+XS5pc192aXJ0X2Nzcm93ID0gdHJ1ZTsNCj4gDQo+IFNvLCBldmVuIG9uIHN5c3RlbXMgd2hlcmUg
+dGhlIEJJT1MgYWN0dWFsbHkga25vd3MgaG93IHRoZSBtZW1vcnkNCj4gY2FyZHMgYXJlIHdpcmVk
+LCBpdCB3aWxsIG1hc2sgdGhlIG1lbW9yeSBjb250cm9sbGVyIGRhdGEuDQo+IA0KPiBOb3csIHRo
+ZSBFREFDIGRyaXZlciBjYW4gYWxzbyBiZSB1c2VkIHRvIGlkZW50aWZ5IHdoYXQNCj4gY2hhbm5l
+bHMgYXJlIHVzZWQuIFRoYXQgaGVscHMgdGhlIHN5cyBhZG1pbiB0byBrbm93IGlmIHRoZQ0KPiBt
+ZW1vcmllcyBhcmUgY29ubmVjdGVkIGluIGEgd2F5IHRoYXQgaXQgd2lsbCBiZSB1c2luZyBtdWx0
+aXBsZQ0KPiBjaGFubmVscywgb3Igbm90LCBoZWxwaW5nIHRvIHNldHVwIHRoZSBtYWNoaW5lIHRv
+IG9idGFpbg0KPiB0aGUgbWF4aW11bSBwb3NzaWJsZSBwZXJmb3JtYW5jZS4NCj4gDQo+IFNvLCBm
+b3IgZXhhbXBsZSwgb24gbXkgSW50ZWwtYmFzZWQgSFAgc2VydmVyLCBJIGNhbiBjaGVjaw0KPiBz
+dWNoIGluZm8gd2l0aDoNCj4gDQo+ICQgcmFzLW1jLWN0bCAtLW1haW5ib2FyZA0KPiByYXMtbWMt
+Y3RsOiBtYWluYm9hcmQ6IEhQIG1vZGVsIFByb0xpYW50IE1MMzUwIEdlbjkNCj4gJCByYXMtbWMt
+Y3RsIC0tbGF5b3V0DQo+IMKgwqDCoMKgwqDCoMKgKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gLS0tLS0tLS0tLSsNCj4gwqDC
+oMKgwqDCoMKgwqB8wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBtYzDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG1j
+McKgwqDCoMKgwqDCoA0KPiDCoMKgwqDCoMKgwqDCoMKgwqDCoHwNCj4gwqDCoMKgwqDCoMKgwqB8
+IGNoYW5uZWwwwqDCoHwgY2hhbm5lbDHCoMKgfCBjaGFubmVsMsKgwqB8IGNoYW5uZWwwwqDCoHwg
+Y2hhbm5lbDHCoMKgfA0KPiBjaGFubmVsMsKgwqB8DQo+IC0tLS0tLS0rLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiAtLS0tLS0t
+LS0tKw0KPiBzbG90MjogfMKgwqDCoMKgwqAwIE1CwqDCoHzCoMKgwqDCoMKgMCBNQsKgwqB8wqDC
+oMKgwqDCoDAgTULCoMKgfMKgwqDCoMKgwqAwIE1CwqDCoHzCoMKgwqDCoMKgMA0KPiBNQsKgwqB8
+wqDCoMKgwqDCoDAgTULCoMKgfA0KPiBzbG90MTogfMKgwqDCoMKgwqAwIE1CwqDCoHzCoMKgwqDC
+oMKgMCBNQsKgwqB8wqDCoMKgwqDCoDAgTULCoMKgfMKgwqDCoMKgwqAwIE1CwqDCoHzCoMKgwqDC
+oMKgMA0KPiBNQsKgwqB8wqDCoMKgwqDCoDAgTULCoMKgfA0KPiBzbG90MDogfMKgwqAxNjM4NCBN
+QsKgwqB8wqDCoMKgwqDCoDAgTULCoMKgfMKgwqAxNjM4NCBNQsKgwqB8wqDCoDE2Mzg0IE1CwqDC
+oHzCoMKgwqDCoMKgMA0KPiBNQsKgwqB8wqDCoDE2Mzg0IE1CwqDCoHwNCj4gLS0tLS0tLSstLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+DQo+IC0tLS0tLS0tLS0tLS0tKw0KPiANCj4gU28sIEkga25vdyB0aGF0IGJvdGggQ1BVcyB3aWxs
+IGJlIGNvbm5lY3RlZCB0byBteSBtZW1vcmllcywgYW5kLA0KPiBvbiBib3RoLCBpdCBpcyB1c2lu
+ZyAyIGNoYW5uZWxzLg0KPiANCj4gSWYgSSB3YXMgdXNpbmcgdGhlIGdoZXMgZHJpdmVyLCB0aGF0
+IGluZm9ybWF0aW9uIHdvdWxkIGJlIGhpZGRlbi4NCj4gDQo+IFNvLCBkdWUgdG8gYWxsIHByb2Js
+ZW1zIHdpdGggZ2hlcywgaXQgaXMgZW5hYmxlZCBvbmx5IGlmIHRoZXJlIGFyZSBubw0KPiBiZXR0
+ZXIgc29sdXRpb24sIGUuIGcuIG9uIHN5c3RlbXMgd2hlcmUgdGhlcmUncyBubyB3YXkgdG8gdGFs
+aw0KPiBkaXJlY3RseSB0byB0aGUgaGFyZHdhcmUgKGxpa2Ugb24gRTcgWGVvbiBtYWNoaW5lcywg
+d2hlcmUgdGhlIG1lbW9yeQ0KPiBjb250cm9sbGVyIGlzIGFjdHVhbGx5IG9uIGEgc2VwYXJhdGUg
+Y2hpcCB0aGF0IGFyZSBjb250cm9sbGVkIG9ubHkgYnkNCj4gdGhlIEJJT1MpLg0KDQpUaGFua3Mg
+Zm9yIHRoZSBpbmZvISAgVGhhdCdzIHZlcnkgaGVscGZ1bC4gIEkgd2lsbCBjaGVjayB0byBzZWUg
+aWYNCmdoZXNfZWRhYyBwcm92aWRlcyBlbm91Z2ggaW5mbyB0aGF0IHdlIG5lZWQuDQotVG9zaGkN
+Cg==
