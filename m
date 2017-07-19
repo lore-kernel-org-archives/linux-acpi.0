@@ -1,535 +1,161 @@
-From: Rajmohan Mani <rajmohan.mani@intel.com>
-Subject: [PATCH v4 3/3] ACPI / PMIC: Add TI PMIC TPS68470 operation region driver
-Date: Wed, 19 Jul 2017 16:20:26 -0700
-Message-ID: <1500506426-3047-4-git-send-email-rajmohan.mani@intel.com>
-References: <1500506426-3047-1-git-send-email-rajmohan.mani@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1500506426-3047-1-git-send-email-rajmohan.mani@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, sakari.ailus@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>, Rajmohan Mani <rajmohan.mani@intel.com>
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [Resend, PATCH v2] i2c: core: Allow empty id_table in ACPI case
+ as well
+Date: Wed, 19 Jul 2017 23:32:57 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725DCCFC@FMSMSX114.amr.corp.intel.com>
+References: <20170717141328.52286-1-andriy.shevchenko@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:49066 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753598AbdGSXc7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 19 Jul 2017 19:32:59 -0400
+In-Reply-To: <20170717141328.52286-1-andriy.shevchenko@linux.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-The Kabylake platform coreboot (Chrome OS equivalent of
-BIOS) has defined 4 operation regions for the TI TPS68470 PMIC.
-These operation regions are to enable/disable voltage
-regulators, configure voltage regulators, enable/disable
-clocks and to configure clocks.
+Hi Andy,
 
-This config adds ACPI operation region support for TI TPS68470 PMIC.
-TPS68470 device is an advanced power management unit that powers
-a Compact Camera Module (CCM), generates clocks for image sensors,
-drives a dual LED for flash and incorporates two LED drivers for
-general purpose indicators.
-This driver enables ACPI operation region support to control voltage
-regulators and clocks for the TPS68470 PMIC.
+Thanks for the patch.
 
-Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
----
- drivers/acpi/Kconfig              |  16 ++
- drivers/acpi/Makefile             |   2 +
- drivers/acpi/pmic/tps68470_pmic.c | 455 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 473 insertions(+)
- create mode 100644 drivers/acpi/pmic/tps68470_pmic.c
+I have verified this patch on 4.13-rc1 kernel for on my TPS68470 PMIC v4 patch.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 1ce52f8..e124a82d 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -535,4 +535,20 @@ if ARM64
- source "drivers/acpi/arm64/Kconfig"
- endif
- 
-+config TPS68470_PMIC_OPREGION
-+	bool "ACPI operation region support for TPS68470 PMIC"
-+	depends on MFD_TPS68470
-+	help
-+	  This config adds ACPI operation region support for TI TPS68470 PMIC.
-+	  TPS68470 device is an advanced power management unit that powers
-+	  a Compact Camera Module (CCM), generates clocks for image sensors,
-+	  drives a dual LED for flash and incorporates two LED drivers for
-+	  general purpose indicators.
-+	  This driver enables ACPI operation region support control voltage
-+	  regulators and clocks.
-+
-+	  This option is a bool as it provides an ACPI operation
-+	  region, which must be available before any of the devices
-+	  using this, are probed.
-+
- endif	# ACPI
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index b1aacfc..2d70a7f 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -106,6 +106,8 @@ obj-$(CONFIG_CHT_WC_PMIC_OPREGION) += pmic/intel_pmic_chtwc.o
- 
- obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
- 
-+obj-$(CONFIG_TPS68470_PMIC_OPREGION)	+= pmic/tps68470_pmic.o
-+
- video-objs			+= acpi_video.o video_detect.o
- obj-y				+= dptf/
- 
-diff --git a/drivers/acpi/pmic/tps68470_pmic.c b/drivers/acpi/pmic/tps68470_pmic.c
-new file mode 100644
-index 0000000..f2626bd
---- /dev/null
-+++ b/drivers/acpi/pmic/tps68470_pmic.c
-@@ -0,0 +1,455 @@
-+/*
-+ * TI TPS68470 PMIC operation region driver
-+ *
-+ * Copyright (C) 2017 Intel Corporation. All rights reserved.
-+ * Author: Rajmohan Mani <rajmohan.mani@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * Based on drivers/acpi/pmic/intel_pmic* drivers
-+ *
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/mfd/tps68470.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+
-+struct tps68470_pmic_table {
-+	u32 address;		/* operation region address */
-+	u32 reg;		/* corresponding register */
-+	u32 bitmask;		/* bit mask for power, clock */
-+};
-+
-+#define TI_PMIC_POWER_OPREGION_ID		0xB0
-+#define TI_PMIC_VR_VAL_OPREGION_ID		0xB1
-+#define TI_PMIC_CLOCK_OPREGION_ID		0xB2
-+#define TI_PMIC_CLKFREQ_OPREGION_ID		0xB3
-+
-+struct tps68470_pmic_opregion {
-+	struct mutex lock;
-+	struct regmap *regmap;
-+};
-+
-+#define S_IO_I2C_EN	(BIT(0) | BIT(1))
-+
-+static const struct tps68470_pmic_table power_table[] = {
-+	{
-+		.address = 0x00,
-+		.reg = TPS68470_REG_S_I2C_CTL,
-+		.bitmask = S_IO_I2C_EN,
-+		/* S_I2C_CTL */
-+	},
-+	{
-+		.address = 0x04,
-+		.reg = TPS68470_REG_VCMCTL,
-+		.bitmask = BIT(0),
-+		/* VCMCTL */
-+	},
-+	{
-+		.address = 0x08,
-+		.reg = TPS68470_REG_VAUX1CTL,
-+		.bitmask = BIT(0),
-+		/* VAUX1_CTL */
-+	},
-+	{
-+		.address = 0x0C,
-+		.reg = TPS68470_REG_VAUX2CTL,
-+		.bitmask = BIT(0),
-+		/* VAUX2CTL */
-+	},
-+	{
-+		.address = 0x10,
-+		.reg = TPS68470_REG_VACTL,
-+		.bitmask = BIT(0),
-+		/* VACTL */
-+	},
-+	{
-+		.address = 0x14,
-+		.reg = TPS68470_REG_VDCTL,
-+		.bitmask = BIT(0),
-+		/* VDCTL */
-+	},
-+};
-+
-+/* Table to set voltage regulator value */
-+static const struct tps68470_pmic_table vr_val_table[] = {
-+	{
-+		.address = 0x00,
-+		.reg = TPS68470_REG_VSIOVAL,
-+		.bitmask = TPS68470_VSIOVAL_IOVOLT_MASK,
-+		/* TPS68470_REG_VSIOVAL */
-+	},
-+	{
-+		.address = 0x04,
-+		.reg = TPS68470_REG_VIOVAL,
-+		.bitmask = TPS68470_VIOVAL_IOVOLT_MASK,
-+		/* TPS68470_REG_VIOVAL */
-+	},
-+	{
-+		.address = 0x08,
-+		.reg = TPS68470_REG_VCMVAL,
-+		.bitmask = TPS68470_VCMVAL_VCVOLT_MASK,
-+		/* TPS68470_REG_VCMVAL */
-+	},
-+	{
-+		.address = 0x0C,
-+		.reg = TPS68470_REG_VAUX1VAL,
-+		.bitmask = TPS68470_VAUX1VAL_AUX1VOLT_MASK,
-+		/* TPS68470_REG_VAUX1VAL */
-+	},
-+	{
-+		.address = 0x10,
-+		.reg = TPS68470_REG_VAUX2VAL,
-+		.bitmask = TPS68470_VAUX2VAL_AUX2VOLT_MASK,
-+		/* TPS68470_REG_VAUX2VAL */
-+	},
-+	{
-+		.address = 0x14,
-+		.reg = TPS68470_REG_VAVAL,
-+		.bitmask = TPS68470_VAVAL_AVOLT_MASK,
-+		/* TPS68470_REG_VAVAL */
-+	},
-+	{
-+		.address = 0x18,
-+		.reg = TPS68470_REG_VDVAL,
-+		.bitmask = TPS68470_VDVAL_DVOLT_MASK,
-+		/* TPS68470_REG_VDVAL */
-+	},
-+};
-+
-+/* Table to configure clock frequency */
-+static const struct tps68470_pmic_table clk_freq_table[] = {
-+	{
-+		.address = 0x00,
-+		.reg = TPS68470_REG_POSTDIV2,
-+		.bitmask = BIT(0) | BIT(1),
-+		/* TPS68470_REG_POSTDIV2 */
-+	},
-+	{
-+		.address = 0x04,
-+		.reg = TPS68470_REG_BOOSTDIV,
-+		.bitmask = 0x1F,
-+		/* TPS68470_REG_BOOSTDIV */
-+	},
-+	{
-+		.address = 0x08,
-+		.reg = TPS68470_REG_BUCKDIV,
-+		.bitmask = 0x0F,
-+		/* TPS68470_REG_BUCKDIV */
-+	},
-+	{
-+		.address = 0x0C,
-+		.reg = TPS68470_REG_PLLSWR,
-+		.bitmask = 0x13,
-+		/* TPS68470_REG_PLLSWR */
-+	},
-+	{
-+		.address = 0x10,
-+		.reg = TPS68470_REG_XTALDIV,
-+		.bitmask = 0xFF,
-+		/* TPS68470_REG_XTALDIV */
-+	},
-+	{
-+		.address = 0x14,
-+		.reg = TPS68470_REG_PLLDIV,
-+		.bitmask = 0xFF,
-+		/* TPS68470_REG_PLLDIV */
-+	},
-+	{
-+		.address = 0x18,
-+		.reg = TPS68470_REG_POSTDIV,
-+		.bitmask = 0x83,
-+		/* TPS68470_REG_POSTDIV */
-+	},
-+};
-+
-+/* Table to configure and enable clocks */
-+static const struct tps68470_pmic_table clk_table[] = {
-+	{
-+		.address = 0x00,
-+		.reg = TPS68470_REG_PLLCTL,
-+		.bitmask = 0xF5,
-+		/* TPS68470_REG_PLLCTL */
-+	},
-+	{
-+		.address = 0x04,
-+		.reg = TPS68470_REG_PLLCTL2,
-+		.bitmask = BIT(0),
-+		/* TPS68470_REG_PLLCTL2 */
-+	},
-+	{
-+		.address = 0x08,
-+		.reg = TPS68470_REG_CLKCFG1,
-+		.bitmask = TPS68470_CLKCFG1_MODE_A_MASK |
-+			TPS68470_CLKCFG1_MODE_B_MASK,
-+		/* TPS68470_REG_CLKCFG1 */
-+	},
-+	{
-+		.address = 0x0C,
-+		.reg = TPS68470_REG_CLKCFG2,
-+		.bitmask = TPS68470_CLKCFG1_MODE_A_MASK |
-+			TPS68470_CLKCFG1_MODE_B_MASK,
-+		/* TPS68470_REG_CLKCFG2 */
-+	},
-+};
-+
-+static int pmic_get_reg_bit(u64 address,
-+			    const struct tps68470_pmic_table *table,
-+			    const unsigned int table_size, int *reg,
-+			    int *bitmask)
-+{
-+	u64 i;
-+
-+	i = address / 4;
-+	if (i >= table_size)
-+		return -ENOENT;
-+
-+	if (!reg || !bitmask)
-+		return -EINVAL;
-+
-+	*reg = table[i].reg;
-+	*bitmask = table[i].bitmask;
-+
-+	return 0;
-+}
-+
-+static int tps68470_pmic_get_power(struct regmap *regmap, int reg,
-+				       int bitmask, u64 *value)
-+{
-+	unsigned int data;
-+
-+	if (regmap_read(regmap, reg, &data))
-+		return -EIO;
-+
-+	*value = (data & bitmask) ? 1 : 0;
-+	return 0;
-+}
-+
-+static int tps68470_pmic_get_vr_val(struct regmap *regmap, int reg,
-+				       int bitmask, u64 *value)
-+{
-+	unsigned int data;
-+
-+	if (regmap_read(regmap, reg, &data))
-+		return -EIO;
-+
-+	*value = data & bitmask;
-+	return 0;
-+}
-+
-+static int tps68470_pmic_get_clk(struct regmap *regmap, int reg,
-+				       int bitmask, u64 *value)
-+{
-+	unsigned int data;
-+
-+	if (regmap_read(regmap, reg, &data))
-+		return -EIO;
-+
-+	*value = (data & bitmask) ? 1 : 0;
-+	return 0;
-+}
-+
-+static int tps68470_pmic_get_clk_freq(struct regmap *regmap, int reg,
-+				       int bitmask, u64 *value)
-+{
-+	unsigned int data;
-+
-+	if (regmap_read(regmap, reg, &data))
-+		return -EIO;
-+
-+	*value = data & bitmask;
-+	return 0;
-+}
-+
-+static int ti_tps68470_regmap_update_bits(struct regmap *regmap, int reg,
-+					int bitmask, u64 value)
-+{
-+	return regmap_update_bits(regmap, reg, bitmask, value);
-+}
-+
-+static acpi_status tps68470_pmic_common_handler(u32 function,
-+					  acpi_physical_address address,
-+					  u32 bits, u64 *value,
-+					  void *region_context,
-+					  int (*get)(struct regmap *,
-+						     int, int, u64 *),
-+					  int (*update)(struct regmap *,
-+							int, int, u64),
-+					  const struct tps68470_pmic_table *tbl,
-+					  unsigned int tbl_size)
-+{
-+	struct tps68470_pmic_opregion *opregion = region_context;
-+	struct regmap *regmap = opregion->regmap;
-+	int reg, ret, bitmask;
-+
-+	if (bits != 32)
-+		return AE_BAD_PARAMETER;
-+
-+	ret = pmic_get_reg_bit(address, tbl, tbl_size, &reg, &bitmask);
-+	if (ret < 0)
-+		return AE_BAD_PARAMETER;
-+
-+	if (function == ACPI_WRITE && *value > bitmask)
-+		return AE_BAD_PARAMETER;
-+
-+	mutex_lock(&opregion->lock);
-+
-+	ret = (function == ACPI_READ) ?
-+		get(regmap, reg, bitmask, value) :
-+		update(regmap, reg, bitmask, *value);
-+
-+	mutex_unlock(&opregion->lock);
-+
-+	return ret ? AE_ERROR : AE_OK;
-+}
-+
-+static acpi_status tps68470_pmic_cfreq_handler(u32 function,
-+					    acpi_physical_address address,
-+					    u32 bits, u64 *value,
-+					    void *handler_context,
-+					    void *region_context)
-+{
-+	return tps68470_pmic_common_handler(function, address, bits, value,
-+				region_context,
-+				tps68470_pmic_get_clk_freq,
-+				ti_tps68470_regmap_update_bits,
-+				clk_freq_table,
-+				ARRAY_SIZE(clk_freq_table));
-+}
-+
-+static acpi_status tps68470_pmic_clk_handler(u32 function,
-+				       acpi_physical_address address, u32 bits,
-+				       u64 *value, void *handler_context,
-+				       void *region_context)
-+{
-+	return tps68470_pmic_common_handler(function, address, bits, value,
-+				region_context,
-+				tps68470_pmic_get_clk,
-+				ti_tps68470_regmap_update_bits,
-+				clk_table,
-+				ARRAY_SIZE(clk_table));
-+}
-+
-+static acpi_status tps68470_pmic_vrval_handler(u32 function,
-+					  acpi_physical_address address,
-+					  u32 bits, u64 *value,
-+					  void *handler_context,
-+					  void *region_context)
-+{
-+	return tps68470_pmic_common_handler(function, address, bits, value,
-+				region_context,
-+				tps68470_pmic_get_vr_val,
-+				ti_tps68470_regmap_update_bits,
-+				vr_val_table,
-+				ARRAY_SIZE(vr_val_table));
-+}
-+
-+static acpi_status tps68470_pmic_pwr_handler(u32 function,
-+					 acpi_physical_address address,
-+					 u32 bits, u64 *value,
-+					 void *handler_context,
-+					 void *region_context)
-+{
-+	if (bits != 32)
-+		return AE_BAD_PARAMETER;
-+
-+	/* set/clear for bit 0, bits 0 and 1 together */
-+	if (function == ACPI_WRITE &&
-+	    !(*value == 0 || *value == 1 || *value == 3)) {
-+		return AE_BAD_PARAMETER;
-+	}
-+
-+	return tps68470_pmic_common_handler(function, address, bits, value,
-+				region_context,
-+				tps68470_pmic_get_power,
-+				ti_tps68470_regmap_update_bits,
-+				power_table,
-+				ARRAY_SIZE(power_table));
-+}
-+
-+static int tps68470_pmic_opregion_probe(struct platform_device *pdev)
-+{
-+	struct regmap *tps68470_regmap = dev_get_drvdata(pdev->dev.parent);
-+	acpi_handle handle = ACPI_HANDLE(pdev->dev.parent);
-+	struct device *dev = &pdev->dev;
-+	struct tps68470_pmic_opregion *opregion;
-+	acpi_status status;
-+
-+	if (!dev || !tps68470_regmap) {
-+		dev_warn(dev, "dev or regmap is NULL\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!handle) {
-+		dev_warn(dev, "acpi handle is NULL\n");
-+		return -ENODEV;
-+	}
-+
-+	opregion = devm_kzalloc(dev, sizeof(*opregion), GFP_KERNEL);
-+	if (!opregion)
-+		return -ENOMEM;
-+
-+	mutex_init(&opregion->lock);
-+	opregion->regmap = tps68470_regmap;
-+
-+	status = acpi_install_address_space_handler(handle,
-+						    TI_PMIC_POWER_OPREGION_ID,
-+						    tps68470_pmic_pwr_handler,
-+						    NULL, opregion);
-+	if (ACPI_FAILURE(status))
-+		goto out_mutex_destroy;
-+
-+	status = acpi_install_address_space_handler(handle,
-+						    TI_PMIC_VR_VAL_OPREGION_ID,
-+						    tps68470_pmic_vrval_handler,
-+						    NULL, opregion);
-+	if (ACPI_FAILURE(status))
-+		goto out_remove_power_handler;
-+
-+	status = acpi_install_address_space_handler(handle,
-+						    TI_PMIC_CLOCK_OPREGION_ID,
-+						    tps68470_pmic_clk_handler,
-+						    NULL, opregion);
-+	if (ACPI_FAILURE(status))
-+		goto out_remove_vr_val_handler;
-+
-+	status = acpi_install_address_space_handler(handle,
-+						    TI_PMIC_CLKFREQ_OPREGION_ID,
-+						    tps68470_pmic_cfreq_handler,
-+						    NULL, opregion);
-+	if (ACPI_FAILURE(status))
-+		goto out_remove_clk_handler;
-+
-+	return 0;
-+
-+out_remove_clk_handler:
-+	acpi_remove_address_space_handler(handle, TI_PMIC_CLOCK_OPREGION_ID,
-+					  tps68470_pmic_clk_handler);
-+out_remove_vr_val_handler:
-+	acpi_remove_address_space_handler(handle, TI_PMIC_VR_VAL_OPREGION_ID,
-+					  tps68470_pmic_vrval_handler);
-+out_remove_power_handler:
-+	acpi_remove_address_space_handler(handle, TI_PMIC_POWER_OPREGION_ID,
-+					  tps68470_pmic_pwr_handler);
-+out_mutex_destroy:
-+	mutex_destroy(&opregion->lock);
-+	return -ENODEV;
-+}
-+
-+static struct platform_driver tps68470_pmic_opregion_driver = {
-+	.probe = tps68470_pmic_opregion_probe,
-+	.driver = {
-+		.name = "tps68470_pmic_opregion",
-+	},
-+};
-+
-+builtin_platform_driver(tps68470_pmic_opregion_driver)
--- 
-1.9.1
+Feel free to add
+
+Tested-by: Rajmohan Mani <rajmohan.mani@intel.com>
+
+Raj
+
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Andy Shevchenko
+> Sent: Monday, July 17, 2017 7:13 AM
+> To: Wolfram Sang <wsa@the-dreams.de>; linux-i2c@vger.kernel.org; Mika
+> Westerberg <mika.westerberg@linux.intel.com>; Hans de Goede
+> <hdegoede@redhat.com>; Rafael J . Wysocki <rjw@rjwysocki.net>; linux-
+> acpi@vger.kernel.org
+> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Subject: [Resend, PATCH v2] i2c: core: Allow empty id_table in ACPI case as
+> well
+> 
+> For now empty ID table is not allowed with ACPI and prevents driver to be
+> probed.
+> 
+> Add a check to allow empty ID table.
+> 
+> This introduces a helper i2c_acpi_match_device().
+> 
+> Note, we rename some static function in i2c-core-acpi.c to distinguish with
+> public API.
+> 
+> Fixes: da10c06a044b ("i2c: Make I2C ID tables non-mandatory for DT'ed
+> devices")
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+> - twice linux-i2c@ instead of i2c and acpi MLs, thus, resent  drivers/i2c/i2c-
+> core-acpi.c | 19 +++++++++++++++----  drivers/i2c/i2c-core-base.c |  1 +
+>  drivers/i2c/i2c-core.h      |  9 +++++++++
+>  3 files changed, 25 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c index
+> 4842ec3a5451..a9126b3cda61 100644
+> --- a/drivers/i2c/i2c-core-acpi.c
+> +++ b/drivers/i2c/i2c-core-acpi.c
+> @@ -230,6 +230,16 @@ void i2c_acpi_register_devices(struct i2c_adapter
+> *adap)
+>  		dev_warn(&adap->dev, "failed to enumerate I2C slaves\n");
+> }
+> 
+> +const struct acpi_device_id *
+> +i2c_acpi_match_device(const struct acpi_device_id *matches,
+> +		      struct i2c_client *client)
+> +{
+> +	if (!(client && matches))
+> +		return NULL;
+> +
+> +	return acpi_match_device(matches, &client->dev); }
+> +
+>  static acpi_status i2c_acpi_lookup_speed(acpi_handle handle, u32 level,
+>  					   void *data, void **return_value)  {
+> @@ -289,7 +299,7 @@ u32 i2c_acpi_find_bus_speed(struct device *dev)  }
+> EXPORT_SYMBOL_GPL(i2c_acpi_find_bus_speed);
+> 
+> -static int i2c_acpi_match_adapter(struct device *dev, void *data)
+> +static int i2c_acpi_find_match_adapter(struct device *dev, void *data)
+>  {
+>  	struct i2c_adapter *adapter = i2c_verify_adapter(dev);
+> 
+> @@ -299,7 +309,7 @@ static int i2c_acpi_match_adapter(struct device *dev,
+> void *data)
+>  	return ACPI_HANDLE(dev) == (acpi_handle)data;  }
+> 
+> -static int i2c_acpi_match_device(struct device *dev, void *data)
+> +static int i2c_acpi_find_match_device(struct device *dev, void *data)
+>  {
+>  	return ACPI_COMPANION(dev) == data;
+>  }
+> @@ -309,7 +319,7 @@ static struct i2c_adapter
+> *i2c_acpi_find_adapter_by_handle(acpi_handle handle)
+>  	struct device *dev;
+> 
+>  	dev = bus_find_device(&i2c_bus_type, NULL, handle,
+> -			      i2c_acpi_match_adapter);
+> +			      i2c_acpi_find_match_adapter);
+>  	return dev ? i2c_verify_adapter(dev) : NULL;  }
+> 
+> @@ -317,7 +327,8 @@ static struct i2c_client
+> *i2c_acpi_find_client_by_adev(struct acpi_device *adev)  {
+>  	struct device *dev;
+> 
+> -	dev = bus_find_device(&i2c_bus_type, NULL, adev,
+> i2c_acpi_match_device);
+> +	dev = bus_find_device(&i2c_bus_type, NULL, adev,
+> +			      i2c_acpi_find_match_device);
+>  	return dev ? i2c_verify_client(dev) : NULL;  }
+> 
+> diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c index
+> c89dac7fd2e7..12822a4b8f8f 100644
+> --- a/drivers/i2c/i2c-core-base.c
+> +++ b/drivers/i2c/i2c-core-base.c
+> @@ -357,6 +357,7 @@ static int i2c_device_probe(struct device *dev)
+>  	 * Tree match table entry is supplied for the probing device.
+>  	 */
+>  	if (!driver->id_table &&
+> +	    !i2c_acpi_match_device(dev->driver->acpi_match_table, client) &&
+>  	    !i2c_of_match_device(dev->driver->of_match_table, client))
+>  		return -ENODEV;
+> 
+> diff --git a/drivers/i2c/i2c-core.h b/drivers/i2c/i2c-core.h index
+> 3b63f5e5b89c..3d3d9bf02101 100644
+> --- a/drivers/i2c/i2c-core.h
+> +++ b/drivers/i2c/i2c-core.h
+> @@ -31,9 +31,18 @@ int i2c_check_addr_validity(unsigned addr, unsigned
+> short flags);  int i2c_check_7bit_addr_validity_strict(unsigned short addr);
+> 
+>  #ifdef CONFIG_ACPI
+> +const struct acpi_device_id *
+> +i2c_acpi_match_device(const struct acpi_device_id *matches,
+> +		      struct i2c_client *client);
+>  void i2c_acpi_register_devices(struct i2c_adapter *adap);  #else /*
+> CONFIG_ACPI */  static inline void i2c_acpi_register_devices(struct
+> i2c_adapter *adap) { }
+> +static inline const struct acpi_device_id * i2c_acpi_match_device(const
+> +struct acpi_device_id *matches,
+> +		      struct i2c_client *client)
+> +{
+> +	return NULL;
+> +}
+>  #endif /* CONFIG_ACPI */
+>  extern struct notifier_block i2c_acpi_notifier;
+> 
+> --
+> 2.11.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in the
+> body of a message to majordomo@vger.kernel.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
