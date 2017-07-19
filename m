@@ -1,95 +1,117 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v3 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
- erratum 161010801
-Date: Wed, 19 Jul 2017 10:48:15 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA8383B9D5A@FRAEML521-MBX.china.huawei.com>
-References: <20170623145801.325244-1-shameerali.kolothum.thodi@huawei.com>
- <20170623145801.325244-3-shameerali.kolothum.thodi@huawei.com>
- <20170704173820.GO22175@arm.com>
- <5FC3163CFD30C246ABAA99954A238FA83839DB59@FRAEML521-MBX.china.huawei.com>
- <20170714193322.GH26488@arm.com>
+From: yury norov <ynorov@caviumnetworks.com>
+Subject: re: [patch v3 2/5] acpi / boot: correct address space of
+ __acpi_map_table()
+Date: Wed, 19 Jul 2017 16:06:36 +0300
+Message-ID: <20170719130636.apmaj5ya4obkhvga@yury-thinkpad>
+References: <20170718150420.61600-1-andriy.shevchenko@linux.intel.com>
+ <20170718150420.61600-3-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:32067 "EHLO
-        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753877AbdGSKse (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jul 2017 06:48:34 -0400
-In-Reply-To: <20170714193322.GH26488@arm.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170718150420.61600-3-andriy.shevchenko@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: andy shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "rafael j . wysocki" <rjw@rjwysocki.net>, linux-pm@vger.kernel.org, thomas gleixner <tglx@linutronix.de>, ingo molnar <mingo@redhat.com>, "h . peter anvin" <hpa@zytor.com>, x86@kernel.org, linux-kernel@vger.kernel.org, hanjun guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org, geert uytterhoeven <geert@linux-m68k.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 
+Hi Andy,
 
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> index 09ddb3cd627a..6d5b1346268a 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -118,7 +118,7 @@ static u32 isa_irq_to_gsi[nr_irqs_legacy] __read_mostly = {
+>   * this is just a simple wrapper around early_ioremap(),
+>   * with sanity checks for phys == 0 and size == 0.
+>   */
+> -char *__init __acpi_map_table(unsigned long phys, unsigned long size)
+> +void __init __iomem *__acpi_map_table(unsigned long phys, unsigned long size)
+>  {
+>  
+>  	if (!phys || !size)
+> @@ -127,7 +127,7 @@ char *__init __acpi_map_table(unsigned long phys, unsigned long size)
+>  	return early_ioremap(phys, size);
+>  }
 
-> -----Original Message-----
-> From: Will Deacon [mailto:will.deacon@arm.com]
-> Sent: Friday, July 14, 2017 8:33 PM
-> To: Shameerali Kolothum Thodi
-> Cc: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
-> sudeep.holla@arm.com; robin.murphy@arm.com; hanjun.guo@linaro.org;
-> Gabriele Paoloni; John Garry; Linuxarm; linux-acpi@vger.kernel.org;
-> iommu@lists.linux-foundation.org; Wangzhou (B); Guohanjun (Hanjun Guo);
-> linux-arm-kernel@lists.infradead.org; devel@acpica.org
-> Subject: Re: [PATCH v3 2/2] iommu/arm-smmu-v3:Enable ACPI based
-> HiSilicon erratum 161010801
-> 
-[...]
-> > > > -	list_add_tail(&region->list, head);
-> > > > +	if ((smmu->options & ARM_SMMU_OPT_RESV_HW_MSI)) {
-> > > > +
-> > > > +		if (!is_of_node(smmu->dev->fwnode))
-> > > > +			resv = iort_iommu_its_get_resv_regions(dev, head);
-> > >
-> > > How does this work when we're not using ACPI? Shouldn't of vs ACPI
-> > > be abstracted from the driver?
-> >
-> > At present ARM_SMMU_OPT_RESV_HW_MSI is only set for ACPI and  DT
-> > support for this is a low priority for us at the moment. Is the
-> > suggestion is to have a common function outside the smmu driver for
-> > _iommu_its_get_resv_regions() ? I am not sure what is the best way here.
-> 
-> Right, something like that. The driver shouldn't need to care whether or not
-> it's using ACPI or DT when setting these options.
+I just found this patch in next tree, and it seems it breaks build for
+arm64, and probably for ia64:
 
-Below is what I have in mind for the common function for msi reserve.
-But just wondering invoking iort_ functions from iommu code 
-is acceptable or not . Could you please take a look and let me know.
+arch/arm64/kernel/acpi.c:98:14: error: conflicting types for ‘__acpi_map_table’
+ char *__init __acpi_map_table(unsigned long phys, unsigned long size)
+              ^~~~~~~~~~~~~~~~
+in file included from arch/arm64/kernel/acpi.c:18:0:
+./include/linux/acpi.h:231:15: note: previous declaration of ‘__acpi_map_table’ was here
+ void __iomem *__acpi_map_table(unsigned long phys_addr, unsigned long size);
+               ^~~~~~~~~~~~~~~~
+arch/arm64/kernel/acpi.c:106:13: error: conflicting types for ‘__acpi_unmap_table’
+ void __init __acpi_unmap_table(char *map, unsigned long size)
+             ^~~~~~~~~~~~~~~~~~
+in file included from arch/arm64/kernel/acpi.c:18:0:
+./include/linux/acpi.h:232:6: note: previous declaration of ‘__acpi_unmap_table’ was here
+ void __acpi_unmap_table(void __iomem *map, unsigned long size);
+      ^~~~~~~~~~~~~~~~~~
 
-Many thanks,
-Shameer
+the patch below fixes it. (Tested on arm64 only.)
 
---- a/drivers/iommu/dma-iommu.c
-+++ b/drivers/iommu/dma-iommu.c
-@@ -19,6 +19,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Yury
+
+>From 711e07171de68e71508695078bf6b897773a79ec Mon Sep 17 00:00:00 2001
+From: Yury Norov <ynorov@caviumnetworks.com>
+Date: Wed, 19 Jul 2017 16:00:02 +0300
+Subject: [PATCH] ACPI / boot: fix prototypes for __acpi_{un}map_table for
+ arm64 and ia64
+
+The prototypes were changed in patch "ACPI / boot: Correct address space
+of  __acpi_map_table()"
+
+Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
+---
+ arch/arm64/kernel/acpi.c | 4 ++--
+ arch/ia64/kernel/acpi.c  | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index e25c11e727fe..177a871c059d 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -95,7 +95,7 @@ static int __init dt_scan_depth1_nodes(unsigned long node,
+  * __acpi_map_table() will be called before page_init(), so early_ioremap()
+  * or early_memremap() should be called here to for ACPI table mapping.
   */
- 
-+#include <linux/acpi_iort.h>
- #include <linux/device.h>
- #include <linux/dma-iommu.h>
- #include <linux/gfp.h>
-@@ -198,6 +199,24 @@ void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list)
+-char *__init __acpi_map_table(unsigned long phys, unsigned long size)
++void __iomem *__acpi_map_table(unsigned long phys, unsigned long size)
+ {
+ 	if (!size)
+ 		return NULL;
+@@ -103,7 +103,7 @@ char *__init __acpi_map_table(unsigned long phys, unsigned long size)
+ 	return early_memremap(phys, size);
  }
- EXPORT_SYMBOL(iommu_dma_get_resv_regions);
  
-+/**
-+ * iommu_dma_get_msi_resv_regions - Reserved region driver helper
-+ * @dev: Device from iommu_get_resv_regions()
-+ * @list: Reserved region list from iommu_get_resv_regions()
-+ *
-+ * IOMMU drivers can use this to implement their .get_resv_regions
-+ * callback for HW MSI specific reservations. For now, this only
-+ * covers ITS MSI region reservation using ACPI IORT helper function.
-+ */
-+int iommu_dma_get_msi_resv_regions(struct device *dev, struct list_head *list)
-+{
-+	if (!is_of_node(dev->iommu_fwspec->iommu_fwnode))
-+		return iort_iommu_its_get_resv_regions(dev, list);
-+
-+	return -ENODEV;
-+}
-+EXPORT_SYMBOL(iommu_dma_get_msi_resv_regions);
+-void __init __acpi_unmap_table(char *map, unsigned long size)
++void __acpi_unmap_table(void __iomem *map, unsigned long size)
+ {
+ 	if (!map || !size)
+ 		return;
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index 7508c306aa9e..462a275c0479 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -159,12 +159,12 @@ int acpi_request_vector(u32 int_type)
+ 	return vector;
+ }
+ 
+-char *__init __acpi_map_table(unsigned long phys_addr, unsigned long size)
++void __iomem *__init __acpi_map_table(unsigned long phys_addr, unsigned long size)
+ {
+ 	return __va(phys_addr);
+ }
+ 
+-void __init __acpi_unmap_table(char *map, unsigned long size)
++void __init __acpi_unmap_table(void __iomem *map, unsigned long size)
+ {
+ }
+ 
+-- 
+2.11.0
