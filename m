@@ -1,134 +1,95 @@
-From: Bob Liu <liubo95@huawei.com>
-Subject: Re: [RFC v2 0/5] surface heterogeneous memory performance information
-Date: Wed, 19 Jul 2017 17:48:58 +0800
-Message-ID: <dc224433-3d09-8f2e-d278-fee98ada2afc@huawei.com>
-References: <20170706215233.11329-1-ross.zwisler@linux.intel.com>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v3 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+ erratum 161010801
+Date: Wed, 19 Jul 2017 10:48:15 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA8383B9D5A@FRAEML521-MBX.china.huawei.com>
+References: <20170623145801.325244-1-shameerali.kolothum.thodi@huawei.com>
+ <20170623145801.325244-3-shameerali.kolothum.thodi@huawei.com>
+ <20170704173820.GO22175@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA83839DB59@FRAEML521-MBX.china.huawei.com>
+ <20170714193322.GH26488@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([45.249.212.187]:10234 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754444AbdGSJtf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jul 2017 05:49:35 -0400
-In-Reply-To: <20170706215233.11329-1-ross.zwisler@linux.intel.com>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:32067 "EHLO
+        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753877AbdGSKse (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jul 2017 06:48:34 -0400
+In-Reply-To: <20170714193322.GH26488@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org
-Cc: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jerome Glisse <jglisse@redhat.com>, Len
+To: Will Deacon <will.deacon@arm.com>
+Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 
-On 2017/7/7 5:52, Ross Zwisler wrote:
-> ==== Quick Summary ====
-> 
-> Platforms in the very near future will have multiple types of memory
-> attached to a single CPU.  These disparate memory ranges will have some
-> characteristics in common, such as CPU cache coherence, but they can have
-> wide ranges of performance both in terms of latency and bandwidth.
-> 
-> For example, consider a system that contains persistent memory, standard
-> DDR memory and High Bandwidth Memory (HBM), all attached to the same CPU.
-> There could potentially be an order of magnitude or more difference in
-> performance between the slowest and fastest memory attached to that CPU.
-> 
-> With the current Linux code NUMA nodes are CPU-centric, so all the memory
-> attached to a given CPU will be lumped into the same NUMA node.  This makes
-> it very difficult for userspace applications to understand the performance
-> of different memory ranges on a given CPU.
-> 
-> We solve this issue by providing userspace with performance information on
-> individual memory ranges.  This performance information is exposed via
-> sysfs:
-> 
->   # grep . mem_tgt2/* mem_tgt2/local_init/* 2>/dev/null
->   mem_tgt2/firmware_id:1
->   mem_tgt2/is_cached:0
->   mem_tgt2/is_enabled:1
->   mem_tgt2/is_isolated:0
->   mem_tgt2/phys_addr_base:0x0
->   mem_tgt2/phys_length_bytes:0x800000000
->   mem_tgt2/local_init/read_bw_MBps:30720
->   mem_tgt2/local_init/read_lat_nsec:100
->   mem_tgt2/local_init/write_bw_MBps:30720
->   mem_tgt2/local_init/write_lat_nsec:100
-> 
-> This allows applications to easily find the memory that they want to use.
-> We expect that the existing NUMA APIs will be enhanced to use this new
-> information so that applications can continue to use them to select their
-> desired memory.
-> 
-> This series is built upon acpica-1705:
-> 
-> https://github.com/zetalog/linux/commits/acpica-1705
-> 
-> And you can find a working tree here:
-> 
-> https://git.kernel.org/pub/scm/linux/kernel/git/zwisler/linux.git/log/?h=hmem_sysfs
-> 
-> ==== Lots of Details ====
-> 
-> This patch set is only concerned with CPU-addressable memory types, not
-> on-device memory like what we have with Jerome Glisse's HMM series:
-> 
-> https://lwn.net/Articles/726691/
-> 
-> This patch set works by enabling the new Heterogeneous Memory Attribute
-> Table (HMAT) table, newly defined in ACPI 6.2. One major conceptual change
-> in ACPI 6.2 related to this work is that proximity domains no longer need
-> to contain a processor.  We can now have memory-only proximity domains,
-> which means that we can now have memory-only Linux NUMA nodes.
-> 
-> Here is an example configuration where we have a single processor, one
-> range of regular memory and one range of HBM:
-> 
->   +---------------+   +----------------+
->   | Processor     |   | Memory         |
->   | prox domain 0 +---+ prox domain 1  |
->   | NUMA node 1   |   | NUMA node 2    |
->   +-------+-------+   +----------------+
->           |
->   +-------+----------+
->   | HBM              |
->   | prox domain 2    |
->   | NUMA node 0      |
->   +------------------+
-> 
-> This gives us one initiator (the processor) and two targets (the two memory
-> ranges).  Each of these three has its own ACPI proximity domain and
-> associated Linux NUMA node.  Note also that while there is a 1:1 mapping
-> from each proximity domain to each NUMA node, the numbers don't necessarily
-> match up.  Additionally we can have extra NUMA nodes that don't map back to
-> ACPI proximity domains.
-> 
-> The above configuration could also have the processor and one of the two
-> memory ranges sharing a proximity domain and NUMA node, but for the
-> purposes of the HMAT the two memory ranges will always need to be
-> separated.
-> 
-> The overall goal of this series and of the HMAT is to allow users to
-> identify memory using its performance characteristics.  This can broadly be
-> done in one of two ways:
-> 
-> Option 1: Provide the user with a way to map between proximity domains and
-> NUMA nodes and a way to access the HMAT directly (probably via
-> /sys/firmware/acpi/tables).  Then, through possibly a library and a daemon,
-> provide an API so that applications can either request information about
-> memory ranges, or request memory allocations that meet a given set of
-> performance characteristics.
-> 
-> Option 2: Provide the user with HMAT performance data directly in sysfs,
-> allowing applications to directly access it without the need for the
-> library and daemon.
-> 
 
-Is it possible to do the memory allocation automatically by the kernel and transparent to users?
-It sounds like unreasonable that most users should aware this detail memory topology.
 
---
-Thanks,
-Bob Liu
+> -----Original Message-----
+> From: Will Deacon [mailto:will.deacon@arm.com]
+> Sent: Friday, July 14, 2017 8:33 PM
+> To: Shameerali Kolothum Thodi
+> Cc: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
+> sudeep.holla@arm.com; robin.murphy@arm.com; hanjun.guo@linaro.org;
+> Gabriele Paoloni; John Garry; Linuxarm; linux-acpi@vger.kernel.org;
+> iommu@lists.linux-foundation.org; Wangzhou (B); Guohanjun (Hanjun Guo);
+> linux-arm-kernel@lists.infradead.org; devel@acpica.org
+> Subject: Re: [PATCH v3 2/2] iommu/arm-smmu-v3:Enable ACPI based
+> HiSilicon erratum 161010801
+> 
+[...]
+> > > > -	list_add_tail(&region->list, head);
+> > > > +	if ((smmu->options & ARM_SMMU_OPT_RESV_HW_MSI)) {
+> > > > +
+> > > > +		if (!is_of_node(smmu->dev->fwnode))
+> > > > +			resv = iort_iommu_its_get_resv_regions(dev, head);
+> > >
+> > > How does this work when we're not using ACPI? Shouldn't of vs ACPI
+> > > be abstracted from the driver?
+> >
+> > At present ARM_SMMU_OPT_RESV_HW_MSI is only set for ACPI and  DT
+> > support for this is a low priority for us at the moment. Is the
+> > suggestion is to have a common function outside the smmu driver for
+> > _iommu_its_get_resv_regions() ? I am not sure what is the best way here.
+> 
+> Right, something like that. The driver shouldn't need to care whether or not
+> it's using ACPI or DT when setting these options.
 
-> The kernel work for option 1 is started by patches 1-3.  These just surface
-> the minimal amount of information in sysfs to allow userspace to map
-> between proximity domains and NUMA nodes so that the raw data in the HMAT
-> table can be understood.
+Below is what I have in mind for the common function for msi reserve.
+But just wondering invoking iort_ functions from iommu code 
+is acceptable or not . Could you please take a look and let me know.
 
+Many thanks,
+Shameer
+
+--- a/drivers/iommu/dma-iommu.c
++++ b/drivers/iommu/dma-iommu.c
+@@ -19,6 +19,7 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include <linux/acpi_iort.h>
+ #include <linux/device.h>
+ #include <linux/dma-iommu.h>
+ #include <linux/gfp.h>
+@@ -198,6 +199,24 @@ void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list)
+ }
+ EXPORT_SYMBOL(iommu_dma_get_resv_regions);
+ 
++/**
++ * iommu_dma_get_msi_resv_regions - Reserved region driver helper
++ * @dev: Device from iommu_get_resv_regions()
++ * @list: Reserved region list from iommu_get_resv_regions()
++ *
++ * IOMMU drivers can use this to implement their .get_resv_regions
++ * callback for HW MSI specific reservations. For now, this only
++ * covers ITS MSI region reservation using ACPI IORT helper function.
++ */
++int iommu_dma_get_msi_resv_regions(struct device *dev, struct list_head *list)
++{
++	if (!is_of_node(dev->iommu_fwspec->iommu_fwnode))
++		return iort_iommu_its_get_resv_regions(dev, list);
++
++	return -ENODEV;
++}
++EXPORT_SYMBOL(iommu_dma_get_msi_resv_regions);
