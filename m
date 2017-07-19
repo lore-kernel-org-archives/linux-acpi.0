@@ -1,90 +1,44 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Subject: Re: ATK0110 GITM[0x6020011] ACPI exception: AE_BAD_PARAMETER errors
-Date: Wed, 19 Jul 2017 15:04:48 +0100
-Message-ID: <CAKPcRGpAGoHmGLEcpWubzwVnJ8396QPEKnKsUa_Kcao3VzvtVA@mail.gmail.com>
-References: <c3774583-930e-a683-bf2f-0684689e12a4@internode.on.net>
- <CAKPcRGqKkUu3124kO+teFvDRuVkQHj1mgQxrmPfda7534HYQbQ@mail.gmail.com> <89f29b17-ebb3-6a0c-b806-16cde359a0f6@internode.on.net>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Wed, 19 Jul 2017 15:14:32 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F6130D126@ORSMSX114.amr.corp.intel.com>
+References: <20170717215912.26070-1-toshi.kani@hpe.com>
+ <20170717215912.26070-4-toshi.kani@hpe.com>
+ <20170718060007.GB8736@nazgul.tnic> <1500407379.2042.21.camel@hpe.com>
+ <20170718181545.32bd9181@vento.lan> <20170719055838.GF26030@nazgul.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f41.google.com ([209.85.213.41]:33223 "EHLO
-        mail-vk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752045AbdGSOEu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jul 2017 10:04:50 -0400
-Received: by mail-vk0-f41.google.com with SMTP id p193so774084vkd.0
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Jul 2017 07:04:50 -0700 (PDT)
-In-Reply-To: <89f29b17-ebb3-6a0c-b806-16cde359a0f6@internode.on.net>
+Received: from mga05.intel.com ([192.55.52.43]:18905 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753969AbdGSPOe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 19 Jul 2017 11:14:34 -0400
+In-Reply-To: <20170719055838.GF26030@nazgul.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arthur Marsh <arthur.marsh@internode.on.net>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: Borislav Petkov <bp@alien8.de>, Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: "Kani, Toshimitsu" <toshi.kani@hpe.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-Hi,
-
-On 10 July 2017 at 17:09, Arthur Marsh <arthur.marsh@internode.on.net> wrote:
->
->
-> Luca Tettamanti wrote on 10/07/17 19:35:
->>
->> Hi,
->>
->> On 9 July 2017 at 05:35, Arthur Marsh <arthur.marsh@internode.on.net>
->> wrote:
->>>
->>> On post 4.12.0 kernels
->>
->>
->> So 4.11.9 works but 4.12 doesn't, correct?
->
->
-> I tried the latest stock Debian 4.11, which is 4.11.6-1, which didn't have
-> the ACPI exceptions.
->
->
->>
->>> on an ASUS M3A7A Pro motherboard, I've been getting
->>> messages about the asus_atk0110 module:
->>>
->>> am64:/usr/src/linux# dmesg|grep -i atk
->>> [   12.517304] ATK0110 ATK0110:00: hwmon_device_register() is deprecated.
->>> Please convert the driver to use hwmon_device_register_with_info().
->>> [   54.749748] ATK0110 ATK0110:00: GITM[0x6020011] ACPI exception:
->>> AE_BAD_PARAMETER
->>> [   54.752680] ATK0110 ATK0110:00: GITM[0x6020061] ACPI exception:
->>> AE_BAD_PARAMETER
->>> [   54.755502] ATK0110 ATK0110:00: GITM[0x6020062] ACPI exception:
->>> AE_BAD_PARAMETER
->>> [   54.758310] ATK0110 ATK0110:00: GITM[0x6020063] ACPI exception:
->>> AE_BAD_PARAMETER
->>> [   54.758390] ATK0110 ATK0110:00: GITM[0x6040013] ACPI exception:
->>> AE_BAD_PARAMETER
->>> [   54.758466] ATK0110 ATK0110:00: GITM[0x6040073] ACPI exception:
->>> AE_BAD_PARAMETER
->>> [   54.758527] ATK0110 ATK0110:00: GITM[0x60400c3] ACPI exception:
->>> AE_BAD_PARAMETER
->>> [   54.758579] ATK0110 ATK0110:00: GITM[0x6030012] ACPI exception:
->>> AE_BAD_PARAMETER
->>> [   54.758631] ATK0110 ATK0110:00: GITM[0x6030074] ACPI exception:
->>> AE_BAD_PARAMETER
->>>
->>> This might be related to hard CPU lock-ups that I see later on, so for
->>> now
->>> I've unloaded the asus_atk0110 module to see if that prevents later
->>> lock-ups.
->>>
->>> I can supply more configuration/log information and run tests if anyone
->>> want
->>> them.
->>
->>
->> Can you please supply the full dmesg when booting with loglevel=7?
->> Also please attach a copy of the DSDT table
->> (/sys/firmware/acpi/tables/DSDT).
-
-So I don't see anything strange in the DSDT and the fact that older
-kernels work fine makes me think that something changed in acpica.
-Rafael, you merged acpica post v4.12 (the last working kernel): can
-you see anything that could have changed the way parameter validation
-works?
-
-L.
+PiAiVGhlIG1vZHVsZSBudW1iZXIgb2YgdGhlIG1lbW9yeSBlcnJvciBsb2NhdGlvbi4gKE5PREUs
+IENBUkQsIGFuZCBNT0RVTEUNCj4gc2hvdWxkIHByb3ZpZGUgdGhlIGluZm9ybWF0aW9uIG5lY2Vz
+c2FyeSB0byBpZGVudGlmeSB0aGUgZmFpbGluZyBGUlUpLiINCj4NCj4gU28gdGhpcyB0dXBsZSBp
+cyBzdWZmaWNpZW50IHRvIHBpbnBvaW50IHRoZSBESU1NLCBJSVVDLg0KPg0KPiBXaGljaCBtZWFu
+cywgZ2hlc19lZGFjIGNhbiBoYXZlIGEgc2luZ2xlIGxheWVyIG9mIERJTU1zIHdpdGhvdXQgY2hh
+bm5lbHMuDQoNClRoZSB0cmlja3kgcGFydCBpcyB0aGF0IHlvdSBoYXZlIHRvIHJlbHkgb24gU01C
+SU9TL0RNSSB0byBrbm93IHdoYXQgRElNTXMgYXJlDQpvbiB0aGUgc3lzdGVtIHdoZW4gdGhlIGRy
+aXZlciBpbml0aWFsaXplcyBzbyB5b3UgY2FuIHBvcHVsYXRlIC9zeXMvLiovZWRhYw0KDQpMYXRl
+ciB3aGVuIEdIRVMgZ2l2ZXMgeW91IGEgTk9ERS9DQVJEL01PRFVMRSkgaW4gYW4gZXJyb3IgcmVj
+b3JkLiAgWW91IG5lZWQNCnRvIG1hdGNoIHRoZXNlIHVwLiBCdXQgU01CSU9TIG9ubHkgZ2F2ZSB5
+b3UgdHdvIHN0cmluZ3MgIkxvY2F0b3IiIGFuZCAiQmFuaw0KTG9jYXRvciIgd2hpY2ggaGF2ZSBu
+byBkZWZpbmVkIHN5bnRheC4gWW91IGFyZSBhdCB0aGUgbWVyY3kgb2YgdGhlIEJJT1Mgd3JpdGVy
+DQp0byBwdXQgaW4gc29tZXRoaW5nIHBhcnNlYWJsZS4gU29tZSB3cml0ZXJzIHVzZWQgemVybyBi
+YXNlZCBjb3VudHMsIG90aGVycyBhcmUNCkZvcnRyYW4gZmFucyBhbmQgdXNlIG9uZS1iYXNlZC4g
+U3RpbGwgb3RoZXIgdXNlIGxldHRlcnMuICBBYm91dCB0aGUgb25lIGd1YXJhbnRlZQ0KaXMgdGhh
+dCB0aGV5IHdpbGwgbWFrZSBhbG1vc3Qgbm8gZWZmb3J0IHRvIG1hdGNoIHRoZSBzaWxrc2NyZWVu
+IGxhYmVscyBvbiB0aGUgbW90aGVyYm9hcmQNCml0c2VsZi4NCg0KRS5nLiBteSBCcm9hZHdlbGwt
+RVggaGFzIHRoaW5ncyBsaWtlOg0KDQogICAgICAgIExvY2F0b3I6IENIQU5ORUwgRCBESU1NIDEN
+CiAgICAgICAgQmFuayBMb2NhdG9yOiBNZW1yaXNlcjgNCg0KQ2hhbm5lbCBpcyBBLEIsQyxELiBE
+SU1NIGlzIDAsIDEsIDIuIE1lbXJpc2VyIGlzIHsxLi44fSBzbyB0aGlzIG1hbmFnZXMgdG8gdXNl
+IGFsbA0KdGhyZWUgY291bnRpbmcgb3B0aW9ucyENCg0KLVRvbnkNCg==
