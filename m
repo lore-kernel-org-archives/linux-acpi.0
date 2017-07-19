@@ -1,40 +1,57 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Wed, 19 Jul 2017 20:13:41 +0000
-Message-ID: <1500494666.2042.33.camel@hpe.com>
-References: <20170717215912.26070-1-toshi.kani@hpe.com>
-         <20170717215912.26070-4-toshi.kani@hpe.com>
-         <20170718060007.GB8736@nazgul.tnic> <20170718080836.GB8372@nazgul.tnic>
-         <1500412288.2042.25.camel@hpe.com> <20170719055235.GD26030@nazgul.tnic>
-         <1500480051.2042.27.camel@hpe.com> <20170719162204.GE16124@nazgul.tnic>
-         <20170719185508.GC16076@redhat.com>
+From: Haiyang Zhang <haiyangz@microsoft.com>
+Subject: RE: [PATCH v1 4/6] vmbus: Switch to use new generic UUID API
+Date: Wed, 19 Jul 2017 20:18:24 +0000
+Message-ID: <MWHPR21MB04791ED8A0F0F935176AE9B3CAA60@MWHPR21MB0479.namprd21.prod.outlook.com>
+References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
+ <20170719182857.73693-5-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170719185508.GC16076@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-co1nam03on0107.outbound.protection.outlook.com ([104.47.40.107]:46809
+        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752865AbdGSUS2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 19 Jul 2017 16:18:28 -0400
+In-Reply-To: <20170719182857.73693-5-andriy.shevchenko@linux.intel.com>
 Content-Language: en-US
-Content-ID: <B71CFD522179AB4183B6B6260CBB637D@NAMPRD84.PROD.OUTLOOK.COM>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "aris@redhat.com" <aris@redhat.com>, "bp@alien8.de" <bp@alien8.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>, "sparmaintainer@unisys.com" <sparmaintainer@unisys.com>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
+Cc: KY Srinivasan <kys@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
 
-T24gV2VkLCAyMDE3LTA3LTE5IGF0IDE0OjU1IC0wNDAwLCBBcmlzdGV1IFJvemFuc2tpIHdyb3Rl
-Og0KPiBPbiBXZWQsIEp1bCAxOSwgMjAxNyBhdCAwNjoyMjowNFBNICswMjAwLCBCb3Jpc2xhdiBQ
-ZXRrb3Ygd3JvdGU6DQo+ID4gT24gV2VkLCBKdWwgMTksIDIwMTcgYXQgMDQ6MTA6MDdQTSArMDAw
-MCwgS2FuaSwgVG9zaGltaXRzdSB3cm90ZToNCj4gPiA+IEkgZG8gcHJlZmVyIHRvIGF2b2lkIGFu
-eSB3aGl0ZSAvIGJsYWNrIGxpc3RpbmcuwqDCoEJ1dCBJIGRvIG5vdCBzZWUNCj4gPiA+IGhvdw0K
-PiA+ID4gaXQgc29sdmVzIHRoZSBidWdneSBETUkvU01CSU9TIGluZm8gYXMgYW4gZXhhbXBsZSBv
-ZiBmaXJtd2FyZQ0KPiA+ID4gYnVncyB3ZQ0KPiA+ID4gbWF5IGhhdmUgdG8gZGVhbCB3aXRoLg0K
-PiA+IA0KPiA+IFNvIGhvdyBkbyB5b3Ugd2FudCB0byBkZWFsIHdpdGggdGhpcz8NCj4gPiANCj4g
-PiBNYWludGFpbiBhbiBldmVyZ3Jvd2luZyB3aGl0ZWxpc3Qgb2YgcGxhdGZvcm1zIHdoaWNoIGFy
-ZSBPSyBhbmQNCj4gPiB0aGVuIHRoZSBtb21lbnQgYSBuZXcgcGxhdGZvcm0gY29tZXMgYWxvbmcs
-IHlvdSBzZW5kIGEgcGF0Y2ggdG8gYWRkDQo+ID4gaXQgdG8gdGhhdCB3aGl0ZWxpc3Q/DQo+IA0K
-PiBUaGF0IHdvdWxkIGFsc28gbmVlZCB0byBrZWVwIGFuIGV5ZSBvbiB2ZXJzaW9ucy4gQSBuZXdl
-ciB2ZXJzaW9uIG9mDQo+IEJJT1Mgb24gYSB3aGl0ZWxpc3RlZCBwbGF0Zm9ybSBtaWdodCBiZSBi
-cm9rZW4uDQoNClJpZ2h0LiAgSSB0aGluayBhIHF1ZXN0aW9uIGNvbWVzIHRvIHdobyBicm9rZSBh
-IHJ1bm5pbmcgc3lzdGVtIC0tIE9TDQp1cGRhdGUgb3IgQklPUyB1cGRhdGUuICBUaGlzIHdoaXRl
-bGlzdCBhdHRlbXB0cyB0byBwcm90ZWN0IHRoZSBmb3JtZXINCmNhc2UgYnkgbm90IGludHJvZHVj
-aW5nIGdoZXNfZWRhYyBvbiBhcmJpdHJhcnkgcGxhdGZvcm1zLiAgVGhlIGxhdHRlcg0KY2FzZSBz
-aG91bGQgYmUgdmVuZG9yJ3MgcmVzcG9uc2liaWxpdHkuDQoNClRoYW5rcywNCi1Ub3NoaQ0K
+
+
+> -----Original Message-----
+> From: Andy Shevchenko [mailto:andriy.shevchenko@linux.intel.com]
+> Sent: Wednesday, July 19, 2017 2:29 PM
+> To: linux-acpi@vger.kernel.org; devel@linuxdriverproject.org;
+> sparmaintainer@unisys.com; devel@driverdev.osuosl.org; linux-
+> wireless@vger.kernel.org; linux-watchdog@vger.kernel.org; linux-
+> efi@vger.kernel.org; Christoph Hellwig <hch@lst.de>; linux-
+> kernel@vger.kernel.org; Lukas Wunner <lukas@wunner.de>
+> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>; KY Srinivasan
+> <kys@microsoft.com>; Haiyang Zhang <haiyangz@microsoft.com>; Stephen
+> Hemminger <sthemmin@microsoft.com>
+> Subject: [PATCH v1 4/6] vmbus: Switch to use new generic UUID API
+>=20
+
+
+> @@ -118,8 +116,8 @@ enum hv_fcopy_op {
+>=20
+>  struct hv_fcopy_hdr {
+>  	__u32 operation;
+> -	uuid_le service_id0; /* currently unused */
+> -	uuid_le service_id1; /* currently unused */
+> +	__u8 service_id0[16]; /* currently unused */
+> +	__u8 service_id1[16]; /* currently unused */
+>  } __attribute__((packed));
+
+Even user space may not have all guid_t operations, could you still
+put guid_t here for consistency? This file is also used by our kernel
+mode code.
+
+Thanks,
+- Haiyang
+
+
