@@ -1,34 +1,31 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH 0/1] acpi: apei: Enable APEI multiple GHES source to
- share an single external IRQ
-Date: Wed, 19 Jul 2017 16:05:21 -0400
-Message-ID: <1500494721.14060.11.camel@redhat.com>
-References: <20170719172427.5478-1-msalter@redhat.com>
-         <CAJZ5v0hdtDEgNXMmD-3oKqHn8vSFx=wfTgN+as1AO=jiQ_BKzQ@mail.gmail.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Wed, 19 Jul 2017 20:06:20 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F6130DC65@ORSMSX114.amr.corp.intel.com>
+References: <20170717215912.26070-1-toshi.kani@hpe.com>
+        <20170717215912.26070-4-toshi.kani@hpe.com>
+        <20170718060007.GB8736@nazgul.tnic>     <1500407379.2042.21.camel@hpe.com>
+        <20170718181545.32bd9181@vento.lan>     <20170719055838.GF26030@nazgul.tnic>
+        <3908561D78D1C84285E8C5FCA982C28F6130D126@ORSMSX114.amr.corp.intel.com>
+ <20170719130245.7fc97352@vento.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60476 "EHLO mx1.redhat.com"
+Received: from mga04.intel.com ([192.55.52.120]:33240 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753346AbdGSUFW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Jul 2017 16:05:22 -0400
-In-Reply-To: <CAJZ5v0hdtDEgNXMmD-3oKqHn8vSFx=wfTgN+as1AO=jiQ_BKzQ@mail.gmail.com>
+        id S1754150AbdGSUGV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 19 Jul 2017 16:06:21 -0400
+In-Reply-To: <20170719130245.7fc97352@vento.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Tyler Baicar <tbaicar@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>, Aristeu Rozanski <aris@redhat.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-On Wed, 2017-07-19 at 21:23 +0200, Rafael J. Wysocki wrote:
-> On Wed, Jul 19, 2017 at 7:24 PM, Mark Salter <msalter@redhat.com> wrote:
-> > Rafael,
-> > 
-> > What do you think of this one?
-> 
-> Please ask this question to Boris Petkov in the first place.
+> So, it seems that either the BIOS is hidden the other channel or
+> there's something wrong with SandyBridge EP support at sb_edac driver.
 
-Yes, I should have included Boris. The last time this came up, Boris
-said it was up to you. :)
+Can you send me the out of "lspci -xxxx" (run as root)?
 
-http://lists.infradead.org/pipermail/linux-arm-kernel/2016-January/401772.html
-
+-Tony
