@@ -1,43 +1,90 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [patch v3 2/5] acpi / boot: correct address space of
- __acpi_map_table()
-Date: Wed, 19 Jul 2017 16:56:01 +0300
-Message-ID: <1500472561.29303.115.camel@linux.intel.com>
-References: <20170718150420.61600-1-andriy.shevchenko@linux.intel.com>
-         <20170718150420.61600-3-andriy.shevchenko@linux.intel.com>
-         <20170719130636.apmaj5ya4obkhvga@yury-thinkpad>
-         <20170719134051.zuf2rji46rfier64@yury-thinkpad>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: Re: ATK0110 GITM[0x6020011] ACPI exception: AE_BAD_PARAMETER errors
+Date: Wed, 19 Jul 2017 15:04:48 +0100
+Message-ID: <CAKPcRGpAGoHmGLEcpWubzwVnJ8396QPEKnKsUa_Kcao3VzvtVA@mail.gmail.com>
+References: <c3774583-930e-a683-bf2f-0684689e12a4@internode.on.net>
+ <CAKPcRGqKkUu3124kO+teFvDRuVkQHj1mgQxrmPfda7534HYQbQ@mail.gmail.com> <89f29b17-ebb3-6a0c-b806-16cde359a0f6@internode.on.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:33596 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751400AbdGSN4G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Jul 2017 09:56:06 -0400
-In-Reply-To: <20170719134051.zuf2rji46rfier64@yury-thinkpad>
+Received: from mail-vk0-f41.google.com ([209.85.213.41]:33223 "EHLO
+        mail-vk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752045AbdGSOEu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jul 2017 10:04:50 -0400
+Received: by mail-vk0-f41.google.com with SMTP id p193so774084vkd.0
+        for <linux-acpi@vger.kernel.org>; Wed, 19 Jul 2017 07:04:50 -0700 (PDT)
+In-Reply-To: <89f29b17-ebb3-6a0c-b806-16cde359a0f6@internode.on.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yury Norov <ynorov@caviumnetworks.com>
-Cc: "rafael j . wysocki" <rjw@rjwysocki.net>, linux-pm@vger.kernel.org, thomas gleixner <tglx@linutronix.de>, ingo molnar <mingo@redhat.com>, "h . peter anvin" <hpa@zytor.com>, x86@kernel.org, linux-kernel@vger.kernel.org, hanjun guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org, geert uytterhoeven <geert@linux-m68k.org>
+To: Arthur Marsh <arthur.marsh@internode.on.net>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-On Wed, 2017-07-19 at 16:40 +0300, Yury Norov wrote:
-> On Wed, Jul 19, 2017 at 04:06:36PM +0300, yury norov wrote:
+Hi,
 
-> > I just found this patch in next tree, and it seems it breaks build
-> > for
-> > arm64, and probably for ia64:
+On 10 July 2017 at 17:09, Arthur Marsh <arthur.marsh@internode.on.net> wrote:
+>
+>
+> Luca Tettamanti wrote on 10/07/17 19:35:
+>>
+>> Hi,
+>>
+>> On 9 July 2017 at 05:35, Arthur Marsh <arthur.marsh@internode.on.net>
+>> wrote:
+>>>
+>>> On post 4.12.0 kernels
+>>
+>>
+>> So 4.11.9 works but 4.12 doesn't, correct?
+>
+>
+> I tried the latest stock Debian 4.11, which is 4.11.6-1, which didn't have
+> the ACPI exceptions.
+>
+>
+>>
+>>> on an ASUS M3A7A Pro motherboard, I've been getting
+>>> messages about the asus_atk0110 module:
+>>>
+>>> am64:/usr/src/linux# dmesg|grep -i atk
+>>> [   12.517304] ATK0110 ATK0110:00: hwmon_device_register() is deprecated.
+>>> Please convert the driver to use hwmon_device_register_with_info().
+>>> [   54.749748] ATK0110 ATK0110:00: GITM[0x6020011] ACPI exception:
+>>> AE_BAD_PARAMETER
+>>> [   54.752680] ATK0110 ATK0110:00: GITM[0x6020061] ACPI exception:
+>>> AE_BAD_PARAMETER
+>>> [   54.755502] ATK0110 ATK0110:00: GITM[0x6020062] ACPI exception:
+>>> AE_BAD_PARAMETER
+>>> [   54.758310] ATK0110 ATK0110:00: GITM[0x6020063] ACPI exception:
+>>> AE_BAD_PARAMETER
+>>> [   54.758390] ATK0110 ATK0110:00: GITM[0x6040013] ACPI exception:
+>>> AE_BAD_PARAMETER
+>>> [   54.758466] ATK0110 ATK0110:00: GITM[0x6040073] ACPI exception:
+>>> AE_BAD_PARAMETER
+>>> [   54.758527] ATK0110 ATK0110:00: GITM[0x60400c3] ACPI exception:
+>>> AE_BAD_PARAMETER
+>>> [   54.758579] ATK0110 ATK0110:00: GITM[0x6030012] ACPI exception:
+>>> AE_BAD_PARAMETER
+>>> [   54.758631] ATK0110 ATK0110:00: GITM[0x6030074] ACPI exception:
+>>> AE_BAD_PARAMETER
+>>>
+>>> This might be related to hard CPU lock-ups that I see later on, so for
+>>> now
+>>> I've unloaded the asus_atk0110 module to see if that prevents later
+>>> lock-ups.
+>>>
+>>> I can supply more configuration/log information and run tests if anyone
+>>> want
+>>> them.
+>>
+>>
+>> Can you please supply the full dmesg when booting with loglevel=7?
+>> Also please attach a copy of the DSDT table
+>> (/sys/firmware/acpi/tables/DSDT).
 
-I think you found previous version (v1). _This_ patch (v3 of it)
-actually solves that.
+So I don't see anything strange in the DSDT and the fact that older
+kernels work fine makes me think that something changed in acpica.
+Rafael, you merged acpica post v4.12 (the last working kernel): can
+you see anything that could have changed the way parameter validation
+works?
 
-> > the patch below fixes it. (Tested on arm64 only.)
-> 
-> Ah, sorry. This is correct version.
-
-Thank you, I think Rafael might rebase with clean version (v3) his tree
-which will fix this.
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+L.
