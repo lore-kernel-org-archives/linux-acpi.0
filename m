@@ -1,94 +1,88 @@
 From: Rajmohan Mani <rajmohan.mani@intel.com>
-Subject: [PATCH v4 1/3] mfd: Add new mfd device TPS68470
-Date: Wed, 19 Jul 2017 16:20:24 -0700
-Message-ID: <1500506426-3047-2-git-send-email-rajmohan.mani@intel.com>
+Subject: [PATCH v4 2/3] gpio: Add support for TPS68470 GPIOs
+Date: Wed, 19 Jul 2017 16:20:25 -0700
+Message-ID: <1500506426-3047-3-git-send-email-rajmohan.mani@intel.com>
 References: <1500506426-3047-1-git-send-email-rajmohan.mani@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:3881 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932320AbdGSX2Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Jul 2017 19:28:25 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1500506426-3047-1-git-send-email-rajmohan.mani@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, sakari.ailus@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>, Rajmohan Mani <rajmohan.mani@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-The TPS68470 device is an advanced power management
-unit that powers a Compact Camera Module (CCM),
-generates clocks for image sensors, drives a dual
-LED for Flash and incorporates two LED drivers for
-general purpose indicators.
+This patch adds support for TPS68470 GPIOs.
+There are 7 GPIOs and a few sensor related GPIOs.
+These GPIOs can be requested and configured as
+appropriate.
 
-This patch adds support for TPS68470 mfd device.
+The GPIOs are also provided with descriptive names.
+However, the typical use case is that the OS GPIO
+driver will interact with TPS68470 GPIO driver
+to configure these GPIOs, as requested by the
+platform firmware.
 
 Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- drivers/mfd/Kconfig          |  18 +++++++
- drivers/mfd/Makefile         |   1 +
- drivers/mfd/tps68470.c       | 110 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/mfd/tps68470.h |  97 ++++++++++++++++++++++++++++++++++++++
- 4 files changed, 226 insertions(+)
- create mode 100644 drivers/mfd/tps68470.c
- create mode 100644 include/linux/mfd/tps68470.h
+ drivers/gpio/Kconfig         |  15 ++++
+ drivers/gpio/Makefile        |   1 +
+ drivers/gpio/gpio-tps68470.c | 174 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 190 insertions(+)
+ create mode 100644 drivers/gpio/gpio-tps68470.c
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 3eb5c93..960be43 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -1311,6 +1311,24 @@ config MFD_TPS65217
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called tps65217.
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index 23ca51e..a8fb61c 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -1041,6 +1041,21 @@ config GPIO_TPS65912
+ 	help
+ 	  This driver supports TPS65912 gpio chip
  
-+config MFD_TPS68470
-+	bool "TI TPS68470 Power Management / LED chips"
-+	depends on ACPI && I2C=y
-+	select MFD_CORE
-+	select REGMAP_I2C
-+	select I2C_DESIGNWARE_PLATFORM
++config GPIO_TPS68470
++	bool "TPS68470 GPIO"
++	depends on MFD_TPS68470
 +	help
-+	  If you say yes here you get support for the TPS68470 series of
-+	  Power Management / LED chips.
++	  Select this option to enable GPIO driver for the TPS68470
++	  chip family.
++	  There are 7 GPIOs and few sensor related GPIOs supported
++	  by the TPS68470. While the 7 GPIOs can be configured as
++	  input or output as appropriate, the sensor related GPIOs
++	  are "output only" GPIOs.
 +
-+	  These include voltage regulators, led and other features
-+	  that are often used in portable devices.
++	  This driver config is bool, as the GPIO functionality
++	  of the TPS68470 must be available before dependent
++	  drivers are loaded.
 +
-+	  This option is a bool as it provides an ACPI operation
-+	  region, which must be available before any of the devices
-+	  using this, are probed. This option also configures the
-+	  designware-i2c driver to be builtin, for the same reason.
-+
- config MFD_TI_LP873X
- 	tristate "TI LP873X Power Management IC"
- 	depends on I2C
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index c16bf1e..6dd2b94 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -82,6 +82,7 @@ obj-$(CONFIG_MFD_TPS65910)	+= tps65910.o
- obj-$(CONFIG_MFD_TPS65912)	+= tps65912-core.o
- obj-$(CONFIG_MFD_TPS65912_I2C)	+= tps65912-i2c.o
- obj-$(CONFIG_MFD_TPS65912_SPI)  += tps65912-spi.o
-+obj-$(CONFIG_MFD_TPS68470)	+= tps68470.o
- obj-$(CONFIG_MFD_TPS80031)	+= tps80031.o
- obj-$(CONFIG_MENELAUS)		+= menelaus.o
- 
-diff --git a/drivers/mfd/tps68470.c b/drivers/mfd/tps68470.c
+ config GPIO_TWL4030
+ 	tristate "TWL4030, TWL5030, and TPS659x0 GPIOs"
+ 	depends on TWL4030_CORE
+diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+index 68b9627..a2659cb 100644
+--- a/drivers/gpio/Makefile
++++ b/drivers/gpio/Makefile
+@@ -120,6 +120,7 @@ obj-$(CONFIG_GPIO_TPS65218)	+= gpio-tps65218.o
+ obj-$(CONFIG_GPIO_TPS6586X)	+= gpio-tps6586x.o
+ obj-$(CONFIG_GPIO_TPS65910)	+= gpio-tps65910.o
+ obj-$(CONFIG_GPIO_TPS65912)	+= gpio-tps65912.o
++obj-$(CONFIG_GPIO_TPS68470)	+= gpio-tps68470.o
+ obj-$(CONFIG_GPIO_TS4800)	+= gpio-ts4800.o
+ obj-$(CONFIG_GPIO_TS4900)	+= gpio-ts4900.o
+ obj-$(CONFIG_GPIO_TS5500)	+= gpio-ts5500.o
+diff --git a/drivers/gpio/gpio-tps68470.c b/drivers/gpio/gpio-tps68470.c
 new file mode 100644
-index 0000000..a692af7
+index 0000000..5a1dd56
 --- /dev/null
-+++ b/drivers/mfd/tps68470.c
-@@ -0,0 +1,110 @@
++++ b/drivers/gpio/gpio-tps68470.c
+@@ -0,0 +1,174 @@
 +/*
-+ * TPS68470 chip family multi-function driver
++ * GPIO driver for TPS68470 PMIC
 + *
 + * Copyright (C) 2017 Intel Corporation
 + * Authors:
-+ * Rajmohan Mani <rajmohan.mani@intel.com>
++ * Antti Laakso <antti.laakso@intel.com>
 + * Tianshu Qiu <tian.shu.qiu@intel.com>
 + * Jian Xu Zheng <jian.xu.zheng@intel.com>
 + * Yuning Pu <yuning.pu@intel.com>
-+ *
 + * This program is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License as
 + * published by the Free Software Foundation version 2.
@@ -99,199 +93,160 @@ index 0000000..a692af7
 + * GNU General Public License for more details.
 + */
 +
-+#include <linux/acpi.h>
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/init.h>
-+#include <linux/mfd/core.h>
++#include <linux/gpio/driver.h>
 +#include <linux/mfd/tps68470.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
 +#include <linux/regmap.h>
 +
-+static const struct mfd_cell tps68470s[] = {
-+	{
-+		.name = "tps68470-gpio",
-+	},
-+	{
-+		.name = "tps68470_pmic_opregion",
-+	},
++#define TPS68470_N_LOGIC_OUTPUT	3
++#define TPS68470_N_REGULAR_GPIO	7
++#define TPS68470_N_GPIO	(TPS68470_N_LOGIC_OUTPUT + TPS68470_N_REGULAR_GPIO)
++
++struct tps68470_gpio_data {
++	struct regmap *tps68470_regmap;
++	struct gpio_chip gc;
 +};
 +
-+static const struct regmap_config tps68470_regmap_config = {
-+	.reg_bits = 8,
-+	.val_bits = 8,
-+	.max_register = TPS68470_REG_MAX,
-+};
-+
-+static int tps68470_chip_init(struct device *dev, struct regmap *regmap)
++static int tps68470_gpio_get(struct gpio_chip *gc, unsigned int offset)
 +{
-+	unsigned int version;
-+	int ret;
++	struct tps68470_gpio_data *tps68470_gpio = gpiochip_get_data(gc);
++	struct regmap *regmap = tps68470_gpio->tps68470_regmap;
++	unsigned int reg = TPS68470_REG_GPDO;
++	int val, ret;
 +
-+	/* Force software reset */
-+	ret = regmap_write(regmap, TPS68470_REG_RESET, TPS68470_REG_RESET_MASK);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = regmap_read(regmap, TPS68470_REG_REVID, &version);
-+	if (ret < 0) {
-+		dev_err(dev, "Failed to read revision register: %d\n", ret);
-+		return ret;
++	if (offset >= TPS68470_N_REGULAR_GPIO) {
++		offset -= TPS68470_N_REGULAR_GPIO;
++		reg = TPS68470_REG_SGPO;
 +	}
 +
-+	dev_info(dev, "TPS68470 REVID: 0x%x\n", version);
-+
-+	return 0;
++	ret = regmap_read(regmap, reg, &val);
++	if (ret) {
++		dev_err(tps68470_gpio->gc.parent, "reg 0x%x read failed\n",
++			TPS68470_REG_SGPO);
++		return ret;
++	}
++	return !!(val & BIT(offset));
 +}
 +
-+static int tps68470_probe(struct i2c_client *client)
++/* Return 0 if output, 1 if input */
++static int tps68470_gpio_get_direction(struct gpio_chip *gc,
++				       unsigned int offset)
 +{
-+	struct device *dev = &client->dev;
-+	struct regmap *regmap;
-+	int ret;
++	struct tps68470_gpio_data *tps68470_gpio = gpiochip_get_data(gc);
++	struct regmap *regmap = tps68470_gpio->tps68470_regmap;
++	int val, ret;
 +
-+	regmap = devm_regmap_init_i2c(client, &tps68470_regmap_config);
-+	if (IS_ERR(regmap)) {
-+		dev_err(dev, "devm_regmap_init_i2c Error %ld\n",
-+			PTR_ERR(regmap));
-+		return PTR_ERR(regmap);
-+	}
++	/* rest are always outputs */
++	if (offset >= TPS68470_N_REGULAR_GPIO)
++		return 0;
 +
-+	i2c_set_clientdata(client, regmap);
-+
-+	ret = tps68470_chip_init(dev, regmap);
-+	if (ret < 0) {
-+		dev_err(dev, "TPS68470 Init Error %d\n", ret);
++	ret = regmap_read(regmap, TPS68470_GPIO_CTL_REG_A(offset), &val);
++	if (ret) {
++		dev_err(tps68470_gpio->gc.parent, "reg 0x%x read failed\n",
++			TPS68470_GPIO_CTL_REG_A(offset));
 +		return ret;
 +	}
 +
-+	ret = devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE, tps68470s,
-+			      ARRAY_SIZE(tps68470s), NULL, 0, NULL);
-+	if (ret < 0) {
-+		dev_err(dev, "devm_mfd_add_devices failed: %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
++	val &= TPS68470_GPIO_MODE_MASK;
++	return val >= TPS68470_GPIO_MODE_OUT_CMOS ? 0 : 1;
 +}
 +
-+static const struct acpi_device_id tps68470_acpi_ids[] = {
-+	{"INT3472"},
-+	{},
++static void tps68470_gpio_set(struct gpio_chip *gc, unsigned int offset,
++				int value)
++{
++	struct tps68470_gpio_data *tps68470_gpio = gpiochip_get_data(gc);
++	struct regmap *regmap = tps68470_gpio->tps68470_regmap;
++	unsigned int reg = TPS68470_REG_GPDO;
++
++	if (offset >= TPS68470_N_REGULAR_GPIO) {
++		reg = TPS68470_REG_SGPO;
++		offset -= TPS68470_N_REGULAR_GPIO;
++	}
++
++	regmap_update_bits(regmap, reg, BIT(offset), value ? BIT(offset) : 0);
++}
++
++static int tps68470_gpio_output(struct gpio_chip *gc, unsigned int offset,
++				int value)
++{
++	struct tps68470_gpio_data *tps68470_gpio = gpiochip_get_data(gc);
++	struct regmap *regmap = tps68470_gpio->tps68470_regmap;
++
++	/* rest are always outputs */
++	if (offset >= TPS68470_N_REGULAR_GPIO)
++		return 0;
++
++	/* Set the initial value */
++	tps68470_gpio_set(gc, offset, value);
++
++	return regmap_update_bits(regmap, TPS68470_GPIO_CTL_REG_A(offset),
++				 TPS68470_GPIO_MODE_MASK,
++				 TPS68470_GPIO_MODE_OUT_CMOS);
++}
++
++static int tps68470_gpio_input(struct gpio_chip *gc, unsigned int offset)
++{
++	struct tps68470_gpio_data *tps68470_gpio = gpiochip_get_data(gc);
++	struct regmap *regmap = tps68470_gpio->tps68470_regmap;
++
++	/* rest are always outputs */
++	if (offset >= TPS68470_N_REGULAR_GPIO)
++		return -EINVAL;
++
++	return regmap_update_bits(regmap, TPS68470_GPIO_CTL_REG_A(offset),
++				   TPS68470_GPIO_MODE_MASK, 0x00);
++}
++
++static const char *tps68470_names[TPS68470_N_GPIO] = {
++	"gpio.0", "gpio.1", "gpio.2", "gpio.3",
++	"gpio.4", "gpio.5", "gpio.6",
++	"s_enable", "s_idle", "s_resetn",
 +};
 +
-+MODULE_DEVICE_TABLE(acpi, tps68470_acpi_ids);
++static int tps68470_gpio_probe(struct platform_device *pdev)
++{
++	struct tps68470_gpio_data *tps68470_gpio;
++	int ret;
 +
-+static struct i2c_driver tps68470_driver = {
++	tps68470_gpio = devm_kzalloc(&pdev->dev, sizeof(*tps68470_gpio),
++				     GFP_KERNEL);
++	if (!tps68470_gpio)
++		return -ENOMEM;
++
++	tps68470_gpio->tps68470_regmap = dev_get_drvdata(pdev->dev.parent);
++	tps68470_gpio->gc.label = "tps68470-gpio";
++	tps68470_gpio->gc.owner = THIS_MODULE;
++	tps68470_gpio->gc.direction_input = tps68470_gpio_input;
++	tps68470_gpio->gc.direction_output = tps68470_gpio_output;
++	tps68470_gpio->gc.get = tps68470_gpio_get;
++	tps68470_gpio->gc.get_direction = tps68470_gpio_get_direction;
++	tps68470_gpio->gc.set = tps68470_gpio_set;
++	tps68470_gpio->gc.can_sleep = true;
++	tps68470_gpio->gc.names = tps68470_names;
++	tps68470_gpio->gc.ngpio = TPS68470_N_GPIO;
++	tps68470_gpio->gc.base = -1;
++	tps68470_gpio->gc.parent = &pdev->dev;
++
++	ret = devm_gpiochip_add_data(&pdev->dev, &tps68470_gpio->gc,
++				     tps68470_gpio);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to register gpio_chip: %d\n", ret);
++		return ret;
++	}
++
++	platform_set_drvdata(pdev, tps68470_gpio);
++
++	return ret;
++}
++
++static struct platform_driver tps68470_gpio_driver = {
 +	.driver = {
-+		   .name = "tps68470",
-+		   .acpi_match_table = tps68470_acpi_ids,
++		   .name = "tps68470-gpio",
 +	},
-+	.probe_new = tps68470_probe,
++	.probe = tps68470_gpio_probe,
 +};
-+builtin_i2c_driver(tps68470_driver);
-diff --git a/include/linux/mfd/tps68470.h b/include/linux/mfd/tps68470.h
-new file mode 100644
-index 0000000..44f9d9f
---- /dev/null
-+++ b/include/linux/mfd/tps68470.h
-@@ -0,0 +1,97 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation
-+ *
-+ * Functions to access TPS68470 power management chip.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
 +
-+#ifndef __LINUX_MFD_TPS68470_H
-+#define __LINUX_MFD_TPS68470_H
-+
-+/* Register addresses */
-+#define TPS68470_REG_POSTDIV2		0x06
-+#define TPS68470_REG_BOOSTDIV		0x07
-+#define TPS68470_REG_BUCKDIV		0x08
-+#define TPS68470_REG_PLLSWR		0x09
-+#define TPS68470_REG_XTALDIV		0x0A
-+#define TPS68470_REG_PLLDIV		0x0B
-+#define TPS68470_REG_POSTDIV		0x0C
-+#define TPS68470_REG_PLLCTL		0x0D
-+#define TPS68470_REG_PLLCTL2		0x0E
-+#define TPS68470_REG_CLKCFG1		0x0F
-+#define TPS68470_REG_CLKCFG2		0x10
-+#define TPS68470_REG_GPCTL0A		0x14
-+#define TPS68470_REG_GPCTL0B		0x15
-+#define TPS68470_REG_GPCTL1A		0x16
-+#define TPS68470_REG_GPCTL1B		0x17
-+#define TPS68470_REG_GPCTL2A		0x18
-+#define TPS68470_REG_GPCTL2B		0x19
-+#define TPS68470_REG_GPCTL3A		0x1A
-+#define TPS68470_REG_GPCTL3B		0x1B
-+#define TPS68470_REG_GPCTL4A		0x1C
-+#define TPS68470_REG_GPCTL4B		0x1D
-+#define TPS68470_REG_GPCTL5A		0x1E
-+#define TPS68470_REG_GPCTL5B		0x1F
-+#define TPS68470_REG_GPCTL6A		0x20
-+#define TPS68470_REG_GPCTL6B		0x21
-+#define TPS68470_REG_SGPO		0x22
-+#define TPS68470_REG_GPDI		0x26
-+#define TPS68470_REG_GPDO		0x27
-+#define TPS68470_REG_VCMVAL		0x3C
-+#define TPS68470_REG_VAUX1VAL		0x3D
-+#define TPS68470_REG_VAUX2VAL		0x3E
-+#define TPS68470_REG_VIOVAL		0x3F
-+#define TPS68470_REG_VSIOVAL		0x40
-+#define TPS68470_REG_VAVAL		0x41
-+#define TPS68470_REG_VDVAL		0x42
-+#define TPS68470_REG_S_I2C_CTL		0x43
-+#define TPS68470_REG_VCMCTL		0x44
-+#define TPS68470_REG_VAUX1CTL		0x45
-+#define TPS68470_REG_VAUX2CTL		0x46
-+#define TPS68470_REG_VACTL		0x47
-+#define TPS68470_REG_VDCTL		0x48
-+#define TPS68470_REG_RESET		0x50
-+#define TPS68470_REG_REVID		0xFF
-+
-+#define TPS68470_REG_MAX		TPS68470_REG_REVID
-+
-+/* Register field definitions */
-+
-+#define TPS68470_REG_RESET_MASK		GENMASK(7, 0)
-+#define TPS68470_VAVAL_AVOLT_MASK	GENMASK(6, 0)
-+
-+#define TPS68470_VDVAL_DVOLT_MASK	GENMASK(5, 0)
-+#define TPS68470_VCMVAL_VCVOLT_MASK	GENMASK(6, 0)
-+#define TPS68470_VIOVAL_IOVOLT_MASK	GENMASK(6, 0)
-+#define TPS68470_VSIOVAL_IOVOLT_MASK	GENMASK(6, 0)
-+#define TPS68470_VAUX1VAL_AUX1VOLT_MASK	GENMASK(6, 0)
-+#define TPS68470_VAUX2VAL_AUX2VOLT_MASK	GENMASK(6, 0)
-+
-+#define TPS68470_VACTL_EN_MASK		GENMASK(0, 0)
-+#define TPS68470_VDCTL_EN_MASK		GENMASK(0, 0)
-+#define TPS68470_VCMCTL_EN_MASK		GENMASK(0, 0)
-+#define TPS68470_S_I2C_CTL_EN_MASK	GENMASK(1, 0)
-+#define TPS68470_VAUX1CTL_EN_MASK	GENMASK(0, 0)
-+#define TPS68470_VAUX2CTL_EN_MASK	GENMASK(0, 0)
-+#define TPS68470_PLL_EN_MASK		GENMASK(0, 0)
-+
-+#define TPS68470_CLKCFG1_MODE_A_MASK	GENMASK(1, 0)
-+#define TPS68470_CLKCFG1_MODE_B_MASK	GENMASK(3, 2)
-+
-+#define TPS68470_GPIO_CTL_REG_A(x)	(TPS68470_REG_GPCTL0A + (x) * 2)
-+#define TPS68470_GPIO_CTL_REG_B(x)	(TPS68470_REG_GPCTL0B + (x) * 2)
-+#define TPS68470_GPIO_MODE_MASK		GENMASK(1, 0)
-+#define TPS68470_GPIO_MODE_IN		0
-+#define TPS68470_GPIO_MODE_IN_PULLUP	1
-+#define TPS68470_GPIO_MODE_OUT_CMOS	2
-+#define TPS68470_GPIO_MODE_OUT_ODRAIN	3
-+
-+#endif /* __LINUX_MFD_TPS68470_H */
++builtin_platform_driver(tps68470_gpio_driver)
 -- 
 1.9.1
-
