@@ -1,120 +1,258 @@
-From: Seunghun Han <kkamagui@gmail.com>
-Subject: [PATCH V2] acpi: acpica: fix acpi operand cache leak in dswstate.c
-Date: Wed, 19 Jul 2017 16:40:28 +0900
-Message-ID: <1500450028-14236-1-git-send-email-kkamagui@gmail.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: A udev rule to serve the change event of ACPI container?
+Date: Wed, 19 Jul 2017 17:09:10 +0800
+Message-ID: <20170719090910.GK26098@linux-l9pv.suse>
+References: <20170626062657.GE4229@linux-l9pv.suse>
+ <20170626085907.GE11534@dhcp22.suse.cz>
+ <20170711082532.GA6927@dhcp22.suse.cz>
+ <20170713065806.GB2901@linux-l9pv.suse>
+ <20170713070618.GC14492@dhcp22.suse.cz>
+ <20170713124521.GE2901@linux-l9pv.suse>
+ <20170714083713.GB2618@dhcp22.suse.cz>
+ <20170714144414.GM2901@linux-l9pv.suse>
+ <20170717090525.GF12888@dhcp22.suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:35243 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752190AbdGSHln (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jul 2017 03:41:43 -0400
+Received: from smtp.nue.novell.com ([195.135.221.5]:56265 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752788AbdGSJJV (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Wed, 19 Jul 2017 05:09:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20170717090525.GF12888@dhcp22.suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, security@kernel.org, Seunghun Han <kkamagui@gmail.com>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-I found an ACPI cache leak in ACPI early termination and boot continuing case.
+On Mon, Jul 17, 2017 at 11:05:25AM +0200, Michal Hocko wrote:
+> On Fri 14-07-17 22:44:14, Joey Lee wrote:
+> > On Fri, Jul 14, 2017 at 10:37:13AM +0200, Michal Hocko wrote:
+> > > On Thu 13-07-17 20:45:21, Joey Lee wrote:
+> > > > On Thu, Jul 13, 2017 at 09:06:19AM +0200, Michal Hocko wrote:
+> > > > > On Thu 13-07-17 14:58:06, Joey Lee wrote:
+> > > [...]
+> > > > > > If BIOS emits ejection event for a ACPI0004 container, someone needs
+> > > > > > to handle the offline/eject jobs of container. Either kernel or user
+> > > > > > space.
+> > > > > >
+> > > > > > Only sending uevent to individual child device can simplify udev rule,
+> > > > > > but it also means that the kernel needs to offline/eject container
+> > > > > > after all children devices are offlined.
+> > > > >
+> > > > > Why cannot kernel send this eject command to the BIOS if the whole
+> > > > > container is offline? If it is not then the kernel would send EBUSY to
+> > > >
+> > > > Current kernel container hot-remove process:
+> > > >
+> > > >   BIOS -> SCI event -> Kernel ACPI -> uevent -> userland
+> > > >
+> > > > Then, kernel just calls _OST to expose state to BIOS, then process is
+> > > > stopped. Kernel doesn't wait there for userland to offline each child
+> > > > devices. Either BIOS or userland needs to trigger the container
+> > > > ejection.
+> > > >
+> > > > > container is offline? If it is not then the kernel would send EBUSY to
+> > > > > the BIOS and BIOS would have to retry after some timeout. Or is it a
+> > > >
+> > > > The d429e5c122 patch is merged to mainline. So kernel will send
+> > > > DEVICE_BUSY to BIOS after it emits uevent to userland. BIOS can choice
+> > > > to apply the retry approach until OS returns process failure exactly or
+> > > > BIOS timeout.
+> > > >
+> > > > > problem that currently implemented BIOS firmwares do not implement this
+> > > > > retry?
+> > > >
+> > > > Yes, we should consider the behavior of old BIOS. Old BIOS doesn't
+> > > > retry/resend the ejection event. So kernel or userland need to take the
+> > > > retry job. Obviously userland runs the retry since the caa73ea15 patch
+> > > > is merged.
+> > > >
+> > > > IMHO there have two different expectation from user space application.
+> > > >
+> > > > Applications like DVD player or Burner expect that kernel should
+> > > > info userspace for the ejection, then application can do their cleaning
+> > > > job and re-trigger ejection from userland.
+> > >
+> > > I am not sure I understand the DVD example because I do not see how it
+> > > fits into the container and online/offline scenario.
+> > >
+> >
+> > At least Yasuaki raised similar behavior for container in 2013.
+> > It's similar to the DVD player case, user space application needs
+> > to do something then trigger children offline and ejection of
+> > container.
+>
+> The problem I have with this expectation is that userspace will never
+> have a good atomic view of the whole container. So it can only try to
 
-When early termination is occurred due to malicious ACPI table, Linux kernel
-terminates ACPI function and continues to boot process. While kernel terminates
-ACPI function, kmem_cache_destroy() reports Acpi-Operand cache leak.
+I agreed!
 
-Boot log of ACPI operand cache leak is as follows:
->[    0.585957] ACPI: Added _OSI(Module Device)
->[    0.587218] ACPI: Added _OSI(Processor Device)
->[    0.588530] ACPI: Added _OSI(3.0 _SCP Extensions)
->[    0.589790] ACPI: Added _OSI(Processor Aggregator Device)
->[    0.591534] ACPI Error: Illegal I/O port address/length above 64K: C806E00000004002/0x2 (20170303/hwvalid-155)
->[    0.594351] ACPI Exception: AE_LIMIT, Unable to initialize fixed events (20170303/evevent-88)
->[    0.597858] ACPI: Unable to start the ACPI Interpreter
->[    0.599162] ACPI Error: Could not remove SCI handler (20170303/evmisc-281)
->[    0.601836] kmem_cache_destroy Acpi-Operand: Slab cache still has objects
->[    0.603556] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.12.0-rc5 #26
->[    0.605159] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS VirtualBox 12/01/2006
->[    0.609177] Call Trace:
->[    0.610063]  ? dump_stack+0x5c/0x81
->[    0.611118]  ? kmem_cache_destroy+0x1aa/0x1c0
->[    0.612632]  ? acpi_sleep_proc_init+0x27/0x27
->[    0.613906]  ? acpi_os_delete_cache+0xa/0x10
->[    0.617986]  ? acpi_ut_delete_caches+0x3f/0x7b
->[    0.619293]  ? acpi_terminate+0xa/0x14
->[    0.620394]  ? acpi_init+0x2af/0x34f
->[    0.621616]  ? __class_create+0x4c/0x80
->[    0.623412]  ? video_setup+0x7f/0x7f
->[    0.624585]  ? acpi_sleep_proc_init+0x27/0x27
->[    0.625861]  ? do_one_initcall+0x4e/0x1a0
->[    0.627513]  ? kernel_init_freeable+0x19e/0x21f
->[    0.628972]  ? rest_init+0x80/0x80
->[    0.630043]  ? kernel_init+0xa/0x100
->[    0.631084]  ? ret_from_fork+0x25/0x30
->[    0.633343] vgaarb: loaded
->[    0.635036] EDAC MC: Ver: 3.0.0
->[    0.638601] PCI: Probing PCI hardware
->[    0.639833] PCI host bridge to bus 0000:00
->[    0.641031] pci_bus 0000:00: root bus resource [io  0x0000-0xffff]
-> ... Continue to boot and log is omitted ...
+Even a userspace application can handle part of offline jobs. It's
+still possible that other kernel/userland compenents are using the
+resource in container.
 
-I analyzed this memory leak in detail and found acpi_ds_obj_stack_pop_and_
-delete() function miscalculated the top of the stack. acpi_ds_obj_stack_push()
-function uses walk_state->operand_index for start position of the top, but
-acpi_ds_obj_stack_pop_and_delete() function considers index 0 for it.
-Therefore, this causes acpi operand memory leak.
+> eject and then hope that nobody has onlined part of the container.
+> If you emit offline event to the userspace the cleanup can be done and
+> after the last component goes offline then the eject can be done
+> atomically.
 
-This cache leak causes a security threat because an old kernel (<= 4.9) shows
-memory locations of kernel functions in stack dump. Some malicious users
-could use this information to neutralize kernel ASLR.
+The thing that we didn't align is how does kernel maintains the flag
+of ejection state on container.
 
-I made a patch to fix ACPI operand cache leak.
+>
+> [...]
+> > > Hmm, so can we trigger the eject from the _kernel_ when the last child
+> > > is offlined?
+> >
+> > Kernel needs to remember that the container is under a _EJECTION_ state
+> > that it should waits all children be offlined. Then kernel checks the
+> > container offline state when each individual device is offlined. If
+> > kernel found a container offlined (means that all children are offlined),
+> > and the container is under ejection state, then kernel runs ejection
+> > jobs (removing objects and calls _EJ0).
+>
+> yes, that is what I meant.
+>
+> > To achieve this, I think that the container object needs a _EJECTION_
+> > flag. It helps kernel to remember the state that it set by BIOS's
+> > ejection event.
+>
+> yes something like that.
+>
 
-Signed-off-by: Seunghun Han <kkamagui@gmail.com>
----
-Changes since V1: move stack_top into loop and change loop condition.
+Good!
 
- drivers/acpi/acpica/dswstate.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+> > This approach has some problems: If userland doesn't finish his offline
+> > jobs or userland doesn't do anything, when should kernel clears the
+> > ejection flag and responses failure by _OST to BIOS?
+>
+> I do not see how is that any different from the current approach. You
+> still cannot do the eject if some component is online and we rely on the
+> userspace to do the offline.
 
-diff --git a/drivers/acpi/acpica/dswstate.c b/drivers/acpi/acpica/dswstate.c
-index da111a1..882a3d1 100644
---- a/drivers/acpi/acpica/dswstate.c
-+++ b/drivers/acpi/acpica/dswstate.c
-@@ -402,7 +402,8 @@ void
- acpi_ds_obj_stack_pop_and_delete(u32 pop_count,
- 				 struct acpi_walk_state *walk_state)
- {
--	s32 i;
-+	u32 i;
-+	s32 stack_top;
- 	union acpi_operand_object *obj_desc;
- 
- 	ACPI_FUNCTION_NAME(ds_obj_stack_pop_and_delete);
-@@ -411,7 +412,11 @@ acpi_ds_obj_stack_pop_and_delete(u32 pop_count,
- 		return;
- 	}
- 
--	for (i = (s32)pop_count - 1; i >= 0; i--) {
-+	/* Calculate curruent top of the stack */
-+
-+	stack_top = (s32)walk_state->num_operands + walk_state->operand_index - 1;
-+
-+	for (i = 0; i < pop_count ; i++) {
- 		if (walk_state->num_operands == 0) {
- 			return;
- 		}
-@@ -419,11 +424,12 @@ acpi_ds_obj_stack_pop_and_delete(u32 pop_count,
- 		/* Pop the stack and delete an object if present in this stack entry */
- 
- 		walk_state->num_operands--;
--		obj_desc = walk_state->operands[i];
-+		obj_desc = walk_state->operands[stack_top];
- 		if (obj_desc) {
--			acpi_ut_remove_reference(walk_state->operands[i]);
--			walk_state->operands[i] = NULL;
-+			acpi_ut_remove_reference(walk_state->operands[stack_top]);
-+			walk_state->operands[stack_top] = NULL;
- 		}
-+		stack_top--;
- 	}
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Count=%X State=%p #Ops=%X\n",
--- 
-2.1.4
+I see. I agree with you that it's no different from the current approach.
+But I still concern how to maintain the ejection state flag in kernel.
 
+>
+> > And, for new BIOS that it has time out mechanism. Currently there have
+> > no way for BIOS to tell kernel that it gives up. It's hard to sync the
+> > kernel container's ejection flag with BIOS.
+>
+> I am not sure I understand. The kernel/BIOS synchronization happens on
+> the up/down calls between the platform and the kernel...
+
+NO! The container hot-remove process does not synchronize. For new BIOS
+that it can retry until time out, so kernel doesn't need to keep the
+ejection state of container:
+
+      retry BIOS           Kernel        Userspace
+	  |-----SCI------>|----uevent---->|
+	  |               |               +----+
+	  |<--_OST(Busy)--|               |    |
+	  |----+          |               |  clean up
+	  |    |          |               |    |
+	  |   Wait        |<---offline----+<---+
+	  |   Wait        |<---offline----+<---+
+	  |   Wait        |<---offline----+<---+
+	  |   Wait        |<---offline----+<---+
+	  |    |          |               |  
+	  |    |          |               |     
+	  |<---+          |               |     
+	  |---retry SCI-->|----+          |    
+	  |               |    |          |   
+	  |     	  | check all     | 
+          |               | offlined      |     
+	  |               |    |          |     
+	  |               +<---+          |     
+	  |               +----+          |     
+	  |               |    |          |     
+          |               | ejection      |     
+	  |               |    |          |     
+	  |<----_EJ0------+<---+          |     
+	  |               |               |     
+	  |               |               |     
+	Time out
+
+But for old BIOS or non-retry BIOS, it doesn't resend
+SCI to kernel, so kernel will not run ejection and _EJ0:
+
+      old BIOS           Kernel        Userspace
+	  |-----SCI------>|----uevent---->|
+	  |               |               +----+
+	  |<--_OST(Busy)--|               |    |
+	  |----+          |               |  clean up
+	  |    |          |               |    |
+	  | failure       |<---offline----+<---+
+	  |    |          |<---offline----+<---+
+	  |<---+          |<---offline----+<---+
+	Stop              |<---offline----+<---+
+	                  |               |     
+	                  |               |     
+	 No retry SCI!--->|----+          |    
+	                  |    |          |   
+	        	  | check all     | 
+                          | offlined??    |     
+	                  |    |          |     
+	                  +<---+          |     
+	                  +----+          |     
+	                  |    |          |     
+                          | ejection??    |     
+	                  |    |          |     
+	   <----_EJ0??----+<---+          |     
+	                  |               |     
+
+So, kernel needs to keep a ejection state flag that it
+indicates that BIOS SCI has triggered the container ejection:
+
+	 BIOS           Kernel        Userspace
+	  |-----SCI------>|----+event---->|
+	  |               |    |          |
+	  |               | set [eject]   |
+          |               |  flag         |
+	  |               |    |          |     
+	  |               |<---+          |
+	  |               |----uevent---->|
+	  |               |               +----+
+	  |<--_OST(Busy)--|               |    |
+	  |----+          |               |  clean up
+	  |    |          |               |    |
+	  | failure       |<---offline----+<---+
+	  |    |          |<---offline----+<---+
+	  |<---+          |<---offline----+<---+
+	Stop              |<---offline----+<---+
+	                  +----+          |     
+	                  |    |          |     
+	                  | if container  |
+	                  | is in [eject] | 
+	                  | state         |     
+	                  |    |          |     
+	                  |<---+          |     
+	                  |----+          |    
+	                  |    |          |   
+	        	  | check all     | 
+                          | offlined      |     
+	                  |    |          |     
+	                  +<---+          |     
+	                  +----+          |     
+	                  |    |          |     
+                          | ejection??    |     
+	  |               |    |          |     
+	  |<----_EJ0  ----+<---+          |     
+	  |               |               |     
+
+Base on the above figure, if userspace didn't do anything or it
+just performs part of offline jobs. Then the container's [eject]
+state will be always _SET_ there, and kernel will always check
+the the latest child offline state when any child be offlined
+by userspace.
+
+On the other hand, for retry BIOS, we will apply the same
+_eject_ flag approach on retry BIOS. If the OS performs
+offline/ejection jobs too long then the retry BIOS is finally
+time out. There doesn't have way for OS to aware the timeout.
+So the _eject_ flag is set forever.
+
+Thanks a lot!
+Joey Lee
