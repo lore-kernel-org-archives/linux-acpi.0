@@ -1,60 +1,46 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Thu, 20 Jul 2017 14:15:54 -0700
-Message-ID: <20170720211553.itdbvjacjnliago5@intel.com>
-References: <20170717215912.26070-1-toshi.kani@hpe.com>
- <20170717215912.26070-4-toshi.kani@hpe.com>
- <20170718060007.GB8736@nazgul.tnic>
- <1500407379.2042.21.camel@hpe.com>
- <20170718181545.32bd9181@vento.lan>
- <20170719055838.GF26030@nazgul.tnic>
- <3908561D78D1C84285E8C5FCA982C28F6130D126@ORSMSX114.amr.corp.intel.com>
- <20170719130245.7fc97352@vento.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Loc Ho <lho@apm.com>
+Subject: [PATCH v5 0/1] acpi: apei: Bug fix to enable APEI support for ARMv8
+Date: Thu, 20 Jul 2017 14:36:02 -0700
+Message-ID: <1500586563-7088-1-git-send-email-lho@apm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:40344 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933285AbdGTVQD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Jul 2017 17:16:03 -0400
-Content-Disposition: inline
-In-Reply-To: <20170719130245.7fc97352@vento.lan>
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:36736 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935258AbdGTVgH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 17:36:07 -0400
+Received: by mail-pf0-f182.google.com with SMTP id o88so16543429pfk.3
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Jul 2017 14:36:07 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Aristeu Rozanski <aris@redhat.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+To: bp@suse.de, msalter@redhat.com, rafael@kernel.org, tbaicar@codeaurora.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@apm.com, Loc Ho <lho@apm.com>
 
-On Wed, Jul 19, 2017 at 01:02:45PM -0300, Mauro Carvalho Chehab wrote:
-> Tony/Aris,
-> 
-> I got yesterday an HP ML350 G9, equipped with Sandy Bridge EP CPUs (E5-2640v4).
-> I'm running Kernel 4.11 there.
-> 
-> AFAIKT, Sandy Bridge EP has 4 channels per memory controller, right?
-> That would match the number of memory slots on this machine (24 slots).
-> 
-> Yet, EDAC is only identifying 3 channels per CPU:
-> 
->  $  ras-mc-ctl --layout
->        +-----------------------------------------------------------------------+
->        |                mc0                |                mc1                |
->        | channel0  | channel1  | channel2  | channel0  | channel1  | channel2  |
-> -------+-----------------------------------------------------------------------+
-> slot2: |     0 MB  |     0 MB  |     0 MB  |     0 MB  |     0 MB  |     0 MB  |
-> slot1: |     0 MB  |     0 MB  |     0 MB  |     0 MB  |     0 MB  |     0 MB  |
-> slot0: |  16384 MB  |     0 MB  |  16384 MB  |  16384 MB  |     0 MB  |  16384 MB  |
-> -------+---------------------------------------------------------------------------+
-> 
-> So, it seems that either the BIOS is hidden the other channel or
-> there's something wrong with SandyBridge EP support at sb_edac driver.
+v5:
+* Remove the patch set 1/2 as it was accepted
+* Fix the signed-off-by using Co-authored-by
 
-Does lspci show all four of these devices?
+v4:
+* Update patch commit log for gsi.c patch
+* Make change to be 80 column aligned
 
-include/linux/pci_ids.h:#define PCI_DEVICE_ID_INTEL_SBRIDGE_IMC_TAD0    0x3caa  /* 15.2 */
-include/linux/pci_ids.h:#define PCI_DEVICE_ID_INTEL_SBRIDGE_IMC_TAD1    0x3cab  /* 15.3 */
-include/linux/pci_ids.h:#define PCI_DEVICE_ID_INTEL_SBRIDGE_IMC_TAD2    0x3cac  /* 15.4 */
-include/linux/pci_ids.h:#define PCI_DEVICE_ID_INTEL_SBRIDGE_IMC_TAD3    0x3cad  /* 15.5 */
+v3
+* Change the title of the patch to reflect the patch
+* Completely dropped the driver. Instead, move completely to the FW by
+  accessing the GIC directly.
+* Fix a bug with function acpi_gsi_to_irq
+* Enable APEI multiple GHES source to share an single external IRQ
 
-There should be two of each (one on bus 7f, the other on bus ff).
+v2
+* Make all code more generic naming
+* Still waiting for comment from Linaro folks on APEI
 
--Tony
+---
+Loc Ho (1):
+  acpi: apei: Enable APEI multiple GHES source to share an single
+    external IRQ
+
+ drivers/acpi/apei/ghes.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+-- 
+1.8.3.1
+
