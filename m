@@ -1,91 +1,111 @@
 From: "Moore, Robert" <robert.moore@intel.com>
 Subject: RE: [PATCH 1/4] ACPI: Allow _DMA method in walk resources
-Date: Thu, 20 Jul 2017 15:48:48 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5D913D@ORSMSX110.amr.corp.intel.com>
+Date: Thu, 20 Jul 2017 15:50:16 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5D914D@ORSMSX110.amr.corp.intel.com>
 References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
  <20170720144517.32529-2-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170720144517.32529-2-lorenzo.pieralisi@arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Nate Watterson <nwatters@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I think we can take this as-is into ACPICA.
-Bob
+Could you post this as a pull request on our github?
 
+https://github.com/acpica/acpica
 
 > -----Original Message-----
-> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
-> Sent: Thursday, July 20, 2017 7:45 AM
-> To: linux-acpi@vger.kernel.org
+> From: Moore, Robert
+> Sent: Thursday, July 20, 2017 8:49 AM
+> To: 'Lorenzo Pieralisi' <lorenzo.pieralisi@arm.com>; linux-
+> acpi@vger.kernel.org
 > Cc: linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org;
-> Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>; Moore, Robert
-> <robert.moore@intel.com>; Zhang, Rui <rui.zhang@intel.com>; Rafael J.
-> Wysocki <rjw@rjwysocki.net>; Will Deacon <will.deacon@arm.com>; Robin
-> Murphy <robin.murphy@arm.com>; Hanjun Guo <hanjun.guo@linaro.org>; Feng
-> Kan <fkan@apm.com>; Jon Masters <jcm@redhat.com>; Nate Watterson
-> <nwatters@codeaurora.org>
-> Subject: [PATCH 1/4] ACPI: Allow _DMA method in walk resources
+> Zhang, Rui <rui.zhang@intel.com>; Rafael J. Wysocki <rjw@rjwysocki.net>;
+> Will Deacon <will.deacon@arm.com>; Robin Murphy <robin.murphy@arm.com>;
+> Hanjun Guo <hanjun.guo@linaro.org>; Feng Kan <fkan@apm.com>; Jon Masters
+> <jcm@redhat.com>; Nate Watterson <nwatters@codeaurora.org>
+> Subject: RE: [PATCH 1/4] ACPI: Allow _DMA method in walk resources
 > 
-> The _DMA object contains a resource template, this change adds support
-> for the walk resources function so that ACPI devices containing a _DMA
-> object can actually parse it to detect DMA ranges for the respective
-> bus.
+> I think we can take this as-is into ACPICA.
+> Bob
 > 
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Robert Moore <robert.moore@intel.com>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> ---
->  drivers/acpi/acpica/rsxface.c | 7 ++++---
->  include/acpi/acnames.h        | 1 +
->  2 files changed, 5 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/acpi/acpica/rsxface.c
-> b/drivers/acpi/acpica/rsxface.c index 59a4f9e..be65e65 100644
-> --- a/drivers/acpi/acpica/rsxface.c
-> +++ b/drivers/acpi/acpica/rsxface.c
-> @@ -615,7 +615,7 @@ ACPI_EXPORT_SYMBOL(acpi_walk_resource_buffer)
->   *                                device we are querying
->   *              name            - Method name of the resources we want.
->   *                                (METHOD_NAME__CRS, METHOD_NAME__PRS,
-> or
-> - *                                METHOD_NAME__AEI)
-> + *                                METHOD_NAME__AEI or METHOD_NAME__DMA)
->   *              user_function   - Called for each resource
->   *              context         - Passed to user_function
->   *
-> @@ -641,11 +641,12 @@ acpi_walk_resources(acpi_handle device_handle,
->  	if (!device_handle || !user_function || !name ||
->  	    (!ACPI_COMPARE_NAME(name, METHOD_NAME__CRS) &&
->  	     !ACPI_COMPARE_NAME(name, METHOD_NAME__PRS) &&
-> -	     !ACPI_COMPARE_NAME(name, METHOD_NAME__AEI))) {
-> +	     !ACPI_COMPARE_NAME(name, METHOD_NAME__AEI) &&
-> +	     !ACPI_COMPARE_NAME(name, METHOD_NAME__DMA))) {
->  		return_ACPI_STATUS(AE_BAD_PARAMETER);
->  	}
-> 
-> -	/* Get the _CRS/_PRS/_AEI resource list */
-> +	/* Get the _CRS/_PRS/_AEI/_DMA resource list */
-> 
->  	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
->  	status = acpi_rs_get_method_data(device_handle, name, &buffer);
-> diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h index
-> b421584..d8dd3bf 100644
-> --- a/include/acpi/acnames.h
-> +++ b/include/acpi/acnames.h
-> @@ -54,6 +54,7 @@
->  #define METHOD_NAME__CLS        "_CLS"
->  #define METHOD_NAME__CRS        "_CRS"
->  #define METHOD_NAME__DDN        "_DDN"
-> +#define METHOD_NAME__DMA        "_DMA"
->  #define METHOD_NAME__HID        "_HID"
->  #define METHOD_NAME__INI        "_INI"
->  #define METHOD_NAME__PLD        "_PLD"
-> --
-> 2.10.0
+> > -----Original Message-----
+> > From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
+> > Sent: Thursday, July 20, 2017 7:45 AM
+> > To: linux-acpi@vger.kernel.org
+> > Cc: linux-arm-kernel@lists.infradead.org;
+> > linux-kernel@vger.kernel.org; Lorenzo Pieralisi
+> > <lorenzo.pieralisi@arm.com>; Moore, Robert <robert.moore@intel.com>;
+> Zhang, Rui <rui.zhang@intel.com>; Rafael J.
+> > Wysocki <rjw@rjwysocki.net>; Will Deacon <will.deacon@arm.com>; Robin
+> > Murphy <robin.murphy@arm.com>; Hanjun Guo <hanjun.guo@linaro.org>;
+> > Feng Kan <fkan@apm.com>; Jon Masters <jcm@redhat.com>; Nate Watterson
+> > <nwatters@codeaurora.org>
+> > Subject: [PATCH 1/4] ACPI: Allow _DMA method in walk resources
+> >
+> > The _DMA object contains a resource template, this change adds support
+> > for the walk resources function so that ACPI devices containing a _DMA
+> > object can actually parse it to detect DMA ranges for the respective
+> > bus.
+> >
+> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > Cc: Robert Moore <robert.moore@intel.com>
+> > Cc: Zhang Rui <rui.zhang@intel.com>
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > ---
+> >  drivers/acpi/acpica/rsxface.c | 7 ++++---
+> >  include/acpi/acnames.h        | 1 +
+> >  2 files changed, 5 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpica/rsxface.c
+> > b/drivers/acpi/acpica/rsxface.c index 59a4f9e..be65e65 100644
+> > --- a/drivers/acpi/acpica/rsxface.c
+> > +++ b/drivers/acpi/acpica/rsxface.c
+> > @@ -615,7 +615,7 @@ ACPI_EXPORT_SYMBOL(acpi_walk_resource_buffer)
+> >   *                                device we are querying
+> >   *              name            - Method name of the resources we
+> want.
+> >   *                                (METHOD_NAME__CRS,
+> METHOD_NAME__PRS,
+> > or
+> > - *                                METHOD_NAME__AEI)
+> > + *                                METHOD_NAME__AEI or
+> METHOD_NAME__DMA)
+> >   *              user_function   - Called for each resource
+> >   *              context         - Passed to user_function
+> >   *
+> > @@ -641,11 +641,12 @@ acpi_walk_resources(acpi_handle device_handle,
+> >  	if (!device_handle || !user_function || !name ||
+> >  	    (!ACPI_COMPARE_NAME(name, METHOD_NAME__CRS) &&
+> >  	     !ACPI_COMPARE_NAME(name, METHOD_NAME__PRS) &&
+> > -	     !ACPI_COMPARE_NAME(name, METHOD_NAME__AEI))) {
+> > +	     !ACPI_COMPARE_NAME(name, METHOD_NAME__AEI) &&
+> > +	     !ACPI_COMPARE_NAME(name, METHOD_NAME__DMA))) {
+> >  		return_ACPI_STATUS(AE_BAD_PARAMETER);
+> >  	}
+> >
+> > -	/* Get the _CRS/_PRS/_AEI resource list */
+> > +	/* Get the _CRS/_PRS/_AEI/_DMA resource list */
+> >
+> >  	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
+> >  	status = acpi_rs_get_method_data(device_handle, name, &buffer);
+> diff
+> > --git a/include/acpi/acnames.h b/include/acpi/acnames.h index
+> > b421584..d8dd3bf 100644
+> > --- a/include/acpi/acnames.h
+> > +++ b/include/acpi/acnames.h
+> > @@ -54,6 +54,7 @@
+> >  #define METHOD_NAME__CLS        "_CLS"
+> >  #define METHOD_NAME__CRS        "_CRS"
+> >  #define METHOD_NAME__DDN        "_DDN"
+> > +#define METHOD_NAME__DMA        "_DMA"
+> >  #define METHOD_NAME__HID        "_HID"
+> >  #define METHOD_NAME__INI        "_INI"
+> >  #define METHOD_NAME__PLD        "_PLD"
+> > --
+> > 2.10.0
