@@ -1,141 +1,58 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH 4/4] ACPI: Make acpi_dma_configure() DMA regions aware
-Date: Thu, 20 Jul 2017 15:45:16 +0100
-Message-ID: <20170720144517.32529-5-lorenzo.pieralisi@arm.com>
-References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Robin Murphy <robin.murphy@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 2/6] ACPI / x86: Consolidate Apple DMI checks
+Date: Thu, 20 Jul 2017 16:49:48 +0200
+Message-ID: <6875377.ba0xIR7deM@aspire.rjw.lan>
+References: <cover.1499983092.git.lukas@wunner.de> <CAJZ5v0hh-rtfi6T3ebHYdqXn85W_gV_NDPU_XaRudM=T91Rziw@mail.gmail.com> <1500561223.29303.150.camel@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44382 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934466AbdGTO5l (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Jul 2017 10:57:41 -0400
+In-Reply-To: <1500561223.29303.150.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Lukas Wunner <lukas@wunner.de>, Darren Hart <dvhart@infradead.org>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, Mark Brown <broonie@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>
 
-Current ACPI DMA configuration set-up device DMA capabilities through
-kernel defaults that do not take into account platform specific DMA
-configurations reported by firmware.
+On Thursday, July 20, 2017 05:33:43 PM Andy Shevchenko wrote:
+> On Thu, 2017-07-20 at 16:27 +0200, Rafael J. Wysocki wrote:
+> > On Thu, Jul 20, 2017 at 4:03 PM, Lukas Wunner <lukas@wunner.de> wrote:
+> > > On Sat, Jul 15, 2017 at 12:03:31AM +0200, Rafael J. Wysocki wrote:
+> > > > On Friday, July 14, 2017 12:36:19 AM Lukas Wunner wrote:
+> > > > > 
+> 
+> 
+> > > I guess I could introduce a new <linux/apple.h> but I hate the
+> > > insane
+> > > proliferation of additional files in include/linux/.
+> > 
+> > There is include/linux/platform_data/x86/ so maybe put it in there?
+> 
+> Just suggested the same :-)
+> 
+> > >  I could merge the contents of apple_bl.h and apple-gmux.h into that
+> > > new header to
+> > > reduce the number of files a bit.
+> > > 
+> > > Struggling to find a solution that's nice and clean.  Any ideas?
+> > 
+> > I guess you still want it to work if someone configures the kernel
+> > without CONFIG_ACPI, although that's slightly debatable, so the
+> > variable should be defined somewhere in the arch code I suppose.
+> > 
+> > I also guess you could add something like arch/x86/platform/apple/ and
+> > put the checks and the variable in there (in which case I'd call it
+> > x86_apple_machine or similar).
+> 
+> I'm not sure if we can use drivers/platform/x86 for this, either agreed
+> way is fine to me.
 
-By leveraging the ACPI acpi_dev_get_dma_resources() API, add code
-in acpi_dma_configure() to retrieve the DMA regions to correctly
-set-up devices DMA parameters.
+No, because of the ACPI involvement.  That needs to go under arch/ IMO.
 
-Rework the ACPI IORT kernel API to make sure they can accommodate
-the DMA set-up required by firmware. By making devices DMA set-up
-ACPI IORT specific, the kernel is shielded from unwanted regressions
-that could be triggered by parsing DMA resources on arches that were
-previously ignoring them (ie x86/ia64), leaving kernel behaviour
-unchanged on those arches.
+Thanks,
+Rafael
 
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
----
- drivers/acpi/arm64/iort.c | 27 +++++++++++++++++++++++++--
- drivers/acpi/scan.c       | 12 ++++--------
- include/linux/acpi_iort.h |  5 +++--
- 3 files changed, 32 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index a3215ee..9a7a65b 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -681,12 +681,17 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
- }
- 
- /**
-- * iort_set_dma_mask - Set-up dma mask for a device.
-+ * iort_dma_setup() - Set-up device DMA parameters.
-  *
-  * @dev: device to configure
-+ * @dma_addr: device DMA address result pointer
-+ * @size: DMA range size result pointer
-  */
--void iort_set_dma_mask(struct device *dev)
-+void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
- {
-+	u64 mask, dmaaddr = 0, size = 0, offset = 0;
-+	int ret;
-+
- 	/*
- 	 * Set default coherent_dma_mask to 32 bit.  Drivers are expected to
- 	 * setup the correct supported mask.
-@@ -700,6 +705,24 @@ void iort_set_dma_mask(struct device *dev)
- 	 */
- 	if (!dev->dma_mask)
- 		dev->dma_mask = &dev->coherent_dma_mask;
-+
-+	ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
-+	if (ret < 0)
-+		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
-+
-+	mask = __roundup_pow_of_two(dmaaddr + size) - 1;
-+	/*
-+	 * Limit coherent and dma mask based on size and default mask
-+	 * set by the driver.
-+	 */
-+	dev->coherent_dma_mask = mask;
-+	*dev->dma_mask = mask;
-+
-+	*dma_addr = dmaaddr;
-+	*dma_size = size;
-+
-+	dev->dma_pfn_offset = PFN_DOWN(offset);
-+	dev_dbg(dev, "dma_pfn_offset(%#08llx)\n", offset);
- }
- 
- /**
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index eb493c2..15d0059 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1450,20 +1450,16 @@ int acpi_dma_get_range(struct device *dev, u64 *dma_addr, u64 *offset,
- int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
- {
- 	const struct iommu_ops *iommu;
--	u64 size;
-+	u64 dma_addr = 0, size = 0;
- 
--	iort_set_dma_mask(dev);
-+	iort_dma_setup(dev, &dma_addr, &size);
- 
- 	iommu = iort_iommu_configure(dev);
- 	if (IS_ERR(iommu) && PTR_ERR(iommu) == -EPROBE_DEFER)
- 		return -EPROBE_DEFER;
- 
--	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
--	/*
--	 * Assume dma valid range starts at 0 and covers the whole
--	 * coherent_dma_mask.
--	 */
--	arch_setup_dma_ops(dev, 0, size, iommu, attr == DEV_DMA_COHERENT);
-+	arch_setup_dma_ops(dev, dma_addr, size,
-+				iommu, attr == DEV_DMA_COHERENT);
- 
- 	return 0;
- }
-diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-index 8379d40..8d3f0bf 100644
---- a/include/linux/acpi_iort.h
-+++ b/include/linux/acpi_iort.h
-@@ -36,7 +36,7 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
- void acpi_configure_pmsi_domain(struct device *dev);
- int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id);
- /* IOMMU interface */
--void iort_set_dma_mask(struct device *dev);
-+void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *size);
- const struct iommu_ops *iort_iommu_configure(struct device *dev);
- #else
- static inline void acpi_iort_init(void) { }
-@@ -47,7 +47,8 @@ static inline struct irq_domain *iort_get_device_domain(struct device *dev,
- { return NULL; }
- static inline void acpi_configure_pmsi_domain(struct device *dev) { }
- /* IOMMU interface */
--static inline void iort_set_dma_mask(struct device *dev) { }
-+static inline void iort_dma_setup(struct device *dev, u64 *dma_addr,
-+				  u64 *size) { }
- static inline
- const struct iommu_ops *iort_iommu_configure(struct device *dev)
- { return NULL; }
--- 
-2.10.0
