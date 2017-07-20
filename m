@@ -1,63 +1,38 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v3 2/6] ACPI / x86: Consolidate Apple DMI checks
-Date: Thu, 20 Jul 2017 17:33:43 +0300
-Message-ID: <1500561223.29303.150.camel@linux.intel.com>
-References: <cover.1499983092.git.lukas@wunner.de>
-         <a0c795358306954294e7fe31ec974f3c51b56f4c.1499983092.git.lukas@wunner.de>
-         <14565365.Cyeb0SINmK@aspire.rjw.lan> <20170720140353.GA4761@wunner.de>
-         <CAJZ5v0hh-rtfi6T3ebHYdqXn85W_gV_NDPU_XaRudM=T91Rziw@mail.gmail.com>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Thu, 20 Jul 2017 14:42:25 +0000
+Message-ID: <1500561189.2042.35.camel@hpe.com>
+References: <20170717215912.26070-1-toshi.kani@hpe.com>
+         <20170717215912.26070-4-toshi.kani@hpe.com>
+         <20170718060007.GB8736@nazgul.tnic> <20170718080836.GB8372@nazgul.tnic>
+         <1500412288.2042.25.camel@hpe.com> <20170719055235.GD26030@nazgul.tnic>
+         <1500480051.2042.27.camel@hpe.com> <20170719162204.GE16124@nazgul.tnic>
+         <1500482822.2042.31.camel@hpe.com> <20170720041645.GA14367@nazgul.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:50596 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755143AbdGTOgs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Jul 2017 10:36:48 -0400
-In-Reply-To: <CAJZ5v0hh-rtfi6T3ebHYdqXn85W_gV_NDPU_XaRudM=T91Rziw@mail.gmail.com>
+Received: from g4t3425.houston.hpe.com ([15.241.140.78]:53842 "EHLO
+        g4t3425.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932138AbdGTOm4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 10:42:56 -0400
+In-Reply-To: <20170720041645.GA14367@nazgul.tnic>
+Content-Language: en-US
+Content-ID: <6A26A1E2E0106F4FADEAA3FF152FD921@NAMPRD84.PROD.OUTLOOK.COM>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Lukas Wunner <lukas@wunner.de>, Darren Hart <dvhart@infradead.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, Mark Brown <broonie@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>
+To: "bp@alien8.de" <bp@alien8.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-On Thu, 2017-07-20 at 16:27 +0200, Rafael J. Wysocki wrote:
-> On Thu, Jul 20, 2017 at 4:03 PM, Lukas Wunner <lukas@wunner.de> wrote:
-> > On Sat, Jul 15, 2017 at 12:03:31AM +0200, Rafael J. Wysocki wrote:
-> > > On Friday, July 14, 2017 12:36:19 AM Lukas Wunner wrote:
-> > > > 
-
-
-> > I guess I could introduce a new <linux/apple.h> but I hate the
-> > insane
-> > proliferation of additional files in include/linux/.
-> 
-> There is include/linux/platform_data/x86/ so maybe put it in there?
-
-Just suggested the same :-)
-
-> >  I could merge the contents of apple_bl.h and apple-gmux.h into that
-> > new header to
-> > reduce the number of files a bit.
-> > 
-> > Struggling to find a solution that's nice and clean.  Any ideas?
-> 
-> I guess you still want it to work if someone configures the kernel
-> without CONFIG_ACPI, although that's slightly debatable, so the
-> variable should be defined somewhere in the arch code I suppose.
-> 
-> I also guess you could add something like arch/x86/platform/apple/ and
-> put the checks and the variable in there (in which case I'd call it
-> x86_apple_machine or similar).
-
-I'm not sure if we can use drivers/platform/x86 for this, either agreed
-way is fine to me.
-
-Darren?
-
-> 
-> Then invoke the check from acpi_osi_dmi_table[] code and the
-> early-quirks.c one is only needed for !CONFIG_ACPI.
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+T24gVGh1LCAyMDE3LTA3LTIwIGF0IDA2OjE2ICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
+DQo+IE9uIFdlZCwgSnVsIDE5LCAyMDE3IGF0IDA0OjU2OjE3UE0gKzAwMDAsIEthbmksIFRvc2hp
+bWl0c3Ugd3JvdGU6DQo+ID4gU2luY2UgZ2hlc19lZGFjIGhhcyBub3QgYmVlbiB1c2VkIGZvciBh
+IGxvbmcgdGltZSwgSSBoYXZlIGEgZmVlbGluZw0KPiA+IHRoYXQgbm90IHNvIG1hbnkgdmVuZG9y
+cyB3YW50IHRvIHVzZSBpdC7CoMKgSW4gdGhlIGNhc2Ugb2YgSFBFLCB3ZSBkbw0KPiA+IG5vdCBu
+ZWVkIHRvIHVwZGF0ZSB3aXRoIGVhY2ggcGxhdGZvcm0gc2luY2UgIkhQRSIgIlNlcnZlciIgd2ls
+bA0KPiA+IGNvdmVyIGFsbCBwbGF0Zm9ybXMgd2UgbmVlZC4NCj4gDQo+IERvZXMgdGhlIGFwZWlf
+b3NjX3NldHVwKCkgZGV0ZWN0aW9uIHdpdGggdGhlIHV1aWQgd29yayBvbiBIUCBzeXN0ZW1zPw0K
+DQpZZXMsIHRoZSBmb2xsb3dpbmcgbWVzc2FnZSBpcyBzaG93biBvbiBIUCBzeXN0ZW1zLiAgUGxl
+YXNlIG5vdGUgdGhhdA0KV0hFQSBpcyBhIFdpbmRvd3MtZGVmaW5lZCBpbnRlcmZhY2UuDQoNCiJH
+SEVTOiBBUEVJIGZpcm13YXJlIGZpcnN0IG1vZGUgaXMgZW5hYmxlZCBieSBBUEVJIGJpdCBhbmQg
+V0hFQSBfT1NDLiINCg0KVGhhbmtzLA0KLVRvc2hpDQo=
