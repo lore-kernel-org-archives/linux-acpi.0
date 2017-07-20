@@ -1,73 +1,41 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
+From: Borislav Petkov <bp@suse.de>
 Subject: Re: [PATCH 3/4] ACPI / APEI: Drop uninformative messages during boot
-Date: Thu, 20 Jul 2017 13:29:17 +0100
-Message-ID: <87d18vmgv6.fsf@e105922-lin.cambridge.arm.com>
+Date: Thu, 20 Jul 2017 15:54:46 +0200
+Message-ID: <20170720135446.GA20641@nazgul.tnic>
 References: <20170720110402.15313-1-punit.agrawal@arm.com>
-        <20170720110402.15313-4-punit.agrawal@arm.com>
-        <20170720111732.GC18515@nazgul.tnic>
+ <20170720110402.15313-4-punit.agrawal@arm.com>
+ <20170720111732.GC18515@nazgul.tnic>
+ <87d18vmgv6.fsf@e105922-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170720111732.GC18515@nazgul.tnic> (Borislav Petkov's message
-        of "Thu, 20 Jul 2017 13:17:32 +0200")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: linux-kernel@vger.kernel.org, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:43085 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S935292AbdGTNy6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Jul 2017 09:54:58 -0400
+Content-Disposition: inline
+In-Reply-To: <87d18vmgv6.fsf@e105922-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Punit Agrawal <punit.agrawal@arm.com>
+Cc: linux-kernel@vger.kernel.org, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Hi Borislav,
+On Thu, Jul 20, 2017 at 01:29:17PM +0100, Punit Agrawal wrote:
+> I agree that where there is a genuine problem, relevant messages can
+> help to diagnose the problem. But what's printed now doesn't fit the
+> criteria.
 
-Borislav Petkov <bp@suse.de> writes:
+So make it fit the criteria. Change the code to not issue that message
+when the platform doesn't have those tables. But keep it in the
+remaining cases, when the tables are there.
 
-> On Thu, Jul 20, 2017 at 12:04:01PM +0100, Punit Agrawal wrote:
->> When booting an ACPI enabled system that does not provide the hardware
->> error source table (HEST), the ghes driver prints the following message
->> in the kernel log -
->> 
->> [    3.460067] GHES: HEST is not enabled!
->> 
->> which is not helpful.
->> 
->> The message is also output when HEST is explicitly disabled using kernel
->> command line parameter.
->> 
->> Drop this message. While we are touching this code, also drop similar
->> message when GHES is disabled using the module parameter.
->
-> No.
->
-> To the contrary, we want to know *why* GHES/HEST doesn't get enabled when
-> booting. See
->
->   dba648300e89 ("ACPI / einj: Make error paths more talkative")
->
-> for a good example why.
+You can't be removing useful error messages just because your platform
+doesn't have the tables.
 
-einj verbosity can't be used as a model here. einj by it's definition is
-for development and testing. It can also be loaded as a module.
+-- 
+Regards/Gruss,
+    Boris.
 
->
-> If anything, you should do the total opposite patch and add more
->printks to the error paths so that it is obvious why GHES startup
->fails.
-
-As mentioned in the commit log, the platform doesn't provide the HEST
-(or any of the APEI tables for that matter). So it's not useful to see a
-message complaining that HEST is not enabled. For such platforms, this
-message at best adds no value and at worse gives the impression of
-something gone wrong during boot.
-
-I agree that where there is a genuine problem, relevant messages can
-help to diagnose the problem. But what's printed now doesn't fit the
-criteria.
-
-Hope that makes sense.
-
-Thanks,
-Punit
-
->
-> -- Regards/Gruss, Boris.
->
-> SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
