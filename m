@@ -1,7 +1,7 @@
 From: frowand.list@gmail.com
-Subject: [PATCH 2/2] MAINTAINERS: device property: of: add fwnode.h
-Date: Thu, 20 Jul 2017 12:13:25 -0700
-Message-ID: <1500578005-25893-3-git-send-email-frowand.list@gmail.com>
+Subject: [PATCH 1/2] MAINTAINERS: device property: acpi: add fwnode.h
+Date: Thu, 20 Jul 2017 12:13:24 -0700
+Message-ID: <1500578005-25893-2-git-send-email-frowand.list@gmail.com>
 References: <1500578005-25893-1-git-send-email-frowand.list@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1500578005-25893-1-git-send-email-frowand.list@gmail.com>
@@ -12,8 +12,8 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Frank Rowand <frank.rowand@sony.com>
 
-Device tree is impacted by changes to fwnode.h, add a file entry
-to OPEN FIRMWARE AND FLATTENED DEVICE TREE
+ACPI is impacted by changes to fwnode.h, add a file entry
+to ACPI
 
 Signed-off-by: Frank Rowand <frank.rowand@sony.com>
 ---
@@ -21,16 +21,16 @@ Signed-off-by: Frank Rowand <frank.rowand@sony.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index c0ac362e850a..cb58c20b1ef8 100644
+index 205d3977ac46..c0ac362e850a 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -9771,6 +9771,7 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git
- S:	Maintained
- F:	drivers/of/
- F:	include/linux/of*.h
+@@ -302,6 +302,7 @@ S:	Supported
+ F:	drivers/acpi/
+ F:	drivers/pnp/pnpacpi/
+ F:	include/linux/acpi.h
 +F:	include/linux/fwnode.h
- F:	scripts/dtc/
- F:	Documentation/ABI/testing/sysfs-firmware-ofw
- 
+ F:	include/acpi/
+ F:	Documentation/acpi/
+ F:	Documentation/ABI/testing/sysfs-bus-acpi
 -- 
 Frank Rowand <frank.rowand@sony.com>
