@@ -1,41 +1,62 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH 3/4] ACPI / APEI: Drop uninformative messages during boot
-Date: Thu, 20 Jul 2017 15:54:46 +0200
-Message-ID: <20170720135446.GA20641@nazgul.tnic>
-References: <20170720110402.15313-1-punit.agrawal@arm.com>
- <20170720110402.15313-4-punit.agrawal@arm.com>
- <20170720111732.GC18515@nazgul.tnic>
- <87d18vmgv6.fsf@e105922-lin.cambridge.arm.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v3 2/6] ACPI / x86: Consolidate Apple DMI checks
+Date: Thu, 20 Jul 2017 16:03:53 +0200
+Message-ID: <20170720140353.GA4761@wunner.de>
+References: <cover.1499983092.git.lukas@wunner.de>
+ <a0c795358306954294e7fe31ec974f3c51b56f4c.1499983092.git.lukas@wunner.de>
+ <14565365.Cyeb0SINmK@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:43085 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S935292AbdGTNy6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Jul 2017 09:54:58 -0400
+Received: from mailout1.hostsharing.net ([83.223.95.204]:50105 "EHLO
+        mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965294AbdGTODw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 10:03:52 -0400
 Content-Disposition: inline
-In-Reply-To: <87d18vmgv6.fsf@e105922-lin.cambridge.arm.com>
+In-Reply-To: <14565365.Cyeb0SINmK@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Punit Agrawal <punit.agrawal@arm.com>
-Cc: linux-kernel@vger.kernel.org, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org
 
-On Thu, Jul 20, 2017 at 01:29:17PM +0100, Punit Agrawal wrote:
-> I agree that where there is a genuine problem, relevant messages can
-> help to diagnose the problem. But what's printed now doesn't fit the
-> criteria.
+On Sat, Jul 15, 2017 at 12:03:31AM +0200, Rafael J. Wysocki wrote:
+> On Friday, July 14, 2017 12:36:19 AM Lukas Wunner wrote:
+> > --- a/drivers/acpi/osi.c
+> > +++ b/drivers/acpi/osi.c
+> > @@ -258,12 +258,16 @@ bool acpi_osi_is_win8(void)
+> >  EXPORT_SYMBOL(acpi_osi_is_win8);
+> >  
+> >  #ifdef CONFIG_X86
+> > +bool is_apple_system;
+> > +EXPORT_SYMBOL(is_apple_system);
+> 
+> Maybe prepend the name of this variable with acpi_ to indicate that this is
+> ACPI-specific.
 
-So make it fit the criteria. Change the code to not issue that message
-when the platform doesn't have those tables. But keep it in the
-remaining cases, when the tables are there.
+It's not really ACPI-specific, osi.c just happens to be the best place
+to set the variable because the acpi_osi_dmi_table[] is checked very
+early during boot.  So early in fact, that I could even replace the
+existing Apple DMI check in arch/x86/kernel/early-quirks.c with
+"is_apple_system".
 
-You can't be removing useful error messages just because your platform
-doesn't have the tables.
+These non-ACPI files currently contain an Apple DMI check:
+arch/x86/kernel/early-quirks.c
+drivers/pci/quirks.c (2x)
+drivers/firmware/efi/apple-properties.c
+drivers/thunderbolt/tb.c
+drivers/thunderbolt/icm.c
 
--- 
-Regards/Gruss,
-    Boris.
+The latter three do not #include <linux/acpi.h> yet.  Somehow it feels
+odd to include that header to check for presence of an Apple system
+because that's not really ACPI-related.
 
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+I guess I could introduce a new <linux/apple.h> but I hate the insane
+proliferation of additional files in include/linux/.  I could merge
+the contents of apple_bl.h and apple-gmux.h into that new header to
+reduce the number of files a bit.
+
+Struggling to find a solution that's nice and clean.  Any ideas?
+
+Thanks,
+
+Lukas
