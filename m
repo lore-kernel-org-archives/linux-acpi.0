@@ -1,39 +1,53 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Thu, 20 Jul 2017 06:33:44 +0200
-Message-ID: <20170720043344.GC14367@nazgul.tnic>
-References: <20170717215912.26070-1-toshi.kani@hpe.com>
- <20170717215912.26070-4-toshi.kani@hpe.com>
- <20170718060007.GB8736@nazgul.tnic>
- <1500407379.2042.21.camel@hpe.com>
- <20170718181545.32bd9181@vento.lan>
- <1500481869.2042.29.camel@hpe.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH 0/1] acpi: apei: Enable APEI multiple GHES source to
+ share an single external IRQ
+Date: Thu, 20 Jul 2017 06:49:36 +0200
+Message-ID: <20170720044936.GA14552@nazgul.tnic>
+References: <20170719172427.5478-1-msalter@redhat.com>
+ <CAJZ5v0hdtDEgNXMmD-3oKqHn8vSFx=wfTgN+as1AO=jiQ_BKzQ@mail.gmail.com>
+ <1500494721.14060.11.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1500481869.2042.29.camel@hpe.com>
+In-Reply-To: <1500494721.14060.11.camel@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "mchehab@s-opensource.com" <mchehab@s-opensource.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+To: Mark Salter <msalter@redhat.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Tyler Baicar <tbaicar@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jul 19, 2017 at 04:40:25PM +0000, Kani, Toshimitsu wrote:
->  ghes_edac allows to report errors to OS management tools like
-> rasdaemon in addition to platform- specific managements.
+On Wed, Jul 19, 2017 at 04:05:21PM -0400, Mark Salter wrote:
+> Yes, I should have included Boris. The last time this came up, Boris
+> said it was up to you. :)
+> 
+> http://lists.infradead.org/pipermail/linux-arm-kernel/2016-January/401772.html
 
-So ghes_edac *is* a poor man's driver in the sense that it doesn't do
-anything fancy but repeat like a parrot data it has gotten from the
-firmware and shoving it into the EDAC counters. At least that's the
-intention. Nothing more. All the action stuff like error detection and
-recovery should be done by the firmware.
+/me goes back and reads the old emails.
 
-But considering how SNAFU'd firmware is, I wouldn't expect any great RAS
-functionality there. Of course, I'd be delighted to be proven wrong.
+So I had some issues with how acpi_gsi_to_irq() returns the irq number
+but that required more involved simplification and the submitter was
+unsurprisingly reluctant to do it.
+
+That's why it was Rafael's call.
+
+AFAIR.
+
+Also, from looking at the patches, the SOB chain is wrong:
+
+Signed-off-by: Tuan Phan <tphan@apm.com>
+Signed-off-by: Loc Ho <lho@apm.com>
+
+I don't know from that who's the author and who's the submitter.
+SubmittingPatches has more info on the whole deal.
+
+So please resubmit updated versions with issues addressed.
+
+Thanks.
 
 -- 
 Regards/Gruss,
     Boris.
 
-ECO tip #101: Trim your mails when you reply.
---
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
