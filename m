@@ -1,40 +1,97 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Thu, 20 Jul 2017 17:04:09 +0200
-Message-ID: <20170720150409.GB20712@nazgul.tnic>
-References: <20170717215912.26070-4-toshi.kani@hpe.com>
- <20170718060007.GB8736@nazgul.tnic>
- <20170718080836.GB8372@nazgul.tnic>
- <1500412288.2042.25.camel@hpe.com>
- <20170719055235.GD26030@nazgul.tnic>
- <1500480051.2042.27.camel@hpe.com>
- <20170719162204.GE16124@nazgul.tnic>
- <1500482822.2042.31.camel@hpe.com>
- <20170720041645.GA14367@nazgul.tnic>
- <1500561189.2042.35.camel@hpe.com>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v3 2/2] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+ erratum 161010801
+Date: Thu, 20 Jul 2017 15:30:01 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA8383BAE56@FRAEML521-MBX.china.huawei.com>
+References: <20170623145801.325244-1-shameerali.kolothum.thodi@huawei.com>
+ <20170623145801.325244-3-shameerali.kolothum.thodi@huawei.com>
+ <20170704173820.GO22175@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA83839DB59@FRAEML521-MBX.china.huawei.com>
+ <20170714193322.GH26488@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA8383B9D5A@FRAEML521-MBX.china.huawei.com>
+ <f3ba9136-068a-280d-2849-f3a0081c1d90@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1500561189.2042.35.camel@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>, "tony.luck@intel.com" <tony.luck@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:32118 "EHLO
+        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965158AbdGTPaS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 11:30:18 -0400
+In-Reply-To: <f3ba9136-068a-280d-2849-f3a0081c1d90@arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>
+Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Thu, Jul 20, 2017 at 02:42:25PM +0000, Kani, Toshimitsu wrote:
-> Yes, the following message is shown on HP systems.  Please note that
-> WHEA is a Windows-defined interface.
-
-Ok, so let's couple ghes_edac loading to that and see how far we could
-go. I guess we should add checks for that to the major x86 EDAC drivers
-to not load and this way ghes_edac will be the only driver loading.
-
-Tony, how does that sound?
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4gTXVycGh5IFtt
+YWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IFRodXJzZGF5LCBKdWx5IDIwLCAy
+MDE3IDM6MzIgUE0NCj4gVG86IFNoYW1lZXJhbGkgS29sb3RodW0gVGhvZGk7IFdpbGwgRGVhY29u
+DQo+IENjOiBsb3JlbnpvLnBpZXJhbGlzaUBhcm0uY29tOyBtYXJjLnp5bmdpZXJAYXJtLmNvbTsN
+Cj4gc3VkZWVwLmhvbGxhQGFybS5jb207IGhhbmp1bi5ndW9AbGluYXJvLm9yZzsgR2FicmllbGUg
+UGFvbG9uaTsgSm9obg0KPiBHYXJyeTsgTGludXhhcm07IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwu
+b3JnOyBpb21tdUBsaXN0cy5saW51eC0NCj4gZm91bmRhdGlvbi5vcmc7IFdhbmd6aG91IChCKTsg
+R3VvaGFuanVuIChIYW5qdW4gR3VvKTsgbGludXgtYXJtLQ0KPiBrZXJuZWxAbGlzdHMuaW5mcmFk
+ZWFkLm9yZzsgZGV2ZWxAYWNwaWNhLm9yZw0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYzIDIvMl0g
+aW9tbXUvYXJtLXNtbXUtdjM6RW5hYmxlIEFDUEkgYmFzZWQNCj4gSGlTaWxpY29uIGVycmF0dW0g
+MTYxMDEwODAxDQo+IA0KPiBPbiAxOS8wNy8xNyAxMTo0OCwgU2hhbWVlcmFsaSBLb2xvdGh1bSBU
+aG9kaSB3cm90ZToNCj4gPg0KPiA+DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+
+ID4+IEZyb206IFdpbGwgRGVhY29uIFttYWlsdG86d2lsbC5kZWFjb25AYXJtLmNvbV0NCj4gPj4g
+U2VudDogRnJpZGF5LCBKdWx5IDE0LCAyMDE3IDg6MzMgUE0NCj4gPj4gVG86IFNoYW1lZXJhbGkg
+S29sb3RodW0gVGhvZGkNCj4gPj4gQ2M6IGxvcmVuem8ucGllcmFsaXNpQGFybS5jb207IG1hcmMu
+enluZ2llckBhcm0uY29tOw0KPiA+PiBzdWRlZXAuaG9sbGFAYXJtLmNvbTsgcm9iaW4ubXVycGh5
+QGFybS5jb207DQo+IGhhbmp1bi5ndW9AbGluYXJvLm9yZzsNCj4gPj4gR2FicmllbGUgUGFvbG9u
+aTsgSm9obiBHYXJyeTsgTGludXhhcm07IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOw0KPiA+
+PiBpb21tdUBsaXN0cy5saW51eC1mb3VuZGF0aW9uLm9yZzsgV2FuZ3pob3UgKEIpOyBHdW9oYW5q
+dW4gKEhhbmp1bg0KPiBHdW8pOw0KPiA+PiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVh
+ZC5vcmc7IGRldmVsQGFjcGljYS5vcmcNCj4gPj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MyAyLzJd
+IGlvbW11L2FybS1zbW11LXYzOkVuYWJsZSBBQ1BJIGJhc2VkDQo+ID4+IEhpU2lsaWNvbiBlcnJh
+dHVtIDE2MTAxMDgwMQ0KPiA+Pg0KPiA+IFsuLi5dDQo+ID4+Pj4+IC0JbGlzdF9hZGRfdGFpbCgm
+cmVnaW9uLT5saXN0LCBoZWFkKTsNCj4gPj4+Pj4gKwlpZiAoKHNtbXUtPm9wdGlvbnMgJiBBUk1f
+U01NVV9PUFRfUkVTVl9IV19NU0kpKSB7DQo+ID4+Pj4+ICsNCj4gPj4+Pj4gKwkJaWYgKCFpc19v
+Zl9ub2RlKHNtbXUtPmRldi0+Zndub2RlKSkNCj4gPj4+Pj4gKwkJCXJlc3YgPQ0KPiBpb3J0X2lv
+bW11X2l0c19nZXRfcmVzdl9yZWdpb25zKGRldiwgaGVhZCk7DQo+ID4+Pj4NCj4gPj4+PiBIb3cg
+ZG9lcyB0aGlzIHdvcmsgd2hlbiB3ZSdyZSBub3QgdXNpbmcgQUNQST8gU2hvdWxkbid0IG9mIHZz
+IEFDUEkNCj4gPj4+PiBiZSBhYnN0cmFjdGVkIGZyb20gdGhlIGRyaXZlcj8NCj4gPj4+DQo+ID4+
+PiBBdCBwcmVzZW50IEFSTV9TTU1VX09QVF9SRVNWX0hXX01TSSBpcyBvbmx5IHNldCBmb3IgQUNQ
+SSBhbmQNCj4gRFQNCj4gPj4+IHN1cHBvcnQgZm9yIHRoaXMgaXMgYSBsb3cgcHJpb3JpdHkgZm9y
+IHVzIGF0IHRoZSBtb21lbnQuIElzIHRoZQ0KPiA+Pj4gc3VnZ2VzdGlvbiBpcyB0byBoYXZlIGEg
+Y29tbW9uIGZ1bmN0aW9uIG91dHNpZGUgdGhlIHNtbXUgZHJpdmVyIGZvcg0KPiA+Pj4gX2lvbW11
+X2l0c19nZXRfcmVzdl9yZWdpb25zKCkgPyBJIGFtIG5vdCBzdXJlIHdoYXQgaXMgdGhlIGJlc3Qg
+d2F5DQo+IGhlcmUuDQo+ID4+DQo+ID4+IFJpZ2h0LCBzb21ldGhpbmcgbGlrZSB0aGF0LiBUaGUg
+ZHJpdmVyIHNob3VsZG4ndCBuZWVkIHRvIGNhcmUgd2hldGhlciBvcg0KPiBub3QNCj4gPj4gaXQn
+cyB1c2luZyBBQ1BJIG9yIERUIHdoZW4gc2V0dGluZyB0aGVzZSBvcHRpb25zLg0KPiA+DQo+ID4g
+QmVsb3cgaXMgd2hhdCBJIGhhdmUgaW4gbWluZCBmb3IgdGhlIGNvbW1vbiBmdW5jdGlvbiBmb3Ig
+bXNpIHJlc2VydmUuDQo+ID4gQnV0IGp1c3Qgd29uZGVyaW5nIGludm9raW5nIGlvcnRfIGZ1bmN0
+aW9ucyBmcm9tIGlvbW11IGNvZGUNCj4gPiBpcyBhY2NlcHRhYmxlIG9yIG5vdCAuIENvdWxkIHlv
+dSBwbGVhc2UgdGFrZSBhIGxvb2sgYW5kIGxldCBtZSBrbm93Lg0KPiANCj4gQXQgdGhhdCBwb2lu
+dCwgaXQgc2VlbXMgbGlrZSB3ZSBtaWdodCBhcyB3ZWxsIGp1c3Qgcm9sbCBpdCBpbnRvDQo+IGlv
+bW11X2RtYV9nZXRfcmVzdl9yZWdpb25zKCkgZGlyZWN0bHlbMV0uIEl0IHByb2JhYmx5IG1ha2Vz
+IHNlbnNlIGZvcg0KPiBhbnkgRFQgZXF1aXZhbGVudCB0byBiZSBkZXNjcmliZWQgZ2VuZXJpY2Fs
+bHksIHJhdGhlciB0aGFuDQo+IFNNTVUtc3BlY2lmaWMsIHNvIHBhcnNpbmcgdGhhdCB3b3VsZCBm
+aXQgaW50byBjb21tb24gY29kZSBhcyB3ZWxsLg0KPiANCj4gVGhlbiBpbiB0aGUgU01NVSBkcml2
+ZXJzIHdlIGNhbiBza2lwIGNyZWF0aW5nIHRoZSBTV19NU0kgcmVnaW9uIGlmDQo+IGlvbW11LWRt
+YSBnYXZlIHVzIGJhY2sgYW55IHJlYWwgb25lcyAoYW5kIHJlbW92ZSB0aGUgYXBwYXJlbnRseQ0K
+PiB1bm5lY2Vzc2FyeSByZXN2X21zaSBjaGVjayBpbiBWRklPKS4gT3IgYmUgbGF6eSBhbmQganVz
+dCBsZWF2ZSBpdCwgYXMgaXQNCj4gZG9lc24ndCBzZWVtIHRvIGRvIG11Y2ggaGFybSB0byBoYXZl
+IGJvdGguDQoNCk9rLCBJZiBJIHJlYWQgdGhhdCBjb3JyZWN0bHksIHdlIGRvbuKAmXQgbmVlZCBh
+bnkgY2hhbmdlcyB0byBTTU1VIGRyaXZlciBmb3INCm5vdyBhbmQgdGhpcyB3aWxsIGJlIGEgZ2Vu
+ZXJpYyBjaGFuZ2UgcmF0aGVyIHRoYW4gYSBIaVNpIHF1aXJrLg0KDQpTbyBpcyBpdCBvaywgaWYg
+SSBqdXN0IHNlbmQgdGhlIHBhdGNoIzEgcmViYXNlZCBvbiA0LjEzLXJjMT8gIA0KDQpUaGFua3Ms
+DQpTaGFtZWVyDQoNCj4gDQo+IFsxXSBUaGlzIGlzIHdoYXQgSSBoYWNrZWQgdXAgbG9jYWxseSBv
+biB0b3Agb2YgcGF0Y2ggIzE6DQo+IC0tLS0tPjgtLS0tLQ0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVy
+cy9pb21tdS9kbWEtaW9tbXUuYyBiL2RyaXZlcnMvaW9tbXUvZG1hLWlvbW11LmMNCj4gaW5kZXgg
+OWQxY2ViZTdmNmNiLi41MDI5MjgyN2RhNDkgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvaW9tbXUv
+ZG1hLWlvbW11LmMNCj4gKysrIGIvZHJpdmVycy9pb21tdS9kbWEtaW9tbXUuYw0KPiBAQCAtMTks
+NiArMTksNyBAQA0KPiAgICogYWxvbmcgd2l0aCB0aGlzIHByb2dyYW0uICBJZiBub3QsIHNlZSA8
+aHR0cDovL3d3dy5nbnUub3JnL2xpY2Vuc2VzLz4uDQo+ICAgKi8NCj4gDQo+ICsjaW5jbHVkZSA8
+bGludXgvYWNwaV9pb3J0Lmg+DQo+ICAjaW5jbHVkZSA8bGludXgvZGV2aWNlLmg+DQo+ICAjaW5j
+bHVkZSA8bGludXgvZG1hLWlvbW11Lmg+DQo+ICAjaW5jbHVkZSA8bGludXgvZ2ZwLmg+DQo+IEBA
+IC0xNzQsNiArMTc1LDEwIEBAIHZvaWQgaW9tbXVfZG1hX2dldF9yZXN2X3JlZ2lvbnMoc3RydWN0
+IGRldmljZQ0KPiAqZGV2LA0KPiBzdHJ1Y3QgbGlzdF9oZWFkICpsaXN0KQ0KPiAgCXN0cnVjdCBw
+Y2lfaG9zdF9icmlkZ2UgKmJyaWRnZTsNCj4gIAlzdHJ1Y3QgcmVzb3VyY2VfZW50cnkgKndpbmRv
+dzsNCj4gDQo+ICsJaWYgKCFpc19vZl9ub2RlKGRldi0+aW9tbXVfZndzcGVjLT5pb21tdV9md25v
+ZGUpICYmDQo+ICsJCWlvcnRfaW9tbXVfaXRzX2dldF9yZXN2X3JlZ2lvbnMoZGV2LCBsaXN0KSA8
+IDApDQo+ICsJCXJldHVybjsNCj4gKw0KPiAgCWlmICghZGV2X2lzX3BjaShkZXYpKQ0KPiAgCQly
+ZXR1cm47DQoNCg==
