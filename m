@@ -1,39 +1,39 @@
-From: Nico Schottelius <nico.schottelius@ungleich.ch>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: Modern Suspend on Dell Latitude 5285 does not resume
-Date: Fri, 21 Jul 2017 00:41:36 +0200
-Message-ID: <87r2xaloin.fsf@ungleich.ch>
+Date: Fri, 21 Jul 2017 01:05:05 +0200
+Message-ID: <CAJZ5v0j6H+R869-h0FnnL3NTyOFoPODSbvEeug_YPcBdz+BCcg@mail.gmail.com>
 References: <87k233nfz0.fsf@ungleich.ch> <b967fdf2361d4ea29b8c76c62de0b7fc@ausx13mpc120.AMER.DELL.COM>
+ <87r2xaloin.fsf@ungleich.ch>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vm185-cluster3.place4.ungleich.ch ([136.243.197.185]:36671 "EHLO
-        mx.ungleich.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965282AbdGTWlk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Jul 2017 18:41:40 -0400
-In-reply-to: <b967fdf2361d4ea29b8c76c62de0b7fc@ausx13mpc120.AMER.DELL.COM>
+Received: from mail-io0-f179.google.com ([209.85.223.179]:38416 "EHLO
+        mail-io0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750860AbdGTXFG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 19:05:06 -0400
+In-Reply-To: <87r2xaloin.fsf@ungleich.ch>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario.Limonciello@dell.com
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, andriy.shevchenko@linux.intel.com, dvhart@infradead.org, linux-kernel@vger.kernel.org, srinivas.pandruvada@linux.intel.com, mika.westerberg@linux.intel.com, tom@oneshoeco.com, jerome.debretagne@gmail.com, torvalds@linux-foundation.org, lv.zheng@intel.com
+To: Nico Schottelius <nico.schottelius@ungleich.ch>
+Cc: Mario Limonciello <Mario.Limonciello@dell.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Tom Lanyon <tom@oneshoeco.com>, =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Lv <lv.zheng@intel.com>
 
-
-Good evening Mario,
-
-> Currently the patch does not look at anything in the system to default to S2I vs S3.
-> This will affect systems that offer S3 and S2I (even if S3 is broken).
+On Fri, Jul 21, 2017 at 12:41 AM, Nico Schottelius
+<nico.schottelius@ungleich.ch> wrote:
 >
-> Have you configured /sys/power/mem_sleep to s2idle?
-> https://github.com/torvalds/linux/blob/master/Documentation/power/states.txt#L35
+> Good evening Mario,
+>
+>> Currently the patch does not look at anything in the system to default to S2I vs S3.
+>> This will affect systems that offer S3 and S2I (even if S3 is broken).
+>>
+>> Have you configured /sys/power/mem_sleep to s2idle?
+>> https://github.com/torvalds/linux/blob/master/Documentation/power/states.txt#L35
+>
+> indeed, after configuring it to s2idle, it works like charm!
+>
+> Do you have any plans on defaulting to s2idle for machines that do not
+> properly support s3?
 
-indeed, after configuring it to s2idle, it works like charm!
+Yes, we do.
 
-Do you have any plans on defaulting to s2idle for machines that do not
-properly support s3?
-
-Best,
-
-Nico
-
-
---
-Modern, affordable, Swiss Virtual Machines can be found on www.datacenterlight.ch
+Thanks,
+Rafael
