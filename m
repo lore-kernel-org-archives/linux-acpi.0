@@ -1,111 +1,32 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 1/4] ACPI: Allow _DMA method in walk resources
-Date: Thu, 20 Jul 2017 15:50:16 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5D914D@ORSMSX110.amr.corp.intel.com>
-References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
- <20170720144517.32529-2-lorenzo.pieralisi@arm.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Thu, 20 Jul 2017 16:55:59 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F6130F211@ORSMSX114.amr.corp.intel.com>
+References: <20170717215912.26070-4-toshi.kani@hpe.com>
+ <20170718060007.GB8736@nazgul.tnic> <20170718080836.GB8372@nazgul.tnic>
+ <1500412288.2042.25.camel@hpe.com> <20170719055235.GD26030@nazgul.tnic>
+ <1500480051.2042.27.camel@hpe.com> <20170719162204.GE16124@nazgul.tnic>
+ <1500482822.2042.31.camel@hpe.com> <20170720041645.GA14367@nazgul.tnic>
+ <1500561189.2042.35.camel@hpe.com> <20170720150409.GB20712@nazgul.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170720150409.GB20712@nazgul.tnic>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Nate Watterson <nwatters@codeaurora.org>
+To: Borislav Petkov <bp@alien8.de>, "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Could you post this as a pull request on our github?
-
-https://github.com/acpica/acpica
-
-> -----Original Message-----
-> From: Moore, Robert
-> Sent: Thursday, July 20, 2017 8:49 AM
-> To: 'Lorenzo Pieralisi' <lorenzo.pieralisi@arm.com>; linux-
-> acpi@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org;
-> Zhang, Rui <rui.zhang@intel.com>; Rafael J. Wysocki <rjw@rjwysocki.net>;
-> Will Deacon <will.deacon@arm.com>; Robin Murphy <robin.murphy@arm.com>;
-> Hanjun Guo <hanjun.guo@linaro.org>; Feng Kan <fkan@apm.com>; Jon Masters
-> <jcm@redhat.com>; Nate Watterson <nwatters@codeaurora.org>
-> Subject: RE: [PATCH 1/4] ACPI: Allow _DMA method in walk resources
-> 
-> I think we can take this as-is into ACPICA.
-> Bob
-> 
-> 
-> > -----Original Message-----
-> > From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
-> > Sent: Thursday, July 20, 2017 7:45 AM
-> > To: linux-acpi@vger.kernel.org
-> > Cc: linux-arm-kernel@lists.infradead.org;
-> > linux-kernel@vger.kernel.org; Lorenzo Pieralisi
-> > <lorenzo.pieralisi@arm.com>; Moore, Robert <robert.moore@intel.com>;
-> Zhang, Rui <rui.zhang@intel.com>; Rafael J.
-> > Wysocki <rjw@rjwysocki.net>; Will Deacon <will.deacon@arm.com>; Robin
-> > Murphy <robin.murphy@arm.com>; Hanjun Guo <hanjun.guo@linaro.org>;
-> > Feng Kan <fkan@apm.com>; Jon Masters <jcm@redhat.com>; Nate Watterson
-> > <nwatters@codeaurora.org>
-> > Subject: [PATCH 1/4] ACPI: Allow _DMA method in walk resources
-> >
-> > The _DMA object contains a resource template, this change adds support
-> > for the walk resources function so that ACPI devices containing a _DMA
-> > object can actually parse it to detect DMA ranges for the respective
-> > bus.
-> >
-> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > Cc: Robert Moore <robert.moore@intel.com>
-> > Cc: Zhang Rui <rui.zhang@intel.com>
-> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > ---
-> >  drivers/acpi/acpica/rsxface.c | 7 ++++---
-> >  include/acpi/acnames.h        | 1 +
-> >  2 files changed, 5 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/acpi/acpica/rsxface.c
-> > b/drivers/acpi/acpica/rsxface.c index 59a4f9e..be65e65 100644
-> > --- a/drivers/acpi/acpica/rsxface.c
-> > +++ b/drivers/acpi/acpica/rsxface.c
-> > @@ -615,7 +615,7 @@ ACPI_EXPORT_SYMBOL(acpi_walk_resource_buffer)
-> >   *                                device we are querying
-> >   *              name            - Method name of the resources we
-> want.
-> >   *                                (METHOD_NAME__CRS,
-> METHOD_NAME__PRS,
-> > or
-> > - *                                METHOD_NAME__AEI)
-> > + *                                METHOD_NAME__AEI or
-> METHOD_NAME__DMA)
-> >   *              user_function   - Called for each resource
-> >   *              context         - Passed to user_function
-> >   *
-> > @@ -641,11 +641,12 @@ acpi_walk_resources(acpi_handle device_handle,
-> >  	if (!device_handle || !user_function || !name ||
-> >  	    (!ACPI_COMPARE_NAME(name, METHOD_NAME__CRS) &&
-> >  	     !ACPI_COMPARE_NAME(name, METHOD_NAME__PRS) &&
-> > -	     !ACPI_COMPARE_NAME(name, METHOD_NAME__AEI))) {
-> > +	     !ACPI_COMPARE_NAME(name, METHOD_NAME__AEI) &&
-> > +	     !ACPI_COMPARE_NAME(name, METHOD_NAME__DMA))) {
-> >  		return_ACPI_STATUS(AE_BAD_PARAMETER);
-> >  	}
-> >
-> > -	/* Get the _CRS/_PRS/_AEI resource list */
-> > +	/* Get the _CRS/_PRS/_AEI/_DMA resource list */
-> >
-> >  	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
-> >  	status = acpi_rs_get_method_data(device_handle, name, &buffer);
-> diff
-> > --git a/include/acpi/acnames.h b/include/acpi/acnames.h index
-> > b421584..d8dd3bf 100644
-> > --- a/include/acpi/acnames.h
-> > +++ b/include/acpi/acnames.h
-> > @@ -54,6 +54,7 @@
-> >  #define METHOD_NAME__CLS        "_CLS"
-> >  #define METHOD_NAME__CRS        "_CRS"
-> >  #define METHOD_NAME__DDN        "_DDN"
-> > +#define METHOD_NAME__DMA        "_DMA"
-> >  #define METHOD_NAME__HID        "_HID"
-> >  #define METHOD_NAME__INI        "_INI"
-> >  #define METHOD_NAME__PLD        "_PLD"
-> > --
-> > 2.10.0
+Pj4gWWVzLCB0aGUgZm9sbG93aW5nIG1lc3NhZ2UgaXMgc2hvd24gb24gSFAgc3lzdGVtcy4gIFBs
+ZWFzZSBub3RlIHRoYXQNCj4+IFdIRUEgaXMgYSBXaW5kb3dzLWRlZmluZWQgaW50ZXJmYWNlLg0K
+Pg0KPiBPaywgc28gbGV0J3MgY291cGxlIGdoZXNfZWRhYyBsb2FkaW5nIHRvIHRoYXQgYW5kIHNl
+ZSBob3cgZmFyIHdlIGNvdWxkDQo+IGdvLiBJIGd1ZXNzIHdlIHNob3VsZCBhZGQgY2hlY2tzIGZv
+ciB0aGF0IHRvIHRoZSBtYWpvciB4ODYgRURBQyBkcml2ZXJzDQo+IHRvIG5vdCBsb2FkIGFuZCB0
+aGlzIHdheSBnaGVzX2VkYWMgd2lsbCBiZSB0aGUgb25seSBkcml2ZXIgbG9hZGluZy4NCj4NCj4g
+VG9ueSwgaG93IGRvZXMgdGhhdCBzb3VuZD8NCg0KQWRkIGEgbW9kdWxlIHBhcmFtZXRlciB0byB0
+aG9zZSBlZGFjIGRyaXZlcnMgdGhhdCBjYW4gb3ZlcnJpZGUgdGhlIGNoZWNrDQphbmQgbGV0IHRo
+ZW0gbG9hZCBhbnl3YXkuICBJJ20gbm90IHBhcmFub2lkLCBJIGp1c3QgYXNzdW1lIHRoYXQgdGhl
+cmUgaXMgYSBCSU9TDQpvdXQgdGhlcmUgdGhhdCBzZXRzIHRoZSBPU0MvV0hFQSBiaXRzLCBidXQg
+aXNuJ3QgZ2VuZXJhdGluZyB1c2VmdWwgR0hFUyBsb2dzLg0KDQotVG9ueQ0K
