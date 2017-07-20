@@ -1,69 +1,47 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH v3 2/6] ACPI / x86: Consolidate Apple DMI checks
-Date: Thu, 20 Jul 2017 13:26:26 -0700
-Message-ID: <20170720202626.GA16076@fury>
-References: <cover.1499983092.git.lukas@wunner.de>
- <CAJZ5v0hh-rtfi6T3ebHYdqXn85W_gV_NDPU_XaRudM=T91Rziw@mail.gmail.com>
- <1500561223.29303.150.camel@linux.intel.com>
- <6875377.ba0xIR7deM@aspire.rjw.lan>
+From: Nico Schottelius <nico.schottelius@ungleich.ch>
+Subject: Modern Suspend on Dell Latitude 5285 does not resume
+Date: Thu, 20 Jul 2017 20:24:50 +0200
+Message-ID: <87k233nfz0.fsf@ungleich.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:56709 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934475AbdGTU0k (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 16:26:40 -0400
-Content-Disposition: inline
-In-Reply-To: <6875377.ba0xIR7deM@aspire.rjw.lan>
+Received: from vm185-cluster3.place4.ungleich.ch ([136.243.197.185]:36578 "EHLO
+        mx.ungleich.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934670AbdGTUfD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Jul 2017 16:35:03 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lukas Wunner <lukas@wunner.de>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, Mark Brown <broonie@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Limonciello Mario <Mario_Limonciello@Dell.com>, Tom Lanyon <tom@oneshoeco.com>, =?utf-8?B?SsOpcsO0bWU=?= de Bretagne <jerome.debretagne@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Zheng Lv <lv.zheng@intel.com>
 
-On Thu, Jul 20, 2017 at 04:49:48PM +0200, Rafael Wysocki wrote:
-> On Thursday, July 20, 2017 05:33:43 PM Andy Shevchenko wrote:
-> > On Thu, 2017-07-20 at 16:27 +0200, Rafael J. Wysocki wrote:
-> > > On Thu, Jul 20, 2017 at 4:03 PM, Lukas Wunner <lukas@wunner.de> wrote:
-> > > > On Sat, Jul 15, 2017 at 12:03:31AM +0200, Rafael J. Wysocki wrote:
-> > > > > On Friday, July 14, 2017 12:36:19 AM Lukas Wunner wrote:
-> > > > > > 
-> > 
-> > 
-> > > > I guess I could introduce a new <linux/apple.h> but I hate the
-> > > > insane
-> > > > proliferation of additional files in include/linux/.
-> > > 
-> > > There is include/linux/platform_data/x86/ so maybe put it in there?
-> > 
-> > Just suggested the same :-)
 
-Yes please, this is precisely why we created this directory.
+Hello,
 
-> > 
-> > > >  I could merge the contents of apple_bl.h and apple-gmux.h into that
-> > > > new header to
-> > > > reduce the number of files a bit.
-> > > > 
-> > > > Struggling to find a solution that's nice and clean.  Any ideas?
-> > > 
-> > > I guess you still want it to work if someone configures the kernel
-> > > without CONFIG_ACPI, although that's slightly debatable, so the
-> > > variable should be defined somewhere in the arch code I suppose.
-> > > 
-> > > I also guess you could add something like arch/x86/platform/apple/ and
-> > > put the checks and the variable in there (in which case I'd call it
-> > > x86_apple_machine or similar).
-> > 
-> > I'm not sure if we can use drivers/platform/x86 for this, either agreed
-> > way is fine to me.
-> 
-> No, because of the ACPI involvement.  That needs to go under arch/ IMO.
+following up the recent patch [0] to enable modern suspend on Dell notebooks, I
+can report that this patch does *not* fix the situation on Dell Latitude
+5285. I have tested with v4.12-10845-g74cbd96 and when closing the "lid"
+or triggering sleep by echo mem > /sys/power/state, the system suspends,
+but never wakes up again. Trying to resume with the power button does
+not have any affect, as it is the case with 4.12.1.
 
-We have an example, silead_dmi.c, which extracts properties based on the DMI
-match, and adds them to the i2c client device. While I suppose we could do
-something like this, the drivers affected are really not "platform drivers", but
-rather common drivers with platform specific properties. I concur with Rafael.
+A long power button press to forcefully shutdown the system is
+necessary, at which point the notebook responds with blinking
+the power LED (3x red, 5x white), which seems not to be defined in
+the user manual.
 
--- 
-Darren Hart
-VMware Open Source Technology Center
+Is there anything I can do to test what is going on?
+
+Best,
+
+Nico
+
+p.s.: The device does also not have any backlight control available in
+xorg, even though sysfs exposes a brightness setting - where is the best
+place to report this? xorg bugzilla or kernel?
+
+[0] https://lkml.org/lkml/2017/6/23/447
+
+--
+Werde Teil des modernen Arbeitens im Glarnerland auf www.digitalglarus.ch!
+Lese Neuigkeiten auf Twitter: www.twitter.com/DigitalGlarus
+Diskutiere mit auf Facebook:  www.facebook.com/digitalglarus
