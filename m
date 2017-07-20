@@ -1,33 +1,36 @@
-From: frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 0/2] add fwnode.h to several MAINTAINERS entries
-Date: Thu, 20 Jul 2017 12:13:23 -0700
-Message-ID: <1500578005-25893-1-git-send-email-frowand.list@gmail.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: frowand.list@gmail.com
+Subject: [PATCH 2/2] MAINTAINERS: device property: of: add fwnode.h
+Date: Thu, 20 Jul 2017 12:13:25 -0700
+Message-ID: <1500578005-25893-3-git-send-email-frowand.list@gmail.com>
+References: <1500578005-25893-1-git-send-email-frowand.list@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1500578005-25893-1-git-send-email-frowand.list@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Frank Rowand <frank.rowand-7U/KSKJipcs@public.gmane.org>
+From: Frank Rowand <frank.rowand@sony.com>
 
-Rafael, can you please take patch 1?
+Device tree is impacted by changes to fwnode.h, add a file entry
+to OPEN FIRMWARE AND FLATTENED DEVICE TREE
 
-Rob, can you please take patch 2?
+Signed-off-by: Frank Rowand <frank.rowand@sony.com>
+---
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-Several maintainers are impacted by changes to fwnode.h, add a
-file entry for those maintainers.
-
-Frank Rowand (2):
-  MAINTAINERS: device property: acpi: add fwnode.h
-  MAINTAINERS: device property: of: add fwnode.h
-
- MAINTAINERS | 2 ++
- 1 file changed, 2 insertions(+)
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c0ac362e850a..cb58c20b1ef8 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9771,6 +9771,7 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git
+ S:	Maintained
+ F:	drivers/of/
+ F:	include/linux/of*.h
++F:	include/linux/fwnode.h
+ F:	scripts/dtc/
+ F:	Documentation/ABI/testing/sysfs-firmware-ofw
+ 
 -- 
-Frank Rowand <frank.rowand-7U/KSKJipcs@public.gmane.org>
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Frank Rowand <frank.rowand@sony.com>
