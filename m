@@ -1,75 +1,69 @@
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Thu, 20 Jul 2017 17:15:23 -0300
-Message-ID: <20170720171523.4812a8b4@vento.lan>
-References: <20170717215912.26070-1-toshi.kani@hpe.com>
-        <20170717215912.26070-4-toshi.kani@hpe.com>
-        <20170718060007.GB8736@nazgul.tnic>
-        <1500407379.2042.21.camel@hpe.com>
-        <20170718181545.32bd9181@vento.lan>
-        <1500481869.2042.29.camel@hpe.com>
-        <20170720043344.GC14367@nazgul.tnic>
-        <1500579646.2042.37.camel@hpe.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH v3 2/6] ACPI / x86: Consolidate Apple DMI checks
+Date: Thu, 20 Jul 2017 13:26:26 -0700
+Message-ID: <20170720202626.GA16076@fury>
+References: <cover.1499983092.git.lukas@wunner.de>
+ <CAJZ5v0hh-rtfi6T3ebHYdqXn85W_gV_NDPU_XaRudM=T91Rziw@mail.gmail.com>
+ <1500561223.29303.150.camel@linux.intel.com>
+ <6875377.ba0xIR7deM@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38892
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S965009AbdGTUPd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 16:15:33 -0400
-In-Reply-To: <1500579646.2042.37.camel@hpe.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:56709 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934475AbdGTU0k (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 16:26:40 -0400
+Content-Disposition: inline
+In-Reply-To: <6875377.ba0xIR7deM@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "bp@alien8.de" <bp@alien8.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lukas Wunner <lukas@wunner.de>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, Mark Brown <broonie@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>
 
-Em Thu, 20 Jul 2017 19:50:03 +0000
-"Kani, Toshimitsu" <toshi.kani@hpe.com> escreveu:
-
-> On Thu, 2017-07-20 at 06:33 +0200, Borislav Petkov wrote:
-> > On Wed, Jul 19, 2017 at 04:40:25PM +0000, Kani, Toshimitsu wrote:  
-> > >  ghes_edac allows to report errors to OS management tools like
-> > > rasdaemon in addition to platform- specific managements.  
+On Thu, Jul 20, 2017 at 04:49:48PM +0200, Rafael Wysocki wrote:
+> On Thursday, July 20, 2017 05:33:43 PM Andy Shevchenko wrote:
+> > On Thu, 2017-07-20 at 16:27 +0200, Rafael J. Wysocki wrote:
+> > > On Thu, Jul 20, 2017 at 4:03 PM, Lukas Wunner <lukas@wunner.de> wrote:
+> > > > On Sat, Jul 15, 2017 at 12:03:31AM +0200, Rafael J. Wysocki wrote:
+> > > > > On Friday, July 14, 2017 12:36:19 AM Lukas Wunner wrote:
+> > > > > > 
 > > 
-> > So ghes_edac *is* a poor man's driver in the sense that it doesn't do
-> > anything fancy but repeat like a parrot data it has gotten from the
-> > firmware and shoving it into the EDAC counters. At least that's the
-> > intention. Nothing more.   
-> 
-> Right for ghes_edac.
-> 
-> > All the action stuff like error detection and recovery should be done
-> > by the firmware.  
-> 
-> GHES / firmware-first still requires OS recovery actions when an error
-> cannot be corrected by the platform.  They are handled by ghes_proc(),
-> and ghes_edac remains its error-reporting wrapper.
-> 
-> > But considering how SNAFU'd firmware is, I wouldn't expect any great
-> > RAS functionality there. Of course, I'd be delighted to be proven
-> > wrong.  
-> 
-> Firmware has better knowledge about the platform and can provide better
-> RAS when implemented properly.  I agree that user experiences may vary
-> on platforms.
+> > 
+> > > > I guess I could introduce a new <linux/apple.h> but I hate the
+> > > > insane
+> > > > proliferation of additional files in include/linux/.
+> > > 
+> > > There is include/linux/platform_data/x86/ so maybe put it in there?
+> > 
+> > Just suggested the same :-)
 
-It may have a better knowledge, when the vendor ships different BIOS
-for platforms with different motherboard silkscreens, but a lot of
-vendors just use the same BIOS on different models, with the same
-information at "Locator" and "Bank Locator" data at DMI tables,
-that don't match what's printed at the board's silkscreen.
+Yes please, this is precisely why we created this directory.
 
-So, GHES ends by exposing wrong data. Also, such BIOS fail
-to properly expose such knowledge to drivers/userspace.
+> > 
+> > > >  I could merge the contents of apple_bl.h and apple-gmux.h into that
+> > > > new header to
+> > > > reduce the number of files a bit.
+> > > > 
+> > > > Struggling to find a solution that's nice and clean.  Any ideas?
+> > > 
+> > > I guess you still want it to work if someone configures the kernel
+> > > without CONFIG_ACPI, although that's slightly debatable, so the
+> > > variable should be defined somewhere in the arch code I suppose.
+> > > 
+> > > I also guess you could add something like arch/x86/platform/apple/ and
+> > > put the checks and the variable in there (in which case I'd call it
+> > > x86_apple_machine or similar).
+> > 
+> > I'm not sure if we can use drivers/platform/x86 for this, either agreed
+> > way is fine to me.
+> 
+> No, because of the ACPI involvement.  That needs to go under arch/ IMO.
 
-On the discussions I had with HP, back in 2012, the idea was to try 
-to have some sort of way for the GHES driver to query the BIOS
-on a reliable way, in order to get its layout, in a way
-that tools like ras-mc-ctl would properly report the memory
-configuration (with --layout) and the motherboard silkscreen
-labels (with --print-labels). Unfortunately, at least on that
-time, the discussions with HP didn't proceed.
+We have an example, silead_dmi.c, which extracts properties based on the DMI
+match, and adds them to the i2c client device. While I suppose we could do
+something like this, the drivers affected are really not "platform drivers", but
+rather common drivers with platform specific properties. I concur with Rafael.
 
-Thanks,
-Mauro
+-- 
+Darren Hart
+VMware Open Source Technology Center
