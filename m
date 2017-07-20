@@ -1,77 +1,52 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: Modern Suspend on Dell Latitude 5285 does not resume
-Date: Thu, 20 Jul 2017 21:03:28 +0000
-Message-ID: <b967fdf2361d4ea29b8c76c62de0b7fc@ausx13mpc120.AMER.DELL.COM>
-References: <87k233nfz0.fsf@ungleich.ch>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Thu, 20 Jul 2017 21:07:03 +0000
+Message-ID: <1500584265.2042.39.camel@hpe.com>
+References: <20170717215912.26070-1-toshi.kani@hpe.com>
+         <20170717215912.26070-4-toshi.kani@hpe.com>
+         <20170718060007.GB8736@nazgul.tnic> <1500407379.2042.21.camel@hpe.com>
+         <20170718181545.32bd9181@vento.lan> <1500481869.2042.29.camel@hpe.com>
+         <20170720043344.GC14367@nazgul.tnic> <1500579646.2042.37.camel@hpe.com>
+         <20170720171523.4812a8b4@vento.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <87k233nfz0.fsf@ungleich.ch>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3427.houston.hpe.com ([15.241.140.73]:43166 "EHLO
+        g4t3427.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936098AbdGTVHO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 17:07:14 -0400
+In-Reply-To: <20170720171523.4812a8b4@vento.lan>
 Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: nico.schottelius@ungleich.ch, linux-acpi@vger.kernel.org
-Cc: linux-pm@vger.kernel.org, andriy.shevchenko@linux.intel.com, dvhart@infradead.org, linux-kernel@vger.kernel.org, srinivas.pandruvada@linux.intel.com, mika.westerberg@linux.intel.com, tom@oneshoeco.com, jerome.debretagne@gmail.com, torvalds@linux-foundation.org, lv.zheng@intel.com
+Content-ID: <A107250500091245866BE797647BB7CC@NAMPRD84.PROD.OUTLOOK.COM>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "mchehab@s-opensource.com" <mchehab@s-opensource.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "bp@alien8.de" <bp@alien8.de>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-Nico,
-
-> -----Original Message-----
-> From: Nico Schottelius [mailto:nico.schottelius@ungleich.ch]
-> Sent: Thursday, July 20, 2017 1:25 PM
-> To: Linux ACPI <linux-acpi@vger.kernel.org>
-> Cc: Linux PM <linux-pm@vger.kernel.org>; Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com>; Darren Hart <dvhart@infradead.org>; =
-LKML
-> <linux-kernel@vger.kernel.org>; Srinivas Pandruvada
-> <srinivas.pandruvada@linux.intel.com>; Mika Westerberg
-> <mika.westerberg@linux.intel.com>; Limonciello, Mario
-> <Mario_Limonciello@Dell.com>; Tom Lanyon <tom@oneshoeco.com>; J=E9r=F4me =
-de
-> Bretagne <jerome.debretagne@gmail.com>; Linus Torvalds <torvalds@linux-
-> foundation.org>; Zheng Lv <lv.zheng@intel.com>
-> Subject: Modern Suspend on Dell Latitude 5285 does not resume
->=20
->=20
-> Hello,
->=20
-> following up the recent patch [0] to enable modern suspend on Dell notebo=
-oks, I
-> can report that this patch does *not* fix the situation on Dell Latitude
-> 5285. I have tested with v4.12-10845-g74cbd96 and when closing the "lid"
-> or triggering sleep by echo mem > /sys/power/state, the system suspends,
-> but never wakes up again. Trying to resume with the power button does
-> not have any affect, as it is the case with 4.12.1.
->=20
-> A long power button press to forcefully shutdown the system is
-> necessary, at which point the notebook responds with blinking
-> the power LED (3x red, 5x white), which seems not to be defined in
-> the user manual.
->=20
-> Is there anything I can do to test what is going on?
->=20
-Currently the patch does not look at anything in the system to default to S=
-2I vs S3.
-This will affect systems that offer S3 and S2I (even if S3 is broken).
-
-Have you configured /sys/power/mem_sleep to s2idle?
-https://github.com/torvalds/linux/blob/master/Documentation/power/states.tx=
-t#L35
-
-Thanks,
-
-> Best,
->=20
-> Nico
->=20
-> p.s.: The device does also not have any backlight control available in
-> xorg, even though sysfs exposes a brightness setting - where is the best
-> place to report this? xorg bugzilla or kernel?
->=20
-> [0] https://lkml.org/lkml/2017/6/23/447
->=20
-> --
-> Werde Teil des modernen Arbeitens im Glarnerland auf www.digitalglarus.ch=
-!
-> Lese Neuigkeiten auf Twitter: www.twitter.com/DigitalGlarus
-> Diskutiere mit auf Facebook:  www.facebook.com/digitalglarus
+T24gVGh1LCAyMDE3LTA3LTIwIGF0IDE3OjE1IC0wMzAwLCBNYXVybyBDYXJ2YWxobyBDaGVoYWIg
+d3JvdGU6DQo+IEVtIFRodSwgMjAgSnVsIDIwMTcgMTk6NTA6MDMgKzAwMDANCj4gIkthbmksIFRv
+c2hpbWl0c3UiIDx0b3NoaS5rYW5pQGhwZS5jb20+IGVzY3JldmV1Og0KIDoNCj4gPiBGaXJtd2Fy
+ZSBoYXMgYmV0dGVyIGtub3dsZWRnZSBhYm91dCB0aGUgcGxhdGZvcm0gYW5kIGNhbiBwcm92aWRl
+DQo+ID4gYmV0dGVyIFJBUyB3aGVuIGltcGxlbWVudGVkIHByb3Blcmx5LsKgwqBJIGFncmVlIHRo
+YXQgdXNlcg0KPiA+IGV4cGVyaWVuY2VzIG1heSB2YXJ5IG9uIHBsYXRmb3Jtcy4NCj4gDQo+IEl0
+IG1heSBoYXZlIGEgYmV0dGVyIGtub3dsZWRnZSwgd2hlbiB0aGUgdmVuZG9yIHNoaXBzIGRpZmZl
+cmVudCBCSU9TDQo+IGZvciBwbGF0Zm9ybXMgd2l0aCBkaWZmZXJlbnQgbW90aGVyYm9hcmQgc2ls
+a3NjcmVlbnMsIGJ1dCBhIGxvdCBvZg0KPiB2ZW5kb3JzIGp1c3QgdXNlIHRoZSBzYW1lIEJJT1Mg
+b24gZGlmZmVyZW50IG1vZGVscywgd2l0aCB0aGUgc2FtZQ0KPiBpbmZvcm1hdGlvbiBhdCAiTG9j
+YXRvciIgYW5kICJCYW5rIExvY2F0b3IiIGRhdGEgYXQgRE1JIHRhYmxlcywNCj4gdGhhdCBkb24n
+dCBtYXRjaCB3aGF0J3MgcHJpbnRlZCBhdCB0aGUgYm9hcmQncyBzaWxrc2NyZWVuLg0KPiANCj4g
+U28sIEdIRVMgZW5kcyBieSBleHBvc2luZyB3cm9uZyBkYXRhLiBBbHNvLCBzdWNoIEJJT1MgZmFp
+bA0KPiB0byBwcm9wZXJseSBleHBvc2Ugc3VjaCBrbm93bGVkZ2UgdG8gZHJpdmVycy91c2Vyc3Bh
+Y2UuDQoNCkkgc2VlLiAgWWVhaCwgSSBjYW4gc2VlIHN1Y2ggcHJvYmxlbXMgY291bGQgYmUgb3Zl
+cmxvb2tlZCBzaW5jZSBub3JtYWwNCnRlc3RzIHJ1biBqdXN0IGZpbmUgZXZlbiBpZiB0aGVyZSBp
+cyBhIG1pc21hdGNoIGluIHN1Y2ggaW5mby4uLg0KDQo+IE9uIHRoZSBkaXNjdXNzaW9ucyBJIGhh
+ZCB3aXRoIEhQLCBiYWNrIGluIDIwMTIsIHRoZSBpZGVhIHdhcyB0byB0cnnCoA0KPiB0byBoYXZl
+IHNvbWUgc29ydCBvZiB3YXkgZm9yIHRoZSBHSEVTIGRyaXZlciB0byBxdWVyeSB0aGUgQklPUw0K
+PiBvbiBhIHJlbGlhYmxlIHdheSwgaW4gb3JkZXIgdG8gZ2V0IGl0cyBsYXlvdXQsIGluIGEgd2F5
+DQo+IHRoYXQgdG9vbHMgbGlrZSByYXMtbWMtY3RsIHdvdWxkIHByb3Blcmx5IHJlcG9ydCB0aGUg
+bWVtb3J5DQo+IGNvbmZpZ3VyYXRpb24gKHdpdGggLS1sYXlvdXQpIGFuZCB0aGUgbW90aGVyYm9h
+cmQgc2lsa3NjcmVlbg0KPiBsYWJlbHMgKHdpdGggLS1wcmludC1sYWJlbHMpLiBVbmZvcnR1bmF0
+ZWx5LCBhdCBsZWFzdCBvbiB0aGF0DQo+IHRpbWUsIHRoZSBkaXNjdXNzaW9ucyB3aXRoIEhQIGRp
+ZG4ndCBwcm9jZWVkLg0KDQpUaGFua3MgZm9yIHRoZSBpbmZvLiAgSSBob3BlIHdlIGNhbiBlbmFi
+bGUgaXQgdGhpcyB0aW1lIGFyb3VuZC4NCi1Ub3NoaQ0KDQoNCg==
