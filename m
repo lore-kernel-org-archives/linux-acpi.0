@@ -1,53 +1,83 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH 0/1] acpi: apei: Enable APEI multiple GHES source to
- share an single external IRQ
-Date: Thu, 20 Jul 2017 06:49:36 +0200
-Message-ID: <20170720044936.GA14552@nazgul.tnic>
-References: <20170719172427.5478-1-msalter@redhat.com>
- <CAJZ5v0hdtDEgNXMmD-3oKqHn8vSFx=wfTgN+as1AO=jiQ_BKzQ@mail.gmail.com>
- <1500494721.14060.11.camel@redhat.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v1 1/3] mfd: Add new mfd device TPS68470
+Date: Thu, 20 Jul 2017 09:15:34 +0100
+Message-ID: <20170720081534.jy3ajvtgm45u4bic@dell>
+References: <1496750118-5570-1-git-send-email-rajmohan.mani@intel.com>
+ <1496750118-5570-2-git-send-email-rajmohan.mani@intel.com>
+ <CAHp75VfiTM2t=WxWpG4+kUfGA3DrfGfMOwxP6Cs42nGwHjAp7w@mail.gmail.com>
+ <20170607115827.GY1019@valkosipuli.retiisi.org.uk>
+ <6F87890CF0F5204F892DEA1EF0D77A59725BECB0@FMSMSX114.amr.corp.intel.com>
+ <20170612082038.x6z3rx2bknxmfyfp@dell>
+ <6F87890CF0F5204F892DEA1EF0D77A59725BF469@FMSMSX114.amr.corp.intel.com>
+ <6F87890CF0F5204F892DEA1EF0D77A59725DCCC2@FMSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wr0-f182.google.com ([209.85.128.182]:35446 "EHLO
+        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934584AbdGTIPi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 04:15:38 -0400
+Received: by mail-wr0-f182.google.com with SMTP id k71so13985778wrc.2
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Jul 2017 01:15:37 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1500494721.14060.11.camel@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Salter <msalter@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Tyler Baicar <tbaicar@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A59725DCCC2@FMSMSX114.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc: 'Sakari Ailus' <sakari.ailus@iki.fi>, 'Andy Shevchenko' <andy.shevchenko@gmail.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'linux-gpio@vger.kernel.org'" <linux-gpio@vger.kernel.org>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, 'Linus Walleij' <linus.walleij@linaro.org>, 'Alexandre Courbot' <gnurou@gmail.com>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, 'Len Brown' <lenb@kernel.org>
 
-On Wed, Jul 19, 2017 at 04:05:21PM -0400, Mark Salter wrote:
-> Yes, I should have included Boris. The last time this came up, Boris
-> said it was up to you. :)
+On Wed, 19 Jul 2017, Mani, Rajmohan wrote:
+
+> Hi Lee,
 > 
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2016-January/401772.html
+> > > On Fri, 09 Jun 2017, Mani, Rajmohan wrote:
+> > >
+> > > > Hi Andy,
+> > > >
+> > > > > On Tue, Jun 06, 2017 at 03:59:49PM +0300, Andy Shevchenko wrote:
+> > > > > > On Tue, Jun 6, 2017 at 2:55 PM, Rajmohan Mani
+> > > > > <rajmohan.mani@intel.com> wrote:
+> > > > > > > The TPS68470 device is an advanced power management unit that
+> > > > > > > powers a Compact Camera Module (CCM), generates clocks for
+> > > > > > > image sensors, drives a dual LED for Flash and incorporates
+> > > > > > > two LED drivers for general purpose indicators.
+> > > > > > >
+> > > > > > > This patch adds support for TPS68470 mfd device.
+> > > > > >
+> > > > > > I dunno why you decide to send this out now, see my comments
+> > below.
+> > > > > >
+> > > > > > > +static int tps68470_chip_init(struct tps68470 *tps) {
+> > > > > > > +       unsigned int version;
+> > > > > > > +       int ret;
+> > > > > >
+> > > > > > > +       /* FIXME: configure these dynamically */
+> > > > > >
+> > > > > > So, what prevents you to fix this?
+> > > > >
+> > > > > Nothing I suppose. They're however not needed right now and can be
+> > > > > implemented later on if they're ever needed.
+> > > > >
+> > > >
+> > > > Ack
+> > >
+> > > What does this mean?  Is the plan to fix it or not?  I don't want
+> > > FIXMEs in the code that a) can be fixed right away or b) might never be
+> > fixed.
+> > >
+> > 
+> > I meant that this can be implemented later on, if there's a need.
+> > I will look into this and see how this can be fixed.
+> > 
+> 
+> Thanks for your patience.
+> This is fixed with v4 of this series.
 
-/me goes back and reads the old emails.
-
-So I had some issues with how acpi_gsi_to_irq() returns the irq number
-but that required more involved simplification and the submitter was
-unsurprisingly reluctant to do it.
-
-That's why it was Rafael's call.
-
-AFAIR.
-
-Also, from looking at the patches, the SOB chain is wrong:
-
-Signed-off-by: Tuan Phan <tphan@apm.com>
-Signed-off-by: Loc Ho <lho@apm.com>
-
-I don't know from that who's the author and who's the submitter.
-SubmittingPatches has more info on the whole deal.
-
-So please resubmit updated versions with issues addressed.
-
-Thanks.
+Great, thanks.
 
 -- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
