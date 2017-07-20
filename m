@@ -1,37 +1,56 @@
 From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: [PATCH 0/4] Drop uninformative messages from bootlog
-Date: Thu, 20 Jul 2017 12:03:58 +0100
-Message-ID: <20170720110402.15313-1-punit.agrawal@arm.com>
+Subject: [PATCH 3/4] ACPI / APEI: Drop uninformative messages during boot
+Date: Thu, 20 Jul 2017 12:04:01 +0100
+Message-ID: <20170720110402.15313-4-punit.agrawal@arm.com>
+References: <20170720110402.15313-1-punit.agrawal@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170720110402.15313-1-punit.agrawal@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, Punit Agrawal <punit.agrawal@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org
+Cc: lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, Punit Agrawal <punit.agrawal@arm.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+When booting an ACPI enabled system that does not provide the hardware
+error source table (HEST), the ghes driver prints the following message
+in the kernel log -
 
-While booting v4.13-rc1 on an arm64 system, I noticed some messages
-that clutter the boot log without providing any useful
-information. This series trims some of the obvious offenders.
+[    3.460067] GHES: HEST is not enabled!
 
-The patches are spread across a few sub-systems - arm64/mm, mailbox,
-APEI and xen, and can be independently merged.
+which is not helpful.
 
-Thanks,
-Punit
+The message is also output when HEST is explicitly disabled using kernel
+command line parameter.
 
+Drop this message. While we are touching this code, also drop similar
+message when GHES is disabled using the module parameter.
 
-Punit Agrawal (4):
-  arm64/numa: Drop duplicate message
-  mailbox: pcc: Drop uninformative output during boot
-  ACPI / APEI: Drop uninformative messages during boot
-  xen: Drop un-informative message during boot
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Borislav Petkov <bp@suse.de>
+---
+ drivers/acpi/apei/ghes.c | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
- arch/arm64/mm/numa.c      | 7 +------
- drivers/acpi/apei/ghes.c  | 9 +--------
- drivers/mailbox/pcc.c     | 4 +---
- drivers/xen/xenfs/super.c | 1 -
- 4 files changed, 3 insertions(+), 18 deletions(-)
-
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index d661d452b238..3ddd1bd714fc 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -1265,15 +1265,8 @@ static int __init ghes_init(void)
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
+-	if (hest_disable) {
+-		pr_info(GHES_PFX "HEST is not enabled!\n");
++	if (hest_disable || ghes_disable)
+ 		return -EINVAL;
+-	}
+-
+-	if (ghes_disable) {
+-		pr_info(GHES_PFX "GHES is not enabled!\n");
+-		return -EINVAL;
+-	}
+ 
+ 	ghes_nmi_init_cxt();
+ 
 -- 
 2.11.0
