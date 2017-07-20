@@ -1,46 +1,75 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Thu, 20 Jul 2017 19:50:03 +0000
-Message-ID: <1500579646.2042.37.camel@hpe.com>
+Date: Thu, 20 Jul 2017 17:15:23 -0300
+Message-ID: <20170720171523.4812a8b4@vento.lan>
 References: <20170717215912.26070-1-toshi.kani@hpe.com>
-         <20170717215912.26070-4-toshi.kani@hpe.com>
-         <20170718060007.GB8736@nazgul.tnic> <1500407379.2042.21.camel@hpe.com>
-         <20170718181545.32bd9181@vento.lan> <1500481869.2042.29.camel@hpe.com>
-         <20170720043344.GC14367@nazgul.tnic>
+        <20170717215912.26070-4-toshi.kani@hpe.com>
+        <20170718060007.GB8736@nazgul.tnic>
+        <1500407379.2042.21.camel@hpe.com>
+        <20170718181545.32bd9181@vento.lan>
+        <1500481869.2042.29.camel@hpe.com>
+        <20170720043344.GC14367@nazgul.tnic>
+        <1500579646.2042.37.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3427.houston.hpe.com ([15.241.140.73]:43092 "EHLO
-        g4t3427.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935971AbdGTTuH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 15:50:07 -0400
-In-Reply-To: <20170720043344.GC14367@nazgul.tnic>
-Content-Language: en-US
-Content-ID: <A3BFE52D4D0A8E49A0FC82B581AEA96F@NAMPRD84.PROD.OUTLOOK.COM>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38892
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S965009AbdGTUPd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 16:15:33 -0400
+In-Reply-To: <1500579646.2042.37.camel@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "bp@alien8.de" <bp@alien8.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@s-opensource.com" <mchehab@s-opensource.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "bp@alien8.de" <bp@alien8.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-T24gVGh1LCAyMDE3LTA3LTIwIGF0IDA2OjMzICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
-DQo+IE9uIFdlZCwgSnVsIDE5LCAyMDE3IGF0IDA0OjQwOjI1UE0gKzAwMDAsIEthbmksIFRvc2hp
-bWl0c3Ugd3JvdGU6DQo+ID4gwqBnaGVzX2VkYWMgYWxsb3dzIHRvIHJlcG9ydCBlcnJvcnMgdG8g
-T1MgbWFuYWdlbWVudCB0b29scyBsaWtlDQo+ID4gcmFzZGFlbW9uIGluIGFkZGl0aW9uIHRvIHBs
-YXRmb3JtLSBzcGVjaWZpYyBtYW5hZ2VtZW50cy4NCj4gDQo+IFNvIGdoZXNfZWRhYyAqaXMqIGEg
-cG9vciBtYW4ncyBkcml2ZXIgaW4gdGhlIHNlbnNlIHRoYXQgaXQgZG9lc24ndCBkbw0KPiBhbnl0
-aGluZyBmYW5jeSBidXQgcmVwZWF0IGxpa2UgYSBwYXJyb3QgZGF0YSBpdCBoYXMgZ290dGVuIGZy
-b20gdGhlDQo+IGZpcm13YXJlIGFuZCBzaG92aW5nIGl0IGludG8gdGhlIEVEQUMgY291bnRlcnMu
-IEF0IGxlYXN0IHRoYXQncyB0aGUNCj4gaW50ZW50aW9uLiBOb3RoaW5nIG1vcmUuIA0KDQpSaWdo
-dCBmb3IgZ2hlc19lZGFjLg0KDQo+IEFsbCB0aGUgYWN0aW9uIHN0dWZmIGxpa2UgZXJyb3IgZGV0
-ZWN0aW9uIGFuZCByZWNvdmVyeSBzaG91bGQgYmUgZG9uZQ0KPiBieSB0aGUgZmlybXdhcmUuDQoN
-CkdIRVMgLyBmaXJtd2FyZS1maXJzdCBzdGlsbCByZXF1aXJlcyBPUyByZWNvdmVyeSBhY3Rpb25z
-wqB3aGVuIGFuIGVycm9yDQpjYW5ub3QgYmUgY29ycmVjdGVkIGJ5IHRoZSBwbGF0Zm9ybS4gIFRo
-ZXkgYXJlIGhhbmRsZWQgYnkgZ2hlc19wcm9jKCksDQphbmQgZ2hlc19lZGFjIHJlbWFpbnMgaXRz
-IGVycm9yLXJlcG9ydGluZyB3cmFwcGVyLg0KDQo+IEJ1dCBjb25zaWRlcmluZyBob3cgU05BRlUn
-ZCBmaXJtd2FyZSBpcywgSSB3b3VsZG4ndCBleHBlY3QgYW55IGdyZWF0DQo+IFJBUyBmdW5jdGlv
-bmFsaXR5IHRoZXJlLiBPZiBjb3Vyc2UsIEknZCBiZSBkZWxpZ2h0ZWQgdG8gYmUgcHJvdmVuDQo+
-IHdyb25nLg0KDQpGaXJtd2FyZSBoYXMgYmV0dGVyIGtub3dsZWRnZSBhYm91dCB0aGUgcGxhdGZv
-cm0gYW5kIGNhbiBwcm92aWRlIGJldHRlcg0KUkFTIHdoZW4gaW1wbGVtZW50ZWQgcHJvcGVybHku
-ICBJIGFncmVlIHRoYXQgdXNlciBleHBlcmllbmNlcyBtYXkgdmFyeQ0Kb24gcGxhdGZvcm1zLg0K
-DQpUaGFua3MsDQotVG9zaGkNCg==
+Em Thu, 20 Jul 2017 19:50:03 +0000
+"Kani, Toshimitsu" <toshi.kani@hpe.com> escreveu:
+
+> On Thu, 2017-07-20 at 06:33 +0200, Borislav Petkov wrote:
+> > On Wed, Jul 19, 2017 at 04:40:25PM +0000, Kani, Toshimitsu wrote:  
+> > >  ghes_edac allows to report errors to OS management tools like
+> > > rasdaemon in addition to platform- specific managements.  
+> > 
+> > So ghes_edac *is* a poor man's driver in the sense that it doesn't do
+> > anything fancy but repeat like a parrot data it has gotten from the
+> > firmware and shoving it into the EDAC counters. At least that's the
+> > intention. Nothing more.   
+> 
+> Right for ghes_edac.
+> 
+> > All the action stuff like error detection and recovery should be done
+> > by the firmware.  
+> 
+> GHES / firmware-first still requires OS recovery actions when an error
+> cannot be corrected by the platform.  They are handled by ghes_proc(),
+> and ghes_edac remains its error-reporting wrapper.
+> 
+> > But considering how SNAFU'd firmware is, I wouldn't expect any great
+> > RAS functionality there. Of course, I'd be delighted to be proven
+> > wrong.  
+> 
+> Firmware has better knowledge about the platform and can provide better
+> RAS when implemented properly.  I agree that user experiences may vary
+> on platforms.
+
+It may have a better knowledge, when the vendor ships different BIOS
+for platforms with different motherboard silkscreens, but a lot of
+vendors just use the same BIOS on different models, with the same
+information at "Locator" and "Bank Locator" data at DMI tables,
+that don't match what's printed at the board's silkscreen.
+
+So, GHES ends by exposing wrong data. Also, such BIOS fail
+to properly expose such knowledge to drivers/userspace.
+
+On the discussions I had with HP, back in 2012, the idea was to try 
+to have some sort of way for the GHES driver to query the BIOS
+on a reliable way, in order to get its layout, in a way
+that tools like ras-mc-ctl would properly report the memory
+configuration (with --layout) and the motherboard silkscreen
+labels (with --print-labels). Unfortunately, at least on that
+time, the discussions with HP didn't proceed.
+
+Thanks,
+Mauro
