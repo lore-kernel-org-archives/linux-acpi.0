@@ -1,45 +1,47 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v3 6/6] libnvdimm: fix potential deadlock while clearing errors
-Date: Thu, 20 Jul 2017 20:23:34 -0700
-Message-ID: <CAPcyv4jbMwtZLnNuwpaVF-W21HLc8QD5rYn6b7wBxcnV5eDAow@mail.gmail.com>
-References: <20170717235655.26424-1-vishal.l.verma@intel.com> <20170717235655.26424-7-vishal.l.verma@intel.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH v5 1/1] acpi: apei: Enable APEI multiple GHES source to
+ share an single external IRQ
+Date: Fri, 21 Jul 2017 08:00:07 +0200
+Message-ID: <20170721060007.GA26714@nazgul.tnic>
+References: <1500586563-7088-1-git-send-email-lho@apm.com>
+ <1500586563-7088-2-git-send-email-lho@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f179.google.com ([209.85.161.179]:34428 "EHLO
-        mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750860AbdGUDXf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2017 23:23:35 -0400
-Received: by mail-yw0-f179.google.com with SMTP id x6so13056155ywd.1
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Jul 2017 20:23:35 -0700 (PDT)
-In-Reply-To: <20170717235655.26424-7-vishal.l.verma@intel.com>
+Received: from mx2.suse.de ([195.135.220.15]:44773 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750818AbdGUGAS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Jul 2017 02:00:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1500586563-7088-2-git-send-email-lho@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Robert Moore <robert.moore@intel.com>
+To: Loc Ho <lho@apm.com>
+Cc: msalter@redhat.com, rafael@kernel.org, tbaicar@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@apm.com
 
-On Mon, Jul 17, 2017 at 4:56 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
-> With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
-> Specifically, the DSM to clear media errors is called during writes, so
-> that we can provide a writes-fix-errors model.
->
-> However it is easy to imagine a scenario like:
->  -> write through the nvdimm driver
->    -> acpi allocation
->      -> writeback, causes more IO through the nvdimm driver
->        -> deadlock
->
-> Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
-> flag for the current scope when issuing commands/IOs that are expected
-> to clear errors.
->
-> Cc: <linux-acpi@vger.kernel.org>
-> Cc: <linux-nvdimm@lists.01.org>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Robert Moore <robert.moore@intel.com>
-> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+On Thu, Jul 20, 2017 at 02:36:03PM -0700, Loc Ho wrote:
+> This patch allows APEI generic error source table with external
 
-Looks good to me. Please move this up in the series before we start
-calling nvdimm_clear_poison() in the btt I/O path so there's no
-bisection point where this deadlock comes back.
+"This patch" in a commit message is tautologically redundant.
+
+> IRQ to share a single IRQ.
+
+Because? More background please.
+
+> Co-authored-by: Tuan Phan <tphan@apm.com>
+
+I guess an invented tag is fine. What you can also do is say in free
+text in the commit message that Tuan has helped.
+
+> Signed-off-by: Loc Ho <lho@apm.com>
+> ---
+
+...
+
+-- 
+Regards/Gruss,
+    Boris.
+
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
