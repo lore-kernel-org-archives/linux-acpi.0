@@ -1,52 +1,35 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 2/3] ACPI / PM: Split acpi_device_wakeup()
-Date: Fri, 21 Jul 2017 18:27:39 +0300
-Message-ID: <CAHp75VdJqyNBC=iy_FGVsxeskHko=P9=SJqrN8Hq1GtXZEyoRA@mail.gmail.com>
-References: <3116391.JNS1F4DjTg@aspire.rjw.lan> <3408475.MC8krXn0zk@aspire.rjw.lan>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Fri, 21 Jul 2017 15:34:50 +0000
+Message-ID: <1500650732.2042.45.camel@hpe.com>
+References: <20170718060007.GB8736@nazgul.tnic>
+         <1500407379.2042.21.camel@hpe.com> <20170718181545.32bd9181@vento.lan>
+         <1500481869.2042.29.camel@hpe.com> <20170720043344.GC14367@nazgul.tnic>
+         <1500579646.2042.37.camel@hpe.com> <20170721133441.GB5036@nazgul.tnic>
+         <20170721104001.3cd2b884@vento.lan> <20170721134715.GC5036@nazgul.tnic>
+         <1500649162.2042.43.camel@hpe.com> <20170721151317.GA13424@nazgul.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3408475.MC8krXn0zk@aspire.rjw.lan>
+In-Reply-To: <20170721151317.GA13424@nazgul.tnic>
+Content-Language: en-US
+Content-ID: <DC19FB75A9DB6F4AB7105BF3ADAA462F@NAMPRD84.PROD.OUTLOOK.COM>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+To: "bp@alien8.de" <bp@alien8.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@s-opensource.com" <mchehab@s-opensource.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 21, 2017 at 3:40 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> To prepare for a subsequent change and make the code somewhat easier
-> to follow, do the following in the ACPI device wakeup handling code:
->
->  * Replace wakeup.flags.enabled under struct acpi_device with
->    wakeup.enable_count as that will be necessary going forward.
->
->    For now, wakeup.enable_count is not allowed to grow beyond 1,
->    so the current behavior is retained.
->
->  * Split acpi_device_wakeup() into acpi_device_wakeup_enable()
->    and acpi_device_wakeup_disable() and modify the callers of
->    it accordingly.
->
->  * Introduce a new acpi_wakeup_lock mutex to protect the wakeup
->    enabling/disabling code from races in case it is executed
->    more than once in parallel for the same device (which may
->    happen for bridges theoretically).
-
-I prefer more self-explaining labels, though it's minor here
-
-To be constructive:
-out -> err_unlock
-out -> out_unlock or err_unlock (depends on context)
-
-
-> +out:
-> +       mutex_unlock(&acpi_wakeup_lock);
-> +       return error;
-
-> +out:
-> +       mutex_unlock(&acpi_wakeup_lock);
-
--- 
-With Best Regards,
-Andy Shevchenko
+T24gRnJpLCAyMDE3LTA3LTIxIGF0IDE3OjEzICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
+DQo+IE9uIEZyaSwgSnVsIDIxLCAyMDE3IGF0IDAzOjA4OjQxUE0gKzAwMDAsIEthbmksIFRvc2hp
+bWl0c3Ugd3JvdGU6DQo+ID4gWWVzLCB0aGF0IGlzIGNvcnJlY3QuwqDCoENvcnJlY3RlZCBlcnJv
+cnMgYXJlIHJlcG9ydGVkIHRvIHRoZSBPUyB3aGVuDQo+ID4gdGhleSBleGNlZWRlZCB0aGUgcGxh
+dGZvcm0ncyB0aHJlc2hvbGQuDQo+IA0KPiBBcmUgdGhvc2UgdGhyZXNob2xkcyB1c2VyLWNvbmZp
+Z3VyYWJsZT8NCg0KSSBzdXBwb3NlIGl0J2QgZGVwZW5kIG9uIHZlbmRvcnMsIGJ1dCBJIGRvIG5v
+dCB0aGluayB1c2VycyBjYW4gZG8gaXQNCnByb3Blcmx5IHVubGVzcyB0aGV5IGhhdmUgZGVwdGgg
+a25vd2xlZGdlIGFib3V0IHRoZSBoYXJkd2FyZS4NCg0KPiBJZiBub3QsIHdoYXQgYXJlIHlvdSB0
+ZWxsaW5nIHVzZXJzIHdobyB3YW50IHRvIHNlZSAqZXZlcnkqIGNvcnJlY3RlZA0KPiBlcnJvciBm
+b3IgbWVhc3VyaW5nIERJTU0gd2VhciBhbmQgc28gb24uLi4/DQoNCkNvcnJlY3RlZCBlcnJvcnMg
+YXJlIG5vcm1hbCBhbmQgZXhwZWN0ZWQgdG8gb2NjdXIgb24gaGVhbHRoeSBoYXJkd2FyZS4gDQpU
+aGV5IGRvIG5vdCBuZWVkIHVzZXIncyBhdHRlbnRpb24gdW50aWwgdGhleSByZXBlYXRlZGx5IG9j
+Y3VycmVkIGF0IGENCnNhbWUgcGxhY2UuDQoNClRoYW5rcywNCi1Ub3NoaQ0K
