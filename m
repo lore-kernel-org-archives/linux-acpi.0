@@ -1,99 +1,66 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: [PATCH] mailbox: pcc: Fix crash when request PCC channel 0
-Date: Fri, 21 Jul 2017 15:09:29 -0700
-Message-ID: <1500674969-12906-1-git-send-email-hotran@apm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 2/4] ACPI: Make acpi_dev_get_resources() method agnostic
+Date: Sat, 22 Jul 2017 00:05:39 +0200
+Message-ID: <24234737.CuhWYzNn5W@aspire.rjw.lan>
+References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com> <20170720144517.32529-3-lorenzo.pieralisi@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f48.google.com ([74.125.83.48]:32826 "EHLO
-        mail-pg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753853AbdGUWL7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jul 2017 18:11:59 -0400
-Received: by mail-pg0-f48.google.com with SMTP id k14so33808488pgr.0
-        for <linux-acpi@vger.kernel.org>; Fri, 21 Jul 2017 15:11:59 -0700 (PDT)
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51338 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752780AbdGUWNd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Jul 2017 18:13:33 -0400
+In-Reply-To: <20170720144517.32529-3-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jassi Brar <jassisinghbrar@gmail.com>, Prakash Prashanth <pprakash@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lho@apm.com, isubramanian@apm.com, Hoan Tran <hotran@apm.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
 
-When PCCT is not available, kernel crashes as below when requests PCC
-channel 0. This patch fixes this issue.
+On Thursday, July 20, 2017 03:45:14 PM Lorenzo Pieralisi wrote:
+> The function acpi_dev_get_resources() is completely generic and
+> can be used to parse resource objects that are not necessarily
+> coming from the _CRS method but also from other objects eg _DMA
+> that have the same _CRS resource format.
+> 
+> Create an acpi_dev_get_resources() helper, internal to the ACPI
+> resources parsing compilation unit, acpi_dev_get_resources_method(),
+> that takes a char* parameter to detect which ACPI method should be
+> called to retrieve the resources list and make acpi_dev_get_resources()
+> call it with a method name _CRS leaving the API behaviour unchanged.
+> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> ---
+>  drivers/acpi/resource.c | 54 +++++++++++++++++++++++++++++--------------------
+>  1 file changed, 32 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index cd4c427..2b20a09 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -573,6 +573,36 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
+>  	return AE_OK;
+>  }
+>  
+> +static
+> +int acpi_dev_get_resources_method(struct acpi_device *adev,
 
-[    0.920454] PCCT header not found.
-...
-[    8.031309] Unable to handle kernel NULL pointer dereference at virtual address 00000010
-[    8.031310] [0000000000000010] user address but active_mm is swapper
-[    8.031312] Internal error: Oops: 96000004 [#1] PREEMPT SMP
-[    8.031313] Modules linked in:
-[    8.031316] CPU: 31 PID: 1 Comm: swapper/0 Tainted: G        W       4.13.0-rc1 #18
-[    8.031317] Hardware name: AppliedMicro(R) 07/20/2017
-[    8.031318] task: ffff809ef3b08000 task.stack: ffff809ef3b10000
-[    8.031322] PC is at pcc_mbox_request_channel+0x8c/0x160
-[    8.031325] LR is at xgene_slimpro_i2c_probe+0x1c0/0x378
-[    8.031326] pc : [<ffff000008899450>] lr : [<ffff000008819dac>] pstate: 00000045
-[    8.031327] sp : ffff809ef3b13bd0
-[    8.031327] x29: ffff809ef3b13bd0 x28: ffff000008ed90a0
-[    8.031329] x27: ffff000009091000 x26: ffff000008e50470
-[    8.031330] x25: ffff000008ed9100 x24: ffff809eefd9ac30
-[    8.031332] x23: 0000000000000000 x22: ffff0000090e3e10
-[    8.031333] x21: ffff0000090e3000 x20: 0000000000000000
-[    8.031335] x19: 0000000000000000 x18: 0000000000087ffc
-[    8.031336] x17: 2fe48d76a78303f0 x16: 0000000000087ffc
-[    8.031337] x15: ffff000000000000 x14: 0000000000000000
-[    8.031339] x13: 0000000000000000 x12: 0000000000000018
-[    8.031340] x11: 0000000000000018 x10: 0101010101010101
-[    8.031342] x9 : 0000000000000000 x8 : 7f7f7f7f7f7f7f7f
-[    8.031343] x7 : fefefefeff6b646d x6 : 0000008080808080
-[    8.031345] x5 : 0000000000000000 x4 : 0000000000000001
-[    8.031346] x3 : 0000000000000000 x2 : ffff000008819b64
-[    8.031348] x1 : 0000000000000000 x0 : 0000000000000000
-...
-[    8.031393] Call trace:
-[    8.031394] Exception stack(0xffff809ef3b13a00 to 0xffff809ef3b13b30)
-[    8.031395] 3a00: 0000000000000000 0001000000000000 ffff809ef3b13bd0 ffff000008899450
-[    8.031397] 3a20: ffff809f7e1f9a10 ffff000008f60be0 0000000000000001 ffff809ef3b13b7c
-[    8.031398] 3a40: ffff809f7e1f9a10 0000000000000000 ffff000009091000 0000000000000003
-[    8.031399] 3a60: ffff000009091000 0000000000000003 ffff809ef3b13a80 ffff0000084e0794
-[    8.031400] 3a80: ffff809ef3b13a90 ffff00000850bb64 ffff809ef3b13ad0 ffff00000850bf34
-[    8.031402] 3aa0: 0000000000000000 0000000000000000 ffff000008819b64 0000000000000000
-[    8.031403] 3ac0: 0000000000000001 0000000000000000 0000008080808080 fefefefeff6b646d
-[    8.031404] 3ae0: 7f7f7f7f7f7f7f7f 0000000000000000 0101010101010101 0000000000000018
-[    8.031405] 3b00: 0000000000000018 0000000000000000 0000000000000000 ffff000000000000
-[    8.031406] 3b20: 0000000000087ffc 2fe48d76a78303f0
-[    8.031409] [<ffff000008899450>] pcc_mbox_request_channel+0x8c/0x160
-[    8.031410] [<ffff000008819dac>] xgene_slimpro_i2c_probe+0x1c0/0x378
-[    8.031413] [<ffff0000085e84dc>] platform_drv_probe+0x50/0xbc
-[    8.031414] [<ffff0000085e68a4>] driver_probe_device+0x21c/0x2d0
-[    8.031416] [<ffff0000085e6a04>] __driver_attach+0xac/0xb0
-[    8.031417] [<ffff0000085e4a78>] bus_for_each_dev+0x58/0x98
-[    8.031418] [<ffff0000085e61e4>] driver_attach+0x20/0x28
-[    8.031419] [<ffff0000085e5e0c>] bus_add_driver+0x1c8/0x22c
-[    8.031421] [<ffff0000085e7324>] driver_register+0x60/0xf4
-[    8.031422] [<ffff0000085e8420>] __platform_driver_register+0x4c/0x54
-[    8.031425] [<ffff000008e96dd0>] xgene_slimpro_i2c_driver_init+0x18/0x20
-[    8.031426] [<ffff000008083144>] do_one_initcall+0x38/0x124
-[    8.031429] [<ffff000008e50d0c>] kernel_init_freeable+0x190/0x22c
-[    8.031431] [<ffff0000089eac30>] kernel_init+0x10/0xfc
-[    8.031432] [<ffff000008082ec0>] ret_from_fork+0x10/0x50
-[    8.031434] Code: cb030e63 8b030013 b140067f 54fffda8 (f9400a61)
-[    8.031448] ---[ end trace 14eb48a4e1e1f9fb ]---
+Do not break lines like this, please.
 
-Signed-off-by: Hoan Tran <hotran@apm.com>
----
- drivers/mailbox/pcc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+It should be
 
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index ac91fd0..cbca5e5 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -92,7 +92,7 @@
-  */
- static struct mbox_chan *get_pcc_channel(int id)
- {
--	if (id < 0 || id > pcc_mbox_ctrl.num_chans)
-+	if (id < 0 || id >= pcc_mbox_ctrl.num_chans)
- 		return ERR_PTR(-ENOENT);
- 
- 	return &pcc_mbox_channels[id];
--- 
-1.9.1
+static int acpi_dev_get...
+
+Also I would call it differently, maybe simply __acpi_dev_get_resources()?
+
+> +				  struct list_head *list,
+> +				  int (*preproc)(struct acpi_resource *, void *),
+> +				  void *preproc_data, char *method)
+
+const char *method ?
+
+Thanks,
+Rafael
 
