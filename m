@@ -1,85 +1,102 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 3/8] ACPI: Prepare for constifying acpi_get_next_subnode() fwnode argument
-Date: Fri, 21 Jul 2017 14:39:32 +0300
-Message-ID: <1500637177-16095-4-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v3 4/8] ACPI: Constify acpi_bus helper functions, switch to macros
+Date: Fri, 21 Jul 2017 14:39:33 +0300
+Message-ID: <1500637177-16095-5-git-send-email-sakari.ailus@linux.intel.com>
 References: <1500637177-16095-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:39791 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750858AbdGULli (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Jul 2017 07:41:38 -0400
-In-Reply-To: <1500637177-16095-1-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1500637177-16095-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, erik.veijola-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, erik.veijola@intel.com, andriy.shevchenko@linux.intel.com
 
-Make local variables const (head) or add new variables; adev was used for
-two purposes: to refer the root device node and its children. The two
-purposes are separated by this patch.
+Constify arguments to is_acpi_node(), is_acpi_device_node(),
+is_acpi_static_node() and acpi_data_node_match(). Make
+to_acpi_device_node() and to_acpi_data_node() macros that can cope with
+const and non-const arguments.
 
-This is preparation for making fwnode arguments const for fwnode ops.
-Don't constify the argument itself quite yet as this is used as a callback
-function.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/acpi/property.c | 23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ include/acpi/acpi_bus.h | 42 +++++++++++++++++++++++++-----------------
+ 1 file changed, 25 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index cb6a3b3..04c60a2 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -899,8 +899,10 @@ int acpi_node_prop_read(struct fwnode_handle *fwnode,  const char *propname,
- struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
- 					    struct fwnode_handle *child)
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 91b1e58..89bc213 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -399,43 +399,51 @@ extern const struct fwnode_operations acpi_device_fwnode_ops;
+ extern const struct fwnode_operations acpi_data_fwnode_ops;
+ extern const struct fwnode_operations acpi_static_fwnode_ops;
+ 
+-static inline bool is_acpi_node(struct fwnode_handle *fwnode)
++static inline bool is_acpi_node(const struct fwnode_handle *fwnode)
  {
--	struct acpi_device *adev = to_acpi_device_node(fwnode);
--	struct list_head *head, *next;
-+	const struct acpi_device *adev = to_acpi_device_node(fwnode);
-+	struct acpi_device *child_adev = NULL;
-+	const struct list_head *head;
-+	struct list_head *next;
+ 	return !IS_ERR_OR_NULL(fwnode) &&
+ 		(fwnode->ops == &acpi_device_fwnode_ops
+ 		 || fwnode->ops == &acpi_data_fwnode_ops);
+ }
  
- 	if (!child || is_acpi_device_node(child)) {
- 		if (adev)
-@@ -912,26 +914,27 @@ struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
- 			goto nondev;
+-static inline bool is_acpi_device_node(struct fwnode_handle *fwnode)
++static inline bool is_acpi_device_node(const struct fwnode_handle *fwnode)
+ {
+ 	return !IS_ERR_OR_NULL(fwnode) &&
+ 		fwnode->ops == &acpi_device_fwnode_ops;
+ }
  
- 		if (child) {
--			adev = to_acpi_device_node(child);
--			next = adev->node.next;
-+			child_adev = to_acpi_device_node(child);
-+			next = child_adev->node.next;
- 			if (next == head) {
- 				child = NULL;
- 				goto nondev;
- 			}
--			adev = list_entry(next, struct acpi_device, node);
-+			child_adev = list_entry(next, struct acpi_device, node);
- 		} else {
--			adev = list_first_entry(head, struct acpi_device, node);
-+			child_adev = list_first_entry(head, struct acpi_device,
-+						      node);
- 		}
--		return acpi_fwnode_handle(adev);
-+		return acpi_fwnode_handle(child_adev);
- 	}
+-static inline struct acpi_device *to_acpi_device_node(struct fwnode_handle *fwnode)
+-{
+-	return is_acpi_device_node(fwnode) ?
+-		container_of(fwnode, struct acpi_device, fwnode) : NULL;
+-}
+-
+-static inline bool is_acpi_data_node(struct fwnode_handle *fwnode)
++#define to_acpi_device_node(__fwnode)					\
++	({								\
++		typeof(__fwnode) __to_acpi_device_node_fwnode = __fwnode; \
++									\
++		is_acpi_device_node(__to_acpi_device_node_fwnode) ?	\
++			container_of(__to_acpi_device_node_fwnode,	\
++				     struct acpi_device, fwnode) :	\
++			NULL;						\
++	})
++
++static inline bool is_acpi_data_node(const struct fwnode_handle *fwnode)
+ {
+ 	return !IS_ERR_OR_NULL(fwnode) && fwnode->ops == &acpi_data_fwnode_ops;
+ }
  
-  nondev:
- 	if (!child || is_acpi_data_node(child)) {
--		struct acpi_data_node *data = to_acpi_data_node(fwnode);
-+		const struct acpi_data_node *data = to_acpi_data_node(fwnode);
- 		struct acpi_data_node *dn;
+-static inline struct acpi_data_node *to_acpi_data_node(struct fwnode_handle *fwnode)
+-{
+-	return is_acpi_data_node(fwnode) ?
+-		container_of(fwnode, struct acpi_data_node, fwnode) : NULL;
+-}
+-
+-static inline bool is_acpi_static_node(struct fwnode_handle *fwnode)
++#define to_acpi_data_node(__fwnode)					\
++	({								\
++		typeof(__fwnode) __to_acpi_data_node_fwnode = __fwnode;	\
++									\
++		is_acpi_data_node(__to_acpi_data_node_fwnode) ?		\
++			container_of(__to_acpi_data_node_fwnode,	\
++				     struct acpi_data_node, fwnode) :	\
++			NULL;						\
++	})
++
++static inline bool is_acpi_static_node(const struct fwnode_handle *fwnode)
+ {
+ 	return !IS_ERR_OR_NULL(fwnode) &&
+ 		fwnode->ops == &acpi_static_fwnode_ops;
+ }
  
--		if (adev)
--			head = &adev->data.subnodes;
-+		if (child_adev)
-+			head = &child_adev->data.subnodes;
- 		else if (data)
- 			head = &data->data.subnodes;
- 		else
+-static inline bool acpi_data_node_match(struct fwnode_handle *fwnode,
++static inline bool acpi_data_node_match(const struct fwnode_handle *fwnode,
+ 					const char *name)
+ {
+ 	return is_acpi_data_node(fwnode) ?
 -- 
 2.7.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
