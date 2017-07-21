@@ -1,87 +1,80 @@
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Fri, 21 Jul 2017 14:01:31 -0300
-Message-ID: <20170721140131.40079805@vento.lan>
+Date: Fri, 21 Jul 2017 17:21:31 +0000
+Message-ID: <1500657133.2042.51.camel@hpe.com>
 References: <20170718060007.GB8736@nazgul.tnic>
- <1500407379.2042.21.camel@hpe.com>
- <20170718181545.32bd9181@vento.lan>
- <1500481869.2042.29.camel@hpe.com>
- <20170720043344.GC14367@nazgul.tnic>
- <1500579646.2042.37.camel@hpe.com>
- <20170721133441.GB5036@nazgul.tnic>
- <20170721104001.3cd2b884@vento.lan>
- <20170721134715.GC5036@nazgul.tnic>
- <1500649162.2042.43.camel@hpe.com>
- <20170721151317.GA13424@nazgul.tnic>
- <1500650732.2042.45.camel@hpe.com>
- <20170721124401.5f94aba9@vento.lan>
- <1500654661.2042.49.camel@hpe.com>
+         <1500407379.2042.21.camel@hpe.com> <20170718181545.32bd9181@vento.lan>
+         <1500481869.2042.29.camel@hpe.com> <20170720043344.GC14367@nazgul.tnic>
+         <1500579646.2042.37.camel@hpe.com> <20170721133441.GB5036@nazgul.tnic>
+         <20170721104001.3cd2b884@vento.lan> <20170721134715.GC5036@nazgul.tnic>
+         <1500649162.2042.43.camel@hpe.com> <20170721151317.GA13424@nazgul.tnic>
+         <1500650732.2042.45.camel@hpe.com> <20170721124401.5f94aba9@vento.lan>
+         <1500654661.2042.49.camel@hpe.com> <20170721140131.40079805@vento.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1500654661.2042.49.camel@hpe.com>
+In-Reply-To: <20170721140131.40079805@vento.lan>
+Content-Language: en-US
+Content-ID: <2FBE99E5C94956489F646539178B0D71@NAMPRD84.PROD.OUTLOOK.COM>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+To: "mchehab@s-opensource.com" <mchehab@s-opensource.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "bp@alien8.de" <bp@alien8.de>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Em Fri, 21 Jul 2017 16:40:20 +0000
-"Kani, Toshimitsu" <toshi.kani@hpe.com> escreveu:
-
-> On Fri, 2017-07-21 at 12:44 -0300, Mauro Carvalho Chehab wrote:
-> > Em Fri, 21 Jul 2017 15:34:50 +0000
-> > "Kani, Toshimitsu" <toshi.kani@hpe.com> escreveu:
-> >   
-> > > On Fri, 2017-07-21 at 17:13 +0200, Borislav Petkov wrote:  
-> > > > On Fri, Jul 21, 2017 at 03:08:41PM +0000, Kani, Toshimitsu
-> > > > wrote:    
-> > > > > Yes, that is correct.  Corrected errors are reported to the OS
-> > > > > when they exceeded the platform's threshold.    
-> > > > 
-> > > > Are those thresholds user-configurable?    
-> > > 
-> > > I suppose it'd depend on vendors, but I do not think users can do
-> > > it properly unless they have depth knowledge about the hardware.
-> > >   
-> > > > If not, what are you telling users who want to see *every*
-> > > > corrected error for measuring DIMM wear and so on...?    
-> > > 
-> > > Corrected errors are normal and expected to occur on healthy
-> > > hardware.  They do not need user's attention until they repeatedly
-> > > occurred at a same place.  
-> > 
-> > Yes, they're expected to happen. Still, some sys admins have their
-> > own measurements about what's "normal" for their scenario, and want
-> > to monitor every single corrected error, running their own
-> > algorithm to warn if the number of corrected errors is above their
-> > "normal" rate.  
-> 
-> I suppose these admins had to do it because their platforms reported
-> all corrected errors.  It addresses such administrators' burden.
-
-I see the value of having a threshold in BIOS, provided that it is
-well documented, and whose value can be adjusted, if needed.
-
-One of the things I wanted to implement in ras-daemon were an
-algorithm that would be doing such threshold in software.
-The problem is that it would require field experience. So,
-I talked with a few vendors, to see if they could help doing
-it, but, on that time, none rised their hands :-)
-
-The thing with a BIOS threshold is that the user has no way to
-audit the algorithm. So, when BIOS start reporting such errors,
-it may be already too late: the systems may be in the verge of 
-losing data (or some data was already lost).
-
-That's critical on cluster systems with thousands of machines:
-while the impact of disabling a cluster node to do some maintainance
-is marginal, the impact of an uncorrected error on a single
-machine may compromise weeks of expensive processing.
-
-That's why some users prefer to monitor every single corrected
-error, and compare with the probability distribution they
-know that the risk of uncorrected errors is acceptable.
-
-Thanks,
-Mauro
+T24gRnJpLCAyMDE3LTA3LTIxIGF0IDE0OjAxIC0wMzAwLCBNYXVybyBDYXJ2YWxobyBDaGVoYWIg
+d3JvdGU6DQo+IEVtIEZyaSwgMjEgSnVsIDIwMTcgMTY6NDA6MjAgKzAwMDANCj4gIkthbmksIFRv
+c2hpbWl0c3UiIDx0b3NoaS5rYW5pQGhwZS5jb20+IGVzY3JldmV1Og0KPiANCj4gPiBPbiBGcmks
+IDIwMTctMDctMjEgYXQgMTI6NDQgLTAzMDAsIE1hdXJvIENhcnZhbGhvIENoZWhhYiB3cm90ZToN
+Cj4gPiA+IEVtIEZyaSwgMjEgSnVsIDIwMTcgMTU6MzQ6NTAgKzAwMDANCj4gPiA+ICJLYW5pLCBU
+b3NoaW1pdHN1IiA8dG9zaGkua2FuaUBocGUuY29tPiBlc2NyZXZldToNCj4gPiA+IMKgwqANCj4g
+PiA+ID4gT24gRnJpLCAyMDE3LTA3LTIxIGF0IDE3OjEzICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Yg
+d3JvdGU6wqDCoA0KPiA+ID4gPiA+IE9uIEZyaSwgSnVsIDIxLCAyMDE3IGF0IDAzOjA4OjQxUE0g
+KzAwMDAsIEthbmksIFRvc2hpbWl0c3UNCj4gPiA+ID4gPiB3cm90ZTrCoMKgwqDCoA0KPiA+ID4g
+PiA+ID4gWWVzLCB0aGF0IGlzIGNvcnJlY3QuwqDCoENvcnJlY3RlZCBlcnJvcnMgYXJlIHJlcG9y
+dGVkIHRvIHRoZQ0KPiA+ID4gPiA+ID4gT1Mgd2hlbiB0aGV5IGV4Y2VlZGVkIHRoZSBwbGF0Zm9y
+bSdzIHRocmVzaG9sZC7CoMKgwqDCoA0KPiA+ID4gPiA+IA0KPiA+ID4gPiA+IEFyZSB0aG9zZSB0
+aHJlc2hvbGRzIHVzZXItY29uZmlndXJhYmxlP8KgwqDCoMKgDQo+ID4gPiA+IA0KPiA+ID4gPiBJ
+IHN1cHBvc2UgaXQnZCBkZXBlbmQgb24gdmVuZG9ycywgYnV0IEkgZG8gbm90IHRoaW5rIHVzZXJz
+IGNhbg0KPiA+ID4gPiBkbyBpdCBwcm9wZXJseSB1bmxlc3MgdGhleSBoYXZlIGRlcHRoIGtub3ds
+ZWRnZSBhYm91dCB0aGUNCj4gPiA+ID4gaGFyZHdhcmUuDQo+ID4gPiA+IMKgwqANCj4gPiA+ID4g
+PiBJZiBub3QsIHdoYXQgYXJlIHlvdSB0ZWxsaW5nIHVzZXJzIHdobyB3YW50IHRvIHNlZSAqZXZl
+cnkqDQo+ID4gPiA+ID4gY29ycmVjdGVkIGVycm9yIGZvciBtZWFzdXJpbmcgRElNTSB3ZWFyIGFu
+ZCBzbyBvbi4uLj/CoMKgwqDCoA0KPiA+ID4gPiANCj4gPiA+ID4gQ29ycmVjdGVkIGVycm9ycyBh
+cmUgbm9ybWFsIGFuZCBleHBlY3RlZCB0byBvY2N1ciBvbiBoZWFsdGh5DQo+ID4gPiA+IGhhcmR3
+YXJlLsKgwqBUaGV5IGRvIG5vdCBuZWVkIHVzZXIncyBhdHRlbnRpb24gdW50aWwgdGhleQ0KPiA+
+ID4gPiByZXBlYXRlZGx5IG9jY3VycmVkIGF0IGEgc2FtZSBwbGFjZS7CoMKgDQo+ID4gPiANCj4g
+PiA+IFllcywgdGhleSdyZSBleHBlY3RlZCB0byBoYXBwZW4uIFN0aWxsLCBzb21lIHN5cyBhZG1p
+bnMgaGF2ZQ0KPiA+ID4gdGhlaXIgb3duIG1lYXN1cmVtZW50cyBhYm91dCB3aGF0J3MgIm5vcm1h
+bCIgZm9yIHRoZWlyIHNjZW5hcmlvLA0KPiA+ID4gYW5kIHdhbnQgdG8gbW9uaXRvciBldmVyeSBz
+aW5nbGUgY29ycmVjdGVkIGVycm9yLCBydW5uaW5nIHRoZWlyDQo+ID4gPiBvd24gYWxnb3JpdGht
+IHRvIHdhcm4gaWYgdGhlIG51bWJlciBvZiBjb3JyZWN0ZWQgZXJyb3JzIGlzIGFib3ZlDQo+ID4g
+PiB0aGVpciAibm9ybWFsIiByYXRlLsKgwqANCj4gPiANCj4gPiBJIHN1cHBvc2UgdGhlc2UgYWRt
+aW5zIGhhZCB0byBkbyBpdCBiZWNhdXNlIHRoZWlyIHBsYXRmb3Jtcw0KPiA+IHJlcG9ydGVkIGFs
+bCBjb3JyZWN0ZWQgZXJyb3JzLsKgwqBJdCBhZGRyZXNzZXMgc3VjaCBhZG1pbmlzdHJhdG9ycycN
+Cj4gPiBidXJkZW4uDQo+IA0KPiBJIHNlZSB0aGUgdmFsdWUgb2YgaGF2aW5nIGEgdGhyZXNob2xk
+IGluIEJJT1MsIHByb3ZpZGVkIHRoYXQgaXQgaXMNCj4gd2VsbCBkb2N1bWVudGVkLCBhbmQgd2hv
+c2UgdmFsdWUgY2FuIGJlIGFkanVzdGVkLCBpZiBuZWVkZWQuDQo+IA0KPiBPbmUgb2YgdGhlIHRo
+aW5ncyBJIHdhbnRlZCB0byBpbXBsZW1lbnQgaW4gcmFzLWRhZW1vbiB3ZXJlIGFuDQo+IGFsZ29y
+aXRobSB0aGF0IHdvdWxkIGJlIGRvaW5nIHN1Y2ggdGhyZXNob2xkIGluIHNvZnR3YXJlLg0KPiBU
+aGUgcHJvYmxlbSBpcyB0aGF0IGl0IHdvdWxkIHJlcXVpcmUgZmllbGQgZXhwZXJpZW5jZS4gU28s
+DQo+IEkgdGFsa2VkIHdpdGggYSBmZXcgdmVuZG9ycywgdG8gc2VlIGlmIHRoZXkgY291bGQgaGVs
+cCBkb2luZw0KPiBpdCwgYnV0LCBvbiB0aGF0IHRpbWUsIG5vbmUgcmlzZWQgdGhlaXIgaGFuZHMg
+Oi0pDQoNCkkgdGhpbmsgaXQnZCBiZSB2ZXJ5IGhhcmQgdG8ga2VlcCBpdCB1cCB0byBkYXRlLg0K
+DQo+IFRoZSB0aGluZyB3aXRoIGEgQklPUyB0aHJlc2hvbGQgaXMgdGhhdCB0aGUgdXNlciBoYXMg
+bm8gd2F5IHRvDQo+IGF1ZGl0IHRoZSBhbGdvcml0aG0uIFNvLCB3aGVuIEJJT1Mgc3RhcnQgcmVw
+b3J0aW5nIHN1Y2ggZXJyb3JzLA0KPiBpdCBtYXkgYmUgYWxyZWFkeSB0b28gbGF0ZTogdGhlIHN5
+c3RlbXMgbWF5IGJlIGluIHRoZSB2ZXJnZSBvZsKgDQo+IGxvc2luZyBkYXRhIChvciBzb21lIGRh
+dGEgd2FzIGFscmVhZHkgbG9zdCkuDQo+IA0KPiBUaGF0J3MgY3JpdGljYWwgb24gY2x1c3RlciBz
+eXN0ZW1zIHdpdGggdGhvdXNhbmRzIG9mIG1hY2hpbmVzOg0KPiB3aGlsZSB0aGUgaW1wYWN0IG9m
+IGRpc2FibGluZyBhIGNsdXN0ZXIgbm9kZSB0byBkbyBzb21lIG1haW50YWluYW5jZQ0KPiBpcyBt
+YXJnaW5hbCwgdGhlIGltcGFjdCBvZiBhbiB1bmNvcnJlY3RlZCBlcnJvciBvbiBhIHNpbmdsZQ0K
+PiBtYWNoaW5lIG1heSBjb21wcm9taXNlIHdlZWtzIG9mIGV4cGVuc2l2ZSBwcm9jZXNzaW5nLg0K
+PiANCj4gVGhhdCdzIHdoeSBzb21lIHVzZXJzIHByZWZlciB0byBtb25pdG9yIGV2ZXJ5IHNpbmds
+ZSBjb3JyZWN0ZWQNCj4gZXJyb3IsIGFuZCBjb21wYXJlIHdpdGggdGhlIHByb2JhYmlsaXR5IGRp
+c3RyaWJ1dGlvbiB0aGV5DQo+IGtub3cgdGhhdCB0aGUgcmlzayBvZiB1bmNvcnJlY3RlZCBlcnJv
+cnMgaXMgYWNjZXB0YWJsZS4NCg0KUmlnaHQsIEkgZG8gbm90IHRoaW5rIGFsbCBwbGF0Zm9ybXMg
+bmVlZCB0byBiZSBmaXJtd2FyZS1maXJzdC4gIEkgZG8NCm5vdCB3YW50IHRvIHRhbGsgbGlrZSBh
+IHNhbGUncyBwZXJzb24sIGJ1dCB3ZSBhbHNvIG9mZmVyIGxvd2VyLWNvc3QNCnBsYXRmb3JtcyB0
+aGF0IGRvIG5vdCBjb21lIHdpdGggYnVpbHQtaW4gUkFTLiAgVXNlcnMgY2FuIGNob29zZSBhIHJp
+Z2h0DQptb2RlbCBmb3IgdGhlaXIgbmVlZHMuDQoNClRoYW5rcywNCi1Ub3NoaQ0K
