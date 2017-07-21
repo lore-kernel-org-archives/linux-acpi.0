@@ -1,103 +1,257 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 0/8] Remove fwnode type field, constify property fwnode arguments
-Date: Fri, 21 Jul 2017 14:39:29 +0300
-Message-ID: <1500637177-16095-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH v3 5/8] ACPI: Constify internal fwnode arguments
+Date: Fri, 21 Jul 2017 14:39:34 +0300
+Message-ID: <1500637177-16095-6-git-send-email-sakari.ailus@linux.intel.com>
+References: <1500637177-16095-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga04.intel.com ([192.55.52.120]:16829 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752269AbdGULmi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Jul 2017 07:42:38 -0400
+        id S1752716AbdGULmm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Jul 2017 07:42:42 -0400
+In-Reply-To: <1500637177-16095-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, erik.veijola@intel.com, andriy.shevchenko@linux.intel.com
 
-Hello everyone,
+Constify internal ACPI fwnode arguments in preparation for the same in
+fwnode API.
 
-This set removes the struct fwnode_handle type field and constifies the
-fwnode arguments in the fwnode property API more or less the way they are
-const in OF property API.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/acpi/property.c | 34 ++++++++++++++++++----------------
+ include/linux/acpi.h    | 40 ++++++++++++++++++++++------------------
+ 2 files changed, 40 insertions(+), 34 deletions(-)
 
-Comments are welcome.
-
-All the dependent patches are now in linux-pm master branch.
-
-<URL:http://www.spinics.net/lists/linux-acpi/msg75957.html>
-
-v1 can be found here:
-
-<URL:http://www.spinics.net/lists/linux-acpi/msg74564.html>
-
-changes since v2:
-
-- Add 8th patch "device property: Introduce
-  fwnode_property_get_reference_args". This allows obtaining references
-  with integer arguments using the fwnode interface.
-
-  The functionality will be soon needed in adding support for nvmem
-  framework on ACPI as well as in referring to e.g. lens and flash devices
-  on V4L2.
-
-- Add Rob's ack on "device property: Constify fwnode property API".
-
-changes since v1:
-
-- Rebase and resolve the conflicts. As there is no longer fwnode->type
-  field, __irq_domain_add() won't print the wrong type in an error
-  message anymore.
-
-- Add patch "device property: Get rid of struct fwnode_handle type field"
-  which wasn't merged from set "Move firmware specific code to firmware
-  specific locations". Addressed the ACPI static node bug in that patch
-  --- static ACPI nodes have NULL ops now, just like the old IRQCHIP type.
-
-- Add patch "ACPI: Use IS_ERR_OR_NULL() instead of non-NULL check in
-  is_acpi_data_node" which extends the error code checks for ACPI data
-  node. s. This is in line with existing is_acpi_node() and
-  is_acpi_device_node().
-
-- Dropped the V4L2 patches from the set; they're better suitable to be
-  merged through the media tree. (For more patches touching the same areas
-  are being worked on.)
-
-- Rename fwnode argument in to_pset_node() macro as __to_pset_node_fwnode
-  in order to avoid masking local variables where the macro is used. (The
-  compiler won't warn about this. Ouch.)
-
-- Clean up patch "ACPI: Constify acpi_get_next_subnode() fwnode argument"
-  by separating the root device node (adev) from the child device node
-  (child_adev, which is const). Also rename the patch as "ACPI: Prepare
-  for constifying acpi_get_next_subnode() fwnode argument".
-
-- Squash patch "ACPI: Constify acpi_graph_get_child_prop_value() fwnode
-  argument" with "device property: Constify fwnode property API". The
-  former makes a change which is interdependent with the changes made by
-  latter (for const-ness).
-
-Sakari Ailus (8):
-  ACPI: Use IS_ERR_OR_NULL() instead of non-NULL check in
-    is_acpi_data_node
-  device property: Get rid of struct fwnode_handle type field
-  ACPI: Prepare for constifying acpi_get_next_subnode() fwnode argument
-  ACPI: Constify acpi_bus helper functions, switch to macros
-  ACPI: Constify internal fwnode arguments
-  device property: Constify argument to pset fwnode backend
-  device property: Constify fwnode property API
-  device property: Introduce fwnode_property_get_reference_args
-
- drivers/acpi/property.c   | 181 +++++++++++++++++++++++++++++-----------------
- drivers/acpi/scan.c       |   3 +-
- drivers/base/property.c   | 131 +++++++++++++++++++++------------
- drivers/of/property.c     |  66 +++++++++++++----
- include/acpi/acpi_bus.h   |  52 +++++++++----
- include/linux/acpi.h      |  68 ++++++++---------
- include/linux/fwnode.h    |  56 ++++++++------
- include/linux/irqdomain.h |   4 +-
- include/linux/of.h        |   3 +-
- include/linux/property.h  |  67 +++++++++--------
- kernel/irq/irqdomain.c    |  10 +--
- 11 files changed, 402 insertions(+), 239 deletions(-)
-
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 04c60a2..043bfca 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -19,7 +19,7 @@
+ 
+ #include "internal.h"
+ 
+-static int acpi_data_get_property_array(struct acpi_device_data *data,
++static int acpi_data_get_property_array(const struct acpi_device_data *data,
+ 					const char *name,
+ 					acpi_object_type type,
+ 					const union acpi_object **obj);
+@@ -417,7 +417,7 @@ void acpi_free_properties(struct acpi_device *adev)
+  *         %-EINVAL if the property doesn't exist,
+  *         %-EPROTO if the property value type doesn't match @type.
+  */
+-static int acpi_data_get_property(struct acpi_device_data *data,
++static int acpi_data_get_property(const struct acpi_device_data *data,
+ 				  const char *name, acpi_object_type type,
+ 				  const union acpi_object **obj)
+ {
+@@ -459,20 +459,21 @@ static int acpi_data_get_property(struct acpi_device_data *data,
+  * @type: Expected property type.
+  * @obj: Location to store the property value (if not %NULL).
+  */
+-int acpi_dev_get_property(struct acpi_device *adev, const char *name,
++int acpi_dev_get_property(const struct acpi_device *adev, const char *name,
+ 			  acpi_object_type type, const union acpi_object **obj)
+ {
+ 	return adev ? acpi_data_get_property(&adev->data, name, type, obj) : -EINVAL;
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_get_property);
+ 
+-static struct acpi_device_data *acpi_device_data_of_node(struct fwnode_handle *fwnode)
++static const struct acpi_device_data *
++acpi_device_data_of_node(const struct fwnode_handle *fwnode)
+ {
+ 	if (is_acpi_device_node(fwnode)) {
+-		struct acpi_device *adev = to_acpi_device_node(fwnode);
++		const struct acpi_device *adev = to_acpi_device_node(fwnode);
+ 		return &adev->data;
+ 	} else if (is_acpi_data_node(fwnode)) {
+-		struct acpi_data_node *dn = to_acpi_data_node(fwnode);
++		const struct acpi_data_node *dn = to_acpi_data_node(fwnode);
+ 		return &dn->data;
+ 	}
+ 	return NULL;
+@@ -484,8 +485,8 @@ static struct acpi_device_data *acpi_device_data_of_node(struct fwnode_handle *f
+  * @propname: Name of the property.
+  * @valptr: Location to store a pointer to the property value (if not %NULL).
+  */
+-int acpi_node_prop_get(struct fwnode_handle *fwnode, const char *propname,
+-		       void **valptr)
++int acpi_node_prop_get(const struct fwnode_handle *fwnode,
++		       const char *propname, void **valptr)
+ {
+ 	return acpi_data_get_property(acpi_device_data_of_node(fwnode),
+ 				      propname, ACPI_TYPE_ANY,
+@@ -511,7 +512,7 @@ int acpi_node_prop_get(struct fwnode_handle *fwnode, const char *propname,
+  *         %-EPROTO if the property is not a package or the type of its elements
+  *           doesn't match @type.
+  */
+-static int acpi_data_get_property_array(struct acpi_device_data *data,
++static int acpi_data_get_property_array(const struct acpi_device_data *data,
+ 					const char *name,
+ 					acpi_object_type type,
+ 					const union acpi_object **obj)
+@@ -571,13 +572,13 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
+  *
+  * Return: %0 on success, negative error code on failure.
+  */
+-int __acpi_node_get_property_reference(struct fwnode_handle *fwnode,
++int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 	const char *propname, size_t index, size_t num_args,
+ 	struct acpi_reference_args *args)
+ {
+ 	const union acpi_object *element, *end;
+ 	const union acpi_object *obj;
+-	struct acpi_device_data *data;
++	const struct acpi_device_data *data;
+ 	struct acpi_device *device;
+ 	int ret, idx = 0;
+ 
+@@ -673,7 +674,7 @@ int __acpi_node_get_property_reference(struct fwnode_handle *fwnode,
+ }
+ EXPORT_SYMBOL_GPL(__acpi_node_get_property_reference);
+ 
+-static int acpi_data_prop_read_single(struct acpi_device_data *data,
++static int acpi_data_prop_read_single(const struct acpi_device_data *data,
+ 				      const char *propname,
+ 				      enum dev_prop_type proptype, void *val)
+ {
+@@ -812,7 +813,7 @@ static int acpi_copy_property_array_string(const union acpi_object *items,
+ 	return nval;
+ }
+ 
+-static int acpi_data_prop_read(struct acpi_device_data *data,
++static int acpi_data_prop_read(const struct acpi_device_data *data,
+ 			       const char *propname,
+ 			       enum dev_prop_type proptype,
+ 			       void *val, size_t nval)
+@@ -866,7 +867,7 @@ static int acpi_data_prop_read(struct acpi_device_data *data,
+ 	return ret;
+ }
+ 
+-int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
++int acpi_dev_prop_read(const struct acpi_device *adev, const char *propname,
+ 		       enum dev_prop_type proptype, void *val, size_t nval)
+ {
+ 	return adev ? acpi_data_prop_read(&adev->data, propname, proptype, val, nval) : -EINVAL;
+@@ -884,8 +885,9 @@ int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
+  * of the property.  Otherwise, read at most @nval values to the array at the
+  * location pointed to by @val.
+  */
+-int acpi_node_prop_read(struct fwnode_handle *fwnode,  const char *propname,
+-		        enum dev_prop_type proptype, void *val, size_t nval)
++int acpi_node_prop_read(const struct fwnode_handle *fwnode,
++			const char *propname, enum dev_prop_type proptype,
++			void *val, size_t nval)
+ {
+ 	return acpi_data_prop_read(acpi_device_data_of_node(fwnode),
+ 				   propname, proptype, val, nval);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 71b763f..4d9fb61 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1003,13 +1003,14 @@ struct acpi_reference_args {
+ };
+ 
+ #ifdef CONFIG_ACPI
+-int acpi_dev_get_property(struct acpi_device *adev, const char *name,
++int acpi_dev_get_property(const struct acpi_device *adev, const char *name,
+ 			  acpi_object_type type, const union acpi_object **obj);
+-int __acpi_node_get_property_reference(struct fwnode_handle *fwnode,
++int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 				const char *name, size_t index, size_t num_args,
+ 				struct acpi_reference_args *args);
+ 
+-static inline int acpi_node_get_property_reference(struct fwnode_handle *fwnode,
++static inline int acpi_node_get_property_reference(
++				const struct fwnode_handle *fwnode,
+ 				const char *name, size_t index,
+ 				struct acpi_reference_args *args)
+ {
+@@ -1017,13 +1018,15 @@ static inline int acpi_node_get_property_reference(struct fwnode_handle *fwnode,
+ 		MAX_ACPI_REFERENCE_ARGS, args);
+ }
+ 
+-int acpi_node_prop_get(struct fwnode_handle *fwnode, const char *propname,
++int acpi_node_prop_get(const struct fwnode_handle *fwnode, const char *propname,
+ 		       void **valptr);
+-int acpi_dev_prop_read_single(struct acpi_device *adev, const char *propname,
+-			      enum dev_prop_type proptype, void *val);
+-int acpi_node_prop_read(struct fwnode_handle *fwnode, const char *propname,
+-		        enum dev_prop_type proptype, void *val, size_t nval);
+-int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
++int acpi_dev_prop_read_single(struct acpi_device *adev,
++			      const char *propname, enum dev_prop_type proptype,
++			      void *val);
++int acpi_node_prop_read(const struct fwnode_handle *fwnode,
++			const char *propname, enum dev_prop_type proptype,
++			void *val, size_t nval);
++int acpi_dev_prop_read(const struct acpi_device *adev, const char *propname,
+ 		       enum dev_prop_type proptype, void *val, size_t nval);
+ 
+ struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
+@@ -1100,35 +1103,36 @@ static inline int acpi_dev_get_property(struct acpi_device *adev,
+ }
+ 
+ static inline int
+-__acpi_node_get_property_reference(struct fwnode_handle *fwnode,
++__acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 				const char *name, size_t index, size_t num_args,
+ 				struct acpi_reference_args *args)
+ {
+ 	return -ENXIO;
+ }
+ 
+-static inline int acpi_node_get_property_reference(struct fwnode_handle *fwnode,
+-				const char *name, size_t index,
+-				struct acpi_reference_args *args)
++static inline int
++acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
++				 const char *name, size_t index,
++				 struct acpi_reference_args *args)
+ {
+ 	return -ENXIO;
+ }
+ 
+-static inline int acpi_node_prop_get(struct fwnode_handle *fwnode,
++static inline int acpi_node_prop_get(const struct fwnode_handle *fwnode,
+ 				     const char *propname,
+ 				     void **valptr)
+ {
+ 	return -ENXIO;
+ }
+ 
+-static inline int acpi_dev_prop_get(struct acpi_device *adev,
++static inline int acpi_dev_prop_get(const struct acpi_device *adev,
+ 				    const char *propname,
+ 				    void **valptr)
+ {
+ 	return -ENXIO;
+ }
+ 
+-static inline int acpi_dev_prop_read_single(struct acpi_device *adev,
++static inline int acpi_dev_prop_read_single(const struct acpi_device *adev,
+ 					    const char *propname,
+ 					    enum dev_prop_type proptype,
+ 					    void *val)
+@@ -1136,7 +1140,7 @@ static inline int acpi_dev_prop_read_single(struct acpi_device *adev,
+ 	return -ENXIO;
+ }
+ 
+-static inline int acpi_node_prop_read(struct fwnode_handle *fwnode,
++static inline int acpi_node_prop_read(const struct fwnode_handle *fwnode,
+ 				      const char *propname,
+ 				      enum dev_prop_type proptype,
+ 				      void *val, size_t nval)
+@@ -1144,7 +1148,7 @@ static inline int acpi_node_prop_read(struct fwnode_handle *fwnode,
+ 	return -ENXIO;
+ }
+ 
+-static inline int acpi_dev_prop_read(struct acpi_device *adev,
++static inline int acpi_dev_prop_read(const struct acpi_device *adev,
+ 				     const char *propname,
+ 				     enum dev_prop_type proptype,
+ 				     void *val, size_t nval)
 -- 
 2.7.4
 
