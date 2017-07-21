@@ -1,59 +1,116 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH] ACPI, APEI: Fixup incorrect 16-bit access width firmware bug
-Date: Fri, 21 Jul 2017 12:56:17 +0300
-Message-ID: <CAHp75Vf5wpM4BW3umG5c1gHgmBEgD_+paYyvo6NTLGeEr9JB_g@mail.gmail.com>
-References: <1500630080-18234-1-git-send-email-liwei.song@windriver.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: [PATCH] irqchip/gic-v3-its: Allow GIC ITS number more than MAX_NUMNODES
+Date: Fri, 21 Jul 2017 17:51:55 +0800
+Message-ID: <1500630715-2156-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:33032 "EHLO
-        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753762AbdGUJ4S (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jul 2017 05:56:18 -0400
-In-Reply-To: <1500630080-18234-1-git-send-email-liwei.song@windriver.com>
+Received: from szxga01-in.huawei.com ([45.249.212.187]:10241 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753388AbdGUJ7E (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jul 2017 05:59:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Song liwei <liwei.song@windriver.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-On Fri, Jul 21, 2017 at 12:41 PM, Song liwei <liwei.song@windriver.com> wrote:
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0xb2/16/0/1/1]
->
-> This is due to an 8-bit access width is specified for a 16-bit register,
-> Do bit_width check just like what the original commit have done.
+When running 4.13-rc1 on top of D05, I got the boot log:
 
->         else if (bit_width == 64 && bit_offset == 0 && (*paddr & 0x07) == 0 &&
->             *access_bit_width < 64)
->                 *access_bit_width = 64;
-> +       else if (bit_width == 16 && bit_offset == 0 && (*paddr & 0x01) == 0 &&
-> +           *access_bit_width < 16)
-> +               *access_bit_width = 16;
+[    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+[    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+[    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+[    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+[    0.000000] SRAT: ITS affinity exceeding max count[4]
 
-Wouldn't be better to rearrange that it will go in a sequence
-(16,32,64 or 64,32,16) ?
+This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
 
-or move bit_offset == 0 into external condion
+So dynamically alloc the memory needed instead of using
+its_srat_maps[MAX_NUMNODES], which count the number of
+ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
+then build the mapping of numa node to ITS ID.
 
-    /* Fixup common BIOS bug */
-    if (bit_offset == 0) {
-      if (bit_width == 16 && (*paddr & 0x01) == 0 && *access_bit_width < 16)
-               *access_bit_width = 16;
-      else if (bit_width == 32 && (*paddr & 0x03) == 0 &&
-*access_bit_width < 32)
-               *access_bit_width = 32;
-      else if (bit_width == 64 && (*paddr & 0x07) == 0 &&
-*access_bit_width < 64)
-               *access_bit_width = 64;
-    }
+After doing this, I got what I wanted:
 
+[    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+[    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+[    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+[    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+[    0.000000] SRAT: PXM 2 -> ITS 4 -> Node 2
+[    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
+[    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
+[    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
 
-It might be (I'm not sure it will make it better, just a side note)
-considered to convert each internal conditional to
+Fixes: dbd2b8267233 ("irqchip/gic-v3-its: Add ACPI NUMA node mapping")
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+---
+ drivers/irqchip/irq-gic-v3-its.c | 28 +++++++++++++++++++++-------
+ 1 file changed, 21 insertions(+), 7 deletions(-)
 
-...if (bit_width == XX && (*paddr & YY) == 0)
-               *access_bit_width = max(*access_bit_width, bit_width);
-
+diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+index 3ccdf76..fb1c090 100644
+--- a/drivers/irqchip/irq-gic-v3-its.c
++++ b/drivers/irqchip/irq-gic-v3-its.c
+@@ -1847,7 +1847,7 @@ struct its_srat_map {
+ 	u32	its_id;
+ };
+ 
+-static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata;
++static struct its_srat_map *its_srat_maps __initdata;
+ static int its_in_srat __initdata;
+ 
+ static int __init acpi_get_its_numa_node(u32 its_id)
+@@ -1861,6 +1861,12 @@ static int __init acpi_get_its_numa_node(u32 its_id)
+ 	return NUMA_NO_NODE;
+ }
+ 
++static int __init gic_acpi_match_srat_its(struct acpi_subtable_header *header,
++					  const unsigned long end)
++{
++	return 0;
++}
++
+ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+ 			 const unsigned long end)
+ {
+@@ -1877,12 +1883,6 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (its_in_srat >= MAX_NUMNODES) {
+-		pr_err("SRAT: ITS affinity exceeding max count[%d]\n",
+-				MAX_NUMNODES);
+-		return -EINVAL;
+-	}
+-
+ 	node = acpi_map_pxm_to_node(its_affinity->proximity_domain);
+ 
+ 	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
+@@ -1901,6 +1901,20 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+ 
+ static void __init acpi_table_parse_srat_its(void)
+ {
++	int count;
++
++	count = acpi_table_parse_entries(ACPI_SIG_SRAT,
++			sizeof(struct acpi_table_srat),
++			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
++			gic_acpi_match_srat_its, 0);
++	if (count <= 0)
++		return;
++
++	its_srat_maps = kmalloc(count * sizeof(struct its_srat_map),
++				GFP_KERNEL);
++	if (!its_srat_maps)
++		return;
++
+ 	acpi_table_parse_entries(ACPI_SIG_SRAT,
+ 			sizeof(struct acpi_table_srat),
+ 			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
 -- 
-With Best Regards,
-Andy Shevchenko
+1.7.12.4
+
