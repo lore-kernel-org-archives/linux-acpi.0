@@ -1,32 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 4/5] ACPI / boot: Not all platform require acpi_reduced_hw_init()
-Date: Sat, 22 Jul 2017 00:25:01 +0200
-Message-ID: <1535497.HrG5Hi31l1@aspire.rjw.lan>
-References: <20170718150420.61600-1-andriy.shevchenko@linux.intel.com> <20170718150420.61600-5-andriy.shevchenko@linux.intel.com>
+From: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] MAINTAINERS: device property: acpi: add fwnode.h
+Date: Fri, 21 Jul 2017 15:33:05 -0700
+Message-ID: <59728121.2020508@gmail.com>
+References: <1500578005-25893-1-git-send-email-frowand.list@gmail.com>
+ <1500578005-25893-2-git-send-email-frowand.list@gmail.com>
+ <2851122.8a0ts3VkAi@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57950 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752780AbdGUWc4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Jul 2017 18:32:56 -0400
-In-Reply-To: <20170718150420.61600-5-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2851122.8a0ts3VkAi-yvgW3jdyMHm1GS7QM15AGw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-pm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>
 
-On Tuesday, July 18, 2017 06:04:19 PM Andy Shevchenko wrote:
-> Some platform might take care of legacy devices on theirs own.
-> Let's allow them to do that by exporting a weak function.
+On 07/21/17 15:03, Rafael J. Wysocki wrote:
+> On Thursday, July 20, 2017 12:13:24 PM frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote:
+>> From: Frank Rowand <frank.rowand-7U/KSKJipcs@public.gmane.org>
+>>
+>> ACPI is impacted by changes to fwnode.h, add a file entry
+>> to ACPI
+>>
+>> Signed-off-by: Frank Rowand <frank.rowand-7U/KSKJipcs@public.gmane.org>
 > 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ACK for this one.
+> 
+> Or do you want me to apply it?
 
-I'd rather do it at the time when acpi_reduced_hw_init() actually needs to be
-overridden by at least one platform.
+Please apply it.  So there won't be any conflicts between trees if
+any other changes get made to this entry later in this cycle.
 
 Thanks,
-Rafael
 
+Frank
+
+
+> 
+>> ---
+>>  MAINTAINERS | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index 205d3977ac46..c0ac362e850a 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -302,6 +302,7 @@ S:	Supported
+>>  F:	drivers/acpi/
+>>  F:	drivers/pnp/pnpacpi/
+>>  F:	include/linux/acpi.h
+>> +F:	include/linux/fwnode.h
+>>  F:	include/acpi/
+>>  F:	Documentation/acpi/
+>>  F:	Documentation/ABI/testing/sysfs-bus-acpi
+>>
+> 
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
