@@ -1,82 +1,122 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH] irqchip/gic-v3-its: Allow GIC ITS number more than
- MAX_NUMNODES
-Date: Fri, 21 Jul 2017 18:06:00 +0800
-Message-ID: <5971D208.3040005@huawei.com>
-References: <1500630715-2156-1-git-send-email-guohanjun@huawei.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 1/4] ACPI: Allow _DMA method in walk resources
+Date: Fri, 21 Jul 2017 11:20:01 +0100
+Message-ID: <20170721102001.GB940@red-moon>
+References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
+ <20170720144517.32529-2-lorenzo.pieralisi@arm.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E5D914D@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([45.249.212.189]:9396 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753388AbdGUKGV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jul 2017 06:06:21 -0400
-In-Reply-To: <1500630715-2156-1-git-send-email-guohanjun@huawei.com>
+Received: from foss.arm.com ([217.140.101.70]:34352 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753959AbdGUKSO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Jul 2017 06:18:14 -0400
+Content-Disposition: inline
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5D914D@ORSMSX110.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Nate Watterson <nwatters@codeaurora.org>
 
-On 2017/7/21 17:51, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
->
-> When running 4.13-rc1 on top of D05, I got the boot log:
->
-> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
-> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
-> [    0.000000] SRAT: ITS affinity exceeding max count[4]
->
-> This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
->
-> So dynamically alloc the memory needed instead of using
-> its_srat_maps[MAX_NUMNODES], which count the number of
-> ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
-> then build the mapping of numa node to ITS ID.
->
-> After doing this, I got what I wanted:
->
-> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
-> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
-> [    0.000000] SRAT: PXM 2 -> ITS 4 -> Node 2
-> [    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
-> [    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
-> [    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
->
-> Fixes: dbd2b8267233 ("irqchip/gic-v3-its: Add ACPI NUMA node mapping")
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->  drivers/irqchip/irq-gic-v3-its.c | 28 +++++++++++++++++++++-------
->  1 file changed, 21 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-> index 3ccdf76..fb1c090 100644
-> --- a/drivers/irqchip/irq-gic-v3-its.c
-> +++ b/drivers/irqchip/irq-gic-v3-its.c
-> @@ -1847,7 +1847,7 @@ struct its_srat_map {
->  	u32	its_id;
->  };
->  
-> -static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata;
-> +static struct its_srat_map *its_srat_maps __initdata;
->  static int its_in_srat __initdata;
->  
->  static int __init acpi_get_its_numa_node(u32 its_id)
-> @@ -1861,6 +1861,12 @@ static int __init acpi_get_its_numa_node(u32 its_id)
->  	return NUMA_NO_NODE;
->  }
+On Thu, Jul 20, 2017 at 03:50:16PM +0000, Moore, Robert wrote:
+> Could you post this as a pull request on our github?
+> 
+> https://github.com/acpica/acpica
 
-Oops, need to check if the its_srat_maps valid or not here, please
-comment on what else I'm missing or wrong, then I will prepare another
-version.
+Sure, will do, thanks !
 
-Thanks
-Hanjun
+Lorenzo
 
+> > -----Original Message-----
+> > From: Moore, Robert
+> > Sent: Thursday, July 20, 2017 8:49 AM
+> > To: 'Lorenzo Pieralisi' <lorenzo.pieralisi@arm.com>; linux-
+> > acpi@vger.kernel.org
+> > Cc: linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org;
+> > Zhang, Rui <rui.zhang@intel.com>; Rafael J. Wysocki <rjw@rjwysocki.net>;
+> > Will Deacon <will.deacon@arm.com>; Robin Murphy <robin.murphy@arm.com>;
+> > Hanjun Guo <hanjun.guo@linaro.org>; Feng Kan <fkan@apm.com>; Jon Masters
+> > <jcm@redhat.com>; Nate Watterson <nwatters@codeaurora.org>
+> > Subject: RE: [PATCH 1/4] ACPI: Allow _DMA method in walk resources
+> > 
+> > I think we can take this as-is into ACPICA.
+> > Bob
+> > 
+> > 
+> > > -----Original Message-----
+> > > From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
+> > > Sent: Thursday, July 20, 2017 7:45 AM
+> > > To: linux-acpi@vger.kernel.org
+> > > Cc: linux-arm-kernel@lists.infradead.org;
+> > > linux-kernel@vger.kernel.org; Lorenzo Pieralisi
+> > > <lorenzo.pieralisi@arm.com>; Moore, Robert <robert.moore@intel.com>;
+> > Zhang, Rui <rui.zhang@intel.com>; Rafael J.
+> > > Wysocki <rjw@rjwysocki.net>; Will Deacon <will.deacon@arm.com>; Robin
+> > > Murphy <robin.murphy@arm.com>; Hanjun Guo <hanjun.guo@linaro.org>;
+> > > Feng Kan <fkan@apm.com>; Jon Masters <jcm@redhat.com>; Nate Watterson
+> > > <nwatters@codeaurora.org>
+> > > Subject: [PATCH 1/4] ACPI: Allow _DMA method in walk resources
+> > >
+> > > The _DMA object contains a resource template, this change adds support
+> > > for the walk resources function so that ACPI devices containing a _DMA
+> > > object can actually parse it to detect DMA ranges for the respective
+> > > bus.
+> > >
+> > > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > > Cc: Robert Moore <robert.moore@intel.com>
+> > > Cc: Zhang Rui <rui.zhang@intel.com>
+> > > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > > ---
+> > >  drivers/acpi/acpica/rsxface.c | 7 ++++---
+> > >  include/acpi/acnames.h        | 1 +
+> > >  2 files changed, 5 insertions(+), 3 deletions(-)
+> > >
+> > > diff --git a/drivers/acpi/acpica/rsxface.c
+> > > b/drivers/acpi/acpica/rsxface.c index 59a4f9e..be65e65 100644
+> > > --- a/drivers/acpi/acpica/rsxface.c
+> > > +++ b/drivers/acpi/acpica/rsxface.c
+> > > @@ -615,7 +615,7 @@ ACPI_EXPORT_SYMBOL(acpi_walk_resource_buffer)
+> > >   *                                device we are querying
+> > >   *              name            - Method name of the resources we
+> > want.
+> > >   *                                (METHOD_NAME__CRS,
+> > METHOD_NAME__PRS,
+> > > or
+> > > - *                                METHOD_NAME__AEI)
+> > > + *                                METHOD_NAME__AEI or
+> > METHOD_NAME__DMA)
+> > >   *              user_function   - Called for each resource
+> > >   *              context         - Passed to user_function
+> > >   *
+> > > @@ -641,11 +641,12 @@ acpi_walk_resources(acpi_handle device_handle,
+> > >  	if (!device_handle || !user_function || !name ||
+> > >  	    (!ACPI_COMPARE_NAME(name, METHOD_NAME__CRS) &&
+> > >  	     !ACPI_COMPARE_NAME(name, METHOD_NAME__PRS) &&
+> > > -	     !ACPI_COMPARE_NAME(name, METHOD_NAME__AEI))) {
+> > > +	     !ACPI_COMPARE_NAME(name, METHOD_NAME__AEI) &&
+> > > +	     !ACPI_COMPARE_NAME(name, METHOD_NAME__DMA))) {
+> > >  		return_ACPI_STATUS(AE_BAD_PARAMETER);
+> > >  	}
+> > >
+> > > -	/* Get the _CRS/_PRS/_AEI resource list */
+> > > +	/* Get the _CRS/_PRS/_AEI/_DMA resource list */
+> > >
+> > >  	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
+> > >  	status = acpi_rs_get_method_data(device_handle, name, &buffer);
+> > diff
+> > > --git a/include/acpi/acnames.h b/include/acpi/acnames.h index
+> > > b421584..d8dd3bf 100644
+> > > --- a/include/acpi/acnames.h
+> > > +++ b/include/acpi/acnames.h
+> > > @@ -54,6 +54,7 @@
+> > >  #define METHOD_NAME__CLS        "_CLS"
+> > >  #define METHOD_NAME__CRS        "_CRS"
+> > >  #define METHOD_NAME__DDN        "_DDN"
+> > > +#define METHOD_NAME__DMA        "_DMA"
+> > >  #define METHOD_NAME__HID        "_HID"
+> > >  #define METHOD_NAME__INI        "_INI"
+> > >  #define METHOD_NAME__PLD        "_PLD"
+> > > --
+> > > 2.10.0
+> 
