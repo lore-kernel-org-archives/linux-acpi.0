@@ -1,56 +1,50 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 2/3] ACPI / PM: Split acpi_device_wakeup()
-Date: Sat, 22 Jul 2017 00:19:51 +0300
-Message-ID: <CAHp75Vdp8L7FXL85umQGGVyP-J_2dELssw0V8vKLEaCN6doMXg@mail.gmail.com>
-References: <3116391.JNS1F4DjTg@aspire.rjw.lan> <3408475.MC8krXn0zk@aspire.rjw.lan>
- <CAHp75VdJqyNBC=iy_FGVsxeskHko=P9=SJqrN8Hq1GtXZEyoRA@mail.gmail.com> <4010863.7uINOS7bBU@aspire.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / PMIC: xpower: Do pinswitch magic when reading GPADC
+Date: Fri, 21 Jul 2017 23:12:11 +0200
+Message-ID: <2622139.O89ILp39X7@aspire.rjw.lan>
+References: <20170708134008.13930-1-hdegoede@redhat.com> <1499522283.22624.309.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <4010863.7uINOS7bBU@aspire.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:60132 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753111AbdGUVUF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Jul 2017 17:20:05 -0400
+In-Reply-To: <1499522283.22624.309.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Fri, Jul 21, 2017 at 11:49 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Friday, July 21, 2017 06:27:39 PM Andy Shevchenko wrote:
->> On Fri, Jul 21, 2017 at 3:40 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+On Saturday, July 08, 2017 04:58:03 PM Andy Shevchenko wrote:
+> On Sat, 2017-07-08 at 15:40 +0200, Hans de Goede wrote:
+> > Testing has shown that the TS-pin's bias-current needs to be disabled
+> > when reading the GPIO0 pin in GPADC mode.
+> > 
+> > It seems that there is only 1 bias current source and to be able to
+> > use it
+> > for the GPIO0 pin in GPADC mode it must be temporarily turned off for
+> > the
+> > TS pin, but the datasheet does not mention this.
+> > 
+> > This commit adds the necessary writes to turn the TS pin BIAS current
+> > off before and back on after reading the GPADC. This fixes the GPADC
+> > always returning a reading of 0.
+> > 
+> > 
+> 
+> > +	/* After switching to the GPADC pin give things some time to
+> > settle */
+> > +	usleep_range(6000, 10000);
+> 
+> msleep(6); ?
+> 
+> 
 
->> I prefer more self-explaining labels, though it's minor here
->
-> Well, I prefer shorter ones.
->
->> To be constructive:
->> out -> err_unlock
->> out -> out_unlock or err_unlock (depends on context)
->>
->>
->> > +out:
->> > +       mutex_unlock(&acpi_wakeup_lock);
->> > +       return error;
->>
->> > +out:
->> > +       mutex_unlock(&acpi_wakeup_lock);
->>
->>
->
-> So while I don't have a particular problem with appending the "_unlock" to the
-> "out", I'm not exactly sure why this would be an improvement.
->
-> If that's just a matter of personal preference, then I would prefer to follow
-> my personal preference here, with all due respect.  [And besides, it follows
-> the general style of this file which matters too IMO.]
->
-> But if there's more to it, just please let me know. :-)
+Is this the only issue you have with the $subject patch?
 
-"Choose label names which say what the goto does or why the goto exists.  An
-example of a good name could be ``out_free_buffer:`` if the goto frees
-``buffer``.
-Avoid using GW-BASIC names like ``err1:`` and ``err2:``, as you would have to
-renumber them if you ever add or remove exit paths, and they make correctness
-difficult to verify anyway."
+Thanks,
+Rafael
 
--- 
-With Best Regards,
-Andy Shevchenko
