@@ -1,39 +1,155 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Fri, 21 Jul 2017 17:13:17 +0200
-Message-ID: <20170721151317.GA13424@nazgul.tnic>
-References: <20170718060007.GB8736@nazgul.tnic>
- <1500407379.2042.21.camel@hpe.com>
- <20170718181545.32bd9181@vento.lan>
- <1500481869.2042.29.camel@hpe.com>
- <20170720043344.GC14367@nazgul.tnic>
- <1500579646.2042.37.camel@hpe.com>
- <20170721133441.GB5036@nazgul.tnic>
- <20170721104001.3cd2b884@vento.lan>
- <20170721134715.GC5036@nazgul.tnic>
- <1500649162.2042.43.camel@hpe.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v5 0/3] TPS68470 PMIC drivers
+Date: Fri, 21 Jul 2017 18:20:15 +0300
+Message-ID: <CAHp75VdMgXJ6g8g+mv1GATaKFn1SLPOHUc7-ciMz4EpjjjHQYg@mail.gmail.com>
+References: <1500648378-10294-1-git-send-email-rajmohan.mani@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1500649162.2042.43.camel@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "mchehab@s-opensource.com" <mchehab@s-opensource.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:33867 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754548AbdGUPUR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jul 2017 11:20:17 -0400
+In-Reply-To: <1500648378-10294-1-git-send-email-rajmohan.mani@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rajmohan Mani <rajmohan.mani@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, sakari.ailus@linux.intel.com
 
-On Fri, Jul 21, 2017 at 03:08:41PM +0000, Kani, Toshimitsu wrote:
-> Yes, that is correct.  Corrected errors are reported to the OS when
-> they exceeded the platform's threshold.
+On Fri, Jul 21, 2017 at 5:46 PM, Rajmohan Mani <rajmohan.mani@intel.com> wrote:
+> This is the patch series for TPS68470 PMIC that works as a camera PMIC.
+>
+> The patch series provide the following 3 drivers, to help configure the voltage regulators, clocks and GPIOs provided by the TPS68470 PMIC, to be able to use the camera sensors connected to this PMIC.
+>
+> TPS68470 MFD driver:
+> This is the multi function driver that initializes the TPS68470 PMIC and supports the GPIO and Op Region functions.
+>
+> TPS68470 GPIO driver:
+> This is the PMIC GPIO driver that will be used by the OS GPIO layer, when the BIOS / firmware triggered GPIO access is done.
+>
+> TPS68470 Op Region driver:
+> This is the driver that will be invoked, when the BIOS / firmware configures the voltage / clock for the sensors / vcm devices connected to the PMIC.
+>
 
-Are those thresholds user-configurable?
+All three patches are good to me (we did few rounds of internal review
+before posting v4)
 
-If not, what are you telling users who want to see *every* corrected
-error for measuring DIMM wear and so on...?
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+
+> ---
+>
+> Update on 2 GPIO chips implementation over 1:
+>         - Attempted to implement 2 GPIO chips, but ran into couple of
+>           issues in the kernel, so we couldn't get it to work.
+>         - It was decided to postpone this change, since it is not
+>           critical
+>
+> Changes in v5:
+>         - MFD driver:
+>         - Fixed Kconfig description text
+>         - Addressed other comments from Lee, related to formatting
+>
+>         - GPIO driver:
+>         - Formatted the file header text
+>
+>         - Opregion driver:
+>         - Formatted the file header text
+>
+> Changes in v4:
+>         - MFD driver:
+>         - Removed board specific code and FIXME comment
+>         - Moved i2c.h include from tps68470.h to tps68470.c
+>         - Moved the TPS68470 REVID read code after PMIC reset
+>         - Fixed typo in debug error message (on failure of
+>           devm_mfd_add_devices() )
+>         - Enhanced dependency on I2C by changing it to I2C=y
+>           (to fix build errors if I2C is built as module
+>            e.g tps68470.c:71: undefined reference to `__devm_regmap_init_i2c'
+>                tps68470.c:117: undefined reference to `i2c_register_driver')
+>         - Removed most of the unused header file definitions
+>         - Moved devm_mfd_add_devices() after PMIC resett
+>         - Used probe_new() and removed i2c_device_id table
+>
+>           The following patch from Andy is needed for the driver to be
+>           probed.
+>           http://marc.info/?l=linux-acpi&m=150030081523885&w=2
+>
+>         - GPIO driver:
+>         - Added newline at the end of Kconfig description
+>         - Updated commit message about the descriptive
+>           names for the GPIOs and the typical usage model
+>           of the GPIO driver
+>
+>         - Opregion driver:
+>         - Added dependency on MFD_TPS68470
+>         - Converted 2 liner into one line code
+>
+> Changes in v3:
+>         - MFD driver:
+>         - Removed GPIO lookup table
+>         - Reverted to probe() for consistency
+>         - Addressed other comments from Andy
+>
+>         - GPIO driver:
+>         - Removed the code that initializes the default values
+>           of GPIOs to zeros
+>         - Used gpiochip_get_data() to access data inside the gpio_chip
+>
+> Changes in v2:
+>         - MFD driver:
+>         - Removed tps68470_* wrappers around regmap_* calls
+>         - Removed "struct tps68470"
+>         - used devm_mfd_add_devices and removed mutex in mfd driver
+>         - Added reasoning about the need of having mfd driver
+>           as bool/builtin
+>
+>         - Opregion driver:
+>         - renamed opregion driver file / internal symbol names
+>           with tps68470_pmic*
+>         - Made opregion driver tables as const
+>         - Removed unused *handler_context in common handler
+>         - Replaced "int" with "unsigned int"
+>         - Changed to WARN macro to dev_warn()
+>         - Destroyed mutex on error
+>         - Added reasoning about the need of having Opregion driver
+>           as bool/builtin
+>
+>         - GPIO driver:
+>         - Implemented get_direction() in the GPIO driver
+>         - Setup gpio_chip.names
+>         - Moved the GPIO lookup table code inside mfd driver
+>         - Added reasoning about the need of having GPIO driver
+>           as bool/builtin
+>
+> ---
+>
+> Rajmohan Mani (3):
+>   mfd: Add new mfd device TPS68470
+>   gpio: Add support for TPS68470 GPIOs
+>   ACPI / PMIC: Add TI PMIC TPS68470 operation region driver
+>
+>  drivers/acpi/Kconfig              |  16 ++
+>  drivers/acpi/Makefile             |   2 +
+>  drivers/acpi/pmic/tps68470_pmic.c | 455 ++++++++++++++++++++++++++++++++++++++
+>  drivers/gpio/Kconfig              |  15 ++
+>  drivers/gpio/Makefile             |   1 +
+>  drivers/gpio/gpio-tps68470.c      | 176 +++++++++++++++
+>  drivers/mfd/Kconfig               |  18 ++
+>  drivers/mfd/Makefile              |   1 +
+>  drivers/mfd/tps68470.c            | 106 +++++++++
+>  include/linux/mfd/tps68470.h      |  97 ++++++++
+>  10 files changed, 887 insertions(+)
+>  create mode 100644 drivers/acpi/pmic/tps68470_pmic.c
+>  create mode 100644 drivers/gpio/gpio-tps68470.c
+>  create mode 100644 drivers/mfd/tps68470.c
+>  create mode 100644 include/linux/mfd/tps68470.h
+>
+> --
+> 1.9.1
+>
+
+
 
 -- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+With Best Regards,
+Andy Shevchenko
