@@ -1,79 +1,44 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 3/3] ACPI / PCI / PM: Rework acpi_pci_propagate_wakeup()
-Date: Fri, 21 Jul 2017 18:45:03 +0300
-Message-ID: <CAHp75VeQpmf5z1p9an2bvJDkAGeOxFyXz+VWk7OibNt+-9VMDw@mail.gmail.com>
-References: <3116391.JNS1F4DjTg@aspire.rjw.lan> <4853865.5aRGCM4CdQ@aspire.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Fri, 21 Jul 2017 17:53:46 +0200
+Message-ID: <20170721155346.GB13424@nazgul.tnic>
+References: <20170718181545.32bd9181@vento.lan>
+ <1500481869.2042.29.camel@hpe.com>
+ <20170720043344.GC14367@nazgul.tnic>
+ <1500579646.2042.37.camel@hpe.com>
+ <20170721133441.GB5036@nazgul.tnic>
+ <20170721104001.3cd2b884@vento.lan>
+ <20170721134715.GC5036@nazgul.tnic>
+ <1500649162.2042.43.camel@hpe.com>
+ <20170721151317.GA13424@nazgul.tnic>
+ <1500650732.2042.45.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4853865.5aRGCM4CdQ@aspire.rjw.lan>
+Content-Disposition: inline
+In-Reply-To: <1500650732.2042.45.camel@hpe.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@s-opensource.com" <mchehab@s-opensource.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 21, 2017 at 3:42 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+On Fri, Jul 21, 2017 at 03:34:50PM +0000, Kani, Toshimitsu wrote:
+> I suppose it'd depend on vendors, but I do not think users can do it
+> properly unless they have depth knowledge about the hardware.
 
-> The acpi_pci_propagate_wakeup() routine is there to handle cases in
-> which PCI bridges (or PCIe ports) are expected to signal wakeup
-> for devices below them, but currently it doesn't do that correctly.
->
-> The problem is that acpi_pci_propagate_wakeup() uses
-> acpi_pm_set_device_wakeup() for bridges and if that routine is
-> called for multiple times to disable wakeup for the same device,
-> it will disable it on the first invocation and the next calls
-> will have no effect (it works analogously when called to enable
-> wakeup, but that is not a problem).
->
-> Now, say acpi_pci_propagate_wakeup() has been called for two
-> different devices under the same bridge and it has called
-> acpi_pm_set_device_wakeup() for that bridge each time.  The
-> bridge is now enabled to generate wakeup signals.  Next,
-> suppose that one of the devices below it resumes and
-> acpi_pci_propagate_wakeup() is called to disable wakeup for that
-> device.  It will then call acpi_pm_set_device_wakeup() for the bridge
-> and that will effectively disable remote wakeup for all devices under
-> it even though some of them may still be suspended and remote wakeup
-> may be expected to work for them.
->
-> To address this (arguably theoretical) issue, allow
-> wakeup.enable_count under struct acpi_device to grow beyond 1 in
-> certain situations.  In particular, allow that to happen in
-> acpi_pci_propagate_wakeup() when wakeup is enabled or disabled
-> for PCI bridges, so that wakeup is actually disabled for the
-> bridge when all devices under it resume and not when just one
-> of them does that.
+I'm talking about a menu in the BIOS where you can set the thresholding
+levels on the system. Does your BIOS have that?
 
-> -       if (wakeup->enable_count > 0)
-> -               goto out;
-> +       if (wakeup->enable_count > 0) {
-> +               if (wakeup->enable_count < max_count)
-> +                       goto inc;
-> +               else
-> +                       goto out;
-> +       }
+> Corrected errors are normal and expected to occur on healthy hardware. 
+> They do not need user's attention until they repeatedly occurred at a
+> same place.
 
-Wouldn't be simpler
-
-    if (wakeup->enable_count >= max_count)
-      goto out;
-
-    if (wakeup->enable_count > 0)
-      goto inc;
-
-If max_count can be <= 0,
-
-    if (max_count > 0 && wakeup->enable_count >= max_count)
-      goto out;
-
-
-> +inc:
->         wakeup->enable_count++;
->
->  out:
-
-
+Apparently, you haven't been on enough maintanance calls, trying to calm
+down the customer about the hardware error he sees in his logs...
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+--
