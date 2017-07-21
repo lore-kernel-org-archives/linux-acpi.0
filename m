@@ -1,228 +1,50 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 8/8] device property: Introduce fwnode_property_get_reference_args
-Date: Fri, 21 Jul 2017 14:39:37 +0300
-Message-ID: <1500637177-16095-9-git-send-email-sakari.ailus@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 0/8] Remove fwnode type field, constify property fwnode arguments
+Date: Fri, 21 Jul 2017 13:52:18 +0200
+Message-ID: <CAJZ5v0gWvjd4m0etYAiUJxKyDL1GkzKdKWBynjKExvZ+3KF8jw@mail.gmail.com>
 References: <1500637177-16095-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:53993 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753272AbdGULmN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Jul 2017 07:42:13 -0400
-In-Reply-To: <1500637177-16095-1-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1500637177-16095-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Al Stone <ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, erik.veijola-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com, erik.veijola@intel.com, andriy.shevchenko@linux.intel.com
 
-The new fwnode_property_get_reference_args() interface amends the fwnode
-property API with the functionality of both of_parse_phandle_with_args()
-and __acpi_node_get_property_reference().
+On Fri, Jul 21, 2017 at 1:39 PM, Sakari Ailus
+<sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+> Hello everyone,
+>
+> This set removes the struct fwnode_handle type field and constifies the
+> fwnode arguments in the fwnode property API more or less the way they are
+> const in OF property API.
+>
+> Comments are welcome.
+>
+> All the dependent patches are now in linux-pm master branch.
+>
+> <URL:http://www.spinics.net/lists/linux-acpi/msg75957.html>
+>
+> v1 can be found here:
+>
+> <URL:http://www.spinics.net/lists/linux-acpi/msg74564.html>
+>
+> changes since v2:
+>
+> - Add 8th patch "device property: Introduce
+>   fwnode_property_get_reference_args". This allows obtaining references
+>   with integer arguments using the fwnode interface.
+>
+>   The functionality will be soon needed in adding support for nvmem
+>   framework on ACPI as well as in referring to e.g. lens and flash devices
+>   on V4L2.
 
-The semantics is slightly different: the cells property is ignored on ACPI
-as the number of arguments can be explicitly obtained from the firmware
-interface.
+OK, so if people have no objections, I'll queue this up for 4.14.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/acpi/property.c  | 27 +++++++++++++++++++++++++++
- drivers/base/property.c  | 28 ++++++++++++++++++++++++++++
- drivers/of/property.c    | 31 +++++++++++++++++++++++++++++++
- include/linux/fwnode.h   | 19 +++++++++++++++++++
- include/linux/property.h |  4 ++++
- 5 files changed, 109 insertions(+)
-
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index f8d6005..b39497c 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -1195,6 +1195,32 @@ acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
- 	return NULL;
- }
- 
-+static int
-+acpi_fwnode_get_reference_args(const struct fwnode_handle *fwnode,
-+			       const char *prop, const char *nargs_prop,
-+			       unsigned int args_count, unsigned int index,
-+			       struct fwnode_reference_args *args)
-+{
-+	struct acpi_reference_args acpi_args;
-+	unsigned int i;
-+	int ret;
-+
-+	ret = __acpi_node_get_property_reference(fwnode, prop, index,
-+						 args_count, &acpi_args);
-+	if (ret < 0)
-+		return ret;
-+	if (!args)
-+		return 0;
-+
-+	args->nargs = acpi_args.nargs;
-+	args->fwnode = acpi_fwnode_handle(acpi_args.adev);
-+
-+	for (i = 0; i < NR_OF_FWNODE_REFERENCE_ARGS; i++)
-+		args->args[i] = i < acpi_args.nargs ? acpi_args.args[i] : 0;
-+
-+	return 0;
-+}
-+
- static struct fwnode_handle *
- acpi_fwnode_graph_get_next_endpoint(const struct fwnode_handle *fwnode,
- 				    struct fwnode_handle *prev)
-@@ -1248,6 +1274,7 @@ static int acpi_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
- 		.get_parent = acpi_node_get_parent,			\
- 		.get_next_child_node = acpi_get_next_subnode,		\
- 		.get_named_child_node = acpi_fwnode_get_named_child_node, \
-+		.get_reference_args = acpi_fwnode_get_reference_args,	\
- 		.graph_get_next_endpoint =				\
- 			acpi_fwnode_graph_get_next_endpoint,		\
- 		.graph_get_remote_endpoint =				\
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 673e235..d0b65bb 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -665,6 +665,34 @@ int fwnode_property_match_string(const struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL_GPL(fwnode_property_match_string);
- 
-+/**
-+ * fwnode_property_get_reference_args() - Find a reference with arguments
-+ * @fwnode:	Firmware node where to look for the reference
-+ * @prop:	The name of the property
-+ * @nargs_prop:	The name of the property telling the number of
-+ *		arguments in the referred node. NULL if @nargs is known,
-+ *		otherwise @nargs is ignored. Only relevant on OF.
-+ * @nargs:	Number of arguments. Ignored if @nargs_prop is non-NULL.
-+ * @index:	Index of the reference, from zero onwards.
-+ * @args:	Result structure with reference and integer arguments.
-+ *
-+ * Obtain a reference based on a named property in an fwnode, with
-+ * integer arguments.
-+ *
-+ * Caller is responsible to call fwnode_handle_put() on the returned
-+ * args->fwnode pointer.
-+ *
-+ */
-+int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
-+				       const char *prop, const char *nargs_prop,
-+				       unsigned int nargs, unsigned int index,
-+				       struct fwnode_reference_args *args)
-+{
-+	return fwnode_call_int_op(fwnode, get_reference_args, prop, nargs_prop,
-+				  nargs, index, args);
-+}
-+EXPORT_SYMBOL_GPL(fwnode_property_get_reference_args);
-+
- static int property_copy_string_array(struct property_entry *dst,
- 				      const struct property_entry *src)
- {
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-index ae46a6f..2350103 100644
---- a/drivers/of/property.c
-+++ b/drivers/of/property.c
-@@ -891,6 +891,36 @@ of_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
- 	return NULL;
- }
- 
-+static int
-+of_fwnode_get_reference_args(const struct fwnode_handle *fwnode,
-+			     const char *prop, const char *nargs_prop,
-+			     unsigned int nargs, unsigned int index,
-+			     struct fwnode_reference_args *args)
-+{
-+	struct of_phandle_args of_args;
-+	unsigned int i;
-+	int ret;
-+
-+	if (nargs_prop)
-+		ret = of_parse_phandle_with_args(to_of_node(fwnode), prop,
-+						 nargs_prop, index, &of_args);
-+	else
-+		ret = of_parse_phandle_with_fixed_args(to_of_node(fwnode), prop,
-+						       nargs, index, &of_args);
-+	if (ret < 0)
-+		return ret;
-+	if (!args)
-+		return 0;
-+
-+	args->nargs = of_args.args_count;
-+	args->fwnode = of_fwnode_handle(of_args.np);
-+
-+	for (i = 0; i < NR_OF_FWNODE_REFERENCE_ARGS; i++)
-+		args->args[i] = i < of_args.args_count ? of_args.args[i] : 0;
-+
-+	return 0;
-+}
-+
- static struct fwnode_handle *
- of_fwnode_graph_get_next_endpoint(const struct fwnode_handle *fwnode,
- 				  struct fwnode_handle *prev)
-@@ -949,6 +979,7 @@ const struct fwnode_operations of_fwnode_ops = {
- 	.get_parent = of_fwnode_get_parent,
- 	.get_next_child_node = of_fwnode_get_next_child_node,
- 	.get_named_child_node = of_fwnode_get_named_child_node,
-+	.get_reference_args = of_fwnode_get_reference_args,
- 	.graph_get_next_endpoint = of_fwnode_graph_get_next_endpoint,
- 	.graph_get_remote_endpoint = of_fwnode_graph_get_remote_endpoint,
- 	.graph_get_port_parent = of_fwnode_graph_get_port_parent,
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 7b50ee4..218fe03 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -33,6 +33,20 @@ struct fwnode_endpoint {
- 	const struct fwnode_handle *local_fwnode;
- };
- 
-+#define NR_OF_FWNODE_REFERENCE_ARGS	8
-+
-+/**
-+ * struct fwnode_reference_args - Fwnode reference with additional arguments
-+ * @fwnode:- A reference to the base fwnode
-+ * @nargs: Number of elements in @args array
-+ * @args: Integer arguments on the fwnode
-+ */
-+struct fwnode_reference_args {
-+	struct fwnode_handle *fwnode;
-+	unsigned int nargs;
-+	unsigned int args[NR_OF_FWNODE_REFERENCE_ARGS];
-+};
-+
- /**
-  * struct fwnode_operations - Operations for fwnode interface
-  * @get: Get a reference to an fwnode.
-@@ -46,6 +60,7 @@ struct fwnode_endpoint {
-  * @get_parent: Return the parent of an fwnode.
-  * @get_next_child_node: Return the next child node in an iteration.
-  * @get_named_child_node: Return a child node with a given name.
-+ * @get_reference_args: Return a reference pointed to by a property, with args
-  * @graph_get_next_endpoint: Return an endpoint node in an iteration.
-  * @graph_get_remote_endpoint: Return the remote endpoint node of a local
-  *			       endpoint node.
-@@ -73,6 +88,10 @@ struct fwnode_operations {
- 	struct fwnode_handle *
- 	(*get_named_child_node)(const struct fwnode_handle *fwnode,
- 				const char *name);
-+	int (*get_reference_args)(const struct fwnode_handle *fwnode,
-+				  const char *prop, const char *nargs_prop,
-+				  unsigned int nargs, unsigned int index,
-+				  struct fwnode_reference_args *args);
- 	struct fwnode_handle *
- 	(*graph_get_next_endpoint)(const struct fwnode_handle *fwnode,
- 				   struct fwnode_handle *prev);
-diff --git a/include/linux/property.h b/include/linux/property.h
-index edff3f8..6bebee1 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -73,6 +73,10 @@ int fwnode_property_read_string(const struct fwnode_handle *fwnode,
- 				const char *propname, const char **val);
- int fwnode_property_match_string(const struct fwnode_handle *fwnode,
- 				 const char *propname, const char *string);
-+int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
-+				       const char *prop, const char *nargs_prop,
-+				       unsigned int nargs, unsigned int index,
-+				       struct fwnode_reference_args *args);
- 
- struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_get_next_parent(
--- 
-2.7.4
-
+Thanks,
+Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
