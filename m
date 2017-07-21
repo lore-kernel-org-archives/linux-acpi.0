@@ -1,45 +1,88 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 0/3] TPS68470 PMIC drivers
-Date: Fri, 21 Jul 2017 22:51:02 +0200
-Message-ID: <3425487.LgIRMVflim@aspire.rjw.lan>
-References: <1500648378-10294-1-git-send-email-rajmohan.mani@intel.com> <CAHp75VdMgXJ6g8g+mv1GATaKFn1SLPOHUc7-ciMz4EpjjjHQYg@mail.gmail.com>
+Subject: Re: [PATCH 3/3] ACPI / PCI / PM: Rework acpi_pci_propagate_wakeup()
+Date: Fri, 21 Jul 2017 23:02:56 +0200
+Message-ID: <2856428.3eiZuFhSvi@aspire.rjw.lan>
+References: <3116391.JNS1F4DjTg@aspire.rjw.lan> <CAHp75VeQpmf5z1p9an2bvJDkAGeOxFyXz+VWk7OibNt+-9VMDw@mail.gmail.com> <2174120.aKGTTYRMVV@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42667 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:52781 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752048AbdGUU64 (ORCPT
+        by vger.kernel.org with ESMTP id S1753564AbdGUVKu (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Jul 2017 16:58:56 -0400
-In-Reply-To: <CAHp75VdMgXJ6g8g+mv1GATaKFn1SLPOHUc7-ciMz4EpjjjHQYg@mail.gmail.com>
+        Fri, 21 Jul 2017 17:10:50 -0400
+In-Reply-To: <2174120.aKGTTYRMVV@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Rajmohan Mani <rajmohan.mani@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Len Brown <lenb@kernel.org>, sakari.ailus@linux.intel.com
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Friday, July 21, 2017 06:20:15 PM Andy Shevchenko wrote:
-> On Fri, Jul 21, 2017 at 5:46 PM, Rajmohan Mani <rajmohan.mani@intel.com> wrote:
-> > This is the patch series for TPS68470 PMIC that works as a camera PMIC.
-> >
-> > The patch series provide the following 3 drivers, to help configure the voltage regulators, clocks and GPIOs provided by the TPS68470 PMIC, to be able to use the camera sensors connected to this PMIC.
-> >
-> > TPS68470 MFD driver:
-> > This is the multi function driver that initializes the TPS68470 PMIC and supports the GPIO and Op Region functions.
-> >
-> > TPS68470 GPIO driver:
-> > This is the PMIC GPIO driver that will be used by the OS GPIO layer, when the BIOS / firmware triggered GPIO access is done.
-> >
-> > TPS68470 Op Region driver:
-> > This is the driver that will be invoked, when the BIOS / firmware configures the voltage / clock for the sensors / vcm devices connected to the PMIC.
-> >
+On Friday, July 21, 2017 10:44:30 PM Rafael J. Wysocki wrote:
+> On Friday, July 21, 2017 06:45:03 PM Andy Shevchenko wrote:
+> > On Fri, Jul 21, 2017 at 3:42 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > 
+> > > The acpi_pci_propagate_wakeup() routine is there to handle cases in
+> > > which PCI bridges (or PCIe ports) are expected to signal wakeup
+> > > for devices below them, but currently it doesn't do that correctly.
+> > >
+> > > The problem is that acpi_pci_propagate_wakeup() uses
+> > > acpi_pm_set_device_wakeup() for bridges and if that routine is
+> > > called for multiple times to disable wakeup for the same device,
+> > > it will disable it on the first invocation and the next calls
+> > > will have no effect (it works analogously when called to enable
+> > > wakeup, but that is not a problem).
+> > >
+> > > Now, say acpi_pci_propagate_wakeup() has been called for two
+> > > different devices under the same bridge and it has called
+> > > acpi_pm_set_device_wakeup() for that bridge each time.  The
+> > > bridge is now enabled to generate wakeup signals.  Next,
+> > > suppose that one of the devices below it resumes and
+> > > acpi_pci_propagate_wakeup() is called to disable wakeup for that
+> > > device.  It will then call acpi_pm_set_device_wakeup() for the bridge
+> > > and that will effectively disable remote wakeup for all devices under
+> > > it even though some of them may still be suspended and remote wakeup
+> > > may be expected to work for them.
+> > >
+> > > To address this (arguably theoretical) issue, allow
+> > > wakeup.enable_count under struct acpi_device to grow beyond 1 in
+> > > certain situations.  In particular, allow that to happen in
+> > > acpi_pci_propagate_wakeup() when wakeup is enabled or disabled
+> > > for PCI bridges, so that wakeup is actually disabled for the
+> > > bridge when all devices under it resume and not when just one
+> > > of them does that.
+> > 
+> > > -       if (wakeup->enable_count > 0)
+> > > -               goto out;
+> > > +       if (wakeup->enable_count > 0) {
+> > > +               if (wakeup->enable_count < max_count)
+> > > +                       goto inc;
+> > > +               else
+> > > +                       goto out;
+> > > +       }
+> > 
+> > Wouldn't be simpler
 > 
-> All three patches are good to me (we did few rounds of internal review
-> before posting v4)
+> I'm not really sure what you mean.
 > 
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> In general, ->
+> 
+> >     if (wakeup->enable_count >= max_count)
+> >       goto out;
+> 
+> -> this is unlikely and ->>
+> 
+> >     if (wakeup->enable_count > 0)
+> >       goto inc;
+> 
+> ->> this isn't.
+> 
+> Why would checking an unlikely condition before a likely one covering it
+> ever be better?
 
-OK, so how should they be routed?
+OK, the common case is max_cout == 1 and it that case
+enable_count >= max_count is equivalent to enable_count > 0,
+so I guess fair enough.
 
 Thanks,
 Rafael
