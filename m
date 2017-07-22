@@ -1,57 +1,41 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v6 1/1] acpi: apei: Enable APEI multiple GHES source to
- share a single external IRQ
-Date: Sat, 22 Jul 2017 07:59:54 +0200
-Message-ID: <20170722055954.GA2082@nazgul.tnic>
-References: <1500661477-6536-1-git-send-email-lho@apm.com>
- <1500661477-6536-2-git-send-email-lho@apm.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Sat, 22 Jul 2017 08:28:53 +0200
+Message-ID: <20170722062853.GA2050@nazgul.tnic>
+References: <20170721104001.3cd2b884@vento.lan>
+ <20170721134715.GC5036@nazgul.tnic>
+ <1500649162.2042.43.camel@hpe.com>
+ <20170721151317.GA13424@nazgul.tnic>
+ <1500650732.2042.45.camel@hpe.com>
+ <20170721124401.5f94aba9@vento.lan>
+ <1500654661.2042.49.camel@hpe.com>
+ <20170721140131.40079805@vento.lan>
+ <20170721172344.GA11316@nazgul.tnic>
+ <1500661773.2042.53.camel@hpe.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:43053 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750798AbdGVGAI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 22 Jul 2017 02:00:08 -0400
+Received: from mail.skyhub.de ([5.9.137.197]:58954 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750891AbdGVG3D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 22 Jul 2017 02:29:03 -0400
 Content-Disposition: inline
-In-Reply-To: <1500661477-6536-2-git-send-email-lho@apm.com>
+In-Reply-To: <1500661773.2042.53.camel@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Loc Ho <lho@apm.com>
-Cc: msalter@redhat.com, rafael@kernel.org, tbaicar@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@apm.com
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "mchehab@s-opensource.com" <mchehab@s-opensource.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-On Fri, Jul 21, 2017 at 11:24:37AM -0700, Loc Ho wrote:
-> X-Gene platforms describe multiple GHES error sources with the same hardware
-> error notification type (external interrupt) and interrupt number.
-> Change the GHES interrupt request to support sharing the same IRQ.
-> 
-> Co-authored-by: Tuan Phan <tphan@apm.com>
-> Signed-off-by: Loc Ho <lho@apm.com>
-> ---
->  drivers/acpi/apei/ghes.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index d661d45..eed09fc 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -1157,7 +1157,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
->  			       generic->header.source_id);
->  			goto err_edac_unreg;
->  		}
-> -		rc = request_irq(ghes->irq, ghes_irq_func, 0, "GHES IRQ", ghes);
-> +		rc = request_irq(ghes->irq, ghes_irq_func, IRQF_SHARED,
-> +				 "GHES IRQ", ghes);
->  		if (rc) {
->  			pr_err(GHES_PFX "Failed to register IRQ for generic hardware error source: %d\n",
->  			       generic->header.source_id);
-> -- 
+On Fri, Jul 21, 2017 at 06:38:52PM +0000, Kani, Toshimitsu wrote:
+> Enterprise platforms have very different model (I do not say it's
+> better for everyone from the cost perspective).  Typically, such
 
-Acked-by: Borislav Petkov <bp@suse.de>
+But you do tell your customers that the error counts they see are not
+really what *actually* happens, right?
 
 -- 
 Regards/Gruss,
     Boris.
 
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+ECO tip #101: Trim your mails when you reply.
+--
