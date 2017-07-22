@@ -1,59 +1,155 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH] irqchip/gic-v3-its: Allow GIC ITS number more than
- MAX_NUMNODES
-Date: Sat, 22 Jul 2017 11:52:37 +0800
-Message-ID: <5972CC05.9010702@huawei.com>
-References: <1500630715-2156-1-git-send-email-guohanjun@huawei.com>
- <5971D208.3040005@huawei.com> <84d411ff-596b-c451-29fb-f506abc4fb04@arm.com>
- <CAKTKpr7tmavUKyqxYabdfYOpV0V9TLySmwCwTyng5zZoxy9nqg@mail.gmail.com>
+Subject: [PATCH v2] irqchip/gic-v3-its: Allow GIC ITS number more than MAX_NUMNODES
+Date: Sat, 22 Jul 2017 11:54:12 +0800
+Message-ID: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([45.249.212.189]:9398 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753502AbdGVDxD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jul 2017 23:53:03 -0400
-In-Reply-To: <CAKTKpr7tmavUKyqxYabdfYOpV0V9TLySmwCwTyng5zZoxy9nqg@mail.gmail.com>
+Received: from szxga02-in.huawei.com ([45.249.212.188]:10331 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750750AbdGVEBW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Jul 2017 00:01:22 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ganapatrao Kulkarni <gklkml16@gmail.com>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, linux-arm-kernel@lists.infradead.org, Jayachandran.Nair@cavium.com
+To: Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-On 2017/7/21 19:42, Ganapatrao Kulkarni wrote:
-> Hi Hanjun,
->
->
-> On Fri, Jul 21, 2017 at 4:50 PM, Marc Zyngier <marc.zyngier@arm.com> wrote:
->> On 21/07/17 11:06, Hanjun Guo wrote:
->>> On 2017/7/21 17:51, Hanjun Guo wrote:
->>>> From: Hanjun Guo <hanjun.guo@linaro.org>
->>>>
->>>> When running 4.13-rc1 on top of D05, I got the boot log:
->>>>
->>>> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
->>>> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
->>>> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
->>>> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
->>>> [    0.000000] SRAT: ITS affinity exceeding max count[4]
->>>>
->>>> This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
-> Used static array to keep it simple.  we can have either dynamic array
-> or increase static array size (which is in init data) to a larger
-> number.
-> We may have to go for dynamic array to be more sane. You can refer my
-> v2 patch [1], which was doing dynamic allocation and avoids
-> 2 calls to acpi parser as done in this patch.
->
-> [1] https://patchwork.kernel.org/patch/9798659/
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Hmm, although scanning the SRAT twice is bad, it will keep the
-code simple, and no need to alloc the memory every time when we
-find a ITS affinity entry, you need to free that memory when
-ITS probing is done.
+When running 4.13-rc1 on top of D05, I got the boot log:
 
-I will post a patch later, please take a look if it's ok to you :)
+[    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+[    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+[    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+[    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+[    0.000000] SRAT: ITS affinity exceeding max count[4]
 
-Thanks
-Hanjun
+This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
+
+So dynamically alloc the memory needed instead of using
+its_srat_maps[MAX_NUMNODES], which count the number of
+ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
+then build the mapping of numa node to ITS ID. Of course,
+its_srat_maps will be freed after ITS probing because
+we don't need that after boot.
+
+After doing this, I got what I wanted:
+
+[    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+[    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+[    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+[    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+[    0.000000] SRAT: PXM 2 -> ITS 4 -> Node 2
+[    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
+[    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
+[    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
+
+Fixes: dbd2b8267233 ("irqchip/gic-v3-its: Add ACPI NUMA node mapping")
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+---
+
+v1->v2:
+  - Add NULL check in acpi_get_its_numa_node() for no ITS affinity case;
+  - Free the its_srat_maps after ITS probing.
+
+ drivers/irqchip/irq-gic-v3-its.c | 39 ++++++++++++++++++++++++++++++++-------
+ 1 file changed, 32 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+index 3ccdf76..1d692aa 100644
+--- a/drivers/irqchip/irq-gic-v3-its.c
++++ b/drivers/irqchip/irq-gic-v3-its.c
+@@ -1847,13 +1847,16 @@ struct its_srat_map {
+ 	u32	its_id;
+ };
+ 
+-static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata;
++static struct its_srat_map *its_srat_maps __initdata;
+ static int its_in_srat __initdata;
+ 
+ static int __init acpi_get_its_numa_node(u32 its_id)
+ {
+ 	int i;
+ 
++	if (!its_srat_maps)
++		return NUMA_NO_NODE;
++
+ 	for (i = 0; i < its_in_srat; i++) {
+ 		if (its_id == its_srat_maps[i].its_id)
+ 			return its_srat_maps[i].numa_node;
+@@ -1861,6 +1864,12 @@ static int __init acpi_get_its_numa_node(u32 its_id)
+ 	return NUMA_NO_NODE;
+ }
+ 
++static int __init gic_acpi_match_srat_its(struct acpi_subtable_header *header,
++					  const unsigned long end)
++{
++	return 0;
++}
++
+ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+ 			 const unsigned long end)
+ {
+@@ -1877,12 +1886,6 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (its_in_srat >= MAX_NUMNODES) {
+-		pr_err("SRAT: ITS affinity exceeding max count[%d]\n",
+-				MAX_NUMNODES);
+-		return -EINVAL;
+-	}
+-
+ 	node = acpi_map_pxm_to_node(its_affinity->proximity_domain);
+ 
+ 	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
+@@ -1901,14 +1904,35 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+ 
+ static void __init acpi_table_parse_srat_its(void)
+ {
++	int count;
++
++	count = acpi_table_parse_entries(ACPI_SIG_SRAT,
++			sizeof(struct acpi_table_srat),
++			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
++			gic_acpi_match_srat_its, 0);
++	if (count <= 0)
++		return;
++
++	its_srat_maps = kmalloc(count * sizeof(struct its_srat_map),
++				GFP_KERNEL);
++	if (!its_srat_maps)
++		return;
++
+ 	acpi_table_parse_entries(ACPI_SIG_SRAT,
+ 			sizeof(struct acpi_table_srat),
+ 			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
+ 			gic_acpi_parse_srat_its, 0);
+ }
++
++/* free the its_srat_maps after ITS probing */
++static void __init acpi_its_srat_maps_free(void)
++{
++	kfree(its_srat_maps);
++}
+ #else
+ static void __init acpi_table_parse_srat_its(void)	{ }
+ static int __init acpi_get_its_numa_node(u32 its_id) { return NUMA_NO_NODE; }
++static void __init acpi_its_srat_maps_free(void) { }
+ #endif
+ 
+ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+@@ -1955,6 +1979,7 @@ static void __init its_acpi_probe(void)
+ 	acpi_table_parse_srat_its();
+ 	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
+ 			      gic_acpi_parse_madt_its, 0);
++	acpi_its_srat_maps_free();
+ }
+ #else
+ static void __init its_acpi_probe(void) { }
+-- 
+1.7.12.4
 
