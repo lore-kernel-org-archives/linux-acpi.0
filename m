@@ -1,41 +1,66 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
-Date: Sat, 22 Jul 2017 08:28:53 +0200
-Message-ID: <20170722062853.GA2050@nazgul.tnic>
-References: <20170721104001.3cd2b884@vento.lan>
- <20170721134715.GC5036@nazgul.tnic>
- <1500649162.2042.43.camel@hpe.com>
- <20170721151317.GA13424@nazgul.tnic>
- <1500650732.2042.45.camel@hpe.com>
- <20170721124401.5f94aba9@vento.lan>
- <1500654661.2042.49.camel@hpe.com>
- <20170721140131.40079805@vento.lan>
- <20170721172344.GA11316@nazgul.tnic>
- <1500661773.2042.53.camel@hpe.com>
+From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
+Subject: Re: [PATCH v3 2/2] acpi/iort: numa: Add numa node mapping for smmuv3 devices
+Date: Sat, 22 Jul 2017 18:35:43 +0530
+Message-ID: <CAFpQJXUyD1qb8wMj7NVNEWDzbGSy0_2u1udh-D0D6jKFY5SXSQ@mail.gmail.com>
+References: <1496897059-8272-1-git-send-email-ganapatrao.kulkarni@cavium.com>
+ <1496897059-8272-3-git-send-email-ganapatrao.kulkarni@cavium.com> <5972C54F.6030000@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([5.9.137.197]:58954 "EHLO mail.skyhub.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750891AbdGVG3D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 22 Jul 2017 02:29:03 -0400
-Content-Disposition: inline
-In-Reply-To: <1500661773.2042.53.camel@hpe.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:38846 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752031AbdGVNFo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Jul 2017 09:05:44 -0400
+In-Reply-To: <5972C54F.6030000@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "mchehab@s-opensource.com" <mchehab@s-opensource.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, sudeep.holla@arm.com, Robin Murphy <robin.murphy@arm.com>, Lv Zheng <lv.zheng@intel.com>, joro@8bytes.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jayachandran C <jnair@caviumnetworks.com>
 
-On Fri, Jul 21, 2017 at 06:38:52PM +0000, Kani, Toshimitsu wrote:
-> Enterprise platforms have very different model (I do not say it's
-> better for everyone from the cost perspective).  Typically, such
+On Sat, Jul 22, 2017 at 8:53 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
+> Hi Ganapat,
+>
+> On 2017/6/8 12:44, Ganapatrao Kulkarni wrote:
+>> Add code to parse proximity domain in SMMUv3 IORT table to
+>> set numa node mapping for smmuv3 devices.
+>>
+>> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+>> ---
+>>  drivers/acpi/arm64/iort.c | 28 ++++++++++++++++++++++++++--
+>>  1 file changed, 26 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>> index bba2b59..e804386 100644
+>> --- a/drivers/acpi/arm64/iort.c
+>> +++ b/drivers/acpi/arm64/iort.c
+>> @@ -882,6 +882,23 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+>>       return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
+>>  }
+>>
+>> +/*
+>> + * set numa proximity domain for smmuv3 device
+>> + */
+>> +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
+>> +             struct device *dev)
+>> +{
+>> +     struct acpi_iort_smmu_v3 *smmu;
+>> +
+>> +     smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+>> +     if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
+>> +             set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
+>                                                           ^^
+> Will have compile error in !CONFIG_NUMA, I think we need to introduce
+> a stub function in acpi_numa.h.
 
-But you do tell your customers that the error counts they see are not
-really what *actually* happens, right?
+thanks Hanjun, i thought it is already there in header file, however,
+there is stub for acpi_map_pxm_to_online_node and not for this
+function.
+it is better to have ifdef. will do it in next version.
 
--- 
-Regards/Gruss,
-    Boris.
+>
+> Thanks
+> Hanjun
+>
 
-ECO tip #101: Trim your mails when you reply.
---
+thanks
+Ganapat
