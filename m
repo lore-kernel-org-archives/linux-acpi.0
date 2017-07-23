@@ -1,58 +1,102 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH] ACPI / PMIC: xpower: Do pinswitch magic when reading
- GPADC
-Date: Sun, 23 Jul 2017 15:28:01 +0300
-Message-ID: <1500812881.29303.192.camel@linux.intel.com>
-References: <20170708134008.13930-1-hdegoede@redhat.com>
-         <1499522283.22624.309.camel@linux.intel.com>
-         <2622139.O89ILp39X7@aspire.rjw.lan>
+From: joeyli <jlee@suse.com>
+Subject: Re: A udev rule to serve the change event of ACPI container?
+Date: Sun, 23 Jul 2017 17:18:56 +0800
+Message-ID: <20170723060248.GA3034@linux-l9pv.suse>
+References: <20170626062657.GE4229@linux-l9pv.suse>
+ <20170626085907.GE11534@dhcp22.suse.cz>
+ <20170711082532.GA6927@dhcp22.suse.cz>
+ <20170713065806.GB2901@linux-l9pv.suse>
+ <20170713070618.GC14492@dhcp22.suse.cz>
+ <20170713124521.GE2901@linux-l9pv.suse>
+ <20170714083713.GB2618@dhcp22.suse.cz>
+ <20170714144414.GM2901@linux-l9pv.suse>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:59335 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751346AbdGWM2F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 23 Jul 2017 08:28:05 -0400
-In-Reply-To: <2622139.O89ILp39X7@aspire.rjw.lan>
+Received: from smtp.nue.novell.com ([195.135.221.5]:38007 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752244AbdGXHeP (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Mon, 24 Jul 2017 03:34:15 -0400
+Content-Disposition: inline
+In-Reply-To: <20170714144414.GM2901@linux-l9pv.suse>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Michal Hocko <mhocko@kernel.org>
 
-On Fri, 2017-07-21 at 23:12 +0200, Rafael J. Wysocki wrote:
-> On Saturday, July 08, 2017 04:58:03 PM Andy Shevchenko wrote:
-> > On Sat, 2017-07-08 at 15:40 +0200, Hans de Goede wrote:
-> > > Testing has shown that the TS-pin's bias-current needs to be
-> > > disabled
-> > > when reading the GPIO0 pin in GPADC mode.
+Hi Yasuaki,  
+
+On Fri, Jul 14, 2017 at 10:44:14PM +0800, joeyli wrote:
+> On Fri, Jul 14, 2017 at 10:37:13AM +0200, Michal Hocko wrote:
+> > On Thu 13-07-17 20:45:21, Joey Lee wrote:
+> > > On Thu, Jul 13, 2017 at 09:06:19AM +0200, Michal Hocko wrote:
+> > > > On Thu 13-07-17 14:58:06, Joey Lee wrote:
+> > [...]
+> > > > > If BIOS emits ejection event for a ACPI0004 container, someone needs
+> > > > > to handle the offline/eject jobs of container. Either kernel or user
+> > > > > space.
+> > > > > 
+> > > > > Only sending uevent to individual child device can simplify udev rule,
+> > > > > but it also means that the kernel needs to offline/eject container
+> > > > > after all children devices are offlined.
+> > > > 
+> > > > Why cannot kernel send this eject command to the BIOS if the whole
+> > > > container is offline? If it is not then the kernel would send EBUSY to
 > > > 
-> > > It seems that there is only 1 bias current source and to be able
-> > > to
-> > > use it
-> > > for the GPIO0 pin in GPADC mode it must be temporarily turned off
-> > > for
-> > > the
-> > > TS pin, but the datasheet does not mention this.
+> > > Current kernel container hot-remove process:
 > > > 
-> > > This commit adds the necessary writes to turn the TS pin BIAS
-> > > current
-> > > off before and back on after reading the GPADC. This fixes the
-> > > GPADC
-> > > always returning a reading of 0.
+> > >   BIOS -> SCI event -> Kernel ACPI -> uevent -> userland
+> > >               
+> > > Then, kernel just calls _OST to expose state to BIOS, then process is
+> > > stopped. Kernel doesn't wait there for userland to offline each child
+> > > devices. Either BIOS or userland needs to trigger the container
+> > > ejection.
 > > > 
+> > > > container is offline? If it is not then the kernel would send EBUSY to
+> > > > the BIOS and BIOS would have to retry after some timeout. Or is it a
 > > > 
-> > > +	/* After switching to the GPADC pin give things some time
-> > > to
-> > > settle */
-> > > +	usleep_range(6000, 10000);
+> > > The d429e5c122 patch is merged to mainline. So kernel will send
+> > > DEVICE_BUSY to BIOS after it emits uevent to userland. BIOS can choice
+> > > to apply the retry approach until OS returns process failure exactly or
+> > > BIOS timeout.
+> > > 
+> > > > problem that currently implemented BIOS firmwares do not implement this
+> > > > retry?
+> > > 
+> > > Yes, we should consider the behavior of old BIOS. Old BIOS doesn't
+> > > retry/resend the ejection event. So kernel or userland need to take the
+> > > retry job. Obviously userland runs the retry since the caa73ea15 patch
+> > > is merged.
+> > > 
+> > > IMHO there have two different expectation from user space application.
+> > > 
+> > > Applications like DVD player or Burner expect that kernel should
+> > > info userspace for the ejection, then application can do their cleaning
+> > > job and re-trigger ejection from userland.
 > > 
-> > msleep(6); ?
-> > 
-> Is this the only issue you have with the $subject patch?
+> > I am not sure I understand the DVD example because I do not see how it
+> > fits into the container and online/offline scenario.
+> >
+> 
+> At least Yasuaki raised similar behavior for container in 2013.
+> It's similar to the DVD player case, user space application needs
+> to do something then trigger children offline and ejection of
+> container.
+> 
+> Base on Yasuaki's explanation, the reason of that he requested the
+> userland ejection approach is that he got memory hot-remove problem
+> in 2013. Maybe his problem is already fixed by your patches in current
+> mainline.
+> 
+> Hi Yasuaki, could you please check that your memory hot-remove problem
+> is fixed on mainline kernel?  
+> 
+> If Yasuaki's issue is already fixed, then we should consider to let
+> kernel does the container hot-remove transparently. 
 
-As Hans explained to me there is no issue.
+Could you please help to check that your memory hot-remove problem in 2013
+is fixed on mainline kernel?  
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Thanks a lot!
+Joey Lee
