@@ -1,39 +1,58 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 4/5] ACPI / boot: Not all platform require acpi_reduced_hw_init()
-Date: Sun, 23 Jul 2017 00:14:27 +0200
-Message-ID: <CAJZ5v0hwg5Y3UeGpnM24HXVrJbmDm7ipX-1R9OSgo3wRR50mYQ@mail.gmail.com>
-References: <20170718150420.61600-1-andriy.shevchenko@linux.intel.com>
- <1535497.HrG5Hi31l1@aspire.rjw.lan> <CAHp75VejtJC87eWhxKcT_yWKR2kOWLOARGmhiK7S9WO4bCHYRg@mail.gmail.com>
- <5622080.aq77V1utKd@aspire.rjw.lan> <CAHp75Ve=7HsNHZ443Fs08O7Ya4mMfgtq3nD-6znkeKCjQtGe3w@mail.gmail.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] ACPI / PMIC: xpower: Do pinswitch magic when reading
+ GPADC
+Date: Sun, 23 Jul 2017 15:28:01 +0300
+Message-ID: <1500812881.29303.192.camel@linux.intel.com>
+References: <20170708134008.13930-1-hdegoede@redhat.com>
+         <1499522283.22624.309.camel@linux.intel.com>
+         <2622139.O89ILp39X7@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75Ve=7HsNHZ443Fs08O7Ya4mMfgtq3nD-6znkeKCjQtGe3w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Hanjun Guo <guohanjun@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:59335 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751346AbdGWM2F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 23 Jul 2017 08:28:05 -0400
+In-Reply-To: <2622139.O89ILp39X7@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Sun, Jul 23, 2017 at 12:13 AM, Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
-> On Sun, Jul 23, 2017 at 1:02 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> On Saturday, July 22, 2017 04:53:52 AM Andy Shevchenko wrote:
->>> On Sat, Jul 22, 2017 at 1:25 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->>> > On Tuesday, July 18, 2017 06:04:19 PM Andy Shevchenko wrote:
->
->>> > I'd rather do it at the time when acpi_reduced_hw_init() actually needs to be
->>> > overridden by at least one platform.
->>>
->>> Do you mean as folded into some other patch or just as a preparatory
->>> patch in some future series?
->
->> Any of the above would work for me.
->
-> Logically it should be a separate change as I can see (I have already
-> locally prepared patches for that one platform).
->
-> Thanks for review.
->
-> P.S. Are you going to apply first 3 then from this series?
+On Fri, 2017-07-21 at 23:12 +0200, Rafael J. Wysocki wrote:
+> On Saturday, July 08, 2017 04:58:03 PM Andy Shevchenko wrote:
+> > On Sat, 2017-07-08 at 15:40 +0200, Hans de Goede wrote:
+> > > Testing has shown that the TS-pin's bias-current needs to be
+> > > disabled
+> > > when reading the GPIO0 pin in GPADC mode.
+> > > 
+> > > It seems that there is only 1 bias current source and to be able
+> > > to
+> > > use it
+> > > for the GPIO0 pin in GPADC mode it must be temporarily turned off
+> > > for
+> > > the
+> > > TS pin, but the datasheet does not mention this.
+> > > 
+> > > This commit adds the necessary writes to turn the TS pin BIAS
+> > > current
+> > > off before and back on after reading the GPADC. This fixes the
+> > > GPADC
+> > > always returning a reading of 0.
+> > > 
+> > > 
+> > > +	/* After switching to the GPADC pin give things some time
+> > > to
+> > > settle */
+> > > +	usleep_range(6000, 10000);
+> > 
+> > msleep(6); ?
+> > 
+> Is this the only issue you have with the $subject patch?
 
-Yes, I am.
+As Hans explained to me there is no issue.
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
