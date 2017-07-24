@@ -1,53 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / watchdog: Fix init failure with overlapping register regions
-Date: Mon, 24 Jul 2017 22:37:17 +0200
-Message-ID: <2680739.BCCY7oeAKy@aspire.rjw.lan>
-References: <20170715214818.24979-1-ryan5544@gmail.com>
+From: Daniel Walker <danielwa@cisco.com>
+Subject: Re: ACPI message loglevel not set
+Date: Mon, 24 Jul 2017 16:01:45 -0700
+Message-ID: <57f76eaa-fc88-0be9-a8c7-7441a7588dab@cisco.com>
+References: <5b3ca2da-d4c3-c4dc-e967-eef9effaaf49@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42933 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755734AbdGXUpO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 24 Jul 2017 16:45:14 -0400
-In-Reply-To: <20170715214818.24979-1-ryan5544@gmail.com>
+Received: from rcdn-iport-3.cisco.com ([173.37.86.74]:8970 "EHLO
+        rcdn-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751864AbdGXXLJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jul 2017 19:11:09 -0400
+In-Reply-To: <5b3ca2da-d4c3-c4dc-e967-eef9effaaf49@cisco.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ryan Kennedy <ryan5544@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, xe-linux-external@cisco.com
 
-On Saturday, July 15, 2017 05:48:18 PM Ryan Kennedy wrote:
-> Partially overlapping regions cause platform device creation
-> to fail. The latter of two overlapping resources will fail to be
-> reserved. Fix this by merging overlapping resource ranges while
-> enumerating WDAT table entries.
-> 
-> Signed-off-by: Ryan Kennedy <ryan5544@gmail.com>
-> ---
->  drivers/acpi/acpi_watchdog.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/acpi_watchdog.c b/drivers/acpi/acpi_watchdog.c
-> index 8c4e0a1..bf22c29 100644
-> --- a/drivers/acpi/acpi_watchdog.c
-> +++ b/drivers/acpi/acpi_watchdog.c
-> @@ -86,7 +86,12 @@ void __init acpi_watchdog_init(void)
->  
->  		found = false;
->  		resource_list_for_each_entry(rentry, &resource_list) {
-> -			if (resource_contains(rentry->res, &res)) {
-> +			if (rentry->res->flags == res.flags &&
-> +			    resource_overlaps(rentry->res, &res)) {
-> +				if (res.start < rentry->res->start)
-> +					rentry->res->start = res.start;
-> +				if (res.end > rentry->res->end)
-> +					rentry->res->end = res.end;
->  				found = true;
->  				break;
->  			}
-> 
 
-Mika, can you have a look at this, please?
+Sorry, one more time to remove the html (hopefully) ..
+
+
+On 07/19/2017 03:43 PM, Daniel Walker wrote:
+>
+>
+> Hi,
+>
+>
+> We have noticed that in this file,
+>
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/acpi/acoutput.h
+>
+> There are these print macros
+>
+> |#define ACPI_INFO(plist) acpi_info plist #define ACPI_WARNING(plist) 
+> acpi_warning plist #define ACPI_EXCEPTION(plist) acpi_exception plist 
+> #define ACPI_ERROR(plist) acpi_error plist #define 
+> ACPI_BIOS_WARNING(plist) acpi_bios_warning plist #define 
+> ACPI_BIOS_ERROR(plist) acpi_bios_error plist |
+>
+> It seems that these don't translate to the appropriate Linux KERN_* 
+> loglevels. We noticed this because our test group started reporting 
+> these as warning messages because they print out with the default 
+> loglevel (KERN_WARN) ..
+>
+> Is this intentional or an over site ?
+>
+> Thanks,
+> Daniel
+> || 
+
 
