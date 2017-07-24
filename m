@@ -1,141 +1,35 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 3/4] ACPI: Introduce DMA ranges parsing
-Date: Mon, 24 Jul 2017 11:40:48 +0100
-Message-ID: <20170724104048.GD13145@red-moon>
-References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
- <20170720144517.32529-4-lorenzo.pieralisi@arm.com>
- <37547189.Yunjf1Ri5r@aspire.rjw.lan>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [Resend, PATCH v2] i2c: core: Allow empty id_table in ACPI case
+ as well
+Date: Mon, 24 Jul 2017 13:45:59 +0300
+Message-ID: <20170724104559.GS629@lahna.fi.intel.com>
+References: <20170717141328.52286-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58884 "EHLO foss.arm.com"
+Received: from mga01.intel.com ([192.55.52.88]:21696 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751900AbdGXKi7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 24 Jul 2017 06:38:59 -0400
+        id S1752259AbdGXKqE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 24 Jul 2017 06:46:04 -0400
 Content-Disposition: inline
-In-Reply-To: <37547189.Yunjf1Ri5r@aspire.rjw.lan>
+In-Reply-To: <20170717141328.52286-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-On Sat, Jul 22, 2017 at 12:15:42AM +0200, Rafael J. Wysocki wrote:
-
-[...]
-
-> > + * acpi_dma_get_range() - Get device DMA parameters.
-> > + *
-> > + * @dev: device to configure
-> > + * @dma_addr: pointer device DMA address result
-> > + * @offset: pointer to the DMA offset result
-> > + * @size: pointer to DMA range size result
-> > + *
-> > + * Evaluate DMA regions and return respectively DMA region start, offset
-> > + * and size in dma_addr, offset and size on parsing success; it does not
-> > + * update the passed in values on failure.
-> > + *
-> > + * Return 0 on success, < 0 on failure.
-> > + */
-> > +int acpi_dma_get_range(struct device *dev, u64 *dma_addr, u64 *offset,
-> > +		       u64 *size)
-> > +{
-> > +	struct acpi_device *adev;
-> > +	LIST_HEAD(list);
-> > +	struct resource_entry *rentry;
-> > +	int ret;
-> > +	struct device *dma_dev = dev;
-> > +	struct acpi_buffer name_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-> > +	u64 dma_start = U64_MAX, dma_end = 0, dma_offset = 0;
-> > +
-> > +	/*
-> > +	 * Walk the device tree chasing an ACPI companion with a _DMA
-> > +	 * object while we go. Stop if we find a device with an ACPI
-> > +	 * companion containing a _DMA method.
-> > +	 */
-> > +	do {
-> > +		if (has_acpi_companion(dma_dev)) {
-> > +			adev = ACPI_COMPANION(dma_dev);
-> > +
-> > +			if (acpi_has_method(adev->handle, METHOD_NAME__DMA))
-> > +				break;
+On Mon, Jul 17, 2017 at 05:13:28PM +0300, Andy Shevchenko wrote:
+> For now empty ID table is not allowed with ACPI and prevents driver to
+> be probed.
 > 
-> Why don't you do
+> Add a check to allow empty ID table.
 > 
-> 	adev = ACPI_COMPANION(dma_dev);
-> 	if (adev && acpi_has_method(adev->handle, METHOD_NAME__DMA))
-> 		break;
+> This introduces a helper i2c_acpi_match_device().
 > 
-> instead?
-
-Yes, it is better.
-
-> > +		}
-> > +	} while ((dma_dev = dma_dev->parent));
+> Note, we rename some static function in i2c-core-acpi.c to distinguish
+> with public API.
 > 
-> We had a rule to avoid things like this once and it wasn't a bad one. :-)
-> 
-> Why don't you just do
-> 
-> 		dma_dev = dma_dev->parent;
-> 	} while (dma_dev);
-> 
-> ?
+> Fixes: da10c06a044b ("i2c: Make I2C ID tables non-mandatory for DT'ed devices")
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Yes I should have done that in the first place, will update.
-
-> > +
-> > +	if (!dma_dev)
-> > +		return -ENODEV;
-> > +
-> > +	if (!acpi_has_method(adev->handle, METHOD_NAME__CRS)) {
-> > +		acpi_get_name(adev->handle, ACPI_FULL_PATHNAME, &name_buffer);
-> > +		pr_warn(FW_BUG "%s: _DMA object only valid in object with valid _CRS\n",
-> > +				(char *)name_buffer.pointer);
-> > +		kfree(name_buffer.pointer);
-> 
-> We have acpi_handle_warn() and friends for stuff like that ...
-
-I will update to it.
-
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	ret = acpi_dev_get_dma_resources(adev, &list);
-> > +	if (ret > 0) {
-> > +		list_for_each_entry(rentry, &list, node) {
-> > +			if (dma_offset && rentry->offset != dma_offset) {
-> > +				ret = -EINVAL;
-> > +				pr_warn("Can't handle multiple windows with different offsets\n");
-> > +				goto out;
-> > +			}
-> > +			dma_offset = rentry->offset;
-> > +
-> > +			/* Take lower and upper limits */
-> > +			if (rentry->res->start < dma_start)
-> > +				dma_start = rentry->res->start;
-> > +			if (rentry->res->end > dma_end)
-> > +				dma_end = rentry->res->end;
-> > +		}
-> > +
-> > +		if (dma_start >= dma_end) {
-> > +			ret = -EINVAL;
-> > +			pr_warn("Invalid DMA regions configuration\n");
-> 
-> dev_warn()?
-> 
-> And why _warn() and not _info()?
-
-Mmm..ok for the dev_ prefix - basically this would be a FW_BUG (I think
-this specific error condition is overkill TBH, the ACPI resource
-validation code should catch it before we even get here) not sure
-about downgrading it to _info() though, I would leave it at this
-loglevel - in particular in the offset check above:
-
-	if (dma_offset && rentry->offset != dma_offset) {
-		ret = -EINVAL;
-		pr_warn("Can't handle multiple windows with different offsets\n");
-		goto out;
-	}
-
-Thanks,
-Lorenzo
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
