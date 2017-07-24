@@ -1,13 +1,13 @@
 From: Thierry Reding <thierry.reding@gmail.com>
-Subject: [PATCH 2/7] gpio: of: Improve kerneldoc
-Date: Mon, 24 Jul 2017 16:57:23 +0200
-Message-ID: <20170724145728.7662-2-thierry.reding@gmail.com>
+Subject: [PATCH 5/7] gpio: sysfs: Fixup kerneldoc
+Date: Mon, 24 Jul 2017 16:57:26 +0200
+Message-ID: <20170724145728.7662-5-thierry.reding@gmail.com>
 References: <20170724145728.7662-1-thierry.reding@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33299 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756266AbdGXO5d (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jul 2017 10:57:33 -0400
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:33606 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756361AbdGXO5h (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jul 2017 10:57:37 -0400
 In-Reply-To: <20170724145728.7662-1-thierry.reding@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,69 +16,46 @@ Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.s
 
 From: Thierry Reding <treding@nvidia.com>
 
-Add descriptions for missing fields and fix up some parameter references
-to match the code.
+Fix up some references to parameters to match the code.
 
 Signed-off-by: Thierry Reding <treding@nvidia.com>
 ---
- drivers/gpio/gpiolib-of.c   |  7 +++----
- include/linux/gpio/driver.h | 19 +++++++++++++++++++
- 2 files changed, 22 insertions(+), 4 deletions(-)
+ drivers/gpio/gpiolib-sysfs.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index 54ce8dc58ad0..9c1b8a5d2f33 100644
---- a/drivers/gpio/gpiolib-of.c
-+++ b/drivers/gpio/gpiolib-of.c
-@@ -273,14 +273,13 @@ static int of_gpiochip_scan_gpios(struct gpio_chip *chip)
- }
+diff --git a/drivers/gpio/gpiolib-sysfs.c b/drivers/gpio/gpiolib-sysfs.c
+index 16fe9742597b..45b8c0679fee 100644
+--- a/drivers/gpio/gpiolib-sysfs.c
++++ b/drivers/gpio/gpiolib-sysfs.c
+@@ -534,8 +534,8 @@ static struct class gpio_class = {
  
  /**
-- * of_gpio_simple_xlate - translate gpio_spec to the GPIO number and flags
-+ * of_gpio_simple_xlate - translate gpiospec to the GPIO number and flags
-  * @gc:		pointer to the gpio_chip structure
-- * @np:		device node of the GPIO chip
-- * @gpio_spec:	gpio specifier as found in the device tree
-+ * @gpiospec:	GPIO specifier as found in the device tree
-  * @flags:	a flags pointer to fill in
+  * gpiod_export - export a GPIO through sysfs
+- * @gpio: gpio to make available, already requested
+- * @direction_may_change: true if userspace may change gpio direction
++ * @desc: GPIO to make available, already requested
++ * @direction_may_change: true if userspace may change GPIO direction
+  * Context: arch_initcall or later
   *
-  * This is simple translation function, suitable for the most 1:1 mapped
-- * gpio chips. This function performs only one sanity check: whether gpio
-+ * GPIO chips. This function performs only one sanity check: whether GPIO
-  * is less than ngpios (that is specified in the gpio_chip).
+  * When drivers want to make a GPIO accessible to userspace after they
+@@ -643,7 +643,7 @@ static int match_export(struct device *dev, const void *desc)
+  * gpiod_export_link - create a sysfs link to an exported GPIO node
+  * @dev: device under which to create symlink
+  * @name: name of the symlink
+- * @gpio: gpio to create symlink to, already exported
++ * @desc: GPIO to create symlink to, already exported
+  *
+  * Set up a symlink from /sys/.../dev/name to /sys/class/gpio/gpioN
+  * node. Caller is responsible for unlinking.
+@@ -674,7 +674,7 @@ EXPORT_SYMBOL_GPL(gpiod_export_link);
+ 
+ /**
+  * gpiod_unexport - reverse effect of gpiod_export()
+- * @gpio: gpio to make unavailable
++ * @desc: GPIO to make unavailable
+  *
+  * This is implicit on gpiod_free().
   */
- int of_gpio_simple_xlate(struct gpio_chip *gc,
-diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
-index ad4150d075c3..fe66c9306caf 100644
---- a/include/linux/gpio/driver.h
-+++ b/include/linux/gpio/driver.h
-@@ -180,8 +180,27 @@ struct gpio_chip {
- 	 * If CONFIG_OF is enabled, then all GPIO controllers described in the
- 	 * device tree automatically may have an OF translation
- 	 */
-+
-+	/**
-+	 * @of_node:
-+	 *
-+	 * Pointer to a device tree node representing this GPIO controller.
-+	 */
- 	struct device_node *of_node;
-+
-+	/**
-+	 * @of_gpio_n_cells:
-+	 *
-+	 * Number of cells used to form the GPIO specifier.
-+	 */
- 	int of_gpio_n_cells;
-+
-+	/**
-+	 * @of_xlate:
-+	 *
-+	 * Callback to translate a device tree GPIO specifier into a chip-
-+	 * relative GPIO number and flags.
-+	 */
- 	int (*of_xlate)(struct gpio_chip *gc,
- 			const struct of_phandle_args *gpiospec, u32 *flags);
- #endif
 -- 
 2.13.3
 
