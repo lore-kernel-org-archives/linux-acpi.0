@@ -1,46 +1,105 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/2] acpi: Fix typo in SRAT table name
-Date: Mon, 24 Jul 2017 22:29:10 +0200
-Message-ID: <7822621.77xjRtf9ye@aspire.rjw.lan>
-References: <20170721225124.15297-1-ross.zwisler@linux.intel.com> <20170721225124.15297-2-ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH] mailbox: pcc: Fix crash when request PCC channel 0
+Date: Mon, 24 Jul 2017 22:32:22 +0200
+Message-ID: <27800256.nuNfrki0xq@aspire.rjw.lan>
+References: <1500674969-12906-1-git-send-email-hotran@apm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:56890 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:65469 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754019AbdGXUhH (ORCPT
+        by vger.kernel.org with ESMTP id S1753759AbdGXUkT (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 24 Jul 2017 16:37:07 -0400
-In-Reply-To: <20170721225124.15297-2-ross.zwisler@linux.intel.com>
+        Mon, 24 Jul 2017 16:40:19 -0400
+In-Reply-To: <1500674969-12906-1-git-send-email-hotran@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, devel@acpica.org, linux-acpi@vger.kernel.org
+To: Hoan Tran <hotran@apm.com>, Prakash Prashanth <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lho@apm.com, isubramanian@apm.com
 
-On Friday, July 21, 2017 04:51:24 PM Ross Zwisler wrote:
-> To save someone the time of searching the ACPI spec for "Static Resource
-> Affinity Table".
+On Friday, July 21, 2017 03:09:29 PM Hoan Tran wrote:
+> When PCCT is not available, kernel crashes as below when requests PCC
+> channel 0. This patch fixes this issue.
 > 
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> [    0.920454] PCCT header not found.
+> ...
+> [    8.031309] Unable to handle kernel NULL pointer dereference at virtual address 00000010
+> [    8.031310] [0000000000000010] user address but active_mm is swapper
+> [    8.031312] Internal error: Oops: 96000004 [#1] PREEMPT SMP
+> [    8.031313] Modules linked in:
+> [    8.031316] CPU: 31 PID: 1 Comm: swapper/0 Tainted: G        W       4.13.0-rc1 #18
+> [    8.031317] Hardware name: AppliedMicro(R) 07/20/2017
+> [    8.031318] task: ffff809ef3b08000 task.stack: ffff809ef3b10000
+> [    8.031322] PC is at pcc_mbox_request_channel+0x8c/0x160
+> [    8.031325] LR is at xgene_slimpro_i2c_probe+0x1c0/0x378
+> [    8.031326] pc : [<ffff000008899450>] lr : [<ffff000008819dac>] pstate: 00000045
+> [    8.031327] sp : ffff809ef3b13bd0
+> [    8.031327] x29: ffff809ef3b13bd0 x28: ffff000008ed90a0
+> [    8.031329] x27: ffff000009091000 x26: ffff000008e50470
+> [    8.031330] x25: ffff000008ed9100 x24: ffff809eefd9ac30
+> [    8.031332] x23: 0000000000000000 x22: ffff0000090e3e10
+> [    8.031333] x21: ffff0000090e3000 x20: 0000000000000000
+> [    8.031335] x19: 0000000000000000 x18: 0000000000087ffc
+> [    8.031336] x17: 2fe48d76a78303f0 x16: 0000000000087ffc
+> [    8.031337] x15: ffff000000000000 x14: 0000000000000000
+> [    8.031339] x13: 0000000000000000 x12: 0000000000000018
+> [    8.031340] x11: 0000000000000018 x10: 0101010101010101
+> [    8.031342] x9 : 0000000000000000 x8 : 7f7f7f7f7f7f7f7f
+> [    8.031343] x7 : fefefefeff6b646d x6 : 0000008080808080
+> [    8.031345] x5 : 0000000000000000 x4 : 0000000000000001
+> [    8.031346] x3 : 0000000000000000 x2 : ffff000008819b64
+> [    8.031348] x1 : 0000000000000000 x0 : 0000000000000000
+> ...
+> [    8.031393] Call trace:
+> [    8.031394] Exception stack(0xffff809ef3b13a00 to 0xffff809ef3b13b30)
+> [    8.031395] 3a00: 0000000000000000 0001000000000000 ffff809ef3b13bd0 ffff000008899450
+> [    8.031397] 3a20: ffff809f7e1f9a10 ffff000008f60be0 0000000000000001 ffff809ef3b13b7c
+> [    8.031398] 3a40: ffff809f7e1f9a10 0000000000000000 ffff000009091000 0000000000000003
+> [    8.031399] 3a60: ffff000009091000 0000000000000003 ffff809ef3b13a80 ffff0000084e0794
+> [    8.031400] 3a80: ffff809ef3b13a90 ffff00000850bb64 ffff809ef3b13ad0 ffff00000850bf34
+> [    8.031402] 3aa0: 0000000000000000 0000000000000000 ffff000008819b64 0000000000000000
+> [    8.031403] 3ac0: 0000000000000001 0000000000000000 0000008080808080 fefefefeff6b646d
+> [    8.031404] 3ae0: 7f7f7f7f7f7f7f7f 0000000000000000 0101010101010101 0000000000000018
+> [    8.031405] 3b00: 0000000000000018 0000000000000000 0000000000000000 ffff000000000000
+> [    8.031406] 3b20: 0000000000087ffc 2fe48d76a78303f0
+> [    8.031409] [<ffff000008899450>] pcc_mbox_request_channel+0x8c/0x160
+> [    8.031410] [<ffff000008819dac>] xgene_slimpro_i2c_probe+0x1c0/0x378
+> [    8.031413] [<ffff0000085e84dc>] platform_drv_probe+0x50/0xbc
+> [    8.031414] [<ffff0000085e68a4>] driver_probe_device+0x21c/0x2d0
+> [    8.031416] [<ffff0000085e6a04>] __driver_attach+0xac/0xb0
+> [    8.031417] [<ffff0000085e4a78>] bus_for_each_dev+0x58/0x98
+> [    8.031418] [<ffff0000085e61e4>] driver_attach+0x20/0x28
+> [    8.031419] [<ffff0000085e5e0c>] bus_add_driver+0x1c8/0x22c
+> [    8.031421] [<ffff0000085e7324>] driver_register+0x60/0xf4
+> [    8.031422] [<ffff0000085e8420>] __platform_driver_register+0x4c/0x54
+> [    8.031425] [<ffff000008e96dd0>] xgene_slimpro_i2c_driver_init+0x18/0x20
+> [    8.031426] [<ffff000008083144>] do_one_initcall+0x38/0x124
+> [    8.031429] [<ffff000008e50d0c>] kernel_init_freeable+0x190/0x22c
+> [    8.031431] [<ffff0000089eac30>] kernel_init+0x10/0xfc
+> [    8.031432] [<ffff000008082ec0>] ret_from_fork+0x10/0x50
+> [    8.031434] Code: cb030e63 8b030013 b140067f 54fffda8 (f9400a61)
+> [    8.031448] ---[ end trace 14eb48a4e1e1f9fb ]---
+> 
+> Signed-off-by: Hoan Tran <hotran@apm.com>
 > ---
->  drivers/acpi/numa.c | 2 +-
+>  drivers/mailbox/pcc.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-> index edb0c79..917f1cc 100644
-> --- a/drivers/acpi/numa.c
-> +++ b/drivers/acpi/numa.c
-> @@ -443,7 +443,7 @@ int __init acpi_numa_init(void)
->  	 * So go over all cpu entries in SRAT to get apicid to node mapping.
->  	 */
+> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+> index ac91fd0..cbca5e5 100644
+> --- a/drivers/mailbox/pcc.c
+> +++ b/drivers/mailbox/pcc.c
+> @@ -92,7 +92,7 @@
+>   */
+>  static struct mbox_chan *get_pcc_channel(int id)
+>  {
+> -	if (id < 0 || id > pcc_mbox_ctrl.num_chans)
+> +	if (id < 0 || id >= pcc_mbox_ctrl.num_chans)
+>  		return ERR_PTR(-ENOENT);
 >  
-> -	/* SRAT: Static Resource Affinity Table */
-> +	/* SRAT: System Resource Affinity Table */
->  	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
->  		struct acpi_subtable_proc srat_proc[3];
->  
+>  	return &pcc_mbox_channels[id];
 > 
 
-Both this and the [1/2] applied, thanks!
+Prashanth, Ashwin, comments?
 
