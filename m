@@ -1,42 +1,47 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: [PATCH 7/7] gpio: Use unsigned int for of_gpio_n_cells
-Date: Mon, 24 Jul 2017 16:57:28 +0200
-Message-ID: <20170724145728.7662-7-thierry.reding@gmail.com>
-References: <20170724145728.7662-1-thierry.reding@gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/3] ghes_edac: add platform check to enable ghes_edac
+Date: Mon, 24 Jul 2017 17:04:32 +0200
+Message-ID: <20170724150432.GA31295@nazgul.tnic>
+References: <1500649162.2042.43.camel@hpe.com>
+ <20170721151317.GA13424@nazgul.tnic>
+ <1500650732.2042.45.camel@hpe.com>
+ <20170721124401.5f94aba9@vento.lan>
+ <1500654661.2042.49.camel@hpe.com>
+ <20170721140131.40079805@vento.lan>
+ <20170721172344.GA11316@nazgul.tnic>
+ <1500661773.2042.53.camel@hpe.com>
+ <20170722062853.GA2050@nazgul.tnic>
+ <1500907209.2042.55.camel@hpe.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:33618 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932380AbdGXO5l (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jul 2017 10:57:41 -0400
-In-Reply-To: <20170724145728.7662-1-thierry.reding@gmail.com>
+Received: from mail.skyhub.de ([5.9.137.197]:58030 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753556AbdGXPFF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 24 Jul 2017 11:05:05 -0400
+Content-Disposition: inline
+In-Reply-To: <1500907209.2042.55.camel@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jonathan Corbet <corbet@lwn.net>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@s-opensource.com" <mchehab@s-opensource.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-From: Thierry Reding <treding@nvidia.com>
+On Mon, Jul 24, 2017 at 02:49:30PM +0000, Kani, Toshimitsu wrote:
+> We do not tell the error counts to customers.
 
-The cell count for GPIO specifiers can never be negative, so make the
-field unsigned.
+Please read what I said: do you tell your customers that the error
+counts they're seeing (or are *not* seeing) is bogus because the BIOS is
+hiding them? Not the *actual* numbers!
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
----
- include/linux/gpio/driver.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> We tell customers when they need attention and have actionable items,
+> and we provide support for that. Support gets all info necessary.
 
-diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
-index fe66c9306caf..c97f8325e8bf 100644
---- a/include/linux/gpio/driver.h
-+++ b/include/linux/gpio/driver.h
-@@ -193,7 +193,7 @@ struct gpio_chip {
- 	 *
- 	 * Number of cells used to form the GPIO specifier.
- 	 */
--	int of_gpio_n_cells;
-+	unsigned int of_gpio_n_cells;
- 
- 	/**
- 	 * @of_xlate:
+Ok, good to know. I'll make sure to bounce such issues to you guys in
+the future.
+
 -- 
-2.13.3
+Regards/Gruss,
+    Boris.
 
+ECO tip #101: Trim your mails when you reply.
+--
