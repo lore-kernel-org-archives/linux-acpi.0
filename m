@@ -1,69 +1,69 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 3/4] ACPI: Introduce DMA ranges parsing
-Date: Mon, 24 Jul 2017 20:42:15 +0200
-Message-ID: <CAJZ5v0h_ySMbtGfs5_E+PCJko+3_aDo=1joDaA1_2wCT5tZe=Q@mail.gmail.com>
-References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
- <20170720144517.32529-4-lorenzo.pieralisi@arm.com> <37547189.Yunjf1Ri5r@aspire.rjw.lan>
- <20170724104048.GD13145@red-moon>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 0/8] Remove fwnode type field, constify property fwnode arguments
+Date: Mon, 24 Jul 2017 22:28:12 +0200
+Message-ID: <26807574.YAK92jB8KX@aspire.rjw.lan>
+References: <1500637177-16095-1-git-send-email-sakari.ailus@linux.intel.com> <1500640389.29303.177.camel@linux.intel.com> <1578902.vGrhFWnP8d@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:38795 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754799AbdGXSmR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jul 2017 14:42:17 -0400
-In-Reply-To: <20170724104048.GD13145@red-moon>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:62953 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754706AbdGXUgL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 24 Jul 2017 16:36:11 -0400
+In-Reply-To: <1578902.vGrhFWnP8d@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>, Frank Rowand <frowand.list@gmail.com>, erik.veijola@intel.com
 
-On Mon, Jul 24, 2017 at 12:40 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On Sat, Jul 22, 2017 at 12:15:42AM +0200, Rafael J. Wysocki wrote:
->
+On Friday, July 21, 2017 02:29:06 PM Rafael J. Wysocki wrote:
+> On Friday, July 21, 2017 03:33:09 PM Andy Shevchenko wrote:
+> > On Fri, 2017-07-21 at 13:52 +0200, Rafael J. Wysocki wrote:
+> > > On Fri, Jul 21, 2017 at 1:39 PM, Sakari Ailus
+> > > <sakari.ailus@linux.intel.com> wrote:
+> > > > Hello everyone,
+> > > > 
+> > > > This set removes the struct fwnode_handle type field and constifies
+> > > > the
+> > > > fwnode arguments in the fwnode property API more or less the way
+> > > > they are
+> > > > const in OF property API.
+> > > > 
+> > > > Comments are welcome.
+> > > > 
+> > > > All the dependent patches are now in linux-pm master branch.
+> > > > 
+> > > > <URL:http://www.spinics.net/lists/linux-acpi/msg75957.html>;
+> > > > 
+> > > > v1 can be found here:
+> > > > 
+> > > > <URL:http://www.spinics.net/lists/linux-acpi/msg74564.html>;
+> > > > 
+> > > > changes since v2:
+> > > > 
+> > > > - Add 8th patch "device property: Introduce
+> > > >   fwnode_property_get_reference_args". This allows obtaining
+> > > > references
+> > > >   with integer arguments using the fwnode interface.
+> > > > 
+> > > >   The functionality will be soon needed in adding support for nvmem
+> > > >   framework on ACPI as well as in referring to e.g. lens and flash
+> > > > devices
+> > > >   on V4L2.
+> > > 
+> > > OK, so if people have no objections, I'll queue this up for 4.14.
+> > 
+> > I have no objections.
+> > 
+> > One comment Sakari already has addressed, another one
+> > (list_first_enatry_or_null() use) might be addressed later.
+> 
+> Cool, thanks!
 
-[cut]
+So the series have been applied.
 
->
->> > +           return -EINVAL;
->> > +   }
->> > +
->> > +   ret = acpi_dev_get_dma_resources(adev, &list);
->> > +   if (ret > 0) {
->> > +           list_for_each_entry(rentry, &list, node) {
->> > +                   if (dma_offset && rentry->offset != dma_offset) {
->> > +                           ret = -EINVAL;
->> > +                           pr_warn("Can't handle multiple windows with different offsets\n");
->> > +                           goto out;
->> > +                   }
->> > +                   dma_offset = rentry->offset;
->> > +
->> > +                   /* Take lower and upper limits */
->> > +                   if (rentry->res->start < dma_start)
->> > +                           dma_start = rentry->res->start;
->> > +                   if (rentry->res->end > dma_end)
->> > +                           dma_end = rentry->res->end;
->> > +           }
->> > +
->> > +           if (dma_start >= dma_end) {
->> > +                   ret = -EINVAL;
->> > +                   pr_warn("Invalid DMA regions configuration\n");
->>
->> dev_warn()?
->>
->> And why _warn() and not _info()?
->
-> Mmm..ok for the dev_ prefix - basically this would be a FW_BUG (I think
-> this specific error condition is overkill TBH, the ACPI resource
-> validation code should catch it before we even get here) not sure
-> about downgrading it to _info() though, I would leave it at this
-> loglevel - in particular in the offset check above:
->
->         if (dma_offset && rentry->offset != dma_offset) {
->                 ret = -EINVAL;
->                 pr_warn("Can't handle multiple windows with different offsets\n");
->                 goto out;
->         }
+Thanks,
+Rafael
 
-Well, so the "why" question above still has no answer ...
