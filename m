@@ -1,125 +1,85 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v4 1/3] mfd: Add new mfd device TPS68470
-Date: Tue, 25 Jul 2017 10:10:12 +0100
-Message-ID: <20170725091012.3hpxihekht2j35xb@dell>
-References: <1500506426-3047-1-git-send-email-rajmohan.mani@intel.com>
- <1500506426-3047-2-git-send-email-rajmohan.mani@intel.com>
- <20170720090300.ayx5pz5l4yntefpt@dell>
- <6F87890CF0F5204F892DEA1EF0D77A59725DD60A@FMSMSX114.amr.corp.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 2/4] ACPI: Make acpi_dev_get_resources() method agnostic
+Date: Tue, 25 Jul 2017 10:15:38 +0100
+Message-ID: <20170725091538.GB17133@red-moon>
+References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
+ <20170720144517.32529-3-lorenzo.pieralisi@arm.com>
+ <24234737.CuhWYzNn5W@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f182.google.com ([209.85.128.182]:37999 "EHLO
-        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750793AbdGYJKP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jul 2017 05:10:15 -0400
-Received: by mail-wr0-f182.google.com with SMTP id f21so59679354wrf.5
-        for <linux-acpi@vger.kernel.org>; Tue, 25 Jul 2017 02:10:15 -0700 (PDT)
+Received: from foss.arm.com ([217.140.101.70]:43108 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750803AbdGYJNs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 25 Jul 2017 05:13:48 -0400
 Content-Disposition: inline
-In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A59725DD60A@FMSMSX114.amr.corp.intel.com>
+In-Reply-To: <24234737.CuhWYzNn5W@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
 
-On Fri, 21 Jul 2017, Mani, Rajmohan wrote:
-> > On Wed, 19 Jul 2017, Rajmohan Mani wrote:
+On Sat, Jul 22, 2017 at 12:05:39AM +0200, Rafael J. Wysocki wrote:
+> On Thursday, July 20, 2017 03:45:14 PM Lorenzo Pieralisi wrote:
+> > The function acpi_dev_get_resources() is completely generic and
+> > can be used to parse resource objects that are not necessarily
+> > coming from the _CRS method but also from other objects eg _DMA
+> > that have the same _CRS resource format.
 > > 
-> > > The TPS68470 device is an advanced power management unit that powers
-> > a
-> > > Compact Camera Module (CCM), generates clocks for image sensors,
-> > > drives a dual LED for Flash and incorporates two LED drivers for
-> > > general purpose indicators.
-> > >
-> > > This patch adds support for TPS68470 mfd device.
-> > >
-> > > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> > > ---
-> > >  drivers/mfd/Kconfig          |  18 +++++++
-> > >  drivers/mfd/Makefile         |   1 +
-> > >  drivers/mfd/tps68470.c       | 110
-> > +++++++++++++++++++++++++++++++++++++++++++
-> > >  include/linux/mfd/tps68470.h |  97
-> > > ++++++++++++++++++++++++++++++++++++++
-> > >  4 files changed, 226 insertions(+)
-> > >  create mode 100644 drivers/mfd/tps68470.c  create mode 100644
-> > > include/linux/mfd/tps68470.h
-
-[...]
-
-> > > +static const struct regmap_config tps68470_regmap_config = {
-> > > +	.reg_bits = 8,
-> > > +	.val_bits = 8,
-> > > +	.max_register = TPS68470_REG_MAX,
-> > > +};
-> > > +
-> > > +static int tps68470_chip_init(struct device *dev, struct regmap
-> > > +*regmap) {
-> > > +	unsigned int version;
-> > > +	int ret;
-> > > +
-> > > +	/* Force software reset */
-> > > +	ret = regmap_write(regmap, TPS68470_REG_RESET,
-> > TPS68470_REG_RESET_MASK);
-> > > +	if (ret < 0)
+> > Create an acpi_dev_get_resources() helper, internal to the ACPI
+> > resources parsing compilation unit, acpi_dev_get_resources_method(),
+> > that takes a char* parameter to detect which ACPI method should be
+> > called to retrieve the resources list and make acpi_dev_get_resources()
+> > call it with a method name _CRS leaving the API behaviour unchanged.
 > > 
-> > Will 'if (!ret)' do?
+> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > ---
+> >  drivers/acpi/resource.c | 54 +++++++++++++++++++++++++++++--------------------
+> >  1 file changed, 32 insertions(+), 22 deletions(-)
 > > 
+> > diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> > index cd4c427..2b20a09 100644
+> > --- a/drivers/acpi/resource.c
+> > +++ b/drivers/acpi/resource.c
+> > @@ -573,6 +573,36 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
+> >  	return AE_OK;
+> >  }
+> >  
+> > +static
+> > +int acpi_dev_get_resources_method(struct acpi_device *adev,
 > 
-> We intend to check error conditions and bail out. So, if (ret < 0) works for this.
-
-Yes, 'if (!ret)' does that too.
-
-> > > +		return ret;
-> > > +
-> > > +	ret = regmap_read(regmap, TPS68470_REG_REVID, &version);
-> > > +	if (ret < 0) {
-> > 
-> > Same
-> > 
+> Do not break lines like this, please.
 > 
-> We intend to check error conditions and bail out. So, if (ret < 0) works for this.
-
-As above.
-
-> > > +		dev_err(dev, "Failed to read revision register: %d\n", ret);
-> > > +		return ret;
-> > > +	}
-> > > +
-> > > +	dev_info(dev, "TPS68470 REVID: 0x%x\n", version);
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static int tps68470_probe(struct i2c_client *client) {
-> > > +	struct device *dev = &client->dev;
-> > > +	struct regmap *regmap;
-> > > +	int ret;
-> > > +
-> > > +	regmap = devm_regmap_init_i2c(client, &tps68470_regmap_config);
-> > > +	if (IS_ERR(regmap)) {
-> > > +		dev_err(dev, "devm_regmap_init_i2c Error %ld\n",
-> > > +			PTR_ERR(regmap));
-> > > +		return PTR_ERR(regmap);
-> > > +	}
-> > > +
-> > > +	i2c_set_clientdata(client, regmap);
-> > > +
-> > > +	ret = tps68470_chip_init(dev, regmap);
-> > > +	if (ret < 0) {
-> > 
-> > Same
-> > 
+> It should be
 > 
-> We intend to check error conditions and bail out. So, if (ret < 0) works for this.
+> static int acpi_dev_get...
+> 
+> Also I would call it differently, maybe simply __acpi_dev_get_resources()?
+> 
+> > +				  struct list_head *list,
+> > +				  int (*preproc)(struct acpi_resource *, void *),
+> > +				  void *preproc_data, char *method)
+> 
+> const char *method ?
 
-As above.
+drivers/acpi/resource.c: In function '__acpi_dev_get_resources':
+drivers/acpi/resource.c:587:37: warning: passing argument 2 of
+'acpi_has_method' discards 'const' qualifier from pointer target type
+[-Wdiscarded-qualifiers]
+  if (!acpi_has_method(adev->handle, method))
+                                       ^~~~~~
+In file included from ./include/linux/acpi.h:44:0,
+                 from drivers/acpi/resource.c:21:
+		 ./include/acpi/acpi_bus.h:55:6: note: expected 'char *'
+		 but argument is of type 'const char *'
+		  bool acpi_has_method(acpi_handle handle, char *name);
 
-[...]
+Same problem with acpi_walk_resources().
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+So either I fiddle (eg cast the const away) with the method string 
+in __acpi_dev_get_resources() or I can add an int/bool to detect
+which method to use ( _CRS or _DMA) instead of passing a const char *.
+
+Thanks,
+Lorenzo
