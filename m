@@ -1,173 +1,115 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2] irqchip/gic-v3-its: Allow GIC ITS number more than
- MAX_NUMNODES
-Date: Tue, 25 Jul 2017 11:30:25 +0100
-Message-ID: <91588872-441b-88c0-07e3-452c2998d173@arm.com>
-References: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: iMac 10,1 with Ubuntu 16.04: black screen after suspend
+Date: Tue, 25 Jul 2017 12:37:34 +0200
+Message-ID: <20170725103734.GA5998@wunner.de>
+References: <20170531092145.ytc2d6shpukxziie@wunner.de>
+ <CADnq5_MGWOX47tcvkfjHRxRv_eTbo_kvpVKyTpo8WGNw+xBvPA@mail.gmail.com>
+ <65c88b03-45d7-d67b-2a2c-6c7047a73c80@butterbrot.org>
+ <CADnq5_Mvyz1KUw26Emt8_d_XNeQ=MUqx8WF=iCxa6jagCXNCQQ@mail.gmail.com>
+ <171a9895-b020-7630-b90c-d166f45e44e3@butterbrot.org>
+ <CADnq5_P_H8ZZXnXOoUcxNOFece3BRyzhZh2Z3mkw53eA20KiMQ@mail.gmail.com>
+ <c1ed89a5-e6a1-1903-05ee-a9dfcdb2ef61@butterbrot.org>
+ <20170717090235.GB3993@wunner.de>
+ <29cdd744-8fac-557b-bc5f-087e84adcae7@butterbrot.org>
+ <fdd1f9fa-f4a5-3b3b-0a0b-8bbff0ef2e5f@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:44288 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750855AbdGYKa2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Jul 2017 06:30:28 -0400
-In-Reply-To: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
+Received: from mailout2.hostsharing.net ([83.223.90.233]:45209 "EHLO
+        mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751809AbdGYKh1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jul 2017 06:37:27 -0400
+Content-Disposition: inline
+In-Reply-To: <fdd1f9fa-f4a5-3b3b-0a0b-8bbff0ef2e5f@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To: Mario Kleiner <mario.kleiner.de@gmail.com>
+Cc: Florian Echtler <floe@butterbrot.org>, Alex Deucher <alexdeucher@gmail.com>, amd-gfx list <amd-gfx@lists.freedesktop.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org
 
-On 22/07/17 04:54, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
+On Tue, Jul 25, 2017 at 07:14:23AM +0200, Mario Kleiner wrote:
+> On 07/24/2017 03:45 PM, Florian Echtler wrote:
+> > thanks for the hint. I've applied this patch to the v4.12 tree I'm
+> > currently running, and it didn't seem to make any difference (i.e.
+> > display stays black after suspend).
 > 
-> When running 4.13-rc1 on top of D05, I got the boot log:
-> 
-> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
-> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
-> [    0.000000] SRAT: ITS affinity exceeding max count[4]
-> 
-> This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
-> 
-> So dynamically alloc the memory needed instead of using
-> its_srat_maps[MAX_NUMNODES], which count the number of
-> ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
-> then build the mapping of numa node to ITS ID. Of course,
-> its_srat_maps will be freed after ITS probing because
-> we don't need that after boot.
-> 
-> After doing this, I got what I wanted:
-> 
-> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
-> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
-> [    0.000000] SRAT: PXM 2 -> ITS 4 -> Node 2
-> [    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
-> [    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
-> [    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
-> 
-> Fixes: dbd2b8267233 ("irqchip/gic-v3-its: Add ACPI NUMA node mapping")
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> ---
-> 
-> v1->v2:
->   - Add NULL check in acpi_get_its_numa_node() for no ITS affinity case;
->   - Free the its_srat_maps after ITS probing.
-> 
->  drivers/irqchip/irq-gic-v3-its.c | 39 ++++++++++++++++++++++++++++++++-------
->  1 file changed, 32 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-> index 3ccdf76..1d692aa 100644
-> --- a/drivers/irqchip/irq-gic-v3-its.c
-> +++ b/drivers/irqchip/irq-gic-v3-its.c
-> @@ -1847,13 +1847,16 @@ struct its_srat_map {
->  	u32	its_id;
->  };
->  
-> -static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata;
-> +static struct its_srat_map *its_srat_maps __initdata;
->  static int its_in_srat __initdata;
->  
->  static int __init acpi_get_its_numa_node(u32 its_id)
->  {
->  	int i;
->  
-> +	if (!its_srat_maps)
-> +		return NUMA_NO_NODE;
-> +
->  	for (i = 0; i < its_in_srat; i++) {
->  		if (its_id == its_srat_maps[i].its_id)
->  			return its_srat_maps[i].numa_node;
-> @@ -1861,6 +1864,12 @@ static int __init acpi_get_its_numa_node(u32 its_id)
->  	return NUMA_NO_NODE;
->  }
->  
-> +static int __init gic_acpi_match_srat_its(struct acpi_subtable_header *header,
-> +					  const unsigned long end)
-> +{
-> +	return 0;
-> +}
-> +
->  static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
->  			 const unsigned long end)
->  {
-> @@ -1877,12 +1886,6 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
->  		return -EINVAL;
->  	}
->  
-> -	if (its_in_srat >= MAX_NUMNODES) {
-> -		pr_err("SRAT: ITS affinity exceeding max count[%d]\n",
-> -				MAX_NUMNODES);
-> -		return -EINVAL;
-> -	}
-> -
+> That's the same here with my patch applied. After a suspend -> resume, the
+> internal panel stays black, the patch doesn't help for that. Somethig i
+> didn't notice btw., apparently i never suspend->resumed it.
+[...]
+> Lukas idea that some hardware mux gets switched into the wrong position on
+> models with TDM sounds pretty appealing to me, but how to test?
 
-So you're getting rid of that message when overflowing the array...
+If all else fails, with a multimeter / oscilloscope. :-)  The board
+schematics are available by googling for the right terms, such as
+the drawing number "051-7863" and internal codename "K23".
 
->  	node = acpi_map_pxm_to_node(its_affinity->proximity_domain);
->  
->  	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
-> @@ -1901,14 +1904,35 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
->  
->  static void __init acpi_table_parse_srat_its(void)
->  {
-> +	int count;
-> +
-> +	count = acpi_table_parse_entries(ACPI_SIG_SRAT,
-> +			sizeof(struct acpi_table_srat),
-> +			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
-> +			gic_acpi_match_srat_its, 0);
-> +	if (count <= 0)
-> +		return;
-> +
-> +	its_srat_maps = kmalloc(count * sizeof(struct its_srat_map),
-> +				GFP_KERNEL);
-> +	if (!its_srat_maps)
-> +		return;
+Of interest is the eDP connector on the mainboard, page 90.  Notice
+there are two power rails going into it, 3.3V (pin 31) and 12V (pins
+27 - 30).  Florian obtained dmesg output of the machine coming out
+of suspend by ssh'ing into it and it showed that the eDP link could
+be trained properly upon system resume.  Still the panel stayed black.
 
-and here silently returning when failing to allocate the memory. I think
-it'd be worth having a bit of a warning.
+My guess is that the panel's DisplayPort transceiver is powered via the
+3.3V rail.  This rail is powered permanently when the system is in S0,
+it cannot be switched off at runtime.  So, the Radeon card can talk to
+the DisplayPort transceiver (which has power) but the 12V rail, which
+presumably powers the LED backlight, is off.  You could test this theory
+by attaching a multimeter after coming out of suspend:  You should see
+a voltage difference of 3.3V between pins 31 and 32 (ground) and 0V
+between pins 27 - 30 and 32.
 
-> +
->  	acpi_table_parse_entries(ACPI_SIG_SRAT,
->  			sizeof(struct acpi_table_srat),
->  			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
->  			gic_acpi_parse_srat_its, 0);
->  }
-> +
-> +/* free the its_srat_maps after ITS probing */
-> +static void __init acpi_its_srat_maps_free(void)
-> +{
-> +	kfree(its_srat_maps);
-> +}
->  #else
->  static void __init acpi_table_parse_srat_its(void)	{ }
->  static int __init acpi_get_its_numa_node(u32 its_id) { return NUMA_NO_NODE; }
-> +static void __init acpi_its_srat_maps_free(void) { }
->  #endif
->  
->  static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
-> @@ -1955,6 +1979,7 @@ static void __init its_acpi_probe(void)
->  	acpi_table_parse_srat_its();
->  	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
->  			      gic_acpi_parse_madt_its, 0);
-> +	acpi_its_srat_maps_free();
->  }
->  #else
->  static void __init its_acpi_probe(void) { }
+The logic for the 12V rail is somewhat complicated, first there's
+pin 21 ("VIDEO_ON"), this seems to come *from* the panel and presumably
+signals that the link is trained. This should go high after resume.
+If it does not then maybe a write to a custom DPCD register is necessary
+to make it go high.  If this pin stays low then the 12V rail is not
+powered.
+
+Next there's a 74LVC157A mux (page 95 top-left).  Datasheet:
+https://assets.nexperia.com/documents/data-sheet/74LVC157A.pdf
+The mux can switch four wires, but Apple only needed three.
+I guess all outputs (pins 7, 9, 12) must be high for the backlight
+to go on.  The mux is under the control of the SMC and is presumably
+switched by issuing appropriate commands to the SMC.  It's unclear
+to me if the SMC has switched it to the Radeon or to the TDM source
+after resume.
+
+Assuming that the mux is switched to the Radeon card, follow input
+pins 5, 10 and 14 (MXM_PNL_BL_PWM, MXM_PNL_BL_EN, MXM_PNL_PWR_EN).
+They are coming from a "system management" block on the Radeon card
+(pins 25, 27, 23, page 85).  Apparently these are GPIO pins for
+OEM use and I guess they can be controlled by writing to the PCI BAR
+of the Radeon card, but I've no idea at what address their registers
+might be located.  I'll try to look at the macOS Radeon drivers with
+a disassembler but this is like looking for a needle in a haystack.
+
+
+> However this is something i got when connecting the external Displayport
+> panel:
 > 
+> Jul  7 04:16:09 kleinerm-MaxtorLinux kernel: [ 1441.344792]
+> [drm:radeon_dp_link_train [radeon]] *ERROR* displayport link status failed
+> Jul  7 04:16:09 kleinerm-MaxtorLinux kernel: [ 1441.344819]
+> [drm:radeon_dp_link_train [radeon]] *ERROR* clock recovery failed
+> Jul  7 04:18:07 kleinerm-MaxtorLinux kernel: [ 1559.770783]
+> drm_dp_i2c_do_msg: 20 callbacks suppressed
+> Jul  7 04:30:19 kleinerm-MaxtorLinux kernel: [ 2291.143406]
+> [drm:radeon_dp_link_train [radeon]] *ERROR* displayport link status failed
+> Jul  7 04:30:19 kleinerm-MaxtorLinux kernel: [ 2291.143439]
+> [drm:radeon_dp_link_train [radeon]] *ERROR* clock recovery failed
+> Jul  7 04:30:19 kleinerm-MaxtorLinux kernel: [ 2291.356173]
+> [drm:radeon_dp_link_train [radeon]] *ERROR* displayport link status failed
+> Jul  7 04:30:19 kleinerm-MaxtorLinux kernel: [ 2291.356205]
+> [drm:radeon_dp_link_train [radeon]] *ERROR* clock recovery failed
+> 
+> So link training failed, because drm_dp_dpcd_read_link_status() already
+> failed to read from the dp aux channel.
 
-Otherwise looks good.
+The AUX channel can be terminated in either of two modes under the control
+of the SMC:  100k source termination or weak sink termination (page 94/95).
+Failure to communicate over AUX may be explained by being in the incorrect
+mode.
 
-Thanks,
+HTH,
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Lukas
