@@ -1,56 +1,173 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v4 1/3] mfd: Add new mfd device TPS68470
-Date: Tue, 25 Jul 2017 13:29:15 +0300
-Message-ID: <CAHp75VeGqWNyDO644V+mje4sWsODDhyxRJ8cQ-HDV_e1hAUP3g@mail.gmail.com>
-References: <1500506426-3047-1-git-send-email-rajmohan.mani@intel.com>
- <1500506426-3047-2-git-send-email-rajmohan.mani@intel.com>
- <20170720090300.ayx5pz5l4yntefpt@dell> <6F87890CF0F5204F892DEA1EF0D77A59725DD60A@FMSMSX114.amr.corp.intel.com>
- <20170725091012.3hpxihekht2j35xb@dell>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v2] irqchip/gic-v3-its: Allow GIC ITS number more than
+ MAX_NUMNODES
+Date: Tue, 25 Jul 2017 11:30:25 +0100
+Message-ID: <91588872-441b-88c0-07e3-452c2998d173@arm.com>
+References: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:38343 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750793AbdGYK3R (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jul 2017 06:29:17 -0400
-In-Reply-To: <20170725091012.3hpxihekht2j35xb@dell>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:44288 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750855AbdGYKa2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 25 Jul 2017 06:30:28 -0400
+In-Reply-To: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: "Mani, Rajmohan" <rajmohan.mani@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+To: Hanjun Guo <guohanjun@huawei.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-On Tue, Jul 25, 2017 at 12:10 PM, Lee Jones <lee.jones@linaro.org> wrote:
-> On Fri, 21 Jul 2017, Mani, Rajmohan wrote:
->> > On Wed, 19 Jul 2017, Rajmohan Mani wrote:
+On 22/07/17 04:54, Hanjun Guo wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
+> 
+> When running 4.13-rc1 on top of D05, I got the boot log:
+> 
+> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+> [    0.000000] SRAT: ITS affinity exceeding max count[4]
+> 
+> This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
+> 
+> So dynamically alloc the memory needed instead of using
+> its_srat_maps[MAX_NUMNODES], which count the number of
+> ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
+> then build the mapping of numa node to ITS ID. Of course,
+> its_srat_maps will be freed after ITS probing because
+> we don't need that after boot.
+> 
+> After doing this, I got what I wanted:
+> 
+> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+> [    0.000000] SRAT: PXM 2 -> ITS 4 -> Node 2
+> [    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
+> [    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
+> [    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
+> 
+> Fixes: dbd2b8267233 ("irqchip/gic-v3-its: Add ACPI NUMA node mapping")
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+> 
+> v1->v2:
+>   - Add NULL check in acpi_get_its_numa_node() for no ITS affinity case;
+>   - Free the its_srat_maps after ITS probing.
+> 
+>  drivers/irqchip/irq-gic-v3-its.c | 39 ++++++++++++++++++++++++++++++++-------
+>  1 file changed, 32 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+> index 3ccdf76..1d692aa 100644
+> --- a/drivers/irqchip/irq-gic-v3-its.c
+> +++ b/drivers/irqchip/irq-gic-v3-its.c
+> @@ -1847,13 +1847,16 @@ struct its_srat_map {
+>  	u32	its_id;
+>  };
+>  
+> -static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata;
+> +static struct its_srat_map *its_srat_maps __initdata;
+>  static int its_in_srat __initdata;
+>  
+>  static int __init acpi_get_its_numa_node(u32 its_id)
+>  {
+>  	int i;
+>  
+> +	if (!its_srat_maps)
+> +		return NUMA_NO_NODE;
+> +
+>  	for (i = 0; i < its_in_srat; i++) {
+>  		if (its_id == its_srat_maps[i].its_id)
+>  			return its_srat_maps[i].numa_node;
+> @@ -1861,6 +1864,12 @@ static int __init acpi_get_its_numa_node(u32 its_id)
+>  	return NUMA_NO_NODE;
+>  }
+>  
+> +static int __init gic_acpi_match_srat_its(struct acpi_subtable_header *header,
+> +					  const unsigned long end)
+> +{
+> +	return 0;
+> +}
+> +
+>  static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+>  			 const unsigned long end)
+>  {
+> @@ -1877,12 +1886,6 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+>  		return -EINVAL;
+>  	}
+>  
+> -	if (its_in_srat >= MAX_NUMNODES) {
+> -		pr_err("SRAT: ITS affinity exceeding max count[%d]\n",
+> -				MAX_NUMNODES);
+> -		return -EINVAL;
+> -	}
+> -
 
->> > > + /* Force software reset */
->> > > + ret = regmap_write(regmap, TPS68470_REG_RESET,
->> > TPS68470_REG_RESET_MASK);
->> > > + if (ret < 0)
->> >
->> > Will 'if (!ret)' do?
->> >
->>
->> We intend to check error conditions and bail out. So, if (ret < 0) works for this.
->
-> Yes, 'if (!ret)' does that too.
+So you're getting rid of that message when overflowing the array...
 
-Did you mean
+>  	node = acpi_map_pxm_to_node(its_affinity->proximity_domain);
+>  
+>  	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
+> @@ -1901,14 +1904,35 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+>  
+>  static void __init acpi_table_parse_srat_its(void)
+>  {
+> +	int count;
+> +
+> +	count = acpi_table_parse_entries(ACPI_SIG_SRAT,
+> +			sizeof(struct acpi_table_srat),
+> +			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
+> +			gic_acpi_match_srat_its, 0);
+> +	if (count <= 0)
+> +		return;
+> +
+> +	its_srat_maps = kmalloc(count * sizeof(struct its_srat_map),
+> +				GFP_KERNEL);
+> +	if (!its_srat_maps)
+> +		return;
 
-if (ret)
- return ret;
+and here silently returning when failing to allocate the memory. I think
+it'd be worth having a bit of a warning.
 
-?
+> +
+>  	acpi_table_parse_entries(ACPI_SIG_SRAT,
+>  			sizeof(struct acpi_table_srat),
+>  			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
+>  			gic_acpi_parse_srat_its, 0);
+>  }
+> +
+> +/* free the its_srat_maps after ITS probing */
+> +static void __init acpi_its_srat_maps_free(void)
+> +{
+> +	kfree(its_srat_maps);
+> +}
+>  #else
+>  static void __init acpi_table_parse_srat_its(void)	{ }
+>  static int __init acpi_get_its_numa_node(u32 its_id) { return NUMA_NO_NODE; }
+> +static void __init acpi_its_srat_maps_free(void) { }
+>  #endif
+>  
+>  static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+> @@ -1955,6 +1979,7 @@ static void __init its_acpi_probe(void)
+>  	acpi_table_parse_srat_its();
+>  	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
+>  			      gic_acpi_parse_madt_its, 0);
+> +	acpi_its_srat_maps_free();
+>  }
+>  #else
+>  static void __init its_acpi_probe(void) { }
+> 
 
-I briefly checked few ->read() and ->write() implementations and
-didn't find any evidence of positive numbers that can be returned.
-Documentation (kernel doc) doesn't shed a light on that. So, to me it
-sounds unspecified.
+Otherwise looks good.
 
-So, for now (until documentation will be fixed) I would rely on
-if (ret < 0)
+Thanks,
 
-
+	M.
 -- 
-With Best Regards,
-Andy Shevchenko
+Jazz is not dead. It just smells funny...
