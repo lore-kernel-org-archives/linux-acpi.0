@@ -1,37 +1,35 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / watchdog: Fix init failure with overlapping
- register regions
-Date: Tue, 25 Jul 2017 16:13:41 +0300
-Message-ID: <20170725131341.GU2369@lahna.fi.intel.com>
-References: <20170715214818.24979-1-ryan5544@gmail.com>
- <2680739.BCCY7oeAKy@aspire.rjw.lan>
- <20170725093731.GE2369@lahna.fi.intel.com>
+Subject: Re: [PATCH v1 6/6] device property: Switch to use new generic UUID API
+Date: Tue, 25 Jul 2017 17:12:35 +0300
+Message-ID: <20170725141235.GY2369@lahna.fi.intel.com>
+References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
+ <20170719182857.73693-7-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:3072 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751127AbdGYNNq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Jul 2017 09:13:46 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 Content-Disposition: inline
-In-Reply-To: <20170725093731.GE2369@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20170719182857.73693-7-andriy.shevchenko@linux.intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: devel@driverdev.osuosl.org, linux-efi@vger.kernel.org, linux-watchdog@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, sparmaintainer@unisys.com, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lukas Wunner <lukas@wunner.de>, devel@linuxdriverproject.org, Christoph Hellwig <hch@lst.de>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Ryan Kennedy <ryan5544@gmail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Tue, Jul 25, 2017 at 12:37:31PM +0300, Mika Westerberg wrote:
-> I wonder why we need to do this?
+On Wed, Jul 19, 2017 at 09:28:57PM +0300, Andy Shevchenko wrote:
+> There are new types and helpers that are supposed to be used in new code.
 > 
-> +                           if (res.start < rentry->res->start)
-> +                                   rentry->res->start = res.start;
-> +                           if (res.end > rentry->res->end)
-> +                                   rentry->res->end = res.end;
+> As a preparation to get rid of legacy types and API functions do
+> the conversion here.
 > 
-> IIRC we don't use rentry for anything else when we go out of the loop.
-> Tuning those limits seems unnecessary.
-
-OK, Ryan pointed out that the later code then uses the adjusted rentry
-so this is indeed needed.
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
 
 Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
