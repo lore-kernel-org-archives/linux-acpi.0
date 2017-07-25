@@ -1,81 +1,125 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 3/4] ACPI: Introduce DMA ranges parsing
-Date: Tue, 25 Jul 2017 10:06:15 +0100
-Message-ID: <20170725090615.GA17133@red-moon>
-References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
- <20170720144517.32529-4-lorenzo.pieralisi@arm.com>
- <37547189.Yunjf1Ri5r@aspire.rjw.lan>
- <20170724104048.GD13145@red-moon>
- <CAJZ5v0h_ySMbtGfs5_E+PCJko+3_aDo=1joDaA1_2wCT5tZe=Q@mail.gmail.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v4 1/3] mfd: Add new mfd device TPS68470
+Date: Tue, 25 Jul 2017 10:10:12 +0100
+Message-ID: <20170725091012.3hpxihekht2j35xb@dell>
+References: <1500506426-3047-1-git-send-email-rajmohan.mani@intel.com>
+ <1500506426-3047-2-git-send-email-rajmohan.mani@intel.com>
+ <20170720090300.ayx5pz5l4yntefpt@dell>
+ <6F87890CF0F5204F892DEA1EF0D77A59725DD60A@FMSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:42860 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750757AbdGYJE2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Jul 2017 05:04:28 -0400
+Received: from mail-wr0-f182.google.com ([209.85.128.182]:37999 "EHLO
+        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750793AbdGYJKP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jul 2017 05:10:15 -0400
+Received: by mail-wr0-f182.google.com with SMTP id f21so59679354wrf.5
+        for <linux-acpi@vger.kernel.org>; Tue, 25 Jul 2017 02:10:15 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0h_ySMbtGfs5_E+PCJko+3_aDo=1joDaA1_2wCT5tZe=Q@mail.gmail.com>
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A59725DD60A@FMSMSX114.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
+To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
 
-On Mon, Jul 24, 2017 at 08:42:15PM +0200, Rafael J. Wysocki wrote:
-> On Mon, Jul 24, 2017 at 12:40 PM, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
-> > On Sat, Jul 22, 2017 at 12:15:42AM +0200, Rafael J. Wysocki wrote:
-> >
-> 
-> [cut]
-> 
-> >
-> >> > +           return -EINVAL;
-> >> > +   }
-> >> > +
-> >> > +   ret = acpi_dev_get_dma_resources(adev, &list);
-> >> > +   if (ret > 0) {
-> >> > +           list_for_each_entry(rentry, &list, node) {
-> >> > +                   if (dma_offset && rentry->offset != dma_offset) {
-> >> > +                           ret = -EINVAL;
-> >> > +                           pr_warn("Can't handle multiple windows with different offsets\n");
-> >> > +                           goto out;
-> >> > +                   }
-> >> > +                   dma_offset = rentry->offset;
-> >> > +
-> >> > +                   /* Take lower and upper limits */
-> >> > +                   if (rentry->res->start < dma_start)
-> >> > +                           dma_start = rentry->res->start;
-> >> > +                   if (rentry->res->end > dma_end)
-> >> > +                           dma_end = rentry->res->end;
-> >> > +           }
-> >> > +
-> >> > +           if (dma_start >= dma_end) {
-> >> > +                   ret = -EINVAL;
-> >> > +                   pr_warn("Invalid DMA regions configuration\n");
-> >>
-> >> dev_warn()?
-> >>
-> >> And why _warn() and not _info()?
-> >
-> > Mmm..ok for the dev_ prefix - basically this would be a FW_BUG (I think
-> > this specific error condition is overkill TBH, the ACPI resource
-> > validation code should catch it before we even get here) not sure
-> > about downgrading it to _info() though, I would leave it at this
-> > loglevel - in particular in the offset check above:
-> >
-> >         if (dma_offset && rentry->offset != dma_offset) {
-> >                 ret = -EINVAL;
-> >                 pr_warn("Can't handle multiple windows with different offsets\n");
-> >                 goto out;
-> >         }
-> 
-> Well, so the "why" question above still has no answer ...
+On Fri, 21 Jul 2017, Mani, Rajmohan wrote:
+> > On Wed, 19 Jul 2017, Rajmohan Mani wrote:
+> > 
+> > > The TPS68470 device is an advanced power management unit that powers
+> > a
+> > > Compact Camera Module (CCM), generates clocks for image sensors,
+> > > drives a dual LED for Flash and incorporates two LED drivers for
+> > > general purpose indicators.
+> > >
+> > > This patch adds support for TPS68470 mfd device.
+> > >
+> > > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> > > ---
+> > >  drivers/mfd/Kconfig          |  18 +++++++
+> > >  drivers/mfd/Makefile         |   1 +
+> > >  drivers/mfd/tps68470.c       | 110
+> > +++++++++++++++++++++++++++++++++++++++++++
+> > >  include/linux/mfd/tps68470.h |  97
+> > > ++++++++++++++++++++++++++++++++++++++
+> > >  4 files changed, 226 insertions(+)
+> > >  create mode 100644 drivers/mfd/tps68470.c  create mode 100644
+> > > include/linux/mfd/tps68470.h
 
-It is a firmware misconfiguration, we end up dismissing firmware
-information and use the device with default/possibly misconfigured
-DMA windows (ie offset == 0) for that platform, that's the reason
-why I thought it would deserve a _warn rather than _info loglevel.
+[...]
 
-Thanks,
-Lorenzo
+> > > +static const struct regmap_config tps68470_regmap_config = {
+> > > +	.reg_bits = 8,
+> > > +	.val_bits = 8,
+> > > +	.max_register = TPS68470_REG_MAX,
+> > > +};
+> > > +
+> > > +static int tps68470_chip_init(struct device *dev, struct regmap
+> > > +*regmap) {
+> > > +	unsigned int version;
+> > > +	int ret;
+> > > +
+> > > +	/* Force software reset */
+> > > +	ret = regmap_write(regmap, TPS68470_REG_RESET,
+> > TPS68470_REG_RESET_MASK);
+> > > +	if (ret < 0)
+> > 
+> > Will 'if (!ret)' do?
+> > 
+> 
+> We intend to check error conditions and bail out. So, if (ret < 0) works for this.
+
+Yes, 'if (!ret)' does that too.
+
+> > > +		return ret;
+> > > +
+> > > +	ret = regmap_read(regmap, TPS68470_REG_REVID, &version);
+> > > +	if (ret < 0) {
+> > 
+> > Same
+> > 
+> 
+> We intend to check error conditions and bail out. So, if (ret < 0) works for this.
+
+As above.
+
+> > > +		dev_err(dev, "Failed to read revision register: %d\n", ret);
+> > > +		return ret;
+> > > +	}
+> > > +
+> > > +	dev_info(dev, "TPS68470 REVID: 0x%x\n", version);
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static int tps68470_probe(struct i2c_client *client) {
+> > > +	struct device *dev = &client->dev;
+> > > +	struct regmap *regmap;
+> > > +	int ret;
+> > > +
+> > > +	regmap = devm_regmap_init_i2c(client, &tps68470_regmap_config);
+> > > +	if (IS_ERR(regmap)) {
+> > > +		dev_err(dev, "devm_regmap_init_i2c Error %ld\n",
+> > > +			PTR_ERR(regmap));
+> > > +		return PTR_ERR(regmap);
+> > > +	}
+> > > +
+> > > +	i2c_set_clientdata(client, regmap);
+> > > +
+> > > +	ret = tps68470_chip_init(dev, regmap);
+> > > +	if (ret < 0) {
+> > 
+> > Same
+> > 
+> 
+> We intend to check error conditions and bail out. So, if (ret < 0) works for this.
+
+As above.
+
+[...]
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
