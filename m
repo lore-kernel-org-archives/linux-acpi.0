@@ -1,80 +1,37 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: A udev rule to serve the change event of ACPI container?
-Date: Tue, 25 Jul 2017 14:48:37 +0200
-Message-ID: <20170725124837.GH26723@dhcp22.suse.cz>
-References: <20170711082532.GA6927@dhcp22.suse.cz>
- <20170713065806.GB2901@linux-l9pv.suse>
- <20170713070618.GC14492@dhcp22.suse.cz>
- <20170713124521.GE2901@linux-l9pv.suse>
- <20170714083713.GB2618@dhcp22.suse.cz>
- <20170714144414.GM2901@linux-l9pv.suse>
- <20170717090525.GF12888@dhcp22.suse.cz>
- <20170719090910.GK26098@linux-l9pv.suse>
- <20170724085702.GE25221@dhcp22.suse.cz>
- <20170724092921.GF3034@linux-l9pv.suse>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / watchdog: Fix init failure with overlapping
+ register regions
+Date: Tue, 25 Jul 2017 16:13:41 +0300
+Message-ID: <20170725131341.GU2369@lahna.fi.intel.com>
+References: <20170715214818.24979-1-ryan5544@gmail.com>
+ <2680739.BCCY7oeAKy@aspire.rjw.lan>
+ <20170725093731.GE2369@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:3072 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751127AbdGYNNq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 25 Jul 2017 09:13:46 -0400
 Content-Disposition: inline
-In-Reply-To: <20170724092921.GF3034@linux-l9pv.suse>
-Sender: linux-kernel-owner@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+In-Reply-To: <20170725093731.GE2369@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Ryan Kennedy <ryan5544@gmail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Mon 24-07-17 17:29:21, Joey Lee wrote:
-> On Mon, Jul 24, 2017 at 10:57:02AM +0200, Michal Hocko wrote:
-> > On Wed 19-07-17 17:09:10, Joey Lee wrote:
-> > > On Mon, Jul 17, 2017 at 11:05:25AM +0200, Michal Hocko wrote:
-> > [...]
-> > > > The problem I have with this expectation is that userspace will never
-> > > > have a good atomic view of the whole container. So it can only try to
-> > > 
-> > > I agreed!
-> > > 
-> > > Even a userspace application can handle part of offline jobs. It's
-> > > still possible that other kernel/userland compenents are using the
-> > > resource in container.
-> > > 
-> > > > eject and then hope that nobody has onlined part of the container.
-> > > > If you emit offline event to the userspace the cleanup can be done and
-> > > > after the last component goes offline then the eject can be done
-> > > > atomically.
-> > > 
-> > > The thing that we didn't align is how does kernel maintains the flag
-> > > of ejection state on container.
-> > 
-> > Why it cannot be an attribute of the container? The flag would be set
-> > when the eject operation is requested and cleared when either the
-> > operation is successful (all parts offline and eject operation acked
-> > by the BIOS) or it is terminated.
-> >
+On Tue, Jul 25, 2017 at 12:37:31PM +0300, Mika Westerberg wrote:
+> I wonder why we need to do this?
 > 
-> For the success case, yes, we can clear the flag when the _EJ0 of container
-> is success. But for the fail case, we don't know when the operation is
-> terminated.
-
-Hmm, this is rather strange. What is the BIOS state in the meantime?
-Let's say it doesn't retry. Does it wait for the OS for ever?
-
-> > [...]
-> > > Base on the above figure, if userspace didn't do anything or it
-> > > just performs part of offline jobs. Then the container's [eject]
-> > > state will be always _SET_ there, and kernel will always check
-> > > the the latest child offline state when any child be offlined
-> > > by userspace.
-> > 
-> > What is a problem about that? The eject is simply in progress until all
-> > is set. Or maybe I just misunderstood.
-> >
+> +                           if (res.start < rentry->res->start)
+> +                                   rentry->res->start = res.start;
+> +                           if (res.end > rentry->res->end)
+> +                                   rentry->res->end = res.end;
 > 
-> I agree, but it's only for success case. For fail case, kernel can not
-> wait forever. Can we?
+> IIRC we don't use rentry for anything else when we go out of the loop.
+> Tuning those limits seems unnecessary.
 
-Well, this won't consume any additional resources so I wouldn't be all
-that worried. Maybe we can reset the flag as soon as somebody tries to
-online some part of the container?
+OK, Ryan pointed out that the later code then uses the adjusted rentry
+so this is indeed needed.
 
--- 
-Michal Hocko
-SUSE Labs
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
