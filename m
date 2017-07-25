@@ -1,45 +1,45 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+From: John Garry <john.garry@huawei.com>
 Subject: Re: [PATCH v2] irqchip/gic-v3-its: Allow GIC ITS number more than
  MAX_NUMNODES
-Date: Tue, 25 Jul 2017 11:47:58 +0100
-Message-ID: <20170725104758.GC19302@red-moon>
+Date: Tue, 25 Jul 2017 12:02:19 +0100
+Message-ID: <b5545a3e-74a9-0bff-afc7-309c653ca2b3@huawei.com>
 References: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([45.249.212.187]:10262 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750839AbdGYLCq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jul 2017 07:02:46 -0400
 In-Reply-To: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, linux-arm-kernel@lists.infradead.org
 
-On Sat, Jul 22, 2017 at 11:54:12AM +0800, Hanjun Guo wrote:
+On 22/07/2017 04:54, Hanjun Guo wrote:
 > From: Hanjun Guo <hanjun.guo@linaro.org>
-> 
+>
 > When running 4.13-rc1 on top of D05, I got the boot log:
-
-Nit: You should stick to what the problem is and why you need to solve
-it, "Fixes:" tag gives the commit history you need, the rest (eg "When
-running 4.13-rc1") does not belong in the commit log.
-
+>
 > [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
 > [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
 > [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
 > [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
 > [    0.000000] SRAT: ITS affinity exceeding max count[4]
-> 
+>
 > This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
-> 
+>
 > So dynamically alloc the memory needed instead of using
 > its_srat_maps[MAX_NUMNODES], which count the number of
 > ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
 > then build the mapping of numa node to ITS ID. Of course,
 > its_srat_maps will be freed after ITS probing because
 > we don't need that after boot.
-> 
+>
 > After doing this, I got what I wanted:
-> 
+>
 > [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
 > [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
 > [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
@@ -48,29 +48,21 @@ running 4.13-rc1") does not belong in the commit log.
 > [    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
 > [    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
 > [    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
-
-Question (unrelated): how are PCI devices (or better PCI host bridges)
-mapped to ITSs ? I ask because in IORT we currently ignore the notion
-of ITS groups - so it is just out of curiosity (I suspect you have
-a static 1:1 mapping PCI-host-bridge->ITS).
-
+>
 > Fixes: dbd2b8267233 ("irqchip/gic-v3-its: Add ACPI NUMA node mapping")
 > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 > Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
 > Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 > Cc: Marc Zyngier <marc.zyngier@arm.com>
 > ---
-> 
+>
 > v1->v2:
 >   - Add NULL check in acpi_get_its_numa_node() for no ITS affinity case;
 >   - Free the its_srat_maps after ITS probing.
-> 
+>
 >  drivers/irqchip/irq-gic-v3-its.c | 39 ++++++++++++++++++++++++++++++++-------
-
-Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-
 >  1 file changed, 32 insertions(+), 7 deletions(-)
-> 
+>
 > diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
 > index 3ccdf76..1d692aa 100644
 > --- a/drivers/irqchip/irq-gic-v3-its.c
@@ -78,17 +70,27 @@ Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 > @@ -1847,13 +1847,16 @@ struct its_srat_map {
 >  	u32	its_id;
 >  };
->  
+>
 > -static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata;
 > +static struct its_srat_map *its_srat_maps __initdata;
 >  static int its_in_srat __initdata;
->  
+>
 >  static int __init acpi_get_its_numa_node(u32 its_id)
 >  {
 >  	int i;
->  
+>
 > +	if (!its_srat_maps)
 > +		return NUMA_NO_NODE;
+
+Question: Does !its_srat_maps always imply its_in_srat == 0, so we could 
+just fall through the for loop and return NUMA_NO_NODE without this check?
+
+Or should we be safe/explicit/or falling through loops is a bad coding 
+style?
+
+Cheers,
+John
+
 > +
 >  	for (i = 0; i < its_in_srat; i++) {
 >  		if (its_id == its_srat_maps[i].its_id)
@@ -96,7 +98,7 @@ Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 > @@ -1861,6 +1864,12 @@ static int __init acpi_get_its_numa_node(u32 its_id)
 >  	return NUMA_NO_NODE;
 >  }
->  
+>
 > +static int __init gic_acpi_match_srat_its(struct acpi_subtable_header *header,
 > +					  const unsigned long end)
 > +{
@@ -109,7 +111,7 @@ Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 > @@ -1877,12 +1886,6 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
 >  		return -EINVAL;
 >  	}
->  
+>
 > -	if (its_in_srat >= MAX_NUMNODES) {
 > -		pr_err("SRAT: ITS affinity exceeding max count[%d]\n",
 > -				MAX_NUMNODES);
@@ -117,10 +119,10 @@ Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 > -	}
 > -
 >  	node = acpi_map_pxm_to_node(its_affinity->proximity_domain);
->  
+>
 >  	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
 > @@ -1901,14 +1904,35 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
->  
+>
 >  static void __init acpi_table_parse_srat_its(void)
 >  {
 > +	int count;
@@ -153,7 +155,7 @@ Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 >  static int __init acpi_get_its_numa_node(u32 its_id) { return NUMA_NO_NODE; }
 > +static void __init acpi_its_srat_maps_free(void) { }
 >  #endif
->  
+>
 >  static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
 > @@ -1955,6 +1979,7 @@ static void __init its_acpi_probe(void)
 >  	acpi_table_parse_srat_its();
@@ -163,6 +165,6 @@ Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 >  }
 >  #else
 >  static void __init its_acpi_probe(void) { }
-> -- 
-> 1.7.12.4
-> 
+>
+
+
