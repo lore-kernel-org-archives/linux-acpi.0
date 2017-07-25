@@ -1,64 +1,56 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / watchdog: Fix init failure with overlapping
- register regions
-Date: Tue, 25 Jul 2017 12:37:31 +0300
-Message-ID: <20170725093731.GE2369@lahna.fi.intel.com>
-References: <20170715214818.24979-1-ryan5544@gmail.com>
- <2680739.BCCY7oeAKy@aspire.rjw.lan>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v4 1/3] mfd: Add new mfd device TPS68470
+Date: Tue, 25 Jul 2017 13:29:15 +0300
+Message-ID: <CAHp75VeGqWNyDO644V+mje4sWsODDhyxRJ8cQ-HDV_e1hAUP3g@mail.gmail.com>
+References: <1500506426-3047-1-git-send-email-rajmohan.mani@intel.com>
+ <1500506426-3047-2-git-send-email-rajmohan.mani@intel.com>
+ <20170720090300.ayx5pz5l4yntefpt@dell> <6F87890CF0F5204F892DEA1EF0D77A59725DD60A@FMSMSX114.amr.corp.intel.com>
+ <20170725091012.3hpxihekht2j35xb@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:22761 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750781AbdGYJl5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Jul 2017 05:41:57 -0400
-Content-Disposition: inline
-In-Reply-To: <2680739.BCCY7oeAKy@aspire.rjw.lan>
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:38343 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750793AbdGYK3R (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jul 2017 06:29:17 -0400
+In-Reply-To: <20170725091012.3hpxihekht2j35xb@dell>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Ryan Kennedy <ryan5544@gmail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: "Mani, Rajmohan" <rajmohan.mani@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
 
-On Mon, Jul 24, 2017 at 10:37:17PM +0200, Rafael J. Wysocki wrote:
-> On Saturday, July 15, 2017 05:48:18 PM Ryan Kennedy wrote:
-> > Partially overlapping regions cause platform device creation
-> > to fail. The latter of two overlapping resources will fail to be
-> > reserved. Fix this by merging overlapping resource ranges while
-> > enumerating WDAT table entries.
-> > 
-> > Signed-off-by: Ryan Kennedy <ryan5544@gmail.com>
-> > ---
-> >  drivers/acpi/acpi_watchdog.c | 7 ++++++-
-> >  1 file changed, 6 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/acpi_watchdog.c b/drivers/acpi/acpi_watchdog.c
-> > index 8c4e0a1..bf22c29 100644
-> > --- a/drivers/acpi/acpi_watchdog.c
-> > +++ b/drivers/acpi/acpi_watchdog.c
-> > @@ -86,7 +86,12 @@ void __init acpi_watchdog_init(void)
-> >  
-> >  		found = false;
-> >  		resource_list_for_each_entry(rentry, &resource_list) {
-> > -			if (resource_contains(rentry->res, &res)) {
-> > +			if (rentry->res->flags == res.flags &&
-> > +			    resource_overlaps(rentry->res, &res)) {
-> > +				if (res.start < rentry->res->start)
-> > +					rentry->res->start = res.start;
-> > +				if (res.end > rentry->res->end)
-> > +					rentry->res->end = res.end;
-> >  				found = true;
-> >  				break;
-> >  			}
-> > 
-> 
-> Mika, can you have a look at this, please?
+On Tue, Jul 25, 2017 at 12:10 PM, Lee Jones <lee.jones@linaro.org> wrote:
+> On Fri, 21 Jul 2017, Mani, Rajmohan wrote:
+>> > On Wed, 19 Jul 2017, Rajmohan Mani wrote:
 
-I wonder why we need to do this?
+>> > > + /* Force software reset */
+>> > > + ret = regmap_write(regmap, TPS68470_REG_RESET,
+>> > TPS68470_REG_RESET_MASK);
+>> > > + if (ret < 0)
+>> >
+>> > Will 'if (!ret)' do?
+>> >
+>>
+>> We intend to check error conditions and bail out. So, if (ret < 0) works for this.
+>
+> Yes, 'if (!ret)' does that too.
 
-+                           if (res.start < rentry->res->start)
-+                                   rentry->res->start = res.start;
-+                           if (res.end > rentry->res->end)
-+                                   rentry->res->end = res.end;
+Did you mean
 
-IIRC we don't use rentry for anything else when we go out of the loop.
-Tuning those limits seems unnecessary.
+if (ret)
+ return ret;
+
+?
+
+I briefly checked few ->read() and ->write() implementations and
+didn't find any evidence of positive numbers that can be returned.
+Documentation (kernel doc) doesn't shed a light on that. So, to me it
+sounds unspecified.
+
+So, for now (until documentation will be fixed) I would rely on
+if (ret < 0)
+
+
+-- 
+With Best Regards,
+Andy Shevchenko
