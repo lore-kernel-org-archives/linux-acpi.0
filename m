@@ -1,170 +1,63 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v2] irqchip/gic-v3-its: Allow GIC ITS number more than
- MAX_NUMNODES
-Date: Tue, 25 Jul 2017 12:02:19 +0100
-Message-ID: <b5545a3e-74a9-0bff-afc7-309c653ca2b3@huawei.com>
-References: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
+From: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Subject: [PATCH v4 2/2] iommu/dma: Add HW MSI address regions reservation for IOMMU drivers
+Date: Tue, 25 Jul 2017 12:17:32 +0100
+Message-ID: <20170725111732.41792-3-shameerali.kolothum.thodi@huawei.com>
+References: <20170725111732.41792-1-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([45.249.212.187]:10262 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750839AbdGYLCq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jul 2017 07:02:46 -0400
-In-Reply-To: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
+Received: from szxga03-in.huawei.com ([45.249.212.189]:9413 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750839AbdGYLTs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jul 2017 07:19:48 -0400
+In-Reply-To: <20170725111732.41792-1-shameerali.kolothum.thodi@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, linux-arm-kernel@lists.infradead.org
+To: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, hanjun.guo@linaro.org
+Cc: gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com, Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 
-On 22/07/2017 04:54, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
->
-> When running 4.13-rc1 on top of D05, I got the boot log:
->
-> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
-> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
-> [    0.000000] SRAT: ITS affinity exceeding max count[4]
->
-> This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
->
-> So dynamically alloc the memory needed instead of using
-> its_srat_maps[MAX_NUMNODES], which count the number of
-> ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
-> then build the mapping of numa node to ITS ID. Of course,
-> its_srat_maps will be freed after ITS probing because
-> we don't need that after boot.
->
-> After doing this, I got what I wanted:
->
-> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
-> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
-> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
-> [    0.000000] SRAT: PXM 2 -> ITS 4 -> Node 2
-> [    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
-> [    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
-> [    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
->
-> Fixes: dbd2b8267233 ("irqchip/gic-v3-its: Add ACPI NUMA node mapping")
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->
-> v1->v2:
->   - Add NULL check in acpi_get_its_numa_node() for no ITS affinity case;
->   - Free the its_srat_maps after ITS probing.
->
->  drivers/irqchip/irq-gic-v3-its.c | 39 ++++++++++++++++++++++++++++++++-------
->  1 file changed, 32 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-> index 3ccdf76..1d692aa 100644
-> --- a/drivers/irqchip/irq-gic-v3-its.c
-> +++ b/drivers/irqchip/irq-gic-v3-its.c
-> @@ -1847,13 +1847,16 @@ struct its_srat_map {
->  	u32	its_id;
->  };
->
-> -static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata;
-> +static struct its_srat_map *its_srat_maps __initdata;
->  static int its_in_srat __initdata;
->
->  static int __init acpi_get_its_numa_node(u32 its_id)
->  {
->  	int i;
->
-> +	if (!its_srat_maps)
-> +		return NUMA_NO_NODE;
+Modified iommu_dma_get_resv_regions() to include HW MSI (ARM GICv3 ITS MSI)
+specific reservations if available.
 
-Question: Does !its_srat_maps always imply its_in_srat == 0, so we could 
-just fall through the for loop and return NUMA_NO_NODE without this check?
+Suggested-by: Robin Murphy <robin.murphy@arm.com>
+Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+---
+ drivers/iommu/dma-iommu.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-Or should we be safe/explicit/or falling through loops is a bad coding 
-style?
-
-Cheers,
-John
-
-> +
->  	for (i = 0; i < its_in_srat; i++) {
->  		if (its_id == its_srat_maps[i].its_id)
->  			return its_srat_maps[i].numa_node;
-> @@ -1861,6 +1864,12 @@ static int __init acpi_get_its_numa_node(u32 its_id)
->  	return NUMA_NO_NODE;
->  }
->
-> +static int __init gic_acpi_match_srat_its(struct acpi_subtable_header *header,
-> +					  const unsigned long end)
-> +{
-> +	return 0;
-> +}
-> +
->  static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
->  			 const unsigned long end)
->  {
-> @@ -1877,12 +1886,6 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
->  		return -EINVAL;
->  	}
->
-> -	if (its_in_srat >= MAX_NUMNODES) {
-> -		pr_err("SRAT: ITS affinity exceeding max count[%d]\n",
-> -				MAX_NUMNODES);
-> -		return -EINVAL;
-> -	}
-> -
->  	node = acpi_map_pxm_to_node(its_affinity->proximity_domain);
->
->  	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
-> @@ -1901,14 +1904,35 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
->
->  static void __init acpi_table_parse_srat_its(void)
->  {
-> +	int count;
-> +
-> +	count = acpi_table_parse_entries(ACPI_SIG_SRAT,
-> +			sizeof(struct acpi_table_srat),
-> +			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
-> +			gic_acpi_match_srat_its, 0);
-> +	if (count <= 0)
-> +		return;
-> +
-> +	its_srat_maps = kmalloc(count * sizeof(struct its_srat_map),
-> +				GFP_KERNEL);
-> +	if (!its_srat_maps)
-> +		return;
-> +
->  	acpi_table_parse_entries(ACPI_SIG_SRAT,
->  			sizeof(struct acpi_table_srat),
->  			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
->  			gic_acpi_parse_srat_its, 0);
->  }
-> +
-> +/* free the its_srat_maps after ITS probing */
-> +static void __init acpi_its_srat_maps_free(void)
-> +{
-> +	kfree(its_srat_maps);
-> +}
->  #else
->  static void __init acpi_table_parse_srat_its(void)	{ }
->  static int __init acpi_get_its_numa_node(u32 its_id) { return NUMA_NO_NODE; }
-> +static void __init acpi_its_srat_maps_free(void) { }
->  #endif
->
->  static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
-> @@ -1955,6 +1979,7 @@ static void __init its_acpi_probe(void)
->  	acpi_table_parse_srat_its();
->  	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
->  			      gic_acpi_parse_madt_its, 0);
-> +	acpi_its_srat_maps_free();
->  }
->  #else
->  static void __init its_acpi_probe(void) { }
->
+diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+index 9d1cebe..3b6fde7 100644
+--- a/drivers/iommu/dma-iommu.c
++++ b/drivers/iommu/dma-iommu.c
+@@ -19,6 +19,7 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include <linux/acpi_iort.h>
+ #include <linux/device.h>
+ #include <linux/dma-iommu.h>
+ #include <linux/gfp.h>
+@@ -167,13 +168,18 @@ void iommu_put_dma_cookie(struct iommu_domain *domain)
+  *
+  * IOMMU drivers can use this to implement their .get_resv_regions callback
+  * for general non-IOMMU-specific reservations. Currently, this covers host
+- * bridge windows for PCI devices.
++ * bridge windows for PCI devices and HW MSI(ARM GICv3 ITS MSI) region
++ * reservations if avialable.
+  */
+ void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list)
+ {
+ 	struct pci_host_bridge *bridge;
+ 	struct resource_entry *window;
+ 
++	if (!is_of_node(dev->iommu_fwspec->iommu_fwnode) &&
++		iort_iommu_its_get_resv_regions(dev, list) < 0)
++		return;
++
+ 	if (!dev_is_pci(dev))
+ 		return;
+ 
+-- 
+1.9.1
 
 
