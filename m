@@ -1,35 +1,157 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v1 6/6] device property: Switch to use new generic UUID API
-Date: Tue, 25 Jul 2017 17:12:35 +0300
-Message-ID: <20170725141235.GY2369@lahna.fi.intel.com>
-References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
- <20170719182857.73693-7-andriy.shevchenko@linux.intel.com>
+From: Robert Richter <robert.richter@cavium.com>
+Subject: Re: [PATCH v4] acpi/iort: numa: Add numa node mapping for smmuv3
+ devices
+Date: Tue, 25 Jul 2017 17:13:05 +0200
+Message-ID: <20170725151305.GU17961@rric.localdomain>
+References: <20170725050237.11033-1-ganapatrao.kulkarni@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-dm3nam03on0054.outbound.protection.outlook.com ([104.47.41.54]:14350
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752089AbdGYPNS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 25 Jul 2017 11:13:18 -0400
 Content-Disposition: inline
-In-Reply-To: <20170719182857.73693-7-andriy.shevchenko@linux.intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: devel@driverdev.osuosl.org, linux-efi@vger.kernel.org, linux-watchdog@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, sparmaintainer@unisys.com, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lukas Wunner <lukas@wunner.de>, devel@linuxdriverproject.org, Christoph Hellwig <hch@lst.de>
+In-Reply-To: <20170725050237.11033-1-ganapatrao.kulkarni@cavium.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Will.Deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, robin.murphy@arm.com, lv.zheng@intel.com, joro@8bytes.org, rjw@rjwysocki.net, lenb@kernel.org, jnair@caviumnetworks.com, gklkml16@gmail.com
 
-On Wed, Jul 19, 2017 at 09:28:57PM +0300, Andy Shevchenko wrote:
-> There are new types and helpers that are supposed to be used in new code.
+On 25.07.17 10:32:37, Ganapatrao Kulkarni wrote:
+> ARM IORT specification(rev. C) has added  provision to define proximity
+> domain in SMMUv3 IORT table. Adding required code to parse Proximity
+> domain and set numa_node of smmv3 platform devices.
 > 
-> As a preparation to get rid of legacy types and API functions do
-> the conversion here.
+> Add code to parse proximity domain in SMMUv3 IORT table to
+> set numa node mapping for smmuv3 devices.
 > 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+> ---
+> 
+> This patch has dependency on header file patch [1], which is
+> already merged to linux-pm.
+> 
+> [1] https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/?h=linux-next&id=c944230064eb65e4fa018d86779b4fd200b1d7e7
+> 
+> v4:
+>   - Fix compilation issue in !CONFIG_NUMA
+> 
+> v3:
+>   - Addressed Lorenzo Pieralisi comment.
+> 
+> v2:
+>   - Changed as per Lorenzo Pieralisi and Hanjun Guo suggestions.
+> 
+> v1:
+>   - Initial patch
+> 
+>  drivers/acpi/arm64/iort.c | 33 +++++++++++++++++++++++++++++++--
+>  1 file changed, 31 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index a3215ee..c5c82c3 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -908,6 +908,28 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+>  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
+>  }
+>  
+> +#if defined(CONFIG_ACPI_NUMA) && (ACPI_CA_VERSION >= 0x20170629)
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+This acpica version check was very unhandy for backports when we did
+this last time. If we backport just c944230064 and this single patch
+it wont work as the version check prevents the code from being
+enabled. Isn't there another way to handle cross tree dependencies of
+pull requests? E.g. we could base this patch on acpica (ab539eaa50)
+and remove the check.
+
+Alternatively we could do in this case:
+
+#if defined(CONFIG_ACPI_NUMA) && defined(ACPI_IORT_SMMU_V3_PXM_VALID)
+
+> +/*
+> + * set numa proximity domain for smmuv3 device
+> + */
+> +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
+> +		struct device *dev)
+> +{
+> +	struct acpi_iort_smmu_v3 *smmu;
+> +
+> +	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+> +	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
+> +		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
+> +		pr_info("SMMUV3[%llx] Mapped to Proximity domain %d\n",
+
+Better use dev_info() here.
+
+> +			smmu->base_address,
+> +			smmu->pxm);
+> +	}
+> +}
+> +#else
+> +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
+> +		struct device *dev) { }
+
+Just do:
+
+#define arm_smmu_v3_set_proximity NULL
+
+> +#endif
+> +
+>  static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
+>  {
+>  	struct acpi_iort_smmu *smmu;
+> @@ -977,20 +999,24 @@ struct iort_iommu_config {
+>  	int (*iommu_count_resources)(struct acpi_iort_node *node);
+>  	void (*iommu_init_resources)(struct resource *res,
+>  				     struct acpi_iort_node *node);
+> +	void (*iommu_set_proximity)(struct acpi_iort_node *node,
+> +				     struct device *dev);
+
+Wrt pseudo-OO programming this is more a method for struct dev than
+node, so swap args: iommu_set_proximity(dev, node)
+
+>  };
+>  
+>  static const struct iort_iommu_config iort_arm_smmu_v3_cfg __initconst = {
+>  	.name = "arm-smmu-v3",
+>  	.iommu_is_coherent = arm_smmu_v3_is_coherent,
+>  	.iommu_count_resources = arm_smmu_v3_count_resources,
+> -	.iommu_init_resources = arm_smmu_v3_init_resources
+> +	.iommu_init_resources = arm_smmu_v3_init_resources,
+> +	.iommu_set_proximity = arm_smmu_v3_set_proximity
+
+Add comma at the end here.
+
+>  };
+>  
+>  static const struct iort_iommu_config iort_arm_smmu_cfg __initconst = {
+>  	.name = "arm-smmu",
+>  	.iommu_is_coherent = arm_smmu_is_coherent,
+>  	.iommu_count_resources = arm_smmu_count_resources,
+> -	.iommu_init_resources = arm_smmu_init_resources
+> +	.iommu_init_resources = arm_smmu_init_resources,
+> +	.iommu_set_proximity = NULL
+
+No need for null assignment.
+
+-Robert
+
+>  };
+>  
+>  static __init
+> @@ -1028,6 +1054,9 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+>  	if (!pdev)
+>  		return -ENOMEM;
+>  
+> +	if (ops->iommu_set_proximity)
+> +		ops->iommu_set_proximity(node, &pdev->dev);
+> +
+>  	count = ops->iommu_count_resources(node);
+>  
+>  	r = kcalloc(count, sizeof(*r), GFP_KERNEL);
+> -- 
+> 2.9.4
+> 
