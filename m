@@ -1,80 +1,43 @@
-From: Liwei Song <liwei.song@windriver.com>
-Subject: Re: [PATCH] ACPI, APEI: Fixup incorrect 16-bit access width firmware
- bug
-Date: Wed, 26 Jul 2017 14:16:02 +0800
-Message-ID: <597833A2.8090709@windriver.com>
-References: <1500630080-18234-1-git-send-email-liwei.song@windriver.com> <CAHp75Vf5wpM4BW3umG5c1gHgmBEgD_+paYyvo6NTLGeEr9JB_g@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] device property: export irqchip_fwnode_ops
+Date: Wed, 26 Jul 2017 09:01:32 +0200
+Message-ID: <CAK8P3a2Bh_4o9o-jm5ad=T4cFMkJyyQgzP=0ZH6RQEgdnwH5yA@mail.gmail.com>
+References: <20170725153243.101147-1-arnd@arndb.de> <2233361.D5jIfdWk16@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail1.windriver.com ([147.11.146.13]:48483 "EHLO
-        mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750710AbdGZGP5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jul 2017 02:15:57 -0400
-In-Reply-To: <CAHp75Vf5wpM4BW3umG5c1gHgmBEgD_+paYyvo6NTLGeEr9JB_g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2233361.D5jIfdWk16@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Tomasz Nowicki <tomasz.nowicki@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, Eric Auger <eric.auger@redhat.com>, Sebastian Frias <sf84@laposte.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-
-
-On 07/21/2017 05:56 PM, Andy Shevchenko wrote:
-> On Fri, Jul 21, 2017 at 12:41 PM, Song liwei <liwei.song@windriver.com> wrote:
-> 
->> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0xb2/16/0/1/1]
+On Wed, Jul 26, 2017 at 2:13 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, July 25, 2017 05:32:31 PM Arnd Bergmann wrote:
+>> The newly added irqchip_fwnode_ops structure is not exported, which can
+>> lead to link errors:
 >>
->> This is due to an 8-bit access width is specified for a 16-bit register,
->> Do bit_width check just like what the original commit have done.
-> 
->>         else if (bit_width == 64 && bit_offset == 0 && (*paddr & 0x07) == 0 &&
->>             *access_bit_width < 64)
->>                 *access_bit_width = 64;
->> +       else if (bit_width == 16 && bit_offset == 0 && (*paddr & 0x01) == 0 &&
->> +           *access_bit_width < 16)
->> +               *access_bit_width = 16;
-> 
-> Wouldn't be better to rearrange that it will go in a sequence
-> (16,32,64 or 64,32,16) ?
-> 
-> or move bit_offset == 0 into external condion
-> 
->     /* Fixup common BIOS bug */
->     if (bit_offset == 0) {
->       if (bit_width == 16 && (*paddr & 0x01) == 0 && *access_bit_width < 16)
->                *access_bit_width = 16;
->       else if (bit_width == 32 && (*paddr & 0x03) == 0 &&
-> *access_bit_width < 32)
->                *access_bit_width = 32;
->       else if (bit_width == 64 && (*paddr & 0x07) == 0 &&
-> *access_bit_width < 64)
->                *access_bit_width = 64;
->     }
-> 
-> 
-> It might be (I'm not sure it will make it better, just a side note)
-> considered to convert each internal conditional to
-> 
-> ...if (bit_width == XX && (*paddr & YY) == 0)
->                *access_bit_width = max(*access_bit_width, bit_width);
+>> ERROR: "irqchip_fwnode_ops" [drivers/gpio/gpio-xgene-sb.ko] undefined!
+>>
+>> I checked that all other such symbols that were introduced are
+>> exported if they need to be, this is the only missing one.
+>>
+>> Fixes: db3e50f3234b ("device property: Get rid of struct fwnode_handle type field")
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>
+> Thanks for the fix.
+>
+> It is linux-next only at this point, isn't it?
 
-Hi Andy,
+Correct, this is how I decided to send it to you rather than the
+irqchip maintainers:
 
-Thanks for your suggestion, what about the condition like the following?
-The main bug in bios is bit_width is not comfortable with access_bit_width
-So check it first.
+$ git log --oneline --ancestry-path --merges
+db3e50f3234b..next/master | tail -n 5
+cd8d05edc1ca Merge remote-tracking branch 'idle/next'
+db7be21c3bad Merge remote-tracking branch 'pm/linux-next'
+e2e9e06e4bb2 Merge branch 'acpi-numa' into linux-next
+ed1d633e4584 Merge branches 'pm-tools' and 'pm-sleep' into linux-next
+796cbe7125c1 Merge branch 'device-properties' into linux-next
 
-if (*access_bit_width < bit_width && bit_offset == 0) {
-	if ((bit_width == 16 && (*paddr & 0x01) == 0) ||
-	    (bit_width == 32 && (*paddr & 0x03) == 0) ||
-	    (bit_width == 64 && (*paddr & 0x07) == 0))
-		*access_bit_width = bit_width;
-}
-
-
-Thanks,
-Liwei.
-
-
-> 
+      Arnd
