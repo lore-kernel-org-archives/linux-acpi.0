@@ -1,88 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/4] ACPI: Make acpi_dev_get_resources() method agnostic
-Date: Wed, 26 Jul 2017 02:23:10 +0200
-Message-ID: <3012251.02VKL2APyL@aspire.rjw.lan>
-References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com> <24234737.CuhWYzNn5W@aspire.rjw.lan> <20170725091538.GB17133@red-moon>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v1 6/6] device property: Switch to use new generic UUID API
+Date: Wed, 26 Jul 2017 03:35:01 +0300
+Message-ID: <CAHp75Vd6KenS3vQBgTJL=iE790Rrtzj11gvPK=KLE98bjcPm6w@mail.gmail.com>
+References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
+ <20170719182857.73693-7-andriy.shevchenko@linux.intel.com>
+ <20170725141235.GY2369@lahna.fi.intel.com> <2908341.aERReitNcd@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49434 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751080AbdGZAbJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Jul 2017 20:31:09 -0400
-In-Reply-To: <20170725091538.GB17133@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <2908341.aERReitNcd@aspire.rjw.lan>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: devel@driverdev.osuosl.org, linux-efi <linux-efi@vger.kernel.org>, linux-watchdog@vger.kernel.org, sparmaintainer@unisys.com, "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>, devel@linuxdriverproject.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
 
-On Tuesday, July 25, 2017 10:15:38 AM Lorenzo Pieralisi wrote:
-> On Sat, Jul 22, 2017 at 12:05:39AM +0200, Rafael J. Wysocki wrote:
-> > On Thursday, July 20, 2017 03:45:14 PM Lorenzo Pieralisi wrote:
-> > > The function acpi_dev_get_resources() is completely generic and
-> > > can be used to parse resource objects that are not necessarily
-> > > coming from the _CRS method but also from other objects eg _DMA
-> > > that have the same _CRS resource format.
-> > > 
-> > > Create an acpi_dev_get_resources() helper, internal to the ACPI
-> > > resources parsing compilation unit, acpi_dev_get_resources_method(),
-> > > that takes a char* parameter to detect which ACPI method should be
-> > > called to retrieve the resources list and make acpi_dev_get_resources()
-> > > call it with a method name _CRS leaving the API behaviour unchanged.
-> > > 
-> > > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > > ---
-> > >  drivers/acpi/resource.c | 54 +++++++++++++++++++++++++++++--------------------
-> > >  1 file changed, 32 insertions(+), 22 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> > > index cd4c427..2b20a09 100644
-> > > --- a/drivers/acpi/resource.c
-> > > +++ b/drivers/acpi/resource.c
-> > > @@ -573,6 +573,36 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
-> > >  	return AE_OK;
-> > >  }
-> > >  
-> > > +static
-> > > +int acpi_dev_get_resources_method(struct acpi_device *adev,
-> > 
-> > Do not break lines like this, please.
-> > 
-> > It should be
-> > 
-> > static int acpi_dev_get...
-> > 
-> > Also I would call it differently, maybe simply __acpi_dev_get_resources()?
-> > 
-> > > +				  struct list_head *list,
-> > > +				  int (*preproc)(struct acpi_resource *, void *),
-> > > +				  void *preproc_data, char *method)
-> > 
-> > const char *method ?
-> 
-> drivers/acpi/resource.c: In function '__acpi_dev_get_resources':
-> drivers/acpi/resource.c:587:37: warning: passing argument 2 of
-> 'acpi_has_method' discards 'const' qualifier from pointer target type
-> [-Wdiscarded-qualifiers]
->   if (!acpi_has_method(adev->handle, method))
->                                        ^~~~~~
-> In file included from ./include/linux/acpi.h:44:0,
->                  from drivers/acpi/resource.c:21:
-> 		 ./include/acpi/acpi_bus.h:55:6: note: expected 'char *'
-> 		 but argument is of type 'const char *'
-> 		  bool acpi_has_method(acpi_handle handle, char *name);
-> 
-> Same problem with acpi_walk_resources().
-> 
-> So either I fiddle (eg cast the const away) with the method string 
-> in __acpi_dev_get_resources() or I can add an int/bool to detect
-> which method to use ( _CRS or _DMA) instead of passing a const char *.
+On Wed, Jul 26, 2017 at 3:21 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, July 25, 2017 05:12:35 PM Mika Westerberg wrote:
+>> On Wed, Jul 19, 2017 at 09:28:57PM +0300, Andy Shevchenko wrote:
+>> > There are new types and helpers that are supposed to be used in new code.
+>> >
+>> > As a preparation to get rid of legacy types and API functions do
+>> > the conversion here.
+>> >
+>> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> > Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+>>
+>> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>
+> OK
+>
+> Andy, do you want me to apply this?
 
-No, that'd be overkill.  Let's keep the (char *) in there.
+If you would like to.
 
-Thanks,
-Rafael
+The patch is now pretty independent since necessary stuff made v4.13-rc1.
 
+-- 
+With Best Regards,
+Andy Shevchenko
