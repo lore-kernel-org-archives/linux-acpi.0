@@ -1,48 +1,80 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1 6/6] device property: Switch to use new generic UUID API
-Date: Wed, 26 Jul 2017 02:27:44 +0200
-Message-ID: <6349641.0fe8FCM51k@aspire.rjw.lan>
-References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
- <2908341.aERReitNcd@aspire.rjw.lan>
- <CAHp75Vd6KenS3vQBgTJL=iE790Rrtzj11gvPK=KLE98bjcPm6w@mail.gmail.com>
+From: Liwei Song <liwei.song@windriver.com>
+Subject: Re: [PATCH] ACPI, APEI: Fixup incorrect 16-bit access width firmware
+ bug
+Date: Wed, 26 Jul 2017 14:16:02 +0800
+Message-ID: <597833A2.8090709@windriver.com>
+References: <1500630080-18234-1-git-send-email-liwei.song@windriver.com> <CAHp75Vf5wpM4BW3umG5c1gHgmBEgD_+paYyvo6NTLGeEr9JB_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <CAHp75Vd6KenS3vQBgTJL=iE790Rrtzj11gvPK=KLE98bjcPm6w@mail.gmail.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: devel@driverdev.osuosl.org, linux-efi <linux-efi@vger.kernel.org>, linux-watchdog@vger.kernel.org, sparmaintainer@unisys.com, "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>, devel@linuxdriverproject.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Christoph Hellwig <hch@lst.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail1.windriver.com ([147.11.146.13]:48483 "EHLO
+        mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750710AbdGZGP5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jul 2017 02:15:57 -0400
+In-Reply-To: <CAHp75Vf5wpM4BW3umG5c1gHgmBEgD_+paYyvo6NTLGeEr9JB_g@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Wednesday, July 26, 2017 03:35:01 AM Andy Shevchenko wrote:
-> On Wed, Jul 26, 2017 at 3:21 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Tuesday, July 25, 2017 05:12:35 PM Mika Westerberg wrote:
-> >> On Wed, Jul 19, 2017 at 09:28:57PM +0300, Andy Shevchenko wrote:
-> >> > There are new types and helpers that are supposed to be used in new code.
-> >> >
-> >> > As a preparation to get rid of legacy types and API functions do
-> >> > the conversion here.
-> >> >
-> >> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >> > Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-> >>
-> >> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> >
-> > OK
-> >
-> > Andy, do you want me to apply this?
-> 
-> If you would like to.
-> 
-> The patch is now pretty independent since necessary stuff made v4.13-rc1.
 
-OK
+
+On 07/21/2017 05:56 PM, Andy Shevchenko wrote:
+> On Fri, Jul 21, 2017 at 12:41 PM, Song liwei <liwei.song@windriver.com> wrote:
+> 
+>> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0xb2/16/0/1/1]
+>>
+>> This is due to an 8-bit access width is specified for a 16-bit register,
+>> Do bit_width check just like what the original commit have done.
+> 
+>>         else if (bit_width == 64 && bit_offset == 0 && (*paddr & 0x07) == 0 &&
+>>             *access_bit_width < 64)
+>>                 *access_bit_width = 64;
+>> +       else if (bit_width == 16 && bit_offset == 0 && (*paddr & 0x01) == 0 &&
+>> +           *access_bit_width < 16)
+>> +               *access_bit_width = 16;
+> 
+> Wouldn't be better to rearrange that it will go in a sequence
+> (16,32,64 or 64,32,16) ?
+> 
+> or move bit_offset == 0 into external condion
+> 
+>     /* Fixup common BIOS bug */
+>     if (bit_offset == 0) {
+>       if (bit_width == 16 && (*paddr & 0x01) == 0 && *access_bit_width < 16)
+>                *access_bit_width = 16;
+>       else if (bit_width == 32 && (*paddr & 0x03) == 0 &&
+> *access_bit_width < 32)
+>                *access_bit_width = 32;
+>       else if (bit_width == 64 && (*paddr & 0x07) == 0 &&
+> *access_bit_width < 64)
+>                *access_bit_width = 64;
+>     }
+> 
+> 
+> It might be (I'm not sure it will make it better, just a side note)
+> considered to convert each internal conditional to
+> 
+> ...if (bit_width == XX && (*paddr & YY) == 0)
+>                *access_bit_width = max(*access_bit_width, bit_width);
+
+Hi Andy,
+
+Thanks for your suggestion, what about the condition like the following?
+The main bug in bios is bit_width is not comfortable with access_bit_width
+So check it first.
+
+if (*access_bit_width < bit_width && bit_offset == 0) {
+	if ((bit_width == 16 && (*paddr & 0x01) == 0) ||
+	    (bit_width == 32 && (*paddr & 0x03) == 0) ||
+	    (bit_width == 64 && (*paddr & 0x07) == 0))
+		*access_bit_width = bit_width;
+}
+
+
+Thanks,
+Liwei.
+
+
+> 
