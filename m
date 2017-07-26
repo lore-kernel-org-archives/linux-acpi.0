@@ -1,20 +1,185 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v1 1/6] efi: Switch to use new generic UUID API
-Date: Wed, 26 Jul 2017 09:52:12 +0200
-Message-ID: <20170726075212.GB10959@lst.de>
-References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com> <20170719182857.73693-2-andriy.shevchenko@linux.intel.com> <CAKv+Gu8Et3smOv9Of47q6VGa9yn9u+vuhS_1B5yg_QULsS4Obg@mail.gmail.com> <1500979206.29303.228.camel@linux.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2] irqchip/gic-v3-its: Allow GIC ITS number more than
+ MAX_NUMNODES
+Date: Wed, 26 Jul 2017 15:52:30 +0800
+Message-ID: <f57a04ad-b686-9872-8b6a-bbacea29b3b0@linaro.org>
+References: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
+ <91588872-441b-88c0-07e3-452c2998d173@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1500979206.29303.228.camel-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org, sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, "<linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f50.google.com ([74.125.83.50]:38544 "EHLO
+        mail-pg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751524AbdGZHwi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jul 2017 03:52:38 -0400
+Received: by mail-pg0-f50.google.com with SMTP id k190so15399973pgk.5
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Jul 2017 00:52:38 -0700 (PDT)
+In-Reply-To: <91588872-441b-88c0-07e3-452c2998d173@arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <guohanjun@huawei.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-On Tue, Jul 25, 2017 at 01:40:06PM +0300, Andy Shevchenko wrote:
-> Christoph, can we apply this one at least to move things forward?
+On 2017/7/25 18:30, Marc Zyngier wrote:
+> On 22/07/17 04:54, Hanjun Guo wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>
+>> When running 4.13-rc1 on top of D05, I got the boot log:
+>>
+>> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+>> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+>> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+>> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+>> [    0.000000] SRAT: ITS affinity exceeding max count[4]
+>>
+>> This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
+>>
+>> So dynamically alloc the memory needed instead of using
+>> its_srat_maps[MAX_NUMNODES], which count the number of
+>> ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
+>> then build the mapping of numa node to ITS ID. Of course,
+>> its_srat_maps will be freed after ITS probing because
+>> we don't need that after boot.
+>>
+>> After doing this, I got what I wanted:
+>>
+>> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+>> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+>> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+>> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+>> [    0.000000] SRAT: PXM 2 -> ITS 4 -> Node 2
+>> [    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
+>> [    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
+>> [    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
+>>
+>> Fixes: dbd2b8267233 ("irqchip/gic-v3-its: Add ACPI NUMA node mapping")
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>> ---
+>>
+>> v1->v2:
+>>    - Add NULL check in acpi_get_its_numa_node() for no ITS affinity case;
+>>    - Free the its_srat_maps after ITS probing.
+>>
+>>   drivers/irqchip/irq-gic-v3-its.c | 39 ++++++++++++++++++++++++++++++++-------
+>>   1 file changed, 32 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+>> index 3ccdf76..1d692aa 100644
+>> --- a/drivers/irqchip/irq-gic-v3-its.c
+>> +++ b/drivers/irqchip/irq-gic-v3-its.c
+>> @@ -1847,13 +1847,16 @@ struct its_srat_map {
+>>   	u32	its_id;
+>>   };
+>>   
+>> -static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata;
+>> +static struct its_srat_map *its_srat_maps __initdata;
+>>   static int its_in_srat __initdata;
+>>   
+>>   static int __init acpi_get_its_numa_node(u32 its_id)
+>>   {
+>>   	int i;
+>>   
+>> +	if (!its_srat_maps)
+>> +		return NUMA_NO_NODE;
+>> +
+>>   	for (i = 0; i < its_in_srat; i++) {
+>>   		if (its_id == its_srat_maps[i].its_id)
+>>   			return its_srat_maps[i].numa_node;
+>> @@ -1861,6 +1864,12 @@ static int __init acpi_get_its_numa_node(u32 its_id)
+>>   	return NUMA_NO_NODE;
+>>   }
+>>   
+>> +static int __init gic_acpi_match_srat_its(struct acpi_subtable_header *header,
+>> +					  const unsigned long end)
+>> +{
+>> +	return 0;
+>> +}
+>> +
+>>   static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+>>   			 const unsigned long end)
+>>   {
+>> @@ -1877,12 +1886,6 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+>>   		return -EINVAL;
+>>   	}
+>>   
+>> -	if (its_in_srat >= MAX_NUMNODES) {
+>> -		pr_err("SRAT: ITS affinity exceeding max count[%d]\n",
+>> -				MAX_NUMNODES);
+>> -		return -EINVAL;
+>> -	}
+>> -
+> 
+> So you're getting rid of that message when overflowing the array...
 
-Id be happy to pick this up for 4.14.  Does everyone involved agree
-that the uuid tree is the right one?
+This overflowing will not happen, because I scan the SRAT
+to count the entry(ies) of ITS affinity first to alloc the
+array, and then parse the same SRAT again to setup the mapping
+of NUMA node to ITS, so is it fine for us to just remove the
+check here?
+
+> 
+>>   	node = acpi_map_pxm_to_node(its_affinity->proximity_domain);
+>>   
+>>   	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
+>> @@ -1901,14 +1904,35 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
+>>   
+>>   static void __init acpi_table_parse_srat_its(void)
+>>   {
+>> +	int count;
+>> +
+>> +	count = acpi_table_parse_entries(ACPI_SIG_SRAT,
+>> +			sizeof(struct acpi_table_srat),
+>> +			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
+>> +			gic_acpi_match_srat_its, 0);
+>> +	if (count <= 0)
+>> +		return;
+>> +
+>> +	its_srat_maps = kmalloc(count * sizeof(struct its_srat_map),
+>> +				GFP_KERNEL);
+>> +	if (!its_srat_maps)
+>> +		return;
+> 
+> and here silently returning when failing to allocate the memory. I think
+> it'd be worth having a bit of a warning.
+
+Will do.
+
+> 
+>> +
+>>   	acpi_table_parse_entries(ACPI_SIG_SRAT,
+>>   			sizeof(struct acpi_table_srat),
+>>   			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
+>>   			gic_acpi_parse_srat_its, 0);
+>>   }
+>> +
+>> +/* free the its_srat_maps after ITS probing */
+>> +static void __init acpi_its_srat_maps_free(void)
+>> +{
+>> +	kfree(its_srat_maps);
+>> +}
+>>   #else
+>>   static void __init acpi_table_parse_srat_its(void)	{ }
+>>   static int __init acpi_get_its_numa_node(u32 its_id) { return NUMA_NO_NODE; }
+>> +static void __init acpi_its_srat_maps_free(void) { }
+>>   #endif
+>>   
+>>   static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+>> @@ -1955,6 +1979,7 @@ static void __init its_acpi_probe(void)
+>>   	acpi_table_parse_srat_its();
+>>   	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
+>>   			      gic_acpi_parse_madt_its, 0);
+>> +	acpi_its_srat_maps_free();
+>>   }
+>>   #else
+>>   static void __init its_acpi_probe(void) { }
+>>
+> 
+> Otherwise looks good.
+
+Thanks
+Hanjun
