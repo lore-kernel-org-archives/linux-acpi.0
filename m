@@ -1,80 +1,79 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 3/3] drm/etnaviv: add thermal dependency
-Date: Wed, 26 Jul 2017 15:53:12 +0200
-Message-ID: <20170726135312.2214309-4-arnd@arndb.de>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [Intel-gfx] [PATCH 0/3] Kconfig dependencies: acpi-video,
+ backlight and thermal
+Date: Wed, 26 Jul 2017 16:40:41 +0200
+Message-ID: <20170726144041.plcrr6bg2hkh4q52@phenom.ffwll.local>
 References: <20170726135312.2214309-1-arnd@arndb.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
 In-Reply-To: <20170726135312.2214309-1-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dri-devel@lists.freedesktop.org
-Cc: Arnd Bergmann <arnd@arndb.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lucas Stach <l.stach@pengutronix.de>, Russell King <linux+etnaviv@armlinux.org.uk>, Christian Gmeiner <christian.gmeiner@gmail.com>, David Airlie <airlied@linux.ie>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, Daniel Vetter <daniel.vetter@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Skeggs <bskeggs@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Jens Frederich <jfrederich@gmail.com>, Daniel Drake <dsd@laptop.org>, Jon Nettleton <jon.nettleton@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, etnaviv@lists.freedesktop.o
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: devel@driverdev.osuosl.org, Daniel Drake <dsd@laptop.org>, Jens Frederich <jfrederich@gmail.com>, nouveau@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, etnaviv@lists.freedesktop.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ben Skeggs <bskeggs@redhat.com>, Russell King <linux+etnaviv@armlinux.org.uk>, Daniel Vetter <daniel.vetter@intel.com>, Andy Shevchenko <andy@infradead.org>, intel-gfx@lists.freedesktop.org, Darren Hart <dvhart@infradead.org>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-When CONFIG_THERMAL is enabled as a loadable module, and etnaviv is
-built-in, we get a link error:
-
-drivers/gpu/drm/etnaviv/etnaviv_gpu.o: In function `etnaviv_gpu_bind':
-etnaviv_gpu.c:(.text.etnaviv_gpu_bind+0x34): undefined reference to `thermal_of_cooling_device_register'
-etnaviv_gpu.c:(.text.etnaviv_gpu_bind+0xe0): undefined reference to `thermal_cooling_device_unregister'
-drivers/gpu/drm/etnaviv/etnaviv_gpu.o: In function `etnaviv_gpu_unbind':
-etnaviv_gpu.c:(.text.etnaviv_gpu_unbind+0xf0): undefined reference to `thermal_cooling_device_unregister'
-
-This adds a Kconfig dependency to prevent etnaviv from being built-in
-with CONFIG_THERMAL=m, while still allowing the valid configurations.
-Unfortunately, simply adding the dependency here breaks Kconfig through
-a dependency loop involving lots of symbols all the way until ACPI_VIDEO,
-which is the only video driver that explicitly selects 'THERMAL'. Turning
-this into a 'depends on' addresses the problem.
-For completeness, I'm also removing the redundant 'select THERMAL'
-from INTEL_MENLOW, so no other driver uses that statement.
-
-Fixes: bcdfb5e56dc5 ("drm/etnaviv: add etnaviv cooling device")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-v2: spend more thought on ACPI_VIDEO dependencies, as we need another
-    patch before this.
----
- drivers/acpi/Kconfig            | 2 +-
- drivers/gpu/drm/etnaviv/Kconfig | 1 +
- drivers/platform/x86/Kconfig    | 1 -
- 3 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index a8f5a40e2914..1282b2936164 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -184,7 +184,7 @@ config ACPI_VIDEO
- 	tristate "Video"
- 	depends on X86
- 	depends on INPUT
--	select THERMAL
-+	depends on THERMAL
- 	select BACKLIGHT_CLASS_DEVICE
- 	select BACKLIGHT_LCD_SUPPORT
- 	default y
-diff --git a/drivers/gpu/drm/etnaviv/Kconfig b/drivers/gpu/drm/etnaviv/Kconfig
-index 71cee4e9fefb..1d6c744e7924 100644
---- a/drivers/gpu/drm/etnaviv/Kconfig
-+++ b/drivers/gpu/drm/etnaviv/Kconfig
-@@ -3,6 +3,7 @@ config DRM_ETNAVIV
- 	tristate "ETNAVIV (DRM support for Vivante GPU IP cores)"
- 	depends on DRM
- 	depends on ARCH_MXC || ARCH_DOVE || (ARM && COMPILE_TEST)
-+	depends on THERMAL || THERMAL=n
- 	depends on MMU
- 	select SHMEM
- 	select SYNC_FILE
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 2d9fb46a8d11..d9238e9ff54a 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -532,7 +532,6 @@ config SENSORS_HDAPS
- config INTEL_MENLOW
- 	tristate "Thermal Management driver for Intel menlow platform"
- 	depends on ACPI_THERMAL
--	select THERMAL
- 	---help---
- 	  ACPI thermal management enhancement driver on
- 	  Intel Menlow platform.
--- 
-2.9.0
+T24gV2VkLCBKdWwgMjYsIDIwMTcgYXQgMDM6NTM6MDlQTSArMDIwMCwgQXJuZCBCZXJnbWFubiB3
+cm90ZToKPiBIaSBldmVyeW9uZSwKPiAKPiBJdCB0b29rIG1lIGEgd2hpbGUgdG8gZmlndXJlIHRo
+aXMgb3V0IHByb3Blcmx5LCBhcyBJIGtlcHQgZ2V0dGluZwo+IGNpcmN1bGFyIG9yIG1pc3Npbmcg
+ZGVwZW5kZW5jaWVzIHdpdGggdmlkZW8gZHJpdmVycy4KPiAKPiBUaGlzIHNldCBvZiB0aHJlZSBw
+YXRjaGVzIHNob3VsZCBzaW1wbGlmeSB0aGUgc2l0dWF0aW9uIGEgYml0LAo+IG1vc3RseSBieSBj
+bGVhbmluZyB1cCB0aGUgZGVwZW5kZW5jaWVzIGFyb3VuZCBDT05GSUdfQUNQSV9WSURFTy4KPiBX
+aXRoIGFsbCB0aHJlZSBwYXRjaGVzIGFwcGxpZWQsIEkgbm8gbG9uZ2VyIHJ1biBpbnRvIHRob3Nl
+IHJlbGF0ZWQKPiB3YXJuaW5ncy4gSWYgZXZlcnlvbmUgYWdyZWVzIG9uIHRoZSBnZW5lcmFsIGRp
+cmVjdGlvbiwgSSBob3BlCj4gd2UgY2FuIG1lcmdlIGFsbCB0aHJlZSB0aHJvdWdoIHRoZSBEUk0g
+dHJlZS4KPiAKPiBJIG9yaWdpbmFsbHkgaGFkIGFub3RoZXIgbGFyZ2VyIHBhdGNoIGluIHRoZSBz
+ZXJpZXMgdG8gcmVwbGFjZSBhbGwKPiBvZiB0aGUgJ3NlbGVjdCBCQUNLTElHSFRfTENEX1NVUFBP
+UlQ7IHNlbGVjdCBCQUNLTElHSFRfQ0xBU1NfREVWSUNFJwo+IHN0YXRlbWVudHMgd2l0aCAnZGVw
+ZW5kcyBvbiBMQ0RfQ0xBU1NfREVWSUNFJywgdGhhdCB3b3VsZCBjbGVhbgo+IGl0IHVwIHNvbWUg
+bW9yZSwgYnV0IGl0IGlzIGFsc28gYSBtb3JlIGludmFzaXZlIGNoYW5nZSB0aGF0IHdlCj4gY2Fu
+IGRvIHNlcGFyYXRlbHkgYXQgc29tZSBwb2ludC4KCkxvb2tzIHJlYXNvbmFibGUsIGJ1dCBJIHRo
+aW5rIGl0J2QgYmUgZ29vZCB0byBnZXQgSmFuaSBOaWt1bGEncyBleHBsaWNpdAphY2sgb24gdGhp
+cywgc2luY2UgaGUgZHVnZyBhcm91bmQgYSBsb3QgaW4gdGhpcyBhcmVhLiBBbmQgaGUncyBvbiB2
+YWNhdGlvbgp0aGlzIHdlZWsuCi1EYW5pZWwKCj4gCj4gICAgICAgIEFybmQKPiAKPiBBcm5kIEJl
+cmdtYW5uICgzKToKPiAgIGJhY2tsaWdodDogYWx3YXlzIHNlbGVjdCBCQUNLTElHSFRfTENEX1NV
+UFBPUlQgZm9yCj4gICAgIEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0UKPiAgIEFDUEkvRFJNOiByZXdv
+cmsgQUNQSV9WSURFTyBLY29uZmlnIGRlcGVuZGVuY2llcwo+ICAgZHJtL2V0bmF2aXY6IGFkZCB0
+aGVybWFsIGRlcGVuZGVuY3kKPiAKPiAgZHJpdmVycy9hY3BpL0tjb25maWcgICAgICAgICAgICAg
+IHwgIDcgKysrKystLQo+ICBkcml2ZXJzL2dwdS9kcm0vZXRuYXZpdi9LY29uZmlnICAgfCAgMSAr
+Cj4gIGRyaXZlcnMvZ3B1L2RybS9nbWE1MDAvS2NvbmZpZyAgICB8ICA1ICstLS0tCj4gIGRyaXZl
+cnMvZ3B1L2RybS9pOTE1L0tjb25maWcgICAgICB8ICA3ICstLS0tLS0KPiAgZHJpdmVycy9ncHUv
+ZHJtL25vdXZlYXUvS2NvbmZpZyAgIHwgMTAgKystLS0tLS0tLQo+ICBkcml2ZXJzL3BsYXRmb3Jt
+L3g4Ni9LY29uZmlnICAgICAgfCAgOSArKysrLS0tLS0KPiAgZHJpdmVycy9zdGFnaW5nL29scGNf
+ZGNvbi9LY29uZmlnIHwgIDEgKwo+ICA3IGZpbGVzIGNoYW5nZWQsIDE1IGluc2VydGlvbnMoKyks
+IDI1IGRlbGV0aW9ucygtKQo+IAo+IFRvOiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+Cj4gQ2M6ICJSYWZhZWwgSi4gV3lzb2NraSIgPHJqd0Byand5c29ja2kubmV0Pgo+IENjOiBMZW4g
+QnJvd24gPGxlbmJAa2VybmVsLm9yZz4KPiBDYzogTHVjYXMgU3RhY2ggPGwuc3RhY2hAcGVuZ3V0
+cm9uaXguZGU+Cj4gQ2M6IFJ1c3NlbGwgS2luZyA8bGludXgrZXRuYXZpdkBhcm1saW51eC5vcmcu
+dWs+Cj4gQ2M6IENocmlzdGlhbiBHbWVpbmVyIDxjaHJpc3RpYW4uZ21laW5lckBnbWFpbC5jb20+
+Cj4gQ2M6IERhdmlkIEFpcmxpZSA8YWlybGllZEBsaW51eC5pZT4KPiBDYzogUGF0cmlrIEpha29i
+c3NvbiA8cGF0cmlrLnIuamFrb2Jzc29uQGdtYWlsLmNvbT4KPiBDYzogRGFuaWVsIFZldHRlciA8
+ZGFuaWVsLnZldHRlckBpbnRlbC5jb20+Cj4gQ2M6IEphbmkgTmlrdWxhIDxqYW5pLm5pa3VsYUBs
+aW51eC5pbnRlbC5jb20+Cj4gQ2M6IEJlbiBTa2VnZ3MgPGJza2VnZ3NAcmVkaGF0LmNvbT4KPiBD
+YzogRGFycmVuIEhhcnQgPGR2aGFydEBpbmZyYWRlYWQub3JnPgo+IENjOiBBbmR5IFNoZXZjaGVu
+a28gPGFuZHlAaW5mcmFkZWFkLm9yZz4KPiBDYzogSmVucyBGcmVkZXJpY2ggPGpmcmVkZXJpY2hA
+Z21haWwuY29tPgo+IENjOiBEYW5pZWwgRHJha2UgPGRzZEBsYXB0b3Aub3JnPgo+IENjOiBKb24g
+TmV0dGxldG9uIDxqb24ubmV0dGxldG9uQGdtYWlsLmNvbT4KPiBDYzogR3JlZyBLcm9haC1IYXJ0
+bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZz4KPiBDYzogbGludXgtYWNwaUB2Z2VyLmtl
+cm5lbC5vcmcKPiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwo+IENjOiBldG5hdml2
+QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwo+IENjOiBpbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Au
+b3JnCj4gQ2M6IG5vdXZlYXVAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCj4gQ2M6IHBsYXRmb3JtLWRy
+aXZlci14ODZAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGRldmVsQGRyaXZlcmRldi5vc3Vvc2wub3Jn
+Cj4gCj4gLS0gCj4gMi45LjAKPiAKPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwo+IEludGVsLWdmeCBtYWlsaW5nIGxpc3QKPiBJbnRlbC1nZnhAbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnCj4gaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9pbnRlbC1nZngKCi0tIApEYW5pZWwgVmV0dGVyClNvZnR3YXJlIEVuZ2luZWVyLCBJ
+bnRlbCBDb3Jwb3JhdGlvbgpodHRwOi8vYmxvZy5mZndsbC5jaApfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1k
+ZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcv
+bWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
