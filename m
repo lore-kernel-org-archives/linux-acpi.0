@@ -1,121 +1,80 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 2/3] ACPI/DRM: rework ACPI_VIDEO Kconfig dependencies
-Date: Wed, 26 Jul 2017 15:53:11 +0200
-Message-ID: <20170726135312.2214309-3-arnd@arndb.de>
+Subject: [PATCH 3/3] drm/etnaviv: add thermal dependency
+Date: Wed, 26 Jul 2017 15:53:12 +0200
+Message-ID: <20170726135312.2214309-4-arnd@arndb.de>
 References: <20170726135312.2214309-1-arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170726135312.2214309-1-arnd@arndb.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: dri-devel@lists.freedesktop.org
-Cc: nouveau@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Daniel Vetter <daniel.vetter@intel.com>, devel@driverdev.osuosl.org, Daniel Drake <dsd@laptop.org>, Jens Frederich <jfrederich@gmail.com>, linux-acpi@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>, Russell King <linux+etnaviv@armlinux.org.uk>, Darren Hart <dvhart@infradead.org>, Len Brown <lenb@kernel.org>, Arnd Bergmann <arnd@arndb.de>, intel-gfx@lists.freedesktop.org, etnaviv@lists.freedesktop.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Andy Shevchenko <andy@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lucas Stach <l.stach@pengutronix.de>, Russell King <linux+etnaviv@armlinux.org.uk>, Christian Gmeiner <christian.gmeiner@gmail.com>, David Airlie <airlied@linux.ie>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, Daniel Vetter <daniel.vetter@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Skeggs <bskeggs@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Jens Frederich <jfrederich@gmail.com>, Daniel Drake <dsd@laptop.org>, Jon Nettleton <jon.nettleton@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, etnaviv@lists.freedesktop.o
 List-Id: linux-acpi@vger.kernel.org
 
-QUNQSV9WSURFTyBrZWVwcyBjYXVzaW5nIHByb2JsZW1zIHdpdGggY2lyY3VsYXIgS2NvbmZpZyBk
-ZXBlbmRlbmNpZXMsCmFzIGl0IGRlcGVuZHMgb24gYSBjb3VwbGUgb2Ygb3RoZXIgc3ltYm9scywg
-YW5kIGl0IGdldHMgc2VsZWN0ZWQgYnkKZHJpdmVycyB0aGF0IG1heSBlbmQgdXAgYmVpbmcgZGVw
-ZW5kaW5nIG9uIG90aGVycy4KClRoaXMgaXMgYW4gYXR0ZW1wdCB0byBzaW1wbGlmeSB0aGlzIGJ5
-IGNoYW5naW5nIGFsbCBkcml2ZXJzIHRoYXQKY3VycmVudGx5ICdzZWxlY3QgQUNQSV9WSURFTycg
-dG8gdXNlICdkZXBlbmRzIG9uJy4gVGhpcyBieSBpdHNlbGYKc2ltcGxpZmllcyB0aGUgZGVwZW5k
-ZW5jeSBsaXN0cyBmb3IgdGhlIG90aGVyIGRyaXZlcnMuIFdlIG1ha2UKQUNQSV9WSURFTyAnZGVm
-YXVsdCB5JyB0byBhdm9pZCBoYXZpbmcgaXQgdHVybmVkIG9mZiBmb3IgJ21ha2UKb2xkY29uZmln
-JyB1c2Vycy4gVGhpcyBzaG91bGQgYWdhaW4gYmUgZmluZSBhcyB4ODYgdXNlcnMgd2lsbApub3Jt
-YWxseSB3YW50IHRoaXMgZW5hYmxlZCBhbmQgdGhlIG9wdGlvbiBpcyBub3QgYXZhaWxhYmxlIGVs
-c2V3aGVyZS4KCkknbSBtb3ZpbmcgdGhlICdzZWxlY3QgQkFDS0xJR0hUX0NMQVNTX0RFVklDRS9C
-QUNLTElHSFRfTENEX1NVUFBPUlQnCmludG8gQUNQSV9WSURFTyBhcyBhIGZ1cnRoZXIgc2ltcGxp
-ZmljYXRpb24sIHRob3NlIHdlcmUgYWxyZWFkeQpzZWxlY3RlZCBieSBhbnl0aGluZyB0aGF0IHNl
-bGVjdGVkIEFDUElfVklERU8gYmVmb3JlLgoKQ2hhbmdpbmcgdGhlIElOUFVUIGRlcGVuZGVuY3kg
-aW4gQUNQSV9DTVBDIGlzIG5lY2Vzc2FyeSB0byBhdm9pZCBhCmNpcmN1bGFyIGRlcGVuZGVuY3kg
-d2l0aCBYODZfUExBVEZPUk1fREVWSUNFUy9OT1VWRUFVLgoKU2lnbmVkLW9mZi1ieTogQXJuZCBC
-ZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4KLS0tCiBkcml2ZXJzL2FjcGkvS2NvbmZpZyAgICAgICAg
-ICAgIHwgIDUgKysrKy0KIGRyaXZlcnMvZ3B1L2RybS9nbWE1MDAvS2NvbmZpZyAgfCAgNiArLS0t
-LS0KIGRyaXZlcnMvZ3B1L2RybS9pOTE1L0tjb25maWcgICAgfCAgNyArLS0tLS0tCiBkcml2ZXJz
-L2dwdS9kcm0vbm91dmVhdS9LY29uZmlnIHwgMTAgKystLS0tLS0tLQogZHJpdmVycy9wbGF0Zm9y
-bS94ODYvS2NvbmZpZyAgICB8ICA2ICsrLS0tLQogNSBmaWxlcyBjaGFuZ2VkLCAxMCBpbnNlcnRp
-b25zKCspLCAyNCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvS2NvbmZp
-ZyBiL2RyaXZlcnMvYWNwaS9LY29uZmlnCmluZGV4IDFjZTUyZjg0ZGMyMy4uYThmNWE0MGUyOTE0
-IDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvS2NvbmZpZworKysgYi9kcml2ZXJzL2FjcGkvS2Nv
-bmZpZwpAQCAtMTgyLDkgKzE4MiwxMiBAQCBjb25maWcgQUNQSV9CVVRUT04KIAogY29uZmlnIEFD
-UElfVklERU8KIAl0cmlzdGF0ZSAiVmlkZW8iCi0JZGVwZW5kcyBvbiBYODYgJiYgQkFDS0xJR0hU
-X0NMQVNTX0RFVklDRQorCWRlcGVuZHMgb24gWDg2CiAJZGVwZW5kcyBvbiBJTlBVVAogCXNlbGVj
-dCBUSEVSTUFMCisJc2VsZWN0IEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0UKKwlzZWxlY3QgQkFDS0xJ
-R0hUX0xDRF9TVVBQT1JUCisJZGVmYXVsdCB5CiAJaGVscAogCSAgVGhpcyBkcml2ZXIgaW1wbGVt
-ZW50cyB0aGUgQUNQSSBFeHRlbnNpb25zIEZvciBEaXNwbGF5IEFkYXB0ZXJzCiAJICBmb3IgaW50
-ZWdyYXRlZCBncmFwaGljcyBkZXZpY2VzIG9uIG1vdGhlcmJvYXJkLCBhcyBzcGVjaWZpZWQgaW4K
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9nbWE1MDAvS2NvbmZpZyBiL2RyaXZlcnMvZ3B1
-L2RybS9nbWE1MDAvS2NvbmZpZwppbmRleCA1MmQ4NTVjYjA1NjkuLjQxODc4YmIwNTA2NyAxMDA2
-NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL2dtYTUwMC9LY29uZmlnCisrKyBiL2RyaXZlcnMvZ3B1
-L2RybS9nbWE1MDAvS2NvbmZpZwpAQCAtMSwxMyArMSw5IEBACiBjb25maWcgRFJNX0dNQTUwMAog
-CXRyaXN0YXRlICJJbnRlbCBHTUE1LzYwMCBLTVMgRnJhbWVidWZmZXIiCiAJZGVwZW5kcyBvbiBE
-Uk0gJiYgUENJICYmIFg4NiAmJiBNTVUKKwlkZXBlbmRzIG9uIEFDUElfVklERU8gfHwgIUFDUEkK
-IAlzZWxlY3QgRFJNX0tNU19IRUxQRVIKIAlzZWxlY3QgRFJNX1RUTQotCSMgR01BNTAwIGRlcGVu
-ZHMgb24gQUNQSV9WSURFTyB3aGVuIEFDUEkgaXMgZW5hYmxlZCwganVzdCBsaWtlIGk5MTUKLQlz
-ZWxlY3QgQUNQSV9WSURFTyBpZiBBQ1BJCi0Jc2VsZWN0IEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0Ug
-aWYgQUNQSQotCXNlbGVjdCBCQUNLTElHSFRfTENEX1NVUFBPUlQgaWYgQUNQSQotCXNlbGVjdCBJ
-TlBVVCBpZiBBQ1BJCiAJaGVscAogCSAgU2F5IHllcyBmb3IgYW4gZXhwZXJpbWVudGFsIDJEIEtN
-UyBmcmFtZWJ1ZmZlciBkcml2ZXIgZm9yIHRoZQogCSAgSW50ZWwgR01BNTAwICgnUG91bHNibycp
-IGFuZCBvdGhlciBJbnRlbCBJTUcgYmFzZWQgZ3JhcGhpY3MKZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-Z3B1L2RybS9pOTE1L0tjb25maWcgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9LY29uZmlnCmluZGV4
-IGU5ZTY0ZThlOTc2NS4uMjI5NzhjODhjN2JmIDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0v
-aTkxNS9LY29uZmlnCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L0tjb25maWcKQEAgLTIsNiAr
-Miw3IEBAIGNvbmZpZyBEUk1fSTkxNQogCXRyaXN0YXRlICJJbnRlbCA4eHgvOXh4L0czeC9HNHgv
-SEQgR3JhcGhpY3MiCiAJZGVwZW5kcyBvbiBEUk0KIAlkZXBlbmRzIG9uIFg4NiAmJiBQQ0kKKwlk
-ZXBlbmRzIG9uIEFDUElfVklERU8gfHwgIUFDUEkKIAlzZWxlY3QgSU5URUxfR1RUCiAJc2VsZWN0
-IElOVEVSVkFMX1RSRUUKIAkjIHdlIG5lZWQgc2htZnMgZm9yIHRoZSBzd2FwcGFibGUgYmFja2lu
-ZyBzdG9yZSwgYW5kIGluIHBhcnRpY3VsYXIKQEAgLTEyLDEyICsxMyw2IEBAIGNvbmZpZyBEUk1f
-STkxNQogCXNlbGVjdCBEUk1fUEFORUwKIAlzZWxlY3QgRFJNX01JUElfRFNJCiAJc2VsZWN0IFJF
-TEFZCi0JIyBpOTE1IGRlcGVuZHMgb24gQUNQSV9WSURFTyB3aGVuIEFDUEkgaXMgZW5hYmxlZAot
-CSMgYnV0IGZvciBzZWxlY3QgdG8gd29yaywgbmVlZCB0byBzZWxlY3QgQUNQSV9WSURFTydzIGRl
-cGVuZGVuY2llcywgaWNrCi0Jc2VsZWN0IEJBQ0tMSUdIVF9MQ0RfU1VQUE9SVCBpZiBBQ1BJCi0J
-c2VsZWN0IEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0UgaWYgQUNQSQotCXNlbGVjdCBJTlBVVCBpZiBB
-Q1BJCi0Jc2VsZWN0IEFDUElfVklERU8gaWYgQUNQSQogCXNlbGVjdCBBQ1BJX0JVVFRPTiBpZiBB
-Q1BJCiAJc2VsZWN0IFNZTkNfRklMRQogCXNlbGVjdCBJT1NGX01CSQpkaWZmIC0tZ2l0IGEvZHJp
-dmVycy9ncHUvZHJtL25vdXZlYXUvS2NvbmZpZyBiL2RyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L0tj
-b25maWcKaW5kZXggYzAyYTEzNDA2YTgxLi44YWM2MTY1OGNlYzEgMTAwNjQ0Ci0tLSBhL2RyaXZl
-cnMvZ3B1L2RybS9ub3V2ZWF1L0tjb25maWcKKysrIGIvZHJpdmVycy9ncHUvZHJtL25vdXZlYXUv
-S2NvbmZpZwpAQCAtMSwyMSArMSwxNSBAQAogY29uZmlnIERSTV9OT1VWRUFVCiAJdHJpc3RhdGUg
-Ik5vdXZlYXUgKE5WSURJQSkgY2FyZHMiCiAJZGVwZW5kcyBvbiBEUk0gJiYgUENJICYmIE1NVQor
-CWRlcGVuZHMgb24gQUNQSV9WSURFTyB8fCAhKEFDUEkgJiYgWDg2KQogICAgICAgICBzZWxlY3Qg
-RldfTE9BREVSCiAJc2VsZWN0IERSTV9LTVNfSEVMUEVSCiAJc2VsZWN0IERSTV9UVE0KLQlzZWxl
-Y3QgRkJfQkFDS0xJR0hUIGlmIERSTV9OT1VWRUFVX0JBQ0tMSUdIVAotCXNlbGVjdCBBQ1BJX1ZJ
-REVPIGlmIEFDUEkgJiYgWDg2ICYmIEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0UgJiYgSU5QVVQKKwlz
-ZWxlY3QgRkJfQkFDS0xJR0hUIGlmIERSTV9OT1VWRUFVX0JBQ0tMSUdIVCAmJiBGQgogCXNlbGVj
-dCBYODZfUExBVEZPUk1fREVWSUNFUyBpZiBBQ1BJICYmIFg4NgogCXNlbGVjdCBBQ1BJX1dNSSBp
-ZiBBQ1BJICYmIFg4NgogCXNlbGVjdCBNWE1fV01JIGlmIEFDUEkgJiYgWDg2CiAJc2VsZWN0IFBP
-V0VSX1NVUFBMWQotCSMgU2ltaWxhciB0byBpOTE1LCB3ZSBuZWVkIHRvIHNlbGVjdCBBQ1BJX1ZJ
-REVPIGFuZCBpdCdzIGRlcGVuZGVuY2llcwotCXNlbGVjdCBCQUNLTElHSFRfTENEX1NVUFBPUlQg
-aWYgQUNQSSAmJiBYODYKLQlzZWxlY3QgQkFDS0xJR0hUX0NMQVNTX0RFVklDRSBpZiBBQ1BJICYm
-IFg4NgotCXNlbGVjdCBJTlBVVCBpZiBBQ1BJICYmIFg4NgotCXNlbGVjdCBUSEVSTUFMIGlmIEFD
-UEkgJiYgWDg2Ci0Jc2VsZWN0IEFDUElfVklERU8gaWYgQUNQSSAmJiBYODYKIAlzZWxlY3QgRFJN
-X1ZNCiAJaGVscAogCSAgQ2hvb3NlIHRoaXMgb3B0aW9uIGZvciBvcGVuLXNvdXJjZSBOVklESUEg
-c3VwcG9ydC4KZGlmZiAtLWdpdCBhL2RyaXZlcnMvcGxhdGZvcm0veDg2L0tjb25maWcgYi9kcml2
-ZXJzL3BsYXRmb3JtL3g4Ni9LY29uZmlnCmluZGV4IGUwY2E2NzNiZjU2NC4uMmQ5ZmI0NmE4ZDEx
-IDEwMDY0NAotLS0gYS9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9LY29uZmlnCisrKyBiL2RyaXZlcnMv
-cGxhdGZvcm0veDg2L0tjb25maWcKQEAgLTE3LDcgKzE3LDcgQEAgaWYgWDg2X1BMQVRGT1JNX0RF
-VklDRVMKIAogY29uZmlnIEFDRVJfV01JCiAJdHJpc3RhdGUgIkFjZXIgV01JIExhcHRvcCBFeHRy
-YXMiCi0JZGVwZW5kcyBvbiBBQ1BJCisJZGVwZW5kcyBvbiBBQ1BJX1ZJREVPCiAJc2VsZWN0IExF
-RFNfQ0xBU1MKIAlzZWxlY3QgTkVXX0xFRFMKIAlkZXBlbmRzIG9uIEJBQ0tMSUdIVF9DTEFTU19E
-RVZJQ0UKQEAgLTI2LDggKzI2LDYgQEAgY29uZmlnIEFDRVJfV01JCiAJZGVwZW5kcyBvbiBSRktJ
-TEwgfHwgUkZLSUxMID0gbgogCWRlcGVuZHMgb24gQUNQSV9XTUkKIAlzZWxlY3QgSU5QVVRfU1BB
-UlNFS01BUAotCSMgQWNlciBXTUkgZGVwZW5kcyBvbiBBQ1BJX1ZJREVPIHdoZW4gQUNQSSBpcyBl
-bmFibGVkCi0gICAgICAgIHNlbGVjdCBBQ1BJX1ZJREVPIGlmIEFDUEkKIAktLS1oZWxwLS0tCiAJ
-ICBUaGlzIGlzIGEgZHJpdmVyIGZvciBuZXdlciBBY2VyIChhbmQgV2lzdHJvbikgbGFwdG9wcy4g
-SXQgYWRkcwogCSAgd2lyZWxlc3MgcmFkaW8gYW5kIGJsdWV0b290aCBjb250cm9sLCBhbmQgb24g
-c29tZSBsYXB0b3BzLApAQCAtNzgzLDcgKzc4MSw3IEBAIGNvbmZpZyBBQ1BJX0NNUEMKIAl0cmlz
-dGF0ZSAiQ01QQyBMYXB0b3AgRXh0cmFzIgogCWRlcGVuZHMgb24gQUNQSQogCWRlcGVuZHMgb24g
-UkZLSUxMIHx8IFJGS0lMTD1uCi0Jc2VsZWN0IElOUFVUCisJZGVwZW5kcyBvbiBJTlBVVAogCXNl
-bGVjdCBCQUNLTElHSFRfQ0xBU1NfREVWSUNFCiAJc2VsZWN0IEJBQ0tMSUdIVF9MQ0RfU1VQUE9S
-VAogCWRlZmF1bHQgbgotLSAKMi45LjAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
-ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2RyaS1kZXZlbAo=
+When CONFIG_THERMAL is enabled as a loadable module, and etnaviv is
+built-in, we get a link error:
+
+drivers/gpu/drm/etnaviv/etnaviv_gpu.o: In function `etnaviv_gpu_bind':
+etnaviv_gpu.c:(.text.etnaviv_gpu_bind+0x34): undefined reference to `thermal_of_cooling_device_register'
+etnaviv_gpu.c:(.text.etnaviv_gpu_bind+0xe0): undefined reference to `thermal_cooling_device_unregister'
+drivers/gpu/drm/etnaviv/etnaviv_gpu.o: In function `etnaviv_gpu_unbind':
+etnaviv_gpu.c:(.text.etnaviv_gpu_unbind+0xf0): undefined reference to `thermal_cooling_device_unregister'
+
+This adds a Kconfig dependency to prevent etnaviv from being built-in
+with CONFIG_THERMAL=m, while still allowing the valid configurations.
+Unfortunately, simply adding the dependency here breaks Kconfig through
+a dependency loop involving lots of symbols all the way until ACPI_VIDEO,
+which is the only video driver that explicitly selects 'THERMAL'. Turning
+this into a 'depends on' addresses the problem.
+For completeness, I'm also removing the redundant 'select THERMAL'
+from INTEL_MENLOW, so no other driver uses that statement.
+
+Fixes: bcdfb5e56dc5 ("drm/etnaviv: add etnaviv cooling device")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+v2: spend more thought on ACPI_VIDEO dependencies, as we need another
+    patch before this.
+---
+ drivers/acpi/Kconfig            | 2 +-
+ drivers/gpu/drm/etnaviv/Kconfig | 1 +
+ drivers/platform/x86/Kconfig    | 1 -
+ 3 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index a8f5a40e2914..1282b2936164 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -184,7 +184,7 @@ config ACPI_VIDEO
+ 	tristate "Video"
+ 	depends on X86
+ 	depends on INPUT
+-	select THERMAL
++	depends on THERMAL
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	select BACKLIGHT_LCD_SUPPORT
+ 	default y
+diff --git a/drivers/gpu/drm/etnaviv/Kconfig b/drivers/gpu/drm/etnaviv/Kconfig
+index 71cee4e9fefb..1d6c744e7924 100644
+--- a/drivers/gpu/drm/etnaviv/Kconfig
++++ b/drivers/gpu/drm/etnaviv/Kconfig
+@@ -3,6 +3,7 @@ config DRM_ETNAVIV
+ 	tristate "ETNAVIV (DRM support for Vivante GPU IP cores)"
+ 	depends on DRM
+ 	depends on ARCH_MXC || ARCH_DOVE || (ARM && COMPILE_TEST)
++	depends on THERMAL || THERMAL=n
+ 	depends on MMU
+ 	select SHMEM
+ 	select SYNC_FILE
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 2d9fb46a8d11..d9238e9ff54a 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -532,7 +532,6 @@ config SENSORS_HDAPS
+ config INTEL_MENLOW
+ 	tristate "Thermal Management driver for Intel menlow platform"
+ 	depends on ACPI_THERMAL
+-	select THERMAL
+ 	---help---
+ 	  ACPI thermal management enhancement driver on
+ 	  Intel Menlow platform.
+-- 
+2.9.0
