@@ -1,30 +1,33 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] device property: export irqchip_fwnode_ops
-Date: Wed, 26 Jul 2017 02:13:25 +0200
-Message-ID: <2233361.D5jIfdWk16@aspire.rjw.lan>
-References: <20170725153243.101147-1-arnd@arndb.de>
+Subject: Re: [PATCH v1 6/6] device property: Switch to use new generic UUID API
+Date: Wed, 26 Jul 2017 02:21:12 +0200
+Message-ID: <2908341.aERReitNcd@aspire.rjw.lan>
+References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com> <20170719182857.73693-7-andriy.shevchenko@linux.intel.com> <20170725141235.GY2369@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170725153243.101147-1-arnd@arndb.de>
+In-Reply-To: <20170725141235.GY2369@lahna.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Tomasz Nowicki <tomasz.nowicki@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, Eric Auger <eric.auger@redhat.com>, Sebastian Frias <sf84@laposte.net>, linux-kernel@vger.kernel.org, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devel@linuxdriverproject.org, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, linux-wireless@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-efi@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, Lukas Wunner <lukas@wunner.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, July 25, 2017 05:32:31 PM Arnd Bergmann wrote:
-> The newly added irqchip_fwnode_ops structure is not exported, which can
-> lead to link errors:
+On Tuesday, July 25, 2017 05:12:35 PM Mika Westerberg wrote:
+> On Wed, Jul 19, 2017 at 09:28:57PM +0300, Andy Shevchenko wrote:
+> > There are new types and helpers that are supposed to be used in new code.
+> > 
+> > As a preparation to get rid of legacy types and API functions do
+> > the conversion here.
+> > 
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
 > 
-> ERROR: "irqchip_fwnode_ops" [drivers/gpio/gpio-xgene-sb.ko] undefined!
-> 
-> I checked that all other such symbols that were introduced are
-> exported if they need to be, this is the only missing one.
-> 
-> Fixes: db3e50f3234b ("device property: Get rid of struct fwnode_handle type field")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Thanks for the fix.
+OK
 
-It is linux-next only at this point, isn't it?
+Andy, do you want me to apply this?
+
+Thanks,
+Rafael
