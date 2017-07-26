@@ -1,77 +1,48 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/4] ACPI: Introduce DMA ranges parsing
-Date: Wed, 26 Jul 2017 02:27:08 +0200
-Message-ID: <3695178.yaaBKZ8vrz@aspire.rjw.lan>
-References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com> <CAJZ5v0h_ySMbtGfs5_E+PCJko+3_aDo=1joDaA1_2wCT5tZe=Q@mail.gmail.com> <20170725090615.GA17133@red-moon>
+Subject: Re: [PATCH v1 6/6] device property: Switch to use new generic UUID API
+Date: Wed, 26 Jul 2017 02:27:44 +0200
+Message-ID: <6349641.0fe8FCM51k@aspire.rjw.lan>
+References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
+ <2908341.aERReitNcd@aspire.rjw.lan>
+ <CAHp75Vd6KenS3vQBgTJL=iE790Rrtzj11gvPK=KLE98bjcPm6w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170725090615.GA17133@red-moon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <CAHp75Vd6KenS3vQBgTJL=iE790Rrtzj11gvPK=KLE98bjcPm6w@mail.gmail.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: devel@driverdev.osuosl.org, linux-efi <linux-efi@vger.kernel.org>, linux-watchdog@vger.kernel.org, sparmaintainer@unisys.com, "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>, devel@linuxdriverproject.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, July 25, 2017 10:06:15 AM Lorenzo Pieralisi wrote:
-> On Mon, Jul 24, 2017 at 08:42:15PM +0200, Rafael J. Wysocki wrote:
-> > On Mon, Jul 24, 2017 at 12:40 PM, Lorenzo Pieralisi
-> > <lorenzo.pieralisi@arm.com> wrote:
-> > > On Sat, Jul 22, 2017 at 12:15:42AM +0200, Rafael J. Wysocki wrote:
-> > >
-> > 
-> > [cut]
-> > 
-> > >
-> > >> > +           return -EINVAL;
-> > >> > +   }
-> > >> > +
-> > >> > +   ret = acpi_dev_get_dma_resources(adev, &list);
-> > >> > +   if (ret > 0) {
-> > >> > +           list_for_each_entry(rentry, &list, node) {
-> > >> > +                   if (dma_offset && rentry->offset != dma_offset) {
-> > >> > +                           ret = -EINVAL;
-> > >> > +                           pr_warn("Can't handle multiple windows with different offsets\n");
-> > >> > +                           goto out;
-> > >> > +                   }
-> > >> > +                   dma_offset = rentry->offset;
-> > >> > +
-> > >> > +                   /* Take lower and upper limits */
-> > >> > +                   if (rentry->res->start < dma_start)
-> > >> > +                           dma_start = rentry->res->start;
-> > >> > +                   if (rentry->res->end > dma_end)
-> > >> > +                           dma_end = rentry->res->end;
-> > >> > +           }
-> > >> > +
-> > >> > +           if (dma_start >= dma_end) {
-> > >> > +                   ret = -EINVAL;
-> > >> > +                   pr_warn("Invalid DMA regions configuration\n");
-> > >>
-> > >> dev_warn()?
-> > >>
-> > >> And why _warn() and not _info()?
-> > >
-> > > Mmm..ok for the dev_ prefix - basically this would be a FW_BUG (I think
-> > > this specific error condition is overkill TBH, the ACPI resource
-> > > validation code should catch it before we even get here) not sure
-> > > about downgrading it to _info() though, I would leave it at this
-> > > loglevel - in particular in the offset check above:
-> > >
-> > >         if (dma_offset && rentry->offset != dma_offset) {
-> > >                 ret = -EINVAL;
-> > >                 pr_warn("Can't handle multiple windows with different offsets\n");
-> > >                 goto out;
-> > >         }
-> > 
-> > Well, so the "why" question above still has no answer ...
+On Wednesday, July 26, 2017 03:35:01 AM Andy Shevchenko wrote:
+> On Wed, Jul 26, 2017 at 3:21 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Tuesday, July 25, 2017 05:12:35 PM Mika Westerberg wrote:
+> >> On Wed, Jul 19, 2017 at 09:28:57PM +0300, Andy Shevchenko wrote:
+> >> > There are new types and helpers that are supposed to be used in new code.
+> >> >
+> >> > As a preparation to get rid of legacy types and API functions do
+> >> > the conversion here.
+> >> >
+> >> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> >> > Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >>
+> >> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >
+> > OK
+> >
+> > Andy, do you want me to apply this?
 > 
-> It is a firmware misconfiguration, we end up dismissing firmware
-> information and use the device with default/possibly misconfigured
-> DMA windows (ie offset == 0) for that platform, that's the reason
-> why I thought it would deserve a _warn rather than _info loglevel.
+> If you would like to.
+> 
+> The patch is now pretty independent since necessary stuff made v4.13-rc1.
 
-Well, _warn only makes it slightly more visible for people with somewhat
-unusual logging configurations, but fair enough.
-
-Thanks,
-Rafael
+OK
