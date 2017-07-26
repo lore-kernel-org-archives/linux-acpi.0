@@ -1,47 +1,56 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 4/5] ACPI / boot: Not all platform require acpi_reduced_hw_init()
-Date: Wed, 26 Jul 2017 20:53:10 +0200
-Message-ID: <5814320.0Xa8vJDJkv@aspire.rjw.lan>
-References: <20170718150420.61600-1-andriy.shevchenko@linux.intel.com> <CAHp75Ve=7HsNHZ443Fs08O7Ya4mMfgtq3nD-6znkeKCjQtGe3w@mail.gmail.com> <CAJZ5v0hwg5Y3UeGpnM24HXVrJbmDm7ipX-1R9OSgo3wRR50mYQ@mail.gmail.com>
+Subject: Re: [PATCH v6 1/1] acpi: apei: Enable APEI multiple GHES source to share a single external IRQ
+Date: Wed, 26 Jul 2017 20:57:03 +0200
+Message-ID: <1632667.Vgem7HtdXu@aspire.rjw.lan>
+References: <1500661477-6536-1-git-send-email-lho@apm.com> <20170722055954.GA2082@nazgul.tnic> <1893763.BLgt1zgLk5@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57035 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48815 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750898AbdGZTBL (ORCPT
+        by vger.kernel.org with ESMTP id S1750898AbdGZTFE (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Jul 2017 15:01:11 -0400
-In-Reply-To: <CAJZ5v0hwg5Y3UeGpnM24HXVrJbmDm7ipX-1R9OSgo3wRR50mYQ@mail.gmail.com>
+        Wed, 26 Jul 2017 15:05:04 -0400
+In-Reply-To: <1893763.BLgt1zgLk5@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Hanjun Guo <guohanjun@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>
+To: Borislav Petkov <bp@suse.de>
+Cc: Loc Ho <lho@apm.com>, msalter@redhat.com, rafael@kernel.org, tbaicar@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@apm.com, "Luck, Tony" <tony.luck@intel.com>
 
-On Sunday, July 23, 2017 12:14:27 AM Rafael J. Wysocki wrote:
-> On Sun, Jul 23, 2017 at 12:13 AM, Andy Shevchenko
-> <andy.shevchenko@gmail.com> wrote:
-> > On Sun, Jul 23, 2017 at 1:02 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >> On Saturday, July 22, 2017 04:53:52 AM Andy Shevchenko wrote:
-> >>> On Sat, Jul 22, 2017 at 1:25 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >>> > On Tuesday, July 18, 2017 06:04:19 PM Andy Shevchenko wrote:
-> >
-> >>> > I'd rather do it at the time when acpi_reduced_hw_init() actually needs to be
-> >>> > overridden by at least one platform.
-> >>>
-> >>> Do you mean as folded into some other patch or just as a preparatory
-> >>> patch in some future series?
-> >
-> >> Any of the above would work for me.
-> >
-> > Logically it should be a separate change as I can see (I have already
-> > locally prepared patches for that one platform).
-> >
-> > Thanks for review.
-> >
-> > P.S. Are you going to apply first 3 then from this series?
+On Sunday, July 23, 2017 12:01:10 AM Rafael J. Wysocki wrote:
+> On Saturday, July 22, 2017 07:59:54 AM Borislav Petkov wrote:
+> > On Fri, Jul 21, 2017 at 11:24:37AM -0700, Loc Ho wrote:
+> > > X-Gene platforms describe multiple GHES error sources with the same hardware
+> > > error notification type (external interrupt) and interrupt number.
+> > > Change the GHES interrupt request to support sharing the same IRQ.
+> > > 
+> > > Co-authored-by: Tuan Phan <tphan@apm.com>
+> > > Signed-off-by: Loc Ho <lho@apm.com>
+> > > ---
+> > >  drivers/acpi/apei/ghes.c | 3 ++-
+> > >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > > 
+> > > diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> > > index d661d45..eed09fc 100644
+> > > --- a/drivers/acpi/apei/ghes.c
+> > > +++ b/drivers/acpi/apei/ghes.c
+> > > @@ -1157,7 +1157,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
+> > >  			       generic->header.source_id);
+> > >  			goto err_edac_unreg;
+> > >  		}
+> > > -		rc = request_irq(ghes->irq, ghes_irq_func, 0, "GHES IRQ", ghes);
+> > > +		rc = request_irq(ghes->irq, ghes_irq_func, IRQF_SHARED,
+> > > +				 "GHES IRQ", ghes);
+> > >  		if (rc) {
+> > >  			pr_err(GHES_PFX "Failed to register IRQ for generic hardware error source: %d\n",
+> > >  			       generic->header.source_id);
+> > 
+> > Acked-by: Borislav Petkov <bp@suse.de>
 > 
-> Yes, I am.
+> OK
+> 
+> Should I apply this or will Tony do that?
 
-So applied now, thanks!
+So am I suppsed to drop this?
 
