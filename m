@@ -1,20 +1,20 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
 Subject: Re: [PATCH v2] irqchip/gic-v3-its: Allow GIC ITS number more than
  MAX_NUMNODES
-Date: Wed, 26 Jul 2017 17:47:31 +0800
-Message-ID: <33afd72e-d8de-a8c5-9339-1a98a188ded0@linaro.org>
+Date: Wed, 26 Jul 2017 17:47:56 +0800
+Message-ID: <dca3922b-2a60-d7b6-b3f5-46e26324e17e@linaro.org>
 References: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
  <b5545a3e-74a9-0bff-afc7-309c653ca2b3@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f54.google.com ([74.125.83.54]:37231 "EHLO
+Received: from mail-pg0-f54.google.com ([74.125.83.54]:34254 "EHLO
         mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751022AbdGZJrs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jul 2017 05:47:48 -0400
-Received: by mail-pg0-f54.google.com with SMTP id y129so82031514pgy.4
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Jul 2017 02:47:47 -0700 (PDT)
+        with ESMTP id S1751427AbdGZJsL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jul 2017 05:48:11 -0400
+Received: by mail-pg0-f54.google.com with SMTP id 123so82117722pgj.1
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Jul 2017 02:48:11 -0700 (PDT)
 In-Reply-To: <b5545a3e-74a9-0bff-afc7-309c653ca2b3@huawei.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
