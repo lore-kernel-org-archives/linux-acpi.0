@@ -1,147 +1,68 @@
-From: Nate Watterson <nwatters@codeaurora.org>
-Subject: Re: [PATCH 0/4] ACPI: DMA ranges management
-Date: Wed, 26 Jul 2017 12:39:58 -0400
-Message-ID: <282f767e-565f-4a59-196f-411f26665c10@codeaurora.org>
-References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
- <7df11172-5a40-685f-5202-9a0bceb6e19b@codeaurora.org>
- <c09352cc-e1a2-a494-c457-dc3ea275f504@arm.com>
- <20170726153519.GA4696@red-moon>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 2/3] ACPI/DRM: rework ACPI_VIDEO Kconfig dependencies
+Date: Wed, 26 Jul 2017 20:23:25 +0200
+Message-ID: <14179844.x9VpZbiLx4@aspire.rjw.lan>
+References: <20170726135312.2214309-1-arnd@arndb.de> <20170726135312.2214309-3-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60846 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750898AbdGZQkM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jul 2017 12:40:12 -0400
-In-Reply-To: <20170726153519.GA4696@red-moon>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20170726135312.2214309-3-arnd@arndb.de>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: dri-devel@lists.freedesktop.org, Len Brown <lenb@kernel.org>, Lucas Stach <l.stach@pengutronix.de>, Russell King <linux+etnaviv@armlinux.org.uk>, Christian Gmeiner <christian.gmeiner@gmail.com>, David Airlie <airlied@linux.ie>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, Daniel Vetter <daniel.vetter@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Skeggs <bskeggs@redhat.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Jens Frederich <jfrederich@gmail.com>, Daniel Drake <dsd@laptop.org>, Jon Nettleton <jon.nettleton@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, etnaviv@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, nouveau@li
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robin Murphy <robin.murphy@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-
-
-On 7/26/2017 11:35 AM, Lorenzo Pieralisi wrote:
-> On Wed, Jul 26, 2017 at 04:05:55PM +0100, Robin Murphy wrote:
->> Hi Nate,
->>
->> On 26/07/17 15:46, Nate Watterson wrote:
->>> Hi Lorenzo,
->>>
->>> On 7/20/2017 10:45 AM, Lorenzo Pieralisi wrote:
->>>> As reported in:
->>>>
->>>> http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
->>>>
->>>>
->>>> the bus connecting devices to an IOMMU bus can be smaller in size than
->>>> the IOMMU input address bits which results in devices DMA HW bugs in
->>>> particular related to IOVA allocation (ie chopping of higher address
->>>> bits owing to system bus HW capabilities mismatch with the IOMMU).
->>>>
->>>> Fortunately this problem can be solved through an already present but
->>>> never
->>>> used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define
->>>> the DMA
->>>> window for a specific bus in ACPI and therefore all upstream devices
->>>> connected to it.
->>>>
->>>> This small patch series enables _DMA parsing in ACPI core code and
->>>> use it in ACPI IORT code in order to detect DMA ranges for devices and
->>>> update their data structures to make them work with their related DMA
->>>> addressing restrictions.
->>>
->>> I tested the patches and unfortunately it seems like the DMA addressing
->>> restrictions are not really enforced for devices that attempt to set
->>> their own dma_mask based on controller capabilities. For instance,
->>> consider the following from the ahci_platform driver:
->>>
->>>      if (hpriv->cap & HOST_CAP_64) {
->>>          rc = dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(64));
->>>          [...]
->>>      }
->>>
->>> Prior to the check, I can see that the device dma_mask respects the
->>> limits enumerated in the _DMA object, however it is then clobbered by
->>> the call to dma_coerce_mask_and_coherent(). Interestingly, if
->>> HOST_CAP_64 was not set and the _DMA object for the device (or its
->>> parent) indicated support for > 32-bit addrs, the host controller
->>> could end up getting programmed with addresses beyond what it actually
->>> supports. That is more a bug with the ahci_platform driver assuming a
->>> default 32-bit dma_mask, but I would not be surprised to find other
->>> drivers that rely on the same assumption.
->>
->> Yup, you've hit upon the more general problem, which applies equally to
->> DT "dma-ranges" too. I'm working on arm64 DMA stuff at the moment, and
->> have the patch to actually enforce the firmware-described limit when
->> drivers update their masks, but that depends on everyone passing the
->> correct information to arch_setup_dma_ops() in the first place (I think
->> DT needs more fixing than ACPI does).
->>
->>> To ensure that dma_set_mask() and friends actually respect _DMA, would
->>> you consider introducing a dma_supported() callback to check the input
->>> dma_mask against the FW defined limits? This would end up aggressively
->>> clipping the dma_mask to 32-bits for devices like the above if the _DMA
->>> limit was less than 64-bits, but that is probably preferable to the
->>> controller accessing unintended addresses.
->>>
->>> Also, how would you feel about adding support for the IORT named_node
->>> memory_address_limit field?
->>
->> We will certainly need that for some platform devices, so if you fancy
->> giving it a go before Lorenzo or I get there, feel free!
+On Wednesday, July 26, 2017 03:53:11 PM Arnd Bergmann wrote:
+> ACPI_VIDEO keeps causing problems with circular Kconfig dependencies,
+> as it depends on a couple of other symbols, and it gets selected by
+> drivers that may end up being depending on others.
 > 
-> I can do it for v2 but I would like to understand why using _DMA is
-> not good enough for named components - having two bindings describing
-> the same thing is not ideal and I'd rather avoid it - if there is
-> a reason I am happy to add the necessary code.
-
-My primary reason for requesting this is that I had already configured
-the memory_address_limit field for the address challenged platform
-devices in our (QDF2400) IORT under the assumption it would eventually
-be supported.
-
-Tested-by: Nate Watterson <nwatters@codeaurora.org>
+> This is an attempt to simplify this by changing all drivers that
+> currently 'select ACPI_VIDEO' to use 'depends on'. This by itself
+> simplifies the dependency lists for the other drivers. We make
+> ACPI_VIDEO 'default y' to avoid having it turned off for 'make
+> oldconfig' users. This should again be fine as x86 users will
+> normally want this enabled and the option is not available elsewhere.
 > 
-> Thanks,
-> Lorenzo
+> I'm moving the 'select BACKLIGHT_CLASS_DEVICE/BACKLIGHT_LCD_SUPPORT'
+> into ACPI_VIDEO as a further simplification, those were already
+> selected by anything that selected ACPI_VIDEO before.
 > 
->> Robin.
->>
->>> -Nate
->>>>
->>>> Cc: Will Deacon <will.deacon@arm.com>
->>>> Cc: Hanjun Guo <hanjun.guo@linaro.org>
->>>> Cc: Feng Kan <fkan@apm.com>
->>>> Cc: Jon Masters <jcm@redhat.com>
->>>> Cc: Robert Moore <robert.moore@intel.com>
->>>> Cc: Robin Murphy <robin.murphy@arm.com>
->>>> Cc: Zhang Rui <rui.zhang@intel.com>
->>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->>>>
->>>> Lorenzo Pieralisi (4):
->>>>     ACPI: Allow _DMA method in walk resources
->>>>     ACPI: Make acpi_dev_get_resources() method agnostic
->>>>     ACPI: Introduce DMA ranges parsing
->>>>     ACPI: Make acpi_dma_configure() DMA regions aware
->>>>
->>>>    drivers/acpi/acpica/rsxface.c |  7 ++--
->>>>    drivers/acpi/arm64/iort.c     | 27 +++++++++++-
->>>>    drivers/acpi/resource.c       | 83
->>>> ++++++++++++++++++++++++++++---------
->>>>    drivers/acpi/scan.c           | 95
->>>> +++++++++++++++++++++++++++++++++++++++----
->>>>    include/acpi/acnames.h        |  1 +
->>>>    include/acpi/acpi_bus.h       |  2 +
->>>>    include/linux/acpi.h          |  8 ++++
->>>>    include/linux/acpi_iort.h     |  5 ++-
->>>>    8 files changed, 194 insertions(+), 34 deletions(-)
->>>>
->>>
->>
+> Changing the INPUT dependency in ACPI_CMPC is necessary to avoid a
+> circular dependency with X86_PLATFORM_DEVICES/NOUVEAU.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/acpi/Kconfig            |  5 ++++-
+>  drivers/gpu/drm/gma500/Kconfig  |  6 +-----
+>  drivers/gpu/drm/i915/Kconfig    |  7 +------
+>  drivers/gpu/drm/nouveau/Kconfig | 10 ++--------
+>  drivers/platform/x86/Kconfig    |  6 ++----
+>  5 files changed, 10 insertions(+), 24 deletions(-)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 1ce52f84dc23..a8f5a40e2914 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -182,9 +182,12 @@ config ACPI_BUTTON
+>  
+>  config ACPI_VIDEO
+>  	tristate "Video"
+> -	depends on X86 && BACKLIGHT_CLASS_DEVICE
+> +	depends on X86
+>  	depends on INPUT
+>  	select THERMAL
+> +	select BACKLIGHT_CLASS_DEVICE
+> +	select BACKLIGHT_LCD_SUPPORT
+> +	default y
+>  	help
+>  	  This driver implements the ACPI Extensions For Display Adapters
+>  	  for integrated graphics devices on motherboard, as specified in
 
--- 
-Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+for the ACPI_VIDEO changes.
+
+Thanks,
+Rafael
