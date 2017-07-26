@@ -1,56 +1,39 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v6 1/1] acpi: apei: Enable APEI multiple GHES source to share a single external IRQ
-Date: Wed, 26 Jul 2017 20:57:03 +0200
-Message-ID: <1632667.Vgem7HtdXu@aspire.rjw.lan>
-References: <1500661477-6536-1-git-send-email-lho@apm.com> <20170722055954.GA2082@nazgul.tnic> <1893763.BLgt1zgLk5@aspire.rjw.lan>
+Subject: Re: [PATCH] ACPI / watchdog: Fix init failure with overlapping register regions
+Date: Wed, 26 Jul 2017 20:57:32 +0200
+Message-ID: <4709509.nbVYHvfDrb@aspire.rjw.lan>
+References: <20170715214818.24979-1-ryan5544@gmail.com> <20170725093731.GE2369@lahna.fi.intel.com> <20170725131341.GU2369@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48815 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:64672 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750898AbdGZTFE (ORCPT
+        by vger.kernel.org with ESMTP id S1751365AbdGZTFc (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Jul 2017 15:05:04 -0400
-In-Reply-To: <1893763.BLgt1zgLk5@aspire.rjw.lan>
+        Wed, 26 Jul 2017 15:05:32 -0400
+In-Reply-To: <20170725131341.GU2369@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: Loc Ho <lho@apm.com>, msalter@redhat.com, rafael@kernel.org, tbaicar@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@apm.com, "Luck, Tony" <tony.luck@intel.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Ryan Kennedy <ryan5544@gmail.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Sunday, July 23, 2017 12:01:10 AM Rafael J. Wysocki wrote:
-> On Saturday, July 22, 2017 07:59:54 AM Borislav Petkov wrote:
-> > On Fri, Jul 21, 2017 at 11:24:37AM -0700, Loc Ho wrote:
-> > > X-Gene platforms describe multiple GHES error sources with the same hardware
-> > > error notification type (external interrupt) and interrupt number.
-> > > Change the GHES interrupt request to support sharing the same IRQ.
-> > > 
-> > > Co-authored-by: Tuan Phan <tphan@apm.com>
-> > > Signed-off-by: Loc Ho <lho@apm.com>
-> > > ---
-> > >  drivers/acpi/apei/ghes.c | 3 ++-
-> > >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> > > index d661d45..eed09fc 100644
-> > > --- a/drivers/acpi/apei/ghes.c
-> > > +++ b/drivers/acpi/apei/ghes.c
-> > > @@ -1157,7 +1157,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
-> > >  			       generic->header.source_id);
-> > >  			goto err_edac_unreg;
-> > >  		}
-> > > -		rc = request_irq(ghes->irq, ghes_irq_func, 0, "GHES IRQ", ghes);
-> > > +		rc = request_irq(ghes->irq, ghes_irq_func, IRQF_SHARED,
-> > > +				 "GHES IRQ", ghes);
-> > >  		if (rc) {
-> > >  			pr_err(GHES_PFX "Failed to register IRQ for generic hardware error source: %d\n",
-> > >  			       generic->header.source_id);
+On Tuesday, July 25, 2017 04:13:41 PM Mika Westerberg wrote:
+> On Tue, Jul 25, 2017 at 12:37:31PM +0300, Mika Westerberg wrote:
+> > I wonder why we need to do this?
 > > 
-> > Acked-by: Borislav Petkov <bp@suse.de>
+> > +                           if (res.start < rentry->res->start)
+> > +                                   rentry->res->start = res.start;
+> > +                           if (res.end > rentry->res->end)
+> > +                                   rentry->res->end = res.end;
+> > 
+> > IIRC we don't use rentry for anything else when we go out of the loop.
+> > Tuning those limits seems unnecessary.
 > 
-> OK
+> OK, Ryan pointed out that the later code then uses the adjusted rentry
+> so this is indeed needed.
 > 
-> Should I apply this or will Tony do that?
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-So am I suppsed to drop this?
+OK, patch applied, thanks!
 
