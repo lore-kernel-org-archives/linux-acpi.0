@@ -1,59 +1,109 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH] ACPI: processor: use dev_dbg() instead of dev_warn() when CPPC probe failed
-Date: Wed, 26 Jul 2017 18:40:12 +0800
-Message-ID: <1501065612-45769-1-git-send-email-guohanjun@huawei.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v2] irqchip/gic-v3-its: Allow GIC ITS number more than
+ MAX_NUMNODES
+Date: Wed, 26 Jul 2017 12:05:49 +0100
+Message-ID: <5e8aacb2-9c20-0f4a-2c5e-721fe82bfc60@arm.com>
+References: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
+ <20170725104758.GC19302@red-moon>
+ <eec017c3-0d41-fb9f-478c-805368f66179@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([45.249.212.187]:10277 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751413AbdGZKrU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jul 2017 06:47:20 -0400
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:59288 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750928AbdGZLFx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Jul 2017 07:05:53 -0400
+In-Reply-To: <eec017c3-0d41-fb9f-478c-805368f66179@linaro.org>
+Content-Language: en-GB
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Alexey Klimov <alexey.klimov@arm.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <guohanjun@huawei.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, linux-acpi@vger.kernel.org, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+On 26/07/17 09:11, Hanjun Guo wrote:
+> On 2017/7/25 18:47, Lorenzo Pieralisi wrote:
+>> On Sat, Jul 22, 2017 at 11:54:12AM +0800, Hanjun Guo wrote:
+>>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>>
+>>> When running 4.13-rc1 on top of D05, I got the boot log:
+>>
+>> Nit: You should stick to what the problem is and why you need to solve
+>> it, "Fixes:" tag gives the commit history you need, the rest (eg "When
+>> running 4.13-rc1") does not belong in the commit log.
+> 
+> Updated as "After enabling the ITS NUMA support on D05, I got
+> the boot log:"
+> 
+>>
+>>> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+>>> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+>>> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+>>> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+>>> [    0.000000] SRAT: ITS affinity exceeding max count[4]
+>>>
+>>> This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
+>>>
+>>> So dynamically alloc the memory needed instead of using
+>>> its_srat_maps[MAX_NUMNODES], which count the number of
+>>> ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
+>>> then build the mapping of numa node to ITS ID. Of course,
+>>> its_srat_maps will be freed after ITS probing because
+>>> we don't need that after boot.
+>>>
+>>> After doing this, I got what I wanted:
+>>>
+>>> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+>>> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+>>> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+>>> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+>>> [    0.000000] SRAT: PXM 2 -> ITS 4 -> Node 2
+>>> [    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
+>>> [    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
+>>> [    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
+>>
+>> Question (unrelated): how are PCI devices (or better PCI host bridges)
+>> mapped to ITSs ? I ask because in IORT we currently ignore the notion
+>> of ITS groups - so it is just out of curiosity (I suspect you have
+>> a static 1:1 mapping PCI-host-bridge->ITS).
+> 
+> Yes, on D05 we enabled 8 ITSs, and also have 8 PCI hostbridges, here is
+> the IORT for D05:
+> 
+> https://github.com/hisilicon/OpenPlatformPkg/blob/bb17676e6c529732af8adf438fc2c8ceeb9b3271/Chips/Hisilicon/Hi1616/D05AcpiTables/D05Iort.asl
 
-_CPC is a optinal object for processor device so it's
-fine for processor devices in DSDT without CPPC data,
-but when booting the system with CPPC enabled in the
-kernel but without its support in the firmware, I got
-lots of warnings on a 64 core system:
+On a further side note, do the SMMUs really have no interrupts, or is
+that just a hack to avoid MBIgen-related problems? Now that we have
+working probe-deferral for IOMMU masters, it ought to be possible to
+address any dependency by deferring the SMMU itself until the IRQs are
+available. At a glance I guess ACPI doesn't make it as easy as
+of_irq_get() does, but it might be worth looking into.
 
-[    6.346016] acpi ACPI0007:00: CPPC data invalid or not present
-[    6.346028] acpi ACPI0007:01: CPPC data invalid or not present
-[    6.346039] acpi ACPI0007:02: CPPC data invalid or not present
-[    6.346050] acpi ACPI0007:03: CPPC data invalid or not present
-[    6.346063] acpi ACPI0007:04: CPPC data invalid or not present
-...
-[    6.346737] acpi ACPI0007:3f: CPPC data invalid or not present
+Robin.
 
-This isn't much useful and a little bit noise, so
-switch the dev_warn() to dev_dbg().
-
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Alexey Klimov <alexey.klimov@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
- drivers/acpi/processor_driver.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 591d1dd..9d6aff2 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -237,7 +237,7 @@ static int __acpi_processor_start(struct acpi_device *device)
- 
- 	result = acpi_cppc_processor_probe(pr);
- 	if (result && !IS_ENABLED(CONFIG_ACPI_CPU_FREQ_PSS))
--		dev_warn(&device->dev, "CPPC data invalid or not present\n");
-+		dev_dbg(&device->dev, "CPPC data invalid or not present\n");
- 
- 	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
- 		acpi_processor_power_init(pr);
--- 
-1.7.12.4
+>>> Fixes: dbd2b8267233 ("irqchip/gic-v3-its: Add ACPI NUMA node mapping")
+>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>> Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+>>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>>> ---
+>>>
+>>> v1->v2:
+>>>    - Add NULL check in acpi_get_its_numa_node() for no ITS affinity
+>>> case;
+>>>    - Free the its_srat_maps after ITS probing.
+>>>
+>>>   drivers/irqchip/irq-gic-v3-its.c | 39
+>>> ++++++++++++++++++++++++++++++++-------
+>>
+>> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> 
+> Thanks!
+> 
+> Hanjun
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
