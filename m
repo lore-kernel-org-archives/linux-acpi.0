@@ -1,66 +1,71 @@
-From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4 4/6] btt: cache sector_size in arena_info
-Date: Wed, 26 Jul 2017 17:35:44 -0600
-Message-ID: <20170726233546.29052-5-vishal.l.verma@intel.com>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4 2/6] btt: refactor map entry operations with macros
+Date: Wed, 26 Jul 2017 17:35:42 -0600
+Message-ID: <20170726233546.29052-3-vishal.l.verma@intel.com>
 References: <20170726233546.29052-1-vishal.l.verma@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170726233546.29052-1-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga07.intel.com ([134.134.136.100]:49250 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751441AbdGZXho (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Jul 2017 19:37:44 -0400
+In-Reply-To: <20170726233546.29052-1-vishal.l.verma@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>
 
-In preparation for the error clearing rework, add sector_size in the
-arena_info struct.
+Add helpers for converting a raw map entry to just the block number, or
+either of the 'e' or 'z' flags in preparation for actually using the
+error flag to mark blocks with media errors.
 
-Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/btt.c | 1 +
- drivers/nvdimm/btt.h | 2 ++
- 2 files changed, 3 insertions(+)
+ drivers/nvdimm/btt.c | 8 ++++----
+ drivers/nvdimm/btt.h | 4 ++++
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 374ae62..e9dd651 100644
+index f6ea82f..8842baa 100644
 --- a/drivers/nvdimm/btt.c
 +++ b/drivers/nvdimm/btt.c
-@@ -566,6 +566,7 @@ static struct arena_info *alloc_arena(struct btt *btt, size_t size,
- 	if (!arena)
- 		return NULL;
- 	arena->nd_btt = btt->nd_btt;
-+	arena->sector_size = btt->sector_size;
+@@ -106,7 +106,7 @@ static int btt_map_write(struct arena_info *arena, u32 lba, u32 mapping,
+ 	 * This 'mapping' is supposed to be just the LBA mapping, without
+ 	 * any flags set, so strip the flag bits.
+ 	 */
+-	mapping &= MAP_LBA_MASK;
++	mapping = ent_lba(mapping);
  
- 	if (!size)
- 		return arena;
+ 	ze = (z_flag << 1) + e_flag;
+ 	switch (ze) {
+@@ -155,10 +155,10 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
+ 
+ 	raw_mapping = le32_to_cpu(in);
+ 
+-	z_flag = (raw_mapping & MAP_TRIM_MASK) >> MAP_TRIM_SHIFT;
+-	e_flag = (raw_mapping & MAP_ERR_MASK) >> MAP_ERR_SHIFT;
++	z_flag = ent_z_flag(raw_mapping);
++	e_flag = ent_e_flag(raw_mapping);
+ 	ze = (z_flag << 1) + e_flag;
+-	postmap = raw_mapping & MAP_LBA_MASK;
++	postmap = ent_lba(raw_mapping);
+ 
+ 	/* Reuse the {z,e}_flag variables for *trim and *error */
+ 	z_flag = 0;
 diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 09fabf5..2bc0d10b 100644
+index 888e862..09fabf5 100644
 --- a/drivers/nvdimm/btt.h
 +++ b/drivers/nvdimm/btt.h
-@@ -108,6 +108,7 @@ struct aligned_lock {
-  *			handle incoming writes.
-  * @version_major:	Metadata layout version major.
-  * @version_minor:	Metadata layout version minor.
-+ * @sector_size:	The Linux sector size - 512 or 4096
-  * @nextoff:		Offset in bytes to the start of the next arena.
-  * @infooff:		Offset in bytes to the info block of this arena.
-  * @dataoff:		Offset in bytes to the data area of this arena.
-@@ -135,6 +136,7 @@ struct arena_info {
- 	u32 nfree;
- 	u16 version_major;
- 	u16 version_minor;
-+	u32 sector_size;
- 	/* Byte offsets to the different on-media structures */
- 	u64 nextoff;
- 	u64 infooff;
+@@ -38,6 +38,10 @@
+ #define IB_FLAG_ERROR 0x00000001
+ #define IB_FLAG_ERROR_MASK 0x00000001
+ 
++#define ent_lba(ent) (ent & MAP_LBA_MASK)
++#define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
++#define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
++
+ enum btt_init_state {
+ 	INIT_UNCHECKED = 0,
+ 	INIT_NOTFOUND,
 -- 
 2.9.3
+
