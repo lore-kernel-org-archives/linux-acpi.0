@@ -1,79 +1,103 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [Intel-gfx] [PATCH 0/3] Kconfig dependencies: acpi-video,
- backlight and thermal
-Date: Wed, 26 Jul 2017 16:40:41 +0200
-Message-ID: <20170726144041.plcrr6bg2hkh4q52@phenom.ffwll.local>
-References: <20170726135312.2214309-1-arnd@arndb.de>
+From: Nate Watterson <nwatters@codeaurora.org>
+Subject: Re: [PATCH 0/4] ACPI: DMA ranges management
+Date: Wed, 26 Jul 2017 10:46:00 -0400
+Message-ID: <7df11172-5a40-685f-5202-9a0bceb6e19b@codeaurora.org>
+References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20170726135312.2214309-1-arnd@arndb.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: devel@driverdev.osuosl.org, Daniel Drake <dsd@laptop.org>, Jens Frederich <jfrederich@gmail.com>, nouveau@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, etnaviv@lists.freedesktop.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ben Skeggs <bskeggs@redhat.com>, Russell King <linux+etnaviv@armlinux.org.uk>, Daniel Vetter <daniel.vetter@intel.com>, Andy Shevchenko <andy@infradead.org>, intel-gfx@lists.freedesktop.org, Darren Hart <dvhart@infradead.org>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:47938 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750898AbdGZOqJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jul 2017 10:46:09 -0400
+In-Reply-To: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-T24gV2VkLCBKdWwgMjYsIDIwMTcgYXQgMDM6NTM6MDlQTSArMDIwMCwgQXJuZCBCZXJnbWFubiB3
-cm90ZToKPiBIaSBldmVyeW9uZSwKPiAKPiBJdCB0b29rIG1lIGEgd2hpbGUgdG8gZmlndXJlIHRo
-aXMgb3V0IHByb3Blcmx5LCBhcyBJIGtlcHQgZ2V0dGluZwo+IGNpcmN1bGFyIG9yIG1pc3Npbmcg
-ZGVwZW5kZW5jaWVzIHdpdGggdmlkZW8gZHJpdmVycy4KPiAKPiBUaGlzIHNldCBvZiB0aHJlZSBw
-YXRjaGVzIHNob3VsZCBzaW1wbGlmeSB0aGUgc2l0dWF0aW9uIGEgYml0LAo+IG1vc3RseSBieSBj
-bGVhbmluZyB1cCB0aGUgZGVwZW5kZW5jaWVzIGFyb3VuZCBDT05GSUdfQUNQSV9WSURFTy4KPiBX
-aXRoIGFsbCB0aHJlZSBwYXRjaGVzIGFwcGxpZWQsIEkgbm8gbG9uZ2VyIHJ1biBpbnRvIHRob3Nl
-IHJlbGF0ZWQKPiB3YXJuaW5ncy4gSWYgZXZlcnlvbmUgYWdyZWVzIG9uIHRoZSBnZW5lcmFsIGRp
-cmVjdGlvbiwgSSBob3BlCj4gd2UgY2FuIG1lcmdlIGFsbCB0aHJlZSB0aHJvdWdoIHRoZSBEUk0g
-dHJlZS4KPiAKPiBJIG9yaWdpbmFsbHkgaGFkIGFub3RoZXIgbGFyZ2VyIHBhdGNoIGluIHRoZSBz
-ZXJpZXMgdG8gcmVwbGFjZSBhbGwKPiBvZiB0aGUgJ3NlbGVjdCBCQUNLTElHSFRfTENEX1NVUFBP
-UlQ7IHNlbGVjdCBCQUNLTElHSFRfQ0xBU1NfREVWSUNFJwo+IHN0YXRlbWVudHMgd2l0aCAnZGVw
-ZW5kcyBvbiBMQ0RfQ0xBU1NfREVWSUNFJywgdGhhdCB3b3VsZCBjbGVhbgo+IGl0IHVwIHNvbWUg
-bW9yZSwgYnV0IGl0IGlzIGFsc28gYSBtb3JlIGludmFzaXZlIGNoYW5nZSB0aGF0IHdlCj4gY2Fu
-IGRvIHNlcGFyYXRlbHkgYXQgc29tZSBwb2ludC4KCkxvb2tzIHJlYXNvbmFibGUsIGJ1dCBJIHRo
-aW5rIGl0J2QgYmUgZ29vZCB0byBnZXQgSmFuaSBOaWt1bGEncyBleHBsaWNpdAphY2sgb24gdGhp
-cywgc2luY2UgaGUgZHVnZyBhcm91bmQgYSBsb3QgaW4gdGhpcyBhcmVhLiBBbmQgaGUncyBvbiB2
-YWNhdGlvbgp0aGlzIHdlZWsuCi1EYW5pZWwKCj4gCj4gICAgICAgIEFybmQKPiAKPiBBcm5kIEJl
-cmdtYW5uICgzKToKPiAgIGJhY2tsaWdodDogYWx3YXlzIHNlbGVjdCBCQUNLTElHSFRfTENEX1NV
-UFBPUlQgZm9yCj4gICAgIEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0UKPiAgIEFDUEkvRFJNOiByZXdv
-cmsgQUNQSV9WSURFTyBLY29uZmlnIGRlcGVuZGVuY2llcwo+ICAgZHJtL2V0bmF2aXY6IGFkZCB0
-aGVybWFsIGRlcGVuZGVuY3kKPiAKPiAgZHJpdmVycy9hY3BpL0tjb25maWcgICAgICAgICAgICAg
-IHwgIDcgKysrKystLQo+ICBkcml2ZXJzL2dwdS9kcm0vZXRuYXZpdi9LY29uZmlnICAgfCAgMSAr
-Cj4gIGRyaXZlcnMvZ3B1L2RybS9nbWE1MDAvS2NvbmZpZyAgICB8ICA1ICstLS0tCj4gIGRyaXZl
-cnMvZ3B1L2RybS9pOTE1L0tjb25maWcgICAgICB8ICA3ICstLS0tLS0KPiAgZHJpdmVycy9ncHUv
-ZHJtL25vdXZlYXUvS2NvbmZpZyAgIHwgMTAgKystLS0tLS0tLQo+ICBkcml2ZXJzL3BsYXRmb3Jt
-L3g4Ni9LY29uZmlnICAgICAgfCAgOSArKysrLS0tLS0KPiAgZHJpdmVycy9zdGFnaW5nL29scGNf
-ZGNvbi9LY29uZmlnIHwgIDEgKwo+ICA3IGZpbGVzIGNoYW5nZWQsIDE1IGluc2VydGlvbnMoKyks
-IDI1IGRlbGV0aW9ucygtKQo+IAo+IFRvOiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-Cj4gQ2M6ICJSYWZhZWwgSi4gV3lzb2NraSIgPHJqd0Byand5c29ja2kubmV0Pgo+IENjOiBMZW4g
-QnJvd24gPGxlbmJAa2VybmVsLm9yZz4KPiBDYzogTHVjYXMgU3RhY2ggPGwuc3RhY2hAcGVuZ3V0
-cm9uaXguZGU+Cj4gQ2M6IFJ1c3NlbGwgS2luZyA8bGludXgrZXRuYXZpdkBhcm1saW51eC5vcmcu
-dWs+Cj4gQ2M6IENocmlzdGlhbiBHbWVpbmVyIDxjaHJpc3RpYW4uZ21laW5lckBnbWFpbC5jb20+
-Cj4gQ2M6IERhdmlkIEFpcmxpZSA8YWlybGllZEBsaW51eC5pZT4KPiBDYzogUGF0cmlrIEpha29i
-c3NvbiA8cGF0cmlrLnIuamFrb2Jzc29uQGdtYWlsLmNvbT4KPiBDYzogRGFuaWVsIFZldHRlciA8
-ZGFuaWVsLnZldHRlckBpbnRlbC5jb20+Cj4gQ2M6IEphbmkgTmlrdWxhIDxqYW5pLm5pa3VsYUBs
-aW51eC5pbnRlbC5jb20+Cj4gQ2M6IEJlbiBTa2VnZ3MgPGJza2VnZ3NAcmVkaGF0LmNvbT4KPiBD
-YzogRGFycmVuIEhhcnQgPGR2aGFydEBpbmZyYWRlYWQub3JnPgo+IENjOiBBbmR5IFNoZXZjaGVu
-a28gPGFuZHlAaW5mcmFkZWFkLm9yZz4KPiBDYzogSmVucyBGcmVkZXJpY2ggPGpmcmVkZXJpY2hA
-Z21haWwuY29tPgo+IENjOiBEYW5pZWwgRHJha2UgPGRzZEBsYXB0b3Aub3JnPgo+IENjOiBKb24g
-TmV0dGxldG9uIDxqb24ubmV0dGxldG9uQGdtYWlsLmNvbT4KPiBDYzogR3JlZyBLcm9haC1IYXJ0
-bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZz4KPiBDYzogbGludXgtYWNwaUB2Z2VyLmtl
-cm5lbC5vcmcKPiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwo+IENjOiBldG5hdml2
-QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwo+IENjOiBpbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Au
-b3JnCj4gQ2M6IG5vdXZlYXVAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCj4gQ2M6IHBsYXRmb3JtLWRy
-aXZlci14ODZAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGRldmVsQGRyaXZlcmRldi5vc3Vvc2wub3Jn
-Cj4gCj4gLS0gCj4gMi45LjAKPiAKPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwo+IEludGVsLWdmeCBtYWlsaW5nIGxpc3QKPiBJbnRlbC1nZnhAbGlzdHMu
-ZnJlZWRlc2t0b3Aub3JnCj4gaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9pbnRlbC1nZngKCi0tIApEYW5pZWwgVmV0dGVyClNvZnR3YXJlIEVuZ2luZWVyLCBJ
-bnRlbCBDb3Jwb3JhdGlvbgpodHRwOi8vYmxvZy5mZndsbC5jaApfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1k
-ZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcv
-bWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+Hi Lorenzo,
+
+On 7/20/2017 10:45 AM, Lorenzo Pieralisi wrote:
+> As reported in:
+> 
+> http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
+> 
+> the bus connecting devices to an IOMMU bus can be smaller in size than
+> the IOMMU input address bits which results in devices DMA HW bugs in
+> particular related to IOVA allocation (ie chopping of higher address
+> bits owing to system bus HW capabilities mismatch with the IOMMU).
+> 
+> Fortunately this problem can be solved through an already present but never
+> used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define the DMA
+> window for a specific bus in ACPI and therefore all upstream devices
+> connected to it.
+> 
+> This small patch series enables _DMA parsing in ACPI core code and
+> use it in ACPI IORT code in order to detect DMA ranges for devices and
+> update their data structures to make them work with their related DMA
+> addressing restrictions.
+
+I tested the patches and unfortunately it seems like the DMA addressing
+restrictions are not really enforced for devices that attempt to set
+their own dma_mask based on controller capabilities. For instance,
+consider the following from the ahci_platform driver:
+
+	if (hpriv->cap & HOST_CAP_64) {
+		rc = dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(64));
+		[...]
+	}
+
+Prior to the check, I can see that the device dma_mask respects the
+limits enumerated in the _DMA object, however it is then clobbered by
+the call to dma_coerce_mask_and_coherent(). Interestingly, if
+HOST_CAP_64 was not set and the _DMA object for the device (or its
+parent) indicated support for > 32-bit addrs, the host controller
+could end up getting programmed with addresses beyond what it actually
+supports. That is more a bug with the ahci_platform driver assuming a
+default 32-bit dma_mask, but I would not be surprised to find other
+drivers that rely on the same assumption.
+
+To ensure that dma_set_mask() and friends actually respect _DMA, would
+you consider introducing a dma_supported() callback to check the input
+dma_mask against the FW defined limits? This would end up aggressively
+clipping the dma_mask to 32-bits for devices like the above if the _DMA
+limit was less than 64-bits, but that is probably preferable to the
+controller accessing unintended addresses.
+
+Also, how would you feel about adding support for the IORT named_node
+memory_address_limit field?
+
+-Nate
+> 
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Feng Kan <fkan@apm.com>
+> Cc: Jon Masters <jcm@redhat.com>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> 
+> Lorenzo Pieralisi (4):
+>    ACPI: Allow _DMA method in walk resources
+>    ACPI: Make acpi_dev_get_resources() method agnostic
+>    ACPI: Introduce DMA ranges parsing
+>    ACPI: Make acpi_dma_configure() DMA regions aware
+> 
+>   drivers/acpi/acpica/rsxface.c |  7 ++--
+>   drivers/acpi/arm64/iort.c     | 27 +++++++++++-
+>   drivers/acpi/resource.c       | 83 ++++++++++++++++++++++++++++---------
+>   drivers/acpi/scan.c           | 95 +++++++++++++++++++++++++++++++++++++++----
+>   include/acpi/acnames.h        |  1 +
+>   include/acpi/acpi_bus.h       |  2 +
+>   include/linux/acpi.h          |  8 ++++
+>   include/linux/acpi_iort.h     |  5 ++-
+>   8 files changed, 194 insertions(+), 34 deletions(-)
+> 
+
+-- 
+Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
