@@ -1,39 +1,60 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1 6/6] device property: Switch to use new generic UUID API
-Date: Wed, 26 Jul 2017 20:58:44 +0200
-Message-ID: <16514141.pv8EQG4iRb@aspire.rjw.lan>
-References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com> <6349641.0fe8FCM51k@aspire.rjw.lan> <1501063383.29303.248.camel@linux.intel.com>
+Subject: Re: [PATCH] ACPIi / lpat: Fix typos and kernel-doc style
+Date: Wed, 26 Jul 2017 20:59:29 +0200
+Message-ID: <2216383.aA2G1z59Fu@aspire.rjw.lan>
+References: <1500662682-29595-1-git-send-email-sumeet.r.pawnikar@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44479 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:60958 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751210AbdGZTGo (ORCPT
+        by vger.kernel.org with ESMTP id S1751011AbdGZTH3 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Jul 2017 15:06:44 -0400
-In-Reply-To: <1501063383.29303.248.camel@linux.intel.com>
+        Wed, 26 Jul 2017 15:07:29 -0400
+In-Reply-To: <1500662682-29595-1-git-send-email-sumeet.r.pawnikar@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, devel@linuxdriverproject.org, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>, linux-watchdog@vger.kernel.org, linux-efi <linux-efi@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
+To: Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, July 26, 2017 01:03:03 PM Andy Shevchenko wrote:
-> On Wed, 2017-07-26 at 02:27 +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, July 26, 2017 03:35:01 AM Andy Shevchenko wrote:
-> > > On Wed, Jul 26, 2017 at 3:21 AM, Rafael J. Wysocki <rjw@rjwysocki.ne
-> > > t> wrote:
+On Saturday, July 22, 2017 12:14:42 AM Sumeet Pawnikar wrote:
+> This patch fix the typos in function header of
+> acpi_lpat_raw_to_temp and acpi_lpat_temp_to_raw.
 > 
-> > > > Andy, do you want me to apply this?
-> > > 
-> > > If you would like to.
-> > > 
-> > > The patch is now pretty independent since necessary stuff made
-> > > v4.13-rc1.
-> > 
-> > OK
+> Signed-off-by: Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>
+> ---
+>  drivers/acpi/acpi_lpat.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 > 
-> Thanks!
+> diff --git a/drivers/acpi/acpi_lpat.c b/drivers/acpi/acpi_lpat.c
+> index c1c4877..2cd9f73 100644
+> --- a/drivers/acpi/acpi_lpat.c
+> +++ b/drivers/acpi/acpi_lpat.c
+> @@ -25,7 +25,7 @@
+>   * @raw: the raw value, used as a key to get the temerature from the
+>   *       above mapping table
+>   *
+> - * A positive converted temperarure value will be returned on success,
+> + * A positive converted temperature value will be returned on success,
+>   * a negative errno will be returned in error cases.
+>   */
+>  int acpi_lpat_raw_to_temp(struct acpi_lpat_conversion_table *lpat_table,
+> @@ -55,11 +55,11 @@ int acpi_lpat_raw_to_temp(struct acpi_lpat_conversion_table *lpat_table,
+>   * acpi_lpat_temp_to_raw(): Return raw value from temperature through
+>   * LPAT conversion table
+>   *
+> - * @lpat: the temperature_raw mapping table
+> + * @lpat_table: the temperature_raw mapping table
+>   * @temp: the temperature, used as a key to get the raw value from the
+>   *        above mapping table
+>   *
+> - * A positive converted temperature value will be returned on success,
+> + * The raw value will be returned on success,
+>   * a negative errno will be returned in error cases.
+>   */
+>  int acpi_lpat_temp_to_raw(struct acpi_lpat_conversion_table *lpat_table,
+> 
 
-Applied now, thanks!
+Applied, thanks!
 
