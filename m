@@ -1,40 +1,47 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH 1/2] MAINTAINERS: device property: acpi: add fwnode.h
-Date: Wed, 26 Jul 2017 20:46:30 +0200
-Message-ID: <2487491.S2Y1oo4oNY@aspire.rjw.lan>
-References: <1500578005-25893-1-git-send-email-frowand.list@gmail.com> <2851122.8a0ts3VkAi@aspire.rjw.lan> <59728121.2020508@gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 4/5] ACPI / boot: Not all platform require acpi_reduced_hw_init()
+Date: Wed, 26 Jul 2017 20:53:10 +0200
+Message-ID: <5814320.0Xa8vJDJkv@aspire.rjw.lan>
+References: <20170718150420.61600-1-andriy.shevchenko@linux.intel.com> <CAHp75Ve=7HsNHZ443Fs08O7Ya4mMfgtq3nD-6znkeKCjQtGe3w@mail.gmail.com> <CAJZ5v0hwg5Y3UeGpnM24HXVrJbmDm7ipX-1R9OSgo3wRR50mYQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <59728121.2020508-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57035 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750898AbdGZTBL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Jul 2017 15:01:11 -0400
+In-Reply-To: <CAJZ5v0hwg5Y3UeGpnM24HXVrJbmDm7ipX-1R9OSgo3wRR50mYQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Hanjun Guo <guohanjun@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>
 
-On Friday, July 21, 2017 03:33:05 PM Frank Rowand wrote:
-> On 07/21/17 15:03, Rafael J. Wysocki wrote:
-> > On Thursday, July 20, 2017 12:13:24 PM frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote:
-> >> From: Frank Rowand <frank.rowand-7U/KSKJipcs@public.gmane.org>
-> >>
-> >> ACPI is impacted by changes to fwnode.h, add a file entry
-> >> to ACPI
-> >>
-> >> Signed-off-by: Frank Rowand <frank.rowand-7U/KSKJipcs@public.gmane.org>
-> > 
-> > ACK for this one.
-> > 
-> > Or do you want me to apply it?
+On Sunday, July 23, 2017 12:14:27 AM Rafael J. Wysocki wrote:
+> On Sun, Jul 23, 2017 at 12:13 AM, Andy Shevchenko
+> <andy.shevchenko@gmail.com> wrote:
+> > On Sun, Jul 23, 2017 at 1:02 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >> On Saturday, July 22, 2017 04:53:52 AM Andy Shevchenko wrote:
+> >>> On Sat, Jul 22, 2017 at 1:25 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >>> > On Tuesday, July 18, 2017 06:04:19 PM Andy Shevchenko wrote:
+> >
+> >>> > I'd rather do it at the time when acpi_reduced_hw_init() actually needs to be
+> >>> > overridden by at least one platform.
+> >>>
+> >>> Do you mean as folded into some other patch or just as a preparatory
+> >>> patch in some future series?
+> >
+> >> Any of the above would work for me.
+> >
+> > Logically it should be a separate change as I can see (I have already
+> > locally prepared patches for that one platform).
+> >
+> > Thanks for review.
+> >
+> > P.S. Are you going to apply first 3 then from this series?
 > 
-> Please apply it.  So there won't be any conflicts between trees if
-> any other changes get made to this entry later in this cycle.
+> Yes, I am.
 
-OK, applied.
+So applied now, thanks!
 
-Thanks!
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
