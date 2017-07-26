@@ -1,29 +1,104 @@
-From: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v1 1/6] efi: Switch to use new generic UUID API
-Date: Wed, 26 Jul 2017 09:36:32 +0100
-Message-ID: <CAKv+Gu8Ua5A0N6vj_J65ss6eHdest1_+_Jwp7enoeqAsccugYQ@mail.gmail.com>
-References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
- <20170719182857.73693-2-andriy.shevchenko@linux.intel.com>
- <CAKv+Gu8Et3smOv9Of47q6VGa9yn9u+vuhS_1B5yg_QULsS4Obg@mail.gmail.com>
- <1500979206.29303.228.camel@linux.intel.com> <20170726075212.GB10959@lst.de>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2] irqchip/gic-v3-its: Allow GIC ITS number more than
+ MAX_NUMNODES
+Date: Wed, 26 Jul 2017 17:47:31 +0800
+Message-ID: <33afd72e-d8de-a8c5-9339-1a98a188ded0@linaro.org>
+References: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
+ <b5545a3e-74a9-0bff-afc7-309c653ca2b3@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170726075212.GB10959-jcswGhMUV9g@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org, sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, "<linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f54.google.com ([74.125.83.54]:37231 "EHLO
+        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751022AbdGZJrs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jul 2017 05:47:48 -0400
+Received: by mail-pg0-f54.google.com with SMTP id y129so82031514pgy.4
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Jul 2017 02:47:47 -0700 (PDT)
+In-Reply-To: <b5545a3e-74a9-0bff-afc7-309c653ca2b3@huawei.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: John Garry <john.garry@huawei.com>, Hanjun Guo <guohanjun@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, linux-acpi@vger.kernel.org, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, linux-arm-kernel@lists.infradead.org
 
-On 26 July 2017 at 08:52, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
-> On Tue, Jul 25, 2017 at 01:40:06PM +0300, Andy Shevchenko wrote:
->> Christoph, can we apply this one at least to move things forward?
->
-> Id be happy to pick this up for 4.14.  Does everyone involved agree
-> that the uuid tree is the right one?
+On 2017/7/25 19:02, John Garry wrote:
+> On 22/07/2017 04:54, Hanjun Guo wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>
+>> When running 4.13-rc1 on top of D05, I got the boot log:
+>>
+>> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+>> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+>> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+>> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+>> [    0.000000] SRAT: ITS affinity exceeding max count[4]
+>>
+>> This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
+>>
+>> So dynamically alloc the memory needed instead of using
+>> its_srat_maps[MAX_NUMNODES], which count the number of
+>> ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
+>> then build the mapping of numa node to ITS ID. Of course,
+>> its_srat_maps will be freed after ITS probing because
+>> we don't need that after boot.
+>>
+>> After doing this, I got what I wanted:
+>>
+>> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
+>> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
+>> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
+>> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
+>> [    0.000000] SRAT: PXM 2 -> ITS 4 -> Node 2
+>> [    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
+>> [    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
+>> [    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
+>>
+>> Fixes: dbd2b8267233 ("irqchip/gic-v3-its: Add ACPI NUMA node mapping")
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>> ---
+>>
+>> v1->v2:
+>>   - Add NULL check in acpi_get_its_numa_node() for no ITS affinity case;
+>>   - Free the its_srat_maps after ITS probing.
+>>
+>>  drivers/irqchip/irq-gic-v3-its.c | 39 
+>> ++++++++++++++++++++++++++++++++-------
+>>  1 file changed, 32 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/irqchip/irq-gic-v3-its.c 
+>> b/drivers/irqchip/irq-gic-v3-its.c
+>> index 3ccdf76..1d692aa 100644
+>> --- a/drivers/irqchip/irq-gic-v3-its.c
+>> +++ b/drivers/irqchip/irq-gic-v3-its.c
+>> @@ -1847,13 +1847,16 @@ struct its_srat_map {
+>>      u32    its_id;
+>>  };
+>>
+>> -static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata;
+>> +static struct its_srat_map *its_srat_maps __initdata;
+>>  static int its_in_srat __initdata;
+>>
+>>  static int __init acpi_get_its_numa_node(u32 its_id)
+>>  {
+>>      int i;
+>>
+>> +    if (!its_srat_maps)
+>> +        return NUMA_NO_NODE;
+> 
+> Question: Does !its_srat_maps always imply its_in_srat == 0, so we could 
+> just fall through the for loop and return NUMA_NO_NODE without this check?
+> 
+> Or should we be safe/explicit/or falling through loops is a bad coding 
+> style?
 
-Fine by me for EFI
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hmm, you are right, I missed that point, its_in_srat will
+always be 0 if its_srat_maps be NULL, removed the NULL
+check and tested it on D03 (without ITS NUMA) and D03 boots
+OK, will remove the check in the new version.
+
+Thanks
+Hanjun
