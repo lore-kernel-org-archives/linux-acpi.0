@@ -1,85 +1,66 @@
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v4 5/6] libnvdimm: fix potential deadlock while clearing errors
-Date: Wed, 26 Jul 2017 17:35:45 -0600
-Message-ID: <20170726233546.29052-6-vishal.l.verma@intel.com>
+From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v4 4/6] btt: cache sector_size in arena_info
+Date: Wed, 26 Jul 2017 17:35:44 -0600
+Message-ID: <20170726233546.29052-5-vishal.l.verma@intel.com>
 References: <20170726233546.29052-1-vishal.l.verma@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:21047 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751445AbdGZXho (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Jul 2017 19:37:44 -0400
-In-Reply-To: <20170726233546.29052-1-vishal.l.verma@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170726233546.29052-1-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, Robert Moore <robert.moore@intel.com>
 
-With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
-Specifically, the DSM to clear media errors is called during writes, so
-that we can provide a writes-fix-errors model.
+In preparation for the error clearing rework, add sector_size in the
+arena_info struct.
 
-However it is easy to imagine a scenario like:
- -> write through the nvdimm driver
-   -> acpi allocation
-     -> writeback, causes more IO through the nvdimm driver
-       -> deadlock
-
-Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
-flag for the current scope when issuing commands/IOs that are expected
-to clear errors.
-
-Cc: <linux-acpi@vger.kernel.org>
-Cc: <linux-nvdimm@lists.01.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/nvdimm/bus.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/nvdimm/btt.c | 1 +
+ drivers/nvdimm/btt.h | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 937fafa..a18c291 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -11,6 +11,7 @@
-  * General Public License for more details.
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/sched/mm.h>
- #include <linux/vmalloc.h>
- #include <linux/uaccess.h>
- #include <linux/module.h>
-@@ -234,6 +235,7 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	struct nd_cmd_clear_error clear_err;
- 	struct nd_cmd_ars_cap ars_cap;
- 	u32 clear_err_unit, mask;
-+	unsigned int noio_flag;
- 	int cmd_rc, rc;
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 374ae62..e9dd651 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -566,6 +566,7 @@ static struct arena_info *alloc_arena(struct btt *btt, size_t size,
+ 	if (!arena)
+ 		return NULL;
+ 	arena->nd_btt = btt->nd_btt;
++	arena->sector_size = btt->sector_size;
  
- 	if (!nvdimm_bus)
-@@ -250,8 +252,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&ars_cap, 0, sizeof(ars_cap));
- 	ars_cap.address = phys;
- 	ars_cap.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, &ars_cap,
- 			sizeof(ars_cap), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
-@@ -266,8 +270,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&clear_err, 0, sizeof(clear_err));
- 	clear_err.address = phys;
- 	clear_err.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CLEAR_ERROR, &clear_err,
- 			sizeof(clear_err), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
+ 	if (!size)
+ 		return arena;
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 09fabf5..2bc0d10b 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -108,6 +108,7 @@ struct aligned_lock {
+  *			handle incoming writes.
+  * @version_major:	Metadata layout version major.
+  * @version_minor:	Metadata layout version minor.
++ * @sector_size:	The Linux sector size - 512 or 4096
+  * @nextoff:		Offset in bytes to the start of the next arena.
+  * @infooff:		Offset in bytes to the info block of this arena.
+  * @dataoff:		Offset in bytes to the data area of this arena.
+@@ -135,6 +136,7 @@ struct arena_info {
+ 	u32 nfree;
+ 	u16 version_major;
+ 	u16 version_minor;
++	u32 sector_size;
+ 	/* Byte offsets to the different on-media structures */
+ 	u64 nextoff;
+ 	u64 infooff;
 -- 
 2.9.3
-
