@@ -1,151 +1,52 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v3] irqchip/gic-v3-its: Allow GIC ITS number more than MAX_NUMNODES
-Date: Wed, 26 Jul 2017 18:15:49 +0800
-Message-ID: <1501064149-37285-1-git-send-email-guohanjun@huawei.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v4 1/3] mfd: Add new mfd device TPS68470
+Date: Wed, 26 Jul 2017 13:26:30 +0300
+Message-ID: <CAHp75VfCvNt2TdGRZ77Gk-j7KQzQTAyuKmvsna9GU5yNesGMkw@mail.gmail.com>
+References: <1500506426-3047-1-git-send-email-rajmohan.mani@intel.com>
+ <1500506426-3047-2-git-send-email-rajmohan.mani@intel.com>
+ <20170720090300.ayx5pz5l4yntefpt@dell> <6F87890CF0F5204F892DEA1EF0D77A59725DD60A@FMSMSX114.amr.corp.intel.com>
+ <20170725091012.3hpxihekht2j35xb@dell> <CAHp75VeGqWNyDO644V+mje4sWsODDhyxRJ8cQ-HDV_e1hAUP3g@mail.gmail.com>
+ <20170726082304.7j4lbvsuyyu7owqy@dell>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([45.249.212.189]:9424 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751472AbdGZKXC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jul 2017 06:23:02 -0400
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:38530 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751175AbdGZK0b (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jul 2017 06:26:31 -0400
+In-Reply-To: <20170726082304.7j4lbvsuyyu7owqy@dell>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, John Garry <john.garry@huawei.com>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: "Mani, Rajmohan" <rajmohan.mani@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+On Wed, Jul 26, 2017 at 11:23 AM, Lee Jones <lee.jones@linaro.org> wrote:
+> On Tue, 25 Jul 2017, Andy Shevchenko wrote:
+>> On Tue, Jul 25, 2017 at 12:10 PM, Lee Jones <lee.jones@linaro.org> wrote:
 
-When enabling ITS NUMA support on D05, I got the boot log:
+>> I briefly checked few ->read() and ->write() implementations and
+>> didn't find any evidence of positive numbers that can be returned.
+>> Documentation (kernel doc) doesn't shed a light on that. So, to me it
+>> sounds unspecified.
+>>
+>> So, for now (until documentation will be fixed) I would rely on
+>> if (ret < 0)
+>
+> It's not unspecified.  The regmap methods call into regcache_write(),
+> where the kerneldoc is clear.
 
-[    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
-[    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
-[    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
-[    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
-[    0.000000] SRAT: ITS affinity exceeding max count[4]
+drivers/base/regmap/regcache.c:266
 
-This is wrong on D05 as we have 8 ITSs with 4 NUMA nodes.
+" * Return a negative value on failure, 0 on success."
 
-So dynamically alloc the memory needed instead of using
-its_srat_maps[MAX_NUMNODES], which count the number of
-ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
-then build the mapping of numa node to ITS ID. Of course,
-its_srat_maps will be freed after ITS probing because
-we don't need that after boot.
+I can hardly find this any cleaner than "unspecified".
 
-After doing this, I got what I wanted:
+>  Perhaps we can also change the regmap
+> kerneldoc headers too to match, which might lessen the disparity.
 
-[    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
-[    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
-[    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
-[    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
-[    0.000000] SRAT: PXM 2 -> ITS 4 -> Node 2
-[    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
-[    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
-[    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
+I'm not familiar with the guts of regmap API, so, I would stick with
+if (ret < 0) for now until documentation specifies positive return values.
 
-Fixes: dbd2b8267233 ("irqchip/gic-v3-its: Add ACPI NUMA node mapping")
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-Cc: John Garry <john.garry@huawei.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
----
-
-v2->v3:
-  - Remove the NULL check for its_srat_maps as its_in_srat will be 0;
-  - Add warning if alloc memory failed for its_srat_maps;
-  - Update commit log as Lorenzo suggested;
-  - Add review tag
-
- drivers/irqchip/irq-gic-v3-its.c | 38 +++++++++++++++++++++++++++++++-------
- 1 file changed, 31 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 3ccdf76..bf70115 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -1847,7 +1847,7 @@ struct its_srat_map {
- 	u32	its_id;
- };
- 
--static struct its_srat_map its_srat_maps[MAX_NUMNODES] __initdata;
-+static struct its_srat_map *its_srat_maps __initdata;
- static int its_in_srat __initdata;
- 
- static int __init acpi_get_its_numa_node(u32 its_id)
-@@ -1861,6 +1861,12 @@ static int __init acpi_get_its_numa_node(u32 its_id)
- 	return NUMA_NO_NODE;
- }
- 
-+static int __init gic_acpi_match_srat_its(struct acpi_subtable_header *header,
-+					  const unsigned long end)
-+{
-+	return 0;
-+}
-+
- static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
- 			 const unsigned long end)
- {
-@@ -1877,12 +1883,6 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
- 		return -EINVAL;
- 	}
- 
--	if (its_in_srat >= MAX_NUMNODES) {
--		pr_err("SRAT: ITS affinity exceeding max count[%d]\n",
--				MAX_NUMNODES);
--		return -EINVAL;
--	}
--
- 	node = acpi_map_pxm_to_node(its_affinity->proximity_domain);
- 
- 	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
-@@ -1901,14 +1901,37 @@ static int __init gic_acpi_parse_srat_its(struct acpi_subtable_header *header,
- 
- static void __init acpi_table_parse_srat_its(void)
- {
-+	int count;
-+
-+	count = acpi_table_parse_entries(ACPI_SIG_SRAT,
-+			sizeof(struct acpi_table_srat),
-+			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
-+			gic_acpi_match_srat_its, 0);
-+	if (count <= 0)
-+		return;
-+
-+	its_srat_maps = kmalloc(count * sizeof(struct its_srat_map),
-+				GFP_KERNEL);
-+	if (!its_srat_maps) {
-+		pr_warn("SRAT: Failed to allocate memory for its_srat_maps!\n");
-+		return;
-+	}
-+
- 	acpi_table_parse_entries(ACPI_SIG_SRAT,
- 			sizeof(struct acpi_table_srat),
- 			ACPI_SRAT_TYPE_GIC_ITS_AFFINITY,
- 			gic_acpi_parse_srat_its, 0);
- }
-+
-+/* free the its_srat_maps after ITS probing */
-+static void __init acpi_its_srat_maps_free(void)
-+{
-+	kfree(its_srat_maps);
-+}
- #else
- static void __init acpi_table_parse_srat_its(void)	{ }
- static int __init acpi_get_its_numa_node(u32 its_id) { return NUMA_NO_NODE; }
-+static void __init acpi_its_srat_maps_free(void) { }
- #endif
- 
- static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
-@@ -1955,6 +1978,7 @@ static void __init its_acpi_probe(void)
- 	acpi_table_parse_srat_its();
- 	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
- 			      gic_acpi_parse_madt_its, 0);
-+	acpi_its_srat_maps_free();
- }
- #else
- static void __init its_acpi_probe(void) { }
 -- 
-1.7.12.4
-
+With Best Regards,
+Andy Shevchenko
