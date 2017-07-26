@@ -1,131 +1,60 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 0/4] ACPI: DMA ranges management
-Date: Wed, 26 Jul 2017 16:35:19 +0100
-Message-ID: <20170726153519.GA4696@red-moon>
-References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
- <7df11172-5a40-685f-5202-9a0bceb6e19b@codeaurora.org>
- <c09352cc-e1a2-a494-c457-dc3ea275f504@arm.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH 1/3] backlight: always select BACKLIGHT_LCD_SUPPORT for
+ BACKLIGHT_CLASS_DEVICE
+Date: Wed, 26 Jul 2017 18:38:10 +0300
+Message-ID: <CAHp75VetN55OhJkyR=REseMO=KdzTJZmzuBn5SoA1hF6utzqMw@mail.gmail.com>
+References: <20170726135312.2214309-1-arnd@arndb.de>
+ <20170726135312.2214309-2-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:34518 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751013AbdGZPdb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Jul 2017 11:33:31 -0400
-Content-Disposition: inline
-In-Reply-To: <c09352cc-e1a2-a494-c457-dc3ea275f504@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170726135312.2214309-2-arnd@arndb.de>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, Platform Driver <platform-driver-x86@vger.kernel.org>, Daniel Vetter <daniel.vetter@intel.com>, devel@driverdev.osuosl.org, Daniel Drake <dsd@laptop.org>, Jens Frederich <jfrederich@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ben Skeggs <bskeggs@redhat.com>, Russell King <linux+etnaviv@armlinux.org.uk>, Darren Hart <dvhart@infradead.org>, Len Brown <lenb@kernel.org>, intel-gfx@lists.freedesktop.org, etnaviv@lists.freedesktop.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Shevchenko <andy@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: Nate Watterson <nwatters@codeaurora.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Wed, Jul 26, 2017 at 04:05:55PM +0100, Robin Murphy wrote:
-> Hi Nate,
-> 
-> On 26/07/17 15:46, Nate Watterson wrote:
-> > Hi Lorenzo,
-> > 
-> > On 7/20/2017 10:45 AM, Lorenzo Pieralisi wrote:
-> >> As reported in:
-> >>
-> >> http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
-> >>
-> >>
-> >> the bus connecting devices to an IOMMU bus can be smaller in size than
-> >> the IOMMU input address bits which results in devices DMA HW bugs in
-> >> particular related to IOVA allocation (ie chopping of higher address
-> >> bits owing to system bus HW capabilities mismatch with the IOMMU).
-> >>
-> >> Fortunately this problem can be solved through an already present but
-> >> never
-> >> used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define
-> >> the DMA
-> >> window for a specific bus in ACPI and therefore all upstream devices
-> >> connected to it.
-> >>
-> >> This small patch series enables _DMA parsing in ACPI core code and
-> >> use it in ACPI IORT code in order to detect DMA ranges for devices and
-> >> update their data structures to make them work with their related DMA
-> >> addressing restrictions.
-> > 
-> > I tested the patches and unfortunately it seems like the DMA addressing
-> > restrictions are not really enforced for devices that attempt to set
-> > their own dma_mask based on controller capabilities. For instance,
-> > consider the following from the ahci_platform driver:
-> > 
-> >     if (hpriv->cap & HOST_CAP_64) {
-> >         rc = dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(64));
-> >         [...]
-> >     }
-> > 
-> > Prior to the check, I can see that the device dma_mask respects the
-> > limits enumerated in the _DMA object, however it is then clobbered by
-> > the call to dma_coerce_mask_and_coherent(). Interestingly, if
-> > HOST_CAP_64 was not set and the _DMA object for the device (or its
-> > parent) indicated support for > 32-bit addrs, the host controller
-> > could end up getting programmed with addresses beyond what it actually
-> > supports. That is more a bug with the ahci_platform driver assuming a
-> > default 32-bit dma_mask, but I would not be surprised to find other
-> > drivers that rely on the same assumption.
-> 
-> Yup, you've hit upon the more general problem, which applies equally to
-> DT "dma-ranges" too. I'm working on arm64 DMA stuff at the moment, and
-> have the patch to actually enforce the firmware-described limit when
-> drivers update their masks, but that depends on everyone passing the
-> correct information to arch_setup_dma_ops() in the first place (I think
-> DT needs more fixing than ACPI does).
-> 
-> > To ensure that dma_set_mask() and friends actually respect _DMA, would
-> > you consider introducing a dma_supported() callback to check the input
-> > dma_mask against the FW defined limits? This would end up aggressively
-> > clipping the dma_mask to 32-bits for devices like the above if the _DMA
-> > limit was less than 64-bits, but that is probably preferable to the
-> > controller accessing unintended addresses.
-> > 
-> > Also, how would you feel about adding support for the IORT named_node
-> > memory_address_limit field?
-> 
-> We will certainly need that for some platform devices, so if you fancy
-> giving it a go before Lorenzo or I get there, feel free!
-
-I can do it for v2 but I would like to understand why using _DMA is
-not good enough for named components - having two bindings describing
-the same thing is not ideal and I'd rather avoid it - if there is
-a reason I am happy to add the necessary code.
-
-Thanks,
-Lorenzo
-
-> Robin.
-> 
-> > -Nate
-> >>
-> >> Cc: Will Deacon <will.deacon@arm.com>
-> >> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Cc: Feng Kan <fkan@apm.com>
-> >> Cc: Jon Masters <jcm@redhat.com>
-> >> Cc: Robert Moore <robert.moore@intel.com>
-> >> Cc: Robin Murphy <robin.murphy@arm.com>
-> >> Cc: Zhang Rui <rui.zhang@intel.com>
-> >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >>
-> >> Lorenzo Pieralisi (4):
-> >>    ACPI: Allow _DMA method in walk resources
-> >>    ACPI: Make acpi_dev_get_resources() method agnostic
-> >>    ACPI: Introduce DMA ranges parsing
-> >>    ACPI: Make acpi_dma_configure() DMA regions aware
-> >>
-> >>   drivers/acpi/acpica/rsxface.c |  7 ++--
-> >>   drivers/acpi/arm64/iort.c     | 27 +++++++++++-
-> >>   drivers/acpi/resource.c       | 83
-> >> ++++++++++++++++++++++++++++---------
-> >>   drivers/acpi/scan.c           | 95
-> >> +++++++++++++++++++++++++++++++++++++++----
-> >>   include/acpi/acnames.h        |  1 +
-> >>   include/acpi/acpi_bus.h       |  2 +
-> >>   include/linux/acpi.h          |  8 ++++
-> >>   include/linux/acpi_iort.h     |  5 ++-
-> >>   8 files changed, 194 insertions(+), 34 deletions(-)
-> >>
-> > 
-> 
+T24gV2VkLCBKdWwgMjYsIDIwMTcgYXQgNDo1MyBQTSwgQXJuZCBCZXJnbWFubiA8YXJuZEBhcm5k
+Yi5kZT4gd3JvdGU6Cj4gcmFuZGNvbmZpZyBidWlsZHMgb2NjYXNpb25hbGx5IHByb2R1Y2UgdGhp
+cyBLY29uZmlnIHdhcm5pbmc6Cj4KPiB3YXJuaW5nOiAoRFJNX1JBREVPTiAmJiBEUk1fQU1ER1BV
+ICYmIERSTV9OT1VWRUFVICYmIERSTV9JOTE1ICYmIERSTV9HTUE1MDAgJiYgRFJNX1NITU9CSUxF
+ICYmIERSTV9USUxDREMgJiYgRFJNX0ZTTF9EQ1UgJiYgRFJNX1RJTllEUk0gJiYgRFJNX1BBUkFE
+RV9QUzg2MjIgJiYgRkJfQkFDS0xJR0hUICYmIEZCX0FSTUNMQ0QgJiYgRkJfTVgzICYmIFVTQl9B
+UFBMRURJU1BMQVkgJiYgRkJfT0xQQ19EQ09OICYmIEFDUElfQ01QQyAmJiBTQU1TVU5HX1ExMCkg
+c2VsZWN0cyBCQUNLTElHSFRfQ0xBU1NfREVWSUNFIHdoaWNoIGhhcyB1bm1ldCBkaXJlY3QgZGVw
+ZW5kZW5jaWVzIChIQVNfSU9NRU0gJiYgQkFDS0xJR0hUX0xDRF9TVVBQT1JUKQo+Cj4gSXQgdHVy
+bnMgb3V0IHRoYXQgYW1vc3QgYWxsIHVzZXJzIG9mIEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0UgYWxz
+byBzZWxlY3QKPiBCQUNLTElHSFRfTENEX1NVUFBPUlQsIGJ1dCBub3QgYWxsIG9mIHRoZW0gZG8u
+IFRoaXMgbWFrZXMgdGhlIHJlbWFpbmluZwo+IG9uZXMgYmVoYXZlIGxpa2UgdGhlIG90aGVycy4K
+Pgo+IEl0IHdvdWxkIHByb2JhYmx5IGJlIGJlc3QgdG8gcmV3b3JrIHRoZSB3YXkgdGhvc2UgdHdv
+IG9wdGlvbnMgcmVsYXRlZAo+IGVudGlyZWx5LCBidXQgZm9yIG5vdyB0aGlzIHRha2VzIHRoZSBz
+aW1wbGVyIGFuZCBzYWZlciBhcHByb2FjaCB0bwo+IGZpeCB0aGUgd2FybmluZ3Mgd2l0aG91dCBp
+bnRyb2R1Y2luZyByZWdyZXNzaW9ucy4KCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvcGxhdGZvcm0v
+eDg2L0tjb25maWcgYi9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9LY29uZmlnCj4gaW5kZXggODBiODc5
+NTRmNmRkLi5lMGNhNjczYmY1NjQgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9wbGF0Zm9ybS94ODYv
+S2NvbmZpZwo+ICsrKyBiL2RyaXZlcnMvcGxhdGZvcm0veDg2L0tjb25maWcKPiBAQCAtNzg1LDYg
+Kzc4NSw3IEBAIGNvbmZpZyBBQ1BJX0NNUEMKPiAgICAgICAgIGRlcGVuZHMgb24gUkZLSUxMIHx8
+IFJGS0lMTD1uCj4gICAgICAgICBzZWxlY3QgSU5QVVQKPiAgICAgICAgIHNlbGVjdCBCQUNLTElH
+SFRfQ0xBU1NfREVWSUNFCj4gKyAgICAgICBzZWxlY3QgQkFDS0xJR0hUX0xDRF9TVVBQT1JUCj4g
+ICAgICAgICBkZWZhdWx0IG4KPiAgICAgICAgIGhlbHAKPiAgICAgICAgICAgU3VwcG9ydCBmb3Ig
+SW50ZWwgQ2xhc3NtYXRlIFBDIEFDUEkgZGV2aWNlcywgaW5jbHVkaW5nIHNvbWUKPiBAQCAtMTAw
+MCw2ICsxMDAxLDcgQEAgY29uZmlnIFNBTVNVTkdfUTEwCj4gICAgICAgICB0cmlzdGF0ZSAiU2Ft
+c3VuZyBRMTAgRXh0cmFzIgo+ICAgICAgICAgZGVwZW5kcyBvbiBBQ1BJCj4gICAgICAgICBzZWxl
+Y3QgQkFDS0xJR0hUX0NMQVNTX0RFVklDRQo+ICsgICAgICAgc2VsZWN0IEJBQ0tMSUdIVF9MQ0Rf
+U1VQUE9SVAo+ICAgICAgICAgLS0taGVscC0tLQo+ICAgICAgICAgICBUaGlzIGRyaXZlciBwcm92
+aWRlcyBzdXBwb3J0IGZvciBiYWNrbGlnaHQgY29udHJvbCBvbiBTYW1zdW5nIFExMAo+ICAgICAg
+ICAgICBhbmQgcmVsYXRlZCBsYXB0b3BzLCBpbmNsdWRpbmcgRGVsbCBMYXRpdHVkZSBYMjAwLgoK
+QWNrZWQtYnk6IEFuZHkgU2hldmNoZW5rbyA8YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbT4KCi0t
+IApXaXRoIEJlc3QgUmVnYXJkcywKQW5keSBTaGV2Y2hlbmtvCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRl
+dmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
