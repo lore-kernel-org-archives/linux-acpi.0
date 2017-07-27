@@ -1,57 +1,43 @@
-From: Song liwei <liwei.song@windriver.com>
-Subject: [PATCH V2] ACPI, APEI: Fixup incorrect 16-bit access width firmware bug
-Date: Wed, 26 Jul 2017 22:31:08 -0400
-Message-ID: <1501122668-53948-1-git-send-email-liwei.song@windriver.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH v6 1/1] acpi: apei: Enable APEI multiple GHES source to
+ share a single external IRQ
+Date: Thu, 27 Jul 2017 07:58:25 +0200
+Message-ID: <20170727055825.GA4611@nazgul.tnic>
+References: <1500661477-6536-1-git-send-email-lho@apm.com>
+ <20170722055954.GA2082@nazgul.tnic>
+ <1893763.BLgt1zgLk5@aspire.rjw.lan>
+ <1632667.Vgem7HtdXu@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail5.windriver.com ([192.103.53.11]:36784 "EHLO mail5.wrs.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751423AbdG0CbR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Jul 2017 22:31:17 -0400
+Received: from mx2.suse.de ([195.135.220.15]:37216 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751452AbdG0F7F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Jul 2017 01:59:05 -0400
+Content-Disposition: inline
+In-Reply-To: <1632667.Vgem7HtdXu@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, LiweiSong <liwei.song@windriver.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Loc Ho <lho@apm.com>, msalter@redhat.com, rafael@kernel.org, tbaicar@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@apm.com, "Luck, Tony" <tony.luck@intel.com>
 
-From: Liwei Song <liwei.song@windriver.com>
+On Wed, Jul 26, 2017 at 08:57:03PM +0200, Rafael J. Wysocki wrote:
+> > Should I apply this or will Tony do that?
+> 
+> So am I suppsed to drop this?
 
-This is a follow up to commit f712c71f7b2b ("ACPI, APEI: Fixup common
-access width firmware bug") fix the following firmware bug:
+Well, as suggested in another mail, I think it'll be best if Tony and I
+put ourselves as reviewers for the APEI crap and you still collect it.
 
-[Firmware Bug]: APEI: Invalid bit width + offset in GAR [0xb2/16/0/1/1]
+Unless you want to give it to us and we can arrange some pull order to
+send it to you.
 
-This is due to an 8-bit access width is specified for a 16-bit register,
-Rearrange the condition and add 8-bit width check.
+What do you prefer?
 
-Signed-off-by: Liwei Song <liwei.song@windriver.com>
----
- drivers/acpi/apei/apei-base.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index da370e1..eca3d7a 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -604,12 +604,12 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
- 	*access_bit_width = 1UL << (access_size_code + 2);
- 
- 	/* Fixup common BIOS bug */
--	if (bit_width == 32 && bit_offset == 0 && (*paddr & 0x03) == 0 &&
--	    *access_bit_width < 32)
--		*access_bit_width = 32;
--	else if (bit_width == 64 && bit_offset == 0 && (*paddr & 0x07) == 0 &&
--	    *access_bit_width < 64)
--		*access_bit_width = 64;
-+	if (*access_bit_width < bit_width && bit_offset == 0) {
-+		if ((bit_width == 16 && (*paddr & 0x01) == 0) ||
-+		    (bit_width == 32 && (*paddr & 0x03) == 0) ||
-+		    (bit_width == 64 && (*paddr & 0x07) == 0))
-+			*access_bit_width = bit_width;
-+	}
- 
- 	if ((bit_width + bit_offset) > *access_bit_width) {
- 		pr_warning(FW_BUG APEI_PFX
 -- 
-2.7.4
+Regards/Gruss,
+    Boris.
 
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
