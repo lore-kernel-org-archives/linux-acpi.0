@@ -1,102 +1,101 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2] irqchip/gic-v3-its: Allow GIC ITS number more than
- MAX_NUMNODES
-Date: Thu, 27 Jul 2017 15:36:21 +0800
-Message-ID: <b14f3a93-6d9d-3be0-ae3e-12b1ac510df2@linaro.org>
-References: <1500695652-27025-1-git-send-email-guohanjun@huawei.com>
- <20170725104758.GC19302@red-moon>
- <eec017c3-0d41-fb9f-478c-805368f66179@linaro.org>
- <5e8aacb2-9c20-0f4a-2c5e-721fe82bfc60@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 1/3] ACPI / EC: Cleanup EC GPE mask flag
+Date: Thu, 27 Jul 2017 15:55:18 +0800
+Message-ID: <99f23db65bbe89ee856018629654584a96734c84.1501141963.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f178.google.com ([209.85.192.178]:35298 "EHLO
-        mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751662AbdG0Hgb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Jul 2017 03:36:31 -0400
-Received: by mail-pf0-f178.google.com with SMTP id e75so2277257pfj.2
-        for <linux-acpi@vger.kernel.org>; Thu, 27 Jul 2017 00:36:30 -0700 (PDT)
-In-Reply-To: <5e8aacb2-9c20-0f4a-2c5e-721fe82bfc60@arm.com>
-Content-Language: en-US
+Received: from mga05.intel.com ([192.55.52.43]:41185 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750765AbdG0HzW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Jul 2017 03:55:22 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <guohanjun@huawei.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, linux-acpi@vger.kernel.org, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Robin,
+EC_FLAGS_COMMAND_STORM is actually used to mask GPE during IRQ processing.
+This patch cleans it up using more readable flag/function names.
 
-On 2017/7/26 19:05, Robin Murphy wrote:
-> On 26/07/17 09:11, Hanjun Guo wrote:
->> On 2017/7/25 18:47, Lorenzo Pieralisi wrote:
->>> On Sat, Jul 22, 2017 at 11:54:12AM +0800, Hanjun Guo wrote:
->>>> From: Hanjun Guo <hanjun.guo@linaro.org>
->>>>
->>>> When running 4.13-rc1 on top of D05, I got the boot log:
->>>
->>> Nit: You should stick to what the problem is and why you need to solve
->>> it, "Fixes:" tag gives the commit history you need, the rest (eg "When
->>> running 4.13-rc1") does not belong in the commit log.
->>
->> Updated as "After enabling the ITS NUMA support on D05, I got
->> the boot log:"
->>
->>>
->>>> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
->>>> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
->>>> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
->>>> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
->>>> [    0.000000] SRAT: ITS affinity exceeding max count[4]
->>>>
->>>> This is wrong on D05 as we have 8 ITSes with 4 NUMA nodes.
->>>>
->>>> So dynamically alloc the memory needed instead of using
->>>> its_srat_maps[MAX_NUMNODES], which count the number of
->>>> ITS entry(ies) in SRAT and alloc its_srat_maps as needed,
->>>> then build the mapping of numa node to ITS ID. Of course,
->>>> its_srat_maps will be freed after ITS probing because
->>>> we don't need that after boot.
->>>>
->>>> After doing this, I got what I wanted:
->>>>
->>>> [    0.000000] SRAT: PXM 0 -> ITS 0 -> Node 0
->>>> [    0.000000] SRAT: PXM 0 -> ITS 1 -> Node 0
->>>> [    0.000000] SRAT: PXM 0 -> ITS 2 -> Node 0
->>>> [    0.000000] SRAT: PXM 1 -> ITS 3 -> Node 1
->>>> [    0.000000] SRAT: PXM 2 -> ITS 4 -> Node 2
->>>> [    0.000000] SRAT: PXM 2 -> ITS 5 -> Node 2
->>>> [    0.000000] SRAT: PXM 2 -> ITS 6 -> Node 2
->>>> [    0.000000] SRAT: PXM 3 -> ITS 7 -> Node 3
->>>
->>> Question (unrelated): how are PCI devices (or better PCI host bridges)
->>> mapped to ITSs ? I ask because in IORT we currently ignore the notion
->>> of ITS groups - so it is just out of curiosity (I suspect you have
->>> a static 1:1 mapping PCI-host-bridge->ITS).
->>
->> Yes, on D05 we enabled 8 ITSs, and also have 8 PCI hostbridges, here is
->> the IORT for D05:
->>
->> https://github.com/hisilicon/OpenPlatformPkg/blob/bb17676e6c529732af8adf438fc2c8ceeb9b3271/Chips/Hisilicon/Hi1616/D05AcpiTables/D05Iort.asl
-> 
-> On a further side note, do the SMMUs really have no interrupts, or is
-> that just a hack to avoid MBIgen-related problems? Now that we have
-> working probe-deferral for IOMMU masters, it ought to be possible to
-> address any dependency by deferring the SMMU itself until the IRQs are
-> available. At a glance I guess ACPI doesn't make it as easy as
-> of_irq_get() does, but it might be worth looking into.
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/ec.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-SMMUs on D05 have interrupts as SMMU spec defined, but as you said they
-are routed to MBIgen.
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index ddb01e9..54879c7 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -112,8 +112,7 @@ enum {
+ 	EC_FLAGS_EVT_HANDLER_INSTALLED, /* _Qxx handlers installed */
+ 	EC_FLAGS_STARTED,		/* Driver is started */
+ 	EC_FLAGS_STOPPED,		/* Driver is stopped */
+-	EC_FLAGS_COMMAND_STORM,		/* GPE storms occurred to the
+-					 * current command processing */
++	EC_FLAGS_GPE_MASKED,		/* GPE masked */
+ };
+ 
+ #define ACPI_EC_COMMAND_POLL		0x01 /* Available for command byte */
+@@ -421,19 +420,19 @@ static void acpi_ec_complete_request(struct acpi_ec *ec)
+ 		wake_up(&ec->wait);
+ }
+ 
+-static void acpi_ec_set_storm(struct acpi_ec *ec, u8 flag)
++static void acpi_ec_mask_gpe(struct acpi_ec *ec)
+ {
+-	if (!test_bit(flag, &ec->flags)) {
++	if (!test_bit(EC_FLAGS_GPE_MASKED, &ec->flags)) {
+ 		acpi_ec_disable_gpe(ec, false);
+ 		ec_dbg_drv("Polling enabled");
+-		set_bit(flag, &ec->flags);
++		set_bit(EC_FLAGS_GPE_MASKED, &ec->flags);
+ 	}
+ }
+ 
+-static void acpi_ec_clear_storm(struct acpi_ec *ec, u8 flag)
++static void acpi_ec_unmask_gpe(struct acpi_ec *ec)
+ {
+-	if (test_bit(flag, &ec->flags)) {
+-		clear_bit(flag, &ec->flags);
++	if (test_bit(EC_FLAGS_GPE_MASKED, &ec->flags)) {
++		clear_bit(EC_FLAGS_GPE_MASKED, &ec->flags);
+ 		acpi_ec_enable_gpe(ec, false);
+ 		ec_dbg_drv("Polling disabled");
+ 	}
+@@ -460,7 +459,7 @@ static bool acpi_ec_submit_flushable_request(struct acpi_ec *ec)
+ 
+ static void acpi_ec_submit_query(struct acpi_ec *ec)
+ {
+-	acpi_ec_set_storm(ec, EC_FLAGS_COMMAND_STORM);
++	acpi_ec_mask_gpe(ec);
+ 	if (!acpi_ec_event_enabled(ec))
+ 		return;
+ 	if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
+@@ -476,7 +475,7 @@ static void acpi_ec_complete_query(struct acpi_ec *ec)
+ 	if (test_and_clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
+ 		ec_dbg_evt("Command(%s) unblocked",
+ 			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
+-	acpi_ec_clear_storm(ec, EC_FLAGS_COMMAND_STORM);
++	acpi_ec_unmask_gpe(ec);
+ }
+ 
+ static inline void __acpi_ec_enable_event(struct acpi_ec *ec)
+@@ -688,7 +687,7 @@ static void advance_transaction(struct acpi_ec *ec)
+ 				++t->irq_count;
+ 			/* Allow triggering on 0 threshold */
+ 			if (t->irq_count == ec_storm_threshold)
+-				acpi_ec_set_storm(ec, EC_FLAGS_COMMAND_STORM);
++				acpi_ec_mask_gpe(ec);
+ 		}
+ 	}
+ out:
+@@ -786,7 +785,7 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+ 
+ 	spin_lock_irqsave(&ec->lock, tmp);
+ 	if (t->irq_count == ec_storm_threshold)
+-		acpi_ec_clear_storm(ec, EC_FLAGS_COMMAND_STORM);
++		acpi_ec_unmask_gpe(ec);
+ 	ec_dbg_req("Command(%s) stopped", acpi_ec_cmd_string(t->command));
+ 	ec->curr = NULL;
+ 	/* Disable GPE for command processing (IBF=0/OBF=1) */
+-- 
+2.7.4
 
-For now, IORT can support two types of interrupt for SMMU, one is SPI
-which connect to GICD, the other one is using MSI which describing the
-mapping of smmu dev id to ITS.
-
-So interrupts connecting to MBIgen or other interrupt controller are not
-supported, but I investigated that for a while and I think we can update
-the IORT table to support other interrupt controllers by introducing
-"ACPI device object full path name" in the IORT that the SMMU interrupts
-are referring.
-
-Thanks
-Hanjun
