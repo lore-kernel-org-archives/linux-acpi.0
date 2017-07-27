@@ -1,73 +1,39 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.13-rc3
-Date: Thu, 27 Jul 2017 23:44:15 +0200
-Message-ID: <CAJZ5v0iV=qc297eDjTWDGQx_O1sNDjMRbCCGp0tqs3pmH+RvuQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPIi / lpat: Fix typos and kernel-doc style
+Date: Fri, 28 Jul 2017 01:47:51 +0200
+Message-ID: <1808740.NeeHjkKbfW@aspire.rjw.lan>
+References: <1500662682-29595-1-git-send-email-sumeet.r.pawnikar@intel.com> <2216383.aA2G1z59Fu@aspire.rjw.lan> <3C3E65E75D9910479323816378A812E7411082F5@BGSMSX104.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:37004 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751465AbdG0VoQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Jul 2017 17:44:16 -0400
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59272 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751539AbdG0Xzx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Jul 2017 19:55:53 -0400
+In-Reply-To: <3C3E65E75D9910479323816378A812E7411082F5@BGSMSX104.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Pawnikar, Sumeet R" <sumeet.r.pawnikar@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Linus,
+On Thursday, July 27, 2017 06:10:03 AM Pawnikar, Sumeet R wrote:
+> 
+> >-----Original Message-----
+> >From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> >Sent: Thursday, July 27, 2017 12:29 AM
+> >To: Pawnikar, Sumeet R <sumeet.r.pawnikar@intel.com>
+> >Cc: lenb@kernel.org; linux-acpi@vger.kernel.org
+> >Subject: Re: [PATCH] ACPIi / lpat: Fix typos and kernel-doc style
+> 
+> Just now, I observed that the commit header has extra "i" after ACPI as mentioned in below line. My bad :(
+> Do you want me to resend this with correcting it ?
 
-Please pull from the tag
+No need.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.13-rc3
+I think it is OK in linux-next, isn't it?
 
-with top-most commit f6248dd88dba3aeb19351410a027d92eee7ceb72
+Thanks,
+Rafael
 
- Merge branches 'acpi-pm' and 'acpi-numa'
-
-on top of commit 520eccdfe187591a51ea9ab4c1a024ae4d0f68d9
-
- Linux 4.13-rc2
-
-to receive ACPI fixes for v4.13-rc3.
-
-These are two fixups for the suspend-to-idle handling in the ACPI
-subsystem after recent changes in that area and two simple fixes
-of the ACPI NUMA code.
-
-Specifics:
-
- - Add an ACPI module parameter to allow users to override the
-   new default behavior on some systems where the EC GPE is not
-   disabled during suspend-to-idle in case the EC on their systems
-   generates excessive wakeup events and they want to sacrifice
-   some functionality (like power button wakeups) for extra battery
-   life while suspended (Rafael Wysocki).
-
- - Fix flushing of the outstanding EC work in the ACPI core
-   suspend-to-idle code (Rafael Wysocki).
-
- - Add a missing include and fix a messed-up comment in the ACPI
-   NUMA code (Ross Zwisler).
-
-Thanks!
-
-
----------------
-
-Rafael J. Wysocki (2):
-      ACPI / EC: Add parameter to force disable the GPE on suspend
-      ACPI / PM / EC: Flush all EC work in acpi_freeze_sync()
-
-Ross Zwisler (2):
-      ACPI: NUMA: add missing include in acpi_numa.h
-      ACPI: NUMA: Fix typo in the full name of SRAT
-
----------------
-
- drivers/acpi/ec.c        | 39 +++++++++++++++++++++++++++++++++++++++
- drivers/acpi/internal.h  |  4 ++++
- drivers/acpi/numa.c      |  2 +-
- drivers/acpi/sleep.c     |  6 +++---
- include/acpi/acpi_numa.h |  1 +
- 5 files changed, 48 insertions(+), 4 deletions(-)
