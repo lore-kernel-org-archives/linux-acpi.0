@@ -1,32 +1,73 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH v6 1/1] acpi: apei: Enable APEI multiple GHES source to
- share a single external IRQ
-Date: Thu, 27 Jul 2017 16:49:16 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F61317AEB@ORSMSX114.amr.corp.intel.com>
-References: <1500661477-6536-1-git-send-email-lho@apm.com>
- <20170722055954.GA2082@nazgul.tnic> <1893763.BLgt1zgLk5@aspire.rjw.lan>
- <1632667.Vgem7HtdXu@aspire.rjw.lan> <20170727055825.GA4611@nazgul.tnic>
- <CAJZ5v0jVSrsufoWyexb_MWS=ni0CDn7Oo1-oHOcaTxdYpfpQMg@mail.gmail.com>
- <20170727144922.GF28553@nazgul.tnic>
- <CAJZ5v0gQ5aYZw8NOpvmw-1zqfFg_k+nkTZxEocnT=hDk37VsGA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fixes for v4.13-rc3
+Date: Thu, 27 Jul 2017 23:44:15 +0200
+Message-ID: <CAJZ5v0iV=qc297eDjTWDGQx_O1sNDjMRbCCGp0tqs3pmH+RvuQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:37693 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750981AbdG0Qu4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 27 Jul 2017 12:50:56 -0400
-In-Reply-To: <CAJZ5v0gQ5aYZw8NOpvmw-1zqfFg_k+nkTZxEocnT=hDk37VsGA@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-it0-f67.google.com ([209.85.214.67]:37004 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751465AbdG0VoQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Jul 2017 17:44:16 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Borislav Petkov <bp@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Loc Ho <lho@apm.com>, Mark Salter <msalter@redhat.com>, Tyler Baicar <tbaicar@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@apm.com" <patches@apm.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Pj4gUHJvdmlkZWQgVG9ueSBhZ3JlZXMgdGhvdWdoLi4uIEknZCB2ZW50dXJlIGEgZ3Vlc3MgYW5k
-IHNheSB0aGF0IGhlDQo+PiBkb2Vzbid0IGhhdmUgYSBjaG9pY2UsIHdvYWhhaGhhaGFoYS4uLg0K
-Pj4NCj4+IDotKSkpDQo+DQo+IFdlbGwsIEkgZ3Vlc3Mgc2VuZCB0aGlzIG9mZmljaWFsbHkgd2l0
-aCBhIENDOlRvbnkgYW5kIHNlZSB3aGF0IGhlIHNheXMuIDotKQ0KDQpUaGF0J3MgZGVmaW5pdGVs
-eSBwYXJ0IG9mIG15IGRheSBqb2IgLi4uIHNvIHllcywgcGxlYXNlIGFkZCBtZSBhcyBhIHJldmll
-d2VyLg0KDQotVG9ueQ0K
+Hi Linus,
+
+Please pull from the tag
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.13-rc3
+
+with top-most commit f6248dd88dba3aeb19351410a027d92eee7ceb72
+
+ Merge branches 'acpi-pm' and 'acpi-numa'
+
+on top of commit 520eccdfe187591a51ea9ab4c1a024ae4d0f68d9
+
+ Linux 4.13-rc2
+
+to receive ACPI fixes for v4.13-rc3.
+
+These are two fixups for the suspend-to-idle handling in the ACPI
+subsystem after recent changes in that area and two simple fixes
+of the ACPI NUMA code.
+
+Specifics:
+
+ - Add an ACPI module parameter to allow users to override the
+   new default behavior on some systems where the EC GPE is not
+   disabled during suspend-to-idle in case the EC on their systems
+   generates excessive wakeup events and they want to sacrifice
+   some functionality (like power button wakeups) for extra battery
+   life while suspended (Rafael Wysocki).
+
+ - Fix flushing of the outstanding EC work in the ACPI core
+   suspend-to-idle code (Rafael Wysocki).
+
+ - Add a missing include and fix a messed-up comment in the ACPI
+   NUMA code (Ross Zwisler).
+
+Thanks!
+
+
+---------------
+
+Rafael J. Wysocki (2):
+      ACPI / EC: Add parameter to force disable the GPE on suspend
+      ACPI / PM / EC: Flush all EC work in acpi_freeze_sync()
+
+Ross Zwisler (2):
+      ACPI: NUMA: add missing include in acpi_numa.h
+      ACPI: NUMA: Fix typo in the full name of SRAT
+
+---------------
+
+ drivers/acpi/ec.c        | 39 +++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h  |  4 ++++
+ drivers/acpi/numa.c      |  2 +-
+ drivers/acpi/sleep.c     |  6 +++---
+ include/acpi/acpi_numa.h |  1 +
+ 5 files changed, 48 insertions(+), 4 deletions(-)
