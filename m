@@ -1,102 +1,153 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 0/4] ACPI: DMA ranges management
-Date: Fri, 28 Jul 2017 15:09:56 +0100
-Message-ID: <20170728140956.GA21569@red-moon>
-References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
- <7df11172-5a40-685f-5202-9a0bceb6e19b@codeaurora.org>
- <c09352cc-e1a2-a494-c457-dc3ea275f504@arm.com>
- <20170726153519.GA4696@red-moon>
- <eb81a7c6-b62b-8e02-8f22-a7fda7e403ce@arm.com>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v4 1/2] acpi:iort: Add an IORT helper function to
+	reserve HW ITS address regions for IOMMU drivers
+Date: Fri, 28 Jul 2017 15:48:48 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA8383C0FA5@FRAEML521-MBX.china.huawei.com>
+References: <20170725111732.41792-1-shameerali.kolothum.thodi@huawei.com>
+	<20170725111732.41792-2-shameerali.kolothum.thodi@huawei.com>
+	<20170725171100.GA1663@red-moon>
+	<b7512f89-4fe7-940e-0fa9-9274d8b1e935@arm.com>
+	<20170726095208.GA2468@red-moon>
+	<5FC3163CFD30C246ABAA99954A238FA8383C0268@FRAEML521-MBX.china.huawei.com>
+	<989fec76-45e7-d744-3411-78ec2764cb7d@arm.com>
+	<5FC3163CFD30C246ABAA99954A238FA8383C04A2@FRAEML521-MBX.china.huawei.com>
+	<20170728095755.GA10987@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <eb81a7c6-b62b-8e02-8f22-a7fda7e403ce@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: Nate Watterson <nwatters@codeaurora.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20170728095755.GA10987@red-moon>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "marc.zyngier-5wv7dgnIgG8@public.gmane.org" <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "Guohanjun (Hanjun Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 28, 2017 at 02:08:01PM +0100, Robin Murphy wrote:
 
-[...]
 
-> >>> To ensure that dma_set_mask() and friends actually respect _DMA, would
-> >>> you consider introducing a dma_supported() callback to check the input
-> >>> dma_mask against the FW defined limits? This would end up aggressively
-> >>> clipping the dma_mask to 32-bits for devices like the above if the _DMA
-> >>> limit was less than 64-bits, but that is probably preferable to the
-> >>> controller accessing unintended addresses.
-> >>>
-> >>> Also, how would you feel about adding support for the IORT named_node
-> >>> memory_address_limit field?
-> >>
-> >> We will certainly need that for some platform devices, so if you fancy
-> >> giving it a go before Lorenzo or I get there, feel free!
-> > 
-> > I can do it for v2 but I would like to understand why using _DMA is
-> > not good enough for named components - having two bindings describing
-> > the same thing is not ideal and I'd rather avoid it - if there is
-> > a reason I am happy to add the necessary code.
+> -----Original Message-----
+> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org]
+> Sent: Friday, July 28, 2017 10:58 AM
+> To: Shameerali Kolothum Thodi
+> Cc: Robin Murphy; Guohanjun (Hanjun Guo); Gabriele Paoloni;
+> marc.zyngier-5wv7dgnIgG8@public.gmane.org; John Garry; will.deacon-5wv7dgnIgG8@public.gmane.org; Linuxarm; linux-
+> acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org;
+> hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; Wangzhou (B); sudeep.holla-5wv7dgnIgG8@public.gmane.org; linux-arm-
+> kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+> Subject: Re: [PATCH v4 1/2] acpi:iort: Add an IORT helper function to reserve
+> HW ITS address regions for IOMMU drivers
 > 
-> My interpretation of "_DMA is only defined under devices that represent
-> buses." (ACPI 6.0, section 6.2.4) is that "devices that represent buses"
-> are those that have other device objects as children.
-
-Well if that was the case we would not be able to use _DMA for
-eg PNP0A03 PCI host bridges that have no child ACPI devices, which
-defeats the whole purpose of what I am doing.
-
-The question here is what the _DMA object binding exactly means when
-it refers to a "bus" and that's something I will figure out (and possibly
-change) ASAP.
-
-> In other words (excuse my novice pseudo-ASL), this would be valid:
+> On Thu, Jul 27, 2017 at 01:26:14PM +0000, Shameerali Kolothum Thodi wrote:
+> >
+> >
+> > > -----Original Message-----
+> > > From: Robin Murphy [mailto:robin.murphy-5wv7dgnIgG8@public.gmane.org]
+> > > Sent: Thursday, July 27, 2017 12:13 PM
+> > > To: Shameerali Kolothum Thodi; Lorenzo Pieralisi
+> > > Cc: Guohanjun (Hanjun Guo); Gabriele Paoloni; marc.zyngier-5wv7dgnIgG8@public.gmane.org;
+> > > John Garry; will.deacon-5wv7dgnIgG8@public.gmane.org; Linuxarm;
+> > > linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org;
+> > > hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; Wangzhou (B); sudeep.holla-5wv7dgnIgG8@public.gmane.org;
+> > > linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org;
+> > > devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+> > > Subject: Re: [PATCH v4 1/2] acpi:iort: Add an IORT helper function
+> > > to reserve HW ITS address regions for IOMMU drivers
+> > >
+> > [...]
+> >
+> > > >>>> I can make these changes but I suspect this series will go via
+> > > >>>> IOMMU tree, let me know how you want to handle it.
+> > > >>>>
+> > > >>>> Lorenzo
+> > > >>>>
+> > > >>>>> +	node = iort_find_dev_node(dev);
+> > > >>>>> +	if (!node)
+> > > >>>>> +		return -ENODEV;
+> > > >>>>> +
+> > > >>>
+> > > >>> I'd suggest we also want a comment here to clarify that we're
+> > > >>> currently assuming straightforward topologies where all mappings
+> > > >>> for a given root complex/named component target the same ITS
+> > > >>> group. Otherwise
+> > > we're
+> > > >> going
+> > > >>> to need somewhat more logic to iterate the its_node processing
+> > > >>> over every mapping (or every alias in the PCI case), but avoid
+> > > >>> creating duplicate entries.
+> > > >>
+> > > >> You have a point and we have time to update the code. Short of
+> > > >> reserving all ITS regions for every device that maps to one at
+> > > >> least, we could (even pre-compute instead of looking it up on the
+> > > >> fly) create a list of ITS identifiers a given IORT node may map
+> > > >> to and use that to reserve the regions.
+> > > >
+> > > > I am trying to understand the use case scenario discussed here.
+> > > > Apologies if it is a dumb query.
+> > > >
+> > > > My understanding is that, it is possible to have a PCI  RC iort
+> > > > node mapped
+> > > to
+> > > > multiple ITS group nodes.  That is perfectly fine and given a dev
+> > > > input RID
+> > > we
+> > > > can identify the ITS group the device points to using -
+> iort_node_map_id().
+> > > >
+> > > > But the above discussion seems to suggest that there might be
+> > > > situations
+> > > where
+> > > > we have to go through all the mapped ITS groups and identify all
+> > > > the ITSs
+> > > associated
+> > > > with the RC.  Clearly I am missing something.
+> > >
+> > > I was mostly thinking of a situation like this:
+> > >
+> > > +----Node 0-----+  +----Node 1-----+
+> > > |  [CPU 0..n]   |  |  [CPU n+1..]  |
+> > > | [ITS group 0] |  | [ITS group 1] |
+> > > +---------------+  +---------------+
+> > >         ^                  ^
+> > >          \_______  _______/
+> > >                  \/
+> > >             +--Node 2--+
+> > >             |  [SMMU]  |
+> > >             |     ^    |
+> > >             |     |    |
+> > >             | [Device] |
+> > >             +----------+
+> > >
+> > > where the (named component) device has IDs for both ITS groups (to
+> > > help optimise affining, or allow physically hotplugging CPU nodes,
+> > > or whatever - I'm hypothesising here ;)).  A generic IORT function
+> > > isn't in a position to decide *which* ITS region the device may be
+> > > targeting at any given time, so can only correctly describe both.
+> >
+> > Thanks Robin. That makes it clear.
+> >
+> > > I'm perfectly happy not to even try to support such crazy
+> > > configurations until they actually exist, if ever; I'd just prefer
+> > > to document whatever assumptions we do make, so that we don't have
+> > > to remember or re-derive them when looking at the code in future.
+> >
+> > So I think the conclusion here is we will document the assumption that
+> > we are only taking care of the straightforward topologies for now.
+> >
+> > Hi Lorenzo,
+> > If you are ok with the above, please let me know if it make sense to
+> > send out a v5 with this and your other comments or you can take care
+> > of them. I am fine either way.
 > 
-> Scope(_SB)
-> {
-> 	Device (Bus)
-> 	{
-> 		...
-> 		Method (_DMA ... )
-> 		Device (Dev1)
-> 		{
-> 			...
-> 		}
-> 	}
-> }
-> 
-> but this should be invalid:
-> 
-> Scope(_SB)
-> {
-> 	Device (Dev2)
-> 	{
-> 		...
-> 		Method (_DMA ... )
-> 	}
-> }
+> I added below what should be the final patch - please have a look test and
+> post it as part of v5 that should hopefully be final.
 
-Not sure about that (see above) and I agree that's what needs
-clarification.
-
-> Thus in the case where Dev2 is wired directly to an SMMU input, but
-> fewer address bits are wired up between the two than both the device and
-> SMMU interfaces are capable of, memory address limit is enough to
-> describe that without having to insert a fake "bus" object above it just
-> to hold the _DMA method.
-
-BTW, how would you describe that in DT ? A "dma-ranges" property in the
-device DT node right ? Arguably "dma-ranges" was not meant to be used
-like that either ;-)
-
-Long and short of it is: I do not like having two ways of describing
-the same thing. I agree that the _DMA object usage requires
-clarifications from a spec point of view but I want to do that before
-plugging in code that may use bindings inconsistently.
-
-I will flag this up at ACPI spec level as soon as possible and get this
-sorted.
-
-Thanks,
-Lorenzo
+Thanks Lorenzo. Will do that.
+Shameer
