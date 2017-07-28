@@ -1,68 +1,43 @@
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v4 1/3] mfd: Add new mfd device TPS68470
-Date: Fri, 28 Jul 2017 00:30:39 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725DF8D6@FMSMSX114.amr.corp.intel.com>
-References: <1500506426-3047-1-git-send-email-rajmohan.mani@intel.com>
- <1500506426-3047-2-git-send-email-rajmohan.mani@intel.com>
- <20170720090300.ayx5pz5l4yntefpt@dell>
- <6F87890CF0F5204F892DEA1EF0D77A59725DD60A@FMSMSX114.amr.corp.intel.com>
- <20170725091012.3hpxihekht2j35xb@dell>
- <CAHp75VeGqWNyDO644V+mje4sWsODDhyxRJ8cQ-HDV_e1hAUP3g@mail.gmail.com>
- <20170726082304.7j4lbvsuyyu7owqy@dell>
- <CAHp75VfCvNt2TdGRZ77Gk-j7KQzQTAyuKmvsna9GU5yNesGMkw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/3] PCI / ACPI / PM: Fix propagation of wakeup settings to bridges
+Date: Fri, 28 Jul 2017 02:34:48 +0200
+Message-ID: <2614123.s9HPuis7tD@aspire.rjw.lan>
+References: <3116391.JNS1F4DjTg@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:54653 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751750AbdG1Aak (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 27 Jul 2017 20:30:40 -0400
-In-Reply-To: <CAHp75VfCvNt2TdGRZ77Gk-j7KQzQTAyuKmvsna9GU5yNesGMkw@mail.gmail.com>
-Content-Language: en-US
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:41599 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751562AbdG1Amu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 27 Jul 2017 20:42:50 -0400
+In-Reply-To: <3116391.JNS1F4DjTg@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, Lee Jones <lee.jones@linaro.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+To: Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-SGkgTGVlLCBBbmR5LA0KDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjQgMS8zXSBtZmQ6IEFkZCBu
-ZXcgbWZkIGRldmljZSBUUFM2ODQ3MA0KPiANCj4gT24gV2VkLCBKdWwgMjYsIDIwMTcgYXQgMTE6
-MjMgQU0sIExlZSBKb25lcyA8bGVlLmpvbmVzQGxpbmFyby5vcmc+IHdyb3RlOg0KPiA+IE9uIFR1
-ZSwgMjUgSnVsIDIwMTcsIEFuZHkgU2hldmNoZW5rbyB3cm90ZToNCj4gPj4gT24gVHVlLCBKdWwg
-MjUsIDIwMTcgYXQgMTI6MTAgUE0sIExlZSBKb25lcyA8bGVlLmpvbmVzQGxpbmFyby5vcmc+IHdy
-b3RlOg0KPiANCj4gPj4gSSBicmllZmx5IGNoZWNrZWQgZmV3IC0+cmVhZCgpIGFuZCAtPndyaXRl
-KCkgaW1wbGVtZW50YXRpb25zIGFuZA0KPiA+PiBkaWRuJ3QgZmluZCBhbnkgZXZpZGVuY2Ugb2Yg
-cG9zaXRpdmUgbnVtYmVycyB0aGF0IGNhbiBiZSByZXR1cm5lZC4NCj4gPj4gRG9jdW1lbnRhdGlv
-biAoa2VybmVsIGRvYykgZG9lc24ndCBzaGVkIGEgbGlnaHQgb24gdGhhdC4gU28sIHRvIG1lIGl0
-DQo+ID4+IHNvdW5kcyB1bnNwZWNpZmllZC4NCj4gPj4NCj4gPj4gU28sIGZvciBub3cgKHVudGls
-IGRvY3VtZW50YXRpb24gd2lsbCBiZSBmaXhlZCkgSSB3b3VsZCByZWx5IG9uIGlmDQo+ID4+IChy
-ZXQgPCAwKQ0KPiA+DQo+ID4gSXQncyBub3QgdW5zcGVjaWZpZWQuICBUaGUgcmVnbWFwIG1ldGhv
-ZHMgY2FsbCBpbnRvIHJlZ2NhY2hlX3dyaXRlKCksDQo+ID4gd2hlcmUgdGhlIGtlcm5lbGRvYyBp
-cyBjbGVhci4NCj4gDQoNClNpbmNlLCB3ZSBhcmUgaW50ZXJlc3RlZCBpbiB0aGUgcmVnbWFwIGZv
-ciB0aGUgSTJDIGJ1cyBoZXJlLCBJIGxvb2tlZCBpbnRvIHRoZSBpbXBsZW1lbnRhdGlvbiBvZg0K
-IF9fZGV2bV9yZWdtYXBfaW5pdCgpDQoJX19yZWdtYXBfaW5pdCgpDQoJCXJlZ2NhY2hlX2luaXQo
-KQ0KZm9yIEkyQyBidXMuDQoNCkF0IHRoZSBlbmQgb2YgX19kZXZtX3JlZ21hcF9pbml0KCkgY2Fs
-bCBmcm9tIGRldm1fcmVnbWFwX2luaXRfaTJjKCkgaW5zaWRlIHRwczY4NDcwX3Byb2JlKCksIEkg
-c2VlIHRoYXQgYm90aCBjYWNoZV9ieXBhc3MgYW5kIGRlZmVyX2NhY2hpbmcgZmxhZ3Mgb2YgaTJj
-IHJlZ21hcCBzdHJ1Y3QgYXJlIHNldC4gU28sIGl0IGxvb2tzIHJlZ2NhY2hlX3dyaXRlL3JlYWQg
-Y2FsbHMgZG8gbm90IGNvbWUgaW50byBwbGF5IGhlcmUuDQoNClNvLCByZWdtYXBfd3JpdGUoKQ0K
-CV9yZWdtYXBfd3JpdGUoKQ0KCQltYXAtPnJlZ193cml0ZSAoZHJpdmVycy9iYXNlL3JlZ21hcC9y
-ZWdtYXAuYzoxNjY1KSB0cmFuc2xhdGVzIHRvDQoJCXJlZ21hcF9pMmNfd3JpdGUoZHJpdmVycy9i
-YXNlL3JlZ21hcC9yZWdtYXAtaTJjLmM6MTI4KQ0KDQpUaGVzZSBjaGVja3MgaW4gcmVnbWFwX2ky
-Y193cml0ZSgpIGVuc3VyZSBhbGwgcmV0dXJuIHZhbHVlcyBmcm9tIGkyY19tYXN0ZXJfc2VuZCgp
-IG90aGVyIHRoYW4gdGhlIHJlcXVlc3RlZCBudW1iZXIgb2YgYnl0ZXMgdG8gd3JpdGUsIGFyZSBj
-b252ZXJ0ZWQgaW50byBuZWdhdGl2ZSB2YWx1ZXMuDQoNCiAgICAgICAgaWYgKHJldCA9PSBjb3Vu
-dCkNCiAgICAgICAgICAgICAgICByZXR1cm4gMDsNCiAgICAgICAgZWxzZSBpZiAocmV0IDwgMCkN
-CiAgICAgICAgICAgICAgICByZXR1cm4gcmV0Ow0KICAgICAgICBlbHNlDQogICAgICAgICAgICAg
-ICAgcmV0dXJuIC1FSU87DQoNClNpbWlsYXIgYXJndW1lbnQgZ29lcyBmb3IgcmVnbWFwX3JlYWQo
-KSBhcyB3ZWxsLg0KV2l0aCB0aGF0LCBmb3IgcmVnbWFwIG92ZXIgSTJDIGJ1cywgaXQgc291bmRz
-IGxpa2UgJ2lmIChyZXQgPCAwKScgbG9va3MgdG8gYmUgYSBiZXR0ZXIgY2hvaWNlLiBQbGVhc2Ug
-c2VlIGlmIEkgbWlzc2VkIGFueXRoaW5nIGhlcmUuDQoJCQ0KPiBkcml2ZXJzL2Jhc2UvcmVnbWFw
-L3JlZ2NhY2hlLmM6MjY2DQo+IA0KPiAiICogUmV0dXJuIGEgbmVnYXRpdmUgdmFsdWUgb24gZmFp
-bHVyZSwgMCBvbiBzdWNjZXNzLiINCj4gDQo+IEkgY2FuIGhhcmRseSBmaW5kIHRoaXMgYW55IGNs
-ZWFuZXIgdGhhbiAidW5zcGVjaWZpZWQiLg0KPiANCj4gPiAgUGVyaGFwcyB3ZSBjYW4gYWxzbyBj
-aGFuZ2UgdGhlIHJlZ21hcCBrZXJuZWxkb2MgaGVhZGVycyB0b28gdG8gbWF0Y2gsDQo+ID4gd2hp
-Y2ggbWlnaHQgbGVzc2VuIHRoZSBkaXNwYXJpdHkuDQo+IA0KPiBJJ20gbm90IGZhbWlsaWFyIHdp
-dGggdGhlIGd1dHMgb2YgcmVnbWFwIEFQSSwgc28sIEkgd291bGQgc3RpY2sgd2l0aCBpZiAocmV0
-IDwgMCkNCj4gZm9yIG5vdyB1bnRpbCBkb2N1bWVudGF0aW9uIHNwZWNpZmllcyBwb3NpdGl2ZSBy
-ZXR1cm4gdmFsdWVzLg0KPiANCg0KQWNrDQo=
+On Friday, July 21, 2017 02:36:44 PM Rafael J. Wysocki wrote:
+> Hi,
+> 
+> The device wakeup code in pci-acpi.c currently has a (theoretical) problem that
+> it can disable wakeup for a bridge prematurely in some obscure conditions.
+> 
+> This is described in some more detail in the changelog of patch [3/3] and it
+> has been there for quite a while, so it's nothing new, but it would be good
+> to fix it at last and hence this series.
+> 
+> Patches [1/3] and [2/3] are mostly preparatory, although the former may be
+> regarded as a fix by itself and the latter is a cleanup.
+
+Hi Bjorn,
+
+Since all of the patches in this series have been reviewed by Mika now, please
+let me know if you have any concerns regarding them from the PCI angle.
+
+Otherwise I'm going to queue them up for 4.14 early next week.
+
+Thanks,
+Rafael
+
