@@ -1,535 +1,293 @@
 From: Rajmohan Mani <rajmohan.mani@intel.com>
-Subject: [PATCH v6 3/3] ACPI / PMIC: Add TI PMIC TPS68470 operation region driver
-Date: Fri, 28 Jul 2017 17:30:26 -0700
-Message-ID: <1501288226-27469-4-git-send-email-rajmohan.mani@intel.com>
+Subject: [PATCH v6 1/3] mfd: Add new mfd device TPS68470
+Date: Fri, 28 Jul 2017 17:30:24 -0700
+Message-ID: <1501288226-27469-2-git-send-email-rajmohan.mani@intel.com>
 References: <1501288226-27469-1-git-send-email-rajmohan.mani@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga05.intel.com ([192.55.52.43]:28424 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753248AbdG2Ah6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 28 Jul 2017 20:37:58 -0400
 In-Reply-To: <1501288226-27469-1-git-send-email-rajmohan.mani@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, sakari.ailus@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>, Rajmohan Mani <rajmohan.mani@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-The Kabylake platform coreboot (Chrome OS equivalent of
-BIOS) has defined 4 operation regions for the TI TPS68470 PMIC.
-These operation regions are to enable/disable voltage
-regulators, configure voltage regulators, enable/disable
-clocks and to configure clocks.
-
-This config adds ACPI operation region support for TI TPS68470 PMIC.
-TPS68470 device is an advanced power management unit that powers
-a Compact Camera Module (CCM), generates clocks for image sensors,
-drives a dual LED for flash and incorporates two LED drivers for
+The TPS68470 device is an advanced power management
+unit that powers a Compact Camera Module (CCM),
+generates clocks for image sensors, drives a dual
+LED for Flash and incorporates two LED drivers for
 general purpose indicators.
-This driver enables ACPI operation region support to control voltage
-regulators and clocks for the TPS68470 PMIC.
+
+This patch adds support for TPS68470 mfd device.
 
 Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
 ---
- drivers/acpi/Kconfig              |  16 ++
- drivers/acpi/Makefile             |   2 +
- drivers/acpi/pmic/tps68470_pmic.c | 455 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 473 insertions(+)
- create mode 100644 drivers/acpi/pmic/tps68470_pmic.c
+ drivers/mfd/Kconfig          |  18 ++++++++
+ drivers/mfd/Makefile         |   1 +
+ drivers/mfd/tps68470.c       | 106 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mfd/tps68470.h |  97 +++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 222 insertions(+)
+ create mode 100644 drivers/mfd/tps68470.c
+ create mode 100644 include/linux/mfd/tps68470.h
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 1ce52f8..e124a82d 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -535,4 +535,20 @@ if ARM64
- source "drivers/acpi/arm64/Kconfig"
- endif
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 94ad2c1..74f41a1 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -1337,6 +1337,24 @@ config MFD_TPS65217
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called tps65217.
  
-+config TPS68470_PMIC_OPREGION
-+	bool "ACPI operation region support for TPS68470 PMIC"
-+	depends on MFD_TPS68470
++config MFD_TPS68470
++	bool "TI TPS68470 Power Management / LED chips"
++	depends on ACPI && I2C=y
++	select MFD_CORE
++	select REGMAP_I2C
++	select I2C_DESIGNWARE_PLATFORM
 +	help
-+	  This config adds ACPI operation region support for TI TPS68470 PMIC.
-+	  TPS68470 device is an advanced power management unit that powers
-+	  a Compact Camera Module (CCM), generates clocks for image sensors,
-+	  drives a dual LED for flash and incorporates two LED drivers for
-+	  general purpose indicators.
-+	  This driver enables ACPI operation region support control voltage
-+	  regulators and clocks.
++	  If you say yes here you get support for the TPS68470 series of
++	  Power Management / LED chips.
++
++	  These include voltage regulators, LEDs and other features
++	  that are often used in portable devices.
 +
 +	  This option is a bool as it provides an ACPI operation
 +	  region, which must be available before any of the devices
-+	  using this, are probed.
++	  using this are probed. This option also configures the
++	  designware-i2c driver to be built-in, for the same reason.
 +
- endif	# ACPI
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index b1aacfc..2d70a7f 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -106,6 +106,8 @@ obj-$(CONFIG_CHT_WC_PMIC_OPREGION) += pmic/intel_pmic_chtwc.o
+ config MFD_TI_LP873X
+ 	tristate "TI LP873X Power Management IC"
+ 	depends on I2C
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index 080793b..0b1fd82 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -83,6 +83,7 @@ obj-$(CONFIG_MFD_TPS65910)	+= tps65910.o
+ obj-$(CONFIG_MFD_TPS65912)	+= tps65912-core.o
+ obj-$(CONFIG_MFD_TPS65912_I2C)	+= tps65912-i2c.o
+ obj-$(CONFIG_MFD_TPS65912_SPI)  += tps65912-spi.o
++obj-$(CONFIG_MFD_TPS68470)	+= tps68470.o
+ obj-$(CONFIG_MFD_TPS80031)	+= tps80031.o
+ obj-$(CONFIG_MENELAUS)		+= menelaus.o
  
- obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
- 
-+obj-$(CONFIG_TPS68470_PMIC_OPREGION)	+= pmic/tps68470_pmic.o
-+
- video-objs			+= acpi_video.o video_detect.o
- obj-y				+= dptf/
- 
-diff --git a/drivers/acpi/pmic/tps68470_pmic.c b/drivers/acpi/pmic/tps68470_pmic.c
+diff --git a/drivers/mfd/tps68470.c b/drivers/mfd/tps68470.c
 new file mode 100644
-index 0000000..7f3c567
+index 0000000..189efae
 --- /dev/null
-+++ b/drivers/acpi/pmic/tps68470_pmic.c
-@@ -0,0 +1,455 @@
++++ b/drivers/mfd/tps68470.c
+@@ -0,0 +1,106 @@
 +/*
-+ * TI TPS68470 PMIC operation region driver
++ * TPS68470 chip Parent driver
 + *
-+ * Copyright (C) 2017 Intel Corporation. All rights reserved.
++ * Copyright (C) 2017 Intel Corporation
 + *
-+ * Author: Rajmohan Mani <rajmohan.mani@intel.com>
++ * Authors:
++ *	Rajmohan Mani <rajmohan.mani@intel.com>
++ *	Tianshu Qiu <tian.shu.qiu@intel.com>
++ *	Jian Xu Zheng <jian.xu.zheng@intel.com>
++ *	Yuning Pu <yuning.pu@intel.com>
 + *
 + * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
 + *
 + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
 + * kind, whether express or implied; without even the implied warranty
 + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 + * GNU General Public License for more details.
-+ *
-+ * Based on drivers/acpi/pmic/intel_pmic* drivers
 + */
 +
 +#include <linux/acpi.h>
-+#include <linux/mfd/tps68470.h>
++#include <linux/delay.h>
++#include <linux/i2c.h>
 +#include <linux/init.h>
-+#include <linux/platform_device.h>
++#include <linux/mfd/core.h>
++#include <linux/mfd/tps68470.h>
 +#include <linux/regmap.h>
 +
-+struct tps68470_pmic_table {
-+	u32 address;		/* operation region address */
-+	u32 reg;		/* corresponding register */
-+	u32 bitmask;		/* bit mask for power, clock */
++static const struct mfd_cell tps68470s[] = {
++	{ .name = "tps68470-gpio" },
++	{ .name = "tps68470_pmic_opregion" },
 +};
 +
-+#define TI_PMIC_POWER_OPREGION_ID		0xB0
-+#define TI_PMIC_VR_VAL_OPREGION_ID		0xB1
-+#define TI_PMIC_CLOCK_OPREGION_ID		0xB2
-+#define TI_PMIC_CLKFREQ_OPREGION_ID		0xB3
++static const struct regmap_config tps68470_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.max_register = TPS68470_REG_MAX,
++};
 +
-+struct tps68470_pmic_opregion {
-+	struct mutex lock;
++static int tps68470_chip_init(struct device *dev, struct regmap *regmap)
++{
++	unsigned int version;
++	int ret;
++
++	/* Force software reset */
++	ret = regmap_write(regmap, TPS68470_REG_RESET, TPS68470_REG_RESET_MASK);
++	if (ret)
++		return ret;
++
++	ret = regmap_read(regmap, TPS68470_REG_REVID, &version);
++	if (ret) {
++		dev_err(dev, "Failed to read revision register: %d\n", ret);
++		return ret;
++	}
++
++	dev_info(dev, "TPS68470 REVID: 0x%x\n", version);
++
++	return 0;
++}
++
++static int tps68470_probe(struct i2c_client *client)
++{
++	struct device *dev = &client->dev;
 +	struct regmap *regmap;
-+};
++	int ret;
 +
-+#define S_IO_I2C_EN	(BIT(0) | BIT(1))
-+
-+static const struct tps68470_pmic_table power_table[] = {
-+	{
-+		.address = 0x00,
-+		.reg = TPS68470_REG_S_I2C_CTL,
-+		.bitmask = S_IO_I2C_EN,
-+		/* S_I2C_CTL */
-+	},
-+	{
-+		.address = 0x04,
-+		.reg = TPS68470_REG_VCMCTL,
-+		.bitmask = BIT(0),
-+		/* VCMCTL */
-+	},
-+	{
-+		.address = 0x08,
-+		.reg = TPS68470_REG_VAUX1CTL,
-+		.bitmask = BIT(0),
-+		/* VAUX1_CTL */
-+	},
-+	{
-+		.address = 0x0C,
-+		.reg = TPS68470_REG_VAUX2CTL,
-+		.bitmask = BIT(0),
-+		/* VAUX2CTL */
-+	},
-+	{
-+		.address = 0x10,
-+		.reg = TPS68470_REG_VACTL,
-+		.bitmask = BIT(0),
-+		/* VACTL */
-+	},
-+	{
-+		.address = 0x14,
-+		.reg = TPS68470_REG_VDCTL,
-+		.bitmask = BIT(0),
-+		/* VDCTL */
-+	},
-+};
-+
-+/* Table to set voltage regulator value */
-+static const struct tps68470_pmic_table vr_val_table[] = {
-+	{
-+		.address = 0x00,
-+		.reg = TPS68470_REG_VSIOVAL,
-+		.bitmask = TPS68470_VSIOVAL_IOVOLT_MASK,
-+		/* TPS68470_REG_VSIOVAL */
-+	},
-+	{
-+		.address = 0x04,
-+		.reg = TPS68470_REG_VIOVAL,
-+		.bitmask = TPS68470_VIOVAL_IOVOLT_MASK,
-+		/* TPS68470_REG_VIOVAL */
-+	},
-+	{
-+		.address = 0x08,
-+		.reg = TPS68470_REG_VCMVAL,
-+		.bitmask = TPS68470_VCMVAL_VCVOLT_MASK,
-+		/* TPS68470_REG_VCMVAL */
-+	},
-+	{
-+		.address = 0x0C,
-+		.reg = TPS68470_REG_VAUX1VAL,
-+		.bitmask = TPS68470_VAUX1VAL_AUX1VOLT_MASK,
-+		/* TPS68470_REG_VAUX1VAL */
-+	},
-+	{
-+		.address = 0x10,
-+		.reg = TPS68470_REG_VAUX2VAL,
-+		.bitmask = TPS68470_VAUX2VAL_AUX2VOLT_MASK,
-+		/* TPS68470_REG_VAUX2VAL */
-+	},
-+	{
-+		.address = 0x14,
-+		.reg = TPS68470_REG_VAVAL,
-+		.bitmask = TPS68470_VAVAL_AVOLT_MASK,
-+		/* TPS68470_REG_VAVAL */
-+	},
-+	{
-+		.address = 0x18,
-+		.reg = TPS68470_REG_VDVAL,
-+		.bitmask = TPS68470_VDVAL_DVOLT_MASK,
-+		/* TPS68470_REG_VDVAL */
-+	},
-+};
-+
-+/* Table to configure clock frequency */
-+static const struct tps68470_pmic_table clk_freq_table[] = {
-+	{
-+		.address = 0x00,
-+		.reg = TPS68470_REG_POSTDIV2,
-+		.bitmask = BIT(0) | BIT(1),
-+		/* TPS68470_REG_POSTDIV2 */
-+	},
-+	{
-+		.address = 0x04,
-+		.reg = TPS68470_REG_BOOSTDIV,
-+		.bitmask = 0x1F,
-+		/* TPS68470_REG_BOOSTDIV */
-+	},
-+	{
-+		.address = 0x08,
-+		.reg = TPS68470_REG_BUCKDIV,
-+		.bitmask = 0x0F,
-+		/* TPS68470_REG_BUCKDIV */
-+	},
-+	{
-+		.address = 0x0C,
-+		.reg = TPS68470_REG_PLLSWR,
-+		.bitmask = 0x13,
-+		/* TPS68470_REG_PLLSWR */
-+	},
-+	{
-+		.address = 0x10,
-+		.reg = TPS68470_REG_XTALDIV,
-+		.bitmask = 0xFF,
-+		/* TPS68470_REG_XTALDIV */
-+	},
-+	{
-+		.address = 0x14,
-+		.reg = TPS68470_REG_PLLDIV,
-+		.bitmask = 0xFF,
-+		/* TPS68470_REG_PLLDIV */
-+	},
-+	{
-+		.address = 0x18,
-+		.reg = TPS68470_REG_POSTDIV,
-+		.bitmask = 0x83,
-+		/* TPS68470_REG_POSTDIV */
-+	},
-+};
-+
-+/* Table to configure and enable clocks */
-+static const struct tps68470_pmic_table clk_table[] = {
-+	{
-+		.address = 0x00,
-+		.reg = TPS68470_REG_PLLCTL,
-+		.bitmask = 0xF5,
-+		/* TPS68470_REG_PLLCTL */
-+	},
-+	{
-+		.address = 0x04,
-+		.reg = TPS68470_REG_PLLCTL2,
-+		.bitmask = BIT(0),
-+		/* TPS68470_REG_PLLCTL2 */
-+	},
-+	{
-+		.address = 0x08,
-+		.reg = TPS68470_REG_CLKCFG1,
-+		.bitmask = TPS68470_CLKCFG1_MODE_A_MASK |
-+			TPS68470_CLKCFG1_MODE_B_MASK,
-+		/* TPS68470_REG_CLKCFG1 */
-+	},
-+	{
-+		.address = 0x0C,
-+		.reg = TPS68470_REG_CLKCFG2,
-+		.bitmask = TPS68470_CLKCFG1_MODE_A_MASK |
-+			TPS68470_CLKCFG1_MODE_B_MASK,
-+		/* TPS68470_REG_CLKCFG2 */
-+	},
-+};
-+
-+static int pmic_get_reg_bit(u64 address,
-+			    const struct tps68470_pmic_table *table,
-+			    const unsigned int table_size, int *reg,
-+			    int *bitmask)
-+{
-+	u64 i;
-+
-+	i = address / 4;
-+	if (i >= table_size)
-+		return -ENOENT;
-+
-+	if (!reg || !bitmask)
-+		return -EINVAL;
-+
-+	*reg = table[i].reg;
-+	*bitmask = table[i].bitmask;
-+
-+	return 0;
-+}
-+
-+static int tps68470_pmic_get_power(struct regmap *regmap, int reg,
-+				       int bitmask, u64 *value)
-+{
-+	unsigned int data;
-+
-+	if (regmap_read(regmap, reg, &data))
-+		return -EIO;
-+
-+	*value = (data & bitmask) ? 1 : 0;
-+	return 0;
-+}
-+
-+static int tps68470_pmic_get_vr_val(struct regmap *regmap, int reg,
-+				       int bitmask, u64 *value)
-+{
-+	unsigned int data;
-+
-+	if (regmap_read(regmap, reg, &data))
-+		return -EIO;
-+
-+	*value = data & bitmask;
-+	return 0;
-+}
-+
-+static int tps68470_pmic_get_clk(struct regmap *regmap, int reg,
-+				       int bitmask, u64 *value)
-+{
-+	unsigned int data;
-+
-+	if (regmap_read(regmap, reg, &data))
-+		return -EIO;
-+
-+	*value = (data & bitmask) ? 1 : 0;
-+	return 0;
-+}
-+
-+static int tps68470_pmic_get_clk_freq(struct regmap *regmap, int reg,
-+				       int bitmask, u64 *value)
-+{
-+	unsigned int data;
-+
-+	if (regmap_read(regmap, reg, &data))
-+		return -EIO;
-+
-+	*value = data & bitmask;
-+	return 0;
-+}
-+
-+static int ti_tps68470_regmap_update_bits(struct regmap *regmap, int reg,
-+					int bitmask, u64 value)
-+{
-+	return regmap_update_bits(regmap, reg, bitmask, value);
-+}
-+
-+static acpi_status tps68470_pmic_common_handler(u32 function,
-+					  acpi_physical_address address,
-+					  u32 bits, u64 *value,
-+					  void *region_context,
-+					  int (*get)(struct regmap *,
-+						     int, int, u64 *),
-+					  int (*update)(struct regmap *,
-+							int, int, u64),
-+					  const struct tps68470_pmic_table *tbl,
-+					  unsigned int tbl_size)
-+{
-+	struct tps68470_pmic_opregion *opregion = region_context;
-+	struct regmap *regmap = opregion->regmap;
-+	int reg, ret, bitmask;
-+
-+	if (bits != 32)
-+		return AE_BAD_PARAMETER;
-+
-+	ret = pmic_get_reg_bit(address, tbl, tbl_size, &reg, &bitmask);
-+	if (ret < 0)
-+		return AE_BAD_PARAMETER;
-+
-+	if (function == ACPI_WRITE && *value > bitmask)
-+		return AE_BAD_PARAMETER;
-+
-+	mutex_lock(&opregion->lock);
-+
-+	ret = (function == ACPI_READ) ?
-+		get(regmap, reg, bitmask, value) :
-+		update(regmap, reg, bitmask, *value);
-+
-+	mutex_unlock(&opregion->lock);
-+
-+	return ret ? AE_ERROR : AE_OK;
-+}
-+
-+static acpi_status tps68470_pmic_cfreq_handler(u32 function,
-+					    acpi_physical_address address,
-+					    u32 bits, u64 *value,
-+					    void *handler_context,
-+					    void *region_context)
-+{
-+	return tps68470_pmic_common_handler(function, address, bits, value,
-+				region_context,
-+				tps68470_pmic_get_clk_freq,
-+				ti_tps68470_regmap_update_bits,
-+				clk_freq_table,
-+				ARRAY_SIZE(clk_freq_table));
-+}
-+
-+static acpi_status tps68470_pmic_clk_handler(u32 function,
-+				       acpi_physical_address address, u32 bits,
-+				       u64 *value, void *handler_context,
-+				       void *region_context)
-+{
-+	return tps68470_pmic_common_handler(function, address, bits, value,
-+				region_context,
-+				tps68470_pmic_get_clk,
-+				ti_tps68470_regmap_update_bits,
-+				clk_table,
-+				ARRAY_SIZE(clk_table));
-+}
-+
-+static acpi_status tps68470_pmic_vrval_handler(u32 function,
-+					  acpi_physical_address address,
-+					  u32 bits, u64 *value,
-+					  void *handler_context,
-+					  void *region_context)
-+{
-+	return tps68470_pmic_common_handler(function, address, bits, value,
-+				region_context,
-+				tps68470_pmic_get_vr_val,
-+				ti_tps68470_regmap_update_bits,
-+				vr_val_table,
-+				ARRAY_SIZE(vr_val_table));
-+}
-+
-+static acpi_status tps68470_pmic_pwr_handler(u32 function,
-+					 acpi_physical_address address,
-+					 u32 bits, u64 *value,
-+					 void *handler_context,
-+					 void *region_context)
-+{
-+	if (bits != 32)
-+		return AE_BAD_PARAMETER;
-+
-+	/* set/clear for bit 0, bits 0 and 1 together */
-+	if (function == ACPI_WRITE &&
-+	    !(*value == 0 || *value == 1 || *value == 3)) {
-+		return AE_BAD_PARAMETER;
++	regmap = devm_regmap_init_i2c(client, &tps68470_regmap_config);
++	if (IS_ERR(regmap)) {
++		dev_err(dev, "devm_regmap_init_i2c Error %ld\n",
++			PTR_ERR(regmap));
++		return PTR_ERR(regmap);
 +	}
 +
-+	return tps68470_pmic_common_handler(function, address, bits, value,
-+				region_context,
-+				tps68470_pmic_get_power,
-+				ti_tps68470_regmap_update_bits,
-+				power_table,
-+				ARRAY_SIZE(power_table));
-+}
++	i2c_set_clientdata(client, regmap);
 +
-+static int tps68470_pmic_opregion_probe(struct platform_device *pdev)
-+{
-+	struct regmap *tps68470_regmap = dev_get_drvdata(pdev->dev.parent);
-+	acpi_handle handle = ACPI_HANDLE(pdev->dev.parent);
-+	struct device *dev = &pdev->dev;
-+	struct tps68470_pmic_opregion *opregion;
-+	acpi_status status;
-+
-+	if (!dev || !tps68470_regmap) {
-+		dev_warn(dev, "dev or regmap is NULL\n");
-+		return -EINVAL;
++	ret = tps68470_chip_init(dev, regmap);
++	if (ret < 0) {
++		dev_err(dev, "TPS68470 Init Error %d\n", ret);
++		return ret;
 +	}
 +
-+	if (!handle) {
-+		dev_warn(dev, "acpi handle is NULL\n");
-+		return -ENODEV;
++	ret = devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE, tps68470s,
++			      ARRAY_SIZE(tps68470s), NULL, 0, NULL);
++	if (ret < 0) {
++		dev_err(dev, "devm_mfd_add_devices failed: %d\n", ret);
++		return ret;
 +	}
-+
-+	opregion = devm_kzalloc(dev, sizeof(*opregion), GFP_KERNEL);
-+	if (!opregion)
-+		return -ENOMEM;
-+
-+	mutex_init(&opregion->lock);
-+	opregion->regmap = tps68470_regmap;
-+
-+	status = acpi_install_address_space_handler(handle,
-+						    TI_PMIC_POWER_OPREGION_ID,
-+						    tps68470_pmic_pwr_handler,
-+						    NULL, opregion);
-+	if (ACPI_FAILURE(status))
-+		goto out_mutex_destroy;
-+
-+	status = acpi_install_address_space_handler(handle,
-+						    TI_PMIC_VR_VAL_OPREGION_ID,
-+						    tps68470_pmic_vrval_handler,
-+						    NULL, opregion);
-+	if (ACPI_FAILURE(status))
-+		goto out_remove_power_handler;
-+
-+	status = acpi_install_address_space_handler(handle,
-+						    TI_PMIC_CLOCK_OPREGION_ID,
-+						    tps68470_pmic_clk_handler,
-+						    NULL, opregion);
-+	if (ACPI_FAILURE(status))
-+		goto out_remove_vr_val_handler;
-+
-+	status = acpi_install_address_space_handler(handle,
-+						    TI_PMIC_CLKFREQ_OPREGION_ID,
-+						    tps68470_pmic_cfreq_handler,
-+						    NULL, opregion);
-+	if (ACPI_FAILURE(status))
-+		goto out_remove_clk_handler;
 +
 +	return 0;
-+
-+out_remove_clk_handler:
-+	acpi_remove_address_space_handler(handle, TI_PMIC_CLOCK_OPREGION_ID,
-+					  tps68470_pmic_clk_handler);
-+out_remove_vr_val_handler:
-+	acpi_remove_address_space_handler(handle, TI_PMIC_VR_VAL_OPREGION_ID,
-+					  tps68470_pmic_vrval_handler);
-+out_remove_power_handler:
-+	acpi_remove_address_space_handler(handle, TI_PMIC_POWER_OPREGION_ID,
-+					  tps68470_pmic_pwr_handler);
-+out_mutex_destroy:
-+	mutex_destroy(&opregion->lock);
-+	return -ENODEV;
 +}
 +
-+static struct platform_driver tps68470_pmic_opregion_driver = {
-+	.probe = tps68470_pmic_opregion_probe,
++static const struct acpi_device_id tps68470_acpi_ids[] = {
++	{"INT3472"},
++	{},
++};
++MODULE_DEVICE_TABLE(acpi, tps68470_acpi_ids);
++
++static struct i2c_driver tps68470_driver = {
 +	.driver = {
-+		.name = "tps68470_pmic_opregion",
++		   .name = "tps68470",
++		   .acpi_match_table = tps68470_acpi_ids,
 +	},
++	.probe_new = tps68470_probe,
 +};
++builtin_i2c_driver(tps68470_driver);
+diff --git a/include/linux/mfd/tps68470.h b/include/linux/mfd/tps68470.h
+new file mode 100644
+index 0000000..44f9d9f
+--- /dev/null
++++ b/include/linux/mfd/tps68470.h
+@@ -0,0 +1,97 @@
++/*
++ * Copyright (c) 2017 Intel Corporation
++ *
++ * Functions to access TPS68470 power management chip.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
 +
-+builtin_platform_driver(tps68470_pmic_opregion_driver)
++#ifndef __LINUX_MFD_TPS68470_H
++#define __LINUX_MFD_TPS68470_H
++
++/* Register addresses */
++#define TPS68470_REG_POSTDIV2		0x06
++#define TPS68470_REG_BOOSTDIV		0x07
++#define TPS68470_REG_BUCKDIV		0x08
++#define TPS68470_REG_PLLSWR		0x09
++#define TPS68470_REG_XTALDIV		0x0A
++#define TPS68470_REG_PLLDIV		0x0B
++#define TPS68470_REG_POSTDIV		0x0C
++#define TPS68470_REG_PLLCTL		0x0D
++#define TPS68470_REG_PLLCTL2		0x0E
++#define TPS68470_REG_CLKCFG1		0x0F
++#define TPS68470_REG_CLKCFG2		0x10
++#define TPS68470_REG_GPCTL0A		0x14
++#define TPS68470_REG_GPCTL0B		0x15
++#define TPS68470_REG_GPCTL1A		0x16
++#define TPS68470_REG_GPCTL1B		0x17
++#define TPS68470_REG_GPCTL2A		0x18
++#define TPS68470_REG_GPCTL2B		0x19
++#define TPS68470_REG_GPCTL3A		0x1A
++#define TPS68470_REG_GPCTL3B		0x1B
++#define TPS68470_REG_GPCTL4A		0x1C
++#define TPS68470_REG_GPCTL4B		0x1D
++#define TPS68470_REG_GPCTL5A		0x1E
++#define TPS68470_REG_GPCTL5B		0x1F
++#define TPS68470_REG_GPCTL6A		0x20
++#define TPS68470_REG_GPCTL6B		0x21
++#define TPS68470_REG_SGPO		0x22
++#define TPS68470_REG_GPDI		0x26
++#define TPS68470_REG_GPDO		0x27
++#define TPS68470_REG_VCMVAL		0x3C
++#define TPS68470_REG_VAUX1VAL		0x3D
++#define TPS68470_REG_VAUX2VAL		0x3E
++#define TPS68470_REG_VIOVAL		0x3F
++#define TPS68470_REG_VSIOVAL		0x40
++#define TPS68470_REG_VAVAL		0x41
++#define TPS68470_REG_VDVAL		0x42
++#define TPS68470_REG_S_I2C_CTL		0x43
++#define TPS68470_REG_VCMCTL		0x44
++#define TPS68470_REG_VAUX1CTL		0x45
++#define TPS68470_REG_VAUX2CTL		0x46
++#define TPS68470_REG_VACTL		0x47
++#define TPS68470_REG_VDCTL		0x48
++#define TPS68470_REG_RESET		0x50
++#define TPS68470_REG_REVID		0xFF
++
++#define TPS68470_REG_MAX		TPS68470_REG_REVID
++
++/* Register field definitions */
++
++#define TPS68470_REG_RESET_MASK		GENMASK(7, 0)
++#define TPS68470_VAVAL_AVOLT_MASK	GENMASK(6, 0)
++
++#define TPS68470_VDVAL_DVOLT_MASK	GENMASK(5, 0)
++#define TPS68470_VCMVAL_VCVOLT_MASK	GENMASK(6, 0)
++#define TPS68470_VIOVAL_IOVOLT_MASK	GENMASK(6, 0)
++#define TPS68470_VSIOVAL_IOVOLT_MASK	GENMASK(6, 0)
++#define TPS68470_VAUX1VAL_AUX1VOLT_MASK	GENMASK(6, 0)
++#define TPS68470_VAUX2VAL_AUX2VOLT_MASK	GENMASK(6, 0)
++
++#define TPS68470_VACTL_EN_MASK		GENMASK(0, 0)
++#define TPS68470_VDCTL_EN_MASK		GENMASK(0, 0)
++#define TPS68470_VCMCTL_EN_MASK		GENMASK(0, 0)
++#define TPS68470_S_I2C_CTL_EN_MASK	GENMASK(1, 0)
++#define TPS68470_VAUX1CTL_EN_MASK	GENMASK(0, 0)
++#define TPS68470_VAUX2CTL_EN_MASK	GENMASK(0, 0)
++#define TPS68470_PLL_EN_MASK		GENMASK(0, 0)
++
++#define TPS68470_CLKCFG1_MODE_A_MASK	GENMASK(1, 0)
++#define TPS68470_CLKCFG1_MODE_B_MASK	GENMASK(3, 2)
++
++#define TPS68470_GPIO_CTL_REG_A(x)	(TPS68470_REG_GPCTL0A + (x) * 2)
++#define TPS68470_GPIO_CTL_REG_B(x)	(TPS68470_REG_GPCTL0B + (x) * 2)
++#define TPS68470_GPIO_MODE_MASK		GENMASK(1, 0)
++#define TPS68470_GPIO_MODE_IN		0
++#define TPS68470_GPIO_MODE_IN_PULLUP	1
++#define TPS68470_GPIO_MODE_OUT_CMOS	2
++#define TPS68470_GPIO_MODE_OUT_ODRAIN	3
++
++#endif /* __LINUX_MFD_TPS68470_H */
 -- 
 1.9.1
+
