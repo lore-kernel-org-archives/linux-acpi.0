@@ -1,94 +1,143 @@
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v4 1/3] mfd: Add new mfd device TPS68470
-Date: Fri, 28 Jul 2017 23:49:05 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725DFDBA@FMSMSX114.amr.corp.intel.com>
-References: <1500506426-3047-1-git-send-email-rajmohan.mani@intel.com>
- <1500506426-3047-2-git-send-email-rajmohan.mani@intel.com>
- <20170720090300.ayx5pz5l4yntefpt@dell>
- <6F87890CF0F5204F892DEA1EF0D77A59725DD60A@FMSMSX114.amr.corp.intel.com>
- <20170725091012.3hpxihekht2j35xb@dell>
- <6F87890CF0F5204F892DEA1EF0D77A59725DE951@FMSMSX114.amr.corp.intel.com>
- <20170726082039.tcxbd7ogkmguufqo@dell>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20170726082039.tcxbd7ogkmguufqo@dell>
-Content-Language: en-US
-Sender: linux-gpio-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
+From: Rajmohan Mani <rajmohan.mani@intel.com>
+Subject: [PATCH v6 0/3] TPS68470 PMIC drivers
+Date: Fri, 28 Jul 2017 17:30:23 -0700
+Message-ID: <1501288226-27469-1-git-send-email-rajmohan.mani@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga05.intel.com ([192.55.52.43]:28424 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753242AbdG2Ah5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 28 Jul 2017 20:37:57 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, sakari.ailus@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>, Rajmohan Mani <rajmohan.mani@intel.com>
 
-SGkgTGVlLA0KDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjQgMS8zXSBtZmQ6IEFkZCBuZXcgbWZk
-IGRldmljZSBUUFM2ODQ3MA0KPiANCj4gT24gVHVlLCAyNSBKdWwgMjAxNywgTWFuaSwgUmFqbW9o
-YW4gd3JvdGU6DQo+IA0KPiA+IEhpIExlZSwNCj4gPg0KPiA+ID4gU3ViamVjdDogUmU6IFtQQVRD
-SCB2NCAxLzNdIG1mZDogQWRkIG5ldyBtZmQgZGV2aWNlIFRQUzY4NDcwDQo+ID4gPg0KPiA+ID4g
-T24gRnJpLCAyMSBKdWwgMjAxNywgTWFuaSwgUmFqbW9oYW4gd3JvdGU6DQo+ID4gPiA+ID4gT24g
-V2VkLCAxOSBKdWwgMjAxNywgUmFqbW9oYW4gTWFuaSB3cm90ZToNCj4gPiA+ID4gPg0KPiA+ID4g
-PiA+ID4gVGhlIFRQUzY4NDcwIGRldmljZSBpcyBhbiBhZHZhbmNlZCBwb3dlciBtYW5hZ2VtZW50
-IHVuaXQgdGhhdA0KPiA+ID4gPiA+ID4gcG93ZXJzDQo+ID4gPiA+ID4gYQ0KPiA+ID4gPiA+ID4g
-Q29tcGFjdCBDYW1lcmEgTW9kdWxlIChDQ00pLCBnZW5lcmF0ZXMgY2xvY2tzIGZvciBpbWFnZQ0K
-PiA+ID4gPiA+ID4gc2Vuc29ycywgZHJpdmVzIGEgZHVhbCBMRUQgZm9yIEZsYXNoIGFuZCBpbmNv
-cnBvcmF0ZXMgdHdvIExFRA0KPiA+ID4gPiA+ID4gZHJpdmVycyBmb3IgZ2VuZXJhbCBwdXJwb3Nl
-IGluZGljYXRvcnMuDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gVGhpcyBwYXRjaCBhZGRzIHN1
-cHBvcnQgZm9yIFRQUzY4NDcwIG1mZCBkZXZpY2UuDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4g
-U2lnbmVkLW9mZi1ieTogUmFqbW9oYW4gTWFuaSA8cmFqbW9oYW4ubWFuaUBpbnRlbC5jb20+DQo+
-ID4gPiA+ID4gPiAtLS0NCj4gPiA+ID4gPiA+ICBkcml2ZXJzL21mZC9LY29uZmlnICAgICAgICAg
-IHwgIDE4ICsrKysrKysNCj4gPiA+ID4gPiA+ICBkcml2ZXJzL21mZC9NYWtlZmlsZSAgICAgICAg
-IHwgICAxICsNCj4gPiA+ID4gPiA+ICBkcml2ZXJzL21mZC90cHM2ODQ3MC5jICAgICAgIHwgMTEw
-DQo+ID4gPiA+ID4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0K
-PiA+ID4gPiA+ID4gIGluY2x1ZGUvbGludXgvbWZkL3RwczY4NDcwLmggfCAgOTcNCj4gPiA+ID4g
-PiA+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4gPiA+ID4gPiAg
-NCBmaWxlcyBjaGFuZ2VkLCAyMjYgaW5zZXJ0aW9ucygrKSAgY3JlYXRlIG1vZGUgMTAwNjQ0DQo+
-ID4gPiA+ID4gPiBkcml2ZXJzL21mZC90cHM2ODQ3MC5jICBjcmVhdGUgbW9kZSAxMDA2NDQNCj4g
-PiA+ID4gPiA+IGluY2x1ZGUvbGludXgvbWZkL3RwczY4NDcwLmgNCj4gPiA+DQo+ID4gPiBbLi4u
-XQ0KPiA+ID4NCj4gPiA+ID4gPiA+ICtzdGF0aWMgY29uc3Qgc3RydWN0IHJlZ21hcF9jb25maWcg
-dHBzNjg0NzBfcmVnbWFwX2NvbmZpZyA9IHsNCj4gPiA+ID4gPiA+ICsJLnJlZ19iaXRzID0gOCwN
-Cj4gPiA+ID4gPiA+ICsJLnZhbF9iaXRzID0gOCwNCj4gPiA+ID4gPiA+ICsJLm1heF9yZWdpc3Rl
-ciA9IFRQUzY4NDcwX1JFR19NQVgsIH07DQo+ID4gPiA+ID4gPiArDQo+ID4gPiA+ID4gPiArc3Rh
-dGljIGludCB0cHM2ODQ3MF9jaGlwX2luaXQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QNCj4g
-PiA+ID4gPiA+ICtyZWdtYXANCj4gPiA+ID4gPiA+ICsqcmVnbWFwKSB7DQo+ID4gPiA+ID4gPiAr
-CXVuc2lnbmVkIGludCB2ZXJzaW9uOw0KPiA+ID4gPiA+ID4gKwlpbnQgcmV0Ow0KPiA+ID4gPiA+
-ID4gKw0KPiA+ID4gPiA+ID4gKwkvKiBGb3JjZSBzb2Z0d2FyZSByZXNldCAqLw0KPiA+ID4gPiA+
-ID4gKwlyZXQgPSByZWdtYXBfd3JpdGUocmVnbWFwLCBUUFM2ODQ3MF9SRUdfUkVTRVQsDQo+ID4g
-PiA+ID4gVFBTNjg0NzBfUkVHX1JFU0VUX01BU0spOw0KPiA+ID4gPiA+ID4gKwlpZiAocmV0IDwg
-MCkNCj4gPiA+ID4gPg0KPiA+ID4gPiA+IFdpbGwgJ2lmICghcmV0KScgZG8/DQo+ID4gPiA+ID4N
-Cj4gPiA+ID4NCj4gPiA+ID4gV2UgaW50ZW5kIHRvIGNoZWNrIGVycm9yIGNvbmRpdGlvbnMgYW5k
-IGJhaWwgb3V0LiBTbywgaWYgKHJldCA8IDApDQo+ID4gPiA+IHdvcmtzIGZvcg0KPiA+ID4gdGhp
-cy4NCj4gPiA+DQo+ID4gPiBZZXMsICdpZiAoIXJldCknIGRvZXMgdGhhdCB0b28uDQo+ID4gPg0K
-PiA+DQo+ID4gcmVnbWFwX3dyaXRlKCkgYW5kIHJlZ21hcF9yZWFkKCkgZnVuY3Rpb25zIHJldHVy
-biAwIG9uIHN1Y2Nlc3MuIEhlbmNlDQo+IHdlIGNhbiBub3QgdXNlICdpZiAoIXJldCknIGhlcmUs
-IHNpbmNlIHdlIGNoZWNrIGZvciBlcnJvciBjb25kaXRpb25zLg0KPiANCj4gU29ycnksIHRoaXMg
-d2FzIGEgdHlwby4NCj4gDQo+IEl0IHNob3VsZCBiZSAnaWYgKHJldCknLg0KPiANCj4gV2hhdCBJ
-J20gdHJ5aW5nIHRvIGdldCBhdCBpcyB0aGUgIiA8IDAiIGlzIG5vdCByZXF1aXJlZC4NCj4gDQoN
-CkFjaw0KDQo+ID4gPiA+ID4gPiArCQlyZXR1cm4gcmV0Ow0KPiA+ID4gPiA+ID4gKw0KPiA+ID4g
-PiA+ID4gKwlyZXQgPSByZWdtYXBfcmVhZChyZWdtYXAsIFRQUzY4NDcwX1JFR19SRVZJRCwNCj4g
-JnZlcnNpb24pOw0KPiA+ID4gPiA+ID4gKwlpZiAocmV0IDwgMCkgew0KPiA+ID4gPiA+DQo+ID4g
-PiA+ID4gU2FtZQ0KPiA+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+IFdlIGludGVuZCB0byBjaGVj
-ayBlcnJvciBjb25kaXRpb25zIGFuZCBiYWlsIG91dC4gU28sIGlmIChyZXQgPCAwKQ0KPiA+ID4g
-PiB3b3JrcyBmb3INCj4gPiA+IHRoaXMuDQo+ID4gPg0KPiA+ID4gQXMgYWJvdmUuDQo+ID4gPg0K
-PiA+DQo+ID4gU2FtZSBhcyBhYm92ZQ0KPiA+DQo+ID4gPiA+ID4gPiArCQlkZXZfZXJyKGRldiwg
-IkZhaWxlZCB0byByZWFkIHJldmlzaW9uIHJlZ2lzdGVyOiAlZFxuIiwNCj4gcmV0KTsNCj4gPiA+
-ID4gPiA+ICsJCXJldHVybiByZXQ7DQo+ID4gPiA+ID4gPiArCX0NCj4gPiA+ID4gPiA+ICsNCj4g
-PiA+ID4gPiA+ICsJZGV2X2luZm8oZGV2LCAiVFBTNjg0NzAgUkVWSUQ6IDB4JXhcbiIsIHZlcnNp
-b24pOw0KPiA+ID4gPiA+ID4gKw0KPiA+ID4gPiA+ID4gKwlyZXR1cm4gMDsNCj4gPiA+ID4gPiA+
-ICt9DQo+ID4gPiA+ID4gPiArDQo+ID4gPiA+ID4gPiArc3RhdGljIGludCB0cHM2ODQ3MF9wcm9i
-ZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50KSB7DQo+ID4gPiA+ID4gPiArCXN0cnVjdCBkZXZp
-Y2UgKmRldiA9ICZjbGllbnQtPmRldjsNCj4gPiA+ID4gPiA+ICsJc3RydWN0IHJlZ21hcCAqcmVn
-bWFwOw0KPiA+ID4gPiA+ID4gKwlpbnQgcmV0Ow0KPiA+ID4gPiA+ID4gKw0KPiA+ID4gPiA+ID4g
-KwlyZWdtYXAgPSBkZXZtX3JlZ21hcF9pbml0X2kyYyhjbGllbnQsDQo+ICZ0cHM2ODQ3MF9yZWdt
-YXBfY29uZmlnKTsNCj4gPiA+ID4gPiA+ICsJaWYgKElTX0VSUihyZWdtYXApKSB7DQo+ID4gPiA+
-ID4gPiArCQlkZXZfZXJyKGRldiwgImRldm1fcmVnbWFwX2luaXRfaTJjIEVycm9yICVsZFxuIiwN
-Cj4gPiA+ID4gPiA+ICsJCQlQVFJfRVJSKHJlZ21hcCkpOw0KPiA+ID4gPiA+ID4gKwkJcmV0dXJu
-IFBUUl9FUlIocmVnbWFwKTsNCj4gPiA+ID4gPiA+ICsJfQ0KPiA+ID4gPiA+ID4gKw0KPiA+ID4g
-PiA+ID4gKwlpMmNfc2V0X2NsaWVudGRhdGEoY2xpZW50LCByZWdtYXApOw0KPiA+ID4gPiA+ID4g
-Kw0KPiA+ID4gPiA+ID4gKwlyZXQgPSB0cHM2ODQ3MF9jaGlwX2luaXQoZGV2LCByZWdtYXApOw0K
-PiA+ID4gPiA+ID4gKwlpZiAocmV0IDwgMCkgew0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gU2FtZQ0K
-PiA+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+IFdlIGludGVuZCB0byBjaGVjayBlcnJvciBjb25k
-aXRpb25zIGFuZCBiYWlsIG91dC4gU28sIGlmIChyZXQgPCAwKQ0KPiA+ID4gPiB3b3JrcyBmb3IN
-Cj4gPiA+IHRoaXMuDQo+ID4gPg0KPiA+ID4gQXMgYWJvdmUuDQo+ID4gPg0KPiA+DQo+ID4gU2Ft
-ZSBhcyBhYm92ZQ0KPiANCj4gLS0NCj4gTGVlIEpvbmVzDQo+IExpbmFybyBTVE1pY3JvZWxlY3Ry
-b25pY3MgTGFuZGluZyBUZWFtIExlYWQgTGluYXJvLm9yZyDilIIgT3BlbiBzb3VyY2UNCj4gc29m
-dHdhcmUgZm9yIEFSTSBTb0NzIEZvbGxvdyBMaW5hcm86IEZhY2Vib29rIHwgVHdpdHRlciB8IEJs
-b2cNCg==
+This is the patch series for TPS68470 PMIC that works as a camera PMIC.
+
+The patch series provide the following 3 drivers, to help configure the voltage regulators, clocks and GPIOs provided by the TPS68470 PMIC, to be able to use the camera sensors connected to this PMIC.
+
+TPS68470 MFD driver:
+This is the multi function driver that initializes the TPS68470 PMIC and supports the GPIO and Op Region functions.
+
+TPS68470 GPIO driver:
+This is the PMIC GPIO driver that will be used by the OS GPIO layer, when the BIOS / firmware triggered GPIO access is done.
+
+TPS68470 Op Region driver:
+This is the driver that will be invoked, when the BIOS / firmware configures the voltage / clock for the sensors / vcm devices connected to the PMIC.
+
+---
+
+Update on 2 GPIO chips implementation over 1:
+	- Attempted to implement 2 GPIO chips, but ran into couple of
+	  issues in the kernel, so we couldn't get it to work.
+	- It was decided to postpone this change, since it is not
+	  critical
+
+Changes in v6:
+	- MFD driver:
+	- Used non-zero return values from regmap_write/read() calls
+	  to detect error conditions
+
+Changes in v5:
+	- MFD driver:
+	- Fixed Kconfig description text
+	- Addressed other comments from Lee, related to formatting
+
+	- GPIO driver:
+	- Formatted the file header text
+
+	- Opregion driver:
+	- Formatted the file header text
+
+Changes in v4:
+	- MFD driver:
+	- Removed board specific code and FIXME comment
+	- Moved i2c.h include from tps68470.h to tps68470.c
+	- Moved the TPS68470 REVID read code after PMIC reset
+	- Fixed typo in debug error message (on failure of
+	  devm_mfd_add_devices() )
+	- Enhanced dependency on I2C by changing it to I2C=y
+	  (to fix build errors if I2C is built as module
+	   e.g tps68470.c:71: undefined reference to `__devm_regmap_init_i2c'
+	       tps68470.c:117: undefined reference to `i2c_register_driver')
+	- Removed most of the unused header file definitions
+	- Moved devm_mfd_add_devices() after PMIC resett
+	- Used probe_new() and removed i2c_device_id table
+	  
+	  The following patch from Andy is needed for the driver to be
+	  probed.
+	  http://marc.info/?l=linux-acpi&m=150030081523885&w=2	
+	  
+	- GPIO driver:
+	- Added newline at the end of Kconfig description
+	- Updated commit message about the descriptive
+	  names for the GPIOs and the typical usage model
+	  of the GPIO driver
+
+	- Opregion driver:
+	- Added dependency on MFD_TPS68470
+	- Converted 2 liner into one line code
+
+Changes in v3:
+	- MFD driver:
+	- Removed GPIO lookup table
+	- Reverted to probe() for consistency
+	- Addressed other comments from Andy
+
+	- GPIO driver:
+	- Removed the code that initializes the default values
+	  of GPIOs to zeros
+	- Used gpiochip_get_data() to access data inside the gpio_chip
+ 
+Changes in v2:
+	- MFD driver:
+	- Removed tps68470_* wrappers around regmap_* calls
+	- Removed "struct tps68470"
+	- used devm_mfd_add_devices and removed mutex in mfd driver
+	- Added reasoning about the need of having mfd driver
+	  as bool/builtin
+
+	- Opregion driver:
+	- renamed opregion driver file / internal symbol names
+	  with tps68470_pmic*
+	- Made opregion driver tables as const
+	- Removed unused *handler_context in common handler
+	- Replaced "int" with "unsigned int"
+	- Changed to WARN macro to dev_warn()
+	- Destroyed mutex on error
+	- Added reasoning about the need of having Opregion driver
+	  as bool/builtin
+	
+	- GPIO driver:
+	- Implemented get_direction() in the GPIO driver
+	- Setup gpio_chip.names
+	- Moved the GPIO lookup table code inside mfd driver
+	- Added reasoning about the need of having GPIO driver
+	  as bool/builtin
+
+---
+
+Rajmohan Mani (3):
+  mfd: Add new mfd device TPS68470
+  gpio: Add support for TPS68470 GPIOs
+  ACPI / PMIC: Add TI PMIC TPS68470 operation region driver
+
+ drivers/acpi/Kconfig              |  16 ++
+ drivers/acpi/Makefile             |   2 +
+ drivers/acpi/pmic/tps68470_pmic.c | 455 ++++++++++++++++++++++++++++++++++++++
+ drivers/gpio/Kconfig              |  15 ++
+ drivers/gpio/Makefile             |   1 +
+ drivers/gpio/gpio-tps68470.c      | 176 +++++++++++++++
+ drivers/mfd/Kconfig               |  18 ++
+ drivers/mfd/Makefile              |   1 +
+ drivers/mfd/tps68470.c            | 106 +++++++++
+ include/linux/mfd/tps68470.h      |  97 ++++++++
+ 10 files changed, 887 insertions(+)
+ create mode 100644 drivers/acpi/pmic/tps68470_pmic.c
+ create mode 100644 drivers/gpio/gpio-tps68470.c
+ create mode 100644 drivers/mfd/tps68470.c
+ create mode 100644 include/linux/mfd/tps68470.h
+
+-- 
+1.9.1
+
