@@ -1,72 +1,38 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH] acpi: apei: clear error status before acknowledging the
- error
-Date: Sat, 29 Jul 2017 08:53:45 +0200
-Message-ID: <20170729065345.GA30608@nazgul.tnic>
-References: <1501280703-21471-1-git-send-email-tbaicar@codeaurora.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v1 3/6] staging: unisys: Switch to use new generic UUID
+ API
+Date: Sun, 30 Jul 2017 08:32:24 -0700
+Message-ID: <20170730153224.GA31755@kroah.com>
+References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
+ <20170719182857.73693-4-andriy.shevchenko@linux.intel.com>
+ <1501063301.29303.247.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:58322 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750912AbdG2GyY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 29 Jul 2017 02:54:24 -0400
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58124 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754193AbdG3RI1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Jul 2017 13:08:27 -0400
 Content-Disposition: inline
-In-Reply-To: <1501280703-21471-1-git-send-email-tbaicar@codeaurora.org>
+In-Reply-To: <1501063301.29303.247.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devel@linuxdriverproject.org, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, linux-wireless@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-efi@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, Lukas Wunner <lukas@wunner.de>
 
-On Fri, Jul 28, 2017 at 04:25:03PM -0600, Tyler Baicar wrote:
-> Currently we acknowledge errors before clearing the error status.
-> This could cause a new error to be populated by firmware in-between
-> the error acknowledgment and the error status clearing which would
-> cause the second error's status to be cleared without being handled.
-> So, clear the error status before acknowledging the errors.
+On Wed, Jul 26, 2017 at 01:01:41PM +0300, Andy Shevchenko wrote:
+> On Wed, 2017-07-19 at 21:28 +0300, Andy Shevchenko wrote:
+> > There are new types and helpers that are supposed to be used in new
+> > code.
+> > 
+> > As a preparation to get rid of legacy types and API functions do
+> > the conversion here.
+> > 
+> > While here, re-indent couple of lines to increase readability.
 > 
-> Also, make sure to acknowledge the error if the error status read
-> fails.
+> This looks like no user space UUID API is involved, can be routed via
+> either tree (uuid or staging).
 > 
-> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-> ---
->  drivers/acpi/apei/ghes.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index d661d45..6a6895a 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -743,17 +743,15 @@ static int ghes_proc(struct ghes *ghes)
->  	}
->  	ghes_do_proc(ghes, ghes->estatus);
->  
-> +out:
+> Anyone to comment?
 
-If the first ghes_read_estatus() fails and we jump straight to that
-label...
-
-> +	ghes_clear_estatus(ghes);
->  	/*
->  	 * GHESv2 type HEST entries introduce support for error acknowledgment,
->  	 * so only acknowledge the error if this support is present.
->  	 */
->  	if (is_hest_type_generic_v2(ghes)) {
->  		rc = ghes_ack_error(ghes->generic_v2);
-
-... and ACK the error anyway, even the status read failed, wouldn't that
-confuse the firmware?
-
-> -		if (rc)
-> -			return rc;
->  	}
-
-No need for the curly brackets anymore.
-
--- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+Doesn't apply to the staging tree at all :(
