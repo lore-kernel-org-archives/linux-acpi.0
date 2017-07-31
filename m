@@ -1,217 +1,93 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH v2 3/5] ACPI: Introduce DMA ranges parsing
-Date: Mon, 31 Jul 2017 16:23:21 +0100
-Message-ID: <20170731152323.32488-4-lorenzo.pieralisi@arm.com>
-References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH] acpi: apei: clear error status before acknowledging the
+ error
+Date: Mon, 31 Jul 2017 10:15:27 -0600
+Message-ID: <fd826be1-50b0-1f82-3fb3-a32a356c45c4@codeaurora.org>
+References: <1501280703-21471-1-git-send-email-tbaicar@codeaurora.org>
+ <20170729065345.GA30608@nazgul.tnic>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:52886 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752444AbdGaPVo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Jul 2017 11:21:44 -0400
-In-Reply-To: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:51750 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751046AbdGaQPa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jul 2017 12:15:30 -0400
+In-Reply-To: <20170729065345.GA30608@nazgul.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robin Murphy <robin.murphy@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
+To: Borislav Petkov <bp@suse.de>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Some devices have limited addressing capabilities and cannot
-reference the whole memory address space while carrying out DMA
-operations (eg some devices with bus address bits range smaller than
-system bus - which prevents them from using bus addresses that are
-otherwise valid for the system).
+On 7/29/2017 12:53 AM, Borislav Petkov wrote:
+> On Fri, Jul 28, 2017 at 04:25:03PM -0600, Tyler Baicar wrote:
+>> Currently we acknowledge errors before clearing the error status.
+>> This could cause a new error to be populated by firmware in-between
+>> the error acknowledgment and the error status clearing which would
+>> cause the second error's status to be cleared without being handled.
+>> So, clear the error status before acknowledging the errors.
+>>
+>> Also, make sure to acknowledge the error if the error status read
+>> fails.
+>>
+>> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+>> ---
+>>   drivers/acpi/apei/ghes.c | 6 ++----
+>>   1 file changed, 2 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>> index d661d45..6a6895a 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -743,17 +743,15 @@ static int ghes_proc(struct ghes *ghes)
+>>   	}
+>>   	ghes_do_proc(ghes, ghes->estatus);
+>>   
+>> +out:
+> If the first ghes_read_estatus() fails and we jump straight to that
+> label...
+>
+>> +	ghes_clear_estatus(ghes);
+>>   	/*
+>>   	 * GHESv2 type HEST entries introduce support for error acknowledgment,
+>>   	 * so only acknowledge the error if this support is present.
+>>   	 */
+>>   	if (is_hest_type_generic_v2(ghes)) {
+>>   		rc = ghes_ack_error(ghes->generic_v2);
+> ... and ACK the error anyway, even the status read failed, wouldn't that
+> confuse the firmware?
+Hello Boris,
 
-The ACPI _DMA object allows bus devices to define the DMA window that is
-actually addressable by devices that sit upstream the bus, therefore
-providing a means to parse and initialize the devices DMA masks and
-addressable DMA range size.
+I think the better thing to do in this case is still send the ack. If 
+ghes_read_estatus() fails, then
+either we are unable to read the estatus or the estatus is 
+empty/invalid. For the first case, there's
+not much that can be done. The second case would be a FW bug with 
+populating the estatus.
 
-By relying on the generic ACPI kernel layer to retrieve and parse
-resources, introduce ACPI core code to parse the _DMA object.
+If we do not send the ack, then we will be in a scenario where FW will 
+not send any more errors.
+I think it would be better to still have the FW send the errors and 
+kernel complain about issues with
+the errors populated rather than just have the kernel complain on the 
+first error and then not be sent
+any more errors.
 
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
----
- drivers/acpi/resource.c | 35 ++++++++++++++++++++++
- drivers/acpi/scan.c     | 78 +++++++++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h |  2 ++
- include/linux/acpi.h    |  8 +++++
- 4 files changed, 123 insertions(+)
+If you don't agree with this, then I can change it back to not sending 
+the ack if the read fails.
+>
+>> -		if (rc)
+>> -			return rc;
+>>   	}
+> No need for the curly brackets anymore.
+I'll remove these brackets in the next version.
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 93f1b5c..d85e010 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -635,6 +635,41 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
- }
- EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
- 
-+static int is_memory(struct acpi_resource *ares, void *not_used)
-+{
-+	struct resource_win win;
-+	struct resource *res = &win.res;
-+
-+	memset(&win, 0, sizeof(win));
-+
-+	return !(acpi_dev_resource_memory(ares, res)
-+	       || acpi_dev_resource_address_space(ares, &win)
-+	       || acpi_dev_resource_ext_address_space(ares, &win));
-+}
-+
-+/**
-+ * acpi_dev_get_dma_resources - Get current DMA resources of a device.
-+ * @adev: ACPI device node to get the resources for.
-+ * @list: Head of the resultant list of resources (must be empty).
-+ *
-+ * Evaluate the _DMA method for the given device node and process its
-+ * output.
-+ *
-+ * The resultant struct resource objects are put on the list pointed to
-+ * by @list, that must be empty initially, as members of struct
-+ * resource_entry objects.  Callers of this routine should use
-+ * %acpi_dev_free_resource_list() to free that list.
-+ *
-+ * The number of resources in the output list is returned on success,
-+ * an error code reflecting the error condition is returned otherwise.
-+ */
-+int acpi_dev_get_dma_resources(struct acpi_device *adev, struct list_head *list)
-+{
-+	return __acpi_dev_get_resources(adev, list, is_memory, NULL,
-+					METHOD_NAME__DMA);
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_get_dma_resources);
-+
- /**
-  * acpi_dev_filter_resource_type - Filter ACPI resource according to resource
-  *				   types
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 3389729..dcf5f22 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1360,6 +1360,84 @@ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
- }
- 
- /**
-+ * acpi_dma_get_range() - Get device DMA parameters.
-+ *
-+ * @dev: device to configure
-+ * @dma_addr: pointer device DMA address result
-+ * @offset: pointer to the DMA offset result
-+ * @size: pointer to DMA range size result
-+ *
-+ * Evaluate DMA regions and return respectively DMA region start, offset
-+ * and size in dma_addr, offset and size on parsing success; it does not
-+ * update the passed in values on failure.
-+ *
-+ * Return 0 on success, < 0 on failure.
-+ */
-+int acpi_dma_get_range(struct device *dev, u64 *dma_addr, u64 *offset,
-+		       u64 *size)
-+{
-+	struct acpi_device *adev;
-+	LIST_HEAD(list);
-+	struct resource_entry *rentry;
-+	int ret;
-+	struct device *dma_dev = dev;
-+	u64 dma_start = U64_MAX, dma_end = 0, dma_offset = 0;
-+
-+	/*
-+	 * Walk the device tree chasing an ACPI companion with a _DMA
-+	 * object while we go. Stop if we find a device with an ACPI
-+	 * companion containing a _DMA method.
-+	 */
-+	do {
-+		adev = ACPI_COMPANION(dma_dev);
-+		if (adev && acpi_has_method(adev->handle, METHOD_NAME__DMA))
-+			break;
-+
-+		dma_dev = dma_dev->parent;
-+	} while (dma_dev);
-+
-+	if (!dma_dev)
-+		return -ENODEV;
-+
-+	if (!acpi_has_method(adev->handle, METHOD_NAME__CRS)) {
-+		acpi_handle_warn(adev->handle, "_DMA object only valid in object with valid _CRS\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = acpi_dev_get_dma_resources(adev, &list);
-+	if (ret > 0) {
-+		list_for_each_entry(rentry, &list, node) {
-+			if (dma_offset && rentry->offset != dma_offset) {
-+				ret = -EINVAL;
-+				dev_warn(dma_dev, "Can't handle multiple windows with different offsets\n");
-+				goto out;
-+			}
-+			dma_offset = rentry->offset;
-+
-+			/* Take lower and upper limits */
-+			if (rentry->res->start < dma_start)
-+				dma_start = rentry->res->start;
-+			if (rentry->res->end > dma_end)
-+				dma_end = rentry->res->end;
-+		}
-+
-+		if (dma_start >= dma_end) {
-+			ret = -EINVAL;
-+			dev_dbg(dma_dev, "Invalid DMA regions configuration\n");
-+			goto out;
-+		}
-+
-+		*dma_addr = dma_start - dma_offset;
-+		*size = dma_end - dma_start + 1;
-+		*offset = dma_offset;
-+	}
-+ out:
-+	acpi_dev_free_resource_list(&list);
-+
-+	return ret >= 0 ? 0 : ret;
-+}
-+
-+/**
-  * acpi_dma_configure - Set-up DMA configuration for the device.
-  * @dev: The pointer to the device
-  * @attr: device dma attributes
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 68bc6be..07eb963 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -578,6 +578,8 @@ struct acpi_pci_root {
- 
- bool acpi_dma_supported(struct acpi_device *adev);
- enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev);
-+int acpi_dma_get_range(struct device *dev, u64 *dma_addr, u64 *offset,
-+		       u64 *size);
- int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr);
- void acpi_dma_deconfigure(struct device *dev);
- 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index c749eef..a5eaff9 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -427,6 +427,8 @@ void acpi_dev_free_resource_list(struct list_head *list);
- int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
- 			   int (*preproc)(struct acpi_resource *, void *),
- 			   void *preproc_data);
-+int acpi_dev_get_dma_resources(struct acpi_device *adev,
-+			       struct list_head *list);
- int acpi_dev_filter_resource_type(struct acpi_resource *ares,
- 				  unsigned long types);
- 
-@@ -774,6 +776,12 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
- 	return DEV_DMA_NOT_SUPPORTED;
- }
- 
-+static inline int acpi_dma_get_range(struct device *dev, u64 *dma_addr,
-+				     u64 *offset, u64 *size)
-+{
-+	return -ENODEV;
-+}
-+
- static inline int acpi_dma_configure(struct device *dev,
- 				     enum dev_dma_attr attr)
- {
+Thanks,
+Tyler
+
 -- 
-2.10.0
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
 
