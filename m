@@ -1,128 +1,91 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / PM: Prefer suspend-to-idle over S3 on some systems
-Date: Mon, 31 Jul 2017 23:43:18 +0200
-Message-ID: <3043895.8nuHiCWbDe@aspire.rjw.lan>
+Subject: Re: [PATCH] platform/x86: intel-hid: Wake up Dell Latitude 7275 from suspend-to-idle
+Date: Mon, 31 Jul 2017 23:46:28 +0200
+Message-ID: <3172146.dPhkKZoKtx@aspire.rjw.lan>
+References: <7313224.XbtxUoJtXM@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51822 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:41902 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751017AbdGaVv0 (ORCPT
+        by vger.kernel.org with ESMTP id S1751017AbdGaVye (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Jul 2017 17:51:26 -0400
+        Mon, 31 Jul 2017 17:54:34 -0400
+In-Reply-To: <7313224.XbtxUoJtXM@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Linux PM <linux-pm@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mario Limonciello <mario_limonciello@dell.com>
+To: platform-driver-x86@vger.kernel.org
+Cc: Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, =?ISO-8859-1?Q?J=E9r=F4me?= de Bretagne <jerome.debretagne@gmail.com>, Mario Limonciello <mario.limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Friday, July 28, 2017 02:06:36 AM Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> On Dell Latitude 7275 the 5-button array is not exposed in the
+> ACPI tables, but still notifies are sent to the Intel HID device
+> object (device ID INT33D5) in response to power button actions while
+> suspended to idle.  However, they are currently ignored as the
+> intel-hid driver is not prepared to take care of them.
+> 
+> As a result, power button wakeup from suspend-to-idle doesn't work
+> on this platform, but suspend-to-idle is the only reliable suspend
+> variant on it (the S3 implementation in the platform firmware turns
+> out to be broken), so it would be good to handle it properly.
+> 
+> For this reason, add an upfront check against the power button press
+> event (0xCE) to notify_handler() in the wakeup mode which allows it
+> to catch the power button wakeup notification on the affected
+> platform (even though priv->array is NULL on it) and should not
+> change the behavior on platforms with priv->array present (because
+> priv->array contains the event in question in those cases).
+> 
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=196115
+> Tested-by: Jérôme de Bretagne <jerome.debretagne@gmail.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Modify the ACPI system sleep support setup code to select
-suspend-to-idle as the default system sleep state if
-(1) the ACPI_FADT_LOW_POWER_S0 flag is set in the FADT and
-(2) the Low Power Idle S0 _DSM interface has been discovered and
-(3) the default sleep state was not selected from the kernel command
-line.
+Please note that this change is requisite for
 
-The main motivation for this change is that systems where the (1) and
-(2) conditions are met typically ship with OSes that don't exercise
-the S3 path in the platform firmware which remains untested and turns
-out to be non-functional at least in some cases.
+https://patchwork.kernel.org/patch/9873159/
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+so are there any objections or concerns?
 
-This patch depends on the intel-hid change at
-
-https://patchwork.kernel.org/patch/9867703/
-
----
- Documentation/power/states.txt |    4 +++-
- drivers/acpi/sleep.c           |    6 ++++++
- include/linux/suspend.h        |    3 +++
- kernel/power/power.h           |    1 -
- kernel/power/suspend.c         |    4 ++--
- 5 files changed, 14 insertions(+), 4 deletions(-)
-
-Index: linux-pm/Documentation/power/states.txt
-===================================================================
---- linux-pm.orig/Documentation/power/states.txt
-+++ linux-pm/Documentation/power/states.txt
-@@ -35,7 +35,9 @@ only one way to cause the system to go i
- The default suspend mode (ie. the one to be used without writing anything into
- /sys/power/mem_sleep) is either "deep" (if Suspend-To-RAM is supported) or
- "s2idle", but it can be overridden by the value of the "mem_sleep_default"
--parameter in the kernel command line.
-+parameter in the kernel command line.  On some ACPI-based systems, depending on
-+the information in the FADT, the default may be "s2idle" even if Suspend-To-RAM
-+is supported.
- 
- The properties of all of the sleep states are described below.
- 
-Index: linux-pm/drivers/acpi/sleep.c
-===================================================================
---- linux-pm.orig/drivers/acpi/sleep.c
-+++ linux-pm/drivers/acpi/sleep.c
-@@ -714,6 +714,12 @@ static int lps0_device_attach(struct acp
- 		if ((bitmask & ACPI_S2IDLE_FUNC_MASK) == ACPI_S2IDLE_FUNC_MASK) {
- 			lps0_dsm_func_mask = bitmask;
- 			lps0_device_handle = adev->handle;
-+			/*
-+			 * Use suspend-to-idle by default if the default
-+			 * suspend mode was not set from the command line.
-+			 */
-+			if (mem_sleep_default > PM_SUSPEND_MEM)
-+				mem_sleep_current = PM_SUSPEND_FREEZE;
- 		}
- 
- 		acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
-Index: linux-pm/include/linux/suspend.h
-===================================================================
---- linux-pm.orig/include/linux/suspend.h
-+++ linux-pm/include/linux/suspend.h
-@@ -196,6 +196,9 @@ struct platform_freeze_ops {
- };
- 
- #ifdef CONFIG_SUSPEND
-+extern suspend_state_t mem_sleep_current;
-+extern suspend_state_t mem_sleep_default;
-+
- /**
-  * suspend_set_ops - set platform dependent suspend operations
-  * @ops: The new suspend operations to set.
-Index: linux-pm/kernel/power/suspend.c
-===================================================================
---- linux-pm.orig/kernel/power/suspend.c
-+++ linux-pm/kernel/power/suspend.c
-@@ -48,7 +48,7 @@ static const char * const mem_sleep_labe
- const char *mem_sleep_states[PM_SUSPEND_MAX];
- 
- suspend_state_t mem_sleep_current = PM_SUSPEND_FREEZE;
--static suspend_state_t mem_sleep_default = PM_SUSPEND_MEM;
-+suspend_state_t mem_sleep_default = PM_SUSPEND_MAX;
- suspend_state_t pm_suspend_target_state;
- EXPORT_SYMBOL_GPL(pm_suspend_target_state);
- 
-@@ -216,7 +216,7 @@ void suspend_set_ops(const struct platfo
- 	}
- 	if (valid_state(PM_SUSPEND_MEM)) {
- 		mem_sleep_states[PM_SUSPEND_MEM] = mem_sleep_labels[PM_SUSPEND_MEM];
--		if (mem_sleep_default == PM_SUSPEND_MEM)
-+		if (mem_sleep_default >= PM_SUSPEND_MEM)
- 			mem_sleep_current = PM_SUSPEND_MEM;
- 	}
- 
-Index: linux-pm/kernel/power/power.h
-===================================================================
---- linux-pm.orig/kernel/power/power.h
-+++ linux-pm/kernel/power/power.h
-@@ -192,7 +192,6 @@ extern void swsusp_show_speed(ktime_t, k
- extern const char * const pm_labels[];
- extern const char *pm_states[];
- extern const char *mem_sleep_states[];
--extern suspend_state_t mem_sleep_current;
- 
- extern int suspend_devices_and_enter(suspend_state_t state);
- #else /* !CONFIG_SUSPEND */
+> ---
+>  drivers/platform/x86/intel-hid.c |   17 ++++++++++++++---
+>  1 file changed, 14 insertions(+), 3 deletions(-)
+> 
+> Index: linux-pm/drivers/platform/x86/intel-hid.c
+> ===================================================================
+> --- linux-pm.orig/drivers/platform/x86/intel-hid.c
+> +++ linux-pm/drivers/platform/x86/intel-hid.c
+> @@ -203,15 +203,26 @@ static void notify_handler(acpi_handle h
+>  	acpi_status status;
+>  
+>  	if (priv->wakeup_mode) {
+> +		/*
+> +		 * Needed for wakeup from suspend-to-idle to work on some
+> +		 * platforms that don't expose the 5-button array, but still
+> +		 * send notifies with the power button event code to this
+> +		 * device object on power button actions while suspended.
+> +		 */
+> +		if (event == 0xce)
+> +			goto wakeup;
+> +
+>  		/* Wake up on 5-button array events only. */
+>  		if (event == 0xc0 || !priv->array)
+>  			return;
+>  
+> -		if (sparse_keymap_entry_from_scancode(priv->array, event))
+> -			pm_wakeup_hard_event(&device->dev);
+> -		else
+> +		if (!sparse_keymap_entry_from_scancode(priv->array, event)) {
+>  			dev_info(&device->dev, "unknown event 0x%x\n", event);
+> +			return;
+> +		}
+>  
+> +wakeup:
+> +		pm_wakeup_hard_event(&device->dev);
+>  		return;
+>  	}
+>  
+> 
 
