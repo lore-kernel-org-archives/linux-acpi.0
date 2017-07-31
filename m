@@ -1,81 +1,157 @@
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v4 0/6] BTT error clearing rework
-Date: Mon, 31 Jul 2017 23:35:08 +0000
-Message-ID: <1501544000.4405.5.camel@intel.com>
-References: <20170726233546.29052-1-vishal.l.verma@intel.com>
-         <1501542358.2042.97.camel@hpe.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: Issue with commit de3ef1eb1cd - PM / core: Drop run_wake flag
+ from struct dev_pm_info [Was: MEI-related WARN_ON() triggered during
+ resume-from-sleep on v4.13-rc2+]
+Date: Tue, 1 Aug 2017 01:55:39 +0200
+Message-ID: <CAJZ5v0i2MiLv6J+Wo1sUXoCKK9iG_e7pVdb0Uo5uzLXkyxpDUg@mail.gmail.com>
+References: <20170730085908.GA2298@light.dominikbrodowski.net>
+ <5B8DA87D05A7694D9FA63FD143655C1B749D3C1C@hasmsx108.ger.corp.intel.com> <20170731221645.GA5871@light.dominikbrodowski.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:12661 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751685AbdGaXfL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Jul 2017 19:35:11 -0400
-In-Reply-To: <1501542358.2042.97.camel@hpe.com>
-Content-Language: en-US
-Content-ID: <E83CAB8D1FD0E049B12758FE6C02B307@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="001a113ecb70a342530555a5c44a"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170731221645.GA5871@light.dominikbrodowski.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: "Winkler, Tomas" <tomas.winkler@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Usyskin, Alexander" <alexander.usyskin@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-T24gTW9uLCAyMDE3LTA3LTMxIGF0IDIzOjE1ICswMDAwLCBLYW5pLCBUb3NoaW1pdHN1IHdyb3Rl
-Og0KPiBPbiBXZWQsIDIwMTctMDctMjYgYXQgMTc6MzUgLTA2MDAsIFZpc2hhbCBWZXJtYSB3cm90
-ZToNCj4gwqA6DQo+ID4gDQo+ID4gQ2xlYXJpbmcgZXJyb3JzIG9yIGJhZGJsb2NrcyBkdXJpbmcg
-YSBCVFQgd3JpdGUgcmVxdWlyZXMgc2VuZGluZyBhbg0KPiA+IEFDUEkgRFNNLCB3aGljaCBtZWFu
-cyBwb3RlbnRpYWxseSBzbGVlcGluZy4gU2luY2UgYSBCVFQgSU8gaGFwcGVucw0KPiA+IGluDQo+
-ID4gYXRvbWljIGNvbnRleHQgKHByZWVtcHRpb24gZGlzYWJsZWQsIHNwaW5sb2NrcyBtYXkgYmUg
-aGVsZCksIHdlDQo+ID4gY2Fubm90IHBlcmZvcm0gZXJyb3IgY2xlYXJpbmcgaW4gdGhlIGNvdXJz
-ZSBvZiBhbiBJTy4gRHVlIHRvIHRoaXMNCj4gPiBlcnJvciBjbGVhcmluZyBmb3IgQlRUIElPcyBo
-YXMgaGl0aGVydG8gYmVlbiBkaXNhYmxlZC4NCj4gPiANCj4gPiBUaGlzIHNlcmllcyBmaXhlcyB0
-aGVzZSBwcm9ibGVtcyBieSBtb3ZpbmcgdGhlIGVycm9yIGNsZWFyaW5nIG91dCBvZg0KPiA+IHRo
-ZSBhdG9taWMgc2VjdGlvbnMgaW4gdGhlIEJUVC4NCj4gPiANCj4gPiBBbHNvIGZpeCBhIHBvdGVu
-dGlhbCBkZWFkbG9jayB0aGF0IGNhbiBvY2N1ciB3aGlsZSBjbGVhcmluZyBlcnJvcnMNCj4gPiBm
-cm9tIGVpdGhlciBCVFQgb3IgcG1lbSBkdWUgdG8gbWVtb3J5IGFsbG9jYXRpb25zIGluIHRoZSBJ
-TyBwYXRoLg0KPiANCj4gSGkgVmlzaGFsLA0KPiANCj4gSSBqdXN0IHRlc3RlZCB0aGUgc2VyaWVz
-IChzb3JyeSBmb3IgdGhlIGRlbGF5KS7CoMKgSXQgd29ya3MgbmljZWx5IHdoZW4NCj4gZG9pbmcg
-SS9PcyB0byBhIGJsb2NrIGRldmljZSBkaXJlY3RseS7CoMKgQnV0IEkgYW0gc2VlaW5nIGEgbG90
-IG9mIHdyaXRlDQo+IGVycm9ycyB3aXRoIGZpbGVzeXN0ZW0uDQo+IA0KPiBIZXJlIGlzIHdoYXQg
-SSBkaWQgZm9yIHRoZSB0ZXN0aW5nLg0KPiANCj4gMS4gJ21rZnMuZXh0IC9kZXYvcG1lbTBzJyBh
-bmQgJ21vdW50IC9kZXYvcG1lbTBzIC9tbnQvcG1lbTBzJy4NCj4gMi4gSW5qZWN0IGFuIGVycm9y
-IHRvIHNvbWV3aGVyZSBpbiB0aGUgcG1lbTBzIGRldmljZSwgYnV0IG5vdCBpbiB0aGUNCj4gbWV0
-YWRhdGEgYXJlYSBhdCBiZWdpbm5pbmcuDQo+IDMuIFJ1biB0aGUgZm9sbG93aW5nIHNjcmlwdC4N
-Cj4gPT09DQo+IERFVj1wbWVtMHMNCj4gc2V0IC14DQo+IGRkIGlmPS9kZXYvemVybyBvZj0vbW50
-LyRERVYvMUdmaWxlIGJzPTFNIGNvdW50PTEwMjQNCj4gd2hpbGUgdHJ1ZTsgZG8NCj4gY3AgL21u
-dC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS0xDQo+IGNwIC9tbnQvJERFVi8xR2ZpbGUgL21u
-dC8kREVWL2ZpbGUtMg0KPiBjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERFVi9maWxlLTMNCj4g
-Y3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS00DQo+IGNwIC9tbnQvJERFVi8xR2Zp
-bGUgL21udC8kREVWL2ZpbGUtNQ0KPiBjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERFVi9maWxl
-LTYNCj4gY3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS03DQo+IGNwIC9tbnQvJERF
-Vi8xR2ZpbGUgL21udC8kREVWL2ZpbGUtOA0KPiBjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERF
-Vi9maWxlLTkNCj4gY3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS0xMA0KPiBkb25l
-DQo+ID09PQ0KPiANCj4gU3RlcCAzIGNsZWFycyBhbiBlcnJvciBhbmQgcnVucyBmaW5lIHdpdGgg
-cmF3IGFuZCBtZW1vcnkgbW9kZXMuwqDCoFdpdGgNCj4gc2VjdG9yIG1vZGUsIGhvd2V2ZXIsIGl0
-IGVuZHMgdXAgd2l0aCBjb250aW51b3VzIHdyaXRlIGVycm9ycyBsaWtlDQo+IGJlbG93IGFuZCBk
-b2VzIG5vdCBjbGVhciB0aGUgZXJyb3IuwqDCoERvIHlvdSBoYXZlIGFueSB0aG91Z2h0cz8NCj4g
-DQo+IMKgRVhUNC1mcyB3YXJuaW5nIChkZXZpY2UgcG1lbTBzKTogZXh0NF9lbmRfYmlvOjMyMjog
-SS9PIGVycm9yIDEwDQo+IHdyaXRpbmcgdG8gaW5vZGUgMTcgKG9mZnNldCAxMDIzNDEwMTc2IHNp
-emUgODM4ODYwOCBzdGFydGluZyBibG9jaw0KPiAxODM0NzUyKQ0KPiDCoEJ1ZmZlciBJL08gZXJy
-b3Igb24gZGV2aWNlIHBtZW0wcywgbG9naWNhbCBibG9jayAxODM0NzUyDQo+IMKgQnVmZmVyIEkv
-TyBlcnJvciBvbiBkZXZpY2UgcG1lbTBzLCBsb2dpY2FsIGJsb2NrIDE4MzQ3NTMNCj4gwqBCdWZm
-ZXIgSS9PIGVycm9yIG9uIGRldmljZSBwbWVtMHMsIGxvZ2ljYWwgYmxvY2sgMTgzNDc1NA0KPiDC
-oDoNCj4gwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NjgwMDY0
-LCBsZW4gNDA5NiwNCj4gwqBFWFQ0LWZzIHdhcm5pbmcgKGRldmljZSBwbWVtMHMpOiBleHQ0X2Vu
-ZF9iaW86MzIyOiBJL08gZXJyb3IgMTANCj4gd3JpdGluZyB0byBpbm9kZSAxNyAob2Zmc2V0IDEw
-MzE3OTg3ODQgc2l6ZSAxMDUyNjcyIHN0YXJ0aW5nIGJsb2NrDQo+IDE4MzUwMDgpDQo+IMKgbmRf
-cG1lbSBidHQwLjA6IGlvIGVycm9yIGluIFdSSVRFIHNlY3RvciAxNDY4MjExMiwgbGVuIDQwOTYs
-DQo+IMKgRVhUNC1mcyB3YXJuaW5nIChkZXZpY2UgcG1lbTBzKTogZXh0NF9lbmRfYmlvOjMyMjog
-SS9PIGVycm9yIDEwDQo+IHdyaXRpbmcgdG8gaW5vZGUgMTcgKG9mZnNldCAxMDMxNzk4Nzg0IHNp
-emUgMjEwMTI0OCBzdGFydGluZyBibG9jaw0KPiAxODM1MjY0KQ0KPiDCoDoNCj4gwqBuZF9wbWVt
-IGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0Njk4NDk2LCBsZW4gNDA5NiwNCj4g
-wqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NzAwNTQ0LCBsZW4g
-NDA5NiwNCj4gwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NzAy
-NTkyLCBsZW4gNDA5NiwNCj4gwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2Vj
-dG9yIDE0NzA0NjQwLCBsZW4gNDA5NiwNCj4gwqA6DQoNClRoYW5rcyBmb3IgdGhlIHRlc3QgVG9z
-aGksIEkgd2lsbCB0cnkgYW5kIHJlcHJvZHVjZSBpdC4NCk15IGZpcnN0IGd1ZXNzIGlzIC0gYXJl
-IHRoZSBpbmplY3RlZCBlcnJvcnMgcG90ZW50aWFsbHkgaW4gdGhlIEJUVA0KbWV0YWRhdGEgYXJl
-YSB0b3dhcmRzIHRoZSBlbmQ/DQoNCi0+cndfYnl0ZXMgY2FuIG9ubHkgY2xlYXIgZXJyb3JzIG9u
-IHByb3Blcmx5IGFsaWduZWQgd3JpdGVzLCBhbmQgdGhlIGJ0dA0KbWV0YWRhdGEgd3JpdGVzIHdp
-bGwgYmUgdG9vIHNtYWxsIHRvIGNsZWFyIG1ldGFkYXRhIGVycm9ycy4uDQoNCj4gDQo+IFRoYW5r
-cywNCj4gLVRvc2hp
+--001a113ecb70a342530555a5c44a
+Content-Type: text/plain; charset="UTF-8"
+
+Hi,
+
+On Tue, Aug 1, 2017 at 12:16 AM, Dominik Brodowski
+<linux@dominikbrodowski.net> wrote:
+> Rafael, Mika, Bjorn and Tomas,
+>
+> can't explain exactly what causes breakage between MEI and PM first seen on
+> v4.13-rc2 (ther was a typo in the orignal message), but I was able to bisect
+> it down to commit
+>
+> [de3ef1eb1cd0cc3a75f7a3661e10ed827f370ab8] PM / core: Drop run_wake flag from struct dev_pm_info
+>
+
+[cut]
+
+>>
+>> > [  192.940537] Restarting tasks ...
+>> > [  192.940610] PGI is not set
+>> > [  192.940619] ------------[ cut here ]------------ [  192.940623] WARNING: CPU: 0
+>> > PID: 1661 at /home/brodo/local/kernel/git/linux/drivers/misc/mei/hw-
+>> > me.c:653 mei_me_pg_exit_sync+0x351/0x360 [  192.940624] Modules linked
+>> > in:
+>> > [  192.940627] CPU: 0 PID: 1661 Comm: kworker/0:3 Not tainted 4.13.0-rc2+
+>> > #2 [  192.940628] Hardware name: Dell Inc. XPS 13 9343/0TM99H, BIOS A11
+>> > 12/08/2016 [  192.940630] Workqueue: pm pm_runtime_work <snip> [
+>> > 192.940642] Call Trace:
+>> > [  192.940646]  ? pci_pme_active+0x1de/0x1f0 [  192.940649]  ?
+>> > pci_restore_standard_config+0x50/0x50
+>> > [  192.940651]  ? kfree+0x172/0x190
+>> > [  192.940653]  ? kfree+0x172/0x190
+>> > [  192.940655]  ? pci_restore_standard_config+0x50/0x50
+>> > [  192.940663]  mei_me_pm_runtime_resume+0x3f/0xc0
+>> > [  192.940665]  pci_pm_runtime_resume+0x7a/0xa0 [  192.940667]
+>> > __rpm_callback+0xb9/0x1e0 [  192.940668]  ?
+>> > preempt_count_add+0x6d/0xc0 [  192.940670]  rpm_callback+0x24/0x90 [
+>> > 192.940672]  ? pci_restore_standard_config+0x50/0x50
+>> > [  192.940674]  rpm_resume+0x4e8/0x800
+>> > [  192.940676]  pm_runtime_work+0x55/0xb0 [  192.940678]
+>> > process_one_work+0x184/0x3e0 [  192.940680]  worker_thread+0x4d/0x3a0 [
+>> > 192.940681]  ? preempt_count_sub+0x9b/0x100 [  192.940683]
+>> > kthread+0x122/0x140 [  192.940684]  ? process_one_work+0x3e0/0x3e0 [
+>> > 192.940685]  ? __kthread_create_on_node+0x1a0/0x1a0
+>> > [  192.940688]  ret_from_fork+0x27/0x40
+>> > [  192.940690] Code: 96 3a 9e ff 48 8b 7d 98 e8 cd 21 58 00 83 bb bc 01 00 00
+>> > 04 0f 85 40 fe ff ff e9 41 fe ff ff 48 c7 c7 5f 04 99 96 e8 93 6b 9f ff <0f> ff e9 5d
+>> > fd ff ff e8 33 fe 99 ff 0f 1f 00 0f 1f 44 00 00 55 [  192.940719] ---[ end trace
+>> > a86955597774ead8 ]--- [  192.942540] done.
+>> >
+>> > This doesn't / didn't happen on v4.12.
+>
+>
+> By using the dynamic_debug infrastructure, I was able to obtain a few more
+> data points:
+>
+> Running 0847684cfc5f, when suspending the system to ram and resuming again,
+> I see the following messages:
+
+You have removed some relevant parts of the log, but I think I see
+what's going on.
+
+>         [  614.936773] sd 3:0:0:0: [sda] Stopping disk
+>         [  614.956004] mei_me 0000:00:16.0: rpm: me: runtime resume
+
+This is a runtime resume during system suspend.
+
+>         [  614.956165] ACPI : EC: event blocked
+>         [  614.980164] mei_me 0000:00:16.0: interrupt source 0x00000002
+>         [  614.980191] mei_me 0000:00:16.0: function called after ISR to handle the interrupt processing.
+>         ...
+>         [  615.266896] Suspended for 1.190 seconds
+>         ...
+>         [  615.455775] sd 3:0:0:0: [sda] Starting disk
+>         [  615.455855] mei_me 0000:00:16.0: interrupt source 0x00000002
+>         [  615.455870] mei_me 0000:00:16.0: function called after ISR to handle the interrupt processing.
+>         [  615.455877] mei_me 0000:00:16.0: we need to start the dev.
+>
+> and everything works fine as expected (no WARN(), no stack trace, nothing
+> dubious).
+>
+> Running de3ef1eb1cd0 instead, when suspending, I see *no* mei_me-related
+> message. During resume, the stack trace already noted above for
+> v4.13-rc2+ appears again:
+>
+>         [   80.333909] sd 3:0:0:0: [sda] Stopping disk
+>         [   80.535777] psmouse serio1: Failed to disable mouse on isa0060/serio1
+>         [   80.983510] ACPI : EC: event blocked
+
+Which apparently doesn't happen here.
+
+>         [   81.065510] PM: suspend of devices complete after 734.074 msecs
+>         ...
+>         [   82.137038] Restarting tasks ...
+>         [   82.143986] mei_me 0000:00:16.0: rpm: me: runtime resume
+
+And which does happen here, after system resume, but then it confuses
+the driver.
+
+>         [   82.143989] PGI is not set
+>         [   82.144001] ------------[ cut here ]------------
+>         [   82.144008] WARNING: CPU: 3 PID: 1881 at /home/brodo/local/kernel/git/linux/drivers/misc/mei/hw-me.c:653 mei_me_pg_exit_sync+0x351/0x360
+>         [   82.144009] Modules linked in:
+>         [   82.144012] CPU: 3 PID: 1881 Comm: kworker/3:5 Not tainted 4.12.0-rc5+ #3
+>         [   82.144013] Hardware name: Dell Inc. XPS 13 9343/0TM99H, BIOS A11 12/08/2016
+>         ...
+>         [   82.144017] Workqueue: pm pm_runtime_work
+>         [   82.144019] task: ffff964a91b35700 task.stack: ffffa51b43508000
+>         [   82.144022] RIP: 0010:mei_me_pg_exit_sync+0x351/0x360
+>         ...
+>         [   82.144156] ---[ end trace 5827b2fcedec4bc9 ]---
+>         [   82.144272] done.
+>         ...
+>         [   83.194425] mei_me 0000:00:16.0: rpm: me: runtime resume ret = -62
+>         [   83.194460] mei_me 0000:00:16.0: unexpected reset: dev_state = ENABLED fw status = 1E000245 6000A106 00000200 00004400 00000101 43C00ED9
+>         ...
+>
+> Any ideas?
+
+Can you check if the attached patch makes any difference?
+
+Thanks,
+Rafael
+
+--001a113ecb70a342530555a5c44a
+Content-Type: text/x-patch; charset="US-ASCII"; name="mei-suspend-debug.patch"
+Content-Disposition: attachment; filename="mei-suspend-debug.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_j5stapg21
+
+LS0tCiBkcml2ZXJzL21pc2MvbWVpL3BjaS1tZS5jIHwgICAgMiArKwogMSBmaWxlIGNoYW5nZWQs
+IDIgaW5zZXJ0aW9ucygrKQoKSW5kZXg6IGxpbnV4LXBtL2RyaXZlcnMvbWlzYy9tZWkvcGNpLW1l
+LmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PQotLS0gbGludXgtcG0ub3JpZy9kcml2ZXJzL21pc2MvbWVpL3BjaS1tZS5j
+CisrKyBsaW51eC1wbS9kcml2ZXJzL21pc2MvbWVpL3BjaS1tZS5jCkBAIC0zMDksNiArMzA5LDgg
+QEAgc3RhdGljIGludCBtZWlfbWVfcGNpX3N1c3BlbmQoc3RydWN0IGRldgogCWlmICghZGV2KQog
+CQlyZXR1cm4gLUVOT0RFVjsKIAorCXBtX3J1bnRpbWVfcmVzdW1lKCZwZGV2LT5kZXYpOworCiAJ
+ZGV2X2RiZygmcGRldi0+ZGV2LCAic3VzcGVuZFxuIik7CiAKIAltZWlfc3RvcChkZXYpOwo=
+--001a113ecb70a342530555a5c44a--
