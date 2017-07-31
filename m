@@ -1,108 +1,81 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH] platform/x86: intel-hid: Wake up Dell Latitude 7275 from suspend-to-idle
-Date: Tue, 1 Aug 2017 02:21:45 +0300
-Message-ID: <CAHp75VfouHVbj0X3PJfRHy2uSziq-P__N5ezbmsuUNYDwDxYKg@mail.gmail.com>
-References: <7313224.XbtxUoJtXM@aspire.rjw.lan> <3172146.dPhkKZoKtx@aspire.rjw.lan>
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v4 0/6] BTT error clearing rework
+Date: Mon, 31 Jul 2017 23:35:08 +0000
+Message-ID: <1501544000.4405.5.camel@intel.com>
+References: <20170726233546.29052-1-vishal.l.verma@intel.com>
+         <1501542358.2042.97.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:36388 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751438AbdGaXVq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jul 2017 19:21:46 -0400
-In-Reply-To: <3172146.dPhkKZoKtx@aspire.rjw.lan>
+Received: from mga05.intel.com ([192.55.52.43]:12661 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751685AbdGaXfL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 31 Jul 2017 19:35:11 -0400
+In-Reply-To: <1501542358.2042.97.camel@hpe.com>
+Content-Language: en-US
+Content-ID: <E83CAB8D1FD0E049B12758FE6C02B307@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Platform Driver <platform-driver-x86@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>, Mario Limonciello <mario.limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>
+To: "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-On Tue, Aug 1, 2017 at 12:46 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrot=
-e:
-> On Friday, July 28, 2017 02:06:36 AM Rafael J. Wysocki wrote:
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> On Dell Latitude 7275 the 5-button array is not exposed in the
->> ACPI tables, but still notifies are sent to the Intel HID device
->> object (device ID INT33D5) in response to power button actions while
->> suspended to idle.  However, they are currently ignored as the
->> intel-hid driver is not prepared to take care of them.
->>
->> As a result, power button wakeup from suspend-to-idle doesn't work
->> on this platform, but suspend-to-idle is the only reliable suspend
->> variant on it (the S3 implementation in the platform firmware turns
->> out to be broken), so it would be good to handle it properly.
->>
->> For this reason, add an upfront check against the power button press
->> event (0xCE) to notify_handler() in the wakeup mode which allows it
->> to catch the power button wakeup notification on the affected
->> platform (even though priv->array is NULL on it) and should not
->> change the behavior on platforms with priv->array present (because
->> priv->array contains the event in question in those cases).
->>
->> Link: https://bugzilla.kernel.org/show_bug.cgi?id=3D196115
->> Tested-by: J=C3=A9r=C3=B4me de Bretagne <jerome.debretagne@gmail.com>
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Please note that this change is requisite for
->
-> https://patchwork.kernel.org/patch/9873159/
->
-> so are there any objections or concerns?
-
-Not from my side,
-
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-
->
->> ---
->>  drivers/platform/x86/intel-hid.c |   17 ++++++++++++++---
->>  1 file changed, 14 insertions(+), 3 deletions(-)
->>
->> Index: linux-pm/drivers/platform/x86/intel-hid.c
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> --- linux-pm.orig/drivers/platform/x86/intel-hid.c
->> +++ linux-pm/drivers/platform/x86/intel-hid.c
->> @@ -203,15 +203,26 @@ static void notify_handler(acpi_handle h
->>       acpi_status status;
->>
->>       if (priv->wakeup_mode) {
->> +             /*
->> +              * Needed for wakeup from suspend-to-idle to work on some
->> +              * platforms that don't expose the 5-button array, but sti=
-ll
->> +              * send notifies with the power button event code to this
->> +              * device object on power button actions while suspended.
->> +              */
->> +             if (event =3D=3D 0xce)
->> +                     goto wakeup;
->> +
->>               /* Wake up on 5-button array events only. */
->>               if (event =3D=3D 0xc0 || !priv->array)
->>                       return;
->>
->> -             if (sparse_keymap_entry_from_scancode(priv->array, event))
->> -                     pm_wakeup_hard_event(&device->dev);
->> -             else
->> +             if (!sparse_keymap_entry_from_scancode(priv->array, event)=
-) {
->>                       dev_info(&device->dev, "unknown event 0x%x\n", eve=
-nt);
->> +                     return;
->> +             }
->>
->> +wakeup:
->> +             pm_wakeup_hard_event(&device->dev);
->>               return;
->>       }
->>
->>
->
-
-
-
---=20
-With Best Regards,
-Andy Shevchenko
+T24gTW9uLCAyMDE3LTA3LTMxIGF0IDIzOjE1ICswMDAwLCBLYW5pLCBUb3NoaW1pdHN1IHdyb3Rl
+Og0KPiBPbiBXZWQsIDIwMTctMDctMjYgYXQgMTc6MzUgLTA2MDAsIFZpc2hhbCBWZXJtYSB3cm90
+ZToNCj4gwqA6DQo+ID4gDQo+ID4gQ2xlYXJpbmcgZXJyb3JzIG9yIGJhZGJsb2NrcyBkdXJpbmcg
+YSBCVFQgd3JpdGUgcmVxdWlyZXMgc2VuZGluZyBhbg0KPiA+IEFDUEkgRFNNLCB3aGljaCBtZWFu
+cyBwb3RlbnRpYWxseSBzbGVlcGluZy4gU2luY2UgYSBCVFQgSU8gaGFwcGVucw0KPiA+IGluDQo+
+ID4gYXRvbWljIGNvbnRleHQgKHByZWVtcHRpb24gZGlzYWJsZWQsIHNwaW5sb2NrcyBtYXkgYmUg
+aGVsZCksIHdlDQo+ID4gY2Fubm90IHBlcmZvcm0gZXJyb3IgY2xlYXJpbmcgaW4gdGhlIGNvdXJz
+ZSBvZiBhbiBJTy4gRHVlIHRvIHRoaXMNCj4gPiBlcnJvciBjbGVhcmluZyBmb3IgQlRUIElPcyBo
+YXMgaGl0aGVydG8gYmVlbiBkaXNhYmxlZC4NCj4gPiANCj4gPiBUaGlzIHNlcmllcyBmaXhlcyB0
+aGVzZSBwcm9ibGVtcyBieSBtb3ZpbmcgdGhlIGVycm9yIGNsZWFyaW5nIG91dCBvZg0KPiA+IHRo
+ZSBhdG9taWMgc2VjdGlvbnMgaW4gdGhlIEJUVC4NCj4gPiANCj4gPiBBbHNvIGZpeCBhIHBvdGVu
+dGlhbCBkZWFkbG9jayB0aGF0IGNhbiBvY2N1ciB3aGlsZSBjbGVhcmluZyBlcnJvcnMNCj4gPiBm
+cm9tIGVpdGhlciBCVFQgb3IgcG1lbSBkdWUgdG8gbWVtb3J5IGFsbG9jYXRpb25zIGluIHRoZSBJ
+TyBwYXRoLg0KPiANCj4gSGkgVmlzaGFsLA0KPiANCj4gSSBqdXN0IHRlc3RlZCB0aGUgc2VyaWVz
+IChzb3JyeSBmb3IgdGhlIGRlbGF5KS7CoMKgSXQgd29ya3MgbmljZWx5IHdoZW4NCj4gZG9pbmcg
+SS9PcyB0byBhIGJsb2NrIGRldmljZSBkaXJlY3RseS7CoMKgQnV0IEkgYW0gc2VlaW5nIGEgbG90
+IG9mIHdyaXRlDQo+IGVycm9ycyB3aXRoIGZpbGVzeXN0ZW0uDQo+IA0KPiBIZXJlIGlzIHdoYXQg
+SSBkaWQgZm9yIHRoZSB0ZXN0aW5nLg0KPiANCj4gMS4gJ21rZnMuZXh0IC9kZXYvcG1lbTBzJyBh
+bmQgJ21vdW50IC9kZXYvcG1lbTBzIC9tbnQvcG1lbTBzJy4NCj4gMi4gSW5qZWN0IGFuIGVycm9y
+IHRvIHNvbWV3aGVyZSBpbiB0aGUgcG1lbTBzIGRldmljZSwgYnV0IG5vdCBpbiB0aGUNCj4gbWV0
+YWRhdGEgYXJlYSBhdCBiZWdpbm5pbmcuDQo+IDMuIFJ1biB0aGUgZm9sbG93aW5nIHNjcmlwdC4N
+Cj4gPT09DQo+IERFVj1wbWVtMHMNCj4gc2V0IC14DQo+IGRkIGlmPS9kZXYvemVybyBvZj0vbW50
+LyRERVYvMUdmaWxlIGJzPTFNIGNvdW50PTEwMjQNCj4gd2hpbGUgdHJ1ZTsgZG8NCj4gY3AgL21u
+dC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS0xDQo+IGNwIC9tbnQvJERFVi8xR2ZpbGUgL21u
+dC8kREVWL2ZpbGUtMg0KPiBjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERFVi9maWxlLTMNCj4g
+Y3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS00DQo+IGNwIC9tbnQvJERFVi8xR2Zp
+bGUgL21udC8kREVWL2ZpbGUtNQ0KPiBjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERFVi9maWxl
+LTYNCj4gY3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS03DQo+IGNwIC9tbnQvJERF
+Vi8xR2ZpbGUgL21udC8kREVWL2ZpbGUtOA0KPiBjcCAvbW50LyRERVYvMUdmaWxlIC9tbnQvJERF
+Vi9maWxlLTkNCj4gY3AgL21udC8kREVWLzFHZmlsZSAvbW50LyRERVYvZmlsZS0xMA0KPiBkb25l
+DQo+ID09PQ0KPiANCj4gU3RlcCAzIGNsZWFycyBhbiBlcnJvciBhbmQgcnVucyBmaW5lIHdpdGgg
+cmF3IGFuZCBtZW1vcnkgbW9kZXMuwqDCoFdpdGgNCj4gc2VjdG9yIG1vZGUsIGhvd2V2ZXIsIGl0
+IGVuZHMgdXAgd2l0aCBjb250aW51b3VzIHdyaXRlIGVycm9ycyBsaWtlDQo+IGJlbG93IGFuZCBk
+b2VzIG5vdCBjbGVhciB0aGUgZXJyb3IuwqDCoERvIHlvdSBoYXZlIGFueSB0aG91Z2h0cz8NCj4g
+DQo+IMKgRVhUNC1mcyB3YXJuaW5nIChkZXZpY2UgcG1lbTBzKTogZXh0NF9lbmRfYmlvOjMyMjog
+SS9PIGVycm9yIDEwDQo+IHdyaXRpbmcgdG8gaW5vZGUgMTcgKG9mZnNldCAxMDIzNDEwMTc2IHNp
+emUgODM4ODYwOCBzdGFydGluZyBibG9jaw0KPiAxODM0NzUyKQ0KPiDCoEJ1ZmZlciBJL08gZXJy
+b3Igb24gZGV2aWNlIHBtZW0wcywgbG9naWNhbCBibG9jayAxODM0NzUyDQo+IMKgQnVmZmVyIEkv
+TyBlcnJvciBvbiBkZXZpY2UgcG1lbTBzLCBsb2dpY2FsIGJsb2NrIDE4MzQ3NTMNCj4gwqBCdWZm
+ZXIgSS9PIGVycm9yIG9uIGRldmljZSBwbWVtMHMsIGxvZ2ljYWwgYmxvY2sgMTgzNDc1NA0KPiDC
+oDoNCj4gwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NjgwMDY0
+LCBsZW4gNDA5NiwNCj4gwqBFWFQ0LWZzIHdhcm5pbmcgKGRldmljZSBwbWVtMHMpOiBleHQ0X2Vu
+ZF9iaW86MzIyOiBJL08gZXJyb3IgMTANCj4gd3JpdGluZyB0byBpbm9kZSAxNyAob2Zmc2V0IDEw
+MzE3OTg3ODQgc2l6ZSAxMDUyNjcyIHN0YXJ0aW5nIGJsb2NrDQo+IDE4MzUwMDgpDQo+IMKgbmRf
+cG1lbSBidHQwLjA6IGlvIGVycm9yIGluIFdSSVRFIHNlY3RvciAxNDY4MjExMiwgbGVuIDQwOTYs
+DQo+IMKgRVhUNC1mcyB3YXJuaW5nIChkZXZpY2UgcG1lbTBzKTogZXh0NF9lbmRfYmlvOjMyMjog
+SS9PIGVycm9yIDEwDQo+IHdyaXRpbmcgdG8gaW5vZGUgMTcgKG9mZnNldCAxMDMxNzk4Nzg0IHNp
+emUgMjEwMTI0OCBzdGFydGluZyBibG9jaw0KPiAxODM1MjY0KQ0KPiDCoDoNCj4gwqBuZF9wbWVt
+IGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0Njk4NDk2LCBsZW4gNDA5NiwNCj4g
+wqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NzAwNTQ0LCBsZW4g
+NDA5NiwNCj4gwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NzAy
+NTkyLCBsZW4gNDA5NiwNCj4gwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2Vj
+dG9yIDE0NzA0NjQwLCBsZW4gNDA5NiwNCj4gwqA6DQoNClRoYW5rcyBmb3IgdGhlIHRlc3QgVG9z
+aGksIEkgd2lsbCB0cnkgYW5kIHJlcHJvZHVjZSBpdC4NCk15IGZpcnN0IGd1ZXNzIGlzIC0gYXJl
+IHRoZSBpbmplY3RlZCBlcnJvcnMgcG90ZW50aWFsbHkgaW4gdGhlIEJUVA0KbWV0YWRhdGEgYXJl
+YSB0b3dhcmRzIHRoZSBlbmQ/DQoNCi0+cndfYnl0ZXMgY2FuIG9ubHkgY2xlYXIgZXJyb3JzIG9u
+IHByb3Blcmx5IGFsaWduZWQgd3JpdGVzLCBhbmQgdGhlIGJ0dA0KbWV0YWRhdGEgd3JpdGVzIHdp
+bGwgYmUgdG9vIHNtYWxsIHRvIGNsZWFyIG1ldGFkYXRhIGVycm9ycy4uDQoNCj4gDQo+IFRoYW5r
+cywNCj4gLVRvc2hp
