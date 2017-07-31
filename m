@@ -1,43 +1,26 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: [PATCH] ACPI / sleep: Make acpi_sleep_syscore_init static
-Date: Mon, 31 Jul 2017 11:40:13 +0200
-Message-ID: <20170731114013.75bc1b0a@endymion>
+From: "WESTERN UNION ASIA" <mdupont@vip.cybercity.dk>
+Subject: C O N G R A T U L A T I O N S
+Date: Mon, 31 Jul 2017 18:00:12 +0800
+Message-ID: <E1dc7VC-0004JE-NX__48086.3795186908$1501496340$gmane$org@filter01asd2.se.isp-net.nl>
+Reply-To: wuhmcustomeragt.melissamubarak@outlook.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42068 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750739AbdGaJkQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Jul 2017 05:40:16 -0400
+Received: from filter01asd2-vif2-tele2.se.isp-net.nl ([82.215.18.102]:36851
+        "EHLO filter01asd2-vif2-tele2.se.isp-net.nl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750987AbdGaKSu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 31 Jul 2017 06:18:50 -0400
+Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: Recipients <mdupont@vip.cybercity.dk>
 
-Function acpi_sleep_syscore_init has no external user so it should be
-static.
+If You Are Still Using This E-mail :
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
----
- drivers/acpi/sleep.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+- YOU WON $500,000.00 USD -
 
---- linux-4.13-rc3.orig/drivers/acpi/sleep.c	2017-07-31 10:51:43.665159497 +0200
-+++ linux-4.13-rc3/drivers/acpi/sleep.c	2017-07-31 11:34:07.180873669 +0200
-@@ -870,7 +870,7 @@ static struct syscore_ops acpi_sleep_sys
- 	.resume = acpi_restore_bm_rld,
- };
- 
--void acpi_sleep_syscore_init(void)
-+static void acpi_sleep_syscore_init(void)
- {
- 	register_syscore_ops(&acpi_sleep_syscore_ops);
- }
-
-
--- 
-Jean Delvare
-SUSE L3 Support
+For More Details,  Contact -
+Name:  MELISSA BINTI MUBARAK
+E-mail: westernunion.melissamubarak@gmail.com
