@@ -1,52 +1,128 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/3] PCI / PM: Skip bridges in pci_enable_wake()
-Date: Mon, 31 Jul 2017 22:59:32 +0200
-Message-ID: <CAJZ5v0j623DO77BUh0fxkD1Fpi9-qcWRXF2Z_sAHbRnuzBp92w@mail.gmail.com>
-References: <3116391.JNS1F4DjTg@aspire.rjw.lan> <1895122.yvmCHzQO3z@aspire.rjw.lan>
- <20170731205337.GF9303@bhelgaas-glaptop.roam.corp.google.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / PM: Prefer suspend-to-idle over S3 on some systems
+Date: Mon, 31 Jul 2017 23:43:18 +0200
+Message-ID: <3043895.8nuHiCWbDe@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170731205337.GF9303@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51822 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751017AbdGaVv0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 31 Jul 2017 17:51:26 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Linux PM <linux-pm@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mario Limonciello <mario_limonciello@dell.com>
 
-On Mon, Jul 31, 2017 at 10:53 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Fri, Jul 21, 2017 at 02:38:08PM +0200, Rafael J. Wysocki wrote:
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> PCI bridges only have a reason to generate wakeup signals on behalf
->> of devices below them, so avoid preparing bridges for wakeup directly
->> in pci_enable_wake().
->>
->> Also drop the pci_has_subordinate() check from pci_pm_default_resume()
->> as this will be done by pci_enable_wake() itself now.
->>
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Thanks!
+Modify the ACPI system sleep support setup code to select
+suspend-to-idle as the default system sleep state if
+(1) the ACPI_FADT_LOW_POWER_S0 flag is set in the FADT and
+(2) the Low Power Idle S0 _DSM interface has been discovered and
+(3) the default sleep state was not selected from the kernel command
+line.
 
->> ---
->>  drivers/pci/pci-driver.c |    4 +---
->>  drivers/pci/pci.c        |    7 +++++++
->>  2 files changed, 8 insertions(+), 3 deletions(-)
->>
->> Index: linux-pm/drivers/pci/pci.c
->> ===================================================================
->> --- linux-pm.orig/drivers/pci/pci.c
->> +++ linux-pm/drivers/pci/pci.c
->> @@ -1909,6 +1909,13 @@ int pci_enable_wake(struct pci_dev *dev,
->>  {
->>       int ret = 0;
->>
->> +     /*
->> +      * Bridges can only signal wakeup on behalf of subordinate devices,
->> +      * but that is set up elsewhere, so skip them.
->
-> A specific pointer to this "elsewhere" would be useful here.
+The main motivation for this change is that systems where the (1) and
+(2) conditions are met typically ship with OSes that don't exercise
+the S3 path in the platform firmware which remains untested and turns
+out to be non-functional at least in some cases.
 
-OK
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+This patch depends on the intel-hid change at
+
+https://patchwork.kernel.org/patch/9867703/
+
+---
+ Documentation/power/states.txt |    4 +++-
+ drivers/acpi/sleep.c           |    6 ++++++
+ include/linux/suspend.h        |    3 +++
+ kernel/power/power.h           |    1 -
+ kernel/power/suspend.c         |    4 ++--
+ 5 files changed, 14 insertions(+), 4 deletions(-)
+
+Index: linux-pm/Documentation/power/states.txt
+===================================================================
+--- linux-pm.orig/Documentation/power/states.txt
++++ linux-pm/Documentation/power/states.txt
+@@ -35,7 +35,9 @@ only one way to cause the system to go i
+ The default suspend mode (ie. the one to be used without writing anything into
+ /sys/power/mem_sleep) is either "deep" (if Suspend-To-RAM is supported) or
+ "s2idle", but it can be overridden by the value of the "mem_sleep_default"
+-parameter in the kernel command line.
++parameter in the kernel command line.  On some ACPI-based systems, depending on
++the information in the FADT, the default may be "s2idle" even if Suspend-To-RAM
++is supported.
+ 
+ The properties of all of the sleep states are described below.
+ 
+Index: linux-pm/drivers/acpi/sleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.c
++++ linux-pm/drivers/acpi/sleep.c
+@@ -714,6 +714,12 @@ static int lps0_device_attach(struct acp
+ 		if ((bitmask & ACPI_S2IDLE_FUNC_MASK) == ACPI_S2IDLE_FUNC_MASK) {
+ 			lps0_dsm_func_mask = bitmask;
+ 			lps0_device_handle = adev->handle;
++			/*
++			 * Use suspend-to-idle by default if the default
++			 * suspend mode was not set from the command line.
++			 */
++			if (mem_sleep_default > PM_SUSPEND_MEM)
++				mem_sleep_current = PM_SUSPEND_FREEZE;
+ 		}
+ 
+ 		acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
+Index: linux-pm/include/linux/suspend.h
+===================================================================
+--- linux-pm.orig/include/linux/suspend.h
++++ linux-pm/include/linux/suspend.h
+@@ -196,6 +196,9 @@ struct platform_freeze_ops {
+ };
+ 
+ #ifdef CONFIG_SUSPEND
++extern suspend_state_t mem_sleep_current;
++extern suspend_state_t mem_sleep_default;
++
+ /**
+  * suspend_set_ops - set platform dependent suspend operations
+  * @ops: The new suspend operations to set.
+Index: linux-pm/kernel/power/suspend.c
+===================================================================
+--- linux-pm.orig/kernel/power/suspend.c
++++ linux-pm/kernel/power/suspend.c
+@@ -48,7 +48,7 @@ static const char * const mem_sleep_labe
+ const char *mem_sleep_states[PM_SUSPEND_MAX];
+ 
+ suspend_state_t mem_sleep_current = PM_SUSPEND_FREEZE;
+-static suspend_state_t mem_sleep_default = PM_SUSPEND_MEM;
++suspend_state_t mem_sleep_default = PM_SUSPEND_MAX;
+ suspend_state_t pm_suspend_target_state;
+ EXPORT_SYMBOL_GPL(pm_suspend_target_state);
+ 
+@@ -216,7 +216,7 @@ void suspend_set_ops(const struct platfo
+ 	}
+ 	if (valid_state(PM_SUSPEND_MEM)) {
+ 		mem_sleep_states[PM_SUSPEND_MEM] = mem_sleep_labels[PM_SUSPEND_MEM];
+-		if (mem_sleep_default == PM_SUSPEND_MEM)
++		if (mem_sleep_default >= PM_SUSPEND_MEM)
+ 			mem_sleep_current = PM_SUSPEND_MEM;
+ 	}
+ 
+Index: linux-pm/kernel/power/power.h
+===================================================================
+--- linux-pm.orig/kernel/power/power.h
++++ linux-pm/kernel/power/power.h
+@@ -192,7 +192,6 @@ extern void swsusp_show_speed(ktime_t, k
+ extern const char * const pm_labels[];
+ extern const char *pm_states[];
+ extern const char *mem_sleep_states[];
+-extern suspend_state_t mem_sleep_current;
+ 
+ extern int suspend_devices_and_enter(suspend_state_t state);
+ #else /* !CONFIG_SUSPEND */
+
