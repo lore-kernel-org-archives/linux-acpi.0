@@ -1,60 +1,72 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH v2] ACPI / Processor: add sysfs support for low power idle
-Date: Mon, 31 Jul 2017 12:18:08 -0600
-Message-ID: <8beff6e7-e27c-0b44-6236-a95fcd5335d5@codeaurora.org>
-References: <1499968082-7753-1-git-send-email-pprakash@codeaurora.org>
- <3212e387-9f7d-5bd9-4612-79dddc77b05f@arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 0/5] ACPI: DMA ranges management
+Date: Mon, 31 Jul 2017 20:57:19 +0200
+Message-ID: <CAJZ5v0g_NHo5Jnp5HcseS2RQL1PwaewGE6eG6Xn9OafAXwHgkw@mail.gmail.com>
+References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:34638 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751059AbdGaSSK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jul 2017 14:18:10 -0400
-In-Reply-To: <3212e387-9f7d-5bd9-4612-79dddc77b05f@arm.com>
-Content-Language: en-US
+Received: from mail-it0-f68.google.com ([209.85.214.68]:38582 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750967AbdGaS5V (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jul 2017 14:57:21 -0400
+In-Reply-To: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Nate Watterson <nwatters@codeaurora.org>
 
-Hi Sudeep,
-
-On 7/31/2017 10:25 AM, Sudeep Holla wrote:
-> Sorry for the delay, I initial thought having this ABI under testing is
-> fine as I really don't want any *real* user space programs to depend on
-> this for various reasons stated in earlier threads, e.g. h/w auto
-> promotable states, accuracy of the stats, ..etc
-<sorry for repeating this part>
-These fields are optional, so if there is no reliable way to keep track of  stats, platform
-can choose not to expose it. If a platform is exposing inaccurate stats via this ACPI
-interface, it is breaking the spec.
-> But from Documentation/ABI/README, I see
+On Mon, Jul 31, 2017 at 5:23 PM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> This patch series is v2 of a previous posting:
 >
-> testing/
-> 	This directory documents interfaces that are felt to be stable,
-> 	as the main development of this interface has been completed.
-> 	The interface can be changed to add new features, but the
-> 	current interface will not break by doing this, unless grave
-> 	errors or security problems are found in them. User space
-> 	programs can start to rely on these interfaces,...
+> v1: http://lkml.kernel.org/r/20170720144517.32529-1-lorenzo.pieralisi@arm.com
 >
-> which makes me worry. Since the use for this is purely for debug or
-> optimization purposes, I still prefer simple single file debugfs entry.
-> I still can't digest the fact that reading single file is time consuming
-> as we are not using this interface at runtime IIUC. i.e. statistic are
-> collected and analyzed offline.
-These fields has the same utility/use-cases as the usage & time fields in cpuidle sysfs,
-but provides more granularity - idle stats for different levels hierarchy and accurate
-idle stats for states that require platform co-ordination.
+> v1->v2:
+>         - Reworked acpi_dma_get_range() flow and logs
+>         - Added IORT named component address limits
+>         - Renamed acpi_dev_get_resources() helper function
+>         - Rebased against v4.13-rc3
+>
+> -- Original cover letter --
+>
+> As reported in:
+>
+> http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
+>
+> the bus connecting devices to an IOMMU bus can be smaller in size than
+> the IOMMU input address bits which results in devices DMA HW bugs in
+> particular related to IOVA allocation (ie chopping of higher address
+> bits owing to system bus HW capabilities mismatch with the IOMMU).
+>
+> Fortunately this problem can be solved through an already present but never
+> used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define the DMA
+> window for a specific bus in ACPI and therefore all upstream devices
+> connected to it.
+>
+> This small patch series enables _DMA parsing in ACPI core code and
+> use it in ACPI IORT code in order to detect DMA ranges for devices and
+> update their data structures to make them work with their related DMA
+> addressing restrictions.
+>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Feng Kan <fkan@apm.com>
+> Cc: Jon Masters <jcm@redhat.com>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>
+> Lorenzo Pieralisi (5):
+>   ACPICA: resource_mgr: Allow _DMA method in walk resources
+>   ACPI: Make acpi_dev_get_resources() method agnostic
+>   ACPI: Introduce DMA ranges parsing
+>   ACPI: Make acpi_dma_configure() DMA regions aware
+>   ACPI/IORT: Add IORT named component memory address limits
 
-The argument for having a single sysfs file per node was that reading individual
-files might get expensive to get a snapshot(not the other way around). But, that
-argument was weak as we typically read these only in debug settings and not that
-often during runtime. So, the summary_stats file was removed and went with one
-value per file.
+Patches [1-3/5] are fine by me, but I need ACKs from the ARM side on
+the last two ones.
 
---
 Thanks,
-Prashanth
+Rafael
