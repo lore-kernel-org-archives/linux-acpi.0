@@ -1,291 +1,103 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization
- earlier
-Date: Mon, 31 Jul 2017 19:20:49 +0800
-Message-ID: <7f3a1d3a-6327-67de-ff0b-8132bc506e6e@cn.fujitsu.com>
-References: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com>
- <1500011554-9784-13-git-send-email-douly.fnst@cn.fujitsu.com>
- <1AE640813FDE7649BE1B193DEA596E886CEE2130@SHSMSX101.ccr.corp.intel.com>
- <d0ce9178-4b06-081b-6b12-a8cd1c5352b7@cn.fujitsu.com>
- <20170718084521.GC2344@x1>
- <2855c940-9e57-f06f-d9f0-dc5eb4408b37@cn.fujitsu.com>
- <20170727060859.GE24304@x1>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [Intel-gfx] [PATCH 0/3] Kconfig dependencies: acpi-video, backlight and thermal
+Date: Mon, 31 Jul 2017 14:28:58 +0300
+Message-ID: <87tw1sj151.fsf@nikula.org>
+References: <20170726135312.2214309-1-arnd@arndb.de> <20170726144041.plcrr6bg2hkh4q52@phenom.ffwll.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:25015 "EHLO song.cn.fujitsu.com"
-        rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-        id S1751054AbdGaLVE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Jul 2017 07:21:04 -0400
-In-Reply-To: <20170727060859.GE24304@x1>
+Received: from mga09.intel.com ([134.134.136.24]:19904 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751017AbdGaLYG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 31 Jul 2017 07:24:06 -0400
+In-Reply-To: <20170726144041.plcrr6bg2hkh4q52@phenom.ffwll.local>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "bhe@redhat.com" <bhe@redhat.com>, joeyli.kernel@gmail.com
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@kernel.org" <mingo@kernel.org>, "hpa@zytor.com" <hpa@zytor.com>, "ebiederm@xmission.com" <ebiederm@xmission.com>, "peterz@infradead.org" <peterz@infradead.org>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "tokunaga.keiich@jp.fujitsu.com" <tokunaga.keiich@jp.fujitsu.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Julian Wollrath <jwollrath@web.de>
+To: Daniel Vetter <daniel@ffwll.ch>, Arnd Bergmann <arnd@arndb.de>
+Cc: devel@driverdev.osuosl.org, Daniel Drake <dsd@laptop.org>, Jens Frederich <jfrederich@gmail.com>, nouveau@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, etnaviv@lists.freedesktop.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ben Skeggs <bskeggs@redhat.com>, Russell King <linux+etnaviv@armlinux.org.uk>, Daniel Vetter <daniel.vetter@intel.com>, Andy Shevchenko <andy@infradead.org>, intel-gfx@lists.freedesktop.org, Darren Hart <dvhart@infradead.org>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi Baoquan,
-
-At 07/27/2017 02:08 PM, bhe@redhat.com wrote:
-> On 07/26/17 at 08:19pm, Dou Liyang wrote:
->> Hi Baoquan,
-[...]
->>
->> I am looking for Thinkpad x121e (AMD E-450 APU) to test. I have tested
->> it in Thinkpad s430, It's OK.
->>
->> BTY, I am confused how does the ACPI subsystem affect PIT which
->> will be used to fast calibrate CPU frequency[2].
-
-In combination with what Joey said[1] and the code, I guess,
-
-The acpi_enable() called in acpi_enable_system() transfers the system
-into ACPI mode and write data to an I/O port. PIT works using the I/O
-port. In Thinkpad x121e with ACPI mode, the counter in PIT couldn't
-count right and might got an error value.
-
-[1] https://lkml.org/lkml/2014/3/12/3
-
-Thanks,
-	dou.
+On Wed, 26 Jul 2017, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Wed, Jul 26, 2017 at 03:53:09PM +0200, Arnd Bergmann wrote:
+>> Hi everyone,
+>> 
+>> It took me a while to figure this out properly, as I kept getting
+>> circular or missing dependencies with video drivers.
+>> 
+>> This set of three patches should simplify the situation a bit,
+>> mostly by cleaning up the dependencies around CONFIG_ACPI_VIDEO.
+>> With all three patches applied, I no longer run into those related
+>> warnings. If everyone agrees on the general direction, I hope
+>> we can merge all three through the DRM tree.
+>> 
+>> I originally had another larger patch in the series to replace all
+>> of the 'select BACKLIGHT_LCD_SUPPORT; select BACKLIGHT_CLASS_DEVICE'
+>> statements with 'depends on LCD_CLASS_DEVICE', that would clean
+>> it up some more, but it is also a more invasive change that we
+>> can do separately at some point.
 >
-> I checked code, and have no any idea. Add Joey Lee to list, see if he
-> can help answer this.
->
->>
->> Do you have any idea?
->>
->> [1] https://lkml.org/lkml/2014/3/10/123
->> [2] https://lkml.org/lkml/2014/3/12/3
->>
->>
->>  drivers/iommu/dmar.c                | 27 +++++++++++----------------
->>  drivers/iommu/intel-iommu.c         |  2 ++
->>  drivers/iommu/intel_irq_remapping.c | 17 ++++++++++++++++-
->>  include/linux/dmar.h                |  2 ++
->>  init/main.c                         |  2 +-
->>  5 files changed, 32 insertions(+), 18 deletions(-)
->>
->> diff --git a/drivers/iommu/dmar.c b/drivers/iommu/dmar.c
->> index c8b0329..e6261b7 100644
->> --- a/drivers/iommu/dmar.c
->> +++ b/drivers/iommu/dmar.c
->> @@ -68,6 +68,8 @@ DECLARE_RWSEM(dmar_global_lock);
->>  LIST_HEAD(dmar_drhd_units);
->>
->>  struct acpi_table_header * __initdata dmar_tbl;
->> +struct acpi_table_header * __initdata dmar_tbl_original;
->> +
->>  static int dmar_dev_scope_status = 1;
->>  static unsigned long dmar_seq_ids[BITS_TO_LONGS(DMAR_UNITS_SUPPORTED)];
->>
->> @@ -627,6 +629,7 @@ parse_dmar_table(void)
->>  	 * fixed map.
->>  	 */
->>  	dmar_table_detect();
->> +	dmar_tbl_original = dmar_tbl;
->>
->>  	/*
->>  	 * ACPI tables may not be DMA protected by tboot, so use DMAR copy
->> @@ -811,26 +814,18 @@ int __init dmar_dev_scope_init(void)
->>
->>  int __init dmar_table_init(void)
->>  {
->> -	static int dmar_table_initialized;
->>  	int ret;
->>
->> -	if (dmar_table_initialized == 0) {
->> -		ret = parse_dmar_table();
->> -		if (ret < 0) {
->> -			if (ret != -ENODEV)
->> -				pr_info("Parse DMAR table failure.\n");
->> -		} else  if (list_empty(&dmar_drhd_units)) {
->> -			pr_info("No DMAR devices found\n");
->> -			ret = -ENODEV;
->> -		}
->> -
->> -		if (ret < 0)
->> -			dmar_table_initialized = ret;
->> -		else
->> -			dmar_table_initialized = 1;
->> +	ret = parse_dmar_table();
->> +	if (ret < 0) {
->> +		if (ret != -ENODEV)
->> +			pr_info("Parse DMAR table failure.\n");
->> +	} else  if (list_empty(&dmar_drhd_units)) {
->> +		pr_info("No DMAR devices found\n");
->> +		ret = -ENODEV;
->>  	}
->>
->> -	return dmar_table_initialized < 0 ? dmar_table_initialized : 0;
->> +	return ret;
->>  }
->>
->>  static void warn_invalid_dmar(u64 addr, const char *message)
->> diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
->> index 687f18f..90f74f4 100644
->> --- a/drivers/iommu/intel-iommu.c
->> +++ b/drivers/iommu/intel-iommu.c
->> @@ -4832,6 +4832,8 @@ int __init intel_iommu_init(void)
->>  	}
->>
->>  	down_write(&dmar_global_lock);
->> +
->> +	intel_iommu_free_dmars();
->>  	if (dmar_table_init()) {
->>  		if (force_on)
->>  			panic("tboot: Failed to initialize DMAR table\n");
->> diff --git a/drivers/iommu/intel_irq_remapping.c
->> b/drivers/iommu/intel_irq_remapping.c
->> index a5b89f6..ccaacda 100644
->> --- a/drivers/iommu/intel_irq_remapping.c
->> +++ b/drivers/iommu/intel_irq_remapping.c
->> @@ -675,7 +675,7 @@ static void __init intel_cleanup_irq_remapping(void)
->>  		pr_warn("Failed to enable irq remapping. You are vulnerable to
->> irq-injection attacks.\n");
->>  }
->>
->> -static int __init intel_prepare_irq_remapping(void)
->> +static int __init __intel_prepare_irq_remapping(void)
->>  {
->>  	struct dmar_drhd_unit *drhd;
->>  	struct intel_iommu *iommu;
->> @@ -743,6 +743,21 @@ static int __init intel_prepare_irq_remapping(void)
->>  	return -ENODEV;
->>  }
->>
->> +static int __init intel_prepare_irq_remapping(void)
->> +{
->> +	int ret;
->> +
->> +	ret = __intel_prepare_irq_remapping();
->> +
->> +	if (dmar_tbl_original) {
->> +		acpi_put_table(dmar_tbl_original);
->> +		dmar_tbl_original = NULL;
->> +		dmar_tbl = NULL;
->> +	}
->> +
->> +	return ret;
->> +}
->> +
->>  /*
->>   * Set Posted-Interrupts capability.
->>   */
->> diff --git a/include/linux/dmar.h b/include/linux/dmar.h
->> index e8ffba1..987b076 100644
->> --- a/include/linux/dmar.h
->> +++ b/include/linux/dmar.h
->> @@ -50,6 +50,8 @@ struct dmar_dev_scope {
->>
->>  #ifdef CONFIG_DMAR_TABLE
->>  extern struct acpi_table_header *dmar_tbl;
->> +extern struct acpi_table_header *dmar_tbl_original;
->> +
->>  struct dmar_drhd_unit {
->>  	struct list_head list;		/* list of drhd units	*/
->>  	struct  acpi_dmar_header *hdr;	/* ACPI header		*/
->> diff --git a/init/main.c b/init/main.c
->> index 52dee20..052481f 100644
->> --- a/init/main.c
->> +++ b/init/main.c
->> @@ -655,12 +655,12 @@ asmlinkage __visible void __init start_kernel(void)
->>  	kmemleak_init();
->>  	setup_per_cpu_pageset();
->>  	numa_policy_init();
->> -	acpi_early_init();
->>  	if (late_time_init)
->>  		late_time_init();
->>  	calibrate_delay();
->>  	pidmap_init();
->>  	anon_vma_init();
->> +	acpi_early_init();
->>  #ifdef CONFIG_X86
->>  	if (efi_enabled(EFI_RUNTIME_SERVICES))
->>  		efi_enter_virtual_mode();
->>
->> Thanks,
->> 	dou.
->>>
->>>>
->>>>
->>>> Thanks,
->>>>
->>>> 	dou.
->>>>>
->>>>> Thanks
->>>>> Lv
->>>>>
->>>>>> From: Dou Liyang [mailto:douly.fnst@cn.fujitsu.com]
->>>>>> Sent: Friday, July 14, 2017 1:53 PM
->>>>>> To: x86@kernel.org; linux-kernel@vger.kernel.org
->>>>>> Cc: tglx@linutronix.de; mingo@kernel.org; hpa@zytor.com; ebiederm@xmission.com; bhe@redhat.com;
->>>>>> peterz@infradead.org; izumi.taku@jp.fujitsu.com; tokunaga.keiich@jp.fujitsu.com; Dou Liyang
->>>>>> <douly.fnst@cn.fujitsu.com>; linux-acpi@vger.kernel.org; Rafael J. Wysocki <rjw@rjwysocki.net>; Zheng,
->>>>>> Lv <lv.zheng@intel.com>; Julian Wollrath <jwollrath@web.de>
->>>>>> Subject: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization earlier
->>>>>>
->>>>>> Linux uses acpi_early_init() to put the ACPI table management into
->>>>>> the late stage from the early stage where the mapped ACPI tables is
->>>>>> temporary and should be unmapped.
->>>>>>
->>>>>> But, now initializing interrupt delivery mode should map and parse the
->>>>>> DMAR table earlier in the early stage. This causes an ACPI error when
->>>>>> Linux reallocates the ACPI root tables. Because Linux doesn't unmapped
->>>>>> the DMAR table after using in the early stage.
->>>>>>
->>>>>> Invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
->>>>>> be mapped and parsed in late stage like before.
->>>>>>
->>>>>> Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
->>>>>> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
->>>>>> Cc: linux-acpi@vger.kernel.org
->>>>>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
->>>>>> Cc: Zheng, Lv <lv.zheng@intel.com>
->>>>>> Cc: Julian Wollrath <jwollrath@web.de>
->>>>>> ---
->>>>>> Test in my own PC(Lenovo M4340).
->>>>>> Ask help for doing regression testing for the bug said in commit c4e1acbb35e4
->>>>>> ("ACPI / init: Invoke early ACPI initialization later").
->>>>>>
->>>>>>  init/main.c | 2 +-
->>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>>>
->>>>>> diff --git a/init/main.c b/init/main.c
->>>>>> index df58a41..7a09467 100644
->>>>>> --- a/init/main.c
->>>>>> +++ b/init/main.c
->>>>>> @@ -654,12 +654,12 @@ asmlinkage __visible void __init start_kernel(void)
->>>>>>  	kmemleak_init();
->>>>>>  	setup_per_cpu_pageset();
->>>>>>  	numa_policy_init();
->>>>>> +	acpi_early_init();
->>>>>>  	if (late_time_init)
->>>>>>  		late_time_init();
->>>>>>  	calibrate_delay();
->>>>>>  	pidmap_init();
->>>>>>  	anon_vma_init();
->>>>>> -	acpi_early_init();
->>>>>>  #ifdef CONFIG_X86
->>>>>>  	if (efi_enabled(EFI_RUNTIME_SERVICES))
->>>>>>  		efi_enter_virtual_mode();
->>>>>> --
->>>>>> 2.5.5
->>>>>>
->>>>>>
->>>>>
->>>>>
->>>>>
->>>>>
->>>>
->>>>
->>>
->>>
->>>
->>
->>
->
->
->
+> Looks reasonable, but I think it'd be good to get Jani Nikula's explicit
+> ack on this, since he dugg around a lot in this area. And he's on vacation
+> this week.
+
+I didn't dig through all the details, but looks good to me and
+definitely an improvement in drm Kconfigs.
+
+Acked-by: Jani Nikula <jani.nikula@intel.com>
 
 
+
+> -Daniel
+>
+>> 
+>>        Arnd
+>> 
+>> Arnd Bergmann (3):
+>>   backlight: always select BACKLIGHT_LCD_SUPPORT for
+>>     BACKLIGHT_CLASS_DEVICE
+>>   ACPI/DRM: rework ACPI_VIDEO Kconfig dependencies
+>>   drm/etnaviv: add thermal dependency
+>> 
+>>  drivers/acpi/Kconfig              |  7 +++++--
+>>  drivers/gpu/drm/etnaviv/Kconfig   |  1 +
+>>  drivers/gpu/drm/gma500/Kconfig    |  5 +----
+>>  drivers/gpu/drm/i915/Kconfig      |  7 +------
+>>  drivers/gpu/drm/nouveau/Kconfig   | 10 ++--------
+>>  drivers/platform/x86/Kconfig      |  9 ++++-----
+>>  drivers/staging/olpc_dcon/Kconfig |  1 +
+>>  7 files changed, 15 insertions(+), 25 deletions(-)
+>> 
+>> To: dri-devel@lists.freedesktop.org
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> Cc: Len Brown <lenb@kernel.org>
+>> Cc: Lucas Stach <l.stach@pengutronix.de>
+>> Cc: Russell King <linux+etnaviv@armlinux.org.uk>
+>> Cc: Christian Gmeiner <christian.gmeiner@gmail.com>
+>> Cc: David Airlie <airlied@linux.ie>
+>> Cc: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
+>> Cc: Daniel Vetter <daniel.vetter@intel.com>
+>> Cc: Jani Nikula <jani.nikula@linux.intel.com>
+>> Cc: Ben Skeggs <bskeggs@redhat.com>
+>> Cc: Darren Hart <dvhart@infradead.org>
+>> Cc: Andy Shevchenko <andy@infradead.org>
+>> Cc: Jens Frederich <jfrederich@gmail.com>
+>> Cc: Daniel Drake <dsd@laptop.org>
+>> Cc: Jon Nettleton <jon.nettleton@gmail.com>
+>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>> Cc: linux-acpi@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Cc: etnaviv@lists.freedesktop.org
+>> Cc: intel-gfx@lists.freedesktop.org
+>> Cc: nouveau@lists.freedesktop.org
+>> Cc: platform-driver-x86@vger.kernel.org
+>> Cc: devel@driverdev.osuosl.org
+>> 
+>> -- 
+>> 2.9.0
+>> 
+>> _______________________________________________
+>> Intel-gfx mailing list
+>> Intel-gfx@lists.freedesktop.org
+>> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
+
+-- 
+Jani Nikula, Intel Open Source Technology Center
