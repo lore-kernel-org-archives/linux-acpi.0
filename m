@@ -1,72 +1,72 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 0/5] ACPI: DMA ranges management
-Date: Mon, 31 Jul 2017 20:57:19 +0200
-Message-ID: <CAJZ5v0g_NHo5Jnp5HcseS2RQL1PwaewGE6eG6Xn9OafAXwHgkw@mail.gmail.com>
-References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 1/3] PCI / PM: Skip bridges in pci_enable_wake()
+Date: Mon, 31 Jul 2017 15:53:37 -0500
+Message-ID: <20170731205337.GF9303@bhelgaas-glaptop.roam.corp.google.com>
+References: <3116391.JNS1F4DjTg@aspire.rjw.lan>
+ <1895122.yvmCHzQO3z@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:38582 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750967AbdGaS5V (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jul 2017 14:57:21 -0400
-In-Reply-To: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1895122.yvmCHzQO3z@aspire.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Nate Watterson <nwatters@codeaurora.org>
 
-On Mon, Jul 31, 2017 at 5:23 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> This patch series is v2 of a previous posting:
->
-> v1: http://lkml.kernel.org/r/20170720144517.32529-1-lorenzo.pieralisi@arm.com
->
-> v1->v2:
->         - Reworked acpi_dma_get_range() flow and logs
->         - Added IORT named component address limits
->         - Renamed acpi_dev_get_resources() helper function
->         - Rebased against v4.13-rc3
->
-> -- Original cover letter --
->
-> As reported in:
->
-> http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
->
-> the bus connecting devices to an IOMMU bus can be smaller in size than
-> the IOMMU input address bits which results in devices DMA HW bugs in
-> particular related to IOVA allocation (ie chopping of higher address
-> bits owing to system bus HW capabilities mismatch with the IOMMU).
->
-> Fortunately this problem can be solved through an already present but never
-> used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define the DMA
-> window for a specific bus in ACPI and therefore all upstream devices
-> connected to it.
->
-> This small patch series enables _DMA parsing in ACPI core code and
-> use it in ACPI IORT code in order to detect DMA ranges for devices and
-> update their data structures to make them work with their related DMA
-> addressing restrictions.
->
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Feng Kan <fkan@apm.com>
-> Cc: Jon Masters <jcm@redhat.com>
-> Cc: Robert Moore <robert.moore@intel.com>
-> Cc: Robin Murphy <robin.murphy@arm.com>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->
-> Lorenzo Pieralisi (5):
->   ACPICA: resource_mgr: Allow _DMA method in walk resources
->   ACPI: Make acpi_dev_get_resources() method agnostic
->   ACPI: Introduce DMA ranges parsing
->   ACPI: Make acpi_dma_configure() DMA regions aware
->   ACPI/IORT: Add IORT named component memory address limits
+On Fri, Jul 21, 2017 at 02:38:08PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> PCI bridges only have a reason to generate wakeup signals on behalf
+> of devices below them, so avoid preparing bridges for wakeup directly
+> in pci_enable_wake().
+> 
+> Also drop the pci_has_subordinate() check from pci_pm_default_resume()
+> as this will be done by pci_enable_wake() itself now.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Patches [1-3/5] are fine by me, but I need ACKs from the ARM side on
-the last two ones.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Thanks,
-Rafael
+> ---
+>  drivers/pci/pci-driver.c |    4 +---
+>  drivers/pci/pci.c        |    7 +++++++
+>  2 files changed, 8 insertions(+), 3 deletions(-)
+> 
+> Index: linux-pm/drivers/pci/pci.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci.c
+> +++ linux-pm/drivers/pci/pci.c
+> @@ -1909,6 +1909,13 @@ int pci_enable_wake(struct pci_dev *dev,
+>  {
+>  	int ret = 0;
+>  
+> +	/*
+> +	 * Bridges can only signal wakeup on behalf of subordinate devices,
+> +	 * but that is set up elsewhere, so skip them.
+
+A specific pointer to this "elsewhere" would be useful here.
+
+> +	 */
+> +	if (pci_has_subordinate(dev))
+> +		return 0;
+> +
+>  	/* Don't do the same thing twice in a row for one device. */
+>  	if (!!enable == !!dev->wakeup_prepared)
+>  		return 0;
+> Index: linux-pm/drivers/pci/pci-driver.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-driver.c
+> +++ linux-pm/drivers/pci/pci-driver.c
+> @@ -642,9 +642,7 @@ static int pci_legacy_resume(struct devi
+>  static void pci_pm_default_resume(struct pci_dev *pci_dev)
+>  {
+>  	pci_fixup_device(pci_fixup_resume, pci_dev);
+> -
+> -	if (!pci_has_subordinate(pci_dev))
+> -		pci_enable_wake(pci_dev, PCI_D0, false);
+> +	pci_enable_wake(pci_dev, PCI_D0, false);
+>  }
+>  
+>  static void pci_pm_default_suspend(struct pci_dev *pci_dev)
+> 
