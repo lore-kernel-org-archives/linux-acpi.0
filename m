@@ -1,52 +1,73 @@
-From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH v1 3/6] staging: unisys: Switch to use new generic UUID
- API
-Date: Sun, 30 Jul 2017 10:37:25 -0700
-Message-ID: <20170730173725.GA20606@kroah.com>
-References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
- <20170719182857.73693-4-andriy.shevchenko@linux.intel.com>
- <1501063301.29303.247.camel@linux.intel.com>
- <20170730153224.GA31755@kroah.com>
- <CAHp75Vf+Us5n2_u94sVGs7xuvfF-qoaG4tvmixvqRARo68TT7w@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH V2] ACPI, APEI: Fixup incorrect 16-bit access width
+ firmware bug
+Date: Mon, 31 Jul 2017 02:09:10 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CEE8FF8@SHSMSX101.ccr.corp.intel.com>
+References: <1501122668-53948-1-git-send-email-liwei.song@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAHp75Vf+Us5n2_u94sVGs7xuvfF-qoaG4tvmixvqRARo68TT7w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-efi <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org, "open list:TI WILINK WIRELES..." <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:64957 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751586AbdGaCMV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 30 Jul 2017 22:12:21 -0400
+In-Reply-To: <1501122668-53948-1-git-send-email-liwei.song@windriver.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Song, Liwei (Wind River)" <liwei.song@windriver.com>, "Moore, Robert" <robert.moore@intel.com>
 
-On Sun, Jul 30, 2017 at 08:26:48PM +0300, Andy Shevchenko wrote:
-> On Sun, Jul 30, 2017 at 6:32 PM, Greg Kroah-Hartman
-> <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org> wrote:
-> > On Wed, Jul 26, 2017 at 01:01:41PM +0300, Andy Shevchenko wrote:
-> >> On Wed, 2017-07-19 at 21:28 +0300, Andy Shevchenko wrote:
-> >> > There are new types and helpers that are supposed to be used in new
-> >> > code.
-> >> >
-> >> > As a preparation to get rid of legacy types and API functions do
-> >> > the conversion here.
-> >> >
-> >> > While here, re-indent couple of lines to increase readability.
-> >>
-> >> This looks like no user space UUID API is involved, can be routed via
-> >> either tree (uuid or staging).
-> >>
-> >> Anyone to comment?
-> >
-> > Doesn't apply to the staging tree at all :(
+Hi,
+
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Song
+> liwei
+> Subject: [PATCH V2] ACPI, APEI: Fixup incorrect 16-bit access width firmware bug
 > 
-> No surprises, it was cooked against uuid tree in the first place.
-> If you agree to take it through staging tree I will prepare a rebased version.
-> Does it sound good?
+> From: Liwei Song <liwei.song@windriver.com>
+> 
+> This is a follow up to commit f712c71f7b2b ("ACPI, APEI: Fixup common
+> access width firmware bug") fix the following firmware bug:
+> 
+> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0xb2/16/0/1/1]
+> 
+> This is due to an 8-bit access width is specified for a 16-bit register,
+> Rearrange the condition and add 8-bit width check.
+> 
+> Signed-off-by: Liwei Song <liwei.song@windriver.com>
+> ---
+>  drivers/acpi/apei/apei-base.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+> index da370e1..eca3d7a 100644
+> --- a/drivers/acpi/apei/apei-base.c
+> +++ b/drivers/acpi/apei/apei-base.c
+> @@ -604,12 +604,12 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
+>  	*access_bit_width = 1UL << (access_size_code + 2);
+> 
+>  	/* Fixup common BIOS bug */
+> -	if (bit_width == 32 && bit_offset == 0 && (*paddr & 0x03) == 0 &&
+> -	    *access_bit_width < 32)
+> -		*access_bit_width = 32;
+> -	else if (bit_width == 64 && bit_offset == 0 && (*paddr & 0x07) == 0 &&
+> -	    *access_bit_width < 64)
+> -		*access_bit_width = 64;
+> +	if (*access_bit_width < bit_width && bit_offset == 0) {
+> +		if ((bit_width == 16 && (*paddr & 0x01) == 0) ||
+> +		    (bit_width == 32 && (*paddr & 0x03) == 0) ||
+> +		    (bit_width == 64 && (*paddr & 0x07) == 0))
+> +			*access_bit_width = bit_width;
+> +	}
+> 
+>  	if ((bit_width + bit_offset) > *access_bit_width) {
+>  		pr_warning(FW_BUG APEI_PFX
 
-You can take it through the uuid tree if it's easier for you, but then
-someone will have to deal with the merge issues...
+IMO, such problem could also be fixed by this commit and a cleanup of APEI
+GAR code to invoke generic ACPICA GAR API - acpi_read()/acpi_write() directly.
+https://github.com/acpica/acpica/pull/209
 
-If it's easier, I can take it to prevent the merge problems.
+Thanks and best regards
+Lv
 
-thanks,
-
-greg k-h
