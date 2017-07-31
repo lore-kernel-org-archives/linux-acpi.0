@@ -1,123 +1,71 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization
- earlier
-Date: Mon, 31 Jul 2017 18:50:38 +0800
-Message-ID: <a8024347-ce0b-c59b-74ea-45a822e54ee6@cn.fujitsu.com>
-References: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com>
- <1500011554-9784-13-git-send-email-douly.fnst@cn.fujitsu.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH 1/7] gpio: Cleanup kerneldoc
+Date: Mon, 31 Jul 2017 13:02:17 +0200
+Message-ID: <20170731110217.GK26667@ulmo>
+References: <20170724145728.7662-1-thierry.reding@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="j/HO4hzKTNbM1mOX"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:39340 "EHLO song.cn.fujitsu.com"
-        rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-        id S1751980AbdGaLBs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Jul 2017 07:01:48 -0400
-In-Reply-To: <1500011554-9784-13-git-send-email-douly.fnst@cn.fujitsu.com>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:36499 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750923AbdGaLCU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jul 2017 07:02:20 -0400
+Content-Disposition: inline
+In-Reply-To: <20170724145728.7662-1-thierry.reding@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: x86@kernel.org, linux-kernel@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, ebiederm@xmission.com, bhe@redhat.com, peterz@infradead.org, izumi.taku@jp.fujitsu.com, tokunaga.keiich@jp.fujitsu.com, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Julian Wollrath <jwollrath@web.de>, Borislav Petkov <bp@alien8.de>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jonathan Corbet <corbet@lwn.net>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
 
-At 07/14/2017 01:52 PM, Dou Liyang wrote:
-> Linux uses acpi_early_init() to put the ACPI table management into
-> the late stage from the early stage where the mapped ACPI tables is
-> temporary and should be unmapped.
->
-> But, now initializing interrupt delivery mode should map and parse the
-> DMAR table earlier in the early stage. This causes an ACPI error when
-> Linux reallocates the ACPI root tables. Because Linux doesn't unmapped
-> the DMAR table after using in the early stage.
->
-> Invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
-> be mapped and parsed in late stage like before.
->
-> Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
-> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Zheng, Lv <lv.zheng@intel.com>
-> Cc: Julian Wollrath <jwollrath@web.de>
+--j/HO4hzKTNbM1mOX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Jul 24, 2017 at 04:57:22PM +0200, Thierry Reding wrote:
+> From: Thierry Reding <treding@nvidia.com>
+>=20
+> Some kerneldoc has become stale or wasn't quite correct from the outset.
+> Fix up the most serious issues to silence warnings when building the
+> documentation.
+>=20
+> Signed-off-by: Thierry Reding <treding@nvidia.com>
 > ---
-> Test in my own PC(Lenovo M4340).
-> Ask help for doing regression testing for the bug said in commit c4e1acbb35e4
-> ("ACPI / init: Invoke early ACPI initialization later").
->
+>  drivers/gpio/gpiolib.c      | 82 +++++++++++++++++++++++++++++++++------=
+------
+>  include/linux/gpio/driver.h |  3 +-
+>  2 files changed, 61 insertions(+), 24 deletions(-)
 
-Now, I can prove this patch doesn't result in the bug[1] which made the
-fast TSC calibration using PIT failed in a Thinkpad x121e (AMD E-450
-APU).
+Hi Linus,
 
-The true reason of the bug is enabling ACPI subsystem earlier than
-using PIT, not the SCI setup. invoking acpi_enable_subsystem() later
-could fix this bug as Julian tested and said[2].
+any chance we can get this merged? The GPIO IRQ chip and banked
+controller support patches that I'm working on depend on this, so I'd
+like for these to go in before I send out the former in order to
+decrease the dependency tracking for everyone involved.
 
-And, I found that Commit b064a8fa77df (" ACPI / init: Switch over
-platform to the ACPI mode later") split the ACPI early initialization
-code into acpi_early_init() and acpi_subsystem_init(). executing
-acpi_enable_subsystem() at the original early ACPI initialization spot.
+Thanks,
+Thierry
 
-The sequence of them shows below:
+--j/HO4hzKTNbM1mOX
+Content-Type: application/pgp-signature; name="signature.asc"
 
-  start_kernel
-+---------------+
-|
-+--> .......
-|
-|    late_time_init()
-+--> +-------+
-|
-+--> .......
-|
-|    acpi_early_init()
-+--> +-------+
-|
-+--> .......
-|
-|   acpi_subsystem_init()
-+-> +--------+
+-----BEGIN PGP SIGNATURE-----
 
-We make sure the acpi_subsystem_init() is called later than
-late_time_init(), the bug will be avoided.
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAll/DjkACgkQ3SOs138+
+s6HQiA//TlKC1zA9fPpn4FiEWU37G81ulRwhw/aDd4SO+ytvfOuZ1mnfeC9eMhNg
+FSWoteOQ+vbMqvNLgOu7KYtwboTXeGNelXhweuDWwYvY8lAv9WTmdcTdl90qLVmo
+O5NW8mQiKYT5kh6P+/uN2Kv9m3Ohq3UgGrxRHd0YYHZ6VhIRob9dEtbXhVpOKxwt
+sYb9inu+AbE2IBz6eHGPP+YVDd+FiKw/W6Gaiwe6yB5bioiYEvgoRNfpj5HxmYgN
+7w1N76YwnR3BwG3JIGiVNu/DjJ/Cyn/iCpZjKVxSjzzxZ1q4Ep/7z5kCVIhVsu5s
+1tgi+pm8uT2CM3GxkQDLUahjKozBceEx+seY6AswMs5C5f6jpC5aEXLAeVXr4scD
+NoM3XiSBnTvwCBYI8BYo/5s1+MTnjBydfidlTsCCKApGCrVeLSYnX64KlKFBLCLO
+SxoI2KyUBBrIN2plSoZzNCn4RTthaYZc0lsMO3oh6iKsLEFGeOoRw90ZsSuBrKfe
+7b59rH+2qEb5rVLOQrmHqPM7yqGAyV+ovi9O45CdgqfkL5CPc/gLEZ8ORYLt9O96
+bHNHXfjG3fQPYRpAZkPgs7IUYQMRsptPPWSAy9ITHL66Ivu+f7+TR+MqqoB8dVUN
+NfD89KFguE+Y2pXSVsZkEoyiiljATpTQCKBRR596uR8fSIgzwp8=
+=FYYf
+-----END PGP SIGNATURE-----
 
-This patch changes the sequence of late_time_init() and
-acpi_early_init(), doesn't effect acpi_subsystem_init().
-
-So, this patch is OK.
-
-Btw, Thanks very much for Borislav Petkov, he will have access to
-Thinkpad x121e from Mid-August and will test this series.
-
-[1] https://lkml.org/lkml/2014/3/10/123
-[2] https://lkml.org/lkml/2014/3/12/311
-
-
-Thanks
-	dou.
-
->  init/main.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/init/main.c b/init/main.c
-> index df58a41..7a09467 100644
-> --- a/init/main.c
-> +++ b/init/main.c
-> @@ -654,12 +654,12 @@ asmlinkage __visible void __init start_kernel(void)
->  	kmemleak_init();
->  	setup_per_cpu_pageset();
->  	numa_policy_init();
-> +	acpi_early_init();
->  	if (late_time_init)
->  		late_time_init();
->  	calibrate_delay();
->  	pidmap_init();
->  	anon_vma_init();
-> -	acpi_early_init();
->  #ifdef CONFIG_X86
->  	if (efi_enabled(EFI_RUNTIME_SERVICES))
->  		efi_enter_virtual_mode();
->
-
-
+--j/HO4hzKTNbM1mOX--
