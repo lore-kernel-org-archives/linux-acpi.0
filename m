@@ -1,45 +1,62 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] gpio: drop unnecessary includes from include/linux/gpio/driver.h
-Date: Mon, 31 Jul 2017 15:48:34 +0200
-Message-ID: <CACRpkdaxgxaXV8XjLTzu68JqjyeZ8Jr2YMR3L46wm3zmnMrPsg@mail.gmail.com>
-References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com> <1499162760.22624.246.camel@linux.intel.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [Resend, PATCH v2] i2c: core: Allow empty id_table in ACPI case
+ as well
+Date: Mon, 31 Jul 2017 15:54:17 +0200
+Message-ID: <20170731135417.5gwvx7g4zctgl7hl@ninjato>
+References: <20170717141328.52286-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499162760.22624.246.camel-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, William Breathitt Gray <vilhelm.gray-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ray Jui <rjui-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, David Cohen <david.a.cohen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Scott Branden <sbranden-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, bcm-kernel-feedback-list <bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Alexander Shiyan <shc_work-JGs/UdohzUI@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>"linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <lin>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="hwxgwm5btxfu3jab"
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170717141328.52286-1-andriy.shevchenko@linux.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-i2c@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 4, 2017 at 12:06 PM, Andy Shevchenko
-<andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
-> On Tue, 2017-07-04 at 12:53 +0900, Masahiro Yamada wrote:
->> Some of include directives in include/linux/gpio/driver.h are
->> unneeded because the header does not need to know the content of
->> struct device, irq_chip, etc.  Just declare they are structures.
->>
->> On the other hand, <linux/irqhandler.h> and <linux/spinlock_types.h>
->> turned out to be necessary for irq_flow_handler_t and spinlock_t,
->> respectively.
->>
->> Each driver should include what it needs without relying on what is
->> implicitly included from <linux/gpio/driver.h>.  This will cut down
->> unnecessary header parsing.
->
-> If Linus is okay with the following proposal I would rather go with it,
-> i.e. logical split the series to
->
-> 1. Fix IRQ related headers inclusion
-> 2. Fix pinconf-generic.h inclusion
-> 3. Fix OF headers inclusion (btw, of_gpio.h is not enough there?)
 
-That works fine with me, but also one big patch actually, I do not
-want to make it too much work to refactor obviously incorrect things.
+--hwxgwm5btxfu3jab
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-As soon as we have rough consensus on this and the build robot
-are happy I will apply it to GPIO and also pull it into the pinctrl
-subsystem.
+On Mon, Jul 17, 2017 at 05:13:28PM +0300, Andy Shevchenko wrote:
+> For now empty ID table is not allowed with ACPI and prevents driver to
+> be probed.
+>=20
+> Add a check to allow empty ID table.
+>=20
+> This introduces a helper i2c_acpi_match_device().
+>=20
+> Note, we rename some static function in i2c-core-acpi.c to distinguish
+> with public API.
+>=20
+> Fixes: da10c06a044b ("i2c: Make I2C ID tables non-mandatory for DT'ed dev=
+ices")
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Yours,
-Linus Walleij
+Applied to for-current, thanks!
+
+
+--hwxgwm5btxfu3jab
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAll/NokACgkQFA3kzBSg
+Kba/ChAArzFVlSNJwgMo+W3qWGvcT3bu/GWDnOhYcrQ7IhWM86ZvofCfDg9JyvES
+5h1YcOhonYAM770Wr+YyYZd23f1J/TxlSLJfCprQaFI9uOjfibEMOaP5V5z9iSAl
+lFvLafGHvtdBwmIM+KkYh2M057CIhFBJok/B6qz4c4AJ5/8AIvfb/OyH2ldtMomI
+xFTHlmepRRLdbP7LbCSeJ7W8rykcSkuS7Nwb7V8Y1NkQe7PyICFZW2edOVYqMc4L
+Jh1fL2y96RTnqOUhmkrDLILNcQijgJ6K7IuE8fxmxAJyikIVGIkz+Z4RKp/FE0g8
+ebNZ5BAfGWyYET17/Bub1qQNW4cO9s9sz/mxSdBQpSZiM523KX8llkeUurt/B7l1
+wVuv/ubwhUKeM6naRJL7GuD+4b/EZW+nYncq0nA3tdYgZRsLvYE2hYJTxcWrK/+a
+7GySqu/WtFNVJiSnu5u8XWCkDzb9juxpkcAZeEF4xLjXKRHsvghjutkypQ1lQoSp
+0k2v92EtXteAzIpA9fgPxUKR7ra2T9jn+pqUY7ZyNXYgDshz1XAxAW2ame/GoCCf
+Q99dbli8tiZ+Y6JJd4PNNwomRdVA2NFuUDO8J+hCN02KdAKVHjmPN/ny94XNcorJ
+lCyOZ5El3jYXaBQoFjvNOGjvBstB8pr7HLiJLYhaBI9wGh0lG04=
+=XD4d
+-----END PGP SIGNATURE-----
+
+--hwxgwm5btxfu3jab--
