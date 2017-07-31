@@ -1,103 +1,64 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [Intel-gfx] [PATCH 0/3] Kconfig dependencies: acpi-video, backlight and thermal
-Date: Mon, 31 Jul 2017 14:28:58 +0300
-Message-ID: <87tw1sj151.fsf@nikula.org>
-References: <20170726135312.2214309-1-arnd@arndb.de> <20170726144041.plcrr6bg2hkh4q52@phenom.ffwll.local>
+From: <kchristopher@framingham.edu>
+Subject: (unknown)
+Date: Mon, 31 Jul 2017 11:49:32 -0000
+Message-ID: <150150177250.7190.11918431595656500666@hinet.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: application/zip; name="EMAIL_5391549_linux-acpi.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:19904 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751017AbdGaLYG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Jul 2017 07:24:06 -0400
-In-Reply-To: <20170726144041.plcrr6bg2hkh4q52@phenom.ffwll.local>
+Received: from 36-224-69-128.dynamic-ip.hinet.net ([36.224.69.128]:52206 "HELO
+        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1750923AbdGaLtq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 31 Jul 2017 07:49:46 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel@ffwll.ch>, Arnd Bergmann <arnd@arndb.de>
-Cc: devel@driverdev.osuosl.org, Daniel Drake <dsd@laptop.org>, Jens Frederich <jfrederich@gmail.com>, nouveau@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, etnaviv@lists.freedesktop.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ben Skeggs <bskeggs@redhat.com>, Russell King <linux+etnaviv@armlinux.org.uk>, Daniel Vetter <daniel.vetter@intel.com>, Andy Shevchenko <andy@infradead.org>, intel-gfx@lists.freedesktop.org, Darren Hart <dvhart@infradead.org>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Wed, 26 Jul 2017, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Wed, Jul 26, 2017 at 03:53:09PM +0200, Arnd Bergmann wrote:
->> Hi everyone,
->> 
->> It took me a while to figure this out properly, as I kept getting
->> circular or missing dependencies with video drivers.
->> 
->> This set of three patches should simplify the situation a bit,
->> mostly by cleaning up the dependencies around CONFIG_ACPI_VIDEO.
->> With all three patches applied, I no longer run into those related
->> warnings. If everyone agrees on the general direction, I hope
->> we can merge all three through the DRM tree.
->> 
->> I originally had another larger patch in the series to replace all
->> of the 'select BACKLIGHT_LCD_SUPPORT; select BACKLIGHT_CLASS_DEVICE'
->> statements with 'depends on LCD_CLASS_DEVICE', that would clean
->> it up some more, but it is also a more invasive change that we
->> can do separately at some point.
->
-> Looks reasonable, but I think it'd be good to get Jani Nikula's explicit
-> ack on this, since he dugg around a lot in this area. And he's on vacation
-> this week.
-
-I didn't dig through all the details, but looks good to me and
-definitely an improvement in drm Kconfigs.
-
-Acked-by: Jani Nikula <jani.nikula@intel.com>
-
-
-
-> -Daniel
->
->> 
->>        Arnd
->> 
->> Arnd Bergmann (3):
->>   backlight: always select BACKLIGHT_LCD_SUPPORT for
->>     BACKLIGHT_CLASS_DEVICE
->>   ACPI/DRM: rework ACPI_VIDEO Kconfig dependencies
->>   drm/etnaviv: add thermal dependency
->> 
->>  drivers/acpi/Kconfig              |  7 +++++--
->>  drivers/gpu/drm/etnaviv/Kconfig   |  1 +
->>  drivers/gpu/drm/gma500/Kconfig    |  5 +----
->>  drivers/gpu/drm/i915/Kconfig      |  7 +------
->>  drivers/gpu/drm/nouveau/Kconfig   | 10 ++--------
->>  drivers/platform/x86/Kconfig      |  9 ++++-----
->>  drivers/staging/olpc_dcon/Kconfig |  1 +
->>  7 files changed, 15 insertions(+), 25 deletions(-)
->> 
->> To: dri-devel@lists.freedesktop.org
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> Cc: Len Brown <lenb@kernel.org>
->> Cc: Lucas Stach <l.stach@pengutronix.de>
->> Cc: Russell King <linux+etnaviv@armlinux.org.uk>
->> Cc: Christian Gmeiner <christian.gmeiner@gmail.com>
->> Cc: David Airlie <airlied@linux.ie>
->> Cc: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
->> Cc: Daniel Vetter <daniel.vetter@intel.com>
->> Cc: Jani Nikula <jani.nikula@linux.intel.com>
->> Cc: Ben Skeggs <bskeggs@redhat.com>
->> Cc: Darren Hart <dvhart@infradead.org>
->> Cc: Andy Shevchenko <andy@infradead.org>
->> Cc: Jens Frederich <jfrederich@gmail.com>
->> Cc: Daniel Drake <dsd@laptop.org>
->> Cc: Jon Nettleton <jon.nettleton@gmail.com>
->> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> Cc: linux-acpi@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: etnaviv@lists.freedesktop.org
->> Cc: intel-gfx@lists.freedesktop.org
->> Cc: nouveau@lists.freedesktop.org
->> Cc: platform-driver-x86@vger.kernel.org
->> Cc: devel@driverdev.osuosl.org
->> 
->> -- 
->> 2.9.0
->> 
->> _______________________________________________
->> Intel-gfx mailing list
->> Intel-gfx@lists.freedesktop.org
->> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+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
