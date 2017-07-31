@@ -1,115 +1,154 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: A udev rule to serve the change event of ACPI container?
-Date: Mon, 31 Jul 2017 15:38:45 +0800
-Message-ID: <20170731073845.GC2946@linux-l9pv.suse>
-References: <20170713065806.GB2901@linux-l9pv.suse>
- <20170713070618.GC14492@dhcp22.suse.cz>
- <20170713124521.GE2901@linux-l9pv.suse>
- <20170714083713.GB2618@dhcp22.suse.cz>
- <20170714144414.GM2901@linux-l9pv.suse>
- <20170717090525.GF12888@dhcp22.suse.cz>
- <20170719090910.GK26098@linux-l9pv.suse>
- <20170724085702.GE25221@dhcp22.suse.cz>
- <20170724092921.GF3034@linux-l9pv.suse>
- <20170725124837.GH26723@dhcp22.suse.cz>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 0/4] ACPI: DMA ranges management
+Date: Mon, 31 Jul 2017 09:56:04 +0100
+Message-ID: <20170731085604.GA23450@red-moon>
+References: <20170720144517.32529-1-lorenzo.pieralisi@arm.com>
+ <7df11172-5a40-685f-5202-9a0bceb6e19b@codeaurora.org>
+ <c09352cc-e1a2-a494-c457-dc3ea275f504@arm.com>
+ <20170726153519.GA4696@red-moon>
+ <eb81a7c6-b62b-8e02-8f22-a7fda7e403ce@arm.com>
+ <20170728140956.GA21569@red-moon>
+ <c6edb652-d13c-e21f-1cef-01ced2b08c05@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170725124837.GH26723@dhcp22.suse.cz>
+In-Reply-To: <c6edb652-d13c-e21f-1cef-01ced2b08c05@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: Nate Watterson <nwatters@codeaurora.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Michal,
-
-Sorry for my delay...
-
-On Tue, Jul 25, 2017 at 02:48:37PM +0200, Michal Hocko wrote:
-> On Mon 24-07-17 17:29:21, Joey Lee wrote:
-> > On Mon, Jul 24, 2017 at 10:57:02AM +0200, Michal Hocko wrote:
-> > > On Wed 19-07-17 17:09:10, Joey Lee wrote:
-> > > > On Mon, Jul 17, 2017 at 11:05:25AM +0200, Michal Hocko wrote:
-> > > [...]
-> > > > > The problem I have with this expectation is that userspace will never
-> > > > > have a good atomic view of the whole container. So it can only try to
-> > > > 
-> > > > I agreed!
-> > > > 
-> > > > Even a userspace application can handle part of offline jobs. It's
-> > > > still possible that other kernel/userland compenents are using the
-> > > > resource in container.
-> > > > 
-> > > > > eject and then hope that nobody has onlined part of the container.
-> > > > > If you emit offline event to the userspace the cleanup can be done and
-> > > > > after the last component goes offline then the eject can be done
-> > > > > atomically.
-> > > > 
-> > > > The thing that we didn't align is how does kernel maintains the flag
-> > > > of ejection state on container.
-> > > 
-> > > Why it cannot be an attribute of the container? The flag would be set
-> > > when the eject operation is requested and cleared when either the
-> > > operation is successful (all parts offline and eject operation acked
-> > > by the BIOS) or it is terminated.
-> > >
+On Fri, Jul 28, 2017 at 04:55:36PM +0100, Robin Murphy wrote:
+> On 28/07/17 15:09, Lorenzo Pieralisi wrote:
+> > On Fri, Jul 28, 2017 at 02:08:01PM +0100, Robin Murphy wrote:
 > > 
-> > For the success case, yes, we can clear the flag when the _EJ0 of container
-> > is success. But for the fail case, we don't know when the operation is
-> > terminated.
-> 
-> Hmm, this is rather strange. What is the BIOS state in the meantime?
-> Let's say it doesn't retry. Does it wait for the OS for ever?
-> 
-
-Unfortunately ACPI spec doesn't mention the detail of BIOS behavior for
-container hot-removing.
-
-IMHO, if the BIOS doesn't retry, at least it should maintains a timer
-to handle the OS layer time out then BIOS resets hardware(turns off
-progress light or something else...).
-
-The old BIOS just treats the ejection event as a button event. BIOS
-emits 0x103 ejection event to OS after user presses a button or UI.
-Then BIOS hopes that OS(either kernel or userland) finishs all jobs,
-calls _EJ0 to turn off power, and calls _OST to return state to BIOS.
-
-If the ejection event from BIOS doesn't trigger anything in upper OS
-layer, old BIOS can not against this situation unless it has a timer.
-
-> > > [...]
-> > > > Base on the above figure, if userspace didn't do anything or it
-> > > > just performs part of offline jobs. Then the container's [eject]
-> > > > state will be always _SET_ there, and kernel will always check
-> > > > the the latest child offline state when any child be offlined
-> > > > by userspace.
-> > > 
-> > > What is a problem about that? The eject is simply in progress until all
-> > > is set. Or maybe I just misunderstood.
-> > >
+> > [...]
 > > 
-> > I agree, but it's only for success case. For fail case, kernel can not
-> > wait forever. Can we?
+> >>>>> To ensure that dma_set_mask() and friends actually respect _DMA, would
+> >>>>> you consider introducing a dma_supported() callback to check the input
+> >>>>> dma_mask against the FW defined limits? This would end up aggressively
+> >>>>> clipping the dma_mask to 32-bits for devices like the above if the _DMA
+> >>>>> limit was less than 64-bits, but that is probably preferable to the
+> >>>>> controller accessing unintended addresses.
+> >>>>>
+> >>>>> Also, how would you feel about adding support for the IORT named_node
+> >>>>> memory_address_limit field?
+> >>>>
+> >>>> We will certainly need that for some platform devices, so if you fancy
+> >>>> giving it a go before Lorenzo or I get there, feel free!
+> >>>
+> >>> I can do it for v2 but I would like to understand why using _DMA is
+> >>> not good enough for named components - having two bindings describing
+> >>> the same thing is not ideal and I'd rather avoid it - if there is
+> >>> a reason I am happy to add the necessary code.
+> >>
+> >> My interpretation of "_DMA is only defined under devices that represent
+> >> buses." (ACPI 6.0, section 6.2.4) is that "devices that represent buses"
+> >> are those that have other device objects as children.
+> > 
+> > Well if that was the case we would not be able to use _DMA for
+> > eg PNP0A03 PCI host bridges that have no child ACPI devices, which
+> > defeats the whole purpose of what I am doing.
+> > 
+> > The question here is what the _DMA object binding exactly means when
+> > it refers to a "bus" and that's something I will figure out (and possibly
+> > change) ASAP.
+> > 
+> >> In other words (excuse my novice pseudo-ASL), this would be valid:
+> >>
+> >> Scope(_SB)
+> >> {
+> >> 	Device (Bus)
+> >> 	{
+> >> 		...
+> >> 		Method (_DMA ... )
+> >> 		Device (Dev1)
+> >> 		{
+> >> 			...
+> >> 		}
+> >> 	}
+> >> }
+> >>
+> >> but this should be invalid:
+> >>
+> >> Scope(_SB)
+> >> {
+> >> 	Device (Dev2)
+> >> 	{
+> >> 		...
+> >> 		Method (_DMA ... )
+> >> 	}
+> >> }
+> > 
+> > Not sure about that (see above) and I agree that's what needs
+> > clarification.
+> > 
+> >> Thus in the case where Dev2 is wired directly to an SMMU input, but
+> >> fewer address bits are wired up between the two than both the device and
+> >> SMMU interfaces are capable of, memory address limit is enough to
+> >> describe that without having to insert a fake "bus" object above it just
+> >> to hold the _DMA method.
+> > 
+> > BTW, how would you describe that in DT ? A "dma-ranges" property in the
+> > device DT node right ? Arguably "dma-ranges" was not meant to be used
+> > like that either ;-)
 > 
-> Well, this won't consume any additional resources so I wouldn't be all
-> that worried. Maybe we can reset the flag as soon as somebody tries to
-> online some part of the container?
->
+> I believe that in real Open Firmware, the full PCI hierarchy is
+> described in the device tree - I had assumed that ACPI expected the
+> equivalent (i.e. the firmware probes PCI and assigns resources, so
+> bridges/endpoints/etc. would be represented in the namespace with
+> appropriate _CRS), thus the "bus with invisible children" case would
+> only need to apply to DT. In terms of DTspec, it does not say that
+> "dma-ranges" cannot be present on nodes without children, but that *is*
+> implied of #address-cells and #size cells, so there does exist a similar
+> ambiguity about what exactly counts as "a memory-mapped bus whose
+> devicetree parent can be accessed from DMA operations originating from
+> the bus". Certainly in the current Linux code, of_dma_configure()
+> *doesn't* parse "dma-ranges" on leaf nodes (which is an open problem for
+> some PCI host bridges in extant FDTs).
+> 
+> As for the case of straightforward interconnect widths/offsets (rather
+> than potentially arbitrary windows), the 'fake bus' notion is already
+> alive and well:
+> 
+> $ git grep 'soc {' arch/arm*/boot/dts
+> 
+> and the current "dma-ranges" users thankfully have consistent-enough
+> topologies that they don't need to get much crazier than that.
+> 
+> (side note: up at the other end, I'm not entirely convinced that what I
+> did for Juno is actually legal either)
+> 
+> > Long and short of it is: I do not like having two ways of describing
+> > the same thing. I agree that the _DMA object usage requires
+> > clarifications from a spec point of view but I want to do that before
+> > plugging in code that may use bindings inconsistently.
+> 
+> I'd still argue that they are describing different things, just that one
+> (the number of address bits wired up between a device and an SMMU)
+> happens to be possible to describe as a subset of the other (an
+> arbitrary mapping between two address spaces). The use-cases don't
+> entirely overlap either - the information in _DMA is also likely to be
+> wanted by non-ECAM PCI host controller drivers to configure their
+> inbound windows, irrespective of anything to do with IOMMUs, whereas
+> IORT code in hypervisors or other situations without a full ACPI
+> namespace available may need to make decisions that the device memory
+> address size limit is necessary for (well, that's the argument I've
+> heard anyway).
 
-So, the behavior is:
+Ok, I thought about it a bit more and I think the points you raised
+should be tackled, certainly using _DMA objects on devices that
+are not PCI host bridges (probably the only devices _DMA object was
+devised to apply to) is moot, to say the least, whereas IORT address
+limits are well defined for named components.
 
-Kernel received ejection event, set _Eject_ flag on container object
-  -> Kernel sends offline events to all children devices
-    -> User space performs cleaning jobs and offlines each child device
-      -> Kernel detects all children offlined
-	-> Kernel removes objects and calls power off(_EJ0)
+I will rework the code to use _DMA object (and its ranges) for PCI
+devices, IORT named components address capabilities for anything else.
 
-If anyone onlined one of the children devices in the term of waiting
-userland offlines all children, then the _Eject_ flag will be clean
-and ejection process will be interrupted. In this situation, administrator
-needs to trigger ejection event again. Do you think that the race hurts
-anything?
+I will seek ACPI specs clarification anyway to make sure that the _DMA
+usage is solid for PCI devices, if you have more comments just let me
+know please.
 
-Thanks a lot!
-Joey Lee
+Thanks,
+Lorenzo
