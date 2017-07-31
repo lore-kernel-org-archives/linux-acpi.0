@@ -1,50 +1,67 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1 3/6] staging: unisys: Switch to use new generic UUID
- API
-Date: Mon, 31 Jul 2017 20:20:25 +0300
-Message-ID: <1501521625.29303.308.camel@linux.intel.com>
-References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
-         <20170719182857.73693-4-andriy.shevchenko@linux.intel.com>
-         <1501063301.29303.247.camel@linux.intel.com>
-         <20170730153224.GA31755@kroah.com>
-         <CAHp75Vf+Us5n2_u94sVGs7xuvfF-qoaG4tvmixvqRARo68TT7w@mail.gmail.com>
-         <20170730173725.GA20606@kroah.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH] acpi: apei: clear error status before acknowledging the
+ error
+Date: Mon, 31 Jul 2017 11:44:12 -0600
+Message-ID: <01b3550d-1fca-c051-3581-41dda3b62779@codeaurora.org>
+References: <1501280703-21471-1-git-send-email-tbaicar@codeaurora.org>
+ <20170729065345.GA30608@nazgul.tnic>
+ <fd826be1-50b0-1f82-3fb3-a32a356c45c4@codeaurora.org>
+ <20170731170017.2vwxhewivgpyvpea@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:30963 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751037AbdGaRWA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Jul 2017 13:22:00 -0400
-In-Reply-To: <20170730173725.GA20606@kroah.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:46200 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750999AbdGaRoS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jul 2017 13:44:18 -0400
+In-Reply-To: <20170731170017.2vwxhewivgpyvpea@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: devel@driverdev.osuosl.org, linux-efi <linux-efi@vger.kernel.org>, linux-watchdog@vger.kernel.org, sparmaintainer@unisys.com, "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>, devel@linuxdriverproject.org, Christoph Hellwig <hch@lst.de>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@suse.de>, rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, 2017-07-30 at 10:37 -0700, Greg Kroah-Hartman wrote:
-> On Sun, Jul 30, 2017 at 08:26:48PM +0300, Andy Shevchenko wrote:
-> > On Sun, Jul 30, 2017 at 6:32 PM, Greg Kroah-Hartman
-> > <gregkh@linuxfoundation.org> wrote:
+On 7/31/2017 11:00 AM, Luck, Tony wrote:
+> On Mon, Jul 31, 2017 at 10:15:27AM -0600, Baicar, Tyler wrote:
+>> I think the better thing to do in this case is still send the ack. If
+>> ghes_read_estatus() fails, then
+>> either we are unable to read the estatus or the estatus is empty/invalid.
+> Right now we silently handle that failure of ghes_read_estatus(). That
+> might be hiding some Linux bugs if we are calling ghes_proc() in cases
+> where we shouldn't.
+>
+> Perhaps we should have something like this, so if systems do start acting
+> weirdly there will be a note that we took this path:
+>
+> 	rc = ghes_read_estatus(ghes, 0);
+> 	if (rc) {
+> 		pr_notice("surprise failure reading ghes estatus\n");
+> 		goto out;
+> 	}
+Thank you Tony for the feedback, I can add a print like this in the next 
+version. I'll verify that
+rc is not -ENOENT though so we don't print it on empty scenarios since 
+the polled source
+will be hitting this path frequently.
 
-> > > Doesn't apply to the staging tree at all :(
-> > 
-> > No surprises, it was cooked against uuid tree in the first place.
-> > If you agree to take it through staging tree I will prepare a
-> > rebased version.
-> > Does it sound good?
-> 
-> You can take it through the uuid tree if it's easier for you, but then
-> someone will have to deal with the merge issues...
-> 
-> If it's easier, I can take it to prevent the merge problems.
-
-Yep! There are so many conflicts that would be better just to push
-through your tree.
-
-I have just sent a v2 of this patch separately.
+-Tyler
+>
+>> If we do not send the ack, then we will be in a scenario where FW will not
+>> send any more errors.
+> We might ACK something that the firmware didn't send, which may
+> lead to other problems.
+>
+>> I think it would be better to still have the FW send the errors and kernel
+>> complain about issues with
+> But I agree with this. We should send the ACK.  Luckliy this doesn't have
+> a long legacy problem because the whole ACK mechanism is a new thing. So
+> we only have to worry about GHESv2 supporting BIOS.
+>
+> -Tony
 
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
+
