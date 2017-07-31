@@ -1,144 +1,89 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH v2 4/5] ACPI: Make acpi_dma_configure() DMA regions aware
-Date: Mon, 31 Jul 2017 16:23:22 +0100
-Message-ID: <20170731152323.32488-5-lorenzo.pieralisi@arm.com>
+Subject: [PATCH v2 5/5] ACPI/IORT: Add IORT named component memory address limits
+Date: Mon, 31 Jul 2017 16:23:23 +0100
+Message-ID: <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
 References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Robin Murphy <robin.murphy@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Nate Watterson <nwatters@codeaurora.org>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Current ACPI DMA configuration set-up device DMA capabilities through
-kernel defaults that do not take into account platform specific DMA
-configurations reported by firmware.
+IORT named components provide firmware configuration describing
+how many address bits a given device is capable of generating
+to address memory.
 
-By leveraging the ACPI acpi_dev_get_dma_resources() API, add code
-in acpi_dma_configure() to retrieve the DMA regions to correctly
-set-up PCI devices DMA parameters.
-
-Rework the ACPI IORT kernel API to make sure they can accommodate
-the DMA set-up required by firmware. By making PCI devices DMA set-up
-ACPI IORT specific, the kernel is shielded from unwanted regressions
-that could be triggered by parsing DMA resources on arches that were
-previously ignoring them (ie x86/ia64), leaving kernel behaviour
-unchanged on those arches.
+Add code to the kernel to retrieve memory address limits
+configuration for IORT named components and configure DMA masks
+accordingly.
 
 Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Will Deacon <will.deacon@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>
 Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Nate Watterson <nwatters@codeaurora.org>
 ---
- drivers/acpi/arm64/iort.c | 30 ++++++++++++++++++++++++++++--
- drivers/acpi/scan.c       | 12 ++++--------
- include/linux/acpi_iort.h |  5 +++--
- 3 files changed, 35 insertions(+), 12 deletions(-)
+ drivers/acpi/arm64/iort.c | 40 ++++++++++++++++++++++++++++++----------
+ 1 file changed, 30 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index a3215ee..67b85ae 100644
+index 67b85ae..b85d19f 100644
 --- a/drivers/acpi/arm64/iort.c
 +++ b/drivers/acpi/arm64/iort.c
-@@ -681,12 +681,17 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+@@ -680,6 +680,24 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+ 	return ret ? NULL : ops;
  }
  
++static int nc_dma_get_range(struct device *dev, u64 *size)
++{
++	struct acpi_iort_node *node;
++	struct acpi_iort_named_component *ncomp;
++
++	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
++			      iort_match_node_callback, dev);
++	if (!node)
++		return -ENODEV;
++
++	ncomp = (struct acpi_iort_named_component *)node->node_data;
++
++	*size = ncomp->memory_address_limit >= 64 ? ~0ULL :
++			1ULL<<ncomp->memory_address_limit;
++
++	return 0;
++}
++
  /**
-- * iort_set_dma_mask - Set-up dma mask for a device.
-+ * iort_dma_setup() - Set-up device DMA parameters.
+  * iort_dma_setup() - Set-up device DMA parameters.
   *
-  * @dev: device to configure
-+ * @dma_addr: device DMA address result pointer
-+ * @size: DMA range size result pointer
-  */
--void iort_set_dma_mask(struct device *dev)
-+void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
- {
-+	u64 mask, dmaaddr = 0, size = 0, offset = 0;
-+	int ret;
-+
- 	/*
- 	 * Set default coherent_dma_mask to 32 bit.  Drivers are expected to
- 	 * setup the correct supported mask.
-@@ -700,6 +705,27 @@ void iort_set_dma_mask(struct device *dev)
- 	 */
- 	if (!dev->dma_mask)
- 		dev->dma_mask = &dev->coherent_dma_mask;
-+
-+	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
-+
-+	if (dev_is_pci(dev)) {
-+		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
-+		if (!ret) {
-+			mask = __roundup_pow_of_two(dmaaddr + size) - 1;
-+			/*
-+			 * Limit coherent and dma mask based on size
-+			 * retrieved from firmware.
-+			 */
-+			dev->coherent_dma_mask = mask;
-+			*dev->dma_mask = mask;
-+		}
-+	}
-+
-+	*dma_addr = dmaaddr;
-+	*dma_size = size;
-+
-+	dev->dma_pfn_offset = PFN_DOWN(offset);
-+	dev_dbg(dev, "dma_pfn_offset(%#08llx)\n", offset);
- }
+@@ -708,17 +726,19 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
  
- /**
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index dcf5f22..ae3d580 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1445,20 +1445,16 @@ int acpi_dma_get_range(struct device *dev, u64 *dma_addr, u64 *offset,
- int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
- {
- 	const struct iommu_ops *iommu;
--	u64 size;
-+	u64 dma_addr = 0, size = 0;
+ 	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
  
--	iort_set_dma_mask(dev);
-+	iort_dma_setup(dev, &dma_addr, &size);
+-	if (dev_is_pci(dev)) {
++	if (dev_is_pci(dev))
+ 		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
+-		if (!ret) {
+-			mask = __roundup_pow_of_two(dmaaddr + size) - 1;
+-			/*
+-			 * Limit coherent and dma mask based on size
+-			 * retrieved from firmware.
+-			 */
+-			dev->coherent_dma_mask = mask;
+-			*dev->dma_mask = mask;
+-		}
++	else
++		ret = nc_dma_get_range(dev, &size);
++
++	if (!ret) {
++		mask = __roundup_pow_of_two(dmaaddr + size) - 1;
++		/*
++		 * Limit coherent and dma mask based on size
++		 * retrieved from firmware.
++		 */
++		dev->coherent_dma_mask = mask;
++		*dev->dma_mask = mask;
+ 	}
  
- 	iommu = iort_iommu_configure(dev);
- 	if (IS_ERR(iommu) && PTR_ERR(iommu) == -EPROBE_DEFER)
- 		return -EPROBE_DEFER;
- 
--	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
--	/*
--	 * Assume dma valid range starts at 0 and covers the whole
--	 * coherent_dma_mask.
--	 */
--	arch_setup_dma_ops(dev, 0, size, iommu, attr == DEV_DMA_COHERENT);
-+	arch_setup_dma_ops(dev, dma_addr, size,
-+				iommu, attr == DEV_DMA_COHERENT);
- 
- 	return 0;
- }
-diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-index 8379d40..8d3f0bf 100644
---- a/include/linux/acpi_iort.h
-+++ b/include/linux/acpi_iort.h
-@@ -36,7 +36,7 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
- void acpi_configure_pmsi_domain(struct device *dev);
- int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id);
- /* IOMMU interface */
--void iort_set_dma_mask(struct device *dev);
-+void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *size);
- const struct iommu_ops *iort_iommu_configure(struct device *dev);
- #else
- static inline void acpi_iort_init(void) { }
-@@ -47,7 +47,8 @@ static inline struct irq_domain *iort_get_device_domain(struct device *dev,
- { return NULL; }
- static inline void acpi_configure_pmsi_domain(struct device *dev) { }
- /* IOMMU interface */
--static inline void iort_set_dma_mask(struct device *dev) { }
-+static inline void iort_dma_setup(struct device *dev, u64 *dma_addr,
-+				  u64 *size) { }
- static inline
- const struct iommu_ops *iort_iommu_configure(struct device *dev)
- { return NULL; }
+ 	*dma_addr = dmaaddr;
 -- 
 2.10.0
