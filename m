@@ -1,57 +1,98 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH] platform/x86: intel-hid: Wake up Dell Latitude 7275 from
- suspend-to-idle
-Date: Tue, 1 Aug 2017 17:04:45 +0000
-Message-ID: <739eedabac12425e8e59f8391da4b607@ausx13mpc120.AMER.DELL.COM>
-References: <7313224.XbtxUoJtXM@aspire.rjw.lan>
- <3172146.dPhkKZoKtx@aspire.rjw.lan>
- <CAHp75VfouHVbj0X3PJfRHy2uSziq-P__N5ezbmsuUNYDwDxYKg@mail.gmail.com>
- <CAJZ5v0jimcsL3+BfyfjSxjZRjWVFXunPRDquCp-V1SHi32f+=w@mail.gmail.com>
- <CAHp75Vd-LcCR3k3-LTNYNzh-aomGcqgszFWw7HFb-u1+UJLX3A@mail.gmail.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH v2] ACPI / Processor: add sysfs support for low power idle
+Date: Tue, 1 Aug 2017 11:15:43 -0600
+Message-ID: <463b4b82-4cce-9c8e-6658-6e2213f35d64@codeaurora.org>
+References: <1499968082-7753-1-git-send-email-pprakash@codeaurora.org>
+ <3212e387-9f7d-5bd9-4612-79dddc77b05f@arm.com>
+ <8beff6e7-e27c-0b44-6236-a95fcd5335d5@codeaurora.org>
+ <ad046d13-1c51-981d-d4d7-997f0cbf4b6b@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75Vd-LcCR3k3-LTNYNzh-aomGcqgszFWw7HFb-u1+UJLX3A@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:44458 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751866AbdHARPp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 13:15:45 -0400
+In-Reply-To: <ad046d13-1c51-981d-d4d7-997f0cbf4b6b@arm.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: andy.shevchenko@gmail.com, rafael@kernel.org
-Cc: rjw@rjwysocki.net, platform-driver-x86@vger.kernel.org, dvhart@infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, andriy.shevchenko@linux.intel.com, jerome.debretagne@gmail.com, alex.hung@canonical.com
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBbmR5IFNoZXZjaGVua28gW21h
-aWx0bzphbmR5LnNoZXZjaGVua29AZ21haWwuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBBdWd1c3Qg
-MSwgMjAxNyA3OjM3IEFNDQo+IFRvOiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5v
-cmc+DQo+IENjOiBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBQbGF0Zm9y
-bSBEcml2ZXIgPHBsYXRmb3JtLWRyaXZlci0NCj4geDg2QHZnZXIua2VybmVsLm9yZz47IERhcnJl
-biBIYXJ0IDxkdmhhcnRAaW5mcmFkZWFkLm9yZz47IExLTUwgPGxpbnV4LQ0KPiBrZXJuZWxAdmdl
-ci5rZXJuZWwub3JnPjsgTGludXggQUNQSSA8bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBB
-bmR5DQo+IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT47IErD
-qXLDtG1lIGRlIEJyZXRhZ25lDQo+IDxqZXJvbWUuZGVicmV0YWduZUBnbWFpbC5jb20+OyBMaW1v
-bmNpZWxsbywgTWFyaW8NCj4gPE1hcmlvX0xpbW9uY2llbGxvQERlbGwuY29tPjsgQWxleCBIdW5n
-IDxhbGV4Lmh1bmdAY2Fub25pY2FsLmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gcGxhdGZv
-cm0veDg2OiBpbnRlbC1oaWQ6IFdha2UgdXAgRGVsbCBMYXRpdHVkZSA3Mjc1IGZyb20NCj4gc3Vz
-cGVuZC10by1pZGxlDQo+IA0KPiBPbiBUdWUsIEF1ZyAxLCAyMDE3IGF0IDI6NTYgUE0sIFJhZmFl
-bCBKLiBXeXNvY2tpIDxyYWZhZWxAa2VybmVsLm9yZz4gd3JvdGU6DQo+ID4gT24gVHVlLCBBdWcg
-MSwgMjAxNyBhdCAxOjIxIEFNLCBBbmR5IFNoZXZjaGVua28NCj4gPiA8YW5keS5zaGV2Y2hlbmtv
-QGdtYWlsLmNvbT4gd3JvdGU6DQo+ID4+IE9uIFR1ZSwgQXVnIDEsIDIwMTcgYXQgMTI6NDYgQU0s
-IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD4gd3JvdGU6DQo+ID4+PiBPbiBG
-cmlkYXksIEp1bHkgMjgsIDIwMTcgMDI6MDY6MzYgQU0gUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6
-DQo+IA0KPiA+Pj4gUGxlYXNlIG5vdGUgdGhhdCB0aGlzIGNoYW5nZSBpcyByZXF1aXNpdGUgZm9y
-DQo+ID4+Pg0KPiA+Pj4gaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85ODczMTU5
-Lw0KPiA+Pj4NCj4gPj4+IHNvIGFyZSB0aGVyZSBhbnkgb2JqZWN0aW9ucyBvciBjb25jZXJucz8N
-Cj4gPj4NCj4gPj4gTm90IGZyb20gbXkgc2lkZSwNCj4gPj4NCj4gPj4gQWNrZWQtYnk6IEFuZHkg
-U2hldmNoZW5rbyA8YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbT4NCj4gPg0KPiA+IE9LLCB0aGFu
-a3MhDQo+ID4NCj4gPiBJJ20gZ29pbmcgdG8gcm91dGUgaXQgdGhyb3VnaCB0aGUgUE0gdHJlZSB0
-aGVuIGlmIHRoYXQncyBub3QgYSBwcm9ibGVtLg0KPiANCj4gTWFyaW8sIGFyZSB5b3Ugb2theSB3
-aXRoIHRoaXMgY2hhbmdlPw0KPiANCg0KVGhhbmtzIGZvciBjaGVja2luZy4gIEkgc3BlbnQgYSBs
-aXR0bGUgdGltZSB0aGlzIG1vcm5pbmcgdHJ5aW5nIHRvIHdhbGsgdGhyb3VnaA0KdGhlIEFTTCBh
-cyBhdHRhY2hlZCB0byB0aGUgQnVnemlsbGEgZW50cnkgYW5kIEkgdGhpbmsgdGhpcyBpcyB0aGUg
-Y29ycmVjdCBhcHByb2FjaC4NCg0KQWNrZWQtQnk6IE1hcmlvIExpbW9uY2llbGxvIDxtYXJpby5s
-aW1vbmNpZWxsb0BkZWxsLmNvbT4NCg0KSsOpcsO0bWUsDQpJIGhhdmUgb25lIHF1ZXN0aW9uIHRo
-b3VnaC4gIFRoZXNlIGV2ZW50cyBzaG91bGQgYmUgaGFwcGVuaW5nIGFzIGEgcGFpci4NClByZXNz
-OiAweENFLCBSZWxlYXNlOiAweENGLg0KV2hhdCBoYXBwZW5zIHdpdGggdGhlIGV2ZW50IG9uIHBv
-d2VyIGJ1dHRvbiByZWxlYXNlPw0KSXMgdGhhdCBzaG93aW5nIGEgbWVzc2FnZSBpbiB0aGUgbG9n
-IGR1cmluZyB3YWtldXAgZnJvbSBTMkk/DQoNClNvbWV0aGluZyBsaWtlICJ1bmtub3duIGV2ZW50
-IDB4Q0YiPw0KSWYgc28sIGl0IHdvdWxkIGJlIGdvb2QgdG8gYWxzbyBjYXRjaCBhbmQgaWdub3Jl
-IHRoYXQgdG9vLg0KDQpUaGFua3MsDQo=
+
+On 8/1/2017 3:18 AM, Sudeep Holla wrote:
+>
+> On 31/07/17 19:18, Prakash, Prashanth wrote:
+>> Hi Sudeep,
+>>
+>> On 7/31/2017 10:25 AM, Sudeep Holla wrote:
+>>> Sorry for the delay, I initial thought having this ABI under testing is
+>>> fine as I really don't want any *real* user space programs to depend on
+>>> this for various reasons stated in earlier threads, e.g. h/w auto
+>>> promotable states, accuracy of the stats, ..etc
+>> <sorry for repeating this part>
+>> These fields are optional, so if there is no reliable way to keep track of  stats, platform
+>> can choose not to expose it. If a platform is exposing inaccurate stats via this ACPI
+>> interface, it is breaking the spec.
+> Fair enough.
+>
+>>> But from Documentation/ABI/README, I see
+>>>
+>>> testing/
+>>> 	This directory documents interfaces that are felt to be stable,
+>>> 	as the main development of this interface has been completed.
+>>> 	The interface can be changed to add new features, but the
+>>> 	current interface will not break by doing this, unless grave
+>>> 	errors or security problems are found in them. User space
+>>> 	programs can start to rely on these interfaces,...
+>>>
+>>> which makes me worry. Since the use for this is purely for debug or
+>>> optimization purposes, I still prefer simple single file debugfs entry.
+>>> I still can't digest the fact that reading single file is time consuming
+>>> as we are not using this interface at runtime IIUC. i.e. statistic are
+>>> collected and analyzed offline.>> These fields has the same utility/use-cases as the usage & time
+> fields in cpuidle sysfs,
+>> but provides more granularity - idle stats for different levels hierarchy and accurate
+>> idle stats for states that require platform co-ordination.
+>>
+> I completely agree with that and that's not the argument.
+>
+>> The argument for having a single sysfs file per node was that reading individual
+>> files might get expensive to get a snapshot(not the other way around). But, that
+>> argument was weak as we typically read these only in debug settings and not that
+>> often during runtime. So, the summary_stats file was removed and went with one
+>> value per file.
+>>
+> You are contradicting yourself above :). You say the argument you made
+> is weak :) but still went ahead and dropped single debugfs file vs the
+> standard per entry sysfs file which is an ABI.
+
+To clarify, the first RFC patch had a sysfs entry called summary_stats which
+provided all the stats for a specific node in hierarchy via a single file. The
+argument for having such a single file was weak. :)  There was never a
+debugfs file to be dropped in first place.
+
+> Since we already have CPUIdle sysfs which is an ABI, I am really not
+> sure if we need another set of ABI files which are used only for debug
+> and optimization purposes. Why is single debugfs file not sufficient ?
+>
+
+The consumers for this data are not all kernel developers. We will have other
+engineers looking at this data for power/performance optimizations and
+would be nice to give them a consistent interface.
+> As hardware evolves, most of the platforms can't provide these
+> information accurately. So if we are trying to address a problem which
+> is short-lived and on very small class of platforms, I would avoid
+> creating a new ABI for it. That's my main argument against this
+> interface instead go with debugfs entry. That's my opinion though.
+I would like to think of it in terms of ACPI spec rather than a subset of platforms.
+If it is part of spec there should be no reason to speculate on which platform
+may or may not implement it. We implement to the spec and ideally platform
+designers should ideally do the same.
+Since sysfs vs debugfs is quite debatable :) , I will wait for Rafael's inputs.
+
+--
+Thanks,
+Prashanth
