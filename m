@@ -1,66 +1,65 @@
-From: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v5 2/2] iommu/dma: Add HW MSI address regions reservation
-Date: Tue, 1 Aug 2017 11:49:13 +0100
-Message-ID: <20170801104913.71912-3-shameerali.kolothum.thodi@huawei.com>
-References: <20170801104913.71912-1-shameerali.kolothum.thodi@huawei.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH] gpio: drop unnecessary includes from
+ include/linux/gpio/driver.h
+Date: Tue, 1 Aug 2017 14:04:26 +0300
+Message-ID: <CAHp75VeLwM8Q5vVLeeGz9hL8AWa2J47NTaeX0ogJk6v7y18diw@mail.gmail.com>
+References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
+ <1499162760.22624.246.camel@linux.intel.com>
+ <CACRpkdaxgxaXV8XjLTzu68JqjyeZ8Jr2YMR3L46wm3zmnMrPsg@mail.gmail.com>
+ <1501509867.29303.303.camel@linux.intel.com>
+ <CACRpkdZ9q5vub3sQkA2xsQaZ+CGHeAp4RRueposnTPiHoFbSsA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20170801104913.71912-1-shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CACRpkdZ9q5vub3sQkA2xsQaZ+CGHeAp4RRueposnTPiHoFbSsA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Thor Thayer <thor.thayer@linux.intel.com>, Tien Hock Loh <thloh@altera.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Thierry Reding <thierry.reding@gmail.com>, Alban Bedel <albeu@free.fr>, Florian Fainelli <f.fainelli@gmail.com>, Alexander Shiyan <shc_work@mail.ru>, Kevin Hilman <khilman@kernel.org>, Michal Simek <michal.simek@xilinx.com>, Jonathan Hunter <jonathanh@nvidia.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, bcm-kernel-feedback-list <bcm-kernel-feedback-list@broadcom.com>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, Joel Stanley <joel@jms.id.au>, Grygorii Strashko <grygorii.strashko@ti.com>, Ray Jui <rjui@broadcom.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Modified iommu_dma_get_resv_regions() to include HW MSI
-(ARM GICv3 ITS MSI) specific reservations if available.
+On Tue, Aug 1, 2017 at 10:53 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
+> On Mon, Jul 31, 2017 at 4:04 PM, Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+>> On Mon, 2017-07-31 at 15:48 +0200, Linus Walleij wrote:
+>>> On Tue, Jul 4, 2017 at 12:06 PM, Andy Shevchenko
+>>> <andriy.shevchenko@linux.intel.com> wrote:
 
-Suggested-by: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
----
- drivers/iommu/dma-iommu.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+>>> > If Linus is okay with the following proposal I would rather go with
+>>> > it,
+>>> > i.e. logical split the series to
+>>> >
+>>> > 1. Fix IRQ related headers inclusion
+>>> > 2. Fix pinconf-generic.h inclusion
+>>> > 3. Fix OF headers inclusion (btw, of_gpio.h is not enough there?)
+>>>
+>>> That works fine with me, but also one big patch actually, I do not
+>>> want to make it too much work to refactor obviously incorrect things.
+>>>
+>>> As soon as we have rough consensus on this and the build robot
+>>> are happy I will apply it to GPIO and also pull it into the pinctrl
+>>> subsystem.
+>>
+>> For me priorities like this:
+>> 1) it works after the patch being applied (no regressions);
+>> 2) it makes code cleaner at the end;
+>> 3) it is presented in logically split parts.
+>>
+>> So, as long as 1) and 2) are satisfied I can neglect on 3).
+>
+> We are in violent agreement :D
 
-diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index 9d1cebe..44eca1e 100644
---- a/drivers/iommu/dma-iommu.c
-+++ b/drivers/iommu/dma-iommu.c
-@@ -19,6 +19,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <linux/acpi_iort.h>
- #include <linux/device.h>
- #include <linux/dma-iommu.h>
- #include <linux/gfp.h>
-@@ -167,13 +168,18 @@ void iommu_put_dma_cookie(struct iommu_domain *domain)
-  *
-  * IOMMU drivers can use this to implement their .get_resv_regions callback
-  * for general non-IOMMU-specific reservations. Currently, this covers host
-- * bridge windows for PCI devices.
-+ * bridge windows for PCI devices and HW MSI(ARM GICv3 ITS MSI) region
-+ * reservations if available.
-  */
- void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list)
- {
- 	struct pci_host_bridge *bridge;
- 	struct resource_entry *window;
- 
-+	if (!is_of_node(dev->iommu_fwspec->iommu_fwnode) &&
-+		iort_iommu_its_get_resv_regions(dev, list) < 0)
-+		return;
-+
- 	if (!dev_is_pci(dev))
- 		return;
- 
+What I would like to say is that is up to you after all :-)
+For me looks better to split.
+
 -- 
-1.9.1
+With Best Regards,
+Andy Shevchenko
