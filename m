@@ -1,65 +1,69 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] platform/x86: intel-hid: Wake up Dell Latitude 7275 from suspend-to-idle
-Date: Tue, 1 Aug 2017 13:56:35 +0200
-Message-ID: <CAJZ5v0jimcsL3+BfyfjSxjZRjWVFXunPRDquCp-V1SHi32f+=w@mail.gmail.com>
-References: <7313224.XbtxUoJtXM@aspire.rjw.lan> <3172146.dPhkKZoKtx@aspire.rjw.lan>
- <CAHp75VfouHVbj0X3PJfRHy2uSziq-P__N5ezbmsuUNYDwDxYKg@mail.gmail.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: [PATCH v4 0/5] Apple SPI properties
+Date: Tue, 1 Aug 2017 14:10:41 +0200
+Message-ID: <cover.1501570421.git.lukas@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f175.google.com ([209.85.223.175]:37736 "EHLO
-        mail-io0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751166AbdHAL4h (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 07:56:37 -0400
-In-Reply-To: <CAHp75VfouHVbj0X3PJfRHy2uSziq-P__N5ezbmsuUNYDwDxYKg@mail.gmail.com>
+Received: from mailout2.hostsharing.net ([83.223.90.233]:55523 "EHLO
+        mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751101AbdHAMKo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 08:10:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Platform Driver <platform-driver-x86@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>, Mario Limonciello <mario.limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, x86@kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Matt Fleming <matt@codeblueprint.co.uk>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <yehezkel.bernat@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Darren Hart <dvhart@infradead.org>
 
-On Tue, Aug 1, 2017 at 1:21 AM, Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
-> On Tue, Aug 1, 2017 at 12:46 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wr=
-ote:
->> On Friday, July 28, 2017 02:06:36 AM Rafael J. Wysocki wrote:
->>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>
->>> On Dell Latitude 7275 the 5-button array is not exposed in the
->>> ACPI tables, but still notifies are sent to the Intel HID device
->>> object (device ID INT33D5) in response to power button actions while
->>> suspended to idle.  However, they are currently ignored as the
->>> intel-hid driver is not prepared to take care of them.
->>>
->>> As a result, power button wakeup from suspend-to-idle doesn't work
->>> on this platform, but suspend-to-idle is the only reliable suspend
->>> variant on it (the S3 implementation in the platform firmware turns
->>> out to be broken), so it would be good to handle it properly.
->>>
->>> For this reason, add an upfront check against the power button press
->>> event (0xCE) to notify_handler() in the wakeup mode which allows it
->>> to catch the power button wakeup notification on the affected
->>> platform (even though priv->array is NULL on it) and should not
->>> change the behavior on platforms with priv->array present (because
->>> priv->array contains the event in question in those cases).
->>>
->>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=3D196115
->>> Tested-by: J=C3=A9r=C3=B4me de Bretagne <jerome.debretagne@gmail.com>
->>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> Please note that this change is requisite for
->>
->> https://patchwork.kernel.org/patch/9873159/
->>
->> so are there any objections or concerns?
->
-> Not from my side,
->
-> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Retrieve device properties on Macs with an Apple-specific _DSM and
+use them in lieu of _CRS data upon SPI slave initialization
+in preparation of supporting the SPI keyboard on 2015+ MacBooks, v4.
 
-OK, thanks!
+Please refer to the cover letter of v1 for further details:
+http://www.spinics.net/lists/linux-acpi/msg75537.html
 
-I'm going to route it through the PM tree then if that's not a problem.
+Changes v3 -> v4:
+
+Patch 1:
+- Extend consolidation of Apple DMI checks to the entire tree
+  instead of just the ACPI core. (Rafael, Andy, Darren)
+
+Patches 2 - 5 are as before.
 
 Thanks,
-Rafael
+
+Lukas
+
+
+Lukas Wunner (5):
+  treewide: Consolidate Apple DMI checks
+  ACPI / property: Don't evaluate objects for devices w/o handle
+  ACPI / property: Support Apple _DSM properties
+  ACPI / scan: Recognize Apple SPI and I2C slaves
+  spi: Use Apple device properties in absence of ACPI resources
+
+ arch/x86/include/asm/setup.h            |   1 +
+ arch/x86/kernel/early-quirks.c          |   4 +-
+ arch/x86/kernel/quirks.c                |  10 +++
+ arch/x86/kernel/setup.c                 |   2 +
+ drivers/acpi/Makefile                   |   1 +
+ drivers/acpi/internal.h                 |   6 ++
+ drivers/acpi/osi.c                      |  37 ++-------
+ drivers/acpi/pci_root.c                 |   4 +-
+ drivers/acpi/property.c                 |   6 ++
+ drivers/acpi/sbs.c                      |  25 +-----
+ drivers/acpi/scan.c                     |   7 ++
+ drivers/acpi/x86/apple.c                | 141 ++++++++++++++++++++++++++++++++
+ drivers/firmware/efi/apple-properties.c |   5 +-
+ drivers/pci/quirks.c                    |   5 +-
+ drivers/spi/spi.c                       |  32 ++++++++
+ drivers/thunderbolt/icm.c               |  13 +--
+ drivers/thunderbolt/tb.c                |   4 +-
+ include/linux/platform_data/x86/apple.h |  13 +++
+ 18 files changed, 244 insertions(+), 72 deletions(-)
+ create mode 100644 drivers/acpi/x86/apple.c
+ create mode 100644 include/linux/platform_data/x86/apple.h
+
+-- 
+2.11.0
+
