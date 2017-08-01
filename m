@@ -1,92 +1,39 @@
-From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
 Subject: Re: [PATCH v4 0/6] BTT error clearing rework
-Date: Tue, 1 Aug 2017 13:56:31 -0600
-Message-ID: <20170801195630.GC18006@omniknight.lm.intel.com>
+Date: Tue, 1 Aug 2017 20:06:08 +0000
+Message-ID: <1501617398.2042.102.camel@hpe.com>
 References: <20170726233546.29052-1-vishal.l.verma@intel.com>
- <1501542358.2042.97.camel@hpe.com>
- <1501544000.4405.5.camel@intel.com>
- <1501600767.2042.99.camel@hpe.com>
- <1501614143.2042.101.camel@hpe.com>
+         <1501542358.2042.97.camel@hpe.com> <1501544000.4405.5.camel@intel.com>
+         <1501600767.2042.99.camel@hpe.com> <1501614143.2042.101.camel@hpe.com>
+         <20170801195630.GC18006@omniknight.lm.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1501614143.2042.101.camel-ZPxbGqLxI0U@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Wysocki,
- Rafael J" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g9t5008.houston.hpe.com ([15.241.48.72]:34924 "EHLO
+        g9t5008.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752109AbdHAUGo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 16:06:44 -0400
+In-Reply-To: <20170801195630.GC18006@omniknight.lm.intel.com>
+Content-Language: en-US
+Content-ID: <9E0D22050EBD1C4B8CC120DB9B322BBF@NAMPRD84.PROD.OUTLOOK.COM>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>
+Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>
 
-On 08/01, Kani, Toshimitsu wrote:
-> On Tue, 2017-08-01 at 09:19 -0600, Toshi Kani wrote:
-> > On Mon, 2017-07-31 at 23:35 +0000, Verma, Vishal L wrote:
-> > > On Mon, 2017-07-31 at 23:15 +0000, Kani, Toshimitsu wrote:
-> > > > On Wed, 2017-07-26 at 17:35 -0600, Vishal Verma wrote:
->  :
-> > > Thanks for the test Toshi, I will try and reproduce it.
-> > > My first guess is - are the injected errors potentially in the BTT
-> > > metadata area towards the end?
-> > >
-> > > ->rw_bytes can only clear errors on properly aligned writes, and
-> > > the btt metadata writes will be too small to clear metadata
-> > > errors..
-> >
-> > I picked an injected offset without careful thoughts, so it is
-> > possible that I might have stepped into such area.  I just tested
-> > with a block device interface with multiple different offsets, and
-> > they failed in clearing as well...  I will look into further as well
-> > as my test setup.
-> 
-> The change/hack below takes care of the issue in my setup.  There is a
-> discrepancy in offset between the pre-check in btt_write_pg() and the
-> actual check in nsio_rw_bytes().
-> 
-> Thanks,
-> -Toshi
-> 
-> ---
->  drivers/nvdimm/btt.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-> index 8a959f8..83ad4c6 100644
-> --- a/drivers/nvdimm/btt.c
-> +++ b/drivers/nvdimm/btt.c
-> @@ -1137,7 +1137,7 @@ static bool btt_is_badblock(struct btt *btt,
-> struct arena_info *arena,
->                 u32 postmap)
->  {
->         u64 nsoff = to_namespace_offset(arena, postmap);
-> -       sector_t phys_sector = nsoff >> 9;
-> +       sector_t phys_sector = (nsoff + arena->nd_btt->initial_offset) >> 9;
-> 
->         return is_bad_pmem(btt->phys_bb, phys_sector, arena->internal_lbasize);
->  }
-
-Hey Toshi, that is a great catch (I'm going to look at enhancing the
-unit tests too to catch this).
-
-Your patch is correct. Normally whenever we calculate a 'nsoff', we use
-that to do arena_{read,write}_bytes, and that takes care of adding the
-initial_offset. This was the first instance where we calculated nsoff
-and did something other than rw_bytes with it (i.e. is_bad_pmem), and
-therefore this nsoff needs the initial_offset adjustment manually..
-
-However just adding that here is inviting future bugs like this, so I'm
-going to refactor the initial_offset adjustment into some helpers and
-use those across the board. That should prevent this sort of a bug
-again.
-
-Thanks for the report and the root cause!
-
-	-Vishal
+T24gVHVlLCAyMDE3LTA4LTAxIGF0IDEzOjU2IC0wNjAwLCBWaXNoYWwgVmVybWEgd3JvdGU6DQog
+Og0KPiANCj4gSGV5IFRvc2hpLCB0aGF0IGlzIGEgZ3JlYXQgY2F0Y2ggKEknbSBnb2luZyB0byBs
+b29rIGF0IGVuaGFuY2luZyB0aGUNCj4gdW5pdCB0ZXN0cyB0b28gdG8gY2F0Y2ggdGhpcykuDQo+
+IA0KPiBZb3VyIHBhdGNoIGlzIGNvcnJlY3QuIE5vcm1hbGx5IHdoZW5ldmVyIHdlIGNhbGN1bGF0
+ZSBhICduc29mZicsIHdlDQo+IHVzZSB0aGF0IHRvIGRvIGFyZW5hX3tyZWFkLHdyaXRlfV9ieXRl
+cywgYW5kIHRoYXQgdGFrZXMgY2FyZSBvZg0KPiBhZGRpbmcgdGhlIGluaXRpYWxfb2Zmc2V0LiBU
+aGlzIHdhcyB0aGUgZmlyc3QgaW5zdGFuY2Ugd2hlcmUgd2UNCj4gY2FsY3VsYXRlZCBuc29mZiBh
+bmQgZGlkIHNvbWV0aGluZyBvdGhlciB0aGFuIHJ3X2J5dGVzIHdpdGggaXQgKGkuZS4NCj4gaXNf
+YmFkX3BtZW0pLCBhbmQgdGhlcmVmb3JlIHRoaXMgbnNvZmYgbmVlZHMgdGhlIGluaXRpYWxfb2Zm
+c2V0DQo+IGFkanVzdG1lbnQgbWFudWFsbHkuLg0KPiANCj4gSG93ZXZlciBqdXN0IGFkZGluZyB0
+aGF0IGhlcmUgaXMgaW52aXRpbmcgZnV0dXJlIGJ1Z3MgbGlrZSB0aGlzLCBzbw0KPiBJJ20gZ29p
+bmcgdG8gcmVmYWN0b3IgdGhlIGluaXRpYWxfb2Zmc2V0IGFkanVzdG1lbnQgaW50byBzb21lIGhl
+bHBlcnMNCj4gYW5kIHVzZSB0aG9zZSBhY3Jvc3MgdGhlIGJvYXJkLiBUaGF0IHNob3VsZCBwcmV2
+ZW50IHRoaXMgc29ydCBvZiBhDQo+IGJ1ZyBhZ2Fpbi4NCg0KU291bmRzIGdyZWF0LiAgVGhhbmtz
+IFZpc2hhbCENCi1Ub3NoaQ0K
