@@ -1,86 +1,41 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 5/5] ACPI/IORT: Add IORT named component memory address
- limits
-Date: Tue, 1 Aug 2017 20:56:39 +0800
-Message-ID: <833cf8e7-8dc5-49c6-2beb-4683af354b6d@linaro.org>
-References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
- <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
- <35b7d17a-7ab2-9b36-9482-33a7449691d2@linaro.org>
- <20170801112111.GA23348@red-moon>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v4 0/5] Apple SPI properties
+Date: Tue, 1 Aug 2017 15:08:58 +0200
+Message-ID: <CAJZ5v0jzuVKzEeOG85LhANR0LWCavWmWMKL6JwxjhLqK_2RwRw@mail.gmail.com>
+References: <cover.1501570421.git.lukas@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170801112111.GA23348@red-moon>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Nate Watterson <nwatters@codeaurora.org>, Robert Moore <robert.moore@intel.com>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f193.google.com ([209.85.223.193]:33204 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751368AbdHANI7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 09:08:59 -0400
+In-Reply-To: <cover.1501570421.git.lukas@wunner.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, the arch/x86 maintainers <x86@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Matt Fleming <matt@codeblueprint.co.uk>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <yehezkel.bernat@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, Mark Brown <broonie@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Linux
 
-On 2017/8/1 19:21, Lorenzo Pieralisi wrote:
-> On Tue, Aug 01, 2017 at 06:20:43PM +0800, Hanjun Guo wrote:
->> Hi Lorenzo,
->>
->> On 2017/7/31 23:23, Lorenzo Pieralisi wrote:
->>> IORT named components provide firmware configuration describing
->>> how many address bits a given device is capable of generating
->>> to address memory.
->>>
->>> Add code to the kernel to retrieve memory address limits
->>> configuration for IORT named components and configure DMA masks
->>> accordingly.
->>>
->>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->>> Cc: Will Deacon <will.deacon@arm.com>
->>> Cc: Robin Murphy <robin.murphy@arm.com>
->>> Cc: Nate Watterson <nwatters@codeaurora.org>
->>> ---
->>>   drivers/acpi/arm64/iort.c | 40 ++++++++++++++++++++++++++++++----------
->>>   1 file changed, 30 insertions(+), 10 deletions(-)
->>>
->>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->>> index 67b85ae..b85d19f 100644
->>> --- a/drivers/acpi/arm64/iort.c
->>> +++ b/drivers/acpi/arm64/iort.c
->>> @@ -680,6 +680,24 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
->>>   	return ret ? NULL : ops;
->>>   }
->>> +static int nc_dma_get_range(struct device *dev, u64 *size)
->>> +{
->>> +	struct acpi_iort_node *node;
->>> +	struct acpi_iort_named_component *ncomp;
->>> +
->>> +	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
->>> +			      iort_match_node_callback, dev);
->>> +	if (!node)
->>> +		return -ENODEV;
->>> +
->>> +	ncomp = (struct acpi_iort_named_component *)node->node_data;
->>> +
->>> +	*size = ncomp->memory_address_limit >= 64 ? ~0ULL :
->>> +			1ULL<<ncomp->memory_address_limit;
->>
->> Just a question here, if the IORT table didn't configure this
->> value properly, will the device working properly? I'm asking this
->> because in the table of IORT of D05, this value is set to 0 so far
->> (SAS and network), but I can boot D05 OK with your patch set, not
->> sure if any further issues.
-> 
-> Then you wonder why I wrote it as a separate patch. Why is that
-> value set to 0 (is that because that's the insane default ?) ?
-> It is a firmware bug and if things work ok with this patch applied
-> either this patch contains a bug or drivers override the DMA masks
-> to cancel out this patch effects.
+On Tue, Aug 1, 2017 at 2:10 PM, Lukas Wunner <lukas@wunner.de> wrote:
+> Retrieve device properties on Macs with an Apple-specific _DSM and
+> use them in lieu of _CRS data upon SPI slave initialization
+> in preparation of supporting the SPI keyboard on 2015+ MacBooks, v4.
+>
+> Please refer to the cover letter of v1 for further details:
+> http://www.spinics.net/lists/linux-acpi/msg75537.html
+>
+> Changes v3 -> v4:
+>
+> Patch 1:
+> - Extend consolidation of Apple DMI checks to the entire tree
+>   instead of just the ACPI core. (Rafael, Andy, Darren)
+>
+> Patches 2 - 5 are as before.
 
-Thanks for the reply, not a bug for this patch, I confirmed that
-the driver override the DMA masks (both SAS and network set 64 bit
-DMA mask).
+Since the majority of the material here has already been ACKed or
+reviewed by the most interested parties and it looks OK to me too, I'm
+going to take it as ACPI changes unless anyone in the CC has any
+strong opinions against that.
 
-> 
-> Please fix the firmware.
-
-Sure.
-
-Thanks
-Hanjun
+Thanks,
+Rafael
