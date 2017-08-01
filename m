@@ -1,238 +1,88 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v3 3/3] ACPI / PCI / PM: Rework acpi_pci_propagate_wakeup()
-Date: Tue, 01 Aug 2017 02:56:18 +0200
-Message-ID: <1916183.UEozbhaQct@aspire.rjw.lan>
-References: <3116391.JNS1F4DjTg@aspire.rjw.lan> <4853865.5aRGCM4CdQ@aspire.rjw.lan> <4690779.IRjbMOd2yB@aspire.rjw.lan>
+From: Liwei Song <liwei.song@windriver.com>
+Subject: Re: [PATCH V2] ACPI, APEI: Fixup incorrect 16-bit access width firmware
+ bug
+Date: Tue, 1 Aug 2017 10:05:47 +0800
+Message-ID: <597FE1FB.9080206@windriver.com>
+References: <1501122668-53948-1-git-send-email-liwei.song@windriver.com> <1AE640813FDE7649BE1B193DEA596E886CEE8FF8@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4690779.IRjbMOd2yB@aspire.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail5.windriver.com ([192.103.53.11]:49860 "EHLO mail5.wrs.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751591AbdHACGa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 31 Jul 2017 22:06:30 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CEE8FF8@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The acpi_pci_propagate_wakeup() routine is there to handle cases in
-which PCI bridges (or PCIe ports) are expected to signal wakeup
-for devices below them, but currently it doesn't do that correctly.
 
-The problem is that acpi_pci_propagate_wakeup() uses
-acpi_pm_set_device_wakeup() for bridges and if that routine is
-called for multiple times to disable wakeup for the same device,
-it will disable it on the first invocation and the next calls
-will have no effect (it works analogously when called to enable
-wakeup, but that is not a problem).
+On 07/31/2017 10:09 AM, Zheng, Lv wrote:
+> Hi,
+> 
+>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Song
+>> liwei
+>> Subject: [PATCH V2] ACPI, APEI: Fixup incorrect 16-bit access width firmware bug
+>>
+>> From: Liwei Song <liwei.song@windriver.com>
+>>
+>> This is a follow up to commit f712c71f7b2b ("ACPI, APEI: Fixup common
+>> access width firmware bug") fix the following firmware bug:
+>>
+>> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0xb2/16/0/1/1]
+>>
+>> This is due to an 8-bit access width is specified for a 16-bit register,
+>> Rearrange the condition and add 8-bit width check.
+>>
+>> Signed-off-by: Liwei Song <liwei.song@windriver.com>
+>> ---
+>>  drivers/acpi/apei/apei-base.c | 12 ++++++------
+>>  1 file changed, 6 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+>> index da370e1..eca3d7a 100644
+>> --- a/drivers/acpi/apei/apei-base.c
+>> +++ b/drivers/acpi/apei/apei-base.c
+>> @@ -604,12 +604,12 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
+>>  	*access_bit_width = 1UL << (access_size_code + 2);
+>>
+>>  	/* Fixup common BIOS bug */
+>> -	if (bit_width == 32 && bit_offset == 0 && (*paddr & 0x03) == 0 &&
+>> -	    *access_bit_width < 32)
+>> -		*access_bit_width = 32;
+>> -	else if (bit_width == 64 && bit_offset == 0 && (*paddr & 0x07) == 0 &&
+>> -	    *access_bit_width < 64)
+>> -		*access_bit_width = 64;
+>> +	if (*access_bit_width < bit_width && bit_offset == 0) {
+>> +		if ((bit_width == 16 && (*paddr & 0x01) == 0) ||
+>> +		    (bit_width == 32 && (*paddr & 0x03) == 0) ||
+>> +		    (bit_width == 64 && (*paddr & 0x07) == 0))
+>> +			*access_bit_width = bit_width;
+>> +	}
+>>
+>>  	if ((bit_width + bit_offset) > *access_bit_width) {
+>>  		pr_warning(FW_BUG APEI_PFX
+> 
+> IMO, such problem could also be fixed by this commit and a cleanup of APEI
+> GAR code to invoke generic ACPICA GAR API - acpi_read()/acpi_write() directly.
+> https://github.com/acpica/acpica/pull/209
 
-Now, say acpi_pci_propagate_wakeup() has been called for two
-different devices under the same bridge and it has called
-acpi_pm_set_device_wakeup() for that bridge each time.  The
-bridge is now enabled to generate wakeup signals.  Next,
-suppose that one of the devices below it resumes and
-acpi_pci_propagate_wakeup() is called to disable wakeup for that
-device.  It will then call acpi_pm_set_device_wakeup() for the bridge
-and that will effectively disable remote wakeup for all devices under
-it even though some of them may still be suspended and remote wakeup
-may be expected to work for them.
+Hi Lv,
 
-To address this (arguably theoretical) issue, allow
-wakeup.enable_count under struct acpi_device to grow beyond 1 in
-certain situations.  In particular, allow that to happen in
-acpi_pci_propagate_wakeup() when wakeup is enabled or disabled
-for PCI bridges, so that wakeup is actually disabled for the
-bridge when all devices under it resume and not when just one
-of them does that.
+I'm a bit confuse about the commit you said, do you mean this commit can also fix
+this common 16-bit access width error, and will check-in to upstream kernel latter?
+If so, please ignore this review.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
----
+Thanks,
+Liwei.
 
-v2 -> v3: Follow the Bjorn's suggestion to un-inline acpi_pm_set_device_wakeup()
-  and acpi_pm_set_bridge_wakeup() to avoid exporting __acpi_pm_set_device_wakeup()
-  whose max_count argument is too much of an internal detail to be documented
-  for use in non-core code clearly enough.
 
-I've retained the tags, because the changes are minor and don't affect the
-behavior, but if (some of all) the tags are not applicabe any more, please let
-me know. :-)
-
----
- drivers/acpi/device_pm.c |   72 ++++++++++++++++++++++++++++++++---------------
- drivers/pci/pci-acpi.c   |    4 +-
- include/acpi/acpi_bus.h  |    5 +++
- 3 files changed, 57 insertions(+), 24 deletions(-)
-
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -684,19 +684,8 @@ static void acpi_pm_notify_work_func(str
- 
- static DEFINE_MUTEX(acpi_wakeup_lock);
- 
--/**
-- * acpi_device_wakeup_enable - Enable wakeup functionality for device.
-- * @adev: ACPI device to enable wakeup functionality for.
-- * @target_state: State the system is transitioning into.
-- *
-- * Enable the GPE associated with @adev so that it can generate wakeup signals
-- * for the device in response to external (remote) events and enable wakeup
-- * power for it.
-- *
-- * Callers must ensure that @adev is a valid ACPI device node before executing
-- * this function.
-- */
--static int acpi_device_wakeup_enable(struct acpi_device *adev, u32 target_state)
-+static int __acpi_device_wakeup_enable(struct acpi_device *adev,
-+				       u32 target_state, int max_count)
- {
- 	struct acpi_device_wakeup *wakeup = &adev->wakeup;
- 	acpi_status status;
-@@ -704,9 +693,12 @@ static int acpi_device_wakeup_enable(str
- 
- 	mutex_lock(&acpi_wakeup_lock);
- 
--	if (wakeup->enable_count > 0)
-+	if (wakeup->enable_count >= max_count)
- 		goto out;
- 
-+	if (wakeup->enable_count > 0)
-+		goto inc;
-+
- 	error = acpi_enable_wakeup_device_power(adev, target_state);
- 	if (error)
- 		goto out;
-@@ -718,6 +710,7 @@ static int acpi_device_wakeup_enable(str
- 		goto out;
- 	}
- 
-+inc:
- 	wakeup->enable_count++;
- 
- out:
-@@ -726,6 +719,23 @@ out:
- }
- 
- /**
-+ * acpi_device_wakeup_enable - Enable wakeup functionality for device.
-+ * @adev: ACPI device to enable wakeup functionality for.
-+ * @target_state: State the system is transitioning into.
-+ *
-+ * Enable the GPE associated with @adev so that it can generate wakeup signals
-+ * for the device in response to external (remote) events and enable wakeup
-+ * power for it.
-+ *
-+ * Callers must ensure that @adev is a valid ACPI device node before executing
-+ * this function.
-+ */
-+static int acpi_device_wakeup_enable(struct acpi_device *adev, u32 target_state)
-+{
-+	return __acpi_device_wakeup_enable(adev, target_state, 1);
-+}
-+
-+/**
-  * acpi_device_wakeup_disable - Disable wakeup functionality for device.
-  * @adev: ACPI device to disable wakeup functionality for.
-  *
-@@ -752,12 +762,8 @@ out:
- 	mutex_unlock(&acpi_wakeup_lock);
- }
- 
--/**
-- * acpi_pm_set_device_wakeup - Enable/disable remote wakeup for given device.
-- * @dev: Device to enable/disable to generate wakeup events.
-- * @enable: Whether to enable or disable the wakeup functionality.
-- */
--int acpi_pm_set_device_wakeup(struct device *dev, bool enable)
-+static int __acpi_pm_set_device_wakeup(struct device *dev, bool enable,
-+				       int max_count)
- {
- 	struct acpi_device *adev;
- 	int error;
-@@ -777,13 +783,35 @@ int acpi_pm_set_device_wakeup(struct dev
- 		return 0;
- 	}
- 
--	error = acpi_device_wakeup_enable(adev, acpi_target_system_state());
-+	error = __acpi_device_wakeup_enable(adev, acpi_target_system_state(),
-+					    max_count);
- 	if (!error)
- 		dev_dbg(dev, "Wakeup enabled by ACPI\n");
- 
- 	return error;
- }
--EXPORT_SYMBOL(acpi_pm_set_device_wakeup);
-+
-+/**
-+ * acpi_pm_set_device_wakeup - Enable/disable remote wakeup for given device.
-+ * @dev: Device to enable/disable to generate wakeup events.
-+ * @enable: Whether to enable or disable the wakeup functionality.
-+ */
-+int acpi_pm_set_device_wakeup(struct device *dev, bool enable)
-+{
-+	return __acpi_pm_set_device_wakeup(dev, enable, 1);
-+}
-+EXPORT_SYMBOL_GPL(acpi_pm_set_device_wakeup);
-+
-+/**
-+ * acpi_pm_set_bridge_wakeup - Enable/disable remote wakeup for given bridge.
-+ * @dev: Bridge device to enable/disable to generate wakeup events.
-+ * @enable: Whether to enable or disable the wakeup functionality.
-+ */
-+int acpi_pm_set_bridge_wakeup(struct device *dev, bool enable)
-+{
-+	return __acpi_pm_set_device_wakeup(dev, enable, INT_MAX);
-+}
-+EXPORT_SYMBOL_GPL(acpi_pm_set_bridge_wakeup);
- 
- /**
-  * acpi_dev_pm_low_power - Put ACPI device into a low-power state.
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -626,6 +626,7 @@ acpi_status acpi_remove_pm_notifier(stru
- bool acpi_pm_device_can_wakeup(struct device *dev);
- int acpi_pm_device_sleep_state(struct device *, int *, int);
- int acpi_pm_set_device_wakeup(struct device *dev, bool enable);
-+int acpi_pm_set_bridge_wakeup(struct device *dev, bool enable);
- #else
- static inline void acpi_pm_wakeup_event(struct device *dev)
- {
-@@ -656,6 +657,10 @@ static inline int acpi_pm_set_device_wak
- {
- 	return -ENODEV;
- }
-+static inline int acpi_pm_set_bridge_wakeup(struct device *dev, bool enable)
-+{
-+	return -ENODEV;
-+}
- #endif
- 
- #ifdef CONFIG_ACPI_SLEEP
-Index: linux-pm/drivers/pci/pci-acpi.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci-acpi.c
-+++ linux-pm/drivers/pci/pci-acpi.c
-@@ -573,7 +573,7 @@ static int acpi_pci_propagate_wakeup(str
- {
- 	while (bus->parent) {
- 		if (acpi_pm_device_can_wakeup(&bus->self->dev))
--			return acpi_pm_set_device_wakeup(&bus->self->dev, enable);
-+			return acpi_pm_set_bridge_wakeup(&bus->self->dev, enable);
- 
- 		bus = bus->parent;
- 	}
-@@ -581,7 +581,7 @@ static int acpi_pci_propagate_wakeup(str
- 	/* We have reached the root bus. */
- 	if (bus->bridge) {
- 		if (acpi_pm_device_can_wakeup(bus->bridge))
--			return acpi_pm_set_device_wakeup(bus->bridge, enable);
-+			return acpi_pm_set_bridge_wakeup(bus->bridge, enable);
- 	}
- 	return 0;
- }
+> 
+> Thanks and best regards
+> Lv
+> 
+> 
+> 
