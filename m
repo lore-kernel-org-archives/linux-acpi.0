@@ -1,60 +1,61 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH v4 0/6] BTT error clearing rework
-Date: Tue, 1 Aug 2017 15:28:57 +0000
-Message-ID: <1501600767.2042.99.camel@hpe.com>
-References: <20170726233546.29052-1-vishal.l.verma@intel.com>
-         <1501542358.2042.97.camel@hpe.com> <1501544000.4405.5.camel@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: Issue with commit de3ef1eb1cd - PM / core: Drop run_wake flag
+ from struct dev_pm_info [Was: MEI-related WARN_ON() triggered during
+ resume-from-sleep on v4.13-rc2+]
+Date: Tue, 1 Aug 2017 17:32:24 +0200
+Message-ID: <CAJZ5v0jhm6YYn3oyXpLGgFL9DHaCv_k=47hhUwFdcDhmaq-PUw@mail.gmail.com>
+References: <20170730085908.GA2298@light.dominikbrodowski.net>
+ <5B8DA87D05A7694D9FA63FD143655C1B749D3C1C@hasmsx108.ger.corp.intel.com>
+ <20170731221645.GA5871@light.dominikbrodowski.net> <CAJZ5v0i2MiLv6J+Wo1sUXoCKK9iG_e7pVdb0Uo5uzLXkyxpDUg@mail.gmail.com>
+ <CAJZ5v0hMdu3hZoc4YOE6YteHLuXkO7V63cTiCbBENBGT4cLp2g@mail.gmail.com>
+ <C980C034A53E0646B96866D6CE3D187A4D9129A0@HASMSX106.ger.corp.intel.com>
+ <CAJZ5v0gBpDKpRbhx0tbLWXG1e8Dd4ZPZGDQ5Vq2f8phX2cpFGg@mail.gmail.com> <5B8DA87D05A7694D9FA63FD143655C1B749D55CC@hasmsx108.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t2352.austin.hpe.com ([15.233.44.25]:47578 "EHLO
-        g2t2352.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751295AbdHAP3A (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 11:29:00 -0400
-In-Reply-To: <1501544000.4405.5.camel@intel.com>
-Content-Language: en-US
-Content-ID: <B47149D85277C642BD1D56CA6C202B49@NAMPRD84.PROD.OUTLOOK.COM>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <5B8DA87D05A7694D9FA63FD143655C1B749D55CC@hasmsx108.ger.corp.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Winkler, Tomas" <tomas.winkler@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Usyskin, Alexander" <alexander.usyskin@intel.com>, Dominik Brodowski <linux@dominikbrodowski.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>
-Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>
 
-T24gTW9uLCAyMDE3LTA3LTMxIGF0IDIzOjM1ICswMDAwLCBWZXJtYSwgVmlzaGFsIEwgd3JvdGU6
-DQo+IE9uIE1vbiwgMjAxNy0wNy0zMSBhdCAyMzoxNSArMDAwMCwgS2FuaSwgVG9zaGltaXRzdSB3
-cm90ZToNCj4gPiBPbiBXZWQsIDIwMTctMDctMjYgYXQgMTc6MzUgLTA2MDAsIFZpc2hhbCBWZXJt
-YSB3cm90ZToNCiA6DQo+ID4gDQo+ID4gU3RlcCAzIGNsZWFycyBhbiBlcnJvciBhbmQgcnVucyBm
-aW5lIHdpdGggcmF3IGFuZCBtZW1vcnkNCj4gPiBtb2Rlcy7CoMKgV2l0aCBzZWN0b3IgbW9kZSwg
-aG93ZXZlciwgaXQgZW5kcyB1cCB3aXRoIGNvbnRpbnVvdXMgd3JpdGUNCj4gPiBlcnJvcnMgbGlr
-ZSBiZWxvdyBhbmQgZG9lcyBub3QgY2xlYXIgdGhlIGVycm9yLsKgwqBEbyB5b3UgaGF2ZSBhbnkN
-Cj4gPiB0aG91Z2h0cz8NCj4gPiANCj4gPiDCoEVYVDQtZnMgd2FybmluZyAoZGV2aWNlIHBtZW0w
-cyk6IGV4dDRfZW5kX2JpbzozMjI6IEkvTyBlcnJvciAxMA0KPiA+IHdyaXRpbmcgdG8gaW5vZGUg
-MTcgKG9mZnNldCAxMDIzNDEwMTc2IHNpemUgODM4ODYwOCBzdGFydGluZyBibG9jaw0KPiA+IDE4
-MzQ3NTIpDQo+ID4gwqBCdWZmZXIgSS9PIGVycm9yIG9uIGRldmljZSBwbWVtMHMsIGxvZ2ljYWwg
-YmxvY2sgMTgzNDc1Mg0KPiA+IMKgQnVmZmVyIEkvTyBlcnJvciBvbiBkZXZpY2UgcG1lbTBzLCBs
-b2dpY2FsIGJsb2NrIDE4MzQ3NTMNCj4gPiDCoEJ1ZmZlciBJL08gZXJyb3Igb24gZGV2aWNlIHBt
-ZW0wcywgbG9naWNhbCBibG9jayAxODM0NzU0DQo+ID4gwqA6DQo+ID4gwqBuZF9wbWVtIGJ0dDAu
-MDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NjgwMDY0LCBsZW4gNDA5NiwNCj4gPiDCoEVY
-VDQtZnMgd2FybmluZyAoZGV2aWNlIHBtZW0wcyk6IGV4dDRfZW5kX2JpbzozMjI6IEkvTyBlcnJv
-ciAxMA0KPiA+IHdyaXRpbmcgdG8gaW5vZGUgMTcgKG9mZnNldCAxMDMxNzk4Nzg0IHNpemUgMTA1
-MjY3MiBzdGFydGluZyBibG9jaw0KPiA+IDE4MzUwMDgpDQo+ID4gwqBuZF9wbWVtIGJ0dDAuMDog
-aW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NjgyMTEyLCBsZW4gNDA5NiwNCj4gPiDCoEVYVDQt
-ZnMgd2FybmluZyAoZGV2aWNlIHBtZW0wcyk6IGV4dDRfZW5kX2JpbzozMjI6IEkvTyBlcnJvciAx
-MA0KPiA+IHdyaXRpbmcgdG8gaW5vZGUgMTcgKG9mZnNldCAxMDMxNzk4Nzg0IHNpemUgMjEwMTI0
-OCBzdGFydGluZyBibG9jaw0KPiA+IDE4MzUyNjQpDQo+ID4gwqA6DQo+ID4gwqBuZF9wbWVtIGJ0
-dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0Njk4NDk2LCBsZW4gNDA5NiwNCj4gPiDC
-oG5kX3BtZW0gYnR0MC4wOiBpbyBlcnJvciBpbiBXUklURSBzZWN0b3IgMTQ3MDA1NDQsIGxlbiA0
-MDk2LA0KPiA+IMKgbmRfcG1lbSBidHQwLjA6IGlvIGVycm9yIGluIFdSSVRFIHNlY3RvciAxNDcw
-MjU5MiwgbGVuIDQwOTYsDQo+ID4gwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUg
-c2VjdG9yIDE0NzA0NjQwLCBsZW4gNDA5NiwNCj4gPiDCoDoNCj4gDQo+IFRoYW5rcyBmb3IgdGhl
-IHRlc3QgVG9zaGksIEkgd2lsbCB0cnkgYW5kIHJlcHJvZHVjZSBpdC4NCj4gTXkgZmlyc3QgZ3Vl
-c3MgaXMgLSBhcmUgdGhlIGluamVjdGVkIGVycm9ycyBwb3RlbnRpYWxseSBpbiB0aGUgQlRUDQo+
-IG1ldGFkYXRhIGFyZWEgdG93YXJkcyB0aGUgZW5kPw0KPiANCj4gLT5yd19ieXRlcyBjYW4gb25s
-eSBjbGVhciBlcnJvcnMgb24gcHJvcGVybHkgYWxpZ25lZCB3cml0ZXMsIGFuZCB0aGUNCj4gYnR0
-IG1ldGFkYXRhIHdyaXRlcyB3aWxsIGJlIHRvbyBzbWFsbCB0byBjbGVhciBtZXRhZGF0YSBlcnJv
-cnMuLg0KDQpJIHBpY2tlZCBhbiBpbmplY3RlZCBvZmZzZXQgd2l0aG91dCBjYXJlZnVsIHRob3Vn
-aHRzLCBzbyBpdCBpcyBwb3NzaWJsZQ0KdGhhdCBJIG1pZ2h0IGhhdmUgc3RlcHBlZCBpbnRvIHN1
-Y2ggYXJlYS4gIEkganVzdCB0ZXN0ZWQgd2l0aCBhIGJsb2NrDQpkZXZpY2UgaW50ZXJmYWNlIHdp
-dGggbXVsdGlwbGUgZGlmZmVyZW50IG9mZnNldHMsIGFuZCB0aGV5IGZhaWxlZCBpbg0KY2xlYXJp
-bmcgYXMgd2VsbC4uLiAgSSB3aWxsIGxvb2sgaW50byBmdXJ0aGVyIGFzIHdlbGwgYXMgbXkgdGVz
-dCBzZXR1cC4NCiAgIA0KDQpUaGFua3MsDQotVG9zaGkNCg==
+On Tue, Aug 1, 2017 at 3:58 PM, Winkler, Tomas <tomas.winkler@intel.com> wrote:
+>>
+>> Hi,
+>>
+>> On Tue, Aug 1, 2017 at 7:25 AM, Usyskin, Alexander
+>> <alexander.usyskin@intel.com> wrote:
+>> > Hi
+>> >
+>> > We using pci_dev_run_wake that changed in mentioned patch to decide if
+>> > to replace usual PM callbacks with domain ones.
+>> > IIRC, the mei device is not remote wakeable on that platform, so we
+>> > should set domain callbacks.
+>> > There was a patch in PM framework that squashes runtime suspend with
+>> > usual suspend for some devices.
+>> > May it be that now pci_dev_run_wake returns true form mei and we are
+>> > not setting domain callbacks?
+>> > In that case we going through PCI device level PM path and may trigger
+>> that squash.
+>> > That will explain lack of mei logs on suspend.
+>> >
+>> > Dominik, can you try comment out "if (!pci_dev_run_wake(pdev))"
+>> > at drivers/misc/mei/pci-me.c (around line 223) to set domain callbacks
+>> > by force to see if this is indeed the case?
+>>
+>> Why exactly do you need the pci_dev_run_wake(pdev) check?
+>
+> We need to re-review this code now, but as far as I remember.
+> On some platforms with NFC connected via MEI, there was no PME enabled,  hence we needed to keep in band irq opened for rx to wake us up.
+
+But pci_dev_run_wake() returning "true" doesn't guarantee that wakeup
+signaling will actually work.  What it tells you is merely that
+everything appears to be in place for wakeup to work from the software
+perspective and it is a bit biased on the optimistic side, so I'm not
+really sure if that's what you need.
+
+Maybe you should just override the PCI PM unconditionally and do
+what's needed from you PM domain callbacks.  Dunno.
+
+Thanks,
+Rafael
