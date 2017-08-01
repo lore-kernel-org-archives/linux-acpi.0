@@ -1,70 +1,60 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v4 1/5] treewide: Consolidate Apple DMI checks
-Date: Tue, 01 Aug 2017 15:42:44 +0300
-Message-ID: <1501591364.29303.318.camel@linux.intel.com>
-References: <cover.1501570421.git.lukas@wunner.de>
-         <20f8b74b83ed45171583fe501182c93e5c6eb4d9.1501570421.git.lukas@wunner.de>
-         <1501590904.29303.316.camel@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1501590904.29303.316.camel@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, x86@kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Matt Fleming <matt@codeblueprint.co.uk>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <yehezkel.bernat@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Darren Hart <dvhart@infradead.org>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: [PATCH RESEND] mailbox: pcc: Drop uninformative output during boot
+Date: Tue,  1 Aug 2017 13:43:57 +0100
+Message-ID: <20170801124357.18344-1-punit.agrawal@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:40090 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751571AbdHAMoR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 1 Aug 2017 08:44:17 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rafael.j.wysocki@intel.com
+Cc: Punit Agrawal <punit.agrawal@arm.com>, linux-acpi@vger.kernel.org, Alexey Klimov <alexey.klimov@arm.com>, linux-kernel@vger.kernel.org, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, Jassi Brar <jassisinghbrar@gmail.com>
 
-On Tue, 2017-08-01 at 15:35 +0300, Andy Shevchenko wrote:
-> On Tue, 2017-08-01 at 14:10 +0200, Lukas Wunner wrote:
-> > We're about to amend ACPI bus scan with DMI checks whether we're
-> > running
-> > on a Mac to support Apple device properties in AML.  The DMI checks
-> > are
-> > performed for every single device, adding overhead for everything
-> > x86
-> > that isn't Apple, which is the majority.  Rafael and Andy therefore
-> > request to perform the DMI match only once and cache the result.
-> > 
-> > Outside of ACPI various other Apple DMI checks exist and it seems
-> > reasonable to use the cached value there as well.  Rafael, Andy and
-> > Darren suggest performing the DMI check in arch code and making it
-> > available with a header in include/linux/platform_data/x86/.
-> > 
-> > To this end, add early_platform_quirks() to arch/x86/kernel/quirks.c
-> > to perform the DMI check and invoke it from setup_arch().  Switch
-> > over
-> > all existing Apple DMI checks, thereby fixing two deficiencies:
-> > 
-> > * They are now #defined to false on non-x86 arches and can thus be
-> >   optimized away if they're located in cross-arch code.
-> > 
-> > * Some of them only match "Apple Inc." but not "Apple Computer,
-> > Inc.",
-> >   which is used by BIOSes released between January 2006 (when the
-> > first
-> >   x86 Macs started shipping) and January 2007 (when the company name
-> >   changed upon introduction of the iPhone).
-> 
-> 
-> I like the idea, though I can repeat what I commented on your Github
-> page.
-> 
-> We might need to distinguish 2006 vs 2007 Apple hardware. Thus, my
-> proposal was to use unsigned int (as bitwise flags) instead of bool
-> and
-> provide two definitions for the hardware. Set those bits accordingly.
-> In case of most of the checks it will be the same as in this patch,
-> but
-> leaves a flexibility of a choice.
+When booting on an ACPI enabled system that does not provide the
+Platform Communications Channel Table (PCCT), the pcc mailbox driver
+prints -
 
-Okay, and you answered there.
+[    0.484261] PCCT header not found.
 
-TWIMC
-https://github.com/l1k/linux/commit/20f8b74b83ed45171583fe501182c93e5c6e
-b4d9
+during probe before returning -ENODEV.
 
+This message clutters the bootlog and doesn't provide any useful
+information. Drop this message.
 
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>
+Acked-by: Alexey Klimov <alexey.klimov@arm.com>
+---
+
+Hi Rafael,
+
+Re-sending the patch with linux-acpi on cc and tags applied as
+requested. If there are no objections please consider merging.
+
+Thanks,
+Punit
+
+ drivers/mailbox/pcc.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index ac91fd0d62c6..3d83cdc11ab5 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -457,10 +457,8 @@ static int __init acpi_pcc_probe(void)
+ 	/* Search for PCCT */
+ 	status = acpi_get_table(ACPI_SIG_PCCT, 0, &pcct_tbl);
+ 
+-	if (ACPI_FAILURE(status) || !pcct_tbl) {
+-		pr_warn("PCCT header not found.\n");
++	if (ACPI_FAILURE(status) || !pcct_tbl)
+ 		return -ENODEV;
+-	}
+ 
+ 	count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+ 			sizeof(struct acpi_table_pcct),
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.11.0
+
