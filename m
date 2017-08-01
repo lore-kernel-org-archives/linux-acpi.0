@@ -1,88 +1,65 @@
-From: Liwei Song <liwei.song@windriver.com>
-Subject: Re: [PATCH V2] ACPI, APEI: Fixup incorrect 16-bit access width firmware
- bug
-Date: Tue, 1 Aug 2017 10:05:47 +0800
-Message-ID: <597FE1FB.9080206@windriver.com>
-References: <1501122668-53948-1-git-send-email-liwei.song@windriver.com> <1AE640813FDE7649BE1B193DEA596E886CEE8FF8@SHSMSX101.ccr.corp.intel.com>
+From: <durrant@iupui.edu>
+Subject: (unknown)
+Date: Tue, 01 Aug 2017 04:40:39 -0000
+Message-ID: <150156243957.20843.4655380545681225323@wateen.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: application/zip; name="EMAIL_935589887_linux-acpi.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail5.windriver.com ([192.103.53.11]:49860 "EHLO mail5.wrs.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751591AbdHACGa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Jul 2017 22:06:30 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CEE8FF8@SHSMSX101.ccr.corp.intel.com>
+Received: from WimaxUser38216-53.wateen.net ([110.38.216.53]:57754 "HELO
+        wateen.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751035AbdHAEko (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 1 Aug 2017 00:40:44 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: linux-acpi@vger.kernel.org
 
-
-
-On 07/31/2017 10:09 AM, Zheng, Lv wrote:
-> Hi,
-> 
->> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Song
->> liwei
->> Subject: [PATCH V2] ACPI, APEI: Fixup incorrect 16-bit access width firmware bug
->>
->> From: Liwei Song <liwei.song@windriver.com>
->>
->> This is a follow up to commit f712c71f7b2b ("ACPI, APEI: Fixup common
->> access width firmware bug") fix the following firmware bug:
->>
->> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0xb2/16/0/1/1]
->>
->> This is due to an 8-bit access width is specified for a 16-bit register,
->> Rearrange the condition and add 8-bit width check.
->>
->> Signed-off-by: Liwei Song <liwei.song@windriver.com>
->> ---
->>  drivers/acpi/apei/apei-base.c | 12 ++++++------
->>  1 file changed, 6 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
->> index da370e1..eca3d7a 100644
->> --- a/drivers/acpi/apei/apei-base.c
->> +++ b/drivers/acpi/apei/apei-base.c
->> @@ -604,12 +604,12 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
->>  	*access_bit_width = 1UL << (access_size_code + 2);
->>
->>  	/* Fixup common BIOS bug */
->> -	if (bit_width == 32 && bit_offset == 0 && (*paddr & 0x03) == 0 &&
->> -	    *access_bit_width < 32)
->> -		*access_bit_width = 32;
->> -	else if (bit_width == 64 && bit_offset == 0 && (*paddr & 0x07) == 0 &&
->> -	    *access_bit_width < 64)
->> -		*access_bit_width = 64;
->> +	if (*access_bit_width < bit_width && bit_offset == 0) {
->> +		if ((bit_width == 16 && (*paddr & 0x01) == 0) ||
->> +		    (bit_width == 32 && (*paddr & 0x03) == 0) ||
->> +		    (bit_width == 64 && (*paddr & 0x07) == 0))
->> +			*access_bit_width = bit_width;
->> +	}
->>
->>  	if ((bit_width + bit_offset) > *access_bit_width) {
->>  		pr_warning(FW_BUG APEI_PFX
-> 
-> IMO, such problem could also be fixed by this commit and a cleanup of APEI
-> GAR code to invoke generic ACPICA GAR API - acpi_read()/acpi_write() directly.
-> https://github.com/acpica/acpica/pull/209
-
-Hi Lv,
-
-I'm a bit confuse about the commit you said, do you mean this commit can also fix
-this common 16-bit access width error, and will check-in to upstream kernel latter?
-If so, please ignore this review.
-
-Thanks,
-Liwei.
-
-
-> 
-> Thanks and best regards
-> Lv
-> 
-> 
-> 
+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
