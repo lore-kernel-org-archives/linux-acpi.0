@@ -1,60 +1,86 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: [PATCH RESEND] mailbox: pcc: Drop uninformative output during boot
-Date: Tue,  1 Aug 2017 13:43:57 +0100
-Message-ID: <20170801124357.18344-1-punit.agrawal@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:40090 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751571AbdHAMoR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 1 Aug 2017 08:44:17 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 5/5] ACPI/IORT: Add IORT named component memory address
+ limits
+Date: Tue, 1 Aug 2017 20:56:39 +0800
+Message-ID: <833cf8e7-8dc5-49c6-2beb-4683af354b6d@linaro.org>
+References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
+ <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
+ <35b7d17a-7ab2-9b36-9482-33a7449691d2@linaro.org>
+ <20170801112111.GA23348@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170801112111.GA23348@red-moon>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Nate Watterson <nwatters@codeaurora.org>, Robert Moore <robert.moore@intel.com>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
-To: rafael.j.wysocki@intel.com
-Cc: Punit Agrawal <punit.agrawal@arm.com>, linux-acpi@vger.kernel.org, Alexey Klimov <alexey.klimov@arm.com>, linux-kernel@vger.kernel.org, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, Jassi Brar <jassisinghbrar@gmail.com>
 
-When booting on an ACPI enabled system that does not provide the
-Platform Communications Channel Table (PCCT), the pcc mailbox driver
-prints -
+On 2017/8/1 19:21, Lorenzo Pieralisi wrote:
+> On Tue, Aug 01, 2017 at 06:20:43PM +0800, Hanjun Guo wrote:
+>> Hi Lorenzo,
+>>
+>> On 2017/7/31 23:23, Lorenzo Pieralisi wrote:
+>>> IORT named components provide firmware configuration describing
+>>> how many address bits a given device is capable of generating
+>>> to address memory.
+>>>
+>>> Add code to the kernel to retrieve memory address limits
+>>> configuration for IORT named components and configure DMA masks
+>>> accordingly.
+>>>
+>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>> Cc: Will Deacon <will.deacon@arm.com>
+>>> Cc: Robin Murphy <robin.murphy@arm.com>
+>>> Cc: Nate Watterson <nwatters@codeaurora.org>
+>>> ---
+>>>   drivers/acpi/arm64/iort.c | 40 ++++++++++++++++++++++++++++++----------
+>>>   1 file changed, 30 insertions(+), 10 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>>> index 67b85ae..b85d19f 100644
+>>> --- a/drivers/acpi/arm64/iort.c
+>>> +++ b/drivers/acpi/arm64/iort.c
+>>> @@ -680,6 +680,24 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+>>>   	return ret ? NULL : ops;
+>>>   }
+>>> +static int nc_dma_get_range(struct device *dev, u64 *size)
+>>> +{
+>>> +	struct acpi_iort_node *node;
+>>> +	struct acpi_iort_named_component *ncomp;
+>>> +
+>>> +	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+>>> +			      iort_match_node_callback, dev);
+>>> +	if (!node)
+>>> +		return -ENODEV;
+>>> +
+>>> +	ncomp = (struct acpi_iort_named_component *)node->node_data;
+>>> +
+>>> +	*size = ncomp->memory_address_limit >= 64 ? ~0ULL :
+>>> +			1ULL<<ncomp->memory_address_limit;
+>>
+>> Just a question here, if the IORT table didn't configure this
+>> value properly, will the device working properly? I'm asking this
+>> because in the table of IORT of D05, this value is set to 0 so far
+>> (SAS and network), but I can boot D05 OK with your patch set, not
+>> sure if any further issues.
+> 
+> Then you wonder why I wrote it as a separate patch. Why is that
+> value set to 0 (is that because that's the insane default ?) ?
+> It is a firmware bug and if things work ok with this patch applied
+> either this patch contains a bug or drivers override the DMA masks
+> to cancel out this patch effects.
 
-[    0.484261] PCCT header not found.
+Thanks for the reply, not a bug for this patch, I confirmed that
+the driver override the DMA masks (both SAS and network set 64 bit
+DMA mask).
 
-during probe before returning -ENODEV.
+> 
+> Please fix the firmware.
 
-This message clutters the bootlog and doesn't provide any useful
-information. Drop this message.
+Sure.
 
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>
-Acked-by: Alexey Klimov <alexey.klimov@arm.com>
----
-
-Hi Rafael,
-
-Re-sending the patch with linux-acpi on cc and tags applied as
-requested. If there are no objections please consider merging.
-
-Thanks,
-Punit
-
- drivers/mailbox/pcc.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index ac91fd0d62c6..3d83cdc11ab5 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -457,10 +457,8 @@ static int __init acpi_pcc_probe(void)
- 	/* Search for PCCT */
- 	status = acpi_get_table(ACPI_SIG_PCCT, 0, &pcct_tbl);
- 
--	if (ACPI_FAILURE(status) || !pcct_tbl) {
--		pr_warn("PCCT header not found.\n");
-+	if (ACPI_FAILURE(status) || !pcct_tbl)
- 		return -ENODEV;
--	}
- 
- 	count = acpi_table_parse_entries(ACPI_SIG_PCCT,
- 			sizeof(struct acpi_table_pcct),
--- 
-2.11.0
-
+Thanks
+Hanjun
