@@ -1,61 +1,57 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: Issue with commit de3ef1eb1cd - PM / core: Drop run_wake flag
- from struct dev_pm_info [Was: MEI-related WARN_ON() triggered during
- resume-from-sleep on v4.13-rc2+]
-Date: Tue, 1 Aug 2017 17:32:24 +0200
-Message-ID: <CAJZ5v0jhm6YYn3oyXpLGgFL9DHaCv_k=47hhUwFdcDhmaq-PUw@mail.gmail.com>
-References: <20170730085908.GA2298@light.dominikbrodowski.net>
- <5B8DA87D05A7694D9FA63FD143655C1B749D3C1C@hasmsx108.ger.corp.intel.com>
- <20170731221645.GA5871@light.dominikbrodowski.net> <CAJZ5v0i2MiLv6J+Wo1sUXoCKK9iG_e7pVdb0Uo5uzLXkyxpDUg@mail.gmail.com>
- <CAJZ5v0hMdu3hZoc4YOE6YteHLuXkO7V63cTiCbBENBGT4cLp2g@mail.gmail.com>
- <C980C034A53E0646B96866D6CE3D187A4D9129A0@HASMSX106.ger.corp.intel.com>
- <CAJZ5v0gBpDKpRbhx0tbLWXG1e8Dd4ZPZGDQ5Vq2f8phX2cpFGg@mail.gmail.com> <5B8DA87D05A7694D9FA63FD143655C1B749D55CC@hasmsx108.ger.corp.intel.com>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH] platform/x86: intel-hid: Wake up Dell Latitude 7275 from
+ suspend-to-idle
+Date: Tue, 1 Aug 2017 17:04:45 +0000
+Message-ID: <739eedabac12425e8e59f8391da4b607@ausx13mpc120.AMER.DELL.COM>
+References: <7313224.XbtxUoJtXM@aspire.rjw.lan>
+ <3172146.dPhkKZoKtx@aspire.rjw.lan>
+ <CAHp75VfouHVbj0X3PJfRHy2uSziq-P__N5ezbmsuUNYDwDxYKg@mail.gmail.com>
+ <CAJZ5v0jimcsL3+BfyfjSxjZRjWVFXunPRDquCp-V1SHi32f+=w@mail.gmail.com>
+ <CAHp75Vd-LcCR3k3-LTNYNzh-aomGcqgszFWw7HFb-u1+UJLX3A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <5B8DA87D05A7694D9FA63FD143655C1B749D55CC@hasmsx108.ger.corp.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Winkler, Tomas" <tomas.winkler@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Usyskin, Alexander" <alexander.usyskin@intel.com>, Dominik Brodowski <linux@dominikbrodowski.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHp75Vd-LcCR3k3-LTNYNzh-aomGcqgszFWw7HFb-u1+UJLX3A@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: andy.shevchenko@gmail.com, rafael@kernel.org
+Cc: rjw@rjwysocki.net, platform-driver-x86@vger.kernel.org, dvhart@infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, andriy.shevchenko@linux.intel.com, jerome.debretagne@gmail.com, alex.hung@canonical.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 1, 2017 at 3:58 PM, Winkler, Tomas <tomas.winkler@intel.com> wrote:
->>
->> Hi,
->>
->> On Tue, Aug 1, 2017 at 7:25 AM, Usyskin, Alexander
->> <alexander.usyskin@intel.com> wrote:
->> > Hi
->> >
->> > We using pci_dev_run_wake that changed in mentioned patch to decide if
->> > to replace usual PM callbacks with domain ones.
->> > IIRC, the mei device is not remote wakeable on that platform, so we
->> > should set domain callbacks.
->> > There was a patch in PM framework that squashes runtime suspend with
->> > usual suspend for some devices.
->> > May it be that now pci_dev_run_wake returns true form mei and we are
->> > not setting domain callbacks?
->> > In that case we going through PCI device level PM path and may trigger
->> that squash.
->> > That will explain lack of mei logs on suspend.
->> >
->> > Dominik, can you try comment out "if (!pci_dev_run_wake(pdev))"
->> > at drivers/misc/mei/pci-me.c (around line 223) to set domain callbacks
->> > by force to see if this is indeed the case?
->>
->> Why exactly do you need the pci_dev_run_wake(pdev) check?
->
-> We need to re-review this code now, but as far as I remember.
-> On some platforms with NFC connected via MEI, there was no PME enabled,  hence we needed to keep in band irq opened for rx to wake us up.
-
-But pci_dev_run_wake() returning "true" doesn't guarantee that wakeup
-signaling will actually work.  What it tells you is merely that
-everything appears to be in place for wakeup to work from the software
-perspective and it is a bit biased on the optimistic side, so I'm not
-really sure if that's what you need.
-
-Maybe you should just override the PCI PM unconditionally and do
-what's needed from you PM domain callbacks.  Dunno.
-
-Thanks,
-Rafael
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBbmR5IFNoZXZjaGVua28gW21h
+aWx0bzphbmR5LnNoZXZjaGVua29AZ21haWwuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBBdWd1c3Qg
+MSwgMjAxNyA3OjM3IEFNDQo+IFRvOiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5v
+cmc+DQo+IENjOiBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBQbGF0Zm9y
+bSBEcml2ZXIgPHBsYXRmb3JtLWRyaXZlci0NCj4geDg2QHZnZXIua2VybmVsLm9yZz47IERhcnJl
+biBIYXJ0IDxkdmhhcnRAaW5mcmFkZWFkLm9yZz47IExLTUwgPGxpbnV4LQ0KPiBrZXJuZWxAdmdl
+ci5rZXJuZWwub3JnPjsgTGludXggQUNQSSA8bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBB
+bmR5DQo+IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT47IErD
+qXLDtG1lIGRlIEJyZXRhZ25lDQo+IDxqZXJvbWUuZGVicmV0YWduZUBnbWFpbC5jb20+OyBMaW1v
+bmNpZWxsbywgTWFyaW8NCj4gPE1hcmlvX0xpbW9uY2llbGxvQERlbGwuY29tPjsgQWxleCBIdW5n
+IDxhbGV4Lmh1bmdAY2Fub25pY2FsLmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gcGxhdGZv
+cm0veDg2OiBpbnRlbC1oaWQ6IFdha2UgdXAgRGVsbCBMYXRpdHVkZSA3Mjc1IGZyb20NCj4gc3Vz
+cGVuZC10by1pZGxlDQo+IA0KPiBPbiBUdWUsIEF1ZyAxLCAyMDE3IGF0IDI6NTYgUE0sIFJhZmFl
+bCBKLiBXeXNvY2tpIDxyYWZhZWxAa2VybmVsLm9yZz4gd3JvdGU6DQo+ID4gT24gVHVlLCBBdWcg
+MSwgMjAxNyBhdCAxOjIxIEFNLCBBbmR5IFNoZXZjaGVua28NCj4gPiA8YW5keS5zaGV2Y2hlbmtv
+QGdtYWlsLmNvbT4gd3JvdGU6DQo+ID4+IE9uIFR1ZSwgQXVnIDEsIDIwMTcgYXQgMTI6NDYgQU0s
+IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD4gd3JvdGU6DQo+ID4+PiBPbiBG
+cmlkYXksIEp1bHkgMjgsIDIwMTcgMDI6MDY6MzYgQU0gUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6
+DQo+IA0KPiA+Pj4gUGxlYXNlIG5vdGUgdGhhdCB0aGlzIGNoYW5nZSBpcyByZXF1aXNpdGUgZm9y
+DQo+ID4+Pg0KPiA+Pj4gaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85ODczMTU5
+Lw0KPiA+Pj4NCj4gPj4+IHNvIGFyZSB0aGVyZSBhbnkgb2JqZWN0aW9ucyBvciBjb25jZXJucz8N
+Cj4gPj4NCj4gPj4gTm90IGZyb20gbXkgc2lkZSwNCj4gPj4NCj4gPj4gQWNrZWQtYnk6IEFuZHkg
+U2hldmNoZW5rbyA8YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbT4NCj4gPg0KPiA+IE9LLCB0aGFu
+a3MhDQo+ID4NCj4gPiBJJ20gZ29pbmcgdG8gcm91dGUgaXQgdGhyb3VnaCB0aGUgUE0gdHJlZSB0
+aGVuIGlmIHRoYXQncyBub3QgYSBwcm9ibGVtLg0KPiANCj4gTWFyaW8sIGFyZSB5b3Ugb2theSB3
+aXRoIHRoaXMgY2hhbmdlPw0KPiANCg0KVGhhbmtzIGZvciBjaGVja2luZy4gIEkgc3BlbnQgYSBs
+aXR0bGUgdGltZSB0aGlzIG1vcm5pbmcgdHJ5aW5nIHRvIHdhbGsgdGhyb3VnaA0KdGhlIEFTTCBh
+cyBhdHRhY2hlZCB0byB0aGUgQnVnemlsbGEgZW50cnkgYW5kIEkgdGhpbmsgdGhpcyBpcyB0aGUg
+Y29ycmVjdCBhcHByb2FjaC4NCg0KQWNrZWQtQnk6IE1hcmlvIExpbW9uY2llbGxvIDxtYXJpby5s
+aW1vbmNpZWxsb0BkZWxsLmNvbT4NCg0KSsOpcsO0bWUsDQpJIGhhdmUgb25lIHF1ZXN0aW9uIHRo
+b3VnaC4gIFRoZXNlIGV2ZW50cyBzaG91bGQgYmUgaGFwcGVuaW5nIGFzIGEgcGFpci4NClByZXNz
+OiAweENFLCBSZWxlYXNlOiAweENGLg0KV2hhdCBoYXBwZW5zIHdpdGggdGhlIGV2ZW50IG9uIHBv
+d2VyIGJ1dHRvbiByZWxlYXNlPw0KSXMgdGhhdCBzaG93aW5nIGEgbWVzc2FnZSBpbiB0aGUgbG9n
+IGR1cmluZyB3YWtldXAgZnJvbSBTMkk/DQoNClNvbWV0aGluZyBsaWtlICJ1bmtub3duIGV2ZW50
+IDB4Q0YiPw0KSWYgc28sIGl0IHdvdWxkIGJlIGdvb2QgdG8gYWxzbyBjYXRjaCBhbmQgaWdub3Jl
+IHRoYXQgdG9vLg0KDQpUaGFua3MsDQo=
