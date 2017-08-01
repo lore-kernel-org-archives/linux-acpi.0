@@ -1,85 +1,68 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v2] ACPI / Processor: add sysfs support for low power idle
-Date: Tue, 1 Aug 2017 10:18:45 +0100
-Message-ID: <ad046d13-1c51-981d-d4d7-997f0cbf4b6b@arm.com>
-References: <1499968082-7753-1-git-send-email-pprakash@codeaurora.org>
- <3212e387-9f7d-5bd9-4612-79dddc77b05f@arm.com>
- <8beff6e7-e27c-0b44-6236-a95fcd5335d5@codeaurora.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 5/5] ACPI/IORT: Add IORT named component memory address
+ limits
+Date: Tue, 1 Aug 2017 18:20:43 +0800
+Message-ID: <35b7d17a-7ab2-9b36-9482-33a7449691d2@linaro.org>
+References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
+ <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:36398 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751804AbdHAJSs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 1 Aug 2017 05:18:48 -0400
-In-Reply-To: <8beff6e7-e27c-0b44-6236-a95fcd5335d5@codeaurora.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Nate Watterson <nwatters@codeaurora.org>, Robert Moore <robert.moore@intel.com>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>, linux-acpi@vger.kernel.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net, lenb@kernel.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
 
+Hi Lorenzo,
 
-
-On 31/07/17 19:18, Prakash, Prashanth wrote:
-> Hi Sudeep,
+On 2017/7/31 23:23, Lorenzo Pieralisi wrote:
+> IORT named components provide firmware configuration describing
+> how many address bits a given device is capable of generating
+> to address memory.
 > 
-> On 7/31/2017 10:25 AM, Sudeep Holla wrote:
->> Sorry for the delay, I initial thought having this ABI under testing is
->> fine as I really don't want any *real* user space programs to depend on
->> this for various reasons stated in earlier threads, e.g. h/w auto
->> promotable states, accuracy of the stats, ..etc
-> <sorry for repeating this part>
-> These fields are optional, so if there is no reliable way to keep track of  stats, platform
-> can choose not to expose it. If a platform is exposing inaccurate stats via this ACPI
-> interface, it is breaking the spec.
-
-Fair enough.
-
->> But from Documentation/ABI/README, I see
->>
->> testing/
->> 	This directory documents interfaces that are felt to be stable,
->> 	as the main development of this interface has been completed.
->> 	The interface can be changed to add new features, but the
->> 	current interface will not break by doing this, unless grave
->> 	errors or security problems are found in them. User space
->> 	programs can start to rely on these interfaces,...
->>
->> which makes me worry. Since the use for this is purely for debug or
->> optimization purposes, I still prefer simple single file debugfs entry.
->> I still can't digest the fact that reading single file is time consuming
->> as we are not using this interface at runtime IIUC. i.e. statistic are
->> collected and analyzed offline.>> These fields has the same utility/use-cases as the usage & time
-fields in cpuidle sysfs,
-> but provides more granularity - idle stats for different levels hierarchy and accurate
-> idle stats for states that require platform co-ordination.
->
-
-I completely agree with that and that's not the argument.
-
-> The argument for having a single sysfs file per node was that reading individual
-> files might get expensive to get a snapshot(not the other way around). But, that
-> argument was weak as we typically read these only in debug settings and not that
-> often during runtime. So, the summary_stats file was removed and went with one
-> value per file.
+> Add code to the kernel to retrieve memory address limits
+> configuration for IORT named components and configure DMA masks
+> accordingly.
 > 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Nate Watterson <nwatters@codeaurora.org>
+> ---
+>   drivers/acpi/arm64/iort.c | 40 ++++++++++++++++++++++++++++++----------
+>   1 file changed, 30 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 67b85ae..b85d19f 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -680,6 +680,24 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+>   	return ret ? NULL : ops;
+>   }
+>   
+> +static int nc_dma_get_range(struct device *dev, u64 *size)
+> +{
+> +	struct acpi_iort_node *node;
+> +	struct acpi_iort_named_component *ncomp;
+> +
+> +	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> +			      iort_match_node_callback, dev);
+> +	if (!node)
+> +		return -ENODEV;
+> +
+> +	ncomp = (struct acpi_iort_named_component *)node->node_data;
+> +
+> +	*size = ncomp->memory_address_limit >= 64 ? ~0ULL :
+> +			1ULL<<ncomp->memory_address_limit;
 
-You are contradicting yourself above :). You say the argument you made
-is weak :) but still went ahead and dropped single debugfs file vs the
-standard per entry sysfs file which is an ABI.
+Just a question here, if the IORT table didn't configure this
+value properly, will the device working properly? I'm asking this
+because in the table of IORT of D05, this value is set to 0 so far
+(SAS and network), but I can boot D05 OK with your patch set, not
+sure if any further issues.
 
-Since we already have CPUIdle sysfs which is an ABI, I am really not
-sure if we need another set of ABI files which are used only for debug
-and optimization purposes. Why is single debugfs file not sufficient ?
-
-As hardware evolves, most of the platforms can't provide these
-information accurately. So if we are trying to address a problem which
-is short-lived and on very small class of platforms, I would avoid
-creating a new ABI for it. That's my main argument against this
-interface instead go with debugfs entry. That's my opinion though.
-
--- 
-Regards,
-Sudeep
+Thanks
+Hanjun
