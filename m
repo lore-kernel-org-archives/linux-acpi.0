@@ -1,68 +1,96 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 5/5] ACPI/IORT: Add IORT named component memory address
- limits
-Date: Tue, 1 Aug 2017 18:20:43 +0800
-Message-ID: <35b7d17a-7ab2-9b36-9482-33a7449691d2@linaro.org>
-References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
- <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
+From: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Subject: [PATCH v5 0/2] iommu/smmu-v3: Workaround for hisilicon 161010801
+ erratum(reserve HW MSI)
+Date: Tue, 1 Aug 2017 11:49:11 +0100
+Message-ID: <20170801104913.71912-1-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Nate Watterson <nwatters@codeaurora.org>, Robert Moore <robert.moore@intel.com>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, hanjun.guo@linaro.org
+Cc: gabriele.paoloni@huawei.com, john.garry@huawei.com, linuxarm@huawei.com, Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, wangzhou1@hisilicon.com, guohanjun@huawei.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Lorenzo,
+On certain HiSilicon platforms (Hip06/Hip07) the GIC ITS and
+PCIe RC deviates from the standard implementation and this breaks
+PCIe MSI functionality when SMMU is enabled.
 
-On 2017/7/31 23:23, Lorenzo Pieralisi wrote:
-> IORT named components provide firmware configuration describing
-> how many address bits a given device is capable of generating
-> to address memory.
-> 
-> Add code to the kernel to retrieve memory address limits
-> configuration for IORT named components and configure DMA masks
-> accordingly.
-> 
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Robin Murphy <robin.murphy@arm.com>
-> Cc: Nate Watterson <nwatters@codeaurora.org>
-> ---
->   drivers/acpi/arm64/iort.c | 40 ++++++++++++++++++++++++++++++----------
->   1 file changed, 30 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 67b85ae..b85d19f 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -680,6 +680,24 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
->   	return ret ? NULL : ops;
->   }
->   
-> +static int nc_dma_get_range(struct device *dev, u64 *size)
-> +{
-> +	struct acpi_iort_node *node;
-> +	struct acpi_iort_named_component *ncomp;
-> +
-> +	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> +			      iort_match_node_callback, dev);
-> +	if (!node)
-> +		return -ENODEV;
-> +
-> +	ncomp = (struct acpi_iort_named_component *)node->node_data;
-> +
-> +	*size = ncomp->memory_address_limit >= 64 ? ~0ULL :
-> +			1ULL<<ncomp->memory_address_limit;
+The HiSilicon erratum 161010801 describes this limitation of certain
+HiSilicon platforms to support the SMMU mappings for MSI transactions.
+On these platforms GICv3 ITS translator is presented with the deviceID
+by extending the MSI payload data to 64 bits to include the deviceID.
+Hence, the PCIe controller on this platforms has to differentiate the
+MSI payload against other DMA payload and has to modify the MSI payload.
+This basically makes it difficult for this platforms to have a SMMU
+translation for MSI.
 
-Just a question here, if the IORT table didn't configure this
-value properly, will the device working properly? I'm asking this
-because in the table of IORT of D05, this value is set to 0 so far
-(SAS and network), but I can boot D05 OK with your patch set, not
-sure if any further issues.
+To implement this quirk, the following changes are incorporated:
 
-Thanks
-Hanjun
+1. Added a generic helper function to IORT code to retrieve and
+   reserve the HW ITS address regions.
+2. Modified iommu_dma_get_resv_regions() to reserve the hw msi
+   regions which means these address regions will not be translated and
+   will be excluded from iova allocations.
+
+Note: This requires patches [1] and [2] for vfio pass-through support
+on these platforms.
+
+Thanks,
+Shameer
+
+[1]: https://lkml.org/lkml/2017/7/27/388
+[2]: https://lkml.org/lkml/2017/7/27/386
+
+Changelog:
+
+v4 --> v5
+Addressed comments from Robin and Lorenzo:
+-Added a comment to make it clear that, for now, only straightforward 
+ HW topologies are handled while reserving ITS regions(patch #1).
+
+v3 --> v4
+Rebased on 4.13-rc1.
+Addressed comments from Robin, Will and Lorenzo:
+-As suggested by Robin, moved the ITS msi reservation into
+ iommu_dma_get_resv_regions().
+-Added its_count != resv region failure case(patch #1).
+
+v2 --> v3
+Addressed comments from Lorenzo and Robin:
+-Removed dev_is_pci() check in smmuV3 driver.
+-Don't treat device not having an ITS mapping as an error in
+ iort helper function.
+
+v1 --> v2
+-patch 2/2: Invoke iort helper fn based on fwnode type(acpi).
+
+RFCv2 -->PATCH
+-Incorporated Lorenzo's review comments.
+
+RFC v1 --> RFC v2
+Based on Robin's review comments,
+-Removed  the generic erratum framework.
+-Using IORT/MADT tables to retrieve the ITS base addr instead
+ of vendor specific CSRT table.
+
+Shameer Kolothum (2):
+  ACPI/IORT: Add ITS address regions reservation helper
+  iommu/dma: Add HW MSI address regions reservation
+
+ drivers/acpi/arm64/iort.c        | 95 ++++++++++++++++++++++++++++++++++++++--
+ drivers/iommu/dma-iommu.c        |  8 +++-
+ drivers/irqchip/irq-gic-v3-its.c |  3 +-
+ include/linux/acpi_iort.h        |  7 ++-
+ 4 files changed, 107 insertions(+), 6 deletions(-)
+
+-- 
+1.9.1
