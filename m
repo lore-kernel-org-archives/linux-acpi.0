@@ -1,76 +1,44 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 5/5] ACPI/IORT: Add IORT named component memory
- address limits
-Date: Tue, 1 Aug 2017 12:21:11 +0100
-Message-ID: <20170801112111.GA23348@red-moon>
-References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
- <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
- <35b7d17a-7ab2-9b36-9482-33a7449691d2@linaro.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: Issue with commit de3ef1eb1cd - PM / core: Drop run_wake flag
+ from struct dev_pm_info [Was: MEI-related WARN_ON() triggered during
+ resume-from-sleep on v4.13-rc2+]
+Date: Tue, 1 Aug 2017 13:51:16 +0200
+Message-ID: <CAJZ5v0gBpDKpRbhx0tbLWXG1e8Dd4ZPZGDQ5Vq2f8phX2cpFGg@mail.gmail.com>
+References: <20170730085908.GA2298@light.dominikbrodowski.net>
+ <5B8DA87D05A7694D9FA63FD143655C1B749D3C1C@hasmsx108.ger.corp.intel.com>
+ <20170731221645.GA5871@light.dominikbrodowski.net> <CAJZ5v0i2MiLv6J+Wo1sUXoCKK9iG_e7pVdb0Uo5uzLXkyxpDUg@mail.gmail.com>
+ <CAJZ5v0hMdu3hZoc4YOE6YteHLuXkO7V63cTiCbBENBGT4cLp2g@mail.gmail.com> <C980C034A53E0646B96866D6CE3D187A4D9129A0@HASMSX106.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <35b7d17a-7ab2-9b36-9482-33a7449691d2@linaro.org>
+In-Reply-To: <C980C034A53E0646B96866D6CE3D187A4D9129A0@HASMSX106.ger.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Nate Watterson <nwatters@codeaurora.org>, Robert Moore <robert.moore@intel.com>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Usyskin, Alexander" <alexander.usyskin@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, "Winkler, Tomas" <tomas.winkler@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 01, 2017 at 06:20:43PM +0800, Hanjun Guo wrote:
-> Hi Lorenzo,
-> 
-> On 2017/7/31 23:23, Lorenzo Pieralisi wrote:
-> >IORT named components provide firmware configuration describing
-> >how many address bits a given device is capable of generating
-> >to address memory.
-> >
-> >Add code to the kernel to retrieve memory address limits
-> >configuration for IORT named components and configure DMA masks
-> >accordingly.
-> >
-> >Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >Cc: Will Deacon <will.deacon@arm.com>
-> >Cc: Robin Murphy <robin.murphy@arm.com>
-> >Cc: Nate Watterson <nwatters@codeaurora.org>
-> >---
-> >  drivers/acpi/arm64/iort.c | 40 ++++++++++++++++++++++++++++++----------
-> >  1 file changed, 30 insertions(+), 10 deletions(-)
-> >
-> >diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> >index 67b85ae..b85d19f 100644
-> >--- a/drivers/acpi/arm64/iort.c
-> >+++ b/drivers/acpi/arm64/iort.c
-> >@@ -680,6 +680,24 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
-> >  	return ret ? NULL : ops;
-> >  }
-> >+static int nc_dma_get_range(struct device *dev, u64 *size)
-> >+{
-> >+	struct acpi_iort_node *node;
-> >+	struct acpi_iort_named_component *ncomp;
-> >+
-> >+	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> >+			      iort_match_node_callback, dev);
-> >+	if (!node)
-> >+		return -ENODEV;
-> >+
-> >+	ncomp = (struct acpi_iort_named_component *)node->node_data;
-> >+
-> >+	*size = ncomp->memory_address_limit >= 64 ? ~0ULL :
-> >+			1ULL<<ncomp->memory_address_limit;
-> 
-> Just a question here, if the IORT table didn't configure this
-> value properly, will the device working properly? I'm asking this
-> because in the table of IORT of D05, this value is set to 0 so far
-> (SAS and network), but I can boot D05 OK with your patch set, not
-> sure if any further issues.
+Hi,
 
-Then you wonder why I wrote it as a separate patch. Why is that
-value set to 0 (is that because that's the insane default ?) ?
-It is a firmware bug and if things work ok with this patch applied
-either this patch contains a bug or drivers override the DMA masks
-to cancel out this patch effects.
+On Tue, Aug 1, 2017 at 7:25 AM, Usyskin, Alexander
+<alexander.usyskin@intel.com> wrote:
+> Hi
+>
+> We using pci_dev_run_wake that changed in mentioned patch to decide
+> if to replace usual PM callbacks with domain ones.
+> IIRC, the mei device is not remote wakeable on that platform,
+> so we should set domain callbacks.
+> There was a patch in PM framework that squashes runtime suspend with
+> usual suspend for some devices.
+> May it be that now pci_dev_run_wake returns true form mei and we are
+> not setting domain callbacks?
+> In that case we going through PCI device level PM path and may trigger that squash.
+> That will explain lack of mei logs on suspend.
+>
+> Dominik, can you try comment out "if (!pci_dev_run_wake(pdev))"
+> at drivers/misc/mei/pci-me.c (around line 223) to set domain callbacks by force
+> to see if this is indeed the case?
 
-Please fix the firmware.
+Why exactly do you need the pci_dev_run_wake(pdev) check?
 
 Thanks,
-Lorenzo
+Rafael
