@@ -1,26 +1,47 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v4 4/5] ACPI / scan: Recognize Apple SPI and I2C slaves
-Date: Tue, 1 Aug 2017 16:12:22 +0300
-Message-ID: <20170801131222.GN2369@lahna.fi.intel.com>
-References: <cover.1501570421.git.lukas@wunner.de>
- <a113ce387bb9af7aaf804359561178d8f1499ef0.1501570421.git.lukas@wunner.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: [PATCH 0/3] Refactor GHES to better support non-APEI systems
+Date: Tue,  1 Aug 2017 14:36:05 +0100
+Message-ID: <20170801133608.21017-1-punit.agrawal@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <a113ce387bb9af7aaf804359561178d8f1499ef0.1501570421.git.lukas@wunner.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ronald Tschalaer <ronald@innovation.ch>, Federico Lorenzi <florenzi@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Leif Liddy <leif.liddy@gmail.com>, Daniel Roschka <danielroschka@phoenitydawn.de>, Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Punit Agrawal <punit.agrawal@arm.com>, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-kernel@vger.kernel.org, Borislav Petkov <bp@suse.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 01, 2017 at 02:10:41PM +0200, Lukas Wunner wrote:
-> SPI and I2C slaves are enumerated by their respective parents rather
-> than the ACPI core.  They are recognized by presence of _CRS resources,
-> which however are missing on Macs.  Check for presence of device
-> properties instead.
-> 
-> Cc: Federico Lorenzi <florenzi@gmail.com>
-> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Hi,
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+The small series re-factors the GHES driver initialisation to move
+memory allocation and checks from driver init to device probe. The net
+effect is to improve the situation for systems that do not support
+APEI.
+
+The patches are organised as -
+
+* Unify estatus pool creation and expansion into ghes_estatus_pool_init()
+* Move memory initialisation and firmware first support checks from
+  driver init to device probe
+* Do not set hest_disable if HEST not found
+
+The set of patches initially started out as a single patch[0]. The
+current series is the re-worked approach based on ensuing
+discussion. They patches are based on v4.13-rc3 and have been tested
+on a system that does not support APEI. Further testing on systems
+that support APEI to ensure that the changes do not break expected
+behaviour will be greatly appreciated.
+
+Thanks,
+Punit
+
+[0] https://lkml.org/lkml/2017/7/20/430
+
+Punit Agrawal (3):
+  GHES: Expand the estatus pool in ghes_estatus_pool_init()
+  GHES: Move memory initialisation to ghes_probe()
+  ACPI / APEI: HEST: Don't set hest_disable if table not found
+
+ drivers/acpi/apei/ghes.c | 132 ++++++++++++++++++++++++++---------------------
+ drivers/acpi/apei/hest.c |   2 +-
+ 2 files changed, 73 insertions(+), 61 deletions(-)
+
+-- 
+2.11.0
