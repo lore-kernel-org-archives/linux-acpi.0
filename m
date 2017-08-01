@@ -1,28 +1,47 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] MAINTAINERS: Add Tony and Boris as ACPI/APEI reviewers
-Date: Wed, 02 Aug 2017 01:14:07 +0200
-Message-ID: <3073569.RRXgjYLFh9@aspire.rjw.lan>
-References: <1500661477-6536-1-git-send-email-lho@apm.com> <20170728073551.GB1889@nazgul.tnic> <3908561D78D1C84285E8C5FCA982C28F61318E5F@ORSMSX114.amr.corp.intel.com>
+Subject: Re: [PATCH] ACPI / sleep: Make acpi_sleep_syscore_init static
+Date: Wed, 02 Aug 2017 01:15:23 +0200
+Message-ID: <2204384.bLoi9Ef087@aspire.rjw.lan>
+References: <20170731114013.75bc1b0a@endymion>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46880 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:47254 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751352AbdHAXWP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 19:22:15 -0400
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F61318E5F@ORSMSX114.amr.corp.intel.com>
+        by vger.kernel.org with ESMTP id S1750854AbdHAXXa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 19:23:30 -0400
+In-Reply-To: <20170731114013.75bc1b0a@endymion>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>, Borislav Petkov <bp@suse.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Loc Ho <lho@apm.com>, Mark Salter <msalter@redhat.com>, Tyler Baicar <tbaicar@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@apm.com" <patches@apm.com>
+To: Jean Delvare <jdelvare@suse.de>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Friday, July 28, 2017 05:02:11 PM Luck, Tony wrote:
-> > Since this piece of the ACPI pile is doing RAS, it is perhaps prudent if
-> > we at least paid attention to it and the direction it takes. So add Tony
-> > and me as reviewers.
+On Monday, July 31, 2017 11:40:13 AM Jean Delvare wrote:
+> Function acpi_sleep_syscore_init has no external user so it should be
+> static.
 > 
-> Acked-by: Tony Luck <tony.luck@intel.com>
+> Signed-off-by: Jean Delvare <jdelvare@suse.de>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> ---
+>  drivers/acpi/sleep.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- linux-4.13-rc3.orig/drivers/acpi/sleep.c	2017-07-31 10:51:43.665159497 +0200
+> +++ linux-4.13-rc3/drivers/acpi/sleep.c	2017-07-31 11:34:07.180873669 +0200
+> @@ -870,7 +870,7 @@ static struct syscore_ops acpi_sleep_sys
+>  	.resume = acpi_restore_bm_rld,
+>  };
+>  
+> -void acpi_sleep_syscore_init(void)
+> +static void acpi_sleep_syscore_init(void)
+>  {
+>  	register_syscore_ops(&acpi_sleep_syscore_ops);
+>  }
+> 
+> 
+> 
 
 Applied, thanks!
 
