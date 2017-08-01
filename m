@@ -1,153 +1,60 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: [PATCH 2/3] GHES: Move memory initialisation to ghes_probe()
-Date: Tue, 01 Aug 2017 15:04:55 +0100
-Message-ID: <871sovxu2g.fsf@e105922-lin.cambridge.arm.com>
-References: <20170801133608.21017-1-punit.agrawal@arm.com>
-        <20170801133608.21017-3-punit.agrawal@arm.com>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH v4 0/6] BTT error clearing rework
+Date: Tue, 1 Aug 2017 15:28:57 +0000
+Message-ID: <1501600767.2042.99.camel@hpe.com>
+References: <20170726233546.29052-1-vishal.l.verma@intel.com>
+         <1501542358.2042.97.camel@hpe.com> <1501544000.4405.5.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41312 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751750AbdHAOE5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 1 Aug 2017 10:04:57 -0400
-In-Reply-To: <20170801133608.21017-3-punit.agrawal@arm.com> (Punit Agrawal's
-        message of "Tue, 1 Aug 2017 14:36:07 +0100")
+Received: from g2t2352.austin.hpe.com ([15.233.44.25]:47578 "EHLO
+        g2t2352.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751295AbdHAP3A (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 11:29:00 -0400
+In-Reply-To: <1501544000.4405.5.camel@intel.com>
+Content-Language: en-US
+Content-ID: <B47149D85277C642BD1D56CA6C202B49@NAMPRD84.PROD.OUTLOOK.COM>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-kernel@vger.kernel.org, Borislav Petkov <bp@suse.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Punit Agrawal <punit.agrawal@arm.com>, James Morse <james.morse@arm.com>
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>
+Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>
 
-Punit Agrawal <punit.agrawal@arm.com> writes:
-
-> During the driver init, the ghes driver initialises some data structures
-> which are only used if a GHES platform device is probed. Similarly, the
-> init function also checks for support for firmware first mode.
->
-> Create a function, ghes_common_init(), that performs the initialisations
-> and checks that are currently performed on driver init. The function is
-> called when the GHES device is probed.
->
-> Delaying initialisation and checks until probe has the added benefit of
-> reducing driver prints on systems that do not support ACPI APEI.
->
-> Signed-off-by: Punit Agrawal <punit.agrwal@arm.com>
-
-I managed to get my email wrong in the signed-off-by. And git send-email
-usage propagated it to the senders.
-
-Corrected it locally but will wait for comments on the code before
-re-sending.
-
-> Cc: Borislav Petkov <bp@suse.de>
-> Cc: James Morse <james.morse@arm.com>
-> ---
->  drivers/acpi/apei/ghes.c | 77 +++++++++++++++++++++++++++---------------------
->  1 file changed, 43 insertions(+), 34 deletions(-)
->
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 007b38abcb34..befb18338acb 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -1088,12 +1088,53 @@ static inline void ghes_nmi_init_cxt(void)
->  }
->  #endif /* CONFIG_HAVE_ACPI_APEI_NMI */
->  
-> +static int ghes_common_init(void)
-> +{
-> +	int rc;
-> +	static bool initialised;
-> +
-> +	if (initialised)
-> +		return 0;
-> +
-> +	ghes_nmi_init_cxt();
-> +
-> +	rc = ghes_ioremap_init();
-> +	if (rc)
-> +		goto err;
-> +
-> +	rc = ghes_estatus_pool_init();
-> +	if (rc)
-> +		goto err_ioremap_exit;
-> +
-> +	rc = apei_osc_setup();
-> +	if (rc == 0 && osc_sb_apei_support_acked)
-> +		pr_info(GHES_PFX "APEI firmware first mode is enabled by APEI bit and WHEA _OSC.\n");
-> +	else if (rc == 0 && !osc_sb_apei_support_acked)
-> +		pr_info(GHES_PFX "APEI firmware first mode is enabled by WHEA _OSC.\n");
-> +	else if (rc && osc_sb_apei_support_acked)
-> +		pr_info(GHES_PFX "APEI firmware first mode is enabled by APEI bit.\n");
-> +	else
-> +		pr_info(GHES_PFX "Failed to enable APEI firmware first mode.\n");
-> +
-> +	initialised = true;
-> +	return 0;
-> +
-> +err_ioremap_exit:
-> +	ghes_ioremap_exit();
-> +err:
-> +	return rc;
-> +}
-> +
->  static int ghes_probe(struct platform_device *ghes_dev)
->  {
->  	struct acpi_hest_generic *generic;
->  	struct ghes *ghes = NULL;
->  
-> -	int rc = -EINVAL;
-> +	int rc;
-> +
-> +	rc = ghes_common_init();
-> +	if (rc)
-> +		return rc;
->  
->  	generic = *(struct acpi_hest_generic **)ghes_dev->dev.platform_data;
->  	if (!generic->enabled)
-> @@ -1268,8 +1309,6 @@ static struct platform_driver ghes_platform_driver = {
->  
->  static int __init ghes_init(void)
->  {
-> -	int rc;
-> -
->  	if (acpi_disabled)
->  		return -ENODEV;
->  
-> @@ -1283,36 +1322,6 @@ static int __init ghes_init(void)
->  		return -EINVAL;
->  	}
->  
-> -	ghes_nmi_init_cxt();
-> -
-> -	rc = ghes_ioremap_init();
-> -	if (rc)
-> -		goto err;
-> -
-> -	rc = ghes_estatus_pool_init();
-> -	if (rc)
-> -		goto err_ioremap_exit;
-> -
-> -	rc = platform_driver_register(&ghes_platform_driver);
-> -	if (rc)
-> -		goto err_pool_exit;
-> -
-> -	rc = apei_osc_setup();
-> -	if (rc == 0 && osc_sb_apei_support_acked)
-> -		pr_info(GHES_PFX "APEI firmware first mode is enabled by APEI bit and WHEA _OSC.\n");
-> -	else if (rc == 0 && !osc_sb_apei_support_acked)
-> -		pr_info(GHES_PFX "APEI firmware first mode is enabled by WHEA _OSC.\n");
-> -	else if (rc && osc_sb_apei_support_acked)
-> -		pr_info(GHES_PFX "APEI firmware first mode is enabled by APEI bit.\n");
-> -	else
-> -		pr_info(GHES_PFX "Failed to enable APEI firmware first mode.\n");
-> -
-> -	return 0;
-> -err_pool_exit:
-> -	ghes_estatus_pool_exit();
-> -err_ioremap_exit:
-> -	ghes_ioremap_exit();
-> -err:
-> -	return rc;
-> +	return platform_driver_register(&ghes_platform_driver);
->  }
->  device_initcall(ghes_init);
+T24gTW9uLCAyMDE3LTA3LTMxIGF0IDIzOjM1ICswMDAwLCBWZXJtYSwgVmlzaGFsIEwgd3JvdGU6
+DQo+IE9uIE1vbiwgMjAxNy0wNy0zMSBhdCAyMzoxNSArMDAwMCwgS2FuaSwgVG9zaGltaXRzdSB3
+cm90ZToNCj4gPiBPbiBXZWQsIDIwMTctMDctMjYgYXQgMTc6MzUgLTA2MDAsIFZpc2hhbCBWZXJt
+YSB3cm90ZToNCiA6DQo+ID4gDQo+ID4gU3RlcCAzIGNsZWFycyBhbiBlcnJvciBhbmQgcnVucyBm
+aW5lIHdpdGggcmF3IGFuZCBtZW1vcnkNCj4gPiBtb2Rlcy7CoMKgV2l0aCBzZWN0b3IgbW9kZSwg
+aG93ZXZlciwgaXQgZW5kcyB1cCB3aXRoIGNvbnRpbnVvdXMgd3JpdGUNCj4gPiBlcnJvcnMgbGlr
+ZSBiZWxvdyBhbmQgZG9lcyBub3QgY2xlYXIgdGhlIGVycm9yLsKgwqBEbyB5b3UgaGF2ZSBhbnkN
+Cj4gPiB0aG91Z2h0cz8NCj4gPiANCj4gPiDCoEVYVDQtZnMgd2FybmluZyAoZGV2aWNlIHBtZW0w
+cyk6IGV4dDRfZW5kX2JpbzozMjI6IEkvTyBlcnJvciAxMA0KPiA+IHdyaXRpbmcgdG8gaW5vZGUg
+MTcgKG9mZnNldCAxMDIzNDEwMTc2IHNpemUgODM4ODYwOCBzdGFydGluZyBibG9jaw0KPiA+IDE4
+MzQ3NTIpDQo+ID4gwqBCdWZmZXIgSS9PIGVycm9yIG9uIGRldmljZSBwbWVtMHMsIGxvZ2ljYWwg
+YmxvY2sgMTgzNDc1Mg0KPiA+IMKgQnVmZmVyIEkvTyBlcnJvciBvbiBkZXZpY2UgcG1lbTBzLCBs
+b2dpY2FsIGJsb2NrIDE4MzQ3NTMNCj4gPiDCoEJ1ZmZlciBJL08gZXJyb3Igb24gZGV2aWNlIHBt
+ZW0wcywgbG9naWNhbCBibG9jayAxODM0NzU0DQo+ID4gwqA6DQo+ID4gwqBuZF9wbWVtIGJ0dDAu
+MDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NjgwMDY0LCBsZW4gNDA5NiwNCj4gPiDCoEVY
+VDQtZnMgd2FybmluZyAoZGV2aWNlIHBtZW0wcyk6IGV4dDRfZW5kX2JpbzozMjI6IEkvTyBlcnJv
+ciAxMA0KPiA+IHdyaXRpbmcgdG8gaW5vZGUgMTcgKG9mZnNldCAxMDMxNzk4Nzg0IHNpemUgMTA1
+MjY3MiBzdGFydGluZyBibG9jaw0KPiA+IDE4MzUwMDgpDQo+ID4gwqBuZF9wbWVtIGJ0dDAuMDog
+aW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0NjgyMTEyLCBsZW4gNDA5NiwNCj4gPiDCoEVYVDQt
+ZnMgd2FybmluZyAoZGV2aWNlIHBtZW0wcyk6IGV4dDRfZW5kX2JpbzozMjI6IEkvTyBlcnJvciAx
+MA0KPiA+IHdyaXRpbmcgdG8gaW5vZGUgMTcgKG9mZnNldCAxMDMxNzk4Nzg0IHNpemUgMjEwMTI0
+OCBzdGFydGluZyBibG9jaw0KPiA+IDE4MzUyNjQpDQo+ID4gwqA6DQo+ID4gwqBuZF9wbWVtIGJ0
+dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUgc2VjdG9yIDE0Njk4NDk2LCBsZW4gNDA5NiwNCj4gPiDC
+oG5kX3BtZW0gYnR0MC4wOiBpbyBlcnJvciBpbiBXUklURSBzZWN0b3IgMTQ3MDA1NDQsIGxlbiA0
+MDk2LA0KPiA+IMKgbmRfcG1lbSBidHQwLjA6IGlvIGVycm9yIGluIFdSSVRFIHNlY3RvciAxNDcw
+MjU5MiwgbGVuIDQwOTYsDQo+ID4gwqBuZF9wbWVtIGJ0dDAuMDogaW8gZXJyb3IgaW4gV1JJVEUg
+c2VjdG9yIDE0NzA0NjQwLCBsZW4gNDA5NiwNCj4gPiDCoDoNCj4gDQo+IFRoYW5rcyBmb3IgdGhl
+IHRlc3QgVG9zaGksIEkgd2lsbCB0cnkgYW5kIHJlcHJvZHVjZSBpdC4NCj4gTXkgZmlyc3QgZ3Vl
+c3MgaXMgLSBhcmUgdGhlIGluamVjdGVkIGVycm9ycyBwb3RlbnRpYWxseSBpbiB0aGUgQlRUDQo+
+IG1ldGFkYXRhIGFyZWEgdG93YXJkcyB0aGUgZW5kPw0KPiANCj4gLT5yd19ieXRlcyBjYW4gb25s
+eSBjbGVhciBlcnJvcnMgb24gcHJvcGVybHkgYWxpZ25lZCB3cml0ZXMsIGFuZCB0aGUNCj4gYnR0
+IG1ldGFkYXRhIHdyaXRlcyB3aWxsIGJlIHRvbyBzbWFsbCB0byBjbGVhciBtZXRhZGF0YSBlcnJv
+cnMuLg0KDQpJIHBpY2tlZCBhbiBpbmplY3RlZCBvZmZzZXQgd2l0aG91dCBjYXJlZnVsIHRob3Vn
+aHRzLCBzbyBpdCBpcyBwb3NzaWJsZQ0KdGhhdCBJIG1pZ2h0IGhhdmUgc3RlcHBlZCBpbnRvIHN1
+Y2ggYXJlYS4gIEkganVzdCB0ZXN0ZWQgd2l0aCBhIGJsb2NrDQpkZXZpY2UgaW50ZXJmYWNlIHdp
+dGggbXVsdGlwbGUgZGlmZmVyZW50IG9mZnNldHMsIGFuZCB0aGV5IGZhaWxlZCBpbg0KY2xlYXJp
+bmcgYXMgd2VsbC4uLiAgSSB3aWxsIGxvb2sgaW50byBmdXJ0aGVyIGFzIHdlbGwgYXMgbXkgdGVz
+dCBzZXR1cC4NCiAgIA0KDQpUaGFua3MsDQotVG9zaGkNCg==
