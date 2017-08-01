@@ -1,112 +1,92 @@
-From: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
-Subject: Re: A udev rule to serve the change event of ACPI container?
-Date: Tue, 1 Aug 2017 15:21:38 -0400
-Message-ID: <b6802e30-cb1e-5fa8-6afc-09b4e05d78c9@gmail.com>
-References: <20170626062657.GE4229@linux-l9pv.suse>
- <20170626085907.GE11534@dhcp22.suse.cz>
- <20170711082532.GA6927@dhcp22.suse.cz>
- <20170713065806.GB2901@linux-l9pv.suse>
- <20170713070618.GC14492@dhcp22.suse.cz>
- <20170713124521.GE2901@linux-l9pv.suse>
- <20170714083713.GB2618@dhcp22.suse.cz>
- <20170714144414.GM2901@linux-l9pv.suse>
- <20170723060248.GA3034@linux-l9pv.suse>
+From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v4 0/6] BTT error clearing rework
+Date: Tue, 1 Aug 2017 13:56:31 -0600
+Message-ID: <20170801195630.GC18006@omniknight.lm.intel.com>
+References: <20170726233546.29052-1-vishal.l.verma@intel.com>
+ <1501542358.2042.97.camel@hpe.com>
+ <1501544000.4405.5.camel@intel.com>
+ <1501600767.2042.99.camel@hpe.com>
+ <1501614143.2042.101.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:37040 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752050AbdHATVl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 15:21:41 -0400
-In-Reply-To: <20170723060248.GA3034@linux-l9pv.suse>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1501614143.2042.101.camel-ZPxbGqLxI0U@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Wysocki,
+ Rafael J" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Michal Hocko <mhocko@kernel.org>
 
-Hi Joey,
-
-On 07/23/2017 05:18 AM, joeyli wrote:
-> Hi Yasuaki,  
+On 08/01, Kani, Toshimitsu wrote:
+> On Tue, 2017-08-01 at 09:19 -0600, Toshi Kani wrote:
+> > On Mon, 2017-07-31 at 23:35 +0000, Verma, Vishal L wrote:
+> > > On Mon, 2017-07-31 at 23:15 +0000, Kani, Toshimitsu wrote:
+> > > > On Wed, 2017-07-26 at 17:35 -0600, Vishal Verma wrote:
+>  :
+> > > Thanks for the test Toshi, I will try and reproduce it.
+> > > My first guess is - are the injected errors potentially in the BTT
+> > > metadata area towards the end?
+> > >
+> > > ->rw_bytes can only clear errors on properly aligned writes, and
+> > > the btt metadata writes will be too small to clear metadata
+> > > errors..
+> >
+> > I picked an injected offset without careful thoughts, so it is
+> > possible that I might have stepped into such area.  I just tested
+> > with a block device interface with multiple different offsets, and
+> > they failed in clearing as well...  I will look into further as well
+> > as my test setup.
 > 
-> On Fri, Jul 14, 2017 at 10:44:14PM +0800, joeyli wrote:
->> On Fri, Jul 14, 2017 at 10:37:13AM +0200, Michal Hocko wrote:
->>> On Thu 13-07-17 20:45:21, Joey Lee wrote:
->>>> On Thu, Jul 13, 2017 at 09:06:19AM +0200, Michal Hocko wrote:
->>>>> On Thu 13-07-17 14:58:06, Joey Lee wrote:
->>> [...]
->>>>>> If BIOS emits ejection event for a ACPI0004 container, someone needs
->>>>>> to handle the offline/eject jobs of container. Either kernel or user
->>>>>> space.
->>>>>>
->>>>>> Only sending uevent to individual child device can simplify udev rule,
->>>>>> but it also means that the kernel needs to offline/eject container
->>>>>> after all children devices are offlined.
->>>>>
->>>>> Why cannot kernel send this eject command to the BIOS if the whole
->>>>> container is offline? If it is not then the kernel would send EBUSY to
->>>>
->>>> Current kernel container hot-remove process:
->>>>
->>>>   BIOS -> SCI event -> Kernel ACPI -> uevent -> userland
->>>>               
->>>> Then, kernel just calls _OST to expose state to BIOS, then process is
->>>> stopped. Kernel doesn't wait there for userland to offline each child
->>>> devices. Either BIOS or userland needs to trigger the container
->>>> ejection.
->>>>
->>>>> container is offline? If it is not then the kernel would send EBUSY to
->>>>> the BIOS and BIOS would have to retry after some timeout. Or is it a
->>>>
->>>> The d429e5c122 patch is merged to mainline. So kernel will send
->>>> DEVICE_BUSY to BIOS after it emits uevent to userland. BIOS can choice
->>>> to apply the retry approach until OS returns process failure exactly or
->>>> BIOS timeout.
->>>>
->>>>> problem that currently implemented BIOS firmwares do not implement this
->>>>> retry?
->>>>
->>>> Yes, we should consider the behavior of old BIOS. Old BIOS doesn't
->>>> retry/resend the ejection event. So kernel or userland need to take the
->>>> retry job. Obviously userland runs the retry since the caa73ea15 patch
->>>> is merged.
->>>>
->>>> IMHO there have two different expectation from user space application.
->>>>
->>>> Applications like DVD player or Burner expect that kernel should
->>>> info userspace for the ejection, then application can do their cleaning
->>>> job and re-trigger ejection from userland.
->>>
->>> I am not sure I understand the DVD example because I do not see how it
->>> fits into the container and online/offline scenario.
->>>
->>
->> At least Yasuaki raised similar behavior for container in 2013.
->> It's similar to the DVD player case, user space application needs
->> to do something then trigger children offline and ejection of
->> container.
->>
->> Base on Yasuaki's explanation, the reason of that he requested the
->> userland ejection approach is that he got memory hot-remove problem
->> in 2013. Maybe his problem is already fixed by your patches in current
->> mainline.
->>
->> Hi Yasuaki, could you please check that your memory hot-remove problem
->> is fixed on mainline kernel?  
-
-I cannot remember what I mentioned in 2013. Could you tell me url of lkml archive.
-
-Thanks,
-Yasuaki Ishimatsu
-
->>
->> If Yasuaki's issue is already fixed, then we should consider to let
->> kernel does the container hot-remove transparently. 
+> The change/hack below takes care of the issue in my setup.  There is a
+> discrepancy in offset between the pre-check in btt_write_pg() and the
+> actual check in nsio_rw_bytes().
 > 
-> Could you please help to check that your memory hot-remove problem in 2013
-> is fixed on mainline kernel?  
+> Thanks,
+> -Toshi
 > 
-> Thanks a lot!
-> Joey Lee
+> ---
+>  drivers/nvdimm/btt.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
+> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+> index 8a959f8..83ad4c6 100644
+> --- a/drivers/nvdimm/btt.c
+> +++ b/drivers/nvdimm/btt.c
+> @@ -1137,7 +1137,7 @@ static bool btt_is_badblock(struct btt *btt,
+> struct arena_info *arena,
+>                 u32 postmap)
+>  {
+>         u64 nsoff = to_namespace_offset(arena, postmap);
+> -       sector_t phys_sector = nsoff >> 9;
+> +       sector_t phys_sector = (nsoff + arena->nd_btt->initial_offset) >> 9;
+> 
+>         return is_bad_pmem(btt->phys_bb, phys_sector, arena->internal_lbasize);
+>  }
+
+Hey Toshi, that is a great catch (I'm going to look at enhancing the
+unit tests too to catch this).
+
+Your patch is correct. Normally whenever we calculate a 'nsoff', we use
+that to do arena_{read,write}_bytes, and that takes care of adding the
+initial_offset. This was the first instance where we calculated nsoff
+and did something other than rw_bytes with it (i.e. is_bad_pmem), and
+therefore this nsoff needs the initial_offset adjustment manually..
+
+However just adding that here is inviting future bugs like this, so I'm
+going to refactor the initial_offset adjustment into some helpers and
+use those across the board. That should prevent this sort of a bug
+again.
+
+Thanks for the report and the root cause!
+
+	-Vishal
