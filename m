@@ -1,69 +1,63 @@
-From: "Winkler, Tomas" <tomas.winkler@intel.com>
-Subject: RE: Issue with commit de3ef1eb1cd - PM / core: Drop run_wake flag
- from struct dev_pm_info [Was: MEI-related WARN_ON() triggered during
- resume-from-sleep on v4.13-rc2+]
-Date: Tue, 1 Aug 2017 06:49:42 +0000
-Message-ID: <5B8DA87D05A7694D9FA63FD143655C1B749D525F@hasmsx108.ger.corp.intel.com>
-References: <20170730085908.GA2298@light.dominikbrodowski.net>
- <5B8DA87D05A7694D9FA63FD143655C1B749D3C1C@hasmsx108.ger.corp.intel.com>
- <20170731221645.GA5871@light.dominikbrodowski.net>
- <CAJZ5v0i2MiLv6J+Wo1sUXoCKK9iG_e7pVdb0Uo5uzLXkyxpDUg@mail.gmail.com>
- <CAJZ5v0hMdu3hZoc4YOE6YteHLuXkO7V63cTiCbBENBGT4cLp2g@mail.gmail.com>
- <C980C034A53E0646B96866D6CE3D187A4D9129A0@HASMSX106.ger.corp.intel.com>
- <20170801063642.GA1839@light.dominikbrodowski.net>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio: drop unnecessary includes from include/linux/gpio/driver.h
+Date: Tue, 1 Aug 2017 09:53:42 +0200
+Message-ID: <CACRpkdZ9q5vub3sQkA2xsQaZ+CGHeAp4RRueposnTPiHoFbSsA@mail.gmail.com>
+References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
+ <1499162760.22624.246.camel@linux.intel.com> <CACRpkdaxgxaXV8XjLTzu68JqjyeZ8Jr2YMR3L46wm3zmnMrPsg@mail.gmail.com>
+ <1501509867.29303.303.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:20427 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751003AbdHAGtq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 1 Aug 2017 02:49:46 -0400
-In-Reply-To: <20170801063642.GA1839@light.dominikbrodowski.net>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1501509867.29303.303.camel@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Ray Jui <rjui@broadcom.com>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, David Cohen <david.a.cohen@linux.intel.com>, Scott Branden <sbranden@broadcom.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, bcm-kernel-feedback-list <bcm-kernel-feedback-list@broadcom.com>, Florian Fainelli <f.fainelli@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Alexander Shiyan <shc_work@mail.ru>, Michal Simek <michal.simek@xilinx.com>, Kevin Hilman <khilman@kernel.org>"linux-tegra@vger.kernel.org" <lin>
 List-Id: linux-acpi@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>, "Usyskin, Alexander" <alexander.usyskin@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
+On Mon, Jul 31, 2017 at 4:04 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> On Mon, 2017-07-31 at 15:48 +0200, Linus Walleij wrote:
+>> On Tue, Jul 4, 2017 at 12:06 PM, Andy Shevchenko
+>> <andriy.shevchenko@linux.intel.com> wrote:
+>> > On Tue, 2017-07-04 at 12:53 +0900, Masahiro Yamada wrote:
+>> > > Some of include directives in include/linux/gpio/driver.h are
+>> > > unneeded because the header does not need to know the content of
+>> > > struct device, irq_chip, etc.  Just declare they are structures.
+>> > >
+>> > > On the other hand, <linux/irqhandler.h> and
+>> > > <linux/spinlock_types.h>
+>> > > turned out to be necessary for irq_flow_handler_t and spinlock_t,
+>> > > respectively.
+>> > >
+>> > > Each driver should include what it needs without relying on what
+>> > > is
+>> > > implicitly included from <linux/gpio/driver.h>.  This will cut
+>> > > down
+>> > > unnecessary header parsing.
+>> >
+>> > If Linus is okay with the following proposal I would rather go with
+>> > it,
+>> > i.e. logical split the series to
+>> >
+>> > 1. Fix IRQ related headers inclusion
+>> > 2. Fix pinconf-generic.h inclusion
+>> > 3. Fix OF headers inclusion (btw, of_gpio.h is not enough there?)
+>>
+>> That works fine with me, but also one big patch actually, I do not
+>> want to make it too much work to refactor obviously incorrect things.
+>>
+>> As soon as we have rough consensus on this and the build robot
+>> are happy I will apply it to GPIO and also pull it into the pinctrl
+>> subsystem.
+>
+> For me priorities like this:
+> 1) it works after the patch being applied (no regressions);
+> 2) it makes code cleaner at the end;
+> 3) it is presented in logically split parts.
+>
+> So, as long as 1) and 2) are satisfied I can neglect on 3).
 
+We are in violent agreement :D
 
-> -----Original Message-----
-> From: Dominik Brodowski [mailto:linux@dominikbrodowski.net]
-> Sent: Tuesday, August 01, 2017 09:37
-> To: Usyskin, Alexander <alexander.usyskin@intel.com>; Rafael J. Wysocki
-> <rafael@kernel.org>
-> Cc: Winkler, Tomas <tomas.winkler@intel.com>; Wysocki, Rafael J
-> <rafael.j.wysocki@intel.com>; Mika Westerberg
-> <mika.westerberg@linux.intel.com>; Bjorn Helgaas <bhelgaas@google.com>;
-> linux-kernel@vger.kernel.org; Linux PM <linux-pm@vger.kernel.org>; ACPI
-> Devel Maling List <linux-acpi@vger.kernel.org>
-> Subject: Re: Issue with commit de3ef1eb1cd - PM / core: Drop run_wake flag
-> from struct dev_pm_info [Was: MEI-related WARN_ON() triggered during
-> resume-from-sleep on v4.13-rc2+]
-> 
-> Alexander, Rafael,
-> 
-> On Tue, Aug 01, 2017 at 02:05:22AM +0200, Rafael J. Wysocki wrote:
-> > Actually, I don't think it will make any difference.  Please check the
-> > one attached this time.
-> 
-> On Tue, Aug 01, 2017 at 05:25:03AM +0000, Usyskin, Alexander wrote:
-> > Dominik, can you try comment out "if (!pci_dev_run_wake(pdev))"
-> > at drivers/misc/mei/pci-me.c (around line 223) to set domain callbacks
-> > by force to see if this is indeed the case?
-> 
-> thanks for taking a look at this issue. I have tested both approaches, and
-> either works fine and solves the issue. Which approach is better I cannot say,
-> though.
-> 
-> Thanks,
-> 	Dominik
-
-
-Thanks for envestigation.
-Our HW requires PCI_DEV_FLAGS_NEEDS_RESUME as we need to go via reset during suspend and this cannot be initiated while in runtime suspended.
-We will work on the patch.
-Thanks
-Tomas
-
+Yours,
+Linus Walleij
