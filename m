@@ -1,50 +1,153 @@
-From: "Winkler, Tomas" <tomas.winkler@intel.com>
-Subject: RE: Issue with commit de3ef1eb1cd - PM / core: Drop run_wake flag
- from struct dev_pm_info [Was: MEI-related WARN_ON() triggered during
- resume-from-sleep on v4.13-rc2+]
-Date: Tue, 1 Aug 2017 13:58:04 +0000
-Message-ID: <5B8DA87D05A7694D9FA63FD143655C1B749D55CC@hasmsx108.ger.corp.intel.com>
-References: <20170730085908.GA2298@light.dominikbrodowski.net>
- <5B8DA87D05A7694D9FA63FD143655C1B749D3C1C@hasmsx108.ger.corp.intel.com>
- <20170731221645.GA5871@light.dominikbrodowski.net>
- <CAJZ5v0i2MiLv6J+Wo1sUXoCKK9iG_e7pVdb0Uo5uzLXkyxpDUg@mail.gmail.com>
- <CAJZ5v0hMdu3hZoc4YOE6YteHLuXkO7V63cTiCbBENBGT4cLp2g@mail.gmail.com>
- <C980C034A53E0646B96866D6CE3D187A4D9129A0@HASMSX106.ger.corp.intel.com>
- <CAJZ5v0gBpDKpRbhx0tbLWXG1e8Dd4ZPZGDQ5Vq2f8phX2cpFGg@mail.gmail.com>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: Re: [PATCH 2/3] GHES: Move memory initialisation to ghes_probe()
+Date: Tue, 01 Aug 2017 15:04:55 +0100
+Message-ID: <871sovxu2g.fsf@e105922-lin.cambridge.arm.com>
+References: <20170801133608.21017-1-punit.agrawal@arm.com>
+        <20170801133608.21017-3-punit.agrawal@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:16368 "EHLO mga14.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:41312 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751115AbdHAN6I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 1 Aug 2017 09:58:08 -0400
-In-Reply-To: <CAJZ5v0gBpDKpRbhx0tbLWXG1e8Dd4ZPZGDQ5Vq2f8phX2cpFGg@mail.gmail.com>
-Content-Language: en-US
+        id S1751750AbdHAOE5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 1 Aug 2017 10:04:57 -0400
+In-Reply-To: <20170801133608.21017-3-punit.agrawal@arm.com> (Punit Agrawal's
+        message of "Tue, 1 Aug 2017 14:36:07 +0100")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, "Usyskin, Alexander" <alexander.usyskin@intel.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-kernel@vger.kernel.org, Borislav Petkov <bp@suse.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Punit Agrawal <punit.agrawal@arm.com>, James Morse <james.morse@arm.com>
 
-PiANCj4gSGksDQo+IA0KPiBPbiBUdWUsIEF1ZyAxLCAyMDE3IGF0IDc6MjUgQU0sIFVzeXNraW4s
-IEFsZXhhbmRlcg0KPiA8YWxleGFuZGVyLnVzeXNraW5AaW50ZWwuY29tPiB3cm90ZToNCj4gPiBI
-aQ0KPiA+DQo+ID4gV2UgdXNpbmcgcGNpX2Rldl9ydW5fd2FrZSB0aGF0IGNoYW5nZWQgaW4gbWVu
-dGlvbmVkIHBhdGNoIHRvIGRlY2lkZSBpZg0KPiA+IHRvIHJlcGxhY2UgdXN1YWwgUE0gY2FsbGJh
-Y2tzIHdpdGggZG9tYWluIG9uZXMuDQo+ID4gSUlSQywgdGhlIG1laSBkZXZpY2UgaXMgbm90IHJl
-bW90ZSB3YWtlYWJsZSBvbiB0aGF0IHBsYXRmb3JtLCBzbyB3ZQ0KPiA+IHNob3VsZCBzZXQgZG9t
-YWluIGNhbGxiYWNrcy4NCj4gPiBUaGVyZSB3YXMgYSBwYXRjaCBpbiBQTSBmcmFtZXdvcmsgdGhh
-dCBzcXVhc2hlcyBydW50aW1lIHN1c3BlbmQgd2l0aA0KPiA+IHVzdWFsIHN1c3BlbmQgZm9yIHNv
-bWUgZGV2aWNlcy4NCj4gPiBNYXkgaXQgYmUgdGhhdCBub3cgcGNpX2Rldl9ydW5fd2FrZSByZXR1
-cm5zIHRydWUgZm9ybSBtZWkgYW5kIHdlIGFyZQ0KPiA+IG5vdCBzZXR0aW5nIGRvbWFpbiBjYWxs
-YmFja3M/DQo+ID4gSW4gdGhhdCBjYXNlIHdlIGdvaW5nIHRocm91Z2ggUENJIGRldmljZSBsZXZl
-bCBQTSBwYXRoIGFuZCBtYXkgdHJpZ2dlcg0KPiB0aGF0IHNxdWFzaC4NCj4gPiBUaGF0IHdpbGwg
-ZXhwbGFpbiBsYWNrIG9mIG1laSBsb2dzIG9uIHN1c3BlbmQuDQo+ID4NCj4gPiBEb21pbmlrLCBj
-YW4geW91IHRyeSBjb21tZW50IG91dCAiaWYgKCFwY2lfZGV2X3J1bl93YWtlKHBkZXYpKSINCj4g
-PiBhdCBkcml2ZXJzL21pc2MvbWVpL3BjaS1tZS5jIChhcm91bmQgbGluZSAyMjMpIHRvIHNldCBk
-b21haW4gY2FsbGJhY2tzDQo+ID4gYnkgZm9yY2UgdG8gc2VlIGlmIHRoaXMgaXMgaW5kZWVkIHRo
-ZSBjYXNlPw0KPiANCj4gV2h5IGV4YWN0bHkgZG8geW91IG5lZWQgdGhlIHBjaV9kZXZfcnVuX3dh
-a2UocGRldikgY2hlY2s/DQoNCldlIG5lZWQgdG8gcmUtcmV2aWV3IHRoaXMgY29kZSBub3csIGJ1
-dCBhcyBmYXIgYXMgSSByZW1lbWJlci4NCk9uIHNvbWUgcGxhdGZvcm1zIHdpdGggTkZDIGNvbm5l
-Y3RlZCB2aWEgTUVJLCB0aGVyZSB3YXMgbm8gUE1FIGVuYWJsZWQsICBoZW5jZSB3ZSBuZWVkZWQg
-dG8ga2VlcCBpbiBiYW5kIGlycSBvcGVuZWQgZm9yIHJ4IHRvIHdha2UgdXMgdXAuDQogDQpUaGFu
-a3MNClRvbWFzDQoNCg==
+Punit Agrawal <punit.agrawal@arm.com> writes:
+
+> During the driver init, the ghes driver initialises some data structures
+> which are only used if a GHES platform device is probed. Similarly, the
+> init function also checks for support for firmware first mode.
+>
+> Create a function, ghes_common_init(), that performs the initialisations
+> and checks that are currently performed on driver init. The function is
+> called when the GHES device is probed.
+>
+> Delaying initialisation and checks until probe has the added benefit of
+> reducing driver prints on systems that do not support ACPI APEI.
+>
+> Signed-off-by: Punit Agrawal <punit.agrwal@arm.com>
+
+I managed to get my email wrong in the signed-off-by. And git send-email
+usage propagated it to the senders.
+
+Corrected it locally but will wait for comments on the code before
+re-sending.
+
+> Cc: Borislav Petkov <bp@suse.de>
+> Cc: James Morse <james.morse@arm.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 77 +++++++++++++++++++++++++++---------------------
+>  1 file changed, 43 insertions(+), 34 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 007b38abcb34..befb18338acb 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -1088,12 +1088,53 @@ static inline void ghes_nmi_init_cxt(void)
+>  }
+>  #endif /* CONFIG_HAVE_ACPI_APEI_NMI */
+>  
+> +static int ghes_common_init(void)
+> +{
+> +	int rc;
+> +	static bool initialised;
+> +
+> +	if (initialised)
+> +		return 0;
+> +
+> +	ghes_nmi_init_cxt();
+> +
+> +	rc = ghes_ioremap_init();
+> +	if (rc)
+> +		goto err;
+> +
+> +	rc = ghes_estatus_pool_init();
+> +	if (rc)
+> +		goto err_ioremap_exit;
+> +
+> +	rc = apei_osc_setup();
+> +	if (rc == 0 && osc_sb_apei_support_acked)
+> +		pr_info(GHES_PFX "APEI firmware first mode is enabled by APEI bit and WHEA _OSC.\n");
+> +	else if (rc == 0 && !osc_sb_apei_support_acked)
+> +		pr_info(GHES_PFX "APEI firmware first mode is enabled by WHEA _OSC.\n");
+> +	else if (rc && osc_sb_apei_support_acked)
+> +		pr_info(GHES_PFX "APEI firmware first mode is enabled by APEI bit.\n");
+> +	else
+> +		pr_info(GHES_PFX "Failed to enable APEI firmware first mode.\n");
+> +
+> +	initialised = true;
+> +	return 0;
+> +
+> +err_ioremap_exit:
+> +	ghes_ioremap_exit();
+> +err:
+> +	return rc;
+> +}
+> +
+>  static int ghes_probe(struct platform_device *ghes_dev)
+>  {
+>  	struct acpi_hest_generic *generic;
+>  	struct ghes *ghes = NULL;
+>  
+> -	int rc = -EINVAL;
+> +	int rc;
+> +
+> +	rc = ghes_common_init();
+> +	if (rc)
+> +		return rc;
+>  
+>  	generic = *(struct acpi_hest_generic **)ghes_dev->dev.platform_data;
+>  	if (!generic->enabled)
+> @@ -1268,8 +1309,6 @@ static struct platform_driver ghes_platform_driver = {
+>  
+>  static int __init ghes_init(void)
+>  {
+> -	int rc;
+> -
+>  	if (acpi_disabled)
+>  		return -ENODEV;
+>  
+> @@ -1283,36 +1322,6 @@ static int __init ghes_init(void)
+>  		return -EINVAL;
+>  	}
+>  
+> -	ghes_nmi_init_cxt();
+> -
+> -	rc = ghes_ioremap_init();
+> -	if (rc)
+> -		goto err;
+> -
+> -	rc = ghes_estatus_pool_init();
+> -	if (rc)
+> -		goto err_ioremap_exit;
+> -
+> -	rc = platform_driver_register(&ghes_platform_driver);
+> -	if (rc)
+> -		goto err_pool_exit;
+> -
+> -	rc = apei_osc_setup();
+> -	if (rc == 0 && osc_sb_apei_support_acked)
+> -		pr_info(GHES_PFX "APEI firmware first mode is enabled by APEI bit and WHEA _OSC.\n");
+> -	else if (rc == 0 && !osc_sb_apei_support_acked)
+> -		pr_info(GHES_PFX "APEI firmware first mode is enabled by WHEA _OSC.\n");
+> -	else if (rc && osc_sb_apei_support_acked)
+> -		pr_info(GHES_PFX "APEI firmware first mode is enabled by APEI bit.\n");
+> -	else
+> -		pr_info(GHES_PFX "Failed to enable APEI firmware first mode.\n");
+> -
+> -	return 0;
+> -err_pool_exit:
+> -	ghes_estatus_pool_exit();
+> -err_ioremap_exit:
+> -	ghes_ioremap_exit();
+> -err:
+> -	return rc;
+> +	return platform_driver_register(&ghes_platform_driver);
+>  }
+>  device_initcall(ghes_init);
