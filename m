@@ -1,79 +1,57 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: Re: [PATCH] gpio: drop unnecessary includes from include/linux/gpio/driver.h
-Date: Wed, 2 Aug 2017 10:19:32 +0900
-Message-ID: <CAK7LNASoNWVxJCRneD1GFo41vw0+9oduzLq1Jep_f3ckABfA1A@mail.gmail.com>
-References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
- <1499162760.22624.246.camel@linux.intel.com> <CACRpkdaxgxaXV8XjLTzu68JqjyeZ8Jr2YMR3L46wm3zmnMrPsg@mail.gmail.com>
- <1501509867.29303.303.camel@linux.intel.com> <CACRpkdZ9q5vub3sQkA2xsQaZ+CGHeAp4RRueposnTPiHoFbSsA@mail.gmail.com>
- <CAHp75VeLwM8Q5vVLeeGz9hL8AWa2J47NTaeX0ogJk6v7y18diw@mail.gmail.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: A udev rule to serve the change event of ACPI container?
+Date: Wed, 2 Aug 2017 13:49:39 +0800
+Message-ID: <20170802054939.GL2946@linux-l9pv.suse>
+References: <20170626062657.GE4229@linux-l9pv.suse>
+ <20170626085907.GE11534@dhcp22.suse.cz>
+ <20170711082532.GA6927@dhcp22.suse.cz>
+ <20170713065806.GB2901@linux-l9pv.suse>
+ <20170713070618.GC14492@dhcp22.suse.cz>
+ <20170713124521.GE2901@linux-l9pv.suse>
+ <20170714083713.GB2618@dhcp22.suse.cz>
+ <20170714144414.GM2901@linux-l9pv.suse>
+ <20170723060248.GA3034@linux-l9pv.suse>
+ <b6802e30-cb1e-5fa8-6afc-09b4e05d78c9@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from conssluserg-05.nifty.com ([210.131.2.90]:35391 "EHLO
-        conssluserg-05.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751049AbdHBBTw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 21:19:52 -0400
-In-Reply-To: <CAHp75VeLwM8Q5vVLeeGz9hL8AWa2J47NTaeX0ogJk6v7y18diw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <b6802e30-cb1e-5fa8-6afc-09b4e05d78c9@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Ray Jui <rjui@broadcom.com>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, David Cohen <david.a.cohen@linux.intel.com>, Scott Branden <sbranden@broadcom.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, bcm-kernel-feedback-list <bcm-kernel-feedback-list@broadcom.com>, Florian Fainelli <f.fainelli@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Alexander Shiyan <shc_work@mail.ru>, Michal Simek <michal.simek@xilinx.com>, Kevin Hilman <khilman@kernel.org>, linux-tegra@vger.kernel.org
 
-Hi.
+Hi YASUAKI,
 
-2017-08-01 20:04 GMT+09:00 Andy Shevchenko <andy.shevchenko@gmail.com>:
-> On Tue, Aug 1, 2017 at 10:53 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
->> On Mon, Jul 31, 2017 at 4:04 PM, Andy Shevchenko
->> <andriy.shevchenko@linux.intel.com> wrote:
->>> On Mon, 2017-07-31 at 15:48 +0200, Linus Walleij wrote:
->>>> On Tue, Jul 4, 2017 at 12:06 PM, Andy Shevchenko
->>>> <andriy.shevchenko@linux.intel.com> wrote:
+On Tue, Aug 01, 2017 at 03:21:38PM -0400, YASUAKI ISHIMATSU wrote:
+> Hi Joey,
+> 
+> On 07/23/2017 05:18 AM, joeyli wrote:
+[...snip]
+> >>>
+> >>
+> >> At least Yasuaki raised similar behavior for container in 2013.
+> >> It's similar to the DVD player case, user space application needs
+> >> to do something then trigger children offline and ejection of
+> >> container.
+> >>
+> >> Base on Yasuaki's explanation, the reason of that he requested the
+> >> userland ejection approach is that he got memory hot-remove problem
+> >> in 2013. Maybe his problem is already fixed by your patches in current
+> >> mainline.
+> >>
+> >> Hi Yasuaki, could you please check that your memory hot-remove problem
+> >> is fixed on mainline kernel?  
+> 
+> I cannot remember what I mentioned in 2013. Could you tell me url of lkml archive.
 >
->>>> > If Linus is okay with the following proposal I would rather go with
->>>> > it,
->>>> > i.e. logical split the series to
->>>> >
->>>> > 1. Fix IRQ related headers inclusion
->>>> > 2. Fix pinconf-generic.h inclusion
->>>> > 3. Fix OF headers inclusion (btw, of_gpio.h is not enough there?)
->>>>
->>>> That works fine with me, but also one big patch actually, I do not
->>>> want to make it too much work to refactor obviously incorrect things.
->>>>
->>>> As soon as we have rough consensus on this and the build robot
->>>> are happy I will apply it to GPIO and also pull it into the pinctrl
->>>> subsystem.
->>>
->>> For me priorities like this:
->>> 1) it works after the patch being applied (no regressions);
->>> 2) it makes code cleaner at the end;
->>> 3) it is presented in logically split parts.
->>>
->>> So, as long as 1) and 2) are satisfied I can neglect on 3).
->>
->> We are in violent agreement :D
->
-> What I would like to say is that is up to you after all :-)
-> For me looks better to split.
 
+Here: https://lkml.org/lkml/2013/11/28/520
 
+In the mail, you mentioned two problems. But there have no detail about
+those issues, and no root causes. We don't know why kernel should relies
+on user space to complete the hot removing process for container.
 
-I will split this into sensible chunks.
-
-
-As I mentioned before, linux/gpio/driver.h is included from several sub-systems,
-so I need at least two development cycles to finish this task.
-
-
-Maybe,
-
-[1] Send patches to subsystems (gpio, pinctrl, etc.) for v4.14
-     (splitting into sensible chunks, like per-driver)
-[2] Drop unneeded includes from linux/gpio/driver.h for v4.15
-
-
-
-
--- 
-Best Regards
-Masahiro Yamada
+Thank a lot!
+Joey Lee
