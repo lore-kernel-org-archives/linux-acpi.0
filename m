@@ -1,80 +1,105 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 0/5] ACPI: DMA ranges management
-Date: Wed, 2 Aug 2017 17:52:18 +0100
-Message-ID: <20170802165218.GA32215@red-moon>
+From: Nate Watterson <nwatters@codeaurora.org>
+Subject: Re: [PATCH v2 5/5] ACPI/IORT: Add IORT named component memory address
+ limits
+Date: Wed, 2 Aug 2017 13:31:03 -0400
+Message-ID: <cf158a20-e6ec-6826-e727-71ad74f9f7c5@codeaurora.org>
 References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
- <CAJZ5v0g_NHo5Jnp5HcseS2RQL1PwaewGE6eG6Xn9OafAXwHgkw@mail.gmail.com>
+ <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:57394 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752120AbdHBQuZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 2 Aug 2017 12:50:25 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0g_NHo5Jnp5HcseS2RQL1PwaewGE6eG6Xn9OafAXwHgkw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, will.deacon@arm.com, robin.murphy@arm.com, Nate Watterson <nwatters@codeaurora.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Mon, Jul 31, 2017 at 08:57:19PM +0200, Rafael J. Wysocki wrote:
-> On Mon, Jul 31, 2017 at 5:23 PM, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
-> > This patch series is v2 of a previous posting:
-> >
-> > v1: http://lkml.kernel.org/r/20170720144517.32529-1-lorenzo.pieralisi@arm.com
-> >
-> > v1->v2:
-> >         - Reworked acpi_dma_get_range() flow and logs
-> >         - Added IORT named component address limits
-> >         - Renamed acpi_dev_get_resources() helper function
-> >         - Rebased against v4.13-rc3
-> >
-> > -- Original cover letter --
-> >
-> > As reported in:
-> >
-> > http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
-> >
-> > the bus connecting devices to an IOMMU bus can be smaller in size than
-> > the IOMMU input address bits which results in devices DMA HW bugs in
-> > particular related to IOVA allocation (ie chopping of higher address
-> > bits owing to system bus HW capabilities mismatch with the IOMMU).
-> >
-> > Fortunately this problem can be solved through an already present but never
-> > used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define the DMA
-> > window for a specific bus in ACPI and therefore all upstream devices
-> > connected to it.
-> >
-> > This small patch series enables _DMA parsing in ACPI core code and
-> > use it in ACPI IORT code in order to detect DMA ranges for devices and
-> > update their data structures to make them work with their related DMA
-> > addressing restrictions.
-> >
-> > Cc: Will Deacon <will.deacon@arm.com>
-> > Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> > Cc: Feng Kan <fkan@apm.com>
-> > Cc: Jon Masters <jcm@redhat.com>
-> > Cc: Robert Moore <robert.moore@intel.com>
-> > Cc: Robin Murphy <robin.murphy@arm.com>
-> > Cc: Zhang Rui <rui.zhang@intel.com>
-> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >
-> > Lorenzo Pieralisi (5):
-> >   ACPICA: resource_mgr: Allow _DMA method in walk resources
-> >   ACPI: Make acpi_dev_get_resources() method agnostic
-> >   ACPI: Introduce DMA ranges parsing
-> >   ACPI: Make acpi_dma_configure() DMA regions aware
-> >   ACPI/IORT: Add IORT named component memory address limits
+Hi Lorenzo,
+I ran a quick test and this seems to work for memory_address_limit < 64,
+however memory_address_limit == 64 yields a mask of 0x0.
+
+-Nate
+
+On 7/31/2017 11:23 AM, Lorenzo Pieralisi wrote:
+> IORT named components provide firmware configuration describing
+> how many address bits a given device is capable of generating
+> to address memory.
 > 
-> Patches [1-3/5] are fine by me, but I need ACKs from the ARM side on
-> the last two ones.
+> Add code to the kernel to retrieve memory address limits
+> configuration for IORT named components and configure DMA masks
+> accordingly.
+> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Nate Watterson <nwatters@codeaurora.org>
+> ---
+>   drivers/acpi/arm64/iort.c | 40 ++++++++++++++++++++++++++++++----------
+>   1 file changed, 30 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 67b85ae..b85d19f 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -680,6 +680,24 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+>   	return ret ? NULL : ops;
+>   }
+>   
+> +static int nc_dma_get_range(struct device *dev, u64 *size)
+> +{
+> +	struct acpi_iort_node *node;
+> +	struct acpi_iort_named_component *ncomp;
+> +
+> +	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> +			      iort_match_node_callback, dev);
+> +	if (!node)
+> +		return -ENODEV;
+> +
+> +	ncomp = (struct acpi_iort_named_component *)node->node_data;
+> +
+> +	*size = ncomp->memory_address_limit >= 64 ? ~0ULL :
+> +			1ULL<<ncomp->memory_address_limit;
+> +
+> +	return 0;
+> +}
+> +
+>   /**
+>    * iort_dma_setup() - Set-up device DMA parameters.
+>    *
+> @@ -708,17 +726,19 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
+>   
+>   	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+>   
+> -	if (dev_is_pci(dev)) {
+> +	if (dev_is_pci(dev))
+>   		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
+> -		if (!ret) {
+> -			mask = __roundup_pow_of_two(dmaaddr + size) - 1;
+> -			/*
+> -			 * Limit coherent and dma mask based on size
+> -			 * retrieved from firmware.
+> -			 */
+> -			dev->coherent_dma_mask = mask;
+> -			*dev->dma_mask = mask;
+> -		}
+> +	else
+> +		ret = nc_dma_get_range(dev, &size);
+> +
+> +	if (!ret) {
+> +		mask = __roundup_pow_of_two(dmaaddr + size) - 1;
+> +		/*
+> +		 * Limit coherent and dma mask based on size
+> +		 * retrieved from firmware.
+> +		 */
+> +		dev->coherent_dma_mask = mask;
+> +		*dev->dma_mask = mask;
+>   	}
+>   
+>   	*dma_addr = dmaaddr;
+> 
 
-Will, Robin, are you ok with this series ?
-
-@Nate: I'd need your tested-by on v2 please (ie IORT named component
-address limits handling) before we go ahead.
-
-Thanks,
-Lorenzo
+-- 
+Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
