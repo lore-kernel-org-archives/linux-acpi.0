@@ -1,68 +1,79 @@
-From: <lizdebeth_@hotmail.com>
-Subject: (unknown)
-Date: Wed, 02 Aug 2017 01:05:20 -0000
-Message-ID: <150163592031.2725.7070972294168176493@zaural.ru>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: Re: [PATCH] gpio: drop unnecessary includes from include/linux/gpio/driver.h
+Date: Wed, 2 Aug 2017 10:19:32 +0900
+Message-ID: <CAK7LNASoNWVxJCRneD1GFo41vw0+9oduzLq1Jep_f3ckABfA1A@mail.gmail.com>
+References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
+ <1499162760.22624.246.camel@linux.intel.com> <CACRpkdaxgxaXV8XjLTzu68JqjyeZ8Jr2YMR3L46wm3zmnMrPsg@mail.gmail.com>
+ <1501509867.29303.303.camel@linux.intel.com> <CACRpkdZ9q5vub3sQkA2xsQaZ+CGHeAp4RRueposnTPiHoFbSsA@mail.gmail.com>
+ <CAHp75VeLwM8Q5vVLeeGz9hL8AWa2J47NTaeX0ogJk6v7y18diw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_491213_linux-acpi.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ws43.zone31-163-128.zaural.ru ([31.163.128.43]:60374 "HELO
-        zaural.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751029AbdHBBFX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 1 Aug 2017 21:05:23 -0400
-Subject: 
-Content-Disposition: attachment
+Received: from conssluserg-05.nifty.com ([210.131.2.90]:35391 "EHLO
+        conssluserg-05.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751049AbdHBBTw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2017 21:19:52 -0400
+In-Reply-To: <CAHp75VeLwM8Q5vVLeeGz9hL8AWa2J47NTaeX0ogJk6v7y18diw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Ray Jui <rjui@broadcom.com>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, David Cohen <david.a.cohen@linux.intel.com>, Scott Branden <sbranden@broadcom.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, bcm-kernel-feedback-list <bcm-kernel-feedback-list@broadcom.com>, Florian Fainelli <f.fainelli@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Alexander Shiyan <shc_work@mail.ru>, Michal Simek <michal.simek@xilinx.com>, Kevin Hilman <khilman@kernel.org>, linux-tegra@vger.kernel.org
 
-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
-AAEAXwAAAIEKAAAAAA==
+Hi.
+
+2017-08-01 20:04 GMT+09:00 Andy Shevchenko <andy.shevchenko@gmail.com>:
+> On Tue, Aug 1, 2017 at 10:53 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
+>> On Mon, Jul 31, 2017 at 4:04 PM, Andy Shevchenko
+>> <andriy.shevchenko@linux.intel.com> wrote:
+>>> On Mon, 2017-07-31 at 15:48 +0200, Linus Walleij wrote:
+>>>> On Tue, Jul 4, 2017 at 12:06 PM, Andy Shevchenko
+>>>> <andriy.shevchenko@linux.intel.com> wrote:
+>
+>>>> > If Linus is okay with the following proposal I would rather go with
+>>>> > it,
+>>>> > i.e. logical split the series to
+>>>> >
+>>>> > 1. Fix IRQ related headers inclusion
+>>>> > 2. Fix pinconf-generic.h inclusion
+>>>> > 3. Fix OF headers inclusion (btw, of_gpio.h is not enough there?)
+>>>>
+>>>> That works fine with me, but also one big patch actually, I do not
+>>>> want to make it too much work to refactor obviously incorrect things.
+>>>>
+>>>> As soon as we have rough consensus on this and the build robot
+>>>> are happy I will apply it to GPIO and also pull it into the pinctrl
+>>>> subsystem.
+>>>
+>>> For me priorities like this:
+>>> 1) it works after the patch being applied (no regressions);
+>>> 2) it makes code cleaner at the end;
+>>> 3) it is presented in logically split parts.
+>>>
+>>> So, as long as 1) and 2) are satisfied I can neglect on 3).
+>>
+>> We are in violent agreement :D
+>
+> What I would like to say is that is up to you after all :-)
+> For me looks better to split.
+
+
+
+I will split this into sensible chunks.
+
+
+As I mentioned before, linux/gpio/driver.h is included from several sub-systems,
+so I need at least two development cycles to finish this task.
+
+
+Maybe,
+
+[1] Send patches to subsystems (gpio, pinctrl, etc.) for v4.14
+     (splitting into sensible chunks, like per-driver)
+[2] Drop unneeded includes from linux/gpio/driver.h for v4.15
+
+
+
+
+-- 
+Best Regards
+Masahiro Yamada
