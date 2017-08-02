@@ -1,227 +1,80 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v4] acpi/iort: numa: Add numa node mapping for smmuv3
-	devices
-Date: Wed, 2 Aug 2017 17:21:19 +0100
-Message-ID: <20170802162119.GA3984@red-moon>
-References: <20170725050237.11033-1-ganapatrao.kulkarni@cavium.com>
-	<20170725151305.GU17961@rric.localdomain>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 0/5] ACPI: DMA ranges management
+Date: Wed, 2 Aug 2017 17:52:18 +0100
+Message-ID: <20170802165218.GA32215@red-moon>
+References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
+ <CAJZ5v0g_NHo5Jnp5HcseS2RQL1PwaewGE6eG6Xn9OafAXwHgkw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:57394 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752120AbdHBQuZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 2 Aug 2017 12:50:25 -0400
 Content-Disposition: inline
-In-Reply-To: <20170725151305.GU17961-vWBEXY7mpu582hYKe6nXyg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Robert Richter <robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, Will.Deacon-5wv7dgnIgG8@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gklkml16-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jnair-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Ganapatrao Kulkarni <ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+In-Reply-To: <CAJZ5v0g_NHo5Jnp5HcseS2RQL1PwaewGE6eG6Xn9OafAXwHgkw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, will.deacon@arm.com, robin.murphy@arm.com, Nate Watterson <nwatters@codeaurora.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Tue, Jul 25, 2017 at 05:13:05PM +0200, Robert Richter wrote:
-> On 25.07.17 10:32:37, Ganapatrao Kulkarni wrote:
-> > ARM IORT specification(rev. C) has added  provision to define proximity
-> > domain in SMMUv3 IORT table. Adding required code to parse Proximity
-> > domain and set numa_node of smmv3 platform devices.
-> > 
-> > Add code to parse proximity domain in SMMUv3 IORT table to
-> > set numa node mapping for smmuv3 devices.
-> > 
-> > Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> > ---
-> > 
-> > This patch has dependency on header file patch [1], which is
-> > already merged to linux-pm.
-> > 
-> > [1] https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/?h=linux-next&id=c944230064eb65e4fa018d86779b4fd200b1d7e7
-> > 
-> > v4:
-> >   - Fix compilation issue in !CONFIG_NUMA
-> > 
-> > v3:
-> >   - Addressed Lorenzo Pieralisi comment.
-> > 
-> > v2:
-> >   - Changed as per Lorenzo Pieralisi and Hanjun Guo suggestions.
-> > 
-> > v1:
-> >   - Initial patch
-> > 
-> >  drivers/acpi/arm64/iort.c | 33 +++++++++++++++++++++++++++++++--
-> >  1 file changed, 31 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> > index a3215ee..c5c82c3 100644
-> > --- a/drivers/acpi/arm64/iort.c
-> > +++ b/drivers/acpi/arm64/iort.c
-> > @@ -908,6 +908,28 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
-> >  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
-> >  }
-> >  
-> > +#if defined(CONFIG_ACPI_NUMA) && (ACPI_CA_VERSION >= 0x20170629)
+On Mon, Jul 31, 2017 at 08:57:19PM +0200, Rafael J. Wysocki wrote:
+> On Mon, Jul 31, 2017 at 5:23 PM, Lorenzo Pieralisi
+> <lorenzo.pieralisi@arm.com> wrote:
+> > This patch series is v2 of a previous posting:
+> >
+> > v1: http://lkml.kernel.org/r/20170720144517.32529-1-lorenzo.pieralisi@arm.com
+> >
+> > v1->v2:
+> >         - Reworked acpi_dma_get_range() flow and logs
+> >         - Added IORT named component address limits
+> >         - Renamed acpi_dev_get_resources() helper function
+> >         - Rebased against v4.13-rc3
+> >
+> > -- Original cover letter --
+> >
+> > As reported in:
+> >
+> > http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
+> >
+> > the bus connecting devices to an IOMMU bus can be smaller in size than
+> > the IOMMU input address bits which results in devices DMA HW bugs in
+> > particular related to IOVA allocation (ie chopping of higher address
+> > bits owing to system bus HW capabilities mismatch with the IOMMU).
+> >
+> > Fortunately this problem can be solved through an already present but never
+> > used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define the DMA
+> > window for a specific bus in ACPI and therefore all upstream devices
+> > connected to it.
+> >
+> > This small patch series enables _DMA parsing in ACPI core code and
+> > use it in ACPI IORT code in order to detect DMA ranges for devices and
+> > update their data structures to make them work with their related DMA
+> > addressing restrictions.
+> >
+> > Cc: Will Deacon <will.deacon@arm.com>
+> > Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> > Cc: Feng Kan <fkan@apm.com>
+> > Cc: Jon Masters <jcm@redhat.com>
+> > Cc: Robert Moore <robert.moore@intel.com>
+> > Cc: Robin Murphy <robin.murphy@arm.com>
+> > Cc: Zhang Rui <rui.zhang@intel.com>
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> >
+> > Lorenzo Pieralisi (5):
+> >   ACPICA: resource_mgr: Allow _DMA method in walk resources
+> >   ACPI: Make acpi_dev_get_resources() method agnostic
+> >   ACPI: Introduce DMA ranges parsing
+> >   ACPI: Make acpi_dma_configure() DMA regions aware
+> >   ACPI/IORT: Add IORT named component memory address limits
 > 
-> This acpica version check was very unhandy for backports when we did
-> this last time. If we backport just c944230064 and this single patch
-> it wont work as the version check prevents the code from being
-> enabled. Isn't there another way to handle cross tree dependencies of
-> pull requests? E.g. we could base this patch on acpica (ab539eaa50)
-> and remove the check.
-> 
-> Alternatively we could do in this case:
-> 
-> #if defined(CONFIG_ACPI_NUMA) && defined(ACPI_IORT_SMMU_V3_PXM_VALID)
-> 
-> > +/*
-> > + * set numa proximity domain for smmuv3 device
-> > + */
-> > +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
-> > +		struct device *dev)
-> > +{
-> > +	struct acpi_iort_smmu_v3 *smmu;
-> > +
-> > +	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
-> > +	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
-> > +		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
-> > +		pr_info("SMMUV3[%llx] Mapped to Proximity domain %d\n",
-> 
-> Better use dev_info() here.
-> 
-> > +			smmu->base_address,
-> > +			smmu->pxm);
-> > +	}
-> > +}
-> > +#else
-> > +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
-> > +		struct device *dev) { }
-> 
-> Just do:
-> 
-> #define arm_smmu_v3_set_proximity NULL
-> 
-> > +#endif
-> > +
-> >  static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
-> >  {
-> >  	struct acpi_iort_smmu *smmu;
-> > @@ -977,20 +999,24 @@ struct iort_iommu_config {
-> >  	int (*iommu_count_resources)(struct acpi_iort_node *node);
-> >  	void (*iommu_init_resources)(struct resource *res,
-> >  				     struct acpi_iort_node *node);
-> > +	void (*iommu_set_proximity)(struct acpi_iort_node *node,
-> > +				     struct device *dev);
-> 
-> Wrt pseudo-OO programming this is more a method for struct dev than
-> node, so swap args: iommu_set_proximity(dev, node)
-> 
-> >  };
-> >  
-> >  static const struct iort_iommu_config iort_arm_smmu_v3_cfg __initconst = {
-> >  	.name = "arm-smmu-v3",
-> >  	.iommu_is_coherent = arm_smmu_v3_is_coherent,
-> >  	.iommu_count_resources = arm_smmu_v3_count_resources,
-> > -	.iommu_init_resources = arm_smmu_v3_init_resources
-> > +	.iommu_init_resources = arm_smmu_v3_init_resources,
-> > +	.iommu_set_proximity = arm_smmu_v3_set_proximity
-> 
-> Add comma at the end here.
-> 
-> >  };
-> >  
-> >  static const struct iort_iommu_config iort_arm_smmu_cfg __initconst = {
-> >  	.name = "arm-smmu",
-> >  	.iommu_is_coherent = arm_smmu_is_coherent,
-> >  	.iommu_count_resources = arm_smmu_count_resources,
-> > -	.iommu_init_resources = arm_smmu_init_resources
-> > +	.iommu_init_resources = arm_smmu_init_resources,
-> > +	.iommu_set_proximity = NULL
-> 
-> No need for null assignment.
+> Patches [1-3/5] are fine by me, but I need ACKs from the ARM side on
+> the last two ones.
 
-Patch that I will send upstream below, please check, thanks.
+Will, Robin, are you ok with this series ?
 
--- >8 --
-Subject: [PATCH] ACPI/IORT: numa: Add numa node mapping for smmuv3 devices
+@Nate: I'd need your tested-by on v2 please (ie IORT named component
+address limits handling) before we go ahead.
 
-ARM IORT specification(rev. C) has added  provision to define proximity
-domain in SMMUv3 IORT table. Adding required code to parse Proximity
-domain and set numa_node of smmv3 platform devices.
-
-Add code to parse proximity domain in SMMUv3 IORT table to
-set numa node mapping for smmuv3 devices.
-
-Link: http://lkml.kernel.org/r/20170706112017.GA16981-vWBEXY7mpu582hYKe6nXyg@public.gmane.org
-Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-[lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org: updated review comments]
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
----
- drivers/acpi/arm64/iort.c | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index a3215ee..35dd803 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -908,6 +908,27 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
- 	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
- }
- 
-+#if defined(CONFIG_ACPI_NUMA) && defined(ACPI_IORT_SMMU_v3_PXM_VALID)
-+/*
-+ * set numa proximity domain for smmuv3 device
-+ */
-+static void  __init arm_smmu_v3_set_proximity(struct device *dev,
-+					      struct acpi_iort_node *node)
-+{
-+	struct acpi_iort_smmu_v3 *smmu;
-+
-+	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
-+	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
-+		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
-+		dev_info(dev, "SMMUV3[%llx] Mapped to Proximity domain %d\n",
-+			smmu->base_address,
-+			smmu->pxm);
-+	}
-+}
-+#else
-+#define arm_smmu_v3_set_proximity NULL
-+#endif
-+
- static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
- {
- 	struct acpi_iort_smmu *smmu;
-@@ -977,13 +998,16 @@ struct iort_iommu_config {
- 	int (*iommu_count_resources)(struct acpi_iort_node *node);
- 	void (*iommu_init_resources)(struct resource *res,
- 				     struct acpi_iort_node *node);
-+	void (*iommu_set_proximity)(struct device *dev,
-+				    struct acpi_iort_node *node);
- };
- 
- static const struct iort_iommu_config iort_arm_smmu_v3_cfg __initconst = {
- 	.name = "arm-smmu-v3",
- 	.iommu_is_coherent = arm_smmu_v3_is_coherent,
- 	.iommu_count_resources = arm_smmu_v3_count_resources,
--	.iommu_init_resources = arm_smmu_v3_init_resources
-+	.iommu_init_resources = arm_smmu_v3_init_resources,
-+	.iommu_set_proximity = arm_smmu_v3_set_proximity,
- };
- 
- static const struct iort_iommu_config iort_arm_smmu_cfg __initconst = {
-@@ -1028,6 +1052,9 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
- 	if (!pdev)
- 		return -ENOMEM;
- 
-+	if (ops->iommu_set_proximity)
-+		ops->iommu_set_proximity(&pdev->dev, node);
-+
- 	count = ops->iommu_count_resources(node);
- 
- 	r = kcalloc(count, sizeof(*r), GFP_KERNEL);
--- 
-2.10.0
+Thanks,
+Lorenzo
