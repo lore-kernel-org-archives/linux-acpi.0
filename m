@@ -1,34 +1,110 @@
-From: Joe Daily <Joe.Daily@advancedroboticsgroup.com>
-Subject: ACPI Support for 32 Batteries
-Date: Wed, 2 Aug 2017 18:00:15 +0000
-Message-ID: <MWHPR1201MB009591C523610F3C0D0D30A6FEB00@MWHPR1201MB0095.namprd12.prod.outlook.com>
-References: <MWHPR1201MB00953C1F674FD1A74E0C8A82FEB00@MWHPR1201MB0095.namprd12.prod.outlook.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 5/5] ACPI/IORT: Add IORT named component memory
+ address limits
+Date: Wed, 2 Aug 2017 19:07:35 +0100
+Message-ID: <20170802180735.GA26765@red-moon>
+References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
+ <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
+ <cf158a20-e6ec-6826-e727-71ad74f9f7c5@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2nam03on0066.outbound.protection.outlook.com ([104.47.42.66]:13251
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751956AbdHBSAQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 2 Aug 2017 14:00:16 -0400
-In-Reply-To: <MWHPR1201MB00953C1F674FD1A74E0C8A82FEB00@MWHPR1201MB0095.namprd12.prod.outlook.com>
-Content-Language: en-US
+Received: from foss.arm.com ([217.140.101.70]:58476 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752875AbdHBSFl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 2 Aug 2017 14:05:41 -0400
+Content-Disposition: inline
+In-Reply-To: <cf158a20-e6ec-6826-e727-71ad74f9f7c5@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Nate Watterson <nwatters@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Greetings,
+On Wed, Aug 02, 2017 at 01:31:03PM -0400, Nate Watterson wrote:
+> Hi Lorenzo,
+> I ran a quick test and this seems to work for memory_address_limit < 64,
+> however memory_address_limit == 64 yields a mask of 0x0.
 
-I am working on a robot that uses 32 small li-ion batteries and would like =
-for them report their charge status via ACPI.=20
+I will fix it - apologies. Thanks.
 
-Not being an APCI guru, I noticed in section 10.1.3 that it states that onl=
-y 4 batteries are allowed. Does this mean that I cannot use ACPI for report=
-ing all 32 battery statuses?=20
+Lorenzo
 
-What is the recommend way of doing this?
-
-Thanks=20
-
-Joe Daily
+> -Nate
+> 
+> On 7/31/2017 11:23 AM, Lorenzo Pieralisi wrote:
+> >IORT named components provide firmware configuration describing
+> >how many address bits a given device is capable of generating
+> >to address memory.
+> >
+> >Add code to the kernel to retrieve memory address limits
+> >configuration for IORT named components and configure DMA masks
+> >accordingly.
+> >
+> >Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >Cc: Will Deacon <will.deacon@arm.com>
+> >Cc: Robin Murphy <robin.murphy@arm.com>
+> >Cc: Nate Watterson <nwatters@codeaurora.org>
+> >---
+> >  drivers/acpi/arm64/iort.c | 40 ++++++++++++++++++++++++++++++----------
+> >  1 file changed, 30 insertions(+), 10 deletions(-)
+> >
+> >diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> >index 67b85ae..b85d19f 100644
+> >--- a/drivers/acpi/arm64/iort.c
+> >+++ b/drivers/acpi/arm64/iort.c
+> >@@ -680,6 +680,24 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+> >  	return ret ? NULL : ops;
+> >  }
+> >+static int nc_dma_get_range(struct device *dev, u64 *size)
+> >+{
+> >+	struct acpi_iort_node *node;
+> >+	struct acpi_iort_named_component *ncomp;
+> >+
+> >+	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> >+			      iort_match_node_callback, dev);
+> >+	if (!node)
+> >+		return -ENODEV;
+> >+
+> >+	ncomp = (struct acpi_iort_named_component *)node->node_data;
+> >+
+> >+	*size = ncomp->memory_address_limit >= 64 ? ~0ULL :
+> >+			1ULL<<ncomp->memory_address_limit;
+> >+
+> >+	return 0;
+> >+}
+> >+
+> >  /**
+> >   * iort_dma_setup() - Set-up device DMA parameters.
+> >   *
+> >@@ -708,17 +726,19 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
+> >  	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+> >-	if (dev_is_pci(dev)) {
+> >+	if (dev_is_pci(dev))
+> >  		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
+> >-		if (!ret) {
+> >-			mask = __roundup_pow_of_two(dmaaddr + size) - 1;
+> >-			/*
+> >-			 * Limit coherent and dma mask based on size
+> >-			 * retrieved from firmware.
+> >-			 */
+> >-			dev->coherent_dma_mask = mask;
+> >-			*dev->dma_mask = mask;
+> >-		}
+> >+	else
+> >+		ret = nc_dma_get_range(dev, &size);
+> >+
+> >+	if (!ret) {
+> >+		mask = __roundup_pow_of_two(dmaaddr + size) - 1;
+> >+		/*
+> >+		 * Limit coherent and dma mask based on size
+> >+		 * retrieved from firmware.
+> >+		 */
+> >+		dev->coherent_dma_mask = mask;
+> >+		*dev->dma_mask = mask;
+> >  	}
+> >  	*dma_addr = dmaaddr;
+> >
+> 
+> -- 
+> Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
+> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
