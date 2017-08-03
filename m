@@ -1,76 +1,76 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.13-rc4
-Date: Thu, 3 Aug 2017 21:14:47 +0200
-Message-ID: <CAJZ5v0jbqZGAvBVOxOj3V7C+CEu15QfQc6LiFyDYBivstDdOXQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:36105 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751700AbdHCTOs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2017 15:14:48 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tyler Baicar <tbaicar@codeaurora.org>
+Subject: [PATCH] acpi: apei: fix GHES estatus iteration
+Date: Thu,  3 Aug 2017 15:32:25 -0600
+Message-ID: <1501795945-5331-1-git-send-email-tbaicar@codeaurora.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
+Cc: Tyler Baicar <tbaicar@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+Currently iterating through the GHES estatus blocks does not
+take into account the new generic data v3 structure size. This
+can result in garbage non-standard trace events to be triggered
+since the loop will not properly iterate through the estatus
+blocks and not properly terminate.
 
-Please pull from the tag
+Update the GHES estatus iteration to properly increment through
+the estatus blocks similar to how the CPER estatus printing
+iterates through them.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.13-rc4
+Fixes: bbcc2e7b642e ("ras: acpi/apei: cper: add support for generic data v3 structure")
+Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+Tested-by: Austin Christ <austinwc@codeaurora.org>
+---
+ drivers/acpi/apei/apei-internal.h | 5 -----
+ drivers/acpi/apei/ghes.c          | 8 +++++++-
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-with top-most commit 3de559d4df546442e28fab91e1c9cab3f19ca24f
-
- Merge branches 'acpi-soc', 'acpi-wdat' and 'acpi-cppc'
-
-on top of commit 16f73eb02d7e1765ccab3d2018e0bd98eb93d973
-
- Linux v4.13-rc3
-
-to receive ACPI fixes for v4.13-rc4.
-
-These fix two issues in the ACPI SoC drivers (Intel LPSS and AMD
-APD), a crash in the PCC mailbox initialization code and a WDAT
-watchdog initialization failure.
-
-Specifics:
-
- - Fix a device ID of Hisilicon Hip07/08 in the ACPI APD (AMD SoC)
-   driver (Hanjun Guo).
-
- - Fix list corruption (introduced during the 4.11 cycle) in the ACPI
-   LPSS (Intel SoC) driver (Hans de Goede).
-
- - Fix PCC mailbox handling code crash during initialization when
-   PCCT is not present and PCC channel 0 is requested (Hoan Tran).
-
- - Fix a WDAT watchdog initialization issue causing platform device
-   creation to fail due to partially overlapping address ranges in
-   resources (Ryan Kennedy).
-
-Thanks!
-
-
----------------
-
-Hanjun Guo (1):
-      ACPI: APD: Fix HID for Hisilicon Hip07/08
-
-Hans de Goede (1):
-      ACPI / LPSS: Only call pwm_add_table() for the first PWM controller
-
-Hoan Tran (1):
-      mailbox: pcc: Fix crash when request PCC channel 0
-
-Ryan Kennedy (1):
-      ACPI / watchdog: Fix init failure with overlapping register regions
-
----------------
-
- drivers/acpi/acpi_apd.c      |  4 ++--
- drivers/acpi/acpi_lpss.c     | 14 ++++++++++++++
- drivers/acpi/acpi_watchdog.c |  7 ++++++-
- drivers/mailbox/pcc.c        |  2 +-
- 4 files changed, 23 insertions(+), 4 deletions(-)
+diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
+index 6e9f14c..cb41260 100644
+--- a/drivers/acpi/apei/apei-internal.h
++++ b/drivers/acpi/apei/apei-internal.h
+@@ -120,11 +120,6 @@ int apei_exec_collect_resources(struct apei_exec_context *ctx,
+ struct dentry;
+ struct dentry *apei_get_debugfs_dir(void);
+ 
+-#define apei_estatus_for_each_section(estatus, section)			\
+-	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
+-	     (void *)section - (void *)estatus < estatus->data_length;	\
+-	     section = (void *)(section+1) + section->error_data_length)
+-
+ static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
+ {
+ 	if (estatus->raw_data_length)
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 6a6895a..dba1771 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -466,9 +466,13 @@ static void ghes_do_proc(struct ghes *ghes,
+ 	guid_t *sec_type;
+ 	guid_t *fru_id = &NULL_UUID_LE;
+ 	char *fru_text = "";
++	unsigned int data_len;
+ 
+ 	sev = ghes_severity(estatus->error_severity);
+-	apei_estatus_for_each_section(estatus, gdata) {
++	data_len = estatus->data_length;
++	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
++
++	while (data_len >= acpi_hest_get_size(gdata)) {
+ 		sec_type = (guid_t *)gdata->section_type;
+ 		sec_sev = ghes_severity(gdata->error_severity);
+ 		if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
+@@ -528,6 +532,8 @@ static void ghes_do_proc(struct ghes *ghes,
+ 					       sec_sev, err,
+ 					       gdata->error_data_length);
+ 		}
++		data_len -= acpi_hest_get_record_size(gdata);
++		gdata = acpi_hest_get_next(gdata);
+ 	}
+ }
+ 
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
