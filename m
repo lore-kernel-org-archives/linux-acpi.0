@@ -1,64 +1,45 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 14/15] ACPICA: Revert "Update resource descriptor handling"
-Date: Thu,  3 Aug 2017 14:27:42 +0800
-Message-ID: <cf55bd9eb84f94dc1a15a4c0cfb2c30f4b0c790d.1501730699.git.lv.zheng@intel.com>
+Subject: [PATCH 15/15] ACPICA: Update version to 20170728
+Date: Thu,  3 Aug 2017 14:27:48 +0800
+Message-ID: <f3e5f414ce3a18b648ee3fd0d9cc0dc3a31946c2.1501730699.git.lv.zheng@intel.com>
 References: <cover.1501730699.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:57917 "EHLO mga05.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:44694 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751263AbdHCG1q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 3 Aug 2017 02:27:46 -0400
+        id S1751270AbdHCG1w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 3 Aug 2017 02:27:52 -0400
 In-Reply-To: <cover.1501730699.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Erik Schmauss <erik.schmauss@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-From: Erik Schmauss <erik.schmauss@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit f3300640c63df138d133740b54e2c0a1befa4086
+ACPICA commit 50f61636543a55d143c792a4814da7700a7fafc2
 
-This reverts commit c8eac10178b387f9eb1935694e509d4518da77bb.
+Version 20170728.
 
-Link: https://github.com/acpica/acpica/commit/f3300640
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+Link: https://github.com/acpica/acpica/commit/50f61636
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/utresrc.c | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ include/acpi/acpixf.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/utresrc.c b/drivers/acpi/acpica/utresrc.c
-index 517acf8..f9801d1 100644
---- a/drivers/acpi/acpica/utresrc.c
-+++ b/drivers/acpi/acpica/utresrc.c
-@@ -184,11 +184,9 @@ acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 06b87ad..53c5e2f 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -46,7 +46,7 @@
  
- 	ACPI_FUNCTION_TRACE(ut_walk_aml_resources);
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
--	/*
--	 * The absolute minimum resource template is one end_tag descriptor.
--	 * However, we will treat a lone end_tag as just a simple buffer.
--	 */
--	if (aml_length <= sizeof(struct aml_resource_end_tag)) {
-+	/* The absolute minimum resource template is one end_tag descriptor */
-+
-+	if (aml_length < sizeof(struct aml_resource_end_tag)) {
- 		return_ACPI_STATUS(AE_AML_NO_RESOURCE_END_TAG);
- 	}
+-#define ACPI_CA_VERSION                 0x20170629
++#define ACPI_CA_VERSION                 0x20170728
  
-@@ -252,10 +250,8 @@ acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
- 				*context = aml;
- 			}
- 
--			/*
--			 * Normal exit. Note: We allow the buffer to be larger than
--			 * the resource template, as long as the END_TAG exists.
--			 */
-+			/* Normal exit */
-+
- 			return_ACPI_STATUS(AE_OK);
- 		}
- 
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
 2.7.4
 
