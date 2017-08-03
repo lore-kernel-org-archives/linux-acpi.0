@@ -1,66 +1,126 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [POC] Get acpi table to limit memory scope chosen by KASLR to
- home SB when "movable_node" is specified
-Date: Thu, 3 Aug 2017 17:03:59 +0800
-Message-ID: <20170803090359.GF25014@localhost.localdomain>
-References: <20170803085155.GE25014@localhost.localdomain>
- <f894c7cd-9120-f2ea-d25d-8dae3e4243b3@cn.fujitsu.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: A udev rule to serve the change event of ACPI container?
+Date: Thu, 3 Aug 2017 17:22:37 +0800
+Message-ID: <20170803092237.GC5730@linux-l9pv.suse>
+References: <20170713124521.GE2901@linux-l9pv.suse>
+ <20170714083713.GB2618@dhcp22.suse.cz>
+ <20170714144414.GM2901@linux-l9pv.suse>
+ <20170717090525.GF12888@dhcp22.suse.cz>
+ <20170719090910.GK26098@linux-l9pv.suse>
+ <20170724085702.GE25221@dhcp22.suse.cz>
+ <20170724092921.GF3034@linux-l9pv.suse>
+ <20170725124837.GH26723@dhcp22.suse.cz>
+ <20170731073845.GC2946@linux-l9pv.suse>
+ <20170802090143.GG2524@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [183.91.158.132] ([183.91.158.132]:46662 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-FAIL-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751067AbdHCJES (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2017 05:04:18 -0400
+Received: from smtp.nue.novell.com ([195.135.221.5]:52585 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751094AbdHCJWr (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Thu, 3 Aug 2017 05:22:47 -0400
 Content-Disposition: inline
-In-Reply-To: <f894c7cd-9120-f2ea-d25d-8dae3e4243b3@cn.fujitsu.com>
+In-Reply-To: <20170802090143.GG2524@dhcp22.suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, keescook@chromium.org, bhe@redhat.com, dyoung@redhat.com, arnd@arndb.de, dave.jiang@intel.com, indou.takao@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, "Rafael J., Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-On Thu, Aug 03, 2017 at 04:59:26PM +0800, Dou Liyang wrote:
->Cc ACPI maintainers and mail list
+On Wed, Aug 02, 2017 at 11:01:43AM +0200, Michal Hocko wrote:
+> On Mon 31-07-17 15:38:45, Joey Lee wrote:
+> > Hi Michal,
+> > 
+> > Sorry for my delay...
+> > 
+> > On Tue, Jul 25, 2017 at 02:48:37PM +0200, Michal Hocko wrote:
+> > > On Mon 24-07-17 17:29:21, Joey Lee wrote:
+> [...]
+> > > > For the success case, yes, we can clear the flag when the _EJ0 of container
+> > > > is success. But for the fail case, we don't know when the operation is
+> > > > terminated.
+> > > 
+> > > Hmm, this is rather strange. What is the BIOS state in the meantime?
+> > > Let's say it doesn't retry. Does it wait for the OS for ever?
+> > > 
+> > 
+> > Unfortunately ACPI spec doesn't mention the detail of BIOS behavior for
+> > container hot-removing.
+> > 
+> > IMHO, if the BIOS doesn't retry, at least it should maintains a timer
+> > to handle the OS layer time out then BIOS resets hardware(turns off
+> > progress light or something else...).
+> > 
+> > The old BIOS just treats the ejection event as a button event. BIOS
+> > emits 0x103 ejection event to OS after user presses a button or UI.
+> > Then BIOS hopes that OS(either kernel or userland) finishs all jobs,
+> > calls _EJ0 to turn off power, and calls _OST to return state to BIOS.
+> > 
+> > If the ejection event from BIOS doesn't trigger anything in upper OS
+> > layer, old BIOS can not against this situation unless it has a timer.
+> 
+> Right but I would consider that a BIOS problem. It is simply not
+> feasible to expect that OS will react in instance. Especially when we
+> are talking about resources like memory which takes time proportional to
+> the size to tear down properly.
+> 
 
-So many thanks.
+I agree with you that old BIOS implementation is not enough
+to handle the situation from OS layer. But those old BIOS has
+been shipped. We still need to consider to work with them.
 
+> > > > > [...]
+> > > > > > Base on the above figure, if userspace didn't do anything or it
+> > > > > > just performs part of offline jobs. Then the container's [eject]
+> > > > > > state will be always _SET_ there, and kernel will always check
+> > > > > > the the latest child offline state when any child be offlined
+> > > > > > by userspace.
+> > > > > 
+> > > > > What is a problem about that? The eject is simply in progress until all
+> > > > > is set. Or maybe I just misunderstood.
+> > > > >
+> > > > 
+> > > > I agree, but it's only for success case. For fail case, kernel can not
+> > > > wait forever. Can we?
+> > > 
+> > > Well, this won't consume any additional resources so I wouldn't be all
+> > > that worried. Maybe we can reset the flag as soon as somebody tries to
+> > > online some part of the container?
+> > >
+> > 
+> > So, the behavior is:
+> > 
+> > Kernel received ejection event, set _Eject_ flag on container object
+> >   -> Kernel sends offline events to all children devices
+> >     -> User space performs cleaning jobs and offlines each child device
+> >       -> Kernel detects all children offlined
+> > 	-> Kernel removes objects and calls power off(_EJ0)
+> 
+> Yes this is what I've had in mind. It is the "kernel detects..." part
+> which is not implemented now and that requires us to do the explicit
+> eject from userspace, correct?
 >
->At 08/03/2017 04:51 PM, Chao Fan wrote:
->> Hi all,
->> 
->> Here is an issue about movable_node and KASLR.
->> Currently, KASLR works well with "mem=", by which we can limit the scope of
->> memory chosen by KASLR. But if we use "movable_node" independently without
->> "mem=", we don't know the scope of memory in the home SB, which will cause
->> the memory of hotplug SB may be chosen by KASLR.
->> To solve this problem, I want to do this job:
->> If "movable_node" is specified, try to get the acpi table and find the scope
->> of memory in home SB, then set "mem_limit".
->> 
->> The order of getting table is:
->> boot_params
->>     \-systab
->>         \-efi tables
->>              \-rsdp
->>                  \-rsdt or xsdt
->>                       \-acpi root table list
->>                             \-acpi srat mem affinity
->> 
 
-I am not sure if it's good to do this job in this period,
-so I want to get the feedback of community.
+Yes, the _Eject_ flag and _detects_ part are not implemented now. 
 
-Thanks,
-Chao Fan
+In this approach, kernel still relies on user space to trigger the
+offline. The ejection process is still not transparent to user space.
+Is it what you want?
 
->> I am not sure if it's OK for community.
->> If there are any problems, please let me know.
->> Any comments will be welcome.
->> 
->> Thanks,
->> Chao Fan
->> 
->> 
->> 
+> > If anyone onlined one of the children devices in the term of waiting
+> > userland offlines all children, then the _Eject_ flag will be clean
+> > and ejection process will be interrupted. In this situation, administrator
+> > needs to trigger ejection event again.
+> 
+> yes
+> 
+> > Do you think that the race hurts anything?
+> 
+> What kind of race?
+
+User space set a child online before all childreen offlined, then
+the _Eject_ flag is cleaned and the ejection process is interrupted.
 
 
+Thanks
+Joey Lee 
