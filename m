@@ -1,61 +1,51 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH V2] acpi: apei: clear error status before acknowledging the error
-Date: Thu,  3 Aug 2017 16:12:31 -0600
-Message-ID: <1501798351-10337-1-git-send-email-tbaicar@codeaurora.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / dock: constify attribute_group structures.
+Date: Fri, 4 Aug 2017 00:17:06 +0200
+Message-ID: <CAJZ5v0id1-i-ECriwqDtqLHNw4xc4HRjnaZsYA6SUHm_6z5zbw@mail.gmail.com>
+References: <f0871f6dc12ea0d90a6acf9d5156f9daaa3ee87a.1501764361.git.arvind.yadav.cs@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60622 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751884AbdHCWMg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2017 18:12:36 -0400
+Received: from mail-it0-f68.google.com ([209.85.214.68]:34537 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751791AbdHCWRH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2017 18:17:07 -0400
+In-Reply-To: <f0871f6dc12ea0d90a6acf9d5156f9daaa3ee87a.1501764361.git.arvind.yadav.cs@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Currently we acknowledge errors before clearing the error status.
-This could cause a new error to be populated by firmware in-between
-the error acknowledgment and the error status clearing which would
-cause the second error's status to be cleared without being handled.
-So, clear the error status before acknowledging the errors.
+On Thu, Aug 3, 2017 at 3:18 PM, Arvind Yadav <arvind.yadav.cs@gmail.com> wrote:
+> attribute_group are not supposed to change at runtime. All functions
+> working with attribute_group provided by <linux/sysfs.h> work with
+> const attribute_group. So mark the non-const structs as const.
+>
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 
-Also, make sure to acknowledge the error if the error status read
-fails.
+Somebody else sent an analogous patch earlier, so I'm going to take that one.
 
-V2: Only send error ack if there was an error populated
-    Remove curly braces that are no longer needed
-
-Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
----
- drivers/acpi/apei/ghes.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index d661d45..cda4a4f 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -743,17 +743,14 @@ static int ghes_proc(struct ghes *ghes)
- 	}
- 	ghes_do_proc(ghes, ghes->estatus);
- 
-+out:
-+	ghes_clear_estatus(ghes);
- 	/*
- 	 * GHESv2 type HEST entries introduce support for error acknowledgment,
- 	 * so only acknowledge the error if this support is present.
- 	 */
--	if (is_hest_type_generic_v2(ghes)) {
-+	if (is_hest_type_generic_v2(ghes) && rc != -ENOENT)
- 		rc = ghes_ack_error(ghes->generic_v2);
--		if (rc)
--			return rc;
--	}
--out:
--	ghes_clear_estatus(ghes);
- 	return rc;
- }
- 
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
-
+> ---
+>  drivers/acpi/dock.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+> index 0c00208..2305e1a 100644
+> --- a/drivers/acpi/dock.c
+> +++ b/drivers/acpi/dock.c
+> @@ -585,7 +585,7 @@ static ssize_t show_dock_type(struct device *dev,
+>         NULL
+>  };
+>
+> -static struct attribute_group dock_attribute_group = {
+> +static const struct attribute_group dock_attribute_group = {
+>         .attrs = dock_attributes
+>  };
+>
+> --
+> 1.9.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
