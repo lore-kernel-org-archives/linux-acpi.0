@@ -1,75 +1,78 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH] acpi: apei: fix GHES estatus iteration
-Date: Thu,  3 Aug 2017 15:32:25 -0600
-Message-ID: <1501795945-5331-1-git-send-email-tbaicar@codeaurora.org>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH] acpi: apei: clear error status before acknowledging the
+ error
+Date: Thu, 3 Aug 2017 16:06:22 -0600
+Message-ID: <82fe23f6-efd8-d256-7f34-a0bbc91237d3@codeaurora.org>
+References: <1501280703-21471-1-git-send-email-tbaicar@codeaurora.org>
+ <20170729065345.GA30608@nazgul.tnic>
+ <fd826be1-50b0-1f82-3fb3-a32a356c45c4@codeaurora.org>
+ <20170731170017.2vwxhewivgpyvpea@intel.com>
+ <01b3550d-1fca-c051-3581-41dda3b62779@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <01b3550d-1fca-c051-3581-41dda3b62779@codeaurora.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@suse.de>, rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Currently iterating through the GHES estatus blocks does not
-take into account the new generic data v3 structure size. This
-can result in garbage non-standard trace events to be triggered
-since the loop will not properly iterate through the estatus
-blocks and not properly terminate.
+On 7/31/2017 11:44 AM, Baicar, Tyler wrote:
+> On 7/31/2017 11:00 AM, Luck, Tony wrote:
+>> On Mon, Jul 31, 2017 at 10:15:27AM -0600, Baicar, Tyler wrote:
+>>> I think the better thing to do in this case is still send the ack. If
+>>> ghes_read_estatus() fails, then
+>>> either we are unable to read the estatus or the estatus is 
+>>> empty/invalid.
+>> Right now we silently handle that failure of ghes_read_estatus(). That
+>> might be hiding some Linux bugs if we are calling ghes_proc() in cases
+>> where we shouldn't.
+>>
+>> Perhaps we should have something like this, so if systems do start 
+>> acting
+>> weirdly there will be a note that we took this path:
+>>
+>>     rc = ghes_read_estatus(ghes, 0);
+>>     if (rc) {
+>>         pr_notice("surprise failure reading ghes estatus\n");
+>>         goto out;
+>>     }
+> Thank you Tony for the feedback, I can add a print like this in the 
+> next version. I'll verify that
+> rc is not -ENOENT though so we don't print it on empty scenarios since 
+> the polled source
+> will be hitting this path frequently.
+>
+Hi Tony,
 
-Update the GHES estatus iteration to properly increment through
-the estatus blocks similar to how the CPER estatus printing
-iterates through them.
+I think I'm going to avoid adding this print, the failures are reported 
+in prints in ghes_read_estatus(), so it looks a little redundant:
 
-Fixes: bbcc2e7b642e ("ras: acpi/apei: cper: add support for generic data v3 structure")
-Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-Tested-by: Austin Christ <austinwc@codeaurora.org>
----
- drivers/acpi/apei/apei-internal.h | 5 -----
- drivers/acpi/apei/ghes.c          | 8 +++++++-
- 2 files changed, 7 insertions(+), 6 deletions(-)
+[  133.601165] [Firmware Warn]: GHES: Failed to read error status block!
+[  133.601167] surprise failure reading GHES estatus
 
-diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
-index 6e9f14c..cb41260 100644
---- a/drivers/acpi/apei/apei-internal.h
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -120,11 +120,6 @@ int apei_exec_collect_resources(struct apei_exec_context *ctx,
- struct dentry;
- struct dentry *apei_get_debugfs_dir(void);
- 
--#define apei_estatus_for_each_section(estatus, section)			\
--	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
--	     (void *)section - (void *)estatus < estatus->data_length;	\
--	     section = (void *)(section+1) + section->error_data_length)
--
- static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
- {
- 	if (estatus->raw_data_length)
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 6a6895a..dba1771 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -466,9 +466,13 @@ static void ghes_do_proc(struct ghes *ghes,
- 	guid_t *sec_type;
- 	guid_t *fru_id = &NULL_UUID_LE;
- 	char *fru_text = "";
-+	unsigned int data_len;
- 
- 	sev = ghes_severity(estatus->error_severity);
--	apei_estatus_for_each_section(estatus, gdata) {
-+	data_len = estatus->data_length;
-+	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
-+
-+	while (data_len >= acpi_hest_get_size(gdata)) {
- 		sec_type = (guid_t *)gdata->section_type;
- 		sec_sev = ghes_severity(gdata->error_severity);
- 		if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
-@@ -528,6 +532,8 @@ static void ghes_do_proc(struct ghes *ghes,
- 					       sec_sev, err,
- 					       gdata->error_data_length);
- 		}
-+		data_len -= acpi_hest_get_record_size(gdata);
-+		gdata = acpi_hest_get_next(gdata);
- 	}
- }
- 
+Thanks,
+Tyler
+>>
+>>> If we do not send the ack, then we will be in a scenario where FW 
+>>> will not
+>>> send any more errors.
+>> We might ACK something that the firmware didn't send, which may
+>> lead to other problems.
+>>
+>>> I think it would be better to still have the FW send the errors and 
+>>> kernel
+>>> complain about issues with
+>> But I agree with this. We should send the ACK.  Luckliy this doesn't 
+>> have
+>> a long legacy problem because the whole ACK mechanism is a new thing. So
+>> we only have to worry about GHESv2 supporting BIOS.
+>>
+>> -Tony
+>
+
 -- 
 Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
