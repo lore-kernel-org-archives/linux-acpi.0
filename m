@@ -1,114 +1,86 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 5/7] ghes_edac: add platform check to enable ghes_edac
-Date: Thu,  3 Aug 2017 15:57:51 -0600
-Message-ID: <20170803215753.30553-6-toshi.kani@hpe.com>
+Subject: [PATCH v2 6/7] EDAC: add edac_check_mc_owner() to check MC owner
+Date: Thu,  3 Aug 2017 15:57:52 -0600
+Message-ID: <20170803215753.30553-7-toshi.kani@hpe.com>
 References: <20170803215753.30553-1-toshi.kani@hpe.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t2354.austin.hpe.com ([15.233.44.27]:52133 "EHLO
-        g2t2354.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752041AbdHCWHd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2017 18:07:33 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170803215753.30553-1-toshi.kani@hpe.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, bp@alien8.de
 Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+List-Id: linux-acpi@vger.kernel.org
 
-The ghes_edac driver was introduced in 2013 [1], but it has not
-been enabled by any distro yet.  This driver obtains error info
-from firmware interfaces, which are not properly implemented on
-many platforms, as the driver always emits the messages below:
+Only a single edac driver can be enabled for EDAC MC.  When ghes_edac
+is enabled, a regular edac driver for the CPU type / platform still
+attempts to register itself and fails in edac_mc_add_mc().
 
- This EDAC driver relies on BIOS to enumerate memory and get error reports.
- Unfortunately, not all BIOSes reflect the memory layout correctly
- So, the end result of using this driver varies from vendor to vendor
- If you find incorrect reports, please contact your hardware vendor
- to correct its BIOS.
+Add edac_check_mc_owner() so that regular edac drivers can check
+the owner of EDAC MC at the beginning of initialization.
 
-To get out from this situation, add a platform check to selectively
-enable the driver on the platforms that are known to have proper
-firmware implementation.  Platform vendors can add their platforms
-to the list when they support ghes_edac.
+Also change the owner check to string comparison from address check.
 
-"ghes_edac.any_oem=1" skips this platform check.
-
-[1]: https://lwn.net/Articles/538438/
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Tony Luck <tony.luck@intel.com>
 ---
- drivers/edac/ghes_edac.c |   29 +++++++++++++++++++++++------
- 1 file changed, 23 insertions(+), 6 deletions(-)
+ drivers/edac/edac_mc.c |   15 ++++++++++++++-
+ drivers/edac/edac_mc.h |   12 ++++++++++++
+ 2 files changed, 26 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index 2e9ce9c..72bab02 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -34,6 +34,9 @@ static LIST_HEAD(ghes_reglist);
- static DEFINE_MUTEX(ghes_edac_lock);
- static int ghes_edac_mc_num;
- 
-+/* Set 1 to skip the platform check */
-+static bool __read_mostly ghes_edac_any_oem;
-+module_param_named(any_oem, ghes_edac_any_oem, bool, 0);
- 
- /* Memory Device - Type 17 of SMBIOS spec */
- struct memdev_dmi_entry {
-@@ -405,17 +408,31 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
+index 4800721..52d8d5e 100644
+--- a/drivers/edac/edac_mc.c
++++ b/drivers/edac/edac_mc.c
+@@ -701,6 +701,19 @@ struct mem_ctl_info *edac_mc_find(int idx)
  }
- EXPORT_SYMBOL_GPL(ghes_edac_report_mem_error);
+ EXPORT_SYMBOL(edac_mc_find);
  
 +/*
-+ * Known systems that are safe to enable this module.
-+ * "ghes_edac.any_oem=1" skips this check if necessary.
++ * Returns:
++ *	1 when EDAC MC is free or owned by the module name
++ *	0 when EDAC MC is owned by other module
 + */
-+static struct acpi_oemlist oemlist[] = {
-+	{"HPE   ", "Server  ", 0, ACPI_SIG_FADT, all_versions},
-+	{ } /* End */
-+};
-+
- int ghes_edac_register(struct ghes *ghes, struct device *dev)
- {
- 	struct mem_ctl_info *mci;
- 	struct edac_mc_layer layers[1];
- 	struct ghes_edac_pvt *pvt;
- 	struct ghes_edac_dimm_fill dimm_fill;
--	int rc;
-+	int rc, idx;
- 
- 	static int num_dimm;
- 	static bool fake;
- 
-+	/* Check if safe to enable on this system */
-+	idx = acpi_match_oemlist(oemlist);
-+	if (!ghes_edac_any_oem && idx < 0)
++int edac_check_mc_owner(const char *mod_name)
++{
++	if (edac_mc_owner && strcmp(edac_mc_owner, mod_name))
 +		return 0;
 +
- 	/* Get the number of DIMMs */
- 	if (num_dimm == 0)
- 		dmi_walk(ghes_edac_count_dimms, &num_dimm);
-@@ -459,7 +476,11 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	mci->dev_name = "ghes";
++	return 1;
++}
++EXPORT_SYMBOL(edac_check_mc_owner);
  
- 	if (!ghes_edac_mc_num) {
--		if (!fake) {
-+		if (fake) {
-+			pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
-+			pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
-+			pr_info("work on such system. Use this driver with caution\n");
-+		} else if (idx < 0) {
- 			pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
- 			pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
- 			pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
-@@ -467,10 +488,6 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 			pr_info("to correct its BIOS.\n");
- 			pr_info("This system has %d DIMM sockets.\n",
- 				num_dimm);
--		} else {
--			pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
--			pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
--			pr_info("work on such system. Use this driver with caution\n");
- 		}
+ /* FIXME - should a warning be printed if no error detection? correction? */
+ int edac_mc_add_mc_with_groups(struct mem_ctl_info *mci,
+@@ -742,7 +755,7 @@ int edac_mc_add_mc_with_groups(struct mem_ctl_info *mci,
+ #endif
+ 	mutex_lock(&mem_ctls_mutex);
+ 
+-	if (edac_mc_owner && edac_mc_owner != mci->mod_name) {
++	if (!edac_check_mc_owner(mci->mod_name)) {
+ 		ret = -EPERM;
+ 		goto fail0;
  	}
+diff --git a/drivers/edac/edac_mc.h b/drivers/edac/edac_mc.h
+index 5357800..0e95eba 100644
+--- a/drivers/edac/edac_mc.h
++++ b/drivers/edac/edac_mc.h
+@@ -128,6 +128,18 @@ struct mem_ctl_info *edac_mc_alloc(unsigned mc_num,
+ 				   unsigned sz_pvt);
  
+ /**
++ *
++ * edac_check_mc_owner - Check the owner of EDAC MC
++ *
++ * @mod_name: pointer to the module name
++ *
++ * Returns:
++ *	1 when EDAC MC is free or owned by the module name
++ *	0 when EDAC MC is owned by other module
++ */
++extern int edac_check_mc_owner(const char *mod_name);
++
++/*
+  * edac_mc_add_mc_with_groups() - Insert the @mci structure into the mci
+  *	global list and create sysfs entries associated with @mci structure.
+  *
