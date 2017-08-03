@@ -1,110 +1,122 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 5/5] ACPI/IORT: Add IORT named component memory
- address limits
-Date: Wed, 2 Aug 2017 19:07:35 +0100
-Message-ID: <20170802180735.GA26765@red-moon>
-References: <20170731152323.32488-1-lorenzo.pieralisi@arm.com>
- <20170731152323.32488-6-lorenzo.pieralisi@arm.com>
- <cf158a20-e6ec-6826-e727-71ad74f9f7c5@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 00/15] ACPICA 20170728 Release
+Date: Thu,  3 Aug 2017 14:26:02 +0800
+Message-ID: <cover.1501730699.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58476 "EHLO foss.arm.com"
+Received: from mga02.intel.com ([134.134.136.20]:24442 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752875AbdHBSFl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 2 Aug 2017 14:05:41 -0400
-Content-Disposition: inline
-In-Reply-To: <cf158a20-e6ec-6826-e727-71ad74f9f7c5@codeaurora.org>
+        id S1751229AbdHCG0R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 3 Aug 2017 02:26:17 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nate Watterson <nwatters@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Wed, Aug 02, 2017 at 01:31:03PM -0400, Nate Watterson wrote:
-> Hi Lorenzo,
-> I ran a quick test and this seems to work for memory_address_limit < 64,
-> however memory_address_limit == 64 yields a mask of 0x0.
+The 20170728 ACPICA kernel-resident subsystem updates are linuxized based
+on the linux-pm/linux-next branch.
 
-I will fix it - apologies. Thanks.
+The patchset has passed the following build/boot tests.
+Build tests are performed as follows:
+1. i386 + allyes
+2. i386 + allno
+3. i386 + default + ACPI_DEBUGGER=y
+4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+5. i386 + default + ACPI_DEBUG=n + ACPI=y
+6. i386 + default + ACPI=n
+7. x86_64 + allyes
+8. x86_64 + allno
+9. x86_64 + default + ACPI_DEBUGGER=y
+10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
+12.x86_64 + default + ACPI=n
+Boot tests are performed as follows:
+1. x86_64 + default + ACPI_DEBUGGER=y
+Where:
+1. i386: machine named as "Dell Inspiron Mini 1010"
+2. x86_64: machine named as "Microsoft Surface Pro 3"
+3. default: kernel configuration with following items enabled:
+   All hardware drivers related to the machines of i386/x86_64
+   All "drivers/acpi" configurations
+   All "drivers/platform" drivers
+   All other drivers that link the APIs provided by ACPICA subsystem
 
-Lorenzo
+The divergences checking result:
+Before applying (20170629 Release):
+  390 lines
+After applying (20170728 Release):
+  390 lines
 
-> -Nate
-> 
-> On 7/31/2017 11:23 AM, Lorenzo Pieralisi wrote:
-> >IORT named components provide firmware configuration describing
-> >how many address bits a given device is capable of generating
-> >to address memory.
-> >
-> >Add code to the kernel to retrieve memory address limits
-> >configuration for IORT named components and configure DMA masks
-> >accordingly.
-> >
-> >Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >Cc: Will Deacon <will.deacon@arm.com>
-> >Cc: Robin Murphy <robin.murphy@arm.com>
-> >Cc: Nate Watterson <nwatters@codeaurora.org>
-> >---
-> >  drivers/acpi/arm64/iort.c | 40 ++++++++++++++++++++++++++++++----------
-> >  1 file changed, 30 insertions(+), 10 deletions(-)
-> >
-> >diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> >index 67b85ae..b85d19f 100644
-> >--- a/drivers/acpi/arm64/iort.c
-> >+++ b/drivers/acpi/arm64/iort.c
-> >@@ -680,6 +680,24 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
-> >  	return ret ? NULL : ops;
-> >  }
-> >+static int nc_dma_get_range(struct device *dev, u64 *size)
-> >+{
-> >+	struct acpi_iort_node *node;
-> >+	struct acpi_iort_named_component *ncomp;
-> >+
-> >+	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> >+			      iort_match_node_callback, dev);
-> >+	if (!node)
-> >+		return -ENODEV;
-> >+
-> >+	ncomp = (struct acpi_iort_named_component *)node->node_data;
-> >+
-> >+	*size = ncomp->memory_address_limit >= 64 ? ~0ULL :
-> >+			1ULL<<ncomp->memory_address_limit;
-> >+
-> >+	return 0;
-> >+}
-> >+
-> >  /**
-> >   * iort_dma_setup() - Set-up device DMA parameters.
-> >   *
-> >@@ -708,17 +726,19 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
-> >  	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
-> >-	if (dev_is_pci(dev)) {
-> >+	if (dev_is_pci(dev))
-> >  		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
-> >-		if (!ret) {
-> >-			mask = __roundup_pow_of_two(dmaaddr + size) - 1;
-> >-			/*
-> >-			 * Limit coherent and dma mask based on size
-> >-			 * retrieved from firmware.
-> >-			 */
-> >-			dev->coherent_dma_mask = mask;
-> >-			*dev->dma_mask = mask;
-> >-		}
-> >+	else
-> >+		ret = nc_dma_get_range(dev, &size);
-> >+
-> >+	if (!ret) {
-> >+		mask = __roundup_pow_of_two(dmaaddr + size) - 1;
-> >+		/*
-> >+		 * Limit coherent and dma mask based on size
-> >+		 * retrieved from firmware.
-> >+		 */
-> >+		dev->coherent_dma_mask = mask;
-> >+		*dev->dma_mask = mask;
-> >  	}
-> >  	*dma_addr = dmaaddr;
-> >
-> 
-> -- 
-> Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
-> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Bob Moore (8):
+  ACPICA: Namespace: Update/fix an error message
+  ACPICA: Add a comment, no functional change
+  ACPICA: Interpreter: Update handling for Alias operator
+  ACPICA: Debugger: Improve support for Alias objects
+  ACPICA: Implement deferred resolution of reference package elements
+  ACPICA: Ensure all instances of AE_AML_INTERNAL have error messages
+  ACPICA: Resources: Allow _DMA method in walk resources
+  ACPICA: Update version to 20170728
+
+Erik Schmauss (1):
+  ACPICA: Revert "Update resource descriptor handling"
+
+James Morse (1):
+  ACPICA: iASL: Add support for the SDEI table
+
+Lv Zheng (4):
+  ACPICA: Divergences: reduce access size definitions
+  ACPICA: CLib: Add short multiply/shift support
+  ACPICA: acpidump: Add DSDT/FACS instance support for Linux and EFI
+  ACPICA: EFI/EDK2: Cleanup to enable /WX for MSVC builds
+
+Shao Ming (1):
+  ACPICA: EFI/EDK2: Sort acpi.h inclusion order
+
+ drivers/acpi/acpica/Makefile                       |   1 +
+ drivers/acpi/acpica/acdispat.h                     |  13 +
+ drivers/acpi/acpica/aclocal.h                      |   2 +-
+ drivers/acpi/acpica/acobject.h                     |   3 +-
+ drivers/acpi/acpica/acutils.h                      |   9 +-
+ drivers/acpi/acpica/dbdisply.c                     |  37 +-
+ drivers/acpi/acpica/dsfield.c                      |   2 +
+ drivers/acpi/acpica/dsobject.c                     | 398 +++--------------
+ drivers/acpi/acpica/dsopcode.c                     |   9 +
+ drivers/acpi/acpica/dspkginit.c                    | 496 +++++++++++++++++++++
+ drivers/acpi/acpica/excreate.c                     |  61 +--
+ drivers/acpi/acpica/exdump.c                       |  34 +-
+ drivers/acpi/acpica/exmisc.c                       |   9 +
+ drivers/acpi/acpica/exoparg2.c                     |   3 +
+ drivers/acpi/acpica/hwregs.c                       |   2 +-
+ drivers/acpi/acpica/nsaccess.c                     |  22 +-
+ drivers/acpi/acpica/nsarguments.c                  |  21 +-
+ drivers/acpi/acpica/nsinit.c                       |  14 +
+ drivers/acpi/acpica/nsnames.c                      |   9 +-
+ drivers/acpi/acpica/nsprepkg.c                     |   2 +
+ drivers/acpi/acpica/psloop.c                       |  14 +
+ drivers/acpi/acpica/rsxface.c                      |   7 +-
+ drivers/acpi/acpica/uthex.c                        |   4 +-
+ drivers/acpi/acpica/utmath.c                       | 222 ++++++++-
+ drivers/acpi/acpica/utmisc.c                       |  10 +-
+ drivers/acpi/acpica/utobject.c                     |   5 +
+ drivers/acpi/acpica/utprint.c                      |   8 +-
+ drivers/acpi/acpica/utresrc.c                      |  21 +-
+ drivers/acpi/acpica/utstate.c                      |   2 +-
+ drivers/acpi/acpica/utstrtoul64.c                  |   9 +-
+ drivers/acpi/acpica/uttrack.c                      |   9 +-
+ drivers/acpi/spcr.c                                |   9 +-
+ include/acpi/acnames.h                             |   1 +
+ include/acpi/acpi.h                                |   4 +-
+ include/acpi/acpixf.h                              |   2 +-
+ include/acpi/acrestyp.h                            |   7 -
+ include/acpi/actbl2.h                              |  14 +
+ include/acpi/actypes.h                             |   8 +
+ include/acpi/platform/acgcc.h                      |   4 +
+ include/acpi/platform/aclinux.h                    |   2 +
+ .../acpi/os_specific/service_layers/oslinuxtbl.c   | 105 +++--
+ tools/power/acpi/tools/acpidump/apfiles.c          |   2 +-
+ tools/power/acpi/tools/acpidump/apmain.c           |   2 +-
+ 43 files changed, 1127 insertions(+), 491 deletions(-)
+ create mode 100644 drivers/acpi/acpica/dspkginit.c
+
+-- 
+2.7.4
+
