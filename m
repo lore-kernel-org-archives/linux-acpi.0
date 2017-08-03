@@ -1,108 +1,238 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH v3 5/5] ACPI/IORT: Add IORT named component memory address limits
-Date: Thu,  3 Aug 2017 13:32:39 +0100
-Message-ID: <20170803123239.11359-6-lorenzo.pieralisi@arm.com>
+Subject: [PATCH v3 3/5] ACPI: Introduce DMA ranges parsing
+Date: Thu,  3 Aug 2017 13:32:37 +0100
+Message-ID: <20170803123239.11359-4-lorenzo.pieralisi@arm.com>
 References: <20170803123239.11359-1-lorenzo.pieralisi@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39750 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751877AbdHCMa6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 3 Aug 2017 08:30:58 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170803123239.11359-1-lorenzo.pieralisi@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Nate Watterson <nwatters@codeaurora.org>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robin Murphy <robin.murphy@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
+List-Id: linux-acpi@vger.kernel.org
 
-IORT named components provide firmware configuration describing
-how many address bits a given device is capable of generating
-to address memory.
+Some devices have limited addressing capabilities and cannot
+reference the whole memory address space while carrying out DMA
+operations (eg some devices with bus address bits range smaller than
+system bus - which prevents them from using bus addresses that are
+otherwise valid for the system).
 
-Add code to the kernel to retrieve memory address limits
-configuration for IORT named components and configure DMA masks
-accordingly.
+The ACPI _DMA object allows bus devices to define the DMA window that is
+actually addressable by devices that sit upstream the bus, therefore
+providing a means to parse and initialize the devices DMA masks and
+addressable DMA range size.
+
+By relying on the generic ACPI kernel layer to retrieve and parse
+resources, introduce ACPI core code to parse the _DMA object.
 
 Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
 Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Nate Watterson <nwatters@codeaurora.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 ---
- drivers/acpi/arm64/iort.c | 54 ++++++++++++++++++++++++++++++++---------------
- 1 file changed, 37 insertions(+), 17 deletions(-)
+ drivers/acpi/resource.c | 35 +++++++++++++++++++
+ drivers/acpi/scan.c     | 91 ++++++++++++++++++++++++++++++++++++++++++++-----
+ include/acpi/acpi_bus.h |  2 ++
+ include/linux/acpi.h    |  8 +++++
+ 4 files changed, 128 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 606af87..5b9e8dc2 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -680,6 +680,24 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
- 	return ret ? NULL : ops;
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 93f1b5c..d85e010 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -635,6 +635,41 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
  }
+ EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
  
-+static int nc_dma_get_range(struct device *dev, u64 *size)
++static int is_memory(struct acpi_resource *ares, void *not_used)
 +{
-+	struct acpi_iort_node *node;
-+	struct acpi_iort_named_component *ncomp;
++	struct resource_win win;
++	struct resource *res = &win.res;
 +
-+	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-+			      iort_match_node_callback, dev);
-+	if (!node)
-+		return -ENODEV;
++	memset(&win, 0, sizeof(win));
 +
-+	ncomp = (struct acpi_iort_named_component *)node->node_data;
-+
-+	*size = ncomp->memory_address_limit >= 64 ? U64_MAX :
-+			1ULL<<ncomp->memory_address_limit;
-+
-+	return 0;
++	return !(acpi_dev_resource_memory(ares, res)
++	       || acpi_dev_resource_address_space(ares, &win)
++	       || acpi_dev_resource_ext_address_space(ares, &win));
 +}
 +
- /**
-  * iort_dma_setup() - Set-up device DMA parameters.
-  *
-@@ -708,24 +726,26 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
- 
- 	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
- 
--	if (dev_is_pci(dev)) {
-+	if (dev_is_pci(dev))
- 		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
--		if (!ret) {
--			msb = fls64(dmaaddr + size - 1);
--			/*
--			 * Round-up to the power-of-two mask or set
--			 * the mask to the whole 64-bit address space
--			 * in case the DMA region covers the full
--			 * memory window.
--			 */
--			mask = msb == 64 ? U64_MAX : (1ULL << msb) - 1;
--			/*
--			 * Limit coherent and dma mask based on size
--			 * retrieved from firmware.
--			 */
--			dev->coherent_dma_mask = mask;
--			*dev->dma_mask = mask;
--		}
-+	else
-+		ret = nc_dma_get_range(dev, &size);
++/**
++ * acpi_dev_get_dma_resources - Get current DMA resources of a device.
++ * @adev: ACPI device node to get the resources for.
++ * @list: Head of the resultant list of resources (must be empty).
++ *
++ * Evaluate the _DMA method for the given device node and process its
++ * output.
++ *
++ * The resultant struct resource objects are put on the list pointed to
++ * by @list, that must be empty initially, as members of struct
++ * resource_entry objects.  Callers of this routine should use
++ * %acpi_dev_free_resource_list() to free that list.
++ *
++ * The number of resources in the output list is returned on success,
++ * an error code reflecting the error condition is returned otherwise.
++ */
++int acpi_dev_get_dma_resources(struct acpi_device *adev, struct list_head *list)
++{
++	return __acpi_dev_get_resources(adev, list, is_memory, NULL,
++					METHOD_NAME__DMA);
++}
++EXPORT_SYMBOL_GPL(acpi_dev_get_dma_resources);
 +
-+	if (!ret) {
-+		msb = fls64(dmaaddr + size - 1);
-+		/*
-+		 * Round-up to the power-of-two mask or set
-+		 * the mask to the whole 64-bit address space
-+		 * in case the DMA region covers the full
-+		 * memory window.
-+		 */
-+		mask = msb == 64 ? U64_MAX : (1ULL << msb) - 1;
-+		/*
-+		 * Limit coherent and dma mask based on size
-+		 * retrieved from firmware.
-+		 */
-+		dev->coherent_dma_mask = mask;
-+		*dev->dma_mask = mask;
- 	}
+ /**
+  * acpi_dev_filter_resource_type - Filter ACPI resource according to resource
+  *				   types
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 3389729..f024996 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1360,6 +1360,85 @@ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
+ }
  
- 	*dma_addr = dmaaddr;
+ /**
++ * acpi_dma_get_range() - Get device DMA parameters.
++ *
++ * @dev: device to configure
++ * @dma_addr: pointer device DMA address result
++ * @offset: pointer to the DMA offset result
++ * @size: pointer to DMA range size result
++ *
++ * Evaluate DMA regions and return respectively DMA region start, offset
++ * and size in dma_addr, offset and size on parsing success; it does not
++ * update the passed in values on failure.
++ *
++ * Return 0 on success, < 0 on failure.
++ */
++int acpi_dma_get_range(struct device *dev, u64 *dma_addr, u64 *offset,
++		       u64 *size)
++{
++	struct acpi_device *adev;
++	LIST_HEAD(list);
++	struct resource_entry *rentry;
++	int ret;
++	struct device *dma_dev = dev;
++	u64 len, dma_start = U64_MAX, dma_end = 0, dma_offset = 0;
++
++	/*
++	 * Walk the device tree chasing an ACPI companion with a _DMA
++	 * object while we go. Stop if we find a device with an ACPI
++	 * companion containing a _DMA method.
++	 */
++	do {
++		adev = ACPI_COMPANION(dma_dev);
++		if (adev && acpi_has_method(adev->handle, METHOD_NAME__DMA))
++			break;
++
++		dma_dev = dma_dev->parent;
++	} while (dma_dev);
++
++	if (!dma_dev)
++		return -ENODEV;
++
++	if (!acpi_has_method(adev->handle, METHOD_NAME__CRS)) {
++		acpi_handle_warn(adev->handle, "_DMA object only valid in object with valid _CRS\n");
++		return -EINVAL;
++	}
++
++	ret = acpi_dev_get_dma_resources(adev, &list);
++	if (ret > 0) {
++		list_for_each_entry(rentry, &list, node) {
++			if (dma_offset && rentry->offset != dma_offset) {
++				ret = -EINVAL;
++				dev_warn(dma_dev, "Can't handle multiple windows with different offsets\n");
++				goto out;
++			}
++			dma_offset = rentry->offset;
++
++			/* Take lower and upper limits */
++			if (rentry->res->start < dma_start)
++				dma_start = rentry->res->start;
++			if (rentry->res->end > dma_end)
++				dma_end = rentry->res->end;
++		}
++
++		if (dma_start >= dma_end) {
++			ret = -EINVAL;
++			dev_dbg(dma_dev, "Invalid DMA regions configuration\n");
++			goto out;
++		}
++
++		*dma_addr = dma_start - dma_offset;
++		len = dma_end - dma_start;
++		*size = max(len, len + 1);
++		*offset = dma_offset;
++	}
++ out:
++	acpi_dev_free_resource_list(&list);
++
++	return ret >= 0 ? 0 : ret;
++}
++
++/**
+  * acpi_dma_configure - Set-up DMA configuration for the device.
+  * @dev: The pointer to the device
+  * @attr: device dma attributes
+@@ -1367,20 +1446,16 @@ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
+ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+ {
+ 	const struct iommu_ops *iommu;
+-	u64 size;
++	u64 dma_addr = 0, size = 0;
+ 
+-	iort_set_dma_mask(dev);
++	iort_dma_setup(dev, &dma_addr, &size);
+ 
+ 	iommu = iort_iommu_configure(dev);
+ 	if (IS_ERR(iommu) && PTR_ERR(iommu) == -EPROBE_DEFER)
+ 		return -EPROBE_DEFER;
+ 
+-	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+-	/*
+-	 * Assume dma valid range starts at 0 and covers the whole
+-	 * coherent_dma_mask.
+-	 */
+-	arch_setup_dma_ops(dev, 0, size, iommu, attr == DEV_DMA_COHERENT);
++	arch_setup_dma_ops(dev, dma_addr, size,
++				iommu, attr == DEV_DMA_COHERENT);
+ 
+ 	return 0;
+ }
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 68bc6be..07eb963 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -578,6 +578,8 @@ struct acpi_pci_root {
+ 
+ bool acpi_dma_supported(struct acpi_device *adev);
+ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev);
++int acpi_dma_get_range(struct device *dev, u64 *dma_addr, u64 *offset,
++		       u64 *size);
+ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr);
+ void acpi_dma_deconfigure(struct device *dev);
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index c749eef..a5eaff9 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -427,6 +427,8 @@ void acpi_dev_free_resource_list(struct list_head *list);
+ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
+ 			   int (*preproc)(struct acpi_resource *, void *),
+ 			   void *preproc_data);
++int acpi_dev_get_dma_resources(struct acpi_device *adev,
++			       struct list_head *list);
+ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
+ 				  unsigned long types);
+ 
+@@ -774,6 +776,12 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
+ 	return DEV_DMA_NOT_SUPPORTED;
+ }
+ 
++static inline int acpi_dma_get_range(struct device *dev, u64 *dma_addr,
++				     u64 *offset, u64 *size)
++{
++	return -ENODEV;
++}
++
+ static inline int acpi_dma_configure(struct device *dev,
+ 				     enum dev_dma_attr attr)
+ {
 -- 
 2.10.0
-
