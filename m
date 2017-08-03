@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 15/15] ACPICA: Update version to 20170728
-Date: Thu,  3 Aug 2017 14:27:48 +0800
-Message-ID: <f3e5f414ce3a18b648ee3fd0d9cc0dc3a31946c2.1501730699.git.lv.zheng@intel.com>
+Subject: [PATCH 04/15] ACPICA: Add a comment, no functional change
+Date: Thu,  3 Aug 2017 14:26:38 +0800
+Message-ID: <80e42989e573df6257093402632b06b6341856bf.1501730699.git.lv.zheng@intel.com>
 References: <cover.1501730699.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44694 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:47301 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751270AbdHCG1w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 3 Aug 2017 02:27:52 -0400
+        id S1751924AbdHCG0m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 3 Aug 2017 02:26:42 -0400
 In-Reply-To: <cover.1501730699.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,30 +16,35 @@ Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 50f61636543a55d143c792a4814da7700a7fafc2
+ACPICA commit d586c29a026a6172c1113df4d75fd6d764196e77
 
-Version 20170728.
+Describe 2nd byte of the end_tag resource descriptor.
 
-Link: https://github.com/acpica/acpica/commit/50f61636
+Link: https://github.com/acpica/acpica/commit/d586c29a
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/acpixf.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/utresrc.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 06b87ad..53c5e2f 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -46,7 +46,7 @@
+diff --git a/drivers/acpi/acpica/utresrc.c b/drivers/acpi/acpica/utresrc.c
+index d955bf8..517acf8 100644
+--- a/drivers/acpi/acpica/utresrc.c
++++ b/drivers/acpi/acpica/utresrc.c
+@@ -239,6 +239,13 @@ acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
+ 				return_ACPI_STATUS(AE_AML_NO_RESOURCE_END_TAG);
+ 			}
  
- /* Current ACPICA subsystem version in YYYYMMDD format */
++			/*
++			 * Don't attempt to perform any validation on the 2nd byte.
++			 * Although all known ASL compilers insert a zero for the 2nd
++			 * byte, it can also be a checksum (as per the ACPI spec),
++			 * and this is occasionally seen in the field. July 2017.
++			 */
++
+ 			/* Return the pointer to the end_tag if requested */
  
--#define ACPI_CA_VERSION                 0x20170629
-+#define ACPI_CA_VERSION                 0x20170728
- 
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
+ 			if (!user_function) {
 -- 
 2.7.4
 
