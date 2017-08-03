@@ -1,84 +1,118 @@
-From: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
-Subject: Re: A udev rule to serve the change event of ACPI container?
-Date: Thu, 3 Aug 2017 11:37:37 -0400
-Message-ID: <8c04a96f-3f7a-1c31-9522-3344a4751d33@gmail.com>
-References: <20170626062657.GE4229@linux-l9pv.suse>
- <20170626085907.GE11534@dhcp22.suse.cz>
- <20170711082532.GA6927@dhcp22.suse.cz>
- <20170713065806.GB2901@linux-l9pv.suse>
- <20170713070618.GC14492@dhcp22.suse.cz>
- <20170713124521.GE2901@linux-l9pv.suse>
- <20170714083713.GB2618@dhcp22.suse.cz>
- <20170714144414.GM2901@linux-l9pv.suse>
- <20170723060248.GA3034@linux-l9pv.suse>
- <b6802e30-cb1e-5fa8-6afc-09b4e05d78c9@gmail.com>
- <20170802054939.GL2946@linux-l9pv.suse>
+From: Nate Watterson <nwatters@codeaurora.org>
+Subject: Re: [PATCH v3 0/5] ACPI: DMA ranges management
+Date: Thu, 3 Aug 2017 11:45:04 -0400
+Message-ID: <3ccac0b0-dd5a-6a70-f253-99f038f69b8c@codeaurora.org>
+References: <20170803123239.11359-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:33879 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751220AbdHCPhk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2017 11:37:40 -0400
-In-Reply-To: <20170802054939.GL2946@linux-l9pv.suse>
+Received: from smtp.codeaurora.org ([198.145.29.96]:33486 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751158AbdHCPpM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2017 11:45:12 -0400
+In-Reply-To: <20170803123239.11359-1-lorenzo.pieralisi@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Michal Hocko <mhocko@kernel.org>, yasu.isimatu@gmail.com
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
+Hi Lorenzo,
 
-
-On 08/02/2017 01:49 AM, joeyli wrote:
-> Hi YASUAKI,
+On 8/3/2017 8:32 AM, Lorenzo Pieralisi wrote:
+> This patch series is v3 of a previous posting:
 > 
-> On Tue, Aug 01, 2017 at 03:21:38PM -0400, YASUAKI ISHIMATSU wrote:
->> Hi Joey,
->>
->> On 07/23/2017 05:18 AM, joeyli wrote:
-> [...snip]
->>>>>
->>>>
->>>> At least Yasuaki raised similar behavior for container in 2013.
->>>> It's similar to the DVD player case, user space application needs
->>>> to do something then trigger children offline and ejection of
->>>> container.
->>>>
->>>> Base on Yasuaki's explanation, the reason of that he requested the
->>>> userland ejection approach is that he got memory hot-remove problem
->>>> in 2013. Maybe his problem is already fixed by your patches in current
->>>> mainline.
->>>>
->>>> Hi Yasuaki, could you please check that your memory hot-remove problem
->>>> is fixed on mainline kernel?  
->>
->> I cannot remember what I mentioned in 2013. Could you tell me url of lkml archive.
->>
+> v2->v3:
+> 	- Fixed DMA masks computation
+>          - Fixed size computation overflow in acpi_dma_get_range()
+> 
+> v1->v2:
+> 	- Reworked acpi_dma_get_range() flow and logs
+> 	- Added IORT named component address limits
+> 	- Renamed acpi_dev_get_resources() helper function
+> 	- Rebased against v4.13-rc3
+> 
+> v2: http://lkml.kernel.org/r/20170731152323.32488-1-lorenzo.pieralisi@arm.com
+> v1: http://lkml.kernel.org/r/20170720144517.32529-1-lorenzo.pieralisi@arm.com
+> 
+> -- Original cover letter --
+> 
+> As reported in:
+> 
+> http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
+> 
+> the bus connecting devices to an IOMMU bus can be smaller in size than
+> the IOMMU input address bits which results in devices DMA HW bugs in
+> particular related to IOVA allocation (ie chopping of higher address
+> bits owing to system bus HW capabilities mismatch with the IOMMU).
+> 
+> Fortunately this problem can be solved through an already present but never
+> used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define the DMA
+> window for a specific bus in ACPI and therefore all upstream devices
+> connected to it.
+> 
+> This small patch series enables _DMA parsing in ACPI core code and
+> use it in ACPI IORT code in order to detect DMA ranges for devices and
+> update their data structures to make them work with their related DMA
+> addressing restrictions.
+> 
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Feng Kan <fkan@apm.com>
+> Cc: Jon Masters <jcm@redhat.com>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> 
+> Lorenzo Pieralisi (5):
+>    ACPICA: resource_mgr: Allow _DMA method in walk resources
+>    ACPI: Make acpi_dev_get_resources() method agnostic
+>    ACPI: Introduce DMA ranges parsing
+>    ACPI: Make acpi_dma_configure() DMA regions aware
+>    ACPI/IORT: Add IORT named component memory address limits
+> 
+>   drivers/acpi/acpica/rsxface.c |  7 ++--
+>   drivers/acpi/arm64/iort.c     | 57 ++++++++++++++++++++++++++-
+>   drivers/acpi/resource.c       | 82 +++++++++++++++++++++++++++++---------
+>   drivers/acpi/scan.c           | 91 +++++++++++++++++++++++++++++++++++++++----
+>   include/acpi/acnames.h        |  1 +
+>   include/acpi/acpi_bus.h       |  2 +
+>   include/linux/acpi.h          |  8 ++++
+>   include/linux/acpi_iort.h     |  5 ++-
+>   8 files changed, 219 insertions(+), 34 deletions(-)
 > 
 
-> Here: https://lkml.org/lkml/2013/11/28/520
+I tested with named components and with _DMA objects at a variety of
+sizes and verified the configured masks matched the expected values.
 
-Thank you for specifying the URL. In the URL, I wrote the following problems:
+Tested-by: Nate Watterson <nwatters@codeaurora.org>
 
->   1. easily fail
->      My container device has CPU device and Memory device, and maximum size of
->      memory is 3Tbyte. In my environment, hot removing container device fails
->      on offlining memory if memory is used by application.
->      I think if offlininig memory, we must retly to offline memory several
->      times.
+One general question I had while testing the patch is whether it is
+possible to define a complete 64-bit range using the _DMA method. For
+instance, to get a 64-bit dma_mask I had to use a non-zero MIN value
+so that LEN would not overflow.
 
-I think the issue still remains. If process keeps accessing memory, offlining
-the memory easily fails with EBUSY.
+QWORDMemory(
+	ResourceConsumer,
+	PosDecode,       // _DEC
+	MinFixed,        // _MIF
+	MaxFixed,        // _MAF
+	Prefetchable,    // _MEM
+	ReadWrite,       // _RW
+	0,               // _GRA
+	0x1000,               // _MIN
+	0xffffffffffffffff,   // _MAX
+	0x0,                  // _TRA
+	0xfffffffffffff000,   // _LEN
+	,
+	,
+	,
+)
 
-Thanks,
-Yasuaki Ishimatsu
+-Nate
 
-
-> 
-> In the mail, you mentioned two problems. But there have no detail about
-> those issues, and no root causes. We don't know why kernel should relies
-> on user space to complete the hot removing process for container.
-> 
-> Thank a lot!
-> Joey Lee
-> 
+-- 
+Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
