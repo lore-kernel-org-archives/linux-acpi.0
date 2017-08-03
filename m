@@ -1,102 +1,108 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH v3 2/5] ACPI: Make acpi_dev_get_resources() method agnostic
-Date: Thu,  3 Aug 2017 13:32:36 +0100
-Message-ID: <20170803123239.11359-3-lorenzo.pieralisi@arm.com>
+Subject: [PATCH v3 5/5] ACPI/IORT: Add IORT named component memory address limits
+Date: Thu,  3 Aug 2017 13:32:39 +0100
+Message-ID: <20170803123239.11359-6-lorenzo.pieralisi@arm.com>
 References: <20170803123239.11359-1-lorenzo.pieralisi@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:39750 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751877AbdHCMa6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 3 Aug 2017 08:30:58 -0400
 In-Reply-To: <20170803123239.11359-1-lorenzo.pieralisi@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Nate Watterson <nwatters@codeaurora.org>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-The function acpi_dev_get_resources() is completely generic and
-can be used to parse resource objects that are not necessarily
-coming from the _CRS method but also from other objects eg _DMA
-that have the same _CRS resource format.
+IORT named components provide firmware configuration describing
+how many address bits a given device is capable of generating
+to address memory.
 
-Create an acpi_dev_get_resources() helper, internal to the ACPI
-resources parsing compilation unit, __acpi_dev_get_resources(),
-that takes a const char* parameter to detect which ACPI method should be
-called to retrieve the resources list and make acpi_dev_get_resources()
-call it with a method name _CRS leaving the API behaviour unchanged.
+Add code to the kernel to retrieve memory address limits
+configuration for IORT named components and configure DMA masks
+accordingly.
 
 Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Nate Watterson <nwatters@codeaurora.org>
 ---
- drivers/acpi/resource.c | 53 +++++++++++++++++++++++++++++--------------------
- 1 file changed, 31 insertions(+), 22 deletions(-)
+ drivers/acpi/arm64/iort.c | 54 ++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 37 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index cd4c427..93f1b5c 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -573,6 +573,35 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
- 	return AE_OK;
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 606af87..5b9e8dc2 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -680,6 +680,24 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+ 	return ret ? NULL : ops;
  }
  
-+static int __acpi_dev_get_resources(struct acpi_device *adev,
-+				    struct list_head *list,
-+				    int (*preproc)(struct acpi_resource *, void *),
-+				    void *preproc_data, char *method)
++static int nc_dma_get_range(struct device *dev, u64 *size)
 +{
-+	struct res_proc_context c;
-+	acpi_status status;
++	struct acpi_iort_node *node;
++	struct acpi_iort_named_component *ncomp;
 +
-+	if (!adev || !adev->handle || !list_empty(list))
-+		return -EINVAL;
++	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
++			      iort_match_node_callback, dev);
++	if (!node)
++		return -ENODEV;
 +
-+	if (!acpi_has_method(adev->handle, method))
-+		return 0;
++	ncomp = (struct acpi_iort_named_component *)node->node_data;
 +
-+	c.list = list;
-+	c.preproc = preproc;
-+	c.preproc_data = preproc_data;
-+	c.count = 0;
-+	c.error = 0;
-+	status = acpi_walk_resources(adev->handle, method,
-+				     acpi_dev_process_resource, &c);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_dev_free_resource_list(list);
-+		return c.error ? c.error : -EIO;
-+	}
++	*size = ncomp->memory_address_limit >= 64 ? U64_MAX :
++			1ULL<<ncomp->memory_address_limit;
 +
-+	return c.count;
++	return 0;
 +}
 +
  /**
-  * acpi_dev_get_resources - Get current resources of a device.
-  * @adev: ACPI device node to get the resources for.
-@@ -601,28 +630,8 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
- 			   int (*preproc)(struct acpi_resource *, void *),
- 			   void *preproc_data)
- {
--	struct res_proc_context c;
--	acpi_status status;
--
--	if (!adev || !adev->handle || !list_empty(list))
--		return -EINVAL;
--
--	if (!acpi_has_method(adev->handle, METHOD_NAME__CRS))
--		return 0;
--
--	c.list = list;
--	c.preproc = preproc;
--	c.preproc_data = preproc_data;
--	c.count = 0;
--	c.error = 0;
--	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
--				     acpi_dev_process_resource, &c);
--	if (ACPI_FAILURE(status)) {
--		acpi_dev_free_resource_list(list);
--		return c.error ? c.error : -EIO;
--	}
--
--	return c.count;
-+	return __acpi_dev_get_resources(adev, list, preproc, preproc_data,
-+					METHOD_NAME__CRS);
- }
- EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
+  * iort_dma_setup() - Set-up device DMA parameters.
+  *
+@@ -708,24 +726,26 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
  
+ 	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+ 
+-	if (dev_is_pci(dev)) {
++	if (dev_is_pci(dev))
+ 		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
+-		if (!ret) {
+-			msb = fls64(dmaaddr + size - 1);
+-			/*
+-			 * Round-up to the power-of-two mask or set
+-			 * the mask to the whole 64-bit address space
+-			 * in case the DMA region covers the full
+-			 * memory window.
+-			 */
+-			mask = msb == 64 ? U64_MAX : (1ULL << msb) - 1;
+-			/*
+-			 * Limit coherent and dma mask based on size
+-			 * retrieved from firmware.
+-			 */
+-			dev->coherent_dma_mask = mask;
+-			*dev->dma_mask = mask;
+-		}
++	else
++		ret = nc_dma_get_range(dev, &size);
++
++	if (!ret) {
++		msb = fls64(dmaaddr + size - 1);
++		/*
++		 * Round-up to the power-of-two mask or set
++		 * the mask to the whole 64-bit address space
++		 * in case the DMA region covers the full
++		 * memory window.
++		 */
++		mask = msb == 64 ? U64_MAX : (1ULL << msb) - 1;
++		/*
++		 * Limit coherent and dma mask based on size
++		 * retrieved from firmware.
++		 */
++		dev->coherent_dma_mask = mask;
++		*dev->dma_mask = mask;
+ 	}
+ 
+ 	*dma_addr = dmaaddr;
 -- 
 2.10.0
+
