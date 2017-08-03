@@ -1,61 +1,119 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 0/7] enable ghes_edac on selected platforms
-Date: Thu,  3 Aug 2017 15:57:46 -0600
-Message-ID: <20170803215753.30553-1-toshi.kani@hpe.com>
+Subject: [PATCH v2 2/7] intel_pstate: convert to use acpi_match_oemlist()
+Date: Thu,  3 Aug 2017 15:57:48 -0600
+Message-ID: <20170803215753.30553-3-toshi.kani@hpe.com>
+References: <20170803215753.30553-1-toshi.kani@hpe.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t2352.austin.hpe.com ([15.233.44.25]:48116 "EHLO
-        g2t2352.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751754AbdHCWH0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2017 18:07:26 -0400
+Received: from g2t2354.austin.hpe.com ([15.233.44.27]:52115 "EHLO
+        g2t2354.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751754AbdHCWHa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2017 18:07:30 -0400
+In-Reply-To: <20170803215753.30553-1-toshi.kani@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@rjwysocki.net, bp@alien8.de
-Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-The ghes_edac driver was introduced in 2013 [1], but it has not been
-enabled by any distro yet.  This is because the driver obtains error
-info from firmware interfaces, which are not properly implemented on
-many platforms.
+Convert to use acpi_match_oemlist() for the platform check.
+There is no change in functionality.
 
-To get out from this situation, add a platform check to selectively
-enable the driver on the platforms that are known to have proper
-firmware implementation.  Platform vendors can add their platforms to
-the list when they support ghes_edac.
-
-Patch 1-2 introduces a common function for platform check.
-Patch 3 improves GHES check for ghes_edac.
-Patch 4 optimizes ghes_edac init code.
-Patch 5 introduces platform check to ghes_edac.
-Patch 6-7 optimizes regular edac driver's init code when ghes_edac is used.
-
-v2:
- - Address review comments (patch 1).
- - Add OSC APEI check (patch 3).
- - Avoid multiple dmi_walk (patch 4).
- - Add EDAC MC owner check (patch 6,7)
-
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
 ---
-Toshi Kani (7):
- 1/7 ACPI / blacklist: add acpi_match_oemlist() interface
- 2/7 intel_pstate: convert to use acpi_match_oemlist()
- 3/7 ACPI / APEI: add OSC APEI bit check for ghes_edac
- 4/7 ghes_edac: avoid multiple calls to dmi_walk()
- 5/7 ghes_edac: add platform check to enable ghes_edac
- 6/7 EDAC: add edac_check_mc_owner() to check MC owner
- 7/7 edac drivers: add MC owner check in init
+ drivers/cpufreq/intel_pstate.c |   64 ++++++++++++++++------------------------
+ 1 file changed, 25 insertions(+), 39 deletions(-)
 
----
- drivers/acpi/apei/ghes.c       |  8 ++--
- drivers/acpi/blacklist.c       | 83 +++++++-----------------------------------
- drivers/acpi/utils.c           | 40 ++++++++++++++++++++
- drivers/cpufreq/intel_pstate.c | 64 +++++++++++++-------------------
- drivers/edac/amd64_edac.c      |  3 ++
- drivers/edac/edac_mc.c         | 15 +++++++-
- drivers/edac/edac_mc.h         | 12 ++++++
- drivers/edac/ghes_edac.c       | 36 ++++++++++++++----
- drivers/edac/pnd2_edac.c       |  7 +++-
- drivers/edac/sb_edac.c         |  7 +++-
- drivers/edac/skx_edac.c        |  6 ++-
- include/linux/acpi.h           | 19 ++++++++++
- 12 files changed, 176 insertions(+), 124 deletions(-)
-
+diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
+index 6cd5035..7944723 100644
+--- a/drivers/cpufreq/intel_pstate.c
++++ b/drivers/cpufreq/intel_pstate.c
+@@ -2475,39 +2475,31 @@ enum {
+ 	PPC,
+ };
+ 
+-struct hw_vendor_info {
+-	u16  valid;
+-	char oem_id[ACPI_OEM_ID_SIZE];
+-	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
+-	int  oem_pwr_table;
+-};
+-
+ /* Hardware vendor-specific info that has its own power management modes */
+-static struct hw_vendor_info vendor_info[] __initdata = {
+-	{1, "HP    ", "ProLiant", PSS},
+-	{1, "ORACLE", "X4-2    ", PPC},
+-	{1, "ORACLE", "X4-2L   ", PPC},
+-	{1, "ORACLE", "X4-2B   ", PPC},
+-	{1, "ORACLE", "X3-2    ", PPC},
+-	{1, "ORACLE", "X3-2L   ", PPC},
+-	{1, "ORACLE", "X3-2B   ", PPC},
+-	{1, "ORACLE", "X4470M2 ", PPC},
+-	{1, "ORACLE", "X4270M3 ", PPC},
+-	{1, "ORACLE", "X4270M2 ", PPC},
+-	{1, "ORACLE", "X4170M2 ", PPC},
+-	{1, "ORACLE", "X4170 M3", PPC},
+-	{1, "ORACLE", "X4275 M3", PPC},
+-	{1, "ORACLE", "X6-2    ", PPC},
+-	{1, "ORACLE", "Sudbury ", PPC},
+-	{0, "", ""},
++static struct acpi_oemlist oemlist[] __initdata = {
++	{"HP    ", "ProLiant", 0, ACPI_SIG_FADT, all_versions, 0, PSS},
++	{"ORACLE", "X4-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X3-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X3-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X3-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4470M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4270M3 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4270M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4170M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4170 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4275 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X6-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "Sudbury ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{ } /* End */
+ };
+ 
+ static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
+ {
+-	struct acpi_table_header hdr;
+-	struct hw_vendor_info *v_info;
+ 	const struct x86_cpu_id *id;
+ 	u64 misc_pwr;
++	int idx;
+ 
+ 	id = x86_match_cpu(intel_pstate_cpu_oob_ids);
+ 	if (id) {
+@@ -2516,21 +2508,15 @@ static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
+ 			return true;
+ 	}
+ 
+-	if (acpi_disabled ||
+-	    ACPI_FAILURE(acpi_get_table_header(ACPI_SIG_FADT, 0, &hdr)))
++	idx = acpi_match_oemlist(oemlist);
++	if (idx < 0)
+ 		return false;
+ 
+-	for (v_info = vendor_info; v_info->valid; v_info++) {
+-		if (!strncmp(hdr.oem_id, v_info->oem_id, ACPI_OEM_ID_SIZE) &&
+-			!strncmp(hdr.oem_table_id, v_info->oem_table_id,
+-						ACPI_OEM_TABLE_ID_SIZE))
+-			switch (v_info->oem_pwr_table) {
+-			case PSS:
+-				return intel_pstate_no_acpi_pss();
+-			case PPC:
+-				return intel_pstate_has_acpi_ppc() &&
+-					(!force_load);
+-			}
++	switch (oemlist[idx].data) {
++	case PSS:
++		return intel_pstate_no_acpi_pss();
++	case PPC:
++		return intel_pstate_has_acpi_ppc() && !force_load;
+ 	}
+ 
+ 	return false;
