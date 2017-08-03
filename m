@@ -1,77 +1,64 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 13/15] ACPICA: Resources: Allow _DMA method in walk resources
-Date: Thu,  3 Aug 2017 14:27:35 +0800
-Message-ID: <f7bb382e437d1f57711401fd041d8854aed06d5b.1501730699.git.lv.zheng@intel.com>
+Subject: [PATCH 14/15] ACPICA: Revert "Update resource descriptor handling"
+Date: Thu,  3 Aug 2017 14:27:42 +0800
+Message-ID: <cf55bd9eb84f94dc1a15a4c0cfb2c30f4b0c790d.1501730699.git.lv.zheng@intel.com>
 References: <cover.1501730699.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:9998 "EHLO mga05.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:57917 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751247AbdHCG1j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 3 Aug 2017 02:27:39 -0400
+        id S1751263AbdHCG1q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 3 Aug 2017 02:27:46 -0400
 In-Reply-To: <cover.1501730699.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Erik Schmauss <erik.schmauss@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Erik Schmauss <erik.schmauss@intel.com>
 
-ACPICA commit af661c00afac7aa481a961fa48c6540a99ad64a6
+ACPICA commit f3300640c63df138d133740b54e2c0a1befa4086
 
-The _DMA object contains a resource template, this change
-adds support for the walk resources function so that ACPI
-devices containing a _DMA object can actually parse it to
-detect DMA ranges for the respective bus.
+This reverts commit c8eac10178b387f9eb1935694e509d4518da77bb.
 
-Link: https://github.com/acpica/acpica/commit/af661c00
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/f3300640
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/rsxface.c | 7 ++++---
- include/acpi/acnames.h        | 1 +
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/utresrc.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/acpica/rsxface.c b/drivers/acpi/acpica/rsxface.c
-index 59a4f9e..be65e65 100644
---- a/drivers/acpi/acpica/rsxface.c
-+++ b/drivers/acpi/acpica/rsxface.c
-@@ -615,7 +615,7 @@ ACPI_EXPORT_SYMBOL(acpi_walk_resource_buffer)
-  *                                device we are querying
-  *              name            - Method name of the resources we want.
-  *                                (METHOD_NAME__CRS, METHOD_NAME__PRS, or
-- *                                METHOD_NAME__AEI)
-+ *                                METHOD_NAME__AEI or METHOD_NAME__DMA)
-  *              user_function   - Called for each resource
-  *              context         - Passed to user_function
-  *
-@@ -641,11 +641,12 @@ acpi_walk_resources(acpi_handle device_handle,
- 	if (!device_handle || !user_function || !name ||
- 	    (!ACPI_COMPARE_NAME(name, METHOD_NAME__CRS) &&
- 	     !ACPI_COMPARE_NAME(name, METHOD_NAME__PRS) &&
--	     !ACPI_COMPARE_NAME(name, METHOD_NAME__AEI))) {
-+	     !ACPI_COMPARE_NAME(name, METHOD_NAME__AEI) &&
-+	     !ACPI_COMPARE_NAME(name, METHOD_NAME__DMA))) {
- 		return_ACPI_STATUS(AE_BAD_PARAMETER);
+diff --git a/drivers/acpi/acpica/utresrc.c b/drivers/acpi/acpica/utresrc.c
+index 517acf8..f9801d1 100644
+--- a/drivers/acpi/acpica/utresrc.c
++++ b/drivers/acpi/acpica/utresrc.c
+@@ -184,11 +184,9 @@ acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
+ 
+ 	ACPI_FUNCTION_TRACE(ut_walk_aml_resources);
+ 
+-	/*
+-	 * The absolute minimum resource template is one end_tag descriptor.
+-	 * However, we will treat a lone end_tag as just a simple buffer.
+-	 */
+-	if (aml_length <= sizeof(struct aml_resource_end_tag)) {
++	/* The absolute minimum resource template is one end_tag descriptor */
++
++	if (aml_length < sizeof(struct aml_resource_end_tag)) {
+ 		return_ACPI_STATUS(AE_AML_NO_RESOURCE_END_TAG);
  	}
  
--	/* Get the _CRS/_PRS/_AEI resource list */
-+	/* Get the _CRS/_PRS/_AEI/_DMA resource list */
+@@ -252,10 +250,8 @@ acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
+ 				*context = aml;
+ 			}
  
- 	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
- 	status = acpi_rs_get_method_data(device_handle, name, &buffer);
-diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
-index b421584..d8dd3bf 100644
---- a/include/acpi/acnames.h
-+++ b/include/acpi/acnames.h
-@@ -54,6 +54,7 @@
- #define METHOD_NAME__CLS        "_CLS"
- #define METHOD_NAME__CRS        "_CRS"
- #define METHOD_NAME__DDN        "_DDN"
-+#define METHOD_NAME__DMA        "_DMA"
- #define METHOD_NAME__HID        "_HID"
- #define METHOD_NAME__INI        "_INI"
- #define METHOD_NAME__PLD        "_PLD"
+-			/*
+-			 * Normal exit. Note: We allow the buffer to be larger than
+-			 * the resource template, as long as the END_TAG exists.
+-			 */
++			/* Normal exit */
++
+ 			return_ACPI_STATUS(AE_OK);
+ 		}
+ 
 -- 
 2.7.4
 
