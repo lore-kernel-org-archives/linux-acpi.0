@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 09/15] ACPICA: Interpreter: Update handling for Alias operator
-Date: Thu,  3 Aug 2017 14:27:09 +0800
-Message-ID: <c9da4a747431585e1b1648940c8ef8147ad345da.1501730699.git.lv.zheng@intel.com>
+Subject: [PATCH 10/15] ACPICA: Debugger: Improve support for Alias objects
+Date: Thu,  3 Aug 2017 14:27:15 +0800
+Message-ID: <67ebcae9420730756e13fb88405db0d39c6a17d1.1501730699.git.lv.zheng@intel.com>
 References: <cover.1501730699.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:30275 "EHLO mga02.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:51154 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751220AbdHCG1M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 3 Aug 2017 02:27:12 -0400
+        id S1751220AbdHCG1T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 3 Aug 2017 02:27:19 -0400
 In-Reply-To: <cover.1501730699.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,110 +16,170 @@ Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 719d0bdd48e3e8e7a62a86c04922b9f41da6def0
+ACPICA commit 916993dbcd45b46e01f6c9b8337a01513f5d8dcc
 
-Provide common creation code for the Alias operator. All objects
-are now handled the same, with the only exception being the
-Method() operator. It has a special internal Alias type.
+Properly resolve alias objects for display.
+General cleanup of related output.
 
-Link: https://github.com/acpica/acpica/commit/719d0bdd
+Link: https://github.com/acpica/acpica/commit/916993db
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/excreate.c | 61 ++++++++++--------------------------------
- 1 file changed, 14 insertions(+), 47 deletions(-)
+ drivers/acpi/acpica/dbdisply.c | 37 ++++++++++++++++++++++++++++++++-----
+ drivers/acpi/acpica/exdump.c   | 34 ++++++++++++++++++++++++++--------
+ 2 files changed, 58 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/acpica/excreate.c b/drivers/acpi/acpica/excreate.c
-index 6867586..b8adb11 100644
---- a/drivers/acpi/acpica/excreate.c
-+++ b/drivers/acpi/acpica/excreate.c
-@@ -88,72 +88,39 @@ acpi_status acpi_ex_create_alias(struct acpi_walk_state *walk_state)
+diff --git a/drivers/acpi/acpica/dbdisply.c b/drivers/acpi/acpica/dbdisply.c
+index 46bf270..5a606ea 100644
+--- a/drivers/acpi/acpica/dbdisply.c
++++ b/drivers/acpi/acpica/dbdisply.c
+@@ -310,7 +310,7 @@ void acpi_db_decode_and_display_object(char *target, char *output_type)
  	}
  
- 	/* Ensure that the target node is valid */
+ 	else {
+-		acpi_os_printf("Object (%p) Pathname: %s\n",
++		acpi_os_printf("Object %p: Namespace Node - Pathname: %s\n",
+ 			       node, (char *)ret_buf.pointer);
+ 	}
+ 
+@@ -326,7 +326,7 @@ void acpi_db_decode_and_display_object(char *target, char *output_type)
+ 
+ 	obj_desc = acpi_ns_get_attached_object(node);
+ 	if (obj_desc) {
+-		acpi_os_printf("\nAttached Object (%p):\n", obj_desc);
++		acpi_os_printf("\nAttached Object %p:", obj_desc);
+ 		if (!acpi_os_readable
+ 		    (obj_desc, sizeof(union acpi_operand_object))) {
+ 			acpi_os_printf
+@@ -335,9 +335,36 @@ void acpi_db_decode_and_display_object(char *target, char *output_type)
+ 			return;
+ 		}
+ 
+-		acpi_ut_debug_dump_buffer((void *)obj_desc,
+-					  sizeof(union acpi_operand_object),
+-					  display, ACPI_UINT32_MAX);
++		if (ACPI_GET_DESCRIPTOR_TYPE(((struct acpi_namespace_node *)
++					      obj_desc)) ==
++		    ACPI_DESC_TYPE_NAMED) {
++			acpi_os_printf(" Namespace Node - ");
++			status =
++			    acpi_get_name((struct acpi_namespace_node *)
++					  obj_desc,
++					  ACPI_FULL_PATHNAME_NO_TRAILING,
++					  &ret_buf);
++			if (ACPI_FAILURE(status)) {
++				acpi_os_printf
++				    ("Could not convert name to pathname\n");
++			} else {
++				acpi_os_printf("Pathname: %s",
++					       (char *)ret_buf.pointer);
++			}
 +
- 	if (!target_node) {
- 		return_ACPI_STATUS(AE_NULL_OBJECT);
++			acpi_os_printf("\n");
++			acpi_ut_debug_dump_buffer((void *)obj_desc,
++						  sizeof(struct
++							 acpi_namespace_node),
++						  display, ACPI_UINT32_MAX);
++		} else {
++			acpi_os_printf("\n");
++			acpi_ut_debug_dump_buffer((void *)obj_desc,
++						  sizeof(union
++							 acpi_operand_object),
++						  display, ACPI_UINT32_MAX);
++		}
++
+ 		acpi_ex_dump_object_descriptor(obj_desc, 1);
  	}
+ }
+diff --git a/drivers/acpi/acpica/exdump.c b/drivers/acpi/acpica/exdump.c
+index 44092f7..83398dc 100644
+--- a/drivers/acpi/acpica/exdump.c
++++ b/drivers/acpi/acpica/exdump.c
+@@ -102,7 +102,7 @@ static struct acpi_exdump_info acpi_ex_dump_package[6] = {
+ 	{ACPI_EXD_INIT, ACPI_EXD_TABLE_SIZE(acpi_ex_dump_package), NULL},
+ 	{ACPI_EXD_NODE, ACPI_EXD_OFFSET(package.node), "Parent Node"},
+ 	{ACPI_EXD_UINT8, ACPI_EXD_OFFSET(package.flags), "Flags"},
+-	{ACPI_EXD_UINT32, ACPI_EXD_OFFSET(package.count), "Elements"},
++	{ACPI_EXD_UINT32, ACPI_EXD_OFFSET(package.count), "Element Count"},
+ 	{ACPI_EXD_POINTER, ACPI_EXD_OFFSET(package.elements), "Element List"},
+ 	{ACPI_EXD_PACKAGE, 0, NULL}
+ };
+@@ -384,6 +384,10 @@ acpi_ex_dump_object(union acpi_operand_object *obj_desc,
+ 	count = info->offset;
  
--	/*
--	 * For objects that can never change (i.e., the NS node will
--	 * permanently point to the same object), we can simply attach
--	 * the object to the new NS node. For other objects (such as
--	 * Integers, buffers, etc.), we have to point the Alias node
--	 * to the original Node.
--	 */
--	switch (target_node->type) {
--
--		/* For these types, the sub-object can change dynamically via a Store */
--
--	case ACPI_TYPE_INTEGER:
--	case ACPI_TYPE_STRING:
--	case ACPI_TYPE_BUFFER:
--	case ACPI_TYPE_PACKAGE:
--	case ACPI_TYPE_BUFFER_FIELD:
--		/*
--		 * These types open a new scope, so we need the NS node in order to access
--		 * any children.
--		 */
--	case ACPI_TYPE_DEVICE:
--	case ACPI_TYPE_POWER:
--	case ACPI_TYPE_PROCESSOR:
--	case ACPI_TYPE_THERMAL:
--	case ACPI_TYPE_LOCAL_SCOPE:
--		/*
--		 * The new alias has the type ALIAS and points to the original
--		 * NS node, not the object itself.
--		 */
--		alias_node->type = ACPI_TYPE_LOCAL_ALIAS;
--		alias_node->object =
--		    ACPI_CAST_PTR(union acpi_operand_object, target_node);
--		break;
-+	/* Construct the alias object (a namespace node) */
+ 	while (count) {
++		if (!obj_desc) {
++			return;
++		}
++
+ 		target = ACPI_ADD_PTR(u8, obj_desc, info->offset);
+ 		name = info->name;
  
-+	switch (target_node->type) {
- 	case ACPI_TYPE_METHOD:
- 		/*
--		 * Control method aliases need to be differentiated
-+		 * Control method aliases need to be differentiated with
-+		 * a special type
- 		 */
- 		alias_node->type = ACPI_TYPE_LOCAL_METHOD_ALIAS;
--		alias_node->object =
--		    ACPI_CAST_PTR(union acpi_operand_object, target_node);
- 		break;
+@@ -469,9 +473,9 @@ acpi_ex_dump_object(union acpi_operand_object *obj_desc,
+ 			start = *ACPI_CAST_PTR(void *, target);
+ 			next = start;
+ 
+-			acpi_os_printf("%20s : %p", name, next);
++			acpi_os_printf("%20s : %p ", name, next);
+ 			if (next) {
+-				acpi_os_printf("(%s %2.2X)",
++				acpi_os_printf("%s (Type %2.2X)",
+ 					       acpi_ut_get_object_type_name
+ 					       (next), next->common.type);
+ 
+@@ -493,6 +497,8 @@ acpi_ex_dump_object(union acpi_operand_object *obj_desc,
+ 						break;
+ 					}
+ 				}
++			} else {
++				acpi_os_printf("- No attached objects");
+ 			}
+ 
+ 			acpi_os_printf("\n");
+@@ -1129,7 +1135,9 @@ acpi_ex_dump_package_obj(union acpi_operand_object *obj_desc,
  
  	default:
--
--		/* Attach the original source object to the new Alias Node */
--
- 		/*
--		 * The new alias assumes the type of the target, and it points
--		 * to the same object. The reference count of the object has an
--		 * additional reference to prevent deletion out from under either the
--		 * target node or the alias Node
-+		 * All other object types.
-+		 *
-+		 * The new alias has the type ALIAS and points to the original
-+		 * NS node, not the object itself.
- 		 */
--		status = acpi_ns_attach_object(alias_node,
--					       acpi_ns_get_attached_object
--					       (target_node),
--					       target_node->type);
-+		alias_node->type = ACPI_TYPE_LOCAL_ALIAS;
-+		alias_node->object =
-+		    ACPI_CAST_PTR(union acpi_operand_object, target_node);
+ 
+-		acpi_os_printf("[Unknown Type] %X\n", obj_desc->common.type);
++		acpi_os_printf("[%s] Type: %2.2X\n",
++			       acpi_ut_get_type_name(obj_desc->common.type),
++			       obj_desc->common.type);
  		break;
  	}
- 
- 	/* Since both operands are Nodes, we don't need to delete them */
- 
-+	alias_node->object =
-+	    ACPI_CAST_PTR(union acpi_operand_object, target_node);
- 	return_ACPI_STATUS(status);
  }
+@@ -1167,11 +1175,17 @@ acpi_ex_dump_object_descriptor(union acpi_operand_object *obj_desc, u32 flags)
+ 		acpi_ex_dump_namespace_node((struct acpi_namespace_node *)
+ 					    obj_desc, flags);
  
+-		acpi_os_printf("\nAttached Object (%p):\n",
+-			       ((struct acpi_namespace_node *)obj_desc)->
+-			       object);
+-
+ 		obj_desc = ((struct acpi_namespace_node *)obj_desc)->object;
++		if (!obj_desc) {
++			return_VOID;
++		}
++
++		acpi_os_printf("\nAttached Object %p", obj_desc);
++		if (ACPI_GET_DESCRIPTOR_TYPE(obj_desc) == ACPI_DESC_TYPE_NAMED) {
++			acpi_os_printf(" - Namespace Node");
++		}
++
++		acpi_os_printf(":\n");
+ 		goto dump_object;
+ 	}
+ 
+@@ -1191,6 +1205,10 @@ acpi_ex_dump_object_descriptor(union acpi_operand_object *obj_desc, u32 flags)
+ 
+ dump_object:
+ 
++	if (!obj_desc) {
++		return_VOID;
++	}
++
+ 	/* Common Fields */
+ 
+ 	acpi_ex_dump_object(obj_desc, acpi_ex_dump_common);
 -- 
 2.7.4
 
