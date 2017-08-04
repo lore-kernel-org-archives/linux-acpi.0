@@ -1,73 +1,71 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
-Date: Fri, 4 Aug 2017 06:05:25 +0200
-Message-ID: <20170804040525.GE12082@nazgul.tnic>
-References: <20170803215753.30553-1-toshi.kani@hpe.com>
- <20170803215753.30553-5-toshi.kani@hpe.com>
+From: <durrant@iupui.edu>
+Subject: (unknown)
+Date: Fri, 04 Aug 2017 05:04:28 -0000
+Message-ID: <150182306819.25834.1498908302118804715@vdonsk.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170803215753.30553-5-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: rjw@rjwysocki.net, mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: application/zip; name="62318405.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from noname.vdonsk.ru ([193.111.2.239]:48376 "HELO vdonsk.ru"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1752046AbdHDFEd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Aug 2017 01:04:33 -0400
+Content-Disposition: attachment
+Subject: 
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, Aug 03, 2017 at 03:57:50PM -0600, Toshi Kani wrote:
-> ghes_edac_register() is called for each GHES platform device
-> instantiated per a GHES entry in ACPI HEST table.  dmi_walk()
-> counts the number of DIMMs on the system, and there is no need
-> to call it multiple times.
-> 
-> Change ghes_edac_register() to call dmi_walk() only when
-> 'num_dimm' is uninitialized.
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> Suggested-by: Borislav Petkov <bp@alien8.de>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> ---
->  drivers/edac/ghes_edac.c |    9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-> index 4e61a62..2e9ce9c 100644
-> --- a/drivers/edac/ghes_edac.c
-> +++ b/drivers/edac/ghes_edac.c
-> @@ -407,15 +407,18 @@ EXPORT_SYMBOL_GPL(ghes_edac_report_mem_error);
->  
->  int ghes_edac_register(struct ghes *ghes, struct device *dev)
->  {
-> -	bool fake = false;
-> -	int rc, num_dimm = 0;
->  	struct mem_ctl_info *mci;
->  	struct edac_mc_layer layers[1];
->  	struct ghes_edac_pvt *pvt;
->  	struct ghes_edac_dimm_fill dimm_fill;
-> +	int rc;
-> +
-> +	static int num_dimm;
-> +	static bool fake;
->  
->  	/* Get the number of DIMMs */
-> -	dmi_walk(ghes_edac_count_dimms, &num_dimm);
-> +	if (num_dimm == 0)
-> +		dmi_walk(ghes_edac_count_dimms, &num_dimm);
-
-So the problem is that ghes_edac_register() gets called multiple times
-depending on how many GHES platform devices are on the system. But yet
-they all scan *all* DIMMs. So instead you should return if the DIMMs
-have been counted already and not register a second time.
-
-Which makes that whole mc counting kinda useless. So you could rip that
-out too.
-
-Unless I'm missing something...
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+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
+AAAAAAEAAQBiAAAALgsAAAAA
