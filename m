@@ -1,87 +1,62 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH v2 7/7] edac drivers: add MC owner check in init
-Date: Fri, 4 Aug 2017 21:48:23 +0000
-Message-ID: <1501882730.2042.123.camel@hpe.com>
-References: <20170803215753.30553-1-toshi.kani@hpe.com>
-         <20170803215753.30553-8-toshi.kani@hpe.com>
-         <20170804083922.GC15617@nazgul.tnic>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Graeme Gregory <graeme.gregory@linaro.org>
+Subject: [PATCH 1/2] ACPI: SPCR: extend XGENE 8250 workaround to m400
+Date: Fri,  4 Aug 2017 22:49:43 +0100
+Message-ID: <20170804214944.3910-2-graeme.gregory@linaro.org>
+References: <20170804214944.3910-1-graeme.gregory@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3425.houston.hpe.com ([15.241.140.78]:46014 "EHLO
-        g4t3425.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751271AbdHDVs0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Aug 2017 17:48:26 -0400
-In-Reply-To: <20170804083922.GC15617@nazgul.tnic>
-Content-Language: en-US
-Content-ID: <59BB3133F3048847B830758BF13F5805@NAMPRD84.PROD.OUTLOOK.COM>
+Received: from mail-wr0-f180.google.com ([209.85.128.180]:38765 "EHLO
+        mail-wr0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752531AbdHDVtx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Aug 2017 17:49:53 -0400
+Received: by mail-wr0-f180.google.com with SMTP id f21so20963878wrf.5
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Aug 2017 14:49:53 -0700 (PDT)
+In-Reply-To: <20170804214944.3910-1-graeme.gregory@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "bp@alien8.de" <bp@alien8.de>
-Cc: "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, lho@apm.com, gregkh@linuxfoundation.org, jcm@redhat.com, Graeme Gregory <graeme.gregory@linaro.org>
 
-T24gRnJpLCAyMDE3LTA4LTA0IGF0IDEwOjM5ICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
-DQo+IE9uIFRodSwgQXVnIDAzLCAyMDE3IGF0IDAzOjU3OjUzUE0gLTA2MDAsIFRvc2hpIEthbmkg
-d3JvdGU6DQo+ID4gQ2hhbmdlIGdlbmVyaWMgeDg2IGVkYWMgZHJpdmVycywgd2hpY2ggcHJvYmUg
-Q1BVIHR5cGUgd2l0aA0KPiA+IHg4Nl9tYXRjaF9jcHUoKSwgdG8gY2FsbCBlZGFjX2NoZWNrX21j
-X293bmVyKCkgaW4gdGhlaXINCj4gPiBtb2R1bGUgaW5pdCBmdW5jdGlvbnMuwqDCoFRoaXMgYWxs
-b3dzIHRoZW0gdG8gZmFpbCB0aGVpciBpbml0DQo+ID4gYXQgdGhlIGJlZ2lubmluZyB3aGVuIGdo
-ZXNfZWRhYyBpcyBlbmFibGVkLsKgwqBTaW1pbGFyIGNoYW5nZQ0KPiA+IGNhbiBiZSBtYWRlIHRv
-IG90aGVyIGVkYWMgZHJpdmVycyBhcyBuZWNlc3NhcnkuDQo+ID4gDQo+ID4gVGhpcyBpcyBhbiBv
-cHRpbWl6YXRpb24gYW5kIHRoZXJlIGlzIG5vIGZ1bmN0aW9uYWwgY2hhbmdlLg0KPiA+IA0KPiA+
-IFNpZ25lZC1vZmYtYnk6IFRvc2hpIEthbmkgPHRvc2hpLmthbmlAaHBlLmNvbT4NCj4gPiBTdWdn
-ZXN0ZWQtYnk6IEJvcmlzbGF2IFBldGtvdiA8YnBAYWxpZW44LmRlPg0KPiA+IENjOiBCb3Jpc2xh
-diBQZXRrb3YgPGJwQGFsaWVuOC5kZT4NCj4gPiBDYzogTWF1cm8gQ2FydmFsaG8gQ2hlaGFiIDxt
-Y2hlaGFiQGtlcm5lbC5vcmc+DQo+ID4gQ2M6IFRvbnkgTHVjayA8dG9ueS5sdWNrQGludGVsLmNv
-bT4NCj4gPiAtLS0NCj4gPiDCoGRyaXZlcnMvZWRhYy9hbWQ2NF9lZGFjLmMgfMKgwqDCoMKgMyAr
-KysNCj4gPiDCoGRyaXZlcnMvZWRhYy9wbmQyX2VkYWMuY8KgwqB8wqDCoMKgwqA3ICsrKysrKy0N
-Cj4gPiDCoGRyaXZlcnMvZWRhYy9zYl9lZGFjLmPCoMKgwqDCoHzCoMKgwqDCoDcgKysrKystLQ0K
-PiA+IMKgZHJpdmVycy9lZGFjL3NreF9lZGFjLmPCoMKgwqB8wqDCoMKgwqA2ICsrKysrLQ0KPiA+
-IMKgNCBmaWxlcyBjaGFuZ2VkLCAxOSBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQ0KPiA+
-IA0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2VkYWMvYW1kNjRfZWRhYy5jIGIvZHJpdmVycy9l
-ZGFjL2FtZDY0X2VkYWMuYw0KPiA+IGluZGV4IDNhZWE1NTYuLmNkYjQwZDYgMTAwNjQ0DQo+ID4g
-LS0tIGEvZHJpdmVycy9lZGFjL2FtZDY0X2VkYWMuYw0KPiA+ICsrKyBiL2RyaXZlcnMvZWRhYy9h
-bWQ2NF9lZGFjLmMNCj4gPiBAQCAtMzQ0NCw2ICszNDQ0LDkgQEAgc3RhdGljIGludCBfX2luaXQg
-YW1kNjRfZWRhY19pbml0KHZvaWQpDQo+ID4gwqAJaWYgKGFtZF9jYWNoZV9ub3J0aGJyaWRnZXMo
-KSA8IDApDQo+ID4gwqAJCXJldHVybiAtRU5PREVWOw0KPiA+IMKgDQo+ID4gKwlpZiAoIWVkYWNf
-Y2hlY2tfbWNfb3duZXIoRURBQ19NT0RfU1RSKSkNCj4gPiArCQlyZXR1cm4gLUVCVVNZOw0KPiA+
-ICsNCj4gDQo+IFRoYXQgbmVlZHMgdG8gaGFwcGVuIGZpcnN0IGluIHRoZSBpbml0IGZ1bmN0aW9u
-Lg0KDQpOb3Qgc3VyZSBpZiBhbnlvbmUgY2FyZXMsIGJ1dCBJIHRob3VnaHQgaXQgc2hvdWxkIHJl
-dHVybiB3aXRoIC1FTk9ERVYNCndoZW4gdGhpcyBtb2R1bGVzIGZvdW5kIG5vIHRhcmdldCwgYW5k
-IC1FQlVTWSB3aGVuIGl0IGZvdW5kIGEgdGFyZ2V0DQpidXQgaXQncyBidXN5LiAgSGVuY2UsIHRo
-aXMgb3JkZXJpbmcuDQoNCj4gPiDCoAlvcHN0YXRlX2luaXQoKTsNCj4gPiDCoA0KPiA+IMKgCWVy
-ciA9IC1FTk9NRU07DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZWRhYy9wbmQyX2VkYWMuYyBi
-L2RyaXZlcnMvZWRhYy9wbmQyX2VkYWMuYw0KPiA+IGluZGV4IDhlNTk5NDkuLmE1Yjc4NTUgMTAw
-NjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9lZGFjL3BuZDJfZWRhYy5jDQo+ID4gKysrIGIvZHJpdmVy
-cy9lZGFjL3BuZDJfZWRhYy5jDQo+ID4gQEAgLTQ1LDYgKzQ1LDggQEANCj4gPiDCoCNpbmNsdWRl
-ICJlZGFjX21vZHVsZS5oIg0KPiA+IMKgI2luY2x1ZGUgInBuZDJfZWRhYy5oIg0KPiA+IMKgDQo+
-ID4gKyNkZWZpbmUgUE5EMl9NT0RfTkFNRQkJInBuZDJfZWRhYy5jIg0KPiANCj4gRURBQ19NT0Rf
-U1RSIGFuZCBsb29rIGhvdyB0aGUgb3RoZXIgZHJpdmVycyBkZWZpbmUgaXQsIGkuZS4sIHdpdGhv
-dXQNCj4gdGhlICIuYyINCg0KT0ssIEkgd2lsbCBjaGFuZ2UgdG8gdXNlIEVEQUNfTU9EX1NUUiBh
-bmQgcmVtb3ZlICIuYyIuDQoNCj4gPiArDQo+ID4gwqAjZGVmaW5lIEFQTF9OVU1fQ0hBTk5FTFMJ
-NA0KPiA+IMKgI2RlZmluZSBETlZfTlVNX0NIQU5ORUxTCTINCj4gPiDCoCNkZWZpbmUgRE5WX01B
-WF9ESU1NUwkJMiAvKiBNYXggRElNTXMgcGVyIGNoYW5uZWwgKi8NCj4gPiBAQCAtMTMxMyw3ICsx
-MzE1LDcgQEAgc3RhdGljIGludCBwbmQyX3JlZ2lzdGVyX21jaShzdHJ1Y3QNCj4gPiBtZW1fY3Rs
-X2luZm8gKipwcG1jaSkNCj4gPiDCoAlwdnQgPSBtY2ktPnB2dF9pbmZvOw0KPiA+IMKgCW1lbXNl
-dChwdnQsIDAsIHNpemVvZigqcHZ0KSk7DQo+ID4gwqANCj4gPiAtCW1jaS0+bW9kX25hbWUgPSAi
-cG5kMl9lZGFjLmMiOw0KPiA+ICsJbWNpLT5tb2RfbmFtZSA9IFBORDJfTU9EX05BTUU7DQo+ID4g
-wqAJbWNpLT5kZXZfbmFtZSA9IG9wcy0+bmFtZTsNCj4gPiDCoAltY2ktPmN0bF9uYW1lID0gIlBv
-bmRpY2hlcnJ5MiI7DQo+ID4gwqANCj4gPiBAQCAtMTUxMyw2ICsxNTE1LDkgQEAgc3RhdGljIGlu
-dCBfX2luaXQgcG5kMl9pbml0KHZvaWQpDQo+ID4gwqAJaWYgKCFpZCkNCj4gPiDCoAkJcmV0dXJu
-IC1FTk9ERVY7DQo+ID4gwqANCj4gPiArCWlmICghZWRhY19jaGVja19tY19vd25lcihQTkQyX01P
-RF9OQU1FKSkNCj4gPiArCQlyZXR1cm4gLUVCVVNZOw0KPiANCj4gQWxzbyBmaXJzdCB0aGluZyB0
-byBkbyBpbiB0aGUgZnVuY3Rpb24uDQo+DQo+ID4gKw0KPiA+IMKgCW9wcyA9IChzdHJ1Y3QgZHVu
-aXRfb3BzICopaWQtPmRyaXZlcl9kYXRhOw0KPiA+IMKgDQo+ID4gwqAJLyogRW5zdXJlIHRoYXQg
-dGhlIE9QU1RBVEUgaXMgc2V0IGNvcnJlY3RseSBmb3IgUE9MTCBvcg0KPiA+IE5NSSAqLw0KPiA+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2VkYWMvc2JfZWRhYy5jIGIvZHJpdmVycy9lZGFjL3NiX2Vk
-YWMuYw0KPiA+IGluZGV4IDgwZDg2MGMuLjcxYmQ2NmUgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVy
-cy9lZGFjL3NiX2VkYWMuYw0KPiA+ICsrKyBiL2RyaXZlcnMvZWRhYy9zYl9lZGFjLmMNCj4gPiBA
-QCAtMzYsNyArMzYsNyBAQCBzdGF0aWMgTElTVF9IRUFEKHNicmlkZ2VfZWRhY19saXN0KTsNCj4g
-PiDCoCAqIEFsdGVyIHRoaXMgdmVyc2lvbiBmb3IgdGhlIG1vZHVsZSB3aGVuIG1vZGlmaWNhdGlv
-bnMgYXJlIG1hZGUNCj4gPiDCoCAqLw0KPiA+IMKgI2RlZmluZSBTQlJJREdFX1JFVklTSU9OwqDC
-oMKgwqAiIFZlcjogMS4xLjIgIg0KPiA+IC0jZGVmaW5lIEVEQUNfTU9EX1NUUsKgwqDCoMKgwqDC
-oCJzYnJpZGdlX2VkYWMiDQo+ID4gKyNkZWZpbmUgU0JSSURHRV9NT0RfTkFNRcKgwqDCoMKgInNi
-X2VkYWMuYyINCj4gDQo+IFdoeT8gRURBQ19NT0RfU1RSIGlzIGp1c3QgZmluZS4NCg0KSSBzaW1w
-bHkga2VwdCB3aGF0IGl0IGhhcyB0b2RheS4gIFdpbGwgcmVtb3ZlICIuYyIuDQoNClRoYW5rcywN
-Ci1Ub3NoaQ0K
+xgene v1/v2 chips are also used on moonshot cartridges that have
+different table headers to the ones on Mustang. Extend the quirk
+so it also recognises the Moonshot M400 variant too.
+
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+---
+ drivers/acpi/spcr.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+index 4ac3e06b41d8..1457ef0b0fd5 100644
+--- a/drivers/acpi/spcr.c
++++ b/drivers/acpi/spcr.c
+@@ -43,17 +43,24 @@ static bool qdf2400_erratum_44_present(struct acpi_table_header *h)
+  */
+ static bool xgene_8250_erratum_present(struct acpi_table_spcr *tb)
+ {
++	bool xgene_8250 = false;
++
+ 	if (tb->interface_type != ACPI_DBG2_16550_COMPATIBLE)
+ 		return false;
+ 
+-	if (memcmp(tb->header.oem_id, "APMC0D", ACPI_OEM_ID_SIZE))
++	if (memcmp(tb->header.oem_id, "APMC0D", ACPI_OEM_ID_SIZE) &&
++	    memcmp(tb->header.oem_id, "HPE   ", ACPI_OEM_ID_SIZE))
+ 		return false;
+ 
+ 	if (!memcmp(tb->header.oem_table_id, "XGENESPC",
+ 	    ACPI_OEM_TABLE_ID_SIZE) && tb->header.oem_revision == 0)
+-		return true;
++		xgene_8250 = true;
+ 
+-	return false;
++	if (!memcmp(tb->header.oem_table_id, "ProLiant",
++	    ACPI_OEM_TABLE_ID_SIZE) && tb->header.oem_revision == 1)
++		xgene_8250 = true;
++
++	return xgene_8250;
+ }
+ 
+ /**
+-- 
+2.13.4
+
