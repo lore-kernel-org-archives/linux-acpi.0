@@ -1,247 +1,167 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v5 1/2] ACPI/IORT: Add ITS address regions reservation
- helper
-Date: Fri, 4 Aug 2017 17:57:12 +0100
-Message-ID: <b478d1b4-5993-9459-adfc-dec05525d72e@arm.com>
-References: <20170801104913.71912-1-shameerali.kolothum.thodi@huawei.com>
- <20170801104913.71912-2-shameerali.kolothum.thodi@huawei.com>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH] ACPI / PM: Prefer suspend-to-idle over S3 on some systems
+Date: Fri, 4 Aug 2017 17:02:56 +0000
+Message-ID: <c80f0235c09740269fca34d0fd56bb84@ausx13mpc120.AMER.DELL.COM>
+References: <3043895.8nuHiCWbDe@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:57284 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752433AbdHDQ5Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Aug 2017 12:57:16 -0400
-In-Reply-To: <20170801104913.71912-2-shameerali.kolothum.thodi@huawei.com>
-Content-Language: en-GB
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3043895.8nuHiCWbDe@aspire.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, len.brown@intel.com, linux-pm@vger.kernel.org, srinivas.pandruvada@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org
-Cc: gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com
 
-On 01/08/17 11:49, Shameer Kolothum wrote:
-> On some platforms ITS address regions have to be excluded from normal
-> IOVA allocation in that they are detected and decoded in a HW specific
-> way by system components and so they cannot be considered normal IOVA
-> address space.
-> 
-> Add an helper function that retrieves ITS address regions through IORT
-> device <-> ITS mappings and reserves it so that these regions will not
-> be translated by IOMMU and will be excluded from IOVA allocations.
-
-I've just realised that we no longer seem to have a check that ensures
-the regions are only reserved on platforms that need it - if not, then
-we're going to break everything else that does have an ITS behind SMMU
-translation as expected.
-
-It feels like IORT should know enough to be able to make that decision
-internally, but if not (or if it would be hideous to do so), then I
-guess my idea for patch #2 was a bust and we probably do need to go back
-to calling directly from the SMMU driver based on the SMMU model.
-
-Robin.
-
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> [lorenzo.pieralisi@arm.com: updated commit log/added comments]
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> -----Original Message-----
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Sent: Monday, July 31, 2017 4:43 PM
+> To: Linux ACPI <linux-acpi@vger.kernel.org>
+> Cc: LKML <linux-kernel@vger.kernel.org>; Len Brown <len.brown@intel.com>;
+> Linux PM <linux-pm@vger.kernel.org>; Srinivas Pandruvada
+> <srinivas.pandruvada@linux.intel.com>; Limonciello, Mario
+> <Mario_Limonciello@Dell.com>
+> Subject: [PATCH] ACPI / PM: Prefer suspend-to-idle over S3 on some system=
+s
+>=20
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>=20
+> Modify the ACPI system sleep support setup code to select
+> suspend-to-idle as the default system sleep state if
+> (1) the ACPI_FADT_LOW_POWER_S0 flag is set in the FADT and
+> (2) the Low Power Idle S0 _DSM interface has been discovered and
+> (3) the default sleep state was not selected from the kernel command
+> line.
+>=20
+> The main motivation for this change is that systems where the (1) and
+> (2) conditions are met typically ship with OSes that don't exercise
+> the S3 path in the platform firmware which remains untested and turns
+> out to be non-functional at least in some cases.
+>=20
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/acpi/arm64/iort.c        | 95 ++++++++++++++++++++++++++++++++++++++--
->  drivers/irqchip/irq-gic-v3-its.c |  3 +-
->  include/linux/acpi_iort.h        |  7 ++-
->  3 files changed, 100 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index a3215ee..86b5a51 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -39,6 +39,7 @@
->  struct iort_its_msi_chip {
->  	struct list_head	list;
->  	struct fwnode_handle	*fw_node;
-> +	phys_addr_t		base_addr;
->  	u32			translation_id;
+>=20
+> This patch depends on the intel-hid change at
+>=20
+> https://patchwork.kernel.org/patch/9867703/
+>=20
+> ---
+>  Documentation/power/states.txt |    4 +++-
+>  drivers/acpi/sleep.c           |    6 ++++++
+>  include/linux/suspend.h        |    3 +++
+>  kernel/power/power.h           |    1 -
+>  kernel/power/suspend.c         |    4 ++--
+>  5 files changed, 14 insertions(+), 4 deletions(-)
+>=20
+> Index: linux-pm/Documentation/power/states.txt
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-pm.orig/Documentation/power/states.txt
+> +++ linux-pm/Documentation/power/states.txt
+> @@ -35,7 +35,9 @@ only one way to cause the system to go i
+>  The default suspend mode (ie. the one to be used without writing anythin=
+g into
+>  /sys/power/mem_sleep) is either "deep" (if Suspend-To-RAM is supported) =
+or
+>  "s2idle", but it can be overridden by the value of the "mem_sleep_defaul=
+t"
+> -parameter in the kernel command line.
+> +parameter in the kernel command line.  On some ACPI-based systems, depen=
+ding
+> on
+> +the information in the FADT, the default may be "s2idle" even if Suspend=
+-To-RAM
+> +is supported.
+>=20
+>  The properties of all of the sleep states are described below.
+>=20
+> Index: linux-pm/drivers/acpi/sleep.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-pm.orig/drivers/acpi/sleep.c
+> +++ linux-pm/drivers/acpi/sleep.c
+> @@ -714,6 +714,12 @@ static int lps0_device_attach(struct acp
+>  		if ((bitmask & ACPI_S2IDLE_FUNC_MASK) =3D=3D
+> ACPI_S2IDLE_FUNC_MASK) {
+>  			lps0_dsm_func_mask =3D bitmask;
+>  			lps0_device_handle =3D adev->handle;
+> +			/*
+> +			 * Use suspend-to-idle by default if the default
+> +			 * suspend mode was not set from the command line.
+> +			 */
+> +			if (mem_sleep_default > PM_SUSPEND_MEM)
+> +				mem_sleep_current =3D PM_SUSPEND_FREEZE;
+>  		}
+>=20
+>  		acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
+> Index: linux-pm/include/linux/suspend.h
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-pm.orig/include/linux/suspend.h
+> +++ linux-pm/include/linux/suspend.h
+> @@ -196,6 +196,9 @@ struct platform_freeze_ops {
 >  };
->  
-> @@ -136,14 +137,16 @@ typedef acpi_status (*iort_find_node_callback)
->  static DEFINE_SPINLOCK(iort_msi_chip_lock);
->  
->  /**
-> - * iort_register_domain_token() - register domain token and related ITS ID
-> - * to the list from where we can get it back later on.
-> + * iort_register_domain_token() - register domain token along with related
-> + * ITS ID and base address to the list from where we can get it back later on.
->   * @trans_id: ITS ID.
-> + * @base: ITS base address.
->   * @fw_node: Domain token.
->   *
->   * Returns: 0 on success, -ENOMEM if no memory when allocating list element
->   */
-> -int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node)
-> +int iort_register_domain_token(int trans_id, phys_addr_t base,
-> +			       struct fwnode_handle *fw_node)
->  {
->  	struct iort_its_msi_chip *its_msi_chip;
->  
-> @@ -153,6 +156,7 @@ int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node)
->  
->  	its_msi_chip->fw_node = fw_node;
->  	its_msi_chip->translation_id = trans_id;
-> +	its_msi_chip->base_addr = base;
->  
->  	spin_lock(&iort_msi_chip_lock);
->  	list_add(&its_msi_chip->list, &iort_msi_chip_list);
-> @@ -481,6 +485,24 @@ int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
->  	return -ENODEV;
->  }
->  
-> +static int __maybe_unused iort_find_its_base(u32 its_id, phys_addr_t *base)
-> +{
-> +	struct iort_its_msi_chip *its_msi_chip;
-> +	bool match = false;
-> +
-> +	spin_lock(&iort_msi_chip_lock);
-> +	list_for_each_entry(its_msi_chip, &iort_msi_chip_list, list) {
-> +		if (its_msi_chip->translation_id == its_id) {
-> +			*base = its_msi_chip->base_addr;
-> +			match = true;
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock(&iort_msi_chip_lock);
-> +
-> +	return match ? 0 : -ENODEV;
-> +}
+>=20
+>  #ifdef CONFIG_SUSPEND
+> +extern suspend_state_t mem_sleep_current;
+> +extern suspend_state_t mem_sleep_default;
 > +
 >  /**
->   * iort_dev_find_its_id() - Find the ITS identifier for a device
->   * @dev: The device.
-> @@ -639,6 +661,71 @@ int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
->  
->  	return err;
->  }
-> +
-> +/**
-> + * iort_iommu_its_get_resv_regions - Reserved region driver helper
-> + * @dev: Device from iommu_get_resv_regions()
-> + * @list: Reserved region list from iommu_get_resv_regions()
-> + *
-> + * Returns: Number of reserved regions on success(0 if no associated ITS),
-> + *          appropriate error value otherwise.
-> + */
-> +int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head)
-> +{
-> +	struct acpi_iort_its_group *its;
-> +	struct acpi_iort_node *node, *its_node = NULL;
-> +	int i, resv = 0;
-> +
-> +	node = iort_find_dev_node(dev);
-> +	if (!node)
-> +		return -ENODEV;
-> +
-> +	/*
-> +	 * Current logic to reserve ITS regions relies on HW topologies
-> +	 * where a given PCI or named component maps its IDs to only one
-> +	 * ITS group; if a PCI or named component can map its IDs to
-> +	 * different ITS groups through IORT mappings this function has
-> +	 * to be reworked to ensure we reserve regions for all ITS groups
-> +	 * a given PCI or named component may map IDs to.
-> +	 */
-> +	if (dev_is_pci(dev)) {
-> +		u32 rid;
-> +
-> +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid, &rid);
-> +		its_node = iort_node_map_id(node, rid, NULL, IORT_MSI_TYPE);
-> +	} else {
-> +		for (i = 0; i < node->mapping_count; i++) {
-> +			its_node = iort_node_map_platform_id(node, NULL,
-> +							 IORT_MSI_TYPE, i);
-> +			if (its_node)
-> +				break;
-> +		}
-> +	}
-> +
-> +	if (!its_node)
-> +		return 0;
-> +
-> +	/* Move to ITS specific data */
-> +	its = (struct acpi_iort_its_group *)its_node->node_data;
-> +
-> +	for (i = 0; i < its->its_count; i++) {
-> +		phys_addr_t base;
-> +
-> +		if (!iort_find_its_base(its->identifiers[i], &base)) {
-> +			int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
-> +			struct iommu_resv_region *region;
-> +
-> +			region = iommu_alloc_resv_region(base, SZ_128K, prot,
-> +							 IOMMU_RESV_MSI);
-> +			if (region) {
-> +				list_add_tail(&region->list, head);
-> +				resv++;
-> +			}
-> +		}
-> +	}
-> +
-> +	return (resv == its->its_count) ? resv : -ENODEV;
-> +}
->  #else
->  static inline
->  const struct iommu_ops *iort_fwspec_iommu_ops(struct iommu_fwspec *fwspec)
-> @@ -646,6 +733,8 @@ const struct iommu_ops *iort_fwspec_iommu_ops(struct iommu_fwspec *fwspec)
->  static inline
->  int iort_add_device_replay(const struct iommu_ops *ops, struct device *dev)
->  { return 0; }
-> +int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head)
-> +{ return -ENODEV; }
->  #endif
->  
->  static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
-> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-> index 6893287..77322b3 100644
-> --- a/drivers/irqchip/irq-gic-v3-its.c
-> +++ b/drivers/irqchip/irq-gic-v3-its.c
-> @@ -1928,7 +1928,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
->  		return -ENOMEM;
+>   * suspend_set_ops - set platform dependent suspend operations
+>   * @ops: The new suspend operations to set.
+> Index: linux-pm/kernel/power/suspend.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-pm.orig/kernel/power/suspend.c
+> +++ linux-pm/kernel/power/suspend.c
+> @@ -48,7 +48,7 @@ static const char * const mem_sleep_labe
+>  const char *mem_sleep_states[PM_SUSPEND_MAX];
+>=20
+>  suspend_state_t mem_sleep_current =3D PM_SUSPEND_FREEZE;
+> -static suspend_state_t mem_sleep_default =3D PM_SUSPEND_MEM;
+> +suspend_state_t mem_sleep_default =3D PM_SUSPEND_MAX;
+>  suspend_state_t pm_suspend_target_state;
+>  EXPORT_SYMBOL_GPL(pm_suspend_target_state);
+>=20
+> @@ -216,7 +216,7 @@ void suspend_set_ops(const struct platfo
 >  	}
->  
-> -	err = iort_register_domain_token(its_entry->translation_id, dom_handle);
-> +	err = iort_register_domain_token(its_entry->translation_id, res.start,
-> +					 dom_handle);
->  	if (err) {
->  		pr_err("ITS@%pa: Unable to register GICv3 ITS domain token (ITS ID %d) to IORT\n",
->  		       &res.start, its_entry->translation_id);
-> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-> index 8379d40..d7ed49c 100644
-> --- a/include/linux/acpi_iort.h
-> +++ b/include/linux/acpi_iort.h
-> @@ -26,7 +26,8 @@
->  #define IORT_IRQ_MASK(irq)		(irq & 0xffffffffULL)
->  #define IORT_IRQ_TRIGGER_MASK(irq)	((irq >> 32) & 0xffffffffULL)
->  
-> -int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node);
-> +int iort_register_domain_token(int trans_id, phys_addr_t base,
-> +			       struct fwnode_handle *fw_node);
->  void iort_deregister_domain_token(int trans_id);
->  struct fwnode_handle *iort_find_domain_token(int trans_id);
->  #ifdef CONFIG_ACPI_IORT
-> @@ -38,6 +39,7 @@
->  /* IOMMU interface */
->  void iort_set_dma_mask(struct device *dev);
->  const struct iommu_ops *iort_iommu_configure(struct device *dev);
-> +int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head);
->  #else
->  static inline void acpi_iort_init(void) { }
->  static inline u32 iort_msi_map_rid(struct device *dev, u32 req_id)
-> @@ -51,6 +53,9 @@ static inline void iort_set_dma_mask(struct device *dev) { }
->  static inline
->  const struct iommu_ops *iort_iommu_configure(struct device *dev)
->  { return NULL; }
-> +static inline
-> +int iort_iommu_its_get_resv_regions(struct device *dev, struct list_head *head)
-> +{ return -ENODEV; }
->  #endif
->  
->  #endif /* __ACPI_IORT_H__ */
-> 
+>  	if (valid_state(PM_SUSPEND_MEM)) {
+>  		mem_sleep_states[PM_SUSPEND_MEM] =3D
+> mem_sleep_labels[PM_SUSPEND_MEM];
+> -		if (mem_sleep_default =3D=3D PM_SUSPEND_MEM)
+> +		if (mem_sleep_default >=3D PM_SUSPEND_MEM)
+>  			mem_sleep_current =3D PM_SUSPEND_MEM;
+>  	}
+>=20
+> Index: linux-pm/kernel/power/power.h
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-pm.orig/kernel/power/power.h
+> +++ linux-pm/kernel/power/power.h
+> @@ -192,7 +192,6 @@ extern void swsusp_show_speed(ktime_t, k
+>  extern const char * const pm_labels[];
+>  extern const char *pm_states[];
+>  extern const char *mem_sleep_states[];
+> -extern suspend_state_t mem_sleep_current;
+>=20
+>  extern int suspend_devices_and_enter(suspend_state_t state);
+>  #else /* !CONFIG_SUSPEND */
 
+Rafael,
+
+This patch works for me on XPS 9365.
+
+I ran into some problems with linux-pm.git/linux-next including
+this patch though.  I spent a little time debugging and sent a follow=20
+up patch to intel-vbtn.  It's not strictly caused by this patch, but I=20
+just noticed it now with this default in place.
+
+Tested-by: Mario Limonciello <mario.limonciello@dell.com>
+
+Thanks,
