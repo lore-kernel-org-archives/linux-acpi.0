@@ -1,67 +1,100 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [RFC 0/4] Parse ACPI/PPTT for cache information
-Date: Fri,  4 Aug 2017 19:11:55 -0500
-Message-ID: <20170805001159.12769-1-jeremy.linton@arm.com>
+Subject: [RFC 2/4] arm64: cacheinfo: Add support for ACPI/PPTT generated topology
+Date: Fri,  4 Aug 2017 19:11:57 -0500
+Message-ID: <20170805001159.12769-3-jeremy.linton@arm.com>
+References: <20170805001159.12769-1-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:32976 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753182AbdHEAMB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Aug 2017 20:12:01 -0400
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:32990 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753330AbdHEAMC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 4 Aug 2017 20:12:02 -0400
+In-Reply-To: <20170805001159.12769-1-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-acpi@vger.kernel.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com
 
-ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
-used to describe the processor and cache topologies. Ideally it is
-used to extend/override information provided by the hardware, but
-right now ARM64 is entirely dependent on firmware provided tables.
+The ACPI specification now includes a tree based description
+of the cache hierarchy. On arm64 the first step is assuring
+that we allocate sufficient levels to contain all the
+individual cache descriptions beyond what is described
+by the individual cores. Lets initially just stub that
+out with a routine which indicates that there aren't further
+levels beyond what is reported by the cores.
 
-This patch parses the table for the cache topology only. Its quite
-trivial to add processor/cluster/???/socket level parsing as well,
-but that information isn't as useful as the already provided NUMA
-SRAT/SLIT information which provides relative distances. The one
-useful thing, is the number of physical sockets but due to the
-way arm64 considers "clusters" to be sockets, a larger discussion
-is required here.
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+---
+ arch/arm64/kernel/cacheinfo.c | 23 ++++++++++++++++++-----
+ include/linux/cacheinfo.h     |  1 +
+ 2 files changed, 19 insertions(+), 5 deletions(-)
 
-An example of lstopo with this patch:
-
-[root@mammon-juno-rh ~]# lstopo-no-graphics
-Machine (8072MB)
-  Package L#0 + L2 L#0 (1024KB)
-    L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
-    L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
-    L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
-    L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
-  Package L#1 + L2 L#1 (2048KB)
-    L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
-    L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
-  HostBridge L#0
-    PCIBridge
-      PCIBridge
-        PCIBridge
-          PCI 1095:3132
-            Block(Disk) L#0 "sda"
-        PCIBridge
-          PCI 11ab:4380
-            Net L#1 "enp8s0"
-
-Jeremy Linton (4):
-  drivers: base: cacheinfo: Add support for ACPI based firmware tables
-  arm64: cacheinfo: Add support for ACPI/PPTT generated topology
-  ACPI/PPTT: Add Processor Properties Topology Table parsing
-  ACPI: Enable PPTT support on ARM64
-
- arch/arm64/kernel/cacheinfo.c |  23 ++-
- drivers/acpi/arm64/Kconfig    |   3 +
- drivers/acpi/arm64/Makefile   |   1 +
- drivers/acpi/arm64/pptt.c     | 389 ++++++++++++++++++++++++++++++++++++++++++
- drivers/base/cacheinfo.c      |  15 +-
- include/linux/cacheinfo.h     |   1 +
- 6 files changed, 422 insertions(+), 10 deletions(-)
- create mode 100644 drivers/acpi/arm64/pptt.c
-
+diff --git a/arch/arm64/kernel/cacheinfo.c b/arch/arm64/kernel/cacheinfo.c
+index 380f2e2..2e2cf0d 100644
+--- a/arch/arm64/kernel/cacheinfo.c
++++ b/arch/arm64/kernel/cacheinfo.c
+@@ -17,6 +17,7 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/cacheinfo.h>
+ #include <linux/of.h>
+ 
+@@ -44,9 +45,17 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
+ 	this_leaf->type = type;
+ }
+ 
++#ifndef CONFIG_ACPI
++int acpi_find_last_cache_level(unsigned int cpu)
++{
++	/*ACPI kernels should be built with PPTT support*/
++	return 0;
++}
++#endif
++
+ static int __init_cache_level(unsigned int cpu)
+ {
+-	unsigned int ctype, level, leaves, of_level;
++	unsigned int ctype, level, leaves, fw_level;
+ 	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+ 
+ 	for (level = 1, leaves = 0; level <= MAX_CACHE_LEVEL; level++) {
+@@ -59,15 +68,19 @@ static int __init_cache_level(unsigned int cpu)
+ 		leaves += (ctype == CACHE_TYPE_SEPARATE) ? 2 : 1;
+ 	}
+ 
+-	of_level = of_find_last_cache_level(cpu);
+-	if (level < of_level) {
++	if (acpi_disabled)
++		fw_level = of_find_last_cache_level(cpu);
++	else
++		fw_level = acpi_find_last_cache_level(cpu);
++
++	if (level < fw_level) {
+ 		/*
+ 		 * some external caches not specified in CLIDR_EL1
+ 		 * the information may be available in the device tree
+ 		 * only unified external caches are considered here
+ 		 */
+-		leaves += (of_level - level);
+-		level = of_level;
++		leaves += (fw_level - level);
++		level = fw_level;
+ 	}
+ 
+ 	this_cpu_ci->num_levels = level;
+diff --git a/include/linux/cacheinfo.h b/include/linux/cacheinfo.h
+index 6a524bf..e9233c7 100644
+--- a/include/linux/cacheinfo.h
++++ b/include/linux/cacheinfo.h
+@@ -98,6 +98,7 @@ int func(unsigned int cpu)					\
+ struct cpu_cacheinfo *get_cpu_cacheinfo(unsigned int cpu);
+ int init_cache_level(unsigned int cpu);
+ int populate_cache_leaves(unsigned int cpu);
++int acpi_find_last_cache_level(unsigned int cpu);
+ 
+ const struct attribute_group *cache_get_priv_group(struct cacheinfo *this_leaf);
+ 
 -- 
 2.9.4
 
