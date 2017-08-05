@@ -1,100 +1,110 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [RFC 2/4] arm64: cacheinfo: Add support for ACPI/PPTT generated topology
-Date: Fri,  4 Aug 2017 19:11:57 -0500
-Message-ID: <20170805001159.12769-3-jeremy.linton@arm.com>
-References: <20170805001159.12769-1-jeremy.linton@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:32990 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753330AbdHEAMC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Aug 2017 20:12:02 -0400
-In-Reply-To: <20170805001159.12769-1-jeremy.linton@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH] nfit, libnvdimm, region: export 'position' in mapping info
+Date: Fri, 04 Aug 2017 18:01:28 -0700
+Message-ID: <150189488800.17374.1861176412812578031.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-acpi@vger.kernel.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com
 
-The ACPI specification now includes a tree based description
-of the cache hierarchy. On arm64 the first step is assuring
-that we allocate sufficient levels to contain all the
-individual cache descriptions beyond what is described
-by the individual cores. Lets initially just stub that
-out with a routine which indicates that there aren't further
-levels beyond what is reported by the cores.
+It is useful to be able to know the position of a DIMM in an
+interleave-set. Consider the case where the order of the DIMMs changes
+causing a namespace to be invalidated because the interleave-set cookie no
+longer matches. If the before and after state of each DIMM position is
+known this state debugged by the system owner.
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm64/kernel/cacheinfo.c | 23 ++++++++++++++++++-----
- include/linux/cacheinfo.h     |  1 +
- 2 files changed, 19 insertions(+), 5 deletions(-)
+ drivers/acpi/nfit/core.c     |   24 ++++++++++++++++++++++++
+ drivers/nvdimm/nd.h          |    1 +
+ drivers/nvdimm/region_devs.c |    6 ++++--
+ include/linux/libnvdimm.h    |    1 +
+ 4 files changed, 30 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm64/kernel/cacheinfo.c b/arch/arm64/kernel/cacheinfo.c
-index 380f2e2..2e2cf0d 100644
---- a/arch/arm64/kernel/cacheinfo.c
-+++ b/arch/arm64/kernel/cacheinfo.c
-@@ -17,6 +17,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 19182d091587..be231a549eb0 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1835,6 +1835,30 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
+ 			cmp_map_compat, NULL);
+ 	nd_set->altcookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
  
-+#include <linux/acpi.h>
- #include <linux/cacheinfo.h>
- #include <linux/of.h>
++	/* record the result of the sort for the mapping position */
++	for (i = 0; i < nr; i++) {
++		struct nfit_set_info_map2 *map2 = &info2->mapping[i];
++		int j;
++
++		for (j = 0; j < nr; j++) {
++			struct nd_mapping_desc *mapping = &ndr_desc->mapping[j];
++			struct nvdimm *nvdimm = mapping->nvdimm;
++			struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++
++			if (map2->serial_number
++				== nfit_mem->dcr->serial_number &&
++			    map2->vendor_id
++				== nfit_mem->dcr->vendor_id &&
++			    map2->manufacturing_date
++				== nfit_mem->dcr->manufacturing_date &&
++			    map2->manufacturing_location
++				== nfit_mem->dcr->manufacturing_location) {
++				mapping->position = i;
++				break;
++			}
++		}
++	}
++
+ 	ndr_desc->nd_set = nd_set;
+ 	devm_kfree(dev, info);
+ 	devm_kfree(dev, info2);
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index e9fa9e84b364..a08fc2e24fb3 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -134,6 +134,7 @@ struct nd_mapping {
+ 	struct nvdimm *nvdimm;
+ 	u64 start;
+ 	u64 size;
++	int position;
+ 	struct list_head labels;
+ 	struct mutex lock;
+ 	/*
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 5954cfbea3fc..829d760f651c 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -723,8 +723,9 @@ static ssize_t mappingN(struct device *dev, char *buf, int n)
+ 	nd_mapping = &nd_region->mapping[n];
+ 	nvdimm = nd_mapping->nvdimm;
  
-@@ -44,9 +45,17 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
- 	this_leaf->type = type;
+-	return sprintf(buf, "%s,%llu,%llu\n", dev_name(&nvdimm->dev),
+-			nd_mapping->start, nd_mapping->size);
++	return sprintf(buf, "%s,%llu,%llu,%d\n", dev_name(&nvdimm->dev),
++			nd_mapping->start, nd_mapping->size,
++			nd_mapping->position);
  }
  
-+#ifndef CONFIG_ACPI
-+int acpi_find_last_cache_level(unsigned int cpu)
-+{
-+	/*ACPI kernels should be built with PPTT support*/
-+	return 0;
-+}
-+#endif
-+
- static int __init_cache_level(unsigned int cpu)
- {
--	unsigned int ctype, level, leaves, of_level;
-+	unsigned int ctype, level, leaves, fw_level;
- 	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+ #define REGION_MAPPING(idx) \
+@@ -965,6 +966,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 		nd_region->mapping[i].nvdimm = nvdimm;
+ 		nd_region->mapping[i].start = mapping->start;
+ 		nd_region->mapping[i].size = mapping->size;
++		nd_region->mapping[i].position = mapping->position;
+ 		INIT_LIST_HEAD(&nd_region->mapping[i].labels);
+ 		mutex_init(&nd_region->mapping[i].lock);
  
- 	for (level = 1, leaves = 0; level <= MAX_CACHE_LEVEL; level++) {
-@@ -59,15 +68,19 @@ static int __init_cache_level(unsigned int cpu)
- 		leaves += (ctype == CACHE_TYPE_SEPARATE) ? 2 : 1;
- 	}
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index f3d3e6af8838..9b8d81a7b80e 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -87,6 +87,7 @@ struct nd_mapping_desc {
+ 	struct nvdimm *nvdimm;
+ 	u64 start;
+ 	u64 size;
++	int position;
+ };
  
--	of_level = of_find_last_cache_level(cpu);
--	if (level < of_level) {
-+	if (acpi_disabled)
-+		fw_level = of_find_last_cache_level(cpu);
-+	else
-+		fw_level = acpi_find_last_cache_level(cpu);
-+
-+	if (level < fw_level) {
- 		/*
- 		 * some external caches not specified in CLIDR_EL1
- 		 * the information may be available in the device tree
- 		 * only unified external caches are considered here
- 		 */
--		leaves += (of_level - level);
--		level = of_level;
-+		leaves += (fw_level - level);
-+		level = fw_level;
- 	}
- 
- 	this_cpu_ci->num_levels = level;
-diff --git a/include/linux/cacheinfo.h b/include/linux/cacheinfo.h
-index 6a524bf..e9233c7 100644
---- a/include/linux/cacheinfo.h
-+++ b/include/linux/cacheinfo.h
-@@ -98,6 +98,7 @@ int func(unsigned int cpu)					\
- struct cpu_cacheinfo *get_cpu_cacheinfo(unsigned int cpu);
- int init_cache_level(unsigned int cpu);
- int populate_cache_leaves(unsigned int cpu);
-+int acpi_find_last_cache_level(unsigned int cpu);
- 
- const struct attribute_group *cache_get_priv_group(struct cacheinfo *this_leaf);
- 
--- 
-2.9.4
-
+ struct nd_region_desc {
