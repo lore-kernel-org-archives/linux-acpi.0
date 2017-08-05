@@ -1,110 +1,43 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH] nfit, libnvdimm, region: export 'position' in mapping info
-Date: Fri, 04 Aug 2017 18:01:28 -0700
-Message-ID: <150189488800.17374.1861176412812578031.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v2 1/7] ACPI / blacklist: add acpi_match_oemlist()
+ interface
+Date: Sat, 5 Aug 2017 07:12:15 +0200
+Message-ID: <20170805051215.GA23214@nazgul.tnic>
+References: <20170803215753.30553-1-toshi.kani@hpe.com>
+ <20170803215753.30553-2-toshi.kani@hpe.com>
+ <20170804034206.GB12082@nazgul.tnic>
+ <1501878602.2042.113.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([5.9.137.197]:33380 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751221AbdHEFNB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 5 Aug 2017 01:13:01 -0400
+Content-Disposition: inline
+In-Reply-To: <1501878602.2042.113.camel@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-It is useful to be able to know the position of a DIMM in an
-interleave-set. Consider the case where the order of the DIMMs changes
-causing a namespace to be invalidated because the interleave-set cookie no
-longer matches. If the before and after state of each DIMM position is
-known this state debugged by the system owner.
+On Fri, Aug 04, 2017 at 08:39:35PM +0000, Kani, Toshimitsu wrote:
+> Well, we did talk a lot about your suggested name, "acpi_blacklist",
+> and I explained that it did not work since it'd be used for both black
+> and white-list.  We've agreed on that.
+> 
+> You then suggested it's "platform", not "OEM".  Since this is an ACPI
+> structure defined in "acpi.h", its terminology generally follows ACPI
+> spec, which I did.
+> 
+> I understand that you feel strongly against "OEM" (sorry about that). 
+> How about "acpi_platform_list"?  Does it work for you?
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c     |   24 ++++++++++++++++++++++++
- drivers/nvdimm/nd.h          |    1 +
- drivers/nvdimm/region_devs.c |    6 ++++--
- include/linux/libnvdimm.h    |    1 +
- 4 files changed, 30 insertions(+), 2 deletions(-)
+Yes, I thought we agreed on all that.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 19182d091587..be231a549eb0 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1835,6 +1835,30 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
- 			cmp_map_compat, NULL);
- 	nd_set->altcookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
- 
-+	/* record the result of the sort for the mapping position */
-+	for (i = 0; i < nr; i++) {
-+		struct nfit_set_info_map2 *map2 = &info2->mapping[i];
-+		int j;
-+
-+		for (j = 0; j < nr; j++) {
-+			struct nd_mapping_desc *mapping = &ndr_desc->mapping[j];
-+			struct nvdimm *nvdimm = mapping->nvdimm;
-+			struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+
-+			if (map2->serial_number
-+				== nfit_mem->dcr->serial_number &&
-+			    map2->vendor_id
-+				== nfit_mem->dcr->vendor_id &&
-+			    map2->manufacturing_date
-+				== nfit_mem->dcr->manufacturing_date &&
-+			    map2->manufacturing_location
-+				== nfit_mem->dcr->manufacturing_location) {
-+				mapping->position = i;
-+				break;
-+			}
-+		}
-+	}
-+
- 	ndr_desc->nd_set = nd_set;
- 	devm_kfree(dev, info);
- 	devm_kfree(dev, info2);
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index e9fa9e84b364..a08fc2e24fb3 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -134,6 +134,7 @@ struct nd_mapping {
- 	struct nvdimm *nvdimm;
- 	u64 start;
- 	u64 size;
-+	int position;
- 	struct list_head labels;
- 	struct mutex lock;
- 	/*
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 5954cfbea3fc..829d760f651c 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -723,8 +723,9 @@ static ssize_t mappingN(struct device *dev, char *buf, int n)
- 	nd_mapping = &nd_region->mapping[n];
- 	nvdimm = nd_mapping->nvdimm;
- 
--	return sprintf(buf, "%s,%llu,%llu\n", dev_name(&nvdimm->dev),
--			nd_mapping->start, nd_mapping->size);
-+	return sprintf(buf, "%s,%llu,%llu,%d\n", dev_name(&nvdimm->dev),
-+			nd_mapping->start, nd_mapping->size,
-+			nd_mapping->position);
- }
- 
- #define REGION_MAPPING(idx) \
-@@ -965,6 +966,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 		nd_region->mapping[i].nvdimm = nvdimm;
- 		nd_region->mapping[i].start = mapping->start;
- 		nd_region->mapping[i].size = mapping->size;
-+		nd_region->mapping[i].position = mapping->position;
- 		INIT_LIST_HEAD(&nd_region->mapping[i].labels);
- 		mutex_init(&nd_region->mapping[i].lock);
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index f3d3e6af8838..9b8d81a7b80e 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -87,6 +87,7 @@ struct nd_mapping_desc {
- 	struct nvdimm *nvdimm;
- 	u64 start;
- 	u64 size;
-+	int position;
- };
- 
- struct nd_region_desc {
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+--
