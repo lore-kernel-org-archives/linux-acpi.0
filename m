@@ -1,53 +1,67 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 3/5] ACPI: Introduce DMA ranges parsing
-Date: Sun, 6 Aug 2017 13:21:08 +0200
-Message-ID: <CAJZ5v0hEzxzDu+5uKsPYJHJQmxaZsXjLSW1jxDA307cea1Hk6w@mail.gmail.com>
-References: <20170803123239.11359-4-lorenzo.pieralisi@arm.com>
- <201708061311.4aEB8P1Q%fengguang.wu@intel.com> <20170806094219.GA16298@red-moon>
+From: <webmaster@lancashirebeekeepers.org.uk>
+Subject: (unknown)
+Date: Sun, 06 Aug 2017 23:55:19 -0000
+Message-ID: <150206371931.25836.11600118973902706026@isp.belgacom.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: application/zip; name="INFO_896228080802293_linux-acpi.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:33898 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751263AbdHFLVJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Aug 2017 07:21:09 -0400
-In-Reply-To: <20170806094219.GA16298@red-moon>
+Received: from 186.59-181-213.adsl-static.isp.belgacom.be ([213.181.59.186]:36929
+        "HELO isp.belgacom.be" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with SMTP id S1751355AbdHFXzZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Aug 2017 19:55:25 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: kbuild test robot <lkp@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, kbuild-all@01.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Nate Watterson <nwatters@codeaurora.org>
+To: linux-acpi@vger.kernel.org
 
-On Sun, Aug 6, 2017 at 11:42 AM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On Sun, Aug 06, 2017 at 01:12:55PM +0800, kbuild test robot wrote:
->> Hi Lorenzo,
->>
->> [auto build test ERROR on pm/linux-next]
->> [also build test ERROR on v4.13-rc3 next-20170804]
->> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->>
->> url:    https://github.com/0day-ci/linux/commits/Lorenzo-Pieralisi/ACPICA-resource_mgr-Allow-_DMA-method-in-walk-resources/20170804-185152
->> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
->> config: ia64-allnoconfig (attached as .config)
->> compiler: ia64-linux-gcc (GCC) 6.2.0
->> reproduce:
->>         wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->>         chmod +x ~/bin/make.cross
->>         # save the attached .config to linux build tree
->>         make.cross ARCH=ia64
->>
->> Note: the linux-review/Lorenzo-Pieralisi/ACPICA-resource_mgr-Allow-_DMA-method-in-walk-resources/20170804-185152 HEAD 37e91dddbbeb771d4df0001f716607f1dd8719f8 builds fine.
->>       It only hurts bisectibility.
->
-> Sigh, it is a silly v2->v3 rebase mistake, a change hunk that should be
-> in patch 4 ended up in patch 3, series as a whole is fine but this must
-> be fixed.
->
-> Rafael, please let me know the best way to handle this, I think
-> me sending a v4 is the simplest so that you can just update the branch.
-
-Please send updates of patches [3/4] and [4/4] alone.
-
-> Apologies and thanks.
-
-No worries.
+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
