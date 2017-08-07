@@ -1,128 +1,51 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [RFC 0/4] Parse ACPI/PPTT for cache information
-Date: Mon, 7 Aug 2017 12:33:32 -0500
-Message-ID: <edf59d9d-7c5c-2fca-7478-7c15a5f273ca@arm.com>
-References: <20170805001159.12769-1-jeremy.linton@arm.com>
- <39b916f8-4d38-6c24-fc5f-4d2ad3888e49@linaro.org>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
+Date: Mon, 7 Aug 2017 17:59:15 +0000
+Message-ID: <1502128177.2042.131.camel@hpe.com>
+References: <20170803215753.30553-1-toshi.kani@hpe.com>
+         <20170803215753.30553-5-toshi.kani@hpe.com>
+         <20170804040525.GE12082@nazgul.tnic> <1501879964.2042.117.camel@hpe.com>
+         <20170805051615.GC23214@nazgul.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51796 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751799AbdHGRds (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Aug 2017 13:33:48 -0400
-In-Reply-To: <39b916f8-4d38-6c24-fc5f-4d2ad3888e49@linaro.org>
+Received: from g9t5009.houston.hpe.com ([15.241.48.73]:38464 "EHLO
+        g9t5009.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751820AbdHGR7S (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Aug 2017 13:59:18 -0400
+In-Reply-To: <20170805051615.GC23214@nazgul.tnic>
 Content-Language: en-US
+Content-ID: <260B6D54D552984C9453CA3D41346493@NAMPRD84.PROD.OUTLOOK.COM>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org
-Cc: linux-acpi@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com, "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>, linuxarm@huawei.com
+To: "bp@alien8.de" <bp@alien8.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
 
-
-Hi,
-
-On 08/07/2017 05:20 AM, Hanjun Guo wrote:
-> +Cc Xiongfeng (who is also working on the PPTT but focusing on
-> CPU topology)
-> 
-> Hi Jeremy,
-> 
-> On 2017/8/5 8:11, Jeremy Linton wrote:
->> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
->> used to describe the processor and cache topologies. Ideally it is
->> used to extend/override information provided by the hardware, but
->> right now ARM64 is entirely dependent on firmware provided tables.
->>
->> This patch parses the table for the cache topology only. Its quite
->> trivial to add processor/cluster/???/socket level parsing as well,
->> but that information isn't as useful as the already provided NUMA
->> SRAT/SLIT information which provides relative distances. The one
->> useful thing, is the number of physical sockets but due to the
->> way arm64 considers "clusters" to be sockets, a larger discussion
->> is required here.
-> 
-> I think we need the socket to represent the true topology of
-> the SoC, which means that considering clusters to be sockets is
-> wrong on ARM64 server platforms, a "socket" needs to be a memory
-> controller attached I think.
-
-If I understand correctly, your suggesting that the socket isn't really 
-the physical socket, but a grouping at the memory controller level?
-
-My general take was that thread/core/socket is now insufficient as even 
-x86 designs now have more levels of hierarchy than that. Mapping those 
-layers, and the numa weighting into something meaningful for linux, well 
-that was more than I wanted to start with. Particularly since the PPTT 
-spec is silent about memory controller attachments at particular node 
-levels, as well as a few other possible short comings.
-
-
-
-> 
-> Take D05 for example, there are two physical SoC sockets on
-> the board but with two CPU DIE (with memory controller) on each
-> physical socket, and 4 clusters on each CPU DIE.
-> 
-> When considering clusters as sockets (that's the code for now),
-> there are 16 "sockets" to represent to OS for schedule input,
-> but only 4 NUMA nodes, which are confusing the scheduler a lot...
-> 
-> Xiongfeng was working on the CPU topology based on PPTT, and the code
-> is under internal review, if it's OK for you, we can send them out
-> for review comments to see if we can join our effort together, or
-> we can work on top of your patches, as you like :)
-> 
->>
->> An example of lstopo with this patch:
->>
->> [root@mammon-juno-rh ~]# lstopo-no-graphics
->> Machine (8072MB)
->>    Package L#0 + L2 L#0 (1024KB)
->>      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
->>      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
->>      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
->>      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
->>    Package L#1 + L2 L#1 (2048KB)
->>      L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
->>      L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
->>    HostBridge L#0
->>      PCIBridge
->>        PCIBridge
->>          PCIBridge
->>            PCI 1095:3132
->>              Block(Disk) L#0 "sda"
->>          PCIBridge
->>            PCI 11ab:4380
->>              Net L#1 "enp8s0"
->>
->> Jeremy Linton (4):
->>    drivers: base: cacheinfo: Add support for ACPI based firmware tables
->>    arm64: cacheinfo: Add support for ACPI/PPTT generated topology
->>    ACPI/PPTT: Add Processor Properties Topology Table parsing
->>    ACPI: Enable PPTT support on ARM64
->>
->>   arch/arm64/kernel/cacheinfo.c |  23 ++-
->>   drivers/acpi/arm64/Kconfig    |   3 +
->>   drivers/acpi/arm64/Makefile   |   1 +
->>   drivers/acpi/arm64/pptt.c     | 389 
->> ++++++++++++++++++++++++++++++++++++++++++
-> 
-> I think PPTT is not ARM64 only, can be used for x86 too,
-> shall we locate them on drivers/acpi?
-
-Sure.. But, I was using the assumption that the table would only really 
-be useful on arm64. On x86 the table is unnecessary and generally would 
-have to be dynamically generated by the firmware (as it should be on 
-arm) anyway. Put another way, does anyone want to use it on another 
-platform?
-
-
-> 
-> Rafael was working a lot on the PPTT proposal for the
-> spec, I think he can comment on this :) >
-> Rafael, what do you think?
-> 
-> Thanks
-> Hanjun
-
+T24gU2F0LCAyMDE3LTA4LTA1IGF0IDA3OjE2ICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
+DQo+IE9uIEZyaSwgQXVnIDA0LCAyMDE3IGF0IDA5OjAyOjE3UE0gKzAwMDAsIEthbmksIFRvc2hp
+bWl0c3Ugd3JvdGU6DQo+ID4gR0hFUyBwbGF0Zm9ybSBkZXZpY2VzIGNvcnJlc3BvbmQgdG8gR0hF
+UyBlbnRyaWVzLCB3aGljaCBkZWZpbmUNCj4gPiBmaXJtd2FyZSBpbnRlcmZhY2VzIHRvIHJlcG9y
+dCBnZW5lcmljIG1lbW9yeSBlcnJvcnMgdG8gdGhlIE9TLCBzdWNoDQo+ID4gYXMgTk1JIGFuZCBT
+Q0kuwqDCoFRoZXNlIGRldmljZXMgYXJlIGFzc29jaWF0ZWQgd2l0aCBhbGwgRElNTXMsIG5vdCBh
+DQo+ID4gcGFydGljdWxhciBESU1NLg0KPiANCj4gQW5kPyBTdGF0aW5nIHRoZSBvYnZpb3VzIGJy
+aW5ncyB5b3Ugd2hhdCBleGFjdGx5Pw0KPiANCj4gSU9XLCB5b3Ugc3RpbGwgaGF2ZW4ndCBhbnN3
+ZXJlZCBteSBxdWVzdGlvbi4NCg0KU29ycnkgYWJvdXQgdGhhdC4gIExldCBtZSBjb3B5IHlvdXIg
+b3JpZ2luYWwgY29tbWVudHMgdG8gbWFrZSBzdXJlIEkNCmFuc3dlciB5b3VyIHF1ZXN0aW9ucyB0
+aGlzIHRpbWUuDQoNCj4gU28gdGhlIHByb2JsZW0gaXMgdGhhdCBnaGVzX2VkYWNfcmVnaXN0ZXIo
+KSBnZXRzIGNhbGxlZCBtdWx0aXBsZQ0KPiB0aW1lcyBkZXBlbmRpbmcgb24gaG93IG1hbnkgR0hF
+UyBwbGF0Zm9ybSBkZXZpY2VzIGFyZSBvbiB0aGUgc3lzdGVtLg0KPiBCdXQgeWV0IHRoZXkgYWxs
+IHNjYW4gKmFsbCogRElNTXMuwqANCg0KUmlnaHQsIGFuZCB0aGlzIHBhdGNoIGNoYW5nZXMgZ2hl
+c19lZGFjX3JlZ2lzdGVyKCkgdG8gc2NhbiBhbGwgRElNTXMgYXQNCnRoZSBmaXJzdCB0aW1lIGFu
+ZCBkbyBub3Qgc2NhbiB0aGVtIG5leHQgdGltZXMuDQoNCj4gU28gaW5zdGVhZCB5b3Ugc2hvdWxk
+IHJldHVybiBpZg0KPiB0aGUgRElNTXMgaGF2ZSBiZWVuIGNvdW50ZWQgYWxyZWFkeSBhbmQgbm90
+IHJlZ2lzdGVyIGEgc2Vjb25kIHRpbWUuDQo+IFdoaWNoIG1ha2VzIHRoYXQgd2hvbGUgbWMgY291
+bnRpbmcga2luZGEgdXNlbGVzcy4gU28geW91IGNvdWxkIHJpcA0KPg0KdGhhdCBvdXQgdG9vLg0K
+DQpPaCwgSSBzZWUuICBTbywgZ2hlc19lZGFjX3JlZ2lzdGVyKCkgc2hvdWxkIHJldHVybiBuby1v
+cCBhIHNlY29uZCB0aW1lLA0KYW5kIGRvZXMgbm90IGNhbGwgZWRhY19tY19hZGRfbWMoKSB0byBy
+ZWdpc3RlciB3aXRoIGEgc2VwYXJhdGUgbWNpLg0KDQpJIHRoaW5rIHdlIHNob3VsZCBrZWVwIHRo
+ZSBjdXJyZW50IHNjaGVtZSwgd2hpY2ggcmVnaXN0ZXJzIGFuIG1jaSBmb3INCmVhY2ggR0hFUyBl
+bnRyeS4gIGdoZXNfZWRhY19yZXBvcnRfbWVtX2Vycm9yKCkgZXhwZWN0cyB0aGF0IGVycm9yLQ0K
+cmVwb3J0aW5nIGlzIHNlcmlhbGl6ZWQgcGVyIGEgR0hFUyBlbnRyeS4gIFNoYXJpbmcgYSBzaW5n
+bGUgbWNpIGFtb25nDQphbGwgR0hFUyBlbnRyaWVzIC8gZXJyb3IgaW50ZXJmYWNlcyBtaWdodCBs
+ZWFkIHRvIGEgcmFjZSBjb25kaXRpb24uDQoNClRoYW5rcywNCi1Ub3NoaQ0KDQo=
