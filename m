@@ -1,63 +1,39 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/4] PM / s2idle: Rename PM_SUSPEND_FREEZE to PM_SUSPEND_S2IDLE
-Date: Mon, 7 Aug 2017 14:00:51 +0200
-Message-ID: <CAJZ5v0j69B0bpWR-NgWapCWzrhyGSaUUYn3FMt_MVmKQGHTzHQ@mail.gmail.com>
-References: <1912685.WjJGzNPQ5e@aspire.rjw.lan> <3267088.f3JVtvJoiF@aspire.rjw.lan>
- <20170807084956.4kxkb2y7yxxi4ivw@hirez.programming.kicks-ass.net> <CAJZ5v0hC4UGtrFu_+=RX32EMb5jX5P3hfXpvv-Nb_NZ3Ldbwqw@mail.gmail.com>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2 1/7] ACPI / blacklist: add acpi_match_oemlist()
+ interface
+Date: Mon, 7 Aug 2017 14:49:32 +0000
+Message-ID: <1502116796.2042.124.camel@hpe.com>
+References: <20170803215753.30553-1-toshi.kani@hpe.com>
+         <20170803215753.30553-2-toshi.kani@hpe.com>
+         <20170804034206.GB12082@nazgul.tnic> <1501878602.2042.113.camel@hpe.com>
+         <20170805051215.GA23214@nazgul.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:33215 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753069AbdHGMAx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Aug 2017 08:00:53 -0400
-In-Reply-To: <CAJZ5v0hC4UGtrFu_+=RX32EMb5jX5P3hfXpvv-Nb_NZ3Ldbwqw@mail.gmail.com>
+Received: from g9t5009.houston.hpe.com ([15.241.48.73]:48174 "EHLO
+        g9t5009.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751375AbdHGOtg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Aug 2017 10:49:36 -0400
+In-Reply-To: <20170805051215.GA23214@nazgul.tnic>
+Content-Language: en-US
+Content-ID: <FB868119E64C6743ABEC5549D6E36E81@NAMPRD84.PROD.OUTLOOK.COM>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>
+To: "bp@alien8.de" <bp@alien8.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
 
-On Mon, Aug 7, 2017 at 1:57 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Mon, Aug 7, 2017 at 10:49 AM, Peter Zijlstra <peterz@infradead.org> wrote:
->> On Sat, Aug 05, 2017 at 02:56:43PM +0200, Rafael J. Wysocki wrote:
->>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>
->>> To make it clear that the symbol in question refers to
->>> suspend-to-idle, rename it from PM_SUSPEND_FREEZE to
->>> PM_SUSPEND_S2IDLE.
->>>
->>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>> ---
->>>  drivers/acpi/sleep.c             |    2 -
->>>  drivers/regulator/of_regulator.c |    2 -
->>>  include/linux/suspend.h          |    4 +--
->>>  kernel/power/suspend.c           |   44 +++++++++++++++++++--------------------
->>>  kernel/power/suspend_test.c      |    4 +--
->>>  5 files changed, 28 insertions(+), 28 deletions(-)
->>>
->>> Index: linux-pm/include/linux/suspend.h
->>> ===================================================================
->>> --- linux-pm.orig/include/linux/suspend.h
->>> +++ linux-pm/include/linux/suspend.h
->>> @@ -33,10 +33,10 @@ static inline void pm_restore_console(vo
->>>  typedef int __bitwise suspend_state_t;
->>>
->>>  #define PM_SUSPEND_ON                ((__force suspend_state_t) 0)
->>> -#define PM_SUSPEND_FREEZE    ((__force suspend_state_t) 1)
->>> +#define PM_SUSPEND_S2IDLE    ((__force suspend_state_t) 1)
->>>  #define PM_SUSPEND_STANDBY   ((__force suspend_state_t) 2)
->>>  #define PM_SUSPEND_MEM               ((__force suspend_state_t) 3)
->>
->> I feel something like PM_SUSPEND_IDLE is more consistent with the
->> existing PM_SUSPEND_MEM. Also the proposed PM_SUSPEND_S2IDLE has
->> 'SUSPEND' in it twice, so at the very least it should be
->> PM_SUSPEND_2IDLE :-)
->>
->>
->>> -#define PM_SUSPEND_MIN               PM_SUSPEND_FREEZE
->>> +#define PM_SUSPEND_MIN               PM_SUSPEND_S2IDLE
->>>  #define PM_SUSPEND_MAX               ((__force suspend_state_t) 4)
->
-> OK, I can call it PM_SUSPEND_IDLE no problem.
-
-Actually, I'm thinking that PM_SUSPEND_TO_IDLE may be even better ...
+T24gU2F0LCAyMDE3LTA4LTA1IGF0IDA3OjEyICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
+DQo+IE9uIEZyaSwgQXVnIDA0LCAyMDE3IGF0IDA4OjM5OjM1UE0gKzAwMDAsIEthbmksIFRvc2hp
+bWl0c3Ugd3JvdGU6DQo+ID4gV2VsbCwgd2UgZGlkIHRhbGsgYSBsb3QgYWJvdXQgeW91ciBzdWdn
+ZXN0ZWQgbmFtZSwNCj4gPiAiYWNwaV9ibGFja2xpc3QiLCBhbmQgSSBleHBsYWluZWQgdGhhdCBp
+dCBkaWQgbm90IHdvcmsgc2luY2UgaXQnZA0KPiA+IGJlIHVzZWQgZm9yIGJvdGggYmxhY2sgYW5k
+IHdoaXRlLWxpc3QuwqDCoFdlJ3ZlIGFncmVlZCBvbiB0aGF0Lg0KPiA+IA0KPiA+IFlvdSB0aGVu
+IHN1Z2dlc3RlZCBpdCdzICJwbGF0Zm9ybSIsIG5vdCAiT0VNIi7CoMKgU2luY2UgdGhpcyBpcyBh
+bg0KPiA+IEFDUEkgc3RydWN0dXJlIGRlZmluZWQgaW4gImFjcGkuaCIsIGl0cyB0ZXJtaW5vbG9n
+eSBnZW5lcmFsbHkNCj4gPiBmb2xsb3dzIEFDUEkgc3BlYywgd2hpY2ggSSBkaWQuDQo+ID4gDQo+
+ID4gSSB1bmRlcnN0YW5kIHRoYXQgeW91IGZlZWwgc3Ryb25nbHkgYWdhaW5zdCAiT0VNIiAoc29y
+cnkgYWJvdXQNCj4gPiB0aGF0KS7CoEhvdyBhYm91dCAiYWNwaV9wbGF0Zm9ybV9saXN0Ij/CoMKg
+RG9lcyBpdCB3b3JrIGZvciB5b3U/DQo+IA0KPiBZZXMsIEkgdGhvdWdodCB3ZSBhZ3JlZWQgb24g
+YWxsIHRoYXQuDQoNClNvdW5kcyBnb29kLiAgV2lsbCBjaGFuZ2UgdG8gImFjcGlfcGxhdGZvcm1f
+bGlzdCIuDQoNClRoYW5rcywNCi1Ub3NoaQ0KDQoNCg==
