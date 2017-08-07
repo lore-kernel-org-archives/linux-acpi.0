@@ -1,69 +1,59 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v5 1/2] ACPI/IORT: Add ITS address regions reservation
-	helper
-Date: Mon, 7 Aug 2017 08:21:40 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA8383C7EF8@FRAEML521-MBX.china.huawei.com>
-References: <20170801104913.71912-1-shameerali.kolothum.thodi@huawei.com>
-	<20170801104913.71912-2-shameerali.kolothum.thodi@huawei.com>
-	<b478d1b4-5993-9459-adfc-dec05525d72e@arm.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 1/4] PM / s2idle: Rename PM_SUSPEND_FREEZE to
+ PM_SUSPEND_S2IDLE
+Date: Mon, 7 Aug 2017 10:49:56 +0200
+Message-ID: <20170807084956.4kxkb2y7yxxi4ivw@hirez.programming.kicks-ass.net>
+References: <1912685.WjJGzNPQ5e@aspire.rjw.lan>
+ <3267088.f3JVtvJoiF@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <b478d1b4-5993-9459-adfc-dec05525d72e-5wv7dgnIgG8@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "marc.zyngier-5wv7dgnIgG8@public.gmane.org" <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "Guohanjun
-	(Hanjun Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([65.50.211.133]:34076 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752478AbdHGIuC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Aug 2017 04:50:02 -0400
+Content-Disposition: inline
+In-Reply-To: <3267088.f3JVtvJoiF@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4gTXVycGh5IFtt
-YWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IEZyaWRheSwgQXVndXN0IDA0LCAy
-MDE3IDU6NTcgUE0NCj4gVG86IFNoYW1lZXJhbGkgS29sb3RodW0gVGhvZGk7IGxvcmVuem8ucGll
-cmFsaXNpQGFybS5jb207DQo+IG1hcmMuenluZ2llckBhcm0uY29tOyBzdWRlZXAuaG9sbGFAYXJt
-LmNvbTsgd2lsbC5kZWFjb25AYXJtLmNvbTsNCj4gaGFuanVuLmd1b0BsaW5hcm8ub3JnDQo+IENj
-OiBHYWJyaWVsZSBQYW9sb25pOyBKb2huIEdhcnJ5OyBpb21tdUBsaXN0cy5saW51eC1mb3VuZGF0
-aW9uLm9yZzsgbGludXgtDQo+IGFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsgbGludXgt
-YWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+IGRldmVsQGFjcGljYS5vcmc7IExpbnV4YXJtOyBXYW5n
-emhvdSAoQik7IEd1b2hhbmp1biAoSGFuanVuIEd1bykNCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2
-NSAxLzJdIEFDUEkvSU9SVDogQWRkIElUUyBhZGRyZXNzIHJlZ2lvbnMgcmVzZXJ2YXRpb24NCj4g
-aGVscGVyDQo+IA0KPiBPbiAwMS8wOC8xNyAxMTo0OSwgU2hhbWVlciBLb2xvdGh1bSB3cm90ZToN
-Cj4gPiBPbiBzb21lIHBsYXRmb3JtcyBJVFMgYWRkcmVzcyByZWdpb25zIGhhdmUgdG8gYmUgZXhj
-bHVkZWQgZnJvbSBub3JtYWwNCj4gPiBJT1ZBIGFsbG9jYXRpb24gaW4gdGhhdCB0aGV5IGFyZSBk
-ZXRlY3RlZCBhbmQgZGVjb2RlZCBpbiBhIEhXIHNwZWNpZmljDQo+ID4gd2F5IGJ5IHN5c3RlbSBj
-b21wb25lbnRzIGFuZCBzbyB0aGV5IGNhbm5vdCBiZSBjb25zaWRlcmVkIG5vcm1hbA0KPiBJT1ZB
-DQo+ID4gYWRkcmVzcyBzcGFjZS4NCj4gPg0KPiA+IEFkZCBhbiBoZWxwZXIgZnVuY3Rpb24gdGhh
-dCByZXRyaWV2ZXMgSVRTIGFkZHJlc3MgcmVnaW9ucyB0aHJvdWdoIElPUlQNCj4gPiBkZXZpY2Ug
-PC0+IElUUyBtYXBwaW5ncyBhbmQgcmVzZXJ2ZXMgaXQgc28gdGhhdCB0aGVzZSByZWdpb25zIHdp
-bGwgbm90DQo+ID4gYmUgdHJhbnNsYXRlZCBieSBJT01NVSBhbmQgd2lsbCBiZSBleGNsdWRlZCBm
-cm9tIElPVkEgYWxsb2NhdGlvbnMuDQo+IA0KPiBJJ3ZlIGp1c3QgcmVhbGlzZWQgdGhhdCB3ZSBu
-byBsb25nZXIgc2VlbSB0byBoYXZlIGEgY2hlY2sgdGhhdCBlbnN1cmVzDQo+IHRoZSByZWdpb25z
-IGFyZSBvbmx5IHJlc2VydmVkIG9uIHBsYXRmb3JtcyB0aGF0IG5lZWQgaXQgLSBpZiBub3QsIHRo
-ZW4NCj4gd2UncmUgZ29pbmcgdG8gYnJlYWsgZXZlcnl0aGluZyBlbHNlIHRoYXQgZG9lcyBoYXZl
-IGFuIElUUyBiZWhpbmQgU01NVQ0KPiB0cmFuc2xhdGlvbiBhcyBleHBlY3RlZC4NCg0KUmlnaHQu
-IEkgaGFkIHRoaXMgZG91YnQsIGJ1dCB0aGVuIG15IHRoaW5raW5nIHdhcyB0aGF0IHdlIHdpbGwg
-aGF2ZSB0aGUgU1dfTVNJDQpyZWdpb25zIGZvciB0aG9zZSBhbmQgd2lsbCBlbmQgdXAgIHVzaW5n
-IHRoYXQuIEJ1dCB0aGF0IGRvZXNu4oCZdCBzZWVtcw0KdG8gYmUgdGhlIGNhc2Ugbm93Lg0KDQo+
-IEl0IGZlZWxzIGxpa2UgSU9SVCBzaG91bGQga25vdyBlbm91Z2ggdG8gYmUgYWJsZSB0byBtYWtl
-IHRoYXQgZGVjaXNpb24NCj4gaW50ZXJuYWxseSwgYnV0IGlmIG5vdCAob3IgaWYgaXQgd291bGQg
-YmUgaGlkZW91cyB0byBkbyBzbyksIHRoZW4gSQ0KPiBndWVzcyBteSBpZGVhIGZvciBwYXRjaCAj
-MiB3YXMgYSBidXN0IGFuZCB3ZSBwcm9iYWJseSBkbyBuZWVkIHRvIGdvIGJhY2sNCj4gdG8gY2Fs
-bGluZyBkaXJlY3RseSBmcm9tIHRoZSBTTU1VIGRyaXZlciBiYXNlZCBvbiB0aGUgU01NVSBtb2Rl
-bC4NCg0KSXQgbWlnaHQgYmUgcG9zc2libGUgdG8gZG8gdGhhdCBjaGVjayBpbnNpZGUgaW9ydCBj
-b2RlLCBidXQgdGhlbiB3ZSBoYXZlIHRvIGZpbmQNCnRoZSAgc21tdSBub2RlIGZpcnN0IGFuZCBj
-aGVjayB0aGUgbW9kZWwgbnVtYmVyLiBJIHRoaW5rIGl0IHdpbGwgYmUgbW9yZQ0KY2xlYW5lciBp
-ZiBTTU1VIGRyaXZlciBtYWtlcyB0aGF0IGNoZWNrIGFuZCBjYWxsIHRoZQ0KaW9tbXVfZG1hX2dl
-dF9tc2lfcmVzdl9yZWdpb25zKCkuDQoNCklmIHlvdSBhcmUgT2sgd2l0aCB0aGF0IEkgd2lsbCBx
-dWlja2x5IHJld29yayBhbmQgc2VuZCBvdXQgdGhlIG5leHQgdmVyc2lvbi4NCg0KVGhhbmtzLA0K
-U2hhbWVlcg0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-Xwppb21tdSBtYWlsaW5nIGxpc3QKaW9tbXVAbGlzdHMubGludXgtZm91bmRhdGlvbi5vcmcKaHR0
-cHM6Ly9saXN0cy5saW51eGZvdW5kYXRpb24ub3JnL21haWxtYW4vbGlzdGluZm8vaW9tbXU=
+On Sat, Aug 05, 2017 at 02:56:43PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> To make it clear that the symbol in question refers to
+> suspend-to-idle, rename it from PM_SUSPEND_FREEZE to
+> PM_SUSPEND_S2IDLE.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/sleep.c             |    2 -
+>  drivers/regulator/of_regulator.c |    2 -
+>  include/linux/suspend.h          |    4 +--
+>  kernel/power/suspend.c           |   44 +++++++++++++++++++--------------------
+>  kernel/power/suspend_test.c      |    4 +--
+>  5 files changed, 28 insertions(+), 28 deletions(-)
+> 
+> Index: linux-pm/include/linux/suspend.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/suspend.h
+> +++ linux-pm/include/linux/suspend.h
+> @@ -33,10 +33,10 @@ static inline void pm_restore_console(vo
+>  typedef int __bitwise suspend_state_t;
+>  
+>  #define PM_SUSPEND_ON		((__force suspend_state_t) 0)
+> -#define PM_SUSPEND_FREEZE	((__force suspend_state_t) 1)
+> +#define PM_SUSPEND_S2IDLE	((__force suspend_state_t) 1)
+>  #define PM_SUSPEND_STANDBY	((__force suspend_state_t) 2)
+>  #define PM_SUSPEND_MEM		((__force suspend_state_t) 3)
+
+I feel something like PM_SUSPEND_IDLE is more consistent with the
+existing PM_SUSPEND_MEM. Also the proposed PM_SUSPEND_S2IDLE has
+'SUSPEND' in it twice, so at the very least it should be
+PM_SUSPEND_2IDLE :-)
+
+
+> -#define PM_SUSPEND_MIN		PM_SUSPEND_FREEZE
+> +#define PM_SUSPEND_MIN		PM_SUSPEND_S2IDLE
+>  #define PM_SUSPEND_MAX		((__force suspend_state_t) 4)
