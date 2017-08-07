@@ -1,90 +1,125 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v5 1/2] ACPI/IORT: Add ITS address regions reservation
- helper
-Date: Mon, 7 Aug 2017 18:09:21 +0100
-Message-ID: <20170807170921.GB27830@red-moon>
-References: <20170801104913.71912-1-shameerali.kolothum.thodi@huawei.com>
- <20170801104913.71912-2-shameerali.kolothum.thodi@huawei.com>
- <b478d1b4-5993-9459-adfc-dec05525d72e@arm.com>
- <5FC3163CFD30C246ABAA99954A238FA8383C7EF8@FRAEML521-MBX.china.huawei.com>
+From: Jeffrey Hugo <jhugo@codeaurora.org>
+Subject: Re: [RFC 0/4] Parse ACPI/PPTT for cache information
+Date: Mon, 7 Aug 2017 11:10:12 -0600
+Message-ID: <de7ec511-182d-9739-ce4f-d39760730227@codeaurora.org>
+References: <20170805001159.12769-1-jeremy.linton@arm.com>
+ <39b916f8-4d38-6c24-fc5f-4d2ad3888e49@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:51532 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751914AbdHGRH2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 7 Aug 2017 13:07:28 -0400
-Content-Disposition: inline
-In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA8383C7EF8@FRAEML521-MBX.china.huawei.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:50228 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751426AbdHGRKO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Aug 2017 13:10:14 -0400
+In-Reply-To: <39b916f8-4d38-6c24-fc5f-4d2ad3888e49@linaro.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Cc: Robin Murphy <robin.murphy@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Jeremy Linton <jeremy.linton@arm.com>, linux-arm-kernel@lists.infradead.org
+Cc: lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, linuxarm@huawei.com, linux-acpi@vger.kernel.org, sudeep.holla@arm.com, "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>, Austin Christ <austinwc@codeaurora.org>
 
-On Mon, Aug 07, 2017 at 08:21:40AM +0000, Shameerali Kolothum Thodi wrote:
+On 8/7/2017 4:20 AM, Hanjun Guo wrote:
+> +Cc Xiongfeng (who is also working on the PPTT but focusing on
+> CPU topology)
 > 
+> Hi Jeremy,
 > 
-> > -----Original Message-----
-> > From: Robin Murphy [mailto:robin.murphy@arm.com]
-> > Sent: Friday, August 04, 2017 5:57 PM
-> > To: Shameerali Kolothum Thodi; lorenzo.pieralisi@arm.com;
-> > marc.zyngier@arm.com; sudeep.holla@arm.com; will.deacon@arm.com;
-> > hanjun.guo@linaro.org
-> > Cc: Gabriele Paoloni; John Garry; iommu@lists.linux-foundation.org; linux-
-> > arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
-> > devel@acpica.org; Linuxarm; Wangzhou (B); Guohanjun (Hanjun Guo)
-> > Subject: Re: [PATCH v5 1/2] ACPI/IORT: Add ITS address regions reservation
-> > helper
-> > 
-> > On 01/08/17 11:49, Shameer Kolothum wrote:
-> > > On some platforms ITS address regions have to be excluded from normal
-> > > IOVA allocation in that they are detected and decoded in a HW specific
-> > > way by system components and so they cannot be considered normal
-> > IOVA
-> > > address space.
-> > >
-> > > Add an helper function that retrieves ITS address regions through IORT
-> > > device <-> ITS mappings and reserves it so that these regions will not
-> > > be translated by IOMMU and will be excluded from IOVA allocations.
-> > 
-> > I've just realised that we no longer seem to have a check that ensures
-> > the regions are only reserved on platforms that need it - if not, then
-> > we're going to break everything else that does have an ITS behind SMMU
-> > translation as expected.
+> On 2017/8/5 8:11, Jeremy Linton wrote:
+>> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+>> used to describe the processor and cache topologies. Ideally it is
+>> used to extend/override information provided by the hardware, but
+>> right now ARM64 is entirely dependent on firmware provided tables.
+>>
+>> This patch parses the table for the cache topology only. Its quite
+>> trivial to add processor/cluster/???/socket level parsing as well,
+>> but that information isn't as useful as the already provided NUMA
+>> SRAT/SLIT information which provides relative distances. The one
+>> useful thing, is the number of physical sockets but due to the
+>> way arm64 considers "clusters" to be sockets, a larger discussion
+>> is required here.
 > 
-> Right. I had this doubt, but then my thinking was that we will have the SW_MSI
-> regions for those and will end up  using that. But that doesn’t seems
-> to be the case now.
+> I think we need the socket to represent the true topology of
+> the SoC, which means that considering clusters to be sockets is
+> wrong on ARM64 server platforms, a "socket" needs to be a memory
+> controller attached I think.
 > 
-> > It feels like IORT should know enough to be able to make that decision
-> > internally, but if not (or if it would be hideous to do so), then I
-> > guess my idea for patch #2 was a bust and we probably do need to go back
-> > to calling directly from the SMMU driver based on the SMMU model.
+> Take D05 for example, there are two physical SoC sockets on
+> the board but with two CPU DIE (with memory controller) on each
+> physical socket, and 4 clusters on each CPU DIE.
 > 
-> It might be possible to do that check inside iort code, but then we have to find
-> the  smmu node first and check the model number. I think it will be more
-> cleaner if SMMU driver makes that check and call the
-> iommu_dma_get_msi_resv_regions().
+> When considering clusters as sockets (that's the code for now),
+> there are 16 "sockets" to represent to OS for schedule input,
+> but only 4 NUMA nodes, which are confusing the scheduler a lot...
+> 
+> Xiongfeng was working on the CPU topology based on PPTT, and the code
+> is under internal review, if it's OK for you, we can send them out
+> for review comments to see if we can join our effort together, or
+> we can work on top of your patches, as you like :)
+> 
+>>
+>> An example of lstopo with this patch:
+>>
+>> [root@mammon-juno-rh ~]# lstopo-no-graphics
+>> Machine (8072MB)
+>>    Package L#0 + L2 L#0 (1024KB)
+>>      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+>>      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+>>      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+>>      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+>>    Package L#1 + L2 L#1 (2048KB)
+>>      L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
+>>      L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
+>>    HostBridge L#0
+>>      PCIBridge
+>>        PCIBridge
+>>          PCIBridge
+>>            PCI 1095:3132
+>>              Block(Disk) L#0 "sda"
+>>          PCIBridge
+>>            PCI 11ab:4380
+>>              Net L#1 "enp8s0"
+>>
+>> Jeremy Linton (4):
+>>    drivers: base: cacheinfo: Add support for ACPI based firmware tables
+>>    arm64: cacheinfo: Add support for ACPI/PPTT generated topology
+>>    ACPI/PPTT: Add Processor Properties Topology Table parsing
+>>    ACPI: Enable PPTT support on ARM64
+>>
+>>   arch/arm64/kernel/cacheinfo.c |  23 ++-
+>>   drivers/acpi/arm64/Kconfig    |   3 +
+>>   drivers/acpi/arm64/Makefile   |   1 +
+>>   drivers/acpi/arm64/pptt.c     | 389 
+>> ++++++++++++++++++++++++++++++++++++++++++
+> 
+> I think PPTT is not ARM64 only, can be used for x86 too,
+> shall we locate them on drivers/acpi?
 
-+1 on this one - we can do it in IORT but I think it is more logical
-to have a flag in the SMMU driver (keeping the DT/ACPI fwnode switch in
-generic IOMMU layer though).
+Austin and I have been working on the CPU topology.  Sounds like we have 
+some overlap with your work.  We have a working prototype at 
+https://source.codeaurora.org/quic/server/kernel/log/?h=jhugo/pptt but 
+are still doing some cleanup and fixes for our needs.
 
-Side note I: AFAICS iommu_dma_get_resv_regions() is only used on ARM, if
-it is not patch 2 would break miserably on arches that do not select
-IORT - you should rework the return code on !CONFIG_ACPI_IORT configs.
+Drivers/acpi makes sense to us, and was our working assumption.
 
-Side note II(nit): why not call the function iort_iommu_get_resv_regions() ?
-
-Lorenzo
-
-> If you are Ok with that I will quickly rework and send out the next version.
 > 
-> Thanks,
-> Shameer
+> Rafael was working a lot on the PPTT proposal for the
+> spec, I think he can comment on this :)
+> 
+> Rafael, what do you think?
+> 
+> Thanks
+> Hanjun
 > 
 > _______________________________________________
 > linux-arm-kernel mailing list
 > linux-arm-kernel@lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+
+-- 
+Jeffrey Hugo
+Qualcomm Datacenter Technologies as an affiliate of Qualcomm 
+Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
