@@ -1,59 +1,103 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 1/4] PM / s2idle: Rename PM_SUSPEND_FREEZE to
- PM_SUSPEND_S2IDLE
-Date: Mon, 7 Aug 2017 10:49:56 +0200
-Message-ID: <20170807084956.4kxkb2y7yxxi4ivw@hirez.programming.kicks-ass.net>
-References: <1912685.WjJGzNPQ5e@aspire.rjw.lan>
- <3267088.f3JVtvJoiF@aspire.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC 0/4] Parse ACPI/PPTT for cache information
+Date: Mon, 7 Aug 2017 18:20:16 +0800
+Message-ID: <39b916f8-4d38-6c24-fc5f-4d2ad3888e49@linaro.org>
+References: <20170805001159.12769-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:34076 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752478AbdHGIuC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Aug 2017 04:50:02 -0400
-Content-Disposition: inline
-In-Reply-To: <3267088.f3JVtvJoiF@aspire.rjw.lan>
+Received: from mail-pg0-f50.google.com ([74.125.83.50]:36373 "EHLO
+        mail-pg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752645AbdHGKUb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Aug 2017 06:20:31 -0400
+Received: by mail-pg0-f50.google.com with SMTP id v77so27354pgb.3
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Aug 2017 03:20:31 -0700 (PDT)
+In-Reply-To: <20170805001159.12769-1-jeremy.linton@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>
+To: Jeremy Linton <jeremy.linton@arm.com>, linux-arm-kernel@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com, "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>, linuxarm@huawei.com
 
-On Sat, Aug 05, 2017 at 02:56:43PM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++Cc Xiongfeng (who is also working on the PPTT but focusing on
+CPU topology)
+
+Hi Jeremy,
+
+On 2017/8/5 8:11, Jeremy Linton wrote:
+> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+> used to describe the processor and cache topologies. Ideally it is
+> used to extend/override information provided by the hardware, but
+> right now ARM64 is entirely dependent on firmware provided tables.
 > 
-> To make it clear that the symbol in question refers to
-> suspend-to-idle, rename it from PM_SUSPEND_FREEZE to
-> PM_SUSPEND_S2IDLE.
+> This patch parses the table for the cache topology only. Its quite
+> trivial to add processor/cluster/???/socket level parsing as well,
+> but that information isn't as useful as the already provided NUMA
+> SRAT/SLIT information which provides relative distances. The one
+> useful thing, is the number of physical sockets but due to the
+> way arm64 considers "clusters" to be sockets, a larger discussion
+> is required here.
+
+I think we need the socket to represent the true topology of
+the SoC, which means that considering clusters to be sockets is
+wrong on ARM64 server platforms, a "socket" needs to be a memory
+controller attached I think.
+
+Take D05 for example, there are two physical SoC sockets on
+the board but with two CPU DIE (with memory controller) on each
+physical socket, and 4 clusters on each CPU DIE.
+
+When considering clusters as sockets (that's the code for now),
+there are 16 "sockets" to represent to OS for schedule input,
+but only 4 NUMA nodes, which are confusing the scheduler a lot...
+
+Xiongfeng was working on the CPU topology based on PPTT, and the code
+is under internal review, if it's OK for you, we can send them out
+for review comments to see if we can join our effort together, or
+we can work on top of your patches, as you like :)
+
 > 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/sleep.c             |    2 -
->  drivers/regulator/of_regulator.c |    2 -
->  include/linux/suspend.h          |    4 +--
->  kernel/power/suspend.c           |   44 +++++++++++++++++++--------------------
->  kernel/power/suspend_test.c      |    4 +--
->  5 files changed, 28 insertions(+), 28 deletions(-)
+> An example of lstopo with this patch:
 > 
-> Index: linux-pm/include/linux/suspend.h
-> ===================================================================
-> --- linux-pm.orig/include/linux/suspend.h
-> +++ linux-pm/include/linux/suspend.h
-> @@ -33,10 +33,10 @@ static inline void pm_restore_console(vo
->  typedef int __bitwise suspend_state_t;
->  
->  #define PM_SUSPEND_ON		((__force suspend_state_t) 0)
-> -#define PM_SUSPEND_FREEZE	((__force suspend_state_t) 1)
-> +#define PM_SUSPEND_S2IDLE	((__force suspend_state_t) 1)
->  #define PM_SUSPEND_STANDBY	((__force suspend_state_t) 2)
->  #define PM_SUSPEND_MEM		((__force suspend_state_t) 3)
+> [root@mammon-juno-rh ~]# lstopo-no-graphics
+> Machine (8072MB)
+>    Package L#0 + L2 L#0 (1024KB)
+>      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+>      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+>      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+>      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+>    Package L#1 + L2 L#1 (2048KB)
+>      L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
+>      L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
+>    HostBridge L#0
+>      PCIBridge
+>        PCIBridge
+>          PCIBridge
+>            PCI 1095:3132
+>              Block(Disk) L#0 "sda"
+>          PCIBridge
+>            PCI 11ab:4380
+>              Net L#1 "enp8s0"
+> 
+> Jeremy Linton (4):
+>    drivers: base: cacheinfo: Add support for ACPI based firmware tables
+>    arm64: cacheinfo: Add support for ACPI/PPTT generated topology
+>    ACPI/PPTT: Add Processor Properties Topology Table parsing
+>    ACPI: Enable PPTT support on ARM64
+> 
+>   arch/arm64/kernel/cacheinfo.c |  23 ++-
+>   drivers/acpi/arm64/Kconfig    |   3 +
+>   drivers/acpi/arm64/Makefile   |   1 +
+>   drivers/acpi/arm64/pptt.c     | 389 ++++++++++++++++++++++++++++++++++++++++++
 
-I feel something like PM_SUSPEND_IDLE is more consistent with the
-existing PM_SUSPEND_MEM. Also the proposed PM_SUSPEND_S2IDLE has
-'SUSPEND' in it twice, so at the very least it should be
-PM_SUSPEND_2IDLE :-)
+I think PPTT is not ARM64 only, can be used for x86 too,
+shall we locate them on drivers/acpi?
 
+Rafael was working a lot on the PPTT proposal for the
+spec, I think he can comment on this :)
 
-> -#define PM_SUSPEND_MIN		PM_SUSPEND_FREEZE
-> +#define PM_SUSPEND_MIN		PM_SUSPEND_S2IDLE
->  #define PM_SUSPEND_MAX		((__force suspend_state_t) 4)
+Rafael, what do you think?
+
+Thanks
+Hanjun
