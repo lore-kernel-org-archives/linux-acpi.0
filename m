@@ -1,51 +1,238 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
-Date: Mon, 7 Aug 2017 17:59:15 +0000
-Message-ID: <1502128177.2042.131.camel@hpe.com>
-References: <20170803215753.30553-1-toshi.kani@hpe.com>
-         <20170803215753.30553-5-toshi.kani@hpe.com>
-         <20170804040525.GE12082@nazgul.tnic> <1501879964.2042.117.camel@hpe.com>
-         <20170805051615.GC23214@nazgul.tnic>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH] ACPI / Sleep: Check low power idle constraints for debug only
+Date: Mon,  7 Aug 2017 16:53:57 -0700
+Message-ID: <1502150037-32786-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t5009.houston.hpe.com ([15.241.48.73]:38464 "EHLO
-        g9t5009.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751820AbdHGR7S (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Aug 2017 13:59:18 -0400
-In-Reply-To: <20170805051615.GC23214@nazgul.tnic>
-Content-Language: en-US
-Content-ID: <260B6D54D552984C9453CA3D41346493@NAMPRD84.PROD.OUTLOOK.COM>
+Received: from mga04.intel.com ([192.55.52.120]:44219 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751881AbdHGXyA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 7 Aug 2017 19:54:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "bp@alien8.de" <bp@alien8.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-pm@vger.kernel.org, mario.limonciello@dell.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-T24gU2F0LCAyMDE3LTA4LTA1IGF0IDA3OjE2ICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
-DQo+IE9uIEZyaSwgQXVnIDA0LCAyMDE3IGF0IDA5OjAyOjE3UE0gKzAwMDAsIEthbmksIFRvc2hp
-bWl0c3Ugd3JvdGU6DQo+ID4gR0hFUyBwbGF0Zm9ybSBkZXZpY2VzIGNvcnJlc3BvbmQgdG8gR0hF
-UyBlbnRyaWVzLCB3aGljaCBkZWZpbmUNCj4gPiBmaXJtd2FyZSBpbnRlcmZhY2VzIHRvIHJlcG9y
-dCBnZW5lcmljIG1lbW9yeSBlcnJvcnMgdG8gdGhlIE9TLCBzdWNoDQo+ID4gYXMgTk1JIGFuZCBT
-Q0kuwqDCoFRoZXNlIGRldmljZXMgYXJlIGFzc29jaWF0ZWQgd2l0aCBhbGwgRElNTXMsIG5vdCBh
-DQo+ID4gcGFydGljdWxhciBESU1NLg0KPiANCj4gQW5kPyBTdGF0aW5nIHRoZSBvYnZpb3VzIGJy
-aW5ncyB5b3Ugd2hhdCBleGFjdGx5Pw0KPiANCj4gSU9XLCB5b3Ugc3RpbGwgaGF2ZW4ndCBhbnN3
-ZXJlZCBteSBxdWVzdGlvbi4NCg0KU29ycnkgYWJvdXQgdGhhdC4gIExldCBtZSBjb3B5IHlvdXIg
-b3JpZ2luYWwgY29tbWVudHMgdG8gbWFrZSBzdXJlIEkNCmFuc3dlciB5b3VyIHF1ZXN0aW9ucyB0
-aGlzIHRpbWUuDQoNCj4gU28gdGhlIHByb2JsZW0gaXMgdGhhdCBnaGVzX2VkYWNfcmVnaXN0ZXIo
-KSBnZXRzIGNhbGxlZCBtdWx0aXBsZQ0KPiB0aW1lcyBkZXBlbmRpbmcgb24gaG93IG1hbnkgR0hF
-UyBwbGF0Zm9ybSBkZXZpY2VzIGFyZSBvbiB0aGUgc3lzdGVtLg0KPiBCdXQgeWV0IHRoZXkgYWxs
-IHNjYW4gKmFsbCogRElNTXMuwqANCg0KUmlnaHQsIGFuZCB0aGlzIHBhdGNoIGNoYW5nZXMgZ2hl
-c19lZGFjX3JlZ2lzdGVyKCkgdG8gc2NhbiBhbGwgRElNTXMgYXQNCnRoZSBmaXJzdCB0aW1lIGFu
-ZCBkbyBub3Qgc2NhbiB0aGVtIG5leHQgdGltZXMuDQoNCj4gU28gaW5zdGVhZCB5b3Ugc2hvdWxk
-IHJldHVybiBpZg0KPiB0aGUgRElNTXMgaGF2ZSBiZWVuIGNvdW50ZWQgYWxyZWFkeSBhbmQgbm90
-IHJlZ2lzdGVyIGEgc2Vjb25kIHRpbWUuDQo+IFdoaWNoIG1ha2VzIHRoYXQgd2hvbGUgbWMgY291
-bnRpbmcga2luZGEgdXNlbGVzcy4gU28geW91IGNvdWxkIHJpcA0KPg0KdGhhdCBvdXQgdG9vLg0K
-DQpPaCwgSSBzZWUuICBTbywgZ2hlc19lZGFjX3JlZ2lzdGVyKCkgc2hvdWxkIHJldHVybiBuby1v
-cCBhIHNlY29uZCB0aW1lLA0KYW5kIGRvZXMgbm90IGNhbGwgZWRhY19tY19hZGRfbWMoKSB0byBy
-ZWdpc3RlciB3aXRoIGEgc2VwYXJhdGUgbWNpLg0KDQpJIHRoaW5rIHdlIHNob3VsZCBrZWVwIHRo
-ZSBjdXJyZW50IHNjaGVtZSwgd2hpY2ggcmVnaXN0ZXJzIGFuIG1jaSBmb3INCmVhY2ggR0hFUyBl
-bnRyeS4gIGdoZXNfZWRhY19yZXBvcnRfbWVtX2Vycm9yKCkgZXhwZWN0cyB0aGF0IGVycm9yLQ0K
-cmVwb3J0aW5nIGlzIHNlcmlhbGl6ZWQgcGVyIGEgR0hFUyBlbnRyeS4gIFNoYXJpbmcgYSBzaW5n
-bGUgbWNpIGFtb25nDQphbGwgR0hFUyBlbnRyaWVzIC8gZXJyb3IgaW50ZXJmYWNlcyBtaWdodCBs
-ZWFkIHRvIGEgcmFjZSBjb25kaXRpb24uDQoNClRoYW5rcywNCi1Ub3NoaQ0KDQo=
+For SoC to achieve its lowest power platform idle state a set of
+hardware preconditions must be met. These preconditions or constraints
+can be obtained by issuing a device specific method (_DSM) with
+function "1".  Refer to the document provided in the link below.
+
+Here during initialization (from attach() callback of LPS0 device, invoked
+function 1 to get the device constraints. Each enabled constraint is
+stored in a table. The devices in this table are used to check whether
+they were in required minimum state, while entering suspend. This check
+is done from platform freeze wake() callback. If any check fails then it
+prints the failed device information in dmesg.
+
+Also if debug is enabled in acpi/sleep.c, the constraint table and state
+of each device on wake is dumped in dmesg.
+
+Link: http://www.uefi.org/sites/default/files/resources/Intel_ACPI_Low_Power_S0_Idle.pdf
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+---
+ drivers/acpi/sleep.c | 168 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 168 insertions(+)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index fa8243c5c062..f23f0473f1d8 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -669,6 +669,7 @@ static const struct acpi_device_id lps0_device_ids[] = {
+ 
+ #define ACPI_LPS0_DSM_UUID	"c4eb40a0-6cd2-11e2-bcfd-0800200c9a66"
+ 
++#define ACPI_LPS0_GET_DEVICE_CONSTRAINTS	1
+ #define ACPI_LPS0_SCREEN_OFF	3
+ #define ACPI_LPS0_SCREEN_ON	4
+ #define ACPI_LPS0_ENTRY		5
+@@ -680,6 +681,169 @@ static acpi_handle lps0_device_handle;
+ static guid_t lps0_dsm_guid;
+ static char lps0_dsm_func_mask;
+ 
++/* Device constraint entry structure */
++struct lpi_device_info {
++	char *name;
++	int enabled;
++	union acpi_object *package;
++};
++
++/* Constraint package structure */
++struct lpi_device_constraint {
++	int uid;
++	int min_dstate;
++	int function_states;
++};
++
++struct lpi_constraints {
++	char *name;
++	int min_dstate;
++};
++
++static struct lpi_constraints *lpi_constraints_table;
++static int lpi_constraints_table_size;
++
++static void lpi_device_get_constraints(void)
++{
++	union acpi_object *out_obj;
++	int i;
++
++	out_obj = acpi_evaluate_dsm(lps0_device_handle, &lps0_dsm_guid,
++				    1, ACPI_LPS0_GET_DEVICE_CONSTRAINTS,
++				    NULL);
++
++	acpi_handle_debug(lps0_device_handle, "_DSM function 1 eval %s\n",
++			  out_obj ? "successful" : "failed");
++
++	if (!out_obj)
++		return;
++
++	if (out_obj->type != ACPI_TYPE_PACKAGE)
++		goto free_acpi_buffer;
++
++	lpi_constraints_table = kcalloc(out_obj->package.count,
++					sizeof(*lpi_constraints_table),
++					GFP_KERNEL);
++	if (!lpi_constraints_table)
++		goto free_acpi_buffer;
++
++	pr_debug("LPI: constraints dump begin\n");
++	for (i = 0; i < out_obj->package.count; i++) {
++		union acpi_object *package = &out_obj->package.elements[i];
++		struct lpi_device_info info;
++		int package_count = 0, j;
++
++		if (!package)
++			continue;
++
++		info.enabled = 0;
++		info.package = NULL;
++		info.name = NULL;
++
++		for (j = 0; j < package->package.count; ++j) {
++			union acpi_object *element =
++					&(package->package.elements[j]);
++
++			switch (element->type) {
++			case ACPI_TYPE_INTEGER:
++				info.enabled = element->integer.value;
++				break;
++			case ACPI_TYPE_STRING:
++				info.name = element->string.pointer;
++				break;
++			case ACPI_TYPE_PACKAGE:
++				package_count = element->package.count;
++				info.package = element->package.elements;
++				break;
++			}
++		}
++
++		if (!info.enabled || !info.package || !info.name)
++			continue;
++
++		lpi_constraints_table[lpi_constraints_table_size].name =
++						kstrdup(info.name, GFP_KERNEL);
++		if (!lpi_constraints_table[lpi_constraints_table_size].name)
++			goto free_constraints;
++
++		pr_debug("index:%d Name:%s\n", i, info.name);
++
++		for (j = 0; j < package_count; ++j) {
++			union acpi_object *info_obj = &info.package[j];
++			union acpi_object *cnstr_pkg;
++			union acpi_object *obj;
++			struct lpi_device_constraint dev_info;
++
++			switch (info_obj->type) {
++			case ACPI_TYPE_INTEGER:
++				/* version */
++				break;
++			case ACPI_TYPE_PACKAGE:
++				if (info_obj->package.count < 2)
++					break;
++
++				cnstr_pkg = info_obj->package.elements;
++				obj = &cnstr_pkg[0];
++				dev_info.uid = obj->integer.value;
++				obj = &cnstr_pkg[1];
++				dev_info.min_dstate = obj->integer.value;
++				pr_debug("uid %d min_dstate %d\n",
++					 dev_info.uid,
++					 dev_info.min_dstate);
++				lpi_constraints_table[
++					lpi_constraints_table_size].min_dstate =
++						dev_info.min_dstate;
++				break;
++			}
++		}
++
++		lpi_constraints_table_size++;
++	}
++
++	pr_debug("LPI: constraints dump end\n");
++free_acpi_buffer:
++	ACPI_FREE(out_obj);
++	return;
++
++free_constraints:
++	ACPI_FREE(out_obj);
++	for (i = 0; i < lpi_constraints_table_size; ++i)
++		kfree(lpi_constraints_table[i].name);
++	kfree(lpi_constraints_table);
++	lpi_constraints_table_size = 0;
++}
++
++static void lpi_check_constraints(void)
++{
++	int i;
++
++	for (i = 0; i < lpi_constraints_table_size; ++i) {
++		acpi_handle handle;
++		struct acpi_device *adev;
++		int state, ret;
++
++		if (ACPI_FAILURE(acpi_get_handle(NULL,
++						 lpi_constraints_table[i].name,
++						 &handle)))
++			continue;
++
++		if (acpi_bus_get_device(handle, &adev))
++			continue;
++
++		ret = acpi_device_get_power(adev, &state);
++		if (!ret)
++			pr_debug("LPI: %s required min power state %d, current power state %d, real power state %d\n",
++				 lpi_constraints_table[i].name,
++				 lpi_constraints_table[i].min_dstate,
++				 adev->power.state, state);
++
++		if (adev->flags.power_manageable && adev->power.state <
++					lpi_constraints_table[i].min_dstate)
++			pr_info("LPI: Constraint [%s] not matched\n",
++				lpi_constraints_table[i].name);
++	}
++}
++
+ static void acpi_sleep_run_lps0_dsm(unsigned int func)
+ {
+ 	union acpi_object *out_obj;
+@@ -723,6 +887,9 @@ static int lps0_device_attach(struct acpi_device *adev,
+ 				  "_DSM function 0 evaluation failed\n");
+ 	}
+ 	ACPI_FREE(out_obj);
++
++	lpi_device_get_constraints();
++
+ 	return 0;
+ }
+ 
+@@ -767,6 +934,7 @@ static void acpi_freeze_wake(void)
+ 	 */
+ 	if (acpi_sci_irq_valid() &&
+ 	    !irqd_is_wakeup_armed(irq_get_irq_data(acpi_sci_irq))) {
++		lpi_check_constraints();
+ 		pm_system_cancel_wakeup();
+ 		s2idle_wakeup = true;
+ 	}
+-- 
+2.11.0
+
