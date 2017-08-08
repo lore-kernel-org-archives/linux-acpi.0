@@ -1,69 +1,44 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH] ACPI / Sleep: Check low power idle constraints for
- debug only
-Date: Tue, 08 Aug 2017 09:08:42 -0700
-Message-ID: <1502208522.61234.1.camel@linux.intel.com>
-References: <1502150037-32786-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-         <20170808075120.GA9258@wunner.de>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] acpi: apei: fix GHES estatus iteration
+Date: Tue, 8 Aug 2017 17:32:20 +0100
+Message-ID: <20170808163219.GB2163@arm.com>
+References: <1501795945-5331-1-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170808075120.GA9258@wunner.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-pm@vger.kernel.org, mario.limonciello@dell.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:38154 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752100AbdHHQcS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 8 Aug 2017 12:32:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1501795945-5331-1-git-send-email-tbaicar@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
 
-On Tue, 2017-08-08 at 09:51 +0200, Lukas Wunner wrote:
-> On Mon, Aug 07, 2017 at 04:53:57PM -0700, Srinivas Pandruvada wrote:
-> > 
-> > +	out_obj = acpi_evaluate_dsm(lps0_device_handle,
-> > &lps0_dsm_guid,
-> > +				    1,
-> > ACPI_LPS0_GET_DEVICE_CONSTRAINTS,
-> > +				    NULL);
-> > +
-> > +	acpi_handle_debug(lps0_device_handle, "_DSM function 1
-> > eval %s\n",
-> > +			  out_obj ? "successful" : "failed");
-> > +
-> > +	if (!out_obj)
-> > +		return;
-> > +
-> > +	if (out_obj->type != ACPI_TYPE_PACKAGE)
-> > +		goto free_acpi_buffer;
+On Thu, Aug 03, 2017 at 03:32:25PM -0600, Tyler Baicar wrote:
+> Currently iterating through the GHES estatus blocks does not
+> take into account the new generic data v3 structure size. This
+> can result in garbage non-standard trace events to be triggered
+> since the loop will not properly iterate through the estatus
+> blocks and not properly terminate.
 > 
-> Using acpi_evaluate_dsm_typed() would avoid having to check the type
-> here.
+> Update the GHES estatus iteration to properly increment through
+> the estatus blocks similar to how the CPER estatus printing
+> iterates through them.
 > 
-> 
-> > 
-> > +	for (i = 0; i < out_obj->package.count; i++) {
-> > +		union acpi_object *package = &out_obj-
-> > >package.elements[i];
-> > +		struct lpi_device_info info;
-> > +		int package_count = 0, j;
-> > +
-> > +		if (!package)
-> > +			continue;
-> > +
-> > +		info.enabled = 0;
-> > +		info.package = NULL;
-> > +		info.name = NULL;
-> 
-> Using a declaration such as
-> 
-> 		struct lpi_device_info info = { };
-> 
-> would avoid having to zero the struct elements here.
-Thanks for the review. I will send update including these.
+> Fixes: bbcc2e7b642e ("ras: acpi/apei: cper: add support for generic data v3 structure")
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> Tested-by: Austin Christ <austinwc@codeaurora.org>
+> ---
+>  drivers/acpi/apei/apei-internal.h | 5 -----
+>  drivers/acpi/apei/ghes.c          | 8 +++++++-
+>  2 files changed, 7 insertions(+), 6 deletions(-)
 
-Thanks,
-Srinivas
+Whilst much of the initial code here went through the arm64 tree in the
+previous merge window, I'm assuming that Boris will take this fix via his
+tree (likewise for "[PATCH V2] acpi: apei: clear error status before
+acknowledging the error").
 
-> 
-> 
-> Thanks,
-> 
-> Lukas
+Will
