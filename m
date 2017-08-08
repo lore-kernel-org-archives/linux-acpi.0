@@ -1,62 +1,132 @@
-From: "Life is hard, and then you die" <ronald@innovation.ch>
-Subject: Re: [PATCH] ACPI / LPSS: Don't abort acpi scan on missing mem
- resource.
-Date: Mon, 7 Aug 2017 20:14:16 -0700
-Message-ID: <20170808031416.GB9396@innovation.ch>
-References: <1501890376-2662-1-git-send-email-ronald@innovation.ch>
- <20170807104709.GU2369@lahna.fi.intel.com>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [RFC 0/4] Parse ACPI/PPTT for cache information
+Date: Tue, 8 Aug 2017 12:19:02 +0800
+Message-ID: <05f78397-c8fb-6725-ef38-6ffbfd4affc4@huawei.com>
+References: <20170805001159.12769-1-jeremy.linton@arm.com>
+ <39b916f8-4d38-6c24-fc5f-4d2ad3888e49@linaro.org>
+ <de7ec511-182d-9739-ce4f-d39760730227@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from chill.innovation.ch ([216.218.245.220]:48934 "EHLO
-        chill.innovation.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751834AbdHHDOR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Aug 2017 23:14:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20170807104709.GU2369@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <de7ec511-182d-9739-ce4f-d39760730227@codeaurora.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jeffrey Hugo <jhugo@codeaurora.org>, hanjun.guo@linaro.org, Jeremy
+ Linton <jeremy.linton@arm.com>, linux-arm-kernel@lists.infradead.org
+Cc: lorenzo.pieralisi@arm.com, austinwc@codeaurora.org, catalin.marinas@arm.com, john.garry@huawei.com, will.deacon@arm.com, linuxarm@huawei.com, linux-acpi@vger.kernel.org, sudeep.holla@arm.com
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Federico Lorenzi <florenzi@gmail.com>, linux-acpi@vger.kernel.org
 
++Cc John Gary (who is working on the PPTT with me)
 
-On Mon, Aug 07, 2017 at 01:47:09PM +0300, Mika Westerberg wrote:
-> On Fri, Aug 04, 2017 at 04:46:16PM -0700, Ronald Tschalär wrote:
-> > On MacBook8's (2015) there appears to be no memory resource for the
-> > SPI master device. Returning an error here in this case then leads to
-> > the acpi device being ignored completely instead of just the handler
-> > being skipped.
+Hi Jeffrey,
+
+On 2017/8/8 1:10, Jeffrey Hugo wrote:
+> On 8/7/2017 4:20 AM, Hanjun Guo wrote:
+>> +Cc Xiongfeng (who is also working on the PPTT but focusing on
+>> CPU topology)
+>>
+>> Hi Jeremy,
+>>
+>> On 2017/8/5 8:11, Jeremy Linton wrote:
+>>> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+>>> used to describe the processor and cache topologies. Ideally it is
+>>> used to extend/override information provided by the hardware, but
+>>> right now ARM64 is entirely dependent on firmware provided tables.
+>>>
+>>> This patch parses the table for the cache topology only. Its quite
+>>> trivial to add processor/cluster/???/socket level parsing as well,
+>>> but that information isn't as useful as the already provided NUMA
+>>> SRAT/SLIT information which provides relative distances. The one
+>>> useful thing, is the number of physical sockets but due to the
+>>> way arm64 considers "clusters" to be sockets, a larger discussion
+>>> is required here.
+>>
+>> I think we need the socket to represent the true topology of
+>> the SoC, which means that considering clusters to be sockets is
+>> wrong on ARM64 server platforms, a "socket" needs to be a memory
+>> controller attached I think.
+>>
+>> Take D05 for example, there are two physical SoC sockets on
+>> the board but with two CPU DIE (with memory controller) on each
+>> physical socket, and 4 clusters on each CPU DIE.
+>>
+>> When considering clusters as sockets (that's the code for now),
+>> there are 16 "sockets" to represent to OS for schedule input,
+>> but only 4 NUMA nodes, which are confusing the scheduler a lot...
+>>
+>> Xiongfeng was working on the CPU topology based on PPTT, and the code
+>> is under internal review, if it's OK for you, we can send them out
+>> for review comments to see if we can join our effort together, or
+>> we can work on top of your patches, as you like :)
+>>
+>>>
+>>> An example of lstopo with this patch:
+>>>
+>>> [root@mammon-juno-rh ~]# lstopo-no-graphics
+>>> Machine (8072MB)
+>>>    Package L#0 + L2 L#0 (1024KB)
+>>>      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+>>>      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+>>>      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+>>>      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+>>>    Package L#1 + L2 L#1 (2048KB)
+>>>      L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
+>>>      L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
+>>>    HostBridge L#0
+>>>      PCIBridge
+>>>        PCIBridge
+>>>          PCIBridge
+>>>            PCI 1095:3132
+>>>              Block(Disk) L#0 "sda"
+>>>          PCIBridge
+>>>            PCI 11ab:4380
+>>>              Net L#1 "enp8s0"
+>>>
+>>> Jeremy Linton (4):
+>>>    drivers: base: cacheinfo: Add support for ACPI based firmware tables
+>>>    arm64: cacheinfo: Add support for ACPI/PPTT generated topology
+>>>    ACPI/PPTT: Add Processor Properties Topology Table parsing
+>>>    ACPI: Enable PPTT support on ARM64
+>>>
+>>>   arch/arm64/kernel/cacheinfo.c |  23 ++-
+>>>   drivers/acpi/arm64/Kconfig    |   3 +
+>>>   drivers/acpi/arm64/Makefile   |   1 +
+>>>   drivers/acpi/arm64/pptt.c     | 389 ++++++++++++++++++++++++++++++++++++++++++
+>>
+>> I think PPTT is not ARM64 only, can be used for x86 too,
+>> shall we locate them on drivers/acpi?
 > 
-> What's the problem if we prevent creation of the SPI master device? How
-> does user see the issue?
+> Austin and I have been working on the CPU topology.  Sounds like we have some overlap with your work.  We have a working prototype at https://source.codeaurora.org/quic/server/kernel/log/?h=jhugo/pptt but are still doing some cleanup and fixes for our needs.
+> 
+> Drivers/acpi makes sense to us, and was our working assumption.
+> 
+John and I have also been working on the CPU topology. Our code can be got at https://github.com/fenghusthu/acpi_pptt .
 
-Their keyboard and touchpad don't work :-)
+I have tested it on the D05 board and it is OK.
 
-> It is not like the SPI driver could use the
-> device anyway.
-
-The spi master device works just fine (once recognized). Nothing the
-acpi-lpss handler provides appears to be necessary for this device
-(though admittedly the PM stuff hasn't been explored much).
-
-> Just trying to understand why we would want to change the behaviour.
-
-Apologies for the lack of context. This is related to the work on
-the SPI keyboard and touchpad driver for MacBook(Pro)'s
-(https://github.com/cb22/macbook12-spi-driver/) (and as such is
-tangentally related to the recent apple SPI properties work by Lukas
-Wunner that just got accepted). We obviously need the spi master
-device in order to set up the keyboard/touchpad SPI slave device.
-
-Btw., in case it matters, this SPI controller shows up in lscpi as
-
-  00:15.4 Serial bus controller [0c80]: Intel Corporation Wildcat Point-LP Serial IO GSPI Controller #1 [8086:9ce6] (rev 03)
-
-Hope this helps.
+Maybe we can work together, combine our codes, and make a better code structure.
 
 
-  Cheers,
-
-  Ronald
-
+>>
+>> Rafael was working a lot on the PPTT proposal for the
+>> spec, I think he can comment on this :)
+>>
+>> Rafael, what do you think?
+>>
+>> Thanks
+>> Hanjun
+>>
+>> _______________________________________________
+>> linux-arm-kernel mailing list
+>> linux-arm-kernel@lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
+> 
