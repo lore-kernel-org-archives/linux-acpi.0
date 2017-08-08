@@ -1,132 +1,50 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: Re: [RFC 0/4] Parse ACPI/PPTT for cache information
-Date: Tue, 8 Aug 2017 12:19:02 +0800
-Message-ID: <05f78397-c8fb-6725-ef38-6ffbfd4affc4@huawei.com>
-References: <20170805001159.12769-1-jeremy.linton@arm.com>
- <39b916f8-4d38-6c24-fc5f-4d2ad3888e49@linaro.org>
- <de7ec511-182d-9739-ce4f-d39760730227@codeaurora.org>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v6 1/3] mfd: Add new mfd device TPS68470
+Date: Tue, 8 Aug 2017 08:39:37 +0100
+Message-ID: <20170808073937.w4bj37a47xaxnnpj@dell>
+References: <1501288226-27469-1-git-send-email-rajmohan.mani@intel.com>
+ <1501288226-27469-2-git-send-email-rajmohan.mani@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <de7ec511-182d-9739-ce4f-d39760730227@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jeffrey Hugo <jhugo@codeaurora.org>, hanjun.guo@linaro.org, Jeremy
- Linton <jeremy.linton@arm.com>, linux-arm-kernel@lists.infradead.org
-Cc: lorenzo.pieralisi@arm.com, austinwc@codeaurora.org, catalin.marinas@arm.com, john.garry@huawei.com, will.deacon@arm.com, linuxarm@huawei.com, linux-acpi@vger.kernel.org, sudeep.holla@arm.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wr0-f176.google.com ([209.85.128.176]:38584 "EHLO
+        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752047AbdHHHjl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Aug 2017 03:39:41 -0400
+Received: by mail-wr0-f176.google.com with SMTP id f21so9574216wrf.5
+        for <linux-acpi@vger.kernel.org>; Tue, 08 Aug 2017 00:39:41 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1501288226-27469-2-git-send-email-rajmohan.mani@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rajmohan Mani <rajmohan.mani@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, sakari.ailus@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>
 
-+Cc John Gary (who is working on the PPTT with me)
+On Fri, 28 Jul 2017, Rajmohan Mani wrote:
 
-Hi Jeffrey,
-
-On 2017/8/8 1:10, Jeffrey Hugo wrote:
-> On 8/7/2017 4:20 AM, Hanjun Guo wrote:
->> +Cc Xiongfeng (who is also working on the PPTT but focusing on
->> CPU topology)
->>
->> Hi Jeremy,
->>
->> On 2017/8/5 8:11, Jeremy Linton wrote:
->>> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
->>> used to describe the processor and cache topologies. Ideally it is
->>> used to extend/override information provided by the hardware, but
->>> right now ARM64 is entirely dependent on firmware provided tables.
->>>
->>> This patch parses the table for the cache topology only. Its quite
->>> trivial to add processor/cluster/???/socket level parsing as well,
->>> but that information isn't as useful as the already provided NUMA
->>> SRAT/SLIT information which provides relative distances. The one
->>> useful thing, is the number of physical sockets but due to the
->>> way arm64 considers "clusters" to be sockets, a larger discussion
->>> is required here.
->>
->> I think we need the socket to represent the true topology of
->> the SoC, which means that considering clusters to be sockets is
->> wrong on ARM64 server platforms, a "socket" needs to be a memory
->> controller attached I think.
->>
->> Take D05 for example, there are two physical SoC sockets on
->> the board but with two CPU DIE (with memory controller) on each
->> physical socket, and 4 clusters on each CPU DIE.
->>
->> When considering clusters as sockets (that's the code for now),
->> there are 16 "sockets" to represent to OS for schedule input,
->> but only 4 NUMA nodes, which are confusing the scheduler a lot...
->>
->> Xiongfeng was working on the CPU topology based on PPTT, and the code
->> is under internal review, if it's OK for you, we can send them out
->> for review comments to see if we can join our effort together, or
->> we can work on top of your patches, as you like :)
->>
->>>
->>> An example of lstopo with this patch:
->>>
->>> [root@mammon-juno-rh ~]# lstopo-no-graphics
->>> Machine (8072MB)
->>>    Package L#0 + L2 L#0 (1024KB)
->>>      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
->>>      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
->>>      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
->>>      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
->>>    Package L#1 + L2 L#1 (2048KB)
->>>      L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
->>>      L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
->>>    HostBridge L#0
->>>      PCIBridge
->>>        PCIBridge
->>>          PCIBridge
->>>            PCI 1095:3132
->>>              Block(Disk) L#0 "sda"
->>>          PCIBridge
->>>            PCI 11ab:4380
->>>              Net L#1 "enp8s0"
->>>
->>> Jeremy Linton (4):
->>>    drivers: base: cacheinfo: Add support for ACPI based firmware tables
->>>    arm64: cacheinfo: Add support for ACPI/PPTT generated topology
->>>    ACPI/PPTT: Add Processor Properties Topology Table parsing
->>>    ACPI: Enable PPTT support on ARM64
->>>
->>>   arch/arm64/kernel/cacheinfo.c |  23 ++-
->>>   drivers/acpi/arm64/Kconfig    |   3 +
->>>   drivers/acpi/arm64/Makefile   |   1 +
->>>   drivers/acpi/arm64/pptt.c     | 389 ++++++++++++++++++++++++++++++++++++++++++
->>
->> I think PPTT is not ARM64 only, can be used for x86 too,
->> shall we locate them on drivers/acpi?
+> The TPS68470 device is an advanced power management
+> unit that powers a Compact Camera Module (CCM),
+> generates clocks for image sensors, drives a dual
+> LED for Flash and incorporates two LED drivers for
+> general purpose indicators.
 > 
-> Austin and I have been working on the CPU topology.  Sounds like we have some overlap with your work.  We have a working prototype at https://source.codeaurora.org/quic/server/kernel/log/?h=jhugo/pptt but are still doing some cleanup and fixes for our needs.
+> This patch adds support for TPS68470 mfd device.
 > 
-> Drivers/acpi makes sense to us, and was our working assumption.
-> 
-John and I have also been working on the CPU topology. Our code can be got at https://github.com/fenghusthu/acpi_pptt .
+> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> ---
+>  drivers/mfd/Kconfig          |  18 ++++++++
+>  drivers/mfd/Makefile         |   1 +
+>  drivers/mfd/tps68470.c       | 106 +++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/mfd/tps68470.h |  97 +++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 222 insertions(+)
+>  create mode 100644 drivers/mfd/tps68470.c
+>  create mode 100644 include/linux/mfd/tps68470.h
 
-I have tested it on the D05 board and it is OK.
+Applied, thanks.
 
-Maybe we can work together, combine our codes, and make a better code structure.
-
-
->>
->> Rafael was working a lot on the PPTT proposal for the
->> spec, I think he can comment on this :)
->>
->> Rafael, what do you think?
->>
->> Thanks
->> Hanjun
->>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
-> 
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
