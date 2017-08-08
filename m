@@ -1,44 +1,47 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] acpi: apei: fix GHES estatus iteration
-Date: Tue, 8 Aug 2017 17:32:20 +0100
-Message-ID: <20170808163219.GB2163@arm.com>
-References: <1501795945-5331-1-git-send-email-tbaicar@codeaurora.org>
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [PATCH v6 1/3] mfd: Add new mfd device TPS68470
+Date: Tue, 8 Aug 2017 18:58:14 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59725E26B4@FMSMSX114.amr.corp.intel.com>
+References: <1501288226-27469-1-git-send-email-rajmohan.mani@intel.com>
+ <1501288226-27469-2-git-send-email-rajmohan.mani@intel.com>
+ <20170808073937.w4bj37a47xaxnnpj@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:38154 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752100AbdHHQcS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 8 Aug 2017 12:32:18 -0400
-Content-Disposition: inline
-In-Reply-To: <1501795945-5331-1-git-send-email-tbaicar@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170808073937.w4bj37a47xaxnnpj@dell>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
 
-On Thu, Aug 03, 2017 at 03:32:25PM -0600, Tyler Baicar wrote:
-> Currently iterating through the GHES estatus blocks does not
-> take into account the new generic data v3 structure size. This
-> can result in garbage non-standard trace events to be triggered
-> since the loop will not properly iterate through the estatus
-> blocks and not properly terminate.
-> 
-> Update the GHES estatus iteration to properly increment through
-> the estatus blocks similar to how the CPER estatus printing
-> iterates through them.
-> 
-> Fixes: bbcc2e7b642e ("ras: acpi/apei: cper: add support for generic data v3 structure")
-> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-> Tested-by: Austin Christ <austinwc@codeaurora.org>
-> ---
->  drivers/acpi/apei/apei-internal.h | 5 -----
->  drivers/acpi/apei/ghes.c          | 8 +++++++-
->  2 files changed, 7 insertions(+), 6 deletions(-)
-
-Whilst much of the initial code here went through the arm64 tree in the
-previous merge window, I'm assuming that Boris will take this fix via his
-tree (likewise for "[PATCH V2] acpi: apei: clear error status before
-acknowledging the error").
-
-Will
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTGVlIEpvbmVzIFttYWls
+dG86bGVlLmpvbmVzQGxpbmFyby5vcmddDQo+IFNlbnQ6IFR1ZXNkYXksIEF1Z3VzdCAwOCwgMjAx
+NyAxMjo0MCBBTQ0KPiBUbzogTWFuaSwgUmFqbW9oYW4gPHJham1vaGFuLm1hbmlAaW50ZWwuY29t
+Pg0KPiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgtZ3Bpb0B2Z2VyLmtl
+cm5lbC5vcmc7IGxpbnV4LQ0KPiBhY3BpQHZnZXIua2VybmVsLm9yZzsgTGludXMgV2FsbGVpaiA8
+bGludXMud2FsbGVpakBsaW5hcm8ub3JnPjsgQWxleGFuZHJlDQo+IENvdXJib3QgPGdudXJvdUBn
+bWFpbC5jb20+OyBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBMZW4NCj4g
+QnJvd24gPGxlbmJAa2VybmVsLm9yZz47IHNha2FyaS5haWx1c0BsaW51eC5pbnRlbC5jb207IEFu
+ZHkgU2hldmNoZW5rbw0KPiA8YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbT4NCj4gU3ViamVjdDog
+UmU6IFtQQVRDSCB2NiAxLzNdIG1mZDogQWRkIG5ldyBtZmQgZGV2aWNlIFRQUzY4NDcwDQo+IA0K
+PiBPbiBGcmksIDI4IEp1bCAyMDE3LCBSYWptb2hhbiBNYW5pIHdyb3RlOg0KPiANCj4gPiBUaGUg
+VFBTNjg0NzAgZGV2aWNlIGlzIGFuIGFkdmFuY2VkIHBvd2VyIG1hbmFnZW1lbnQgdW5pdCB0aGF0
+IHBvd2Vycw0KPiBhDQo+ID4gQ29tcGFjdCBDYW1lcmEgTW9kdWxlIChDQ00pLCBnZW5lcmF0ZXMg
+Y2xvY2tzIGZvciBpbWFnZSBzZW5zb3JzLA0KPiA+IGRyaXZlcyBhIGR1YWwgTEVEIGZvciBGbGFz
+aCBhbmQgaW5jb3Jwb3JhdGVzIHR3byBMRUQgZHJpdmVycyBmb3INCj4gPiBnZW5lcmFsIHB1cnBv
+c2UgaW5kaWNhdG9ycy4NCj4gPg0KPiA+IFRoaXMgcGF0Y2ggYWRkcyBzdXBwb3J0IGZvciBUUFM2
+ODQ3MCBtZmQgZGV2aWNlLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogUmFqbW9oYW4gTWFuaSA8
+cmFqbW9oYW4ubWFuaUBpbnRlbC5jb20+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvbWZkL0tjb25m
+aWcgICAgICAgICAgfCAgMTggKysrKysrKysNCj4gPiAgZHJpdmVycy9tZmQvTWFrZWZpbGUgICAg
+ICAgICB8ICAgMSArDQo+ID4gIGRyaXZlcnMvbWZkL3RwczY4NDcwLmMgICAgICAgfCAxMDYNCj4g
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+ICBpbmNsdWRl
+L2xpbnV4L21mZC90cHM2ODQ3MC5oIHwgIDk3DQo+ID4gKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrDQo+ID4gIDQgZmlsZXMgY2hhbmdlZCwgMjIyIGluc2VydGlvbnMoKykN
+Cj4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvbWZkL3RwczY4NDcwLmMgIGNyZWF0ZSBt
+b2RlIDEwMDY0NA0KPiA+IGluY2x1ZGUvbGludXgvbWZkL3RwczY4NDcwLmgNCj4gDQo+IEFwcGxp
+ZWQsIHRoYW5rcy4NCj4gDQo+IC0tDQo+IExlZSBKb25lcw0KPiBMaW5hcm8gU1RNaWNyb2VsZWN0
+cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFkIExpbmFyby5vcmcg4pSCIE9wZW4gc291cmNlDQo+IHNv
+ZnR3YXJlIGZvciBBUk0gU29DcyBGb2xsb3cgTGluYXJvOiBGYWNlYm9vayB8IFR3aXR0ZXIgfCBC
+bG9nDQo=
