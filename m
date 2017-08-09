@@ -1,63 +1,326 @@
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v5 1/7] btt: fix a missed NVDIMM_IO_ATOMIC case in the write path
-Date: Tue,  8 Aug 2017 18:07:40 -0600
-Message-ID: <20170809000746.10585-2-vishal.l.verma@intel.com>
+Subject: [PATCH v5 7/7] libnvdimm, btt: rework error clearing
+Date: Tue,  8 Aug 2017 18:07:46 -0600
+Message-ID: <20170809000746.10585-8-vishal.l.verma@intel.com>
 References: <20170809000746.10585-1-vishal.l.verma@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:14947 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:36787 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752047AbdHIAJi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 8 Aug 2017 20:09:38 -0400
+        id S1752289AbdHIAJj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 8 Aug 2017 20:09:39 -0400
 In-Reply-To: <20170809000746.10585-1-vishal.l.verma@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
 Cc: linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>
 
-The IO context conversion for rw_bytes missed a case in the BTT write
-path (btt_map_write) which should've been marked as atomic.
+Clearing errors or badblocks during a BTT write requires sending an ACPI
+DSM, which means potentially sleeping. Since a BTT IO happens in atomic
+context (preemption disabled, spinlocks may be held), we cannot perform
+error clearing in the course of an IO. Due to this error clearing for
+BTT IOs has hitherto been disabled.
 
-In reality this should not cause a problem, because map writes are to
-small for nsio_rw_bytes to attempt error clearing, but it should be
-fixed for posterity.
+In this patch we move error clearing out of the atomic section, and thus
+re-enable error clearing with BTTs. When we are about to add a block to
+the free list, we check if it was previously marked as an error, and if
+it was, we add it to the freelist, but also set a flag that says error
+clearing will be required. We then drop the lane (ending the atomic
+context), and send a zero buffer so that the error can be cleared. The
+error flag in the free list is protected by the nd 'lane', and is set
+only be a thread while it holds that lane. When the error is cleared,
+the flag is cleared, but while holding a mutex for that freelist index.
 
-Add a might_sleep() in the non-atomic section of nsio_rw_bytes so that
-things like the nfit unit tests, which don't actually sleep, can catch
-bugs like this.
+When writing, we check for two things -
+1/ If the freelist mutex is held or if the error flag is set. If so,
+this is an error block that is being (or about to be) cleared.
+2/ If the block is a known badblock based on nsio->bb
 
+The second check is required because the BTT map error flag for a map
+entry only gets set when an error LBA is read. If we write to a new
+location that may not have the map error flag set, but still might be in
+the region's badblock list, we can trigger an EIO on the write, which is
+undesirable and completely avoidable.
+
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/btt.c   | 3 ++-
- drivers/nvdimm/claim.c | 1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/nvdimm/btt.c   | 96 ++++++++++++++++++++++++++++++++++++++++++++------
+ drivers/nvdimm/btt.h   |  5 +++
+ drivers/nvdimm/claim.c |  8 -----
+ 3 files changed, 91 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 14323fa..f6ea82f 100644
+index 9acf06b..b211daa 100644
 --- a/drivers/nvdimm/btt.c
 +++ b/drivers/nvdimm/btt.c
-@@ -1156,7 +1156,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+@@ -393,7 +393,9 @@ static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
+ 	arena->freelist[lane].sub = 1 - arena->freelist[lane].sub;
+ 	if (++(arena->freelist[lane].seq) == 4)
+ 		arena->freelist[lane].seq = 1;
+-	arena->freelist[lane].block = le32_to_cpu(ent->old_map);
++	if (ent_e_flag(ent->old_map))
++		arena->freelist[lane].has_err = 1;
++	arena->freelist[lane].block = le32_to_cpu(ent_lba(ent->old_map));
+ 
+ 	return ret;
+ }
+@@ -494,6 +496,41 @@ static int btt_log_init(struct arena_info *arena)
+ 	return ret;
+ }
+ 
++static u64 lba_to_nsoff(struct arena_info *arena, u64 lba)
++{
++	return calc_nsoff(arena->nd_btt,
++		arena->dataoff + ((u64)lba * arena->internal_lbasize));
++}
++
++static int arena_clear_freelist_error(struct arena_info *arena, u32 lane)
++{
++	int ret = 0;
++
++	if (arena->freelist[lane].has_err) {
++		void *zero_page = page_address(ZERO_PAGE(0));
++		u32 lba = arena->freelist[lane].block;
++		u64 nsoff = lba_to_nsoff(arena, lba);
++		unsigned long len = arena->sector_size;
++
++		mutex_lock(&arena->err_lock);
++
++		while (len) {
++			unsigned long chunk = min(len, PAGE_SIZE);
++
++			ret = arena_write_bytes(arena, nsoff, zero_page,
++				chunk, 0);
++			if (ret)
++				break;
++			len -= chunk;
++			nsoff += chunk;
++			if (len == 0)
++				arena->freelist[lane].has_err = 0;
++		}
++		mutex_unlock(&arena->err_lock);
++	}
++	return ret;
++}
++
+ static int btt_freelist_init(struct arena_info *arena)
+ {
+ 	int old, new, ret;
+@@ -519,6 +556,9 @@ static int btt_freelist_init(struct arena_info *arena)
+ 		arena->freelist[i].seq = nd_inc_seq(le32_to_cpu(log_new.seq));
+ 		arena->freelist[i].block = le32_to_cpu(log_new.old_map);
+ 
++		if (ent_e_flag(log_new.old_map))
++			arena_clear_freelist_error(arena, i);
++
+ 		/* This implies a newly created or untouched flog entry */
+ 		if (log_new.old_map == log_new.new_map)
+ 			continue;
+@@ -539,7 +579,6 @@ static int btt_freelist_init(struct arena_info *arena)
+ 			if (ret)
+ 				return ret;
+ 		}
+-
+ 	}
+ 
+ 	return 0;
+@@ -709,6 +748,7 @@ static int discover_arenas(struct btt *btt)
+ 		arena->external_lba_start = cur_nlba;
+ 		parse_arena_meta(arena, super, cur_off);
+ 
++		mutex_init(&arena->err_lock);
+ 		ret = btt_freelist_init(arena);
+ 		if (ret)
+ 			goto out;
+@@ -919,12 +959,6 @@ static void unlock_map(struct arena_info *arena, u32 premap)
+ 	spin_unlock(&arena->map_locks[idx].lock);
+ }
+ 
+-static u64 lba_to_nsoff(struct arena_info *arena, u64 lba)
+-{
+-	return calc_nsoff(arena->nd_btt,
+-		arena->dataoff + ((u64)lba * arena->internal_lbasize));
+-}
+-
+ static int btt_data_read(struct arena_info *arena, struct page *page,
+ 			unsigned int off, u32 lba, u32 len)
+ {
+@@ -1082,8 +1116,14 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		}
+ 
+ 		ret = btt_data_read(arena, page, off, postmap, cur_len);
+-		if (ret)
++		if (ret) {
++			int rc;
++
++			/* Media error - set the e_flag */
++			rc = btt_map_write(arena, premap, postmap, 0, 1,
++				NVDIMM_IO_ATOMIC);
+ 			goto out_rtt;
++		}
+ 
+ 		if (bip) {
+ 			ret = btt_rw_integrity(btt, bip, arena, postmap, READ);
+@@ -1108,6 +1148,15 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 	return ret;
+ }
+ 
++static bool btt_is_badblock(struct btt *btt, struct arena_info *arena,
++		u32 postmap)
++{
++	u64 nsoff = lba_to_nsoff(arena, postmap);
++	sector_t phys_sector = nsoff >> 9;
++
++	return is_bad_pmem(btt->phys_bb, phys_sector, arena->internal_lbasize);
++}
++
+ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			sector_t sector, struct page *page, unsigned int off,
+ 			unsigned int len)
+@@ -1120,7 +1169,9 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 
+ 	while (len) {
+ 		u32 cur_len;
++		int e_flag;
+ 
++ retry:
+ 		lane = nd_region_acquire_lane(btt->nd_region);
+ 
+ 		ret = lba_to_arena(btt, sector, &premap, &arena);
+@@ -1133,6 +1184,23 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			goto out_lane;
+ 		}
+ 
++		/* The block had a media error, and is being cleared */
++		if (mutex_is_locked(&arena->err_lock)
++				|| arena->freelist[lane].has_err) {
++			nd_region_release_lane(btt->nd_region, lane);
++			goto retry;
++		}
++
++		/* The block had a media error, and needs to be cleared */
++		if (btt_is_badblock(btt, arena, arena->freelist[lane].block)) {
++			arena->freelist[lane].has_err = 1;
++			nd_region_release_lane(btt->nd_region, lane);
++
++			arena_clear_freelist_error(arena, lane);
++			/* OK to acquire a different lane/free block */
++			goto retry;
++		}
++
+ 		new_postmap = arena->freelist[lane].block;
+ 
+ 		/* Wait if the new block is being read from */
+@@ -1158,7 +1226,7 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		}
+ 
+ 		lock_map(arena, premap);
+-		ret = btt_map_read(arena, premap, &old_postmap, NULL, NULL,
++		ret = btt_map_read(arena, premap, &old_postmap, NULL, &e_flag,
+ 				NVDIMM_IO_ATOMIC);
  		if (ret)
  			goto out_map;
- 
--		ret = btt_map_write(arena, premap, new_postmap, 0, 0, 0);
-+		ret = btt_map_write(arena, premap, new_postmap, 0, 0,
-+			NVDIMM_IO_ATOMIC);
- 		if (ret)
+@@ -1166,6 +1234,8 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			ret = -EIO;
  			goto out_map;
+ 		}
++		if (e_flag)
++			set_e_flag(old_postmap);
  
+ 		log.lba = cpu_to_le32(premap);
+ 		log.old_map = cpu_to_le32(old_postmap);
+@@ -1184,6 +1254,9 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		unlock_map(arena, premap);
+ 		nd_region_release_lane(btt->nd_region, lane);
+ 
++		if (e_flag)
++			arena_clear_freelist_error(arena, lane);
++
+ 		len -= cur_len;
+ 		off += cur_len;
+ 		sector += btt->sector_size >> SECTOR_SHIFT;
+@@ -1364,6 +1437,7 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+ {
+ 	int ret;
+ 	struct btt *btt;
++	struct nd_namespace_io *nsio;
+ 	struct device *dev = &nd_btt->dev;
+ 
+ 	btt = devm_kzalloc(dev, sizeof(struct btt), GFP_KERNEL);
+@@ -1377,6 +1451,8 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+ 	INIT_LIST_HEAD(&btt->arena_list);
+ 	mutex_init(&btt->init_lock);
+ 	btt->nd_region = nd_region;
++	nsio = to_nd_namespace_io(&nd_btt->ndns->dev);
++	btt->phys_bb = &nsio->bb;
+ 
+ 	ret = discover_arenas(btt);
+ 	if (ret) {
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 2bc0d10b..578c205 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -15,6 +15,7 @@
+ #ifndef _LINUX_BTT_H
+ #define _LINUX_BTT_H
+ 
++#include <linux/badblocks.h>
+ #include <linux/types.h>
+ 
+ #define BTT_SIG_LEN 16
+@@ -41,6 +42,7 @@
+ #define ent_lba(ent) (ent & MAP_LBA_MASK)
+ #define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
+ #define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
++#define set_e_flag(ent) (ent |= MAP_ERR_MASK)
+ 
+ enum btt_init_state {
+ 	INIT_UNCHECKED = 0,
+@@ -82,6 +84,7 @@ struct free_entry {
+ 	u32 block;
+ 	u8 sub;
+ 	u8 seq;
++	u8 has_err;
+ };
+ 
+ struct aligned_lock {
+@@ -153,6 +156,7 @@ struct arena_info {
+ 	struct dentry *debugfs_dir;
+ 	/* Arena flags */
+ 	u32 flags;
++	struct mutex err_lock;
+ };
+ 
+ /**
+@@ -187,6 +191,7 @@ struct btt {
+ 	struct mutex init_lock;
+ 	int init_state;
+ 	int num_arenas;
++	struct badblocks *phys_bb;
+ };
+ 
+ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super);
 diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 4777046..3e6404f 100644
+index 3e6404f..b2fc29b 100644
 --- a/drivers/nvdimm/claim.c
 +++ b/drivers/nvdimm/claim.c
-@@ -292,6 +292,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+@@ -280,14 +280,6 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 	}
+ 
+ 	if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
+-		/*
+-		 * FIXME: nsio_rw_bytes() may be called from atomic
+-		 * context in the btt case and the ACPI DSM path for
+-		 * clearing the error takes sleeping locks and allocates
+-		 * memory. An explicit error clearing path, and support
+-		 * for tracking badblocks in BTT metadata is needed to
+-		 * work around this collision.
+-		 */
+ 		if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
  				&& !(flags & NVDIMM_IO_ATOMIC)) {
  			long cleared;
- 
-+			might_sleep();
- 			cleared = nvdimm_clear_poison(&ndns->dev,
- 					nsio->res.start + offset, size);
- 			if (cleared < size)
 -- 
 2.9.3
 
