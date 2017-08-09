@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH v2 3/9] ACPI-video: Delete an error message for a failed
- kzalloc() call
-Date: Wed, 9 Aug 2017 17:38:12 +0200
-Message-ID: <f1a7dd48-312c-348b-be56-52f8263428af@users.sourceforge.net>
+Subject: [PATCH v2 4/9] ACPI-video: Return directly after a failed
+ input_allocate_device()
+Date: Wed, 9 Aug 2017 17:40:05 +0200
+Message-ID: <fda98e08-1fd5-58e3-8dfe-208c35058064@users.sourceforge.net>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <897ebf36-2fe5-e109-adf6-b81b6e863d9a@users.sourceforge.net>
  <CAJZ5v0hug9QfZHQosCFFXEcFMsDd=YvXkqMmQya3RSqmOnY4dg@mail.gmail.com>
@@ -23,27 +23,43 @@ Cc: Hans de Goede <hdegoede@redhat.com>, LKML <linux-kernel@vger.kernel.org>, ke
 List-Id: linux-acpi@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 9 Aug 2017 15:07:53 +0200
+Date: Wed, 9 Aug 2017 15:15:16 +0200
 
-Omit an extra message for a memory allocation failure in this function.
+* Return directly after a call of the function "input_allocate_device"
+  failed at the beginning.
 
-Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
+* Delete the jump label "out" which became unnecessary with
+  this refactoring.
+
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/acpi/acpi_video.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/acpi/acpi_video.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 7a9cda6c0a6b..f83ece9c830c 100644
+index f83ece9c830c..09ea1f115f55 100644
 --- a/drivers/acpi/acpi_video.c
 +++ b/drivers/acpi/acpi_video.c
-@@ -821,7 +821,6 @@ int acpi_video_get_levels(struct acpi_device *device,
+@@ -1903,10 +1903,8 @@ static int acpi_video_bus_add_notify_handler(struct acpi_video_bus *video)
+ 	int error;
  
- 	br = kzalloc(sizeof(*br), GFP_KERNEL);
- 	if (!br) {
--		printk(KERN_ERR "can't allocate memory\n");
- 		result = -ENOMEM;
- 		goto out;
- 	}
+ 	video->input = input = input_allocate_device();
+-	if (!input) {
+-		error = -ENOMEM;
+-		goto out;
+-	}
++	if (!input)
++		return -ENOMEM;
+ 
+ 	error = acpi_video_bus_start_devices(video);
+ 	if (error)
+@@ -1946,7 +1944,6 @@ static int acpi_video_bus_add_notify_handler(struct acpi_video_bus *video)
+ err_free_input:
+ 	input_free_device(input);
+ 	video->input = NULL;
+-out:
+ 	return error;
+ }
+ 
 -- 
 2.13.4
