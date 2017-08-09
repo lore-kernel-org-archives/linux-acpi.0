@@ -1,60 +1,46 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: [PATCH 0/3] Refactor GHES to better support non-APEI systems
-Date: Wed, 09 Aug 2017 10:24:36 +0100
-Message-ID: <87d185qejv.fsf@e105922-lin.cambridge.arm.com>
-References: <20170801133608.21017-1-punit.agrawal@arm.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2] ACPI / LPSS: Don't abort acpi scan on missing mem
+ resource.
+Date: Wed, 9 Aug 2017 12:28:15 +0300
+Message-ID: <20170809092815.GR2369@lahna.fi.intel.com>
+References: <1502266542-19268-1-git-send-email-ronald@innovation.ch>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:44730 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752548AbdHIJYi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 9 Aug 2017 05:24:38 -0400
-In-Reply-To: <20170801133608.21017-1-punit.agrawal@arm.com> (Punit Agrawal's
-        message of "Tue, 1 Aug 2017 14:36:05 +0100")
+Received: from mga03.intel.com ([134.134.136.65]:49830 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752442AbdHIJ2T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 9 Aug 2017 05:28:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1502266542-19268-1-git-send-email-ronald@innovation.ch>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+To: Ronald =?iso-8859-1?Q?Tschal=E4r?= <ronald@innovation.ch>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Federico Lorenzi <florenzi@gmail.com>, linux-acpi@vger.kernel.org
 
-Punit Agrawal <punit.agrawal@arm.com> writes:
+On Wed, Aug 09, 2017 at 01:15:42AM -0700, Ronald Tschalär wrote:
+> The keyboard and touchpad on MacBook's from 2015 onwards are connected
+> via an SPI bus. On MacBook8's (2015) the ACPI device for the SPI master
+> for this bus has _CID "INT33C1", and hence the acpi-lpss handler here is
+> triggered for it. However, the DSDT lists no memory resources for this
+> device, resulting in an error being returned by the attach callback and
+> therefore the SPI master device being ignored. This prevents us from
+> being able to register the keyboard and touchpad driver.
+> 
+> Furthermore, the controller (a Wildcat Point-LP controller) does not
+> appear to need the functionality provided by the apci-lpss handler.
+> Therefore we now just skip the handler if no memory resources are found
+> and let the ACPI scan complete successfully for this device.
+> 
+> All of this is not an issue on later MacBook(Pro)'s because their ACPI
+> SPI devices don't have any _CID and therefore no attempt is made to attach
+> this handler.
+> 
+> Returning an error was introduced in commit d3e13ff3c1aa - this restores
+> the original behaviour.
+> 
+> Link: https://github.com/cb22/macbook12-spi-driver
+> Signed-off-by: Ronald Tschalär <ronald@innovation.ch>
 
-> Hi,
->
-> The small series re-factors the GHES driver initialisation to move
-> memory allocation and checks from driver init to device probe. The net
-> effect is to improve the situation for systems that do not support
-> APEI.
->
-> The patches are organised as -
->
-> * Unify estatus pool creation and expansion into ghes_estatus_pool_init()
-> * Move memory initialisation and firmware first support checks from
->   driver init to device probe
-> * Do not set hest_disable if HEST not found
->
-> The set of patches initially started out as a single patch[0]. The
-> current series is the re-worked approach based on ensuing
-> discussion. They patches are based on v4.13-rc3 and have been tested
-> on a system that does not support APEI. Further testing on systems
-> that support APEI to ensure that the changes do not break expected
-> behaviour will be greatly appreciated.
-
-Ping!
-
-Boris, have you had a chance to look at the re-factoring of the GHES init?
-
->
-> Thanks,
-> Punit
->
-> [0] https://lkml.org/lkml/2017/7/20/430
->
-> Punit Agrawal (3):
->   GHES: Expand the estatus pool in ghes_estatus_pool_init()
->   GHES: Move memory initialisation to ghes_probe()
->   ACPI / APEI: HEST: Don't set hest_disable if table not found
->
->  drivers/acpi/apei/ghes.c | 132 ++++++++++++++++++++++++++---------------------
->  drivers/acpi/apei/hest.c |   2 +-
->  2 files changed, 73 insertions(+), 61 deletions(-)
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
