@@ -1,15 +1,15 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [RFC PATCH 3/4] ACPI: IORT: Skip SMMUv3 device ID map for two steps mappings
-Date: Wed, 9 Aug 2017 18:53:36 +0800
-Message-ID: <1502276017-63108-4-git-send-email-guohanjun@huawei.com>
+Subject: [RFC PATCH 2/4] ACPI: IORT: lookup iort node via fwnode
+Date: Wed, 9 Aug 2017 18:53:35 +0800
+Message-ID: <1502276017-63108-3-git-send-email-guohanjun@huawei.com>
 References: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:3480 "EHLO
+Received: from szxga04-in.huawei.com ([45.249.212.190]:3481 "EHLO
         szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751872AbdHILA5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2017 07:00:57 -0400
+        with ESMTP id S1751995AbdHILEH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2017 07:04:07 -0400
 In-Reply-To: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,126 +18,92 @@ Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@h
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-IORT revision C introduced SMMUv3 MSI support which adding a
-device ID mapping index in SMMUv3 sub table, to get the SMMUv3
-device ID mapping for the output ID (dev ID for ITS) and the
-link to which ITS.
+Now we have a helper function iort_get_fwnode() which
+lookup fwnode via iort node for SMMU, but sometimes we
+just need something exctly the opposite, which means we
+need to get the iort node via fwnode.
 
-So if a platform supports SMMUv3 MSI for control interrupt,
-there will be a additional single map entry under SMMU, this
-will not introduce any difference for devices just use one
-step map to get its output ID and parent (ITS or SMMU), such
-as PCI/NC/PMCG ---> ITS or PCI/NC ---> SMMU, but we need to
-do the spcial handling for two steps map case such as
-PCI/NC--->SMMUv3--->ITS.
+For example, we need to get SMMU's iort node when adding
+support for SMMU MSI, but SMMU is not a named component
+which has a associated device node in DSDT, that means
+we can't match the ACPI full path name to get the iort
+node for SMMU.
 
-Take a PCI hostbridge for example,
+But with SMMU or other devices in IORT probed as platform
+device, it created a fwnode to associate with the iort
+node, so we introduce iort_get_iort_node() to get the
+iort node via fwnode.
 
-|----------------------|
-|  Root Complex Node   |
-|----------------------|
-|    map entry[x]      |
-|----------------------|
-|       id value       |
-| output_reference     |
-|---|------------------|
-    |
-    |   |----------------------|
-    |-->|        SMMUv3        |
-        |----------------------|
-        |     SMMU dev ID      |
-        |     mapping index 0  |
-        |----------------------|
-        |      map entry[0]    |
-        |----------------------|
-        |       id value       |
-        | output_reference-----------> ITS 1 (SMMU MSI domain)
-        |----------------------|
-        |      map entry[1]    |
-        |----------------------|
-        |       id value       |
-        | output_reference-----------> ITS 2 (PCI MSI domain)
-        |----------------------|
-
-When the SMMU dev ID mapping index is 0, there is entry[0]
-to map to a ITS, we need to skip that map entry for PCI
-or NC (named component), or we may get the wrong ITS parent.
-
-For now we have two APIs for ID mapping, iort_node_map_id()
-and iort_node_map_platform_id(), and iort_node_map_id() is
-used for optional two steps mapping, so we just need to
-skip the map entry in iort_node_map_id() for non-SMMUv3
-devices.
+This can be extended to PMCG node usage in IORT too.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/acpi/arm64/iort.c | 37 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 36 insertions(+), 1 deletion(-)
+ drivers/acpi/arm64/iort.c | 43 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 32bd4a4..9439f02 100644
+index fa99798..32bd4a4 100644
 --- a/drivers/acpi/arm64/iort.c
 +++ b/drivers/acpi/arm64/iort.c
-@@ -366,6 +366,28 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
- 	return NULL;
+@@ -126,6 +126,31 @@ static inline void iort_delete_fwnode(struct acpi_iort_node *node)
+ 	spin_unlock(&iort_fwnode_lock);
  }
  
-+static int iort_get_smmu_v3_id_mapping_index(struct acpi_iort_node *node,
-+					     u32 *index)
++/**
++ * iort_get_iort_node() - Retrieve iort_node associated with an fwnode
++ *
++ * @fwnode: fwnode associated with device to be looked-up
++ *
++ * Returns: iort_node pointer on success, NULL on failure
++ */
++static inline
++struct acpi_iort_node *iort_get_iort_node(struct fwnode_handle *fwnode)
 +{
-+	struct acpi_iort_smmu_v3 *smmu;
++	struct iort_fwnode *curr;
++	struct acpi_iort_node *iort_node = NULL;
 +
-+	/*
-+	 * SMMUv3 dev ID mapping index was introdueced in revision 1
-+	 * table, not avaible in revision 0
-+	 */
-+	if (node->revision < 1)
-+		return -EINVAL;
++	spin_lock(&iort_fwnode_lock);
++	list_for_each_entry(curr, &iort_fwnode_list, list) {
++		if (curr->fwnode == fwnode) {
++			iort_node = curr->iort_node;
++			break;
++		}
++	}
++	spin_unlock(&iort_fwnode_lock);
 +
-+	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
-+	/* if any of the gsi for control interrupts is not 0, ignore the MSI */
-+	if (smmu->event_gsiv || smmu->pri_gsiv || smmu->gerr_gsiv
-+	    || smmu->sync_gsiv)
-+		return -EINVAL;
-+
-+	*index = smmu->id_mapping_index;
-+	return 0;
++	return iort_node;
 +}
 +
- static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
- 					       u32 id_in, u32 *id_out,
- 					       u8 type_mask)
-@@ -375,7 +397,9 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
- 	/* Parse the ID mapping tree to find specified node type */
- 	while (node) {
- 		struct acpi_iort_id_mapping *map;
--		int i;
-+		int i, ret = -EINVAL;
-+		/* big enough for an invalid id index in practical */
-+		u32 index = U32_MAX;
+ typedef acpi_status (*iort_find_node_callback)
+ 	(struct acpi_iort_node *node, void *context);
  
- 		if (IORT_TYPE_MASK(node->type) & type_mask) {
- 			if (id_out)
-@@ -396,8 +420,19 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
- 			goto fail_map;
- 		}
+@@ -424,9 +449,25 @@ static struct acpi_iort_node *iort_find_dev_node(struct device *dev)
+ {
+ 	struct pci_bus *pbus;
  
+-	if (!dev_is_pci(dev))
++	if (!dev_is_pci(dev)) {
++		struct acpi_iort_node *node;
 +		/*
-+		 *  we need to get SMMUv3 dev ID mapping index and skip its
-+		 *  associated ID map for single mapping cases.
++		 * scan iort_fwnode_list to see if it's an iort platform
++		 * device (such as SMMU, PMCG),its iort node already cached
++		 * and associated with fwnode when iort platform devices
++		 * were initialized.
 +		 */
-+		if (node->type == ACPI_IORT_NODE_SMMU_V3)
-+			ret = iort_get_smmu_v3_id_mapping_index(node, &index);
++		node = iort_get_iort_node(dev->fwnode);
++		if (node)
++			return node;
 +
- 		/* Do the ID translation */
- 		for (i = 0; i < node->mapping_count; i++, map++) {
-+			/* if it's a SMMUv3 device id mapping index, skip it */
-+			if (!ret && i == index)
-+				continue;
-+
- 			if (!iort_id_map(map, node->type, id, &id))
- 				break;
- 		}
++		/*
++		 * if not, then it should be a platform device defined in
++		 * DSDT/SSDT (with Named Component node in IORT)
++		 */
+ 		return iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+ 				      iort_match_node_callback, dev);
++	}
+ 
+ 	/* Find a PCI root bus */
+ 	pbus = to_pci_dev(dev)->bus;
 -- 
 1.7.12.4
 
