@@ -1,36 +1,63 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH] acpi: apei: fix GHES estatus iteration
-Date: Wed, 9 Aug 2017 06:57:36 +0200
-Message-ID: <20170809045736.GA24031@nazgul.tnic>
-References: <1501795945-5331-1-git-send-email-tbaicar@codeaurora.org>
- <20170808163219.GB2163@arm.com>
- <1971058.u9kdacGNiq@aspire.rjw.lan>
+From: =?UTF-8?q?Ronald=20Tschal=C3=A4r?= <ronald@innovation.ch>
+Subject: [PATCH v2] ACPI / LPSS: Don't abort acpi scan on missing mem resource.
+Date: Wed,  9 Aug 2017 01:15:42 -0700
+Message-ID: <1502266542-19268-1-git-send-email-ronald@innovation.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:41064 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752033AbdHIE6Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 9 Aug 2017 00:58:16 -0400
-Content-Disposition: inline
-In-Reply-To: <1971058.u9kdacGNiq@aspire.rjw.lan>
+Received: from chill.innovation.ch ([216.218.245.220]:35118 "EHLO
+        chill.innovation.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752228AbdHIIPp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2017 04:15:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Will Deacon <will.deacon@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, lenb@kernel.org, james.morse@arm.com, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, Federico Lorenzi <florenzi@gmail.com>, linux-acpi@vger.kernel.org, =?UTF-8?q?Ronald=20Tschal=C3=A4r?= <ronald@innovation.ch>
 
-On Wed, Aug 09, 2017 at 02:52:06AM +0200, Rafael J. Wysocki wrote:
-> Actually I will if Boris ACKs these.
+The keyboard and touchpad on MacBook's from 2015 onwards are connected
+via an SPI bus. On MacBook8's (2015) the ACPI device for the SPI master
+for this bus has _CID "INT33C1", and hence the acpi-lpss handler here is
+triggered for it. However, the DSDT lists no memory resources for this
+device, resulting in an error being returned by the attach callback and
+therefore the SPI master device being ignored. This prevents us from
+being able to register the keyboard and touchpad driver.
 
-It's all on the TODO list for when I get back from vacation next week.
-Unless Tony gets to them before me...
+Furthermore, the controller (a Wildcat Point-LP controller) does not
+appear to need the functionality provided by the apci-lpss handler.
+Therefore we now just skip the handler if no memory resources are found
+and let the ACPI scan complete successfully for this device.
 
-Thanks.
+All of this is not an issue on later MacBook(Pro)'s because their ACPI
+SPI devices don't have any _CID and therefore no attempt is made to attach
+this handler.
 
+Returning an error was introduced in commit d3e13ff3c1aa - this restores
+the original behaviour.
+
+Link: https://github.com/cb22/macbook12-spi-driver
+Signed-off-by: Ronald Tschalär <ronald@innovation.ch>
+---
+Changes V2:
+  Expanded commit message to give more context and details.
+
+ drivers/acpi/acpi_lpss.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index f88caf5aab76..032ae44710e5 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -465,7 +465,8 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 	acpi_dev_free_resource_list(&resource_list);
+ 
+ 	if (!pdata->mmio_base) {
+-		ret = -ENOMEM;
++		/* Skip the device, but continue the namespace scan. */
++		ret = 0;
+ 		goto err_out;
+ 	}
+ 
 -- 
-Regards/Gruss,
-    Boris.
+2.13.4
 
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
