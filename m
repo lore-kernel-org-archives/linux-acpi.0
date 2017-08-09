@@ -1,96 +1,143 @@
-From: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Subject: [PATCH v6 3/3] iommu/arm-smmu-v3:Enable ACPI based HiSilicon erratum 161010801
-Date: Wed, 9 Aug 2017 11:07:15 +0100
-Message-ID: <20170809100715.870516-4-shameerali.kolothum.thodi@huawei.com>
-References: <20170809100715.870516-1-shameerali.kolothum.thodi@huawei.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: [RFC PATCH 3/4] ACPI: IORT: Skip SMMUv3 device ID map for two steps mappings
+Date: Wed, 9 Aug 2017 18:53:36 +0800
+Message-ID: <1502276017-63108-4-git-send-email-guohanjun@huawei.com>
+References: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:2599 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752991AbdHIKI4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2017 06:08:56 -0400
-In-Reply-To: <20170809100715.870516-1-shameerali.kolothum.thodi@huawei.com>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:3480 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751872AbdHILA5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2017 07:00:57 -0400
+In-Reply-To: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, hanjun.guo@linaro.org
-Cc: gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com, Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-The HiSilicon erratum 161010801 describes the limitation of HiSilicon
-platforms Hip06/Hip07 to support the SMMU mappings for MSI transactions.
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-On these platforms GICv3 ITS translator is presented with the deviceID
-by extending the MSI payload data to 64 bits to include the deviceID.
-Hence, the PCIe controller on this platforms has to differentiate the
-MSI payload against other DMA payload and has to modify the MSI payload.
-This basically makes it difficult for this platforms to have a SMMU
-translation for MSI.
+IORT revision C introduced SMMUv3 MSI support which adding a
+device ID mapping index in SMMUv3 sub table, to get the SMMUv3
+device ID mapping for the output ID (dev ID for ITS) and the
+link to which ITS.
 
-This patch implements a ACPI table based quirk to reserve the hw msi
-regions in the smmu-v3 driver which means these address regions will
-not be translated and will be excluded from iova allocations.
+So if a platform supports SMMUv3 MSI for control interrupt,
+there will be a additional single map entry under SMMU, this
+will not introduce any difference for devices just use one
+step map to get its output ID and parent (ITS or SMMU), such
+as PCI/NC/PMCG ---> ITS or PCI/NC ---> SMMU, but we need to
+do the spcial handling for two steps map case such as
+PCI/NC--->SMMUv3--->ITS.
 
-Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Take a PCI hostbridge for example,
+
+|----------------------|
+|  Root Complex Node   |
+|----------------------|
+|    map entry[x]      |
+|----------------------|
+|       id value       |
+| output_reference     |
+|---|------------------|
+    |
+    |   |----------------------|
+    |-->|        SMMUv3        |
+        |----------------------|
+        |     SMMU dev ID      |
+        |     mapping index 0  |
+        |----------------------|
+        |      map entry[0]    |
+        |----------------------|
+        |       id value       |
+        | output_reference-----------> ITS 1 (SMMU MSI domain)
+        |----------------------|
+        |      map entry[1]    |
+        |----------------------|
+        |       id value       |
+        | output_reference-----------> ITS 2 (PCI MSI domain)
+        |----------------------|
+
+When the SMMU dev ID mapping index is 0, there is entry[0]
+to map to a ITS, we need to skip that map entry for PCI
+or NC (named component), or we may get the wrong ITS parent.
+
+For now we have two APIs for ID mapping, iort_node_map_id()
+and iort_node_map_platform_id(), and iort_node_map_id() is
+used for optional two steps mapping, so we just need to
+skip the map entry in iort_node_map_id() for non-SMMUv3
+devices.
+
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/iommu/arm-smmu-v3.c | 27 ++++++++++++++++++++++-----
- 1 file changed, 22 insertions(+), 5 deletions(-)
+ drivers/acpi/arm64/iort.c | 37 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 36 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index 568c400..6f21dd7 100644
---- a/drivers/iommu/arm-smmu-v3.c
-+++ b/drivers/iommu/arm-smmu-v3.c
-@@ -608,6 +608,7 @@ struct arm_smmu_device {
- 
- #define ARM_SMMU_OPT_SKIP_PREFETCH	(1 << 0)
- #define ARM_SMMU_OPT_PAGE0_REGS_ONLY	(1 << 1)
-+#define ARM_SMMU_OPT_RESV_HW_MSI	(1 << 2)
- 	u32				options;
- 
- 	struct arm_smmu_cmdq		cmdq;
-@@ -1934,14 +1935,29 @@ static void arm_smmu_get_resv_regions(struct device *dev,
- 				      struct list_head *head)
- {
- 	struct iommu_resv_region *region;
-+	struct arm_smmu_master_data *master = dev->iommu_fwspec->iommu_priv;
-+	struct arm_smmu_device *smmu = master->smmu;
- 	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
-+	int resv = 0;
- 
--	region = iommu_alloc_resv_region(MSI_IOVA_BASE, MSI_IOVA_LENGTH,
--					 prot, IOMMU_RESV_SW_MSI);
--	if (!region)
--		return;
-+	if ((smmu->options & ARM_SMMU_OPT_RESV_HW_MSI)) {
- 
--	list_add_tail(&region->list, head);
-+		resv = iommu_dma_get_msi_resv_regions(dev, head);
-+
-+		if (resv < 0) {
-+			dev_warn(dev, "HW MSI region resv failed: %d\n", resv);
-+			return;
-+		}
-+	}
-+
-+	if (!resv) {
-+		region = iommu_alloc_resv_region(MSI_IOVA_BASE, MSI_IOVA_LENGTH,
-+						 prot, IOMMU_RESV_SW_MSI);
-+		if (!region)
-+			return;
-+
-+		list_add_tail(&region->list, head);
-+	}
- 
- 	iommu_dma_get_resv_regions(dev, head);
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 32bd4a4..9439f02 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -366,6 +366,28 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+ 	return NULL;
  }
-@@ -2667,6 +2683,7 @@ static void acpi_smmu_get_options(u32 model, struct arm_smmu_device *smmu)
- 		break;
- 	case ACPI_IORT_SMMU_HISILICON_HI161X:
- 		smmu->options |= ARM_SMMU_OPT_SKIP_PREFETCH;
-+		smmu->options |= ARM_SMMU_OPT_RESV_HW_MSI;
- 		break;
- 	}
  
++static int iort_get_smmu_v3_id_mapping_index(struct acpi_iort_node *node,
++					     u32 *index)
++{
++	struct acpi_iort_smmu_v3 *smmu;
++
++	/*
++	 * SMMUv3 dev ID mapping index was introdueced in revision 1
++	 * table, not avaible in revision 0
++	 */
++	if (node->revision < 1)
++		return -EINVAL;
++
++	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
++	/* if any of the gsi for control interrupts is not 0, ignore the MSI */
++	if (smmu->event_gsiv || smmu->pri_gsiv || smmu->gerr_gsiv
++	    || smmu->sync_gsiv)
++		return -EINVAL;
++
++	*index = smmu->id_mapping_index;
++	return 0;
++}
++
+ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
+ 					       u32 id_in, u32 *id_out,
+ 					       u8 type_mask)
+@@ -375,7 +397,9 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
+ 	/* Parse the ID mapping tree to find specified node type */
+ 	while (node) {
+ 		struct acpi_iort_id_mapping *map;
+-		int i;
++		int i, ret = -EINVAL;
++		/* big enough for an invalid id index in practical */
++		u32 index = U32_MAX;
+ 
+ 		if (IORT_TYPE_MASK(node->type) & type_mask) {
+ 			if (id_out)
+@@ -396,8 +420,19 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
+ 			goto fail_map;
+ 		}
+ 
++		/*
++		 *  we need to get SMMUv3 dev ID mapping index and skip its
++		 *  associated ID map for single mapping cases.
++		 */
++		if (node->type == ACPI_IORT_NODE_SMMU_V3)
++			ret = iort_get_smmu_v3_id_mapping_index(node, &index);
++
+ 		/* Do the ID translation */
+ 		for (i = 0; i < node->mapping_count; i++, map++) {
++			/* if it's a SMMUv3 device id mapping index, skip it */
++			if (!ret && i == index)
++				continue;
++
+ 			if (!iort_id_map(map, node->type, id, &id))
+ 				break;
+ 		}
 -- 
-1.9.1
-
+1.7.12.4
 
