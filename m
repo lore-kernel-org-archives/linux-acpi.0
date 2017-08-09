@@ -1,64 +1,47 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 3/3] ACPI / scan: Enable GPEs before scanning the namespace
-Date: Thu, 10 Aug 2017 00:34:23 +0200
-Message-ID: <6344941.kJ2o2XerZ0@aspire.rjw.lan>
-References: <12346760.yAFCnkEgf6@aspire.rjw.lan>
+Subject: [PATCH 0/3] ACPI: Initialize GPEs before the initial namespace scan
+Date: Thu, 10 Aug 2017 00:29:12 +0200
+Message-ID: <12346760.yAFCnkEgf6@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51212 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752403AbdHIWmz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2017 18:42:55 -0400
-In-Reply-To: <12346760.yAFCnkEgf6@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi,
 
-On some systems the platform firmware expects GPEs to be enabled
-before the enumeration of devices and if that expectation is not
-met, the systems in question may not boot in some situations.
+This is exceptional for at least two reasons.
 
-For this reason, change the initialization ordering of the ACPI
-subsystem to make it enable GPEs before scanning the namespace
-for the first time in order to enumerate devices.
+First, we need it now to work around boot problems on multiple platforms
+already seen in the field (which are shipping products).
 
-Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Second, the ACPICA changes in this series are kind of Linux-specific, because
+they are related to how Linux carries out the initialization of devices, which
+very well may be different from what the other OSes using ACPICA do.
 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -2139,6 +2139,10 @@ int __init acpi_scan_init(void)
- 			acpi_get_spcr_uart_addr();
- 	}
- 
-+	acpi_gpe_apply_masked_gpes();
-+	acpi_update_all_gpes();
-+	acpi_ec_ecdt_start();
-+
- 	mutex_lock(&acpi_scan_lock);
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
-@@ -2163,10 +2167,6 @@ int __init acpi_scan_init(void)
- 		}
- 	}
- 
--	acpi_gpe_apply_masked_gpes();
--	acpi_update_all_gpes();
--	acpi_ec_ecdt_start();
--
- 	acpi_scan_initialized = true;
- 
-  out:
+For these reasons, I'd like to make the following ACPICA changes in Linux
+only for the time being and then decide whether or not to take them into
+the upstream.  If there are major concerns about that, please let me know.
 
+The issue at hand is that some platforms with Thunderbolt controllers won't
+boot if there are any Thunderbolt devices connected to them at boot time (if
+the devices are connected later, everything works as expected).  That turns
+out to be related to a complicated sequence of events involving the platform
+firmware which needs to happen in exactly the right order at the right time
+for things to work and that requires GPEs to be enabled before enumerating
+the PCI bus.
 
+The first patch changes ACPICA to check the status of runtime GPEs before
+enabling them for the first time in order to avoid missing events (that
+is key for edge-triggered GPEs) and to process them early enough.
+
+The second one makes it possible to change the ordering of initialization
+between GPEs and devices, and the third one actually changes that ordering.
+
+The patches are based on Mika's work, so kudos to him.
+
+Thanks,
+Rafael
