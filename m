@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH v2 2/9] ACPI-video: Return directly after a failed device
- query
-Date: Wed, 9 Aug 2017 17:36:34 +0200
-Message-ID: <a063b27d-2ef4-6029-230c-970a46d0834e@users.sourceforge.net>
+Subject: [PATCH v2 3/9] ACPI-video: Delete an error message for a failed
+ kzalloc() call
+Date: Wed, 9 Aug 2017 17:38:12 +0200
+Message-ID: <f1a7dd48-312c-348b-be56-52f8263428af@users.sourceforge.net>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <897ebf36-2fe5-e109-adf6-b81b6e863d9a@users.sourceforge.net>
  <CAJZ5v0hug9QfZHQosCFFXEcFMsDd=YvXkqMmQya3RSqmOnY4dg@mail.gmail.com>
@@ -23,29 +23,27 @@ Cc: Hans de Goede <hdegoede@redhat.com>, LKML <linux-kernel@vger.kernel.org>, ke
 List-Id: linux-acpi@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 9 Aug 2017 15:00:45 +0200
+Date: Wed, 9 Aug 2017 15:07:53 +0200
 
-Return directly after a function call "acpi_video_device_lcd_query_levels"
-failed at the beginning.
+Omit an extra message for a memory allocation failure in this function.
 
+Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/acpi/acpi_video.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/acpi/acpi_video.c | 1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 1aaf2b591ca8..7a9cda6c0a6b 100644
+index 7a9cda6c0a6b..f83ece9c830c 100644
 --- a/drivers/acpi/acpi_video.c
 +++ b/drivers/acpi/acpi_video.c
-@@ -811,8 +811,7 @@ int acpi_video_get_levels(struct acpi_device *device,
- 								&obj))) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available "
- 						"LCD brightness level\n"));
--		result = -ENODEV;
--		goto out;
-+		return -ENODEV;
- 	}
+@@ -821,7 +821,6 @@ int acpi_video_get_levels(struct acpi_device *device,
  
- 	if (obj->package.count < ACPI_VIDEO_FIRST_LEVEL) {
+ 	br = kzalloc(sizeof(*br), GFP_KERNEL);
+ 	if (!br) {
+-		printk(KERN_ERR "can't allocate memory\n");
+ 		result = -ENOMEM;
+ 		goto out;
+ 	}
 -- 
 2.13.4
