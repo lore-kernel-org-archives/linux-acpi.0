@@ -1,99 +1,81 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 2/3] ACPICA: Make it possible to enable runtime GPEs earlier
-Date: Thu, 10 Aug 2017 00:31:58 +0200
-Message-ID: <51836747.M49Hy56X72@aspire.rjw.lan>
-References: <12346760.yAFCnkEgf6@aspire.rjw.lan>
+Subject: Re: [PATCH 00/15] ACPICA 20170728 Release
+Date: Thu, 10 Aug 2017 00:41:21 +0200
+Message-ID: <5701807.lAdA1cBxkj@aspire.rjw.lan>
+References: <cover.1501730699.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <12346760.yAFCnkEgf6@aspire.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:54775 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752149AbdHIWti (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2017 18:49:38 -0400
+In-Reply-To: <cover.1501730699.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, "David E . Box" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thursday, August 3, 2017 8:26:02 AM CEST Lv Zheng wrote:
+> The 20170728 ACPICA kernel-resident subsystem updates are linuxized based
+> on the linux-pm/linux-next branch.
+> 
+> The patchset has passed the following build/boot tests.
+> Build tests are performed as follows:
+> 1. i386 + allyes
+> 2. i386 + allno
+> 3. i386 + default + ACPI_DEBUGGER=y
+> 4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 5. i386 + default + ACPI_DEBUG=n + ACPI=y
+> 6. i386 + default + ACPI=n
+> 7. x86_64 + allyes
+> 8. x86_64 + allno
+> 9. x86_64 + default + ACPI_DEBUGGER=y
+> 10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
+> 12.x86_64 + default + ACPI=n
+> Boot tests are performed as follows:
+> 1. x86_64 + default + ACPI_DEBUGGER=y
+> Where:
+> 1. i386: machine named as "Dell Inspiron Mini 1010"
+> 2. x86_64: machine named as "Microsoft Surface Pro 3"
+> 3. default: kernel configuration with following items enabled:
+>    All hardware drivers related to the machines of i386/x86_64
+>    All "drivers/acpi" configurations
+>    All "drivers/platform" drivers
+>    All other drivers that link the APIs provided by ACPICA subsystem
+> 
+> The divergences checking result:
+> Before applying (20170629 Release):
+>   390 lines
+> After applying (20170728 Release):
+>   390 lines
+> 
+> Bob Moore (8):
+>   ACPICA: Namespace: Update/fix an error message
+>   ACPICA: Add a comment, no functional change
+>   ACPICA: Interpreter: Update handling for Alias operator
+>   ACPICA: Debugger: Improve support for Alias objects
+>   ACPICA: Implement deferred resolution of reference package elements
+>   ACPICA: Ensure all instances of AE_AML_INTERNAL have error messages
+>   ACPICA: Resources: Allow _DMA method in walk resources
+>   ACPICA: Update version to 20170728
+> 
+> Erik Schmauss (1):
+>   ACPICA: Revert "Update resource descriptor handling"
+> 
+> James Morse (1):
+>   ACPICA: iASL: Add support for the SDEI table
+> 
+> Lv Zheng (4):
+>   ACPICA: Divergences: reduce access size definitions
+>   ACPICA: CLib: Add short multiply/shift support
+>   ACPICA: acpidump: Add DSDT/FACS instance support for Linux and EFI
+>   ACPICA: EFI/EDK2: Cleanup to enable /WX for MSVC builds
+> 
+> Shao Ming (1):
+>   ACPICA: EFI/EDK2: Sort acpi.h inclusion order
 
-Runtime GPEs have corresponding _Lxx/_Exx methods and are enabled
-automatically during the initialization of the ACPI subsystem through
-acpi_update_all_gpes() with the assumption that acpi_setup_gpe_for_wake()
-will be called in advance for all of the GPEs pointed to by _PRW
-objects in the namespace that may be affected by acpi_update_all_gpes().
-That is, acpi_ev_initialize_gpe_block() can only be called for a GPE
-block after acpi_setup_gpe_for_wake() has been called for all of the
-_PRW (wakeup) GPEs in it.
+All applied, thanks!
 
-The platform firmware on some systems, however, expects GPEs to be
-enabled before the enumeration of devices which is when
-acpi_setup_gpe_for_wake() is called and that goes against the above
-assumption.
-
-For this reason, introduce a new flag to be set by
-acpi_ev_initialize_gpe_block() when automatically enabling a GPE
-to indicate to acpi_setup_gpe_for_wake() that it needs to drop the
-reference to the GPE coming from acpi_ev_initialize_gpe_block()
-and modify acpi_setup_gpe_for_wake() accordingly.  These changes
-allow acpi_setup_gpe_for_wake() and acpi_ev_initialize_gpe_block()
-to be invoked in any order.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpica/evgpeblk.c |    2 ++
- drivers/acpi/acpica/evxfgpe.c  |    8 ++++++++
- include/acpi/actypes.h         |    3 ++-
- 3 files changed, 12 insertions(+), 1 deletion(-)
-
-Index: linux-pm/drivers/acpi/acpica/evgpeblk.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpica/evgpeblk.c
-+++ linux-pm/drivers/acpi/acpica/evgpeblk.c
-@@ -496,6 +496,8 @@ acpi_ev_initialize_gpe_block(struct acpi
- 				continue;
- 			}
- 
-+			gpe_event_info->flags |= ACPI_GPE_AUTO_ENABLED;
-+
- 			if (event_status & ACPI_EVENT_FLAG_STATUS_SET) {
- 				ACPI_INFO(("GPE 0x%02X active on init",
- 					   gpe_number));
-Index: linux-pm/include/acpi/actypes.h
-===================================================================
---- linux-pm.orig/include/acpi/actypes.h
-+++ linux-pm/include/acpi/actypes.h
-@@ -783,7 +783,7 @@ typedef u32 acpi_event_status;
-  *   |  | | |  +-- Type of dispatch:to method, handler, notify, or none
-  *   |  | | +----- Interrupt type: edge or level triggered
-  *   |  | +------- Is a Wake GPE
-- *   |  +--------- Is GPE masked by the software GPE masking mechanism
-+ *   |  +--------- Has been enabled automatically at init time
-  *   +------------ <Reserved>
-  */
- #define ACPI_GPE_DISPATCH_NONE          (u8) 0x00
-@@ -799,6 +799,7 @@ typedef u32 acpi_event_status;
- #define ACPI_GPE_XRUPT_TYPE_MASK        (u8) 0x08
- 
- #define ACPI_GPE_CAN_WAKE               (u8) 0x10
-+#define ACPI_GPE_AUTO_ENABLED           (u8) 0x20
- 
- /*
-  * Flags for GPE and Lock interfaces
-Index: linux-pm/drivers/acpi/acpica/evxfgpe.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpica/evxfgpe.c
-+++ linux-pm/drivers/acpi/acpica/evxfgpe.c
-@@ -435,6 +435,14 @@ acpi_setup_gpe_for_wake(acpi_handle wake
- 		 */
- 		gpe_event_info->flags =
- 		    (ACPI_GPE_DISPATCH_NOTIFY | ACPI_GPE_LEVEL_TRIGGERED);
-+	} else if (gpe_event_info->flags & ACPI_GPE_AUTO_ENABLED) {
-+		/*
-+		 * A reference to this GPE has been added during the GPE block
-+		 * initialization, so drop it now to prevent the GPE from being
-+		 * permanently enabled and clear its ACPI_GPE_AUTO_ENABLED flag.
-+		 */
-+		(void)acpi_ev_remove_gpe_reference(gpe_event_info);
-+		gpe_event_info->flags &= ~ACPI_GPE_AUTO_ENABLED;
- 	}
- 
- 	/*
