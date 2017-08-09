@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH v2 6/9] ACPI-video: Improve a jump target in
- acpi_video_switch_brightness()
-Date: Wed, 9 Aug 2017 17:42:49 +0200
-Message-ID: <dd6a897c-0dd1-f49c-b3c9-eb995ec48a7f@users.sourceforge.net>
+Subject: [PATCH v2 7/9] ACPI-video: Delete an unnecessary initialisation in
+ three functions
+Date: Wed, 9 Aug 2017 17:44:07 +0200
+Message-ID: <7a5b6015-2b04-ef31-1765-b00386238aa9@users.sourceforge.net>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <897ebf36-2fe5-e109-adf6-b81b6e863d9a@users.sourceforge.net>
  <CAJZ5v0hug9QfZHQosCFFXEcFMsDd=YvXkqMmQya3RSqmOnY4dg@mail.gmail.com>
@@ -14,22 +14,19 @@ References: <566ABCD9.1060404@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 In-Reply-To: <d8cc6f88-9261-55d9-a736-a14b853a2570@users.sourceforge.net>
 Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: kernel-janitors-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>
 Cc: Hans de Goede <hdegoede@redhat.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 9 Aug 2017 15:45:35 +0200
+Date: Wed, 9 Aug 2017 15:55:35 +0200
 
-* Avoid another duplicate check for the local variable "result"
-  then at the end.
-
-* Jump directly to an error message in the case that the desired brightness
-  can not be switched.
+Three local variables will be set to appropriate values a bit later.
+Thus omit the explicit initialisation at the beginning of these functions.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
@@ -37,31 +34,36 @@ Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 8295ae1deab9..e279ed221961 100644
+index e279ed221961..a899faf6ff84 100644
 --- a/drivers/acpi/acpi_video.c
 +++ b/drivers/acpi/acpi_video.c
-@@ -1411,19 +1411,19 @@ acpi_video_switch_brightness(struct work_struct *work)
- 		return;
+@@ -803,7 +803,7 @@ int acpi_video_get_levels(struct acpi_device *device,
+ 	union acpi_object *obj = NULL;
+ 	int i, max_level = 0, count = 0, level_ac_battery = 0;
+ 	union acpi_object *o;
+-	struct acpi_video_device_brightness *br = NULL;
++	struct acpi_video_device_brightness *br;
+ 	int result = 0;
+ 	u32 value;
  
- 	if (!device->brightness)
--		goto out;
-+		goto report_failure;
+@@ -921,7 +921,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+ 	int i, max_level = 0;
+ 	unsigned long long level, level_old;
+ 	struct acpi_video_device_brightness *br = NULL;
+-	int result = -EINVAL;
++	int result;
  
- 	result = acpi_video_device_lcd_get_level_current(device,
- 							 &level_current,
- 							 false);
+ 	result = acpi_video_get_levels(device->dev, &br, &max_level);
  	if (result)
--		goto out;
-+		goto report_failure;
+@@ -1295,7 +1295,7 @@ static int acpi_video_device_enumerate(struct acpi_video_bus *video)
+ 	int i;
+ 	struct acpi_video_enumerated_device *active_list;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-	union acpi_object *dod = NULL;
++	union acpi_object *dod;
+ 	union acpi_object *obj;
  
- 	level_next = acpi_video_get_next_level(device, level_current, event);
- 
- 	result = acpi_video_device_lcd_set_level(device, level_next);
--out:
- 	if (result)
-+ report_failure:
- 		printk(KERN_ERR PREFIX "Failed to switch the brightness\n");
- 	else
- 		backlight_force_update(device->backlight,
+ 	if (!video->cap._DOD)
 -- 
 2.13.4
+
