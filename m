@@ -1,47 +1,101 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 0/3] ACPI: Initialize GPEs before the initial namespace scan
-Date: Thu, 10 Aug 2017 00:29:12 +0200
-Message-ID: <12346760.yAFCnkEgf6@aspire.rjw.lan>
+Subject: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+Date: Thu, 10 Aug 2017 00:30:09 +0200
+Message-ID: <46980112.WLPtxWZQ3y@aspire.rjw.lan>
+References: <12346760.yAFCnkEgf6@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59238 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752588AbdHIWm4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2017 18:42:56 -0400
+In-Reply-To: <12346760.yAFCnkEgf6@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-This is exceptional for at least two reasons.
+In some cases GPEs are already active when they are enabled by
+acpi_ev_initialize_gpe_block() and whatever happens next may depend
+on the result of handling the events signaled by them, so the
+events should not be discarded (which is what happens currently) and
+they should be handled as soon as reasonably possible.
 
-First, we need it now to work around boot problems on multiple platforms
-already seen in the field (which are shipping products).
+For this reason, modify acpi_ev_initialize_gpe_block() to
+dispatch GPEs with the status flag set in-band right after
+enabling them.
 
-Second, the ACPICA changes in this series are kind of Linux-specific, because
-they are related to how Linux carries out the initialization of devices, which
-very well may be different from what the other OSes using ACPICA do.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpica/evgpeblk.c |   28 +++++++++++++++++++---------
+ 1 file changed, 19 insertions(+), 9 deletions(-)
 
-For these reasons, I'd like to make the following ACPICA changes in Linux
-only for the time being and then decide whether or not to take them into
-the upstream.  If there are major concerns about that, please let me know.
+Index: linux-pm/drivers/acpi/acpica/evgpeblk.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpica/evgpeblk.c
++++ linux-pm/drivers/acpi/acpica/evgpeblk.c
+@@ -440,9 +440,11 @@ acpi_ev_initialize_gpe_block(struct acpi
+ 			     void *ignored)
+ {
+ 	acpi_status status;
++	acpi_event_status event_status;
+ 	struct acpi_gpe_event_info *gpe_event_info;
+ 	u32 gpe_enabled_count;
+ 	u32 gpe_index;
++	u32 gpe_number;
+ 	u32 i;
+ 	u32 j;
+ 
+@@ -470,30 +472,38 @@ acpi_ev_initialize_gpe_block(struct acpi
+ 
+ 			gpe_index = (i * ACPI_GPE_REGISTER_WIDTH) + j;
+ 			gpe_event_info = &gpe_block->event_info[gpe_index];
++			gpe_number = gpe_block->block_base_number + gpe_index;
+ 
+ 			/*
+ 			 * Ignore GPEs that have no corresponding _Lxx/_Exx method
+-			 * and GPEs that are used to wake the system
++			 * and GPEs that are used for wakeup
+ 			 */
+-			if ((ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) ==
+-			     ACPI_GPE_DISPATCH_NONE)
+-			    || (ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) ==
+-				ACPI_GPE_DISPATCH_HANDLER)
+-			    || (ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) ==
+-				ACPI_GPE_DISPATCH_RAW_HANDLER)
++			if ((ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) !=
++			     ACPI_GPE_DISPATCH_METHOD)
+ 			    || (gpe_event_info->flags & ACPI_GPE_CAN_WAKE)) {
+ 				continue;
+ 			}
+ 
++			event_status = 0;
++			(void)acpi_hw_get_gpe_status(gpe_event_info,
++						     &event_status);
++
+ 			status = acpi_ev_add_gpe_reference(gpe_event_info);
+ 			if (ACPI_FAILURE(status)) {
+ 				ACPI_EXCEPTION((AE_INFO, status,
+ 					"Could not enable GPE 0x%02X",
+-					gpe_index +
+-					gpe_block->block_base_number));
++					gpe_number));
+ 				continue;
+ 			}
+ 
++			if (event_status & ACPI_EVENT_FLAG_STATUS_SET) {
++				ACPI_INFO(("GPE 0x%02X active on init",
++					   gpe_number));
++				(void)acpi_ev_gpe_dispatch(gpe_block->node,
++							   gpe_event_info,
++							   gpe_number);
++			}
++
+ 			gpe_enabled_count++;
+ 		}
+ 	}
 
-The issue at hand is that some platforms with Thunderbolt controllers won't
-boot if there are any Thunderbolt devices connected to them at boot time (if
-the devices are connected later, everything works as expected).  That turns
-out to be related to a complicated sequence of events involving the platform
-firmware which needs to happen in exactly the right order at the right time
-for things to work and that requires GPEs to be enabled before enumerating
-the PCI bus.
-
-The first patch changes ACPICA to check the status of runtime GPEs before
-enabling them for the first time in order to avoid missing events (that
-is key for edge-triggered GPEs) and to process them early enough.
-
-The second one makes it possible to change the ordering of initialization
-between GPEs and devices, and the third one actually changes that ordering.
-
-The patches are based on Mika's work, so kudos to him.
-
-Thanks,
-Rafael
