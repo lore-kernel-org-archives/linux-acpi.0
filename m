@@ -1,91 +1,60 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v3 0/8] Remove fwnode type field, constify property
- fwnode arguments
-Date: Wed, 9 Aug 2017 11:50:29 +0300
-Message-ID: <20170809085029.4wdphnlyaio6pcya@valkosipuli.retiisi.org.uk>
-References: <1500637177-16095-1-git-send-email-sakari.ailus@linux.intel.com>
- <26807574.YAK92jB8KX@aspire.rjw.lan>
- <20170808093215.uw2lricbbvwb7t3k@valkosipuli.retiisi.org.uk>
- <3442396.FuC0BxuCi0@aspire.rjw.lan>
- <20170809084755.pec6w2y2thmbmjyi@valkosipuli.retiisi.org.uk>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: Re: [PATCH 0/3] Refactor GHES to better support non-APEI systems
+Date: Wed, 09 Aug 2017 10:24:36 +0100
+Message-ID: <87d185qejv.fsf@e105922-lin.cambridge.arm.com>
+References: <20170801133608.21017-1-punit.agrawal@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42508 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752267AbdHIIuc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2017 04:50:32 -0400
-Content-Disposition: inline
-In-Reply-To: <20170809084755.pec6w2y2thmbmjyi@valkosipuli.retiisi.org.uk>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:44730 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752548AbdHIJYi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 9 Aug 2017 05:24:38 -0400
+In-Reply-To: <20170801133608.21017-1-punit.agrawal@arm.com> (Punit Agrawal's
+        message of "Tue, 1 Aug 2017 14:36:05 +0100")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>, Frank Rowand <frowand.list@gmail.com>, erik.veijola@intel.com
+To: Borislav Petkov <bp@suse.de>
+Cc: lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-On Wed, Aug 09, 2017 at 11:47:55AM +0300, Sakari Ailus wrote:
-> On Wed, Aug 09, 2017 at 02:53:25AM +0200, Rafael J. Wysocki wrote:
-> > On Tuesday, August 8, 2017 11:32:16 AM CEST Sakari Ailus wrote:
-> > > On Mon, Jul 24, 2017 at 10:28:12PM +0200, Rafael J. Wysocki wrote:
-> > > > On Friday, July 21, 2017 02:29:06 PM Rafael J. Wysocki wrote:
-> > > > > On Friday, July 21, 2017 03:33:09 PM Andy Shevchenko wrote:
-> > > > > > On Fri, 2017-07-21 at 13:52 +0200, Rafael J. Wysocki wrote:
-> > > > > > > On Fri, Jul 21, 2017 at 1:39 PM, Sakari Ailus
-> > > > > > > <sakari.ailus@linux.intel.com> wrote:
-> > > > > > > > Hello everyone,
-> > > > > > > > 
-> > > > > > > > This set removes the struct fwnode_handle type field and constifies
-> > > > > > > > the
-> > > > > > > > fwnode arguments in the fwnode property API more or less the way
-> > > > > > > > they are
-> > > > > > > > const in OF property API.
-> > > > > > > > 
-> > > > > > > > Comments are welcome.
-> > > > > > > > 
-> > > > > > > > All the dependent patches are now in linux-pm master branch.
-> > > > > > > > 
-> > > > > > > > <URL:http://www.spinics.net/lists/linux-acpi/msg75957.html>;
-> > > > > > > > 
-> > > > > > > > v1 can be found here:
-> > > > > > > > 
-> > > > > > > > <URL:http://www.spinics.net/lists/linux-acpi/msg74564.html>;
-> > > > > > > > 
-> > > > > > > > changes since v2:
-> > > > > > > > 
-> > > > > > > > - Add 8th patch "device property: Introduce
-> > > > > > > >   fwnode_property_get_reference_args". This allows obtaining
-> > > > > > > > references
-> > > > > > > >   with integer arguments using the fwnode interface.
-> > > > > > > > 
-> > > > > > > >   The functionality will be soon needed in adding support for nvmem
-> > > > > > > >   framework on ACPI as well as in referring to e.g. lens and flash
-> > > > > > > > devices
-> > > > > > > >   on V4L2.
-> > > > > > > 
-> > > > > > > OK, so if people have no objections, I'll queue this up for 4.14.
-> > > > > > 
-> > > > > > I have no objections.
-> > > > > > 
-> > > > > > One comment Sakari already has addressed, another one
-> > > > > > (list_first_enatry_or_null() use) might be addressed later.
-> > > > > 
-> > > > > Cool, thanks!
-> > > > 
-> > > > So the series have been applied.
-> > > 
-> > > Thanks a lot!
-> > > 
-> > > I see this is in the linux-next branch now; the device-properties branch
-> > > seems to be in its former state still. Is there a chance that you have
-> > > merged it locally but not pushed the new device-properties branch?
-> > 
-> > The branch is only local for the time being, but I can push it out if
-> > that helps.
-> 
-> I have V4L2 patches that depend on these --- I'd like to attempt to get
-> them in through the mediatree during this merge window.
+Punit Agrawal <punit.agrawal@arm.com> writes:
 
-Or rather to the mediatree before the next merge window opens.
+> Hi,
+>
+> The small series re-factors the GHES driver initialisation to move
+> memory allocation and checks from driver init to device probe. The net
+> effect is to improve the situation for systems that do not support
+> APEI.
+>
+> The patches are organised as -
+>
+> * Unify estatus pool creation and expansion into ghes_estatus_pool_init()
+> * Move memory initialisation and firmware first support checks from
+>   driver init to device probe
+> * Do not set hest_disable if HEST not found
+>
+> The set of patches initially started out as a single patch[0]. The
+> current series is the re-worked approach based on ensuing
+> discussion. They patches are based on v4.13-rc3 and have been tested
+> on a system that does not support APEI. Further testing on systems
+> that support APEI to ensure that the changes do not break expected
+> behaviour will be greatly appreciated.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Ping!
+
+Boris, have you had a chance to look at the re-factoring of the GHES init?
+
+>
+> Thanks,
+> Punit
+>
+> [0] https://lkml.org/lkml/2017/7/20/430
+>
+> Punit Agrawal (3):
+>   GHES: Expand the estatus pool in ghes_estatus_pool_init()
+>   GHES: Move memory initialisation to ghes_probe()
+>   ACPI / APEI: HEST: Don't set hest_disable if table not found
+>
+>  drivers/acpi/apei/ghes.c | 132 ++++++++++++++++++++++++++---------------------
+>  drivers/acpi/apei/hest.c |   2 +-
+>  2 files changed, 73 insertions(+), 61 deletions(-)
