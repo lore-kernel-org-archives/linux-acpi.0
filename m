@@ -1,196 +1,45 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH 3/4] ACPI: IORT: Skip SMMUv3 device ID map for two
- steps mappings
-Date: Wed, 9 Aug 2017 18:12:45 +0100
-Message-ID: <20170809171245.GA13377@red-moon>
-References: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
- <1502276017-63108-4-git-send-email-guohanjun@huawei.com>
- <a5d9600e-1461-492a-05d8-338f93fa04c4@arm.com>
- <CAGHbJ3Bif=Lg7AOErohFG_wkdXAJi+E+zbud4hJGHCzh=VTegQ@mail.gmail.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH v2 0/4] ACPI-APEI-HEST: Fine-tuning for two function
+ implementations
+Date: Wed, 9 Aug 2017 20:00:25 +0200
+Message-ID: <9f6e5436-e550-b64c-db39-b9da668766b0@users.sourceforge.net>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <9834b713-2c7b-ad6d-76a5-b1db40f561fc@users.sourceforge.net>
+ <CAJZ5v0hcD8pi8y+jAtF70cJp8uYyUdOeDJKuR3z=JpB6Z_Qnfw@mail.gmail.com>
+ <06ab72bc-6e00-1829-f1bf-67f0a31aff38@users.sourceforge.net>
+ <CAJZ5v0i5EW1UpLfaogyD-s4P4vXdgWndwjOpF5ykPDXE=eZVSA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51466 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752713AbdHIRKr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 9 Aug 2017 13:10:47 -0400
-Content-Disposition: inline
-In-Reply-To: <CAGHbJ3Bif=Lg7AOErohFG_wkdXAJi+E+zbud4hJGHCzh=VTegQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0i5EW1UpLfaogyD-s4P4vXdgWndwjOpF5ykPDXE=eZVSA@mail.gmail.com>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Hanjun Guo <hanjun.guo@linaro.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, trivial@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Robin Murphy <robin.murphy@arm.com>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Linuxarm <linuxarm@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Aug 09, 2017 at 10:48:00PM +0800, Hanjun Guo wrote:
-> Hi Robin,
-> 
-> On 9 August 2017 at 19:50, Robin Murphy <robin.murphy@arm.com> wrote:
-> > Hi Hanjun,
-> >
-> > It's a nice surprise to see this already; one less thing for us to do :)
-> 
-> Glad to hear this patch set helps :)
-> 
-> >
-> > On 09/08/17 11:53, Hanjun Guo wrote:
-> >> From: Hanjun Guo <hanjun.guo@linaro.org>
-> >>
-> >> IORT revision C introduced SMMUv3 MSI support which adding a
-> >> device ID mapping index in SMMUv3 sub table, to get the SMMUv3
-> >> device ID mapping for the output ID (dev ID for ITS) and the
-> >> link to which ITS.
-> >>
-> >> So if a platform supports SMMUv3 MSI for control interrupt,
-> >> there will be a additional single map entry under SMMU, this
-> >> will not introduce any difference for devices just use one
-> >> step map to get its output ID and parent (ITS or SMMU), such
-> >> as PCI/NC/PMCG ---> ITS or PCI/NC ---> SMMU, but we need to
-> >> do the spcial handling for two steps map case such as
-> >> PCI/NC--->SMMUv3--->ITS.
-> >>
-> >> Take a PCI hostbridge for example,
-> >>
-> >> |----------------------|
-> >> |  Root Complex Node   |
-> >> |----------------------|
-> >> |    map entry[x]      |
-> >> |----------------------|
-> >> |       id value       |
-> >> | output_reference     |
-> >> |---|------------------|
-> >>     |
-> >>     |   |----------------------|
-> >>     |-->|        SMMUv3        |
-> >>         |----------------------|
-> >>         |     SMMU dev ID      |
-> >>         |     mapping index 0  |
-> >>         |----------------------|
-> >>         |      map entry[0]    |
-> >>         |----------------------|
-> >>         |       id value       |
-> >>         | output_reference-----------> ITS 1 (SMMU MSI domain)
-> >>         |----------------------|
-> >>         |      map entry[1]    |
-> >>         |----------------------|
-> >>         |       id value       |
-> >>         | output_reference-----------> ITS 2 (PCI MSI domain)
-> >>         |----------------------|
-> >>
-> >> When the SMMU dev ID mapping index is 0, there is entry[0]
-> >> to map to a ITS, we need to skip that map entry for PCI
-> >> or NC (named component), or we may get the wrong ITS parent.
-> >>
-> >> For now we have two APIs for ID mapping, iort_node_map_id()
-> >> and iort_node_map_platform_id(), and iort_node_map_id() is
-> >> used for optional two steps mapping, so we just need to
-> >> skip the map entry in iort_node_map_id() for non-SMMUv3
-> >> devices.
-> >>
-> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >> ---
-> >>  drivers/acpi/arm64/iort.c | 37 ++++++++++++++++++++++++++++++++++++-
-> >>  1 file changed, 36 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> >> index 32bd4a4..9439f02 100644
-> >> --- a/drivers/acpi/arm64/iort.c
-> >> +++ b/drivers/acpi/arm64/iort.c
-> >> @@ -366,6 +366,28 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
-> >>       return NULL;
-> >>  }
-> >>
-> >> +static int iort_get_smmu_v3_id_mapping_index(struct acpi_iort_node *node,
-> >> +                                          u32 *index)
-> >> +{
-> >> +     struct acpi_iort_smmu_v3 *smmu;
-> >> +
-> >> +     /*
-> >> +      * SMMUv3 dev ID mapping index was introdueced in revision 1
-> >> +      * table, not avaible in revision 0
-> >> +      */
-> >> +     if (node->revision < 1)
-> >> +             return -EINVAL;
-> >> +
-> >> +     smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
-> >> +     /* if any of the gsi for control interrupts is not 0, ignore the MSI */
-> >
-> > IORT says "If all the SMMU control interrupts are GSIV based, this
-> > field is ignored" - not "any". There doesn't seem to be any reason to
-> > disallow a mixture of MSIs and GSIs.
-> 
-> Hmm, since GSIV for control interrupts are SPI, those GSIVs should not
-> be zero, does it mean we need the code below?
-> 
-> if (smmu->event_gsiv && smmu->pri_gsiv && smmu->gerr_gsiv && smmu->sync_gsiv)
->         return -EINVAL;
-> 
-> This seems not consistent with the code for now (parsing
-> the SMMU GSIV for SMMU platform device).
-> 
-> >
-> >> +     if (smmu->event_gsiv || smmu->pri_gsiv || smmu->gerr_gsiv
-> >> +         || smmu->sync_gsiv)
-> >> +             return -EINVAL;
-> >> +
-> >> +     *index = smmu->id_mapping_index;
-> >> +     return 0;
-> >> +}
-> >> +
-> >>  static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
-> >>                                              u32 id_in, u32 *id_out,
-> >>                                              u8 type_mask)
-> >> @@ -375,7 +397,9 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
-> >>       /* Parse the ID mapping tree to find specified node type */
-> >>       while (node) {
-> >>               struct acpi_iort_id_mapping *map;
-> >> -             int i;
-> >> +             int i, ret = -EINVAL;
-> >> +             /* big enough for an invalid id index in practical */
-> >> +             u32 index = U32_MAX;
-> >>
-> >>               if (IORT_TYPE_MASK(node->type) & type_mask) {
-> >>                       if (id_out)
-> >> @@ -396,8 +420,19 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
-> >>                       goto fail_map;
-> >>               }
-> >>
-> >> +             /*
-> >> +              *  we need to get SMMUv3 dev ID mapping index and skip its
-> >> +              *  associated ID map for single mapping cases.
-> >> +              */
-> >> +             if (node->type == ACPI_IORT_NODE_SMMU_V3)
-> >> +                     ret = iort_get_smmu_v3_id_mapping_index(node, &index);
-> >> +
-> >>               /* Do the ID translation */
-> >>               for (i = 0; i < node->mapping_count; i++, map++) {
-> >> +                     /* if it's a SMMUv3 device id mapping index, skip it */
-> >> +                     if (!ret && i == index)
-> >
-> > Given that i is an int anyway, there doesn't seem to be much need for
-> > the ret dance - iort_get_smmu_v3_id_mapping_index() could just return
-> > the index/error value as an int directly. You can rely on (i == index)
-> > being false if index is negative, because for node->mapping_count to
-> > overflow INT_MAX the IORT would have to be over 40GB in size, which is
-> > definitely impossible.
-> 
-> Good point, it will simplify the code, I will update this patch :)
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 9 Aug 2017 19:45:43 +0200
 
-How about:
+A few update suggestions were taken into account
+from static source code analysis.
 
-(1) Ignoring SMMU_V3 single mappings in iort_id_map() (as we do today -
-    minus the warning) - we will never need them, just ignore them all
-    regarless of id_mapping_index
-(2) Write some simple code that instead of relying on the
-    iort_pmsi_get_dev_id() API just get the SMMU V3 IORT node mapping
-    entry (at id_mapping_index), grab a reference to the ITS and
-    look-up the MSI domain
+Markus Elfring (4):
+  Fix a typo in a comment line
+  Use kmalloc_array() in hest_ghes_dev_register()
+  Move an assignment in hest_ghes_dev_register()
+  Reduce the scope for a variable in acpi_hest_init()
 
-?
+---
 
-I do not see the point in making any of this generic for IORT kernel
-code, it is a one-off kludge for SMMU_V3 and can easily be
-self-contained IORT code.
+v2:
+* Desired changes were rebased on source files from Linux next-20170803.
 
-Thoughts ?
+* The number of update steps was reduced.
 
-Lorenzo
+ drivers/acpi/apei/hest.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+-- 
+2.13.4
