@@ -1,58 +1,125 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH v2 4/4] ACPI-APEI-HEST: Reduce the scope for a variable in
- acpi_hest_init()
-Date: Wed, 9 Aug 2017 20:04:43 +0200
-Message-ID: <a5dd4279-dcc0-30a9-2fc7-5a2800b182e0@users.sourceforge.net>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <9834b713-2c7b-ad6d-76a5-b1db40f561fc@users.sourceforge.net>
- <CAJZ5v0hcD8pi8y+jAtF70cJp8uYyUdOeDJKuR3z=JpB6Z_Qnfw@mail.gmail.com>
- <06ab72bc-6e00-1829-f1bf-67f0a31aff38@users.sourceforge.net>
- <CAJZ5v0i5EW1UpLfaogyD-s4P4vXdgWndwjOpF5ykPDXE=eZVSA@mail.gmail.com>
- <9f6e5436-e550-b64c-db39-b9da668766b0@users.sourceforge.net>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v3 0/5] ACPI: DMA ranges management
+Date: Wed, 9 Aug 2017 16:14:43 -0500
+Message-ID: <61e15178-a6da-0459-34fc-83ff4ded8864@arm.com>
+References: <20170803123239.11359-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <9f6e5436-e550-b64c-db39-b9da668766b0@users.sourceforge.net>
-Content-Language: en-GB
-Sender: kernel-janitors-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Hanjun Guo <hanjun.guo@linaro.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, trivial@kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:53740 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751884AbdHIVOv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 9 Aug 2017 17:14:51 -0400
+In-Reply-To: <20170803123239.11359-1-lorenzo.pieralisi@arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Feng Kan <fkan@apm.com>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Nate Watterson <nwatters@codeaurora.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 5 Sep 2016 21:50:34 +0200
+Hi,
 
-Move the definition for the local variable "ghes_count" into an if branch
-so that the corresponding setting will only be performed if GHES could be
-enabled by this function.
+Better late than never I guess..
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/acpi/apei/hest.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+On 08/03/2017 07:32 AM, Lorenzo Pieralisi wrote:
+> This patch series is v3 of a previous posting:
+> 
+> v2->v3:
+> 	- Fixed DMA masks computation
+>          - Fixed size computation overflow in acpi_dma_get_range()
+> 
+> v1->v2:
+> 	- Reworked acpi_dma_get_range() flow and logs
+> 	- Added IORT named component address limits
+> 	- Renamed acpi_dev_get_resources() helper function
+> 	- Rebased against v4.13-rc3
+> 
+> v2: http://lkml.kernel.org/r/20170731152323.32488-1-lorenzo.pieralisi@arm.com
+> v1: http://lkml.kernel.org/r/20170720144517.32529-1-lorenzo.pieralisi@arm.com
+> 
+> -- Original cover letter --
+> 
+> As reported in:
+> 
+> http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
+> 
+> the bus connecting devices to an IOMMU bus can be smaller in size than
+> the IOMMU input address bits which results in devices DMA HW bugs in
+> particular related to IOVA allocation (ie chopping of higher address
+> bits owing to system bus HW capabilities mismatch with the IOMMU).
+> 
+> Fortunately this problem can be solved through an already present but never
+> used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define the DMA
+> window for a specific bus in ACPI and therefore all upstream devices
+> connected to it.
+> 
+> This small patch series enables _DMA parsing in ACPI core code and
+> use it in ACPI IORT code in order to detect DMA ranges for devices and
+> update their data structures to make them work with their related DMA
+> addressing restrictions.
+> 
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Feng Kan <fkan@apm.com>
+> Cc: Jon Masters <jcm@redhat.com>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> 
+> Lorenzo Pieralisi (5):
+>    ACPICA: resource_mgr: Allow _DMA method in walk resources
+>    ACPI: Make acpi_dev_get_resources() method agnostic
+>    ACPI: Introduce DMA ranges parsing
+>    ACPI: Make acpi_dma_configure() DMA regions aware
+>    ACPI/IORT: Add IORT named component memory address limits
+> 
+>   drivers/acpi/acpica/rsxface.c |  7 ++--
+>   drivers/acpi/arm64/iort.c     | 57 ++++++++++++++++++++++++++-
+>   drivers/acpi/resource.c       | 82 +++++++++++++++++++++++++++++---------
+>   drivers/acpi/scan.c           | 91 +++++++++++++++++++++++++++++++++++++++----
+>   include/acpi/acnames.h        |  1 +
+>   include/acpi/acpi_bus.h       |  2 +
+>   include/linux/acpi.h          |  8 ++++
+>   include/linux/acpi_iort.h     |  5 ++-
+>   8 files changed, 219 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-index 94b9bd494c20..c0d81387ce18 100644
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -225,7 +225,6 @@ void __init acpi_hest_init(void)
- {
- 	acpi_status status;
- 	int rc = -ENODEV;
--	unsigned int ghes_count = 0;
- 
- 	if (hest_disable) {
- 		pr_info(HEST_PFX "Table parsing disabled.\n");
-@@ -248,6 +247,8 @@ void __init acpi_hest_init(void)
- 		goto err;
- 
- 	if (!ghes_disable) {
-+		unsigned int ghes_count = 0;
-+
- 		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
- 		if (rc)
- 			goto err;
--- 
-2.13.4
+Ok, despite being merged already I think its worthwhile to say that I've 
+been testing this with:
+
+Method(_DMA, 0, Serialized)
+{
+	Return (ResourceTemplate()
+	{
+		QWORDMemory(
+		ResourceConsumer,
+		PosDecode,          // _DEC
+		MinFixed,           // _MIF
+		MaxFixed,           // _MAF
+		Prefetchable,       // _MEM
+		ReadWrite,          // _RW
+		0,                  // _GRA
+		0x10000000,         // _MIN
+		0x1fffffff,         // _MAX
+		0x000000000,        // _TRA
+		0x10000000,         // _LEN
+		,
+		,
+		,
+		)
+	})
+} // Method(_DMA)
+
+(and a couple minor variations)
+
+and a fair number of debug statements sprinkled around to verify that 
+the IOVAs are appropriately limited. So I don't see anything wrong with 
+the code and it appears to work and the devices behind a bridge limited 
+like this continue to work as long as sane values are placed in the 
+min/max/len fields.
+
+Thanks,
+
+Tested-by: Jeremy Linton <jeremy.linton@arm.com>
 
