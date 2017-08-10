@@ -1,48 +1,60 @@
-From: Yazen Ghannam <Yazen.Ghannam@amd.com>
-Subject: [PATCH] ACPI, APEI, EINJ: Subtract any matching Register Region from Trigger resources
-Date: Thu, 10 Aug 2017 12:58:03 -0500
-Message-ID: <1502387883-16667-1-git-send-email-Yazen.Ghannam@amd.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH] acpi: apei: fix the wrongly parse generic error status
+ block
+Date: Fri, 11 Aug 2017 05:31:41 +0800
+Message-ID: <ddb2070d-60c5-a476-c003-25814d0cf863@huawei.com>
+References: <1502388412-20273-1-git-send-email-gengdongjiu@huawei.com>
+ <9ea70eed-f743-0c8b-2a70-27ce4c0d8705@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0075.outbound.protection.outlook.com ([104.47.37.75]:26304
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752756AbdHJR6S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 10 Aug 2017 13:58:18 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <9ea70eed-f743-0c8b-2a70-27ce4c0d8705@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Baicar, Tyler" <tbaicar@codeaurora.org>, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, Yazen Ghannam <yazen.ghannam@amd.com>
 
-From: Yazen Ghannam <yazen.ghannam@amd.com>
+Hello,
 
-ACPI defines a number of instructions to use for triggering errors. However
-we are currently removing the address resources from the trigger resources
-for only the WRITE_REGISTER_VALUE instruction. This leads to a resource
-conflict for any other valid instruction.
+   sorry, I do not see that. Just know I have reviewed your modification, may be my change can be simpleness and reserve the macro of apei_estatus_for_each_section
+can be used by other place to avoid duplicated code, such as prints the estatus blocks.
 
-Remove the WRITE_REGISTER_VALUE instruction check to fix the resource
-conflict with other instructions.
-
-Fixes: b4e008dc53a3 ("ACPI, APEI, EINJ, Refine the fix of resource conflict")
-Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
----
- drivers/acpi/apei/einj.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index ec50c32ea3da..e0f201ea161d 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -281,7 +281,6 @@ static struct acpi_generic_address *einj_get_trigger_parameter_region(
- 		((char *)trigger_tab + sizeof(struct acpi_einj_trigger));
- 	for (i = 0; i < trigger_tab->entry_count; i++) {
- 		if (entry->action == ACPI_EINJ_TRIGGER_ERROR &&
--		entry->instruction == ACPI_EINJ_WRITE_REGISTER_VALUE &&
- 		entry->register_region.space_id ==
- 			ACPI_ADR_SPACE_SYSTEM_MEMORY &&
- 		(entry->register_region.address & param2) == (param1 & param2))
--- 
-2.7.4
-
+On 2017/8/11 1:48, Baicar, Tyler wrote:
+> Hello,
+> 
+> I have already posted a patch fixing this. Please see:
+> 
+> https://lkml.org/lkml/2017/8/3/824
+> 
+> This makes the loop identical to the CPER code which prints the estatus blocks to the kernel logs.
+> 
+> Thanks,
+> 
+> Tyler
+> 
+> 
+> On 8/10/2017 12:06 PM, Dongjiu Geng wrote:
+>> The revision 0x300 generic error data entry is different with the old
+>> version. when ghes_do_proc traverses to get the data entry, it does not
+>> consider this difference. so when error status block has revision 0x300
+>> data entry, it will have issue.
+>>
+>> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+>> ---
+>>   drivers/acpi/apei/apei-internal.h | 4 ++--
+>>   1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
+>> index 6e9f14c0a71b..6491f1c4a96e 100644
+>> --- a/drivers/acpi/apei/apei-internal.h
+>> +++ b/drivers/acpi/apei/apei-internal.h
+>> @@ -122,8 +122,8 @@ struct dentry *apei_get_debugfs_dir(void);
+>>     #define apei_estatus_for_each_section(estatus, section)            \
+>>       for (section = (struct acpi_hest_generic_data *)(estatus + 1);    \
+>> -         (void *)section - (void *)estatus < estatus->data_length;    \
+>> -         section = (void *)(section+1) + section->error_data_length)
+>> +         (void *)section - (void *)(estatus + 1) < estatus->data_length; \
+>> +         section = acpi_hest_get_next(section))
+>>     static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
+>>   {
+> 
