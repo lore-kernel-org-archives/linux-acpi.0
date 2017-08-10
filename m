@@ -1,88 +1,99 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 0/8] Remove fwnode type field, constify property fwnode arguments
-Date: Thu, 10 Aug 2017 01:27:33 +0200
-Message-ID: <42956145.9hUWUa1QRk@aspire.rjw.lan>
-References: <1500637177-16095-1-git-send-email-sakari.ailus@linux.intel.com> <20170809084755.pec6w2y2thmbmjyi@valkosipuli.retiisi.org.uk> <20170809085029.4wdphnlyaio6pcya@valkosipuli.retiisi.org.uk>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH v2 2/2] ACPI / Sleep: Check low power idle constraints
+ for debug only
+Date: Wed, 09 Aug 2017 17:50:55 -0700
+Message-ID: <1502326255.4234.35.camel@linux.intel.com>
+References: <1502232075-23832-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+         <1502232075-23832-3-git-send-email-srinivas.pandruvada@linux.intel.com>
+         <2200531.jeIBytVRuy@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57608 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752218AbdHIXfv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2017 19:35:51 -0400
-In-Reply-To: <20170809085029.4wdphnlyaio6pcya@valkosipuli.retiisi.org.uk>
+Received: from mga02.intel.com ([134.134.136.20]:29210 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752091AbdHJAu4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 9 Aug 2017 20:50:56 -0400
+In-Reply-To: <2200531.jeIBytVRuy@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>, Frank Rowand <frowand.list@gmail.com>, erik.veijola@intel.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-pm@vger.kernel.org, mario.limonciello@dell.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lukas@wunner.de
 
-On Wednesday, August 9, 2017 10:50:29 AM CEST Sakari Ailus wrote:
-> On Wed, Aug 09, 2017 at 11:47:55AM +0300, Sakari Ailus wrote:
-> > On Wed, Aug 09, 2017 at 02:53:25AM +0200, Rafael J. Wysocki wrote:
-> > > On Tuesday, August 8, 2017 11:32:16 AM CEST Sakari Ailus wrote:
-> > > > On Mon, Jul 24, 2017 at 10:28:12PM +0200, Rafael J. Wysocki wrote:
-> > > > > On Friday, July 21, 2017 02:29:06 PM Rafael J. Wysocki wrote:
-> > > > > > On Friday, July 21, 2017 03:33:09 PM Andy Shevchenko wrote:
-> > > > > > > On Fri, 2017-07-21 at 13:52 +0200, Rafael J. Wysocki wrote:
-> > > > > > > > On Fri, Jul 21, 2017 at 1:39 PM, Sakari Ailus
-> > > > > > > > <sakari.ailus@linux.intel.com> wrote:
-> > > > > > > > > Hello everyone,
-> > > > > > > > > 
-> > > > > > > > > This set removes the struct fwnode_handle type field and constifies
-> > > > > > > > > the
-> > > > > > > > > fwnode arguments in the fwnode property API more or less the way
-> > > > > > > > > they are
-> > > > > > > > > const in OF property API.
-> > > > > > > > > 
-> > > > > > > > > Comments are welcome.
-> > > > > > > > > 
-> > > > > > > > > All the dependent patches are now in linux-pm master branch.
-> > > > > > > > > 
-> > > > > > > > > <URL:http://www.spinics.net/lists/linux-acpi/msg75957.html>;
-> > > > > > > > > 
-> > > > > > > > > v1 can be found here:
-> > > > > > > > > 
-> > > > > > > > > <URL:http://www.spinics.net/lists/linux-acpi/msg74564.html>;
-> > > > > > > > > 
-> > > > > > > > > changes since v2:
-> > > > > > > > > 
-> > > > > > > > > - Add 8th patch "device property: Introduce
-> > > > > > > > >   fwnode_property_get_reference_args". This allows obtaining
-> > > > > > > > > references
-> > > > > > > > >   with integer arguments using the fwnode interface.
-> > > > > > > > > 
-> > > > > > > > >   The functionality will be soon needed in adding support for nvmem
-> > > > > > > > >   framework on ACPI as well as in referring to e.g. lens and flash
-> > > > > > > > > devices
-> > > > > > > > >   on V4L2.
-> > > > > > > > 
-> > > > > > > > OK, so if people have no objections, I'll queue this up for 4.14.
-> > > > > > > 
-> > > > > > > I have no objections.
-> > > > > > > 
-> > > > > > > One comment Sakari already has addressed, another one
-> > > > > > > (list_first_enatry_or_null() use) might be addressed later.
-> > > > > > 
-> > > > > > Cool, thanks!
-> > > > > 
-> > > > > So the series have been applied.
-> > > > 
-> > > > Thanks a lot!
-> > > > 
-> > > > I see this is in the linux-next branch now; the device-properties branch
-> > > > seems to be in its former state still. Is there a chance that you have
-> > > > merged it locally but not pushed the new device-properties branch?
-> > > 
-> > > The branch is only local for the time being, but I can push it out if
-> > > that helps.
+On Thu, 2017-08-10 at 01:17 +0200, Rafael J. Wysocki wrote:
+> On Wednesday, August 9, 2017 12:41:15 AM CEST Srinivas Pandruvada
+> wrote:
 > > 
-> > I have V4L2 patches that depend on these --- I'd like to attempt to get
-> > them in through the mediatree during this merge window.
+> > For SoC to achieve its lowest power platform idle state a set of
+> > hardware
+> > preconditions must be met. These preconditions or constraints can
+> > be
+> > obtained by issuing a device specific method (_DSM) with function
+> > "1".
+> > Refer to the document provided in the link below.
+> > 
+> > Here during initialization (from attach() callback of LPS0 device),
+> > invoke
+> > function 1 to get the device constraints. Each enabled constraint
+> > is
+> > stored in a table.
+> > 
+> > The devices in this table are used to check whether they were in
+> > required
+> > minimum state, while entering suspend. This check is done from
+> > platform
+> > freeze wake() callback, only when /sys/power/pm_debug_messages
+> > attribute
+> > is non zero.
+> > 
+> > If any constraint is not met and device is ACPI power managed then
+> > it
+> > prints the device name to kernel logs.
+> > 
+> > Also if debug is enabled in acpi/sleep.c, the constraint table and
+> > state
+> > of each device on wake is dumped in kernel logs.
+> > 
+> > Link: http://www.uefi.org/sites/default/files/resources/Intel_ACPI_
+> > Low_Power_S0_Idle.pdf
+> > Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel
+> > .com>
+> > ---
+> >  drivers/acpi/sleep.c | 162
+> > +++++++++++++++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 162 insertions(+)
+> > 
+> > diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> > index 2b881de..b3ef577 100644
+> > --- a/drivers/acpi/sleep.c
+> > +++ b/drivers/acpi/sleep.c
+> > @@ -669,6 +669,7 @@ static const struct acpi_device_id
+> > lps0_device_ids[] = {
+> [cut]
 > 
-> Or rather to the mediatree before the next merge window opens.
+> > 
+> >  
+> > @@ -773,6 +933,8 @@ static void acpi_freeze_wake(void)
+> >  	 */
+> >  	if (acpi_sci_irq_valid() &&
+> >  	    !irqd_is_wakeup_armed(irq_get_irq_data(acpi_sci_irq)))
+> > {
+> > +		if (pm_debug_messages_enabled())
+> > +			lpi_check_constraints();
+> I'm not sure why you only want to check the constraints when we do
+> the
+> _cancel_wakeup() thing.
 > 
+> IMO the check is relevant regardless of whether or not the wakeup was
+> via ACPI.
+OK. I will move out of this if block.
 
-OK, pushed out now, thanks!
-
-
+Thanks,
+Srinivas
+> 
+> > 
+> >  		pm_system_cancel_wakeup();
+> >  		s2idle_wakeup = true;
+> >  	}
+> > 
+> 
