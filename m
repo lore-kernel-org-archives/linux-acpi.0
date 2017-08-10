@@ -1,116 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/3] ACPICA: Make it possible to enable runtime GPEs earlier
-Date: Thu, 10 Aug 2017 18:07:53 +0200
-Message-ID: <3742420.ImyUv4XNlU@aspire.rjw.lan>
-References: <12346760.yAFCnkEgf6@aspire.rjw.lan> <51836747.M49Hy56X72@aspire.rjw.lan> <1AE640813FDE7649BE1B193DEA596E886CF06700@SHSMSX101.ccr.corp.intel.com>
+From: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v6 3/3] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+	erratum 161010801
+Date: Thu, 10 Aug 2017 18:27:23 +0100
+Message-ID: <20170810172723.GD9980@arm.com>
+References: <20170809100715.870516-1-shameerali.kolothum.thodi@huawei.com>
+	<20170809100715.870516-4-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CF06700@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170809100715.870516-4-shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, August 10, 2017 3:52:05 AM CEST Zheng, Lv wrote:
-> Hi, Rafael
+On Wed, Aug 09, 2017 at 11:07:15AM +0100, Shameer Kolothum wrote:
+> The HiSilicon erratum 161010801 describes the limitation of HiSilicon
+> platforms Hip06/Hip07 to support the SMMU mappings for MSI transactions.
 > 
-> For this patch, I have a concern.
+> On these platforms GICv3 ITS translator is presented with the deviceID
+> by extending the MSI payload data to 64 bits to include the deviceID.
+> Hence, the PCIe controller on this platforms has to differentiate the
+> MSI payload against other DMA payload and has to modify the MSI payload.
+> This basically makes it difficult for this platforms to have a SMMU
+> translation for MSI.
 > 
-> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > Subject: [PATCH 2/3] ACPICA: Make it possible to enable runtime GPEs earlier
-> > 
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Runtime GPEs have corresponding _Lxx/_Exx methods and are enabled
-> > automatically during the initialization of the ACPI subsystem through
-> > acpi_update_all_gpes() with the assumption that acpi_setup_gpe_for_wake()
-> > will be called in advance for all of the GPEs pointed to by _PRW
-> > objects in the namespace that may be affected by acpi_update_all_gpes().
-> > That is, acpi_ev_initialize_gpe_block() can only be called for a GPE
-> > block after acpi_setup_gpe_for_wake() has been called for all of the
-> > _PRW (wakeup) GPEs in it.
-> > 
-> > The platform firmware on some systems, however, expects GPEs to be
-> > enabled before the enumeration of devices which is when
-> > acpi_setup_gpe_for_wake() is called and that goes against the above
-> > assumption.
-> > 
-> > For this reason, introduce a new flag to be set by
-> > acpi_ev_initialize_gpe_block() when automatically enabling a GPE
-> > to indicate to acpi_setup_gpe_for_wake() that it needs to drop the
-> > reference to the GPE coming from acpi_ev_initialize_gpe_block()
-> > and modify acpi_setup_gpe_for_wake() accordingly.  These changes
-> > allow acpi_setup_gpe_for_wake() and acpi_ev_initialize_gpe_block()
-> > to be invoked in any order.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/acpi/acpica/evgpeblk.c |    2 ++
-> >  drivers/acpi/acpica/evxfgpe.c  |    8 ++++++++
-> >  include/acpi/actypes.h         |    3 ++-
-> >  3 files changed, 12 insertions(+), 1 deletion(-)
-> > 
-> > Index: linux-pm/drivers/acpi/acpica/evgpeblk.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/acpica/evgpeblk.c
-> > +++ linux-pm/drivers/acpi/acpica/evgpeblk.c
-> > @@ -496,6 +496,8 @@ acpi_ev_initialize_gpe_block(struct acpi
-> >  				continue;
-> >  			}
-> > 
-> > +			gpe_event_info->flags |= ACPI_GPE_AUTO_ENABLED;
-> > +
-> >  			if (event_status & ACPI_EVENT_FLAG_STATUS_SET) {
-> >  				ACPI_INFO(("GPE 0x%02X active on init",
-> >  					   gpe_number));
-> > Index: linux-pm/include/acpi/actypes.h
-> > ===================================================================
-> > --- linux-pm.orig/include/acpi/actypes.h
-> > +++ linux-pm/include/acpi/actypes.h
-> > @@ -783,7 +783,7 @@ typedef u32 acpi_event_status;
-> >   *   |  | | |  +-- Type of dispatch:to method, handler, notify, or none
-> >   *   |  | | +----- Interrupt type: edge or level triggered
-> >   *   |  | +------- Is a Wake GPE
-> > - *   |  +--------- Is GPE masked by the software GPE masking mechanism
-> > + *   |  +--------- Has been enabled automatically at init time
-> >   *   +------------ <Reserved>
-> >   */
-> >  #define ACPI_GPE_DISPATCH_NONE          (u8) 0x00
-> > @@ -799,6 +799,7 @@ typedef u32 acpi_event_status;
-> >  #define ACPI_GPE_XRUPT_TYPE_MASK        (u8) 0x08
-> > 
-> >  #define ACPI_GPE_CAN_WAKE               (u8) 0x10
-> > +#define ACPI_GPE_AUTO_ENABLED           (u8) 0x20
-> > 
-> >  /*
-> >   * Flags for GPE and Lock interfaces
-> > Index: linux-pm/drivers/acpi/acpica/evxfgpe.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/acpica/evxfgpe.c
-> > +++ linux-pm/drivers/acpi/acpica/evxfgpe.c
-> > @@ -435,6 +435,14 @@ acpi_setup_gpe_for_wake(acpi_handle wake
-> >  		 */
-> >  		gpe_event_info->flags =
-> >  		    (ACPI_GPE_DISPATCH_NOTIFY | ACPI_GPE_LEVEL_TRIGGERED);
-> > +	} else if (gpe_event_info->flags & ACPI_GPE_AUTO_ENABLED) {
-> > +		/*
-> > +		 * A reference to this GPE has been added during the GPE block
-> > +		 * initialization, so drop it now to prevent the GPE from being
-> > +		 * permanently enabled and clear its ACPI_GPE_AUTO_ENABLED flag.
-> > +		 */
-> > +		(void)acpi_ev_remove_gpe_reference(gpe_event_info);
-> > +		gpe_event_info->flags &= ~ACPI_GPE_AUTO_ENABLED;
+> This patch implements a ACPI table based quirk to reserve the hw msi
+> regions in the smmu-v3 driver which means these address regions will
+> not be translated and will be excluded from iova allocations.
 > 
-> The problem is if the GPE is shared, how can we know decrement reference
-> once can sufficiently convert it into wakeup dispatcher owned GPE?
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/iommu/arm-smmu-v3.c | 27 ++++++++++++++++++++++-----
+>  1 file changed, 22 insertions(+), 5 deletions(-)
 
-Even if it is shared, the current code will not enable it if it sees
-ACPI_GPE_CAN_WAKE set.
-
-We can change that logic, but that should be a separate patch IMO and
-this is not related to the problem at hand.
+Please can you also add a devicetree binding with corresponding
+documentation to enable this workaround on non-ACPI based systems too? It
+should be straightforward if you update the arm_smmu_options table.
 
 Thanks,
-Rafael
+
+Will
