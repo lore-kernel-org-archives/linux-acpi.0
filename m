@@ -1,49 +1,218 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 3/3] ACPI / scan: Enable GPEs before scanning the
- namespace
-Date: Thu, 10 Aug 2017 11:23:38 +0300
-Message-ID: <20170810082338.GL2369@lahna.fi.intel.com>
-References: <12346760.yAFCnkEgf6@aspire.rjw.lan>
- <6344941.kJ2o2XerZ0@aspire.rjw.lan>
- <20170810051016.GA7953@wunner.de>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC PATCH 3/4] ACPI: IORT: Skip SMMUv3 device ID map for two
+ steps mappings
+Date: Thu, 10 Aug 2017 17:41:34 +0800
+Message-ID: <91dbc8b9-d53b-547f-e64c-fe208551cadb@linaro.org>
+References: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
+ <1502276017-63108-4-git-send-email-guohanjun@huawei.com>
+ <a5d9600e-1461-492a-05d8-338f93fa04c4@arm.com>
+ <CAGHbJ3Bif=Lg7AOErohFG_wkdXAJi+E+zbud4hJGHCzh=VTegQ@mail.gmail.com>
+ <20170809171245.GA13377@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170810051016.GA7953@wunner.de>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f181.google.com ([209.85.223.181]:34426 "EHLO
+        mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751950AbdHJJlr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Aug 2017 05:41:47 -0400
+Received: by mail-io0-f181.google.com with SMTP id o9so7714791iod.1
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Aug 2017 02:41:46 -0700 (PDT)
+In-Reply-To: <20170809171245.GA13377@red-moon>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Robin Murphy <robin.murphy@arm.com>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Linuxarm <linuxarm@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Aug 10, 2017 at 07:10:16AM +0200, Lukas Wunner wrote:
-> On Thu, Aug 10, 2017 at 12:34:23AM +0200, Rafael J. Wysocki wrote:
-> > --- linux-pm.orig/drivers/acpi/scan.c
-> > +++ linux-pm/drivers/acpi/scan.c
-> > @@ -2139,6 +2139,10 @@ int __init acpi_scan_init(void)
-> >  			acpi_get_spcr_uart_addr();
-> >  	}
-> >  
-> > +	acpi_gpe_apply_masked_gpes();
-> > +	acpi_update_all_gpes();
-> > +	acpi_ec_ecdt_start();
-> > +
-> >  	mutex_lock(&acpi_scan_lock);
-> >  	/*
-> >  	 * Enumerate devices in the ACPI namespace.
+On 2017/8/10 1:12, Lorenzo Pieralisi wrote:
+> On Wed, Aug 09, 2017 at 10:48:00PM +0800, Hanjun Guo wrote:
+>> Hi Robin,
+>>
+>> On 9 August 2017 at 19:50, Robin Murphy <robin.murphy@arm.com> wrote:
+>>> Hi Hanjun,
+>>>
+>>> It's a nice surprise to see this already; one less thing for us to do :)
+>>
+>> Glad to hear this patch set helps :)
+>>
+>>>
+>>> On 09/08/17 11:53, Hanjun Guo wrote:
+>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>
+>>>> IORT revision C introduced SMMUv3 MSI support which adding a
+>>>> device ID mapping index in SMMUv3 sub table, to get the SMMUv3
+>>>> device ID mapping for the output ID (dev ID for ITS) and the
+>>>> link to which ITS.
+>>>>
+>>>> So if a platform supports SMMUv3 MSI for control interrupt,
+>>>> there will be a additional single map entry under SMMU, this
+>>>> will not introduce any difference for devices just use one
+>>>> step map to get its output ID and parent (ITS or SMMU), such
+>>>> as PCI/NC/PMCG ---> ITS or PCI/NC ---> SMMU, but we need to
+>>>> do the spcial handling for two steps map case such as
+>>>> PCI/NC--->SMMUv3--->ITS.
+>>>>
+>>>> Take a PCI hostbridge for example,
+>>>>
+>>>> |----------------------|
+>>>> |  Root Complex Node   |
+>>>> |----------------------|
+>>>> |    map entry[x]      |
+>>>> |----------------------|
+>>>> |       id value       |
+>>>> | output_reference     |
+>>>> |---|------------------|
+>>>>      |
+>>>>      |   |----------------------|
+>>>>      |-->|        SMMUv3        |
+>>>>          |----------------------|
+>>>>          |     SMMU dev ID      |
+>>>>          |     mapping index 0  |
+>>>>          |----------------------|
+>>>>          |      map entry[0]    |
+>>>>          |----------------------|
+>>>>          |       id value       |
+>>>>          | output_reference-----------> ITS 1 (SMMU MSI domain)
+>>>>          |----------------------|
+>>>>          |      map entry[1]    |
+>>>>          |----------------------|
+>>>>          |       id value       |
+>>>>          | output_reference-----------> ITS 2 (PCI MSI domain)
+>>>>          |----------------------|
+>>>>
+>>>> When the SMMU dev ID mapping index is 0, there is entry[0]
+>>>> to map to a ITS, we need to skip that map entry for PCI
+>>>> or NC (named component), or we may get the wrong ITS parent.
+>>>>
+>>>> For now we have two APIs for ID mapping, iort_node_map_id()
+>>>> and iort_node_map_platform_id(), and iort_node_map_id() is
+>>>> used for optional two steps mapping, so we just need to
+>>>> skip the map entry in iort_node_map_id() for non-SMMUv3
+>>>> devices.
+>>>>
+>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> ---
+>>>>   drivers/acpi/arm64/iort.c | 37 ++++++++++++++++++++++++++++++++++++-
+>>>>   1 file changed, 36 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>>>> index 32bd4a4..9439f02 100644
+>>>> --- a/drivers/acpi/arm64/iort.c
+>>>> +++ b/drivers/acpi/arm64/iort.c
+>>>> @@ -366,6 +366,28 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+>>>>        return NULL;
+>>>>   }
+>>>>
+>>>> +static int iort_get_smmu_v3_id_mapping_index(struct acpi_iort_node *node,
+>>>> +                                          u32 *index)
+>>>> +{
+>>>> +     struct acpi_iort_smmu_v3 *smmu;
+>>>> +
+>>>> +     /*
+>>>> +      * SMMUv3 dev ID mapping index was introdueced in revision 1
+>>>> +      * table, not avaible in revision 0
+>>>> +      */
+>>>> +     if (node->revision < 1)
+>>>> +             return -EINVAL;
+>>>> +
+>>>> +     smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
+>>>> +     /* if any of the gsi for control interrupts is not 0, ignore the MSI */
+>>>
+>>> IORT says "If all the SMMU control interrupts are GSIV based, this
+>>> field is ignored" - not "any". There doesn't seem to be any reason to
+>>> disallow a mixture of MSIs and GSIs.
+>>
+>> Hmm, since GSIV for control interrupts are SPI, those GSIVs should not
+>> be zero, does it mean we need the code below?
+>>
+>> if (smmu->event_gsiv && smmu->pri_gsiv && smmu->gerr_gsiv && smmu->sync_gsiv)
+>>          return -EINVAL;
+>>
+>> This seems not consistent with the code for now (parsing
+>> the SMMU GSIV for SMMU platform device).
+>>
+>>>
+>>>> +     if (smmu->event_gsiv || smmu->pri_gsiv || smmu->gerr_gsiv
+>>>> +         || smmu->sync_gsiv)
+>>>> +             return -EINVAL;
+>>>> +
+>>>> +     *index = smmu->id_mapping_index;
+>>>> +     return 0;
+>>>> +}
+>>>> +
+>>>>   static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
+>>>>                                               u32 id_in, u32 *id_out,
+>>>>                                               u8 type_mask)
+>>>> @@ -375,7 +397,9 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
+>>>>        /* Parse the ID mapping tree to find specified node type */
+>>>>        while (node) {
+>>>>                struct acpi_iort_id_mapping *map;
+>>>> -             int i;
+>>>> +             int i, ret = -EINVAL;
+>>>> +             /* big enough for an invalid id index in practical */
+>>>> +             u32 index = U32_MAX;
+>>>>
+>>>>                if (IORT_TYPE_MASK(node->type) & type_mask) {
+>>>>                        if (id_out)
+>>>> @@ -396,8 +420,19 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
+>>>>                        goto fail_map;
+>>>>                }
+>>>>
+>>>> +             /*
+>>>> +              *  we need to get SMMUv3 dev ID mapping index and skip its
+>>>> +              *  associated ID map for single mapping cases.
+>>>> +              */
+>>>> +             if (node->type == ACPI_IORT_NODE_SMMU_V3)
+>>>> +                     ret = iort_get_smmu_v3_id_mapping_index(node, &index);
+>>>> +
+>>>>                /* Do the ID translation */
+>>>>                for (i = 0; i < node->mapping_count; i++, map++) {
+>>>> +                     /* if it's a SMMUv3 device id mapping index, skip it */
+>>>> +                     if (!ret && i == index)
+>>>
+>>> Given that i is an int anyway, there doesn't seem to be much need for
+>>> the ret dance - iort_get_smmu_v3_id_mapping_index() could just return
+>>> the index/error value as an int directly. You can rely on (i == index)
+>>> being false if index is negative, because for node->mapping_count to
+>>> overflow INT_MAX the IORT would have to be over 40GB in size, which is
+>>> definitely impossible.
+>>
+>> Good point, it will simplify the code, I will update this patch :)
 > 
-> I notice this is called from a subsys_initcall().  We scan the PCI bus
-> much earlier in arch/x86/kernel/early-quirks.c and it would be possible
-> to identify presence of Thunderbolt host controllers in an early quirk
-> (using the method of pci_is_thunderbolt_attached()) and, if found,
-> enable their GPEs or all GPEs.
+> How about:
+> 
+> (1) Ignoring SMMU_V3 single mappings in iort_id_map() (as we do today -
+>      minus the warning) - we will never need them, just ignore them all
+>      regarless of id_mapping_index
 
-I don't think we want to differentiate between Thunderbolt controller
-and anything else. Point here is that we need to enable GPEs in the same
-order than Windows does (before PCI scan) to be on the path that is at
-least somehow tested.
+I was thinking the same when I prepare the code, but one thing stopped
+me to do that, which is if we have multi single mappings under SMMU,
+such as PCI/NC---->SMMU---(single mapping)-->ITS, then all the single
+mappings will be skipped.
 
-> Just as an aside in case your method doesn't work, I'm not affected by
-> this issue being a Mac user... ;-)
+I'm didn't see such mapping (HW) in practical for now, and I'm not
+sure if it's a valid mapping, from the spec, IORT doesn't forbid such
+mapping.
 
-;-)
+> (2) Write some simple code that instead of relying on the
+>      iort_pmsi_get_dev_id() API just get the SMMU V3 IORT node mapping
+>      entry (at id_mapping_index), grab a reference to the ITS and
+>      look-up the MSI domain
+
+That will be pretty the same as iort_node_get_id() then to use the
+parent to get the MSI irq domain.
+
+> 
+> ?
+> 
+> I do not see the point in making any of this generic for IORT kernel
+> code, it is a one-off kludge for SMMU_V3 and can easily be
+> self-contained IORT code.
+> 
+> Thoughts ?
+
+Please see above :)
+
+Thanks
+Hanjun
