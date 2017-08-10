@@ -1,71 +1,66 @@
 From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH] acpi: apei: fix the wrongly parse generic error status
- block
-Date: Fri, 11 Aug 2017 05:37:50 +0800
-Message-ID: <1be489f7-c1c3-63dc-dc0d-af67e5fd03a1@huawei.com>
-References: <1502388412-20273-1-git-send-email-gengdongjiu@huawei.com>
- <9ea70eed-f743-0c8b-2a70-27ce4c0d8705@codeaurora.org>
- <ddb2070d-60c5-a476-c003-25814d0cf863@huawei.com>
+Subject: Re: [PATCH] acpi: apei: fix GHES estatus iteration
+Date: Fri, 11 Aug 2017 06:04:16 +0800
+Message-ID: <5591b641-6eb0-0cb6-e74d-7e55cad5ee33@huawei.com>
+References: <1501795945-5331-1-git-send-email-tbaicar@codeaurora.org>
+ <20170808163219.GB2163@arm.com> <1971058.u9kdacGNiq@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:3058 "EHLO
+Received: from szxga05-in.huawei.com ([45.249.212.191]:3059 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752440AbdHJVia (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Aug 2017 17:38:30 -0400
-In-Reply-To: <ddb2070d-60c5-a476-c003-25814d0cf863@huawei.com>
+        with ESMTP id S1751487AbdHJWHA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Aug 2017 18:07:00 -0400
+In-Reply-To: <1971058.u9kdacGNiq@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Baicar, Tyler" <tbaicar@codeaurora.org>, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-
-may be directly remove the macro apei_estatus_for_each_section is not better, if other place code also
-needs to iterate through the GHES estatus blocks, it will be repeated written again.
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>
+Cc: Tyler Baicar <tbaicar@codeaurora.org>, lenb@kernel.org, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
 
 
-On 2017/8/11 5:31, gengdongjiu wrote:
-> Hello,
-> 
->    sorry, I do not see that. Just know I have reviewed your modification, may be my change can be simpleness and reserve the macro of apei_estatus_for_each_section
-> can be used by other place to avoid duplicated code, such as prints the estatus blocks.
-> 
-> On 2017/8/11 1:48, Baicar, Tyler wrote:
->> Hello,
->>
->> I have already posted a patch fixing this. Please see:
->>
->> https://lkml.org/lkml/2017/8/3/824
->>
->> This makes the loop identical to the CPER code which prints the estatus blocks to the kernel logs.
->>
->> Thanks,
->>
->> Tyler
->>
->>
->> On 8/10/2017 12:06 PM, Dongjiu Geng wrote:
->>> The revision 0x300 generic error data entry is different with the old
->>> version. when ghes_do_proc traverses to get the data entry, it does not
->>> consider this difference. so when error status block has revision 0x300
->>> data entry, it will have issue.
+
+On 2017/8/9 8:52, Rafael J. Wysocki wrote:
+> On Tuesday, August 8, 2017 6:32:20 PM CEST Will Deacon wrote:
+>> On Thu, Aug 03, 2017 at 03:32:25PM -0600, Tyler Baicar wrote:
+>>> Currently iterating through the GHES estatus blocks does not
+>>> take into account the new generic data v3 structure size. This
+>>> can result in garbage non-standard trace events to be triggered
+>>> since the loop will not properly iterate through the estatus
+>>> blocks and not properly terminate.
 >>>
->>> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+>>> Update the GHES estatus iteration to properly increment through
+>>> the estatus blocks similar to how the CPER estatus printing
+>>> iterates through them.
+>>>
+>>> Fixes: bbcc2e7b642e ("ras: acpi/apei: cper: add support for generic data v3 structure")
+I do not think it has relationship with this "bbcc2e7b642e", the root cause is that it
+does not consider the acpi_hest_generic_data_v300, this code exists long long time ago.
+
+so please also review this patch:
+https://lkml.org/lkml/2017/8/10/747
+
+previously I do not see Tyler's this modification, just know see it.
+
+
+>>> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+>>> Tested-by: Austin Christ <austinwc@codeaurora.org>
 >>> ---
->>>   drivers/acpi/apei/apei-internal.h | 4 ++--
->>>   1 file changed, 2 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
->>> index 6e9f14c0a71b..6491f1c4a96e 100644
->>> --- a/drivers/acpi/apei/apei-internal.h
->>> +++ b/drivers/acpi/apei/apei-internal.h
->>> @@ -122,8 +122,8 @@ struct dentry *apei_get_debugfs_dir(void);
->>>     #define apei_estatus_for_each_section(estatus, section)            \
->>>       for (section = (struct acpi_hest_generic_data *)(estatus + 1);    \
->>> -         (void *)section - (void *)estatus < estatus->data_length;    \
->>> -         section = (void *)(section+1) + section->error_data_length)
->>> +         (void *)section - (void *)(estatus + 1) < estatus->data_length; \
->>> +         section = acpi_hest_get_next(section))
->>>     static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
->>>   {
+>>>  drivers/acpi/apei/apei-internal.h | 5 -----
+>>>  drivers/acpi/apei/ghes.c          | 8 +++++++-
+>>>  2 files changed, 7 insertions(+), 6 deletions(-)
 >>
+>> Whilst much of the initial code here went through the arm64 tree in the
+>> previous merge window, I'm assuming that Boris will take this fix via his
+>> tree (likewise for "[PATCH V2] acpi: apei: clear error status before
+>> acknowledging the error").
+> 
+> Actually I will if Boris ACKs these.
+> 
+> Thanks,
+> Rafael
+> 
+> 
+> .
+> 
 
