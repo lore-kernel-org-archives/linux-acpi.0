@@ -1,53 +1,43 @@
-From: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v6 3/3] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
-	erratum 161010801
-Date: Thu, 10 Aug 2017 18:27:23 +0100
-Message-ID: <20170810172723.GD9980@arm.com>
-References: <20170809100715.870516-1-shameerali.kolothum.thodi@huawei.com>
-	<20170809100715.870516-4-shameerali.kolothum.thodi@huawei.com>
+From: Dongjiu Geng <gengdongjiu@huawei.com>
+Subject: [PATCH] acpi: apei: fix the wrongly parse generic error status block
+Date: Fri, 11 Aug 2017 02:06:52 +0800
+Message-ID: <1502388412-20273-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170809100715.870516-4-shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:3502 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752737AbdHJRnW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Aug 2017 13:43:22 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gengdongjiu@huawei.com
 
-On Wed, Aug 09, 2017 at 11:07:15AM +0100, Shameer Kolothum wrote:
-> The HiSilicon erratum 161010801 describes the limitation of HiSilicon
-> platforms Hip06/Hip07 to support the SMMU mappings for MSI transactions.
-> 
-> On these platforms GICv3 ITS translator is presented with the deviceID
-> by extending the MSI payload data to 64 bits to include the deviceID.
-> Hence, the PCIe controller on this platforms has to differentiate the
-> MSI payload against other DMA payload and has to modify the MSI payload.
-> This basically makes it difficult for this platforms to have a SMMU
-> translation for MSI.
-> 
-> This patch implements a ACPI table based quirk to reserve the hw msi
-> regions in the smmu-v3 driver which means these address regions will
-> not be translated and will be excluded from iova allocations.
-> 
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/iommu/arm-smmu-v3.c | 27 ++++++++++++++++++++++-----
->  1 file changed, 22 insertions(+), 5 deletions(-)
+The revision 0x300 generic error data entry is different with the old
+version. when ghes_do_proc traverses to get the data entry, it does not
+consider this difference. so when error status block has revision 0x300
+data entry, it will have issue.
 
-Please can you also add a devicetree binding with corresponding
-documentation to enable this workaround on non-ACPI based systems too? It
-should be straightforward if you update the arm_smmu_options table.
+Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+---
+ drivers/acpi/apei/apei-internal.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thanks,
+diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
+index 6e9f14c0a71b..6491f1c4a96e 100644
+--- a/drivers/acpi/apei/apei-internal.h
++++ b/drivers/acpi/apei/apei-internal.h
+@@ -122,8 +122,8 @@ struct dentry *apei_get_debugfs_dir(void);
+ 
+ #define apei_estatus_for_each_section(estatus, section)			\
+ 	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
+-	     (void *)section - (void *)estatus < estatus->data_length;	\
+-	     section = (void *)(section+1) + section->error_data_length)
++	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
++	     section = acpi_hest_get_next(section))
+ 
+ static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
+ {
+-- 
+2.14.0
 
-Will
