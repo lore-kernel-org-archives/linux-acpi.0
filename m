@@ -1,98 +1,69 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH v2 2/2] ACPI / Sleep: Check low power idle constraints
- for debug only
-Date: Thu, 10 Aug 2017 15:54:12 -0700
-Message-ID: <1502405652.20268.20.camel@linux.intel.com>
-References: <1502232075-23832-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-         <1502232075-23832-3-git-send-email-srinivas.pandruvada@linux.intel.com>
-         <146e121b5db84fb8a8aa692cee01cb7b@ausx13mpc120.AMER.DELL.COM>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH RESEND] mailbox: pcc: Drop uninformative output during boot
+Date: Fri, 11 Aug 2017 01:08:18 +0200
+Message-ID: <1791419.fgGbrxCany@aspire.rjw.lan>
+References: <20170801124357.18344-1-punit.agrawal@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:39576 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752281AbdHJWyN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 10 Aug 2017 18:54:13 -0400
-In-Reply-To: <146e121b5db84fb8a8aa692cee01cb7b@ausx13mpc120.AMER.DELL.COM>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:62244 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752440AbdHJXQi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 10 Aug 2017 19:16:38 -0400
+In-Reply-To: <20170801124357.18344-1-punit.agrawal@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario.Limonciello@dell.com, rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lukas@wunner.de
+To: Punit Agrawal <punit.agrawal@arm.com>
+Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, Alexey Klimov <alexey.klimov@arm.com>, linux-kernel@vger.kernel.org, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, Jassi Brar <jassisinghbrar@gmail.com>
 
-On Thu, 2017-08-10 at 22:07 +0000, Mario.Limonciello@dell.com wrote:
+On Tuesday, August 1, 2017 2:43:57 PM CEST Punit Agrawal wrote:
+> When booting on an ACPI enabled system that does not provide the
+> Platform Communications Channel Table (PCCT), the pcc mailbox driver
+> prints -
 > 
-> > 
-> > 
-[...]
-
-> > +
-> > +		ret = acpi_device_get_power(adev, &state);
-> > +		if (!ret)
-> > +			pr_debug("LPI: %s required min power state
-> > %d, current
-> > power state %d, real power state %d\n",
-> > +				 lpi_constraints_table[i].name,
-> > +				 lpi_constraints_table[i].min_dsta
-> > te,
-> > +				 adev->power.state, state);
-> Isn't this superfluous to be showing the state returned from
-> acpi_device_get_power and
-> also probing directly at the state? You can't just rely on the
-> information you got
-> back from apci_device_get_power?
-They can be different as one is real power state and the other is what
-was set.
-For example on Dell 9365 it shows
-
-[ 1924.393653] LPI: \_SB.PCI0.XHC required min power state 3, current
-power state 3, real power state 255 
-
+> [    0.484261] PCCT header not found.
 > 
-> > 
-> > +
-> > +		if (adev->flags.power_manageable && adev-
-> > >power.state <
-> > +					lpi_constraints_table[i].m
-> > in_dstate)
-> > +			pr_info("LPI: Constraint [%s] not
-> > matched\n",
-> > +				 lpi_constraints_table[i].name);
-> Similarly here, can't you just compare against &state instead?
+> during probe before returning -ENODEV.
 > 
-The problem then the check will fail for XHCI on Dell 9365. So not
-using "state".
+> This message clutters the bootlog and doesn't provide any useful
+> information. Drop this message.
+> 
+> Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+> Cc: Jassi Brar <jassisinghbrar@gmail.com>
+> Acked-by: Alexey Klimov <alexey.klimov@arm.com>
+> ---
+> 
+> Hi Rafael,
+> 
+> Re-sending the patch with linux-acpi on cc and tags applied as
+> requested. If there are no objections please consider merging.
+> 
+> Thanks,
+> Punit
+> 
+>  drivers/mailbox/pcc.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+> index ac91fd0d62c6..3d83cdc11ab5 100644
+> --- a/drivers/mailbox/pcc.c
+> +++ b/drivers/mailbox/pcc.c
+> @@ -457,10 +457,8 @@ static int __init acpi_pcc_probe(void)
+>  	/* Search for PCCT */
+>  	status = acpi_get_table(ACPI_SIG_PCCT, 0, &pcct_tbl);
+>  
+> -	if (ACPI_FAILURE(status) || !pcct_tbl) {
+> -		pr_warn("PCCT header not found.\n");
+> +	if (ACPI_FAILURE(status) || !pcct_tbl)
+>  		return -ENODEV;
+> -	}
+>  
+>  	count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+>  			sizeof(struct acpi_table_pcct),
+> 
 
-Thanks,
-Srinivas
-> > 
-> > +	}
-> > +}
-> > +
-> >  static void acpi_sleep_run_lps0_dsm(unsigned int func)
-> >  {
-> >  	union acpi_object *out_obj;
-> > @@ -729,6 +886,9 @@ static int lps0_device_attach(struct
-> > acpi_device *adev,
-> >  				  "_DSM function 0 evaluation
-> > failed\n");
-> >  	}
-> >  	ACPI_FREE(out_obj);
-> > +
-> > +	lpi_device_get_constraints();
-> > +
-> >  	return 0;
-> >  }
-> > 
-> > @@ -773,6 +933,8 @@ static void acpi_freeze_wake(void)
-> >  	 */
-> >  	if (acpi_sci_irq_valid() &&
-> >  	    !irqd_is_wakeup_armed(irq_get_irq_data(acpi_sci_irq)))
-> > {
-> > +		if (pm_debug_messages_enabled())
-> > +			lpi_check_constraints();
-> >  		pm_system_cancel_wakeup();
-> >  		s2idle_wakeup = true;
-> >  	}
-> > --
-> > 2.7.5
+Applied, thanks!
+
+
