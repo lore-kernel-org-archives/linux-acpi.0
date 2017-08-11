@@ -1,67 +1,88 @@
-From: <lizdebeth_@hotmail.com>
-Subject: (unknown)
-Date: Fri, 11 Aug 2017 04:42:27 -0000
-Message-ID: <150242654737.22642.13193837567317669019@hinet.net>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+Date: Fri, 11 Aug 2017 05:40:56 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF09085@SHSMSX101.ccr.corp.intel.com>
+References: <12346760.yAFCnkEgf6@aspire.rjw.lan>
+ <46980112.WLPtxWZQ3y@aspire.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E886CF066E6@SHSMSX101.ccr.corp.intel.com>
+ <5185778.X36DhrMnGV@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: application/zip; name="600195769.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 1-160-2-183.dynamic-ip.hinet.net ([1.160.2.183]:56115 "HELO
-        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1750815AbdHKEmg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 11 Aug 2017 00:42:36 -0400
-Subject: 
-Content-Disposition: attachment
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5185778.X36DhrMnGV@aspire.rjw.lan>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-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
+Hi, Rafael
+
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+> 
+> On Thursday, August 10, 2017 3:48:58 AM CEST Zheng, Lv wrote:
+> > Hi, Rafael
+> >
+> > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > > Subject: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+> > >
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > >
+> > > In some cases GPEs are already active when they are enabled by
+> > > acpi_ev_initialize_gpe_block() and whatever happens next may depend
+> > > on the result of handling the events signaled by them, so the
+> > > events should not be discarded (which is what happens currently) and
+> > > they should be handled as soon as reasonably possible.
+> > >
+> > > For this reason, modify acpi_ev_initialize_gpe_block() to
+> > > dispatch GPEs with the status flag set in-band right after
+> > > enabling them.
+> >
+> > In fact, what we need seems to be invoking acpi_ev_gpe_dispatch()
+> > right after enabling an GPE. So there are 2 conditions related:
+> > 1. GPE is enabled for the first time.
+> > 2. GPE is initialized.
+> >
+> > And we need to make sure that before acpi_update_all_gpes() is invoked,
+> > all GPE EN bits are actually disabled.
+> 
+> But we don't do it today, do we?
+
+We don't do that.
+
+> 
+> And still calling _dispatch() should not be incorrect even if the GPE
+> has been enabled already at this point.  Worst case it just will
+> queue up the execution of _Lxx/_Exx which may or may not do anything
+> useful.
+> 
+> And BTW this is all done under acpi_gbl_gpe_lock so acpi_ev_gpe_detect()
+> will block on it if run concurrently and we've checked the status, so
+> we know that the GPE *should* be dispatched, so I sort of fail to see
+> the problem.
+
+There is another problem related:
+ACPICA clears GPEs before enabling it.
+This is proven to be wrong, and we have to fix it:
+https://bugzilla.kernel.org/show_bug.cgi?id=196249
+
+without fixing this issue, in this solution, we surely need to save the
+GPE STS bit before incrementing GPE reference count, and poll it according
+to the saved STS bit. Because if we poll it after enabling, STS bit will
+be wrongly cleared.
+
+So if we can do this on top of the "GPE clear" fix, things can be done
+in a simpler way - invoke acpi_ev_gpe_detect() after fully initializing
+GPEs (as what I pasted).
+
+However I should say - merging "GPE clear" fix might be risky.
+So this patch can be in upstream prior than the simpler solution to leave
+us a stable base line.
+
+I'll send out the simpler solution along with the "GPE clear" fix.
+Maybe you can consider to ship it after merging this patch.
+
+Thanks and best regards
+Lv
