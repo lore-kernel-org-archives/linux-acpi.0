@@ -1,151 +1,102 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH 4/4] ACPI: IORT: Add SMMUv3 MSI support
-Date: Fri, 11 Aug 2017 10:33:48 +0100
-Message-ID: <20170811093348.GC26039@red-moon>
-References: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
- <1502276017-63108-5-git-send-email-guohanjun@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+Date: Fri, 11 Aug 2017 14:23:00 +0200
+Message-ID: <3677056.OS19FbOdkF@aspire.rjw.lan>
+References: <12346760.yAFCnkEgf6@aspire.rjw.lan> <5185778.X36DhrMnGV@aspire.rjw.lan> <1AE640813FDE7649BE1B193DEA596E886CF09085@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41910 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751618AbdHKJbq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 11 Aug 2017 05:31:46 -0400
-Content-Disposition: inline
-In-Reply-To: <1502276017-63108-5-git-send-email-guohanjun@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CF09085@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Wed, Aug 09, 2017 at 06:53:37PM +0800, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
+On Friday, August 11, 2017 7:40:56 AM CEST Zheng, Lv wrote:
+> Hi, Rafael
 > 
-> Since we have a mapping index for SMMUv3 MSI, we can
-> directly use that index to get the map entry, then
-> retrieve dev ID and ITS parent to add SMMUv3 MSI
-> support.
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+> > 
+> > On Thursday, August 10, 2017 3:48:58 AM CEST Zheng, Lv wrote:
+> > > Hi, Rafael
+> > >
+> > > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > > > Subject: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+> > > >
+> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > >
+> > > > In some cases GPEs are already active when they are enabled by
+> > > > acpi_ev_initialize_gpe_block() and whatever happens next may depend
+> > > > on the result of handling the events signaled by them, so the
+> > > > events should not be discarded (which is what happens currently) and
+> > > > they should be handled as soon as reasonably possible.
+> > > >
+> > > > For this reason, modify acpi_ev_initialize_gpe_block() to
+> > > > dispatch GPEs with the status flag set in-band right after
+> > > > enabling them.
+> > >
+> > > In fact, what we need seems to be invoking acpi_ev_gpe_dispatch()
+> > > right after enabling an GPE. So there are 2 conditions related:
+> > > 1. GPE is enabled for the first time.
+> > > 2. GPE is initialized.
+> > >
+> > > And we need to make sure that before acpi_update_all_gpes() is invoked,
+> > > all GPE EN bits are actually disabled.
+> > 
+> > But we don't do it today, do we?
 > 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/acpi/arm64/iort.c | 46 ++++++++++++++++++++++++++++++++++++----------
->  1 file changed, 36 insertions(+), 10 deletions(-)
+> We don't do that.
 > 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 9439f02..ce03298 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -313,7 +313,8 @@ static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
->  	/* Single mapping does not care for input id */
->  	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
->  		if (type == ACPI_IORT_NODE_NAMED_COMPONENT ||
-> -		    type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
-> +		    type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
-> +		    type == ACPI_IORT_NODE_SMMU_V3) {
->  			*rid_out = map->output_base;
->  			return 0;
->  		}
-> @@ -357,7 +358,8 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
->  
->  	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
->  		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
-> -		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
-> +		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
-> +		    node->type == ACPI_IORT_NODE_SMMU_V3) {
->  			*id_out = map->output_base;
->  			return parent;
->  		}
-> @@ -549,9 +551,21 @@ int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
->  	if (!node)
->  		return -ENODEV;
->  
-> -	for (i = 0; i < node->mapping_count; i++) {
-> -		if (iort_node_map_platform_id(node, dev_id, IORT_MSI_TYPE, i))
-> +	if (node->type == ACPI_IORT_NODE_SMMU_V3) {
-> +		u32 index;
-> +
-> +		if (iort_get_smmu_v3_id_mapping_index(node, &index))
-> +			return -ENODEV;
-> +
-> +		if (iort_node_map_platform_id(node, dev_id, IORT_MSI_TYPE,
-> +		    index))
->  			return 0;
-> +	} else {
-> +		for (i = 0; i < node->mapping_count; i++) {
-> +			if (iort_node_map_platform_id(node, dev_id,
-> +			    IORT_MSI_TYPE, i))
-> +				return 0;
-> +		}
->  	}
->  
->  	return -ENODEV;
-> @@ -626,20 +640,30 @@ static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
->  	struct acpi_iort_node *node, *msi_parent;
->  	struct fwnode_handle *iort_fwnode;
->  	struct acpi_iort_its_group *its;
-> -	int i;
->  
->  	/* find its associated iort node */
-> -	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> -			      iort_match_node_callback, dev);
-> +	node = iort_find_dev_node(dev);
->  	if (!node)
->  		return NULL;
->  
->  	/* then find its msi parent node */
-> -	for (i = 0; i < node->mapping_count; i++) {
-> +	if (node->type == ACPI_IORT_NODE_SMMU_V3) {
-> +		u32 index;
-> +
-> +		if (iort_get_smmu_v3_id_mapping_index(node, &index))
-> +			return NULL;
-> +
->  		msi_parent = iort_node_map_platform_id(node, NULL,
-> +						       IORT_MSI_TYPE, index);
-> +	} else {
-> +		int i;
-> +
-> +		for (i = 0; i < node->mapping_count; i++) {
-> +			msi_parent = iort_node_map_platform_id(node, NULL,
->  						       IORT_MSI_TYPE, i);
-> -		if (msi_parent)
-> -			break;
-> +			if (msi_parent)
-> +				break;
-> +		}
->  	}
->  
->  	if (!msi_parent)
-> @@ -1233,6 +1257,8 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
->  	/* Configure DMA for the page table walker */
->  	acpi_dma_configure(&pdev->dev, attr);
->  
-> +	acpi_configure_pmsi_domain(&pdev->dev);
+> > 
+> > And still calling _dispatch() should not be incorrect even if the GPE
+> > has been enabled already at this point.  Worst case it just will
+> > queue up the execution of _Lxx/_Exx which may or may not do anything
+> > useful.
+> > 
+> > And BTW this is all done under acpi_gbl_gpe_lock so acpi_ev_gpe_detect()
+> > will block on it if run concurrently and we've checked the status, so
+> > we know that the GPE *should* be dispatched, so I sort of fail to see
+> > the problem.
+> 
+> There is another problem related:
+> ACPICA clears GPEs before enabling it.
+> This is proven to be wrong, and we have to fix it:
+> https://bugzilla.kernel.org/show_bug.cgi?id=196249
+> 
+> without fixing this issue, in this solution, we surely need to save the
+> GPE STS bit before incrementing GPE reference count, and poll it according
+> to the saved STS bit. Because if we poll it after enabling, STS bit will
+> be wrongly cleared.
 
-I think this is just overkill. There are two separate things to solve
-here:
+I'm not sure if I understand you correctly, but why would we poll it?
 
-1) Make single mappings valid for SMMUv3 (and PMCG); that's fair enough
-   and goes with the logic to skip the ITS DeviceID index for "normal"
-   mappings, I can live with that
-2) Find the MSI domain for an SMMUv3 (or any other IORT table node); I
-   do not think you need all this complexity to do it via
-   acpi_configure_pmsi_domain(), it can be done in a easier way with
-   an ad-hoc stub (it does not even have to be SMMUv3 specific)
+In the $subject patch the status is checked and then
+acpi_ev_add_gpe_reference() is called to add a reference to the GPE.
 
-My worry is that we are peppering the generic IORT mapping code with
-node types specific kludges and it is becoming a mess.
+If this is the first reference (which will be the case in the majority
+of cases), acpi_ev_enable_gpe() will be called and that will clear the
+status.
 
-I can rework the patch to show you what I have in mind, please let
-me know.
+Then, acpi_ev_gpe_dispatch() is called if the status was set and that
+itself doesn't check the status.  It disables the GPE upfront (so the
+status doesn't matter from now on until the GPE is enabled again) and
+clears the status unconditionally if the GPE is edge-triggered.  This
+means that for edge-triggered GPEs the clearing of the status by
+acpi_ev_enable_gpe() doesn't matter here.
+
+For level-triggered GPEs the status is not cleared by acpi_ev_gpe_dispatch()
+itself, but _Lxx is executed (again, without checking the status) and
+finally the status is cleared by acpi_ev_finish_gpe() anyway, so we
+end up with cleared status no matter what (and that before re-enabling
+the GPE).  End even if _Lxx itself checked the status (but honestly why
+would it?), then this is a level-triggered GPE, so it will re-trigger
+anyway if not handled this time.
+
+So it looks like the fact that acpi_ev_enable_gpe() clears the status before
+enabling the GPE doesn't matter for this patch, although it may matter in
+general, but that is a different (and somewhat related) issue.
 
 Thanks,
-Lorenzo
-
-> +
->  	ret = platform_device_add(pdev);
->  	if (ret)
->  		goto dma_deconfigure;
-> -- 
-> 1.7.12.4
-> 
+Rafael
