@@ -1,82 +1,133 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 2/2] ACPICA: Events: Dispatch GPEs after enabling for the first time
-Date: Fri, 11 Aug 2017 13:57:39 +0800
-Message-ID: <bfa3079aa97c45c7e983260b45647839f0831ae2.1502430636.git.lv.zheng@intel.com>
-References: <cover.1502430636.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1502430636.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 2/3] ACPICA: Make it possible to enable runtime GPEs
+ earlier
+Date: Fri, 11 Aug 2017 06:13:07 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF0A0C5@SHSMSX101.ccr.corp.intel.com>
+References: <12346760.yAFCnkEgf6@aspire.rjw.lan>
+ <51836747.M49Hy56X72@aspire.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E886CF06700@SHSMSX101.ccr.corp.intel.com>
+ <3742420.ImyUv4XNlU@aspire.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:58211 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750909AbdHKGNL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 11 Aug 2017 02:13:11 -0400
+In-Reply-To: <3742420.ImyUv4XNlU@aspire.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-After being enabled for the first time, the GPEs may have STS bits already
-set. Setting EN bits is not sufficient to trigger the GPEs again, so this
-patch polls GPEs after enabling them for the first time.
-This is a simpler version on top of the "GPE clear" fix generated according
-to Mika's report and Rafael's original Linux based fix. Based on Linux
-commit originated from Rafael J. Wysocki, fixed by Lv Zheng, tested by Mika
-Westerberg.
+Hi,
 
-Original-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/acpi/acpica/evxfgpe.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Subject: Re: [PATCH 2/3] ACPICA: Make it possible to enable runtime GPEs earlier
+> 
+> On Thursday, August 10, 2017 3:52:05 AM CEST Zheng, Lv wrote:
+> > Hi, Rafael
+> >
+> > For this patch, I have a concern.
+> >
+> > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > > Subject: [PATCH 2/3] ACPICA: Make it possible to enable runtime GPEs earlier
+> > >
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > >
+> > > Runtime GPEs have corresponding _Lxx/_Exx methods and are enabled
+> > > automatically during the initialization of the ACPI subsystem through
+> > > acpi_update_all_gpes() with the assumption that acpi_setup_gpe_for_wake()
+> > > will be called in advance for all of the GPEs pointed to by _PRW
+> > > objects in the namespace that may be affected by acpi_update_all_gpes().
+> > > That is, acpi_ev_initialize_gpe_block() can only be called for a GPE
+> > > block after acpi_setup_gpe_for_wake() has been called for all of the
+> > > _PRW (wakeup) GPEs in it.
+> > >
+> > > The platform firmware on some systems, however, expects GPEs to be
+> > > enabled before the enumeration of devices which is when
+> > > acpi_setup_gpe_for_wake() is called and that goes against the above
+> > > assumption.
+> > >
+> > > For this reason, introduce a new flag to be set by
+> > > acpi_ev_initialize_gpe_block() when automatically enabling a GPE
+> > > to indicate to acpi_setup_gpe_for_wake() that it needs to drop the
+> > > reference to the GPE coming from acpi_ev_initialize_gpe_block()
+> > > and modify acpi_setup_gpe_for_wake() accordingly.  These changes
+> > > allow acpi_setup_gpe_for_wake() and acpi_ev_initialize_gpe_block()
+> > > to be invoked in any order.
+> > >
+> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > ---
+> > >  drivers/acpi/acpica/evgpeblk.c |    2 ++
+> > >  drivers/acpi/acpica/evxfgpe.c  |    8 ++++++++
+> > >  include/acpi/actypes.h         |    3 ++-
+> > >  3 files changed, 12 insertions(+), 1 deletion(-)
+> > >
+> > > Index: linux-pm/drivers/acpi/acpica/evgpeblk.c
+> > > ===================================================================
+> > > --- linux-pm.orig/drivers/acpi/acpica/evgpeblk.c
+> > > +++ linux-pm/drivers/acpi/acpica/evgpeblk.c
+> > > @@ -496,6 +496,8 @@ acpi_ev_initialize_gpe_block(struct acpi
+> > >  				continue;
+> > >  			}
+> > >
+> > > +			gpe_event_info->flags |= ACPI_GPE_AUTO_ENABLED;
+> > > +
+> > >  			if (event_status & ACPI_EVENT_FLAG_STATUS_SET) {
+> > >  				ACPI_INFO(("GPE 0x%02X active on init",
+> > >  					   gpe_number));
+> > > Index: linux-pm/include/acpi/actypes.h
+> > > ===================================================================
+> > > --- linux-pm.orig/include/acpi/actypes.h
+> > > +++ linux-pm/include/acpi/actypes.h
+> > > @@ -783,7 +783,7 @@ typedef u32 acpi_event_status;
+> > >   *   |  | | |  +-- Type of dispatch:to method, handler, notify, or none
+> > >   *   |  | | +----- Interrupt type: edge or level triggered
+> > >   *   |  | +------- Is a Wake GPE
+> > > - *   |  +--------- Is GPE masked by the software GPE masking mechanism
+> > > + *   |  +--------- Has been enabled automatically at init time
+> > >   *   +------------ <Reserved>
+> > >   */
+> > >  #define ACPI_GPE_DISPATCH_NONE          (u8) 0x00
+> > > @@ -799,6 +799,7 @@ typedef u32 acpi_event_status;
+> > >  #define ACPI_GPE_XRUPT_TYPE_MASK        (u8) 0x08
+> > >
+> > >  #define ACPI_GPE_CAN_WAKE               (u8) 0x10
+> > > +#define ACPI_GPE_AUTO_ENABLED           (u8) 0x20
+> > >
+> > >  /*
+> > >   * Flags for GPE and Lock interfaces
+> > > Index: linux-pm/drivers/acpi/acpica/evxfgpe.c
+> > > ===================================================================
+> > > --- linux-pm.orig/drivers/acpi/acpica/evxfgpe.c
+> > > +++ linux-pm/drivers/acpi/acpica/evxfgpe.c
+> > > @@ -435,6 +435,14 @@ acpi_setup_gpe_for_wake(acpi_handle wake
+> > >  		 */
+> > >  		gpe_event_info->flags =
+> > >  		    (ACPI_GPE_DISPATCH_NOTIFY | ACPI_GPE_LEVEL_TRIGGERED);
+> > > +	} else if (gpe_event_info->flags & ACPI_GPE_AUTO_ENABLED) {
+> > > +		/*
+> > > +		 * A reference to this GPE has been added during the GPE block
+> > > +		 * initialization, so drop it now to prevent the GPE from being
+> > > +		 * permanently enabled and clear its ACPI_GPE_AUTO_ENABLED flag.
+> > > +		 */
+> > > +		(void)acpi_ev_remove_gpe_reference(gpe_event_info);
+> > > +		gpe_event_info->flags &= ~ACPI_GPE_AUTO_ENABLED;
+> >
+> > The problem is if the GPE is shared, how can we know decrement reference
+> > once can sufficiently convert it into wakeup dispatcher owned GPE?
+> 
+> Even if it is shared, the current code will not enable it if it sees
+> ACPI_GPE_CAN_WAKE set.
+> 
+> We can change that logic, but that should be a separate patch IMO and
+> this is not related to the problem at hand.
 
-diff --git a/drivers/acpi/acpica/evxfgpe.c b/drivers/acpi/acpica/evxfgpe.c
-index 57718a3..d8be21d 100644
---- a/drivers/acpi/acpica/evxfgpe.c
-+++ b/drivers/acpi/acpica/evxfgpe.c
-@@ -97,6 +97,14 @@ acpi_status acpi_update_all_gpes(void)
- unlock_and_exit:
- 	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
- 
-+	/*
-+	 * Poll GPEs to handle already triggered events.
-+	 * It is not sufficient to trigger edge-triggered GPE with specific
-+	 * GPE chips, software need to poll once after enabling.
-+	 */
-+	if (acpi_gbl_all_gpes_initialized) {
-+		acpi_ev_gpe_detect(acpi_gbl_gpe_xrupt_list_head);
-+	}
- 	return_ACPI_STATUS(status);
- }
- 
-@@ -120,6 +128,7 @@ acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number)
- 	acpi_status status = AE_BAD_PARAMETER;
- 	struct acpi_gpe_event_info *gpe_event_info;
- 	acpi_cpu_flags flags;
-+	u8 poll_gpes = FALSE;
- 
- 	ACPI_FUNCTION_TRACE(acpi_enable_gpe);
- 
-@@ -135,12 +144,25 @@ acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number)
- 		if (ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) !=
- 		    ACPI_GPE_DISPATCH_NONE) {
- 			status = acpi_ev_add_gpe_reference(gpe_event_info);
-+			if (ACPI_SUCCESS(status) &&
-+			    gpe_event_info->runtime_count == 1) {
-+				poll_gpes = TRUE;
-+			}
- 		} else {
- 			status = AE_NO_HANDLER;
- 		}
- 	}
- 
- 	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
-+
-+	/*
-+	 * Poll GPEs to handle already triggered events.
-+	 * It is not sufficient to trigger edge-triggered GPE with specific
-+	 * GPE chips, software need to poll once after enabling.
-+	 */
-+	if (poll_gpes && acpi_gbl_all_gpes_initialized) {
-+		acpi_ev_gpe_detect(acpi_gbl_gpe_xrupt_list_head);
-+	}
- 	return_ACPI_STATUS(status);
- }
- ACPI_EXPORT_SYMBOL(acpi_enable_gpe)
--- 
-2.7.4
+OK, I see.
+We can enhance that on top of these fixes.
+
+Thanks,
+Lv
