@@ -1,67 +1,151 @@
-From: <jonathan.malihan@mywalsh.com>
-Subject: (unknown)
-Date: Fri, 11 Aug 2017 09:18:43 -0000
-Message-ID: <150244312308.17373.18217822257187723075@zaural.ru>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [RFC PATCH 4/4] ACPI: IORT: Add SMMUv3 MSI support
+Date: Fri, 11 Aug 2017 10:33:48 +0100
+Message-ID: <20170811093348.GC26039@red-moon>
+References: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
+ <1502276017-63108-5-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="27221324329.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ws174.zone31-163-134.zaural.ru ([31.163.134.174]:47529 "HELO
-        zaural.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751873AbdHKJSr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 11 Aug 2017 05:18:47 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from foss.arm.com ([217.140.101.70]:41910 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751618AbdHKJbq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 11 Aug 2017 05:31:46 -0400
+Content-Disposition: inline
+In-Reply-To: <1502276017-63108-5-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-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
+On Wed, Aug 09, 2017 at 06:53:37PM +0800, Hanjun Guo wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
+> 
+> Since we have a mapping index for SMMUv3 MSI, we can
+> directly use that index to get the map entry, then
+> retrieve dev ID and ITS parent to add SMMUv3 MSI
+> support.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/acpi/arm64/iort.c | 46 ++++++++++++++++++++++++++++++++++++----------
+>  1 file changed, 36 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 9439f02..ce03298 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -313,7 +313,8 @@ static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
+>  	/* Single mapping does not care for input id */
+>  	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+>  		if (type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+> -		    type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+> +		    type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
+> +		    type == ACPI_IORT_NODE_SMMU_V3) {
+>  			*rid_out = map->output_base;
+>  			return 0;
+>  		}
+> @@ -357,7 +358,8 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+>  
+>  	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+>  		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+> -		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+> +		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
+> +		    node->type == ACPI_IORT_NODE_SMMU_V3) {
+>  			*id_out = map->output_base;
+>  			return parent;
+>  		}
+> @@ -549,9 +551,21 @@ int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
+>  	if (!node)
+>  		return -ENODEV;
+>  
+> -	for (i = 0; i < node->mapping_count; i++) {
+> -		if (iort_node_map_platform_id(node, dev_id, IORT_MSI_TYPE, i))
+> +	if (node->type == ACPI_IORT_NODE_SMMU_V3) {
+> +		u32 index;
+> +
+> +		if (iort_get_smmu_v3_id_mapping_index(node, &index))
+> +			return -ENODEV;
+> +
+> +		if (iort_node_map_platform_id(node, dev_id, IORT_MSI_TYPE,
+> +		    index))
+>  			return 0;
+> +	} else {
+> +		for (i = 0; i < node->mapping_count; i++) {
+> +			if (iort_node_map_platform_id(node, dev_id,
+> +			    IORT_MSI_TYPE, i))
+> +				return 0;
+> +		}
+>  	}
+>  
+>  	return -ENODEV;
+> @@ -626,20 +640,30 @@ static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
+>  	struct acpi_iort_node *node, *msi_parent;
+>  	struct fwnode_handle *iort_fwnode;
+>  	struct acpi_iort_its_group *its;
+> -	int i;
+>  
+>  	/* find its associated iort node */
+> -	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> -			      iort_match_node_callback, dev);
+> +	node = iort_find_dev_node(dev);
+>  	if (!node)
+>  		return NULL;
+>  
+>  	/* then find its msi parent node */
+> -	for (i = 0; i < node->mapping_count; i++) {
+> +	if (node->type == ACPI_IORT_NODE_SMMU_V3) {
+> +		u32 index;
+> +
+> +		if (iort_get_smmu_v3_id_mapping_index(node, &index))
+> +			return NULL;
+> +
+>  		msi_parent = iort_node_map_platform_id(node, NULL,
+> +						       IORT_MSI_TYPE, index);
+> +	} else {
+> +		int i;
+> +
+> +		for (i = 0; i < node->mapping_count; i++) {
+> +			msi_parent = iort_node_map_platform_id(node, NULL,
+>  						       IORT_MSI_TYPE, i);
+> -		if (msi_parent)
+> -			break;
+> +			if (msi_parent)
+> +				break;
+> +		}
+>  	}
+>  
+>  	if (!msi_parent)
+> @@ -1233,6 +1257,8 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+>  	/* Configure DMA for the page table walker */
+>  	acpi_dma_configure(&pdev->dev, attr);
+>  
+> +	acpi_configure_pmsi_domain(&pdev->dev);
+
+I think this is just overkill. There are two separate things to solve
+here:
+
+1) Make single mappings valid for SMMUv3 (and PMCG); that's fair enough
+   and goes with the logic to skip the ITS DeviceID index for "normal"
+   mappings, I can live with that
+2) Find the MSI domain for an SMMUv3 (or any other IORT table node); I
+   do not think you need all this complexity to do it via
+   acpi_configure_pmsi_domain(), it can be done in a easier way with
+   an ad-hoc stub (it does not even have to be SMMUv3 specific)
+
+My worry is that we are peppering the generic IORT mapping code with
+node types specific kludges and it is becoming a mess.
+
+I can rework the patch to show you what I have in mind, please let
+me know.
+
+Thanks,
+Lorenzo
+
+> +
+>  	ret = platform_device_add(pdev);
+>  	if (ret)
+>  		goto dma_deconfigure;
+> -- 
+> 1.7.12.4
+> 
