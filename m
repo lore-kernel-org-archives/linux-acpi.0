@@ -1,293 +1,179 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v3] ACPI / Sleep: Check low power idle constraints for debug only
-Date: Fri, 11 Aug 2017 11:23:55 -0700
-Message-ID: <1502475835-54818-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: gengdongjiu <gengdj.1984@gmail.com>
+Subject: Re: [PATCH] acpi: apei: fix the wrongly parse generic error status block
+Date: Sat, 12 Aug 2017 07:41:48 +0800
+Message-ID: <CAMj-D2DqEafgnOCsRjm8fSkj_R7_HWPnBxEijhoUV_LnU7VY6Q@mail.gmail.com>
+References: <1502388412-20273-1-git-send-email-gengdongjiu@huawei.com>
+ <9ea70eed-f743-0c8b-2a70-27ce4c0d8705@codeaurora.org> <ddb2070d-60c5-a476-c003-25814d0cf863@huawei.com>
+ <1be489f7-c1c3-63dc-dc0d-af67e5fd03a1@huawei.com> <70ebfc99-0666-fa2b-8ed4-19e1f93194bd@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:57929 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752850AbdHKSX7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 11 Aug 2017 14:23:59 -0400
+Received: from mail-ua0-f194.google.com ([209.85.217.194]:33252 "EHLO
+        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751675AbdHKXlu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Aug 2017 19:41:50 -0400
+In-Reply-To: <70ebfc99-0666-fa2b-8ed4-19e1f93194bd@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-pm@vger.kernel.org, mario.limonciello@dell.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Cc: gengdongjiu <gengdongjiu@huawei.com>, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-For SoC to achieve its lowest power platform idle state a set of hardware
-preconditions must be met. These preconditions or constraints can be
-obtained by issuing a device specific method (_DSM) with function "1".
-Refer to the document provided in the link below.
+2017-08-11 21:19 GMT+08:00 Baicar, Tyler <tbaicar@codeaurora.org>:
+> I removed the apei_estatus_for_each_section because it was only being used
+> in this one spot even though several other parts of the code do the same
+> iteration (it is done several times in the CPER code). I made this iteration
+> match the CPER iterations because the CPER iterations are verifying that the
+> structures are all valid and lengths are correct. If those checks are being
+> done this way, it makes the most sense to mimic that iteration here when
+> calling into EDAC and triggering trace events.
 
-Here during initialization (from attach() callback of LPS0 device), invoke
-function 1 to get the device constraints. Each enabled constraint is
-stored in a table.
+I think the macro includes the verification for the structures and
+lengths correction, it it does not correct, it will breadk the loop.
+I do not see your modifcation does some special validation, it almost
+smilar with the macro does.
+in all the code there are three functions to do the iteration.
+ghes_do_proc/cper_estatus_print/cper_estatus_check
+the cper_estatus_check function is especial, because its  purpose is
+to validate CPER, so it will  check every length. but not all
+function's purpose is to check, for example cper_estatus_print, as
+shown below, so we can use this macro to clear the code. Now we can
+see there are two function use it, but in the future, if want to
+iterate CPER, we can use the macro if it does not want to do special
+thing.
 
-The devices in this table are used to check whether they were in required
-minimum state, while entering suspend. This check is done from platform
-freeze wake() callback, only when /sys/power/pm_debug_messages attribute
-is non zero.
+#define apei_estatus_for_each_section(estatus, section) \
+for (section = (struct acpi_hest_generic_data *)(estatus + 1); \
+(void *)section - (void *)(estatus + 1) < estatus->data_length; \
+------> here it will check whether length is valid, if not,  it will
+break the loop
+section = acpi_hest_get_next(section))
 
-If any constraint is not met and device is ACPI power managed then it
-prints the device name to kernel logs.
 
-Also if debug is enabled in acpi/sleep.c, the constraint table and state
-of each device on wake is dumped in kernel logs.
-
-Since pm_debug_messages_on setting is used as condition to check
-constraints outside kernel/power/main.c, pm_debug_messages_on is changed
-to a global variable.
-
-Link: http://www.uefi.org/sites/default/files/resources/Intel_ACPI_Low_Power_S0_Idle.pdf
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
-
-v3
-- Removed the patch 0001 for exporting pm_debug_messages_on via a function.
-As suggested by Rafael, made the pm_debug_messages_on a global variable instead.
-- Moved the constraint check outside if() block and valid for all calls to
-acpi_freeze_wakeup()
-- Dumping irrespective of return value of acpi_device_get_power().
-- Rebased to linux-next as of today
- 
-v2
-- Changes as suggested by Lukas Wunner.
-- Using pm_debug_messages_on attribute to prevent constraints check to
-save some cycles on wake.
-
- drivers/acpi/sleep.c    | 169 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/suspend.h |   2 +
- kernel/power/main.c     |   2 +-
- 3 files changed, 172 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 0a16435..df513e7 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -669,6 +669,7 @@ static const struct acpi_device_id lps0_device_ids[] = {
- 
- #define ACPI_LPS0_DSM_UUID	"c4eb40a0-6cd2-11e2-bcfd-0800200c9a66"
- 
-+#define ACPI_LPS0_GET_DEVICE_CONSTRAINTS	1
- #define ACPI_LPS0_SCREEN_OFF	3
- #define ACPI_LPS0_SCREEN_ON	4
- #define ACPI_LPS0_ENTRY		5
-@@ -680,6 +681,167 @@ static acpi_handle lps0_device_handle;
- static guid_t lps0_dsm_guid;
- static char lps0_dsm_func_mask;
- 
-+/* Device constraint entry structure */
-+struct lpi_device_info {
-+	char *name;
-+	int enabled;
-+	union acpi_object *package;
-+};
-+
-+/* Constraint package structure */
-+struct lpi_device_constraint {
-+	int uid;
-+	int min_dstate;
-+	int function_states;
-+};
-+
-+struct lpi_constraints {
-+	char *name;
-+	int min_dstate;
-+};
-+
-+static struct lpi_constraints *lpi_constraints_table;
-+static int lpi_constraints_table_size;
-+
-+static void lpi_device_get_constraints(void)
-+{
-+	union acpi_object *out_obj;
-+	int i;
-+
-+	out_obj = acpi_evaluate_dsm_typed(lps0_device_handle, &lps0_dsm_guid,
-+					  1, ACPI_LPS0_GET_DEVICE_CONSTRAINTS,
-+					  NULL, ACPI_TYPE_PACKAGE);
-+
-+	acpi_handle_debug(lps0_device_handle, "_DSM function 1 eval %s\n",
-+			  out_obj ? "successful" : "failed");
-+
-+	if (!out_obj)
-+		return;
-+
-+	lpi_constraints_table = kcalloc(out_obj->package.count,
-+					sizeof(*lpi_constraints_table),
-+					GFP_KERNEL);
-+	if (!lpi_constraints_table)
-+		goto free_acpi_buffer;
-+
-+	pr_debug("LPI: constraints dump begin\n");
-+	for (i = 0; i < out_obj->package.count; i++) {
-+		union acpi_object *package = &out_obj->package.elements[i];
-+		struct lpi_device_info info = { };
-+		int package_count = 0, j;
-+
-+		if (!package)
-+			continue;
-+
-+		for (j = 0; j < package->package.count; ++j) {
-+			union acpi_object *element =
-+					&(package->package.elements[j]);
-+
-+			switch (element->type) {
-+			case ACPI_TYPE_INTEGER:
-+				info.enabled = element->integer.value;
-+				break;
-+			case ACPI_TYPE_STRING:
-+				info.name = element->string.pointer;
-+				break;
-+			case ACPI_TYPE_PACKAGE:
-+				package_count = element->package.count;
-+				info.package = element->package.elements;
-+				break;
-+			}
-+		}
-+
-+		if (!info.enabled || !info.package || !info.name)
-+			continue;
-+
-+		lpi_constraints_table[lpi_constraints_table_size].name =
-+						kstrdup(info.name, GFP_KERNEL);
-+		if (!lpi_constraints_table[lpi_constraints_table_size].name)
-+			goto free_constraints;
-+
-+		pr_debug("index:%d Name:%s\n", i, info.name);
-+
-+		for (j = 0; j < package_count; ++j) {
-+			union acpi_object *info_obj = &info.package[j];
-+			union acpi_object *cnstr_pkg;
-+			union acpi_object *obj;
-+			struct lpi_device_constraint dev_info;
-+
-+			switch (info_obj->type) {
-+			case ACPI_TYPE_INTEGER:
-+				/* version */
-+				break;
-+			case ACPI_TYPE_PACKAGE:
-+				if (info_obj->package.count < 2)
-+					break;
-+
-+				cnstr_pkg = info_obj->package.elements;
-+				obj = &cnstr_pkg[0];
-+				dev_info.uid = obj->integer.value;
-+				obj = &cnstr_pkg[1];
-+				dev_info.min_dstate = obj->integer.value;
-+				pr_debug("uid %d min_dstate %d\n",
-+					 dev_info.uid,
-+					 dev_info.min_dstate);
-+				lpi_constraints_table[
-+					lpi_constraints_table_size].min_dstate =
-+						dev_info.min_dstate;
-+				break;
-+			}
-+		}
-+
-+		lpi_constraints_table_size++;
-+	}
-+
-+	pr_debug("LPI: constraints dump end\n");
-+free_acpi_buffer:
-+	ACPI_FREE(out_obj);
-+	return;
-+
-+free_constraints:
-+	ACPI_FREE(out_obj);
-+	for (i = 0; i < lpi_constraints_table_size; ++i)
-+		kfree(lpi_constraints_table[i].name);
-+	kfree(lpi_constraints_table);
-+	lpi_constraints_table_size = 0;
-+}
-+
-+static void lpi_check_constraints(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < lpi_constraints_table_size; ++i) {
-+		acpi_handle handle;
-+		struct acpi_device *adev;
-+		int state, ret;
-+
-+		if (ACPI_FAILURE(acpi_get_handle(NULL,
-+						 lpi_constraints_table[i].name,
-+						 &handle)))
-+			continue;
-+
-+		if (acpi_bus_get_device(handle, &adev))
-+			continue;
-+
-+		ret = acpi_device_get_power(adev, &state);
-+		if (ret)
-+			pr_debug("LPI: %s required min power state %d, current power state %d, real power state [ERROR]\n",
-+				 lpi_constraints_table[i].name,
-+				 lpi_constraints_table[i].min_dstate,
-+				 adev->power.state);
-+		else
-+			pr_debug("LPI: %s required min power state %d, current power state %d, real power state %d\n",
-+				 lpi_constraints_table[i].name,
-+				 lpi_constraints_table[i].min_dstate,
-+				 adev->power.state, state);
-+
-+		if (adev->flags.power_manageable && adev->power.state <
-+					lpi_constraints_table[i].min_dstate)
-+			pr_info("LPI: Constraint [%s] not matched\n",
-+				 lpi_constraints_table[i].name);
-+	}
-+}
-+
- static void acpi_sleep_run_lps0_dsm(unsigned int func)
- {
- 	union acpi_object *out_obj;
-@@ -729,6 +891,9 @@ static int lps0_device_attach(struct acpi_device *adev,
- 				  "_DSM function 0 evaluation failed\n");
- 	}
- 	ACPI_FREE(out_obj);
-+
-+	lpi_device_get_constraints();
-+
- 	return 0;
+Original code:
+void cper_estatus_print(const char *pfx,
+   const struct acpi_hest_generic_status *estatus)
+{
+ struct acpi_hest_generic_data *gdata;
+ unsigned int data_len;
+ int sec_no = 0;
+ char newpfx[64];
+ __u16 severity;
+ severity = estatus->error_severity;
+ if (severity == CPER_SEV_CORRECTED)
+  printk("%s%s\n", pfx,
+         "It has been corrected by h/w "
+         "and requires no further action");
+ printk("%s""event severity: %s\n", pfx, cper_severity_str(severity));
+ data_len = estatus->data_length;
+ gdata = (struct acpi_hest_generic_data *)(estatus + 1);
+ snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
+ while (data_len >= acpi_hest_get_size(gdata)) {
+  cper_estatus_print_section(newpfx, gdata, sec_no);
+  data_len -= acpi_hest_get_record_size(gdata);
+  gdata = acpi_hest_get_next(gdata);
+  sec_no++;
  }
- 
-@@ -766,6 +931,10 @@ static int acpi_freeze_prepare(void)
- 
- static void acpi_freeze_wake(void)
- {
-+
-+	if (pm_debug_messages_on)
-+		lpi_check_constraints();
-+
- 	/*
- 	 * If IRQD_WAKEUP_ARMED is not set for the SCI at this point, it means
- 	 * that the SCI has triggered while suspended, so cancel the wakeup in
-diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 8c3b0b1..126adcb 100644
---- a/include/linux/suspend.h
-+++ b/include/linux/suspend.h
-@@ -495,9 +495,11 @@ static inline void unlock_system_sleep(void) {}
- 
- #ifdef CONFIG_PM_SLEEP_DEBUG
- extern bool pm_print_times_enabled;
-+extern bool pm_debug_messages_on;
- extern __printf(2, 3) void __pm_pr_dbg(bool defer, const char *fmt, ...);
- #else
- #define pm_print_times_enabled	(false)
-+#define pm_debug_messages_on	(false)
- 
- #include <linux/printk.h>
- 
-diff --git a/kernel/power/main.c b/kernel/power/main.c
-index 3074ea4..3a2ca90 100644
---- a/kernel/power/main.c
-+++ b/kernel/power/main.c
-@@ -361,7 +361,7 @@ static ssize_t pm_wakeup_irq_show(struct kobject *kobj,
- 
- power_attr_ro(pm_wakeup_irq);
- 
--static bool pm_debug_messages_on __read_mostly;
-+bool pm_debug_messages_on __read_mostly;
- 
- static ssize_t pm_debug_messages_show(struct kobject *kobj,
- 				      struct kobj_attribute *attr, char *buf)
--- 
-2.7.5
+}
 
+Can change to:
+void cper_estatus_print(const char *pfx,
+   const struct acpi_hest_generic_status *estatus)
+{
+ struct acpi_hest_generic_data *gdata;
+ int sec_no = 0;
+ char newpfx[64];
+ __u16 severity;
+ severity = estatus->error_severity;
+ if (severity == CPER_SEV_CORRECTED)
+  printk("%s%s\n", pfx,
+         "It has been corrected by h/w "
+         "and requires no further action");
+ printk("%s""event severity: %s\n", pfx, cper_severity_str(severity));
+ snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
+ apei_estatus_for_each_section {
+  cper_estatus_print_section(newpfx, gdata, sec_no);
+  sec_no++;
+ }
+}
+
+
+
+>
+> Thanks,
+>
+> Tyler
+>
+>
+> On 8/10/2017 3:37 PM, gengdongjiu wrote:
+>>
+>> may be directly remove the macro apei_estatus_for_each_section is not
+>> better, if other place code also
+>> needs to iterate through the GHES estatus blocks, it will be repeated
+>> written again.
+>>
+>>
+>> On 2017/8/11 5:31, gengdongjiu wrote:
+>>>
+>>> Hello,
+>>>
+>>>     sorry, I do not see that. Just know I have reviewed your
+>>> modification, may be my change can be simpleness and reserve the macro of
+>>> apei_estatus_for_each_section
+>>> can be used by other place to avoid duplicated code, such as prints the
+>>> estatus blocks.
+>>>
+>>> On 2017/8/11 1:48, Baicar, Tyler wrote:
+>>>>
+>>>> Hello,
+>>>>
+>>>> I have already posted a patch fixing this. Please see:
+>>>>
+>>>> https://lkml.org/lkml/2017/8/3/824
+>>>>
+>>>> This makes the loop identical to the CPER code which prints the estatus
+>>>> blocks to the kernel logs.
+>>>>
+>>>> Thanks,
+>>>>
+>>>> Tyler
+>>>>
+>>>>
+>>>> On 8/10/2017 12:06 PM, Dongjiu Geng wrote:
+>>>>>
+>>>>> The revision 0x300 generic error data entry is different with the old
+>>>>> version. when ghes_do_proc traverses to get the data entry, it does not
+>>>>> consider this difference. so when error status block has revision 0x300
+>>>>> data entry, it will have issue.
+>>>>>
+>>>>> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+>>>>> ---
+>>>>>    drivers/acpi/apei/apei-internal.h | 4 ++--
+>>>>>    1 file changed, 2 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/acpi/apei/apei-internal.h
+>>>>> b/drivers/acpi/apei/apei-internal.h
+>>>>> index 6e9f14c0a71b..6491f1c4a96e 100644
+>>>>> --- a/drivers/acpi/apei/apei-internal.h
+>>>>> +++ b/drivers/acpi/apei/apei-internal.h
+>>>>> @@ -122,8 +122,8 @@ struct dentry *apei_get_debugfs_dir(void);
+>>>>>      #define apei_estatus_for_each_section(estatus, section)
+>>>>> \
+>>>>>        for (section = (struct acpi_hest_generic_data *)(estatus + 1);
+>>>>> \
+>>>>> -         (void *)section - (void *)estatus < estatus->data_length;
+>>>>> \
+>>>>> -         section = (void *)(section+1) + section->error_data_length)
+>>>>> +         (void *)section - (void *)(estatus + 1) <
+>>>>> estatus->data_length; \
+>>>>> +         section = acpi_hest_get_next(section))
+>>>>>      static inline u32 cper_estatus_len(struct acpi_hest_generic_status
+>>>>> *estatus)
+>>>>>    {
+>
+>
+> --
+> Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
+> Technologies, Inc.
+> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+> a Linux Foundation Collaborative Project.
+>
