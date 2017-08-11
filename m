@@ -1,37 +1,67 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
-Date: Fri, 11 Aug 2017 11:04:14 +0200
-Message-ID: <20170811090414.GB9432@nazgul.tnic>
-References: <20170803215753.30553-1-toshi.kani@hpe.com>
- <20170803215753.30553-5-toshi.kani@hpe.com>
- <20170804040525.GE12082@nazgul.tnic>
- <1501879964.2042.117.camel@hpe.com>
- <20170805051615.GC23214@nazgul.tnic>
- <1502128177.2042.131.camel@hpe.com>
+From: <jonathan.malihan@mywalsh.com>
+Subject: (unknown)
+Date: Fri, 11 Aug 2017 09:18:43 -0000
+Message-ID: <150244312308.17373.18217822257187723075@zaural.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1502128177.2042.131.camel@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Content-Type: application/zip; name="27221324329.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ws174.zone31-163-134.zaural.ru ([31.163.134.174]:47529 "HELO
+        zaural.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751873AbdHKJSr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 11 Aug 2017 05:18:47 -0400
+Content-Disposition: attachment
+Subject: 
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Mon, Aug 07, 2017 at 05:59:15PM +0000, Kani, Toshimitsu wrote:
-> I think we should keep the current scheme, which registers an mci for
-
-No we shouldn't.
-
-> each GHES entry.  ghes_edac_report_mem_error() expects that error-
-> reporting is serialized per a GHES entry.  Sharing a single mci among
-> all GHES entries / error interfaces might lead to a race condition.
-
-See how I solved it in my patchset and feel free to reuse it.
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+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
