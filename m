@@ -1,91 +1,152 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH] acpi: apei: fix the wrongly parse generic error status
- block
-Date: Fri, 11 Aug 2017 07:19:58 -0600
-Message-ID: <70ebfc99-0666-fa2b-8ed4-19e1f93194bd@codeaurora.org>
-References: <1502388412-20273-1-git-send-email-gengdongjiu@huawei.com>
- <9ea70eed-f743-0c8b-2a70-27ce4c0d8705@codeaurora.org>
- <ddb2070d-60c5-a476-c003-25814d0cf863@huawei.com>
- <1be489f7-c1c3-63dc-dc0d-af67e5fd03a1@huawei.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC PATCH 4/4] ACPI: IORT: Add SMMUv3 MSI support
+Date: Fri, 11 Aug 2017 21:56:31 +0800
+Message-ID: <CAGHbJ3AgEvbpsPdeqJ+bFWa5hBMqxBX6g1eC4HiUvHarJf8H+g@mail.gmail.com>
+References: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
+ <1502276017-63108-5-git-send-email-guohanjun@huawei.com> <20170811093348.GC26039@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:43332 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752963AbdHKNUS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Aug 2017 09:20:18 -0400
-In-Reply-To: <1be489f7-c1c3-63dc-dc0d-af67e5fd03a1@huawei.com>
-Content-Language: en-US
+Received: from mail-qt0-f179.google.com ([209.85.216.179]:36192 "EHLO
+        mail-qt0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752723AbdHKN4d (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Aug 2017 09:56:33 -0400
+Received: by mail-qt0-f179.google.com with SMTP id v29so21327176qtv.3
+        for <linux-acpi@vger.kernel.org>; Fri, 11 Aug 2017 06:56:32 -0700 (PDT)
+In-Reply-To: <20170811093348.GC26039@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: gengdongjiu <gengdongjiu@huawei.com>, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>
 
-I removed the apei_estatus_for_each_section because it was only being 
-used in this one spot even though several other parts of the code do the 
-same iteration (it is done several times in the CPER code). I made this 
-iteration match the CPER iterations because the CPER iterations are 
-verifying that the structures are all valid and lengths are correct. If 
-those checks are being done this way, it makes the most sense to mimic 
-that iteration here when calling into EDAC and triggering trace events.
+Hi Lorenzo,
 
-Thanks,
-
-Tyler
-
-
-On 8/10/2017 3:37 PM, gengdongjiu wrote:
-> may be directly remove the macro apei_estatus_for_each_section is not better, if other place code also
-> needs to iterate through the GHES estatus blocks, it will be repeated written again.
->
->
-> On 2017/8/11 5:31, gengdongjiu wrote:
->> Hello,
+On 11 August 2017 at 17:33, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com> wrote:
+> On Wed, Aug 09, 2017 at 06:53:37PM +0800, Hanjun Guo wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
 >>
->>     sorry, I do not see that. Just know I have reviewed your modification, may be my change can be simpleness and reserve the macro of apei_estatus_for_each_section
->> can be used by other place to avoid duplicated code, such as prints the estatus blocks.
+>> Since we have a mapping index for SMMUv3 MSI, we can
+>> directly use that index to get the map entry, then
+>> retrieve dev ID and ITS parent to add SMMUv3 MSI
+>> support.
 >>
->> On 2017/8/11 1:48, Baicar, Tyler wrote:
->>> Hello,
->>>
->>> I have already posted a patch fixing this. Please see:
->>>
->>> https://lkml.org/lkml/2017/8/3/824
->>>
->>> This makes the loop identical to the CPER code which prints the estatus blocks to the kernel logs.
->>>
->>> Thanks,
->>>
->>> Tyler
->>>
->>>
->>> On 8/10/2017 12:06 PM, Dongjiu Geng wrote:
->>>> The revision 0x300 generic error data entry is different with the old
->>>> version. when ghes_do_proc traverses to get the data entry, it does not
->>>> consider this difference. so when error status block has revision 0x300
->>>> data entry, it will have issue.
->>>>
->>>> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
->>>> ---
->>>>    drivers/acpi/apei/apei-internal.h | 4 ++--
->>>>    1 file changed, 2 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
->>>> index 6e9f14c0a71b..6491f1c4a96e 100644
->>>> --- a/drivers/acpi/apei/apei-internal.h
->>>> +++ b/drivers/acpi/apei/apei-internal.h
->>>> @@ -122,8 +122,8 @@ struct dentry *apei_get_debugfs_dir(void);
->>>>      #define apei_estatus_for_each_section(estatus, section)            \
->>>>        for (section = (struct acpi_hest_generic_data *)(estatus + 1);    \
->>>> -         (void *)section - (void *)estatus < estatus->data_length;    \
->>>> -         section = (void *)(section+1) + section->error_data_length)
->>>> +         (void *)section - (void *)(estatus + 1) < estatus->data_length; \
->>>> +         section = acpi_hest_get_next(section))
->>>>      static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
->>>>    {
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>  drivers/acpi/arm64/iort.c | 46 ++++++++++++++++++++++++++++++++++++----------
+>>  1 file changed, 36 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>> index 9439f02..ce03298 100644
+>> --- a/drivers/acpi/arm64/iort.c
+>> +++ b/drivers/acpi/arm64/iort.c
+>> @@ -313,7 +313,8 @@ static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
+>>       /* Single mapping does not care for input id */
+>>       if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+>>               if (type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+>> -                 type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+>> +                 type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
+>> +                 type == ACPI_IORT_NODE_SMMU_V3) {
+>>                       *rid_out = map->output_base;
+>>                       return 0;
+>>               }
+>> @@ -357,7 +358,8 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+>>
+>>       if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+>>               if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+>> -                 node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+>> +                 node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
+>> +                 node->type == ACPI_IORT_NODE_SMMU_V3) {
+>>                       *id_out = map->output_base;
+>>                       return parent;
+>>               }
+>> @@ -549,9 +551,21 @@ int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
+>>       if (!node)
+>>               return -ENODEV;
+>>
+>> -     for (i = 0; i < node->mapping_count; i++) {
+>> -             if (iort_node_map_platform_id(node, dev_id, IORT_MSI_TYPE, i))
+>> +     if (node->type == ACPI_IORT_NODE_SMMU_V3) {
+>> +             u32 index;
+>> +
+>> +             if (iort_get_smmu_v3_id_mapping_index(node, &index))
+>> +                     return -ENODEV;
+>> +
+>> +             if (iort_node_map_platform_id(node, dev_id, IORT_MSI_TYPE,
+>> +                 index))
+>>                       return 0;
+>> +     } else {
+>> +             for (i = 0; i < node->mapping_count; i++) {
+>> +                     if (iort_node_map_platform_id(node, dev_id,
+>> +                         IORT_MSI_TYPE, i))
+>> +                             return 0;
+>> +             }
+>>       }
+>>
+>>       return -ENODEV;
+>> @@ -626,20 +640,30 @@ static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
+>>       struct acpi_iort_node *node, *msi_parent;
+>>       struct fwnode_handle *iort_fwnode;
+>>       struct acpi_iort_its_group *its;
+>> -     int i;
+>>
+>>       /* find its associated iort node */
+>> -     node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+>> -                           iort_match_node_callback, dev);
+>> +     node = iort_find_dev_node(dev);
+>>       if (!node)
+>>               return NULL;
+>>
+>>       /* then find its msi parent node */
+>> -     for (i = 0; i < node->mapping_count; i++) {
+>> +     if (node->type == ACPI_IORT_NODE_SMMU_V3) {
+>> +             u32 index;
+>> +
+>> +             if (iort_get_smmu_v3_id_mapping_index(node, &index))
+>> +                     return NULL;
+>> +
+>>               msi_parent = iort_node_map_platform_id(node, NULL,
+>> +                                                    IORT_MSI_TYPE, index);
+>> +     } else {
+>> +             int i;
+>> +
+>> +             for (i = 0; i < node->mapping_count; i++) {
+>> +                     msi_parent = iort_node_map_platform_id(node, NULL,
+>>                                                      IORT_MSI_TYPE, i);
+>> -             if (msi_parent)
+>> -                     break;
+>> +                     if (msi_parent)
+>> +                             break;
+>> +             }
+>>       }
+>>
+>>       if (!msi_parent)
+>> @@ -1233,6 +1257,8 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+>>       /* Configure DMA for the page table walker */
+>>       acpi_dma_configure(&pdev->dev, attr);
+>>
+>> +     acpi_configure_pmsi_domain(&pdev->dev);
+>
+> I think this is just overkill. There are two separate things to solve
+> here:
+>
+> 1) Make single mappings valid for SMMUv3 (and PMCG); that's fair enough
+>    and goes with the logic to skip the ITS DeviceID index for "normal"
+>    mappings, I can live with that
+> 2) Find the MSI domain for an SMMUv3 (or any other IORT table node); I
+>    do not think you need all this complexity to do it via
+>    acpi_configure_pmsi_domain(), it can be done in a easier way with
+>    an ad-hoc stub (it does not even have to be SMMUv3 specific)
+>
+> My worry is that we are peppering the generic IORT mapping code with
+> node types specific kludges and it is becoming a mess.
 
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Agreed.
 
+>
+> I can rework the patch to show you what I have in mind, please let
+> me know.
+
+Please, thank you very much for doing so.
+
+Thanks
+Hanjun
