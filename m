@@ -1,102 +1,76 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
-Date: Fri, 11 Aug 2017 14:23:00 +0200
-Message-ID: <3677056.OS19FbOdkF@aspire.rjw.lan>
-References: <12346760.yAFCnkEgf6@aspire.rjw.lan> <5185778.X36DhrMnGV@aspire.rjw.lan> <1AE640813FDE7649BE1B193DEA596E886CF09085@SHSMSX101.ccr.corp.intel.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH] acpi: apei: fix GHES estatus iteration
+Date: Fri, 11 Aug 2017 07:17:48 -0600
+Message-ID: <fe154c57-1316-1223-6bee-1535924c3d94@codeaurora.org>
+References: <1501795945-5331-1-git-send-email-tbaicar@codeaurora.org>
+ <20170808163219.GB2163@arm.com> <1971058.u9kdacGNiq@aspire.rjw.lan>
+ <5591b641-6eb0-0cb6-e74d-7e55cad5ee33@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CF09085@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:35678 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752986AbdHKNRv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Aug 2017 09:17:51 -0400
+In-Reply-To: <5591b641-6eb0-0cb6-e74d-7e55cad5ee33@huawei.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: gengdongjiu <gengdongjiu@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>
+Cc: lenb@kernel.org, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
 
-On Friday, August 11, 2017 7:40:56 AM CEST Zheng, Lv wrote:
-> Hi, Rafael
-> 
-> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
-> > 
-> > On Thursday, August 10, 2017 3:48:58 AM CEST Zheng, Lv wrote:
-> > > Hi, Rafael
-> > >
-> > > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > > > Subject: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
-> > > >
-> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > >
-> > > > In some cases GPEs are already active when they are enabled by
-> > > > acpi_ev_initialize_gpe_block() and whatever happens next may depend
-> > > > on the result of handling the events signaled by them, so the
-> > > > events should not be discarded (which is what happens currently) and
-> > > > they should be handled as soon as reasonably possible.
-> > > >
-> > > > For this reason, modify acpi_ev_initialize_gpe_block() to
-> > > > dispatch GPEs with the status flag set in-band right after
-> > > > enabling them.
-> > >
-> > > In fact, what we need seems to be invoking acpi_ev_gpe_dispatch()
-> > > right after enabling an GPE. So there are 2 conditions related:
-> > > 1. GPE is enabled for the first time.
-> > > 2. GPE is initialized.
-> > >
-> > > And we need to make sure that before acpi_update_all_gpes() is invoked,
-> > > all GPE EN bits are actually disabled.
-> > 
-> > But we don't do it today, do we?
-> 
-> We don't do that.
-> 
-> > 
-> > And still calling _dispatch() should not be incorrect even if the GPE
-> > has been enabled already at this point.  Worst case it just will
-> > queue up the execution of _Lxx/_Exx which may or may not do anything
-> > useful.
-> > 
-> > And BTW this is all done under acpi_gbl_gpe_lock so acpi_ev_gpe_detect()
-> > will block on it if run concurrently and we've checked the status, so
-> > we know that the GPE *should* be dispatched, so I sort of fail to see
-> > the problem.
-> 
-> There is another problem related:
-> ACPICA clears GPEs before enabling it.
-> This is proven to be wrong, and we have to fix it:
-> https://bugzilla.kernel.org/show_bug.cgi?id=196249
-> 
-> without fixing this issue, in this solution, we surely need to save the
-> GPE STS bit before incrementing GPE reference count, and poll it according
-> to the saved STS bit. Because if we poll it after enabling, STS bit will
-> be wrongly cleared.
+On 8/10/2017 4:04 PM, gengdongjiu wrote:
+>
+> On 2017/8/9 8:52, Rafael J. Wysocki wrote:
+>> On Tuesday, August 8, 2017 6:32:20 PM CEST Will Deacon wrote:
+>>> On Thu, Aug 03, 2017 at 03:32:25PM -0600, Tyler Baicar wrote:
+>>>> Currently iterating through the GHES estatus blocks does not
+>>>> take into account the new generic data v3 structure size. This
+>>>> can result in garbage non-standard trace events to be triggered
+>>>> since the loop will not properly iterate through the estatus
+>>>> blocks and not properly terminate.
+>>>>
+>>>> Update the GHES estatus iteration to properly increment through
+>>>> the estatus blocks similar to how the CPER estatus printing
+>>>> iterates through them.
+>>>>
+>>>> Fixes: bbcc2e7b642e ("ras: acpi/apei: cper: add support for generic data v3 structure")
+> I do not think it has relationship with this "bbcc2e7b642e", the root cause is that it
+> does not consider the acpi_hest_generic_data_v300, this code exists long long time ago.
 
-I'm not sure if I understand you correctly, but why would we poll it?
+bbcc2e7b642e ("ras: acpi/apei: cper: add support for generic data v3 structure") is the change
+that introduced the generic data v300 structure and this patch does fix the issue with this
+iteration not taking into account the size difference of the v300 structure.
 
-In the $subject patch the status is checked and then
-acpi_ev_add_gpe_reference() is called to add a reference to the GPE.
+>
+> so please also review this patch:
+> https://lkml.org/lkml/2017/8/10/747
+>
+> previously I do not see Tyler's this modification, just know see it.
+>
+>
+>>>> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+>>>> Tested-by: Austin Christ <austinwc@codeaurora.org>
+>>>> ---
+>>>>   drivers/acpi/apei/apei-internal.h | 5 -----
+>>>>   drivers/acpi/apei/ghes.c          | 8 +++++++-
+>>>>   2 files changed, 7 insertions(+), 6 deletions(-)
+>>> Whilst much of the initial code here went through the arm64 tree in the
+>>> previous merge window, I'm assuming that Boris will take this fix via his
+>>> tree (likewise for "[PATCH V2] acpi: apei: clear error status before
+>>> acknowledging the error").
+>> Actually I will if Boris ACKs these.
+>>
+>> Thanks,
+>> Rafael
+>>
+>>
+>> .
+>>
 
-If this is the first reference (which will be the case in the majority
-of cases), acpi_ev_enable_gpe() will be called and that will clear the
-status.
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
 
-Then, acpi_ev_gpe_dispatch() is called if the status was set and that
-itself doesn't check the status.  It disables the GPE upfront (so the
-status doesn't matter from now on until the GPE is enabled again) and
-clears the status unconditionally if the GPE is edge-triggered.  This
-means that for edge-triggered GPEs the clearing of the status by
-acpi_ev_enable_gpe() doesn't matter here.
-
-For level-triggered GPEs the status is not cleared by acpi_ev_gpe_dispatch()
-itself, but _Lxx is executed (again, without checking the status) and
-finally the status is cleared by acpi_ev_finish_gpe() anyway, so we
-end up with cleared status no matter what (and that before re-enabling
-the GPE).  End even if _Lxx itself checked the status (but honestly why
-would it?), then this is a level-triggered GPE, so it will re-trigger
-anyway if not handled this time.
-
-So it looks like the fact that acpi_ev_enable_gpe() clears the status before
-enabling the GPE doesn't matter for this patch, although it may matter in
-general, but that is a different (and somewhat related) issue.
-
-Thanks,
-Rafael
