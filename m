@@ -1,70 +1,143 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH v2 2/2] ACPI / Sleep: Check low power idle constraints for
- debug only
-Date: Fri, 11 Aug 2017 14:43:25 +0000
-Message-ID: <e14a52ba9bce486c8b4dd6811a0e0138@ausx13mpc124.AMER.DELL.COM>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH v2 2/2] ACPI / Sleep: Check low power idle constraints
+ for debug only
+Date: Fri, 11 Aug 2017 09:18:50 -0700
+Message-ID: <1502468330.20268.26.camel@linux.intel.com>
 References: <1502232075-23832-1-git-send-email-srinivas.pandruvada@linux.intel.com>
          <1502232075-23832-3-git-send-email-srinivas.pandruvada@linux.intel.com>
          <146e121b5db84fb8a8aa692cee01cb7b@ausx13mpc120.AMER.DELL.COM>
- <1502405652.20268.20.camel@linux.intel.com>
+         <1502405652.20268.20.camel@linux.intel.com>
+         <e14a52ba9bce486c8b4dd6811a0e0138@ausx13mpc124.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1502405652.20268.20.camel@linux.intel.com>
-Content-Language: en-US
+In-Reply-To: <e14a52ba9bce486c8b4dd6811a0e0138@ausx13mpc124.AMER.DELL.COM>
 Sender: linux-pm-owner@vger.kernel.org
-To: srinivas.pandruvada@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org
+To: Mario.Limonciello@dell.com, rjw@rjwysocki.net, lenb@kernel.org
 Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lukas@wunner.de
 List-Id: linux-acpi@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBTcmluaXZhcyBQYW5kcnV2YWRh
-IFttYWlsdG86c3Jpbml2YXMucGFuZHJ1dmFkYUBsaW51eC5pbnRlbC5jb21dDQo+IFNlbnQ6IFRo
-dXJzZGF5LCBBdWd1c3QgMTAsIDIwMTcgNTo1NCBQTQ0KPiBUbzogTGltb25jaWVsbG8sIE1hcmlv
-IDxNYXJpb19MaW1vbmNpZWxsb0BEZWxsLmNvbT47IHJqd0Byand5c29ja2kubmV0Ow0KPiBsZW5i
-QGtlcm5lbC5vcmcNCj4gQ2M6IGxpbnV4LXBtQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVs
-QHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnOyBsdWthc0B3
-dW5uZXIuZGUNCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MiAyLzJdIEFDUEkgLyBTbGVlcDogQ2hl
-Y2sgbG93IHBvd2VyIGlkbGUgY29uc3RyYWludHMgZm9yDQo+IGRlYnVnIG9ubHkNCj4gDQo+IE9u
-IFRodSwgMjAxNy0wOC0xMCBhdCAyMjowNyArMDAwMCwgTWFyaW8uTGltb25jaWVsbG9AZGVsbC5j
-b20gd3JvdGU6DQo+ID4NCj4gPiA+DQo+ID4gPg0KPiBbLi4uXQ0KPiANCj4gPiA+ICsNCj4gPiA+
-ICsJCXJldCA9IGFjcGlfZGV2aWNlX2dldF9wb3dlcihhZGV2LCAmc3RhdGUpOw0KPiA+ID4gKwkJ
-aWYgKCFyZXQpDQo+ID4gPiArCQkJcHJfZGVidWcoIkxQSTogJXMgcmVxdWlyZWQgbWluIHBvd2Vy
-IHN0YXRlDQo+ID4gPiAlZCwgY3VycmVudA0KPiA+ID4gcG93ZXIgc3RhdGUgJWQsIHJlYWwgcG93
-ZXIgc3RhdGUgJWRcbiIsDQo+ID4gPiArCQkJCcKgbHBpX2NvbnN0cmFpbnRzX3RhYmxlW2ldLm5h
-bWUsDQo+ID4gPiArCQkJCcKgbHBpX2NvbnN0cmFpbnRzX3RhYmxlW2ldLm1pbl9kc3RhDQo+ID4g
-PiB0ZSwNCj4gPiA+ICsJCQkJwqBhZGV2LT5wb3dlci5zdGF0ZSwgc3RhdGUpOw0KPiA+IElzbid0
-IHRoaXMgc3VwZXJmbHVvdXMgdG8gYmUgc2hvd2luZyB0aGUgc3RhdGUgcmV0dXJuZWQgZnJvbQ0K
-PiA+IGFjcGlfZGV2aWNlX2dldF9wb3dlciBhbmQNCj4gPiBhbHNvIHByb2JpbmcgZGlyZWN0bHkg
-YXQgdGhlIHN0YXRlPyBZb3UgY2FuJ3QganVzdCByZWx5IG9uIHRoZQ0KPiA+IGluZm9ybWF0aW9u
-IHlvdSBnb3QNCj4gPiBiYWNrIGZyb20gYXBjaV9kZXZpY2VfZ2V0X3Bvd2VyPw0KPiBUaGV5IGNh
-biBiZSBkaWZmZXJlbnQgYXMgb25lIGlzIHJlYWwgcG93ZXIgc3RhdGUgYW5kIHRoZSBvdGhlciBp
-cyB3aGF0DQo+IHdhcyBzZXQuDQo+IEZvciBleGFtcGxlIG9uIERlbGwgOTM2NSBpdCBzaG93cw0K
-PiANCj4gWyAxOTI0LjM5MzY1M10gTFBJOiBcX1NCLlBDSTAuWEhDIHJlcXVpcmVkIG1pbiBwb3dl
-ciBzdGF0ZSAzLCBjdXJyZW50DQo+IHBvd2VyIHN0YXRlIDMsIHJlYWwgcG93ZXIgc3RhdGUgMjU1
-DQo+IA0KDQpJc24ndCAyNTUgQUNQSV9TVEFURV9VTktOT1dOPyAgVGhhdCBtYWtlcyBpdCBzZWVt
-IGxpa2UgaXQNCmlzIGEgbG9naWMgcHJvYmxlbSBpbiBhY3BpX2RldmljZV9nZXRfcG93ZXIgKG9y
-IHNvbWV3aGVyZSBkb3duIHRoZSBjaGFpbikNCmRvZXNuJ3QgaXQ/DQoNCj4gPg0KPiA+ID4NCj4g
-PiA+ICsNCj4gPiA+ICsJCWlmIChhZGV2LT5mbGFncy5wb3dlcl9tYW5hZ2VhYmxlICYmIGFkZXYt
-DQo+ID4gPiA+cG93ZXIuc3RhdGUgPA0KPiA+ID4gKwkJCQkJbHBpX2NvbnN0cmFpbnRzX3RhYmxl
-W2ldLm0NCj4gPiA+IGluX2RzdGF0ZSkNCj4gPiA+ICsJCQlwcl9pbmZvKCJMUEk6IENvbnN0cmFp
-bnQgWyVzXSBub3QNCj4gPiA+IG1hdGNoZWRcbiIsDQo+ID4gPiArCQkJCcKgbHBpX2NvbnN0cmFp
-bnRzX3RhYmxlW2ldLm5hbWUpOw0KPiA+IFNpbWlsYXJseSBoZXJlLCBjYW4ndCB5b3UganVzdCBj
-b21wYXJlIGFnYWluc3QgJnN0YXRlIGluc3RlYWQ/DQo+ID4NCj4gVGhlIHByb2JsZW0gdGhlbiB0
-aGUgY2hlY2sgd2lsbCBmYWlsIGZvciBYSENJIG9uIERlbGwgOTM2NS4gU28gbm90DQo+IHVzaW5n
-ICJzdGF0ZSIuDQo+IA0KPiBUaGFua3MsDQo+IFNyaW5pdmFzDQo+ID4gPg0KPiA+ID4gKwl9DQo+
-ID4gPiArfQ0KPiA+ID4gKw0KPiA+ID4gwqBzdGF0aWMgdm9pZCBhY3BpX3NsZWVwX3J1bl9scHMw
-X2RzbSh1bnNpZ25lZCBpbnQgZnVuYykNCj4gPiA+IMKgew0KPiA+ID4gwqAJdW5pb24gYWNwaV9v
-YmplY3QgKm91dF9vYmo7DQo+ID4gPiBAQCAtNzI5LDYgKzg4Niw5IEBAIHN0YXRpYyBpbnQgbHBz
-MF9kZXZpY2VfYXR0YWNoKHN0cnVjdA0KPiA+ID4gYWNwaV9kZXZpY2UgKmFkZXYsDQo+ID4gPiDC
-oAkJCQnCoMKgIl9EU00gZnVuY3Rpb24gMCBldmFsdWF0aW9uDQo+ID4gPiBmYWlsZWRcbiIpOw0K
-PiA+ID4gwqAJfQ0KPiA+ID4gwqAJQUNQSV9GUkVFKG91dF9vYmopOw0KPiA+ID4gKw0KPiA+ID4g
-KwlscGlfZGV2aWNlX2dldF9jb25zdHJhaW50cygpOw0KPiA+ID4gKw0KPiA+ID4gwqAJcmV0dXJu
-IDA7DQo+ID4gPiDCoH0NCj4gPiA+DQo+ID4gPiBAQCAtNzczLDYgKzkzMyw4IEBAIHN0YXRpYyB2
-b2lkIGFjcGlfZnJlZXplX3dha2Uodm9pZCkNCj4gPiA+IMKgCcKgKi8NCj4gPiA+IMKgCWlmIChh
-Y3BpX3NjaV9pcnFfdmFsaWQoKSAmJg0KPiA+ID4gwqAJwqDCoMKgwqAhaXJxZF9pc193YWtldXBf
-YXJtZWQoaXJxX2dldF9pcnFfZGF0YShhY3BpX3NjaV9pcnEpKSkNCj4gPiA+IHsNCj4gPiA+ICsJ
-CWlmIChwbV9kZWJ1Z19tZXNzYWdlc19lbmFibGVkKCkpDQo+ID4gPiArCQkJbHBpX2NoZWNrX2Nv
-bnN0cmFpbnRzKCk7DQo+ID4gPiDCoAkJcG1fc3lzdGVtX2NhbmNlbF93YWtldXAoKTsNCj4gPiA+
-IMKgCQlzMmlkbGVfd2FrZXVwID0gdHJ1ZTsNCj4gPiA+IMKgCX0NCj4gPiA+IC0tDQo+ID4gPiAy
-LjcuNQ0K
+On Fri, 2017-08-11 at 14:43 +0000, Mario.Limonciello@dell.com wrote:
+> > 
+> > -----Original Message-----
+> > From: Srinivas Pandruvada [mailto:srinivas.pandruvada@linux.intel.c
+> > om]
+> > Sent: Thursday, August 10, 2017 5:54 PM
+> > To: Limonciello, Mario <Mario_Limonciello@Dell.com>; rjw@rjwysocki.
+> > net;
+> > lenb@kernel.org
+> > Cc: linux-pm@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
+> > acpi@vger.kernel.org; lukas@wunner.de
+> > Subject: Re: [PATCH v2 2/2] ACPI / Sleep: Check low power idle
+> > constraints for
+> > debug only
+> > 
+> > On Thu, 2017-08-10 at 22:07 +0000, Mario.Limonciello@dell.com
+> > wrote:
+> > > 
+> > > 
+> > > > 
+> > > > 
+> > > > 
+> > [...]
+> > 
+> > > 
+> > > > 
+> > > > +
+> > > > +		ret = acpi_device_get_power(adev, &state);
+> > > > +		if (!ret)
+> > > > +			pr_debug("LPI: %s required min power
+> > > > state
+> > > > %d, current
+> > > > power state %d, real power state %d\n",
+> > > > +				 lpi_constraints_table[i].name
+> > > > ,
+> > > > +				 lpi_constraints_table[i].min_
+> > > > dsta
+> > > > te,
+> > > > +				 adev->power.state, state);
+> > > Isn't this superfluous to be showing the state returned from
+> > > acpi_device_get_power and
+> > > also probing directly at the state? You can't just rely on the
+> > > information you got
+> > > back from apci_device_get_power?
+> > They can be different as one is real power state and the other is
+> > what
+> > was set.
+> > For example on Dell 9365 it shows
+> > 
+> > [ 1924.393653] LPI: \_SB.PCI0.XHC required min power state 3,
+> > current
+> > power state 3, real power state 255
+> > 
+> Isn't 255 ACPI_STATE_UNKNOWN?  That makes it seem like it
+> is a logic problem in acpi_device_get_power (or somewhere down the
+> chain)
+> doesn't it?
+There is no _PSC for XHC device. So it will return unknown. This is an
+optional object, so I think that dumping the status is fine, but
+matching with output of acpi_device_get_power() as it relies on _PSC is
+not correct for the constraint.
+
+Thanks,
+Srinivas
+
+> 
+> > 
+> > > 
+> > > 
+> > > > 
+> > > > 
+> > > > +
+> > > > +		if (adev->flags.power_manageable && adev-
+> > > > > 
+> > > > > power.state <
+> > > > +					lpi_constraints_table[
+> > > > i].m
+> > > > in_dstate)
+> > > > +			pr_info("LPI: Constraint [%s] not
+> > > > matched\n",
+> > > > +				 lpi_constraints_table[i].name
+> > > > );
+> > > Similarly here, can't you just compare against &state instead?
+> > > 
+> > The problem then the check will fail for XHCI on Dell 9365. So not
+> > using "state".
+> > 
+> > Thanks,
+> > Srinivas
+> > > 
+> > > > 
+> > > > 
+> > > > +	}
+> > > > +}
+> > > > +
+> > > >  static void acpi_sleep_run_lps0_dsm(unsigned int func)
+> > > >  {
+> > > >  	union acpi_object *out_obj;
+> > > > @@ -729,6 +886,9 @@ static int lps0_device_attach(struct
+> > > > acpi_device *adev,
+> > > >  				  "_DSM function 0 evaluation
+> > > > failed\n");
+> > > >  	}
+> > > >  	ACPI_FREE(out_obj);
+> > > > +
+> > > > +	lpi_device_get_constraints();
+> > > > +
+> > > >  	return 0;
+> > > >  }
+> > > > 
+> > > > @@ -773,6 +933,8 @@ static void acpi_freeze_wake(void)
+> > > >  	 */
+> > > >  	if (acpi_sci_irq_valid() &&
+> > > >  	    !irqd_is_wakeup_armed(irq_get_irq_data(acpi_sci_ir
+> > > > q)))
+> > > > {
+> > > > +		if (pm_debug_messages_enabled())
+> > > > +			lpi_check_constraints();
+> > > >  		pm_system_cancel_wakeup();
+> > > >  		s2idle_wakeup = true;
+> > > >  	}
+> > > > --
+> > > > 2.7.5
