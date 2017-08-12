@@ -1,179 +1,68 @@
-From: gengdongjiu <gengdj.1984@gmail.com>
-Subject: Re: [PATCH] acpi: apei: fix the wrongly parse generic error status block
-Date: Sat, 12 Aug 2017 07:41:48 +0800
-Message-ID: <CAMj-D2DqEafgnOCsRjm8fSkj_R7_HWPnBxEijhoUV_LnU7VY6Q@mail.gmail.com>
-References: <1502388412-20273-1-git-send-email-gengdongjiu@huawei.com>
- <9ea70eed-f743-0c8b-2a70-27ce4c0d8705@codeaurora.org> <ddb2070d-60c5-a476-c003-25814d0cf863@huawei.com>
- <1be489f7-c1c3-63dc-dc0d-af67e5fd03a1@huawei.com> <70ebfc99-0666-fa2b-8ed4-19e1f93194bd@codeaurora.org>
+From: <lizdebeth_@hotmail.com>
+Subject: (unknown)
+Date: Sat, 12 Aug 2017 01:11:01 -0000
+Message-ID: <150250026147.2727.5262551569093727026@zaural.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: application/zip; name="6367947931.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ua0-f194.google.com ([209.85.217.194]:33252 "EHLO
-        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751675AbdHKXlu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Aug 2017 19:41:50 -0400
-In-Reply-To: <70ebfc99-0666-fa2b-8ed4-19e1f93194bd@codeaurora.org>
+Received: from ws213.zone31-163-144.zaural.ru ([31.163.144.213]:56571 "HELO
+        zaural.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751487AbdHLBLF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 11 Aug 2017 21:11:05 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Cc: gengdongjiu <gengdongjiu@huawei.com>, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-2017-08-11 21:19 GMT+08:00 Baicar, Tyler <tbaicar@codeaurora.org>:
-> I removed the apei_estatus_for_each_section because it was only being used
-> in this one spot even though several other parts of the code do the same
-> iteration (it is done several times in the CPER code). I made this iteration
-> match the CPER iterations because the CPER iterations are verifying that the
-> structures are all valid and lengths are correct. If those checks are being
-> done this way, it makes the most sense to mimic that iteration here when
-> calling into EDAC and triggering trace events.
-
-I think the macro includes the verification for the structures and
-lengths correction, it it does not correct, it will breadk the loop.
-I do not see your modifcation does some special validation, it almost
-smilar with the macro does.
-in all the code there are three functions to do the iteration.
-ghes_do_proc/cper_estatus_print/cper_estatus_check
-the cper_estatus_check function is especial, because its  purpose is
-to validate CPER, so it will  check every length. but not all
-function's purpose is to check, for example cper_estatus_print, as
-shown below, so we can use this macro to clear the code. Now we can
-see there are two function use it, but in the future, if want to
-iterate CPER, we can use the macro if it does not want to do special
-thing.
-
-#define apei_estatus_for_each_section(estatus, section) \
-for (section = (struct acpi_hest_generic_data *)(estatus + 1); \
-(void *)section - (void *)(estatus + 1) < estatus->data_length; \
-------> here it will check whether length is valid, if not,  it will
-break the loop
-section = acpi_hest_get_next(section))
-
-
-Original code:
-void cper_estatus_print(const char *pfx,
-   const struct acpi_hest_generic_status *estatus)
-{
- struct acpi_hest_generic_data *gdata;
- unsigned int data_len;
- int sec_no = 0;
- char newpfx[64];
- __u16 severity;
- severity = estatus->error_severity;
- if (severity == CPER_SEV_CORRECTED)
-  printk("%s%s\n", pfx,
-         "It has been corrected by h/w "
-         "and requires no further action");
- printk("%s""event severity: %s\n", pfx, cper_severity_str(severity));
- data_len = estatus->data_length;
- gdata = (struct acpi_hest_generic_data *)(estatus + 1);
- snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
- while (data_len >= acpi_hest_get_size(gdata)) {
-  cper_estatus_print_section(newpfx, gdata, sec_no);
-  data_len -= acpi_hest_get_record_size(gdata);
-  gdata = acpi_hest_get_next(gdata);
-  sec_no++;
- }
-}
-
-Can change to:
-void cper_estatus_print(const char *pfx,
-   const struct acpi_hest_generic_status *estatus)
-{
- struct acpi_hest_generic_data *gdata;
- int sec_no = 0;
- char newpfx[64];
- __u16 severity;
- severity = estatus->error_severity;
- if (severity == CPER_SEV_CORRECTED)
-  printk("%s%s\n", pfx,
-         "It has been corrected by h/w "
-         "and requires no further action");
- printk("%s""event severity: %s\n", pfx, cper_severity_str(severity));
- snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
- apei_estatus_for_each_section {
-  cper_estatus_print_section(newpfx, gdata, sec_no);
-  sec_no++;
- }
-}
-
-
-
->
-> Thanks,
->
-> Tyler
->
->
-> On 8/10/2017 3:37 PM, gengdongjiu wrote:
->>
->> may be directly remove the macro apei_estatus_for_each_section is not
->> better, if other place code also
->> needs to iterate through the GHES estatus blocks, it will be repeated
->> written again.
->>
->>
->> On 2017/8/11 5:31, gengdongjiu wrote:
->>>
->>> Hello,
->>>
->>>     sorry, I do not see that. Just know I have reviewed your
->>> modification, may be my change can be simpleness and reserve the macro of
->>> apei_estatus_for_each_section
->>> can be used by other place to avoid duplicated code, such as prints the
->>> estatus blocks.
->>>
->>> On 2017/8/11 1:48, Baicar, Tyler wrote:
->>>>
->>>> Hello,
->>>>
->>>> I have already posted a patch fixing this. Please see:
->>>>
->>>> https://lkml.org/lkml/2017/8/3/824
->>>>
->>>> This makes the loop identical to the CPER code which prints the estatus
->>>> blocks to the kernel logs.
->>>>
->>>> Thanks,
->>>>
->>>> Tyler
->>>>
->>>>
->>>> On 8/10/2017 12:06 PM, Dongjiu Geng wrote:
->>>>>
->>>>> The revision 0x300 generic error data entry is different with the old
->>>>> version. when ghes_do_proc traverses to get the data entry, it does not
->>>>> consider this difference. so when error status block has revision 0x300
->>>>> data entry, it will have issue.
->>>>>
->>>>> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
->>>>> ---
->>>>>    drivers/acpi/apei/apei-internal.h | 4 ++--
->>>>>    1 file changed, 2 insertions(+), 2 deletions(-)
->>>>>
->>>>> diff --git a/drivers/acpi/apei/apei-internal.h
->>>>> b/drivers/acpi/apei/apei-internal.h
->>>>> index 6e9f14c0a71b..6491f1c4a96e 100644
->>>>> --- a/drivers/acpi/apei/apei-internal.h
->>>>> +++ b/drivers/acpi/apei/apei-internal.h
->>>>> @@ -122,8 +122,8 @@ struct dentry *apei_get_debugfs_dir(void);
->>>>>      #define apei_estatus_for_each_section(estatus, section)
->>>>> \
->>>>>        for (section = (struct acpi_hest_generic_data *)(estatus + 1);
->>>>> \
->>>>> -         (void *)section - (void *)estatus < estatus->data_length;
->>>>> \
->>>>> -         section = (void *)(section+1) + section->error_data_length)
->>>>> +         (void *)section - (void *)(estatus + 1) <
->>>>> estatus->data_length; \
->>>>> +         section = acpi_hest_get_next(section))
->>>>>      static inline u32 cper_estatus_len(struct acpi_hest_generic_status
->>>>> *estatus)
->>>>>    {
->
->
-> --
-> Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
-> Technologies, Inc.
-> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-> a Linux Foundation Collaborative Project.
->
+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
+SwUGAAAAAAEAAQBbAAAAjQoAAAAA
