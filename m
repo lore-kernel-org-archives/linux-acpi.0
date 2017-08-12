@@ -1,98 +1,85 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v5 6/7] libnvdimm,
- btt: refactor initial_offset calculations
-Date: Fri, 11 Aug 2017 18:39:45 -0700
-Message-ID: <CAPcyv4is9O=HCrHPJXoOOW2p2LyUE1n3WCi-5X0AKfU-pNWNPg@mail.gmail.com>
-References: <20170809000746.10585-1-vishal.l.verma@intel.com>
- <20170809000746.10585-7-vishal.l.verma@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 2/2] ACPI / Sleep: Check low power idle constraints for debug only
+Date: Sat, 12 Aug 2017 16:07:17 +0200
+Message-ID: <30065803.357Xcxq4YN@aspire.rjw.lan>
+References: <1502232075-23832-1-git-send-email-srinivas.pandruvada@linux.intel.com> <e14a52ba9bce486c8b4dd6811a0e0138@ausx13mpc124.AMER.DELL.COM> <1502468330.20268.26.camel@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170809000746.10585-7-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1502468330.20268.26.camel@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: Mario.Limonciello@dell.com, lenb@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lukas@wunner.de
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 8, 2017 at 5:07 PM, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> In preparation for BTT error clearing, refactor the initial offset
-> calculations. Until now, all callers of arena_{read,write}_bytes assumed
-> a relative offset to the arena, and it was later adjusted for the
-> initial offset. Until now, every time we calculated a relative offset,
-> we passed it to these functions to do reads or writes, and so where the
-> offset calculations happened didn't matter.
->
-> For error clearing, there will be places where we calculate offsets to
-> check for the presence of media errors, and the above scheme becomes
-> error prone.
->
-> Make the initial_offset calculations explicit for all callers of
-> arena_{read,write}_bytes, and provide a helper to do them. The error
-> checking/clearing code can then use these same helpers.
->
-> Reported-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-> Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/nvdimm/btt.c | 69 ++++++++++++++++++++++++++++++++--------------------
->  1 file changed, 42 insertions(+), 27 deletions(-)
->
-> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-> index e9dd651..9acf06b 100644
-> --- a/drivers/nvdimm/btt.c
-> +++ b/drivers/nvdimm/btt.c
-> @@ -31,14 +31,17 @@ enum log_ent_request {
->         LOG_OLD_ENT
->  };
->
-> +static inline u64 calc_nsoff(struct nd_btt *nd_btt, u64 relative_offset)
-> +{
-> +       return relative_offset + nd_btt->initial_offset;
-> +}
-> +
->  static int arena_read_bytes(struct arena_info *arena, resource_size_t offset,
->                 void *buf, size_t n, unsigned long flags)
->  {
->         struct nd_btt *nd_btt = arena->nd_btt;
->         struct nd_namespace_common *ndns = nd_btt->ndns;
->
-> -       /* arena offsets may be shifted from the base of the device */
-> -       offset += arena->nd_btt->initial_offset;
->         return nvdimm_read_bytes(ndns, offset, buf, n, flags);
->  }
->
-> @@ -48,14 +51,13 @@ static int arena_write_bytes(struct arena_info *arena, resource_size_t offset,
->         struct nd_btt *nd_btt = arena->nd_btt;
->         struct nd_namespace_common *ndns = nd_btt->ndns;
->
-> -       /* arena offsets may be shifted from the base of the device */
-> -       offset += arena->nd_btt->initial_offset;
->         return nvdimm_write_bytes(ndns, offset, buf, n, flags);
->  }
+On Friday, August 11, 2017 6:18:50 PM CEST Srinivas Pandruvada wrote:
+> On Fri, 2017-08-11 at 14:43 +0000, Mario.Limonciello@dell.com wrote:
+> > > 
+> > > -----Original Message-----
+> > > From: Srinivas Pandruvada [mailto:srinivas.pandruvada@linux.intel.c
+> > > om]
+> > > Sent: Thursday, August 10, 2017 5:54 PM
+> > > To: Limonciello, Mario <Mario_Limonciello@Dell.com>; rjw@rjwysocki.
+> > > net;
+> > > lenb@kernel.org
+> > > Cc: linux-pm@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
+> > > acpi@vger.kernel.org; lukas@wunner.de
+> > > Subject: Re: [PATCH v2 2/2] ACPI / Sleep: Check low power idle
+> > > constraints for
+> > > debug only
+> > > 
+> > > On Thu, 2017-08-10 at 22:07 +0000, Mario.Limonciello@dell.com
+> > > wrote:
+> > > > 
+> > > > 
+> > > > > 
+> > > > > 
+> > > > > 
+> > > [...]
+> > > 
+> > > > 
+> > > > > 
+> > > > > +
+> > > > > +		ret = acpi_device_get_power(adev, &state);
+> > > > > +		if (!ret)
+> > > > > +			pr_debug("LPI: %s required min power
+> > > > > state
+> > > > > %d, current
+> > > > > power state %d, real power state %d\n",
+> > > > > +				 lpi_constraints_table[i].name
+> > > > > ,
+> > > > > +				 lpi_constraints_table[i].min_
+> > > > > dsta
+> > > > > te,
+> > > > > +				 adev->power.state, state);
+> > > > Isn't this superfluous to be showing the state returned from
+> > > > acpi_device_get_power and
+> > > > also probing directly at the state? You can't just rely on the
+> > > > information you got
+> > > > back from apci_device_get_power?
+> > > They can be different as one is real power state and the other is
+> > > what
+> > > was set.
+> > > For example on Dell 9365 it shows
+> > > 
+> > > [ 1924.393653] LPI: \_SB.PCI0.XHC required min power state 3,
+> > > current
+> > > power state 3, real power state 255
+> > > 
+> > Isn't 255 ACPI_STATE_UNKNOWN?  That makes it seem like it
+> > is a logic problem in acpi_device_get_power (or somewhere down the
+> > chain)
+> > doesn't it?
+> There is no _PSC for XHC device. So it will return unknown. This is an
+> optional object, so I think that dumping the status is fine, but
+> matching with output of acpi_device_get_power() as it relies on _PSC is
+> not correct for the constraint.
 
-So let's get rid of arena_{read,write}_bytes(). The only point of the
-wrapper was to include an arena specific offset, but now we're pushing
-all offset calculations to the caller so arena_{read,write}_bytes() is
-equivalent to nvdimm_{read,write}_bytes(). However, since many of
-these call sites now perform a common offset calculations maybe we can
-provide a new helper for that to differentiate it from the error
-clearing case? After patch 7 is applied it's no longer clear which
-offset calculation is used where and for what reason, there's just too
-many offset variables calculations and overload of the word 'offset'
-for bugs to hide.
+Right.  Moreover, acpi_device_get_power() is basically mostly intended for
+initialization, so the constraint should be matched against power.state,
+as that's the current ACPI power state of the device as far as the kernel
+can say.
 
-Maybe it's just late on a Friday and my eyes are going cross, but it
-seems you have 2 classes of use cases between calc_nsoff and
-lba_to_nsoff, perhaps separate read/write wrappers for those 2 cases?
-Also, I find something unreadable about calc_nsoff, and reading the
-prototype "u64 calc_nsoff(struct nd_btt *nd_btt, u64 relative_offset)"
-doesn't help clarify. What is 'relative_offset' relative to? Is it the
-base namespace / device offset?
+Thanks,
+Rafael
