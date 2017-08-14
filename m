@@ -1,44 +1,184 @@
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v6 2/3] gpio: Add support for TPS68470 GPIOs
-Date: Mon, 14 Aug 2017 16:53:36 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FA0525@FMSMSX114.amr.corp.intel.com>
-References: <1501288226-27469-1-git-send-email-rajmohan.mani@intel.com>
- <1501288226-27469-3-git-send-email-rajmohan.mani@intel.com>
- <CACRpkdbu0nhXjdvA7X6DPZwKnTEU896EPe3MZsXgi=rgz_w5Kg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdbu0nhXjdvA7X6DPZwKnTEU896EPe3MZsXgi=rgz_w5Kg@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: [PATCH] ACPI/APEI: Add BERT data driver
+Date: Mon, 14 Aug 2017 09:56:13 -0700
+Message-ID: <20170814165613.25561-1-tony.luck@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:36078 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751517AbdHNQ4S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 14 Aug 2017 12:56:18 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-SGkgTGludXMsDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTGludXMg
-V2FsbGVpaiBbbWFpbHRvOmxpbnVzLndhbGxlaWpAbGluYXJvLm9yZ10NCj4gU2VudDogTW9uZGF5
-LCBBdWd1c3QgMTQsIDIwMTcgNjozOSBBTQ0KPiBUbzogTWFuaSwgUmFqbW9oYW4gPHJham1vaGFu
-Lm1hbmlAaW50ZWwuY29tPg0KPiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGlu
-dXgtZ3Bpb0B2Z2VyLmtlcm5lbC5vcmc7IEFDUEkgRGV2ZWwNCj4gTWFsaW5nIExpc3QgPGxpbnV4
-LWFjcGlAdmdlci5rZXJuZWwub3JnPjsgTGVlIEpvbmVzIDxsZWUuam9uZXNAbGluYXJvLm9yZz47
-DQo+IEFsZXhhbmRyZSBDb3VyYm90IDxnbnVyb3VAZ21haWwuY29tPjsgUmFmYWVsIEouIFd5c29j
-a2kNCj4gPHJqd0Byand5c29ja2kubmV0PjsgTGVuIEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+Ow0K
-PiBzYWthcmkuYWlsdXNAbGludXguaW50ZWwuY29tOyBBbmR5IFNoZXZjaGVua28NCj4gPGFuZHku
-c2hldmNoZW5rb0BnbWFpbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjYgMi8zXSBncGlv
-OiBBZGQgc3VwcG9ydCBmb3IgVFBTNjg0NzAgR1BJT3MNCj4gDQo+IE9uIFNhdCwgSnVsIDI5LCAy
-MDE3IGF0IDI6MzAgQU0sIFJham1vaGFuIE1hbmkNCj4gPHJham1vaGFuLm1hbmlAaW50ZWwuY29t
-PiB3cm90ZToNCj4gDQo+ID4gVGhpcyBwYXRjaCBhZGRzIHN1cHBvcnQgZm9yIFRQUzY4NDcwIEdQ
-SU9zLg0KPiA+IFRoZXJlIGFyZSA3IEdQSU9zIGFuZCBhIGZldyBzZW5zb3IgcmVsYXRlZCBHUElP
-cy4NCj4gPiBUaGVzZSBHUElPcyBjYW4gYmUgcmVxdWVzdGVkIGFuZCBjb25maWd1cmVkIGFzIGFw
-cHJvcHJpYXRlLg0KPiA+DQo+ID4gVGhlIEdQSU9zIGFyZSBhbHNvIHByb3ZpZGVkIHdpdGggZGVz
-Y3JpcHRpdmUgbmFtZXMuDQo+ID4gSG93ZXZlciwgdGhlIHR5cGljYWwgdXNlIGNhc2UgaXMgdGhh
-dCB0aGUgT1MgR1BJTyBkcml2ZXIgd2lsbCBpbnRlcmFjdA0KPiA+IHdpdGggVFBTNjg0NzAgR1BJ
-TyBkcml2ZXIgdG8gY29uZmlndXJlIHRoZXNlIEdQSU9zLCBhcyByZXF1ZXN0ZWQgYnkNCj4gPiB0
-aGUgcGxhdGZvcm0gZmlybXdhcmUuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBSYWptb2hhbiBN
-YW5pIDxyYWptb2hhbi5tYW5pQGludGVsLmNvbT4NCj4gPiBSZXZpZXdlZC1ieTogTGludXMgV2Fs
-bGVpaiA8bGludXMud2FsbGVpakBsaW5hcm8ub3JnPg0KPiANCj4gKC4uLikNCj4gDQo+ID4gK2Nv
-bmZpZyBHUElPX1RQUzY4NDcwDQo+ID4gKyAgICAgICBib29sICJUUFM2ODQ3MCBHUElPIg0KPiA+
-ICsgICAgICAgZGVwZW5kcyBvbiBNRkRfVFBTNjg0NzANCj4gDQo+IEd1YXJkZWQgYnkgdGhpcyBz
-eW1ib2wsIHNvOg0KPiBwYXRjaCBhcHBsaWVkIHRvIHRoZSBHUElPIHRyZWUsIHRoYW5rcyENCj4g
-DQoNClRoYW5rcyBmb3IgdGhlIHJldmlld3MgYW5kIHVwZGF0ZS4NClJhag0K
+From: Tony Luck <tony.luck@intel.com>
+
+The ACPI Boot Error Record Table provides a method for platform
+firmware to give information to the operating system about error
+that occurred prior to boot (of particular interest are problems
+that caused the previous OS instance to crash).
+
+The BERT table simply provides the size and address of the error
+record in BIOS reserved memory. In an earlier age we might have
+used /dev/mem to retrieve this error record, but many systems
+disable /dev/mem for security reasons.
+
+This driver provides read-only access to the data via a character
+special device "/dev/bert-data".
+
+Cc: Len Brown <lenb@kernel.org>
+Cc: Boris Petkov <bp@suse.de>
+Cc: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+---
+ drivers/acpi/apei/Kconfig     |   7 +++
+ drivers/acpi/apei/Makefile    |   1 +
+ drivers/acpi/apei/bert-data.c | 107 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 115 insertions(+)
+ create mode 100644 drivers/acpi/apei/bert-data.c
+
+diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+index de14d49a5c90..a785bfbf7e8c 100644
+--- a/drivers/acpi/apei/Kconfig
++++ b/drivers/acpi/apei/Kconfig
+@@ -77,3 +77,10 @@ config ACPI_APEI_ERST_DEBUG
+ 	  error information to and from a persistent store. Enable this
+ 	  if you want to debugging and testing the ERST kernel support
+ 	  and firmware implementation.
++
++config ACPI_APEI_BERT_DATA
++	tristate "APEI BERT data driver"
++	depends on ACPI_APEI
++	help
++	  This driver provides read access to the error record that
++	  the ACPI/APEI/BERT table points at.
+diff --git a/drivers/acpi/apei/Makefile b/drivers/acpi/apei/Makefile
+index e50573de25f1..f092c1bc60b8 100644
+--- a/drivers/acpi/apei/Makefile
++++ b/drivers/acpi/apei/Makefile
+@@ -2,5 +2,6 @@ obj-$(CONFIG_ACPI_APEI)		+= apei.o
+ obj-$(CONFIG_ACPI_APEI_GHES)	+= ghes.o
+ obj-$(CONFIG_ACPI_APEI_EINJ)	+= einj.o
+ obj-$(CONFIG_ACPI_APEI_ERST_DEBUG) += erst-dbg.o
++obj-$(CONFIG_ACPI_APEI_BERT_DATA) += bert-data.o
+ 
+ apei-y := apei-base.o hest.o erst.o bert.o
+diff --git a/drivers/acpi/apei/bert-data.c b/drivers/acpi/apei/bert-data.c
+new file mode 100644
+index 000000000000..1590bd82ef63
+--- /dev/null
++++ b/drivers/acpi/apei/bert-data.c
+@@ -0,0 +1,107 @@
++/*
++ * bert-data: driver to provide read access to the error record(s)
++ * provided by the ACPI BERT table.
++ * See ACPI specification section 18.3.1 "Boot Error Source"
++ *
++ * Copyright (C) 2017 Intel Corporation
++ *
++ * Author:
++ *    Tony Luck <tony.luck@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++
++#define pr_fmt(fmt) "bert-data: " fmt
++
++#include <linux/module.h>
++#include <linux/acpi.h>
++#include <acpi/acpiosxf.h>
++#include <linux/fs.h>
++#include <linux/miscdevice.h>
++#include <linux/mm.h>
++#include <linux/uaccess.h>
++
++static u32 bert_size;
++static __iomem void *bert_data;
++
++static int bert_chrdev_open(struct inode *inode, struct file *file)
++{
++	if (file->f_flags & (O_WRONLY | O_RDWR))
++		return -EPERM;
++	inode->i_size = bert_size;
++	return 0;
++}
++
++static ssize_t bert_chrdev_read(struct file *filp, char __user *ubuf,
++				size_t usize, loff_t *off)
++{
++	if (*off > bert_size)
++		return -EINVAL;
++	if (*off + usize > bert_size)
++		usize = bert_size - *off;
++	if (copy_to_user(ubuf, bert_data + *off, usize))
++		return -EFAULT;
++	*off += usize;
++	return usize;
++}
++
++static const struct file_operations bert_chrdev_ops = {
++	.open		= bert_chrdev_open,
++	.read		= bert_chrdev_read,
++	.llseek		= default_llseek,
++};
++
++static struct miscdevice bert_chrdev_device = {
++	.minor		= MISC_DYNAMIC_MINOR,
++	.name		= "bert-data",
++	.fops		= &bert_chrdev_ops,
++	.mode		= 0444,
++};
++
++static __init int bert_init(void)
++{
++	struct acpi_table_bert *bert;
++	acpi_status stat;
++	int err;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	stat = acpi_get_table(ACPI_SIG_BERT, 0,
++			      (struct acpi_table_header **)&bert);
++	if (stat == AE_NOT_FOUND)
++		return -ENODEV;
++	if (ACPI_FAILURE(stat)) {
++		pr_err("get table failed, %s.\n", acpi_format_exception(stat));
++		return -EINVAL;
++	}
++
++	bert_size = bert->region_length;
++	bert_data = acpi_os_map_memory(bert->address, bert->region_length);
++	acpi_put_table((struct acpi_table_header *)bert);
++	if (!bert_data)
++		return -ENOMEM;
++	err = misc_register(&bert_chrdev_device);
++	if (err)
++		acpi_os_unmap_memory(bert_data, bert_size);
++
++	return err;
++}
++module_init(bert_init);
++
++static __exit void bert_exit(void)
++{
++	acpi_os_unmap_memory(bert_data, bert_size);
++	misc_deregister(&bert_chrdev_device);
++}
++module_exit(bert_exit);
++
++MODULE_DESCRIPTION("ACPI Boot Error Data");
++MODULE_LICENSE("GPL v2");
+-- 
+2.11.0
+
