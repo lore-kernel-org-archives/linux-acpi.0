@@ -1,89 +1,43 @@
-From: Feng Kan <fkan@apm.com>
-Subject: Re: [PATCH v3 0/5] ACPI: DMA ranges management
-Date: Mon, 14 Aug 2017 11:41:58 -0700
-Message-ID: <CAL85gmAd4aA7M7sEJC4yfb7UVghmb4ZE-XVdb8y0D=P_Ut2MOQ@mail.gmail.com>
-References: <20170803123239.11359-1-lorenzo.pieralisi@arm.com>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
+Date: Mon, 14 Aug 2017 19:02:15 +0000
+Message-ID: <1502736750.2042.145.camel@hpe.com>
+References: <20170805051615.GC23214@nazgul.tnic>
+         <1502128177.2042.131.camel@hpe.com> <20170811090414.GB9432@nazgul.tnic>
+         <1502725671.2042.137.camel@hpe.com>
+         <20170814162436.lta5xm742hh6g7yk@pd.tnic>
+         <1502728754.2042.139.camel@hpe.com>
+         <20170814170552.j3lhzvnwlpz75y4g@pd.tnic>
+         <1502732561.2042.141.camel@hpe.com>
+         <20170814180526.wtfjzgc6uye2qtx6@pd.tnic>
+         <1502734083.2042.143.camel@hpe.com>
+         <20170814183551.sgk2i7lxpmpyodhv@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f173.google.com ([209.85.128.173]:37705 "EHLO
-        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752368AbdHNSmA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Aug 2017 14:42:00 -0400
-Received: by mail-wr0-f173.google.com with SMTP id 33so37151600wrz.4
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Aug 2017 11:42:00 -0700 (PDT)
-In-Reply-To: <20170803123239.11359-1-lorenzo.pieralisi@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170814183551.sgk2i7lxpmpyodhv@pd.tnic>
+Content-Language: en-US
+Content-ID: <2E812CD45140D241A4BA6F6E2512E731@NAMPRD84.PROD.OUTLOOK.COM>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "bp@alien8.de" <bp@alien8.de>
+Cc: "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Nate Watterson <nwatters@codeaurora.org>
 
-On Thu, Aug 3, 2017 at 5:32 AM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> This patch series is v3 of a previous posting:
->
-> v2->v3:
->         - Fixed DMA masks computation
->         - Fixed size computation overflow in acpi_dma_get_range()
->
-> v1->v2:
->         - Reworked acpi_dma_get_range() flow and logs
->         - Added IORT named component address limits
->         - Renamed acpi_dev_get_resources() helper function
->         - Rebased against v4.13-rc3
->
-> v2: http://lkml.kernel.org/r/20170731152323.32488-1-lorenzo.pieralisi@arm.com
-> v1: http://lkml.kernel.org/r/20170720144517.32529-1-lorenzo.pieralisi@arm.com
->
-> -- Original cover letter --
->
-> As reported in:
->
-> http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
->
-> the bus connecting devices to an IOMMU bus can be smaller in size than
-> the IOMMU input address bits which results in devices DMA HW bugs in
-> particular related to IOVA allocation (ie chopping of higher address
-> bits owing to system bus HW capabilities mismatch with the IOMMU).
->
-> Fortunately this problem can be solved through an already present but never
-> used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define the DMA
-> window for a specific bus in ACPI and therefore all upstream devices
-> connected to it.
->
-> This small patch series enables _DMA parsing in ACPI core code and
-> use it in ACPI IORT code in order to detect DMA ranges for devices and
-> update their data structures to make them work with their related DMA
-> addressing restrictions.
->
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Feng Kan <fkan@apm.com>
-> Cc: Jon Masters <jcm@redhat.com>
-> Cc: Robert Moore <robert.moore@intel.com>
-> Cc: Robin Murphy <robin.murphy@arm.com>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->
-> Lorenzo Pieralisi (5):
->   ACPICA: resource_mgr: Allow _DMA method in walk resources
->   ACPI: Make acpi_dev_get_resources() method agnostic
->   ACPI: Introduce DMA ranges parsing
->   ACPI: Make acpi_dma_configure() DMA regions aware
->   ACPI/IORT: Add IORT named component memory address limits
->
->  drivers/acpi/acpica/rsxface.c |  7 ++--
->  drivers/acpi/arm64/iort.c     | 57 ++++++++++++++++++++++++++-
->  drivers/acpi/resource.c       | 82 +++++++++++++++++++++++++++++---------
->  drivers/acpi/scan.c           | 91 +++++++++++++++++++++++++++++++++++++++----
->  include/acpi/acnames.h        |  1 +
->  include/acpi/acpi_bus.h       |  2 +
->  include/linux/acpi.h          |  8 ++++
->  include/linux/acpi_iort.h     |  5 ++-
->  8 files changed, 219 insertions(+), 34 deletions(-)
->
-> --
-> 2.10.0
->
-Works on XGene.
-Tested-by: Feng Kan <fkan@apm.com>
+T24gTW9uLCAyMDE3LTA4LTE0IGF0IDIwOjM1ICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
+DQo+IE9uIE1vbiwgQXVnIDE0LCAyMDE3IGF0IDA2OjE3OjQ3UE0gKzAwMDAsIEthbmksIFRvc2hp
+bWl0c3Ugd3JvdGU6DQo+ID4gUmlnaHQsIGdoZXNfZWRhY19yZXBvcnRfbWVtX2Vycm9yKCkgZ2V0
+cyBzZXJpYWxpemVkIHBlciBhIEdIRVMNCj4gPiBlbnRyeSwgYnV0IG5vdCBnbG9iYWxseS4NCj4g
+DQo+IEdsb2JhbGx5IHdoYXQ/DQoNCkdIRVMgdjIncyBBQ0vCoGlzIG5vdCBhIGdsb2JhbCBsb2Nr
+LiAgU28sIGl0IGRvZXMgbm90IGd1YXJhbnRlZSB0aGF0DQpnaGVzX2VkYWNfcmVwb3J0X21lbV9l
+cnJvcigpIG5ldmVyIGdldHMgY2FsbGVkIGNvbmN1cnJlbnRseS4NCg0KPiBXaGF0IGlzIHRoZSBh
+Y3R1YWwgcG90ZW50aWFsIHNjZW5hcmlvIGZvciBjb25jdXJyZW5jeSBpc3N1ZXMgeW91IHNlZT8N
+Cj4gRXhhbXBsZSBwbHMuDQoNCmdoZXNfcHJvYmUoKSBzdXBwb3J0cyBtdWx0aXBsZSBzb3VyY2Vz
+IGRlZmluZWQgaW4NCmFjcGlfaGVzdF9ub3RpZnlfdHlwZXMuICBTYXksIHRoZXJlIGFyZSB0d28g
+ZW50cmllcyBmb3IgbWVtb3J5IGVycm9ycywNCm9uZSB3aXRoIEFDUElfSEVTVF9OT1RJRllfRVhU
+RVJOQUwgYW5kIHRoZSBvdGhlciB3aXRoDQpBQ1BJX0hFU1RfTk9USUZZX1NDSS4gIFRoZXkgbWF5
+IHJlcG9ydCBlcnJvcnMgaW5kZXBlbmRlbnRseS4gIFdoaWxlDQpnaGVzX2VkYWNfcmVwb3J0X21l
+bV9lcnJvcigpIGlzIGJlaW5nIGNhbGxlZCBmcm9tIHRoZSBTQ0ksIGl0IGNhbiBiZQ0KY2FsbGVk
+IGZyb20gdGhlIGV4dCBpbnRlcnJ1cHQgYXQgYSBzYW1lIHRpbWUuDQoNCkkgZG8gbm90IGtub3cg
+aG93IGxpa2VseSB3ZSBzZWUgc3VjaCBjYXNlLCBidXQgdGhlIGNvZGUgc2hvdWxkIGJlDQp3cml0
+dGVuIGFjY29yZGluZyB0byB0aGUgc3BlYy4NCg0KVGhhbmtzLA0KLVRvc2hpDQo=
