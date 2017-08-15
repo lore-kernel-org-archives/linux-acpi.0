@@ -1,43 +1,53 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH 2/3] GHES: Move memory initialisation to ghes_probe()
-Date: Tue, 15 Aug 2017 12:56:21 +0200
-Message-ID: <20170815105621.imzo7r7xmcl5jd3m@pd.tnic>
-References: <20170801133608.21017-1-punit.agrawal@arm.com>
- <20170801133608.21017-3-punit.agrawal@arm.com>
- <20170814192256.56zoo5hgbyake25b@pd.tnic>
- <87o9rhp2f6.fsf@e105922-lin.cambridge.arm.com>
- <20170815083543.rz7lr4sbjcn65xc4@pd.tnic>
- <87fuctp1eq.fsf@e105922-lin.cambridge.arm.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: next-20170815 build: 2 failures 4 warnings (next-20170815)
+Date: Tue, 15 Aug 2017 12:16:12 +0100
+Message-ID: <20170815111612.esq73hxowbw2mehj@sirena.org.uk>
+References: <E1dhZPk-0002d9-9k@optimist>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="xqegarazqzvkdxmo"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:46263 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753500AbdHOK42 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 15 Aug 2017 06:56:28 -0400
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:45690 "EHLO
+        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751598AbdHOLQ2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Aug 2017 07:16:28 -0400
 Content-Disposition: inline
-In-Reply-To: <87fuctp1eq.fsf@e105922-lin.cambridge.arm.com>
+In-Reply-To: <E1dhZPk-0002d9-9k@optimist>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Punit Agrawal <punit.agrawal@arm.com>
-Cc: linux-acpi@vger.kernel.org, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, James Morse <james.morse@arm.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: kernel-build-reports@lists.linaro.org, linaro-kernel@lists.linaro.org, linux-next@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Aug 15, 2017 at 11:31:57AM +0100, Punit Agrawal wrote:
-> I'd seen the link between acpi_pci_root_init() and acpi_hest_init() but
-> didn't want to open another can of worms... :)
-> 
-> $SUBJECT was my attempt (small) at improving the situation but I guess I
-> didn't go far enough.
 
-Well, one fine day, if you feel bored and your hands are itching to do
-some hacking, I won't be mad atcha if you did a second try...
+--xqegarazqzvkdxmo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-:-)))
+On Tue, Aug 15, 2017 at 11:49:36AM +0100, Build bot for Mark Brown wrote:
 
--- 
-Regards/Gruss,
-    Boris.
+Today's -next fails to build on arm64 due to:
 
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+> 	arm64-allmodconfig
+> 	arm64-defconfig
+> ../drivers/acpi/spcr.c:168:1: error: expected expression before '<<' token
+> ../drivers/acpi/spcr.c:198:1: error: expected expression before '>>' token
+
+caused by f69ba1326ac33b (Merge branch 'acpi-spcr' into linux-next)
+which has an unresolved conflict in it.
+
+--xqegarazqzvkdxmo
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlmS1/sACgkQJNaLcl1U
+h9AkaQf/TXBGGh+HRb8qMiqXhsa4KXS03aV8a4B381n1K5lMnIrLbqrJB/yGrSYd
+cE9X4tTexhMZSspiX3pQ1B19sb43yGEES2fGRIIALupDiUXotyvbRmw8SWrwZumG
+MDt6fRsP3NUX319vUPqPPqkmi2FxdLbYN8zysXoTz34uWX9CPqhe4G6/XFrjh2jR
+RFaO7StNYfwtnJH1ZuR72pfVNqrBRzy+bYhLpRlIUkEuRVWRfpmtXPrtzKqS6fqV
+UW8emKN89M9YPTLgtedG6XUVrN0/8JAVM28DefV49l3i4aE8uxIpqTfn9lgP7cYR
+CapiQjjqivuZ04HexTN5RpemcwV0qA==
+=LX6G
+-----END PGP SIGNATURE-----
+
+--xqegarazqzvkdxmo--
