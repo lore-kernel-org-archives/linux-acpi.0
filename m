@@ -1,7 +1,7 @@
-From: "Luck, Tony" <tony.luck@intel.com>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
-Date: Tue, 15 Aug 2017 08:48:16 -0700
-Message-ID: <20170815154815.wy3dqwb4yi3feahg@intel.com>
+Date: Tue, 15 Aug 2017 17:50:00 +0200
+Message-ID: <20170815155000.d57hwki5jbixjuj6@pd.tnic>
 References: <20170814170552.j3lhzvnwlpz75y4g@pd.tnic>
  <1502732561.2042.141.camel@hpe.com>
  <20170814180526.wtfjzgc6uye2qtx6@pd.tnic>
@@ -13,23 +13,44 @@ References: <20170814170552.j3lhzvnwlpz75y4g@pd.tnic>
  <20170814203942.6t3mrq3hc324blab@pd.tnic>
  <1502810766.2042.149.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([5.9.137.197]:33866 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751129AbdHOPuH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 15 Aug 2017 11:50:07 -0400
 Content-Disposition: inline
 In-Reply-To: <1502810766.2042.149.camel@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "bp@alien8.de" <bp@alien8.de>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-On Tue, Aug 15, 2017 at 08:35:51AM -0700, Kani, Toshimitsu wrote:
-> User apps like ras-mc-ctl works as expected for a given (not-so-great)
-> DIMM info from SMBIOS as well.  I do not see a probelm from user
-> perspective, either.
+On Tue, Aug 15, 2017 at 03:35:51PM +0000, Kani, Toshimitsu wrote:
+> ghes_edac instantiates an mci as a pseudo device representing a GHES
+> error source.  Each error source associates with all DIMMs, and may
+> report errors independently.  As ghes_edac is an GHES error-reporting
+> wrapper to edac, this abstraction makes sense.
 
-Won't the user see all their DIMMs reported for each memory controller
-under /sys/devices/system/edac/mc/mc*/dimm* ?
+Bullshit.
 
-That sounds confusing.
+An MCI is a memory controller descriptor. That doesn't fit the GHES
+platform devices that get probed. GHES platform device != MCI. How many
+times do I need to say this for it to get through to you?
 
--Tony
+> I do not see a problem in having counters for each GHES error source.
+
+And the error counters of that "simulated" mci get incremented depending
+on which pointer gets passed in from GHES? More bullshit.
+
+> This is just statistics info, and ghes_edac does not expect any OS
+> action from the counters.
+
+So let me know if you don't want to do it and rather would prefer to
+pointlessly debate. I certainly don't want to waste my time debating.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
