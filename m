@@ -1,36 +1,89 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH] acpi: apei: fix the wrongly parse generic error status
- block
-Date: Tue, 15 Aug 2017 09:14:34 +0800
-Message-ID: <250ab5f5-7eb7-5339-f895-a77837721467@huawei.com>
-References: <1502388412-20273-1-git-send-email-gengdongjiu@huawei.com>
- <9ea70eed-f743-0c8b-2a70-27ce4c0d8705@codeaurora.org>
- <ddb2070d-60c5-a476-c003-25814d0cf863@huawei.com>
- <1be489f7-c1c3-63dc-dc0d-af67e5fd03a1@huawei.com>
- <70ebfc99-0666-fa2b-8ed4-19e1f93194bd@codeaurora.org>
- <CAMj-D2DqEafgnOCsRjm8fSkj_R7_HWPnBxEijhoUV_LnU7VY6Q@mail.gmail.com>
- <571aed7f-39aa-b5f0-1ea2-2e57a588d22f@codeaurora.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 3/3] ACPI / scan: Enable GPEs before scanning the
+ namespace
+Date: Tue, 15 Aug 2017 02:12:24 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF0AFE3@SHSMSX101.ccr.corp.intel.com>
+References: <12346760.yAFCnkEgf6@aspire.rjw.lan>
+ <6344941.kJ2o2XerZ0@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:3082 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752839AbdHOBO7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Aug 2017 21:14:59 -0400
-In-Reply-To: <571aed7f-39aa-b5f0-1ea2-2e57a588d22f@codeaurora.org>
+Received: from mga14.intel.com ([192.55.52.115]:26149 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752922AbdHOCM2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 14 Aug 2017 22:12:28 -0400
+In-Reply-To: <6344941.kJ2o2XerZ0@aspire.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Baicar, Tyler" <tbaicar@codeaurora.org>, gengdongjiu <gengdj.1984@gmail.com>
-Cc: rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Hi,Tyler,
-   Yes, I will add a patch based on it, thanks a lot that you will also have a test.
+Hi, Rafael
 
-
-On 2017/8/14 22:04, Baicar, Tyler wrote:
-> This change works too, I think it just makes sense to have the iterations in the CPER and GHES code match. Do you want to add a patch to your patch here to change the CPER code as well? If so, I'll wait for that and test it out.
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J.
+> Wysocki
+> Subject: [PATCH 3/3] ACPI / scan: Enable GPEs before scanning the namespace
 > 
-> Thanks,
-> Tyler
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> On some systems the platform firmware expects GPEs to be enabled
+> before the enumeration of devices and if that expectation is not
+> met, the systems in question may not boot in some situations.
+> 
+> For this reason, change the initialization ordering of the ACPI
+> subsystem to make it enable GPEs before scanning the namespace
+> for the first time in order to enumerate devices.
+> 
+> Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/scan.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -2139,6 +2139,10 @@ int __init acpi_scan_init(void)
+>  			acpi_get_spcr_uart_addr();
+>  	}
+> 
+> +	acpi_gpe_apply_masked_gpes();
+> +	acpi_update_all_gpes();
+> +	acpi_ec_ecdt_start();
+> +
 
+Just for your information.
+A recent internal bug reveals that acpi_ec_ecdt_start() should only be
+invoked after the enumeration (acpi_ec_add()) for now.
+The function contains logics that need to be altered by acpi_ec_add().
+
+So it seems we can only do less aggressive change by moving the GPE
+related 2 lines up.
+
+Thanks and best regards
+Lv
+
+>  	mutex_lock(&acpi_scan_lock);
+>  	/*
+>  	 * Enumerate devices in the ACPI namespace.
+> @@ -2163,10 +2167,6 @@ int __init acpi_scan_init(void)
+>  		}
+>  	}
+> 
+> -	acpi_gpe_apply_masked_gpes();
+> -	acpi_update_all_gpes();
+> -	acpi_ec_ecdt_start();
+> -
+>  	acpi_scan_initialized = true;
+> 
+>   out:
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
