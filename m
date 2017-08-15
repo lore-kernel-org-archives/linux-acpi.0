@@ -1,54 +1,44 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH 2/3] GHES: Move memory initialisation to ghes_probe()
-Date: Tue, 15 Aug 2017 10:35:43 +0200
-Message-ID: <20170815083543.rz7lr4sbjcn65xc4@pd.tnic>
-References: <20170801133608.21017-1-punit.agrawal@arm.com>
- <20170801133608.21017-3-punit.agrawal@arm.com>
- <20170814192256.56zoo5hgbyake25b@pd.tnic>
- <87o9rhp2f6.fsf@e105922-lin.cambridge.arm.com>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: Re: [PATCH] ACPI/APEI: Add BERT data driver
+Date: Tue, 15 Aug 2017 11:22:06 +0100
+Message-ID: <87k225p1v5.fsf@e105922-lin.cambridge.arm.com>
+References: <20170814165613.25561-1-tony.luck@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:43871 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753405AbdHOKTL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 15 Aug 2017 06:19:11 -0400
-Content-Disposition: inline
-In-Reply-To: <87o9rhp2f6.fsf@e105922-lin.cambridge.arm.com>
+Received: from foss.arm.com ([217.140.101.70]:49808 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753419AbdHOKWJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 15 Aug 2017 06:22:09 -0400
+In-Reply-To: <20170814165613.25561-1-tony.luck@intel.com> (Tony Luck's message
+        of "Mon, 14 Aug 2017 09:56:13 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Punit Agrawal <punit.agrawal@arm.com>
-Cc: linux-acpi@vger.kernel.org, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, James Morse <james.morse@arm.com>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Aug 15, 2017 at 11:10:05AM +0100, Punit Agrawal wrote:
-> In the absence of any GHES entries these are wasted.
+Hi Tony,
 
-I know. This whole APEI init code would need a proper cleanup, like
-acpi_pci_root_init() calls acpi_hest_init() and it shouldn't have to
-communicate through a variable with GHES whether to init or not but it
-should initialize GHES itself. And ghes_init() being a device_initcall()
-is just yuck.
+"Luck, Tony" <tony.luck@intel.com> writes:
 
-Something for the todo list I guess...
+> From: Tony Luck <tony.luck@intel.com>
+>
+> The ACPI Boot Error Record Table provides a method for platform
+> firmware to give information to the operating system about error
+> that occurred prior to boot (of particular interest are problems
+> that caused the previous OS instance to crash).
+>
+> The BERT table simply provides the size and address of the error
+> record in BIOS reserved memory. In an earlier age we might have
+> used /dev/mem to retrieve this error record, but many systems
+> disable /dev/mem for security reasons.
+>
+> This driver provides read-only access to the data via a character
+> special device "/dev/bert-data".
 
-> The system does not provide the Hardware Error Source Table (HEST) which
-> is checked in the hest driver (drivers/acpi/apei/hest.c).
-> 
-> I think I'll go with your original suggestion to change hest_disable
-> from a boolean to something with more states. Re-checking for the HEST
-> table again feels like duplication.
-> 
-> Makes sense?
+There is already a bert driver which prints the error record. Would it
+make sense to integrate the character device there instead of creating a
+new driver?
 
-Right, and then depending on the setting of hest_disable, either issue
-the "HEST is not enabled" message or not.
+[...]
 
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
