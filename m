@@ -1,152 +1,60 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v4] acpi/iort: numa: Add numa node mapping for smmuv3
-	devices
-Date: Tue, 15 Aug 2017 16:05:49 +0100
-Message-ID: <20170815150549.GA1301@e107981-lin.cambridge.arm.com>
-References: <20170725050237.11033-1-ganapatrao.kulkarni@cavium.com>
-	<20170815150213.GD18024@rric.localdomain>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
+Date: Tue, 15 Aug 2017 15:35:51 +0000
+Message-ID: <1502810766.2042.149.camel@hpe.com>
+References: <20170814162436.lta5xm742hh6g7yk@pd.tnic>
+         <1502728754.2042.139.camel@hpe.com>
+         <20170814170552.j3lhzvnwlpz75y4g@pd.tnic>
+         <1502732561.2042.141.camel@hpe.com>
+         <20170814180526.wtfjzgc6uye2qtx6@pd.tnic>
+         <1502734083.2042.143.camel@hpe.com>
+         <20170814183551.sgk2i7lxpmpyodhv@pd.tnic>
+         <1502736750.2042.145.camel@hpe.com>
+         <20170814193432.mjldfhfal5ba5dt7@pd.tnic>
+         <1502741290.2042.147.camel@hpe.com>
+         <20170814203942.6t3mrq3hc324blab@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170815150213.GD18024-vWBEXY7mpu582hYKe6nXyg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Robert Richter <robert.richter-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, Will.Deacon-5wv7dgnIgG8@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gklkml16-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jnair-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Ganapatrao Kulkarni <ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170814203942.6t3mrq3hc324blab@pd.tnic>
+Content-Language: en-US
+Content-ID: <5CECFBCC3EA51C47B23091B714FA3A4F@NAMPRD84.PROD.OUTLOOK.COM>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "bp@alien8.de" <bp@alien8.de>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 15, 2017 at 05:02:13PM +0200, Robert Richter wrote:
-> Lorenzo, Will,
-> 
-> On 25.07.17 10:32:37, Ganapatrao Kulkarni wrote:
-> > ARM IORT specification(rev. C) has added  provision to define proximity
-> > domain in SMMUv3 IORT table. Adding required code to parse Proximity
-> > domain and set numa_node of smmv3 platform devices.
-> > 
-> > Add code to parse proximity domain in SMMUv3 IORT table to
-> > set numa node mapping for smmuv3 devices.
-> > 
-> > Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> > ---
-> > 
-> > This patch has dependency on header file patch [1], which is
-> > already merged to linux-pm.
-> > 
-> > [1] https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/?h=linux-next&id=c944230064eb65e4fa018d86779b4fd200b1d7e7
-> > 
-> > v4:
-> >   - Fix compilation issue in !CONFIG_NUMA
-> > 
-> > v3:
-> >   - Addressed Lorenzo Pieralisi comment.
-> > 
-> > v2:
-> >   - Changed as per Lorenzo Pieralisi and Hanjun Guo suggestions.
-> > 
-> > v1:
-> >   - Initial patch
-> > 
-> >  drivers/acpi/arm64/iort.c | 33 +++++++++++++++++++++++++++++++--
-> >  1 file changed, 31 insertions(+), 2 deletions(-)
-> 
-> could this patch being scheduled for v4.14?
-
-https://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git/commit/?h=for-next/core&id=5fe0ce3b9e514168427463d0c7a86dfa635da3d2
-
-It is already :) (I CC'ed you on the PR)
-
-Thanks,
-Lorenzo
-
-> 
-> Thanks,
-> 
-> -Robert
-> 
-> > 
-> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> > index a3215ee..c5c82c3 100644
-> > --- a/drivers/acpi/arm64/iort.c
-> > +++ b/drivers/acpi/arm64/iort.c
-> > @@ -908,6 +908,28 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
-> >  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
-> >  }
-> >  
-> > +#if defined(CONFIG_ACPI_NUMA) && (ACPI_CA_VERSION >= 0x20170629)
-> > +/*
-> > + * set numa proximity domain for smmuv3 device
-> > + */
-> > +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
-> > +		struct device *dev)
-> > +{
-> > +	struct acpi_iort_smmu_v3 *smmu;
-> > +
-> > +	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
-> > +	if (smmu->flags & ACPI_IORT_SMMU_V3_PXM_VALID) {
-> > +		set_dev_node(dev, acpi_map_pxm_to_node(smmu->pxm));
-> > +		pr_info("SMMUV3[%llx] Mapped to Proximity domain %d\n",
-> > +			smmu->base_address,
-> > +			smmu->pxm);
-> > +	}
-> > +}
-> > +#else
-> > +static void  __init arm_smmu_v3_set_proximity(struct acpi_iort_node *node,
-> > +		struct device *dev) { }
-> > +#endif
-> > +
-> >  static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
-> >  {
-> >  	struct acpi_iort_smmu *smmu;
-> > @@ -977,20 +999,24 @@ struct iort_iommu_config {
-> >  	int (*iommu_count_resources)(struct acpi_iort_node *node);
-> >  	void (*iommu_init_resources)(struct resource *res,
-> >  				     struct acpi_iort_node *node);
-> > +	void (*iommu_set_proximity)(struct acpi_iort_node *node,
-> > +				     struct device *dev);
-> >  };
-> >  
-> >  static const struct iort_iommu_config iort_arm_smmu_v3_cfg __initconst = {
-> >  	.name = "arm-smmu-v3",
-> >  	.iommu_is_coherent = arm_smmu_v3_is_coherent,
-> >  	.iommu_count_resources = arm_smmu_v3_count_resources,
-> > -	.iommu_init_resources = arm_smmu_v3_init_resources
-> > +	.iommu_init_resources = arm_smmu_v3_init_resources,
-> > +	.iommu_set_proximity = arm_smmu_v3_set_proximity
-> >  };
-> >  
-> >  static const struct iort_iommu_config iort_arm_smmu_cfg __initconst = {
-> >  	.name = "arm-smmu",
-> >  	.iommu_is_coherent = arm_smmu_is_coherent,
-> >  	.iommu_count_resources = arm_smmu_count_resources,
-> > -	.iommu_init_resources = arm_smmu_init_resources
-> > +	.iommu_init_resources = arm_smmu_init_resources,
-> > +	.iommu_set_proximity = NULL
-> >  };
-> >  
-> >  static __init
-> > @@ -1028,6 +1054,9 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
-> >  	if (!pdev)
-> >  		return -ENOMEM;
-> >  
-> > +	if (ops->iommu_set_proximity)
-> > +		ops->iommu_set_proximity(node, &pdev->dev);
-> > +
-> >  	count = ops->iommu_count_resources(node);
-> >  
-> >  	r = kcalloc(count, sizeof(*r), GFP_KERNEL);
-> > -- 
-> > 2.9.4
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gTW9uLCAyMDE3LTA4LTE0IGF0IDIyOjM5ICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
+DQo+IE9uIE1vbiwgQXVnIDE0LCAyMDE3IGF0IDA4OjE3OjU0UE0gKzAwMDAsIEthbmksIFRvc2hp
+bWl0c3Ugd3JvdGU6DQo+ID4gSSB0aGluayB0aGUgY3VycmVudCBjb2RlIGRlc2lnbiBvZiBhbGxv
+Y2F0aW5nIG1jaSAmIGdoZXNfZWRhY19wdnQNCj4gPiBmb3IgZWFjaCBHSEVTIHNvdXJjZSBlbnRy
+eSBtYWtlcyBzZW5zZS4NCj4gDQo+IEFuZCBJIGRvbid0Lg0KPiANCj4gPiBlZGFjX3Jhd19tY19o
+YW5kbGVfZXJyb3IoKSBhbHNvIGhhcyB0aGUgc2FtZSBleHBlY3RhdGlvbiB0aGF0IHRoZQ0KPiA+
+IGNhbGwgaXMgc2VyaWFsaXplZCBwZXIgbWNpLg0KPiANCj4gVGhlcmUncyBubyBzdWNoIHRoaW5n
+IGFzICJwZXIgbWNpIiBpZiB0aGUgZHJpdmVyIHNjYW5zICphbGwgRElNTXMqDQo+IHBlciByZWdp
+c3RlciBjYWxsLiBJZiBpdCBkb2VzIGl0IHRoaXMgd2F5LCB0aGVuIGl0IGlzIG9ubHkgb25lIG1j
+aS4NCg0KZ2hlc19lZGFjIGluc3RhbnRpYXRlcyBhbiBtY2kgYXMgYSBwc2V1ZG8gZGV2aWNlIHJl
+cHJlc2VudGluZyBhIEdIRVMNCmVycm9yIHNvdXJjZS4gIEVhY2ggZXJyb3Igc291cmNlIGFzc29j
+aWF0ZXMgd2l0aCBhbGwgRElNTXMsIGFuZCBtYXkNCnJlcG9ydCBlcnJvcnMgaW5kZXBlbmRlbnRs
+eS4gIEFzIGdoZXNfZWRhYyBpcyBhbiBHSEVTIGVycm9yLXJlcG9ydGluZw0Kd3JhcHBlciB0byBl
+ZGFjLCB0aGlzIGFic3RyYWN0aW9uIG1ha2VzIHNlbnNlLg0KDQo+IEl0IGlzIGFjdHVhbGx5IHdy
+b25nIHJpZ2h0IG5vdyBiZWNhdXNlIGlmIHlvdSByZWdpc3RlciBtb3JlIHRoYW4gb25lDQo+IG1j
+aSBhbmQgeW91IGRvIGVkYWNfaW5jX2NlX2Vycm9yKCkvZWRhY19pbmNfdWVfZXJyb3IoKSwgcG90
+ZW50aWFsbHkNCj4gZGlmZmVyZW50IGNvdW50ZXJzIGdldCBpbmNyZW1lbnRlZCBmb3IgdGhlIHNh
+bWUgZXJyb3JzLiBFeGFjdGx5DQo+IGJlY2F1c2UgZWFjaCBpbnN0YW5jZSByZWdpc3RlcmVkIGlz
+ICp3cm9uZ2x5KiByZXNwb25zaWJsZSBmb3IgYWxsDQo+IERJTU1zIG9uIHRoZSBzeXN0ZW0uDQoN
+CkkgZG8gbm90IHNlZSBhIHByb2JsZW0gaW4gaGF2aW5nIGNvdW50ZXJzIGZvciBlYWNoIEdIRVMg
+ZXJyb3Igc291cmNlLiANClRoaXMgaXMganVzdCBzdGF0aXN0aWNzIGluZm8sIGFuZCBnaGVzX2Vk
+YWMgZG9lcyBub3QgZXhwZWN0IGFueSBPUw0KYWN0aW9uIGZyb20gdGhlIGNvdW50ZXJzLg0KDQo+
+IFNvIHlvdSBlaXRoZXIgbmVlZCB0byBwYXJ0aXRpb24gdGhlIERJTU1zIHBlciBtY2kgKHdoaWNo
+IEkgY2FuJ3QNCj4gaW1hZ2luZSBob3cgaXQgd291bGQgd29yaykgb3IgaW50cm9kdWNlIGxvY2tp
+bmcgd2hlbiBpbmNyZW1lbnRpbmcgdGhlDQo+IG1jaS0+Y291bnRlcnMuDQoNCkkgZG8gbm90IHRo
+aW5rIGNoYW5naW5nIHRoZSBjYWxsaW5nIGNvbnZlbnRpb24gdG8gZWRhYyBsaWJyYXJ5DQppbnRl
+cmZhY2VzIGlzIGEgZ29vZCBpZGVhIGZvciBhIHNwZWNpYWwgY2FzZSBsaWtlIGdoZXNfZWRhYy4g
+IFN1Y2gNCmNoYW5nZXMgY2FuIGJlIGEgYnVyZGVuIGZvciB1cyBnb2luZyBmb3J3YXJkLiAgSSB0
+aGluayBnaGVzX2VkYWMganVzdA0KbmVlZHMgdG8gd29yayB3aXRoIHRoZSBjdXJyZW50IHByZXJl
+cXVpc2l0ZS4NCg0KVXNlciBhcHBzIGxpa2UgcmFzLW1jLWN0bCB3b3JrcyBhcyBleHBlY3RlZCBm
+b3IgYSBnaXZlbiAobm90LXNvLWdyZWF0KQ0KRElNTSBpbmZvIGZyb20gU01CSU9TIGFzIHdlbGwu
+ICBJIGRvIG5vdCBzZWUgYSBwcm9iZWxtIGZyb20gdXNlcg0KcGVyc3BlY3RpdmUsIGVpdGhlci4N
+Cg0KVGhhbmtzLA0KLVRvc2hpDQoNCg==
