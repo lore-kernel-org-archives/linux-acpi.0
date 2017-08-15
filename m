@@ -1,98 +1,43 @@
-From: Dongjiu Geng <gengdongjiu@huawei.com>
-Subject: [PATCH v2] acpi: apei: fix the wrongly iterate generic error status block
-Date: Tue, 15 Aug 2017 19:15:13 +0800
-Message-ID: <1502795713-20945-1-git-send-email-gengdongjiu@huawei.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH 2/3] GHES: Move memory initialisation to ghes_probe()
+Date: Tue, 15 Aug 2017 12:56:21 +0200
+Message-ID: <20170815105621.imzo7r7xmcl5jd3m@pd.tnic>
+References: <20170801133608.21017-1-punit.agrawal@arm.com>
+ <20170801133608.21017-3-punit.agrawal@arm.com>
+ <20170814192256.56zoo5hgbyake25b@pd.tnic>
+ <87o9rhp2f6.fsf@e105922-lin.cambridge.arm.com>
+ <20170815083543.rz7lr4sbjcn65xc4@pd.tnic>
+ <87fuctp1eq.fsf@e105922-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:3533 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753584AbdHOKvp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Aug 2017 06:51:45 -0400
+Received: from mx2.suse.de ([195.135.220.15]:46263 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753500AbdHOK42 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 15 Aug 2017 06:56:28 -0400
+Content-Disposition: inline
+In-Reply-To: <87fuctp1eq.fsf@e105922-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tbaicar@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gengdongjiu@huawei.com, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com
-Cc: huangshaoyu@huawei.com, wuquanming@huawei.com
+To: Punit Agrawal <punit.agrawal@arm.com>
+Cc: linux-acpi@vger.kernel.org, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, James Morse <james.morse@arm.com>
 
-The revision 0x300 generic error data entry is different
-from the old version, but currently iterating through the
-GHES estatus blocks does not take into account this difference.
-This will lead to failure to get the right data entry if GHES
-has revision 0x300 error data entry.
+On Tue, Aug 15, 2017 at 11:31:57AM +0100, Punit Agrawal wrote:
+> I'd seen the link between acpi_pci_root_init() and acpi_hest_init() but
+> didn't want to open another can of worms... :)
+> 
+> $SUBJECT was my attempt (small) at improving the situation but I guess I
+> didn't go far enough.
 
-Update the GHES estatus iteration to properly increment using
-acpi_hest_get_next, and correct the iteration termination condition
-because the status block data length only includes error data length.
-Clear the CPER estatus printing iteration logic to use same macro.
+Well, one fine day, if you feel bored and your hands are itching to do
+some hacking, I won't be mad atcha if you did a second try...
 
-Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-CC: Tyler Baicar <tbaicar@codeaurora.org>
----
- drivers/acpi/apei/apei-internal.h | 5 -----
- drivers/firmware/efi/cper.c       | 7 +------
- include/acpi/ghes.h               | 5 +++++
- 3 files changed, 6 insertions(+), 11 deletions(-)
+:-)))
 
-diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
-index 6e9f14c0a71b..cb4126051f62 100644
---- a/drivers/acpi/apei/apei-internal.h
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -120,11 +120,6 @@ int apei_exec_collect_resources(struct apei_exec_context *ctx,
- struct dentry;
- struct dentry *apei_get_debugfs_dir(void);
- 
--#define apei_estatus_for_each_section(estatus, section)			\
--	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
--	     (void *)section - (void *)estatus < estatus->data_length;	\
--	     section = (void *)(section+1) + section->error_data_length)
--
- static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
- {
- 	if (estatus->raw_data_length)
-diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-index 48a8f69da42a..dff454321160 100644
---- a/drivers/firmware/efi/cper.c
-+++ b/drivers/firmware/efi/cper.c
-@@ -606,7 +606,6 @@ void cper_estatus_print(const char *pfx,
- 			const struct acpi_hest_generic_status *estatus)
- {
- 	struct acpi_hest_generic_data *gdata;
--	unsigned int data_len;
- 	int sec_no = 0;
- 	char newpfx[64];
- 	__u16 severity;
-@@ -617,14 +616,10 @@ void cper_estatus_print(const char *pfx,
- 		       "It has been corrected by h/w "
- 		       "and requires no further action");
- 	printk("%s""event severity: %s\n", pfx, cper_severity_str(severity));
--	data_len = estatus->data_length;
--	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
- 	snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
- 
--	while (data_len >= acpi_hest_get_size(gdata)) {
-+	apei_estatus_for_each_section(estatus, gdata) {
- 		cper_estatus_print_section(newpfx, gdata, sec_no);
--		data_len -= acpi_hest_get_record_size(gdata);
--		gdata = acpi_hest_get_next(gdata);
- 		sec_no++;
- 	}
- }
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 9f26e01186ae..9061c5c743b3 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -113,6 +113,11 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
- 	return (void *)(gdata) + acpi_hest_get_record_size(gdata);
- }
- 
-+#define apei_estatus_for_each_section(estatus, section)			\
-+	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
-+	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
-+	     section = acpi_hest_get_next(section))
-+
- int ghes_notify_sea(void);
- 
- #endif /* GHES_H */
 -- 
-2.14.0
+Regards/Gruss,
+    Boris.
 
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
