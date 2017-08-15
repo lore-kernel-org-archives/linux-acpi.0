@@ -1,98 +1,58 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v2] acpi: apei: fix the wrongly iterate generic error
- status block
-Date: Tue, 15 Aug 2017 18:13:43 +0200
-Message-ID: <20170815161342.jxxf4rndqbs7t5rr@pd.tnic>
-References: <1502795713-20945-1-git-send-email-gengdongjiu@huawei.com>
- <CAMj-D2CXOurgPGGGbC7qHX-uWZeMYwh9EfLOS3p3hm+=BvPq7w@mail.gmail.com>
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
+Date: Tue, 15 Aug 2017 16:19:50 +0000
+Message-ID: <1502813405.2042.153.camel@hpe.com>
+References: <20170814170552.j3lhzvnwlpz75y4g@pd.tnic>
+         <1502732561.2042.141.camel@hpe.com>
+         <20170814180526.wtfjzgc6uye2qtx6@pd.tnic>
+         <1502734083.2042.143.camel@hpe.com>
+         <20170814183551.sgk2i7lxpmpyodhv@pd.tnic>
+         <1502736750.2042.145.camel@hpe.com>
+         <20170814193432.mjldfhfal5ba5dt7@pd.tnic>
+         <1502741290.2042.147.camel@hpe.com>
+         <20170814203942.6t3mrq3hc324blab@pd.tnic>
+         <1502810766.2042.149.camel@hpe.com>
+         <20170815155000.d57hwki5jbixjuj6@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMj-D2CXOurgPGGGbC7qHX-uWZeMYwh9EfLOS3p3hm+=BvPq7w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gengdongjiu <gengdj.1984@gmail.com>, tbaicar@codeaurora.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, huangshaoyu@huawei.com, wuquanming@huawei.com, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, shameerali.kolothum.thodi@huawei.com, jonathan.cameron@huawei.com, huangdaode@hisilicon.com, wangzhou1@hisilicon.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3427.houston.hpe.com ([15.241.140.73]:40090 "EHLO
+        g4t3427.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753105AbdHOQTz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Aug 2017 12:19:55 -0400
+In-Reply-To: <20170815155000.d57hwki5jbixjuj6@pd.tnic>
+Content-Language: en-US
+Content-ID: <33DFDD5BF152414397A3860B5E1D21D8@NAMPRD84.PROD.OUTLOOK.COM>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "bp@alien8.de" <bp@alien8.de>
+Cc: "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Aug 15, 2017 at 10:16:20PM +0800, gengdongjiu wrote:
-> 2017-08-15 19:15 GMT+08:00, Dongjiu Geng <gengdongjiu@huawei.com>:
-> > The revision 0x300 generic error data entry is different
-> > from the old version, but currently iterating through the
-> > GHES estatus blocks does not take into account this difference.
-> > This will lead to failure to get the right data entry if GHES
-> > has revision 0x300 error data entry.
-> >
-> > Update the GHES estatus iteration to properly increment using
-> > acpi_hest_get_next, and correct the iteration termination condition
-> > because the status block data length only includes error data length.
-> > Clear the CPER estatus printing iteration logic to use same macro.
-> >
-> > Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> > CC: Tyler Baicar <tbaicar@codeaurora.org>
-
-...
-
-> > diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-> > index 48a8f69da42a..dff454321160 100644
-> > --- a/drivers/firmware/efi/cper.c
-> > +++ b/drivers/firmware/efi/cper.c
-> > @@ -606,7 +606,6 @@ void cper_estatus_print(const char *pfx,
-> >  			const struct acpi_hest_generic_status *estatus)
-> >  {
-> >  	struct acpi_hest_generic_data *gdata;
-> > -	unsigned int data_len;
-> >  	int sec_no = 0;
-> >  	char newpfx[64];
-> >  	__u16 severity;
-> > @@ -617,14 +616,10 @@ void cper_estatus_print(const char *pfx,
-> >  		       "It has been corrected by h/w "
-> >  		       "and requires no further action");
-> >  	printk("%s""event severity: %s\n", pfx, cper_severity_str(severity));
-> > -	data_len = estatus->data_length;
-> > -	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
-> >  	snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
-> >
-> > -	while (data_len >= acpi_hest_get_size(gdata)) {
-> > +	apei_estatus_for_each_section(estatus, gdata) {
-> >  		cper_estatus_print_section(newpfx, gdata, sec_no);
-> > -		data_len -= acpi_hest_get_record_size(gdata);
-> > -		gdata = acpi_hest_get_next(gdata);
-> >  		sec_no++;
-
-This one looks cleaner to me because it gets rid of all those
-variables...
-
-> >  	}
-> >  }
-> > diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-> > index 9f26e01186ae..9061c5c743b3 100644
-> > --- a/include/acpi/ghes.h
-> > +++ b/include/acpi/ghes.h
-> > @@ -113,6 +113,11 @@ static inline void *acpi_hest_get_next(struct
-> > acpi_hest_generic_data *gdata)
-> >  	return (void *)(gdata) + acpi_hest_get_record_size(gdata);
-> >  }
-> >
-> > +#define apei_estatus_for_each_section(estatus, section)			\
-> > +	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
-> > +	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
-> > +	     section = acpi_hest_get_next(section))
-
-... and uses that accessor.
-
-Tyler?
-
-I'd prefer if you guys merge your two patches, Tyler's from
-https://marc.info/?l=linux-acpi&m=150179595323038&w=2 and this one into
-a single one.
-
-How does that sound?
-
--- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+T24gVHVlLCAyMDE3LTA4LTE1IGF0IDE3OjUwICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
+DQo+IE9uIFR1ZSwgQXVnIDE1LCAyMDE3IGF0IDAzOjM1OjUxUE0gKzAwMDAsIEthbmksIFRvc2hp
+bWl0c3Ugd3JvdGU6DQo+ID4gZ2hlc19lZGFjIGluc3RhbnRpYXRlcyBhbiBtY2kgYXMgYSBwc2V1
+ZG8gZGV2aWNlIHJlcHJlc2VudGluZyBhDQo+ID4gR0hFUyBlcnJvciBzb3VyY2UuwqDCoEVhY2gg
+ZXJyb3Igc291cmNlIGFzc29jaWF0ZXMgd2l0aCBhbGwgRElNTXMsDQo+ID4gYW5kIG1heSByZXBv
+cnQgZXJyb3JzIGluZGVwZW5kZW50bHkuwqDCoEFzIGdoZXNfZWRhYyBpcyBhbiBHSEVTDQo+ID4g
+ZXJyb3ItcmVwb3J0aW5nIHdyYXBwZXIgdG8gZWRhYywgdGhpcyBhYnN0cmFjdGlvbiBtYWtlcyBz
+ZW5zZS4NCj4gDQo+IEJ1bGxzaGl0Lg0KPiANCj4gQW4gTUNJIGlzIGEgbWVtb3J5IGNvbnRyb2xs
+ZXIgZGVzY3JpcHRvci4gVGhhdCBkb2Vzbid0IGZpdCB0aGUgR0hFUw0KPiBwbGF0Zm9ybSBkZXZp
+Y2VzIHRoYXQgZ2V0IHByb2JlZC4gR0hFUyBwbGF0Zm9ybSBkZXZpY2UgIT0gTUNJLiBIb3cNCj4g
+bWFueSB0aW1lcyBkbyBJIG5lZWQgdG8gc2F5IHRoaXMgZm9yIGl0IHRvIGdldCB0aHJvdWdoIHRv
+IHlvdT8NCg0KUmlnaHQsIGJ1dCBpdCBoYXMgdG8gYmUgYSAicHNldWRvIiBkZXZpY2UgZm9yIGdo
+ZXNfZWRhYy4gIFRoZXJlIGlzIG5vDQptZW1vcnkgY29udHJvbGxlciBpbmZvIGF2YWlsYWJsZS4g
+IEEgc2luZ2xlIG1jaSBkb2VzIG5vdCBtYWtlIGl0IGEgcmVhbA0KbWVtb3J5IGNvbnRyb2xsZXIs
+IGVpdGhlci4NCg0KPiA+IEkgZG8gbm90IHNlZSBhIHByb2JsZW0gaW4gaGF2aW5nIGNvdW50ZXJz
+IGZvciBlYWNoIEdIRVMgZXJyb3INCj4gPiBzb3VyY2UuDQo+IA0KPiBBbmQgdGhlIGVycm9yIGNv
+dW50ZXJzIG9mIHRoYXQgInNpbXVsYXRlZCIgbWNpIGdldCBpbmNyZW1lbnRlZA0KPiBkZXBlbmRp
+bmcgb24gd2hpY2ggcG9pbnRlciBnZXRzIHBhc3NlZCBpbiBmcm9tIEdIRVM/IE1vcmUgYnVsbHNo
+aXQuDQo+DQo+ID4gVGhpcyBpcyBqdXN0IHN0YXRpc3RpY3MgaW5mbywgYW5kIGdoZXNfZWRhYyBk
+b2VzIG5vdCBleHBlY3QgYW55IE9TDQo+ID4gYWN0aW9uIGZyb20gdGhlIGNvdW50ZXJzLg0KPiAN
+Cj4gU28gbGV0IG1lIGtub3cgaWYgeW91IGRvbid0IHdhbnQgdG8gZG8gaXQgYW5kIHJhdGhlciB3
+b3VsZCBwcmVmZXIgdG8NCj4gcG9pbnRsZXNzbHkgZGViYXRlLiBJIGNlcnRhaW5seSBkb24ndCB3
+YW50IHRvIHdhc3RlIG15IHRpbWUgZGViYXRpbmcuDQoNClllcywgZ2hlc19lZGFjIHJlZmFjdG9y
+aW5nIGxpa2UgdGhpcyBzaG91bGQgYmUgY29uc2lkZXJlZCBhIHNlcGFyYXRlDQppdGVtLiAgTXkg
+cGF0Y2hzZXQgaXMgYWltZWQgdG8gaW50cm9kdWNlIGEgcGxhdGZvcm0tY2hlY2sgdG8gYXR0YWNo
+DQpnaGVzX2VkYWMgb24gc3VwcG9ydGVkIHBsYXRmb3Jtcy4NCg0KVGhhbmtzLA0KLVRvc2hpDQoN
+Cg==
