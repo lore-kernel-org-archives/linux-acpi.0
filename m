@@ -1,127 +1,72 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
-Date: Tue, 15 Aug 2017 14:21:30 +0200
-Message-ID: <1635689.qJin4YfZ5x@aspire.rjw.lan>
-References: <12346760.yAFCnkEgf6@aspire.rjw.lan> <3677056.OS19FbOdkF@aspire.rjw.lan> <1AE640813FDE7649BE1B193DEA596E886CF0B3F2@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH 3/3] ACPI / scan: Enable GPEs before scanning the namespace
+Date: Tue, 15 Aug 2017 14:22:26 +0200
+Message-ID: <1868898.NJio3FymBZ@aspire.rjw.lan>
+References: <12346760.yAFCnkEgf6@aspire.rjw.lan> <6344941.kJ2o2XerZ0@aspire.rjw.lan> <1AE640813FDE7649BE1B193DEA596E886CF0AFE3@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CF0B3F2@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49738 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752384AbdHOMav (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 15 Aug 2017 08:30:51 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CF0AFE3@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Zheng, Lv" <lv.zheng@intel.com>
 Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, August 15, 2017 11:59:00 AM CEST Zheng, Lv wrote:
-> Hi,
+On Tuesday, August 15, 2017 4:12:24 AM CEST Zheng, Lv wrote:
+> Hi, Rafael
 > 
-> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J.
+> > Wysocki
+> > Subject: [PATCH 3/3] ACPI / scan: Enable GPEs before scanning the namespace
 > > 
-> > On Friday, August 11, 2017 7:40:56 AM CEST Zheng, Lv wrote:
-> > > Hi, Rafael
-> > >
-> > > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > > > Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
-> > > >
-> > > > On Thursday, August 10, 2017 3:48:58 AM CEST Zheng, Lv wrote:
-> > > > > Hi, Rafael
-> > > > >
-> > > > > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > > > > > Subject: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
-> > > > > >
-> > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > >
-> > > > > > In some cases GPEs are already active when they are enabled by
-> > > > > > acpi_ev_initialize_gpe_block() and whatever happens next may depend
-> > > > > > on the result of handling the events signaled by them, so the
-> > > > > > events should not be discarded (which is what happens currently) and
-> > > > > > they should be handled as soon as reasonably possible.
-> > > > > >
-> > > > > > For this reason, modify acpi_ev_initialize_gpe_block() to
-> > > > > > dispatch GPEs with the status flag set in-band right after
-> > > > > > enabling them.
-> > > > >
-> > > > > In fact, what we need seems to be invoking acpi_ev_gpe_dispatch()
-> > > > > right after enabling an GPE. So there are 2 conditions related:
-> > > > > 1. GPE is enabled for the first time.
-> > > > > 2. GPE is initialized.
-> > > > >
-> > > > > And we need to make sure that before acpi_update_all_gpes() is invoked,
-> > > > > all GPE EN bits are actually disabled.
-> > > >
-> > > > But we don't do it today, do we?
-> > >
-> > > We don't do that.
-> > >
-> > > >
-> > > > And still calling _dispatch() should not be incorrect even if the GPE
-> > > > has been enabled already at this point.  Worst case it just will
-> > > > queue up the execution of _Lxx/_Exx which may or may not do anything
-> > > > useful.
-> > > >
-> > > > And BTW this is all done under acpi_gbl_gpe_lock so acpi_ev_gpe_detect()
-> > > > will block on it if run concurrently and we've checked the status, so
-> > > > we know that the GPE *should* be dispatched, so I sort of fail to see
-> > > > the problem.
-> > >
-> > > There is another problem related:
-> > > ACPICA clears GPEs before enabling it.
-> > > This is proven to be wrong, and we have to fix it:
-> > > https://bugzilla.kernel.org/show_bug.cgi?id=196249
-> > >
-> > > without fixing this issue, in this solution, we surely need to save the
-> > > GPE STS bit before incrementing GPE reference count, and poll it according
-> > > to the saved STS bit. Because if we poll it after enabling, STS bit will
-> > > be wrongly cleared.
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > > 
-> > I'm not sure if I understand you correctly, but why would we poll it?
+> > On some systems the platform firmware expects GPEs to be enabled
+> > before the enumeration of devices and if that expectation is not
+> > met, the systems in question may not boot in some situations.
 > > 
-> > In the $subject patch the status is checked and then
-> > acpi_ev_add_gpe_reference() is called to add a reference to the GPE.
+> > For this reason, change the initialization ordering of the ACPI
+> > subsystem to make it enable GPEs before scanning the namespace
+> > for the first time in order to enumerate devices.
 > > 
-> > If this is the first reference (which will be the case in the majority
-> > of cases), acpi_ev_enable_gpe() will be called and that will clear the
-> > status.
+> > Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/acpi/scan.c |    8 ++++----
+> >  1 file changed, 4 insertions(+), 4 deletions(-)
 > > 
-> > Then, acpi_ev_gpe_dispatch() is called if the status was set and that
-> > itself doesn't check the status.  It disables the GPE upfront (so the
-> > status doesn't matter from now on until the GPE is enabled again) and
-> > clears the status unconditionally if the GPE is edge-triggered.  This
-> > means that for edge-triggered GPEs the clearing of the status by
-> > acpi_ev_enable_gpe() doesn't matter here.
+> > Index: linux-pm/drivers/acpi/scan.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/scan.c
+> > +++ linux-pm/drivers/acpi/scan.c
+> > @@ -2139,6 +2139,10 @@ int __init acpi_scan_init(void)
+> >  			acpi_get_spcr_uart_addr();
+> >  	}
+> > 
+> > +	acpi_gpe_apply_masked_gpes();
+> > +	acpi_update_all_gpes();
+> > +	acpi_ec_ecdt_start();
+> > +
 > 
-> No problem, I understood.
-> And was thinking thought this patch [edge GPE dispatch fix] should be
-> correct and good for current Linux upstream.
+> Just for your information.
+> A recent internal bug reveals that acpi_ec_ecdt_start() should only be
+> invoked after the enumeration (acpi_ec_add()) for now.
+> The function contains logics that need to be altered by acpi_ec_add().
 > 
-> What I meant is:
-> PATCH [edge GPE clear fix] https://patchwork.kernel.org/patch/9894983/
-> is a fix we need for upstream as it is the only possible fix for the
-> issue fixed by it.
-> On top of that, when acpi_ev_enable_gpe() is called, GPE won't be cleared.
-> and then things can be done in a simpler way:
-> PATCH [edge GPE enable fix] https://patchwork.kernel.org/patch/9894989/
-> 
-> As [edge GPE clear fix] is risky, I think [edge GPE dispatch fix] is OK
-> for Linux upstream.
-> 
-> So we can have 2 processes:
-> 1. Merge [edge GPE dispatch fix] and let [edge GPE clear fix] and
->    [edge GPE enable fix] released from ACPICA upstream so that:
->    1. We can enhance them in ACPICA upstream.
->    2. It will be regression safer for us to merge [edge GPE clear fix].
-> 2. Merge [edge GPE clear fix] and [edge GPE enable fix] without
->    merging [edge GPE dispatch fix].
-> 
-> What I meant is:
-> It's up to you to decide which process we should take. :)
+> So it seems we can only do less aggressive change by moving the GPE
+> related 2 lines up.
 
-OK
+OK, done.
 
-So I would go with what is already there in my tree.  Please work on top of
-that.
+Please check my linux-next branch and see if that's what it should be.
 
 Thanks,
 Rafael
+
