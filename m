@@ -1,147 +1,91 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
-Date: Tue, 15 Aug 2017 09:59:00 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF0B3F2@SHSMSX101.ccr.corp.intel.com>
-References: <12346760.yAFCnkEgf6@aspire.rjw.lan>
- <5185778.X36DhrMnGV@aspire.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E886CF09085@SHSMSX101.ccr.corp.intel.com>
- <3677056.OS19FbOdkF@aspire.rjw.lan>
+From: joeyli <jlee@suse.com>
+Subject: Re: A udev rule to serve the change event of ACPI container?
+Date: Tue, 15 Aug 2017 18:04:03 +0800
+Message-ID: <20170815100403.GJ25541@linux-l9pv.suse>
+References: <20170713065806.GB2901@linux-l9pv.suse>
+ <20170713070618.GC14492@dhcp22.suse.cz>
+ <20170713124521.GE2901@linux-l9pv.suse>
+ <20170714083713.GB2618@dhcp22.suse.cz>
+ <20170714144414.GM2901@linux-l9pv.suse>
+ <20170723060248.GA3034@linux-l9pv.suse>
+ <b6802e30-cb1e-5fa8-6afc-09b4e05d78c9@gmail.com>
+ <20170802054939.GL2946@linux-l9pv.suse>
+ <8c04a96f-3f7a-1c31-9522-3344a4751d33@gmail.com>
+ <20170804150619.GQ26029@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:20500 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753012AbdHOJ7F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 15 Aug 2017 05:59:05 -0400
-In-Reply-To: <3677056.OS19FbOdkF@aspire.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170804150619.GQ26029@dhcp22.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Hi,
-
-> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+On Fri, Aug 04, 2017 at 05:06:19PM +0200, Michal Hocko wrote:
+> On Thu 03-08-17 11:37:37, YASUAKI ISHIMATSU wrote:
+> > 
+> > 
+> > On 08/02/2017 01:49 AM, joeyli wrote:
+> > > Hi YASUAKI,
+> > > 
+> > > On Tue, Aug 01, 2017 at 03:21:38PM -0400, YASUAKI ISHIMATSU wrote:
+> > >> Hi Joey,
+> > >>
+> > >> On 07/23/2017 05:18 AM, joeyli wrote:
+> > > [...snip]
+> > >>>>>
+> > >>>>
+> > >>>> At least Yasuaki raised similar behavior for container in 2013.
+> > >>>> It's similar to the DVD player case, user space application needs
+> > >>>> to do something then trigger children offline and ejection of
+> > >>>> container.
+> > >>>>
+> > >>>> Base on Yasuaki's explanation, the reason of that he requested the
+> > >>>> userland ejection approach is that he got memory hot-remove problem
+> > >>>> in 2013. Maybe his problem is already fixed by your patches in current
+> > >>>> mainline.
+> > >>>>
+> > >>>> Hi Yasuaki, could you please check that your memory hot-remove problem
+> > >>>> is fixed on mainline kernel?  
+> > >>
+> > >> I cannot remember what I mentioned in 2013. Could you tell me url of lkml archive.
+> > >>
+> > > 
+> > 
+> > > Here: https://lkml.org/lkml/2013/11/28/520
+> > 
+> > Thank you for specifying the URL. In the URL, I wrote the following problems:
+> > 
+> > >   1. easily fail
+> > >      My container device has CPU device and Memory device, and maximum size of
+> > >      memory is 3Tbyte. In my environment, hot removing container device fails
+> > >      on offlining memory if memory is used by application.
+> > >      I think if offlininig memory, we must retly to offline memory several
+> > >      times.
+> > 
+> > I think the issue still remains. If process keeps accessing memory, offlining
+> > the memory easily fails with EBUSY.
 > 
-> On Friday, August 11, 2017 7:40:56 AM CEST Zheng, Lv wrote:
-> > Hi, Rafael
-> >
-> > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > > Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
-> > >
-> > > On Thursday, August 10, 2017 3:48:58 AM CEST Zheng, Lv wrote:
-> > > > Hi, Rafael
-> > > >
-> > > > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > > > > Subject: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
-> > > > >
-> > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > >
-> > > > > In some cases GPEs are already active when they are enabled by
-> > > > > acpi_ev_initialize_gpe_block() and whatever happens next may depend
-> > > > > on the result of handling the events signaled by them, so the
-> > > > > events should not be discarded (which is what happens currently) and
-> > > > > they should be handled as soon as reasonably possible.
-> > > > >
-> > > > > For this reason, modify acpi_ev_initialize_gpe_block() to
-> > > > > dispatch GPEs with the status flag set in-band right after
-> > > > > enabling them.
-> > > >
-> > > > In fact, what we need seems to be invoking acpi_ev_gpe_dispatch()
-> > > > right after enabling an GPE. So there are 2 conditions related:
-> > > > 1. GPE is enabled for the first time.
-> > > > 2. GPE is initialized.
-> > > >
-> > > > And we need to make sure that before acpi_update_all_gpes() is invoked,
-> > > > all GPE EN bits are actually disabled.
-> > >
-> > > But we don't do it today, do we?
-> >
-> > We don't do that.
-> >
-> > >
-> > > And still calling _dispatch() should not be incorrect even if the GPE
-> > > has been enabled already at this point.  Worst case it just will
-> > > queue up the execution of _Lxx/_Exx which may or may not do anything
-> > > useful.
-> > >
-> > > And BTW this is all done under acpi_gbl_gpe_lock so acpi_ev_gpe_detect()
-> > > will block on it if run concurrently and we've checked the status, so
-> > > we know that the GPE *should* be dispatched, so I sort of fail to see
-> > > the problem.
-> >
-> > There is another problem related:
-> > ACPICA clears GPEs before enabling it.
-> > This is proven to be wrong, and we have to fix it:
-> > https://bugzilla.kernel.org/show_bug.cgi?id=196249
-> >
-> > without fixing this issue, in this solution, we surely need to save the
-> > GPE STS bit before incrementing GPE reference count, and poll it according
-> > to the saved STS bit. Because if we poll it after enabling, STS bit will
-> > be wrongly cleared.
-> 
-> I'm not sure if I understand you correctly, but why would we poll it?
-> 
-> In the $subject patch the status is checked and then
-> acpi_ev_add_gpe_reference() is called to add a reference to the GPE.
-> 
-> If this is the first reference (which will be the case in the majority
-> of cases), acpi_ev_enable_gpe() will be called and that will clear the
-> status.
-> 
-> Then, acpi_ev_gpe_dispatch() is called if the status was set and that
-> itself doesn't check the status.  It disables the GPE upfront (so the
-> status doesn't matter from now on until the GPE is enabled again) and
-> clears the status unconditionally if the GPE is edge-triggered.  This
-> means that for edge-triggered GPEs the clearing of the status by
-> acpi_ev_enable_gpe() doesn't matter here.
+> Yes and the only way how to deal with it is to retry the offline. In
+> order to do that userspace has to be notified to try again.
 
-No problem, I understood.
-And was thinking thought this patch [edge GPE dispatch fix] should be
-correct and good for current Linux upstream.
+Looks that kernel still needs to rely on userspace to trigger offline
+for each child device. 
 
-What I meant is:
-PATCH [edge GPE clear fix] https://patchwork.kernel.org/patch/9894983/
-is a fix we need for upstream as it is the only possible fix for the
-issue fixed by it.
-On top of that, when acpi_ev_enable_gpe() is called, GPE won't be cleared.
-and then things can be done in a simpler way:
-PATCH [edge GPE enable fix] https://patchwork.kernel.org/patch/9894989/
+My plan is to impelement a _EJECTING_ flag on acpi_device struct.
+It indicates that the acpi device under ejection process. The flag
+will be changed in the following situations:
 
-As [edge GPE clear fix] is risky, I think [edge GPE dispatch fix] is OK
-for Linux upstream.
+- EJECTING flag 0 -> 1
+    - After acpi_scan_hot_remove() sends KOBJ_CHANGE for all children
 
-So we can have 2 processes:
-1. Merge [edge GPE dispatch fix] and let [edge GPE clear fix] and
-   [edge GPE enable fix] released from ACPICA upstream so that:
-   1. We can enhance them in ACPICA upstream.
-   2. It will be regression safer for us to merge [edge GPE clear fix].
-2. Merge [edge GPE clear fix] and [edge GPE enable fix] without
-   merging [edge GPE dispatch fix].
+- EJECTING flag 1 -> 0 
+    - After acpi_scan_hot_remove() calls _EJ0
+    - Any child device was set online again
 
-What I meant is:
-It's up to you to decide which process we should take. :)
+And, according to the order, any EJECTING flag changing work must be
+pushed to kacpi_hotplug_wq work queue.
 
-> 
-> For level-triggered GPEs the status is not cleared by acpi_ev_gpe_dispatch()
-> itself, but _Lxx is executed (again, without checking the status) and
-> finally the status is cleared by acpi_ev_finish_gpe() anyway, so we
-> end up with cleared status no matter what (and that before re-enabling
-> the GPE).  End even if _Lxx itself checked the status (but honestly why
-> would it?), then this is a level-triggered GPE, so it will re-trigger
-> anyway if not handled this time.
-
-Let's skip level-triggered GPE case.
-
-> 
-> So it looks like the fact that acpi_ev_enable_gpe() clears the status before
-> enabling the GPE doesn't matter for this patch, although it may matter in
-> general, but that is a different (and somewhat related) issue.
-
-I agreed.
-
-Thanks and best regards
-Lv
+Thanks a lot!
+Joey Lee
