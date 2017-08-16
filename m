@@ -1,242 +1,111 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
-Date: Wed, 16 Aug 2017 10:29:31 +0200
-Message-ID: <20170816082931.p6rpvtlxwt5nccxr@pd.tnic>
-References: <1502732561.2042.141.camel@hpe.com>
- <20170814180526.wtfjzgc6uye2qtx6@pd.tnic>
- <1502734083.2042.143.camel@hpe.com>
- <20170814183551.sgk2i7lxpmpyodhv@pd.tnic>
- <1502736750.2042.145.camel@hpe.com>
- <20170814193432.mjldfhfal5ba5dt7@pd.tnic>
- <1502741290.2042.147.camel@hpe.com>
- <20170814203942.6t3mrq3hc324blab@pd.tnic>
- <1502810766.2042.149.camel@hpe.com>
- <20170815154815.wy3dqwb4yi3feahg@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([5.9.137.197]:39020 "EHLO mail.skyhub.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751068AbdHPI3i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Aug 2017 04:29:38 -0400
-Content-Disposition: inline
-In-Reply-To: <20170815154815.wy3dqwb4yi3feahg@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: [PATCH v2] ACPI / APEI: Suppress message if HEST not present
+Date: Wed, 16 Aug 2017 12:27:53 +0100
+Message-ID: <20170816112753.12085-1-punit.agrawal@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Punit Agrawal <punit.agrawal@arm.com>, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-kernel@vger.kernel.org, Borislav Petkov <bp@suse.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, James Morse <james.morse@arm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>, Steven Rostedt <rostedt@goodmis.org>
-Cc: "Kani, Toshimitsu" <toshi.kani@hpe.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-On Tue, Aug 15, 2017 at 08:48:16AM -0700, Luck, Tony wrote:
-> Won't the user see all their DIMMs reported for each memory controller
-> under /sys/devices/system/edac/mc/mc*/dimm* ?
-> 
-> That sounds confusing.
+According to the ACPI specification, firmware is not required to provide
+the Hardware Error Source Table (HEST). When HEST is not present, the
+following superfluous message is printed to the kernel boot log -
 
-Right, and adding the locking was really easy. If only people would
-debate less and actually try to do what they're being advised to.
-But not really: if you wanna have something done, you have to do it
-yourself.
+[    3.460067] GHES: HEST is not enabled!
 
-Anyway, I think I have a box to run it to, lemme go find it.
+Extend hest_disable variable to track whether the firmware provides this
+table and if it is not present skip any log output. The existing
+behaviour is preserved in all other cases.
 
-Steve, pls check my locking. It looks straightforward to me but I might
-be missing some corner case.
-
-Thx.
-
+Suggested-by: Borislav Petkov <bp@suse.de>
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: James Morse <james.morse@arm.com>
 ---
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index 6f80eb65c26c..a22fabef4791 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -28,10 +28,14 @@ struct ghes_edac_pvt {
- 	char msg[80];
- };
+ drivers/acpi/apei/ghes.c |  4 ++--
+ drivers/acpi/apei/hest.c | 13 +++++++------
+ include/acpi/apei.h      |  8 +++++++-
+ 3 files changed, 16 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index d661d452b238..f8685bcbeff2 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -1262,10 +1262,10 @@ static int __init ghes_init(void)
+ {
+ 	int rc;
  
--static LIST_HEAD(ghes_reglist);
--static DEFINE_MUTEX(ghes_edac_lock);
--static int ghes_edac_mc_num;
-+static struct ghes_edac_pvt *ghes_pvt;
- 
-+/*
-+ * Sync with other, potentially concurrent callers of
-+ * ghes_edac_report_mem_error(). We don't know what the
-+ * "inventive" firmware would do.
-+ */
-+static DEFINE_SPINLOCK(ghes_lock);
- 
- /* Memory Device - Type 17 of SMBIOS spec */
- struct memdev_dmi_entry {
-@@ -169,14 +173,11 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
- 	enum hw_event_mc_err_type type;
- 	struct edac_raw_error_desc *e;
- 	struct mem_ctl_info *mci;
--	struct ghes_edac_pvt *pvt = NULL;
-+	struct ghes_edac_pvt *pvt = ghes_pvt;
-+	unsigned long flags;
- 	char *p;
- 	u8 grain_bits;
- 
--	list_for_each_entry(pvt, &ghes_reglist, list) {
--		if (ghes == pvt->ghes)
--			break;
--	}
- 	if (!pvt) {
- 		pr_err("Internal error: Can't find EDAC structure\n");
- 		return;
-@@ -398,8 +399,16 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
- 		       (e->page_frame_number << PAGE_SHIFT) | e->offset_in_page,
- 		       grain_bits, e->syndrome, pvt->detail_location);
- 
--	/* Report the error via EDAC API */
-+	/*
-+	 * We can do the locking below because GHES defers error processing
-+	 * from NMI to IRQ context. Whenever that changes, we'd at least
-+	 * know.
-+	 */
-+	WARN_ON_ONCE(in_nmi());
-+
-+	spin_lock_irqsave(&ghes_lock, flags);
- 	edac_raw_mc_handle_error(type, mci, e);
-+	spin_unlock_irqrestore(&ghes_lock, flags);
- }
- EXPORT_SYMBOL_GPL(ghes_edac_report_mem_error);
- 
-@@ -409,9 +418,14 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	int rc, num_dimm = 0;
- 	struct mem_ctl_info *mci;
- 	struct edac_mc_layer layers[1];
--	struct ghes_edac_pvt *pvt;
- 	struct ghes_edac_dimm_fill dimm_fill;
- 
-+	/*
-+	 * We have only one logical memory controller to which all DIMMs belong.
-+	 */
-+	if (ghes_pvt)
-+		return 0;
-+
- 	/* Get the number of DIMMs */
- 	dmi_walk(ghes_edac_count_dimms, &num_dimm);
- 
-@@ -425,26 +439,17 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	layers[0].size = num_dimm;
- 	layers[0].is_virt_csrow = true;
- 
--	/*
--	 * We need to serialize edac_mc_alloc() and edac_mc_add_mc(),
--	 * to avoid duplicated memory controller numbers
--	 */
--	mutex_lock(&ghes_edac_lock);
--	mci = edac_mc_alloc(ghes_edac_mc_num, ARRAY_SIZE(layers), layers,
--			    sizeof(*pvt));
-+	mci = edac_mc_alloc(1, ARRAY_SIZE(layers), layers, sizeof(struct ghes_edac_pvt));
- 	if (!mci) {
- 		pr_info("Can't allocate memory for EDAC data\n");
--		mutex_unlock(&ghes_edac_lock);
- 		return -ENOMEM;
- 	}
- 
--	pvt = mci->pvt_info;
--	memset(pvt, 0, sizeof(*pvt));
--	list_add_tail(&pvt->list, &ghes_reglist);
--	pvt->ghes = ghes;
--	pvt->mci  = mci;
--	mci->pdev = dev;
-+	ghes_pvt	= mci->pvt_info;
-+	ghes_pvt->ghes	= ghes;
-+	ghes_pvt->mci	= mci;
- 
-+	mci->pdev = dev;
- 	mci->mtype_cap = MEM_FLAG_EMPTY;
- 	mci->edac_ctl_cap = EDAC_FLAG_NONE;
- 	mci->edac_cap = EDAC_FLAG_NONE;
-@@ -452,36 +457,23 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	mci->ctl_name = "ghes_edac";
- 	mci->dev_name = "ghes";
- 
--	if (!ghes_edac_mc_num) {
--		if (!fake) {
--			pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
--			pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
--			pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
--			pr_info("If you find incorrect reports, please contact your hardware vendor\n");
--			pr_info("to correct its BIOS.\n");
--			pr_info("This system has %d DIMM sockets.\n",
--				num_dimm);
--		} else {
--			pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
--			pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
--			pr_info("work on such system. Use this driver with caution\n");
--		}
-+	if (!fake) {
-+		pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
-+		pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
-+		pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
-+		pr_info("If you find incorrect reports, please contact your hardware vendor\n");
-+		pr_info("to correct its BIOS.\n");
-+		pr_info("This system has %d DIMM sockets.\n", num_dimm);
-+	} else {
-+		pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
-+		pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
-+		pr_info("work on such system. Use this driver with caution\n");
- 	}
- 
- 	if (!fake) {
--		/*
--		 * Fill DIMM info from DMI for the memory controller #0
--		 *
--		 * Keep it in blank for the other memory controllers, as
--		 * there's no reliable way to properly credit each DIMM to
--		 * the memory controller, as different BIOSes fill the
--		 * DMI bank location fields on different ways
--		 */
--		if (!ghes_edac_mc_num) {
--			dimm_fill.count = 0;
--			dimm_fill.mci = mci;
--			dmi_walk(ghes_edac_dmidecode, &dimm_fill);
--		}
-+		dimm_fill.count = 0;
-+		dimm_fill.mci = mci;
-+		dmi_walk(ghes_edac_dmidecode, &dimm_fill);
- 	} else {
- 		struct dimm_info *dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms,
- 						       mci->n_layers, 0, 0, 0);
-@@ -497,12 +489,8 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	if (rc < 0) {
- 		pr_info("Can't register at EDAC core\n");
- 		edac_mc_free(mci);
--		mutex_unlock(&ghes_edac_lock);
+-	if (acpi_disabled)
++	if (acpi_disabled || hest_disable == HEST_NOT_FOUND)
  		return -ENODEV;
+ 
+-	if (hest_disable) {
++	if (hest_disable == HEST_DISABLED) {
+ 		pr_info(GHES_PFX "HEST is not enabled!\n");
+ 		return -EINVAL;
  	}
--
--	ghes_edac_mc_num++;
--	mutex_unlock(&ghes_edac_lock);
+diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+index 456b488eb1df..9cb74115a43d 100644
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -37,7 +37,7 @@
+ 
+ #define HEST_PFX "HEST: "
+ 
+-bool hest_disable;
++int hest_disable;
+ EXPORT_SYMBOL_GPL(hest_disable);
+ 
+ /* HEST table parsing */
+@@ -213,7 +213,7 @@ static int __init hest_ghes_dev_register(unsigned int ghes_count)
+ 
+ static int __init setup_hest_disable(char *str)
+ {
+-	hest_disable = 1;
++	hest_disable = HEST_DISABLED;
  	return 0;
  }
- EXPORT_SYMBOL_GPL(ghes_edac_register);
-@@ -510,15 +498,9 @@ EXPORT_SYMBOL_GPL(ghes_edac_register);
- void ghes_edac_unregister(struct ghes *ghes)
- {
- 	struct mem_ctl_info *mci;
--	struct ghes_edac_pvt *pvt, *tmp;
--
--	list_for_each_entry_safe(pvt, tmp, &ghes_reglist, list) {
--		if (ghes == pvt->ghes) {
--			mci = pvt->mci;
--			edac_mc_del_mc(mci->pdev);
--			edac_mc_free(mci);
--			list_del(&pvt->list);
--		}
--	}
-+
-+	mci = ghes_pvt->mci;
-+	edac_mc_del_mc(mci->pdev);
-+	edac_mc_free(mci);
+ 
+@@ -232,9 +232,10 @@ void __init acpi_hest_init(void)
+ 
+ 	status = acpi_get_table(ACPI_SIG_HEST, 0,
+ 				(struct acpi_table_header **)&hest_tab);
+-	if (status == AE_NOT_FOUND)
+-		goto err;
+-	else if (ACPI_FAILURE(status)) {
++	if (status == AE_NOT_FOUND) {
++		hest_disable = HEST_NOT_FOUND;
++		return;
++	} else if (ACPI_FAILURE(status)) {
+ 		const char *msg = acpi_format_exception(status);
+ 		pr_err(HEST_PFX "Failed to get table, %s\n", msg);
+ 		rc = -EINVAL;
+@@ -257,5 +258,5 @@ void __init acpi_hest_init(void)
+ 	pr_info(HEST_PFX "Table parsing has been initialized.\n");
+ 	return;
+ err:
+-	hest_disable = 1;
++	hest_disable = HEST_DISABLED;
  }
- EXPORT_SYMBOL_GPL(ghes_edac_unregister);
-
+diff --git a/include/acpi/apei.h b/include/acpi/apei.h
+index 76284bb560a6..c46694abea28 100644
+--- a/include/acpi/apei.h
++++ b/include/acpi/apei.h
+@@ -16,7 +16,13 @@
+ 
+ #ifdef __KERNEL__
+ 
+-extern bool hest_disable;
++enum hest_status {
++	HEST_ENABLED,
++	HEST_DISABLED,
++	HEST_NOT_FOUND,
++};
++
++extern int hest_disable;
+ extern int erst_disable;
+ #ifdef CONFIG_ACPI_APEI_GHES
+ extern bool ghes_disable;
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+2.13.2
