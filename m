@@ -1,49 +1,241 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
-Date: Wed, 16 Aug 2017 15:26:04 +0000
-Message-ID: <1502896578.2042.155.camel@hpe.com>
-References: <1502732561.2042.141.camel@hpe.com>
-         <20170814180526.wtfjzgc6uye2qtx6@pd.tnic>
-         <1502734083.2042.143.camel@hpe.com>
-         <20170814183551.sgk2i7lxpmpyodhv@pd.tnic>
-         <1502736750.2042.145.camel@hpe.com>
-         <20170814193432.mjldfhfal5ba5dt7@pd.tnic>
-         <1502741290.2042.147.camel@hpe.com>
-         <20170814203942.6t3mrq3hc324blab@pd.tnic>
-         <1502810766.2042.149.camel@hpe.com>
-         <20170815154815.wy3dqwb4yi3feahg@intel.com>
-         <20170816082931.p6rpvtlxwt5nccxr@pd.tnic>
+Date: Wed, 16 Aug 2017 18:42:34 +0200
+Message-ID: <20170816164234.mgwapenb7fpym6nk@pd.tnic>
+References: <1502734083.2042.143.camel@hpe.com>
+ <20170814183551.sgk2i7lxpmpyodhv@pd.tnic>
+ <1502736750.2042.145.camel@hpe.com>
+ <20170814193432.mjldfhfal5ba5dt7@pd.tnic>
+ <1502741290.2042.147.camel@hpe.com>
+ <20170814203942.6t3mrq3hc324blab@pd.tnic>
+ <1502810766.2042.149.camel@hpe.com>
+ <20170815154815.wy3dqwb4yi3feahg@intel.com>
+ <20170816082931.p6rpvtlxwt5nccxr@pd.tnic>
+ <1502896578.2042.155.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170816082931.p6rpvtlxwt5nccxr@pd.tnic>
-Content-Language: en-US
-Content-ID: <F06F8D2D8FF5724EA71631F69EF3B0FA@NAMPRD84.PROD.OUTLOOK.COM>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "tony.luck@intel.com" <tony.luck@intel.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "bp@alien8.de" <bp@alien8.de>
-Cc: "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([5.9.137.197]:60316 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751588AbdHPQmm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Aug 2017 12:42:42 -0400
+Content-Disposition: inline
+In-Reply-To: <1502896578.2042.155.camel@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "tony.luck@intel.com" <tony.luck@intel.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-T24gV2VkLCAyMDE3LTA4LTE2IGF0IDEwOjI5ICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
-DQo+IE9uIFR1ZSwgQXVnIDE1LCAyMDE3IGF0IDA4OjQ4OjE2QU0gLTA3MDAsIEx1Y2ssIFRvbnkg
-d3JvdGU6DQo+ID4gV29uJ3QgdGhlIHVzZXIgc2VlIGFsbCB0aGVpciBESU1NcyByZXBvcnRlZCBm
-b3IgZWFjaCBtZW1vcnkNCj4gPiBjb250cm9sbGVyDQo+ID4gdW5kZXIgL3N5cy9kZXZpY2VzL3N5
-c3RlbS9lZGFjL21jL21jKi9kaW1tKiA/DQo+ID4gDQo+ID4gVGhhdCBzb3VuZHMgY29uZnVzaW5n
-Lg0KPiANCj4gUmlnaHQsIGFuZCBhZGRpbmcgdGhlIGxvY2tpbmcgd2FzIHJlYWxseSBlYXN5LiBJ
-ZiBvbmx5IHBlb3BsZSB3b3VsZA0KPiBkZWJhdGUgbGVzcyBhbmQgYWN0dWFsbHkgdHJ5IHRvIGRv
-IHdoYXQgdGhleSdyZSBiZWluZyBhZHZpc2VkIHRvLg0KPiBCdXQgbm90IHJlYWxseTogaWYgeW91
-IHdhbm5hIGhhdmUgc29tZXRoaW5nIGRvbmUsIHlvdSBoYXZlIHRvIGRvIGl0DQo+IHlvdXJzZWxm
-Lg0KDQpTb3JyeSwgYnV0IEkgZGlkIG5vdCBhZ3JlZSBvbiBhbGxvd2luZyBjb25jdXJyZW50IGFj
-Y2Vzc2VzIHRvIG1jaS4uLg0KDQrCoC8qIE1lbW9yeSBEZXZpY2UgLSBUeXBlIDE3IG9mIFNNQklP
-UyBzcGVjICovDQo+IMKgc3RydWN0IG1lbWRldl9kbWlfZW50cnkgew0KPiBAQCAtMTY5LDE0ICsx
-NzMsMTEgQEAgdm9pZCBnaGVzX2VkYWNfcmVwb3J0X21lbV9lcnJvcihzdHJ1Y3QgZ2hlcw0KPiAq
-Z2hlcywgaW50IHNldiwNCj4gwqAJZW51bSBod19ldmVudF9tY19lcnJfdHlwZSB0eXBlOw0KPiDC
-oAlzdHJ1Y3QgZWRhY19yYXdfZXJyb3JfZGVzYyAqZTsNCj4gwqAJc3RydWN0IG1lbV9jdGxfaW5m
-byAqbWNpOw0KPiAtCXN0cnVjdCBnaGVzX2VkYWNfcHZ0ICpwdnQgPSBOVUxMOw0KPiArCXN0cnVj
-dCBnaGVzX2VkYWNfcHZ0ICpwdnQgPSBnaGVzX3B2dDsNCj4gKwl1bnNpZ25lZCBsb25nIGZsYWdz
-Ow0KPiDCoAljaGFyICpwOw0KPiDCoAl1OCBncmFpbl9iaXRzOw0KDQpJIGJlbGlldmUgeW91IG5v
-dyBuZWVkIHRvIHByb3RlY3QgZnJvbSBhIHJhY2UgY29uZGl0aW9uIHRoYXQgYSBzaW5nbGUNCm1j
-aSBhbmQgcHZ0IGNhbiBiZSBpbml0aWFsaXplZCAvIGNvbnN1bWVkIGZyb20gbXVsdGlwbGUgdGhy
-ZWFkcy4gIFRoaXMNCnByb3RlY3Rpb24gaXMgbWlzc2luZyBpbiB5b3VyIHBhdGNoLg0KDQpUaGFu
-a3MsDQotVG9zaGkNCg==
+On Wed, Aug 16, 2017 at 03:26:04PM +0000, Kani, Toshimitsu wrote:
+> I believe you now need to protect from a race condition that a single
+> mci and pvt can be initialized / consumed from multiple threads.  This
+> protection is missing in your patch.
+
+Easy. Done.
+
+---
+diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
+index 6f80eb65c26c..d4089c2980ef 100644
+--- a/drivers/edac/ghes_edac.c
++++ b/drivers/edac/ghes_edac.c
+@@ -28,10 +28,14 @@ struct ghes_edac_pvt {
+ 	char msg[80];
+ };
+ 
+-static LIST_HEAD(ghes_reglist);
+-static DEFINE_MUTEX(ghes_edac_lock);
+-static int ghes_edac_mc_num;
++static struct ghes_edac_pvt *ghes_pvt;
+ 
++/*
++ * Sync with other, potentially concurrent callers of
++ * ghes_edac_report_mem_error(). We don't know what the
++ * "inventive" firmware would do.
++ */
++static DEFINE_SPINLOCK(ghes_lock);
+ 
+ /* Memory Device - Type 17 of SMBIOS spec */
+ struct memdev_dmi_entry {
+@@ -169,18 +173,26 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+ 	enum hw_event_mc_err_type type;
+ 	struct edac_raw_error_desc *e;
+ 	struct mem_ctl_info *mci;
+-	struct ghes_edac_pvt *pvt = NULL;
++	struct ghes_edac_pvt *pvt = ghes_pvt;
++	unsigned long flags;
+ 	char *p;
+ 	u8 grain_bits;
+ 
+-	list_for_each_entry(pvt, &ghes_reglist, list) {
+-		if (ghes == pvt->ghes)
+-			break;
+-	}
+ 	if (!pvt) {
+ 		pr_err("Internal error: Can't find EDAC structure\n");
+ 		return;
+ 	}
++
++	/*
++	 * We can do the locking below because GHES defers error processing
++	 * from NMI to IRQ context. Whenever that changes, we'd at least
++	 * know.
++	 */
++	if (WARN_ON_ONCE(in_nmi()))
++		return;
++
++	spin_lock_irqsave(&ghes_lock, flags);
++
+ 	mci = pvt->mci;
+ 	e = &mci->error_desc;
+ 
+@@ -398,8 +410,8 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+ 		       (e->page_frame_number << PAGE_SHIFT) | e->offset_in_page,
+ 		       grain_bits, e->syndrome, pvt->detail_location);
+ 
+-	/* Report the error via EDAC API */
+ 	edac_raw_mc_handle_error(type, mci, e);
++	spin_unlock_irqrestore(&ghes_lock, flags);
+ }
+ EXPORT_SYMBOL_GPL(ghes_edac_report_mem_error);
+ 
+@@ -409,9 +421,14 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+ 	int rc, num_dimm = 0;
+ 	struct mem_ctl_info *mci;
+ 	struct edac_mc_layer layers[1];
+-	struct ghes_edac_pvt *pvt;
+ 	struct ghes_edac_dimm_fill dimm_fill;
+ 
++	/*
++	 * We have only one logical memory controller to which all DIMMs belong.
++	 */
++	if (ghes_pvt)
++		return 0;
++
+ 	/* Get the number of DIMMs */
+ 	dmi_walk(ghes_edac_count_dimms, &num_dimm);
+ 
+@@ -425,26 +442,17 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+ 	layers[0].size = num_dimm;
+ 	layers[0].is_virt_csrow = true;
+ 
+-	/*
+-	 * We need to serialize edac_mc_alloc() and edac_mc_add_mc(),
+-	 * to avoid duplicated memory controller numbers
+-	 */
+-	mutex_lock(&ghes_edac_lock);
+-	mci = edac_mc_alloc(ghes_edac_mc_num, ARRAY_SIZE(layers), layers,
+-			    sizeof(*pvt));
++	mci = edac_mc_alloc(1, ARRAY_SIZE(layers), layers, sizeof(struct ghes_edac_pvt));
+ 	if (!mci) {
+ 		pr_info("Can't allocate memory for EDAC data\n");
+-		mutex_unlock(&ghes_edac_lock);
+ 		return -ENOMEM;
+ 	}
+ 
+-	pvt = mci->pvt_info;
+-	memset(pvt, 0, sizeof(*pvt));
+-	list_add_tail(&pvt->list, &ghes_reglist);
+-	pvt->ghes = ghes;
+-	pvt->mci  = mci;
+-	mci->pdev = dev;
++	ghes_pvt	= mci->pvt_info;
++	ghes_pvt->ghes	= ghes;
++	ghes_pvt->mci	= mci;
+ 
++	mci->pdev = dev;
+ 	mci->mtype_cap = MEM_FLAG_EMPTY;
+ 	mci->edac_ctl_cap = EDAC_FLAG_NONE;
+ 	mci->edac_cap = EDAC_FLAG_NONE;
+@@ -452,36 +460,23 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+ 	mci->ctl_name = "ghes_edac";
+ 	mci->dev_name = "ghes";
+ 
+-	if (!ghes_edac_mc_num) {
+-		if (!fake) {
+-			pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
+-			pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
+-			pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
+-			pr_info("If you find incorrect reports, please contact your hardware vendor\n");
+-			pr_info("to correct its BIOS.\n");
+-			pr_info("This system has %d DIMM sockets.\n",
+-				num_dimm);
+-		} else {
+-			pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
+-			pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
+-			pr_info("work on such system. Use this driver with caution\n");
+-		}
++	if (!fake) {
++		pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
++		pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
++		pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
++		pr_info("If you find incorrect reports, please contact your hardware vendor\n");
++		pr_info("to correct its BIOS.\n");
++		pr_info("This system has %d DIMM sockets.\n", num_dimm);
++	} else {
++		pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
++		pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
++		pr_info("work on such system. Use this driver with caution\n");
+ 	}
+ 
+ 	if (!fake) {
+-		/*
+-		 * Fill DIMM info from DMI for the memory controller #0
+-		 *
+-		 * Keep it in blank for the other memory controllers, as
+-		 * there's no reliable way to properly credit each DIMM to
+-		 * the memory controller, as different BIOSes fill the
+-		 * DMI bank location fields on different ways
+-		 */
+-		if (!ghes_edac_mc_num) {
+-			dimm_fill.count = 0;
+-			dimm_fill.mci = mci;
+-			dmi_walk(ghes_edac_dmidecode, &dimm_fill);
+-		}
++		dimm_fill.count = 0;
++		dimm_fill.mci = mci;
++		dmi_walk(ghes_edac_dmidecode, &dimm_fill);
+ 	} else {
+ 		struct dimm_info *dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms,
+ 						       mci->n_layers, 0, 0, 0);
+@@ -497,12 +492,8 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+ 	if (rc < 0) {
+ 		pr_info("Can't register at EDAC core\n");
+ 		edac_mc_free(mci);
+-		mutex_unlock(&ghes_edac_lock);
+ 		return -ENODEV;
+ 	}
+-
+-	ghes_edac_mc_num++;
+-	mutex_unlock(&ghes_edac_lock);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(ghes_edac_register);
+@@ -510,15 +501,9 @@ EXPORT_SYMBOL_GPL(ghes_edac_register);
+ void ghes_edac_unregister(struct ghes *ghes)
+ {
+ 	struct mem_ctl_info *mci;
+-	struct ghes_edac_pvt *pvt, *tmp;
+-
+-	list_for_each_entry_safe(pvt, tmp, &ghes_reglist, list) {
+-		if (ghes == pvt->ghes) {
+-			mci = pvt->mci;
+-			edac_mc_del_mc(mci->pdev);
+-			edac_mc_free(mci);
+-			list_del(&pvt->list);
+-		}
+-	}
++
++	mci = ghes_pvt->mci;
++	edac_mc_del_mc(mci->pdev);
++	edac_mc_free(mci);
+ }
+ EXPORT_SYMBOL_GPL(ghes_edac_unregister);
+-- 
+2.13.0
+
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
