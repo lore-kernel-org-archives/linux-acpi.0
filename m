@@ -1,47 +1,296 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH v2] acpi: apei: fix the wrongly iterate generic error
- status block
-Date: Tue, 15 Aug 2017 17:26:50 -0600
-Message-ID: <3747a14c-0801-fe10-f36e-af6458fd7bdf@codeaurora.org>
-References: <1502795713-20945-1-git-send-email-gengdongjiu@huawei.com>
- <CAMj-D2CXOurgPGGGbC7qHX-uWZeMYwh9EfLOS3p3hm+=BvPq7w@mail.gmail.com>
- <20170815161342.jxxf4rndqbs7t5rr@pd.tnic>
- <CAMj-D2AHjR70Fy61aBxof7AxnW+Bz_YgJq-5yOdK+VV8uaF3bA@mail.gmail.com>
- <20170815163239.xm5y6w5yeiaakekv@pd.tnic>
- <CAMj-D2C2S=RoZ7TyhnyX598nHH9xwKQt23mV+u=1tV3+YMMVsQ@mail.gmail.com>
- <20170815165551.4cwa344wm6eptj3d@pd.tnic>
- <7921a233-6971-6e3b-9164-01d6176d61c0@codeaurora.org>
- <CAMj-D2DDMYBJY5aW38Q=y+J59d-0tAy0JhmdP8goHKAbJSedag@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH v5] ACPI / Sleep: Check low power idle constraints for debug only
+Date: Tue, 15 Aug 2017 18:16:59 -0700
+Message-ID: <1502846219-19192-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMj-D2DDMYBJY5aW38Q=y+J59d-0tAy0JhmdP8goHKAbJSedag@mail.gmail.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: gengdongjiu <gengdj.1984@gmail.com>
-Cc: Borislav Petkov <bp@suse.de>, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, John Garry <john.garry@huawei.com>, Shiju Jose <shiju.jose@huawei.com>, zhengqiang10@huawei.com, Xiongfeng Wang <wangxiongfeng2@huawei.com>, Huangshaoyu <huangshaoyu@huawei.com>, wuquanming <wuquanming@huawei.com>, James Morse <james.morse@arm.com>, Geliang Tang <geliangtang@gmail.com>, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, shameerali.kolothum.thodi@huawei.com, jonathan.cameron@huawei.com, huangdaode@hisilicon.com, wangzhou1@hisilicon.com
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-pm@vger.kernel.org, mario.limonciello@dell.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 8/15/2017 3:34 PM, gengdongjiu wrote:
-> Hi Tyler ,
->
->> Hello Boris,
->>
->> His patch fixes the define for apei_estatus_for_each_section which in turn
->> should fix ghes_do_proc(). So my patch should no longer be needed. I'm going
->> to test this out just to verify if fixes the issue I found.
-> I have verified the issue about the iteration for the revision 0x300
-> generic error data,
-> it works well. it is good that you will verify that in your  platform.
-I've verified that this resolves the issue as well! I'll re-test with 
-the next version that adds this usage to cper_estatus_check() and add my 
-tested-by after that.
+For SoC to achieve its lowest power platform idle state a set of hardware
+preconditions must be met. These preconditions or constraints can be
+obtained by issuing a device specific method (_DSM) with function "1".
+Refer to the document provided in the link below.
 
-Thanks,
-Tyler
+Here during initialization (from attach() callback of LPS0 device), invoke
+function 1 to get the device constraints. Each enabled constraint is
+stored in a table.
 
+The devices in this table are used to check whether they were in required
+minimum state, while entering suspend. This check is done from platform
+freeze wake() callback, only when /sys/power/pm_debug_messages attribute
+is non zero.
+
+If any constraint is not met and device is ACPI power managed then it
+prints the device information to kernel logs.
+
+Also if debug is enabled in acpi/sleep.c, the constraint table and state
+of each device on wake is dumped in kernel logs.
+
+Since pm_debug_messages_on setting is used as condition to check
+constraints outside kernel/power/main.c, pm_debug_messages_on is changed
+to a global variable.
+
+Link: http://www.uefi.org/sites/default/files/resources/Intel_ACPI_Low_Power_S0_Idle.pdf
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+---
+
+v5
+- No change except rebase to today's linux-next.
+
+v4
+- Storing handle in the lpi_constraints table.
+- Print formatting
+- Don't call acpi_device_get_power()
+- use acpi_handle_info/debug
+
+v3
+- Removed the patch 0001 for exporting pm_debug_messages_on via a function.
+As suggested by Rafael, made the pm_debug_messages_on a global variable instead.
+- Moved the constraint check outside if() block and valid for all calls to
+acpi_freeze_wakeup()
+- Dumping irrespective of return value of acpi_device_get_power().
+- Rebased to linux-next as of today
+
+v2
+- Changes as suggested by Lukas Wunner.
+- Using pm_debug_messages_on attribute to prevent constraints check to
+save some cycles on wake.
+
+ drivers/acpi/sleep.c    | 168 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/suspend.h |   2 +
+ kernel/power/main.c     |   2 +-
+ 3 files changed, 171 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 84f2408..6804dda 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -669,6 +669,7 @@ static const struct acpi_device_id lps0_device_ids[] = {
+ 
+ #define ACPI_LPS0_DSM_UUID	"c4eb40a0-6cd2-11e2-bcfd-0800200c9a66"
+ 
++#define ACPI_LPS0_GET_DEVICE_CONSTRAINTS	1
+ #define ACPI_LPS0_SCREEN_OFF	3
+ #define ACPI_LPS0_SCREEN_ON	4
+ #define ACPI_LPS0_ENTRY		5
+@@ -680,6 +681,166 @@ static acpi_handle lps0_device_handle;
+ static guid_t lps0_dsm_guid;
+ static char lps0_dsm_func_mask;
+ 
++/* Device constraint entry structure */
++struct lpi_device_info {
++	char *name;
++	int enabled;
++	union acpi_object *package;
++};
++
++/* Constraint package structure */
++struct lpi_device_constraint {
++	int uid;
++	int min_dstate;
++	int function_states;
++};
++
++struct lpi_constraints {
++	acpi_handle handle;
++	int min_dstate;
++};
++
++static struct lpi_constraints *lpi_constraints_table;
++static int lpi_constraints_table_size;
++
++static void lpi_device_get_constraints(void)
++{
++	union acpi_object *out_obj;
++	int i;
++
++	out_obj = acpi_evaluate_dsm_typed(lps0_device_handle, &lps0_dsm_guid,
++					  1, ACPI_LPS0_GET_DEVICE_CONSTRAINTS,
++					  NULL, ACPI_TYPE_PACKAGE);
++
++	acpi_handle_debug(lps0_device_handle, "_DSM function 1 eval %s\n",
++			  out_obj ? "successful" : "failed");
++
++	if (!out_obj)
++		return;
++
++	lpi_constraints_table = kcalloc(out_obj->package.count,
++					sizeof(*lpi_constraints_table),
++					GFP_KERNEL);
++	if (!lpi_constraints_table)
++		goto free_acpi_buffer;
++
++	acpi_handle_debug(lps0_device_handle, "LPI: constraints list begin:\n");
++
++	for (i = 0; i < out_obj->package.count; i++) {
++		struct lpi_constraints *constraint;
++		acpi_status status;
++		union acpi_object *package = &out_obj->package.elements[i];
++		struct lpi_device_info info = { };
++		int package_count = 0, j;
++
++		if (!package)
++			continue;
++
++		for (j = 0; j < package->package.count; ++j) {
++			union acpi_object *element =
++					&(package->package.elements[j]);
++
++			switch (element->type) {
++			case ACPI_TYPE_INTEGER:
++				info.enabled = element->integer.value;
++				break;
++			case ACPI_TYPE_STRING:
++				info.name = element->string.pointer;
++				break;
++			case ACPI_TYPE_PACKAGE:
++				package_count = element->package.count;
++				info.package = element->package.elements;
++				break;
++			}
++		}
++
++		if (!info.enabled || !info.package || !info.name)
++			continue;
++
++		constraint = &lpi_constraints_table[lpi_constraints_table_size];
++
++		status = acpi_get_handle(NULL, info.name, &constraint->handle);
++		if (ACPI_FAILURE(status))
++			continue;
++
++		acpi_handle_debug(lps0_device_handle,
++				  "index:%d Name:%s\n", i, info.name);
++
++		constraint->min_dstate = -1;
++
++		for (j = 0; j < package_count; ++j) {
++			union acpi_object *info_obj = &info.package[j];
++			union acpi_object *cnstr_pkg;
++			union acpi_object *obj;
++			struct lpi_device_constraint dev_info;
++
++			switch (info_obj->type) {
++			case ACPI_TYPE_INTEGER:
++				/* version */
++				break;
++			case ACPI_TYPE_PACKAGE:
++				if (info_obj->package.count < 2)
++					break;
++
++				cnstr_pkg = info_obj->package.elements;
++				obj = &cnstr_pkg[0];
++				dev_info.uid = obj->integer.value;
++				obj = &cnstr_pkg[1];
++				dev_info.min_dstate = obj->integer.value;
++
++				acpi_handle_debug(lps0_device_handle,
++					"uid:%d min_dstate:%s\n",
++					dev_info.uid,
++					acpi_power_state_string(dev_info.min_dstate));
++
++				constraint->min_dstate = dev_info.min_dstate;
++				break;
++			}
++		}
++
++		if (constraint->min_dstate < 0) {
++			acpi_handle_debug(lps0_device_handle,
++					  "Incomplete constraint defined\n");
++			continue;
++		}
++
++		lpi_constraints_table_size++;
++	}
++
++	acpi_handle_debug(lps0_device_handle, "LPI: constraints list end\n");
++
++free_acpi_buffer:
++	ACPI_FREE(out_obj);
++}
++
++static void lpi_check_constraints(void)
++{
++	int i;
++
++	for (i = 0; i < lpi_constraints_table_size; ++i) {
++		struct acpi_device *adev;
++
++		if (acpi_bus_get_device(lpi_constraints_table[i].handle, &adev))
++			continue;
++
++		acpi_handle_debug(adev->handle,
++			"LPI: required min power state:%s current power state:%s\n",
++			acpi_power_state_string(lpi_constraints_table[i].min_dstate),
++			acpi_power_state_string(adev->power.state));
++
++		if (!adev->flags.power_manageable) {
++			acpi_handle_info(adev->handle, "LPI: Device not power manageble\n");
++			continue;
++		}
++
++		if (adev->power.state < lpi_constraints_table[i].min_dstate)
++			acpi_handle_info(adev->handle,
++				"LPI: Constraint not met; min power state:%s current power state:%s\n",
++				acpi_power_state_string(lpi_constraints_table[i].min_dstate),
++				acpi_power_state_string(adev->power.state));
++	}
++}
++
+ static void acpi_sleep_run_lps0_dsm(unsigned int func)
+ {
+ 	union acpi_object *out_obj;
+@@ -729,6 +890,9 @@ static int lps0_device_attach(struct acpi_device *adev,
+ 				  "_DSM function 0 evaluation failed\n");
+ 	}
+ 	ACPI_FREE(out_obj);
++
++	lpi_device_get_constraints();
++
+ 	return 0;
+ }
+ 
+@@ -766,6 +930,10 @@ static int acpi_s2idle_prepare(void)
+ 
+ static void acpi_s2idle_wake(void)
+ {
++
++	if (pm_debug_messages_on)
++		lpi_check_constraints();
++
+ 	/*
+ 	 * If IRQD_WAKEUP_ARMED is not set for the SCI at this point, it means
+ 	 * that the SCI has triggered while suspended, so cancel the wakeup in
+diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+index 0d41daf..d10b798 100644
+--- a/include/linux/suspend.h
++++ b/include/linux/suspend.h
+@@ -495,9 +495,11 @@ static inline void unlock_system_sleep(void) {}
+ 
+ #ifdef CONFIG_PM_SLEEP_DEBUG
+ extern bool pm_print_times_enabled;
++extern bool pm_debug_messages_on;
+ extern __printf(2, 3) void __pm_pr_dbg(bool defer, const char *fmt, ...);
+ #else
+ #define pm_print_times_enabled	(false)
++#define pm_debug_messages_on	(false)
+ 
+ #include <linux/printk.h>
+ 
+diff --git a/kernel/power/main.c b/kernel/power/main.c
+index 3074ea4..3a2ca90 100644
+--- a/kernel/power/main.c
++++ b/kernel/power/main.c
+@@ -361,7 +361,7 @@ static ssize_t pm_wakeup_irq_show(struct kobject *kobj,
+ 
+ power_attr_ro(pm_wakeup_irq);
+ 
+-static bool pm_debug_messages_on __read_mostly;
++bool pm_debug_messages_on __read_mostly;
+ 
+ static ssize_t pm_debug_messages_show(struct kobject *kobj,
+ 				      struct kobj_attribute *attr, char *buf)
 -- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+2.7.5
