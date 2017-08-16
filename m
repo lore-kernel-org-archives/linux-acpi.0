@@ -1,130 +1,239 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH v3] acpi: apei: fix the wrongly iterate generic error
- status block
-Date: Wed, 16 Aug 2017 07:55:37 -0600
-Message-ID: <1f5b068b-74a5-3be1-46ef-a1bb522c2791@codeaurora.org>
-References: <1502871290-28137-1-git-send-email-gengdongjiu@huawei.com>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
+Date: Wed, 16 Aug 2017 09:59:01 -0400
+Message-ID: <20170816095901.33b0d4c2@gandalf.local.home>
+References: <1502732561.2042.141.camel@hpe.com>
+        <20170814180526.wtfjzgc6uye2qtx6@pd.tnic>
+        <1502734083.2042.143.camel@hpe.com>
+        <20170814183551.sgk2i7lxpmpyodhv@pd.tnic>
+        <1502736750.2042.145.camel@hpe.com>
+        <20170814193432.mjldfhfal5ba5dt7@pd.tnic>
+        <1502741290.2042.147.camel@hpe.com>
+        <20170814203942.6t3mrq3hc324blab@pd.tnic>
+        <1502810766.2042.149.camel@hpe.com>
+        <20170815154815.wy3dqwb4yi3feahg@intel.com>
+        <20170816082931.p6rpvtlxwt5nccxr@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:54120 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751578AbdHPNzm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Aug 2017 09:55:42 -0400
-In-Reply-To: <1502871290-28137-1-git-send-email-gengdongjiu@huawei.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170816082931.p6rpvtlxwt5nccxr@pd.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>, "Kani, Toshimitsu" <toshi.kani@hpe.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>, bp@suse.de, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com
-Cc: huangshaoyu@huawei.com, wuquanming@huawei.com
 
-On 8/16/2017 2:14 AM, Dongjiu Geng wrote:
-> The revision 0x300 generic error data entry is different
-> from the old version, but currently iterating through the
-> GHES estatus blocks does not take into account this difference.
-> This will lead to failure to get the right data entry if GHES
-> has revision 0x300 error data entry.
->
-> Update the GHES estatus iteration to properly increment using
-> acpi_hest_get_next, and correct the iteration termination condition
-> because the status block data length only includes error data length.
-> Clear the CPER estatus printing iteration logic to use same macro.
->
-> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> CC: Tyler Baicar <tbaicar@codeaurora.org>
-Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+On Wed, 16 Aug 2017 10:29:31 +0200
+Borislav Petkov <bp@alien8.de> wrote:
 
-Works good for me!
 
-Thanks,
-Tyler
 > ---
->   drivers/acpi/apei/apei-internal.h |  5 -----
->   drivers/firmware/efi/cper.c       | 12 ++----------
->   include/acpi/ghes.h               |  5 +++++
->   3 files changed, 7 insertions(+), 15 deletions(-)
->
-> diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
-> index 6e9f14c0a71b..cb4126051f62 100644
-> --- a/drivers/acpi/apei/apei-internal.h
-> +++ b/drivers/acpi/apei/apei-internal.h
-> @@ -120,11 +120,6 @@ int apei_exec_collect_resources(struct apei_exec_context *ctx,
->   struct dentry;
->   struct dentry *apei_get_debugfs_dir(void);
->   
-> -#define apei_estatus_for_each_section(estatus, section)			\
-> -	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
-> -	     (void *)section - (void *)estatus < estatus->data_length;	\
-> -	     section = (void *)(section+1) + section->error_data_length)
-> -
->   static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
->   {
->   	if (estatus->raw_data_length)
-> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-> index 48a8f69da42a..bf3672a81e49 100644
-> --- a/drivers/firmware/efi/cper.c
-> +++ b/drivers/firmware/efi/cper.c
-> @@ -606,7 +606,6 @@ void cper_estatus_print(const char *pfx,
->   			const struct acpi_hest_generic_status *estatus)
->   {
->   	struct acpi_hest_generic_data *gdata;
-> -	unsigned int data_len;
->   	int sec_no = 0;
->   	char newpfx[64];
->   	__u16 severity;
-> @@ -617,14 +616,10 @@ void cper_estatus_print(const char *pfx,
->   		       "It has been corrected by h/w "
->   		       "and requires no further action");
->   	printk("%s""event severity: %s\n", pfx, cper_severity_str(severity));
-> -	data_len = estatus->data_length;
-> -	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
->   	snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
->   
-> -	while (data_len >= acpi_hest_get_size(gdata)) {
-> +	apei_estatus_for_each_section(estatus, gdata) {
->   		cper_estatus_print_section(newpfx, gdata, sec_no);
-> -		data_len -= acpi_hest_get_record_size(gdata);
-> -		gdata = acpi_hest_get_next(gdata);
->   		sec_no++;
->   	}
->   }
-> @@ -653,15 +648,12 @@ int cper_estatus_check(const struct acpi_hest_generic_status *estatus)
->   	if (rc)
->   		return rc;
->   	data_len = estatus->data_length;
-> -	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
->   
-> -	while (data_len >= acpi_hest_get_size(gdata)) {
-> +	apei_estatus_for_each_section(estatus, gdata) {
->   		gedata_len = acpi_hest_get_error_length(gdata);
->   		if (gedata_len > data_len - acpi_hest_get_size(gdata))
->   			return -EINVAL;
-> -
->   		data_len -= acpi_hest_get_record_size(gdata);
-> -		gdata = acpi_hest_get_next(gdata);
->   	}
->   	if (data_len)
->   		return -EINVAL;
-> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-> index 9f26e01186ae..9061c5c743b3 100644
-> --- a/include/acpi/ghes.h
-> +++ b/include/acpi/ghes.h
-> @@ -113,6 +113,11 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
->   	return (void *)(gdata) + acpi_hest_get_record_size(gdata);
->   }
->   
-> +#define apei_estatus_for_each_section(estatus, section)			\
-> +	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
-> +	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
-> +	     section = acpi_hest_get_next(section))
+> diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
+> index 6f80eb65c26c..a22fabef4791 100644
+> --- a/drivers/edac/ghes_edac.c
+> +++ b/drivers/edac/ghes_edac.c
+> @@ -28,10 +28,14 @@ struct ghes_edac_pvt {
+>  	char msg[80];
+>  };
+>  
+> -static LIST_HEAD(ghes_reglist);
+> -static DEFINE_MUTEX(ghes_edac_lock);
+> -static int ghes_edac_mc_num;
+> +static struct ghes_edac_pvt *ghes_pvt;
+>  
+> +/*
+> + * Sync with other, potentially concurrent callers of
+> + * ghes_edac_report_mem_error(). We don't know what the
+> + * "inventive" firmware would do.
+> + */
+> +static DEFINE_SPINLOCK(ghes_lock);
+>  
+>  /* Memory Device - Type 17 of SMBIOS spec */
+>  struct memdev_dmi_entry {
+> @@ -169,14 +173,11 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+>  	enum hw_event_mc_err_type type;
+>  	struct edac_raw_error_desc *e;
+>  	struct mem_ctl_info *mci;
+> -	struct ghes_edac_pvt *pvt = NULL;
+> +	struct ghes_edac_pvt *pvt = ghes_pvt;
+> +	unsigned long flags;
+>  	char *p;
+>  	u8 grain_bits;
+>  
+> -	list_for_each_entry(pvt, &ghes_reglist, list) {
+> -		if (ghes == pvt->ghes)
+> -			break;
+> -	}
+>  	if (!pvt) {
+>  		pr_err("Internal error: Can't find EDAC structure\n");
+>  		return;
+> @@ -398,8 +399,16 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+>  		       (e->page_frame_number << PAGE_SHIFT) | e->offset_in_page,
+>  		       grain_bits, e->syndrome, pvt->detail_location);
+>  
+> -	/* Report the error via EDAC API */
+> +	/*
+> +	 * We can do the locking below because GHES defers error processing
+> +	 * from NMI to IRQ context. Whenever that changes, we'd at least
+> +	 * know.
+> +	 */
+> +	WARN_ON_ONCE(in_nmi());
+
+Should the above be:
+
+	if (WARN_ON_ONCE(in_nmi()))
+		return;
+
+To prevent a deadlock? Or do we not care?
+
 > +
->   int ghes_notify_sea(void);
->   
->   #endif /* GHES_H */
+> +	spin_lock_irqsave(&ghes_lock, flags);
+>  	edac_raw_mc_handle_error(type, mci, e);
+> +	spin_unlock_irqrestore(&ghes_lock, flags);
 
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+The above looks fine, as long as there's nothing before it that needs
+synchronization.
 
+>  }
+>  EXPORT_SYMBOL_GPL(ghes_edac_report_mem_error);
+>  
+> @@ -409,9 +418,14 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+>  	int rc, num_dimm = 0;
+>  	struct mem_ctl_info *mci;
+>  	struct edac_mc_layer layers[1];
+> -	struct ghes_edac_pvt *pvt;
+>  	struct ghes_edac_dimm_fill dimm_fill;
+>  
+> +	/*
+> +	 * We have only one logical memory controller to which all DIMMs belong.
+> +	 */
+> +	if (ghes_pvt)
+> +		return 0;
+
+What's the likelihood of two calls to ghes_edac_register being done
+simultaneously?  Because two calls at the same time will get past this.
+
+-- Steve
+
+
+> +
+>  	/* Get the number of DIMMs */
+>  	dmi_walk(ghes_edac_count_dimms, &num_dimm);
+>  
+> @@ -425,26 +439,17 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+>  	layers[0].size = num_dimm;
+>  	layers[0].is_virt_csrow = true;
+>  
+> -	/*
+> -	 * We need to serialize edac_mc_alloc() and edac_mc_add_mc(),
+> -	 * to avoid duplicated memory controller numbers
+> -	 */
+> -	mutex_lock(&ghes_edac_lock);
+> -	mci = edac_mc_alloc(ghes_edac_mc_num, ARRAY_SIZE(layers), layers,
+> -			    sizeof(*pvt));
+> +	mci = edac_mc_alloc(1, ARRAY_SIZE(layers), layers, sizeof(struct ghes_edac_pvt));
+>  	if (!mci) {
+>  		pr_info("Can't allocate memory for EDAC data\n");
+> -		mutex_unlock(&ghes_edac_lock);
+>  		return -ENOMEM;
+>  	}
+>  
+> -	pvt = mci->pvt_info;
+> -	memset(pvt, 0, sizeof(*pvt));
+> -	list_add_tail(&pvt->list, &ghes_reglist);
+> -	pvt->ghes = ghes;
+> -	pvt->mci  = mci;
+> -	mci->pdev = dev;
+> +	ghes_pvt	= mci->pvt_info;
+> +	ghes_pvt->ghes	= ghes;
+> +	ghes_pvt->mci	= mci;
+>  
+> +	mci->pdev = dev;
+>  	mci->mtype_cap = MEM_FLAG_EMPTY;
+>  	mci->edac_ctl_cap = EDAC_FLAG_NONE;
+>  	mci->edac_cap = EDAC_FLAG_NONE;
+> @@ -452,36 +457,23 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+>  	mci->ctl_name = "ghes_edac";
+>  	mci->dev_name = "ghes";
+>  
+> -	if (!ghes_edac_mc_num) {
+> -		if (!fake) {
+> -			pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
+> -			pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
+> -			pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
+> -			pr_info("If you find incorrect reports, please contact your hardware vendor\n");
+> -			pr_info("to correct its BIOS.\n");
+> -			pr_info("This system has %d DIMM sockets.\n",
+> -				num_dimm);
+> -		} else {
+> -			pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
+> -			pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
+> -			pr_info("work on such system. Use this driver with caution\n");
+> -		}
+> +	if (!fake) {
+> +		pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
+> +		pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
+> +		pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
+> +		pr_info("If you find incorrect reports, please contact your hardware vendor\n");
+> +		pr_info("to correct its BIOS.\n");
+> +		pr_info("This system has %d DIMM sockets.\n", num_dimm);
+> +	} else {
+> +		pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
+> +		pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
+> +		pr_info("work on such system. Use this driver with caution\n");
+>  	}
+>  
+>  	if (!fake) {
+> -		/*
+> -		 * Fill DIMM info from DMI for the memory controller #0
+> -		 *
+> -		 * Keep it in blank for the other memory controllers, as
+> -		 * there's no reliable way to properly credit each DIMM to
+> -		 * the memory controller, as different BIOSes fill the
+> -		 * DMI bank location fields on different ways
+> -		 */
+> -		if (!ghes_edac_mc_num) {
+> -			dimm_fill.count = 0;
+> -			dimm_fill.mci = mci;
+> -			dmi_walk(ghes_edac_dmidecode, &dimm_fill);
+> -		}
+> +		dimm_fill.count = 0;
+> +		dimm_fill.mci = mci;
+> +		dmi_walk(ghes_edac_dmidecode, &dimm_fill);
+>  	} else {
+>  		struct dimm_info *dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms,
+>  						       mci->n_layers, 0, 0, 0);
+> @@ -497,12 +489,8 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+>  	if (rc < 0) {
+>  		pr_info("Can't register at EDAC core\n");
+>  		edac_mc_free(mci);
+> -		mutex_unlock(&ghes_edac_lock);
+>  		return -ENODEV;
+>  	}
+> -
+> -	ghes_edac_mc_num++;
+> -	mutex_unlock(&ghes_edac_lock);
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(ghes_edac_register);
+> @@ -510,15 +498,9 @@ EXPORT_SYMBOL_GPL(ghes_edac_register);
+>  void ghes_edac_unregister(struct ghes *ghes)
+>  {
+>  	struct mem_ctl_info *mci;
+> -	struct ghes_edac_pvt *pvt, *tmp;
+> -
+> -	list_for_each_entry_safe(pvt, tmp, &ghes_reglist, list) {
+> -		if (ghes == pvt->ghes) {
+> -			mci = pvt->mci;
+> -			edac_mc_del_mc(mci->pdev);
+> -			edac_mc_free(mci);
+> -			list_del(&pvt->list);
+> -		}
+> -	}
+> +
+> +	mci = ghes_pvt->mci;
+> +	edac_mc_del_mc(mci->pdev);
+> +	edac_mc_free(mci);
+>  }
+>  EXPORT_SYMBOL_GPL(ghes_edac_unregister);
+> 
