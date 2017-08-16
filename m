@@ -1,42 +1,40 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
-Date: Wed, 16 Aug 2017 10:22:49 -0400
-Message-ID: <20170816102249.0c0d8d12@gandalf.local.home>
-References: <1502734083.2042.143.camel@hpe.com>
-        <20170814183551.sgk2i7lxpmpyodhv@pd.tnic>
-        <1502736750.2042.145.camel@hpe.com>
-        <20170814193432.mjldfhfal5ba5dt7@pd.tnic>
-        <1502741290.2042.147.camel@hpe.com>
-        <20170814203942.6t3mrq3hc324blab@pd.tnic>
-        <1502810766.2042.149.camel@hpe.com>
-        <20170815154815.wy3dqwb4yi3feahg@intel.com>
-        <20170816082931.p6rpvtlxwt5nccxr@pd.tnic>
-        <20170816095901.33b0d4c2@gandalf.local.home>
-        <20170816140350.o573iksqgkj4m5xu@pd.tnic>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH] ACPI/APEI: Add BERT data driver
+Date: Wed, 16 Aug 2017 15:22:44 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F61340302@ORSMSX114.amr.corp.intel.com>
+References: <20170814165613.25561-1-tony.luck@intel.com>
+        <87k225p1v5.fsf@e105922-lin.cambridge.arm.com>
+        <20170815211556.nnnnbtlvorgc3ijh@intel.com>
+ <87a82zpsd7.fsf@e105922-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41146 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751556AbdHPOWw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Aug 2017 10:22:52 -0400
-In-Reply-To: <20170816140350.o573iksqgkj4m5xu@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87a82zpsd7.fsf@e105922-lin.cambridge.arm.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Punit Agrawal <punit.agrawal@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>, "Kani, Toshimitsu" <toshi.kani@hpe.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-On Wed, 16 Aug 2017 16:03:50 +0200
-Borislav Petkov <bp@alien8.de> wrote:
+> One thing I missed commenting on in the previous version -
+>
+> Have you thought of exposing the error records via /sys/firmware/acpi?
+> The tables are already exposed there and as BERT is part of ACPI
+> logically that's a better fit compared to a misc device.
 
-> > What's the likelihood of two calls to ghes_edac_register being done
-> > simultaneously?  Because two calls at the same time will get past this.  
-> 
-> Well, that thing gets called per GHES platform device and last time I
-> checked they do get probed back-to-back but I'll check that again.
+That was my first thought :-)
 
-Maybe keep that original mutex just in case.
+But I got stuck on how to name things.  The BERT entry appears in
+/sys/firmware/acpi/tables/ ... but the code doesn't know anything special
+about "BERT", it just iterates over all the tables and makes them all
+appear.
 
--- Steve
+I thought about making it /sys/firmware/acpi/tables/BERT.data, but that
+seemed very ugly (this file isn't a "table", so why does it appear in the
+"tables" directory? So maybe /sys/firmware/acpi/table-data/BERT? Now
+the driver has to make another directory.
 
+Thoughts?
+
+-Tony
