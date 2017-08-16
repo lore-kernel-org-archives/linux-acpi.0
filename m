@@ -1,163 +1,124 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: [PATCH] ACPI/APEI: Add BERT data driver
-Date: Wed, 16 Aug 2017 14:14:12 +0100
-Message-ID: <87a82zpsd7.fsf@e105922-lin.cambridge.arm.com>
-References: <20170814165613.25561-1-tony.luck@intel.com>
-        <87k225p1v5.fsf@e105922-lin.cambridge.arm.com>
-        <20170815211556.nnnnbtlvorgc3ijh@intel.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: next-20170815 build: 2 failures 4 warnings (next-20170815)
+Date: Wed, 16 Aug 2017 15:19:39 +0200
+Message-ID: <CAMuHMdVKkROQFY-H+RamHcm_oBr10uGOD40d90MyfmdzEFRKRg@mail.gmail.com>
+References: <E1dhZPk-0002d9-9k@optimist> <20170815111612.esq73hxowbw2mehj@sirena.org.uk>
+ <13442814.gWUDHvzIl2@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35244 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751370AbdHPNOO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Aug 2017 09:14:14 -0400
-In-Reply-To: <20170815211556.nnnnbtlvorgc3ijh@intel.com> (Tony Luck's message
-        of "Tue, 15 Aug 2017 14:15:57 -0700")
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <13442814.gWUDHvzIl2@aspire.rjw.lan>
+Sender: linux-next-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mark Brown <broonie@kernel.org>, linaro-kernel <linaro-kernel@lists.linaro.org>, kernel-build-reports@lists.linaro.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-Next <linux-next@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-"Luck, Tony" <tony.luck@intel.com> writes:
+Hi Rafael,
 
-> On Tue, Aug 15, 2017 at 11:22:06AM +0100, Punit Agrawal wrote:
->> There is already a bert driver which prints the error record. Would it
->> make sense to integrate the character device there instead of creating a
->> new driver?
+On Tue, Aug 15, 2017 at 1:59 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, August 15, 2017 1:16:12 PM CEST Mark Brown wrote:
+>> --xqegarazqzvkdxmo
+>> Content-Type: text/plain; charset=us-ascii
+>> Content-Disposition: inline
+>>
+>> On Tue, Aug 15, 2017 at 11:49:36AM +0100, Build bot for Mark Brown wrote:
+>>
+>> Today's -next fails to build on arm64 due to:
+>>
+>> >     arm64-allmodconfig
+>> >     arm64-defconfig
+>> > ../drivers/acpi/spcr.c:168:1: error: expected expression before '<<' token
+>> > ../drivers/acpi/spcr.c:198:1: error: expected expression before '>>' token
+>>
+>> caused by f69ba1326ac33b (Merge branch 'acpi-spcr' into linux-next)
+>> which has an unresolved conflict in it.
 >
-> Like this?  The source code is smaller. But it doesn't offer the option to unload
-> the driver and unmap the BERT data region after you have retrieved the error record.
+> Yes, I broke this, sorry.
+>
+> Will fix it shortly.
 
-Is there any benefit in being able to unload the driver in real world
-usage?
+The rebased version (fix?) lacks a curly opening brace.
+Gmail-whitespace-damaged patch to fold into the bad version below.
 
-It should be possible to convert the existing driver into a loadable
-module - thought that means re-printing the error records to the kernel
-log if the module is re-loaded. Not sure if that breaks any existing
-usecases.
+>From f5d55ccb53f02b67be52962d727bdfe3fff14afb Mon Sep 17 00:00:00 2001
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Date: Wed, 16 Aug 2017 15:17:35 +0200
+Subject: [PATCH] CPI: SPCR: Add missing opening brace
 
-One thing I missed commenting on in the previous version -
+drivers/acpi/spcr.c: In function 'parse_spcr':
+drivers/acpi/spcr.c:165:3: error: label 'done' used but not defined
+   goto done;
+   ^
+drivers/acpi/spcr.c: At top level:
+drivers/acpi/spcr.c:201:4: error: expected identifier or '(' before 'else'
+  } else {
+    ^
+drivers/acpi/spcr.c:206:9: error: expected declaration specifiers or
+'...' before string constant
+  pr_info("console: %s\n", opts);
+         ^
+drivers/acpi/spcr.c:206:52: error: unknown type name 'opts'
+  pr_info("console: %s\n", opts);
+                                                    ^
+drivers/acpi/spcr.c:208:2: error: expected identifier or '(' before 'if'
+  if (earlycon)
+  ^
+drivers/acpi/spcr.c:211:2: warning: data definition has no type or storage class
+  err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
+  ^
+drivers/acpi/spcr.c:211:2: error: type defaults to 'int' in
+declaration of 'err' [-Werror=implicit-int]
+drivers/acpi/spcr.c:211:30: error: 'uart' undeclared here (not in a function)
+  err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
+                              ^
+drivers/acpi/spcr.c:211:39: error: 'opts' undeclared here (not in a function)
+  err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
+                                       ^
+drivers/acpi/spcr.c:213:5: error: expected '=', ',', ';', 'asm' or
+'__attribute__' before ':' token
+ done:
+     ^
+drivers/acpi/spcr.c:215:2: error: expected identifier or '(' before 'return'
+  return err;
+  ^
+drivers/acpi/spcr.c:216:1: error: expected identifier or '(' before '}' token
+ }
+ ^
+drivers/acpi/spcr.c: In function 'parse_spcr':
+drivers/acpi/spcr.c:201:2: warning: control reaches end of non-void
+function [-Wreturn-type]
+  } else {
+  ^
 
-Have you thought of exposing the error records via /sys/firmware/acpi?
-The tables are already exposed there and as BERT is part of ACPI
-logically that's a better fit compared to a misc device.
+Fixes: fd46b1aebee729fb ("ACPI: SPCR: work around clock issue on xgene UART")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+---
+ drivers/acpi/spcr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->
-> Either looks plausible to me (but I'm hardly a disinterested party).
->
-> Votes?
->
-> -Tony
->
-> From cbeabf2d83fe91eebd960cd5cc1b61faaeed1441 Mon Sep 17 00:00:00 2001
-> From: Tony Luck <tony.luck@intel.com>
-> Date: Tue, 15 Aug 2017 13:48:28 -0700
-> Subject: [PATCH] ACPI: APEI: Extend BERT driver to provide a character device
->  to access data
->
-> The BERT table simply provides the size and address of the error
-> record in BIOS reserved memory. Currently this driver decodes the
-> record to the console log. But other users of BERT may want to access
-> the full binary record.
->
-> In an earlier age we might have used /dev/mem to retrieve this error
-> record, but many systems disable /dev/mem for security reasons.
->
-> Extend this driver to provide read-only access to the data via a character
-> special device "/dev/bert-data".
->
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Boris Petkov <bp@suse.de>
-> Cc: Tyler Baicar <tbaicar@codeaurora.org>
-> Cc: Punit Agrawal <punit.agrawal@arm.com>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Tony Luck <tony.luck@intel.com>
->
-> v2: (suggested by Punit Agrawal) don't make a whole new driver, merge
->     this functionality into the existing BERT driver.
-> ---
->  drivers/acpi/apei/bert.c | 45 ++++++++++++++++++++++++++++++++++++++++++---
->  1 file changed, 42 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
-> index 12771fcf0417..9bc39b1bffde 100644
-> --- a/drivers/acpi/apei/bert.c
-> +++ b/drivers/acpi/apei/bert.c
-> @@ -26,12 +26,16 @@
->  #include <linux/init.h>
->  #include <linux/acpi.h>
->  #include <linux/io.h>
-> +#include <linux/miscdevice.h>
-> +#include <linux/uaccess.h>
->  
->  #include "apei-internal.h"
->  
->  #undef pr_fmt
->  #define pr_fmt(fmt) "BERT: " fmt
->  
-> +static __iomem void *bert_data;
-> +static unsigned int region_len;
->  static int bert_disable;
->  
->  static void __init bert_print_all(struct acpi_bert_region *region,
-> @@ -95,12 +99,45 @@ static int __init bert_check_table(struct acpi_table_bert *bert_tab)
->  	return 0;
->  }
->  
-> +static int bert_chrdev_open(struct inode *inode, struct file *file)
-> +{
-> +	if (file->f_flags & (O_WRONLY | O_RDWR))
-> +		return -EPERM;
-> +	inode->i_size = region_len;
-> +	return 0;
-> +}
-> +
-> +static ssize_t bert_chrdev_read(struct file *filp, char __user *ubuf,
-> +				size_t usize, loff_t *off)
-> +{
-> +	if (*off > region_len)
-> +		return -EINVAL;
-> +	if (*off + usize > region_len)
-> +		usize = region_len - *off;
-> +	if (copy_to_user(ubuf, bert_data + *off, usize))
-> +		return -EFAULT;
-> +	*off += usize;
-> +	return usize;
-> +}
-> +
-> +static const struct file_operations bert_chrdev_ops = {
-> +	.open		= bert_chrdev_open,
-> +	.read		= bert_chrdev_read,
-> +	.llseek		= default_llseek,
-> +};
-> +
-> +static struct miscdevice bert_chrdev_device = {
-> +	.minor		= MISC_DYNAMIC_MINOR,
-> +	.name		= "bert-data",
-> +	.fops		= &bert_chrdev_ops,
-> +	.mode		= 0444,
-> +};
-> +
->  static int __init bert_init(void)
->  {
-> -	struct apei_resources bert_resources;
->  	struct acpi_bert_region *boot_error_region;
-> +	struct apei_resources bert_resources;
->  	struct acpi_table_bert *bert_tab;
-> -	unsigned int region_len;
->  	acpi_status status;
->  	int rc = 0;
->  
-> @@ -139,7 +176,9 @@ static int __init bert_init(void)
->  	boot_error_region = ioremap_cache(bert_tab->address, region_len);
->  	if (boot_error_region) {
->  		bert_print_all(boot_error_region, region_len);
-> -		iounmap(boot_error_region);
-> +		bert_data = boot_error_region;
-> +		if (misc_register(&bert_chrdev_device))
-> +			iounmap(boot_error_region);
->  	} else {
->  		rc = -ENOMEM;
->  	}
+diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+index 617003032415e09e..324b35bfe781d42a 100644
+--- a/drivers/acpi/spcr.c
++++ b/drivers/acpi/spcr.c
+@@ -189,7 +189,7 @@ int __init parse_spcr(bool earlycon)
+  uart = "qdf2400_e44";
+  }
+
+- if (xgene_8250_erratum_present(table))
++ if (xgene_8250_erratum_present(table)) {
+  iotype = "mmio32";
+
+  /* for xgene v1 and v2 we don't know the clock rate of the
+-- 
+2.7.4
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
