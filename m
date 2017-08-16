@@ -1,124 +1,130 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: next-20170815 build: 2 failures 4 warnings (next-20170815)
-Date: Wed, 16 Aug 2017 15:19:39 +0200
-Message-ID: <CAMuHMdVKkROQFY-H+RamHcm_oBr10uGOD40d90MyfmdzEFRKRg@mail.gmail.com>
-References: <E1dhZPk-0002d9-9k@optimist> <20170815111612.esq73hxowbw2mehj@sirena.org.uk>
- <13442814.gWUDHvzIl2@aspire.rjw.lan>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH v3] acpi: apei: fix the wrongly iterate generic error
+ status block
+Date: Wed, 16 Aug 2017 07:55:37 -0600
+Message-ID: <1f5b068b-74a5-3be1-46ef-a1bb522c2791@codeaurora.org>
+References: <1502871290-28137-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <13442814.gWUDHvzIl2@aspire.rjw.lan>
-Sender: linux-next-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mark Brown <broonie@kernel.org>, linaro-kernel <linaro-kernel@lists.linaro.org>, kernel-build-reports@lists.linaro.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-Next <linux-next@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:54120 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751578AbdHPNzm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Aug 2017 09:55:42 -0400
+In-Reply-To: <1502871290-28137-1-git-send-email-gengdongjiu@huawei.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dongjiu Geng <gengdongjiu@huawei.com>, bp@suse.de, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com
+Cc: huangshaoyu@huawei.com, wuquanming@huawei.com
 
-Hi Rafael,
-
-On Tue, Aug 15, 2017 at 1:59 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, August 15, 2017 1:16:12 PM CEST Mark Brown wrote:
->> --xqegarazqzvkdxmo
->> Content-Type: text/plain; charset=us-ascii
->> Content-Disposition: inline
->>
->> On Tue, Aug 15, 2017 at 11:49:36AM +0100, Build bot for Mark Brown wrote:
->>
->> Today's -next fails to build on arm64 due to:
->>
->> >     arm64-allmodconfig
->> >     arm64-defconfig
->> > ../drivers/acpi/spcr.c:168:1: error: expected expression before '<<' token
->> > ../drivers/acpi/spcr.c:198:1: error: expected expression before '>>' token
->>
->> caused by f69ba1326ac33b (Merge branch 'acpi-spcr' into linux-next)
->> which has an unresolved conflict in it.
+On 8/16/2017 2:14 AM, Dongjiu Geng wrote:
+> The revision 0x300 generic error data entry is different
+> from the old version, but currently iterating through the
+> GHES estatus blocks does not take into account this difference.
+> This will lead to failure to get the right data entry if GHES
+> has revision 0x300 error data entry.
 >
-> Yes, I broke this, sorry.
+> Update the GHES estatus iteration to properly increment using
+> acpi_hest_get_next, and correct the iteration termination condition
+> because the status block data length only includes error data length.
+> Clear the CPER estatus printing iteration logic to use same macro.
 >
-> Will fix it shortly.
+> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+> CC: Tyler Baicar <tbaicar@codeaurora.org>
+Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
 
-The rebased version (fix?) lacks a curly opening brace.
-Gmail-whitespace-damaged patch to fold into the bad version below.
+Works good for me!
 
->From f5d55ccb53f02b67be52962d727bdfe3fff14afb Mon Sep 17 00:00:00 2001
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Date: Wed, 16 Aug 2017 15:17:35 +0200
-Subject: [PATCH] CPI: SPCR: Add missing opening brace
+Thanks,
+Tyler
+> ---
+>   drivers/acpi/apei/apei-internal.h |  5 -----
+>   drivers/firmware/efi/cper.c       | 12 ++----------
+>   include/acpi/ghes.h               |  5 +++++
+>   3 files changed, 7 insertions(+), 15 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
+> index 6e9f14c0a71b..cb4126051f62 100644
+> --- a/drivers/acpi/apei/apei-internal.h
+> +++ b/drivers/acpi/apei/apei-internal.h
+> @@ -120,11 +120,6 @@ int apei_exec_collect_resources(struct apei_exec_context *ctx,
+>   struct dentry;
+>   struct dentry *apei_get_debugfs_dir(void);
+>   
+> -#define apei_estatus_for_each_section(estatus, section)			\
+> -	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
+> -	     (void *)section - (void *)estatus < estatus->data_length;	\
+> -	     section = (void *)(section+1) + section->error_data_length)
+> -
+>   static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
+>   {
+>   	if (estatus->raw_data_length)
+> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+> index 48a8f69da42a..bf3672a81e49 100644
+> --- a/drivers/firmware/efi/cper.c
+> +++ b/drivers/firmware/efi/cper.c
+> @@ -606,7 +606,6 @@ void cper_estatus_print(const char *pfx,
+>   			const struct acpi_hest_generic_status *estatus)
+>   {
+>   	struct acpi_hest_generic_data *gdata;
+> -	unsigned int data_len;
+>   	int sec_no = 0;
+>   	char newpfx[64];
+>   	__u16 severity;
+> @@ -617,14 +616,10 @@ void cper_estatus_print(const char *pfx,
+>   		       "It has been corrected by h/w "
+>   		       "and requires no further action");
+>   	printk("%s""event severity: %s\n", pfx, cper_severity_str(severity));
+> -	data_len = estatus->data_length;
+> -	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
+>   	snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
+>   
+> -	while (data_len >= acpi_hest_get_size(gdata)) {
+> +	apei_estatus_for_each_section(estatus, gdata) {
+>   		cper_estatus_print_section(newpfx, gdata, sec_no);
+> -		data_len -= acpi_hest_get_record_size(gdata);
+> -		gdata = acpi_hest_get_next(gdata);
+>   		sec_no++;
+>   	}
+>   }
+> @@ -653,15 +648,12 @@ int cper_estatus_check(const struct acpi_hest_generic_status *estatus)
+>   	if (rc)
+>   		return rc;
+>   	data_len = estatus->data_length;
+> -	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
+>   
+> -	while (data_len >= acpi_hest_get_size(gdata)) {
+> +	apei_estatus_for_each_section(estatus, gdata) {
+>   		gedata_len = acpi_hest_get_error_length(gdata);
+>   		if (gedata_len > data_len - acpi_hest_get_size(gdata))
+>   			return -EINVAL;
+> -
+>   		data_len -= acpi_hest_get_record_size(gdata);
+> -		gdata = acpi_hest_get_next(gdata);
+>   	}
+>   	if (data_len)
+>   		return -EINVAL;
+> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+> index 9f26e01186ae..9061c5c743b3 100644
+> --- a/include/acpi/ghes.h
+> +++ b/include/acpi/ghes.h
+> @@ -113,6 +113,11 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
+>   	return (void *)(gdata) + acpi_hest_get_record_size(gdata);
+>   }
+>   
+> +#define apei_estatus_for_each_section(estatus, section)			\
+> +	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
+> +	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
+> +	     section = acpi_hest_get_next(section))
+> +
+>   int ghes_notify_sea(void);
+>   
+>   #endif /* GHES_H */
 
-drivers/acpi/spcr.c: In function 'parse_spcr':
-drivers/acpi/spcr.c:165:3: error: label 'done' used but not defined
-   goto done;
-   ^
-drivers/acpi/spcr.c: At top level:
-drivers/acpi/spcr.c:201:4: error: expected identifier or '(' before 'else'
-  } else {
-    ^
-drivers/acpi/spcr.c:206:9: error: expected declaration specifiers or
-'...' before string constant
-  pr_info("console: %s\n", opts);
-         ^
-drivers/acpi/spcr.c:206:52: error: unknown type name 'opts'
-  pr_info("console: %s\n", opts);
-                                                    ^
-drivers/acpi/spcr.c:208:2: error: expected identifier or '(' before 'if'
-  if (earlycon)
-  ^
-drivers/acpi/spcr.c:211:2: warning: data definition has no type or storage class
-  err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
-  ^
-drivers/acpi/spcr.c:211:2: error: type defaults to 'int' in
-declaration of 'err' [-Werror=implicit-int]
-drivers/acpi/spcr.c:211:30: error: 'uart' undeclared here (not in a function)
-  err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
-                              ^
-drivers/acpi/spcr.c:211:39: error: 'opts' undeclared here (not in a function)
-  err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
-                                       ^
-drivers/acpi/spcr.c:213:5: error: expected '=', ',', ';', 'asm' or
-'__attribute__' before ':' token
- done:
-     ^
-drivers/acpi/spcr.c:215:2: error: expected identifier or '(' before 'return'
-  return err;
-  ^
-drivers/acpi/spcr.c:216:1: error: expected identifier or '(' before '}' token
- }
- ^
-drivers/acpi/spcr.c: In function 'parse_spcr':
-drivers/acpi/spcr.c:201:2: warning: control reaches end of non-void
-function [-Wreturn-type]
-  } else {
-  ^
-
-Fixes: fd46b1aebee729fb ("ACPI: SPCR: work around clock issue on xgene UART")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
- drivers/acpi/spcr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-index 617003032415e09e..324b35bfe781d42a 100644
---- a/drivers/acpi/spcr.c
-+++ b/drivers/acpi/spcr.c
-@@ -189,7 +189,7 @@ int __init parse_spcr(bool earlycon)
-  uart = "qdf2400_e44";
-  }
-
-- if (xgene_8250_erratum_present(table))
-+ if (xgene_8250_erratum_present(table)) {
-  iotype = "mmio32";
-
-  /* for xgene v1 and v2 we don't know the clock rate of the
 -- 
-2.7.4
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
