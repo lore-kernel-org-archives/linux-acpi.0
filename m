@@ -1,47 +1,155 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
-Date: Wed, 16 Aug 2017 18:01:30 +0000
-Message-ID: <1502905904.2042.159.camel@hpe.com>
-References: <1502736750.2042.145.camel@hpe.com>
-         <20170814193432.mjldfhfal5ba5dt7@pd.tnic>
-         <1502741290.2042.147.camel@hpe.com>
-         <20170814203942.6t3mrq3hc324blab@pd.tnic>
-         <1502810766.2042.149.camel@hpe.com>
-         <20170815154815.wy3dqwb4yi3feahg@intel.com>
-         <20170816082931.p6rpvtlxwt5nccxr@pd.tnic>
-         <1502896578.2042.155.camel@hpe.com>
-         <20170816164234.mgwapenb7fpym6nk@pd.tnic>
-         <1502903940.2042.157.camel@hpe.com>
-         <20170816174028.dqfvubjigvwtcbcy@pd.tnic>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v5 6/7] libnvdimm, btt: refactor initial_offset calculations
+Date: Wed, 16 Aug 2017 17:30:34 -0700
+Message-ID: <CAPcyv4i+r084mLFzmj9tfHKaFEdOQnWWEPXZMKGx-ejMkWKC8g@mail.gmail.com>
+References: <20170809000746.10585-1-vishal.l.verma@intel.com>
+ <20170809000746.10585-7-vishal.l.verma@intel.com> <CAPcyv4is9O=HCrHPJXoOOW2p2LyUE1n3WCi-5X0AKfU-pNWNPg@mail.gmail.com>
+ <1502739913.4405.17.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t2353.austin.hpe.com ([15.233.44.26]:38182 "EHLO
-        g2t2353.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751893AbdHPSBd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Aug 2017 14:01:33 -0400
-In-Reply-To: <20170816174028.dqfvubjigvwtcbcy@pd.tnic>
-Content-Language: en-US
-Content-ID: <CC25ED8827829F4B8B6F113BB1C1AD97@NAMPRD84.PROD.OUTLOOK.COM>
+Received: from mail-yw0-f178.google.com ([209.85.161.178]:36518 "EHLO
+        mail-yw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751467AbdHQAaf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Aug 2017 20:30:35 -0400
+Received: by mail-yw0-f178.google.com with SMTP id u207so32433741ywc.3
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Aug 2017 17:30:35 -0700 (PDT)
+In-Reply-To: <1502739913.4405.17.camel@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "bp@alien8.de" <bp@alien8.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-T24gV2VkLCAyMDE3LTA4LTE2IGF0IDE5OjQwICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
-DQo+IE9uIFdlZCwgQXVnIDE2LCAyMDE3IGF0IDA1OjI4OjUwUE0gKzAwMDAsIEthbmksIFRvc2hp
-bWl0c3Ugd3JvdGU6DQo+ID4gQXNzdW1pbmcgdGhpcyBiaWcgc3BpbmxvY2sgd29ya3MsIHllcywg
-dGhpcyBhZGRyZXNzZXMgbXkgY29uY2Vybg0KPiA+IHRoYXQNCj4gDQo+IFlvdSBtZWFuLCBsZW5n
-dGh5IGxvY2tlZCBzZWN0aW9uLiBXZSBjYW4gYWx3YXlzIHN3aXRjaCB0byBvbi1zdGFjaw0KPiBi
-dWZmZXJzIGlmIHRoZXJlIGFyZSBpc3N1ZXMgb3IgZXZlbiB0byBzb21ldGhpbmcgbW9yZSBmYW5j
-eSBsaWtlDQo+IGdlbnBvb2wuDQoNClllcywgSSBtZWFudCB0aGUgbGVuZ3RoeSBsb2NrZWQgc2Vj
-dGlvbi4gIEkgc3RpbGwgdGhpbmsgdGhhdCBtdWx0aXBsZQ0KbWNpcyBpcyBhIGJldHRlciBhcHBy
-b2FjaCBmb3IgY29uY3VycmVuY3kgYXMgaXQgbmF0dXJhbGx5IGFkZHJlc3NlcyBpdC4NCkJ1dCBh
-cyBsb25nIGFzIGVkYWMgZnVuYyBhbmQgZXJyb3IgaGFuZGxlcnMgYXJlIHRvbGVyYW50IHdpdGgg
-dGhpcw0Kc3BpbmxvY2sgYW5kIHNlcmlhbGl6YXRpb24sIEkgYW0gT0sgd2l0aCB0aGF0Lg0KDQo+
-ID4gSSB3aWxsIHRlc3QgdGhlIHBhdGNoIHdpdGggYW4gU0NJIHdoZW4gSSBnb3QgYSBjaGFuY2Uu
-wqDCoEkgd29uJ3QgYmUNCj4gPiBhYmxlIHRvIHRlc3Qgb3RoZXIgbm90aWZpY2F0aW9uIHR5cGVz
-IG9yIHJhY2UgY29uZGl0aW9ucywgdGhvdWdoLg0KPiANCj4gVGhhbmtzLCBoZXJlJ3MgdGhlIGxh
-dGVzdCB2ZXJzaW9uIHdpdGggdGhlIGF0b21pYyByZWdpc3RyYXRpb24gdG9vLg0KDQpTdXJlLCBJ
-IHdpbGwgdGVzdCB3aXRoIHRoaXMgdmVyc2lvbi4NCg0KVGhhbmtzLA0KLVRvc2hpDQo=
+On Mon, Aug 14, 2017 at 12:47 PM, Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+> On Fri, 2017-08-11 at 18:39 -0700, Dan Williams wrote:
+>> On Tue, Aug 8, 2017 at 5:07 PM, Vishal Verma <vishal.l.verma@intel.com
+>> > wrote:
+>> > In preparation for BTT error clearing, refactor the initial offset
+>> > calculations. Until now, all callers of arena_{read,write}_bytes
+>> > assumed
+>> > a relative offset to the arena, and it was later adjusted for the
+>> > initial offset. Until now, every time we calculated a relative
+>> > offset,
+>> > we passed it to these functions to do reads or writes, and so where
+>> > the
+>> > offset calculations happened didn't matter.
+>> >
+>> > For error clearing, there will be places where we calculate offsets
+>> > to
+>> > check for the presence of media errors, and the above scheme becomes
+>> > error prone.
+>> >
+>> > Make the initial_offset calculations explicit for all callers of
+>> > arena_{read,write}_bytes, and provide a helper to do them. The error
+>> > checking/clearing code can then use these same helpers.
+>> >
+>> > Reported-by: Toshi Kani <toshi.kani@hpe.com>
+>> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+>> > ---
+>> >  drivers/nvdimm/btt.c | 69 ++++++++++++++++++++++++++++++++---------
+>> > -----------
+>> >  1 file changed, 42 insertions(+), 27 deletions(-)
+>> >
+>> > diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+>> > index e9dd651..9acf06b 100644
+>> > --- a/drivers/nvdimm/btt.c
+>> > +++ b/drivers/nvdimm/btt.c
+>> > @@ -31,14 +31,17 @@ enum log_ent_request {
+>> >         LOG_OLD_ENT
+>> >  };
+>> >
+>> > +static inline u64 calc_nsoff(struct nd_btt *nd_btt, u64
+>> > relative_offset)
+>> > +{
+>> > +       return relative_offset + nd_btt->initial_offset;
+>> > +}
+>> > +
+>> >  static int arena_read_bytes(struct arena_info *arena,
+>> > resource_size_t offset,
+>> >                 void *buf, size_t n, unsigned long flags)
+>> >  {
+>> >         struct nd_btt *nd_btt = arena->nd_btt;
+>> >         struct nd_namespace_common *ndns = nd_btt->ndns;
+>> >
+>> > -       /* arena offsets may be shifted from the base of the device
+>> > */
+>> > -       offset += arena->nd_btt->initial_offset;
+>> >         return nvdimm_read_bytes(ndns, offset, buf, n, flags);
+>> >  }
+>> >
+>> > @@ -48,14 +51,13 @@ static int arena_write_bytes(struct arena_info
+>> > *arena, resource_size_t offset,
+>> >         struct nd_btt *nd_btt = arena->nd_btt;
+>> >         struct nd_namespace_common *ndns = nd_btt->ndns;
+>> >
+>> > -       /* arena offsets may be shifted from the base of the device
+>> > */
+>> > -       offset += arena->nd_btt->initial_offset;
+>> >         return nvdimm_write_bytes(ndns, offset, buf, n, flags);
+>> >  }
+>>
+>> So let's get rid of arena_{read,write}_bytes(). The only point of the
+>> wrapper was to include an arena specific offset, but now we're pushing
+>> all offset calculations to the caller so arena_{read,write}_bytes() is
+>> equivalent to nvdimm_{read,write}_bytes().
+>
+> That sounds fine, though that will require all callers to now
+> dereference arena->nd->btt->ndns to do reads/writes.. Is that ok?
+
+Sure, just put that in a to_ndns() helper.
+
+>> However, since many of
+>> these call sites now perform a common offset calculations maybe we can
+>> provide a new helper for that to differentiate it from the error
+>> clearing case?
+>
+> Not sure I follow - the offset calculations for the error clearing use
+> and for data reads/writes are exactly the same (lba_to_nsoff). (See
+> further below)
+>
+>> After patch 7 is applied it's no longer clear which
+>> offset calculation is used where and for what reason, there's just too
+>> many offset variables calculations and overload of the word 'offset'
+>> for bugs to hide.
+>
+> Agreed on the ambiguity of 'offset'. The implicit rule I followed was
+> any kind of 'nsoff' will mean the final namespace offset, after
+> accounting for arenas, any initial offset etc. Any other 'offset' is
+> relative to the context in which it is used.
+>
+>>
+>> Maybe it's just late on a Friday and my eyes are going cross, but it
+>> seems you have 2 classes of use cases between calc_nsoff and
+>> lba_to_nsoff, perhaps separate read/write wrappers for those 2 cases?
+>
+> The difference between the two is that lba_to_nsoff is used when were
+> talking about reading/writing a 'data' block, and where we are talking
+> in terms of 'lba's, not raw offsets. calc_nsoff (which lba_to_nsoff
+> calls internally), is a 'last stage' calculation, essentially just to
+> add the initial_offset. Direct callers of calc_nsoff (i.e. functions
+> that access the log, map, or info blocks) do their offset calculations
+> 'manually' based on arena->{map,log,info}off, but these offsets are
+> unaware of 'initial_offset', as they started out being relative to
+> 'this' arena. So calc_nsoff is that last stage addition of
+> initial_offset.
+>
+> I agree that if feels a bit clunky, but I'm not sure I see a clear way
+> to improve it..
+
+Since calc_nsoff is "last stage" and required I think it should be
+hidden in the helper that does the read write. Why does it need to be
+manually called by every read/write call site?
+
+>> Also, I find something unreadable about calc_nsoff, and reading the
+>> prototype "u64 calc_nsoff(struct nd_btt *nd_btt, u64 relative_offset)"
+>> doesn't help clarify. What is 'relative_offset' relative to? Is it the
+>> base namespace / device offset?
+>
+> Yeah, I cringed a bit too when I called it 'relative_offset'. But I
+> couldn't find a more descriptive name. It is 'almost' the raw nsoff,
+> with just the initial_offset calculation pending... Maybe
+> btt_relative_offset?
+
+I think this gets easier if the consumer of this ambiguity is reduced
+to just the 2 leaf routines that do ->rw_bytes().
