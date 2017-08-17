@@ -1,118 +1,141 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 2/2] ACPI: EC: Fix possible issues related to EC initialization order
-Date: Thu, 17 Aug 2017 10:21:12 +0800
-Message-ID: <9b78559899b3a7a984b0a821942f13d850721b7c.1502936401.git.lv.zheng@intel.com>
-References: <756461e045cbddb16418685a1b12c3c9a491d328.1502868457.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:45831 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751461AbdHQCVP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Aug 2017 22:21:15 -0400
-In-Reply-To: <756461e045cbddb16418685a1b12c3c9a491d328.1502868457.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+Date: Thu, 17 Aug 2017 02:24:45 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF0BC5A@SHSMSX101.ccr.corp.intel.com>
+References: <12346760.yAFCnkEgf6@aspire.rjw.lan>
+ <3677056.OS19FbOdkF@aspire.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E886CF0B3F2@SHSMSX101.ccr.corp.intel.com>
+ <1635689.qJin4YfZ5x@aspire.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1635689.qJin4YfZ5x@aspire.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-EC command/data register addresses are sufficient to determine if two
-EC devices are equivelent. This patch thus changes acpi_is_boot_ec().
+Hi,
 
-Then for the removed comparison factors - EC ID and EC GPE, they need to
-be synchronized for the boot_ec:
-1. Before registering the BIOS provided EC event handlers in
-   acpi_ec_register_query_methods(), the namespace node where _Qxx methods
-   are underneath of should be located. The real namespace PNP0C09 device
-   location then is apparently more trustworthy than the ECDT EC ID.
-2. According to the ASUS quirks, the ECDT EC GPE is more trustworthy than
-   the namespace PNP0C09 device's _GPE setting.
-This patch thus synchronizes the boot_ec settings in acpi_ec_add()
-according to these facts.
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J.
+> Wysocki
+> Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+> 
+> On Tuesday, August 15, 2017 11:59:00 AM CEST Zheng, Lv wrote:
+> > Hi,
+> >
+> > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > > Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+> > >
+> > > On Friday, August 11, 2017 7:40:56 AM CEST Zheng, Lv wrote:
+> > > > Hi, Rafael
+> > > >
+> > > > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > > > > Subject: Re: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+> > > > >
+> > > > > On Thursday, August 10, 2017 3:48:58 AM CEST Zheng, Lv wrote:
+> > > > > > Hi, Rafael
+> > > > > >
+> > > > > > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > > > > > > Subject: [PATCH 1/3] ACPICA: Dispatch active GPEs at init time
+> > > > > > >
+> > > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > > > > >
+> > > > > > > In some cases GPEs are already active when they are enabled by
+> > > > > > > acpi_ev_initialize_gpe_block() and whatever happens next may depend
+> > > > > > > on the result of handling the events signaled by them, so the
+> > > > > > > events should not be discarded (which is what happens currently) and
+> > > > > > > they should be handled as soon as reasonably possible.
+> > > > > > >
+> > > > > > > For this reason, modify acpi_ev_initialize_gpe_block() to
+> > > > > > > dispatch GPEs with the status flag set in-band right after
+> > > > > > > enabling them.
+> > > > > >
+> > > > > > In fact, what we need seems to be invoking acpi_ev_gpe_dispatch()
+> > > > > > right after enabling an GPE. So there are 2 conditions related:
+> > > > > > 1. GPE is enabled for the first time.
+> > > > > > 2. GPE is initialized.
+> > > > > >
+> > > > > > And we need to make sure that before acpi_update_all_gpes() is invoked,
+> > > > > > all GPE EN bits are actually disabled.
+> > > > >
+> > > > > But we don't do it today, do we?
+> > > >
+> > > > We don't do that.
+> > > >
+> > > > >
+> > > > > And still calling _dispatch() should not be incorrect even if the GPE
+> > > > > has been enabled already at this point.  Worst case it just will
+> > > > > queue up the execution of _Lxx/_Exx which may or may not do anything
+> > > > > useful.
+> > > > >
+> > > > > And BTW this is all done under acpi_gbl_gpe_lock so acpi_ev_gpe_detect()
+> > > > > will block on it if run concurrently and we've checked the status, so
+> > > > > we know that the GPE *should* be dispatched, so I sort of fail to see
+> > > > > the problem.
+> > > >
+> > > > There is another problem related:
+> > > > ACPICA clears GPEs before enabling it.
+> > > > This is proven to be wrong, and we have to fix it:
+> > > > https://bugzilla.kernel.org/show_bug.cgi?id=196249
+> > > >
+> > > > without fixing this issue, in this solution, we surely need to save the
+> > > > GPE STS bit before incrementing GPE reference count, and poll it according
+> > > > to the saved STS bit. Because if we poll it after enabling, STS bit will
+> > > > be wrongly cleared.
+> > >
+> > > I'm not sure if I understand you correctly, but why would we poll it?
+> > >
+> > > In the $subject patch the status is checked and then
+> > > acpi_ev_add_gpe_reference() is called to add a reference to the GPE.
+> > >
+> > > If this is the first reference (which will be the case in the majority
+> > > of cases), acpi_ev_enable_gpe() will be called and that will clear the
+> > > status.
+> > >
+> > > Then, acpi_ev_gpe_dispatch() is called if the status was set and that
+> > > itself doesn't check the status.  It disables the GPE upfront (so the
+> > > status doesn't matter from now on until the GPE is enabled again) and
+> > > clears the status unconditionally if the GPE is edge-triggered.  This
+> > > means that for edge-triggered GPEs the clearing of the status by
+> > > acpi_ev_enable_gpe() doesn't matter here.
+> >
+> > No problem, I understood.
+> > And was thinking thought this patch [edge GPE dispatch fix] should be
+> > correct and good for current Linux upstream.
+> >
+> > What I meant is:
+> > PATCH [edge GPE clear fix] https://patchwork.kernel.org/patch/9894983/
+> > is a fix we need for upstream as it is the only possible fix for the
+> > issue fixed by it.
+> > On top of that, when acpi_ev_enable_gpe() is called, GPE won't be cleared.
+> > and then things can be done in a simpler way:
+> > PATCH [edge GPE enable fix] https://patchwork.kernel.org/patch/9894989/
+> >
+> > As [edge GPE clear fix] is risky, I think [edge GPE dispatch fix] is OK
+> > for Linux upstream.
+> >
+> > So we can have 2 processes:
+> > 1. Merge [edge GPE dispatch fix] and let [edge GPE clear fix] and
+> >    [edge GPE enable fix] released from ACPICA upstream so that:
+> >    1. We can enhance them in ACPICA upstream.
+> >    2. It will be regression safer for us to merge [edge GPE clear fix].
+> > 2. Merge [edge GPE clear fix] and [edge GPE enable fix] without
+> >    merging [edge GPE dispatch fix].
+> >
+> > What I meant is:
+> > It's up to you to decide which process we should take. :)
+> 
+> OK
+> 
+> So I would go with what is already there in my tree.  Please work on top of
+> that.
 
-Finally, this patch also alters the order of acpi_ec_ecdt_start() and
-acpi_ec_add() (invoked from acpi_bus_register_driver()) so that the fast
-path of determining _Qxx location can be hit.
+OK.
+Then I'll do that from ACPICA upstream to have more eyes on the enhancements
+and more time to create the stable baseline for the [edge GPE clear fix].
 
-All required order logics of EC probe are collected in acpi_ec_init(), the
-remained topics related to the EC initialization order are:
-1. Shall acpi_ec_dsdt_probe() be removed?
-2. Shall acpi_ec_init() be invoked earlier?
-3. Can acpi_ec_ecdt_probe() be renamed to acpi_ec_early_init()?
-4. Can PNP0C09 ACPI bus driver be split from EC driver core and combined
-   with ec_sys.c to form a more accurate loadable module?
-This patch doesn't cover the above topics but only focuses on the EC probe
-ordering.
-
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c | 26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index ae3d6d1..d3d15d3 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1586,9 +1586,7 @@ static bool acpi_is_boot_ec(struct acpi_ec *ec)
- {
- 	if (!boot_ec)
- 		return false;
--	if (ec->handle == boot_ec->handle &&
--	    ec->gpe == boot_ec->gpe &&
--	    ec->command_addr == boot_ec->command_addr &&
-+	if (ec->command_addr == boot_ec->command_addr &&
- 	    ec->data_addr == boot_ec->data_addr)
- 		return true;
- 	return false;
-@@ -1613,6 +1611,14 @@ static int acpi_ec_add(struct acpi_device *device)
- 
- 	if (acpi_is_boot_ec(ec)) {
- 		boot_ec_is_ecdt = false;
-+		/*
-+		 * Trust PNP0C09 namespace location rather than ECDT ID.
-+		 *
-+		 * But trust ECDT GPE rather _GPE according to ASUS quirks.
-+		 * Uncomment the following line if this fact is changed.
-+		 *   boot_ec->gpe = ec->gpe;
-+		 */
-+		boot_ec->handle = ec->handle;
- 		acpi_handle_debug(ec->handle, "duplicated.\n");
- 		acpi_ec_free(ec);
- 		ec = boot_ec;
-@@ -1747,18 +1753,20 @@ static int __init acpi_ec_ecdt_start(void)
- 
- 	if (!boot_ec)
- 		return -ENODEV;
--	/*
--	 * The DSDT EC should have already been started in
--	 * acpi_ec_add().
--	 */
-+	/* In case acpi_ec_ecdt_start() is invoked after acpi_ec_add() */
- 	if (!boot_ec_is_ecdt)
- 		return -ENODEV;
- 
- 	/*
- 	 * At this point, the namespace and the GPE is initialized, so
- 	 * start to find the namespace objects and handle the events.
-+	 *
-+	 * Note: ec->handle can be valid if this function is invoked after
-+	 *       acpi_ec_add(), thus the fast path.
- 	 */
--	if (!acpi_ec_ecdt_get_handle(&handle))
-+	if (boot_ec->handle != ACPI_ROOT_OBJECT)
-+		handle = boot_ec->handle;
-+	else if (!acpi_ec_ecdt_get_handle(&handle))
- 		return -ENODEV;
- 	return acpi_config_boot_ec(boot_ec, handle, true, true);
- }
-@@ -2011,8 +2019,8 @@ int __init acpi_ec_init(void)
- 		return result;
- 
- 	/* Drivers must be started after acpi_ec_query_init() */
--	ecdt_fail = acpi_ec_ecdt_start();
- 	dsdt_fail = acpi_bus_register_driver(&acpi_ec_driver);
-+	ecdt_fail = acpi_ec_ecdt_start();
- 	return ecdt_fail && dsdt_fail ? -ENODEV : 0;
- }
- 
--- 
-2.7.4
-
+Best regards,
+Lv
