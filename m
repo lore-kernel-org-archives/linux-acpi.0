@@ -1,120 +1,118 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 1/2] ACPI: EC: Fix a regression related to wrong ECDT initialization order
-Date: Thu, 17 Aug 2017 10:21:04 +0800
-Message-ID: <ede92a9abe2f4e6bfd0139078565465eb58fef95.1502936401.git.lv.zheng@intel.com>
+Subject: [PATCH v2 2/2] ACPI: EC: Fix possible issues related to EC initialization order
+Date: Thu, 17 Aug 2017 10:21:12 +0800
+Message-ID: <9b78559899b3a7a984b0a821942f13d850721b7c.1502936401.git.lv.zheng@intel.com>
 References: <756461e045cbddb16418685a1b12c3c9a491d328.1502868457.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:18325 "EHLO mga01.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:45831 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751752AbdHQCVJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Aug 2017 22:21:09 -0400
+        id S1751461AbdHQCVP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Aug 2017 22:21:15 -0400
 In-Reply-To: <756461e045cbddb16418685a1b12c3c9a491d328.1502868457.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-The following commit is bisected out to be a regression culprit:
- Commit: c712bb58d8278465b1a91f362a08f5c79ad077e4
- Subject: ACPI / EC: Add support to skip boot stage DSDT probe
-However the problem is actually originated from the following commit:
- Commit: 2a5708409e4e05446eb1a89ecb48641d6fd5d5a9
- Subject: ACPI / EC: Fix a gap that ECDT EC cannot handle EC events
+EC command/data register addresses are sufficient to determine if two
+EC devices are equivelent. This patch thus changes acpi_is_boot_ec().
 
-Commit 2a570840 introduces acpi_ec_ecdt_start(), but invokes it too early:
-earlier before acpi_ec_query_init(). Thus when EC event is flagged after
-boot, ec_query_wq is not valid, resulting in a kernel warning:
- [    3.580017] BUG: unable to handle kernel NULL pointer dereference at 0000000000000102
- ...
- [    4.380005] Workqueue: events acpi_ec_event_handler
- [    4.380005] task: ffff9f539790dac0 task.stack: ffffb437c0e10000
- [    4.380005] RIP: 0010:__queue_work+0x32/0x430
+Then for the removed comparison factors - EC ID and EC GPE, they need to
+be synchronized for the boot_ec:
+1. Before registering the BIOS provided EC event handlers in
+   acpi_ec_register_query_methods(), the namespace node where _Qxx methods
+   are underneath of should be located. The real namespace PNP0C09 device
+   location then is apparently more trustworthy than the ECDT EC ID.
+2. According to the ASUS quirks, the ECDT EC GPE is more trustworthy than
+   the namespace PNP0C09 device's _GPE setting.
+This patch thus synchronizes the boot_ec settings in acpi_ec_add()
+according to these facts.
 
-Normally DSDT EC should always be valid. Thus acpi_ec_ecdt_start() is
-actually a no-op in most of the cases. While the commit c712bb58 skips
-probing DSDT EC as boot EC when ECDT EC is valid, making this bug
-surfaced.
+Finally, this patch also alters the order of acpi_ec_ecdt_start() and
+acpi_ec_add() (invoked from acpi_bus_register_driver()) so that the fast
+path of determining _Qxx location can be hit.
 
-This patch fixes this issue by invoking acpi_ec_ecdt_start() after
-acpi_ec_query_init() in acpi_ec_init().
+All required order logics of EC probe are collected in acpi_ec_init(), the
+remained topics related to the EC initialization order are:
+1. Shall acpi_ec_dsdt_probe() be removed?
+2. Shall acpi_ec_init() be invoked earlier?
+3. Can acpi_ec_ecdt_probe() be renamed to acpi_ec_early_init()?
+4. Can PNP0C09 ACPI bus driver be split from EC driver core and combined
+   with ec_sys.c to form a more accurate loadable module?
+This patch doesn't cover the above topics but only focuses on the EC probe
+ordering.
 
-Link: https://jira01.devtools.intel.com/browse/LCK-4348
-Fixes: 2a5708409e4e ("ACPI / EC: Fix a gap that ECDT EC cannot handle EC events")
-Fixes: c712bb58d827 ("ACPI / EC: Add support to skip boot stage DSDT probe")
-Reported-by: Wang Wendy <wendy.wang@intel.com>
-Tested-by: Feng Chenzhou <chenzhoux.feng@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/ec.c       | 17 +++++++----------
- drivers/acpi/internal.h |  1 -
- drivers/acpi/scan.c     |  2 --
- 3 files changed, 7 insertions(+), 13 deletions(-)
+ drivers/acpi/ec.c | 26 +++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 62068a5..ae3d6d1 100644
+index ae3d6d1..d3d15d3 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -1741,7 +1741,7 @@ int __init acpi_ec_dsdt_probe(void)
-  * functioning ECDT EC first in order to handle the events.
-  * https://bugzilla.kernel.org/show_bug.cgi?id=115021
-  */
--int __init acpi_ec_ecdt_start(void)
-+static int __init acpi_ec_ecdt_start(void)
+@@ -1586,9 +1586,7 @@ static bool acpi_is_boot_ec(struct acpi_ec *ec)
  {
- 	acpi_handle handle;
+ 	if (!boot_ec)
+ 		return false;
+-	if (ec->handle == boot_ec->handle &&
+-	    ec->gpe == boot_ec->gpe &&
+-	    ec->command_addr == boot_ec->command_addr &&
++	if (ec->command_addr == boot_ec->command_addr &&
+ 	    ec->data_addr == boot_ec->data_addr)
+ 		return true;
+ 	return false;
+@@ -1613,6 +1611,14 @@ static int acpi_ec_add(struct acpi_device *device)
  
-@@ -2003,20 +2003,17 @@ static inline void acpi_ec_query_exit(void)
- int __init acpi_ec_init(void)
- {
- 	int result;
-+	int ecdt_fail, dsdt_fail;
+ 	if (acpi_is_boot_ec(ec)) {
+ 		boot_ec_is_ecdt = false;
++		/*
++		 * Trust PNP0C09 namespace location rather than ECDT ID.
++		 *
++		 * But trust ECDT GPE rather _GPE according to ASUS quirks.
++		 * Uncomment the following line if this fact is changed.
++		 *   boot_ec->gpe = ec->gpe;
++		 */
++		boot_ec->handle = ec->handle;
+ 		acpi_handle_debug(ec->handle, "duplicated.\n");
+ 		acpi_ec_free(ec);
+ 		ec = boot_ec;
+@@ -1747,18 +1753,20 @@ static int __init acpi_ec_ecdt_start(void)
  
- 	/* register workqueue for _Qxx evaluations */
- 	result = acpi_ec_query_init();
- 	if (result)
--		goto err_exit;
--	/* Now register the driver for the EC */
--	result = acpi_bus_register_driver(&acpi_ec_driver);
--	if (result)
--		goto err_exit;
-+		return result;
+ 	if (!boot_ec)
+ 		return -ENODEV;
+-	/*
+-	 * The DSDT EC should have already been started in
+-	 * acpi_ec_add().
+-	 */
++	/* In case acpi_ec_ecdt_start() is invoked after acpi_ec_add() */
+ 	if (!boot_ec_is_ecdt)
+ 		return -ENODEV;
  
--err_exit:
--	if (result)
--		acpi_ec_query_exit();
--	return result;
-+	/* Drivers must be started after acpi_ec_query_init() */
+ 	/*
+ 	 * At this point, the namespace and the GPE is initialized, so
+ 	 * start to find the namespace objects and handle the events.
++	 *
++	 * Note: ec->handle can be valid if this function is invoked after
++	 *       acpi_ec_add(), thus the fast path.
+ 	 */
+-	if (!acpi_ec_ecdt_get_handle(&handle))
++	if (boot_ec->handle != ACPI_ROOT_OBJECT)
++		handle = boot_ec->handle;
++	else if (!acpi_ec_ecdt_get_handle(&handle))
+ 		return -ENODEV;
+ 	return acpi_config_boot_ec(boot_ec, handle, true, true);
+ }
+@@ -2011,8 +2019,8 @@ int __init acpi_ec_init(void)
+ 		return result;
+ 
+ 	/* Drivers must be started after acpi_ec_query_init() */
+-	ecdt_fail = acpi_ec_ecdt_start();
+ 	dsdt_fail = acpi_bus_register_driver(&acpi_ec_driver);
 +	ecdt_fail = acpi_ec_ecdt_start();
-+	dsdt_fail = acpi_bus_register_driver(&acpi_ec_driver);
-+	return ecdt_fail && dsdt_fail ? -ENODEV : 0;
+ 	return ecdt_fail && dsdt_fail ? -ENODEV : 0;
  }
  
- /* EC driver currently not unloadable */
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index ee066d7..4361c44 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -185,7 +185,6 @@ typedef int (*acpi_ec_query_func) (void *data);
- int acpi_ec_init(void);
- int acpi_ec_ecdt_probe(void);
- int acpi_ec_dsdt_probe(void);
--int acpi_ec_ecdt_start(void);
- void acpi_ec_block_transactions(void);
- void acpi_ec_unblock_transactions(void);
- int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index c3bf049..602f8ff 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2166,8 +2166,6 @@ int __init acpi_scan_init(void)
- 		}
- 	}
- 
--	acpi_ec_ecdt_start();
--
- 	acpi_scan_initialized = true;
- 
-  out:
 -- 
 2.7.4
 
