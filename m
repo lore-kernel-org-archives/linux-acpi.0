@@ -1,53 +1,179 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
-Date: Thu, 17 Aug 2017 21:08:40 +0000
-Message-ID: <1503003532.2042.161.camel@hpe.com>
-References: <1502736750.2042.145.camel@hpe.com>
-         <20170814193432.mjldfhfal5ba5dt7@pd.tnic>
-         <1502741290.2042.147.camel@hpe.com>
-         <20170814203942.6t3mrq3hc324blab@pd.tnic>
-         <1502810766.2042.149.camel@hpe.com>
-         <20170815154815.wy3dqwb4yi3feahg@intel.com>
-         <20170816082931.p6rpvtlxwt5nccxr@pd.tnic>
-         <1502896578.2042.155.camel@hpe.com>
-         <20170816164234.mgwapenb7fpym6nk@pd.tnic>
-         <1502903940.2042.157.camel@hpe.com>
-         <20170816174028.dqfvubjigvwtcbcy@pd.tnic>
-         <1502905904.2042.159.camel@hpe.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1502905904.2042.159.camel@hpe.com>
-Content-Language: en-US
-Content-ID: <BE40CB23DB6B0F4EBB46C432DED7C740@NAMPRD84.PROD.OUTLOOK.COM>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "bp@alien8.de" <bp@alien8.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: [PATCH] ACPI / sysfs: Extend ACPI sysfs to provide access to boot error region
+Date: Thu, 17 Aug 2017 14:39:46 -0700
+Message-ID: <20170817213946.16939-1-tony.luck@intel.com>
+References: <CAJZ5v0gML6bX2QW65Kv+huJtM4ZUjhw6PC=52hh8NiK-9Uqpzg@mail.gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:6094 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753297AbdHQVjs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Aug 2017 17:39:48 -0400
+In-Reply-To: <CAJZ5v0gML6bX2QW65Kv+huJtM4ZUjhw6PC=52hh8NiK-9Uqpzg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, Punit Agrawal <punit.agrawal@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-T24gV2VkLCAyMDE3LTA4LTE2IGF0IDExOjUxIC0wNjAwLCBUb3NoaSBLYW5pIHdyb3RlOg0KPiBP
-biBXZWQsIDIwMTctMDgtMTYgYXQgMTk6NDAgKzAyMDAsIEJvcmlzbGF2IFBldGtvdiB3cm90ZToN
-Cj4gPiBPbiBXZWQsIEF1ZyAxNiwgMjAxNyBhdCAwNToyODo1MFBNICswMDAwLCBLYW5pLCBUb3No
-aW1pdHN1IHdyb3RlOg0KIDoNCj4gPiA+IEkgd2lsbCB0ZXN0IHRoZSBwYXRjaCB3aXRoIGFuIFND
-SSB3aGVuIEkgZ290IGEgY2hhbmNlLsKgwqBJIHdvbid0DQo+ID4gPiBiZSBhYmxlIHRvIHRlc3Qg
-b3RoZXIgbm90aWZpY2F0aW9uIHR5cGVzIG9yIHJhY2UgY29uZGl0aW9ucywNCj4gPiA+IHRob3Vn
-aC4NCj4gPiANCj4gPiBUaGFua3MsIGhlcmUncyB0aGUgbGF0ZXN0IHZlcnNpb24gd2l0aCB0aGUg
-YXRvbWljIHJlZ2lzdHJhdGlvbiB0b28uDQo+IA0KPiBTdXJlLCBJIHdpbGwgdGVzdCB3aXRoIHRo
-aXMgdmVyc2lvbi4NCg0KSSBicmllZmx5IHRlc3RlZCB0aGUgcGF0Y2ggd2l0aCBhbiBTQ0kuIFRo
-ZSBlcnJvciByZXBvcnRpbmcgcGFydCBzZWVtcw0KdG8gd29yayBmaW5lLg0KDQpUaGVyZSBhcmUg
-dHdvIGlzc3VlcyBJIG5vdGljZWQ6DQoNCjEuIEl0IGNyZWF0ZXMgbWMwIGFuZCBtYzEuIMKgDQpJ
-IHRoaW5rIHRoaXMgaXMgYmVjYXVzZSB5b3UgY2FsbGVkIGVkYWNfbWNfYWxsb2MoKSB3aXRoIG1j
-X251bSAxLg0KDQoyLiAncmFzLW1jLWN0bCAtLWxheW91dCcgZG9lcyBub3Qgc2hvdyBhbGwgRElN
-TXMuDQoNCiPCoHJhcy1tYy1jdGwgLS1sYXlvdXQNCiAgICAgICAgICstLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0rDQrCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqBtYzDCoMKgwqDCoMKgfMKgwqDC
-oMKgbWMxwqDCoMKgwqDCoHwNCi0tLS0tLS0tLSstLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0rDQpt
-ZW1vcnk0OiB8wqDCoMKgwqDCoDAgTULCoMKgfMKgwqAxNjM4NCBNQsKgwqB8DQptZW1vcnkzOiB8
-wqDCoMKgwqDCoDAgTULCoMKgfMKgwqDCoMKgwqAwIE1CwqDCoHwNCm1lbW9yeTI6IHzCoMKgwqDC
-oMKgMCBNQsKgwqB8wqDCoMKgwqDCoDAgTULCoMKgfA0KbWVtb3J5MTogfMKgwqDCoMKgwqAwIE1C
-wqDCoHzCoMKgwqDCoMKgMCBNQsKgwqB8DQptZW1vcnkwOiB8wqDCoMKgwqDCoDAgTULCoMKgfMKg
-wqA4MTkyIE1CwqDCoHwNCi0tLS0tLS0tLSstLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSsNCg0KIyBs
-cyAvc3lzL2J1cy9tYzEvZGV2aWNlcw0KY3Nyb3cwwqDCoMKgY3Nyb3cxMsKgwqBjc3JvdzIzwqDC
-oGRpbW0wwqDCoMKgZGltbTEywqDCoGRpbW0yM8KgwqBtYzENCmNzcm93MTHCoMKgY3Nyb3cxOcKg
-wqBjc3JvdzTCoMKgwqBkaW1tMTHCoMKgZGltbTE5wqDCoGRpbW00DQoNClRoYW5rcywNCi1Ub3No
-aQ0KDQoNCg==
+From: Tony Luck <tony.luck@intel.com>
+
+The ACPI sysfs interface provides a way to read each ACPI table from
+userspace via entries in /sys/firmware/acpi/tables/
+
+The BERT table simply provides the size and address of the error
+record in BIOS reserved memory and users may want access to this
+record.
+
+In an earlier age we might have used /dev/mem to retrieve this error
+record, but many systems disable /dev/mem for security reasons.
+
+Extend this driver to provide read-only access to the data via a
+file in a new directory /sys/firmware/acpi/tables/data/BERT
+
+Cc: Len Brown <lenb@kernel.org>
+Cc: Boris Petkov <bp@suse.de>
+Cc: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: Punit Agrawal <punit.agrawal@arm.com>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+
+v4: (suggested by Punit Agrawal) extend the /sys/firmware/acpi
+code to provide this functionality. File/directory names changed
+to Rafael's suggestions
+---
+ drivers/acpi/sysfs.c | 79 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
+
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index e414fabf7315..7c4eed0594d0 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -306,11 +306,13 @@ module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
+ /*
+  * ACPI table sysfs I/F:
+  * /sys/firmware/acpi/tables/
++ * /sys/firmware/acpi/tables-data/
+  * /sys/firmware/acpi/tables/dynamic/
+  */
+ 
+ static LIST_HEAD(acpi_table_attr_list);
+ static struct kobject *tables_kobj;
++static struct kobject *tables_data_kobj;
+ static struct kobject *dynamic_tables_kobj;
+ static struct kobject *hotplug_kobj;
+ 
+@@ -325,6 +327,11 @@ struct acpi_table_attr {
+ 	struct list_head node;
+ };
+ 
++struct acpi_data_attr {
++	struct bin_attribute attr;
++	u64	addr;
++};
++
+ static ssize_t acpi_table_show(struct file *filp, struct kobject *kobj,
+ 			       struct bin_attribute *bin_attr, char *buf,
+ 			       loff_t offset, size_t count)
+@@ -420,6 +427,70 @@ acpi_status acpi_sysfs_table_handler(u32 event, void *table, void *context)
+ 	return AE_OK;
+ }
+ 
++static ssize_t acpi_data_show(struct file *filp, struct kobject *kobj,
++			      struct bin_attribute *bin_attr, char *buf,
++			      loff_t offset, size_t count)
++{
++	struct acpi_data_attr *data_attr;
++	void __iomem *base;
++	ssize_t rc;
++
++	data_attr = container_of(bin_attr, struct acpi_data_attr, attr);
++
++	base = acpi_os_map_memory(data_attr->addr, data_attr->attr.size);
++	if (!base)
++		return -ENOMEM;
++	rc = memory_read_from_buffer(buf, count, &offset, base,
++				     data_attr->attr.size);
++	acpi_os_unmap_memory(base, data_attr->attr.size);
++
++	return rc;
++}
++
++static int acpi_bert_data_init(void *th, struct acpi_data_attr *data_attr)
++{
++	struct acpi_table_bert *bert = th;
++
++	if (bert->header.length < sizeof(struct acpi_table_bert) ||
++	    bert->region_length < sizeof(struct acpi_hest_generic_status)) {
++		kfree(data_attr);
++		return -EINVAL;
++	}
++	data_attr->addr = bert->address;
++	data_attr->attr.size = bert->region_length;
++	data_attr->attr.attr.name = "BERT";
++
++	return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
++}
++
++static struct acpi_data_obj {
++	char *name;
++	int (*fn)(void *, struct acpi_data_attr *);
++} acpi_data_objs[] = {
++	{ ACPI_SIG_BERT, acpi_bert_data_init },
++};
++
++#define NUM_ACPI_DATA_OBJS ARRAY_SIZE(acpi_data_objs)
++
++static int acpi_table_data_init(struct acpi_table_header *th)
++{
++	struct acpi_data_attr *data_attr;
++	int i;
++
++	for (i = 0; i < NUM_ACPI_DATA_OBJS; i++) {
++		if (ACPI_COMPARE_NAME(th->signature, acpi_data_objs[i].name)) {
++			data_attr = kzalloc(sizeof(*data_attr), GFP_KERNEL);
++			if (!data_attr)
++				return -ENOMEM;
++			sysfs_attr_init(&data_attr->attr.attr);
++			data_attr->attr.read = acpi_data_show;
++			data_attr->attr.attr.mode = 0400;
++			return acpi_data_objs[i].fn(th, data_attr);
++		}
++	}
++	return 0;
++}
++
+ static int acpi_tables_sysfs_init(void)
+ {
+ 	struct acpi_table_attr *table_attr;
+@@ -432,6 +503,10 @@ static int acpi_tables_sysfs_init(void)
+ 	if (!tables_kobj)
+ 		goto err;
+ 
++	tables_data_kobj = kobject_create_and_add("data", tables_kobj);
++	if (!tables_data_kobj)
++		goto err_tables_data;
++
+ 	dynamic_tables_kobj = kobject_create_and_add("dynamic", tables_kobj);
+ 	if (!dynamic_tables_kobj)
+ 		goto err_dynamic_tables;
+@@ -456,13 +531,17 @@ static int acpi_tables_sysfs_init(void)
+ 			return ret;
+ 		}
+ 		list_add_tail(&table_attr->node, &acpi_table_attr_list);
++		acpi_table_data_init(table_header);
+ 	}
+ 
+ 	kobject_uevent(tables_kobj, KOBJ_ADD);
++	kobject_uevent(tables_data_kobj, KOBJ_ADD);
+ 	kobject_uevent(dynamic_tables_kobj, KOBJ_ADD);
+ 
+ 	return 0;
+ err_dynamic_tables:
++	kobject_put(tables_data_kobj);
++err_tables_data:
+ 	kobject_put(tables_kobj);
+ err:
+ 	return -ENOMEM;
+-- 
+2.11.0
+
