@@ -1,63 +1,55 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v3] acpi: apei: fix the wrongly iterate generic error
- status block
-Date: Thu, 17 Aug 2017 11:25:53 +0200
-Message-ID: <20170817092553.xcfbuplana2wbajb@pd.tnic>
-References: <1502871290-28137-1-git-send-email-gengdongjiu@huawei.com>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: Re: [PATCH] ACPI/APEI: Add BERT data driver
+Date: Thu, 17 Aug 2017 11:25:23 +0100
+Message-ID: <8760dmpk30.fsf@e105922-lin.cambridge.arm.com>
+References: <20170814165613.25561-1-tony.luck@intel.com>
+        <87k225p1v5.fsf@e105922-lin.cambridge.arm.com>
+        <20170815211556.nnnnbtlvorgc3ijh@intel.com>
+        <87a82zpsd7.fsf@e105922-lin.cambridge.arm.com>
+        <3908561D78D1C84285E8C5FCA982C28F61340302@ORSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:39552 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751015AbdHQJjE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 17 Aug 2017 05:39:04 -0400
-Content-Disposition: inline
-In-Reply-To: <1502871290-28137-1-git-send-email-gengdongjiu@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F61340302@ORSMSX114.amr.corp.intel.com>
+        (Tony Luck's message of "Wed, 16 Aug 2017 15:22:44 +0000")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: tbaicar@codeaurora.org, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, huangshaoyu@huawei.com, wuquanming@huawei.com
 
-On Wed, Aug 16, 2017 at 04:14:50PM +0800, Dongjiu Geng wrote:
-> The revision 0x300 generic error data entry is different
-> from the old version, but currently iterating through the
-> GHES estatus blocks does not take into account this difference.
-> This will lead to failure to get the right data entry if GHES
-> has revision 0x300 error data entry.
-> 
-> Update the GHES estatus iteration to properly increment using
+"Luck, Tony" <tony.luck@intel.com> writes:
 
-			  iteration macro
+>> One thing I missed commenting on in the previous version -
+>>
+>> Have you thought of exposing the error records via /sys/firmware/acpi?
+>> The tables are already exposed there and as BERT is part of ACPI
+>> logically that's a better fit compared to a misc device.
+>
+> That was my first thought :-)
+>
+> But I got stuck on how to name things.  The BERT entry appears in
+> /sys/firmware/acpi/tables/ ... but the code doesn't know anything special
+> about "BERT", it just iterates over all the tables and makes them all
+> appear.
+>
+> I thought about making it /sys/firmware/acpi/tables/BERT.data, but that
+> seemed very ugly (this file isn't a "table", so why does it appear in the
+> "tables" directory? So maybe /sys/firmware/acpi/table-data/BERT? Now
+> the driver has to make another directory.
+>
+> Thoughts?
 
-> acpi_hest_get_next, and correct the iteration termination condition
+I agree that keeping the error record out of the tables directory makes
+sense as it's not an ACPI table.
 
-Please end function names with parentheses.
+The best I could come up with was bert-data or bert-region in
+/sys/firmware/acpi/apei/.
 
-> because the status block data length only includes error data length.
+Though, I am OK with "table-data/BERT" as well.
 
-<---- newline here.
-
-> Clear the CPER estatus printing iteration logic to use same macro.
-
-s/Clear ... /Convert ... to the same macro./
-
-> 
-> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> CC: Tyler Baicar <tbaicar@codeaurora.org>
-> ---
->  drivers/acpi/apei/apei-internal.h |  5 -----
->  drivers/firmware/efi/cper.c       | 12 ++----------
->  include/acpi/ghes.h               |  5 +++++
->  3 files changed, 7 insertions(+), 15 deletions(-)
-
-With those addressed you can add:
-
-Reviewed-by: Borislav Petkov <bp@suse.de>
-
--- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+>
+> -Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
