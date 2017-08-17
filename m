@@ -1,44 +1,55 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v4] acpi: apei: fix the wrong iteration of generic error
- status block
-Date: Thu, 17 Aug 2017 13:43:49 +0200
-Message-ID: <20170817114349.uxtossvvaccuwy5g@pd.tnic>
-References: <1502971638-31670-1-git-send-email-gengdongjiu@huawei.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [RFC PATCH 4/4] ACPI: IORT: Add SMMUv3 MSI support
+Date: Thu, 17 Aug 2017 14:01:39 +0100
+Message-ID: <20170817130139.GA17795@red-moon>
+References: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
+ <1502276017-63108-5-git-send-email-guohanjun@huawei.com>
+ <20170811093348.GC26039@red-moon>
+ <CAGHbJ3AgEvbpsPdeqJ+bFWa5hBMqxBX6g1eC4HiUvHarJf8H+g@mail.gmail.com>
+ <20170815171525.GB13707@e107981-lin.cambridge.arm.com>
+ <de1b88e0-57d5-b73b-bc49-3c28070df6b1@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:49804 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751149AbdHQM7g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Aug 2017 08:59:36 -0400
 Content-Disposition: inline
-In-Reply-To: <1502971638-31670-1-git-send-email-gengdongjiu@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: will.deacon@arm.com, zjzhang@codeaurora.org, catalin.marinas@arm.com, tbaicar@codeaurora.org, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, huangshaoyu@huawei.com, wuquanming@huawei.com
+In-Reply-To: <de1b88e0-57d5-b73b-bc49-3c28070df6b1@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>
 
-On Thu, Aug 17, 2017 at 08:07:18PM +0800, Dongjiu Geng wrote:
-> The revision 0x300 generic error data entry is different
-> from the old version, but currently iterating through the
-> GHES estatus blocks does not take into account this difference.
-> This will lead to failure to get the right data entry if GHES
-> has revision 0x300 error data entry.
+On Thu, Aug 17, 2017 at 03:49:37PM +0800, Hanjun Guo wrote:
+
+[...]
+
+> >  /**
+> >   * iort_get_platform_device_domain() - Find MSI domain related to a
+> >   * platform device
+> >@@ -1159,6 +1207,8 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+> >  	/* Configure DMA for the page table walker */
+> >  	acpi_dma_configure(&pdev->dev, attr);
+> >+	iort_set_device_domain(&pdev->dev, node);
 > 
-> Update the GHES estatus iteration to properly increment using
-> iteration macro,
+> This is fine to me, but I think we still need to retrieve
+> the output ID as the request id for ITS, which means we
+> need to do that in iort_pmsi_get_dev_id(), right?
 
-This is not what I meant - I meant:
+Yes, probably we can add code there like:
 
-"Update the GHES estatus iteration macro to properly increment using
-acpi_hest_get_next(), and ..."
+ret = iort_get_id_mapping_index(&index);
+if (!ret)
+	iort_node_get_id(node, &id, index);
+	...
 
-But you don't need to send another version.
+This requires updating iort_node_get_id() to allow single mappings
+for SMMU/PMCG as you flagged up before.
 
-Rafael, please correct that when applying, instead.
+I will think a bit more to see if there is a cleaner way to reshuffle
+the mapping API.
 
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+Thanks,
+Lorenzo
