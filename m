@@ -1,155 +1,120 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v5 6/7] libnvdimm, btt: refactor initial_offset calculations
-Date: Wed, 16 Aug 2017 17:30:34 -0700
-Message-ID: <CAPcyv4i+r084mLFzmj9tfHKaFEdOQnWWEPXZMKGx-ejMkWKC8g@mail.gmail.com>
-References: <20170809000746.10585-1-vishal.l.verma@intel.com>
- <20170809000746.10585-7-vishal.l.verma@intel.com> <CAPcyv4is9O=HCrHPJXoOOW2p2LyUE1n3WCi-5X0AKfU-pNWNPg@mail.gmail.com>
- <1502739913.4405.17.camel@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 1/2] ACPI: EC: Fix a regression related to wrong ECDT initialization order
+Date: Thu, 17 Aug 2017 10:21:04 +0800
+Message-ID: <ede92a9abe2f4e6bfd0139078565465eb58fef95.1502936401.git.lv.zheng@intel.com>
+References: <756461e045cbddb16418685a1b12c3c9a491d328.1502868457.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f178.google.com ([209.85.161.178]:36518 "EHLO
-        mail-yw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751467AbdHQAaf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Aug 2017 20:30:35 -0400
-Received: by mail-yw0-f178.google.com with SMTP id u207so32433741ywc.3
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Aug 2017 17:30:35 -0700 (PDT)
-In-Reply-To: <1502739913.4405.17.camel@intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:18325 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751752AbdHQCVJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Aug 2017 22:21:09 -0400
+In-Reply-To: <756461e045cbddb16418685a1b12c3c9a491d328.1502868457.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Mon, Aug 14, 2017 at 12:47 PM, Verma, Vishal L
-<vishal.l.verma@intel.com> wrote:
-> On Fri, 2017-08-11 at 18:39 -0700, Dan Williams wrote:
->> On Tue, Aug 8, 2017 at 5:07 PM, Vishal Verma <vishal.l.verma@intel.com
->> > wrote:
->> > In preparation for BTT error clearing, refactor the initial offset
->> > calculations. Until now, all callers of arena_{read,write}_bytes
->> > assumed
->> > a relative offset to the arena, and it was later adjusted for the
->> > initial offset. Until now, every time we calculated a relative
->> > offset,
->> > we passed it to these functions to do reads or writes, and so where
->> > the
->> > offset calculations happened didn't matter.
->> >
->> > For error clearing, there will be places where we calculate offsets
->> > to
->> > check for the presence of media errors, and the above scheme becomes
->> > error prone.
->> >
->> > Make the initial_offset calculations explicit for all callers of
->> > arena_{read,write}_bytes, and provide a helper to do them. The error
->> > checking/clearing code can then use these same helpers.
->> >
->> > Reported-by: Toshi Kani <toshi.kani@hpe.com>
->> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
->> > ---
->> >  drivers/nvdimm/btt.c | 69 ++++++++++++++++++++++++++++++++---------
->> > -----------
->> >  1 file changed, 42 insertions(+), 27 deletions(-)
->> >
->> > diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
->> > index e9dd651..9acf06b 100644
->> > --- a/drivers/nvdimm/btt.c
->> > +++ b/drivers/nvdimm/btt.c
->> > @@ -31,14 +31,17 @@ enum log_ent_request {
->> >         LOG_OLD_ENT
->> >  };
->> >
->> > +static inline u64 calc_nsoff(struct nd_btt *nd_btt, u64
->> > relative_offset)
->> > +{
->> > +       return relative_offset + nd_btt->initial_offset;
->> > +}
->> > +
->> >  static int arena_read_bytes(struct arena_info *arena,
->> > resource_size_t offset,
->> >                 void *buf, size_t n, unsigned long flags)
->> >  {
->> >         struct nd_btt *nd_btt = arena->nd_btt;
->> >         struct nd_namespace_common *ndns = nd_btt->ndns;
->> >
->> > -       /* arena offsets may be shifted from the base of the device
->> > */
->> > -       offset += arena->nd_btt->initial_offset;
->> >         return nvdimm_read_bytes(ndns, offset, buf, n, flags);
->> >  }
->> >
->> > @@ -48,14 +51,13 @@ static int arena_write_bytes(struct arena_info
->> > *arena, resource_size_t offset,
->> >         struct nd_btt *nd_btt = arena->nd_btt;
->> >         struct nd_namespace_common *ndns = nd_btt->ndns;
->> >
->> > -       /* arena offsets may be shifted from the base of the device
->> > */
->> > -       offset += arena->nd_btt->initial_offset;
->> >         return nvdimm_write_bytes(ndns, offset, buf, n, flags);
->> >  }
->>
->> So let's get rid of arena_{read,write}_bytes(). The only point of the
->> wrapper was to include an arena specific offset, but now we're pushing
->> all offset calculations to the caller so arena_{read,write}_bytes() is
->> equivalent to nvdimm_{read,write}_bytes().
->
-> That sounds fine, though that will require all callers to now
-> dereference arena->nd->btt->ndns to do reads/writes.. Is that ok?
+The following commit is bisected out to be a regression culprit:
+ Commit: c712bb58d8278465b1a91f362a08f5c79ad077e4
+ Subject: ACPI / EC: Add support to skip boot stage DSDT probe
+However the problem is actually originated from the following commit:
+ Commit: 2a5708409e4e05446eb1a89ecb48641d6fd5d5a9
+ Subject: ACPI / EC: Fix a gap that ECDT EC cannot handle EC events
 
-Sure, just put that in a to_ndns() helper.
+Commit 2a570840 introduces acpi_ec_ecdt_start(), but invokes it too early:
+earlier before acpi_ec_query_init(). Thus when EC event is flagged after
+boot, ec_query_wq is not valid, resulting in a kernel warning:
+ [    3.580017] BUG: unable to handle kernel NULL pointer dereference at 0000000000000102
+ ...
+ [    4.380005] Workqueue: events acpi_ec_event_handler
+ [    4.380005] task: ffff9f539790dac0 task.stack: ffffb437c0e10000
+ [    4.380005] RIP: 0010:__queue_work+0x32/0x430
 
->> However, since many of
->> these call sites now perform a common offset calculations maybe we can
->> provide a new helper for that to differentiate it from the error
->> clearing case?
->
-> Not sure I follow - the offset calculations for the error clearing use
-> and for data reads/writes are exactly the same (lba_to_nsoff). (See
-> further below)
->
->> After patch 7 is applied it's no longer clear which
->> offset calculation is used where and for what reason, there's just too
->> many offset variables calculations and overload of the word 'offset'
->> for bugs to hide.
->
-> Agreed on the ambiguity of 'offset'. The implicit rule I followed was
-> any kind of 'nsoff' will mean the final namespace offset, after
-> accounting for arenas, any initial offset etc. Any other 'offset' is
-> relative to the context in which it is used.
->
->>
->> Maybe it's just late on a Friday and my eyes are going cross, but it
->> seems you have 2 classes of use cases between calc_nsoff and
->> lba_to_nsoff, perhaps separate read/write wrappers for those 2 cases?
->
-> The difference between the two is that lba_to_nsoff is used when were
-> talking about reading/writing a 'data' block, and where we are talking
-> in terms of 'lba's, not raw offsets. calc_nsoff (which lba_to_nsoff
-> calls internally), is a 'last stage' calculation, essentially just to
-> add the initial_offset. Direct callers of calc_nsoff (i.e. functions
-> that access the log, map, or info blocks) do their offset calculations
-> 'manually' based on arena->{map,log,info}off, but these offsets are
-> unaware of 'initial_offset', as they started out being relative to
-> 'this' arena. So calc_nsoff is that last stage addition of
-> initial_offset.
->
-> I agree that if feels a bit clunky, but I'm not sure I see a clear way
-> to improve it..
+Normally DSDT EC should always be valid. Thus acpi_ec_ecdt_start() is
+actually a no-op in most of the cases. While the commit c712bb58 skips
+probing DSDT EC as boot EC when ECDT EC is valid, making this bug
+surfaced.
 
-Since calc_nsoff is "last stage" and required I think it should be
-hidden in the helper that does the read write. Why does it need to be
-manually called by every read/write call site?
+This patch fixes this issue by invoking acpi_ec_ecdt_start() after
+acpi_ec_query_init() in acpi_ec_init().
 
->> Also, I find something unreadable about calc_nsoff, and reading the
->> prototype "u64 calc_nsoff(struct nd_btt *nd_btt, u64 relative_offset)"
->> doesn't help clarify. What is 'relative_offset' relative to? Is it the
->> base namespace / device offset?
->
-> Yeah, I cringed a bit too when I called it 'relative_offset'. But I
-> couldn't find a more descriptive name. It is 'almost' the raw nsoff,
-> with just the initial_offset calculation pending... Maybe
-> btt_relative_offset?
+Link: https://jira01.devtools.intel.com/browse/LCK-4348
+Fixes: 2a5708409e4e ("ACPI / EC: Fix a gap that ECDT EC cannot handle EC events")
+Fixes: c712bb58d827 ("ACPI / EC: Add support to skip boot stage DSDT probe")
+Reported-by: Wang Wendy <wendy.wang@intel.com>
+Tested-by: Feng Chenzhou <chenzhoux.feng@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/ec.c       | 17 +++++++----------
+ drivers/acpi/internal.h |  1 -
+ drivers/acpi/scan.c     |  2 --
+ 3 files changed, 7 insertions(+), 13 deletions(-)
 
-I think this gets easier if the consumer of this ambiguity is reduced
-to just the 2 leaf routines that do ->rw_bytes().
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 62068a5..ae3d6d1 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1741,7 +1741,7 @@ int __init acpi_ec_dsdt_probe(void)
+  * functioning ECDT EC first in order to handle the events.
+  * https://bugzilla.kernel.org/show_bug.cgi?id=115021
+  */
+-int __init acpi_ec_ecdt_start(void)
++static int __init acpi_ec_ecdt_start(void)
+ {
+ 	acpi_handle handle;
+ 
+@@ -2003,20 +2003,17 @@ static inline void acpi_ec_query_exit(void)
+ int __init acpi_ec_init(void)
+ {
+ 	int result;
++	int ecdt_fail, dsdt_fail;
+ 
+ 	/* register workqueue for _Qxx evaluations */
+ 	result = acpi_ec_query_init();
+ 	if (result)
+-		goto err_exit;
+-	/* Now register the driver for the EC */
+-	result = acpi_bus_register_driver(&acpi_ec_driver);
+-	if (result)
+-		goto err_exit;
++		return result;
+ 
+-err_exit:
+-	if (result)
+-		acpi_ec_query_exit();
+-	return result;
++	/* Drivers must be started after acpi_ec_query_init() */
++	ecdt_fail = acpi_ec_ecdt_start();
++	dsdt_fail = acpi_bus_register_driver(&acpi_ec_driver);
++	return ecdt_fail && dsdt_fail ? -ENODEV : 0;
+ }
+ 
+ /* EC driver currently not unloadable */
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index ee066d7..4361c44 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -185,7 +185,6 @@ typedef int (*acpi_ec_query_func) (void *data);
+ int acpi_ec_init(void);
+ int acpi_ec_ecdt_probe(void);
+ int acpi_ec_dsdt_probe(void);
+-int acpi_ec_ecdt_start(void);
+ void acpi_ec_block_transactions(void);
+ void acpi_ec_unblock_transactions(void);
+ int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index c3bf049..602f8ff 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -2166,8 +2166,6 @@ int __init acpi_scan_init(void)
+ 		}
+ 	}
+ 
+-	acpi_ec_ecdt_start();
+-
+ 	acpi_scan_initialized = true;
+ 
+  out:
+-- 
+2.7.4
+
