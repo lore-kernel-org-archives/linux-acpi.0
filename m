@@ -1,179 +1,61 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: [PATCH] ACPI / sysfs: Extend ACPI sysfs to provide access to boot error region
-Date: Thu, 17 Aug 2017 14:39:46 -0700
-Message-ID: <20170817213946.16939-1-tony.luck@intel.com>
-References: <CAJZ5v0gML6bX2QW65Kv+huJtM4ZUjhw6PC=52hh8NiK-9Uqpzg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 1/2] ACPI: EC: Fix a regression related to wrong ECDT initialization order
+Date: Fri, 18 Aug 2017 01:12:52 +0200
+Message-ID: <2095415.pyOK0krZKL@aspire.rjw.lan>
+References: <756461e045cbddb16418685a1b12c3c9a491d328.1502868457.git.lv.zheng@intel.com> <ede92a9abe2f4e6bfd0139078565465eb58fef95.1502936401.git.lv.zheng@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:6094 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753297AbdHQVjs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 17 Aug 2017 17:39:48 -0400
-In-Reply-To: <CAJZ5v0gML6bX2QW65Kv+huJtM4ZUjhw6PC=52hh8NiK-9Uqpzg@mail.gmail.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:47160 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753326AbdHQXVU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Aug 2017 19:21:20 -0400
+In-Reply-To: <ede92a9abe2f4e6bfd0139078565465eb58fef95.1502936401.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, Punit Agrawal <punit.agrawal@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-From: Tony Luck <tony.luck@intel.com>
+On Thursday, August 17, 2017 4:21:04 AM CEST Lv Zheng wrote:
+> The following commit is bisected out to be a regression culprit:
+>  Commit: c712bb58d8278465b1a91f362a08f5c79ad077e4
+>  Subject: ACPI / EC: Add support to skip boot stage DSDT probe
+> However the problem is actually originated from the following commit:
+>  Commit: 2a5708409e4e05446eb1a89ecb48641d6fd5d5a9
+>  Subject: ACPI / EC: Fix a gap that ECDT EC cannot handle EC events
+> 
+> Commit 2a570840 introduces acpi_ec_ecdt_start(), but invokes it too early:
+> earlier before acpi_ec_query_init(). Thus when EC event is flagged after
+> boot, ec_query_wq is not valid, resulting in a kernel warning:
+>  [    3.580017] BUG: unable to handle kernel NULL pointer dereference at 0000000000000102
+>  ...
+>  [    4.380005] Workqueue: events acpi_ec_event_handler
+>  [    4.380005] task: ffff9f539790dac0 task.stack: ffffb437c0e10000
+>  [    4.380005] RIP: 0010:__queue_work+0x32/0x430
+> 
+> Normally DSDT EC should always be valid. Thus acpi_ec_ecdt_start() is
+> actually a no-op in most of the cases. While the commit c712bb58 skips
+> probing DSDT EC as boot EC when ECDT EC is valid, making this bug
+> surfaced.
+> 
+> This patch fixes this issue by invoking acpi_ec_ecdt_start() after
+> acpi_ec_query_init() in acpi_ec_init().
+> 
+> Link: https://jira01.devtools.intel.com/browse/LCK-4348
+> Fixes: 2a5708409e4e ("ACPI / EC: Fix a gap that ECDT EC cannot handle EC events")
+> Fixes: c712bb58d827 ("ACPI / EC: Add support to skip boot stage DSDT probe")
+> Reported-by: Wang Wendy <wendy.wang@intel.com>
+> Tested-by: Feng Chenzhou <chenzhoux.feng@intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-The ACPI sysfs interface provides a way to read each ACPI table from
-userspace via entries in /sys/firmware/acpi/tables/
+Well, commit c712bb58d827 is a recent one, so this needs to be fixed in 4.13.
 
-The BERT table simply provides the size and address of the error
-record in BIOS reserved memory and users may want access to this
-record.
+For this reason, I'm going to apply https://patchwork.kernel.org/patch/9903127/
+and I will rebase my GPEs patches on top of it (they are queued up for 4.14).
+Then, I'll apply the [2/2] from this series on top of that.
 
-In an earlier age we might have used /dev/mem to retrieve this error
-record, but many systems disable /dev/mem for security reasons.
-
-Extend this driver to provide read-only access to the data via a
-file in a new directory /sys/firmware/acpi/tables/data/BERT
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: Boris Petkov <bp@suse.de>
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: Punit Agrawal <punit.agrawal@arm.com>
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-
-v4: (suggested by Punit Agrawal) extend the /sys/firmware/acpi
-code to provide this functionality. File/directory names changed
-to Rafael's suggestions
----
- drivers/acpi/sysfs.c | 79 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 79 insertions(+)
-
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index e414fabf7315..7c4eed0594d0 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -306,11 +306,13 @@ module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
- /*
-  * ACPI table sysfs I/F:
-  * /sys/firmware/acpi/tables/
-+ * /sys/firmware/acpi/tables-data/
-  * /sys/firmware/acpi/tables/dynamic/
-  */
- 
- static LIST_HEAD(acpi_table_attr_list);
- static struct kobject *tables_kobj;
-+static struct kobject *tables_data_kobj;
- static struct kobject *dynamic_tables_kobj;
- static struct kobject *hotplug_kobj;
- 
-@@ -325,6 +327,11 @@ struct acpi_table_attr {
- 	struct list_head node;
- };
- 
-+struct acpi_data_attr {
-+	struct bin_attribute attr;
-+	u64	addr;
-+};
-+
- static ssize_t acpi_table_show(struct file *filp, struct kobject *kobj,
- 			       struct bin_attribute *bin_attr, char *buf,
- 			       loff_t offset, size_t count)
-@@ -420,6 +427,70 @@ acpi_status acpi_sysfs_table_handler(u32 event, void *table, void *context)
- 	return AE_OK;
- }
- 
-+static ssize_t acpi_data_show(struct file *filp, struct kobject *kobj,
-+			      struct bin_attribute *bin_attr, char *buf,
-+			      loff_t offset, size_t count)
-+{
-+	struct acpi_data_attr *data_attr;
-+	void __iomem *base;
-+	ssize_t rc;
-+
-+	data_attr = container_of(bin_attr, struct acpi_data_attr, attr);
-+
-+	base = acpi_os_map_memory(data_attr->addr, data_attr->attr.size);
-+	if (!base)
-+		return -ENOMEM;
-+	rc = memory_read_from_buffer(buf, count, &offset, base,
-+				     data_attr->attr.size);
-+	acpi_os_unmap_memory(base, data_attr->attr.size);
-+
-+	return rc;
-+}
-+
-+static int acpi_bert_data_init(void *th, struct acpi_data_attr *data_attr)
-+{
-+	struct acpi_table_bert *bert = th;
-+
-+	if (bert->header.length < sizeof(struct acpi_table_bert) ||
-+	    bert->region_length < sizeof(struct acpi_hest_generic_status)) {
-+		kfree(data_attr);
-+		return -EINVAL;
-+	}
-+	data_attr->addr = bert->address;
-+	data_attr->attr.size = bert->region_length;
-+	data_attr->attr.attr.name = "BERT";
-+
-+	return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
-+}
-+
-+static struct acpi_data_obj {
-+	char *name;
-+	int (*fn)(void *, struct acpi_data_attr *);
-+} acpi_data_objs[] = {
-+	{ ACPI_SIG_BERT, acpi_bert_data_init },
-+};
-+
-+#define NUM_ACPI_DATA_OBJS ARRAY_SIZE(acpi_data_objs)
-+
-+static int acpi_table_data_init(struct acpi_table_header *th)
-+{
-+	struct acpi_data_attr *data_attr;
-+	int i;
-+
-+	for (i = 0; i < NUM_ACPI_DATA_OBJS; i++) {
-+		if (ACPI_COMPARE_NAME(th->signature, acpi_data_objs[i].name)) {
-+			data_attr = kzalloc(sizeof(*data_attr), GFP_KERNEL);
-+			if (!data_attr)
-+				return -ENOMEM;
-+			sysfs_attr_init(&data_attr->attr.attr);
-+			data_attr->attr.read = acpi_data_show;
-+			data_attr->attr.attr.mode = 0400;
-+			return acpi_data_objs[i].fn(th, data_attr);
-+		}
-+	}
-+	return 0;
-+}
-+
- static int acpi_tables_sysfs_init(void)
- {
- 	struct acpi_table_attr *table_attr;
-@@ -432,6 +503,10 @@ static int acpi_tables_sysfs_init(void)
- 	if (!tables_kobj)
- 		goto err;
- 
-+	tables_data_kobj = kobject_create_and_add("data", tables_kobj);
-+	if (!tables_data_kobj)
-+		goto err_tables_data;
-+
- 	dynamic_tables_kobj = kobject_create_and_add("dynamic", tables_kobj);
- 	if (!dynamic_tables_kobj)
- 		goto err_dynamic_tables;
-@@ -456,13 +531,17 @@ static int acpi_tables_sysfs_init(void)
- 			return ret;
- 		}
- 		list_add_tail(&table_attr->node, &acpi_table_attr_list);
-+		acpi_table_data_init(table_header);
- 	}
- 
- 	kobject_uevent(tables_kobj, KOBJ_ADD);
-+	kobject_uevent(tables_data_kobj, KOBJ_ADD);
- 	kobject_uevent(dynamic_tables_kobj, KOBJ_ADD);
- 
- 	return 0;
- err_dynamic_tables:
-+	kobject_put(tables_data_kobj);
-+err_tables_data:
- 	kobject_put(tables_kobj);
- err:
- 	return -ENOMEM;
--- 
-2.11.0
+Thanks,
+Rafael
 
