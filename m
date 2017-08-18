@@ -1,167 +1,115 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 5/5] edac drivers: add MC owner check in init
-Date: Fri, 18 Aug 2017 13:46:44 -0600
-Message-ID: <20170818194644.14538-6-toshi.kani@hpe.com>
+Subject: [PATCH v3 2/5] intel_pstate: convert to use acpi_match_platform_list()
+Date: Fri, 18 Aug 2017 13:46:41 -0600
+Message-ID: <20170818194644.14538-3-toshi.kani@hpe.com>
 References: <20170818194644.14538-1-toshi.kani@hpe.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170818194644.14538-1-toshi.kani@hpe.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, bp@alien8.de
-Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Change generic x86 edac drivers, which probe CPU type with
-x86_match_cpu(), to verify the module owner at the beginning
-of their module init functions.  This allows them to fail
-their init immediately when ghes_edac is enabled.  Similar
-change can be made to other edac drivers as necessary.
-
-Also, remove ".c" from module names of pnp2_edac, sb_edac,
-and skx_edac.
+Convert to use acpi_match_platform_list() for the platform check.
+There is no change in functionality.
 
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Suggested-by: Borislav Petkov <bp@alien8.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
 ---
- drivers/edac/amd64_edac.c |    5 +++++
- drivers/edac/pnd2_edac.c  |    9 ++++++++-
- drivers/edac/sb_edac.c    |    9 +++++++--
- drivers/edac/skx_edac.c   |    8 +++++++-
- 4 files changed, 27 insertions(+), 4 deletions(-)
+ drivers/cpufreq/intel_pstate.c |   64 ++++++++++++++++------------------------
+ 1 file changed, 25 insertions(+), 39 deletions(-)
 
-diff --git a/drivers/edac/amd64_edac.c b/drivers/edac/amd64_edac.c
-index 3aea556..529bcbf 100644
---- a/drivers/edac/amd64_edac.c
-+++ b/drivers/edac/amd64_edac.c
-@@ -3435,9 +3435,14 @@ MODULE_DEVICE_TABLE(x86cpu, amd64_cpuids);
+diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
+index 65ee4fc..ad713cd 100644
+--- a/drivers/cpufreq/intel_pstate.c
++++ b/drivers/cpufreq/intel_pstate.c
+@@ -2466,39 +2466,31 @@ enum {
+ 	PPC,
+ };
  
- static int __init amd64_edac_init(void)
+-struct hw_vendor_info {
+-	u16  valid;
+-	char oem_id[ACPI_OEM_ID_SIZE];
+-	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
+-	int  oem_pwr_table;
+-};
+-
+ /* Hardware vendor-specific info that has its own power management modes */
+-static struct hw_vendor_info vendor_info[] __initdata = {
+-	{1, "HP    ", "ProLiant", PSS},
+-	{1, "ORACLE", "X4-2    ", PPC},
+-	{1, "ORACLE", "X4-2L   ", PPC},
+-	{1, "ORACLE", "X4-2B   ", PPC},
+-	{1, "ORACLE", "X3-2    ", PPC},
+-	{1, "ORACLE", "X3-2L   ", PPC},
+-	{1, "ORACLE", "X3-2B   ", PPC},
+-	{1, "ORACLE", "X4470M2 ", PPC},
+-	{1, "ORACLE", "X4270M3 ", PPC},
+-	{1, "ORACLE", "X4270M2 ", PPC},
+-	{1, "ORACLE", "X4170M2 ", PPC},
+-	{1, "ORACLE", "X4170 M3", PPC},
+-	{1, "ORACLE", "X4275 M3", PPC},
+-	{1, "ORACLE", "X6-2    ", PPC},
+-	{1, "ORACLE", "Sudbury ", PPC},
+-	{0, "", ""},
++static struct acpi_platform_list plat_info[] __initdata = {
++	{"HP    ", "ProLiant", 0, ACPI_SIG_FADT, all_versions, 0, PSS},
++	{"ORACLE", "X4-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X3-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X3-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X3-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4470M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4270M3 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4270M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4170M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4170 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X4275 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "X6-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{"ORACLE", "Sudbury ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
++	{ } /* End */
+ };
+ 
+ static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
  {
-+	const char *owner;
- 	int err = -ENODEV;
- 	int i;
- 
-+	owner = edac_get_owner();
-+	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
-+		return -EBUSY;
-+
- 	if (!x86_match_cpu(amd64_cpuids))
- 		return -ENODEV;
- 
-diff --git a/drivers/edac/pnd2_edac.c b/drivers/edac/pnd2_edac.c
-index 8e59949..6609041 100644
---- a/drivers/edac/pnd2_edac.c
-+++ b/drivers/edac/pnd2_edac.c
-@@ -45,6 +45,8 @@
- #include "edac_module.h"
- #include "pnd2_edac.h"
- 
-+#define EDAC_MOD_STR		"pnd2_edac"
-+
- #define APL_NUM_CHANNELS	4
- #define DNV_NUM_CHANNELS	2
- #define DNV_MAX_DIMMS		2 /* Max DIMMs per channel */
-@@ -1313,7 +1315,7 @@ static int pnd2_register_mci(struct mem_ctl_info **ppmci)
- 	pvt = mci->pvt_info;
- 	memset(pvt, 0, sizeof(*pvt));
- 
--	mci->mod_name = "pnd2_edac.c";
-+	mci->mod_name = EDAC_MOD_STR;
- 	mci->dev_name = ops->name;
- 	mci->ctl_name = "Pondicherry2";
- 
-@@ -1505,10 +1507,15 @@ MODULE_DEVICE_TABLE(x86cpu, pnd2_cpuids);
- static int __init pnd2_init(void)
- {
+-	struct acpi_table_header hdr;
+-	struct hw_vendor_info *v_info;
  	const struct x86_cpu_id *id;
-+	const char *owner;
- 	int rc;
+ 	u64 misc_pwr;
++	int idx;
  
- 	edac_dbg(2, "\n");
+ 	id = x86_match_cpu(intel_pstate_cpu_oob_ids);
+ 	if (id) {
+@@ -2507,21 +2499,15 @@ static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
+ 			return true;
+ 	}
  
-+	owner = edac_get_owner();
-+	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
-+		return -EBUSY;
-+
- 	id = x86_match_cpu(pnd2_cpuids);
- 	if (!id)
- 		return -ENODEV;
-diff --git a/drivers/edac/sb_edac.c b/drivers/edac/sb_edac.c
-index 80d860c..d411aa5c 100644
---- a/drivers/edac/sb_edac.c
-+++ b/drivers/edac/sb_edac.c
-@@ -36,7 +36,7 @@ static LIST_HEAD(sbridge_edac_list);
-  * Alter this version for the module when modifications are made
-  */
- #define SBRIDGE_REVISION    " Ver: 1.1.2 "
--#define EDAC_MOD_STR      "sbridge_edac"
-+#define EDAC_MOD_STR	    "sb_edac"
+-	if (acpi_disabled ||
+-	    ACPI_FAILURE(acpi_get_table_header(ACPI_SIG_FADT, 0, &hdr)))
++	idx = acpi_match_platform_list(plat_info);
++	if (idx < 0)
+ 		return false;
  
- /*
-  * Debug macros
-@@ -3124,7 +3124,7 @@ static int sbridge_register_mci(struct sbridge_dev *sbridge_dev, enum type type)
- 		MEM_FLAG_DDR4 : MEM_FLAG_DDR3;
- 	mci->edac_ctl_cap = EDAC_FLAG_NONE;
- 	mci->edac_cap = EDAC_FLAG_NONE;
--	mci->mod_name = "sb_edac.c";
-+	mci->mod_name = EDAC_MOD_STR;
- 	mci->mod_ver = SBRIDGE_REVISION;
- 	mci->dev_name = pci_name(pdev);
- 	mci->ctl_page_to_phys = NULL;
-@@ -3372,10 +3372,15 @@ static void sbridge_remove(void)
- static int __init sbridge_init(void)
- {
- 	const struct x86_cpu_id *id;
-+	const char *owner;
- 	int rc;
+-	for (v_info = vendor_info; v_info->valid; v_info++) {
+-		if (!strncmp(hdr.oem_id, v_info->oem_id, ACPI_OEM_ID_SIZE) &&
+-			!strncmp(hdr.oem_table_id, v_info->oem_table_id,
+-						ACPI_OEM_TABLE_ID_SIZE))
+-			switch (v_info->oem_pwr_table) {
+-			case PSS:
+-				return intel_pstate_no_acpi_pss();
+-			case PPC:
+-				return intel_pstate_has_acpi_ppc() &&
+-					(!force_load);
+-			}
++	switch (plat_info[idx].data) {
++	case PSS:
++		return intel_pstate_no_acpi_pss();
++	case PPC:
++		return intel_pstate_has_acpi_ppc() && !force_load;
+ 	}
  
- 	edac_dbg(2, "\n");
- 
-+	owner = edac_get_owner();
-+	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
-+		return -EBUSY;
-+
- 	id = x86_match_cpu(sbridge_cpuids);
- 	if (!id)
- 		return -ENODEV;
-diff --git a/drivers/edac/skx_edac.c b/drivers/edac/skx_edac.c
-index 64bef6c9..17a2fbd 100644
---- a/drivers/edac/skx_edac.c
-+++ b/drivers/edac/skx_edac.c
-@@ -31,6 +31,7 @@
- 
- #include "edac_module.h"
- 
-+#define EDAC_MOD_STR    "skx_edac"
- #define SKX_REVISION    " Ver: 1.0 "
- 
- /*
-@@ -471,7 +472,7 @@ static int skx_register_mci(struct skx_imc *imc)
- 	mci->mtype_cap = MEM_FLAG_DDR4;
- 	mci->edac_ctl_cap = EDAC_FLAG_NONE;
- 	mci->edac_cap = EDAC_FLAG_NONE;
--	mci->mod_name = "skx_edac.c";
-+	mci->mod_name = EDAC_MOD_STR;
- 	mci->dev_name = pci_name(imc->chan[0].cdev);
- 	mci->mod_ver = SKX_REVISION;
- 	mci->ctl_page_to_phys = NULL;
-@@ -1042,12 +1043,17 @@ static int __init skx_init(void)
- {
- 	const struct x86_cpu_id *id;
- 	const struct munit *m;
-+	const char *owner;
- 	int rc = 0, i;
- 	u8 mc = 0, src_id, node_id;
- 	struct skx_dev *d;
- 
- 	edac_dbg(2, "\n");
- 
-+	owner = edac_get_owner();
-+	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
-+		return -EBUSY;
-+
- 	id = x86_match_cpu(skx_cpuids);
- 	if (!id)
- 		return -ENODEV;
+ 	return false;
