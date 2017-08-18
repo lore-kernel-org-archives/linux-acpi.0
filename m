@@ -1,66 +1,226 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 0/5] enable ghes_edac on selected platforms
-Date: Fri, 18 Aug 2017 13:46:39 -0600
-Message-ID: <20170818194644.14538-1-toshi.kani@hpe.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t2353.austin.hpe.com ([15.233.44.26]:32864 "EHLO
-        g2t2353.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751173AbdHRT4e (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Aug 2017 15:56:34 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v3 1/5] ACPI / blacklist: add acpi_match_platform_list()
+Date: Fri, 18 Aug 2017 13:46:40 -0600
+Message-ID: <20170818194644.14538-2-toshi.kani@hpe.com>
+References: <20170818194644.14538-1-toshi.kani@hpe.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170818194644.14538-1-toshi.kani@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, bp@alien8.de
-Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+List-Id: linux-acpi@vger.kernel.org
 
-The ghes_edac driver was introduced in 2013 [1], but it has not been
-enabled by any distro yet.  This is because the driver obtains error
-info from firmware interfaces, which are not properly implemented on
-many platforms.
+ACPI OEM ID / OEM Table ID / Revision can be used to identify
+a platform based on ACPI firmware info.  acpi_blacklisted(),
+intel_pstate_platform_pwr_mgmt_exists(), and some other funcs,
+have been using similar check to detect a list of platforms
+that require special handlings.
 
-To get out from this situation, add a platform check to selectively
-enable the driver on the platforms that are known to have proper
-firmware implementation.  Platform vendors can add their platforms to
-the list when they support ghes_edac.
+Move the platform check in acpi_blacklisted() to a new common
+utility function, acpi_match_platform_list(), so that other
+drivers do not have to implement their own version.
 
-Patch 1-2 introduces a common function for platform check.
-Patch 3 introduces platform check to ghes_edac.
-Patch 4-5 optimizes regular edac driver's init code when ghes_edac is used.
+There is no change in functionality.
 
-v3:
- - Change struct & func names to "platform" from "oem" (patch 1)
- - Drop a patch that checks OSC APEI bit (remove v2 patch 3)
- - Drop a patch that avoids multiple calls to dmi_walk() (remove v2 patch 4)
- - Change parameter name to ghes_edac.force_load (patch 3)
- - Change function to edac_get_owner() (patch 4)
- - Change edac_mc_owner to const char * (patch 4)
- - Change to call edac_get_owner() at the beginning (patch 5)
- - Remove ".c" from mod_name (patch 5)
-
-v2:
- - Address review comments (patch 1)
- - Add OSC APEI check (patch 3)
- - Avoid multiple dmi_walk (patch 4)
- - Add EDAC MC owner check (patch 6,7)
-
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Borislav Petkov <bp@alien8.de>
 ---
-Toshi Kani (5):
- 1/5 ACPI / blacklist: add acpi_match_platform_list()
- 2/5 intel_pstate: convert to use acpi_match_platform_list()
- 3/5 ghes_edac: add platform check to enable ghes_edac
- 4/5 EDAC: add edac_get_owner() to check MC owner
- 5/5 edac drivers: add MC owner check in init
+ drivers/acpi/blacklist.c |   83 ++++++++--------------------------------------
+ drivers/acpi/utils.c     |   40 ++++++++++++++++++++++
+ include/linux/acpi.h     |   19 +++++++++++
+ 3 files changed, 73 insertions(+), 69 deletions(-)
 
----
- drivers/acpi/blacklist.c       | 83 +++++++-----------------------------------
- drivers/acpi/utils.c           | 40 ++++++++++++++++++++
- drivers/cpufreq/intel_pstate.c | 64 +++++++++++++-------------------
- drivers/edac/amd64_edac.c      |  5 +++
- drivers/edac/edac_mc.c         |  7 +++-
- drivers/edac/edac_mc.h         |  8 ++++
- drivers/edac/ghes_edac.c       | 28 +++++++++++---
- drivers/edac/pnd2_edac.c       |  9 ++++-
- drivers/edac/sb_edac.c         |  9 ++++-
- drivers/edac/skx_edac.c        |  8 +++-
- include/linux/acpi.h           | 19 ++++++++++
- 11 files changed, 162 insertions(+), 118 deletions(-)
-
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index bb542ac..037fd53 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -30,30 +30,13 @@
+ 
+ #include "internal.h"
+ 
+-enum acpi_blacklist_predicates {
+-	all_versions,
+-	less_than_or_equal,
+-	equal,
+-	greater_than_or_equal,
+-};
+-
+-struct acpi_blacklist_item {
+-	char oem_id[7];
+-	char oem_table_id[9];
+-	u32 oem_revision;
+-	char *table;
+-	enum acpi_blacklist_predicates oem_revision_predicate;
+-	char *reason;
+-	u32 is_critical_error;
+-};
+-
+ static struct dmi_system_id acpi_rev_dmi_table[] __initdata;
+ 
+ /*
+  * POLICY: If *anything* doesn't work, put it on the blacklist.
+  *	   If they are critical errors, mark it critical, and abort driver load.
+  */
+-static struct acpi_blacklist_item acpi_blacklist[] __initdata = {
++static struct acpi_platform_list acpi_blacklist[] __initdata = {
+ 	/* Compaq Presario 1700 */
+ 	{"PTLTD ", "  DSDT  ", 0x06040000, ACPI_SIG_DSDT, less_than_or_equal,
+ 	 "Multiple problems", 1},
+@@ -67,65 +50,27 @@ static struct acpi_blacklist_item acpi_blacklist[] __initdata = {
+ 	{"IBM   ", "TP600E  ", 0x00000105, ACPI_SIG_DSDT, less_than_or_equal,
+ 	 "Incorrect _ADR", 1},
+ 
+-	{""}
++	{ }
+ };
+ 
+ int __init acpi_blacklisted(void)
+ {
+-	int i = 0;
++	int i;
+ 	int blacklisted = 0;
+-	struct acpi_table_header table_header;
+-
+-	while (acpi_blacklist[i].oem_id[0] != '\0') {
+-		if (acpi_get_table_header(acpi_blacklist[i].table, 0, &table_header)) {
+-			i++;
+-			continue;
+-		}
+-
+-		if (strncmp(acpi_blacklist[i].oem_id, table_header.oem_id, 6)) {
+-			i++;
+-			continue;
+-		}
+-
+-		if (strncmp
+-		    (acpi_blacklist[i].oem_table_id, table_header.oem_table_id,
+-		     8)) {
+-			i++;
+-			continue;
+-		}
+-
+-		if ((acpi_blacklist[i].oem_revision_predicate == all_versions)
+-		    || (acpi_blacklist[i].oem_revision_predicate ==
+-			less_than_or_equal
+-			&& table_header.oem_revision <=
+-			acpi_blacklist[i].oem_revision)
+-		    || (acpi_blacklist[i].oem_revision_predicate ==
+-			greater_than_or_equal
+-			&& table_header.oem_revision >=
+-			acpi_blacklist[i].oem_revision)
+-		    || (acpi_blacklist[i].oem_revision_predicate == equal
+-			&& table_header.oem_revision ==
+-			acpi_blacklist[i].oem_revision)) {
+ 
+-			printk(KERN_ERR PREFIX
+-			       "Vendor \"%6.6s\" System \"%8.8s\" "
+-			       "Revision 0x%x has a known ACPI BIOS problem.\n",
+-			       acpi_blacklist[i].oem_id,
+-			       acpi_blacklist[i].oem_table_id,
+-			       acpi_blacklist[i].oem_revision);
++	i = acpi_match_platform_list(acpi_blacklist);
++	if (i >= 0) {
++		pr_err(PREFIX "Vendor \"%6.6s\" System \"%8.8s\" Revision 0x%x has a known ACPI BIOS problem.\n",
++		       acpi_blacklist[i].oem_id,
++		       acpi_blacklist[i].oem_table_id,
++		       acpi_blacklist[i].oem_revision);
+ 
+-			printk(KERN_ERR PREFIX
+-			       "Reason: %s. This is a %s error\n",
+-			       acpi_blacklist[i].reason,
+-			       (acpi_blacklist[i].
+-				is_critical_error ? "non-recoverable" :
+-				"recoverable"));
++		pr_err(PREFIX "Reason: %s. This is a %s error\n",
++		       acpi_blacklist[i].reason,
++		       (acpi_blacklist[i].data ?
++			"non-recoverable" : "recoverable"));
+ 
+-			blacklisted = acpi_blacklist[i].is_critical_error;
+-			break;
+-		} else {
+-			i++;
+-		}
++		blacklisted = acpi_blacklist[i].data;
+ 	}
+ 
+ 	(void)early_acpi_osi_init();
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index b9d956c..998aaf5 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -816,3 +816,43 @@ static int __init acpi_backlight(char *str)
+ 	return 1;
+ }
+ __setup("acpi_backlight=", acpi_backlight);
++
++/**
++ * acpi_match_platform_list - Check if the system matches with a given list
++ * @plat: pointer to acpi_platform_list table terminated by a NULL entry
++ *
++ * Return the matched index if the system is found in the platform list.
++ * Otherwise, return a negative error code.
++ */
++int acpi_match_platform_list(const struct acpi_platform_list *plat)
++{
++	struct acpi_table_header hdr;
++	int idx = 0;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	for (; plat->oem_id[0]; plat++, idx++) {
++		if (ACPI_FAILURE(acpi_get_table_header(plat->table, 0, &hdr)))
++			continue;
++
++		if (strncmp(plat->oem_id, hdr.oem_id, ACPI_OEM_ID_SIZE))
++			continue;
++
++		if (strncmp(plat->oem_table_id, hdr.oem_table_id,
++			    ACPI_OEM_TABLE_ID_SIZE))
++			continue;
++
++		if ((plat->pred == all_versions) ||
++		    (plat->pred == less_than_or_equal
++			&& hdr.oem_revision <= plat->oem_revision) ||
++		    (plat->pred == greater_than_or_equal
++			&& hdr.oem_revision >= plat->oem_revision) ||
++		    (plat->pred == equal
++			&& hdr.oem_revision == plat->oem_revision))
++			return idx;
++	}
++
++	return -ENODEV;
++}
++EXPORT_SYMBOL(acpi_match_platform_list);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 27b4b66..a9b6dc2 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -556,6 +556,25 @@ extern acpi_status acpi_pci_osc_control_set(acpi_handle handle,
+ #define ACPI_OST_SC_DRIVER_LOAD_FAILURE		0x81
+ #define ACPI_OST_SC_INSERT_NOT_SUPPORTED	0x82
+ 
++enum acpi_predicate {
++	all_versions,
++	less_than_or_equal,
++	equal,
++	greater_than_or_equal,
++};
++
++/* Table must be terminted by a NULL entry */
++struct acpi_platform_list {
++	char	oem_id[ACPI_OEM_ID_SIZE];
++	char	oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
++	u32	oem_revision;
++	char	*table;
++	enum acpi_predicate pred;
++	char	*reason;
++	u32	data;
++};
++int acpi_match_platform_list(const struct acpi_platform_list *plat);
++
+ extern void acpi_early_init(void);
+ extern void acpi_subsystem_init(void);
+ 
