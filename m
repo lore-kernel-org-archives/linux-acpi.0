@@ -1,115 +1,119 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 2/5] intel_pstate: convert to use acpi_match_platform_list()
-Date: Fri, 18 Aug 2017 13:46:41 -0600
-Message-ID: <20170818194644.14538-3-toshi.kani@hpe.com>
-References: <20170818194644.14538-1-toshi.kani@hpe.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170818194644.14538-1-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, bp@alien8.de
-Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH 2/2] ACPI/thermal: support for thermal zone description
+Date: Fri, 18 Aug 2017 16:31:52 -0600
+Message-ID: <c572741f-8714-45f8-d389-9e258464e091@codeaurora.org>
+References: <1500054535-975-1-git-send-email-pprakash@codeaurora.org>
+ <1500054535-975-3-git-send-email-pprakash@codeaurora.org>
+ <1502180603.4296.15.camel@intel.com>
+ <02b23d6b-a923-3790-5fce-222a11eac951@codeaurora.org>
+ <1502288876.5343.19.camel@intel.com>
+ <CAJZ5v0iR5eJHPOf2ptL9WPO9TFXthER2awVLFSRvSgYqhSj3wA@mail.gmail.com>
+ <1503022487.31913.4.camel@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:58338 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750967AbdHRWby (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Aug 2017 18:31:54 -0400
+In-Reply-To: <1503022487.31913.4.camel@intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Eduardo Valentin <edubezval@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>
 
-Convert to use acpi_match_platform_list() for the platform check.
-There is no change in functionality.
+Hi Rafael/Rui,
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
----
- drivers/cpufreq/intel_pstate.c |   64 ++++++++++++++++------------------------
- 1 file changed, 25 insertions(+), 39 deletions(-)
+On 8/17/2017 8:14 PM, Zhang Rui wrote:
+> On Fri, 2017-08-18 at 02:09 +0200, Rafael J. Wysocki wrote:
+>> On Wed, Aug 9, 2017 at 4:27 PM, Zhang Rui <rui.zhang@intel.com>
+>> wrote:
+>>> Hi, Prakash,
+>>>
+>>> On Tue, 2017-08-08 at 10:01 -0600, Prakash, Prashanth wrote:
+>>>> Hi Rui,
+>>>>
+>>>> On 8/8/2017 2:23 AM, Zhang Rui wrote:
+>>>>>
+>>>>> On Fri, 2017-07-14 at 11:48 -0600, Prashanth Prakash wrote:
+>>>>>>
+>>>>>> Per ACPI 6.2 spec, platforms can optionally add a
+>>>>>> string(_STR)
+>>>>>> object within each thermal zone package which provides a user
+>>>>>> friendly name/description.
+>>>>>>
+>>>>>> Add support to parse the string object, which will be exposed
+>>>>>> to userspace by thermal framework.
+>>>>>>
+>>>>> is there any real request for this?
+>>>> Yes, Qualcomm server platforms adds these description strings.
+>>>>>
+>>>>> _STR is a generic control method for all the ACPI devices.
+>>>>> Thus I'm wondering, if really needed, should we expose this in
+>>>>> acpi
+>>>>> bus
+>>>>> instead?
+>>>> AFAIK, adding a _STR to any package was not explicitly allowed by
+>>>> the
+>>>> spec.
+>>>> Updates in APCI 6.2 made it legal to add an _STR object to
+>>>> thermal
+>>>> zone
+>>>> specifically, so added this support only to thermal zone.
+>>>>
+>>> I see that _STR is stated explicitly in 11.4.14, ACPI spec 6.2, but
+>>> according to section 6.1.10, "The _STR object evaluates to a
+>>> Unicode
+>>> string that describes the device or thermal zone. "
+>>> _STR is still a generic control method that can exist in any other
+>>> device scope.
+>>>
+>>> so to me, this is a optional but generic feature for all the ACPI
+>>> devices, and we don't have a solid reason that it should be part of
+>>> thermal sysfs I/F, thus a better solution to me is to expose this
+>>> as an
+>>> attribute of ACPI device, and we can link to the ACPI device from
+>>> thermal sysfs I/F in userspace.
+>>>
+>>> what do you think, Rafael?
+>> Since you have a ->get_desc method, I don't have a big problem with
+>> the approach here.
+>>
+>> I'm not particularly liking the "<not supported>" thing returned if
+>> _STR is not present, though.
+I will change the implementation such that if _STR object was not found then
+thermal_get_desc would return -ENXIO (or should it be different errno?).
 
-diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
-index 65ee4fc..ad713cd 100644
---- a/drivers/cpufreq/intel_pstate.c
-+++ b/drivers/cpufreq/intel_pstate.c
-@@ -2466,39 +2466,31 @@ enum {
- 	PPC,
- };
- 
--struct hw_vendor_info {
--	u16  valid;
--	char oem_id[ACPI_OEM_ID_SIZE];
--	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
--	int  oem_pwr_table;
--};
--
- /* Hardware vendor-specific info that has its own power management modes */
--static struct hw_vendor_info vendor_info[] __initdata = {
--	{1, "HP    ", "ProLiant", PSS},
--	{1, "ORACLE", "X4-2    ", PPC},
--	{1, "ORACLE", "X4-2L   ", PPC},
--	{1, "ORACLE", "X4-2B   ", PPC},
--	{1, "ORACLE", "X3-2    ", PPC},
--	{1, "ORACLE", "X3-2L   ", PPC},
--	{1, "ORACLE", "X3-2B   ", PPC},
--	{1, "ORACLE", "X4470M2 ", PPC},
--	{1, "ORACLE", "X4270M3 ", PPC},
--	{1, "ORACLE", "X4270M2 ", PPC},
--	{1, "ORACLE", "X4170M2 ", PPC},
--	{1, "ORACLE", "X4170 M3", PPC},
--	{1, "ORACLE", "X4275 M3", PPC},
--	{1, "ORACLE", "X6-2    ", PPC},
--	{1, "ORACLE", "Sudbury ", PPC},
--	{0, "", ""},
-+static struct acpi_platform_list plat_info[] __initdata = {
-+	{"HP    ", "ProLiant", 0, ACPI_SIG_FADT, all_versions, 0, PSS},
-+	{"ORACLE", "X4-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X3-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X3-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X3-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4470M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4270M3 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4270M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4170M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4170 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4275 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X6-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "Sudbury ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{ } /* End */
- };
- 
- static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
- {
--	struct acpi_table_header hdr;
--	struct hw_vendor_info *v_info;
- 	const struct x86_cpu_id *id;
- 	u64 misc_pwr;
-+	int idx;
- 
- 	id = x86_match_cpu(intel_pstate_cpu_oob_ids);
- 	if (id) {
-@@ -2507,21 +2499,15 @@ static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
- 			return true;
- 	}
- 
--	if (acpi_disabled ||
--	    ACPI_FAILURE(acpi_get_table_header(ACPI_SIG_FADT, 0, &hdr)))
-+	idx = acpi_match_platform_list(plat_info);
-+	if (idx < 0)
- 		return false;
- 
--	for (v_info = vendor_info; v_info->valid; v_info++) {
--		if (!strncmp(hdr.oem_id, v_info->oem_id, ACPI_OEM_ID_SIZE) &&
--			!strncmp(hdr.oem_table_id, v_info->oem_table_id,
--						ACPI_OEM_TABLE_ID_SIZE))
--			switch (v_info->oem_pwr_table) {
--			case PSS:
--				return intel_pstate_no_acpi_pss();
--			case PPC:
--				return intel_pstate_has_acpi_ppc() &&
--					(!force_load);
--			}
-+	switch (plat_info[idx].data) {
-+	case PSS:
-+		return intel_pstate_no_acpi_pss();
-+	case PPC:
-+		return intel_pstate_has_acpi_ppc() && !force_load;
- 	}
- 
- 	return false;
+> No, actually I mean adding a new sysfs attribute under ACPI device
+> node, just like path/hid/status/adr, etc.
+Sorry Rui, I didn't read your earlier comment correctly. Thermal zone's _STR is
+useful in couple of scenarios(even if ACPI device containing the thermal_zone
+had a _STR object):
+- When we have more than 1 thermal sensors/zones under a device then this will
+allow us to differentiate them
+- When we have some thermal sensors that doesn't have ACPI device associated
+with it. For example: a shared L3 cache, an abstract region on SoC. In these cases
+we can add a thermal zone object in an appropriate place in dsdt and the
+associated _STR will allow us to provide a user friendly name/description.
+> Of course the attribute should be optional, depends on if the _STR
+> control methods exist or not.
+>
+> thanks,
+> rui
+>> Thanks,
+>> Rafael
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+
+Thanks for your feedback!
+
+--
+Regards,
+Prashanth
+
