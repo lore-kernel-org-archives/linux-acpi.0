@@ -1,7 +1,7 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 3/5] ghes_edac: add platform check to enable ghes_edac
-Date: Fri, 18 Aug 2017 13:46:42 -0600
-Message-ID: <20170818194644.14538-4-toshi.kani@hpe.com>
+Subject: [PATCH v3 5/5] edac drivers: add MC owner check in init
+Date: Fri, 18 Aug 2017 13:46:44 -0600
+Message-ID: <20170818194644.14538-6-toshi.kani@hpe.com>
 References: <20170818194644.14538-1-toshi.kani@hpe.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170818194644.14538-1-toshi.kani@hpe.com>
@@ -10,97 +10,158 @@ To: rjw@rjwysocki.net, bp@alien8.de
 Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The ghes_edac driver was introduced in 2013 [1], but it has not
-been enabled by any distro yet.  This driver obtains error info
-from firmware interfaces, which are not properly implemented on
-many platforms, as the driver always emits the messages below:
+Change generic x86 edac drivers, which probe CPU type with
+x86_match_cpu(), to verify the module owner at the beginning
+of their module init functions.  This allows them to fail
+their init immediately when ghes_edac is enabled.  Similar
+change can be made to other edac drivers as necessary.
 
- This EDAC driver relies on BIOS to enumerate memory and get error reports.
- Unfortunately, not all BIOSes reflect the memory layout correctly
- So, the end result of using this driver varies from vendor to vendor
- If you find incorrect reports, please contact your hardware vendor
- to correct its BIOS.
+Also, remove ".c" from module names of pnp2_edac, sb_edac,
+and skx_edac.
 
-To get out from this situation, add a platform check to selectively
-enable the driver on the platforms that are known to have proper
-firmware implementation.  Platform vendors can add their platforms
-to the list when they support ghes_edac.
-
-"ghes_edac.force_load=1" skips this platform check.
-
-[1]: https://lwn.net/Articles/538438/
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Suggested-by: Borislav Petkov <bp@alien8.de>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Tony Luck <tony.luck@intel.com>
 ---
- drivers/edac/ghes_edac.c |   28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ drivers/edac/amd64_edac.c |    5 +++++
+ drivers/edac/pnd2_edac.c  |    9 ++++++++-
+ drivers/edac/sb_edac.c    |    9 +++++++--
+ drivers/edac/skx_edac.c   |    8 +++++++-
+ 4 files changed, 27 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index 4e61a62..367e106 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -34,6 +34,9 @@ static LIST_HEAD(ghes_reglist);
- static DEFINE_MUTEX(ghes_edac_lock);
- static int ghes_edac_mc_num;
+diff --git a/drivers/edac/amd64_edac.c b/drivers/edac/amd64_edac.c
+index 3aea556..529bcbf 100644
+--- a/drivers/edac/amd64_edac.c
++++ b/drivers/edac/amd64_edac.c
+@@ -3435,9 +3435,14 @@ MODULE_DEVICE_TABLE(x86cpu, amd64_cpuids);
  
-+/* Set 1 to skip the platform check */
-+static bool __read_mostly ghes_edac_force_load;
-+module_param_named(force_load, ghes_edac_force_load, bool, 0);
- 
- /* Memory Device - Type 17 of SMBIOS spec */
- struct memdev_dmi_entry {
-@@ -405,6 +408,15 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
- }
- EXPORT_SYMBOL_GPL(ghes_edac_report_mem_error);
- 
-+/*
-+ * Known systems that are safe to enable this module.
-+ * "ghes_edac.force_load=1" skips this check if necessary.
-+ */
-+static struct acpi_platform_list plat_list[] = {
-+	{"HPE   ", "Server  ", 0, ACPI_SIG_FADT, all_versions},
-+	{ } /* End */
-+};
-+
- int ghes_edac_register(struct ghes *ghes, struct device *dev)
+ static int __init amd64_edac_init(void)
  {
- 	bool fake = false;
-@@ -413,6 +425,12 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	struct edac_mc_layer layers[1];
- 	struct ghes_edac_pvt *pvt;
- 	struct ghes_edac_dimm_fill dimm_fill;
-+	int idx;
++	const char *owner;
+ 	int err = -ENODEV;
+ 	int i;
+ 
++	owner = edac_get_owner();
++	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
++		return -EBUSY;
 +
-+	/* Check if safe to enable on this system */
-+	idx = acpi_match_platform_list(plat_list);
-+	if (!ghes_edac_force_load && idx < 0)
-+		return 0;
+ 	if (!x86_match_cpu(amd64_cpuids))
+ 		return -ENODEV;
  
- 	/* Get the number of DIMMs */
- 	dmi_walk(ghes_edac_count_dimms, &num_dimm);
-@@ -456,7 +474,11 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	mci->dev_name = "ghes";
+diff --git a/drivers/edac/pnd2_edac.c b/drivers/edac/pnd2_edac.c
+index 8e59949..6609041 100644
+--- a/drivers/edac/pnd2_edac.c
++++ b/drivers/edac/pnd2_edac.c
+@@ -45,6 +45,8 @@
+ #include "edac_module.h"
+ #include "pnd2_edac.h"
  
- 	if (!ghes_edac_mc_num) {
--		if (!fake) {
-+		if (fake) {
-+			pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
-+			pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
-+			pr_info("work on such system. Use this driver with caution\n");
-+		} else if (idx < 0) {
- 			pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
- 			pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
- 			pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
-@@ -464,10 +486,6 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 			pr_info("to correct its BIOS.\n");
- 			pr_info("This system has %d DIMM sockets.\n",
- 				num_dimm);
--		} else {
--			pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
--			pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
--			pr_info("work on such system. Use this driver with caution\n");
- 		}
- 	}
++#define EDAC_MOD_STR		"pnd2_edac"
++
+ #define APL_NUM_CHANNELS	4
+ #define DNV_NUM_CHANNELS	2
+ #define DNV_MAX_DIMMS		2 /* Max DIMMs per channel */
+@@ -1313,7 +1315,7 @@ static int pnd2_register_mci(struct mem_ctl_info **ppmci)
+ 	pvt = mci->pvt_info;
+ 	memset(pvt, 0, sizeof(*pvt));
  
+-	mci->mod_name = "pnd2_edac.c";
++	mci->mod_name = EDAC_MOD_STR;
+ 	mci->dev_name = ops->name;
+ 	mci->ctl_name = "Pondicherry2";
+ 
+@@ -1505,10 +1507,15 @@ MODULE_DEVICE_TABLE(x86cpu, pnd2_cpuids);
+ static int __init pnd2_init(void)
+ {
+ 	const struct x86_cpu_id *id;
++	const char *owner;
+ 	int rc;
+ 
+ 	edac_dbg(2, "\n");
+ 
++	owner = edac_get_owner();
++	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
++		return -EBUSY;
++
+ 	id = x86_match_cpu(pnd2_cpuids);
+ 	if (!id)
+ 		return -ENODEV;
+diff --git a/drivers/edac/sb_edac.c b/drivers/edac/sb_edac.c
+index 80d860c..d411aa5c 100644
+--- a/drivers/edac/sb_edac.c
++++ b/drivers/edac/sb_edac.c
+@@ -36,7 +36,7 @@ static LIST_HEAD(sbridge_edac_list);
+  * Alter this version for the module when modifications are made
+  */
+ #define SBRIDGE_REVISION    " Ver: 1.1.2 "
+-#define EDAC_MOD_STR      "sbridge_edac"
++#define EDAC_MOD_STR	    "sb_edac"
+ 
+ /*
+  * Debug macros
+@@ -3124,7 +3124,7 @@ static int sbridge_register_mci(struct sbridge_dev *sbridge_dev, enum type type)
+ 		MEM_FLAG_DDR4 : MEM_FLAG_DDR3;
+ 	mci->edac_ctl_cap = EDAC_FLAG_NONE;
+ 	mci->edac_cap = EDAC_FLAG_NONE;
+-	mci->mod_name = "sb_edac.c";
++	mci->mod_name = EDAC_MOD_STR;
+ 	mci->mod_ver = SBRIDGE_REVISION;
+ 	mci->dev_name = pci_name(pdev);
+ 	mci->ctl_page_to_phys = NULL;
+@@ -3372,10 +3372,15 @@ static void sbridge_remove(void)
+ static int __init sbridge_init(void)
+ {
+ 	const struct x86_cpu_id *id;
++	const char *owner;
+ 	int rc;
+ 
+ 	edac_dbg(2, "\n");
+ 
++	owner = edac_get_owner();
++	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
++		return -EBUSY;
++
+ 	id = x86_match_cpu(sbridge_cpuids);
+ 	if (!id)
+ 		return -ENODEV;
+diff --git a/drivers/edac/skx_edac.c b/drivers/edac/skx_edac.c
+index 64bef6c9..17a2fbd 100644
+--- a/drivers/edac/skx_edac.c
++++ b/drivers/edac/skx_edac.c
+@@ -31,6 +31,7 @@
+ 
+ #include "edac_module.h"
+ 
++#define EDAC_MOD_STR    "skx_edac"
+ #define SKX_REVISION    " Ver: 1.0 "
+ 
+ /*
+@@ -471,7 +472,7 @@ static int skx_register_mci(struct skx_imc *imc)
+ 	mci->mtype_cap = MEM_FLAG_DDR4;
+ 	mci->edac_ctl_cap = EDAC_FLAG_NONE;
+ 	mci->edac_cap = EDAC_FLAG_NONE;
+-	mci->mod_name = "skx_edac.c";
++	mci->mod_name = EDAC_MOD_STR;
+ 	mci->dev_name = pci_name(imc->chan[0].cdev);
+ 	mci->mod_ver = SKX_REVISION;
+ 	mci->ctl_page_to_phys = NULL;
+@@ -1042,12 +1043,17 @@ static int __init skx_init(void)
+ {
+ 	const struct x86_cpu_id *id;
+ 	const struct munit *m;
++	const char *owner;
+ 	int rc = 0, i;
+ 	u8 mc = 0, src_id, node_id;
+ 	struct skx_dev *d;
+ 
+ 	edac_dbg(2, "\n");
+ 
++	owner = edac_get_owner();
++	if (owner && strncmp(owner, EDAC_MOD_STR, sizeof(EDAC_MOD_STR)))
++		return -EBUSY;
++
+ 	id = x86_match_cpu(skx_cpuids);
+ 	if (!id)
+ 		return -ENODEV;
