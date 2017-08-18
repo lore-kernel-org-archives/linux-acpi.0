@@ -1,73 +1,44 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI/thermal: support for thermal zone description
-Date: Fri, 18 Aug 2017 02:09:32 +0200
-Message-ID: <CAJZ5v0iR5eJHPOf2ptL9WPO9TFXthER2awVLFSRvSgYqhSj3wA@mail.gmail.com>
-References: <1500054535-975-1-git-send-email-pprakash@codeaurora.org>
- <1500054535-975-3-git-send-email-pprakash@codeaurora.org> <1502180603.4296.15.camel@intel.com>
- <02b23d6b-a923-3790-5fce-222a11eac951@codeaurora.org> <1502288876.5343.19.camel@intel.com>
+From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] ACPI / sysfs: Extend ACPI sysfs to provide access to
+ boot error region
+Date: Fri, 18 Aug 2017 01:30:47 +0100
+Message-ID: <20170818013047.427e38b7@alans-desktop>
+References: <CAJZ5v0gML6bX2QW65Kv+huJtM4ZUjhw6PC=52hh8NiK-9Uqpzg@mail.gmail.com>
+        <20170817213946.16939-1-tony.luck@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:34546 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753297AbdHRAJd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Aug 2017 20:09:33 -0400
-In-Reply-To: <1502288876.5343.19.camel@intel.com>
+Received: from www.llwyncelyn.cymru ([82.70.14.225]:57936 "EHLO fuzix.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752872AbdHRAbD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Aug 2017 20:31:03 -0400
+In-Reply-To: <20170817213946.16939-1-tony.luck@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Prakash, Prashanth" <pprakash@codeaurora.org>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Eduardo Valentin <edubezval@gmail.com>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, Punit Agrawal <punit.agrawal@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Aug 9, 2017 at 4:27 PM, Zhang Rui <rui.zhang@intel.com> wrote:
-> Hi, Prakash,
->
-> On Tue, 2017-08-08 at 10:01 -0600, Prakash, Prashanth wrote:
->> Hi Rui,
->>
->> On 8/8/2017 2:23 AM, Zhang Rui wrote:
->> >
->> > On Fri, 2017-07-14 at 11:48 -0600, Prashanth Prakash wrote:
->> > >
->> > > Per ACPI 6.2 spec, platforms can optionally add a string(_STR)
->> > > object within each thermal zone package which provides a user
->> > > friendly name/description.
->> > >
->> > > Add support to parse the string object, which will be exposed
->> > > to userspace by thermal framework.
->> > >
->> > is there any real request for this?
->> Yes, Qualcomm server platforms adds these description strings.
->> >
->> > _STR is a generic control method for all the ACPI devices.
->> > Thus I'm wondering, if really needed, should we expose this in acpi
->> > bus
->> > instead?
->> AFAIK, adding a _STR to any package was not explicitly allowed by the
->> spec.
->> Updates in APCI 6.2 made it legal to add an _STR object to thermal
->> zone
->> specifically, so added this support only to thermal zone.
->>
->
-> I see that _STR is stated explicitly in 11.4.14, ACPI spec 6.2, but
-> according to section 6.1.10, "The _STR object evaluates to a Unicode
-> string that describes the device or thermal zone. "
-> _STR is still a generic control method that can exist in any other
-> device scope.
->
-> so to me, this is a optional but generic feature for all the ACPI
-> devices, and we don't have a solid reason that it should be part of
-> thermal sysfs I/F, thus a better solution to me is to expose this as an
-> attribute of ACPI device, and we can link to the ACPI device from
-> thermal sysfs I/F in userspace.
->
-> what do you think, Rafael?
+On Thu, 17 Aug 2017 14:39:46 -0700
+"Luck, Tony" <tony.luck@intel.com> wrote:
 
-Since you have a ->get_desc method, I don't have a big problem with
-the approach here.
+> From: Tony Luck <tony.luck@intel.com>
+> 
+> The ACPI sysfs interface provides a way to read each ACPI table from
+> userspace via entries in /sys/firmware/acpi/tables/
+> 
+> The BERT table simply provides the size and address of the error
+> record in BIOS reserved memory and users may want access to this
+> record.
+> 
+> In an earlier age we might have used /dev/mem to retrieve this error
+> record, but many systems disable /dev/mem for security reasons.
+> 
+> Extend this driver to provide read-only access to the data via a
+> file in a new directory /sys/firmware/acpi/tables/data/BERT
 
-I'm not particularly liking the "<not supported>" thing returned if
-_STR is not present, though.
+Should this not also have a capability check. Assuming file permissions
+are sufficient for grabbing a chunk of system memory holding error
+info doesn't seem too scary but it's at odds with a lot of other cases ?
 
-Thanks,
-Rafael
+Alan
