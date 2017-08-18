@@ -1,201 +1,66 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: [PATCH] ACPI / sysfs: Extend ACPI sysfs to provide access to boot error region
-Date: Fri, 18 Aug 2017 18:38:13 +0100
-Message-ID: <878tigojy2.fsf@e105922-lin.cambridge.arm.com>
-References: <CAJZ5v0gML6bX2QW65Kv+huJtM4ZUjhw6PC=52hh8NiK-9Uqpzg@mail.gmail.com>
-        <20170817213946.16939-1-tony.luck@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v3 0/5] enable ghes_edac on selected platforms
+Date: Fri, 18 Aug 2017 13:46:39 -0600
+Message-ID: <20170818194644.14538-1-toshi.kani@hpe.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:38744 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750987AbdHRRiQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 18 Aug 2017 13:38:16 -0400
-In-Reply-To: <20170817213946.16939-1-tony.luck@intel.com> (Tony Luck's message
-        of "Thu, 17 Aug 2017 14:39:46 -0700")
+Received: from g2t2353.austin.hpe.com ([15.233.44.26]:32864 "EHLO
+        g2t2353.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751173AbdHRT4e (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Aug 2017 15:56:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: rjw@rjwysocki.net, bp@alien8.de
+Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
 
-"Luck, Tony" <tony.luck@intel.com> writes:
+The ghes_edac driver was introduced in 2013 [1], but it has not been
+enabled by any distro yet.  This is because the driver obtains error
+info from firmware interfaces, which are not properly implemented on
+many platforms.
 
-> From: Tony Luck <tony.luck@intel.com>
->
-> The ACPI sysfs interface provides a way to read each ACPI table from
-> userspace via entries in /sys/firmware/acpi/tables/
->
-> The BERT table simply provides the size and address of the error
-> record in BIOS reserved memory and users may want access to this
-> record.
->
-> In an earlier age we might have used /dev/mem to retrieve this error
-> record, but many systems disable /dev/mem for security reasons.
->
-> Extend this driver to provide read-only access to the data via a
-> file in a new directory /sys/firmware/acpi/tables/data/BERT
->
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Boris Petkov <bp@suse.de>
-> Cc: Tyler Baicar <tbaicar@codeaurora.org>
-> Cc: Punit Agrawal <punit.agrawal@arm.com>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Tony Luck <tony.luck@intel.com>
->
-> v4: (suggested by Punit Agrawal) extend the /sys/firmware/acpi
-> code to provide this functionality. File/directory names changed
-> to Rafael's suggestions
-> ---
->  drivers/acpi/sysfs.c | 79 ++++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 79 insertions(+)
->
-> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-> index e414fabf7315..7c4eed0594d0 100644
-> --- a/drivers/acpi/sysfs.c
-> +++ b/drivers/acpi/sysfs.c
-> @@ -306,11 +306,13 @@ module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
->  /*
->   * ACPI table sysfs I/F:
->   * /sys/firmware/acpi/tables/
-> + * /sys/firmware/acpi/tables-data/
+To get out from this situation, add a platform check to selectively
+enable the driver on the platforms that are known to have proper
+firmware implementation.  Platform vendors can add their platforms to
+the list when they support ghes_edac.
 
-Typo: Should be "/sys/firmware/acpi/tables/data/"
+Patch 1-2 introduces a common function for platform check.
+Patch 3 introduces platform check to ghes_edac.
+Patch 4-5 optimizes regular edac driver's init code when ghes_edac is used.
 
->   * /sys/firmware/acpi/tables/dynamic/
->   */
->  
->  static LIST_HEAD(acpi_table_attr_list);
->  static struct kobject *tables_kobj;
-> +static struct kobject *tables_data_kobj;
->  static struct kobject *dynamic_tables_kobj;
->  static struct kobject *hotplug_kobj;
->  
-> @@ -325,6 +327,11 @@ struct acpi_table_attr {
->  	struct list_head node;
->  };
->  
-> +struct acpi_data_attr {
-> +	struct bin_attribute attr;
-> +	u64	addr;
-> +};
+v3:
+ - Change struct & func names to "platform" from "oem" (patch 1)
+ - Drop a patch that checks OSC APEI bit (remove v2 patch 3)
+ - Drop a patch that avoids multiple calls to dmi_walk() (remove v2 patch 4)
+ - Change parameter name to ghes_edac.force_load (patch 3)
+ - Change function to edac_get_owner() (patch 4)
+ - Change edac_mc_owner to const char * (patch 4)
+ - Change to call edac_get_owner() at the beginning (patch 5)
+ - Remove ".c" from mod_name (patch 5)
 
-If all we are going to need is an address, it could also be stored in
-the "private" member of attr (similar to how it's done in
-pci-sysfs.c). But it goes against usage in the rest of the file so I am
-fine either ways.
+v2:
+ - Address review comments (patch 1)
+ - Add OSC APEI check (patch 3)
+ - Avoid multiple dmi_walk (patch 4)
+ - Add EDAC MC owner check (patch 6,7)
 
-> +
->  static ssize_t acpi_table_show(struct file *filp, struct kobject *kobj,
->  			       struct bin_attribute *bin_attr, char *buf,
->  			       loff_t offset, size_t count)
-> @@ -420,6 +427,70 @@ acpi_status acpi_sysfs_table_handler(u32 event, void *table, void *context)
->  	return AE_OK;
->  }
->  
-> +static ssize_t acpi_data_show(struct file *filp, struct kobject *kobj,
-> +			      struct bin_attribute *bin_attr, char *buf,
-> +			      loff_t offset, size_t count)
-> +{
-> +	struct acpi_data_attr *data_attr;
-> +	void __iomem *base;
-> +	ssize_t rc;
-> +
-> +	data_attr = container_of(bin_attr, struct acpi_data_attr, attr);
-> +
-> +	base = acpi_os_map_memory(data_attr->addr, data_attr->attr.size);
-> +	if (!base)
-> +		return -ENOMEM;
-> +	rc = memory_read_from_buffer(buf, count, &offset, base,
-> +				     data_attr->attr.size);
-> +	acpi_os_unmap_memory(base, data_attr->attr.size);
-> +
-> +	return rc;
-> +}
-> +
-> +static int acpi_bert_data_init(void *th, struct acpi_data_attr *data_attr)
-> +{
-> +	struct acpi_table_bert *bert = th;
-> +
-> +	if (bert->header.length < sizeof(struct acpi_table_bert) ||
-> +	    bert->region_length < sizeof(struct acpi_hest_generic_status)) {
-> +		kfree(data_attr);
-> +		return -EINVAL;
-> +	}
-> +	data_attr->addr = bert->address;
-> +	data_attr->attr.size = bert->region_length;
-> +	data_attr->attr.attr.name = "BERT";
-> +
-> +	return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
-> +}
-> +
-> +static struct acpi_data_obj {
-> +	char *name;
-> +	int (*fn)(void *, struct acpi_data_attr *);
-> +} acpi_data_objs[] = {
-> +	{ ACPI_SIG_BERT, acpi_bert_data_init },
-> +};
-> +
-> +#define NUM_ACPI_DATA_OBJS ARRAY_SIZE(acpi_data_objs)
-> +
-> +static int acpi_table_data_init(struct acpi_table_header *th)
-> +{
-> +	struct acpi_data_attr *data_attr;
-> +	int i;
-> +
-> +	for (i = 0; i < NUM_ACPI_DATA_OBJS; i++) {
-> +		if (ACPI_COMPARE_NAME(th->signature, acpi_data_objs[i].name)) {
-> +			data_attr = kzalloc(sizeof(*data_attr), GFP_KERNEL);
-> +			if (!data_attr)
-> +				return -ENOMEM;
-> +			sysfs_attr_init(&data_attr->attr.attr);
-> +			data_attr->attr.read = acpi_data_show;
-> +			data_attr->attr.attr.mode = 0400;
-> +			return acpi_data_objs[i].fn(th, data_attr);
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
->  static int acpi_tables_sysfs_init(void)
->  {
->  	struct acpi_table_attr *table_attr;
-> @@ -432,6 +503,10 @@ static int acpi_tables_sysfs_init(void)
->  	if (!tables_kobj)
->  		goto err;
->  
-> +	tables_data_kobj = kobject_create_and_add("data", tables_kobj);
-> +	if (!tables_data_kobj)
-> +		goto err_tables_data;
-> +
->  	dynamic_tables_kobj = kobject_create_and_add("dynamic", tables_kobj);
->  	if (!dynamic_tables_kobj)
->  		goto err_dynamic_tables;
-> @@ -456,13 +531,17 @@ static int acpi_tables_sysfs_init(void)
->  			return ret;
->  		}
->  		list_add_tail(&table_attr->node, &acpi_table_attr_list);
-> +		acpi_table_data_init(table_header);
->  	}
->  
->  	kobject_uevent(tables_kobj, KOBJ_ADD);
-> +	kobject_uevent(tables_data_kobj, KOBJ_ADD);
->  	kobject_uevent(dynamic_tables_kobj, KOBJ_ADD);
->  
->  	return 0;
->  err_dynamic_tables:
-> +	kobject_put(tables_data_kobj);
-> +err_tables_data:
->  	kobject_put(tables_kobj);
->  err:
->  	return -ENOMEM;
+---
+Toshi Kani (5):
+ 1/5 ACPI / blacklist: add acpi_match_platform_list()
+ 2/5 intel_pstate: convert to use acpi_match_platform_list()
+ 3/5 ghes_edac: add platform check to enable ghes_edac
+ 4/5 EDAC: add edac_get_owner() to check MC owner
+ 5/5 edac drivers: add MC owner check in init
 
-I like how this fits into existing infrastructure.
-
-With the typo addressed -
-
-Acked-by: Punit Agrawal <punit.agrawal@arm.com>
-
-Thanks,
-Punit
+---
+ drivers/acpi/blacklist.c       | 83 +++++++-----------------------------------
+ drivers/acpi/utils.c           | 40 ++++++++++++++++++++
+ drivers/cpufreq/intel_pstate.c | 64 +++++++++++++-------------------
+ drivers/edac/amd64_edac.c      |  5 +++
+ drivers/edac/edac_mc.c         |  7 +++-
+ drivers/edac/edac_mc.h         |  8 ++++
+ drivers/edac/ghes_edac.c       | 28 +++++++++++---
+ drivers/edac/pnd2_edac.c       |  9 ++++-
+ drivers/edac/sb_edac.c         |  9 ++++-
+ drivers/edac/skx_edac.c        |  8 +++-
+ include/linux/acpi.h           | 19 ++++++++++
+ 11 files changed, 162 insertions(+), 118 deletions(-)
 
