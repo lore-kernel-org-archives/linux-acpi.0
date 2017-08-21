@@ -1,86 +1,39 @@
-From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: Re: [PATCH 0/6] drivers: make device_attribute const
-Date: Mon, 21 Aug 2017 18:25:15 +0530
-Message-ID: <CAOH+1jFeD-V-hcnnmKN+9oEbYkf_FrCW74xrPTA3_WABmuH=AA@mail.gmail.com>
-References: <1503315792-14837-1-git-send-email-bhumirks@gmail.com>
+From: Sakari Ailus <sakari.ailus@intel.com>
+Subject: ACPI _DSD sub-node parsing broken in linux-next?
+Date: Mon, 21 Aug 2017 15:56:44 +0300
+Message-ID: <8ae7a257-2461-0f9f-b272-95dc08b8647c@intel.com>
+References: <7A4F467111FEF64486F40DFE7DF3500A03EE8B36@ORSMSX111.amr.corp.intel.com>
+ <20170817102624.7pcex4zp3tcz42mf@paasikivi.fi.intel.com>
+ <04b392fd-4442-59c8-57b3-3abe03bce810@intel.com>
+ <7A4F467111FEF64486F40DFE7DF3500A03EE8F49@ORSMSX111.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1503315792-14837-1-git-send-email-bhumirks@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Julia Lawall <julia.lawall@lip6.fr>, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, jbacik@fb.com, jikos@kernel.org, benjamin.tissoires@redhat.com, manish.chopra@cavium.com, rahul.verma@cavium.com, Dept-GELinuxNICDev@cavium.com, harish.patil@cavium.com, cascardo@holoscopio.com, don@syst.com.br, dvhart@infradead.org, Andy Shevchenko <andy@infradead.org>, sre@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, nbd-general@lists.sourceforge.net, linux-input@vger.kernel.org, netdev@vger.kernel.org, Platform Driver <platform-driver-x86@vger.kernel.org>, linux-pm@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:49949 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753021AbdHUM4t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 21 Aug 2017 08:56:49 -0400
+In-Reply-To: <7A4F467111FEF64486F40DFE7DF3500A03EE8F49@ORSMSX111.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Bob Moore <robert.moore@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
 
-On Mon, Aug 21, 2017 at 5:13 PM, Bhumika Goyal <bhumirks@gmail.com> wrote:
-> Make these const. Done using Coccinelle.
->
-> @match disable optional_qualifier@
-> identifier s;
-> @@
-> static struct device_attribute s = {...};
->
-> @ref@
-> position p;
-> identifier match.s;
-> @@
-> s@p
->
-> @good1@
-> identifier match.s;
-> expression e1;
-> position ref.p;
-> @@
-> device_remove_file(e1,&s@p,...)
->
-> @good2@
-> identifier match.s;
-> expression e1;
-> position ref.p;
-> @@
-> device_create_file(e1,&s@p,...)
->
->
-> @bad depends on  !good1 && !good2@
-> position ref.p;
-> identifier match.s;
-> @@
-> s@p
->
-> @depends on forall !bad disable optional_qualifier@
-> identifier match.s;
-> @@
-> static
-> + const
-> struct device_attribute s;
->
-> Bhumika Goyal (6):
->   ACPI: make device_attribute const
->   nbd: make device_attribute const
->   hid: make device_attribute const
->   qlogic:  make device_attribute const
->   platform/x86: make device_attribute const
->   power: supply: make device_attribute const
->
+Hi Bob, Rafael, others,
 
-Hello all,
+There seem to be a problem with this patch recently merged to linux-pm
+tree for v4.13:
 
-The patches are all independent, so please take what seems relevant.
+<URL:https://git.linuxtv.org/media_tree.git/patch/drivers/acpi/acpica/nsxfeval.c?id=2d2a954375a0405fc721928f0dcc5ad1418996bc>
 
-Thanks,
-Bhumika
+Some callers and acpi_nonsubnode_data_ok() in particular call
+acpi_evaluate_object_typed() with NULL pathname argument which I
+understand was fine before that patch. After that patch, pathname is 
+mandatory.
 
->  drivers/acpi/battery.c                               | 2 +-
->  drivers/acpi/sbs.c                                   | 2 +-
->  drivers/block/nbd.c                                  | 2 +-
->  drivers/hid/hid-core.c                               | 2 +-
->  drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c | 4 ++--
->  drivers/net/ethernet/qlogic/qlcnic/qlcnic_sysfs.c    | 6 +++---
->  drivers/platform/x86/classmate-laptop.c              | 6 +++---
->  drivers/platform/x86/intel-rst.c                     | 4 ++--
->  drivers/power/supply/olpc_battery.c                  | 2 +-
->  9 files changed, 15 insertions(+), 15 deletions(-)
->
-> --
-> 1.9.1
->
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@intel.com
