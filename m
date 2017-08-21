@@ -1,46 +1,136 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPICA: Check whether ACPI is disabled before getting a table
-Date: Mon, 21 Aug 2017 15:30:47 +0200
-Message-ID: <CAJZ5v0iE_H6xeyvzCEMRKhE=iuaP8aUOP4_bT=y2fMJ7htxyew@mail.gmail.com>
-References: <20170818194644.14538-1-toshi.kani@hpe.com> <20170818194644.14538-2-toshi.kani@hpe.com>
- <20170821112657.hrtjoeagxhc67rrr@pd.tnic> <CAJZ5v0i_-Sb_o24EcmHN37cQ3fqVf53a+Yc_weX_1Mv7VAOw3g@mail.gmail.com>
- <20170821132054.mwhdxkcka4ocp6h5@pd.tnic>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 2/2] ACPI/thermal: support for thermal zone description
+Date: Mon, 21 Aug 2017 22:28:39 +0800
+Message-ID: <1503325719.2619.46.camel@intel.com>
+References: <1500054535-975-1-git-send-email-pprakash@codeaurora.org>
+         <CAJZ5v0iR5eJHPOf2ptL9WPO9TFXthER2awVLFSRvSgYqhSj3wA@mail.gmail.com>
+         <1503022487.31913.4.camel@intel.com> <2914243.eTDoGm6UPx@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170821132054.mwhdxkcka4ocp6h5@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Toshi Kani <toshi.kani@hpe.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mauro Carvalho Chehab <mchehab@kernel.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:EDAC-CORE" <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:33391 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753206AbdHUO25 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 21 Aug 2017 10:28:57 -0400
+In-Reply-To: <2914243.eTDoGm6UPx@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Prakash, Prashanth" <pprakash@codeaurora.org>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Eduardo Valentin <edubezval@gmail.com>
 
-On Mon, Aug 21, 2017 at 3:20 PM, Borislav Petkov <bp@alien8.de> wrote:
-> Borislav Petkov <bp@suse.de>
->
-> ... and save us the splrinking of this test around in the callers.
->
-> No functionality change.
->
-> Signed-off-by: Borislav Petkov <bp@suse.de>
-> ---
->  drivers/acpi/acpica/tbxface.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-> index 010b1c43df92..881b0d5b2838 100644
-> --- a/drivers/acpi/acpica/tbxface.c
-> +++ b/drivers/acpi/acpica/tbxface.c
-> @@ -226,6 +226,9 @@ acpi_get_table_header(char *signature,
->         u32 j;
->         struct acpi_table_header *header;
->
-> +       if (acpi_disabled)
-> +               return (AE_ERROR);
-> +
->         /* Parameter validation */
->
->         if (!signature || !out_table_header) {
-> --
+On Fri, 2017-08-18 at 14:34 +0200, Rafael J. Wysocki wrote:
+> On Friday, August 18, 2017 4:14:47 AM CEST Zhang Rui wrote:
+> > 
+> > On Fri, 2017-08-18 at 02:09 +0200, Rafael J. Wysocki wrote:
+> > > 
+> > > On Wed, Aug 9, 2017 at 4:27 PM, Zhang Rui <rui.zhang@intel.com>
+> > > wrote:
+> > > > 
+> > > > 
+> > > > Hi, Prakash,
+> > > > 
+> > > > On Tue, 2017-08-08 at 10:01 -0600, Prakash, Prashanth wrote:
+> > > > > 
+> > > > > 
+> > > > > Hi Rui,
+> > > > > 
+> > > > > On 8/8/2017 2:23 AM, Zhang Rui wrote:
+> > > > > > 
+> > > > > > 
+> > > > > > 
+> > > > > > On Fri, 2017-07-14 at 11:48 -0600, Prashanth Prakash wrote:
+> > > > > > > 
+> > > > > > > 
+> > > > > > > 
+> > > > > > > Per ACPI 6.2 spec, platforms can optionally add a
+> > > > > > > string(_STR)
+> > > > > > > object within each thermal zone package which provides a
+> > > > > > > user
+> > > > > > > friendly name/description.
+> > > > > > > 
+> > > > > > > Add support to parse the string object, which will be
+> > > > > > > exposed
+> > > > > > > to userspace by thermal framework.
+> > > > > > > 
+> > > > > > is there any real request for this?
+> > > > > Yes, Qualcomm server platforms adds these description
+> > > > > strings.
+> > > > > > 
+> > > > > > 
+> > > > > > 
+> > > > > > _STR is a generic control method for all the ACPI devices.
+> > > > > > Thus I'm wondering, if really needed, should we expose this
+> > > > > > in
+> > > > > > acpi
+> > > > > > bus
+> > > > > > instead?
+> > > > > AFAIK, adding a _STR to any package was not explicitly
+> > > > > allowed by
+> > > > > the
+> > > > > spec.
+> > > > > Updates in APCI 6.2 made it legal to add an _STR object to
+> > > > > thermal
+> > > > > zone
+> > > > > specifically, so added this support only to thermal zone.
+> > > > > 
+> > > > I see that _STR is stated explicitly in 11.4.14, ACPI spec 6.2,
+> > > > but
+> > > > according to section 6.1.10, "The _STR object evaluates to a
+> > > > Unicode
+> > > > string that describes the device or thermal zone. "
+> > > > _STR is still a generic control method that can exist in any
+> > > > other
+> > > > device scope.
+> > > > 
+> > > > so to me, this is a optional but generic feature for all the
+> > > > ACPI
+> > > > devices, and we don't have a solid reason that it should be
+> > > > part of
+> > > > thermal sysfs I/F, thus a better solution to me is to expose
+> > > > this
+> > > > as an
+> > > > attribute of ACPI device, and we can link to the ACPI device
+> > > > from
+> > > > thermal sysfs I/F in userspace.
+> > > > 
+> > > > what do you think, Rafael?
+> > > Since you have a ->get_desc method, I don't have a big problem
+> > > with
+> > > the approach here.
+> > > 
+> > > I'm not particularly liking the "<not supported>" thing returned
+> > > if
+> > > _STR is not present, though.
+> > No, actually I mean adding a new sysfs attribute under ACPI device
+> > node, just like path/hid/status/adr, etc.
+> Yes, I understood that, but since the power supply framework has a
+> description callback, why not to use it really?
+> 
+I just checked the code, and ACPI devices indeed have 'description'
+sysfs attribute if there is _STR. Cool, that's what I'm proposing.
 
-Is acpi_disabled an ACPICA variable?  If not, this cannot go upstream.
-Not a big deal I guess, but somewhat yucky.
+But your statement, "the power supply framework has a description
+callback" still confuses me.
+
+> > 
+> > Of course the attribute should be optional, depends on if the _STR
+> > control methods exist or not.
+> So what's the exact benefit from doing this over the approach the
+> $subject
+> patch?
+
+hmmm, the subject patch introduces kernel code to get _STR content from
+ACPI and then export it to userspace via a new thermal sysfs attribute.
+
+And what I'm proposing is that, if the content of _STR is available
+under ACPI device node, then we can easily get the information from
+thermal sysfs I/F using symbol links, thus we don't need kernel changes
+or new thermal sysfs attribute.
+
+thanks,
+rui
+> 
+> Thanks,
+> Rafael
+> 
