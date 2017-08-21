@@ -1,73 +1,151 @@
-From: Christoffer Dall <cdall@linaro.org>
-Subject: Re: [PATCH v5 4/7] support user space to query RAS extension feature
-Date: Mon, 21 Aug 2017 23:08:24 +0200
-Message-ID: <20170821210824.GC20436@cbox>
-References: <1503065517-7920-1-git-send-email-gengdongjiu@huawei.com>
- <1503065517-7920-5-git-send-email-gengdongjiu@huawei.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH 2/2] ACPI/thermal: support for thermal zone description
+Date: Mon, 21 Aug 2017 15:21:48 -0600
+Message-ID: <f6a1930f-2991-81a1-905d-938848d63f38@codeaurora.org>
+References: <1500054535-975-1-git-send-email-pprakash@codeaurora.org>
+ <1500054535-975-3-git-send-email-pprakash@codeaurora.org>
+ <1502180603.4296.15.camel@intel.com>
+ <02b23d6b-a923-3790-5fce-222a11eac951@codeaurora.org>
+ <1502288876.5343.19.camel@intel.com>
+ <CAJZ5v0iR5eJHPOf2ptL9WPO9TFXthER2awVLFSRvSgYqhSj3wA@mail.gmail.com>
+ <1503022487.31913.4.camel@intel.com>
+ <c572741f-8714-45f8-d389-9e258464e091@codeaurora.org>
+ <1503326230.2619.52.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <1503065517-7920-5-git-send-email-gengdongjiu@huawei.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: wangkefeng.wang@huawei.com, kvm@vger.kernel.org, david.daney@cavium.com, catalin.marinas@arm.com, tbaicar@codeaurora.org, will.deacon@arm.com, linuxarm@huawei.com, robert.moore@intel.com, lv.zheng@intel.com, zjzhang@codeaurora.org, mingo@kernel.org, stefan@hello-penguin.com, mst@redhat.com, linux@armlinux.org.uk, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, huangshaoyu@huawei.com, huangdaode@hisilicon.com, bp@suse.de, Dave.Martin@arm.com, lenb@kernel.org, wuquanming@huawei.com, marc.zyngier@arm.com, john.garry@huawei.com, kristina.martsenko@arm.com, cov@codeaurora.org, jonathan.cameron@huawei.com, zhengqiang10@huawei.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, ard.biesheuvel@linaro.org, linux-kernel@vger.kernel.org, wangzhou1@hisilicon.com, shiju.jose@huawei.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:48448 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753983AbdHUVVx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Aug 2017 17:21:53 -0400
+In-Reply-To: <1503326230.2619.52.camel@intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Eduardo Valentin <edubezval@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>
 
-On Fri, Aug 18, 2017 at 10:11:54PM +0800, Dongjiu Geng wrote:
+Hi Rui,
 
-You should put KVM and arm64 in the subject here.
+On 8/21/2017 8:37 AM, Zhang Rui wrote:
+> On Fri, 2017-08-18 at 16:31 -0600, Prakash, Prashanth wrote:
+>> Hi Rafael/Rui,
+>>
+>> On 8/17/2017 8:14 PM, Zhang Rui wrote:
+>>> On Fri, 2017-08-18 at 02:09 +0200, Rafael J. Wysocki wrote:
+>>>> On Wed, Aug 9, 2017 at 4:27 PM, Zhang Rui <rui.zhang@intel.com>
+>>>> wrote:
+>>>>> Hi, Prakash,
+>>>>>
+>>>>> On Tue, 2017-08-08 at 10:01 -0600, Prakash, Prashanth wrote:
+>>>>>> Hi Rui,
+>>>>>>
+>>>>>> On 8/8/2017 2:23 AM, Zhang Rui wrote:
+>>>>>>>
+>>>>>>> On Fri, 2017-07-14 at 11:48 -0600, Prashanth Prakash wrote:
+>>>>>>>>
+>>>>>>>> Per ACPI 6.2 spec, platforms can optionally add a
+>>>>>>>> string(_STR)
+>>>>>>>> object within each thermal zone package which provides a
+>>>>>>>> user
+>>>>>>>> friendly name/description.
+>>>>>>>>
+>>>>>>>> Add support to parse the string object, which will be
+>>>>>>>> exposed
+>>>>>>>> to userspace by thermal framework.
+>>>>>>>>
+>>>>>>> is there any real request for this?
+>>>>>> Yes, Qualcomm server platforms adds these description
+>>>>>> strings.
+>>>>>>>
+>>>>>>> _STR is a generic control method for all the ACPI devices.
+>>>>>>> Thus I'm wondering, if really needed, should we expose this
+>>>>>>> in
+>>>>>>> acpi
+>>>>>>> bus
+>>>>>>> instead?
+>>>>>> AFAIK, adding a _STR to any package was not explicitly
+>>>>>> allowed by
+>>>>>> the
+>>>>>> spec.
+>>>>>> Updates in APCI 6.2 made it legal to add an _STR object to
+>>>>>> thermal
+>>>>>> zone
+>>>>>> specifically, so added this support only to thermal zone.
+>>>>>>
+>>>>> I see that _STR is stated explicitly in 11.4.14, ACPI spec 6.2,
+>>>>> but
+>>>>> according to section 6.1.10, "The _STR object evaluates to a
+>>>>> Unicode
+>>>>> string that describes the device or thermal zone. "
+>>>>> _STR is still a generic control method that can exist in any
+>>>>> other
+>>>>> device scope.
+>>>>>
+>>>>> so to me, this is a optional but generic feature for all the
+>>>>> ACPI
+>>>>> devices, and we don't have a solid reason that it should be
+>>>>> part of
+>>>>> thermal sysfs I/F, thus a better solution to me is to expose
+>>>>> this
+>>>>> as an
+>>>>> attribute of ACPI device, and we can link to the ACPI device
+>>>>> from
+>>>>> thermal sysfs I/F in userspace.
+>>>>>
+>>>>> what do you think, Rafael?
+>>>> Since you have a ->get_desc method, I don't have a big problem
+>>>> with
+>>>> the approach here.
+>>>>
+>>>> I'm not particularly liking the "<not supported>" thing returned
+>>>> if
+>>>> _STR is not present, though.
+>> I will change the implementation such that if _STR object was not
+>> found then
+>> thermal_get_desc would return -ENXIO (or should it be different
+>> errno?).
+>>
+>>> No, actually I mean adding a new sysfs attribute under ACPI device
+>>> node, just like path/hid/status/adr, etc.
+>> Sorry Rui, I didn't read your earlier comment correctly. Thermal
+>> zone's _STR is
+>> useful in couple of scenarios(even if ACPI device containing the
+>> thermal_zone
+>> had a _STR object):
+>> - When we have more than 1 thermal sensors/zones under a device then
+>> this will
+>> allow us to differentiate them
+> Yes I agree.
+> From userspace point of view,
+> with you patch, userspace can get the content of _STR by
+> cat /sys/class/thermal/thermal_zoneX/desc
+>
+> And what I mean is that, userspace can already get the same information
+> by
+> cat /sys/class/thermal/thermal_zoneX/device/description
+> even without the patch.
+>
+>
+>> - When we have some thermal sensors that doesn't have ACPI device
+>> associated
+>> with it. For example: a shared L3 cache, an abstract region on SoC.
+>> In these cases
+>> we can add a thermal zone object in an appropriate place in dsdt and
+>> the
+>> associated _STR will allow us to provide a user friendly
+>> name/description.
+> if the sensor is registered by native driver, I think .get_desc() is
+> useful.
+> But if you want to hack the dsdt to get it enumerated via ACPI, then my
+> approach still works without the patch. :)
 
-> In armv8.2 RAS extension, it adds virtual SError exception
-> syndrome registeri(VSESR_EL2), user space will specify that
-> value. so user space will check whether CPU feature has RAS
-> extension. if has, it will specify the virtual SError syndrome
-> value. Otherwise, it will not set. This patch adds this support
-> 
-> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> ---
->  arch/arm64/kvm/reset.c   | 3 +++
->  include/uapi/linux/kvm.h | 1 +
->  2 files changed, 4 insertions(+)
-> 
-> diff --git a/arch/arm64/kvm/reset.c b/arch/arm64/kvm/reset.c
-> index 3256b9228e75..b7313ee028e9 100644
-> --- a/arch/arm64/kvm/reset.c
-> +++ b/arch/arm64/kvm/reset.c
-> @@ -77,6 +77,9 @@ int kvm_arch_dev_ioctl_check_extension(struct kvm *kvm, long ext)
->  	case KVM_CAP_ARM_PMU_V3:
->  		r = kvm_arm_support_pmu_v3();
->  		break;
-> +	case KVM_CAP_ARM_RAS_EXTENSION:
-> +		r = cpus_have_const_cap(ARM64_HAS_RAS_EXTN);
-> +		break;
->  	case KVM_CAP_SET_GUEST_DEBUG:
->  	case KVM_CAP_VCPU_ATTRIBUTES:
->  		r = 1;
-> diff --git a/include/uapi/linux/kvm.h b/include/uapi/linux/kvm.h
-> index 6cd63c18708a..5a2a338cae57 100644
-> --- a/include/uapi/linux/kvm.h
-> +++ b/include/uapi/linux/kvm.h
-> @@ -929,6 +929,7 @@ struct kvm_ppc_resize_hpt {
->  #define KVM_CAP_PPC_SMT_POSSIBLE 147
->  #define KVM_CAP_HYPERV_SYNIC2 148
->  #define KVM_CAP_HYPERV_VP_INDEX 149
-> +#define KVM_CAP_ARM_RAS_EXTENSION 150
->  
->  #ifdef KVM_CAP_IRQ_ROUTING
->  
-> -- 
-> 2.14.0
-> 
+Yes, it works :) and agree we should drop these patch.
+Sorry, I should have checked more thoroughly before posting.
 
-Thanks,
--Christoffer
+Thanks for the feedback :)
+
+--
+Regards,
+Prashanth
