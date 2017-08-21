@@ -1,90 +1,52 @@
-From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH v3 1/5] ACPI / blacklist: add acpi_match_platform_list()
-Date: Mon, 21 Aug 2017 16:41:38 +0000
-Message-ID: <1503333107.2042.163.camel@hpe.com>
+Date: Mon, 21 Aug 2017 19:04:15 +0200
+Message-ID: <20170821170415.kttnqiwj2fkntsc7@pd.tnic>
 References: <20170818194644.14538-1-toshi.kani@hpe.com>
-         <20170818194644.14538-2-toshi.kani@hpe.com>
-         <20170821112657.hrtjoeagxhc67rrr@pd.tnic>
+ <20170818194644.14538-2-toshi.kani@hpe.com>
+ <20170821112657.hrtjoeagxhc67rrr@pd.tnic>
+ <1503333107.2042.163.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t5009.houston.hpe.com ([15.241.48.73]:41968 "EHLO
-        g9t5009.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753830AbdHUQmU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Aug 2017 12:42:20 -0400
-In-Reply-To: <20170821112657.hrtjoeagxhc67rrr@pd.tnic>
-Content-Language: en-US
-Content-ID: <06D03BAC07DD274198ACFE6A20494DBB@NAMPRD84.PROD.OUTLOOK.COM>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1503333107.2042.163.camel@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "bp@alien8.de" <bp@alien8.de>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
 
-T24gTW9uLCAyMDE3LTA4LTIxIGF0IDEzOjI3ICswMjAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
-DQo+IE9uIEZyaSwgQXVnIDE4LCAyMDE3IGF0IDAxOjQ2OjQwUE0gLTA2MDAsIFRvc2hpIEthbmkg
-d3JvdGU6DQo+ID4gQUNQSSBPRU0gSUQgLyBPRU0gVGFibGUgSUQgLyBSZXZpc2lvbiBjYW4gYmUg
-dXNlZCB0byBpZGVudGlmeQ0KPiA+IGEgcGxhdGZvcm0gYmFzZWQgb24gQUNQSSBmaXJtd2FyZSBp
-bmZvLsKgwqBhY3BpX2JsYWNrbGlzdGVkKCksDQo+ID4gaW50ZWxfcHN0YXRlX3BsYXRmb3JtX3B3
-cl9tZ210X2V4aXN0cygpLCBhbmQgc29tZSBvdGhlciBmdW5jcywNCj4gPiBoYXZlIGJlZW4gdXNp
-bmcgc2ltaWxhciBjaGVjayB0byBkZXRlY3QgYSBsaXN0IG9mIHBsYXRmb3Jtcw0KPiA+IHRoYXQg
-cmVxdWlyZSBzcGVjaWFsIGhhbmRsaW5ncy4NCj4gPiANCj4gPiBNb3ZlIHRoZSBwbGF0Zm9ybSBj
-aGVjayBpbiBhY3BpX2JsYWNrbGlzdGVkKCkgdG8gYSBuZXcgY29tbW9uDQo+ID4gdXRpbGl0eSBm
-dW5jdGlvbiwgYWNwaV9tYXRjaF9wbGF0Zm9ybV9saXN0KCksIHNvIHRoYXQgb3RoZXINCj4gPiBk
-cml2ZXJzIGRvIG5vdCBoYXZlIHRvIGltcGxlbWVudCB0aGVpciBvd24gdmVyc2lvbi4NCj4gPiAN
-Cj4gPiBUaGVyZSBpcyBubyBjaGFuZ2UgaW4gZnVuY3Rpb25hbGl0eS4NCiA6DQo+ID4gKw0KPiA+
-ICsJZm9yICg7IHBsYXQtPm9lbV9pZFswXTsgcGxhdCsrLCBpZHgrKykgew0KPiA+ICsJCWlmIChB
-Q1BJX0ZBSUxVUkUoYWNwaV9nZXRfdGFibGVfaGVhZGVyKHBsYXQtDQo+ID4gPnRhYmxlLCAwLCAm
-aGRyKSkpDQo+ID4gKwkJCWNvbnRpbnVlOw0KPiA+ICsNCj4gPiArCQlpZiAoc3RybmNtcChwbGF0
-LT5vZW1faWQsIGhkci5vZW1faWQsDQo+ID4gQUNQSV9PRU1fSURfU0laRSkpDQo+ID4gKwkJCWNv
-bnRpbnVlOw0KPiA+ICsNCj4gPiArCQlpZiAoc3RybmNtcChwbGF0LT5vZW1fdGFibGVfaWQsIGhk
-ci5vZW1fdGFibGVfaWQsDQo+ID4gKwkJCcKgwqDCoMKgQUNQSV9PRU1fVEFCTEVfSURfU0laRSkp
-DQo+IA0KPiBMZXQgdGhhdCBzdGljayBvdXQuDQoNClB1dHRpbmcgdG8gYSBzaW5nbGUgbGluZSBs
-ZWFkcyB0byAibGluZSBvdmVyIDgwIGNoYXJhY3RlcnMiIHdhcm5pbmcNCmZyb20gY2hlY2twYXRj
-aC5wbC4gIFdvdWxkIHlvdSBzdGlsbCBhZHZpY2UgdG8gZG8gdGhhdD8NCg0KPiA+ICsJCQljb250
-aW51ZTsNCj4gPiArDQo+ID4gKwkJaWYgKChwbGF0LT5wcmVkID09IGFsbF92ZXJzaW9ucykgfHwN
-Cj4gPiArCQnCoMKgwqDCoChwbGF0LT5wcmVkID09IGxlc3NfdGhhbl9vcl9lcXVhbA0KPiA+ICsJ
-CQkmJiBoZHIub2VtX3JldmlzaW9uIDw9IHBsYXQtPm9lbV9yZXZpc2lvbikgDQo+ID4gfHwNCj4g
-PiArCQnCoMKgwqDCoChwbGF0LT5wcmVkID09IGdyZWF0ZXJfdGhhbl9vcl9lcXVhbA0KPiA+ICsJ
-CQkmJiBoZHIub2VtX3JldmlzaW9uID49IHBsYXQtPm9lbV9yZXZpc2lvbikgDQo+ID4gfHwNCj4g
-PiArCQnCoMKgwqDCoChwbGF0LT5wcmVkID09IGVxdWFsDQo+ID4gKwkJCSYmIGhkci5vZW1fcmV2
-aXNpb24gPT0gcGxhdC0NCj4gPiA+b2VtX3JldmlzaW9uKSkNCj4gPiArCQkJcmV0dXJuIGlkeDsN
-Cj4gDQo+IE1ha2UgdGhhdCBtb3JlIHJlYWRhYmxlOg0KPiANCj4gwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqBpZiAoKHBsYXQtPnByZWQgPT0gYWxsX3ZlcnNpb25zKSB8fA0KPiDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgKHBsYXQtPnByZWQgPT0gbGVzc190
-aGFuX29yX2VxdWFswqDCoMKgwqAmJg0KPiBoZHIub2VtX3JldmlzaW9uIDw9IHBsYXQtPm9lbV9y
-ZXZpc2lvbikgfHwNCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoChw
-bGF0LT5wcmVkID09IGdyZWF0ZXJfdGhhbl9vcl9lcXVhbCAmJg0KPiBoZHIub2VtX3JldmlzaW9u
-ID49IHBsYXQtPm9lbV9yZXZpc2lvbikgfHwNCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoChwbGF0LT5wcmVkID09IGVxdWFswqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoCYmDQo+IGhkci5vZW1fcmV2aXNpb24gPT0gcGxhdC0+b2VtX3JldmlzaW9uKSkN
-Cj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJu
-IGlkeDsNCg0KU2FtZSBoZXJlLiAgVGhlc2UgbGVhZCB0byBjaGVja3BhdGNoIHdhcm5pbmdzLg0K
-DQo+ID4gKwl9DQo+ID4gKw0KPiA+ICsJcmV0dXJuIC1FTk9ERVY7DQo+ID4gK30NCj4gPiArRVhQ
-T1JUX1NZTUJPTChhY3BpX21hdGNoX3BsYXRmb3JtX2xpc3QpOw0KPiA+IGRpZmYgLS1naXQgYS9p
-bmNsdWRlL2xpbnV4L2FjcGkuaCBiL2luY2x1ZGUvbGludXgvYWNwaS5oDQo+ID4gaW5kZXggMjdi
-NGI2Ni4uYTliNmRjMiAxMDA2NDQNCj4gPiAtLS0gYS9pbmNsdWRlL2xpbnV4L2FjcGkuaA0KPiA+
-ICsrKyBiL2luY2x1ZGUvbGludXgvYWNwaS5oDQo+ID4gQEAgLTU1Niw2ICs1NTYsMjUgQEAgZXh0
-ZXJuIGFjcGlfc3RhdHVzDQo+ID4gYWNwaV9wY2lfb3NjX2NvbnRyb2xfc2V0KGFjcGlfaGFuZGxl
-IGhhbmRsZSwNCj4gPiDCoCNkZWZpbmUgQUNQSV9PU1RfU0NfRFJJVkVSX0xPQURfRkFJTFVSRQkJ
-MHg4MQ0KPiA+IMKgI2RlZmluZSBBQ1BJX09TVF9TQ19JTlNFUlRfTk9UX1NVUFBPUlRFRAkweDgy
-DQo+ID4gwqANCj4gPiArZW51bSBhY3BpX3ByZWRpY2F0ZSB7DQo+ID4gKwlhbGxfdmVyc2lvbnMs
-DQo+ID4gKwlsZXNzX3RoYW5fb3JfZXF1YWwsDQo+ID4gKwllcXVhbCwNCj4gPiArCWdyZWF0ZXJf
-dGhhbl9vcl9lcXVhbCwNCj4gPiArfTsNCj4gPiArDQo+ID4gKy8qIFRhYmxlIG11c3QgYmUgdGVy
-bWludGVkIGJ5IGEgTlVMTCBlbnRyeSAqLw0KPiA+ICtzdHJ1Y3QgYWNwaV9wbGF0Zm9ybV9saXN0
-IHsNCj4gPiArCWNoYXIJb2VtX2lkW0FDUElfT0VNX0lEX1NJWkVdOw0KPiANCj4gCQkJCQkrIDEN
-Cj4gDQo+ID4gKwljaGFyCW9lbV90YWJsZV9pZFtBQ1BJX09FTV9UQUJMRV9JRF9TSVpFXTsNCj4g
-DQo+IAkJCQkJCcKgwqDCoCsgMQ0KDQpzdHJuY21wKCkgaXMgZmluZSB3aXRob3V0IHRoZXNlLCBi
-dXQgaXQnZCBiZSBwcnVkZW50IGluIGNhc2Ugc29tZW9uZQ0KZGVjaWRlcyB0byBwcmludCB0aGVz
-ZSBzdHJpbmdzIHdpdGggcHJpbnRrKCkuICBXaWxsIGRvLg0KDQo+ID4gKwl1MzIJb2VtX3Jldmlz
-aW9uOw0KPiA+ICsJY2hhcgkqdGFibGU7DQo+ID4gKwllbnVtIGFjcGlfcHJlZGljYXRlIHByZWQ7
-DQo+ID4gKwljaGFyCSpyZWFzb247DQo+ID4gKwl1MzIJZGF0YTsNCj4gDQo+IE9rLCB0dXJuaW5n
-IHRoYXQgaW50byBkYXRhIGZyb20gaXNfY3JpdGljYWxfZXJyb3IgaXMgYSBzdGVwIGluIHRoZQ0K
-PiByaWdodCBkaXJlY3Rpb24uIExldCdzIG1ha2UgaXQgZXZlbiBiZXR0ZXI6DQo+IA0KPiAJdTMy
-CWZsYWdzOw0KPiANCj4gYW5kIGRvDQo+IA0KPiAjZGVmaW5lIEFDUElfUExBVF9JU19DUklUSUNB
-TF9FUlJPUglCSVQoMCkNCj4gDQo+IHNvIHRoYXQgZnV0dXJlIGVsZW1lbnRzIGFkZCBuZXcgYml0
-cyBpbnN0ZWFkIG9mIHdhc3RpbmcgYSB3aG9sZSB1MzINCj4gYXMgYSBib29sZWFuLg0KDQonZGF0
-YScgaGVyZSBpcyBwcml2YXRlIHRvIHRoZSBjYWxsZXIuICBTbywgSSBkbyBub3QgdGhpbmsgd2Ug
-bmVlZCB0bw0KZGVmaW5lIHRoZSBiaXRzLiAgU2hhbGwgSSBjaGFuZ2UgdGhlIG5hbWUgdG8gJ2Ry
-aXZlcl9kYXRhJyB0byBtYWtlIGl0DQptb3JlIGV4cGxpY2l0Pw0KDQpUaGFua3MsDQotVG9zaGkN
-Cg==
+On Mon, Aug 21, 2017 at 04:41:38PM +0000, Kani, Toshimitsu wrote:
+> Putting to a single line leads to "line over 80 characters" warning
+> from checkpatch.pl.  Would you still advice to do that?
+
+Yes, the 80 cols rule is not a hard one. Rather, it should be overridden
+by human good judgement, like making the code more readable.
+
+> strncmp() is fine without these, but it'd be prudent in case someone
+> decides to print these strings with printk().  Will do.
+
+Someone does already use them in printk():
+
++               pr_err(PREFIX "Vendor \"%6.6s\" System \"%8.8s\" Revision 0x%x has a known ACPI BIOS problem.\n",
++                      acpi_blacklist[i].oem_id,
++                      acpi_blacklist[i].oem_table_id,
++                      acpi_blacklist[i].oem_revision);
+
+
+> 'data' here is private to the caller.  So, I do not think we need to
+> define the bits.  Shall I change the name to 'driver_data' to make it
+> more explicit?
+
+You changed it to 'data'. It was a u32-used-as-boolean is_critical_error
+before.
+
+So you can just as well make it into flags and people can extend those
+flags if needed. A flag bit should be enough in most cases anyway. If
+they really need driver_data, then they can add a void * member.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
