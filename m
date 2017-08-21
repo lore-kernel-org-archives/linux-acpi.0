@@ -1,329 +1,170 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 4/7] ghes_edac: avoid multiple calls to dmi_walk()
-Date: Mon, 21 Aug 2017 11:29:32 +0200
-Message-ID: <20170821092932.vlyhg7ckfigpc26n@pd.tnic>
-References: <20170814203942.6t3mrq3hc324blab@pd.tnic>
- <1502810766.2042.149.camel@hpe.com>
- <20170815154815.wy3dqwb4yi3feahg@intel.com>
- <20170816082931.p6rpvtlxwt5nccxr@pd.tnic>
- <1502896578.2042.155.camel@hpe.com>
- <20170816164234.mgwapenb7fpym6nk@pd.tnic>
- <1502903940.2042.157.camel@hpe.com>
- <20170816174028.dqfvubjigvwtcbcy@pd.tnic>
- <1502905904.2042.159.camel@hpe.com>
- <1503003532.2042.161.camel@hpe.com>
+Subject: Re: [PATCH v3 1/5] ACPI / blacklist: add acpi_match_platform_list()
+Date: Mon, 21 Aug 2017 13:27:38 +0200
+Message-ID: <20170821112657.hrtjoeagxhc67rrr@pd.tnic>
+References: <20170818194644.14538-1-toshi.kani@hpe.com>
+ <20170818194644.14538-2-toshi.kani@hpe.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([5.9.137.197]:53994 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750967AbdHUL1r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 21 Aug 2017 07:27:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1503003532.2042.161.camel@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>, "mchehab@kernel.org" <mchehab@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+In-Reply-To: <20170818194644.14538-2-toshi.kani@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>, rjw@rjwysocki.net
+Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Aug 17, 2017 at 09:08:40PM +0000, Kani, Toshimitsu wrote:
-> 1. It creates mc0 and mc1.  
-> I think this is because you called edac_mc_alloc() with mc_num 1.
-
-Fixed, see below.
-
+On Fri, Aug 18, 2017 at 01:46:40PM -0600, Toshi Kani wrote:
+> ACPI OEM ID / OEM Table ID / Revision can be used to identify
+> a platform based on ACPI firmware info.  acpi_blacklisted(),
+> intel_pstate_platform_pwr_mgmt_exists(), and some other funcs,
+> have been using similar check to detect a list of platforms
+> that require special handlings.
 > 
-> 2. 'ras-mc-ctl --layout' does not show all DIMMs.
+> Move the platform check in acpi_blacklisted() to a new common
+> utility function, acpi_match_platform_list(), so that other
+> drivers do not have to implement their own version.
+> 
+> There is no change in functionality.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Borislav Petkov <bp@alien8.de>
+> ---
+>  drivers/acpi/blacklist.c |   83 ++++++++--------------------------------------
+>  drivers/acpi/utils.c     |   40 ++++++++++++++++++++++
+>  include/linux/acpi.h     |   19 +++++++++++
+>  3 files changed, 73 insertions(+), 69 deletions(-)
 
-Yap, that's strange.
+...
 
-$ grep . /sys/devices/system/edac/mc/mc0/dimm*/size
-/sys/devices/system/edac/mc/mc0/dimm10/size:2048
-/sys/devices/system/edac/mc/mc0/dimm11/size:2048
-/sys/devices/system/edac/mc/mc0/dimm12/size:2048
-/sys/devices/system/edac/mc/mc0/dimm13/size:2048
-/sys/devices/system/edac/mc/mc0/dimm14/size:2048
-/sys/devices/system/edac/mc/mc0/dimm15/size:2048
-/sys/devices/system/edac/mc/mc0/dimm8/size:2048
-/sys/devices/system/edac/mc/mc0/dimm9/size:2048
-$ ras-mc-ctl --layout
-         +-----------+
-         |    mc0    |
----------+-----------+
-memory9: |  2048 MB  |
-memory8: |  2048 MB  |
----------+-----------+
-memory7: |     0 MB  |
-memory6: |     0 MB  |
----------+-----------+
-memory5: |     0 MB  |
-memory4: |     0 MB  |
----------+-----------+
-memory3: |     0 MB  |
-memory2: |     0 MB  |
----------+-----------+
-memory1: |     0 MB  |
-memory0: |     0 MB  |
----------+-----------+
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index b9d956c..998aaf5 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -816,3 +816,43 @@ static int __init acpi_backlight(char *str)
+>  	return 1;
+>  }
+>  __setup("acpi_backlight=", acpi_backlight);
+> +
+> +/**
+> + * acpi_match_platform_list - Check if the system matches with a given list
+> + * @plat: pointer to acpi_platform_list table terminated by a NULL entry
+> + *
+> + * Return the matched index if the system is found in the platform list.
+> + * Otherwise, return a negative error code.
+> + */
+> +int acpi_match_platform_list(const struct acpi_platform_list *plat)
+> +{
+> +	struct acpi_table_header hdr;
+> +	int idx = 0;
+> +
+> +	if (acpi_disabled)
+> +		return -ENODEV;
 
-the driver detects them correctly though:
+Btw, Rafael, should we do something like this:
 
-[    7.900694] ghes_edac: This system has 16 DIMM sockets.
-[    7.911366] EDAC DEBUG: ghes_edac_dmidecode: DIMM8: Unbuffered DDR3 RAM size = 2048 MB(ECC)
-[    7.928437] EDAC DEBUG: ghes_edac_dmidecode:         type 24, detail 0x80, width 72(total 64)
-[    7.944628] EDAC DEBUG: ghes_edac_dmidecode: DIMM9: Unbuffered DDR3 RAM size = 2048 MB(ECC)
-[    7.961683] EDAC DEBUG: ghes_edac_dmidecode:         type 24, detail 0x80, width 72(total 64)
-[    7.977871] EDAC DEBUG: ghes_edac_dmidecode: DIMM10: Unbuffered DDR3 RAM size = 2048 MB(ECC)
-[    7.995105] EDAC DEBUG: ghes_edac_dmidecode:         type 24, detail 0x80, width 72(total 64)
-[    8.011291] EDAC DEBUG: ghes_edac_dmidecode: DIMM11: Unbuffered DDR3 RAM size = 2048 MB(ECC)
-[    8.028524] EDAC DEBUG: ghes_edac_dmidecode:         type 24, detail 0x80, width 72(total 64)
-[    8.044712] EDAC DEBUG: ghes_edac_dmidecode: DIMM12: Unbuffered DDR3 RAM size = 2048 MB(ECC)
-[    8.061942] EDAC DEBUG: ghes_edac_dmidecode:         type 24, detail 0x80, width 72(total 64)
-[    8.078129] EDAC DEBUG: ghes_edac_dmidecode: DIMM13: Unbuffered DDR3 RAM size = 2048 MB(ECC)
-[    8.095360] EDAC DEBUG: ghes_edac_dmidecode:         type 24, detail 0x80, width 72(total 64)
-[    8.111547] EDAC DEBUG: ghes_edac_dmidecode: DIMM14: Unbuffered DDR3 RAM size = 2048 MB(ECC)
-[    8.161703] EDAC DEBUG: ghes_edac_dmidecode:         type 24, detail 0x80, width 72(total 64)
-[    8.177904] EDAC DEBUG: ghes_edac_dmidecode: DIMM15: Unbuffered DDR3 RAM size = 2048 MB(ECC)
-[    8.195132] EDAC DEBUG: ghes_edac_dmidecode:         type 24, detail 0x80, width 72(total 64)
-[    8.211321] EDAC DEBUG: edac_mc_add_mc_with_groups: 
-[    8.221456] EDAC DEBUG: edac_create_sysfs_mci_device: creating bus mc0
-[    8.234736] EDAC DEBUG: edac_create_sysfs_mci_device: creating device mc0
-[    8.248545] EDAC DEBUG: edac_create_sysfs_mci_device: creating dimm8, located at memory 8 
-[    8.265457] EDAC DEBUG: edac_create_dimm_object: creating rank/dimm device dimm8
-[    8.280601] EDAC DEBUG: edac_create_sysfs_mci_device: creating dimm9, located at memory 9 
-[    8.297503] EDAC DEBUG: edac_create_dimm_object: creating rank/dimm device dimm9
-[    8.312650] EDAC DEBUG: edac_create_sysfs_mci_device: creating dimm10, located at memory 10 
-[    8.329900] EDAC DEBUG: edac_create_dimm_object: creating rank/dimm device dimm10
-[    8.345220] EDAC DEBUG: edac_create_sysfs_mci_device: creating dimm11, located at memory 11 
-[    8.362470] EDAC DEBUG: edac_create_dimm_object: creating rank/dimm device dimm11
-[    8.377789] EDAC DEBUG: edac_create_sysfs_mci_device: creating dimm12, located at memory 12 
-[    8.395039] EDAC DEBUG: edac_create_dimm_object: creating rank/dimm device dimm12
-[    8.410358] EDAC DEBUG: edac_create_sysfs_mci_device: creating dimm13, located at memory 13 
-[    8.427608] EDAC DEBUG: edac_create_dimm_object: creating rank/dimm device dimm13
-[    8.442928] EDAC DEBUG: edac_create_sysfs_mci_device: creating dimm14, located at memory 14 
-[    8.460194] EDAC DEBUG: edac_create_dimm_object: creating rank/dimm device dimm14
-[    8.475517] EDAC DEBUG: edac_create_sysfs_mci_device: creating dimm15, located at memory 15 
-[    8.492768] EDAC DEBUG: edac_create_dimm_object: creating rank/dimm device dimm15
-
-Mauro?
-
+diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+index 010b1c43df92..881b0d5b2838 100644
+--- a/drivers/acpi/acpica/tbxface.c
++++ b/drivers/acpi/acpica/tbxface.c
+@@ -226,6 +226,9 @@ acpi_get_table_header(char *signature,
+ 	u32 j;
+ 	struct acpi_table_header *header;
+ 
++	if (acpi_disabled)
++		return (AE_ERROR);
++
+ 	/* Parameter validation */
+ 
+ 	if (!signature || !out_table_header) {
 ---
-From: Borislav Petkov <bp@suse.de>
-Date: Wed, 16 Aug 2017 10:33:44 +0200
-Subject: [PATCH] EDAC, ghes: Model a single, logical memory controller
 
-We're enumerating the DIMMs through a DMI walk and since we can't get
-any more detailed topological information about which DIMMs belong to
-which memory controller, convert it to a single, logical controller
-which contains all the DIMMs.
+in order to avoid that sprinkling of if (acpi_disabled) everywhere?
 
-The error reporting path from GHES ghes_edac_report_mem_error() doesn't
-get called in NMI context but add a warning about it to catch any
-changes in the future as if so, our locking scheme will be insufficient
-then.
+> +
+> +	for (; plat->oem_id[0]; plat++, idx++) {
+> +		if (ACPI_FAILURE(acpi_get_table_header(plat->table, 0, &hdr)))
+> +			continue;
+> +
+> +		if (strncmp(plat->oem_id, hdr.oem_id, ACPI_OEM_ID_SIZE))
+> +			continue;
+> +
+> +		if (strncmp(plat->oem_table_id, hdr.oem_table_id,
+> +			    ACPI_OEM_TABLE_ID_SIZE))
 
-Signed-off-by: Borislav Petkov <bp@suse.de>
----
- drivers/edac/ghes_edac.c | 116 +++++++++++++++++++++--------------------------
- 1 file changed, 51 insertions(+), 65 deletions(-)
+Let that stick out.
 
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index 6f80eb65c26c..e790d64b8edd 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -28,10 +28,15 @@ struct ghes_edac_pvt {
- 	char msg[80];
- };
- 
--static LIST_HEAD(ghes_reglist);
--static DEFINE_MUTEX(ghes_edac_lock);
--static int ghes_edac_mc_num;
-+static atomic_t ghes_init = ATOMIC_INIT(0);
-+static struct ghes_edac_pvt *ghes_pvt;
- 
-+/*
-+ * Sync with other, potentially concurrent callers of
-+ * ghes_edac_report_mem_error(). We don't know what the
-+ * "inventive" firmware would do.
-+ */
-+static DEFINE_SPINLOCK(ghes_lock);
- 
- /* Memory Device - Type 17 of SMBIOS spec */
- struct memdev_dmi_entry {
-@@ -169,18 +174,26 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
- 	enum hw_event_mc_err_type type;
- 	struct edac_raw_error_desc *e;
- 	struct mem_ctl_info *mci;
--	struct ghes_edac_pvt *pvt = NULL;
-+	struct ghes_edac_pvt *pvt = ghes_pvt;
-+	unsigned long flags;
- 	char *p;
- 	u8 grain_bits;
- 
--	list_for_each_entry(pvt, &ghes_reglist, list) {
--		if (ghes == pvt->ghes)
--			break;
--	}
- 	if (!pvt) {
- 		pr_err("Internal error: Can't find EDAC structure\n");
- 		return;
- 	}
-+
-+	/*
-+	 * We can do the locking below because GHES defers error processing
-+	 * from NMI to IRQ context. Whenever that changes, we'd at least
-+	 * know.
-+	 */
-+	if (WARN_ON_ONCE(in_nmi()))
-+		return;
-+
-+	spin_lock_irqsave(&ghes_lock, flags);
-+
- 	mci = pvt->mci;
- 	e = &mci->error_desc;
- 
-@@ -398,8 +411,8 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
- 		       (e->page_frame_number << PAGE_SHIFT) | e->offset_in_page,
- 		       grain_bits, e->syndrome, pvt->detail_location);
- 
--	/* Report the error via EDAC API */
- 	edac_raw_mc_handle_error(type, mci, e);
-+	spin_unlock_irqrestore(&ghes_lock, flags);
- }
- EXPORT_SYMBOL_GPL(ghes_edac_report_mem_error);
- 
-@@ -409,9 +422,14 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	int rc, num_dimm = 0;
- 	struct mem_ctl_info *mci;
- 	struct edac_mc_layer layers[1];
--	struct ghes_edac_pvt *pvt;
- 	struct ghes_edac_dimm_fill dimm_fill;
- 
-+	/*
-+	 * We have only one logical memory controller to which all DIMMs belong.
-+	 */
-+	if (atomic_inc_return(&ghes_init) > 1)
-+		return 0;
-+
- 	/* Get the number of DIMMs */
- 	dmi_walk(ghes_edac_count_dimms, &num_dimm);
- 
-@@ -425,26 +443,17 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	layers[0].size = num_dimm;
- 	layers[0].is_virt_csrow = true;
- 
--	/*
--	 * We need to serialize edac_mc_alloc() and edac_mc_add_mc(),
--	 * to avoid duplicated memory controller numbers
--	 */
--	mutex_lock(&ghes_edac_lock);
--	mci = edac_mc_alloc(ghes_edac_mc_num, ARRAY_SIZE(layers), layers,
--			    sizeof(*pvt));
-+	mci = edac_mc_alloc(0, ARRAY_SIZE(layers), layers, sizeof(struct ghes_edac_pvt));
- 	if (!mci) {
- 		pr_info("Can't allocate memory for EDAC data\n");
--		mutex_unlock(&ghes_edac_lock);
- 		return -ENOMEM;
- 	}
- 
--	pvt = mci->pvt_info;
--	memset(pvt, 0, sizeof(*pvt));
--	list_add_tail(&pvt->list, &ghes_reglist);
--	pvt->ghes = ghes;
--	pvt->mci  = mci;
--	mci->pdev = dev;
-+	ghes_pvt	= mci->pvt_info;
-+	ghes_pvt->ghes	= ghes;
-+	ghes_pvt->mci	= mci;
- 
-+	mci->pdev = dev;
- 	mci->mtype_cap = MEM_FLAG_EMPTY;
- 	mci->edac_ctl_cap = EDAC_FLAG_NONE;
- 	mci->edac_cap = EDAC_FLAG_NONE;
-@@ -452,36 +461,23 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	mci->ctl_name = "ghes_edac";
- 	mci->dev_name = "ghes";
- 
--	if (!ghes_edac_mc_num) {
--		if (!fake) {
--			pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
--			pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
--			pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
--			pr_info("If you find incorrect reports, please contact your hardware vendor\n");
--			pr_info("to correct its BIOS.\n");
--			pr_info("This system has %d DIMM sockets.\n",
--				num_dimm);
--		} else {
--			pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
--			pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
--			pr_info("work on such system. Use this driver with caution\n");
--		}
-+	if (!fake) {
-+		pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
-+		pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
-+		pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
-+		pr_info("If you find incorrect reports, please contact your hardware vendor\n");
-+		pr_info("to correct its BIOS.\n");
-+		pr_info("This system has %d DIMM sockets.\n", num_dimm);
-+	} else {
-+		pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
-+		pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
-+		pr_info("work on such system. Use this driver with caution\n");
- 	}
- 
- 	if (!fake) {
--		/*
--		 * Fill DIMM info from DMI for the memory controller #0
--		 *
--		 * Keep it in blank for the other memory controllers, as
--		 * there's no reliable way to properly credit each DIMM to
--		 * the memory controller, as different BIOSes fill the
--		 * DMI bank location fields on different ways
--		 */
--		if (!ghes_edac_mc_num) {
--			dimm_fill.count = 0;
--			dimm_fill.mci = mci;
--			dmi_walk(ghes_edac_dmidecode, &dimm_fill);
--		}
-+		dimm_fill.count = 0;
-+		dimm_fill.mci = mci;
-+		dmi_walk(ghes_edac_dmidecode, &dimm_fill);
- 	} else {
- 		struct dimm_info *dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms,
- 						       mci->n_layers, 0, 0, 0);
-@@ -497,12 +493,8 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	if (rc < 0) {
- 		pr_info("Can't register at EDAC core\n");
- 		edac_mc_free(mci);
--		mutex_unlock(&ghes_edac_lock);
- 		return -ENODEV;
- 	}
--
--	ghes_edac_mc_num++;
--	mutex_unlock(&ghes_edac_lock);
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(ghes_edac_register);
-@@ -510,15 +502,9 @@ EXPORT_SYMBOL_GPL(ghes_edac_register);
- void ghes_edac_unregister(struct ghes *ghes)
- {
- 	struct mem_ctl_info *mci;
--	struct ghes_edac_pvt *pvt, *tmp;
--
--	list_for_each_entry_safe(pvt, tmp, &ghes_reglist, list) {
--		if (ghes == pvt->ghes) {
--			mci = pvt->mci;
--			edac_mc_del_mc(mci->pdev);
--			edac_mc_free(mci);
--			list_del(&pvt->list);
--		}
--	}
-+
-+	mci = ghes_pvt->mci;
-+	edac_mc_del_mc(mci->pdev);
-+	edac_mc_free(mci);
- }
- EXPORT_SYMBOL_GPL(ghes_edac_unregister);
--- 
-2.13.0
+> +			continue;
+> +
+> +		if ((plat->pred == all_versions) ||
+> +		    (plat->pred == less_than_or_equal
+> +			&& hdr.oem_revision <= plat->oem_revision) ||
+> +		    (plat->pred == greater_than_or_equal
+> +			&& hdr.oem_revision >= plat->oem_revision) ||
+> +		    (plat->pred == equal
+> +			&& hdr.oem_revision == plat->oem_revision))
+> +			return idx;
 
+Make that more readable:
+
+                if ((plat->pred == all_versions) ||
+                    (plat->pred == less_than_or_equal    && hdr.oem_revision <= plat->oem_revision) ||
+                    (plat->pred == greater_than_or_equal && hdr.oem_revision >= plat->oem_revision) ||
+                    (plat->pred == equal                 && hdr.oem_revision == plat->oem_revision))
+                        return idx;
+
+
+> +	}
+> +
+> +	return -ENODEV;
+> +}
+> +EXPORT_SYMBOL(acpi_match_platform_list);
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 27b4b66..a9b6dc2 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -556,6 +556,25 @@ extern acpi_status acpi_pci_osc_control_set(acpi_handle handle,
+>  #define ACPI_OST_SC_DRIVER_LOAD_FAILURE		0x81
+>  #define ACPI_OST_SC_INSERT_NOT_SUPPORTED	0x82
+>  
+> +enum acpi_predicate {
+> +	all_versions,
+> +	less_than_or_equal,
+> +	equal,
+> +	greater_than_or_equal,
+> +};
+> +
+> +/* Table must be terminted by a NULL entry */
+> +struct acpi_platform_list {
+> +	char	oem_id[ACPI_OEM_ID_SIZE];
+
+					+ 1
+
+> +	char	oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
+
+						   + 1
+> +	u32	oem_revision;
+> +	char	*table;
+> +	enum acpi_predicate pred;
+> +	char	*reason;
+> +	u32	data;
+
+Ok, turning that into data from is_critical_error is a step in the right
+direction. Let's make it even better:
+
+	u32	flags;
+
+and do
+
+#define ACPI_PLAT_IS_CRITICAL_ERROR	BIT(0)
+
+so that future elements add new bits instead of wasting a whole u32 as a
+boolean.
 
 -- 
 Regards/Gruss,
