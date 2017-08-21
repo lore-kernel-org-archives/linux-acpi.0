@@ -1,94 +1,65 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 1/5] ACPI / blacklist: add acpi_match_platform_list()
-Date: Tue, 22 Aug 2017 00:26:51 +0200
-Message-ID: <CAJZ5v0hjP6AymwZSNe09Zt2T8=xGE+xC2vLrsEb7YVsALREbNw@mail.gmail.com>
-References: <20170818194644.14538-1-toshi.kani@hpe.com> <20170818194644.14538-2-toshi.kani@hpe.com>
- <20170821112657.hrtjoeagxhc67rrr@pd.tnic> <1503333107.2042.163.camel@hpe.com>
- <20170821170415.kttnqiwj2fkntsc7@pd.tnic> <1503335626.2042.165.camel@hpe.com>
- <20170821173612.i3zxlmxklmvv5kzd@pd.tnic> <CAJZ5v0iMR-m6JRDJBeYLDH3uz4_gGAoxQY6Yk3-vf9L=x6G-_A@mail.gmail.com>
- <1503349011.2042.168.camel@hpe.com> <CAJZ5v0jvPEDuezyjzuj0nYiiu6ZT-GxLb+28orvrwMCm2=UWqA@mail.gmail.com>
- <1503353508.2042.170.camel@hpe.com>
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [PATCH v5 0/3] TPS68470 PMIC drivers
+Date: Mon, 21 Aug 2017 22:58:27 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FA69A3@FMSMSX114.amr.corp.intel.com>
+References: <1500648378-10294-1-git-send-email-rajmohan.mani@intel.com>
+ <3425487.LgIRMVflim@aspire.rjw.lan>
+ <CAHp75VdtEh8MAFjQN2LWVFbJj7_bPrhjo77SEsCYVmuOCWvOfQ@mail.gmail.com>
+ <2076994.J7nKrPWSDx@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f42.google.com ([209.85.214.42]:35945 "EHLO
-        mail-it0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754019AbdHUW0w (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Aug 2017 18:26:52 -0400
-In-Reply-To: <1503353508.2042.170.camel@hpe.com>
+Received: from mga09.intel.com ([134.134.136.24]:63303 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751575AbdHUW63 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 21 Aug 2017 18:58:29 -0400
+In-Reply-To: <2076994.J7nKrPWSDx@aspire.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
-Cc: "rafael@kernel.org" <rafael@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "bp@alien8.de" <bp@alien8.de>, "tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
 
-On Tue, Aug 22, 2017 at 12:21 AM, Kani, Toshimitsu <toshi.kani@hpe.com> wrote:
-> On Mon, 2017-08-21 at 23:49 +0200, Rafael J. Wysocki wrote:
->> On Mon, Aug 21, 2017 at 11:06 PM, Kani, Toshimitsu <toshi.kani@hpe.co
->> m> wrote:
->> > On Mon, 2017-08-21 at 22:31 +0200, Rafael J. Wysocki wrote:
->> > > On Mon, Aug 21, 2017 at 7:36 PM, Borislav Petkov <bp@alien8.de>
->> > > wrote:
->> > > > On Mon, Aug 21, 2017 at 05:23:37PM +0000, Kani, Toshimitsu
->> > > > wrote:
->> > > > > > > 'data' here is private to the caller.  So, I do not think
->> > > > > > > we need to define the bits.  Shall I change the name to
->> > > > > > > 'driver_data' to make it more explicit?
->> > > > > >
->> > > > > > You changed it to 'data'. It was a u32-used-as-boolean
->> > > > > > is_critical_error before.
->> > > > > >
->> > > > > > So you can just as well make it into flags and people can
->> > > > > > extend those flags if needed. A flag bit should be enough
->> > > > > > in most cases anyway. If they really need driver_data, then
->> > > > > > they can add a void *member.
->> > > > >
->> > > > > Hmm.. In patch 2, intel_pstate_platform_pwr_mgmt_exists()
->> > > > > uses this field for PSS and PCC, which are enum values.  I
->> > > > > think we should allow drivers to set any values here.  I
->> > > > > agree that it may need to be void * if we also allow drivers
->> > > > > to set a pointer here.
->> > > >
->> > > > Let's see what Rafael prefers.
->> > >
->> > > I would retain the is_critical_error field and use that for
->> > > printing the recoverable / non-recoverable message.  This is kind
->> > > of orthogonal to whether or not any extra data is needed and that
->> > > can be an additional field.  In that case unsigned long should be
->> > > sufficient to accommodate a pointer if need be.
->> >
->> > Yes, we will retain the field.  The question is whether this field
->> > should be retained as a driver's private data or ACPI-managed
->> > flags.
->>
->> Thanks for the clarification.
->>
->> > My patch implements the former, which lets the callers to define
->> > the data values.  For instance, acpi_blacklisted() uses this field
->> > as is_critical_error value, and
->> > intel_pstate_platform_pwr_mgmt_exists() uses it as oem_pwr_table
->> > value.
->> >
->> > Boris suggested the latter, which lets ACPI to define the flags,
->> > which are then used by the callers.  For instance, he suggested
->> > ACPI to define bit0 as is_critical_error.
->> >
->> > #define ACPI_PLAT_IS_CRITICAL_ERROR     BIT(0)
->>
->> So my point is that we can have both the ACPI-managed flags and the
->> the caller-defined data at the same time as separate items.
->>
->> That would allow of maximum flexibility IMO.
->
-> I agree in general.  Driver private data allows flexibility to drivers
-> when the values are driver-private.  ACPI-managed flags allows ACPI to
-> control the interfaces based on the flags.
->
-> Since we do not have use-case of the latter case yet, i.e.
-> acpi_match_platform_list() does not need to check the flags, I'd
-> suggest that we keep 'data' as driver-private.  We can add 'flags' as a
-> separate member to the structure when we find the latter use-case.
+Hi Andy,
 
-OK
+> > >> > This is the patch series for TPS68470 PMIC that works as a camera PMIC.
+> > >> >
+> > >> > The patch series provide the following 3 drivers, to help configure the
+> voltage regulators, clocks and GPIOs provided by the TPS68470 PMIC, to be
+> able to use the camera sensors connected to this PMIC.
+> > >> >
+> > >> > TPS68470 MFD driver:
+> > >> > This is the multi function driver that initializes the TPS68470 PMIC and
+> supports the GPIO and Op Region functions.
+> > >> >
+> > >> > TPS68470 GPIO driver:
+> > >> > This is the PMIC GPIO driver that will be used by the OS GPIO layer,
+> when the BIOS / firmware triggered GPIO access is done.
+> > >> >
+> > >> > TPS68470 Op Region driver:
+> > >> > This is the driver that will be invoked, when the BIOS / firmware
+> configures the voltage / clock for the sensors / vcm devices connected to the
+> PMIC.
+> > >> >
+> > >>
+> > >> All three patches are good to me (we did few rounds of internal
+> > >> review before posting v4)
+> > >>
+> > >> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> > >
+> > > OK, so how should they be routed?
+> >
+> > Good question. I don't know how last time PMIC drivers were merged,
+> > here I think is just sane to route vi MFD with immutable branch
+> > created.
+> 
+> OK
+> 
+> I will assume that the series will go in through MFD then.
+> 
 
-Thanks,
-Rafael
+Now that the MFD and GPIO patches of v6 of this series have been applied on respective trees, can you advise the next steps for the ACPI / PMIC Opregion driver?
+
+Thanks
+Raj
