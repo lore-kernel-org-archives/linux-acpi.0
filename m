@@ -1,39 +1,50 @@
-From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: Re: [PATCH 4/6] qlogic: make device_attribute const
-Date: Mon, 21 Aug 2017 22:56:56 +0530
-Message-ID: <CAOH+1jEieKFo0=+xb-8FUJgaQpa_FNyvipCuokeFQmYANby2iw@mail.gmail.com>
-References: <1503315792-14837-1-git-send-email-bhumirks@gmail.com>
- <1503315792-14837-5-git-send-email-bhumirks@gmail.com> <20170821.102506.1119648270525550825.davem@davemloft.net>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 1/5] ACPI / blacklist: add acpi_match_platform_list()
+Date: Mon, 21 Aug 2017 19:36:12 +0200
+Message-ID: <20170821173612.i3zxlmxklmvv5kzd@pd.tnic>
+References: <20170818194644.14538-1-toshi.kani@hpe.com>
+ <20170818194644.14538-2-toshi.kani@hpe.com>
+ <20170821112657.hrtjoeagxhc67rrr@pd.tnic>
+ <1503333107.2042.163.camel@hpe.com>
+ <20170821170415.kttnqiwj2fkntsc7@pd.tnic>
+ <1503335626.2042.165.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20170821.102506.1119648270525550825.davem@davemloft.net>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: Julia Lawall <julia.lawall@lip6.fr>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, jbacik@fb.com, Jiri Kosina <jikos@kernel.org>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, manish.chopra@cavium.com, rahul.verma@cavium.com, Dept-GELinuxNICDev@cavium.com, harish.patil@cavium.com, cascardo@holoscopio.com, don@syst.com.br, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Sebastian Reichel <sre@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-block@vger.kernel.org, nbd-general@lists.sourceforge.net, linux-input@vger.kernel.org, netdev@vger.kernel.org, Platform Driver <platform-driver-x86@vger.kernel.org>, Linux PM <linux-pm@vg>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([5.9.137.197]:40964 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753726AbdHURgW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 21 Aug 2017 13:36:22 -0400
+Content-Disposition: inline
+In-Reply-To: <1503335626.2042.165.camel@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Cc: "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Aug 21, 2017 at 10:55 PM, David Miller <davem@davemloft.net> wrote:
-> From: Bhumika Goyal <bhumirks@gmail.com>
-> Date: Mon, 21 Aug 2017 17:13:10 +0530
->
->> Make these const as they are only passed as an argument to the
->> function device_create_file and device_remove_file and the corresponding
->> arguments are of type const.
->> Done using Coccinelle
->>
->> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
->
-> Applied.
->
-> But I would seriously suggest that when you have to cross subsystems
-> like this, just send the patches individually to the respective
-> maintainers rather than trying to make a "series" out of it.
->
+On Mon, Aug 21, 2017 at 05:23:37PM +0000, Kani, Toshimitsu wrote:
+> > > 'data' here is private to the caller.  So, I do not think we need
+> > > to define the bits.  Shall I change the name to 'driver_data' to
+> > > make it more explicit?
+> > 
+> > You changed it to 'data'. It was a u32-used-as-boolean
+> > is_critical_error before.
+> > 
+> > So you can just as well make it into flags and people can extend
+> > those flags if needed. A flag bit should be enough in most cases
+> > anyway. If they really need driver_data, then they can add a void *
+> > member.
+> 
+> Hmm.. In patch 2, intel_pstate_platform_pwr_mgmt_exists() uses this
+> field for PSS and PCC, which are enum values.  I think we should allow
+> drivers to set any values here.  I agree that it may need to be void *
+> if we also allow drivers to set a pointer here.
 
-Yes, noted. Thanks for the pointer.
+Let's see what Rafael prefers.
 
-Thanks,
-Bhumika
+-- 
+Regards/Gruss,
+    Boris.
 
-> Thanks.
+Good mailing practices for 400: avoid top-posting and trim the reply.
