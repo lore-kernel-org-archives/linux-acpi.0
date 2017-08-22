@@ -1,80 +1,55 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v5 4/7] support user space to query RAS extension feature
-Date: Tue, 22 Aug 2017 09:20:20 +0800
-Message-ID: <1d75940a-dd1f-6349-a65a-adbbd221f41f@huawei.com>
-References: <1503065517-7920-1-git-send-email-gengdongjiu@huawei.com>
- <1503065517-7920-5-git-send-email-gengdongjiu@huawei.com>
- <20170821210824.GC20436@cbox>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Takashi Iwai <tiwai@suse.de>
+Subject: [PATCH 0/3] Dollar Cove TI PMIC support for Intel Cherry Trail
+Date: Tue, 22 Aug 2017 07:57:07 +0200
+Message-ID: <20170822055710.26515-1-tiwai@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:4530 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754252AbdHVBZT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Aug 2017 21:25:19 -0400
-In-Reply-To: <20170821210824.GC20436@cbox>
+Received: from mx2.suse.de ([195.135.220.15]:50969 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751947AbdHVF5Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 22 Aug 2017 01:57:24 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christoffer Dall <cdall@linaro.org>
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, james.morse@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica
+To: linux-kernel@vger.kernel.org
+Cc: Lee Jones <lee.jones@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, linux-input@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Christoffer,
-   Thanks for the review.
+Hi,
 
-On 2017/8/22 5:08, Christoffer Dall wrote:
-> On Fri, Aug 18, 2017 at 10:11:54PM +0800, Dongjiu Geng wrote:
-> 
-> You should put KVM and arm64 in the subject here.
-I will update it in the next version.
+this is a patch set to add the support for Dollar Cove TI PMIC found
+on some Intel Cherry Trail laptops / tablets.  All drivers are based
+on the original code from Intel downstream patches, with lots of
+rewrites and cleanups.  MFD driver is implemented as a stand-alone
+like a few other variants, and the input driver got a diet in a
+minimalistic form.
+
+The patch set has been tested on ASUS E100H and E200H, as well as on
+HP x210.
 
 
-> 
->> In armv8.2 RAS extension, it adds virtual SError exception
->> syndrome registeri(VSESR_EL2), user space will specify that
->> value. so user space will check whether CPU feature has RAS
->> extension. if has, it will specify the virtual SError syndrome
->> value. Otherwise, it will not set. This patch adds this support
->>
->> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
->> ---
->>  arch/arm64/kvm/reset.c   | 3 +++
->>  include/uapi/linux/kvm.h | 1 +
->>  2 files changed, 4 insertions(+)
->>
->> diff --git a/arch/arm64/kvm/reset.c b/arch/arm64/kvm/reset.c
->> index 3256b9228e75..b7313ee028e9 100644
->> --- a/arch/arm64/kvm/reset.c
->> +++ b/arch/arm64/kvm/reset.c
->> @@ -77,6 +77,9 @@ int kvm_arch_dev_ioctl_check_extension(struct kvm *kvm, long ext)
->>  	case KVM_CAP_ARM_PMU_V3:
->>  		r = kvm_arm_support_pmu_v3();
->>  		break;
->> +	case KVM_CAP_ARM_RAS_EXTENSION:
->> +		r = cpus_have_const_cap(ARM64_HAS_RAS_EXTN);
->> +		break;
->>  	case KVM_CAP_SET_GUEST_DEBUG:
->>  	case KVM_CAP_VCPU_ATTRIBUTES:
->>  		r = 1;
->> diff --git a/include/uapi/linux/kvm.h b/include/uapi/linux/kvm.h
->> index 6cd63c18708a..5a2a338cae57 100644
->> --- a/include/uapi/linux/kvm.h
->> +++ b/include/uapi/linux/kvm.h
->> @@ -929,6 +929,7 @@ struct kvm_ppc_resize_hpt {
->>  #define KVM_CAP_PPC_SMT_POSSIBLE 147
->>  #define KVM_CAP_HYPERV_SYNIC2 148
->>  #define KVM_CAP_HYPERV_VP_INDEX 149
->> +#define KVM_CAP_ARM_RAS_EXTENSION 150
->>  
->>  #ifdef KVM_CAP_IRQ_ROUTING
->>  
->> -- 
->> 2.14.0
->>
-> 
-> Thanks,
-> -Christoffer
-> 
-> .
-> 
+thanks,
+
+Takashi
+
+===
+
+Takashi Iwai (3):
+  mfd: Add support for Cherry Trail Dollar Cove TI PMIC
+  input/keyboard: Add support for Dollar Cove TI power button
+  ACPI / PMIC: Add opregion driver for Intel Dollar Cove TI PMIC
+
+ drivers/acpi/Kconfig                  |   6 ++
+ drivers/acpi/Makefile                 |   1 +
+ drivers/acpi/pmic/intel_pmic_dc_ti.c  | 135 ++++++++++++++++++++++++
+ drivers/input/keyboard/Kconfig        |   7 ++
+ drivers/input/keyboard/Makefile       |   1 +
+ drivers/input/keyboard/dc_ti_pwrbtn.c |  85 +++++++++++++++
+ drivers/mfd/Kconfig                   |  13 +++
+ drivers/mfd/Makefile                  |   1 +
+ drivers/mfd/intel_soc_pmic_dc_ti.c    | 189 ++++++++++++++++++++++++++++++++++
+ 9 files changed, 438 insertions(+)
+ create mode 100644 drivers/acpi/pmic/intel_pmic_dc_ti.c
+ create mode 100644 drivers/input/keyboard/dc_ti_pwrbtn.c
+ create mode 100644 drivers/mfd/intel_soc_pmic_dc_ti.c
+
+-- 
+2.14.0
 
