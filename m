@@ -1,82 +1,35 @@
-From: "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-Subject: RE: ACPI _DSD sub-node parsing broken in linux-next?
-Date: Tue, 22 Aug 2017 17:57:45 +0000
-Message-ID: <7A4F467111FEF64486F40DFE7DF3500A03EE996A@ORSMSX111.amr.corp.intel.com>
-References: <7A4F467111FEF64486F40DFE7DF3500A03EE8B36@ORSMSX111.amr.corp.intel.com>
- <7A4F467111FEF64486F40DFE7DF3500A03EE8F49@ORSMSX111.amr.corp.intel.com>
- <8ae7a257-2461-0f9f-b272-95dc08b8647c@intel.com>
- <3017279.6rhHp0hW77@aspire.rjw.lan>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: [PATCH 2/3] input/keyboard: Add support for Dollar Cove TI power
+ button
+Date: Tue, 22 Aug 2017 19:25:46 +0200
+Message-ID: <20170822172546.6ejpwoedjzsbufzm@sig21.net>
+References: <20170822055710.26515-1-tiwai@suse.de>
+ <20170822055710.26515-3-tiwai@suse.de>
+ <1503394928.25945.46.camel@linux.intel.com>
+ <s5hinhfamyo.wl-tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:46341 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751700AbdHVR5r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 22 Aug 2017 13:57:47 -0400
-In-Reply-To: <3017279.6rhHp0hW77@aspire.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <s5hinhfamyo.wl-tiwai@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-input@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Ailus, Sakari" <sakari.ailus@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>
 
+On Tue, Aug 22, 2017 at 12:58:07PM +0200, Takashi Iwai wrote:
+> I updated the patches and now pushed to topic/dollar-cove-ti-4.13-v2
+> branch.  Will resubmit v2 (tomorrow or later) once after gathering
+> reviews.
 
-Hi Rafael,
+FWIW I tested current Linus's master + topic/dollar-cove-ti-4.13-v2
++ topic/soc-cx2072x-4.13 + my test patches, no observable
+difference to topic/dollar-cove-ti-4.13 on E200HA.
 
-The problem was found while testing my code and the code is working fine with this patch.
+Still hoping someone would give me a hint about possible
+causes for the SoC entering S0i1 only instead of S0i3?
+(https://bugzilla.kernel.org/show_bug.cgi?id=193891)
+Where do I start looking?
 
--Hyungwoo
-
------Original Message-----
-> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net] 
-> Sent: Monday, August 21, 2017 4:42 PM
-> To: Ailus, Sakari <sakari.ailus@intel.com>
-> Cc: Moore, Robert <robert.moore@intel.com>; ACPI Devel Maling List <linux-acpi@vger.kernel.org>; Yang, Hyungwoo <hyungwoo.yang@intel.com>; Zheng, Lv <lv.zheng@intel.com>
-> Subject: Re: ACPI _DSD sub-node parsing broken in linux-next?
-> 
-> On Monday, August 21, 2017 2:56:44 PM CEST Sakari Ailus wrote:
-> > Hi Bob, Rafael, others,
-> > 
-> > There seem to be a problem with this patch recently merged to linux-pm 
-> > tree for v4.13:
-> > 
-> > <URL:https://git.linuxtv.org/media_tree.git/patch/drivers/acpi/acpica/
-> > nsxfeval.c?id=2d2a954375a0405fc721928f0dcc5ad1418996bc>
-> > 
-> > Some callers and acpi_nonsubnode_data_ok() in particular call
-> > acpi_evaluate_object_typed() with NULL pathname argument which I 
-> > understand was fine before that patch. After that patch, pathname is 
-> > mandatory.
-> > 
-> > 
-> 
-> Does the patch below help (untested here)?
-> 
-> ---
->  drivers/acpi/acpica/nsxfeval.c |   10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
-> 
-> Index: linux-pm/drivers/acpi/acpica/nsxfeval.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/acpica/nsxfeval.c
-> +++ linux-pm/drivers/acpi/acpica/nsxfeval.c
-> @@ -100,9 +100,13 @@ acpi_evaluate_object_typed(acpi_handle h
->  		free_buffer_on_error = TRUE;
->  	}
->  
-> -	status = acpi_get_handle(handle, pathname, &target_handle);
-> -	if (ACPI_FAILURE(status)) {
-> -		return_ACPI_STATUS(status);
-> +	if (pathname) {
-> +		status = acpi_get_handle(handle, pathname, &target_handle);
-> +		if (ACPI_FAILURE(status)) {
-> +			return_ACPI_STATUS(status);
-> +		}
-> +	} else {
-> +		target_handle = handle;
->  	}
->  
->  	full_pathname = acpi_ns_get_external_pathname(target_handle);
-> 
->
+Thanks,
+Johannes
