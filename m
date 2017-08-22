@@ -1,35 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 1/4] ACPI / EC: Cleanup EC GPE mask flag
-Date: Tue, 22 Aug 2017 15:17:20 +0200
-Message-ID: <4438656.LA1ApnlN3k@aspire.rjw.lan>
-References: <99f23db65bbe89ee856018629654584a96734c84.1501141963.git.lv.zheng@intel.com> <cover.1502432974.git.lv.zheng@intel.com> <00b4445d67d2e56fef8c319c2651f655d7e6d8e9.1502432974.git.lv.zheng@intel.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 3/3] ACPI / PMIC: Add opregion driver for Intel Dollar
+ Cove TI PMIC
+Date: Tue, 22 Aug 2017 16:26:40 +0300
+Message-ID: <1503408400.25945.57.camel@linux.intel.com>
+References: <20170822055710.26515-1-tiwai@suse.de>
+         <20170822055710.26515-4-tiwai@suse.de>
+         <1503395915.25945.48.camel@linux.intel.com> <s5ho9r7aohj.wl-tiwai@suse.de>
+         <s5hefs3amsq.wl-tiwai@suse.de> <1503401841.25945.51.camel@linux.intel.com>
+         <1503403707.25945.54.camel@linux.intel.com> <s5h378jaiva.wl-tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48335 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932791AbdHVNZw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 22 Aug 2017 09:25:52 -0400
-In-Reply-To: <00b4445d67d2e56fef8c319c2651f655d7e6d8e9.1502432974.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <s5h378jaiva.wl-tiwai@suse.de>
+Sender: linux-input-owner@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, linux-input@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday, August 11, 2017 8:36:28 AM CEST Lv Zheng wrote:
-> EC_FLAGS_COMMAND_STORM is actually used to mask GPE during IRQ processing.
-> This patch cleans it up using more readable flag/function names.
+On Tue, 2017-08-22 at 14:26 +0200, Takashi Iwai wrote:
+> On Tue, 22 Aug 2017 14:08:27 +0200,
+> Andy Shevchenko wrote:
+> > 
+
 > 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Tested-by: Tomislav Ivek <tomislav.ivek@gmail.com>
+> > Or even do a separate ADC driver under drivers/iio/adc for PMIC(s).
+> 
+> That's another option, but I took an easier path as the first step.
 
-Applied, thanks!
+Looking to the current pattern we have ADC being referred from ACPI PMIC
+ OpRegion drivers, so, I have to withdraw my proposal.
 
-I'm not sure about the rest of the series, though, but let me comment on the
-specific patches.
-
-Thanks,
-Rafael
-
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
