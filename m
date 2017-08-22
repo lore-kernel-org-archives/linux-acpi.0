@@ -1,60 +1,80 @@
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v5 0/3] TPS68470 PMIC drivers
-Date: Tue, 22 Aug 2017 00:13:07 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FA6A91@FMSMSX114.amr.corp.intel.com>
-References: <1500648378-10294-1-git-send-email-rajmohan.mani@intel.com>
- <3425487.LgIRMVflim@aspire.rjw.lan>
- <CAHp75VdtEh8MAFjQN2LWVFbJj7_bPrhjo77SEsCYVmuOCWvOfQ@mail.gmail.com>
- <2076994.J7nKrPWSDx@aspire.rjw.lan>
- <6F87890CF0F5204F892DEA1EF0D77A5972FA69A3@FMSMSX114.amr.corp.intel.com>
- <CAJZ5v0hO3oSJWT_CxcP0ogO2yAU=YKYRwGokPqbQbAvWY7mzQg@mail.gmail.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v5 4/7] support user space to query RAS extension feature
+Date: Tue, 22 Aug 2017 09:20:20 +0800
+Message-ID: <1d75940a-dd1f-6349-a65a-adbbd221f41f@huawei.com>
+References: <1503065517-7920-1-git-send-email-gengdongjiu@huawei.com>
+ <1503065517-7920-5-git-send-email-gengdongjiu@huawei.com>
+ <20170821210824.GC20436@cbox>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:8275 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754466AbdHVANJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 21 Aug 2017 20:13:09 -0400
-In-Reply-To: <CAJZ5v0hO3oSJWT_CxcP0ogO2yAU=YKYRwGokPqbQbAvWY7mzQg@mail.gmail.com>
-Content-Language: en-US
+Received: from szxga05-in.huawei.com ([45.249.212.191]:4530 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754252AbdHVBZT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Aug 2017 21:25:19 -0400
+In-Reply-To: <20170821210824.GC20436@cbox>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+To: Christoffer Dall <cdall@linaro.org>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, james.morse@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica
 
-SGkgUmFmYWVsLA0KDQo+ID4+ID4gPj4gPiBUaGlzIGlzIHRoZSBwYXRjaCBzZXJpZXMgZm9yIFRQ
-UzY4NDcwIFBNSUMgdGhhdCB3b3JrcyBhcyBhIGNhbWVyYQ0KPiBQTUlDLg0KPiA+PiA+ID4+ID4N
-Cj4gPj4gPiA+PiA+IFRoZSBwYXRjaCBzZXJpZXMgcHJvdmlkZSB0aGUgZm9sbG93aW5nIDMgZHJp
-dmVycywgdG8gaGVscA0KPiA+PiA+ID4+ID4gY29uZmlndXJlIHRoZQ0KPiA+PiB2b2x0YWdlIHJl
-Z3VsYXRvcnMsIGNsb2NrcyBhbmQgR1BJT3MgcHJvdmlkZWQgYnkgdGhlIFRQUzY4NDcwIFBNSUMs
-DQo+ID4+IHRvIGJlIGFibGUgdG8gdXNlIHRoZSBjYW1lcmEgc2Vuc29ycyBjb25uZWN0ZWQgdG8g
-dGhpcyBQTUlDLg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+IFRQUzY4NDcwIE1GRCBkcml2ZXI6
-DQo+ID4+ID4gPj4gPiBUaGlzIGlzIHRoZSBtdWx0aSBmdW5jdGlvbiBkcml2ZXIgdGhhdCBpbml0
-aWFsaXplcyB0aGUNCj4gPj4gPiA+PiA+IFRQUzY4NDcwIFBNSUMgYW5kDQo+ID4+IHN1cHBvcnRz
-IHRoZSBHUElPIGFuZCBPcCBSZWdpb24gZnVuY3Rpb25zLg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+
-PiA+IFRQUzY4NDcwIEdQSU8gZHJpdmVyOg0KPiA+PiA+ID4+ID4gVGhpcyBpcyB0aGUgUE1JQyBH
-UElPIGRyaXZlciB0aGF0IHdpbGwgYmUgdXNlZCBieSB0aGUgT1MgR1BJTw0KPiA+PiA+ID4+ID4g
-bGF5ZXIsDQo+ID4+IHdoZW4gdGhlIEJJT1MgLyBmaXJtd2FyZSB0cmlnZ2VyZWQgR1BJTyBhY2Nl
-c3MgaXMgZG9uZS4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPiBUUFM2ODQ3MCBPcCBSZWdpb24g
-ZHJpdmVyOg0KPiA+PiA+ID4+ID4gVGhpcyBpcyB0aGUgZHJpdmVyIHRoYXQgd2lsbCBiZSBpbnZv
-a2VkLCB3aGVuIHRoZSBCSU9TIC8NCj4gPj4gPiA+PiA+IGZpcm13YXJlDQo+ID4+IGNvbmZpZ3Vy
-ZXMgdGhlIHZvbHRhZ2UgLyBjbG9jayBmb3IgdGhlIHNlbnNvcnMgLyB2Y20gZGV2aWNlcw0KPiA+
-PiBjb25uZWN0ZWQgdG8gdGhlIFBNSUMuDQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+DQo+ID4+ID4g
-Pj4gQWxsIHRocmVlIHBhdGNoZXMgYXJlIGdvb2QgdG8gbWUgKHdlIGRpZCBmZXcgcm91bmRzIG9m
-IGludGVybmFsDQo+ID4+ID4gPj4gcmV2aWV3IGJlZm9yZSBwb3N0aW5nIHY0KQ0KPiA+PiA+ID4+
-DQo+ID4+ID4gPj4gUmV2aWV3ZWQtYnk6IEFuZHkgU2hldmNoZW5rbyA8YW5keS5zaGV2Y2hlbmtv
-QGdtYWlsLmNvbT4NCj4gPj4gPiA+DQo+ID4+ID4gPiBPSywgc28gaG93IHNob3VsZCB0aGV5IGJl
-IHJvdXRlZD8NCj4gPj4gPg0KPiA+PiA+IEdvb2QgcXVlc3Rpb24uIEkgZG9uJ3Qga25vdyBob3cg
-bGFzdCB0aW1lIFBNSUMgZHJpdmVycyB3ZXJlIG1lcmdlZCwNCj4gPj4gPiBoZXJlIEkgdGhpbmsg
-aXMganVzdCBzYW5lIHRvIHJvdXRlIHZpIE1GRCB3aXRoIGltbXV0YWJsZSBicmFuY2gNCj4gPj4g
-PiBjcmVhdGVkLg0KPiA+Pg0KPiA+PiBPSw0KPiA+Pg0KPiA+PiBJIHdpbGwgYXNzdW1lIHRoYXQg
-dGhlIHNlcmllcyB3aWxsIGdvIGluIHRocm91Z2ggTUZEIHRoZW4uDQo+ID4+DQo+ID4NCj4gPiBO
-b3cgdGhhdCB0aGUgTUZEIGFuZCBHUElPIHBhdGNoZXMgb2YgdjYgb2YgdGhpcyBzZXJpZXMgaGF2
-ZSBiZWVuIGFwcGxpZWQNCj4gb24gcmVzcGVjdGl2ZSB0cmVlcywgY2FuIHlvdSBhZHZpc2UgdGhl
-IG5leHQgc3RlcHMgZm9yIHRoZSBBQ1BJIC8gUE1JQyBPcHJlZ2lvbg0KPiBkcml2ZXI/DQo+IA0K
-PiBXZWxsLCBpdCB3b3VsZCBoYXZlIGJlZW4gYmV0dGVyIHRvIHJvdXRlIHRoZSB3aG9sZSBzZXJp
-ZXMgdGhyb3VnaCBvbmUgdHJlZS4NCj4gTm93IGl0J3MgYmV0dGVyIHRvIHdhaXQgdW50aWwgdGhl
-IHR3byBvdGhlciB0cmVlcyBnZXQgbWVyZ2VkIGFuZCB0aGVuIGFwcGx5IHRoZQ0KPiBvcHJlZ2lv
-biBwYXRjaC4NCj4gDQoNCkFjay4NCkxldCBtZSBnZXQgYmFjayBvbmNlIHRoZSBvdGhlciAyIHRy
-ZWVzIGFyZSBtZXJnZWQuDQoNClRoYW5rcw0KUmFqDQo=
+Christoffer,
+   Thanks for the review.
+
+On 2017/8/22 5:08, Christoffer Dall wrote:
+> On Fri, Aug 18, 2017 at 10:11:54PM +0800, Dongjiu Geng wrote:
+> 
+> You should put KVM and arm64 in the subject here.
+I will update it in the next version.
+
+
+> 
+>> In armv8.2 RAS extension, it adds virtual SError exception
+>> syndrome registeri(VSESR_EL2), user space will specify that
+>> value. so user space will check whether CPU feature has RAS
+>> extension. if has, it will specify the virtual SError syndrome
+>> value. Otherwise, it will not set. This patch adds this support
+>>
+>> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+>> ---
+>>  arch/arm64/kvm/reset.c   | 3 +++
+>>  include/uapi/linux/kvm.h | 1 +
+>>  2 files changed, 4 insertions(+)
+>>
+>> diff --git a/arch/arm64/kvm/reset.c b/arch/arm64/kvm/reset.c
+>> index 3256b9228e75..b7313ee028e9 100644
+>> --- a/arch/arm64/kvm/reset.c
+>> +++ b/arch/arm64/kvm/reset.c
+>> @@ -77,6 +77,9 @@ int kvm_arch_dev_ioctl_check_extension(struct kvm *kvm, long ext)
+>>  	case KVM_CAP_ARM_PMU_V3:
+>>  		r = kvm_arm_support_pmu_v3();
+>>  		break;
+>> +	case KVM_CAP_ARM_RAS_EXTENSION:
+>> +		r = cpus_have_const_cap(ARM64_HAS_RAS_EXTN);
+>> +		break;
+>>  	case KVM_CAP_SET_GUEST_DEBUG:
+>>  	case KVM_CAP_VCPU_ATTRIBUTES:
+>>  		r = 1;
+>> diff --git a/include/uapi/linux/kvm.h b/include/uapi/linux/kvm.h
+>> index 6cd63c18708a..5a2a338cae57 100644
+>> --- a/include/uapi/linux/kvm.h
+>> +++ b/include/uapi/linux/kvm.h
+>> @@ -929,6 +929,7 @@ struct kvm_ppc_resize_hpt {
+>>  #define KVM_CAP_PPC_SMT_POSSIBLE 147
+>>  #define KVM_CAP_HYPERV_SYNIC2 148
+>>  #define KVM_CAP_HYPERV_VP_INDEX 149
+>> +#define KVM_CAP_ARM_RAS_EXTENSION 150
+>>  
+>>  #ifdef KVM_CAP_IRQ_ROUTING
+>>  
+>> -- 
+>> 2.14.0
+>>
+> 
+> Thanks,
+> -Christoffer
+> 
+> .
+> 
+
