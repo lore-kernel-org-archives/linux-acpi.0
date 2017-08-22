@@ -1,50 +1,35 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5] ACPI / Sleep: Check low power idle constraints for debug only
-Date: Tue, 22 Aug 2017 15:08:44 +0200
-Message-ID: <2237482.YGg0anG1lD@aspire.rjw.lan>
-References: <1502846219-19192-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH v3 1/4] ACPI / EC: Cleanup EC GPE mask flag
+Date: Tue, 22 Aug 2017 15:17:20 +0200
+Message-ID: <4438656.LA1ApnlN3k@aspire.rjw.lan>
+References: <99f23db65bbe89ee856018629654584a96734c84.1501141963.git.lv.zheng@intel.com> <cover.1502432974.git.lv.zheng@intel.com> <00b4445d67d2e56fef8c319c2651f655d7e6d8e9.1502432974.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61529 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48335 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932657AbdHVNRQ (ORCPT
+        by vger.kernel.org with ESMTP id S932791AbdHVNZw (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 22 Aug 2017 09:17:16 -0400
-In-Reply-To: <1502846219-19192-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+        Tue, 22 Aug 2017 09:25:52 -0400
+In-Reply-To: <00b4445d67d2e56fef8c319c2651f655d7e6d8e9.1502432974.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: lenb@kernel.org, linux-pm@vger.kernel.org, mario.limonciello@dell.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, August 16, 2017 3:16:59 AM CEST Srinivas Pandruvada wrote:
-> For SoC to achieve its lowest power platform idle state a set of hardware
-> preconditions must be met. These preconditions or constraints can be
-> obtained by issuing a device specific method (_DSM) with function "1".
-> Refer to the document provided in the link below.
+On Friday, August 11, 2017 8:36:28 AM CEST Lv Zheng wrote:
+> EC_FLAGS_COMMAND_STORM is actually used to mask GPE during IRQ processing.
+> This patch cleans it up using more readable flag/function names.
 > 
-> Here during initialization (from attach() callback of LPS0 device), invoke
-> function 1 to get the device constraints. Each enabled constraint is
-> stored in a table.
-> 
-> The devices in this table are used to check whether they were in required
-> minimum state, while entering suspend. This check is done from platform
-> freeze wake() callback, only when /sys/power/pm_debug_messages attribute
-> is non zero.
-> 
-> If any constraint is not met and device is ACPI power managed then it
-> prints the device information to kernel logs.
-> 
-> Also if debug is enabled in acpi/sleep.c, the constraint table and state
-> of each device on wake is dumped in kernel logs.
-> 
-> Since pm_debug_messages_on setting is used as condition to check
-> constraints outside kernel/power/main.c, pm_debug_messages_on is changed
-> to a global variable.
-> 
-> Link: http://www.uefi.org/sites/default/files/resources/Intel_ACPI_Low_Power_S0_Idle.pdf
-> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Tested-by: Tomislav Ivek <tomislav.ivek@gmail.com>
 
 Applied, thanks!
+
+I'm not sure about the rest of the series, though, but let me comment on the
+specific patches.
+
+Thanks,
+Rafael
 
