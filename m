@@ -1,65 +1,91 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 1/1] ACPI: device property: Fix node lookup in acpi_graph_get_child_prop_value
-Date: Tue, 22 Aug 2017 23:01:06 +0200
-Message-ID: <CAJZ5v0gW3pR6qF7BczBcLvmLUjEmyD30Pc7AQqUoqJX0_iFuiQ@mail.gmail.com>
-References: <1503434398-8316-1-git-send-email-sakari.ailus@linux.intel.com> <CAJZ5v0hUh7+kP-ysLNA4-NM5cNpMUST6=3BrnwM=UYNSAvPfDw@mail.gmail.com>
+From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v6 5/6] libnvdimm: fix potential deadlock while clearing errors
+Date: Tue, 22 Aug 2017 16:19:14 -0600
+Message-ID: <20170822221915.1732-6-vishal.l.verma@intel.com>
+References: <20170822221915.1732-1-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:35470 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752520AbdHVVBI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Aug 2017 17:01:08 -0400
-Received: by mail-it0-f68.google.com with SMTP id 76so214440ith.2
-        for <linux-acpi@vger.kernel.org>; Tue, 22 Aug 2017 14:01:08 -0700 (PDT)
-In-Reply-To: <CAJZ5v0hUh7+kP-ysLNA4-NM5cNpMUST6=3BrnwM=UYNSAvPfDw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170822221915.1732-1-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Yang, Hyungwoo" <hyungwoo.yang@intel.com>, Mika Westerberg <mika.westerberg@intel.com>
 
-On Tue, Aug 22, 2017 at 10:47 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Tue, Aug 22, 2017 at 10:39 PM, Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
->> acpi_graph_get_child_prop_value() is intended to find a child node with a
->> certain property value pair. The check
->>
->>         if (!fwnode_property_read_u32(fwnode, prop_name, &nr))
->>                 continue;
->>
->> is faulty: fwnode_property_read_u32() returns zero on success, not on
->> failure, leading to comparing values only if the searched property was not
->> found.
->>
->> Fixes: 79389a83bc38 ("ACPI / property: Add support for remote endpoints")
->> Reported-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> ---
->> since v1:
->>
->> - fwnode_rpoperty_read_u32( fwnode -> child )
->>
->>  drivers/acpi/property.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
->> index a65c09c..3963098 100644
->> --- a/drivers/acpi/property.c
->> +++ b/drivers/acpi/property.c
->> @@ -1052,7 +1052,7 @@ static struct fwnode_handle *acpi_graph_get_child_prop_value(
->>         fwnode_for_each_child_node(fwnode, child) {
->>                 u32 nr;
->>
->> -               if (!fwnode_property_read_u32(fwnode, prop_name, &nr))
->> +               if (fwnode_property_read_u32(child, prop_name, &nr))
->
-> OK, but it looks like there are two bugs in it (the zero vs nonzero
-> return value and the first arg), but the changelog only mentions one
-> of them.
+With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
+Specifically, the DSM to clear media errors is called during writes, so
+that we can provide a writes-fix-errors model.
 
-But since this is a fix for a change that went in during the 4.12
-cycle, I've added the missing information to the changelog and applied
-the patch.
+However it is easy to imagine a scenario like:
+ -> write through the nvdimm driver
+   -> acpi allocation
+     -> writeback, causes more IO through the nvdimm driver
+       -> deadlock
 
-Thanks,
-Rafael
+Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
+flag for the current scope when issuing commands/IOs that are expected
+to clear errors.
+
+Cc: <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/nvdimm/bus.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 937fafa..a18c291 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -11,6 +11,7 @@
+  * General Public License for more details.
+  */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/sched/mm.h>
+ #include <linux/vmalloc.h>
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
+@@ -234,6 +235,7 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	struct nd_cmd_clear_error clear_err;
+ 	struct nd_cmd_ars_cap ars_cap;
+ 	u32 clear_err_unit, mask;
++	unsigned int noio_flag;
+ 	int cmd_rc, rc;
+ 
+ 	if (!nvdimm_bus)
+@@ -250,8 +252,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	memset(&ars_cap, 0, sizeof(ars_cap));
+ 	ars_cap.address = phys;
+ 	ars_cap.length = len;
++	noio_flag = memalloc_noio_save();
+ 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, &ars_cap,
+ 			sizeof(ars_cap), &cmd_rc);
++	memalloc_noio_restore(noio_flag);
+ 	if (rc < 0)
+ 		return rc;
+ 	if (cmd_rc < 0)
+@@ -266,8 +270,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ 	memset(&clear_err, 0, sizeof(clear_err));
+ 	clear_err.address = phys;
+ 	clear_err.length = len;
++	noio_flag = memalloc_noio_save();
+ 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CLEAR_ERROR, &clear_err,
+ 			sizeof(clear_err), &cmd_rc);
++	memalloc_noio_restore(noio_flag);
+ 	if (rc < 0)
+ 		return rc;
+ 	if (cmd_rc < 0)
+-- 
+2.9.3
