@@ -1,67 +1,70 @@
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: Re: [PATCH v5 4/7] support user space to query RAS extension
- feature
-Date: Tue, 22 Aug 2017 08:56:44 +0100
-Message-ID: <20170822085644.00004844@huawei.com>
-References: <1503065517-7920-1-git-send-email-gengdongjiu@huawei.com>
- <1503065517-7920-5-git-send-email-gengdongjiu@huawei.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 1/3] mfd: Add support for Cherry Trail Dollar Cove TI
+ PMIC
+Date: Tue, 22 Aug 2017 12:37:45 +0300
+Message-ID: <1503394665.25945.43.camel@linux.intel.com>
+References: <20170822055710.26515-1-tiwai@suse.de>
+         <20170822055710.26515-2-tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1503065517-7920-5-git-send-email-gengdongjiu@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>, zhengqiang10@huawei.com
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, james.morse@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:51398 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932295AbdHVJjS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 22 Aug 2017 05:39:18 -0400
+In-Reply-To: <20170822055710.26515-2-tiwai@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>, linux-kernel@vger.kernel.org
+Cc: Lee Jones <lee.jones@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, linux-input@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 18 Aug 2017 22:11:54 +0800
-Dongjiu Geng <gengdongjiu@huawei.com> wrote:
-
-> In armv8.2 RAS extension, it adds virtual SError exception
-> syndrome registeri(VSESR_EL2), user space will specify that
-> value. so user space will check whether CPU feature has RAS
-> extension. if has, it will specify the virtual SError syndrome
-> value. Otherwise, it will not set. This patch adds this support
-
-In the armv8.2 RAS extension, a virtual SError exception syndrome
-registeri(VSESR_EL) is added.  This value may be specified from userspace.
-Userspace will want to check if the CPU has the RAS extension.
-If it has, it wil specify the virtual SError syndrome value, otherwise
-it will not be set.  This patch adds support for querying the availability
-of this extension.
-
-Code is fine.
+On Tue, 2017-08-22 at 07:57 +0200, Takashi Iwai wrote:
+> This patch adds the MFD driver for Dollar Cove TI PMIC (ACPI INT33F5)
+> that is found on some Intel Cherry Trail devices.
+> The driver is based on the original work by Intel, found at:
+>   https://github.com/01org/ProductionKernelQuilts
 > 
-> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> ---
->  arch/arm64/kvm/reset.c   | 3 +++
->  include/uapi/linux/kvm.h | 1 +
->  2 files changed, 4 insertions(+)
-> 
-> diff --git a/arch/arm64/kvm/reset.c b/arch/arm64/kvm/reset.c
-> index 3256b9228e75..b7313ee028e9 100644
-> --- a/arch/arm64/kvm/reset.c
-> +++ b/arch/arm64/kvm/reset.c
-> @@ -77,6 +77,9 @@ int kvm_arch_dev_ioctl_check_extension(struct kvm *kvm, long ext)
->  	case KVM_CAP_ARM_PMU_V3:
->  		r = kvm_arm_support_pmu_v3();
->  		break;
-> +	case KVM_CAP_ARM_RAS_EXTENSION:
-> +		r = cpus_have_const_cap(ARM64_HAS_RAS_EXTN);
-> +		break;
->  	case KVM_CAP_SET_GUEST_DEBUG:
->  	case KVM_CAP_VCPU_ATTRIBUTES:
->  		r = 1;
-> diff --git a/include/uapi/linux/kvm.h b/include/uapi/linux/kvm.h
-> index 6cd63c18708a..5a2a338cae57 100644
-> --- a/include/uapi/linux/kvm.h
-> +++ b/include/uapi/linux/kvm.h
-> @@ -929,6 +929,7 @@ struct kvm_ppc_resize_hpt {
->  #define KVM_CAP_PPC_SMT_POSSIBLE 147
->  #define KVM_CAP_HYPERV_SYNIC2 148
->  #define KVM_CAP_HYPERV_VP_INDEX 149
-> +#define KVM_CAP_ARM_RAS_EXTENSION 150
->  
->  #ifdef KVM_CAP_IRQ_ROUTING
->  
+> This is a minimal version for adding the basic resources.  Currently,
+> only ACPI PMIC opregion and the external power-button are used.
+
+Overall looks good. Few comments below.
+
+I hope Hans de Goede had been involved somehow to this. He did enormous
+work to examine all this PMIC/ACPI/I2C stuff on CHT platforms.
+
+> +#include <linux/module.h>
+> +#include <linux/mfd/core.h>
+> +#include <linux/i2c.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/gpio/consumer.h>
+> +#include <linux/acpi.h>
+> +#include <linux/regmap.h>
+> +#include <linux/mfd/intel_soc_pmic.h>
+
+Alphabetical order?
+
+> +static const struct i2c_device_id dc_ti_i2c_id[] = {
+> +	{ }
+> +};
+
+No need anymore. Moreover, you already are using ->probe_new().
+
+
+> +static struct i2c_driver dc_ti_i2c_driver = {
+> +	.driver = {
+> +		.name = KBUILD_MODNAME,
+> +		.pm = &dc_ti_pm_ops,
+> +		.acpi_match_table = ACPI_PTR(dc_ti_acpi_ids),
+
+ACPI_PTR is redundant here, driver is solely for ACPI case.
+
+> +	},
+> +	.probe_new = dc_ti_probe,
+> +	.shutdown = dc_ti_shutdown,
+> +	.id_table = dc_ti_i2c_id,
+> +};
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
