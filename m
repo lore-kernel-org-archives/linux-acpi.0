@@ -1,64 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI _DSD sub-node parsing broken in linux-next?
-Date: Tue, 22 Aug 2017 01:42:18 +0200
-Message-ID: <3017279.6rhHp0hW77@aspire.rjw.lan>
-References: <7A4F467111FEF64486F40DFE7DF3500A03EE8B36@ORSMSX111.amr.corp.intel.com> <7A4F467111FEF64486F40DFE7DF3500A03EE8F49@ORSMSX111.amr.corp.intel.com> <8ae7a257-2461-0f9f-b272-95dc08b8647c@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v5 0/3] TPS68470 PMIC drivers
+Date: Tue, 22 Aug 2017 02:00:51 +0200
+Message-ID: <CAJZ5v0hO3oSJWT_CxcP0ogO2yAU=YKYRwGokPqbQbAvWY7mzQg@mail.gmail.com>
+References: <1500648378-10294-1-git-send-email-rajmohan.mani@intel.com>
+ <3425487.LgIRMVflim@aspire.rjw.lan> <CAHp75VdtEh8MAFjQN2LWVFbJj7_bPrhjo77SEsCYVmuOCWvOfQ@mail.gmail.com>
+ <2076994.J7nKrPWSDx@aspire.rjw.lan> <6F87890CF0F5204F892DEA1EF0D77A5972FA69A3@FMSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61561 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932065AbdHUXuv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 21 Aug 2017 19:50:51 -0400
-In-Reply-To: <8ae7a257-2461-0f9f-b272-95dc08b8647c@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A5972FA69A3@FMSMSX114.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@intel.com>
-Cc: Bob Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Yang, Hyungwoo" <hyungwoo.yang@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-On Monday, August 21, 2017 2:56:44 PM CEST Sakari Ailus wrote:
-> Hi Bob, Rafael, others,
-> 
-> There seem to be a problem with this patch recently merged to linux-pm
-> tree for v4.13:
-> 
-> <URL:https://git.linuxtv.org/media_tree.git/patch/drivers/acpi/acpica/nsxfeval.c?id=2d2a954375a0405fc721928f0dcc5ad1418996bc>
-> 
-> Some callers and acpi_nonsubnode_data_ok() in particular call
-> acpi_evaluate_object_typed() with NULL pathname argument which I
-> understand was fine before that patch. After that patch, pathname is 
-> mandatory.
-> 
-> 
+On Tue, Aug 22, 2017 at 12:58 AM, Mani, Rajmohan
+<rajmohan.mani@intel.com> wrote:
+> Hi Andy,
+>
+>> > >> > This is the patch series for TPS68470 PMIC that works as a camera PMIC.
+>> > >> >
+>> > >> > The patch series provide the following 3 drivers, to help configure the
+>> voltage regulators, clocks and GPIOs provided by the TPS68470 PMIC, to be
+>> able to use the camera sensors connected to this PMIC.
+>> > >> >
+>> > >> > TPS68470 MFD driver:
+>> > >> > This is the multi function driver that initializes the TPS68470 PMIC and
+>> supports the GPIO and Op Region functions.
+>> > >> >
+>> > >> > TPS68470 GPIO driver:
+>> > >> > This is the PMIC GPIO driver that will be used by the OS GPIO layer,
+>> when the BIOS / firmware triggered GPIO access is done.
+>> > >> >
+>> > >> > TPS68470 Op Region driver:
+>> > >> > This is the driver that will be invoked, when the BIOS / firmware
+>> configures the voltage / clock for the sensors / vcm devices connected to the
+>> PMIC.
+>> > >> >
+>> > >>
+>> > >> All three patches are good to me (we did few rounds of internal
+>> > >> review before posting v4)
+>> > >>
+>> > >> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+>> > >
+>> > > OK, so how should they be routed?
+>> >
+>> > Good question. I don't know how last time PMIC drivers were merged,
+>> > here I think is just sane to route vi MFD with immutable branch
+>> > created.
+>>
+>> OK
+>>
+>> I will assume that the series will go in through MFD then.
+>>
+>
+> Now that the MFD and GPIO patches of v6 of this series have been applied on respective trees, can you advise the next steps for the ACPI / PMIC Opregion driver?
 
-Does the patch below help (untested here)?
+Well, it would have been better to route the whole series through one
+tree.  Now it's better to wait until the two other trees get merged
+and then apply the opregion patch.
 
----
- drivers/acpi/acpica/nsxfeval.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
-
-Index: linux-pm/drivers/acpi/acpica/nsxfeval.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpica/nsxfeval.c
-+++ linux-pm/drivers/acpi/acpica/nsxfeval.c
-@@ -100,9 +100,13 @@ acpi_evaluate_object_typed(acpi_handle h
- 		free_buffer_on_error = TRUE;
- 	}
- 
--	status = acpi_get_handle(handle, pathname, &target_handle);
--	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
-+	if (pathname) {
-+		status = acpi_get_handle(handle, pathname, &target_handle);
-+		if (ACPI_FAILURE(status)) {
-+			return_ACPI_STATUS(status);
-+		}
-+	} else {
-+		target_handle = handle;
- 	}
- 
- 	full_pathname = acpi_ns_get_external_pathname(target_handle);
-
-
+Thanks,
+Rafael
