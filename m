@@ -1,76 +1,79 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V2] acpi: apei: clear error status before acknowledging
- the error
-Date: Wed, 23 Aug 2017 14:55:09 -0600
-Message-ID: <3b5fb362-c184-7dde-ca0a-b6f0842fec63@codeaurora.org>
-References: <1501798351-10337-1-git-send-email-tbaicar@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 3/5] ghes_edac: add platform check to enable ghes_edac
+Date: Wed, 23 Aug 2017 22:46:42 +0200
+Message-ID: <2234003.7P8fBnLXh9@aspire.rjw.lan>
+References: <20170818194644.14538-1-toshi.kani@hpe.com> <20170818194644.14538-4-toshi.kani@hpe.com> <20170823162053.4nns6ytekw5fychw@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:55340 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932407AbdHWUzN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Aug 2017 16:55:13 -0400
-In-Reply-To: <1501798351-10337-1-git-send-email-tbaicar@codeaurora.org>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170823162053.4nns6ytekw5fychw@pd.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Toshi Kani <toshi.kani@hpe.com>, mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
 
-Hello Boris,
+On Wednesday, August 23, 2017 6:20:53 PM CEST Borislav Petkov wrote:
+> On Fri, Aug 18, 2017 at 01:46:42PM -0600, Toshi Kani wrote:
+> > The ghes_edac driver was introduced in 2013 [1], but it has not
+> > been enabled by any distro yet.  This driver obtains error info
+> > from firmware interfaces, which are not properly implemented on
+> > many platforms, as the driver always emits the messages below:
+> > 
+> >  This EDAC driver relies on BIOS to enumerate memory and get error reports.
+> >  Unfortunately, not all BIOSes reflect the memory layout correctly
+> >  So, the end result of using this driver varies from vendor to vendor
+> >  If you find incorrect reports, please contact your hardware vendor
+> >  to correct its BIOS.
+> > 
+> > To get out from this situation, add a platform check to selectively
+> > enable the driver on the platforms that are known to have proper
+> > firmware implementation.  Platform vendors can add their platforms
+> > to the list when they support ghes_edac.
+> > 
+> > "ghes_edac.force_load=1" skips this platform check.
+> > 
+> > [1]: https://lwn.net/Articles/538438/
+> > Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> > Cc: Borislav Petkov <bp@alien8.de>
+> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> > Cc: Tony Luck <tony.luck@intel.com>
+> > ---
+> >  drivers/edac/ghes_edac.c |   28 +++++++++++++++++++++++-----
+> >  1 file changed, 23 insertions(+), 5 deletions(-)
+> 
+> Ok, for the remaining three, I've updated my "ghes" branch here:
+> 
+> https://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git/log/?h=ghes
+> 
+> Please, redo them ontop.
+> 
+> @Rafael: how do you want to handle this?
+> 
+> The first two are ACPI patches and the remaining three are EDAC. It
+> would be probably easier if you acked the ACPI ones (but wait until
+> Toshi's next version) and took them all through the EDAC tree as I have
+> two more reworking that ghes_edac driver.
 
-And input on this patch?
+So I have some pending intel_pstate and the intel_pstate changes are likely
+to conflict with it.
+
+> Alternatively, they could all go through the ACPI tree but you'll have
+> to pick them all up together.
+
+That can be done. :-)
+
+> That shouldn't be a problem either as all
+> changes are solely to drivers/edac/ghes_edac.c and there's one other
+> patch in my EDAC pile which touches ghes_edac.c:
+> 
+> https://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git/diff/drivers/edac/ghes_edac.c?h=for-next&id=c54182ec0e157988f0cafd1e8d37b68ab4210f87
+> 
+> That's why I say, it'll be easier if I carried them all. :)
+> 
+> But I'm sure we can work something out.
+
+I can expose a branch with this series for you to merge if that helps.
 
 Thanks,
-Tyler
-
-On 8/3/2017 4:12 PM, Tyler Baicar wrote:
-> Currently we acknowledge errors before clearing the error status.
-> This could cause a new error to be populated by firmware in-between
-> the error acknowledgment and the error status clearing which would
-> cause the second error's status to be cleared without being handled.
-> So, clear the error status before acknowledging the errors.
->
-> Also, make sure to acknowledge the error if the error status read
-> fails.
->
-> V2: Only send error ack if there was an error populated
->      Remove curly braces that are no longer needed
->
-> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-> ---
->   drivers/acpi/apei/ghes.c | 9 +++------
->   1 file changed, 3 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index d661d45..cda4a4f 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -743,17 +743,14 @@ static int ghes_proc(struct ghes *ghes)
->   	}
->   	ghes_do_proc(ghes, ghes->estatus);
->   
-> +out:
-> +	ghes_clear_estatus(ghes);
->   	/*
->   	 * GHESv2 type HEST entries introduce support for error acknowledgment,
->   	 * so only acknowledge the error if this support is present.
->   	 */
-> -	if (is_hest_type_generic_v2(ghes)) {
-> +	if (is_hest_type_generic_v2(ghes) && rc != -ENOENT)
->   		rc = ghes_ack_error(ghes->generic_v2);
-> -		if (rc)
-> -			return rc;
-> -	}
-> -out:
-> -	ghes_clear_estatus(ghes);
->   	return rc;
->   }
->   
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
-
+Rafael
