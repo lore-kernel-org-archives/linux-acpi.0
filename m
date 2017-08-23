@@ -1,222 +1,54 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v4 1/5] ACPI / blacklist: add acpi_match_platform_list()
-Date: Wed, 23 Aug 2017 16:54:43 -0600
-Message-ID: <20170823225447.15608-2-toshi.kani@hpe.com>
-References: <20170823225447.15608-1-toshi.kani@hpe.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170823225447.15608-1-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, bp@alien8.de
-Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 5/9] PM / ACPI: Provide option to disable
+ direct_complete for ACPI devices
+Date: Thu, 24 Aug 2017 01:39:44 +0200
+Message-ID: <CAJZ5v0gJn=SzNFGUT7Zb+CfhQBZ7KNDK2GTSSXGexD8GObjGOw@mail.gmail.com>
+References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org> <1503499329-28834-6-git-send-email-ulf.hansson@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-it0-f46.google.com ([209.85.214.46]:34902 "EHLO
+        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751146AbdHWXjp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Aug 2017 19:39:45 -0400
+In-Reply-To: <1503499329-28834-6-git-send-email-ulf.hansson@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
 
-ACPI OEM ID / OEM Table ID / Revision can be used to identify
-a platform based on ACPI firmware info.  acpi_blacklisted(),
-intel_pstate_platform_pwr_mgmt_exists(), and some other funcs,
-have been using similar check to detect a list of platforms
-that require special handlings.
+On Wed, Aug 23, 2017 at 4:42 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> In some cases a driver for an ACPI device needs to be able to prevent the
+> ACPI PM domain from using the direct_complete path during system sleep.
+>
+> One typical case is when the driver for the device needs its device to stay
+> runtime enabled, during the __device_suspend phase. This isn't the case
+> when the direct_complete path is being executed by the PM core, as it then
+> disables runtime PM for the device in __device_suspend(). Any following
+> attempts to runtime resume the device after that point, just fails.
 
-Move the platform check in acpi_blacklisted() to a new common
-utility function, acpi_match_platform_list(), so that other
-drivers do not have to implement their own version.
+OK, that is a problem.
 
-There is no change in functionality.
+> A workaround to this problem is to let the driver runtime resume its device
+> from its ->prepare() callback, as that would prevent the direct_complete
+> path from being executed. However, that may often be a waste, especially if
+> it turned out that no one really needed the device.
+>
+> For this reason, invent acpi_dev_disable|enable_direct_complete(), to allow
+> drivers to inform the ACPI PM domain to change its default behaviour during
+> system sleep, and thus control whether it may use the direct_complete path
+> or not.
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Borislav Petkov <bp@alien8.de>
----
- drivers/acpi/blacklist.c |   83 ++++++++--------------------------------------
- drivers/acpi/utils.c     |   36 ++++++++++++++++++++
- include/linux/acpi.h     |   19 +++++++++++
- 3 files changed, 69 insertions(+), 69 deletions(-)
+But I'm not sure this is the right place to address it as it very well
+may affect a PCI device too.
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index bb542ac..037fd53 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -30,30 +30,13 @@
- 
- #include "internal.h"
- 
--enum acpi_blacklist_predicates {
--	all_versions,
--	less_than_or_equal,
--	equal,
--	greater_than_or_equal,
--};
--
--struct acpi_blacklist_item {
--	char oem_id[7];
--	char oem_table_id[9];
--	u32 oem_revision;
--	char *table;
--	enum acpi_blacklist_predicates oem_revision_predicate;
--	char *reason;
--	u32 is_critical_error;
--};
--
- static struct dmi_system_id acpi_rev_dmi_table[] __initdata;
- 
- /*
-  * POLICY: If *anything* doesn't work, put it on the blacklist.
-  *	   If they are critical errors, mark it critical, and abort driver load.
-  */
--static struct acpi_blacklist_item acpi_blacklist[] __initdata = {
-+static struct acpi_platform_list acpi_blacklist[] __initdata = {
- 	/* Compaq Presario 1700 */
- 	{"PTLTD ", "  DSDT  ", 0x06040000, ACPI_SIG_DSDT, less_than_or_equal,
- 	 "Multiple problems", 1},
-@@ -67,65 +50,27 @@ static struct acpi_blacklist_item acpi_blacklist[] __initdata = {
- 	{"IBM   ", "TP600E  ", 0x00000105, ACPI_SIG_DSDT, less_than_or_equal,
- 	 "Incorrect _ADR", 1},
- 
--	{""}
-+	{ }
- };
- 
- int __init acpi_blacklisted(void)
- {
--	int i = 0;
-+	int i;
- 	int blacklisted = 0;
--	struct acpi_table_header table_header;
--
--	while (acpi_blacklist[i].oem_id[0] != '\0') {
--		if (acpi_get_table_header(acpi_blacklist[i].table, 0, &table_header)) {
--			i++;
--			continue;
--		}
--
--		if (strncmp(acpi_blacklist[i].oem_id, table_header.oem_id, 6)) {
--			i++;
--			continue;
--		}
--
--		if (strncmp
--		    (acpi_blacklist[i].oem_table_id, table_header.oem_table_id,
--		     8)) {
--			i++;
--			continue;
--		}
--
--		if ((acpi_blacklist[i].oem_revision_predicate == all_versions)
--		    || (acpi_blacklist[i].oem_revision_predicate ==
--			less_than_or_equal
--			&& table_header.oem_revision <=
--			acpi_blacklist[i].oem_revision)
--		    || (acpi_blacklist[i].oem_revision_predicate ==
--			greater_than_or_equal
--			&& table_header.oem_revision >=
--			acpi_blacklist[i].oem_revision)
--		    || (acpi_blacklist[i].oem_revision_predicate == equal
--			&& table_header.oem_revision ==
--			acpi_blacklist[i].oem_revision)) {
- 
--			printk(KERN_ERR PREFIX
--			       "Vendor \"%6.6s\" System \"%8.8s\" "
--			       "Revision 0x%x has a known ACPI BIOS problem.\n",
--			       acpi_blacklist[i].oem_id,
--			       acpi_blacklist[i].oem_table_id,
--			       acpi_blacklist[i].oem_revision);
-+	i = acpi_match_platform_list(acpi_blacklist);
-+	if (i >= 0) {
-+		pr_err(PREFIX "Vendor \"%6.6s\" System \"%8.8s\" Revision 0x%x has a known ACPI BIOS problem.\n",
-+		       acpi_blacklist[i].oem_id,
-+		       acpi_blacklist[i].oem_table_id,
-+		       acpi_blacklist[i].oem_revision);
- 
--			printk(KERN_ERR PREFIX
--			       "Reason: %s. This is a %s error\n",
--			       acpi_blacklist[i].reason,
--			       (acpi_blacklist[i].
--				is_critical_error ? "non-recoverable" :
--				"recoverable"));
-+		pr_err(PREFIX "Reason: %s. This is a %s error\n",
-+		       acpi_blacklist[i].reason,
-+		       (acpi_blacklist[i].data ?
-+			"non-recoverable" : "recoverable"));
- 
--			blacklisted = acpi_blacklist[i].is_critical_error;
--			break;
--		} else {
--			i++;
--		}
-+		blacklisted = acpi_blacklist[i].data;
- 	}
- 
- 	(void)early_acpi_osi_init();
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index b9d956c..0a9e597 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -816,3 +816,39 @@ static int __init acpi_backlight(char *str)
- 	return 1;
- }
- __setup("acpi_backlight=", acpi_backlight);
-+
-+/**
-+ * acpi_match_platform_list - Check if the system matches with a given list
-+ * @plat: pointer to acpi_platform_list table terminated by a NULL entry
-+ *
-+ * Return the matched index if the system is found in the platform list.
-+ * Otherwise, return a negative error code.
-+ */
-+int acpi_match_platform_list(const struct acpi_platform_list *plat)
-+{
-+	struct acpi_table_header hdr;
-+	int idx = 0;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	for (; plat->oem_id[0]; plat++, idx++) {
-+		if (ACPI_FAILURE(acpi_get_table_header(plat->table, 0, &hdr)))
-+			continue;
-+
-+		if (strncmp(plat->oem_id, hdr.oem_id, ACPI_OEM_ID_SIZE))
-+			continue;
-+
-+		if (strncmp(plat->oem_table_id, hdr.oem_table_id, ACPI_OEM_TABLE_ID_SIZE))
-+			continue;
-+
-+		if ((plat->pred == all_versions) ||
-+		    (plat->pred == less_than_or_equal && hdr.oem_revision <= plat->oem_revision) ||
-+		    (plat->pred == greater_than_or_equal && hdr.oem_revision >= plat->oem_revision) ||
-+		    (plat->pred == equal && hdr.oem_revision == plat->oem_revision))
-+			return idx;
-+	}
-+
-+	return -ENODEV;
-+}
-+EXPORT_SYMBOL(acpi_match_platform_list);
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index c749eef..1ae7abf 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -556,6 +556,25 @@ extern acpi_status acpi_pci_osc_control_set(acpi_handle handle,
- #define ACPI_OST_SC_DRIVER_LOAD_FAILURE		0x81
- #define ACPI_OST_SC_INSERT_NOT_SUPPORTED	0x82
- 
-+enum acpi_predicate {
-+	all_versions,
-+	less_than_or_equal,
-+	equal,
-+	greater_than_or_equal,
-+};
-+
-+/* Table must be terminted by a NULL entry */
-+struct acpi_platform_list {
-+	char	oem_id[ACPI_OEM_ID_SIZE+1];
-+	char	oem_table_id[ACPI_OEM_TABLE_ID_SIZE+1];
-+	u32	oem_revision;
-+	char	*table;
-+	enum acpi_predicate pred;
-+	char	*reason;
-+	u32	data;
-+};
-+int acpi_match_platform_list(const struct acpi_platform_list *plat);
-+
- extern void acpi_early_init(void);
- extern void acpi_subsystem_init(void);
- 
+Also, this is about the device and not about its ACPI companion
+object, so putting the flag in there is somewhat unclean, so to speak.
+
+It looks like we need a flag in dev_pm_info saying something along the
+lines of "my system suspend callback can deal with runtime PM" that
+will cause the direct_complete update to occur in
+__device_suspend_late() instead of __device_suspend().
+
+Thanks,
+Rafael
