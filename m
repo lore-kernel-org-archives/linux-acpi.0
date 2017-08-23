@@ -1,117 +1,222 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v4 2/5] intel_pstate: convert to use acpi_match_platform_list()
-Date: Wed, 23 Aug 2017 16:54:44 -0600
-Message-ID: <20170823225447.15608-3-toshi.kani@hpe.com>
+Subject: [PATCH v4 1/5] ACPI / blacklist: add acpi_match_platform_list()
+Date: Wed, 23 Aug 2017 16:54:43 -0600
+Message-ID: <20170823225447.15608-2-toshi.kani@hpe.com>
 References: <20170823225447.15608-1-toshi.kani@hpe.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170823225447.15608-1-toshi.kani@hpe.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, bp@alien8.de
-Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Convert to use acpi_match_platform_list() for the platform check.
+ACPI OEM ID / OEM Table ID / Revision can be used to identify
+a platform based on ACPI firmware info.  acpi_blacklisted(),
+intel_pstate_platform_pwr_mgmt_exists(), and some other funcs,
+have been using similar check to detect a list of platforms
+that require special handlings.
+
+Move the platform check in acpi_blacklisted() to a new common
+utility function, acpi_match_platform_list(), so that other
+drivers do not have to implement their own version.
+
 There is no change in functionality.
 
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Acked-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Reviewed-by: Borislav Petkov <bp@suse.de>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>
 Cc: Borislav Petkov <bp@alien8.de>
 ---
- drivers/cpufreq/intel_pstate.c |   64 ++++++++++++++++------------------------
- 1 file changed, 25 insertions(+), 39 deletions(-)
+ drivers/acpi/blacklist.c |   83 ++++++++--------------------------------------
+ drivers/acpi/utils.c     |   36 ++++++++++++++++++++
+ include/linux/acpi.h     |   19 +++++++++++
+ 3 files changed, 69 insertions(+), 69 deletions(-)
 
-diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
-index b7fb8b7..ef22a20 100644
---- a/drivers/cpufreq/intel_pstate.c
-+++ b/drivers/cpufreq/intel_pstate.c
-@@ -2458,39 +2458,31 @@ enum {
- 	PPC,
- };
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index bb542ac..037fd53 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -30,30 +30,13 @@
  
--struct hw_vendor_info {
--	u16  valid;
--	char oem_id[ACPI_OEM_ID_SIZE];
--	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
--	int  oem_pwr_table;
+ #include "internal.h"
+ 
+-enum acpi_blacklist_predicates {
+-	all_versions,
+-	less_than_or_equal,
+-	equal,
+-	greater_than_or_equal,
 -};
 -
- /* Hardware vendor-specific info that has its own power management modes */
--static struct hw_vendor_info vendor_info[] __initdata = {
--	{1, "HP    ", "ProLiant", PSS},
--	{1, "ORACLE", "X4-2    ", PPC},
--	{1, "ORACLE", "X4-2L   ", PPC},
--	{1, "ORACLE", "X4-2B   ", PPC},
--	{1, "ORACLE", "X3-2    ", PPC},
--	{1, "ORACLE", "X3-2L   ", PPC},
--	{1, "ORACLE", "X3-2B   ", PPC},
--	{1, "ORACLE", "X4470M2 ", PPC},
--	{1, "ORACLE", "X4270M3 ", PPC},
--	{1, "ORACLE", "X4270M2 ", PPC},
--	{1, "ORACLE", "X4170M2 ", PPC},
--	{1, "ORACLE", "X4170 M3", PPC},
--	{1, "ORACLE", "X4275 M3", PPC},
--	{1, "ORACLE", "X6-2    ", PPC},
--	{1, "ORACLE", "Sudbury ", PPC},
--	{0, "", ""},
-+static struct acpi_platform_list plat_info[] __initdata = {
-+	{"HP    ", "ProLiant", 0, ACPI_SIG_FADT, all_versions, 0, PSS},
-+	{"ORACLE", "X4-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X3-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X3-2L   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X3-2B   ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4470M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4270M3 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4270M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4170M2 ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4170 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X4275 M3", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "X6-2    ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{"ORACLE", "Sudbury ", 0, ACPI_SIG_FADT, all_versions, 0, PPC},
-+	{ } /* End */
+-struct acpi_blacklist_item {
+-	char oem_id[7];
+-	char oem_table_id[9];
+-	u32 oem_revision;
+-	char *table;
+-	enum acpi_blacklist_predicates oem_revision_predicate;
+-	char *reason;
+-	u32 is_critical_error;
+-};
+-
+ static struct dmi_system_id acpi_rev_dmi_table[] __initdata;
+ 
+ /*
+  * POLICY: If *anything* doesn't work, put it on the blacklist.
+  *	   If they are critical errors, mark it critical, and abort driver load.
+  */
+-static struct acpi_blacklist_item acpi_blacklist[] __initdata = {
++static struct acpi_platform_list acpi_blacklist[] __initdata = {
+ 	/* Compaq Presario 1700 */
+ 	{"PTLTD ", "  DSDT  ", 0x06040000, ACPI_SIG_DSDT, less_than_or_equal,
+ 	 "Multiple problems", 1},
+@@ -67,65 +50,27 @@ static struct acpi_blacklist_item acpi_blacklist[] __initdata = {
+ 	{"IBM   ", "TP600E  ", 0x00000105, ACPI_SIG_DSDT, less_than_or_equal,
+ 	 "Incorrect _ADR", 1},
+ 
+-	{""}
++	{ }
  };
  
- static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
+ int __init acpi_blacklisted(void)
  {
--	struct acpi_table_header hdr;
--	struct hw_vendor_info *v_info;
- 	const struct x86_cpu_id *id;
- 	u64 misc_pwr;
-+	int idx;
+-	int i = 0;
++	int i;
+ 	int blacklisted = 0;
+-	struct acpi_table_header table_header;
+-
+-	while (acpi_blacklist[i].oem_id[0] != '\0') {
+-		if (acpi_get_table_header(acpi_blacklist[i].table, 0, &table_header)) {
+-			i++;
+-			continue;
+-		}
+-
+-		if (strncmp(acpi_blacklist[i].oem_id, table_header.oem_id, 6)) {
+-			i++;
+-			continue;
+-		}
+-
+-		if (strncmp
+-		    (acpi_blacklist[i].oem_table_id, table_header.oem_table_id,
+-		     8)) {
+-			i++;
+-			continue;
+-		}
+-
+-		if ((acpi_blacklist[i].oem_revision_predicate == all_versions)
+-		    || (acpi_blacklist[i].oem_revision_predicate ==
+-			less_than_or_equal
+-			&& table_header.oem_revision <=
+-			acpi_blacklist[i].oem_revision)
+-		    || (acpi_blacklist[i].oem_revision_predicate ==
+-			greater_than_or_equal
+-			&& table_header.oem_revision >=
+-			acpi_blacklist[i].oem_revision)
+-		    || (acpi_blacklist[i].oem_revision_predicate == equal
+-			&& table_header.oem_revision ==
+-			acpi_blacklist[i].oem_revision)) {
  
- 	id = x86_match_cpu(intel_pstate_cpu_oob_ids);
- 	if (id) {
-@@ -2499,21 +2491,15 @@ static bool __init intel_pstate_platform_pwr_mgmt_exists(void)
- 			return true;
+-			printk(KERN_ERR PREFIX
+-			       "Vendor \"%6.6s\" System \"%8.8s\" "
+-			       "Revision 0x%x has a known ACPI BIOS problem.\n",
+-			       acpi_blacklist[i].oem_id,
+-			       acpi_blacklist[i].oem_table_id,
+-			       acpi_blacklist[i].oem_revision);
++	i = acpi_match_platform_list(acpi_blacklist);
++	if (i >= 0) {
++		pr_err(PREFIX "Vendor \"%6.6s\" System \"%8.8s\" Revision 0x%x has a known ACPI BIOS problem.\n",
++		       acpi_blacklist[i].oem_id,
++		       acpi_blacklist[i].oem_table_id,
++		       acpi_blacklist[i].oem_revision);
+ 
+-			printk(KERN_ERR PREFIX
+-			       "Reason: %s. This is a %s error\n",
+-			       acpi_blacklist[i].reason,
+-			       (acpi_blacklist[i].
+-				is_critical_error ? "non-recoverable" :
+-				"recoverable"));
++		pr_err(PREFIX "Reason: %s. This is a %s error\n",
++		       acpi_blacklist[i].reason,
++		       (acpi_blacklist[i].data ?
++			"non-recoverable" : "recoverable"));
+ 
+-			blacklisted = acpi_blacklist[i].is_critical_error;
+-			break;
+-		} else {
+-			i++;
+-		}
++		blacklisted = acpi_blacklist[i].data;
  	}
  
--	if (acpi_disabled ||
--	    ACPI_FAILURE(acpi_get_table_header(ACPI_SIG_FADT, 0, &hdr)))
-+	idx = acpi_match_platform_list(plat_info);
-+	if (idx < 0)
- 		return false;
+ 	(void)early_acpi_osi_init();
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index b9d956c..0a9e597 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -816,3 +816,39 @@ static int __init acpi_backlight(char *str)
+ 	return 1;
+ }
+ __setup("acpi_backlight=", acpi_backlight);
++
++/**
++ * acpi_match_platform_list - Check if the system matches with a given list
++ * @plat: pointer to acpi_platform_list table terminated by a NULL entry
++ *
++ * Return the matched index if the system is found in the platform list.
++ * Otherwise, return a negative error code.
++ */
++int acpi_match_platform_list(const struct acpi_platform_list *plat)
++{
++	struct acpi_table_header hdr;
++	int idx = 0;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	for (; plat->oem_id[0]; plat++, idx++) {
++		if (ACPI_FAILURE(acpi_get_table_header(plat->table, 0, &hdr)))
++			continue;
++
++		if (strncmp(plat->oem_id, hdr.oem_id, ACPI_OEM_ID_SIZE))
++			continue;
++
++		if (strncmp(plat->oem_table_id, hdr.oem_table_id, ACPI_OEM_TABLE_ID_SIZE))
++			continue;
++
++		if ((plat->pred == all_versions) ||
++		    (plat->pred == less_than_or_equal && hdr.oem_revision <= plat->oem_revision) ||
++		    (plat->pred == greater_than_or_equal && hdr.oem_revision >= plat->oem_revision) ||
++		    (plat->pred == equal && hdr.oem_revision == plat->oem_revision))
++			return idx;
++	}
++
++	return -ENODEV;
++}
++EXPORT_SYMBOL(acpi_match_platform_list);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index c749eef..1ae7abf 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -556,6 +556,25 @@ extern acpi_status acpi_pci_osc_control_set(acpi_handle handle,
+ #define ACPI_OST_SC_DRIVER_LOAD_FAILURE		0x81
+ #define ACPI_OST_SC_INSERT_NOT_SUPPORTED	0x82
  
--	for (v_info = vendor_info; v_info->valid; v_info++) {
--		if (!strncmp(hdr.oem_id, v_info->oem_id, ACPI_OEM_ID_SIZE) &&
--			!strncmp(hdr.oem_table_id, v_info->oem_table_id,
--						ACPI_OEM_TABLE_ID_SIZE))
--			switch (v_info->oem_pwr_table) {
--			case PSS:
--				return intel_pstate_no_acpi_pss();
--			case PPC:
--				return intel_pstate_has_acpi_ppc() &&
--					(!force_load);
--			}
-+	switch (plat_info[idx].data) {
-+	case PSS:
-+		return intel_pstate_no_acpi_pss();
-+	case PPC:
-+		return intel_pstate_has_acpi_ppc() && !force_load;
- 	}
++enum acpi_predicate {
++	all_versions,
++	less_than_or_equal,
++	equal,
++	greater_than_or_equal,
++};
++
++/* Table must be terminted by a NULL entry */
++struct acpi_platform_list {
++	char	oem_id[ACPI_OEM_ID_SIZE+1];
++	char	oem_table_id[ACPI_OEM_TABLE_ID_SIZE+1];
++	u32	oem_revision;
++	char	*table;
++	enum acpi_predicate pred;
++	char	*reason;
++	u32	data;
++};
++int acpi_match_platform_list(const struct acpi_platform_list *plat);
++
+ extern void acpi_early_init(void);
+ extern void acpi_subsystem_init(void);
  
- 	return false;
