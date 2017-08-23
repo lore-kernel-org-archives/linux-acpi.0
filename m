@@ -1,76 +1,148 @@
-From: Meng Xu <meng.xu@gatech.edu>
-Subject: [PATCH] acpi: fix potential double-fetch bug
-Date: Wed, 23 Aug 2017 17:07:29 -0400
-Message-ID: <1503522449-35440-1-git-send-email-meng.xu@gatech.edu>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: meng.xu@gatech.edu, sanidhya@gatech.edu, taesoo@gatech.edu, Meng Xu <mengxu.gatech@gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 2/3] cpuidle: Move polling state initialization code to separate file
+Date: Wed, 23 Aug 2017 23:21:07 +0200
+Message-ID: <1851353.ppnzGx1n5b@aspire.rjw.lan>
+References: <21794463.WNaOdcSnfv@aspire.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61984 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750730AbdHWVb3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 23 Aug 2017 17:31:29 -0400
+In-Reply-To: <21794463.WNaOdcSnfv@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linux PM <linux-pm@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
 
-From: Meng Xu <mengxu.gatech@gmail.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-While examining the kernel source code, I found a dangerous operation that
-could turn into a double-fetch situation (a race condition bug) where
-the same userspace memory region are fetched twice into kernel with sanity
-checks after the first fetch while missing checks after the second fetch.
+Move the polling state initialization code to a separate file built
+conditionally on CONFIG_ARCH_HAS_CPU_RELAX to get rid of the #ifdef
+in driver.c.
 
-In the case of *ppos == 0:
-
-1. The first fetch happens in line 36
-copy_from_user(&table, user_buf, sizeof(struct acpi_table_header)))
-
-2. Subsequently `table.length` variable is used to allocate the `buf`
-(line 40).
-
-3. The second fetch happens in line 54
-copy_from_user(buf + (*ppos), user_buf, count)
-
-4. Given that `user_buf` can be fully controlled in userspace, an attacker can
-race condition to override the header part of `user_buf`, say,
-`((struct acpi_table_header *)user_buf)->length` to arbitrary value
-(say 0xFFFFFFFF) after the first fetch but before the second fetch. The changed
-value will be copied to `buf`.
-
-5. There is no checks on `((struct acpi_table_header *)buf)->length` until the
-use of it in line 64 status = acpi_install_method(buf), which means that the
-assumed relation, `buf->length` == length of the buffer, might not hold after
-the second fetch. And once the control goes to function `acpi_install_method`,
-we lose the context to assert that.
-
-6. It is lucky that `buf->length` is not used in function `acpi_install_method`
-so, there is no working exploit against it right now. However, this could
-easily turns to an exploitable one if careless developers start to use
-`buf->length` later.
-
-Proposed patch:
-
-The patch explicitly overrides `buf->length` after the second fetch with the
-value `max_size` from the first fetch. In this way, it is assured that the
-relation, `buf->length` == length of the buffer, holds after the second fetch.
-
-Signed-off-by: Meng Xu <mengxu.gatech@gmail.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/custom_method.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/cpuidle/Makefile     |    1 +
+ drivers/cpuidle/driver.c     |   31 -------------------------------
+ drivers/cpuidle/poll_state.c |   36 ++++++++++++++++++++++++++++++++++++
+ include/linux/cpuidle.h      |    6 ++++++
+ 4 files changed, 43 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
-index c68e724..eea7986 100644
---- a/drivers/acpi/custom_method.c
-+++ b/drivers/acpi/custom_method.c
-@@ -57,6 +57,13 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
- 		return -EFAULT;
- 	}
+Index: linux-pm/drivers/cpuidle/Makefile
+===================================================================
+--- linux-pm.orig/drivers/cpuidle/Makefile
++++ linux-pm/drivers/cpuidle/Makefile
+@@ -5,6 +5,7 @@
+ obj-y += cpuidle.o driver.o governor.o sysfs.o governors/
+ obj-$(CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED) += coupled.o
+ obj-$(CONFIG_DT_IDLE_STATES)		  += dt_idle_states.o
++obj-$(CONFIG_ARCH_HAS_CPU_RELAX)	  += poll_state.o
  
-+	if (!(*ppos)) {
-+		struct acpi_table_header *hdr =
-+			ACPI_CAST_PTR(struct acpi_table_header, buf);
+ ##################################################################################
+ # ARM SoC drivers
+Index: linux-pm/drivers/cpuidle/poll_state.c
+===================================================================
+--- /dev/null
++++ linux-pm/drivers/cpuidle/poll_state.c
+@@ -0,0 +1,36 @@
++/*
++ * poll_state.c - Polling idle state
++ *
++ * This file is released under the GPLv2.
++ */
 +
-+		hdr->length = max_size;
++#include <linux/cpuidle.h>
++#include <linux/sched.h>
++#include <linux/sched/idle.h>
++
++static int __cpuidle poll_idle(struct cpuidle_device *dev,
++			       struct cpuidle_driver *drv, int index)
++{
++	local_irq_enable();
++	if (!current_set_polling_and_test()) {
++		while (!need_resched())
++			cpu_relax();
 +	}
++	current_clr_polling();
 +
- 	uncopied_bytes -= count;
- 	*ppos += count;
++	return index;
++}
++
++void poll_idle_init(struct cpuidle_driver *drv)
++{
++	struct cpuidle_state *state = &drv->states[0];
++
++	snprintf(state->name, CPUIDLE_NAME_LEN, "POLL");
++	snprintf(state->desc, CPUIDLE_DESC_LEN, "CPUIDLE CORE POLL IDLE");
++	state->exit_latency = 0;
++	state->target_residency = 0;
++	state->power_usage = -1;
++	state->enter = poll_idle;
++	state->disabled = false;
++	state->flags = CPUIDLE_FLAG_POLLING;
++}
+Index: linux-pm/include/linux/cpuidle.h
+===================================================================
+--- linux-pm.orig/include/linux/cpuidle.h
++++ linux-pm/include/linux/cpuidle.h
+@@ -225,6 +225,12 @@ static inline void cpuidle_coupled_paral
+ }
+ #endif
  
--- 
-2.7.4
++#ifdef CONFIG_ARCH_HAS_CPU_RELAX
++void poll_idle_init(struct cpuidle_driver *drv);
++#else
++static void poll_idle_init(struct cpuidle_driver *drv) {}
++#endif
++
+ /******************************
+  * CPUIDLE GOVERNOR INTERFACE *
+  ******************************/
+Index: linux-pm/drivers/cpuidle/driver.c
+===================================================================
+--- linux-pm.orig/drivers/cpuidle/driver.c
++++ linux-pm/drivers/cpuidle/driver.c
+@@ -179,37 +179,6 @@ static void __cpuidle_driver_init(struct
+ 	}
+ }
+ 
+-#ifdef CONFIG_ARCH_HAS_CPU_RELAX
+-static int __cpuidle poll_idle(struct cpuidle_device *dev,
+-			       struct cpuidle_driver *drv, int index)
+-{
+-	local_irq_enable();
+-	if (!current_set_polling_and_test()) {
+-		while (!need_resched())
+-			cpu_relax();
+-	}
+-	current_clr_polling();
+-
+-	return index;
+-}
+-
+-static void poll_idle_init(struct cpuidle_driver *drv)
+-{
+-	struct cpuidle_state *state = &drv->states[0];
+-
+-	snprintf(state->name, CPUIDLE_NAME_LEN, "POLL");
+-	snprintf(state->desc, CPUIDLE_DESC_LEN, "CPUIDLE CORE POLL IDLE");
+-	state->exit_latency = 0;
+-	state->target_residency = 0;
+-	state->power_usage = -1;
+-	state->enter = poll_idle;
+-	state->disabled = false;
+-	state->flags = CPUIDLE_FLAG_POLLING;
+-}
+-#else
+-static void poll_idle_init(struct cpuidle_driver *drv) {}
+-#endif /* !CONFIG_ARCH_HAS_CPU_RELAX */
+-
+ /**
+  * __cpuidle_register_driver: register the driver
+  * @drv: a valid pointer to a struct cpuidle_driver
+
+
