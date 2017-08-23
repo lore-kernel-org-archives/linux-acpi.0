@@ -1,42 +1,106 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 1/9] PM / ACPI: Restore acpi_subsys_complete()
-Date: Thu, 24 Aug 2017 00:41:08 +0200
-Message-ID: <CAJZ5v0iAanGEvRF=J-wL9jKoBpZoGGc7+BXokt4PLWKxi85ctA@mail.gmail.com>
-References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org> <1503499329-28834-2-git-send-email-ulf.hansson@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f173.google.com ([209.85.223.173]:36635 "EHLO
-        mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751257AbdHWWlK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Aug 2017 18:41:10 -0400
-In-Reply-To: <1503499329-28834-2-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v4 3/5] ghes_edac: add platform check to enable ghes_edac
+Date: Wed, 23 Aug 2017 16:54:45 -0600
+Message-ID: <20170823225447.15608-4-toshi.kani@hpe.com>
+References: <20170823225447.15608-1-toshi.kani@hpe.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170823225447.15608-1-toshi.kani@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, bp@alien8.de
+Cc: mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
 
-On Wed, Aug 23, 2017 at 4:42 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
-> The commit 58a1fbbb2ee8 ("PM / PCI / ACPI: Kick devices that might have
-> been reset by firmware"), made PCI's and ACPI's ->complete() callbacks to
-> be assigned to a new API called pm_complete_with_resume_check(), which was
-> introduced in the same change.
->
-> Later it turned out that using pm_complete_with_resume_check() isn't good
-> enough for PCI, as it needs additional PCI specific checks, before deciding
-> whether runtime resuming the device is needed when running the ->complete()
-> callback.
->
-> This leaves ACPI being the only user of pm_complete_with_resume_check().
+The ghes_edac driver was introduced in 2013 [1], but it has not
+been enabled by any distro yet.  This driver obtains error info
+from firmware interfaces, which are not properly implemented on
+many platforms, as the driver always emits the messages below:
 
-I would say "the ACPI PM domain" instead of just "ACPI" here, because
-in fact this is only about the ACPI PM domain.
+ This EDAC driver relies on BIOS to enumerate memory and get error reports.
+ Unfortunately, not all BIOSes reflect the memory layout correctly
+ So, the end result of using this driver varies from vendor to vendor
+ If you find incorrect reports, please contact your hardware vendor
+ to correct its BIOS.
 
-This more-or-less applies to all of the changelogs in this series and
-to some comments added by it too: please be specific that it is *only*
-about the ACPI PM domain.
+To get out from this situation, add a platform check to selectively
+enable the driver on the platforms that are known to have proper
+firmware implementation.  Platform vendors can add their platforms
+to the list when they support ghes_edac.
 
-The patch itself is fine.
+"ghes_edac.force_load=1" skips this platform check.
 
-Thanks,
-Rafael
+[1]: https://lwn.net/Articles/538438/
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+---
+ drivers/edac/ghes_edac.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
+index 8d904df..0030a09 100644
+--- a/drivers/edac/ghes_edac.c
++++ b/drivers/edac/ghes_edac.c
+@@ -38,6 +38,10 @@ static struct ghes_edac_pvt *ghes_pvt;
+  */
+ static DEFINE_SPINLOCK(ghes_lock);
+ 
++/* Set 1 to skip the platform check */
++static bool __read_mostly ghes_edac_force_load;
++module_param_named(force_load, ghes_edac_force_load, bool, 0);
++
+ /* Memory Device - Type 17 of SMBIOS spec */
+ struct memdev_dmi_entry {
+ 	u8 type;
+@@ -415,6 +419,15 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+ 	spin_unlock_irqrestore(&ghes_lock, flags);
+ }
+ 
++/*
++ * Known systems that are safe to enable this module.
++ * "ghes_edac.force_load=1" skips this check if necessary.
++ */
++static struct acpi_platform_list plat_list[] = {
++	{"HPE   ", "Server  ", 0, ACPI_SIG_FADT, all_versions},
++	{ } /* End */
++};
++
+ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+ {
+ 	bool fake = false;
+@@ -422,6 +435,12 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+ 	struct mem_ctl_info *mci;
+ 	struct edac_mc_layer layers[1];
+ 	struct ghes_edac_dimm_fill dimm_fill;
++	int idx;
++
++	/* Check if safe to enable on this system */
++	idx = acpi_match_platform_list(plat_list);
++	if (!ghes_edac_force_load && idx < 0)
++		return 0;
+ 
+ 	/*
+ 	 * We have only one logical memory controller to which all DIMMs belong.
+@@ -460,17 +479,17 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+ 	mci->ctl_name = "ghes_edac";
+ 	mci->dev_name = "ghes";
+ 
+-	if (!fake) {
++	if (fake) {
++		pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
++		pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
++		pr_info("work on such system. Use this driver with caution\n");
++	} else if (idx < 0) {
+ 		pr_info("This EDAC driver relies on BIOS to enumerate memory and get error reports.\n");
+ 		pr_info("Unfortunately, not all BIOSes reflect the memory layout correctly.\n");
+ 		pr_info("So, the end result of using this driver varies from vendor to vendor.\n");
+ 		pr_info("If you find incorrect reports, please contact your hardware vendor\n");
+ 		pr_info("to correct its BIOS.\n");
+ 		pr_info("This system has %d DIMM sockets.\n", num_dimm);
+-	} else {
+-		pr_info("This system has a very crappy BIOS: It doesn't even list the DIMMS.\n");
+-		pr_info("Its SMBIOS info is wrong. It is doubtful that the error report would\n");
+-		pr_info("work on such system. Use this driver with caution\n");
+ 	}
+ 
+ 	if (!fake) {
