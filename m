@@ -1,41 +1,81 @@
-From: Boqun Feng <boqun.feng@gmail.com>
-Subject: [PATCH 1/2] nfit: Use init_completion() in acpi_nfit_flush_probe()
-Date: Wed, 23 Aug 2017 23:25:37 +0800
-Message-ID: <20170823152542.5150-2-boqun.feng@gmail.com>
-References: <20170823152542.5150-1-boqun.feng@gmail.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20170823152542.5150-1-boqun.feng@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, walken@google.com, Byungchul Park <byungchul.park@lge.com>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, willy@infradead.org, Nicholas Piggin <npiggin@gmail.com>, kernel-team@lge.com, Boqun Feng <boqun.feng@gmail.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 2/5] intel_pstate: convert to use
+ acpi_match_platform_list()
+Date: Wed, 23 Aug 2017 17:46:16 +0200
+Message-ID: <20170823154615.bqbz2cpywlie2zh7@pd.tnic>
+References: <20170818194644.14538-1-toshi.kani@hpe.com>
+ <20170818194644.14538-3-toshi.kani@hpe.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170818194644.14538-3-toshi.kani@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: rjw@rjwysocki.net, mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-There is no need to use COMPLETION_INITIALIZER_ONSTACK() in
-acpi_nfit_flush_probe(), replace it with init_completion().
+On Fri, Aug 18, 2017 at 01:46:41PM -0600, Toshi Kani wrote:
+> Convert to use acpi_match_platform_list() for the platform check.
+> There is no change in functionality.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Borislav Petkov <bp@alien8.de>
+> ---
+>  drivers/cpufreq/intel_pstate.c |   64 ++++++++++++++++------------------------
+>  1 file changed, 25 insertions(+), 39 deletions(-)
+> 
+> diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
+> index 65ee4fc..ad713cd 100644
+> --- a/drivers/cpufreq/intel_pstate.c
+> +++ b/drivers/cpufreq/intel_pstate.c
+> @@ -2466,39 +2466,31 @@ enum {
+>  	PPC,
+>  };
+>  
+> -struct hw_vendor_info {
+> -	u16  valid;
+> -	char oem_id[ACPI_OEM_ID_SIZE];
+> -	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
+> -	int  oem_pwr_table;
+> -};
+> -
+>  /* Hardware vendor-specific info that has its own power management modes */
+> -static struct hw_vendor_info vendor_info[] __initdata = {
+> -	{1, "HP    ", "ProLiant", PSS},
+> -	{1, "ORACLE", "X4-2    ", PPC},
+> -	{1, "ORACLE", "X4-2L   ", PPC},
+> -	{1, "ORACLE", "X4-2B   ", PPC},
+> -	{1, "ORACLE", "X3-2    ", PPC},
+> -	{1, "ORACLE", "X3-2L   ", PPC},
+> -	{1, "ORACLE", "X3-2B   ", PPC},
+> -	{1, "ORACLE", "X4470M2 ", PPC},
+> -	{1, "ORACLE", "X4270M3 ", PPC},
+> -	{1, "ORACLE", "X4270M2 ", PPC},
+> -	{1, "ORACLE", "X4170M2 ", PPC},
+> -	{1, "ORACLE", "X4170 M3", PPC},
+> -	{1, "ORACLE", "X4275 M3", PPC},
+> -	{1, "ORACLE", "X6-2    ", PPC},
+> -	{1, "ORACLE", "Sudbury ", PPC},
+> -	{0, "", ""},
+> +static struct acpi_platform_list plat_info[] __initdata = {
+> +	{"HP    ", "ProLiant", 0, ACPI_SIG_FADT, all_versions, 0, PSS},
 
-Signed-off-by: Boqun Feng <boqun.feng@gmail.com>
----
- drivers/acpi/nfit/core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Btw, why is that ACPI_SIG_FADT's description not "FADT" ?
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 19182d091587..1893e416e7c0 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2884,7 +2884,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
- 	 * need to be interruptible while waiting.
- 	 */
- 	INIT_WORK_ONSTACK(&flush.work, flush_probe);
--	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
-+	init_completion(&flush.cmp);
- 	queue_work(nfit_wq, &flush.work);
- 	mutex_unlock(&acpi_desc->init_mutex);
- 
+#define ACPI_SIG_FADT           "FACP"  /* Fixed ACPI Description Table */
+
+More ACPI fun? I don't think I can take any more fun.
+
+Oh well,
+
+Reviewed-by: Borislav Petkov <bp@suse.de>
+
 -- 
-2.14.1
+Regards/Gruss,
+    Boris.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Good mailing practices for 400: avoid top-posting and trim the reply.
