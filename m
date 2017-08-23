@@ -1,59 +1,84 @@
-From: "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
-Subject: RE: [PATCH] ACPI, APEI, EINJ: Subtract any matching Register Region
- from Trigger resources
-Date: Wed, 23 Aug 2017 16:37:43 +0000
-Message-ID: <BN6PR1201MB013106200C118FC6336017C8F8850@BN6PR1201MB0131.namprd12.prod.outlook.com>
-References: <1502387883-16667-1-git-send-email-Yazen.Ghannam@amd.com>
- <BN6PR1201MB013138E0E32481E623C35715F8840@BN6PR1201MB0131.namprd12.prod.outlook.com>
- <20170822160305.o4ceuqjnuy4drgxb@intel.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v6 3/3] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+ erratum 161010801
+Date: Wed, 23 Aug 2017 17:43:01 +0100
+Message-ID: <20170823164301.GC590@arm.com>
+References: <20170809100715.870516-1-shameerali.kolothum.thodi@huawei.com>
+ <20170809100715.870516-4-shameerali.kolothum.thodi@huawei.com>
+ <20170810172723.GD9980@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA8383CC287@FRAEML521-MBX.china.huawei.com>
+ <c6b7c641-b839-1388-7982-366e796e6ba9@huawei.com>
+ <20170823132430.GB634@arm.com>
+ <77b6c97f-f2d2-fd14-e83e-345addc5ea71@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170822160305.o4ceuqjnuy4drgxb@intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, Borislav Petkov <bp@suse.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:59080 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932206AbdHWQnA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 23 Aug 2017 12:43:00 -0400
+Content-Disposition: inline
+In-Reply-To: <77b6c97f-f2d2-fd14-e83e-345addc5ea71@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: John Garry <john.garry@huawei.com>
+Cc: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linuxarm <linuxarm@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>
 
-> -----Original Message-----
-> From: Luck, Tony [mailto:tony.luck@intel.com]
-> Sent: Tuesday, August 22, 2017 12:03 PM
-> To: Ghannam, Yazen <Yazen.Ghannam@amd.com>
-> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
-> rjw@rjwysocki.net; lenb@kernel.org; linux-edac@vger.kernel.org; Borislav
-> Petkov <bp@suse.de>
-> Subject: Re: [PATCH] ACPI, APEI, EINJ: Subtract any matching Register Reg=
-ion
-> from Trigger resources
->=20
-> On Tue, Aug 22, 2017 at 02:04:27PM +0000, Ghannam, Yazen wrote:
-> > > *einj_get_trigger_parameter_region(
-> > >  		((char *)trigger_tab + sizeof(struct acpi_einj_trigger));
-> > >  	for (i =3D 0; i < trigger_tab->entry_count; i++) {
-> > >  		if (entry->action =3D=3D ACPI_EINJ_TRIGGER_ERROR &&
-> > > -		entry->instruction =3D=3D ACPI_EINJ_WRITE_REGISTER_VALUE &&
-> > >  		entry->register_region.space_id =3D=3D
-> > >  			ACPI_ADR_SPACE_SYSTEM_MEMORY &&
-> > >  		(entry->register_region.address & param2) =3D=3D (param1 &
-> > > param2))
->=20
-> Maybe you should add the other instruction types that make sense here
-> (ACPI_EINJ_READ_REGISTER, ACPI_EINJ_READ_REGISTER_VALUE and
-> ACPI_EINJ_WRITE_REGISTER) as a sanity check against the BIOS giving you a=
-n
-> action in the trigger table that doesn't involve a memory access?
->=20
+On Wed, Aug 23, 2017 at 03:29:46PM +0100, John Garry wrote:
+> On 23/08/2017 14:24, Will Deacon wrote:
+> >On Wed, Aug 23, 2017 at 02:17:24PM +0100, John Garry wrote:
+> >>>>>Signed-off-by: Shameer Kolothum
+> >>>><shameerali.kolothum.thodi@huawei.com>
+> >>>>>---
+> >>>>>drivers/iommu/arm-smmu-v3.c | 27 ++++++++++++++++++++++-----
+> >>>>>1 file changed, 22 insertions(+), 5 deletions(-)
+> >>>>
+> >>>>Please can you also add a devicetree binding with corresponding
+> >>>>documentation to enable this workaround on non-ACPI based systems too?
+> >>>>It should be straightforward if you update the arm_smmu_options table.
+> >>>
+> >>>As I mentioned before, devicetree was a lower priority and we would definitely
+> >>>submit patch to support that. Even if we update the arm_smmu_options table
+> >>>with DT binding, the generic function to retrieve the MSI address regions only
+> >>>works on ACPI/IORT case now.
+> >>>
+> >>
+> >>Hi Will,
+> >>
+> >>Can you confirm your stance on supporting this workaround for DT as well as
+> >>ACPI?
+> >>
+> >>For us, we now only "officially" support ACPI FW, and DT support at this
+> >>point is patchy/limited. To me, adding DT support is just more errata
+> >>workaround code to maintain with little useful gain.
+> >
+> >I basically don't like the idea of a driver that only works for one of
+> >ACPI or DT yet claims to support both. I'm less fussed about functionality
+> >differences (feature X is only available with firmware Y), but not working
+> >around a hardware erratum that we know about is just lazy.
+> >
+> >So I'd prefer that we handle this in both cases, or blacklist affected
+> >devices when booting with DT. Continuing as though there isn't an erratum
+> >is the worst thing we can do.
+> 
+> OK, seems reasonable.
+> 
+> We would consider blacklisting the device, where/how to do is the question.
+> 
+> So the errata is in the GICv3 ITS/PCI host controller, and we just use the
+> in-between SMMU (driver) to provide the workaround. So my initial impression
+> is that the PCI host controller would have to be blacklisted IFF behind an
+> IOMMU for DT firmware in pcie-hisi.c or pci quirks framework. How does it
+> sound?
 
-Yes, in that case we can do:
-entry->instruction <=3D ACPI_EINJ_WRITE_REGISTER_VALUE
+If that avoids us running into the erratum, then fine by me. I'd obviously
+prefer we work-around it since we know how to, but that's up to you.
 
-That would cover all the memory access instructions and protect against inv=
-alid
-instructions.
+> Please also note that in our SoC we have other devices behind the same SMMU,
+> like storage controller, which are not affected or related to the Errata.
+> 
+> BTW, ignoring DT support, are you happy with this patchset?
 
-How does that sound?
+Yes, but I won't ack it without the above taken care of.
 
-Thanks,
-Yazen
+Will
