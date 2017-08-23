@@ -1,104 +1,76 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v6 3/3] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
- erratum 161010801
-Date: Wed, 23 Aug 2017 17:55:52 +0100
-Message-ID: <53b9795c-6222-9cf0-50dc-9dafbfb67a2c@huawei.com>
-References: <20170809100715.870516-1-shameerali.kolothum.thodi@huawei.com>
- <20170809100715.870516-4-shameerali.kolothum.thodi@huawei.com>
- <20170810172723.GD9980@arm.com>
- <5FC3163CFD30C246ABAA99954A238FA8383CC287@FRAEML521-MBX.china.huawei.com>
- <c6b7c641-b839-1388-7982-366e796e6ba9@huawei.com>
- <20170823132430.GB634@arm.com>
- <77b6c97f-f2d2-fd14-e83e-345addc5ea71@huawei.com>
- <20170823164301.GC590@arm.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V2] acpi: apei: clear error status before acknowledging
+ the error
+Date: Wed, 23 Aug 2017 14:55:09 -0600
+Message-ID: <3b5fb362-c184-7dde-ca0a-b6f0842fec63@codeaurora.org>
+References: <1501798351-10337-1-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:4552 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754129AbdHWQ4S (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Aug 2017 12:56:18 -0400
-In-Reply-To: <20170823164301.GC590@arm.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:55340 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932407AbdHWUzN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Aug 2017 16:55:13 -0400
+In-Reply-To: <1501798351-10337-1-git-send-email-tbaicar@codeaurora.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linuxarm <linuxarm@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>
+To: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
 
-On 23/08/2017 17:43, Will Deacon wrote:
-> On Wed, Aug 23, 2017 at 03:29:46PM +0100, John Garry wrote:
->> On 23/08/2017 14:24, Will Deacon wrote:
->>> On Wed, Aug 23, 2017 at 02:17:24PM +0100, John Garry wrote:
->>>>>>> Signed-off-by: Shameer Kolothum
->>>>>> <shameerali.kolothum.thodi@huawei.com>
->>>>>>> ---
->>>>>>> drivers/iommu/arm-smmu-v3.c | 27 ++++++++++++++++++++++-----
->>>>>>> 1 file changed, 22 insertions(+), 5 deletions(-)
->>>>>>
->>>>>> Please can you also add a devicetree binding with corresponding
->>>>>> documentation to enable this workaround on non-ACPI based systems too?
->>>>>> It should be straightforward if you update the arm_smmu_options table.
->>>>>
->>>>> As I mentioned before, devicetree was a lower priority and we would definitely
->>>>> submit patch to support that. Even if we update the arm_smmu_options table
->>>>> with DT binding, the generic function to retrieve the MSI address regions only
->>>>> works on ACPI/IORT case now.
->>>>>
->>>>
->>>> Hi Will,
->>>>
->>>> Can you confirm your stance on supporting this workaround for DT as well as
->>>> ACPI?
->>>>
->>>> For us, we now only "officially" support ACPI FW, and DT support at this
->>>> point is patchy/limited. To me, adding DT support is just more errata
->>>> workaround code to maintain with little useful gain.
->>>
->>> I basically don't like the idea of a driver that only works for one of
->>> ACPI or DT yet claims to support both. I'm less fussed about functionality
->>> differences (feature X is only available with firmware Y), but not working
->>> around a hardware erratum that we know about is just lazy.
->>>
->>> So I'd prefer that we handle this in both cases, or blacklist affected
->>> devices when booting with DT. Continuing as though there isn't an erratum
->>> is the worst thing we can do.
->>
->> OK, seems reasonable.
->>
->> We would consider blacklisting the device, where/how to do is the question.
->>
->> So the errata is in the GICv3 ITS/PCI host controller, and we just use the
->> in-between SMMU (driver) to provide the workaround. So my initial impression
->> is that the PCI host controller would have to be blacklisted IFF behind an
->> IOMMU for DT firmware in pcie-hisi.c or pci quirks framework. How does it
->> sound?
->
-> If that avoids us running into the erratum, then fine by me. I'd obviously
-> prefer we work-around it since we know how to, but that's up to you.
+Hello Boris,
 
-I'm surpsised that you may want more errata workaround code to maintain.
-
-Anyway we'll check both approaches and show you how they look and go 
-from there.
-
->
->> Please also note that in our SoC we have other devices behind the same SMMU,
->> like storage controller, which are not affected or related to the Errata.
->>
->> BTW, ignoring DT support, are you happy with this patchset?
->
-> Yes, but I won't ack it without the above taken care of.
-
-Fair enough.
-
->
-> Will
+And input on this patch?
 
 Thanks,
-John
+Tyler
 
+On 8/3/2017 4:12 PM, Tyler Baicar wrote:
+> Currently we acknowledge errors before clearing the error status.
+> This could cause a new error to be populated by firmware in-between
+> the error acknowledgment and the error status clearing which would
+> cause the second error's status to be cleared without being handled.
+> So, clear the error status before acknowledging the errors.
 >
-> .
+> Also, make sure to acknowledge the error if the error status read
+> fails.
 >
+> V2: Only send error ack if there was an error populated
+>      Remove curly braces that are no longer needed
+>
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> ---
+>   drivers/acpi/apei/ghes.c | 9 +++------
+>   1 file changed, 3 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index d661d45..cda4a4f 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -743,17 +743,14 @@ static int ghes_proc(struct ghes *ghes)
+>   	}
+>   	ghes_do_proc(ghes, ghes->estatus);
+>   
+> +out:
+> +	ghes_clear_estatus(ghes);
+>   	/*
+>   	 * GHESv2 type HEST entries introduce support for error acknowledgment,
+>   	 * so only acknowledge the error if this support is present.
+>   	 */
+> -	if (is_hest_type_generic_v2(ghes)) {
+> +	if (is_hest_type_generic_v2(ghes) && rc != -ENOENT)
+>   		rc = ghes_ack_error(ghes->generic_v2);
+> -		if (rc)
+> -			return rc;
+> -	}
+> -out:
+> -	ghes_clear_estatus(ghes);
+>   	return rc;
+>   }
+>   
 
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
 
