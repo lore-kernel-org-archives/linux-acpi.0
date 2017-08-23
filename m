@@ -1,145 +1,43 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v2 5/9] PM / ACPI: Provide option to disable direct_complete for ACPI devices
-Date: Wed, 23 Aug 2017 16:42:05 +0200
-Message-ID: <1503499329-28834-6-git-send-email-ulf.hansson@linaro.org>
-References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH] ACPI / sysfs: Extend ACPI sysfs to provide access to
+ boot error region
+Date: Wed, 23 Aug 2017 14:56:46 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F61349912@ORSMSX114.amr.corp.intel.com>
+References: <CAJZ5v0gML6bX2QW65Kv+huJtM4ZUjhw6PC=52hh8NiK-9Uqpzg@mail.gmail.com>
+        <20170817213946.16939-1-tony.luck@intel.com>
+ <20170818013047.427e38b7@alans-desktop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f45.google.com ([209.85.215.45]:38826 "EHLO
-        mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932108AbdHWOmZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Aug 2017 10:42:25 -0400
-Received: by mail-lf0-f45.google.com with SMTP id y15so1335730lfd.5
-        for <linux-acpi@vger.kernel.org>; Wed, 23 Aug 2017 07:42:24 -0700 (PDT)
-In-Reply-To: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org>
+Received: from mga06.intel.com ([134.134.136.31]:39715 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754113AbdHWO4t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 23 Aug 2017 10:56:49 -0400
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>
+To: Alan Cox <gnomes@lxorguk.ukuu.org.uk>, Kees Cook <keescook@google.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, Punit Agrawal <punit.agrawal@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-In some cases a driver for an ACPI device needs to be able to prevent the
-ACPI PM domain from using the direct_complete path during system sleep.
+>> Should this not also have a capability check. Assuming file permissions
+>> are sufficient for grabbing a chunk of system memory holding error
+>> info doesn't seem too scary but it's at odds with a lot of other cases ?
+>
+> At least one of those other cases (pstore) added a capability check and now regret
+> it.  There's a thread on reverting it. Look for:
+>
+>   Revert "pstore: Honor dmesg_restrict sysctl on dmesg dumps"
 
-One typical case is when the driver for the device needs its device to stay
-runtime enabled, during the __device_suspend phase. This isn't the case
-when the direct_complete path is being executed by the PM core, as it then
-disables runtime PM for the device in __device_suspend(). Any following
-attempts to runtime resume the device after that point, just fails.
+Here's at least part of that thread:
 
-A workaround to this problem is to let the driver runtime resume its device
-from its ->prepare() callback, as that would prevent the direct_complete
-path from being executed. However, that may often be a waste, especially if
-it turned out that no one really needed the device.
+https://marc.info/?l=linux-kernel&m=150301241114262&w=2
 
-For this reason, invent acpi_dev_disable|enable_direct_complete(), to allow
-drivers to inform the ACPI PM domain to change its default behaviour during
-system sleep, and thus control whether it may use the direct_complete path
-or not.
+Kees: you were OK with removing the capability check from pstore, right?
 
-Typically a driver should call acpi_dev_disable_direct_comlete() during
-->probe() and acpi_dev_enable_direct_complete() in ->remove().
+I'm now adding another place to access a blob of memory containing
+crash information from the previous kernel (pointed at by the ACPI
+BERT record).
 
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
----
-
-Changes in v2:
-	- Moved the no_direct_complete flag to the struct acpi_device_power.
-
----
- drivers/acpi/device_pm.c | 38 +++++++++++++++++++++++++++++++++++++-
- include/acpi/acpi_bus.h  |  1 +
- include/linux/acpi.h     |  4 ++++
- 3 files changed, 42 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index 5181057..f7bf596 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -933,6 +933,41 @@ EXPORT_SYMBOL_GPL(acpi_subsys_runtime_resume);
- 
- #ifdef CONFIG_PM_SLEEP
- /**
-+ * acpi_dev_disable_direct_complete - Disable the direct_complete path for ACPI.
-+ * @dev: Device to disable the path for.
-+ *
-+ * Per default the ACPI PM domain tries to use the direct_complete path for its
-+ * devices during system sleep. This function allows a user, typically a driver
-+ * during probe, to disable the direct_complete path from being used by ACPI.
-+ */
-+void acpi_dev_disable_direct_complete(struct device *dev)
-+{
-+	struct acpi_device *adev = ACPI_COMPANION(dev);
-+
-+	if (adev)
-+		adev->power.no_direct_complete = true;
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_disable_direct_complete);
-+
-+/**
-+ * acpi_dev_enable_direct_complete - Enable the direct_complete path for ACPI.
-+ * @dev: Device to enable the path for.
-+ *
-+ * Enable the direct_complete path to be used during system suspend for the ACPI
-+ * PM domain, which is the default option. Typically a driver that disabled the
-+ * path during ->probe(), must call this function during ->remove() to re-enable
-+ * the direct_complete path to be used by ACPI.
-+ */
-+void acpi_dev_enable_direct_complete(struct device *dev)
-+{
-+	struct acpi_device *adev = ACPI_COMPANION(dev);
-+
-+	if (adev)
-+		adev->power.no_direct_complete = false;
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_enable_direct_complete);
-+
-+/**
-  * acpi_dev_suspend_late - Put device into a low-power state using ACPI.
-  * @dev: Device to put into a low-power state.
-  *
-@@ -1023,7 +1058,8 @@ int acpi_subsys_prepare(struct device *dev)
- 	if (ret < 0)
- 		return ret;
- 
--	if (!adev || !pm_runtime_suspended(dev))
-+	if (!adev || adev->power.no_direct_complete ||
-+	    !pm_runtime_suspended(dev))
- 		return 0;
- 
- 	return !acpi_dev_needs_resume(dev, adev);
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index dedf9d7..bdec5f2 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -285,6 +285,7 @@ struct acpi_device_power_state {
- 
- struct acpi_device_power {
- 	int state;		/* Current state */
-+	bool no_direct_complete;
- 	struct acpi_device_power_flags flags;
- 	struct acpi_device_power_state states[ACPI_D_STATE_COUNT];	/* Power states (D0-D3Cold) */
- };
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index c1a5213..ec33c41 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -867,6 +867,8 @@ static inline int acpi_dev_pm_attach(struct device *dev, bool power_on)
- #endif
- 
- #if defined(CONFIG_ACPI) && defined(CONFIG_PM_SLEEP)
-+void acpi_dev_disable_direct_complete(struct device *dev);
-+void acpi_dev_enable_direct_complete(struct device *dev);
- int acpi_dev_suspend_late(struct device *dev);
- int acpi_dev_resume_early(struct device *dev);
- int acpi_subsys_prepare(struct device *dev);
-@@ -876,6 +878,8 @@ int acpi_subsys_resume_early(struct device *dev);
- int acpi_subsys_suspend(struct device *dev);
- int acpi_subsys_freeze(struct device *dev);
- #else
-+static inline void acpi_dev_disable_direct_complete(struct device *dev) {}
-+static inline void acpi_dev_enable_direct_complete(struct device *dev) {}
- static inline int acpi_dev_suspend_late(struct device *dev) { return 0; }
- static inline int acpi_dev_resume_early(struct device *dev) { return 0; }
- static inline int acpi_subsys_prepare(struct device *dev) { return 0; }
--- 
-2.7.4
+-Tony
 
