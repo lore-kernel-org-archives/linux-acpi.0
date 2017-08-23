@@ -1,91 +1,105 @@
-From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v6 5/6] libnvdimm: fix potential deadlock while clearing errors
-Date: Tue, 22 Aug 2017 16:19:14 -0600
-Message-ID: <20170822221915.1732-6-vishal.l.verma@intel.com>
-References: <20170822221915.1732-1-vishal.l.verma@intel.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v5 0/7] Add RAS virtualization support to SEA/SEI
+ notification type
+Date: Wed, 23 Aug 2017 10:01:11 +0800
+Message-ID: <6ba51a4b-60b4-a71c-9bfb-9b95b1bbd5b9@huawei.com>
+References: <1503065517-7920-1-git-send-email-gengdongjiu@huawei.com>
+ <20170822085406.00006e74@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170822221915.1732-1-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:4542 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753100AbdHWCIr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Aug 2017 22:08:47 -0400
+In-Reply-To: <20170822085406.00006e74@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, james.morse@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica
 
-With the ACPI NFIT 'DSM' methods, acpi can be called from IO paths.
-Specifically, the DSM to clear media errors is called during writes, so
-that we can provide a writes-fix-errors model.
+Jonathan,
+   Thanks for the review, will correct the typo issue in the next patch version.
 
-However it is easy to imagine a scenario like:
- -> write through the nvdimm driver
-   -> acpi allocation
-     -> writeback, causes more IO through the nvdimm driver
-       -> deadlock
 
-Fix this by using memalloc_noio_{save,restore}, which sets the GFP_NOIO
-flag for the current scope when issuing commands/IOs that are expected
-to clear errors.
+On 2017/8/22 15:54, Jonathan Cameron wrote:
+> On Fri, 18 Aug 2017 22:11:50 +0800
+> Dongjiu Geng <gengdongjiu@huawei.com> wrote:
+> 
+>> In the firmware-first RAS solution, corrupt data is detected in a
+>> memory location when guest OS application software executing at EL0
+>> or guest OS kernel El1 software are reading from the memory. The
+>> memory node records errors in an error record accessible using
+>> system registers.
+>>
+>> Because SCR_EL3.EA is 1, then CPU will trap to El3 firmware, EL3
+>> firmware records the error to APEI table through reading system
+>> register.
+>>
+>> Because the error was taken from a lower Exception leve, if the
+> 
+> leve -> level
+> 
+>> exception is SEA/SEI and HCR_EL2.TEA/HCR_EL2.AMO is 1, firmware
+>> sets ESR_EL2/FAR_El to fake a exception trap to EL2, then
+>> transfers to hypervisor.
+>>
+>> Hypervisor calls the momory failure to deal with this error, momory
+> 
+> momory -> memory
+> 
+> memory failure -> memory failure function? Or callback perhaps?
+> 
+>> failure read the APEI table and decide whether it needs to deliver
+>> SIGBUS signal to user space, the advantage of using SIGBUS signal
+>> to notify user space is that it can be compatible Non-Kvm users.
+> 
+> Seems like a good description to me. Thanks.
+> 
+> Jonathan
+> 
+>>
+>> Dongjiu Geng (5):
+>>   acpi: apei: Add SEI notification type support for ARMv8
+>>   support user space to query RAS extension feature
+>>   arm64: kvm: route synchronous external abort exceptions to el2
+>>   KVM: arm/arm64: Allow get exception syndrome and
+>>   arm64: kvm: handle SEI notification and inject virtual SError
+>>
+>> James Morse (1):
+>>   KVM: arm64: Save ESR_EL2 on guest SError
+>>
+>> Xie XiuQi (1):
+>>   arm64: cpufeature: Detect CPU RAS Extentions
+>>
+>>  arch/arm/include/asm/kvm_host.h      |  2 ++
+>>  arch/arm/kvm/guest.c                 |  5 +++
+>>  arch/arm64/Kconfig                   | 16 ++++++++++
+>>  arch/arm64/include/asm/barrier.h     |  1 +
+>>  arch/arm64/include/asm/cpucaps.h     |  3 +-
+>>  arch/arm64/include/asm/kvm_arm.h     |  2 ++
+>>  arch/arm64/include/asm/kvm_emulate.h | 17 ++++++++++
+>>  arch/arm64/include/asm/kvm_host.h    |  2 ++
+>>  arch/arm64/include/asm/sysreg.h      |  5 +++
+>>  arch/arm64/include/asm/system_misc.h |  1 +
+>>  arch/arm64/include/uapi/asm/kvm.h    |  5 +++
+>>  arch/arm64/kernel/cpufeature.c       | 13 ++++++++
+>>  arch/arm64/kernel/process.c          |  3 ++
+>>  arch/arm64/kvm/guest.c               | 48 +++++++++++++++++++++++++++++
+>>  arch/arm64/kvm/handle_exit.c         | 21 +++++++++++--
+>>  arch/arm64/kvm/hyp/switch.c          | 29 +++++++++++++++--
+>>  arch/arm64/kvm/reset.c               |  3 ++
+>>  arch/arm64/mm/fault.c                | 21 +++++++++++--
+>>  drivers/acpi/apei/Kconfig            | 15 +++++++++
+>>  drivers/acpi/apei/ghes.c             | 60 +++++++++++++++++++++++-------------
+>>  include/acpi/ghes.h                  |  2 +-
+>>  include/uapi/linux/kvm.h             |  3 ++
+>>  virt/kvm/arm/arm.c                   |  7 +++++
+>>  23 files changed, 254 insertions(+), 30 deletions(-)
+>>
+> 
+> 
+> .
+> 
 
-Cc: <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/nvdimm/bus.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 937fafa..a18c291 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -11,6 +11,7 @@
-  * General Public License for more details.
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/sched/mm.h>
- #include <linux/vmalloc.h>
- #include <linux/uaccess.h>
- #include <linux/module.h>
-@@ -234,6 +235,7 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	struct nd_cmd_clear_error clear_err;
- 	struct nd_cmd_ars_cap ars_cap;
- 	u32 clear_err_unit, mask;
-+	unsigned int noio_flag;
- 	int cmd_rc, rc;
- 
- 	if (!nvdimm_bus)
-@@ -250,8 +252,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&ars_cap, 0, sizeof(ars_cap));
- 	ars_cap.address = phys;
- 	ars_cap.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, &ars_cap,
- 			sizeof(ars_cap), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
-@@ -266,8 +270,10 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 	memset(&clear_err, 0, sizeof(clear_err));
- 	clear_err.address = phys;
- 	clear_err.length = len;
-+	noio_flag = memalloc_noio_save();
- 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CLEAR_ERROR, &clear_err,
- 			sizeof(clear_err), &cmd_rc);
-+	memalloc_noio_restore(noio_flag);
- 	if (rc < 0)
- 		return rc;
- 	if (cmd_rc < 0)
--- 
-2.9.3
