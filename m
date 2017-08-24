@@ -1,35 +1,136 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v3 3/5] ghes_edac: add platform check to enable ghes_edac
-Date: Thu, 24 Aug 2017 09:54:51 +0200
-Message-ID: <20170824075451.mzbhlyw7vovbqsfl@pd.tnic>
-References: <20170818194644.14538-1-toshi.kani@hpe.com>
- <20170818194644.14538-4-toshi.kani@hpe.com>
- <20170823162053.4nns6ytekw5fychw@pd.tnic>
- <2234003.7P8fBnLXh9@aspire.rjw.lan>
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization
+ earlier
+Date: Thu, 24 Aug 2017 16:05:28 +0800
+Message-ID: <20170824080528.GD19768@x1>
+References: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com>
+ <1500011554-9784-13-git-send-email-douly.fnst@cn.fujitsu.com>
+ <a8024347-ce0b-c59b-74ea-45a822e54ee6@cn.fujitsu.com>
+ <8d662105-2ff5-02fd-9072-73167e5f49c1@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([5.9.137.197]:54704 "EHLO mail.skyhub.de"
+Received: from mx1.redhat.com ([209.132.183.28]:45980 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751124AbdHXHy7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 24 Aug 2017 03:54:59 -0400
+        id S1751183AbdHXIFd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 24 Aug 2017 04:05:33 -0400
 Content-Disposition: inline
-In-Reply-To: <2234003.7P8fBnLXh9@aspire.rjw.lan>
+In-Reply-To: <8d662105-2ff5-02fd-9072-73167e5f49c1@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Toshi Kani <toshi.kani@hpe.com>, mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, ebiederm@xmission.com, peterz@infradead.org, izumi.taku@jp.fujitsu.com, tokunaga.keiich@jp.fujitsu.com, linux-acpi@vger.kernel.org, Julian Wollrath <jwollrath@web.de>, Borislav Petkov <bp@alien8.de>
 
-On Wed, Aug 23, 2017 at 10:46:42PM +0200, Rafael J. Wysocki wrote:
-> I can expose a branch with this series for you to merge if that helps.
+Hi Liyang,
 
-I think that'll be the best solution. So yes, pls lemme know when you
-have it so that I can pick up the rest.
+On 08/24/17 at 11:54am, Dou Liyang wrote:
+> > > Test in my own PC(Lenovo M4340).
+> > > Ask help for doing regression testing for the bug said in commit
+> > > c4e1acbb35e4
+> > > ("ACPI / init: Invoke early ACPI initialization later").
+> > > 
+> > 
+> > Now, I can prove this patch doesn't result in the bug[1] which made the
+> > fast TSC calibration using PIT failed in a Thinkpad x121e (AMD E-450
+> > APU).
+> > 
+> > The true reason of the bug is enabling ACPI subsystem earlier than
+> > using PIT, not the SCI setup. invoking acpi_enable_subsystem() later
 
-Thx.
+Seems redhat mail server was down earlier, I didn't receive new mail in
+this thread.  Just curious, do you know why the fast tsc calibration
+using PIT will fail if enabling ACPI subsystem earlier than using PIT?
 
--- 
-Regards/Gruss,
-    Boris.
+Thanks
+Baoquan
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
+> > could fix this bug as Julian tested and said[2].
+> > 
+> > And, I found that Commit b064a8fa77df (" ACPI / init: Switch over
+> > platform to the ACPI mode later") split the ACPI early initialization
+> > code into acpi_early_init() and acpi_subsystem_init(). executing
+> > acpi_enable_subsystem() at the original early ACPI initialization spot.
+> > 
+> > The sequence of them shows below:
+> > 
+> >  start_kernel
+> > +---------------+
+> > |
+> > +--> .......
+> > |
+> > |    late_time_init()
+> > +--> +-------+
+> > |
+> > +--> .......
+> > |
+> > |    acpi_early_init()
+> > +--> +-------+
+> > |
+> > +--> .......
+> > |
+> > |   acpi_subsystem_init()
+> > +-> +--------+
+> > 
+> > We make sure the acpi_subsystem_init() is called later than
+> > late_time_init(), the bug will be avoided.
+> > 
+> > This patch changes the sequence of late_time_init() and
+> > acpi_early_init(), doesn't effect acpi_subsystem_init().
+> > 
+> > So, this patch is OK.
+> > 
+> > Btw, Thanks very much for Borislav Petkov, he will have access to
+> > Thinkpad x121e from Mid-August and will test this series.
+> > 
+> 
+> Almost one month passed, Borislav have tested this series in Thinkpad
+> x121e and I also have tested in my box and QEmu again. It is OK.
+> 
+> BTW,
+> 1) I found your commit b064a8fa77df (" ACPI / init: Switch over
+> platform to the ACPI mode later") split the ACPI early initialization
+> code into acpi_early_init() and acpi_subsystem_init(). Actually enabling
+> the ACPI subsystem is in acpi_subsystem_init().
+> 
+> 2) As we discussed earlier, invoking acpi_put_table() is not good for
+> this situation.
+> 
+> So I do this patch, Is that goot to you? Any comments will be welcome.
+> 
+> If it is OK, As the patches need to be re-based, and I also found
+> several spelling mistake, I will send a new version next week.
+> 
+> Thanks,
+> 	dou.
+> 
+> > [1] https://lkml.org/lkml/2014/3/10/123
+> > [2] https://lkml.org/lkml/2014/3/12/311
+> > 
+> > 
+> > Thanks
+> >     dou.
+> > 
+> > >  init/main.c | 2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > > diff --git a/init/main.c b/init/main.c
+> > > index df58a41..7a09467 100644
+> > > --- a/init/main.c
+> > > +++ b/init/main.c
+> > > @@ -654,12 +654,12 @@ asmlinkage __visible void __init start_kernel(void)
+> > >      kmemleak_init();
+> > >      setup_per_cpu_pageset();
+> > >      numa_policy_init();
+> > > +    acpi_early_init();
+> > >      if (late_time_init)
+> > >          late_time_init();
+> > >      calibrate_delay();
+> > >      pidmap_init();
+> > >      anon_vma_init();
+> > > -    acpi_early_init();
+> > >  #ifdef CONFIG_X86
+> > >      if (efi_enabled(EFI_RUNTIME_SERVICES))
+> > >          efi_enter_virtual_mode();
+> > > 
+> 
+> 
