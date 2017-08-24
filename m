@@ -1,83 +1,57 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH V2] acpi: apei: clear error status before acknowledging
- the error
-Date: Thu, 24 Aug 2017 10:14:08 +0200
-Message-ID: <20170824081408.iwg7qyyr226btivo@pd.tnic>
-References: <1501798351-10337-1-git-send-email-tbaicar@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+From: Takashi Iwai <tiwai@suse.de>
+Subject: [PATCH v2 0/3] Dollar Cove TI PMIC support for Intel Cherry Trail
+Date: Thu, 24 Aug 2017 10:11:38 +0200
+Message-ID: <20170824081141.5018-1-tiwai@suse.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1501798351-10337-1-git-send-email-tbaicar@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
+To: linux-kernel@vger.kernel.org
+Cc: Lee Jones <lee.jones@linaro.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 03, 2017 at 04:12:31PM -0600, Tyler Baicar wrote:
-> Currently we acknowledge errors before clearing the error status.
-> This could cause a new error to be populated by firmware in-between
-> the error acknowledgment and the error status clearing which would
-> cause the second error's status to be cleared without being handled.
-> So, clear the error status before acknowledging the errors.
-> 
-> Also, make sure to acknowledge the error if the error status read
-> fails.
-> 
-> V2: Only send error ack if there was an error populated
->     Remove curly braces that are no longer needed
-> 
-> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-> ---
->  drivers/acpi/apei/ghes.c | 9 +++------
->  1 file changed, 3 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index d661d45..cda4a4f 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -743,17 +743,14 @@ static int ghes_proc(struct ghes *ghes)
->  	}
->  	ghes_do_proc(ghes, ghes->estatus);
->  
-> +out:
-> +	ghes_clear_estatus(ghes);
->  	/*
->  	 * GHESv2 type HEST entries introduce support for error acknowledgment,
->  	 * so only acknowledge the error if this support is present.
->  	 */
-> -	if (is_hest_type_generic_v2(ghes)) {
-> +	if (is_hest_type_generic_v2(ghes) && rc != -ENOENT)
+Hi,
 
-I think you should do something like this:
+this is the revised patch set to add the support for Dollar Cove TI
+PMIC found on some Intel Cherry Trail laptops / tablets.  All drivers
+are based on the original code from Intel downstream patches, with
+lots of rewrites and cleanups.  MFD driver is implemented as a
+stand-alone like a few other variants, and the input driver got a diet
+in a minimalistic form.
 
-out:
-        ghes_clear_estatus(ghes);
+The patch set has been tested on ASUS E100H and E200H, as well as on
+HP x210.
 
-	if (rc == -ENOENT)
-                return rc;
-
-	/*
-         * GHESv2 type HEST entries introduce support for error acknowledgment,
-         * so only acknowledge the error if this support is present.
-         */
-        if (is_hest_type_generic_v2(ghes))
-                return ghes_ack_error(ghes->generic_v2);
-
-        return rc;
+v1->v2:
+- Minor cleanups in mfd driver code as suggested by Andy
+- Move power-button driver to platform/x86, driver renames accordingly
+- Add missing wake-irq cleanup to power-button driver
+- get_raw_temp cleanup in opregion driver, mention about register
+  endianess
 
 
-First check the -ENOENT because if there's no entry, you don't need to
-ACK anything anyway.
+thanks,
 
-And then only if it is an entry present and it is v2, you can ACK it.
+Takashi
 
-Hmmm?
+===
+
+Takashi Iwai (3):
+  mfd: Add support for Cherry Trail Dollar Cove TI PMIC
+  platform/x86: Add support for Dollar Cove TI power button
+  ACPI / PMIC: Add opregion driver for Intel Dollar Cove TI PMIC
+
+ drivers/acpi/Kconfig                      |   6 +
+ drivers/acpi/Makefile                     |   1 +
+ drivers/acpi/pmic/intel_pmic_dc_ti.c      | 139 +++++++++++++++++++++++
+ drivers/mfd/Kconfig                       |  13 +++
+ drivers/mfd/Makefile                      |   1 +
+ drivers/mfd/intel_soc_pmic_dc_ti.c        | 182 ++++++++++++++++++++++++++++++
+ drivers/platform/x86/Kconfig              |   8 ++
+ drivers/platform/x86/Makefile             |   1 +
+ drivers/platform/x86/intel_dc_ti_pwrbtn.c |  96 ++++++++++++++++
+ 9 files changed, 447 insertions(+)
+ create mode 100644 drivers/acpi/pmic/intel_pmic_dc_ti.c
+ create mode 100644 drivers/mfd/intel_soc_pmic_dc_ti.c
+ create mode 100644 drivers/platform/x86/intel_dc_ti_pwrbtn.c
 
 -- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+2.14.0
