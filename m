@@ -1,71 +1,392 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 5/9] PM / ACPI: Provide option to disable direct_complete for ACPI devices
-Date: Thu, 24 Aug 2017 23:50:40 +0200
-Message-ID: <6003495.864qntojfu@aspire.rjw.lan>
-References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org> <CAPDyKFrj6RdsG4Qf847OvLQMgqHeyh1=YyeKZMeaGgQ2du3cNA@mail.gmail.com> <12333551.k204JYSgao@aspire.rjw.lan>
+From: David Renz <David.Renz@ruhr-uni-bochum.de>
+Subject: Re: Corrupt ACPI code (HP Pavilion Desktop PC 570-p0xx) [~170
+ ACPI-related failures found by FWTS]
+Date: Fri, 25 Aug 2017 01:16:36 +0200
+Message-ID: <57eef6f7995e8091cdd8530ed96df7c6@ruhr-uni-bochum.de>
+References: <b89b3c00ca367ac09c100197d621f329@ruhr-uni-bochum.de>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E5F0A07@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <12333551.k204JYSgao@aspire.rjw.lan>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.mail.ruhr-uni-bochum.de ([134.147.53.149]:55404 "EHLO
+        out1.mail.ruhr-uni-bochum.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753495AbdHXXQj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 24 Aug 2017 19:16:39 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E5F0A07@ORSMSX110.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi@vger.kernel.org, acpi@linux.intel.com, Intel Product Security Incident Response Team <Intel.Product.Security.Incident.Response.Team@intel.com>, linux-acpi-owner@vger.kernel.org
 
-On Thursday, August 24, 2017 6:35:49 PM CEST Rafael J. Wysocki wrote:
-> On Thursday, August 24, 2017 11:15:26 AM CEST Ulf Hansson wrote:
+Hello,
 
-[cut]
+I uploaded the dumped ACPI code of my HP desktop PC as well as the 
+dumped ACPI code of my Asus notebook (Asus R541U) on GoogleDrive, since 
+I got very similar ACPI-related error messages for the latter one, too - 
+Moreover a security audit performed using Lynis showed the exactly same 
+suspicious anomalies regardint the kernel runtime variables (a 
+screenshot of a Lynis audit performed on my HP dekstop PC is contained 
+in the folder, too) - Therefore I guess it would be interesting to 
+compare both systems' dumped ACPI code with each other, and I guess this 
+issue should be interesting to the Intel Product Security Incident 
+Response Team as well, as two systems produced by different vendors are 
+affected by highly similar ACPI-related issues.
 
-> [BTW, it is not entirely clear to me why it ever is necessary to runtime resume
-> a device with direct_complete set after __device_suspend(), because it can only
-> have direct_complete set at that point if all of the hierarchy below it has
-> this flag set too and so runtime PM has to be disabled for all of those
-> devices as well.]
+This is the link for the shared folder, the subfolder "hp_570_28_08" 
+containing the dumped ACPI code of my desktop PC and the subfolder "Asus 
+R541U" containing the dumped ACPI code of my notebook plus the ParrotSec 
+OS syslog for this system and an excerpt of the Lynis audit I performed 
+on it:
+https://drive.google.com/open?id=0B62Y5Qk_rdbWdzBsWmt1eEl3YlU
 
-Which makes me realize that we should take a step back and look at what
-problems there are.
 
-First, there are devices (I know about two examples so far and both are PCI)
-that may need to be runtime resumed during system suspend for reasons other
-than the ones checked by the ACPI PM domain (or the PCI bus type).  There needs
-to be a way to indicate that from the driver side.
+Kind regards and all the best
 
-However, it still may be valuable to check the power-related conditions for
-leaving the device in runtime suspend over system suspend/resume in case
-it actually doesn't need to be runtime resumed during system suspend after
-all.  That's what the majority of my patch was about.
+David
 
-The second problem is that the ACPI PM domain (and the PCI bus type)
-runtime resumes all devices unconditionally in its ->suspend callback,
-even though that may not be necessary for some devices.  Therefore there
-needs to be a way to indicate that too.  That still would be good to
-have *regardless* of the direct_complete mechanism, because the direct_complete
-flag may not be set very often due to dependencies and then the
-resume-during-suspend will take place unnecessarily.
 
-Accordingly, it looks like we need a "no need to resume me" flag in the first
-place.  That would indicate to interested pieces of code that, from the
-driver perspective, the device doesn't need to be runtime resumed before
-invoking its system suspend callbacks.  This should be clear enough to everyone
-IMO.
-
-[Note that if that flag is set for all devices, we may drop it along with
-direct_complete, but before that happens both are needed.]
-
-To address the first issue I would add something like the flag in the patches
-I sent (but without the ACPI PM domain part which should be covered by the
-"no need to resume me" flag above), because that allows the device's ->suspend
-callback to run in principle and the driver may use that callback even to
-runtime resume the device if that's what it wants to do.  So something like
-"run my ->suspend callback even though I might stay in runtime suspend".
-
-I would probably add driver_flags to dev_pm_info for that to set at the probe
-time (and I would make the core clear that on driver removal).
-
-The complexity concern is there, but honestly I don't see a better way at
-this point.
-
-Thanks,
-Rafael
+Am 2017-08-23 17:18, schrieb Moore, Robert:
+>> -----Original Message-----
+>> From: acpi-request@eclists.intel.com [mailto:acpi-
+>> request@eclists.intel.com] On Behalf Of David Renz
+>> Sent: Saturday, August 19, 2017 7:29 PM
+>> To: linux-acpi@vger.kernel.org
+>> Cc: acpi@linux.intel.com; Intel Product Security Incident Response 
+>> Team
+>> <Intel.Product.Security.Incident.Response.Team@intel.com>;
+>> david.renz@rub.de
+>> Subject: [acpi] Corrupt ACPI code (HP Pavilion Desktop PC 570-p0xx)
+>> [~170 ACPI-related failures found by FWTS]
+>> 
+>> Hello,
+>> 
+>> I reported this issue a while ago to some people from redhat.com, who
+>> forwarded my mail to <secure@intel.com>, but I didn't receive any 
+>> reply
+>> for about 2 weeks, and unfortunately I lost my access to this mail
+>> account. Therefore I'm sending/posting this once more using my
+>> university's mail address, since I would be able to recover the access
+>> if I should lose it again. [Please send your mail to this address in
+>> case somebody should have tried to contact me using that old mail
+>> address in the meantime.]
+>> 
+>> 
+>> This is the report generated by FirmwareTestSuite (FWTS,
+>> https://wiki.ubuntu.com/FirmwareTestSuite/Reference):
+>> https://pastebin.com/TapPuPMg
+>> 
+>> 
+>> 
+>> To provide an example of the numerous ACPI-related error messages 
+>> found
+>> by FWTS:
+>> 
+>> FAILED [LOW] AMLAsmASL_MSG_NOT_REFERENCED: Test 1, Assembler remark in
+>> line 1141
+>> Line | AML source
+>> ------------------------------------------------------------------------
+>> --------
+>> 01138|             Store (Buffer (0x18) {}, Local7)
+>> 01139|             CreateDWordField (Local7, 0x00, A119)
+>> 01140|             CreateDWordField (Local7, 0x04, A120)
+>> 01141|             CreateDWordField (Local7, 0x08, A121)
+>>       |                                               ^
+>>       | Remark 2089: Object is not referenced    (Name [A121] is 
+>> within
+>> a
+>> method [A037])
+>> 01142|             CreateDWordField (Local7, 0x0C, A122)
+>> 01143|             CreateDWordField (Local7, 0x10, A123)
+>> 01144|             CreateDWordField (Local7, 0x14, A124)
+>> 
+>> 
+>> 
+>> One of my friends also owns a similar HP Pavilion Desktop PC, and 
+>> having
+>> performed a test run using FWTS didn't show any ACPI-related
+>> error/failure messages in his case, so I assume that this behavior and
+>> all these errors can definitely not be considered as being normal.
+>> 
+>> 
+>> 
+>> ACPI-related error messages can also be seen in the kernel output when
+>> booting any Linux distro, e. g. in case of openSUSE Leap 42.2 it
+>> reports:
+>> [...]
+>> [   12.291867] ACPI Error: Field [D128] at 1152 exceeds Buffer [NULL]
+>> size 160 (bits) (20150930/dsopcode-236)
+>> [   12.291875] ACPI Error: Method parse/execution failed [\HWMC] (Node
+>> ffff880197cb5b30), AE_AML_BUFFER_LIMIT (20150930/psparse-542)
+>> [   12.291891] ACPI Error: Method parse/execution failed
+>> [\_SB.WMID.WMAA] (Node ffff880197cb7d60), AE_AML_BUFFER_LIMIT
+>> (20150930/psparse-542)
+>> [   12.291939] ACPI Error: Field [D128] at 1152 exceeds Buffer [NULL]
+>> size 160 (bits) (20150930/dsopcode-236)
+>> [   12.291943] ACPI Error: Method parse/execution failed [\HWMC] (Node
+>> ffff880197cb5b30), AE_AML_BUFFER_LIMIT (20150930/psparse-542)
+>> [   12.291947] ACPI Error: Method parse/execution failed
+>> [\_SB.WMID.WMAA] (Node ffff880197cb7d60), AE_AML_BUFFER_LIMIT
+>> (20150930/psparse-542)
+>> [   12.291988] ACPI Error: Field [D128] at 1152 exceeds Buffer [NULL]
+>> size 160 (bits) (20150930/dsopcode-236)
+>> [   12.291990] ACPI Error: Method parse/execution failed [\HWMC] (Node
+>> ffff880197cb5b30), AE_AML_BUFFER_LIMIT (20150930/psparse-542)
+>> [   12.291997] ACPI Error: Method parse/execution failed
+>> [\_SB.WMID.WMAA] (Node ffff880197cb7d60), AE_AML_BUFFER_LIMIT
+>> (20150930/psparse-542)
+>> [   12.292066] input: HP WMI hotkeys as /devices/virtual/input/input4
+>> [   12.292243] ACPI Error: Field [D128] at 1152 exceeds Buffer [NULL]
+>> size 160 (bits) (20150930/dsopcode-236)
+>> [   12.292247] ACPI Error: Method parse/execution failed [\HWMC] (Node
+>> ffff880197cb5b30), AE_AML_BUFFER_LIMIT (20150930/psparse-542)
+>> [   12.292262] ACPI Error: Method parse/execution failed
+>> [\_SB.WMID.WMAA] (Node ffff880197cb7d60), AE_AML_BUFFER_LIMIT
+>> (20150930/psparse-542)
+>> [   12.292308] ACPI Error: Field [D128] at 1152 exceeds Buffer [NULL]
+>> size 160 (bits) (20150930/dsopcode-236)
+>> [   12.292316] ACPI Error: Method parse/execution failed [\HWMC] (Node
+>> ffff880197cb5b30), AE_AML_BUFFER_LIMIT (20150930/psparse-542)
+>> [   12.292325] ACPI Error: Method parse/execution failed
+>> [\_SB.WMID.WMAA] (Node ffff880197cb7d60), AE_AML_BUFFER_LIMIT
+>> (20150930/psparse-542)
+>> [...]
+>> 
+>> 
+>> 
+>> By just analyzing the kernel boot output it seems that this ACPI code 
+>> /
+>> its execution results in a memory remapping and that it has an effect 
+>> on
+>> the interrupt routing:
+>> [...]
+>> [    0.438260] acpiphp: ACPI Hot Plug PCI Controller Driver version: 
+>> 0.5
+>> [    0.438355] PCI: MMCONFIG for domain 0000 [bus 00-3f] at [mem
+>> 0xf8000000-0xfbffffff] (base 0xf8000000)
+>> [    0.438358] PCI: MMCONFIG at [mem 0xf8000000-0xfbffffff] reserved 
+>> in
+>> E820
+>> [    0.438363] PCI: Using configuration type 1 for base access
+>> [    0.462685] ACPI: Added _OSI(Module Device)
+>> [    0.462689] ACPI: Added _OSI(Processor Device)
+>> [    0.462691] ACPI: Added _OSI(3.0 _SCP Extensions)
+>> [    0.462692] ACPI: Added _OSI(Processor Aggregator Device)
+>> [    0.465615] ACPI: Executed 1 blocks of module-level executable AML
+>> code
+>> [    0.477070] ACPI: Interpreter enabled
+>> [    0.477102] ACPI: (supports S0 S3 S4 S5)
+>> [    0.477104] ACPI: Using IOAPIC for interrupt routing
+>> [    0.477143] PCI: Using host bridge windows from ACPI; if necessary,
+>> use "pci=nocrs" and report a bug
+>> [    0.477704] [Firmware Bug]: ACPI: No _BQC method, cannot determine
+>> initial brightness
+>> [    0.479303] [Firmware Bug]: ACPI: No _BQC method, cannot determine
+>> initial brightness
+>> [...]
+>> [    0.481669] [Firmware Bug]: ACPI: No _BQC method, cannot determine
+>> initial brightness
+>> [    0.484553] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+>> [    0.484562] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM
+>> ClockPM Segments MSI]
+>> [    0.484816] acpi PNP0A08:00: _OSC: OS now controls [PCIeHotplug PME
+>> AER PCIeCapability]
+>> [    0.484830] acpi PNP0A08:00: [Firmware Info]: MMCONFIG for domain
+>> 0000 [bus 00-3f] only partially covers this bridge
+>> [...]
+>> 
+>> 
+>> Finally it seems that this memory remapping makes it possible to 
+>> inject
+>> hidden kernel modules (which I was able to detect using the Volatility
+>> Framework previously, apart from kernel hooks):
+>> 
+>> [   11.536189] resource sanity check: requesting [mem
+>> 0xddf78000-0xddf7bfff], which spans more than MSFT0101:00 [mem
+>> 0xddf78000-0xddf78fff]
+>> [   11.536192] ------------[ cut here ]------------
+>> [   11.536198] WARNING: CPU: 3 PID: 587 at 
+>> ../arch/x86/mm/ioremap.c:198
+>> __ioremap_caller+0x293/0x350()
+>> [   11.536199] Info: mapping multiple BARs. Your kernel is fine.
+>> [   11.536199] Modules linked in: tpm_crb(+) ablk_helper cryptd fjes
+>> 8250_dw processor soundcore gpio_amdpt button video thermal
+>> i2c_designware_platform i2c_designware_core xfs libcrc32c sd_mod uas
+>> usb_storage crc32c_intel amdkfd amd_iommu_v2 ehci_pci ehci_hcd 
+>> xhci_pci
+>> nvme nvme_core amdgpu ahci libahci i2c_algo_bit xhci_hcd 
+>> drm_kms_helper
+>> libata syscopyarea sysfillrect sysimgblt fb_sys_fops ttm usbcore
+>> usb_common drm sg scsi_mod efivarfs autofs4
+>> [   11.536273] CPU: 3 PID: 587 Comm: systemd-udevd Tainted: G        W
+>>       4.4.79-18.26-default #1
+>> [   11.536275] Hardware name: HP HP Pavilion Desktop PC 570-p0xx/82FE,
+>> BIOS F.12 05/19/2017
+>> [   11.536277]  0000000000000000 ffffffff8132a157 ffff8801f5bd3ad0
+>> ffffffff81a50b3a
+>> [   11.536286]  ffffffff8107ef11
+>> [   11.536287]  ffffc90000cb8000 ffff8801f5bd3b20 ffffc90000cb8000
+>> [   11.536294]  0000000000004000
+>> [   11.536296]  ffff8800daa41600 ffffffff8107ef8c ffffffff81a48a78
+>> [   11.536302] Call Trace:
+>> [   11.536315]  [<ffffffff81019ea9>] dump_trace+0x59/0x320
+>> [   11.536321]  [<ffffffff8101a26a>] show_stack_log_lvl+0xfa/0x180
+>> [   11.536324]  [<ffffffff8101b011>] show_stack+0x21/0x40
+>> [   11.536330]  [<ffffffff8132a157>] dump_stack+0x5c/0x85
+>> [   11.536334]  [<ffffffff8107ef11>] warn_slowpath_common+0x81/0xb0
+>> [   11.536337]  [<ffffffff8107ef8c>] warn_slowpath_fmt+0x4c/0x50
+>> [   11.536341]  [<ffffffff81066f93>] __ioremap_caller+0x293/0x350
+>> [   11.536347]  [<ffffffff8134316d>] devm_ioremap_nocache+0x3d/0x80
+>> [   11.536351]  [<ffffffffa026d3ac>] crb_acpi_add+0x13c/0x290 
+>> [tpm_crb]
+>> [   11.536366]  [<ffffffff813afada>] acpi_device_probe+0x4a/0x1c0
+>> [   11.536373]  [<ffffffff81471ca7>] driver_probe_device+0x1f7/0x420
+>> [   11.536377]  [<ffffffff81471f4b>] __driver_attach+0x7b/0x80
+>> [   11.536382]  [<ffffffff8146fb98>] bus_for_each_dev+0x58/0x90
+>> [   11.536386]  [<ffffffff814710e9>] bus_add_driver+0x1c9/0x280
+>> [   11.536389]  [<ffffffff8147290b>] driver_register+0x5b/0xd0
+>> [   11.536394]  [<ffffffff81002138>] do_one_initcall+0xc8/0x1f0
+>> [   11.536399]  [<ffffffff8118b9bc>] do_init_module+0x5a/0x1d7
+>> [   11.536408]  [<ffffffff8110af87>] load_module+0x1e97/0x2800
+>> [   11.536411]  [<ffffffff8110bac0>] SYSC_finit_module+0x70/0xa0
+>> [   11.536419]  [<ffffffff81610772>] 
+>> entry_SYSCALL_64_fastpath+0x16/0x71
+>> [   11.537802] DWARF2 unwinder stuck at
+>> entry_SYSCALL_64_fastpath+0x16/0x71
+>> 
+>> [   11.537803] Leftover inexact backtrace:
+>> 
+>> [   11.537806] ---[ end trace 31411d409269e2e9 ]---
+>> 
+>> 
+>> Full dmesg output on pastebin.com:
+>> https://pastebin.com/164qUxnW
+>> 
+>> 
+>> 
+>> This is not directly ACPI-related, but since it makes the impression
+>> that the ACPI code's execution leads to the system getting 
+>> compromised,
+>> I hope it's alright if I quote only a few findings which were reported
+>> when performing a Lynis system audit:
+>> 
+>>    - Comparing sysctl key pairs with scan profile
+>>      - kernel.core_uses_pid (exp: 1)                           [
+>> DIFFERENT ]
+>>      - kernel.ctrl-alt-del (exp: 0)                            [ OK ]
+>>      - kernel.kptr_restrict (exp: 2)                           [
+>> DIFFERENT ]
+>>      - kernel.randomize_va_space (exp: 2)                      [ OK ]
+>>      - kernel.sysrq (exp: 0)                                   [
+>> DIFFERENT ]
+>>      - net.ipv4.conf.all.accept_redirects (exp: 0)             [
+>> DIFFERENT ]
+>>      - net.ipv4.conf.all.accept_source_route (exp: 0)          [ OK ]
+>>      - net.ipv4.conf.all.bootp_relay (exp: 0)                  [ OK ]
+>>      - net.ipv4.conf.all.forwarding (exp: 0)                   [ OK ]
+>>      - net.ipv4.conf.all.log_martians (exp: 1)                 [
+>> DIFFERENT ]
+>>      - net.ipv4.conf.all.mc_forwarding (exp: 0)                [ OK ]
+>>      - net.ipv4.conf.all.proxy_arp (exp: 0)                    [ OK ]
+>>      - net.ipv4.conf.all.rp_filter (exp: 1)                    [
+>> DIFFERENT ]
+>>      - net.ipv4.conf.all.send_redirects (exp: 0)               [
+>> DIFFERENT ]
+>>      - net.ipv4.conf.default.accept_redirects (exp: 0)         [
+>> DIFFERENT ]
+>>      - net.ipv4.conf.default.accept_source_route (exp: 0)      [
+>> DIFFERENT ]
+>>      - net.ipv4.conf.default.log_martians (exp: 1)             [
+>> DIFFERENT ]
+>>      - net.ipv4.icmp_echo_ignore_broadcasts (exp: 1)           [ OK ]
+>>      - net.ipv4.icmp_ignore_bogus_error_responses (exp: 1)     [ OK ]
+>>      - net.ipv4.tcp_syncookies (exp: 1)                        [ OK ]
+>>      - net.ipv4.tcp_timestamps (exp: 0)                        [
+>> DIFFERENT ]
+>>      - net.ipv6.conf.all.accept_redirects (exp: 0)             [
+>> DIFFERENT ]
+>>      - net.ipv6.conf.all.accept_source_route (exp: 0)          [ OK ]
+>>      - net.ipv6.conf.default.accept_redirects (exp: 0)         [
+>> DIFFERENT ]
+>>      - net.ipv6.conf.default.accept_source_route (exp: 0)      [ OK ]
+>> 
+>> 
+>> Also "chkrootkit" classified three network related binaries as "packet
+>> sniffers":
+>> wlan0: PACKET SNIFFER(/sbin/wpa_supplicant[798],
+>> /sbin/wpa_supplicant[798], /sbin/dhclient[21562]
+>> 
+>> Having disassembled these files it wasn't difficult for me to 
+>> understand
+>> why they were classified this way, e. g. by looking at the strings
+>> contained in the disassembled "wpa_supplicant" file:
+>> vaddr=0x00164118 paddr=0x00164118 ordinal=906 sz=85 len=84
+>> section=.rodata type=ascii string=TDLS: Channel switching is 
+>> prohibited
+>> in this BSS - reject request to switch channel
+>> [...]
+>> vaddr=0x00166ce0 paddr=0x00166ce0 ordinal=1154 sz=100 len=99
+>> section=.rodata type=ascii string=RSN: Replace PMKSA entry for the
+>> current AP and any PMKSA cache entry that was based on the old PMK
+>> [...]
+>> 
+>> By the way, a Google search returned only three hits when searching 
+>> for
+>> each of these strings, and the source code which these hits refer to
+>> doesn't look very trustworthy actually, e. g.:
+>> https://gitlab.gwdg.de/eap-
+>> saml/hostapd/blob/hostap_2_5/src/rsn_supp/tdls.c
+>> https://w1.fi/cgit/hostap/plain/src/rsn_supp/pmksa_cache.c
+>> 
+>> 
+>> [Sorry if this should be considered as being off-topic, but since it 
+>> can
+>> probably be assumed that this ACPI code on my computer is compromised, 
+>> I
+>> think it's very reasonable to assume that the system gets compromised 
+>> by
+>> its execution and not for any other reason - I didn't download or
+>> install anything before having made these observations, so mentioning
+>> this could not really be regarded as being 'off-topic' in this 
+>> context.]
+>> 
+>> 
+>> The full disassembly of "wpa_supplicant" and "dhclient", plus the
+>> extracted and disassembled ACPI code from my system can be downloaded
+>> from the GoogleDrive folder I gave shared access to:
+>> https://drive.google.com/open?id=0B62Y5Qk_rdbWdzBsWmt1eEl3YlU
+>> 
+>> 
+>> 
+>> If anyone would like to send me a reply, please send your mail also to
+>> my other address <sheer.itsec@protonmail.com> to ensure that it will
+>> reach me. I would really appreciate it, if this issue would receive 
+>> some
+>> attention and gets investigated / further analyzed by people being 
+>> able
+>> to do so, since having one's computer infected by a 
+>> highly-sophisticated
+>> firmware-based rootkit while not knowing anything about the reason /
+>> background of this is not very pleasant.
+>> 
+>> 
+> [Moore, Robert]
+> 
+> 
+> Please send or post the acpidump for this machine; I didn't see it 
+> above.
+> 
+> 
+> 
+> 
+>> 
+>> Kind regards and thanks in advance
+>> 
+>> David Renz
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" 
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
