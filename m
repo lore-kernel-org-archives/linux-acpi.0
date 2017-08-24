@@ -1,222 +1,166 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 3/3] ACPI / PMIC: Add opregion driver for Intel Dollar
- Cove TI PMIC
-Date: Thu, 24 Aug 2017 12:14:53 +0300
-Message-ID: <20170824091453.GK2327@lahna.fi.intel.com>
-References: <20170824081141.5018-1-tiwai@suse.de>
- <20170824081141.5018-4-tiwai@suse.de>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v2 5/9] PM / ACPI: Provide option to disable
+ direct_complete for ACPI devices
+Date: Thu, 24 Aug 2017 11:15:26 +0200
+Message-ID: <CAPDyKFrj6RdsG4Qf847OvLQMgqHeyh1=YyeKZMeaGgQ2du3cNA@mail.gmail.com>
+References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org>
+ <3774251.HUIR40xRhc@aspire.rjw.lan> <9174364.s7oU13Tavs@aspire.rjw.lan> <1726767.L8TO24juDO@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:3595 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751959AbdHXJO7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 24 Aug 2017 05:14:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20170824081141.5018-4-tiwai@suse.de>
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:34011 "EHLO
+        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751276AbdHXJP1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Aug 2017 05:15:27 -0400
+Received: by mail-qk0-f182.google.com with SMTP id f205so220954qkb.1
+        for <linux-acpi@vger.kernel.org>; Thu, 24 Aug 2017 02:15:27 -0700 (PDT)
+In-Reply-To: <1726767.L8TO24juDO@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Johannes Stezenbach <js@sig21.net>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
 
-On Thu, Aug 24, 2017 at 10:11:41AM +0200, Takashi Iwai wrote:
-> This patch adds the opregion driver for Dollar Cove TI PMIC on Intel
-> Cherry Trail devices.  The patch is based on the original work by
-> Intel, found at:
->       https://github.com/01org/ProductionKernelQuilts
-> with many cleanups and rewrites.
-> 
-> The driver is currently provided only as built-in to follow other
-> PMIC opregion drivers convention.
-> 
-> The re-enumeration of devices at probe is required for fixing the
-> issues on HP x2 210 G2.  See bug#195689.
-> 
-> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=193891
-> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=195689
-> Signed-off-by: Takashi Iwai <tiwai@suse.de>
+[...]
+
+>> >
+>> > It actually should work with the ACPI PM domain code as is except that it
+>> > will cause the device to be runtime resumed every time during suspend.
+>> >
+>> > But acpi_subsys_suspend() can be changed to avoid resuming the device if
+>> > power.force_suspend is set.
+>>
+>> Or better yet, if power.direct_complete is not set, because that means the
+>> device needs to be resumed anyway.
+>>
+>> And if power.direct_complete is set at that point, power.force_suspend has to
+>> be set too.
+
+I believe I understand your goal here. You want to consider if it is
+possible to extend the behavior of the direct_complete path, instead
+of enabling the runtime PM centric path for the ACPI PM domain, to
+accomplish the same optimizations.
+
+I think the answer to that, is that it simply can't. See more
+information about why further down below.
+
+>
+> Overall, like below, and of course drivers that ser power.force_suspend need to
+> be able to deal with devices that have been runtime resumed during
+> __device_suspend().
+
+The a concern I see with this approach, is that is going to be too
+complex to understand.
+
+We have already seen how the i2c-designware-driver was screwed up when
+it was trying to take advantage of the optimizations provided by the
+current direct_complete path. I think we should be careful when
+considering making it even more complex.
+
+In the runtime PM centric path, driver authors can easily deploy
+system sleep support. In some cases it may even consists of only two
+lines of code. As can be shown in patch9 for the i2c driver.
+
+Just to be clear, that doesn't mean that I think the direct_complete
+path isn't useful. Especially it is a good match for the ACPI PM
+domain, as it can easily affect all its devices, without having to
+care much about the behavior of the drivers.
+
+>
 > ---
-> v1->v2:
-> * get_raw_temp cleanup in opregion driver, mention about register
->   endianess
-> 
->  drivers/acpi/Kconfig                 |   6 ++
->  drivers/acpi/Makefile                |   1 +
->  drivers/acpi/pmic/intel_pmic_dc_ti.c | 139 +++++++++++++++++++++++++++++++++++
->  3 files changed, 146 insertions(+)
->  create mode 100644 drivers/acpi/pmic/intel_pmic_dc_ti.c
-> 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 1ce52f84dc23..9da8dcefde7b 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -521,6 +521,12 @@ config CHT_WC_PMIC_OPREGION
->  	help
->  	  This config adds ACPI operation region support for CHT Whiskey Cove PMIC.
->  
-> +config DC_TI_PMIC_OPREGION
-> +	bool "ACPI operation region support for Dollar Cove TI PMIC"
-> +	depends on INTEL_SOC_PMIC_DC_TI
-> +	help
-> +	  This config adds ACPI operation region support for Dollar Cove TI PMIC.
+>  drivers/acpi/device_pm.c  |    8 ++++++++
+>  drivers/base/power/main.c |   11 +++++++++--
+>  include/linux/pm.h        |    1 +
+>  3 files changed, 18 insertions(+), 2 deletions(-)
+>
+> Index: linux-pm/drivers/base/power/main.c
+> ===================================================================
+> --- linux-pm.orig/drivers/base/power/main.c
+> +++ linux-pm/drivers/base/power/main.c
+> @@ -1271,9 +1271,16 @@ static int __device_suspend_late(struct
+>                 goto Complete;
+>         }
+>
+> -       if (dev->power.syscore || dev->power.direct_complete)
+> +       if (dev->power.syscore)
+>                 goto Complete;
+>
+> +       if (dev->power.direct_complete) {
+> +               if (pm_runtime_status_suspended(dev))
+> +                       goto Complete;
 > +
->  endif
->  
->  config ACPI_CONFIGFS
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index b1aacfc62b1f..0a9008b971af 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -103,6 +103,7 @@ obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
->  obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
->  obj-$(CONFIG_BXT_WC_PMIC_OPREGION) += pmic/intel_pmic_bxtwc.o
->  obj-$(CONFIG_CHT_WC_PMIC_OPREGION) += pmic/intel_pmic_chtwc.o
-> +obj-$(CONFIG_DC_TI_PMIC_OPREGION) += pmic/intel_pmic_dc_ti.o
->  
->  obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
->  
-> diff --git a/drivers/acpi/pmic/intel_pmic_dc_ti.c b/drivers/acpi/pmic/intel_pmic_dc_ti.c
-> new file mode 100644
-> index 000000000000..a2be1270eeeb
-> --- /dev/null
-> +++ b/drivers/acpi/pmic/intel_pmic_dc_ti.c
-> @@ -0,0 +1,139 @@
-> +/*
-> + * Dollar Cove TI PMIC operation region driver
-> + * Copyright (C) 2014 Intel Corporation. All rights reserved.
+> +               dev->power.direct_complete = false;
+> +       }
+> +
+>         if (dev->pm_domain) {
+>                 info = "late power domain ";
+>                 callback = pm_late_early_op(&dev->pm_domain->ops, state);
+> @@ -1482,7 +1489,7 @@ static int __device_suspend(struct devic
+>         if (dev->power.syscore)
+>                 goto Complete;
+>
+> -       if (dev->power.direct_complete) {
+> +       if (dev->power.direct_complete && !dev->power.force_suspend) {
+>                 if (pm_runtime_status_suspended(dev)) {
+>                         pm_runtime_disable(dev);
+>                         if (pm_runtime_status_suspended(dev))
+> Index: linux-pm/include/linux/pm.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/pm.h
+> +++ linux-pm/include/linux/pm.h
+> @@ -554,6 +554,7 @@ struct dev_pm_info {
+>         pm_message_t            power_state;
+>         unsigned int            can_wakeup:1;
+>         unsigned int            async_suspend:1;
+> +       unsigned int            force_suspend:1;
+>         bool                    in_dpm_list:1;  /* Owned by the PM core */
+>         bool                    is_prepared:1;  /* Owned by the PM core */
+>         bool                    is_suspended:1; /* Ditto */
+> Index: linux-pm/drivers/acpi/device_pm.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/device_pm.c
+> +++ linux-pm/drivers/acpi/device_pm.c
+> @@ -1025,9 +1025,17 @@ EXPORT_SYMBOL_GPL(acpi_subsys_prepare);
+>   *
+>   * Follow PCI and resume devices suspended at run time before running their
+>   * system suspend callbacks.
 > + *
-> + * Rewritten and cleaned up
-> + * Copyright (C) 2017 Takashi Iwai <tiwai@suse.de>
-> + */
+> + * If the power.direct_complete flag is set for the device, though, skip all
+> + * that, because the device doesn't need to be resumed then and if it is
+> + * resumed via runtime PM, the core will notice that and will carry out the
+> + * late suspend for it.
+>   */
+>  int acpi_subsys_suspend(struct device *dev)
+>  {
+> +       if (dev->power.direct_complete)
+> +               return 0;
 > +
-> +#include <linux/acpi.h>
-> +#include <linux/init.h>
-> +#include <linux/mfd/intel_soc_pmic.h>
-> +#include <linux/platform_device.h>
-> +#include "intel_pmic.h"
-> +
-> +/* registers stored in 16bit BE (high:low, total 10bit) */
-> +#define DC_TI_VBAT	0x54
-> +#define DC_TI_DIETEMP	0x56
-> +#define DC_TI_BPTHERM	0x58
-> +#define DC_TI_GPADC	0x5a
-> +
-> +static struct pmic_table dc_ti_power_table[] = {
+>         pm_runtime_resume(dev);
+>         return pm_generic_suspend(dev);
+>  }
+>
 
-const?
+The above change would offer an improvement, however there are more
+benefits from the runtime PM centric path that it doesn't cover. The
+below is pasted from the changelog for patch9 (I will make sure to
+fold in this in the changelog for $subject patch next version).
 
-> +	{ .address = 0x00, .reg = 0x41 },
-> +	{ .address = 0x04, .reg = 0x42 },
-> +	{ .address = 0x08, .reg = 0x43 },
-> +	{ .address = 0x0c, .reg = 0x45 },
-> +	{ .address = 0x10, .reg = 0x46 },
-> +	{ .address = 0x14, .reg = 0x47 },
-> +	{ .address = 0x18, .reg = 0x48 },
-> +	{ .address = 0x1c, .reg = 0x49 },
-> +	{ .address = 0x20, .reg = 0x4a },
-> +	{ .address = 0x24, .reg = 0x4b },
-> +	{ .address = 0x28, .reg = 0x4c },
-> +	{ .address = 0x2c, .reg = 0x4d },
-> +	{ .address = 0x30, .reg = 0x4e },
-> +};
-> +
-> +static struct pmic_table dc_ti_thermal_table[] = {
+In case the device is/gets runtime resumed before the device_suspend()
+phase is entered, the PM core doesn't run the direct_complete path for
+the device during system sleep. During system resume, this lead to
+that the device will always be brought back to full power when the
+i2c-dw-plat driver's ->resume() callback is invoked. This may not be
+necessary, thus increasing the resume time for the device and wasting
+power.
 
-const?
+In the runtime PM centric path, the pm_runtime_force_resume() helper
+takes better care, as it resumes the device only in case it's really
+needed. Normally this means it can be postponed to be dealt with via
+regular calls to runtime PM (pm_runtime_get*()) instead. In other
+words, the device remains in its low power state until someone request
+a new i2c transfer, whenever that may be.
 
-> +	{
-> +		.address = 0x00,
-> +		.reg = DC_TI_GPADC
-> +	},
-> +	{
-> +		.address = 0x0c,
-> +		.reg = DC_TI_GPADC
-> +	},
-> +	/* TMP2 -> SYSTEMP */
-> +	{
-> +		.address = 0x18,
-> +		.reg = DC_TI_GPADC
-> +	},
-> +	/* TMP3 -> BPTHERM */
-> +	{
-> +		.address = 0x24,
-> +		.reg = DC_TI_BPTHERM
-> +	},
-> +	{
-> +		.address = 0x30,
-> +		.reg = DC_TI_GPADC
-> +	},
-> +	/* TMP5 -> DIETEMP */
-> +	{
-> +		.address = 0x3c,
-> +		.reg = DC_TI_DIETEMP
-> +	},
-> +};
-> +
-> +static int dc_ti_pmic_get_power(struct regmap *regmap, int reg, int bit,
-> +				u64 *value)
-> +{
-> +	int data;
-> +
-> +	if (regmap_read(regmap, reg, &data))
-> +		return -EIO;
-> +
-> +	*value = data & 1;
-> +	return 0;
-> +}
-> +
-> +static int dc_ti_pmic_update_power(struct regmap *regmap, int reg, int bit,
-> +				   bool on)
-> +{
-> +	return regmap_update_bits(regmap, reg, 1, on);
-> +}
-> +
-> +static int dc_ti_pmic_get_raw_temp(struct regmap *regmap, int reg)
-> +{
-> +	u8 buf[2];
-> +	unsigned int val;
-> +
-> +	if (regmap_bulk_read(regmap, reg, buf, 2))
-> +		return -EIO;
-> +
-> +	/* stored in big-endian */
-> +	val = buf[0] & 0x03;
-> +	return (val << 8) | buf[1];
-> +}
-> +
-> +static struct intel_pmic_opregion_data dc_ti_pmic_opregion_data = {
+As far as I can think of, the direct_complete path can't be adjusted
+to support this. Or can it?
 
-const?
-
-> +	.get_power = dc_ti_pmic_get_power,
-> +	.update_power = dc_ti_pmic_update_power,
-> +	.get_raw_temp = dc_ti_pmic_get_raw_temp,
-> +	.power_table = dc_ti_power_table,
-> +	.power_table_count = ARRAY_SIZE(dc_ti_power_table),
-> +	.thermal_table = dc_ti_thermal_table,
-> +	.thermal_table_count = ARRAY_SIZE(dc_ti_thermal_table),
-> +};
-> +
-> +static int dc_ti_pmic_opregion_probe(struct platform_device *pdev)
-> +{
-> +	struct intel_soc_pmic *pmic = dev_get_drvdata(pdev->dev.parent);
-> +	int err;
-> +
-> +	err = intel_pmic_install_opregion_handler(&pdev->dev,
-> +			ACPI_HANDLE(pdev->dev.parent), pmic->regmap,
-> +			&dc_ti_pmic_opregion_data);
-> +	if (err < 0)
-> +		return err;
-> +
-> +	/* Re-enumerate devices depending on PMIC */
-> +	acpi_walk_dep_device_list(ACPI_HANDLE(pdev->dev.parent));
-> +	return 0;
-> +}
-> +
-> +static struct platform_device_id dc_ti_pmic_opregion_id_table[] = {
-
-const?
-
-Regardless of the above,
-
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Kind regards
+Uffe
