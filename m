@@ -1,70 +1,71 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.13-rc7
-Date: Thu, 24 Aug 2017 22:54:19 +0200
-Message-ID: <CAJZ5v0jG8+KcYfjXK+CK6pX0787ZPBd4zbOZ9MTixNzUBxzgmQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 5/9] PM / ACPI: Provide option to disable direct_complete for ACPI devices
+Date: Thu, 24 Aug 2017 23:50:40 +0200
+Message-ID: <6003495.864qntojfu@aspire.rjw.lan>
+References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org> <CAPDyKFrj6RdsG4Qf847OvLQMgqHeyh1=YyeKZMeaGgQ2du3cNA@mail.gmail.com> <12333551.k204JYSgao@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <12333551.k204JYSgao@aspire.rjw.lan>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Thursday, August 24, 2017 6:35:49 PM CEST Rafael J. Wysocki wrote:
+> On Thursday, August 24, 2017 11:15:26 AM CEST Ulf Hansson wrote:
 
-Please pull from the tag
+[cut]
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.13-rc7
+> [BTW, it is not entirely clear to me why it ever is necessary to runtime resume
+> a device with direct_complete set after __device_suspend(), because it can only
+> have direct_complete set at that point if all of the hierarchy below it has
+> this flag set too and so runtime PM has to be disabled for all of those
+> devices as well.]
 
-with top-most commit d5d6c1ddb93a7225915cd7e89f35944878d667f9
+Which makes me realize that we should take a step back and look at what
+problems there are.
 
- Merge branches 'acpica-fix', 'acpi-ec-fix' and 'acpi-properties-fix'
+First, there are devices (I know about two examples so far and both are PCI)
+that may need to be runtime resumed during system suspend for reasons other
+than the ones checked by the ACPI PM domain (or the PCI bus type).  There needs
+to be a way to indicate that from the driver side.
 
-on top of commit 14ccee78fc82f5512908f4424f541549a5705b89
+However, it still may be valuable to check the power-related conditions for
+leaving the device in runtime suspend over system suspend/resume in case
+it actually doesn't need to be runtime resumed during system suspend after
+all.  That's what the majority of my patch was about.
 
- Linux v4.13-rc6
+The second problem is that the ACPI PM domain (and the PCI bus type)
+runtime resumes all devices unconditionally in its ->suspend callback,
+even though that may not be necessary for some devices.  Therefore there
+needs to be a way to indicate that too.  That still would be good to
+have *regardless* of the direct_complete mechanism, because the direct_complete
+flag may not be set very often due to dependencies and then the
+resume-during-suspend will take place unnecessarily.
 
-to receive ACPI fixes for v4.13-rc7.
+Accordingly, it looks like we need a "no need to resume me" flag in the first
+place.  That would indicate to interested pieces of code that, from the
+driver perspective, the device doesn't need to be runtime resumed before
+invoking its system suspend callbacks.  This should be clear enough to everyone
+IMO.
 
-These fix two recent regressions (in ACPICA and in the ACPI EC driver)
-and one bug in code introduced during the 4.12 cycle (ACPI device
-properties library routine).
+[Note that if that flag is set for all devices, we may drop it along with
+direct_complete, but before that happens both are needed.]
 
-Specifics:
+To address the first issue I would add something like the flag in the patches
+I sent (but without the ACPI PM domain part which should be covered by the
+"no need to resume me" flag above), because that allows the device's ->suspend
+callback to run in principle and the driver may use that callback even to
+runtime resume the device if that's what it wants to do.  So something like
+"run my ->suspend callback even though I might stay in runtime suspend".
 
- - Fix a regression in the ACPI EC driver causing a kernel to crash
-   during initialization on some systems due to a code ordering issue
-   exposed by a recent change (Lv Zheng).
+I would probably add driver_flags to dev_pm_info for that to set at the probe
+time (and I would make the core clear that on driver removal).
 
- - Fix a recent regression in ACPICA due to a change of the behavior
-   of a library function in a way that is not backwards compatible
-   with some existing callers of it (Rafael Wysocki).
+The complexity concern is there, but honestly I don't see a better way at
+this point.
 
- - Fix a coding mistake in a library function related to the handling
-   of ACPI device properties introduced during the 4.12 cycle (Sakari
-   Ailus).
-
-Thanks!
-
-
----------------
-
-Lv Zheng (1):
-      ACPI: EC: Fix regression related to wrong ECDT initialization order
-
-Rafael J. Wysocki (1):
-      ACPICA: Fix acpi_evaluate_object_typed()
-
-Sakari Ailus (1):
-      ACPI: device property: Fix node lookup in
-acpi_graph_get_child_prop_value()
-
----------------
-
- drivers/acpi/acpica/nsxfeval.c | 10 +++++++---
- drivers/acpi/ec.c              | 17 +++++++----------
- drivers/acpi/internal.h        |  1 -
- drivers/acpi/property.c        |  2 +-
- drivers/acpi/scan.c            |  1 -
- 5 files changed, 15 insertions(+), 16 deletions(-)
+Thanks,
+Rafael
