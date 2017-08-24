@@ -1,60 +1,55 @@
-From: Shannon Zhao <zhaoshenglong@huawei.com>
-Subject: Re: [PATCH v11 3/6] ACPI: build and enable APEI GHES in the Makefile
- and configuration
-Date: Thu, 24 Aug 2017 21:04:51 +0800
-Message-ID: <599ECEF3.80001@huawei.com>
-References: <1503066227-18251-1-git-send-email-gengdongjiu@huawei.com> <1503066227-18251-4-git-send-email-gengdongjiu@huawei.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 1/2] nfit: Use init_completion() in
+ acpi_nfit_flush_probe()
+Date: Thu, 24 Aug 2017 15:07:42 +0200 (CEST)
+Message-ID: <alpine.DEB.2.20.1708241507160.1860@nanos>
+References: <20170823152542.5150-1-boqun.feng@gmail.com> <20170823152542.5150-2-boqun.feng@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:4566 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751601AbdHXNGh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Aug 2017 09:06:37 -0400
-In-Reply-To: <1503066227-18251-4-git-send-email-gengdongjiu@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20170823152542.5150-2-boqun.feng@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Boqun Feng <boqun.feng@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, walken@google.com, Byungchul Park <byungchul.park@lge.com>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, willy@infradead.org, Nicholas Piggin <npiggin@gmail.com>, kernel-team@lge.com, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>, mst@redhat.com, imammedo@redhat.com, peter.maydell@linaro.org, pbonzini@redhat.com, qemu-devel@nongnu.org, qemu-arm@nongnu.org, kvm@vger.kernel.org, edk2-devel@lists.01.org, christoffer.dall@linaro.org, marc.zyngier@arm.com, will.deacon@arm.com, james.morse@arm.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, john.garry@huawei.com, jonathan.cameron@huawei.com, shameerali.kolothum.thodi@huawei.com, huangdaode@hisilicon.com, wangzhou1@hisilicon.com
-Cc: huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com, zhengqiang10@huawei.com
 
+On Wed, 23 Aug 2017, Boqun Feng wrote:
 
+> There is no need to use COMPLETION_INITIALIZER_ONSTACK() in
+> acpi_nfit_flush_probe(), replace it with init_completion().
 
-On 2017/8/18 22:23, Dongjiu Geng wrote:
-> Add CONFIG_ACPI_APEI configuration in the Makefile and
-> enable it in the arm-softmmu.mak
-> 
-> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> ---
->  default-configs/arm-softmmu.mak | 1 +
->  hw/acpi/Makefile.objs           | 1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff --git a/default-configs/arm-softmmu.mak b/default-configs/arm-softmmu.mak
-> index bbdd3c1..c362113 100644
-> --- a/default-configs/arm-softmmu.mak
-> +++ b/default-configs/arm-softmmu.mak
-> @@ -129,3 +129,4 @@ CONFIG_ACPI=y
->  CONFIG_SMBIOS=y
->  CONFIG_ASPEED_SOC=y
->  CONFIG_GPIO_KEY=y
-> +CONFIG_ACPI_APEI=y
-> diff --git a/hw/acpi/Makefile.objs b/hw/acpi/Makefile.objs
-> index 11c35bc..bafb148 100644
-> --- a/hw/acpi/Makefile.objs
-> +++ b/hw/acpi/Makefile.objs
-> @@ -6,6 +6,7 @@ common-obj-$(CONFIG_ACPI_MEMORY_HOTPLUG) += memory_hotplug.o
->  common-obj-$(CONFIG_ACPI_CPU_HOTPLUG) += cpu.o
->  common-obj-$(CONFIG_ACPI_NVDIMM) += nvdimm.o
->  common-obj-$(CONFIG_ACPI_VMGENID) += vmgenid.o
-> +common-obj-$(CONFIG_ACPI_APEI) += hest_ghes.o
->  common-obj-$(call lnot,$(CONFIG_ACPI_X86)) += acpi-stub.o
->  
->  common-obj-y += acpi_interface.o
-> 
-Fold this patch into previous one.
+You completely fail to explain WHY.
 
 Thanks,
--- 
-Shannon
 
+	tglx
+
+ 
+> Signed-off-by: Boqun Feng <boqun.feng@gmail.com>
+> ---
+>  drivers/acpi/nfit/core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 19182d091587..1893e416e7c0 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -2884,7 +2884,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+>  	 * need to be interruptible while waiting.
+>  	 */
+>  	INIT_WORK_ONSTACK(&flush.work, flush_probe);
+> -	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
+> +	init_completion(&flush.cmp);
+>  	queue_work(nfit_wq, &flush.work);
+>  	mutex_unlock(&acpi_desc->init_mutex);
+>  
+> -- 
+> 2.14.1
+> 
+> 
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
