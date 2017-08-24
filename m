@@ -1,136 +1,83 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization
- earlier
-Date: Thu, 24 Aug 2017 16:05:28 +0800
-Message-ID: <20170824080528.GD19768@x1>
-References: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com>
- <1500011554-9784-13-git-send-email-douly.fnst@cn.fujitsu.com>
- <a8024347-ce0b-c59b-74ea-45a822e54ee6@cn.fujitsu.com>
- <8d662105-2ff5-02fd-9072-73167e5f49c1@cn.fujitsu.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH V2] acpi: apei: clear error status before acknowledging
+ the error
+Date: Thu, 24 Aug 2017 10:14:08 +0200
+Message-ID: <20170824081408.iwg7qyyr226btivo@pd.tnic>
+References: <1501798351-10337-1-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45980 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751183AbdHXIFd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 24 Aug 2017 04:05:33 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <8d662105-2ff5-02fd-9072-73167e5f49c1@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1501798351-10337-1-git-send-email-tbaicar@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, austinwc@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, ebiederm@xmission.com, peterz@infradead.org, izumi.taku@jp.fujitsu.com, tokunaga.keiich@jp.fujitsu.com, linux-acpi@vger.kernel.org, Julian Wollrath <jwollrath@web.de>, Borislav Petkov <bp@alien8.de>
 
-Hi Liyang,
+On Thu, Aug 03, 2017 at 04:12:31PM -0600, Tyler Baicar wrote:
+> Currently we acknowledge errors before clearing the error status.
+> This could cause a new error to be populated by firmware in-between
+> the error acknowledgment and the error status clearing which would
+> cause the second error's status to be cleared without being handled.
+> So, clear the error status before acknowledging the errors.
+> 
+> Also, make sure to acknowledge the error if the error status read
+> fails.
+> 
+> V2: Only send error ack if there was an error populated
+>     Remove curly braces that are no longer needed
+> 
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> ---
+>  drivers/acpi/apei/ghes.c | 9 +++------
+>  1 file changed, 3 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index d661d45..cda4a4f 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -743,17 +743,14 @@ static int ghes_proc(struct ghes *ghes)
+>  	}
+>  	ghes_do_proc(ghes, ghes->estatus);
+>  
+> +out:
+> +	ghes_clear_estatus(ghes);
+>  	/*
+>  	 * GHESv2 type HEST entries introduce support for error acknowledgment,
+>  	 * so only acknowledge the error if this support is present.
+>  	 */
+> -	if (is_hest_type_generic_v2(ghes)) {
+> +	if (is_hest_type_generic_v2(ghes) && rc != -ENOENT)
 
-On 08/24/17 at 11:54am, Dou Liyang wrote:
-> > > Test in my own PC(Lenovo M4340).
-> > > Ask help for doing regression testing for the bug said in commit
-> > > c4e1acbb35e4
-> > > ("ACPI / init: Invoke early ACPI initialization later").
-> > > 
-> > 
-> > Now, I can prove this patch doesn't result in the bug[1] which made the
-> > fast TSC calibration using PIT failed in a Thinkpad x121e (AMD E-450
-> > APU).
-> > 
-> > The true reason of the bug is enabling ACPI subsystem earlier than
-> > using PIT, not the SCI setup. invoking acpi_enable_subsystem() later
+I think you should do something like this:
 
-Seems redhat mail server was down earlier, I didn't receive new mail in
-this thread.  Just curious, do you know why the fast tsc calibration
-using PIT will fail if enabling ACPI subsystem earlier than using PIT?
+out:
+        ghes_clear_estatus(ghes);
 
-Thanks
-Baoquan
+	if (rc == -ENOENT)
+                return rc;
 
-> > could fix this bug as Julian tested and said[2].
-> > 
-> > And, I found that Commit b064a8fa77df (" ACPI / init: Switch over
-> > platform to the ACPI mode later") split the ACPI early initialization
-> > code into acpi_early_init() and acpi_subsystem_init(). executing
-> > acpi_enable_subsystem() at the original early ACPI initialization spot.
-> > 
-> > The sequence of them shows below:
-> > 
-> >  start_kernel
-> > +---------------+
-> > |
-> > +--> .......
-> > |
-> > |    late_time_init()
-> > +--> +-------+
-> > |
-> > +--> .......
-> > |
-> > |    acpi_early_init()
-> > +--> +-------+
-> > |
-> > +--> .......
-> > |
-> > |   acpi_subsystem_init()
-> > +-> +--------+
-> > 
-> > We make sure the acpi_subsystem_init() is called later than
-> > late_time_init(), the bug will be avoided.
-> > 
-> > This patch changes the sequence of late_time_init() and
-> > acpi_early_init(), doesn't effect acpi_subsystem_init().
-> > 
-> > So, this patch is OK.
-> > 
-> > Btw, Thanks very much for Borislav Petkov, he will have access to
-> > Thinkpad x121e from Mid-August and will test this series.
-> > 
-> 
-> Almost one month passed, Borislav have tested this series in Thinkpad
-> x121e and I also have tested in my box and QEmu again. It is OK.
-> 
-> BTW,
-> 1) I found your commit b064a8fa77df (" ACPI / init: Switch over
-> platform to the ACPI mode later") split the ACPI early initialization
-> code into acpi_early_init() and acpi_subsystem_init(). Actually enabling
-> the ACPI subsystem is in acpi_subsystem_init().
-> 
-> 2) As we discussed earlier, invoking acpi_put_table() is not good for
-> this situation.
-> 
-> So I do this patch, Is that goot to you? Any comments will be welcome.
-> 
-> If it is OK, As the patches need to be re-based, and I also found
-> several spelling mistake, I will send a new version next week.
-> 
-> Thanks,
-> 	dou.
-> 
-> > [1] https://lkml.org/lkml/2014/3/10/123
-> > [2] https://lkml.org/lkml/2014/3/12/311
-> > 
-> > 
-> > Thanks
-> >     dou.
-> > 
-> > >  init/main.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > 
-> > > diff --git a/init/main.c b/init/main.c
-> > > index df58a41..7a09467 100644
-> > > --- a/init/main.c
-> > > +++ b/init/main.c
-> > > @@ -654,12 +654,12 @@ asmlinkage __visible void __init start_kernel(void)
-> > >      kmemleak_init();
-> > >      setup_per_cpu_pageset();
-> > >      numa_policy_init();
-> > > +    acpi_early_init();
-> > >      if (late_time_init)
-> > >          late_time_init();
-> > >      calibrate_delay();
-> > >      pidmap_init();
-> > >      anon_vma_init();
-> > > -    acpi_early_init();
-> > >  #ifdef CONFIG_X86
-> > >      if (efi_enabled(EFI_RUNTIME_SERVICES))
-> > >          efi_enter_virtual_mode();
-> > > 
-> 
-> 
+	/*
+         * GHESv2 type HEST entries introduce support for error acknowledgment,
+         * so only acknowledge the error if this support is present.
+         */
+        if (is_hest_type_generic_v2(ghes))
+                return ghes_ack_error(ghes->generic_v2);
+
+        return rc;
+
+
+First check the -ENOENT because if there's no entry, you don't need to
+ACK anything anyway.
+
+And then only if it is an entry present and it is v2, you can ACK it.
+
+Hmmm?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
