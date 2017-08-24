@@ -1,64 +1,92 @@
-From: Boqun Feng <boqun.feng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 1/2] nfit: Fix the abuse of COMPLETION_INITIALIZER_ONSTACK()
-Date: Thu, 24 Aug 2017 22:22:36 +0800
-Message-ID: <20170824142239.15178-1-boqun.feng@gmail.com>
-References: <20170823152542.5150-2-boqun.feng@gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v6 3/3] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+ erratum 161010801
+Date: Thu, 24 Aug 2017 15:35:37 +0100
+Message-ID: <20170824143536.GA8904@arm.com>
+References: <20170809100715.870516-1-shameerali.kolothum.thodi@huawei.com>
+ <20170809100715.870516-4-shameerali.kolothum.thodi@huawei.com>
+ <20170810172723.GD9980@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA8383CC287@FRAEML521-MBX.china.huawei.com>
+ <c6b7c641-b839-1388-7982-366e796e6ba9@huawei.com>
+ <20170823132430.GB634@arm.com>
+ <77b6c97f-f2d2-fd14-e83e-345addc5ea71@huawei.com>
+ <20170823164301.GC590@arm.com>
+ <53b9795c-6222-9cf0-50dc-9dafbfb67a2c@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170823152542.5150-2-boqun.feng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
-Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Boqun Feng <boqun.feng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, Byungchul Park <byungchul.park-Hm3cg6mZ9cc@public.gmane.org>, kernel-team-Hm3cg6mZ9cc@public.gmane.org, Nicholas Piggin <npiggin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, walken-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:42858 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751083AbdHXOff (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 24 Aug 2017 10:35:35 -0400
+Content-Disposition: inline
+In-Reply-To: <53b9795c-6222-9cf0-50dc-9dafbfb67a2c@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: John Garry <john.garry@huawei.com>
+Cc: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linuxarm <linuxarm@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>
 
-COMPLETION_INITIALIZER_ONSTACK() is supposed to used as an initializer,
-in other words, it should only be used in assignment expressions or
-compound literals. So the usage in drivers/acpi/nfit/core.c:
+On Wed, Aug 23, 2017 at 05:55:52PM +0100, John Garry wrote:
+> On 23/08/2017 17:43, Will Deacon wrote:
+> >On Wed, Aug 23, 2017 at 03:29:46PM +0100, John Garry wrote:
+> >>On 23/08/2017 14:24, Will Deacon wrote:
+> >>>On Wed, Aug 23, 2017 at 02:17:24PM +0100, John Garry wrote:
+> >>>>>>>Signed-off-by: Shameer Kolothum
+> >>>>>><shameerali.kolothum.thodi@huawei.com>
+> >>>>>>>---
+> >>>>>>>drivers/iommu/arm-smmu-v3.c | 27 ++++++++++++++++++++++-----
+> >>>>>>>1 file changed, 22 insertions(+), 5 deletions(-)
+> >>>>>>
+> >>>>>>Please can you also add a devicetree binding with corresponding
+> >>>>>>documentation to enable this workaround on non-ACPI based systems too?
+> >>>>>>It should be straightforward if you update the arm_smmu_options table.
+> >>>>>
+> >>>>>As I mentioned before, devicetree was a lower priority and we would definitely
+> >>>>>submit patch to support that. Even if we update the arm_smmu_options table
+> >>>>>with DT binding, the generic function to retrieve the MSI address regions only
+> >>>>>works on ACPI/IORT case now.
+> >>>>>
+> >>>>
+> >>>>Hi Will,
+> >>>>
+> >>>>Can you confirm your stance on supporting this workaround for DT as well as
+> >>>>ACPI?
+> >>>>
+> >>>>For us, we now only "officially" support ACPI FW, and DT support at this
+> >>>>point is patchy/limited. To me, adding DT support is just more errata
+> >>>>workaround code to maintain with little useful gain.
+> >>>
+> >>>I basically don't like the idea of a driver that only works for one of
+> >>>ACPI or DT yet claims to support both. I'm less fussed about functionality
+> >>>differences (feature X is only available with firmware Y), but not working
+> >>>around a hardware erratum that we know about is just lazy.
+> >>>
+> >>>So I'd prefer that we handle this in both cases, or blacklist affected
+> >>>devices when booting with DT. Continuing as though there isn't an erratum
+> >>>is the worst thing we can do.
+> >>
+> >>OK, seems reasonable.
+> >>
+> >>We would consider blacklisting the device, where/how to do is the question.
+> >>
+> >>So the errata is in the GICv3 ITS/PCI host controller, and we just use the
+> >>in-between SMMU (driver) to provide the workaround. So my initial impression
+> >>is that the PCI host controller would have to be blacklisted IFF behind an
+> >>IOMMU for DT firmware in pcie-hisi.c or pci quirks framework. How does it
+> >>sound?
+> >
+> >If that avoids us running into the erratum, then fine by me. I'd obviously
+> >prefer we work-around it since we know how to, but that's up to you.
+> 
+> I'm surpsised that you may want more errata workaround code to maintain.
+> 
+> Anyway we'll check both approaches and show you how they look and go from
+> there.
 
-	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
+Don't get me wrong, I don't dream about adding errata workarounds to the
+code, but our job as an operating system is to abstract the hardware from
+the user, which means dealing with its quirks whether we like it or not.
 
-, is inappropriate.
+Thanks,
 
-Besides, this usage could also break compilations for another fix to
-reduce stack sizes caused by COMPLETION_INITIALIZER_ONSTACK(), because
-that fix changes COMPLETION_INITIALIZER_ONSTACK() from rvalue to lvalue,
-and usage as above will report error:
-
-	drivers/acpi/nfit/core.c: In function 'acpi_nfit_flush_probe':
-	include/linux/completion.h:77:3: error: value computed is not used [-Werror=unused-value]
-	  (*({ init_completion(&work); &work; }))
-
-This patch fixes this by replacing COMPLETION_INITIALIZER_ONSTACK() with
-init_completion() in acpi_nfit_flush_probe(), which does the same
-initialization without any other problem.
-
-Signed-off-by: Boqun Feng <boqun.feng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/acpi/nfit/core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 19182d091587..1893e416e7c0 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2884,7 +2884,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
- 	 * need to be interruptible while waiting.
- 	 */
- 	INIT_WORK_ONSTACK(&flush.work, flush_probe);
--	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
-+	init_completion(&flush.cmp);
- 	queue_work(nfit_wq, &flush.work);
- 	mutex_unlock(&acpi_desc->init_mutex);
- 
--- 
-2.14.1
+Will
