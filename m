@@ -1,123 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization earlier
-Date: Thu, 24 Aug 2017 18:38:50 +0200
-Message-ID: <4971374.QgHTRTZW1k@aspire.rjw.lan>
-References: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com> <a8024347-ce0b-c59b-74ea-45a822e54ee6@cn.fujitsu.com> <8d662105-2ff5-02fd-9072-73167e5f49c1@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fixes for v4.13-rc7
+Date: Thu, 24 Aug 2017 22:54:19 +0200
+Message-ID: <CAJZ5v0jG8+KcYfjXK+CK6pX0787ZPBd4zbOZ9MTixNzUBxzgmQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:64708 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753202AbdHXQrZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 24 Aug 2017 12:47:25 -0400
-In-Reply-To: <8d662105-2ff5-02fd-9072-73167e5f49c1@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, "Zheng, Lv" <lv.zheng@intel.com>, tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, ebiederm@xmission.com, bhe@redhat.com, peterz@infradead.org, izumi.taku@jp.fujitsu.com, tokunaga.keiich@jp.fujitsu.com, linux-acpi@vger.kernel.org, Julian Wollrath <jwollrath@web.de>, Borislav Petkov <bp@alien8.de>
 
-On Thursday, August 24, 2017 5:54:28 AM CEST Dou Liyang wrote:
-> Hi Rafael, Zheng,
-> 
-> At 07/31/2017 06:50 PM, Dou Liyang wrote:
-> > Hi,
-> >
-> > At 07/14/2017 01:52 PM, Dou Liyang wrote:
-> >> Linux uses acpi_early_init() to put the ACPI table management into
-> >> the late stage from the early stage where the mapped ACPI tables is
-> >> temporary and should be unmapped.
-> >>
-> >> But, now initializing interrupt delivery mode should map and parse the
-> >> DMAR table earlier in the early stage. This causes an ACPI error when
-> >> Linux reallocates the ACPI root tables. Because Linux doesn't unmapped
-> >> the DMAR table after using in the early stage.
-> >>
-> >> Invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
-> >> be mapped and parsed in late stage like before.
-> >>
-> >> Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
-> >> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
-> >> Cc: linux-acpi@vger.kernel.org
-> >> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> >> Cc: Zheng, Lv <lv.zheng@intel.com>
-> >> Cc: Julian Wollrath <jwollrath@web.de>
-> >> ---
-> >> Test in my own PC(Lenovo M4340).
-> >> Ask help for doing regression testing for the bug said in commit
-> >> c4e1acbb35e4
-> >> ("ACPI / init: Invoke early ACPI initialization later").
-> >>
-> >
-> > Now, I can prove this patch doesn't result in the bug[1] which made the
-> > fast TSC calibration using PIT failed in a Thinkpad x121e (AMD E-450
-> > APU).
-> >
-> > The true reason of the bug is enabling ACPI subsystem earlier than
-> > using PIT, not the SCI setup. invoking acpi_enable_subsystem() later
-> > could fix this bug as Julian tested and said[2].
-> >
-> > And, I found that Commit b064a8fa77df (" ACPI / init: Switch over
-> > platform to the ACPI mode later") split the ACPI early initialization
-> > code into acpi_early_init() and acpi_subsystem_init(). executing
-> > acpi_enable_subsystem() at the original early ACPI initialization spot.
-> >
-> > The sequence of them shows below:
-> >
-> >  start_kernel
-> > +---------------+
-> > |
-> > +--> .......
-> > |
-> > |    late_time_init()
-> > +--> +-------+
-> > |
-> > +--> .......
-> > |
-> > |    acpi_early_init()
-> > +--> +-------+
-> > |
-> > +--> .......
-> > |
-> > |   acpi_subsystem_init()
-> > +-> +--------+
-> >
-> > We make sure the acpi_subsystem_init() is called later than
-> > late_time_init(), the bug will be avoided.
-> >
-> > This patch changes the sequence of late_time_init() and
-> > acpi_early_init(), doesn't effect acpi_subsystem_init().
-> >
-> > So, this patch is OK.
-> >
-> > Btw, Thanks very much for Borislav Petkov, he will have access to
-> > Thinkpad x121e from Mid-August and will test this series.
-> >
-> 
-> Almost one month passed, Borislav have tested this series in Thinkpad
-> x121e and I also have tested in my box and QEmu again. It is OK.
-> 
-> BTW,
-> 1) I found your commit b064a8fa77df (" ACPI / init: Switch over
-> platform to the ACPI mode later") split the ACPI early initialization
-> code into acpi_early_init() and acpi_subsystem_init(). Actually enabling
-> the ACPI subsystem is in acpi_subsystem_init().
-> 
-> 2) As we discussed earlier, invoking acpi_put_table() is not good for
-> this situation.
-> 
-> So I do this patch, Is that goot to you? Any comments will be welcome.
-> 
-> If it is OK, As the patches need to be re-based, and I also found
-> several spelling mistake, I will send a new version next week.
+Hi Linus,
 
-OK, but does it depend on anything?  Or does anything depend on it?
+Please pull from the tag
 
-It is [12/13] in a series, so it looks like it doesn't depend on the
-previous patches in it, but the next one may depend on it?  Which is the
-case?
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.13-rc7
 
-Thanks,
-Rafael
+with top-most commit d5d6c1ddb93a7225915cd7e89f35944878d667f9
 
+ Merge branches 'acpica-fix', 'acpi-ec-fix' and 'acpi-properties-fix'
+
+on top of commit 14ccee78fc82f5512908f4424f541549a5705b89
+
+ Linux v4.13-rc6
+
+to receive ACPI fixes for v4.13-rc7.
+
+These fix two recent regressions (in ACPICA and in the ACPI EC driver)
+and one bug in code introduced during the 4.12 cycle (ACPI device
+properties library routine).
+
+Specifics:
+
+ - Fix a regression in the ACPI EC driver causing a kernel to crash
+   during initialization on some systems due to a code ordering issue
+   exposed by a recent change (Lv Zheng).
+
+ - Fix a recent regression in ACPICA due to a change of the behavior
+   of a library function in a way that is not backwards compatible
+   with some existing callers of it (Rafael Wysocki).
+
+ - Fix a coding mistake in a library function related to the handling
+   of ACPI device properties introduced during the 4.12 cycle (Sakari
+   Ailus).
+
+Thanks!
+
+
+---------------
+
+Lv Zheng (1):
+      ACPI: EC: Fix regression related to wrong ECDT initialization order
+
+Rafael J. Wysocki (1):
+      ACPICA: Fix acpi_evaluate_object_typed()
+
+Sakari Ailus (1):
+      ACPI: device property: Fix node lookup in
+acpi_graph_get_child_prop_value()
+
+---------------
+
+ drivers/acpi/acpica/nsxfeval.c | 10 +++++++---
+ drivers/acpi/ec.c              | 17 +++++++----------
+ drivers/acpi/internal.h        |  1 -
+ drivers/acpi/property.c        |  2 +-
+ drivers/acpi/scan.c            |  1 -
+ 5 files changed, 15 insertions(+), 16 deletions(-)
