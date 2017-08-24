@@ -1,67 +1,88 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v6 3/3] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
- erratum 161010801
-Date: Thu, 24 Aug 2017 16:01:08 +0100
-Message-ID: <9a40f823-4323-21fd-343c-83c412a23bf1@huawei.com>
-References: <20170809100715.870516-1-shameerali.kolothum.thodi@huawei.com>
- <20170809100715.870516-4-shameerali.kolothum.thodi@huawei.com>
- <20170810172723.GD9980@arm.com>
- <5FC3163CFD30C246ABAA99954A238FA8383CC287@FRAEML521-MBX.china.huawei.com>
- <c6b7c641-b839-1388-7982-366e796e6ba9@huawei.com>
- <20170823132430.GB634@arm.com>
- <77b6c97f-f2d2-fd14-e83e-345addc5ea71@huawei.com>
- <20170823164301.GC590@arm.com>
- <53b9795c-6222-9cf0-50dc-9dafbfb67a2c@huawei.com>
- <20170824143536.GA8904@arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 5/9] PM / ACPI: Provide option to disable direct_complete for ACPI devices
+Date: Thu, 24 Aug 2017 16:57:48 +0200
+Message-ID: <4050921.GfHh1Z5NrX@aspire.rjw.lan>
+References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org> <CAJZ5v0gJn=SzNFGUT7Zb+CfhQBZ7KNDK2GTSSXGexD8GObjGOw@mail.gmail.com> <CAPDyKFrGvqhBdenSyQ8Qr76DbfEvc74_dKZAjraA5qL63Mm2rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:5020 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751083AbdHXPBh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Aug 2017 11:01:37 -0400
-In-Reply-To: <20170824143536.GA8904@arm.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42506 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751083AbdHXPGX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 24 Aug 2017 11:06:23 -0400
+In-Reply-To: <CAPDyKFrGvqhBdenSyQ8Qr76DbfEvc74_dKZAjraA5qL63Mm2rg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linuxarm <linuxarm@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
 
-On 24/08/2017 15:35, Will Deacon wrote:
->>>> > >>OK, seems reasonable.
->>>> > >>
->>>> > >>We would consider blacklisting the device, where/how to do is the question.
->>>> > >>
->>>> > >>So the errata is in the GICv3 ITS/PCI host controller, and we just use the
->>>> > >>in-between SMMU (driver) to provide the workaround. So my initial impression
->>>> > >>is that the PCI host controller would have to be blacklisted IFF behind an
->>>> > >>IOMMU for DT firmware in pcie-hisi.c or pci quirks framework. How does it
->>>> > >>sound?
->>> > >
->>> > >If that avoids us running into the erratum, then fine by me. I'd obviously
->>> > >prefer we work-around it since we know how to, but that's up to you.
->> >
->> > I'm surpsised that you may want more errata workaround code to maintain.
->> >
->> > Anyway we'll check both approaches and show you how they look and go from
->> > there.
-> Don't get me wrong, I don't dream about adding errata workarounds to the
-> code, but our job as an operating system is to abstract the hardware from
-> the user, which means dealing with its quirks whether we like it or not.
->
+On Thursday, August 24, 2017 10:19:43 AM CEST Ulf Hansson wrote:
+> On 24 August 2017 at 01:39, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > On Wed, Aug 23, 2017 at 4:42 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> >> In some cases a driver for an ACPI device needs to be able to prevent the
+> >> ACPI PM domain from using the direct_complete path during system sleep.
+> >>
+> >> One typical case is when the driver for the device needs its device to stay
+> >> runtime enabled, during the __device_suspend phase. This isn't the case
+> >> when the direct_complete path is being executed by the PM core, as it then
+> >> disables runtime PM for the device in __device_suspend(). Any following
+> >> attempts to runtime resume the device after that point, just fails.
+> >
+> > OK, that is a problem.
+> >
+> >> A workaround to this problem is to let the driver runtime resume its device
+> >> from its ->prepare() callback, as that would prevent the direct_complete
+> >> path from being executed. However, that may often be a waste, especially if
+> >> it turned out that no one really needed the device.
+> >>
+> >> For this reason, invent acpi_dev_disable|enable_direct_complete(), to allow
+> >> drivers to inform the ACPI PM domain to change its default behaviour during
+> >> system sleep, and thus control whether it may use the direct_complete path
+> >> or not.
+> >
+> > But I'm not sure this is the right place to address it as it very well
+> > may affect a PCI device too.
+> >
+> > Also, this is about the device and not about its ACPI companion
+> > object, so putting the flag in there is somewhat unclean, so to speak.
+> >
+> > It looks like we need a flag in dev_pm_info saying something along the
+> > lines of "my system suspend callback can deal with runtime PM" that
+> > will cause the direct_complete update to occur in
+> > __device_suspend_late() instead of __device_suspend().
+> 
+> I realize that in the end this turns out to be a comparison between
+> the runtime PM centric path and the direct_complete path while
+> implementing system sleep. In patch 9, there is some more explanation
+> around this, however if you like I can elaborate even more about
+> this!?
+> 
+> Regarding making changes to the PM core and adding more flags to the
+> dev_pm_info etc, I am not sure we really want that. Isn't it already
+> complex enough?
 
-Fine, it's ok.
+Maybe it is.
 
-For our next platform, hip08, we will provide no DT FW support, so this 
-whole DT grey area should not be an issue.
+> My point is, that I am trying to improve the behavior of the ACPI PM
+> domain by enabling the runtime PM centric path for it, and even if
+> there is something similar that could be done for PCI, I don't think
+> we should need involvement by the PM core.
 
-And hopefully no errata also.
+Well, this generally simply doesn't work.
 
-Much appreciated,
-John
+The whole "runtime PM centric approach" idea is generally fine by me,
+but the fact today is that there are drivers not ready for it.  Which
+is why there is the direct_complete thing (it may be regarded as a
+sort-of workaround for the unreadiness of drivers if you will).
 
-> Thanks,
->
-> Will
+Now, buy adding the no_direct_complete flag just to the ACPI PM domain
+you basically overlook the fact that this potentially affects the parents
+of the devices in question by preventing direct_complete from being set
+for them.  And those parents may not be in the ACPI PM domain in principle,
+so the problem needs to be addressed in the core.
 
+Thanks,
+Rafael
 
