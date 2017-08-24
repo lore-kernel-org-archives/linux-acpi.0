@@ -1,231 +1,123 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 5/9] PM / ACPI: Provide option to disable direct_complete for ACPI devices
-Date: Thu, 24 Aug 2017 18:35:49 +0200
-Message-ID: <12333551.k204JYSgao@aspire.rjw.lan>
-References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org> <1726767.L8TO24juDO@aspire.rjw.lan> <CAPDyKFrj6RdsG4Qf847OvLQMgqHeyh1=YyeKZMeaGgQ2du3cNA@mail.gmail.com>
+Subject: Re: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization earlier
+Date: Thu, 24 Aug 2017 18:38:50 +0200
+Message-ID: <4971374.QgHTRTZW1k@aspire.rjw.lan>
+References: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com> <a8024347-ce0b-c59b-74ea-45a822e54ee6@cn.fujitsu.com> <8d662105-2ff5-02fd-9072-73167e5f49c1@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49677 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:64708 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753500AbdHXQoY (ORCPT
+        by vger.kernel.org with ESMTP id S1753202AbdHXQrZ (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 24 Aug 2017 12:44:24 -0400
-In-Reply-To: <CAPDyKFrj6RdsG4Qf847OvLQMgqHeyh1=YyeKZMeaGgQ2du3cNA@mail.gmail.com>
+        Thu, 24 Aug 2017 12:47:25 -0400
+In-Reply-To: <8d662105-2ff5-02fd-9072-73167e5f49c1@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, "Zheng, Lv" <lv.zheng@intel.com>, tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, ebiederm@xmission.com, bhe@redhat.com, peterz@infradead.org, izumi.taku@jp.fujitsu.com, tokunaga.keiich@jp.fujitsu.com, linux-acpi@vger.kernel.org, Julian Wollrath <jwollrath@web.de>, Borislav Petkov <bp@alien8.de>
 
-On Thursday, August 24, 2017 11:15:26 AM CEST Ulf Hansson wrote:
-> [...]
+On Thursday, August 24, 2017 5:54:28 AM CEST Dou Liyang wrote:
+> Hi Rafael, Zheng,
 > 
-> >> >
-> >> > It actually should work with the ACPI PM domain code as is except that it
-> >> > will cause the device to be runtime resumed every time during suspend.
-> >> >
-> >> > But acpi_subsys_suspend() can be changed to avoid resuming the device if
-> >> > power.force_suspend is set.
-> >>
-> >> Or better yet, if power.direct_complete is not set, because that means the
-> >> device needs to be resumed anyway.
-> >>
-> >> And if power.direct_complete is set at that point, power.force_suspend has to
-> >> be set too.
-> 
-> I believe I understand your goal here. You want to consider if it is
-> possible to extend the behavior of the direct_complete path, instead
-> of enabling the runtime PM centric path for the ACPI PM domain, to
-> accomplish the same optimizations.
-
-This isn't really "instead of", but rather "in addition to".
-
-> I think the answer to that, is that it simply can't. See more
-> information about why further down below.
-> 
+> At 07/31/2017 06:50 PM, Dou Liyang wrote:
+> > Hi,
 > >
-> > Overall, like below, and of course drivers that ser power.force_suspend need to
-> > be able to deal with devices that have been runtime resumed during
-> > __device_suspend().
+> > At 07/14/2017 01:52 PM, Dou Liyang wrote:
+> >> Linux uses acpi_early_init() to put the ACPI table management into
+> >> the late stage from the early stage where the mapped ACPI tables is
+> >> temporary and should be unmapped.
+> >>
+> >> But, now initializing interrupt delivery mode should map and parse the
+> >> DMAR table earlier in the early stage. This causes an ACPI error when
+> >> Linux reallocates the ACPI root tables. Because Linux doesn't unmapped
+> >> the DMAR table after using in the early stage.
+> >>
+> >> Invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
+> >> be mapped and parsed in late stage like before.
+> >>
+> >> Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
+> >> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+> >> Cc: linux-acpi@vger.kernel.org
+> >> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> >> Cc: Zheng, Lv <lv.zheng@intel.com>
+> >> Cc: Julian Wollrath <jwollrath@web.de>
+> >> ---
+> >> Test in my own PC(Lenovo M4340).
+> >> Ask help for doing regression testing for the bug said in commit
+> >> c4e1acbb35e4
+> >> ("ACPI / init: Invoke early ACPI initialization later").
+> >>
+> >
+> > Now, I can prove this patch doesn't result in the bug[1] which made the
+> > fast TSC calibration using PIT failed in a Thinkpad x121e (AMD E-450
+> > APU).
+> >
+> > The true reason of the bug is enabling ACPI subsystem earlier than
+> > using PIT, not the SCI setup. invoking acpi_enable_subsystem() later
+> > could fix this bug as Julian tested and said[2].
+> >
+> > And, I found that Commit b064a8fa77df (" ACPI / init: Switch over
+> > platform to the ACPI mode later") split the ACPI early initialization
+> > code into acpi_early_init() and acpi_subsystem_init(). executing
+> > acpi_enable_subsystem() at the original early ACPI initialization spot.
+> >
+> > The sequence of them shows below:
+> >
+> >  start_kernel
+> > +---------------+
+> > |
+> > +--> .......
+> > |
+> > |    late_time_init()
+> > +--> +-------+
+> > |
+> > +--> .......
+> > |
+> > |    acpi_early_init()
+> > +--> +-------+
+> > |
+> > +--> .......
+> > |
+> > |   acpi_subsystem_init()
+> > +-> +--------+
+> >
+> > We make sure the acpi_subsystem_init() is called later than
+> > late_time_init(), the bug will be avoided.
+> >
+> > This patch changes the sequence of late_time_init() and
+> > acpi_early_init(), doesn't effect acpi_subsystem_init().
+> >
+> > So, this patch is OK.
+> >
+> > Btw, Thanks very much for Borislav Petkov, he will have access to
+> > Thinkpad x121e from Mid-August and will test this series.
+> >
 > 
-> The a concern I see with this approach, is that is going to be too
-> complex to understand.
-
-That is a valid concern, but then your approach with using an extra flag
-just for the ACPI PM domain isn't particularly straightforward either IMO.
-
-> We have already seen how the i2c-designware-driver was screwed up when
-> it was trying to take advantage of the optimizations provided by the
-> current direct_complete path. I think we should be careful when
-> considering making it even more complex.
-
-OK, but this applies to your series as well, as it is adding a new flag too,
-just not in the core. :-)
-
-> In the runtime PM centric path, driver authors can easily deploy
-> system sleep support. In some cases it may even consists of only two
-> lines of code. As can be shown in patch9 for the i2c driver.
-
-That still requires the new flag to be set if the ACPI PM is in use AFAICS,
-which then will prevent the entire hierarchy above the device from having
-direct_complete set.
-
-> Just to be clear, that doesn't mean that I think the direct_complete
-> path isn't useful. Especially it is a good match for the ACPI PM
-> domain, as it can easily affect all its devices, without having to
-> care much about the behavior of the drivers.
-
-OK
-
-[cut]
-
+> Almost one month passed, Borislav have tested this series in Thinkpad
+> x121e and I also have tested in my box and QEmu again. It is OK.
 > 
-> The above change would offer an improvement, however there are more
-> benefits from the runtime PM centric path that it doesn't cover.
-
-The idea, though, is not to make it instead of, but in addition to the
-runtime PM centric path.
-
-So a driver using the runtime PM centric (or rather runtime PM aware)
-callbacks can set power.force_suspend and benefit from having direct_complete
-set conditional on whether or not the device is runtime resumed before the
-late suspend.
-
-If device_complete remains set in __device_suspend_late(), no system
-suspend/resume callbacks will be invoked from that point on.  If it isn't
-set, pm_runtime_force_suspend() should work just fine and then
-pm_runtime_force_resume() should do the right thing on the way back.
-
-All boils down to (a) setting a flag and (b) using the right callbacks
-for system suspend which is the case with your patches either.
-
-> The below is pasted from the changelog for patch9 (I will make sure to
-> fold in this in the changelog for $subject patch next version).
+> BTW,
+> 1) I found your commit b064a8fa77df (" ACPI / init: Switch over
+> platform to the ACPI mode later") split the ACPI early initialization
+> code into acpi_early_init() and acpi_subsystem_init(). Actually enabling
+> the ACPI subsystem is in acpi_subsystem_init().
 > 
-> In case the device is/gets runtime resumed before the device_suspend()
-> phase is entered, the PM core doesn't run the direct_complete path for
-> the device during system sleep. During system resume, this lead to
-> that the device will always be brought back to full power when the
-> i2c-dw-plat driver's ->resume() callback is invoked. This may not be
-> necessary, thus increasing the resume time for the device and wasting
-> power.
-
-Well, I guess that depends on what is there in its resume callbacks.
-
-> In the runtime PM centric path, the pm_runtime_force_resume() helper
-> takes better care, as it resumes the device only in case it's really
-> needed. Normally this means it can be postponed to be dealt with via
-> regular calls to runtime PM (pm_runtime_get*()) instead. In other
-> words, the device remains in its low power state until someone request
-> a new i2c transfer, whenever that may be.
+> 2) As we discussed earlier, invoking acpi_put_table() is not good for
+> this situation.
 > 
-> As far as I can think of, the direct_complete path can't be adjusted
-> to support this. Or can it?
+> So I do this patch, Is that goot to you? Any comments will be welcome.
+> 
+> If it is OK, As the patches need to be re-based, and I also found
+> several spelling mistake, I will send a new version next week.
 
-It surely can, it's just software. :-)  The question is how complicated that
-is going to be in the end, however.
+OK, but does it depend on anything?  Or does anything depend on it?
 
-So the patch I sent didn't address the dependency issue, but it allows the
-core to deal with the issue which is a core issue, not an ACPI PM domain
-issue, because the core disables runtime PM for devices with direct_complete
-set, not the ACPI PM domain or PCI etc.
+It is [12/13] in a series, so it looks like it doesn't depend on the
+previous patches in it, but the next one may depend on it?  Which is the
+case?
 
-[BTW, it is not entirely clear to me why it ever is necessary to runtime resume
-a device with direct_complete set after __device_suspend(), because it can only
-have direct_complete set at that point if all of the hierarchy below it has
-this flag set too and so runtime PM has to be disabled for all of those
-devices as well.]
-
-It can be made slightly better by adding a piece to avoid clearing the
-parent's direct_complete if it had the new flag set, so below is a new
-version (with the new flag renamed to safe_suspend which seemed better to
-me).
-
-Of course, having safe_suspend set will still cause the parent's
-direct_complete to be cleared unless the parent has safe_suspend set too,
-but that's better than not allowing the parent to use direct_complete at all.
-
----
- drivers/acpi/device_pm.c  |    8 ++++++++
- drivers/base/power/main.c |   15 ++++++++++++---
- include/linux/pm.h        |    1 +
- 3 files changed, 21 insertions(+), 3 deletions(-)
-
-Index: linux-pm/drivers/base/power/main.c
-===================================================================
---- linux-pm.orig/drivers/base/power/main.c
-+++ linux-pm/drivers/base/power/main.c
-@@ -1271,9 +1271,16 @@ static int __device_suspend_late(struct
- 		goto Complete;
- 	}
- 
--	if (dev->power.syscore || dev->power.direct_complete)
-+	if (dev->power.syscore)
- 		goto Complete;
- 
-+	if (dev->power.direct_complete) {
-+		if (pm_runtime_status_suspended(dev))
-+			goto Complete;
-+
-+		dev->power.direct_complete = false;
-+	}
-+
- 	if (dev->pm_domain) {
- 		info = "late power domain ";
- 		callback = pm_late_early_op(&dev->pm_domain->ops, state);
-@@ -1482,7 +1489,7 @@ static int __device_suspend(struct devic
- 	if (dev->power.syscore)
- 		goto Complete;
- 
--	if (dev->power.direct_complete) {
-+	if (dev->power.direct_complete && !dev->power.safe_suspend) {
- 		if (pm_runtime_status_suspended(dev)) {
- 			pm_runtime_disable(dev);
- 			if (pm_runtime_status_suspended(dev))
-@@ -1549,7 +1556,9 @@ static int __device_suspend(struct devic
- 		if (parent) {
- 			spin_lock_irq(&parent->power.lock);
- 
--			dev->parent->power.direct_complete = false;
-+			if (!dev->parent->power.safe_suspend)
-+				dev->parent->power.direct_complete = false;
-+
- 			if (dev->power.wakeup_path
- 			    && !dev->parent->power.ignore_children)
- 				dev->parent->power.wakeup_path = true;
-Index: linux-pm/include/linux/pm.h
-===================================================================
---- linux-pm.orig/include/linux/pm.h
-+++ linux-pm/include/linux/pm.h
-@@ -554,6 +554,7 @@ struct dev_pm_info {
- 	pm_message_t		power_state;
- 	unsigned int		can_wakeup:1;
- 	unsigned int		async_suspend:1;
-+	unsigned int		safe_suspend:1;
- 	bool			in_dpm_list:1;	/* Owned by the PM core */
- 	bool			is_prepared:1;	/* Owned by the PM core */
- 	bool			is_suspended:1;	/* Ditto */
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -1025,9 +1025,17 @@ EXPORT_SYMBOL_GPL(acpi_subsys_prepare);
-  *
-  * Follow PCI and resume devices suspended at run time before running their
-  * system suspend callbacks.
-+ *
-+ * If the power.direct_complete flag is set for the device, though, skip all
-+ * that, because the device doesn't need to be resumed then and if it is
-+ * resumed via runtime PM, the core will notice that and will carry out the
-+ * late suspend for it.
-  */
- int acpi_subsys_suspend(struct device *dev)
- {
-+	if (dev->power.direct_complete)
-+		return 0;
-+
- 	pm_runtime_resume(dev);
- 	return pm_generic_suspend(dev);
- }
+Thanks,
+Rafael
 
