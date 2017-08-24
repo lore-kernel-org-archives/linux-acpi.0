@@ -1,104 +1,98 @@
-From: Seunghun Han <kkamagui@gmail.com>
-Subject: [PATCH] acpi: acpica: fix acpi operand cache leak in dsutils.c
-Date: Thu, 24 Aug 2017 14:11:35 +0900
-Message-ID: <1503551495-33286-1-git-send-email-kkamagui@gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v4 1/5] ACPI / blacklist: add acpi_match_platform_list()
+Date: Thu, 24 Aug 2017 09:53:48 +0200
+Message-ID: <20170824075348.gqvobmk7mf5ppaip@pd.tnic>
+References: <20170823225447.15608-1-toshi.kani@hpe.com>
+ <20170823225447.15608-2-toshi.kani@hpe.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170823225447.15608-2-toshi.kani@hpe.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: lv.zheng@intel.com
-Cc: robert.moore@intel.com, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, security@kernel.org, Seunghun Han <kkamagui@gmail.com>
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: rjw@rjwysocki.net, mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-I found an ACPI cache leak in ACPI early termination and boot continuing case.
+On Wed, Aug 23, 2017 at 04:54:43PM -0600, Toshi Kani wrote:
+> ACPI OEM ID / OEM Table ID / Revision can be used to identify
+> a platform based on ACPI firmware info.  acpi_blacklisted(),
+> intel_pstate_platform_pwr_mgmt_exists(), and some other funcs,
+> have been using similar check to detect a list of platforms
+> that require special handlings.
+> 
+> Move the platform check in acpi_blacklisted() to a new common
+> utility function, acpi_match_platform_list(), so that other
+> drivers do not have to implement their own version.
+> 
+> There is no change in functionality.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Borislav Petkov <bp@alien8.de>
+> ---
+>  drivers/acpi/blacklist.c |   83 ++++++++--------------------------------------
+>  drivers/acpi/utils.c     |   36 ++++++++++++++++++++
+>  include/linux/acpi.h     |   19 +++++++++++
+>  3 files changed, 69 insertions(+), 69 deletions(-)
 
-When early termination is occurred due to malicious ACPI table, Linux kernel
-terminates ACPI function and continues to boot process. While kernel terminates
-ACPI function, kmem_cache_destroy() reports Acpi-Operand cache leak.
+...
 
-Boot log of ACPI operand cache leak is as follows:
->[    0.585957] ACPI: Added _OSI(Module Device)
->[    0.587218] ACPI: Added _OSI(Processor Device)
->[    0.588530] ACPI: Added _OSI(3.0 _SCP Extensions)
->[    0.589790] ACPI: Added _OSI(Processor Aggregator Device)
->[    0.591534] ACPI Error: Illegal I/O port address/length above 64K: C806E00000004002/0x2 (20170303/hwvalid-155)
->[    0.594351] ACPI Exception: AE_LIMIT, Unable to initialize fixed events (20170303/evevent-88)
->[    0.597858] ACPI: Unable to start the ACPI Interpreter
->[    0.599162] ACPI Error: Could not remove SCI handler (20170303/evmisc-281)
->[    0.601836] kmem_cache_destroy Acpi-Operand: Slab cache still has objects
->[    0.603556] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.12.0-rc5 #26
->[    0.605159] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS VirtualBox 12/01/2006
->[    0.609177] Call Trace:
->[    0.610063]  ? dump_stack+0x5c/0x81
->[    0.611118]  ? kmem_cache_destroy+0x1aa/0x1c0
->[    0.612632]  ? acpi_sleep_proc_init+0x27/0x27
->[    0.613906]  ? acpi_os_delete_cache+0xa/0x10
->[    0.617986]  ? acpi_ut_delete_caches+0x3f/0x7b
->[    0.619293]  ? acpi_terminate+0xa/0x14
->[    0.620394]  ? acpi_init+0x2af/0x34f
->[    0.621616]  ? __class_create+0x4c/0x80
->[    0.623412]  ? video_setup+0x7f/0x7f
->[    0.624585]  ? acpi_sleep_proc_init+0x27/0x27
->[    0.625861]  ? do_one_initcall+0x4e/0x1a0
->[    0.627513]  ? kernel_init_freeable+0x19e/0x21f
->[    0.628972]  ? rest_init+0x80/0x80
->[    0.630043]  ? kernel_init+0xa/0x100
->[    0.631084]  ? ret_from_fork+0x25/0x30
->[    0.633343] vgaarb: loaded
->[    0.635036] EDAC MC: Ver: 3.0.0
->[    0.638601] PCI: Probing PCI hardware
->[    0.639833] PCI host bridge to bus 0000:00
->[    0.641031] pci_bus 0000:00: root bus resource [io  0x0000-0xffff]
-> ... Continue to boot and log is omitted ...
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index b9d956c..0a9e597 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -816,3 +816,39 @@ static int __init acpi_backlight(char *str)
+>  	return 1;
+>  }
+>  __setup("acpi_backlight=", acpi_backlight);
+> +
+> +/**
+> + * acpi_match_platform_list - Check if the system matches with a given list
+> + * @plat: pointer to acpi_platform_list table terminated by a NULL entry
+> + *
+> + * Return the matched index if the system is found in the platform list.
+> + * Otherwise, return a negative error code.
+> + */
+> +int acpi_match_platform_list(const struct acpi_platform_list *plat)
+> +{
+> +	struct acpi_table_header hdr;
+> +	int idx = 0;
+> +
+> +	if (acpi_disabled)
+> +		return -ENODEV;
+> +
+> +	for (; plat->oem_id[0]; plat++, idx++) {
+> +		if (ACPI_FAILURE(acpi_get_table_header(plat->table, 0, &hdr)))
+> +			continue;
+> +
+> +		if (strncmp(plat->oem_id, hdr.oem_id, ACPI_OEM_ID_SIZE))
+> +			continue;
+> +
+> +		if (strncmp(plat->oem_table_id, hdr.oem_table_id, ACPI_OEM_TABLE_ID_SIZE))
+> +			continue;
+> +
+> +		if ((plat->pred == all_versions) ||
+> +		    (plat->pred == less_than_or_equal && hdr.oem_revision <= plat->oem_revision) ||
+> +		    (plat->pred == greater_than_or_equal && hdr.oem_revision >= plat->oem_revision) ||
+> +		    (plat->pred == equal && hdr.oem_revision == plat->oem_revision))
 
-I analyzed this memory leak in detail and found acpi_ds_obj_stack_pop_and_
-delete() function miscalculated the top of the stack. acpi_ds_obj_stack_push()
-function uses walk_state->operand_index for start position of the top, but
-acpi_ds_obj_stack_pop_and_delete() function considers index 0 for it.
-Therefore, this causes acpi operand memory leak.
+If you align the second part of the test like this:
 
-This cache leak causes a security threat because an old kernel (<= 4.9) shows
-memory locations of kernel functions in stack dump. Some malicious users
-could use this information to neutralize kernel ASLR.
+             if ((plat->pred == all_versions) ||
+                 (plat->pred == less_than_or_equal	&& hdr.oem_revision <= plat->oem_revision) ||
+                 (plat->pred == greater_than_or_equal	&& hdr.oem_revision >= plat->oem_revision) ||
+                 (plat->pred == equal			&& hdr.oem_revision == plat->oem_revision))
 
-I made a patch to fix ACPI operand cache leak.
+it gets maximally readable. But I'd leave that up to Rafael when committing
+- no need to send another version.
 
-Signed-off-by: Seunghun Han <kkamagui@gmail.com>
----
- drivers/acpi/acpica/dsutils.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+Other than that:
 
-diff --git a/drivers/acpi/acpica/dsutils.c b/drivers/acpi/acpica/dsutils.c
-index 0dabd9b..2c8a060 100644
---- a/drivers/acpi/acpica/dsutils.c
-+++ b/drivers/acpi/acpica/dsutils.c
-@@ -705,6 +705,8 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
- 	union acpi_parse_object *arguments[ACPI_OBJ_NUM_OPERANDS];
- 	u32 arg_count = 0;
- 	u32 index = walk_state->num_operands;
-+	u32 prev_num_operands = walk_state->num_operands;
-+	u32 new_num_operands;
- 	u32 i;
- 
- 	ACPI_FUNCTION_TRACE_PTR(ds_create_operands, first_arg);
-@@ -733,6 +735,7 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
- 
- 	/* Create the interpreter arguments, in reverse order */
- 
-+	new_num_operands = index;
- 	index--;
- 	for (i = 0; i < arg_count; i++) {
- 		arg = arguments[index];
-@@ -757,7 +760,11 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
- 	 * pop everything off of the operand stack and delete those
- 	 * objects
- 	 */
--	acpi_ds_obj_stack_pop_and_delete(arg_count, walk_state);
-+	walk_state->num_operands = i;
-+	acpi_ds_obj_stack_pop_and_delete(new_num_operands, walk_state);
-+
-+	/* Restore operand count */
-+	walk_state->num_operands = prev_num_operands;
- 
- 	ACPI_EXCEPTION((AE_INFO, status, "While creating Arg %u", index));
- 	return_ACPI_STATUS(status);
+Reviewed-by: Borislav Petkov <bp@suse.de>
+
 -- 
-2.1.4
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
