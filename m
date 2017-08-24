@@ -1,149 +1,104 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization
- earlier
-Date: Thu, 24 Aug 2017 11:54:28 +0800
-Message-ID: <8d662105-2ff5-02fd-9072-73167e5f49c1@cn.fujitsu.com>
-References: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com>
- <1500011554-9784-13-git-send-email-douly.fnst@cn.fujitsu.com>
- <a8024347-ce0b-c59b-74ea-45a822e54ee6@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.cn.fujitsu.com ([183.91.158.132]:46191 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751019AbdHXDyk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Aug 2017 23:54:40 -0400
-In-Reply-To: <a8024347-ce0b-c59b-74ea-45a822e54ee6@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Seunghun Han <kkamagui@gmail.com>
+Subject: [PATCH] acpi: acpica: fix acpi operand cache leak in dsutils.c
+Date: Thu, 24 Aug 2017 14:11:35 +0900
+Message-ID: <1503551495-33286-1-git-send-email-kkamagui@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lv.zheng@intel.com
+Cc: robert.moore@intel.com, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, security@kernel.org, Seunghun Han <kkamagui@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: x86@kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, ebiederm@xmission.com, bhe@redhat.com, peterz@infradead.org, izumi.taku@jp.fujitsu.com, tokunaga.keiich@jp.fujitsu.com, linux-acpi@vger.kernel.org, Julian Wollrath <jwollrath@web.de>, Borislav Petkov <bp@alien8.de>
 
-Hi Rafael, Zheng,
+I found an ACPI cache leak in ACPI early termination and boot continuing case.
 
-At 07/31/2017 06:50 PM, Dou Liyang wrote:
-> Hi,
->
-> At 07/14/2017 01:52 PM, Dou Liyang wrote:
->> Linux uses acpi_early_init() to put the ACPI table management into
->> the late stage from the early stage where the mapped ACPI tables is
->> temporary and should be unmapped.
->>
->> But, now initializing interrupt delivery mode should map and parse the
->> DMAR table earlier in the early stage. This causes an ACPI error when
->> Linux reallocates the ACPI root tables. Because Linux doesn't unmapped
->> the DMAR table after using in the early stage.
->>
->> Invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
->> be mapped and parsed in late stage like before.
->>
->> Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
->> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
->> Cc: linux-acpi@vger.kernel.org
->> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
->> Cc: Zheng, Lv <lv.zheng@intel.com>
->> Cc: Julian Wollrath <jwollrath@web.de>
->> ---
->> Test in my own PC(Lenovo M4340).
->> Ask help for doing regression testing for the bug said in commit
->> c4e1acbb35e4
->> ("ACPI / init: Invoke early ACPI initialization later").
->>
->
-> Now, I can prove this patch doesn't result in the bug[1] which made the
-> fast TSC calibration using PIT failed in a Thinkpad x121e (AMD E-450
-> APU).
->
-> The true reason of the bug is enabling ACPI subsystem earlier than
-> using PIT, not the SCI setup. invoking acpi_enable_subsystem() later
-> could fix this bug as Julian tested and said[2].
->
-> And, I found that Commit b064a8fa77df (" ACPI / init: Switch over
-> platform to the ACPI mode later") split the ACPI early initialization
-> code into acpi_early_init() and acpi_subsystem_init(). executing
-> acpi_enable_subsystem() at the original early ACPI initialization spot.
->
-> The sequence of them shows below:
->
->  start_kernel
-> +---------------+
-> |
-> +--> .......
-> |
-> |    late_time_init()
-> +--> +-------+
-> |
-> +--> .......
-> |
-> |    acpi_early_init()
-> +--> +-------+
-> |
-> +--> .......
-> |
-> |   acpi_subsystem_init()
-> +-> +--------+
->
-> We make sure the acpi_subsystem_init() is called later than
-> late_time_init(), the bug will be avoided.
->
-> This patch changes the sequence of late_time_init() and
-> acpi_early_init(), doesn't effect acpi_subsystem_init().
->
-> So, this patch is OK.
->
-> Btw, Thanks very much for Borislav Petkov, he will have access to
-> Thinkpad x121e from Mid-August and will test this series.
->
+When early termination is occurred due to malicious ACPI table, Linux kernel
+terminates ACPI function and continues to boot process. While kernel terminates
+ACPI function, kmem_cache_destroy() reports Acpi-Operand cache leak.
 
-Almost one month passed, Borislav have tested this series in Thinkpad
-x121e and I also have tested in my box and QEmu again. It is OK.
+Boot log of ACPI operand cache leak is as follows:
+>[    0.585957] ACPI: Added _OSI(Module Device)
+>[    0.587218] ACPI: Added _OSI(Processor Device)
+>[    0.588530] ACPI: Added _OSI(3.0 _SCP Extensions)
+>[    0.589790] ACPI: Added _OSI(Processor Aggregator Device)
+>[    0.591534] ACPI Error: Illegal I/O port address/length above 64K: C806E00000004002/0x2 (20170303/hwvalid-155)
+>[    0.594351] ACPI Exception: AE_LIMIT, Unable to initialize fixed events (20170303/evevent-88)
+>[    0.597858] ACPI: Unable to start the ACPI Interpreter
+>[    0.599162] ACPI Error: Could not remove SCI handler (20170303/evmisc-281)
+>[    0.601836] kmem_cache_destroy Acpi-Operand: Slab cache still has objects
+>[    0.603556] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.12.0-rc5 #26
+>[    0.605159] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS VirtualBox 12/01/2006
+>[    0.609177] Call Trace:
+>[    0.610063]  ? dump_stack+0x5c/0x81
+>[    0.611118]  ? kmem_cache_destroy+0x1aa/0x1c0
+>[    0.612632]  ? acpi_sleep_proc_init+0x27/0x27
+>[    0.613906]  ? acpi_os_delete_cache+0xa/0x10
+>[    0.617986]  ? acpi_ut_delete_caches+0x3f/0x7b
+>[    0.619293]  ? acpi_terminate+0xa/0x14
+>[    0.620394]  ? acpi_init+0x2af/0x34f
+>[    0.621616]  ? __class_create+0x4c/0x80
+>[    0.623412]  ? video_setup+0x7f/0x7f
+>[    0.624585]  ? acpi_sleep_proc_init+0x27/0x27
+>[    0.625861]  ? do_one_initcall+0x4e/0x1a0
+>[    0.627513]  ? kernel_init_freeable+0x19e/0x21f
+>[    0.628972]  ? rest_init+0x80/0x80
+>[    0.630043]  ? kernel_init+0xa/0x100
+>[    0.631084]  ? ret_from_fork+0x25/0x30
+>[    0.633343] vgaarb: loaded
+>[    0.635036] EDAC MC: Ver: 3.0.0
+>[    0.638601] PCI: Probing PCI hardware
+>[    0.639833] PCI host bridge to bus 0000:00
+>[    0.641031] pci_bus 0000:00: root bus resource [io  0x0000-0xffff]
+> ... Continue to boot and log is omitted ...
 
-BTW,
-1) I found your commit b064a8fa77df (" ACPI / init: Switch over
-platform to the ACPI mode later") split the ACPI early initialization
-code into acpi_early_init() and acpi_subsystem_init(). Actually enabling
-the ACPI subsystem is in acpi_subsystem_init().
+I analyzed this memory leak in detail and found acpi_ds_obj_stack_pop_and_
+delete() function miscalculated the top of the stack. acpi_ds_obj_stack_push()
+function uses walk_state->operand_index for start position of the top, but
+acpi_ds_obj_stack_pop_and_delete() function considers index 0 for it.
+Therefore, this causes acpi operand memory leak.
 
-2) As we discussed earlier, invoking acpi_put_table() is not good for
-this situation.
+This cache leak causes a security threat because an old kernel (<= 4.9) shows
+memory locations of kernel functions in stack dump. Some malicious users
+could use this information to neutralize kernel ASLR.
 
-So I do this patch, Is that goot to you? Any comments will be welcome.
+I made a patch to fix ACPI operand cache leak.
 
-If it is OK, As the patches need to be re-based, and I also found
-several spelling mistake, I will send a new version next week.
+Signed-off-by: Seunghun Han <kkamagui@gmail.com>
+---
+ drivers/acpi/acpica/dsutils.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-Thanks,
-	dou.
-
-> [1] https://lkml.org/lkml/2014/3/10/123
-> [2] https://lkml.org/lkml/2014/3/12/311
->
->
-> Thanks
->     dou.
->
->>  init/main.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/init/main.c b/init/main.c
->> index df58a41..7a09467 100644
->> --- a/init/main.c
->> +++ b/init/main.c
->> @@ -654,12 +654,12 @@ asmlinkage __visible void __init start_kernel(void)
->>      kmemleak_init();
->>      setup_per_cpu_pageset();
->>      numa_policy_init();
->> +    acpi_early_init();
->>      if (late_time_init)
->>          late_time_init();
->>      calibrate_delay();
->>      pidmap_init();
->>      anon_vma_init();
->> -    acpi_early_init();
->>  #ifdef CONFIG_X86
->>      if (efi_enabled(EFI_RUNTIME_SERVICES))
->>          efi_enter_virtual_mode();
->>
-
-
+diff --git a/drivers/acpi/acpica/dsutils.c b/drivers/acpi/acpica/dsutils.c
+index 0dabd9b..2c8a060 100644
+--- a/drivers/acpi/acpica/dsutils.c
++++ b/drivers/acpi/acpica/dsutils.c
+@@ -705,6 +705,8 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
+ 	union acpi_parse_object *arguments[ACPI_OBJ_NUM_OPERANDS];
+ 	u32 arg_count = 0;
+ 	u32 index = walk_state->num_operands;
++	u32 prev_num_operands = walk_state->num_operands;
++	u32 new_num_operands;
+ 	u32 i;
+ 
+ 	ACPI_FUNCTION_TRACE_PTR(ds_create_operands, first_arg);
+@@ -733,6 +735,7 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
+ 
+ 	/* Create the interpreter arguments, in reverse order */
+ 
++	new_num_operands = index;
+ 	index--;
+ 	for (i = 0; i < arg_count; i++) {
+ 		arg = arguments[index];
+@@ -757,7 +760,11 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
+ 	 * pop everything off of the operand stack and delete those
+ 	 * objects
+ 	 */
+-	acpi_ds_obj_stack_pop_and_delete(arg_count, walk_state);
++	walk_state->num_operands = i;
++	acpi_ds_obj_stack_pop_and_delete(new_num_operands, walk_state);
++
++	/* Restore operand count */
++	walk_state->num_operands = prev_num_operands;
+ 
+ 	ACPI_EXCEPTION((AE_INFO, status, "While creating Arg %u", index));
+ 	return_ACPI_STATUS(status);
+-- 
+2.1.4
