@@ -1,61 +1,62 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v11 3/6] ACPI: build and enable APEI GHES in the Makefile
- and configuration
-Date: Fri, 25 Aug 2017 19:20:57 +0800
-Message-ID: <6afc4dfa-5ad1-8df1-7dce-4704a796d8aa@huawei.com>
-References: <1503066227-18251-1-git-send-email-gengdongjiu@huawei.com>
- <1503066227-18251-4-git-send-email-gengdongjiu@huawei.com>
- <599ECEF3.80001@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 5/9] PM / ACPI: Provide option to disable direct_complete for ACPI devices
+Date: Fri, 25 Aug 2017 14:23:59 +0200
+Message-ID: <2514819.i36HWVUm2E@aspire.rjw.lan>
+References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org> <12333551.k204JYSgao@aspire.rjw.lan> <CAPDyKFrFUgE0FJE==ht4Z5utj+Pht=9UGn-LYBR9hP4ncofreg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvm-owner@vger.kernel.org>
-In-Reply-To: <599ECEF3.80001@huawei.com>
-Sender: kvm-owner@vger.kernel.org
-To: Shannon Zhao <zhaoshenglong@huawei.com>, lersek@redhat.com, mst@redhat.com, imammedo@redhat.com, peter.maydell@linaro.org, pbonzini@redhat.com, qemu-devel@nongnu.org, qemu-arm@nongnu.org, kvm@vger.kernel.org, edk2-devel@lists.01.org, christoffer.dall@linaro.org, marc.zyngier@arm.com, will.deacon@arm.com, james.morse@arm.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, john.garry@huawei.com, jonathan.cameron@huawei.com, shameerali.kolothum.thodi@huawei.com, huangdaode@hisilicon.com, wangzhou1@hi
-Cc: huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com, zhengqiang10@huawei.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:64923 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754608AbdHYMcg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 25 Aug 2017 08:32:36 -0400
+In-Reply-To: <CAPDyKFrFUgE0FJE==ht4Z5utj+Pht=9UGn-LYBR9hP4ncofreg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
 
+On Friday, August 25, 2017 11:28:25 AM CEST Ulf Hansson wrote:
+> [...]
+> 
+> >>
+> >> The above change would offer an improvement, however there are more
+> >> benefits from the runtime PM centric path that it doesn't cover.
+> >
+> > The idea, though, is not to make it instead of, but in addition to the
+> > runtime PM centric path.
+> >
+> > So a driver using the runtime PM centric (or rather runtime PM aware)
+> > callbacks can set power.force_suspend and benefit from having direct_complete
+> > set conditional on whether or not the device is runtime resumed before the
+> > late suspend.
+> >
+> > If device_complete remains set in __device_suspend_late(), no system
+> > suspend/resume callbacks will be invoked from that point on.  If it isn't
+> > set, pm_runtime_force_suspend() should work just fine and then
+> > pm_runtime_force_resume() should do the right thing on the way back.
+> >
+> > All boils down to (a) setting a flag and (b) using the right callbacks
+> > for system suspend which is the case with your patches either.
+> 
+> You make it sound simple. :-)
+> 
+> I try to get inspired of your ideas and see what I can come up with.
+> However, I really want us to avoid making it more difficult to
+> understand the behavior of the core, so I probably look start changing
+> the ACPI PM domain first, then trying to adopt the behavior of the
+> core on top of those changes. Does that sound reasonable to you?
 
+Well, I don't think we need to change the ACPI PM domain at all. :-)
 
-On 2017/8/24 21:04, Shannon Zhao wrote:
-> 
-> 
-> On 2017/8/18 22:23, Dongjiu Geng wrote:
->> Add CONFIG_ACPI_APEI configuration in the Makefile and
->> enable it in the arm-softmmu.mak
->>
->> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
->> ---
->>  default-configs/arm-softmmu.mak | 1 +
->>  hw/acpi/Makefile.objs           | 1 +
->>  2 files changed, 2 insertions(+)
->>
->> diff --git a/default-configs/arm-softmmu.mak b/default-configs/arm-softmmu.mak
->> index bbdd3c1..c362113 100644
->> --- a/default-configs/arm-softmmu.mak
->> +++ b/default-configs/arm-softmmu.mak
->> @@ -129,3 +129,4 @@ CONFIG_ACPI=y
->>  CONFIG_SMBIOS=y
->>  CONFIG_ASPEED_SOC=y
->>  CONFIG_GPIO_KEY=y
->> +CONFIG_ACPI_APEI=y
->> diff --git a/hw/acpi/Makefile.objs b/hw/acpi/Makefile.objs
->> index 11c35bc..bafb148 100644
->> --- a/hw/acpi/Makefile.objs
->> +++ b/hw/acpi/Makefile.objs
->> @@ -6,6 +6,7 @@ common-obj-$(CONFIG_ACPI_MEMORY_HOTPLUG) += memory_hotplug.o
->>  common-obj-$(CONFIG_ACPI_CPU_HOTPLUG) += cpu.o
->>  common-obj-$(CONFIG_ACPI_NVDIMM) += nvdimm.o
->>  common-obj-$(CONFIG_ACPI_VMGENID) += vmgenid.o
->> +common-obj-$(CONFIG_ACPI_APEI) += hest_ghes.o
->>  common-obj-$(call lnot,$(CONFIG_ACPI_X86)) += acpi-stub.o
->>  
->>  common-obj-y += acpi_interface.o
->>
-> Fold this patch into previous one.
-Ok, thanks
+However, let me contiune in a reply to
 
-> 
-> Thanks,
-> 
+https://marc.info/?l=linux-arm-kernel&m=150361200030186&w=2
+
+for more complete context.
+
+Thanks,
+Rafael
+
