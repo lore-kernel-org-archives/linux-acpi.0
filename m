@@ -1,145 +1,115 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization
- earlier
-Date: Fri, 25 Aug 2017 10:06:11 +0800
-Message-ID: <5cf1fea0-3f7f-8eda-bc89-4ad42e8d4f25@cn.fujitsu.com>
-References: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com>
- <a8024347-ce0b-c59b-74ea-45a822e54ee6@cn.fujitsu.com>
- <8d662105-2ff5-02fd-9072-73167e5f49c1@cn.fujitsu.com>
- <4971374.QgHTRTZW1k@aspire.rjw.lan>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v2 5/9] PM / ACPI: Provide option to disable
+ direct_complete for ACPI devices
+Date: Fri, 25 Aug 2017 11:04:53 +0200
+Message-ID: <CAPDyKFpznYWU3NcuUfUD3=isR_w=it995+=GTaF8OU2Ho-GOQg@mail.gmail.com>
+References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org>
+ <CAJZ5v0gJn=SzNFGUT7Zb+CfhQBZ7KNDK2GTSSXGexD8GObjGOw@mail.gmail.com>
+ <CAPDyKFrGvqhBdenSyQ8Qr76DbfEvc74_dKZAjraA5qL63Mm2rg@mail.gmail.com> <4050921.GfHh1Z5NrX@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.cn.fujitsu.com ([183.91.158.132]:19775 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754191AbdHYCGV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Aug 2017 22:06:21 -0400
-In-Reply-To: <4971374.QgHTRTZW1k@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <4050921.GfHh1Z5NrX@aspire.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, "Zheng, Lv" <lv.zheng@intel.com>, tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, ebiederm@xmission.com, bhe@redhat.com, peterz@infradead.org, izumi.taku@jp.fujitsu.com, tokunaga.keiich@jp.fujitsu.com, linux-acpi@vger.kernel.org, Julian Wollrath <jwollrath@web.de>, Borislav Petkov <bp@alien8.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
-
-At 08/25/2017 12:38 AM, Rafael J. Wysocki wrote:
-> On Thursday, August 24, 2017 5:54:28 AM CEST Dou Liyang wrote:
->> Hi Rafael, Zheng,
+On 24 August 2017 at 16:57, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, August 24, 2017 10:19:43 AM CEST Ulf Hansson wrote:
+>> On 24 August 2017 at 01:39, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>> > On Wed, Aug 23, 2017 at 4:42 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+>> >> In some cases a driver for an ACPI device needs to be able to prevent the
+>> >> ACPI PM domain from using the direct_complete path during system sleep.
+>> >>
+>> >> One typical case is when the driver for the device needs its device to stay
+>> >> runtime enabled, during the __device_suspend phase. This isn't the case
+>> >> when the direct_complete path is being executed by the PM core, as it then
+>> >> disables runtime PM for the device in __device_suspend(). Any following
+>> >> attempts to runtime resume the device after that point, just fails.
+>> >
+>> > OK, that is a problem.
+>> >
+>> >> A workaround to this problem is to let the driver runtime resume its device
+>> >> from its ->prepare() callback, as that would prevent the direct_complete
+>> >> path from being executed. However, that may often be a waste, especially if
+>> >> it turned out that no one really needed the device.
+>> >>
+>> >> For this reason, invent acpi_dev_disable|enable_direct_complete(), to allow
+>> >> drivers to inform the ACPI PM domain to change its default behaviour during
+>> >> system sleep, and thus control whether it may use the direct_complete path
+>> >> or not.
+>> >
+>> > But I'm not sure this is the right place to address it as it very well
+>> > may affect a PCI device too.
+>> >
+>> > Also, this is about the device and not about its ACPI companion
+>> > object, so putting the flag in there is somewhat unclean, so to speak.
+>> >
+>> > It looks like we need a flag in dev_pm_info saying something along the
+>> > lines of "my system suspend callback can deal with runtime PM" that
+>> > will cause the direct_complete update to occur in
+>> > __device_suspend_late() instead of __device_suspend().
 >>
->> At 07/31/2017 06:50 PM, Dou Liyang wrote:
->>> Hi,
->>>
->>> At 07/14/2017 01:52 PM, Dou Liyang wrote:
->>>> Linux uses acpi_early_init() to put the ACPI table management into
->>>> the late stage from the early stage where the mapped ACPI tables is
->>>> temporary and should be unmapped.
->>>>
->>>> But, now initializing interrupt delivery mode should map and parse the
->>>> DMAR table earlier in the early stage. This causes an ACPI error when
->>>> Linux reallocates the ACPI root tables. Because Linux doesn't unmapped
->>>> the DMAR table after using in the early stage.
->>>>
->>>> Invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
->>>> be mapped and parsed in late stage like before.
->>>>
->>>> Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
->>>> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
->>>> Cc: linux-acpi@vger.kernel.org
->>>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
->>>> Cc: Zheng, Lv <lv.zheng@intel.com>
->>>> Cc: Julian Wollrath <jwollrath@web.de>
->>>> ---
->>>> Test in my own PC(Lenovo M4340).
->>>> Ask help for doing regression testing for the bug said in commit
->>>> c4e1acbb35e4
->>>> ("ACPI / init: Invoke early ACPI initialization later").
->>>>
->>>
->>> Now, I can prove this patch doesn't result in the bug[1] which made the
->>> fast TSC calibration using PIT failed in a Thinkpad x121e (AMD E-450
->>> APU).
->>>
->>> The true reason of the bug is enabling ACPI subsystem earlier than
->>> using PIT, not the SCI setup. invoking acpi_enable_subsystem() later
->>> could fix this bug as Julian tested and said[2].
->>>
->>> And, I found that Commit b064a8fa77df (" ACPI / init: Switch over
->>> platform to the ACPI mode later") split the ACPI early initialization
->>> code into acpi_early_init() and acpi_subsystem_init(). executing
->>> acpi_enable_subsystem() at the original early ACPI initialization spot.
->>>
->>> The sequence of them shows below:
->>>
->>>  start_kernel
->>> +---------------+
->>> |
->>> +--> .......
->>> |
->>> |    late_time_init()
->>> +--> +-------+
->>> |
->>> +--> .......
->>> |
->>> |    acpi_early_init()
->>> +--> +-------+
->>> |
->>> +--> .......
->>> |
->>> |   acpi_subsystem_init()
->>> +-> +--------+
->>>
->>> We make sure the acpi_subsystem_init() is called later than
->>> late_time_init(), the bug will be avoided.
->>>
->>> This patch changes the sequence of late_time_init() and
->>> acpi_early_init(), doesn't effect acpi_subsystem_init().
->>>
->>> So, this patch is OK.
->>>
->>> Btw, Thanks very much for Borislav Petkov, he will have access to
->>> Thinkpad x121e from Mid-August and will test this series.
->>>
+>> I realize that in the end this turns out to be a comparison between
+>> the runtime PM centric path and the direct_complete path while
+>> implementing system sleep. In patch 9, there is some more explanation
+>> around this, however if you like I can elaborate even more about
+>> this!?
 >>
->> Almost one month passed, Borislav have tested this series in Thinkpad
->> x121e and I also have tested in my box and QEmu again. It is OK.
->>
->> BTW,
->> 1) I found your commit b064a8fa77df (" ACPI / init: Switch over
->> platform to the ACPI mode later") split the ACPI early initialization
->> code into acpi_early_init() and acpi_subsystem_init(). Actually enabling
->> the ACPI subsystem is in acpi_subsystem_init().
->>
->> 2) As we discussed earlier, invoking acpi_put_table() is not good for
->> this situation.
->>
->> So I do this patch, Is that goot to you? Any comments will be welcome.
->>
->> If it is OK, As the patches need to be re-based, and I also found
->> several spelling mistake, I will send a new version next week.
+>> Regarding making changes to the PM core and adding more flags to the
+>> dev_pm_info etc, I am not sure we really want that. Isn't it already
+>> complex enough?
 >
-> OK, but does it depend on anything?  Or does anything depend on it?
+> Maybe it is.
 >
-
-It depends on nothing and can be considered independent.
-
-[11/13] patch in this series depends on it. [11/13] patch caused an
-ACPI error, we used this patch to fix it.
-
-> It is [12/13] in a series, so it looks like it doesn't depend on the
-> previous patches in it, but the next one may depend on it?  Which is the
-> case?
+>> My point is, that I am trying to improve the behavior of the ACPI PM
+>> domain by enabling the runtime PM centric path for it, and even if
+>> there is something similar that could be done for PCI, I don't think
+>> we should need involvement by the PM core.
 >
+> Well, this generally simply doesn't work.
+>
+> The whole "runtime PM centric approach" idea is generally fine by me,
+> but the fact today is that there are drivers not ready for it.  Which
+> is why there is the direct_complete thing (it may be regarded as a
+> sort-of workaround for the unreadiness of drivers if you will).
 
-The second case(the next one may depend on it) is what I want.
+This is how I see it:
 
-But, seems I made a mistake about the order of the patches. I should
-put it before [11/13] to avoid the ACPI error.
+The runtime PM centric path is being widely deployed, however it takes
+time to convert drivers.
 
-I will adjust the order of the patches in the next version, and post
-the whole series to you.
+The direct_complete path offers a great intermediate step for the ACPI
+PM domain as it affects all its devices - while we wait for further
+optimizations being deployed using the runtime PM centric path.
 
-Thanks,
-	dou.
+>
+> Now, buy adding the no_direct_complete flag just to the ACPI PM domain
+> you basically overlook the fact that this potentially affects the parents
+> of the devices in question by preventing direct_complete from being set
+> for them.  And those parents may not be in the ACPI PM domain in principle,
+> so the problem needs to be addressed in the core.
 
+Okay, let's move the flag to the dev_pm* structures, to not limit this
+to the ACPI PM domain.
 
+However in the current approach taken in this series, as it's coded as
+opt-in to use for drivers, I am questioning how big of a problem
+parent devices not being able to use the direct_complete path could
+be!?
+Couldn't it be good enough to just adopt the behavior of the ACPI PM
+domain and more or less leave the core out of it - at least for now!?
+
+I am also thinking, that for those parent devices that potentially may
+suffer from not be able to use the direct_complete path, those can be
+fixed by deploying the runtime PM centric path in their
+subsystems/drivers. That would even mean that the parent devices get
+the additional benefits that the runtime PM centric path offers. So,
+in the end we would end up having a better optimized solution than we
+had before.
+
+What do you think?
+
+Kind regards
+Uffe
