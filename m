@@ -1,170 +1,265 @@
 From: Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH v3 2/3] platform/x86: Add support for Dollar Cove TI power button
-Date: Fri, 25 Aug 2017 15:44:42 +0200
-Message-ID: <20170825134443.14843-3-tiwai@suse.de>
+Subject: [PATCH v3 1/3] mfd: Add support for Cherry Trail Dollar Cove TI PMIC
+Date: Fri, 25 Aug 2017 15:44:41 +0200
+Message-ID: <20170825134443.14843-2-tiwai@suse.de>
 References: <20170825134443.14843-1-tiwai@suse.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <20170825134443.14843-1-tiwai@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Lee Jones <lee.jones@linaro.org>
 Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This provides a new input driver for supporting the power button on
-Dollar Cove TI PMIC, found on Cherrytrail-based devices.
-The patch is based on the original work by Intel, found at:
+This patch adds the MFD driver for Dollar Cove (TI version) PMIC with
+ACPI INT33F5 that is found on some Intel Cherry Trail devices.
+The driver is based on the original work by Intel, found at:
   https://github.com/01org/ProductionKernelQuilts
+
+This is a minimal version for adding the basic resources.  Currently,
+only ACPI PMIC opregion and the external power-button are used.
 
 Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=193891
 Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Takashi Iwai <tiwai@suse.de>
 ---
 v2->v3:
 * Rename dc_ti with chtdc_ti in all places
 * Driver/kconfig renames accordingly
-* Constification
 * Added acks by Andy and Mika
 v1->v2:
-* Move power-button driver to platform/x86, driver renames accordingly
-* Add missing wake-irq cleanup to power-button driver
+* Minor cleanups as suggested by Andy
 
- drivers/platform/x86/Kconfig                 |  8 +++
- drivers/platform/x86/Makefile                |  1 +
- drivers/platform/x86/intel_chtdc_ti_pwrbtn.c | 97 ++++++++++++++++++++++++++++
- 3 files changed, 106 insertions(+)
- create mode 100644 drivers/platform/x86/intel_chtdc_ti_pwrbtn.c
+ drivers/mfd/Kconfig                   |  13 +++
+ drivers/mfd/Makefile                  |   1 +
+ drivers/mfd/intel_soc_pmic_chtdc_ti.c | 183 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 197 insertions(+)
+ create mode 100644 drivers/mfd/intel_soc_pmic_chtdc_ti.c
 
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 80b87954f6dd..764c80ce3ea5 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -1139,6 +1139,14 @@ config SILEAD_DMI
- 	  with the OS-image for the device. This option supplies the missing
- 	  information. Enable this for x86 tablets with Silead touchscreens.
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 94ad2c1c3d90..36e7d60f1314 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -496,6 +496,19 @@ config INTEL_SOC_PMIC_CHTWC
+ 	  available before any devices using it are probed. This option also
+ 	  causes the designware-i2c driver to be builtin for the same reason.
  
-+config INTEL_CHTDC_TI_PWRBTN
-+	tristate "Intel Cherry Trail Dollar Cove TI power button driver"
-+	depends on INTEL_SOC_PMIC_CHTDC_TI
-+	depends on INPUT
++config INTEL_SOC_PMIC_CHTDC_TI
++	tristate "Support for Intel Cherry Trail Dollar Cove TI PMIC"
++	depends on GPIOLIB
++	depends on I2C
++	depends on ACPI
++	depends on X86
++	select MFD_CORE
++	select REGMAP_I2C
++	select REGMAP_IRQ
 +	help
-+	  Say Y here fi you want to have a power button driver for
-+	  Dollar Cove TI PMIC on Intel Cherry Trail devices.
++	  Select this option for supporting Dollar Cove (TI version) PMIC
++	  device that is found on some Intel Cherry Trail systems.
 +
- endif # X86_PLATFORM_DEVICES
+ config MFD_INTEL_LPSS
+ 	tristate
+ 	select COMMON_CLK
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index 080793b3fd0e..50ae64d2b22a 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -216,6 +216,7 @@ intel-soc-pmic-objs		:= intel_soc_pmic_core.o intel_soc_pmic_crc.o
+ obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
+ obj-$(CONFIG_INTEL_SOC_PMIC_BXTWC)	+= intel_soc_pmic_bxtwc.o
+ obj-$(CONFIG_INTEL_SOC_PMIC_CHTWC)	+= intel_soc_pmic_chtwc.o
++obj-$(CONFIG_INTEL_SOC_PMIC_CHTDC_TI)	+= intel_soc_pmic_chtdc_ti.o
+ obj-$(CONFIG_MFD_MT6397)	+= mt6397-core.o
  
- config PMC_ATOM
-diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index 91cec1751461..6a14fdbcecbe 100644
---- a/drivers/platform/x86/Makefile
-+++ b/drivers/platform/x86/Makefile
-@@ -83,3 +83,4 @@ obj-$(CONFIG_PMC_ATOM)		+= pmc_atom.o
- obj-$(CONFIG_MLX_PLATFORM)	+= mlx-platform.o
- obj-$(CONFIG_MLX_CPLD_PLATFORM)	+= mlxcpld-hotplug.o
- obj-$(CONFIG_INTEL_TURBO_MAX_3) += intel_turbo_max_3.o
-+obj-$(CONFIG_INTEL_CHTDC_TI_PWRBTN)	+= intel_chtdc_ti_pwrbtn.o
-diff --git a/drivers/platform/x86/intel_chtdc_ti_pwrbtn.c b/drivers/platform/x86/intel_chtdc_ti_pwrbtn.c
+ obj-$(CONFIG_MFD_ALTERA_A10SR)	+= altera-a10sr.o
+diff --git a/drivers/mfd/intel_soc_pmic_chtdc_ti.c b/drivers/mfd/intel_soc_pmic_chtdc_ti.c
 new file mode 100644
-index 000000000000..7cf0eab2be53
+index 000000000000..404adb6fc475
 --- /dev/null
-+++ b/drivers/platform/x86/intel_chtdc_ti_pwrbtn.c
-@@ -0,0 +1,97 @@
++++ b/drivers/mfd/intel_soc_pmic_chtdc_ti.c
+@@ -0,0 +1,183 @@
 +/*
-+ * Power-button driver for Dollar Cove TI PMIC
-+ * Copyright (C) 2014 Intel Corp
-+ * Copyright (c) 2017 Takashi Iwai <tiwai@suse.de>
++ * Device access for Dollar Cove TI PMIC
++ * Copyright (c) 2014, Intel Corporation.
++ *   Author: Ramakrishna Pallala <ramakrishna.pallala@intel.com>
++ *
++ * Cleanup and forward-ported
++ *   Copyright (c) 2017 Takashi Iwai <tiwai@suse.de>
 + */
 +
-+#include <linux/init.h>
-+#include <linux/input.h>
++#include <linux/acpi.h>
 +#include <linux/interrupt.h>
-+#include <linux/device.h>
-+#include <linux/mfd/intel_soc_pmic.h>
++#include <linux/i2c.h>
 +#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_wakeirq.h>
-+#include <linux/slab.h>
++#include <linux/regmap.h>
++#include <linux/mfd/core.h>
++#include <linux/mfd/intel_soc_pmic.h>
 +
-+#define CHTDC_TI_SIRQ_REG	0x3
-+#define SIRQ_PWRBTN_REL		(1 << 0)
++#define CHTDC_TI_IRQLVL1	0x01
++#define CHTDC_TI_MASK_IRQLVL1	0x02
 +
-+static irqreturn_t chtdc_ti_pwrbtn_interrupt(int irq, void *dev_id)
++/* Level 1 IRQs */
++enum {
++	CHTDC_TI_PWRBTN = 0,	/* power button */
++	CHTDC_TI_DIETMPWARN,	/* thermal */
++	CHTDC_TI_ADCCMPL,	/* ADC */
++	/* no irq 3 */
++	CHTDC_TI_VBATLOW = 4,	/* battery */
++	CHTDC_TI_VBUSDET,	/* power source */
++	/* no irq 6 */
++	CHTDC_TI_CCEOCAL = 7,	/* battery */
++};
++
++static struct resource power_button_resources[] = {
++	DEFINE_RES_IRQ(CHTDC_TI_PWRBTN),
++};
++
++static struct resource thermal_resources[] = {
++	DEFINE_RES_IRQ(CHTDC_TI_DIETMPWARN),
++};
++
++static struct resource adc_resources[] = {
++	DEFINE_RES_IRQ(CHTDC_TI_ADCCMPL),
++};
++
++static struct resource pwrsrc_resources[] = {
++	DEFINE_RES_IRQ(CHTDC_TI_VBUSDET),
++};
++
++static struct resource battery_resources[] = {
++	DEFINE_RES_IRQ(CHTDC_TI_VBATLOW),
++	DEFINE_RES_IRQ(CHTDC_TI_CCEOCAL),
++};
++
++static struct mfd_cell chtdc_ti_dev[] = {
++	{
++		.name = "chtdc_ti_pwrbtn",
++		.num_resources = ARRAY_SIZE(power_button_resources),
++		.resources = power_button_resources,
++	},
++	{
++		.name = "chtdc_ti_adc",
++		.num_resources = ARRAY_SIZE(adc_resources),
++		.resources = adc_resources,
++	},
++	{
++		.name = "chtdc_ti_thermal",
++		.num_resources = ARRAY_SIZE(thermal_resources),
++		.resources = thermal_resources,
++	},
++	{
++		.name = "chtdc_ti_pwrsrc",
++		.num_resources = ARRAY_SIZE(pwrsrc_resources),
++		.resources = pwrsrc_resources,
++	},
++	{
++		.name = "chtdc_ti_battery",
++		.num_resources = ARRAY_SIZE(battery_resources),
++		.resources = battery_resources,
++	},
++	{
++		.name = "chtdc_ti_region",
++	},
++};
++
++static const struct regmap_config chtdc_ti_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.max_register = 128,
++	.cache_type = REGCACHE_NONE,
++};
++
++static const struct regmap_irq chtdc_ti_irqs[] = {
++	REGMAP_IRQ_REG(CHTDC_TI_PWRBTN, 0, BIT(CHTDC_TI_PWRBTN)),
++	REGMAP_IRQ_REG(CHTDC_TI_DIETMPWARN, 0, BIT(CHTDC_TI_DIETMPWARN)),
++	REGMAP_IRQ_REG(CHTDC_TI_ADCCMPL, 0, BIT(CHTDC_TI_ADCCMPL)),
++	REGMAP_IRQ_REG(CHTDC_TI_VBATLOW, 0, BIT(CHTDC_TI_VBATLOW)),
++	REGMAP_IRQ_REG(CHTDC_TI_VBUSDET, 0, BIT(CHTDC_TI_VBUSDET)),
++	REGMAP_IRQ_REG(CHTDC_TI_CCEOCAL, 0, BIT(CHTDC_TI_CCEOCAL)),
++};
++
++static const struct regmap_irq_chip chtdc_ti_irq_chip = {
++	.name = KBUILD_MODNAME,
++	.irqs = chtdc_ti_irqs,
++	.num_irqs = ARRAY_SIZE(chtdc_ti_irqs),
++	.num_regs = 1,
++	.status_base = CHTDC_TI_IRQLVL1,
++	.mask_base = CHTDC_TI_MASK_IRQLVL1,
++	.ack_base = CHTDC_TI_IRQLVL1,
++};
++
++static int chtdc_ti_probe(struct i2c_client *i2c)
 +{
-+	struct input_dev *input = dev_id;
-+	struct device *dev = input->dev.parent;
-+	struct regmap *regmap = dev_get_drvdata(dev);
-+	int state;
-+
-+	if (!regmap_read(regmap, CHTDC_TI_SIRQ_REG, &state)) {
-+		dev_dbg(dev, "SIRQ_REG=0x%x\n", state);
-+		state &= SIRQ_PWRBTN_REL;
-+		input_event(input, EV_KEY, KEY_POWER, !state);
-+		input_sync(input);
-+	}
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int chtdc_ti_pwrbtn_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct intel_soc_pmic *pmic = dev_get_drvdata(dev->parent);
-+	struct input_dev *input;
-+	int irq;
++	struct device *dev = &i2c->dev;
++	struct intel_soc_pmic *pmic;
 +	int ret;
 +
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0)
-+		return -EINVAL;
-+	input = devm_input_allocate_device(dev);
-+	if (!input)
++	pmic = devm_kzalloc(dev, sizeof(*pmic), GFP_KERNEL);
++	if (!pmic)
 +		return -ENOMEM;
-+	input->name = pdev->name;
-+	input->phys = "power-button/input0";
-+	input->id.bustype = BUS_HOST;
-+	input->dev.parent = dev;
-+	input_set_capability(input, EV_KEY, KEY_POWER);
-+	ret = input_register_device(input);
++
++	i2c_set_clientdata(i2c, pmic);
++
++	pmic->regmap = devm_regmap_init_i2c(i2c, &chtdc_ti_regmap_config);
++	if (IS_ERR(pmic->regmap))
++		return PTR_ERR(pmic->regmap);
++	pmic->irq = i2c->irq;
++
++	ret = devm_regmap_add_irq_chip(dev, pmic->regmap, pmic->irq,
++				       IRQF_ONESHOT, 0,
++				       &chtdc_ti_irq_chip,
++				       &pmic->irq_chip_data);
 +	if (ret)
 +		return ret;
 +
-+	dev_set_drvdata(dev, pmic->regmap);
-+
-+	ret = devm_request_threaded_irq(dev, irq, NULL,
-+					chtdc_ti_pwrbtn_interrupt,
-+					0, KBUILD_MODNAME, input);
-+	if (ret)
-+		return ret;
-+
-+	device_init_wakeup(dev, true);
-+	dev_pm_set_wake_irq(dev, irq);
-+	return 0;
++	return devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE, chtdc_ti_dev,
++				    ARRAY_SIZE(chtdc_ti_dev), NULL, 0,
++				    regmap_irq_get_domain(pmic->irq_chip_data));
 +}
 +
-+static int chtdc_ti_pwrbtn_remove(struct platform_device *pdev)
++static void chtdc_ti_shutdown(struct i2c_client *i2c)
 +{
-+	dev_pm_clear_wake_irq(&pdev->dev);
-+	device_init_wakeup(&pdev->dev, false);
++	struct intel_soc_pmic *pmic = i2c_get_clientdata(i2c);
++
++	disable_irq(pmic->irq);
++}
++
++static int __maybe_unused chtdc_ti_suspend(struct device *dev)
++{
++	struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
++
++	disable_irq(pmic->irq);
 +	return 0;
 +}
 +
-+static const struct platform_device_id chtdc_ti_pwrbtn_id_table[] = {
-+	{ .name = "chtdc_ti_pwrbtn" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(platform, chtdc_ti_pwrbtn_id_table);
++static int __maybe_unused chtdc_ti_resume(struct device *dev)
++{
++	struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
 +
-+static struct platform_driver chtdc_ti_pwrbtn_driver = {
++	enable_irq(pmic->irq);
++	return 0;
++}
++
++static SIMPLE_DEV_PM_OPS(chtdc_ti_pm_ops, chtdc_ti_suspend, chtdc_ti_resume);
++
++static const struct acpi_device_id chtdc_ti_acpi_ids[] = {
++	{ "INT33F5" },
++	{ },
++};
++MODULE_DEVICE_TABLE(acpi, chtdc_ti_acpi_ids);
++
++static struct i2c_driver chtdc_ti_i2c_driver = {
 +	.driver = {
 +		.name = KBUILD_MODNAME,
++		.pm = &chtdc_ti_pm_ops,
++		.acpi_match_table = chtdc_ti_acpi_ids,
 +	},
-+	.probe	= chtdc_ti_pwrbtn_probe,
-+	.remove	= chtdc_ti_pwrbtn_remove,
-+	.id_table = chtdc_ti_pwrbtn_id_table,
++	.probe_new = chtdc_ti_probe,
++	.shutdown = chtdc_ti_shutdown,
 +};
-+module_platform_driver(chtdc_ti_pwrbtn_driver);
++module_i2c_driver(chtdc_ti_i2c_driver);
 +
-+MODULE_DESCRIPTION("Power-button driver for Dollar Cove TI PMIC");
++MODULE_DESCRIPTION("I2C driver for Intel SoC Dollar Cove TI PMIC");
 +MODULE_LICENSE("GPL v2");
 -- 
 2.14.0
