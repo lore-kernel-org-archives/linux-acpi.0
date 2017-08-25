@@ -1,155 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization earlier
-Date: Fri, 25 Aug 2017 14:27:08 +0200
-Message-ID: <2641234.UytgA7eGhA@aspire.rjw.lan>
-References: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com> <4971374.QgHTRTZW1k@aspire.rjw.lan> <5cf1fea0-3f7f-8eda-bc89-4ad42e8d4f25@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61849 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755093AbdHYMfo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 25 Aug 2017 08:35:44 -0400
-In-Reply-To: <5cf1fea0-3f7f-8eda-bc89-4ad42e8d4f25@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Takashi Iwai <tiwai@suse.de>
+Subject: [PATCH v3 0/3] Dollar Cove TI PMIC support for Intel Cherry Trail
+Date: Fri, 25 Aug 2017 15:44:40 +0200
+Message-ID: <20170825134443.14843-1-tiwai@suse.de>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, "Zheng, Lv" <lv.zheng@intel.com>, tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, ebiederm@xmission.com, bhe@redhat.com, peterz@infradead.org, izumi.taku@jp.fujitsu.com, tokunaga.keiich@jp.fujitsu.com, linux-acpi@vger.kernel.org, Julian Wollrath <jwollrath@web.de>, Borislav Petkov <bp@alien8.de>
 
-On Friday, August 25, 2017 4:06:11 AM CEST Dou Liyang wrote:
-> Hi Rafael,
-> 
-> At 08/25/2017 12:38 AM, Rafael J. Wysocki wrote:
-> > On Thursday, August 24, 2017 5:54:28 AM CEST Dou Liyang wrote:
-> >> Hi Rafael, Zheng,
-> >>
-> >> At 07/31/2017 06:50 PM, Dou Liyang wrote:
-> >>> Hi,
-> >>>
-> >>> At 07/14/2017 01:52 PM, Dou Liyang wrote:
-> >>>> Linux uses acpi_early_init() to put the ACPI table management into
-> >>>> the late stage from the early stage where the mapped ACPI tables is
-> >>>> temporary and should be unmapped.
-> >>>>
-> >>>> But, now initializing interrupt delivery mode should map and parse the
-> >>>> DMAR table earlier in the early stage. This causes an ACPI error when
-> >>>> Linux reallocates the ACPI root tables. Because Linux doesn't unmapped
-> >>>> the DMAR table after using in the early stage.
-> >>>>
-> >>>> Invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
-> >>>> be mapped and parsed in late stage like before.
-> >>>>
-> >>>> Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
-> >>>> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
-> >>>> Cc: linux-acpi@vger.kernel.org
-> >>>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> >>>> Cc: Zheng, Lv <lv.zheng@intel.com>
-> >>>> Cc: Julian Wollrath <jwollrath@web.de>
-> >>>> ---
-> >>>> Test in my own PC(Lenovo M4340).
-> >>>> Ask help for doing regression testing for the bug said in commit
-> >>>> c4e1acbb35e4
-> >>>> ("ACPI / init: Invoke early ACPI initialization later").
-> >>>>
-> >>>
-> >>> Now, I can prove this patch doesn't result in the bug[1] which made the
-> >>> fast TSC calibration using PIT failed in a Thinkpad x121e (AMD E-450
-> >>> APU).
-> >>>
-> >>> The true reason of the bug is enabling ACPI subsystem earlier than
-> >>> using PIT, not the SCI setup. invoking acpi_enable_subsystem() later
-> >>> could fix this bug as Julian tested and said[2].
-> >>>
-> >>> And, I found that Commit b064a8fa77df (" ACPI / init: Switch over
-> >>> platform to the ACPI mode later") split the ACPI early initialization
-> >>> code into acpi_early_init() and acpi_subsystem_init(). executing
-> >>> acpi_enable_subsystem() at the original early ACPI initialization spot.
-> >>>
-> >>> The sequence of them shows below:
-> >>>
-> >>>  start_kernel
-> >>> +---------------+
-> >>> |
-> >>> +--> .......
-> >>> |
-> >>> |    late_time_init()
-> >>> +--> +-------+
-> >>> |
-> >>> +--> .......
-> >>> |
-> >>> |    acpi_early_init()
-> >>> +--> +-------+
-> >>> |
-> >>> +--> .......
-> >>> |
-> >>> |   acpi_subsystem_init()
-> >>> +-> +--------+
-> >>>
-> >>> We make sure the acpi_subsystem_init() is called later than
-> >>> late_time_init(), the bug will be avoided.
-> >>>
-> >>> This patch changes the sequence of late_time_init() and
-> >>> acpi_early_init(), doesn't effect acpi_subsystem_init().
-> >>>
-> >>> So, this patch is OK.
-> >>>
-> >>> Btw, Thanks very much for Borislav Petkov, he will have access to
-> >>> Thinkpad x121e from Mid-August and will test this series.
-> >>>
-> >>
-> >> Almost one month passed, Borislav have tested this series in Thinkpad
-> >> x121e and I also have tested in my box and QEmu again. It is OK.
-> >>
-> >> BTW,
-> >> 1) I found your commit b064a8fa77df (" ACPI / init: Switch over
-> >> platform to the ACPI mode later") split the ACPI early initialization
-> >> code into acpi_early_init() and acpi_subsystem_init(). Actually enabling
-> >> the ACPI subsystem is in acpi_subsystem_init().
-> >>
-> >> 2) As we discussed earlier, invoking acpi_put_table() is not good for
-> >> this situation.
-> >>
-> >> So I do this patch, Is that goot to you? Any comments will be welcome.
-> >>
-> >> If it is OK, As the patches need to be re-based, and I also found
-> >> several spelling mistake, I will send a new version next week.
-> >
-> > OK, but does it depend on anything?  Or does anything depend on it?
-> >
-> 
-> It depends on nothing and can be considered independent.
+Hi,
 
-OK
+this is the revised patch set to add the support for Dollar Cove TI
+PMIC found on some Intel Cherry Trail laptops / tablets.  All drivers
+are based on the original code from Intel downstream patches, with
+lots of rewrites and cleanups.  MFD driver is implemented as a
+stand-alone like a few other variants, and the input driver got a diet
+in a minimalistic form.
 
-Please send it as an independent patch, then.
+The patch set has been tested on ASUS E100H and E200H, as well as on
+HP x210.
 
-> [11/13] patch in this series depends on it. [11/13] patch caused an
-> ACPI error, we used this patch to fix it.
+v2->v3:
+- Rename dc_ti with chtdc_ti in all places
+- Driver/kconfig renames accordingly
+- A few constifications
+- Added acks by Andy and Mika
 
-So the ordering of patches in the series should be different, then.
+v1->v2:
+- Minor cleanups in mfd driver code as suggested by Andy
+- Move power-button driver to platform/x86, driver renames accordingly
+- Add missing wake-irq cleanup to power-button driver
+- get_raw_temp cleanup in opregion driver, mention about register
+  endianess
 
-It should be ordered so as to avoid triggering the warning at all,
-so this patch should go before the [11/13].
 
-> > It is [12/13] in a series, so it looks like it doesn't depend on the
-> > previous patches in it, but the next one may depend on it?  Which is the
-> > case?
-> >
-> 
-> The second case(the next one may depend on it) is what I want.
-> 
-> But, seems I made a mistake about the order of the patches. I should
-> put it before [11/13] to avoid the ACPI error.
+thanks,
 
-Right.
+Takashi
 
-> I will adjust the order of the patches in the next version, and post
-> the whole series to you.
+===
 
-Please just CC it to linux-acpi.
+Takashi Iwai (3):
+  mfd: Add support for Cherry Trail Dollar Cove TI PMIC
+  platform/x86: Add support for Dollar Cove TI power button
+  ACPI / PMIC: Add opregion driver for Intel Dollar Cove TI PMIC
 
-Thanks,
-Rafael
+ drivers/acpi/Kconfig                         |   6 +
+ drivers/acpi/Makefile                        |   1 +
+ drivers/acpi/pmic/intel_pmic_chtdc_ti.c      | 137 ++++++++++++++++++++
+ drivers/mfd/Kconfig                          |  13 ++
+ drivers/mfd/Makefile                         |   1 +
+ drivers/mfd/intel_soc_pmic_chtdc_ti.c        | 183 +++++++++++++++++++++++++++
+ drivers/platform/x86/Kconfig                 |   8 ++
+ drivers/platform/x86/Makefile                |   1 +
+ drivers/platform/x86/intel_chtdc_ti_pwrbtn.c |  97 ++++++++++++++
+ 9 files changed, 447 insertions(+)
+ create mode 100644 drivers/acpi/pmic/intel_pmic_chtdc_ti.c
+ create mode 100644 drivers/mfd/intel_soc_pmic_chtdc_ti.c
+ create mode 100644 drivers/platform/x86/intel_chtdc_ti_pwrbtn.c
 
+-- 
+2.14.0
