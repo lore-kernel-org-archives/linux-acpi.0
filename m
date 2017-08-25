@@ -1,35 +1,37 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCH v2 0/9] PM / ACPI / i2c: Deploy runtime PM centric path
- for system sleep
-Date: Fri, 25 Aug 2017 17:10:10 +0300
-Message-ID: <4f22e64f-8a3c-9ce2-d12d-d3ff2c4108c9@linux.intel.com>
-References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v3 3/3] ACPI / PMIC: Add opregion driver for Intel Dollar
+ Cove TI PMIC
+Date: Fri, 25 Aug 2017 18:24:19 +0300
+Message-ID: <CAHp75VeuEcBpQ6qcH+c=GYgNndjoLEn=C9NSJvOcYVgraOLWkQ@mail.gmail.com>
+References: <20170825134443.14843-1-tiwai@suse.de> <20170825134443.14843-4-tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:10094 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755829AbdHYOKR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 25 Aug 2017 10:10:17 -0400
-In-Reply-To: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org>
-Content-Language: en-US
+Received: from mail-qt0-f174.google.com ([209.85.216.174]:37423 "EHLO
+        mail-qt0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933386AbdHYPYV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Aug 2017 11:24:21 -0400
+In-Reply-To: <20170825134443.14843-4-tiwai@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: Kevin Hilman <khilman@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Lee Jones <lee.jones@linaro.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 08/23/2017 05:42 PM, Ulf Hansson wrote:
-> This series has been tested on an ARM64 Hikey board, which isn't having the
-> i2c device attached to the ACPI PM domain. This means that the ACPI changes
-> needs to be tested on some relevant Intel SoCs and it's greatly appreciated
-> is someone could help out with this, so is of course review comments.
-> 
-I tested this set on both platforms using drivers/acpi/acpi_lpss.c and 
-drivers/mfd/intel-lpss.c and didn't see any issues.
+On Fri, Aug 25, 2017 at 4:44 PM, Takashi Iwai <tiwai@suse.de> wrote:
 
-I guess tested-by is not needed yet as details are cooking in ACPI part 
-of the set.
+One really minor nit (fine if it will be ignored):
+
+> +config CHTDC_TI_PMIC_OPREGION
+
+CHTDC_TI_PMIC_OPREGION -> CHT_DC_TI_PMIC_OPREGION
+
+>  obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
+>  obj-$(CONFIG_BXT_WC_PMIC_OPREGION) += pmic/intel_pmic_bxtwc.o
+>  obj-$(CONFIG_CHT_WC_PMIC_OPREGION) += pmic/intel_pmic_chtwc.o
+> +obj-$(CONFIG_CHTDC_TI_PMIC_OPREGION) += pmic/intel_pmic_chtdc_ti.o
+
+Ditto (as you can notice by above context).
 
 -- 
-Jarkko
+With Best Regards,
+Andy Shevchenko
