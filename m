@@ -1,61 +1,154 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 5/9] PM / ACPI: Provide option to disable direct_complete for ACPI devices
-Date: Fri, 25 Aug 2017 14:23:59 +0200
-Message-ID: <2514819.i36HWVUm2E@aspire.rjw.lan>
-References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org> <12333551.k204JYSgao@aspire.rjw.lan> <CAPDyKFrFUgE0FJE==ht4Z5utj+Pht=9UGn-LYBR9hP4ncofreg@mail.gmail.com>
+Subject: Re: [PATCH v7 12/13] ACPI / init: Invoke early ACPI initialization earlier
+Date: Fri, 25 Aug 2017 14:27:08 +0200
+Message-ID: <2641234.UytgA7eGhA@aspire.rjw.lan>
+References: <1500011554-9784-1-git-send-email-douly.fnst@cn.fujitsu.com> <4971374.QgHTRTZW1k@aspire.rjw.lan> <5cf1fea0-3f7f-8eda-bc89-4ad42e8d4f25@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:64923 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61849 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754608AbdHYMcg (ORCPT
+        by vger.kernel.org with ESMTP id S1755093AbdHYMfo (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 25 Aug 2017 08:32:36 -0400
-In-Reply-To: <CAPDyKFrFUgE0FJE==ht4Z5utj+Pht=9UGn-LYBR9hP4ncofreg@mail.gmail.com>
+        Fri, 25 Aug 2017 08:35:44 -0400
+In-Reply-To: <5cf1fea0-3f7f-8eda-bc89-4ad42e8d4f25@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-i2c <linux-i2c@vger.kernel.org>
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, "Zheng, Lv" <lv.zheng@intel.com>, tglx@linutronix.de, mingo@kernel.org, hpa@zytor.com, ebiederm@xmission.com, bhe@redhat.com, peterz@infradead.org, izumi.taku@jp.fujitsu.com, tokunaga.keiich@jp.fujitsu.com, linux-acpi@vger.kernel.org, Julian Wollrath <jwollrath@web.de>, Borislav Petkov <bp@alien8.de>
 
-On Friday, August 25, 2017 11:28:25 AM CEST Ulf Hansson wrote:
-> [...]
+On Friday, August 25, 2017 4:06:11 AM CEST Dou Liyang wrote:
+> Hi Rafael,
 > 
+> At 08/25/2017 12:38 AM, Rafael J. Wysocki wrote:
+> > On Thursday, August 24, 2017 5:54:28 AM CEST Dou Liyang wrote:
+> >> Hi Rafael, Zheng,
 > >>
-> >> The above change would offer an improvement, however there are more
-> >> benefits from the runtime PM centric path that it doesn't cover.
+> >> At 07/31/2017 06:50 PM, Dou Liyang wrote:
+> >>> Hi,
+> >>>
+> >>> At 07/14/2017 01:52 PM, Dou Liyang wrote:
+> >>>> Linux uses acpi_early_init() to put the ACPI table management into
+> >>>> the late stage from the early stage where the mapped ACPI tables is
+> >>>> temporary and should be unmapped.
+> >>>>
+> >>>> But, now initializing interrupt delivery mode should map and parse the
+> >>>> DMAR table earlier in the early stage. This causes an ACPI error when
+> >>>> Linux reallocates the ACPI root tables. Because Linux doesn't unmapped
+> >>>> the DMAR table after using in the early stage.
+> >>>>
+> >>>> Invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
+> >>>> be mapped and parsed in late stage like before.
+> >>>>
+> >>>> Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
+> >>>> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+> >>>> Cc: linux-acpi@vger.kernel.org
+> >>>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> >>>> Cc: Zheng, Lv <lv.zheng@intel.com>
+> >>>> Cc: Julian Wollrath <jwollrath@web.de>
+> >>>> ---
+> >>>> Test in my own PC(Lenovo M4340).
+> >>>> Ask help for doing regression testing for the bug said in commit
+> >>>> c4e1acbb35e4
+> >>>> ("ACPI / init: Invoke early ACPI initialization later").
+> >>>>
+> >>>
+> >>> Now, I can prove this patch doesn't result in the bug[1] which made the
+> >>> fast TSC calibration using PIT failed in a Thinkpad x121e (AMD E-450
+> >>> APU).
+> >>>
+> >>> The true reason of the bug is enabling ACPI subsystem earlier than
+> >>> using PIT, not the SCI setup. invoking acpi_enable_subsystem() later
+> >>> could fix this bug as Julian tested and said[2].
+> >>>
+> >>> And, I found that Commit b064a8fa77df (" ACPI / init: Switch over
+> >>> platform to the ACPI mode later") split the ACPI early initialization
+> >>> code into acpi_early_init() and acpi_subsystem_init(). executing
+> >>> acpi_enable_subsystem() at the original early ACPI initialization spot.
+> >>>
+> >>> The sequence of them shows below:
+> >>>
+> >>>  start_kernel
+> >>> +---------------+
+> >>> |
+> >>> +--> .......
+> >>> |
+> >>> |    late_time_init()
+> >>> +--> +-------+
+> >>> |
+> >>> +--> .......
+> >>> |
+> >>> |    acpi_early_init()
+> >>> +--> +-------+
+> >>> |
+> >>> +--> .......
+> >>> |
+> >>> |   acpi_subsystem_init()
+> >>> +-> +--------+
+> >>>
+> >>> We make sure the acpi_subsystem_init() is called later than
+> >>> late_time_init(), the bug will be avoided.
+> >>>
+> >>> This patch changes the sequence of late_time_init() and
+> >>> acpi_early_init(), doesn't effect acpi_subsystem_init().
+> >>>
+> >>> So, this patch is OK.
+> >>>
+> >>> Btw, Thanks very much for Borislav Petkov, he will have access to
+> >>> Thinkpad x121e from Mid-August and will test this series.
+> >>>
+> >>
+> >> Almost one month passed, Borislav have tested this series in Thinkpad
+> >> x121e and I also have tested in my box and QEmu again. It is OK.
+> >>
+> >> BTW,
+> >> 1) I found your commit b064a8fa77df (" ACPI / init: Switch over
+> >> platform to the ACPI mode later") split the ACPI early initialization
+> >> code into acpi_early_init() and acpi_subsystem_init(). Actually enabling
+> >> the ACPI subsystem is in acpi_subsystem_init().
+> >>
+> >> 2) As we discussed earlier, invoking acpi_put_table() is not good for
+> >> this situation.
+> >>
+> >> So I do this patch, Is that goot to you? Any comments will be welcome.
+> >>
+> >> If it is OK, As the patches need to be re-based, and I also found
+> >> several spelling mistake, I will send a new version next week.
 > >
-> > The idea, though, is not to make it instead of, but in addition to the
-> > runtime PM centric path.
+> > OK, but does it depend on anything?  Or does anything depend on it?
 > >
-> > So a driver using the runtime PM centric (or rather runtime PM aware)
-> > callbacks can set power.force_suspend and benefit from having direct_complete
-> > set conditional on whether or not the device is runtime resumed before the
-> > late suspend.
-> >
-> > If device_complete remains set in __device_suspend_late(), no system
-> > suspend/resume callbacks will be invoked from that point on.  If it isn't
-> > set, pm_runtime_force_suspend() should work just fine and then
-> > pm_runtime_force_resume() should do the right thing on the way back.
-> >
-> > All boils down to (a) setting a flag and (b) using the right callbacks
-> > for system suspend which is the case with your patches either.
 > 
-> You make it sound simple. :-)
+> It depends on nothing and can be considered independent.
+
+OK
+
+Please send it as an independent patch, then.
+
+> [11/13] patch in this series depends on it. [11/13] patch caused an
+> ACPI error, we used this patch to fix it.
+
+So the ordering of patches in the series should be different, then.
+
+It should be ordered so as to avoid triggering the warning at all,
+so this patch should go before the [11/13].
+
+> > It is [12/13] in a series, so it looks like it doesn't depend on the
+> > previous patches in it, but the next one may depend on it?  Which is the
+> > case?
+> >
 > 
-> I try to get inspired of your ideas and see what I can come up with.
-> However, I really want us to avoid making it more difficult to
-> understand the behavior of the core, so I probably look start changing
-> the ACPI PM domain first, then trying to adopt the behavior of the
-> core on top of those changes. Does that sound reasonable to you?
+> The second case(the next one may depend on it) is what I want.
+> 
+> But, seems I made a mistake about the order of the patches. I should
+> put it before [11/13] to avoid the ACPI error.
 
-Well, I don't think we need to change the ACPI PM domain at all. :-)
+Right.
 
-However, let me contiune in a reply to
+> I will adjust the order of the patches in the next version, and post
+> the whole series to you.
 
-https://marc.info/?l=linux-arm-kernel&m=150361200030186&w=2
-
-for more complete context.
+Please just CC it to linux-acpi.
 
 Thanks,
 Rafael
