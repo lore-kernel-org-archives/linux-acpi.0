@@ -1,88 +1,67 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v11 2/6] ACPI: Add APEI GHES Table Generation support
-Date: Sat, 26 Aug 2017 10:49:44 +0800
-Message-ID: <27894653-ff09-7839-a46d-b41b9ee8ae48@huawei.com>
-References: <1503066227-18251-1-git-send-email-gengdongjiu@huawei.com>
- <1503066227-18251-3-git-send-email-gengdongjiu@huawei.com>
- <599ECE95.10205@huawei.com> <9a878b42-c480-2c7b-0f04-202193d8c56b@huawei.com>
- <59A0C9FE.5010204@huawei.com>
+From: Chen Yu <yu.c.chen@intel.com>
+Subject: Re: [PATCH 0/2][RFC] ACPI / PM: Disable MSR T-state after resumed
+Date: Sat, 26 Aug 2017 14:08:14 +0800
+Message-ID: <20170826060813.GA18633@yu-desktop-1.sh.intel.com>
+References: <001b01d31dea$c116dc50$434494f0$@net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <59A0C9FE.5010204@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shannon Zhao <zhaoshenglong@huawei.com>, lersek@redhat.com, mst@redhat.com, imammedo@redhat.com, peter.maydell@linaro.org, pbonzini@redhat.com, qemu-devel@nongnu.org, qemu-arm@nongnu.org, kvm@vger.kernel.org, edk2-devel@lists.01.org, christoffer.dall@linaro.org, marc.zyngier@arm.com, will.deacon@arm.com, james.morse@arm.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, john.garry@huawei.com, jonathan.cameron@huawei.com, shameerali.kolothum.thodi@huawei.com, huangdaode@hisilicon.com, wangzhou1@hi
-Cc: huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com, zhengqiang10@huawei.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:6731 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751921AbdHZGGh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 26 Aug 2017 02:06:37 -0400
+Content-Disposition: inline
+In-Reply-To: <001b01d31dea$c116dc50$434494f0$@net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Doug Smythies <dsmythies@telus.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, "'Rafael J. Wysocki'" <rafael@kernel.org>, 'Len Brown' <lenb@kernel.org>
 
-Hi Shannon,
-
-On 2017/8/26 9:08, Shannon Zhao wrote:
+Hi Doug,
+On Fri, Aug 25, 2017 at 02:40:19PM -0700, Doug Smythies wrote:
+> On 2017.08.25 09:43 Chen Yu wrote:
+> 
+> > There is a growing number of reports that the MSR throttling has
+> > been enabled after resumed back from suspend to ram, which impacts
+> > the system performance. This patchset tries to address this issue
+> > by turning off the T-state after resumed back.
+> >
+> > Chen Yu (2):
+> >  ACPI / PM: Reuse the acpi_sleep_syscore_ops for future requirement
+> >  ACPI / PM: Disable the MSR T-state during CPU online
+> >
+> > drivers/acpi/sleep.c | 60 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+> > 1 file changed, 58 insertions(+), 2 deletions(-)
+> 
+> Hi Chen,
+> 
+> I'll just copy and paste what I wrote in a couple of the bug reports ([1] for example) a couple of days ago:
+> 
+> > I believe that pending changes to the intel-pstate CPU frequency scaling driver,
+> > proposed by Rafael, I think for kernel 4.14-rc1, will eliminate the ongoing
+> > troubles with Clock Modulation and the driver.
+> >
+> > I'm saying that the issue will no longer exist, and that the intel_pstate
+> > CPU frequency scaling driver will respond "properly" to Clock Modulation events.
+> > Of course, I'll check when kernel 4.14-rc1 becomes available, or before if I can
+> > apply all the patches.
+> >
+> > For reference see the patch set related to:
+> >
+> > [PATCH 0/2] cpufreq: intel_pstate: Eliminate the PID controller
+> > 2017.07.24 03:22 (or 10:22 UTC, I think)
+> >
+> > https://marc.info/?l=linux-pm&m=150093486908759&w=2
+> > https://marc.info/?l=linux-pm&m=150093484308751&w=2
+> > https://marc.info/?l=linux-pm&m=150093486808758&w=2
+> 
+> [1] https://bugzilla.kernel.org/show_bug.cgi?id=189861
 > 
 > 
-> On 2017/8/25 19:20, gengdongjiu wrote:
->>>> diff --git a/hw/arm/virt-acpi-build.c b/hw/arm/virt-acpi-build.c
->>>>>> index 3d78ff6..def1ec1 100644
->>>>>> --- a/hw/arm/virt-acpi-build.c
->>>>>> +++ b/hw/arm/virt-acpi-build.c
->>>>>> @@ -45,6 +45,7 @@
->>>>>>  #include "hw/arm/virt.h"
->>>>>>  #include "sysemu/numa.h"
->>>>>>  #include "kvm_arm.h"
->>>>>> +#include "hw/acpi/hest_ghes.h"
->>>>>>  
->>>>>>  #define ARM_SPI_BASE 32
->>>>>>  #define ACPI_POWER_BUTTON_DEVICE "PWRB"
->>>>>> @@ -771,6 +772,9 @@ void virt_acpi_build(VirtMachineState *vms, AcpiBuildTables *tables)
->>>>>>      acpi_add_table(table_offsets, tables_blob);
->>>>>>      build_spcr(tables_blob, tables->linker, vms);
->>>>>>  
->>>>>> +    acpi_add_table(table_offsets, tables_blob);
->>>>>> +    ghes_build_acpi(tables_blob, tables->hardware_errors, tables->linker);
->>>>>> +
->>>> So we add this table unconditionally. Is there any bad impact if QEMU
->>>> runs on old kvm? Does it need to check whether KVM supports RAS?
->> this table is added before guest OS boot. so can not use KVM to check it.
-> No, we can check the RAS capability when we create vcpus like you done
-> in another patch ans can use that in table generation.
-understand your meaning.
+I did not quite catup with the relationship between the intel_pstate
+patch and the tstate patch here, if the Clock Modulation is enabled,
+will the 'performance' governor be able to reach the maximum freq?
+Besides, what if the user is using acpi-freq rather than intel_pstate?
 
-ARM James ever have below comments about the table generation.
-----------------------------------------------------------------------------------
-But you can use APEI in a guest on CPUs without the RAS extensions: the host may
-signal memory errors to Qemu for any number of reasons, user-space shouldn't
-care how it knows. Examples are PCI-AER, any APEI event notified by polling or
-one of the flavours of irq.
-
-I would expect Qemu to generate a HEST based on its abilities, i.e. if it
-supports any mechanism of notifying the guest about errors. Choosing the
-mechanism then depends on the type of error.
-
-Ideally the Qemu code for HEST/GHES/CPER generation code using some of the irqs
-and polling could be shared with x86, as these should be possible using common
-KVM APIs.
------------------------------------------------------------------------------------
-
-He means we can use APEI on CPUs without RAS and may be share this code with x86,
-if Qemu can support any mechanism of notifying the guest about errors, it should be
-generate the table.
-Now we depend on the macro KVM_HAVE_MCE_INJECTION to decide whether Qemu can support
-notifying the guest.
-
-what do you think which we should be dependent on to generate the table?
-
-> 
->> if the old kvm does not support RAS, it does not have bad impact. only waste table memory.
->> May be we can make it as device? if this device is enabled in the qemu
->> boot parameters, then we will add this table?
->>
-> 
-> And you need to add a option to virt machine for (migration)
-> compatibility. On new virt machine it's on by default while off for old
-> ones.
-ok.
-
-> 
-> Thanks,
-> 
+Thanks,
+	Yu
