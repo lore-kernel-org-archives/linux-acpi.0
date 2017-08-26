@@ -1,54 +1,58 @@
-From: "Doug Smythies" <dsmythies@telus.net>
-Subject: RE: [PATCH 0/2][RFC] ACPI / PM: Disable MSR T-state after resumed
-Date: Fri, 25 Aug 2017 14:40:19 -0700
-Message-ID: <001b01d31dea$c116dc50$434494f0$@net>
+From: Shannon Zhao <zhaoshenglong@huawei.com>
+Subject: Re: [PATCH v11 1/6] ACPI: add APEI/HEST/CPER structures and macros
+Date: Sat, 26 Aug 2017 09:00:03 +0800
+Message-ID: <59A0C813.2060201@huawei.com>
+References: <1503066227-18251-1-git-send-email-gengdongjiu@huawei.com> <1503066227-18251-2-git-send-email-gengdongjiu@huawei.com> <599EC7AB.3080604@huawei.com> <69090a96-ce90-4b2b-a419-c8d847d56093@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-References: lHgGdsvEp8Qk9lHgId179V
-In-Reply-To: lHgGdsvEp8Qk9lHgId179V
-Content-Language: en-ca
-Sender: linux-pm-owner@vger.kernel.org
-To: 'Chen Yu' <yu.c.chen@intel.com>, linux-acpi@vger.kernel.org
-Cc: linux-pm@vger.kernel.org, "'Rafael J. Wysocki'" <rafael@kernel.org>, 'Len Brown' <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:5458 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754250AbdHZBBL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Aug 2017 21:01:11 -0400
+In-Reply-To: <69090a96-ce90-4b2b-a419-c8d847d56093@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: gengdongjiu <gengdongjiu@huawei.com>, lersek@redhat.com, mst@redhat.com, imammedo@redhat.com, peter.maydell@linaro.org, pbonzini@redhat.com, qemu-devel@nongnu.org, qemu-arm@nongnu.org, kvm@vger.kernel.org, edk2-devel@lists.01.org, christoffer.dall@linaro.org, marc.zyngier@arm.com, will.deacon@arm.com, james.morse@arm.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, john.garry@huawei.com, jonathan.cameron@huawei.com, shameerali.kolothum.thodi@huawei.com, huangdaode@hisilicon.com, wangzhou1@hisil
+Cc: huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com, zhengqiang10@huawei.com
 
-On 2017.08.25 09:43 Chen Yu wrote:
 
-> There is a growing number of reports that the MSR throttling has
-> been enabled after resumed back from suspend to ram, which impacts
-> the system performance. This patchset tries to address this issue
-> by turning off the T-state after resumed back.
->
-> Chen Yu (2):
->  ACPI / PM: Reuse the acpi_sleep_syscore_ops for future requirement
->  ACPI / PM: Disable the MSR T-state during CPU online
->
-> drivers/acpi/sleep.c | 60 ++++++++++++++++++++++++++++++++++++++++++++++++++--
-> 1 file changed, 58 insertions(+), 2 deletions(-)
 
-Hi Chen,
+On 2017/8/25 18:37, gengdongjiu wrote:
+>>> +
+>>> >> +/* From the ACPI 6.1 spec, "18.3.2.9 Hardware Error Notification" */
+>>> >> +
+>> > It's better to refer to the first spec version of this structure and
+>> > same with others you define.
+>  do you mean which spec version? the definition is aligned with the linux kernel.
+What I mean here is that it's better to refer to the ACPI spec version
+which introduces Hardware Error Notification first time.
 
-I'll just copy and paste what I wrote in a couple of the bug reports ([1] for example) a couple of days ago:
+>> > 
+>>> >> +enum AcpiHestNotifyType {
+>>> >> +    ACPI_HEST_NOTIFY_POLLED = 0,
+>>> >> +    ACPI_HEST_NOTIFY_EXTERNAL = 1,
+>>> >> +    ACPI_HEST_NOTIFY_LOCAL = 2,
+>>> >> +    ACPI_HEST_NOTIFY_SCI = 3,
+>>> >> +    ACPI_HEST_NOTIFY_NMI = 4,
+>>> >> +    ACPI_HEST_NOTIFY_CMCI = 5,  /* ACPI 5.0 */
+>>> >> +    ACPI_HEST_NOTIFY_MCE = 6,   /* ACPI 5.0 */
+>>> >> +    ACPI_HEST_NOTIFY_GPIO = 7,  /* ACPI 6.0 */
+>>> >> +    ACPI_HEST_NOTIFY_SEA = 8,   /* ACPI 6.1 */
+>>> >> +    ACPI_HEST_NOTIFY_SEI = 9,   /* ACPI 6.1 */
+>>> >> +    ACPI_HEST_NOTIFY_GSIV = 10, /* ACPI 6.1 */
+>>> >> +    ACPI_HEST_NOTIFY_RESERVED = 11  /* 11 and greater are reserved */
+>> > In ACPI 6.2, 11 is for Software Delegated Exception, is this useful for
+>> > your patchset?
+>   it is usefull, for all the error source, I reserved the space for them.
+> Because the space is allocated one time, is not dynamically allocated.
+> so I use the ACPI_HEST_NOTIFY_RESERVED to specify that there is 11 error source.
+> 
+I mean whether the new type Software Delegated Exception is useful for
+RAS. If so, we could add this new type here.
 
-> I believe that pending changes to the intel-pstate CPU frequency scaling driver,
-> proposed by Rafael, I think for kernel 4.14-rc1, will eliminate the ongoing
-> troubles with Clock Modulation and the driver.
->
-> I'm saying that the issue will no longer exist, and that the intel_pstate
-> CPU frequency scaling driver will respond "properly" to Clock Modulation events.
-> Of course, I'll check when kernel 4.14-rc1 becomes available, or before if I can
-> apply all the patches.
->
-> For reference see the patch set related to:
->
-> [PATCH 0/2] cpufreq: intel_pstate: Eliminate the PID controller
-> 2017.07.24 03:22 (or 10:22 UTC, I think)
->
-> https://marc.info/?l=linux-pm&m=150093486908759&w=2
-> https://marc.info/?l=linux-pm&m=150093484308751&w=2
-> https://marc.info/?l=linux-pm&m=150093486808758&w=2
+Thanks,
+-- 
+Shannon
 
-[1] https://bugzilla.kernel.org/show_bug.cgi?id=189861
