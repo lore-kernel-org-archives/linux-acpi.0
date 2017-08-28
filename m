@@ -1,56 +1,68 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH] ACPI/IORT: fix build regression without IOMMU
-Date: Mon, 28 Aug 2017 10:57:59 +0100
-Message-ID: <20170828095759.GB8471@e107981-lin.cambridge.arm.com>
-References: <20170810121114.2509560-1-arnd@arndb.de>
- <20170810142430.GA17205@red-moon>
- <3fe9e409-b505-f9af-63b7-02e91918db9d@leemhuis.info>
+From: Dongjiu Geng <gengdongjiu@huawei.com>
+Subject: [PATCH v6 4/7] arm64: kvm: support user space to query RAS extension
+ feature
+Date: Mon, 28 Aug 2017 18:38:18 +0800
+Message-ID: <1503916701-13516-5-git-send-email-gengdongjiu@huawei.com>
+References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:46988 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751177AbdH1J6F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 28 Aug 2017 05:58:05 -0400
-Content-Disposition: inline
-In-Reply-To: <3fe9e409-b505-f9af-63b7-02e91918db9d@leemhuis.info>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, james.morse@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, mst@redhat.com, john.garry@huawei.com, jonathan.cameron@huawei.com, shameerali.kolot
+Cc: zhengqiang10@huawei.com, wuquanming@huawei.com, huangshaoyu@huawei.com, linuxarm@huawei.com, gengdongjiu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Thorsten Leemhuis <regressions@leemhuis.info>
-Cc: Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Will Deacon <will.deacon@arm.com>, Tomasz Nowicki <tn@semihalf.com>, Joerg Roedel <jroedel@suse.de>, Sricharan R <sricharan@codeaurora.org>, Robin Murphy <robin.murphy@arm.com>, Geetha Sowjanya <geethasowjanya.akula@cavium.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Aug 28, 2017 at 11:27:20AM +0200, Thorsten Leemhuis wrote:
-> On 10.08.2017 16:24, Lorenzo Pieralisi wrote:
-> > On Thu, Aug 10, 2017 at 02:11:00PM +0200, Arnd Bergmann wrote:
-> >> A recent change reintroduced a bug that had previously been
-> >> fixed by commit d49f2dedf33b ("ACPI/IORT: Fix CONFIG_IOMMU_API
-> >> dependency"):
-> >>
-> >> drivers/acpi/arm64/iort.c: In function 'iort_iommu_configure':
-> >> drivers/acpi/arm64/iort.c:829:26: error: 'struct iommu_fwspec' has no member named 'ops'
-> >>
-> >> This does the same change again, replacing another direct
-> >> reference to iommu_fwspec->ops with a helper function call.
-> >>
-> >> Fixes: bc8648d49a95 ("ACPI/IORT: Handle PCI aliases properly for IOMMUs")
-> >> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> >> ---
-> >>  drivers/acpi/arm64/iort.c | 2 +-
-> >>  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > Sorry Arnd, thanks, I will send it to Catalin straight away.
-> 
-> Was there any progress? Afaics that patch hasn't hit mainline yet (or
-> was it fixed by a different patch?). Asking because the issue is
-> mentioned in the regression report for 4.13.
+In ARMV8.2 RAS extension, a virtual SError exception syndrome
+register(VSESR_EL2) is added.  This value may be specified from
+userspace. Userspace will want to check if the CPU has the RAS
+extension. If it has, it wil specify the virtual SError syndrome
+value, otherwise it will not be set. This patch adds support for
+querying the availability of this extension.
 
-I do not understand how it can be mentioned in the 4.13 regression
-report given that it is code queued for 4.14 and it is not in the
-mainline that triggered the regression. Anyway, fix is queued along
-with other patches and it is in -next (coming from arm64 tree):
+change since v5:
+1. modify some patch description
 
-commit: 4d36037a9a07
+Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+---
+ arch/arm64/kvm/reset.c   | 3 +++
+ include/uapi/linux/kvm.h | 1 +
+ 2 files changed, 4 insertions(+)
 
-Does this answer your question ?
-
-Lorenzo
+diff --git a/arch/arm64/kvm/reset.c b/arch/arm64/kvm/reset.c
+index 3256b9228e75..b7313ee028e9 100644
+--- a/arch/arm64/kvm/reset.c
++++ b/arch/arm64/kvm/reset.c
+@@ -77,6 +77,9 @@ int kvm_arch_dev_ioctl_check_extension(struct kvm *kvm, long ext)
+ 	case KVM_CAP_ARM_PMU_V3:
+ 		r = kvm_arm_support_pmu_v3();
+ 		break;
++	case KVM_CAP_ARM_RAS_EXTENSION:
++		r = cpus_have_const_cap(ARM64_HAS_RAS_EXTN);
++		break;
+ 	case KVM_CAP_SET_GUEST_DEBUG:
+ 	case KVM_CAP_VCPU_ATTRIBUTES:
+ 		r = 1;
+diff --git a/include/uapi/linux/kvm.h b/include/uapi/linux/kvm.h
+index 6cd63c18708a..5a2a338cae57 100644
+--- a/include/uapi/linux/kvm.h
++++ b/include/uapi/linux/kvm.h
+@@ -929,6 +929,7 @@ struct kvm_ppc_resize_hpt {
+ #define KVM_CAP_PPC_SMT_POSSIBLE 147
+ #define KVM_CAP_HYPERV_SYNIC2 148
+ #define KVM_CAP_HYPERV_VP_INDEX 149
++#define KVM_CAP_ARM_RAS_EXTENSION 150
+ 
+ #ifdef KVM_CAP_IRQ_ROUTING
+ 
+-- 
+2.14.1
