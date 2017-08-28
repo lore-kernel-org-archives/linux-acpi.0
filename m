@@ -1,182 +1,61 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4] ACPI / sysfs: Extend ACPI sysfs to provide access to boot error region
-Date: Mon, 28 Aug 2017 22:55:39 +0200
-Message-ID: <2340393.LXQZ5ymfvX@aspire.rjw.lan>
-References: <878tigojy2.fsf@e105922-lin.cambridge.arm.com> <20170818231900.3020-1-tony.luck@intel.com>
+Subject: Re: [PATCH 1/6] ACPI: make device_attribute const
+Date: Mon, 28 Aug 2017 22:56:08 +0200
+Message-ID: <34210940.RKebigQkUC@aspire.rjw.lan>
+References: <1503315792-14837-1-git-send-email-bhumirks@gmail.com> <1503315792-14837-2-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:50691 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57340 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751236AbdH1VET (ORCPT
+        by vger.kernel.org with ESMTP id S1751208AbdH1VEs (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 28 Aug 2017 17:04:19 -0400
-In-Reply-To: <20170818231900.3020-1-tony.luck@intel.com>
+        Mon, 28 Aug 2017 17:04:48 -0400
+In-Reply-To: <1503315792-14837-2-git-send-email-bhumirks@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: julia.lawall@lip6.fr, lenb@kernel.org, jbacik@fb.com, jikos@kernel.org, benjamin.tissoires@redhat.com, manish.chopra@cavium.com, rahul.verma@cavium.com, Dept-GELinuxNICDev@cavium.com, harish.patil@cavium.com, cascardo@holoscopio.com, don@syst.com.br, dvhart@infradead.org, andy@infradead.org, sre@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, nbd-general@lists.sourceforge.net, linux-input@vger.kernel.org, netdev@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Saturday, August 19, 2017 1:19:00 AM CEST Luck, Tony wrote:
-> From: Tony Luck <tony.luck@intel.com>
+On Monday, August 21, 2017 1:43:07 PM CEST Bhumika Goyal wrote:
+> Make these const as they are only passed as an argument to the function
+> device_create_file and device_remove_file and the corresponding
+> arguments are of type const.
+> Done using Coccinelle
 > 
-> The ACPI sysfs interface provides a way to read each ACPI table from
-> userspace via entries in /sys/firmware/acpi/tables/
-> 
-> The BERT table simply provides the size and address of the error
-> record in BIOS reserved memory and users may want access to this
-> record.
-> 
-> In an earlier age we might have used /dev/mem to retrieve this error
-> record, but many systems disable /dev/mem for security reasons.
-> 
-> Extend this driver to provide read-only access to the data via a
-> file in a new directory /sys/firmware/acpi/tables/data/BERT
-> 
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Boris Petkov <bp@suse.de>
-> Cc: Tyler Baicar <tbaicar@codeaurora.org>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Acked-by: Punit Agrawal <punit.agrawal@arm.com>
-> Signed-off-by: Tony Luck <tony.luck@intel.com>
-> 
-> v4: fix typo reported by Punit
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 > ---
->  drivers/acpi/sysfs.c | 79 ++++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 79 insertions(+)
+>  drivers/acpi/battery.c | 2 +-
+>  drivers/acpi/sbs.c     | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-> index e414fabf7315..faa1aa3ed0e1 100644
-> --- a/drivers/acpi/sysfs.c
-> +++ b/drivers/acpi/sysfs.c
-> @@ -306,11 +306,13 @@ module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
->  /*
->   * ACPI table sysfs I/F:
->   * /sys/firmware/acpi/tables/
-> + * /sys/firmware/acpi/tables/data/
->   * /sys/firmware/acpi/tables/dynamic/
->   */
->  
->  static LIST_HEAD(acpi_table_attr_list);
->  static struct kobject *tables_kobj;
-> +static struct kobject *tables_data_kobj;
->  static struct kobject *dynamic_tables_kobj;
->  static struct kobject *hotplug_kobj;
->  
-> @@ -325,6 +327,11 @@ struct acpi_table_attr {
->  	struct list_head node;
->  };
->  
-> +struct acpi_data_attr {
-> +	struct bin_attribute attr;
-> +	u64	addr;
-> +};
-> +
->  static ssize_t acpi_table_show(struct file *filp, struct kobject *kobj,
->  			       struct bin_attribute *bin_attr, char *buf,
->  			       loff_t offset, size_t count)
-> @@ -420,6 +427,70 @@ acpi_status acpi_sysfs_table_handler(u32 event, void *table, void *context)
->  	return AE_OK;
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 1cbb88d..13e7b56 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -620,7 +620,7 @@ static ssize_t acpi_battery_alarm_store(struct device *dev,
+>  	return count;
 >  }
 >  
-> +static ssize_t acpi_data_show(struct file *filp, struct kobject *kobj,
-> +			      struct bin_attribute *bin_attr, char *buf,
-> +			      loff_t offset, size_t count)
-> +{
-> +	struct acpi_data_attr *data_attr;
-> +	void __iomem *base;
-> +	ssize_t rc;
-> +
-> +	data_attr = container_of(bin_attr, struct acpi_data_attr, attr);
-> +
-> +	base = acpi_os_map_memory(data_attr->addr, data_attr->attr.size);
-> +	if (!base)
-> +		return -ENOMEM;
-> +	rc = memory_read_from_buffer(buf, count, &offset, base,
-> +				     data_attr->attr.size);
-> +	acpi_os_unmap_memory(base, data_attr->attr.size);
-> +
-> +	return rc;
-> +}
-> +
-> +static int acpi_bert_data_init(void *th, struct acpi_data_attr *data_attr)
-> +{
-> +	struct acpi_table_bert *bert = th;
-> +
-> +	if (bert->header.length < sizeof(struct acpi_table_bert) ||
-> +	    bert->region_length < sizeof(struct acpi_hest_generic_status)) {
-> +		kfree(data_attr);
-> +		return -EINVAL;
-> +	}
-> +	data_attr->addr = bert->address;
-> +	data_attr->attr.size = bert->region_length;
-> +	data_attr->attr.attr.name = "BERT";
-> +
-> +	return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
-> +}
-> +
-> +static struct acpi_data_obj {
-> +	char *name;
-> +	int (*fn)(void *, struct acpi_data_attr *);
-> +} acpi_data_objs[] = {
-> +	{ ACPI_SIG_BERT, acpi_bert_data_init },
-> +};
-> +
-> +#define NUM_ACPI_DATA_OBJS ARRAY_SIZE(acpi_data_objs)
-> +
-> +static int acpi_table_data_init(struct acpi_table_header *th)
-> +{
-> +	struct acpi_data_attr *data_attr;
-> +	int i;
-> +
-> +	for (i = 0; i < NUM_ACPI_DATA_OBJS; i++) {
-> +		if (ACPI_COMPARE_NAME(th->signature, acpi_data_objs[i].name)) {
-> +			data_attr = kzalloc(sizeof(*data_attr), GFP_KERNEL);
-> +			if (!data_attr)
-> +				return -ENOMEM;
-> +			sysfs_attr_init(&data_attr->attr.attr);
-> +			data_attr->attr.read = acpi_data_show;
-> +			data_attr->attr.attr.mode = 0400;
-> +			return acpi_data_objs[i].fn(th, data_attr);
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
->  static int acpi_tables_sysfs_init(void)
->  {
->  	struct acpi_table_attr *table_attr;
-> @@ -432,6 +503,10 @@ static int acpi_tables_sysfs_init(void)
->  	if (!tables_kobj)
->  		goto err;
+> -static struct device_attribute alarm_attr = {
+> +static const struct device_attribute alarm_attr = {
+>  	.attr = {.name = "alarm", .mode = 0644},
+>  	.show = acpi_battery_alarm_show,
+>  	.store = acpi_battery_alarm_store,
+> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+> index a184637..a2428e9 100644
+> --- a/drivers/acpi/sbs.c
+> +++ b/drivers/acpi/sbs.c
+> @@ -474,7 +474,7 @@ static ssize_t acpi_battery_alarm_store(struct device *dev,
+>  	return count;
+>  }
 >  
-> +	tables_data_kobj = kobject_create_and_add("data", tables_kobj);
-> +	if (!tables_data_kobj)
-> +		goto err_tables_data;
-> +
->  	dynamic_tables_kobj = kobject_create_and_add("dynamic", tables_kobj);
->  	if (!dynamic_tables_kobj)
->  		goto err_dynamic_tables;
-> @@ -456,13 +531,17 @@ static int acpi_tables_sysfs_init(void)
->  			return ret;
->  		}
->  		list_add_tail(&table_attr->node, &acpi_table_attr_list);
-> +		acpi_table_data_init(table_header);
->  	}
->  
->  	kobject_uevent(tables_kobj, KOBJ_ADD);
-> +	kobject_uevent(tables_data_kobj, KOBJ_ADD);
->  	kobject_uevent(dynamic_tables_kobj, KOBJ_ADD);
->  
->  	return 0;
->  err_dynamic_tables:
-> +	kobject_put(tables_data_kobj);
-> +err_tables_data:
->  	kobject_put(tables_kobj);
->  err:
->  	return -ENOMEM;
+> -static struct device_attribute alarm_attr = {
+> +static const struct device_attribute alarm_attr = {
+>  	.attr = {.name = "alarm", .mode = 0644},
+>  	.show = acpi_battery_alarm_show,
+>  	.store = acpi_battery_alarm_store,
 > 
 
 Applied, thanks!
