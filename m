@@ -1,108 +1,184 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 1/5] ACPI / blacklist: add acpi_match_platform_list()
-Date: Mon, 28 Aug 2017 22:55:07 +0200
-Message-ID: <1587060.BVEodWPrhf@aspire.rjw.lan>
-References: <20170823225447.15608-1-toshi.kani@hpe.com> <20170823225447.15608-2-toshi.kani@hpe.com> <20170824075348.gqvobmk7mf5ppaip@pd.tnic>
+Subject: Re: [PATCH v4] ACPI / sysfs: Extend ACPI sysfs to provide access to boot error region
+Date: Mon, 28 Aug 2017 22:55:39 +0200
+Message-ID: <2340393.LXQZ5ymfvX@aspire.rjw.lan>
+References: <878tigojy2.fsf@e105922-lin.cambridge.arm.com> <20170818231900.3020-1-tony.luck@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:45997 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:50691 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751269AbdH1VDr (ORCPT
+        by vger.kernel.org with ESMTP id S1751236AbdH1VET (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 28 Aug 2017 17:03:47 -0400
-In-Reply-To: <20170824075348.gqvobmk7mf5ppaip@pd.tnic>
+        Mon, 28 Aug 2017 17:04:19 -0400
+In-Reply-To: <20170818231900.3020-1-tony.luck@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Toshi Kani <toshi.kani@hpe.com>, mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Boris Petkov <bp@suse.de>, Tyler Baicar <tbaicar@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>
 
-On Thursday, August 24, 2017 9:53:48 AM CEST Borislav Petkov wrote:
-> On Wed, Aug 23, 2017 at 04:54:43PM -0600, Toshi Kani wrote:
-> > ACPI OEM ID / OEM Table ID / Revision can be used to identify
-> > a platform based on ACPI firmware info.  acpi_blacklisted(),
-> > intel_pstate_platform_pwr_mgmt_exists(), and some other funcs,
-> > have been using similar check to detect a list of platforms
-> > that require special handlings.
-> > 
-> > Move the platform check in acpi_blacklisted() to a new common
-> > utility function, acpi_match_platform_list(), so that other
-> > drivers do not have to implement their own version.
-> > 
-> > There is no change in functionality.
-> > 
-> > Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > Cc: Borislav Petkov <bp@alien8.de>
-> > ---
-> >  drivers/acpi/blacklist.c |   83 ++++++++--------------------------------------
-> >  drivers/acpi/utils.c     |   36 ++++++++++++++++++++
-> >  include/linux/acpi.h     |   19 +++++++++++
-> >  3 files changed, 69 insertions(+), 69 deletions(-)
+On Saturday, August 19, 2017 1:19:00 AM CEST Luck, Tony wrote:
+> From: Tony Luck <tony.luck@intel.com>
 > 
-> ...
+> The ACPI sysfs interface provides a way to read each ACPI table from
+> userspace via entries in /sys/firmware/acpi/tables/
 > 
-> > diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> > index b9d956c..0a9e597 100644
-> > --- a/drivers/acpi/utils.c
-> > +++ b/drivers/acpi/utils.c
-> > @@ -816,3 +816,39 @@ static int __init acpi_backlight(char *str)
-> >  	return 1;
-> >  }
-> >  __setup("acpi_backlight=", acpi_backlight);
-> > +
-> > +/**
-> > + * acpi_match_platform_list - Check if the system matches with a given list
-> > + * @plat: pointer to acpi_platform_list table terminated by a NULL entry
-> > + *
-> > + * Return the matched index if the system is found in the platform list.
-> > + * Otherwise, return a negative error code.
-> > + */
-> > +int acpi_match_platform_list(const struct acpi_platform_list *plat)
-> > +{
-> > +	struct acpi_table_header hdr;
-> > +	int idx = 0;
-> > +
-> > +	if (acpi_disabled)
-> > +		return -ENODEV;
-> > +
-> > +	for (; plat->oem_id[0]; plat++, idx++) {
-> > +		if (ACPI_FAILURE(acpi_get_table_header(plat->table, 0, &hdr)))
-> > +			continue;
-> > +
-> > +		if (strncmp(plat->oem_id, hdr.oem_id, ACPI_OEM_ID_SIZE))
-> > +			continue;
-> > +
-> > +		if (strncmp(plat->oem_table_id, hdr.oem_table_id, ACPI_OEM_TABLE_ID_SIZE))
-> > +			continue;
-> > +
-> > +		if ((plat->pred == all_versions) ||
-> > +		    (plat->pred == less_than_or_equal && hdr.oem_revision <= plat->oem_revision) ||
-> > +		    (plat->pred == greater_than_or_equal && hdr.oem_revision >= plat->oem_revision) ||
-> > +		    (plat->pred == equal && hdr.oem_revision == plat->oem_revision))
+> The BERT table simply provides the size and address of the error
+> record in BIOS reserved memory and users may want access to this
+> record.
 > 
-> If you align the second part of the test like this:
+> In an earlier age we might have used /dev/mem to retrieve this error
+> record, but many systems disable /dev/mem for security reasons.
 > 
->              if ((plat->pred == all_versions) ||
->                  (plat->pred == less_than_or_equal	&& hdr.oem_revision <= plat->oem_revision) ||
->                  (plat->pred == greater_than_or_equal	&& hdr.oem_revision >= plat->oem_revision) ||
->                  (plat->pred == equal			&& hdr.oem_revision == plat->oem_revision))
+> Extend this driver to provide read-only access to the data via a
+> file in a new directory /sys/firmware/acpi/tables/data/BERT
 > 
-> it gets maximally readable. But I'd leave that up to Rafael when committing
-> - no need to send another version.
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Boris Petkov <bp@suse.de>
+> Cc: Tyler Baicar <tbaicar@codeaurora.org>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Acked-by: Punit Agrawal <punit.agrawal@arm.com>
+> Signed-off-by: Tony Luck <tony.luck@intel.com>
 > 
-> Other than that:
+> v4: fix typo reported by Punit
+> ---
+>  drivers/acpi/sysfs.c | 79 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 79 insertions(+)
 > 
-> Reviewed-by: Borislav Petkov <bp@suse.de>
+> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+> index e414fabf7315..faa1aa3ed0e1 100644
+> --- a/drivers/acpi/sysfs.c
+> +++ b/drivers/acpi/sysfs.c
+> @@ -306,11 +306,13 @@ module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
+>  /*
+>   * ACPI table sysfs I/F:
+>   * /sys/firmware/acpi/tables/
+> + * /sys/firmware/acpi/tables/data/
+>   * /sys/firmware/acpi/tables/dynamic/
+>   */
+>  
+>  static LIST_HEAD(acpi_table_attr_list);
+>  static struct kobject *tables_kobj;
+> +static struct kobject *tables_data_kobj;
+>  static struct kobject *dynamic_tables_kobj;
+>  static struct kobject *hotplug_kobj;
+>  
+> @@ -325,6 +327,11 @@ struct acpi_table_attr {
+>  	struct list_head node;
+>  };
+>  
+> +struct acpi_data_attr {
+> +	struct bin_attribute attr;
+> +	u64	addr;
+> +};
+> +
+>  static ssize_t acpi_table_show(struct file *filp, struct kobject *kobj,
+>  			       struct bin_attribute *bin_attr, char *buf,
+>  			       loff_t offset, size_t count)
+> @@ -420,6 +427,70 @@ acpi_status acpi_sysfs_table_handler(u32 event, void *table, void *context)
+>  	return AE_OK;
+>  }
+>  
+> +static ssize_t acpi_data_show(struct file *filp, struct kobject *kobj,
+> +			      struct bin_attribute *bin_attr, char *buf,
+> +			      loff_t offset, size_t count)
+> +{
+> +	struct acpi_data_attr *data_attr;
+> +	void __iomem *base;
+> +	ssize_t rc;
+> +
+> +	data_attr = container_of(bin_attr, struct acpi_data_attr, attr);
+> +
+> +	base = acpi_os_map_memory(data_attr->addr, data_attr->attr.size);
+> +	if (!base)
+> +		return -ENOMEM;
+> +	rc = memory_read_from_buffer(buf, count, &offset, base,
+> +				     data_attr->attr.size);
+> +	acpi_os_unmap_memory(base, data_attr->attr.size);
+> +
+> +	return rc;
+> +}
+> +
+> +static int acpi_bert_data_init(void *th, struct acpi_data_attr *data_attr)
+> +{
+> +	struct acpi_table_bert *bert = th;
+> +
+> +	if (bert->header.length < sizeof(struct acpi_table_bert) ||
+> +	    bert->region_length < sizeof(struct acpi_hest_generic_status)) {
+> +		kfree(data_attr);
+> +		return -EINVAL;
+> +	}
+> +	data_attr->addr = bert->address;
+> +	data_attr->attr.size = bert->region_length;
+> +	data_attr->attr.attr.name = "BERT";
+> +
+> +	return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
+> +}
+> +
+> +static struct acpi_data_obj {
+> +	char *name;
+> +	int (*fn)(void *, struct acpi_data_attr *);
+> +} acpi_data_objs[] = {
+> +	{ ACPI_SIG_BERT, acpi_bert_data_init },
+> +};
+> +
+> +#define NUM_ACPI_DATA_OBJS ARRAY_SIZE(acpi_data_objs)
+> +
+> +static int acpi_table_data_init(struct acpi_table_header *th)
+> +{
+> +	struct acpi_data_attr *data_attr;
+> +	int i;
+> +
+> +	for (i = 0; i < NUM_ACPI_DATA_OBJS; i++) {
+> +		if (ACPI_COMPARE_NAME(th->signature, acpi_data_objs[i].name)) {
+> +			data_attr = kzalloc(sizeof(*data_attr), GFP_KERNEL);
+> +			if (!data_attr)
+> +				return -ENOMEM;
+> +			sysfs_attr_init(&data_attr->attr.attr);
+> +			data_attr->attr.read = acpi_data_show;
+> +			data_attr->attr.attr.mode = 0400;
+> +			return acpi_data_objs[i].fn(th, data_attr);
+> +		}
+> +	}
+> +	return 0;
+> +}
+> +
+>  static int acpi_tables_sysfs_init(void)
+>  {
+>  	struct acpi_table_attr *table_attr;
+> @@ -432,6 +503,10 @@ static int acpi_tables_sysfs_init(void)
+>  	if (!tables_kobj)
+>  		goto err;
+>  
+> +	tables_data_kobj = kobject_create_and_add("data", tables_kobj);
+> +	if (!tables_data_kobj)
+> +		goto err_tables_data;
+> +
+>  	dynamic_tables_kobj = kobject_create_and_add("dynamic", tables_kobj);
+>  	if (!dynamic_tables_kobj)
+>  		goto err_dynamic_tables;
+> @@ -456,13 +531,17 @@ static int acpi_tables_sysfs_init(void)
+>  			return ret;
+>  		}
+>  		list_add_tail(&table_attr->node, &acpi_table_attr_list);
+> +		acpi_table_data_init(table_header);
+>  	}
+>  
+>  	kobject_uevent(tables_kobj, KOBJ_ADD);
+> +	kobject_uevent(tables_data_kobj, KOBJ_ADD);
+>  	kobject_uevent(dynamic_tables_kobj, KOBJ_ADD);
+>  
+>  	return 0;
+>  err_dynamic_tables:
+> +	kobject_put(tables_data_kobj);
+> +err_tables_data:
+>  	kobject_put(tables_kobj);
+>  err:
+>  	return -ENOMEM;
+> 
 
-OK
+Applied, thanks!
 
-So what about the [3-5/5] in this series?
-
-My current plan is to apply them too and expose a branch with them, can I
-go ahead with that?
-
-Thanks,
-Rafael
 
