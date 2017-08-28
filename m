@@ -1,62 +1,45 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH V3] acpi: apei: clear error status before acknowledging
- the error
-Date: Mon, 28 Aug 2017 20:01:00 +0300
-Message-ID: <1503939660.25945.127.camel@linux.intel.com>
-References: <1503939221-27732-1-git-send-email-tbaicar@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: Tyler Baicar <tbaicar@codeaurora.org>
+Subject: [PATCH] acpi: apei: call into AER handling regardless of severity
+Date: Mon, 28 Aug 2017 11:11:54 -0600
+Message-ID: <1503940314-29526-1-git-send-email-tbaicar@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:1728 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750866AbdH1RHH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 28 Aug 2017 13:07:07 -0400
-In-Reply-To: <1503939221-27732-1-git-send-email-tbaicar@codeaurora.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:50798 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751190AbdH1RMA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Aug 2017 13:12:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>, rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, bp@suse.de, prarit@redhat.com, punit.agrawal@arm.com, shiju.jose@huawei.com, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tyler Baicar <tbaicar@codeaurora.org>
 
-On Mon, 2017-08-28 at 10:53 -0600, Tyler Baicar wrote:
-> Currently we acknowledge errors before clearing the error status.
-> This could cause a new error to be populated by firmware in-between
-> the error acknowledgment and the error status clearing which would
-> cause the second error's status to be cleared without being handled.
-> So, clear the error status before acknowledging the errors.
-> 
-> Also, make sure to acknowledge the error if the error status read
-> fails.
-> 
+Currently the GHES code only calls into the AER driver for
+recoverable type errors. This is incorrect because errors of
+other severities do not get logged by the AER driver and do not
+get exposed to user space via the AER trace event. So, call
+into the AER driver for PCIe errors regardless of the severity.
 
+Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+---
+ drivers/acpi/apei/ghes.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-> +out:
-> +	ghes_clear_estatus(ghes);
-> +
-
-> +	if (rc == -ENOENT)
-> +		return rc;
-> +
-
-
->  	/*
->  	 * GHESv2 type HEST entries introduce support for error
-> acknowledgment,
->  	 * so only acknowledge the error if this support is present.
->  	 */
-> 
-
-
-> +	if (is_hest_type_generic_v2(ghes))
-
-You can also do this here, like
-	if (is_hest_type_generic_v2(ghes) && rc != -ENOENT)
-
-though I left this for Rafael to choose which one is preferable.
-
-> +		return ghes_ack_error(ghes->generic_v2);
-> +
-
-
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index d661d45..5cab238 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -489,9 +489,7 @@ static void ghes_do_proc(struct ghes *ghes,
+ 		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
+ 			struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
+ 
+-			if (sev == GHES_SEV_RECOVERABLE &&
+-			    sec_sev == GHES_SEV_RECOVERABLE &&
+-			    pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
++			if (pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
+ 			    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO) {
+ 				unsigned int devfn;
+ 				int aer_severity;
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
+
