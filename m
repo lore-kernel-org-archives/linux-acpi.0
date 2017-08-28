@@ -1,276 +1,118 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 1/3] mfd: Add support for Cherry Trail Dollar Cove TI PMIC
-Date: Tue, 29 Aug 2017 00:31:15 +0200
-Message-ID: <CAJZ5v0izZadPid+QLcRk9wgybguao1FXxPE_oi-MhkxSG3Uq6A@mail.gmail.com>
-References: <20170825134443.14843-1-tiwai@suse.de> <20170825134443.14843-2-tiwai@suse.de>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2] ACPI / Processor: add sysfs support for low power idle
+Date: Tue, 29 Aug 2017 01:56:19 +0200
+Message-ID: <2118329.renevTSach@aspire.rjw.lan>
+References: <1499968082-7753-1-git-send-email-pprakash@codeaurora.org> <e0a869c1-704f-3fdd-0bcd-be954c2795b9@arm.com> <4ee02b4a-e287-34c3-0d61-a1c5a145c846@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20170825134443.14843-2-tiwai@suse.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: Lee Jones <lee.jones@linaro.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57912 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751194AbdH2AE7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 28 Aug 2017 20:04:59 -0400
+In-Reply-To: <4ee02b4a-e287-34c3-0d61-a1c5a145c846@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, lenb@kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
 
-On Fri, Aug 25, 2017 at 3:44 PM, Takashi Iwai <tiwai@suse.de> wrote:
-> This patch adds the MFD driver for Dollar Cove (TI version) PMIC with
-> ACPI INT33F5 that is found on some Intel Cherry Trail devices.
-> The driver is based on the original work by Intel, found at:
->   https://github.com/01org/ProductionKernelQuilts
->
-> This is a minimal version for adding the basic resources.  Currently,
-> only ACPI PMIC opregion and the external power-button are used.
->
-> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=193891
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> Signed-off-by: Takashi Iwai <tiwai@suse.de>
+On Wednesday, August 23, 2017 6:04:42 PM CEST Prakash, Prashanth wrote:
+> Hi Rafael,
+> 
+> On 8/1/2017 11:34 AM, Sudeep Holla wrote:
+> >
+> > On 01/08/17 18:15, Prakash, Prashanth wrote:
+> >> On 8/1/2017 3:18 AM, Sudeep Holla wrote:
+> >>> On 31/07/17 19:18, Prakash, Prashanth wrote:
+> >>>> Hi Sudeep,
+> >>>>
+> >>>> On 7/31/2017 10:25 AM, Sudeep Holla wrote:
+> >>>>> Sorry for the delay, I initial thought having this ABI under testing is
+> >>>>> fine as I really don't want any *real* user space programs to depend on
+> >>>>> this for various reasons stated in earlier threads, e.g. h/w auto
+> >>>>> promotable states, accuracy of the stats, ..etc
+> >>>> <sorry for repeating this part>
+> >>>> These fields are optional, so if there is no reliable way to keep track of  stats, platform
+> >>>> can choose not to expose it. If a platform is exposing inaccurate stats via this ACPI
+> >>>> interface, it is breaking the spec.
+> >>> Fair enough.
+> >>>
+> >>>>> But from Documentation/ABI/README, I see
+> >>>>>
+> >>>>> testing/
+> >>>>> 	This directory documents interfaces that are felt to be stable,
+> >>>>> 	as the main development of this interface has been completed.
+> >>>>> 	The interface can be changed to add new features, but the
+> >>>>> 	current interface will not break by doing this, unless grave
+> >>>>> 	errors or security problems are found in them. User space
+> >>>>> 	programs can start to rely on these interfaces,...
+> >>>>>
+> >>>>> which makes me worry. Since the use for this is purely for debug or
+> >>>>> optimization purposes, I still prefer simple single file debugfs entry.
+> >>>>> I still can't digest the fact that reading single file is time consuming
+> >>>>> as we are not using this interface at runtime IIUC. i.e. statistic are
+> >>>>> collected and analyzed offline.>> These fields has the same utility/use-cases as the usage & time
+> >>> fields in cpuidle sysfs,
+> >>>> but provides more granularity - idle stats for different levels hierarchy and accurate
+> >>>> idle stats for states that require platform co-ordination.
+> >>>>
+> >>> I completely agree with that and that's not the argument.
+> >>>
+> >>>> The argument for having a single sysfs file per node was that reading individual
+> >>>> files might get expensive to get a snapshot(not the other way around). But, that
+> >>>> argument was weak as we typically read these only in debug settings and not that
+> >>>> often during runtime. So, the summary_stats file was removed and went with one
+> >>>> value per file.
+> >>>>
+> >>> You are contradicting yourself above :). You say the argument you made
+> >>> is weak :) but still went ahead and dropped single debugfs file vs the
+> >>> standard per entry sysfs file which is an ABI.
+> >> To clarify, the first RFC patch had a sysfs entry called summary_stats which
+> >> provided all the stats for a specific node in hierarchy via a single file. The
+> >> argument for having such a single file was weak. :)  There was never a
+> >> debugfs file to be dropped in first place.
+> >>
+> > You are right, it was me who keep suggesting debugfs file as a
+> > replacement for your summary_stats sysfs file. Sorry for the confusion
+> > but I still insist debugfs :)
+> >
+> >>> Since we already have CPUIdle sysfs which is an ABI, I am really not
+> >>> sure if we need another set of ABI files which are used only for debug
+> >>> and optimization purposes. Why is single debugfs file not sufficient ?
+> >>>
+> >> The consumers for this data are not all kernel developers. We will have other
+> >> engineers looking at this data for power/performance optimizations and
+> >> would be nice to give them a consistent interface.
+> > Yes that's the case with any sysfs file users and that's why we can't
+> > break ABI once we expose.
+> >
+> >>> As hardware evolves, most of the platforms can't provide these
+> >>> information accurately. So if we are trying to address a problem which
+> >>> is short-lived and on very small class of platforms, I would avoid
+> >>> creating a new ABI for it. That's my main argument against this
+> >>> interface instead go with debugfs entry. That's my opinion though.
+> >> I would like to think of it in terms of ACPI spec rather than a subset of platforms.
+> >> If it is part of spec there should be no reason to speculate on which platform
+> >> may or may not implement it. We implement to the spec and ideally platform
+> >> designers should ideally do the same. >
+> >> Since sysfs vs debugfs is quite debatable :) , I will wait for Rafael's inputs.
+> Any inputs on this?
 
-I need an ACK from Lee on this one.
+Sorry for the slow response, but I'm still unconvinced about this.
 
-> ---
-> v2->v3:
-> * Rename dc_ti with chtdc_ti in all places
-> * Driver/kconfig renames accordingly
-> * Added acks by Andy and Mika
-> v1->v2:
-> * Minor cleanups as suggested by Andy
->
->  drivers/mfd/Kconfig                   |  13 +++
->  drivers/mfd/Makefile                  |   1 +
->  drivers/mfd/intel_soc_pmic_chtdc_ti.c | 183 ++++++++++++++++++++++++++++++++++
->  3 files changed, 197 insertions(+)
->  create mode 100644 drivers/mfd/intel_soc_pmic_chtdc_ti.c
->
-> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> index 94ad2c1c3d90..36e7d60f1314 100644
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -496,6 +496,19 @@ config INTEL_SOC_PMIC_CHTWC
->           available before any devices using it are probed. This option also
->           causes the designware-i2c driver to be builtin for the same reason.
->
-> +config INTEL_SOC_PMIC_CHTDC_TI
-> +       tristate "Support for Intel Cherry Trail Dollar Cove TI PMIC"
-> +       depends on GPIOLIB
-> +       depends on I2C
-> +       depends on ACPI
-> +       depends on X86
-> +       select MFD_CORE
-> +       select REGMAP_I2C
-> +       select REGMAP_IRQ
-> +       help
-> +         Select this option for supporting Dollar Cove (TI version) PMIC
-> +         device that is found on some Intel Cherry Trail systems.
-> +
->  config MFD_INTEL_LPSS
->         tristate
->         select COMMON_CLK
-> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-> index 080793b3fd0e..50ae64d2b22a 100644
-> --- a/drivers/mfd/Makefile
-> +++ b/drivers/mfd/Makefile
-> @@ -216,6 +216,7 @@ intel-soc-pmic-objs         := intel_soc_pmic_core.o intel_soc_pmic_crc.o
->  obj-$(CONFIG_INTEL_SOC_PMIC)   += intel-soc-pmic.o
->  obj-$(CONFIG_INTEL_SOC_PMIC_BXTWC)     += intel_soc_pmic_bxtwc.o
->  obj-$(CONFIG_INTEL_SOC_PMIC_CHTWC)     += intel_soc_pmic_chtwc.o
-> +obj-$(CONFIG_INTEL_SOC_PMIC_CHTDC_TI)  += intel_soc_pmic_chtdc_ti.o
->  obj-$(CONFIG_MFD_MT6397)       += mt6397-core.o
->
->  obj-$(CONFIG_MFD_ALTERA_A10SR) += altera-a10sr.o
-> diff --git a/drivers/mfd/intel_soc_pmic_chtdc_ti.c b/drivers/mfd/intel_soc_pmic_chtdc_ti.c
-> new file mode 100644
-> index 000000000000..404adb6fc475
-> --- /dev/null
-> +++ b/drivers/mfd/intel_soc_pmic_chtdc_ti.c
-> @@ -0,0 +1,183 @@
-> +/*
-> + * Device access for Dollar Cove TI PMIC
-> + * Copyright (c) 2014, Intel Corporation.
-> + *   Author: Ramakrishna Pallala <ramakrishna.pallala@intel.com>
-> + *
-> + * Cleanup and forward-ported
-> + *   Copyright (c) 2017 Takashi Iwai <tiwai@suse.de>
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/i2c.h>
-> +#include <linux/module.h>
-> +#include <linux/regmap.h>
-> +#include <linux/mfd/core.h>
-> +#include <linux/mfd/intel_soc_pmic.h>
-> +
-> +#define CHTDC_TI_IRQLVL1       0x01
-> +#define CHTDC_TI_MASK_IRQLVL1  0x02
-> +
-> +/* Level 1 IRQs */
-> +enum {
-> +       CHTDC_TI_PWRBTN = 0,    /* power button */
-> +       CHTDC_TI_DIETMPWARN,    /* thermal */
-> +       CHTDC_TI_ADCCMPL,       /* ADC */
-> +       /* no irq 3 */
-> +       CHTDC_TI_VBATLOW = 4,   /* battery */
-> +       CHTDC_TI_VBUSDET,       /* power source */
-> +       /* no irq 6 */
-> +       CHTDC_TI_CCEOCAL = 7,   /* battery */
-> +};
-> +
-> +static struct resource power_button_resources[] = {
-> +       DEFINE_RES_IRQ(CHTDC_TI_PWRBTN),
-> +};
-> +
-> +static struct resource thermal_resources[] = {
-> +       DEFINE_RES_IRQ(CHTDC_TI_DIETMPWARN),
-> +};
-> +
-> +static struct resource adc_resources[] = {
-> +       DEFINE_RES_IRQ(CHTDC_TI_ADCCMPL),
-> +};
-> +
-> +static struct resource pwrsrc_resources[] = {
-> +       DEFINE_RES_IRQ(CHTDC_TI_VBUSDET),
-> +};
-> +
-> +static struct resource battery_resources[] = {
-> +       DEFINE_RES_IRQ(CHTDC_TI_VBATLOW),
-> +       DEFINE_RES_IRQ(CHTDC_TI_CCEOCAL),
-> +};
-> +
-> +static struct mfd_cell chtdc_ti_dev[] = {
-> +       {
-> +               .name = "chtdc_ti_pwrbtn",
-> +               .num_resources = ARRAY_SIZE(power_button_resources),
-> +               .resources = power_button_resources,
-> +       },
-> +       {
-> +               .name = "chtdc_ti_adc",
-> +               .num_resources = ARRAY_SIZE(adc_resources),
-> +               .resources = adc_resources,
-> +       },
-> +       {
-> +               .name = "chtdc_ti_thermal",
-> +               .num_resources = ARRAY_SIZE(thermal_resources),
-> +               .resources = thermal_resources,
-> +       },
-> +       {
-> +               .name = "chtdc_ti_pwrsrc",
-> +               .num_resources = ARRAY_SIZE(pwrsrc_resources),
-> +               .resources = pwrsrc_resources,
-> +       },
-> +       {
-> +               .name = "chtdc_ti_battery",
-> +               .num_resources = ARRAY_SIZE(battery_resources),
-> +               .resources = battery_resources,
-> +       },
-> +       {
-> +               .name = "chtdc_ti_region",
-> +       },
-> +};
-> +
-> +static const struct regmap_config chtdc_ti_regmap_config = {
-> +       .reg_bits = 8,
-> +       .val_bits = 8,
-> +       .max_register = 128,
-> +       .cache_type = REGCACHE_NONE,
-> +};
-> +
-> +static const struct regmap_irq chtdc_ti_irqs[] = {
-> +       REGMAP_IRQ_REG(CHTDC_TI_PWRBTN, 0, BIT(CHTDC_TI_PWRBTN)),
-> +       REGMAP_IRQ_REG(CHTDC_TI_DIETMPWARN, 0, BIT(CHTDC_TI_DIETMPWARN)),
-> +       REGMAP_IRQ_REG(CHTDC_TI_ADCCMPL, 0, BIT(CHTDC_TI_ADCCMPL)),
-> +       REGMAP_IRQ_REG(CHTDC_TI_VBATLOW, 0, BIT(CHTDC_TI_VBATLOW)),
-> +       REGMAP_IRQ_REG(CHTDC_TI_VBUSDET, 0, BIT(CHTDC_TI_VBUSDET)),
-> +       REGMAP_IRQ_REG(CHTDC_TI_CCEOCAL, 0, BIT(CHTDC_TI_CCEOCAL)),
-> +};
-> +
-> +static const struct regmap_irq_chip chtdc_ti_irq_chip = {
-> +       .name = KBUILD_MODNAME,
-> +       .irqs = chtdc_ti_irqs,
-> +       .num_irqs = ARRAY_SIZE(chtdc_ti_irqs),
-> +       .num_regs = 1,
-> +       .status_base = CHTDC_TI_IRQLVL1,
-> +       .mask_base = CHTDC_TI_MASK_IRQLVL1,
-> +       .ack_base = CHTDC_TI_IRQLVL1,
-> +};
-> +
-> +static int chtdc_ti_probe(struct i2c_client *i2c)
-> +{
-> +       struct device *dev = &i2c->dev;
-> +       struct intel_soc_pmic *pmic;
-> +       int ret;
-> +
-> +       pmic = devm_kzalloc(dev, sizeof(*pmic), GFP_KERNEL);
-> +       if (!pmic)
-> +               return -ENOMEM;
-> +
-> +       i2c_set_clientdata(i2c, pmic);
-> +
-> +       pmic->regmap = devm_regmap_init_i2c(i2c, &chtdc_ti_regmap_config);
-> +       if (IS_ERR(pmic->regmap))
-> +               return PTR_ERR(pmic->regmap);
-> +       pmic->irq = i2c->irq;
-> +
-> +       ret = devm_regmap_add_irq_chip(dev, pmic->regmap, pmic->irq,
-> +                                      IRQF_ONESHOT, 0,
-> +                                      &chtdc_ti_irq_chip,
-> +                                      &pmic->irq_chip_data);
-> +       if (ret)
-> +               return ret;
-> +
-> +       return devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE, chtdc_ti_dev,
-> +                                   ARRAY_SIZE(chtdc_ti_dev), NULL, 0,
-> +                                   regmap_irq_get_domain(pmic->irq_chip_data));
-> +}
-> +
-> +static void chtdc_ti_shutdown(struct i2c_client *i2c)
-> +{
-> +       struct intel_soc_pmic *pmic = i2c_get_clientdata(i2c);
-> +
-> +       disable_irq(pmic->irq);
-> +}
-> +
-> +static int __maybe_unused chtdc_ti_suspend(struct device *dev)
-> +{
-> +       struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
-> +
-> +       disable_irq(pmic->irq);
-> +       return 0;
-> +}
-> +
-> +static int __maybe_unused chtdc_ti_resume(struct device *dev)
-> +{
-> +       struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
-> +
-> +       enable_irq(pmic->irq);
-> +       return 0;
-> +}
-> +
-> +static SIMPLE_DEV_PM_OPS(chtdc_ti_pm_ops, chtdc_ti_suspend, chtdc_ti_resume);
-> +
-> +static const struct acpi_device_id chtdc_ti_acpi_ids[] = {
-> +       { "INT33F5" },
-> +       { },
-> +};
-> +MODULE_DEVICE_TABLE(acpi, chtdc_ti_acpi_ids);
-> +
-> +static struct i2c_driver chtdc_ti_i2c_driver = {
-> +       .driver = {
-> +               .name = KBUILD_MODNAME,
-> +               .pm = &chtdc_ti_pm_ops,
-> +               .acpi_match_table = chtdc_ti_acpi_ids,
-> +       },
-> +       .probe_new = chtdc_ti_probe,
-> +       .shutdown = chtdc_ti_shutdown,
-> +};
-> +module_i2c_driver(chtdc_ti_i2c_driver);
-> +
-> +MODULE_DESCRIPTION("I2C driver for Intel SoC Dollar Cove TI PMIC");
-> +MODULE_LICENSE("GPL v2");
-> --
-> 2.14.0
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I generally don't like residency ("time" in your terminology, which is quite
+confusing BTW) / usage information in sysfs under ACPI device nodes, as it
+belongs to cpuidle rather.
+
+I know that it is easy to expose it this way, but can't we do better?
+
+Also, I'd use file names following the spec language.  min_residency is fine,
+but "latency" would better be called "wakeup_latency" and why use "desc"
+rather than "state_name"?  Plust exposing "Enabled Parent State" might be
+useful.
+
+Thanks,
+Rafael
+
