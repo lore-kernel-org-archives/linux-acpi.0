@@ -1,8 +1,8 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
 Subject: Re: [PATCH V3] acpi: apei: clear error status before acknowledging
  the error
-Date: Mon, 28 Aug 2017 22:12:13 +0300
-Message-ID: <CAHp75VcJitj5cSGMOYqunJ0u1Hc04n7xG6HDa2-RU8EuadohXA@mail.gmail.com>
+Date: Mon, 28 Aug 2017 22:14:29 +0300
+Message-ID: <CAHp75VcWa9JjERTyjduPOw-fYHVjBvP_J_-Q+LC8Vr17sUv=VQ@mail.gmail.com>
 References: <1503939221-27732-1-git-send-email-tbaicar@codeaurora.org>
  <1503939660.25945.127.camel@linux.intel.com> <20170828171405.2s4rlebloi5lyhga@pd.tnic>
  <CAHp75Vdx2NG8yd-cr14hxQzEjy-V29de4nbiq0v9tWpXVxt+2w@mail.gmail.com>
@@ -10,12 +10,11 @@ References: <1503939221-27732-1-git-send-email-tbaicar@codeaurora.org>
  <20170828182723.iav5lgucnuhd646f@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:37855 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751236AbdH1TMO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Aug 2017 15:12:14 -0400
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:35246 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751236AbdH1TOb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Aug 2017 15:14:31 -0400
 In-Reply-To: <20170828182723.iav5lgucnuhd646f@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -28,12 +27,14 @@ On Mon, Aug 28, 2017 at 9:27 PM, Borislav Petkov <bp@suse.de> wrote:
 >> top of that additional check.
 >
 > That's because the comment belongs to the v2 part of the check.
->
+
+Sorry not being clear, I meant another, separate comment.
+
 >> Separate conditionals in independent cases are, of course, better.
 >
 > Yes, and separate are easier to read if you read them like this:
 >
-> +       if (rc =3D=3D -ENOENT)
+> +       if (rc == -ENOENT)
 > +               return rc;
 >
 > <--- Ok, we got the missing entry out of the way, now, here, we have a
@@ -50,17 +51,13 @@ On Mon, Aug 28, 2017 at 9:27 PM, Borislav Petkov <bp@suse.de> wrote:
 > asm translation too...
 >
 > Anyway, this is how I see it.
->
-> --
-> Regards/Gruss,
->     Boris.
->
-> SUSE Linux GmbH, GF: Felix Imend=C3=B6rffer, Jane Smithard, Graham Norton=
-, HRB 21284 (AG N=C3=BCrnberg)
-> --
 
+Looking into commit message again I think the word 'also' creates all
+this. Two separate commits might be perfect, though good enough is to
+have an additional comment to the new check.
 
+Thanks for sharing detailed point of view.
 
---=20
+-- 
 With Best Regards,
 Andy Shevchenko
