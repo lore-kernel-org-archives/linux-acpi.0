@@ -1,48 +1,37 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi/processor: make function acpi_processor_check_duplicates static
-Date: Mon, 28 Aug 2017 22:57:50 +0200
-Message-ID: <12257440.is5Wi1LijY@aspire.rjw.lan>
-References: <20170815094630.20836-1-colin.king@canonical.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v4 1/5] ACPI / blacklist: add acpi_match_platform_list()
+Date: Mon, 28 Aug 2017 23:21:52 +0200
+Message-ID: <20170828212151.dawlnvvxhkkcmqo3@pd.tnic>
+References: <20170823225447.15608-1-toshi.kani@hpe.com>
+ <20170823225447.15608-2-toshi.kani@hpe.com>
+ <20170824075348.gqvobmk7mf5ppaip@pd.tnic>
+ <1587060.BVEodWPrhf@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20170815094630.20836-1-colin.king@canonical.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1587060.BVEodWPrhf@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Toshi Kani <toshi.kani@hpe.com>, mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, August 15, 2017 11:46:30 AM CEST Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On Mon, Aug 28, 2017 at 10:55:07PM +0200, Rafael J. Wysocki wrote:
+> So what about the [3-5/5] in this series?
 > 
-> The function acpi_processor_check_duplicates is local to the source and
-> does not need to be in global scope, so make it static.
-> 
-> Cleans up sparse warnings:
-> symbol 'acpi_processor_check_duplicates' was not declared. Should it
-> be static?
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/acpi/acpi_processor.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-> index f098e25b6b41..86c10599d9f8 100644
-> --- a/drivers/acpi/acpi_processor.c
-> +++ b/drivers/acpi/acpi_processor.c
-> @@ -670,7 +670,7 @@ static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
->  
->  }
->  
-> -void __init acpi_processor_check_duplicates(void)
-> +static void __init acpi_processor_check_duplicates(void)
->  {
->  	/* check the correctness for all processors in ACPI namespace */
->  	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-> 
+> My current plan is to apply them too and expose a branch with them, can I
+> go ahead with that?
 
-Applied, thanks!
+No, please expose a branch with only the ACPI patches, i.e., 1 and 2 and
+I can merge it and apply the EDAC patches ontop.
 
+Then you and I need to sync up so that you send your pull requests first
+and I follow you so that Linus applies them in the proper order.
 
+Makes sense?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
