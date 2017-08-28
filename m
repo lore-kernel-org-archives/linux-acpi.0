@@ -1,63 +1,46 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH V3] acpi: apei: clear error status before acknowledging
- the error
-Date: Mon, 28 Aug 2017 22:14:29 +0300
-Message-ID: <CAHp75VcWa9JjERTyjduPOw-fYHVjBvP_J_-Q+LC8Vr17sUv=VQ@mail.gmail.com>
-References: <1503939221-27732-1-git-send-email-tbaicar@codeaurora.org>
- <1503939660.25945.127.camel@linux.intel.com> <20170828171405.2s4rlebloi5lyhga@pd.tnic>
- <CAHp75Vdx2NG8yd-cr14hxQzEjy-V29de4nbiq0v9tWpXVxt+2w@mail.gmail.com>
- <20170828172539.5cl7baxdxxaixlri@pd.tnic> <CAHp75VeoEk0SA=0w=BN-3Q0L+GaOb9Zh=xnrPrAKrKqLYcCz4g@mail.gmail.com>
- <20170828182723.iav5lgucnuhd646f@pd.tnic>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi: apei: call into AER handling regardless of severity
+Date: Mon, 28 Aug 2017 22:52:58 +0200
+Message-ID: <4587608.qG1kLJBqxQ@aspire.rjw.lan>
+References: <1503940314-29526-1-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:35246 "EHLO
-        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751236AbdH1TOb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Aug 2017 15:14:31 -0400
-In-Reply-To: <20170828182723.iav5lgucnuhd646f@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1503940314-29526-1-git-send-email-tbaicar@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tyler Baicar <tbaicar@codeaurora.org>, bp@suse.de
+Cc: lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, prarit@redhat.com, punit.agrawal@arm.com, shiju.jose@huawei.com, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Will Deacon <will.deacon@arm.com>, james.morse@arm.com, shiju.jose@huawei.com, Geliang Tang <geliangtang@gmail.com>, Tony Luck <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Mon, Aug 28, 2017 at 9:27 PM, Borislav Petkov <bp@suse.de> wrote:
-> On Mon, Aug 28, 2017 at 08:44:21PM +0300, Andy Shevchenko wrote:
->> For my opinion, since you asked, the either case needs a comment on
->> top of that additional check.
->
-> That's because the comment belongs to the v2 part of the check.
+On Monday, August 28, 2017 7:11:54 PM CEST Tyler Baicar wrote:
+> Currently the GHES code only calls into the AER driver for
+> recoverable type errors. This is incorrect because errors of
+> other severities do not get logged by the AER driver and do not
+> get exposed to user space via the AER trace event. So, call
+> into the AER driver for PCIe errors regardless of the severity.
+> 
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
 
-Sorry not being clear, I meant another, separate comment.
+Boris?
 
->> Separate conditionals in independent cases are, of course, better.
->
-> Yes, and separate are easier to read if you read them like this:
->
-> +       if (rc == -ENOENT)
-> +               return rc;
->
-> <--- Ok, we got the missing entry out of the way, now, here, we have a
-> valid entry. Now we can concentrate on processing it further.
->
->         ... other check and ack and ...
->
-> And this becomes a lot more natural when you're staring at a big function
-> which does a lot of things and you concentrate only on the main path.
->
-> Oh, and this is how those checks get translated to asm as there you
-> don't really have compound if-statements. So if you switch your mind to
-> reading such checks separately, you're practically ready to read their
-> asm translation too...
->
-> Anyway, this is how I see it.
-
-Looking into commit message again I think the word 'also' creates all
-this. Two separate commits might be perfect, though good enough is to
-have an additional comment to the new check.
-
-Thanks for sharing detailed point of view.
-
--- 
-With Best Regards,
-Andy Shevchenko
+> ---
+>  drivers/acpi/apei/ghes.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index d661d45..5cab238 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -489,9 +489,7 @@ static void ghes_do_proc(struct ghes *ghes,
+>  		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
+>  			struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
+>  
+> -			if (sev == GHES_SEV_RECOVERABLE &&
+> -			    sec_sev == GHES_SEV_RECOVERABLE &&
+> -			    pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
+> +			if (pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
+>  			    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO) {
+>  				unsigned int devfn;
+>  				int aer_severity;
+> 
