@@ -1,80 +1,124 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCH 6/6] power: supply: make device_attribute const
-Date: Tue, 29 Aug 2017 10:44:21 +0200
-Message-ID: <20170829084421.4nm3uoswlx2ftc5m@earth>
-References: <1503315792-14837-1-git-send-email-bhumirks@gmail.com>
- <1503315792-14837-7-git-send-email-bhumirks@gmail.com>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: Re: [PATCH v2] ACPI / APEI: Suppress message if HEST not present
+Date: Tue, 29 Aug 2017 10:03:51 +0100
+Message-ID: <87ziaihhjc.fsf@e105922-lin.cambridge.arm.com>
+References: <20170816112753.12085-1-punit.agrawal@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="iboistu4ap57qf3f"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1503315792-14837-7-git-send-email-bhumirks@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, jbacik@fb.com, jikos@kernel.org, benjamin.tissoires@redhat.com, manish.chopra@cavium.com, rahul.verma@cavium.com, Dept-GELinuxNICDev@cavium.com, harish.patil@cavium.com, cascardo@holoscopio.com, don@syst.com.br, dvhart@infradead.org, andy@infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, nbd-general@lists.sourceforge.net, linux-input@vger.kernel.org, netdev@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170816112753.12085-1-punit.agrawal@arm.com> (Punit Agrawal's
+        message of "Wed, 16 Aug 2017 12:27:53 +0100")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@suse.de>
+Cc: lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, James Morse <james.morse@arm.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+Punit Agrawal <punit.agrawal@arm.com> writes:
 
---iboistu4ap57qf3f
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Aug 21, 2017 at 05:13:12PM +0530, Bhumika Goyal wrote:
-> Make these const as they are only passed as an argument to the
-> function device_create_file and device_remove_file and the corresponding
-> arguments are of type const.
-> Done using Coccinelle.
->=20
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> According to the ACPI specification, firmware is not required to provide
+> the Hardware Error Source Table (HEST). When HEST is not present, the
+> following superfluous message is printed to the kernel boot log -
+>
+> [    3.460067] GHES: HEST is not enabled!
+>
+> Extend hest_disable variable to track whether the firmware provides this
+> table and if it is not present skip any log output. The existing
+> behaviour is preserved in all other cases.
+>
+> Suggested-by: Borislav Petkov <bp@suse.de>
+> Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+> Cc: Borislav Petkov <bp@suse.de>
+> Cc: James Morse <james.morse@arm.com>
 > ---
-
-Thanks, queued.
-
--- Sebastian
-
->  drivers/power/supply/olpc_battery.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/power/supply/olpc_battery.c b/drivers/power/supply/o=
-lpc_battery.c
-> index fc20ca3..3bc2eea 100644
-> --- a/drivers/power/supply/olpc_battery.c
-> +++ b/drivers/power/supply/olpc_battery.c
-> @@ -559,7 +559,7 @@ static ssize_t olpc_bat_error_read(struct device *dev,
->  	return sprintf(buf, "%d\n", ec_byte);
+>  drivers/acpi/apei/ghes.c |  4 ++--
+>  drivers/acpi/apei/hest.c | 13 +++++++------
+>  include/acpi/apei.h      |  8 +++++++-
+>  3 files changed, 16 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index d661d452b238..f8685bcbeff2 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -1262,10 +1262,10 @@ static int __init ghes_init(void)
+>  {
+>  	int rc;
+>  
+> -	if (acpi_disabled)
+> +	if (acpi_disabled || hest_disable == HEST_NOT_FOUND)
+>  		return -ENODEV;
+>  
+> -	if (hest_disable) {
+> +	if (hest_disable == HEST_DISABLED) {
+>  		pr_info(GHES_PFX "HEST is not enabled!\n");
+>  		return -EINVAL;
+>  	}
+> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+> index 456b488eb1df..9cb74115a43d 100644
+> --- a/drivers/acpi/apei/hest.c
+> +++ b/drivers/acpi/apei/hest.c
+> @@ -37,7 +37,7 @@
+>  
+>  #define HEST_PFX "HEST: "
+>  
+> -bool hest_disable;
+> +int hest_disable;
+>  EXPORT_SYMBOL_GPL(hest_disable);
+>  
+>  /* HEST table parsing */
+> @@ -213,7 +213,7 @@ static int __init hest_ghes_dev_register(unsigned int ghes_count)
+>  
+>  static int __init setup_hest_disable(char *str)
+>  {
+> -	hest_disable = 1;
+> +	hest_disable = HEST_DISABLED;
+>  	return 0;
 >  }
-> =20
-> -static struct device_attribute olpc_bat_error =3D {
-> +static const struct device_attribute olpc_bat_error =3D {
->  	.attr =3D {
->  		.name =3D "error",
->  		.mode =3D S_IRUGO,
-> --=20
-> 1.9.1
->=20
+>  
+> @@ -232,9 +232,10 @@ void __init acpi_hest_init(void)
+>  
+>  	status = acpi_get_table(ACPI_SIG_HEST, 0,
+>  				(struct acpi_table_header **)&hest_tab);
+> -	if (status == AE_NOT_FOUND)
+> -		goto err;
+> -	else if (ACPI_FAILURE(status)) {
+> +	if (status == AE_NOT_FOUND) {
+> +		hest_disable = HEST_NOT_FOUND;
+> +		return;
+> +	} else if (ACPI_FAILURE(status)) {
+>  		const char *msg = acpi_format_exception(status);
+>  		pr_err(HEST_PFX "Failed to get table, %s\n", msg);
+>  		rc = -EINVAL;
+> @@ -257,5 +258,5 @@ void __init acpi_hest_init(void)
+>  	pr_info(HEST_PFX "Table parsing has been initialized.\n");
+>  	return;
+>  err:
+> -	hest_disable = 1;
+> +	hest_disable = HEST_DISABLED;
+>  }
+> diff --git a/include/acpi/apei.h b/include/acpi/apei.h
+> index 76284bb560a6..c46694abea28 100644
+> --- a/include/acpi/apei.h
+> +++ b/include/acpi/apei.h
+> @@ -16,7 +16,13 @@
+>  
+>  #ifdef __KERNEL__
+>  
+> -extern bool hest_disable;
+> +enum hest_status {
+> +	HEST_ENABLED,
+> +	HEST_DISABLED,
+> +	HEST_NOT_FOUND,
+> +};
+> +
+> +extern int hest_disable;
+>  extern int erst_disable;
+>  #ifdef CONFIG_ACPI_APEI_GHES
+>  extern bool ghes_disable;
 
---iboistu4ap57qf3f
-Content-Type: application/pgp-signature; name="signature.asc"
+Ping!
 
------BEGIN PGP SIGNATURE-----
+Looks like this one has slipped through the cracks? Any objections
+Boris?
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlmlKWUACgkQ2O7X88g7
-+pojrA//WxkyTMch/7SoNoIGVqwKBdT4Xv7H5s/rB2lDnXCBsBlvFDm2vskHQJjQ
-RAoHXz6vAsaYLdbG5pcgvOy4sV4jir2syPPv+GNoXAIuBkP5cx1jXJ1ZN81pWB65
-BDhCe9i27V+HUm7iNqbkXDxILcpPoQki+skr9EvDgku2sgb3XIi9/zK+Gr42THct
-APqsXxFSjDckjlZGJoyb7uS9Uo3SfP58rNaCf5jMHZ1s5IWwuvb9rEb3v6wKAcT9
-uN2/hWOr2EAvS7dCcSOMn/fpWUqx5sf2U+Gm3ki+wU71JpKEvUnpoWNiiOQ1HZ3m
-u3plo2L107xl9JYlJvxMG8dri3nyFTf9hypAqa1vtKI0oRnS10o6CiKtXSzcDHaP
-Yyto1hwy1+1gq9mUrcy3Y754/h/Rtblz3uN7Mnlg9ZHgAYm4sq+z36hVwCvDNRIi
-QspbkoBT0sYILb00j2mqiWDT5iGfGUAN1ybexqE996M3g8Ghja8BioOjO23SoxD/
-SZfWT/Mbz+fkF9ZgyH2dMEWXKPXZoUrhuZGEUzWBU8BPRCoTQEY/zIJyK+Ojguxj
-54GGUP5qq4kmUPZTj2BDzq1F03IgoFnuA7w3TqcKME920VCB/sdnfBV4wXmE4ccB
-TNpI7Ow0/V8ZPXcFxny2GdyBSDjDJbRTQ+3tsQDzhVzx3kzDs5k=
-=hkX3
------END PGP SIGNATURE-----
-
---iboistu4ap57qf3f--
+Thanks,
+Punit
