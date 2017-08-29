@@ -1,93 +1,184 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/3] PM / ACPI / i2c: Runtime PM aware system sleep handling
-Date: Tue, 29 Aug 2017 18:44:02 +0200
-Message-ID: <5440066.jm2MzmQIeF@aspire.rjw.lan>
-References: <1503499329-28834-1-git-send-email-ulf.hansson@linaro.org> <1512684.bFXWtdU0Ox@aspire.rjw.lan> <CAPDyKFq-XDYE0xr2qONwO7_w8_jHfv5=iCwx4QdH7OHWqJ1e-Q@mail.gmail.com>
+From: David Renz <David.Renz@ruhr-uni-bochum.de>
+Subject: Re: ASL issues on HP machine
+Date: Tue, 29 Aug 2017 19:58:33 +0200
+Message-ID: <b31d1ad8b2cfcc274118d2b27d45ada5@ruhr-uni-bochum.de>
+References: <94F2FBAB4432B54E8AACC7DFDE6C92E37E606A79@ORSMSX110.amr.corp.intel.com>
+ <e429849bcbe768f3de3b8d3658203a81@ruhr-uni-bochum.de>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E6084B2@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:56677 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751180AbdH2Qwn (ORCPT
+Received: from out1.mail.ruhr-uni-bochum.de ([134.147.53.149]:53194 "EHLO
+        out1.mail.ruhr-uni-bochum.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751242AbdH2R6i (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 29 Aug 2017 12:52:43 -0400
-In-Reply-To: <CAPDyKFq-XDYE0xr2qONwO7_w8_jHfv5=iCwx4QdH7OHWqJ1e-Q@mail.gmail.com>
+        Tue, 29 Aug 2017 13:58:38 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E6084B2@ORSMSX110.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Johannes Stezenbach <js@sig21.net>, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi@vger.kernel.org, acpi@linux.intel.com, david.renz@rub.de, "Box, David E" <david.e.box@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, linux-acpi-owner@vger.kernel.org
 
-On Tuesday, August 29, 2017 5:05:20 PM CEST Ulf Hansson wrote:
-> On 29 August 2017 at 16:43, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Tuesday, August 29, 2017 1:44:11 PM CEST Ulf Hansson wrote:
-> >> On 29 August 2017 at 12:29, Johannes Stezenbach <js@sig21.net> wrote:
-> >> > Hi,
-> >> >
-> >> > On Tue, Aug 29, 2017 at 02:18:13AM +0200, Rafael J. Wysocki wrote:
-> >> >> On Wednesday, August 23, 2017 4:42:00 PM CEST Ulf Hansson wrote:
-> >> >> > The i2c designware platform driver, drivers/i2c/busses/i2c-designware-platdrv.c,
-> >> >> > isn't well optimized for system sleep.
-> >> >> >
-> >> >> > What makes this driver particularly interesting is because it's a cross-SoC
-> >> >> > driver, which sometimes means there is an ACPI PM domain attached to the i2c
-> >> >> > device and sometimes not. The driver is being used on both x86 and ARM.
-> >> > ...
-> >> >> Basically, the point is to allow i2c-designware-platdrv to point its late
-> >> >> suspend and early resume callbacks, respectively, to pm_runtime_force_suspend()
-> >> >> and pm_runtime_force_resume() which then will do the right thing regardless of
-> >> >> whether or not the device is runtime suspended when system suspend starts.
-> >> >
-> >> > I'd like to point out a comment added by Hans de Goede in
-> >> > https://bugzilla.kernel.org/show_bug.cgi?id=193891#c99
-> >> >
-> >> >   The D0 / D3 methods of some devices use ACPI OpRegions on the PMIC which is
-> >> >   attached to I2C7, these methods get executed by acpi_dev_suspend_late /
-> >> >   acpi_dev_resume_early. Since the i2c-designware driver uses regular suspend /
-> >> >   resume callbacks it is already suspended at the time those calls happen,
-> >> >   leading to a device-suspend error and the system not suspending at all.
-> >>
-> >> Yes, that's why I moved those operation to be managed at the
-> >> ->suspend_late() in my series, and at the same time prevent the
-> >> direct_complete patch from executed for this device.
-> >>
-> >> >
-> >> > It's the reason for the Cherrytrail I2C7 special treatment in
-> >> > i2c-designware-platdrv.c and pm_disabled = true in i2c-designware-baytrail.c,
-> >> > however pm_disabled seems to be a problem for S0ix support.
-> >> > To solve it, i2c-designware-platdrv needs to suspend after all
-> >> > devices using ACPI OpRegions for suspend.
-> >> >
-> >> >
-> >> > Johannes
-> >>
-> >> Did you try out my series (v2) if that could fix this problem in a
-> >> more flexible manner?
-> >>
-> >> In other words, is it fine if the device remains runtime PM enabled
-> >> during the entire device_suspend() phase, and also not being suspended
-> >> until ->suspend_late()?
-> >
-> > Ulf, please, this is a *different* problem.
+Am 2017-08-29 18:03, schrieb Moore, Robert:
+>> -----Original Message-----
+>> From: David Renz [mailto:David.Renz@ruhr-uni-bochum.de]
+>> Sent: Sunday, August 27, 2017 3:13 PM
+>> To: Moore, Robert <robert.moore@intel.com>
+>> Cc: linux-acpi@vger.kernel.org; acpi@linux.intel.com; 
+>> david.renz@rub.de;
+>> Box, David E <david.e.box@intel.com>; Schmauss, Erik
+>> <erik.schmauss@intel.com>; linux-acpi-owner@vger.kernel.org
+>> Subject: Re: ASL issues on HP machine
+>> 
+>> Am 2017-08-25 18:43, schrieb Moore, Robert:
+>> > I can address a couple of these immediately.
+>> >
+>> >
+>> > ASL_MSG_NOT_REFERENCED
+>> > This is seen on the HP machine.
+>> >
+>> > FAILED [LOW] AMLAsm
+>> > ASL_MSG_NOT_REFERENCED: Test 1, Assembler remark in line 1141 Line |
+>> > AML source
+>> > ----------------------------------------------------------------------
+>> > ----------
+>> > 01138|             Store (Buffer (0x18) {}, Local7)
+>> > 01139|             CreateDWordField (Local7, 0x00, A119)
+>> > 01140|             CreateDWordField (Local7, 0x04, A120)
+>> > 01141|             CreateDWordField (Local7, 0x08, A121)
+>> >       |                                               ^
+>> >       | Remark 2089: Object is not referenced    (Name [A121] is
+>> within
+>> > a
+>> > method [A037])
+>> >
+>> >
+>> > Here is the actual disassembled A037 method, found in SSDT3:
+>> >
+>> >         Method (A037, 1, NotSerialized)
+>> >         {
+>> >
+>> >             ... /* Some other stuff here */
+>> >
+>> >             CreateDWordField (Local7, 0x00, A119)
+>> >             CreateDWordField (Local7, 0x04, A120)
+>> >             CreateDWordField (Local7, 0x08, A121)
+>> >             CreateDWordField (Local7, 0x0C, A122)
+>> >             CreateDWordField (Local7, 0x10, A123)
+>> >             CreateDWordField (Local7, 0x14, A124)
+>> >             A119 = Local4
+>> >             A125 (0x3A, Local7)
+>> >         }
+>> >
+>> > Not only is the symbol A121 created and not referenced, all of the
+>> > fields A120 through A124 are not referenced.
+>> >
+>> > These are essentially "unused variables", so they have no effect on
+>> > operation of the method other than consuming a tiny bit more memory
+>> > during the execution of the method.
+>> >
+>> >
+>> >
+>> >
+>> > AE_AML_BUFFER_LIMIT:
+>> > This is seen on the HP machine.
+>> >
+>> >> [   12.291867] ACPI Error: Field [D128] at 1152 exceeds Buffer [NULL]
+>> >> size 160 (bits) (20150930/dsopcode-236)
+>> >> [   12.291875] ACPI Error: Method parse/execution failed [\HWMC]
+>> (Node
+>> >> ffff880197cb5b30), AE_AML_BUFFER_LIMIT (20150930/psparse-542)
+>> >
+>> > All of these messages are caused by either whatever driver is calling
+>> > the HWMC method, or the HWMC method itself.
+>> 
+>> One should be able to narrow this down to whether a driver (and which
+>> driver) calling the HWMC method OR the HWMC method itself being the
+>> reason, isn't it? But I guess this could only be done by performing
+>> kernel debugging on this machine to monitor the ACPI activity / event
+>> taking place 'live', right?
+> [Moore, Robert]
 > 
-> Yes, it is!
-> 
-> Just wanted to point out that if the device remains runtime PM enabled
-> the entire device_suspend() phase, that *could* solve the problem.
-> 
-> >
-> > Can we focus on one problem at a time?
-> 
-> Yes!
-> 
-> However, there is lots of things following when we try to enable the
-> runtime PM centric path for ACPI. :-)
+> For the most part, yes. The driver may be passing in a bad argument to
+> HWMC, or the HWMC method itself is looking beyond the end of what is
+> in fact a well-formed argument.
 
-Which, I guess, we won't do after all ...
+I'm familiar with 6502 and x86/x864 machine code, several programming 
+languages and Linux, but I honestly admit that I don't possess much 
+knowledge about the ACPI sub-system itself and the AML language/syntax. 
+So apart from this concrete issue with the ACPI code on my HP machine 
+which might produce unwanted effects, I appreciate the opportunity to 
+extend my knowledge regarding this field (I took a look at the more than 
+900 pages of the current ACPI specifications and got the impression that 
+understanding this thoroughly will probably require a considerable 
+amount of time).
 
-So I would prefer to think about addressing problems instead of trying to
-"enable the runtime PM centric path for ACPI" just for the sake of it.
+1) What is "the driver" exactly? Is it part of the ACPI sub-system?
+If you refer to a "driver", which doesn't belong to the ACPI sub-system, 
+then a driver calling the HWC method would imply that you refer to a 
+driver running on an OS with ACPI support being enabled, is this 
+correct?
+In this case kernel debugging would show (assuming this would not be 
+prevented) the interaction between this driver / the OS and the ACPI 
+sub-system, right?
 
-Thanks,
-Rafael
+2) Is it correct that the ACPI sub-system is active / running and able 
+to access other parts of the system no matter whether the OS supports it 
+or not (or whether one would disable the support)? This is what two 
+persons possessing a profound knowledge about low-level hardware topics 
+said, so I'd be curious to hear a definite statement on this from 
+someone who actively works on the ACPI development.
+
+
+I would assume that simply performing ACPI debugging has its limits when 
+trying to narrow down issues like this. Both VirtualBox and QEMU support 
+specifying individual ACPI tables for a VM - So wouldn't it be the most 
+simple solution to specify the according / affected table(s) (all of 
+them can be downloaded from my GoogleDrive folder) to a VM running a 
+Linux system with a kernel customized for debugging, and then compare 
+the verbose debugging output 1) with these tables specified against the 
+output 2) without these tables specified?
+I can hardly imagine that the ACPI team at Intel does not have 
+experience in doing so, as this is surely a well-working method to debug 
+ACPI-related issues in general.
+
+
+
+3) Assuming that this ACPI code is not 'malicious code' / an 'ACPI based 
+rootkit' but simply erraneous ACPI code (if this should be the case, 
+then such a rootkit would surely prevent that it gets overwritten by 
+performing a BIOS update), would flashing the ACPI would overwrite the 
+ACPI code as well? Previously I talked with a LibreBoot developer, who 
+certainly knew what he was talking about this, and he ensured me that 
+certain parts of the BIOS won't be overwritten when performing a BIOS 
+flash - But in this context we didn't discuss whether the ACPI code 
+belongs to the parts which won't be overwritten or not, so also in this 
+case a true expert's statement would definitely be appreciated. ;)
+
+
+> [Moore, Robert]
+> 
+> We develop the ACPICA OS-independent code in our group. We are not a
+> customer service organization, and we have little contact with HP
+> itself. We cannot offer help in this area.
+> 
+> The accepted path is to report issues like this to the computer
+> vendor, in this case HP.
+
+
+Well, I already guessed that you are not a customer service 
+organization... Could you at least provide me a contact address (without 
+posting it on the mailing list), so that I could forward this to a 
+competent department at HP (instead of first having to contact their 
+customer service)?
+
+By the way, if the ACPI code is "OS-independent", when why should there 
+be (e. g.) the keyword "linux" in my system's ACPI code?
+
+
+Kind regards and thanks in advance
+
+David Renz
 
