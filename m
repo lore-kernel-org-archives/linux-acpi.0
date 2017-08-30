@@ -1,60 +1,91 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH] acpi: apei: call into AER handling regardless of severity
-Date: Wed, 30 Aug 2017 12:09:05 -0600
-Message-ID: <4c8b05cc-c0c2-c78e-df0d-ce65ec789186@codeaurora.org>
-References: <1503940314-29526-1-git-send-email-tbaicar@codeaurora.org>
- <20170829082055.u3qpwtgyzxjxfvup@pd.tnic>
- <9abb2e99-44be-3315-47d9-2689b6c76d79@codeaurora.org>
- <20170829221932.ojkvr4y6s76hcpkj@pd.tnic>
- <0fb1fe1b-207a-93fe-4ac6-b886451e488e@codeaurora.org>
- <20170830101617.3m266q7xuew6ctxl@pd.tnic>
- <b630fa5e-c24b-06f4-47da-bed53161e0b7@codeaurora.org>
- <20170830151601.ro5qt5272e2msevp@pd.tnic>
- <af5dc902-faca-a7a1-6781-95ff82d5d8fd@codeaurora.org>
- <a074792e-ad43-d4f5-6f99-8fcf8349c7ad@codeaurora.org>
- <20170830171440.3ynavu5nuchiwxcb@pd.tnic>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH 5/6] platform/x86: make device_attribute const
+Date: Wed, 30 Aug 2017 22:18:29 +0300
+Message-ID: <CAHp75VfohACiOR7XGd5o7LOMPQdDarfgN8HqvEqcg_oiCf-+VA@mail.gmail.com>
+References: <1503315792-14837-1-git-send-email-bhumirks@gmail.com> <1503315792-14837-6-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170830171440.3ynavu5nuchiwxcb@pd.tnic>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: Sinan Kaya <okaya@codeaurora.org>, Tony Luck <tony.luck@intel.com>, rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, prarit@redhat.com, punit.agrawal@arm.com, shiju.jose@huawei.com, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Linux PCI <linux-pci@vger.kernel.org>, Huang Ying <ying.huang@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1503315792-14837-6-git-send-email-bhumirks@gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Josef Bacik <jbacik@fb.com>, Jiri Kosina <jikos@kernel.org>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, manish.chopra@cavium.com, rahul.verma@cavium.com, Dept-GELinuxNICDev@cavium.com, harish.patil@cavium.com, cascardo@holoscopio.com, don@syst.com.br, "dvhart@infradead.org" <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Sebastian Reichel <sre@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-block@vger.kernel.org, nbd-general@lists.sourceforge.net, linux-input <linux-input@vger.kernel.org>, netdev <netdev@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 8/30/2017 11:14 AM, Borislav Petkov wrote:
-> On Wed, Aug 30, 2017 at 09:42:08AM -0600, Baicar, Tyler wrote:
->> I think with my two patches we will have the desired functionality:
->>
->> GHES_SEV_CORRECTABLE -> AER_CORRECTABLE -> Print AER info, but do not call
->> do_recovery
->>
->> GHES_SEV_RECOVERABLE -> AER_NONFATAL -> Print AER info and do_recovery
->>
->> GHES_RECOVERABLE and CPER_SEC_RESET -> AER_FATAL -> Print AER info and
->> do_recover
-> Right, so I'd like to you create a separate function ghes_do_proc_aer()
-> or ghes_handle_aer() or so and carve out all the code inside #ifdef
-> CONFIG_ACPI_APEI_PCIEAER into it, add your two changes to the patch and
-> slap a big fat comment above the new function explaining *why* we're
-> doing what we're doing and how we're mapping all the severities to AER
-> severity in order to do recovery and/or only to print the error.
+On Mon, Aug 21, 2017 at 2:43 PM, Bhumika Goyal <bhumirks@gmail.com> wrote:
+> Make these const as they are only passed as an argument to the
+> function device_create_file and device_remove_file and the corresponding
+> arguments are of type const.
+> Done using Coccinelle
 >
-> So that it is known and people can see in the future why we're doing
-> this and what the logic has been and what kind of policy we're chasing
-> and so on and so on...
->
-> Ok?
->
-> Thanks.
-Yes, I can do that.
 
-Thanks,
-Tyler
+Split on per driver basis.
+
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> ---
+>  drivers/platform/x86/classmate-laptop.c | 6 +++---
+>  drivers/platform/x86/intel-rst.c        | 4 ++--
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/platform/x86/classmate-laptop.c b/drivers/platform/x86/classmate-laptop.c
+> index 55cf10b..d3715e2 100644
+> --- a/drivers/platform/x86/classmate-laptop.c
+> +++ b/drivers/platform/x86/classmate-laptop.c
+> @@ -254,7 +254,7 @@ static ssize_t cmpc_accel_sensitivity_store_v4(struct device *dev,
+>         return strnlen(buf, count);
+>  }
+>
+> -static struct device_attribute cmpc_accel_sensitivity_attr_v4 = {
+> +static const struct device_attribute cmpc_accel_sensitivity_attr_v4 = {
+>         .attr = { .name = "sensitivity", .mode = 0660 },
+>         .show = cmpc_accel_sensitivity_show_v4,
+>         .store = cmpc_accel_sensitivity_store_v4
+> @@ -303,7 +303,7 @@ static ssize_t cmpc_accel_g_select_store_v4(struct device *dev,
+>         return strnlen(buf, count);
+>  }
+>
+> -static struct device_attribute cmpc_accel_g_select_attr_v4 = {
+> +static const struct device_attribute cmpc_accel_g_select_attr_v4 = {
+>         .attr = { .name = "g_select", .mode = 0660 },
+>         .show = cmpc_accel_g_select_show_v4,
+>         .store = cmpc_accel_g_select_store_v4
+> @@ -599,7 +599,7 @@ static ssize_t cmpc_accel_sensitivity_store(struct device *dev,
+>         return strnlen(buf, count);
+>  }
+>
+> -static struct device_attribute cmpc_accel_sensitivity_attr = {
+> +static const struct device_attribute cmpc_accel_sensitivity_attr = {
+>         .attr = { .name = "sensitivity", .mode = 0660 },
+>         .show = cmpc_accel_sensitivity_show,
+>         .store = cmpc_accel_sensitivity_store
+> diff --git a/drivers/platform/x86/intel-rst.c b/drivers/platform/x86/intel-rst.c
+> index 7344d84..760a9bf 100644
+> --- a/drivers/platform/x86/intel-rst.c
+> +++ b/drivers/platform/x86/intel-rst.c
+> @@ -65,7 +65,7 @@ static ssize_t irst_store_wakeup_events(struct device *dev,
+>         return count;
+>  }
+>
+> -static struct device_attribute irst_wakeup_attr = {
+> +static const struct device_attribute irst_wakeup_attr = {
+>         .attr = { .name = "wakeup_events", .mode = 0600 },
+>         .show = irst_show_wakeup_events,
+>         .store = irst_store_wakeup_events
+> @@ -111,7 +111,7 @@ static ssize_t irst_store_wakeup_time(struct device *dev,
+>         return count;
+>  }
+>
+> -static struct device_attribute irst_timeout_attr = {
+> +static const struct device_attribute irst_timeout_attr = {
+>         .attr = { .name = "wakeup_time", .mode = 0600 },
+>         .show = irst_show_wakeup_time,
+>         .store = irst_store_wakeup_time
+> --
+> 1.9.1
+>
+
+
 
 -- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+With Best Regards,
+Andy Shevchenko
