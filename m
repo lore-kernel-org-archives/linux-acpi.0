@@ -1,59 +1,33 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3] ACPI / APEI: Suppress message if HEST not present
-Date: Wed, 30 Aug 2017 13:54:57 +0200
-Message-ID: <4871557.DtPhj4UV3s@aspire.rjw.lan>
-References: <20170829132020.31471-1-punit.agrawal@arm.com> <20170829150219.4gg3443phihudvbv@pd.tnic> <87d17dgx80.fsf@e105922-lin.cambridge.arm.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v1 3/6] staging: unisys: Switch to use new generic UUID
+ API
+Date: Wed, 30 Aug 2017 14:38:45 +0200
+Message-ID: <20170830123845.lw4vkjbcvivi5hpi@infradead.org>
+References: <20170719182857.73693-1-andriy.shevchenko@linux.intel.com>
+ <20170719182857.73693-4-andriy.shevchenko@linux.intel.com>
+ <1501063301.29303.247.camel@linux.intel.com>
+ <20170730153224.GA31755@kroah.com>
+ <CAHp75Vf+Us5n2_u94sVGs7xuvfF-qoaG4tvmixvqRARo68TT7w@mail.gmail.com>
+ <20170730173725.GA20606@kroah.com>
+ <1501521625.29303.308.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:55653 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751323AbdH3MDk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 30 Aug 2017 08:03:40 -0400
-In-Reply-To: <87d17dgx80.fsf@e105922-lin.cambridge.arm.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:49553 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751302AbdH3Miw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Aug 2017 08:38:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1501521625.29303.308.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Borislav Petkov <bp@suse.de>, linux-acpi@vger.kernel.org, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, devel@driverdev.osuosl.org, linux-efi <linux-efi@vger.kernel.org>, linux-watchdog@vger.kernel.org, sparmaintainer@unisys.com, "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>, devel@linuxdriverproject.org, Christoph Hellwig <hch@lst.de>
 
-On Wednesday, August 30, 2017 12:34:55 PM CEST Punit Agrawal wrote:
-> Borislav Petkov <bp@suse.de> writes:
+On Mon, Jul 31, 2017 at 08:20:25PM +0300, Andy Shevchenko wrote:
+> Yep! There are so many conflicts that would be better just to push
+> through your tree.
 > 
-> > On Tue, Aug 29, 2017 at 02:20:20PM +0100, Punit Agrawal wrote:
-> >> According to the ACPI specification, firmware is not required to provide
-> >> the Hardware Error Source Table (HEST). When HEST is not present, the
-> >> following superfluous message is printed to the kernel boot log -
-> >> 
-> >> [    3.460067] GHES: HEST is not enabled!
-> >> 
-> >> Extend hest_disable variable to track whether the firmware provides this
-> >> table and if it is not present skip any log output. The existing
-> >> behaviour is preserved in all other cases.
-> >> 
-> >> Suggested-by: Borislav Petkov <bp@suse.de>
-> >> Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-> >> Cc: Borislav Petkov <bp@suse.de>
-> >> Cc: James Morse <james.morse@arm.com>
-> >> ---
-> >> 
-> >> Changes in v3:
-> >> * Grouped hest_disable status checking into a switch/case for clarity
-> >> 
-> >>  drivers/acpi/apei/ghes.c |  7 ++++++-
-> >>  drivers/acpi/apei/hest.c | 13 +++++++------
-> >>  include/acpi/apei.h      |  8 +++++++-
-> >>  3 files changed, 20 insertions(+), 8 deletions(-)
-> >
-> > Reviewed-by: Borislav Petkov <bp@suse.de>
-> 
-> Thanks!
-> 
-> Hopefully Rafael can pick the patch for the upcoming merge window.
+> I have just sent a v2 of this patch separately.
 
-Applied already, should show up in linux-next tomorrow.
-
-Thanks,
-Rafael
-
+Greg, did you pick that patch up?
