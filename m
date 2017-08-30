@@ -1,287 +1,110 @@
 From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v3 1/8] PM / Sleep: Make the runtime PM centric path known
- to the PM core
-Date: Wed, 30 Aug 2017 09:13:47 +0200
-Message-ID: <CAPDyKFqujAbw9RAxG-kRhgnhEtAZeojBiL=v5F+JS3T9eaxfgQ@mail.gmail.com>
-References: <1504018610-10822-1-git-send-email-ulf.hansson@linaro.org>
- <1504018610-10822-2-git-send-email-ulf.hansson@linaro.org> <13933269.sbLfAJfmVU@aspire.rjw.lan>
+Subject: Re: [PATCH v3 0/8] PM / ACPI / i2c: Deploy runtime PM centric path
+ for system sleep
+Date: Wed, 30 Aug 2017 11:57:28 +0200
+Message-ID: <CAPDyKFosu8RYUUCiBn7+03b3TNmND-aCTqR=+svcvzCwhxw9+A@mail.gmail.com>
+References: <1504018610-10822-1-git-send-email-ulf.hansson@linaro.org> <1957183.ZU1CWrAZoR@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <13933269.sbLfAJfmVU@aspire.rjw.lan>
-Sender: linux-i2c-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f178.google.com ([209.85.223.178]:38284 "EHLO
+        mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751323AbdH3J53 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Aug 2017 05:57:29 -0400
+Received: by mail-io0-f178.google.com with SMTP id 81so3458592ioj.5
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Aug 2017 02:57:29 -0700 (PDT)
+In-Reply-To: <1957183.ZU1CWrAZoR@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
-On 29 August 2017 at 17:15, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, August 29, 2017 4:56:43 PM CEST Ulf Hansson wrote:
->> The main principle behind the runtime PM centric path, is to re-use the
->> runtime PM callbacks to implement system sleep - and while doing that also
->> achieve a fully optimized behaviour from PM point of view.
+On 29 August 2017 at 22:19, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, August 29, 2017 4:56:42 PM CEST Ulf Hansson wrote:
+>> The i2c designware platform driver, drivers/i2c/busses/i2c-designware-platdrv.c,
+>> isn't well optimized for system sleep.
 >>
->> More precisely, avoid to wake up a device from its low power state during
->> system sleep, unless the device is really needed to be operational. That
->> does not only mean avoiding to waste power, but may also decrease system
->> suspend/resume time for a device.
+>> What makes this driver particularly interesting is because it's a cross-SoC
+>> driver, which sometimes means there is an ACPI PM domain attached to the i2c
+>> device and sometimes not. The driver is being used on both x86 and ARM.
 >>
->> However, using the runtime PM centric path for a device, does put some
->> requirements on the behaviour of the PM core and a potential PM domain that
->> may be attached to the device. So far, these requirements are not being
->> specially considered, except by the generic PM domain.
->>
->> To move forward and to make it possible to deploy the runtime PM centric
->> path for cross SoC drivers, which may have different PM domains attached to
->> its devices depending on the SoC, we must address how to deal with these
->> requirements. This change starts by making some adoptions to the PM core,
->> while other parts, such as the ACPI PM domain needs to be taken care of
->> separately.
->>
->> In the runtime PM centric path, the driver is expected to make use of the
->> pm_runtime_force_suspend|resume() helpers, to deploy system sleep support.
->> More precisely it may assign the system sleep callbacks to these helpers or
->> may call them from its own callbacks, in case it needs to perform
->> additional actions during system sleep.
->>
->> In other words, the PM core must always invoke the system sleep callbacks
->> for the device when they are present, to allow the driver to deal with
->> the system sleep operations.
->>
->> In case the PM core decides to run the direct_complete path for the device,
->> it skips invoking most of the system sleep callbacks, besides
->> ->prepare|complete(). Therefore using the direct_complete path in
->> combination with the runtime PM centric patch for a device, does not play
->> well.
->>
->> To deal with this issue, let's add a flag 'is_rpm_sleep', to the struct
->> dev_pm_info. The driver that deploys the runtime PM centric path, shall set
->> the flag for the device during ->probe(), to inform the PM core about that
->> it must not use the direct_complete path for the device.
->>
->> Note, not allowing the direct_complete path for a device, doesn't implicit
->> need to propagate to the device's parent/suppliers. Therefore make the PM
->> core check this condition in device_suspend(), before it decides to abandon
->> the direct_complete path for parent/suppliers.
->>
->> To make the is_rpm_sleep flag internal to the PM core, let's add two APIs.
->>       - dev_pm_use_rpm_sleep(): It sets the flag and should be called by
->>         the driver during ->probe().
->>       - dev_pm_is_rpm_sleep(): Makes it possible for users of the device,
->>         like a PM domain, to fetch the state of the flag.
->>
->> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
->> ---
->>
->> Changes in v3:
->>       - New patch.
->>       - This replaces the earlier method of adding the no_direct_complete to
->>       the ACPI structures, according to comments from Rafael.
->>       - This change also address the consern Rafael had around that
->>       direct_complete should not have to be disabled for parent/suppliers, in
->>       case a device use the runtime PM centric path for system sleep.
->>
->> ---
->>  drivers/base/power/main.c    | 49 +++++++++++++++++++++++++++++++++++++++-----
->>  drivers/base/power/runtime.c |  1 +
->>  include/linux/pm.h           |  7 +++++++
->>  3 files changed, 52 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
->> index ea1732e..865737a 100644
->> --- a/drivers/base/power/main.c
->> +++ b/drivers/base/power/main.c
->> @@ -1549,14 +1549,16 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
->>               if (parent) {
->>                       spin_lock_irq(&parent->power.lock);
->>
->> -                     dev->parent->power.direct_complete = false;
->> +                     if (!dev->power.is_rpm_sleep)
->> +                             dev->parent->power.direct_complete = false;
+>> In principle, to optimize the system sleep support in i2c driver, this series
+>> enables the proven runtime PM centric path for the i2c driver. However, to do
+>> that the ACPI PM domain also have to collaborate and understand this behaviour.
+>> From earlier versions, Rafael has also pointed out that also the PM core needs
+>> to be involved.
 >
-> This doesn't look good to me at all.
+> Earlier today I realized that drivers pointing their ->suspend_late and
+> ->resume_early callbacks, respectively, to pm_runtime_force_suspend() and
+> pm_runtime_force_resume(), are fundamentally incompatible with any bus type
+> doing nontrivial PM and with almost any nontrivial PM domains, for two reasons.
 >
-> It potentially breaks the fundamental assumption of the direct_complete
-> mechanism that no devices with that flag set will ever be runtime resumed
-> during system suspend.
+> First, it basically requires the bus type or PM domain to expect that its
+> ->runtime_suspend callback may or may not be indirectly invoked from its
+> own ->suspend_late callback, depending on the driver (and analogously
+> for ->runtime_resume and ->resume early), which is insane.
 >
-> Which can happen with this change if a device with power.is_rpm_sleep is
-> resumed causing the parent to be resumed too.
+> Second, it is a layering violation, because it makes the driver effectively
+> override the upper layer's decisions about what code to run.
 
-Doesn't the exact same problem you describe, already exist prior my change!?
+You are right that for more complex bus types and PM domains, those
+needs to play along. So that is what I am trying to implement for the
+ACPI PM domain in this series.
 
-That is, if the current device is runtime suspended and the
-direct_complete flag is set for it, then __device_suspend() has
-already disabled runtime PM for the device, when we reach this point.
-That means, a following attempts to runtime resume the device will
-fail and thus also to runtime resume its parent.
+The generic PM domain, is simple in this regards. There is only a
+minor adaptation for the ->runtime_suspend|resume() callbacks, which
+avoids validating dev_pm_qos constraints during system sleep. Nothing
+special is needed in ->suspend_late|noirq callbacks, etc.
 
-So to me, this is a different problem, related how to work out the
-correct order of how to suspend devices.
+For most other simple bus types, like the platform bus, spi, i2c,
+amba, no particular adoptions is needed at all. Instead those just
+trust the drivers to do the right thing.
+
+Before we had the direct_complete path, using the
+pm_runtime_force_suspend|resume() helpers, was the only good way for
+these kind of drivers, to in an optimized manner, deal with system
+sleep when runtime PM also was enabled for their devices. Now this
+method has become widely deployed, unfortunate whether you like it or
+not.
+
+Besides the slightly better optimizations you get when using
+pm_runtime_force_suspend|resume(), comparing to the direct_complete
+path - I think it's also worth to consider, how easy it becomes for
+drivers to deploy system sleep support. In many cases, only two lines
+of code is needed to add system sleep support in a driver.
+
+Now, some complex code always needs to be implemented somewhere. When
+using the runtime PM centric path, that code consist of the
+pm_runtime_force_suspend|resume() helpers itself - and some
+adaptations in buses/PM domains in cases when those needs special
+care.
+
+My point is, the runtime PM centric path, allows us to keep the
+complex part of the code at a few centralized places, instead of
+having it spread/duplicated into drivers.
+
+So yes, you could consider it insane, but to me and many others, it
+seems to work out quite well.
+
+Yeah, and the laying violation is undoubtedly the most controversial
+part of the runtime PM centric path - I agree to that! The
+direct_complete path don't have this, as you implemented it. :-)
+
+On the other hand, one could consider that these upper layers, in many
+cases anyway needs to play along with the behavior of the driver. So,
+I guess it depends on how one see it.
 
 >
->>                       if (dev->power.wakeup_path
->>                           && !dev->parent->power.ignore_children)
->>                               dev->parent->power.wakeup_path = true;
->>
->>                       spin_unlock_irq(&parent->power.lock);
->>               }
->> -             dpm_clear_suppliers_direct_complete(dev);
->> +             if (!dev->power.is_rpm_sleep)
->> +                     dpm_clear_suppliers_direct_complete(dev);
->
-> And same here.
+> That's why I'm afraid that we've reached a dead end here. :-(
 
-See comment above.
+That's said news. Is was really hoping I could find a way to move this
+forward. You don't have any other ideas on how I can adjust the series
+to make you happy?
 
->
->>       }
->>
->>       device_unlock(dev);
->> @@ -1709,11 +1711,14 @@ static int device_prepare(struct device *dev, pm_message_t state)
->>        * A positive return value from ->prepare() means "this device appears
->>        * to be runtime-suspended and its state is fine, so if it really is
->>        * runtime-suspended, you can leave it in that state provided that you
->> -      * will do the same thing with all of its descendants".  This only
->> -      * applies to suspend transitions, however.
->> +      * will do the same thing with all of its descendants". To allow this,
->> +      * the is_rpm_sleep flag must not be set, which is default false, but
->> +      * may have been changed by a driver. This only applies to suspend
->> +      * transitions, however.
->>        */
->>       spin_lock_irq(&dev->power.lock);
->> -     dev->power.direct_complete = ret > 0 && state.event == PM_EVENT_SUSPEND;
->> +     dev->power.direct_complete = ret > 0 && !dev->power.is_rpm_sleep &&
->> +                             state.event == PM_EVENT_SUSPEND;
->
-> The only problem addressed by avoiding direct_complete is when runtime PM needs
-> to work during __device_suspend() for devices with direct_complete set.  You
-> said that this was not the case with the i2c designware driver, so I'm not sure
-> what the purpose of this is.
-
-I should probably work more on my changelog, because I tried to
-explain it there.
-
-Anyway, let me quote the important parts, and this is not specific for
-the i2c-designware-driver, but generic to drivers using
-pm_runtime_force_suspend|resume().
-
-"In the runtime PM centric path, the driver is expected to make use of
-the pm_runtime_force_suspend|resume() helpers, to deploy system sleep
-support. More precisely it may assign the system sleep callbacks to
-these helpers or may call them from its own callbacks, in case it
-needs to perform additional actions during system sleep.
-
-In other words, the PM core must always invoke the system sleep
-callbacks for the device when they are present, to allow the driver to
-deal with the system sleep operations."
-
-A concrete example is drivers/spi/spi-fsl-espi.c, but one can easily find more.
-
->
-> It doesn't solve any other problems at all.
->
->>       spin_unlock_irq(&dev->power.lock);
->>       return 0;
->>  }
->> @@ -1841,6 +1846,40 @@ void dpm_for_each_dev(void *data, void (*fn)(struct device *, void *))
->>  }
->>  EXPORT_SYMBOL_GPL(dpm_for_each_dev);
->>
->> +/**
->> + * dev_pm_use_rpm_sleep - use the runtime PM centric sleep path.
->> + * @dev: the device to use the path for.
->> + *
->> + * The runtime PM centric path requires the system sleep callbacks for the
->> + * driver of the device to be invoked. This function sets the is_rpm_sleep flag
->> + * to enable this path to be used, which makes the PM core to adopt to this
->> + * behaviour. More precisely the PM core makes sure to not run the
->> + * direct_complete path for the chosen device during system sleep, when the
->> + * is_rpm_sleep flag is set. A driver using the runtime PM centric path, shall
->> + * use the pm_runtime_force_suspend|resume() helpers, to deploy system sleep
->> + * support and call this function during ->probe().
->> + * The is_rpm_sleep flag is cleared when unbinding/bind-failure of the driver.
->> + */
->> +void dev_pm_use_rpm_sleep(struct device *dev)
->> +{
->> +     dev->power.is_rpm_sleep = true;
->> +}
->> +EXPORT_SYMBOL_GPL(dev_pm_use_rpm_sleep);
->> +
->> +/**
->> + * dev_pm_is_rpm_sleep - Returns the value of the is_rpm_sleep flag.
->> + * @dev: the device to return the flag for.
->> + *
->> + * The caller of this function is typically a subsystem or a PM domain that
->> + * needs to know if the runtime PM centric path is used for the device. It may
->> + * be invoked during any of the system sleep phases.
->> + */
->> +bool dev_pm_is_rpm_sleep(struct device *dev)
->> +{
->> +     return dev->power.is_rpm_sleep;
->> +}
->> +EXPORT_SYMBOL_GPL(dev_pm_is_rpm_sleep);
->> +
->>  static bool pm_ops_is_empty(const struct dev_pm_ops *ops)
->>  {
->>       if (!ops)
->> diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
->> index 7bcf80f..b2ab22c 100644
->> --- a/drivers/base/power/runtime.c
->> +++ b/drivers/base/power/runtime.c
->> @@ -1522,6 +1522,7 @@ void pm_runtime_reinit(struct device *dev)
->>                               pm_runtime_put(dev->parent);
->>               }
->>       }
->> +     dev->power.is_rpm_sleep = false;
->>  }
->>
->>  /**
->> diff --git a/include/linux/pm.h b/include/linux/pm.h
->> index 47ded8a..5bf96d2 100644
->> --- a/include/linux/pm.h
->> +++ b/include/linux/pm.h
->> @@ -559,6 +559,7 @@ struct dev_pm_info {
->>       bool                    is_suspended:1; /* Ditto */
->>       bool                    is_noirq_suspended:1;
->>       bool                    is_late_suspended:1;
->> +     bool                    is_rpm_sleep:1; /* Owned by the PM core */
->
-> It is expected to be set by drivers, so by definition it is *not* owned by the
-> PM core.
-
-Ahh, I see. I didn't quite get those comments, thanks for clarifying.
-
->
->>       bool                    early_init:1;   /* Owned by the PM core */
->>       bool                    direct_complete:1;      /* Owned by the PM core */
->>       spinlock_t              lock;
->> @@ -716,6 +717,9 @@ extern void __suspend_report_result(const char *function, void *fn, int ret);
->>  extern int device_pm_wait_for_dev(struct device *sub, struct device *dev);
->>  extern void dpm_for_each_dev(void *data, void (*fn)(struct device *, void *));
->>
->> +extern void dev_pm_use_rpm_sleep(struct device *dev);
->> +extern bool dev_pm_is_rpm_sleep(struct device *dev);
->> +
->>  extern int pm_generic_prepare(struct device *dev);
->>  extern int pm_generic_suspend_late(struct device *dev);
->>  extern int pm_generic_suspend_noirq(struct device *dev);
->> @@ -759,6 +763,9 @@ static inline void dpm_for_each_dev(void *data, void (*fn)(struct device *, void
->>  {
->>  }
->>
->> +static inline void dev_pm_use_rpm_sleep(struct device *dev) {}
->> +static inline bool dev_pm_is_rpm_sleep(struct device *dev) { return false; }
->> +
->>  #define pm_generic_prepare           NULL
->>  #define pm_generic_suspend_late              NULL
->>  #define pm_generic_suspend_noirq     NULL
->>
 >
 > Thanks,
 > Rafael
 >
-
-Thanks for reviewing!
 
 Kind regards
 Uffe
