@@ -1,84 +1,59 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v4 3/5] ghes_edac: add platform check to enable ghes_edac
-Date: Thu, 31 Aug 2017 12:56:47 +0200
-Message-ID: <20170831105647.a7ypixekv6jybqyu@pd.tnic>
-References: <20170823225447.15608-1-toshi.kani@hpe.com>
- <20170823225447.15608-4-toshi.kani@hpe.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH] platform/x86: intel_cht_int33fe: Work around BIOS bug on
+ some devices
+Date: Thu, 31 Aug 2017 19:04:46 +0300
+Message-ID: <CAHp75Vdz3S5a=Vqf=rnMV9Dy+829MGNUWPmzp+B08NadBM0wNg@mail.gmail.com>
+References: <20170814201425.20991-1-hdegoede@redhat.com> <CAHp75Vdityzx+fzU_q0vULGpT3ww8C0_D0fYtEW77Hyh1yTX6A@mail.gmail.com>
+ <06a1d48c-9f75-4aab-107d-f71ce8ebbb26@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170823225447.15608-4-toshi.kani@hpe.com>
+In-Reply-To: <06a1d48c-9f75-4aab-107d-f71ce8ebbb26@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: rjw@rjwysocki.net, mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 23, 2017 at 04:54:45PM -0600, Toshi Kani wrote:
-> The ghes_edac driver was introduced in 2013 [1], but it has not
-> been enabled by any distro yet.  This driver obtains error info
-> from firmware interfaces, which are not properly implemented on
-> many platforms, as the driver always emits the messages below:
-> 
->  This EDAC driver relies on BIOS to enumerate memory and get error reports.
->  Unfortunately, not all BIOSes reflect the memory layout correctly
->  So, the end result of using this driver varies from vendor to vendor
->  If you find incorrect reports, please contact your hardware vendor
->  to correct its BIOS.
-> 
-> To get out from this situation, add a platform check to selectively
-> enable the driver on the platforms that are known to have proper
-> firmware implementation.  Platform vendors can add their platforms
-> to the list when they support ghes_edac.
-> 
-> "ghes_edac.force_load=1" skips this platform check.
-> 
-> [1]: https://lwn.net/Articles/538438/
-> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: Tony Luck <tony.luck@intel.com>
-> ---
->  drivers/edac/ghes_edac.c |   29 ++++++++++++++++++++++++-----
->  1 file changed, 24 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-> index 8d904df..0030a09 100644
-> --- a/drivers/edac/ghes_edac.c
-> +++ b/drivers/edac/ghes_edac.c
-> @@ -38,6 +38,10 @@ static struct ghes_edac_pvt *ghes_pvt;
->   */
->  static DEFINE_SPINLOCK(ghes_lock);
->  
-> +/* Set 1 to skip the platform check */
-> +static bool __read_mostly ghes_edac_force_load;
+On Mon, Aug 14, 2017 at 11:52 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> On 14-08-17 22:45, Andy Shevchenko wrote:
+>> On Mon, Aug 14, 2017 at 11:14 PM, Hans de Goede <hdegoede@redhat.com>
+>> wrote:
 
-It is static - "force_load" as a bool name is enough.
+>>> +int cht_int33fe_check_for_max17047(struct device *dev, void *data)
+>>> +{
+>>> +       const char *name = dev_name(dev);
+>>> +       struct i2c_client **max17047 = data;
+>>> +
+>>> +       if (name && strcmp(name, "i2c-MAX17047:00") == 0) {
+>>
+>>
+>> Can we stop using bad practice of comparing against _instance_?
+>> If device is suppose to be single in the system, wouldn't _HID be enough?
 
-> +module_param_named(force_load, ghes_edac_force_load, bool, 0);
+> Yes _HID would be enough, but that takes some extra code with little
+> gain IMHO, we are effectively checking the HID here as that is where
+> the device-name comes from.
+>
+> Anyways if you strongly prefer a HID check I can do a v2 doing that
+> either way let me know.
 
-ERROR: Use 4 digit octal (0777) not decimal permissions
-#53: FILE: drivers/edac/ghes_edac.c:43:
-+module_param_named(force_load, ghes_edac_force_load, bool, 0);
+Currently we have the following modules where ACPI instance is used in:
 
-This last param is @perm: visibility in sysfs. Why not visible in sysfs?
+drivers/acpi/acpi_lpss.c
+drivers/input/touchscreen/goodix.c
+drivers/platform/x86/silead_dmi.c
+drivers/power/supply/axp288_charger.c
 
-> +
->  /* Memory Device - Type 17 of SMBIOS spec */
->  struct memdev_dmi_entry {
->  	u8 type;
-> @@ -415,6 +419,15 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
->  	spin_unlock_irqrestore(&ghes_lock, flags);
->  }
->  
-> +/*
-> + * Known systems that are safe to enable this module.
-> + * "ghes_edac.force_load=1" skips this check if necessary.
+and plenty under sound/soc/intel.
 
-Put this second sentence over the parameter definition.
+I do not care right now about sound/soc/intel stuff, while everywhere
+else would be better to avoid this.
+
+Mika, Rafael, what're yours opinions regarding to use ACPI instances
+in the drivers?
+
+For me it sounds fragile.
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+With Best Regards,
+Andy Shevchenko
