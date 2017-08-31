@@ -1,180 +1,84 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v3 1/8] PM / Sleep: Make the runtime PM centric path known
- to the PM core
-Date: Thu, 31 Aug 2017 11:06:05 +0200
-Message-ID: <CAPDyKFoOJzciMNMWkc+ci+Fn2iD8vwsg25TQjcx=xw2ftg5rug@mail.gmail.com>
-References: <1504018610-10822-1-git-send-email-ulf.hansson@linaro.org>
- <13933269.sbLfAJfmVU@aspire.rjw.lan> <CAPDyKFqujAbw9RAxG-kRhgnhEtAZeojBiL=v5F+JS3T9eaxfgQ@mail.gmail.com>
- <2403318.HVB4k3qRsK@aspire.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v4 3/5] ghes_edac: add platform check to enable ghes_edac
+Date: Thu, 31 Aug 2017 12:56:47 +0200
+Message-ID: <20170831105647.a7ypixekv6jybqyu@pd.tnic>
+References: <20170823225447.15608-1-toshi.kani@hpe.com>
+ <20170823225447.15608-4-toshi.kani@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <2403318.HVB4k3qRsK@aspire.rjw.lan>
-Sender: linux-i2c-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170823225447.15608-4-toshi.kani@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: rjw@rjwysocki.net, mchehab@kernel.org, tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-[...]
+On Wed, Aug 23, 2017 at 04:54:45PM -0600, Toshi Kani wrote:
+> The ghes_edac driver was introduced in 2013 [1], but it has not
+> been enabled by any distro yet.  This driver obtains error info
+> from firmware interfaces, which are not properly implemented on
+> many platforms, as the driver always emits the messages below:
+> 
+>  This EDAC driver relies on BIOS to enumerate memory and get error reports.
+>  Unfortunately, not all BIOSes reflect the memory layout correctly
+>  So, the end result of using this driver varies from vendor to vendor
+>  If you find incorrect reports, please contact your hardware vendor
+>  to correct its BIOS.
+> 
+> To get out from this situation, add a platform check to selectively
+> enable the driver on the platforms that are known to have proper
+> firmware implementation.  Platform vendors can add their platforms
+> to the list when they support ghes_edac.
+> 
+> "ghes_edac.force_load=1" skips this platform check.
+> 
+> [1]: https://lwn.net/Articles/538438/
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Tony Luck <tony.luck@intel.com>
+> ---
+>  drivers/edac/ghes_edac.c |   29 ++++++++++++++++++++++++-----
+>  1 file changed, 24 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
+> index 8d904df..0030a09 100644
+> --- a/drivers/edac/ghes_edac.c
+> +++ b/drivers/edac/ghes_edac.c
+> @@ -38,6 +38,10 @@ static struct ghes_edac_pvt *ghes_pvt;
+>   */
+>  static DEFINE_SPINLOCK(ghes_lock);
+>  
+> +/* Set 1 to skip the platform check */
+> +static bool __read_mostly ghes_edac_force_load;
 
->> >> diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
->> >> index ea1732e..865737a 100644
->> >> --- a/drivers/base/power/main.c
->> >> +++ b/drivers/base/power/main.c
->> >> @@ -1549,14 +1549,16 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
->> >>               if (parent) {
->> >>                       spin_lock_irq(&parent->power.lock);
->> >>
->> >> -                     dev->parent->power.direct_complete = false;
->> >> +                     if (!dev->power.is_rpm_sleep)
->> >> +                             dev->parent->power.direct_complete = false;
->> >
->> > This doesn't look good to me at all.
->> >
->> > It potentially breaks the fundamental assumption of the direct_complete
->> > mechanism that no devices with that flag set will ever be runtime resumed
->> > during system suspend.
->> >
->> > Which can happen with this change if a device with power.is_rpm_sleep is
->> > resumed causing the parent to be resumed too.
->>
->> Doesn't the exact same problem you describe, already exist prior my change!?
->
-> No, it doesn't.
->
->> That is, if the current device is runtime suspended and the
->> direct_complete flag is set for it, then __device_suspend() has
->> already disabled runtime PM for the device, when we reach this point.
->> That means, a following attempts to runtime resume the device will
->> fail and thus also to runtime resume its parent.
->
-> That's because any devices with direct_complete set *cannot* be runtime
-> resumed after __device_suspend().  That's intentional and how the thing
-> is designed.  It cannot work differently, sorry.
->
->> So to me, this is a different problem, related how to work out the
->> correct order of how to suspend devices.
->
-> The ordering matters here, but it is not the problem.
->
-> Setting direct_complete means that PM callbacks for this device won't be
-> invoked going forward.  However, if the state of the device was to change
-> (like as a result of runtime PM resume), it would be necessary to run those
-> callbacks after all, but after __device_suspend() it may be too late for
-> that, because the ->suspend callback may have been skipped already.
->
-> The only way to address that is to prevent runtime PM resume of the device
-> from happening at the point the PM core decides to use direct_complete for it,
-> but that requires runtime PM to be disabled for it.  Moreover, since the
-> device is now suspended with runtime PM disabled and its children might rely
-> on it if they were active, the children must be suspended with runtime PM
-> disabled at this point too.  That's why direct_complete can only be set
-> for a device if it is set for the entire hierarchy below it.
+It is static - "force_load" as a bool name is enough.
 
-Thanks, this was a very nice description of the direct_complete path!
+> +module_param_named(force_load, ghes_edac_force_load, bool, 0);
 
->
-> Summary: If you allow a device to be runtime resumed during system susped,
-> direct_complete cannot be set for it and it cannot be set for its parent and
-> so on.
+ERROR: Use 4 digit octal (0777) not decimal permissions
+#53: FILE: drivers/edac/ghes_edac.c:43:
++module_param_named(force_load, ghes_edac_force_load, bool, 0);
 
-Yes, this is what it seems to boils done to!
+This last param is @perm: visibility in sysfs. Why not visible in sysfs?
 
-Perhaps the ACPI PM domain is special in this case, because in its
-->prepare() callback it asks the ACPI FW about whether the
-direct_complete path is possible for a device. In other words, the
-ACPI FW seems to be capable of providing information about if a device
-may become runtime resumed during system suspend. But, really, isn't
-that just a best guess? No?
+> +
+>  /* Memory Device - Type 17 of SMBIOS spec */
+>  struct memdev_dmi_entry {
+>  	u8 type;
+> @@ -415,6 +419,15 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+>  	spin_unlock_irqrestore(&ghes_lock, flags);
+>  }
+>  
+> +/*
+> + * Known systems that are safe to enable this module.
+> + * "ghes_edac.force_load=1" skips this check if necessary.
 
-On those ARM SoCs I am working on, non-ACPI, the information about
-whether a device may become runtime resumed during system suspend,
-most often can't be find out in a deterministic way. That's because
-this information depends on how a device is being used by other
-devices, which changes dynamically and from one system suspend
-sequence to another. In cases like the i2c-designware-plat driver used
-in Hikey (ARM64 board), it can't ever know before hand, if someone is
-going to request an i2c transfer during system suspend or not.
+Put this second sentence over the parameter definition.
 
-To really deal with these devices properly, we have to suspend them in
-the correct order.
+-- 
+Regards/Gruss,
+    Boris.
 
-My point is, doesn't the ordering problem exists also for a device,
-which the PM core runs the direct_complete path for, even if the ACPI
-PM domain is attached to the device? Just because runtime PM is
-disabled for a device, doesn't mean the ordering issue disappears,
-right?
-
->
-> [cut]
->
->> >> @@ -1709,11 +1711,14 @@ static int device_prepare(struct device *dev, pm_message_t state)
->> >>        * A positive return value from ->prepare() means "this device appears
->> >>        * to be runtime-suspended and its state is fine, so if it really is
->> >>        * runtime-suspended, you can leave it in that state provided that you
->> >> -      * will do the same thing with all of its descendants".  This only
->> >> -      * applies to suspend transitions, however.
->> >> +      * will do the same thing with all of its descendants". To allow this,
->> >> +      * the is_rpm_sleep flag must not be set, which is default false, but
->> >> +      * may have been changed by a driver. This only applies to suspend
->> >> +      * transitions, however.
->> >>        */
->> >>       spin_lock_irq(&dev->power.lock);
->> >> -     dev->power.direct_complete = ret > 0 && state.event == PM_EVENT_SUSPEND;
->> >> +     dev->power.direct_complete = ret > 0 && !dev->power.is_rpm_sleep &&
->> >> +                             state.event == PM_EVENT_SUSPEND;
->> >
->> > The only problem addressed by avoiding direct_complete is when runtime PM needs
->> > to work during __device_suspend() for devices with direct_complete set.  You
->> > said that this was not the case with the i2c designware driver, so I'm not sure
->> > what the purpose of this is.
->>
->> I should probably work more on my changelog, because I tried to
->> explain it there.
->>
->> Anyway, let me quote the important parts, and this is not specific for
->> the i2c-designware-driver, but generic to drivers using
->> pm_runtime_force_suspend|resume().
->>
->> "In the runtime PM centric path, the driver is expected to make use of
->> the pm_runtime_force_suspend|resume() helpers, to deploy system sleep
->> support. More precisely it may assign the system sleep callbacks to
->> these helpers or may call them from its own callbacks, in case it
->> needs to perform additional actions during system sleep.
->>
->> In other words, the PM core must always invoke the system sleep
->> callbacks for the device when they are present, to allow the driver to
->> deal with the system sleep operations."
->>
->> A concrete example is drivers/spi/spi-fsl-espi.c, but one can easily find more.
->
-> In fact, the new flag introduced here means "assume that that the driver of this
-> device points ->late_suspend and ->early_resume to pm_runtime_force_suspend()
-> and pm_runtime_force_resume(), respectively."  Which then implies that
-> direct_complete cannot be used with it and (and with its parent and so on)
-> and that it is not necessary to runtime resume it during system suspend.
->
-> However, there are (or at least there may be) devices that need not be
-> runtime resumed during system suspend even though their drivers don't use
-> _force_suspend/resume().
->
-> Also there are devices whose drivers don't want direct_complete to be used with
-> them, even though they don't use _force_suspend/resume() and they *do* need
-> their devices to be runtime resumed during system suspend.
->
-> Moreover, some drivers may not mind direct_complete even though their devices
-> need not be runtime resumed during system suspend.  All of that doesn't have
-> to be related to using _force_suspend/resume() at all.
->
-> So I don't see any reason whatever for combining all of these three *different*
-> conditions under one flag.
-
-Okay!
-
->
-> Thanks,
-> Rafael
->
-
-Kind regards
-Uffe
+Good mailing practices for 400: avoid top-posting and trim the reply.
