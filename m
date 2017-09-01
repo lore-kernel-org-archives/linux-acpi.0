@@ -1,92 +1,158 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v3 6/8] PM / ACPI: Enable the runtime PM centric approach
- for system sleep
-Date: Fri, 1 Sep 2017 10:27:05 +0200
-Message-ID: <CAPDyKFq5ic+bAVRoEC58oSO-8VTGnfipJndLmR6YLXgEhZ+RWw@mail.gmail.com>
-References: <1504018610-10822-1-git-send-email-ulf.hansson@linaro.org>
- <1504018610-10822-7-git-send-email-ulf.hansson@linaro.org> <2855684.NY3Ly9PzrE@aspire.rjw.lan>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v6 3/3] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+ erratum 161010801
+Date: Fri, 1 Sep 2017 09:46:00 +0100
+Message-ID: <47b8bf19-abad-3503-2e1c-b9d1304a157e@huawei.com>
+References: <20170809100715.870516-1-shameerali.kolothum.thodi@huawei.com>
+ <20170809100715.870516-4-shameerali.kolothum.thodi@huawei.com>
+ <20170810172723.GD9980@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <2855684.NY3Ly9PzrE@aspire.rjw.lan>
-Sender: linux-i2c-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:5507 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751237AbdIAIqb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Sep 2017 04:46:31 -0400
+In-Reply-To: <20170810172723.GD9980@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>, lorenzo.pieralisi@arm.com
+Cc: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, marc.zyngier@arm.com, sudeep.holla@arm.com, robin.murphy@arm.com, hanjun.guo@linaro.org, gabriele.paoloni@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com
 
-On 29 August 2017 at 17:27, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, August 29, 2017 4:56:48 PM CEST Ulf Hansson wrote:
->> This change enables the ACPI PM domain to cope with drivers that deploys
->> the runtime PM centric path for system sleep.
+On 10/08/2017 18:27, Will Deacon wrote:
+> On Wed, Aug 09, 2017 at 11:07:15AM +0100, Shameer Kolothum wrote:
+>> The HiSilicon erratum 161010801 describes the limitation of HiSilicon
+>> platforms Hip06/Hip07 to support the SMMU mappings for MSI transactions.
+>>
+>> On these platforms GICv3 ITS translator is presented with the deviceID
+>> by extending the MSI payload data to 64 bits to include the deviceID.
+>> Hence, the PCIe controller on this platforms has to differentiate the
+>> MSI payload against other DMA payload and has to modify the MSI payload.
+>> This basically makes it difficult for this platforms to have a SMMU
+>> translation for MSI.
+>>
+>> This patch implements a ACPI table based quirk to reserve the hw msi
+>> regions in the smmu-v3 driver which means these address regions will
+>> not be translated and will be excluded from iova allocations.
+>>
+>> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+>> ---
+>>  drivers/iommu/arm-smmu-v3.c | 27 ++++++++++++++++++++++-----
+>>  1 file changed, 22 insertions(+), 5 deletions(-)
 >
-> [cut]
+> Please can you also add a devicetree binding with corresponding
+> documentation to enable this workaround on non-ACPI based systems too? It
+> should be straightforward if you update the arm_smmu_options table.
 >
->> @@ -1052,11 +1066,20 @@ EXPORT_SYMBOL_GPL(acpi_subsys_complete);
->>   * @dev: Device to handle.
->>   *
->>   * Follow PCI and resume devices suspended at run time before running their
->> - * system suspend callbacks.
->> + * system suspend callbacks. However, try to avoid it in case the runtime PM
->> + * centric path is used for the device and then trust the driver to do the
->> + * right thing.
->>   */
->>  int acpi_subsys_suspend(struct device *dev)
->>  {
->> -     pm_runtime_resume(dev);
->> +     struct acpi_device *adev = ACPI_COMPANION(dev);
->> +
->> +     if (!adev)
->> +             return 0;
->> +
->> +     if (!dev_pm_is_rpm_sleep(dev) || acpi_dev_needs_resume(dev, adev))
->> +             pm_runtime_resume(dev);
->> +
->>       return pm_generic_suspend(dev);
->>  }
->>  EXPORT_SYMBOL_GPL(acpi_subsys_suspend);
->
-> Well, I tried to avoid calling acpi_dev_needs_resume() for multiple times
-> and that's why I added the update_state thing.
->
-> Moreover, the is_rpm_sleep flag here has to mean not only that
-> direct_complete should not be used with the device, but also that its driver
-> is fine with not resuming it.
 
-Let me try to explain this better. I realize the changelog is
-misleading around this particular section! Huh, apologize for that!
+Hi Will, Lorenzo, Robin,
 
-First, patch1 makes the PM core treat the is_rpm_sleep flag as the
-direct_complete isn't allowed for the device.
+I have created the patch to add DT support for this erratum. However, 
+currently I have only added support for pci-based devices. I'm a bit 
+stumped on how to add platform device support, or if we should also add 
+support at all. And I would rather ask before sending the patches.
 
-For that reason, when the is_rpm_sleep is set, there is no point
-calling acpi_dev_needs_resume() from acpi_subsys_prepare(), but
-instead that can be deferred to acpi_subsys_suspend() - because it
-doesn't matter if acpi_subsys_prepare() returns 0 or 1, in either case
-the acpi_subsys_suspend() will be called. That's really what goes on
-here.
+The specific issue is that I know of no platform device with an ITS 
+msi-parent which we would want reserve, i.e. do not translate msi. And, 
+if there were, how to do it.
 
-The end result is the same. If the acpi_dev_needs_resume() thinks that
-the device needs to be runtime resumed, pm_runtime_resume() is called
-for the device in acpi_subsys_suspend().
+The only platform devices I know off with msi ITS parents are SMMUv3 and 
+mbigen. For mbigen, the msi are not translated. Actually, as I see under 
+IORT solution, for mbigen we don't reserve the hw msi region as the 
+SMMUv3 does not have an ID mapping. And we have no equivalent ID mapping 
+property for DT SMMUv3, so cannot create an equivalent check.
 
-So, this has nothing to do with whether the driver "is fine with not
-resuming it" thing.
+So here is how the DT iommu get reserved region function with only pci 
+device support looks:
 
->
-> IMO it is not a good idea to use one flag for these two different things at the
-> same time at all.
+/**
+  * of_iommu_its_get_resv_regions - Reserved region driver helper
+  * @dev: Device from iommu_get_resv_regions()
+  * @list: Reserved region list from iommu_get_resv_regions()
+  *
+  * Returns: Number of reserved regions on success(0 if no associated ITS),
+  *          appropriate error value otherwise.
+  */
+int of_iommu_its_get_resv_regions(struct device *dev, struct list_head 
+*head)
+{
+     struct device_node *of_node = NULL;
+     struct device *parent_dev;
+     const __be32 *msi_map;
+     int num_mappings, i, err, len, resv = 0;
 
-Yeah, I guess my upper comment addresses your immediate concern here?
+     /* walk up to find the parent with a msi-map property */
+     for (parent_dev = dev; parent_dev; parent_dev = parent_dev->parent) {
+         if (!parent_dev->of_node)
+             continue;
 
-However, there is one other thing the is_rpm_flag means. That is that
-the driver has informed the ACPI PM domain, to trust the driver to
-deal with system sleep, via re-using the runtime PM callbacks.
-So the flag does still have two meanings, but that we can change - of course.
+         /*
+          * Current logic to reserve ITS regions for only PCI root
+          * complex.
+          */
+         msi_map = of_get_property(parent_dev->of_node, "msi-map", &len);
+         if (msi_map) {
+             of_node = parent_dev->of_node;
+             break;
+         }
+     }
 
->
+     if (!of_node)
+         return 0;
+
+     num_mappings = of_count_phandle_with_args(of_node, "msi-map", NULL) 
+/ 4;
+
+     for (i = 0; i < num_mappings; i++) {
+         int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+         struct iommu_resv_region *region;
+         struct device_node *msi_node;
+         struct resource resource;
+         u32 phandle;
+
+         phandle = be32_to_cpup(msi_map + 1);
+         msi_node = of_find_node_by_phandle(phandle);
+         if (!msi_node)
+             return -ENODEV;
+
+         /*
+          * There may be different types of msi-controller, so check
+          * for ITS.
+          */
+         if (!of_device_is_compatible(msi_node, "arm,gic-v3-its")) {
+             of_node_put(msi_node);
+             continue;
+         }
+
+         err = of_address_to_resource(msi_node, 0, &resource);
+
+         of_node_put(msi_node);
+         if (err)
+             return err;
+
+         region = iommu_alloc_resv_region(resource.start, SZ_128K, prot,
+                          IOMMU_RESV_MSI);
+         if (region) {
+             list_add_tail(&region->list, head);
+             resv++;
+         }
+     }
+
+     return (resv == num_mappings) ? resv : -ENODEV;
+}
+
+Any feedback is appreciated.
+
+Thanks,
+John
+
+
 > Thanks,
-> Rafael
+>
+> Will
+>
+> .
 >
 
-Kind regards
-Uffe
+
