@@ -1,96 +1,72 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH] libnvdimm: fix integer overflow static analysis warning
-Date: Thu, 31 Aug 2017 17:33:20 -0700
-Message-ID: <150422600081.8459.2869511055414536668.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [PATCH] platform/x86: intel_cht_int33fe: Work around BIOS bug on
+ some devices
+Date: Fri, 1 Sep 2017 09:25:27 +0300
+Message-ID: <3a1c95bb-f8a2-f31b-3e45-14718e530dd0@linux.intel.com>
+References: <20170814201425.20991-1-hdegoede@redhat.com>
+ <CAHp75Vdityzx+fzU_q0vULGpT3ww8C0_D0fYtEW77Hyh1yTX6A@mail.gmail.com>
+ <06a1d48c-9f75-4aab-107d-f71ce8ebbb26@redhat.com>
+ <CAHp75Vdz3S5a=Vqf=rnMV9Dy+829MGNUWPmzp+B08NadBM0wNg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, stable@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:48535 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751258AbdIAGZd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 1 Sep 2017 02:25:33 -0400
+In-Reply-To: <CAHp75Vdz3S5a=Vqf=rnMV9Dy+829MGNUWPmzp+B08NadBM0wNg@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Dan reports:
-    The patch 62232e45f4a2: "libnvdimm: control (ioctl) messages for
-    nvdimm_bus and nvdimm devices" from Jun 8, 2015, leads to the
-    following static checker warning:
+On 08/31/2017 07:04 PM, Andy Shevchenko wrote:
+> On Mon, Aug 14, 2017 at 11:52 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> On 14-08-17 22:45, Andy Shevchenko wrote:
+>>> On Mon, Aug 14, 2017 at 11:14 PM, Hans de Goede <hdegoede@redhat.com>
+>>> wrote:
+> 
+>>>> +int cht_int33fe_check_for_max17047(struct device *dev, void *data)
+>>>> +{
+>>>> +       const char *name = dev_name(dev);
+>>>> +       struct i2c_client **max17047 = data;
+>>>> +
+>>>> +       if (name && strcmp(name, "i2c-MAX17047:00") == 0) {
+>>>
+>>>
+>>> Can we stop using bad practice of comparing against _instance_?
+>>> If device is suppose to be single in the system, wouldn't _HID be enough?
+> 
+>> Yes _HID would be enough, but that takes some extra code with little
+>> gain IMHO, we are effectively checking the HID here as that is where
+>> the device-name comes from.
+>>
+>> Anyways if you strongly prefer a HID check I can do a v2 doing that
+>> either way let me know.
+> 
+> Currently we have the following modules where ACPI instance is used in:
+> 
+> drivers/acpi/acpi_lpss.c
+> drivers/input/touchscreen/goodix.c
+> drivers/platform/x86/silead_dmi.c
+> drivers/power/supply/axp288_charger.c
+> 
+> and plenty under sound/soc/intel.
+> 
+> I do not care right now about sound/soc/intel stuff, while everywhere
+> else would be better to avoid this.
+> 
+My 2 cents: sound subsystem needs to match exactly against instance 
+since we (must) know how each component are wired in HW. For instance 
+nothing prevents to have multiple audio codec chips with the same HID.
 
-            drivers/nvdimm/bus.c:1018 __nd_ioctl()
-            warn: integer overflows 'buf_len'
+There are couple examples under sound/soc/intel where system have 
+multiple codecs with the same HID.
 
-    From a casual review, this seems like it might be a real bug.  On
-    the first iteration we load some data into in_env[].  On the second
-    iteration we read a use controlled "in_size" from nd_cmd_in_size().
-    It can go up to UINT_MAX - 1.  A high number means we will fill the
-    whole in_env[] buffer.  But we potentially keep looping and adding
-    more to in_len so now it can be any value.
+(I don't know do we have yet a better way in ACPI to describe audio HW 
+than matching know instances and tying them together with a code).
 
-    It simple enough to change, but it feels weird that we keep looping
-    even though in_env is totally full.  Shouldn't we just return an
-    error if we don't have space for desc->in_num.
-
-We keep looping because the size of the total input is allowed to be
-bigger than the 'envelope' which is a subset of the payload that tells
-us how much data to expect. For safety explicitly check that buf_len
-does not overflow which is what the checker flagged.
-
-Cc: <stable@vger.kernel.org>
-Fixes: 62232e45f4a2: "libnvdimm: control (ioctl) messages for nvdimm_bus..."
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/bus.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index a18c2914f4b6..66586ce23f1b 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -911,19 +911,20 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		int read_only, unsigned int ioctl_cmd, unsigned long arg)
- {
- 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
--	size_t buf_len = 0, in_len = 0, out_len = 0;
- 	static char out_env[ND_CMD_MAX_ENVELOPE];
- 	static char in_env[ND_CMD_MAX_ENVELOPE];
- 	const struct nd_cmd_desc *desc = NULL;
- 	unsigned int cmd = _IOC_NR(ioctl_cmd);
--	unsigned int func = cmd;
--	void __user *p = (void __user *) arg;
- 	struct device *dev = &nvdimm_bus->dev;
--	struct nd_cmd_pkg pkg;
-+	void __user *p = (void __user *) arg;
- 	const char *cmd_name, *dimm_name;
-+	u32 in_len = 0, out_len = 0;
-+	unsigned int func = cmd;
- 	unsigned long cmd_mask;
--	void *buf;
-+	struct nd_cmd_pkg pkg;
- 	int rc, i, cmd_rc;
-+	u64 buf_len = 0;
-+	void *buf;
- 
- 	if (nvdimm) {
- 		desc = nd_cmd_dimm_desc(cmd);
-@@ -983,7 +984,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 
- 	if (cmd == ND_CMD_CALL) {
- 		func = pkg.nd_command;
--		dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
-+		dev_dbg(dev, "%s:%s, idx: %llu, in: %u, out: %u, len %llu\n",
- 				__func__, dimm_name, pkg.nd_command,
- 				in_len, out_len, buf_len);
- 
-@@ -1013,9 +1014,9 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		out_len += out_size;
- 	}
- 
--	buf_len = out_len + in_len;
-+	buf_len = (u64) out_len + (u64) in_len;
- 	if (buf_len > ND_IOCTL_MAX_BUFLEN) {
--		dev_dbg(dev, "%s:%s cmd: %s buf_len: %zu > %d\n", __func__,
-+		dev_dbg(dev, "%s:%s cmd: %s buf_len: %llu > %d\n", __func__,
- 				dimm_name, cmd_name, buf_len,
- 				ND_IOCTL_MAX_BUFLEN);
- 		return -EINVAL;
+-- 
+Jarkko
