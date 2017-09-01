@@ -1,271 +1,398 @@
-From: Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH v4 1/3] mfd: Add support for Cherry Trail Dollar Cove TI PMIC
-Date: Fri,  1 Sep 2017 15:06:30 +0200
-Message-ID: <20170901130632.28025-2-tiwai@suse.de>
-References: <20170901130632.28025-1-tiwai@suse.de>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:43297 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751778AbdIANGk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 1 Sep 2017 09:06:40 -0400
-In-Reply-To: <20170901130632.28025-1-tiwai@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Julien Thierry <julien.thierry@arm.com>
+Subject: Re: [RFC PATCH v1 1/3] arm64/ras: support sea error recovery
+Date: Fri, 1 Sep 2017 16:51:37 +0100
+Message-ID: <7deab964-40a7-cb7d-5742-7dd837e22878@arm.com>
+References: <1504261921-39308-1-git-send-email-xiexiuqi@huawei.com>
+ <1504261921-39308-2-git-send-email-xiexiuqi@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1504261921-39308-2-git-send-email-xiexiuqi@huawei.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Xie XiuQi <xiexiuqi@huawei.com>, catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, x86@kernel.org, mark.rutland@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This patch adds the MFD driver for Dollar Cove (TI version) PMIC with
-ACPI INT33F5 that is found on some Intel Cherry Trail devices.
-The driver is based on the original work by Intel, found at:
-  https://github.com/01org/ProductionKernelQuilts
+Hi Xie,
 
-This is a minimal version for adding the basic resources.  Currently,
-only ACPI PMIC opregion and the external power-button are used.
+On 01/09/17 11:31, Xie XiuQi wrote:
+> With ARM v8.2 RAS Extension, SEA are usually triggered when memory errors
+> are consumed. In some cases, if the error address is in a clean page or a
+> read-only page, there is a chance to recover. Such as error occurs in a
+> instruction page, we can reread this page from disk instead of killing process.
+> 
+> Because memory_failure() may sleep, we can not call it directly in SEA exception
+> context. So we saved faulting physical address associated with a process in the
+> ghes handler and set __TIF_SEA_NOTIFY. When we return from SEA exception context
+> and get into do_notify_resume() before the process running, we could check it
+> and call memory_failure() to do recovery. It's safe, because we are in process
+> context.
+> 
+> Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
+> Signed-off-by: Wang Xiongfeng <wangxiongfeng2@huawei.com>
+> ---
+>   arch/arm64/Kconfig                   |  11 +++
+>   arch/arm64/include/asm/ras.h         |  27 +++++++
+>   arch/arm64/include/asm/thread_info.h |   4 +-
+>   arch/arm64/kernel/Makefile           |   1 +
+>   arch/arm64/kernel/ras.c              | 138 +++++++++++++++++++++++++++++++++++
+>   arch/arm64/kernel/signal.c           |   8 ++
+>   arch/arm64/mm/fault.c                |  27 +++++--
+>   drivers/acpi/apei/ghes.c             |   2 +
+>   8 files changed, 209 insertions(+), 9 deletions(-)
+>   create mode 100644 arch/arm64/include/asm/ras.h
+>   create mode 100644 arch/arm64/kernel/ras.c
+> 
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index dfd9086..7d44589 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -640,6 +640,17 @@ config HOTPLUG_CPU
+>   	  Say Y here to experiment with turning CPUs off and on.  CPUs
+>   	  can be controlled through /sys/devices/system/cpu.
+>   
+> +config ARM64_ERR_RECOV
+> +	bool "Support arm64 RAS error recovery"
+> +	depends on ACPI_APEI_SEA && MEMORY_FAILURE
+> +	help
+> +	  With ARM v8.2 RAS Extension, SEA are usually triggered when memory errors
+> +	  are consumed. In some cases, if the error address is in a clean page or a
+> +	  read-only page, there is a chance to recover. Such as error occurs in a
+> +	  instruction page, we can reread this page from disk instead of killing process.
+> +
+> +	  Say Y if unsure.
+> +
+>   # Common NUMA Features
+>   config NUMA
+>   	bool "Numa Memory Allocation and Scheduler Support"
+> diff --git a/arch/arm64/include/asm/ras.h b/arch/arm64/include/asm/ras.h
+> new file mode 100644
+> index 0000000..8c4f6a8
+> --- /dev/null
+> +++ b/arch/arm64/include/asm/ras.h
+> @@ -0,0 +1,27 @@
+> +/*
+> + * ARM64 SEA error recoery support
+> + *
+> + * Copyright 2017 Huawei Technologies Co., Ltd.
+> + *   Author: Xie XiuQi <xiexiuqi@huawei.com>
+> + *   Author: Wang Xiongfeng <wangxiongfeng2@huawei.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version
+> + * 2 as published by the Free Software Foundation;
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#ifndef _ASM_RAS_H
+> +#define _ASM_RAS_H
+> +
+> +#include <linux/cper.h>
+> +#include <acpi/ghes.h>
+> +
+> +extern void sea_notify_process(void);
+> +extern void arm_proc_error_check(struct ghes *ghes, struct cper_sec_proc_arm *err);
+> +
+> +#endif /*_ASM_RAS_H*/
+> diff --git a/arch/arm64/include/asm/thread_info.h b/arch/arm64/include/asm/thread_info.h
+> index 46c3b93..4b10131 100644
+> --- a/arch/arm64/include/asm/thread_info.h
+> +++ b/arch/arm64/include/asm/thread_info.h
+> @@ -86,6 +86,7 @@ struct thread_info {
+>   #define TIF_NOTIFY_RESUME	2	/* callback before returning to user */
+>   #define TIF_FOREIGN_FPSTATE	3	/* CPU's FP state is not current's */
+>   #define TIF_UPROBE		4	/* uprobe breakpoint or singlestep */
+> +#define TIF_SEA_NOTIFY          5       /* notify to do an error recovery */
+>   #define TIF_NOHZ		7
+>   #define TIF_SYSCALL_TRACE	8
+>   #define TIF_SYSCALL_AUDIT	9
+> @@ -102,6 +103,7 @@ struct thread_info {
+>   #define _TIF_NOTIFY_RESUME	(1 << TIF_NOTIFY_RESUME)
+>   #define _TIF_FOREIGN_FPSTATE	(1 << TIF_FOREIGN_FPSTATE)
+>   #define _TIF_NOHZ		(1 << TIF_NOHZ)
+> +#define _TIF_SEA_NOTIFY         (1 << TIF_SEA_NOTIFY)
+>   #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
+>   #define _TIF_SYSCALL_AUDIT	(1 << TIF_SYSCALL_AUDIT)
+>   #define _TIF_SYSCALL_TRACEPOINT	(1 << TIF_SYSCALL_TRACEPOINT)
+> @@ -111,7 +113,7 @@ struct thread_info {
+>   
+>   #define _TIF_WORK_MASK		(_TIF_NEED_RESCHED | _TIF_SIGPENDING | \
+>   				 _TIF_NOTIFY_RESUME | _TIF_FOREIGN_FPSTATE | \
+> -				 _TIF_UPROBE)
+> +				 _TIF_UPROBE|_TIF_SEA_NOTIFY)
+>   
+>   #define _TIF_SYSCALL_WORK	(_TIF_SYSCALL_TRACE | _TIF_SYSCALL_AUDIT | \
+>   				 _TIF_SYSCALL_TRACEPOINT | _TIF_SECCOMP | \
+> diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
+> index f2b4e81..ba3abf8 100644
+> --- a/arch/arm64/kernel/Makefile
+> +++ b/arch/arm64/kernel/Makefile
+> @@ -43,6 +43,7 @@ arm64-obj-$(CONFIG_EFI)			+= efi.o efi-entry.stub.o
+>   arm64-obj-$(CONFIG_PCI)			+= pci.o
+>   arm64-obj-$(CONFIG_ARMV8_DEPRECATED)	+= armv8_deprecated.o
+>   arm64-obj-$(CONFIG_ACPI)		+= acpi.o
+> +arm64-obj-$(CONFIG_ARM64_ERR_RECOV)	+= ras.o
+>   arm64-obj-$(CONFIG_ACPI_NUMA)		+= acpi_numa.o
+>   arm64-obj-$(CONFIG_ARM64_ACPI_PARKING_PROTOCOL)	+= acpi_parking_protocol.o
+>   arm64-obj-$(CONFIG_PARAVIRT)		+= paravirt.o
+> diff --git a/arch/arm64/kernel/ras.c b/arch/arm64/kernel/ras.c
+> new file mode 100644
+> index 0000000..8562ec7
+> --- /dev/null
+> +++ b/arch/arm64/kernel/ras.c
+> @@ -0,0 +1,138 @@
+> +/*
+> + * ARM64 SEA error recoery support
+> + *
+> + * Copyright 2017 Huawei Technologies Co., Ltd.
+> + *   Author: Xie XiuQi <xiexiuqi@huawei.com>
+> + *   Author: Wang Xiongfeng <wangxiongfeng2@huawei.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version
+> + * 2 as published by the Free Software Foundation;
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/cper.h>
+> +#include <linux/mm.h>
+> +#include <linux/preempt.h>
+> +#include <linux/acpi.h>
+> +#include <linux/sched/signal.h>
+> +
+> +#include <acpi/actbl1.h>
+> +#include <acpi/ghes.h>
+> +#include <acpi/apei.h>
+> +
+> +#include <asm/thread_info.h>
+> +#include <asm/atomic.h>
+> +#include <asm/ras.h>
+> +
+> +/*
+> + * Need to save faulting physical address associated with a process
+> + * in the sea ghes handler some place where we can grab it back
+> + * later in sea_notify_process()
+> + */
+> +#define SEA_INFO_MAX    16
+> +
+> +struct sea_info {
+> +        atomic_t                inuse;
+> +        struct task_struct      *t;
+> +        __u64                   paddr;
+> +} sea_info[SEA_INFO_MAX];
+> +
+> +static int sea_save_info(__u64 addr)
+> +{
+> +        struct sea_info *si;
+> +
+> +        for (si = sea_info; si < &sea_info[SEA_INFO_MAX]; si++) {
+> +                if (atomic_cmpxchg(&si->inuse, 0, 1) == 0) {
+> +                        si->t = current;
+> +                        si->paddr = addr;
+> +                        return 0;
+> +                }
+> +        }
+> +
+> +	pr_err("Too many concurrent recoverable errors\n");
+> +	return -ENOMEM;
+> +}
+> +
+> +static struct sea_info *sea_find_info(void)
+> +{
+> +        struct sea_info *si;
+> +
+> +        for (si = sea_info; si < &sea_info[SEA_INFO_MAX]; si++)
+> +                if (atomic_read(&si->inuse) && si->t == current)
+> +                        return si;
+> +        return NULL;
+> +}
+> +
+> +static void sea_clear_info(struct sea_info *si)
+> +{
+> +        atomic_set(&si->inuse, 0);
+> +}
+> +
+> +/*
+> + * Called in process context that interrupted by SEA and marked with
+> + * TIF_SEA_NOTIFY, just before returning to erroneous userland.
+> + * This code is allowed to sleep.
+> + * Attempt possible recovery such as calling the high level VM handler to
+> + * process any corrupted pages, and kill/signal current process if required.
+> + * Action required errors are handled here.
+> + */
+> +void sea_notify_process(void)
+> +{
+> +	unsigned long pfn;
+> +	int fail = 0, flags = MF_ACTION_REQUIRED;
+> +	struct sea_info *si = sea_find_info();
+> +
+> +	if (!si)
+> +		panic("Lost physical address for consumed uncorrectable error");
+> +
+> +	clear_thread_flag(TIF_SEA_NOTIFY);
+> +	do {
+> +		pfn = si->paddr >> PAGE_SHIFT;
+> +
+> +
+> +		pr_err("Uncorrected hardware memory error in user-access at %llx\n",
+> +			si->paddr);
+> +		/*
+> +		 * We must call memory_failure() here even if the current process is
+> +		 * doomed. We still need to mark the page as poisoned and alert any
+> +		 * other users of the page.
+> +		 */
+> +		if (memory_failure(pfn, 0, flags) < 0) {
+> +			fail++;
+> +		}
+> +		sea_clear_info(si);
+> +
+> +		si = sea_find_info();
+> +	} while (si);
+> +
+> +	if (fail) {
+> +		pr_err("Memory error not recovered\n");
+> +		force_sig(SIGBUS, current);
+> +	}
+> +}
+> +
+> +void arm_proc_error_check(struct ghes *ghes, struct cper_sec_proc_arm *err)
+> +{
+> +	int i, ret = -1;
+> +	struct cper_arm_err_info *err_info;
+> +
+> +	if ((ghes->generic->notify.type != ACPI_HEST_NOTIFY_SEA) ||
+> +	    (ghes->estatus->error_severity != CPER_SEV_RECOVERABLE))
+> +		return;
+> +
+> +	err_info = (struct cper_arm_err_info *)(err + 1);
+> +	for (i = 0; i < err->err_info_num; i++, err_info++) {
+> +		if (err_info->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR) {
+> +			ret |= sea_save_info(err_info->physical_fault_addr);
+> +		}
+> +	}
+> +
+> +	if (!ret)
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=193891
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
-v3->4: no change for this patch
-v2->v3:
-* Rename dc_ti with chtdc_ti in all places
-* Driver/kconfig renames accordingly
-* Added acks by Andy and Mika
-v1->v2:
-* Minor cleanups as suggested by Andy
+If ret is initialized to -1, this is never true since you only OR bits 
+in ret.
 
- drivers/mfd/Kconfig                   |  13 +++
- drivers/mfd/Makefile                  |   1 +
- drivers/mfd/intel_soc_pmic_chtdc_ti.c | 183 ++++++++++++++++++++++++++++++++++
- 3 files changed, 197 insertions(+)
- create mode 100644 drivers/mfd/intel_soc_pmic_chtdc_ti.c
+Should the body of the loop be:
+	ret &= sea_save_info(err_info->physical_fault_addr);
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 94ad2c1c3d90..36e7d60f1314 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -496,6 +496,19 @@ config INTEL_SOC_PMIC_CHTWC
- 	  available before any devices using it are probed. This option also
- 	  causes the designware-i2c driver to be builtin for the same reason.
- 
-+config INTEL_SOC_PMIC_CHTDC_TI
-+	tristate "Support for Intel Cherry Trail Dollar Cove TI PMIC"
-+	depends on GPIOLIB
-+	depends on I2C
-+	depends on ACPI
-+	depends on X86
-+	select MFD_CORE
-+	select REGMAP_I2C
-+	select REGMAP_IRQ
-+	help
-+	  Select this option for supporting Dollar Cove (TI version) PMIC
-+	  device that is found on some Intel Cherry Trail systems.
-+
- config MFD_INTEL_LPSS
- 	tristate
- 	select COMMON_CLK
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index 080793b3fd0e..50ae64d2b22a 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -216,6 +216,7 @@ intel-soc-pmic-objs		:= intel_soc_pmic_core.o intel_soc_pmic_crc.o
- obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
- obj-$(CONFIG_INTEL_SOC_PMIC_BXTWC)	+= intel_soc_pmic_bxtwc.o
- obj-$(CONFIG_INTEL_SOC_PMIC_CHTWC)	+= intel_soc_pmic_chtwc.o
-+obj-$(CONFIG_INTEL_SOC_PMIC_CHTDC_TI)	+= intel_soc_pmic_chtdc_ti.o
- obj-$(CONFIG_MFD_MT6397)	+= mt6397-core.o
- 
- obj-$(CONFIG_MFD_ALTERA_A10SR)	+= altera-a10sr.o
-diff --git a/drivers/mfd/intel_soc_pmic_chtdc_ti.c b/drivers/mfd/intel_soc_pmic_chtdc_ti.c
-new file mode 100644
-index 000000000000..404adb6fc475
---- /dev/null
-+++ b/drivers/mfd/intel_soc_pmic_chtdc_ti.c
-@@ -0,0 +1,183 @@
-+/*
-+ * Device access for Dollar Cove TI PMIC
-+ * Copyright (c) 2014, Intel Corporation.
-+ *   Author: Ramakrishna Pallala <ramakrishna.pallala@intel.com>
-+ *
-+ * Cleanup and forward-ported
-+ *   Copyright (c) 2017 Takashi Iwai <tiwai@suse.de>
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/interrupt.h>
-+#include <linux/i2c.h>
-+#include <linux/module.h>
-+#include <linux/regmap.h>
-+#include <linux/mfd/core.h>
-+#include <linux/mfd/intel_soc_pmic.h>
-+
-+#define CHTDC_TI_IRQLVL1	0x01
-+#define CHTDC_TI_MASK_IRQLVL1	0x02
-+
-+/* Level 1 IRQs */
-+enum {
-+	CHTDC_TI_PWRBTN = 0,	/* power button */
-+	CHTDC_TI_DIETMPWARN,	/* thermal */
-+	CHTDC_TI_ADCCMPL,	/* ADC */
-+	/* no irq 3 */
-+	CHTDC_TI_VBATLOW = 4,	/* battery */
-+	CHTDC_TI_VBUSDET,	/* power source */
-+	/* no irq 6 */
-+	CHTDC_TI_CCEOCAL = 7,	/* battery */
-+};
-+
-+static struct resource power_button_resources[] = {
-+	DEFINE_RES_IRQ(CHTDC_TI_PWRBTN),
-+};
-+
-+static struct resource thermal_resources[] = {
-+	DEFINE_RES_IRQ(CHTDC_TI_DIETMPWARN),
-+};
-+
-+static struct resource adc_resources[] = {
-+	DEFINE_RES_IRQ(CHTDC_TI_ADCCMPL),
-+};
-+
-+static struct resource pwrsrc_resources[] = {
-+	DEFINE_RES_IRQ(CHTDC_TI_VBUSDET),
-+};
-+
-+static struct resource battery_resources[] = {
-+	DEFINE_RES_IRQ(CHTDC_TI_VBATLOW),
-+	DEFINE_RES_IRQ(CHTDC_TI_CCEOCAL),
-+};
-+
-+static struct mfd_cell chtdc_ti_dev[] = {
-+	{
-+		.name = "chtdc_ti_pwrbtn",
-+		.num_resources = ARRAY_SIZE(power_button_resources),
-+		.resources = power_button_resources,
-+	},
-+	{
-+		.name = "chtdc_ti_adc",
-+		.num_resources = ARRAY_SIZE(adc_resources),
-+		.resources = adc_resources,
-+	},
-+	{
-+		.name = "chtdc_ti_thermal",
-+		.num_resources = ARRAY_SIZE(thermal_resources),
-+		.resources = thermal_resources,
-+	},
-+	{
-+		.name = "chtdc_ti_pwrsrc",
-+		.num_resources = ARRAY_SIZE(pwrsrc_resources),
-+		.resources = pwrsrc_resources,
-+	},
-+	{
-+		.name = "chtdc_ti_battery",
-+		.num_resources = ARRAY_SIZE(battery_resources),
-+		.resources = battery_resources,
-+	},
-+	{
-+		.name = "chtdc_ti_region",
-+	},
-+};
-+
-+static const struct regmap_config chtdc_ti_regmap_config = {
-+	.reg_bits = 8,
-+	.val_bits = 8,
-+	.max_register = 128,
-+	.cache_type = REGCACHE_NONE,
-+};
-+
-+static const struct regmap_irq chtdc_ti_irqs[] = {
-+	REGMAP_IRQ_REG(CHTDC_TI_PWRBTN, 0, BIT(CHTDC_TI_PWRBTN)),
-+	REGMAP_IRQ_REG(CHTDC_TI_DIETMPWARN, 0, BIT(CHTDC_TI_DIETMPWARN)),
-+	REGMAP_IRQ_REG(CHTDC_TI_ADCCMPL, 0, BIT(CHTDC_TI_ADCCMPL)),
-+	REGMAP_IRQ_REG(CHTDC_TI_VBATLOW, 0, BIT(CHTDC_TI_VBATLOW)),
-+	REGMAP_IRQ_REG(CHTDC_TI_VBUSDET, 0, BIT(CHTDC_TI_VBUSDET)),
-+	REGMAP_IRQ_REG(CHTDC_TI_CCEOCAL, 0, BIT(CHTDC_TI_CCEOCAL)),
-+};
-+
-+static const struct regmap_irq_chip chtdc_ti_irq_chip = {
-+	.name = KBUILD_MODNAME,
-+	.irqs = chtdc_ti_irqs,
-+	.num_irqs = ARRAY_SIZE(chtdc_ti_irqs),
-+	.num_regs = 1,
-+	.status_base = CHTDC_TI_IRQLVL1,
-+	.mask_base = CHTDC_TI_MASK_IRQLVL1,
-+	.ack_base = CHTDC_TI_IRQLVL1,
-+};
-+
-+static int chtdc_ti_probe(struct i2c_client *i2c)
-+{
-+	struct device *dev = &i2c->dev;
-+	struct intel_soc_pmic *pmic;
-+	int ret;
-+
-+	pmic = devm_kzalloc(dev, sizeof(*pmic), GFP_KERNEL);
-+	if (!pmic)
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(i2c, pmic);
-+
-+	pmic->regmap = devm_regmap_init_i2c(i2c, &chtdc_ti_regmap_config);
-+	if (IS_ERR(pmic->regmap))
-+		return PTR_ERR(pmic->regmap);
-+	pmic->irq = i2c->irq;
-+
-+	ret = devm_regmap_add_irq_chip(dev, pmic->regmap, pmic->irq,
-+				       IRQF_ONESHOT, 0,
-+				       &chtdc_ti_irq_chip,
-+				       &pmic->irq_chip_data);
-+	if (ret)
-+		return ret;
-+
-+	return devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE, chtdc_ti_dev,
-+				    ARRAY_SIZE(chtdc_ti_dev), NULL, 0,
-+				    regmap_irq_get_domain(pmic->irq_chip_data));
-+}
-+
-+static void chtdc_ti_shutdown(struct i2c_client *i2c)
-+{
-+	struct intel_soc_pmic *pmic = i2c_get_clientdata(i2c);
-+
-+	disable_irq(pmic->irq);
-+}
-+
-+static int __maybe_unused chtdc_ti_suspend(struct device *dev)
-+{
-+	struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
-+
-+	disable_irq(pmic->irq);
-+	return 0;
-+}
-+
-+static int __maybe_unused chtdc_ti_resume(struct device *dev)
-+{
-+	struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
-+
-+	enable_irq(pmic->irq);
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(chtdc_ti_pm_ops, chtdc_ti_suspend, chtdc_ti_resume);
-+
-+static const struct acpi_device_id chtdc_ti_acpi_ids[] = {
-+	{ "INT33F5" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(acpi, chtdc_ti_acpi_ids);
-+
-+static struct i2c_driver chtdc_ti_i2c_driver = {
-+	.driver = {
-+		.name = KBUILD_MODNAME,
-+		.pm = &chtdc_ti_pm_ops,
-+		.acpi_match_table = chtdc_ti_acpi_ids,
-+	},
-+	.probe_new = chtdc_ti_probe,
-+	.shutdown = chtdc_ti_shutdown,
-+};
-+module_i2c_driver(chtdc_ti_i2c_driver);
-+
-+MODULE_DESCRIPTION("I2C driver for Intel SoC Dollar Cove TI PMIC");
-+MODULE_LICENSE("GPL v2");
+so as long as you as you manage to store 1 sea_info you set the thread flag?
+
+But if that's the case a boolean might make more sense:
+
+bool info_saved = false;
+[...]
+	info_saved |= !sea_save_info(err_info->physical_fault_addr);
+[...]
+if (info_saved)
+		[...]
+
+
+> +		set_thread_flag(TIF_SEA_NOTIFY);
+> +}
+> diff --git a/arch/arm64/kernel/signal.c b/arch/arm64/kernel/signal.c
+> index 089c3747..71e314e 100644
+> --- a/arch/arm64/kernel/signal.c
+> +++ b/arch/arm64/kernel/signal.c
+> @@ -38,6 +38,7 @@
+>   #include <asm/fpsimd.h>
+>   #include <asm/signal32.h>
+>   #include <asm/vdso.h>
+> +#include <asm/ras.h>
+>   
+>   /*
+>    * Do a signal return; undo the signal stack. These are aligned to 128-bit.
+> @@ -749,6 +750,13 @@ asmlinkage void do_notify_resume(struct pt_regs *regs,
+>   	 * Update the trace code with the current status.
+>   	 */
+>   	trace_hardirqs_off();
+> +
+> +#ifdef CONFIG_ARM64_ERR_RECOV
+> +		/* notify userspace of pending SEAs */
+> +		if (thread_flags & _TIF_SEA_NOTIFY)
+> +			sea_notify_process();
+> +#endif /* CONFIG_ARM64_ERR_RECOV */
+> +
+>   	do {
+>   		if (thread_flags & _TIF_NEED_RESCHED) {
+>   			schedule();
+> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+> index 1f22a41..b38476d 100644
+> --- a/arch/arm64/mm/fault.c
+> +++ b/arch/arm64/mm/fault.c
+> @@ -594,14 +594,25 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>   			nmi_exit();
+>   	}
+>   
+> -	info.si_signo = SIGBUS;
+> -	info.si_errno = 0;
+> -	info.si_code  = 0;
+> -	if (esr & ESR_ELx_FnV)
+> -		info.si_addr = NULL;
+> -	else
+> -		info.si_addr  = (void __user *)addr;
+> -	arm64_notify_die("", regs, &info, esr);
+> +	if (user_mode(regs)) {
+> +		if (test_thread_flag(TIF_SEA_NOTIFY))
+> +			return ret;
+> +
+> +		info.si_signo = SIGBUS;
+> +		info.si_errno = 0;
+> +		info.si_code  = 0;
+> +		if (esr & ESR_ELx_FnV)
+> +			info.si_addr = NULL;
+> +		else
+> +			info.si_addr  = (void __user *)addr;
+> +
+> +		current->thread.fault_address = 0;
+> +		current->thread.fault_code = esr;
+> +		force_sig_info(info.si_signo, &info, current);
+> +	} else {
+> +		die("Uncorrected hardware memory error in kernel-access\n",
+> +		    regs, esr);
+> +	}
+>   
+>   	return ret;
+>   }
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index d661d45..fa9400d 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -52,6 +52,7 @@
+>   #include <acpi/ghes.h>
+>   #include <acpi/apei.h>
+>   #include <asm/tlbflush.h>
+> +#include <asm/ras.h>
+>   #include <ras/ras_event.h>
+>   
+>   #include "apei-internal.h"
+> @@ -520,6 +521,7 @@ static void ghes_do_proc(struct ghes *ghes,
+>   		else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
+>   			struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
+>   
+> +			arm_proc_error_check(ghes, err);
+
+If I understand the Makefile change correctly, arm_proc_error_check is 
+compiled only when CONFIG_ARM64_ERR_RECOV, don't you get a linker error 
+here if this config is not selected?
+
+Otherwise patch looks fine.
+
+Cheers,
+
 -- 
-2.14.1
-
+Julien Thierry
