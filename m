@@ -1,60 +1,30 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH] CPER: Add UEFI spec reference for CPER UUIDs
-Date: Fri, 01 Sep 2017 18:50:29 -0500
-Message-ID: <20170901235029.10575.53949.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] platform/x86: intel_cht_int33fe: Work around BIOS bug on
+ some devices
+Date: Sat, 2 Sep 2017 10:16:05 +0300
+Message-ID: <20170902071605.GH2598@lahna.fi.intel.com>
+References: <20170814201425.20991-1-hdegoede@redhat.com>
+ <CAHp75Vdityzx+fzU_q0vULGpT3ww8C0_D0fYtEW77Hyh1yTX6A@mail.gmail.com>
+ <06a1d48c-9f75-4aab-107d-f71ce8ebbb26@redhat.com>
+ <CAHp75Vdz3S5a=Vqf=rnMV9Dy+829MGNUWPmzp+B08NadBM0wNg@mail.gmail.com>
+ <20170901091904.GV2598@lahna.fi.intel.com>
+ <6e064337-6105-2231-a66e-ccb6aba3440a@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44802 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752084AbdIAXuq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 1 Sep 2017 19:50:46 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <6e064337-6105-2231-a66e-ccb6aba3440a@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
 
-Add a reference to the definition of CPER UUIDs.  The UEFI specs are
-available at http://www.uefi.org/specifications .
+On Fri, Sep 01, 2017 at 11:58:55PM +0200, Hans de Goede wrote:
+> Given that on the device in question where we need this workaround there
+> is only ever 1 max17047, including the instance number in the check really
+> is a non-problem, but if there is a strong preference for me to change
+> the check over to a _HID check then I can do a v2 doing so.
 
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- include/linux/cper.h |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
-
-diff --git a/include/linux/cper.h b/include/linux/cper.h
-index 4c671fc2081e..9c79075597dc 100644
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -69,10 +69,11 @@ enum {
- 
- /*
-  * Notification type used to generate error record, used in
-- * notification_type in struct cper_record_header
-- *
-- * Corrected Machine Check
-+ * notification_type in struct cper_record_header.  These UUIDs are defined
-+ * in the UEFI spec v2.7, sec N.2.1.
-  */
-+
-+/* Corrected Machine Check */
- #define CPER_NOTIFY_CMC							\
- 	UUID_LE(0x2DCE8BB1, 0xBDD7, 0x450e, 0xB9, 0xAD, 0x9C, 0xF4,	\
- 		0xEB, 0xD4, 0xF8, 0x90)
-@@ -165,10 +166,11 @@ enum {
- 
- /*
-  * Section type definitions, used in section_type field in struct
-- * cper_section_descriptor
-- *
-- * Processor Generic
-+ * cper_section_descriptor.  These UUIDs are defined in the UEFI spec
-+ * v2.7, sec N.2.2.
-  */
-+
-+/* Processor Generic */
- #define CPER_SEC_PROC_GENERIC						\
- 	UUID_LE(0x9876CCAD, 0x47B4, 0x4bdb, 0xB6, 0x5E, 0x16, 0xF1,	\
- 		0x93, 0xC4, 0xF3, 0xDB)
-
+I would still prefer _HID check if possible. Otherwise someone finds
+this hack later and uses it in another driver thinking it is the right
+thing to do ;-)
