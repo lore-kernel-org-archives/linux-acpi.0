@@ -1,57 +1,60 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v2] kaslr: get ACPI SRAT table to avoid movable memory
-Date: Mon, 4 Sep 2017 11:08:49 +0800
-Message-ID: <20170904030847.GA10604@localhost.localdomain>
-References: <20170903143123.22031-1-fanc.fnst@cn.fujitsu.com>
- <2895411.GR6mzpbNLk@aspire.rjw.lan>
- <20170904022619.GB30906@x1>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [RFT][PATCH v2 0/3] PM / ACPI / i2c: Runtime PM aware system
+ sleep handling
+Date: Mon, 4 Sep 2017 07:18:34 +0200
+Message-ID: <20170904051834.m63sajya32mops4p@ninjato>
+References: <1551534.5XKjjnxbAy@aspire.rjw.lan>
+ <1529572.3Syt3kfoAo@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="cf7zpzmllm7le5w7"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.cn.fujitsu.com ([183.91.158.132]:3496 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753124AbdIDDI4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Sep 2017 23:08:56 -0400
+Received: from sauhun.de ([88.99.104.3]:37483 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750703AbdIDFSi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 4 Sep 2017 01:18:38 -0400
 Content-Disposition: inline
-In-Reply-To: <20170904022619.GB30906@x1>
+In-Reply-To: <1529572.3Syt3kfoAo@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Baoquan He <bhe@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, keescook@chromium.org, arnd@arndb.de, dyoung@redhat.com, dave.jiang@intel.com, lv.zheng@intel.com, indou.takao@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, yasu.isimatu@gmail.com
-
-On Mon, Sep 04, 2017 at 10:26:19AM +0800, Baoquan He wrote:
->On 09/04/17 at 12:55am, Rafael J. Wysocki wrote:
->> On Sunday, September 3, 2017 4:31:23 PM CEST Chao Fan wrote:
->> > KASLR should choose the memory region of immovable node to extract kernel.
->> > So get ACPI SRAT table and store the memory region of movable node which
->> > kaslr shold avoid.
->> 
->> Please elaborate.
->> 
->> This is far too little information on what problem you are trying to address
->> and why you are trying to address it in this particular way.
->
->Agree with Rafael.
->
->Why don't you try specifying those regions in cmdline and process them
->in kaslr.c? Your colleague, Liyang has tried this way, just he only
->considered the region in the first node. In this way, you don't need to
-
-Hi Baoquan,
-
-Yes, but if the region is not only in the first node, we can get the
-detail information about the memory scope and whether it's hotpluggable
-only by the ACPI table. The lines of code are so many, but we can get
-more information.
-
-Thanks,
-Chao Fan
-
->touch ACPI tables with so many lines of code.
->
->Thanks
->Baoquan
->
->
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-pm@vger.kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 
+--cf7zpzmllm7le5w7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+
+> To on-going discussion with Ulf made me think that it would be better to
+> make the driver do the right thing when the ACPI PM domain is not present
+> and then worry about what to do when it is there.
+>=20
+> So, please scratch this series and I will post an alternative one just for
+> i2c-designware-platdrv shortly.
+
+Thanks for the heads up, Rafael, and all the work on this!
+
+
+--cf7zpzmllm7le5w7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlms4ikACgkQFA3kzBSg
+Kbbgcg/9HKUGt01tJFEd4Mdt5j92A2YuABffKowjJoFdw1XXFnn9gzbA+FZ+Jsd+
+WqSo5szhkfAiyq3hEK4ZxulZaDolEUBbUI66HRNyQC8M8XgssMDC0QDUmR3Zysru
+VrB+IozD0v+4+pdqPSA1VDfjfDk/DnXcUwePu097Ca4y9LI5ZbWNaTEb5P2CfUpY
+QKUIhsaG2UltKcD+QCjt2+Z1yfqQZHGzaX/B94FpYx3G+tha2AzXMK7JEi1TsvYX
+CadOKsajag+T1xwv3kXri06o2q17fBTXQNwyzA7xqP0Nbxpi3FbOKBbl7J8nu71C
+U5+ohi/IZNNJAmuOEDZjwcR98tgwwnbgyVthVB301n2oJtlP5kK1VivOQWHiafmt
+P38x2myyL5d2yMB5w2uJBpm9UTDSSvr6yRZzTavZGKikao4TXroAI9ImZYkqFhur
+LvtPR2PJjtUEdZbIGGGb/1BDvGpnH01hhHw1E3TLRrF57mBe3ROBNywq2gt1bqrl
+bE4NcabD8w8EWWbxwSMa1k34Ij6/fGxbxCb5hC8A4xcauB8EZAm1g+N/Kz6wQ6eP
+yZPSMbckz+cpFh6NfU+n5xYfdoy0iqzyskWzcXZdv+ICBO03id+DjAauV3Yf0Zgv
+n/6LM0oUXysGIIkEzmGnmNFOQyfQg7JIydi3kzmekuyz+756Q3U=
+=uCF+
+-----END PGP SIGNATURE-----
+
+--cf7zpzmllm7le5w7--
