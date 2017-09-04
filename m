@@ -1,130 +1,304 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v3 6/8] PM / ACPI: Enable the runtime PM centric approach
- for system sleep
-Date: Mon, 4 Sep 2017 15:21:15 +0200
-Message-ID: <CAPDyKFoTz3fFJwpJgmmwLfHQTzmWpyZL+NcVPY8D254nR2Mzag@mail.gmail.com>
-References: <1504018610-10822-1-git-send-email-ulf.hansson@linaro.org>
- <2855684.NY3Ly9PzrE@aspire.rjw.lan> <CAPDyKFq5ic+bAVRoEC58oSO-8VTGnfipJndLmR6YLXgEhZ+RWw@mail.gmail.com>
- <2209426.5Z3u1iKN4i@aspire.rjw.lan>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 1/3] mfd: Add support for Cherry Trail Dollar Cove TI
+ PMIC
+Date: Mon, 4 Sep 2017 14:37:32 +0100
+Message-ID: <20170904133732.ll6cmuvnxja242gi@dell>
+References: <20170824081141.5018-1-tiwai@suse.de>
+ <20170824081141.5018-2-tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f176.google.com ([209.85.223.176]:36501 "EHLO
-        mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753566AbdIDNVR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Sep 2017 09:21:17 -0400
-Received: by mail-io0-f176.google.com with SMTP id z67so1404336iof.3
-        for <linux-acpi@vger.kernel.org>; Mon, 04 Sep 2017 06:21:17 -0700 (PDT)
-In-Reply-To: <2209426.5Z3u1iKN4i@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170824081141.5018-2-tiwai@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
 
-On 2 September 2017 at 17:38, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Friday, September 1, 2017 10:27:05 AM CEST Ulf Hansson wrote:
->> On 29 August 2017 at 17:27, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > On Tuesday, August 29, 2017 4:56:48 PM CEST Ulf Hansson wrote:
->> >> This change enables the ACPI PM domain to cope with drivers that deploys
->> >> the runtime PM centric path for system sleep.
->> >
->> > [cut]
->> >
->> >> @@ -1052,11 +1066,20 @@ EXPORT_SYMBOL_GPL(acpi_subsys_complete);
->> >>   * @dev: Device to handle.
->> >>   *
->> >>   * Follow PCI and resume devices suspended at run time before running their
->> >> - * system suspend callbacks.
->> >> + * system suspend callbacks. However, try to avoid it in case the runtime PM
->> >> + * centric path is used for the device and then trust the driver to do the
->> >> + * right thing.
->> >>   */
->> >>  int acpi_subsys_suspend(struct device *dev)
->> >>  {
->> >> -     pm_runtime_resume(dev);
->> >> +     struct acpi_device *adev = ACPI_COMPANION(dev);
->> >> +
->> >> +     if (!adev)
->> >> +             return 0;
->> >> +
->> >> +     if (!dev_pm_is_rpm_sleep(dev) || acpi_dev_needs_resume(dev, adev))
->> >> +             pm_runtime_resume(dev);
->> >> +
->> >>       return pm_generic_suspend(dev);
->> >>  }
->> >>  EXPORT_SYMBOL_GPL(acpi_subsys_suspend);
->> >
->> > Well, I tried to avoid calling acpi_dev_needs_resume() for multiple times
->> > and that's why I added the update_state thing.
->> >
->> > Moreover, the is_rpm_sleep flag here has to mean not only that
->> > direct_complete should not be used with the device, but also that its driver
->> > is fine with not resuming it.
->>
->> Let me try to explain this better. I realize the changelog is
->> misleading around this particular section! Huh, apologize for that!
->>
->> First, patch1 makes the PM core treat the is_rpm_sleep flag as the
->> direct_complete isn't allowed for the device.
->>
->> For that reason, when the is_rpm_sleep is set, there is no point
->> calling acpi_dev_needs_resume() from acpi_subsys_prepare(), but
->> instead that can be deferred to acpi_subsys_suspend() - because it
->> doesn't matter if acpi_subsys_prepare() returns 0 or 1, in either case
->> the acpi_subsys_suspend() will be called. That's really what goes on
->> here.
->>
->> The end result is the same. If the acpi_dev_needs_resume() thinks that
->> the device needs to be runtime resumed, pm_runtime_resume() is called
->> for the device in acpi_subsys_suspend().
->>
->> So, this has nothing to do with whether the driver "is fine with not
->> resuming it" thing.
->
-> No, sorry.
->
-> If is_rpm_sleep was not set, the ACPI PM domain would resume the device in
-> acpi_subsys_suspend() regardless of the acpi_dev_needs_resume() return value.
+On Thu, 24 Aug 2017, Takashi Iwai wrote:
 
-Yes, I believe I forgot about one scenario, when the direct_complete
-path has been abandoned by the PM core, because a child device was
-suspend before and it couldn't run the direct_complete path for it?
+> This patch adds the MFD driver for Dollar Cove TI PMIC (ACPI INT33F5)
+> that is found on some Intel Cherry Trail devices.
+> The driver is based on the original work by Intel, found at:
+>   https://github.com/01org/ProductionKernelQuilts
+> 
+> This is a minimal version for adding the basic resources.  Currently,
+> only ACPI PMIC opregion and the external power-button are used.
+> 
+> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=193891
+> Signed-off-by: Takashi Iwai <tiwai@suse.de>
+> ---
+> v1->v2:
+> * Minor cleanups as suggested by Andy
+> 
+>  drivers/mfd/Kconfig                |  13 +++
+>  drivers/mfd/Makefile               |   1 +
+>  drivers/mfd/intel_soc_pmic_dc_ti.c | 182 +++++++++++++++++++++++++++++++++++++
+>  3 files changed, 196 insertions(+)
+>  create mode 100644 drivers/mfd/intel_soc_pmic_dc_ti.c
+> 
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> index 94ad2c1c3d90..28c12bb50c9f 100644
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -496,6 +496,19 @@ config INTEL_SOC_PMIC_CHTWC
+>  	  available before any devices using it are probed. This option also
+>  	  causes the designware-i2c driver to be builtin for the same reason.
+>  
+> +config INTEL_SOC_PMIC_DC_TI
+> +	tristate "Support for Dollar Cove TI PMIC"
+> +	depends on GPIOLIB
+> +	depends on I2C
+> +	depends on ACPI
+> +	depends on X86
+> +	select MFD_CORE
+> +	select REGMAP_I2C
+> +	select REGMAP_IRQ
+> +	help
+> +	  Select this option for supporting Dollar Cove TI PMIC device that is
+> +	  found on some Intel Cherry Trail systems.
+> +
+>  config MFD_INTEL_LPSS
+>  	tristate
+>  	select COMMON_CLK
+> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+> index 080793b3fd0e..16c4fe519d30 100644
+> --- a/drivers/mfd/Makefile
+> +++ b/drivers/mfd/Makefile
+> @@ -216,6 +216,7 @@ intel-soc-pmic-objs		:= intel_soc_pmic_core.o intel_soc_pmic_crc.o
+>  obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
+>  obj-$(CONFIG_INTEL_SOC_PMIC_BXTWC)	+= intel_soc_pmic_bxtwc.o
+>  obj-$(CONFIG_INTEL_SOC_PMIC_CHTWC)	+= intel_soc_pmic_chtwc.o
+> +obj-$(CONFIG_INTEL_SOC_PMIC_DC_TI)	+= intel_soc_pmic_dc_ti.o
+>  obj-$(CONFIG_MFD_MT6397)	+= mt6397-core.o
+>  
+>  obj-$(CONFIG_MFD_ALTERA_A10SR)	+= altera-a10sr.o
+> diff --git a/drivers/mfd/intel_soc_pmic_dc_ti.c b/drivers/mfd/intel_soc_pmic_dc_ti.c
+> new file mode 100644
+> index 000000000000..3ba1625eb44b
+> --- /dev/null
+> +++ b/drivers/mfd/intel_soc_pmic_dc_ti.c
+> @@ -0,0 +1,182 @@
+> +/*
+> + * Device access for Dollar Cove TI PMIC
 
-Just to be sure, that's the case you also had in mind?
+Nit: '\n' here please.
 
-> That's what's there in the patch.  So clearly, setting is_rpm_sleep means
-> "this device does not need to be resumed in acpi_subsys_suspend() unless
-> acpi_dev_needs_resume() returns true".  Which clearly means that the driver
-> *is* fine with not resuming it, because if is_rpm_sleep is set, the device
-> in fact may not be resumed and then the driver will need to cope with that.
+> + * Copyright (c) 2014, Intel Corporation.
+> + *   Author: Ramakrishna Pallala <ramakrishna.pallala@intel.com>
+> + *
+> + * Cleanup and forward-ported
+> + *   Copyright (c) 2017 Takashi Iwai <tiwai@suse.de>
 
-Yes, I understand your concern, because we may break the default
-behavior of the ACPI PM domain.
+No licence header?
 
-So, *if* there will be a next version, I will make sure to be better
-safe than sorry, and add one flag per use case.
+> + */
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/i2c.h>
+> +#include <linux/module.h>
+> +#include <linux/regmap.h>
+> +#include <linux/mfd/core.h>
+> +#include <linux/mfd/intel_soc_pmic.h>
 
->
-> And note that this meaning of is_rpm_sleep is different from what it is
-> expected to mean to the core.
->
->> >
->> > IMO it is not a good idea to use one flag for these two different things at the
->> > same time at all.
->>
->> Yeah, I guess my upper comment addresses your immediate concern here?
->
-> No, they don't.
->
->> However, there is one other thing the is_rpm_flag means. That is that
->> the driver has informed the ACPI PM domain, to trust the driver to
->> deal with system sleep, via re-using the runtime PM callbacks.
->> So the flag does still have two meanings, but that we can change - of course.
->
-> I guess that you are referring to the use of dev_pm_is_rpm_sleep() in
-> acpi_subsys_suspend_late()?  That's the third thing this flag means ...
+Alphabetical.
 
-Yes.
+> +#define DC_TI_IRQLVL1		0x01
+> +#define DC_TI_MASK_IRQLVL1	0x02
+> +
+> +/* Level 1 IRQs */
+> +enum {
+> +	DC_TI_PWRBTN = 0,	/* power button */
+> +	DC_TI_DIETMPWARN,	/* thermal */
+> +	DC_TI_ADCCMPL,		/* ADC */
+> +	/* no irq 3 */
 
-Kind regards
-Uffe
+"No IRQ 3"
+
+> +	DC_TI_VBATLOW = 4,	/* battery */
+> +	DC_TI_VBUSDET,		/* power source */
+> +	/* no irq 6 */
+
+Here too.
+
+> +	DC_TI_CCEOCAL = 7,	/* battery */
+> +};
+> +
+> +static struct resource power_button_resources[] = {
+> +	DEFINE_RES_IRQ(DC_TI_PWRBTN),
+> +};
+> +
+> +static struct resource thermal_resources[] = {
+> +	DEFINE_RES_IRQ(DC_TI_DIETMPWARN),
+> +};
+> +
+> +static struct resource adc_resources[] = {
+> +	DEFINE_RES_IRQ(DC_TI_ADCCMPL),
+> +};
+> +
+> +static struct resource pwrsrc_resources[] = {
+> +	DEFINE_RES_IRQ(DC_TI_VBUSDET),
+> +};
+> +
+> +static struct resource battery_resources[] = {
+> +	DEFINE_RES_IRQ(DC_TI_VBATLOW),
+> +	DEFINE_RES_IRQ(DC_TI_CCEOCAL),
+> +};
+
+Nice.  Thanks for using those.
+
+> +static struct mfd_cell dc_ti_dev[] = {
+> +	{
+> +		.name = "dc_ti_pwrbtn",
+> +		.num_resources = ARRAY_SIZE(power_button_resources),
+> +		.resources = power_button_resources,
+> +	},
+> +	{
+
+Place these on the same line.
+
+> +		.name = "dc_ti_adc",
+> +		.num_resources = ARRAY_SIZE(adc_resources),
+> +		.resources = adc_resources,
+> +	},
+> +	{
+> +		.name = "dc_ti_thermal",
+> +		.num_resources = ARRAY_SIZE(thermal_resources),
+> +		.resources = thermal_resources,
+> +	},
+> +	{
+> +		.name = "dc_ti_pwrsrc",
+> +		.num_resources = ARRAY_SIZE(pwrsrc_resources),
+> +		.resources = pwrsrc_resources,
+> +	},
+> +	{
+> +		.name = "dc_ti_battery",
+> +		.num_resources = ARRAY_SIZE(battery_resources),
+> +		.resources = battery_resources,
+> +	},
+> +	{
+> +		.name = "dc_ti_region",
+> +	},
+
+This should be a one line entry:
+
+	{ .name = "dc_ti_region" },
+
+> +};
+> +
+> +static const struct regmap_config dc_ti_regmap_config = {
+> +	.reg_bits = 8,
+> +	.val_bits = 8,
+> +	.max_register = 128,
+> +	.cache_type = REGCACHE_NONE,
+> +};
+> +
+> +static const struct regmap_irq dc_ti_irqs[] = {
+> +	REGMAP_IRQ_REG(DC_TI_PWRBTN, 0, BIT(DC_TI_PWRBTN)),
+> +	REGMAP_IRQ_REG(DC_TI_DIETMPWARN, 0, BIT(DC_TI_DIETMPWARN)),
+> +	REGMAP_IRQ_REG(DC_TI_ADCCMPL, 0, BIT(DC_TI_ADCCMPL)),
+> +	REGMAP_IRQ_REG(DC_TI_VBATLOW, 0, BIT(DC_TI_VBATLOW)),
+> +	REGMAP_IRQ_REG(DC_TI_VBUSDET, 0, BIT(DC_TI_VBUSDET)),
+> +	REGMAP_IRQ_REG(DC_TI_CCEOCAL, 0, BIT(DC_TI_CCEOCAL)),
+> +};
+> +
+> +static const struct regmap_irq_chip dc_ti_irq_chip = {
+> +	.name = KBUILD_MODNAME,
+> +	.irqs = dc_ti_irqs,
+> +	.num_irqs = ARRAY_SIZE(dc_ti_irqs),
+> +	.num_regs = 1,
+> +	.status_base = DC_TI_IRQLVL1,
+> +	.mask_base = DC_TI_MASK_IRQLVL1,
+> +	.ack_base = DC_TI_IRQLVL1,
+> +};
+> +
+> +static int dc_ti_probe(struct i2c_client *i2c)
+> +{
+> +	struct device *dev = &i2c->dev;
+> +	struct intel_soc_pmic *pmic;
+> +	int ret;
+> +
+> +	pmic = devm_kzalloc(dev, sizeof(*pmic), GFP_KERNEL);
+> +	if (!pmic)
+> +		return -ENOMEM;
+> +
+> +	i2c_set_clientdata(i2c, pmic);
+> +
+> +	pmic->regmap = devm_regmap_init_i2c(i2c, &dc_ti_regmap_config);
+> +	if (IS_ERR(pmic->regmap))
+> +		return PTR_ERR(pmic->regmap);
+> +	pmic->irq = i2c->irq;
+> +
+> +	ret = devm_regmap_add_irq_chip(dev, pmic->regmap, pmic->irq,
+> +				       IRQF_ONESHOT, 0,
+> +				       &dc_ti_irq_chip, &pmic->irq_chip_data);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE, dc_ti_dev,
+> +				    ARRAY_SIZE(dc_ti_dev), NULL, 0,
+> +				    regmap_irq_get_domain(pmic->irq_chip_data));
+> +}
+> +
+> +static void dc_ti_shutdown(struct i2c_client *i2c)
+> +{
+> +	struct intel_soc_pmic *pmic = i2c_get_clientdata(i2c);
+> +
+> +	disable_irq(pmic->irq);
+> +}
+> +
+> +static int __maybe_unused dc_ti_suspend(struct device *dev)
+> +{
+> +	struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
+> +
+> +	disable_irq(pmic->irq);
+
+'\n' here.
+
+> +	return 0;
+> +}
+> +
+> +static int __maybe_unused dc_ti_resume(struct device *dev)
+> +{
+> +	struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
+> +
+> +	enable_irq(pmic->irq);
+
+'\n' here.
+
+> +	return 0;
+> +}
+> +
+> +static SIMPLE_DEV_PM_OPS(dc_ti_pm_ops, dc_ti_suspend, dc_ti_resume);
+> +
+> +static const struct acpi_device_id dc_ti_acpi_ids[] = {
+> +	{ "INT33F5" },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(acpi, dc_ti_acpi_ids);
+> +
+> +static struct i2c_driver dc_ti_i2c_driver = {
+> +	.driver = {
+> +		.name = KBUILD_MODNAME,
+
+This makes grepping for device/driver matches difficult.  Please just
+use the raw "" string.
+
+> +		.pm = &dc_ti_pm_ops,
+> +		.acpi_match_table = dc_ti_acpi_ids,
+> +	},
+> +	.probe_new = dc_ti_probe,
+> +	.shutdown = dc_ti_shutdown,
+> +};
+> +module_i2c_driver(dc_ti_i2c_driver);
+> +
+> +MODULE_DESCRIPTION("I2C driver for Intel SoC Dollar Cove TI PMIC");
+> +MODULE_LICENSE("GPL v2");
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
