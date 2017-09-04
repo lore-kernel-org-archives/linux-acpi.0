@@ -1,70 +1,165 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v2] kaslr: get ACPI SRAT table to avoid movable memory
-Date: Mon, 4 Sep 2017 17:03:57 +0800
-Message-ID: <20170904090357.GB10604@localhost.localdomain>
-References: <20170903143123.22031-1-fanc.fnst@cn.fujitsu.com>
- <2895411.GR6mzpbNLk@aspire.rjw.lan>
- <20170904022619.GB30906@x1>
- <4f2f9d6e-8d6e-e518-bcb6-493d898b7341@cn.fujitsu.com>
- <20170904083914.GD30906@x1>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [RFT][PATCH v2 2/2] PM / i2c: designware: Clean up system sleep handling without ACPI
+Date: Mon, 04 Sep 2017 12:01:54 +0200
+Message-ID: <1729594.8Da7J7iljp@aspire.rjw.lan>
+References: <3023226.l5IfJK6GIc@aspire.rjw.lan> <6044272.h4jTMoqRfC@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170904083914.GD30906@x1>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Baoquan He <bhe@redhat.com>
-Cc: Dou Liyang <douly.fnst@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, keescook@chromium.org, arnd@arndb.de, dyoung@redhat.com, dave.jiang@intel.com, lv.zheng@intel.com, indou.takao@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, yasu.isimatu@gmail.com
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:41439 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753344AbdIDKKn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Sep 2017 06:10:43 -0400
+In-Reply-To: <6044272.h4jTMoqRfC@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pm@vger.kernel.org, linux-i2c@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On Mon, Sep 04, 2017 at 04:39:14PM +0800, Baoquan He wrote:
->On 09/04/17 at 04:17pm, Dou Liyang wrote:
->> With "movable_node=1024M" option in cmdline, KASLR will can't access
->> the node3 memory.
->
->So you have extended the movable_node option from no value specified to
->adding a limit value, then why don't you go one step further to extend
->it as movable_node=xxx@start. With this, you can eat the cake you have.
->
->My personal opinion, could that other peopel have better idea. But dig
->into acpi tables to grab the srat table, that is really not a good idea.
->
->Chao has spent time to know the srat table, maybe he can try to make a
->patch with the "movable_node=xxx@start" handling in kaslr.c, let's see
->what it looks like.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Hi Bao
+After commit a23318feeff6 (i2c: designware: Fix system suspend)
+the i2c-designware-platdrv driver always resumes the device in its
+system sleep ->suspend callback which isn't particularly nice,
+even though it is technically correct.
 
-That means the user should know the detail information of the srat
-table, including the memory location and length. But I have no idea
-that if it's elegant leaving it for users to fill the parameter.
-BTW, it may be like this: "movable_node=xxx@start,xxx@start,..."
-And I was also wondering if anyone has a better solution.
+A better approach would be to make the driver track the PM state of
+the device so that it doesn't need to resume it in ->suspend and
+to drop its ->prepare and ->complete callbacks which are only
+marginally useful, so implement that.
 
-Thanks,
-Chao Fan
+First, drop dw_i2c_plat_suspend() added by commit a23318feeff6 and
+rename dw_i2c_plat_runtime_suspend() back to dw_i2c_plat_suspend().
 
->
->Thanks
->Baoquan
->
->> 
->> I am looking for the solution of this. Not find a good way.
->> 
->> Sometimes, I will remember that proverb:
->> 
->>   You cannot have your cake and eat it too. :-)
->> 
->> Thanks,
->> 	dou.
->> > touch ACPI tables with so many lines of code.
->> > 
->> > Thanks
->> > Baoquan
->> > 
->> > 
->> > 
->> 
->> 
->
->
+Second, point the driver's ->late_suspend and ->early_resume
+callbacks, rather than its ->suspend and ->resume callbacks,
+to dw_i2c_plat_suspend() and dw_i2c_plat_resume(), respectively,
+so that they are not executed in parallel with each other, for
+example if runtime resume of the device takes place during system
+suspend.
+
+Next, add "suspended" and "skip_resume" flags to struct dw_i2c_dev
+and make dw_i2c_plat_suspend() and dw_i2c_plat_resume() use them to
+avoid suspending or resuming the device twice in a row and to avoid
+resuming a previously runtime-suspended device during system resume.
+
+Finally, drop the driver's ->prepare and ->complete PM callbacks,
+because returning "true" from ->prepare for runtime-suspended
+devices is marginally useful (the PM core may still ignore that
+return value and invoke the driver's ->suspend callback anyway)
+and ->complete is only needed because of what ->prepare does.
+
+Overrides: a23318feeff6 (i2c: designware: Fix system suspend)
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+-> v2: Add the "suspended" flag, which is needed, because
+       dw_i2c_plat_suspend() doesn't update the runtime PM
+       status of the device, so dw_i2c_plat_resume() can't
+       rely on the pm_runtime_status_suspended() check
+       during system resume.
+
+---
+ drivers/i2c/busses/i2c-designware-core.h    |    2 +
+ drivers/i2c/busses/i2c-designware-platdrv.c |   51 ++++++++++------------------
+ 2 files changed, 22 insertions(+), 31 deletions(-)
+
+Index: linux-pm/drivers/i2c/busses/i2c-designware-core.h
+===================================================================
+--- linux-pm.orig/drivers/i2c/busses/i2c-designware-core.h
++++ linux-pm/drivers/i2c/busses/i2c-designware-core.h
+@@ -280,6 +280,8 @@ struct dw_i2c_dev {
+ 	int			(*acquire_lock)(struct dw_i2c_dev *dev);
+ 	void			(*release_lock)(struct dw_i2c_dev *dev);
+ 	bool			pm_disabled;
++	bool			suspended;
++	bool			skip_resume;
+ 	void			(*disable)(struct dw_i2c_dev *dev);
+ 	void			(*disable_int)(struct dw_i2c_dev *dev);
+ 	int			(*init)(struct dw_i2c_dev *dev);
+Index: linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
+===================================================================
+--- linux-pm.orig/drivers/i2c/busses/i2c-designware-platdrv.c
++++ linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
+@@ -434,31 +434,22 @@ static const struct of_device_id dw_i2c_
+ MODULE_DEVICE_TABLE(of, dw_i2c_of_match);
+ #endif
+ 
+-#ifdef CONFIG_PM_SLEEP
+-static int dw_i2c_plat_prepare(struct device *dev)
+-{
+-	return pm_runtime_suspended(dev);
+-}
+-
+-static void dw_i2c_plat_complete(struct device *dev)
+-{
+-	if (dev->power.direct_complete)
+-		pm_request_resume(dev);
+-}
+-#else
+-#define dw_i2c_plat_prepare	NULL
+-#define dw_i2c_plat_complete	NULL
+-#endif
+-
+ #ifdef CONFIG_PM
+-static int dw_i2c_plat_runtime_suspend(struct device *dev)
++static int dw_i2c_plat_suspend(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct dw_i2c_dev *i_dev = platform_get_drvdata(pdev);
+ 
++	if (i_dev->suspended) {
++		i_dev->skip_resume = true;
++		return 0;
++	}
++
+ 	i_dev->disable(i_dev);
+ 	i2c_dw_plat_prepare_clk(i_dev, false);
+ 
++	i_dev->suspended = true;
++
+ 	return 0;
+ }
+ 
+@@ -467,27 +458,25 @@ static int dw_i2c_plat_resume(struct dev
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct dw_i2c_dev *i_dev = platform_get_drvdata(pdev);
+ 
++	if (!i_dev->suspended)
++		return 0;
++
++	if (i_dev->skip_resume) {
++		i_dev->skip_resume = false;
++		return 0;
++	}
++
+ 	i2c_dw_plat_prepare_clk(i_dev, true);
+ 	i_dev->init(i_dev);
+ 
+-	return 0;
+-}
++	i_dev->suspended = false;
+ 
+-#ifdef CONFIG_PM_SLEEP
+-static int dw_i2c_plat_suspend(struct device *dev)
+-{
+-	pm_runtime_resume(dev);
+-	return dw_i2c_plat_runtime_suspend(dev);
++	return 0;
+ }
+-#endif
+ 
+ static const struct dev_pm_ops dw_i2c_dev_pm_ops = {
+-	.prepare = dw_i2c_plat_prepare,
+-	.complete = dw_i2c_plat_complete,
+-	SET_SYSTEM_SLEEP_PM_OPS(dw_i2c_plat_suspend, dw_i2c_plat_resume)
+-	SET_RUNTIME_PM_OPS(dw_i2c_plat_runtime_suspend,
+-			   dw_i2c_plat_resume,
+-			   NULL)
++	SET_LATE_SYSTEM_SLEEP_PM_OPS(dw_i2c_plat_suspend, dw_i2c_plat_resume)
++	SET_RUNTIME_PM_OPS(dw_i2c_plat_suspend, dw_i2c_plat_resume, NULL)
+ };
+ 
+ #define DW_I2C_DEV_PMOPS (&dw_i2c_dev_pm_ops)
+
