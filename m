@@ -1,211 +1,177 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2] platform/x86: intel_cht_int33fe: Work around BIOS bug
- on some devices
-Date: Mon, 4 Sep 2017 20:01:36 +0300
-Message-ID: <CAHp75VfW2K_fT7A-z3DCind3wj3haHwe3NM-xtOfGoJt5VVO6g@mail.gmail.com>
-References: <20170902162040.18565-1-hdegoede@redhat.com> <1504527787.25945.219.camel@linux.intel.com>
- <3c60c7b3-a712-c61f-53b8-54dba850a8bc@redhat.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v6 3/3] iommu/arm-smmu-v3:Enable ACPI based HiSilicon
+	erratum 161010801
+Date: Mon, 4 Sep 2017 18:09:28 +0100
+Message-ID: <20170904170928.GB20601@red-moon>
+References: <20170809100715.870516-1-shameerali.kolothum.thodi@huawei.com>
+	<20170809100715.870516-4-shameerali.kolothum.thodi@huawei.com>
+	<20170810172723.GD9980@arm.com>
+	<47b8bf19-abad-3503-2e1c-b9d1304a157e@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:32830 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753847AbdIDRBi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Sep 2017 13:01:38 -0400
-In-Reply-To: <3c60c7b3-a712-c61f-53b8-54dba850a8bc@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <47b8bf19-abad-3503-2e1c-b9d1304a157e-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Mon, Sep 4, 2017 at 3:47 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
-> On 04-09-17 14:23, Andy Shevchenko wrote:
->>
->> On Sat, 2017-09-02 at 18:20 +0200, Hans de Goede wrote:
->>>
->>> At least one BIOS enumerates the max17047 both through the INT33FE
->>> ACPI
->>> device (it is right there in the resources table) as well as through a
->>> separate MAX17047 device.
->>>
->>> This commit checks for the max17047 already being enumerated through
->>> a separate MAX17047 ACPI device and if so it uses the i2c-client
->>> instantiated for this and attaches the device-props for the max17047
->>> to
->>> that i2c-client.
->>
->>
->> This one looks acceptable wrt buggy BIOS workaround, few comments below
->> (I can do it when applying)
->
->
-> The suggested comments are fine with me, feel free to fix
-> those up while applying.
+On Fri, Sep 01, 2017 at 09:46:00AM +0100, John Garry wrote:
+> On 10/08/2017 18:27, Will Deacon wrote:
+> >On Wed, Aug 09, 2017 at 11:07:15AM +0100, Shameer Kolothum wrote:
+> >>The HiSilicon erratum 161010801 describes the limitation of HiSilicon
+> >>platforms Hip06/Hip07 to support the SMMU mappings for MSI transactions.
+> >>
+> >>On these platforms GICv3 ITS translator is presented with the deviceID
+> >>by extending the MSI payload data to 64 bits to include the deviceID.
+> >>Hence, the PCIe controller on this platforms has to differentiate the
+> >>MSI payload against other DMA payload and has to modify the MSI payload.
+> >>This basically makes it difficult for this platforms to have a SMMU
+> >>translation for MSI.
+> >>
+> >>This patch implements a ACPI table based quirk to reserve the hw msi
+> >>regions in the smmu-v3 driver which means these address regions will
+> >>not be translated and will be excluded from iova allocations.
+> >>
+> >>Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> >>---
+> >> drivers/iommu/arm-smmu-v3.c | 27 ++++++++++++++++++++++-----
+> >> 1 file changed, 22 insertions(+), 5 deletions(-)
+> >
+> >Please can you also add a devicetree binding with corresponding
+> >documentation to enable this workaround on non-ACPI based systems too? It
+> >should be straightforward if you update the arm_smmu_options table.
+> >
+> 
+> Hi Will, Lorenzo, Robin,
+> 
+> I have created the patch to add DT support for this erratum.
+> However, currently I have only added support for pci-based devices.
+> I'm a bit stumped on how to add platform device support, or if we
+> should also add support at all. And I would rather ask before
+> sending the patches.
+> 
+> The specific issue is that I know of no platform device with an ITS
+> msi-parent which we would want reserve, i.e. do not translate msi.
+> And, if there were, how to do it.
+> 
+> The only platform devices I know off with msi ITS parents are SMMUv3
+> and mbigen. For mbigen, the msi are not translated. Actually, as I
+> see under IORT solution, for mbigen we don't reserve the hw msi
+> region as the SMMUv3 does not have an ID mapping. And we have no
+> equivalent ID mapping property for DT SMMUv3, so cannot create an
+> equivalent check.
+> 
+> So here is how the DT iommu get reserved region function with only
+> pci device support looks:
+> 
+> /**
+>  * of_iommu_its_get_resv_regions - Reserved region driver helper
+>  * @dev: Device from iommu_get_resv_regions()
+>  * @list: Reserved region list from iommu_get_resv_regions()
+>  *
+>  * Returns: Number of reserved regions on success(0 if no associated ITS),
+>  *          appropriate error value otherwise.
+>  */
+> int of_iommu_its_get_resv_regions(struct device *dev, struct
+> list_head *head)
+> {
+>     struct device_node *of_node = NULL;
+>     struct device *parent_dev;
+>     const __be32 *msi_map;
+>     int num_mappings, i, err, len, resv = 0;
+> 
+>     /* walk up to find the parent with a msi-map property */
+>     for (parent_dev = dev; parent_dev; parent_dev = parent_dev->parent) {
+>         if (!parent_dev->of_node)
+>             continue;
+> 
+>         /*
+>          * Current logic to reserve ITS regions for only PCI root
+>          * complex.
+>          */
+>         msi_map = of_get_property(parent_dev->of_node, "msi-map", &len);
+>         if (msi_map) {
+>             of_node = parent_dev->of_node;
+>             break;
+>         }
+>     }
+> 
+>     if (!of_node)
+>         return 0;
+> 
+>     num_mappings = of_count_phandle_with_args(of_node, "msi-map",
+> NULL) / 4;
+> 
+>     for (i = 0; i < num_mappings; i++) {
+>         int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+>         struct iommu_resv_region *region;
+>         struct device_node *msi_node;
+>         struct resource resource;
+>         u32 phandle;
+> 
+>         phandle = be32_to_cpup(msi_map + 1);
+>         msi_node = of_find_node_by_phandle(phandle);
+>         if (!msi_node)
+>             return -ENODEV;
+> 
+>         /*
+>          * There may be different types of msi-controller, so check
+>          * for ITS.
+>          */
+>         if (!of_device_is_compatible(msi_node, "arm,gic-v3-its")) {
+>             of_node_put(msi_node);
+>             continue;
+>         }
+> 
+>         err = of_address_to_resource(msi_node, 0, &resource);
+> 
+>         of_node_put(msi_node);
+>         if (err)
+>             return err;
+> 
+>         region = iommu_alloc_resv_region(resource.start, SZ_128K, prot,
+>                          IOMMU_RESV_MSI);
+>         if (region) {
+>             list_add_tail(&region->list, head);
+>             resv++;
+>         }
+>     }
+> 
+>     return (resv == num_mappings) ? resv : -ENODEV;
+> }
+> 
+> Any feedback is appreciated.
 
-Pushed to review-andy.
+Hi John,
 
->
-> Thanks & Regards,
->
-> Hans
->
->
->
->
->>
->>>
->>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->>> ---
->>> Changes in v2:
->>> -Check acpi_companion HID instead of dev_name
->>> ---
->>>   drivers/platform/x86/intel_cht_int33fe.c | 71
->>> +++++++++++++++++++++++++++-----
->>>   1 file changed, 61 insertions(+), 10 deletions(-)
->>>
->>> diff --git a/drivers/platform/x86/intel_cht_int33fe.c
->>> b/drivers/platform/x86/intel_cht_int33fe.c
->>> index da706e2c4232..a9cbc4b8ca63 100644
->>> --- a/drivers/platform/x86/intel_cht_int33fe.c
->>> +++ b/drivers/platform/x86/intel_cht_int33fe.c
->>> @@ -34,6 +34,42 @@ struct cht_int33fe_data {
->>>         struct i2c_client *pi3usb30532;
->>>   };
->>>   +/*
->>> + * Grrr I severly dislike buggy BIOS-es. At least one BIOS enumerates
->>> + * the max17047 both through the INT33FE ACPI device (it is right
->>> there
->>> + * in the resources table) as well as through a separate MAX17047
->>> device.
->>> + *
->>> + * These helpers are used to work around this by checking if an i2c-
->>> client
->>> + * for the max17047 has already been registered.
->>> + */
->>> +int cht_int33fe_check_for_max17047(struct device *dev, void *data)
->>> +{
->>> +       struct acpi_device *companion = ACPI_COMPANION(dev);
->>> +       struct i2c_client **max17047 = data;
->>> +       const char *hid;
->>> +
->>
->>
->> I would assign companion right here.
->>>
->>> +       if (!companion)
->>> +               return 0;
->>> +
->>> +       hid = acpi_device_hid(companion);
->>> +
->>> +       /* The MAX17047 ACPI node doesn't have an UID, so we don't
->>> check that */
->>
->>
->>> +       if (strcmp(hid, "MAX17047") == 0) {
->>
->>
->> if (strcmp())
->>   return 0;
->>
->> ?
->>
->>> +               *max17047 = to_i2c_client(dev);
->>> +               return 1;
->>> +       }
->>> +
->>> +       return 0;
->>> +}
->>> +
->>> +struct i2c_client *cht_int33fe_find_max17047(void)
->>> +{
->>> +       struct i2c_client *max17047 = NULL;
->>> +
->>> +       i2c_for_each_dev(&max17047, cht_int33fe_check_for_max17047);
->>> +       return max17047;
->>> +}
->>> +
->>>   static const char * const max17047_suppliers[] = { "bq24190-charger"
->>> };
->>>     static const struct property_entry max17047_props[] = {
->>> @@ -46,9 +82,10 @@ static int cht_int33fe_probe(struct i2c_client
->>> *client)
->>>         struct device *dev = &client->dev;
->>>         struct i2c_board_info board_info;
->>>         struct cht_int33fe_data *data;
->>> +       struct i2c_client *max17047;
->>>         unsigned long long ptyp;
->>>         acpi_status status;
->>> -       int fusb302_irq;
->>> +       int ret, fusb302_irq;
->>>         status = acpi_evaluate_integer(ACPI_HANDLE(dev), "PTYP",
->>> NULL, &ptyp);
->>>         if (ACPI_FAILURE(status)) {
->>> @@ -75,13 +112,25 @@ static int cht_int33fe_probe(struct i2c_client
->>> *client)
->>>         if (!data)
->>>                 return -ENOMEM;
->>>   -     memset(&board_info, 0, sizeof(board_info));
->>> -       strlcpy(board_info.type, "max17047", I2C_NAME_SIZE);
->>> -       board_info.properties = max17047_props;
->>> -
->>> -       data->max17047 = i2c_acpi_new_device(dev, 1, &board_info);
->>> -       if (!data->max17047)
->>> -               return -EPROBE_DEFER; /* Wait for the i2c-adapter to
->>> load */
->>> +       /* Work around BIOS bug, see comment on
->>> cht_int33fe_find_max17047 */
->>> +       max17047 = cht_int33fe_find_max17047();
->>> +       if (max17047) {
->>> +               /* Pre-existing i2c-client for the max17047, add
->>> device-props */
->>> +               ret = device_add_properties(&max17047->dev,
->>> max17047_props);
->>> +               if (ret)
->>> +                       return ret;
->>> +               /* And re-probe to get the new device-props applied.
->>> */
->>> +               ret = device_reprobe(&max17047->dev);
->>> +               if (ret)
->>> +                       dev_warn(dev, "Reprobing max17047 error:
->>> %d\n", ret);
->>> +       } else {
->>> +               memset(&board_info, 0, sizeof(board_info));
->>> +               strlcpy(board_info.type, "max17047", I2C_NAME_SIZE);
->>> +               board_info.properties = max17047_props;
->>> +               data->max17047 = i2c_acpi_new_device(dev, 1,
->>> &board_info);
->>> +               if (!data->max17047)
->>> +                       return -EPROBE_DEFER; /* Wait for i2c-adapter
->>> to load */
->>> +       }
->>>         memset(&board_info, 0, sizeof(board_info));
->>>         strlcpy(board_info.type, "fusb302", I2C_NAME_SIZE);
->>> @@ -106,7 +155,8 @@ static int cht_int33fe_probe(struct i2c_client
->>> *client)
->>>         i2c_unregister_device(data->fusb302);
->>>     out_unregister_max17047:
->>> -       i2c_unregister_device(data->max17047);
->>> +       if (data->max17047)
->>> +               i2c_unregister_device(data->max17047);
->>>         return -EPROBE_DEFER; /* Wait for the i2c-adapter to load */
->>>   }
->>> @@ -117,7 +167,8 @@ static int cht_int33fe_remove(struct i2c_client
->>> *i2c)
->>>         i2c_unregister_device(data->pi3usb30532);
->>>         i2c_unregister_device(data->fusb302);
->>> -       i2c_unregister_device(data->max17047);
->>> +       if (data->max17047)
->>> +               i2c_unregister_device(data->max17047);
->>>         return 0;
->>>   }
->>
->>
->
+I appreciate it is not trivial to make the code generic, part of the
+snippet above can be shared between ACPI/IORT and OF, the only sticking
+point is probably the "compatible" string that has to be parameterized
+since having this code in generic IOMMU layer is a bit horrible to
+have it ITS specific (and it is a problem that was existing already
+in the original patch with the hardcoded ITS node type or function
+name).
 
+To sum it up the hook:
 
+- has to be called from SMMU driver in a firmware agnostic way
+- somehow it has to ascertain which interrupt controller "compatible"
+  (which in IORT is a node type) to match against so the hook has to
+  take an id of sorts
 
--- 
-With Best Regards,
-Andy Shevchenko
+I need to go back and have a look at the original patch to see how
+we can accommodate both OF/ACPI - certainly the region reservations
+code can and should be shared.
+
+Lorenzo
