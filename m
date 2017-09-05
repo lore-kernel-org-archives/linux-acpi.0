@@ -1,80 +1,108 @@
-From: <ecaterinasuciu09@yahoo.com>
-Subject: (unknown)
-Date: Tue, 05 Sep 2017 14:02:16 -0000
-Message-ID: <150462013645.24719.5739552604980131465@hinet.net>
-Reply-To: <ecaterinasuciu09@yahoo.com>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [RFT][PATCH 1/2] i2c: designware: Clean up PM handling in
+ dw_i2c_plat_probe()
+Date: Tue, 5 Sep 2017 17:40:22 +0300
+Message-ID: <f740420f-b740-3562-f849-ac8af6685f19@linux.intel.com>
+References: <3023226.l5IfJK6GIc@aspire.rjw.lan>
+ <57866801.UnLEtqmHq8@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: application/zip; name="7_linux-acpi.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 218-166-81-6.dynamic-ip.hinet.net ([218.166.81.6]:48082 "HELO
-        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751662AbdIEOCf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 5 Sep 2017 10:02:35 -0400
-Subject: 
-Content-Disposition: attachment
+Received: from mga09.intel.com ([134.134.136.24]:38389 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751031AbdIEOk2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 5 Sep 2017 10:40:28 -0400
+In-Reply-To: <57866801.UnLEtqmHq8@aspire.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-pm@vger.kernel.org, linux-i2c@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>
 
-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
-AAEAAQBPAAAABg0AAAAA
+Hi
+
+On 09/04/2017 02:08 AM, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> The power management handling in dw_i2c_plat_probe() is somewhat
+> messy and it is rather hard to figure out the code intention for
+> the case when pm_disabled is set.  In that case, the driver doesn't
+> enable runtime PM at all, but in addition to that it calls
+> pm_runtime_forbid() as though it wasn't sure if runtime PM might
+> be enabled for the device later by someone else.
+> 
+> Although that concern doesn't seem to be actually valid, the
+> device is clearly still expected to be PM-capable even in the
+> pm_disabled set case, so a better approach would be to enable
+> runtime PM for it unconditionally and then prevent it from
+> being runtime suspended by using pm_runtime_forbid().
+> 
+> Make the driver do that as that will help to clean up its system
+> sleep handling in a relatively straightforward way.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>   drivers/i2c/busses/i2c-designware-platdrv.c |   36 +++++++++++++++++++---------
+>   1 file changed, 25 insertions(+), 11 deletions(-)
+> 
+> Index: linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
+> ===================================================================
+> --- linux-pm.orig/drivers/i2c/busses/i2c-designware-platdrv.c
+> +++ linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
+> @@ -249,6 +249,16 @@ static void dw_i2c_set_fifo_size(struct
+>   	}
+>   }
+>   
+> +static void dw_i2c_plat_pm_cleanup(struct dw_i2c_dev *dev)
+> +{
+> +	pm_runtime_get_noresume(dev->dev);
+> +	if (dev->pm_disabled)
+> +		pm_runtime_allow(dev->dev);
+> +
+> +	pm_runtime_disable(dev->dev);
+> +	pm_runtime_put_noidle(dev->dev);
+> +}
+> +
+>   static int dw_i2c_plat_probe(struct platform_device *pdev)
+>   {
+>   	struct dw_i2c_platform_data *pdata = dev_get_platdata(&pdev->dev);
+> @@ -362,14 +372,19 @@ static int dw_i2c_plat_probe(struct plat
+>   	ACPI_COMPANION_SET(&adap->dev, ACPI_COMPANION(&pdev->dev));
+>   	adap->dev.of_node = pdev->dev.of_node;
+>   
+> -	if (dev->pm_disabled) {
+> +	/* The code below assumes runtime PM to be disabled. */
+> +	WARN_ON(pm_runtime_enabled(&pdev->dev));
+> +
+> +	pm_runtime_set_autosuspend_delay(&pdev->dev, 1000);
+> +	pm_runtime_use_autosuspend(&pdev->dev);
+> +	pm_runtime_set_active(&pdev->dev);
+> +
+> +	pm_runtime_get_noresume(&pdev->dev);
+> +	pm_runtime_enable(&pdev->dev);
+> +	if (dev->pm_disabled)
+>   		pm_runtime_forbid(&pdev->dev);
+> -	} else {
+> -		pm_runtime_set_autosuspend_delay(&pdev->dev, 1000);
+> -		pm_runtime_use_autosuspend(&pdev->dev);
+> -		pm_runtime_set_active(&pdev->dev);
+> -		pm_runtime_enable(&pdev->dev);
+> -	}
+> +
+> +	pm_runtime_put_noidle(&pdev->dev);
+>   
+Is pm_runtime_get_noresume()/pm_runtime_put_noidle() cycle needed here? 
+My vague memory tells platform device won't power off instantly because 
+of plain pm_runtime_enable() even if dev->power.usage_count is zero.
+
+I guess it was the pm_request_idle() in driver_probe_device() that 
+triggered the power transition after probe.
+
+drivers/base/dd.c: driver_probe_device():
+	pm_runtime_barrier(dev);
+	ret = really_probe(dev, drv);
+	pm_request_idle(dev);
+
+-- 
+Jarkko
