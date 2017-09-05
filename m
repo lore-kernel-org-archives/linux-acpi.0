@@ -1,104 +1,59 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v6 4/7] arm64: kvm: support user space to query RAS
- extension feature
-Date: Tue, 5 Sep 2017 15:18:19 +0800
-Message-ID: <29951852-8d91-7c33-c68b-ad8b4bbdea54@huawei.com>
-References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
- <1503916701-13516-5-git-send-email-gengdongjiu@huawei.com>
- <59A84F9D.8030309@arm.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v5 1/3] mfd: Add support for Cherry Trail Dollar Cove TI
+ PMIC
+Date: Tue, 5 Sep 2017 08:24:51 +0100
+Message-ID: <20170905072451.ephscqjqgwpnl6da@dell>
+References: <20170904144340.27693-1-tiwai@suse.de>
+ <20170904144340.27693-2-tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <59A84F9D.8030309@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: wangkefeng.wang@huawei.com, kvm@vger.kernel.org, david.daney@cavium.com, catalin.marinas@arm.com, tbaicar@codeaurora.org, will.deacon@arm.com, linuxarm@huawei.com, robert.moore@intel.com, lv.zheng@intel.com, zjzhang@codeaurora.org, mingo@kernel.org, stefan@hello-penguin.com, linux@armlinux.org.uk, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, huangshaoyu@huawei.com, huangdaode@hisilicon.com, bp@suse.de, Dave.Martin@arm.com, lenb@kernel.org, wuquanming@huawei.com, marc.zyngier@arm.com, john.garry@huawei.com, kristina.martsenko@arm.com, cov@codeaurora.org, jonathan.cameron@huawei.com, zhengqiang10@huawei.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, ard.biesheuvel@linaro.org, linux-kernel@vger.kernel.org, wangzhou1@hisilicon.com, mst@redhat.com, shiju.jose@huawei.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170904144340.27693-2-tiwai@suse.de>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-James,
+On Mon, 04 Sep 2017, Takashi Iwai wrote:
 
-On 2017/9/1 2:04, James Morse wrote:
-> Hi Dongjiu Geng,
+> This patch adds the MFD driver for Dollar Cove (TI version) PMIC with
+> ACPI INT33F5 that is found on some Intel Cherry Trail devices.
+> The driver is based on the original work by Intel, found at:
+>   https://github.com/01org/ProductionKernelQuilts
 > 
-> On 28/08/17 11:38, Dongjiu Geng wrote:
->> In ARMV8.2 RAS extension, a virtual SError exception syndrome
->> register(VSESR_EL2) is added.  This value may be specified from
->> userspace.
+> This is a minimal version for adding the basic resources.  Currently,
+> only ACPI PMIC opregion and the external power-button are used.
 > 
-> I agree that the CPU support for injecting SErrors with a specified ESR should
-> be exposed to KVM's user space...
-Ok, thanks.
+> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=193891
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> Signed-off-by: Takashi Iwai <tiwai@suse.de>
+> ---
+> v4->v5:
+> * Minor coding-style fixes suggested by Lee
+> * Put GPL text
+> v3->v4:
+> * no change for this patch
+> v2->v3:
+> * Rename dc_ti with chtdc_ti in all places
+> * Driver/kconfig renames accordingly
+> * Added acks by Andy and Mika
+> v1->v2:
+> * Minor cleanups as suggested by Andy
+> 
+>  drivers/mfd/Kconfig                   |  13 +++
+>  drivers/mfd/Makefile                  |   1 +
+>  drivers/mfd/intel_soc_pmic_chtdc_ti.c | 184 ++++++++++++++++++++++++++++++++++
+>  3 files changed, 198 insertions(+)
+>  create mode 100644 drivers/mfd/intel_soc_pmic_chtdc_ti.c
 
-> 
-> 
->> Userspace will want to check if the CPU has the RAS
->> extension. 
-> 
-> ... but user-space wants to know if it can inject SErrors with a specified ESR.
-> 
-> What if we gain another way of doing this that isn't via the RAS-extensions, now
-> user-space has to check for two capabilities.
-> 
-> 
->> If it has, it wil specify the virtual SError syndrome
->> value, otherwise it will not be set. This patch adds support for
->> querying the availability of this extension.
-> 
-> I'm against telling user-space what features the CPU has unless it can use them
-> directly. In this case we are talking about a KVM API, so we should describe the
-> API not the CPU.
+For my own reference:
+  Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
 
-shenglong (zhaoshenglong@huawei.com) who is Qemu maintainer suggested checking the CPU RAS-extensions
-to decide whether generate the APEI table and record CPER for the guest OS in the user space.
-he means if the host does not support RAS, user space may also not support RAS.
-
-> 
-> 
->> diff --git a/arch/arm64/kvm/reset.c b/arch/arm64/kvm/reset.c
->> index 3256b9228e75..b7313ee028e9 100644
->> --- a/arch/arm64/kvm/reset.c
->> +++ b/arch/arm64/kvm/reset.c
->> @@ -77,6 +77,9 @@ int kvm_arch_dev_ioctl_check_extension(struct kvm *kvm, long ext)
->>  	case KVM_CAP_ARM_PMU_V3:
->>  		r = kvm_arm_support_pmu_v3();
->>  		break;
->> +	case KVM_CAP_ARM_RAS_EXTENSION:
-> 
-> This should be called something more like 'KVM_CAP_ARM_INJECT_SERROR_ESR'
-I understand your suggestion.
-
-> 
-> 
->> +		r = cpus_have_const_cap(ARM64_HAS_RAS_EXTN);
->> +		break;
->>  	case KVM_CAP_SET_GUEST_DEBUG:
->>  	case KVM_CAP_VCPU_ATTRIBUTES:
->>  		r = 1;
-> 
-> 
-> We can inject SError on systems without the RAS extensions using just the
-> HCR_EL2.VSE bit. We may want to make the 'ESR' part of the API optional, or
-> expose '1' for the without-ESR version and '2 for with-ESR, (however we choose
-> to implement that).
-> 
-> The risk is if we want to add a without-ESR version later, and the name we make
-> ABI now turned out to be a mistake. Marc or Christoffer probably have the best
-> view of this. (no-one has needed it so far...)
-> 
-> 
-> Thanks,
-> 
-> James
-> 
-> 
-> .
-> 
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
