@@ -1,56 +1,69 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v5 1/3] mfd: Add support for Cherry Trail Dollar Cove TI
+Subject: Re: [PATCH v2 1/3] mfd: Add support for Cherry Trail Dollar Cove TI
  PMIC
-Date: Tue, 5 Sep 2017 08:24:51 +0100
-Message-ID: <20170905072451.ephscqjqgwpnl6da@dell>
-References: <20170904144340.27693-1-tiwai@suse.de>
- <20170904144340.27693-2-tiwai@suse.de>
+Date: Tue, 5 Sep 2017 08:25:53 +0100
+Message-ID: <20170905072553.cffjdmlxamop4c5r@dell>
+References: <20170824081141.5018-1-tiwai@suse.de>
+ <20170824081141.5018-2-tiwai@suse.de>
+ <20170904133732.ll6cmuvnxja242gi@dell>
+ <s5h1snmr2rp.wl-tiwai@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170904144340.27693-2-tiwai@suse.de>
+In-Reply-To: <s5h1snmr2rp.wl-tiwai@suse.de>
 Sender: platform-driver-x86-owner@vger.kernel.org
 To: Takashi Iwai <tiwai@suse.de>
-Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 On Mon, 04 Sep 2017, Takashi Iwai wrote:
 
-> This patch adds the MFD driver for Dollar Cove (TI version) PMIC with
-> ACPI INT33F5 that is found on some Intel Cherry Trail devices.
-> The driver is based on the original work by Intel, found at:
->   https://github.com/01org/ProductionKernelQuilts
+> On Mon, 04 Sep 2017 15:37:32 +0200,
+> Lee Jones wrote:
+> > 
+> > > +static struct mfd_cell dc_ti_dev[] = {
+> > > +	{
+> > > +		.name = "dc_ti_pwrbtn",
+> > > +		.num_resources = ARRAY_SIZE(power_button_resources),
+> > > +		.resources = power_button_resources,
+> > > +	},
+> > > +	{
+> > 
+> > Place these on the same line.
 > 
-> This is a minimal version for adding the basic resources.  Currently,
-> only ACPI PMIC opregion and the external power-button are used.
+> Does this and ...
 > 
-> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=193891
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> Signed-off-by: Takashi Iwai <tiwai@suse.de>
-> ---
-> v4->v5:
-> * Minor coding-style fixes suggested by Lee
-> * Put GPL text
-> v3->v4:
-> * no change for this patch
-> v2->v3:
-> * Rename dc_ti with chtdc_ti in all places
-> * Driver/kconfig renames accordingly
-> * Added acks by Andy and Mika
-> v1->v2:
-> * Minor cleanups as suggested by Andy
 > 
->  drivers/mfd/Kconfig                   |  13 +++
->  drivers/mfd/Makefile                  |   1 +
->  drivers/mfd/intel_soc_pmic_chtdc_ti.c | 184 ++++++++++++++++++++++++++++++++++
->  3 files changed, 198 insertions(+)
->  create mode 100644 drivers/mfd/intel_soc_pmic_chtdc_ti.c
+> > > +	},
+> > > +	{
+> > > +		.name = "dc_ti_region",
+> > > +	},
+> > 
+> > This should be a one line entry:
+> > 
+> > 	{ .name = "dc_ti_region" },
+> 
+> .... this match together?  The result would be like:
+> 
+> static struct mfd_cell dc_ti_dev[] = {
+> 	{
+> 		.name = "dc_ti_pwrbtn",
+> 		.num_resources = ARRAY_SIZE(power_button_resources),
+> 		.resources = power_button_resources,
+> 	}, {
+> 		.name = "chtdc_ti_adc",
+> 		.num_resources = ARRAY_SIZE(adc_resources),
+> 	.....
+> 	}, {	.name = "chtdc_ti_region",	},
+> };
+> 
+> which I find a bit inconsistent.
 
-For my own reference:
-  Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
+No, it doesn't.
+
+The single lines need to be on their own.
 
 -- 
 Lee Jones
