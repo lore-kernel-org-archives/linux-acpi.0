@@ -1,98 +1,58 @@
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: Re: [RFC PATCH v1 2/3] apei: add ghes param for
- arch_apei_report_mem_error
-Date: Tue, 5 Sep 2017 10:20:12 +0800
-Message-ID: <98147131-acb6-0a9f-2fd6-043cb2ff410e@huawei.com>
-References: <1504261921-39308-1-git-send-email-xiexiuqi@huawei.com>
- <1504261921-39308-3-git-send-email-xiexiuqi@huawei.com>
- <20170901111526.plpslddmrjerkxtv@pd.tnic>
+From: George Cherian <george.cherian@cavium.com>
+Subject: [PATCH v3 0/2] Make cppc acpi driver aware of pcc subspace ids
+Date: Tue,  5 Sep 2017 03:18:08 +0000
+Message-ID: <1504581490-4183-1-git-send-email-george.cherian@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170901111526.plpslddmrjerkxtv@pd.tnic>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, x86@kernel.org, mark.rutland@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com
+To: devel@acpica.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, jassisinghbrar@gmail.com, robert.moore@intel.com, lv.zheng@intel.com, pprakash@codeaurora.org, George Cherian <george.cherian@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Borislav,
 
-On 2017/9/1 19:15, Borislav Petkov wrote:
-> n Fri, Sep 01, 2017 at 06:32:00PM +0800, Xie XiuQi wrote:
->> Add ghes param for arch_apei_report_mem_error, with which
->> we could do more arch-specific processing.
->>
->> Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
->> ---
->>  arch/x86/kernel/acpi/apei.c   | 2 +-
->>  drivers/acpi/apei/apei-base.c | 4 +++-
->>  drivers/acpi/apei/ghes.c      | 2 +-
->>  include/acpi/apei.h           | 4 +++-
->>  include/acpi/ghes.h           | 3 ++-
->>  5 files changed, 10 insertions(+), 5 deletions(-)
->>
->> diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
->> index ea3046e..1bf1c9b 100644
->> --- a/arch/x86/kernel/acpi/apei.c
->> +++ b/arch/x86/kernel/acpi/apei.c
->> @@ -46,7 +46,7 @@ int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
->>  	return 1;
->>  }
->>  
->> -void arch_apei_report_mem_error(int sev, struct cper_sec_mem_err *mem_err)
->> +void arch_apei_report_mem_error(struct ghes *ghes, int sev, struct cper_sec_mem_err *mem_err)
->>  {
->>  #ifdef CONFIG_X86_MCE
->>  	apei_mce_report_mem_error(sev, mem_err);
->> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
->> index da370e1..317169b 100644
->> --- a/drivers/acpi/apei/apei-base.c
->> +++ b/drivers/acpi/apei/apei-base.c
->> @@ -38,6 +38,8 @@
->>  #include <linux/debugfs.h>
->>  #include <asm/unaligned.h>
->>  
->> +#include <acpi/ghes.h>
->> +
->>  #include "apei-internal.h"
->>  
->>  #define APEI_PFX "APEI: "
->> @@ -770,7 +772,7 @@ int __weak arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr,
->>  }
->>  EXPORT_SYMBOL_GPL(arch_apei_enable_cmcff);
->>  
->> -void __weak arch_apei_report_mem_error(int sev,
->> +void __weak arch_apei_report_mem_error(struct ghes *ghes, int sev,
->>  				       struct cper_sec_mem_err *mem_err)
->>  {
->>  }
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index fa9400d..996d16c4 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -483,7 +483,7 @@ static void ghes_do_proc(struct ghes *ghes,
->>  
->>  			ghes_edac_report_mem_error(ghes, sev, mem_err);
->>  
->> -			arch_apei_report_mem_error(sev, mem_err);
->> +			arch_apei_report_mem_error(ghes, sev, mem_err);
-> 
-> And next time you want to pass something else, you'll have to touch all
-> those files again...
-> 
-> Instead, make that a notifier to which consumers register and define
-> a separate struct mem_err or ghes_err or whatnot and populate it with
-> cper_sec_mem_err data and whatever else is needed by the consumers.
-> Instead of passing that struct ghes * which consumers don't need to
-> know.
+The current cppc acpi driver works with only one pcc subspace id.
+It maintains and registers only one pcc channel even if the acpi table has 
+different pcc subspace ids. 
 
-OK, I'll add a notify chain here, thanks.
+As per ACPI 6.2 spec  all PCC registers, for all processors in the same 
+performance domain (as defined by _PSD), must be defined to be in the same
+subspace. The series tries to address the same by making cppc acpi driver 
+aware of multiple possible pcc subspace ids.
 
-> 
-> Thx.
-> 
+Patch 1 : In preparation to share the MAX_PCC_SUBSPACE definition with cppc acpi
+          driver
+Patch 2 : Make the cppc acpi driver aware of multiple pcc subspace ids.
+
+Changes from v2:
+  - Addressed Prashanth's comments on
+    * Not to use local variables to update mpar_count, last_mpar_reset and 
+      last_cmd_cmpl_time
+    * Add check for kzalloc failure in pcc_data_alloc()
+    * Initialize pcc_subspace_id to -1 in acpi_cppc_processor_probe()
+    * Check for pcc_subspace_id validity before registering pcc_channel
+
+Changes from v1:
+  - Add last_cmd_cmpl_time, last_mpar_reset, mpar_count to the cppc_pcc_data to
+make it per subspace.
+  - PCC per subspace dynamic allocation support added instead of static
+allocation
+  - Added a new function pcc_data_alloc, In instances where CPU's with SMT
+support same PCC subspace would be used for all CPU's belonging to same 
+physical core. This function adds the pcc_subspace refcounting and allocates
+the cppc_pcc_data per unique subspace idx.
+  - Added cleanup in acpi_cppc_processor_exit. Free the mbox channel and free
+the cppc_pcc_data in case refcount is zero.
+ 
+
+George Cherian (2):
+  mailbox: PCC: Move the MAX_PCC_SUBSPACES definition to header file
+  ACPI / CPPC: Make cppc acpi driver aware of pcc subspace ids
+
+ drivers/acpi/cppc_acpi.c | 241 +++++++++++++++++++++++++++++------------------
+ drivers/mailbox/pcc.c    |   1 -
+ include/acpi/pcc.h       |   1 +
+ 3 files changed, 152 insertions(+), 91 deletions(-)
 
 -- 
-Thanks,
-Xie XiuQi
+2.1.4
