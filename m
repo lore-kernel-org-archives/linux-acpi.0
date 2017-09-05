@@ -1,75 +1,99 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [RFT][PATCH 2/2] PM / i2c: designware: Clean up system sleep
- handling without ACPI
-Date: Tue, 05 Sep 2017 18:46:57 +0300
-Message-ID: <1504626417.25945.244.camel@linux.intel.com>
-References: <3023226.l5IfJK6GIc@aspire.rjw.lan>
-         <6044272.h4jTMoqRfC@aspire.rjw.lan>
+From: Peter Maydell <peter.maydell@linaro.org>
+Subject: Re: [PATCH v11 4/6] target-arm: kvm64: detect guest RAS EXTENSION feature
+Date: Tue, 5 Sep 2017 18:26:41 +0100
+Message-ID: <CAFEAcA9oecuzXXrdo3zZHxF3AgrDUh_NHxz-znto4GU+OoxVFw@mail.gmail.com>
+References: <1503066227-18251-1-git-send-email-gengdongjiu@huawei.com> <1503066227-18251-5-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <6044272.h4jTMoqRfC@aspire.rjw.lan>
-Sender: linux-i2c-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-pm@vger.kernel.org, linux-i2c@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <1503066227-18251-5-git-send-email-gengdongjiu@huawei.com>
+Sender: kvm-owner@vger.kernel.org
+To: Dongjiu Geng <gengdongjiu@huawei.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>, Igor Mammedov <imammedo@redhat.com>, Shannon Zhao <zhaoshenglong@huawei.com>, Paolo Bonzini <pbonzini@redhat.com>, QEMU Developers <qemu-devel@nongnu.org>, qemu-arm <qemu-arm@nongnu.org>, kvm-devel <kvm@vger.kernel.org>, "edk2-devel@lists.01.org" <edk2-devel@lists.01.org>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Ingo Molnar <mingo@kernel.org>, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, arm-mail-list <linux-arm-kernel@lists.infradead.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>l
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2017-09-04 at 01:14 +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> After commit a23318feeff6 (i2c: designware: Fix system suspend)
-> the i2c-designware-platdrv driver always resumes the device in its
-> system sleep ->suspend callback which isn't particularly nice,
-> even though it is technically correct.
-> 
-> A better approach would be to make the driver track the PM state of
-> the device so that it doesn't need to resume it in ->suspend and
-> to drop its ->prepare and ->complete callbacks which would only be
-> marginally useful then, so implement it.
-> 
-> First, drop dw_i2c_plat_suspend() added by commit a23318feeff6 and
-> rename dw_i2c_plat_runtime_suspend() back to dw_i2c_plat_suspend().
-> 
-> Second, point the driver's ->late_suspend and ->early_resume
-> callbacks, rather than its ->suspend and ->resume callbacks,
-> to dw_i2c_plat_suspend() and dw_i2c_plat_resume(), respectively,
-> so that they are not executed in parallel with each other, for
-> example if runtime resume of the device takes place during system
-> suspend.  Also, since the driver enables runtime PM unconditionally
-> in dw_i2c_plat_probe(), this change allows the
-> pm_runtime_status_suspended() check to be used in the PM callbacks
-> to determine whether or not the device needs to be either suspended
-> or resumed (moving the callbacks into the late/early stages of
-> system suspend/resume, respectively, guarantees the stability
-> of the runtime PM status at the time when they are invoked).
-> 
-> Next, add a "skip_resume" flag to struct dw_i2c_dev and make
-> dw_i2c_plat_suspend() and dw_i2c_plat_resume() use it to avoid
-> resuming a previously runtime-suspended device during system resume.
-> 
-> Finally, drop the driver's ->prepare and ->complete PM callbacks,
-> because returning "true" from ->prepare for runtime-suspended
-> devices is marginally useful (the PM core may still ignore that
-> return value and invoke the driver's ->suspend callback anyway)
-> and ->complete is only needed because of what ->prepare does.
+On 18 August 2017 at 15:23, Dongjiu Geng <gengdongjiu@huawei.com> wrote:
+> check if kvm supports guest RAS EXTENSION. if so, set
+> corresponding feature bit for vcpu.
+>
+> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+> ---
+>  linux-headers/linux/kvm.h | 1 +
+>  target/arm/cpu.h          | 3 +++
+>  target/arm/kvm64.c        | 8 ++++++++
+>  3 files changed, 12 insertions(+)
+>
+> diff --git a/linux-headers/linux/kvm.h b/linux-headers/linux/kvm.h
+> index 7971a4f..2aa176e 100644
+> --- a/linux-headers/linux/kvm.h
+> +++ b/linux-headers/linux/kvm.h
+> @@ -929,6 +929,7 @@ struct kvm_ppc_resize_hpt {
+>  #define KVM_CAP_PPC_SMT_POSSIBLE 147
+>  #define KVM_CAP_HYPERV_SYNIC2 148
+>  #define KVM_CAP_HYPERV_VP_INDEX 149
+> +#define KVM_CAP_ARM_RAS_EXTENSION 150
+>
+>  #ifdef KVM_CAP_IRQ_ROUTING
+>
 
-> +	SET_LATE_SYSTEM_SLEEP_PM_OPS(dw_i2c_plat_suspend,
-> dw_i2c_plat_resume)
+Hi. Changes to linux-headers need to be done as a patch of their
+own created using scripts/update-linux-headers.sh run against a
+mainline kernel tree (and with a commit message that quotes the
+kernel commit hash used). This ensures that we have a consistent
+set of headers that don't diverge from the kernel copy.
 
-Luckily I2C doesn't use DMA.
+> diff --git a/target/arm/cpu.h b/target/arm/cpu.h
+> index b39d64a..6b0961b 100644
+> --- a/target/arm/cpu.h
+> +++ b/target/arm/cpu.h
+> @@ -611,6 +611,8 @@ struct ARMCPU {
+>
+>      /* CPU has memory protection unit */
+>      bool has_mpu;
+> +    /* CPU has ras extension unit */
+> +    bool has_ras_extension;
+>      /* PMSAv7 MPU number of supported regions */
+>      uint32_t pmsav7_dregion;
+>
+> @@ -1229,6 +1231,7 @@ enum arm_features {
+>      ARM_FEATURE_THUMB_DSP, /* DSP insns supported in the Thumb encodings */
+>      ARM_FEATURE_PMU, /* has PMU support */
+>      ARM_FEATURE_VBAR, /* has cp15 VBAR */
+> +    ARM_FEATURE_RAS_EXTENSION, /*has RAS extension support */
 
-For cases when we have a separate DMA controller devices (CherryTrail /
-BayTrail) we have to be sure that I2C device is going to be suspended
-first and resumed last to be operational. DMA itself uses LATE PM ops
-IIRC (drivers/dma/dw/platform.c) and it becomes possible ordering issue
-if both drivers are on the same level of PM ops.
+Missing space after '/*' ?
 
-P.S. For now, as I noted above, it would be not a problem, I think I
-just need to mention this potential issue in the future with some
-drivers (like SPI or UART, which are using DMA) on SoCs like CherryTrail
-or if I2C going to support DMA.
+>  };
+>
+>  static inline int arm_feature(CPUARMState *env, int feature)
+> diff --git a/target/arm/kvm64.c b/target/arm/kvm64.c
+> index a16abc8..0781367 100644
+> --- a/target/arm/kvm64.c
+> +++ b/target/arm/kvm64.c
+> @@ -518,6 +518,14 @@ int kvm_arch_init_vcpu(CPUState *cs)
+>          unset_feature(&env->features, ARM_FEATURE_PMU);
+>      }
+>
+> +    if (kvm_check_extension(cs->kvm_state, KVM_CAP_ARM_RAS_EXTENSION)) {
+> +        cpu->has_ras_extension = true;
+> +        set_feature(&env->features, ARM_FEATURE_RAS_EXTENSION);
+> +    } else {
+> +        cpu->has_ras_extension = false;
+> +        unset_feature(&env->features, ARM_FEATURE_RAS_EXTENSION);
+> +    }
+> +
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Shouldn't we need to also tell the kernel that we actually want
+it to expose RAS to the guest? Compare the PMU code in this
+function, where we set a kvm_init_features bit to do this.
+(This suggests that your ABI for the kernel part of this feature
+may not be correct?)
+
+You should also not be calling set_feature() here -- if the
+CPU features bit doesn't say "this CPU should have the RAS
+extensions" we shouldn't create a CPU with them. Instead
+you should set it in kvm_arm_get_host_cpu_features() (again,
+compare the PMU code).
+
+thanks
+-- PMM
