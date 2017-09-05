@@ -1,72 +1,63 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v2 1/3] mfd: Add support for Cherry Trail Dollar Cove TI
- PMIC
-Date: Tue, 5 Sep 2017 08:25:53 +0100
-Message-ID: <20170905072553.cffjdmlxamop4c5r@dell>
-References: <20170824081141.5018-1-tiwai@suse.de>
- <20170824081141.5018-2-tiwai@suse.de>
- <20170904133732.ll6cmuvnxja242gi@dell>
- <s5h1snmr2rp.wl-tiwai@suse.de>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [RFC 4/4] ACPI: Enable PPTT support on ARM64
+Date: Tue, 5 Sep 2017 15:22:11 +0800
+Message-ID: <397f2aa0-b7d9-dc63-0410-6afacee26571@huawei.com>
+References: <20170805001159.12769-1-jeremy.linton@arm.com>
+ <20170805001159.12769-5-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <s5h1snmr2rp.wl-tiwai@suse.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:5537 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751264AbdIEHeo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2017 03:34:44 -0400
+In-Reply-To: <20170805001159.12769-5-jeremy.linton@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>, linux-arm-kernel@lists.infradead.org
+Cc: lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, sudeep.holla@arm.com
 
-On Mon, 04 Sep 2017, Takashi Iwai wrote:
+Hi Jeremy,
 
-> On Mon, 04 Sep 2017 15:37:32 +0200,
-> Lee Jones wrote:
-> > 
-> > > +static struct mfd_cell dc_ti_dev[] = {
-> > > +	{
-> > > +		.name = "dc_ti_pwrbtn",
-> > > +		.num_resources = ARRAY_SIZE(power_button_resources),
-> > > +		.resources = power_button_resources,
-> > > +	},
-> > > +	{
-> > 
-> > Place these on the same line.
+On 2017/8/5 8:11, Jeremy Linton wrote:
+> Now that we have a parser, and arm64 has appropriate
+> hooks in place to utilize it, lets enable PPTT
+> parsing in the arm64 ACPI build.
 > 
-> Does this and ...
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  drivers/acpi/arm64/Kconfig  | 3 +++
+>  drivers/acpi/arm64/Makefile | 1 +
+>  2 files changed, 4 insertions(+)
 > 
-> 
-> > > +	},
-> > > +	{
-> > > +		.name = "dc_ti_region",
-> > > +	},
-> > 
-> > This should be a one line entry:
-> > 
-> > 	{ .name = "dc_ti_region" },
-> 
-> .... this match together?  The result would be like:
-> 
-> static struct mfd_cell dc_ti_dev[] = {
-> 	{
-> 		.name = "dc_ti_pwrbtn",
-> 		.num_resources = ARRAY_SIZE(power_button_resources),
-> 		.resources = power_button_resources,
-> 	}, {
-> 		.name = "chtdc_ti_adc",
-> 		.num_resources = ARRAY_SIZE(adc_resources),
-> 	.....
-> 	}, {	.name = "chtdc_ti_region",	},
-> };
-> 
-> which I find a bit inconsistent.
+> diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
+> index 5a6f80f..74b855a 100644
+> --- a/drivers/acpi/arm64/Kconfig
+> +++ b/drivers/acpi/arm64/Kconfig
+> @@ -7,3 +7,6 @@ config ACPI_IORT
+>  
+>  config ACPI_GTDT
+>  	bool
+> +
+> +config ACPI_PPTT
+> +	bool
 
-No, it doesn't.
+We may need to select ACPI_PPTT in arch/arm64/Kconfig, just like ACPI_GTDT
 
-The single lines need to be on their own.
+> \ No newline at end of file
+> diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
+> index 1017def..b6dee6b 100644
+> --- a/drivers/acpi/arm64/Makefile
+> +++ b/drivers/acpi/arm64/Makefile
+> @@ -1,2 +1,3 @@
+>  obj-$(CONFIG_ACPI_IORT) 	+= iort.o
+>  obj-$(CONFIG_ACPI_GTDT) 	+= gtdt.o
+> +obj-$(CONFIG_ACPI_GTDT) 	+= pptt.o
+obj-$(CONFIG_ACPI_PPTT) 	+= pptt.o
+> 
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+
+Thanks,
+Xiongfeng Wang
+
