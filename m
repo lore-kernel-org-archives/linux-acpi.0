@@ -1,150 +1,105 @@
-From: Peter Maydell <peter.maydell@linaro.org>
-Subject: Re: [PATCH v11 6/6] target-arm: kvm64: Handle SError interrupt for
- the guest OS
-Date: Tue, 5 Sep 2017 18:50:36 +0100
-Message-ID: <CAFEAcA9TsQg4EXr4MAM2VbrzB9v5UA1F4o9tOCka=3e4wjbBGQ@mail.gmail.com>
-References: <1503066227-18251-1-git-send-email-gengdongjiu@huawei.com> <1503066227-18251-7-git-send-email-gengdongjiu@huawei.com>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: [RFT][PATCH v2 2/2] PM / i2c: designware: Clean up system sleep
+ handling without ACPI
+Date: Tue, 5 Sep 2017 23:00:34 +0200
+Message-ID: <20170905210034.57b4pqg3suz4m3bl@sig21.net>
+References: <3023226.l5IfJK6GIc@aspire.rjw.lan>
+ <1524365.Uf1AH187pl@aspire.rjw.lan>
+ <20170905150744.GA2477@lahna.fi.intel.com>
+ <3495106.6fP2YzlEUn@aspire.rjw.lan>
+ <20170905152458.GB2477@lahna.fi.intel.com>
+ <CAJZ5v0hXQEoULXuexn53jqo+ANB+gbtWDAL32wfvcwfh2Hm_VA@mail.gmail.com>
+ <20170905154147.GC2477@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f174.google.com ([209.85.128.174]:35400 "EHLO
-        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753184AbdIERu6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2017 13:50:58 -0400
-Received: by mail-wr0-f174.google.com with SMTP id y15so10161137wrc.2
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Sep 2017 10:50:57 -0700 (PDT)
-In-Reply-To: <1503066227-18251-7-git-send-email-gengdongjiu@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170905154147.GC2477@lahna.fi.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>, Igor Mammedov <imammedo@redhat.com>, Shannon Zhao <zhaoshenglong@huawei.com>, Paolo Bonzini <pbonzini@redhat.com>, QEMU Developers <qemu-devel@nongnu.org>, qemu-arm <qemu-arm@nongnu.org>, kvm-devel <kvm@vger.kernel.org>, "edk2-devel@lists.01.org" <edk2-devel@lists.01.org>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Ingo Molnar <mingo@kernel.org>, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, arm-mail-list <linux-arm-kernel@lists.infradead.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>l
 
-On 18 August 2017 at 15:23, Dongjiu Geng <gengdongjiu@huawei.com> wrote:
-> When guest OS happens SError interrupt(SEI), it will trap to host.
-> Host firstly calls memory failure to deal with this error and decide
-> whether it needs to deliver SIGBUS signal to userspace. The advantage
-> that using signal to notify is that it can make the notification method
-> is general, non-KVM user can also use it. when userspace gets this
-> signal and knows this is SError interrupt, it will translate the
-> delivered host VA to PA and record this PA to GHES.
->
-> Because ARMv8.2 adds an extension to RAS to allow system software insert
-> implicit Error Synchronization Barrier operations to isolate the error and
-> allow passes specified syndrome to guest OS, so after record the CPER, user
-> space calls IOCTL to pass a specified syndrome to KVM, then switch to guest
-> OS, guest OS can use the recorded CPER record and syndrome information to
-> do the recovery.
->
-> The steps are shown below:
-> 1. translate the host VA to guest OS PA and record this error PA to HEST table.
-> 2. set specified virtual SError syndrome and pass the value to KVM.
->
-> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> Signed-off-by: Quanming Wu <wuquanming@huawei.com>
-> ---
->  linux-headers/linux/kvm.h |  1 +
->  target/arm/internals.h    |  1 +
->  target/arm/kvm64.c        | 28 ++++++++++++++++++++++++++++
->  3 files changed, 30 insertions(+)
->
-> diff --git a/linux-headers/linux/kvm.h b/linux-headers/linux/kvm.h
-> index 2aa176e..10dfcab 100644
-> --- a/linux-headers/linux/kvm.h
-> +++ b/linux-headers/linux/kvm.h
-> @@ -1356,6 +1356,7 @@ struct kvm_s390_ucas_mapping {
->  /* Available with KVM_CAP_S390_CMMA_MIGRATION */
->  #define KVM_S390_GET_CMMA_BITS      _IOWR(KVMIO, 0xb8, struct kvm_s390_cmma_log)
->  #define KVM_S390_SET_CMMA_BITS      _IOW(KVMIO, 0xb9, struct kvm_s390_cmma_log)
-> +#define KVM_ARM_SEI                 _IO(KVMIO,   0xb10)
->
->  #define KVM_DEV_ASSIGN_ENABLE_IOMMU    (1 << 0)
->  #define KVM_DEV_ASSIGN_PCI_2_3         (1 << 1)
-> diff --git a/target/arm/internals.h b/target/arm/internals.h
-> index fc0ad6d..18b1cbc 100644
-> --- a/target/arm/internals.h
-> +++ b/target/arm/internals.h
-> @@ -237,6 +237,7 @@ enum arm_exception_class {
->  #define ARM_EL_ISV (1 << ARM_EL_ISV_SHIFT)
->  #define ARM_EL_EC_MASK  ((0x3F) << ARM_EL_EC_SHIFT)
->  #define ARM_EL_FSC_TYPE (0x3C)
-> +#define ARM_EL_ISS_MASK ((1 << ARM_EL_IL_SHIFT) - 1)
->
->  #define FSC_SEA         (0x10)
->  #define FSC_SEA_TTW0    (0x14)
-> diff --git a/target/arm/kvm64.c b/target/arm/kvm64.c
-> index d3bdab2..b84cb49 100644
-> --- a/target/arm/kvm64.c
-> +++ b/target/arm/kvm64.c
-> @@ -616,6 +616,22 @@ static int kvm_arm_cpreg_value(ARMCPU *cpu, ptrdiff_t fieldoffset)
->      return -EINVAL;
->  }
->
-> +static int kvm_inject_arm_sei(CPUState *cs)
-> +{
-> +    ARMCPU *cpu = ARM_CPU(cs);
-> +    CPUARMState *env = &cpu->env;
-> +
-> +    unsigned long syndrome = env->exception.vaddress;
-> +    /* set virtual SError syndrome */
-> +    if (arm_feature(env, ARM_FEATURE_RAS_EXTENSION)) {
-> +        syndrome = syndrome & ARM_EL_ISS_MASK;
-> +    } else {
-> +        syndrome = 0;
-> +    }
-> +
-> +    return  kvm_vcpu_ioctl(CPU(cpu), KVM_ARM_SEI, &syndrome);
+On Tue, Sep 05, 2017 at 06:41:47PM +0300, Mika Westerberg wrote:
+> On Tue, Sep 05, 2017 at 05:32:07PM +0200, Rafael J. Wysocki wrote:
+> > On Tue, Sep 5, 2017 at 5:24 PM, Mika Westerberg wrote:
+> > > diff --git a/drivers/mfd/intel-lpss.h b/drivers/mfd/intel-lpss.h
+> > > index 694116630ffa..c987f7fe6c74 100644
+> > > --- a/drivers/mfd/intel-lpss.h
+> > > +++ b/drivers/mfd/intel-lpss.h
+> > > @@ -38,8 +38,8 @@ int intel_lpss_resume(struct device *dev);
+> > >  #ifdef CONFIG_PM_SLEEP
+> > >  #define INTEL_LPSS_SLEEP_PM_OPS                        \
+> > >         .prepare = intel_lpss_prepare,          \
+> > > -       .suspend = intel_lpss_suspend,          \
+> > > -       .resume = intel_lpss_resume,            \
+> > > +       .suspend_late = intel_lpss_suspend,     \
+> > > +       .resume_early = intel_lpss_resume,      \
+> > >         .freeze = intel_lpss_suspend,           \
+> > >         .thaw = intel_lpss_resume,              \
+> > >         .poweroff = intel_lpss_suspend,         \
+> > 
+> > Of course, freeze/thaw, poweroff/restore need to be moved to the
+> > late/early stages too.
+> 
+> Right.
 
-This looks odd. If we don't have the RAS extension why do
-we need to do anything at all here ?
+I tested the patches on Asus E200HA with the above + freeze_late/thaw_early,
+works fine.  Then, wrt Rafael's comment in earlier mail about
+ordering of i2c designware vs. other drivers calling it via
+ACPI OpRegion, I changed it to noirq:
+(probably it's off-topic here but I tested while at it)
 
-> +}
-> +
->  /* Inject synchronous external abort */
->  static int kvm_inject_arm_sea(CPUState *c)
->  {
-> @@ -1007,6 +1023,15 @@ static bool is_abort_sea(unsigned long syndrome)
->      }
->  }
->
-> +static bool is_abort_sei(unsigned long syndrome)
-> +{
-> +    uint8_t ec = ((syndrome & ARM_EL_EC_MASK) >> ARM_EL_EC_SHIFT);
+diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
+index 335b2b236faa..6b1b3938c405 100644
+--- a/drivers/i2c/busses/i2c-designware-platdrv.c
++++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+@@ -475,7 +475,7 @@ static int dw_i2c_plat_resume(struct device *dev)
+ }
+ 
+ static const struct dev_pm_ops dw_i2c_dev_pm_ops = {
+-	SET_LATE_SYSTEM_SLEEP_PM_OPS(dw_i2c_plat_suspend, dw_i2c_plat_resume)
++	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(dw_i2c_plat_suspend, dw_i2c_plat_resume)
+ 	SET_RUNTIME_PM_OPS(dw_i2c_plat_suspend, dw_i2c_plat_resume, NULL)
+ };
+ 
+diff --git a/drivers/mfd/intel-lpss.h b/drivers/mfd/intel-lpss.h
+index 694116630ffa..7069d67160a0 100644
+--- a/drivers/mfd/intel-lpss.h
++++ b/drivers/mfd/intel-lpss.h
+@@ -38,10 +38,10 @@ int intel_lpss_resume(struct device *dev);
+ #ifdef CONFIG_PM_SLEEP
+ #define INTEL_LPSS_SLEEP_PM_OPS			\
+ 	.prepare = intel_lpss_prepare,		\
+-	.suspend = intel_lpss_suspend,		\
+-	.resume = intel_lpss_resume,		\
+-	.freeze = intel_lpss_suspend,		\
+-	.thaw = intel_lpss_resume,		\
++	.suspend_noirq = intel_lpss_suspend,		\
++	.resume_noirq = intel_lpss_resume,		\
++	.freeze_noirq = intel_lpss_suspend,		\
++	.thaw_noirq = intel_lpss_resume,		\
+ 	.poweroff = intel_lpss_suspend,		\
+ 	.restore = intel_lpss_resume,
+ #else
 
-You don't need to bother masking here -- in other places in
-QEMU we assume that the EC field is at the top of the word,
-so just "syndrome >> ARM_EL_EC_SHIFT" is sufficient.
+It causes errors in dmesg:
 
-> +    if ((ec != EC_SERROR))
-> +        return false;
-> +    else
-> +        return true;
+[   62.460369] PM: late suspend of devices complete after 35.484 msecs
+[   62.492283] i2c_designware 808622C1:02: timeout in disabling adapter
+[   62.519527] i2c_designware 808622C1:01: timeout in disabling adapter
+[   62.546930] i2c_designware 808622C1:00: timeout in disabling adapter
+[   62.565844] PM: noirq suspend of devices complete after 105.431 msecs
+[   62.565853] PM: suspend-to-idle
+...
+[   65.590077] Suspended for 3.104 seconds
+[   65.591669] i2c_designware 808622C1:00: Unknown Synopsys component type: 0xffffffff
+[   65.591689] i2c_designware 808622C1:01: Unknown Synopsys component type: 0xffffffff
+[   65.591704] i2c_designware 808622C1:02: Unknown Synopsys component type: 0xffffffff
+[   65.612136] PM: noirq resume of devices complete after 21.451 msecs
+[   65.615059] PM: resume from suspend-to-idle
 
-scripts/checkpatch.pl should tell you that this if needs braces
-(it's good to get in the habit of running it on all patches; it
-is not always correct, so judgement is required, but it will flag
-up some common mistakes).
-
-In this particular case, you should just
-   return ec == EC_SERROR;
-though.
-
-> +}
-> +
->  void kvm_arch_on_sigbus_vcpu(CPUState *c, int code, void *addr)
->  {
->      ram_addr_t ram_addr;
-> @@ -1024,6 +1049,9 @@ void kvm_arch_on_sigbus_vcpu(CPUState *c, int code, void *addr)
->              if (is_abort_sea(env->exception.syndrome)) {
->                  ghes_update_guest(ACPI_HEST_NOTIFY_SEA, paddr);
->                  kvm_inject_arm_sea(c);
-> +            } else if (is_abort_sei(env->exception.syndrome)) {
-> +                ghes_update_guest(ACPI_HEST_NOTIFY_SEI, paddr);
-> +                kvm_inject_arm_sei(c);
->              }
->              return;
->          }
-> --
-> 1.8.3.1
-
-thanks
--- PMM
+But at least keyboard attached to 808622C1:00 still worked, it is:
+[    3.264799] input: PDEC3393:00 0B05:8585 as /devices/pci0000:00/808622C1:00/i2c-0/i2c-PDEC3393:00/0018:0B05:8585.0001
+/input/input5
+[    3.266476] asus 0018:0B05:8585.0001: input,hidraw0: I2C HID v1.00 Keyboard [PDEC3393:00 0B05:8585] on i2c-PDEC3393:00
