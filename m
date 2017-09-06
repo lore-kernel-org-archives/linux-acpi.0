@@ -1,163 +1,126 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: ASL issues on HP machine
-Date: Wed, 6 Sep 2017 06:49:49 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF33624@SHSMSX101.ccr.corp.intel.com>
-References: <94F2FBAB4432B54E8AACC7DFDE6C92E37E606A79@ORSMSX110.amr.corp.intel.com>
- <e429849bcbe768f3de3b8d3658203a81@ruhr-uni-bochum.de>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E6084B2@ORSMSX110.amr.corp.intel.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v5 1/3] mfd: Add support for Cherry Trail Dollar Cove TI
+ PMIC
+Date: Wed, 6 Sep 2017 08:54:44 +0100
+Message-ID: <20170906075444.7apee362ij3wqall@dell>
+References: <20170904144340.27693-1-tiwai@suse.de>
+ <20170904144340.27693-2-tiwai@suse.de>
+ <20170905072451.ephscqjqgwpnl6da@dell>
+ <s5hmv69twov.wl-tiwai@suse.de>
+ <20170905081049.r3gbdtr2iuom6uk6@dell>
+ <s5hefrltv43.wl-tiwai@suse.de>
+ <20170905085341.ssukn2rtyf3q65bn@dell>
+ <s5hwp5do578.wl-tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:21162 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751008AbdIFGtx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 6 Sep 2017 02:49:53 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E6084B2@ORSMSX110.amr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <s5hwp5do578.wl-tiwai@suse.de>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, David Renz <David.Renz@ruhr-uni-bochum.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "acpi@linux.intel.com" <acpi@linux.intel.com>, "david.renz@rub.de" <david.renz@rub.de>, "Box, David E" <david.e.box@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, "linux-acpi-owner@vger.kernel.org" <linux-acpi-owner@vger.kernel.org>
 
-Hi,
+On Tue, 05 Sep 2017, Takashi Iwai wrote:
 
-> From: acpi-request@eclists.intel.com [mailto:acpi-request@eclists.intel.com] On Behalf Of Moore,
-> Robert
-> Subject: RE: [acpi] ASL issues on HP machine
+> On Tue, 05 Sep 2017 10:53:41 +0200,
+> Lee Jones wrote:
+> > 
+> > On Tue, 05 Sep 2017, Takashi Iwai wrote:
+> > 
+> > > On Tue, 05 Sep 2017 10:10:49 +0200,
+> > > Lee Jones wrote:
+> > > > 
+> > > > On Tue, 05 Sep 2017, Takashi Iwai wrote:
+> > > > 
+> > > > > On Tue, 05 Sep 2017 09:24:51 +0200,
+> > > > > Lee Jones wrote:
+> > > > > > 
+> > > > > > On Mon, 04 Sep 2017, Takashi Iwai wrote:
+> > > > > > 
+> > > > > > > This patch adds the MFD driver for Dollar Cove (TI version) PMIC with
+> > > > > > > ACPI INT33F5 that is found on some Intel Cherry Trail devices.
+> > > > > > > The driver is based on the original work by Intel, found at:
+> > > > > > >   https://github.com/01org/ProductionKernelQuilts
+> > > > > > > 
+> > > > > > > This is a minimal version for adding the basic resources.  Currently,
+> > > > > > > only ACPI PMIC opregion and the external power-button are used.
+> > > > > > > 
+> > > > > > > Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=193891
+> > > > > > > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > > > > > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> > > > > > > Signed-off-by: Takashi Iwai <tiwai@suse.de>
+> > > > > > > ---
+> > > > > > > v4->v5:
+> > > > > > > * Minor coding-style fixes suggested by Lee
+> > > > > > > * Put GPL text
+> > > > > > > v3->v4:
+> > > > > > > * no change for this patch
+> > > > > > > v2->v3:
+> > > > > > > * Rename dc_ti with chtdc_ti in all places
+> > > > > > > * Driver/kconfig renames accordingly
+> > > > > > > * Added acks by Andy and Mika
+> > > > > > > v1->v2:
+> > > > > > > * Minor cleanups as suggested by Andy
+> > > > > > > 
+> > > > > > >  drivers/mfd/Kconfig                   |  13 +++
+> > > > > > >  drivers/mfd/Makefile                  |   1 +
+> > > > > > >  drivers/mfd/intel_soc_pmic_chtdc_ti.c | 184 ++++++++++++++++++++++++++++++++++
+> > > > > > >  3 files changed, 198 insertions(+)
+> > > > > > >  create mode 100644 drivers/mfd/intel_soc_pmic_chtdc_ti.c
+> > > > > > 
+> > > > > > For my own reference:
+> > > > > >   Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
+> > > > > 
+> > > > > Thanks!
+> > > > > 
+> > > > > Now the question is how to deal with these.  It's no critical things,
+> > > > > so I'm OK to postpone for 4.15.  OTOH, it's really a new
+> > > > > device-specific stuff, thus it can't break anything else, and it'd be
+> > > > > fairly safe to add it for 4.14 although it's at a bit late stage.
+> > > > 
+> > > > Yes, you are over 2 weeks late for v4.14.  It will have to be v4.15.
+> > > 
+> > > OK, I'll ring your bells again once when 4.15 development is opened.
+> > > 
+> > > 
+> > > > > IMO, it'd be great if you can carry all stuff through MFD tree; or
+> > > > > create an immutable branch (again).  But how to handle it, when to do
+> > > > > it, It's all up to you guys.
+> > > > 
+> > > > If there aren't any build dependencies between the patches, each of
+> > > > the patches should be applied through their own trees.  What are the
+> > > > build-time dependencies?  Are there any?
+> > > 
+> > > No, there is no strict build-time dependency.  It's just that I don't
+> > > see it nice to have a commit for a dead code, partly for testing
+> > > purpose and partly for code consistency.  But if this makes
+> > > maintenance easier, I'm happy with that, too, of course.
+> > 
+> > There won't be any dead code.  All of the subsystem trees are pulled
+> > into -next [0] where the build bots can operate on the patches as a
+> > whole.
 > 
-> 
-> 
-> > From: David Renz [mailto:David.Renz@ruhr-uni-bochum.de]
-> > Subject: Re: ASL issues on HP machine
-> >
-> > Am 2017-08-25 18:43, schrieb Moore, Robert:
-> > > I can address a couple of these immediately.
-> > >
-> > >
-> > > ASL_MSG_NOT_REFERENCED
-> > > This is seen on the HP machine.
-> > >
-> > > FAILED [LOW] AMLAsm
-> > > ASL_MSG_NOT_REFERENCED: Test 1, Assembler remark in line 1141 Line |
-> > > AML source
-> > > ----------------------------------------------------------------------
-> > > ----------
-> > > 01138|             Store (Buffer (0x18) {}, Local7)
-> > > 01139|             CreateDWordField (Local7, 0x00, A119)
-> > > 01140|             CreateDWordField (Local7, 0x04, A120)
-> > > 01141|             CreateDWordField (Local7, 0x08, A121)
-> > >       |                                               ^
-> > >       | Remark 2089: Object is not referenced    (Name [A121] is
-> > within
-> > > a
-> > > method [A037])
-> > >
-> > >
-> > > Here is the actual disassembled A037 method, found in SSDT3:
-> > >
-> > >         Method (A037, 1, NotSerialized)
-> > >         {
-> > >
-> > >             ... /* Some other stuff here */
-> > >
-> > >             CreateDWordField (Local7, 0x00, A119)
-> > >             CreateDWordField (Local7, 0x04, A120)
-> > >             CreateDWordField (Local7, 0x08, A121)
-> > >             CreateDWordField (Local7, 0x0C, A122)
-> > >             CreateDWordField (Local7, 0x10, A123)
-> > >             CreateDWordField (Local7, 0x14, A124)
-> > >             A119 = Local4
-> > >             A125 (0x3A, Local7)
-> > >         }
-> > >
-> > > Not only is the symbol A121 created and not referenced, all of the
-> > > fields A120 through A124 are not referenced.
-> > >
-> > > These are essentially "unused variables", so they have no effect on
-> > > operation of the method other than consuming a tiny bit more memory
-> > > during the execution of the method.
-> > >
-> > >
-> > >
-> > >
-> > > AE_AML_BUFFER_LIMIT:
-> > > This is seen on the HP machine.
-> > >
-> > >> [   12.291867] ACPI Error: Field [D128] at 1152 exceeds Buffer [NULL]
-> > >> size 160 (bits) (20150930/dsopcode-236)
-> > >> [   12.291875] ACPI Error: Method parse/execution failed [\HWMC]
-> > (Node
-> > >> ffff880197cb5b30), AE_AML_BUFFER_LIMIT (20150930/psparse-542)
-> > >
-> > > All of these messages are caused by either whatever driver is calling
-> > > the HWMC method, or the HWMC method itself.
-> >
-> > One should be able to narrow this down to whether a driver (and which
-> > driver) calling the HWMC method OR the HWMC method itself being the
-> > reason, isn't it? But I guess this could only be done by performing
-> > kernel debugging on this machine to monitor the ACPI activity / event
-> > taking place 'live', right?
-> [Moore, Robert]
-> 
-> For the most part, yes. The driver may be passing in a bad argument to HWMC, or the HWMC method itself
-> is looking beyond the end of what is in fact a well-formed argument.
+> But the merge order isn't guaranteed, i.e. at the commit of other tree
+> for this new stuff, it's a dead code without merging the MFD stuff
+> beforehand.  e.g. Imagine to perform the git bisection.  It's not
+> about the whole tree, but about the each commit.
 
-If the AML code is trying to access an invalid memory region.
-Then we needn't do Windows behavior validation to say "no" to such BIOS issue.
-Such sanity check should always be done by ACPICA.
+Only *building* is relevant for bisection until the whole feature
+lands.  No one is going to bisect the function of a feature until it
+is present.  So long as there aren't any build-time dependencies then
+we're good, 
 
-If there is no problem running this table on Windows, I would imagine that is
-just because the AML code path is not triggered.
-Without giving the details why it is not triggered, the report looks useless.
+> And I won't be surprised if 0-day build bot gets a new feature to
+> inspect the kconfig files, spot a dead kconfig entry and warn
+> maintainers at each commit, too :)
 
-> 
-> 
-> >
-> >
-> > > The exact ASL statement
-> > > showing the problem is this:
-> > >
-> > >
-> > >         CreateField (Arg1, 0x80, 0x0400, D128)
-> > >
-> > >
-> > > The input buffer (Arg1) is 160 bits, but this CreateField statement is
-> > > attempting to create a field starting at bit offset 0x80 (bit 128) for
-> > > length 0x400 (1024). This in fact goes way beyond the size of the
-> > > input buffer (out to bit 0x480, which is decimal 1152). Of course, the
-> > > ACPICA interpreter detects this and appropriately aborts the method.
-> > >
-> > > I cannot speak any further to this problem because it is either a
-> > > firmware or a driver problem. In either case, the vendor should be
-> > > notified.
-> >
-> > But this is not my task as a customer, don't you think so? The easiest
-> > way to shed some light on this would be to send my system's dumped ACPI
-> > code to HP, so that they can check whether this is the code which should
-> > be on my machine, isn't it? And I would assume that HP won't do that if
-> > some custome requests them to do so, but they surely wouldn't refuse
-> > this request if someone from the Intel ACPI team would approach them.
-> [Moore, Robert]
-> 
-> We develop the ACPICA OS-independent code in our group. We are not a customer service organization,
-> and we have little contact with HP itself. We cannot offer help in this area.
-> 
-> The accepted path is to report issues like this to the computer vendor, in this case HP.
-> 
 
-Agreed. We are not BIOS hygiene team, our focus is not to deal with
-malicious AML code, but dealing with bugs/quality issues in ACPI
-subsystem.
+0-days don't check for that and static analysers only check releases.
 
-Thanks
-Lv
-
-> 
-> 
-> >
-> >
-> >
-> > Kinds regards
-> >
-> > David Renz
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
