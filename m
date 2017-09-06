@@ -1,34 +1,37 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 1/3] mfd: Add support for Cherry Trail Dollar Cove TI PMIC
-Date: Thu, 07 Sep 2017 00:19:01 +0200
-Message-ID: <3358010.FqzdD3Emuf@aspire.rjw.lan>
-References: <20170904144340.27693-1-tiwai@suse.de> <20170906104723.qs3b7p6p6x2ixmvb@dell> <20170906105209.uoutqilops3plna2@dell>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] gpio: acpi: work around false-positive
+ -Wstring-overflow warning
+Date: Wed, 06 Sep 2017 16:42:10 -0700
+Message-ID: <1504741330.7546.6.camel@perches.com>
+References: <20170906154756.2133726-1-arnd@arndb.de>
+         <1504713173.7546.3.camel@perches.com>
+         <CAK8P3a2RGZFc3_XpgyfuxwYy-vOoYkkamxQzma8JKwLjCCJasQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:56208 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932756AbdIFW1w (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Sep 2017 18:27:52 -0400
-In-Reply-To: <20170906105209.uoutqilops3plna2@dell>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK8P3a2RGZFc3_XpgyfuxwYy-vOoYkkamxQzma8JKwLjCCJasQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, Wei Yongjun <weiyongjun1@huawei.com>, linux-gpio@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Takashi Iwai <tiwai@suse.de>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wednesday, September 6, 2017 12:52:09 PM CEST Lee Jones wrote:
-> > > In any case, I wouldn't mind it if you took the [3/3] from this series, because
-> > > if there are any conflicts with it, they will be trivial to resolve.  And I
-> > > don't need an immutable branch with it or anything like that.
+On Wed, 2017-09-06 at 21:53 +0200, Arnd Bergmann wrote:
+> On Wed, Sep 6, 2017 at 5:52 PM, Joe Perches <joe@perches.com> wrote:
+> > On Wed, 2017-09-06 at 17:47 +0200, Arnd Bergmann wrote:
+> > > As suggested by Andy, this changes the format string to have a fixed length.
+> > > Since modifying the range check did not help, I also opened a bug against
+> > > gcc, see link below.
 > > 
-> > No problem.
+> > The code has
+> > 
+> >         int pin
+> > 
+> > does changing pin to unsigned int matter?
 > 
-> Although you don't appear to have reviewed it?
+> No difference, see also the gcc bugzilla report.
 
-I have reviewed it, although I haven't sent a tag.
-
-Generally speaking, for drivers/acpi/pmic/ Reviewed-bys from Mika and Andy are
-sufficient (they likely are more familiar with the code in there than I am),
-but please feel free to add an ACK from me to it too. :-)
-
+Perhaps the bug report does not apply here as the
+function is casting a unsigned int to an int through
+a pointer when the int could now be negative, the int
+is tested for < 256 and is then printed.
