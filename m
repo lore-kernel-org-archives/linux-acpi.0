@@ -1,69 +1,101 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v3 0/8] PM / ACPI / i2c: Deploy runtime PM centric path
- for system sleep
-Date: Wed, 6 Sep 2017 15:59:16 +0200
-Message-ID: <CAPDyKFr0hV=m=TumYKLoYC57mTht9_185vR5ynP_3oi7rauRbg@mail.gmail.com>
-References: <1504018610-10822-1-git-send-email-ulf.hansson@linaro.org>
- <CAPDyKFpX3Owk4H=0SqgfspXZd9TmdL_ANOZftXRq6HPjrT2ctQ@mail.gmail.com>
- <1883292.VFru06qUYG@aspire.rjw.lan> <8456507.jc97SKmauk@aspire.rjw.lan>
+From: Meng Xu <mengxu.gatech@gmail.com>
+Subject: Re: [PATCH] acpi: fix potential double-fetch bug
+Date: Wed, 6 Sep 2017 09:59:47 -0400
+Message-ID: <0779b159-1986-8dd6-5fc6-425aca41ab2e@gmail.com>
+References: <1503522449-35440-1-git-send-email-meng.xu@gatech.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <8456507.jc97SKmauk@aspire.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1503522449-35440-1-git-send-email-meng.xu@gatech.edu>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: sanidhya@gatech.edu, taesoo@gatech.edu
 List-Id: linux-acpi@vger.kernel.org
 
-On 6 September 2017 at 12:46, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Wednesday, September 6, 2017 2:52:59 AM CEST Rafael J. Wysocki wrote:
->> On Monday, September 4, 2017 2:55:37 PM CEST Ulf Hansson wrote:
->> > [...]
->
-> I guess I can wrap it up, because all of the points seem to have been stated
-> and repeating them would not be useful.
->
-> My summary of the discussion is as follows.
->
-> It only is valid to use pm_runtime_force_suspend/resume() as *driver*
-> callbacks for system suspend/resume if both the driver itself and all of
-> the middle layers it has to work with carry out the same sequence of
-> operations in order to suspend the device both in runtime PM and for
-> system sleep (and analogously for resuming).  [The middle layers need
-> to meet additional conditions, but that's less relevant.]
->
-> Unfortunately, for the ACPI PM domain and the PCI bus type the situation is
-> different, because they generally need to do different things to suspend
-> devices for system sleep than they do for runtime PM (which mostly is
-> related to the handling of ACPI-defined sleep states and device/system
-> wakeup, but not limited to that).  This clearly means that drivers needing
-> to work with the ACPI PM domain and PCI drivers cannot use
-> pm_runtime_force_suspend/resume() as their PM callbacks for system
-> suspend/resume (quite fundamentally).
->
-> [Note that for i2c-designware-platdrv the situation is even more complicated,
-> because on some platforms it has to work with the ACPI PM domain (or the
-> ACPI LPSS driver), on some platforms its parent is a PCI device and on
-> some other platforms there's none of them.]
+Hi Rafael and Len,
 
-That is also why it makes it really interesting. I am guessing we will
-be seeing more of these cases sooner or later.
+I have found a potential double-fetch operation (a TOCTOU case)
+in acpi/custom_method.c, which is explained in detail in the
+previous email. I'd like to seek your opinion about the patch
+I proposed and also your opinion about this problem in general.
 
-To make it even more complex, I can guess we can expect cases when
-genpd is mixed with the ACPI PM domain.
+The other two modules that have the same problem
+has been acknowledged and fixed:
 
+perf/core.c
+https://marc.info/?l=linux-kernel&m=150442907017508&w=2
+
+drivers/nvdimm/bus.c
+https://marc.info/?l=linux-kernel&m=150454910315948&w=2
+
+Best Regards,
+Meng
+
+On 08/23/2017 05:07 PM, Meng Xu wrote:
+> From: Meng Xu <mengxu.gatech@gmail.com>
 >
-> However, for drivers that need to work with the ACPI PM domain and
-> PCI drivers the differences in the device handling between runtime PM and
-> system suspend/resume are *very* often (even though not always) covered
-> entirely by the middle layer code.  Then, the driver itself actually
-> always carries out the same sequence of operations in order to suspend
-> the device (or to resume it, analogously).  The driver then can re-use
-> its runtime PM callbacks for system suspend/resume (but at the driver
-> level only) and it would be good to make that easy (or easier) for these
-> drivers somehow.
-
-This is a very nice summary so far, thanks for putting it together.
-
-Kind regards
-Uffe
+> While examining the kernel source code, I found a dangerous operation that
+> could turn into a double-fetch situation (a race condition bug) where
+> the same userspace memory region are fetched twice into kernel with sanity
+> checks after the first fetch while missing checks after the second fetch.
+>
+> In the case of *ppos == 0:
+>
+> 1. The first fetch happens in line 36
+> copy_from_user(&table, user_buf, sizeof(struct acpi_table_header)))
+>
+> 2. Subsequently `table.length` variable is used to allocate the `buf`drivers/acpi/custom_method.c
+>
+> (line 40).
+>
+> 3. The second fetch happens in line 54
+> copy_from_user(buf + (*ppos), user_buf, count)
+>
+> 4. Given that `user_buf` can be fully controlled in userspace, an attacker can
+> race condition to override the header part of `user_buf`, say,
+> `((struct acpi_table_header *)user_buf)->length` to arbitrary value
+> (say 0xFFFFFFFF) after the first fetch but before the second fetch. The changed
+> value will be copied to `buf`.
+>
+> 5. There is no checks on `((struct acpi_table_header *)buf)->length` until the
+> use of it in line 64 status = acpi_install_method(buf), which means that the
+> assumed relation, `buf->length` == length of the buffer, might not hold after
+> the second fetch. And once the control goes to function `acpi_install_method`,
+> we lose the context to assert that.
+>
+> 6. It is lucky that `buf->length` is not used in function `acpi_install_method`
+> so, there is no working exploit against it right now. However, this could
+> easily turns to an exploitable one if careless developers start to use
+> `buf->length` later.
+>
+> Proposed patch:
+>
+> The patch explicitly overrides `buf->length` after the second fetch with the
+> value `max_size` from the first fetch. In this way, it is assured that the
+> relation, `buf->length` == length of the buffer, holds after the second fetch.
+>
+> Signed-off-by: Meng Xu <mengxu.gatech@gmail.com>
+> ---
+>   drivers/acpi/custom_method.c | 7 +++++++
+>   1 file changed, 7 insertions(+)
+>
+> diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
+> index c68e724..eea7986 100644
+> --- a/drivers/acpi/custom_method.c
+> +++ b/drivers/acpi/custom_method.c
+> @@ -57,6 +57,13 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
+>   		return -EFAULT;
+>   	}
+>   
+> +	if (!(*ppos)) {
+> +		struct acpi_table_header *hdr =
+> +			ACPI_CAST_PTR(struct acpi_table_header, buf);
+> +
+> +		hdr->length = max_size;
+> +	}
+> +
+>   	uncopied_bytes -= count;
+>   	*ppos += count;
+>   
