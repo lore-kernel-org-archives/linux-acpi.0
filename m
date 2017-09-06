@@ -1,49 +1,75 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v6 0/7] Add RAS virtualization support for SEA/SEI
- notification type in KVM
-Date: Wed, 6 Sep 2017 19:29:25 +0800
-Message-ID: <0695fa5c-2b82-703b-32f7-dfbbbfbcb1b3@huawei.com>
-References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
- <CAFEAcA9=Ct6ucd8kPWyi3vSzahEQpOqLEakD36vxWmw=JcppFQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] ACPI / x86: Extend KIOX000A quirk to cover all affected BIOS versions
+Date: Wed,  6 Sep 2017 15:44:25 +0200
+Message-ID: <20170906134425.17449-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:5984 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752485AbdIFLbN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Sep 2017 07:31:13 -0400
-In-Reply-To: <CAFEAcA9=Ct6ucd8kPWyi3vSzahEQpOqLEakD36vxWmw=JcppFQ@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:41730 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932166AbdIFNo2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 6 Sep 2017 09:44:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Maydell <peter.maydell@linaro.org>
-Cc: Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, linux@armlinux.org.uk, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, Mark Rutland <mark.rutland@arm.com>, James Morse <james.morse@arm.com>, xiexiuqi@huawei.com, Christopher Covington <cov@codeaurora.org>, David Daney <david.daney@cavium.com>, "Suzuki K. Poulose" <suzuki.poulose@arm.com>, stefan@hello-penguin.com, Dave P Martin <Dave.Martin@arm.com>, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, Tyler Baicar <tbaicar@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Ingo Molnar <mingo@kernel.org>
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
 
-Hi Peter,
+Recently produced GPD win devices have a new BIOS, research into the
+changes in this BIOS has found a ChangeLog which shows that the disabling
+of the KIOX000A node has been done starting with the 20170221 version.
 
-On 2017/9/6 19:19, Peter Maydell wrote:
-> On 28 August 2017 at 11:38, Dongjiu Geng <gengdongjiu@huawei.com> wrote:
->> In the firmware-first RAS solution, corrupt data is detected in a
->> memory location when guest OS application software executing at EL0
->> or guest OS kernel El1 software are reading from the memory. The
->> memory node records errors in an error record accessible using
->> system registers.
-> 
-> Hi Dongjiu -- it looks like this patch set is extending
-> the API KVM provides to userspace, but it doesn't update
-> the documentation in Documentation/virtual/kvm/api.txt.
-> I appreciate the API is still somewhat under discussion,
-> but if you can include the docs updates it's helpful to
-> me for reviewing whether the API makes sense from the
-> userspace consumer end of it.
+Unfortunately the GPD pocket uses the exact same DMI strings as the win
+and its BIOS was copy-pasted from the GPD win, so it has a disabled
+KIOX000A node which we should not enable, so we need to check for the
+exact BIOS date.
 
-sure, it should. thanks a lot for the reminder. I will update the related docs
-in my next patch set version.
+This commit adds 2 extra entries to the always_present_ids quirk table
+with bios_date matches for the older also affected and the latest BIOS.
 
-> 
-> thanks
-> -- PMM
-> 
-> .
-> 
+Reported-by: ReddestDream <reddestdream@gmail.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/x86/utils.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
+index b4fbb9929482..ec5b0f190231 100644
+--- a/drivers/acpi/x86/utils.c
++++ b/drivers/acpi/x86/utils.c
+@@ -71,18 +71,34 @@ static const struct always_present_id always_present_ids[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7130"),
+ 	      }),
+ 	/*
+-	 * The GPD win BIOS dated 20170320 has disabled the accelerometer, the
++	 * The GPD win BIOS dated 20170221 has disabled the accelerometer, the
+ 	 * drivers sometimes cause crashes under Windows and this is how the
+ 	 * manufacturer has solved this :| Note that the the DMI data is less
+ 	 * generic then it seems, a board_vendor of "AMI Corporation" is quite
+ 	 * rare and a board_name of "Default String" also is rare.
++	 *
++	 * Unfortunately the GPD pocket also uses these strings and its BIOS
++	 * was copy-pasted from the GPD win, so it has a disabled KIOX000A
++	 * node which we should not enable, thus we also check the BIOS date.
+ 	 */
+ 	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
+ 		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
+ 		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
++		DMI_MATCH(DMI_BIOS_DATE, "02/21/2017")
++	      }),
++	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
++		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
++		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
+ 		DMI_MATCH(DMI_BIOS_DATE, "03/20/2017")
+ 	      }),
++	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
++		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
++		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
++		DMI_MATCH(DMI_BIOS_DATE, "05/25/2017")
++	      }),
+ };
+ 
+ bool acpi_device_always_present(struct acpi_device *adev)
+-- 
+2.13.4
 
