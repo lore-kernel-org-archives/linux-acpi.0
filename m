@@ -1,29 +1,32 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [RFT][PATCH v3 0/3] i2c: designware: Runtime PM aware system
- sleep handling
-Date: Wed, 6 Sep 2017 13:14:50 +0200
-Message-ID: <CAJZ5v0hWyT==K0PQMBwr7mcW-V_96Ld-WCHA+nhww3Y=yX-vMQ@mail.gmail.com>
-References: <3023226.l5IfJK6GIc@aspire.rjw.lan> <3958866.l2qnKDbinI@aspire.rjw.lan>
- <20170906110641.GT2477@lahna.fi.intel.com>
+From: Peter Maydell <peter.maydell@linaro.org>
+Subject: Re: [PATCH v6 0/7] Add RAS virtualization support for SEA/SEI
+ notification type in KVM
+Date: Wed, 6 Sep 2017 12:19:21 +0100
+Message-ID: <CAFEAcA9=Ct6ucd8kPWyi3vSzahEQpOqLEakD36vxWmw=JcppFQ@mail.gmail.com>
+References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170906110641.GT2477@lahna.fi.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Lee Jones <lee@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dongjiu Geng <gengdongjiu@huawei.com>
+Cc: Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, linux@armlinux.org.uk, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, Mark Rutland <mark.rutland@arm.com>, James Morse <james.morse@arm.com>, xiexiuqi@huawei.com, Christopher Covington <cov@codeaurora.org>, David Daney <david.daney@cavium.com>, "Suzuki K. Poulose" <suzuki.poulose@arm.com>, stefan@hello-penguin.com, Dave P Martin <Dave.Martin@arm.com>, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, Tyler Baicar <tbaicar@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Ingo Molnar <mingo@kernel.org>, bp@suse.de
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 6, 2017 at 1:06 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Wed, Sep 06, 2017 at 01:41:37AM +0200, Rafael J. Wysocki wrote:
->> > Please test if you can and let me know if anything breaks.
->>
->> That still applies. :-)
->
-> Tested on Dell XPS 9550 which is using intel-lpss and everything still
-> works fine :)
->
-> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+On 28 August 2017 at 11:38, Dongjiu Geng <gengdongjiu@huawei.com> wrote:
+> In the firmware-first RAS solution, corrupt data is detected in a
+> memory location when guest OS application software executing at EL0
+> or guest OS kernel El1 software are reading from the memory. The
+> memory node records errors in an error record accessible using
+> system registers.
 
-OK, thanks!
+Hi Dongjiu -- it looks like this patch set is extending
+the API KVM provides to userspace, but it doesn't update
+the documentation in Documentation/virtual/kvm/api.txt.
+I appreciate the API is still somewhat under discussion,
+but if you can include the docs updates it's helpful to
+me for reviewing whether the API makes sense from the
+userspace consumer end of it.
+
+thanks
+-- PMM
