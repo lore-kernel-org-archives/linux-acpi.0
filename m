@@ -1,205 +1,449 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 1/3] mfd: Add support for Cherry Trail Dollar Cove TI PMIC
-Date: Wed, 06 Sep 2017 12:21:31 +0200
-Message-ID: <1783868.XLEivnFYIC@aspire.rjw.lan>
-References: <20170904144340.27693-1-tiwai@suse.de> <20170906090504.oo5equym533u7u5q@dell> <s5hshg0kuo5.wl-tiwai@suse.de>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [RFC 3/4] ACPI/PPTT: Add Processor Properties Topology Table
+ parsing
+Date: Wed, 6 Sep 2017 18:34:54 +0800
+Message-ID: <f3e7612f-e96c-b463-c6bd-d7f5ba0764bd@huawei.com>
+References: <20170805001159.12769-1-jeremy.linton@arm.com>
+ <20170805001159.12769-4-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57898 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752485AbdIFKaV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Sep 2017 06:30:21 -0400
-In-Reply-To: <s5hshg0kuo5.wl-tiwai@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170805001159.12769-4-jeremy.linton@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jeremy Linton <jeremy.linton@arm.com>, linux-arm-kernel@lists.infradead.org
+Cc: lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, sudeep.holla@arm.com
 List-Id: linux-acpi@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>, Lee Jones <lee.jones@linaro.org>
-Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, September 6, 2017 12:06:50 PM CEST Takashi Iwai wrote:
-> On Wed, 06 Sep 2017 11:05:04 +0200,
-> Lee Jones wrote:
-> > 
-> > On Wed, 06 Sep 2017, Takashi Iwai wrote:
-> > 
-> > > On Wed, 06 Sep 2017 09:54:44 +0200,
-> > > Lee Jones wrote:
-> > > > 
-> > > > On Tue, 05 Sep 2017, Takashi Iwai wrote:
-> > > > 
-> > > > > On Tue, 05 Sep 2017 10:53:41 +0200,
-> > > > > Lee Jones wrote:
-> > > > > > 
-> > > > > > On Tue, 05 Sep 2017, Takashi Iwai wrote:
-> > > > > > 
-> > > > > > > On Tue, 05 Sep 2017 10:10:49 +0200,
-> > > > > > > Lee Jones wrote:
-> > > > > > > > 
-> > > > > > > > On Tue, 05 Sep 2017, Takashi Iwai wrote:
-> > > > > > > > 
-> > > > > > > > > On Tue, 05 Sep 2017 09:24:51 +0200,
-> > > > > > > > > Lee Jones wrote:
-> > > > > > > > > > 
-> > > > > > > > > > On Mon, 04 Sep 2017, Takashi Iwai wrote:
-> > > > > > > > > > 
-> > > > > > > > > > > This patch adds the MFD driver for Dollar Cove (TI version) PMIC with
-> > > > > > > > > > > ACPI INT33F5 that is found on some Intel Cherry Trail devices.
-> > > > > > > > > > > The driver is based on the original work by Intel, found at:
-> > > > > > > > > > >   https://github.com/01org/ProductionKernelQuilts
-> > > > > > > > > > > 
-> > > > > > > > > > > This is a minimal version for adding the basic resources.  Currently,
-> > > > > > > > > > > only ACPI PMIC opregion and the external power-button are used.
-> > > > > > > > > > > 
-> > > > > > > > > > > Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=193891
-> > > > > > > > > > > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > > > > > > > > > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> > > > > > > > > > > Signed-off-by: Takashi Iwai <tiwai@suse.de>
-> > > > > > > > > > > ---
-> > > > > > > > > > > v4->v5:
-> > > > > > > > > > > * Minor coding-style fixes suggested by Lee
-> > > > > > > > > > > * Put GPL text
-> > > > > > > > > > > v3->v4:
-> > > > > > > > > > > * no change for this patch
-> > > > > > > > > > > v2->v3:
-> > > > > > > > > > > * Rename dc_ti with chtdc_ti in all places
-> > > > > > > > > > > * Driver/kconfig renames accordingly
-> > > > > > > > > > > * Added acks by Andy and Mika
-> > > > > > > > > > > v1->v2:
-> > > > > > > > > > > * Minor cleanups as suggested by Andy
-> > > > > > > > > > > 
-> > > > > > > > > > >  drivers/mfd/Kconfig                   |  13 +++
-> > > > > > > > > > >  drivers/mfd/Makefile                  |   1 +
-> > > > > > > > > > >  drivers/mfd/intel_soc_pmic_chtdc_ti.c | 184 ++++++++++++++++++++++++++++++++++
-> > > > > > > > > > >  3 files changed, 198 insertions(+)
-> > > > > > > > > > >  create mode 100644 drivers/mfd/intel_soc_pmic_chtdc_ti.c
-> > > > > > > > > > 
-> > > > > > > > > > For my own reference:
-> > > > > > > > > >   Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
-> > > > > > > > > 
-> > > > > > > > > Thanks!
-> > > > > > > > > 
-> > > > > > > > > Now the question is how to deal with these.  It's no critical things,
-> > > > > > > > > so I'm OK to postpone for 4.15.  OTOH, it's really a new
-> > > > > > > > > device-specific stuff, thus it can't break anything else, and it'd be
-> > > > > > > > > fairly safe to add it for 4.14 although it's at a bit late stage.
-> > > > > > > > 
-> > > > > > > > Yes, you are over 2 weeks late for v4.14.  It will have to be v4.15.
-> > > > > > > 
-> > > > > > > OK, I'll ring your bells again once when 4.15 development is opened.
-> > > > > > > 
-> > > > > > > 
-> > > > > > > > > IMO, it'd be great if you can carry all stuff through MFD tree; or
-> > > > > > > > > create an immutable branch (again).  But how to handle it, when to do
-> > > > > > > > > it, It's all up to you guys.
-> > > > > > > > 
-> > > > > > > > If there aren't any build dependencies between the patches, each of
-> > > > > > > > the patches should be applied through their own trees.  What are the
-> > > > > > > > build-time dependencies?  Are there any?
-> > > > > > > 
-> > > > > > > No, there is no strict build-time dependency.  It's just that I don't
-> > > > > > > see it nice to have a commit for a dead code, partly for testing
-> > > > > > > purpose and partly for code consistency.  But if this makes
-> > > > > > > maintenance easier, I'm happy with that, too, of course.
-> > > > > > 
-> > > > > > There won't be any dead code.  All of the subsystem trees are pulled
-> > > > > > into -next [0] where the build bots can operate on the patches as a
-> > > > > > whole.
-> > > > > 
-> > > > > But the merge order isn't guaranteed, i.e. at the commit of other tree
-> > > > > for this new stuff, it's a dead code without merging the MFD stuff
-> > > > > beforehand.  e.g. Imagine to perform the git bisection.  It's not
-> > > > > about the whole tree, but about the each commit.
-> > > > 
-> > > > Only *building* is relevant for bisection until the whole feature
-> > > > lands.
-> > > 
-> > > Why only building?
-> > > 
-> > > When merging through several tress, commits for the same series are
-> > > scattered completely although they are softly tied.  This sucks when
-> > > you perform git bisection, e.g. if you have an issue in the middle of
-> > > the patch series.  It still works, but it jumps unnecessarily too far
-> > > away and back before reaching to the point, and kconfig appears /
-> > > disappears inconsistently (the dependent kconfig gone in the middle).
-> > > And, this is about the release kernel (4.15 or whatever).
-> > 
-> > Think about how bisection works.  You state a good commit and a bad
-> > one.  The good commit will be when the feature last worked, which will
-> > not be until the feature has fully landed.  Bisect will not check any
-> > point prior to this date.
-> > 
-> > If there aren't any build deps, each Maintainer will apply patches
-> > into their own tree.  These will be merged together in -next where
-> > they can be tested, both manually and by the 0-days.  Once the merge
-> > window is opened all patches will be sucked into -rc1.  If the feature
-> > works here, then it you could use -rc1 as your 'good' commit.  If it
-> > doesn't, then this could indicate a merge error or a missing piece of
-> > the set, either way bisect wouldn't help you.
-> 
-> Not really.
-> 
-> First of all, most of user start testing from the release kernel, so
-> you can't trust that RC covered all test cases.  (Who can blame users
-> who didn't use / test RC?)
-> 
-> Second, you ignore the fact that the development continues after
-> merging *this* patchset.  What if a breakage is introduced after this
-> patch?  (See below)
-> 
-> They often need a full bisection between the previous release and the
-> current release.
-> 
-> > > Basically, my complaint here comes with my user's hat on.  It *is*
-> > > indeed worse than a straight application of patches in some levels.
-> > > It's unavoidable if you do in that way.
-> > 
-> > I disagree.  I user wouldn't set the 'good' commit at any point prior
-> > to the feature working at least once.
-> 
-> Again no, not all users do test at the same time.  A device driver
-> may support multiple devices / platforms, and it might be that the bug
-> manifests itself only on a certain system that no one has tested
-> beforehand; it's a typical case we often see after the releases.
-> 
-> > This will not happen if any
-> > parts were missing.  The order in which the pieces are applied is
-> > irrelevant if there aren't any build deps between them.  If you bisect
-> > between them, then the driver simply will not build.  No problem.
-> 
-> The bisection is required not only for build errors but also for
-> functional tests.  Sometimes it's the only way to spot the culprit of
-> a functional regression.
-> 
-> Imagine the following case: both MFD and platform drivers are merged
-> into individual trees separately.  And, some change in platform driver
-> after this patch series broke some functionality mistakenly.
-> 
-> Now, suppose that the platform tree is merged to Linus tree before MFD
-> tree, that is, the situation is like:
-> 
->   MFD (commit A1) -- ... -------------------------+
->   platform (commit B1) -> broken change (B2) -+   |
->                                               v   v
->                                             --M1--M2--> Linus RC1
-> 
-> git-bisection can inspect M2, which shows already broken.  Then it
-> inspects M1, but you can't evaluate it because the target platform
-> driver can't be built without A1.  At this point, you're stuck.
-> But in this case, B1 is correct and B2 is the culprit.  How can you
-> spot it out?
-> 
-> OTOH, if the merge history honors the functional dependency, you can
-> bisect properly.
+Hi Jeremy,
 
-Exactly and not only that.
+On 2017/8/5 8:11, Jeremy Linton wrote:
+> ACPI 6.2 adds a new table, which describes how processing units
+> are related to each other in tree like fashion. Caches are
+> also sprinkled throughout the tree and describe the properties
+> of the caches in relation to other caches and processing units.
+> 
+> Add the code to parse the cache hierarchy and report the total
+> number of levels of cache for a given core using
+> acpi_find_last_cache_level() as well as fill out the individual
+> cores cache information with cache_setup_acpi() once the
+> cpu_cacheinfo structure has been populated by the arch specific
+> code.
+> 
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  drivers/acpi/arm64/pptt.c | 389 ++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 389 insertions(+)
+>  create mode 100644 drivers/acpi/arm64/pptt.c
+> 
+> diff --git a/drivers/acpi/arm64/pptt.c b/drivers/acpi/arm64/pptt.c
+> new file mode 100644
+> index 0000000..e1ab77d
+> --- /dev/null
+> +++ b/drivers/acpi/arm64/pptt.c
+> @@ -0,0 +1,389 @@
+> +/*
+> + * Copyright (C) 2017, ARM
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * This file implements parsing of Processor Properties Topology Table (PPTT)
+> + * which is optionally used to describe the processor and cache topology.
+> + * Due to the relative pointers used throughout the table, this doesn't
+> + * leverage the existing subtable parsing in the kernel.
+> + */
+> +
+> +#define pr_fmt(fmt) "ACPI PPTT: " fmt
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/cacheinfo.h>
+> +#include <acpi/processor.h>
+> +
+> +/*
+> + * Given the PPTT table, find and verify that the subtable entry
+> + * is located within the table
+> + */
+> +static struct acpi_subtable_header *fetch_pptt_subtable(
+> +	struct acpi_table_header *table_hdr, u32 pptt_ref)
+> +{
+> +	struct acpi_subtable_header *entry;
+> +
+> +	/* there isn't a subtable at reference 0 */
+> +	if (!pptt_ref)
+> +		return NULL;
+> +
+> +	if (pptt_ref + sizeof(struct acpi_subtable_header) > table_hdr->length)
+> +		return NULL;
+> +
+> +	entry = (struct acpi_subtable_header *)((u8 *)table_hdr + pptt_ref);
+> +
+> +	if (pptt_ref + entry->length > table_hdr->length)
+> +		return NULL;
+> +
+> +	return entry;
+> +}
+> +
+> +static struct acpi_pptt_processor *fetch_pptt_node(
+> +	struct acpi_table_header *table_hdr, u32 pptt_ref)
+> +{
+> +	return (struct acpi_pptt_processor *)fetch_pptt_subtable(table_hdr, pptt_ref);
+> +}
+> +
+> +static struct acpi_pptt_cache *fetch_pptt_cache(
+> +	struct acpi_table_header *table_hdr, u32 pptt_ref)
+> +{
+> +	return (struct acpi_pptt_cache *)fetch_pptt_subtable(table_hdr, pptt_ref);
+> +}
+> +
+> +static struct acpi_subtable_header *acpi_get_pptt_resource(
+> +	struct acpi_table_header *table_hdr,
+> +	struct acpi_pptt_processor *node, int resource)
+> +{
+> +	u32 ref;
+> +
+> +	if (resource >= node->number_of_priv_resources)
+> +		return NULL;
+> +
+> +	ref = *(u32 *)((u8 *)node + sizeof(struct acpi_pptt_processor) +
+> +		      sizeof(u32) * resource);
+> +
+> +	return fetch_pptt_subtable(table_hdr, ref);
+> +}
+> +
+> +/*
+> + * given a pptt resource, verify that it is a cache node, then walk
+> + * down each level of caches, counting how many levels are found
+> + * as well as checking the cache type (icache, dcache, unified). If a
+> + * level & type match, then we set found, and continue the search.
+> + * Once the entire cache branch has been walked return its max
+> + * depth.
+> + */
+> +static int acpi_pptt_walk_cache(struct acpi_table_header *table_hdr,
+> +				int local_level,
+> +				struct acpi_subtable_header *res,
+> +				struct acpi_pptt_cache **found,
+> +				int level, int type)
+> +{
+> +	struct acpi_pptt_cache *cache;
+> +
+> +	if (res->type != ACPI_PPTT_TYPE_CACHE)
+> +		return 0;
+> +
+> +	cache = (struct acpi_pptt_cache *) res;
+> +	while (cache) {
+> +		local_level++;
+> +
+> +		if ((local_level == level) &&
+> +		    (cache->flags & ACPI_PPTT_CACHE_TYPE_VALID) &&
+> +		    ((cache->attributes & ACPI_PPTT_MASK_CACHE_TYPE) == type)) {
+> +			if (*found != NULL)
+> +				pr_err("Found duplicate cache level/type unable to determine uniqueness\n");
+> +
+> +			pr_debug("Found cache @ level %d\n", level);
+> +			*found = cache;
+> +			/*
+> +			 * continue looking at this node's resource list
+> +			 * to verify that we don't find a duplicate
+> +			 * cache node.
+> +			 */
+> +		}
+> +		cache = fetch_pptt_cache(table_hdr, cache->next_level_of_cache);
+> +	}
+> +	return local_level;
+> +}
+> +
+> +/*
+> + * Given a CPU node look for cache levels that exist at this level, and then
+> + * for each cache node, count how many levels exist below (logically above) it.
+> + * If a level and type are specified, and we find that level/type, abort
+> + * processing and return the acpi_pptt_cache structure.
+> + */
+> +static struct acpi_pptt_cache *acpi_find_cache_level(
+> +	struct acpi_table_header *table_hdr,
+> +	struct acpi_pptt_processor *cpu_node,
+> +	int *starting_level, int level, int type)
+> +{
+> +	struct acpi_subtable_header *res;
+> +	int number_of_levels = *starting_level;
+> +	int resource = 0;
+> +	struct acpi_pptt_cache *ret = NULL;
+> +	int local_level;
+> +
+> +	/* walk down from processor node */
+> +	while ((res = acpi_get_pptt_resource(table_hdr, cpu_node, resource))) {
+> +		resource++;
+> +
+> +		local_level = acpi_pptt_walk_cache(table_hdr, *starting_level,
+> +						   res, &ret, level, type);
+> +		/*
+> +		 * we are looking for the max depth. Since its potentially
+> +		 * possible for a given node to have resources with differing
+> +		 * depths verify that the depth we have found is the largest.
+> +		 */
+> +		if (number_of_levels < local_level)
+> +			number_of_levels = local_level;
+> +	}
+> +	if (number_of_levels > *starting_level)
+> +		*starting_level = number_of_levels;
+> +
+> +	return ret;
+> +}
+> +
+> +/*
+> + * given a processor node containing a processing unit, walk into it and count
+> + * how many levels exist solely for it, and then walk up each level until we hit
+> + * the root node (ignore the package level because it may be possible to have
+> + * caches that exist across packages. Count the number of cache levels that
+> + * exist at each level on the way up.
+> + */
+> +static int acpi_process_node(struct acpi_table_header *table_hdr,
+> +			     struct acpi_pptt_processor *cpu_node)
+> +{
+> +	int total_levels = 0;
+> +
+> +	do {
+> +		acpi_find_cache_level(table_hdr, cpu_node, &total_levels, 0, 0);
+> +		cpu_node = fetch_pptt_node(table_hdr, cpu_node->parent);
+> +	} while (cpu_node);
+> +
+> +	return total_levels;
+> +}
+> +
+> +/*
+> + * Find the subtable entry describing the provided processor
+> + */
+> +static struct acpi_pptt_processor *acpi_find_processor_node(
+> +	struct acpi_table_header *table_hdr,
+> +	u32 acpi_cpu_id)
+> +{
+> +	struct acpi_subtable_header *entry;
+> +	unsigned long table_end;
+> +	struct acpi_pptt_processor *cpu_node;
+> +
+> +	table_end = (unsigned long)table_hdr + table_hdr->length;
+> +	entry = (struct acpi_subtable_header *)((u8 *)table_hdr + sizeof(struct acpi_table_pptt));
+> +
+> +	/* find the processor structure associated with this cpuid */
+> +	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) < table_end) {
+> +		cpu_node = (struct acpi_pptt_processor *)entry;
+> +
+> +		if ((entry->type == ACPI_PPTT_TYPE_PROCESSOR) &&
+> +		    (cpu_node->flags & ACPI_PPTT_ACPI_PROCESSOR_ID_VALID)) {
+> +			pr_debug("checking phy_cpu_id %d against acpi id %d\n",
+> +				 acpi_cpu_id, cpu_node->acpi_processor_id);
+> +			if (acpi_cpu_id == cpu_node->acpi_processor_id) {
+> +				/* found the correct entry */
+> +				pr_debug("match found!\n");
+> +				return (struct acpi_pptt_processor *)entry;
+> +			}
+> +		}
+> +
+> +		if (entry->length == 0) {
+> +			pr_err("Invalid zero length subtable\n");
+> +			break;
+> +		}
+> +		entry = (struct acpi_subtable_header *)
+> +			((u8 *)entry + entry->length);
+> +	}
+> +	return NULL;
+> +}
+> +
+> +static int acpi_parse_pptt(struct acpi_table_header *table_hdr, u32 acpi_cpu_id)
+> +{
+> +	int number_of_levels = 0;
+> +	struct acpi_pptt_processor *cpu;
+> +
+> +	cpu = acpi_find_processor_node(table_hdr, acpi_cpu_id);
+> +	if (cpu)
+> +		number_of_levels = acpi_process_node(table_hdr, cpu);
+> +
+> +	return number_of_levels;
+> +}
+> +
+> +#define ACPI_6_2_CACHE_TYPE_DATA		      (0x0)
+> +#define ACPI_6_2_CACHE_TYPE_INSTR		      (1<<2)
+> +#define ACPI_6_2_CACHE_TYPE_UNIFIED		      (1<<3)
+> +#define ACPI_6_2_CACHE_POLICY_WB		      (0x0)
+> +#define ACPI_6_2_CACHE_POLICY_WT		      (1<<4)
+> +#define ACPI_6_2_CACHE_READ_ALLOCATE		      (0x0)
+> +#define ACPI_6_2_CACHE_WRITE_ALLOCATE		      (0x01)
+> +#define ACPI_6_2_CACHE_RW_ALLOCATE		      (0x02)
+> +
+> +static u8 acpi_cache_type(enum cache_type type)
+> +{
+> +	switch (type) {
+> +	case CACHE_TYPE_DATA:
+> +		pr_debug("Looking for data cache\n");
+> +		return ACPI_6_2_CACHE_TYPE_DATA;
+> +	case CACHE_TYPE_INST:
+> +		pr_debug("Looking for instruction cache\n");
+> +		return ACPI_6_2_CACHE_TYPE_INSTR;
+> +	default:
+> +		pr_err("Unknown cache type, assume unified\n");
+I think we may need a 'pr_debug' here instead of 'pr_err'.
+The register CLIDR usually only describe the L1 or L2 cache of a core.
+Cache level described by CLIDR is often smaller than described by PPTT.
+The cache_type not described by CLIDR will be CACHE_TYPE_NOCACHE, which will
+cause a error info print here. This scene is very common. So I think
+a 'pr_debug' may be better.
 
-If the git history reflects the logical dependencies between patches,
-you should be able to figure out the reason why the code was changed
-this way (sometimes you can't anyway if commit logs suck, for example,
-but this is a different problem) which quite often is essential for
-debugging, backporting and similar.
-
-Thanks,
-Rafael
-
+> +	case CACHE_TYPE_UNIFIED:
+> +		pr_debug("Looking for unified cache\n");
+> +		return ACPI_6_2_CACHE_TYPE_UNIFIED;
+> +	}
+> +}
+> +
+> +/* find the ACPI node describing the cache type/level for the given CPU */
+> +static struct acpi_pptt_cache *acpi_find_cache_node(
+> +	struct acpi_table_header *table_hdr, u32 acpi_cpu_id,
+> +	enum cache_type type, unsigned int level)
+> +{
+> +	int total_levels = 0;
+> +	struct acpi_pptt_cache *found = NULL;
+> +	struct acpi_pptt_processor *cpu_node;
+> +	u8 acpi_type = acpi_cache_type(type);
+> +
+> +	pr_debug("Looking for CPU %d's level %d cache type %d\n",
+> +		 acpi_cpu_id, level, acpi_type);
+> +
+> +	cpu_node = acpi_find_processor_node(table_hdr, acpi_cpu_id);
+> +	if (!cpu_node)
+> +		return NULL;
+> +
+> +	do {
+> +		found = acpi_find_cache_level(table_hdr, cpu_node, &total_levels, level, acpi_type);
+> +		cpu_node = fetch_pptt_node(table_hdr, cpu_node->parent);
+> +	} while ((cpu_node) && (!found));
+> +
+> +	return found;
+> +}
+> +
+> +int acpi_find_last_cache_level(unsigned int cpu)
+> +{
+> +	u32 acpi_cpu_id;
+> +	struct acpi_table_header *table;
+> +	int number_of_levels = 0;
+> +	acpi_status status;
+> +
+> +	pr_debug("Cache Setup find last level cpu=%d\n", cpu);
+> +
+> +	acpi_cpu_id = acpi_cpu_get_madt_gicc(cpu)->uid;
+> +	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
+> +	if (ACPI_FAILURE(status)) {
+> +		pr_err_once("No PPTT table found, cache topology may be inaccurate\n");
+> +	} else {
+> +		number_of_levels = acpi_parse_pptt(table, acpi_cpu_id);
+> +		acpi_put_table(table);
+> +	}
+> +	pr_debug("Cache Setup find last level level=%d\n", number_of_levels);
+> +
+> +	return number_of_levels;
+> +}
+> +
+> +/*
+> + * The ACPI spec implies that the fields in the cache structures are used to
+> + * extend and correct the information probed from the hardware. In the case
+> + * of arm64 the CCSIDR probing has been removed because it might be incorrect.
+> + */
+> +static void update_cache_properties(struct cacheinfo *this_leaf,
+> +				    struct acpi_pptt_cache *found_cache)
+> +{
+> +	this_leaf->of_node = (struct device_node *)found_cache;
+> +	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID)
+> +		this_leaf->size = found_cache->size;
+> +	if (found_cache->flags & ACPI_PPTT_LINE_SIZE_VALID)
+> +		this_leaf->coherency_line_size = found_cache->line_size;
+> +	if (found_cache->flags & ACPI_PPTT_NUMBER_OF_SETS_VALID)
+> +		this_leaf->number_of_sets = found_cache->number_of_sets;
+> +	if (found_cache->flags & ACPI_PPTT_ASSOCIATIVITY_VALID)
+> +		this_leaf->ways_of_associativity = found_cache->associativity;
+> +	if (found_cache->flags & ACPI_PPTT_WRITE_POLICY_VALID)
+> +		switch (found_cache->attributes & ACPI_PPTT_MASK_WRITE_POLICY) {
+> +		case ACPI_6_2_CACHE_POLICY_WT:
+> +			this_leaf->attributes = CACHE_WRITE_THROUGH;
+> +			break;
+> +		case ACPI_6_2_CACHE_POLICY_WB:
+> +			this_leaf->attributes = CACHE_WRITE_BACK;
+> +			break;
+> +		default:
+> +			pr_err("Unknown ACPI cache policy %d\n",
+> +			      found_cache->attributes & ACPI_PPTT_MASK_WRITE_POLICY);
+> +		}
+> +	if (found_cache->flags & ACPI_PPTT_ALLOCATION_TYPE_VALID)
+> +		switch (found_cache->attributes & ACPI_PPTT_MASK_ALLOCATION_TYPE) {
+> +		case ACPI_6_2_CACHE_READ_ALLOCATE:
+> +			this_leaf->attributes |= CACHE_READ_ALLOCATE;
+> +			break;
+> +		case ACPI_6_2_CACHE_WRITE_ALLOCATE:
+> +			this_leaf->attributes |= CACHE_WRITE_ALLOCATE;
+> +			break;
+> +		case ACPI_6_2_CACHE_RW_ALLOCATE:
+> +			this_leaf->attributes |=
+> +				CACHE_READ_ALLOCATE|CACHE_WRITE_ALLOCATE;
+> +			break;
+> +		default:
+> +			pr_err("Unknown ACPI cache allocation policy %d\n",
+> +			   found_cache->attributes & ACPI_PPTT_MASK_ALLOCATION_TYPE);
+> +		}
+> +}
+> +
+> +static void cache_setup_acpi_cpu(struct acpi_table_header *table,
+> +				 unsigned int cpu)
+> +{
+> +	struct acpi_pptt_cache *found_cache;
+> +	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+> +	u32 acpi_cpu_id = acpi_cpu_get_madt_gicc(cpu)->uid;
+> +	struct cacheinfo *this_leaf;
+> +	unsigned int index = 0;
+> +
+> +	while (index < get_cpu_cacheinfo(cpu)->num_leaves) {
+> +		this_leaf = this_cpu_ci->info_list + index;
+> +		found_cache = acpi_find_cache_node(table, acpi_cpu_id,
+> +						   this_leaf->type,
+> +						   this_leaf->level);
+> +		pr_debug("found = %p\n", found_cache);
+> +		if (found_cache)
+> +			update_cache_properties(this_leaf, found_cache);
+> +
+> +		index++;
+> +	}
+> +}
+> +
+> +/*
+> + * simply assign a ACPI cache entry to each known CPU cache entry
+> + * determining which entries are shared is done later
+> + */
+> +int cache_setup_acpi(unsigned int cpu)
+> +{
+> +	struct acpi_table_header *table;
+> +	acpi_status status;
+> +
+> +	pr_debug("Cache Setup ACPI cpu %d\n", cpu);
+> +
+> +	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
+> +	if (ACPI_FAILURE(status)) {
+> +		pr_err_once("No PPTT table found, cache topology may be inaccurate\n");
+> +		return -ENOENT;
+> +	}
+> +
+> +	cache_setup_acpi_cpu(table, cpu);
+> +	acpi_put_table(table);
+> +
+> +	return 0;
+> +}
+> 
