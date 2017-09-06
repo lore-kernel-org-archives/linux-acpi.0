@@ -1,69 +1,34 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 1/1] ACPI: NULL pointer checking
-Date: Wed, 6 Sep 2017 16:42:39 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E60BA3F@ORSMSX110.amr.corp.intel.com>
-References: <20170906133522.7884-1-lizhenhuajiyang@163.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] gpio: acpi: work around false-positive -Wstring-overflow warning
+Date: Wed, 6 Sep 2017 21:53:51 +0200
+Message-ID: <CAK8P3a2RGZFc3_XpgyfuxwYy-vOoYkkamxQzma8JKwLjCCJasQ@mail.gmail.com>
+References: <20170906154756.2133726-1-arnd@arndb.de> <1504713173.7546.3.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170906133522.7884-1-lizhenhuajiyang@163.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhenhua <lizhenhuajiyang@163.com>, "devel@acpica.org" <devel@acpica.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:33588 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751969AbdIFTxx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Sep 2017 15:53:53 -0400
+In-Reply-To: <1504713173.7546.3.camel@perches.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, Wei Yongjun <weiyongjun1@huawei.com>, linux-gpio@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
+On Wed, Sep 6, 2017 at 5:52 PM, Joe Perches <joe@perches.com> wrote:
+> On Wed, 2017-09-06 at 17:47 +0200, Arnd Bergmann wrote:
 
+>> As suggested by Andy, this changes the format string to have a fixed length.
+>> Since modifying the range check did not help, I also opened a bug against
+>> gcc, see link below.
+>
+> The code has
+>
+>         int pin
+>
+> does changing pin to unsigned int matter?
 
-> -----Original Message-----
-> From: Zhenhua [mailto:lizhenhuajiyang@163.com]
-> Sent: Wednesday, September 6, 2017 6:35 AM
-> To: devel@acpica.org; Moore, Robert <robert.moore@intel.com>; Zheng, Lv
-> <lv.zheng@intel.com>; Wysocki, Rafael J <rafael.j.wysocki@intel.com>;
-> lenb@kernel.org; linux-acpi@vger.kernel.org; linux-
-> kernel@vger.kernel.org
-> Cc: Zhenhua <lizhenhuajiyang@163.com>
-> Subject: [PATCH 1/1] ACPI: NULL pointer checking
-> 
-> These two pointers should be checked, for some broken devices they may
-> cause system crash.
-> 
-> Signed-off-by: Zhenhua <lizhenhuajiyang@163.com>
-> ---
->  drivers/acpi/acpica/nsaccess.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/nsaccess.c
-> b/drivers/acpi/acpica/nsaccess.c index f2733f51ca8d..151abb0ef4d5 100644
-> --- a/drivers/acpi/acpica/nsaccess.c
-> +++ b/drivers/acpi/acpica/nsaccess.c
-> @@ -338,7 +338,7 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
->  			return_ACPI_STATUS(AE_AML_INTERNAL);
->  		}
-> 
-> -		if (!(flags & ACPI_NS_PREFIX_IS_SCOPE)) {
-> +		if ((!prefix_node) && (!(flags & ACPI_NS_PREFIX_IS_SCOPE))) {
-[Moore, Robert] 
+No difference, see also the gcc bugzilla report.
 
-Is there an actual case where the original code failed?
-
-
-
->  			/*
->  			 * This node might not be a actual "scope" node (such as
-> a
->  			 * Device/Method, etc.)  It could be a Package or other
-> object @@ -369,7 +369,7 @@ acpi_ns_lookup(union acpi_generic_state
-> *scope_info,
->  		ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
->  				  "Null Pathname (Zero segments), Flags=%X\n",
->  				  flags));
-> -	} else {
-> +	} else if (path) {
->  		/*
->  		 * Name pointer is valid (and must be in internal name
-> format)
->  		 *
-> --
-> 2.14.1
-> 
+        Arnd
