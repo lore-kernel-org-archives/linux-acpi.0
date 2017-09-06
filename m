@@ -1,116 +1,93 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v11 4/6] target-arm: kvm64: detect guest RAS EXTENSION
- feature
-Date: Wed, 6 Sep 2017 17:35:33 +0800
-Message-ID: <5e3c8d25-6260-d00e-dda3-d160a9973701@huawei.com>
-References: <1503066227-18251-1-git-send-email-gengdongjiu@huawei.com>
- <1503066227-18251-5-git-send-email-gengdongjiu@huawei.com>
- <CAFEAcA9oecuzXXrdo3zZHxF3AgrDUh_NHxz-znto4GU+OoxVFw@mail.gmail.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [RFC PATCH 0/6] Add platform device SVM support for ARM SMMUv3
+Date: Wed, 6 Sep 2017 10:57:34 +0100
+Message-ID: <2874a1f3-22f1-20d4-4009-50add127a10f@arm.com>
+References: <1504167642-14922-1-git-send-email-xieyisheng1@huawei.com>
+ <95d1a9e2-1816-ff7d-9a8d-98406a6c2c22@arm.com>
+ <caf68193-6aff-1e1c-86cd-9cc7069b0e37@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:5560 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752226AbdIFJg0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Sep 2017 05:36:26 -0400
-In-Reply-To: <CAFEAcA9oecuzXXrdo3zZHxF3AgrDUh_NHxz-znto4GU+OoxVFw@mail.gmail.com>
+Received: from foss.arm.com ([217.140.101.70]:48386 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752624AbdIFJyQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 6 Sep 2017 05:54:16 -0400
+In-Reply-To: <caf68193-6aff-1e1c-86cd-9cc7069b0e37@huawei.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Maydell <peter.maydell@linaro.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>, Igor Mammedov <imammedo@redhat.com>, Shannon Zhao <zhaoshenglong@huawei.com>, Paolo Bonzini <pbonzini@redhat.com>, QEMU Developers <qemu-devel@nongnu.org>, qemu-arm <qemu-arm@nongnu.org>, kvm-devel <kvm@vger.kernel.org>, "edk2-devel@lists.01.org" <edk2-devel@lists.01.org>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Ingo Molnar <mingo@kernel.org>, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, arm-mail-list <linux-arm-kernel@lists.infradead.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>
+To: Bob Liu <liubo95@huawei.com>, Yisheng Xie <xieyisheng1@huawei.com>
+Cc: joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, robin.murphy@arm.com, robert.moore@intel.com, lv.zheng@intel.com, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devel@acpica.org, chenjiankang1@huawei.com, xieyisheng@huawei.com
 
-Hi Peter,
-  Thanks very much for your review, I will check your comments in detail and reply.
+On 06/09/17 02:02, Bob Liu wrote:
+> On 2017/9/5 20:56, Jean-Philippe Brucker wrote:
+>> On 31/08/17 09:20, Yisheng Xie wrote:
+>>> Jean-Philippe has post a patchset for Adding PCIe SVM support to ARM SMMUv3:
+>>> https://www.spinics.net/lists/arm-kernel/msg565155.html
+>>>
+>>> But for some platform devices(aka on-chip integrated devices), there is also
+>>> SVM requirement, which works based on the SMMU stall mode.
+>>> Jean-Philippe has prepared a prototype patchset to support it:
+>>> git://linux-arm.org/linux-jpb.git svm/stall
+>>
+>> Only meant for testing at that point, and unfit even for an RFC.
+>>
+> 
+> Sorry for the misunderstanding.
+> The PRI mode patches is in RFC even no hardware for testing, so I thought it's fine for "Stall mode" patches sent as RFC.
+> We have tested the Stall mode on our platform.
+> Anyway, I should confirm with you in advance.
+> 
+> Btw, Would you consider the "stall mode" upstream at first? Since there is no hardware for testing the PRI mode.
+> (We can provide you the hardware which support SMMU stall mode if necessary.)
 
+Yes. What's blocking the ATS, PRI and PASID patches at the moment is the
+lack of endpoints for testing. There has been lots of discussion on the
+API side since my first RFC and I'd like to resubmit the API changes soon.
+It is the same API for ATS+PRI+PASID and SSID+Stall, so the backend
+doesn't matter.
 
-On 2017/9/6 1:26, Peter Maydell wrote:
-> On 18 August 2017 at 15:23, Dongjiu Geng <gengdongjiu@huawei.com> wrote:
->> check if kvm supports guest RAS EXTENSION. if so, set
->> corresponding feature bit for vcpu.
->>
->> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
->> ---
->>  linux-headers/linux/kvm.h | 1 +
->>  target/arm/cpu.h          | 3 +++
->>  target/arm/kvm64.c        | 8 ++++++++
->>  3 files changed, 12 insertions(+)
->>
->> diff --git a/linux-headers/linux/kvm.h b/linux-headers/linux/kvm.h
->> index 7971a4f..2aa176e 100644
->> --- a/linux-headers/linux/kvm.h
->> +++ b/linux-headers/linux/kvm.h
->> @@ -929,6 +929,7 @@ struct kvm_ppc_resize_hpt {
->>  #define KVM_CAP_PPC_SMT_POSSIBLE 147
->>  #define KVM_CAP_HYPERV_SYNIC2 148
->>  #define KVM_CAP_HYPERV_VP_INDEX 149
->> +#define KVM_CAP_ARM_RAS_EXTENSION 150
->>
->>  #ifdef KVM_CAP_IRQ_ROUTING
->>
-> 
-> Hi. Changes to linux-headers need to be done as a patch of their
-> own created using scripts/update-linux-headers.sh run against a
-> mainline kernel tree (and with a commit message that quotes the
-> kernel commit hash used). This ensures that we have a consistent
-> set of headers that don't diverge from the kernel copy.
-> 
->> diff --git a/target/arm/cpu.h b/target/arm/cpu.h
->> index b39d64a..6b0961b 100644
->> --- a/target/arm/cpu.h
->> +++ b/target/arm/cpu.h
->> @@ -611,6 +611,8 @@ struct ARMCPU {
->>
->>      /* CPU has memory protection unit */
->>      bool has_mpu;
->> +    /* CPU has ras extension unit */
->> +    bool has_ras_extension;
->>      /* PMSAv7 MPU number of supported regions */
->>      uint32_t pmsav7_dregion;
->>
->> @@ -1229,6 +1231,7 @@ enum arm_features {
->>      ARM_FEATURE_THUMB_DSP, /* DSP insns supported in the Thumb encodings */
->>      ARM_FEATURE_PMU, /* has PMU support */
->>      ARM_FEATURE_VBAR, /* has cp15 VBAR */
->> +    ARM_FEATURE_RAS_EXTENSION, /*has RAS extension support */
-> 
-> Missing space after '/*' ?
-> 
->>  };
->>
->>  static inline int arm_feature(CPUARMState *env, int feature)
->> diff --git a/target/arm/kvm64.c b/target/arm/kvm64.c
->> index a16abc8..0781367 100644
->> --- a/target/arm/kvm64.c
->> +++ b/target/arm/kvm64.c
->> @@ -518,6 +518,14 @@ int kvm_arch_init_vcpu(CPUState *cs)
->>          unset_feature(&env->features, ARM_FEATURE_PMU);
->>      }
->>
->> +    if (kvm_check_extension(cs->kvm_state, KVM_CAP_ARM_RAS_EXTENSION)) {
->> +        cpu->has_ras_extension = true;
->> +        set_feature(&env->features, ARM_FEATURE_RAS_EXTENSION);
->> +    } else {
->> +        cpu->has_ras_extension = false;
->> +        unset_feature(&env->features, ARM_FEATURE_RAS_EXTENSION);
->> +    }
->> +
-> 
-> Shouldn't we need to also tell the kernel that we actually want
-> it to expose RAS to the guest? Compare the PMU code in this
-> function, where we set a kvm_init_features bit to do this.
-> (This suggests that your ABI for the kernel part of this feature
-> may not be correct?)
-> 
-> You should also not be calling set_feature() here -- if the
-> CPU features bit doesn't say "this CPU should have the RAS
-> extensions" we shouldn't create a CPU with them. Instead
-> you should set it in kvm_arm_get_host_cpu_features() (again,
-> compare the PMU code).
-> 
-> thanks
-> -- PMM
-> 
-> .
-> 
+I'm considering upstreaming SSID+Stall first if it can be tested on
+hardware (having direct access to it would certainly speed things up).
+This would require some work in moving the PCI bits at the end of the
+series. I can reserve some time in the coming months to do it, but I need
+to know what to focus on. Are you able to test SSID as well?
 
+>>> We tested this patchset with some fixes on a on-chip integrated device. The
+>>> basic function is ok, so I just send them out for review, although this
+>>> patchset heavily depends on the former patchset (PCIe SVM support for ARM
+>>> SMMUv3), which is still under discussion.
+>>>
+>>> Patch Overview:
+>>> *1 to 3 prepare for device tree or acpi get the device stall ability and pasid bits
+>>> *4 is to realise the SVM function for platform device
+>>> *5 is fix a bug when test SVM function while SMMU donnot support this feature
+>>> *6 avoid ILLEGAL setting of STE and CD entry about stall
+>>>
+>>> Acctually here, I also have a question about SVM on SMMUv3:
+>>>
+>>> 1. Why the SVM feature on SMMUv3 depends on BTM feature? when bind a task to device,
+>>>    it will register a mmu_notify. Therefore, when a page range is invalid, we can
+>>>    send TLBI or ATC invalid without BTM?
+>>
+>> We could, but the end goal for SVM is to perfectly mirror the CPU page
+>> tables. So for platform SVM we would like to get rid of MMU notifiers
+>> entirely.
+>>
+>>> 2. According to ACPI IORT spec, named component specific data has a node flags field
+>>>    whoes bit0 is for Stall support. However, it do not have any field for pasid bit.
+>>>    Can we use other 5 bits[5:1] for pasid bit numbers, so we can have 32 pasid bit for
+>>>    a single platform device which should be enough, because SMMU only support 20 bit pasid
+>>>
+> 
+> Any comment on this?
+> The ACPI IORT spec may need be updated?
+
+I suppose that the Named Component Node could be used for SSID and stall
+capability bits. Can't the ACPI namespace entries be extended to host
+these capabilities in a more generic way? Platforms with different IOMMUs
+might also need this information some day.
+
+Thanks,
+Jean
