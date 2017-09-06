@@ -1,75 +1,48 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] ACPI / x86: Extend KIOX000A quirk to cover all affected BIOS versions
-Date: Wed,  6 Sep 2017 15:44:25 +0200
-Message-ID: <20170906134425.17449-1-hdegoede@redhat.com>
+From: Zhenhua <lizhenhuajiyang@163.com>
+Subject: [PATCH 1/1] ACPI: NULL pointer checking
+Date: Wed,  6 Sep 2017 21:35:22 +0800
+Message-ID: <20170906133522.7884-1-lizhenhuajiyang@163.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41730 "EHLO mx1.redhat.com"
+Received: from m50-132.163.com ([123.125.50.132]:57298 "EHLO m50-132.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932166AbdIFNo2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 6 Sep 2017 09:44:28 -0400
+        id S1753237AbdIFNvC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 6 Sep 2017 09:51:02 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+To: devel@acpica.org, robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Zhenhua <lizhenhuajiyang@163.com>
 
-Recently produced GPD win devices have a new BIOS, research into the
-changes in this BIOS has found a ChangeLog which shows that the disabling
-of the KIOX000A node has been done starting with the 20170221 version.
+These two pointers should be checked, for some broken devices they may
+cause system crash.
 
-Unfortunately the GPD pocket uses the exact same DMI strings as the win
-and its BIOS was copy-pasted from the GPD win, so it has a disabled
-KIOX000A node which we should not enable, so we need to check for the
-exact BIOS date.
-
-This commit adds 2 extra entries to the always_present_ids quirk table
-with bios_date matches for the older also affected and the latest BIOS.
-
-Reported-by: ReddestDream <reddestdream@gmail.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Zhenhua <lizhenhuajiyang@163.com>
 ---
- drivers/acpi/x86/utils.c | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ drivers/acpi/acpica/nsaccess.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-index b4fbb9929482..ec5b0f190231 100644
---- a/drivers/acpi/x86/utils.c
-+++ b/drivers/acpi/x86/utils.c
-@@ -71,18 +71,34 @@ static const struct always_present_id always_present_ids[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7130"),
- 	      }),
- 	/*
--	 * The GPD win BIOS dated 20170320 has disabled the accelerometer, the
-+	 * The GPD win BIOS dated 20170221 has disabled the accelerometer, the
- 	 * drivers sometimes cause crashes under Windows and this is how the
- 	 * manufacturer has solved this :| Note that the the DMI data is less
- 	 * generic then it seems, a board_vendor of "AMI Corporation" is quite
- 	 * rare and a board_name of "Default String" also is rare.
-+	 *
-+	 * Unfortunately the GPD pocket also uses these strings and its BIOS
-+	 * was copy-pasted from the GPD win, so it has a disabled KIOX000A
-+	 * node which we should not enable, thus we also check the BIOS date.
- 	 */
- 	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
- 		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
- 		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
- 		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
-+		DMI_MATCH(DMI_BIOS_DATE, "02/21/2017")
-+	      }),
-+	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
-+		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
- 		DMI_MATCH(DMI_BIOS_DATE, "03/20/2017")
- 	      }),
-+	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
-+		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
-+		DMI_MATCH(DMI_BIOS_DATE, "05/25/2017")
-+	      }),
- };
+diff --git a/drivers/acpi/acpica/nsaccess.c b/drivers/acpi/acpica/nsaccess.c
+index f2733f51ca8d..151abb0ef4d5 100644
+--- a/drivers/acpi/acpica/nsaccess.c
++++ b/drivers/acpi/acpica/nsaccess.c
+@@ -338,7 +338,7 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
+ 			return_ACPI_STATUS(AE_AML_INTERNAL);
+ 		}
  
- bool acpi_device_always_present(struct acpi_device *adev)
+-		if (!(flags & ACPI_NS_PREFIX_IS_SCOPE)) {
++		if ((!prefix_node) && (!(flags & ACPI_NS_PREFIX_IS_SCOPE))) {
+ 			/*
+ 			 * This node might not be a actual "scope" node (such as a
+ 			 * Device/Method, etc.)  It could be a Package or other object
+@@ -369,7 +369,7 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
+ 		ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
+ 				  "Null Pathname (Zero segments), Flags=%X\n",
+ 				  flags));
+-	} else {
++	} else if (path) {
+ 		/*
+ 		 * Name pointer is valid (and must be in internal name format)
+ 		 *
 -- 
-2.13.4
+2.14.1
+
 
