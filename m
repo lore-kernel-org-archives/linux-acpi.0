@@ -1,53 +1,68 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v5 1/3] mfd: Add support for Cherry Trail Dollar Cove TI
- PMIC
-Date: Thu, 7 Sep 2017 08:39:03 +0100
-Message-ID: <20170907073903.rz6d3jd4c6yc75hf@dell>
-References: <20170904144340.27693-1-tiwai@suse.de>
- <20170906104723.qs3b7p6p6x2ixmvb@dell>
- <20170906105209.uoutqilops3plna2@dell>
- <3358010.FqzdD3Emuf@aspire.rjw.lan>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: [PATCH v3 3/3] arm64/ras: save error address from memory section for recovery
+Date: Thu, 7 Sep 2017 15:45:16 +0800
+Message-ID: <1504770316-4327-4-git-send-email-xiexiuqi@huawei.com>
+References: <1504770316-4327-1-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:33836 "EHLO
-        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752819AbdIGHjH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2017 03:39:07 -0400
-Received: by mail-wm0-f52.google.com with SMTP id 137so31561468wmj.1
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Sep 2017 00:39:06 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <3358010.FqzdD3Emuf@aspire.rjw.lan>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:5992 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754581AbdIGHsc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2017 03:48:32 -0400
+In-Reply-To: <1504770316-4327-1-git-send-email-xiexiuqi@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Takashi Iwai <tiwai@suse.de>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xiexiuqi@huawei.com, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, cj.chengjian@huawei.com
 
-On Thu, 07 Sep 2017, Rafael J. Wysocki wrote:
+In some platform, when SEA triggerred, physical address might be
+reported by memory section, so we save it for error recovery later.
 
-> On Wednesday, September 6, 2017 12:52:09 PM CEST Lee Jones wrote:
-> > > > In any case, I wouldn't mind it if you took the [3/3] from this series, because
-> > > > if there are any conflicts with it, they will be trivial to resolve.  And I
-> > > > don't need an immutable branch with it or anything like that.
-> > > 
-> > > No problem.
-> > 
-> > Although you don't appear to have reviewed it?
-> 
-> I have reviewed it, although I haven't sent a tag.
-> 
-> Generally speaking, for drivers/acpi/pmic/ Reviewed-bys from Mika and Andy are
-> sufficient (they likely are more familiar with the code in there than I am),
+Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
+---
+ arch/arm64/kernel/ras.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-I don't see them in MAINTAINERS.  I thought it was Len and yourself.
-
-> but please feel free to add an ACK from me to it too. :-)
-
-Will do, thank you.
-
+diff --git a/arch/arm64/kernel/ras.c b/arch/arm64/kernel/ras.c
+index 797722d..b24b449 100644
+--- a/arch/arm64/kernel/ras.c
++++ b/arch/arm64/kernel/ras.c
+@@ -139,3 +139,34 @@ void arm_process_error(struct ghes *ghes, struct cper_sec_proc_arm *err)
+ 	if (info_saved)
+ 		set_thread_flag(TIF_SEA_NOTIFY);
+ }
++
++int ghes_mem_err_callback(struct notifier_block *nb, unsigned long val, void *data)
++{
++	bool info_saved = false;
++	struct ghes_mem_err *ghes_mem = (struct ghes_mem_err *)data;
++	struct cper_sec_mem_err *mem_err = ghes_mem->mem_err;
++
++	if ((ghes_mem->notify_type != ACPI_HEST_NOTIFY_SEA) ||
++	    (ghes_mem->severity != CPER_SEV_RECOVERABLE))
++		return 0;
++
++	if (mem_err->validation_bits & CPER_MEM_VALID_PA)
++		info_saved = sea_save_info(mem_err->physical_addr);
++
++	if (info_saved)
++		set_thread_flag(TIF_SEA_NOTIFY);
++
++	return 0;
++}
++
++static struct notifier_block ghes_mem_err_nb = {
++	.notifier_call	= ghes_mem_err_callback,
++};
++
++static int arm64_err_recov_init(void)
++{
++	atomic_notifier_chain_register(&ghes_mem_err_chain, &ghes_mem_err_nb);
++	return 0;
++}
++
++late_initcall(arm64_err_recov_init);
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+1.8.3.1
+
