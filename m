@@ -1,196 +1,50 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v5 1/3] mfd: Add support for Cherry Trail Dollar Cove TI
- PMIC
-Date: Thu, 7 Sep 2017 15:13:53 +0100
-Message-ID: <20170907141353.uihgahdyheadcpyf@dell>
-References: <20170905081049.r3gbdtr2iuom6uk6@dell>
- <s5hefrltv43.wl-tiwai@suse.de>
- <20170905085449.dsadovrpmpj6vsvv@dell>
- <s5htw0ej1l2.wl-tiwai@suse.de>
- <20170907105348.i52vnf732xpxjubq@dell>
- <s5hefriivmj.wl-tiwai@suse.de>
- <20170907122834.nhsd5pgv2azwdcg4@dell>
- <s5hvakuhdxy.wl-tiwai@suse.de>
- <20170907130001.bkwuljsejrks63x3@dell>
- <s5hshfyhc11.wl-tiwai@suse.de>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [RFC PATCH 0/6] Add platform device SVM support for ARM SMMUv3
+Date: Thu, 7 Sep 2017 17:30:37 +0100
+Message-ID: <24e7e405-ad4a-4847-6177-987966182cbd@arm.com>
+References: <1504167642-14922-1-git-send-email-xieyisheng1@huawei.com>
+ <95d1a9e2-1816-ff7d-9a8d-98406a6c2c22@arm.com>
+ <de1a6b52-5e4f-1c0a-af3d-f6adb4b01daf@huawei.com>
+ <fd4200c1-3c89-23f1-a2b1-6457ef8475c1@arm.com>
+ <8e4764f5-0e5d-7fd6-529b-35914e1e3668@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f181.google.com ([209.85.128.181]:37410 "EHLO
-        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755053AbdIGON7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2017 10:13:59 -0400
-Received: by mail-wr0-f181.google.com with SMTP id k20so10885003wre.4
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Sep 2017 07:13:58 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <s5hshfyhc11.wl-tiwai@suse.de>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:60986 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932373AbdIGQ1O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 7 Sep 2017 12:27:14 -0400
+In-Reply-To: <8e4764f5-0e5d-7fd6-529b-35914e1e3668@huawei.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bob Liu <liubo95@huawei.com>, Yisheng Xie <xieyisheng1@huawei.com>
+Cc: joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, robin.murphy@arm.com, robert.moore@intel.com, lv.zheng@intel.com, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devel@acpica.org, chenjiankang1@huawei.com, xieyisheng@huawei.com
 
-On Thu, 07 Sep 2017, Takashi Iwai wrote:
-
-> On Thu, 07 Sep 2017 15:00:01 +0200,
-> Lee Jones wrote:
-> > 
-> > > > > > > > > > > > > This patch adds the MFD driver for Dollar Cove (TI version) PMIC with
-> > > > > > > > > > > > > ACPI INT33F5 that is found on some Intel Cherry Trail devices.
-> > > > > > > > > > > > > The driver is based on the original work by Intel, found at:
-> > > > > > > > > > > > >   https://github.com/01org/ProductionKernelQuilts
-> > > > > > > > > > > > > 
-> > > > > > > > > > > > > This is a minimal version for adding the basic resources.  Currently,
-> > > > > > > > > > > > > only ACPI PMIC opregion and the external power-button are used.
-> > > > > > > > > > > > > 
-> > > > > > > > > > > > > Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=193891
-> > > > > > > > > > > > > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > > > > > > > > > > > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> > > > > > > > > > > > > Signed-off-by: Takashi Iwai <tiwai@suse.de>
-> > > > > > > > > > > > > ---
-> > > > > > > > > > > > > v4->v5:
-> > > > > > > > > > > > > * Minor coding-style fixes suggested by Lee
-> > > > > > > > > > > > > * Put GPL text
-> > > > > > > > > > > > > v3->v4:
-> > > > > > > > > > > > > * no change for this patch
-> > > > > > > > > > > > > v2->v3:
-> > > > > > > > > > > > > * Rename dc_ti with chtdc_ti in all places
-> > > > > > > > > > > > > * Driver/kconfig renames accordingly
-> > > > > > > > > > > > > * Added acks by Andy and Mika
-> > > > > > > > > > > > > v1->v2:
-> > > > > > > > > > > > > * Minor cleanups as suggested by Andy
-> > > > > > > > > > > > > 
-> > > > > > > > > > > > >  drivers/mfd/Kconfig                   |  13 +++
-> > > > > > > > > > > > >  drivers/mfd/Makefile                  |   1 +
-> > > > > > > > > > > > >  drivers/mfd/intel_soc_pmic_chtdc_ti.c | 184 ++++++++++++++++++++++++++++++++++
-> > > > > > > > > > > > >  3 files changed, 198 insertions(+)
-> > > > > > > > > > > > >  create mode 100644 drivers/mfd/intel_soc_pmic_chtdc_ti.c
-> > > > > > > > > > > > 
-> > > > > > > > > > > > For my own reference:
-> > > > > > > > > > > >   Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
-> > > > > > > > > > > 
-> > > > > > > > > > > Thanks!
-> > > > > > > > > > > 
-> > > > > > > > > > > Now the question is how to deal with these.  It's no critical things,
-> > > > > > > > > > > so I'm OK to postpone for 4.15.  OTOH, it's really a new
-> > > > > > > > > > > device-specific stuff, thus it can't break anything else, and it'd be
-> > > > > > > > > > > fairly safe to add it for 4.14 although it's at a bit late stage.
-> > > > > > > > > > 
-> > > > > > > > > > Yes, you are over 2 weeks late for v4.14.  It will have to be v4.15.
-> > > > > > > > > 
-> > > > > > > > > OK, I'll ring your bells again once when 4.15 development is opened.
-> > > > > > > > 
-> > > > > > > > Please don't.  Just collect all the Acks you have received and sent
-> > > > > > > > out the set again changing [PATCH] for [RESEND].  Only if there
-> > > > > > > > haven't been any code changes of course. 
-> > > > > > >   
-> > > > > > > You seem to have applied the patches in some branch, but still do I
-> > > > > > > need to resend the whole patches?
-> > > > > > 
-> > > > > > That's up to the Platform Maintainers.
-> > > > > > 
-> > > > > > Since the MFD and ACPI are applied, you do not need to resend those.
-> > > > > > 
-> > > > > > > BTW, was patch 2/3 applied?  I miss your notification mail.
-> > > > > > 
-> > > > > > Patch 2 needs to be applied into the Platform tree.
-> > > > > > 
-> > > > > > Since there are no deps between the patches, they should be applied
-> > > > > > into their own trees (as previously discussed).  I only applied the
-> > > > > > ACPI patch because Rafael asked me nicely.  Normally this should have
-> > > > > > gone in separately too.
-> > > > > 
-> > > > > Andy already expressed his preference about the patch going through
-> > > > > MFD tree in the v5 thread.  Below is the excerpt.
-> > > > 
-> > > > If Andy is happy for me to apply the patch without an immutable
-> > > > branch, then I'll take it.  But as I've already said, this it
-> > > > non-optimal.
-> > > > 
-> > > > There is no reason why it can't be taken in via the Platform tree.
-> > > > Nothing depends on it and it depends on nothing, since it is new
-> > > > code.
-> > > 
-> > > That approach is also far from optimal, too, as Rafael and I
-> > > explained.
-> > 
-> > That's just my point.  This approach is optimal.
-> > 
-> > The alternative is that I (or someone else) jumps through the required
-> > hoops to create an immutable branch.  As a one off, it's not actually
-> > that big of a deal.  However, if I do it for you, I have to do it for
-> > every submitter, else it's not fair to them.
+On 07/09/17 02:55, Bob Liu wrote:
+> Speak to the invalidation, I have one more question.
 > 
-> Lee, that's an overreaction.  No one would think that I'm special even
-> if you would do that :)
-
-I'm not saying you'd be special.  I'm saying if I do it for one, I
-have to do it for others.
-
-> I can create such a branch by myself, and send you pull requests, if
-
-That is also an acceptable solution.
-
-> it's a preferred way.  That's no problem.  It'd be much less time than
-> discussing in a too lengthy thread, honestly speaking.  But maybe the
-> problem isn't that...
-
-The problem isn't time in the first instance.  It's the attempt to
-avoid setting a precedence and for this to become the norm. 
-
-> > MFD patch-sets inherently cross subsystem boundaries, which means I
-> > would end up taking many more patches than I do already.  Subsequently
-> > the per-cycle MFD pull-request exponentially grows in size, as does my
-> > work load.
+> There is a time window between 1) modify page table;  2) tlb invalidate;
 > 
-> Yeah, I understand that.  OTOH, I don't understand the reason to
-> refuse the IB as much possible -- there are several ways to manage
-> that more easily.
+> ARM-CPU                           Device
 > 
-> For example, you can keep a persistent branch that can be branched off
-> at any time for a new IB, while keeping another branch for regular,
-> rather unstable patch applications.  For linux-next, you can provide
-> the temporary merged branch, too.  It's a way some trees deploy.
-
-Yes, I am aware that some repos split themselves up into immutable
-branches, which can be independently pulled from.  They clearly have
-more spare time than I do.
-
-These branches are usually only split up by topic within their own
-subject area/subsystem.  They tend not to be full of cross-sub system
-patch-sets.
-
-> > This is the way we've been working for years, and it works really
-> > well.  I'm not about to change something which isn't broken, just to
-> > avoid the really tiny corner-case you described before.
+> 1. modify page table
 > 
-> I'd disagree about it being a tiny corner-case.  It's fundamental to
-> provide a solid code basis which user can test / development on.  If
-> we do release kernels more frequently, it shouldn't be a problem.
-> (e.g. for a fix between RC's, it's fine to merge through individual
-> trees.)  But if the merge will be done first after 3 months, no one
-> can guarantee what would happen in these 3 months.  That's why we need 
-> the solid merge point to begin with.  It allows a way to debug for
-> potential breakage after that point.
+>                              ^^^^^
+>                               Can still write data through smmu tlb even page table was already modified.
+>                               (At this point, the same virtual addr may not point to the same thing for CPU and device!!!
+>                                I'm afraid there may be some data-loss or other potential problems if this situation happens.)
+> 
+> 2. tlb invalidate range
 
-I agree.  Which is exactly what the current release model provides:
+The mm code serializes map/unmap operations with mm->mmap_sem, and at a
+lower level I think the pte lock is used to prevent more subtle races.
+Don't take my word for it though, mm/ is still very obscure to me. So the
+kernel shouldn't be able to reuse the VA for something else before the tlb
+invalidation completes. Even if you're using the CMDQ to invalidate
+instead of TLBI instructions, you're still called by a notifier from the
+mm code so there is no problem.
 
-All patches get dumped into a pile and tagged (-rc1), then developers
-get ~8 weeks to test their work and spot issues created by the merge
-and have a chance to fix any problems found prior to final release.
-It is this final release which forms the solid code base which you
-speak of.
-
-I haven't seen any issues that would warrant the over-the-top
-cautionary steps which you suggest, where IMHO the maintenance burden
-far outweighs the potential benefit.
-
-Right, this really is enough now.
-
-/out
-
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Thanks,
+Jean
