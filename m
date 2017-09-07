@@ -1,102 +1,137 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 1/1] ACPI: NULL pointer checking
-Date: Thu, 7 Sep 2017 19:26:56 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E60C211@ORSMSX110.amr.corp.intel.com>
-References: <20170906133522.7884-1-lizhenhuajiyang@163.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E60BA3F@ORSMSX110.amr.corp.intel.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [RFC 2/3] ACPI / scan: Fix enumeration for special UART devices
+Date: Fri, 8 Sep 2017 00:26:59 +0200
+Message-ID: <20170907222659.GA17417@wunner.de>
+References: <1504786214-1866-1-git-send-email-frederic.danis.oss@gmail.com>
+ <1504786214-1866-3-git-send-email-frederic.danis.oss@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:25980 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751456AbdIGT06 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 7 Sep 2017 15:26:58 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E60BA3F@ORSMSX110.amr.corp.intel.com>
-Content-Language: en-US
+Received: from mailout3.hostsharing.net ([176.9.242.54]:37877 "EHLO
+        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755219AbdIGW1B (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2017 18:27:01 -0400
+Content-Disposition: inline
+In-Reply-To: <1504786214-1866-3-git-send-email-frederic.danis.oss@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Zhenhua <lizhenhuajiyang@163.com>, "devel@acpica.org" <devel@acpica.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Box, David E" <david.e.box@intel.com>
+To: =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>
+Cc: robh@kernel.org, marcel@holtmann.org, sre@kernel.org, loic.poulain@gmail.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
+On Thu, Sep 07, 2017 at 02:10:13PM +0200, Frédéric Danis wrote:
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> -static bool acpi_is_spi_i2c_slave(struct acpi_device *device)
+> +static bool acpi_is_serial_slave(struct acpi_device *device)
+>  {
+>  	struct list_head resource_list;
+> -	bool is_spi_i2c_slave = false;
+> +	bool is_serial_slave = false;
+>  
+>  	INIT_LIST_HEAD(&resource_list);
+> -	acpi_dev_get_resources(device, &resource_list, acpi_check_spi_i2c_slave,
+> -			       &is_spi_i2c_slave);
+> +	acpi_dev_get_resources(device, &resource_list, acpi_check_serial_slave,
+> +			       &is_serial_slave);
+>  	acpi_dev_free_resource_list(&resource_list);
+>  
+> -	return is_spi_i2c_slave;
+> +	return is_serial_slave;
+>  }
 
+Commit ca9ef3ab68d3 ("ACPI / scan: Recognize Apple SPI and I2C slaves")
+which landed in Linus' tree a few days ago changes the function above
+to check for Apple device properties if running on an x86 Mac.
 
-> -----Original Message-----
-> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Moore, Robert
-> Sent: Wednesday, September 6, 2017 9:43 AM
-> To: Zhenhua <lizhenhuajiyang@163.com>; devel@acpica.org; Zheng, Lv
-> <lv.zheng@intel.com>; Wysocki, Rafael J <rafael.j.wysocki@intel.com>;
-> lenb@kernel.org; linux-acpi@vger.kernel.org; linux-
-> kernel@vger.kernel.org
-> Subject: Re: [Devel] [PATCH 1/1] ACPI: NULL pointer checking
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: Zhenhua [mailto:lizhenhuajiyang@163.com]
-> > Sent: Wednesday, September 6, 2017 6:35 AM
-> > To: devel@acpica.org; Moore, Robert <robert.moore@intel.com>; Zheng,
-> > Lv <lv.zheng@intel.com>; Wysocki, Rafael J
-> > <rafael.j.wysocki@intel.com>; lenb@kernel.org;
-> > linux-acpi@vger.kernel.org; linux- kernel@vger.kernel.org
-> > Cc: Zhenhua <lizhenhuajiyang@163.com>
-> > Subject: [PATCH 1/1] ACPI: NULL pointer checking
-> >
-> > These two pointers should be checked, for some broken devices they may
-> > cause system crash.
-> >
-> > Signed-off-by: Zhenhua <lizhenhuajiyang@163.com>
-> > ---
-> >  drivers/acpi/acpica/nsaccess.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/acpi/acpica/nsaccess.c
-> > b/drivers/acpi/acpica/nsaccess.c index f2733f51ca8d..151abb0ef4d5
-> > 100644
-> > --- a/drivers/acpi/acpica/nsaccess.c
-> > +++ b/drivers/acpi/acpica/nsaccess.c
-> > @@ -338,7 +338,7 @@ acpi_ns_lookup(union acpi_generic_state
-> *scope_info,
-> >  			return_ACPI_STATUS(AE_AML_INTERNAL);
-> >  		}
-> >
-> > -		if (!(flags & ACPI_NS_PREFIX_IS_SCOPE)) {
-> > +		if ((!prefix_node) && (!(flags & ACPI_NS_PREFIX_IS_SCOPE))) {
-> [Moore, Robert]
-> 
-> Is there an actual case where the original code failed?
-> 
-> 
-[Moore, Robert] 
+When rebasing, please amend the function to check for:
+       fwnode_property_present(&device->fwnode, "baud")
 
-Prefix_node is guaranteed to be valid at this point in the code.
+On Macs an empty ResourceTemplate is returned for uart slaves.
+Instead the device properties "baud", "parity", "dataBits", "stopBits"
+are provided.  An excerpt of the DSDT on a MacBook8,1 is below.
 
+An experimental patch for hci_bcm.c to take advantage of the baud
+property is here, though I'm told it doesn't work yet (I don't have
+such a machine myself to test):
+https://github.com/l1k/linux/commit/8883d6225a92
 
-> 
-> >  			/*
-> >  			 * This node might not be a actual "scope" node (such as
-> a
-> >  			 * Device/Method, etc.)  It could be a Package or other
-> object @@
-> > -369,7 +369,7 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
-> >  		ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
-> >  				  "Null Pathname (Zero segments), Flags=%X\n",
-> >  				  flags));
-> > -	} else {
-> > +	} else if (path) {
-[Moore, Robert] 
+Discussion on this patch is here:
+https://github.com/Dunedan/mbp-2016-linux/issues/29
 
-Likewise, "path" is guaranteed to be valid at this point.
+Thanks,
 
+Lukas
 
-> >  		/*
-> >  		 * Name pointer is valid (and must be in internal name
-> > format)
-> >  		 *
-> > --
-> > 2.14.1
-> >
-> 
-> _______________________________________________
-> Devel mailing list
-> Devel@acpica.org
-> https://lists.acpica.org/mailman/listinfo/devel
+-- cut here --
+
+            Scope (\_SB.PCI0.URT0)
+            {
+                Device (BLTH)
+                {
+                    Name (_HID, EisaId ("BCM2E7C"))  // _HID: Hardware ID
+                    Name (_CID, "apple-uart-blth")  // _CID: Compatible ID
+                    Name (_UID, 0x01)  // _UID: Unique ID
+                    Name (_ADR, 0x00)  // _ADR: Address
+                    Method (_STA, 0, NotSerialized)  // _STA: Status
+                    {
+                        Return (0x0F)
+                    }
+
+                    Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+                    {
+                        Name (UBUF, ResourceTemplate ()
+                        {
+                            UartSerialBus (0x0001C200, DataBitsEight, StopBitsOne,
+                                0xC0, LittleEndian, ParityTypeNone, FlowControlHardware,
+                                0x0020, 0x0020, "\\_SB.PCI0.URT0",
+                                0x00, ResourceProducer, ,
+                                )
+                        })
+                        Name (ABUF, ResourceTemplate ()
+                        {
+                        })
+                        If (LNot (OSDW ()))
+                        {
+                            Return (UBUF) /* \_SB_.PCI0.URT0.BLTH._CRS.UBUF */
+                        }
+
+                        Return (ABUF) /* \_SB_.PCI0.URT0.BLTH._CRS.ABUF */
+                    }
+
+                    Method (_DSM, 4, NotSerialized)  // _DSM: Device-Specific Method
+                    {
+                        If (LEqual (Arg0, ToUUID ("a0b5b7c6-1318-441c-b0c9-fe695eaf949b")))
+                        {
+                            Store (Package (0x08)
+                                {
+                                    "baud", 
+                                    Buffer (0x08)
+                                    {
+                                         0xC0, 0xC6, 0x2D, 0x00, 0x00, 0x00, 0x00, 0x00   /* ..-..... */
+                                    }, 
+
+                                    "parity", 
+                                    Buffer (0x08)
+                                    {
+                                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
+                                    }, 
+
+                                    "dataBits", 
+                                    Buffer (0x08)
+                                    {
+                                         0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
+                                    }, 
+
+                                    "stopBits", 
+                                    Buffer (0x08)
+                                    {
+                                         0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
+                                    }
+                                }, Local0)
+                            DTGP (Arg0, Arg1, Arg2, Arg3, RefOf (Local0))
+                            Return (Local0)
+                        }
+
+                        Return (0x00)
+                    }
