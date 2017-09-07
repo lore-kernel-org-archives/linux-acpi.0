@@ -1,68 +1,120 @@
 From: Lee Jones <lee.jones@linaro.org>
 Subject: Re: [PATCH v5 1/3] mfd: Add support for Cherry Trail Dollar Cove TI
  PMIC
-Date: Thu, 7 Sep 2017 12:13:45 +0100
-Message-ID: <20170907111345.fnxtnp6lqmvafhhq@dell>
+Date: Thu, 7 Sep 2017 12:17:47 +0100
+Message-ID: <20170907111747.gk3rmsbbmu4c5icv@dell>
 References: <20170904144340.27693-1-tiwai@suse.de>
- <2362452.XVjrAATvXK@aspire.rjw.lan>
- <20170907110726.GG2477@lahna.fi.intel.com>
- <3782614.ATGWrI3h3H@aspire.rjw.lan>
+ <s5htw0ej1l2.wl-tiwai@suse.de>
+ <20170907105348.i52vnf732xpxjubq@dell>
+ <4262027.ElY9A0iLZM@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f179.google.com ([209.85.128.179]:37156 "EHLO
-        mail-wr0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754219AbdIGLNt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2017 07:13:49 -0400
-Received: by mail-wr0-f179.google.com with SMTP id k20so9897791wre.4
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Sep 2017 04:13:48 -0700 (PDT)
+Received: from mail-wr0-f175.google.com ([209.85.128.175]:35230 "EHLO
+        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755122AbdIGLTb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2017 07:19:31 -0400
+Received: by mail-wr0-f175.google.com with SMTP id m18so2224571wrm.2
+        for <linux-acpi@vger.kernel.org>; Thu, 07 Sep 2017 04:17:51 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <3782614.ATGWrI3h3H@aspire.rjw.lan>
+In-Reply-To: <4262027.ElY9A0iLZM@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Takashi Iwai <tiwai@suse.de>, Darren Hart <dvhart@infradead.org>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Takashi Iwai <tiwai@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Johannes Stezenbach <js@sig21.net>, Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 On Thu, 07 Sep 2017, Rafael J. Wysocki wrote:
 
-> On Thursday, September 7, 2017 1:07:26 PM CEST Mika Westerberg wrote:
-> > On Thu, Sep 07, 2017 at 12:52:53PM +0200, Rafael J. Wysocki wrote:
-> > > On Thursday, September 7, 2017 9:39:03 AM CEST Lee Jones wrote:
-> > > > On Thu, 07 Sep 2017, Rafael J. Wysocki wrote:
-> > > > 
-> > > > > On Wednesday, September 6, 2017 12:52:09 PM CEST Lee Jones wrote:
-> > > > > > > > In any case, I wouldn't mind it if you took the [3/3] from this series, because
-> > > > > > > > if there are any conflicts with it, they will be trivial to resolve.  And I
-> > > > > > > > don't need an immutable branch with it or anything like that.
-> > > > > > > 
-> > > > > > > No problem.
-> > > > > > 
-> > > > > > Although you don't appear to have reviewed it?
-> > > > > 
-> > > > > I have reviewed it, although I haven't sent a tag.
-> > > > > 
-> > > > > Generally speaking, for drivers/acpi/pmic/ Reviewed-bys from Mika and Andy are
-> > > > > sufficient (they likely are more familiar with the code in there than I am),
-> > > > 
-> > > > I don't see them in MAINTAINERS.  I thought it was Len and yourself.
-> > > 
-> > > I do need help with code review at least in some areas, though.
-> > > 
-> > > Some of this information is missing from MAINTAINERS, but I guess that can be
-> > > addressed in this particular case.
-> > > 
-> > > Mika, Andy, would it be OK to add you as reviewers for drivers/acpi/pmic/
-> > > to MAINTAINERS?
+> On Thursday, September 7, 2017 12:53:48 PM CEST Lee Jones wrote:
+> > On Thu, 07 Sep 2017, Takashi Iwai wrote:
 > > 
-> > Sure, fine by me. Andy is on vacation currently so can't speak for him.
-> > I suppose he does not have anything against it, though :)
+> > > On Tue, 05 Sep 2017 10:54:49 +0200,
+> > > Lee Jones wrote:
+> > > > 
+> > > > On Tue, 05 Sep 2017, Takashi Iwai wrote:
+> > > > 
+> > > > > On Tue, 05 Sep 2017 10:10:49 +0200,
+> > > > > Lee Jones wrote:
+> > > > > > 
+> > > > > > On Tue, 05 Sep 2017, Takashi Iwai wrote:
+> > > > > > 
+> > > > > > > On Tue, 05 Sep 2017 09:24:51 +0200,
+> > > > > > > Lee Jones wrote:
+> > > > > > > > 
+> > > > > > > > On Mon, 04 Sep 2017, Takashi Iwai wrote:
+> > > > > > > > 
+> > > > > > > > > This patch adds the MFD driver for Dollar Cove (TI version) PMIC with
+> > > > > > > > > ACPI INT33F5 that is found on some Intel Cherry Trail devices.
+> > > > > > > > > The driver is based on the original work by Intel, found at:
+> > > > > > > > >   https://github.com/01org/ProductionKernelQuilts
+> > > > > > > > > 
+> > > > > > > > > This is a minimal version for adding the basic resources.  Currently,
+> > > > > > > > > only ACPI PMIC opregion and the external power-button are used.
+> > > > > > > > > 
+> > > > > > > > > Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=193891
+> > > > > > > > > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > > > > > > > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> > > > > > > > > Signed-off-by: Takashi Iwai <tiwai@suse.de>
+> > > > > > > > > ---
+> > > > > > > > > v4->v5:
+> > > > > > > > > * Minor coding-style fixes suggested by Lee
+> > > > > > > > > * Put GPL text
+> > > > > > > > > v3->v4:
+> > > > > > > > > * no change for this patch
+> > > > > > > > > v2->v3:
+> > > > > > > > > * Rename dc_ti with chtdc_ti in all places
+> > > > > > > > > * Driver/kconfig renames accordingly
+> > > > > > > > > * Added acks by Andy and Mika
+> > > > > > > > > v1->v2:
+> > > > > > > > > * Minor cleanups as suggested by Andy
+> > > > > > > > > 
+> > > > > > > > >  drivers/mfd/Kconfig                   |  13 +++
+> > > > > > > > >  drivers/mfd/Makefile                  |   1 +
+> > > > > > > > >  drivers/mfd/intel_soc_pmic_chtdc_ti.c | 184 ++++++++++++++++++++++++++++++++++
+> > > > > > > > >  3 files changed, 198 insertions(+)
+> > > > > > > > >  create mode 100644 drivers/mfd/intel_soc_pmic_chtdc_ti.c
+> > > > > > > > 
+> > > > > > > > For my own reference:
+> > > > > > > >   Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
+> > > > > > > 
+> > > > > > > Thanks!
+> > > > > > > 
+> > > > > > > Now the question is how to deal with these.  It's no critical things,
+> > > > > > > so I'm OK to postpone for 4.15.  OTOH, it's really a new
+> > > > > > > device-specific stuff, thus it can't break anything else, and it'd be
+> > > > > > > fairly safe to add it for 4.14 although it's at a bit late stage.
+> > > > > > 
+> > > > > > Yes, you are over 2 weeks late for v4.14.  It will have to be v4.15.
+> > > > > 
+> > > > > OK, I'll ring your bells again once when 4.15 development is opened.
+> > > > 
+> > > > Please don't.  Just collect all the Acks you have received and sent
+> > > > out the set again changing [PATCH] for [RESEND].  Only if there
+> > > > haven't been any code changes of course. 
+> > >   
+> > > You seem to have applied the patches in some branch, but still do I
+> > > need to resend the whole patches?
+> > 
+> > That's up to the Platform Maintainers.
+> > 
+> > Since the MFD and ACPI are applied, you do not need to resend those.
+> > 
+> > > BTW, was patch 2/3 applied?  I miss your notification mail.
+> > 
+> > Patch 2 needs to be applied into the Platform tree.
 > 
-> OK, thanks!
+> Actually, that's drivers/platform/x86/ so it falls under
+> X86 PLATFORM DRIVERS and it has already been ACKed by Andy who is
+> one of the maintainers of that.
+> 
+> Andy, Darren, can patch [2/3] from this series go in via the MFD tree?
 
-+1
+... without an immutable branch.  Which also means all changes to this
+file due for v4.15 would have to come in via the MFD tree too.
 
-Thanks Rafael, that should make things easier in the future.
+This is sub optimal IMHO.  I'd rather it was fed through the proper
+tree(s), so we can continue our normal flow for subsequent changes.
 
 -- 
 Lee Jones
