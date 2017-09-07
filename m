@@ -1,137 +1,51 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [RFC 2/3] ACPI / scan: Fix enumeration for special UART devices
-Date: Fri, 8 Sep 2017 00:26:59 +0200
-Message-ID: <20170907222659.GA17417@wunner.de>
-References: <1504786214-1866-1-git-send-email-frederic.danis.oss@gmail.com>
- <1504786214-1866-3-git-send-email-frederic.danis.oss@gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / PMIC: Add code reviewers to MAINTAINERS
+Date: Fri, 8 Sep 2017 01:21:35 +0200
+Message-ID: <CAJZ5v0ht3kRkD1dBKhTMZm0d_28zJb+GKoJgYJrLSX0XY7ai6Q@mail.gmail.com>
+References: <3133187.xxVeAdigRk@aspire.rjw.lan> <1504785106.7546.22.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.hostsharing.net ([176.9.242.54]:37877 "EHLO
-        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755219AbdIGW1B (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2017 18:27:01 -0400
-Content-Disposition: inline
-In-Reply-To: <1504786214-1866-3-git-send-email-frederic.danis.oss@gmail.com>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:34664 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750836AbdIGXVg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2017 19:21:36 -0400
+In-Reply-To: <1504785106.7546.22.camel@perches.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>
-Cc: robh@kernel.org, marcel@holtmann.org, sre@kernel.org, loic.poulain@gmail.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
 
-On Thu, Sep 07, 2017 at 02:10:13PM +0200, Frédéric Danis wrote:
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> -static bool acpi_is_spi_i2c_slave(struct acpi_device *device)
-> +static bool acpi_is_serial_slave(struct acpi_device *device)
->  {
->  	struct list_head resource_list;
-> -	bool is_spi_i2c_slave = false;
-> +	bool is_serial_slave = false;
->  
->  	INIT_LIST_HEAD(&resource_list);
-> -	acpi_dev_get_resources(device, &resource_list, acpi_check_spi_i2c_slave,
-> -			       &is_spi_i2c_slave);
-> +	acpi_dev_get_resources(device, &resource_list, acpi_check_serial_slave,
-> +			       &is_serial_slave);
->  	acpi_dev_free_resource_list(&resource_list);
->  
-> -	return is_spi_i2c_slave;
-> +	return is_serial_slave;
->  }
+On Thu, Sep 7, 2017 at 1:51 PM, Joe Perches <joe@perches.com> wrote:
+> On Thu, 2017-09-07 at 13:18 +0200, Rafael J. Wysocki wrote:
+>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>
+>> Andy and Mika review code changes under drivers/acpi/pmic/ on
+>> a regular basis and I rely on their help with that, so add them
+>> as code reviwewers for that part of the kernel.
+>>
+>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> ---
+>>  MAINTAINERS |   12 ++++++++++++
+>>  1 file changed, 12 insertions(+)
+>>
+>> Index: linux-pm/MAINTAINERS
+>> ===================================================================
+>> --- linux-pm.orig/MAINTAINERS
+>> +++ linux-pm/MAINTAINERS
+>> @@ -352,6 +352,18 @@ L:       linux-acpi@vger.kernel.org
+>>  S:   Maintained
+>>  F:   drivers/acpi/arm64
+>>
+>> +ACPI PMIC DRIVERS
+>> +M:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> +M:   Len Brown <lenb@kernel.org>
+>> +L:   linux-acpi@vger.kernel.org
+>> +R:   Andy Shevchenko <andy@infradead.org>
+>> +R:   Mika Westerberg <mika.westerberg@linux.intel.com>
+>
+> Please put reviewers before lists
 
-Commit ca9ef3ab68d3 ("ACPI / scan: Recognize Apple SPI and I2C slaves")
-which landed in Linus' tree a few days ago changes the function above
-to check for Apple device properties if running on an x86 Mac.
+OK
 
-When rebasing, please amend the function to check for:
-       fwnode_property_present(&device->fwnode, "baud")
-
-On Macs an empty ResourceTemplate is returned for uart slaves.
-Instead the device properties "baud", "parity", "dataBits", "stopBits"
-are provided.  An excerpt of the DSDT on a MacBook8,1 is below.
-
-An experimental patch for hci_bcm.c to take advantage of the baud
-property is here, though I'm told it doesn't work yet (I don't have
-such a machine myself to test):
-https://github.com/l1k/linux/commit/8883d6225a92
-
-Discussion on this patch is here:
-https://github.com/Dunedan/mbp-2016-linux/issues/29
-
-Thanks,
-
-Lukas
-
--- cut here --
-
-            Scope (\_SB.PCI0.URT0)
-            {
-                Device (BLTH)
-                {
-                    Name (_HID, EisaId ("BCM2E7C"))  // _HID: Hardware ID
-                    Name (_CID, "apple-uart-blth")  // _CID: Compatible ID
-                    Name (_UID, 0x01)  // _UID: Unique ID
-                    Name (_ADR, 0x00)  // _ADR: Address
-                    Method (_STA, 0, NotSerialized)  // _STA: Status
-                    {
-                        Return (0x0F)
-                    }
-
-                    Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
-                    {
-                        Name (UBUF, ResourceTemplate ()
-                        {
-                            UartSerialBus (0x0001C200, DataBitsEight, StopBitsOne,
-                                0xC0, LittleEndian, ParityTypeNone, FlowControlHardware,
-                                0x0020, 0x0020, "\\_SB.PCI0.URT0",
-                                0x00, ResourceProducer, ,
-                                )
-                        })
-                        Name (ABUF, ResourceTemplate ()
-                        {
-                        })
-                        If (LNot (OSDW ()))
-                        {
-                            Return (UBUF) /* \_SB_.PCI0.URT0.BLTH._CRS.UBUF */
-                        }
-
-                        Return (ABUF) /* \_SB_.PCI0.URT0.BLTH._CRS.ABUF */
-                    }
-
-                    Method (_DSM, 4, NotSerialized)  // _DSM: Device-Specific Method
-                    {
-                        If (LEqual (Arg0, ToUUID ("a0b5b7c6-1318-441c-b0c9-fe695eaf949b")))
-                        {
-                            Store (Package (0x08)
-                                {
-                                    "baud", 
-                                    Buffer (0x08)
-                                    {
-                                         0xC0, 0xC6, 0x2D, 0x00, 0x00, 0x00, 0x00, 0x00   /* ..-..... */
-                                    }, 
-
-                                    "parity", 
-                                    Buffer (0x08)
-                                    {
-                                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
-                                    }, 
-
-                                    "dataBits", 
-                                    Buffer (0x08)
-                                    {
-                                         0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
-                                    }, 
-
-                                    "stopBits", 
-                                    Buffer (0x08)
-                                    {
-                                         0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
-                                    }
-                                }, Local0)
-                            DTGP (Arg0, Arg1, Arg2, Arg3, RefOf (Local0))
-                            Return (Local0)
-                        }
-
-                        Return (0x00)
-                    }
+So the APEI entry should be reordered too I suppose?
