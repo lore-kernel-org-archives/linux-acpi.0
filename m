@@ -1,49 +1,70 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [RFC PATCH 0/6] Add platform device SVM support for ARM SMMUv3
-Date: Thu, 7 Sep 2017 17:32:13 +0100
-Message-ID: <bde256dd-6550-6c40-fe2c-2bd1cc1339d3@arm.com>
-References: <1504167642-14922-1-git-send-email-xieyisheng1@huawei.com>
- <95d1a9e2-1816-ff7d-9a8d-98406a6c2c22@arm.com>
- <caf68193-6aff-1e1c-86cd-9cc7069b0e37@huawei.com>
- <2874a1f3-22f1-20d4-4009-50add127a10f@arm.com>
- <1d358989-48bb-ccde-d7d9-36e004bc2d78@huawei.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v6 6/7] KVM: arm64: allow get exception information from
+ userspace
+Date: Thu, 07 Sep 2017 17:30:48 +0100
+Message-ID: <59B17438.5070501@arm.com>
+References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com> <1503916701-13516-7-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1d358989-48bb-ccde-d7d9-36e004bc2d78-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bob Liu <liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Yisheng Xie <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, chenjiankang1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xieyisheng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:32876 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751456AbdIGQcU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 7 Sep 2017 12:32:20 -0400
+In-Reply-To: <1503916701-13516-7-git-send-email-gengdongjiu@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dongjiu Geng <gengdongjiu@huawei.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, mst@redhat.com, john.garry@huawei.com, jonathan.cameron@huawei.com, shameerali.kolot
 
-On 07/09/17 02:41, Bob Liu wrote:
->> This would require some work in moving the PCI bits at the end of the
->> series. I can reserve some time in the coming months to do it, but I need
->> to know what to focus on. Are you able to test SSID as well?
->>
-> 
-> Yes, but the difficulty is our devices are on-chip integrated hardware accelerators which requires complicate driver.
-> You may need much time to understand the driver.
-> That's the same case as intel/amd SVM, the current user is their GPU :-(
-> 
-> Btw, what kind of device/method do you think is ideal for testing arm-SVM?
+Hi Dongjiu Geng,
 
-A simple, bare DMA engine would be ideal. Something just capable of
-performing memcpy with parameters (PASID, input IOVA, output IOVA, size)
-can be used for validating SVM and virtualization. You could easily create
-reproducible unit tests and userspace drivers. If it supports isolated
-channels (as in SR-IOV), even better.
+On 28/08/17 11:38, Dongjiu Geng wrote:
+> when userspace gets SIGBUS signal, it does not know whether
+> this is a synchronous external abort or SError,
 
-As you said, having a useful device like a full GPU/accelerator as opposed
-to a dummy validation engine makes it difficult to fully test the SMMU.
-However it can be helpful for evaluating driver performances and is still
-good enough for confirming that the IOMMU works.
+Why would Qemu/kvmtool need to know if the original notification (if there was
+one) was synchronous or asynchronous? This is between firmware and the kernel.
+
+
+I think I can see why you need this: to choose whether to emulate SEA or SEI,
+but what if the guest wasn't running? Or the guest was running, but it wasn't
+guest-memory that is affected.
+
+What happens if the dram-scrub hardware spots an error in guest memory, but the
+guest wasn't running? KVM won't have a relevant ESR value to give you.
+
+What happens if we start swapping a page of guest memory to disk, and discover
+the memory is corrupt. This is synchronous, but it wasn't the guest, and KVM
+still can't give you an ESR.
+
+What about CPER records discovered through the polled interface? What happens if
+I write a PFN into the corrupt-pfn sysfs interface?
+
+
+I think what you need is some way of knowing if the BUS_MCEERR_A* was directly
+caused by a user-space (or guest) access, and if so was it a data or instruction
+fetch. These can become SEA notifications.
+
+KVM's user-space shouldn't be a special-case where the kernel behaves
+differently: if we tinker with this it needs to make sense for all user space
+processes and mean something on all architectures.
+
+I think this information could be useful to other users of these signals, e.g. a
+JVM could silently regenerate/reload code/data for a non-direct-access fault
+instead of exit-ing (or throwing an exception) for a direct access.
+
+For BUS_MCEERR_A* from memory_failure() we can't know if they are caused by an
+access or not. When the mm code gets -EHWPOISON when trying to resolve a
+user-space fault we know it was due to a direct-access. (I don't know if/how x86
+can know if it was code or data). Faulting guest accesses through KVM are just a
+special version of this where KVM fixes-up stage2.
+
+... but for any of this to work we need the address of the corrupt memory.
+(-> cover letter)
+
 
 Thanks,
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+James
