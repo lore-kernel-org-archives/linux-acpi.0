@@ -1,73 +1,102 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [RFC 1/3] serdev: Add ACPI support
-Date: Thu, 7 Sep 2017 13:51:14 -0500
-Message-ID: <CAL_JsqJOzQ5Th_JH_gnP4s8C7=ms_RYkxbB+ooCxG3PAUZVDXA@mail.gmail.com>
-References: <1504786214-1866-1-git-send-email-frederic.danis.oss@gmail.com>
- <1504786214-1866-2-git-send-email-frederic.danis.oss@gmail.com>
- <1BC8D5B0-EC18-4F20-9CBC-D73CB1765683@holtmann.org> <CAL_JsqK9ucGbg=_0Uu8Pugxd7N4gCYHrb4W3PyKaBq_12TdNYA@mail.gmail.com>
- <9316EE4A-6FDF-4024-9709-E44824D26B4C@holtmann.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 1/1] ACPI: NULL pointer checking
+Date: Thu, 7 Sep 2017 19:26:56 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E60C211@ORSMSX110.amr.corp.intel.com>
+References: <20170906133522.7884-1-lizhenhuajiyang@163.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E60BA3F@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51602 "EHLO mail.kernel.org"
+Received: from mga04.intel.com ([192.55.52.120]:25980 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751639AbdIGSvg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 7 Sep 2017 14:51:36 -0400
-In-Reply-To: <9316EE4A-6FDF-4024-9709-E44824D26B4C@holtmann.org>
+        id S1751456AbdIGT06 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 7 Sep 2017 15:26:58 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E60BA3F@ORSMSX110.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marcel Holtmann <marcel@holtmann.org>
-Cc: =?UTF-8?B?RnLDqWTDqXJpYyBEYW5pcw==?= <frederic.danis.oss@gmail.com>, Sebastian Reichel <sre@kernel.org>, Loic Poulain <loic.poulain@gmail.com>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Moore, Robert" <robert.moore@intel.com>, Zhenhua <lizhenhuajiyang@163.com>, "devel@acpica.org" <devel@acpica.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Box, David E" <david.e.box@intel.com>
 
-On Thu, Sep 7, 2017 at 12:57 PM, Marcel Holtmann <marcel@holtmann.org> wrote:
-> Hi Rob,
->
->>>> Signed-off-by: Frédéric Danis <frederic.danis.oss@gmail.com>
->>>> ---
->>>> drivers/tty/serdev/core.c | 99 ++++++++++++++++++++++++++++++++++++++++++++---
->>>> 1 file changed, 94 insertions(+), 5 deletions(-)
->>
->> [...]
->>
->>>> @@ -404,9 +488,14 @@ int serdev_controller_add(struct serdev_controller *ctrl)
->>>>      if (ret)
->>>>              return ret;
->>>>
->>>> -     ret = of_serdev_register_devices(ctrl);
->>>> -     if (ret)
->>>> +     ret_of = of_serdev_register_devices(ctrl);
->>>> +     ret_acpi = acpi_serdev_register_devices(ctrl);
->>>> +     if (ret_of && ret_acpi) {
->>>> +             dev_dbg(&ctrl->dev, "serdev%d no devices registered: of:%d acpi:%d\n",
->>>> +                     ctrl->nr, ret_of, ret_acpi);
->>>> +             ret = -ENODEV;
->>>>              goto out_dev_del;
->>>> +     }
->>>>
->>>>      dev_dbg(&ctrl->dev, "serdev%d registered: dev:%p\n",
->>>>              ctrl->nr, &ctrl->dev);
->>>
->>> Shouldn’t we just consider to always register the controller? Even if there are no devices attached to it.
->>
->> You argued for the opposite at least in regards to a serdev ldisc. :)
->> The problem is we use the success or failure here to decide if we
->> create a tty char dev or not. I guess we could move that decision out
->> of the core and let the tty code check for devices and decide.
->
-> we never got the serdev ldisc working. Is there still an attempt to get this working. I frankly don’t know what is best here.
 
-I did get it somewhat working, but haven't been working on it more.
-Here's what I said in my last mail to you:
 
-> Okay, I've got this kind of working. I can run "ldattach HCI
-> /dev/ttyblah" to start the LL driver (nothing attached, just tries
-> firmware loading), then kill ldattach and remove the serdev device.
-> And it actually works a 2nd time. I've updated my serdev-ldisc branch
-> with the fixes. The real question is what have I broken in the tty
-> device. At least "echo rob > /dev/ttyS1" still works (in qemu) after
-> attaching and de-attaching.
+> -----Original Message-----
+> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Moore, Robert
+> Sent: Wednesday, September 6, 2017 9:43 AM
+> To: Zhenhua <lizhenhuajiyang@163.com>; devel@acpica.org; Zheng, Lv
+> <lv.zheng@intel.com>; Wysocki, Rafael J <rafael.j.wysocki@intel.com>;
+> lenb@kernel.org; linux-acpi@vger.kernel.org; linux-
+> kernel@vger.kernel.org
+> Subject: Re: [Devel] [PATCH 1/1] ACPI: NULL pointer checking
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: Zhenhua [mailto:lizhenhuajiyang@163.com]
+> > Sent: Wednesday, September 6, 2017 6:35 AM
+> > To: devel@acpica.org; Moore, Robert <robert.moore@intel.com>; Zheng,
+> > Lv <lv.zheng@intel.com>; Wysocki, Rafael J
+> > <rafael.j.wysocki@intel.com>; lenb@kernel.org;
+> > linux-acpi@vger.kernel.org; linux- kernel@vger.kernel.org
+> > Cc: Zhenhua <lizhenhuajiyang@163.com>
+> > Subject: [PATCH 1/1] ACPI: NULL pointer checking
+> >
+> > These two pointers should be checked, for some broken devices they may
+> > cause system crash.
+> >
+> > Signed-off-by: Zhenhua <lizhenhuajiyang@163.com>
+> > ---
+> >  drivers/acpi/acpica/nsaccess.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpica/nsaccess.c
+> > b/drivers/acpi/acpica/nsaccess.c index f2733f51ca8d..151abb0ef4d5
+> > 100644
+> > --- a/drivers/acpi/acpica/nsaccess.c
+> > +++ b/drivers/acpi/acpica/nsaccess.c
+> > @@ -338,7 +338,7 @@ acpi_ns_lookup(union acpi_generic_state
+> *scope_info,
+> >  			return_ACPI_STATUS(AE_AML_INTERNAL);
+> >  		}
+> >
+> > -		if (!(flags & ACPI_NS_PREFIX_IS_SCOPE)) {
+> > +		if ((!prefix_node) && (!(flags & ACPI_NS_PREFIX_IS_SCOPE))) {
+> [Moore, Robert]
+> 
+> Is there an actual case where the original code failed?
+> 
+> 
+[Moore, Robert] 
 
-I pushed out my work to serdev-ldisc-v2 branch on my k.org tree.
+Prefix_node is guaranteed to be valid at this point in the code.
 
-Rob
+
+> 
+> >  			/*
+> >  			 * This node might not be a actual "scope" node (such as
+> a
+> >  			 * Device/Method, etc.)  It could be a Package or other
+> object @@
+> > -369,7 +369,7 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
+> >  		ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
+> >  				  "Null Pathname (Zero segments), Flags=%X\n",
+> >  				  flags));
+> > -	} else {
+> > +	} else if (path) {
+[Moore, Robert] 
+
+Likewise, "path" is guaranteed to be valid at this point.
+
+
+> >  		/*
+> >  		 * Name pointer is valid (and must be in internal name
+> > format)
+> >  		 *
+> > --
+> > 2.14.1
+> >
+> 
+> _______________________________________________
+> Devel mailing list
+> Devel@acpica.org
+> https://lists.acpica.org/mailman/listinfo/devel
