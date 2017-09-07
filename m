@@ -1,219 +1,282 @@
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: Re: [PATCH v2 1/3] arm64/ras: support sea error recovery
-Date: Thu, 7 Sep 2017 12:22:15 +0800
-Message-ID: <281c6244-2203-e06c-1850-f07c6fba4954@huawei.com>
-References: <1504609566-66318-1-git-send-email-xiexiuqi@huawei.com>
- <1504609566-66318-2-git-send-email-xiexiuqi@huawei.com>
- <20170906101251.5gy53sbbkikpfg3y@pd.tnic>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [RFC] PM: Using runtime PM callbacks for system suspend/resume
+Date: Thu, 7 Sep 2017 08:56:07 +0200
+Message-ID: <CAPDyKFqb2hXgdqaz-whXcqDRy-F=cHqM7SEV9iWPQUEvaaoYHA@mail.gmail.com>
+References: <5559236.6K256zbtpK@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170906101251.5gy53sbbkikpfg3y@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <5559236.6K256zbtpK@aspire.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Borislav,
+On 7 September 2017 at 00:14, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> Hi,
+>
+> It occurred to me earlier today that it should be possible to modify the
+> PM core to get the functionality of pm_runtime_force_suspend/resume() from it
+> in a somewhat nicer way which should be possible to extend to middle layers
+> (bus types, PM domains etc).
+>
+> Say we have a flag telling the PM core to use the runtime PM path at the
+> late suspend and early resume stages of system suspend/resume directly if
+> it can't find "proper" callbacks for that.  It is called DPM_FLAG_USE_RPM in
+> the prototype patch below.
+>
+> The idea is to set only ->runtime_suspend and ->runtime_resume in the driver's
+> dev_pm_ops and then set that flag in ->probe and be done.  If the core sees
+> the flag and doesn't see any "original" system sleep callbacks at the stages
+> in question, it will automatically switch over to the runtime PM path and
+> leave the device alone if it is already runtime-suspended.
+>
+> One nice thing about it is that it will happen at the core level and not in
+> a driver callback, so all of the concerns regarding layering violations are
+> simply not relevant any more.  Also, at least in principle, it should be
+> possible to extend this to middle layers that need to do some non-trivial PM
+> handling, simply by making them look at that flag and honor in the same way
+> as the core does that.  This way drivers may still be able to reuse their
+> runtime PM stuff for handling system sleep transitions even if the middle
+> layers they need to work with have different things to do for runtime PM
+> and system suspend/resume.  Even modifying *all* middle layers in the tree to
+> do take DPM_FLAG_USE_RPM into accout if set is not out of the question as far
+> as I'm concerned.
+>
+> On top of this it should be possible to add the optimization allowing devices
+> to stay suspended after system resume even if they were not suspended before.
+> IMO it is better to add a separate flag for enabling it in case some drivers
+> don't want it, though.
+>
+> So the below is just the core part and mostly a prototype to illustrate the
+> idea, but at this point it looks promising to me.
+>
+> Comments?  Concerns?
 
-On 2017/9/6 18:12, Borislav Petkov wrote:
-> On Tue, Sep 05, 2017 at 07:06:04PM +0800, Xie XiuQi wrote:
->> With ARM v8.2 RAS Extension, SEA are usually triggered when memory errors
->> are consumed. In some cases, if the error address is in a clean page or a
->> read-only page, there is a chance to recover. Such as error occurs in a
->> instruction page, we can reread this page from disk instead of killing process.
->>
->> Because memory_failure() may sleep, we can not call it directly in SEA exception
->> context. So we saved faulting physical address associated with a process in the
->> ghes handler and set __TIF_SEA_NOTIFY. When we return from SEA exception context
->> and get into do_notify_resume() before the process running, we could check it
->> and call memory_failure() to do recovery. It's safe, because we are in process
->> context.
->>
->> Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
->> Signed-off-by: Wang Xiongfeng <wangxiongfeng2@huawei.com>
->> ---
->>  arch/arm64/Kconfig                   |  11 +++
->>  arch/arm64/include/asm/ras.h         |  36 +++++++++
->>  arch/arm64/include/asm/thread_info.h |   4 +-
->>  arch/arm64/kernel/Makefile           |   1 +
->>  arch/arm64/kernel/ras.c              | 143 +++++++++++++++++++++++++++++++++++
->>  arch/arm64/kernel/signal.c           |   8 ++
->>  arch/arm64/mm/fault.c                |  27 +++++--
->>  drivers/acpi/apei/ghes.c             |   4 +-
->>  8 files changed, 223 insertions(+), 11 deletions(-)
->>  create mode 100644 arch/arm64/include/asm/ras.h
->>  create mode 100644 arch/arm64/kernel/ras.c
-> 
-> Please integrate scripts/checkpatch.pl into your patch creation workflow
-> and run all patches through it before submitting:
+Yes, a couple so far.
 
-Sorry for my mistake. I'll fix it, thanks.
+1) I like the overall idea, which means the PM core gets the knowledge
+of what to do, based on some instructions by the driver. Yeah, it's a
+great idea I think.
+2) We need also a way to allow drivers to deal with additional
+operations during system suspend (and resume etc), besides making it
+possible to re-use the RPM callbacks to put the device into a low
+power state. Could we allow the system sleep callbacks to be present
+as well when using this flag?
 
-> 
-> ERROR: code indent should use tabs where possible
-> #200: FILE: arch/arm64/kernel/ras.c:42:
-> +        atomic_t                inuse;$
-> 
-> WARNING: please, no spaces at the start of a line
-> #200: FILE: arch/arm64/kernel/ras.c:42:
-> +        atomic_t                inuse;$
-> 
-> ERROR: code indent should use tabs where possible
-> #201: FILE: arch/arm64/kernel/ras.c:43:
-> +        struct task_struct      *t;$
-> 
-> WARNING: please, no spaces at the start of a line
-> #201: FILE: arch/arm64/kernel/ras.c:43:
-> +        struct task_struct      *t;$
-> 
-> ERROR: code indent should use tabs where possible
-> #202: FILE: arch/arm64/kernel/ras.c:44:
-> +        __u64                   paddr;$
-> 
-> WARNING: please, no spaces at the start of a line
-> #202: FILE: arch/arm64/kernel/ras.c:44:
-> +        __u64                   paddr;$
-> 
-> ERROR: code indent should use tabs where possible
-> #207: FILE: arch/arm64/kernel/ras.c:49:
-> +        struct sea_info *si;$
-> 
-> WARNING: please, no spaces at the start of a line
-> #207: FILE: arch/arm64/kernel/ras.c:49:
-> +        struct sea_info *si;$
-> 
-> ERROR: code indent should use tabs where possible
-> #209: FILE: arch/arm64/kernel/ras.c:51:
-> +        for (si = sea_info; si < &sea_info[SEA_INFO_MAX]; si++) {$
-> 
-> WARNING: please, no spaces at the start of a line
-> #209: FILE: arch/arm64/kernel/ras.c:51:
-> +        for (si = sea_info; si < &sea_info[SEA_INFO_MAX]; si++) {$
-> 
-> ERROR: code indent should use tabs where possible
-> #210: FILE: arch/arm64/kernel/ras.c:52:
-> +                if (atomic_cmpxchg(&si->inuse, 0, 1) == 0) {$
-> 
-> WARNING: please, no spaces at the start of a line
-> #210: FILE: arch/arm64/kernel/ras.c:52:
-> +                if (atomic_cmpxchg(&si->inuse, 0, 1) == 0) {$
-> 
-> ERROR: code indent should use tabs where possible
-> #211: FILE: arch/arm64/kernel/ras.c:53:
-> +                        si->t = current;$
-> 
-> WARNING: please, no spaces at the start of a line
-> #211: FILE: arch/arm64/kernel/ras.c:53:
-> +                        si->t = current;$
-> 
-> ERROR: code indent should use tabs where possible
-> #212: FILE: arch/arm64/kernel/ras.c:54:
-> +                        si->paddr = addr;$
-> 
-> WARNING: please, no spaces at the start of a line
-> #212: FILE: arch/arm64/kernel/ras.c:54:
-> +                        si->paddr = addr;$
-> 
-> ERROR: code indent should use tabs where possible
-> #213: FILE: arch/arm64/kernel/ras.c:55:
-> +                        return true;$
-> 
-> WARNING: please, no spaces at the start of a line
-> #213: FILE: arch/arm64/kernel/ras.c:55:
-> +                        return true;$
-> 
-> ERROR: code indent should use tabs where possible
-> #214: FILE: arch/arm64/kernel/ras.c:56:
-> +                }$
-> 
-> WARNING: please, no spaces at the start of a line
-> #214: FILE: arch/arm64/kernel/ras.c:56:
-> +                }$
-> 
-> ERROR: code indent should use tabs where possible
-> #215: FILE: arch/arm64/kernel/ras.c:57:
-> +        }$
-> 
-> WARNING: please, no spaces at the start of a line
-> #215: FILE: arch/arm64/kernel/ras.c:57:
-> +        }$
-> 
-> ERROR: code indent should use tabs where possible
-> #223: FILE: arch/arm64/kernel/ras.c:65:
-> +        struct sea_info *si;$
-> 
-> WARNING: please, no spaces at the start of a line
-> #223: FILE: arch/arm64/kernel/ras.c:65:
-> +        struct sea_info *si;$
-> 
-> ERROR: code indent should use tabs where possible
-> #225: FILE: arch/arm64/kernel/ras.c:67:
-> +        for (si = sea_info; si < &sea_info[SEA_INFO_MAX]; si++)$
-> 
-> WARNING: please, no spaces at the start of a line
-> #225: FILE: arch/arm64/kernel/ras.c:67:
-> +        for (si = sea_info; si < &sea_info[SEA_INFO_MAX]; si++)$
-> 
-> ERROR: code indent should use tabs where possible
-> #226: FILE: arch/arm64/kernel/ras.c:68:
-> +                if (atomic_read(&si->inuse) && si->t == current)$
-> 
-> WARNING: please, no spaces at the start of a line
-> #226: FILE: arch/arm64/kernel/ras.c:68:
-> +                if (atomic_read(&si->inuse) && si->t == current)$
-> 
-> ERROR: code indent should use tabs where possible
-> #227: FILE: arch/arm64/kernel/ras.c:69:
-> +                        return si;$
-> 
-> WARNING: please, no spaces at the start of a line
-> #227: FILE: arch/arm64/kernel/ras.c:69:
-> +                        return si;$
-> 
-> ERROR: code indent should use tabs where possible
-> #228: FILE: arch/arm64/kernel/ras.c:70:
-> +        return NULL;$
-> 
-> WARNING: please, no spaces at the start of a line
-> #228: FILE: arch/arm64/kernel/ras.c:70:
-> +        return NULL;$
-> 
-> ERROR: code indent should use tabs where possible
-> #233: FILE: arch/arm64/kernel/ras.c:75:
-> +        atomic_set(&si->inuse, 0);$
-> 
-> WARNING: please, no spaces at the start of a line
-> #233: FILE: arch/arm64/kernel/ras.c:75:
-> +        atomic_set(&si->inuse, 0);$
-> 
-> WARNING: braces {} are not necessary for single statement blocks
-> #265: FILE: arch/arm64/kernel/ras.c:107:
-> +		if (memory_failure(pfn, 0, flags) < 0) {
-> +			fail++;
-> +		}
-> 
-> WARNING: braces {} are not necessary for single statement blocks
-> #293: FILE: arch/arm64/kernel/ras.c:135:
-> +		if (err_info->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR) {
-> +			info_saved |= sea_save_info(err_info->physical_fault_addr);
-> +		}
-> 
-> total: 17 errors, 21 warnings, 299 lines checked
-> 
-> NOTE: For some of the reported defects, checkpatch may be able to
->       mechanically convert to the typical style using --fix or --fix-inplace.
-> 
-> NOTE: Whitespace errors detected.
->       You may wish to use scripts/cleanpatch or scripts/cleanfile
-> 
-> Your patch has style problems, please review.
-> 
-> NOTE: If any of the errors are false positives, please report
->       them to the maintainer, see CHECKPATCH in MAINTAINERS.
-> 
+Let's bring up this also at LPC next week, we can make it a part of
+the ACPI slot, if needed.
 
--- 
-Thanks,
-Xie XiuQi
+Kind regards
+Uffe
+
+>
+>
+> Prototype-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/base/dd.c            |    2 ++
+>  drivers/base/power/main.c    |   23 ++++++++++++++++++++---
+>  drivers/base/power/runtime.c |   12 ++++++++++--
+>  include/linux/device.h       |   10 ++++++++++
+>  include/linux/pm.h           |   26 ++++++++++++++++++++++++++
+>  include/linux/pm_runtime.h   |    3 +++
+>  6 files changed, 71 insertions(+), 5 deletions(-)
+>
+> Index: linux-pm/include/linux/pm.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/pm.h
+> +++ linux-pm/include/linux/pm.h
+> @@ -63,6 +63,8 @@ typedef struct pm_message {
+>         int event;
+>  } pm_message_t;
+>
+> +typedef int (*pm_callback_t)(struct device *);
+> +
+>  /**
+>   * struct dev_pm_ops - device PM callbacks.
+>   *
+> @@ -550,6 +552,29 @@ struct pm_subsys_data {
+>  #endif
+>  };
+>
+> +/*
+> + * Driver flags to control system suspend/resume behavior.
+> + *
+> + * These flags can be set by device drivers at the probe time.  They need not be
+> + * cleared by the drivers as the driver core will take care of that.
+> + *
+> + * USE_RPM: Use runtime PM callbacks for system suspend and resume.
+> + *
+> + * Setting USE_RPM instructs the PM core that if the device's ->suspend_late
+> + * callback turns out to be NULL, the ->runtime_suspend one should be used
+> + * instead of it unless the device is already runtime-suspended at that point.
+> + * Analogously, if this flag is set and the device's ->resume_early callback
+> + * turns out to be NULL, ->runtime_resume should be used instead of it unless
+> + * the device was runtime-suspended during system suspend (in which case it
+> + * can remain suspended).  However, if any of these callbacks is present, it
+> + * will be invoked normally under the assumption that the provider of it (a bus
+> + * type, a PM domain etc) will honor the driver's request to use its
+> + * ->runtime_suspend as ->suspend_late (unless the device is already suspended)
+> + * and its ->runtime_resume as ->resume_early (unless the device was suspended
+> + * before, so it can remain suspended).
+> + */
+> +#define DPM_FLAG_USE_RPM       BIT(0)
+> +
+>  struct dev_pm_info {
+>         pm_message_t            power_state;
+>         unsigned int            can_wakeup:1;
+> @@ -561,6 +586,7 @@ struct dev_pm_info {
+>         bool                    is_late_suspended:1;
+>         bool                    early_init:1;   /* Owned by the PM core */
+>         bool                    direct_complete:1;      /* Owned by the PM core */
+> +       unsigned int            driver_flags;
+>         spinlock_t              lock;
+>  #ifdef CONFIG_PM_SLEEP
+>         struct list_head        entry;
+> Index: linux-pm/drivers/base/dd.c
+> ===================================================================
+> --- linux-pm.orig/drivers/base/dd.c
+> +++ linux-pm/drivers/base/dd.c
+> @@ -436,6 +436,7 @@ pinctrl_bind_failed:
+>         if (dev->pm_domain && dev->pm_domain->dismiss)
+>                 dev->pm_domain->dismiss(dev);
+>         pm_runtime_reinit(dev);
+> +       dev_pm_set_driver_flags(dev, 0);
+>
+>         switch (ret) {
+>         case -EPROBE_DEFER:
+> @@ -841,6 +842,7 @@ static void __device_release_driver(stru
+>                 if (dev->pm_domain && dev->pm_domain->dismiss)
+>                         dev->pm_domain->dismiss(dev);
+>                 pm_runtime_reinit(dev);
+> +               dev_pm_set_driver_flags(dev, 0);
+>
+>                 klist_remove(&dev->p->knode_driver);
+>                 device_pm_check_callbacks(dev);
+> Index: linux-pm/drivers/base/power/main.c
+> ===================================================================
+> --- linux-pm.orig/drivers/base/power/main.c
+> +++ linux-pm/drivers/base/power/main.c
+> @@ -38,8 +38,6 @@
+>  #include "../base.h"
+>  #include "power.h"
+>
+> -typedef int (*pm_callback_t)(struct device *);
+> -
+>  /*
+>   * The entries in the dpm_list list are in a depth first order, simply
+>   * because children are guaranteed to be discovered after parents, and
+> @@ -712,6 +710,12 @@ static int device_resume_early(struct de
+>                 callback = pm_late_early_op(dev->driver->pm, state);
+>         }
+>
+> +       if (!callback && dev_pm_driver_flag_set(dev, DPM_FLAG_USE_RPM) &&
+> +           !pm_runtime_status_suspended(dev)) {
+> +               info = "runtime PM resume ";
+> +               callback = pm_runtime_resume_hook(dev);
+> +       }
+> +
+>         error = dpm_run_callback(callback, dev, state, info);
+>         dev->power.is_late_suspended = false;
+>
+> @@ -1259,6 +1263,12 @@ static int __device_suspend_late(struct
+>         TRACE_DEVICE(dev);
+>         TRACE_SUSPEND(0);
+>
+> +       if (WARN_ON(!pm_runtime_enabled(dev) &&
+> +                   dev_pm_driver_flag_set(dev, DPM_FLAG_USE_RPM))) {
+> +               error = -EINVAL;
+> +               async_error = error;
+> +       }
+> +
+>         __pm_runtime_disable(dev, false);
+>
+>         dpm_wait_for_subordinate(dev, async);
+> @@ -1293,6 +1303,12 @@ static int __device_suspend_late(struct
+>                 callback = pm_late_early_op(dev->driver->pm, state);
+>         }
+>
+> +       if (!callback && dev_pm_driver_flag_set(dev, DPM_FLAG_USE_RPM) &&
+> +           !pm_runtime_status_suspended(dev)) {
+> +               info = "runtime PM suspend ";
+> +               callback = pm_runtime_suspend_hook(dev);
+> +       }
+> +
+>         error = dpm_run_callback(callback, dev, state, info);
+>         if (!error)
+>                 dev->power.is_late_suspended = true;
+> @@ -1864,6 +1880,7 @@ void device_pm_check_callbacks(struct de
+>                 (!dev->class || pm_ops_is_empty(dev->class->pm)) &&
+>                 (!dev->type || pm_ops_is_empty(dev->type->pm)) &&
+>                 (!dev->pm_domain || pm_ops_is_empty(&dev->pm_domain->ops)) &&
+> -               (!dev->driver || pm_ops_is_empty(dev->driver->pm));
+> +               (!dev->driver || pm_ops_is_empty(dev->driver->pm)) &&
+> +               !dev_pm_driver_flag_set(dev, DPM_FLAG_USE_RPM);
+>         spin_unlock_irq(&dev->power.lock);
+>  }
+> Index: linux-pm/include/linux/pm_runtime.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/pm_runtime.h
+> +++ linux-pm/include/linux/pm_runtime.h
+> @@ -26,6 +26,9 @@
+>  #ifdef CONFIG_PM
+>  extern struct workqueue_struct *pm_wq;
+>
+> +extern pm_callback_t pm_runtime_suspend_hook(struct device *dev);
+> +extern pm_callback_t pm_runtime_resume_hook(struct device *dev);
+> +
+>  static inline bool queue_pm_work(struct work_struct *work)
+>  {
+>         return queue_work(pm_wq, work);
+> Index: linux-pm/drivers/base/power/runtime.c
+> ===================================================================
+> --- linux-pm.orig/drivers/base/power/runtime.c
+> +++ linux-pm/drivers/base/power/runtime.c
+> @@ -16,8 +16,6 @@
+>  #include "../base.h"
+>  #include "power.h"
+>
+> -typedef int (*pm_callback_t)(struct device *);
+> -
+>  static pm_callback_t __rpm_get_callback(struct device *dev, size_t cb_offset)
+>  {
+>         pm_callback_t cb;
+> @@ -48,6 +46,16 @@ static pm_callback_t __rpm_get_callback(
+>  #define RPM_GET_CALLBACK(dev, callback) \
+>                 __rpm_get_callback(dev, offsetof(struct dev_pm_ops, callback))
+>
+> +pm_callback_t pm_runtime_suspend_hook(struct device *dev)
+> +{
+> +       return RPM_GET_CALLBACK(dev, runtime_suspend);
+> +}
+> +
+> +pm_callback_t pm_runtime_resume_hook(struct device *dev)
+> +{
+> +       return RPM_GET_CALLBACK(dev, runtime_resume);
+> +}
+> +
+>  static int rpm_resume(struct device *dev, int rpmflags);
+>  static int rpm_suspend(struct device *dev, int rpmflags);
+>
+> Index: linux-pm/include/linux/device.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/device.h
+> +++ linux-pm/include/linux/device.h
+> @@ -1076,6 +1076,16 @@ static inline void dev_pm_syscore_device
+>  #endif
+>  }
+>
+> +static inline void dev_pm_set_driver_flags(struct device *dev, unsigned int flags)
+> +{
+> +       dev->power.driver_flags = flags;
+> +}
+> +
+> +static inline bool dev_pm_driver_flag_set(struct device *dev, unsigned int flag)
+> +{
+> +       return !!(dev->power.driver_flags & flag);
+> +}
+> +
+>  static inline void device_lock(struct device *dev)
+>  {
+>         mutex_lock(&dev->mutex);
+>
