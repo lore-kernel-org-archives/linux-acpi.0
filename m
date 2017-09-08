@@ -1,78 +1,30 @@
-From: Peter Maydell <peter.maydell@linaro.org>
-Subject: Re: [PATCH v11 5/6] target-arm: kvm64: handle SIGBUS signal for
- synchronous External Abort
-Date: Fri, 8 Sep 2017 17:21:52 +0100
-Message-ID: <CAFEAcA8HPhHeeXEDtxnewJ7mAJ-gYzR96pC06qA+Xx95LHu2DA@mail.gmail.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: =?utf-8?B?562U5aSNOiBbUEFUQ0ggdjExIDUvNl0gdGFyZ2V0LWFybToga3ZtNjQ6IGhh?=
+ =?utf-8?B?bmRsZSBTSUdCVVMgc2lnbmFsIGZvciBzeW5jaHJvbm91cyBFeHRlcm5hbCBB?=
+ =?utf-8?Q?bort?=
+Date: Fri, 8 Sep 2017 16:40:51 +0000
+Message-ID: <0184EA26B2509940AA629AE1405DD7F2015F5FE7@DGGEMA503-MBX.china.huawei.com>
 References: <0184EA26B2509940AA629AE1405DD7F2015F5F11@DGGEMA503-MBX.china.huawei.com>
+ <CAFEAcA8HPhHeeXEDtxnewJ7mAJ-gYzR96pC06qA+Xx95LHu2DA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <0184EA26B2509940AA629AE1405DD7F2015F5F11@DGGEMA503-MBX.china.huawei.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: gengdongjiu <gengdongjiu@huawei.com>
-Cc: kvm-devel <kvm@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, QEMU Developers <qemu-devel@nongnu.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, Ingo Molnar <mingo@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Huangshaoyu <huangshaoyu@huawei.com>, huangdaode <huangdaode@hisilicon.com>, "bp@suse.de" <bp@suse.de>, Wuquanming <wuquanming@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, "edk2-devel@lists.01.org" <edk2-devel@lists.01.org>, John Garry <john.garry@huawei.com>, Linuxarm <linuxarm@huawei.com>, qemu-arm <qemu-arm@nongnu.org>, Igor Mammedov <imammedo@redhat.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>, arm-mail-list <linux-arm-kernel@lists.infradead.org>, devel@acpica.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([45.249.212.188]:11833 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754599AbdIHQlg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2017 12:41:36 -0400
+In-Reply-To: <CAFEAcA8HPhHeeXEDtxnewJ7mAJ-gYzR96pC06qA+Xx95LHu2DA@mail.gmail.com>
+Content-Language: zh-CN
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Maydell <peter.maydell@linaro.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>, Igor Mammedov <imammedo@redhat.com>, Zhaoshenglong <zhaoshenglong@huawei.com>, Paolo Bonzini <pbonzini@redhat.com>, QEMU Developers <qemu-devel@nongnu.org>, qemu-arm <qemu-arm@nongnu.org>, kvm-devel <kvm@vger.kernel.org>, "edk2-devel@lists.01.org" <edk2-devel@lists.01.org>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Ingo Molnar <mingo@kernel.org>, "bp@suse.de" <bp@suse.de>, Shiju Jose <shiju.jose@huawei.com>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, arm-mail-list <linux-arm-kernel@lists.infradead.org>k
 
-On 8 September 2017 at 17:17, gengdongjiu <gengdongjiu@huawei.com> wrote:
->>
->> This code has all just been copied-and-pasted from target/i386/kvm.c.
->> Please instead abstract it out properly into a cpu-independent source file.
->
->
-> Yes, it copied from x86.
-> Do you mean abstracting this code to a common folder so that i386 and arm platform share it?
-
-I mean it should go into a common source file (perhaps
-accel/kvm/kvm-all.c).
-
-
->> What is this ??? You should never need to look up things in the cpreg arrays by fieldoffset.
->
->
-> I used it to set the esr_el1's and far_el1's value, for example:
->
->   /* set ESR_EL1 */
->   ret = kvm_arm_cpreg_value(cpu, offsetof(CPUARMState, cp15.esr_el[1]));
->
->   /* set FAR_EL1 */
->   ret = kvm_arm_cpreg_value(cpu, offsetof(CPUARMState, cp15.far_el[1]));
-
-Yes, I saw that, but I have no idea why you think that's
-the right way to set register values. No other code in
-QEMU does this.
-
-> So use the added API kvm_arm_cpreg_value() to set their value.
-> If not used it, do you better method to set their value?
-
-I suggest:
-
->> The code for handling debug exits (software step, watchpoint,
->> etc) is probably a good place to look for how to deal with register state.
-
->> Any new globally-visible function prototype in a header should
->> have a doc-comment formatted documentation comment, please.
->
->
-> Ok, thanks for this reminder. Do you mean I need to add comments
-> for this globally-visible function, such as below:
->
-> /*
->  * xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
->  */
-> void kvm_hwpoison_page_add(ram_addr_t ram_addr);
-
-It should be in the doc-comment format, which begins
-"/**" and has some stylization of how you list parameters
-and so on. Lots of examples in the existing headers.
-
-thanks
--- PMM
+Wy4uLl0NCj4gPg0KPiA+IC8qDQo+ID4gICogeHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4
+eHh4eA0KPiA+ICAqLw0KPiA+IHZvaWQga3ZtX2h3cG9pc29uX3BhZ2VfYWRkKHJhbV9hZGRyX3Qg
+cmFtX2FkZHIpOw0KPiANCj4gSXQgc2hvdWxkIGJlIGluIHRoZSBkb2MtY29tbWVudCBmb3JtYXQs
+IHdoaWNoIGJlZ2lucyAiLyoqIiBhbmQgaGFzIHNvbWUgc3R5bGl6YXRpb24gb2YgaG93IHlvdSBs
+aXN0IHBhcmFtZXRlcnMgYW5kIHNvIG9uLiBMb3RzIG9mDQo+IGV4YW1wbGVzIGluIHRoZSBleGlz
+dGluZyBoZWFkZXJzLg0KDQp1bmRlcnN0YW5kLCB0aGFua3MgZm9yIHRoZSBleHBsYW5hdGlvbi4N
+Cg0KPiANCj4gdGhhbmtzDQo+IC0tIFBNTQ0K
