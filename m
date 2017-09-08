@@ -1,62 +1,99 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] ACPI / PMIC: Add code reviewers to MAINTAINERS
-Date: Thu, 07 Sep 2017 18:19:37 -0700
-Message-ID: <1504833577.7546.30.camel@perches.com>
-References: <3133187.xxVeAdigRk@aspire.rjw.lan>
-         <1504785106.7546.22.camel@perches.com>
-         <CAJZ5v0ht3kRkD1dBKhTMZm0d_28zJb+GKoJgYJrLSX0XY7ai6Q@mail.gmail.com>
+From: "Wangtao (Kevin, Kirin)" <kevin.wangtao@hisilicon.com>
+Subject: Re: [1/9] i2c: designware: Fix system suspend
+Date: Fri, 8 Sep 2017 11:23:28 +0800
+Message-ID: <5597d9a7-8b1a-d45d-e8d5-d1c0b46ddb7a@hisilicon.com>
+References: <1498072888-14782-2-git-send-email-ulf.hansson@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtprelay0141.hostedemail.com ([216.40.44.141]:42516 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750966AbdIHBTn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2017 21:19:43 -0400
-In-Reply-To: <CAJZ5v0ht3kRkD1dBKhTMZm0d_28zJb+GKoJgYJrLSX0XY7ai6Q@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1498072888-14782-2-git-send-email-ulf.hansson@linaro.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, stable@vger.linux.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
 
-On Fri, 2017-09-08 at 01:21 +0200, Rafael J. Wysocki wrote:
-> On Thu, Sep 7, 2017 at 1:51 PM, Joe Perches <joe@perches.com> wrote:
-> > On Thu, 2017-09-07 at 13:18 +0200, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > 
-> > > Andy and Mika review code changes under drivers/acpi/pmic/ on
-> > > a regular basis and I rely on their help with that, so add them
-> > > as code reviwewers for that part of the kernel.
-> > > 
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > ---
-> > >  MAINTAINERS |   12 ++++++++++++
-> > >  1 file changed, 12 insertions(+)
-> > > 
-> > > Index: linux-pm/MAINTAINERS
-> > > ===================================================================
-> > > --- linux-pm.orig/MAINTAINERS
-> > > +++ linux-pm/MAINTAINERS
-> > > @@ -352,6 +352,18 @@ L:       linux-acpi@vger.kernel.org
-> > >  S:   Maintained
-> > >  F:   drivers/acpi/arm64
-> > > 
-> > > +ACPI PMIC DRIVERS
-> > > +M:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > > +M:   Len Brown <lenb@kernel.org>
-> > > +L:   linux-acpi@vger.kernel.org
-> > > +R:   Andy Shevchenko <andy@infradead.org>
-> > > +R:   Mika Westerberg <mika.westerberg@linux.intel.com>
-> > 
-> > Please put reviewers before lists
+
+This patch can fix the issue we found on hikey960 that i2c doesn't skip system suspend when it is runtime suspended.
+
+在 2017/6/22 3:21, Ulf Hansson 写道:
+> The commit 8503ff166504 ("i2c: designware: Avoid unnecessary resuming
+> during system suspend"), may suggest to the PM core to try out the so
+> called direct_complete path for system sleep. In this path, the PM core
+> treats a runtime suspended device as it's already in a proper low power
+> state for system sleep, which makes it skip calling the system sleep
+> callbacks for the device, except for the ->prepare() and the ->complete()
+> callback.
 > 
-> OK
+> Moreover, under certain circumstances the PM core may unset the
+> direct_complete flag for a parent device, in case its child device are
+> being system suspended before. In other words, the PM core doesn't skip
+> calling the system sleep callbacks, no matter if the device is runtime
+> suspended or not.
 > 
-> So the APEI entry should be reordered too I suppose?
-
-That'd be nice one day if Linus decides not to
-split the MAINTAINERS file up using
-scripts/parse_maintainers.pl.
-
-That puts everything in the appropriate sorted order.
-
+> In cases of an i2c slave device, the above situation is triggered.
+> Unfortunate, this also breaks the assumption that the i2c device is always
+> runtime resumed, whenever the dw_i2c_plat_suspend() callback is being
+> invoked, which then leads to a regression.
+> 
+> More precisely, dw_i2c_plat_suspend() then calls clk_core_disable() and
+> clk_core_unprepare(), for an already disabled/unprepared clock, leading to
+> complaints about clocks calls being wrongly balanced.
+> 
+> In cases when the i2c device is attached to the ACPI PM domain, the problem
+> doesn't occur. That's because ACPI's ->suspend() callback, assigned to
+> acpi_subsys_suspend(), calls pm_runtime_resume() for the i2c device.
+> 
+> To make a simple fix for this regression, let's runtime resume the i2c
+> device in the ->prepare() callback, assigned to dw_i2c_plat_prepare(). This
+> prevents the direct_complete path from being executed by the PM core and
+> guarantees the dw_i2c_plat_suspend() is called with the i2c device always
+> being runtime resumed.
+> 
+> Of course this change is suboptimal, because to always force a runtime
+> resume of the i2c device in ->prepare() is a waste, especially in those
+> cases when it could have remained runtime suspended during the entire
+> system sleep sequence. However, to accomplish that behaviour a bigger
+> change is needed, so defer that to future changes not applicable as fixes
+> or for stable.
+> 
+> Fixes: 8503ff166504 ("i2c: designware: Avoid unnecessary resuming...")
+> Cc: stable@vger.linux.org
+> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+> ---
+>   drivers/i2c/busses/i2c-designware-platdrv.c | 11 ++---------
+>   1 file changed, 2 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
+> index d1263b8..2b7fa75 100644
+> --- a/drivers/i2c/busses/i2c-designware-platdrv.c
+> +++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+> @@ -375,17 +375,11 @@ MODULE_DEVICE_TABLE(of, dw_i2c_of_match);
+>   #ifdef CONFIG_PM_SLEEP
+>   static int dw_i2c_plat_prepare(struct device *dev)
+>   {
+> -	return pm_runtime_suspended(dev);
+> -}
+> -
+> -static void dw_i2c_plat_complete(struct device *dev)
+> -{
+> -	if (dev->power.direct_complete)
+> -		pm_request_resume(dev);
+> +	pm_runtime_resume(dev);
+> +	return 0;
+>   }
+>   #else
+>   #define dw_i2c_plat_prepare	NULL
+> -#define dw_i2c_plat_complete	NULL
+>   #endif
+>   
+>   #ifdef CONFIG_PM
+> @@ -413,7 +407,6 @@ static int dw_i2c_plat_resume(struct device *dev)
+>   
+>   static const struct dev_pm_ops dw_i2c_dev_pm_ops = {
+>   	.prepare = dw_i2c_plat_prepare,
+> -	.complete = dw_i2c_plat_complete,
+>   	SET_SYSTEM_SLEEP_PM_OPS(dw_i2c_plat_suspend, dw_i2c_plat_resume)
+>   	SET_RUNTIME_PM_OPS(dw_i2c_plat_suspend, dw_i2c_plat_resume, NULL)
+>   };
+> 
