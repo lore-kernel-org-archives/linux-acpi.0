@@ -1,83 +1,349 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v3 1/3] arm64/ras: support sea error recovery
-Date: Fri, 8 Sep 2017 11:02:15 +0200
-Message-ID: <20170908090214.vfrbqaphia46qkhs@pd.tnic>
-References: <1504770316-4327-1-git-send-email-xiexiuqi@huawei.com>
- <1504770316-4327-2-git-send-email-xiexiuqi@huawei.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v9 00/23] Unified fwnode endpoint parser, async sub-device notifier support, N9 flash DTS
+Date: Fri,  8 Sep 2017 16:11:51 +0300
+Message-ID: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42853 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754733AbdIHMmN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 8 Sep 2017 08:42:13 -0400
-Content-Disposition: inline
-In-Reply-To: <1504770316-4327-2-git-send-email-xiexiuqi@huawei.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47192 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755791AbdIHNMi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2017 09:12:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, cj.chengjian@huawei.com
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 
-On Thu, Sep 07, 2017 at 03:45:14PM +0800, Xie XiuQi wrote:
-> With ARM v8.2 RAS Extension, SEA are usually triggered when memory errors
-> are consumed. In some cases, if the error address is in a clean page or a
-> read-only page, there is a chance to recover. Such as error occurs in a
-> instruction page, we can reread this page from disk instead of killing
-> process.
-> 
-> Because memory_failure() may sleep, we can not call it directly in SEA
-> exception context. So we saved faulting physical address associated with
-> a process in the ghes handler and set __TIF_SEA_NOTIFY. When we return
-> from SEA exception context and get into do_notify_resume() before the
-> process running, we could check it and call memory_failure() to do
-> recovery. It's safe, because we are in process context.
-> 
-> Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
-> Signed-off-by: Wang Xiongfeng <wangxiongfeng2@huawei.com>
+Hi folks,
 
-This is not a correct SOB chain, please check:
+We have a large influx of new, unmerged, drivers that are now parsing
+fwnode endpoints and each one of them is doing this a little bit
+differently. The needs are still exactly the same for the graph data
+structure is device independent. This is still a non-trivial task and the
+majority of the driver implementations are buggy, just buggy in different
+ways.
 
-Documentation/process/submitting-patches.rst, section 11.
+Facilitate parsing endpoints by adding a convenience function for parsing
+the endpoints, and make the omap3isp and rcar-vin drivers use them as an
+example.
 
-> ---
->  arch/arm64/Kconfig                   |  11 +++
->  arch/arm64/include/asm/ras.h         |  36 +++++++++
->  arch/arm64/include/asm/thread_info.h |   4 +-
->  arch/arm64/kernel/Makefile           |   1 +
->  arch/arm64/kernel/ras.c              | 141 +++++++++++++++++++++++++++++++++++
->  arch/arm64/kernel/signal.c           |   8 ++
->  arch/arm64/mm/fault.c                |  27 +++++--
->  drivers/acpi/apei/ghes.c             |   4 +-
->  8 files changed, 221 insertions(+), 11 deletions(-)
->  create mode 100644 arch/arm64/include/asm/ras.h
->  create mode 100644 arch/arm64/kernel/ras.c
+To show where we're getting with this, I've added support for async
+sub-device notifier support that is notifiers that can be registered by
+sub-device drivers as well as V4L2 fwnode improvements to make use of them
+and the DTS changes for the Nokia N9. Some of these patches I've posted
+previously in this set here:
 
-What tree are those patches against?
+<URL:http://www.spinics.net/lists/linux-media/msg118764.html>
 
-They don't apply cleanly against latest mainline:
+Since that, the complete callback of the master notifier registering the
+V4L2 device is only called once all sub-notifiers have been completed as
+well. This way the device node creation can be postponed until all devices
+have been successfully initialised.
 
-checking file arch/arm64/Kconfig
-Hunk #1 succeeded at 641 (offset 1 line).
-checking file arch/arm64/include/asm/ras.h
-checking file arch/arm64/include/asm/thread_info.h
-Hunk #1 FAILED at 86.
-Hunk #2 succeeded at 98 (offset -4 lines).
-Hunk #3 FAILED at 112.
-2 out of 3 hunks FAILED
-checking file arch/arm64/kernel/Makefile
-checking file arch/arm64/kernel/ras.c
-checking file arch/arm64/kernel/signal.c
-Hunk #1 succeeded at 40 with fuzz 1 (offset 2 lines).
-Hunk #2 FAILED at 750.
-1 out of 2 hunks FAILED
-checking file arch/arm64/mm/fault.c
-Hunk #1 succeeded at 631 (offset 37 lines).
-checking file drivers/acpi/apei/ghes.c
+With this, the as3645a driver successfully registers a sub-device to the
+media device created by the omap3isp driver. The kernel also has the
+information it's related to the sensor driven by the smiapp driver but we
+don't have a way to expose that information yet.
+
+since v8:
+
+- Improve terminology for notifiers. Instead of master / subdev, we
+  have root, parent and subdev notifiers.
+
+- Renamed "flash" property as "flash-leds". There are many, and currently
+  we make assumptions in a lot of places (e.g. LED bindings) that these
+  are LEDs. While we don't have any other types of flashes supported right
+  now (e.g. Xenon), it's safer to assume we might have them in the future.
+
+- Use ENOTCONN instead of EPERM to tell from driver's callback function
+  that an endpoint is to be skipped but not handled as an error.
+
+- Avoid accessing notifier's subdevs array as well as num_subdevs field
+  from rcar-vin driver.
+
+- Add a patch "v4l: async: Allow async notifier register call succeed with no
+  subdevs", which allows, well, what the subject says.
+
+- Move checks for subdev / v4l2_dev from __v4l2_async_notifier_register()
+  to v4l2_async_notifier_register() and
+  v4l2_async_subdev_notifier_register().
+
+- Don't initialise notifier->list. There was no need to do so, as this is
+  the entry added to the list and not used otherwise. I.e. regarding this,
+  the state before this patchset is restored.
+
+- Clean up error handling in v4l2_async_notifier_fwnode_parse_endpoint().
+
+- WARN_ON() in v4l2_async_notifier_parse_fwnode_endpoints() if the
+  asd_struct_size is smaller than size of struct v4l2_async_subdev.
+
+- Make v4l2_fwnode_reference_parse() static as there should be no need to
+  use it outside the V4L2 fwnode framework. Also, remove the callback
+  function as well as other arguments that always have the same value in
+  current usage. (This can be changed later on if needed without affecting
+  drivers.)
+
+- Add the patch "v4l: fwnode: Add a helper function to obtain device /
+  interger references", which allows similar use than
+  v4l2_fwnode_reference_parse() but is more useful on ACPI based systems
+  --- on ACPI, you can only refer to device nodes (corresponding struct
+  deice in Linux), not to data extension nodes under the devices.
+
+- Improve v4l2_fwnode_reference_parse_sensor_common() to work on ACPI
+  based systems.
+
+- Add patch "ACPI: Document how to refer to LEDs from remote nodes" to
+  document using and referring to LEDs on ACPI.
+
+- Rebase the set on AS3645A fixes I just sent ("AS3645A fixes")
+
+- In v4l2_fwnode_reference_parse_sensor_common(), tell if parsing a
+  property failed.
+
+- Improved documentation for v4l2_async_notifier_parse_fwnode_endpoints().
+
+- Fix v4l2_async_notifier_try_all_subdevs(); it is allowed that the list
+  entry being iterated over is deleted but no other changes to the list
+  are allowed. This could be the case if a sub-device driver's notifier
+  binds a sub-device. Restart the loop whenever a match is found.
+
+- Add patch "as3645a: Switch to fwnode property API" which also adds ACPI
+  support.
+
+since v7:
+
+- Added three more patches:
+
+	v4l: async: Remove re-probing support
+	v4l: async: Use more intuitive names for internal functions
+	dt: bindings: smiapp: Document lens-focus and flash properties
+
+  The last one was already sent previously after the rest of the patchset.
+
+- Removed re-probing support. This is hard to support and only useful in
+  special cases. It can be reintroduced later on if there's really a need
+  --- note that in e.g. omap3isp this was always broken and no-one ever
+  complained.
+
+- Remove smiapp driver's async complete callback (and ops). It is
+  redundant: the sub-device nodes are created through the master notifier.
+
+- Improve flash property documentation in video-interfaces.txt.
+
+- Introduce helper functions to call notifier operations, one for each
+  operation.
+
+- Rename v4l2_async_test_notify as v4l2_async_match_notify and
+  v4l2_async_belongs to v4l2_async_find_match.
+
+- v4l2_async_notifier_test_all_subdevs() renamed as
+  v4l2_async_notifier_try_all_subdevs().
+
+- Made notifier_v4l2_dev a function (it was a macro).
+
+- Registering subdev notifiers from sub-device drivers that control
+  sub-devices created through sub-notifiers is now supported. In other
+  words, subdev notifiers may be registered through other subdev
+  notifiers. This is the source of the bulk of the changes between v7 and
+  v8.
+
+- Add explanatory comments to helper functions used by V4L2 async
+  framework. This should help understanding the internal workings of the
+  framework.
+
+- Removed the "notifiers" list in struct v4l2_async_notifier. The
+  information can be found from existing data structures.
+
+- Explicitly check that registering a non-subdev notifier has v4l2_dev and
+  a subdev notifier has a sub-device pointer.
+
+- Unified several code paths between subdev notifiers and non-subdev
+  notifiers.
+
+- Fixed v4l2_async_notifier_release() --- calling it on a notifier for
+  which the driver had allocated the subdevs array would lead calling
+  kvfree() on that array. Now notifier->max_subdevs is checked before
+  proceeding.
+
+- Fixed a use-after-free issue in
+  v4l2_async_notifier_fwnode_parse_endpoints().
+
+- Small fixes to KernelDoc documentation for
+  v4l2_async_notifier_parse_fwnode_endpoints().
+
+since v6:
+
+- Drop the last patch that added variant for parsing endpoints given
+  specific port and endpoints numbers.
+
+- Separate driver changes from the fwnode endpoint parser patch into two
+  patches. rcar-vin driver is now using the name function.
+
+- Use -ENOTCONN to tell the parser that and endpoint (or a reference) is
+  to be ignored.
+
+- parse_endpoint and parse_single callback functions are now optional and
+  documented as such.
+
+- Added Laurent's patch adding notifier operations struct which I rebase
+  on the fwnode parser patchset. I wrote another patch to call the
+  notifier operations through macros.
+
+- Add DT bindings for flash and lens devices.
+
+- V4L2 fwnode parser for references (such as flash and lens).
+
+- Added smiapp driver support for async sub-devices (lens and flash).
+
+- Added a few fixes for omap3isp.
+
+since v5:
+
+- Use v4l2_async_ prefix for static functions as well (4th patch)
+
+- Use memcpy() to copy array rather than a loop
+
+- Document that the v4l2_async_subdev pointer in driver specific struct
+  must be the first member
+
+- Improve documentation of the added functions (4th and 5th
+  patches)
+
+	- Arguments
+
+	- More thorough explation of the purpose, usage and object
+	  lifetime
+
+- Added acks
+
+since v4:
+
+- Prepend the set with three documentation fixes.
+
+- The driver's async struct must begin with struct v4l2_async_subdev. Fix this
+  for omap3isp and document it.
+
+- Improve documentation for new functions.
+
+- Don't use devm_ family of functions for allocating memory. Introduce
+  v4l2_async_notifier_release() to release memory resources.
+
+- Rework both v4l2_async_notifier_fwnode_parse_endpoints() and
+  v4l2_async_notifier_fwnode_parse_endpoint() and the local functions they
+  call. This should make the code cleaner. Despite the name, for linking
+  and typical usage reasons the functions remain in v4l2-fwnode.c.
+
+- Convert rcar-vin to use v4l2_async_notifier_fwnode_parse_endpoint().
+
+- Use kvmalloc() for allocating the notifier's subdevs array.
+
+- max_subdevs argument for notifier_realloc is now the total maximum
+  number of subdevs, not the number of available subdevs.
+
+- Use fwnode_device_is_available() to make sure the device actually
+  exists.
+
+- Move the note telling v4l2_async_notifier_fwnode_parse_endpoints()
+  should not be used by new drivers to the last patch adding
+  v4l2_async_notifier_fwnode_parse_endpoint().
+
+since v3:
+
+- Rebase on current mediatree master.
+
+since v2:
+
+- Rebase on CCP2 support patches.
+
+- Prepend a patch cleaning up omap3isp driver a little.
+
+since v1:
+
+- The first patch has been merged (it was a bugfix).
+
+- In anticipation that the parsing can take place over several iterations,
+  take the existing number of async sub-devices into account when
+  re-allocating an array of async sub-devices.
+
+- Rework the first patch to better anticipate parsing single endpoint at a
+  time by a driver.
+
+- Add a second patch that adds a function for parsing endpoints one at a
+  time based on port and endpoint numbers.
+
+
+Laurent Pinchart (1):
+  v4l: async: Move async subdev notifier operations to a separate
+    structure
+
+Sakari Ailus (23):
+  v4l: fwnode: Move KernelDoc documentation to the header
+  v4l: async: Remove re-probing support
+  v4l: async: Use more intuitive names for internal functions
+  v4l: async: Add V4L2 async documentation to the documentation build
+  v4l: fwnode: Support generic parsing of graph endpoints in a device
+  omap3isp: Use generic parser for parsing fwnode endpoints
+  rcar-vin: Use generic parser for parsing fwnode endpoints
+  omap3isp: Fix check for our own sub-devices
+  omap3isp: Print the name of the entity where no source pads could be
+    found
+  v4l: async: Introduce helpers for calling async ops callbacks
+  v4l: async: Register sub-devices before calling bound callback
+  v4l: async: Allow async notifier register call succeed with no subdevs
+  v4l: async: Allow binding notifiers to sub-devices
+  dt: bindings: Add a binding for flash LED devices associated to a
+    sensor
+  dt: bindings: Add lens-focus binding for image sensors
+  ACPI: Document how to refer to LEDs from remote nodes
+  as3645a: Switch to fwnode property API
+  v4l: fwnode: Add a helper function for parsing generic references
+  v4l: fwnode: Add a helper function to obtain device / interger
+    references
+  v4l: fwnode: Add convenience function for parsing common external refs
+  smiapp: Add support for flash and lens devices
+  dt: bindings: smiapp: Document lens-focus and flash properties
+  arm: dts: omap3: N9/N950: Add flash references to the camera
+
+ Documentation/acpi/dsd/leds.txt                    |  92 +++++
+ .../devicetree/bindings/media/i2c/nokia,smia.txt   |   2 +
+ .../devicetree/bindings/media/video-interfaces.txt |  10 +
+ Documentation/media/kapi/v4l2-async.rst            |   3 +
+ Documentation/media/kapi/v4l2-core.rst             |   1 +
+ arch/arm/boot/dts/omap3-n9.dts                     |   1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi               |   4 +-
+ arch/arm/boot/dts/omap3-n950.dts                   |   1 +
+ drivers/leds/leds-as3645a.c                        |  81 +++--
+ drivers/media/i2c/smiapp/smiapp-core.c             |  18 +-
+ drivers/media/i2c/smiapp/smiapp.h                  |   4 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        |   8 +-
+ drivers/media/platform/atmel/atmel-isc.c           |  10 +-
+ drivers/media/platform/atmel/atmel-isi.c           |  10 +-
+ drivers/media/platform/davinci/vpif_capture.c      |   8 +-
+ drivers/media/platform/davinci/vpif_display.c      |   8 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |   8 +-
+ drivers/media/platform/omap3isp/isp.c              | 127 +++----
+ drivers/media/platform/omap3isp/isp.h              |   5 +-
+ drivers/media/platform/pxa_camera.c                |   8 +-
+ drivers/media/platform/qcom/camss-8x16/camss.c     |   8 +-
+ drivers/media/platform/rcar-vin/rcar-core.c        | 122 +++----
+ drivers/media/platform/rcar-vin/rcar-dma.c         |  10 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |  14 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h         |   4 +-
+ drivers/media/platform/rcar_drif.c                 |  10 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |  14 +-
+ drivers/media/platform/stm32/stm32-dcmi.c          |  10 +-
+ drivers/media/platform/ti-vpe/cal.c                |   8 +-
+ drivers/media/platform/xilinx/xilinx-vipp.c        |   8 +-
+ drivers/media/v4l2-core/v4l2-async.c               | 345 +++++++++++++-----
+ drivers/media/v4l2-core/v4l2-fwnode.c              | 386 +++++++++++++++++----
+ drivers/staging/media/imx/imx-media-dev.c          |   8 +-
+ include/media/v4l2-async.h                         |  68 +++-
+ include/media/v4l2-fwnode.h                        | 150 +++++++-
+ 35 files changed, 1135 insertions(+), 439 deletions(-)
+ create mode 100644 Documentation/acpi/dsd/leds.txt
+ create mode 100644 Documentation/media/kapi/v4l2-async.rst
 
 -- 
-Regards/Gruss,
-    Boris.
+2.11.0
 
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
