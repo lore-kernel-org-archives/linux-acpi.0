@@ -1,73 +1,96 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v9 24/24] arm: dts: omap3: N9/N950: Add flash references to the camera
-Date: Fri,  8 Sep 2017 16:18:22 +0300
-Message-ID: <20170908131822.31020-20-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v9 21/24] v4l: fwnode: Add convenience function for parsing common external refs
+Date: Fri,  8 Sep 2017 16:18:19 +0300
+Message-ID: <20170908131822.31020-17-sakari.ailus@linux.intel.com>
 References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170908131235.30294-1-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+Sender: linux-media-owner@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add flash and indicator LED phandles to the sensor node.
+Add v4l2_fwnode_parse_reference_sensor_common for parsing common
+sensor properties that refer to adjacent devices such as flash or lens
+driver chips.
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+As this is an association only, there's little a regular driver needs to
+know about these devices as such.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- arch/arm/boot/dts/omap3-n9.dts       | 1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
- arch/arm/boot/dts/omap3-n950.dts     | 1 +
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 35 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-fwnode.h           | 13 +++++++++++++
+ 2 files changed, 48 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-index b9e58c536afd..39e35f8b8206 100644
---- a/arch/arm/boot/dts/omap3-n9.dts
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -26,6 +26,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash-leds = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index 1b0bd72945f2..12fbb3da5fce 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -271,14 +271,14 @@
- 		#size-cells = <0>;
- 		reg = <0x30>;
- 		compatible = "ams,as3645a";
--		flash@0 {
-+		as3645a_flash: flash@0 {
- 			reg = <0x0>;
- 			flash-timeout-us = <150000>;
- 			flash-max-microamp = <320000>;
- 			led-max-microamp = <60000>;
- 			ams,input-max-microamp = <1750000>;
- 		};
--		indicator@1 {
-+		as3645a_indicator: indicator@1 {
- 			reg = <0x1>;
- 			led-max-microamp = <10000>;
- 		};
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 646601a3ebd8..c354a1ed1e70 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -60,6 +60,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash-leds = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 56eee5bbd3b5..b9e60a0e8f86 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -589,6 +589,41 @@ static int v4l2_fwnode_reference_parse_int_props(
+ 	return ret;
+ }
+ 
++int v4l2_fwnode_reference_parse_sensor_common(
++	struct device *dev, struct v4l2_async_notifier *notifier)
++{
++	static const char *led_props[] = { "led" };
++	static const struct {
++		const char *name;
++		const char **props;
++		unsigned int nprops;
++	} props[] = {
++		{ "flash-leds", led_props, ARRAY_SIZE(led_props) },
++		{ "lens-focus", NULL, 0 },
++	};
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(props); i++) {
++		int ret;
++
++		if (props[i].props && is_acpi_node(dev_fwnode(dev)))
++			ret = v4l2_fwnode_reference_parse_int_props(
++				dev, notifier, props[i].name,
++				props[i].props, props[i].nprops);
++		else
++			ret = v4l2_fwnode_reference_parse(
++				dev, notifier, props[i].name);
++		if (ret) {
++			dev_warn(dev, "parsing property \"%s\" failed (%d)\n",
++				 props[i].name, ret);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse_sensor_common);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 3819a73c3c8a..bcec1ce101dc 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -257,4 +257,17 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
+ 			      struct v4l2_fwnode_endpoint *vep,
+ 			      struct v4l2_async_subdev *asd));
+ 
++/**
++ * v4l2_fwnode_reference_parse_sensor_common - parse common references on
++ *					       sensors for async sub-devices
++ * @dev: the device node the properties of which are parsed for references
++ * @notifier: the async notifier where the async subdevs will be added
++ *
++ * Return: 0 on success
++ *	   -ENOMEM if memory allocation failed
++ *	   -EINVAL if property parsing failed
++ */
++int v4l2_fwnode_reference_parse_sensor_common(
++	struct device *dev, struct v4l2_async_notifier *notifier);
++
+ #endif /* _V4L2_FWNODE_H */
 -- 
 2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
