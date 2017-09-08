@@ -1,30 +1,61 @@
-From: Johannes Stezenbach <js@sig21.net>
-Subject: Re: [RFT][PATCH v3 0/3] i2c: designware: Runtime PM aware system
- sleep handling
-Date: Fri, 8 Sep 2017 09:34:00 +0200
-Message-ID: <20170908073400.6nczopcvw7ykc7re@sig21.net>
-References: <3023226.l5IfJK6GIc@aspire.rjw.lan>
- <3958866.l2qnKDbinI@aspire.rjw.lan>
- <20170906091646.oqkcul7oxddf3yr6@sig21.net>
- <4508230.n88h0dPXoy@aspire.rjw.lan>
+From: "Mishra, Jatadhari" <jmishra@rbi.org.in>
+Subject: FINALE WAARSCHUWING VAN MICROSOFT
+Date: Fri, 8 Sep 2017 08:00:58 +0000
+Message-ID: <1504882843940.47234@rbi.org.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4508230.n88h0dPXoy@aspire.rjw.lan>
-Sender: linux-i2c-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-pm@vger.kernel.org, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, Lee Jones <lee@kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rmms2a.rbi.org.in ([59.145.233.136]:47428 "EHLO
+        mail1.rbi.org.in" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754695AbdIHIRV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2017 04:17:21 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "NO-REPLY@MICROSOFT.NET" <NO-REPLY@MICROSOFT.NET>
 
-On Wed, Sep 06, 2017 at 11:55:01AM +0200, Rafael J. Wysocki wrote:
-> Well, we'll need to address the S0ix thing, but that will require some
-> investigation.
-> 
-> Can you please open a bug entry for that at bugzilla.kernel.org
-> (against Power Management -> Hibernation/Suspend) and CC it to me
-> so that it doesn't fall of the radar?
 
-The Cc of this mail is rather long, just in case someone
-is interested to know I filed bug #196861 "S0ix enablement on Intel Atom"
-https://bugzilla.kernel.org/show_bug.cgi?id=196861
+
+MICROSOFT VERIFICATION UPDATE
+
+Geachte klant,
+Lees en volg de instructies om uw Microsoft Privacy te beschermen. Als onde=
+rdeel van onze inspanningen om uw ervaring te verbeteren in onze consumente=
+ndiensten, updaten we de Microsoft Services Agreement en de Microsoft Priva=
+cy Statement. We willen van deze gelegenheid gebruik maken om u op de hoogt=
+e te stellen van deze updates. KLIK HIER voor<https://info176177.wixsite.co=
+m/microsoft-update> updates en verificatie, als u dit niet doet, wordt uw e=
+-mailaccount geschorst.
+
+Wij verontschuldigen ons voor het ongemak dat dit voor u kan veroorzaken.
+
+Microsoft respecteert uw privacy.
+Admin afdeling
+=A9 3M 1995-2017. Alle rechten voorbehouden.
+
+
+
+
+
+
+
+
+________________________________
+
+Caution: The Reserve Bank of India never sends mails, SMSs or makes calls a=
+sking for personal information such as your bank account details, passwords=
+, etc. It never keeps or offers funds to anyone. Please do not respond in a=
+ny manner to such offers, however official or attractive they may look.
+
+
+Notice: This email and any files transmitted with it are confidential and i=
+ntended solely for the use of the individual or entity to whom they are add=
+ressed. If you are not the intended recipient, any dissemination, use, revi=
+ew, distribution, printing or copying of the information contained in this =
+e-mail message and/or attachments to it are strictly prohibited. If you hav=
+e received this email by error, please notify us by return e-mail or teleph=
+one and immediately and permanently delete the message and any attachments.=
+ The recipient should check this email and any attachments for the presence=
+ of viruses. The Reserve Bank of India accepts no liability for any damage =
+caused by any virus transmitted by this email.
