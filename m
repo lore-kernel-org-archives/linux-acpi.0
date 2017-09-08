@@ -1,65 +1,85 @@
-From: "Mishra, Jatadhari" <jmishra@rbi.org.in>
-Subject: MICROSOFT VERIFICATION UPDATE
-Date: Fri, 8 Sep 2017 09:19:42 +0000
-Message-ID: <1504887534209.91233@rbi.org.in>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 1/1] ACPI: Return _DSD hierarchical extension (data) sub-nodes correctly
+Date: Fri,  8 Sep 2017 12:24:41 +0300
+Message-ID: <1504862681-29165-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rmms2a.rbi.org.in ([59.145.233.136]:60770 "EHLO
-        mail1.rbi.org.in" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752448AbdIHJTx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2017 05:19:53 -0400
-Content-Language: en-US
+Received: from mga05.intel.com ([192.55.52.43]:51601 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753589AbdIHJ2t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 8 Sep 2017 05:28:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "NO-REPLY@MICROSOFT.NET" <NO-REPLY@MICROSOFT.NET>
+To: linux-acpi@vger.kernel.org, rafael@kernel.org
+Cc: andriy.shevchenko@intel.com, mika.westerberg@intel.com
 
+The recently merged patch "ACPI: Prepare for constifying
+acpi_get_next_subnode() fwnode argument" was part of a patchset
+constifying the fwnode arguments across the fwnode property API. The
+purpose of the patch was to allow returning non-const fwnodes from a data
+structure the root of which is const.
 
+Unfortunately the patch introduced the functionality, in particular when
+starting parsed from an ACPI device node, the hierarchical data extension
+nodes would not be enumerated.
 
-MICROSOFT VERIFICATION UPDATE
+Restore the old behaviour while still retaining constness properties of
+the patch.
 
-Geachte klant,
-Lees en volg de instructies om uw Microsoft Privacy te beschermen. Als onde=
-rdeel van onze inspanningen om uw ervaring te verbeteren in onze consumente=
-ndiensten, updaten we de Microsoft Services Agreement en de Microsoft Priva=
-cy Statement. We willen van deze gelegenheid gebruik maken om u op de hoogt=
-e te stellen van deze updates. KLIK HIER<https://info176177.wixsite.com/mic=
-rosoft-update> voor updates en verificatie, als u dit niet doet, wordt uw e=
--mailaccount geschorst.
+Fixes: 01c1da289791 ("ACPI: Prepare for constifying acpi_get_next_subnode() fwnode argument")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+since v1:
 
-Wij verontschuldigen ons voor het ongemak dat dit voor u kan veroorzaken.
+- Add Mika's ack.
 
-Microsoft respecteert uw privacy.
-Admin afdeling
-=A9 3M 1995-2017. Alle rechten voorbehouden.
+- Fix recetly -> recently in commit message.
 
+- Add commit ID to Fixes: line.
 
+ drivers/acpi/property.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index a65c09c..d70dab2 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -902,11 +902,12 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
+ 					    struct fwnode_handle *child)
+ {
+ 	const struct acpi_device *adev = to_acpi_device_node(fwnode);
+-	struct acpi_device *child_adev = NULL;
+ 	const struct list_head *head;
+ 	struct list_head *next;
+ 
+ 	if (!child || is_acpi_device_node(child)) {
++		struct acpi_device *child_adev;
++
+ 		if (adev)
+ 			head = &adev->children;
+ 		else
+@@ -916,8 +917,8 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
+ 			goto nondev;
+ 
+ 		if (child) {
+-			child_adev = to_acpi_device_node(child);
+-			next = child_adev->node.next;
++			adev = to_acpi_device_node(child);
++			next = adev->node.next;
+ 			if (next == head) {
+ 				child = NULL;
+ 				goto nondev;
+@@ -935,8 +936,8 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
+ 		const struct acpi_data_node *data = to_acpi_data_node(fwnode);
+ 		struct acpi_data_node *dn;
+ 
+-		if (child_adev)
+-			head = &child_adev->data.subnodes;
++		if (adev)
++			head = &adev->data.subnodes;
+ 		else if (data)
+ 			head = &data->data.subnodes;
+ 		else
+-- 
+2.7.4
 
-
-
-
-
-
-
-
-
-________________________________
-
-Caution: The Reserve Bank of India never sends mails, SMSs or makes calls a=
-sking for personal information such as your bank account details, passwords=
-, etc. It never keeps or offers funds to anyone. Please do not respond in a=
-ny manner to such offers, however official or attractive they may look.
-
-
-Notice: This email and any files transmitted with it are confidential and i=
-ntended solely for the use of the individual or entity to whom they are add=
-ressed. If you are not the intended recipient, any dissemination, use, revi=
-ew, distribution, printing or copying of the information contained in this =
-e-mail message and/or attachments to it are strictly prohibited. If you hav=
-e received this email by error, please notify us by return e-mail or teleph=
-one and immediately and permanently delete the message and any attachments.=
- The recipient should check this email and any attachments for the presence=
- of viruses. The Reserve Bank of India accepts no liability for any damage =
-caused by any virus transmitted by this email.
