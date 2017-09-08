@@ -1,43 +1,65 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 1/1] ACPI: Return _DSD hierarchical extension (data)
- sub-nodes correctly
-Date: Fri, 8 Sep 2017 12:13:06 +0300
-Message-ID: <20170908091306.GZ2477@lahna.fi.intel.com>
-References: <1504859676-17375-1-git-send-email-sakari.ailus@linux.intel.com>
+From: "Mishra, Jatadhari" <jmishra@rbi.org.in>
+Subject: MICROSOFT VERIFICATION UPDATE
+Date: Fri, 8 Sep 2017 09:19:42 +0000
+Message-ID: <1504887534209.91233@rbi.org.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:28847 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751907AbdIHJNK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 8 Sep 2017 05:13:10 -0400
-Content-Disposition: inline
-In-Reply-To: <1504859676-17375-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from rmms2a.rbi.org.in ([59.145.233.136]:60770 "EHLO
+        mail1.rbi.org.in" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752448AbdIHJTx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2017 05:19:53 -0400
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, andriy.shevchenko@intel.com, mika.westerberg@intel.com
+To: "NO-REPLY@MICROSOFT.NET" <NO-REPLY@MICROSOFT.NET>
 
-On Fri, Sep 08, 2017 at 11:34:36AM +0300, Sakari Ailus wrote:
-> The recetly merged patch "ACPI: Prepare for constifying
-      ^^^^^^^ recently
 
-> acpi_get_next_subnode() fwnode argument" was part of a patchset
-> constifying the fwnode arguments across the fwnode property API. The
-> purpose of the patch was to allow returning non-const fwnodes from a data
-> structure the root of which is const.
-> 
-> Unfortunately the patch introduced the functionality, in particular when
-> starting parsed from an ACPI device node, the hierarchical data extension
-> nodes would not be enumerated.
-> 
-> Restore the old behaviour while still retaining constness properties of
-> the patch.
-> 
-> Fixes: ("ACPI: Prepare for constifying acpi_get_next_subnode() fwnode argument")
 
-This needs to have the commit id as well.
+MICROSOFT VERIFICATION UPDATE
 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Geachte klant,
+Lees en volg de instructies om uw Microsoft Privacy te beschermen. Als onde=
+rdeel van onze inspanningen om uw ervaring te verbeteren in onze consumente=
+ndiensten, updaten we de Microsoft Services Agreement en de Microsoft Priva=
+cy Statement. We willen van deze gelegenheid gebruik maken om u op de hoogt=
+e te stellen van deze updates. KLIK HIER<https://info176177.wixsite.com/mic=
+rosoft-update> voor updates en verificatie, als u dit niet doet, wordt uw e=
+-mailaccount geschorst.
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Wij verontschuldigen ons voor het ongemak dat dit voor u kan veroorzaken.
+
+Microsoft respecteert uw privacy.
+Admin afdeling
+=A9 3M 1995-2017. Alle rechten voorbehouden.
+
+
+
+
+
+
+
+
+
+
+
+
+________________________________
+
+Caution: The Reserve Bank of India never sends mails, SMSs or makes calls a=
+sking for personal information such as your bank account details, passwords=
+, etc. It never keeps or offers funds to anyone. Please do not respond in a=
+ny manner to such offers, however official or attractive they may look.
+
+
+Notice: This email and any files transmitted with it are confidential and i=
+ntended solely for the use of the individual or entity to whom they are add=
+ressed. If you are not the intended recipient, any dissemination, use, revi=
+ew, distribution, printing or copying of the information contained in this =
+e-mail message and/or attachments to it are strictly prohibited. If you hav=
+e received this email by error, please notify us by return e-mail or teleph=
+one and immediately and permanently delete the message and any attachments.=
+ The recipient should check this email and any attachments for the presence=
+ of viruses. The Reserve Bank of India accepts no liability for any damage =
+caused by any virus transmitted by this email.
