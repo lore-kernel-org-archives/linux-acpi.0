@@ -1,376 +1,126 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v9 14/24] v4l: async: Allow binding notifiers to sub-devices
-Date: Fri,  8 Sep 2017 16:18:12 +0300
-Message-ID: <20170908131822.31020-10-sakari.ailus@linux.intel.com>
+Subject: [PATCH v9 17/24] ACPI: Document how to refer to LEDs from remote nodes
+Date: Fri,  8 Sep 2017 16:18:15 +0300
+Message-ID: <20170908131822.31020-13-sakari.ailus@linux.intel.com>
 References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47502 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47546 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756041AbdIHNSa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2017 09:18:30 -0400
+        by vger.kernel.org with ESMTP id S1756125AbdIHNSb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2017 09:18:31 -0400
 In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 
-Registering a notifier has required the knowledge of struct v4l2_device
-for the reason that sub-devices generally are registered to the
-v4l2_device (as well as the media device, also available through
-v4l2_device).
-
-This information is not available for sub-device drivers at probe time.
-
-What this patch does is that it allows registering notifiers without
-having v4l2_device around. Instead the sub-device pointer is stored in the
-notifier. Once the sub-device of the driver that registered the notifier
-is registered, the notifier will gain the knowledge of the v4l2_device,
-and the binding of async sub-devices from the sub-device driver's notifier
-may proceed.
-
-The root notifier's complete callback is only called when all sub-device
-notifiers are completed.
+Document referring to LEDs from remote device nodes, such as from camera
+sensors.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 217 ++++++++++++++++++++++++++++++-----
- include/media/v4l2-async.h           |  16 ++-
- 2 files changed, 202 insertions(+), 31 deletions(-)
+ Documentation/acpi/dsd/leds.txt | 92 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 92 insertions(+)
+ create mode 100644 Documentation/acpi/dsd/leds.txt
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 9ebc2e079d03..6f788b2e922a 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -53,6 +53,10 @@ static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
- 	return n->ops->complete(n);
- }
- 
-+static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_subdev *sd,
-+				   struct v4l2_async_subdev *asd);
+diff --git a/Documentation/acpi/dsd/leds.txt b/Documentation/acpi/dsd/leds.txt
+new file mode 100644
+index 000000000000..6217fcda15c9
+--- /dev/null
++++ b/Documentation/acpi/dsd/leds.txt
+@@ -0,0 +1,92 @@
++Describing and referring to LEDs in ACPI
 +
- static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
-@@ -124,14 +128,128 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- 	return NULL;
- }
- 
-+/* Get the sub-device notifier registered by a sub-device driver. */
-+static struct v4l2_async_notifier *v4l2_async_get_subdev_notifier(
-+	struct v4l2_subdev *sd)
-+{
-+	struct v4l2_async_notifier *n;
++Individual LEDs are described by hierarchical data extension [6] nodes
++under the device node, the LED driver chip. The "led" property in the
++LED specific nodes tells the numerical ID of each individual LED. The
++"led" property is used here in a similar fashion as the "reg" property
++in DT. [3]
 +
-+	list_for_each_entry(n, &notifier_list, list)
-+		if (n->sd == sd)
-+			return n;
++Referring to LEDs in Devicetree is documented in [4], in "flash-leds"
++property documentation. In short, LEDs are directly referred to by
++using phandles.
 +
-+	return NULL;
-+}
++While Devicetree allows referring to any node in the tree[1], in ACPI
++references are limited to device nodes only [2]. For this reason using
++the same mechanism on ACPI is not possible.
 +
-+/* Return true if all sub-device notifiers are complete, false otherwise. */
-+static bool v4l2_async_subdev_notifiers_complete(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd;
++ACPI allows (as does DT) using integer arguments after the reference.
++A combination of the LED driver device reference and an integer
++argument, referring to the "led" property of the relevant LED, are
++use to individual LEDs. The value of the LED property is a contract
++between the firmware and software, it uniquely identifies the LED
++driver outputs.
 +
-+	if (!list_empty(&notifier->waiting))
-+		return false;
++An ASL example of a camera sensor device and a LED driver device for
++two LEDs:
 +
-+	list_for_each_entry(sd, &notifier->done, async_list) {
-+		struct v4l2_async_notifier *subdev_notifier =
-+			v4l2_async_get_subdev_notifier(sd);
-+
-+		if (!subdev_notifier)
-+			continue;
-+
-+		if (!v4l2_async_subdev_notifiers_complete(subdev_notifier))
-+			return false;
++	Device (LED)
++	{
++		Name ((_DSD), Package () {
++			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++			Package () {
++				Package () { "led0", "LED0" },
++				Package () { "led1", "LED1" },
++			}
++		})
++		Name ((LED0), Package () {
++			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++			Package () {
++				Package () { "led", 0 },
++				Package () { "flash-max-microamp", 1000000 },
++				Package () { "led-max-microamp", 100000 },
++				Package () { "label", "led:salama" },
++			}
++		})
++		Name ((LED1), Package () {
++			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++			Package () {
++				Package () { "led", 1 },
++				Package () { "led-max-microamp", 10000 },
++				Package () { "label", "led:huomiovalo" },
++			}
++		})
 +	}
 +
-+	return true;
-+}
-+
-+/* Get v4l2_device related to the notifier if one can be found. */
-+static struct v4l2_device *v4l2_async_notifier_get_v4l2_dev(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	while (notifier->parent)
-+		notifier = notifier->parent;
-+
-+	return notifier->v4l2_dev;
-+}
-+
-+/* Test all async sub-devices in a notifier for a match. */
-+static int v4l2_async_notifier_try_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd;
-+
-+	if (!v4l2_async_notifier_get_v4l2_dev(notifier))
-+		return 0;
-+
-+again:
-+	list_for_each_entry(sd, &subdev_list, async_list) {
-+		struct v4l2_async_subdev *asd;
-+		int ret;
-+
-+		asd = v4l2_async_find_match(notifier, sd);
-+		if (!asd)
-+			continue;
-+
-+		ret = v4l2_async_match_notify(notifier, sd, asd);
-+		if (ret < 0)
-+			return ret;
-+
-+		/*
-+		 * v4l2_async_match_notify() may lead to registering a
-+		 * new notifier and thus changing the async subdevs
-+		 * list. In order to proceed safely from here, restart
-+		 * parsing the list from the beginning.
-+		 */
-+		goto again;
++	Device (SEN)
++	{
++		Name ((_DSD), Package () {
++			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++			Package () {
++				Package () {
++					"flash-leds",
++					Package () { \\LED, 0, \\LED, 1 },
++				}
++			}
++		})
 +	}
 +
-+	return 0;
-+}
++where
 +
-+/* Try completing a notifier. */
-+static int v4l2_async_notifier_try_complete(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	do {
-+		int ret;
++	LED	LED driver device
++	LED0	First LED
++	LED1	Second LED
++	SEN	Camera sensor device (or another device the LED is
++		related to)
 +
-+		/* Any local async sub-devices left? */
-+		if (!list_empty(&notifier->waiting))
-+			return 0;
++[1] Devicetree. <URL:http://www.devicetree.org>, referenced 2016-10-03.
 +
-+		/*
-+		 * Any sub-device notifiers waiting for async subdevs
-+		 * to be bound?
-+		 */
-+		if (!v4l2_async_subdev_notifiers_complete(notifier))
-+			return 0;
++[2] Advanced Configuration and Power Interface Specification.
++    <URL:http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf>,
++    referenced 2016-10-04.
 +
-+		/* Proceed completing the notifier */
-+		ret = v4l2_async_notifier_call_complete(notifier);
-+		if (ret < 0)
-+			return ret;
++[3] Documentation/devicetree/bindings/leds/common.txt
 +
-+		/*
-+		 * Obtain notifier's parent. If there is one, repeat
-+		 * the process, otherwise we're done here.
-+		 */
-+	} while ((notifier = notifier->parent));
++[4] Documentation/devicetree/bindings/media/video-interfaces.txt
 +
-+	return 0;
-+}
++[5] Device Properties UUID For _DSD.
++    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
++    referenced 2016-10-04.
 +
- static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 				   struct v4l2_subdev *sd,
- 				   struct v4l2_async_subdev *asd)
- {
-+	struct v4l2_async_notifier *subdev_notifier;
- 	int ret;
- 
--	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
--	if (ret < 0)
-+	ret = v4l2_device_register_subdev(
-+		v4l2_async_notifier_get_v4l2_dev(notifier), sd);
-+	if (ret)
- 		return ret;
- 
- 	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-@@ -148,10 +266,20 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	/* Move from the global subdevice list to notifier's done */
- 	list_move(&sd->async_list, &notifier->done);
- 
--	if (list_empty(&notifier->waiting))
--		return v4l2_async_notifier_call_complete(notifier);
-+	/*
-+	 * See if the sub-device has a notifier. If it does, proceed
-+	 * with checking for its async sub-devices.
-+	 */
-+	subdev_notifier = v4l2_async_get_subdev_notifier(sd);
-+	if (subdev_notifier && !subdev_notifier->parent) {
-+		subdev_notifier->parent = notifier;
-+		ret = v4l2_async_notifier_try_all_subdevs(subdev_notifier);
-+		if (ret)
-+			return ret;
-+	}
- 
--	return 0;
-+	/* Try completing the notifier and its parent(s). */
-+	return v4l2_async_notifier_try_complete(notifier);
- }
- 
- static void v4l2_async_cleanup(struct v4l2_subdev *sd)
-@@ -163,20 +291,18 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- 	sd->dev = NULL;
- }
- 
--int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
--				 struct v4l2_async_notifier *notifier)
-+static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
- 	struct v4l2_async_subdev *asd;
-+	int ret;
- 	int i;
- 
--	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-+	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
- 
- 	if (!notifier->num_subdevs)
- 		return v4l2_async_notifier_call_complete(notifier);
- 
--	notifier->v4l2_dev = v4l2_dev;
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
-@@ -200,18 +326,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	mutex_lock(&list_lock);
- 
--	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
--		int ret;
--
--		asd = v4l2_async_find_match(notifier, sd);
--		if (!asd)
--			continue;
--
--		ret = v4l2_async_match_notify(notifier, sd, asd);
--		if (ret < 0) {
--			mutex_unlock(&list_lock);
--			return ret;
--		}
-+	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-+	if (ret) {
-+		mutex_unlock(&list_lock);
-+		return ret;
- 	}
- 
- 	/* Keep also completed notifiers on the list */
-@@ -221,28 +339,67 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	return 0;
- }
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier)
-+{
-+	if (!v4l2_dev || notifier->sd)
-+		return -EINVAL;
-+
-+	notifier->v4l2_dev = v4l2_dev;
-+
-+	return __v4l2_async_notifier_register(notifier);
-+}
- EXPORT_SYMBOL(v4l2_async_notifier_register);
- 
--void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-+					struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
-+	if (!sd || notifier->v4l2_dev)
-+		return -EINVAL;
- 
--	if (!notifier->v4l2_dev)
--		return;
-+	notifier->sd = sd;
- 
--	mutex_lock(&list_lock);
-+	return __v4l2_async_notifier_register(notifier);
-+}
-+EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
- 
--	list_del(&notifier->list);
-+/* Unbind all sub-devices in the notifier tree. */
-+static void v4l2_async_notifier_unbind_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd, *tmp;
- 
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-+		struct v4l2_async_notifier *subdev_notifier =
-+			v4l2_async_get_subdev_notifier(sd);
-+
-+		if (subdev_notifier)
-+			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
-+
- 		v4l2_async_cleanup(sd);
- 
- 		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
-+
-+		list_del(&sd->async_list);
-+		list_add(&sd->async_list, &subdev_list);
- 	}
- 
--	mutex_unlock(&list_lock);
-+	notifier->parent = NULL;
-+}
-+
-+void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+{
-+	if (!notifier->v4l2_dev && !notifier->sd)
-+		return;
- 
--	notifier->v4l2_dev = NULL;
-+	mutex_lock(&list_lock);
-+
-+	v4l2_async_notifier_unbind_all_subdevs(notifier);
-+
-+	list_del(&notifier->list);
-+
-+	mutex_unlock(&list_lock);
- }
- EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- 
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 3bc8a7c0d83f..cf409d45208c 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -102,7 +102,9 @@ struct v4l2_async_notifier_operations {
-  * @num_subdevs: number of subdevices used in the subdevs array
-  * @max_subdevs: number of subdevices allocated in the subdevs array
-  * @subdevs:	array of pointers to subdevice descriptors
-- * @v4l2_dev:	pointer to struct v4l2_device
-+ * @v4l2_dev:	v4l2_device of the root notifier, NULL otherwise
-+ * @sd:		sub-device that registered the notifier, NULL otherwise
-+ * @parent:	parent notifier carrying @v4l2_dev
-  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-  * @done:	list of struct v4l2_subdev, already probed
-  * @list:	member in a global list of notifiers
-@@ -113,6 +115,8 @@ struct v4l2_async_notifier {
- 	unsigned int max_subdevs;
- 	struct v4l2_async_subdev **subdevs;
- 	struct v4l2_device *v4l2_dev;
-+	struct v4l2_subdev *sd;
-+	struct v4l2_async_notifier *parent;
- 	struct list_head waiting;
- 	struct list_head done;
- 	struct list_head list;
-@@ -128,6 +132,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 				 struct v4l2_async_notifier *notifier);
- 
- /**
-+ * v4l2_async_subdev_notifier_register - registers a subdevice asynchronous
-+ *					 notifier for a sub-device
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ */
-+int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-+					struct v4l2_async_notifier *notifier);
-+
-+/**
-  * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
-  *
-  * @notifier: pointer to &struct v4l2_async_notifier
++[6] Hierarchical Data Extension UUID For _DSD.
++    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf>,
++    referenced 2016-10-04.
 -- 
 2.11.0
 
