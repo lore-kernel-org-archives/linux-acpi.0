@@ -1,67 +1,64 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v9 23/24] dt: bindings: smiapp: Document lens-focus and
- flash properties
-Date: Fri, 8 Sep 2017 16:42:26 +0300
-Message-ID: <20170908134226.m5ts637dej7oa4jw@valkosipuli.retiisi.org.uk>
+From: Mika Westerberg <mika.westerberg@intel.com>
+Subject: Re: [PATCH v9 17/24] ACPI: Document how to refer to LEDs from remote
+ nodes
+Date: Fri, 8 Sep 2017 16:43:20 +0300
+Message-ID: <20170908134320.GC2477@lahna.fi.intel.com>
 References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131822.31020-19-sakari.ailus@linux.intel.com>
- <20170908133652.GR18365@amd>
+ <20170908131822.31020-13-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48460 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755978AbdIHNm3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2017 09:42:29 -0400
+Received: from mga09.intel.com ([134.134.136.24]:47852 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933029AbdIHNnZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 8 Sep 2017 09:43:25 -0400
 Content-Disposition: inline
-In-Reply-To: <20170908133652.GR18365@amd>
+In-Reply-To: <20170908131822.31020-13-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, sre@kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 
-Hi Pavel,
+On Fri, Sep 08, 2017 at 04:18:15PM +0300, Sakari Ailus wrote:
+> +	Device (LED)
+> +	{
+> +		Name ((_DSD), Package () {
+> +			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+> +			Package () {
+> +				Package () { "led0", "LED0" },
+> +				Package () { "led1", "LED1" },
+> +			}
+> +		})
+> +		Name ((LED0), Package () {
+> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> +			Package () {
+> +				Package () { "led", 0 },
+> +				Package () { "flash-max-microamp", 1000000 },
+> +				Package () { "led-max-microamp", 100000 },
+> +				Package () { "label", "led:salama" },
+> +			}
+> +		})
+> +		Name ((LED1), Package () {
+> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> +			Package () {
+> +				Package () { "led", 1 },
+> +				Package () { "led-max-microamp", 10000 },
+> +				Package () { "label", "led:huomiovalo" },
+> +			}
+> +		})
+> +	}
+> +
+> +	Device (SEN)
+> +	{
+> +		Name ((_DSD), Package () {
+> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> +			Package () {
+> +				Package () {
+> +					"flash-leds",
+> +					Package () { \\LED, 0, \\LED, 1 },
+> +				}
+> +			}
+> +		})
+> +	}
 
-On Fri, Sep 08, 2017 at 03:36:52PM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > Document optional lens-focus and flash properties for the smiapp driver.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> > index 855e1faf73e2..a052969365d9 100644
-> > --- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> > +++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> > @@ -27,6 +27,8 @@ Optional properties
-> >  - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
-> >    the NVM contents will not be read.
-> >  - reset-gpios: XSHUTDOWN GPIO
-> > +- flash-leds: One or more phandles to refer to flash LEDs
-> > +- lens-focus: Phandle for lens focus
-> 
-> Should we simply reference the generic documentation here? If it needs
-> changing, it will be easier changing single place.
-
-Good question.
-
-Ideally the properties at least would never change; we do have a common
-parser for the properties which is part of the patchset so in theory it
-would be possible to change the documentation in a backward-compatible way.
-
-I added these properties as well as all the other properties supported by
-the sensor driver are documented here. That has been the practice AFAIU,
-albeit omissions do happen occasionally.
-
-The issue I see with omitting the documentation here is that the user
-otherwise won't know whether a driver uses a given property or not: it
-shouldn't be necessary to read driver code to write DT source.
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+You should probably try to compile these examples first ;-)
