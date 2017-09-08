@@ -1,12 +1,12 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v9 17/24] ACPI: Document how to refer to LEDs from remote nodes
-Date: Fri,  8 Sep 2017 16:18:15 +0300
-Message-ID: <20170908131822.31020-13-sakari.ailus@linux.intel.com>
+Subject: [PATCH v9 20/24] v4l: fwnode: Add a helper function to obtain device / interger references
+Date: Fri,  8 Sep 2017 16:18:18 +0300
+Message-ID: <20170908131822.31020-16-sakari.ailus@linux.intel.com>
 References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47546 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47452 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756125AbdIHNSb (ORCPT
+        by vger.kernel.org with ESMTP id S1756136AbdIHNSb (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2017 09:18:31 -0400
 In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -14,113 +14,119 @@ List-Id: linux-acpi@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 
-Document referring to LEDs from remote device nodes, such as from camera
-sensors.
+v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
+the device's own fwnode, it will follow child fwnodes with the given
+property -- value pair and return the resulting fwnode.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/acpi/dsd/leds.txt | 92 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 92 insertions(+)
- create mode 100644 Documentation/acpi/dsd/leds.txt
+ drivers/media/v4l2-core/v4l2-fwnode.c | 93 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 93 insertions(+)
 
-diff --git a/Documentation/acpi/dsd/leds.txt b/Documentation/acpi/dsd/leds.txt
-new file mode 100644
-index 000000000000..6217fcda15c9
---- /dev/null
-+++ b/Documentation/acpi/dsd/leds.txt
-@@ -0,0 +1,92 @@
-+Describing and referring to LEDs in ACPI
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 4821c4989119..56eee5bbd3b5 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -496,6 +496,99 @@ static int v4l2_fwnode_reference_parse(
+ 	return ret;
+ }
+ 
++static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
++	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
++	const char **props, unsigned int nprops)
++{
++	struct fwnode_reference_args fwnode_args;
++	unsigned int *args = fwnode_args.args;
++	struct fwnode_handle *child;
++	int ret;
 +
-+Individual LEDs are described by hierarchical data extension [6] nodes
-+under the device node, the LED driver chip. The "led" property in the
-+LED specific nodes tells the numerical ID of each individual LED. The
-+"led" property is used here in a similar fashion as the "reg" property
-+in DT. [3]
++	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
++						 index, &fwnode_args);
++	if (ret)
++		return ERR_PTR(ret == -EINVAL ? -ENOENT : ret);
 +
-+Referring to LEDs in Devicetree is documented in [4], in "flash-leds"
-+property documentation. In short, LEDs are directly referred to by
-+using phandles.
++	for (fwnode = fwnode_args.fwnode;
++	     nprops; nprops--, fwnode = child, props++, args++) {
++		u32 val;
 +
-+While Devicetree allows referring to any node in the tree[1], in ACPI
-+references are limited to device nodes only [2]. For this reason using
-+the same mechanism on ACPI is not possible.
++		fwnode_for_each_child_node(fwnode, child) {
++			if (fwnode_property_read_u32(child, *props, &val))
++				continue;
 +
-+ACPI allows (as does DT) using integer arguments after the reference.
-+A combination of the LED driver device reference and an integer
-+argument, referring to the "led" property of the relevant LED, are
-+use to individual LEDs. The value of the LED property is a contract
-+between the firmware and software, it uniquely identifies the LED
-+driver outputs.
++			if (val == *args)
++				break;
++		}
 +
-+An ASL example of a camera sensor device and a LED driver device for
-+two LEDs:
++		fwnode_handle_put(fwnode);
 +
-+	Device (LED)
-+	{
-+		Name ((_DSD), Package () {
-+			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+			Package () {
-+				Package () { "led0", "LED0" },
-+				Package () { "led1", "LED1" },
-+			}
-+		})
-+		Name ((LED0), Package () {
-+			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+			Package () {
-+				Package () { "led", 0 },
-+				Package () { "flash-max-microamp", 1000000 },
-+				Package () { "led-max-microamp", 100000 },
-+				Package () { "label", "led:salama" },
-+			}
-+		})
-+		Name ((LED1), Package () {
-+			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+			Package () {
-+				Package () { "led", 1 },
-+				Package () { "led-max-microamp", 10000 },
-+				Package () { "label", "led:huomiovalo" },
-+			}
-+		})
++		if (!child) {
++			fwnode = ERR_PTR(-ENOENT);
++			break;
++		}
 +	}
 +
-+	Device (SEN)
-+	{
-+		Name ((_DSD), Package () {
-+			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+			Package () {
-+				Package () {
-+					"flash-leds",
-+					Package () { \\LED, 0, \\LED, 1 },
-+				}
-+			}
-+		})
++	return fwnode;
++}
++
++static int v4l2_fwnode_reference_parse_int_props(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	const char *prop, const char **props, unsigned int nprops)
++{
++	struct fwnode_handle *fwnode;
++	unsigned int index = 0;
++	int ret;
++
++	while (!IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
++				dev_fwnode(dev), prop, index, props,
++				nprops)))) {
++		fwnode_handle_put(fwnode);
++		index++;
 +	}
 +
-+where
++	if (PTR_ERR(fwnode) != -ENOENT)
++		return PTR_ERR(fwnode);
 +
-+	LED	LED driver device
-+	LED0	First LED
-+	LED1	Second LED
-+	SEN	Camera sensor device (or another device the LED is
-+		related to)
++	ret = v4l2_async_notifier_realloc(notifier,
++					  notifier->num_subdevs + index);
++	if (ret)
++		return -ENOMEM;
 +
-+[1] Devicetree. <URL:http://www.devicetree.org>, referenced 2016-10-03.
++	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
++					 dev_fwnode(dev), prop, index, props,
++					 nprops))); ) {
++		struct v4l2_async_subdev *asd;
 +
-+[2] Advanced Configuration and Power Interface Specification.
-+    <URL:http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf>,
-+    referenced 2016-10-04.
++		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
++			ret = -EINVAL;
++			goto error;
++		}
 +
-+[3] Documentation/devicetree/bindings/leds/common.txt
++		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
++		if (!asd) {
++			ret = -ENOMEM;
++			goto error;
++		}
 +
-+[4] Documentation/devicetree/bindings/media/video-interfaces.txt
++		notifier->subdevs[notifier->num_subdevs] = asd;
++		asd->match.fwnode.fwnode = fwnode;
++		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
++		notifier->num_subdevs++;
 +
-+[5] Device Properties UUID For _DSD.
-+    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
-+    referenced 2016-10-04.
++		fwnode_handle_put(fwnode);
 +
-+[6] Hierarchical Data Extension UUID For _DSD.
-+    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf>,
-+    referenced 2016-10-04.
++		index++;
++	}
++
++	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
++
++error:
++	fwnode_handle_put(fwnode);
++	return ret;
++}
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
 -- 
 2.11.0
 
