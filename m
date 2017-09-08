@@ -1,54 +1,105 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: =?gb2312?B?tPC4tDogW1BBVENIIHY2IDQvN10gYXJtNjQ6IGt2bTogc3VwcG9ydCB1c2Vy?=
- =?gb2312?Q?_space_to_query_RAS_extension_feature?=
-Date: Fri, 8 Sep 2017 17:36:04 +0000
-Message-ID: <0184EA26B2509940AA629AE1405DD7F2015F61EA@DGGEMA503-MBX.china.huawei.com>
-References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
- <1503916701-13516-5-git-send-email-gengdongjiu@huawei.com>
- <59A84F9D.8030309@arm.com> <29951852-8d91-7c33-c68b-ad8b4bbdea54@huawei.com>
- <59B1747A.5030909@arm.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v3 1/3] arm64/ras: support sea error recovery
+Date: Fri, 08 Sep 2017 19:15:02 +0100
+Message-ID: <59B2DE26.4060002@arm.com>
+References: <1504770316-4327-1-git-send-email-xiexiuqi@huawei.com> <1504770316-4327-2-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <59B1747A.5030909@arm.com>
-Content-Language: zh-CN
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>, Peter Maydell <peter.maydell@linaro.org>
-Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "Wangkefeng
- (Kevin)" <wangkefeng.wang@huawei.com>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "david.daney@cavium.com" <david.daney@cavium.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "will.deacon@arm.com" <will.deacon@arm.com>, Linuxarm <linuxarm@huawei.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, "mingo@kernel.org" <mingo@kernel.org>, "stefan@hello-penguin.com" <stefan@hello-penguin.com>, "rkrcmar@redhat.com" <rkrcmar@redhat.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Huangshaoyu <huangshaoyu@huawei.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:43854 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756294AbdIHSQc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 8 Sep 2017 14:16:32 -0400
+In-Reply-To: <1504770316-4327-2-git-send-email-xiexiuqi@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, cj.chengjian@huawei.com
 
-HI James,
+Hi Xie XiuQi,
 
-[...]
-> 
-> The code to signal memory-failure to user-space doesn't depend on the CPU's RAS-extensions.
-I roughly check your answer and agree with your general idea.
-late I will check it in detail.
+(Sorry a few versions of this went past before I caught up with it)
 
-I have a question, do you sure that if CPU does not support RAS-extensions kernel can still call memory-failure() to send signal to qemu?
+On 07/09/17 08:45, Xie XiuQi wrote:
+> With ARM v8.2 RAS Extension, SEA are usually triggered when memory errors
+> are consumed. In some cases, if the error address is in a clean page or a
+> read-only page, there is a chance to recover. Such as error occurs in a
+> instruction page, we can reread this page from disk instead of killing
+> process.
 
-After my checking the code, the general flow is RAS module detects the error or CPU consumes the hardware poison data, happen exception, then EL3 firmware records the address to APEI table and send
-notification to kernel. Kernel parses the APEI table to get address and call memory_failure() to identify the page to poison. That is to say, usually, after RAS detect the error, it call memory_failure(),
-otherwise, it does not know whether this address is poison.
-I am worried about one thing, if hardware does not has RAS, OS cannot know which address is poison, so it cannot identify the address , then the address that is delivered to Qemu(user space) may not right.
+> Because memory_failure() may sleep, we can not call it directly in SEA
+> exception context.
 
-As you said, kernel can also call memory_failure() even without RAS support. in this without RAS case, how it consider the address is poison and needs to send SIGBUS to QEMU?
+This is why we have memory_failure_queue() instead, it ... bother. That doesn't
+look nmi-safe. (I thought this ended with an llist, but clearly I was looking at
+the wrong thing).
 
-> 
-> If Qemu supports notifying the guest about RAS errors using CPER records, it should generate a HEST describing firmware first. It can then
-> choose the notification methods, some of which may require optional KVM APIs to support.
-> 
-> Seattle has a HEST, it doesn't support the CPU RAS-extensions. The kernel can notify user-space about memory_failure() on this machine. I
-> would expect Qemu to be able to receive signals and describe memory errors to a guest (1).
+It doesn't look like this is a problem for NOTIFY_SEA as it would only interrupt
+itself on the same CPU if the memory-failure code/data were corrupt. (which is
+not a case we can handle). We need to fix this before any of the asynchronous
+NMI-like RAS notifications for arm64 get merged.
 
-Usually we consider the address got from APEI table is poison. If so, I want to know, without RAS and APEI table, how it identify the address to hwpoison?
+(this is one problem, but I don't think its 'the' problem you are trying to
+solve with this series).
+
+
+> So we saved faulting physical address associated with
+> a process in the ghes handler and set __TIF_SEA_NOTIFY.
+
+A per-notification type TIF flag looks fishy, surely this would affect all
+NMI-like RAS notification methods?
+
+
+> When we return
+> from SEA exception context and get into do_notify_resume() before the
+> process running, we could check it and call memory_failure() to do
+> recovery. It's safe, because we are in process context.
+
+I'm afraid I don't think this is the best approach for fixing this.
+Its tied to the notification type, but the notification should be irrelevant
+once we call ghes_proc().
+It adds code poking around in CPER and ACPI/GHES to the arm64 arch code, all of
+this should be in the core common code.
+Most importantly: this means arm64 behaves differently with regard to handling
+memory errors to other architectures using ACPI. Two behaviours means twice the
+code, review and bugs...
+
+
+Delaying the handling until we re-enter user-space means faults that may affect
+the kernel aren't handled until much later. Just because the fault was
+synchronous and user-space was running doesn't mean only user space is affected.
+Some examples I've collected so far: the zero-page may be corrupt, this is
+mapped into every process and used by the kernel. Similarly corruption in the
+vdso affects all user-space. The fault may affect the page tables, this affects
+all users of the mm_struct.
+
+(I'm sure we agree that an synchronous-external-abort interrupting the kernel is
+fatal for the kernel, but the other way round isn't always true).
+
+Setting a TIF flag to handle the error before re-entering user-space is a
+problem as the scheduler may choose to pre-empt this task and run all the other
+tasks before this eventually gets handled.
+
+
+Assuming this is just a problem with memory_failure_queue(), two alternatives I
+can suggest are making memory_failure_queue() nmi-safe, or abstracting
+NOTIFY_NMI's estatus pool/cache to use for the arm64 NMI-like notifications too.
+
+If there is more to this, can you explain the problem you're trying to solve?
+(I suspect there may be an issue with multiple-signals being merged, or exactly
+when memory_failure_queue()'s work gets run.) Can you outline the sequence of
+events?
+
+
+You're picking a physical address out of 'ARM Processor Error Information
+Structure', these correspond with Cache, TLB, Bus or (the mysterious) 'micro
+architectural error'. I don't see anything checking the error type.
+Given the physical address, are you adding error-handling for cache-errors with
+this series?
+
+
+Thanks,
+
+James
+
