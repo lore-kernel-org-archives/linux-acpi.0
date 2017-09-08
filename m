@@ -1,78 +1,92 @@
-From: Mika Westerberg <mika.westerberg@intel.com>
-Subject: Re: [PATCH v9 17/24] ACPI: Document how to refer to LEDs from remote
- nodes
-Date: Fri, 8 Sep 2017 16:58:03 +0300
-Message-ID: <20170908135803.GD2477@lahna.fi.intel.com>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131822.31020-13-sakari.ailus@linux.intel.com>
- <20170908134320.GC2477@lahna.fi.intel.com>
- <20170908135407.qxustmjr3yqhp7y5@valkosipuli.retiisi.org.uk>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v11 4/6] target-arm: kvm64: detect guest RAS EXTENSION
+ feature
+Date: Fri, 8 Sep 2017 14:26:59 +0000
+Message-ID: <0184EA26B2509940AA629AE1405DD7F2015F5973@DGGEMA503-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170908135407.qxustmjr3yqhp7y5@valkosipuli.retiisi.org.uk>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([45.249.212.187]:11767 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755569AbdIHO1y (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2017 10:27:54 -0400
+Content-Language: zh-CN
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Maydell <peter.maydell@linaro.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>, Igor Mammedov <imammedo@redhat.com>, Zhaoshenglong <zhaoshenglong@huawei.com>, Paolo Bonzini <pbonzini@redhat.com>, QEMU Developers <qemu-devel@nongnu.org>, qemu-arm <qemu-arm@nongnu.org>, kvm-devel <kvm@vger.kernel.org>, "edk2-devel@lists.01.org" <edk2-devel@lists.01.org>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Ingo Molnar <mingo@kernel.org>, "bp@suse.de" <bp@suse.de>, Shiju Jose <shiju.jose@huawei.com>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, arm-mail-list <linux-arm-kernel@lists.infradead.org>k
 
-On Fri, Sep 08, 2017 at 04:54:07PM +0300, Sakari Ailus wrote:
-> On Fri, Sep 08, 2017 at 04:43:20PM +0300, Mika Westerberg wrote:
-> > On Fri, Sep 08, 2017 at 04:18:15PM +0300, Sakari Ailus wrote:
-> > > +	Device (LED)
-> > > +	{
-> > > +		Name ((_DSD), Package () {
-> > > +			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-> > > +			Package () {
-> > > +				Package () { "led0", "LED0" },
-> > > +				Package () { "led1", "LED1" },
-> > > +			}
-> > > +		})
-> > > +		Name ((LED0), Package () {
-> > > +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > > +			Package () {
-> > > +				Package () { "led", 0 },
-> > > +				Package () { "flash-max-microamp", 1000000 },
-> > > +				Package () { "led-max-microamp", 100000 },
-> > > +				Package () { "label", "led:salama" },
-> > > +			}
-> > > +		})
-> > > +		Name ((LED1), Package () {
-> > > +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > > +			Package () {
-> > > +				Package () { "led", 1 },
-> > > +				Package () { "led-max-microamp", 10000 },
-> > > +				Package () { "label", "led:huomiovalo" },
-> > > +			}
-> > > +		})
-> > > +	}
-> > > +
-> > > +	Device (SEN)
-> > > +	{
-> > > +		Name ((_DSD), Package () {
-> > > +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > > +			Package () {
-> > > +				Package () {
-> > > +					"flash-leds",
-> > > +					Package () { \\LED, 0, \\LED, 1 },
-> > > +				}
-> > > +			}
-> > > +		})
-> > > +	}
-> > 
-> > You should probably try to compile these examples first ;-)
-> 
-> Do you think I'm missing something else than s/\\\\/^/g ? :-)
-
-Well, you should write
-
-	Name (_DSD, Package () {
-
-instead of
-
-	Name ((_DSD), Package () {
-
-but I guess the compiler accepts the former. However, please fix it and
-make sure it compiles without issues so that we get good, working
-examples.
+SGkgUGV0ZXIsDQogIFNvcnJ5IGZvciBteSBsYXRlIHJlc3BvbnNlLg0KDQo+IA0KPiBPbiAxOCBB
+dWd1c3QgMjAxNyBhdCAxNToyMywgRG9uZ2ppdSBHZW5nIDxnZW5nZG9uZ2ppdUBodWF3ZWkuY29t
+PiB3cm90ZToNCj4gPiBjaGVjayBpZiBrdm0gc3VwcG9ydHMgZ3Vlc3QgUkFTIEVYVEVOU0lPTi4g
+aWYgc28sIHNldCBjb3JyZXNwb25kaW5nDQo+ID4gZmVhdHVyZSBiaXQgZm9yIHZjcHUuDQo+ID4N
+Cj4gPiBTaWduZWQtb2ZmLWJ5OiBEb25naml1IEdlbmcgPGdlbmdkb25naml1QGh1YXdlaS5jb20+
+DQo+ID4gLS0tDQo+ID4gIGxpbnV4LWhlYWRlcnMvbGludXgva3ZtLmggfCAxICsNCj4gPiAgdGFy
+Z2V0L2FybS9jcHUuaCAgICAgICAgICB8IDMgKysrDQo+ID4gIHRhcmdldC9hcm0va3ZtNjQuYyAg
+ICAgICAgfCA4ICsrKysrKysrDQo+ID4gIDMgZmlsZXMgY2hhbmdlZCwgMTIgaW5zZXJ0aW9ucygr
+KQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2xpbnV4LWhlYWRlcnMvbGludXgva3ZtLmggYi9saW51
+eC1oZWFkZXJzL2xpbnV4L2t2bS5oDQo+ID4gaW5kZXggNzk3MWE0Zi4uMmFhMTc2ZSAxMDA2NDQN
+Cj4gPiAtLS0gYS9saW51eC1oZWFkZXJzL2xpbnV4L2t2bS5oDQo+ID4gKysrIGIvbGludXgtaGVh
+ZGVycy9saW51eC9rdm0uaA0KPiA+IEBAIC05MjksNiArOTI5LDcgQEAgc3RydWN0IGt2bV9wcGNf
+cmVzaXplX2hwdCB7ICAjZGVmaW5lDQo+ID4gS1ZNX0NBUF9QUENfU01UX1BPU1NJQkxFIDE0NyAg
+I2RlZmluZSBLVk1fQ0FQX0hZUEVSVl9TWU5JQzIgMTQ4DQo+ID4gI2RlZmluZSBLVk1fQ0FQX0hZ
+UEVSVl9WUF9JTkRFWCAxNDkNCj4gPiArI2RlZmluZSBLVk1fQ0FQX0FSTV9SQVNfRVhURU5TSU9O
+IDE1MA0KPiA+DQo+ID4gICNpZmRlZiBLVk1fQ0FQX0lSUV9ST1VUSU5HDQo+ID4NCj4gDQo+IEhp
+LiBDaGFuZ2VzIHRvIGxpbnV4LWhlYWRlcnMgbmVlZCB0byBiZSBkb25lIGFzIGEgcGF0Y2ggb2Yg
+dGhlaXIgb3duIGNyZWF0ZWQgdXNpbmcgc2NyaXB0cy91cGRhdGUtbGludXgtaGVhZGVycy5zaCBy
+dW4gYWdhaW5zdCBhIG1haW5saW5lDQo+IGtlcm5lbCB0cmVlIChhbmQgd2l0aCBhIGNvbW1pdCBt
+ZXNzYWdlIHRoYXQgcXVvdGVzIHRoZSBrZXJuZWwgY29tbWl0IGhhc2ggdXNlZCkuIFRoaXMgZW5z
+dXJlcyB0aGF0IHdlIGhhdmUgYSBjb25zaXN0ZW50IHNldCBvZiBoZWFkZXJzDQo+IHRoYXQgZG9u
+J3QgZGl2ZXJnZSBmcm9tIHRoZSBrZXJuZWwgY29weS4NClN1cmUsIEkgd2lsbCwgdGhhbmtzIGEg
+bG90IGZvciB5b3VyIHJlbWluZGVyLg0KDQo+IA0KPiA+IGRpZmYgLS1naXQgYS90YXJnZXQvYXJt
+L2NwdS5oIGIvdGFyZ2V0L2FybS9jcHUuaCBpbmRleA0KPiA+IGIzOWQ2NGEuLjZiMDk2MWIgMTAw
+NjQ0DQo+ID4gLS0tIGEvdGFyZ2V0L2FybS9jcHUuaA0KPiA+ICsrKyBiL3RhcmdldC9hcm0vY3B1
+LmgNCj4gPiBAQCAtNjExLDYgKzYxMSw4IEBAIHN0cnVjdCBBUk1DUFUgew0KPiA+DQo+ID4gICAg
+ICAvKiBDUFUgaGFzIG1lbW9yeSBwcm90ZWN0aW9uIHVuaXQgKi8NCj4gPiAgICAgIGJvb2wgaGFz
+X21wdTsNCj4gPiArICAgIC8qIENQVSBoYXMgcmFzIGV4dGVuc2lvbiB1bml0ICovDQo+ID4gKyAg
+ICBib29sIGhhc19yYXNfZXh0ZW5zaW9uOw0KPiA+ICAgICAgLyogUE1TQXY3IE1QVSBudW1iZXIg
+b2Ygc3VwcG9ydGVkIHJlZ2lvbnMgKi8NCj4gPiAgICAgIHVpbnQzMl90IHBtc2F2N19kcmVnaW9u
+Ow0KPiA+DQo+ID4gQEAgLTEyMjksNiArMTIzMSw3IEBAIGVudW0gYXJtX2ZlYXR1cmVzIHsNCj4g
+PiAgICAgIEFSTV9GRUFUVVJFX1RIVU1CX0RTUCwgLyogRFNQIGluc25zIHN1cHBvcnRlZCBpbiB0
+aGUgVGh1bWIgZW5jb2RpbmdzICovDQo+ID4gICAgICBBUk1fRkVBVFVSRV9QTVUsIC8qIGhhcyBQ
+TVUgc3VwcG9ydCAqLw0KPiA+ICAgICAgQVJNX0ZFQVRVUkVfVkJBUiwgLyogaGFzIGNwMTUgVkJB
+UiAqLw0KPiA+ICsgICAgQVJNX0ZFQVRVUkVfUkFTX0VYVEVOU0lPTiwgLypoYXMgUkFTIGV4dGVu
+c2lvbiBzdXBwb3J0ICovDQo+IA0KPiBNaXNzaW5nIHNwYWNlIGFmdGVyICcvKicgPw0KWWVzLCB0
+aGFua3MgZm9yIHRoZSBwb2ludGluZyBvdXQuDQoNCj4gDQo+ID4gIH07DQo+ID4NCj4gPiAgc3Rh
+dGljIGlubGluZSBpbnQgYXJtX2ZlYXR1cmUoQ1BVQVJNU3RhdGUgKmVudiwgaW50IGZlYXR1cmUp
+IGRpZmYNCj4gPiAtLWdpdCBhL3RhcmdldC9hcm0va3ZtNjQuYyBiL3RhcmdldC9hcm0va3ZtNjQu
+YyBpbmRleCBhMTZhYmM4Li4wNzgxMzY3DQo+ID4gMTAwNjQ0DQo+ID4gLS0tIGEvdGFyZ2V0L2Fy
+bS9rdm02NC5jDQo+ID4gKysrIGIvdGFyZ2V0L2FybS9rdm02NC5jDQo+ID4gQEAgLTUxOCw2ICs1
+MTgsMTQgQEAgaW50IGt2bV9hcmNoX2luaXRfdmNwdShDUFVTdGF0ZSAqY3MpDQo+ID4gICAgICAg
+ICAgdW5zZXRfZmVhdHVyZSgmZW52LT5mZWF0dXJlcywgQVJNX0ZFQVRVUkVfUE1VKTsNCj4gPiAg
+ICAgIH0NCj4gPg0KPiA+ICsgICAgaWYgKGt2bV9jaGVja19leHRlbnNpb24oY3MtPmt2bV9zdGF0
+ZSwgS1ZNX0NBUF9BUk1fUkFTX0VYVEVOU0lPTikpIHsNCj4gPiArICAgICAgICBjcHUtPmhhc19y
+YXNfZXh0ZW5zaW9uID0gdHJ1ZTsNCj4gPiArICAgICAgICBzZXRfZmVhdHVyZSgmZW52LT5mZWF0
+dXJlcywgQVJNX0ZFQVRVUkVfUkFTX0VYVEVOU0lPTik7DQo+ID4gKyAgICB9IGVsc2Ugew0KPiA+
+ICsgICAgICAgIGNwdS0+aGFzX3Jhc19leHRlbnNpb24gPSBmYWxzZTsNCj4gPiArICAgICAgICB1
+bnNldF9mZWF0dXJlKCZlbnYtPmZlYXR1cmVzLCBBUk1fRkVBVFVSRV9SQVNfRVhURU5TSU9OKTsN
+Cj4gPiArICAgIH0NCj4gPiArDQo+IA0KPiBTaG91bGRuJ3Qgd2UgbmVlZCB0byBhbHNvIHRlbGwg
+dGhlIGtlcm5lbCB0aGF0IHdlIGFjdHVhbGx5IHdhbnQgaXQgdG8gZXhwb3NlIFJBUyB0byB0aGUg
+Z3Vlc3Q/IENvbXBhcmUgdGhlIFBNVSBjb2RlIGluIHRoaXMgZnVuY3Rpb24sDQo+IHdoZXJlIHdl
+IHNldCBhIGt2bV9pbml0X2ZlYXR1cmVzIGJpdCB0byBkbyB0aGlzLg0KPiAoVGhpcyBzdWdnZXN0
+cyB0aGF0IHlvdXIgQUJJIGZvciB0aGUga2VybmVsIHBhcnQgb2YgdGhpcyBmZWF0dXJlIG1heSBu
+b3QgYmUgY29ycmVjdD8pDQoNCkluIHRoZSBQTVUgY29kZSwgaXQgaW5kZWVkIHNldHMgYSBrdm1f
+aW5pdF9mZWF0dXJlcyBiaXQuIEhlcmUgQVJNIEphbWVzIGhhcyBhIGNvbmNlcm4gdGhhdCB3ZSBh
+cmUgZGVwZW5kIG9uIHRoZSBob3N0IENQVSBSQVMgZXh0ZW5zaW9uLA0KSGUgbWVhbnMgdGhhdCBp
+ZiB1c2Vyc3BhY2UgcmVjZWl2ZXMgdGhlIFNJR0JVUyBkZWxpdmVyZWQgYnkgaG9zdCBtZW1vcnlf
+ZmFpbHVyZSgpLCB1c2VyIHNwYWNlIHNob3VsZCByZWNvcmQgdGhlIENQRVIgZm9yIGd1ZXN0DQph
+bmQgaGFuZGxpbmcgdGhlIGVycm9yIHJlZ2FyZGxlc3Mgd2hldGhlciBob3N0IENQVSBzdXBwb3J0
+cyBSQVMgZXh0ZW5zaW9uLiBCdXQgSSB0aGluayBpZiB1c2VyIHNwYWNlIHJlY2VpdmVzIHRoZSBT
+SUdCVVMgc2lnbmFsLCB0aGF0IG1lYW5zDQpob3N0IENQVSBSQVMgbW9kdWxlIGRldGVjdHMgdGhl
+IGVycm9yIG9yIENQVSBjb25zdW1lcyB0aGUgcG9pc29uIGRhdGEsIHRodXMgd2Ugc2hvdWxkIGNo
+ZWNrIHdoZXRoZXIgcGh5c2ljYWwgQ1BVIHN1cHBvcnQgUkFTIGV4dGVuc2lvbi4gDQoNCj4gDQo+
+IFlvdSBzaG91bGQgYWxzbyBub3QgYmUgY2FsbGluZyBzZXRfZmVhdHVyZSgpIGhlcmUgLS0gaWYg
+dGhlIENQVSBmZWF0dXJlcyBiaXQgZG9lc24ndCBzYXkgInRoaXMgQ1BVIHNob3VsZCBoYXZlIHRo
+ZSBSQVMgZXh0ZW5zaW9ucyIgd2UNCj4gc2hvdWxkbid0IGNyZWF0ZSBhIENQVSB3aXRoIHRoZW0u
+IEluc3RlYWQgeW91IHNob3VsZCBzZXQgaXQgaW4ga3ZtX2FybV9nZXRfaG9zdF9jcHVfZmVhdHVy
+ZXMoKSAoYWdhaW4sIGNvbXBhcmUgdGhlIFBNVSBjb2RlKS4NCg0KVW5kZXJzdGFuZCwgSSB3aWxs
+IGxvb3AgeW91IHRvIGFub3RoZXIgbWFpbCB0aHJlYWQgdG8gY29uc3VsdCB3aXRoIHlvdSB0aGF0
+IHdoZXRoZXIgdXNlcnNwYWNlIHNob3VsZCBkZXRlY3QgQ1BVIFJBUyBleHRlbnNpb24uDQpJZiBh
+bGwgYWdyZWUgdG8gZGV0ZWN0IENQVSBSQVMgZmVhdHVyZSwgSSB3aWxsIGZpeCB0aGUgaXNzdWUg
+dGhhdCB5b3UgcG9pbnRpbmcgb3V0Lg0KDQo+IA0KPiB0aGFua3MNCj4gLS0gUE1NDQo=
