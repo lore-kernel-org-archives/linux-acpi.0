@@ -1,94 +1,103 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v6 3/7] acpi: apei: remove the unused code
-Date: Fri, 08 Sep 2017 19:17:30 +0100
-Message-ID: <59B2DEBA.6030608@arm.com>
-References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
- <1503916701-13516-4-git-send-email-gengdongjiu@huawei.com>
- <59A84C51.3000506@arm.com> <45c69f99-61dd-e847-368b-20acb61b4d50@huawei.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v9 23/24] dt: bindings: smiapp: Document lens-focus and
+ flash properties
+Date: Fri, 8 Sep 2017 23:45:44 +0200
+Message-ID: <20170908214544.GB27428@amd>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-19-sakari.ailus@linux.intel.com>
+ <20170908133652.GR18365@amd>
+ <20170908134226.m5ts637dej7oa4jw@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <45c69f99-61dd-e847-368b-20acb61b4d50@huawei.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: gengdongjiu <gengdongjiu@huawei.com>
-Cc: wangkefeng.wang@huawei.com, kvm@vger.kernel.org, david.daney@cavium.com, catalin.marinas@arm.com, tbaicar@codeaurora.org, will.deacon@arm.com, linuxarm@huawei.com, robert.moore@intel.com, lv.zheng@intel.com, zjzhang@codeaurora.org, mingo@kernel.org, stefan@hello-penguin.com, linux@armlinux.org.uk, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, huangshaoyu@huawei.com, huangdaode@hisilicon.com, bp@suse.de, Dave.Martin@arm.com, lenb@kernel.org, wuquanming@huawei.com, marc.zyngier@arm.com, john.garry@huawei.com, kristina.martsenko@arm.com, cov@codeaurora.org, jonathan.cameron@huawei.com, zhengqiang10@huawei.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, ard.biesheuvel@linaro.org, linux-kernel@vger.kernel.org, wangzhou1@hisilicon.com, mst@redhat.com, shiju.jose@huawei.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="0ntfKIWw70PvrIHh"
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170908134226.m5ts637dej7oa4jw@valkosipuli.retiisi.org.uk>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, sre@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi gengdongjiu,
 
-On 04/09/17 12:43, gengdongjiu wrote:
-> On 2017/9/1 1:50, James Morse wrote:
->> On 28/08/17 11:38, Dongjiu Geng wrote:
->>> In current code logic, the two functions ghes_sea_add() and
->>> ghes_sea_remove() are only called when CONFIG_ACPI_APEI_SEA
->>> is defined. If not, it will return errors in the ghes_probe()
->>> and not contiue. Hence, remove the unnecessary handling when
->>> CONFIG_ACPI_APEI_SEI is not defined.
->>
->> This doesn't match what the patch does. I get this feeling this is needed for
->> some future patch you haven't included.
-> 
-> James, let check the code, when the ghes_probe, if the CONFIG_ACPI_APEI_SEA is not defined.
-> it will return -ENOTSUPP and goto error, and the ghes_sea_add has no chance to execute.
-> similar, if the probe is failed, it should not have chance to execute ghes_sea_remove.
+--0ntfKIWw70PvrIHh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It's the 'unnecessary handling when CONFIG_ACPI_APEI_SEI' in the commit message
-that confuses me: this patch doesn't reference that Kconfig symbol. I guess that
-sentence needs removing for this v6?
+On Fri 2017-09-08 16:42:26, Sakari Ailus wrote:
+> Hi Pavel,
+>=20
+> On Fri, Sep 08, 2017 at 03:36:52PM +0200, Pavel Machek wrote:
+> > Hi!
+> >=20
+> > > Document optional lens-focus and flash properties for the smiapp driv=
+er.
+> > >=20
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > ---
+> > >  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
+> > >  1 file changed, 2 insertions(+)
+> > >=20
+> > > diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.t=
+xt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > > index 855e1faf73e2..a052969365d9 100644
+> > > --- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > > +++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > > @@ -27,6 +27,8 @@ Optional properties
+> > >  - nokia,nvm-size: The size of the NVM, in bytes. If the size is not =
+given,
+> > >    the NVM contents will not be read.
+> > >  - reset-gpios: XSHUTDOWN GPIO
+> > > +- flash-leds: One or more phandles to refer to flash LEDs
+> > > +- lens-focus: Phandle for lens focus
+> >=20
+> > Should we simply reference the generic documentation here? If it needs
+> > changing, it will be easier changing single place.
+>=20
+> Good question.
+>=20
+> Ideally the properties at least would never change; we do have a common
+> parser for the properties which is part of the patchset so in theory it
+> would be possible to change the documentation in a backward-compatible wa=
+y.
+>=20
+> I added these properties as well as all the other properties supported by
+> the sensor driver are documented here. That has been the practice AFAIU,
+> albeit omissions do happen occasionally.
+>=20
+> The issue I see with omitting the documentation here is that the user
+> otherwise won't know whether a driver uses a given property or not: it
+> shouldn't be necessary to read driver code to write DT source.
 
-Re-reading without that part of the commit-message:
+I see... OTOH documentation in central place _is_ a bit more verbose:
 
-You're relying on the compiler's dead-code elimination to spot unused static
-functions and silently drop them. Great!
-(there is the small risk that gcc 3.2[0] can't do this, x86 still has to support
-this gcc version)
++- flash-leds: An array of phandles, each referring to a flash LED, a sub-n=
+ode
++  of the LED driver device node.
 
-As this is just clean-up patch can you break it out of this series, it isn't
-needed to add support for SEI.
+What about:
 
-(This series adds support for what should be an APEI notification, but the only
-code that touches APEI removes some code from a different notification method.)
+flash-leds, lens-focus: see <reference to central place>
 
-
->> Setting NOTIFY_SEI as the GHES entry's notification type means the OS should
->> check the GHES->ErrorStatusAddress for CPER records when it receives an
->> SError-Interrupt, as it may be a notification of an error from this error source.
-
-> previously I added the NOTIFY_SEI support,
-
-(Yes, I saw that in v5 and expected this series to add some APEI support code )
-
-
-> but consider the error address in CPER is not accurate and calling memory_failure() may not make sense.
-> so I remove it.
-
-'not accurate'... this is going to be a problem, but lets keep that discussion
-on the cover-letter.
-
-
->> If you aren't handling the notification, why is this is in the HEST at all?
->> (and if its not: its not firmware-first)
-
-> For the SEI notification, may be we can parse and handle the CPER record other than the Error physical address
-
-Sure, but I only see this cleanup patch in this series, where does APEI learn
-about NOTIFY_SEI? As this is nothing will ever touch those CPER records, if
-you're using GHESv2 firmware will be prevented from delivering subsequent
-notifications.
-
+?
 
 Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-James
+--0ntfKIWw70PvrIHh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-[0]
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/admin-guide/README.rst#n251
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlmzD4gACgkQMOfwapXb+vJg3gCdFHDoYN/4wdVf9lsg2ODFOle7
+EhgAmwevFhan9WjuQkPNYZxXby0dOGP1
+=AHq7
+-----END PGP SIGNATURE-----
+
+--0ntfKIWw70PvrIHh--
