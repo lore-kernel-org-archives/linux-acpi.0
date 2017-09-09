@@ -1,55 +1,42 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V3] acpi: apei: clear error status before acknowledging
- the error
-Date: Wed, 13 Sep 2017 08:40:43 -0600
-Message-ID: <47ed1861-1bdb-7caf-3d6b-5304235c7e10@codeaurora.org>
-References: <1503939221-27732-1-git-send-email-tbaicar@codeaurora.org>
- <20170829081610.moq2dtxzz4vrbmo5@pd.tnic>
+From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH v9 24/24] arm: dts: omap3: N9/N950: Add flash references
+ to the camera
+Date: Sun, 10 Sep 2017 01:13:05 +0300
+Message-ID: <20170909221305.lahowwnzlqr3d7vp@valkosipuli.retiisi.org.uk>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-20-sakari.ailus@linux.intel.com>
+ <20170909183240.GA15397@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:47990 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751081AbdIMOkq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Sep 2017 10:40:46 -0400
-In-Reply-To: <20170829081610.moq2dtxzz4vrbmo5@pd.tnic>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170909183240.GA15397@amd>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: Borislav Petkov <bp@alien8.de>, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 8/29/2017 2:16 AM, Borislav Petkov wrote:
-> On Mon, Aug 28, 2017 at 10:53:41AM -0600, Tyler Baicar wrote:
->> Currently we acknowledge errors before clearing the error status.
->> This could cause a new error to be populated by firmware in-between
->> the error acknowledgment and the error status clearing which would
->> cause the second error's status to be cleared without being handled.
->> So, clear the error status before acknowledging the errors.
->>
->> Also, make sure to acknowledge the error if the error status read
->> fails.
->>
->> V3: Seperate check for -ENOENT return value
->>
->> V2: Only send error ack if there was an error populated
->>      Remove curly braces that are no longer needed
->>
->> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
->> ---
->>   drivers/acpi/apei/ghes.c | 16 +++++++++-------
->>   1 file changed, 9 insertions(+), 7 deletions(-)
-> Reviewed-by: Borislav Petkov <bp@suse.de>
-Hello Rafael,
+Hi Pavel,
 
-Were you able to apply this patch?
+On Sat, Sep 09, 2017 at 08:32:40PM +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > Add flash and indicator LED phandles to the sensor node.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> 
+> I'm adding similar support to et8ek8 and wonder.. why don't you also
+> add support for autofocus? Driver not yet available?
 
-Thanks,
-Tyler
+I don't think the VCM driver ever got merged. I'd make the changes at the
+same time with that.
 
 -- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
