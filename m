@@ -1,97 +1,107 @@
-From: =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss@gmail.com>
-Subject: Re: [RFC 1/3] serdev: Add ACPI support
-Date: Sat, 9 Sep 2017 15:46:58 +0200
-Message-ID: <55c85c4d-f674-6f00-f112-76d1a70e8e0a@gmail.com>
-References: <1504786214-1866-1-git-send-email-frederic.danis.oss@gmail.com>
- <1504786214-1866-2-git-send-email-frederic.danis.oss@gmail.com>
- <1BC8D5B0-EC18-4F20-9CBC-D73CB1765683@holtmann.org>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v9 03/24] v4l: async: Use more intuitive names for internal functions
+Date: Sat, 09 Sep 2017 18:34:25 +0300
+Message-ID: <3924992.Y6xJjAbaat@avalon>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com> <20170908131235.30294-4-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35487 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757429AbdIINrG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Sep 2017 09:47:06 -0400
-In-Reply-To: <1BC8D5B0-EC18-4F20-9CBC-D73CB1765683@holtmann.org>
-Content-Language: en-US
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58459 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753824AbdIIPe0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Sep 2017 11:34:26 -0400
+In-Reply-To: <20170908131235.30294-4-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marcel Holtmann <marcel@holtmann.org>
-Cc: robh@kernel.org, sre@kernel.org, loic.poulain@gmail.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 
-Hi Marcel,
+Hi Sakari,
 
-Le 07/09/2017 à 19:21, Marcel Holtmann a écrit :
-<snip>
->> +#ifdef CONFIG_ACPI
->> +static acpi_status acpi_serdev_register_device(struct serdev_controller *ctrl,
->> +					    struct acpi_device *adev)
->> +{
->> +	struct serdev_device *serdev = NULL;
->> +	int err;
->> +
->> +	if (acpi_bus_get_status(adev) || !adev->status.present ||
->> +	    acpi_device_enumerated(adev))
->> +		return AE_OK;
->> +
->> +	serdev = serdev_device_alloc(ctrl);
->> +	if (!serdev) {
->> +		dev_err(&ctrl->dev, "failed to allocate Serial device for %s\n",
->> +			dev_name(&adev->dev));
->> +		return AE_NO_MEMORY;
->> +	}
->> +
->> +	ACPI_COMPANION_SET(&serdev->dev, adev);
->> +	acpi_device_set_enumerated(adev);
->> +
->> +	err = serdev_device_add(serdev);
->> +	if (err) {
->> +		dev_err(&serdev->dev,
->> +			"failure adding ACPI device. status %d\n", err);
->> +		serdev_device_put(serdev);
->> +	}
->> +
->> +	return AE_OK;
->> +}
->> +
->> +static acpi_status acpi_serdev_add_device(acpi_handle handle, u32 level,
->> +				       void *data, void **return_value)
->> +{
->> +	struct serdev_controller *ctrl = data;
->> +	struct acpi_device *adev;
->> +
->> +	if (acpi_bus_get_device(handle, &adev))
->> +		return AE_OK;
->> +
->> +	return acpi_serdev_register_device(ctrl, adev);
->> +}
->> +
->> +static int acpi_serdev_register_devices(struct serdev_controller *ctrl)
->> +{
->> +	acpi_status status;
->> +	acpi_handle handle;
->> +
->> +	handle = ACPI_HANDLE(ctrl->dev.parent);
->> +	if (!handle)
->> +		return -ENODEV;
->> +
->> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
->> +				     acpi_serdev_add_device, NULL, ctrl, NULL);
->> +	if (ACPI_FAILURE(status)) {
->> +		dev_warn(&ctrl->dev, "failed to enumerate Serial slaves\n");
->> +		return -ENODEV;
->> +	}
->> +
->> +	return 0;
->> +}
-> how are we ensuring that we only take UART devices into account here?
+Thank you for the patch.
 
-acpi_serdev_add_device() callback will only take into account entries 
-without enumerated flag set.
-This flags is set for all entries during ACPI scan, except for SPI and 
-I2C serial devices, and for UART with 2nd patch in the series.
+On Friday, 8 September 2017 16:11:54 EEST Sakari Ailus wrote:
+> Rename internal functions to make the names of the functions better
+> describe what they do.
+> 
+> 	Old name			New name
+> 	v4l2_async_test_notify	v4l2_async_match_notify
+> 	v4l2_async_belongs	v4l2_async_find_match
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
+Looks good to me.
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Kerneldoc for the two functions would of course have been even better :-) That 
+can be added in a separate patch.
+
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 19 ++++++++++---------
+>  1 file changed, 10 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> b/drivers/media/v4l2-core/v4l2-async.c index e109d9da4653..831f185ecd47
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -60,8 +60,8 @@ static LIST_HEAD(subdev_list);
+>  static LIST_HEAD(notifier_list);
+>  static DEFINE_MUTEX(list_lock);
+> 
+> -static struct v4l2_async_subdev *v4l2_async_belongs(struct
+> v4l2_async_notifier *notifier, -						    struct v4l2_subdev *sd)
+> +static struct v4l2_async_subdev *v4l2_async_find_match(
+> +	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
+>  {
+>  	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
+>  	struct v4l2_async_subdev *asd;
+> @@ -95,9 +95,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct
+> v4l2_async_notifier * return NULL;
+>  }
+> 
+> -static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+> -				  struct v4l2_subdev *sd,
+> -				  struct v4l2_async_subdev *asd)
+> +static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+> +				   struct v4l2_subdev *sd,
+> +				   struct v4l2_async_subdev *asd)
+>  {
+>  	int ret;
+> 
+> @@ -175,11 +175,11 @@ int v4l2_async_notifier_register(struct v4l2_device
+> *v4l2_dev, list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+>  		int ret;
+> 
+> -		asd = v4l2_async_belongs(notifier, sd);
+> +		asd = v4l2_async_find_match(notifier, sd);
+>  		if (!asd)
+>  			continue;
+> 
+> -		ret = v4l2_async_test_notify(notifier, sd, asd);
+> +		ret = v4l2_async_match_notify(notifier, sd, asd);
+>  		if (ret < 0) {
+>  			mutex_unlock(&list_lock);
+>  			return ret;
+> @@ -236,9 +236,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  	INIT_LIST_HEAD(&sd->async_list);
+> 
+>  	list_for_each_entry(notifier, &notifier_list, list) {
+> -		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
+> +		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
+> +								      sd);
+>  		if (asd) {
+> -			int ret = v4l2_async_test_notify(notifier, sd, asd);
+> +			int ret = v4l2_async_match_notify(notifier, sd, asd);
+>  			mutex_unlock(&list_lock);
+>  			return ret;
+>  		}
+
+
+-- 
 Regards,
 
-Fred
+Laurent Pinchart
+
