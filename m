@@ -1,47 +1,51 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v11 6/6] target-arm: kvm64: Handle SError interrupt for
- the guest OS
-Date: Wed, 13 Sep 2017 19:51:56 +0800
-Message-ID: <c105c670-6aec-32cd-d32b-30642819323e@huawei.com>
-References: <0184EA26B2509940AA629AE1405DD7F2015FE17F@DGGEMA503-MBX.china.huawei.com>
- <CAFEAcA8J5wZ23kQypzcbUScUResjWnN6rDG0b0idD1rv7F5Fsw@mail.gmail.com>
- <5552cf68-b998-686b-8e7e-710399c2b014@huawei.com>
- <CAFEAcA_zO_-kDYb0MkW=p5oY6tQPk4PpCqZoG0_01pn=sa3upw@mail.gmail.com>
+From: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [RFC 2/3] ACPI / scan: Fix enumeration for special UART devices
+Date: Sat, 9 Sep 2017 19:24:06 +0200
+Message-ID: <20170909172406.GA32618@wunner.de>
+References: <1504786214-1866-1-git-send-email-frederic.danis.oss@gmail.com>
+ <1504786214-1866-3-git-send-email-frederic.danis.oss@gmail.com>
+ <2C6832A9-2BA5-42CD-A398-CD7BA5AE7C8E@holtmann.org>
+ <ce2e3693-437b-1e51-61ad-3873a9e0f0f4@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAFEAcA_zO_-kDYb0MkW=p5oY6tQPk4PpCqZoG0_01pn=sa3upw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Maydell <peter.maydell@linaro.org>
-Cc: James Morse <james.morse@arm.com>, "Michael S. Tsirkin" <mst@redhat.com>, Igor Mammedov <imammedo@redhat.com>, Zhaoshenglong <zhaoshenglong@huawei.com>, Paolo Bonzini <pbonzini@redhat.com>, QEMU Developers <qemu-devel@nongnu.org>, qemu-arm <qemu-arm@nongnu.org>, kvm-devel <kvm@vger.kernel.org>, "edk2-devel@lists.01.org" <edk2-devel@lists.01.org>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Ingo Molnar <mingo@kernel.org>, "bp@suse.de" <bp@suse.de>, Shiju Jose <shiju.jose@huawei.com>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, arm-mail-list <linux-arm-kernel@lists.infradead.org>kvm
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <ce2e3693-437b-1e51-61ad-3873a9e0f0f4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Sat, Sep 09, 2017 at 03:46:07PM +0200, Frédéric Danis wrote:
+> Le 07/09/2017 à 19:25, Marcel Holtmann a écrit :
+> > >--- a/include/acpi/acpi_bus.h
+> > >+++ b/include/acpi/acpi_bus.h
+> > >@@ -211,7 +211,7 @@ struct acpi_device_flags {
+> > >	u32 of_compatible_ok:1;
+> > >	u32 coherent_dma:1;
+> > >	u32 cca_seen:1;
+> > >-	u32 spi_i2c_slave:1;
+> > >+	u32 serial_slave:1;
+> > >	u32 reserved:19;
+> > >};
+> > I am not an ACPI expert, but wouldn't we better have a serial_bus_slave
+> > here. And the serial_bus_slave can be either UART or I2C? Or have a
+> > pretty good commit message explaining why this is serial_slave only.
+> 
+> I will rename it.
+> serial_bus_slave can be either SPI, I2C or UART
+> (cf. http://elixir.free-electrons.com/linux/latest/source/include/acpi/acrestyp.h#L446).
 
+Another idea would be to describe the *effect*, rather than the devices
+affected, i.e. something like:
 
-On 2017/9/13 18:52, Peter Maydell wrote:
-> This question seems to be not really related to the review
-> comment that it is responding to.
-> 
-> (1) If the host does not support notifying us about
-> errors, then there is clearly nothing to do in this
-> code, because we will never get a notification.
-> 
-> (2) If the host does support notifying us about errors,
-> but we choose not to expose RAS to the guest, then
-> there's not much to do either. We probably just want
-> to take whatever the default behaviour is for any
-> application when it touches memory that's bad.
-> We definitely don't want to tell the guest anything.
-> 
-> (3) If the host supports notification, and we choose
-> to expose RAS to the guest, then we need to do
-> whatever we have to do to notify the guest.
-> 
-> If we're in this signal handler and also
-> arm_feature(env, ARM_FEATURE_RAS) is false then that
-> is case (2), and my point is that doing anything with
-> the guest 'syndrome' value looks like the wrong thing.
+-	u32 spi_i2c_slave:1;
++	u32 parent_enumerated:1;
 
-Peter,
-  your explanation is clear. OK, understand, thanks.
+such that it could be extended to slaves on a non-serial bus in the
+future.
+
+Thanks,
+
+Lukas
