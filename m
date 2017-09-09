@@ -1,96 +1,258 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [RFC 1/3] serdev: Add ACPI support
-Date: Sat, 9 Sep 2017 20:50:44 +0200
-Message-ID: <AC100BF1-B6E9-47ED-95A0-7E7E75C0DE89@holtmann.org>
-References: <1504786214-1866-1-git-send-email-frederic.danis.oss@gmail.com>
- <1504786214-1866-2-git-send-email-frederic.danis.oss@gmail.com>
- <1BC8D5B0-EC18-4F20-9CBC-D73CB1765683@holtmann.org>
- <55c85c4d-f674-6f00-f112-76d1a70e8e0a@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from coyote.holtmann.net ([212.227.132.17]:58131 "EHLO
-        mail.holtmann.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750753AbdIISuq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Sep 2017 14:50:46 -0400
-In-Reply-To: <55c85c4d-f674-6f00-f112-76d1a70e8e0a@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jacek Anaszewski <jacek.anaszewski-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v9 18/24] as3645a: Switch to fwnode property API
+Date: Sat, 9 Sep 2017 21:06:41 +0200
+Message-ID: <f6c79aff-dcc7-ee7d-e224-1f9bc6af1fee@gmail.com>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-14-sakari.ailus@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170908131822.31020-14-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?utf-8?Q?Fr=C3=A9d=C3=A9ric_Danis?= <frederic.danis.oss@gmail.com>
-Cc: robh@kernel.org, sre@kernel.org, loic.poulain@gmail.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Fred,
+Hi Sakari,
 
->>> +#ifdef CONFIG_ACPI
->>> +static acpi_status acpi_serdev_register_device(struct serdev_controller *ctrl,
->>> +					    struct acpi_device *adev)
->>> +{
->>> +	struct serdev_device *serdev = NULL;
->>> +	int err;
->>> +
->>> +	if (acpi_bus_get_status(adev) || !adev->status.present ||
->>> +	    acpi_device_enumerated(adev))
->>> +		return AE_OK;
->>> +
->>> +	serdev = serdev_device_alloc(ctrl);
->>> +	if (!serdev) {
->>> +		dev_err(&ctrl->dev, "failed to allocate Serial device for %s\n",
->>> +			dev_name(&adev->dev));
->>> +		return AE_NO_MEMORY;
->>> +	}
->>> +
->>> +	ACPI_COMPANION_SET(&serdev->dev, adev);
->>> +	acpi_device_set_enumerated(adev);
->>> +
->>> +	err = serdev_device_add(serdev);
->>> +	if (err) {
->>> +		dev_err(&serdev->dev,
->>> +			"failure adding ACPI device. status %d\n", err);
->>> +		serdev_device_put(serdev);
->>> +	}
->>> +
->>> +	return AE_OK;
->>> +}
->>> +
->>> +static acpi_status acpi_serdev_add_device(acpi_handle handle, u32 level,
->>> +				       void *data, void **return_value)
->>> +{
->>> +	struct serdev_controller *ctrl = data;
->>> +	struct acpi_device *adev;
->>> +
->>> +	if (acpi_bus_get_device(handle, &adev))
->>> +		return AE_OK;
->>> +
->>> +	return acpi_serdev_register_device(ctrl, adev);
->>> +}
->>> +
->>> +static int acpi_serdev_register_devices(struct serdev_controller *ctrl)
->>> +{
->>> +	acpi_status status;
->>> +	acpi_handle handle;
->>> +
->>> +	handle = ACPI_HANDLE(ctrl->dev.parent);
->>> +	if (!handle)
->>> +		return -ENODEV;
->>> +
->>> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
->>> +				     acpi_serdev_add_device, NULL, ctrl, NULL);
->>> +	if (ACPI_FAILURE(status)) {
->>> +		dev_warn(&ctrl->dev, "failed to enumerate Serial slaves\n");
->>> +		return -ENODEV;
->>> +	}
->>> +
->>> +	return 0;
->>> +}
->> how are we ensuring that we only take UART devices into account here?
+I've come across this patch only by a chance. I believe that merging
+leds-as3645a.c patches via media tree is not going to be a persistent
+pattern. At least we haven't agreed on that, and in any case I should
+have a possibility to give my ack for this patch.
+
+Would you mind also adding linux-leds list on cc when touching areas
+related to LED/flash devices?
+
+Thanks in advance.
+
+Best regards,
+Jacek Anaszewski
+
+On 09/08/2017 03:18 PM, Sakari Ailus wrote:
+> Switch the as3645a from OF to the fwnode property API. Also add ACPI
+> support.
 > 
-> acpi_serdev_add_device() callback will only take into account entries without enumerated flag set.
-> This flags is set for all entries during ACPI scan, except for SPI and I2C serial devices, and for UART with 2nd patch in the series.
-
-sounds good to me. Can you respin this series with the other comments addressed and maybe add some extra comments in the code or the commit message to make this clear.
-
-Regards
-
-Marcel
-
+> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> ---
+>  drivers/leds/leds-as3645a.c | 81 +++++++++++++++++++++++++--------------------
+>  1 file changed, 46 insertions(+), 35 deletions(-)
+> 
+> diff --git a/drivers/leds/leds-as3645a.c b/drivers/leds/leds-as3645a.c
+> index 605e0c64e974..2e73c3f818f1 100644
+> --- a/drivers/leds/leds-as3645a.c
+> +++ b/drivers/leds/leds-as3645a.c
+> @@ -25,7 +25,7 @@
+>  #include <linux/leds.h>
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+> -#include <linux/of.h>
+> +#include <linux/property.h>
+>  #include <linux/slab.h>
+>  
+>  #include <media/v4l2-flash-led-class.h>
+> @@ -148,8 +148,8 @@ struct as3645a {
+>  	struct v4l2_flash *vf;
+>  	struct v4l2_flash *vfind;
+>  
+> -	struct device_node *flash_node;
+> -	struct device_node *indicator_node;
+> +	struct fwnode_handle *flash_node;
+> +	struct fwnode_handle *indicator_node;
+>  
+>  	struct as3645a_config cfg;
+>  
+> @@ -492,30 +492,33 @@ static int as3645a_detect(struct as3645a *flash)
+>  
+>  static int as3645a_parse_node(struct as3645a *flash,
+>  			      struct as3645a_names *names,
+> -			      struct device_node *node)
+> +			      struct fwnode_handle *fwnode)
+>  {
+>  	struct as3645a_config *cfg = &flash->cfg;
+> -	struct device_node *child;
+> +	struct fwnode_handle *child;
+>  	const char *name;
+> +	const char *str;
+>  	int rval;
+>  
+> -	for_each_child_of_node(node, child) {
+> +	fwnode_for_each_child_node(fwnode, child) {
+>  		u32 id = 0;
+>  
+> -		of_property_read_u32(child, "reg", &id);
+> +		fwnode_property_read_u32(
+> +			child, is_of_node(child) ? "reg" : "led", &id);
+>  
+>  		switch (id) {
+>  		case AS_LED_FLASH:
+> -			flash->flash_node = of_node_get(child);
+> +			flash->flash_node = child;
+>  			break;
+>  		case AS_LED_INDICATOR:
+> -			flash->indicator_node = of_node_get(child);
+> +			flash->indicator_node = child;
+>  			break;
+>  		default:
+>  			dev_warn(&flash->client->dev,
+>  				 "unknown LED %u encountered, ignoring\n", id);
+>  			break;
+>  		}
+> +		fwnode_handle_get(child);
+>  	}
+>  
+>  	if (!flash->flash_node) {
+> @@ -523,14 +526,18 @@ static int as3645a_parse_node(struct as3645a *flash,
+>  		return -ENODEV;
+>  	}
+>  
+> -	rval = of_property_read_string(flash->flash_node, "label", &name);
+> -	if (!rval)
+> +	rval = fwnode_property_read_string(flash->flash_node, "label", &name);
+> +	if (!rval) {
+>  		strlcpy(names->flash, name, sizeof(names->flash));
+> -	else
+> +	} else if (is_of_node(fwnode)) {
+>  		snprintf(names->flash, sizeof(names->flash),
+> -			 "%s:flash", node->name);
+> +			 "%s:flash", to_of_node(fwnode)->name);
+> +	} else {
+> +		dev_err(&flash->client->dev, "flash node has no label!\n");
+> +		return -EINVAL;
+> +	}
+>  
+> -	rval = of_property_read_u32(flash->flash_node, "flash-timeout-us",
+> +	rval = fwnode_property_read_u32(flash->flash_node, "flash-timeout-us",
+>  				    &cfg->flash_timeout_us);
+>  	if (rval < 0) {
+>  		dev_err(&flash->client->dev,
+> @@ -538,7 +545,7 @@ static int as3645a_parse_node(struct as3645a *flash,
+>  		goto out_err;
+>  	}
+>  
+> -	rval = of_property_read_u32(flash->flash_node, "flash-max-microamp",
+> +	rval = fwnode_property_read_u32(flash->flash_node, "flash-max-microamp",
+>  				    &cfg->flash_max_ua);
+>  	if (rval < 0) {
+>  		dev_err(&flash->client->dev,
+> @@ -546,7 +553,7 @@ static int as3645a_parse_node(struct as3645a *flash,
+>  		goto out_err;
+>  	}
+>  
+> -	rval = of_property_read_u32(flash->flash_node, "led-max-microamp",
+> +	rval = fwnode_property_read_u32(flash->flash_node, "led-max-microamp",
+>  				    &cfg->assist_max_ua);
+>  	if (rval < 0) {
+>  		dev_err(&flash->client->dev,
+> @@ -554,10 +561,10 @@ static int as3645a_parse_node(struct as3645a *flash,
+>  		goto out_err;
+>  	}
+>  
+> -	of_property_read_u32(flash->flash_node, "voltage-reference",
+> +	fwnode_property_read_u32(flash->flash_node, "voltage-reference",
+>  			     &cfg->voltage_reference);
+>  
+> -	of_property_read_u32(flash->flash_node, "ams,input-max-microamp",
+> +	fwnode_property_read_u32(flash->flash_node, "ams,input-max-microamp",
+>  			     &cfg->peak);
+>  	cfg->peak = AS_PEAK_mA_TO_REG(cfg->peak);
+>  
+> @@ -567,14 +574,18 @@ static int as3645a_parse_node(struct as3645a *flash,
+>  		goto out_err;
+>  	}
+>  
+> -	rval = of_property_read_string(flash->indicator_node, "label", &name);
+> -	if (!rval)
+> +	rval = fwnode_property_read_string(flash->indicator_node, "label", &name);
+> +	if (!rval) {
+>  		strlcpy(names->indicator, name, sizeof(names->indicator));
+> -	else
+> +	} else if (is_of_node(fwnode)) {
+>  		snprintf(names->indicator, sizeof(names->indicator),
+> -			 "%s:indicator", node->name);
+> +			 "%s:indicator", to_of_node(fwnode)->name);
+> +	} else {
+> +		dev_err(&flash->client->dev, "flash node has no label!\n");
+> +		return -EINVAL;
+> +	}
+>  
+> -	rval = of_property_read_u32(flash->indicator_node, "led-max-microamp",
+> +	rval = fwnode_property_read_u32(flash->indicator_node, "led-max-microamp",
+>  				    &cfg->indicator_max_ua);
+>  	if (rval < 0) {
+>  		dev_err(&flash->client->dev,
+> @@ -585,8 +596,8 @@ static int as3645a_parse_node(struct as3645a *flash,
+>  	return 0;
+>  
+>  out_err:
+> -	of_node_put(flash->flash_node);
+> -	of_node_put(flash->indicator_node);
+> +	fwnode_handle_put(flash->flash_node);
+> +	fwnode_handle_put(flash->indicator_node);
+>  
+>  	return rval;
+>  }
+> @@ -667,14 +678,14 @@ static int as3645a_v4l2_setup(struct as3645a *flash)
+>  	strlcpy(cfgind.dev_name, flash->iled_cdev.name, sizeof(cfg.dev_name));
+>  
+>  	flash->vf = v4l2_flash_init(
+> -		&flash->client->dev, of_fwnode_handle(flash->flash_node),
+> -		&flash->fled, NULL, &cfg);
+> +		&flash->client->dev, flash->flash_node, &flash->fled, NULL,
+> +		&cfg);
+>  	if (IS_ERR(flash->vf))
+>  		return PTR_ERR(flash->vf);
+>  
+>  	flash->vfind = v4l2_flash_indicator_init(
+> -		&flash->client->dev, of_fwnode_handle(flash->indicator_node),
+> -		&flash->iled_cdev, &cfgind);
+> +		&flash->client->dev, flash->indicator_node, &flash->iled_cdev,
+> +		&cfgind);
+>  	if (IS_ERR(flash->vfind)) {
+>  		v4l2_flash_release(flash->vf);
+>  		return PTR_ERR(flash->vfind);
+> @@ -689,7 +700,7 @@ static int as3645a_probe(struct i2c_client *client)
+>  	struct as3645a *flash;
+>  	int rval;
+>  
+> -	if (client->dev.of_node == NULL)
+> +	if (!dev_fwnode(&client->dev))
+>  		return -ENODEV;
+>  
+>  	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
+> @@ -698,7 +709,7 @@ static int as3645a_probe(struct i2c_client *client)
+>  
+>  	flash->client = client;
+>  
+> -	rval = as3645a_parse_node(flash, &names, client->dev.of_node);
+> +	rval = as3645a_parse_node(flash, &names, dev_fwnode(&client->dev));
+>  	if (rval < 0)
+>  		return rval;
+>  
+> @@ -730,8 +741,8 @@ static int as3645a_probe(struct i2c_client *client)
+>  	mutex_destroy(&flash->mutex);
+>  
+>  out_put_nodes:
+> -	of_node_put(flash->flash_node);
+> -	of_node_put(flash->indicator_node);
+> +	fwnode_handle_put(flash->flash_node);
+> +	fwnode_handle_put(flash->indicator_node);
+>  
+>  	return rval;
+>  }
+> @@ -749,8 +760,8 @@ static int as3645a_remove(struct i2c_client *client)
+>  
+>  	mutex_destroy(&flash->mutex);
+>  
+> -	of_node_put(flash->flash_node);
+> -	of_node_put(flash->indicator_node);
+> +	fwnode_handle_put(flash->flash_node);
+> +	fwnode_handle_put(flash->indicator_node);
+>  
+>  	return 0;
+>  }
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
