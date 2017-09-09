@@ -1,135 +1,69 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v9 02/24] v4l: async: Remove re-probing support
-Date: Sat, 09 Sep 2017 18:36:41 +0300
-Message-ID: <2128463.znNVtuGJSF@avalon>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com> <20170908131235.30294-3-sakari.ailus@linux.intel.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH v9 04/24] v4l: async: Add V4L2 async documentation to the documentation build
+Date: Sat, 09 Sep 2017 18:37:25 +0300
+Message-ID: <2286055.TjJQYklu2V@avalon>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com> <20170908131235.30294-5-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58474 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753865AbdIIPgl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Sep 2017 11:36:41 -0400
-In-Reply-To: <20170908131235.30294-3-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170908131235.30294-5-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 
 Hi Sakari,
 
 Thank you for the patch.
 
-On Friday, 8 September 2017 16:11:53 EEST Sakari Ailus wrote:
-> Remove V4L2 async re-probing support. The re-probing support has been
-> there to support cases where the sub-devices require resources provided by
-> the main driver's hardware to function, such as clocks.
-> 
-> Reprobing has allowed unbinding and again binding the main driver without
-> explicilty unbinding the sub-device drivers. This is certainly not a
-> common need, and the responsibility will be the user's going forward.
-> 
-> An alternative could have been to introduce notifier specific locks.
-> Considering the complexity of the re-probing and that it isn't really a
-> solution to a problem but a workaround, remove re-probing instead.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+On Friday, 8 September 2017 16:11:55 EEST Sakari Ailus wrote:
+> The V4L2 async wasn't part of the documentation build. Fix this.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Reviewed-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org>
 
-I agree that this is a hack, and that the problem should be addressed 
-differently. I'm fine with this patch as it helps later rework of the async 
-notifier code, but we need a plan to fix the problem.
+With character encoding fixed,
 
+Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+
+> Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/media/v4l2-core/v4l2-async.c | 54 ---------------------------------
->  1 file changed, 54 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> b/drivers/media/v4l2-core/v4l2-async.c index d741a8e0fdac..e109d9da4653
+>  Documentation/media/kapi/v4l2-async.rst | 3 +++
+>  Documentation/media/kapi/v4l2-core.rst  | 1 +
+>  2 files changed, 4 insertions(+)
+>  create mode 100644 Documentation/media/kapi/v4l2-async.rst
+>=20
+> diff --git a/Documentation/media/kapi/v4l2-async.rst
+> b/Documentation/media/kapi/v4l2-async.rst new file mode 100644
+> index 000000000000..523ff9eb09a0
+> --- /dev/null
+> +++ b/Documentation/media/kapi/v4l2-async.rst
+> @@ -0,0 +1,3 @@
+> +V4L2 async kAPI
+> +^^^^^^^^^^^^^^^
+> +.. kernel-doc:: include/media/v4l2-async.h
+> diff --git a/Documentation/media/kapi/v4l2-core.rst
+> b/Documentation/media/kapi/v4l2-core.rst index c7434f38fd9c..5cf292037a48
 > 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -198,78 +198,24 @@ EXPORT_SYMBOL(v4l2_async_notifier_register);
->  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  {
->  	struct v4l2_subdev *sd, *tmp;
-> -	unsigned int notif_n_subdev = notifier->num_subdevs;
-> -	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
-> -	struct device **dev;
-> -	int i = 0;
-> 
->  	if (!notifier->v4l2_dev)
->  		return;
-> 
-> -	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
-> -	if (!dev) {
-> -		dev_err(notifier->v4l2_dev->dev,
-> -			"Failed to allocate device cache!\n");
-> -	}
-> -
->  	mutex_lock(&list_lock);
-> 
->  	list_del(&notifier->list);
-> 
->  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> -		struct device *d;
-> -
-> -		d = get_device(sd->dev);
-> -
->  		v4l2_async_cleanup(sd);
-> 
-> -		/* If we handled USB devices, we'd have to lock the parent too */
-> -		device_release_driver(d);
-> -
->  		if (notifier->unbind)
->  			notifier->unbind(notifier, sd, sd->asd);
-> -
-> -		/*
-> -		 * Store device at the device cache, in order to call
-> -		 * put_device() on the final step
-> -		 */
-> -		if (dev)
-> -			dev[i++] = d;
-> -		else
-> -			put_device(d);
->  	}
-> 
->  	mutex_unlock(&list_lock);
-> 
-> -	/*
-> -	 * Call device_attach() to reprobe devices
-> -	 *
-> -	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
-> -	 * executed.
-> -	 */
-> -	while (i--) {
-> -		struct device *d = dev[i];
-> -
-> -		if (d && device_attach(d) < 0) {
-> -			const char *name = "(none)";
-> -			int lock = device_trylock(d);
-> -
-> -			if (lock && d->driver)
-> -				name = d->driver->name;
-> -			dev_err(d, "Failed to re-probe to %s\n", name);
-> -			if (lock)
-> -				device_unlock(d);
-> -		}
-> -		put_device(d);
-> -	}
-> -	kvfree(dev);
-> -
->  	notifier->v4l2_dev = NULL;
-> -
-> -	/*
-> -	 * Don't care about the waiting list, it is initialised and populated
-> -	 * upon notifier registration.
-> -	 */
->  }
->  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+> --- a/Documentation/media/kapi/v4l2-core.rst
+> +++ b/Documentation/media/kapi/v4l2-core.rst
+> @@ -19,6 +19,7 @@ Video4Linux devices
+>      v4l2-mc
+>      v4l2-mediabus
+>      v4l2-mem2mem
+> +    v4l2-async
+>      v4l2-fwnode
+>      v4l2-rect
+>      v4l2-tuner
 
--- 
+
+=2D-=20
 Regards,
 
 Laurent Pinchart
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
