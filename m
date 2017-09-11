@@ -1,245 +1,132 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v10 01/24] v4l: fwnode: Move KernelDoc documentation to the header
-Date: Mon, 11 Sep 2017 10:59:45 +0300
-Message-ID: <20170911080008.21208-2-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v10 18/24] v4l: fwnode: Add a helper function to obtain device / interger references
+Date: Mon, 11 Sep 2017 11:00:02 +0300
+Message-ID: <20170911080008.21208-19-sakari.ailus@linux.intel.com>
 References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170911080008.21208-1-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-In V4L2 the practice is to have the KernelDoc documentation in the header
-and not in .c source code files. This consequently makes the V4L2 fwnode
-function documentation part of the Media documentation build.
+v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
+the device's own fwnode, it will follow child fwnodes with the given
+property -- value pair and return the resulting fwnode.
 
-Also correct the link related function and argument naming in
-documentation.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 75 --------------------------------
- include/media/v4l2-fwnode.h           | 81 ++++++++++++++++++++++++++++++++++-
- 2 files changed, 80 insertions(+), 76 deletions(-)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 93 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 93 insertions(+)
 
 diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 40b2fbfe8865..706f9e7b90f1 100644
+index 4821c4989119..56eee5bbd3b5 100644
 --- a/drivers/media/v4l2-core/v4l2-fwnode.c
 +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -181,25 +181,6 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
- 		vep->bus_type = V4L2_MBUS_CSI1;
+@@ -496,6 +496,99 @@ static int v4l2_fwnode_reference_parse(
+ 	return ret;
  }
  
--/**
-- * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-- * @fwnode: pointer to the endpoint's fwnode handle
-- * @vep: pointer to the V4L2 fwnode data structure
-- *
-- * All properties are optional. If none are found, we don't set any flags. This
-- * means the port has a static configuration and no properties have to be
-- * specified explicitly. If any properties that identify the bus as parallel
-- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-- * reference to @fwnode.
-- *
-- * NOTE: This function does not parse properties the size of which is variable
-- * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
-- * new drivers instead.
-- *
-- * Return: 0 on success or a negative error code on failure.
-- */
- int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 			       struct v4l2_fwnode_endpoint *vep)
- {
-@@ -239,14 +220,6 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse);
- 
--/*
-- * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-- * v4l2_fwnode_endpoint_alloc_parse()
-- * @vep - the V4L2 fwnode the resources of which are to be released
-- *
-- * It is safe to call this function with NULL argument or on a V4L2 fwnode the
-- * parsing of which failed.
-- */
- void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
- {
- 	if (IS_ERR_OR_NULL(vep))
-@@ -257,29 +230,6 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_free);
- 
--/**
-- * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-- * @fwnode: pointer to the endpoint's fwnode handle
-- *
-- * All properties are optional. If none are found, we don't set any flags. This
-- * means the port has a static configuration and no properties have to be
-- * specified explicitly. If any properties that identify the bus as parallel
-- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-- * reference to @fwnode.
-- *
-- * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-- * v4l2_fwnode_endpoint_parse():
-- *
-- * 1. It also parses variable size data.
-- *
-- * 2. The memory it has allocated to store the variable size data must be freed
-- *    using v4l2_fwnode_endpoint_free() when no longer needed.
-- *
-- * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
-- * on error.
-- */
- struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- 	struct fwnode_handle *fwnode)
- {
-@@ -322,24 +272,6 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_alloc_parse);
- 
--/**
-- * v4l2_fwnode_endpoint_parse_link() - parse a link between two endpoints
-- * @__fwnode: pointer to the endpoint's fwnode at the local end of the link
-- * @link: pointer to the V4L2 fwnode link data structure
-- *
-- * Fill the link structure with the local and remote nodes and port numbers.
-- * The local_node and remote_node fields are set to point to the local and
-- * remote port's parent nodes respectively (the port parent node being the
-- * parent node of the port node if that node isn't a 'ports' node, or the
-- * grand-parent node of the port node otherwise).
-- *
-- * A reference is taken to both the local and remote nodes, the caller must use
-- * v4l2_fwnode_endpoint_put_link() to drop the references when done with the
-- * link.
-- *
-- * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
-- * found.
-- */
- int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
- 			   struct v4l2_fwnode_link *link)
- {
-@@ -374,13 +306,6 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_parse_link);
- 
--/**
-- * v4l2_fwnode_put_link() - drop references to nodes in a link
-- * @link: pointer to the V4L2 fwnode link data structure
-- *
-- * Drop references to the local and remote nodes in the link. This function
-- * must be called on every link parsed with v4l2_fwnode_parse_link().
-- */
- void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
- {
- 	fwnode_handle_put(link->local_node);
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index 7adec9851d9e..68eb22ba571b 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -113,13 +113,92 @@ struct v4l2_fwnode_link {
- 	unsigned int remote_port;
- };
- 
-+/**
-+ * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-+ * @fwnode: pointer to the endpoint's fwnode handle
-+ * @vep: pointer to the V4L2 fwnode data structure
-+ *
-+ * All properties are optional. If none are found, we don't set any flags. This
-+ * means the port has a static configuration and no properties have to be
-+ * specified explicitly. If any properties that identify the bus as parallel
-+ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-+ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-+ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-+ * reference to @fwnode.
-+ *
-+ * NOTE: This function does not parse properties the size of which is variable
-+ * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
-+ * new drivers instead.
-+ *
-+ * Return: 0 on success or a negative error code on failure.
-+ */
- int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 			       struct v4l2_fwnode_endpoint *vep);
++static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
++	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
++	const char **props, unsigned int nprops)
++{
++	struct fwnode_reference_args fwnode_args;
++	unsigned int *args = fwnode_args.args;
++	struct fwnode_handle *child;
++	int ret;
 +
-+/*
-+ * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-+ * v4l2_fwnode_endpoint_alloc_parse()
-+ * @vep - the V4L2 fwnode the resources of which are to be released
-+ *
-+ * It is safe to call this function with NULL argument or on a V4L2 fwnode the
-+ * parsing of which failed.
-+ */
-+void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
++	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
++						 index, &fwnode_args);
++	if (ret)
++		return ERR_PTR(ret == -EINVAL ? -ENOENT : ret);
 +
-+/**
-+ * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-+ * @fwnode: pointer to the endpoint's fwnode handle
-+ *
-+ * All properties are optional. If none are found, we don't set any flags. This
-+ * means the port has a static configuration and no properties have to be
-+ * specified explicitly. If any properties that identify the bus as parallel
-+ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-+ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-+ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-+ * reference to @fwnode.
-+ *
-+ * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-+ * v4l2_fwnode_endpoint_parse():
-+ *
-+ * 1. It also parses variable size data.
-+ *
-+ * 2. The memory it has allocated to store the variable size data must be freed
-+ *    using v4l2_fwnode_endpoint_free() when no longer needed.
-+ *
-+ * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
-+ * on error.
-+ */
- struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- 	struct fwnode_handle *fwnode);
--void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
++	for (fwnode = fwnode_args.fwnode;
++	     nprops; nprops--, fwnode = child, props++, args++) {
++		u32 val;
 +
-+/**
-+ * v4l2_fwnode_parse_link() - parse a link between two endpoints
-+ * @fwnode: pointer to the endpoint's fwnode at the local end of the link
-+ * @link: pointer to the V4L2 fwnode link data structure
-+ *
-+ * Fill the link structure with the local and remote nodes and port numbers.
-+ * The local_node and remote_node fields are set to point to the local and
-+ * remote port's parent nodes respectively (the port parent node being the
-+ * parent node of the port node if that node isn't a 'ports' node, or the
-+ * grand-parent node of the port node otherwise).
-+ *
-+ * A reference is taken to both the local and remote nodes, the caller must use
-+ * v4l2_fwnode_put_link() to drop the references when done with the
-+ * link.
-+ *
-+ * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
-+ * found.
-+ */
- int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
- 			   struct v4l2_fwnode_link *link);
++		fwnode_for_each_child_node(fwnode, child) {
++			if (fwnode_property_read_u32(child, *props, &val))
++				continue;
 +
-+/**
-+ * v4l2_fwnode_put_link() - drop references to nodes in a link
-+ * @link: pointer to the V4L2 fwnode link data structure
-+ *
-+ * Drop references to the local and remote nodes in the link. This function
-+ * must be called on every link parsed with v4l2_fwnode_parse_link().
-+ */
- void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
- 
- #endif /* _V4L2_FWNODE_H */
++			if (val == *args)
++				break;
++		}
++
++		fwnode_handle_put(fwnode);
++
++		if (!child) {
++			fwnode = ERR_PTR(-ENOENT);
++			break;
++		}
++	}
++
++	return fwnode;
++}
++
++static int v4l2_fwnode_reference_parse_int_props(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	const char *prop, const char **props, unsigned int nprops)
++{
++	struct fwnode_handle *fwnode;
++	unsigned int index = 0;
++	int ret;
++
++	while (!IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
++				dev_fwnode(dev), prop, index, props,
++				nprops)))) {
++		fwnode_handle_put(fwnode);
++		index++;
++	}
++
++	if (PTR_ERR(fwnode) != -ENOENT)
++		return PTR_ERR(fwnode);
++
++	ret = v4l2_async_notifier_realloc(notifier,
++					  notifier->num_subdevs + index);
++	if (ret)
++		return -ENOMEM;
++
++	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
++					 dev_fwnode(dev), prop, index, props,
++					 nprops))); ) {
++		struct v4l2_async_subdev *asd;
++
++		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
++			ret = -EINVAL;
++			goto error;
++		}
++
++		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
++		if (!asd) {
++			ret = -ENOMEM;
++			goto error;
++		}
++
++		notifier->subdevs[notifier->num_subdevs] = asd;
++		asd->match.fwnode.fwnode = fwnode;
++		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
++		notifier->num_subdevs++;
++
++		fwnode_handle_put(fwnode);
++
++		index++;
++	}
++
++	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
++
++error:
++	fwnode_handle_put(fwnode);
++	return ret;
++}
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>");
 -- 
 2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
