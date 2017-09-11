@@ -1,41 +1,119 @@
-From: Andreas Schwab <schwab@suse.de>
-Subject: Re: [PATCH v11 2/4] ACPI: parse SPCR and enable matching console
-Date: Mon, 11 Sep 2017 11:11:49 +0200
-Message-ID: <mvmzia1bnvu.fsf@suse.de>
-References: <20160927151953.GB4371@kroah.com>
-        <20160927205418.31529-1-aleksey.makarov@linaro.org>
-        <20160927205418.31529-2-aleksey.makarov@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v10 17/24] v4l: fwnode: Add a helper function for parsing
+ generic references
+Date: Mon, 11 Sep 2017 11:14:03 +0200
+Message-ID: <e71bb2d0-d68d-0c9a-4234-482a2898a5fb@xs4all.nl>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+ <20170911080008.21208-18-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42107 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751054AbdIKJLw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 11 Sep 2017 05:11:52 -0400
-In-Reply-To: <20160927205418.31529-2-aleksey.makarov@linaro.org> (Aleksey
-        Makarov's message of "Tue, 27 Sep 2016 23:54:13 +0300")
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47790 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751071AbdIKJOI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 11 Sep 2017 05:14:08 -0400
+In-Reply-To: <20170911080008.21208-18-sakari.ailus@linux.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Jiri Slaby <jslaby@suse.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 
-On Sep 27 2016, Aleksey Makarov <aleksey.makarov@linaro.org> wrote:
+On 09/11/2017 10:00 AM, Sakari Ailus wrote:
+> Add function v4l2_fwnode_reference_count() for counting external
+> references and v4l2_fwnode_reference_parse() for parsing them as async
+> sub-devices.
+> 
+> This can be done on e.g. flash or lens async sub-devices that are not part
+> of but are associated with a sensor.
+> 
+> struct v4l2_async_notifier.max_subdevs field is added to contain the
+> maximum number of sub-devices in a notifier to reflect the memory
+> allocated for the subdevs array.
 
-> 'ARM Server Base Boot Requiremets' [1] mentions SPCR (Serial Port
-> Console Redirection Table) [2] as a mandatory ACPI table that
-> specifies the configuration of serial console.
->
-> Defer initialization of DT earlycon until ACPI/DT decision is made.
->
-> Parse the ACPI SPCR table, setup earlycon if required,
-> enable specified console.
+This paragraph appears to be out-of-date.
 
-How can I tell the kernel to ignore this table and use the console on
-the command line instead?
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 47 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 47 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index d978f2d714ca..4821c4989119 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -449,6 +449,53 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
+>  
+> +static int v4l2_fwnode_reference_parse(
+> +	struct device *dev, struct v4l2_async_notifier *notifier,
+> +	const char *prop)
+> +{
+> +	struct fwnode_reference_args args;
+> +	unsigned int index = 0;
+> +	int ret;
+> +
+> +	for (; !fwnode_property_get_reference_args(
+> +		     dev_fwnode(dev), prop, NULL, 0, index, &args); index++)
+> +		fwnode_handle_put(args.fwnode);
+> +
 
-Andreas.
+If nothing is found (i.e. index == 0), shouldn't you just return here?
 
--- 
-Andreas Schwab, SUSE Labs, schwab@suse.de
-GPG Key fingerprint = 0196 BAD8 1CE9 1970 F4BE  1748 E4D4 88E3 0EEA B9D7
-"And now for something completely different."
+> +	ret = v4l2_async_notifier_realloc(notifier,
+> +					  notifier->num_subdevs + index);
+> +	if (ret)
+> +		return -ENOMEM;
+> +
+> +	for (ret = -ENOENT, index = 0;
+
+There is no reason for the 'ret = -ENOENT' to be in the for(), just set it before
+the 'for' statement.
+
+> +	     !fwnode_property_get_reference_args(
+> +		     dev_fwnode(dev), prop, NULL, 0, index, &args);
+> +	     index++) {
+> +		struct v4l2_async_subdev *asd;
+> +
+> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
+> +			ret = -EINVAL;
+> +			goto error;
+> +		}
+> +
+> +		asd = kzalloc(sizeof(*asd), GFP_KERNEL);
+> +		if (!asd) {
+> +			ret = -ENOMEM;
+> +			goto error;
+> +		}
+> +
+> +		notifier->subdevs[notifier->num_subdevs] = asd;
+> +		asd->match.fwnode.fwnode = args.fwnode;
+> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> +		notifier->num_subdevs++;
+> +	}
+
+If the loop doesn't find anything, then it still returns 0, not -ENOENT.
+So why set ret to ENOENT? Something weird going on here.
+
+I think you should also add a comment explaining this function.
+
+> +
+> +	return 0;
+> +
+> +error:
+> +	fwnode_handle_put(args.fwnode);
+> +	return ret;
+> +}
+> +
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+> 
+
+Regards,
+
+	Hans
