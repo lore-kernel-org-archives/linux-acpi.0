@@ -1,96 +1,131 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v9 23/24] dt: bindings: smiapp: Document lens-focus and
- flash properties
-Date: Mon, 11 Sep 2017 10:45:50 +0300
-Message-ID: <20170911074550.5lzfh5r5g4z7fyjo@valkosipuli.retiisi.org.uk>
+From: Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
+Subject: Re: [PATCH v9 02/24] v4l: async: Remove re-probing support
+Date: Mon, 11 Sep 2017 09:47:49 +0200
+Message-ID: <787019fe-7402-7edb-3de6-9a683de78d71@xs4all.nl>
 References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131822.31020-19-sakari.ailus@linux.intel.com>
- <20170908133652.GR18365@amd>
- <20170908134226.m5ts637dej7oa4jw@valkosipuli.retiisi.org.uk>
- <20170908214544.GB27428@amd>
+ <20170908131235.30294-3-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170908214544.GB27428@amd>
-Sender: linux-media-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, sre@kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170908131235.30294-3-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 08, 2017 at 11:45:44PM +0200, Pavel Machek wrote:
-> On Fri 2017-09-08 16:42:26, Sakari Ailus wrote:
-> > Hi Pavel,
-> > 
-> > On Fri, Sep 08, 2017 at 03:36:52PM +0200, Pavel Machek wrote:
-> > > Hi!
-> > > 
-> > > > Document optional lens-focus and flash properties for the smiapp driver.
-> > > > 
-> > > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > > ---
-> > > >  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
-> > > >  1 file changed, 2 insertions(+)
-> > > > 
-> > > > diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> > > > index 855e1faf73e2..a052969365d9 100644
-> > > > --- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> > > > +++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> > > > @@ -27,6 +27,8 @@ Optional properties
-> > > >  - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
-> > > >    the NVM contents will not be read.
-> > > >  - reset-gpios: XSHUTDOWN GPIO
-> > > > +- flash-leds: One or more phandles to refer to flash LEDs
-> > > > +- lens-focus: Phandle for lens focus
-> > > 
-> > > Should we simply reference the generic documentation here? If it needs
-> > > changing, it will be easier changing single place.
-> > 
-> > Good question.
-> > 
-> > Ideally the properties at least would never change; we do have a common
-> > parser for the properties which is part of the patchset so in theory it
-> > would be possible to change the documentation in a backward-compatible way.
-> > 
-> > I added these properties as well as all the other properties supported by
-> > the sensor driver are documented here. That has been the practice AFAIU,
-> > albeit omissions do happen occasionally.
-> > 
-> > The issue I see with omitting the documentation here is that the user
-> > otherwise won't know whether a driver uses a given property or not: it
-> > shouldn't be necessary to read driver code to write DT source.
+On 09/08/2017 03:11 PM, Sakari Ailus wrote:
+> Remove V4L2 async re-probing support. The re-probing support has been
+> there to support cases where the sub-devices require resources provided by
+> the main driver's hardware to function, such as clocks.
 > 
-> I see... OTOH documentation in central place _is_ a bit more verbose:
+> Reprobing has allowed unbinding and again binding the main driver without
+> explicilty unbinding the sub-device drivers. This is certainly not a
+> common need, and the responsibility will be the user's going forward.
 > 
-> +- flash-leds: An array of phandles, each referring to a flash LED, a sub-node
-> +  of the LED driver device node.
+> An alternative could have been to introduce notifier specific locks.
+> Considering the complexity of the re-probing and that it isn't really a
+> solution to a problem but a workaround, remove re-probing instead.
 > 
-> What about:
-> 
-> flash-leds, lens-focus: see <reference to central place>
-> 
-> ?
+> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-How about this?
+I Acked the v8 version, but don't see my Ack here. Did you miss it?
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-index a052969365d9..33f10a94c381 100644
---- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-@@ -27,8 +27,8 @@ Optional properties
- - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
-   the NVM contents will not be read.
- - reset-gpios: XSHUTDOWN GPIO
--- flash-leds: One or more phandles to refer to flash LEDs
--- lens-focus: Phandle for lens focus
-+- flash-leds: See ../video-interfaces.txt
-+- lens-focus: See ../video-interfaces.txt
- 
- 
- Endpoint node mandatory properties
+Regards,
 
-I prefer to put them on separate lines as it's easier to read that way.
+	Hans
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 54 ------------------------------------
+>  1 file changed, 54 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index d741a8e0fdac..e109d9da4653 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -198,78 +198,24 @@ EXPORT_SYMBOL(v4l2_async_notifier_register);
+>  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  {
+>  	struct v4l2_subdev *sd, *tmp;
+> -	unsigned int notif_n_subdev = notifier->num_subdevs;
+> -	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+> -	struct device **dev;
+> -	int i = 0;
+>  
+>  	if (!notifier->v4l2_dev)
+>  		return;
+>  
+> -	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
+> -	if (!dev) {
+> -		dev_err(notifier->v4l2_dev->dev,
+> -			"Failed to allocate device cache!\n");
+> -	}
+> -
+>  	mutex_lock(&list_lock);
+>  
+>  	list_del(&notifier->list);
+>  
+>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> -		struct device *d;
+> -
+> -		d = get_device(sd->dev);
+> -
+>  		v4l2_async_cleanup(sd);
+>  
+> -		/* If we handled USB devices, we'd have to lock the parent too */
+> -		device_release_driver(d);
+> -
+>  		if (notifier->unbind)
+>  			notifier->unbind(notifier, sd, sd->asd);
+> -
+> -		/*
+> -		 * Store device at the device cache, in order to call
+> -		 * put_device() on the final step
+> -		 */
+> -		if (dev)
+> -			dev[i++] = d;
+> -		else
+> -			put_device(d);
+>  	}
+>  
+>  	mutex_unlock(&list_lock);
+>  
+> -	/*
+> -	 * Call device_attach() to reprobe devices
+> -	 *
+> -	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
+> -	 * executed.
+> -	 */
+> -	while (i--) {
+> -		struct device *d = dev[i];
+> -
+> -		if (d && device_attach(d) < 0) {
+> -			const char *name = "(none)";
+> -			int lock = device_trylock(d);
+> -
+> -			if (lock && d->driver)
+> -				name = d->driver->name;
+> -			dev_err(d, "Failed to re-probe to %s\n", name);
+> -			if (lock)
+> -				device_unlock(d);
+> -		}
+> -		put_device(d);
+> -	}
+> -	kvfree(dev);
+> -
+>  	notifier->v4l2_dev = NULL;
+> -
+> -	/*
+> -	 * Don't care about the waiting list, it is initialised and populated
+> -	 * upon notifier registration.
+> -	 */
+>  }
+>  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+>  
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
