@@ -1,7 +1,7 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v10 15/24] dt: bindings: Add a binding for flash LED devices associated to a sensor
-Date: Mon, 11 Sep 2017 10:59:59 +0300
-Message-ID: <20170911080008.21208-16-sakari.ailus@linux.intel.com>
+Subject: [PATCH v10 20/24] dt: bindings: smiapp: Document lens-focus and flash properties
+Date: Mon, 11 Sep 2017 11:00:04 +0300
+Message-ID: <20170911080008.21208-21-sakari.ailus@linux.intel.com>
 References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
@@ -10,36 +10,25 @@ To: linux-media@vger.kernel.org
 Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Camera flash drivers (and LEDs) are separate from the sensor devices in
-DT. In order to make an association between the two, provide the
-association information to the software.
+Document optional lens-focus and flash properties for the smiapp driver.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index 852041a7480c..fdba30479b47 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -67,6 +67,14 @@ are required in a relevant parent node:
- 		    identifier, should be 1.
-  - #size-cells    : should be zero.
+diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+index 855e1faf73e2..33f10a94c381 100644
+--- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
++++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+@@ -27,6 +27,8 @@ Optional properties
+ - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
+   the NVM contents will not be read.
+ - reset-gpios: XSHUTDOWN GPIO
++- flash-leds: See ../video-interfaces.txt
++- lens-focus: See ../video-interfaces.txt
  
-+
-+Optional properties
-+-------------------
-+
-+- flash-leds: An array of phandles, each referring to a flash LED, a sub-node
-+  of the LED driver device node.
-+
-+
- Optional endpoint properties
- ----------------------------
  
+ Endpoint node mandatory properties
 -- 
 2.11.0
