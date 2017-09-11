@@ -1,15 +1,14 @@
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v10 19/24] v4l: fwnode: Add convenience function for
- parsing common external refs
-Date: Mon, 11 Sep 2017 11:47:11 +0200
-Message-ID: <c57c3f6b-aeb9-dc00-645b-0da2edad77b0@xs4all.nl>
+Subject: Re: [PATCH v10 21/24] smiapp: Add support for flash and lens devices
+Date: Mon, 11 Sep 2017 11:48:23 +0200
+Message-ID: <04981ec0-710e-1367-03fc-501314c45d5f@xs4all.nl>
 References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-20-sakari.ailus@linux.intel.com>
+ <20170911080008.21208-22-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20170911080008.21208-20-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170911080008.21208-22-sakari.ailus@linux.intel.com>
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
@@ -17,95 +16,161 @@ Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, laurent.pinchart@ideasonboar
 List-Id: linux-acpi@vger.kernel.org
 
 On 09/11/2017 10:00 AM, Sakari Ailus wrote:
-> Add v4l2_fwnode_parse_reference_sensor_common for parsing common
-> sensor properties that refer to adjacent devices such as flash or lens
-> driver chips.
+> Parse async sub-devices by using
+> v4l2_subdev_fwnode_reference_parse_sensor_common().
 > 
-> As this is an association only, there's little a regular driver needs to
-> know about these devices as such.
+> These types devices aren't directly related to the sensor, but are
+> nevertheless handled by the smiapp driver due to the relationship of these
+> component to the main part of the camera module --- the sensor.
+> 
+> This does not yet address providing the user space with information on how
+> to associate the sensor or lens devices but the kernel now has the
+> necessary information to do that.
 > 
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-fwnode.c | 35 +++++++++++++++++++++++++++++++++++
->  include/media/v4l2-fwnode.h           | 13 +++++++++++++
->  2 files changed, 48 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index 56eee5bbd3b5..b9e60a0e8f86 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -589,6 +589,41 @@ static int v4l2_fwnode_reference_parse_int_props(
->  	return ret;
->  }
->  
-> +int v4l2_fwnode_reference_parse_sensor_common(
-> +	struct device *dev, struct v4l2_async_notifier *notifier)
-> +{
-> +	static const char *led_props[] = { "led" };
-> +	static const struct {
-> +		const char *name;
-> +		const char **props;
-> +		unsigned int nprops;
-> +	} props[] = {
-> +		{ "flash-leds", led_props, ARRAY_SIZE(led_props) },
-> +		{ "lens-focus", NULL, 0 },
-> +	};
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(props); i++) {
-> +		int ret;
-> +
-> +		if (props[i].props && is_acpi_node(dev_fwnode(dev)))
-> +			ret = v4l2_fwnode_reference_parse_int_props(
-> +				dev, notifier, props[i].name,
-> +				props[i].props, props[i].nprops);
-> +		else
-> +			ret = v4l2_fwnode_reference_parse(
-> +				dev, notifier, props[i].name);
-> +		if (ret) {
-> +			dev_warn(dev, "parsing property \"%s\" failed (%d)\n",
-> +				 props[i].name, ret);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse_sensor_common);
-> +
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
->  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> index 3819a73c3c8a..bcec1ce101dc 100644
-> --- a/include/media/v4l2-fwnode.h
-> +++ b/include/media/v4l2-fwnode.h
-> @@ -257,4 +257,17 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
->  			      struct v4l2_fwnode_endpoint *vep,
->  			      struct v4l2_async_subdev *asd));
->  
-> +/**
-> + * v4l2_fwnode_reference_parse_sensor_common - parse common references on
-> + *					       sensors for async sub-devices
-> + * @dev: the device node the properties of which are parsed for references
-> + * @notifier: the async notifier where the async subdevs will be added
-> + *
 
-I think you should add a note that if this function returns 0 the
-caller should remember to call v4l2_async_notifier_release. That is not
-immediately obvious.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
 
 	Hans
 
-> + * Return: 0 on success
-> + *	   -ENOMEM if memory allocation failed
-> + *	   -EINVAL if property parsing failed
-> + */
-> +int v4l2_fwnode_reference_parse_sensor_common(
-> +	struct device *dev, struct v4l2_async_notifier *notifier);
+> ---
+>  drivers/media/i2c/smiapp/smiapp-core.c | 38 +++++++++++++++++++++++++++-------
+>  drivers/media/i2c/smiapp/smiapp.h      |  4 +++-
+>  2 files changed, 33 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+> index 700f433261d0..a65a839135d2 100644
+> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> @@ -31,7 +31,7 @@
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/slab.h>
+>  #include <linux/smiapp.h>
+> -#include <linux/v4l2-mediabus.h>
+> +#include <media/v4l2-async.h>
+>  #include <media/v4l2-fwnode.h>
+>  #include <media/v4l2-device.h>
+>  
+> @@ -2887,17 +2887,24 @@ static int smiapp_probe(struct i2c_client *client,
+>  	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
+>  	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+>  
+> +	rval = v4l2_fwnode_reference_parse_sensor_common(
+> +		&client->dev, &sensor->notifier);
+> +	if (rval < 0)
+> +		return rval;
 > +
->  #endif /* _V4L2_FWNODE_H */
+>  	sensor->vana = devm_regulator_get(&client->dev, "vana");
+>  	if (IS_ERR(sensor->vana)) {
+>  		dev_err(&client->dev, "could not get regulator for vana\n");
+> -		return PTR_ERR(sensor->vana);
+> +		rval = PTR_ERR(sensor->vana);
+> +		goto out_release_async_notifier;
+>  	}
+>  
+>  	sensor->ext_clk = devm_clk_get(&client->dev, NULL);
+>  	if (IS_ERR(sensor->ext_clk)) {
+>  		dev_err(&client->dev, "could not get clock (%ld)\n",
+>  			PTR_ERR(sensor->ext_clk));
+> -		return -EPROBE_DEFER;
+> +		rval = -EPROBE_DEFER;
+> +		goto out_release_async_notifier;
+>  	}
+>  
+>  	rval = clk_set_rate(sensor->ext_clk, sensor->hwcfg->ext_clk);
+> @@ -2905,17 +2912,19 @@ static int smiapp_probe(struct i2c_client *client,
+>  		dev_err(&client->dev,
+>  			"unable to set clock freq to %u\n",
+>  			sensor->hwcfg->ext_clk);
+> -		return rval;
+> +		goto out_release_async_notifier;
+>  	}
+>  
+>  	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
+>  						    GPIOD_OUT_LOW);
+> -	if (IS_ERR(sensor->xshutdown))
+> -		return PTR_ERR(sensor->xshutdown);
+> +	if (IS_ERR(sensor->xshutdown)) {
+> +		rval = PTR_ERR(sensor->xshutdown);
+> +		goto out_release_async_notifier;
+> +	}
+>  
+>  	rval = smiapp_power_on(&client->dev);
+>  	if (rval < 0)
+> -		return rval;
+> +		goto out_release_async_notifier;
+>  
+>  	rval = smiapp_identify_module(sensor);
+>  	if (rval) {
+> @@ -3092,9 +3101,14 @@ static int smiapp_probe(struct i2c_client *client,
+>  	if (rval < 0)
+>  		goto out_media_entity_cleanup;
+>  
+> +	rval = v4l2_async_subdev_notifier_register(&sensor->src->sd,
+> +						   &sensor->notifier);
+> +	if (rval)
+> +		goto out_media_entity_cleanup;
+> +
+>  	rval = v4l2_async_register_subdev(&sensor->src->sd);
+>  	if (rval < 0)
+> -		goto out_media_entity_cleanup;
+> +		goto out_unregister_async_notifier;
+>  
+>  	pm_runtime_set_active(&client->dev);
+>  	pm_runtime_get_noresume(&client->dev);
+> @@ -3105,6 +3119,9 @@ static int smiapp_probe(struct i2c_client *client,
+>  
+>  	return 0;
+>  
+> +out_unregister_async_notifier:
+> +	v4l2_async_notifier_unregister(&sensor->notifier);
+> +
+>  out_media_entity_cleanup:
+>  	media_entity_cleanup(&sensor->src->sd.entity);
+>  
+> @@ -3114,6 +3131,9 @@ static int smiapp_probe(struct i2c_client *client,
+>  out_power_off:
+>  	smiapp_power_off(&client->dev);
+>  
+> +out_release_async_notifier:
+> +	v4l2_async_notifier_release(&sensor->notifier);
+> +
+>  	return rval;
+>  }
+>  
+> @@ -3124,6 +3144,8 @@ static int smiapp_remove(struct i2c_client *client)
+>  	unsigned int i;
+>  
+>  	v4l2_async_unregister_subdev(subdev);
+> +	v4l2_async_notifier_unregister(&sensor->notifier);
+> +	v4l2_async_notifier_release(&sensor->notifier);
+>  
+>  	pm_runtime_disable(&client->dev);
+>  	if (!pm_runtime_status_suspended(&client->dev))
+> diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+> index f74d695018b9..be92cb5713f4 100644
+> --- a/drivers/media/i2c/smiapp/smiapp.h
+> +++ b/drivers/media/i2c/smiapp/smiapp.h
+> @@ -20,9 +20,10 @@
+>  #define __SMIAPP_PRIV_H_
+>  
+>  #include <linux/mutex.h>
+> +#include <media/i2c/smiapp.h>
+> +#include <media/v4l2-async.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-subdev.h>
+> -#include <media/i2c/smiapp.h>
+>  
+>  #include "smiapp-pll.h"
+>  #include "smiapp-reg.h"
+> @@ -172,6 +173,7 @@ struct smiapp_subdev {
+>   * struct smiapp_sensor - Main device structure
+>   */
+>  struct smiapp_sensor {
+> +	struct v4l2_async_notifier notifier;
+>  	/*
+>  	 * "mutex" is used to serialise access to all fields here
+>  	 * except v4l2_ctrls at the end of the struct. "mutex" is also
 > 
