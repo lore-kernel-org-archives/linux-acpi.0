@@ -1,141 +1,96 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: Re: [PATCH v3 1/3] arm64/ras: support sea error recovery
-Date: Mon, 11 Sep 2017 09:56:59 +0800
-Message-ID: <8de27b1f-3bc7-93cf-fde7-6157c6957dd5@huawei.com>
-References: <1504770316-4327-1-git-send-email-xiexiuqi@huawei.com>
- <1504770316-4327-2-git-send-email-xiexiuqi@huawei.com>
- <59B2DE26.4060002@arm.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v9 23/24] dt: bindings: smiapp: Document lens-focus and
+ flash properties
+Date: Mon, 11 Sep 2017 10:45:50 +0300
+Message-ID: <20170911074550.5lzfh5r5g4z7fyjo@valkosipuli.retiisi.org.uk>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-19-sakari.ailus@linux.intel.com>
+ <20170908133652.GR18365@amd>
+ <20170908134226.m5ts637dej7oa4jw@valkosipuli.retiisi.org.uk>
+ <20170908214544.GB27428@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:5579 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752055AbdIKB5e (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Sep 2017 21:57:34 -0400
-In-Reply-To: <59B2DE26.4060002@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170908214544.GB27428@amd>
+Sender: linux-media-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, sre@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, cj.chengjian@huawei.com
 
-Hi James,
+On Fri, Sep 08, 2017 at 11:45:44PM +0200, Pavel Machek wrote:
+> On Fri 2017-09-08 16:42:26, Sakari Ailus wrote:
+> > Hi Pavel,
+> > 
+> > On Fri, Sep 08, 2017 at 03:36:52PM +0200, Pavel Machek wrote:
+> > > Hi!
+> > > 
+> > > > Document optional lens-focus and flash properties for the smiapp driver.
+> > > > 
+> > > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > > ---
+> > > >  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
+> > > >  1 file changed, 2 insertions(+)
+> > > > 
+> > > > diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > > > index 855e1faf73e2..a052969365d9 100644
+> > > > --- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > > > +++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > > > @@ -27,6 +27,8 @@ Optional properties
+> > > >  - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
+> > > >    the NVM contents will not be read.
+> > > >  - reset-gpios: XSHUTDOWN GPIO
+> > > > +- flash-leds: One or more phandles to refer to flash LEDs
+> > > > +- lens-focus: Phandle for lens focus
+> > > 
+> > > Should we simply reference the generic documentation here? If it needs
+> > > changing, it will be easier changing single place.
+> > 
+> > Good question.
+> > 
+> > Ideally the properties at least would never change; we do have a common
+> > parser for the properties which is part of the patchset so in theory it
+> > would be possible to change the documentation in a backward-compatible way.
+> > 
+> > I added these properties as well as all the other properties supported by
+> > the sensor driver are documented here. That has been the practice AFAIU,
+> > albeit omissions do happen occasionally.
+> > 
+> > The issue I see with omitting the documentation here is that the user
+> > otherwise won't know whether a driver uses a given property or not: it
+> > shouldn't be necessary to read driver code to write DT source.
+> 
+> I see... OTOH documentation in central place _is_ a bit more verbose:
+> 
+> +- flash-leds: An array of phandles, each referring to a flash LED, a sub-node
+> +  of the LED driver device node.
+> 
+> What about:
+> 
+> flash-leds, lens-focus: see <reference to central place>
+> 
+> ?
 
-Thanks for your comments.
+How about this?
 
-On 2017/9/9 2:15, James Morse wrote:
-> Hi Xie XiuQi,
-> 
-> (Sorry a few versions of this went past before I caught up with it)
-> 
-> On 07/09/17 08:45, Xie XiuQi wrote:
->> With ARM v8.2 RAS Extension, SEA are usually triggered when memory errors
->> are consumed. In some cases, if the error address is in a clean page or a
->> read-only page, there is a chance to recover. Such as error occurs in a
->> instruction page, we can reread this page from disk instead of killing
->> process.
-> 
->> Because memory_failure() may sleep, we can not call it directly in SEA
->> exception context.
-> 
-> This is why we have memory_failure_queue() instead, it ... bother. That doesn't
-> look nmi-safe. (I thought this ended with an llist, but clearly I was looking at
-> the wrong thing).
-> 
-> It doesn't look like this is a problem for NOTIFY_SEA as it would only interrupt
-> itself on the same CPU if the memory-failure code/data were corrupt. (which is
-> not a case we can handle). We need to fix this before any of the asynchronous
-> NMI-like RAS notifications for arm64 get merged.
-> 
-> (this is one problem, but I don't think its 'the' problem you are trying to
-> solve with this series).
-> 
-> 
->> So we saved faulting physical address associated with
->> a process in the ghes handler and set __TIF_SEA_NOTIFY.
-> 
-> A per-notification type TIF flag looks fishy, surely this would affect all
-> NMI-like RAS notification methods?
-> 
-> 
->> When we return
->> from SEA exception context and get into do_notify_resume() before the
->> process running, we could check it and call memory_failure() to do
->> recovery. It's safe, because we are in process context.
-> 
-> I'm afraid I don't think this is the best approach for fixing this.
-> Its tied to the notification type, but the notification should be irrelevant
-> once we call ghes_proc().
-> It adds code poking around in CPER and ACPI/GHES to the arm64 arch code, all of
-> this should be in the core common code.
-> Most importantly: this means arm64 behaves differently with regard to handling
-> memory errors to other architectures using ACPI. Two behaviours means twice the
-> code, review and bugs...
+diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+index a052969365d9..33f10a94c381 100644
+--- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
++++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+@@ -27,8 +27,8 @@ Optional properties
+ - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
+   the NVM contents will not be read.
+ - reset-gpios: XSHUTDOWN GPIO
+-- flash-leds: One or more phandles to refer to flash LEDs
+-- lens-focus: Phandle for lens focus
++- flash-leds: See ../video-interfaces.txt
++- lens-focus: See ../video-interfaces.txt
+ 
+ 
+ Endpoint node mandatory properties
 
-I think we can use arch_apei_report_mem_error() to report memory error, just like
-what is implemented in x86. We can record the memory address in somewhere else, namely
-report the error. Then the SEA handler can use the memory error reported.
+I prefer to put them on separate lines as it's easier to read that way.
 
-> 
-> 
-> Delaying the handling until we re-enter user-space means faults that may affect
-> the kernel aren't handled until much later. Just because the fault was
-> synchronous and user-space was running doesn't mean only user space is affected.
-> Some examples I've collected so far: the zero-page may be corrupt, this is
-> mapped into every process and used by the kernel. Similarly corruption in the
-> vdso affects all user-space. The fault may affect the page tables, this affects
-> all users of the mm_struct.
-
-I am not sure if memory_failure can recognize  the zero page as a kernel page and
-just panic. If several processes share a same page, I think we don't have to kill
-the process until it access the address containing the errors. If the process access
-the error address, a SEA will occur again, then we can handle it. If the process
-will never access the error address, such as a syscall in vdso the process won't use,
-we don't have to kill the process.
-
-For vdso case, we havn't repaired the error. It will affect newly created processes.
-I don't figure out how to handle this. Is it a kernel page mapped into user space
-or memory_failure will just panic when handling this page.
-
-> 
-> (I'm sure we agree that an synchronous-external-abort interrupting the kernel is
-> fatal for the kernel, but the other way round isn't always true).
-> 
-> Setting a TIF flag to handle the error before re-entering user-space is a
-> problem as the scheduler may choose to pre-empt this task and run all the other
-> tasks before this eventually gets handled.
-> 
-> 
-> Assuming this is just a problem with memory_failure_queue(), two alternatives I
-> can suggest are making memory_failure_queue() nmi-safe,
-Yes, I agree, but it may be hard to be achieved.
-
- or abstracting
-> NOTIFY_NMI's estatus pool/cache to use for the arm64 NMI-like notifications too.
-> 
-> If there is more to this, can you explain the problem you're trying to solve?
-> (I suspect there may be an issue with multiple-signals being merged, or exactly
-> when memory_failure_queue()'s work gets run.) Can you outline the sequence of
-> events?
-> 
-> 
-> You're picking a physical address out of 'ARM Processor Error Information
-> Structure', these correspond with Cache, TLB, Bus or (the mysterious) 'micro
-> architectural error'. I don't see anything checking the error type.
-> Given the physical address, are you adding error-handling for cache-errors with
-> this series?
-> 
-> 
-> Thanks,
-> 
-> James
-> 
-> 
-> .
-> 
-
-Thanks,
-
-Xiongfeng Wang
-
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
