@@ -1,121 +1,74 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v10 23/24] ov13858: Add support for flash and lens devices
-Date: Mon, 11 Sep 2017 11:00:07 +0300
-Message-ID: <20170911080008.21208-24-sakari.ailus@linux.intel.com>
+Subject: [PATCH v10 24/24] arm: dts: omap3: N9/N950: Add flash references to the camera
+Date: Mon, 11 Sep 2017 11:00:08 +0300
+Message-ID: <20170911080008.21208-25-sakari.ailus@linux.intel.com>
 References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48880 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49028 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751127AbdIKIAV (ORCPT
+        by vger.kernel.org with ESMTP id S1751251AbdIKIAW (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 11 Sep 2017 04:00:21 -0400
+        Mon, 11 Sep 2017 04:00:22 -0400
 In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 
-Parse async sub-devices by using
-v4l2_subdev_fwnode_reference_parse_sensor_common().
+Add flash and indicator LED phandles to the sensor node.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/ov13858.c | 26 +++++++++++++++++++++++---
- 1 file changed, 23 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap3-n9.dts       | 1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
+ arch/arm/boot/dts/omap3-n950.dts     | 1 +
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-index af7af0d14c69..0d60defc7492 100644
---- a/drivers/media/i2c/ov13858.c
-+++ b/drivers/media/i2c/ov13858.c
-@@ -18,6 +18,7 @@
- #include <linux/pm_runtime.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- 
- #define OV13858_REG_VALUE_08BIT		1
- #define OV13858_REG_VALUE_16BIT		2
-@@ -1028,6 +1029,7 @@ static const struct ov13858_mode supported_modes[] = {
- struct ov13858 {
- 	struct v4l2_subdev sd;
- 	struct media_pad pad;
-+	struct v4l2_async_notifier notifier;
- 
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	/* V4L2 Controls */
-@@ -1715,6 +1717,11 @@ static int ov13858_probe(struct i2c_client *client,
- 	if (!ov13858)
- 		return -ENOMEM;
- 
-+	ret = v4l2_fwnode_reference_parse_sensor_common(
-+		&client->dev, &ov13858->notifier);
-+	if (ret < 0)
-+		return ret;
-+
- 	/* Initialize subdev */
- 	v4l2_i2c_subdev_init(&ov13858->sd, client, &ov13858_subdev_ops);
- 
-@@ -1722,7 +1729,7 @@ static int ov13858_probe(struct i2c_client *client,
- 	ret = ov13858_identify_module(ov13858);
- 	if (ret) {
- 		dev_err(&client->dev, "failed to find sensor: %d\n", ret);
--		return ret;
-+		goto error_notifier_release;
- 	}
- 
- 	/* Set default mode to max resolution */
-@@ -1730,7 +1737,7 @@ static int ov13858_probe(struct i2c_client *client,
- 
- 	ret = ov13858_init_controls(ov13858);
- 	if (ret)
--		return ret;
-+		goto error_notifier_release;
- 
- 	/* Initialize subdev */
- 	ov13858->sd.internal_ops = &ov13858_internal_ops;
-@@ -1746,9 +1753,14 @@ static int ov13858_probe(struct i2c_client *client,
- 		goto error_handler_free;
- 	}
- 
-+	ret = v4l2_async_subdev_notifier_register(&ov13858->sd,
-+						  &ov13858->notifier);
-+	if (ret)
-+		goto error_media_entity;
-+
- 	ret = v4l2_async_register_subdev(&ov13858->sd);
- 	if (ret < 0)
--		goto error_media_entity;
-+		goto error_notifier_unregister;
- 
- 	/*
- 	 * Device is already turned on by i2c-core with ACPI domain PM.
-@@ -1761,11 +1773,17 @@ static int ov13858_probe(struct i2c_client *client,
- 
- 	return 0;
- 
-+error_notifier_unregister:
-+	v4l2_async_notifier_unregister(&ov13858->notifier);
-+
- error_media_entity:
- 	media_entity_cleanup(&ov13858->sd.entity);
- 
- error_handler_free:
- 	ov13858_free_controls(ov13858);
-+
-+error_notifier_release:
-+	v4l2_async_notifier_release(&ov13858->notifier);
- 	dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
- 
- 	return ret;
-@@ -1777,6 +1795,8 @@ static int ov13858_remove(struct i2c_client *client)
- 	struct ov13858 *ov13858 = to_ov13858(sd);
- 
- 	v4l2_async_unregister_subdev(sd);
-+	v4l2_async_notifier_unregister(&ov13858->notifier);
-+	v4l2_async_notifier_release(&ov13858->notifier);
- 	media_entity_cleanup(&sd->entity);
- 	ov13858_free_controls(ov13858);
- 
+diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+index b9e58c536afd..39e35f8b8206 100644
+--- a/arch/arm/boot/dts/omap3-n9.dts
++++ b/arch/arm/boot/dts/omap3-n9.dts
+@@ -26,6 +26,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash-leds = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index 1b0bd72945f2..12fbb3da5fce 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -271,14 +271,14 @@
+ 		#size-cells = <0>;
+ 		reg = <0x30>;
+ 		compatible = "ams,as3645a";
+-		flash@0 {
++		as3645a_flash: flash@0 {
+ 			reg = <0x0>;
+ 			flash-timeout-us = <150000>;
+ 			flash-max-microamp = <320000>;
+ 			led-max-microamp = <60000>;
+ 			ams,input-max-microamp = <1750000>;
+ 		};
+-		indicator@1 {
++		as3645a_indicator: indicator@1 {
+ 			reg = <0x1>;
+ 			led-max-microamp = <10000>;
+ 		};
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 646601a3ebd8..c354a1ed1e70 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -60,6 +60,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash-leds = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
 -- 
 2.11.0
 
