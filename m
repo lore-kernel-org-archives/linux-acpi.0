@@ -1,87 +1,143 @@
-From: Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
-Subject: Re: [PATCH v10 24/24] arm: dts: omap3: N9/N950: Add flash references
- to the camera
-Date: Mon, 11 Sep 2017 11:50:29 +0200
-Message-ID: <3ea79dc9-9374-008f-7cd9-567a560a0fd5@xs4all.nl>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v10 17/24] v4l: fwnode: Add a helper function for parsing
+ generic references
+Date: Mon, 11 Sep 2017 12:59:27 +0300
+Message-ID: <20170911095927.femgxvok2wbe6zdk@valkosipuli.retiisi.org.uk>
 References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-25-sakari.ailus@linux.intel.com>
+ <20170911080008.21208-18-sakari.ailus@linux.intel.com>
+ <e71bb2d0-d68d-0c9a-4234-482a2898a5fb@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170911080008.21208-25-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50586 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751253AbdIKJ7a (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 11 Sep 2017 05:59:30 -0400
+Content-Disposition: inline
+In-Reply-To: <e71bb2d0-d68d-0c9a-4234-482a2898a5fb@xs4all.nl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 
-On 09/11/2017 10:00 AM, Sakari Ailus wrote:
-> Add flash and indicator LED phandles to the sensor node.
+Hi Hans,
+
+Thanks for the review!
+
+On Mon, Sep 11, 2017 at 11:14:03AM +0200, Hans Verkuil wrote:
+> On 09/11/2017 10:00 AM, Sakari Ailus wrote:
+> > Add function v4l2_fwnode_reference_count() for counting external
+> > references and v4l2_fwnode_reference_parse() for parsing them as async
+> > sub-devices.
+> > 
+> > This can be done on e.g. flash or lens async sub-devices that are not part
+> > of but are associated with a sensor.
+> > 
+> > struct v4l2_async_notifier.max_subdevs field is added to contain the
+> > maximum number of sub-devices in a notifier to reflect the memory
+> > allocated for the subdevs array.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> This paragraph appears to be out-of-date.
 
-Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Will remove.
 
+> 
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-fwnode.c | 47 +++++++++++++++++++++++++++++++++++
+> >  1 file changed, 47 insertions(+)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > index d978f2d714ca..4821c4989119 100644
+> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > @@ -449,6 +449,53 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
+> >  
+> > +static int v4l2_fwnode_reference_parse(
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	const char *prop)
+> > +{
+> > +	struct fwnode_reference_args args;
+> > +	unsigned int index = 0;
+> > +	int ret;
+> > +
+> > +	for (; !fwnode_property_get_reference_args(
+> > +		     dev_fwnode(dev), prop, NULL, 0, index, &args); index++)
+> > +		fwnode_handle_put(args.fwnode);
+> > +
+> 
+> If nothing is found (i.e. index == 0), shouldn't you just return here?
+
+You could. yes. It would actually simplify the code, I could just return
+-ENOENT here.
+
+> 
+> > +	ret = v4l2_async_notifier_realloc(notifier,
+> > +					  notifier->num_subdevs + index);
+> > +	if (ret)
+> > +		return -ENOMEM;
+> > +
+> > +	for (ret = -ENOENT, index = 0;
+> 
+> There is no reason for the 'ret = -ENOENT' to be in the for(), just set it before
+> the 'for' statement.
+> 
+> > +	     !fwnode_property_get_reference_args(
+> > +		     dev_fwnode(dev), prop, NULL, 0, index, &args);
+> > +	     index++) {
+> > +		struct v4l2_async_subdev *asd;
+> > +
+> > +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
+> > +			ret = -EINVAL;
+> > +			goto error;
+> > +		}
+> > +
+> > +		asd = kzalloc(sizeof(*asd), GFP_KERNEL);
+> > +		if (!asd) {
+> > +			ret = -ENOMEM;
+> > +			goto error;
+> > +		}
+> > +
+> > +		notifier->subdevs[notifier->num_subdevs] = asd;
+> > +		asd->match.fwnode.fwnode = args.fwnode;
+> > +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> > +		notifier->num_subdevs++;
+> > +	}
+> 
+> If the loop doesn't find anything, then it still returns 0, not -ENOENT.
+> So why set ret to ENOENT? Something weird going on here.
+
+:-)
+
+I think -ENOENT would make sense indeed if there are no entries found.
+
+> 
+> I think you should also add a comment explaining this function.
+
+Yes. I had that in the header when it was exported, I'll add the same
+comments here.
+
+> 
+> > +
+> > +	return 0;
+> > +
+> > +error:
+> > +	fwnode_handle_put(args.fwnode);
+> > +	return ret;
+> > +}
+> > +
+> >  MODULE_LICENSE("GPL");
+> >  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+> >  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+> > 
+> 
+
+-- 
 Regards,
 
-	Hans
-
-
-> ---
->  arch/arm/boot/dts/omap3-n9.dts       | 1 +
->  arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
->  arch/arm/boot/dts/omap3-n950.dts     | 1 +
->  3 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-> index b9e58c536afd..39e35f8b8206 100644
-> --- a/arch/arm/boot/dts/omap3-n9.dts
-> +++ b/arch/arm/boot/dts/omap3-n9.dts
-> @@ -26,6 +26,7 @@
->  		clocks = <&isp 0>;
->  		clock-frequency = <9600000>;
->  		nokia,nvm-size = <(16 * 64)>;
-> +		flash-leds = <&as3645a_flash &as3645a_indicator>;
->  		port {
->  			smia_1_1: endpoint {
->  				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
-> diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> index 1b0bd72945f2..12fbb3da5fce 100644
-> --- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> @@ -271,14 +271,14 @@
->  		#size-cells = <0>;
->  		reg = <0x30>;
->  		compatible = "ams,as3645a";
-> -		flash@0 {
-> +		as3645a_flash: flash@0 {
->  			reg = <0x0>;
->  			flash-timeout-us = <150000>;
->  			flash-max-microamp = <320000>;
->  			led-max-microamp = <60000>;
->  			ams,input-max-microamp = <1750000>;
->  		};
-> -		indicator@1 {
-> +		as3645a_indicator: indicator@1 {
->  			reg = <0x1>;
->  			led-max-microamp = <10000>;
->  		};
-> diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-> index 646601a3ebd8..c354a1ed1e70 100644
-> --- a/arch/arm/boot/dts/omap3-n950.dts
-> +++ b/arch/arm/boot/dts/omap3-n950.dts
-> @@ -60,6 +60,7 @@
->  		clocks = <&isp 0>;
->  		clock-frequency = <9600000>;
->  		nokia,nvm-size = <(16 * 64)>;
-> +		flash-leds = <&as3645a_flash &as3645a_indicator>;
->  		port {
->  			smia_1_1: endpoint {
->  				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
-> 
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
