@@ -1,169 +1,121 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v10 21/24] smiapp: Add support for flash and lens devices
-Date: Mon, 11 Sep 2017 11:00:05 +0300
-Message-ID: <20170911080008.21208-22-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v10 23/24] ov13858: Add support for flash and lens devices
+Date: Mon, 11 Sep 2017 11:00:07 +0300
+Message-ID: <20170911080008.21208-24-sakari.ailus@linux.intel.com>
 References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170911080008.21208-1-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48880 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751127AbdIKIAV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 11 Sep 2017 04:00:21 -0400
+In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 
 Parse async sub-devices by using
 v4l2_subdev_fwnode_reference_parse_sensor_common().
 
-These types devices aren't directly related to the sensor, but are
-nevertheless handled by the smiapp driver due to the relationship of these
-component to the main part of the camera module --- the sensor.
-
-This does not yet address providing the user space with information on how
-to associate the sensor or lens devices but the kernel now has the
-necessary information to do that.
-
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 38 +++++++++++++++++++++++++++-------
- drivers/media/i2c/smiapp/smiapp.h      |  4 +++-
- 2 files changed, 33 insertions(+), 9 deletions(-)
+ drivers/media/i2c/ov13858.c | 26 +++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 700f433261d0..a65a839135d2 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -31,7 +31,7 @@
- #include <linux/regulator/consumer.h>
- #include <linux/slab.h>
- #include <linux/smiapp.h>
--#include <linux/v4l2-mediabus.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+index af7af0d14c69..0d60defc7492 100644
+--- a/drivers/media/i2c/ov13858.c
++++ b/drivers/media/i2c/ov13858.c
+@@ -18,6 +18,7 @@
+ #include <linux/pm_runtime.h>
+ #include <media/v4l2-ctrls.h>
  #include <media/v4l2-device.h>
++#include <media/v4l2-fwnode.h>
  
-@@ -2887,17 +2887,24 @@ static int smiapp_probe(struct i2c_client *client,
- 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
- 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+ #define OV13858_REG_VALUE_08BIT		1
+ #define OV13858_REG_VALUE_16BIT		2
+@@ -1028,6 +1029,7 @@ static const struct ov13858_mode supported_modes[] = {
+ struct ov13858 {
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pad;
++	struct v4l2_async_notifier notifier;
  
-+	rval = v4l2_fwnode_reference_parse_sensor_common(
-+		&client->dev, &sensor->notifier);
-+	if (rval < 0)
-+		return rval;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	/* V4L2 Controls */
+@@ -1715,6 +1717,11 @@ static int ov13858_probe(struct i2c_client *client,
+ 	if (!ov13858)
+ 		return -ENOMEM;
+ 
++	ret = v4l2_fwnode_reference_parse_sensor_common(
++		&client->dev, &ov13858->notifier);
++	if (ret < 0)
++		return ret;
 +
- 	sensor->vana = devm_regulator_get(&client->dev, "vana");
- 	if (IS_ERR(sensor->vana)) {
- 		dev_err(&client->dev, "could not get regulator for vana\n");
--		return PTR_ERR(sensor->vana);
-+		rval = PTR_ERR(sensor->vana);
-+		goto out_release_async_notifier;
+ 	/* Initialize subdev */
+ 	v4l2_i2c_subdev_init(&ov13858->sd, client, &ov13858_subdev_ops);
+ 
+@@ -1722,7 +1729,7 @@ static int ov13858_probe(struct i2c_client *client,
+ 	ret = ov13858_identify_module(ov13858);
+ 	if (ret) {
+ 		dev_err(&client->dev, "failed to find sensor: %d\n", ret);
+-		return ret;
++		goto error_notifier_release;
  	}
  
- 	sensor->ext_clk = devm_clk_get(&client->dev, NULL);
- 	if (IS_ERR(sensor->ext_clk)) {
- 		dev_err(&client->dev, "could not get clock (%ld)\n",
- 			PTR_ERR(sensor->ext_clk));
--		return -EPROBE_DEFER;
-+		rval = -EPROBE_DEFER;
-+		goto out_release_async_notifier;
+ 	/* Set default mode to max resolution */
+@@ -1730,7 +1737,7 @@ static int ov13858_probe(struct i2c_client *client,
+ 
+ 	ret = ov13858_init_controls(ov13858);
+ 	if (ret)
+-		return ret;
++		goto error_notifier_release;
+ 
+ 	/* Initialize subdev */
+ 	ov13858->sd.internal_ops = &ov13858_internal_ops;
+@@ -1746,9 +1753,14 @@ static int ov13858_probe(struct i2c_client *client,
+ 		goto error_handler_free;
  	}
  
- 	rval = clk_set_rate(sensor->ext_clk, sensor->hwcfg->ext_clk);
-@@ -2905,17 +2912,19 @@ static int smiapp_probe(struct i2c_client *client,
- 		dev_err(&client->dev,
- 			"unable to set clock freq to %u\n",
- 			sensor->hwcfg->ext_clk);
--		return rval;
-+		goto out_release_async_notifier;
- 	}
- 
- 	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
- 						    GPIOD_OUT_LOW);
--	if (IS_ERR(sensor->xshutdown))
--		return PTR_ERR(sensor->xshutdown);
-+	if (IS_ERR(sensor->xshutdown)) {
-+		rval = PTR_ERR(sensor->xshutdown);
-+		goto out_release_async_notifier;
-+	}
- 
- 	rval = smiapp_power_on(&client->dev);
- 	if (rval < 0)
--		return rval;
-+		goto out_release_async_notifier;
- 
- 	rval = smiapp_identify_module(sensor);
- 	if (rval) {
-@@ -3092,9 +3101,14 @@ static int smiapp_probe(struct i2c_client *client,
- 	if (rval < 0)
- 		goto out_media_entity_cleanup;
- 
-+	rval = v4l2_async_subdev_notifier_register(&sensor->src->sd,
-+						   &sensor->notifier);
-+	if (rval)
-+		goto out_media_entity_cleanup;
++	ret = v4l2_async_subdev_notifier_register(&ov13858->sd,
++						  &ov13858->notifier);
++	if (ret)
++		goto error_media_entity;
 +
- 	rval = v4l2_async_register_subdev(&sensor->src->sd);
- 	if (rval < 0)
--		goto out_media_entity_cleanup;
-+		goto out_unregister_async_notifier;
+ 	ret = v4l2_async_register_subdev(&ov13858->sd);
+ 	if (ret < 0)
+-		goto error_media_entity;
++		goto error_notifier_unregister;
  
- 	pm_runtime_set_active(&client->dev);
- 	pm_runtime_get_noresume(&client->dev);
-@@ -3105,6 +3119,9 @@ static int smiapp_probe(struct i2c_client *client,
+ 	/*
+ 	 * Device is already turned on by i2c-core with ACPI domain PM.
+@@ -1761,11 +1773,17 @@ static int ov13858_probe(struct i2c_client *client,
  
  	return 0;
  
-+out_unregister_async_notifier:
-+	v4l2_async_notifier_unregister(&sensor->notifier);
++error_notifier_unregister:
++	v4l2_async_notifier_unregister(&ov13858->notifier);
 +
- out_media_entity_cleanup:
- 	media_entity_cleanup(&sensor->src->sd.entity);
+ error_media_entity:
+ 	media_entity_cleanup(&ov13858->sd.entity);
  
-@@ -3114,6 +3131,9 @@ static int smiapp_probe(struct i2c_client *client,
- out_power_off:
- 	smiapp_power_off(&client->dev);
- 
-+out_release_async_notifier:
-+	v4l2_async_notifier_release(&sensor->notifier);
+ error_handler_free:
+ 	ov13858_free_controls(ov13858);
 +
- 	return rval;
- }
++error_notifier_release:
++	v4l2_async_notifier_release(&ov13858->notifier);
+ 	dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
  
-@@ -3124,6 +3144,8 @@ static int smiapp_remove(struct i2c_client *client)
- 	unsigned int i;
+ 	return ret;
+@@ -1777,6 +1795,8 @@ static int ov13858_remove(struct i2c_client *client)
+ 	struct ov13858 *ov13858 = to_ov13858(sd);
  
- 	v4l2_async_unregister_subdev(subdev);
-+	v4l2_async_notifier_unregister(&sensor->notifier);
-+	v4l2_async_notifier_release(&sensor->notifier);
+ 	v4l2_async_unregister_subdev(sd);
++	v4l2_async_notifier_unregister(&ov13858->notifier);
++	v4l2_async_notifier_release(&ov13858->notifier);
+ 	media_entity_cleanup(&sd->entity);
+ 	ov13858_free_controls(ov13858);
  
- 	pm_runtime_disable(&client->dev);
- 	if (!pm_runtime_status_suspended(&client->dev))
-diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
-index f74d695018b9..be92cb5713f4 100644
---- a/drivers/media/i2c/smiapp/smiapp.h
-+++ b/drivers/media/i2c/smiapp/smiapp.h
-@@ -20,9 +20,10 @@
- #define __SMIAPP_PRIV_H_
- 
- #include <linux/mutex.h>
-+#include <media/i2c/smiapp.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-subdev.h>
--#include <media/i2c/smiapp.h>
- 
- #include "smiapp-pll.h"
- #include "smiapp-reg.h"
-@@ -172,6 +173,7 @@ struct smiapp_subdev {
-  * struct smiapp_sensor - Main device structure
-  */
- struct smiapp_sensor {
-+	struct v4l2_async_notifier notifier;
- 	/*
- 	 * "mutex" is used to serialise access to all fields here
- 	 * except v4l2_ctrls at the end of the struct. "mutex" is also
 -- 
 2.11.0
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
