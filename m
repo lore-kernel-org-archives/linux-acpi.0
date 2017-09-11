@@ -1,7 +1,7 @@
 From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v10 07/24] rcar-vin: Use generic parser for parsing fwnode endpoints
-Date: Mon, 11 Sep 2017 10:59:51 +0300
-Message-ID: <20170911080008.21208-8-sakari.ailus@linux.intel.com>
+Subject: [PATCH v10 10/24] v4l: async: Move async subdev notifier operations to a separate structure
+Date: Mon, 11 Sep 2017 10:59:54 +0300
+Message-ID: <20170911080008.21208-11-sakari.ailus@linux.intel.com>
 References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170911080008.21208-1-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
@@ -10,363 +10,600 @@ To: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Instead of using driver implementation, use
-v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
-of the device.
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+The async subdev notifier .bound(), .unbind() and .complete() operations
+are function pointers stored directly in the v4l2_async_subdev
+structure. As the structure isn't immutable, this creates a potential
+security risk as the function pointers are mutable.
+
+To fix this, move the function pointers to a new
+v4l2_async_subdev_operations structure that can be made const in
+drivers.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 112 +++++++++-------------------
- drivers/media/platform/rcar-vin/rcar-dma.c  |  10 +--
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  14 ++--
- drivers/media/platform/rcar-vin/rcar-vin.h  |   4 +-
- 4 files changed, 48 insertions(+), 92 deletions(-)
+ drivers/media/platform/am437x/am437x-vpfe.c    |  8 +++++--
+ drivers/media/platform/atmel/atmel-isc.c       | 10 ++++++---
+ drivers/media/platform/atmel/atmel-isi.c       | 10 ++++++---
+ drivers/media/platform/davinci/vpif_capture.c  |  8 +++++--
+ drivers/media/platform/davinci/vpif_display.c  |  8 +++++--
+ drivers/media/platform/exynos4-is/media-dev.c  |  8 +++++--
+ drivers/media/platform/omap3isp/isp.c          |  6 +++++-
+ drivers/media/platform/pxa_camera.c            |  8 +++++--
+ drivers/media/platform/qcom/camss-8x16/camss.c |  8 +++++--
+ drivers/media/platform/rcar-vin/rcar-core.c    | 10 ++++++---
+ drivers/media/platform/rcar_drif.c             | 10 ++++++---
+ drivers/media/platform/soc_camera/soc_camera.c | 14 +++++++------
+ drivers/media/platform/stm32/stm32-dcmi.c      | 10 ++++++---
+ drivers/media/platform/ti-vpe/cal.c            |  8 +++++--
+ drivers/media/platform/xilinx/xilinx-vipp.c    |  8 +++++--
+ drivers/media/v4l2-core/v4l2-async.c           | 20 +++++++++---------
+ drivers/staging/media/imx/imx-media-dev.c      |  8 +++++--
+ include/media/v4l2-async.h                     | 29 +++++++++++++++++---------
+ 18 files changed, 131 insertions(+), 60 deletions(-)
 
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+index dfcc484cab89..0997c640191d 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.c
++++ b/drivers/media/platform/am437x/am437x-vpfe.c
+@@ -2417,6 +2417,11 @@ static int vpfe_async_complete(struct v4l2_async_notifier *notifier)
+ 	return vpfe_probe_complete(vpfe);
+ }
+ 
++static const struct v4l2_async_notifier_operations vpfe_async_ops = {
++	.bound = vpfe_async_bound,
++	.complete = vpfe_async_complete,
++};
++
+ static struct vpfe_config *
+ vpfe_get_pdata(struct platform_device *pdev)
+ {
+@@ -2590,8 +2595,7 @@ static int vpfe_probe(struct platform_device *pdev)
+ 
+ 	vpfe->notifier.subdevs = vpfe->cfg->asd;
+ 	vpfe->notifier.num_subdevs = ARRAY_SIZE(vpfe->cfg->asd);
+-	vpfe->notifier.bound = vpfe_async_bound;
+-	vpfe->notifier.complete = vpfe_async_complete;
++	vpfe->notifier.ops = &vpfe_async_ops;
+ 	ret = v4l2_async_notifier_register(&vpfe->v4l2_dev,
+ 						&vpfe->notifier);
+ 	if (ret) {
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index d7103c5f92c3..48544c4137cb 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -1639,6 +1639,12 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
+ 	return 0;
+ }
+ 
++static const struct v4l2_async_notifier_operations isc_async_ops = {
++	.bound = isc_async_bound,
++	.unbind = isc_async_unbind,
++	.complete = isc_async_complete,
++};
++
+ static void isc_subdev_cleanup(struct isc_device *isc)
+ {
+ 	struct isc_subdev_entity *subdev_entity;
+@@ -1851,9 +1857,7 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ 	list_for_each_entry(subdev_entity, &isc->subdev_entities, list) {
+ 		subdev_entity->notifier.subdevs = &subdev_entity->asd;
+ 		subdev_entity->notifier.num_subdevs = 1;
+-		subdev_entity->notifier.bound = isc_async_bound;
+-		subdev_entity->notifier.unbind = isc_async_unbind;
+-		subdev_entity->notifier.complete = isc_async_complete;
++		subdev_entity->notifier.ops = &isc_async_ops;
+ 
+ 		ret = v4l2_async_notifier_register(&isc->v4l2_dev,
+ 						   &subdev_entity->notifier);
+diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+index 891fa2505efa..eadbf9def358 100644
+--- a/drivers/media/platform/atmel/atmel-isi.c
++++ b/drivers/media/platform/atmel/atmel-isi.c
+@@ -1105,6 +1105,12 @@ static int isi_graph_notify_bound(struct v4l2_async_notifier *notifier,
+ 	return 0;
+ }
+ 
++static const struct v4l2_async_notifier_operations isi_graph_notify_ops = {
++	.bound = isi_graph_notify_bound,
++	.unbind = isi_graph_notify_unbind,
++	.complete = isi_graph_notify_complete,
++};
++
+ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
+ {
+ 	struct device_node *ep = NULL;
+@@ -1152,9 +1158,7 @@ static int isi_graph_init(struct atmel_isi *isi)
+ 
+ 	isi->notifier.subdevs = subdevs;
+ 	isi->notifier.num_subdevs = 1;
+-	isi->notifier.bound = isi_graph_notify_bound;
+-	isi->notifier.unbind = isi_graph_notify_unbind;
+-	isi->notifier.complete = isi_graph_notify_complete;
++	isi->notifier.ops = &isi_graph_notify_ops;
+ 
+ 	ret = v4l2_async_notifier_register(&isi->v4l2_dev, &isi->notifier);
+ 	if (ret < 0) {
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 0ef36cec21d1..a89367ab1e06 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1500,6 +1500,11 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
+ 	return vpif_probe_complete();
+ }
+ 
++static const struct v4l2_async_notifier_operations vpif_async_ops = {
++	.bound = vpif_async_bound,
++	.complete = vpif_async_complete,
++};
++
+ static struct vpif_capture_config *
+ vpif_capture_get_pdata(struct platform_device *pdev)
+ {
+@@ -1691,8 +1696,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	} else {
+ 		vpif_obj.notifier.subdevs = vpif_obj.config->asd;
+ 		vpif_obj.notifier.num_subdevs = vpif_obj.config->asd_sizes[0];
+-		vpif_obj.notifier.bound = vpif_async_bound;
+-		vpif_obj.notifier.complete = vpif_async_complete;
++		vpif_obj.notifier.ops = &vpif_async_ops;
+ 		err = v4l2_async_notifier_register(&vpif_obj.v4l2_dev,
+ 						   &vpif_obj.notifier);
+ 		if (err) {
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 56fe4e5b396e..ff2f75a328c9 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1232,6 +1232,11 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
+ 	return vpif_probe_complete();
+ }
+ 
++static const struct v4l2_async_notifier_operations vpif_async_ops = {
++	.bound = vpif_async_bound,
++	.complete = vpif_async_complete,
++};
++
+ /*
+  * vpif_probe: This function creates device entries by register itself to the
+  * V4L2 driver and initializes fields of each channel objects
+@@ -1313,8 +1318,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	} else {
+ 		vpif_obj.notifier.subdevs = vpif_obj.config->asd;
+ 		vpif_obj.notifier.num_subdevs = vpif_obj.config->asd_sizes[0];
+-		vpif_obj.notifier.bound = vpif_async_bound;
+-		vpif_obj.notifier.complete = vpif_async_complete;
++		vpif_obj.notifier.ops = &vpif_async_ops;
+ 		err = v4l2_async_notifier_register(&vpif_obj.v4l2_dev,
+ 						   &vpif_obj.notifier);
+ 		if (err) {
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index d4656d5175d7..c15596b56dc9 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -1405,6 +1405,11 @@ static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
+ 	return media_device_register(&fmd->media_dev);
+ }
+ 
++static const struct v4l2_async_notifier_operations subdev_notifier_ops = {
++	.bound = subdev_notifier_bound,
++	.complete = subdev_notifier_complete,
++};
++
+ static int fimc_md_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -1479,8 +1484,7 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	if (fmd->num_sensors > 0) {
+ 		fmd->subdev_notifier.subdevs = fmd->async_subdevs;
+ 		fmd->subdev_notifier.num_subdevs = fmd->num_sensors;
+-		fmd->subdev_notifier.bound = subdev_notifier_bound;
+-		fmd->subdev_notifier.complete = subdev_notifier_complete;
++		fmd->subdev_notifier.ops = &subdev_notifier_ops;
+ 		fmd->num_sensors = 0;
+ 
+ 		ret = v4l2_async_notifier_register(&fmd->v4l2_dev,
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 9a694924e46e..0f08d602f756 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2171,6 +2171,10 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ 	return media_device_register(&isp->media_dev);
+ }
+ 
++static const struct v4l2_async_notifier_operations isp_subdev_notifier_ops = {
++	.complete = isp_subdev_notifier_complete,
++};
++
+ /*
+  * isp_probe - Probe ISP platform device
+  * @pdev: Pointer to ISP platform device
+@@ -2341,7 +2345,7 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto error_register_entities;
+ 
+-	isp->notifier.complete = isp_subdev_notifier_complete;
++	isp->notifier.ops = &isp_subdev_notifier_ops;
+ 
+ 	ret = v4l2_async_notifier_register(&isp->v4l2_dev, &isp->notifier);
+ 	if (ret)
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index edca993c2b1f..9d3f0cb1d95a 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -2221,6 +2221,11 @@ static void pxa_camera_sensor_unbind(struct v4l2_async_notifier *notifier,
+ 	mutex_unlock(&pcdev->mlock);
+ }
+ 
++static const struct v4l2_async_notifier_operations pxa_camera_sensor_ops = {
++	.bound = pxa_camera_sensor_bound,
++	.unbind = pxa_camera_sensor_unbind,
++};
++
+ /*
+  * Driver probe, remove, suspend and resume operations
+  */
+@@ -2489,8 +2494,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 	pcdev->asds[0] = &pcdev->asd;
+ 	pcdev->notifier.subdevs = pcdev->asds;
+ 	pcdev->notifier.num_subdevs = 1;
+-	pcdev->notifier.bound = pxa_camera_sensor_bound;
+-	pcdev->notifier.unbind = pxa_camera_sensor_unbind;
++	pcdev->notifier.ops = &pxa_camera_sensor_ops;
+ 
+ 	if (!of_have_populated_dt())
+ 		pcdev->asd.match_type = V4L2_ASYNC_MATCH_I2C;
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss.c b/drivers/media/platform/qcom/camss-8x16/camss.c
+index a3760b5dd1d1..390a42c17b66 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss.c
++++ b/drivers/media/platform/qcom/camss-8x16/camss.c
+@@ -601,6 +601,11 @@ static int camss_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ 	return media_device_register(&camss->media_dev);
+ }
+ 
++static const struct v4l2_async_notifier_operations camss_subdev_notifier_ops = {
++	.bound = camss_subdev_notifier_bound,
++	.complete = camss_subdev_notifier_complete,
++};
++
+ static const struct media_device_ops camss_media_ops = {
+ 	.link_notify = v4l2_pipeline_link_notify,
+ };
+@@ -655,8 +660,7 @@ static int camss_probe(struct platform_device *pdev)
+ 		goto err_register_entities;
+ 
+ 	if (camss->notifier.num_subdevs) {
+-		camss->notifier.bound = camss_subdev_notifier_bound;
+-		camss->notifier.complete = camss_subdev_notifier_complete;
++		camss->notifier.ops = &camss_subdev_notifier_ops;
+ 
+ 		ret = v4l2_async_notifier_register(&camss->v4l2_dev,
+ 						   &camss->notifier);
 diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 142de447aaaa..62b4a94f9a39 100644
+index 62b4a94f9a39..55acab4f2905 100644
 --- a/drivers/media/platform/rcar-vin/rcar-core.c
 +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -21,6 +21,7 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- 
-+#include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
- 
- #include "rcar-vin.h"
-@@ -77,14 +78,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- 	int ret;
- 
- 	/* Verify subdevices mbus format */
--	if (!rvin_mbus_supported(&vin->digital)) {
-+	if (!rvin_mbus_supported(vin->digital)) {
- 		vin_err(vin, "Unsupported media bus format for %s\n",
--			vin->digital.subdev->name);
-+			vin->digital->subdev->name);
- 		return -EINVAL;
- 	}
- 
- 	vin_dbg(vin, "Found media bus format for %s: %d\n",
--		vin->digital.subdev->name, vin->digital.code);
-+		vin->digital->subdev->name, vin->digital->code);
- 
- 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
- 	if (ret < 0) {
-@@ -103,7 +104,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
- 
- 	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
- 	rvin_v4l2_remove(vin);
--	vin->digital.subdev = NULL;
-+	vin->digital->subdev = NULL;
- }
- 
- static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
-@@ -120,117 +121,70 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
- 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
- 	if (ret < 0)
- 		return ret;
--	vin->digital.source_pad = ret;
-+	vin->digital->source_pad = ret;
- 
- 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
--	vin->digital.sink_pad = ret < 0 ? 0 : ret;
-+	vin->digital->sink_pad = ret < 0 ? 0 : ret;
- 
--	vin->digital.subdev = subdev;
-+	vin->digital->subdev = subdev;
- 
- 	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
--		subdev->name, vin->digital.source_pad,
--		vin->digital.sink_pad);
-+		subdev->name, vin->digital->source_pad,
-+		vin->digital->sink_pad);
+@@ -134,6 +134,12 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
  
  	return 0;
  }
++static const struct v4l2_async_notifier_operations rvin_digital_notify_ops = {
++	.bound = rvin_digital_notify_bound,
++	.unbind = rvin_digital_notify_unbind,
++	.complete = rvin_digital_notify_complete,
++};
++
  
--static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
--				    struct device_node *ep,
--				    struct v4l2_mbus_config *mbus_cfg)
-+static int rvin_digital_parse_v4l2(struct device *dev,
-+				   struct v4l2_fwnode_endpoint *vep,
-+				   struct v4l2_async_subdev *asd)
- {
--	struct v4l2_fwnode_endpoint v4l2_ep;
--	int ret;
-+	struct rvin_dev *vin = dev_get_drvdata(dev);
-+	struct rvin_graph_entity *rvge =
-+		container_of(asd, struct rvin_graph_entity, asd);
+ static int rvin_digital_parse_v4l2(struct device *dev,
+ 				   struct v4l2_fwnode_endpoint *vep,
+@@ -182,9 +188,7 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ 			to_of_node(
+ 				vin->digital->asd.match.fwnode.fwnode));
  
--	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
--	if (ret) {
--		vin_err(vin, "Could not parse v4l2 endpoint\n");
--		return -EINVAL;
--	}
-+	if (vep->base.port || vep->base.id)
-+		return -ENOTCONN;
- 
--	mbus_cfg->type = v4l2_ep.bus_type;
-+	rvge->mbus_cfg.type = vep->bus_type;
- 
--	switch (mbus_cfg->type) {
-+	switch (rvge->mbus_cfg.type) {
- 	case V4L2_MBUS_PARALLEL:
- 		vin_dbg(vin, "Found PARALLEL media bus\n");
--		mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
-+		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
- 		break;
- 	case V4L2_MBUS_BT656:
- 		vin_dbg(vin, "Found BT656 media bus\n");
--		mbus_cfg->flags = 0;
-+		rvge->mbus_cfg.flags = 0;
- 		break;
- 	default:
- 		vin_err(vin, "Unknown media bus type\n");
- 		return -EINVAL;
- 	}
- 
--	return 0;
--}
--
--static int rvin_digital_graph_parse(struct rvin_dev *vin)
--{
--	struct device_node *ep, *np;
--	int ret;
--
--	vin->digital.asd.match.fwnode.fwnode = NULL;
--	vin->digital.subdev = NULL;
--
--	/*
--	 * Port 0 id 0 is local digital input, try to get it.
--	 * Not all instances can or will have this, that is OK
--	 */
--	ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
--	if (!ep)
--		return 0;
--
--	np = of_graph_get_remote_port_parent(ep);
--	if (!np) {
--		vin_err(vin, "No remote parent for digital input\n");
--		of_node_put(ep);
--		return -EINVAL;
--	}
--	of_node_put(np);
--
--	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
--	of_node_put(ep);
--	if (ret)
--		return ret;
--
--	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
--	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-+	vin->digital = rvge;
- 
- 	return 0;
- }
- 
- static int rvin_digital_graph_init(struct rvin_dev *vin)
- {
--	struct v4l2_async_subdev **subdevs = NULL;
- 	int ret;
- 
--	ret = rvin_digital_graph_parse(vin);
-+	ret = v4l2_async_notifier_parse_fwnode_endpoints(
-+		vin->dev, &vin->notifier,
-+		sizeof(struct rvin_graph_entity), rvin_digital_parse_v4l2);
- 	if (ret)
- 		return ret;
- 
--	if (!vin->digital.asd.match.fwnode.fwnode) {
--		vin_dbg(vin, "No digital subdevice found\n");
--		return -ENODEV;
--	}
--
--	/* Register the subdevices notifier. */
--	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs), GFP_KERNEL);
--	if (subdevs == NULL)
--		return -ENOMEM;
--
--	subdevs[0] = &vin->digital.asd;
--
--	vin_dbg(vin, "Found digital subdevice %pOF\n",
--		to_of_node(subdevs[0]->match.fwnode.fwnode));
-+	if (vin->digital)
-+		vin_dbg(vin, "Found digital subdevice %pOF\n",
-+			to_of_node(
-+				vin->digital->asd.match.fwnode.fwnode));
- 
--	vin->notifier.num_subdevs = 1;
--	vin->notifier.subdevs = subdevs;
- 	vin->notifier.bound = rvin_digital_notify_bound;
- 	vin->notifier.unbind = rvin_digital_notify_unbind;
- 	vin->notifier.complete = rvin_digital_notify_complete;
--
+-	vin->notifier.bound = rvin_digital_notify_bound;
+-	vin->notifier.unbind = rvin_digital_notify_unbind;
+-	vin->notifier.complete = rvin_digital_notify_complete;
++	vin->notifier.ops = &rvin_digital_notify_ops;
  	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
  	if (ret < 0) {
  		vin_err(vin, "Notifier registration failed\n");
-@@ -290,6 +244,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
-+	platform_set_drvdata(pdev, vin);
-+
- 	ret = rvin_digital_graph_init(vin);
- 	if (ret < 0)
- 		goto error;
-@@ -297,11 +253,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	pm_suspend_ignore_children(&pdev->dev, true);
- 	pm_runtime_enable(&pdev->dev);
- 
--	platform_set_drvdata(pdev, vin);
--
- 	return 0;
- error:
- 	rvin_dma_remove(vin);
-+	v4l2_async_notifier_release(&vin->notifier);
- 
+diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
+index 522364ff0d5d..0b2214d6d621 100644
+--- a/drivers/media/platform/rcar_drif.c
++++ b/drivers/media/platform/rcar_drif.c
+@@ -1185,6 +1185,12 @@ static int rcar_drif_notify_complete(struct v4l2_async_notifier *notifier)
  	return ret;
  }
-@@ -313,6 +268,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 	pm_runtime_disable(&pdev->dev);
  
- 	v4l2_async_notifier_unregister(&vin->notifier);
-+	v4l2_async_notifier_release(&vin->notifier);
++static const struct v4l2_async_notifier_operations rcar_drif_notify_ops = {
++	.bound = rcar_drif_notify_bound,
++	.unbind = rcar_drif_notify_unbind,
++	.complete = rcar_drif_notify_complete,
++};
++
+ /* Read endpoint properties */
+ static void rcar_drif_get_ep_properties(struct rcar_drif_sdr *sdr,
+ 					struct fwnode_handle *fwnode)
+@@ -1347,9 +1353,7 @@ static int rcar_drif_sdr_probe(struct rcar_drif_sdr *sdr)
+ 	if (ret)
+ 		goto error;
  
- 	rvin_dma_remove(vin);
+-	sdr->notifier.bound = rcar_drif_notify_bound;
+-	sdr->notifier.unbind = rcar_drif_notify_unbind;
+-	sdr->notifier.complete = rcar_drif_notify_complete;
++	sdr->notifier.ops = &rcar_drif_notify_ops;
  
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index b136844499f6..23fdff7a7370 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -183,7 +183,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 	/*
- 	 * Input interface
- 	 */
--	switch (vin->digital.code) {
-+	switch (vin->digital->code) {
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		/* BT.601/BT.1358 16bit YCbCr422 */
- 		vnmc |= VNMC_INF_YUV16;
-@@ -191,7 +191,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
--		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -200,7 +200,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
--		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -212,11 +212,11 @@ static int rvin_setup(struct rvin_dev *vin)
- 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 	/* Register notifier */
+ 	ret = v4l2_async_notifier_register(&sdr->v4l2_dev, &sdr->notifier);
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 1f3c450c7a69..916ff68b73d4 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1391,6 +1391,12 @@ static int soc_camera_async_complete(struct v4l2_async_notifier *notifier)
+ 	return 0;
+ }
  
- 	/* Hsync Signal Polarity Select */
--	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-+	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_HPS;
++static const struct v4l2_async_notifier_operations soc_camera_async_ops = {
++	.bound = soc_camera_async_bound,
++	.unbind = soc_camera_async_unbind,
++	.complete = soc_camera_async_complete,
++};
++
+ static int scan_async_group(struct soc_camera_host *ici,
+ 			    struct v4l2_async_subdev **asd, unsigned int size)
+ {
+@@ -1437,9 +1443,7 @@ static int scan_async_group(struct soc_camera_host *ici,
  
- 	/* Vsync Signal Polarity Select */
--	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
-+	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_VPS;
+ 	sasc->notifier.subdevs = asd;
+ 	sasc->notifier.num_subdevs = size;
+-	sasc->notifier.bound = soc_camera_async_bound;
+-	sasc->notifier.unbind = soc_camera_async_unbind;
+-	sasc->notifier.complete = soc_camera_async_complete;
++	sasc->notifier.ops = &soc_camera_async_ops;
  
- 	/*
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index dd37ea811680..b479b882da12 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -111,7 +111,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
+ 	icd->sasc = sasc;
+ 	icd->parent = ici->v4l2_dev.dev;
+@@ -1537,9 +1541,7 @@ static int soc_of_bind(struct soc_camera_host *ici,
+ 
+ 	sasc->notifier.subdevs = &info->subdev;
+ 	sasc->notifier.num_subdevs = 1;
+-	sasc->notifier.bound = soc_camera_async_bound;
+-	sasc->notifier.unbind = soc_camera_async_unbind;
+-	sasc->notifier.complete = soc_camera_async_complete;
++	sasc->notifier.ops = &soc_camera_async_ops;
+ 
+ 	icd->sasc = sasc;
+ 	icd->parent = ici->v4l2_dev.dev;
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+index 35ba6f211b79..ac4c450a6c7d 100644
+--- a/drivers/media/platform/stm32/stm32-dcmi.c
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -1495,6 +1495,12 @@ static int dcmi_graph_notify_bound(struct v4l2_async_notifier *notifier,
+ 	return 0;
+ }
+ 
++static const struct v4l2_async_notifier_operations dcmi_graph_notify_ops = {
++	.bound = dcmi_graph_notify_bound,
++	.unbind = dcmi_graph_notify_unbind,
++	.complete = dcmi_graph_notify_complete,
++};
++
+ static int dcmi_graph_parse(struct stm32_dcmi *dcmi, struct device_node *node)
+ {
+ 	struct device_node *ep = NULL;
+@@ -1542,9 +1548,7 @@ static int dcmi_graph_init(struct stm32_dcmi *dcmi)
+ 
+ 	dcmi->notifier.subdevs = subdevs;
+ 	dcmi->notifier.num_subdevs = 1;
+-	dcmi->notifier.bound = dcmi_graph_notify_bound;
+-	dcmi->notifier.unbind = dcmi_graph_notify_unbind;
+-	dcmi->notifier.complete = dcmi_graph_notify_complete;
++	dcmi->notifier.ops = &dcmi_graph_notify_ops;
+ 
+ 	ret = v4l2_async_notifier_register(&dcmi->v4l2_dev, &dcmi->notifier);
+ 	if (ret < 0) {
+diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+index 42e383a48ffe..8b586c864524 100644
+--- a/drivers/media/platform/ti-vpe/cal.c
++++ b/drivers/media/platform/ti-vpe/cal.c
+@@ -1522,6 +1522,11 @@ static int cal_async_complete(struct v4l2_async_notifier *notifier)
+ 	return 0;
+ }
+ 
++static const struct v4l2_async_notifier_operations cal_async_ops = {
++	.bound = cal_async_bound,
++	.complete = cal_async_complete,
++};
++
+ static int cal_complete_ctx(struct cal_ctx *ctx)
+ {
+ 	struct video_device *vfd;
+@@ -1736,8 +1741,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
+ 	ctx->asd_list[0] = asd;
+ 	ctx->notifier.subdevs = ctx->asd_list;
+ 	ctx->notifier.num_subdevs = 1;
+-	ctx->notifier.bound = cal_async_bound;
+-	ctx->notifier.complete = cal_async_complete;
++	ctx->notifier.ops = &cal_async_ops;
+ 	ret = v4l2_async_notifier_register(&ctx->v4l2_dev,
+ 					   &ctx->notifier);
+ 	if (ret) {
+diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
+index ebfdf334d99c..d881cf09876d 100644
+--- a/drivers/media/platform/xilinx/xilinx-vipp.c
++++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+@@ -351,6 +351,11 @@ static int xvip_graph_notify_bound(struct v4l2_async_notifier *notifier,
+ 	return -EINVAL;
+ }
+ 
++static const struct v4l2_async_notifier_operations xvip_graph_notify_ops = {
++	.bound = xvip_graph_notify_bound,
++	.complete = xvip_graph_notify_complete,
++};
++
+ static int xvip_graph_parse_one(struct xvip_composite_device *xdev,
+ 				struct device_node *node)
+ {
+@@ -548,8 +553,7 @@ static int xvip_graph_init(struct xvip_composite_device *xdev)
+ 
+ 	xdev->notifier.subdevs = subdevs;
+ 	xdev->notifier.num_subdevs = num_subdevs;
+-	xdev->notifier.bound = xvip_graph_notify_bound;
+-	xdev->notifier.complete = xvip_graph_notify_complete;
++	xdev->notifier.ops = &xvip_graph_notify_ops;
+ 
+ 	ret = v4l2_async_notifier_register(&xdev->v4l2_dev, &xdev->notifier);
+ 	if (ret < 0) {
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index ad099b9bb71d..a2df85ea00f4 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -102,16 +102,16 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ {
  	int ret;
  
--	fmt.pad = vin->digital.source_pad;
-+	fmt.pad = vin->digital->source_pad;
+-	if (notifier->bound) {
+-		ret = notifier->bound(notifier, sd, asd);
++	if (notifier->ops->bound) {
++		ret = notifier->ops->bound(notifier, sd, asd);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
  
- 	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
- 	if (ret)
-@@ -172,13 +172,13 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+ 	if (ret < 0) {
+-		if (notifier->unbind)
+-			notifier->unbind(notifier, sd, asd);
++		if (notifier->ops->unbind)
++			notifier->ops->unbind(notifier, sd, asd);
+ 		return ret;
+ 	}
  
- 	sd = vin_to_source(vin);
+@@ -123,8 +123,8 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ 	/* Move from the global subdevice list to notifier's done */
+ 	list_move(&sd->async_list, &notifier->done);
  
--	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
-+	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
+-	if (list_empty(&notifier->waiting) && notifier->complete)
+-		return notifier->complete(notifier);
++	if (list_empty(&notifier->waiting) && notifier->ops->complete)
++		return notifier->ops->complete(notifier);
  
- 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
- 	if (pad_cfg == NULL)
- 		return -ENOMEM;
+ 	return 0;
+ }
+@@ -210,8 +210,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+ 		v4l2_async_cleanup(sd);
  
--	format.pad = vin->digital.source_pad;
-+	format.pad = vin->digital->source_pad;
+-		if (notifier->unbind)
+-			notifier->unbind(notifier, sd, sd->asd);
++		if (notifier->ops->unbind)
++			notifier->ops->unbind(notifier, sd, sd->asd);
+ 	}
  
- 	field = pix->field;
+ 	mutex_unlock(&list_lock);
+@@ -300,8 +300,8 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
  
-@@ -555,7 +555,7 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
- 	if (timings->pad)
- 		return -EINVAL;
+ 	v4l2_async_cleanup(sd);
  
--	timings->pad = vin->digital.sink_pad;
-+	timings->pad = vin->digital->sink_pad;
+-	if (notifier->unbind)
+-		notifier->unbind(notifier, sd, sd->asd);
++	if (notifier->ops->unbind)
++		notifier->ops->unbind(notifier, sd, sd->asd);
  
- 	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
+ 	mutex_unlock(&list_lock);
+ }
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index d96f4512224f..e8dc2c93658a 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -440,6 +440,11 @@ static int imx_media_probe_complete(struct v4l2_async_notifier *notifier)
+ 	return media_device_register(&imxmd->md);
+ }
  
-@@ -607,7 +607,7 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
- 	if (cap->pad)
- 		return -EINVAL;
++static const struct v4l2_async_notifier_operations imx_media_subdev_ops = {
++	.bound = imx_media_subdev_bound,
++	.complete = imx_media_probe_complete,
++};
++
+ /*
+  * adds controls to a video device from an entity subdevice.
+  * Continues upstream from the entity's sink pads.
+@@ -608,8 +613,7 @@ static int imx_media_probe(struct platform_device *pdev)
  
--	cap->pad = vin->digital.sink_pad;
-+	cap->pad = vin->digital->sink_pad;
+ 	/* prepare the async subdev notifier and register it */
+ 	imxmd->subdev_notifier.subdevs = imxmd->async_ptrs;
+-	imxmd->subdev_notifier.bound = imx_media_subdev_bound;
+-	imxmd->subdev_notifier.complete = imx_media_probe_complete;
++	imxmd->subdev_notifier.ops = &imx_media_subdev_ops;
+ 	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
+ 					   &imxmd->subdev_notifier);
+ 	if (ret) {
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 96fa1afc00dd..3c48f8b66d12 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -18,6 +18,7 @@ struct device;
+ struct device_node;
+ struct v4l2_device;
+ struct v4l2_subdev;
++struct v4l2_async_notifier;
  
- 	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
- 
-@@ -625,7 +625,7 @@ static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
- 	if (edid->pad)
- 		return -EINVAL;
- 
--	edid->pad = vin->digital.sink_pad;
-+	edid->pad = vin->digital->sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
- 
-@@ -643,7 +643,7 @@ static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
- 	if (edid->pad)
- 		return -EINVAL;
- 
--	edid->pad = vin->digital.sink_pad;
-+	edid->pad = vin->digital->sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 9bfb5a7c4dc4..5382078143fb 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -126,7 +126,7 @@ struct rvin_dev {
- 	struct v4l2_device v4l2_dev;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	struct v4l2_async_notifier notifier;
--	struct rvin_graph_entity digital;
-+	struct rvin_graph_entity *digital;
- 
- 	struct mutex lock;
- 	struct vb2_queue queue;
-@@ -145,7 +145,7 @@ struct rvin_dev {
- 	struct v4l2_rect compose;
+ /* A random max subdevice number, used to allocate an array on stack */
+ #define V4L2_MAX_SUBDEVS 128U
+@@ -79,8 +80,25 @@ struct v4l2_async_subdev {
  };
  
--#define vin_to_source(vin)		vin->digital.subdev
-+#define vin_to_source(vin)		((vin)->digital->subdev)
+ /**
++ * struct v4l2_async_notifier_operations - Asynchronous V4L2 notifier operations
++ * @bound:	a subdevice driver has successfully probed one of the subdevices
++ * @complete:	all subdevices have been probed successfully
++ * @unbind:	a subdevice is leaving
++ */
++struct v4l2_async_notifier_operations {
++	int (*bound)(struct v4l2_async_notifier *notifier,
++		     struct v4l2_subdev *subdev,
++		     struct v4l2_async_subdev *asd);
++	int (*complete)(struct v4l2_async_notifier *notifier);
++	void (*unbind)(struct v4l2_async_notifier *notifier,
++		       struct v4l2_subdev *subdev,
++		       struct v4l2_async_subdev *asd);
++};
++
++/**
+  * struct v4l2_async_notifier - v4l2_device notifier data
+  *
++ * @ops:	notifier operations
+  * @num_subdevs: number of subdevices used in the subdevs array
+  * @max_subdevs: number of subdevices allocated in the subdevs array
+  * @subdevs:	array of pointers to subdevice descriptors
+@@ -88,11 +106,9 @@ struct v4l2_async_subdev {
+  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+  * @done:	list of struct v4l2_subdev, already probed
+  * @list:	member in a global list of notifiers
+- * @bound:	a subdevice driver has successfully probed one of subdevices
+- * @complete:	all subdevices have been probed successfully
+- * @unbind:	a subdevice is leaving
+  */
+ struct v4l2_async_notifier {
++	const struct v4l2_async_notifier_operations *ops;
+ 	unsigned int num_subdevs;
+ 	unsigned int max_subdevs;
+ 	struct v4l2_async_subdev **subdevs;
+@@ -100,13 +116,6 @@ struct v4l2_async_notifier {
+ 	struct list_head waiting;
+ 	struct list_head done;
+ 	struct list_head list;
+-	int (*bound)(struct v4l2_async_notifier *notifier,
+-		     struct v4l2_subdev *subdev,
+-		     struct v4l2_async_subdev *asd);
+-	int (*complete)(struct v4l2_async_notifier *notifier);
+-	void (*unbind)(struct v4l2_async_notifier *notifier,
+-		       struct v4l2_subdev *subdev,
+-		       struct v4l2_async_subdev *asd);
+ };
  
- /* Debug */
- #define vin_dbg(d, fmt, arg...)		dev_dbg(d->dev, fmt, ##arg)
+ /**
 -- 
 2.11.0
 
