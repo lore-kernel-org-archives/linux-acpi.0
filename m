@@ -1,36 +1,138 @@
-From: Graeme Gregory <graeme.gregory@linaro.org>
-Subject: Re: [PATCH v11 2/4] ACPI: parse SPCR and enable matching console
-Date: Mon, 11 Sep 2017 14:03:10 +0100
-Message-ID: <CAGCh1+=AKuD6yBdJSx=cGwrReZ8KMDd2SuSXKAqtpCLcPHfOmA@mail.gmail.com>
-References: <20160927151953.GB4371@kroah.com> <20160927205418.31529-1-aleksey.makarov@linaro.org>
- <20160927205418.31529-2-aleksey.makarov@linaro.org> <mvmzia1bnvu.fsf@suse.de>
- <20170911110522.vwgwnohjrrj2twtk@bivouac.eciton.net> <mvmingpbh1j.fsf@suse.de>
- <CAGCh1+=eqF_pgLmVYPLA1peudTUO6jvn4yVzL349J4n9=uVt6Q@mail.gmail.com> <mvmefrdbesb.fsf@suse.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCH] et8ek8: Add support for flash and lens devices
+Date: Mon, 11 Sep 2017 15:18:31 +0200
+Message-ID: <20170911131831.GA12658@amd>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-18-sakari.ailus@linux.intel.com>
+ <20170909214724.GA18677@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f174.google.com ([209.85.223.174]:32929 "EHLO
-        mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752064AbdIKNDL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2017 09:03:11 -0400
-Received: by mail-io0-f174.google.com with SMTP id y123so25532197iod.0
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2017 06:03:11 -0700 (PDT)
-In-Reply-To: <mvmefrdbesb.fsf@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170909214724.GA18677@amd>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, sre@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Schwab <schwab@suse.de>
-Cc: Leif Lindholm <leif.lindholm@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-serial@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Jiri Slaby <jslaby@suse.com>
 
-On 11 September 2017 at 13:28, Andreas Schwab <schwab@suse.de> wrote:
-> On Sep 11 2017, Graeme Gregory <graeme.gregory@linaro.org> wrote:
->
->> Considering the SPCR table in question seems mildly insane, you could
->> always unload the SPCR in grub.
->
-> How do you "unload the SPCR"?  But in any case, console= should always
-> take precedence.
->
-Ah apologies, I thought the acpi command in grub could delete a table,
-but it seems it cannot.
 
-Graeme
+--FCuugMFkClbJLl1L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Parse async sub-devices by using
+v4l2_subdev_fwnode_reference_parse_sensor_common().
+
+These types devices aren't directly related to the sensor, but are
+nevertheless handled by the et8ek8 driver due to the relationship of these
+component to the main part of the camera module --- the sensor.
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+---
+
+This enables me to do autofocus on n900.
+
+Depends on Sakari's series, so best solution would be to append it there.
+
+Thanks,
+									Pavel
+
+diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/e=
+t8ek8/et8ek8_driver.c
+index c14f0fd..cd1f15f 100644
+--- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
++++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+@@ -34,10 +34,12 @@
+ #include <linux/sort.h>
+ #include <linux/v4l2-mediabus.h>
+=20
++#include <media/v4l2-async.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
++#include <media/v4l2-fwnode.h>
+=20
+ #include "et8ek8_reg.h"
+=20
+@@ -46,6 +48,7 @@
+ #define ET8EK8_MAX_MSG		8
+=20
+ struct et8ek8_sensor {
++	struct v4l2_async_notifier notifier;
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad pad;
+ 	struct v4l2_mbus_framefmt format;
+@@ -1446,6 +1449,11 @@ static int et8ek8_probe(struct i2c_client *client,
+ 	sensor->subdev.flags |=3D V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	sensor->subdev.internal_ops =3D &et8ek8_internal_ops;
+=20
++	ret =3D v4l2_fwnode_reference_parse_sensor_common(
++		&client->dev, &sensor->notifier);
++	if (ret < 0 && ret !=3D -ENOENT)
++		goto err_release;
++
+ 	sensor->pad.flags =3D MEDIA_PAD_FL_SOURCE;
+ 	ret =3D media_entity_pads_init(&sensor->subdev.entity, 1, &sensor->pad);
+ 	if (ret < 0) {
+@@ -1453,18 +1461,27 @@ static int et8ek8_probe(struct i2c_client *client,
+ 		goto err_mutex;
+ 	}
+=20
++	ret =3D v4l2_async_subdev_notifier_register(&sensor->subdev,
++						  &sensor->notifier);
++	if (ret)
++		goto err_entity;
++
+ 	ret =3D v4l2_async_register_subdev(&sensor->subdev);
+ 	if (ret < 0)
+-		goto err_entity;
++		goto err_async;
+=20
+ 	dev_dbg(dev, "initialized!\n");
+=20
+ 	return 0;
+=20
++err_async:
++	v4l2_async_notifier_unregister(&sensor->notifier);
+ err_entity:
+ 	media_entity_cleanup(&sensor->subdev.entity);
+ err_mutex:
+ 	mutex_destroy(&sensor->power_lock);
++err_release:
++	v4l2_async_notifier_release(&sensor->notifier);
+ 	return ret;
+ }
+=20
+@@ -1480,6 +1497,8 @@ static int __exit et8ek8_remove(struct i2c_client *cl=
+ient)
+ 	}
+=20
+ 	v4l2_device_unregister_subdev(&sensor->subdev);
++	v4l2_async_notifier_unregister(&sensor->notifier);
++	v4l2_async_notifier_release(&sensor->notifier);
+ 	device_remove_file(&client->dev, &dev_attr_priv_mem);
+ 	v4l2_ctrl_handler_free(&sensor->ctrl_handler);
+ 	v4l2_async_unregister_subdev(&sensor->subdev);
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--FCuugMFkClbJLl1L
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlm2jScACgkQMOfwapXb+vJEXgCfZsYatBKGl3910TCeA/O18pYH
+N8EAoLB9P6HGY+oe5rWm/PHteFMnM5y8
+=j0xb
+-----END PGP SIGNATURE-----
+
+--FCuugMFkClbJLl1L--
