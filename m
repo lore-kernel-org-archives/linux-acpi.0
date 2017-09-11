@@ -1,176 +1,137 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v10 21/24] smiapp: Add support for flash and lens devices
-Date: Mon, 11 Sep 2017 11:48:23 +0200
-Message-ID: <04981ec0-710e-1367-03fc-501314c45d5f@xs4all.nl>
+From: Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
+Subject: Re: [PATCH v10 22/24] ov5670: Add support for flash and lens devices
+Date: Mon, 11 Sep 2017 11:49:14 +0200
+Message-ID: <ac06b8c5-45d9-a441-85ca-8ef6efc19b7a@xs4all.nl>
 References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-22-sakari.ailus@linux.intel.com>
+ <20170911080008.21208-23-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20170911080008.21208-22-sakari.ailus@linux.intel.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170911080008.21208-23-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 On 09/11/2017 10:00 AM, Sakari Ailus wrote:
 > Parse async sub-devices by using
 > v4l2_subdev_fwnode_reference_parse_sensor_common().
 > 
-> These types devices aren't directly related to the sensor, but are
-> nevertheless handled by the smiapp driver due to the relationship of these
-> component to the main part of the camera module --- the sensor.
-> 
-> This does not yet address providing the user space with information on how
-> to associate the sensor or lens devices but the kernel now has the
-> necessary information to do that.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 
 Regards,
 
 	Hans
 
+
 > ---
->  drivers/media/i2c/smiapp/smiapp-core.c | 38 +++++++++++++++++++++++++++-------
->  drivers/media/i2c/smiapp/smiapp.h      |  4 +++-
->  2 files changed, 33 insertions(+), 9 deletions(-)
+>  drivers/media/i2c/ov5670.c | 33 +++++++++++++++++++++++++--------
+>  1 file changed, 25 insertions(+), 8 deletions(-)
 > 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-> index 700f433261d0..a65a839135d2 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -31,7 +31,7 @@
->  #include <linux/regulator/consumer.h>
->  #include <linux/slab.h>
->  #include <linux/smiapp.h>
-> -#include <linux/v4l2-mediabus.h>
-> +#include <media/v4l2-async.h>
->  #include <media/v4l2-fwnode.h>
+> diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
+> index 6f7a1d6d2200..25970307dd75 100644
+> --- a/drivers/media/i2c/ov5670.c
+> +++ b/drivers/media/i2c/ov5670.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/pm_runtime.h>
+>  #include <media/v4l2-ctrls.h>
 >  #include <media/v4l2-device.h>
+> +#include <media/v4l2-fwnode.h>
 >  
-> @@ -2887,17 +2887,24 @@ static int smiapp_probe(struct i2c_client *client,
->  	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
->  	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+>  #define OV5670_REG_CHIP_ID		0x300a
+>  #define OV5670_CHIP_ID			0x005670
+> @@ -1807,6 +1808,7 @@ static const struct ov5670_mode supported_modes[] = {
+>  struct ov5670 {
+>  	struct v4l2_subdev sd;
+>  	struct media_pad pad;
+> +	struct v4l2_async_notifier notifier;
 >  
-> +	rval = v4l2_fwnode_reference_parse_sensor_common(
-> +		&client->dev, &sensor->notifier);
-> +	if (rval < 0)
-> +		return rval;
+>  	struct v4l2_ctrl_handler ctrl_handler;
+>  	/* V4L2 Controls */
+> @@ -2473,11 +2475,13 @@ static int ov5670_probe(struct i2c_client *client)
+>  		return -EINVAL;
+>  
+>  	ov5670 = devm_kzalloc(&client->dev, sizeof(*ov5670), GFP_KERNEL);
+> -	if (!ov5670) {
+> -		ret = -ENOMEM;
+> -		err_msg = "devm_kzalloc() error";
+> -		goto error_print;
+> -	}
+> +	if (!ov5670)
+> +		return -ENOMEM;
 > +
->  	sensor->vana = devm_regulator_get(&client->dev, "vana");
->  	if (IS_ERR(sensor->vana)) {
->  		dev_err(&client->dev, "could not get regulator for vana\n");
-> -		return PTR_ERR(sensor->vana);
-> +		rval = PTR_ERR(sensor->vana);
-> +		goto out_release_async_notifier;
+> +	ret = v4l2_fwnode_reference_parse_sensor_common(
+> +		&client->dev, &ov5670->notifier);
+> +	if (ret < 0)
+> +		return ret;
+>  
+>  	/* Initialize subdev */
+>  	v4l2_i2c_subdev_init(&ov5670->sd, client, &ov5670_subdev_ops);
+> @@ -2486,7 +2490,7 @@ static int ov5670_probe(struct i2c_client *client)
+>  	ret = ov5670_identify_module(ov5670);
+>  	if (ret) {
+>  		err_msg = "ov5670_identify_module() error";
+> -		goto error_print;
+> +		goto error_release_notifier;
 >  	}
 >  
->  	sensor->ext_clk = devm_clk_get(&client->dev, NULL);
->  	if (IS_ERR(sensor->ext_clk)) {
->  		dev_err(&client->dev, "could not get clock (%ld)\n",
->  			PTR_ERR(sensor->ext_clk));
-> -		return -EPROBE_DEFER;
-> +		rval = -EPROBE_DEFER;
-> +		goto out_release_async_notifier;
+>  	mutex_init(&ov5670->mutex);
+> @@ -2513,11 +2517,18 @@ static int ov5670_probe(struct i2c_client *client)
+>  		goto error_handler_free;
 >  	}
 >  
->  	rval = clk_set_rate(sensor->ext_clk, sensor->hwcfg->ext_clk);
-> @@ -2905,17 +2912,19 @@ static int smiapp_probe(struct i2c_client *client,
->  		dev_err(&client->dev,
->  			"unable to set clock freq to %u\n",
->  			sensor->hwcfg->ext_clk);
-> -		return rval;
-> +		goto out_release_async_notifier;
->  	}
->  
->  	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
->  						    GPIOD_OUT_LOW);
-> -	if (IS_ERR(sensor->xshutdown))
-> -		return PTR_ERR(sensor->xshutdown);
-> +	if (IS_ERR(sensor->xshutdown)) {
-> +		rval = PTR_ERR(sensor->xshutdown);
-> +		goto out_release_async_notifier;
+> +	ret = v4l2_async_subdev_notifier_register(&ov5670->sd,
+> +						  &ov5670->notifier);
+> +	if (ret) {
+> +		err_msg = "can't register async notifier";
+> +		goto error_entity_cleanup;
 > +	}
->  
->  	rval = smiapp_power_on(&client->dev);
->  	if (rval < 0)
-> -		return rval;
-> +		goto out_release_async_notifier;
->  
->  	rval = smiapp_identify_module(sensor);
->  	if (rval) {
-> @@ -3092,9 +3101,14 @@ static int smiapp_probe(struct i2c_client *client,
->  	if (rval < 0)
->  		goto out_media_entity_cleanup;
->  
-> +	rval = v4l2_async_subdev_notifier_register(&sensor->src->sd,
-> +						   &sensor->notifier);
-> +	if (rval)
-> +		goto out_media_entity_cleanup;
 > +
->  	rval = v4l2_async_register_subdev(&sensor->src->sd);
->  	if (rval < 0)
-> -		goto out_media_entity_cleanup;
-> +		goto out_unregister_async_notifier;
+>  	/* Async register for subdev */
+>  	ret = v4l2_async_register_subdev(&ov5670->sd);
+>  	if (ret < 0) {
+>  		err_msg = "v4l2_async_register_subdev() error";
+> -		goto error_entity_cleanup;
+> +		goto error_unregister_notifier;
+>  	}
 >  
->  	pm_runtime_set_active(&client->dev);
->  	pm_runtime_get_noresume(&client->dev);
-> @@ -3105,6 +3119,9 @@ static int smiapp_probe(struct i2c_client *client,
+>  	ov5670->streaming = false;
+> @@ -2533,6 +2544,9 @@ static int ov5670_probe(struct i2c_client *client)
 >  
 >  	return 0;
 >  
-> +out_unregister_async_notifier:
-> +	v4l2_async_notifier_unregister(&sensor->notifier);
+> +error_unregister_notifier:
+> +	v4l2_async_notifier_unregister(&ov5670->notifier);
 > +
->  out_media_entity_cleanup:
->  	media_entity_cleanup(&sensor->src->sd.entity);
+>  error_entity_cleanup:
+>  	media_entity_cleanup(&ov5670->sd.entity);
 >  
-> @@ -3114,6 +3131,9 @@ static int smiapp_probe(struct i2c_client *client,
->  out_power_off:
->  	smiapp_power_off(&client->dev);
+> @@ -2542,7 +2556,8 @@ static int ov5670_probe(struct i2c_client *client)
+>  error_mutex_destroy:
+>  	mutex_destroy(&ov5670->mutex);
 >  
-> +out_release_async_notifier:
-> +	v4l2_async_notifier_release(&sensor->notifier);
-> +
->  	return rval;
->  }
+> -error_print:
+> +error_release_notifier:
+> +	v4l2_async_notifier_release(&ov5670->notifier);
+>  	dev_err(&client->dev, "%s: %s %d\n", __func__, err_msg, ret);
 >  
-> @@ -3124,6 +3144,8 @@ static int smiapp_remove(struct i2c_client *client)
->  	unsigned int i;
+>  	return ret;
+> @@ -2554,6 +2569,8 @@ static int ov5670_remove(struct i2c_client *client)
+>  	struct ov5670 *ov5670 = to_ov5670(sd);
 >  
->  	v4l2_async_unregister_subdev(subdev);
-> +	v4l2_async_notifier_unregister(&sensor->notifier);
-> +	v4l2_async_notifier_release(&sensor->notifier);
->  
->  	pm_runtime_disable(&client->dev);
->  	if (!pm_runtime_status_suspended(&client->dev))
-> diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
-> index f74d695018b9..be92cb5713f4 100644
-> --- a/drivers/media/i2c/smiapp/smiapp.h
-> +++ b/drivers/media/i2c/smiapp/smiapp.h
-> @@ -20,9 +20,10 @@
->  #define __SMIAPP_PRIV_H_
->  
->  #include <linux/mutex.h>
-> +#include <media/i2c/smiapp.h>
-> +#include <media/v4l2-async.h>
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-subdev.h>
-> -#include <media/i2c/smiapp.h>
->  
->  #include "smiapp-pll.h"
->  #include "smiapp-reg.h"
-> @@ -172,6 +173,7 @@ struct smiapp_subdev {
->   * struct smiapp_sensor - Main device structure
->   */
->  struct smiapp_sensor {
-> +	struct v4l2_async_notifier notifier;
->  	/*
->  	 * "mutex" is used to serialise access to all fields here
->  	 * except v4l2_ctrls at the end of the struct. "mutex" is also
+>  	v4l2_async_unregister_subdev(sd);
+> +	v4l2_async_notifier_unregister(&ov5670->notifier);
+> +	v4l2_async_notifier_release(&ov5670->notifier);
+>  	media_entity_cleanup(&sd->entity);
+>  	v4l2_ctrl_handler_free(sd->ctrl_handler);
+>  	mutex_destroy(&ov5670->mutex);
 > 
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
