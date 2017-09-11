@@ -1,114 +1,34 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v6 3/7] acpi: apei: remove the unused code
-Date: Mon, 11 Sep 2017 20:04:21 +0800
-Message-ID: <b06c680c-93a3-7e20-1118-c6a9a24704df@huawei.com>
-References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
- <1503916701-13516-4-git-send-email-gengdongjiu@huawei.com>
- <59A84C51.3000506@arm.com> <45c69f99-61dd-e847-368b-20acb61b4d50@huawei.com>
- <59B2DEBA.6030608@arm.com>
+From: Graeme Gregory <graeme.gregory@linaro.org>
+Subject: Re: [PATCH v11 2/4] ACPI: parse SPCR and enable matching console
+Date: Mon, 11 Sep 2017 13:24:47 +0100
+Message-ID: <CAGCh1+=eqF_pgLmVYPLA1peudTUO6jvn4yVzL349J4n9=uVt6Q@mail.gmail.com>
+References: <20160927151953.GB4371@kroah.com> <20160927205418.31529-1-aleksey.makarov@linaro.org>
+ <20160927205418.31529-2-aleksey.makarov@linaro.org> <mvmzia1bnvu.fsf@suse.de>
+ <20170911110522.vwgwnohjrrj2twtk@bivouac.eciton.net> <mvmingpbh1j.fsf@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:6024 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751118AbdIKMJU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2017 08:09:20 -0400
-In-Reply-To: <59B2DEBA.6030608@arm.com>
+Received: from mail-io0-f182.google.com ([209.85.223.182]:33193 "EHLO
+        mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751385AbdIKMYs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2017 08:24:48 -0400
+Received: by mail-io0-f182.google.com with SMTP id y123so24854277iod.0
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2017 05:24:48 -0700 (PDT)
+In-Reply-To: <mvmingpbh1j.fsf@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, mst@redhat.com
+To: Andreas Schwab <schwab@suse.de>
+Cc: Leif Lindholm <leif.lindholm@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-serial@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Jiri Slaby <jslaby@suse.com>
 
-James,
-   Thanks for the review.
+On 11 September 2017 at 12:39, Andreas Schwab <schwab@suse.de> wrote:
+> On Sep 11 2017, Leif Lindholm <leif.lindholm@linaro.org> wrote:
+>
+>> Are you asking because you want to use a different console in a lab
+>> setup or because there are issues with SPCR on your platform?
+>
+> The console from the SPCR is not the one forwarded by the BMC.
+>
+Considering the SPCR table in question seems mildly insane, you could
+always unload the SPCR in grub.
 
-On 2017/9/9 2:17, James Morse wrote:
-> Hi gengdongjiu,
-> 
-> On 04/09/17 12:43, gengdongjiu wrote:
->> On 2017/9/1 1:50, James Morse wrote:
->>> On 28/08/17 11:38, Dongjiu Geng wrote:
->>>> In current code logic, the two functions ghes_sea_add() and
->>>> ghes_sea_remove() are only called when CONFIG_ACPI_APEI_SEA
->>>> is defined. If not, it will return errors in the ghes_probe()
->>>> and not contiue. Hence, remove the unnecessary handling when
->>>> CONFIG_ACPI_APEI_SEI is not defined.
->>>
->>> This doesn't match what the patch does. I get this feeling this is needed for
->>> some future patch you haven't included.
->>
->> James, let check the code, when the ghes_probe, if the CONFIG_ACPI_APEI_SEA is not defined.
->> it will return -ENOTSUPP and goto error, and the ghes_sea_add has no chance to execute.
->> similar, if the probe is failed, it should not have chance to execute ghes_sea_remove.
-> 
-> It's the 'unnecessary handling when CONFIG_ACPI_APEI_SEI' in the commit message
-> that confuses me: this patch doesn't reference that Kconfig symbol. I guess that
-> sentence needs removing for this v6?
- thanks for the pointing out, That needs to be removed for v6.
-
-> 
-> Re-reading without that part of the commit-message:
-> 
-> You're relying on the compiler's dead-code elimination to spot unused static
-> functions and silently drop them. Great!
-> (there is the small risk that gcc 3.2[0] can't do this, x86 still has to support
-> this gcc version)
-> 
-> As this is just clean-up patch can you break it out of this series, it isn't
-> needed to add support for SEI.
-sure, I will.
-
-> 
-> (This series adds support for what should be an APEI notification, but the only
-> code that touches APEI removes some code from a different notification method.)
-
-understand.
-
-> 
-> 
->>> Setting NOTIFY_SEI as the GHES entry's notification type means the OS should
->>> check the GHES->ErrorStatusAddress for CPER records when it receives an
->>> SError-Interrupt, as it may be a notification of an error from this error source.
-> 
->> previously I added the NOTIFY_SEI support,
-> 
-> (Yes, I saw that in v5 and expected this series to add some APEI support code )
-> 
-> 
->> but consider the error address in CPER is not accurate and calling memory_failure() may not make sense.
->> so I remove it.
-> 
-> 'not accurate'... this is going to be a problem, but lets keep that discussion
-> on the cover-letter.
-
-Ok.
-
-
-> 
-> 
->>> If you aren't handling the notification, why is this is in the HEST at all?
->>> (and if its not: its not firmware-first)
-> 
->> For the SEI notification, may be we can parse and handle the CPER record other than the Error physical address
-> 
-> Sure, but I only see this cleanup patch in this series, where does APEI learn
-> about NOTIFY_SEI? As this is nothing will ever touch those CPER records, if
-> you're using GHESv2 firmware will be prevented from delivering subsequent
-> notifications.
-James, whether it is possible you can review the previous v5 patch which adds the support for NOTIFY_SEI? thanks in advancecIn that patch, I share the SEI notification handling with the SEA notification handling to avoid duplicated code.
-
-https://www.spinics.net/lists/arm-kernel/msg601767.html
-
-> 
-> 
-> Thanks,
-> 
-> James
-> 
-> [0]
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/admin-guide/README.rst#n251
-> 
-> .
-> 
-
+Graeme
