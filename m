@@ -1,46 +1,69 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] et8ek8: Add support for flash and lens devices
-Date: Tue, 12 Sep 2017 14:06:45 +0300
-Message-ID: <20170912110645.npkpl4elmbrjavla@valkosipuli.retiisi.org.uk>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131822.31020-18-sakari.ailus@linux.intel.com>
- <20170909214724.GA18677@amd>
- <20170911131831.GA12658@amd>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [RFC PATCH 4/4] ACPI: IORT: Add SMMUv3 MSI support
+Date: Tue, 12 Sep 2017 16:51:43 +0100
+Message-ID: <20170912155143.GA29684@red-moon>
+References: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
+ <1502276017-63108-5-git-send-email-guohanjun@huawei.com>
+ <20170811093348.GC26039@red-moon>
+ <CAGHbJ3AgEvbpsPdeqJ+bFWa5hBMqxBX6g1eC4HiUvHarJf8H+g@mail.gmail.com>
+ <20170815171525.GB13707@e107981-lin.cambridge.arm.com>
+ <de1b88e0-57d5-b73b-bc49-3c28070df6b1@linaro.org>
+ <20170817130139.GA17795@red-moon>
+ <96c8b5d8-eff2-6583-04da-cb3fdab8e6cb@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35068 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751289AbdILLGt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 12 Sep 2017 07:06:49 -0400
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:42524 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751704AbdILPtW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 12 Sep 2017 11:49:22 -0400
 Content-Disposition: inline
-In-Reply-To: <20170911131831.GA12658@amd>
+In-Reply-To: <96c8b5d8-eff2-6583-04da-cb3fdab8e6cb@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, sre@kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>
 
-Hi Pavel,
+On Tue, Sep 12, 2017 at 11:27:13AM +0800, Hanjun Guo wrote:
+> Hi Lorenzo,
+> 
+> On 2017/8/17 21:01, Lorenzo Pieralisi wrote:
+> >On Thu, Aug 17, 2017 at 03:49:37PM +0800, Hanjun Guo wrote:
+> >
+> >[...]
+> >
+> >>>  /**
+> >>>   * iort_get_platform_device_domain() - Find MSI domain related to a
+> >>>   * platform device
+> >>>@@ -1159,6 +1207,8 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+> >>>  	/* Configure DMA for the page table walker */
+> >>>  	acpi_dma_configure(&pdev->dev, attr);
+> >>>+	iort_set_device_domain(&pdev->dev, node);
+> >>
+> >>This is fine to me, but I think we still need to retrieve
+> >>the output ID as the request id for ITS, which means we
+> >>need to do that in iort_pmsi_get_dev_id(), right?
+> >
+> >Yes, probably we can add code there like:
+> >
+> >ret = iort_get_id_mapping_index(&index);
+> >if (!ret)
+> >	iort_node_get_id(node, &id, index);
+> >	...
+> >
+> >This requires updating iort_node_get_id() to allow single mappings
+> >for SMMU/PMCG as you flagged up before.
+> >
+> >I will think a bit more to see if there is a cleaner way to reshuffle
+> >the mapping API.
+> 
+> I would like to send a updated version after the merge window to gather
+> more comments, and at the same time we can work on the cleaner way to
+> reshuffle the mapping API, what do you thing?
 
-On Mon, Sep 11, 2017 at 03:18:31PM +0200, Pavel Machek wrote:
-> Parse async sub-devices by using
-> v4l2_subdev_fwnode_reference_parse_sensor_common().
-> 
-> These types devices aren't directly related to the sensor, but are
-> nevertheless handled by the et8ek8 driver due to the relationship of these
-> component to the main part of the camera module --- the sensor.
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> ---
-> 
-> This enables me to do autofocus on n900.
-> 
-> Depends on Sakari's series, so best solution would be to append it there.
+I think you should send an updated patch at -rc1 with comments above, we
+can rework the API later or I can do it on top of your patches for the
+upcoming merge window.
 
-I added this after the smiapp driver changes.
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Thanks !
+Lorenzo
