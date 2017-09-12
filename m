@@ -1,56 +1,67 @@
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Subject: Re: [PATCH v9 18/24] as3645a: Switch to fwnode property API
-Date: Mon, 11 Sep 2017 23:10:49 +0200
-Message-ID: <eefe9707-0486-8440-1074-abb7c317dbe3@gmail.com>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131822.31020-14-sakari.ailus@linux.intel.com>
- <f6c79aff-dcc7-ee7d-e224-1f9bc6af1fee@gmail.com>
- <20170909213658.6hqbsn66q4xc2sex@valkosipuli.retiisi.org.uk>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC PATCH 4/4] ACPI: IORT: Add SMMUv3 MSI support
+Date: Tue, 12 Sep 2017 11:27:13 +0800
+Message-ID: <96c8b5d8-eff2-6583-04da-cb3fdab8e6cb@linaro.org>
+References: <1502276017-63108-1-git-send-email-guohanjun@huawei.com>
+ <1502276017-63108-5-git-send-email-guohanjun@huawei.com>
+ <20170811093348.GC26039@red-moon>
+ <CAGHbJ3AgEvbpsPdeqJ+bFWa5hBMqxBX6g1eC4HiUvHarJf8H+g@mail.gmail.com>
+ <20170815171525.GB13707@e107981-lin.cambridge.arm.com>
+ <de1b88e0-57d5-b73b-bc49-3c28070df6b1@linaro.org>
+ <20170817130139.GA17795@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f174.google.com ([209.85.128.174]:38423 "EHLO
-        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751078AbdIKVLo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2017 17:11:44 -0400
-In-Reply-To: <20170909213658.6hqbsn66q4xc2sex@valkosipuli.retiisi.org.uk>
+Received: from mail-pf0-f174.google.com ([209.85.192.174]:34792 "EHLO
+        mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751022AbdILD1T (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Sep 2017 23:27:19 -0400
+Received: by mail-pf0-f174.google.com with SMTP id e1so16877911pfk.1
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Sep 2017 20:27:19 -0700 (PDT)
+In-Reply-To: <20170817130139.GA17795@red-moon>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>
 
-Hi Sakari,
+Hi Lorenzo,
 
-On 09/09/2017 11:36 PM, Sakari Ailus wrote:
-> Hi Jacek,
+On 2017/8/17 21:01, Lorenzo Pieralisi wrote:
+> On Thu, Aug 17, 2017 at 03:49:37PM +0800, Hanjun Guo wrote:
 > 
-> On Sat, Sep 09, 2017 at 09:06:41PM +0200, Jacek Anaszewski wrote:
->> Hi Sakari,
+> [...]
+> 
+>>>   /**
+>>>    * iort_get_platform_device_domain() - Find MSI domain related to a
+>>>    * platform device
+>>> @@ -1159,6 +1207,8 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+>>>   	/* Configure DMA for the page table walker */
+>>>   	acpi_dma_configure(&pdev->dev, attr);
+>>> +	iort_set_device_domain(&pdev->dev, node);
 >>
->> I've come across this patch only by a chance. I believe that merging
->> leds-as3645a.c patches via media tree is not going to be a persistent
->> pattern. At least we haven't agreed on that, and in any case I should
->> have a possibility to give my ack for this patch.
+>> This is fine to me, but I think we still need to retrieve
+>> the output ID as the request id for ITS, which means we
+>> need to do that in iort_pmsi_get_dev_id(), right?
 > 
-> Correct. The reason the previous patches went through linux-media was
-> because these patches dependend on other patches only in linux-media at the
-> time. This is no longer the case (the three as3645a patches I'd like to get
-> in as fixes are another matter but let's discuss that separately).
+> Yes, probably we can add code there like:
 > 
->>
->> Would you mind also adding linux-leds list on cc when touching areas
->> related to LED/flash devices?
+> ret = iort_get_id_mapping_index(&index);
+> if (!ret)
+> 	iort_node_get_id(node, &id, index);
+> 	...
 > 
-> I added this patch to this version of the set and missed cc'ing it to
-> linux-leds. I think I'll send it there separately once the 17th patch (ACPI
-> support) has been reviewed. The two are loosely related to the rest of the
-> patches in the set but there's no hard dependency.
+> This requires updating iort_node_get_id() to allow single mappings
+> for SMMU/PMCG as you flagged up before.
+> 
+> I will think a bit more to see if there is a cleaner way to reshuffle
+> the mapping API.
 
-Right, they are loosely related, but cross-posting anything having "LED"
-in its contents to linux-leds list would be understandable if not
-desirable :-) Just to keep LED people in sync.
+I would like to send a updated version after the merge window to gather
+more comments, and at the same time we can work on the cleaner way to
+reshuffle the mapping API, what do you thing?
 
--- 
-Best regards,
-Jacek Anaszewski
+Thanks
+Hanjun
+
