@@ -1,73 +1,95 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v9] ACPI / init: Invoke early ACPI initialization earlier
-Date: Wed, 13 Sep 2017 17:17:54 +0800
-Message-ID: <1505294274-441-1-git-send-email-douly.fnst@cn.fujitsu.com>
-References: <1505293975-26005-1-git-send-email-douly.fnst@cn.fujitsu.com>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: Re: [RFC PATCH 6/6] iommu/arm-smmu-v3: Avoid ILLEGAL setting of
+ STE.S1STALLD and CD.S
+Date: Wed, 13 Sep 2017 18:11:13 +0800
+Message-ID: <2f952821-afc3-46dd-17eb-40e8626bd6e5@huawei.com>
+References: <1504167642-14922-1-git-send-email-xieyisheng1@huawei.com>
+ <1504167642-14922-7-git-send-email-xieyisheng1@huawei.com>
+ <738977bb-4cd7-7d86-0ea0-0c88b6af721c@arm.com>
+ <20170913030643.GD12411@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1505293975-26005-1-git-send-email-douly.fnst@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Dou Liyang <douly.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org, yinghai@kernel.org, bhe@redhat.com, bp@alien8.de
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170913030643.GD12411@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>, Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, xieyisheng1@huawei.com, lorenzo.pieralisi@arm.com, lv.zheng@intel.com, joro@8bytes.org, liubo95@huawei.com, rjw@rjwysocki.net, robert.moore@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, robh+dt@kernel.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, chenjiankang1@huawei.com, devel@acpica.org, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Linux uses acpi_early_init() to put the ACPI table management into the
-late stage from the early stage. This two stages are different. the
-mapped ACPI tables in early stage is temporary and should be unmapped,
-but in late stage, it is permanent and don't need to be unmapped.
+Hi Will,
 
-Originally, mapping and parsing the DMAR table should be in the late stage.
-However, Initializing interrupt delivery mode earlier will move it into
-the early stage. This causes an ACPI error warning when Linux reallocates
-the ACPI root tables.
+On 2017/9/13 11:06, Will Deacon wrote:
+> On Tue, Sep 05, 2017 at 01:54:19PM +0100, Jean-Philippe Brucker wrote:
+>> On 31/08/17 09:20, Yisheng Xie wrote:
+>>> It is ILLEGAL to set STE.S1STALLD if STALL_MODEL is not 0b00, which
+>>> means we should not disable stall mode if stall/terminate mode is not
+>>> configuable.
+>>>
+>>> Meanwhile, it is also ILLEGAL when STALL_MODEL==0b10 && CD.S==0 which
+>>> means if stall mode is force we should always set CD.S.
+>>>
+>>> This patch add ARM_SMMU_FEAT_TERMINATE feature bit for smmu, and use
+>>> TERMINATE feature checking to ensue above ILLEGAL cases from happening.
+>>>
+>>> Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+>>> ---
+>>>  drivers/iommu/arm-smmu-v3.c | 22 ++++++++++++++++------
+>>>  1 file changed, 16 insertions(+), 6 deletions(-)
+>>>
+>>> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+>>> index dbda2eb..0745522 100644
+>>> --- a/drivers/iommu/arm-smmu-v3.c
+>>> +++ b/drivers/iommu/arm-smmu-v3.c
+>>> @@ -55,6 +55,7 @@
+>>>  #define IDR0_STALL_MODEL_SHIFT		24
+>>>  #define IDR0_STALL_MODEL_MASK		0x3
+>>>  #define IDR0_STALL_MODEL_STALL		(0 << IDR0_STALL_MODEL_SHIFT)
+>>> +#define IDR0_STALL_MODEL_NS		(1 << IDR0_STALL_MODEL_SHIFT)
+>>>  #define IDR0_STALL_MODEL_FORCE		(2 << IDR0_STALL_MODEL_SHIFT)
+>>>  #define IDR0_TTENDIAN_SHIFT		21
+>>>  #define IDR0_TTENDIAN_MASK		0x3
+>>> @@ -766,6 +767,7 @@ struct arm_smmu_device {
+>>>  #define ARM_SMMU_FEAT_SVM		(1 << 15)
+>>>  #define ARM_SMMU_FEAT_HA		(1 << 16)
+>>>  #define ARM_SMMU_FEAT_HD		(1 << 17)
+>>> +#define ARM_SMMU_FEAT_TERMINATE		(1 << 18)
+>>
+>> I'd rather introduce something like "ARM_SMMU_FEAT_STALL_FORCE" instead.
+>> Terminate model has another meaning, and is defined by a different bit in
+>> IDR0.
+> 
+> Yes. What we need to do is:
+> 
+> - If STALL_MODEL is 0b00, then set S1STALLD
 
-Commit b064a8fa77df ("ACPI / init: Switch over platform to the ACPI mode
-later") splits the ACPI early initialization code into acpi_early_init()
-and acpi_subsystem_init(). This makes acpi_early_init() more independently
+Yes, and within this case, we can only set the S1STALLD for masters which can
+not stall in the future?
 
-So, invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
-be mapped and parsed in late stage like before.
+> - If STALL_MODEL is 0b01, then we're ok (in future, avoiding trying to use
+>   stalls, even for masters that claim to support it)
+> - If STALL_MODEL is 0b10, then force all PCI devices and any platform
+>   devices that don't claim to support stalls into bypass (depending on
+>   disable_bypass).
+> 
+> Reasonable? We could actually knock up a fix for mainline to do most of
+> this already.
+This sound reasonable to me. And I can be a volunteer to prepare this patch if
+Jean-Philippe do not oppose :)
 
-Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Zheng, Lv <lv.zheng@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: x86@kernel.org
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: linux-ia64@vger.kernel.org
-Cc: yinghai@kernel.org
-Cc: bhe@redhat.com
-Cc: bp@alien8.de
----
- init/main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks
+Yisheng Xie
 
-diff --git a/init/main.c b/init/main.c
-index 0ee9c686..2fb98a4 100644
---- a/init/main.c
-+++ b/init/main.c
-@@ -664,12 +664,12 @@ asmlinkage __visible void __init start_kernel(void)
- 	debug_objects_mem_init();
- 	setup_per_cpu_pageset();
- 	numa_policy_init();
-+	acpi_early_init();
- 	if (late_time_init)
- 		late_time_init();
- 	calibrate_delay();
- 	pidmap_init();
- 	anon_vma_init();
--	acpi_early_init();
- #ifdef CONFIG_X86
- 	if (efi_enabled(EFI_RUNTIME_SERVICES))
- 		efi_enter_virtual_mode();
--- 
-2.5.5
+> 
+> Will
+> 
+> .
+> 
