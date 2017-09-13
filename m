@@ -1,68 +1,70 @@
-From: Dongjiu Geng <gengdongjiu@huawei.com>
-Subject: [PATCH v2] acpi: apei: remove the unused dead-code for SEA notification type
-Date: Wed, 13 Sep 2017 19:02:38 +0800
-Message-ID: <1505300558-1242-1-git-send-email-gengdongjiu@huawei.com>
+From: Peter Maydell <peter.maydell@linaro.org>
+Subject: Re: [PATCH v11 6/6] target-arm: kvm64: Handle SError interrupt for
+ the guest OS
+Date: Wed, 13 Sep 2017 11:52:34 +0100
+Message-ID: <CAFEAcA_zO_-kDYb0MkW=p5oY6tQPk4PpCqZoG0_01pn=sa3upw@mail.gmail.com>
+References: <0184EA26B2509940AA629AE1405DD7F2015FE17F@DGGEMA503-MBX.china.huawei.com>
+ <CAFEAcA8J5wZ23kQypzcbUScUResjWnN6rDG0b0idD1rv7F5Fsw@mail.gmail.com> <5552cf68-b998-686b-8e7e-710399c2b014@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:6047 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751451AbdIMKjt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Sep 2017 06:39:49 -0400
+Received: from mail-wr0-f177.google.com ([209.85.128.177]:37356 "EHLO
+        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752251AbdIMKw4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Sep 2017 06:52:56 -0400
+Received: by mail-wr0-f177.google.com with SMTP id k20so27912584wre.4
+        for <linux-acpi@vger.kernel.org>; Wed, 13 Sep 2017 03:52:56 -0700 (PDT)
+In-Reply-To: <5552cf68-b998-686b-8e7e-710399c2b014@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, bp@suse.de, punit.agrawal@arm.com, zjzhang@codeaurora.org, andriy.shevchenko@linux.intel.com, shiju.jose@huawei.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, geliangtang@gmail.com, gengdongjiu@huawei.com
+To: gengdongjiu <gengdongjiu@huawei.com>
+Cc: James Morse <james.morse@arm.com>, "Michael S. Tsirkin" <mst@redhat.com>, Igor Mammedov <imammedo@redhat.com>, Zhaoshenglong <zhaoshenglong@huawei.com>, Paolo Bonzini <pbonzini@redhat.com>, QEMU Developers <qemu-devel@nongnu.org>, qemu-arm <qemu-arm@nongnu.org>, kvm-devel <kvm@vger.kernel.org>, "edk2-devel@lists.01.org" <edk2-devel@lists.01.org>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Ingo Molnar <mingo@kernel.org>, "bp@suse.de" <bp@suse.de>, Shiju Jose <shiju.jose@huawei.com>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, arm-mail-list <linux-arm-kernel@lists.infradead.org>, kvmarm@
 
-In current code logic, the two functions ghes_sea_add() and
-ghes_sea_remove() are only called when CONFIG_ACPI_APEI_SEA
-is defined. If not, it will return errors in the ghes_probe()
-and not continue. If the probe is failed, the ghes_sea_remove()
-also has no chance to be called.
+On 13 September 2017 at 08:52, gengdongjiu <gengdongjiu@huawei.com> wrote:
+>
+>
+> On 2017/9/12 0:39, Peter Maydell wrote:
+>>>>> +    return  kvm_vcpu_ioctl(CPU(cpu), KVM_ARM_SEI, &syndrome);
+>>>> This looks odd. If we don't have the RAS extension why do we need to do anything at all here ?
+>>> This is because Qemu may need to support non-RAS extension as discussed with ARM James before.
+>>> That is to say host hardware CPU does not support RAS, but guest supports.
+>>> That is under discussion.
+>>> When host hardware supports RAS, specify the syndrome to a valid value, otherwise, set it to 0.
+>> If the guest CPU doesn't support the RAS extension then we have
+>> no mechanism for delivering it a notification about the
+>> memory problem at all, so setting the syndrome to anything
+>> doesn't make sense.
+>>
+>> I'm not sure what you should do in the case of "host
+>> supports telling us about a memory problem and has
+>> done so, but guest does not support being told about it",
+>> but I'm pretty sure it shouldn't be this.
 
-Hence, remove the unnecessary handling when CONFIG_ACPI_APEI_SEA
-is not defined.
+>    in short, if the hardware CPU does not support RAS extension, do you think whether the Qemu or guest OS
+> needs to support RAS(generate APEI table / record CPER / Error recovery).
 
-Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+This question seems to be not really related to the review
+comment that it is responding to.
 
----
-It is ever discussed here:
-https://lkml.org/lkml/2017/9/8/623
----
- drivers/acpi/apei/ghes.c | 14 --------------
- 1 file changed, 14 deletions(-)
+(1) If the host does not support notifying us about
+errors, then there is clearly nothing to do in this
+code, because we will never get a notification.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index d661d452b238..c15a08db2c7c 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -813,7 +813,6 @@ static struct notifier_block ghes_notifier_hed = {
- 	.notifier_call = ghes_notify_hed,
- };
- 
--#ifdef CONFIG_ACPI_APEI_SEA
- static LIST_HEAD(ghes_sea);
- 
- /*
-@@ -848,19 +847,6 @@ static void ghes_sea_remove(struct ghes *ghes)
- 	mutex_unlock(&ghes_list_mutex);
- 	synchronize_rcu();
- }
--#else /* CONFIG_ACPI_APEI_SEA */
--static inline void ghes_sea_add(struct ghes *ghes)
--{
--	pr_err(GHES_PFX "ID: %d, trying to add SEA notification which is not supported\n",
--	       ghes->generic->header.source_id);
--}
--
--static inline void ghes_sea_remove(struct ghes *ghes)
--{
--	pr_err(GHES_PFX "ID: %d, trying to remove SEA notification which is not supported\n",
--	       ghes->generic->header.source_id);
--}
--#endif /* CONFIG_ACPI_APEI_SEA */
- 
- #ifdef CONFIG_HAVE_ACPI_APEI_NMI
- /*
--- 
-2.14.1
+(2) If the host does support notifying us about errors,
+but we choose not to expose RAS to the guest, then
+there's not much to do either. We probably just want
+to take whatever the default behaviour is for any
+application when it touches memory that's bad.
+We definitely don't want to tell the guest anything.
 
+(3) If the host supports notification, and we choose
+to expose RAS to the guest, then we need to do
+whatever we have to do to notify the guest.
+
+If we're in this signal handler and also
+arm_feature(env, ARM_FEATURE_RAS) is false then that
+is case (2), and my point is that doing anything with
+the guest 'syndrome' value looks like the wrong thing.
+
+thanks
+-- PMM
