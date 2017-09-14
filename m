@@ -1,63 +1,48 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific
- register range for ACPI case
-Date: Thu, 14 Sep 2017 07:06:58 -0700
-Message-ID: <CAKv+Gu8x0j-O3WPE7Cvi4oX5J5Cq1vUhDNB_UdjE88eQh83DDA@mail.gmail.com>
-References: <20160920140518.GD13855@localhost> <CAKv+Gu-j-gKiNMx-TvSxezJth1619FN8W1rAy7DKpkmfX9ii6A@mail.gmail.com>
- <20160920191744.GA4941@localhost> <20160921140549.GA11968@red-moon>
- <20160921180457.GB20006@localhost> <20160922094955.GB18637@red-moon>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F8815A9@lhreml507-mbx> <20160922124446.GA21681@red-moon>
- <20160922183101.GA14510@localhost> <20160922221042.GA1514@localhost>
- <20160923101145.GA31120@red-moon> <EE11001F9E5DDD47B7634E2F8A612F2E1F884340@lhreml507-mbx>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: [PATCH] ACPI / PCI: Bail early in acpi_pci_add_bus() if there is no ACPI handle
+Date: Thu, 14 Sep 2017 16:50:14 +0200
+Message-ID: <20170914145014.2834-1-vkuznets@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f178.google.com ([209.85.223.178]:49929 "EHLO
-        mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751380AbdINOHA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Sep 2017 10:07:00 -0400
-Received: by mail-io0-f178.google.com with SMTP id 21so679235iof.6
-        for <linux-acpi@vger.kernel.org>; Thu, 14 Sep 2017 07:07:00 -0700 (PDT)
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F884340@lhreml507-mbx>
+Received: from mx1.redhat.com ([209.132.183.28]:42852 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751255AbdINOuS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 14 Sep 2017 10:50:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marcin Wojtas <mw@semihalf.com>, Wangyijing <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "liudongdong (C)" <liudongdong3@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jork Loeser <jloeser@microsoft.com>, "K. Y. Srinivasan" <kys@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
 
-(remove most cc's)
+Hyper-V instances support PCI pass-through which is implemented through
+PV pci-hyperv driver. When a device is passed through a new root PCI bus
+is created in the guest. The bus sits on top of VMBus and has no
+associated information in ACPI. acpi_pci_add_bus() in this case proceeds
+all the way to acpi_evaluate_dsm() with reports
 
-Hi all,
+    ACPI: \: failed to evaluate _DSM (0x1001)
 
-Apologies for digging up this old thread.
+While acpi_pci_slot_enumerate() and acpiphp_enumerate_slots() are protected
+against ACPI_HANDLE() being NULL and do nothing acpi_evaluate_dsm() is not
+and gives us the error. It seems the correct fix is to not do anything in
+acpi_pci_add_bus() in such cases.
 
-I am currently looking into whether it is feasible to refactor some of
-the ACPI PCI quirk code we have so it can apply to more instances of
-the Synopsys Designware PCIe (i.e., for Marvell and Socionext SOCs),
-which all suffer from the same issue that type 0 config TLPs are not
-filtered before being sent out on the link, resulting in devices
-appearing multiple times.
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+---
+ drivers/pci/pci-acpi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The pci-hisi.c quirk already appears to do exactly what would solve
-the problem on other SoCs as well. So I will try to refactor this code
-into something that I could propose for upstream, while probably
-getting the ARM SBSA authors to offer some guidance that this IP must
-not be used for new designs.
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index a8da543b3814..4708eb9df71b 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -624,7 +624,7 @@ void acpi_pci_add_bus(struct pci_bus *bus)
+ 	union acpi_object *obj;
+ 	struct pci_host_bridge *bridge;
+ 
+-	if (acpi_pci_disabled || !bus->bridge)
++	if (acpi_pci_disabled || !bus->bridge || !ACPI_HANDLE(bus->bridge))
+ 		return;
+ 
+ 	acpi_pci_slot_enumerate(bus);
+-- 
+2.13.5
 
-In any case, the chances of any such changes being acceptable upstream
-are probably higher if we can reuse the exact same quirk as we have
-already implemented for HiSilicon, so I wonder if anyone from Huawei
-could comment on some questions I have:
-- Why does the config space accessor override use 32-bit accesses only
-for bus #0? Is that really necessary?
-- Why does the Hisi quirk use different config base addresses for bus
-#0 and the other buses? Is this simply because the firmware does not
-use contiguous iATU windows for bus #0 and buses #1 and up? So is
-there anything mapped in the 1 MB slice at the base of the respective
-256 MB mappings that generate type1 config cycles?
-
-Having just a shared set of config space accessor overrides would
-already be an improvement, given that they can be shared with a DT
-based driver for this IP in ECAM mode as well.
-
-Thanks,
-Ard.
