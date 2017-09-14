@@ -1,49 +1,75 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v6 5/7] arm64: kvm: route synchronous external abort
- exceptions to el2
-Date: Thu, 14 Sep 2017 19:12:06 +0800
-Message-ID: <fb7da3e3-d0f7-7ac6-b088-888a563d7ee7@huawei.com>
-References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
- <1503916701-13516-6-git-send-email-gengdongjiu@huawei.com>
- <59B17449.6010201@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [RFC 0/5] Align and document return values of phandle and reference parsing for OF and ACPI
+Date: Thu, 14 Sep 2017 15:29:09 +0300
+Message-ID: <20170914122914.14122-1-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:6055 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751712AbdINLNe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Sep 2017 07:13:34 -0400
-In-Reply-To: <59B17449.6010201@arm.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:32838 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751740AbdINM3Q (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 14 Sep 2017 08:29:16 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, mst@redhat.com
+To: devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: rafael@kernel.org, robh@kernel.org, mika.westerberg@linux.intel.com, frowand.list@gmail.com
 
-James,
+Hi everyone,
 
-On 2017/9/8 0:31, James Morse wrote:
-> KVM already handles external aborts from lower exception levels, no more work
-> needs doing for TEA.
-If it is firmware first solution, that is SCR_EL3.EA=1, all SError interrupt and synchronous External
-Abort exceptions are taken to EL3, so EL3 firmware will handle it, KVM no needs to handle it.
+I recently came across a difference in behaviour of OF phandle parsing and
+ACPI reference parsing, both of which can soon be accessed using
+fwnode_property_get_reference_args.
 
-HCR_EL3.TEA is only for EL3 to check its value to decide to jump to hypervisor or kernel.
+The main change in this proposal touches OF, and specifically the change
+is about using -ENODATA to tell that the phandle reference list entry that
+was accessed does not exist. -ENOENT was used previously, but the same
+error code was also used to tell that a phandle was empty, making it
+impossible for the caller to figure out which of the two was the case.
 
-> 
-> What happens when a guest access the RAS-Error-Record registers?
-> 
-> Before we can set HCR_EL2.TERR I think we need to add some minimal emulation for
-> the registers it traps. Most of them should be RAZ/WI, so it should be
-> straightforward. (I think KVMs default is to emulate an undef for unknown traps).
-Today I added the support to do some minimal emulation for RAS-Error-Record registers, thanks
-for the good suggestion.
+I'm sending the set as RFC. In my limited testing I have found no ill
+effects.
 
-> 
-> Eventually we will want to back this with a page of memory that lets
-> Qemu/kvmtool configure what the guest can see. (i.e. the emulated machine's
-> errors for kernel-first handling.)
+These patches are on top of linux-next.
 
+Comments on the approach and the changes themselves would be most welcome.
 
+For what it's worth, fwnode_property_get_reference_args is in Rafael's
+tree (as well as in linux-next) and hasn't reached mainline yet. It will
+be used in the near future for parsing references to external devices in
+the V4L2 framework.
 
+These patches can be found here:
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=fwnode-parse>
+
+Regards,
+
+- Sakari
+
+Sakari Ailus (5):
+  clk: Increment assigned-clocks index for empty phandles
+  of: Return -ENODATA on accessing out of bounds indices in phandle
+    parsing
+  of: Return total number of entries in of_count_phandle_with_args
+  ACPI: align acpi_fwnode_get_reference_args with OF counterpart
+  device property: Document fwnode_property_get_reference_args better
+
+ drivers/acpi/property.c              |  3 +++
+ drivers/base/power/domain.c          |  2 +-
+ drivers/base/property.c              |  5 +++++
+ drivers/clk/clk-conf.c               |  8 +++++---
+ drivers/clk/clkdev.c                 |  2 +-
+ drivers/gpio/gpiolib-of.c            |  2 +-
+ drivers/gpio/gpiolib.c               |  2 +-
+ drivers/gpu/host1x/mipi.c            |  2 +-
+ drivers/hwspinlock/hwspinlock_core.c |  2 +-
+ drivers/iio/inkern.c                 |  2 +-
+ drivers/of/base.c                    | 37 ++++++++++++++++++++++++------------
+ drivers/pwm/core.c                   |  2 +-
+ drivers/regulator/gpio-regulator.c   |  2 +-
+ drivers/reset/core.c                 |  3 ++-
+ drivers/spi/spi.c                    |  2 +-
+ 15 files changed, 50 insertions(+), 26 deletions(-)
+
+-- 
+2.11.0
 
