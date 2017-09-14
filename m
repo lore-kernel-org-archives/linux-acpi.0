@@ -1,159 +1,70 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH 6/6] arm64: topology: Enable ACPI/PPTT based CPU topology.
-Date: Thu, 14 Sep 2017 13:49:18 -0500
-Message-ID: <20170914184918.20406-14-jeremy.linton@arm.com>
+Subject: [PATCH 5/6] arm64: Fixup users of topology_physical_package_id
+Date: Thu, 14 Sep 2017 13:49:17 -0500
+Message-ID: <20170914184918.20406-13-jeremy.linton@arm.com>
 References: <20170914184918.20406-1-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:39680 "EHLO
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:39666 "EHLO
         foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751657AbdINStk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 14 Sep 2017 14:49:40 -0400
+        id S1751621AbdINSti (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 14 Sep 2017 14:49:38 -0400
 In-Reply-To: <20170914184918.20406-1-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, wangxiongfeng2@huawei.com, hanjun.guo@linaro.org, jhugo@codeaurora.org, john.garry@huawei.com, austinwc@codeaurora.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, Jeremy Linton <jeremy.linton@arm.com>
 
-Propagate the topology information from the PPTT tree to the
-cpu_topology array. We can get the thread id, core_id and
-cluster_id by assuming certain levels of the PPTT tree correspond
-to those concepts. The package_id is flagged in the tree and can be
-found by passing an arbitrary large level to setup_acpi_cpu_topology()
-which terminates its search when it finds an ACPI node flagged
-as the physical package. If the tree doesn't contain enough
-levels to represent all of thread/core/cod/package then the package
-id will be used for the missing levels.
-
-Since arm64 machines can have 3 distinct topology levels, and the
-scheduler only handles sockets/threads well today, we compromise
-by collapsing into one of three diffrent configurations. These are
-thread/socket, thread/cluster or cluster/socket depending on whether
-the machine has threading and multisocket, threading in a single
-socket, or doesn't have threading.
-
-This code is loosely based on a combination of code from:
-Xiongfeng Wang <wangxiongfeng2@huawei.com>
-John Garry <john.garry@huawei.com>
-Jeffrey Hugo <jhugo@codeaurora.org>
+There are a few arm64 specific users (cpufreq, psci, etc) which really
+want the cluster rather than the topology_physical_package_id(). Lets
+convert those users to topology_cod_id(). That way when we start
+differentiating the socket/cluster they will continue to behave correctly.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- arch/arm64/kernel/topology.c | 68 +++++++++++++++++++++++++++++++++++++++++++-
- include/linux/topology.h     |  2 ++
- 2 files changed, 69 insertions(+), 1 deletion(-)
+ drivers/clk/clk-mb86s7x.c        | 2 +-
+ drivers/cpufreq/arm_big_little.c | 2 +-
+ drivers/firmware/psci_checker.c  | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-index 9147e5b6326d..8ee5cc5ba9bd 100644
---- a/arch/arm64/kernel/topology.c
-+++ b/arch/arm64/kernel/topology.c
-@@ -11,6 +11,7 @@
-  * for more details.
-  */
+diff --git a/drivers/clk/clk-mb86s7x.c b/drivers/clk/clk-mb86s7x.c
+index 2a83a3ff1d09..da4b456f9afc 100644
+--- a/drivers/clk/clk-mb86s7x.c
++++ b/drivers/clk/clk-mb86s7x.c
+@@ -338,7 +338,7 @@ static struct clk_hw *mb86s7x_clclk_register(struct device *cpu_dev)
+ 		return ERR_PTR(-ENOMEM);
  
-+#include <linux/acpi.h>
- #include <linux/arch_topology.h>
- #include <linux/cpu.h>
- #include <linux/cpumask.h>
-@@ -22,6 +23,7 @@
- #include <linux/sched.h>
- #include <linux/sched/topology.h>
- #include <linux/slab.h>
-+#include <linux/smp.h>
- #include <linux/string.h>
+ 	clc->hw.init = &init;
+-	clc->cluster = topology_physical_package_id(cpu_dev->id);
++	clc->cluster = topology_cod_id(cpu_dev->id);
  
- #include <asm/cpu.h>
-@@ -304,6 +306,68 @@ static void __init reset_cpu_topology(void)
- 	}
- }
+ 	init.name = dev_name(cpu_dev);
+ 	init.ops = &clk_clc_ops;
+diff --git a/drivers/cpufreq/arm_big_little.c b/drivers/cpufreq/arm_big_little.c
+index 17504129fd77..6ee69b3820de 100644
+--- a/drivers/cpufreq/arm_big_little.c
++++ b/drivers/cpufreq/arm_big_little.c
+@@ -72,7 +72,7 @@ static struct mutex cluster_lock[MAX_CLUSTERS];
  
-+#ifdef CONFIG_ACPI
-+/*
-+ * Propagate the topology information of the processor_topology_node tree to the
-+ * cpu_topology array.
-+ */
-+static int __init parse_acpi_topology(void)
-+{
-+	u64 is_threaded;
-+	int is_multisocket;
-+	int cpu;
-+	int topology_id;
-+	/* set a large depth, to hit ACPI_PPTT_PHYSICAL_PACKAGE if one exists */
-+	const int max_topo = 0xFF;
-+
-+	is_threaded = read_cpuid_mpidr() & MPIDR_MT_BITMASK;
-+	is_multisocket = acpi_multisocket_count();
-+	if (is_multisocket < 0)
-+		return is_multisocket;
-+
-+	for_each_possible_cpu(cpu) {
-+		topology_id = setup_acpi_cpu_topology(cpu, 0);
-+		if (topology_id < 0)
-+			return topology_id;
-+
-+		if ((is_threaded) && (is_multisocket > 1)) {
-+			/* MT per core, and multiple sockets */
-+			cpu_topology[cpu].thread_id = topology_id;
-+			topology_id = setup_acpi_cpu_topology(cpu, 1);
-+			cpu_topology[cpu].core_id   = topology_id;
-+			topology_id = setup_acpi_cpu_topology(cpu, 2);
-+			cpu_topology[cpu].cluster_id = topology_id;
-+			topology_id = setup_acpi_cpu_topology(cpu, max_topo);
-+			cpu_topology[cpu].package_id = topology_id;
-+		} else if (is_threaded) {
-+			/* mutltiple threads, but only a single socket */
-+			cpu_topology[cpu].thread_id  = topology_id;
-+			topology_id = setup_acpi_cpu_topology(cpu, 1);
-+			cpu_topology[cpu].core_id    = topology_id;
-+			topology_id = setup_acpi_cpu_topology(cpu, 2);
-+			cpu_topology[cpu].cluster_id = topology_id;
-+			cpu_topology[cpu].package_id = topology_id;
-+		} else {
-+			/* no threads, clusters behave like threads */
-+			cpu_topology[cpu].thread_id  = topology_id;
-+			topology_id = setup_acpi_cpu_topology(cpu, 1);
-+			cpu_topology[cpu].core_id    = topology_id;
-+			cpu_topology[cpu].cluster_id = topology_id;
-+			topology_id = setup_acpi_cpu_topology(cpu, max_topo);
-+			cpu_topology[cpu].package_id = topology_id;
-+		}
-+	}
-+	return 0;
-+}
-+
-+#else
-+static int __init parse_acpi_topology(void)
-+{
-+	/*ACPI kernels should be built with PPTT support*/
-+	return -EINVAL;
-+}
-+#endif
-+
- void __init init_cpu_topology(void)
+ static inline int raw_cpu_to_cluster(int cpu)
  {
- 	reset_cpu_topology();
-@@ -312,6 +376,8 @@ void __init init_cpu_topology(void)
- 	 * Discard anything that was parsed if we hit an error so we
- 	 * don't use partial information.
- 	 */
--	if (of_have_populated_dt() && parse_dt_topology())
-+	if ((!acpi_disabled) && parse_acpi_topology())
-+		reset_cpu_topology();
-+	else if (of_have_populated_dt() && parse_dt_topology())
- 		reset_cpu_topology();
+-	return topology_physical_package_id(cpu);
++	return topology_cod_id(cpu);
  }
-diff --git a/include/linux/topology.h b/include/linux/topology.h
-index 4660749a7303..08bf736be7c1 100644
---- a/include/linux/topology.h
-+++ b/include/linux/topology.h
-@@ -43,6 +43,8 @@
- 		if (nr_cpus_node(node))
  
- int arch_update_cpu_topology(void);
-+int setup_acpi_cpu_topology(unsigned int cpu, int level);
-+int acpi_multisocket_count(void);
- 
- /* Conform to ACPI 2.0 SLIT distance definitions */
- #define LOCAL_DISTANCE		10
+ static inline int cpu_to_cluster(int cpu)
+diff --git a/drivers/firmware/psci_checker.c b/drivers/firmware/psci_checker.c
+index 6523ce962865..a9465f5d344a 100644
+--- a/drivers/firmware/psci_checker.c
++++ b/drivers/firmware/psci_checker.c
+@@ -202,7 +202,7 @@ static int hotplug_tests(void)
+ 	 */
+ 	for (i = 0; i < nb_cluster; ++i) {
+ 		int cluster_id =
+-			topology_physical_package_id(cpumask_any(clusters[i]));
++			topology_cod_id(cpumask_any(clusters[i]));
+ 		ssize_t len = cpumap_print_to_pagebuf(true, page_buf,
+ 						      clusters[i]);
+ 		/* Remove trailing newline. */
 -- 
 2.13.5
 
