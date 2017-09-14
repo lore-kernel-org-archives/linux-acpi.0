@@ -1,228 +1,49 @@
-From: Dongjiu Geng <gengdongjiu@huawei.com>
-Subject: [PATCH v2] acpi: apei: Add SEI notification type support for ARMv8
-Date: Thu, 14 Sep 2017 15:22:23 +0800
-Message-ID: <1505373743-7780-1-git-send-email-gengdongjiu@huawei.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v6 5/7] arm64: kvm: route synchronous external abort
+ exceptions to el2
+Date: Thu, 14 Sep 2017 19:12:06 +0800
+Message-ID: <fb7da3e3-d0f7-7ac6-b088-888a563d7ee7@huawei.com>
+References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
+ <1503916701-13516-6-git-send-email-gengdongjiu@huawei.com>
+ <59B17449.6010201@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:6052 "EHLO
+Received: from szxga05-in.huawei.com ([45.249.212.191]:6055 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751085AbdING7z (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Sep 2017 02:59:55 -0400
+        with ESMTP id S1751712AbdINLNe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Sep 2017 07:13:34 -0400
+In-Reply-To: <59B17449.6010201@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: will.deacon@arm.com, zjzhang@codeaurora.org, catalin.marinas@arm.com, tbaicar@codeaurora.org, bp@suse.de, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gengdongjiu@huawei.com, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com
-Cc: huangshaoyu@huawei.com, wuquanming@huawei.com
+To: James Morse <james.morse@arm.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, mst@redhat.com
 
-ARMv8.2 requires implementation of the RAS extension, in
-this extension it adds SEI(SError Interrupt) notification
-type, this patch adds new GHES error source SEI handling
-functions. Because this error source parsing and handling
-methods are similar with the SEA. so share some SEA handling
-functions with the SEI
+James,
 
-Expose one API ghes_notify_abort() to external users. External
-modules can call this exposed API to parse and handling the
-SEA or SEI.
+On 2017/9/8 0:31, James Morse wrote:
+> KVM already handles external aborts from lower exception levels, no more work
+> needs doing for TEA.
+If it is firmware first solution, that is SCR_EL3.EA=1, all SError interrupt and synchronous External
+Abort exceptions are taken to EL3, so EL3 firmware will handle it, KVM no needs to handle it.
 
-Note: For the SEI(SError Interrupt), because it is asynchronous
-external abort, the error address is not accurate, so EL3 firmware
-should identify the address to a invalid value.
+HCR_EL3.TEA is only for EL3 to check its value to decide to jump to hypervisor or kernel.
 
-Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
----
- arch/arm64/Kconfig        |  4 ++--
- arch/arm64/mm/fault.c     |  4 ++--
- drivers/acpi/apei/Kconfig | 15 +++++++++++++
- drivers/acpi/apei/ghes.c  | 56 +++++++++++++++++++++++++++++++++++------------
- include/acpi/ghes.h       |  2 +-
- 5 files changed, 62 insertions(+), 19 deletions(-)
+> 
+> What happens when a guest access the RAS-Error-Record registers?
+> 
+> Before we can set HCR_EL2.TERR I think we need to add some minimal emulation for
+> the registers it traps. Most of them should be RAZ/WI, so it should be
+> straightforward. (I think KVMs default is to emulate an undef for unknown traps).
+Today I added the support to do some minimal emulation for RAS-Error-Record registers, thanks
+for the good suggestion.
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 4d87aa963d83..9989ecce9a72 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -21,7 +21,7 @@ config ARM64
- 	select ARCH_HAS_STRICT_KERNEL_RWX
- 	select ARCH_HAS_STRICT_MODULE_RWX
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
--	select ARCH_HAVE_NMI_SAFE_CMPXCHG if ACPI_APEI_SEA
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (ACPI_APEI_SEA || ACPI_APEI_SEI)
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select ARCH_SUPPORTS_MEMORY_FAILURE
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-@@ -97,7 +97,7 @@ config ARM64
- 	select HAVE_IRQ_TIME_ACCOUNTING
- 	select HAVE_MEMBLOCK
- 	select HAVE_MEMBLOCK_NODE_MAP if NUMA
--	select HAVE_NMI if ACPI_APEI_SEA
-+	select HAVE_NMI if (ACPI_APEI_SEA || ACPI_APEI_SEI)
- 	select HAVE_PATA_PLATFORM
- 	select HAVE_PERF_EVENTS
- 	select HAVE_PERF_REGS
-diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-index 2509e4fe6992..c98c1b30aab5 100644
---- a/arch/arm64/mm/fault.c
-+++ b/arch/arm64/mm/fault.c
-@@ -585,7 +585,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 		if (interrupts_enabled(regs))
- 			nmi_enter();
- 
--		ret = ghes_notify_sea();
-+		ret = ghes_notify_abort(ACPI_HEST_NOTIFY_SEA);
- 
- 		if (interrupts_enabled(regs))
- 			nmi_exit();
-@@ -682,7 +682,7 @@ int handle_guest_sea(phys_addr_t addr, unsigned int esr)
- 	int ret = -ENOENT;
- 
- 	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
--		ret = ghes_notify_sea();
-+		ret = ghes_notify_abort(ACPI_HEST_NOTIFY_SEA);
- 
- 	return ret;
- }
-diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-index de14d49a5c90..47fcb0c82e1e 100644
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -54,6 +54,21 @@ config ACPI_APEI_SEA
- 	  option allows the OS to look for such hardware error record, and
- 	  take appropriate action.
- 
-+config ACPI_APEI_SEI
-+	bool "APEI Asynchronous SError Interrupt logging/recovering support"
-+	depends on ARM64 && ACPI_APEI_GHES
-+	default y
-+	help
-+	  This option should be enabled if the system supports
-+	  firmware first handling of SEI (asynchronous SError interrupt).
-+
-+	  SEI happens with asynchronous external abort for errors on device
-+	  memory reads on ARMv8 systems. If a system supports firmware first
-+	  handling of SEI, the platform analyzes and handles hardware error
-+	  notifications from SEI, and it may then form a HW error record for
-+	  the OS to parse and handle. This option allows the OS to look for
-+	  such hardware error record, and take appropriate action.
-+
- config ACPI_APEI_MEMORY_FAILURE
- 	bool "APEI memory error recovering support"
- 	depends on ACPI_APEI && MEMORY_FAILURE
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index c15a08db2c7c..47be1841f9fe 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -814,33 +814,52 @@ static struct notifier_block ghes_notifier_hed = {
- };
- 
- static LIST_HEAD(ghes_sea);
-+static LIST_HEAD(ghes_sei);
- 
- /*
-- * Return 0 only if one of the SEA error sources successfully reported an error
-+ * Return 0 only if one of the SEA or SEI error sources successfully reported an error
-  * record sent from the firmware.
-  */
--int ghes_notify_sea(void)
-+int ghes_notify_abort(u8 type)
- {
- 	struct ghes *ghes;
-+	struct list_head *head = NULL;
- 	int ret = -ENOENT;
- 
--	rcu_read_lock();
--	list_for_each_entry_rcu(ghes, &ghes_sea, list) {
--		if (!ghes_proc(ghes))
--			ret = 0;
-+	if (type == ACPI_HEST_NOTIFY_SEA)
-+		head = &ghes_sea;
-+	else if (type == ACPI_HEST_NOTIFY_SEI)
-+		head = &ghes_sei;
-+
-+	if (head) {
-+		rcu_read_lock();
-+		list_for_each_entry_rcu(ghes, head, list) {
-+			if (!ghes_proc(ghes))
-+				ret = 0;
-+		}
-+		rcu_read_unlock();
- 	}
--	rcu_read_unlock();
- 	return ret;
- }
- 
--static void ghes_sea_add(struct ghes *ghes)
-+static void ghes_abort_add(struct ghes *ghes)
- {
--	mutex_lock(&ghes_list_mutex);
--	list_add_rcu(&ghes->list, &ghes_sea);
--	mutex_unlock(&ghes_list_mutex);
-+	struct list_head *head = NULL;
-+	u8 notify_type = ghes->generic->notify.type;
-+
-+	if (notify_type == ACPI_HEST_NOTIFY_SEA)
-+		head = &ghes_sea;
-+	else if (notify_type == ACPI_HEST_NOTIFY_SEI)
-+		head = &ghes_sei;
-+
-+	if (head) {
-+		mutex_lock(&ghes_list_mutex);
-+		list_add_rcu(&ghes->list, head);
-+		mutex_unlock(&ghes_list_mutex);
-+	}
- }
- 
--static void ghes_sea_remove(struct ghes *ghes)
-+static void ghes_abort_remove(struct ghes *ghes)
- {
- 	mutex_lock(&ghes_list_mutex);
- 	list_del_rcu(&ghes->list);
-@@ -1093,6 +1112,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 			goto err;
- 		}
- 		break;
-+	case ACPI_HEST_NOTIFY_SEI:
-+		if (!IS_ENABLED(CONFIG_ACPI_APEI_SEI)) {
-+			pr_warn(GHES_PFX "Generic hardware error source: %d notified via SEI is not supported!\n",
-+				generic->header.source_id);
-+		goto err;
-+	}
-+	break;
- 	case ACPI_HEST_NOTIFY_NMI:
- 		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
- 			pr_warn(GHES_PFX "Generic hardware error source: %d notified via NMI interrupt is not supported!\n",
-@@ -1162,7 +1188,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 		break;
- 
- 	case ACPI_HEST_NOTIFY_SEA:
--		ghes_sea_add(ghes);
-+	case ACPI_HEST_NOTIFY_SEI:
-+		ghes_abort_add(ghes);
- 		break;
- 	case ACPI_HEST_NOTIFY_NMI:
- 		ghes_nmi_add(ghes);
-@@ -1215,7 +1242,8 @@ static int ghes_remove(struct platform_device *ghes_dev)
- 		break;
- 
- 	case ACPI_HEST_NOTIFY_SEA:
--		ghes_sea_remove(ghes);
-+	case ACPI_HEST_NOTIFY_SEI:
-+		ghes_abort_remove(ghes);
- 		break;
- 	case ACPI_HEST_NOTIFY_NMI:
- 		ghes_nmi_remove(ghes);
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 9061c5c743b3..ec6f4bab1d1b 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -118,6 +118,6 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
- 	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
- 	     section = acpi_hest_get_next(section))
- 
--int ghes_notify_sea(void);
-+int ghes_notify_abort(u8 type);
- 
- #endif /* GHES_H */
--- 
-2.14.1
+> 
+> Eventually we will want to back this with a page of memory that lets
+> Qemu/kvmtool configure what the guest can see. (i.e. the emulated machine's
+> errors for kernel-first handling.)
+
+
+
 
