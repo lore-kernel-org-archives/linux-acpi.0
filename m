@@ -1,267 +1,228 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v10 18/24] v4l: fwnode: Add a helper function to obtain
- device / interger references
-Date: Mon, 11 Sep 2017 16:27:10 +0300
-Message-ID: <20170911132710.mcgqn6tbiabzvpqq@valkosipuli.retiisi.org.uk>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-19-sakari.ailus@linux.intel.com>
- <11c951eb-0315-0149-829e-ed73d748e783@xs4all.nl>
- <20170911122820.fkbd2rnaddiestab@valkosipuli.retiisi.org.uk>
- <2e2eba02-39bc-11e1-d9f1-b83a6f580667@xs4all.nl>
+From: Dongjiu Geng <gengdongjiu@huawei.com>
+Subject: [PATCH v2] acpi: apei: Add SEI notification type support for ARMv8
+Date: Thu, 14 Sep 2017 15:22:23 +0800
+Message-ID: <1505373743-7780-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52698 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750842AbdIKN1O (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 11 Sep 2017 09:27:14 -0400
-Content-Disposition: inline
-In-Reply-To: <2e2eba02-39bc-11e1-d9f1-b83a6f580667@xs4all.nl>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:6052 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751085AbdING7z (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Sep 2017 02:59:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, robh@kernel.org, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+To: will.deacon@arm.com, zjzhang@codeaurora.org, catalin.marinas@arm.com, tbaicar@codeaurora.org, bp@suse.de, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gengdongjiu@huawei.com, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com
+Cc: huangshaoyu@huawei.com, wuquanming@huawei.com
 
-Hi Hans,
+ARMv8.2 requires implementation of the RAS extension, in
+this extension it adds SEI(SError Interrupt) notification
+type, this patch adds new GHES error source SEI handling
+functions. Because this error source parsing and handling
+methods are similar with the SEA. so share some SEA handling
+functions with the SEI
 
-On Mon, Sep 11, 2017 at 02:38:23PM +0200, Hans Verkuil wrote:
-> On 09/11/2017 02:28 PM, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > Thanks for the review.
-> > 
-> > On Mon, Sep 11, 2017 at 11:38:58AM +0200, Hans Verkuil wrote:
-> >> Typo in subject: interger -> integer
-> >>
-> >> On 09/11/2017 10:00 AM, Sakari Ailus wrote:
-> >>> v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
-> >>> the device's own fwnode, 
-> >>
-> >> Sorry, you lost me here. Which device are we talking about?
-> > 
-> > The fwnode related a struct device, in other words what dev_fwnode(dev)
-> > gives you. This is either struct device.fwnode or struct
-> > device.of_node.fwnode, depending on which firmware interface was used to
-> > create the device.
-> > 
-> > I'll add a note of this.
-> > 
-> >>
-> >>> it will follow child fwnodes with the given
-> >>> property -- value pair and return the resulting fwnode.
-> >>
-> >> property-value pair (easier readable that way).
-> >>
-> >> You only describe v4l2_fwnode_reference_parse_int_prop(), not
-> >> v4l2_fwnode_reference_parse_int_props().
-> > 
-> > Yes, I think I changed the naming but forgot to update the commit. I'll do
-> > that now.
-> > 
-> >>
-> >>>
-> >>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>> ---
-> >>>  drivers/media/v4l2-core/v4l2-fwnode.c | 93 +++++++++++++++++++++++++++++++++++
-> >>>  1 file changed, 93 insertions(+)
-> >>>
-> >>> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> >>> index 4821c4989119..56eee5bbd3b5 100644
-> >>> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> >>> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> >>> @@ -496,6 +496,99 @@ static int v4l2_fwnode_reference_parse(
-> >>>  	return ret;
-> >>>  }
-> >>>  
-> >>> +static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
-> >>> +	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
-> >>> +	const char **props, unsigned int nprops)
-> >>
-> >> Need comments describing what this does.
-> > 
-> > Yes. I'll also rename it (get -> read) for consistency with the async
-> > changes.
-> 
-> Which async changes? Since the fwnode_handle that's returned is refcounted
-> I wonder if 'get' isn't the right name in this case.
+Expose one API ghes_notify_abort() to external users. External
+modules can call this exposed API to parse and handling the
+SEA or SEI.
 
-Right. True. I'll leave that as-is then.
+Note: For the SEI(SError Interrupt), because it is asynchronous
+external abort, the error address is not accurate, so EL3 firmware
+should identify the address to a invalid value.
 
-> 
-> > 
-> >>
-> >>> +{
-> >>> +	struct fwnode_reference_args fwnode_args;
-> >>> +	unsigned int *args = fwnode_args.args;
-> >>> +	struct fwnode_handle *child;
-> >>> +	int ret;
-> >>> +
-> >>> +	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
-> >>> +						 index, &fwnode_args);
-> >>> +	if (ret)
-> >>> +		return ERR_PTR(ret == -EINVAL ? -ENOENT : ret);
-> >>
-> >> Why map EINVAL to ENOENT? Needs a comment, either here or in the function description.
-> > 
-> > fwnode_property_get_reference_args() returns currently a little bit
-> > different error codes in ACPI / DT. This is worth documenting there and
-> > fixing as well.
-> > 
-> >>
-> >>> +
-> >>> +	for (fwnode = fwnode_args.fwnode;
-> >>> +	     nprops; nprops--, fwnode = child, props++, args++) {
-> >>
-> >> I think you cram too much in this for-loop: fwnode, nprops, fwnode, props, args...
-> >> It's hard to parse.
-> > 
-> > Hmm. I'm not sure if that really helps; the function is just handling each
-> > entry in the array and related array pointers are changed accordingly. The
-> > fwnode = child assignment is there to move to the child node. I.e. what you
-> > need for handling the loop itself.
-> > 
-> > I can change this though if you think it really makes a difference for
-> > better.
-> 
-> I think so, yes. I noticed you like complex for-loops :-)
+Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+---
+ arch/arm64/Kconfig        |  4 ++--
+ arch/arm64/mm/fault.c     |  4 ++--
+ drivers/acpi/apei/Kconfig | 15 +++++++++++++
+ drivers/acpi/apei/ghes.c  | 56 +++++++++++++++++++++++++++++++++++------------
+ include/acpi/ghes.h       |  2 +-
+ 5 files changed, 62 insertions(+), 19 deletions(-)
 
-I don't really see a difference. The loop increment will just move at the
-end of the block inside the loop.
-
-> 
-> > 
-> >>
-> >> I would make this a 'while (nprops)' and write out all the other assignments,
-> >> increments and decrements.
-> >>
-> >>> +		u32 val;
-> >>> +
-> >>> +		fwnode_for_each_child_node(fwnode, child) {
-> >>> +			if (fwnode_property_read_u32(child, *props, &val))
-> >>> +				continue;
-> >>> +
-> >>> +			if (val == *args)
-> >>> +				break;
-> >>
-> >> I'm lost. This really needs comments and perhaps even an DT or ACPI example
-> >> so you can see what exactly it is we're doing here.
-> > 
-> > I'll add comments to the code. A good example will be ACPI documentation
-> > for LEDs, see 17th patch in v9. That will go through the linux-pm tree so
-> > it won't be available in the same tree for a while.
-> 
-> Ideally an ACPI and an equivalent DT example would be nice to have, but I might
-> be asking too much. I'm not that familiar with ACPI, so for me a DT example
-> is easier.
-
-This won't be useful on DT although you could technically use it. In DT you
-can directly refer to any node but on ACPI you can just refer to devices,
-hence this.
-
-Would you be happy with the leds.txt example? I think it's a good example
-as it's directly related to this.
-
-> 
-> > 
-> >>
-> >>> +		}
-> >>> +
-> >>> +		fwnode_handle_put(fwnode);
-> >>> +
-> >>> +		if (!child) {
-> >>> +			fwnode = ERR_PTR(-ENOENT);
-> >>> +			break;
-> >>> +		}
-> >>> +	}
-> >>> +
-> >>> +	return fwnode;
-> >>> +}
-> >>> +
-> >>> +static int v4l2_fwnode_reference_parse_int_props(
-> >>> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> >>> +	const char *prop, const char **props, unsigned int nprops)
-> >>
-> >> Needs comments describing what this does.
-> > 
-> > Will add.
-> > 
-> >>
-> >>> +{
-> >>> +	struct fwnode_handle *fwnode;
-> >>> +	unsigned int index = 0;
-> >>> +	int ret;
-> >>> +
-> >>> +	while (!IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-> >>> +				dev_fwnode(dev), prop, index, props,
-> >>> +				nprops)))) {
-> >>> +		fwnode_handle_put(fwnode);
-> >>> +		index++;
-> >>> +	}
-> >>> +
-> >>> +	if (PTR_ERR(fwnode) != -ENOENT)
-> >>> +		return PTR_ERR(fwnode);
-> >>
-> >> Missing 'if (index == 0)'?
-> > 
-> > Yes, will add.
-> > 
-> >>
-> >>> +
-> >>> +	ret = v4l2_async_notifier_realloc(notifier,
-> >>> +					  notifier->num_subdevs + index);
-> >>> +	if (ret)
-> >>> +		return -ENOMEM;
-> >>> +
-> >>> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-> >>> +					 dev_fwnode(dev), prop, index, props,
-> >>> +					 nprops))); ) {
-> >>
-> >> I'd add 'index++' in this for-loop. It's weird that it is missing.
-> > 
-> > Agreed, I'll move it there.
-> > 
-> >>
-> >>> +		struct v4l2_async_subdev *asd;
-> >>> +
-> >>> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-> >>> +			ret = -EINVAL;
-> >>> +			goto error;
-> >>> +		}
-> >>> +
-> >>> +		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
-> >>> +		if (!asd) {
-> >>> +			ret = -ENOMEM;
-> >>> +			goto error;
-> >>> +		}
-> >>> +
-> >>> +		notifier->subdevs[notifier->num_subdevs] = asd;
-> >>> +		asd->match.fwnode.fwnode = fwnode;
-> >>> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-> >>> +		notifier->num_subdevs++;
-> >>> +
-> >>> +		fwnode_handle_put(fwnode);
-> >>> +
-> >>> +		index++;
-> >>> +	}
-> >>> +
-> >>> +	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
-> >>> +
-> >>> +error:
-> >>> +	fwnode_handle_put(fwnode);
-> >>> +	return ret;
-> >>> +}
-> >>> +
-> >>>  MODULE_LICENSE("GPL");
-> >>>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
-> >>>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> >>>
-> > 
-> 
-> Regards,
-> 
-> 	Hans
-
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 4d87aa963d83..9989ecce9a72 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -21,7 +21,7 @@ config ARM64
+ 	select ARCH_HAS_STRICT_KERNEL_RWX
+ 	select ARCH_HAS_STRICT_MODULE_RWX
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+-	select ARCH_HAVE_NMI_SAFE_CMPXCHG if ACPI_APEI_SEA
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (ACPI_APEI_SEA || ACPI_APEI_SEI)
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+ 	select ARCH_SUPPORTS_MEMORY_FAILURE
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+@@ -97,7 +97,7 @@ config ARM64
+ 	select HAVE_IRQ_TIME_ACCOUNTING
+ 	select HAVE_MEMBLOCK
+ 	select HAVE_MEMBLOCK_NODE_MAP if NUMA
+-	select HAVE_NMI if ACPI_APEI_SEA
++	select HAVE_NMI if (ACPI_APEI_SEA || ACPI_APEI_SEI)
+ 	select HAVE_PATA_PLATFORM
+ 	select HAVE_PERF_EVENTS
+ 	select HAVE_PERF_REGS
+diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+index 2509e4fe6992..c98c1b30aab5 100644
+--- a/arch/arm64/mm/fault.c
++++ b/arch/arm64/mm/fault.c
+@@ -585,7 +585,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+ 		if (interrupts_enabled(regs))
+ 			nmi_enter();
+ 
+-		ret = ghes_notify_sea();
++		ret = ghes_notify_abort(ACPI_HEST_NOTIFY_SEA);
+ 
+ 		if (interrupts_enabled(regs))
+ 			nmi_exit();
+@@ -682,7 +682,7 @@ int handle_guest_sea(phys_addr_t addr, unsigned int esr)
+ 	int ret = -ENOENT;
+ 
+ 	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
+-		ret = ghes_notify_sea();
++		ret = ghes_notify_abort(ACPI_HEST_NOTIFY_SEA);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+index de14d49a5c90..47fcb0c82e1e 100644
+--- a/drivers/acpi/apei/Kconfig
++++ b/drivers/acpi/apei/Kconfig
+@@ -54,6 +54,21 @@ config ACPI_APEI_SEA
+ 	  option allows the OS to look for such hardware error record, and
+ 	  take appropriate action.
+ 
++config ACPI_APEI_SEI
++	bool "APEI Asynchronous SError Interrupt logging/recovering support"
++	depends on ARM64 && ACPI_APEI_GHES
++	default y
++	help
++	  This option should be enabled if the system supports
++	  firmware first handling of SEI (asynchronous SError interrupt).
++
++	  SEI happens with asynchronous external abort for errors on device
++	  memory reads on ARMv8 systems. If a system supports firmware first
++	  handling of SEI, the platform analyzes and handles hardware error
++	  notifications from SEI, and it may then form a HW error record for
++	  the OS to parse and handle. This option allows the OS to look for
++	  such hardware error record, and take appropriate action.
++
+ config ACPI_APEI_MEMORY_FAILURE
+ 	bool "APEI memory error recovering support"
+ 	depends on ACPI_APEI && MEMORY_FAILURE
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index c15a08db2c7c..47be1841f9fe 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -814,33 +814,52 @@ static struct notifier_block ghes_notifier_hed = {
+ };
+ 
+ static LIST_HEAD(ghes_sea);
++static LIST_HEAD(ghes_sei);
+ 
+ /*
+- * Return 0 only if one of the SEA error sources successfully reported an error
++ * Return 0 only if one of the SEA or SEI error sources successfully reported an error
+  * record sent from the firmware.
+  */
+-int ghes_notify_sea(void)
++int ghes_notify_abort(u8 type)
+ {
+ 	struct ghes *ghes;
++	struct list_head *head = NULL;
+ 	int ret = -ENOENT;
+ 
+-	rcu_read_lock();
+-	list_for_each_entry_rcu(ghes, &ghes_sea, list) {
+-		if (!ghes_proc(ghes))
+-			ret = 0;
++	if (type == ACPI_HEST_NOTIFY_SEA)
++		head = &ghes_sea;
++	else if (type == ACPI_HEST_NOTIFY_SEI)
++		head = &ghes_sei;
++
++	if (head) {
++		rcu_read_lock();
++		list_for_each_entry_rcu(ghes, head, list) {
++			if (!ghes_proc(ghes))
++				ret = 0;
++		}
++		rcu_read_unlock();
+ 	}
+-	rcu_read_unlock();
+ 	return ret;
+ }
+ 
+-static void ghes_sea_add(struct ghes *ghes)
++static void ghes_abort_add(struct ghes *ghes)
+ {
+-	mutex_lock(&ghes_list_mutex);
+-	list_add_rcu(&ghes->list, &ghes_sea);
+-	mutex_unlock(&ghes_list_mutex);
++	struct list_head *head = NULL;
++	u8 notify_type = ghes->generic->notify.type;
++
++	if (notify_type == ACPI_HEST_NOTIFY_SEA)
++		head = &ghes_sea;
++	else if (notify_type == ACPI_HEST_NOTIFY_SEI)
++		head = &ghes_sei;
++
++	if (head) {
++		mutex_lock(&ghes_list_mutex);
++		list_add_rcu(&ghes->list, head);
++		mutex_unlock(&ghes_list_mutex);
++	}
+ }
+ 
+-static void ghes_sea_remove(struct ghes *ghes)
++static void ghes_abort_remove(struct ghes *ghes)
+ {
+ 	mutex_lock(&ghes_list_mutex);
+ 	list_del_rcu(&ghes->list);
+@@ -1093,6 +1112,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
+ 			goto err;
+ 		}
+ 		break;
++	case ACPI_HEST_NOTIFY_SEI:
++		if (!IS_ENABLED(CONFIG_ACPI_APEI_SEI)) {
++			pr_warn(GHES_PFX "Generic hardware error source: %d notified via SEI is not supported!\n",
++				generic->header.source_id);
++		goto err;
++	}
++	break;
+ 	case ACPI_HEST_NOTIFY_NMI:
+ 		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
+ 			pr_warn(GHES_PFX "Generic hardware error source: %d notified via NMI interrupt is not supported!\n",
+@@ -1162,7 +1188,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
+ 		break;
+ 
+ 	case ACPI_HEST_NOTIFY_SEA:
+-		ghes_sea_add(ghes);
++	case ACPI_HEST_NOTIFY_SEI:
++		ghes_abort_add(ghes);
+ 		break;
+ 	case ACPI_HEST_NOTIFY_NMI:
+ 		ghes_nmi_add(ghes);
+@@ -1215,7 +1242,8 @@ static int ghes_remove(struct platform_device *ghes_dev)
+ 		break;
+ 
+ 	case ACPI_HEST_NOTIFY_SEA:
+-		ghes_sea_remove(ghes);
++	case ACPI_HEST_NOTIFY_SEI:
++		ghes_abort_remove(ghes);
+ 		break;
+ 	case ACPI_HEST_NOTIFY_NMI:
+ 		ghes_nmi_remove(ghes);
+diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+index 9061c5c743b3..ec6f4bab1d1b 100644
+--- a/include/acpi/ghes.h
++++ b/include/acpi/ghes.h
+@@ -118,6 +118,6 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
+ 	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
+ 	     section = acpi_hest_get_next(section))
+ 
+-int ghes_notify_sea(void);
++int ghes_notify_abort(u8 type);
+ 
+ #endif /* GHES_H */
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
+
