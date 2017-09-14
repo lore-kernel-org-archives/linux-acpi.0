@@ -1,201 +1,63 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v6 6/7] KVM: arm64: allow get exception information from
- userspace
-Date: Thu, 14 Sep 2017 14:00:34 +0100
-Message-ID: <59BA7D72.4090403@arm.com>
-References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com> <1503916701-13516-7-git-send-email-gengdongjiu@huawei.com> <59B17438.5070501@arm.com> <2a42d1ea-3456-2873-c9ea-d8a027b59789@huawei.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific
+ register range for ACPI case
+Date: Thu, 14 Sep 2017 07:06:58 -0700
+Message-ID: <CAKv+Gu8x0j-O3WPE7Cvi4oX5J5Cq1vUhDNB_UdjE88eQh83DDA@mail.gmail.com>
+References: <20160920140518.GD13855@localhost> <CAKv+Gu-j-gKiNMx-TvSxezJth1619FN8W1rAy7DKpkmfX9ii6A@mail.gmail.com>
+ <20160920191744.GA4941@localhost> <20160921140549.GA11968@red-moon>
+ <20160921180457.GB20006@localhost> <20160922094955.GB18637@red-moon>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F8815A9@lhreml507-mbx> <20160922124446.GA21681@red-moon>
+ <20160922183101.GA14510@localhost> <20160922221042.GA1514@localhost>
+ <20160923101145.GA31120@red-moon> <EE11001F9E5DDD47B7634E2F8A612F2E1F884340@lhreml507-mbx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:35580 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751131AbdINNCI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 14 Sep 2017 09:02:08 -0400
-In-Reply-To: <2a42d1ea-3456-2873-c9ea-d8a027b59789@huawei.com>
+Received: from mail-io0-f178.google.com ([209.85.223.178]:49929 "EHLO
+        mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751380AbdINOHA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Sep 2017 10:07:00 -0400
+Received: by mail-io0-f178.google.com with SMTP id 21so679235iof.6
+        for <linux-acpi@vger.kernel.org>; Thu, 14 Sep 2017 07:07:00 -0700 (PDT)
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F884340@lhreml507-mbx>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: gengdongjiu <gengdongjiu@huawei.com>
-Cc: peter.maydell@linaro.org, christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, mst@redhat.com, john.garry@huawei.com, jonathan.cameron@hu
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marcin Wojtas <mw@semihalf.com>, Wangyijing <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "liudongdong (C)" <liudongdong3@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi gengdongjiu,
+(remove most cc's)
 
-(re-ordered hunks)
+Hi all,
 
-On 13/09/17 08:32, gengdongjiu wrote:
-> On 2017/9/8 0:30, James Morse wrote:
->> On 28/08/17 11:38, Dongjiu Geng wrote:
->> For BUS_MCEERR_A* from memory_failure() we can't know if they are caused by
->> an access or not.
+Apologies for digging up this old thread.
 
-Actually it looks like we can: I thought 'BUS_MCEERR_AR' could be triggered via
-some CPER flags, but its not. The only code that flags MF_ACTION_REQUIRED is
-x86's kernel-first handling, which nicely matches this 'direct access' problem.
-BUS_MCEERR_AR also come from KVM stage2 faults (and the x86 equivalent). Powerpc
-also triggers these directly, both from what look to be synchronous paths, so I
-think its fair to equate BUS_MCEERR_AR to a synchronous access and BUS_MCEERR_AO
-to something_else.
+I am currently looking into whether it is feasible to refactor some of
+the ACPI PCI quirk code we have so it can apply to more instances of
+the Synopsys Designware PCIe (i.e., for Marvell and Socionext SOCs),
+which all suffer from the same issue that type 0 config TLPs are not
+filtered before being sent out on the link, resulting in devices
+appearing multiple times.
 
-I don't think we need anything else.
+The pci-hisi.c quirk already appears to do exactly what would solve
+the problem on other SoCs as well. So I will try to refactor this code
+into something that I could propose for upstream, while probably
+getting the ARM SBSA authors to offer some guidance that this IP must
+not be used for new designs.
 
+In any case, the chances of any such changes being acceptable upstream
+are probably higher if we can reuse the exact same quirk as we have
+already implemented for HiSilicon, so I wonder if anyone from Huawei
+could comment on some questions I have:
+- Why does the config space accessor override use 32-bit accesses only
+for bus #0? Is that really necessary?
+- Why does the Hisi quirk use different config base addresses for bus
+#0 and the other buses? Is this simply because the firmware does not
+use contiguous iATU windows for bus #0 and buses #1 and up? So is
+there anything mapped in the 1 MB slice at the base of the respective
+256 MB mappings that generate type1 config cycles?
 
->> When the mm code gets -EHWPOISON when trying to resolve a
->
-> Because of that, so I allow  userspace getting exception information
-
-... and there are cases where you can't get the exception information, and other
-cases where it wasn't an exception at all.
-
-[...]
-
-
->> What happens if the dram-scrub hardware spots an error in guest memory, but
->> the guest wasn't running? KVM won't have a relevant ESR value to give you.
-
-> if the dram-scrub hardware spots an error in guest memory, it will generate
-> IRQ in DDR controller, not SEA or SEI exception. I still do not consider the
-> GSIV. For GSIV, may be we can only handle it in the host OS.
-
-Great example: this IRQ pulls us out of a guest, we tromp through APEI and then
-memory_failure(), the memory happened to belong to the same guest
-(coincidence!), we send it some signal and now its user-space's problem.
-
-Your KVM_REG_ARM64_FAULT mechanism is going to return stale data, even though
-the notification interrupted the guest, and it was guest memory that was
-affected. KVM doesn't have a relevant ESR.
-
-
-I'm strongly against exposing 'which notification type' this error originally
-came from because:
-* it doesn't matter once we've got the CPER records,
-* there isn't always an answer (there are/will-be other ways of tripping
-  memory_failure())
-* it creates ABI between firwmare, host userspace and guest userspace.
-  Firmware's choice of notification type shouldn't affect anything other than
-  the host kernel.
-
-
-On 13/09/17 08:32, gengdongjiu wrote:
-> On 2017/9/8 0:30, James Morse wrote:
->> On 28/08/17 11:38, Dongjiu Geng wrote:
->>> when userspace gets SIGBUS signal, it does not know whether
->>> this is a synchronous external abort or SError,
->>
->> Why would Qemu/kvmtool need to know if the original notification (if there was
->> one) was synchronous or asynchronous? This is between firmware and the kernel.
-
-> there are two reasons:
-> 
-> 1. Let us firstly discuss the SEA and SEI, there are different workflow for the two different Errors.
-> 2. when record the CPER in the user space, it needs to know the error type, because SEA and SEI are different Error source,
->    so they have different offset in the APEI table, that is to say they will be recorded to different place of the APEI table.
-
-user-space can choose whether to use SEA or SEI, it doesn't have to choose the
-same notification type that firmware used, which in turn doesn't have to be the
-same as that used by the CPU to notify firmware.
-
-The choice only matters because these notifications hang on an existing pieces
-of the Arm-architecture, so the notification can only add to the architecturally
-defined meaning. (i.e. You can only send an SEA for something that can already
-be described as a synchronous external abort).
-
-Once we get to user-space, for memory_failure() notifications, (which so far is
-all we are talking about here), the only thing that could matter is whether the
-guest hit a PG_hwpoison page as a stage2 fault. These can be described as
-Synchronous-External-Abort.
-
-The Synchronous-External-Abort/SError-Interrupt distinction matters for the CPU
-because it can't always make an error synchronous. For memory_failure()
-notifications to a KVM guest we really can do this, and we already have this
-behaviour for free. An example:
-
-A guest touches some hardware:poisoned memory, for whatever reason the CPU can't
-put the world back together to make this a synchronous exception, so it reports
-it to firmware as an SError-interrupt.
-Linux gets an APEI notification and memory_failure() causes the affected page to
-be unmapped from the guest's stage2, and SIGBUS_MCEERR_AO sent to user-space.
-
-Qemu/kvmtool can now notify the guest with an IRQ or POLLed notification. AO->
-action optional, probably asynchronous.
-
-But in our example it wasn't really asynchronous, that was just a property of
-the original CPU->firmware notification. What happens? The guest vcpu is re-run,
-it re-runs the same instructions (this was a contained error so KVM's ELR points
-at/before the instruction that steps in the problem). This time KVM takes a
-stage2 fault, which the mm code will refuse to fixup because the relevant page
-was marked as PG_hwpoision by memory_failure(). KVM signals Qemu/kvmtool with
-SIGBUS_MCEERR_AR. Now Qemu/kvmtool can notify the guest using SEA.
-
-
-
-
->          etc/acpi/tables                               etc/hardware_errors
->         ====================                    ==========================================
->     + +--------------------------+            +------------------+
->     | | HEST                     |            |    address       |              +--------------+
->     | +--------------------------+            |    registers     |              | Error Status |
->     | | GHES0                    |            | +----------------+              | Data Block 0 |
->     | +--------------------------+ +--------->| |status_address0 |------------->| +------------+
->     | | .................        | |          | +----------------+              | |  CPER      |
->     | | error_status_address-----+-+ +------->| |status_address1 |----------+   | |  CPER      |
->     | | .................        |   |        | +----------------+          |   | |  ....      |
->     | | read_ack_register--------+-+ |        |  .............   |          |   | |  CPER      |
->     | | read_ack_preserve        | | |        +------------------+          |   | +-+------------+
->     | | read_ack_write           | | | +----->| |status_address10|--------+ |   | Error Status |
->     + +--------------------------+ | | |      | +----------------+        | |   | Data Block 1 |
->     | | GHES1                    | +-+-+----->| | ack_value0     |        | +-->| +------------+
->     + +--------------------------+   | |      | +----------------+        |     | |  CPER      |
->     | | .................        |   | | +--->| | ack_value1     |        |     | |  CPER      |
->     | | error_status_address-----+---+ | |    | +----------------+        |     | |  ....      |
->     | | .................        |     | |    | |  ............. |        |     | |  CPER      |
->     | | read_ack_register--------+-----+-+    | +----------------+        |     +-+------------+
->     | | read_ack_preserve        |     |   +->| | ack_value10    |        |     | |..........  |
->     | | read_ack_write           |     |   |  | +----------------+        |     | +------------+
->     + +--------------------------|     |   |                              |     | Error Status |
->     | | ...............          |     |   |                              |     | Data Block 10|
->     + +--------------------------+     |   |                              +---->| +------------+
->     | | GHES10                   |     |   |                                    | |  CPER      |
->     + +--------------------------+     |   |                                    | |  CPER      |
->     | | .................        |     |   |                                    | |  ....      |
->     | | error_status_address-----+-----+   |                                    | |  CPER      |
->     | | .................        |         |                                    +-+------------+
->     | | read_ack_register--------+---------+
->     | | read_ack_preserve        |
->     | | read_ack_write           |
->     + +--------------------------+
-> 
-
-(nice ascii art!)
-
->> I think I can see why you need this: to choose whether to emulate SEA or SEI,
-
-> emulating SEA or SEI is one reason, another reason is that the CPER will be recorded to different place of APEI.
-
-(This doesn't matter: Generate the CPER records after you've chosen the
-notification and this isn't a problem. Or map your 'Error Status Data Blocks'
-to status_address* depending on usage not in a fixed 1:1 way)
-
-
->> I think what you need is some way of knowing if the BUS_MCEERR_A* was directly
->> caused by a user-space (or guest) access, and if so was it a data or instruction
-
-> when user space received the signal, it will judge whether the memory address is user-space (or guest) address
-
->> fetch. These can become SEA notifications.
-
-> In fact, it can be SEI, not always SEA, why it will always SEA notifications?
-> If the memory properties of data is device type, it may become SEI notification.
-
-Let's take a step back: in what scenario should we use an emulated-SEA instead
-of an emulated-SEI? (forget what the CPU and firmware did, this is up to Qemu to
-decide).
-
-It can use SEA if this is a valid Synchronous-external-abort. Stage 2 faults are
-synchronous exceptions, if you hit a PG_hwpoision page on this path you can
-report this back to the guest as a Synchronous-external-abort/SEA.
-How do you know? You get SIGBUS_MCEERR_AR from KVM.
-
+Having just a shared set of config space accessor overrides would
+already be an improvement, given that they can be shared with a DT
+based driver for this IP in ECAM mode as well.
 
 Thanks,
-
-James
+Ard.
