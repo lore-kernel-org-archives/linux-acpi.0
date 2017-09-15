@@ -1,118 +1,51 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v3 1/3] arm64/ras: support sea error recovery
-Date: Fri, 15 Sep 2017 19:33:18 +0100
-Message-ID: <59BC1CEE.8010708@arm.com>
-References: <1504770316-4327-1-git-send-email-xiexiuqi@huawei.com> <1504770316-4327-2-git-send-email-xiexiuqi@huawei.com> <59B2DE26.4060002@arm.com> <52d2868c-79cd-8ff8-8e1d-6078d02d5a0c@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] acpi: watchdog: properly initialize resources
+Date: Fri, 15 Sep 2017 21:55:18 +0200
+Message-ID: <20170915195526.1541309-1-arnd@arndb.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:51164 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751434AbdIOSes (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Sep 2017 14:34:48 -0400
-In-Reply-To: <52d2868c-79cd-8ff8-8e1d-6078d02d5a0c@huawei.com>
+Received: from mout.kundenserver.de ([212.227.126.135]:50613 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751825AbdIOT4V (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Sep 2017 15:56:21 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, cj.chengjian@huawei.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ryan Kennedy <ryan5544@gmail.com>, Guenter Roeck <linux@roeck-us.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Xie XiuQi,
+We copy a local resource structure into a list, but only
+initialize some of its members, as pointed out by gcc-4.4:
 
-On 11/09/17 15:11, Xie XiuQi wrote:
-> I first describe the approach of this patchset:
-> 
-> A memory access error on the execution path usually triggers SEA.
-> According to the existing process, errors occurred in the kernel,
-> leading to direct panic, if it occurred the user-space, we should
-> just kill process.
-> 
-> But there is a class of error, in fact, is not necessary to kill
-> process, you can recover and continue to run the process. Such as
-> the instruction data corrupted, where the memory page might be
-> read-only, which is has not been modified, the disk might have the
-> correct data, so you can directly drop the page, ant reload it when
-> necessary.
-> 
-> So this patchset is just try to solve such problem: if the error is
-> consumed in user-space and the error occurs on a clean page, you can
-> directly drop the memory page without killing process.
-> 
-> This is implemented in memory_failure, which is generic process.
+drivers/acpi/acpi_watchdog.c: In function 'acpi_watchdog_init':
+drivers/acpi/acpi_watchdog.c:105: error: 'res.child' may be used uninitialized in this function
+drivers/acpi/acpi_watchdog.c:105: error: 'res.sibling' may be used uninitialized in this function
+drivers/acpi/acpi_watchdog.c:105: error: 'res.parent' may be used uninitialized in this function
+drivers/acpi/acpi_watchdog.c:105: error: 'res.desc' may be used uninitialized in this function
+drivers/acpi/acpi_watchdog.c:105: error: 'res.name' may be used uninitialized in this function
 
-> The error reported by SEA should be handled before re-enter the process,
-> or we must kill the process to prevent error propagation.
-> 
-> memory_failure_queue() is asynchronous, in which, error info was saved
-> at ghes_proc, but handled in kworker. During this period there is a context
-> switching, so we can not determine which process would be switch to. So
-> memory_failure_queue is not suitable for handling the problem.
+Newer compilers can presumably optimize the uninitialized access
+away entirely and don't warn at all, but rely on the kzalloc()
+to zero the structure first. This adds an explicit initialization
+to force consistent behavior.
 
-Thanks for this summary. I see the problem you're trying to solve is when
-memory_failure() runs, in your scenario its not guaranteed to run before we
-return to user space.
+Fixes: 058dfc767008 ("ACPI / watchdog: Add support for WDAT hardware watchdog")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/acpi/acpi_watchdog.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-What is the user-visible symptom of this? SIGBUS, code=0 instead of SIGBUS,
-code=...MCEERR_A?
-
-..in which case I'm looking at this as a race with the memory_failure() bottom
-half via schedule_work().
-
-How does x86 avoid this same problem?
-
-
-> And memory_failure is not nmi-safe, so it can not be called directly in the
-> SEA context. So we just handle this error at SEA exit path, and before context
-> switching.
-
-(I need to look more into which locks memory_failure() is taking)
-
-
-> In FFH mode, physical address can only be obtained by parsing the GHES table.
-> But we only care about SEA, so the error handling is tied to the type of notification.
-
-I care about all the notification methods. Once the notification has been passed
-to APEI I want them to behave the same so that we don't have subtle bugs between
-the 11 different ways we could get a notification. This code is rarely tested
-enough as it is.
-
->From the arch code I just want to call out to APEI asking 'is this yours?'. If
-so I expect APEI to have done all the work, if not we take the v8.0 behaviour.
-
-
-Here you need APEI and the arch code to spot 'SEA' and treat it differently,
-invoking some arm64-specific behaviour for APEI, and some
-not-really-arch-specific code under /arch/arm64. There is nothing arm64 specific
-about your arm_process_error(), how come the core APEI code doesn't need to do this?
-
-
-I think this is caused by the way memory_failure() schedules its work, and that
-is where I'd like to try and fix this, so that its the same for all notification
-methods and all (cough: both) architectures.
-
-
-> The TIF flag is checked on a generic path, but it will only be set when SEA occurs.
-> And if we use unlikely optimization, it should have little impact on performance.
-
-Yes, the arch code checks _TIF_WORK_MASK in one go so there is no performance
-problem for code that hasn't taken the RAS-Error. (and once we've taken a RAS
-error performance is out the window!)
-
-
-> And the TIF flag approach was used on x86 platform for years, until commit d4812e169d
-
-... so x86 doesn't do this ...
-
-> (x86, mce: Get rid of TIF_MCE_NOTIFY and associated mce tricks)[0]. On currently arm64
-> platform, there is no IST interrupt[1] function, so we could not call memory_failure
-> directly in SEA context. So the way to use TIF notification, is also a good choice,
-> after all, the same way on x86 platform is verified.
-
-Thanks, looks like I need to read more of the history of x86's kernel-first
-handling...
-
-
-Thanks,
-
-James
+diff --git a/drivers/acpi/acpi_watchdog.c b/drivers/acpi/acpi_watchdog.c
+index bf22c29d2517..11b113f8e367 100644
+--- a/drivers/acpi/acpi_watchdog.c
++++ b/drivers/acpi/acpi_watchdog.c
+@@ -66,7 +66,7 @@ void __init acpi_watchdog_init(void)
+ 	for (i = 0; i < wdat->entries; i++) {
+ 		const struct acpi_generic_address *gas;
+ 		struct resource_entry *rentry;
+-		struct resource res;
++		struct resource res = {};
+ 		bool found;
+ 
+ 		gas = &entries[i].register_region;
+-- 
+2.9.0
 
