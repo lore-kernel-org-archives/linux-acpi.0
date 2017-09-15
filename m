@@ -1,58 +1,80 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 2/8] ACPICA: acpiexec: Add testability of deferred table verification
-Date: Fri, 15 Sep 2017 12:44:15 +0800
-Message-ID: <8eb2d2762cd870172dd60fc46e0cb90f6cbfbcf5.1505377451.git.lv.zheng@intel.com>
+Subject: [PATCH 3/8] ACPICA: Header support for the PDTT ACPI table
+Date: Fri, 15 Sep 2017 12:44:22 +0800
+Message-ID: <577483090a91fcc97b421accbea54c69cb93a2a3.1505377451.git.lv.zheng@intel.com>
 References: <cover.1505377451.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:29843 "EHLO mga11.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:23729 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750720AbdIOEoU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Sep 2017 00:44:20 -0400
+        id S1750720AbdIOEoZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Sep 2017 00:44:25 -0400
 In-Reply-To: <cover.1505377451.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 04c28c7549e694ea85f40bcc816039e5fbb4169c
+From: Bob Moore <robert.moore@intel.com>
 
-This patch adds testability of deferred table verification mechanism. As
-acpiexec uses dynamically allocated root table list from its very early
-stage, a change to acpi_reallocate_root_table() is required to allow deferred
-table verification mechanism to be triggered in such an environment. Note
-that acpi_gbl_enable_table_validation is still TRUE by default, thus:
-1. Developers need to manually set acpi_gbl_enable_table_validation to FALSE
-   for acpiexec to enable this test.
-2. For all other OSPMs (Linux, BSDs, etc.), this commit is a no-op.
+ACPICA commit 9951c78746b52da7d23da4531fcfba6bf8c95b6a
 
-Link: https://github.com/acpica/acpica/commit/04c28c7549e6
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+This is an ACPI 6.2 table.
+
+Link: https://github.com/acpica/acpica/commit/9951c78746b5
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/tbxface.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/acpi/actbl1.h | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index 26ad596..5ecb8d2 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -173,10 +173,13 @@ acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
- 	ACPI_FUNCTION_TRACE(acpi_reallocate_root_table);
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 6b8714a..7a89e6d 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -69,6 +69,7 @@
+ #define ACPI_SIG_HEST           "HEST"	/* Hardware Error Source Table */
+ #define ACPI_SIG_MADT           "APIC"	/* Multiple APIC Description Table */
+ #define ACPI_SIG_MSCT           "MSCT"	/* Maximum System Characteristics Table */
++#define ACPI_SIG_PDTT           "PDTT"	/* Processor Debug Trigger Table */
+ #define ACPI_SIG_PPTT           "PPTT"	/* Processor Properties Topology Table */
+ #define ACPI_SIG_SBST           "SBST"	/* Smart Battery Specification Table */
+ #define ACPI_SIG_SLIT           "SLIT"	/* System Locality Distance Information Table */
+@@ -1282,6 +1283,35 @@ struct acpi_nfit_flush_address {
  
- 	/*
--	 * Only reallocate the root table if the host provided a static buffer
--	 * for the table array in the call to acpi_initialize_tables.
-+	 * If there are tables unverified, it is required to reallocate the
-+	 * root table list to clean up invalid table entries. Otherwise only
-+	 * reallocate the root table list if the host provided a static buffer
-+	 * for the table array in the call to acpi_initialize_tables().
- 	 */
--	if (acpi_gbl_root_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED) {
-+	if ((acpi_gbl_root_table_list.flags & ACPI_ROOT_ORIGIN_ALLOCATED) &&
-+	    acpi_gbl_enable_table_validation) {
- 		return_ACPI_STATUS(AE_SUPPORT);
- 	}
- 
+ /*******************************************************************************
+  *
++ * PDTT - Processor Debug Trigger Table (ACPI 6.2)
++ *        Version 0
++ *
++ ******************************************************************************/
++
++struct acpi_table_pdtt {
++	struct acpi_table_header header;	/* Common ACPI table header */
++	u8 trigger_count;
++	u8 reserved[3];
++	u32 array_offset;
++};
++
++/*
++ * PDTT Communication Channel Identifier Structure.
++ * The number of these structures is defined by trigger_count above,
++ * starting at array_offset.
++ */
++struct acpi_pdtt_channel {
++	u16 sub_channel_id;
++};
++
++/* Mask and Flags for above */
++
++#define ACPI_PDTT_SUBCHANNEL_ID_MASK        0x00FF
++#define ACPI_PDTT_RUNTIME_TRIGGER           (1<<8)
++#define ACPI_PPTT_WAIT_COMPLETION           (1<<9)
++
++/*******************************************************************************
++ *
+  * PPTT - Processor Properties Topology Table (ACPI 6.2)
+  *        Version 1
+  *
 -- 
 2.7.4
 
