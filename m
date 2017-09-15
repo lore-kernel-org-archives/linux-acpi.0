@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 5/8] ACPICA: String conversions: Cleanup/format comments. No functional changes
-Date: Fri, 15 Sep 2017 12:44:34 +0800
-Message-ID: <f4e883e7e3d90025c9adcadc75e2f9af936e279e.1505377451.git.lv.zheng@intel.com>
+Subject: [PATCH 6/8] ACPICA: String conversions: Update to add new behaviors
+Date: Fri, 15 Sep 2017 12:44:41 +0800
+Message-ID: <7723dfbcae8c00b9f454ecc93e7e8606659c5229.1505377451.git.lv.zheng@intel.com>
 References: <cover.1505377451.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:6725 "EHLO mga07.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:2629 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750866AbdIOEoi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Sep 2017 00:44:38 -0400
+        id S1750873AbdIOEop (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Sep 2017 00:44:45 -0400
 In-Reply-To: <cover.1505377451.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,411 +16,228 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 33e38cd2406709b13fa0a7821e588505b3771163
+ACPICA commit e3574138af82a25d76324559848689946982dbd0
 
-Cleanup some of the language used in the large comments, especially
-the ones that reference the rules in the ACPI spec.
-Fixed some typos.
+1) Allow whitespace in string before the constant
+2) ut_strtoul64 now always creates a 64-bit integer; iASL will
+truncate this to the lower 32-bits if the table being compiled
+is a 32-bit table (DSDT revision less than 2).
 
-Link: https://github.com/acpica/acpica/commit/33e38cd24067
+Link: https://github.com/acpica/acpica/commit/e3574138af82
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/utstrsuppt.c  |  48 ++++++++----------
- drivers/acpi/acpica/utstrtoul64.c | 104 +++++++++++++++++++-------------------
- 2 files changed, 74 insertions(+), 78 deletions(-)
+ drivers/acpi/acpica/acutils.h     |  2 ++
+ drivers/acpi/acpica/utstrsuppt.c  | 25 ++++++++++++++
+ drivers/acpi/acpica/utstrtoul64.c | 72 +++++++++++++++++++++++++++------------
+ 3 files changed, 78 insertions(+), 21 deletions(-)
 
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index 7a568c6..83b75e9 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -211,6 +211,8 @@ acpi_status acpi_ut_convert_decimal_string(char *string, u64 *return_value_ptr);
+ 
+ acpi_status acpi_ut_convert_hex_string(char *string, u64 *return_value_ptr);
+ 
++char acpi_ut_remove_whitespace(char **string);
++
+ char acpi_ut_remove_leading_zeros(char **string);
+ 
+ u8 acpi_ut_detect_hex_prefix(char **string);
 diff --git a/drivers/acpi/acpica/utstrsuppt.c b/drivers/acpi/acpica/utstrsuppt.c
-index 64a5fae..e402cf7 100644
+index e402cf7..bec2b8e 100644
 --- a/drivers/acpi/acpica/utstrsuppt.c
 +++ b/drivers/acpi/acpica/utstrsuppt.c
-@@ -1,6 +1,6 @@
+@@ -231,6 +231,31 @@ char acpi_ut_remove_leading_zeros(char **string)
+ 
  /*******************************************************************************
   *
-- * Module Name: utstrsuppt - string-to-integer conversion support functions
-+ * Module Name: utstrsuppt - Support functions for string-to-integer conversion
-  *
-  ******************************************************************************/
- 
-@@ -83,7 +83,7 @@ acpi_status acpi_ut_convert_octal_string(char *string, u64 *return_value_ptr)
- 
- 	while (*string) {
- 
--		/* Must be ASCII 0-7, otherwise terminate with no error */
-+		/* Character must be ASCII 0-7, otherwise terminate with no error */
- 
- 		if (!(ACPI_IS_OCTAL_DIGIT(*string))) {
- 			break;
-@@ -132,7 +132,7 @@ acpi_status acpi_ut_convert_decimal_string(char *string, u64 *return_value_ptr)
- 
- 	while (*string) {
- 
--		/* Must be ASCII 0-9, otherwise terminate with no error */
-+		/* Character must be ASCII 0-9, otherwise terminate with no error */
- 
- 		if (!isdigit(*string)) {
- 			break;
-@@ -210,18 +210,17 @@ acpi_status acpi_ut_convert_hex_string(char *string, u64 *return_value_ptr)
-  *
-  * PARAMETERS:  string                  - Pointer to input ASCII string
-  *
-- * RETURN:      Next character after the leading zeros. This behavior may be
-- *              Used by the caller to detect end-of-string.
-+ * RETURN:      Next character after any leading zeros. This character may be
++ * FUNCTION:    acpi_ut_remove_whitespace
++ *
++ * PARAMETERS:  string                  - Pointer to input ASCII string
++ *
++ * RETURN:      Next character after any whitespace. This character may be
 + *              used by the caller to detect end-of-string.
-  *
-- * DESCRIPTION: Remove all leading zeros in the input string. Return the
-- *              next character after the final zero to check for the end
-- *              of the string (NULL terminator).
-+ * DESCRIPTION: Remove any leading zeros in the input string. Return the
++ *
++ * DESCRIPTION: Remove any leading whitespace in the input string. Return the
 + *              next character after the final ASCII zero to enable the caller
 + *              to check for the end of the string (NULL terminator).
-  *
-  ******************************************************************************/
- 
- char acpi_ut_remove_leading_zeros(char **string)
- {
--	/* Skip all leading zeros */
- 
- 	while (**string == ACPI_ASCII_ZERO) {
- 		*string += 1;
-@@ -236,9 +235,9 @@ char acpi_ut_remove_leading_zeros(char **string)
-  *
-  * PARAMETERS:  string                  - Pointer to input ASCII string
-  *
-- * RETURN:      TRUE if a 0x prefix was found
-+ * RETURN:      TRUE if a "0x" prefix was found at the start of the string
-  *
-- * DESCRIPTION: Detect and remove a hex 0x prefix
-+ * DESCRIPTION: Detect and remove a hex "0x" prefix
-  *
-  ******************************************************************************/
- 
-@@ -260,7 +259,8 @@ u8 acpi_ut_detect_hex_prefix(char **string)
++ *
++ ******************************************************************************/
++
++char acpi_ut_remove_whitespace(char **string)
++{
++
++	while (isspace((u8)**string)) {
++		*string += 1;
++	}
++
++	return (**string);
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_ut_detect_hex_prefix
   *
   * PARAMETERS:  string                  - Pointer to input ASCII string
-  *
-- * RETURN:      True if an octal 0 prefix was found
-+ * RETURN:      True if an octal "0" prefix was found at the start of the
-+ *              string
-  *
-  * DESCRIPTION: Detect and remove an octal prefix (zero)
-  *
-@@ -282,23 +282,22 @@ u8 acpi_ut_detect_octal_prefix(char **string)
-  * FUNCTION:    acpi_ut_insert_digit
-  *
-  * PARAMETERS:  accumulated_value       - Current value of the integer value
-- *                                        accumulator. The New value is
-+ *                                        accumulator. The new value is
-  *                                        returned here.
-- *              base                    - Radix, either 8/10/16 supported
-+ *              base                    - Radix, either 8/10/16
-  *              ascii_digit             - ASCII single digit to be inserted
-  *
-- * RETURN:      Status and result of convert/insert operation. The only
-- *              exception is numeric overflow of either the multiply or the
-- *              add operations.
-+ * RETURN:      Status and result of the convert/insert operation. The only
-+ *              possible returned exception code is numeric overflow of
-+ *              either the multiply or add conversion operations.
-  *
-  * DESCRIPTION: Generic conversion and insertion function for all bases:
-  *
-- *              1) Multiply the current accumulated converted value by the
-+ *              1) Multiply the current accumulated/converted value by the
-  *              base in order to make room for the new character.
-  *
-- *              2) Add the current accumulated/converted value the new
-- *              character (after the character has been converted to a binary
-- *              value).
-+ *              2) Convert the new character to binary and add it to the
-+ *              current accumulated value.
-  *
-  *              Note: The only possible exception indicates an integer
-  *              overflow (AE_NUMERIC_OVERFLOW)
-@@ -318,17 +317,14 @@ acpi_ut_insert_digit(u64 *accumulated_value, u32 base, int ascii_digit)
- 		return (status);
- 	}
- 
--	/* Add in the new digit, and store to the caller's accumulated value */
-+	/* Add in the new digit, and store the sum to the accumulated value */
- 
- 	status =
- 	    acpi_ut_strtoul_add64(product,
- 				  acpi_ut_ascii_char_to_hex(ascii_digit),
- 				  accumulated_value);
--	if (ACPI_FAILURE(status)) {
--		return (status);
--	}
- 
--	return (AE_OK);
-+	return (status);
- }
- 
- /*******************************************************************************
 diff --git a/drivers/acpi/acpica/utstrtoul64.c b/drivers/acpi/acpica/utstrtoul64.c
-index e5a2df3..67a39d9 100644
+index 67a39d9..e2067dc 100644
 --- a/drivers/acpi/acpica/utstrtoul64.c
 +++ b/drivers/acpi/acpica/utstrtoul64.c
-@@ -1,7 +1,7 @@
- /*******************************************************************************
-  *
-- * Module Name: utstrtoul64 - string-to-integer support for both 64-bit
-- *                            and 32-bit integers
-+ * Module Name: utstrtoul64 - String-to-integer conversion support for both
-+ *                            64-bit and 32-bit integers
-  *
-  ******************************************************************************/
- 
-@@ -50,21 +50,23 @@ ACPI_MODULE_NAME("utstrtoul64")
- 
- /*******************************************************************************
-  *
-- * This module contains the external string to 64/32-bit unsigned integer
-+ * This module contains the top-level string to 64/32-bit unsigned integer
-  * conversion functions:
-  *
-- *  1) Standard strtoul() function with 64-bit support. This is mostly used by
-- *      the iASL compiler.
-+ *  1) A standard strtoul() function that supports 64-bit integers, base
-+ *     8/10/16, with integer overflow support. This is used mainly by the
-+ *     iASL compiler, which implements tighter constraints on integer
-+ *     constants than the runtime (interpreter) integer-to-string conversions.
-  *  2) Runtime "Explicit conversion" as defined in the ACPI specification.
-  *  3) Runtime "Implicit conversion" as defined in the ACPI specification.
-  *
-  * Current users of this module:
-  *
-+ *  iASL        - Preprocessor (constants and math expressions)
-+ *  iASL        - Main parser, conversion of constants to integers
-+ *  iASL        - Data Table Compiler parser (constants and math expressions)
+@@ -66,22 +66,25 @@ ACPI_MODULE_NAME("utstrtoul64")
+  *  iASL        - Main parser, conversion of constants to integers
+  *  iASL        - Data Table Compiler parser (constants and math expressions)
   *  interpreter - Implicit and explicit conversions, GPE method names
++ *  interpreter - Repair code for return values from predefined names
   *  debugger    - Command line input string conversion
-- *  iASL        - Main parser, conversion of constants to integers
-- *  iASL        - Data Table Compiler parser (constant math expressions)
-- *  iASL        - Preprocessor (constant math expressions)
-  *  acpi_dump   - Input table addresses
-  *  acpi_exec   - Testing of the acpi_ut_strtoul64 function
+- *  acpi_dump   - Input table addresses
+- *  acpi_exec   - Testing of the acpi_ut_strtoul64 function
++ *  acpi_dump   - ACPI table physical addresses
++ *  acpi_exec   - Support for namespace overrides
   *
-@@ -77,15 +79,17 @@ ACPI_MODULE_NAME("utstrtoul64")
-  *  a 64-bit constant is wrongly defined in a 32-bit DSDT/SSDT.
+  * Notes concerning users of these interfaces:
   *
-  *  In ACPI, the only place where octal numbers are supported is within
-- *  the ASL language itself. There is no runtime support for octal.
-+ *  the ASL language itself. This is implemented via the main acpi_ut_strtoul64
-+ *  interface. According the ACPI specification, there is no ACPI runtime
-+ *  support for octal string conversions.
+- *  acpi_gbl_integer_byte_width is used to set the 32/64 bit limit. This global
+- *  must be set to the proper width. For the core ACPICA code, the width
+- *  depends on the DSDT version. For iASL, the default width is 64 bits for
+- *  all parsers, but error checking is performed later to flag cases where
+- *  a 64-bit constant is wrongly defined in a 32-bit DSDT/SSDT.
++ * acpi_gbl_integer_byte_width is used to set the 32/64 bit limit for explicit
++ * and implicit conversions. This global must be set to the proper width.
++ * For the core ACPICA code, the width depends on the DSDT version. For the
++ * acpi_ut_strtoul64 interface, all conversions are 64 bits. This interface is
++ * used primarily for iASL, where the default width is 64 bits for all parsers,
++ * but error checking is performed later to flag cases where a 64-bit constant
++ * is wrongly defined in a 32-bit DSDT/SSDT.
+  *
+- *  In ACPI, the only place where octal numbers are supported is within
+- *  the ASL language itself. This is implemented via the main acpi_ut_strtoul64
+- *  interface. According the ACPI specification, there is no ACPI runtime
+- *  support for octal string conversions.
++ * In ACPI, the only place where octal numbers are supported is within
++ * the ASL language itself. This is implemented via the main acpi_ut_strtoul64
++ * interface. According the ACPI specification, there is no ACPI runtime
++ * support (explicit/implicit) for octal string conversions.
   *
   ******************************************************************************/
  /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ut_strtoul64
-  *
-- * PARAMETERS:  string                  - Null terminated input string.
-- *                                        Must be a valid pointer
-+ * PARAMETERS:  string                  - Null terminated input string,
-+ *                                        must be a valid pointer
+@@ -93,11 +96,11 @@ ACPI_MODULE_NAME("utstrtoul64")
   *              return_value            - Where the converted integer is
   *                                        returned. Must be a valid pointer
   *
-@@ -98,9 +102,9 @@ ACPI_MODULE_NAME("utstrtoul64")
+- * RETURN:      Status and converted integer
+- *              Returns an exception on numeric overflow
++ * RETURN:      Status and converted integer. Returns an exception on a
++ *              64-bit numeric overflow
+  *
+- * DESCRIPTION: Convert a string into an unsigned integer. Performs either a
+- *              32-bit or 64-bit conversion, depending on the current global
++ * DESCRIPTION: Convert a string into an unsigned integer. Always performs a
++ *              full 64-bit conversion, regardless of the current global
+  *              integer width. Supports Decimal, Hex, and Octal strings.
   *
   * Current users of this function:
-  *
-- *  iASL        - Preprocessor (constant math expressions)
-- *  iASL        - Main parser, conversion of ASL constants to integers
-- *  iASL        - Data Table Compiler parser (constant math expressions)
-+ *  iASL        - Preprocessor (constants and math expressions)
-+ *  iASL        - Main ASL parser, conversion of ASL constants to integers
-+ *  iASL        - Data Table Compiler parser (constants and math expressions)
+@@ -105,11 +108,15 @@ ACPI_MODULE_NAME("utstrtoul64")
+  *  iASL        - Preprocessor (constants and math expressions)
+  *  iASL        - Main ASL parser, conversion of ASL constants to integers
+  *  iASL        - Data Table Compiler parser (constants and math expressions)
++ *  interpreter - Repair code for return values from predefined names
++ *  acpi_dump   - ACPI table physical addresses
++ *  acpi_exec   - Support for namespace overrides
   *
   ******************************************************************************/
  acpi_status acpi_ut_strtoul64(char *string, u64 *return_value)
-@@ -112,17 +116,14 @@ acpi_status acpi_ut_strtoul64(char *string, u64 *return_value)
+ {
+ 	acpi_status status = AE_OK;
++	u8 original_bit_width;
+ 	u32 base = 10;		/* Default is decimal */
  
- 	*return_value = 0;
- 
--	/* Null return string returns a value of zero */
-+	/* A NULL return string returns a value of zero */
- 
- 	if (*string == 0) {
+ 	ACPI_FUNCTION_TRACE_STR(ut_strtoul64, string);
+@@ -122,6 +129,10 @@ acpi_status acpi_ut_strtoul64(char *string, u64 *return_value)
  		return_ACPI_STATUS(AE_OK);
  	}
  
++	if (!acpi_ut_remove_whitespace(&string)) {
++		return_ACPI_STATUS(AE_OK);
++	}
++
  	/*
--	 * 1) The "0x" prefix indicates base 16. Per the ACPI specification,
--	 * the "0x" prefix is only allowed for implicit (non-strict) conversions.
--	 * However, we always allow it for compatibility with older ACPICA and
--	 * just plain on principle.
-+	 * 1) Check for a hex constant. A "0x" prefix indicates base 16.
+ 	 * 1) Check for a hex constant. A "0x" prefix indicates base 16.
  	 */
- 	if (acpi_ut_detect_hex_prefix(&string)) {
- 		base = 16;
-@@ -130,7 +131,7 @@ acpi_status acpi_ut_strtoul64(char *string, u64 *return_value)
+@@ -142,8 +153,16 @@ acpi_status acpi_ut_strtoul64(char *string, u64 *return_value)
+ 	}
  
  	/*
- 	 * 2) Check for an octal constant, defined to be a leading zero
--	 * followed by an valid octal digit (0-7)
-+	 * followed by sequence of octal digits (0-7)
- 	 */
- 	else if (acpi_ut_detect_octal_prefix(&string)) {
- 		base = 8;
-@@ -142,7 +143,7 @@ acpi_status acpi_ut_strtoul64(char *string, u64 *return_value)
- 
- 	/*
- 	 * Perform the base 8, 10, or 16 conversion. A numeric overflow will
--	 * return an exception.
-+	 * return an exception (to allow iASL to flag the statement).
+-	 * Perform the base 8, 10, or 16 conversion. A numeric overflow will
+-	 * return an exception (to allow iASL to flag the statement).
++	 * Force a full 64-bit conversion. The caller (usually iASL) must
++	 * check for a 32-bit overflow later as necessary (If current mode
++	 * is 32-bit, meaning a 32-bit DSDT).
++	 */
++	original_bit_width = acpi_gbl_integer_bit_width;
++	acpi_gbl_integer_bit_width = 64;
++
++	/*
++	 * Perform the base 8, 10, or 16 conversion. A 64-bit numeric overflow
++	 * will return an exception (to allow iASL to flag the statement).
  	 */
  	switch (base) {
  	case 8:
-@@ -154,11 +155,8 @@ acpi_status acpi_ut_strtoul64(char *string, u64 *return_value)
- 		break;
- 
- 	case 16:
--		status = acpi_ut_convert_hex_string(string, return_value);
--		break;
--
- 	default:
--		status = AE_AML_INTERNAL;	/* Should never happen */
-+		status = acpi_ut_convert_hex_string(string, return_value);
+@@ -160,6 +179,9 @@ acpi_status acpi_ut_strtoul64(char *string, u64 *return_value)
  		break;
  	}
  
-@@ -169,8 +167,8 @@ acpi_status acpi_ut_strtoul64(char *string, u64 *return_value)
-  *
-  * FUNCTION:    acpi_ut_implicit_strtoul64
-  *
-- * PARAMETERS:  string                  - Null terminated input string.
-- *                                        Must be a valid pointer
-+ * PARAMETERS:  string                  - Null terminated input string,
-+ *                                        must be a valid pointer
-  *
-  * RETURN:      Converted integer
-  *
-@@ -178,42 +176,44 @@ acpi_status acpi_ut_strtoul64(char *string, u64 *return_value)
-  *              an "implicit conversion" by the ACPI specification. Used by
-  *              many ASL operators that require an integer operand, and support
-  *              an automatic (implicit) conversion from a string operand
-- *              to the final integer operand. The restriction is that only
-- *              hex strings are supported.
-+ *              to the final integer operand. The major restriction is that
-+ *              only hex strings are supported.
-  *
-  * -----------------------------------------------------------------------------
-  *
-- * Base is always 16, either with or without the 0x prefix.
-+ * Base is always 16, either with or without the 0x prefix. Decimal and
-+ * Octal strings are not supported, as per the ACPI specification.
-  *
-  * Examples (both are hex values):
-  *      Add ("BA98", Arg0, Local0)
-  *      Subtract ("0x12345678", Arg1, Local1)
-  *
-- * Rules extracted from the ACPI specification:
-+ * Conversion rules as extracted from the ACPI specification:
-  *
-  *  The converted integer is initialized to the value zero.
-- *  The ASCII string is interpreted as a hexadecimal constant.
-+ *  The ASCII string is always interpreted as a hexadecimal constant.
-  *
-- *  1)  A "0x" prefix is not allowed. However, ACPICA allows this as an
-- *      ACPI extension on general principle. (NO ERROR)
-+ *  1)  According to the ACPI specification, a "0x" prefix is not allowed.
-+ *      However, ACPICA allows this as an ACPI extension on general
-+ *      principle. (NO ERROR)
-  *
-- *  2)  Terminates when the size of an integer is reached (32 or 64 bits).
-- *      There are no numeric overflow conditions. (NO ERROR)
-+ *  2)  The conversion terminates when the size of an integer is reached
-+ *      (32 or 64 bits). There are no numeric overflow conditions. (NO ERROR)
-  *
-  *  3)  The first non-hex character terminates the conversion and returns
-  *      the current accumulated value of the converted integer (NO ERROR).
-  *
-  *  4)  Conversion of a null (zero-length) string to an integer is
-- *      technically allowed. However, ACPICA allows as an ACPI extension.
-- *      The conversion returns the value 0. (NO ERROR)
-+ *      technically not allowed. However, ACPICA allows this as an ACPI
-+ *      extension. The conversion returns the value 0. (NO ERROR)
-  *
-- * Note: there are no error conditions returned by this function. At
-+ * NOTE: There are no error conditions returned by this function. At
-  * the minimum, a value of zero is returned.
-  *
-  * Current users of this function:
-  *
-  *  interpreter - All runtime implicit conversions, as per ACPI specification
-- *  iASL        - Data Table Compiler parser (constant math expressions)
-+ *  iASL        - Data Table Compiler parser (constants and math expressions)
-  *
-  ******************************************************************************/
++	/* Only possible exception from above is a 64-bit overflow */
++
++	acpi_gbl_integer_bit_width = original_bit_width;
+ 	return_ACPI_STATUS(status);
+ }
  
-@@ -247,8 +247,8 @@ u64 acpi_ut_implicit_strtoul64(char *string)
-  *
-  * FUNCTION:    acpi_ut_explicit_strtoul64
-  *
-- * PARAMETERS:  string                  - Null terminated input string.
-- *                                        Must be a valid pointer
-+ * PARAMETERS:  string                  - Null terminated input string,
-+ *                                        must be a valid pointer
-  *
-  * RETURN:      Converted integer
-  *
-@@ -258,16 +258,16 @@ u64 acpi_ut_implicit_strtoul64(char *string)
-  *
-  * -----------------------------------------------------------------------------
-  *
-- * Base is either 10 (default) or 16 (with 0x prefix). There is no octal
-- * (base 8), as per the ACPI specification.
-+ * Base is either 10 (default) or 16 (with 0x prefix). Octal (base 8) strings
-+ * are not supported, as per the ACPI specification.
-  *
-  * Examples:
-  *      to_integer ("1000")     Decimal
-  *      to_integer ("0xABCD")   Hex
-  *
-- * Rules extracted from the ACPI specification:
-+ * Conversion rules as extracted from the ACPI specification:
-  *
-- *  1)  Thi input string is either a decimal or hexadecimal numeric string.
-+ *  1)  The input string is either a decimal or hexadecimal numeric string.
-  *      A hex value must be prefixed by "0x" or it is interpreted as decimal.
-  *
-  *  2)  The value must not exceed the maximum of an integer value
-@@ -275,18 +275,18 @@ u64 acpi_ut_implicit_strtoul64(char *string)
-  *      "unpredictable", so ACPICA matches the behavior of the implicit
-  *      conversion case. There are no numeric overflow conditions. (NO ERROR)
-  *
-- *  3)  Behavior on the first non-hex character is not specified by the ACPI
-+ *  3)  Behavior on the first non-hex character is not defined by the ACPI
-  *      specification (for the to_integer operator), so ACPICA matches the
-  *      behavior of the implicit conversion case. It terminates the
-  *      conversion and returns the current accumulated value of the converted
-  *      integer. (NO ERROR)
-  *
-  *  4)  Conversion of a null (zero-length) string to an integer is
-- *      technically allowed. However, ACPICA allows as an ACPI extension.
-- *      The conversion returns the value 0. (NO ERROR)
-+ *      technically not allowed. However, ACPICA allows this as an ACPI
-+ *      extension. The conversion returns the value 0. (NO ERROR)
-  *
-- * Note: there are no error conditions returned by this function. At
-- * the minimum, a value of zero is returned.
-+ * NOTE: There are no error conditions returned by this function. At the
-+ * minimum, a value of zero is returned.
-  *
-  * Current users of this function:
-  *
-@@ -303,7 +303,7 @@ u64 acpi_ut_explicit_strtoul64(char *string)
+@@ -223,6 +245,10 @@ u64 acpi_ut_implicit_strtoul64(char *string)
+ 
+ 	ACPI_FUNCTION_TRACE_STR(ut_implicit_strtoul64, string);
+ 
++	if (!acpi_ut_remove_whitespace(&string)) {
++		return_VALUE(0);
++	}
++
+ 	/*
+ 	 * Per the ACPI specification, only hexadecimal is supported for
+ 	 * implicit conversions, and the "0x" prefix is "not allowed".
+@@ -236,8 +262,8 @@ u64 acpi_ut_implicit_strtoul64(char *string)
  
  	/*
- 	 * Only Hex and Decimal are supported, as per the ACPI specification.
--	 * 0x prefix means hex; otherwise decimal is assumed.
-+	 * A "0x" prefix indicates hex; otherwise decimal is assumed.
+ 	 * Ignore overflow as per the ACPI specification. This is implemented by
+-	 * ignoring the return status below. On overflow, the input string is
+-	 * simply truncated.
++	 * ignoring the return status from the conversion function called below.
++	 * On overflow, the input string is simply truncated.
  	 */
- 	if (acpi_ut_detect_hex_prefix(&string)) {
- 		base = 16;
+ 	acpi_ut_convert_hex_string(string, &converted_integer);
+ 	return_VALUE(converted_integer);
+@@ -301,6 +327,10 @@ u64 acpi_ut_explicit_strtoul64(char *string)
+ 
+ 	ACPI_FUNCTION_TRACE_STR(ut_explicit_strtoul64, string);
+ 
++	if (!acpi_ut_remove_whitespace(&string)) {
++		return_VALUE(0);
++	}
++
+ 	/*
+ 	 * Only Hex and Decimal are supported, as per the ACPI specification.
+ 	 * A "0x" prefix indicates hex; otherwise decimal is assumed.
+@@ -315,8 +345,8 @@ u64 acpi_ut_explicit_strtoul64(char *string)
+ 
+ 	/*
+ 	 * Ignore overflow as per the ACPI specification. This is implemented by
+-	 * ignoring the return status below. On overflow, the input string is
+-	 * simply truncated.
++	 * ignoring the return status from the conversion functions called below.
++	 * On overflow, the input string is simply truncated.
+ 	 */
+ 	switch (base) {
+ 	case 10:
 -- 
 2.7.4
 
