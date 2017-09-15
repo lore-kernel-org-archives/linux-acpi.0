@@ -1,241 +1,105 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 2/2] as3645a: Switch to fwnode property API
-Date: Fri, 15 Sep 2017 17:40:52 +0300
-Message-ID: <20170915144052.25903-3-sakari.ailus@linux.intel.com>
-References: <20170915144052.25903-1-sakari.ailus@linux.intel.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH 0/6] Support PPTT for ARM64
+Date: Fri, 15 Sep 2017 12:05:06 -0500
+Message-ID: <d55429dd-79d4-81cf-2a70-d47de74b2d91@arm.com>
+References: <20170914184918.20406-1-jeremy.linton@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46082 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751111AbdIOOlC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:41:02 -0400
-In-Reply-To: <20170915144052.25903-1-sakari.ailus@linux.intel.com>
+Received: from foss.arm.com ([217.140.101.70]:50456 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751203AbdIORFI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Sep 2017 13:05:08 -0400
+In-Reply-To: <20170914184918.20406-1-jeremy.linton@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-leds@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, jacek.anaszewski@gmail.com, mika.westerberg@intel.com, rafael@kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, wangxiongfeng2@huawei.com, hanjun.guo@linaro.org, jhugo@codeaurora.org, john.garry@huawei.com, austinwc@codeaurora.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com
 
-Switch the as3645a from OF to the fwnode property API. Also add ACPI
-support.
+On 09/14/2017 01:49 PM, Jeremy Linton wrote:
+> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+> used to describe the processor and cache topologies. Ideally it is
+> used to extend/override information provided by the hardware, but
+> right now ARM64 is entirely dependent on firmware provided tables.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/leds/leds-as3645a.c | 81 +++++++++++++++++++++++++--------------------
- 1 file changed, 46 insertions(+), 35 deletions(-)
+Hi,
 
-diff --git a/drivers/leds/leds-as3645a.c b/drivers/leds/leds-as3645a.c
-index 605e0c64e974..2e73c3f818f1 100644
---- a/drivers/leds/leds-as3645a.c
-+++ b/drivers/leds/leds-as3645a.c
-@@ -25,7 +25,7 @@
- #include <linux/leds.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
--#include <linux/of.h>
-+#include <linux/property.h>
- #include <linux/slab.h>
- 
- #include <media/v4l2-flash-led-class.h>
-@@ -148,8 +148,8 @@ struct as3645a {
- 	struct v4l2_flash *vf;
- 	struct v4l2_flash *vfind;
- 
--	struct device_node *flash_node;
--	struct device_node *indicator_node;
-+	struct fwnode_handle *flash_node;
-+	struct fwnode_handle *indicator_node;
- 
- 	struct as3645a_config cfg;
- 
-@@ -492,30 +492,33 @@ static int as3645a_detect(struct as3645a *flash)
- 
- static int as3645a_parse_node(struct as3645a *flash,
- 			      struct as3645a_names *names,
--			      struct device_node *node)
-+			      struct fwnode_handle *fwnode)
- {
- 	struct as3645a_config *cfg = &flash->cfg;
--	struct device_node *child;
-+	struct fwnode_handle *child;
- 	const char *name;
-+	const char *str;
- 	int rval;
- 
--	for_each_child_of_node(node, child) {
-+	fwnode_for_each_child_node(fwnode, child) {
- 		u32 id = 0;
- 
--		of_property_read_u32(child, "reg", &id);
-+		fwnode_property_read_u32(
-+			child, is_of_node(child) ? "reg" : "led", &id);
- 
- 		switch (id) {
- 		case AS_LED_FLASH:
--			flash->flash_node = of_node_get(child);
-+			flash->flash_node = child;
- 			break;
- 		case AS_LED_INDICATOR:
--			flash->indicator_node = of_node_get(child);
-+			flash->indicator_node = child;
- 			break;
- 		default:
- 			dev_warn(&flash->client->dev,
- 				 "unknown LED %u encountered, ignoring\n", id);
- 			break;
- 		}
-+		fwnode_handle_get(child);
- 	}
- 
- 	if (!flash->flash_node) {
-@@ -523,14 +526,18 @@ static int as3645a_parse_node(struct as3645a *flash,
- 		return -ENODEV;
- 	}
- 
--	rval = of_property_read_string(flash->flash_node, "label", &name);
--	if (!rval)
-+	rval = fwnode_property_read_string(flash->flash_node, "label", &name);
-+	if (!rval) {
- 		strlcpy(names->flash, name, sizeof(names->flash));
--	else
-+	} else if (is_of_node(fwnode)) {
- 		snprintf(names->flash, sizeof(names->flash),
--			 "%s:flash", node->name);
-+			 "%s:flash", to_of_node(fwnode)->name);
-+	} else {
-+		dev_err(&flash->client->dev, "flash node has no label!\n");
-+		return -EINVAL;
-+	}
- 
--	rval = of_property_read_u32(flash->flash_node, "flash-timeout-us",
-+	rval = fwnode_property_read_u32(flash->flash_node, "flash-timeout-us",
- 				    &cfg->flash_timeout_us);
- 	if (rval < 0) {
- 		dev_err(&flash->client->dev,
-@@ -538,7 +545,7 @@ static int as3645a_parse_node(struct as3645a *flash,
- 		goto out_err;
- 	}
- 
--	rval = of_property_read_u32(flash->flash_node, "flash-max-microamp",
-+	rval = fwnode_property_read_u32(flash->flash_node, "flash-max-microamp",
- 				    &cfg->flash_max_ua);
- 	if (rval < 0) {
- 		dev_err(&flash->client->dev,
-@@ -546,7 +553,7 @@ static int as3645a_parse_node(struct as3645a *flash,
- 		goto out_err;
- 	}
- 
--	rval = of_property_read_u32(flash->flash_node, "led-max-microamp",
-+	rval = fwnode_property_read_u32(flash->flash_node, "led-max-microamp",
- 				    &cfg->assist_max_ua);
- 	if (rval < 0) {
- 		dev_err(&flash->client->dev,
-@@ -554,10 +561,10 @@ static int as3645a_parse_node(struct as3645a *flash,
- 		goto out_err;
- 	}
- 
--	of_property_read_u32(flash->flash_node, "voltage-reference",
-+	fwnode_property_read_u32(flash->flash_node, "voltage-reference",
- 			     &cfg->voltage_reference);
- 
--	of_property_read_u32(flash->flash_node, "ams,input-max-microamp",
-+	fwnode_property_read_u32(flash->flash_node, "ams,input-max-microamp",
- 			     &cfg->peak);
- 	cfg->peak = AS_PEAK_mA_TO_REG(cfg->peak);
- 
-@@ -567,14 +574,18 @@ static int as3645a_parse_node(struct as3645a *flash,
- 		goto out_err;
- 	}
- 
--	rval = of_property_read_string(flash->indicator_node, "label", &name);
--	if (!rval)
-+	rval = fwnode_property_read_string(flash->indicator_node, "label", &name);
-+	if (!rval) {
- 		strlcpy(names->indicator, name, sizeof(names->indicator));
--	else
-+	} else if (is_of_node(fwnode)) {
- 		snprintf(names->indicator, sizeof(names->indicator),
--			 "%s:indicator", node->name);
-+			 "%s:indicator", to_of_node(fwnode)->name);
-+	} else {
-+		dev_err(&flash->client->dev, "flash node has no label!\n");
-+		return -EINVAL;
-+	}
- 
--	rval = of_property_read_u32(flash->indicator_node, "led-max-microamp",
-+	rval = fwnode_property_read_u32(flash->indicator_node, "led-max-microamp",
- 				    &cfg->indicator_max_ua);
- 	if (rval < 0) {
- 		dev_err(&flash->client->dev,
-@@ -585,8 +596,8 @@ static int as3645a_parse_node(struct as3645a *flash,
- 	return 0;
- 
- out_err:
--	of_node_put(flash->flash_node);
--	of_node_put(flash->indicator_node);
-+	fwnode_handle_put(flash->flash_node);
-+	fwnode_handle_put(flash->indicator_node);
- 
- 	return rval;
- }
-@@ -667,14 +678,14 @@ static int as3645a_v4l2_setup(struct as3645a *flash)
- 	strlcpy(cfgind.dev_name, flash->iled_cdev.name, sizeof(cfg.dev_name));
- 
- 	flash->vf = v4l2_flash_init(
--		&flash->client->dev, of_fwnode_handle(flash->flash_node),
--		&flash->fled, NULL, &cfg);
-+		&flash->client->dev, flash->flash_node, &flash->fled, NULL,
-+		&cfg);
- 	if (IS_ERR(flash->vf))
- 		return PTR_ERR(flash->vf);
- 
- 	flash->vfind = v4l2_flash_indicator_init(
--		&flash->client->dev, of_fwnode_handle(flash->indicator_node),
--		&flash->iled_cdev, &cfgind);
-+		&flash->client->dev, flash->indicator_node, &flash->iled_cdev,
-+		&cfgind);
- 	if (IS_ERR(flash->vfind)) {
- 		v4l2_flash_release(flash->vf);
- 		return PTR_ERR(flash->vfind);
-@@ -689,7 +700,7 @@ static int as3645a_probe(struct i2c_client *client)
- 	struct as3645a *flash;
- 	int rval;
- 
--	if (client->dev.of_node == NULL)
-+	if (!dev_fwnode(&client->dev))
- 		return -ENODEV;
- 
- 	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
-@@ -698,7 +709,7 @@ static int as3645a_probe(struct i2c_client *client)
- 
- 	flash->client = client;
- 
--	rval = as3645a_parse_node(flash, &names, client->dev.of_node);
-+	rval = as3645a_parse_node(flash, &names, dev_fwnode(&client->dev));
- 	if (rval < 0)
- 		return rval;
- 
-@@ -730,8 +741,8 @@ static int as3645a_probe(struct i2c_client *client)
- 	mutex_destroy(&flash->mutex);
- 
- out_put_nodes:
--	of_node_put(flash->flash_node);
--	of_node_put(flash->indicator_node);
-+	fwnode_handle_put(flash->flash_node);
-+	fwnode_handle_put(flash->indicator_node);
- 
- 	return rval;
- }
-@@ -749,8 +760,8 @@ static int as3645a_remove(struct i2c_client *client)
- 
- 	mutex_destroy(&flash->mutex);
- 
--	of_node_put(flash->flash_node);
--	of_node_put(flash->indicator_node);
-+	fwnode_handle_put(flash->flash_node);
-+	fwnode_handle_put(flash->indicator_node);
- 
- 	return 0;
- }
--- 
-2.11.0
+So there is a problem with this patch set when cache nodes are 
+referenced by cpu nodes with the intention that the resulting caches 
+aren't shared, even though the PPTT cache node is shared. The code uses 
+the node reference when determining if caches are shared. This means 
+that it makes a mistake and thinks that all the (say L1) caches are 
+shared because they share a PPTT cache node.
+
+Its a fairly small tweak, I will re-post this set.
+
+
+
+
+> 
+> This patch parses the table for the cache topology and CPU topology.
+> For the latter we also add an additional topology_cod_id() macro,
+> and a package_id for arm64. Initially the physical id will match
+> the cluster id, but we update users of the cluster to utilize
+> the new macro. When we enable PPTT for the arm64 the cluster/socket
+> starts to differ. Because of this we also make some dynamic decisions
+> about mapping thread/core/cod/socket to the thread/socket used by the
+> scheduler.
+> 
+> For example on juno:
+> 
+> [root@mammon-juno-rh topology]# lstopo-no-graphics
+> Machine (7048MB)
+>    Package L#0
+>      L2 L#0 (1024KB) + Core L#0
+>        L1d L#0 (32KB) + L1i L#0 (32KB) + PU L#0 (P#0)
+>        L1d L#1 (32KB) + L1i L#1 (32KB) + PU L#1 (P#1)
+>        L1d L#2 (32KB) + L1i L#2 (32KB) + PU L#2 (P#2)
+>        L1d L#3 (32KB) + L1i L#3 (32KB) + PU L#3 (P#3)
+>      L2 L#1 (2048KB) + Core L#1
+>        L1d L#4 (32KB) + L1i L#4 (48KB) + PU L#4 (P#4)
+>        L1d L#5 (32KB) + L1i L#5 (48KB) + PU L#5 (P#5)
+>    HostBridge L#0
+>      PCIBridge
+>        PCIBridge
+>          PCIBridge
+>            PCI 1095:3132
+>              Block(Disk) L#0 "sda"
+>          PCIBridge
+>            PCI 1002:68f9
+>              GPU L#1 "renderD128"
+>              GPU L#2 "card0"
+>              GPU L#3 "controlD64"
+>          PCIBridge
+>            PCI 11ab:4380
+>              Net L#4 "enp8s0"
+> 
+> 
+> Jeremy Linton (6):
+>    ACPI/PPTT: Add Processor Properties Topology Table parsing
+>    ACPI: Enable PPTT support on ARM64
+>    drivers: base: cacheinfo: arm64: Add support for ACPI based firmware
+>      tables
+>    Topology: Add cluster on die macros and arm64 decoding
+>    arm64: Fixup users of topology_physical_package_id
+>    arm64: topology: Enable ACPI/PPTT based CPU topology.
+> 
+>   arch/arm64/Kconfig                |   1 +
+>   arch/arm64/include/asm/topology.h |   4 +-
+>   arch/arm64/kernel/cacheinfo.c     |  23 +-
+>   arch/arm64/kernel/topology.c      |  76 +++++-
+>   drivers/acpi/Makefile             |   1 +
+>   drivers/acpi/arm64/Kconfig        |   3 +
+>   drivers/acpi/pptt.c               | 508 ++++++++++++++++++++++++++++++++++++++
+>   drivers/base/cacheinfo.c          |  17 +-
+>   drivers/clk/clk-mb86s7x.c         |   2 +-
+>   drivers/cpufreq/arm_big_little.c  |   2 +-
+>   drivers/firmware/psci_checker.c   |   2 +-
+>   include/linux/cacheinfo.h         |  10 +-
+>   include/linux/topology.h          |   5 +
+>   13 files changed, 634 insertions(+), 20 deletions(-)
+>   create mode 100644 drivers/acpi/pptt.c
+> 
 
