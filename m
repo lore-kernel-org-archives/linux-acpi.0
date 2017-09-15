@@ -1,105 +1,118 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH 0/6] Support PPTT for ARM64
-Date: Fri, 15 Sep 2017 12:05:06 -0500
-Message-ID: <d55429dd-79d4-81cf-2a70-d47de74b2d91@arm.com>
-References: <20170914184918.20406-1-jeremy.linton@arm.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v3 1/3] arm64/ras: support sea error recovery
+Date: Fri, 15 Sep 2017 19:33:18 +0100
+Message-ID: <59BC1CEE.8010708@arm.com>
+References: <1504770316-4327-1-git-send-email-xiexiuqi@huawei.com> <1504770316-4327-2-git-send-email-xiexiuqi@huawei.com> <59B2DE26.4060002@arm.com> <52d2868c-79cd-8ff8-8e1d-6078d02d5a0c@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:50456 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751203AbdIORFI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Sep 2017 13:05:08 -0400
-In-Reply-To: <20170914184918.20406-1-jeremy.linton@arm.com>
-Content-Language: en-US
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:51164 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751434AbdIOSes (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Sep 2017 14:34:48 -0400
+In-Reply-To: <52d2868c-79cd-8ff8-8e1d-6078d02d5a0c@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, wangxiongfeng2@huawei.com, hanjun.guo@linaro.org, jhugo@codeaurora.org, john.garry@huawei.com, austinwc@codeaurora.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com
+To: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, cj.chengjian@huawei.com
 
-On 09/14/2017 01:49 PM, Jeremy Linton wrote:
-> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
-> used to describe the processor and cache topologies. Ideally it is
-> used to extend/override information provided by the hardware, but
-> right now ARM64 is entirely dependent on firmware provided tables.
+Hi Xie XiuQi,
 
-Hi,
-
-So there is a problem with this patch set when cache nodes are 
-referenced by cpu nodes with the intention that the resulting caches 
-aren't shared, even though the PPTT cache node is shared. The code uses 
-the node reference when determining if caches are shared. This means 
-that it makes a mistake and thinks that all the (say L1) caches are 
-shared because they share a PPTT cache node.
-
-Its a fairly small tweak, I will re-post this set.
-
-
-
-
+On 11/09/17 15:11, Xie XiuQi wrote:
+> I first describe the approach of this patchset:
 > 
-> This patch parses the table for the cache topology and CPU topology.
-> For the latter we also add an additional topology_cod_id() macro,
-> and a package_id for arm64. Initially the physical id will match
-> the cluster id, but we update users of the cluster to utilize
-> the new macro. When we enable PPTT for the arm64 the cluster/socket
-> starts to differ. Because of this we also make some dynamic decisions
-> about mapping thread/core/cod/socket to the thread/socket used by the
-> scheduler.
+> A memory access error on the execution path usually triggers SEA.
+> According to the existing process, errors occurred in the kernel,
+> leading to direct panic, if it occurred the user-space, we should
+> just kill process.
 > 
-> For example on juno:
+> But there is a class of error, in fact, is not necessary to kill
+> process, you can recover and continue to run the process. Such as
+> the instruction data corrupted, where the memory page might be
+> read-only, which is has not been modified, the disk might have the
+> correct data, so you can directly drop the page, ant reload it when
+> necessary.
 > 
-> [root@mammon-juno-rh topology]# lstopo-no-graphics
-> Machine (7048MB)
->    Package L#0
->      L2 L#0 (1024KB) + Core L#0
->        L1d L#0 (32KB) + L1i L#0 (32KB) + PU L#0 (P#0)
->        L1d L#1 (32KB) + L1i L#1 (32KB) + PU L#1 (P#1)
->        L1d L#2 (32KB) + L1i L#2 (32KB) + PU L#2 (P#2)
->        L1d L#3 (32KB) + L1i L#3 (32KB) + PU L#3 (P#3)
->      L2 L#1 (2048KB) + Core L#1
->        L1d L#4 (32KB) + L1i L#4 (48KB) + PU L#4 (P#4)
->        L1d L#5 (32KB) + L1i L#5 (48KB) + PU L#5 (P#5)
->    HostBridge L#0
->      PCIBridge
->        PCIBridge
->          PCIBridge
->            PCI 1095:3132
->              Block(Disk) L#0 "sda"
->          PCIBridge
->            PCI 1002:68f9
->              GPU L#1 "renderD128"
->              GPU L#2 "card0"
->              GPU L#3 "controlD64"
->          PCIBridge
->            PCI 11ab:4380
->              Net L#4 "enp8s0"
+> So this patchset is just try to solve such problem: if the error is
+> consumed in user-space and the error occurs on a clean page, you can
+> directly drop the memory page without killing process.
 > 
+> This is implemented in memory_failure, which is generic process.
+
+> The error reported by SEA should be handled before re-enter the process,
+> or we must kill the process to prevent error propagation.
 > 
-> Jeremy Linton (6):
->    ACPI/PPTT: Add Processor Properties Topology Table parsing
->    ACPI: Enable PPTT support on ARM64
->    drivers: base: cacheinfo: arm64: Add support for ACPI based firmware
->      tables
->    Topology: Add cluster on die macros and arm64 decoding
->    arm64: Fixup users of topology_physical_package_id
->    arm64: topology: Enable ACPI/PPTT based CPU topology.
-> 
->   arch/arm64/Kconfig                |   1 +
->   arch/arm64/include/asm/topology.h |   4 +-
->   arch/arm64/kernel/cacheinfo.c     |  23 +-
->   arch/arm64/kernel/topology.c      |  76 +++++-
->   drivers/acpi/Makefile             |   1 +
->   drivers/acpi/arm64/Kconfig        |   3 +
->   drivers/acpi/pptt.c               | 508 ++++++++++++++++++++++++++++++++++++++
->   drivers/base/cacheinfo.c          |  17 +-
->   drivers/clk/clk-mb86s7x.c         |   2 +-
->   drivers/cpufreq/arm_big_little.c  |   2 +-
->   drivers/firmware/psci_checker.c   |   2 +-
->   include/linux/cacheinfo.h         |  10 +-
->   include/linux/topology.h          |   5 +
->   13 files changed, 634 insertions(+), 20 deletions(-)
->   create mode 100644 drivers/acpi/pptt.c
-> 
+> memory_failure_queue() is asynchronous, in which, error info was saved
+> at ghes_proc, but handled in kworker. During this period there is a context
+> switching, so we can not determine which process would be switch to. So
+> memory_failure_queue is not suitable for handling the problem.
+
+Thanks for this summary. I see the problem you're trying to solve is when
+memory_failure() runs, in your scenario its not guaranteed to run before we
+return to user space.
+
+What is the user-visible symptom of this? SIGBUS, code=0 instead of SIGBUS,
+code=...MCEERR_A?
+
+..in which case I'm looking at this as a race with the memory_failure() bottom
+half via schedule_work().
+
+How does x86 avoid this same problem?
+
+
+> And memory_failure is not nmi-safe, so it can not be called directly in the
+> SEA context. So we just handle this error at SEA exit path, and before context
+> switching.
+
+(I need to look more into which locks memory_failure() is taking)
+
+
+> In FFH mode, physical address can only be obtained by parsing the GHES table.
+> But we only care about SEA, so the error handling is tied to the type of notification.
+
+I care about all the notification methods. Once the notification has been passed
+to APEI I want them to behave the same so that we don't have subtle bugs between
+the 11 different ways we could get a notification. This code is rarely tested
+enough as it is.
+
+>From the arch code I just want to call out to APEI asking 'is this yours?'. If
+so I expect APEI to have done all the work, if not we take the v8.0 behaviour.
+
+
+Here you need APEI and the arch code to spot 'SEA' and treat it differently,
+invoking some arm64-specific behaviour for APEI, and some
+not-really-arch-specific code under /arch/arm64. There is nothing arm64 specific
+about your arm_process_error(), how come the core APEI code doesn't need to do this?
+
+
+I think this is caused by the way memory_failure() schedules its work, and that
+is where I'd like to try and fix this, so that its the same for all notification
+methods and all (cough: both) architectures.
+
+
+> The TIF flag is checked on a generic path, but it will only be set when SEA occurs.
+> And if we use unlikely optimization, it should have little impact on performance.
+
+Yes, the arch code checks _TIF_WORK_MASK in one go so there is no performance
+problem for code that hasn't taken the RAS-Error. (and once we've taken a RAS
+error performance is out the window!)
+
+
+> And the TIF flag approach was used on x86 platform for years, until commit d4812e169d
+
+... so x86 doesn't do this ...
+
+> (x86, mce: Get rid of TIF_MCE_NOTIFY and associated mce tricks)[0]. On currently arm64
+> platform, there is no IST interrupt[1] function, so we could not call memory_failure
+> directly in SEA context. So the way to use TIF notification, is also a good choice,
+> after all, the same way on x86 platform is verified.
+
+Thanks, looks like I need to read more of the history of x86's kernel-first
+handling...
+
+
+Thanks,
+
+James
 
