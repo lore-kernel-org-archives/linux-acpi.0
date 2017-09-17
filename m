@@ -1,147 +1,73 @@
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Subject: Re: [PATCH 1/2] ACPI: Document how to refer to LEDs from remote nodes
-Date: Sun, 17 Sep 2017 18:57:09 +0200
-Message-ID: <6baeee56-480b-00b9-4c84-e65dc7c42301@gmail.com>
-References: <20170915144052.25903-1-sakari.ailus@linux.intel.com>
- <20170915144052.25903-2-sakari.ailus@linux.intel.com>
+From: =?UTF-8?q?J=C3=A9r=C3=B4me=20de=20Bretagne?=
+        <jerome.debretagne@gmail.com>
+Subject: [PATCH] platform/x86: intel-hid: Power button suspend on Dell Latitude 7275
+Date: Mon, 18 Sep 2017 00:57:12 +0200
+Message-ID: <20170917225712.12136-1-jerome.debretagne@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34030 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751466AbdIQQ6D (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Sep 2017 12:58:03 -0400
-In-Reply-To: <20170915144052.25903-2-sakari.ailus@linux.intel.com>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36759 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751537AbdIQW6F (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Sep 2017 18:58:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-leds@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, mika.westerberg@intel.com, rafael@kernel.org
+To: platform-driver-x86@vger.kernel.org
+Cc: Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, Mario Limonciello <mario.limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>
 
-Hi Sakari,
+From: Jérôme de Bretagne <jerome.debretagne@gmail.com>
 
-Thanks for the patch.
+On Dell Latitude 7275 the 5-button array is not exposed in the
+ACPI tables, but still notifies are sent to the Intel HID device
+object (device ID INT33D5) in response to power button actions.
+They were ignored as the intel-hid driver was not prepared to
+take care of them until recently.
 
-On 09/15/2017 04:40 PM, Sakari Ailus wrote:
-> Document referring to LEDs from remote device nodes, such as from camera
-> sensors.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  Documentation/acpi/dsd/leds.txt | 94 +++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 94 insertions(+)
->  create mode 100644 Documentation/acpi/dsd/leds.txt
-> 
-> diff --git a/Documentation/acpi/dsd/leds.txt b/Documentation/acpi/dsd/leds.txt
-> new file mode 100644
-> index 000000000000..894c82274f53
-> --- /dev/null
-> +++ b/Documentation/acpi/dsd/leds.txt
-> @@ -0,0 +1,94 @@
-> +Describing and referring to LEDs in ACPI
-> +
-> +Individual LEDs are described by hierarchical data extension [6] nodes
-> +under the device node, the LED driver chip. The "led" property in the
-> +LED specific nodes tells the numerical ID of each individual LED. The
-> +"led" property is used here in a similar fashion as the "reg" property
-> +in DT. [3]
-> +
-> +Referring to LEDs in Device tree is documented in [4], in "flash-leds"
-> +property documentation. In short, LEDs are directly referred to by
-> +using phandles.
-> +
-> +While Device tree allows referring to any node in the tree[1], in ACPI
-> +references are limited to device nodes only [2]. For this reason using
-> +the same mechanism on ACPI is not possible.
-> +
-> +ACPI allows (as does DT) using integer arguments after the reference.
-> +A combination of the LED driver device reference and an integer
-> +argument, referring to the "led" property of the relevant LED, are
-> +use to individual LEDs.
+Power button wakeup from suspend-to-idle was added in:
+635173a17b03 ("intel-hid: Wake up Dell Latitude 7275 from
+suspend-to-idle"). However power button suspend doesn't work
+yet on this platform so it would be good to add it also.
 
-s/are use/is used/ ? (in a sense "combination of ... and .. is used")
+On the affected platform (for which priv->array is NULL), add
+a new upfront check against the power button press notification
+(0xCE) to notify_handler(), outside the wakeup mode this time,
+which allows to report the power button press event and
+trigger the suspend. Also catch and ignore the corresponding
+power button release notification (0xCF) to stop it from being
+reported as an "unknown event" in the logs.
 
-s/to individual/to describe individual/
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=196115
+Tested-by: Jérôme de Bretagne <jerome.debretagne@gmail.com>
+Signed-off-by: Jérôme de Bretagne <jerome.debretagne@gmail.com>
+---
+ drivers/platform/x86/intel-hid.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-(or another verb, I'm not sure what exactly you intended it to be)
-
- The value of the LED property is a contract
-> +between the firmware and software, it uniquely identifies the LED
-> +driver outputs.
-> +
-> +An ASL example of a camera sensor device and a LED driver device for two
-> +LEDs. Objects not relevant for LEDs or the references to them have been
-> +omitted.
-> +
-> +	Device (LED)
-> +	{
-> +		Name (_DSD, Package () {
-> +			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-> +			Package () {
-> +				Package () { "led0", LED0 },
-> +				Package () { "led1", LED1 },
-> +			}
-> +		})
-> +		Name (LED0, Package () {
-> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> +			Package () {
-> +				Package () { "led", 0 },
-> +				Package () { "flash-max-microamp", 1000000 },
-> +				Package () { "flash-timeout-us", 200000 },
-> +				Package () { "led-max-microamp", 100000 },
-> +				Package () { "label", "led:salama" },
-> +			}
-> +		})
-> +		Name (LED1, Package () {
-> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> +			Package () {
-> +				Package () { "led", 1 },
-> +				Package () { "led-max-microamp", 10000 },
-> +				Package () { "label", "led:huomiovalo" },
-> +			}
-> +		})
-> +	}
-> +
-> +	Device (SEN)
-> +	{
-> +		Name (_DSD, Package () {
-> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> +			Package () {
-> +				Package () {
-> +					"flash-leds",
-> +					Package () { ^LED, 0, ^LED, 1 },
-> +				}
-> +			}
-> +		})
-> +	}
-> +
-> +where
-> +
-> +	LED	LED driver device
-> +	LED0	First LED
-> +	LED1	Second LED
-> +	SEN	Camera sensor device (or another device the LED is
-> +		related to)
-> +
-> +[1] Device tree. <URL:http://www.devicetree.org>, referenced 2016-10-03.
-> +
-> +[2] Advanced Configuration and Power Interface Specification.
-> +    <URL:http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf>,
-> +    referenced 2016-10-04.
-> +
-> +[3] Documentation/devicetree/bindings/leds/common.txt
-> +
-> +[4] Documentation/devicetree/bindings/media/video-interfaces.txt
-> +
-> +[5] Device Properties UUID For _DSD.
-> +    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
-> +    referenced 2016-10-04.
-> +
-> +[6] Hierarchical Data Extension UUID For _DSD.
-> +    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf>,
-> +    referenced 2016-10-04.
-> 
-
--- 
-Best regards,
-Jacek Anaszewski
+diff --git a/drivers/platform/x86/intel-hid.c b/drivers/platform/x86/intel-hid.c
+index a782c78e7c63..b19f8dcf9d8c 100644
+--- a/drivers/platform/x86/intel-hid.c
++++ b/drivers/platform/x86/intel-hid.c
+@@ -226,6 +226,22 @@ static void notify_handler(acpi_handle handle, u32 event, void *context)
+ 		return;
+ 	}
+ 
++	/*
++	 * Needed for suspend to work on some platforms that don't expose
++	 * the 5-button array, but still send notifies with power button
++	 * event code to this device object on power button actions.
++	 *
++	 * Report the power button press; catch and ignore the button release.
++	 */
++	if (!priv->array) {
++		if (event == 0xce) {
++			input_report_key(priv->input_dev, KEY_POWER, 1);
++			input_sync(priv->input_dev);
++			return;
++		} else if (event == 0xcf)
++			return;
++	}
++
+ 	/* 0xC0 is for HID events, other values are for 5 button array */
+ 	if (event != 0xc0) {
+ 		if (!priv->array ||
