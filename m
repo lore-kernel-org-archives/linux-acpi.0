@@ -1,52 +1,104 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v10 20/24] dt: bindings: smiapp: Document lens-focus and
- flash properties
-Date: Tue, 19 Sep 2017 00:56:22 +0300
-Message-ID: <ef8edab3-5b55-c298-2a40-72b5e22586ea@linux.intel.com>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-21-sakari.ailus@linux.intel.com>
- <20170918210028.67sbpuetdh5j7wpf@rob-hp-laptop>
+From: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?=
+        <jerome.debretagne@gmail.com>
+Subject: Re: [PATCH] platform/x86: intel-hid: Power button suspend on Dell
+ Latitude 7275
+Date: Tue, 19 Sep 2017 00:40:48 +0200
+Message-ID: <CA+kEDGGv3twZP4od16bPHjW8-S3PHs=SpQZEF1tqr5M4cBpzFQ@mail.gmail.com>
+References: <20170917225712.12136-1-jerome.debretagne@gmail.com> <4b5c673c2858470a8b6d0af43a2cd250@ausx13mpc120.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:27210 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751548AbdIRV43 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 18 Sep 2017 17:56:29 -0400
-In-Reply-To: <20170918210028.67sbpuetdh5j7wpf@rob-hp-laptop>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <4b5c673c2858470a8b6d0af43a2cd250@ausx13mpc120.AMER.DELL.COM>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Mario Limonciello <Mario.Limonciello@dell.com>
+Cc: platform-driver-x86@vger.kernel.org, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, Alex Hung <alex.hung@canonical.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
 
-Hi Rob,
-
-Rob Herring wrote:
-> On Mon, Sep 11, 2017 at 11:00:04AM +0300, Sakari Ailus wrote:
->> Document optional lens-focus and flash properties for the smiapp driver.
+2017-09-18 23:29 GMT+02:00  <Mario.Limonciello@dell.com>:
+>> -----Original Message-----
+>> From: J=C3=A9r=C3=B4me de Bretagne [mailto:jerome.debretagne@gmail.com]
+>> Sent: Sunday, September 17, 2017 5:57 PM
+>> To: platform-driver-x86@vger.kernel.org
+>> Cc: Darren Hart <dvhart@infradead.org>; LKML <linux-kernel@vger.kernel.o=
+rg>;
+>> Linux ACPI <linux-acpi@vger.kernel.org>; Rafael J. Wysocki <rjw@rjwysock=
+i.net>;
+>> Andy Shevchenko <andy.shevchenko@gmail.com>; Limonciello, Mario
+>> <Mario_Limonciello@Dell.com>; Alex Hung <alex.hung@canonical.com>
+>> Subject: [PATCH] platform/x86: intel-hid: Power button suspend on Dell L=
+atitude
+>> 7275
 >>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> ---
->>  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
->>  1 file changed, 2 insertions(+)
+>> From: J=C3=A9r=C3=B4me de Bretagne <jerome.debretagne@gmail.com>
+>>
+>> On Dell Latitude 7275 the 5-button array is not exposed in the
+>> ACPI tables, but still notifies are sent to the Intel HID device
+>> object (device ID INT33D5) in response to power button actions.
+>> They were ignored as the intel-hid driver was not prepared to
+>> take care of them until recently.
+>>
+>> Power button wakeup from suspend-to-idle was added in:
+>> 635173a17b03 ("intel-hid: Wake up Dell Latitude 7275 from
+>> suspend-to-idle"). However power button suspend doesn't work
+>> yet on this platform so it would be good to add it also.
+>>
+>> On the affected platform (for which priv->array is NULL), add
+>> a new upfront check against the power button press notification
+>> (0xCE) to notify_handler(), outside the wakeup mode this time,
+>> which allows to report the power button press event and
+>> trigger the suspend. Also catch and ignore the corresponding
+>> power button release notification (0xCF) to stop it from being
+>> reported as an "unknown event" in the logs.
+>>
+>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=3D196115
+>> Tested-by: J=C3=A9r=C3=B4me de Bretagne <jerome.debretagne@gmail.com>
+>> Signed-off-by: J=C3=A9r=C3=B4me de Bretagne <jerome.debretagne@gmail.com=
 >
-> Acked-by: Rob Herring <robh@kernel.org>
+>> ---
+>>  drivers/platform/x86/intel-hid.c | 16 ++++++++++++++++
+>>  1 file changed, 16 insertions(+)
+>>
+>> diff --git a/drivers/platform/x86/intel-hid.c b/drivers/platform/x86/int=
+el-hid.c
+>> index a782c78e7c63..b19f8dcf9d8c 100644
+>> --- a/drivers/platform/x86/intel-hid.c
+>> +++ b/drivers/platform/x86/intel-hid.c
+>> @@ -226,6 +226,22 @@ static void notify_handler(acpi_handle handle, u32 =
+event,
+>> void *context)
+>>               return;
+>>       }
+>>
+>> +     /*
+>> +      * Needed for suspend to work on some platforms that don't expose
+>> +      * the 5-button array, but still send notifies with power button
+>> +      * event code to this device object on power button actions.
+>> +      *
+>> +      * Report the power button press; catch and ignore the button rele=
+ase.
+>> +      */
+>> +     if (!priv->array) {
+>> +             if (event =3D=3D 0xce) {
+>> +                     input_report_key(priv->input_dev, KEY_POWER, 1);
+>> +                     input_sync(priv->input_dev);
+>> +                     return;
+>> +             } else if (event =3D=3D 0xcf)
+>> +                     return;
+>> +     }
+>> +
+>>       /* 0xC0 is for HID events, other values are for 5 button array */
+>>       if (event !=3D 0xc0) {
+>>               if (!priv->array ||
+>
+> LGTM, it's improved from what you posted to that bug already.
+>
+> Acked-By: Mario Limonciello <mario.limonciello@dell.com>
 
-Thanks for the ack. There have been since a few iterations of the set, 
-and the corresponding patch in v13 has minor changes to this:
+Thanks Mario.
 
-<URL:http://www.spinics.net/lists/linux-media/msg121929.html>
+In fact, I updated my initial fix proposal on the 12th in [1] and
+this patch matches exactly the updated version. You didn't receive
+the update notification from Bugzilla?
 
-Essentially "flash" was renamed to "flash-leds" as the current flash 
-devices we have are all LEDs and the referencing assumes LED framework's 
-ways to describe LEDs. The same change is present in the patch adding 
-the property to video-interfaces.txt:
-
-<URL:http://www.spinics.net/lists/linux-media/msg121924.html>
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+[1] https://bugzilla.kernel.org/show_bug.cgi?id=3D196115#c12
