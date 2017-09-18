@@ -1,172 +1,140 @@
 From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: Re: [PATCH 6/6] arm64: topology: Enable ACPI/PPTT based CPU topology.
-Date: Mon, 18 Sep 2017 09:37:30 +0800
-Message-ID: <93846e2c-df62-fda6-200a-f55bfb9955c4@huawei.com>
+Subject: Re: [PATCH 4/6] Topology: Add cluster on die macros and arm64 decoding
+Date: Mon, 18 Sep 2017 09:50:27 +0800
+Message-ID: <e95a0b2a-9dd0-654a-20fe-cad1cf0eed94@huawei.com>
 References: <20170914184918.20406-1-jeremy.linton@arm.com>
- <20170914184918.20406-7-jeremy.linton@arm.com>
+ <20170914184918.20406-5-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:6063 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751374AbdIRBi1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Sep 2017 21:38:27 -0400
-In-Reply-To: <20170914184918.20406-7-jeremy.linton@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170914184918.20406-5-jeremy.linton@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, hanjun.guo@linaro.org, jhugo@codeaurora.org, john.garry@huawei.com, austinwc@codeaurora.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com
+Cc: lorenzo.pieralisi@arm.com, austinwc@codeaurora.org, jhugo@codeaurora.org, will.deacon@arm.com, john.garry@huawei.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, sudeep.holla@arm.com, catalin.marinas@arm.com, linux-arm-kernel@lists.infradead.org
+List-Id: linux-acpi@vger.kernel.org
 
 Hi Jeremy,
 
 On 2017/9/15 2:49, Jeremy Linton wrote:
-> Propagate the topology information from the PPTT tree to the
-> cpu_topology array. We can get the thread id, core_id and
-> cluster_id by assuming certain levels of the PPTT tree correspond
-> to those concepts. The package_id is flagged in the tree and can be
-> found by passing an arbitrary large level to setup_acpi_cpu_topology()
-> which terminates its search when it finds an ACPI node flagged
-> as the physical package. If the tree doesn't contain enough
-> levels to represent all of thread/core/cod/package then the package
-> id will be used for the missing levels.
+> Many modern machines have cluster on die (COD) non-uniformity
+> as well as the traditional multi-socket architectures. Reusing
+> the multi-socket or NUMA on die concepts for these (as arm64 does)
+> breaks down when presented with actual multi-socket/COD machines.
+> Similar, problems are also visible on some x86 machines so it
+> seems appropriate to start abstracting and making these topologies
+> visible.
 > 
-> Since arm64 machines can have 3 distinct topology levels, and the
-> scheduler only handles sockets/threads well today, we compromise
-> by collapsing into one of three diffrent configurations. These are
-> thread/socket, thread/cluster or cluster/socket depending on whether
-> the machine has threading and multisocket, threading in a single
-> socket, or doesn't have threading.
+> To start, a topology_cod_id() macro is added which defaults to returning
+> the same information as topology_physical_package_id(). Moving forward
+> we can start to spit out the differences.
 > 
-> This code is loosely based on a combination of code from:
-> Xiongfeng Wang <wangxiongfeng2@huawei.com>
-> John Garry <john.garry@huawei.com>
-> Jeffrey Hugo <jhugo@codeaurora.org>
+> For arm64, an additional package_id is added to the cpu_topology array.
+> Initially this will be equal to the cluster_id as well.
 > 
 > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 > ---
->  arch/arm64/kernel/topology.c | 68 +++++++++++++++++++++++++++++++++++++++++++-
->  include/linux/topology.h     |  2 ++
->  2 files changed, 69 insertions(+), 1 deletion(-)
+>  arch/arm64/include/asm/topology.h | 4 +++-
+>  arch/arm64/kernel/topology.c      | 8 ++++++--
+>  include/linux/topology.h          | 3 +++
+>  3 files changed, 12 insertions(+), 3 deletions(-)
 > 
-> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-> index 9147e5b6326d..8ee5cc5ba9bd 100644
-> --- a/arch/arm64/kernel/topology.c
-> +++ b/arch/arm64/kernel/topology.c
-> @@ -11,6 +11,7 @@
->   * for more details.
->   */
->  
-> +#include <linux/acpi.h>
->  #include <linux/arch_topology.h>
->  #include <linux/cpu.h>
->  #include <linux/cpumask.h>
-> @@ -22,6 +23,7 @@
->  #include <linux/sched.h>
->  #include <linux/sched/topology.h>
->  #include <linux/slab.h>
-> +#include <linux/smp.h>
->  #include <linux/string.h>
->  
->  #include <asm/cpu.h>
-> @@ -304,6 +306,68 @@ static void __init reset_cpu_topology(void)
->  	}
->  }
->  
-> +#ifdef CONFIG_ACPI
-> +/*
-> + * Propagate the topology information of the processor_topology_node tree to the
-> + * cpu_topology array.
-> + */
-> +static int __init parse_acpi_topology(void)
-> +{
-> +	u64 is_threaded;
-> +	int is_multisocket;
-> +	int cpu;
-> +	int topology_id;
-> +	/* set a large depth, to hit ACPI_PPTT_PHYSICAL_PACKAGE if one exists */
-> +	const int max_topo = 0xFF;
-> +
-> +	is_threaded = read_cpuid_mpidr() & MPIDR_MT_BITMASK;
-> +	is_multisocket = acpi_multisocket_count();
-> +	if (is_multisocket < 0)
-> +		return is_multisocket;
-> +
-> +	for_each_possible_cpu(cpu) {
-> +		topology_id = setup_acpi_cpu_topology(cpu, 0);
-> +		if (topology_id < 0)
-> +			return topology_id;
-> +
-> +		if ((is_threaded) && (is_multisocket > 1)) {
-> +			/* MT per core, and multiple sockets */
-> +			cpu_topology[cpu].thread_id = topology_id;
-> +			topology_id = setup_acpi_cpu_topology(cpu, 1);
-> +			cpu_topology[cpu].core_id   = topology_id;
-> +			topology_id = setup_acpi_cpu_topology(cpu, 2);
-> +			cpu_topology[cpu].cluster_id = topology_id;
-> +			topology_id = setup_acpi_cpu_topology(cpu, max_topo);
-> +			cpu_topology[cpu].package_id = topology_id;
-> +		} else if (is_threaded) {
-> +			/* mutltiple threads, but only a single socket */
-> +			cpu_topology[cpu].thread_id  = topology_id;
-> +			topology_id = setup_acpi_cpu_topology(cpu, 1);
-> +			cpu_topology[cpu].core_id    = topology_id;
-> +			topology_id = setup_acpi_cpu_topology(cpu, 2);
-> +			cpu_topology[cpu].cluster_id = topology_id;
-> +			cpu_topology[cpu].package_id = topology_id;
-> +		} else {
-> +			/* no threads, clusters behave like threads */
-> +			cpu_topology[cpu].thread_id  = topology_id;
-> +			topology_id = setup_acpi_cpu_topology(cpu, 1);
-> +			cpu_topology[cpu].core_id    = topology_id;
-> +			cpu_topology[cpu].cluster_id = topology_id;
-> +			topology_id = setup_acpi_cpu_topology(cpu, max_topo);
-> +			cpu_topology[cpu].package_id = topology_id;
+> diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
+> index 8b57339823e9..bd7517960d39 100644
+> --- a/arch/arm64/include/asm/topology.h
+> +++ b/arch/arm64/include/asm/topology.h
+> @@ -7,13 +7,15 @@ struct cpu_topology {
+>  	int thread_id;
+>  	int core_id;
+>  	int cluster_id;
+> +	int package_id;
+>  	cpumask_t thread_sibling;
+>  	cpumask_t core_sibling;
+>  };
 
-I can not understand why should we consider cores in a cluster as threads. The scheduler will
-be effected a lot by this. And the 'lstopo' may display wrong information.
+'core_sibling' will be updated by 'update_siblings_masks()' to represent cores in a cluster;
+Can we add a cpumask_t field to represent cores in a package? So that 'lstopo' can use this
+cpumask_t to display the right information.
 
 Thanks,
 Xiongfeng Wang
 
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
-> +#else
-> +static int __init parse_acpi_topology(void)
-> +{
-> +	/*ACPI kernels should be built with PPTT support*/
-> +	return -EINVAL;
-> +}
-> +#endif
-> +
->  void __init init_cpu_topology(void)
->  {
->  	reset_cpu_topology();
-> @@ -312,6 +376,8 @@ void __init init_cpu_topology(void)
->  	 * Discard anything that was parsed if we hit an error so we
->  	 * don't use partial information.
->  	 */
-> -	if (of_have_populated_dt() && parse_dt_topology())
-> +	if ((!acpi_disabled) && parse_acpi_topology())
-> +		reset_cpu_topology();
-> +	else if (of_have_populated_dt() && parse_dt_topology())
->  		reset_cpu_topology();
->  }
+>  
+>  extern struct cpu_topology cpu_topology[NR_CPUS];
+>  
+> -#define topology_physical_package_id(cpu)	(cpu_topology[cpu].cluster_id)
+> +#define topology_physical_package_id(cpu)	(cpu_topology[cpu].package_id)
+> +#define topology_cod_id(cpu)		(cpu_topology[cpu].cluster_id)
+>  #define topology_core_id(cpu)		(cpu_topology[cpu].core_id)
+>  #define topology_core_cpumask(cpu)	(&cpu_topology[cpu].core_sibling)
+>  #define topology_sibling_cpumask(cpu)	(&cpu_topology[cpu].thread_sibling)
+> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+> index 8d48b233e6ce..9147e5b6326d 100644
+> --- a/arch/arm64/kernel/topology.c
+> +++ b/arch/arm64/kernel/topology.c
+> @@ -67,6 +67,8 @@ static int __init parse_core(struct device_node *core, int cluster_id,
+>  			leaf = false;
+>  			cpu = get_cpu_for_node(t);
+>  			if (cpu >= 0) {
+> +				/* maintain DT cluster == package behavior */
+> +				cpu_topology[cpu].package_id = cluster_id;
+>  				cpu_topology[cpu].cluster_id = cluster_id;
+>  				cpu_topology[cpu].core_id = core_id;
+>  				cpu_topology[cpu].thread_id = i;
+> @@ -88,7 +90,7 @@ static int __init parse_core(struct device_node *core, int cluster_id,
+>  			       core);
+>  			return -EINVAL;
+>  		}
+> -
+> +		cpu_topology[cpu].package_id = cluster_id;
+>  		cpu_topology[cpu].cluster_id = cluster_id;
+>  		cpu_topology[cpu].core_id = core_id;
+>  	} else if (leaf) {
+> @@ -228,7 +230,7 @@ static void update_siblings_masks(unsigned int cpuid)
+>  	for_each_possible_cpu(cpu) {
+>  		cpu_topo = &cpu_topology[cpu];
+>  
+> -		if (cpuid_topo->cluster_id != cpu_topo->cluster_id)
+> +		if (cpuid_topo->package_id != cpu_topo->package_id)
+>  			continue;
+>  
+>  		cpumask_set_cpu(cpuid, &cpu_topo->core_sibling);
+> @@ -273,6 +275,7 @@ void store_cpu_topology(unsigned int cpuid)
+>  					 MPIDR_AFFINITY_LEVEL(mpidr, 2) << 8 |
+>  					 MPIDR_AFFINITY_LEVEL(mpidr, 3) << 16;
+>  	}
+> +	cpuid_topo->package_id = cpuid_topo->cluster_id;
+>  
+>  	pr_debug("CPU%u: cluster %d core %d thread %d mpidr %#016llx\n",
+>  		 cpuid, cpuid_topo->cluster_id, cpuid_topo->core_id,
+> @@ -292,6 +295,7 @@ static void __init reset_cpu_topology(void)
+>  		cpu_topo->thread_id = -1;
+>  		cpu_topo->core_id = 0;
+>  		cpu_topo->cluster_id = -1;
+> +		cpu_topo->package_id = -1;
+>  
+>  		cpumask_clear(&cpu_topo->core_sibling);
+>  		cpumask_set_cpu(cpu, &cpu_topo->core_sibling);
 > diff --git a/include/linux/topology.h b/include/linux/topology.h
-> index 4660749a7303..08bf736be7c1 100644
+> index cb0775e1ee4b..4660749a7303 100644
 > --- a/include/linux/topology.h
 > +++ b/include/linux/topology.h
-> @@ -43,6 +43,8 @@
->  		if (nr_cpus_node(node))
->  
->  int arch_update_cpu_topology(void);
-> +int setup_acpi_cpu_topology(unsigned int cpu, int level);
-> +int acpi_multisocket_count(void);
->  
->  /* Conform to ACPI 2.0 SLIT distance definitions */
->  #define LOCAL_DISTANCE		10
+> @@ -184,6 +184,9 @@ static inline int cpu_to_mem(int cpu)
+>  #ifndef topology_physical_package_id
+>  #define topology_physical_package_id(cpu)	((void)(cpu), -1)
+>  #endif
+> +#ifndef topology_cod_id				/* cluster on die */
+> +#define topology_cod_id(cpu)			topology_physical_package_id(cpu)
+> +#endif
+>  #ifndef topology_core_id
+>  #define topology_core_id(cpu)			((void)(cpu), 0)
+>  #endif
 > 
-
