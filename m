@@ -1,44 +1,104 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: watchdog: properly initialize resources
-Date: Tue, 19 Sep 2017 01:41:12 +0200
-Message-ID: <3925582.KR6QxHBrsl@aspire.rjw.lan>
-References: <20170915195526.1541309-1-arnd@arndb.de> <20170916065649.GK2477@lahna.fi.intel.com>
+Subject: Re: [PATCH 0/8] ACPICA 20170831 Release
+Date: Tue, 19 Sep 2017 01:42:42 +0200
+Message-ID: <2191190.ArtfeQ7rdR@aspire.rjw.lan>
+References: <cover.1505377451.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46500 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63098 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750711AbdIRXuR (ORCPT
+        by vger.kernel.org with ESMTP id S1751396AbdIRXvq (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 18 Sep 2017 19:50:17 -0400
-In-Reply-To: <20170916065649.GK2477@lahna.fi.intel.com>
+        Mon, 18 Sep 2017 19:51:46 -0400
+In-Reply-To: <cover.1505377451.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Len Brown <lenb@kernel.org>, Ryan Kennedy <ryan5544@gmail.com>, Guenter Roeck <linux@roeck-us.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Saturday, September 16, 2017 8:56:49 AM CEST Mika Westerberg wrote:
-> On Fri, Sep 15, 2017 at 09:55:18PM +0200, Arnd Bergmann wrote:
-> > We copy a local resource structure into a list, but only
-> > initialize some of its members, as pointed out by gcc-4.4:
-> > 
-> > drivers/acpi/acpi_watchdog.c: In function 'acpi_watchdog_init':
-> > drivers/acpi/acpi_watchdog.c:105: error: 'res.child' may be used uninitialized in this function
-> > drivers/acpi/acpi_watchdog.c:105: error: 'res.sibling' may be used uninitialized in this function
-> > drivers/acpi/acpi_watchdog.c:105: error: 'res.parent' may be used uninitialized in this function
-> > drivers/acpi/acpi_watchdog.c:105: error: 'res.desc' may be used uninitialized in this function
-> > drivers/acpi/acpi_watchdog.c:105: error: 'res.name' may be used uninitialized in this function
-> > 
-> > Newer compilers can presumably optimize the uninitialized access
-> > away entirely and don't warn at all, but rely on the kzalloc()
-> > to zero the structure first. This adds an explicit initialization
-> > to force consistent behavior.
-> > 
-> > Fixes: 058dfc767008 ("ACPI / watchdog: Add support for WDAT hardware watchdog")
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+On Friday, September 15, 2017 6:43:49 AM CEST Lv Zheng wrote:
+> The 20170831 ACPICA kernel-resident subsystem updates are linuxized based
+> on the linux-pm/linux-next branch.
 > 
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> The patchset has passed the following build/boot tests.
+> Build tests are performed as follows:
+> 1. i386 + allyes
+> 2. i386 + allno
+> 3. i386 + default + ACPI_DEBUGGER=y
+> 4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 5. i386 + default + ACPI_DEBUG=n + ACPI=y
+> 6. i386 + default + ACPI=n
+> 7. x86_64 + allyes
+> 8. x86_64 + allno
+> 9. x86_64 + default + ACPI_DEBUGGER=y
+> 10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
+> 12.x86_64 + default + ACPI=n
+> Boot tests are performed as follows:
+> 1. x86_64 + default + ACPI_DEBUGGER=y
+> Where:
+> 1. i386: machine named as "Dell Inspiron Mini 1010"
+> 2. x86_64: machine named as "Microsoft Surface Pro 3"
+> 3. default: kernel configuration with following items enabled:
+>    All hardware drivers related to the machines of i386/x86_64
+>    All "drivers/acpi" configurations
+>    All "drivers/platform" drivers
+>    All other drivers that link the APIs provided by ACPICA subsystem
+> 
+> The divergences checking result:
+> Before applying (20170728 Release):
+>   390 lines
+> After applying (20170831 Release):
+>   390 lines
+> 
+> Bob Moore (6):
+>   ACPICA: Header support for the PDTT ACPI table
+>   ACPICA: Restructure/cleanup all string-to-integer conversion functions
+>   ACPICA: String conversions: Cleanup/format comments. No functional
+>     changes
+>   ACPICA: String conversions: Update to add new behaviors
+>   ACPICA: Update acpi_get_timer for 64-bit interface to acpi_hw_read
+>   ACPICA: Update version to 20170831
+> 
+> Lv Zheng (2):
+>   ACPICA: Hardware: Enable 64-bit support of hardware accesses
+>   ACPICA: acpiexec: Add testability of deferred table verification
+> 
+>  drivers/acpi/acpica/Makefile             |   1 +
+>  drivers/acpi/acpica/achware.h            |   4 +-
+>  drivers/acpi/acpica/acinterp.h           |   6 +-
+>  drivers/acpi/acpica/acutils.h            |  33 ++-
+>  drivers/acpi/acpica/dbconvert.c          |   5 +-
+>  drivers/acpi/acpica/dswexec.c            |   2 +-
+>  drivers/acpi/acpica/evgpe.c              |   6 +-
+>  drivers/acpi/acpica/exconcat.c           |   2 +-
+>  drivers/acpi/acpica/exconvrt.c           |  30 ++-
+>  drivers/acpi/acpica/exmisc.c             |   2 +-
+>  drivers/acpi/acpica/exresop.c            |   2 +-
+>  drivers/acpi/acpica/hwgpe.c              |   4 +-
+>  drivers/acpi/acpica/hwregs.c             |  72 ++---
+>  drivers/acpi/acpica/hwtimer.c            |  10 +-
+>  drivers/acpi/acpica/hwxface.c            | 118 +--------
+>  drivers/acpi/acpica/nsconvert.c          |   4 +-
+>  drivers/acpi/acpica/tbxface.c            |   9 +-
+>  drivers/acpi/acpica/utstrsuppt.c         | 437 ++++++++++++++++++++++++++++++
+>  drivers/acpi/acpica/utstrtoul64.c        | 442 ++++++++++++++++---------------
+>  include/acpi/acexcep.h                   |  16 +-
+>  include/acpi/acpixf.h                    |   2 +-
+>  include/acpi/actbl1.h                    |  30 +++
+>  tools/power/acpi/tools/acpidump/Makefile |   1 +
+>  tools/power/acpi/tools/acpidump/apdump.c |   3 +-
+>  tools/power/acpi/tools/acpidump/apmain.c |   4 +-
+>  25 files changed, 833 insertions(+), 412 deletions(-)
+>  create mode 100644 drivers/acpi/acpica/utstrsuppt.c
 
-Applied, thanks!
+It looks like the series has not been picked up by Patchwork,
+probably due to a service outage.
+
+Can you please resend it (for easier handling)?
+
+Thanks,
+Rafael
 
