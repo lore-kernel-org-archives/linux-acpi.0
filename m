@@ -1,31 +1,76 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v10 20/24] dt: bindings: smiapp: Document lens-focus and
- flash properties
-Date: Mon, 18 Sep 2017 16:00:28 -0500
-Message-ID: <20170918210028.67sbpuetdh5j7wpf@rob-hp-laptop>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-21-sakari.ailus@linux.intel.com>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH] platform/x86: intel-hid: Power button suspend on Dell
+ Latitude 7275
+Date: Mon, 18 Sep 2017 21:29:06 +0000
+Message-ID: <4b5c673c2858470a8b6d0af43a2cd250@ausx13mpc120.AMER.DELL.COM>
+References: <20170917225712.12136-1-jerome.debretagne@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:35712 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750974AbdIRVAc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Sep 2017 17:00:32 -0400
-Content-Disposition: inline
-In-Reply-To: <20170911080008.21208-21-sakari.ailus@linux.intel.com>
+Received: from esa8.dell-outbound.iphmx.com ([68.232.149.218]:30214 "EHLO
+        esa8.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751473AbdIRV3a (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 18 Sep 2017 17:29:30 -0400
+In-Reply-To: <20170917225712.12136-1-jerome.debretagne@gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, mika.westerberg@intel.com, devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+To: jerome.debretagne@gmail.com, platform-driver-x86@vger.kernel.org
+Cc: dvhart@infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, andy.shevchenko@gmail.com, alex.hung@canonical.com
 
-On Mon, Sep 11, 2017 at 11:00:04AM +0300, Sakari Ailus wrote:
-> Document optional lens-focus and flash properties for the smiapp driver.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
->  1 file changed, 2 insertions(+)
-
-Acked-by: Rob Herring <robh@kernel.org>
-
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKw6lyw7RtZSBkZSBCcmV0YWdu
+ZSBbbWFpbHRvOmplcm9tZS5kZWJyZXRhZ25lQGdtYWlsLmNvbV0NCj4gU2VudDogU3VuZGF5LCBT
+ZXB0ZW1iZXIgMTcsIDIwMTcgNTo1NyBQTQ0KPiBUbzogcGxhdGZvcm0tZHJpdmVyLXg4NkB2Z2Vy
+Lmtlcm5lbC5vcmcNCj4gQ2M6IERhcnJlbiBIYXJ0IDxkdmhhcnRAaW5mcmFkZWFkLm9yZz47IExL
+TUwgPGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+Ow0KPiBMaW51eCBBQ1BJIDxsaW51eC1h
+Y3BpQHZnZXIua2VybmVsLm9yZz47IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5l
+dD47DQo+IEFuZHkgU2hldmNoZW5rbyA8YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbT47IExpbW9u
+Y2llbGxvLCBNYXJpbw0KPiA8TWFyaW9fTGltb25jaWVsbG9ARGVsbC5jb20+OyBBbGV4IEh1bmcg
+PGFsZXguaHVuZ0BjYW5vbmljYWwuY29tPg0KPiBTdWJqZWN0OiBbUEFUQ0hdIHBsYXRmb3JtL3g4
+NjogaW50ZWwtaGlkOiBQb3dlciBidXR0b24gc3VzcGVuZCBvbiBEZWxsIExhdGl0dWRlDQo+IDcy
+NzUNCj4gDQo+IEZyb206IErDqXLDtG1lIGRlIEJyZXRhZ25lIDxqZXJvbWUuZGVicmV0YWduZUBn
+bWFpbC5jb20+DQo+IA0KPiBPbiBEZWxsIExhdGl0dWRlIDcyNzUgdGhlIDUtYnV0dG9uIGFycmF5
+IGlzIG5vdCBleHBvc2VkIGluIHRoZQ0KPiBBQ1BJIHRhYmxlcywgYnV0IHN0aWxsIG5vdGlmaWVz
+IGFyZSBzZW50IHRvIHRoZSBJbnRlbCBISUQgZGV2aWNlDQo+IG9iamVjdCAoZGV2aWNlIElEIElO
+VDMzRDUpIGluIHJlc3BvbnNlIHRvIHBvd2VyIGJ1dHRvbiBhY3Rpb25zLg0KPiBUaGV5IHdlcmUg
+aWdub3JlZCBhcyB0aGUgaW50ZWwtaGlkIGRyaXZlciB3YXMgbm90IHByZXBhcmVkIHRvDQo+IHRh
+a2UgY2FyZSBvZiB0aGVtIHVudGlsIHJlY2VudGx5Lg0KPiANCj4gUG93ZXIgYnV0dG9uIHdha2V1
+cCBmcm9tIHN1c3BlbmQtdG8taWRsZSB3YXMgYWRkZWQgaW46DQo+IDYzNTE3M2ExN2IwMyAoImlu
+dGVsLWhpZDogV2FrZSB1cCBEZWxsIExhdGl0dWRlIDcyNzUgZnJvbQ0KPiBzdXNwZW5kLXRvLWlk
+bGUiKS4gSG93ZXZlciBwb3dlciBidXR0b24gc3VzcGVuZCBkb2Vzbid0IHdvcmsNCj4geWV0IG9u
+IHRoaXMgcGxhdGZvcm0gc28gaXQgd291bGQgYmUgZ29vZCB0byBhZGQgaXQgYWxzby4NCj4gDQo+
+IE9uIHRoZSBhZmZlY3RlZCBwbGF0Zm9ybSAoZm9yIHdoaWNoIHByaXYtPmFycmF5IGlzIE5VTEwp
+LCBhZGQNCj4gYSBuZXcgdXBmcm9udCBjaGVjayBhZ2FpbnN0IHRoZSBwb3dlciBidXR0b24gcHJl
+c3Mgbm90aWZpY2F0aW9uDQo+ICgweENFKSB0byBub3RpZnlfaGFuZGxlcigpLCBvdXRzaWRlIHRo
+ZSB3YWtldXAgbW9kZSB0aGlzIHRpbWUsDQo+IHdoaWNoIGFsbG93cyB0byByZXBvcnQgdGhlIHBv
+d2VyIGJ1dHRvbiBwcmVzcyBldmVudCBhbmQNCj4gdHJpZ2dlciB0aGUgc3VzcGVuZC4gQWxzbyBj
+YXRjaCBhbmQgaWdub3JlIHRoZSBjb3JyZXNwb25kaW5nDQo+IHBvd2VyIGJ1dHRvbiByZWxlYXNl
+IG5vdGlmaWNhdGlvbiAoMHhDRikgdG8gc3RvcCBpdCBmcm9tIGJlaW5nDQo+IHJlcG9ydGVkIGFz
+IGFuICJ1bmtub3duIGV2ZW50IiBpbiB0aGUgbG9ncy4NCj4gDQo+IExpbms6IGh0dHBzOi8vYnVn
+emlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTk2MTE1DQo+IFRlc3RlZC1ieTogSsOp
+csO0bWUgZGUgQnJldGFnbmUgPGplcm9tZS5kZWJyZXRhZ25lQGdtYWlsLmNvbT4NCj4gU2lnbmVk
+LW9mZi1ieTogSsOpcsO0bWUgZGUgQnJldGFnbmUgPGplcm9tZS5kZWJyZXRhZ25lQGdtYWlsLmNv
+bT4NCj4gLS0tDQo+ICBkcml2ZXJzL3BsYXRmb3JtL3g4Ni9pbnRlbC1oaWQuYyB8IDE2ICsrKysr
+KysrKysrKysrKysNCj4gIDEgZmlsZSBjaGFuZ2VkLCAxNiBpbnNlcnRpb25zKCspDQo+IA0KPiBk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9wbGF0Zm9ybS94ODYvaW50ZWwtaGlkLmMgYi9kcml2ZXJzL3Bs
+YXRmb3JtL3g4Ni9pbnRlbC1oaWQuYw0KPiBpbmRleCBhNzgyYzc4ZTdjNjMuLmIxOWY4ZGNmOWQ4
+YyAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9wbGF0Zm9ybS94ODYvaW50ZWwtaGlkLmMNCj4gKysr
+IGIvZHJpdmVycy9wbGF0Zm9ybS94ODYvaW50ZWwtaGlkLmMNCj4gQEAgLTIyNiw2ICsyMjYsMjIg
+QEAgc3RhdGljIHZvaWQgbm90aWZ5X2hhbmRsZXIoYWNwaV9oYW5kbGUgaGFuZGxlLCB1MzIgZXZl
+bnQsDQo+IHZvaWQgKmNvbnRleHQpDQo+ICAJCXJldHVybjsNCj4gIAl9DQo+IA0KPiArCS8qDQo+
+ICsJICogTmVlZGVkIGZvciBzdXNwZW5kIHRvIHdvcmsgb24gc29tZSBwbGF0Zm9ybXMgdGhhdCBk
+b24ndCBleHBvc2UNCj4gKwkgKiB0aGUgNS1idXR0b24gYXJyYXksIGJ1dCBzdGlsbCBzZW5kIG5v
+dGlmaWVzIHdpdGggcG93ZXIgYnV0dG9uDQo+ICsJICogZXZlbnQgY29kZSB0byB0aGlzIGRldmlj
+ZSBvYmplY3Qgb24gcG93ZXIgYnV0dG9uIGFjdGlvbnMuDQo+ICsJICoNCj4gKwkgKiBSZXBvcnQg
+dGhlIHBvd2VyIGJ1dHRvbiBwcmVzczsgY2F0Y2ggYW5kIGlnbm9yZSB0aGUgYnV0dG9uIHJlbGVh
+c2UuDQo+ICsJICovDQo+ICsJaWYgKCFwcml2LT5hcnJheSkgew0KPiArCQlpZiAoZXZlbnQgPT0g
+MHhjZSkgew0KPiArCQkJaW5wdXRfcmVwb3J0X2tleShwcml2LT5pbnB1dF9kZXYsIEtFWV9QT1dF
+UiwgMSk7DQo+ICsJCQlpbnB1dF9zeW5jKHByaXYtPmlucHV0X2Rldik7DQo+ICsJCQlyZXR1cm47
+DQo+ICsJCX0gZWxzZSBpZiAoZXZlbnQgPT0gMHhjZikNCj4gKwkJCXJldHVybjsNCj4gKwl9DQo+
+ICsNCj4gIAkvKiAweEMwIGlzIGZvciBISUQgZXZlbnRzLCBvdGhlciB2YWx1ZXMgYXJlIGZvciA1
+IGJ1dHRvbiBhcnJheSAqLw0KPiAgCWlmIChldmVudCAhPSAweGMwKSB7DQo+ICAJCWlmICghcHJp
+di0+YXJyYXkgfHwNCg0KTEdUTSwgaXQncyBpbXByb3ZlZCBmcm9tIHdoYXQgeW91IHBvc3RlZCB0
+byB0aGF0IGJ1ZyBhbHJlYWR5Lg0KDQpBY2tlZC1CeTogTWFyaW8gTGltb25jaWVsbG8gPG1hcmlv
+LmxpbW9uY2llbGxvQGRlbGwuY29tPg0K
