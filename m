@@ -1,168 +1,169 @@
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Subject: Re: [PATCH 1/2] ACPI: Document how to refer to LEDs from remote nodes
-Date: Mon, 18 Sep 2017 20:14:10 +0200
-Message-ID: <59f91a5f-bad2-b4a1-ae41-58073ba395b0@gmail.com>
-References: <20170915144052.25903-1-sakari.ailus@linux.intel.com>
- <20170915144052.25903-2-sakari.ailus@linux.intel.com>
- <6baeee56-480b-00b9-4c84-e65dc7c42301@gmail.com>
- <20170918103419.qo3sw5vufqojj3vm@valkosipuli.retiisi.org.uk>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH 4/6] Topology: Add cluster on die macros and arm64
+ decoding
+Date: Mon, 18 Sep 2017 13:54:26 -0500
+Message-ID: <8e145e4b-e1d2-cb15-2cf9-cace5fed524f@arm.com>
+References: <20170914184918.20406-1-jeremy.linton@arm.com>
+ <20170914184918.20406-5-jeremy.linton@arm.com>
+ <e95a0b2a-9dd0-654a-20fe-cad1cf0eed94@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:32869 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752621AbdIRSPF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Sep 2017 14:15:05 -0400
-In-Reply-To: <20170918103419.qo3sw5vufqojj3vm@valkosipuli.retiisi.org.uk>
+Received: from foss.arm.com ([217.140.101.70]:42310 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752949AbdIRSya (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 18 Sep 2017 14:54:30 -0400
+In-Reply-To: <e95a0b2a-9dd0-654a-20fe-cad1cf0eed94@huawei.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, mika.westerberg@intel.com, rafael@kernel.org
+To: Xiongfeng Wang <wangxiongfeng2@huawei.com>, linux-acpi@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, austinwc@codeaurora.org, jhugo@codeaurora.org, will.deacon@arm.com, john.garry@huawei.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, sudeep.holla@arm.com, catalin.marinas@arm.com, linux-arm-kernel@lists.infradead.org
 
-Hi Sakari,
+Hi,
 
-On 09/18/2017 12:34 PM, Sakari Ailus wrote:
-> Hi Jacek,
+
+On 09/17/2017 08:50 PM, Xiongfeng Wang wrote:
+> Hi Jeremy,
 > 
-> Thanks for the feedback.
+> On 2017/9/15 2:49, Jeremy Linton wrote:
+>> Many modern machines have cluster on die (COD) non-uniformity
+>> as well as the traditional multi-socket architectures. Reusing
+>> the multi-socket or NUMA on die concepts for these (as arm64 does)
+>> breaks down when presented with actual multi-socket/COD machines.
+>> Similar, problems are also visible on some x86 machines so it
+>> seems appropriate to start abstracting and making these topologies
+>> visible.
+>>
+>> To start, a topology_cod_id() macro is added which defaults to returning
+>> the same information as topology_physical_package_id(). Moving forward
+>> we can start to spit out the differences.
+>>
+>> For arm64, an additional package_id is added to the cpu_topology array.
+>> Initially this will be equal to the cluster_id as well.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> ---
+>>   arch/arm64/include/asm/topology.h | 4 +++-
+>>   arch/arm64/kernel/topology.c      | 8 ++++++--
+>>   include/linux/topology.h          | 3 +++
+>>   3 files changed, 12 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
+>> index 8b57339823e9..bd7517960d39 100644
+>> --- a/arch/arm64/include/asm/topology.h
+>> +++ b/arch/arm64/include/asm/topology.h
+>> @@ -7,13 +7,15 @@ struct cpu_topology {
+>>   	int thread_id;
+>>   	int core_id;
+>>   	int cluster_id;
+>> +	int package_id;
+>>   	cpumask_t thread_sibling;
+>>   	cpumask_t core_sibling;
+>>   };
 > 
-> On Sun, Sep 17, 2017 at 06:57:09PM +0200, Jacek Anaszewski wrote:
->> Hi Sakari,
->>
->> Thanks for the patch.
->>
->> On 09/15/2017 04:40 PM, Sakari Ailus wrote:
->>> Document referring to LEDs from remote device nodes, such as from camera
->>> sensors.
->>>
->>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>> ---
->>>  Documentation/acpi/dsd/leds.txt | 94 +++++++++++++++++++++++++++++++++++++++++
->>>  1 file changed, 94 insertions(+)
->>>  create mode 100644 Documentation/acpi/dsd/leds.txt
->>>
->>> diff --git a/Documentation/acpi/dsd/leds.txt b/Documentation/acpi/dsd/leds.txt
->>> new file mode 100644
->>> index 000000000000..894c82274f53
->>> --- /dev/null
->>> +++ b/Documentation/acpi/dsd/leds.txt
->>> @@ -0,0 +1,94 @@
->>> +Describing and referring to LEDs in ACPI
->>> +
->>> +Individual LEDs are described by hierarchical data extension [6] nodes
->>> +under the device node, the LED driver chip. The "led" property in the
->>> +LED specific nodes tells the numerical ID of each individual LED. The
->>> +"led" property is used here in a similar fashion as the "reg" property
->>> +in DT. [3]
->>> +
->>> +Referring to LEDs in Device tree is documented in [4], in "flash-leds"
->>> +property documentation. In short, LEDs are directly referred to by
->>> +using phandles.
->>> +
->>> +While Device tree allows referring to any node in the tree[1], in ACPI
->>> +references are limited to device nodes only [2]. For this reason using
->>> +the same mechanism on ACPI is not possible.
->>> +
->>> +ACPI allows (as does DT) using integer arguments after the reference.
->>> +A combination of the LED driver device reference and an integer
->>> +argument, referring to the "led" property of the relevant LED, are
->>> +use to individual LEDs.
->>
->> s/are use/is used/ ? (in a sense "combination of ... and .. is used")
->>
->> s/to individual/to describe individual/
->>
->> (or another verb, I'm not sure what exactly you intended it to be)
+> 'core_sibling' will be updated by 'update_siblings_masks()' to represent cores in a cluster;
+> Can we add a cpumask_t field to represent cores in a package? So that 'lstopo' can use this
+> cpumask_t to display the right information.
+
+So, the change below modifies update_siblings_mask() to utilize the 
+package_id. Per the ABI the ..cpuX/topology/physical_package_id is 
+shared between the core_siblings/core_siblings_list. What 
+physical_package_id means can vary per architecture, but the siblings 
+list needs to be the cores with the same phyiscal_package (AFAIK, feel 
+free to correct my understanding). That rule should be enforced by this 
+patch set.
+
+I suspect if your running these patches, and the lstopo output looks 
+strange its because your on a machine where the thread_id has been 
+assigned the cluster_id in the later patch set.
+
+
 > 
-> I'll use "is used to identify", for this is what it essentially is for.
+> Thanks,
+> Xiongfeng Wang
+> 
+>>   
+>>   extern struct cpu_topology cpu_topology[NR_CPUS];
+>>   
+>> -#define topology_physical_package_id(cpu)	(cpu_topology[cpu].cluster_id)
+>> +#define topology_physical_package_id(cpu)	(cpu_topology[cpu].package_id)
+>> +#define topology_cod_id(cpu)		(cpu_topology[cpu].cluster_id)
+>>   #define topology_core_id(cpu)		(cpu_topology[cpu].core_id)
+>>   #define topology_core_cpumask(cpu)	(&cpu_topology[cpu].core_sibling)
+>>   #define topology_sibling_cpumask(cpu)	(&cpu_topology[cpu].thread_sibling)
+>> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+>> index 8d48b233e6ce..9147e5b6326d 100644
+>> --- a/arch/arm64/kernel/topology.c
+>> +++ b/arch/arm64/kernel/topology.c
+>> @@ -67,6 +67,8 @@ static int __init parse_core(struct device_node *core, int cluster_id,
+>>   			leaf = false;
+>>   			cpu = get_cpu_for_node(t);
+>>   			if (cpu >= 0) {
+>> +				/* maintain DT cluster == package behavior */
+>> +				cpu_topology[cpu].package_id = cluster_id;
+>>   				cpu_topology[cpu].cluster_id = cluster_id;
+>>   				cpu_topology[cpu].core_id = core_id;
+>>   				cpu_topology[cpu].thread_id = i;
+>> @@ -88,7 +90,7 @@ static int __init parse_core(struct device_node *core, int cluster_id,
+>>   			       core);
+>>   			return -EINVAL;
+>>   		}
+>> -
+>> +		cpu_topology[cpu].package_id = cluster_id;
+>>   		cpu_topology[cpu].cluster_id = cluster_id;
+>>   		cpu_topology[cpu].core_id = core_id;
+>>   	} else if (leaf) {
+>> @@ -228,7 +230,7 @@ static void update_siblings_masks(unsigned int cpuid)
+>>   	for_each_possible_cpu(cpu) {
+>>   		cpu_topo = &cpu_topology[cpu];
+>>   
+>> -		if (cpuid_topo->cluster_id != cpu_topo->cluster_id)
+>> +		if (cpuid_topo->package_id != cpu_topo->package_id)
 
-With that:
+(note here that core_siblings now reflect the package_id rather than the 
+cluster_id. This only matters if cluster_id!=package_id).
 
-Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-
->>  The value of the LED property is a contract
->>> +between the firmware and software, it uniquely identifies the LED
->>> +driver outputs.
->>> +
->>> +An ASL example of a camera sensor device and a LED driver device for two
->>> +LEDs. Objects not relevant for LEDs or the references to them have been
->>> +omitted.
->>> +
->>> +	Device (LED)
->>> +	{
->>> +		Name (_DSD, Package () {
->>> +			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
->>> +			Package () {
->>> +				Package () { "led0", LED0 },
->>> +				Package () { "led1", LED1 },
->>> +			}
->>> +		})
->>> +		Name (LED0, Package () {
->>> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->>> +			Package () {
->>> +				Package () { "led", 0 },
->>> +				Package () { "flash-max-microamp", 1000000 },
->>> +				Package () { "flash-timeout-us", 200000 },
->>> +				Package () { "led-max-microamp", 100000 },
->>> +				Package () { "label", "led:salama" },
->>> +			}
->>> +		})
->>> +		Name (LED1, Package () {
->>> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->>> +			Package () {
->>> +				Package () { "led", 1 },
->>> +				Package () { "led-max-microamp", 10000 },
->>> +				Package () { "label", "led:huomiovalo" },
->>> +			}
->>> +		})
->>> +	}
->>> +
->>> +	Device (SEN)
->>> +	{
->>> +		Name (_DSD, Package () {
->>> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->>> +			Package () {
->>> +				Package () {
->>> +					"flash-leds",
->>> +					Package () { ^LED, 0, ^LED, 1 },
->>> +				}
->>> +			}
->>> +		})
->>> +	}
->>> +
->>> +where
->>> +
->>> +	LED	LED driver device
->>> +	LED0	First LED
->>> +	LED1	Second LED
->>> +	SEN	Camera sensor device (or another device the LED is
->>> +		related to)
->>> +
->>> +[1] Device tree. <URL:http://www.devicetree.org>, referenced 2016-10-03.
->>> +
->>> +[2] Advanced Configuration and Power Interface Specification.
->>> +    <URL:http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf>,
->>> +    referenced 2016-10-04.
->>> +
->>> +[3] Documentation/devicetree/bindings/leds/common.txt
->>> +
->>> +[4] Documentation/devicetree/bindings/media/video-interfaces.txt
->>> +
->>> +[5] Device Properties UUID For _DSD.
->>> +    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
->>> +    referenced 2016-10-04.
->>> +
->>> +[6] Hierarchical Data Extension UUID For _DSD.
->>> +    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf>,
->>> +    referenced 2016-10-04.
->>>
+>>   			continue;
+>>   
+>>   		cpumask_set_cpu(cpuid, &cpu_topo->core_sibling);
+>> @@ -273,6 +275,7 @@ void store_cpu_topology(unsigned int cpuid)
+>>   					 MPIDR_AFFINITY_LEVEL(mpidr, 2) << 8 |
+>>   					 MPIDR_AFFINITY_LEVEL(mpidr, 3) << 16;
+>>   	}
+>> +	cpuid_topo->package_id = cpuid_topo->cluster_id;
+>>   
+>>   	pr_debug("CPU%u: cluster %d core %d thread %d mpidr %#016llx\n",
+>>   		 cpuid, cpuid_topo->cluster_id, cpuid_topo->core_id,
+>> @@ -292,6 +295,7 @@ static void __init reset_cpu_topology(void)
+>>   		cpu_topo->thread_id = -1;
+>>   		cpu_topo->core_id = 0;
+>>   		cpu_topo->cluster_id = -1;
+>> +		cpu_topo->package_id = -1;
+>>   
+>>   		cpumask_clear(&cpu_topo->core_sibling);
+>>   		cpumask_set_cpu(cpu, &cpu_topo->core_sibling);
+>> diff --git a/include/linux/topology.h b/include/linux/topology.h
+>> index cb0775e1ee4b..4660749a7303 100644
+>> --- a/include/linux/topology.h
+>> +++ b/include/linux/topology.h
+>> @@ -184,6 +184,9 @@ static inline int cpu_to_mem(int cpu)
+>>   #ifndef topology_physical_package_id
+>>   #define topology_physical_package_id(cpu)	((void)(cpu), -1)
+>>   #endif
+>> +#ifndef topology_cod_id				/* cluster on die */
+>> +#define topology_cod_id(cpu)			topology_physical_package_id(cpu)
+>> +#endif
+>>   #ifndef topology_core_id
+>>   #define topology_core_id(cpu)			((void)(cpu), 0)
+>>   #endif
 >>
->> -- 
->> Best regards,
->> Jacek Anaszewski
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 > 
 
--- 
-Best regards,
-Jacek Anaszewski
