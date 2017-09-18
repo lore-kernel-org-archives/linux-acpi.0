@@ -1,73 +1,135 @@
-From: =?UTF-8?q?J=C3=A9r=C3=B4me=20de=20Bretagne?=
-        <jerome.debretagne@gmail.com>
-Subject: [PATCH] platform/x86: intel-hid: Power button suspend on Dell Latitude 7275
-Date: Mon, 18 Sep 2017 00:57:12 +0200
-Message-ID: <20170917225712.12136-1-jerome.debretagne@gmail.com>
+From: "Levin, Alexander (Sasha Levin)" <alexander.levin@verizon.com>
+Subject: [PATCH for 4.9 27/39] x86/acpi: Restore the order of CPU IDs
+Date: Mon, 18 Sep 2017 00:40:33 +0000
+Message-ID: <20170918004024.7247-10-alexander.levin@verizon.com>
+References: <20170918004024.7247-1-alexander.levin@verizon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:36759 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751537AbdIQW6F (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Sep 2017 18:58:05 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170918004024.7247-1-alexander.levin@verizon.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Cc: Dou Liyang <douly.fnst@cn.fujitsu.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "guzheng1@huawei.com" <guzheng1@huawei.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "lenb@kernel.org" <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "Levin, Alexander (Sasha Levin)" <alexander.levin@verizon.com>
 List-Id: linux-acpi@vger.kernel.org
-To: platform-driver-x86@vger.kernel.org
-Cc: Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, Mario Limonciello <mario.limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>
 
-From: Jérôme de Bretagne <jerome.debretagne@gmail.com>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
 
-On Dell Latitude 7275 the 5-button array is not exposed in the
-ACPI tables, but still notifies are sent to the Intel HID device
-object (device ID INT33D5) in response to power button actions.
-They were ignored as the intel-hid driver was not prepared to
-take care of them until recently.
+[ Upstream commit 2b85b3d22920db7473e5fed5719e7955c0ec323e ]
 
-Power button wakeup from suspend-to-idle was added in:
-635173a17b03 ("intel-hid: Wake up Dell Latitude 7275 from
-suspend-to-idle"). However power button suspend doesn't work
-yet on this platform so it would be good to add it also.
+The following commits:
 
-On the affected platform (for which priv->array is NULL), add
-a new upfront check against the power button press notification
-(0xCE) to notify_handler(), outside the wakeup mode this time,
-which allows to report the power button press event and
-trigger the suspend. Also catch and ignore the corresponding
-power button release notification (0xCF) to stop it from being
-reported as an "unknown event" in the logs.
+  f7c28833c2 ("x86/acpi: Enable acpi to register all possible cpus at
+boot time") and 8f54969dc8 ("x86/acpi: Introduce persistent storage
+for cpuid <-> apicid mapping")
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=196115
-Tested-by: Jérôme de Bretagne <jerome.debretagne@gmail.com>
-Signed-off-by: Jérôme de Bretagne <jerome.debretagne@gmail.com>
+... registered all the possible CPUs at boot time via ACPI tables to
+make the mapping of cpuid <-> apicid fixed. Both enabled and disabled
+CPUs could have a logical CPU ID after boot time.
+
+But, ACPI tables are unreliable. the number amd order of Local APIC
+entries which depends on the firmware is often inconsistent with the
+physical devices. Even if they are consistent, The disabled CPUs which
+take up some logical CPU IDs will also make the order discontinuous.
+
+Revert the part of disabled CPUs registration, keep the allocation
+logic of logical CPU IDs and also keep some code location changes.
+
+Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Tested-by: Xiaolong Ye <xiaolong.ye@intel.com>
+Cc: rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org
+Cc: guzheng1@huawei.com
+Cc: izumi.taku@jp.fujitsu.com
+Cc: lenb@kernel.org
+Link: http://lkml.kernel.org/r/1488528147-2279-4-git-send-email-douly.fnst@=
+cn.fujitsu.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sasha Levin <alexander.levin@verizon.com>
 ---
- drivers/platform/x86/intel-hid.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ arch/x86/kernel/acpi/boot.c |  7 ++++++-
+ arch/x86/kernel/apic/apic.c | 26 +++++++-------------------
+ 2 files changed, 13 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/platform/x86/intel-hid.c b/drivers/platform/x86/intel-hid.c
-index a782c78e7c63..b19f8dcf9d8c 100644
---- a/drivers/platform/x86/intel-hid.c
-+++ b/drivers/platform/x86/intel-hid.c
-@@ -226,6 +226,22 @@ static void notify_handler(acpi_handle handle, u32 event, void *context)
- 		return;
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index d3e0d049a0c2..b89bef95f63b 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -176,10 +176,15 @@ static int acpi_register_lapic(int id, u32 acpiid, u8=
+ enabled)
+ 		return -EINVAL;
  	}
- 
-+	/*
-+	 * Needed for suspend to work on some platforms that don't expose
-+	 * the 5-button array, but still send notifies with power button
-+	 * event code to this device object on power button actions.
-+	 *
-+	 * Report the power button press; catch and ignore the button release.
-+	 */
-+	if (!priv->array) {
-+		if (event == 0xce) {
-+			input_report_key(priv->input_dev, KEY_POWER, 1);
-+			input_sync(priv->input_dev);
-+			return;
-+		} else if (event == 0xcf)
-+			return;
+=20
++	if (!enabled) {
++		++disabled_cpus;
++		return -EINVAL;
 +	}
 +
- 	/* 0xC0 is for HID events, other values are for 5 button array */
- 	if (event != 0xc0) {
- 		if (!priv->array ||
+ 	if (boot_cpu_physical_apicid !=3D -1U)
+ 		ver =3D boot_cpu_apic_version;
+=20
+-	cpu =3D __generic_processor_info(id, ver, enabled);
++	cpu =3D generic_processor_info(id, ver);
+ 	if (cpu >=3D 0)
+ 		early_per_cpu(x86_cpu_to_acpiid, cpu) =3D acpiid;
+=20
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index f2234918e494..e2ead34da465 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -2070,7 +2070,7 @@ static int allocate_logical_cpuid(int apicid)
+ 	return nr_logical_cpuids++;
+ }
+=20
+-int __generic_processor_info(int apicid, int version, bool enabled)
++int generic_processor_info(int apicid, int version)
+ {
+ 	int cpu, max =3D nr_cpu_ids;
+ 	bool boot_cpu_detected =3D physid_isset(boot_cpu_physical_apicid,
+@@ -2128,11 +2128,9 @@ int __generic_processor_info(int apicid, int version=
+, bool enabled)
+ 	if (num_processors >=3D nr_cpu_ids) {
+ 		int thiscpu =3D max + disabled_cpus;
+=20
+-		if (enabled) {
+-			pr_warning("APIC: NR_CPUS/possible_cpus limit of %i "
+-				   "reached. Processor %d/0x%x ignored.\n",
+-				   max, thiscpu, apicid);
+-		}
++		pr_warning("APIC: NR_CPUS/possible_cpus limit of %i "
++			   "reached. Processor %d/0x%x ignored.\n",
++			   max, thiscpu, apicid);
+=20
+ 		disabled_cpus++;
+ 		return -EINVAL;
+@@ -2184,23 +2182,13 @@ int __generic_processor_info(int apicid, int versio=
+n, bool enabled)
+ 		apic->x86_32_early_logical_apicid(cpu);
+ #endif
+ 	set_cpu_possible(cpu, true);
+-
+-	if (enabled) {
+-		num_processors++;
+-		physid_set(apicid, phys_cpu_present_map);
+-		set_cpu_present(cpu, true);
+-	} else {
+-		disabled_cpus++;
+-	}
++	physid_set(apicid, phys_cpu_present_map);
++	set_cpu_present(cpu, true);
++	num_processors++;
+=20
+ 	return cpu;
+ }
+=20
+-int generic_processor_info(int apicid, int version)
+-{
+-	return __generic_processor_info(apicid, version, true);
+-}
+-
+ int hard_smp_processor_id(void)
+ {
+ 	return read_apic_id();
+--=20
+2.11.0
