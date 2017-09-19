@@ -1,94 +1,99 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/1] ACPI: Return _DSD hierarchical extension (data) sub-nodes correctly
-Date: Tue, 19 Sep 2017 23:06:08 +0200
-Message-ID: <1758892.oZFS9QWCQq@aspire.rjw.lan>
-References: <1504862681-29165-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2 1/1] device property: Align return codes of acpi_fwnode_get_reference_with_args
+Date: Tue, 19 Sep 2017 23:16:10 +0200
+Message-ID: <1824834.2vbqGCFIt3@aspire.rjw.lan>
+References: <20170912141512.21634-1-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51412 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:64954 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751341AbdISVPM (ORCPT
+        by vger.kernel.org with ESMTP id S1751309AbdISVZO (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 19 Sep 2017 17:15:12 -0400
-In-Reply-To: <1504862681-29165-1-git-send-email-sakari.ailus@linux.intel.com>
+        Tue, 19 Sep 2017 17:25:14 -0400
+In-Reply-To: <20170912141512.21634-1-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, andriy.shevchenko@intel.com, mika.westerberg@intel.com
+Cc: linux-pm@vger.kernel.org, mika.westerberg@intel.com, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Friday, September 8, 2017 11:24:41 AM CEST Sakari Ailus wrote:
-> The recently merged patch "ACPI: Prepare for constifying
-> acpi_get_next_subnode() fwnode argument" was part of a patchset
-> constifying the fwnode arguments across the fwnode property API. The
-> purpose of the patch was to allow returning non-const fwnodes from a data
-> structure the root of which is const.
+On Tuesday, September 12, 2017 4:15:12 PM CEST Sakari Ailus wrote:
+> acpi_fwnode_get_reference_with_args(), the function implementing ACPI
+> support for fwnode_property_get_reference_with_args(), returns directly
+> error codes from __acpi_node_get_property_reference(). The latter uses
+> different error codes than the OF implementation. In particular, the OF
+> implementation uses -ENOENT to indicate there are no more entries whereas
+> the former uses -ENODATA for the purpose.
 > 
-> Unfortunately the patch introduced the functionality, in particular when
-> starting parsed from an ACPI device node, the hierarchical data extension
-> nodes would not be enumerated.
+> To make matters more complicated, the ACPI implementation uses -ENOENT but
+> for a different purpose --- when an entry exists but contains no
+> reference. This isn't recognised by OF.
 > 
-> Restore the old behaviour while still retaining constness properties of
-> the patch.
+> Document and align the error codes for property for
+> fwnode_property_get_reference_with_args() so that they match with
+> of_parse_phandle_with_args(), with the difference that -ENODATA is
+> returned whenever an entry exists but contains no reference.
 > 
-> Fixes: 01c1da289791 ("ACPI: Prepare for constifying acpi_get_next_subnode() fwnode argument")
+> Also return -ENOENT if the property does not exist, which is what the DT
+> equivalent does.
+> 
+> Fixes: 3e3119d3088f ("device property: Introduce fwnode_property_get_reference_args")
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > ---
 > since v1:
 > 
-> - Add Mika's ack.
+> - Return -ENOENT if the property is not found.
 > 
-> - Fix recetly -> recently in commit message.
-> 
-> - Add commit ID to Fixes: line.
-> 
->  drivers/acpi/property.c | 11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
+>  drivers/acpi/property.c | 7 +++++++
+>  drivers/base/property.c | 5 +++++
+>  2 files changed, 12 insertions(+)
 > 
 > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index a65c09c..d70dab2 100644
+> index a65c09cc223f..8970dd288d9d 100644
 > --- a/drivers/acpi/property.c
 > +++ b/drivers/acpi/property.c
-> @@ -902,11 +902,12 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
->  					    struct fwnode_handle *child)
->  {
->  	const struct acpi_device *adev = to_acpi_device_node(fwnode);
-> -	struct acpi_device *child_adev = NULL;
->  	const struct list_head *head;
->  	struct list_head *next;
+> @@ -1205,8 +1205,15 @@ acpi_fwnode_get_reference_args(const struct fwnode_handle *fwnode,
+>  	unsigned int i;
+>  	int ret;
 >  
->  	if (!child || is_acpi_device_node(child)) {
-> +		struct acpi_device *child_adev;
+> +	if (acpi_node_prop_get(fwnode, prop, NULL))
+> +		return -ENOENT;
 > +
->  		if (adev)
->  			head = &adev->children;
->  		else
-> @@ -916,8 +917,8 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
->  			goto nondev;
->  
->  		if (child) {
-> -			child_adev = to_acpi_device_node(child);
-> -			next = child_adev->node.next;
-> +			adev = to_acpi_device_node(child);
-> +			next = adev->node.next;
->  			if (next == head) {
->  				child = NULL;
->  				goto nondev;
-> @@ -935,8 +936,8 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
->  		const struct acpi_data_node *data = to_acpi_data_node(fwnode);
->  		struct acpi_data_node *dn;
->  
-> -		if (child_adev)
-> -			head = &child_adev->data.subnodes;
-> +		if (adev)
-> +			head = &adev->data.subnodes;
->  		else if (data)
->  			head = &data->data.subnodes;
->  		else
+>  	ret = __acpi_node_get_property_reference(fwnode, prop, index,
+>  						 args_count, &acpi_args);
+> +	if (ret == -ENODATA)
+> +		return -ENOENT;
+> +	if (ret == -ENOENT)
+> +		return -ENODATA;
+
+I agree with Mika that it would be good to have a comment describing what is
+going on here.
+
+Or maybe better, why don't you change __acpi_node_get_property_reference()
+itself?
+
+>  	if (ret < 0)
+>  		return ret;
+>  	if (!args)
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index d0b65bbe7e15..79b07ed83304 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -682,6 +682,11 @@ EXPORT_SYMBOL_GPL(fwnode_property_match_string);
+>   * Caller is responsible to call fwnode_handle_put() on the returned
+>   * args->fwnode pointer.
+>   *
+> + * Returns: %0 on success
+> + *	    %-ENOENT when the index is out of bounds, or the property was not
+> + *		     found
+> + *	    %-EINVAL on parse error
+> + *	    %-ENODATA when an entry exists but contains no reference
+>   */
+>  int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
+>  				       const char *prop, const char *nargs_prop,
 > 
 
-Applied, thanks!
-
+Thanks,
+Rafael
 
