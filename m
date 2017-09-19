@@ -1,98 +1,64 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v2 0/6] Support PPTT for ARM64
-Date: Tue, 19 Sep 2017 13:47:45 -0500
-Message-ID: <20170919184751.25110-1-jeremy.linton@arm.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v10 20/24] dt: bindings: smiapp: Document lens-focus and
+ flash properties
+Date: Tue, 19 Sep 2017 15:00:11 -0500
+Message-ID: <CAL_Jsq+YKSDn7Hoq-2wRsGyGRbQvNPEVXrj13bSNCqQpKE2CvQ@mail.gmail.com>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+ <20170911080008.21208-21-sakari.ailus@linux.intel.com> <20170918210028.67sbpuetdh5j7wpf@rob-hp-laptop>
+ <ef8edab3-5b55-c298-2a40-72b5e22586ea@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-acpi@vger.kernel.org
-Cc: mark.rutland@arm.com, Jonathan.Zhang@cavium.com, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, jhugo@codeaurora.org, rjw@rjwysocki.net, mturquette@baylibre.com, linux-pm@vger.kernel.org, will.deacon@arm.com, linux-kernel@vger.kernel.org, Jeremy Linton <jeremy.linton@arm.com>, linux-clk@vger.kernel.org, wangxiongfeng2@huawei.com, viresh.kumar@linaro.org, hanjun.guo@linaro.org, ahs3@redhat.com, sudeep.holla@arm.com, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <ef8edab3-5b55-c298-2a40-72b5e22586ea-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: "linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org>, Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
-used to describe the processor and cache topology. Ideally it is
-used to extend/override information provided by the hardware, but
-right now ARM64 is entirely dependent on firmware provided tables.
+On Mon, Sep 18, 2017 at 4:56 PM, Sakari Ailus
+<sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+> Hi Rob,
+>
+>
+> Rob Herring wrote:
+>>
+>> On Mon, Sep 11, 2017 at 11:00:04AM +0300, Sakari Ailus wrote:
+>>>
+>>> Document optional lens-focus and flash properties for the smiapp driver.
+>>>
+>>> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>>> ---
+>>>  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
+>>>  1 file changed, 2 insertions(+)
+>>
+>>
+>> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>
+>
+> Thanks for the ack. There have been since a few iterations of the set, and
+> the corresponding patch in v13 has minor changes to this:
 
-This patch parses the table for the cache topology and CPU topology.
-For the latter we also add an additional topology_cod_id() macro,
-and a package_id for arm64. Initially the physical id will match
-the cluster id, but we update users of the cluster to utilize
-the new macro. When we enable ACPI/PPTT for arm64 we map the socket
-to the physical id as the remainder of the kernel expects.
+My review script can't deal with subject changes...
 
-For example on juno:
-[root@mammon-juno-rh topology]# lstopo-no-graphics
-  Package L#0
-    L2 L#0 (1024KB)
-      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
-      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
-      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
-      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
-    L2 L#1 (2048KB)
-      L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
-      L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
-  HostBridge L#0
-    PCIBridge
-      PCIBridge
-        PCIBridge
-          PCI 1095:3132
-            Block(Disk) L#0 "sda"
-        PCIBridge
-          PCI 1002:68f9
-            GPU L#1 "renderD128"
-            GPU L#2 "card0"
-            GPU L#3 "controlD64"
-        PCIBridge
-          PCI 11ab:4380
-            Net L#4 "enp8s0"
+> <URL:http://www.spinics.net/lists/linux-media/msg121929.html>
+>
+> Essentially "flash" was renamed to "flash-leds" as the current flash devices
+> we have are all LEDs and the referencing assumes LED framework's ways to
+> describe LEDs. The same change is present in the patch adding the property
 
-v1->v2:
+So we're kind of creating a binding that mirrors the gpio bindings
+(*-gpios) which is a bit of an oddball as all other bindings have gone
+with a fixed property name and then a *-names property to name them.
+The main downside to this form is a prefixed property name is harder
+to parse and validate. So perhaps we should follow the more common
+pattern, but we're not really describing a h/w connection just an
+association. And now we also have the trigger source binding to
+associate LEDs with device nodes, so perhaps that should be used here.
+We shouldn't really have 2 ways to associate things in DT even if how
+that gets handled in the kernel is different.
 
-The parser keys off the acpi_pptt_processor node to determine
-  unique cache's rather than the acpi_pptt_cache referenced by the
-  processor node. This allows PPTT tables which "share" cache nodes
-  across cpu nodes despite not being a shared cache.
-
-Normalize the socket, cluster and thread mapping so that they match
-  linux's traditional mapping for the physical id, and thread id.
-  Adding explicit scheduler knowledge of clusters (rather than just
-  their cache sharing attributes) is a subject for a future patch.
-
-Jeremy Linton (6):
-  ACPI/PPTT: Add Processor Properties Topology Table parsing
-  ACPI: Enable PPTT support on ARM64
-  drivers: base: cacheinfo: arm64: Add support for ACPI based firmware
-    tables
-  Topology: Add cluster on die macros and arm64 decoding
-  arm64: Fixup users of topology_physical_package_id
-  arm64: topology: Enable ACPI/PPTT based CPU topology.
-
- arch/arm64/Kconfig                |   1 +
- arch/arm64/include/asm/topology.h |   4 +-
- arch/arm64/kernel/cacheinfo.c     |  23 +-
- arch/arm64/kernel/topology.c      |  62 ++++-
- drivers/acpi/Makefile             |   1 +
- drivers/acpi/arm64/Kconfig        |   3 +
- drivers/acpi/pptt.c               | 459 ++++++++++++++++++++++++++++++++++++++
- drivers/base/cacheinfo.c          |  17 +-
- drivers/clk/clk-mb86s7x.c         |   2 +-
- drivers/cpufreq/arm_big_little.c  |   2 +-
- drivers/firmware/psci_checker.c   |   2 +-
- include/linux/cacheinfo.h         |  10 +-
- include/linux/topology.h          |   4 +
- 13 files changed, 570 insertions(+), 20 deletions(-)
- create mode 100644 drivers/acpi/pptt.c
-
--- 
-2.13.5
+Rob
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
