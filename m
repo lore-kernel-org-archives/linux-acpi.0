@@ -1,64 +1,94 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v10 20/24] dt: bindings: smiapp: Document lens-focus and
- flash properties
-Date: Tue, 19 Sep 2017 15:00:11 -0500
-Message-ID: <CAL_Jsq+YKSDn7Hoq-2wRsGyGRbQvNPEVXrj13bSNCqQpKE2CvQ@mail.gmail.com>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-21-sakari.ailus@linux.intel.com> <20170918210028.67sbpuetdh5j7wpf@rob-hp-laptop>
- <ef8edab3-5b55-c298-2a40-72b5e22586ea@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 1/1] ACPI: Return _DSD hierarchical extension (data) sub-nodes correctly
+Date: Tue, 19 Sep 2017 23:06:08 +0200
+Message-ID: <1758892.oZFS9QWCQq@aspire.rjw.lan>
+References: <1504862681-29165-1-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ef8edab3-5b55-c298-2a40-72b5e22586ea-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: "linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org>, Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51412 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751341AbdISVPM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 19 Sep 2017 17:15:12 -0400
+In-Reply-To: <1504862681-29165-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, andriy.shevchenko@intel.com, mika.westerberg@intel.com
 
-On Mon, Sep 18, 2017 at 4:56 PM, Sakari Ailus
-<sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
-> Hi Rob,
->
->
-> Rob Herring wrote:
->>
->> On Mon, Sep 11, 2017 at 11:00:04AM +0300, Sakari Ailus wrote:
->>>
->>> Document optional lens-focus and flash properties for the smiapp driver.
->>>
->>> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->>> ---
->>>  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
->>>  1 file changed, 2 insertions(+)
->>
->>
->> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->
->
-> Thanks for the ack. There have been since a few iterations of the set, and
-> the corresponding patch in v13 has minor changes to this:
+On Friday, September 8, 2017 11:24:41 AM CEST Sakari Ailus wrote:
+> The recently merged patch "ACPI: Prepare for constifying
+> acpi_get_next_subnode() fwnode argument" was part of a patchset
+> constifying the fwnode arguments across the fwnode property API. The
+> purpose of the patch was to allow returning non-const fwnodes from a data
+> structure the root of which is const.
+> 
+> Unfortunately the patch introduced the functionality, in particular when
+> starting parsed from an ACPI device node, the hierarchical data extension
+> nodes would not be enumerated.
+> 
+> Restore the old behaviour while still retaining constness properties of
+> the patch.
+> 
+> Fixes: 01c1da289791 ("ACPI: Prepare for constifying acpi_get_next_subnode() fwnode argument")
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+> since v1:
+> 
+> - Add Mika's ack.
+> 
+> - Fix recetly -> recently in commit message.
+> 
+> - Add commit ID to Fixes: line.
+> 
+>  drivers/acpi/property.c | 11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index a65c09c..d70dab2 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -902,11 +902,12 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
+>  					    struct fwnode_handle *child)
+>  {
+>  	const struct acpi_device *adev = to_acpi_device_node(fwnode);
+> -	struct acpi_device *child_adev = NULL;
+>  	const struct list_head *head;
+>  	struct list_head *next;
+>  
+>  	if (!child || is_acpi_device_node(child)) {
+> +		struct acpi_device *child_adev;
+> +
+>  		if (adev)
+>  			head = &adev->children;
+>  		else
+> @@ -916,8 +917,8 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
+>  			goto nondev;
+>  
+>  		if (child) {
+> -			child_adev = to_acpi_device_node(child);
+> -			next = child_adev->node.next;
+> +			adev = to_acpi_device_node(child);
+> +			next = adev->node.next;
+>  			if (next == head) {
+>  				child = NULL;
+>  				goto nondev;
+> @@ -935,8 +936,8 @@ struct fwnode_handle *acpi_get_next_subnode(const struct fwnode_handle *fwnode,
+>  		const struct acpi_data_node *data = to_acpi_data_node(fwnode);
+>  		struct acpi_data_node *dn;
+>  
+> -		if (child_adev)
+> -			head = &child_adev->data.subnodes;
+> +		if (adev)
+> +			head = &adev->data.subnodes;
+>  		else if (data)
+>  			head = &data->data.subnodes;
+>  		else
+> 
 
-My review script can't deal with subject changes...
+Applied, thanks!
 
-> <URL:http://www.spinics.net/lists/linux-media/msg121929.html>
->
-> Essentially "flash" was renamed to "flash-leds" as the current flash devices
-> we have are all LEDs and the referencing assumes LED framework's ways to
-> describe LEDs. The same change is present in the patch adding the property
 
-So we're kind of creating a binding that mirrors the gpio bindings
-(*-gpios) which is a bit of an oddball as all other bindings have gone
-with a fixed property name and then a *-names property to name them.
-The main downside to this form is a prefixed property name is harder
-to parse and validate. So perhaps we should follow the more common
-pattern, but we're not really describing a h/w connection just an
-association. And now we also have the trigger source binding to
-associate LEDs with device nodes, so perhaps that should be used here.
-We shouldn't really have 2 ways to associate things in DT even if how
-that gets handled in the kernel is different.
-
-Rob
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
