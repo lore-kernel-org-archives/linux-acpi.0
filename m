@@ -1,104 +1,164 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/8] ACPICA 20170831 Release
-Date: Tue, 19 Sep 2017 01:42:42 +0200
-Message-ID: <2191190.ArtfeQ7rdR@aspire.rjw.lan>
-References: <cover.1505377451.git.lv.zheng@intel.com>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [PATCH 4/6] Topology: Add cluster on die macros and arm64
+ decoding
+Date: Tue, 19 Sep 2017 09:03:47 +0800
+Message-ID: <1e41b605-371b-ee54-f251-ad58082d236e@huawei.com>
+References: <20170914184918.20406-1-jeremy.linton@arm.com>
+ <20170914184918.20406-5-jeremy.linton@arm.com>
+ <e95a0b2a-9dd0-654a-20fe-cad1cf0eed94@huawei.com>
+ <8e145e4b-e1d2-cb15-2cf9-cace5fed524f@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63098 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751396AbdIRXvq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 18 Sep 2017 19:51:46 -0400
-In-Reply-To: <cover.1505377451.git.lv.zheng@intel.com>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:6066 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750884AbdISBEN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Sep 2017 21:04:13 -0400
+In-Reply-To: <8e145e4b-e1d2-cb15-2cf9-cace5fed524f@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, austinwc@codeaurora.org, jhugo@codeaurora.org, will.deacon@arm.com, john.garry@huawei.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, sudeep.holla@arm.com, catalin.marinas@arm.com, linux-arm-kernel@lists.infradead.org
 
-On Friday, September 15, 2017 6:43:49 AM CEST Lv Zheng wrote:
-> The 20170831 ACPICA kernel-resident subsystem updates are linuxized based
-> on the linux-pm/linux-next branch.
-> 
-> The patchset has passed the following build/boot tests.
-> Build tests are performed as follows:
-> 1. i386 + allyes
-> 2. i386 + allno
-> 3. i386 + default + ACPI_DEBUGGER=y
-> 4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
-> 5. i386 + default + ACPI_DEBUG=n + ACPI=y
-> 6. i386 + default + ACPI=n
-> 7. x86_64 + allyes
-> 8. x86_64 + allno
-> 9. x86_64 + default + ACPI_DEBUGGER=y
-> 10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
-> 11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
-> 12.x86_64 + default + ACPI=n
-> Boot tests are performed as follows:
-> 1. x86_64 + default + ACPI_DEBUGGER=y
-> Where:
-> 1. i386: machine named as "Dell Inspiron Mini 1010"
-> 2. x86_64: machine named as "Microsoft Surface Pro 3"
-> 3. default: kernel configuration with following items enabled:
->    All hardware drivers related to the machines of i386/x86_64
->    All "drivers/acpi" configurations
->    All "drivers/platform" drivers
->    All other drivers that link the APIs provided by ACPICA subsystem
-> 
-> The divergences checking result:
-> Before applying (20170728 Release):
->   390 lines
-> After applying (20170831 Release):
->   390 lines
-> 
-> Bob Moore (6):
->   ACPICA: Header support for the PDTT ACPI table
->   ACPICA: Restructure/cleanup all string-to-integer conversion functions
->   ACPICA: String conversions: Cleanup/format comments. No functional
->     changes
->   ACPICA: String conversions: Update to add new behaviors
->   ACPICA: Update acpi_get_timer for 64-bit interface to acpi_hw_read
->   ACPICA: Update version to 20170831
-> 
-> Lv Zheng (2):
->   ACPICA: Hardware: Enable 64-bit support of hardware accesses
->   ACPICA: acpiexec: Add testability of deferred table verification
-> 
->  drivers/acpi/acpica/Makefile             |   1 +
->  drivers/acpi/acpica/achware.h            |   4 +-
->  drivers/acpi/acpica/acinterp.h           |   6 +-
->  drivers/acpi/acpica/acutils.h            |  33 ++-
->  drivers/acpi/acpica/dbconvert.c          |   5 +-
->  drivers/acpi/acpica/dswexec.c            |   2 +-
->  drivers/acpi/acpica/evgpe.c              |   6 +-
->  drivers/acpi/acpica/exconcat.c           |   2 +-
->  drivers/acpi/acpica/exconvrt.c           |  30 ++-
->  drivers/acpi/acpica/exmisc.c             |   2 +-
->  drivers/acpi/acpica/exresop.c            |   2 +-
->  drivers/acpi/acpica/hwgpe.c              |   4 +-
->  drivers/acpi/acpica/hwregs.c             |  72 ++---
->  drivers/acpi/acpica/hwtimer.c            |  10 +-
->  drivers/acpi/acpica/hwxface.c            | 118 +--------
->  drivers/acpi/acpica/nsconvert.c          |   4 +-
->  drivers/acpi/acpica/tbxface.c            |   9 +-
->  drivers/acpi/acpica/utstrsuppt.c         | 437 ++++++++++++++++++++++++++++++
->  drivers/acpi/acpica/utstrtoul64.c        | 442 ++++++++++++++++---------------
->  include/acpi/acexcep.h                   |  16 +-
->  include/acpi/acpixf.h                    |   2 +-
->  include/acpi/actbl1.h                    |  30 +++
->  tools/power/acpi/tools/acpidump/Makefile |   1 +
->  tools/power/acpi/tools/acpidump/apdump.c |   3 +-
->  tools/power/acpi/tools/acpidump/apmain.c |   4 +-
->  25 files changed, 833 insertions(+), 412 deletions(-)
->  create mode 100644 drivers/acpi/acpica/utstrsuppt.c
+Hi Jeremy,
 
-It looks like the series has not been picked up by Patchwork,
-probably due to a service outage.
-
-Can you please resend it (for easier handling)?
-
-Thanks,
-Rafael
+On 2017/9/19 2:54, Jeremy Linton wrote:
+> Hi,
+> 
+> 
+> On 09/17/2017 08:50 PM, Xiongfeng Wang wrote:
+>> Hi Jeremy,
+>>
+>> On 2017/9/15 2:49, Jeremy Linton wrote:
+>>> Many modern machines have cluster on die (COD) non-uniformity
+>>> as well as the traditional multi-socket architectures. Reusing
+>>> the multi-socket or NUMA on die concepts for these (as arm64 does)
+>>> breaks down when presented with actual multi-socket/COD machines.
+>>> Similar, problems are also visible on some x86 machines so it
+>>> seems appropriate to start abstracting and making these topologies
+>>> visible.
+>>>
+>>> To start, a topology_cod_id() macro is added which defaults to returning
+>>> the same information as topology_physical_package_id(). Moving forward
+>>> we can start to spit out the differences.
+>>>
+>>> For arm64, an additional package_id is added to the cpu_topology array.
+>>> Initially this will be equal to the cluster_id as well.
+>>>
+>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>>> ---
+>>>   arch/arm64/include/asm/topology.h | 4 +++-
+>>>   arch/arm64/kernel/topology.c      | 8 ++++++--
+>>>   include/linux/topology.h          | 3 +++
+>>>   3 files changed, 12 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
+>>> index 8b57339823e9..bd7517960d39 100644
+>>> --- a/arch/arm64/include/asm/topology.h
+>>> +++ b/arch/arm64/include/asm/topology.h
+>>> @@ -7,13 +7,15 @@ struct cpu_topology {
+>>>       int thread_id;
+>>>       int core_id;
+>>>       int cluster_id;
+>>> +    int package_id;
+>>>       cpumask_t thread_sibling;
+>>>       cpumask_t core_sibling;
+>>>   };
+>>
+>> 'core_sibling' will be updated by 'update_siblings_masks()' to represent cores in a cluster;
+>> Can we add a cpumask_t field to represent cores in a package? So that 'lstopo' can use this
+>> cpumask_t to display the right information.
+> 
+> So, the change below modifies update_siblings_mask() to utilize the package_id. Per the ABI the ..cpuX/topology/physical_package_id is shared between the core_siblings/core_siblings_list. What physical_package_id means can vary per architecture, but the siblings list needs to be the cores with the same phyiscal_package (AFAIK, feel free to correct my understanding). That rule should be enforced by this patch set.
+> 
+> I suspect if your running these patches, and the lstopo output looks strange its because your on a machine where the thread_id has been assigned the cluster_id in the later patch set.
+> 
+Sorry, I didn't notice your change in 'update_siblings_masks()' before, so 'core_sibling' are represent cores in a package now.
+But we may need another cpumask_t field to represent cores in a cluster, so that the scheduler can use it to build a sched_domain
+only with cores in one cluster.
+> 
+>>
+>> Thanks,
+>> Xiongfeng Wang
+>>
+>>>     extern struct cpu_topology cpu_topology[NR_CPUS];
+>>>   -#define topology_physical_package_id(cpu)    (cpu_topology[cpu].cluster_id)
+>>> +#define topology_physical_package_id(cpu)    (cpu_topology[cpu].package_id)
+>>> +#define topology_cod_id(cpu)        (cpu_topology[cpu].cluster_id)
+>>>   #define topology_core_id(cpu)        (cpu_topology[cpu].core_id)
+>>>   #define topology_core_cpumask(cpu)    (&cpu_topology[cpu].core_sibling)
+>>>   #define topology_sibling_cpumask(cpu)    (&cpu_topology[cpu].thread_sibling)
+>>> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+>>> index 8d48b233e6ce..9147e5b6326d 100644
+>>> --- a/arch/arm64/kernel/topology.c
+>>> +++ b/arch/arm64/kernel/topology.c
+>>> @@ -67,6 +67,8 @@ static int __init parse_core(struct device_node *core, int cluster_id,
+>>>               leaf = false;
+>>>               cpu = get_cpu_for_node(t);
+>>>               if (cpu >= 0) {
+>>> +                /* maintain DT cluster == package behavior */
+>>> +                cpu_topology[cpu].package_id = cluster_id;
+>>>                   cpu_topology[cpu].cluster_id = cluster_id;
+>>>                   cpu_topology[cpu].core_id = core_id;
+>>>                   cpu_topology[cpu].thread_id = i;
+>>> @@ -88,7 +90,7 @@ static int __init parse_core(struct device_node *core, int cluster_id,
+>>>                      core);
+>>>               return -EINVAL;
+>>>           }
+>>> -
+>>> +        cpu_topology[cpu].package_id = cluster_id;
+>>>           cpu_topology[cpu].cluster_id = cluster_id;
+>>>           cpu_topology[cpu].core_id = core_id;
+>>>       } else if (leaf) {
+>>> @@ -228,7 +230,7 @@ static void update_siblings_masks(unsigned int cpuid)
+>>>       for_each_possible_cpu(cpu) {
+>>>           cpu_topo = &cpu_topology[cpu];
+>>>   -        if (cpuid_topo->cluster_id != cpu_topo->cluster_id)
+>>> +        if (cpuid_topo->package_id != cpu_topo->package_id)
+> 
+> (note here that core_siblings now reflect the package_id rather than the cluster_id. This only matters if cluster_id!=package_id).
+> 
+>>>               continue;
+>>>             cpumask_set_cpu(cpuid, &cpu_topo->core_sibling);
+>>> @@ -273,6 +275,7 @@ void store_cpu_topology(unsigned int cpuid)
+>>>                        MPIDR_AFFINITY_LEVEL(mpidr, 2) << 8 |
+>>>                        MPIDR_AFFINITY_LEVEL(mpidr, 3) << 16;
+>>>       }
+>>> +    cpuid_topo->package_id = cpuid_topo->cluster_id;
+>>>         pr_debug("CPU%u: cluster %d core %d thread %d mpidr %#016llx\n",
+>>>            cpuid, cpuid_topo->cluster_id, cpuid_topo->core_id,
+>>> @@ -292,6 +295,7 @@ static void __init reset_cpu_topology(void)
+>>>           cpu_topo->thread_id = -1;
+>>>           cpu_topo->core_id = 0;
+>>>           cpu_topo->cluster_id = -1;
+>>> +        cpu_topo->package_id = -1;
+>>>             cpumask_clear(&cpu_topo->core_sibling);
+>>>           cpumask_set_cpu(cpu, &cpu_topo->core_sibling);
+>>> diff --git a/include/linux/topology.h b/include/linux/topology.h
+>>> index cb0775e1ee4b..4660749a7303 100644
+>>> --- a/include/linux/topology.h
+>>> +++ b/include/linux/topology.h
+>>> @@ -184,6 +184,9 @@ static inline int cpu_to_mem(int cpu)
+>>>   #ifndef topology_physical_package_id
+>>>   #define topology_physical_package_id(cpu)    ((void)(cpu), -1)
+>>>   #endif
+>>> +#ifndef topology_cod_id                /* cluster on die */
+>>> +#define topology_cod_id(cpu)            topology_physical_package_id(cpu)
+>>> +#endif
+>>>   #ifndef topology_core_id
+>>>   #define topology_core_id(cpu)            ((void)(cpu), 0)
+>>>   #endif
+>>>
+>>
+>>
+>> _______________________________________________
+>> linux-arm-kernel mailing list
+>> linux-arm-kernel@lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>>
+> 
+> 
+> .
+> 
 
