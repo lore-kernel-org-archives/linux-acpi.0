@@ -1,211 +1,52 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: Re: [PATCH 6/6] arm64: topology: Enable ACPI/PPTT based CPU topology.
-Date: Tue, 19 Sep 2017 09:41:01 +0800
-Message-ID: <6ffb8142-d9ea-47f1-87e7-a226cda22b01@huawei.com>
-References: <20170914184918.20406-1-jeremy.linton@arm.com>
- <20170914184918.20406-7-jeremy.linton@arm.com>
- <93846e2c-df62-fda6-200a-f55bfb9955c4@huawei.com>
- <9a8e13d6-4b5e-cfa2-44c4-4d79aca94800@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 2/2] device property: Add a macro for interating over graph endpoints
+Date: Tue, 19 Sep 2017 12:39:12 +0300
+Message-ID: <20170919093912.32356-3-sakari.ailus@linux.intel.com>
+References: <20170919093912.32356-1-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:6073 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750733AbdISBmC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Sep 2017 21:42:02 -0400
-In-Reply-To: <9a8e13d6-4b5e-cfa2-44c4-4d79aca94800@arm.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58480 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751513AbdISJjP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 19 Sep 2017 05:39:15 -0400
+In-Reply-To: <20170919093912.32356-1-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, hanjun.guo@linaro.org, jhugo@codeaurora.org, john.garry@huawei.com, austinwc@codeaurora.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com
+To: linux-acpi@vger.kernel.org
+Cc: devicetree@vger.kernel.org, robh@kernel.org, frowand.list@gmail.com, mika.westerberg@linux.intel.com, rafael@kernel.org, hverkuil@xs4all.nl
 
-Hi Jeremy,
+Add a convenience macro for iterating over graph endpoints. Iterating over
+graph endpoints using fwnode_graph_get_next_endpoint() is a recurring
+pattern, and this macro allows calling that function in a slightly more
+convenient way. For instance,
 
-On 2017/9/19 3:02, Jeremy Linton wrote:
-> On 09/17/2017 08:37 PM, Xiongfeng Wang wrote:
->> Hi Jeremy,
->>
->> On 2017/9/15 2:49, Jeremy Linton wrote:
->>> Propagate the topology information from the PPTT tree to the
->>> cpu_topology array. We can get the thread id, core_id and
->>> cluster_id by assuming certain levels of the PPTT tree correspond
->>> to those concepts. The package_id is flagged in the tree and can be
->>> found by passing an arbitrary large level to setup_acpi_cpu_topology()
->>> which terminates its search when it finds an ACPI node flagged
->>> as the physical package. If the tree doesn't contain enough
->>> levels to represent all of thread/core/cod/package then the package
->>> id will be used for the missing levels.
->>>
->>> Since arm64 machines can have 3 distinct topology levels, and the
->>> scheduler only handles sockets/threads well today, we compromise
->>> by collapsing into one of three diffrent configurations. These are
->>> thread/socket, thread/cluster or cluster/socket depending on whether
->>> the machine has threading and multisocket, threading in a single
->>> socket, or doesn't have threading.
->>>
->>> This code is loosely based on a combination of code from:
->>> Xiongfeng Wang <wangxiongfeng2@huawei.com>
->>> John Garry <john.garry@huawei.com>
->>> Jeffrey Hugo <jhugo@codeaurora.org>
->>>
->>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->>> ---
->>>   arch/arm64/kernel/topology.c | 68 +++++++++++++++++++++++++++++++++++++++++++-
->>>   include/linux/topology.h     |  2 ++
->>>   2 files changed, 69 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
->>> index 9147e5b6326d..8ee5cc5ba9bd 100644
->>> --- a/arch/arm64/kernel/topology.c
->>> +++ b/arch/arm64/kernel/topology.c
->>> @@ -11,6 +11,7 @@
->>>    * for more details.
->>>    */
->>>   +#include <linux/acpi.h>
->>>   #include <linux/arch_topology.h>
->>>   #include <linux/cpu.h>
->>>   #include <linux/cpumask.h>
->>> @@ -22,6 +23,7 @@
->>>   #include <linux/sched.h>
->>>   #include <linux/sched/topology.h>
->>>   #include <linux/slab.h>
->>> +#include <linux/smp.h>
->>>   #include <linux/string.h>
->>>     #include <asm/cpu.h>
->>> @@ -304,6 +306,68 @@ static void __init reset_cpu_topology(void)
->>>       }
->>>   }
->>>   +#ifdef CONFIG_ACPI
->>> +/*
->>> + * Propagate the topology information of the processor_topology_node tree to the
->>> + * cpu_topology array.
->>> + */
->>> +static int __init parse_acpi_topology(void)
->>> +{
->>> +    u64 is_threaded;
->>> +    int is_multisocket;
->>> +    int cpu;
->>> +    int topology_id;
->>> +    /* set a large depth, to hit ACPI_PPTT_PHYSICAL_PACKAGE if one exists */
->>> +    const int max_topo = 0xFF;
->>> +
->>> +    is_threaded = read_cpuid_mpidr() & MPIDR_MT_BITMASK;
->>> +    is_multisocket = acpi_multisocket_count();
->>> +    if (is_multisocket < 0)
->>> +        return is_multisocket;
->>> +
->>> +    for_each_possible_cpu(cpu) {
->>> +        topology_id = setup_acpi_cpu_topology(cpu, 0);
->>> +        if (topology_id < 0)
->>> +            return topology_id;
->>> +
->>> +        if ((is_threaded) && (is_multisocket > 1)) {
->>> +            /* MT per core, and multiple sockets */
->>> +            cpu_topology[cpu].thread_id = topology_id;
->>> +            topology_id = setup_acpi_cpu_topology(cpu, 1);
->>> +            cpu_topology[cpu].core_id   = topology_id;
->>> +            topology_id = setup_acpi_cpu_topology(cpu, 2);
->>> +            cpu_topology[cpu].cluster_id = topology_id;
->>> +            topology_id = setup_acpi_cpu_topology(cpu, max_topo);
->>> +            cpu_topology[cpu].package_id = topology_id;
->>> +        } else if (is_threaded) {
->>> +            /* mutltiple threads, but only a single socket */
->>> +            cpu_topology[cpu].thread_id  = topology_id;
->>> +            topology_id = setup_acpi_cpu_topology(cpu, 1);
->>> +            cpu_topology[cpu].core_id    = topology_id;
->>> +            topology_id = setup_acpi_cpu_topology(cpu, 2);
->>> +            cpu_topology[cpu].cluster_id = topology_id;
->>> +            cpu_topology[cpu].package_id = topology_id;
->>> +        } else {
->>> +            /* no threads, clusters behave like threads */
->>> +            cpu_topology[cpu].thread_id  = topology_id;
->>> +            topology_id = setup_acpi_cpu_topology(cpu, 1);
->>> +            cpu_topology[cpu].core_id    = topology_id;
->>> +            cpu_topology[cpu].cluster_id = topology_id;
->>> +            topology_id = setup_acpi_cpu_topology(cpu, max_topo);
->>> +            cpu_topology[cpu].package_id = topology_id;
->>
->> I can not understand why should we consider cores in a cluster as threads. The scheduler will
->> be effected a lot by this. And the 'lstopo' may display wrong information.
-> 
-> My take, is that we shouldn't be discarding the cluster information because its extremely valuable. In many ways it seems that clustered cores have, at a high level, 
-> similar performance characteristics to threads (AKA, cores in a cluster have high performance when sharing data, but for problems with little sharing its more advantageous to 
-> first schedule those threads to differing clusters). Although, how much affect this has vs the MC cache priorities in the scheduler isn't apparent to me.
-The code for sched_domain building for arm64 is as below. 'cpu_smt_mask' use 'thread_sibling' in struct cpu_topology, and 'cpu_coregroup_mask' use 'core_sibling' in struct cpu_topology.
-But the defconfig for ARM64 does not include 'CONFIG_SCHED_SMT'. If we add a *_sibling field in struct cpu_topology to represent cores in one cluster, and change 'cpu_coregroup_mask'
-to use this field, we can build a sched_domain only with cores in a cluster.
+	for (child = NULL;
+	     (child = fwnode_graph_get_next_endpoint(fwnode, child)); )
 
-static struct sched_domain_topology_level default_topology[] = {
-#ifdef CONFIG_SCHED_SMT
-        { cpu_smt_mask, cpu_smt_flags, SD_INIT_NAME(SMT) },
-#endif
-#ifdef CONFIG_SCHED_MC
-        { cpu_coregroup_mask, cpu_core_flags, SD_INIT_NAME(MC) },
-#endif
-        { cpu_cpu_mask, SD_INIT_NAME(DIE) },
-        { NULL, },
-};
+becomes
 
-> 
-> Anyway, lstopo doesn't currently know about anything beyond package/thread, except for the book. The question is, do we want to misuse the book_id to represent sockets and 
-> continue to use cluster_id as the physical_package_id? I don't think that is a better plan than what I've done here.
-> 
-Sorry I didn't know much about the book_id. For my understanding, 'lstopo' use the information from the sysfs. So I search the linux code for 'book_id' and found out that
-'book_id' seems to be used in S390 architecture only.
-> 
-> The bottom line, is that after having looked at the scheduler a bit, I suspect that thread=cluster for machines without MT doesn't' really matter much. So, the next version 
-> i'm just going to collapse this into what everyone expects socket=socket and thread=thread for ACPI users (which are more likely to have NUMA and multisocket at this point). The 
-> cluster knowledge is still somewhat visible to the scheduler via the cache topology.
-> 
-> 
-> 
-> 
->>
->> Thanks,
->> Xiongfeng Wang
->>
->>> +        }
->>> +    }
->>> +    return 0;
->>> +}
->>> +
->>> +#else
->>> +static int __init parse_acpi_topology(void)
->>> +{
->>> +    /*ACPI kernels should be built with PPTT support*/
->>> +    return -EINVAL;
->>> +}
->>> +#endif
->>> +
->>>   void __init init_cpu_topology(void)
->>>   {
->>>       reset_cpu_topology();
->>> @@ -312,6 +376,8 @@ void __init init_cpu_topology(void)
->>>        * Discard anything that was parsed if we hit an error so we
->>>        * don't use partial information.
->>>        */
->>> -    if (of_have_populated_dt() && parse_dt_topology())
->>> +    if ((!acpi_disabled) && parse_acpi_topology())
->>> +        reset_cpu_topology();
->>> +    else if (of_have_populated_dt() && parse_dt_topology())
->>>           reset_cpu_topology();
->>>   }
->>> diff --git a/include/linux/topology.h b/include/linux/topology.h
->>> index 4660749a7303..08bf736be7c1 100644
->>> --- a/include/linux/topology.h
->>> +++ b/include/linux/topology.h
->>> @@ -43,6 +43,8 @@
->>>           if (nr_cpus_node(node))
->>>     int arch_update_cpu_topology(void);
->>> +int setup_acpi_cpu_topology(unsigned int cpu, int level);
->>> +int acpi_multisocket_count(void);
->>>     /* Conform to ACPI 2.0 SLIT distance definitions */
->>>   #define LOCAL_DISTANCE        10
->>>
->>
-> 
-> 
-> .
-> 
+	fwnode_graph_for_each_endpoint(fwnode, child)
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/linux/property.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 42069c20caee..f6189a3ac63c 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -293,6 +293,10 @@ struct fwnode_handle *
+ fwnode_graph_get_remote_node(const struct fwnode_handle *fwnode, u32 port,
+ 			     u32 endpoint);
+ 
++#define fwnode_graph_for_each_endpoint(fwnode, child)			\
++	for (child = NULL;						\
++	     (child = fwnode_graph_get_next_endpoint(fwnode, child)); )
++
+ int fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+ 				struct fwnode_endpoint *endpoint);
+ 
+-- 
+2.11.0
 
