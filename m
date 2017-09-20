@@ -1,54 +1,150 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: ACPI support for optee driver
-Date: Wed, 20 Sep 2017 13:39:18 +0300
-Message-ID: <20170920103918.GA4630@lahna.fi.intel.com>
-References: <CAL-zptO3xg4k_B_S1SfKOghHGAUjqp56W9vqDdV3xgpUJ6b8dQ@mail.gmail.com>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: Re: [PATCH v3 1/3] arm64/ras: support sea error recovery
+Date: Wed, 20 Sep 2017 21:34:57 +0800
+Message-ID: <2b540452-2fa6-322a-e7ee-63a0653b8548@huawei.com>
+References: <1504770316-4327-1-git-send-email-xiexiuqi@huawei.com>
+ <1504770316-4327-2-git-send-email-xiexiuqi@huawei.com>
+ <59B2DE26.4060002@arm.com> <52d2868c-79cd-8ff8-8e1d-6078d02d5a0c@huawei.com>
+ <59BC1CEE.8010708@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:47380 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751497AbdITKnt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 20 Sep 2017 06:43:49 -0400
-Content-Disposition: inline
-In-Reply-To: <CAL-zptO3xg4k_B_S1SfKOghHGAUjqp56W9vqDdV3xgpUJ6b8dQ@mail.gmail.com>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:6511 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751378AbdITNfu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Sep 2017 09:35:50 -0400
+In-Reply-To: <59BC1CEE.8010708@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mayuresh Chitale <mchitale@apm.com>
-Cc: Jens Wiklander <jens.wiklander@linaro.org>, linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, cj.chengjian@huawei.com
 
-On Wed, Sep 20, 2017 at 02:17:38PM +0530, Mayuresh Chitale wrote:
-> Hi,
+Hi James,
+
+I try to explain some of following questions.
+
+On 2017/9/16 2:33, James Morse wrote:
+> Hi Xie XiuQi,
 > 
-> I am working on adding APCI support to optee kernel driver and was
-> considering implementing it in the following way:
+> On 11/09/17 15:11, Xie XiuQi wrote:
+>> I first describe the approach of this patchset:
+>>
+>> A memory access error on the execution path usually triggers SEA.
+>> According to the existing process, errors occurred in the kernel,
+>> leading to direct panic, if it occurred the user-space, we should
+>> just kill process.
+>>
+>> But there is a class of error, in fact, is not necessary to kill
+>> process, you can recover and continue to run the process. Such as
+>> the instruction data corrupted, where the memory page might be
+>> read-only, which is has not been modified, the disk might have the
+>> correct data, so you can directly drop the page, ant reload it when
+>> necessary.
+>>
+>> So this patchset is just try to solve such problem: if the error is
+>> consumed in user-space and the error occurs on a clean page, you can
+>> directly drop the memory page without killing process.
+>>
+>> This is implemented in memory_failure, which is generic process.
 > 
-> - An optee device node would be added to the bios as follows:
-> Device(OPTE) {
->       Name(_HID, ...)
->       Name(_CID, ...)
->       Name(_DDN, ...)
->       Name (_DSD, Package () {
->           Package () {
->             Package (2) {"method", "smc"}
->           }
-
-This _DSD is malformed as it is missing UUID.
-
->       })
->     }
+>> The error reported by SEA should be handled before re-enter the process,
+>> or we must kill the process to prevent error propagation.
+>>
+>> memory_failure_queue() is asynchronous, in which, error info was saved
+>> at ghes_proc, but handled in kworker. During this period there is a context
+>> switching, so we can not determine which process would be switch to. So
+>> memory_failure_queue is not suitable for handling the problem.
 > 
-> - The optee kernel driver would then search for \\SB.OPTE device using
-> acpi_get_handle and parse the node to get the conduit method.
+> Thanks for this summary. I see the problem you're trying to solve is when
+> memory_failure() runs, in your scenario its not guaranteed to run before we
+> return to user space.
+> 
+> What is the user-visible symptom of this? SIGBUS, code=0 instead of SIGBUS,
+> code=...MCEERR_A?
 
-You can use the standard device_property_* (see
-include/linux/property.h) accessors which fully support _DSD device
-properties.
+If the corrupted page is clean, just dropped it and return to user-space without
+side effects. And if corrupted page is dirty, memory_failure() will send SIGBUS
+with code=BUS_MCEERR_AR.
 
-> I was wondering if this is the correct way to implement it and if so
-> do I need to get the OPTE device registered?  Your feedback is really
-> appreciated.
+> 
+> ..in which case I'm looking at this as a race with the memory_failure() bottom
+> half via schedule_work().
 
-There is something documented here:
+Do you mean there is a race between memory_failure() from do_notify_resume() and
+from schedule_work()? Indeed there a race here, thank you for pointing out that.
 
-Documentation/acpi/DSD-properties-rules.txt
+Actually, memory_failure_queue() is not needed in SEA case if we process it in
+synchronous.
+
+I'll try to solve this issue later.
+
+> 
+> How does x86 avoid this same problem?
+> 
+> 
+>> And memory_failure is not nmi-safe, so it can not be called directly in the
+>> SEA context. So we just handle this error at SEA exit path, and before context
+>> switching.
+> 
+> (I need to look more into which locks memory_failure() is taking)
+> 
+> 
+>> In FFH mode, physical address can only be obtained by parsing the GHES table.
+>> But we only care about SEA, so the error handling is tied to the type of notification.
+> 
+> I care about all the notification methods. Once the notification has been passed
+> to APEI I want them to behave the same so that we don't have subtle bugs between
+> the 11 different ways we could get a notification. This code is rarely tested
+> enough as it is.
+> 
+>>From the arch code I just want to call out to APEI asking 'is this yours?'. If
+> so I expect APEI to have done all the work, if not we take the v8.0 behaviour.
+> 
+> 
+> Here you need APEI and the arch code to spot 'SEA' and treat it differently,
+> invoking some arm64-specific behaviour for APEI, and some
+> not-really-arch-specific code under /arch/arm64. There is nothing arm64 specific
+> about your arm_process_error(), how come the core APEI code doesn't need to do this?
+> 
+> 
+> I think this is caused by the way memory_failure() schedules its work, and that
+> is where I'd like to try and fix this, so that its the same for all notification
+> methods and all (cough: both) architectures.
+
+I try to see if there is a better way.
+
+> 
+> 
+>> The TIF flag is checked on a generic path, but it will only be set when SEA occurs.
+>> And if we use unlikely optimization, it should have little impact on performance.
+> 
+> Yes, the arch code checks _TIF_WORK_MASK in one go so there is no performance
+> problem for code that hasn't taken the RAS-Error. (and once we've taken a RAS
+> error performance is out the window!)
+> 
+>> And the TIF flag approach was used on x86 platform for years, until commit d4812e169d
+> 
+> ... so x86 doesn't do this ...
+> 
+>> (x86, mce: Get rid of TIF_MCE_NOTIFY and associated mce tricks)[0]. On currently arm64
+>> platform, there is no IST interrupt[1] function, so we could not call memory_failure
+>> directly in SEA context. So the way to use TIF notification, is also a good choice,
+>> after all, the same way on x86 platform is verified.
+> 
+> Thanks, looks like I need to read more of the history of x86's kernel-first
+> handling...
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> 
+> .
+> 
+
+-- 
+Thanks,
+Xie XiuQi
+
