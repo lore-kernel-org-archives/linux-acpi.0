@@ -1,150 +1,197 @@
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: Re: [PATCH v3 1/3] arm64/ras: support sea error recovery
-Date: Wed, 20 Sep 2017 21:34:57 +0800
-Message-ID: <2b540452-2fa6-322a-e7ee-63a0653b8548@huawei.com>
-References: <1504770316-4327-1-git-send-email-xiexiuqi@huawei.com>
- <1504770316-4327-2-git-send-email-xiexiuqi@huawei.com>
- <59B2DE26.4060002@arm.com> <52d2868c-79cd-8ff8-8e1d-6078d02d5a0c@huawei.com>
- <59BC1CEE.8010708@arm.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v2 3/6] drivers: base: cacheinfo: arm64: Add support for
+ ACPI based firmware tables
+Date: Wed, 20 Sep 2017 10:45:23 -0500
+Message-ID: <5b8cdaa2-7ab4-078a-8a00-6fc54d94863e@arm.com>
+References: <20170919184751.25110-1-jeremy.linton@arm.com>
+ <20170919184751.25110-4-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6511 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751378AbdITNfu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Sep 2017 09:35:50 -0400
-In-Reply-To: <59BC1CEE.8010708@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170919184751.25110-4-jeremy.linton@arm.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, mturquette@baylibre.com, sboyd@codeaurora.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, cj.chengjian@huawei.com
 
-Hi James,
+Hi,
 
-I try to explain some of following questions.
 
-On 2017/9/16 2:33, James Morse wrote:
-> Hi Xie XiuQi,
+On 09/19/2017 01:47 PM, Jeremy Linton wrote:
+> The /sys cache entries should support ACPI/PPTT generated cache
+> topology information. Lets detect ACPI systems and call
+> an arch specific cache_setup_acpi() routine to update the hardware
+> probed cache topology.
 > 
-> On 11/09/17 15:11, Xie XiuQi wrote:
->> I first describe the approach of this patchset:
->>
->> A memory access error on the execution path usually triggers SEA.
->> According to the existing process, errors occurred in the kernel,
->> leading to direct panic, if it occurred the user-space, we should
->> just kill process.
->>
->> But there is a class of error, in fact, is not necessary to kill
->> process, you can recover and continue to run the process. Such as
->> the instruction data corrupted, where the memory page might be
->> read-only, which is has not been modified, the disk might have the
->> correct data, so you can directly drop the page, ant reload it when
->> necessary.
->>
->> So this patchset is just try to solve such problem: if the error is
->> consumed in user-space and the error occurs on a clean page, you can
->> directly drop the memory page without killing process.
->>
->> This is implemented in memory_failure, which is generic process.
+> For arm64, if ACPI is enabled, determine the max number of cache
+> levels and populate them using a PPTT table if one is available.
 > 
->> The error reported by SEA should be handled before re-enter the process,
->> or we must kill the process to prevent error propagation.
->>
->> memory_failure_queue() is asynchronous, in which, error info was saved
->> at ghes_proc, but handled in kworker. During this period there is a context
->> switching, so we can not determine which process would be switch to. So
->> memory_failure_queue is not suitable for handling the problem.
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>   arch/arm64/kernel/cacheinfo.c | 23 ++++++++++++++++++-----
+>   drivers/acpi/pptt.c           |  1 +
+>   drivers/base/cacheinfo.c      | 17 +++++++++++------
+>   include/linux/cacheinfo.h     | 10 ++++++++--
+>   4 files changed, 38 insertions(+), 13 deletions(-)
 > 
-> Thanks for this summary. I see the problem you're trying to solve is when
-> memory_failure() runs, in your scenario its not guaranteed to run before we
-> return to user space.
-> 
-> What is the user-visible symptom of this? SIGBUS, code=0 instead of SIGBUS,
-> code=...MCEERR_A?
+> diff --git a/arch/arm64/kernel/cacheinfo.c b/arch/arm64/kernel/cacheinfo.c
+> index 380f2e2fbed5..2e2cf0d312ba 100644
+> --- a/arch/arm64/kernel/cacheinfo.c
+> +++ b/arch/arm64/kernel/cacheinfo.c
+> @@ -17,6 +17,7 @@
+>    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+>    */
+>   
+> +#include <linux/acpi.h>
+>   #include <linux/cacheinfo.h>
+>   #include <linux/of.h>
+>   
+> @@ -44,9 +45,17 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
+>   	this_leaf->type = type;
+>   }
+>   
+> +#ifndef CONFIG_ACPI
+> +int acpi_find_last_cache_level(unsigned int cpu)
+> +{
+> +	/*ACPI kernels should be built with PPTT support*/
+> +	return 0;
+> +}
+> +#endif
+> +
+>   static int __init_cache_level(unsigned int cpu)
+>   {
+> -	unsigned int ctype, level, leaves, of_level;
+> +	unsigned int ctype, level, leaves, fw_level;
+>   	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+>   
+>   	for (level = 1, leaves = 0; level <= MAX_CACHE_LEVEL; level++) {
+> @@ -59,15 +68,19 @@ static int __init_cache_level(unsigned int cpu)
+>   		leaves += (ctype == CACHE_TYPE_SEPARATE) ? 2 : 1;
+>   	}
+>   
+> -	of_level = of_find_last_cache_level(cpu);
+> -	if (level < of_level) {
+> +	if (acpi_disabled)
+> +		fw_level = of_find_last_cache_level(cpu);
+> +	else
+> +		fw_level = acpi_find_last_cache_level(cpu);
+> +
+> +	if (level < fw_level) {
+>   		/*
+>   		 * some external caches not specified in CLIDR_EL1
+>   		 * the information may be available in the device tree
+>   		 * only unified external caches are considered here
+>   		 */
+> -		leaves += (of_level - level);
+> -		level = of_level;
+> +		leaves += (fw_level - level);
+> +		level = fw_level;
+>   	}
+>   
+>   	this_cpu_ci->num_levels = level;
+> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+> index f7694fa1e0bd..0dd918c3782c 100644
+> --- a/drivers/acpi/pptt.c
+> +++ b/drivers/acpi/pptt.c
+> @@ -331,6 +331,7 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
+>   				    struct acpi_pptt_cache *found_cache,
+>   				    struct acpi_pptt_processor *cpu_node)
+>   {
+> +	this_leaf->firmware_node = found_cache;
 
-If the corrupted page is clean, just dropped it and return to user-space without
-side effects. And if corrupted page is dirty, memory_failure() will send SIGBUS
-with code=BUS_MCEERR_AR.
+Naturally, I messed up the v2 changes when I merged them. This line 
+should equal the cpu_node.
 
-> 
-> ..in which case I'm looking at this as a race with the memory_failure() bottom
-> half via schedule_work().
 
-Do you mean there is a race between memory_failure() from do_notify_resume() and
-from schedule_work()? Indeed there a race here, thank you for pointing out that.
 
-Actually, memory_failure_queue() is not needed in SEA case if we process it in
-synchronous.
-
-I'll try to solve this issue later.
-
+>   	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID)
+>   		this_leaf->size = found_cache->size;
+>   	if (found_cache->flags & ACPI_PPTT_LINE_SIZE_VALID)
+> diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
+> index eb3af2739537..8eca279e50d1 100644
+> --- a/drivers/base/cacheinfo.c
+> +++ b/drivers/base/cacheinfo.c
+> @@ -86,7 +86,7 @@ static int cache_setup_of_node(unsigned int cpu)
+>   static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
+>   					   struct cacheinfo *sib_leaf)
+>   {
+> -	return sib_leaf->of_node == this_leaf->of_node;
+> +	return sib_leaf->firmware_node == this_leaf->firmware_node;
+>   }
+>   
+>   /* OF properties to query for a given cache type */
+> @@ -215,6 +215,11 @@ static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
+>   }
+>   #endif
+>   
+> +int __weak cache_setup_acpi(unsigned int cpu)
+> +{
+> +	return -ENOTSUPP;
+> +}
+> +
+>   static int cache_shared_cpu_map_setup(unsigned int cpu)
+>   {
+>   	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+> @@ -225,11 +230,11 @@ static int cache_shared_cpu_map_setup(unsigned int cpu)
+>   	if (this_cpu_ci->cpu_map_populated)
+>   		return 0;
+>   
+> -	if (of_have_populated_dt())
+> +	if (!acpi_disabled)
+> +		ret = cache_setup_acpi(cpu);
+> +	else if (of_have_populated_dt())
+>   		ret = cache_setup_of_node(cpu);
+> -	else if (!acpi_disabled)
+> -		/* No cache property/hierarchy support yet in ACPI */
+> -		ret = -ENOTSUPP;
+> +
+>   	if (ret)
+>   		return ret;
+>   
+> @@ -286,7 +291,7 @@ static void cache_shared_cpu_map_remove(unsigned int cpu)
+>   
+>   static void cache_override_properties(unsigned int cpu)
+>   {
+> -	if (of_have_populated_dt())
+> +	if (acpi_disabled && of_have_populated_dt())
+>   		return cache_of_override_properties(cpu);
+>   }
+>   
+> diff --git a/include/linux/cacheinfo.h b/include/linux/cacheinfo.h
+> index 6a524bf6a06d..0114eb9ab67b 100644
+> --- a/include/linux/cacheinfo.h
+> +++ b/include/linux/cacheinfo.h
+> @@ -36,6 +36,9 @@ enum cache_type {
+>    * @of_node: if devicetree is used, this represents either the cpu node in
+>    *	case there's no explicit cache node or the cache node itself in the
+>    *	device tree
+> + * @firmware_node: Shared with of_node. When not using DT, this may contain
+> + *	pointers to other firmware based values. Particularly ACPI/PPTT
+> + *	unique values.
+>    * @disable_sysfs: indicates whether this node is visible to the user via
+>    *	sysfs or not
+>    * @priv: pointer to any private data structure specific to particular
+> @@ -64,8 +67,10 @@ struct cacheinfo {
+>   #define CACHE_ALLOCATE_POLICY_MASK	\
+>   	(CACHE_READ_ALLOCATE | CACHE_WRITE_ALLOCATE)
+>   #define CACHE_ID		BIT(4)
+> -
+> -	struct device_node *of_node;
+> +	union {
+> +		struct device_node *of_node;
+> +		void *firmware_node;
+> +	};
+>   	bool disable_sysfs;
+>   	void *priv;
+>   };
+> @@ -98,6 +103,7 @@ int func(unsigned int cpu)					\
+>   struct cpu_cacheinfo *get_cpu_cacheinfo(unsigned int cpu);
+>   int init_cache_level(unsigned int cpu);
+>   int populate_cache_leaves(unsigned int cpu);
+> +int acpi_find_last_cache_level(unsigned int cpu);
+>   
+>   const struct attribute_group *cache_get_priv_group(struct cacheinfo *this_leaf);
+>   
 > 
-> How does x86 avoid this same problem?
-> 
-> 
->> And memory_failure is not nmi-safe, so it can not be called directly in the
->> SEA context. So we just handle this error at SEA exit path, and before context
->> switching.
-> 
-> (I need to look more into which locks memory_failure() is taking)
-> 
-> 
->> In FFH mode, physical address can only be obtained by parsing the GHES table.
->> But we only care about SEA, so the error handling is tied to the type of notification.
-> 
-> I care about all the notification methods. Once the notification has been passed
-> to APEI I want them to behave the same so that we don't have subtle bugs between
-> the 11 different ways we could get a notification. This code is rarely tested
-> enough as it is.
-> 
->>From the arch code I just want to call out to APEI asking 'is this yours?'. If
-> so I expect APEI to have done all the work, if not we take the v8.0 behaviour.
-> 
-> 
-> Here you need APEI and the arch code to spot 'SEA' and treat it differently,
-> invoking some arm64-specific behaviour for APEI, and some
-> not-really-arch-specific code under /arch/arm64. There is nothing arm64 specific
-> about your arm_process_error(), how come the core APEI code doesn't need to do this?
-> 
-> 
-> I think this is caused by the way memory_failure() schedules its work, and that
-> is where I'd like to try and fix this, so that its the same for all notification
-> methods and all (cough: both) architectures.
-
-I try to see if there is a better way.
-
-> 
-> 
->> The TIF flag is checked on a generic path, but it will only be set when SEA occurs.
->> And if we use unlikely optimization, it should have little impact on performance.
-> 
-> Yes, the arch code checks _TIF_WORK_MASK in one go so there is no performance
-> problem for code that hasn't taken the RAS-Error. (and once we've taken a RAS
-> error performance is out the window!)
-> 
->> And the TIF flag approach was used on x86 platform for years, until commit d4812e169d
-> 
-> ... so x86 doesn't do this ...
-> 
->> (x86, mce: Get rid of TIF_MCE_NOTIFY and associated mce tricks)[0]. On currently arm64
->> platform, there is no IST interrupt[1] function, so we could not call memory_failure
->> directly in SEA context. So the way to use TIF notification, is also a good choice,
->> after all, the same way on x86 platform is verified.
-> 
-> Thanks, looks like I need to read more of the history of x86's kernel-first
-> handling...
-> 
-> 
-> Thanks,
-> 
-> James
-> 
-> 
-> .
-> 
-
--- 
-Thanks,
-Xie XiuQi
-
