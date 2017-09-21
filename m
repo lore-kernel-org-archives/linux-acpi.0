@@ -1,100 +1,43 @@
-From: Zhou Wang <wangzhou1@hisilicon.com>
-Subject: Re: [PATCH] ACPI/IORT: Fix PCI ACS enablement
-Date: Thu, 21 Sep 2017 19:32:58 +0800
-Message-ID: <59C3A36A.2060202@hisilicon.com>
-References: <20170919170539.6265-1-lorenzo.pieralisi@arm.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: [RFC PATCH v2 0/4] IORT SMMUv3 MSI support
+Date: Thu, 21 Sep 2017 21:17:14 +0800
+Message-ID: <1505999838-52530-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6960 "EHLO
+Received: from szxga04-in.huawei.com ([45.249.212.190]:6964 "EHLO
         szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751436AbdIULdF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Sep 2017 07:33:05 -0400
-In-Reply-To: <20170919170539.6265-1-lorenzo.pieralisi@arm.com>
+        with ESMTP id S1751581AbdIUNZ6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Sep 2017 09:25:58 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Alex Williamson <alex.williamson@redhat.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robin Murphy <robin.murphy@arm.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 2017/9/20 1:05, Lorenzo Pieralisi wrote:
-> commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
-> workarounds") removed kernel code that was allowing to initialize
-> and probe the SMMU devices early (ie earlier than PCI devices through
-> linker script callback entries) in the boot process because it was not
-> needed any longer in that the SMMU devices/drivers now support deferred
-> probing.
-> 
-> Since the SMMUs probe routines are also in charge of requesting global
-> PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
-> up early-probing workarounds") also postponed PCI ACS enablement to
-> SMMUs devices probe time, which may be too late given that PCI devices
-> needs to detect if PCI ACS is enabled to init the respective capability
-> through the following call path:
-> 
-> pci_device_add()
->  -> pci_init_capabilities()
->   -> pci_enable_acs()
-> 
-> Add code in the ACPI IORT SMMU platform devices initialization path
-> (that is called before ACPI PCI enumeration) to detect if an SMMU is
-> present in HW and enable PCI ACS if it actually is, restoring the
-> correct PCI ACS enablement sequencing.
-> 
-> Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
-> Signed-workarounds")
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Robin Murphy <robin.murphy@arm.com>
-> Cc: Zhou Wang <wangzhou1@hisilicon.com>
-> Cc: Alex Williamson <alex.williamson@redhat.com>
-> ---
->  drivers/acpi/arm64/iort.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 9565d57..71a7694 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -1184,6 +1184,7 @@ static void __init iort_init_platform_devices(void)
->  	struct acpi_table_iort *iort;
->  	struct fwnode_handle *fwnode;
->  	int i, ret;
-> +	bool smmu_detected = false;
->  
->  	/*
->  	 * iort_table and iort both point to the start of IORT table, but
-> @@ -1218,11 +1219,21 @@ static void __init iort_init_platform_devices(void)
->  				acpi_free_fwnode_static(fwnode);
->  				return;
->  			}
-> +
-> +			smmu_detected = true;
->  		}
->  
->  		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
->  					 iort_node->length);
->  	}
-> +
-> +	/*
-> +	 * If IORT reports an SMMU component make sure PCI ACS is
-> +	 * requested so that PCI devices can enable it in their
-> +	 * capabilities.
-> +	 */
-> +	if (smmu_detected)
-> +		pci_request_acs();
->  }
->  
->  void __init acpi_iort_init(void)
->
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Hi Lorenzo,
+IORT revision C introduced SMMUv3 MSI support for control interrupts,
+which introduced a device ID mapping index to retrieve the dev ID
+and ITS parent, adding its support in this patch set, please refer
+to each patch for detail commit message.
 
-I tested this patch, it works well in my HiSilicon Hip08 based system.
-However, setting ACS flag at the stage of SMMU device init seems not good,
-I mean what if in one system there are only platform devices connected to
-SMMU device.
+RFC v1 -> RFC v2:
+ - Introduce a new API iort_set_device_domain() to find the MSI domain
+   for an SMMUv3 (or any other IORT table node) to reduce the complex
+   of doing that via acpi_configure_pmsi_domain().
 
-Best,
-Zhou
+Hanjun Guo (3):
+  ACPICA: Add SMMUv3 device ID mapping index support
+  ACPI: IORT: lookup iort node via fwnode
+  ACPI: IORT: Skip SMMUv3 device ID map for two steps mappings
+
+Lorenzo Pieralisi (1):
+  ACPI: IORT: SMMUv3 nodes MSI support
+
+ drivers/acpi/arm64/iort.c | 157 ++++++++++++++++++++++++++++++++++++++++++++--
+ include/acpi/actbl2.h     |   1 +
+ 2 files changed, 152 insertions(+), 6 deletions(-)
+
+-- 
+1.7.12.4
 
