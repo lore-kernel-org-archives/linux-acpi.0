@@ -1,196 +1,36 @@
-From: Mayuresh Chitale <mchitale@apm.com>
-Subject: [PATCH] tee: ACPI support for optee driver
-Date: Thu, 21 Sep 2017 12:42:17 +0530
-Message-ID: <1505977937-25034-1-git-send-email-mchitale@apm.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH] tee: ACPI support for optee driver
+Date: Thu, 21 Sep 2017 15:45:28 +0800
+Message-ID: <59C36E18.1050106@huawei.com>
+References: <1505977937-25034-1-git-send-email-mchitale@apm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f43.google.com ([74.125.83.43]:43479 "EHLO
-        mail-pg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751484AbdIUHNv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Sep 2017 03:13:51 -0400
-Received: by mail-pg0-f43.google.com with SMTP id u18so3085423pgo.0
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Sep 2017 00:13:51 -0700 (PDT)
+Received: from szxga05-in.huawei.com ([45.249.212.191]:6531 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751485AbdIUHp7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Sep 2017 03:45:59 -0400
+In-Reply-To: <1505977937-25034-1-git-send-email-mchitale@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, jens.wiklander@linaro.org
+To: Mayuresh Chitale <mchitale@apm.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, jens.wiklander@linaro.org
 Cc: patches@apm.com
 
-This patch modifies the optee driver to add support for parsing
-the conduit method from an ACPI node.
+On 2017/9/21 15:12, Mayuresh Chitale wrote:
+> This patch modifies the optee driver to add support for parsing
+> the conduit method from an ACPI node.
 
-Signed-off-by: Mayuresh Chitale <mchitale@apm.com>
----
- drivers/tee/optee/core.c | 112 ++++++++++++++++++++++++++++++++---------------
- 1 file changed, 77 insertions(+), 35 deletions(-)
+Sorry I didn't involve this earlier, but I think this is a wrong
+approach, in ACPI 5.1+ spec, there is a bit in FADT table which
+indicates PSCI using SMC or HVC, please see ACPI 6.2 [1],
+Table 5-37 Fixed ACPI Description Table ARM Boot Architecture Flags.
 
-diff --git a/drivers/tee/optee/core.c b/drivers/tee/optee/core.c
-index 58169e5..8b15c49 100644
---- a/drivers/tee/optee/core.c
-+++ b/drivers/tee/optee/core.c
-@@ -14,6 +14,7 @@
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
-+#include <linux/acpi.h>
- #include <linux/arm-smccc.h>
- #include <linux/errno.h>
- #include <linux/io.h>
-@@ -30,6 +31,7 @@
- #include "optee_smc.h"
- 
- #define DRIVER_NAME "optee"
-+#define OPTEE_DEVICE "\\_SB.OPTE"
- 
- #define OPTEE_SHM_NUM_PRIV_PAGES	1
- 
-@@ -425,29 +427,87 @@ static void optee_smccc_hvc(unsigned long a0, unsigned long a1,
- 	arm_smccc_hvc(a0, a1, a2, a3, a4, a5, a6, a7, res);
- }
- 
--static optee_invoke_fn *get_invoke_func(struct device_node *np)
-+static const struct of_device_id optee_match[] = {
-+	{ .compatible = "linaro,optee-tz" },
-+	{},
-+};
-+
-+#ifdef CONFIG_ACPI
-+static const char *get_invoke_str_acpi(void)
- {
--	const char *method;
-+	struct acpi_device_info *info;
-+	const union acpi_object *obj;
-+	struct acpi_device *adev;
-+	acpi_status status;
-+	acpi_handle handle;
- 
--	pr_info("probing for conduit method from DT.\n");
-+	status = acpi_get_handle(ACPI_ROOT_OBJECT, OPTEE_DEVICE, &handle);
-+	if (ACPI_FAILURE(status))
-+		return NULL;
- 
--	if (of_property_read_string(np, "method", &method)) {
-+	status = acpi_get_object_info(handle, &info);
-+	if (ACPI_FAILURE(status) || !(info->valid & ACPI_VALID_HID))
-+		return NULL;
-+
-+	if (acpi_bus_get_device(handle, &adev))
-+		return NULL;
-+
-+	if (acpi_dev_get_property(adev, "method",
-+				ACPI_TYPE_ANY, &obj))
-+		return NULL;
-+
-+	return obj->string.pointer;
-+}
-+#endif
-+
-+static const char *get_invoke_str_of(void)
-+{
-+	struct device_node *fw_np;
-+	const char *method = NULL;
-+	struct device_node *np;
-+
-+	/* Node is supposed to be below /firmware */
-+	fw_np = of_find_node_by_name(NULL, "firmware");
-+	if (!fw_np)
-+		return NULL;
-+
-+	np = of_find_matching_node(fw_np, optee_match);
-+	of_node_put(fw_np);
-+	if (!np)
-+		return NULL;
-+
-+	pr_info("probing for conduit method from DT.\n");
-+	if (of_property_read_string(np, "method", &method))
- 		pr_warn("missing \"method\" property\n");
--		return ERR_PTR(-ENXIO);
--	}
- 
--	if (!strcmp("hvc", method))
--		return optee_smccc_hvc;
--	else if (!strcmp("smc", method))
--		return optee_smccc_smc;
-+	of_node_put(np);
-+	return method;
-+}
-+
-+static optee_invoke_fn *get_invoke_func(void)
-+{
-+	const char *method;
-+
-+#ifdef CONFIG_ACPI
-+	if (!acpi_disabled)
-+		method = get_invoke_str_acpi();
-+	else
-+#endif
-+		method = get_invoke_str_of();
-+
-+	if (method) {
-+		if (!strcmp("hvc", method))
-+			return optee_smccc_hvc;
-+		else if (!strcmp("smc", method))
-+			return optee_smccc_smc;
-+	}
- 
- 	pr_warn("invalid \"method\" property: %s\n", method);
- 	return ERR_PTR(-EINVAL);
- }
- 
--static struct optee *optee_probe(struct device_node *np)
-+static struct optee *optee_probe(optee_invoke_fn *invoke_fn)
- {
--	optee_invoke_fn *invoke_fn;
- 	struct tee_shm_pool *pool;
- 	struct optee *optee = NULL;
- 	void *memremaped_shm = NULL;
-@@ -455,10 +515,6 @@ static struct optee *optee_probe(struct device_node *np)
- 	u32 sec_caps;
- 	int rc;
- 
--	invoke_fn = get_invoke_func(np);
--	if (IS_ERR(invoke_fn))
--		return (void *)invoke_fn;
--
- 	if (!optee_msg_api_uid_is_optee_api(invoke_fn)) {
- 		pr_warn("api uid mismatch\n");
- 		return ERR_PTR(-EINVAL);
-@@ -570,32 +626,18 @@ static void optee_remove(struct optee *optee)
- 	kfree(optee);
- }
- 
--static const struct of_device_id optee_match[] = {
--	{ .compatible = "linaro,optee-tz" },
--	{},
--};
--
- static struct optee *optee_svc;
- 
- static int __init optee_driver_init(void)
- {
--	struct device_node *fw_np;
--	struct device_node *np;
-+	optee_invoke_fn *invoke_fn;
- 	struct optee *optee;
- 
--	/* Node is supposed to be below /firmware */
--	fw_np = of_find_node_by_name(NULL, "firmware");
--	if (!fw_np)
--		return -ENODEV;
--
--	np = of_find_matching_node(fw_np, optee_match);
--	of_node_put(fw_np);
--	if (!np)
--		return -ENODEV;
--
--	optee = optee_probe(np);
--	of_node_put(np);
-+	invoke_fn = get_invoke_func();
-+	if (IS_ERR(invoke_fn))
-+		return PTR_ERR(invoke_fn);
- 
-+	optee = optee_probe(invoke_fn);
- 	if (IS_ERR(optee))
- 		return PTR_ERR(optee);
- 
--- 
-1.9.1
+Can we just use that to get the conduit method for optee driver too?
+
+[1]: http://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
+
+Thanks
+Hanjun
+
 
