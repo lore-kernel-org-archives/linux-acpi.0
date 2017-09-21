@@ -1,98 +1,68 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH] platform/x86: intel-hid: Power button suspend on Dell
- Latitude 7275
-Date: Wed, 20 Sep 2017 20:07:41 +0000
-Message-ID: <c288f2dae8594a438e07aea67211a308@ausx13mpc120.AMER.DELL.COM>
-References: <20170917225712.12136-1-jerome.debretagne@gmail.com>
- <4b5c673c2858470a8b6d0af43a2cd250@ausx13mpc120.AMER.DELL.COM>
- <CA+kEDGGv3twZP4od16bPHjW8-S3PHs=SpQZEF1tqr5M4cBpzFQ@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: ACPI support for optee driver
+Date: Thu, 21 Sep 2017 09:44:16 +0300
+Message-ID: <20170921064416.GJ4630@lahna.fi.intel.com>
+References: <CAL-zptO3xg4k_B_S1SfKOghHGAUjqp56W9vqDdV3xgpUJ6b8dQ@mail.gmail.com>
+ <20170920103918.GA4630@lahna.fi.intel.com>
+ <CAL-zptMbqW7opSFgsF-gd9icu1p9qYcFVt1GM6vrKB3JAPQ_+A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+kEDGGv3twZP4od16bPHjW8-S3PHs=SpQZEF1tqr5M4cBpzFQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: jerome.debretagne@gmail.com
-Cc: platform-driver-x86@vger.kernel.org, dvhart@infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, andy.shevchenko@gmail.com, alex.hung@canonical.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:49414 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751524AbdIUGu7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 21 Sep 2017 02:50:59 -0400
+Content-Disposition: inline
+In-Reply-To: <CAL-zptMbqW7opSFgsF-gd9icu1p9qYcFVt1GM6vrKB3JAPQ_+A@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mayuresh Chitale <mchitale@apm.com>
+Cc: Jens Wiklander <jens.wiklander@linaro.org>, linux-acpi@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKw6lyw7RtZSBkZSBCcmV0YWdu
-ZSBbbWFpbHRvOmplcm9tZS5kZWJyZXRhZ25lQGdtYWlsLmNvbV0NCj4gU2VudDogTW9uZGF5LCBT
-ZXB0ZW1iZXIgMTgsIDIwMTcgNTo0MSBQTQ0KPiBUbzogTGltb25jaWVsbG8sIE1hcmlvIDxNYXJp
-b19MaW1vbmNpZWxsb0BEZWxsLmNvbT4NCj4gQ2M6IHBsYXRmb3JtLWRyaXZlci14ODZAdmdlci5r
-ZXJuZWwub3JnOyBEYXJyZW4gSGFydCA8ZHZoYXJ0QGluZnJhZGVhZC5vcmc+Ow0KPiBMS01MIDxs
-aW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnPjsgQUNQSSBEZXZlbCBNYWxpbmcgTGlzdCA8bGlu
-dXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnPjsgUmFmYWVsIEouIFd5c29ja2kgPHJqd0Byand5
-c29ja2kubmV0PjsgQW5keSBTaGV2Y2hlbmtvDQo+IDxhbmR5LnNoZXZjaGVua29AZ21haWwuY29t
-PjsgQWxleCBIdW5nIDxhbGV4Lmh1bmdAY2Fub25pY2FsLmNvbT4NCj4gU3ViamVjdDogUmU6IFtQ
-QVRDSF0gcGxhdGZvcm0veDg2OiBpbnRlbC1oaWQ6IFBvd2VyIGJ1dHRvbiBzdXNwZW5kIG9uIERl
-bGwNCj4gTGF0aXR1ZGUgNzI3NQ0KPiANCj4gMjAxNy0wOS0xOCAyMzoyOSBHTVQrMDI6MDAgIDxN
-YXJpby5MaW1vbmNpZWxsb0BkZWxsLmNvbT46DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0t
-LS0tDQo+ID4+IEZyb206IErDqXLDtG1lIGRlIEJyZXRhZ25lIFttYWlsdG86amVyb21lLmRlYnJl
-dGFnbmVAZ21haWwuY29tXQ0KPiA+PiBTZW50OiBTdW5kYXksIFNlcHRlbWJlciAxNywgMjAxNyA1
-OjU3IFBNDQo+ID4+IFRvOiBwbGF0Zm9ybS1kcml2ZXIteDg2QHZnZXIua2VybmVsLm9yZw0KPiA+
-PiBDYzogRGFycmVuIEhhcnQgPGR2aGFydEBpbmZyYWRlYWQub3JnPjsgTEtNTCA8bGludXgta2Vy
-bmVsQHZnZXIua2VybmVsLm9yZz47DQo+ID4+IExpbnV4IEFDUEkgPGxpbnV4LWFjcGlAdmdlci5r
-ZXJuZWwub3JnPjsgUmFmYWVsIEouIFd5c29ja2kNCj4gPHJqd0Byand5c29ja2kubmV0PjsNCj4g
-Pj4gQW5keSBTaGV2Y2hlbmtvIDxhbmR5LnNoZXZjaGVua29AZ21haWwuY29tPjsgTGltb25jaWVs
-bG8sIE1hcmlvDQo+ID4+IDxNYXJpb19MaW1vbmNpZWxsb0BEZWxsLmNvbT47IEFsZXggSHVuZyA8
-YWxleC5odW5nQGNhbm9uaWNhbC5jb20+DQo+ID4+IFN1YmplY3Q6IFtQQVRDSF0gcGxhdGZvcm0v
-eDg2OiBpbnRlbC1oaWQ6IFBvd2VyIGJ1dHRvbiBzdXNwZW5kIG9uIERlbGwgTGF0aXR1ZGUNCj4g
-Pj4gNzI3NQ0KPiA+Pg0KPiA+PiBGcm9tOiBKw6lyw7RtZSBkZSBCcmV0YWduZSA8amVyb21lLmRl
-YnJldGFnbmVAZ21haWwuY29tPg0KPiA+Pg0KPiA+PiBPbiBEZWxsIExhdGl0dWRlIDcyNzUgdGhl
-IDUtYnV0dG9uIGFycmF5IGlzIG5vdCBleHBvc2VkIGluIHRoZQ0KPiA+PiBBQ1BJIHRhYmxlcywg
-YnV0IHN0aWxsIG5vdGlmaWVzIGFyZSBzZW50IHRvIHRoZSBJbnRlbCBISUQgZGV2aWNlDQo+ID4+
-IG9iamVjdCAoZGV2aWNlIElEIElOVDMzRDUpIGluIHJlc3BvbnNlIHRvIHBvd2VyIGJ1dHRvbiBh
-Y3Rpb25zLg0KPiA+PiBUaGV5IHdlcmUgaWdub3JlZCBhcyB0aGUgaW50ZWwtaGlkIGRyaXZlciB3
-YXMgbm90IHByZXBhcmVkIHRvDQo+ID4+IHRha2UgY2FyZSBvZiB0aGVtIHVudGlsIHJlY2VudGx5
-Lg0KPiA+Pg0KPiA+PiBQb3dlciBidXR0b24gd2FrZXVwIGZyb20gc3VzcGVuZC10by1pZGxlIHdh
-cyBhZGRlZCBpbjoNCj4gPj4gNjM1MTczYTE3YjAzICgiaW50ZWwtaGlkOiBXYWtlIHVwIERlbGwg
-TGF0aXR1ZGUgNzI3NSBmcm9tDQo+ID4+IHN1c3BlbmQtdG8taWRsZSIpLiBIb3dldmVyIHBvd2Vy
-IGJ1dHRvbiBzdXNwZW5kIGRvZXNuJ3Qgd29yaw0KPiA+PiB5ZXQgb24gdGhpcyBwbGF0Zm9ybSBz
-byBpdCB3b3VsZCBiZSBnb29kIHRvIGFkZCBpdCBhbHNvLg0KPiA+Pg0KPiA+PiBPbiB0aGUgYWZm
-ZWN0ZWQgcGxhdGZvcm0gKGZvciB3aGljaCBwcml2LT5hcnJheSBpcyBOVUxMKSwgYWRkDQo+ID4+
-IGEgbmV3IHVwZnJvbnQgY2hlY2sgYWdhaW5zdCB0aGUgcG93ZXIgYnV0dG9uIHByZXNzIG5vdGlm
-aWNhdGlvbg0KPiA+PiAoMHhDRSkgdG8gbm90aWZ5X2hhbmRsZXIoKSwgb3V0c2lkZSB0aGUgd2Fr
-ZXVwIG1vZGUgdGhpcyB0aW1lLA0KPiA+PiB3aGljaCBhbGxvd3MgdG8gcmVwb3J0IHRoZSBwb3dl
-ciBidXR0b24gcHJlc3MgZXZlbnQgYW5kDQo+ID4+IHRyaWdnZXIgdGhlIHN1c3BlbmQuIEFsc28g
-Y2F0Y2ggYW5kIGlnbm9yZSB0aGUgY29ycmVzcG9uZGluZw0KPiA+PiBwb3dlciBidXR0b24gcmVs
-ZWFzZSBub3RpZmljYXRpb24gKDB4Q0YpIHRvIHN0b3AgaXQgZnJvbSBiZWluZw0KPiA+PiByZXBv
-cnRlZCBhcyBhbiAidW5rbm93biBldmVudCIgaW4gdGhlIGxvZ3MuDQo+ID4+DQo+ID4+IExpbms6
-IGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTk2MTE1DQo+ID4+
-IFRlc3RlZC1ieTogSsOpcsO0bWUgZGUgQnJldGFnbmUgPGplcm9tZS5kZWJyZXRhZ25lQGdtYWls
-LmNvbT4NCj4gPj4gU2lnbmVkLW9mZi1ieTogSsOpcsO0bWUgZGUgQnJldGFnbmUgPGplcm9tZS5k
-ZWJyZXRhZ25lQGdtYWlsLmNvbT4NCj4gPj4gLS0tDQo+ID4+ICBkcml2ZXJzL3BsYXRmb3JtL3g4
-Ni9pbnRlbC1oaWQuYyB8IDE2ICsrKysrKysrKysrKysrKysNCj4gPj4gIDEgZmlsZSBjaGFuZ2Vk
-LCAxNiBpbnNlcnRpb25zKCspDQo+ID4+DQo+ID4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3BsYXRm
-b3JtL3g4Ni9pbnRlbC1oaWQuYyBiL2RyaXZlcnMvcGxhdGZvcm0veDg2L2ludGVsLWhpZC5jDQo+
-ID4+IGluZGV4IGE3ODJjNzhlN2M2My4uYjE5ZjhkY2Y5ZDhjIDEwMDY0NA0KPiA+PiAtLS0gYS9k
-cml2ZXJzL3BsYXRmb3JtL3g4Ni9pbnRlbC1oaWQuYw0KPiA+PiArKysgYi9kcml2ZXJzL3BsYXRm
-b3JtL3g4Ni9pbnRlbC1oaWQuYw0KPiA+PiBAQCAtMjI2LDYgKzIyNiwyMiBAQCBzdGF0aWMgdm9p
-ZCBub3RpZnlfaGFuZGxlcihhY3BpX2hhbmRsZSBoYW5kbGUsIHUzMg0KPiBldmVudCwNCj4gPj4g
-dm9pZCAqY29udGV4dCkNCj4gPj4gICAgICAgICAgICAgICByZXR1cm47DQo+ID4+ICAgICAgIH0N
-Cj4gPj4NCj4gPj4gKyAgICAgLyoNCj4gPj4gKyAgICAgICogTmVlZGVkIGZvciBzdXNwZW5kIHRv
-IHdvcmsgb24gc29tZSBwbGF0Zm9ybXMgdGhhdCBkb24ndCBleHBvc2UNCj4gPj4gKyAgICAgICog
-dGhlIDUtYnV0dG9uIGFycmF5LCBidXQgc3RpbGwgc2VuZCBub3RpZmllcyB3aXRoIHBvd2VyIGJ1
-dHRvbg0KPiA+PiArICAgICAgKiBldmVudCBjb2RlIHRvIHRoaXMgZGV2aWNlIG9iamVjdCBvbiBw
-b3dlciBidXR0b24gYWN0aW9ucy4NCj4gPj4gKyAgICAgICoNCj4gPj4gKyAgICAgICogUmVwb3J0
-IHRoZSBwb3dlciBidXR0b24gcHJlc3M7IGNhdGNoIGFuZCBpZ25vcmUgdGhlIGJ1dHRvbiByZWxl
-YXNlLg0KPiA+PiArICAgICAgKi8NCj4gPj4gKyAgICAgaWYgKCFwcml2LT5hcnJheSkgew0KPiA+
-PiArICAgICAgICAgICAgIGlmIChldmVudCA9PSAweGNlKSB7DQo+ID4+ICsgICAgICAgICAgICAg
-ICAgICAgICBpbnB1dF9yZXBvcnRfa2V5KHByaXYtPmlucHV0X2RldiwgS0VZX1BPV0VSLCAxKTsN
-Cj4gPj4gKyAgICAgICAgICAgICAgICAgICAgIGlucHV0X3N5bmMocHJpdi0+aW5wdXRfZGV2KTsN
-Cj4gPj4gKyAgICAgICAgICAgICAgICAgICAgIHJldHVybjsNCj4gPj4gKyAgICAgICAgICAgICB9
-IGVsc2UgaWYgKGV2ZW50ID09IDB4Y2YpDQo+ID4+ICsgICAgICAgICAgICAgICAgICAgICByZXR1
-cm47DQo+ID4+ICsgICAgIH0NCj4gPj4gKw0KPiA+PiAgICAgICAvKiAweEMwIGlzIGZvciBISUQg
-ZXZlbnRzLCBvdGhlciB2YWx1ZXMgYXJlIGZvciA1IGJ1dHRvbiBhcnJheSAqLw0KPiA+PiAgICAg
-ICBpZiAoZXZlbnQgIT0gMHhjMCkgew0KPiA+PiAgICAgICAgICAgICAgIGlmICghcHJpdi0+YXJy
-YXkgfHwNCj4gPg0KPiA+IExHVE0sIGl0J3MgaW1wcm92ZWQgZnJvbSB3aGF0IHlvdSBwb3N0ZWQg
-dG8gdGhhdCBidWcgYWxyZWFkeS4NCj4gPg0KPiA+IEFja2VkLUJ5OiBNYXJpbyBMaW1vbmNpZWxs
-byA8bWFyaW8ubGltb25jaWVsbG9AZGVsbC5jb20+DQo+IA0KPiBUaGFua3MgTWFyaW8uDQo+IA0K
-PiBJbiBmYWN0LCBJIHVwZGF0ZWQgbXkgaW5pdGlhbCBmaXggcHJvcG9zYWwgb24gdGhlIDEydGgg
-aW4gWzFdIGFuZA0KPiB0aGlzIHBhdGNoIG1hdGNoZXMgZXhhY3RseSB0aGUgdXBkYXRlZCB2ZXJz
-aW9uLiBZb3UgZGlkbid0IHJlY2VpdmUNCj4gdGhlIHVwZGF0ZSBub3RpZmljYXRpb24gZnJvbSBC
-dWd6aWxsYT8NCj4gDQo+IFsxXSBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcu
-Y2dpP2lkPTE5NjExNSNjMTINCg0KTm8gSSBkaWRuJ3QgZ2V0IG9uZSAob3Igc29tZSBlbnRlcnBy
-aXNlIHNwYW0gZmlsdGVyIGhlbHBmdWxseSBhdm9pZGVkDQpsZXR0aW5nIGl0IGludG8gbXkgaW5i
-b3gpLg0KDQoNCg==
+On Wed, Sep 20, 2017 at 10:07:05PM +0530, Mayuresh Chitale wrote:
+> On 9/20/17, Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
+> > On Wed, Sep 20, 2017 at 02:17:38PM +0530, Mayuresh Chitale wrote:
+> >> Hi,
+> >>
+> >> I am working on adding APCI support to optee kernel driver and was
+> >> considering implementing it in the following way:
+> >>
+> >> - An optee device node would be added to the bios as follows:
+> >> Device(OPTE) {
+> >>       Name(_HID, ...)
+> >>       Name(_CID, ...)
+> >>       Name(_DDN, ...)
+> >>       Name (_DSD, Package () {
+> >>           Package () {
+> >>             Package (2) {"method", "smc"}
+> >>           }
+> >
+> > This _DSD is malformed as it is missing UUID.
+> Actually it is present in the code. I just wanted to present the
+> required details. Sorry for the ambiguity.
+> >
+> >>       })
+> >>     }
+> >>
+> >> - The optee kernel driver would then search for \\SB.OPTE device using
+> >> acpi_get_handle and parse the node to get the conduit method.
+> >
+> > You can use the standard device_property_* (see
+> > include/linux/property.h) accessors which fully support _DSD device
+> > properties.
+> >
+> >> I was wondering if this is the correct way to implement it and if so
+> >> do I need to get the OPTE device registered?  Your feedback is really
+> >> appreciated.
+> >
+> > There is something documented here:
+> >
+> > Documentation/acpi/DSD-properties-rules.txt
+> >
+> In DT, the optee node is placed under the firmware directory but I
+> dont think there is any equivalent to that in ACPI so I added the
+> 'OPTE' node. I was wondering if this needs to be registered with
+> UEFI/ACPI forum.
+
+No, I don't think ACPI node names need to be registered anywhere. Just
+as long as you don't use the reserved ones, like _SB and PCI0 and on.
