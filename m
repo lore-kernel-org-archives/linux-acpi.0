@@ -1,194 +1,57 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [RFC PATCH v2 4/4] ACPI: IORT: SMMUv3 nodes MSI support
-Date: Thu, 21 Sep 2017 21:17:18 +0800
-Message-ID: <1505999838-52530-5-git-send-email-guohanjun@huawei.com>
-References: <1505999838-52530-1-git-send-email-guohanjun@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: S0ix failure due to "clk: x86: Do not gate clocks enabled by the firmware"
+Date: Thu, 21 Sep 2017 16:21:46 +0200
+Message-ID: <4036229.gTT6xKEFIS@aspire.rjw.lan>
+References: <20170906204237.24x6fzlfmq7jmuce@sig21.net> <20170908134920.qia2bdjvpahe3zvi@sig21.net> <20170921094013.hznamkxx5md4yhgf@sig21.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:6535 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751436AbdIUN0T (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Sep 2017 09:26:19 -0400
-In-Reply-To: <1505999838-52530-1-git-send-email-guohanjun@huawei.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63848 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751629AbdIUOax (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 21 Sep 2017 10:30:53 -0400
+In-Reply-To: <20170921094013.hznamkxx5md4yhgf@sig21.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robin Murphy <robin.murphy@arm.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
+To: Johannes Stezenbach <js@sig21.net>
+Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org
 
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+On Thursday, September 21, 2017 11:40:13 AM CEST Johannes Stezenbach wrote:
+> Hi,
+> 
+> TL;DR: ACPI 6.1 spec interpretation question:
+> 
+>   7.2 Declaring a Power Resource Object
+>   ...
+>   Power resource objects can appear wherever is convenient in the namespace.
+>   ...
+>   Systemlevel is the deepest system sleep level OSPM must maintain to keep this
+>   power resource on (0 equates to S0, 1 equates to S1, and so on).
+> 
+> Does it imply the OS should turn Power Resources off when changing
+> the system level below the systemlevel of the PowerResource?
 
-Since we make single mappings valid for SMMUv3 (and PMCG), also
-we have a mapping index for SMMUv3 MSI, we can directly use that
-index to get the map entry, then retrieve dev ID and ITS parent
-to add SMMUv3 MSI support.
+You can interpret that this way I guess.
 
-Introduce a new API iort_set_device_domain() to find the MSI domain
-for an SMMUv3 (or any other IORT table node) to reduce the complex
-of doing that via acpi_configure_pmsi_domain(), then reuse the
-iort_node_get_id() to get the dev id for SMMU MSI.
+However, so far we have not had to deal with "dangling" power resources.
 
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/arm64/iort.c | 99 ++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 81 insertions(+), 18 deletions(-)
+> Otherwise, what purpose do PowerResource objects have that are not
+> mentioned in any device _PR[0-3W]?  Or is it BIOS bug?
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 269959e..bbab2ab 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -357,7 +357,8 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
- 
- 	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
- 		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
--		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
-+		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
-+		    node->type == ACPI_IORT_NODE_SMMU_V3) {
- 			*id_out = map->output_base;
- 			return parent;
- 		}
-@@ -366,8 +367,8 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
- 	return NULL;
- }
- 
--static int iort_get_smmu_v3_id_mapping_index(struct acpi_iort_node *node,
--					     u32 *index)
-+static int iort_get_id_mapping_index(struct acpi_iort_node *node,
-+				     u32 *index)
- {
- 	struct acpi_iort_smmu_v3 *smmu;
- 
-@@ -378,20 +379,28 @@ static int iort_get_smmu_v3_id_mapping_index(struct acpi_iort_node *node,
- 	if (node->revision < 1)
- 		return -EINVAL;
- 
--	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
--	/* if any of the gsi for control interrupts is not 0, ignore the MSI */
--	if (smmu->event_gsiv || smmu->pri_gsiv || smmu->gerr_gsiv
--	    || smmu->sync_gsiv)
--		return -EINVAL;
-+	switch (node->type) {
-+	case ACPI_IORT_NODE_SMMU_V3:
-+		smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
-+		/*
-+		 * if any of the gsi for control interrupts is not 0,
-+		 * ignore the MSI
-+		 */
-+		if (smmu->event_gsiv || smmu->pri_gsiv || smmu->gerr_gsiv
-+		    || smmu->sync_gsiv)
-+			return -EINVAL;
- 
--	if (smmu->id_mapping_index >= node->mapping_count) {
--		pr_err(FW_BUG "[node %p type %d] ID mapping index overflows valid mappings\n",
--		       node, node->type);
-+		if (smmu->id_mapping_index >= node->mapping_count) {
-+			pr_err(FW_BUG "[node %p type %d] ID mapping index overflows valid mappings\n",
-+			       node, node->type);
-+			return -EINVAL;
-+		}
-+
-+		*index = smmu->id_mapping_index;
-+		return 0;
-+	default:
- 		return -EINVAL;
- 	}
--
--	*index = smmu->id_mapping_index;
--	return 0;
- }
- 
- static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
-@@ -431,7 +440,7 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
- 		 *  associated ID map for single mapping cases.
- 		 */
- 		if (node->type == ACPI_IORT_NODE_SMMU_V3)
--			ret = iort_get_smmu_v3_id_mapping_index(node, &index);
-+			ret = iort_get_id_mapping_index(node, &index);
- 
- 		/* Do the ID translation */
- 		for (i = 0; i < node->mapping_count; i++, map++) {
-@@ -555,9 +564,18 @@ int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
- 	if (!node)
- 		return -ENODEV;
- 
--	for (i = 0; i < node->mapping_count; i++) {
--		if (iort_node_map_platform_id(node, dev_id, IORT_MSI_TYPE, i))
--			return 0;
-+	if (node->type == ACPI_IORT_NODE_SMMU_V3) {
-+		u32 index;
-+
-+		if (!iort_get_id_mapping_index(node, &index)) {
-+			if (iort_node_get_id(node, dev_id, index))
-+				return 0;
-+		}
-+	} else {
-+		for (i = 0; i < node->mapping_count; i++) {
-+			if (iort_node_map_platform_id(node, dev_id, IORT_MSI_TYPE, i))
-+				return 0;
-+		}
- 	}
- 
- 	return -ENODEV;
-@@ -620,6 +638,49 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
- 	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
- }
- 
-+static void iort_set_device_domain(struct device *dev,
-+				   struct acpi_iort_node *node)
-+{
-+	struct acpi_iort_its_group *its;
-+	struct acpi_iort_node *msi_parent;
-+	struct acpi_iort_id_mapping *map;
-+	struct fwnode_handle *iort_fwnode;
-+	struct irq_domain *domain;
-+	int ret, index;
-+
-+	ret = iort_get_id_mapping_index(node, &index);
-+	if (ret < 0)
-+		return;
-+
-+	map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
-+			   node->mapping_offset + index * sizeof(*map));
-+
-+	/* Firmware bug! */
-+	if (!map->output_reference ||
-+	    !(map->flags & ACPI_IORT_ID_SINGLE_MAPPING)) {
-+		pr_err(FW_BUG "[node %p type %d] Invalid MSI mapping\n",
-+		       node, node->type);
-+		return;
-+	}
-+
-+	msi_parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
-+				  map->output_reference);
-+
-+	if (!msi_parent || msi_parent->type != ACPI_IORT_NODE_ITS_GROUP)
-+		return;
-+
-+	/* Move to ITS specific data */
-+	its = (struct acpi_iort_its_group *)msi_parent->node_data;
-+
-+	iort_fwnode = iort_find_domain_token(its->identifiers[0]);
-+	if (!iort_fwnode)
-+		return;
-+
-+	domain = irq_find_matching_fwnode(iort_fwnode, DOMAIN_BUS_PLATFORM_MSI);
-+	if (domain)
-+		dev_set_msi_domain(dev, domain);
-+}
-+
- /**
-  * iort_get_platform_device_domain() - Find MSI domain related to a
-  * platform device
-@@ -1246,6 +1307,8 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
- 	/* Configure DMA for the page table walker */
- 	acpi_dma_configure(&pdev->dev, attr);
- 
-+	iort_set_device_domain(&pdev->dev, node);
-+
- 	ret = platform_device_add(pdev);
- 	if (ret)
- 		goto dma_deconfigure;
--- 
-1.7.12.4
+There also is _RDI that may refer to power resources, but I'm not aware of
+anyone using it in practice ATM.
+
+Other than that, I don't see why it would ever be necessary to declare
+a power resource that is not pointed to by any of the above.
+
+At least when the "power level" is changing from S0 to anything like S3,
+the firmware gets control anyway at one point and then it is free to
+manipulate whatever power resources it needs to turn off at that point.
+
+So I would be inclined to think of that as a BIOS issue.
+
+Thanks,
+Rafael
 
