@@ -1,80 +1,117 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v6 6/7] KVM: arm64: allow get exception information from
- userspace
-Date: Thu, 21 Sep 2017 15:55:25 +0800
-Message-ID: <92f2fecc-9833-15e4-30cc-b4dd5ba93cb7@huawei.com>
-References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
- <1503916701-13516-7-git-send-email-gengdongjiu@huawei.com>
- <59B17438.5070501@arm.com> <2a42d1ea-3456-2873-c9ea-d8a027b59789@huawei.com>
- <59BA7D72.4090403@arm.com>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: S0ix failure due to "clk: x86: Do not gate clocks enabled by the
+ firmware"
+Date: Thu, 21 Sep 2017 11:40:13 +0200
+Message-ID: <20170921094013.hznamkxx5md4yhgf@sig21.net>
+References: <20170906204237.24x6fzlfmq7jmuce@sig21.net>
+ <5bb7e3ca-38fc-1184-3bca-f666275c6180@linux.intel.com>
+ <20170908134920.qia2bdjvpahe3zvi@sig21.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <59BA7D72.4090403@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: James Morse <james.morse@arm.com>, Achin.Gupta@arm.com
-Cc: peter.maydell@linaro.org, christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@a
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.sig21.net ([80.244.240.74]:45260 "EHLO mail.sig21.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751752AbdIUJke (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 21 Sep 2017 05:40:34 -0400
+Content-Disposition: inline
+In-Reply-To: <20170908134920.qia2bdjvpahe3zvi@sig21.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Cc: linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Hi James
+Hi,
 
-On 2017/9/14 21:00, James Morse wrote:
-> Hi gengdongjiu,
+TL;DR: ACPI 6.1 spec interpretation question:
 
-> user-space can choose whether to use SEA or SEI, it doesn't have to choose the
-> same notification type that firmware used, which in turn doesn't have to be the
-> same as that used by the CPU to notify firmware.
+  7.2 Declaring a Power Resource Object
+  ...
+  Power resource objects can appear wherever is convenient in the namespace.
+  ...
+  Systemlevel is the deepest system sleep level OSPM must maintain to keep this
+  power resource on (0 equates to S0, 1 equates to S1, and so on).
+
+Does it imply the OS should turn Power Resources off when changing
+the system level below the systemlevel of the PowerResource?
+
+Otherwise, what purpose do PowerResource objects have that are not
+mentioned in any device _PR[0-3W]?  Or is it BIOS bug?
+
+
+Thanks,
+Johannes
+
+On Fri, Sep 08, 2017 at 03:49:20PM +0200, Johannes Stezenbach wrote:
+> (adding linux-acpi)
 > 
-> The choice only matters because these notifications hang on an existing pieces
-> of the Arm-architecture, so the notification can only add to the architecturally
-> defined meaning. (i.e. You can only send an SEA for something that can already
-> be described as a synchronous external abort).
+> On Wed, Sep 06, 2017 at 04:02:10PM -0500, Pierre-Louis Bossart wrote:
+> > On 9/6/17 3:42 PM, Johannes Stezenbach wrote:
+> > > I'm poking around on Asus E200HA, based on Atom x5-Z8300 (Cherrytrail),
+> > > trying to get S0ix working, atm with gross hacks that are recorded in
+> > > https://bugzilla.kernel.org/show_bug.cgi?id=193891
+> > > 
+> > > 
+> > > I found commit d31fd43c0f9a4 "clk: x86: Do not gate clocks enabled by the firmware"
+> > > prevents S0i3 entry.  Unfortunately the commit message doesn't explain
+> > > the problem it fixes, nor does it mention the platform.
+> > > 
+> > > How can we fix d31fd43c0f9a4 to not break S0i3?
+> > 
+> > In the existing audio machine drivers, I only use the clock framework for
+> > Baytrail. on Cherrytrail, the pmc_platform_clk3 used for the audio MCLK is
+> > actually managed by the BIOS (look for CLK3 in the DSDT) so there is no
+> > activity in the drivers, the audio don't even get/prepare/enable the
+> > pmc_platform_clk3 so I would guess there is an issue with a non-audio driver
+> > or the BIOS. Put differently, it may be so that by allowing the drivers to
+> > gate an unused clock we allowed you to enter S0i3 even if the bios didn't
+> > enable this mode. I would remove all pmc-clock related stuff and see what
+> > happens.
 > 
-> Once we get to user-space, for memory_failure() notifications, (which so far is
-> all we are talking about here), the only thing that could matter is whether the
-> guest hit a PG_hwpoison page as a stage2 fault. These can be described as
-> Synchronous-External-Abort.
+> Thanks for this info and Carlo's reply.  I've been busy reading
+> source code, DSDT and ACPI spec, and now I'm confused. ;-/
 > 
-> The Synchronous-External-Abort/SError-Interrupt distinction matters for the CPU
-> because it can't always make an error synchronous. For memory_failure()
-> notifications to a KVM guest we really can do this, and we already have this
-> behaviour for free. An example:
+> As you say, these clocks are managed by BIOS and
+> clk-pmc-atom.c shouldn't mess with them, thus
+> d31fd43c0f9a4 is correct.  Nothing else in the
+> system besides sound/soc/intel/boards/ uses
+> pmc_plt_clk_3 (or other pmc_plt_clk*).
 > 
-> A guest touches some hardware:poisoned memory, for whatever reason the CPU can't
-> put the world back together to make this a synchronous exception, so it reports
-> it to firmware as an SError-interrupt.
-> Linux gets an APEI notification and memory_failure() causes the affected page to
-> be unmapped from the guest's stage2, and SIGBUS_MCEERR_AO sent to user-space.
+> Now the question is why ACPI doesn't handle the clocks.
 > 
-> Qemu/kvmtool can now notify the guest with an IRQ or POLLed notification. AO->
-> action optional, probably asynchronous.
+> E200HA DSDT https://bugzilla.kernel.org/attachment.cgi?id=253921
+> has PowerResource defintions for the clocks
+> (where _ON and _OFF just set the same registers that
+> clk-pmc-atom.c uses, e.g. CKC3 at 0x6c for CLK3).
+> However, these PowerResources are only listed as child nodes
+> of the devices that use them, but are not referenced by _PR[0-3],
+> with the exception of CLK3 used by the audio codec.
 > 
-> But in our example it wasn't really asynchronous, that was just a property of
-> the original CPU->firmware notification. What happens? The guest vcpu is re-run,
-> it re-runs the same instructions (this was a contained error so KVM's ELR points
-> at/before the instruction that steps in the problem). This time KVM takes a
-> stage2 fault, which the mm code will refuse to fixup because the relevant page
-> was marked as PG_hwpoision by memory_failure(). KVM signals Qemu/kvmtool with
-> SIGBUS_MCEERR_AR. Now Qemu/kvmtool can notify the guest using SEA.
-
-CC Achin
-
-I have some personal opinion, if you think it is not right, hope you can point out.
-
-Synchronous External Abort and SError Interrupt are hardware exception(hardware concept), which is independent of software notification,
-in armv8 without RAS, the two concepts already exist. In the APEI spec, in order to better describe the two exceptions, so use SEA and SEI notification to stand for them.
-
-SEA notification stands for Synchronous External Abort, so may be it is not only a notification, it also stands for a hardware error type.
-SEI notification stands for SError Interrupt, so may be it is not only a notification, it also stands for a hardware error type.
-
-In the OS, it has different handling flow to the two exception(two notification):
-when the guest OS running, if the hardware generates a Synchronous External Abort, we told the guest OS this error is SError Interrupt instead of Synchronous External Abort.
-guest OS uses SEI notification handling flow to deal with it, I am not sure whether it will have problem, because the true hardware exception is Synchronous External Abort,
-but software treats it as SError interrupt to handle.
-
-In the mainline code, it does not have SEI notification support, the reason I think it is because of the error address record by firmware is not accurate(SError Interrupt is asynchronous exception).
-so if treat a hardware Synchronous External Abort as SError interrupt(SEI). The default OS behavior for SEI is PANIC, that is to say, when hardware triggers a Synchronous External Abort(SEA), if guest
-treat it as SError interrupt(SEI), the OS will be panic. in fact, it can be recoverable instead of Panic.
-
-I ever added a patch to support the SEI notification, but not sure whether it is can be accepted by open source, until now, not receive response.
+> The power resources exist in /sys as LNXPOWER:xx subnodes
+> of the device (e.g. i2c 809622C1:02/LNXPOWER:05) and are
+> also listed during boot.
+> 
+> acpi_bus_init_power_state() sets device->power.flags.power_resources = 1
+> only if _PR[0-3] exist.  Then acpi_device_set_power() only
+> calls acpi_power_transition() if power_resource == 1,
+> and acpi_power_transition() would only call acpi_power_off_list()
+> for the resources according to _PR[0-3].
+> 
+> I think this is all OK, maybe the BIOS is not optimal in
+> making the clocks available for device runtime pm.
+> What doesn't seem to happen, though, is that the PowerResources
+> are turned _OFF when system transitions to S0ix.  The PowerResources
+> have systemlevel == 0, meaning they should be turned off when the
+> system transitions out of S0, if I'm understanding the ACPI (6.1)
+> spec correctly in section 7.2 Declaring a Power Resource Object.
+> Well, actually I'm not sure, the wording of the ACPI spec is:
+> 
+>   "Systemlevel is the deepest system sleep level OSPM must maintain to keep
+>   this power resource on (0 equates to S0, 1 equates to S1, and so on)."
+> 
+> FWIW, I used "echo 0x00800000 >/sys/module/acpi/parameters/debug_layer"
+> to confirm devices transition between D0 and D3hot, but clock
+> resources are never turned off.
+> 
+> 
+> Johannes
+> 
