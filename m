@@ -1,68 +1,196 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: ACPI support for optee driver
-Date: Thu, 21 Sep 2017 09:44:16 +0300
-Message-ID: <20170921064416.GJ4630@lahna.fi.intel.com>
-References: <CAL-zptO3xg4k_B_S1SfKOghHGAUjqp56W9vqDdV3xgpUJ6b8dQ@mail.gmail.com>
- <20170920103918.GA4630@lahna.fi.intel.com>
- <CAL-zptMbqW7opSFgsF-gd9icu1p9qYcFVt1GM6vrKB3JAPQ_+A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mayuresh Chitale <mchitale@apm.com>
+Subject: [PATCH] tee: ACPI support for optee driver
+Date: Thu, 21 Sep 2017 12:42:17 +0530
+Message-ID: <1505977937-25034-1-git-send-email-mchitale@apm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:49414 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751524AbdIUGu7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 21 Sep 2017 02:50:59 -0400
-Content-Disposition: inline
-In-Reply-To: <CAL-zptMbqW7opSFgsF-gd9icu1p9qYcFVt1GM6vrKB3JAPQ_+A@mail.gmail.com>
+Received: from mail-pg0-f43.google.com ([74.125.83.43]:43479 "EHLO
+        mail-pg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751484AbdIUHNv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Sep 2017 03:13:51 -0400
+Received: by mail-pg0-f43.google.com with SMTP id u18so3085423pgo.0
+        for <linux-acpi@vger.kernel.org>; Thu, 21 Sep 2017 00:13:51 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mayuresh Chitale <mchitale@apm.com>
-Cc: Jens Wiklander <jens.wiklander@linaro.org>, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, jens.wiklander@linaro.org
+Cc: patches@apm.com
 
-On Wed, Sep 20, 2017 at 10:07:05PM +0530, Mayuresh Chitale wrote:
-> On 9/20/17, Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
-> > On Wed, Sep 20, 2017 at 02:17:38PM +0530, Mayuresh Chitale wrote:
-> >> Hi,
-> >>
-> >> I am working on adding APCI support to optee kernel driver and was
-> >> considering implementing it in the following way:
-> >>
-> >> - An optee device node would be added to the bios as follows:
-> >> Device(OPTE) {
-> >>       Name(_HID, ...)
-> >>       Name(_CID, ...)
-> >>       Name(_DDN, ...)
-> >>       Name (_DSD, Package () {
-> >>           Package () {
-> >>             Package (2) {"method", "smc"}
-> >>           }
-> >
-> > This _DSD is malformed as it is missing UUID.
-> Actually it is present in the code. I just wanted to present the
-> required details. Sorry for the ambiguity.
-> >
-> >>       })
-> >>     }
-> >>
-> >> - The optee kernel driver would then search for \\SB.OPTE device using
-> >> acpi_get_handle and parse the node to get the conduit method.
-> >
-> > You can use the standard device_property_* (see
-> > include/linux/property.h) accessors which fully support _DSD device
-> > properties.
-> >
-> >> I was wondering if this is the correct way to implement it and if so
-> >> do I need to get the OPTE device registered?  Your feedback is really
-> >> appreciated.
-> >
-> > There is something documented here:
-> >
-> > Documentation/acpi/DSD-properties-rules.txt
-> >
-> In DT, the optee node is placed under the firmware directory but I
-> dont think there is any equivalent to that in ACPI so I added the
-> 'OPTE' node. I was wondering if this needs to be registered with
-> UEFI/ACPI forum.
+This patch modifies the optee driver to add support for parsing
+the conduit method from an ACPI node.
 
-No, I don't think ACPI node names need to be registered anywhere. Just
-as long as you don't use the reserved ones, like _SB and PCI0 and on.
+Signed-off-by: Mayuresh Chitale <mchitale@apm.com>
+---
+ drivers/tee/optee/core.c | 112 ++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 77 insertions(+), 35 deletions(-)
+
+diff --git a/drivers/tee/optee/core.c b/drivers/tee/optee/core.c
+index 58169e5..8b15c49 100644
+--- a/drivers/tee/optee/core.c
++++ b/drivers/tee/optee/core.c
+@@ -14,6 +14,7 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
++#include <linux/acpi.h>
+ #include <linux/arm-smccc.h>
+ #include <linux/errno.h>
+ #include <linux/io.h>
+@@ -30,6 +31,7 @@
+ #include "optee_smc.h"
+ 
+ #define DRIVER_NAME "optee"
++#define OPTEE_DEVICE "\\_SB.OPTE"
+ 
+ #define OPTEE_SHM_NUM_PRIV_PAGES	1
+ 
+@@ -425,29 +427,87 @@ static void optee_smccc_hvc(unsigned long a0, unsigned long a1,
+ 	arm_smccc_hvc(a0, a1, a2, a3, a4, a5, a6, a7, res);
+ }
+ 
+-static optee_invoke_fn *get_invoke_func(struct device_node *np)
++static const struct of_device_id optee_match[] = {
++	{ .compatible = "linaro,optee-tz" },
++	{},
++};
++
++#ifdef CONFIG_ACPI
++static const char *get_invoke_str_acpi(void)
+ {
+-	const char *method;
++	struct acpi_device_info *info;
++	const union acpi_object *obj;
++	struct acpi_device *adev;
++	acpi_status status;
++	acpi_handle handle;
+ 
+-	pr_info("probing for conduit method from DT.\n");
++	status = acpi_get_handle(ACPI_ROOT_OBJECT, OPTEE_DEVICE, &handle);
++	if (ACPI_FAILURE(status))
++		return NULL;
+ 
+-	if (of_property_read_string(np, "method", &method)) {
++	status = acpi_get_object_info(handle, &info);
++	if (ACPI_FAILURE(status) || !(info->valid & ACPI_VALID_HID))
++		return NULL;
++
++	if (acpi_bus_get_device(handle, &adev))
++		return NULL;
++
++	if (acpi_dev_get_property(adev, "method",
++				ACPI_TYPE_ANY, &obj))
++		return NULL;
++
++	return obj->string.pointer;
++}
++#endif
++
++static const char *get_invoke_str_of(void)
++{
++	struct device_node *fw_np;
++	const char *method = NULL;
++	struct device_node *np;
++
++	/* Node is supposed to be below /firmware */
++	fw_np = of_find_node_by_name(NULL, "firmware");
++	if (!fw_np)
++		return NULL;
++
++	np = of_find_matching_node(fw_np, optee_match);
++	of_node_put(fw_np);
++	if (!np)
++		return NULL;
++
++	pr_info("probing for conduit method from DT.\n");
++	if (of_property_read_string(np, "method", &method))
+ 		pr_warn("missing \"method\" property\n");
+-		return ERR_PTR(-ENXIO);
+-	}
+ 
+-	if (!strcmp("hvc", method))
+-		return optee_smccc_hvc;
+-	else if (!strcmp("smc", method))
+-		return optee_smccc_smc;
++	of_node_put(np);
++	return method;
++}
++
++static optee_invoke_fn *get_invoke_func(void)
++{
++	const char *method;
++
++#ifdef CONFIG_ACPI
++	if (!acpi_disabled)
++		method = get_invoke_str_acpi();
++	else
++#endif
++		method = get_invoke_str_of();
++
++	if (method) {
++		if (!strcmp("hvc", method))
++			return optee_smccc_hvc;
++		else if (!strcmp("smc", method))
++			return optee_smccc_smc;
++	}
+ 
+ 	pr_warn("invalid \"method\" property: %s\n", method);
+ 	return ERR_PTR(-EINVAL);
+ }
+ 
+-static struct optee *optee_probe(struct device_node *np)
++static struct optee *optee_probe(optee_invoke_fn *invoke_fn)
+ {
+-	optee_invoke_fn *invoke_fn;
+ 	struct tee_shm_pool *pool;
+ 	struct optee *optee = NULL;
+ 	void *memremaped_shm = NULL;
+@@ -455,10 +515,6 @@ static struct optee *optee_probe(struct device_node *np)
+ 	u32 sec_caps;
+ 	int rc;
+ 
+-	invoke_fn = get_invoke_func(np);
+-	if (IS_ERR(invoke_fn))
+-		return (void *)invoke_fn;
+-
+ 	if (!optee_msg_api_uid_is_optee_api(invoke_fn)) {
+ 		pr_warn("api uid mismatch\n");
+ 		return ERR_PTR(-EINVAL);
+@@ -570,32 +626,18 @@ static void optee_remove(struct optee *optee)
+ 	kfree(optee);
+ }
+ 
+-static const struct of_device_id optee_match[] = {
+-	{ .compatible = "linaro,optee-tz" },
+-	{},
+-};
+-
+ static struct optee *optee_svc;
+ 
+ static int __init optee_driver_init(void)
+ {
+-	struct device_node *fw_np;
+-	struct device_node *np;
++	optee_invoke_fn *invoke_fn;
+ 	struct optee *optee;
+ 
+-	/* Node is supposed to be below /firmware */
+-	fw_np = of_find_node_by_name(NULL, "firmware");
+-	if (!fw_np)
+-		return -ENODEV;
+-
+-	np = of_find_matching_node(fw_np, optee_match);
+-	of_node_put(fw_np);
+-	if (!np)
+-		return -ENODEV;
+-
+-	optee = optee_probe(np);
+-	of_node_put(np);
++	invoke_fn = get_invoke_func();
++	if (IS_ERR(invoke_fn))
++		return PTR_ERR(invoke_fn);
+ 
++	optee = optee_probe(invoke_fn);
+ 	if (IS_ERR(optee))
+ 		return PTR_ERR(optee);
+ 
+-- 
+1.9.1
+
