@@ -1,57 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: S0ix failure due to "clk: x86: Do not gate clocks enabled by the firmware"
-Date: Thu, 21 Sep 2017 16:21:46 +0200
-Message-ID: <4036229.gTT6xKEFIS@aspire.rjw.lan>
-References: <20170906204237.24x6fzlfmq7jmuce@sig21.net> <20170908134920.qia2bdjvpahe3zvi@sig21.net> <20170921094013.hznamkxx5md4yhgf@sig21.net>
+From: Tyler Baicar <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V3] acpi: apei: clear error status before acknowledging
+ the error
+Date: Thu, 21 Sep 2017 09:27:06 -0600
+Message-ID: <a7496f34-4ea9-33a2-0e65-f7e3aa49deb0@codeaurora.org>
+References: <1503939221-27732-1-git-send-email-tbaicar@codeaurora.org>
+ <20170829081610.moq2dtxzz4vrbmo5@pd.tnic>
+ <47ed1861-1bdb-7caf-3d6b-5304235c7e10@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63848 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751629AbdIUOax (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 21 Sep 2017 10:30:53 -0400
-In-Reply-To: <20170921094013.hznamkxx5md4yhgf@sig21.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <47ed1861-1bdb-7caf-3d6b-5304235c7e10@codeaurora.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: Borislav Petkov <bp@alien8.de>, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>
-Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org
 
-On Thursday, September 21, 2017 11:40:13 AM CEST Johannes Stezenbach wrote:
-> Hi,
-> 
-> TL;DR: ACPI 6.1 spec interpretation question:
-> 
->   7.2 Declaring a Power Resource Object
->   ...
->   Power resource objects can appear wherever is convenient in the namespace.
->   ...
->   Systemlevel is the deepest system sleep level OSPM must maintain to keep this
->   power resource on (0 equates to S0, 1 equates to S1, and so on).
-> 
-> Does it imply the OS should turn Power Resources off when changing
-> the system level below the systemlevel of the PowerResource?
-
-You can interpret that this way I guess.
-
-However, so far we have not had to deal with "dangling" power resources.
-
-> Otherwise, what purpose do PowerResource objects have that are not
-> mentioned in any device _PR[0-3W]?  Or is it BIOS bug?
-
-There also is _RDI that may refer to power resources, but I'm not aware of
-anyone using it in practice ATM.
-
-Other than that, I don't see why it would ever be necessary to declare
-a power resource that is not pointed to by any of the above.
-
-At least when the "power level" is changing from S0 to anything like S3,
-the firmware gets control anyway at one point and then it is free to
-manipulate whatever power resources it needs to turn off at that point.
-
-So I would be inclined to think of that as a BIOS issue.
+On 9/13/2017 8:40 AM, Baicar, Tyler wrote:
+> On 8/29/2017 2:16 AM, Borislav Petkov wrote:
+>> On Mon, Aug 28, 2017 at 10:53:41AM -0600, Tyler Baicar wrote:
+>>> Currently we acknowledge errors before clearing the error status.
+>>> This could cause a new error to be populated by firmware in-between
+>>> the error acknowledgment and the error status clearing which would
+>>> cause the second error's status to be cleared without being handled.
+>>> So, clear the error status before acknowledging the errors.
+>>>
+>>> Also, make sure to acknowledge the error if the error status read
+>>> fails.
+>>>
+>>> V3: Seperate check for -ENOENT return value
+>>>
+>>> V2: Only send error ack if there was an error populated
+>>>      Remove curly braces that are no longer needed
+>>>
+>>> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+>>> ---
+>>>   drivers/acpi/apei/ghes.c | 16 +++++++++-------
+>>>   1 file changed, 9 insertions(+), 7 deletions(-)
+>> Reviewed-by: Borislav Petkov <bp@suse.de>
+> Hello Rafael,
+>
+> Were you able to apply this patch?
+I haven't heard anything on this patch. It would be great to have it in 
+4.14 :)
 
 Thanks,
-Rafael
-
+Tyler
