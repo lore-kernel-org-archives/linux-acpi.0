@@ -1,49 +1,46 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V3] acpi: apei: clear error status before acknowledging
- the error
-Date: Thu, 21 Sep 2017 09:27:06 -0600
-Message-ID: <a7496f34-4ea9-33a2-0e65-f7e3aa49deb0@codeaurora.org>
-References: <1503939221-27732-1-git-send-email-tbaicar@codeaurora.org>
- <20170829081610.moq2dtxzz4vrbmo5@pd.tnic>
- <47ed1861-1bdb-7caf-3d6b-5304235c7e10@codeaurora.org>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: S0ix failure due to "clk: x86: Do not gate clocks enabled by the
+ firmware"
+Date: Thu, 21 Sep 2017 18:23:07 +0200
+Message-ID: <20170921162307.amdz2uyei7eackhs@sig21.net>
+References: <20170906204237.24x6fzlfmq7jmuce@sig21.net>
+ <20170908134920.qia2bdjvpahe3zvi@sig21.net>
+ <20170921094013.hznamkxx5md4yhgf@sig21.net>
+ <4036229.gTT6xKEFIS@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <47ed1861-1bdb-7caf-3d6b-5304235c7e10@codeaurora.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: Borislav Petkov <bp@alien8.de>, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, bp@suse.de, shiju.jose@huawei.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.sig21.net ([80.244.240.74]:34588 "EHLO mail.sig21.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751629AbdIUQXT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 21 Sep 2017 12:23:19 -0400
+Content-Disposition: inline
+In-Reply-To: <4036229.gTT6xKEFIS@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org
 
-On 9/13/2017 8:40 AM, Baicar, Tyler wrote:
-> On 8/29/2017 2:16 AM, Borislav Petkov wrote:
->> On Mon, Aug 28, 2017 at 10:53:41AM -0600, Tyler Baicar wrote:
->>> Currently we acknowledge errors before clearing the error status.
->>> This could cause a new error to be populated by firmware in-between
->>> the error acknowledgment and the error status clearing which would
->>> cause the second error's status to be cleared without being handled.
->>> So, clear the error status before acknowledging the errors.
->>>
->>> Also, make sure to acknowledge the error if the error status read
->>> fails.
->>>
->>> V3: Seperate check for -ENOENT return value
->>>
->>> V2: Only send error ack if there was an error populated
->>>      Remove curly braces that are no longer needed
->>>
->>> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
->>> ---
->>>   drivers/acpi/apei/ghes.c | 16 +++++++++-------
->>>   1 file changed, 9 insertions(+), 7 deletions(-)
->> Reviewed-by: Borislav Petkov <bp@suse.de>
-> Hello Rafael,
->
-> Were you able to apply this patch?
-I haven't heard anything on this patch. It would be great to have it in 
-4.14 :)
+On Thu, Sep 21, 2017 at 04:21:46PM +0200, Rafael J. Wysocki wrote:
+> So I would be inclined to think of that as a BIOS issue.
+
+OK, wrt $Subject it sparks the question how to fix the
+issue exposed by commit d31fd43c0f9a4 "clk: x86: Do not
+gate clocks enabled by the firmware".  Add quirks to
+the drivers for the devices that have the dangling
+PowerResources and manually call _OFF/_ON during suspend/resume?
+
+I must admit I haven't looked deeper into the issue yet,
+i.e. I don't know which clock causes S0ix failure.
+If I understand correctly, before d31fd43c0f9a4 the
+clk framework would just disable all unused clocks
+registered by clk-pmc-atom.c, which are all of then except
+CLK3 which is used by the audio codec. And the audio codec
+would disable CLK3 during suspend.
+After d31fd43c0f9a4 all clocks that BIOS had enabled during boot
+are kept running.  Presumably we could also add the quirk to
+clk-pmc-atom.c to bypass what d31fd43c0f9a4 added on Asus E200HA?
+
 
 Thanks,
-Tyler
+Johannes
