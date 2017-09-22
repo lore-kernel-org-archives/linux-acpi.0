@@ -1,130 +1,79 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: Re: [PATCH v2 1/6] ACPI/PPTT: Add Processor Properties Topology Table
- parsing
-Date: Fri, 22 Sep 2017 09:15:21 +0800
-Message-ID: <f1752bf4-b62e-e41a-bd58-783c15bba868@huawei.com>
-References: <20170919184751.25110-1-jeremy.linton@arm.com>
- <20170919184751.25110-2-jeremy.linton@arm.com>
- <4c9cfa18-507b-01c4-7464-ff2b149fbb68@huawei.com>
- <03912538-f7bf-f235-c87f-3ba275502db0@arm.com>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: S0ix failure due to "clk: x86: Do not gate clocks enabled by the
+ firmware"
+Date: Fri, 22 Sep 2017 10:04:53 +0200
+Message-ID: <20170922080453.3bwad4ale4zizf42@sig21.net>
+References: <20170906204237.24x6fzlfmq7jmuce@sig21.net>
+ <4036229.gTT6xKEFIS@aspire.rjw.lan>
+ <20170921162307.amdz2uyei7eackhs@sig21.net>
+ <4254964.MfDMP6QAfg@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6971 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751779AbdIVBPw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Sep 2017 21:15:52 -0400
-In-Reply-To: <03912538-f7bf-f235-c87f-3ba275502db0@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4254964.MfDMP6QAfg@aspire.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, mturquette@baylibre.com, sboyd@codeaurora.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, Jonathan.Zhang@cavium.com, ahs3@redhat.com
 
-Hi Jeremy,
+On Fri, Sep 22, 2017 at 12:35:15AM +0200, Rafael J. Wysocki wrote:
+> On Thursday, September 21, 2017 6:23:07 PM CEST Johannes Stezenbach wrote:
+> > On Thu, Sep 21, 2017 at 04:21:46PM +0200, Rafael J. Wysocki wrote:
+> > > So I would be inclined to think of that as a BIOS issue.
+> > 
+> > OK, wrt $Subject it sparks the question how to fix the
+> > issue exposed by commit d31fd43c0f9a4 "clk: x86: Do not
+> > gate clocks enabled by the firmware".  Add quirks to
+> > the drivers for the devices that have the dangling
+> > PowerResources and manually call _OFF/_ON during suspend/resume?
+> > 
+> > I must admit I haven't looked deeper into the issue yet,
+> > i.e. I don't know which clock causes S0ix failure.
+> > If I understand correctly, before d31fd43c0f9a4 the
+> > clk framework would just disable all unused clocks
+> > registered by clk-pmc-atom.c, which are all of then except
+> > CLK3 which is used by the audio codec. And the audio codec
+> > would disable CLK3 during suspend.
+> > After d31fd43c0f9a4 all clocks that BIOS had enabled during boot
+> > are kept running.  Presumably we could also add the quirk to
+> > clk-pmc-atom.c to bypass what d31fd43c0f9a4 added on Asus E200HA?
+> 
+> Since this is S0ix, the "system level" is 0 all the time (as I said in a
+> previous message).
 
-On 2017/9/22 2:48, Jeremy Linton wrote:
-> Hi,
-> 
-> On 09/20/2017 02:15 AM, Xiongfeng Wang wrote:
->> Hi Jeremy,
->>
->> On 2017/9/20 2:47, Jeremy Linton wrote:
->>> ACPI 6.2 adds a new table, which describes how processing units
->>> are related to each other in tree like fashion. Caches are
->>> also sprinkled throughout the tree and describe the properties
->>> of the caches in relation to other caches and processing units.
->>>
->>> Add the code to parse the cache hierarchy and report the total
->>> number of levels of cache for a given core using
->>> acpi_find_last_cache_level() as well as fill out the individual
->>> cores cache information with cache_setup_acpi() once the
->>> cpu_cacheinfo structure has been populated by the arch specific
->>> code.
->>>
->>> Further, report peers in the topology using setup_acpi_cpu_topology()
->>> to report a unique ID for each processing unit at a given level
->>> in the tree. These unique id's can then be used to match related
->>> processing units which exist as threads, COD (clusters
->>> on die), within a given package, etc.
->>>
->>> +
->>> +static int topology_setup_acpi_cpu(struct acpi_table_header *table,
->>> +                    unsigned int cpu, int level)
->>> +{
->>> +    struct acpi_pptt_processor *cpu_node;
->>> +    u32 acpi_cpu_id = acpi_cpu_get_madt_gicc(cpu)->uid;
->>> +
->>> +    cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
->>> +    if (cpu_node) {
->>> +        cpu_node = acpi_find_processor_package_id(table, cpu_node, level);
->>> +        return (int)((u8 *)cpu_node - (u8 *)table);
->>> +    }
->>> +    pr_err_once("PPTT table found, but unable to locate core for %d\n",
->>> +            cpu);
->>> +    return -ENOENT;
->>
->> Can we return -1 when PPTT doesn't exist? So that we can still get topo info from MPIDR.
->> 'store_cpu_topology()' determine whether cpu topology has been populated by checking
->> whether cluster_id is -1. If cluster_id is not -1, it won't read cpu topo info from MPIDR.
->> Or maybe we can change 'store_cpu_topology()' as well. If cluster_id is less than zero,
->> we read cpu topo info from MPIDR.
-> 
-> ? I will retest this, but any negative return from setup_acpi_topology() for the initial node (subsequent requests should minimally duplicate the cpu node rather than failing) request, should result in a call to reset_cpu_topology(), and the information being sourced from the MPIDR in store_cpu_topology(). There are various ways the tree could be "damaged" but if all the system cpus have matching valid acpi_id/cpu nodes, then that reflects a valid topology and there really isn't enough information to decide if its damaged. The one case where this isn't accurate is missing socket identifiers, but the code actually handles this as well as the lack of missing cluster/thread ids (which don't exist in the standard).
-> 
-Yes, you are right. I didn't notice the function reset_cpu_topology() before. Thanks for your explanation.
->>
->>> +}
->>> +
->>> +/*
->>> + * simply assign a ACPI cache entry to each known CPU cache entry
->>> + * determining which entries are shared is done later.
->>> + */
->>> +int cache_setup_acpi(unsigned int cpu)
->>> +{
->>> +    struct acpi_table_header *table;
->>> +    acpi_status status;
->>> +
->>> +    pr_debug("Cache Setup ACPI cpu %d\n", cpu);
->>> +
->>> +    status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
->>> +    if (ACPI_FAILURE(status)) {
->>> +        pr_err_once("No PPTT table found, cache topology may be inaccurate\n");
->>> +        return -ENOENT;
->>> +    }
->>> +
->>> +    cache_setup_acpi_cpu(table, cpu);
->>> +    acpi_put_table(table);
->>> +
->>> +    return status;
->>> +}
->>> +
->>> +/*
->>> + * Determine a topology unique ID for each thread/core/cluster/socket/etc.
->>> + * This ID can then be used to group peers.
->>> + */
->>> +int setup_acpi_cpu_topology(unsigned int cpu, int level)
->>> +{
->>> +    struct acpi_table_header *table;
->>> +    acpi_status status;
->>> +    int retval;
->>
->> Can we add a static int array to record already assigned id for each level?
->> So that we can count the id starting from zero. And also the id can be successive.
-> 
-> I don't like the idea of a node<->generated_id array/map in this module, although I've considered a number of ways to create more normalized values. Particularly, the one area that might be useful is utilizing the acpi id for the cores, which is problematic in the MT case. One of my other alternative ideas was to plug a unique node id into a reserved field in the table as the node is traversed. That idea is a little evil, and really should be part of the ACPI standard so the firmware is providing the ID's rather than dependent on the traversal order of the tree.
-> 
-> If it turns out that these ID's need to be zero based, or some other limitation I would prefer just renumbering them in update_siblings_mask() or parse_acpi_topology(). I hacked together a patch to renumber the package_id yesterday, but i'm pretty sure I've seen (non arm) machines with odd package/core ids in the past, and I don't really see anything in the ABI the dictating this. Let me clean it up a bit and I can post it as an additional patch on top of the PPTT patches.
-> 
-Yes, I agree. Renumbering the IDs in parse_acpi_topology() is better.
+Damn.  Reading ACPI spec (6.1 and 6.2), it talks about _LPI and _RDI
+but E200HA doesn't have that in any ACPI table.
+The table in section 7.1 Power Resource Objects and the Power Management Models
+says "Choose a supported device state to enable a targeted system sleep or
+Low- power Idle state ... [use] _PRx".
 
-> So, is this an actual use case/problem, or its just an "appearance" type of thing?
+> So there seem to be two possible ways to address this, unfortunately both
+> based on white- or blacklisting.
 > 
-It is not an actual use problem, just an "appearance".
+> One of them would be to only do the d31fd43c0f9a4 approach for selected
+> systems where it needs to be done to avoid breakage.  The other one would
+> be to do it for all systems by default and blacklist the ones where that
+> leads to problems.
+> 
+> IMO it is better to disable clocks over suspend-resume, because that reduces
+> the system's power draw while suspended.  So that's what I would do and then
+> keep the clocks running only if that is known to be necessary.
+
+d31fd43c0f9a4 was added to fix a "hard hangup on boot" issue,
+so I guess the default should be to keep clocks enabled.
+
+BTW, in E200HA DSDT, the PowerResources in question are children of
+the I2Cx devices, presumably it means these clocks are to be used by
+devices connected to the i2c busses.  Maybe it's a left over from devices
+that are not present in E200HA, and we should ignore them.
+
+In conclusion the BIOS bug is that it enables these clocks at boot,
+and the correct quirk is to make clk-pmc-atom.c disable them during init,
+but leave the _PRx handling for the used clocks (CLK3) to ACPI.
+
+Right?
 
 
 Thanks,
-Xiongfeng Wang
-
-
-
+Johannes
