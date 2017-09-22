@@ -1,77 +1,87 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.14-rc2
-Date: Sat, 23 Sep 2017 01:08:51 +0200
-Message-ID: <CAJZ5v0j_irgwegZ4Q4V7tEqOaYVazXutp065CzyZ0KZru=s9=w@mail.gmail.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH] platform/x86: intel-hid: Power button suspend on Dell
+ Latitude 7275
+Date: Fri, 22 Sep 2017 16:45:43 -0700
+Message-ID: <20170922234543.GB20327@fury>
+References: <20170917225712.12136-1-jerome.debretagne@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170917225712.12136-1-jerome.debretagne@gmail.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: =?iso-8859-1?B?Suly9G1l?= de Bretagne <jerome.debretagne@gmail.com>
+Cc: platform-driver-x86@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, Mario Limonciello <mario.limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Mon, Sep 18, 2017 at 12:57:12AM +0200, Jérôme de Bretagne wrote:
+> From: Jérôme de Bretagne <jerome.debretagne@gmail.com>
+> 
+> On Dell Latitude 7275 the 5-button array is not exposed in the
+> ACPI tables, but still notifies are sent to the Intel HID device
+> object (device ID INT33D5) in response to power button actions.
+> They were ignored as the intel-hid driver was not prepared to
+> take care of them until recently.
+> 
+> Power button wakeup from suspend-to-idle was added in:
+> 635173a17b03 ("intel-hid: Wake up Dell Latitude 7275 from
+> suspend-to-idle"). However power button suspend doesn't work
+> yet on this platform so it would be good to add it also.
+> 
+> On the affected platform (for which priv->array is NULL), add
+> a new upfront check against the power button press notification
+> (0xCE) to notify_handler(), outside the wakeup mode this time,
+> which allows to report the power button press event and
+> trigger the suspend. Also catch and ignore the corresponding
+> power button release notification (0xCF) to stop it from being
+> reported as an "unknown event" in the logs.
+> 
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=196115
+> Tested-by: Jérôme de Bretagne <jerome.debretagne@gmail.com>
+> Signed-off-by: Jérôme de Bretagne <jerome.debretagne@gmail.com>
+> ---
+>  drivers/platform/x86/intel-hid.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/drivers/platform/x86/intel-hid.c b/drivers/platform/x86/intel-hid.c
+> index a782c78e7c63..b19f8dcf9d8c 100644
+> --- a/drivers/platform/x86/intel-hid.c
+> +++ b/drivers/platform/x86/intel-hid.c
+> @@ -226,6 +226,22 @@ static void notify_handler(acpi_handle handle, u32 event, void *context)
+>  		return;
+>  	}
+>  
+> +	/*
+> +	 * Needed for suspend to work on some platforms that don't expose
+> +	 * the 5-button array, but still send notifies with power button
+> +	 * event code to this device object on power button actions.
+> +	 *
+> +	 * Report the power button press; catch and ignore the button release.
+> +	 */
+> +	if (!priv->array) {
+> +		if (event == 0xce) {
+> +			input_report_key(priv->input_dev, KEY_POWER, 1);
+> +			input_sync(priv->input_dev);
+> +			return;
+> +		} else if (event == 0xcf)
+> +			return;
 
-Please pull from the tag
+Minor CodingStyle nit. If the if block uses parens, so does the else block. In
+this case, since the if returns, just skip the else entirely.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.14-rc2
+See Documentation/process/coding-style.rst
+The example immediatley *before* 3.1) Spaces.
 
-with top-most commit 672d0e4502a22364b298f9307f651c1b8313514b
+I've made this change and queued for testing.
 
- Merge branches 'acpi-pmic', 'acpi-bus', 'acpi-wdat' and 'acpi-properties'
+> +	}
+> +
+>  	/* 0xC0 is for HID events, other values are for 5 button array */
+>  	if (event != 0xc0) {
+>  		if (!priv->array ||
+> 
 
-on top of commit 2bd6bf03f4c1c59381d62c61d03f6cc3fe71f66e
-
- Linux 4.14-rc1
-
-to receive ACPI fixes for v4.14-rc2.
-
-These fix the initialization of resources in the ACPI WDAT watchdog
-driver, a recent regression in the ACPI device properties handling,
-a recent change in behavior causing the ACPI_HANDLE() macro to only
-work for GPL code and create a MAINTAINERS entry for ACPI PMIC
-drivers in order to specify the official reviewers for that code.
-
-Specifics:
-
- - Fix the initialization of resources in the ACPI WDAT watchdog
-   driver that uses unititialized memory which causes compiler
-   warnings to be triggered (Arnd Bergmann).
-
- - Fix a recent regression in the ACPI device properties handling
-   that causes some device properties data to be skipped during
-   enumeration (Sakari Ailus).
-
- - Fix a recent change in behavior that caused the ACPI_HANDLE()
-   macro to stop working for non-GPL code which is a problem for
-   the NVidia binary graphics driver, for example (John Hubbard).
-
- - Add a MAINTAINERS entry for the ACPI PMIC drivers to specify
-   the official reviewers for that code (Rafael Wysocki).
-
-Thanks!
-
-
----------------
-
-Arnd Bergmann (1):
-      ACPI / watchdog: properly initialize resources
-
-John Hubbard (1):
-      ACPI / bus: Make ACPI_HANDLE() work for non-GPL code again
-
-Rafael Wysocki (1):
-      ACPI / PMIC: Add code reviewers to MAINTAINERS
-
-Sakari Ailus (1):
-      ACPI: properties: Return _DSD hierarchical extension (data)
-sub-nodes correctly
-
----------------
-
- MAINTAINERS                  | 12 ++++++++++++
- drivers/acpi/acpi_watchdog.c |  2 +-
- drivers/acpi/property.c      | 24 +++++++++++++++++++-----
- include/acpi/acpi_bus.h      | 18 ++++--------------
- 4 files changed, 36 insertions(+), 20 deletions(-)
+-- 
+Darren Hart
+VMware Open Source Technology Center
