@@ -1,90 +1,43 @@
-From: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Subject: [PATCH] ACPI / battery: add quirk for Asus GL502VSK and UX305LA
-Date: Fri, 22 Sep 2017 16:27:44 +0800
-Message-ID: <20170922082744.18988-1-kai.heng.feng@canonical.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] tee: ACPI support for optee driver
+Date: Fri, 22 Sep 2017 10:37:03 +0100
+Message-ID: <20170922093703.GD1523@red-moon>
+References: <1505977937-25034-1-git-send-email-mchitale@apm.com>
+ <59C36E18.1050106@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:44271 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751843AbdIVI1v (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Sep 2017 04:27:51 -0400
+Received: from foss.arm.com ([217.140.101.70]:55290 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751809AbdIVJec (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Sep 2017 05:34:32 -0400
+Content-Disposition: inline
+In-Reply-To: <59C36E18.1050106@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Kai-Heng Feng <kai.heng.feng@canonical.com>
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Mayuresh Chitale <mchitale@apm.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, jens.wiklander@linaro.org, patches@apm.com
 
-On Asus GL502VSK and UX305LA, ACPI incorrectly reports discharging when
-battery is full and AC is plugged.
+On Thu, Sep 21, 2017 at 03:45:28PM +0800, Hanjun Guo wrote:
+> On 2017/9/21 15:12, Mayuresh Chitale wrote:
+> > This patch modifies the optee driver to add support for parsing
+> > the conduit method from an ACPI node.
+> 
+> Sorry I didn't involve this earlier, but I think this is a wrong
+> approach, in ACPI 5.1+ spec, there is a bit in FADT table which
+> indicates PSCI using SMC or HVC, please see ACPI 6.2 [1],
+> Table 5-37 Fixed ACPI Description Table ARM Boot Architecture Flags.
+> 
+> Can we just use that to get the conduit method for optee driver too?
+> 
+> [1]: http://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
 
-However rate_now is correct under this circumstance, hence we can use
-"rate_now == 0" as a predicate to report battery full status correctly.
+It is just not a matter of conduit method but also to define how OPTEE
+should be detected. It is up to Linaro (who owns OP-TEE) to put forward
+a binding at ACPI (ARM) spec level.
 
-BugLink: https://bugs.launchpad.net/bugs/1482390
-Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
----
- drivers/acpi/battery.c | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+We do not define ACPI bindings on a kernel mailing list.
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 13e7b56e33ae..f9f008cf3da7 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -70,6 +70,7 @@ static async_cookie_t async_cookie;
- static bool battery_driver_registered;
- static int battery_bix_broken_package;
- static int battery_notification_delay_ms;
-+static int battery_full_discharging;
- static unsigned int cache_time = 1000;
- module_param(cache_time, uint, 0644);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-@@ -214,7 +215,10 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 		return -ENODEV;
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_STATUS:
--		if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
-+		if (battery_full_discharging && battery->rate_now == 0 &&
-+		    battery->state & ACPI_BATTERY_STATE_DISCHARGING)
-+			val->intval = POWER_SUPPLY_STATUS_FULL;
-+		else if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
- 			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
- 		else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
- 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
-@@ -1166,6 +1170,13 @@ battery_notification_delay_quirk(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int __init
-+battery_full_discharging_quirk(const struct dmi_system_id *d)
-+{
-+	battery_full_discharging = 1;
-+	return 0;
-+}
-+
- static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 	{
- 		.callback = battery_bix_broken_package_quirk,
-@@ -1183,6 +1194,22 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
- 		},
- 	},
-+	{
-+		.callback = battery_full_discharging_quirk,
-+		.ident = "ASUS GL502VSK",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "GL502VSK"),
-+		},
-+	},
-+	{
-+		.callback = battery_full_discharging_quirk,
-+		.ident = "ASUS UX305LA",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "UX305LA"),
-+		},
-+	},
- 	{},
- };
- 
--- 
-2.14.1
+NAK on this patch.
 
+Lorenzo
