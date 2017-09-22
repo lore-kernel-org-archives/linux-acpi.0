@@ -1,167 +1,237 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [RFC PATCH v2 3/4] ACPI: IORT: Skip SMMUv3 device ID map for two
- steps mappings
-Date: Fri, 22 Sep 2017 14:21:57 +0100
-Message-ID: <d9f33a08-a1b8-002c-53d6-ce43b273c7df@arm.com>
-References: <1505999838-52530-1-git-send-email-guohanjun@huawei.com>
- <1505999838-52530-4-git-send-email-guohanjun@huawei.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v7 3/5] iommu/of: Add msi address regions reservation
+	helper
+Date: Fri, 22 Sep 2017 15:27:58 +0100
+Message-ID: <20170922142758.GE3475@red-moon>
+References: <20170914125756.14836-1-shameerali.kolothum.thodi@huawei.com>
+	<20170914125756.14836-4-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:57454 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751926AbdIVNWA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 22 Sep 2017 09:22:00 -0400
-In-Reply-To: <1505999838-52530-4-git-send-email-guohanjun@huawei.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170914125756.14836-4-shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 21/09/17 14:17, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
+John, Shameer,
+
+On Thu, Sep 14, 2017 at 01:57:54PM +0100, Shameer Kolothum wrote:
+> From: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 > 
-> IORT revision C introduced SMMUv3 MSI support which adding a
-> device ID mapping index in SMMUv3 sub table, to get the SMMUv3
-> device ID mapping for the output ID (dev ID for ITS) and the
-> link to which ITS.
+> On some platforms msi-controller address regions have to be excluded
+> from normal IOVA allocation in that they are detected and decoded in
+> a HW specific way by system components and so they cannot be considered
+> normal IOVA address space.
 > 
-> So if a platform supports SMMUv3 MSI for control interrupt,
-> there will be a additional single map entry under SMMU, this
-> will not introduce any difference for devices just use one
-> step map to get its output ID and parent (ITS or SMMU), such
-> as PCI/NC/PMCG ---> ITS or PCI/NC ---> SMMU, but we need to
-> do the special handling for two steps map case such as
-> PCI/NC--->SMMUv3--->ITS.
+> Add a helper function that retrieves msi address regions through device
+> tree msi mapping, so that these regions will not be translated by IOMMU
+> and will be excluded from IOVA allocations.
 > 
-> Take a PCI hostbridge for example,
-> 
-> |----------------------|
-> |  Root Complex Node   |
-> |----------------------|
-> |    map entry[x]      |
-> |----------------------|
-> |       id value       |
-> | output_reference     |
-> |---|------------------|
->     |
->     |   |----------------------|
->     |-->|        SMMUv3        |
->         |----------------------|
->         |     SMMU dev ID      |
->         |     mapping index 0  |
->         |----------------------|
->         |      map entry[0]    |
->         |----------------------|
->         |       id value       |
->         | output_reference-----------> ITS 1 (SMMU MSI domain)
->         |----------------------|
->         |      map entry[1]    |
->         |----------------------|
->         |       id value       |
->         | output_reference-----------> ITS 2 (PCI MSI domain)
->         |----------------------|
-> 
-> When the SMMU dev ID mapping index is 0, there is entry[0]
-> to map to a ITS, we need to skip that map entry for PCI
-> or NC (named component), or we may get the wrong ITS parent.
-> 
-> For now we have two APIs for ID mapping, iort_node_map_id()
-> and iort_node_map_platform_id(), and iort_node_map_id() is
-> used for optional two steps mapping, so we just need to
-> skip the map entry in iort_node_map_id() for non-SMMUv3
-> devices.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 > ---
->  drivers/acpi/arm64/iort.c | 43 ++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 42 insertions(+), 1 deletion(-)
+>  drivers/iommu/of_iommu.c | 117 +++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/of_iommu.h |  10 ++++
+>  2 files changed, 127 insertions(+)
 > 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index db71d7f..269959e 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -366,6 +366,34 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+> index 8cb6082..f2d1a76 100644
+> --- a/drivers/iommu/of_iommu.c
+> +++ b/drivers/iommu/of_iommu.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/iommu.h>
+>  #include <linux/limits.h>
+>  #include <linux/of.h>
+> +#include <linux/of_address.h>
+>  #include <linux/of_iommu.h>
+>  #include <linux/of_pci.h>
+>  #include <linux/slab.h>
+> @@ -246,6 +247,122 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
+>  	return ops;
+>  }
+>  
+> +/**
+> + * of_iommu_msi_get_resv_regions - Reserved region driver helper
+> + * @dev: Device from iommu_get_resv_regions()
+> + * @list: Reserved region list from iommu_get_resv_regions()
+> + *
+> + * Returns: Number of reserved regions on success (0 if no associated
+> + *          msi parent), appropriate error value otherwise.
+> + */
+> +int of_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+> +{
+> +	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+> +	struct iommu_resv_region *region;
+> +	struct device_node *np;
+> +	struct resource res;
+> +	int i, resv = 0, mappings = 0;
+> +
+> +	if (dev_is_pci(dev)) {
+> +		struct device *dma_dev, *bridge;
+> +		struct of_phandle_args iommu_spec;
+> +		struct pci_dev *pdev = to_pci_dev(dev);
+> +		int err, count;
+> +		u32 rid, map_mask;
+> +		const __be32 *msi_map;
+> +
+> +		bridge = pci_get_host_bridge_device(pdev);
+> +		dma_dev = bridge->parent;
+> +		pci_put_host_bridge_device(bridge);
+> +
+> +		if (!dma_dev->of_node)
+> +			return -ENODEV;
+> +
+> +		iommu_spec.args_count = 1;
+> +		np = iommu_spec.np = dma_dev->of_node;
+> +		pci_for_each_dma_alias(pdev, __get_pci_rid, &iommu_spec);
+> +
+> +		rid = iommu_spec.args[0];
+> +		if (!of_property_read_u32(np, "msi-map-mask", &map_mask))
+> +			rid &= map_mask;
+> +
+> +		msi_map = of_get_property(np, "msi-map", NULL);
+> +		if (!msi_map)
+> +			return -ENODEV;
+> +
+> +		mappings = of_count_phandle_with_args(np, "msi-map", NULL) / 4;
+> +
+> +		for (i = 0, count = mappings; i < count; i++, msi_map += 4) {
+> +			struct device_node *msi_node;
+> +			u32 rid_base, rid_len, phandle;
+> +
+> +			rid_base = be32_to_cpup(msi_map + 0);
+> +			phandle = be32_to_cpup(msi_map + 1);
+> +			rid_len = be32_to_cpup(msi_map + 3);
+> +
+> +			/* check rid is within range */
+> +			if (rid < rid_base || rid >= rid_base + rid_len) {
+> +				mappings--;
+> +				continue;
+> +			}
+> +
+> +			msi_node = of_find_node_by_phandle(phandle);
+> +			if (!msi_node)
+> +				return -ENODEV;
+
+This is basically of_pci_map_rid(), I wonder whether there is not
+a way to consolidate some code here - duplicating certainly does not
+help. To make MSI reservations generic this is probably the only way
+to do it but it would be nice to reuse some OF MSI code.
+
+With the current kernel API there is a way but it is a bit whacky.
+
+Just loop over "msi-controller" nodes and try to map the device to
+them through of_pci_map_rid, if mapping succeeds reserve region for
+the target node.
+
+Not a big fan of what I am proposing but it certainly helps reuse
+some existing code that makes no sense to duplicate.
+
+> +			err = of_address_to_resource(msi_node, 0, &res);
+> +			of_node_put(msi_node);
+> +			if (err)
+> +				return err;
+> +
+> +			region = iommu_alloc_resv_region(res.start,
+> +							 resource_size(&res),
+> +							 prot, IOMMU_RESV_MSI);
+> +			if (region) {
+> +				list_add_tail(&region->list, head);
+> +				resv++;
+> +			}
+> +		}
+> +	} else if (dev->of_node) {
+> +		struct device_node *msi_np;
+> +		int index = 0;
+> +		int tuples;
+> +
+> +		np = dev->of_node;
+> +
+> +		tuples = of_count_phandle_with_args(np, "msi-parent", NULL);
+> +
+> +		while (index < tuples) {
+
+Would not be easier to have an of_parse_phandle_with_args() loop here ?
+
+Lorenzo
+
+> +			int msi_cells = 0;
+> +			int err;
+> +
+> +			msi_np = of_parse_phandle(np, "msi-parent", index);
+> +			if (!msi_np)
+> +				return -ENODEV;
+> +
+> +			of_property_read_u32(msi_np, "#msi-cells", &msi_cells);
+> +
+> +			err = of_address_to_resource(msi_np, 0, &res);
+> +			of_node_put(msi_np);
+> +			if (err)
+> +				return err;
+> +
+> +			mappings++;
+> +
+> +			region = iommu_alloc_resv_region(res.start,
+> +							 resource_size(&res),
+> +							 prot, IOMMU_RESV_MSI);
+> +			if (region) {
+> +				list_add_tail(&region->list, head);
+> +				resv++;
+> +			}
+> +			index += 1 + msi_cells;
+> +		}
+> +	}
+> +
+> +	return (resv == mappings) ? resv : -ENODEV;
+> +}
+> +
+>  static int __init of_iommu_init(void)
+>  {
+>  	struct device_node *np;
+> diff --git a/include/linux/of_iommu.h b/include/linux/of_iommu.h
+> index 13394ac..9267772 100644
+> --- a/include/linux/of_iommu.h
+> +++ b/include/linux/of_iommu.h
+> @@ -14,6 +14,9 @@ extern int of_get_dma_window(struct device_node *dn, const char *prefix,
+>  extern const struct iommu_ops *of_iommu_configure(struct device *dev,
+>  					struct device_node *master_np);
+>  
+> +extern int of_iommu_msi_get_resv_regions(struct device *dev,
+> +					struct list_head *head);
+> +
+>  #else
+>  
+>  static inline int of_get_dma_window(struct device_node *dn, const char *prefix,
+> @@ -29,6 +32,13 @@ static inline const struct iommu_ops *of_iommu_configure(struct device *dev,
 >  	return NULL;
 >  }
 >  
-> +static int iort_get_smmu_v3_id_mapping_index(struct acpi_iort_node *node,
-> +					     u32 *index)
+> +static int of_iommu_msi_get_resv_regions(struct device *dev,
+> +					struct list_head *head)
 > +{
-> +	struct acpi_iort_smmu_v3 *smmu;
-> +
-> +	/*
-> +	 * SMMUv3 dev ID mapping index was introdueced in revision 1
-> +	 * table, not avaible in revision 0
-> +	 */
-> +	if (node->revision < 1)
-> +		return -EINVAL;
-> +
-> +	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
-> +	/* if any of the gsi for control interrupts is not 0, ignore the MSI */
-> +	if (smmu->event_gsiv || smmu->pri_gsiv || smmu->gerr_gsiv
-> +	    || smmu->sync_gsiv)
-
-To repeat my previous comments, the ID mapping index is only ignored if
-*all* interrupts are GSIV-based.
-
-It would be quite reasonable for gerr to be wired while everything else
-uses MSIs, especially since that's effectively the only reliable way to
-get MSI aborts reported if things are completely hosed.
-
-> +		return -EINVAL;
-> +
-> +	if (smmu->id_mapping_index >= node->mapping_count) {
-> +		pr_err(FW_BUG "[node %p type %d] ID mapping index overflows valid mappings\n",
-> +		       node, node->type);
-> +		return -EINVAL;
-> +	}
-> +
-> +	*index = smmu->id_mapping_index;
-> +	return 0;
+> +	return -ENODEV;
 > +}
 > +
->  static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
->  					       u32 id_in, u32 *id_out,
->  					       u8 type_mask)
-> @@ -375,7 +403,9 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
->  	/* Parse the ID mapping tree to find specified node type */
->  	while (node) {
->  		struct acpi_iort_id_mapping *map;
-> -		int i;
-> +		int i, ret = -EINVAL;
-> +		/* big enough for an invalid id index in practical */
-> +		u32 index = U32_MAX;
-
-And again, more of a style nit, but indices must be sufficiently small
-to fit into the positive half of an int, so *_id_mapping_index() really
-doesn't need this complication of passing a separate output argument.
-
-Robin.
-
->  		if (IORT_TYPE_MASK(node->type) & type_mask) {
->  			if (id_out)
-> @@ -396,8 +426,19 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
->  			goto fail_map;
->  		}
+> +
+>  #endif	/* CONFIG_OF_IOMMU */
 >  
-> +		/*
-> +		 *  we need to get SMMUv3 dev ID mapping index and skip its
-> +		 *  associated ID map for single mapping cases.
-> +		 */
-> +		if (node->type == ACPI_IORT_NODE_SMMU_V3)
-> +			ret = iort_get_smmu_v3_id_mapping_index(node, &index);
-> +
->  		/* Do the ID translation */
->  		for (i = 0; i < node->mapping_count; i++, map++) {
-> +			/* if it's a SMMUv3 device id mapping index, skip it */
-> +			if (!ret && i == index)
-> +				continue;
-> +
->  			if (!iort_id_map(map, node->type, id, &id))
->  				break;
->  		}
+>  extern struct of_device_id __iommu_of_table;
+> -- 
+> 1.9.1
 > 
-
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
