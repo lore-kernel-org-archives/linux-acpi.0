@@ -1,87 +1,118 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH] platform/x86: intel-hid: Power button suspend on Dell
- Latitude 7275
-Date: Fri, 22 Sep 2017 16:45:43 -0700
-Message-ID: <20170922234543.GB20327@fury>
-References: <20170917225712.12136-1-jerome.debretagne@gmail.com>
+From: Zhou Wang <wangzhou1@hisilicon.com>
+Subject: Re: [PATCH] ACPI/IORT: Fix PCI ACS enablement
+Date: Sat, 23 Sep 2017 10:26:29 +0800
+Message-ID: <59C5C655.8030607@hisilicon.com>
+References: <20170919170539.6265-1-lorenzo.pieralisi@arm.com>
+ <59C3A36A.2060202@hisilicon.com> <20170922094546.GE1523@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170917225712.12136-1-jerome.debretagne@gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: =?iso-8859-1?B?Suly9G1l?= de Bretagne <jerome.debretagne@gmail.com>
-Cc: platform-driver-x86@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, Mario Limonciello <mario.limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:6982 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751897AbdIWC0q (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Sep 2017 22:26:46 -0400
+In-Reply-To: <20170922094546.GE1523@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Alex Williamson <alex.williamson@redhat.com>
 
-On Mon, Sep 18, 2017 at 12:57:12AM +0200, Jérôme de Bretagne wrote:
-> From: Jérôme de Bretagne <jerome.debretagne@gmail.com>
+On 2017/9/22 17:45, Lorenzo Pieralisi wrote:
+> On Thu, Sep 21, 2017 at 07:32:58PM +0800, Zhou Wang wrote:
+>> On 2017/9/20 1:05, Lorenzo Pieralisi wrote:
+>>> commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
+>>> workarounds") removed kernel code that was allowing to initialize
+>>> and probe the SMMU devices early (ie earlier than PCI devices through
+>>> linker script callback entries) in the boot process because it was not
+>>> needed any longer in that the SMMU devices/drivers now support deferred
+>>> probing.
+>>>
+>>> Since the SMMUs probe routines are also in charge of requesting global
+>>> PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
+>>> up early-probing workarounds") also postponed PCI ACS enablement to
+>>> SMMUs devices probe time, which may be too late given that PCI devices
+>>> needs to detect if PCI ACS is enabled to init the respective capability
+>>> through the following call path:
+>>>
+>>> pci_device_add()
+>>>  -> pci_init_capabilities()
+>>>   -> pci_enable_acs()
+>>>
+>>> Add code in the ACPI IORT SMMU platform devices initialization path
+>>> (that is called before ACPI PCI enumeration) to detect if an SMMU is
+>>> present in HW and enable PCI ACS if it actually is, restoring the
+>>> correct PCI ACS enablement sequencing.
+>>>
+>>> Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
+>>> Signed-workarounds")
+>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>> Cc: Will Deacon <will.deacon@arm.com>
+>>> Cc: Robin Murphy <robin.murphy@arm.com>
+>>> Cc: Zhou Wang <wangzhou1@hisilicon.com>
+>>> Cc: Alex Williamson <alex.williamson@redhat.com>
+>>> ---
+>>>  drivers/acpi/arm64/iort.c | 11 +++++++++++
+>>>  1 file changed, 11 insertions(+)
+>>>
+>>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>>> index 9565d57..71a7694 100644
+>>> --- a/drivers/acpi/arm64/iort.c
+>>> +++ b/drivers/acpi/arm64/iort.c
+>>> @@ -1184,6 +1184,7 @@ static void __init iort_init_platform_devices(void)
+>>>  	struct acpi_table_iort *iort;
+>>>  	struct fwnode_handle *fwnode;
+>>>  	int i, ret;
+>>> +	bool smmu_detected = false;
+>>>  
+>>>  	/*
+>>>  	 * iort_table and iort both point to the start of IORT table, but
+>>> @@ -1218,11 +1219,21 @@ static void __init iort_init_platform_devices(void)
+>>>  				acpi_free_fwnode_static(fwnode);
+>>>  				return;
+>>>  			}
+>>> +
+>>> +			smmu_detected = true;
+>>>  		}
+>>>  
+>>>  		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
+>>>  					 iort_node->length);
+>>>  	}
+>>> +
+>>> +	/*
+>>> +	 * If IORT reports an SMMU component make sure PCI ACS is
+>>> +	 * requested so that PCI devices can enable it in their
+>>> +	 * capabilities.
+>>> +	 */
+>>> +	if (smmu_detected)
+>>> +		pci_request_acs();
+>>>  }
+>>>  
+>>>  void __init acpi_iort_init(void)
+>>>
+>>
+>> Hi Lorenzo,
+>>
+>> I tested this patch, it works well in my HiSilicon Hip08 based system.
+>> However, setting ACS flag at the stage of SMMU device init seems not good,
+>> I mean what if in one system there are only platform devices connected to
+>> SMMU device.
 > 
-> On Dell Latitude 7275 the 5-button array is not exposed in the
-> ACPI tables, but still notifies are sent to the Intel HID device
-> object (device ID INT33D5) in response to power button actions.
-> They were ignored as the intel-hid driver was not prepared to
-> take care of them until recently.
-> 
-> Power button wakeup from suspend-to-idle was added in:
-> 635173a17b03 ("intel-hid: Wake up Dell Latitude 7275 from
-> suspend-to-idle"). However power button suspend doesn't work
-> yet on this platform so it would be good to add it also.
-> 
-> On the affected platform (for which priv->array is NULL), add
-> a new upfront check against the power button press notification
-> (0xCE) to notify_handler(), outside the wakeup mode this time,
-> which allows to report the power button press event and
-> trigger the suspend. Also catch and ignore the corresponding
-> power button release notification (0xCF) to stop it from being
-> reported as an "unknown event" in the logs.
-> 
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=196115
-> Tested-by: Jérôme de Bretagne <jerome.debretagne@gmail.com>
-> Signed-off-by: Jérôme de Bretagne <jerome.debretagne@gmail.com>
-> ---
->  drivers/platform/x86/intel-hid.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/drivers/platform/x86/intel-hid.c b/drivers/platform/x86/intel-hid.c
-> index a782c78e7c63..b19f8dcf9d8c 100644
-> --- a/drivers/platform/x86/intel-hid.c
-> +++ b/drivers/platform/x86/intel-hid.c
-> @@ -226,6 +226,22 @@ static void notify_handler(acpi_handle handle, u32 event, void *context)
->  		return;
->  	}
->  
-> +	/*
-> +	 * Needed for suspend to work on some platforms that don't expose
-> +	 * the 5-button array, but still send notifies with power button
-> +	 * event code to this device object on power button actions.
-> +	 *
-> +	 * Report the power button press; catch and ignore the button release.
-> +	 */
-> +	if (!priv->array) {
-> +		if (event == 0xce) {
-> +			input_report_key(priv->input_dev, KEY_POWER, 1);
-> +			input_sync(priv->input_dev);
-> +			return;
-> +		} else if (event == 0xcf)
-> +			return;
+> That's a fair point if you explain to me how current pci_request_acs()
+> usage copes with your remark above.
 
-Minor CodingStyle nit. If the if block uses parens, so does the else block. In
-this case, since the if returns, just skip the else entirely.
+The current pci_request_acs usage for ARM SMMU-V3 sets ACS flags under CONFIG_PCI.
+However, as mentioned in your commit message, this setting is too late.
 
-See Documentation/process/coding-style.rst
-The example immediatley *before* 3.1) Spaces.
+For the usage of X86 and AMD, as I am not familiar with the devices used in these
+two platforms, maybe the default devices in these platforms are PCIe based :)
 
-I've made this change and queued for testing.
+Best,
+Zhou
 
-> +	}
-> +
->  	/* 0xC0 is for HID events, other values are for 5 button array */
->  	if (event != 0xc0) {
->  		if (!priv->array ||
+> 
+> Lorenzo
+> 
+> .
 > 
 
--- 
-Darren Hart
-VMware Open Source Technology Center
