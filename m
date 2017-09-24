@@ -1,41 +1,61 @@
-From: Mr Soumaila Sorgho <nicolemarois7410@gmail.com>
-Subject: Greetings From Mr. Soumaila Sorgho
-Date: Sun, 24 Sep 2017 00:28:45 +0000
-Message-ID: <CAEPXuGP_S1nzOuCb92T8n+CdQLo_m87=bkNTKma0apv7oMyY3w@mail.gmail.com>
-Reply-To: soumailasorgho@yandex.com
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH v4 2/3] PM / mfd: intel-lpss: Push system sleep callbacks to late/early stages
+Date: Mon, 25 Sep 2017 01:20:35 +0200
+Message-ID: <4332008.kXBLY0K23i@aspire.rjw.lan>
+References: <3023226.l5IfJK6GIc@aspire.rjw.lan> <3958866.l2qnKDbinI@aspire.rjw.lan> <65494652.vEfz4tCBDb@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f66.google.com ([209.85.213.66]:35013 "EHLO
-        mail-vk0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751495AbdIXA2q (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Sep 2017 20:28:46 -0400
-Received: by mail-vk0-f66.google.com with SMTP id h191so1111688vke.2
-        for <linux-acpi@vger.kernel.org>; Sat, 23 Sep 2017 17:28:46 -0700 (PDT)
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:53961 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753537AbdIXXkm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 24 Sep 2017 19:40:42 -0400
+In-Reply-To: <65494652.vEfz4tCBDb@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pm@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Lee Jones <lee.jones@linaro.org>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Rajat Jain <rajatja@google.com>
 
--- 
-Greetings From Mr. Soumaila Sorgho
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-	I have a Mutual/Beneficial Business Project that would be beneficial
-to you. I only have two questions to ask of you, if you are
-interested.
+Push the system suspend/resume callbacks of intel-lpss to the late
+suspend/early resume stages to allow child device callbacks to be
+pushed to the late/early stages of suspend/resume too, so as to
+make it possible to avoid resuming the children if they are runtime-
+suspended during system suspend going forward.
 
-1. Can you handle this project?
-2. Can I give you this trust?
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Tested-by: Johannes Stezenbach <js@sig21.net>
+Tested-by: Rajat Jain <rajatja@google.com>
+---
 
-Please note that the deal requires high level of maturity, honesty and
-secrecy. This will involve moving some money from my office, on trust
-to your hands or bank account. Also note that i will do everything to
-make sure that the money is moved as a purely legitimate fund, so you
-will not be exposed to any risk.
+v3 -> v4: Added Tested-by tags.
 
-I request for your full co-operation. I will give you details and
-procedure when I receive your reply, to commence this transaction, I
-require you to immediately indicate your interest by a return reply. I
-will be waiting for your response in a timely manner.
+---
+ drivers/mfd/intel-lpss.h |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-Contact  Email: soumailasorgho@yandex.com
-Best Regard,
-Mr. Soumaila Sorgho
+Index: linux-pm/drivers/mfd/intel-lpss.h
+===================================================================
+--- linux-pm.orig/drivers/mfd/intel-lpss.h
++++ linux-pm/drivers/mfd/intel-lpss.h
+@@ -38,12 +38,7 @@ int intel_lpss_resume(struct device *dev
+ #ifdef CONFIG_PM_SLEEP
+ #define INTEL_LPSS_SLEEP_PM_OPS			\
+ 	.prepare = intel_lpss_prepare,		\
+-	.suspend = intel_lpss_suspend,		\
+-	.resume = intel_lpss_resume,		\
+-	.freeze = intel_lpss_suspend,		\
+-	.thaw = intel_lpss_resume,		\
+-	.poweroff = intel_lpss_suspend,		\
+-	.restore = intel_lpss_resume,
++	SET_LATE_SYSTEM_SLEEP_PM_OPS(intel_lpss_suspend, intel_lpss_resume)
+ #else
+ #define INTEL_LPSS_SLEEP_PM_OPS
+ #endif
+
+
