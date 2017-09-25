@@ -1,70 +1,116 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] libnvdimm: introduce 'flags' attribute for DIMM 'lock' and
- 'alias' status
-Date: Mon, 25 Sep 2017 13:50:24 -0700
-Message-ID: <150637262477.11427.4877320960461490551.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [Update][PATCH v5 1/3] PM: i2c-designware-platdrv: Clean up PM handling in probe
+Date: Mon, 25 Sep 2017 23:10:06 +0200
+Message-ID: <188302021.o3ml4PkeyZ@aspire.rjw.lan>
+References: <3023226.l5IfJK6GIc@aspire.rjw.lan> <65494652.vEfz4tCBDb@aspire.rjw.lan> <2813826.3DA0fVXnVa@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2813826.3DA0fVXnVa@aspire.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-pm@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Lee Jones <lee.jones@linaro.org>, Rajat Jain <rajatja@google.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Given that we now how have two mechanisms for a DIMM to indicate that it
-is locked:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-    * NVDIMM_FAMILY_INTEL 'get_config_size' _DSM command
+The power management handling in dw_i2c_plat_probe() is somewhat
+messy and it is rather hard to figure out the code intention for
+the case when pm_disabled is set.  In that case, the driver doesn't
+enable runtime PM at all, but in addition to that it calls
+pm_runtime_forbid() as though it wasn't sure if runtime PM might
+be enabled for the device later by someone else.
 
-    * ACPI 6.2 Label Storage Read / Write commands
+Although that concern doesn't seem to be actually valid, the
+device is clearly still expected to be PM-capable even in the
+pm_disabled set case, so a better approach would be to enable
+runtime PM for it unconditionally and prevent it from being
+runtime-suspended by using pm_runtime_get_noresume().
 
-...export the generic libnvdimm DIMM status in a new 'flags' attribute.
+Make the driver do that.
 
-This attribute can also reflect the 'alias' state which indicates
-whether the nvdimm core is enforcing labels for aliased-region-capacity
-that the given dimm is an interleave-set member.
-
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/nvdimm/dimm_devs.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 5f1385b96b13..097794d9f786 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -331,6 +331,17 @@ static ssize_t commands_show(struct device *dev,
+v4 -> v5: Address the Ulf's comment that pm_runtime_forbid() was not
+  suitable for preventing runtime suspends of the device from occurring
+  (as it could be overridden by user space) and update the changelog.
+
+  Also drop the tags as the patch changed (although that change shouldn't
+  matter on systems where pm_disabled is not set).
+
+v3 -> v4: Added Tested-by tags.
+
+-> v3: Small update of the changelog.
+
+---
+ drivers/i2c/busses/i2c-designware-platdrv.c |   34 ++++++++++++++++++----------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
+
+Index: linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
+===================================================================
+--- linux-pm.orig/drivers/i2c/busses/i2c-designware-platdrv.c
++++ linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
+@@ -249,6 +249,14 @@ static void dw_i2c_set_fifo_size(struct
+ 	}
  }
- static DEVICE_ATTR_RO(commands);
  
-+static ssize_t flags_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
++static void dw_i2c_plat_pm_cleanup(struct dw_i2c_dev *dev)
 +{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
++	pm_runtime_disable(dev->dev);
 +
-+	return sprintf(buf, "%s%s\n",
-+			test_bit(NDD_ALIASING, &nvdimm->flags) ? "alias " : "",
-+			test_bit(NDD_LOCKED, &nvdimm->flags) ? "lock " : "");
++	if (dev->pm_disabled)
++		pm_runtime_put_noidle(dev->dev);
 +}
-+static DEVICE_ATTR_RO(flags);
 +
- static ssize_t state_show(struct device *dev, struct device_attribute *attr,
- 		char *buf)
+ static int dw_i2c_plat_probe(struct platform_device *pdev)
  {
-@@ -372,6 +383,7 @@ static DEVICE_ATTR_RO(available_slots);
+ 	struct dw_i2c_platform_data *pdata = dev_get_platdata(&pdev->dev);
+@@ -362,14 +370,17 @@ static int dw_i2c_plat_probe(struct plat
+ 	ACPI_COMPANION_SET(&adap->dev, ACPI_COMPANION(&pdev->dev));
+ 	adap->dev.of_node = pdev->dev.of_node;
  
- static struct attribute *nvdimm_attributes[] = {
- 	&dev_attr_state.attr,
-+	&dev_attr_flags.attr,
- 	&dev_attr_commands.attr,
- 	&dev_attr_available_slots.attr,
- 	NULL,
+-	if (dev->pm_disabled) {
+-		pm_runtime_forbid(&pdev->dev);
+-	} else {
+-		pm_runtime_set_autosuspend_delay(&pdev->dev, 1000);
+-		pm_runtime_use_autosuspend(&pdev->dev);
+-		pm_runtime_set_active(&pdev->dev);
+-		pm_runtime_enable(&pdev->dev);
+-	}
++	/* The code below assumes runtime PM to be disabled. */
++	WARN_ON(pm_runtime_enabled(&pdev->dev));
++
++	pm_runtime_set_autosuspend_delay(&pdev->dev, 1000);
++	pm_runtime_use_autosuspend(&pdev->dev);
++	pm_runtime_set_active(&pdev->dev);
++
++	if (dev->pm_disabled)
++		pm_runtime_get_noresume(&pdev->dev);
++
++	pm_runtime_enable(&pdev->dev);
+ 
+ 	if (dev->mode == DW_IC_SLAVE)
+ 		ret = i2c_dw_probe_slave(dev);
+@@ -382,8 +393,7 @@ static int dw_i2c_plat_probe(struct plat
+ 	return ret;
+ 
+ exit_probe:
+-	if (!dev->pm_disabled)
+-		pm_runtime_disable(&pdev->dev);
++	dw_i2c_plat_pm_cleanup(dev);
+ exit_reset:
+ 	if (!IS_ERR_OR_NULL(dev->rst))
+ 		reset_control_assert(dev->rst);
+@@ -402,8 +412,8 @@ static int dw_i2c_plat_remove(struct pla
+ 
+ 	pm_runtime_dont_use_autosuspend(&pdev->dev);
+ 	pm_runtime_put_sync(&pdev->dev);
+-	if (!dev->pm_disabled)
+-		pm_runtime_disable(&pdev->dev);
++	dw_i2c_plat_pm_cleanup(dev);
++
+ 	if (!IS_ERR_OR_NULL(dev->rst))
+ 		reset_control_assert(dev->rst);
+ 
