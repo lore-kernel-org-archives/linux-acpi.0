@@ -1,56 +1,347 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v4 0/3] i2c: designware: Runtime PM aware system sleep handling
-Date: Mon, 25 Sep 2017 01:13:29 +0200
-Message-ID: <65494652.vEfz4tCBDb@aspire.rjw.lan>
-References: <3023226.l5IfJK6GIc@aspire.rjw.lan> <3958866.l2qnKDbinI@aspire.rjw.lan>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi, nfit: add support for the _LSI, _LSR,
+ and _LSW label methods
+Date: Sun, 24 Sep 2017 23:07:22 -0700
+Message-ID: <150631964261.32144.17661935796100412603.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <3958866.l2qnKDbinI@aspire.rjw.lan>
-Sender: linux-i2c-owner@vger.kernel.org
-To: linux-pm@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Lee Jones <lee.jones@linaro.org>, Rajat Jain <rajatja@google.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+ACPI 6.2 adds support for named methods to access the label storage area
+of an NVDIMM. We prefer these new methods if available and otherwise
+fallback to the NVDIMM_FAMILY_INTEL _DSMs. The kernel ioctls,
+ND_IOCTL_{GET,SET}_CONFIG_{SIZE,DATA}, remain generic and the driver
+translates the 'package' payloads into the NVDIMM_FAMILY_INTEL 'buffer'
+format to maintain compatibility with existing userspace and keep the
+output buffer parsing code in the driver common.
 
-The original purpose of this set was as stated below:
+The output payloads are mostly compatible save for the 'label area
+locked' status that moves from the 'config_size' (_LSI) command to the
+'config_read' (_LSR) command status.
 
-On Wednesday, September 6, 2017 1:41:37 AM CEST Rafael J. Wysocki wrote:
-> On Monday, September 4, 2017 1:05:57 AM CEST Rafael J. Wysocki wrote:
-> > Hi,
-> 
-> An update related to the dependency on intel-lpss.
-> 
-> > The point here is to avoid runtime resuming i2c designware devices during
-> > system suspend in the driver's ->suspend callback in the case when the
-> > ACPI PM domain is not present.  That will allow us to deal with the
-> > ACPI PM domain case going forward, among other things.
-> > 
-> > The first patch cleans up the runtime PM handling in the i2c-designware-platdrv
-> > _probe() routine so as to make it enable runtime PM in all cases, but prevent
-> > the device from being runtime suspended via pm_runtime_forbid() if
-> > pm_disabled is set.
-> 
-> The second one pushed the intel-lpss system suspend/resume callbacks to the
-> late/early stages of suspend/resume, respectively, so that the i2c-designware-platdrv
-> ones can be pushed too.
-> 
-> > The second one get rids of some ugly code and makes the PM callbacks of the
-> > driver handle runtime-suspended devices during system suspend/resume.
-> 
-> This is the third one and it does less than it did before now.
-> 
+Cc: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/acpi/nfit/core.c |  213 +++++++++++++++++++++++++++++++++++++++++++++-
+ drivers/acpi/nfit/nfit.h |    3 +
+ drivers/nvdimm/dimm.c    |    2 
+ 3 files changed, 214 insertions(+), 4 deletions(-)
 
-In the meantime, though, Rajat reported that there actually were problems with
-i2c-designware being suspended too early (as in some cases dependent device
-drivers attempted to use i2c during the late suspend phase of system suspend),
-so here it goes again as a fix.
-
-Patches [1-2/3] have not changed since v3 (other than by acquiring tags) and
-patch [3/3] has only been rebased on top of 4.14-rc1 (and has acquired some
-tags too).
-
-Thanks,
-Rafael
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 3369bb8fd9ba..ebe0857ac346 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -183,13 +183,33 @@ static int xlat_bus_status(void *buf, unsigned int cmd, u32 status)
+ 	return 0;
+ }
+ 
+-static int xlat_nvdimm_status(void *buf, unsigned int cmd, u32 status)
++#define ACPI_LABELS_LOCKED 3
++
++static int xlat_nvdimm_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd,
++		u32 status)
+ {
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++
+ 	switch (cmd) {
+ 	case ND_CMD_GET_CONFIG_SIZE:
++		/*
++		 * In the _LSI, _LSR, _LSW case the locked status is
++		 * communicated via the read/write commands
++		 */
++		if (nfit_mem->has_lsi)
++			break;
++
+ 		if (status >> 16 & ND_CONFIG_LOCKED)
+ 			return -EACCES;
+ 		break;
++	case ND_CMD_GET_CONFIG_DATA:
++		if (nfit_mem->has_lsr && status == ACPI_LABELS_LOCKED)
++			return -EACCES;
++		break;
++	case ND_CMD_SET_CONFIG_DATA:
++		if (nfit_mem->has_lsw && status == ACPI_LABELS_LOCKED)
++			return -EACCES;
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -205,13 +225,156 @@ static int xlat_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd,
+ {
+ 	if (!nvdimm)
+ 		return xlat_bus_status(buf, cmd, status);
+-	return xlat_nvdimm_status(buf, cmd, status);
++	return xlat_nvdimm_status(nvdimm, buf, cmd, status);
++}
++
++/* convert _LS{I,R} packages to the buffer object acpi_nfit_ctl expects */
++static union acpi_object *pkg_to_buf(union acpi_object *pkg)
++{
++	int i;
++	void *dst;
++	size_t size = 0;
++	union acpi_object *buf = NULL;
++
++	if (pkg->type != ACPI_TYPE_PACKAGE) {
++		WARN_ONCE(1, "BIOS bug, unexpected element type: %d\n",
++				pkg->type);
++		goto err;
++	}
++
++	for (i = 0; i < pkg->package.count; i++) {
++		union acpi_object *obj = &pkg->package.elements[i];
++
++		if (obj->type == ACPI_TYPE_INTEGER)
++			size += 4;
++		else if (obj->type == ACPI_TYPE_BUFFER)
++			size += obj->buffer.length;
++		else {
++			WARN_ONCE(1, "BIOS bug, unexpected element type: %d\n",
++					obj->type);
++			goto err;
++		}
++	}
++
++	buf = ACPI_ALLOCATE(sizeof(*buf) + size);
++	if (!buf)
++		goto err;
++
++	dst = buf + 1;
++	buf->type = ACPI_TYPE_BUFFER;
++	buf->buffer.length = size;
++	buf->buffer.pointer = dst;
++	for (i = 0; i < pkg->package.count; i++) {
++		union acpi_object *obj = &pkg->package.elements[i];
++
++		if (obj->type == ACPI_TYPE_INTEGER) {
++			memcpy(dst, &obj->integer.value, 4);
++			dst += 4;
++		} else if (obj->type == ACPI_TYPE_BUFFER) {
++			memcpy(dst, obj->buffer.pointer, obj->buffer.length);
++			dst += obj->buffer.length;
++		}
++	}
++err:
++	ACPI_FREE(pkg);
++	return buf;
++}
++
++static union acpi_object *int_to_buf(union acpi_object *integer)
++{
++	union acpi_object *buf = ACPI_ALLOCATE(sizeof(*buf) + 4);
++	void *dst = NULL;
++
++	if (!buf)
++		goto err;
++
++	if (integer->type != ACPI_TYPE_INTEGER) {
++		WARN_ONCE(1, "BIOS bug, unexpected element type: %d\n",
++				integer->type);
++		goto err;
++	}
++
++	dst = buf + 1;
++	buf->type = ACPI_TYPE_BUFFER;
++	buf->buffer.length = 4;
++	buf->buffer.pointer = dst;
++	memcpy(dst, &integer->integer.value, 4);
++err:
++	ACPI_FREE(integer);
++	return buf;
++}
++
++static union acpi_object *acpi_label_write(acpi_handle handle, u32 offset,
++		u32 len, void *data)
++{
++	acpi_status rc;
++	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
++	struct acpi_object_list input = {
++		.count = 3,
++		.pointer = (union acpi_object []) {
++			[0] = {
++				.integer.type = ACPI_TYPE_INTEGER,
++				.integer.value = offset,
++			},
++			[1] = {
++				.integer.type = ACPI_TYPE_INTEGER,
++				.integer.value = len,
++			},
++			[2] = {
++				.buffer.type = ACPI_TYPE_BUFFER,
++				.buffer.pointer = data,
++				.buffer.length = len,
++			},
++		},
++	};
++
++	rc = acpi_evaluate_object(handle, "_LSW", &input, &buf);
++	if (ACPI_FAILURE(rc))
++		return NULL;
++	return int_to_buf(buf.pointer);
++}
++
++static union acpi_object *acpi_label_read(acpi_handle handle, u32 offset,
++		u32 len)
++{
++	acpi_status rc;
++	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
++	struct acpi_object_list input = {
++		.count = 2,
++		.pointer = (union acpi_object []) {
++			[0] = {
++				.integer.type = ACPI_TYPE_INTEGER,
++				.integer.value = offset,
++			},
++			[1] = {
++				.integer.type = ACPI_TYPE_INTEGER,
++				.integer.value = len,
++			},
++		},
++	};
++
++	rc = acpi_evaluate_object(handle, "_LSR", &input, &buf);
++	if (ACPI_FAILURE(rc))
++		return NULL;
++	return pkg_to_buf(buf.pointer);
++}
++
++static union acpi_object *acpi_label_info(acpi_handle handle)
++{
++	acpi_status rc;
++	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
++
++	rc = acpi_evaluate_object(handle, "_LSI", NULL, &buf);
++	if (ACPI_FAILURE(rc))
++		return NULL;
++	return pkg_to_buf(buf.pointer);
+ }
+ 
+ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	union acpi_object in_obj, in_buf, *out_obj;
+ 	const struct nd_cmd_desc *desc = NULL;
+ 	struct device *dev = acpi_desc->dev;
+@@ -235,7 +398,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	}
+ 
+ 	if (nvdimm) {
+-		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 		struct acpi_device *adev = nfit_mem->adev;
+ 
+ 		if (!adev)
+@@ -294,7 +456,21 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 			in_buf.buffer.pointer,
+ 			min_t(u32, 256, in_buf.buffer.length), true);
+ 
+-	out_obj = acpi_evaluate_dsm(handle, guid, 1, func, &in_obj);
++	/* call the BIOS, prefer the named methods over _DSM if available */
++	if (cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsi)
++		out_obj = acpi_label_info(handle);
++	else if (cmd == ND_CMD_GET_CONFIG_DATA && nfit_mem->has_lsr) {
++		struct nd_cmd_get_config_data_hdr *p = buf;
++
++		out_obj = acpi_label_read(handle, p->in_offset, p->in_length);
++	} else if (cmd == ND_CMD_SET_CONFIG_DATA && nfit_mem->has_lsw) {
++		struct nd_cmd_set_config_hdr *p = buf;
++
++		out_obj = acpi_label_write(handle, p->in_offset, p->in_length,
++				p->in_buf);
++	} else
++		out_obj = acpi_evaluate_dsm(handle, guid, 1, func, &in_obj);
++
+ 	if (!out_obj) {
+ 		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
+ 				cmd_name);
+@@ -1431,6 +1607,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ {
+ 	struct acpi_device *adev, *adev_dimm;
+ 	struct device *dev = acpi_desc->dev;
++	union acpi_object *obj;
+ 	unsigned long dsm_mask;
+ 	const guid_t *guid;
+ 	int i;
+@@ -1496,6 +1673,27 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		if (acpi_check_dsm(adev_dimm->handle, guid, 1, 1ULL << i))
+ 			set_bit(i, &nfit_mem->dsm_mask);
+ 
++	obj = acpi_label_info(adev_dimm->handle);
++	if (obj) {
++		ACPI_FREE(obj);
++		nfit_mem->has_lsi = 1;
++		dev_dbg(dev, "%s: has _LSI\n", dev_name(&adev_dimm->dev));
++	}
++
++	obj = acpi_label_read(adev_dimm->handle, 0, 0);
++	if (obj) {
++		ACPI_FREE(obj);
++		nfit_mem->has_lsr = 1;
++		dev_dbg(dev, "%s: has _LSR\n", dev_name(&adev_dimm->dev));
++	}
++
++	obj = acpi_label_write(adev_dimm->handle, 0, 0, NULL);
++	if (obj) {
++		ACPI_FREE(obj);
++		nfit_mem->has_lsw = 1;
++		dev_dbg(dev, "%s: has _LSW\n", dev_name(&adev_dimm->dev));
++	}
++
+ 	return 0;
+ }
+ 
+@@ -1574,6 +1772,13 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
+ 			cmd_mask |= nfit_mem->dsm_mask;
+ 
++		if (nfit_mem->has_lsi)
++			set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
++		if (nfit_mem->has_lsr)
++			set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
++		if (nfit_mem->has_lsw)
++			set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
++
+ 		flush = nfit_mem->nfit_flush ? nfit_mem->nfit_flush->flush
+ 			: NULL;
+ 		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index f2c6380bdbb2..3976d649f27c 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -140,6 +140,9 @@ struct nfit_mem {
+ 	struct resource *flush_wpq;
+ 	unsigned long dsm_mask;
+ 	int family;
++	u32 has_lsi:1;
++	u32 has_lsr:1;
++	u32 has_lsw:1;
+ };
+ 
+ struct acpi_nfit_desc {
+diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
+index e0f0e3ce1a32..862bcbd96366 100644
+--- a/drivers/nvdimm/dimm.c
++++ b/drivers/nvdimm/dimm.c
+@@ -55,6 +55,8 @@ static int nvdimm_probe(struct device *dev)
+ 		goto err;
+ 
+ 	rc = nvdimm_init_config_data(ndd);
++	if (rc == -EACCES)
++		nvdimm_set_locked(dev);
+ 	if (rc)
+ 		goto err;
