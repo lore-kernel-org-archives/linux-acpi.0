@@ -1,44 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 2/3] PM / mfd: intel-lpss: Push system sleep callbacks to late/early stages
-Date: Mon, 25 Sep 2017 14:50:56 +0200
-Message-ID: <3654965.TWMXy0zEsZ@aspire.rjw.lan>
-References: <3023226.l5IfJK6GIc@aspire.rjw.lan> <4332008.kXBLY0K23i@aspire.rjw.lan> <20170925072847.nl2a6feqzrzdcxwz@ninjato>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: ACPI object counter overrun on frequent nvme resets
+Date: Mon, 25 Sep 2017 06:07:29 -0700
+Message-ID: <20170925130729.GA14151@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170925072847.nl2a6feqzrzdcxwz@ninjato>
-Sender: linux-pm-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-pm@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Rajat Jain <rajatja@google.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([65.50.211.133]:33128 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934495AbdIYNHa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Sep 2017 09:07:30 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-nvme@lists.infradead.org
 
-On Monday, September 25, 2017 9:28:47 AM CEST Wolfram Sang wrote:
-> On Mon, Sep 25, 2017 at 01:20:35AM +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Push the system suspend/resume callbacks of intel-lpss to the late
-> > suspend/early resume stages to allow child device callbacks to be
-> > pushed to the late/early stages of suspend/resume too, so as to
-> > make it possible to avoid resuming the children if they are runtime-
-> > suspended during system suspend going forward.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-> > Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Tested-by: Johannes Stezenbach <js@sig21.net>
-> > Tested-by: Rajat Jain <rajatja@google.com>
-> 
-> If this series shall go in via I2C, I'd need an ack from Lee for this
-> one.
+Hi all,
 
-Sure.
+when doing an error injection test with the nvme-pci driver on Linux 4.14
+almost rc2 (820bf5c419e4b85298e5c3001bd1b5be46d60765 plus a few nvme
+patches) that does a lot of nvme resets which shut down and re-enable the
+PCI device I see a flood of warnings like:
 
-> Also, I'd assume this should go in for v4.14 already?
+[   78.237286] ACPI Warning: Large Reference Count (0x1001) in object ffff88007d702c68, Type=0x1D (20170728/utdelete-473)
 
-Well, it may be slightly late for that.  Realistically, the earliest -rc it
-can get into seems to be -rc4 and I'd prefer it to get a bit more exposure
-before it gets into a release.  It's up to you, though. :-)
+Throwing in a dump_stack into the path it comes from:
 
-Thanks,
-Rafael
+[   78.238387] CPU: 0 PID: 286 Comm: kworker/u8:3 Not tainted 4.14.0-rc1+ #134
+[   78.238998] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-1 04/01/2014
+[   78.239720] Workqueue: nvme-wq nvme_reset_work
+[   78.239995] Call Trace:
+[   78.239995]  dump_stack+0x63/0x83
+[   78.239995]  acpi_ut_update_ref_count+0x2f7/0x2fe
+[   78.239995]  acpi_ut_update_object_reference+0x114/0x182
+[   78.239995]  acpi_ut_add_reference+0x1b/0x1e
+[   78.239995]  acpi_ds_init_package_element+0x149/0x16e
+[   78.239995]  ? acpi_ds_build_internal_object+0xca/0x12c
+[   78.239995]  acpi_ds_build_internal_package_obj+0x1b2/0x258
+[   78.239995]  ? acpi_ds_build_internal_package_obj+0x1b2/0x258
+[   78.239995]  acpi_ds_eval_data_object_operands+0xd3/0x123
+[   78.239995]  acpi_ds_exec_end_op+0x288/0x3e1
+[   78.239995]  acpi_ps_parse_loop+0x519/0x57b
+[   78.239995]  acpi_ps_parse_aml+0x93/0x29c
+[   78.239995]  acpi_ps_execute_method+0x148/0x17f
+[   78.239995]  acpi_ns_evaluate+0x1c1/0x24d
+[   78.239995]  acpi_ut_evaluate_object+0x72/0x197
+[   78.239995]  acpi_rs_get_prt_method_data+0x21/0x45
+[   78.239995]  acpi_get_irq_routing_table+0x2c/0x30
+[   78.239995]  acpi_pci_irq_find_prt_entry+0x8e/0x2c0
+[   78.239995]  ? irq_get_irq_data+0x9/0x20
+[   78.239995]  ? mp_unmap_irq+0xf/0x70
+[   78.239995]  acpi_pci_irq_lookup+0x26/0x1a0
+[   78.239995]  acpi_pci_irq_enable+0x5b/0x1b0
+[   78.239995]  ? pci_read_config_word+0x22/0x30
+[   78.239995]  pcibios_enable_device+0x28/0x30
+[   78.239995]  do_pci_enable_device+0x5f/0xe0
+[   78.239995]  pci_enable_device_flags+0xc3/0x110
+[   78.239995]  pci_enable_device_mem+0xe/0x10
+[   78.239995]  nvme_reset_work+0x4c/0x1610
+[   78.239995]  ? sched_clock+0x9/0x10
+[   78.239995]  ? sched_clock_local+0x17/0x90
+[   78.239995]  ? _raw_spin_lock+0x9/0x10
+[   78.239995]  ? pick_next_task_fair+0x420/0x690
+[   78.239995]  ? _raw_spin_unlock_irq+0x9/0x20
+[   78.239995]  ? finish_task_switch+0x7b/0x1f0
+[   78.239995]  ? __schedule+0x2d7/0x800
+[   78.239995]  process_one_work+0x1db/0x3e0
+[   78.239995]  worker_thread+0x43/0x3f0
+[   78.239995]  kthread+0x103/0x140
+[   78.239995]  ? process_one_work+0x3e0/0x3e0
+[   78.239995]  ? kthread_create_on_node+0x40/0x40
+[   78.239995]  ret_from_fork+0x25/0x30
