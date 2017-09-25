@@ -1,54 +1,53 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v4 2/3] PM / mfd: intel-lpss: Push system sleep callbacks
- to late/early stages
-Date: Mon, 25 Sep 2017 16:24:28 +0200
-Message-ID: <20170925142428.2favzil5upydpusw@katana>
-References: <3023226.l5IfJK6GIc@aspire.rjw.lan>
- <4332008.kXBLY0K23i@aspire.rjw.lan>
- <20170925072847.nl2a6feqzrzdcxwz@ninjato>
- <3654965.TWMXy0zEsZ@aspire.rjw.lan>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: IA64 and drivers/acpi/bus.c
+Date: Mon, 25 Sep 2017 16:51:18 +0200
+Message-ID: <20170925165118.6ef312c2@endymion>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ctrcamb2jfx2mqmn"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3654965.TWMXy0zEsZ@aspire.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-pm@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Rajat Jain <rajatja@google.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:56524 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S934544AbdIYOvV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 25 Sep 2017 10:51:21 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>, Tony Luck <tony.luck@intel.com>, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Fenghua Yu <fenghua.yu@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
+Hi all,
 
---ctrcamb2jfx2mqmn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Long ago, a warning was silenced in drivers/acpi/bus.c on IA64 with
+this commit:
 
+commit cce4f632db200aef147c59084437168174b23f11
+Author: Lin Ming <ming.m.lin@intel.com>
+Date:   Wed May 12 09:26:48 2010 +0800
 
-> Well, it may be slightly late for that.  Realistically, the earliest -rc it
-> can get into seems to be -rc4 and I'd prefer it to get a bit more exposure
-> before it gets into a release.  It's up to you, though. :-)
+    ACPI: fix early DSDT dmi check warnings on ia64
+    
+I don't think this fix was particularly elegant, but it did the job at
+the time. However you should be informed that an upcoming cleanup of
+the dmi subsystem will cause the warning to resurface:
 
-Fine with me, I'll schedule it for v4.15 then.
+https://marc.info/?l=linux-kernel&m=150113709717948&w=2
 
+Instead of checking for dmi_initialized on individual dmi_system_id
+records, it will now be done once per dmi_check_system() call. It is
+much more efficient, but one side effect is that the warning will be
+displayed even if the array passed to dmi_check_system() is empty.
 
---ctrcamb2jfx2mqmn
-Content-Type: application/pgp-signature; name="signature.asc"
+So the time has come to fix the problem cleanly, instead of just
+silencing the warning. This can be done in 2 ways:
 
------BEGIN PGP SIGNATURE-----
+1* Don't call dmi_check_system() at all if not on X86.
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlnJEZgACgkQFA3kzBSg
-KbZ57RAAkuRVb6uAlZdyFRk8wq88sv0aPAWzD/wgNQTEjNz6/+Cln+nGGNwNmP5o
-1BTBkw7nMWGL5oQHNtZve2QnMk1j29VQ73QvAwMtbwUfLWtpX2qJr7w0iUWt3TF3
-OiImVegkPMZkJLGtrnqPntLG/gJynXSvXnbdKHFEvprnTk1t/vJZdbflLH5kDB6i
-ZPae8sBVvQTz2DKcdsvn864a0IB3IXR9q5MpYiikwVlR21SQiQL10cgWjGE9IgSo
-V6J/yMsbyv8XwMSHarSA4IH2/LPguiDG/MA/aYNh6WYBbHbi0TW3itZ3azajqVmY
-lxaXUeWL4kYNBh7Bzspfyv11EZfCCEz+LVAr5AwZ18O5JTxeR9wWoLhu0E7O9fX3
-hMbiHA5S/mH/oeTCUu6K9rXW/G2Z1QgP5BbweuNtALjUtxeHh7lcPqb6YfRJN2Pe
-h7ESFpL0sxGMYVSeXvArkXQkXGcvWRcZXMP3fylzqDgyNwiP5fZ29crbXW3S7N6v
-m0VNmtVvuzh8DaGq0IBBhZgeZLolCqODwJRPZCdfHFjnHIbgfaGYVgLpbXpKyiAw
-fXIaWPmvWamCGWU6QDt+emTqnluc58/jQ+03KCzVkaQJh0L3ppmk0Cy+q0uG8RDa
-urTnVTNU+puR8oBlEEnfEw0lMOxTpcGf7AdfaL5hQWj/JgYPz5M=
-=Y1nT
------END PGP SIGNATURE-----
+2* Initialize DMI earlier on IA64, so it is ready when ACPI support
+gets started.
 
---ctrcamb2jfx2mqmn--
+I will let you guys decide what is the best option.
+
+Thanks,
+-- 
+Jean Delvare
+SUSE L3 Support
