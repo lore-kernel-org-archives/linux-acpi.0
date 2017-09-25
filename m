@@ -1,47 +1,44 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH] platform/x86: intel-hid: Power button suspend on Dell
- Latitude 7275
-Date: Mon, 25 Sep 2017 13:57:48 +0300
-Message-ID: <CAHp75VdJXmif+pesu=EAJ5i9dWtaNLXr3QGJdQZiKp_tURtGYg@mail.gmail.com>
-References: <20170917225712.12136-1-jerome.debretagne@gmail.com> <20170922234543.GB20327@fury>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v4 2/3] PM / mfd: intel-lpss: Push system sleep callbacks to late/early stages
+Date: Mon, 25 Sep 2017 14:50:56 +0200
+Message-ID: <3654965.TWMXy0zEsZ@aspire.rjw.lan>
+References: <3023226.l5IfJK6GIc@aspire.rjw.lan> <4332008.kXBLY0K23i@aspire.rjw.lan> <20170925072847.nl2a6feqzrzdcxwz@ninjato>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:37508 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934668AbdIYK5u (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Sep 2017 06:57:50 -0400
-In-Reply-To: <20170922234543.GB20327@fury>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170925072847.nl2a6feqzrzdcxwz@ninjato>
+Sender: linux-pm-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-pm@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Rajat Jain <rajatja@google.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mario Limonciello <mario.limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>
 
-On Sat, Sep 23, 2017 at 2:45 AM, Darren Hart <dvhart@infradead.org> wrote:
-> On Mon, Sep 18, 2017 at 12:57:12AM +0200, J=C3=A9r=C3=B4me de Bretagne wr=
-ote:
+On Monday, September 25, 2017 9:28:47 AM CEST Wolfram Sang wrote:
+> On Mon, Sep 25, 2017 at 01:20:35AM +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Push the system suspend/resume callbacks of intel-lpss to the late
+> > suspend/early resume stages to allow child device callbacks to be
+> > pushed to the late/early stages of suspend/resume too, so as to
+> > make it possible to avoid resuming the children if they are runtime-
+> > suspended during system suspend going forward.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> > Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Tested-by: Johannes Stezenbach <js@sig21.net>
+> > Tested-by: Rajat Jain <rajatja@google.com>
+> 
+> If this series shall go in via I2C, I'd need an ack from Lee for this
+> one.
 
->> +             if (event =3D=3D 0xce) {
->> +                     input_report_key(priv->input_dev, KEY_POWER, 1);
->> +                     input_sync(priv->input_dev);
->> +                     return;
->> +             } else if (event =3D=3D 0xcf)
->> +                     return;
->
-> Minor CodingStyle nit. If the if block uses parens, so does the else bloc=
-k. In
-> this case, since the if returns, just skip the else entirely.
->
-> See Documentation/process/coding-style.rst
-> The example immediatley *before* 3.1) Spaces.
->
-> I've made this change and queued for testing.
->
->> +     }
+Sure.
 
-Actually in this case even 'else' is redundant.
+> Also, I'd assume this should go in for v4.14 already?
 
---=20
-With Best Regards,
-Andy Shevchenko
+Well, it may be slightly late for that.  Realistically, the earliest -rc it
+can get into seems to be -rc4 and I'd prefer it to get a bit more exposure
+before it gets into a release.  It's up to you, though. :-)
+
+Thanks,
+Rafael
