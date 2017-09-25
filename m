@@ -1,44 +1,47 @@
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: [PATCH] ACPI/APEI: adjust a local variable type in
- ghes_ioremap_pfn_irq()
-Date: Mon, 25 Sep 2017 02:06:19 -0600
-Message-ID: <59C8D51B020000780017F3B9@prv-mh.provo.novell.com>
-References: <59C8D51B020000780017F3B9@prv-mh.provo.novell.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH] platform/x86: intel-hid: Power button suspend on Dell
+ Latitude 7275
+Date: Mon, 25 Sep 2017 13:57:48 +0300
+Message-ID: <CAHp75VdJXmif+pesu=EAJ5i9dWtaNLXr3QGJdQZiKp_tURtGYg@mail.gmail.com>
+References: <20170917225712.12136-1-jerome.debretagne@gmail.com> <20170922234543.GB20327@fury>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from prv-mh.provo.novell.com ([137.65.248.74]:42838 "EHLO
-        prv-mh.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934094AbdIYI03 (ORCPT
-        <rfc822;groupwise-linux-acpi@vger.kernel.org:5:1>);
-        Mon, 25 Sep 2017 04:26:29 -0400
-Content-Disposition: inline
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:37508 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934668AbdIYK5u (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Sep 2017 06:57:50 -0400
+In-Reply-To: <20170922234543.GB20327@fury>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, rjw@rjwysocki.net
-Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, linux-acpi@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mario Limonciello <mario.limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>
 
-Match up with what 7edda0886b ("acpi: apei: handle SEA notification
-type for ARMv8") did for ghes_ioremap_pfn_nmi().
+On Sat, Sep 23, 2017 at 2:45 AM, Darren Hart <dvhart@infradead.org> wrote:
+> On Mon, Sep 18, 2017 at 12:57:12AM +0200, J=C3=A9r=C3=B4me de Bretagne wr=
+ote:
 
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
----
- drivers/acpi/apei/ghes.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+>> +             if (event =3D=3D 0xce) {
+>> +                     input_report_key(priv->input_dev, KEY_POWER, 1);
+>> +                     input_sync(priv->input_dev);
+>> +                     return;
+>> +             } else if (event =3D=3D 0xcf)
+>> +                     return;
+>
+> Minor CodingStyle nit. If the if block uses parens, so does the else bloc=
+k. In
+> this case, since the if returns, just skip the else entirely.
+>
+> See Documentation/process/coding-style.rst
+> The example immediatley *before* 3.1) Spaces.
+>
+> I've made this change and queued for testing.
+>
+>> +     }
 
---- 4.14-rc2/drivers/acpi/apei/ghes.c
-+++ 4.14-rc2-apei-ghes-type/drivers/acpi/apei/ghes.c
-@@ -174,7 +174,8 @@ static void __iomem *ghes_ioremap_pfn_nm
- 
- static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
- {
--	unsigned long vaddr, paddr;
-+	unsigned long vaddr;
-+	phys_addr_t paddr;
- 	pgprot_t prot;
- 
- 	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
+Actually in this case even 'else' is redundant.
 
-
-
+--=20
+With Best Regards,
+Andy Shevchenko
