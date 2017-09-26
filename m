@@ -1,81 +1,68 @@
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v5 0/3] TPS68470 PMIC drivers
-Date: Tue, 26 Sep 2017 01:56:30 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FC2B25@FMSMSX114.amr.corp.intel.com>
-References: <1500648378-10294-1-git-send-email-rajmohan.mani@intel.com>
- <3425487.LgIRMVflim@aspire.rjw.lan>
- <CAHp75VdtEh8MAFjQN2LWVFbJj7_bPrhjo77SEsCYVmuOCWvOfQ@mail.gmail.com>
- <2076994.J7nKrPWSDx@aspire.rjw.lan>
- <6F87890CF0F5204F892DEA1EF0D77A5972FA69A3@FMSMSX114.amr.corp.intel.com>
- <CAJZ5v0hO3oSJWT_CxcP0ogO2yAU=YKYRwGokPqbQbAvWY7mzQg@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v4 0/3] ACPI / EC: Fix EC event handling issues
+Date: Tue, 26 Sep 2017 07:52:14 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF6BFA7@SHSMSX101.ccr.corp.intel.com>
+References: <99f23db65bbe89ee856018629654584a96734c84.1501141963.git.lv.zheng@intel.com>
+ <cover.1504166863.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:56920 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11599 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935034AbdIZB4c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 25 Sep 2017 21:56:32 -0400
+        id S1751484AbdIZHwp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 26 Sep 2017 03:52:45 -0400
+In-Reply-To: <cover.1504166863.git.lv.zheng@intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGkgUmFmYWVsLCBBbmR5LA0KDQpKdXN0IHBpbmdpbmcgdG8gc2VlIGlmIHRoZXJlIGFyZSB1cGRh
-dGVzIG9uIEFDUEkgLyBQTUlDIG9wcmVnaW9uIHBhdGNoLi4uDQoNClRoYW5rcw0KUmFqDQoNCj4g
-LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTWFuaSwgUmFqbW9oYW4NCj4gU2Vu
-dDogVGh1cnNkYXksIFNlcHRlbWJlciAwNywgMjAxNyA1OjQ2IFBNDQo+IFRvOiAnUmFmYWVsIEou
-IFd5c29ja2knIDxyYWZhZWxAa2VybmVsLm9yZz4NCj4gQ2M6ICdSYWZhZWwgSi4gV3lzb2NraScg
-PHJqd0Byand5c29ja2kubmV0PjsgJ0FuZHkgU2hldmNoZW5rbycNCj4gPGFuZHkuc2hldmNoZW5r
-b0BnbWFpbC5jb20+OyAnbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZycgPGxpbnV4LQ0KPiBr
-ZXJuZWxAdmdlci5rZXJuZWwub3JnPjsgJ2xpbnV4LWdwaW9Admdlci5rZXJuZWwub3JnJyA8bGlu
-dXgtDQo+IGdwaW9Admdlci5rZXJuZWwub3JnPjsgJ2xpbnV4LWFjcGlAdmdlci5rZXJuZWwub3Jn
-JyA8bGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnPjsgJ0xlZSBKb25lcycgPGxlZS5qb25l
-c0BsaW5hcm8ub3JnPjsgJ0xpbnVzIFdhbGxlaWonDQo+IDxsaW51cy53YWxsZWlqQGxpbmFyby5v
-cmc+OyAnQWxleGFuZHJlIENvdXJib3QnIDxnbnVyb3VAZ21haWwuY29tPjsgJ0xlbg0KPiBCcm93
-bicgPGxlbmJAa2VybmVsLm9yZz47ICdzYWthcmkuYWlsdXNAbGludXguaW50ZWwuY29tJw0KPiA8
-c2FrYXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbT4NCj4gU3ViamVjdDogUkU6IFtQQVRDSCB2NSAw
-LzNdIFRQUzY4NDcwIFBNSUMgZHJpdmVycw0KPiANCj4gSGkgUmFmYWVsLA0KPiANCj4gPiBTdWJq
-ZWN0OiBSRTogW1BBVENIIHY1IDAvM10gVFBTNjg0NzAgUE1JQyBkcml2ZXJzDQo+ID4NCj4gPiBI
-aSBSYWZhZWwsDQo+ID4NCj4gPiA+ID4+ID4gPj4gPiBUaGlzIGlzIHRoZSBwYXRjaCBzZXJpZXMg
-Zm9yIFRQUzY4NDcwIFBNSUMgdGhhdCB3b3JrcyBhcyBhDQo+ID4gPiA+PiA+ID4+ID4gY2FtZXJh
-DQo+ID4gPiBQTUlDLg0KPiA+ID4gPj4gPiA+PiA+DQo+ID4gPiA+PiA+ID4+ID4gVGhlIHBhdGNo
-IHNlcmllcyBwcm92aWRlIHRoZSBmb2xsb3dpbmcgMyBkcml2ZXJzLCB0byBoZWxwDQo+ID4gPiA+
-PiA+ID4+ID4gY29uZmlndXJlIHRoZQ0KPiA+ID4gPj4gdm9sdGFnZSByZWd1bGF0b3JzLCBjbG9j
-a3MgYW5kIEdQSU9zIHByb3ZpZGVkIGJ5IHRoZSBUUFM2ODQ3MA0KPiA+ID4gPj4gUE1JQywgdG8g
-YmUgYWJsZSB0byB1c2UgdGhlIGNhbWVyYSBzZW5zb3JzIGNvbm5lY3RlZCB0byB0aGlzIFBNSUMu
-DQo+ID4gPiA+PiA+ID4+ID4NCj4gPiA+ID4+ID4gPj4gPiBUUFM2ODQ3MCBNRkQgZHJpdmVyOg0K
-PiA+ID4gPj4gPiA+PiA+IFRoaXMgaXMgdGhlIG11bHRpIGZ1bmN0aW9uIGRyaXZlciB0aGF0IGlu
-aXRpYWxpemVzIHRoZQ0KPiA+ID4gPj4gPiA+PiA+IFRQUzY4NDcwIFBNSUMgYW5kDQo+ID4gPiA+
-PiBzdXBwb3J0cyB0aGUgR1BJTyBhbmQgT3AgUmVnaW9uIGZ1bmN0aW9ucy4NCj4gPiA+ID4+ID4g
-Pj4gPg0KPiA+ID4gPj4gPiA+PiA+IFRQUzY4NDcwIEdQSU8gZHJpdmVyOg0KPiA+ID4gPj4gPiA+
-PiA+IFRoaXMgaXMgdGhlIFBNSUMgR1BJTyBkcml2ZXIgdGhhdCB3aWxsIGJlIHVzZWQgYnkgdGhl
-IE9TDQo+ID4gPiA+PiA+ID4+ID4gR1BJTyBsYXllciwNCj4gPiA+ID4+IHdoZW4gdGhlIEJJT1Mg
-LyBmaXJtd2FyZSB0cmlnZ2VyZWQgR1BJTyBhY2Nlc3MgaXMgZG9uZS4NCj4gPiA+ID4+ID4gPj4g
-Pg0KPiA+ID4gPj4gPiA+PiA+IFRQUzY4NDcwIE9wIFJlZ2lvbiBkcml2ZXI6DQo+ID4gPiA+PiA+
-ID4+ID4gVGhpcyBpcyB0aGUgZHJpdmVyIHRoYXQgd2lsbCBiZSBpbnZva2VkLCB3aGVuIHRoZSBC
-SU9TIC8NCj4gPiA+ID4+ID4gPj4gPiBmaXJtd2FyZQ0KPiA+ID4gPj4gY29uZmlndXJlcyB0aGUg
-dm9sdGFnZSAvIGNsb2NrIGZvciB0aGUgc2Vuc29ycyAvIHZjbSBkZXZpY2VzDQo+ID4gPiA+PiBj
-b25uZWN0ZWQgdG8gdGhlIFBNSUMuDQo+ID4gPiA+PiA+ID4+ID4NCj4gPiA+ID4+ID4gPj4NCj4g
-PiA+ID4+ID4gPj4gQWxsIHRocmVlIHBhdGNoZXMgYXJlIGdvb2QgdG8gbWUgKHdlIGRpZCBmZXcg
-cm91bmRzIG9mDQo+ID4gPiA+PiA+ID4+IGludGVybmFsIHJldmlldyBiZWZvcmUgcG9zdGluZyB2
-NCkNCj4gPiA+ID4+ID4gPj4NCj4gPiA+ID4+ID4gPj4gUmV2aWV3ZWQtYnk6IEFuZHkgU2hldmNo
-ZW5rbyA8YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbT4NCj4gPiA+ID4+ID4gPg0KPiA+ID4gPj4g
-PiA+IE9LLCBzbyBob3cgc2hvdWxkIHRoZXkgYmUgcm91dGVkPw0KPiA+ID4gPj4gPg0KPiA+ID4g
-Pj4gPiBHb29kIHF1ZXN0aW9uLiBJIGRvbid0IGtub3cgaG93IGxhc3QgdGltZSBQTUlDIGRyaXZl
-cnMgd2VyZQ0KPiA+ID4gPj4gPiBtZXJnZWQsIGhlcmUgSSB0aGluayBpcyBqdXN0IHNhbmUgdG8g
-cm91dGUgdmkgTUZEIHdpdGgNCj4gPiA+ID4+ID4gaW1tdXRhYmxlIGJyYW5jaCBjcmVhdGVkLg0K
-PiA+ID4gPj4NCj4gPiA+ID4+IE9LDQo+ID4gPiA+Pg0KPiA+ID4gPj4gSSB3aWxsIGFzc3VtZSB0
-aGF0IHRoZSBzZXJpZXMgd2lsbCBnbyBpbiB0aHJvdWdoIE1GRCB0aGVuLg0KPiA+ID4gPj4NCj4g
-PiA+ID4NCj4gPiA+ID4gTm93IHRoYXQgdGhlIE1GRCBhbmQgR1BJTyBwYXRjaGVzIG9mIHY2IG9m
-IHRoaXMgc2VyaWVzIGhhdmUgYmVlbg0KPiA+ID4gPiBhcHBsaWVkDQo+ID4gPiBvbiByZXNwZWN0
-aXZlIHRyZWVzLCBjYW4geW91IGFkdmlzZSB0aGUgbmV4dCBzdGVwcyBmb3IgdGhlIEFDUEkgLw0K
-PiA+ID4gUE1JQyBPcHJlZ2lvbiBkcml2ZXI/DQo+ID4gPg0KPiA+ID4gV2VsbCwgaXQgd291bGQg
-aGF2ZSBiZWVuIGJldHRlciB0byByb3V0ZSB0aGUgd2hvbGUgc2VyaWVzIHRocm91Z2ggb25lDQo+
-IHRyZWUuDQo+ID4gPiBOb3cgaXQncyBiZXR0ZXIgdG8gd2FpdCB1bnRpbCB0aGUgdHdvIG90aGVy
-IHRyZWVzIGdldCBtZXJnZWQgYW5kDQo+ID4gPiB0aGVuIGFwcGx5IHRoZSBvcHJlZ2lvbiBwYXRj
-aC4NCj4gPiA+DQo+ID4NCj4gPiBBY2suDQo+ID4gTGV0IG1lIGdldCBiYWNrIG9uY2UgdGhlIG90
-aGVyIDIgdHJlZXMgYXJlIG1lcmdlZC4NCj4gPg0KPiANCj4gQm90aCBNRkQgYW5kIEdQSU8gcGF0
-Y2hlcyBvZiB0aGlzIHNlcmllcyBnb3QgbWVyZ2VkIHVwc3RyZWFtIGFzIG9mIHRvZGF5Lg0KPiAN
-Cj4gVGhhbmtzDQo+IFJhag0K
+Hi, Rafael
+
+I'm now working on v5 of this series.
+Which
+1. splits root causes in a more detailed way,
+2. clarifies root causes in patch description with real bugs, and
+3. is safer according to the known EC FW behaviors.
+So you can discard v3/v4 from the patchwork site.
+And I'll post v5 when everything is cleared to me.
+
+Thanks and best regards
+Lv
+
+> From: Zheng, Lv
+> Subject: [PATCH v4 0/3] ACPI / EC: Fix EC event handling issues
+> 
+> EC events are special, required to be handled during suspend/resume. But
+> there are special logics in Linux causing several issues related to the EC
+> event handling:
+> 1. During noirq stage, Linux cannot detect EC events which are target
+>    driven.
+> 2. When EC event handling is enabled later than the other drivers, order
+>    problem could be observed.
+> When fixing these problems, care should be taken to not to trigger
+> regressions to the following problem which has alredy been fixed using
+> different approach):
+> 3. When EC event handling is enabled before the end of the noirq stage,
+>    EC event handling may stuck.
+> This patchset fixes these issues.
+> 
+> v4 of this patch series re-orders the fixes so that the fix of the problem
+> 2 could be independent against the fix of the problem 1, this is done by
+> refining the fix of the problem 2, making it immune to the problem 3.
+> 
+> Lv Zheng (3):
+>   ACPI / EC: Fix possible driver order issue by moving EC event handling
+>     earlier
+>   ACPI / EC: Add event detection support for noirq stages
+>   ACPI / EC: Enable noirq stage event detection
+> 
+>  drivers/acpi/ec.c       | 116 +++++++++++++++++++++++++++++++++++++++++++++---
+>  drivers/acpi/internal.h |   1 +
+>  2 files changed, 111 insertions(+), 6 deletions(-)
+> 
+> --
+> 2.7.4
+
