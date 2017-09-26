@@ -1,247 +1,68 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 2/2] ACPI / EC: Fix a regression related to the PM ops support of ECDT device
-Date: Tue, 26 Sep 2017 16:54:09 +0800
-Message-ID: <93b5807a98d50ec1fd04d540c6bd14b4de586c74.1506414565.git.lv.zheng@intel.com>
-References: <cover.1506414565.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1506414565.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "4 . 9+ # 4 . 9+" <stable@vger.kernel.org>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC 0/5] Align and document return values of phandle and
+ reference parsing for OF and ACPI
+Date: Tue, 26 Sep 2017 12:02:01 +0300
+Message-ID: <20170926090201.wcpv4fty5yi5ea6z@valkosipuli.retiisi.org.uk>
+References: <20170914122914.14122-1-sakari.ailus@linux.intel.com>
+ <CAL_JsqKZVN+X0F3Z8s6Qv+ioh8LBDjNe277MAw30T3CXXTUV1Q@mail.gmail.com>
+ <20170919230125.l7fexsdrzbmwd6yp@valkosipuli.retiisi.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55902 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751840AbdIZJCF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 26 Sep 2017 05:02:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20170919230125.l7fexsdrzbmwd6yp@valkosipuli.retiisi.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, Frank Rowand <frowand.list@gmail.com>
 
-On platforms (ASUS X550ZE and possibly all ASUS X series) with valid ECDT
-EC but invalid DSDT EC, EC PM ops won't be invoked as ECDT EC is not an
-ACPI device. Thus the following commit actually removed post-resume
-acpi_ec_enable_event() invocation for such platforms, and triggered a
-regression on them that after being resumed, EC (actually should be ECDT)
-driver stops handling EC events:
- Commit: c2b46d679b30c5c0d7eb47a21085943242bdd8dc
- Subject: ACPI / EC: Add PM operations to improve event handling for resume process
-Notice that the root cause actually is "ECDT is not an ACPI device" rather
-than "the timing of acpi_ec_enable_event() invocation", this patch fixes
-this issue by enumerating ECDT EC as an ACPI device. Due to the existence
-of the noirq stage, the ability of tuning the timing of
-acpi_ec_enable_event() invocation is still meaningful.
+On Wed, Sep 20, 2017 at 02:01:25AM +0300, Sakari Ailus wrote:
+> Hi Rob,
+> 
+> Thanks for the review.
+> 
+> On Fri, Sep 15, 2017 at 02:57:35PM -0500, Rob Herring wrote:
+> > On Thu, Sep 14, 2017 at 7:29 AM, Sakari Ailus
+> > <sakari.ailus@linux.intel.com> wrote:
+> > > Hi everyone,
+> > >
+> > > I recently came across a difference in behaviour of OF phandle parsing and
+> > > ACPI reference parsing, both of which can soon be accessed using
+> > > fwnode_property_get_reference_args.
+> > >
+> > > The main change in this proposal touches OF, and specifically the change
+> > > is about using -ENODATA to tell that the phandle reference list entry that
+> > > was accessed does not exist. -ENOENT was used previously, but the same
+> > > error code was also used to tell that a phandle was empty, making it
+> > > impossible for the caller to figure out which of the two was the case.
+> > >
+> > > I'm sending the set as RFC. In my limited testing I have found no ill
+> > > effects.
+> > >
+> > > These patches are on top of linux-next.
+> > >
+> > > Comments on the approach and the changes themselves would be most welcome.
+> > 
+> > It's not really valid to both have a variable count (and hence need to
+> > retrieve it) and use blank phandle entries. The whole point of blank
+> > entries is to have a fixed length and know what each index corresponds
+> > too. Do you have an example where we hit this?
+> 
+> Well, the above is true. I think I'd still use different error codes to
+> tell about different situations.
+> 
+> The alternative is that the fwnode counterpart error codes are changed to
+> to -ENOENT.
 
-This patch is a little bit different from the posted fix by moving
-acpi_config_boot_ec() from acpi_ec_ecdt_start() to acpi_ec_add() to make
-sure that EC event handling won't be stopped as long as the ACPI EC driver
-is bound. Thus the following sequence shouldn't disable EC event handling:
-unbind,suspend,resume,bind.
+I'll post a patch implemeting switching the fwnode variant to use -ENOENT,
+cc'ing you. I think the first patch of the set is still relevant, it's
+rather a bugfix.
 
-Fixes: c2b46d679b30 (ACPI / EC: Add PM operations to improve event handling for resume process)
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=196847
-Reported-by: Luya Tshimbalanga <luya@fedoraproject.org>
-Tested-by: Luya Tshimbalanga <luya@fedoraproject.org>
-Cc: 4.9+ <stable@vger.kernel.org> # 4.9+
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c           | 69 +++++++++++++++++++++++++++++----------------
- drivers/acpi/internal.h     |  1 +
- drivers/acpi/scan.c         | 21 ++++++++++++++
- include/acpi/acpi_bus.h     |  1 +
- include/acpi/acpi_drivers.h |  1 +
- 5 files changed, 69 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 82b3ce5..df84246 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1597,32 +1597,41 @@ static int acpi_ec_add(struct acpi_device *device)
- {
- 	struct acpi_ec *ec = NULL;
- 	int ret;
-+	bool is_ecdt = false;
-+	acpi_status status;
- 
- 	strcpy(acpi_device_name(device), ACPI_EC_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_EC_CLASS);
- 
--	ec = acpi_ec_alloc();
--	if (!ec)
--		return -ENOMEM;
--	if (ec_parse_device(device->handle, 0, ec, NULL) !=
--		AE_CTRL_TERMINATE) {
-+	if (!strcmp(acpi_device_hid(device), ACPI_ECDT_HID)) {
-+		is_ecdt = true;
-+		ec = boot_ec;
-+	} else {
-+		ec = acpi_ec_alloc();
-+		if (!ec)
-+			return -ENOMEM;
-+		status = ec_parse_device(device->handle, 0, ec, NULL);
-+		if (status != AE_CTRL_TERMINATE) {
- 			ret = -EINVAL;
- 			goto err_alloc;
-+		}
- 	}
- 
- 	if (acpi_is_boot_ec(ec)) {
--		boot_ec_is_ecdt = false;
--		/*
--		 * Trust PNP0C09 namespace location rather than ECDT ID.
--		 *
--		 * But trust ECDT GPE rather than _GPE because of ASUS quirks,
--		 * so do not change boot_ec->gpe to ec->gpe.
--		 */
--		boot_ec->handle = ec->handle;
--		acpi_handle_debug(ec->handle, "duplicated.\n");
--		acpi_ec_free(ec);
--		ec = boot_ec;
--		ret = acpi_config_boot_ec(ec, ec->handle, true, false);
-+		boot_ec_is_ecdt = is_ecdt;
-+		if (!is_ecdt) {
-+			/*
-+			 * Trust PNP0C09 namespace location rather than
-+			 * ECDT ID. But trust ECDT GPE rather than _GPE
-+			 * because of ASUS quirks, so do not change
-+			 * boot_ec->gpe to ec->gpe.
-+			 */
-+			boot_ec->handle = ec->handle;
-+			acpi_handle_debug(ec->handle, "duplicated.\n");
-+			acpi_ec_free(ec);
-+			ec = boot_ec;
-+		}
-+		ret = acpi_config_boot_ec(ec, ec->handle, true, is_ecdt);
- 	} else
- 		ret = acpi_ec_setup(ec, true);
- 	if (ret)
-@@ -1635,8 +1644,10 @@ static int acpi_ec_add(struct acpi_device *device)
- 	ret = !!request_region(ec->command_addr, 1, "EC cmd");
- 	WARN(!ret, "Could not request EC cmd io port 0x%lx", ec->command_addr);
- 
--	/* Reprobe devices depending on the EC */
--	acpi_walk_dep_device_list(ec->handle);
-+	if (!is_ecdt) {
-+		/* Reprobe devices depending on the EC */
-+		acpi_walk_dep_device_list(ec->handle);
-+	}
- 	acpi_handle_debug(ec->handle, "enumerated.\n");
- 	return 0;
- 
-@@ -1692,6 +1703,7 @@ ec_parse_io_ports(struct acpi_resource *resource, void *context)
- 
- static const struct acpi_device_id ec_device_ids[] = {
- 	{"PNP0C09", 0},
-+	{ACPI_ECDT_HID, 0},
- 	{"", 0},
- };
- 
-@@ -1764,11 +1776,14 @@ static int __init acpi_ec_ecdt_start(void)
- 	 * Note: ec->handle can be valid if this function is called after
- 	 * acpi_ec_add(), hence the fast path.
- 	 */
--	if (boot_ec->handle != ACPI_ROOT_OBJECT)
--		handle = boot_ec->handle;
--	else if (!acpi_ec_ecdt_get_handle(&handle))
--		return -ENODEV;
--	return acpi_config_boot_ec(boot_ec, handle, true, true);
-+	if (boot_ec->handle == ACPI_ROOT_OBJECT) {
-+		if (!acpi_ec_ecdt_get_handle(&handle))
-+			return -ENODEV;
-+		boot_ec->handle = handle;
-+	}
-+
-+	/* Register to ACPI bus with PM ops attached */
-+	return acpi_bus_register_early_device(ACPI_BUS_TYPE_ECDT_EC);
- }
- 
- #if 0
-@@ -2020,6 +2035,12 @@ int __init acpi_ec_init(void)
- 
- 	/* Drivers must be started after acpi_ec_query_init() */
- 	dsdt_fail = acpi_bus_register_driver(&acpi_ec_driver);
-+	/*
-+	 * Register ECDT to ACPI bus only when PNP0C09 probe fails. This is
-+	 * useful for platforms (confirmed on ASUS X550ZE) with valid ECDT
-+	 * settings but invalid DSDT settings.
-+	 * https://bugzilla.kernel.org/show_bug.cgi?id=196847
-+	 */
- 	ecdt_fail = acpi_ec_ecdt_start();
- 	return ecdt_fail && dsdt_fail ? -ENODEV : 0;
- }
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 4361c44..ede83d3 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -115,6 +115,7 @@ bool acpi_device_is_present(const struct acpi_device *adev);
- bool acpi_device_is_battery(struct acpi_device *adev);
- bool acpi_device_is_first_physical_node(struct acpi_device *adev,
- 					const struct device *dev);
-+int acpi_bus_register_early_device(int type);
- 
- /* --------------------------------------------------------------------------
-                      Device Matching and Notification
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 602f8ff..2f2f503 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1024,6 +1024,9 @@ static void acpi_device_get_busid(struct acpi_device *device)
- 	case ACPI_BUS_TYPE_SLEEP_BUTTON:
- 		strcpy(device->pnp.bus_id, "SLPF");
- 		break;
-+	case ACPI_BUS_TYPE_ECDT_EC:
-+		strcpy(device->pnp.bus_id, "ECDT");
-+		break;
- 	default:
- 		acpi_get_name(device->handle, ACPI_SINGLE_NAME, &buffer);
- 		/* Clean up trailing underscores (if any) */
-@@ -1304,6 +1307,9 @@ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
- 	case ACPI_BUS_TYPE_SLEEP_BUTTON:
- 		acpi_add_id(pnp, ACPI_BUTTON_HID_SLEEPF);
- 		break;
-+	case ACPI_BUS_TYPE_ECDT_EC:
-+		acpi_add_id(pnp, ACPI_ECDT_HID);
-+		break;
- 	}
- }
- 
-@@ -2049,6 +2055,21 @@ void acpi_bus_trim(struct acpi_device *adev)
- }
- EXPORT_SYMBOL_GPL(acpi_bus_trim);
- 
-+int acpi_bus_register_early_device(int type)
-+{
-+	struct acpi_device *device = NULL;
-+	int result;
-+
-+	result = acpi_add_single_object(&device, NULL,
-+					type, ACPI_STA_DEFAULT);
-+	if (result)
-+		return result;
-+
-+	device->flags.match_driver = true;
-+	return device_attach(&device->dev);
-+}
-+EXPORT_SYMBOL_GPL(acpi_bus_register_early_device);
-+
- static int acpi_bus_scan_fixed(void)
- {
- 	int result = 0;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index fa15052..324a04d 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -105,6 +105,7 @@ enum acpi_bus_device_type {
- 	ACPI_BUS_TYPE_THERMAL,
- 	ACPI_BUS_TYPE_POWER_BUTTON,
- 	ACPI_BUS_TYPE_SLEEP_BUTTON,
-+	ACPI_BUS_TYPE_ECDT_EC,
- 	ACPI_BUS_DEVICE_TYPE_COUNT
- };
- 
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 29c6912..fd0aba7 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -58,6 +58,7 @@
- #define ACPI_VIDEO_HID			"LNXVIDEO"
- #define ACPI_BAY_HID			"LNXIOBAY"
- #define ACPI_DOCK_HID			"LNXDOCK"
-+#define ACPI_ECDT_HID			"LNXECDT"
- /* Quirk for broken IBM BIOSes */
- #define ACPI_SMBUS_IBM_HID		"SMBUSIBM"
- 
 -- 
-2.7.4
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
