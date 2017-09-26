@@ -1,116 +1,81 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Update][PATCH v5 1/3] PM: i2c-designware-platdrv: Clean up PM handling in probe
-Date: Mon, 25 Sep 2017 23:10:06 +0200
-Message-ID: <188302021.o3ml4PkeyZ@aspire.rjw.lan>
-References: <3023226.l5IfJK6GIc@aspire.rjw.lan> <65494652.vEfz4tCBDb@aspire.rjw.lan> <2813826.3DA0fVXnVa@aspire.rjw.lan>
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [PATCH v5 0/3] TPS68470 PMIC drivers
+Date: Tue, 26 Sep 2017 01:56:30 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FC2B25@FMSMSX114.amr.corp.intel.com>
+References: <1500648378-10294-1-git-send-email-rajmohan.mani@intel.com>
+ <3425487.LgIRMVflim@aspire.rjw.lan>
+ <CAHp75VdtEh8MAFjQN2LWVFbJj7_bPrhjo77SEsCYVmuOCWvOfQ@mail.gmail.com>
+ <2076994.J7nKrPWSDx@aspire.rjw.lan>
+ <6F87890CF0F5204F892DEA1EF0D77A5972FA69A3@FMSMSX114.amr.corp.intel.com>
+ <CAJZ5v0hO3oSJWT_CxcP0ogO2yAU=YKYRwGokPqbQbAvWY7mzQg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <2813826.3DA0fVXnVa@aspire.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: linux-pm@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Lee Jones <lee.jones@linaro.org>, Rajat Jain <rajatja@google.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:56920 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S935034AbdIZB4c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 25 Sep 2017 21:56:32 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Len Brown <lenb@kernel.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-The power management handling in dw_i2c_plat_probe() is somewhat
-messy and it is rather hard to figure out the code intention for
-the case when pm_disabled is set.  In that case, the driver doesn't
-enable runtime PM at all, but in addition to that it calls
-pm_runtime_forbid() as though it wasn't sure if runtime PM might
-be enabled for the device later by someone else.
-
-Although that concern doesn't seem to be actually valid, the
-device is clearly still expected to be PM-capable even in the
-pm_disabled set case, so a better approach would be to enable
-runtime PM for it unconditionally and prevent it from being
-runtime-suspended by using pm_runtime_get_noresume().
-
-Make the driver do that.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-v4 -> v5: Address the Ulf's comment that pm_runtime_forbid() was not
-  suitable for preventing runtime suspends of the device from occurring
-  (as it could be overridden by user space) and update the changelog.
-
-  Also drop the tags as the patch changed (although that change shouldn't
-  matter on systems where pm_disabled is not set).
-
-v3 -> v4: Added Tested-by tags.
-
--> v3: Small update of the changelog.
-
----
- drivers/i2c/busses/i2c-designware-platdrv.c |   34 ++++++++++++++++++----------
- 1 file changed, 22 insertions(+), 12 deletions(-)
-
-Index: linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
-===================================================================
---- linux-pm.orig/drivers/i2c/busses/i2c-designware-platdrv.c
-+++ linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
-@@ -249,6 +249,14 @@ static void dw_i2c_set_fifo_size(struct
- 	}
- }
- 
-+static void dw_i2c_plat_pm_cleanup(struct dw_i2c_dev *dev)
-+{
-+	pm_runtime_disable(dev->dev);
-+
-+	if (dev->pm_disabled)
-+		pm_runtime_put_noidle(dev->dev);
-+}
-+
- static int dw_i2c_plat_probe(struct platform_device *pdev)
- {
- 	struct dw_i2c_platform_data *pdata = dev_get_platdata(&pdev->dev);
-@@ -362,14 +370,17 @@ static int dw_i2c_plat_probe(struct plat
- 	ACPI_COMPANION_SET(&adap->dev, ACPI_COMPANION(&pdev->dev));
- 	adap->dev.of_node = pdev->dev.of_node;
- 
--	if (dev->pm_disabled) {
--		pm_runtime_forbid(&pdev->dev);
--	} else {
--		pm_runtime_set_autosuspend_delay(&pdev->dev, 1000);
--		pm_runtime_use_autosuspend(&pdev->dev);
--		pm_runtime_set_active(&pdev->dev);
--		pm_runtime_enable(&pdev->dev);
--	}
-+	/* The code below assumes runtime PM to be disabled. */
-+	WARN_ON(pm_runtime_enabled(&pdev->dev));
-+
-+	pm_runtime_set_autosuspend_delay(&pdev->dev, 1000);
-+	pm_runtime_use_autosuspend(&pdev->dev);
-+	pm_runtime_set_active(&pdev->dev);
-+
-+	if (dev->pm_disabled)
-+		pm_runtime_get_noresume(&pdev->dev);
-+
-+	pm_runtime_enable(&pdev->dev);
- 
- 	if (dev->mode == DW_IC_SLAVE)
- 		ret = i2c_dw_probe_slave(dev);
-@@ -382,8 +393,7 @@ static int dw_i2c_plat_probe(struct plat
- 	return ret;
- 
- exit_probe:
--	if (!dev->pm_disabled)
--		pm_runtime_disable(&pdev->dev);
-+	dw_i2c_plat_pm_cleanup(dev);
- exit_reset:
- 	if (!IS_ERR_OR_NULL(dev->rst))
- 		reset_control_assert(dev->rst);
-@@ -402,8 +412,8 @@ static int dw_i2c_plat_remove(struct pla
- 
- 	pm_runtime_dont_use_autosuspend(&pdev->dev);
- 	pm_runtime_put_sync(&pdev->dev);
--	if (!dev->pm_disabled)
--		pm_runtime_disable(&pdev->dev);
-+	dw_i2c_plat_pm_cleanup(dev);
-+
- 	if (!IS_ERR_OR_NULL(dev->rst))
- 		reset_control_assert(dev->rst);
- 
+SGkgUmFmYWVsLCBBbmR5LA0KDQpKdXN0IHBpbmdpbmcgdG8gc2VlIGlmIHRoZXJlIGFyZSB1cGRh
+dGVzIG9uIEFDUEkgLyBQTUlDIG9wcmVnaW9uIHBhdGNoLi4uDQoNClRoYW5rcw0KUmFqDQoNCj4g
+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTWFuaSwgUmFqbW9oYW4NCj4gU2Vu
+dDogVGh1cnNkYXksIFNlcHRlbWJlciAwNywgMjAxNyA1OjQ2IFBNDQo+IFRvOiAnUmFmYWVsIEou
+IFd5c29ja2knIDxyYWZhZWxAa2VybmVsLm9yZz4NCj4gQ2M6ICdSYWZhZWwgSi4gV3lzb2NraScg
+PHJqd0Byand5c29ja2kubmV0PjsgJ0FuZHkgU2hldmNoZW5rbycNCj4gPGFuZHkuc2hldmNoZW5r
+b0BnbWFpbC5jb20+OyAnbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZycgPGxpbnV4LQ0KPiBr
+ZXJuZWxAdmdlci5rZXJuZWwub3JnPjsgJ2xpbnV4LWdwaW9Admdlci5rZXJuZWwub3JnJyA8bGlu
+dXgtDQo+IGdwaW9Admdlci5rZXJuZWwub3JnPjsgJ2xpbnV4LWFjcGlAdmdlci5rZXJuZWwub3Jn
+JyA8bGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnPjsgJ0xlZSBKb25lcycgPGxlZS5qb25l
+c0BsaW5hcm8ub3JnPjsgJ0xpbnVzIFdhbGxlaWonDQo+IDxsaW51cy53YWxsZWlqQGxpbmFyby5v
+cmc+OyAnQWxleGFuZHJlIENvdXJib3QnIDxnbnVyb3VAZ21haWwuY29tPjsgJ0xlbg0KPiBCcm93
+bicgPGxlbmJAa2VybmVsLm9yZz47ICdzYWthcmkuYWlsdXNAbGludXguaW50ZWwuY29tJw0KPiA8
+c2FrYXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbT4NCj4gU3ViamVjdDogUkU6IFtQQVRDSCB2NSAw
+LzNdIFRQUzY4NDcwIFBNSUMgZHJpdmVycw0KPiANCj4gSGkgUmFmYWVsLA0KPiANCj4gPiBTdWJq
+ZWN0OiBSRTogW1BBVENIIHY1IDAvM10gVFBTNjg0NzAgUE1JQyBkcml2ZXJzDQo+ID4NCj4gPiBI
+aSBSYWZhZWwsDQo+ID4NCj4gPiA+ID4+ID4gPj4gPiBUaGlzIGlzIHRoZSBwYXRjaCBzZXJpZXMg
+Zm9yIFRQUzY4NDcwIFBNSUMgdGhhdCB3b3JrcyBhcyBhDQo+ID4gPiA+PiA+ID4+ID4gY2FtZXJh
+DQo+ID4gPiBQTUlDLg0KPiA+ID4gPj4gPiA+PiA+DQo+ID4gPiA+PiA+ID4+ID4gVGhlIHBhdGNo
+IHNlcmllcyBwcm92aWRlIHRoZSBmb2xsb3dpbmcgMyBkcml2ZXJzLCB0byBoZWxwDQo+ID4gPiA+
+PiA+ID4+ID4gY29uZmlndXJlIHRoZQ0KPiA+ID4gPj4gdm9sdGFnZSByZWd1bGF0b3JzLCBjbG9j
+a3MgYW5kIEdQSU9zIHByb3ZpZGVkIGJ5IHRoZSBUUFM2ODQ3MA0KPiA+ID4gPj4gUE1JQywgdG8g
+YmUgYWJsZSB0byB1c2UgdGhlIGNhbWVyYSBzZW5zb3JzIGNvbm5lY3RlZCB0byB0aGlzIFBNSUMu
+DQo+ID4gPiA+PiA+ID4+ID4NCj4gPiA+ID4+ID4gPj4gPiBUUFM2ODQ3MCBNRkQgZHJpdmVyOg0K
+PiA+ID4gPj4gPiA+PiA+IFRoaXMgaXMgdGhlIG11bHRpIGZ1bmN0aW9uIGRyaXZlciB0aGF0IGlu
+aXRpYWxpemVzIHRoZQ0KPiA+ID4gPj4gPiA+PiA+IFRQUzY4NDcwIFBNSUMgYW5kDQo+ID4gPiA+
+PiBzdXBwb3J0cyB0aGUgR1BJTyBhbmQgT3AgUmVnaW9uIGZ1bmN0aW9ucy4NCj4gPiA+ID4+ID4g
+Pj4gPg0KPiA+ID4gPj4gPiA+PiA+IFRQUzY4NDcwIEdQSU8gZHJpdmVyOg0KPiA+ID4gPj4gPiA+
+PiA+IFRoaXMgaXMgdGhlIFBNSUMgR1BJTyBkcml2ZXIgdGhhdCB3aWxsIGJlIHVzZWQgYnkgdGhl
+IE9TDQo+ID4gPiA+PiA+ID4+ID4gR1BJTyBsYXllciwNCj4gPiA+ID4+IHdoZW4gdGhlIEJJT1Mg
+LyBmaXJtd2FyZSB0cmlnZ2VyZWQgR1BJTyBhY2Nlc3MgaXMgZG9uZS4NCj4gPiA+ID4+ID4gPj4g
+Pg0KPiA+ID4gPj4gPiA+PiA+IFRQUzY4NDcwIE9wIFJlZ2lvbiBkcml2ZXI6DQo+ID4gPiA+PiA+
+ID4+ID4gVGhpcyBpcyB0aGUgZHJpdmVyIHRoYXQgd2lsbCBiZSBpbnZva2VkLCB3aGVuIHRoZSBC
+SU9TIC8NCj4gPiA+ID4+ID4gPj4gPiBmaXJtd2FyZQ0KPiA+ID4gPj4gY29uZmlndXJlcyB0aGUg
+dm9sdGFnZSAvIGNsb2NrIGZvciB0aGUgc2Vuc29ycyAvIHZjbSBkZXZpY2VzDQo+ID4gPiA+PiBj
+b25uZWN0ZWQgdG8gdGhlIFBNSUMuDQo+ID4gPiA+PiA+ID4+ID4NCj4gPiA+ID4+ID4gPj4NCj4g
+PiA+ID4+ID4gPj4gQWxsIHRocmVlIHBhdGNoZXMgYXJlIGdvb2QgdG8gbWUgKHdlIGRpZCBmZXcg
+cm91bmRzIG9mDQo+ID4gPiA+PiA+ID4+IGludGVybmFsIHJldmlldyBiZWZvcmUgcG9zdGluZyB2
+NCkNCj4gPiA+ID4+ID4gPj4NCj4gPiA+ID4+ID4gPj4gUmV2aWV3ZWQtYnk6IEFuZHkgU2hldmNo
+ZW5rbyA8YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbT4NCj4gPiA+ID4+ID4gPg0KPiA+ID4gPj4g
+PiA+IE9LLCBzbyBob3cgc2hvdWxkIHRoZXkgYmUgcm91dGVkPw0KPiA+ID4gPj4gPg0KPiA+ID4g
+Pj4gPiBHb29kIHF1ZXN0aW9uLiBJIGRvbid0IGtub3cgaG93IGxhc3QgdGltZSBQTUlDIGRyaXZl
+cnMgd2VyZQ0KPiA+ID4gPj4gPiBtZXJnZWQsIGhlcmUgSSB0aGluayBpcyBqdXN0IHNhbmUgdG8g
+cm91dGUgdmkgTUZEIHdpdGgNCj4gPiA+ID4+ID4gaW1tdXRhYmxlIGJyYW5jaCBjcmVhdGVkLg0K
+PiA+ID4gPj4NCj4gPiA+ID4+IE9LDQo+ID4gPiA+Pg0KPiA+ID4gPj4gSSB3aWxsIGFzc3VtZSB0
+aGF0IHRoZSBzZXJpZXMgd2lsbCBnbyBpbiB0aHJvdWdoIE1GRCB0aGVuLg0KPiA+ID4gPj4NCj4g
+PiA+ID4NCj4gPiA+ID4gTm93IHRoYXQgdGhlIE1GRCBhbmQgR1BJTyBwYXRjaGVzIG9mIHY2IG9m
+IHRoaXMgc2VyaWVzIGhhdmUgYmVlbg0KPiA+ID4gPiBhcHBsaWVkDQo+ID4gPiBvbiByZXNwZWN0
+aXZlIHRyZWVzLCBjYW4geW91IGFkdmlzZSB0aGUgbmV4dCBzdGVwcyBmb3IgdGhlIEFDUEkgLw0K
+PiA+ID4gUE1JQyBPcHJlZ2lvbiBkcml2ZXI/DQo+ID4gPg0KPiA+ID4gV2VsbCwgaXQgd291bGQg
+aGF2ZSBiZWVuIGJldHRlciB0byByb3V0ZSB0aGUgd2hvbGUgc2VyaWVzIHRocm91Z2ggb25lDQo+
+IHRyZWUuDQo+ID4gPiBOb3cgaXQncyBiZXR0ZXIgdG8gd2FpdCB1bnRpbCB0aGUgdHdvIG90aGVy
+IHRyZWVzIGdldCBtZXJnZWQgYW5kDQo+ID4gPiB0aGVuIGFwcGx5IHRoZSBvcHJlZ2lvbiBwYXRj
+aC4NCj4gPiA+DQo+ID4NCj4gPiBBY2suDQo+ID4gTGV0IG1lIGdldCBiYWNrIG9uY2UgdGhlIG90
+aGVyIDIgdHJlZXMgYXJlIG1lcmdlZC4NCj4gPg0KPiANCj4gQm90aCBNRkQgYW5kIEdQSU8gcGF0
+Y2hlcyBvZiB0aGlzIHNlcmllcyBnb3QgbWVyZ2VkIHVwc3RyZWFtIGFzIG9mIHRvZGF5Lg0KPiAN
+Cj4gVGhhbmtzDQo+IFJhag0K
