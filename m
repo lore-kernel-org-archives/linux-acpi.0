@@ -1,68 +1,127 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC 0/5] Align and document return values of phandle and
- reference parsing for OF and ACPI
-Date: Tue, 26 Sep 2017 12:02:01 +0300
-Message-ID: <20170926090201.wcpv4fty5yi5ea6z@valkosipuli.retiisi.org.uk>
-References: <20170914122914.14122-1-sakari.ailus@linux.intel.com>
- <CAL_JsqKZVN+X0F3Z8s6Qv+ioh8LBDjNe277MAw30T3CXXTUV1Q@mail.gmail.com>
- <20170919230125.l7fexsdrzbmwd6yp@valkosipuli.retiisi.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v3 1/1] device property: Align return codes of __acpi_node_get_property_reference
+Date: Tue, 26 Sep 2017 12:08:27 +0300
+Message-ID: <20170926090827.31861-1-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55902 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55960 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751840AbdIZJCF (ORCPT
+        by vger.kernel.org with ESMTP id S965551AbdIZJI3 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 26 Sep 2017 05:02:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20170919230125.l7fexsdrzbmwd6yp@valkosipuli.retiisi.org.uk>
+        Tue, 26 Sep 2017 05:08:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, Frank Rowand <frowand.list@gmail.com>
+To: linux-acpi@vger.kernel.org
+Cc: devicetree@vger.kernel.org, robh@kernel.org, frowand.list@gmail.com, mika.westerberg@linux.intel.com, rafael@kernel.org, hverkuil@xs4all.nl
 
-On Wed, Sep 20, 2017 at 02:01:25AM +0300, Sakari Ailus wrote:
-> Hi Rob,
-> 
-> Thanks for the review.
-> 
-> On Fri, Sep 15, 2017 at 02:57:35PM -0500, Rob Herring wrote:
-> > On Thu, Sep 14, 2017 at 7:29 AM, Sakari Ailus
-> > <sakari.ailus@linux.intel.com> wrote:
-> > > Hi everyone,
-> > >
-> > > I recently came across a difference in behaviour of OF phandle parsing and
-> > > ACPI reference parsing, both of which can soon be accessed using
-> > > fwnode_property_get_reference_args.
-> > >
-> > > The main change in this proposal touches OF, and specifically the change
-> > > is about using -ENODATA to tell that the phandle reference list entry that
-> > > was accessed does not exist. -ENOENT was used previously, but the same
-> > > error code was also used to tell that a phandle was empty, making it
-> > > impossible for the caller to figure out which of the two was the case.
-> > >
-> > > I'm sending the set as RFC. In my limited testing I have found no ill
-> > > effects.
-> > >
-> > > These patches are on top of linux-next.
-> > >
-> > > Comments on the approach and the changes themselves would be most welcome.
-> > 
-> > It's not really valid to both have a variable count (and hence need to
-> > retrieve it) and use blank phandle entries. The whole point of blank
-> > entries is to have a fixed length and know what each index corresponds
-> > too. Do you have an example where we hit this?
-> 
-> Well, the above is true. I think I'd still use different error codes to
-> tell about different situations.
-> 
-> The alternative is that the fwnode counterpart error codes are changed to
-> to -ENOENT.
+acpi_fwnode_get_reference_args(), the function implementing ACPI
+support for fwnode_property_get_reference_args(), returns directly
+error codes from __acpi_node_get_property_reference(). The latter uses
+different error codes than the OF implementation. In particular, the OF
+implementation uses -ENOENT to indicate that the property is not found, a
+reference entry is empty and there are no more references.
 
-I'll post a patch implemeting switching the fwnode variant to use -ENOENT,
-cc'ing you. I think the first patch of the set is still relevant, it's
-rather a bugfix.
+Document and align the error codes for property for
+fwnode_property_get_reference_args() so that they match with
+of_parse_phandle_with_args().
 
+Fixes: 3e3119d3088f ("device property: Introduce fwnode_property_get_reference_args")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+The patch was called "device property: Align return codes of
+acpi_fwnode_get_reference_with_args", and is an alternative to the set
+"[RFC 0/5] Align and document return values of phandle and reference
+parsing for OF and ACPI".
+
+since v2:
+
+- Change the functionality of __acpi_node_get_property_reference rather
+  than that of acpi_fwnode_get_reference_args.
+
+ drivers/acpi/property.c | 19 +++++++++----------
+ drivers/base/property.c |  4 ++++
+ 2 files changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 3fb8ff513461..5a8ac5e1081b 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -571,10 +571,9 @@ static int acpi_data_get_property_array(const struct acpi_device_data *data,
+  *     }
+  * }
+  *
+- * Calling this function with index %2 return %-ENOENT and with index %3
+- * returns the last entry. If the property does not contain any more values
+- * %-ENODATA is returned. The NULL entry must be single integer and
+- * preferably contain value %0.
++ * Calling this function with index %2 or index %3 return %-ENOENT. If the
++ * property does not contain any more values %-ENOENT is returned. The NULL
++ * entry must be single integer and preferably contain value %0.
+  *
+  * Return: %0 on success, negative error code on failure.
+  */
+@@ -590,7 +589,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 
+ 	data = acpi_device_data_of_node(fwnode);
+ 	if (!data)
+-		return -EINVAL;
++		return -ENOENT;
+ 
+ 	ret = acpi_data_get_property(data, propname, ACPI_TYPE_ANY, &obj);
+ 	if (ret)
+@@ -635,7 +634,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 			ret = acpi_bus_get_device(element->reference.handle,
+ 						  &device);
+ 			if (ret)
+-				return -ENODEV;
++				return -EINVAL;
+ 
+ 			nargs = 0;
+ 			element++;
+@@ -649,11 +648,11 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 				else if (type == ACPI_TYPE_LOCAL_REFERENCE)
+ 					break;
+ 				else
+-					return -EPROTO;
++					return -EINVAL;
+ 			}
+ 
+ 			if (nargs > MAX_ACPI_REFERENCE_ARGS)
+-				return -EPROTO;
++				return -EINVAL;
+ 
+ 			if (idx == index) {
+ 				args->adev = device;
+@@ -670,13 +669,13 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 				return -ENOENT;
+ 			element++;
+ 		} else {
+-			return -EPROTO;
++			return -EINVAL;
+ 		}
+ 
+ 		idx++;
+ 	}
+ 
+-	return -ENODATA;
++	return -ENOENT;
+ }
+ EXPORT_SYMBOL_GPL(__acpi_node_get_property_reference);
+ 
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 0c8958747c8b..a9ee5efe22d9 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -682,6 +682,10 @@ EXPORT_SYMBOL_GPL(fwnode_property_match_string);
+  * Caller is responsible to call fwnode_handle_put() on the returned
+  * args->fwnode pointer.
+  *
++ * Returns: %0 on success
++ *	    %-ENOENT when the index is out of bounds, the index has an empty
++ *		     reference or the property was not found
++ *	    %-EINVAL on parse error
+  */
+ int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
+ 				       const char *prop, const char *nargs_prop,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.11.0
+
