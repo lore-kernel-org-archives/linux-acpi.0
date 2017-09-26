@@ -1,57 +1,79 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 0/2] ACPI / EC: EC regression fixes related to EC event stuck
-Date: Tue, 26 Sep 2017 16:53:57 +0800
-Message-ID: <cover.1506414565.git.lv.zheng@intel.com>
+Subject: [PATCH 1/2] ACPI / EC: Fix a regression related to the triggering source of the EC event handling
+Date: Tue, 26 Sep 2017 16:54:03 +0800
+Message-ID: <5f4131254125471f109739790d1deb619102ae43.1506414565.git.lv.zheng@intel.com>
+References: <cover.1506414565.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1506414565.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "4 . 11+ # 4 . 11+" <stable@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-There are 2 regressions reported on bugzilla.
- Link: https://bugzilla.kernel.org/show_bug.cgi?id=196847 [#1]
- Link: https://bugzilla.kernel.org/show_bug.cgi?id=196833 [#2]
-It looks they are related to the modification against the timing of
-acpi_ec_enable_event() invocation, but they are all due to different root
-causes.
+Originally the Samsung quirks removed by commit 4c237371 can be covered by
+commit e923e8e7 and ec_freeze_events=Y mode. But commit 9c40f956 changed
+ec_freeze_events=Y back to N, making this problem re-surfaced.
+Actually, if commit e923e8e7 is robust enough, we can freely change
+ec_freeze_events mode, so this patch fixes the issue by improving
+commit e923e8e7.
 
-For link 1, its root cause is: we rely on acpi_ec_suspend/resume() to
-control the timing of EC event handling enablement, but ECDT is not an
-ACPI device, thus the PM hooks are not invoked for it.
-For link 2, reporter seems to favor a fix that can fix both of the
-problems:
-1. EC event can stuck if there is no triggering source.
-2. Post-resume enabling of EC event handling may be too late.
-But actually the report is only against problem 1 which is known to have a
-very low and accepted reproduce ratio.
+Related commits listed in the merged order:
+ Commit: e923e8e79e18fd6be9162f1be6b99a002e9df2cb
+ Subject: ACPI / EC: Fix an issue that SCI_EVT cannot be detected after
+          event is enabled
+ Commit: 4c237371f290d1ed3b2071dd43554362137b1cce
+ Subject: ACPI / EC: Remove old CLEAR_ON_RESUME quirk
+ Commit: 9c40f956ce9b331493347d1b3cb7e384f7dc0581
+ Subject: Revert "ACPI / EC: Enable event freeze mode..." to fix a
+          regression
 
-For problem 2, it should has a sympton related to the driver resume order
-rather than EC event stuck. And its fix should be acpi.ec_freeze_events=Y
-related. Note acpi.ec_freeze_events=Y is a feature we need to keep for
-now as:
-1. It's reasonable for EC driver to act as an agent for EC event
-   handling while EC transaction is handled by ACPI core handler, thus
-   1.1. unbind/suspend means suspending EC event handling;
-   1.2. bind/resume means resuming EC event handling.
-2. According to the known EC FW facts, it takes time for EC FW to
-   initialize after boot/resume.
+This patch not only fixes the reported post-resume EC event triggering
+source issue, but also fixes an unreported similar issue related to the
+driver bind by adding EC event triggering source in ec_install_handlers().
 
-This patchset fixes the root causes of the 2 regressions and keeps the
-possibility of tuning acpi.ec_freeze_events=Y. Note that PATCH 02
-depends on PATCH 01 to be safe for driver unbind.
+Fixes: e923e8e79e18 (ACPI / EC: Fix an issue that SCI_EVT cannot be detected after event is enabled)
+Fixes: 4c237371f290 (ACPI / EC: Remove old CLEAR_ON_RESUME quirk)
+Fixes: 9c40f956ce9b (Revert "ACPI / EC: Enable event freeze mode..." to fix a regression)
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=196833
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Reported-by: Alistair Hamilton <ahpatent@gmail.com>
+Tested-by: Alistair Hamilton <ahpatent@gmail.com>
+Cc: 4.11+ <stable@vger.kernel.org> # 4.11+
+---
+ drivers/acpi/ec.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-Lv Zheng (2):
-  ACPI / EC: Fix a regression related to the triggering source of the EC
-    event handling
-  ACPI / EC: Fix a regression related to the PM ops support of ECDT
-    device
-
- drivers/acpi/ec.c           | 81 +++++++++++++++++++++++++++++----------------
- drivers/acpi/internal.h     |  1 +
- drivers/acpi/scan.c         | 21 ++++++++++++
- include/acpi/acpi_bus.h     |  1 +
- include/acpi/acpi_drivers.h |  1 +
- 5 files changed, 76 insertions(+), 29 deletions(-)
-
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 236b143..82b3ce5 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -486,8 +486,11 @@ static inline void __acpi_ec_enable_event(struct acpi_ec *ec)
+ {
+ 	if (!test_and_set_bit(EC_FLAGS_QUERY_ENABLED, &ec->flags))
+ 		ec_log_drv("event unblocked");
+-	if (!test_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
+-		advance_transaction(ec);
++	/*
++	 * Unconditionally invoke this once after enabling the event
++	 * handling mechanism to detect the pending events.
++	 */
++	advance_transaction(ec);
+ }
+ 
+ static inline void __acpi_ec_disable_event(struct acpi_ec *ec)
+@@ -1456,11 +1459,10 @@ static int ec_install_handlers(struct acpi_ec *ec, bool handle_events)
+ 			if (test_bit(EC_FLAGS_STARTED, &ec->flags) &&
+ 			    ec->reference_count >= 1)
+ 				acpi_ec_enable_gpe(ec, true);
+-
+-			/* EC is fully operational, allow queries */
+-			acpi_ec_enable_event(ec);
+ 		}
+ 	}
++	/* EC is fully operational, allow queries */
++	acpi_ec_enable_event(ec);
+ 
+ 	return 0;
+ }
 -- 
 2.7.4
