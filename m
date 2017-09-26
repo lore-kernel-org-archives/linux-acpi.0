@@ -1,160 +1,245 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC PATCH v2 3/4] ACPI: IORT: Skip SMMUv3 device ID map for
- two steps mappings
-Date: Wed, 27 Sep 2017 03:04:11 +0800
-Message-ID: <59CAA4AB.3010309@linaro.org>
-References: <1505999838-52530-1-git-send-email-guohanjun@huawei.com> <1505999838-52530-4-git-send-email-guohanjun@huawei.com> <d9f33a08-a1b8-002c-53d6-ce43b273c7df@arm.com>
+From: Tyler Baicar <tbaicar@codeaurora.org>
+Subject: Re: [PATCH v2] acpi: apei: Add SEI notification type support for
+ ARMv8
+Date: Tue, 26 Sep 2017 13:23:35 -0600
+Message-ID: <88a71a70-0704-6e47-de09-6f67b91967b6@codeaurora.org>
+References: <1505373743-7780-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f181.google.com ([209.85.192.181]:51803 "EHLO
-        mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030547AbdIZTEO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Sep 2017 15:04:14 -0400
-Received: by mail-pf0-f181.google.com with SMTP id b70so5986467pfl.8
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Sep 2017 12:04:13 -0700 (PDT)
-In-Reply-To: <d9f33a08-a1b8-002c-53d6-ce43b273c7df@arm.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:33942 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754465AbdIZTXx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Sep 2017 15:23:53 -0400
+In-Reply-To: <1505373743-7780-1-git-send-email-gengdongjiu@huawei.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, Hanjun Guo <guohanjun@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com
+To: Dongjiu Geng <gengdongjiu@huawei.com>, will.deacon@arm.com, zjzhang@codeaurora.org, catalin.marinas@arm.com, bp@suse.de, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, Stephen Boyd <sboyd@codeaurora.org>
+Cc: huangshaoyu@huawei.com, wuquanming@huawei.com
 
-Hi Robin,
-
-Sorry for the late reply, in Linaro Connect now..
-
-On 09/22/2017 09:21 PM, Robin Murphy wrote:
-> On 21/09/17 14:17, Hanjun Guo wrote:
->> From: Hanjun Guo <hanjun.guo@linaro.org>
->>
->> IORT revision C introduced SMMUv3 MSI support which adding a
->> device ID mapping index in SMMUv3 sub table, to get the SMMUv3
->> device ID mapping for the output ID (dev ID for ITS) and the
->> link to which ITS.
->>
->> So if a platform supports SMMUv3 MSI for control interrupt,
->> there will be a additional single map entry under SMMU, this
->> will not introduce any difference for devices just use one
->> step map to get its output ID and parent (ITS or SMMU), such
->> as PCI/NC/PMCG ---> ITS or PCI/NC ---> SMMU, but we need to
->> do the special handling for two steps map case such as
->> PCI/NC--->SMMUv3--->ITS.
->>
->> Take a PCI hostbridge for example,
->>
->> |----------------------|
->> |  Root Complex Node   |
->> |----------------------|
->> |    map entry[x]      |
->> |----------------------|
->> |       id value       |
->> | output_reference     |
->> |---|------------------|
->>      |
->>      |   |----------------------|
->>      |-->|        SMMUv3        |
->>          |----------------------|
->>          |     SMMU dev ID      |
->>          |     mapping index 0  |
->>          |----------------------|
->>          |      map entry[0]    |
->>          |----------------------|
->>          |       id value       |
->>          | output_reference-----------> ITS 1 (SMMU MSI domain)
->>          |----------------------|
->>          |      map entry[1]    |
->>          |----------------------|
->>          |       id value       |
->>          | output_reference-----------> ITS 2 (PCI MSI domain)
->>          |----------------------|
->>
->> When the SMMU dev ID mapping index is 0, there is entry[0]
->> to map to a ITS, we need to skip that map entry for PCI
->> or NC (named component), or we may get the wrong ITS parent.
->>
->> For now we have two APIs for ID mapping, iort_node_map_id()
->> and iort_node_map_platform_id(), and iort_node_map_id() is
->> used for optional two steps mapping, so we just need to
->> skip the map entry in iort_node_map_id() for non-SMMUv3
->> devices.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>   drivers/acpi/arm64/iort.c | 43 ++++++++++++++++++++++++++++++++++++++++++-
->>   1 file changed, 42 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index db71d7f..269959e 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -366,6 +366,34 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
->>   	return NULL;
->>   }
->>
->> +static int iort_get_smmu_v3_id_mapping_index(struct acpi_iort_node *node,
->> +					     u32 *index)
->> +{
->> +	struct acpi_iort_smmu_v3 *smmu;
->> +
->> +	/*
->> +	 * SMMUv3 dev ID mapping index was introdueced in revision 1
->> +	 * table, not avaible in revision 0
->> +	 */
->> +	if (node->revision < 1)
->> +		return -EINVAL;
->> +
->> +	smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
->> +	/* if any of the gsi for control interrupts is not 0, ignore the MSI */
->> +	if (smmu->event_gsiv || smmu->pri_gsiv || smmu->gerr_gsiv
->> +	    || smmu->sync_gsiv)
+On 9/14/2017 1:22 AM, Dongjiu Geng wrote:
+> ARMv8.2 requires implementation of the RAS extension, in
+> this extension it adds SEI(SError Interrupt) notification
+> type, this patch adds new GHES error source SEI handling
+> functions. Because this error source parsing and handling
+> methods are similar with the SEA. so share some SEA handling
+> functions with the SEI
 >
-> To repeat my previous comments, the ID mapping index is only ignored if
-> *all* interrupts are GSIV-based.
+> Expose one API ghes_notify_abort() to external users. External
+> modules can call this exposed API to parse and handling the
+> SEA or SEI.
 >
-> It would be quite reasonable for gerr to be wired while everything else
-> uses MSIs, especially since that's effectively the only reliable way to
-> get MSI aborts reported if things are completely hosed.
-
-OK, I missed this point, so I will modify the code as below
-
-if (smmu->event_gsiv && smmu->pri_gsiv && smmu->gerr_gsiv
-     && smmu->sync_gsiv)
-	return -EINVAL;
-
-Am I doing this right with above code?
-
+> Note: For the SEI(SError Interrupt), because it is asynchronous
+> external abort, the error address is not accurate, so EL3 firmware
+> should identify the address to a invalid value.
 >
->> +		return -EINVAL;
->> +
->> +	if (smmu->id_mapping_index >= node->mapping_count) {
->> +		pr_err(FW_BUG "[node %p type %d] ID mapping index overflows valid mappings\n",
->> +		       node, node->type);
->> +		return -EINVAL;
->> +	}
->> +
->> +	*index = smmu->id_mapping_index;
->> +	return 0;
->> +}
->> +
->>   static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
->>   					       u32 id_in, u32 *id_out,
->>   					       u8 type_mask)
->> @@ -375,7 +403,9 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
->>   	/* Parse the ID mapping tree to find specified node type */
->>   	while (node) {
->>   		struct acpi_iort_id_mapping *map;
->> -		int i;
->> +		int i, ret = -EINVAL;
->> +		/* big enough for an invalid id index in practical */
->> +		u32 index = U32_MAX;
+> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+
+Tested this functionality using SEA support.
+
+++Stephen,
+
+Something to be aware of, this patch will conflict with 
+https://lkml.org/lkml/2017/9/14/663
+It may make sense to just remove the conditions for the NMI configs as 
+part of this patch or in a series with this patch to avoid merge conflicts.
+
+Thanks,
+Tyler
+> ---
+>   arch/arm64/Kconfig        |  4 ++--
+>   arch/arm64/mm/fault.c     |  4 ++--
+>   drivers/acpi/apei/Kconfig | 15 +++++++++++++
+>   drivers/acpi/apei/ghes.c  | 56 +++++++++++++++++++++++++++++++++++------------
+>   include/acpi/ghes.h       |  2 +-
+>   5 files changed, 62 insertions(+), 19 deletions(-)
 >
-> And again, more of a style nit, but indices must be sufficiently small
-> to fit into the positive half of an int, so *_id_mapping_index() really
-> doesn't need this complication of passing a separate output argument.
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 4d87aa963d83..9989ecce9a72 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -21,7 +21,7 @@ config ARM64
+>   	select ARCH_HAS_STRICT_KERNEL_RWX
+>   	select ARCH_HAS_STRICT_MODULE_RWX
+>   	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+> -	select ARCH_HAVE_NMI_SAFE_CMPXCHG if ACPI_APEI_SEA
+> +	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (ACPI_APEI_SEA || ACPI_APEI_SEI)
+>   	select ARCH_USE_CMPXCHG_LOCKREF
+>   	select ARCH_SUPPORTS_MEMORY_FAILURE
+>   	select ARCH_SUPPORTS_ATOMIC_RMW
+> @@ -97,7 +97,7 @@ config ARM64
+>   	select HAVE_IRQ_TIME_ACCOUNTING
+>   	select HAVE_MEMBLOCK
+>   	select HAVE_MEMBLOCK_NODE_MAP if NUMA
+> -	select HAVE_NMI if ACPI_APEI_SEA
+> +	select HAVE_NMI if (ACPI_APEI_SEA || ACPI_APEI_SEI)
+>   	select HAVE_PATA_PLATFORM
+>   	select HAVE_PERF_EVENTS
+>   	select HAVE_PERF_REGS
+> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+> index 2509e4fe6992..c98c1b30aab5 100644
+> --- a/arch/arm64/mm/fault.c
+> +++ b/arch/arm64/mm/fault.c
+> @@ -585,7 +585,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>   		if (interrupts_enabled(regs))
+>   			nmi_enter();
+>   
+> -		ret = ghes_notify_sea();
+> +		ret = ghes_notify_abort(ACPI_HEST_NOTIFY_SEA);
+>   
+>   		if (interrupts_enabled(regs))
+>   			nmi_exit();
+> @@ -682,7 +682,7 @@ int handle_guest_sea(phys_addr_t addr, unsigned int esr)
+>   	int ret = -ENOENT;
+>   
+>   	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
+> -		ret = ghes_notify_sea();
+> +		ret = ghes_notify_abort(ACPI_HEST_NOTIFY_SEA);
+>   
+>   	return ret;
+>   }
+> diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+> index de14d49a5c90..47fcb0c82e1e 100644
+> --- a/drivers/acpi/apei/Kconfig
+> +++ b/drivers/acpi/apei/Kconfig
+> @@ -54,6 +54,21 @@ config ACPI_APEI_SEA
+>   	  option allows the OS to look for such hardware error record, and
+>   	  take appropriate action.
+>   
+> +config ACPI_APEI_SEI
+> +	bool "APEI Asynchronous SError Interrupt logging/recovering support"
+> +	depends on ARM64 && ACPI_APEI_GHES
+> +	default y
+> +	help
+> +	  This option should be enabled if the system supports
+> +	  firmware first handling of SEI (asynchronous SError interrupt).
+> +
+> +	  SEI happens with asynchronous external abort for errors on device
+> +	  memory reads on ARMv8 systems. If a system supports firmware first
+> +	  handling of SEI, the platform analyzes and handles hardware error
+> +	  notifications from SEI, and it may then form a HW error record for
+> +	  the OS to parse and handle. This option allows the OS to look for
+> +	  such hardware error record, and take appropriate action.
+> +
+>   config ACPI_APEI_MEMORY_FAILURE
+>   	bool "APEI memory error recovering support"
+>   	depends on ACPI_APEI && MEMORY_FAILURE
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index c15a08db2c7c..47be1841f9fe 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -814,33 +814,52 @@ static struct notifier_block ghes_notifier_hed = {
+>   };
+>   
+>   static LIST_HEAD(ghes_sea);
+> +static LIST_HEAD(ghes_sei);
+>   
+>   /*
+> - * Return 0 only if one of the SEA error sources successfully reported an error
+> + * Return 0 only if one of the SEA or SEI error sources successfully reported an error
+>    * record sent from the firmware.
+>    */
+> -int ghes_notify_sea(void)
+> +int ghes_notify_abort(u8 type)
+>   {
+>   	struct ghes *ghes;
+> +	struct list_head *head = NULL;
+>   	int ret = -ENOENT;
+>   
+> -	rcu_read_lock();
+> -	list_for_each_entry_rcu(ghes, &ghes_sea, list) {
+> -		if (!ghes_proc(ghes))
+> -			ret = 0;
+> +	if (type == ACPI_HEST_NOTIFY_SEA)
+> +		head = &ghes_sea;
+> +	else if (type == ACPI_HEST_NOTIFY_SEI)
+> +		head = &ghes_sei;
+> +
+> +	if (head) {
+> +		rcu_read_lock();
+> +		list_for_each_entry_rcu(ghes, head, list) {
+> +			if (!ghes_proc(ghes))
+> +				ret = 0;
+> +		}
+> +		rcu_read_unlock();
+>   	}
+> -	rcu_read_unlock();
+>   	return ret;
+>   }
+>   
+> -static void ghes_sea_add(struct ghes *ghes)
+> +static void ghes_abort_add(struct ghes *ghes)
+>   {
+> -	mutex_lock(&ghes_list_mutex);
+> -	list_add_rcu(&ghes->list, &ghes_sea);
+> -	mutex_unlock(&ghes_list_mutex);
+> +	struct list_head *head = NULL;
+> +	u8 notify_type = ghes->generic->notify.type;
+> +
+> +	if (notify_type == ACPI_HEST_NOTIFY_SEA)
+> +		head = &ghes_sea;
+> +	else if (notify_type == ACPI_HEST_NOTIFY_SEI)
+> +		head = &ghes_sei;
+> +
+> +	if (head) {
+> +		mutex_lock(&ghes_list_mutex);
+> +		list_add_rcu(&ghes->list, head);
+> +		mutex_unlock(&ghes_list_mutex);
+> +	}
+>   }
+>   
+> -static void ghes_sea_remove(struct ghes *ghes)
+> +static void ghes_abort_remove(struct ghes *ghes)
+>   {
+>   	mutex_lock(&ghes_list_mutex);
+>   	list_del_rcu(&ghes->list);
+> @@ -1093,6 +1112,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>   			goto err;
+>   		}
+>   		break;
+> +	case ACPI_HEST_NOTIFY_SEI:
+> +		if (!IS_ENABLED(CONFIG_ACPI_APEI_SEI)) {
+> +			pr_warn(GHES_PFX "Generic hardware error source: %d notified via SEI is not supported!\n",
+> +				generic->header.source_id);
+> +		goto err;
+> +	}
+> +	break;
+>   	case ACPI_HEST_NOTIFY_NMI:
+>   		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
+>   			pr_warn(GHES_PFX "Generic hardware error source: %d notified via NMI interrupt is not supported!\n",
+> @@ -1162,7 +1188,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>   		break;
+>   
+>   	case ACPI_HEST_NOTIFY_SEA:
+> -		ghes_sea_add(ghes);
+> +	case ACPI_HEST_NOTIFY_SEI:
+> +		ghes_abort_add(ghes);
+>   		break;
+>   	case ACPI_HEST_NOTIFY_NMI:
+>   		ghes_nmi_add(ghes);
+> @@ -1215,7 +1242,8 @@ static int ghes_remove(struct platform_device *ghes_dev)
+>   		break;
+>   
+>   	case ACPI_HEST_NOTIFY_SEA:
+> -		ghes_sea_remove(ghes);
+> +	case ACPI_HEST_NOTIFY_SEI:
+> +		ghes_abort_remove(ghes);
+>   		break;
+>   	case ACPI_HEST_NOTIFY_NMI:
+>   		ghes_nmi_remove(ghes);
+> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+> index 9061c5c743b3..ec6f4bab1d1b 100644
+> --- a/include/acpi/ghes.h
+> +++ b/include/acpi/ghes.h
+> @@ -118,6 +118,6 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
+>   	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
+>   	     section = acpi_hest_get_next(section))
+>   
+> -int ghes_notify_sea(void);
+> +int ghes_notify_abort(u8 type);
+>   
+>   #endif /* GHES_H */
 
-Sorry, I reused the code which Lorenzo sent me, will update the code
-in next version.
-
-Thanks
-Hanjun
