@@ -1,92 +1,39 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v9] ACPI / init: Invoke early ACPI initialization earlier
-Date: Wed, 27 Sep 2017 09:41:49 +0800
-Message-ID: <e4eadcbc-fe58-2d2c-818d-34e2f545db16@cn.fujitsu.com>
-References: <1505293975-26005-1-git-send-email-douly.fnst@cn.fujitsu.com>
- <1505294274-441-1-git-send-email-douly.fnst@cn.fujitsu.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH v9] ACPI / init: Invoke early ACPI initialization
+ earlier
+Date: Wed, 27 Sep 2017 09:19:49 +0200 (CEST)
+Message-ID: <alpine.DEB.2.20.1709270917590.1945@nanos>
+References: <1505293975-26005-1-git-send-email-douly.fnst@cn.fujitsu.com> <1505294274-441-1-git-send-email-douly.fnst@cn.fujitsu.com> <e4eadcbc-fe58-2d2c-818d-34e2f545db16@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.cn.fujitsu.com ([183.91.158.132]:63104 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1033022AbdI0Bl4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Sep 2017 21:41:56 -0400
-In-Reply-To: <1505294274-441-1-git-send-email-douly.fnst@cn.fujitsu.com>
+Received: from Galois.linutronix.de ([146.0.238.70]:50882 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750905AbdI0HUu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 03:20:50 -0400
+In-Reply-To: <e4eadcbc-fe58-2d2c-818d-34e2f545db16@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org, yinghai@kernel.org, bhe@redhat.com, bp@alien8.de, fengguang.wu@intel.com
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org, yinghai@kernel.org, bhe@redhat.com, bp@alien8.de, fengguang.wu@intel.com
 
-Hi Rafael, Zheng,
+On Wed, 27 Sep 2017, Dou Liyang wrote:
 
-Welcome any comments!
+> Hi Rafael, Zheng,
+> 
+> Welcome any comments!
+> 
+> Now, our patches are in tip tree, they are based on this
+> independent patch, we hope it can be merged earlier than our
+> patches to avoid ACPI Error. we need your advice and confirmation.
 
-Now, our patches are in tip tree, they are based on this
-independent patch, we hope it can be merged earlier than our
-patches to avoid ACPI Error. we need your advice and confirmation.
+You should have included that patch into your APIC series so I would have
+been aware that it's required for the APIC changes to work on all
+platforms.
+
+But not a big problem. I merge it through tip/x86/apic so the stuff works
+as expected.
 
 Thanks,
-	dou.
 
-At 09/13/2017 05:17 PM, Dou Liyang wrote:
-> Linux uses acpi_early_init() to put the ACPI table management into the
-> late stage from the early stage. This two stages are different. the
-> mapped ACPI tables in early stage is temporary and should be unmapped,
-> but in late stage, it is permanent and don't need to be unmapped.
->
-> Originally, mapping and parsing the DMAR table should be in the late stage.
-> However, Initializing interrupt delivery mode earlier will move it into
-> the early stage. This causes an ACPI error warning when Linux reallocates
-> the ACPI root tables.
->
-> Commit b064a8fa77df ("ACPI / init: Switch over platform to the ACPI mode
-> later") splits the ACPI early initialization code into acpi_early_init()
-> and acpi_subsystem_init(). This makes acpi_early_init() more independently
->
-> So, invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
-> be mapped and parsed in late stage like before.
->
-> Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
-> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Zheng, Lv <lv.zheng@intel.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: x86@kernel.org
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Fenghua Yu <fenghua.yu@intel.com>
-> Cc: linux-ia64@vger.kernel.org
-> Cc: yinghai@kernel.org
-> Cc: bhe@redhat.com
-> Cc: bp@alien8.de
-> ---
->  init/main.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/init/main.c b/init/main.c
-> index 0ee9c686..2fb98a4 100644
-> --- a/init/main.c
-> +++ b/init/main.c
-> @@ -664,12 +664,12 @@ asmlinkage __visible void __init start_kernel(void)
->  	debug_objects_mem_init();
->  	setup_per_cpu_pageset();
->  	numa_policy_init();
-> +	acpi_early_init();
->  	if (late_time_init)
->  		late_time_init();
->  	calibrate_delay();
->  	pidmap_init();
->  	anon_vma_init();
-> -	acpi_early_init();
->  #ifdef CONFIG_X86
->  	if (efi_enabled(EFI_RUNTIME_SERVICES))
->  		efi_enter_virtual_mode();
->
-
-
+	tglx
