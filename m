@@ -1,39 +1,53 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v9] ACPI / init: Invoke early ACPI initialization
- earlier
-Date: Wed, 27 Sep 2017 09:19:49 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1709270917590.1945@nanos>
-References: <1505293975-26005-1-git-send-email-douly.fnst@cn.fujitsu.com> <1505294274-441-1-git-send-email-douly.fnst@cn.fujitsu.com> <e4eadcbc-fe58-2d2c-818d-34e2f545db16@cn.fujitsu.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH] platform/x86: intel-hid: Power button suspend on Dell
+ Latitude 7275
+Date: Wed, 27 Sep 2017 00:31:41 -0700
+Message-ID: <20170927073141.GB19973@fury>
+References: <20170917225712.12136-1-jerome.debretagne@gmail.com>
+ <20170922234543.GB20327@fury>
+ <CAHp75VdJXmif+pesu=EAJ5i9dWtaNLXr3QGJdQZiKp_tURtGYg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:50882 "EHLO
-        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750905AbdI0HUu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 03:20:50 -0400
-In-Reply-To: <e4eadcbc-fe58-2d2c-818d-34e2f545db16@cn.fujitsu.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:57018 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750917AbdI0Hbo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 03:31:44 -0400
+Content-Disposition: inline
+In-Reply-To: <CAHp75VdJXmif+pesu=EAJ5i9dWtaNLXr3QGJdQZiKp_tURtGYg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org, yinghai@kernel.org, bhe@redhat.com, bp@alien8.de, fengguang.wu@intel.com
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: =?iso-8859-1?B?Suly9G1l?= de Bretagne <jerome.debretagne@gmail.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mario Limonciello <mario.limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>
 
-On Wed, 27 Sep 2017, Dou Liyang wrote:
-
-> Hi Rafael, Zheng,
+On Mon, Sep 25, 2017 at 01:57:48PM +0300, Andy Shevchenko wrote:
+> On Sat, Sep 23, 2017 at 2:45 AM, Darren Hart <dvhart@infradead.org> wrote:
+> > On Mon, Sep 18, 2017 at 12:57:12AM +0200, Jérôme de Bretagne wrote:
 > 
-> Welcome any comments!
+> >> +             if (event == 0xce) {
+> >> +                     input_report_key(priv->input_dev, KEY_POWER, 1);
+> >> +                     input_sync(priv->input_dev);
+> >> +                     return;
+> >> +             } else if (event == 0xcf)
+> >> +                     return;
+> >
+> > Minor CodingStyle nit. If the if block uses parens, so does the else block. In
+> > this case, since the if returns, just skip the else entirely.
+> >
+> > See Documentation/process/coding-style.rst
+> > The example immediatley *before* 3.1) Spaces.
+> >
+> > I've made this change and queued for testing.
+> >
+> >> +     }
 > 
-> Now, our patches are in tip tree, they are based on this
-> independent patch, we hope it can be merged earlier than our
-> patches to avoid ACPI Error. we need your advice and confirmation.
+> Actually in this case even 'else' is redundant.
 
-You should have included that patch into your APIC series so I would have
-been aware that it's required for the APIC changes to work on all
-platforms.
+Yes, this is what I meant above by "skip the else entirely", and is the
+change I made prior to committing. I was just pointing out the coding
+style at the same time :-)
 
-But not a big problem. I merge it through tip/x86/apic so the stuff works
-as expected.
-
-Thanks,
-
-	tglx
+-- 
+Darren Hart
+VMware Open Source Technology Center
