@@ -1,39 +1,85 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH] ACPI/APEI: adjust a local variable type in
- ghes_ioremap_pfn_irq()
-Date: Wed, 27 Sep 2017 19:54:05 +0200
-Message-ID: <20170927175405.x5ccou5d6rrevyvd@pd.tnic>
-References: <59C8D51B020000780017F3B9@prv-mh.provo.novell.com>
- <59C8D51B020000780017F3B9@prv-mh.provo.novell.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] PM / s2idle: Invoke the ->wake() platform callback earlier
+Date: Thu, 28 Sep 2017 01:45:10 +0200
+Message-ID: <2377821.5zBMHogt8n@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:43321 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751985AbdI0RyS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 27 Sep 2017 13:54:18 -0400
-Content-Disposition: inline
-In-Reply-To: <59C8D51B020000780017F3B9@prv-mh.provo.novell.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:64745 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752357AbdI0Xy0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 27 Sep 2017 19:54:26 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Beulich <JBeulich@suse.com>
-Cc: Len Brown <lenb@kernel.org>, rjw@rjwysocki.net, tony.luck@intel.com, linux-acpi@vger.kernel.org
+To: Linux PM <linux-pm@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>
 
-On Mon, Sep 25, 2017 at 02:06:19AM -0600, Jan Beulich wrote:
-> Match up with what 7edda0886b ("acpi: apei: handle SEA notification
-> type for ARMv8") did for ghes_ioremap_pfn_nmi().
-> 
-> Signed-off-by: Jan Beulich <jbeulich@suse.com>
-> ---
->  drivers/acpi/apei/ghes.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Reviewed-by: Borislav Petkov <bp@suse.de>
+The role of the ->wake() platform callback for suspend-to-idle is to
+deal with possible spurious wakeups, among other things.  The ACPI
+implementation of it, acpi_s2idle_wake(), additionally checks the
+conditions for entering the Low Power S0 Idle state by the platform
+and reports the ones that have not been met.
 
--- 
-Regards/Gruss,
-    Boris.
+However, the ->wake() platform callback is invoked after calling
+dpm_noirq_resume_devices(), which means that the power states of some
+devices may have changed since s2idle_enter() returned, so some unmet
+Low Power S0 Idle conditions may be reported incorrectly as a result
+of that.
 
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+To avoid these false positives, reorder the invocations of the
+dpm_noirq_resume_devices() routine and the ->wake() platform callback
+in s2idle_loop().
+
+Fixes: 726fb6b4f2a8 (ACPI / PM: Check low power idle constraints for debug only)
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+Tested on Dell XPS13 9360.
+
+---
+ kernel/power/suspend.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+Index: linux-pm/kernel/power/suspend.c
+===================================================================
+--- linux-pm.orig/kernel/power/suspend.c
++++ linux-pm/kernel/power/suspend.c
+@@ -120,22 +120,26 @@ static void s2idle_loop(void)
+ 		 * frozen processes + suspended devices + idle processors.
+ 		 * Thus s2idle_enter() should be called right after
+ 		 * all devices have been suspended.
++		 *
++		 * Wakeups during the noirq suspend of devices may be spurious,
++		 * so prevent them from terminating the loop right away.
+ 		 */
+ 		error = dpm_noirq_suspend_devices(PMSG_SUSPEND);
+ 		if (!error)
+ 			s2idle_enter();
++		else if (error == -EBUSY && pm_wakeup_pending())
++			error = 0;
+ 
+-		dpm_noirq_resume_devices(PMSG_RESUME);
+-		if (error && (error != -EBUSY || !pm_wakeup_pending())) {
+-			dpm_noirq_end();
+-			break;
+-		}
+-
+-		if (s2idle_ops && s2idle_ops->wake)
++		if (!error && s2idle_ops && s2idle_ops->wake)
+ 			s2idle_ops->wake();
+ 
++		dpm_noirq_resume_devices(PMSG_RESUME);
++
+ 		dpm_noirq_end();
+ 
++		if (error)
++			break;
++
+ 		if (s2idle_ops && s2idle_ops->sync)
+ 			s2idle_ops->sync();
+ 
+
