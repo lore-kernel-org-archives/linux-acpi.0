@@ -1,63 +1,138 @@
 From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: [PATCH v4 4/4] arm64/ras: save error address from memory section for recovery
-Date: Wed, 27 Sep 2017 20:50:20 +0800
-Message-ID: <1506516620-20033-5-git-send-email-xiexiuqi@huawei.com>
-References: <1506516620-20033-1-git-send-email-xiexiuqi@huawei.com>
+Subject: Re: [PATCH v3 1/3] arm64/ras: support sea error recovery
+Date: Wed, 27 Sep 2017 20:42:32 +0800
+Message-ID: <9bff629e-020a-d6f9-b688-36f8347ac5e5@huawei.com>
+References: <1504770316-4327-1-git-send-email-xiexiuqi@huawei.com>
+ <1504770316-4327-2-git-send-email-xiexiuqi@huawei.com>
+ <59B2DE26.4060002@arm.com> <52d2868c-79cd-8ff8-8e1d-6078d02d5a0c@huawei.com>
+ <59BC1CEE.8010708@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1506516620-20033-1-git-send-email-xiexiuqi@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xiexiuqi@huawei.com, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, hanjun.guo@linaro.org, cj.chengjian@huawei.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7049 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752104AbdI0Msy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 08:48:54 -0400
+In-Reply-To: <59BC1CEE.8010708@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, cj.chengjian@huawei.com
 
-In some platform, when SEA triggerred, physical address might be
-reported by memory section, so we save it for error recovery later.
+Hi James,
 
-Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
----
- arch/arm64/kernel/ras.c | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+I'll send v4 to fix some small issue, for same one who interested
+with this feature could test it. For the question you mentioned,
+I will study in depth.
 
-diff --git a/arch/arm64/kernel/ras.c b/arch/arm64/kernel/ras.c
-index c48503c..ff24181 100644
---- a/arch/arm64/kernel/ras.c
-+++ b/arch/arm64/kernel/ras.c
-@@ -140,3 +140,34 @@ void ghes_arm_process_error(struct ghes *ghes, struct cper_sec_proc_arm *err)
- 	if (info_saved)
- 		set_thread_flag(TIF_SEA_NOTIFY);
- }
-+
-+int ghes_mem_err_callback(struct notifier_block *nb, unsigned long val, void *data)
-+{
-+	bool info_saved = false;
-+	struct ghes_mem_err *ghes_mem = (struct ghes_mem_err *)data;
-+	struct cper_sec_mem_err *mem_err = ghes_mem->mem_err;
-+
-+	if ((ghes_mem->notify_type != ACPI_HEST_NOTIFY_SEA) ||
-+	    (ghes_mem->severity != CPER_SEV_RECOVERABLE))
-+		return 0;
-+
-+	if (mem_err->validation_bits & CPER_MEM_VALID_PA)
-+		info_saved = sea_save_info(mem_err->physical_addr);
-+
-+	if (info_saved)
-+		set_thread_flag(TIF_SEA_NOTIFY);
-+
-+	return 0;
-+}
-+
-+static struct notifier_block ghes_mem_err_nb = {
-+	.notifier_call	= ghes_mem_err_callback,
-+};
-+
-+static int arm64_err_recov_init(void)
-+{
-+	atomic_notifier_chain_register(&ghes_mem_err_chain, &ghes_mem_err_nb);
-+	return 0;
-+}
-+
-+late_initcall(arm64_err_recov_init);
+Any comments is welcome.
+
+On 2017/9/16 2:33, James Morse wrote:
+> Hi Xie XiuQi,
+> 
+> On 11/09/17 15:11, Xie XiuQi wrote:
+>> I first describe the approach of this patchset:
+>>
+>> A memory access error on the execution path usually triggers SEA.
+>> According to the existing process, errors occurred in the kernel,
+>> leading to direct panic, if it occurred the user-space, we should
+>> just kill process.
+>>
+>> But there is a class of error, in fact, is not necessary to kill
+>> process, you can recover and continue to run the process. Such as
+>> the instruction data corrupted, where the memory page might be
+>> read-only, which is has not been modified, the disk might have the
+>> correct data, so you can directly drop the page, ant reload it when
+>> necessary.
+>>
+>> So this patchset is just try to solve such problem: if the error is
+>> consumed in user-space and the error occurs on a clean page, you can
+>> directly drop the memory page without killing process.
+>>
+>> This is implemented in memory_failure, which is generic process.
+> 
+>> The error reported by SEA should be handled before re-enter the process,
+>> or we must kill the process to prevent error propagation.
+>>
+>> memory_failure_queue() is asynchronous, in which, error info was saved
+>> at ghes_proc, but handled in kworker. During this period there is a context
+>> switching, so we can not determine which process would be switch to. So
+>> memory_failure_queue is not suitable for handling the problem.
+> 
+> Thanks for this summary. I see the problem you're trying to solve is when
+> memory_failure() runs, in your scenario its not guaranteed to run before we
+> return to user space.
+> 
+> What is the user-visible symptom of this? SIGBUS, code=0 instead of SIGBUS,
+> code=...MCEERR_A?
+> 
+> ..in which case I'm looking at this as a race with the memory_failure() bottom
+> half via schedule_work().
+> 
+> How does x86 avoid this same problem?
+> 
+> 
+>> And memory_failure is not nmi-safe, so it can not be called directly in the
+>> SEA context. So we just handle this error at SEA exit path, and before context
+>> switching.
+> 
+> (I need to look more into which locks memory_failure() is taking)
+> 
+> 
+>> In FFH mode, physical address can only be obtained by parsing the GHES table.
+>> But we only care about SEA, so the error handling is tied to the type of notification.
+> 
+> I care about all the notification methods. Once the notification has been passed
+> to APEI I want them to behave the same so that we don't have subtle bugs between
+> the 11 different ways we could get a notification. This code is rarely tested
+> enough as it is.
+> 
+>>From the arch code I just want to call out to APEI asking 'is this yours?'. If
+> so I expect APEI to have done all the work, if not we take the v8.0 behaviour.
+> 
+> 
+> Here you need APEI and the arch code to spot 'SEA' and treat it differently,
+> invoking some arm64-specific behaviour for APEI, and some
+> not-really-arch-specific code under /arch/arm64. There is nothing arm64 specific
+> about your arm_process_error(), how come the core APEI code doesn't need to do this?
+> 
+> 
+> I think this is caused by the way memory_failure() schedules its work, and that
+> is where I'd like to try and fix this, so that its the same for all notification
+> methods and all (cough: both) architectures.
+> 
+> 
+>> The TIF flag is checked on a generic path, but it will only be set when SEA occurs.
+>> And if we use unlikely optimization, it should have little impact on performance.
+> 
+> Yes, the arch code checks _TIF_WORK_MASK in one go so there is no performance
+> problem for code that hasn't taken the RAS-Error. (and once we've taken a RAS
+> error performance is out the window!)
+> 
+> 
+>> And the TIF flag approach was used on x86 platform for years, until commit d4812e169d
+> 
+> ... so x86 doesn't do this ...
+> 
+>> (x86, mce: Get rid of TIF_MCE_NOTIFY and associated mce tricks)[0]. On currently arm64
+>> platform, there is no IST interrupt[1] function, so we could not call memory_failure
+>> directly in SEA context. So the way to use TIF notification, is also a good choice,
+>> after all, the same way on x86 platform is verified.
+> 
+> Thanks, looks like I need to read more of the history of x86's kernel-first
+> handling...
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> 
+> .
+> 
+
 -- 
-1.8.3.1
+Thanks,
+Xie XiuQi
+
