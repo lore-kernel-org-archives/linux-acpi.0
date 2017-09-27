@@ -1,182 +1,180 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v9] ACPI / init: Invoke early ACPI initialization earlier
-Date: Wed, 27 Sep 2017 18:06:35 +0800
-Message-ID: <effbd32b-fc4e-27a5-0a67-89eceb28191f@cn.fujitsu.com>
-References: <1505293975-26005-1-git-send-email-douly.fnst@cn.fujitsu.com>
- <1505294274-441-1-git-send-email-douly.fnst@cn.fujitsu.com>
- <20170927090231.god7clzl6cyoxoxa@pd.tnic>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v6 6/7] KVM: arm64: allow get exception information from
+ userspace
+Date: Wed, 27 Sep 2017 19:07:33 +0800
+Message-ID: <8be64586-3722-cd96-80fd-6e815d2e911d@huawei.com>
+References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
+ <1503916701-13516-7-git-send-email-gengdongjiu@huawei.com>
+ <59B17438.5070501@arm.com> <2a42d1ea-3456-2873-c9ea-d8a027b59789@huawei.com>
+ <59BA7D72.4090403@arm.com> <92f2fecc-9833-15e4-30cc-b4dd5ba93cb7@huawei.com>
+ <59C53FA7.2080803@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.cn.fujitsu.com ([183.91.158.132]:24090 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751800AbdI0KGn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 06:06:43 -0400
-In-Reply-To: <20170927090231.god7clzl6cyoxoxa@pd.tnic>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:7446 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752346AbdI0LJr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 07:09:47 -0400
+In-Reply-To: <59C53FA7.2080803@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org, yinghai@kernel.org, bhe@redhat.com
+To: James Morse <james.morse@arm.com>
+Cc: Achin.Gupta@arm.com, peter.maydell@linaro.org, christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vge
 
-Hi Borislav,
+Hi James,
+   Sorry for my late response, thank you very much for comments.
 
-At 09/27/2017 05:02 PM, Borislav Petkov wrote:
-> On Wed, Sep 13, 2017 at 05:17:54PM +0800, Dou Liyang wrote:
->> Linux uses acpi_early_init() to put the ACPI table management into the
->> late stage from the early stage. This two stages are different. the
->> mapped ACPI tables in early stage is temporary and should be unmapped,
->> but in late stage, it is permanent and don't need to be unmapped.
+On 2017/9/23 0:51, James Morse wrote:
+[.....]
 >>
->> Originally, mapping and parsing the DMAR table should be in the late stage.
->> However, Initializing interrupt delivery mode earlier will move it into
->> the early stage. This causes an ACPI error warning when Linux reallocates
->> the ACPI root tables.
+>> CC Achin
 >>
->> Commit b064a8fa77df ("ACPI / init: Switch over platform to the ACPI mode
->> later") splits the ACPI early initialization code into acpi_early_init()
->> and acpi_subsystem_init(). This makes acpi_early_init() more independently
+>> I have some personal opinion, if you think it is not right, hope you can point out.
 >>
->> So, invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
->> be mapped and parsed in late stage like before.
->>
->> Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
->> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
->> Cc: linux-acpi@vger.kernel.org
->> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
->> Cc: Zheng, Lv <lv.zheng@intel.com>
->> Cc: Thomas Gleixner <tglx@linutronix.de>
->> Cc: Ingo Molnar <mingo@redhat.com>
->> Cc: "H. Peter Anvin" <hpa@zytor.com>
->> Cc: x86@kernel.org
->> Cc: Michael Ellerman <mpe@ellerman.id.au>
->> Cc: Will Deacon <will.deacon@arm.com>
->> Cc: linux-arm-kernel@lists.infradead.org
->> Cc: Tony Luck <tony.luck@intel.com>
->> Cc: Fenghua Yu <fenghua.yu@intel.com>
->> Cc: linux-ia64@vger.kernel.org
->> Cc: yinghai@kernel.org
->> Cc: bhe@redhat.com
->> Cc: bp@alien8.de
->> ---
->>  init/main.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/init/main.c b/init/main.c
->> index 0ee9c686..2fb98a4 100644
->> --- a/init/main.c
->> +++ b/init/main.c
->> @@ -664,12 +664,12 @@ asmlinkage __visible void __init start_kernel(void)
->>  	debug_objects_mem_init();
->>  	setup_per_cpu_pageset();
->>  	numa_policy_init();
->> +	acpi_early_init();
->>  	if (late_time_init)
->>  		late_time_init();
->>  	calibrate_delay();
->>  	pidmap_init();
->>  	anon_vma_init();
->> -	acpi_early_init();
->>  #ifdef CONFIG_X86
->>  	if (efi_enabled(EFI_RUNTIME_SERVICES))
->>  		efi_enter_virtual_mode();
->> --
->
-> Tested-by: Borislav Petkov <bp@suse.de>
->
+>> Synchronous External Abort and SError Interrupt are hardware exception(hardware concept),
+>> which is independent of software notification,
+>> in armv8 without RAS, the two concepts already exist. In the APEI spec, in order to
+>> better describe the two exceptions, so use SEA and SEI notification to stand
+> for them.
+> 
+>> SEA notification stands for Synchronous External Abort, so may be it is not only a
+>> notification, it also stands for a hardware error type.
+>> SEI notification stands for SError Interrupt, so may be it is not only a notification,
+>> it also stands for a hardware error type.
+> 
+>> In the OS, it has different handling flow to the two exception(two notification):
+>> when the guest OS running, if the hardware generates a Synchronous External Abort, we
+>> told the guest OS this error is SError Interrupt instead of Synchronous
+> External Abort.
+> 
+> This should only happen when APEI doesn't claim the external-abort as a RAS
+> notification. If there were CPER records to process then the error is handled by
+> the host, and we can return to the guest.
 
-Thank you for testing.
+consider again. I think you should be right.
+In the firmware-first solution, firmware will shield all kinds of errors and record them to the CPER buffer.
 
-> This one fixes the early ioremap leak check I get here with tip/master:
->
 
-Indeed.
+> 
+> If this wasn't a firmware-first notification, then you're right KVM hands the
+> guest an asynchronous external abort. This could be considered a bug in KVM. (we
+> can discuss with Marc and Christoffer what it should do), but:
+> 
+> I'm not sure what scenario you could see this in: surely all your
+> CPU:external-aborts are taken to EL3 by SCR_EL3.EA and become firmware-first
+> notifications. So they should always be claimed by APEI.
 
-Thanks,
+Yes, if it is firmware-first we should not exist such issue.
 
-	dou.
-> Debug warning: early ioremap leak of 1 areas detected.
-> please boot with early_ioremap_debug and report the dmesg.
-> ------------[ cut here ]------------
-> WARNING: CPU: 3 PID: 1 at mm/early_ioremap.c:98 check_early_ioremap_leak+0x31/0x39
-> Modules linked in:
-> CPU: 3 PID: 1 Comm: swapper/0 Not tainted 4.14.0-rc2+ #1
-> Hardware name: LENOVO 2320CTO/2320CTO, BIOS G2ET86WW (2.06 ) 11/13/2012
-> task: ffff8802138e0000 task.stack: ffffc90000c90000
-> RIP: 0010:check_early_ioremap_leak+0x31/0x39
-> RSP: 0000:ffffc90000c93ea8 EFLAGS: 00010296
-> RAX: 0000000000000071 RBX: 0000000000000000 RCX: 0000000000000000
-> RDX: ffff8802138e0000 RSI: 0000000000000001 RDI: 0000000000000282
-> RBP: ffffffff82089d8e R08: ffffffff810cc9c5 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000000 R12: ffffffff82182d30
-> R13: 0000000000000008 R14: ffffffff8205d7f6 R15: 0000000000000000
-> FS:  0000000000000000(0000) GS:ffff88021d380000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 0000000000000000 CR3: 0000000001c10001 CR4: 00000000001606e0
-> Call Trace:
->  do_one_initcall+0x4b/0x18c
->  kernel_init_freeable+0x120/0x1a2
->  ? rest_init+0xd0/0xd0
->  kernel_init+0xa/0x100
->  ret_from_fork+0x2a/0x40
-> Code: d2 31 c0 48 83 3c d5 a0 3a 11 82 00 74 02 ff c0 48 ff c2 48 83 fa 08 75 ea 85 c0 74 15 89 c6 48 c7 c7 20 c7 a6 81 e8 bc 2b 04 ff <0f> ff b8 01 00 00 00 c3 0f 1f 44 00 00 41 57 48 89 f1 41 56 41
-> ---[ end trace f7d67c4805284a92 ]---
->
-> Booting with early_ioremap_debug showed this last ioremap call in the Intel
-> iommu code ioremapping the DMAR table but not unmapping it:
->
-> __early_ioremap(dafdb000, 00001000) [0] => 00000000 + ffffffffff200000
-> ------------[ cut here ]------------
-> WARNING: CPU: 0 PID: 0 at mm/early_ioremap.c:161 __early_ioremap+0x150/0x17f
-> Modules linked in:
-> CPU: 0 PID: 0 Comm: swapper/0 Tainted: G        W       4.14.0-rc2+ #2
-> Hardware name: LENOVO 2320CTO/2320CTO, BIOS G2ET86WW (2.06 ) 11/13/2012
-> task: ffffffff81c15500 task.stack: ffffffff81c00000
-> RIP: 0010:__early_ioremap+0x150/0x17f
-> RSP: 0000:ffffffff81c03d70 EFLAGS: 00010282
-> RAX: 0000000000000046 RBX: 00000000dafda000 RCX: 0000000000000000
-> RDX: 0000000000000002 RSI: 0000000000000001 RDI: 0000000000000001
-> RBP: 0000000000000001 R08: 0000000000000001 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000000 R12: 00000000dafdb000
-> R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
-> FS:  0000000000000000(0000) GS:ffff88021d200000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: ffff88021e5ff000 CR3: 0000000001c10001 CR4: 00000000000606b0
-> Call Trace:
->  acpi_tb_acquire_table+0x39/0x64
->  acpi_tb_validate_table+0x21/0x33
->  acpi_tb_get_table+0x25/0x5e
->  acpi_get_table+0x59/0x82
->  dmar_table_detect+0x1a/0x43
->  dmar_table_init+0x73/0x13e
->  ? dmar_free_dev_scope+0xe0/0xe0
->  ? intel_iommu_setup+0x211/0x211
->  ? iommu_calculate_agaw+0x20/0x20
->  ? dmar_walk_remapping_entries+0x170/0x170
->  ? detect_intel_iommu+0xca/0xca
->  intel_prepare_irq_remapping+0x3a/0x22a
->  irq_remapping_prepare+0x1a/0x2a
->  enable_IR_x2apic+0x21/0x198
->  default_setup_apic_routing+0x12/0x6f
->  apic_intr_mode_init+0x14b/0x181
->  x86_late_time_init+0x11/0x16
->  start_kernel+0x3ae/0x44c
->  secondary_startup_64+0xa5/0xa5
-> Code: 1a 74 2b 42 ff 34 ed 20 3a 11 82 45 89 f0 48 c7 c6 90 df 81 81 48 c7 c7 c0 c7 a6 81 4c 8b 4c 24 08 48 8b 4c 24 10 e8 64 2a 04 ff <0f> ff 58 48 8b 04 24 4a 03 04 ed 20 3a 11 82 4a 89 04 ed a0 3a
-> ---[ end trace 52caafcde4fdbc68 ]---
-> DMAR: Host address width 36
-> DMAR: DRHD base: 0x000000fed90000 flags: 0x0
-> DMAR: dmar0: reg_base_addr fed90000 ver 1:0 cap c0000020e60262 ecap f0101a
-> DMAR: DRHD base: 0x000000fed91000 flags: 0x1
-> DMAR: dmar1: reg_base_addr fed91000 ver 1:0 cap c9008020660262 ecap f0105a
-> DMAR: RMRR base: 0x000000da2ba000 end: 0x000000da2d0fff
-> DMAR: RMRR base: 0x000000db800000 end: 0x000000df9fffff
-> DMAR-IR: IOAPIC id 2 under DRHD base  0xfed91000 IOMMU 1
-> DMAR-IR: HPET id 0 under DRHD base 0xfed91000
-> DMAR-IR: Queued invalidation will be enabled to support x2apic and Intr-remapping.
-> DMAR-IR: Enabled IRQ remapping in x2apic mode
-> x2apic enabled
-> Switched APIC routing to cluster x2apic.
->
+> 
+> 
+>> guest OS uses SEI notification handling flow to deal with it, I am not sure whether it
+>> will have problem, because the true hardware exception is Synchronous External
+>> Abort, but software treats it as SError interrupt to handle.
+> 
+> Once you're into a guest the original 'true hardware exception' shouldn't
+> matter. In this scenario KVM has handed the guest an SError, our question is 'is
+> it an SEI notification?':
+> 
+> For firmware first the guest OS should poke around in the CPER buffers, find
+> nothing to do, and return to the arch code for (future) kernel-first.
+> For kernel first the guest OS should trawl through the v8.2 ERR registers, find
+> nothing to do, and continue to the default case:
+> 
+> By default, we should panic on SError, unless its classified as a non-fatal RAS
+> error. (I'm tempted to pr_warn_once() if we get RAS notifications but there is
+> no work to do).
 
+understand, thanks.
+
+> 
+> 
+> What you may be seeing is some awkwardness with the change in the SError ESR
+> with v8.2. Previously the VSE mechanism injected an impdef SError, (but they
+> were all impdef so it didn't matter).
+> With VSESR_EL2 KVM has to specify one, and all-zeros is a bad choice as this
+> means 'classified as a RAS error ... unknown!'.
+> 
+> I have a patch in the upcoming SError/RAS series that changes KVMs virtual-abort
+> code to specify an impdef ESR for this path.
+Before I remember Marc and you suggest me specify the an impdef ESR (set the vsesr_el2) in
+the userspace,
+now do you want to specify an impdef ESR in KVM instead of usrspace?
+if setting the vsesr_el2 in the KVM, whether user-space need to specify?
+May be we can combine the patches that specify an impdef ESR(set vsesr_el2) patch to one.
+
+> 
+> 
+>> In the mainline code, it does not have SEI notification support, the reason I 
+>> think it is because of the error address record by firmware is not accurate
+>> (SError Interrupt is asynchronous exception).
+> 
+> Yes, while we don't expect a FAR with an SError, but we do expect a valid
+> representation of the RAS error in either the CPER records or the v8.2. ERR
+> registers (or both). If we have neither of those, its not a RAS error and we
+> should panic.
+> 
+> 
+>> so if treat a hardware Synchronous External Abort as SError interrupt(SEI). 
+>> The default OS behavior for SEI is PANIC, that is to say, when hardware triggers
+>> a Synchronous External Abort(SEA), if guest treat it as SError interrupt(SEI),
+>> the OS will be panic. in fact, it can be recoverable instead of Panic.
+> 
+> If its a RAS error APEI (or in the future, the kernel-first handler), should
+> claim the error, so the guest never sees it. If you are hitting this behaviour
+> in KVM, then it wasn't a RAS error.
+> 
+> 
+>> I ever added a patch to support the SEI notification, but not sure whether
+>> it is can be accepted by open source, until now, not receive response.
+> 
+> The patch you posted during the merge window made no sense on its own, so must
+> replace $one_of the other patches in your v5 (or was it v6)... I'll get to it...
+yes, thanks.
+Because SEI notification support does not depend on the RAS virtualization, I break them out of this
+series.
+they are here(Today Tyler have some comments, I will update it)
+
+https://patchwork.kernel.org/patch/9950953/
+https://patchwork.kernel.org/patch/9952493/
+
+> 
+> Because the SEI notification depends on v8.2 I'd like to get the SError/RAS
+> series posted (currently re-testing), then I'll pick up enough of the patches
+> you've posted for a consolidated version of the series, and we can take the
+> discussion from there.
+James, it is great, we can make a consolidated version of the series.
+
+> 
+> I'd still like to know what your firmware does if the normal-world believes its
+> masked physical-SError and you want to hand it an SEI notification.
+firstly the physical-SError that happened in the EL2/EL1/EL1 can not be masked if SCR_EL3.EA is set.
+
+when trap to EL3, firmware will record the error to APEI CPER from reading ERR* RAS registers.
+
+(1) if HCR_EL2.TEA is set to 1, exception come from EL0, El1. firmware knows this SError come from guest OS, copy the elr_el3 to elr_el2, copy ESR_El3 to ESR_EL2.
+    if the SError exception come from guest EL0 or EL1, set ELR_EL3 with VBAR_EL2 + 0x580(one EL2 SEI entry point),
+
+    execute "ERET", then jump to EL2 hypervisor.
+
+(2)if the SError exception come EL2 hypervisor, copy the elr_el3 to elr_el2, copy ESR_El3 to ESR_EL, set ELR_EL3 with VBAR_EL2+0x380(one EL2 SEI entry point),
+
+   execute "ERET", then jump to EL2 hypervisor.
+
+
+(2) if HCR_EL2.TEA is set to 0, SError come from host EL1 ,EL0, copy ELR_EL3 to ELR_EL1,ESR_EL3 to ESR_EL1
+    if the SError come from host EL0, set ELR_EL3 with VBAR_EL1+0x580
+    if the SError come from host EL1, set ELR_EL3 with VBAR_EL1+0x380
+
+  execute "ERET", then jump to host EL1.
+
+
+> 
+> Thanks,
+> 
+> James
+> 
+> .
+> 
 
