@@ -1,48 +1,92 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v2] acpi: apei: Add SEI notification type support for
- ARMv8
-Date: Wed, 27 Sep 2017 09:30:25 +0800
-Message-ID: <56038746-a5ee-3957-e27b-2a20c628377b@huawei.com>
-References: <1505373743-7780-1-git-send-email-gengdongjiu@huawei.com>
- <88a71a70-0704-6e47-de09-6f67b91967b6@codeaurora.org>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v9] ACPI / init: Invoke early ACPI initialization earlier
+Date: Wed, 27 Sep 2017 09:41:49 +0800
+Message-ID: <e4eadcbc-fe58-2d2c-818d-34e2f545db16@cn.fujitsu.com>
+References: <1505293975-26005-1-git-send-email-douly.fnst@cn.fujitsu.com>
+ <1505294274-441-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="gbk"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:7028 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934797AbdI0Bbg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Sep 2017 21:31:36 -0400
-In-Reply-To: <88a71a70-0704-6e47-de09-6f67b91967b6@codeaurora.org>
+Received: from mail.cn.fujitsu.com ([183.91.158.132]:63104 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1033022AbdI0Bl4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Sep 2017 21:41:56 -0400
+In-Reply-To: <1505294274-441-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>, will.deacon@arm.com, zjzhang@codeaurora.org, catalin.marinas@arm.com, bp@suse.de, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, Stephen Boyd <sboyd@codeaurora.org>
-Cc: huangshaoyu@huawei.com, wuquanming@huawei.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org, yinghai@kernel.org, bhe@redhat.com, bp@alien8.de, fengguang.wu@intel.com
 
-Hi Tyler,
+Hi Rafael, Zheng,
 
-   Thank you very much for your test and comments.
+Welcome any comments!
 
-On 2017/9/27 3:23, Tyler Baicar wrote:
->> should identify the address to a invalid value.
->>
->> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-> 
-> Tested this functionality using SEA support.
+Now, our patches are in tip tree, they are based on this
+independent patch, we hope it can be merged earlier than our
+patches to avoid ACPI Error. we need your advice and confirmation.
 
-Thanks for your test.
+Thanks,
+	dou.
 
-> 
-> ++Stephen,
-> 
-> Something to be aware of, this patch will conflict with https://lkml.org/lkml/2017/9/14/663
-> It may make sense to just remove the conditions for the NMI configs as part of this patch or in a series with this patch to avoid merge conflicts.
+At 09/13/2017 05:17 PM, Dou Liyang wrote:
+> Linux uses acpi_early_init() to put the ACPI table management into the
+> late stage from the early stage. This two stages are different. the
+> mapped ACPI tables in early stage is temporary and should be unmapped,
+> but in late stage, it is permanent and don't need to be unmapped.
+>
+> Originally, mapping and parsing the DMAR table should be in the late stage.
+> However, Initializing interrupt delivery mode earlier will move it into
+> the early stage. This causes an ACPI error warning when Linux reallocates
+> the ACPI root tables.
+>
+> Commit b064a8fa77df ("ACPI / init: Switch over platform to the ACPI mode
+> later") splits the ACPI early initialization code into acpi_early_init()
+> and acpi_subsystem_init(). This makes acpi_early_init() more independently
+>
+> So, invoke acpi_early_init() earlier before late_time_init(), Keep the DMAR
+> be mapped and parsed in late stage like before.
+>
+> Reported-by: Xiaolong Ye <xiaolong.ye@intel.com>
+> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Zheng, Lv <lv.zheng@intel.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: x86@kernel.org
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: Tony Luck <tony.luck@intel.com>
+> Cc: Fenghua Yu <fenghua.yu@intel.com>
+> Cc: linux-ia64@vger.kernel.org
+> Cc: yinghai@kernel.org
+> Cc: bhe@redhat.com
+> Cc: bp@alien8.de
+> ---
+>  init/main.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/init/main.c b/init/main.c
+> index 0ee9c686..2fb98a4 100644
+> --- a/init/main.c
+> +++ b/init/main.c
+> @@ -664,12 +664,12 @@ asmlinkage __visible void __init start_kernel(void)
+>  	debug_objects_mem_init();
+>  	setup_per_cpu_pageset();
+>  	numa_policy_init();
+> +	acpi_early_init();
+>  	if (late_time_init)
+>  		late_time_init();
+>  	calibrate_delay();
+>  	pidmap_init();
+>  	anon_vma_init();
+> -	acpi_early_init();
+>  #ifdef CONFIG_X86
+>  	if (efi_enabled(EFI_RUNTIME_SERVICES))
+>  		efi_enter_virtual_mode();
+>
 
-Ok, Today I will modify it. Thanks for the pointing out.
-
-
-> 
-> Thanks,
-> Tyler
 
