@@ -1,43 +1,47 @@
-From: gengdongjiu <gengdj.1984@gmail.com>
-Subject: Re: [PATCH v6 6/7] KVM: arm64: allow get exception information from userspace
-Date: Wed, 27 Sep 2017 23:37:18 +0800
-Message-ID: <CAMj-D2AuCqAgQBRAp2CSf24HsHWteNLigZAUEKK8oKL_SAmBNw@mail.gmail.com>
-References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
- <1503916701-13516-7-git-send-email-gengdongjiu@huawei.com>
- <59B17438.5070501@arm.com> <2a42d1ea-3456-2873-c9ea-d8a027b59789@huawei.com>
- <59BA7D72.4090403@arm.com> <92f2fecc-9833-15e4-30cc-b4dd5ba93cb7@huawei.com>
- <59C53FA7.2080803@arm.com> <8be64586-3722-cd96-80fd-6e815d2e911d@huawei.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v2] acpi: apei: Add SEI notification type support for
+ ARMv8
+Date: Wed, 27 Sep 2017 08:52:10 -0700
+Message-ID: <20170927155210.GF457@codeaurora.org>
+References: <1505373743-7780-1-git-send-email-gengdongjiu@huawei.com>
+ <88a71a70-0704-6e47-de09-6f67b91967b6@codeaurora.org>
+ <8a622b5b-bcf1-3906-a4be-c3c86b0876fe@huawei.com>
+ <18fe5348-d339-f505-4b1b-c35501f40acc@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ua0-f195.google.com ([209.85.217.195]:37984 "EHLO
-        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752187AbdI0PhU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 11:37:20 -0400
-In-Reply-To: <8be64586-3722-cd96-80fd-6e815d2e911d@huawei.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:51378 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752407AbdI0PwR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 11:52:17 -0400
+Content-Disposition: inline
+In-Reply-To: <18fe5348-d339-f505-4b1b-c35501f40acc@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: gengdongjiu <gengdongjiu@huawei.com>
-Cc: James Morse <james.morse@arm.com>, wangkefeng.wang@huawei.com, kvm@vger.kernel.org, david.daney@cavium.com, catalin.marinas@arm.com, Achin Gupta <Achin.Gupta@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, will.deacon@arm.com, linuxarm@huawei.com, robert.moore@intel.com, lv.zheng@intel.com, zjzhang@codeaurora.org, mingo@kernel.org, stefan@hello-penguin.com, linux@armlinux.org.uk, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, Huangshaoyu <huangshaoyu@huawei.com>, huangdaode@hisilicon.com, Borislav Petkov <bp@suse.de>, Dave.Martin@arm.com, Len Brown <lenb@kernel.org>, wuquanming <wuquanming@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, John Garry <john.garry@huawei.com>, kristina.martsenko@arm.com, cov@codeaurora.org, jonathan.cameron@huawei.com, zhengqiang10
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: gengdongjiu <gengdongjiu@huawei.com>, will.deacon@arm.com, zjzhang@codeaurora.org, catalin.marinas@arm.com, bp@suse.de, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, huangshaoyu@huawei.com, wuquanming@huawei.com
 
->> What you may be seeing is some awkwardness with the change in the SError ESR
->> with v8.2. Previously the VSE mechanism injected an impdef SError, (but they
->> were all impdef so it didn't matter).
->> With VSESR_EL2 KVM has to specify one, and all-zeros is a bad choice as this
->> means 'classified as a RAS error ... unknown!'.
->>
->> I have a patch in the upcoming SError/RAS series that changes KVMs virtual-abort
->> code to specify an impdef ESR for this path.
-> Before I remember Marc and you suggest me specify the an impdef ESR (set the vsesr_el2) in
-> the userspace,
+On 09/27, Tyler Baicar wrote:
+> On 9/27/2017 6:05 AM, gengdongjiu wrote:
+> >Tyler, Stephen
+> >
+> >On 2017/9/27 3:23, Tyler Baicar wrote:
+> >>>Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+> >>Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+> >>
+> >>Tested this functionality using SEA support.
+> >>
+> >>++Stephen,
+> >>
+> >>Something to be aware of, this patch will conflict with https://lkml.org/lkml/2017/9/14/663
+> >>It may make sense to just remove the conditions for the NMI configs as part of this patch or in a series with this patch to avoid merge conflicts.
+> >In your patch, you only remove ACPI_APEI_SEA for the ARCH_HAVE_NMI_SAFE_CMPXCHG, do you need to remove it for the HAVE_NMI?
+> From the latest comments it sounds like Stephen was going to remove
+> it from both.
+> https://lkml.org/lkml/2017/9/15/350
 
-I pasted Marc's propose and your suggestion that set VSESR_EL2(specify
-virtual SError syndrome) by the user space.
-https://lkml.org/lkml/2017/3/20/441
-https://lkml.org/lkml/2017/3/20/516
+Sent it now.
 
-
-> now do you want to specify an impdef ESR in KVM instead of usrspace?
-> if setting the vsesr_el2 in the KVM, whether user-space need to specify?
-> May be we can combine the patches that specify an impdef ESR(set vsesr_el2) patch to one.
->
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
