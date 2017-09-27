@@ -1,63 +1,95 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v2] acpi: apei: Add SEI notification type support for
- ARMv8
-Date: Wed, 27 Sep 2017 20:05:31 +0800
-Message-ID: <8a622b5b-bcf1-3906-a4be-c3c86b0876fe@huawei.com>
-References: <1505373743-7780-1-git-send-email-gengdongjiu@huawei.com>
- <88a71a70-0704-6e47-de09-6f67b91967b6@codeaurora.org>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: [PATCH v4 0/4] arm64/ras: support sea error recovery
+Date: Wed, 27 Sep 2017 20:50:16 +0800
+Message-ID: <1506516620-20033-1-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:7447 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750854AbdI0MGQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 08:06:16 -0400
-In-Reply-To: <88a71a70-0704-6e47-de09-6f67b91967b6@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org
+Cc: wangkefeng.wang@huawei.com, cj.chengjian@huawei.com, xiexiuqi@huawei.com, linux-kernel@vger.kernel.org, gengdongjiu@huawei.com, lijinyue@huawei.com, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, huawei.libin@huawei.com, guohanjun@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>, will.deacon@arm.com, zjzhang@codeaurora.org, catalin.marinas@arm.com, bp@suse.de, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, Stephen Boyd <sboyd@codeaurora.org>
-Cc: huangshaoyu@huawei.com, wuquanming@huawei.com
 
-Tyler, Stephen
+With ARM v8.2 RAS Extension, SEA are usually triggered when memory errors
+are consumed. According to the existing process, errors occurred in the
+kernel, leading to direct panic, if it occurred the user-space, we should
+just kill process.
 
-On 2017/9/27 3:23, Tyler Baicar wrote:
->> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-> 
-> Tested this functionality using SEA support.
-> 
-> ++Stephen,
-> 
-> Something to be aware of, this patch will conflict with https://lkml.org/lkml/2017/9/14/663
-> It may make sense to just remove the conditions for the NMI configs as part of this patch or in a series with this patch to avoid merge conflicts.
+But there is a class of error, in fact, is not necessary to kill
+process, you can recover and continue to run the process. Such as
+the instruction data corrupted, where the memory page might be
+read-only, which is has not been modified, the disk might have the
+correct data, so you can directly drop the page, ant reload it when
+necessary.
 
-In your patch, you only remove ACPI_APEI_SEA for the ARCH_HAVE_NMI_SAFE_CMPXCHG, do you need to remove it for the HAVE_NMI?
+So this patchset is just try to solve such problem: if the error is
+consumed in user-space and the error occurs on a clean page, you can
+directly drop the memory page without killing process.
 
+If the corrupted page is clean, just dropped it and return to user-space
+without side effects. And if corrupted page is dirty, memory_failure()
+will send SIGBUS with code=BUS_MCEERR_AR. While without this patchset,
+do_sea() will just send SIGBUS, so the process was killed in the same place.
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 3dcd7ec..8055997 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -19,6 +19,7 @@ config ARM64
- 	select ARCH_HAS_STRICT_KERNEL_RWX
- 	select ARCH_HAS_STRICT_MODULE_RWX
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG if ACPI_APEI_SEA
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_NUMA_BALANCING
-@@ -92,6 +93,7 @@ config ARM64
- 	select HAVE_IRQ_TIME_ACCOUNTING
- 	select HAVE_MEMBLOCK
- 	select HAVE_MEMBLOCK_NODE_MAP if NUMA
-+	select HAVE_NMI if ACPI_APEI_SEA
- 	select HAVE_PATA_PLATFORM
- 	select HAVE_PERF_EVENTS
- 	select HAVE_PERF_REGS
+Because memory_failure() may sleep, we can not call it directly in SEA
+exception context. So we saved faulting physical address associated with
+a process in the ghes handler and set __TIF_SEA_NOTIFY. When we return
+from SEA exception context and get into do_notify_resume() before the
+process running, we could check it and call memory_failure() to do
+recovery. It's safe, because we are in process context.
 
-> 
-> Thanks,
-> Tyler
->> --- 
+In some platform, when SEA triggerred, physical address could be reported
+by memory section or by processor section, so we save address at this two
+place.
 
+---
+v4 - v3:
+  - rebase on top of the latest mainline
+  - make ghes_arm_process_error as a weak function
+  - only pick cache error from arm processor section for error recovery
+  - fix s-o-b issue
+
+  https://lkml.org/lkml/2017/9/7/98
+
+v3 - v2:
+  - fix patch style issue
+
+v2 - v1:
+  - wrap arm_proc_error_check and log_arm_hw_error in a single arm_process_error()
+  - fix sea_save_info return value issue
+  - fix link error if this CONFIG_ARM64_ERR_RECOV is not selected
+  - use a notify chain instead of call arch_apei_report_mem_error directly
+
+  https://lkml.org/lkml/2017/9/1/189
+
+Xie XiuQi (4):
+  ACPI, CPER: add arm error info type definition
+  arm64/ras: support sea error recovery
+  GHES: add a notify chain for process memory section
+  arm64/ras: save error address from memory section for recovery
+
+ arch/arm64/Kconfig                   |  11 +++
+ arch/arm64/include/asm/ras.h         |  23 +++++
+ arch/arm64/include/asm/thread_info.h |   4 +-
+ arch/arm64/kernel/Makefile           |   1 +
+ arch/arm64/kernel/ras.c              | 173 +++++++++++++++++++++++++++++++++++
+ arch/arm64/kernel/signal.c           |   7 ++
+ arch/arm64/mm/fault.c                |  27 ++++--
+ drivers/acpi/apei/ghes.c             |  18 +++-
+ include/acpi/ghes.h                  |  11 +++
+ include/linux/cper.h                 |   5 +
+ 10 files changed, 270 insertions(+), 10 deletions(-)
+ create mode 100644 arch/arm64/include/asm/ras.h
+ create mode 100644 arch/arm64/kernel/ras.c
+
+-- 
+1.8.3.1
