@@ -1,53 +1,50 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH] platform/x86: intel-hid: Power button suspend on Dell
- Latitude 7275
-Date: Wed, 27 Sep 2017 00:31:41 -0700
-Message-ID: <20170927073141.GB19973@fury>
-References: <20170917225712.12136-1-jerome.debretagne@gmail.com>
- <20170922234543.GB20327@fury>
- <CAHp75VdJXmif+pesu=EAJ5i9dWtaNLXr3QGJdQZiKp_tURtGYg@mail.gmail.com>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v9] ACPI / init: Invoke early ACPI initialization earlier
+Date: Wed, 27 Sep 2017 15:33:54 +0800
+Message-ID: <88ed94a1-83bb-0338-caaa-e1773812ce4a@cn.fujitsu.com>
+References: <1505293975-26005-1-git-send-email-douly.fnst@cn.fujitsu.com>
+ <1505294274-441-1-git-send-email-douly.fnst@cn.fujitsu.com>
+ <e4eadcbc-fe58-2d2c-818d-34e2f545db16@cn.fujitsu.com>
+ <alpine.DEB.2.20.1709270917590.1945@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:57018 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750917AbdI0Hbo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 03:31:44 -0400
-Content-Disposition: inline
-In-Reply-To: <CAHp75VdJXmif+pesu=EAJ5i9dWtaNLXr3QGJdQZiKp_tURtGYg@mail.gmail.com>
+Received: from mail.cn.fujitsu.com ([183.91.158.132]:8836 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751396AbdI0HeC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 03:34:02 -0400
+In-Reply-To: <alpine.DEB.2.20.1709270917590.1945@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: =?iso-8859-1?B?Suly9G1l?= de Bretagne <jerome.debretagne@gmail.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mario Limonciello <mario.limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org, yinghai@kernel.org, bhe@redhat.com, bp@alien8.de, fengguang.wu@intel.com
 
-On Mon, Sep 25, 2017 at 01:57:48PM +0300, Andy Shevchenko wrote:
-> On Sat, Sep 23, 2017 at 2:45 AM, Darren Hart <dvhart@infradead.org> wrote:
-> > On Mon, Sep 18, 2017 at 12:57:12AM +0200, Jérôme de Bretagne wrote:
-> 
-> >> +             if (event == 0xce) {
-> >> +                     input_report_key(priv->input_dev, KEY_POWER, 1);
-> >> +                     input_sync(priv->input_dev);
-> >> +                     return;
-> >> +             } else if (event == 0xcf)
-> >> +                     return;
-> >
-> > Minor CodingStyle nit. If the if block uses parens, so does the else block. In
-> > this case, since the if returns, just skip the else entirely.
-> >
-> > See Documentation/process/coding-style.rst
-> > The example immediatley *before* 3.1) Spaces.
-> >
-> > I've made this change and queued for testing.
-> >
-> >> +     }
-> 
-> Actually in this case even 'else' is redundant.
+Hi Thomas,
 
-Yes, this is what I meant above by "skip the else entirely", and is the
-change I made prior to committing. I was just pointing out the coding
-style at the same time :-)
+At 09/27/2017 03:19 PM, Thomas Gleixner wrote:
+> On Wed, 27 Sep 2017, Dou Liyang wrote:
+>
+>> Hi Rafael, Zheng,
+>>
+>> Welcome any comments!
+>>
+>> Now, our patches are in tip tree, they are based on this
+>> independent patch, we hope it can be merged earlier than our
+>> patches to avoid ACPI Error. we need your advice and confirmation.
+>
+> You should have included that patch into your APIC series so I would have
+> been aware that it's required for the APIC changes to work on all
+> platforms.
+>
+> But not a big problem. I merge it through tip/x86/apic so the stuff works
+> as expected.
+>
 
--- 
-Darren Hart
-VMware Open Source Technology Center
+Yeah, thank you so much.
+
+Thanks,
+
+	dou.
+
+
