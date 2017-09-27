@@ -1,138 +1,119 @@
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: Re: [PATCH v3 1/3] arm64/ras: support sea error recovery
-Date: Wed, 27 Sep 2017 20:42:32 +0800
-Message-ID: <9bff629e-020a-d6f9-b688-36f8347ac5e5@huawei.com>
-References: <1504770316-4327-1-git-send-email-xiexiuqi@huawei.com>
- <1504770316-4327-2-git-send-email-xiexiuqi@huawei.com>
- <59B2DE26.4060002@arm.com> <52d2868c-79cd-8ff8-8e1d-6078d02d5a0c@huawei.com>
- <59BC1CEE.8010708@arm.com>
+From: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Subject: [PATCH v8 0/5] iommu/smmu-v3: Workaround for hisilicon 161010801 erratum(reserve HW MSI)
+Date: Wed, 27 Sep 2017 14:32:36 +0100
+Message-ID: <20170927133241.21036-1-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:7049 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752104AbdI0Msy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 08:48:54 -0400
-In-Reply-To: <59BC1CEE.8010708@arm.com>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:7448 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751926AbdI0NfG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Sep 2017 09:35:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, cj.chengjian@huawei.com
+To: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, joro@8bytes.org, mark.rutland@arm.com, robh@kernel.org
+Cc: gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com, Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 
-Hi James,
+On certain HiSilicon platforms (hip06/hip07) the GIC ITS and PCIe RC
+deviates from the standard implementation and this breaks PCIe MSI
+functionality when SMMU is enabled.
 
-I'll send v4 to fix some small issue, for same one who interested
-with this feature could test it. For the question you mentioned,
-I will study in depth.
+The HiSilicon erratum 161010801 describes this limitation of certain
+HiSilicon platforms to support the SMMU mappings for MSI transactions.
+On these platforms GICv3 ITS translator is presented with the deviceID
+by extending the MSI payload data to 64 bits to include the deviceID.
+Hence, the PCIe controller on this platforms has to differentiate the MSI
+payload against other DMA payload and has to modify the MSI payload.
+This basically makes it difficult for this platforms to have a SMMU
+translation for MSI.
 
-Any comments is welcome.
+This patch implements an ACPI and DT based quirk to reserve the hw msi
+regions in the smmu-v3 driver which means these address regions will
+not be translated and will be excluded from iova allocations.
 
-On 2017/9/16 2:33, James Morse wrote:
-> Hi Xie XiuQi,
-> 
-> On 11/09/17 15:11, Xie XiuQi wrote:
->> I first describe the approach of this patchset:
->>
->> A memory access error on the execution path usually triggers SEA.
->> According to the existing process, errors occurred in the kernel,
->> leading to direct panic, if it occurred the user-space, we should
->> just kill process.
->>
->> But there is a class of error, in fact, is not necessary to kill
->> process, you can recover and continue to run the process. Such as
->> the instruction data corrupted, where the memory page might be
->> read-only, which is has not been modified, the disk might have the
->> correct data, so you can directly drop the page, ant reload it when
->> necessary.
->>
->> So this patchset is just try to solve such problem: if the error is
->> consumed in user-space and the error occurs on a clean page, you can
->> directly drop the memory page without killing process.
->>
->> This is implemented in memory_failure, which is generic process.
-> 
->> The error reported by SEA should be handled before re-enter the process,
->> or we must kill the process to prevent error propagation.
->>
->> memory_failure_queue() is asynchronous, in which, error info was saved
->> at ghes_proc, but handled in kworker. During this period there is a context
->> switching, so we can not determine which process would be switch to. So
->> memory_failure_queue is not suitable for handling the problem.
-> 
-> Thanks for this summary. I see the problem you're trying to solve is when
-> memory_failure() runs, in your scenario its not guaranteed to run before we
-> return to user space.
-> 
-> What is the user-visible symptom of this? SIGBUS, code=0 instead of SIGBUS,
-> code=...MCEERR_A?
-> 
-> ..in which case I'm looking at this as a race with the memory_failure() bottom
-> half via schedule_work().
-> 
-> How does x86 avoid this same problem?
-> 
-> 
->> And memory_failure is not nmi-safe, so it can not be called directly in the
->> SEA context. So we just handle this error at SEA exit path, and before context
->> switching.
-> 
-> (I need to look more into which locks memory_failure() is taking)
-> 
-> 
->> In FFH mode, physical address can only be obtained by parsing the GHES table.
->> But we only care about SEA, so the error handling is tied to the type of notification.
-> 
-> I care about all the notification methods. Once the notification has been passed
-> to APEI I want them to behave the same so that we don't have subtle bugs between
-> the 11 different ways we could get a notification. This code is rarely tested
-> enough as it is.
-> 
->>From the arch code I just want to call out to APEI asking 'is this yours?'. If
-> so I expect APEI to have done all the work, if not we take the v8.0 behaviour.
-> 
-> 
-> Here you need APEI and the arch code to spot 'SEA' and treat it differently,
-> invoking some arm64-specific behaviour for APEI, and some
-> not-really-arch-specific code under /arch/arm64. There is nothing arm64 specific
-> about your arm_process_error(), how come the core APEI code doesn't need to do this?
-> 
-> 
-> I think this is caused by the way memory_failure() schedules its work, and that
-> is where I'd like to try and fix this, so that its the same for all notification
-> methods and all (cough: both) architectures.
-> 
-> 
->> The TIF flag is checked on a generic path, but it will only be set when SEA occurs.
->> And if we use unlikely optimization, it should have little impact on performance.
-> 
-> Yes, the arch code checks _TIF_WORK_MASK in one go so there is no performance
-> problem for code that hasn't taken the RAS-Error. (and once we've taken a RAS
-> error performance is out the window!)
-> 
-> 
->> And the TIF flag approach was used on x86 platform for years, until commit d4812e169d
-> 
-> ... so x86 doesn't do this ...
-> 
->> (x86, mce: Get rid of TIF_MCE_NOTIFY and associated mce tricks)[0]. On currently arm64
->> platform, there is no IST interrupt[1] function, so we could not call memory_failure
->> directly in SEA context. So the way to use TIF notification, is also a good choice,
->> after all, the same way on x86 platform is verified.
-> 
-> Thanks, looks like I need to read more of the history of x86's kernel-first
-> handling...
-> 
-> 
-> Thanks,
-> 
-> James
-> 
-> 
-> .
-> 
+To implement this quirk, the following changes are incorporated:
+1. Added a generic helper function to IORT code to retrieve the
+   associated ITS base address from a device IORT node.
+2. Added a generic helper function to of iommu code to retrieve the
+   associated msi controller base address from for a PCI RC
+   msi-mapping and also platform device msi-parent.
+3. Added quirk to SMMUv3 to retrieve the HW ITS address and replace
+   the default SW MSI reserve address based on the IORT SMMU model
+   or DT bindings.
+
+Changelog:
+
+v7 --> v8
+Addressed comments from Rob and Lorenzo:
+ -Modified to use DT compatible string for errata.
+ -Changed logic to retrieve the msi-parent for DT case.
+
+v6 --> v7
+Addressed request from Will to add DT support for the erratum:
+ - added bt binding
+ - add of_iommu_msi_get_resv_regions()
+New arm64 silicon errata entry
+Rename iort_iommu_{its->msi}_get_resv_regions
+
+v5 --> v6
+Addressed comments from Robin and Lorenzo:
+-No change to patch#1 .
+-Reverted v5 patch#2 as this might break the platforms where this quirk
+  is not applicable. Provided a generic function in iommu code and added
+  back the quirk implementation in SMMU v3 driver(patch#3)
+ 
+v4 --> v5
+Addressed comments from Robin and Lorenzo:
+-Added a comment to make it clear that, for now, only straightforward 
+  HW topologies are handled while reserving ITS regions(patch #1).
+
+v3 --> v4
+Rebased on 4.13-rc1.
+Addressed comments from Robin, Will and Lorenzo:
+-As suggested by Robin, moved the ITS msi reservation into 
+  iommu_dma_get_resv_regions().
+-Added its_count != resv region failure case(patch #1).
+
+v2 --> v3
+Addressed comments from Lorenzo and Robin:
+-Removed dev_is_pci() check in smmuV3 driver.
+-Don't treat device not having an ITS mapping as an error in
+  iort helper function.
+
+v1 --> v2
+-patch 2/2: Invoke iort helper fn based on fwnode type(acpi).
+
+RFCv2 -->PATCH
+-Incorporated Lorenzo's review comments.
+
+RFC v1 --> RFC v2
+Based on Robin's review comments,
+-Removed  the generic erratum framework.
+-Using IORT/MADT tables to retrieve the ITS base addr instead  of vendor specific CSRT table.
+
+John Garry (2):
+  Doc: iommu/arm-smmu-v3: Add workaround for HiSilicon erratum 161010801
+  iommu/of: Add msi address regions reservation helper
+
+Shameer Kolothum (3):
+  ACPI/IORT: Add msi address regions reservation helper
+  iommu/dma: Add a helper function to reserve HW MSI address regions for
+    IOMMU drivers
+  iommu/arm-smmu-v3:Enable ACPI based HiSilicon erratum 161010801
+
+ Documentation/arm64/silicon-errata.txt             |  1 +
+ .../devicetree/bindings/iommu/arm,smmu-v3.txt      |  9 +-
+ drivers/acpi/arm64/iort.c                          | 96 +++++++++++++++++++++-
+ drivers/iommu/arm-smmu-v3.c                        | 41 +++++++--
+ drivers/iommu/dma-iommu.c                          | 19 +++++
+ drivers/iommu/of_iommu.c                           | 95 +++++++++++++++++++++
+ drivers/irqchip/irq-gic-v3-its.c                   |  3 +-
+ include/linux/acpi_iort.h                          |  7 +-
+ include/linux/dma-iommu.h                          |  7 ++
+ include/linux/of_iommu.h                           | 10 +++
+ 10 files changed, 276 insertions(+), 12 deletions(-)
 
 -- 
-Thanks,
-Xie XiuQi
+1.9.1
+
 
