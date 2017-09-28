@@ -1,75 +1,100 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 2/3] PM / mfd: intel-lpss: Push system sleep callbacks to late/early stages
-Date: Thu, 28 Sep 2017 22:51:28 +0200
-Message-ID: <4467518.bxgQJkVqZ4@aspire.rjw.lan>
-References: <3023226.l5IfJK6GIc@aspire.rjw.lan> <4332008.kXBLY0K23i@aspire.rjw.lan> <20170928191909.ftpm5ktabe6fnufv@dell>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v10 20/24] dt: bindings: smiapp: Document lens-focus and
+ flash properties
+Date: Fri, 29 Sep 2017 00:02:15 +0300
+Message-ID: <20170928210215.bgtsjdj6fgcrce36@kekkonen.localdomain>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+ <20170911080008.21208-21-sakari.ailus@linux.intel.com>
+ <20170918210028.67sbpuetdh5j7wpf@rob-hp-laptop>
+ <ef8edab3-5b55-c298-2a40-72b5e22586ea@linux.intel.com>
+ <CAL_Jsq+YKSDn7Hoq-2wRsGyGRbQvNPEVXrj13bSNCqQpKE2CvQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:55294 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751008AbdI1VAp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 28 Sep 2017 17:00:45 -0400
-In-Reply-To: <20170928191909.ftpm5ktabe6fnufv@dell>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAL_Jsq+YKSDn7Hoq-2wRsGyGRbQvNPEVXrj13bSNCqQpKE2CvQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Niklas =?iso-8859-1?Q?S=F6derlund?= <niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org>, Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-pm@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Rajat Jain <rajatja@google.com>
 
-On Thursday, September 28, 2017 9:19:09 PM CEST Lee Jones wrote:
-> On Mon, 25 Sep 2017, Rafael J. Wysocki wrote:
+Hi Rob,
+
+On Tue, Sep 19, 2017 at 03:00:11PM -0500, Rob Herring wrote:
+> On Mon, Sep 18, 2017 at 4:56 PM, Sakari Ailus
+> <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+> > Hi Rob,
+> >
+> >
+> > Rob Herring wrote:
+> >>
+> >> On Mon, Sep 11, 2017 at 11:00:04AM +0300, Sakari Ailus wrote:
+> >>>
+> >>> Document optional lens-focus and flash properties for the smiapp driver.
+> >>>
+> >>> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> >>> ---
+> >>>  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
+> >>>  1 file changed, 2 insertions(+)
+> >>
+> >>
+> >> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> >
+> >
+> > Thanks for the ack. There have been since a few iterations of the set, and
+> > the corresponding patch in v13 has minor changes to this:
 > 
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Push the system suspend/resume callbacks of intel-lpss to the late
-> > suspend/early resume stages to allow child device callbacks to be
-> > pushed to the late/early stages of suspend/resume too, so as to
-> > make it possible to avoid resuming the children if they are runtime-
-> > suspended during system suspend going forward.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-> > Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Tested-by: Johannes Stezenbach <js@sig21.net>
-> > Tested-by: Rajat Jain <rajatja@google.com>
-> > ---
-> > 
-> > v3 -> v4: Added Tested-by tags.
-> > 
-> > ---
-> >  drivers/mfd/intel-lpss.h |    7 +------
-> >  1 file changed, 1 insertion(+), 6 deletions(-)
-> > 
-> > Index: linux-pm/drivers/mfd/intel-lpss.h
-> > ===================================================================
-> > --- linux-pm.orig/drivers/mfd/intel-lpss.h
-> > +++ linux-pm/drivers/mfd/intel-lpss.h
+> My review script can't deal with subject changes...
 > 
-> Weird.  What format is this?
+> > <URL:http://www.spinics.net/lists/linux-media/msg121929.html>
+> >
+> > Essentially "flash" was renamed to "flash-leds" as the current flash devices
+> > we have are all LEDs and the referencing assumes LED framework's ways to
+> > describe LEDs. The same change is present in the patch adding the property
 > 
-> Don't you use `git format-patch` and `git send-email`?
+> So we're kind of creating a binding that mirrors the gpio bindings
+> (*-gpios) which is a bit of an oddball as all other bindings have gone
+> with a fixed property name and then a *-names property to name them.
 
-No, I don't.
+It could be that "flash-leds" will remain the only one. Depending on
+whether anyone would ever want to support a Xenon flash in which case we
+could add a property for "flash-xenon" or such. Quite possibly not; LEDs
+have improved in luminosity a lot over the recent years and aren't that far
+from tiny Xenon flash devices. I don't remember seeing a mobile phone less
+than five years or so with a Xenon flash.
 
-I'm an old-timer, I use quilt. :-)
+> The main downside to this form is a prefixed property name is harder
+> to parse and validate. So perhaps we should follow the more common
+> pattern, but we're not really describing a h/w connection just an
+> association. And now we also have the trigger source binding to
+> associate LEDs with device nodes, so perhaps that should be used here.
+> We shouldn't really have 2 ways to associate things in DT even if how
+> that gets handled in the kernel is different.
 
-> > @@ -38,12 +38,7 @@ int intel_lpss_resume(struct device *dev
-> >  #ifdef CONFIG_PM_SLEEP
-> >  #define INTEL_LPSS_SLEEP_PM_OPS			\
-> >  	.prepare = intel_lpss_prepare,		\
-> > -	.suspend = intel_lpss_suspend,		\
-> > -	.resume = intel_lpss_resume,		\
-> > -	.freeze = intel_lpss_suspend,		\
-> > -	.thaw = intel_lpss_resume,		\
-> > -	.poweroff = intel_lpss_suspend,		\
-> > -	.restore = intel_lpss_resume,
-> > +	SET_LATE_SYSTEM_SLEEP_PM_OPS(intel_lpss_suspend, intel_lpss_resume)
-> 
-> For the diff:
-> 
-> Acked-by: Lee Jones <lee.jones@linaro.org>
+trigger-sources is not really the same thing: it's present in the LED node,
+not in the sensor to start with. The LED driver has no knowledge of the
+Media device --- the sensor driver gains this information through the
+endpoints. The sensor driver would need to find the node which contains a
+phandle back to the sensor node.
 
-Thank you!
+Having this property in the sensor gives the association information
+between the sensor and the LED. It could be present elsewhere, e.g. the
+master device with DMA engines if there's no association with a sensor.
 
+Some sensors do support strobing the flash, too. The flash type (Xenon or
+LED) needs to be known to the strobe source (sensor).
+
+The strobe wiring may not be there: the module vendors often omit that. Or
+it could be omitted on the board. That's the case with LED flashes; they
+can mostly be triggered using I²C as well albeit less precisely.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
