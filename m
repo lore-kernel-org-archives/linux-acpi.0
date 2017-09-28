@@ -1,40 +1,125 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v2] acpi: apei: Add SEI notification type support for
- ARMv8
-Date: Thu, 28 Sep 2017 20:29:13 +0800
-Message-ID: <e33b84a1-def7-7098-cbcf-627de0a24295@huawei.com>
-References: <1505373743-7780-1-git-send-email-gengdongjiu@huawei.com>
- <88a71a70-0704-6e47-de09-6f67b91967b6@codeaurora.org>
- <8a622b5b-bcf1-3906-a4be-c3c86b0876fe@huawei.com>
- <18fe5348-d339-f505-4b1b-c35501f40acc@codeaurora.org>
- <20170927155210.GF457@codeaurora.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] ACPI/IORT: Fix PCI ACS enablement
+Date: Thu, 28 Sep 2017 16:46:25 +0100
+Message-ID: <20170928154625.GA25853@red-moon>
+References: <20170919170539.6265-1-lorenzo.pieralisi@arm.com>
+ <59C3A36A.2060202@hisilicon.com>
+ <20170922094546.GE1523@red-moon>
+ <59C5C655.8030607@hisilicon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:7465 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752851AbdI1M3p (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Sep 2017 08:29:45 -0400
-In-Reply-To: <20170927155210.GF457@codeaurora.org>
+Received: from foss.arm.com ([217.140.101.70]:59496 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932092AbdI1Pnw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 28 Sep 2017 11:43:52 -0400
+Content-Disposition: inline
+In-Reply-To: <59C5C655.8030607@hisilicon.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>, Tyler Baicar <tbaicar@codeaurora.org>
-Cc: will.deacon@arm.com, zjzhang@codeaurora.org, catalin.marinas@arm.com, bp@suse.de, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, huangshaoyu@huawei.com, wuquanming@huawei.com
+To: Zhou Wang <wangzhou1@hisilicon.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Alex Williamson <alex.williamson@redhat.com>
 
-Hi Stephen, Tyler
+On Sat, Sep 23, 2017 at 10:26:29AM +0800, Zhou Wang wrote:
+> On 2017/9/22 17:45, Lorenzo Pieralisi wrote:
+> > On Thu, Sep 21, 2017 at 07:32:58PM +0800, Zhou Wang wrote:
+> >> On 2017/9/20 1:05, Lorenzo Pieralisi wrote:
+> >>> commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
+> >>> workarounds") removed kernel code that was allowing to initialize
+> >>> and probe the SMMU devices early (ie earlier than PCI devices through
+> >>> linker script callback entries) in the boot process because it was not
+> >>> needed any longer in that the SMMU devices/drivers now support deferred
+> >>> probing.
+> >>>
+> >>> Since the SMMUs probe routines are also in charge of requesting global
+> >>> PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
+> >>> up early-probing workarounds") also postponed PCI ACS enablement to
+> >>> SMMUs devices probe time, which may be too late given that PCI devices
+> >>> needs to detect if PCI ACS is enabled to init the respective capability
+> >>> through the following call path:
+> >>>
+> >>> pci_device_add()
+> >>>  -> pci_init_capabilities()
+> >>>   -> pci_enable_acs()
+> >>>
+> >>> Add code in the ACPI IORT SMMU platform devices initialization path
+> >>> (that is called before ACPI PCI enumeration) to detect if an SMMU is
+> >>> present in HW and enable PCI ACS if it actually is, restoring the
+> >>> correct PCI ACS enablement sequencing.
+> >>>
+> >>> Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
+> >>> Signed-workarounds")
+> >>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >>> Cc: Will Deacon <will.deacon@arm.com>
+> >>> Cc: Robin Murphy <robin.murphy@arm.com>
+> >>> Cc: Zhou Wang <wangzhou1@hisilicon.com>
+> >>> Cc: Alex Williamson <alex.williamson@redhat.com>
+> >>> ---
+> >>>  drivers/acpi/arm64/iort.c | 11 +++++++++++
+> >>>  1 file changed, 11 insertions(+)
+> >>>
+> >>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> >>> index 9565d57..71a7694 100644
+> >>> --- a/drivers/acpi/arm64/iort.c
+> >>> +++ b/drivers/acpi/arm64/iort.c
+> >>> @@ -1184,6 +1184,7 @@ static void __init iort_init_platform_devices(void)
+> >>>  	struct acpi_table_iort *iort;
+> >>>  	struct fwnode_handle *fwnode;
+> >>>  	int i, ret;
+> >>> +	bool smmu_detected = false;
+> >>>  
+> >>>  	/*
+> >>>  	 * iort_table and iort both point to the start of IORT table, but
+> >>> @@ -1218,11 +1219,21 @@ static void __init iort_init_platform_devices(void)
+> >>>  				acpi_free_fwnode_static(fwnode);
+> >>>  				return;
+> >>>  			}
+> >>> +
+> >>> +			smmu_detected = true;
+> >>>  		}
+> >>>  
+> >>>  		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
+> >>>  					 iort_node->length);
+> >>>  	}
+> >>> +
+> >>> +	/*
+> >>> +	 * If IORT reports an SMMU component make sure PCI ACS is
+> >>> +	 * requested so that PCI devices can enable it in their
+> >>> +	 * capabilities.
+> >>> +	 */
+> >>> +	if (smmu_detected)
+> >>> +		pci_request_acs();
+> >>>  }
+> >>>  
+> >>>  void __init acpi_iort_init(void)
+> >>>
+> >>
+> >> Hi Lorenzo,
+> >>
+> >> I tested this patch, it works well in my HiSilicon Hip08 based system.
+> >> However, setting ACS flag at the stage of SMMU device init seems not good,
+> >> I mean what if in one system there are only platform devices connected to
+> >> SMMU device.
+> > 
+> > That's a fair point if you explain to me how current pci_request_acs()
+> > usage copes with your remark above.
+> 
+> The current pci_request_acs usage for ARM SMMU-V3 sets ACS flags under CONFIG_PCI.
+> However, as mentioned in your commit message, this setting is too late.
+> 
+> For the usage of X86 and AMD, as I am not familiar with the devices used in these
+> two platforms, maybe the default devices in these platforms are PCIe based :)
 
-On 2017/9/27 23:52, Stephen Boyd wrote:
->>>> Something to be aware of, this patch will conflict with https://lkml.org/lkml/2017/9/14/663
->>>> It may make sense to just remove the conditions for the NMI configs as part of this patch or in a series with this patch to avoid merge conflicts.
->>> In your patch, you only remove ACPI_APEI_SEA for the ARCH_HAVE_NMI_SAFE_CMPXCHG, do you need to remove it for the HAVE_NMI?
->> From the latest comments it sounds like Stephen was going to remove
->> it from both.
->> https://lkml.org/lkml/2017/9/15/350
-> Sent it now.
+I do not understand what your point is. ACS enablement is a global flag,
+that is currently set whenever an x86/AMD/ARM IOMMU is detected/probed
+AFAICS.
 
-I updated my patches. hope you can review again. only a little change. thanks
+I agree that ACS enablement should be done before PCI enumeration,
+for other comments either you are questioning the current policy
+behind ACS enablement in the kernel - which can be a fair point - or
+I do not understand what you mean.
 
-[PATCH v3 1/2] acpi: apei: remove the unused dead-code for SEA notification type
-[PATCH v3 2/2] acpi: apei: Add SEI notification type support for ARMv8
+Let me know since I would like to queue this patch unless I hear
+a compelling objection to it.
 
+Lorenzo
