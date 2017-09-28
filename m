@@ -1,52 +1,63 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: linux-4.14-rc2/drivers/acpi/acpica/utmath.c: 2 * suspicious
- expression ?
-Date: Thu, 28 Sep 2017 02:58:40 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF6DECD@SHSMSX101.ccr.corp.intel.com>
-References: <VI1PR0802MB2336780579C44CE8DA2DD5CF9C7A0@VI1PR0802MB2336.eurprd08.prod.outlook.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/3] ACPI / APD: Add clock frequency for ThunderX2 I2C
+ controller
+Date: Thu, 28 Sep 2017 11:45:55 +0300
+Message-ID: <20170928084555.GK4630@lahna.fi.intel.com>
+References: <1506523943-8632-1-git-send-email-kamlakant.patel@cavium.com>
+ <1506523943-8632-2-git-send-email-kamlakant.patel@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:44686 "EHLO mga03.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:49228 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752166AbdI1C6p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 27 Sep 2017 22:58:45 -0400
-In-Reply-To: <VI1PR0802MB2336780579C44CE8DA2DD5CF9C7A0@VI1PR0802MB2336.eurprd08.prod.outlook.com>
-Content-Language: en-US
+        id S1751999AbdI1IsL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 28 Sep 2017 04:48:11 -0400
+Content-Disposition: inline
+In-Reply-To: <1506523943-8632-2-git-send-email-kamlakant.patel@cavium.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Binderman <dcb314@hotmail.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Kamlakant Patel <kamlakant.patel@cavium.com>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Jayachandran C <jnair@caviumnetworks.com>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Hi, David
+(You should CC Rafael when doing changes touching ACPI)
 
-Not a fancy way, but just a bit clearing.
-OK, style is changed here:
-https://github.com/acpica/acpica/pull/321
-And bug is recorded here:
-https://bugs.acpica.org/show_bug.cgi?id=1422
+On Wed, Sep 27, 2017 at 08:22:21PM +0530, Kamlakant Patel wrote:
+> From: Jayachandran C <jnair@caviumnetworks.com>
+> 
+> Add the input frequency of 125MHz for the ThunderX2 I2C controller block.
+> The ACPI ID used is "CAV9007".
+> 
+> Signed-off-by: Jayachandran C <jnair@caviumnetworks.com>
+> Signed-off-by: Kamlakant Patel <kamlakant.patel@cavium.com>
 
-Thanks for the report.
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Best regards
-Lv
-
-> From: David Binderman [mailto:dcb314@hotmail.com]
-> Subject: linux-4.14-rc2/drivers/acpi/acpica/utmath.c: 2 * suspicious expression ?
+> ---
+>  drivers/acpi/acpi_apd.c | 5 +++++
+>  1 file changed, 5 insertions(+)
 > 
-> Hello there,
-> 
-> [linux-4.14-rc2/drivers/acpi/acpica/utmath.c:137] -> [linux-4.14-rc2/drivers/acpi/acpica/utmath.c:137]:
-> (style) Same expression on both sides of '^='.
-> [linux-4.14-rc2/drivers/acpi/acpica/utmath.c:174] -> [linux-4.14-rc2/drivers/acpi/acpica/utmath.c:174]:
-> (style) Same expression on both sides of '^='.
-> 
->     operand_ovl.part.lo ^= operand_ovl.part.lo;
-> 
-> Is this just a fancy way to zero the field or should something more clever
-> be happening ?
-> 
-> Regards
-> 
-> David Binderman
-> 
+> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+> index 17a1eb1..93acc9b 100644
+> --- a/drivers/acpi/acpi_apd.c
+> +++ b/drivers/acpi/acpi_apd.c
+> @@ -106,6 +106,10 @@ static const struct apd_device_desc vulcan_spi_desc = {
+>  	.setup = acpi_apd_setup,
+>  	.fixed_clk_rate = 133000000,
+>  };
+> +static const struct apd_device_desc thunderx2_i2c_desc = {
+> +	.setup = acpi_apd_setup,
+> +	.fixed_clk_rate = 125000000,
+> +};
+>  #endif
+>  
+>  #else
+> @@ -170,6 +174,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
+>  	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
+>  	{ "BRCM900D", APD_ADDR(vulcan_spi_desc) },
+>  	{ "CAV900D",  APD_ADDR(vulcan_spi_desc) },
+> +	{ "CAV9007",  APD_ADDR(thunderx2_i2c_desc) },
+>  #endif
+>  	{ }
+>  };
+> -- 
+> 2.7.4
