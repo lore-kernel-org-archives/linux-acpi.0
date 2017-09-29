@@ -1,175 +1,37 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1] pci: introduce for_each_pci_bridge() helper
-Date: Fri, 29 Sep 2017 22:21:23 +0300
-Message-ID: <20170929192123.24817-1-andriy.shevchenko@linux.intel.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/2] ACPI: Adjustments for six function implementations
+Date: Fri, 29 Sep 2017 22:15:39 +0200
+Message-ID: <267c842c-d38a-67be-f61b-a2056f7e71ee@users.sourceforge.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:35424 "EHLO mga09.intel.com"
+Received: from mout.web.de ([217.72.192.78]:50110 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752380AbdI2TV2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 29 Sep 2017 15:21:28 -0400
+        id S1752264AbdI2UPz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 29 Sep 2017 16:15:55 -0400
+Content-Language: en-GB
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Scott Murray <scott@spiteful.org>, Lukas Wunner <lukas@wunner.de>, Keith Busch <keith.busch@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 
-It seems often the following pattern has been used
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 29 Sep 2017 22:10:22 +0200
 
-	list_for_each_entry(dev, &bus->devices, bus_list) {
-		if (pci_is_bridge(dev)) {
-			...
-		}
-	}
+Two update suggestions were taken into account
+from static source code analysis.
 
-Here for_each_pci_bridge() helper is introduced to make that code better
-to write and read by lowing indentation level. It also saves one or few
-lines of code in each occurrence.
+Markus Elfring (2):
+  Delete an error message for a failed memory allocation in five functions
+  scan: Improve a size determination in three functions
 
-Convert PCI core parts here at the same time.
+ drivers/acpi/acpi_platform.c |  1 -
+ drivers/acpi/acpi_video.c    |  1 -
+ drivers/acpi/ioapic.c        |  1 -
+ drivers/acpi/scan.c          | 11 ++++-------
+ 4 files changed, 4 insertions(+), 10 deletions(-)
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/pci/hotplug/acpiphp_glue.c     | 15 ++++++---------
- drivers/pci/hotplug/cpci_hotplug_pci.c |  7 ++-----
- drivers/pci/hotplug/pciehp_pci.c       |  5 ++---
- drivers/pci/hotplug/shpchp_pci.c       |  6 ++----
- drivers/pci/probe.c                    |  6 ++----
- drivers/pci/setup-bus.c                |  7 +++----
- include/linux/pci.h                    |  4 ++++
- 7 files changed, 21 insertions(+), 29 deletions(-)
-
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 5ed2dcaa8e27..5db6f1839dad 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -462,18 +462,15 @@ static void enable_slot(struct acpiphp_slot *slot)
- 	acpiphp_rescan_slot(slot);
- 	max = acpiphp_max_busnr(bus);
- 	for (pass = 0; pass < 2; pass++) {
--		list_for_each_entry(dev, &bus->devices, bus_list) {
-+		for_each_pci_bridge(dev, bus) {
- 			if (PCI_SLOT(dev->devfn) != slot->device)
- 				continue;
- 
--			if (pci_is_bridge(dev)) {
--				max = pci_scan_bridge(bus, dev, max, pass);
--				if (pass && dev->subordinate) {
--					check_hotplug_bridge(slot, dev);
--					pcibios_resource_survey_bus(dev->subordinate);
--					__pci_bus_size_bridges(dev->subordinate,
--							       &add_list);
--				}
-+			max = pci_scan_bridge(bus, dev, max, pass);
-+			if (pass && dev->subordinate) {
-+				check_hotplug_bridge(slot, dev);
-+				pcibios_resource_survey_bus(dev->subordinate);
-+				__pci_bus_size_bridges(dev->subordinate, &add_list);
- 			}
- 		}
- 	}
-diff --git a/drivers/pci/hotplug/cpci_hotplug_pci.c b/drivers/pci/hotplug/cpci_hotplug_pci.c
-index 80c80017197d..f616358fa938 100644
---- a/drivers/pci/hotplug/cpci_hotplug_pci.c
-+++ b/drivers/pci/hotplug/cpci_hotplug_pci.c
-@@ -286,14 +286,11 @@ int cpci_configure_slot(struct slot *slot)
- 	}
- 	parent = slot->dev->bus;
- 
--	list_for_each_entry(dev, &parent->devices, bus_list) {
--		if (PCI_SLOT(dev->devfn) != PCI_SLOT(slot->devfn))
--			continue;
--		if (pci_is_bridge(dev))
-+	for_each_pci_bridge(dev, parent) {
-+		if (PCI_SLOT(dev->devfn) == PCI_SLOT(slot->devfn))
- 			pci_hp_add_bridge(dev);
- 	}
- 
--
- 	pci_assign_unassigned_bridge_resources(parent->self);
- 
- 	pci_bus_add_devices(parent);
-diff --git a/drivers/pci/hotplug/pciehp_pci.c b/drivers/pci/hotplug/pciehp_pci.c
-index 19f30a9f461d..c3af027ee1a6 100644
---- a/drivers/pci/hotplug/pciehp_pci.c
-+++ b/drivers/pci/hotplug/pciehp_pci.c
-@@ -60,9 +60,8 @@ int pciehp_configure_device(struct slot *p_slot)
- 		goto out;
- 	}
- 
--	list_for_each_entry(dev, &parent->devices, bus_list)
--		if (pci_is_bridge(dev))
--			pci_hp_add_bridge(dev);
-+	for_each_pci_bridge(dev, parent)
-+		pci_hp_add_bridge(dev);
- 
- 	pci_assign_unassigned_bridge_resources(bridge);
- 	pcie_bus_configure_settings(parent);
-diff --git a/drivers/pci/hotplug/shpchp_pci.c b/drivers/pci/hotplug/shpchp_pci.c
-index f8cd3a27e351..ea63db58b4b1 100644
---- a/drivers/pci/hotplug/shpchp_pci.c
-+++ b/drivers/pci/hotplug/shpchp_pci.c
-@@ -61,10 +61,8 @@ int shpchp_configure_device(struct slot *p_slot)
- 		goto out;
- 	}
- 
--	list_for_each_entry(dev, &parent->devices, bus_list) {
--		if (PCI_SLOT(dev->devfn) != p_slot->device)
--			continue;
--		if (pci_is_bridge(dev))
-+	for_each_pci_bridge(dev, parent) {
-+		if (PCI_SLOT(dev->devfn) == p_slot->device)
- 			pci_hp_add_bridge(dev);
- 	}
- 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index ff94b69738a8..cdc2f83c11c5 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -2421,10 +2421,8 @@ unsigned int pci_scan_child_bus(struct pci_bus *bus)
- 	}
- 
- 	for (pass = 0; pass < 2; pass++)
--		list_for_each_entry(dev, &bus->devices, bus_list) {
--			if (pci_is_bridge(dev))
--				max = pci_scan_bridge(bus, dev, max, pass);
--		}
-+		for_each_pci_bridge(dev, bus)
-+			max = pci_scan_bridge(bus, dev, max, pass);
- 
- 	/*
- 	 * Make sure a hotplug bridge has at least the minimum requested
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 958da7db9033..7ca03407404c 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1921,10 +1921,9 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
- 					want additional resources */
- 
- 	down_read(&pci_bus_sem);
--	list_for_each_entry(dev, &bus->devices, bus_list)
--		if (pci_is_bridge(dev) && pci_has_subordinate(dev))
--				__pci_bus_size_bridges(dev->subordinate,
--							 &add_list);
-+	for_each_pci_bridge(dev, bus)
-+		if (pci_has_subordinate(dev))
-+			__pci_bus_size_bridges(dev->subordinate, &add_list);
- 	up_read(&pci_bus_sem);
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
- 	BUG_ON(!list_empty(&add_list));
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index f4f8ee5a7362..3dbe947b4152 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -596,6 +596,10 @@ static inline bool pci_is_bridge(struct pci_dev *dev)
- 		dev->hdr_type == PCI_HEADER_TYPE_CARDBUS;
- }
- 
-+#define for_each_pci_bridge(dev, bus)				\
-+	list_for_each_entry(dev, &bus->devices, bus_list)	\
-+		if (!pci_is_bridge(dev)) {} else
-+
- static inline struct pci_dev *pci_upstream_bridge(struct pci_dev *dev)
- {
- 	dev = pci_physfn(dev);
 -- 
 2.14.2
 
