@@ -1,52 +1,143 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH v6 3/3] ACPI / EC: Enable noirq stage event detection
-Date: Fri, 29 Sep 2017 10:50:28 +0800
-Message-ID: <fe5cbcde499a385217da4242724b5115982e1e3a.1506653046.git.lv.zheng@intel.com>
-References: <99f23db65bbe89ee856018629654584a96734c84.1501141963.git.lv.zheng@intel.com> <cover.1506653046.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1506653046.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Zhou Wang <wangzhou1@hisilicon.com>
+Subject: Re: [PATCH] ACPI/IORT: Fix PCI ACS enablement
+Date: Fri, 29 Sep 2017 12:23:18 +0800
+Message-ID: <59CDCAB6.3000906@hisilicon.com>
+References: <20170919170539.6265-1-lorenzo.pieralisi@arm.com>
+ <59C3A36A.2060202@hisilicon.com> <20170922094546.GE1523@red-moon>
+ <59C5C655.8030607@hisilicon.com> <20170928154625.GA25853@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7067 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750980AbdI2EXb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Sep 2017 00:23:31 -0400
+In-Reply-To: <20170928154625.GA25853@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Alex Williamson <alex.williamson@redhat.com>
 
-This patch enables noirq stage event detection for the EC driver.
+On 2017/9/28 23:46, Lorenzo Pieralisi wrote:
+> On Sat, Sep 23, 2017 at 10:26:29AM +0800, Zhou Wang wrote:
+>> On 2017/9/22 17:45, Lorenzo Pieralisi wrote:
+>>> On Thu, Sep 21, 2017 at 07:32:58PM +0800, Zhou Wang wrote:
+>>>> On 2017/9/20 1:05, Lorenzo Pieralisi wrote:
+>>>>> commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
+>>>>> workarounds") removed kernel code that was allowing to initialize
+>>>>> and probe the SMMU devices early (ie earlier than PCI devices through
+>>>>> linker script callback entries) in the boot process because it was not
+>>>>> needed any longer in that the SMMU devices/drivers now support deferred
+>>>>> probing.
+>>>>>
+>>>>> Since the SMMUs probe routines are also in charge of requesting global
+>>>>> PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
+>>>>> up early-probing workarounds") also postponed PCI ACS enablement to
+>>>>> SMMUs devices probe time, which may be too late given that PCI devices
+>>>>> needs to detect if PCI ACS is enabled to init the respective capability
+>>>>> through the following call path:
+>>>>>
+>>>>> pci_device_add()
+>>>>>  -> pci_init_capabilities()
+>>>>>   -> pci_enable_acs()
+>>>>>
+>>>>> Add code in the ACPI IORT SMMU platform devices initialization path
+>>>>> (that is called before ACPI PCI enumeration) to detect if an SMMU is
+>>>>> present in HW and enable PCI ACS if it actually is, restoring the
+>>>>> correct PCI ACS enablement sequencing.
+>>>>>
+>>>>> Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
+>>>>> Signed-workarounds")
+>>>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>>>> Cc: Will Deacon <will.deacon@arm.com>
+>>>>> Cc: Robin Murphy <robin.murphy@arm.com>
+>>>>> Cc: Zhou Wang <wangzhou1@hisilicon.com>
+>>>>> Cc: Alex Williamson <alex.williamson@redhat.com>
+>>>>> ---
+>>>>>  drivers/acpi/arm64/iort.c | 11 +++++++++++
+>>>>>  1 file changed, 11 insertions(+)
+>>>>>
+>>>>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>>>>> index 9565d57..71a7694 100644
+>>>>> --- a/drivers/acpi/arm64/iort.c
+>>>>> +++ b/drivers/acpi/arm64/iort.c
+>>>>> @@ -1184,6 +1184,7 @@ static void __init iort_init_platform_devices(void)
+>>>>>  	struct acpi_table_iort *iort;
+>>>>>  	struct fwnode_handle *fwnode;
+>>>>>  	int i, ret;
+>>>>> +	bool smmu_detected = false;
+>>>>>  
+>>>>>  	/*
+>>>>>  	 * iort_table and iort both point to the start of IORT table, but
+>>>>> @@ -1218,11 +1219,21 @@ static void __init iort_init_platform_devices(void)
+>>>>>  				acpi_free_fwnode_static(fwnode);
+>>>>>  				return;
+>>>>>  			}
+>>>>> +
+>>>>> +			smmu_detected = true;
+>>>>>  		}
+>>>>>  
+>>>>>  		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
+>>>>>  					 iort_node->length);
+>>>>>  	}
+>>>>> +
+>>>>> +	/*
+>>>>> +	 * If IORT reports an SMMU component make sure PCI ACS is
+>>>>> +	 * requested so that PCI devices can enable it in their
+>>>>> +	 * capabilities.
+>>>>> +	 */
+>>>>> +	if (smmu_detected)
+>>>>> +		pci_request_acs();
+>>>>>  }
+>>>>>  
+>>>>>  void __init acpi_iort_init(void)
+>>>>>
+>>>>
+>>>> Hi Lorenzo,
+>>>>
+>>>> I tested this patch, it works well in my HiSilicon Hip08 based system.
+>>>> However, setting ACS flag at the stage of SMMU device init seems not good,
+>>>> I mean what if in one system there are only platform devices connected to
+>>>> SMMU device.
+>>>
+>>> That's a fair point if you explain to me how current pci_request_acs()
+>>> usage copes with your remark above.
+>>
+>> The current pci_request_acs usage for ARM SMMU-V3 sets ACS flags under CONFIG_PCI.
+>> However, as mentioned in your commit message, this setting is too late.
+>>
+>> For the usage of X86 and AMD, as I am not familiar with the devices used in these
+>> two platforms, maybe the default devices in these platforms are PCIe based :)
+> 
+> I do not understand what your point is. ACS enablement is a global flag,
+> that is currently set whenever an x86/AMD/ARM IOMMU is detected/probed
+> AFAICS.
 
-EC is a very special driver, required to detecting events throughout the
-entire suspend/resume process. Thus this patch enables event detection for
-EC during noirq stages to meet this requirement. This is done by making
-sure that the EC sleep APIs:
-  acpi_ec_block_transactions()
-  acpi_ec_unblock_transactions()
-rather than the EC driver suspend/resume hooks:
-  acpi_ec_suspend()
-  acpi_ec_resume()
-are the boundary of the EC event handling during suspend/resume, so that
-the ACPI sleep core can tune their invocation timing to handle special BIOS
-requirements.
+There are named devices(platform devices) and/or PCI devices connected to SMMU.
+However, ACS flags is only for PCI devices. So setting this flag in SMMU device init
+maybe need check if there are PCIe devices connected to SMMU, as maybe devices connected
+to SMMU are all named devices.
 
-If this commit is bisected to be a regression culprit, please report this
-to bugzilla.kernel.org for further investigation.
+> 
+> I agree that ACS enablement should be done before PCI enumeration,
+> for other comments either you are questioning the current policy
+> behind ACS enablement in the kernel - which can be a fair point - or
+> I do not understand what you mean.
+> 
+> Let me know since I would like to queue this patch unless I hear
+> a compelling objection to it.
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=196129
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Tested-by: Tomislav Ivek <tomislav.ivek@gmail.com>
----
- drivers/acpi/ec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I think this is not a big problem. If you want to queue this patch, you can add:
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 389c499..a48a2b3 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -157,7 +157,7 @@ static bool ec_no_wakeup __read_mostly;
- module_param(ec_no_wakeup, bool, 0644);
- MODULE_PARM_DESC(ec_no_wakeup, "Do not wake up from suspend-to-idle");
- 
--static bool ec_detect_noirq_events __read_mostly;
-+static bool ec_detect_noirq_events __read_mostly = true;
- module_param(ec_detect_noirq_events, bool, 0644);
- MODULE_PARM_DESC(ec_detect_noirq_events, "Enabling event detection during noirq stage");
- 
--- 
-2.7.4
+Tested-by: Zhou Wang <wangzhou1@hisilicon.com>
+
+Thanks,
+Zhou
+
+> 
+> Lorenzo
+> 
+> .
+> 
+
