@@ -1,71 +1,100 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: IA64 and drivers/acpi/bus.c
-Date: Fri, 29 Sep 2017 04:42:52 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF6F749@SHSMSX101.ccr.corp.intel.com>
-References: <20170925165118.6ef312c2@endymion>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [RFC 1/3] serdev: Add ACPI support
+Date: Fri, 29 Sep 2017 14:00:17 +0200
+Message-ID: <D48CDCC9-F039-4E80-BA12-5A579E13E09F@holtmann.org>
+References: <1504786214-1866-1-git-send-email-frederic.danis.oss@gmail.com>
+ <1504786214-1866-2-git-send-email-frederic.danis.oss@gmail.com>
+ <1BC8D5B0-EC18-4F20-9CBC-D73CB1765683@holtmann.org>
+ <55c85c4d-f674-6f00-f112-76d1a70e8e0a@gmail.com>
+ <AC100BF1-B6E9-47ED-95A0-7E7E75C0DE89@holtmann.org>
+Mime-Version: 1.0 (Mac OS X Mail 11.0 \(3445.1.6\))
+Content-Type: text/plain;
+        charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:1354 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751076AbdI2Em4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 29 Sep 2017 00:42:56 -0400
-In-Reply-To: <20170925165118.6ef312c2@endymion>
-Content-Language: en-US
+Received: from coyote.holtmann.net ([212.227.132.17]:58681 "EHLO
+        mail.holtmann.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751920AbdI2MAT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Sep 2017 08:00:19 -0400
+In-Reply-To: <AC100BF1-B6E9-47ED-95A0-7E7E75C0DE89@holtmann.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <jdelvare@suse.de>, Lin Ming <ming.m.lin@intel.com>, "Luck, Tony" <tony.luck@intel.com>, "Brown, Len" <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Yu, Fenghua" <fenghua.yu@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: =?utf-8?Q?Fr=C3=A9d=C3=A9ric_Danis?= <frederic.danis.oss@gmail.com>
+Cc: Rob Herring <robh@kernel.org>, sre@kernel.org, loic.poulain@gmail.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-I wonder if we can just remove copy_dsdt quirk now.
-As the old bug report was not fully root caused and the situation might be changed.
-Probably that is the simplest way for cleaning this up.
+Hi Fred,
 
-Thanks
-Lv
+>>>> +#ifdef CONFIG_ACPI
+>>>> +static acpi_status acpi_serdev_register_device(struct serdev_controller *ctrl,
+>>>> +					    struct acpi_device *adev)
+>>>> +{
+>>>> +	struct serdev_device *serdev = NULL;
+>>>> +	int err;
+>>>> +
+>>>> +	if (acpi_bus_get_status(adev) || !adev->status.present ||
+>>>> +	    acpi_device_enumerated(adev))
+>>>> +		return AE_OK;
+>>>> +
+>>>> +	serdev = serdev_device_alloc(ctrl);
+>>>> +	if (!serdev) {
+>>>> +		dev_err(&ctrl->dev, "failed to allocate Serial device for %s\n",
+>>>> +			dev_name(&adev->dev));
+>>>> +		return AE_NO_MEMORY;
+>>>> +	}
+>>>> +
+>>>> +	ACPI_COMPANION_SET(&serdev->dev, adev);
+>>>> +	acpi_device_set_enumerated(adev);
+>>>> +
+>>>> +	err = serdev_device_add(serdev);
+>>>> +	if (err) {
+>>>> +		dev_err(&serdev->dev,
+>>>> +			"failure adding ACPI device. status %d\n", err);
+>>>> +		serdev_device_put(serdev);
+>>>> +	}
+>>>> +
+>>>> +	return AE_OK;
+>>>> +}
+>>>> +
+>>>> +static acpi_status acpi_serdev_add_device(acpi_handle handle, u32 level,
+>>>> +				       void *data, void **return_value)
+>>>> +{
+>>>> +	struct serdev_controller *ctrl = data;
+>>>> +	struct acpi_device *adev;
+>>>> +
+>>>> +	if (acpi_bus_get_device(handle, &adev))
+>>>> +		return AE_OK;
+>>>> +
+>>>> +	return acpi_serdev_register_device(ctrl, adev);
+>>>> +}
+>>>> +
+>>>> +static int acpi_serdev_register_devices(struct serdev_controller *ctrl)
+>>>> +{
+>>>> +	acpi_status status;
+>>>> +	acpi_handle handle;
+>>>> +
+>>>> +	handle = ACPI_HANDLE(ctrl->dev.parent);
+>>>> +	if (!handle)
+>>>> +		return -ENODEV;
+>>>> +
+>>>> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
+>>>> +				     acpi_serdev_add_device, NULL, ctrl, NULL);
+>>>> +	if (ACPI_FAILURE(status)) {
+>>>> +		dev_warn(&ctrl->dev, "failed to enumerate Serial slaves\n");
+>>>> +		return -ENODEV;
+>>>> +	}
+>>>> +
+>>>> +	return 0;
+>>>> +}
+>>> how are we ensuring that we only take UART devices into account here?
+>> 
+>> acpi_serdev_add_device() callback will only take into account entries without enumerated flag set.
+>> This flags is set for all entries during ACPI scan, except for SPI and I2C serial devices, and for UART with 2nd patch in the series.
+> 
+> sounds good to me. Can you respin this series with the other comments addressed and maybe add some extra comments in the code or the commit message to make this clear.
 
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Jean
-> Delvare
-> Subject: IA64 and drivers/acpi/bus.c
-> 
-> Hi all,
-> 
-> Long ago, a warning was silenced in drivers/acpi/bus.c on IA64 with
-> this commit:
-> 
-> commit cce4f632db200aef147c59084437168174b23f11
-> Author: Lin Ming <ming.m.lin@intel.com>
-> Date:   Wed May 12 09:26:48 2010 +0800
-> 
->     ACPI: fix early DSDT dmi check warnings on ia64
-> 
-> I don't think this fix was particularly elegant, but it did the job at
-> the time. However you should be informed that an upcoming cleanup of
-> the dmi subsystem will cause the warning to resurface:
-> 
-> https://marc.info/?l=linux-kernel&m=150113709717948&w=2
-> 
-> Instead of checking for dmi_initialized on individual dmi_system_id
-> records, it will now be done once per dmi_check_system() call. It is
-> much more efficient, but one side effect is that the warning will be
-> displayed even if the array passed to dmi_check_system() is empty.
-> 
-> So the time has come to fix the problem cleanly, instead of just
-> silencing the warning. This can be done in 2 ways:
-> 
-> 1* Don't call dmi_check_system() at all if not on X86.
-> 
-> 2* Initialize DMI earlier on IA64, so it is ready when ACPI support
-> gets started.
-> 
-> I will let you guys decide what is the best option.
-> 
-> Thanks,
-> --
-> Jean Delvare
-> SUSE L3 Support
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+any updates on this?
+
+Regards
+
+Marcel
+
