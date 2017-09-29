@@ -1,143 +1,92 @@
-From: Zhou Wang <wangzhou1@hisilicon.com>
-Subject: Re: [PATCH] ACPI/IORT: Fix PCI ACS enablement
-Date: Fri, 29 Sep 2017 12:23:18 +0800
-Message-ID: <59CDCAB6.3000906@hisilicon.com>
-References: <20170919170539.6265-1-lorenzo.pieralisi@arm.com>
- <59C3A36A.2060202@hisilicon.com> <20170922094546.GE1523@red-moon>
- <59C5C655.8030607@hisilicon.com> <20170928154625.GA25853@red-moon>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: ACPI object counter overrun on frequent nvme resets
+Date: Fri, 29 Sep 2017 04:40:09 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF6F735@SHSMSX101.ccr.corp.intel.com>
+References: <20170925130729.GA14151@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:7067 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750980AbdI2EXb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Sep 2017 00:23:31 -0400
-In-Reply-To: <20170928154625.GA25853@red-moon>
+Received: from mga06.intel.com ([134.134.136.31]:7721 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751580AbdI2EkO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 29 Sep 2017 00:40:14 -0400
+In-Reply-To: <20170925130729.GA14151@infradead.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Alex Williamson <alex.williamson@redhat.com>
+To: Christoph Hellwig <hch@infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 
-On 2017/9/28 23:46, Lorenzo Pieralisi wrote:
-> On Sat, Sep 23, 2017 at 10:26:29AM +0800, Zhou Wang wrote:
->> On 2017/9/22 17:45, Lorenzo Pieralisi wrote:
->>> On Thu, Sep 21, 2017 at 07:32:58PM +0800, Zhou Wang wrote:
->>>> On 2017/9/20 1:05, Lorenzo Pieralisi wrote:
->>>>> commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
->>>>> workarounds") removed kernel code that was allowing to initialize
->>>>> and probe the SMMU devices early (ie earlier than PCI devices through
->>>>> linker script callback entries) in the boot process because it was not
->>>>> needed any longer in that the SMMU devices/drivers now support deferred
->>>>> probing.
->>>>>
->>>>> Since the SMMUs probe routines are also in charge of requesting global
->>>>> PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
->>>>> up early-probing workarounds") also postponed PCI ACS enablement to
->>>>> SMMUs devices probe time, which may be too late given that PCI devices
->>>>> needs to detect if PCI ACS is enabled to init the respective capability
->>>>> through the following call path:
->>>>>
->>>>> pci_device_add()
->>>>>  -> pci_init_capabilities()
->>>>>   -> pci_enable_acs()
->>>>>
->>>>> Add code in the ACPI IORT SMMU platform devices initialization path
->>>>> (that is called before ACPI PCI enumeration) to detect if an SMMU is
->>>>> present in HW and enable PCI ACS if it actually is, restoring the
->>>>> correct PCI ACS enablement sequencing.
->>>>>
->>>>> Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
->>>>> Signed-workarounds")
->>>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->>>>> Cc: Will Deacon <will.deacon@arm.com>
->>>>> Cc: Robin Murphy <robin.murphy@arm.com>
->>>>> Cc: Zhou Wang <wangzhou1@hisilicon.com>
->>>>> Cc: Alex Williamson <alex.williamson@redhat.com>
->>>>> ---
->>>>>  drivers/acpi/arm64/iort.c | 11 +++++++++++
->>>>>  1 file changed, 11 insertions(+)
->>>>>
->>>>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->>>>> index 9565d57..71a7694 100644
->>>>> --- a/drivers/acpi/arm64/iort.c
->>>>> +++ b/drivers/acpi/arm64/iort.c
->>>>> @@ -1184,6 +1184,7 @@ static void __init iort_init_platform_devices(void)
->>>>>  	struct acpi_table_iort *iort;
->>>>>  	struct fwnode_handle *fwnode;
->>>>>  	int i, ret;
->>>>> +	bool smmu_detected = false;
->>>>>  
->>>>>  	/*
->>>>>  	 * iort_table and iort both point to the start of IORT table, but
->>>>> @@ -1218,11 +1219,21 @@ static void __init iort_init_platform_devices(void)
->>>>>  				acpi_free_fwnode_static(fwnode);
->>>>>  				return;
->>>>>  			}
->>>>> +
->>>>> +			smmu_detected = true;
->>>>>  		}
->>>>>  
->>>>>  		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
->>>>>  					 iort_node->length);
->>>>>  	}
->>>>> +
->>>>> +	/*
->>>>> +	 * If IORT reports an SMMU component make sure PCI ACS is
->>>>> +	 * requested so that PCI devices can enable it in their
->>>>> +	 * capabilities.
->>>>> +	 */
->>>>> +	if (smmu_detected)
->>>>> +		pci_request_acs();
->>>>>  }
->>>>>  
->>>>>  void __init acpi_iort_init(void)
->>>>>
->>>>
->>>> Hi Lorenzo,
->>>>
->>>> I tested this patch, it works well in my HiSilicon Hip08 based system.
->>>> However, setting ACS flag at the stage of SMMU device init seems not good,
->>>> I mean what if in one system there are only platform devices connected to
->>>> SMMU device.
->>>
->>> That's a fair point if you explain to me how current pci_request_acs()
->>> usage copes with your remark above.
->>
->> The current pci_request_acs usage for ARM SMMU-V3 sets ACS flags under CONFIG_PCI.
->> However, as mentioned in your commit message, this setting is too late.
->>
->> For the usage of X86 and AMD, as I am not familiar with the devices used in these
->> two platforms, maybe the default devices in these platforms are PCIe based :)
+Hi
+
+I've converted this bug into a Bugzilla entry here:
+https://bugzilla.kernel.org/show_bug.cgi?id=197071
+
+Thanks
+Lv
+
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of
+> Subject: ACPI object counter overrun on frequent nvme resets
 > 
-> I do not understand what your point is. ACS enablement is a global flag,
-> that is currently set whenever an x86/AMD/ARM IOMMU is detected/probed
-> AFAICS.
-
-There are named devices(platform devices) and/or PCI devices connected to SMMU.
-However, ACS flags is only for PCI devices. So setting this flag in SMMU device init
-maybe need check if there are PCIe devices connected to SMMU, as maybe devices connected
-to SMMU are all named devices.
-
+> Hi all,
 > 
-> I agree that ACS enablement should be done before PCI enumeration,
-> for other comments either you are questioning the current policy
-> behind ACS enablement in the kernel - which can be a fair point - or
-> I do not understand what you mean.
+> when doing an error injection test with the nvme-pci driver on Linux 4.14
+> almost rc2 (820bf5c419e4b85298e5c3001bd1b5be46d60765 plus a few nvme
+> patches) that does a lot of nvme resets which shut down and re-enable the
+> PCI device I see a flood of warnings like:
 > 
-> Let me know since I would like to queue this patch unless I hear
-> a compelling objection to it.
-
-I think this is not a big problem. If you want to queue this patch, you can add:
-
-Tested-by: Zhou Wang <wangzhou1@hisilicon.com>
-
-Thanks,
-Zhou
-
+> [   78.237286] ACPI Warning: Large Reference Count (0x1001) in object ffff88007d702c68, Type=0x1D
+> (20170728/utdelete-473)
 > 
-> Lorenzo
+> Throwing in a dump_stack into the path it comes from:
 > 
-> .
-> 
-
+> [   78.238387] CPU: 0 PID: 286 Comm: kworker/u8:3 Not tainted 4.14.0-rc1+ #134
+> [   78.238998] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-1 04/01/2014
+> [   78.239720] Workqueue: nvme-wq nvme_reset_work
+> [   78.239995] Call Trace:
+> [   78.239995]  dump_stack+0x63/0x83
+> [   78.239995]  acpi_ut_update_ref_count+0x2f7/0x2fe
+> [   78.239995]  acpi_ut_update_object_reference+0x114/0x182
+> [   78.239995]  acpi_ut_add_reference+0x1b/0x1e
+> [   78.239995]  acpi_ds_init_package_element+0x149/0x16e
+> [   78.239995]  ? acpi_ds_build_internal_object+0xca/0x12c
+> [   78.239995]  acpi_ds_build_internal_package_obj+0x1b2/0x258
+> [   78.239995]  ? acpi_ds_build_internal_package_obj+0x1b2/0x258
+> [   78.239995]  acpi_ds_eval_data_object_operands+0xd3/0x123
+> [   78.239995]  acpi_ds_exec_end_op+0x288/0x3e1
+> [   78.239995]  acpi_ps_parse_loop+0x519/0x57b
+> [   78.239995]  acpi_ps_parse_aml+0x93/0x29c
+> [   78.239995]  acpi_ps_execute_method+0x148/0x17f
+> [   78.239995]  acpi_ns_evaluate+0x1c1/0x24d
+> [   78.239995]  acpi_ut_evaluate_object+0x72/0x197
+> [   78.239995]  acpi_rs_get_prt_method_data+0x21/0x45
+> [   78.239995]  acpi_get_irq_routing_table+0x2c/0x30
+> [   78.239995]  acpi_pci_irq_find_prt_entry+0x8e/0x2c0
+> [   78.239995]  ? irq_get_irq_data+0x9/0x20
+> [   78.239995]  ? mp_unmap_irq+0xf/0x70
+> [   78.239995]  acpi_pci_irq_lookup+0x26/0x1a0
+> [   78.239995]  acpi_pci_irq_enable+0x5b/0x1b0
+> [   78.239995]  ? pci_read_config_word+0x22/0x30
+> [   78.239995]  pcibios_enable_device+0x28/0x30
+> [   78.239995]  do_pci_enable_device+0x5f/0xe0
+> [   78.239995]  pci_enable_device_flags+0xc3/0x110
+> [   78.239995]  pci_enable_device_mem+0xe/0x10
+> [   78.239995]  nvme_reset_work+0x4c/0x1610
+> [   78.239995]  ? sched_clock+0x9/0x10
+> [   78.239995]  ? sched_clock_local+0x17/0x90
+> [   78.239995]  ? _raw_spin_lock+0x9/0x10
+> [   78.239995]  ? pick_next_task_fair+0x420/0x690
+> [   78.239995]  ? _raw_spin_unlock_irq+0x9/0x20
+> [   78.239995]  ? finish_task_switch+0x7b/0x1f0
+> [   78.239995]  ? __schedule+0x2d7/0x800
+> [   78.239995]  process_one_work+0x1db/0x3e0
+> [   78.239995]  worker_thread+0x43/0x3f0
+> [   78.239995]  kthread+0x103/0x140
+> [   78.239995]  ? process_one_work+0x3e0/0x3e0
+> [   78.239995]  ? kthread_create_on_node+0x40/0x40
+> [   78.239995]  ret_from_fork+0x25/0x30
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
