@@ -1,91 +1,70 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: ACPI object counter overrun on frequent nvme resets
-Date: Fri, 29 Sep 2017 04:40:09 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF6F735@SHSMSX101.ccr.corp.intel.com>
-References: <20170925130729.GA14151@infradead.org>
+Subject: RE: IA64 and drivers/acpi/bus.c
+Date: Fri, 29 Sep 2017 04:42:52 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF6F749@SHSMSX101.ccr.corp.intel.com>
+References: <20170925165118.6ef312c2@endymion>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:7721 "EHLO mga06.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:1354 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751580AbdI2EkO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 29 Sep 2017 00:40:14 -0400
-In-Reply-To: <20170925130729.GA14151@infradead.org>
+        id S1751076AbdI2Em4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 29 Sep 2017 00:42:56 -0400
+In-Reply-To: <20170925165118.6ef312c2@endymion>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+To: Jean Delvare <jdelvare@suse.de>, Lin Ming <ming.m.lin@intel.com>, "Luck, Tony" <tony.luck@intel.com>, "Brown, Len" <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Yu, Fenghua" <fenghua.yu@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi
-
-I've converted this bug into a Bugzilla entry here:
-https://bugzilla.kernel.org/show_bug.cgi?id=197071
+I wonder if we can just remove copy_dsdt quirk now.
+As the old bug report was not fully root caused and the situation might be changed.
+Probably that is the simplest way for cleaning this up.
 
 Thanks
 Lv
 
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of
-> Subject: ACPI object counter overrun on frequent nvme resets
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Jean
+> Delvare
+> Subject: IA64 and drivers/acpi/bus.c
 > 
 > Hi all,
 > 
-> when doing an error injection test with the nvme-pci driver on Linux 4.14
-> almost rc2 (820bf5c419e4b85298e5c3001bd1b5be46d60765 plus a few nvme
-> patches) that does a lot of nvme resets which shut down and re-enable the
-> PCI device I see a flood of warnings like:
+> Long ago, a warning was silenced in drivers/acpi/bus.c on IA64 with
+> this commit:
 > 
-> [   78.237286] ACPI Warning: Large Reference Count (0x1001) in object ffff88007d702c68, Type=0x1D
-> (20170728/utdelete-473)
+> commit cce4f632db200aef147c59084437168174b23f11
+> Author: Lin Ming <ming.m.lin@intel.com>
+> Date:   Wed May 12 09:26:48 2010 +0800
 > 
-> Throwing in a dump_stack into the path it comes from:
+>     ACPI: fix early DSDT dmi check warnings on ia64
 > 
-> [   78.238387] CPU: 0 PID: 286 Comm: kworker/u8:3 Not tainted 4.14.0-rc1+ #134
-> [   78.238998] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-1 04/01/2014
-> [   78.239720] Workqueue: nvme-wq nvme_reset_work
-> [   78.239995] Call Trace:
-> [   78.239995]  dump_stack+0x63/0x83
-> [   78.239995]  acpi_ut_update_ref_count+0x2f7/0x2fe
-> [   78.239995]  acpi_ut_update_object_reference+0x114/0x182
-> [   78.239995]  acpi_ut_add_reference+0x1b/0x1e
-> [   78.239995]  acpi_ds_init_package_element+0x149/0x16e
-> [   78.239995]  ? acpi_ds_build_internal_object+0xca/0x12c
-> [   78.239995]  acpi_ds_build_internal_package_obj+0x1b2/0x258
-> [   78.239995]  ? acpi_ds_build_internal_package_obj+0x1b2/0x258
-> [   78.239995]  acpi_ds_eval_data_object_operands+0xd3/0x123
-> [   78.239995]  acpi_ds_exec_end_op+0x288/0x3e1
-> [   78.239995]  acpi_ps_parse_loop+0x519/0x57b
-> [   78.239995]  acpi_ps_parse_aml+0x93/0x29c
-> [   78.239995]  acpi_ps_execute_method+0x148/0x17f
-> [   78.239995]  acpi_ns_evaluate+0x1c1/0x24d
-> [   78.239995]  acpi_ut_evaluate_object+0x72/0x197
-> [   78.239995]  acpi_rs_get_prt_method_data+0x21/0x45
-> [   78.239995]  acpi_get_irq_routing_table+0x2c/0x30
-> [   78.239995]  acpi_pci_irq_find_prt_entry+0x8e/0x2c0
-> [   78.239995]  ? irq_get_irq_data+0x9/0x20
-> [   78.239995]  ? mp_unmap_irq+0xf/0x70
-> [   78.239995]  acpi_pci_irq_lookup+0x26/0x1a0
-> [   78.239995]  acpi_pci_irq_enable+0x5b/0x1b0
-> [   78.239995]  ? pci_read_config_word+0x22/0x30
-> [   78.239995]  pcibios_enable_device+0x28/0x30
-> [   78.239995]  do_pci_enable_device+0x5f/0xe0
-> [   78.239995]  pci_enable_device_flags+0xc3/0x110
-> [   78.239995]  pci_enable_device_mem+0xe/0x10
-> [   78.239995]  nvme_reset_work+0x4c/0x1610
-> [   78.239995]  ? sched_clock+0x9/0x10
-> [   78.239995]  ? sched_clock_local+0x17/0x90
-> [   78.239995]  ? _raw_spin_lock+0x9/0x10
-> [   78.239995]  ? pick_next_task_fair+0x420/0x690
-> [   78.239995]  ? _raw_spin_unlock_irq+0x9/0x20
-> [   78.239995]  ? finish_task_switch+0x7b/0x1f0
-> [   78.239995]  ? __schedule+0x2d7/0x800
-> [   78.239995]  process_one_work+0x1db/0x3e0
-> [   78.239995]  worker_thread+0x43/0x3f0
-> [   78.239995]  kthread+0x103/0x140
-> [   78.239995]  ? process_one_work+0x3e0/0x3e0
-> [   78.239995]  ? kthread_create_on_node+0x40/0x40
-> [   78.239995]  ret_from_fork+0x25/0x30
+> I don't think this fix was particularly elegant, but it did the job at
+> the time. However you should be informed that an upcoming cleanup of
+> the dmi subsystem will cause the warning to resurface:
+> 
+> https://marc.info/?l=linux-kernel&m=150113709717948&w=2
+> 
+> Instead of checking for dmi_initialized on individual dmi_system_id
+> records, it will now be done once per dmi_check_system() call. It is
+> much more efficient, but one side effect is that the warning will be
+> displayed even if the array passed to dmi_check_system() is empty.
+> 
+> So the time has come to fix the problem cleanly, instead of just
+> silencing the warning. This can be done in 2 ways:
+> 
+> 1* Don't call dmi_check_system() at all if not on X86.
+> 
+> 2* Initialize DMI earlier on IA64, so it is ready when ACPI support
+> gets started.
+> 
+> I will let you guys decide what is the best option.
+> 
+> Thanks,
+> --
+> Jean Delvare
+> SUSE L3 Support
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
