@@ -1,132 +1,175 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH] ACPI/IORT: Fix PCI ACS enablement
-Date: Fri, 29 Sep 2017 17:08:50 +0100
-Message-ID: <20170929160850.GA31394@red-moon>
-References: <20170919170539.6265-1-lorenzo.pieralisi@arm.com>
- <59C3A36A.2060202@hisilicon.com> <20170922094546.GE1523@red-moon>
- <59C5C655.8030607@hisilicon.com> <20170928154625.GA25853@red-moon>
- <59CDCAB6.3000906@hisilicon.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <59CDCAB6.3000906@hisilicon.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Zhou Wang <wangzhou1@hisilicon.com>
-Cc: linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, Robin Murphy <robin.murphy@arm.com>, linux-arm-kernel@lists.infradead.org
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1] pci: introduce for_each_pci_bridge() helper
+Date: Fri, 29 Sep 2017 22:21:23 +0300
+Message-ID: <20170929192123.24817-1-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:35424 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752380AbdI2TV2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 29 Sep 2017 15:21:28 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Scott Murray <scott@spiteful.org>, Lukas Wunner <lukas@wunner.de>, Keith Busch <keith.busch@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Fri, Sep 29, 2017 at 12:23:18PM +0800, Zhou Wang wrote:
-> On 2017/9/28 23:46, Lorenzo Pieralisi wrote:
-> > On Sat, Sep 23, 2017 at 10:26:29AM +0800, Zhou Wang wrote:
-> >> On 2017/9/22 17:45, Lorenzo Pieralisi wrote:
-> >>> On Thu, Sep 21, 2017 at 07:32:58PM +0800, Zhou Wang wrote:
-> >>>> On 2017/9/20 1:05, Lorenzo Pieralisi wrote:
-> >>>>> commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
-> >>>>> workarounds") removed kernel code that was allowing to initialize
-> >>>>> and probe the SMMU devices early (ie earlier than PCI devices through
-> >>>>> linker script callback entries) in the boot process because it was not
-> >>>>> needed any longer in that the SMMU devices/drivers now support deferred
-> >>>>> probing.
-> >>>>>
-> >>>>> Since the SMMUs probe routines are also in charge of requesting global
-> >>>>> PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
-> >>>>> up early-probing workarounds") also postponed PCI ACS enablement to
-> >>>>> SMMUs devices probe time, which may be too late given that PCI devices
-> >>>>> needs to detect if PCI ACS is enabled to init the respective capability
-> >>>>> through the following call path:
-> >>>>>
-> >>>>> pci_device_add()
-> >>>>>  -> pci_init_capabilities()
-> >>>>>   -> pci_enable_acs()
-> >>>>>
-> >>>>> Add code in the ACPI IORT SMMU platform devices initialization path
-> >>>>> (that is called before ACPI PCI enumeration) to detect if an SMMU is
-> >>>>> present in HW and enable PCI ACS if it actually is, restoring the
-> >>>>> correct PCI ACS enablement sequencing.
-> >>>>>
-> >>>>> Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
-> >>>>> Signed-workarounds")
-> >>>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >>>>> Cc: Will Deacon <will.deacon@arm.com>
-> >>>>> Cc: Robin Murphy <robin.murphy@arm.com>
-> >>>>> Cc: Zhou Wang <wangzhou1@hisilicon.com>
-> >>>>> Cc: Alex Williamson <alex.williamson@redhat.com>
-> >>>>> ---
-> >>>>>  drivers/acpi/arm64/iort.c | 11 +++++++++++
-> >>>>>  1 file changed, 11 insertions(+)
-> >>>>>
-> >>>>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> >>>>> index 9565d57..71a7694 100644
-> >>>>> --- a/drivers/acpi/arm64/iort.c
-> >>>>> +++ b/drivers/acpi/arm64/iort.c
-> >>>>> @@ -1184,6 +1184,7 @@ static void __init iort_init_platform_devices(void)
-> >>>>>  	struct acpi_table_iort *iort;
-> >>>>>  	struct fwnode_handle *fwnode;
-> >>>>>  	int i, ret;
-> >>>>> +	bool smmu_detected = false;
-> >>>>>  
-> >>>>>  	/*
-> >>>>>  	 * iort_table and iort both point to the start of IORT table, but
-> >>>>> @@ -1218,11 +1219,21 @@ static void __init iort_init_platform_devices(void)
-> >>>>>  				acpi_free_fwnode_static(fwnode);
-> >>>>>  				return;
-> >>>>>  			}
-> >>>>> +
-> >>>>> +			smmu_detected = true;
-> >>>>>  		}
-> >>>>>  
-> >>>>>  		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
-> >>>>>  					 iort_node->length);
-> >>>>>  	}
-> >>>>> +
-> >>>>> +	/*
-> >>>>> +	 * If IORT reports an SMMU component make sure PCI ACS is
-> >>>>> +	 * requested so that PCI devices can enable it in their
-> >>>>> +	 * capabilities.
-> >>>>> +	 */
-> >>>>> +	if (smmu_detected)
-> >>>>> +		pci_request_acs();
-> >>>>>  }
-> >>>>>  
-> >>>>>  void __init acpi_iort_init(void)
-> >>>>>
-> >>>>
-> >>>> Hi Lorenzo,
-> >>>>
-> >>>> I tested this patch, it works well in my HiSilicon Hip08 based system.
-> >>>> However, setting ACS flag at the stage of SMMU device init seems not good,
-> >>>> I mean what if in one system there are only platform devices connected to
-> >>>> SMMU device.
-> >>>
-> >>> That's a fair point if you explain to me how current pci_request_acs()
-> >>> usage copes with your remark above.
-> >>
-> >> The current pci_request_acs usage for ARM SMMU-V3 sets ACS flags under CONFIG_PCI.
-> >> However, as mentioned in your commit message, this setting is too late.
-> >>
-> >> For the usage of X86 and AMD, as I am not familiar with the devices used in these
-> >> two platforms, maybe the default devices in these platforms are PCIe based :)
-> > 
-> > I do not understand what your point is. ACS enablement is a global flag,
-> > that is currently set whenever an x86/AMD/ARM IOMMU is detected/probed
-> > AFAICS.
-> 
-> There are named devices(platform devices) and/or PCI devices connected to SMMU.
-> However, ACS flags is only for PCI devices. So setting this flag in SMMU device init
-> maybe need check if there are PCIe devices connected to SMMU, as maybe devices connected
-> to SMMU are all named devices.
+It seems often the following pattern has been used
 
-Understood but that's a problem that exists in the current kernel,
-what I am saying is that's not what I am fixing with this patch.
+	list_for_each_entry(dev, &bus->devices, bus_list) {
+		if (pci_is_bridge(dev)) {
+			...
+		}
+	}
 
-Lorenzo
+Here for_each_pci_bridge() helper is introduced to make that code better
+to write and read by lowing indentation level. It also saves one or few
+lines of code in each occurrence.
+
+Convert PCI core parts here at the same time.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/pci/hotplug/acpiphp_glue.c     | 15 ++++++---------
+ drivers/pci/hotplug/cpci_hotplug_pci.c |  7 ++-----
+ drivers/pci/hotplug/pciehp_pci.c       |  5 ++---
+ drivers/pci/hotplug/shpchp_pci.c       |  6 ++----
+ drivers/pci/probe.c                    |  6 ++----
+ drivers/pci/setup-bus.c                |  7 +++----
+ include/linux/pci.h                    |  4 ++++
+ 7 files changed, 21 insertions(+), 29 deletions(-)
+
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 5ed2dcaa8e27..5db6f1839dad 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -462,18 +462,15 @@ static void enable_slot(struct acpiphp_slot *slot)
+ 	acpiphp_rescan_slot(slot);
+ 	max = acpiphp_max_busnr(bus);
+ 	for (pass = 0; pass < 2; pass++) {
+-		list_for_each_entry(dev, &bus->devices, bus_list) {
++		for_each_pci_bridge(dev, bus) {
+ 			if (PCI_SLOT(dev->devfn) != slot->device)
+ 				continue;
+ 
+-			if (pci_is_bridge(dev)) {
+-				max = pci_scan_bridge(bus, dev, max, pass);
+-				if (pass && dev->subordinate) {
+-					check_hotplug_bridge(slot, dev);
+-					pcibios_resource_survey_bus(dev->subordinate);
+-					__pci_bus_size_bridges(dev->subordinate,
+-							       &add_list);
+-				}
++			max = pci_scan_bridge(bus, dev, max, pass);
++			if (pass && dev->subordinate) {
++				check_hotplug_bridge(slot, dev);
++				pcibios_resource_survey_bus(dev->subordinate);
++				__pci_bus_size_bridges(dev->subordinate, &add_list);
+ 			}
+ 		}
+ 	}
+diff --git a/drivers/pci/hotplug/cpci_hotplug_pci.c b/drivers/pci/hotplug/cpci_hotplug_pci.c
+index 80c80017197d..f616358fa938 100644
+--- a/drivers/pci/hotplug/cpci_hotplug_pci.c
++++ b/drivers/pci/hotplug/cpci_hotplug_pci.c
+@@ -286,14 +286,11 @@ int cpci_configure_slot(struct slot *slot)
+ 	}
+ 	parent = slot->dev->bus;
+ 
+-	list_for_each_entry(dev, &parent->devices, bus_list) {
+-		if (PCI_SLOT(dev->devfn) != PCI_SLOT(slot->devfn))
+-			continue;
+-		if (pci_is_bridge(dev))
++	for_each_pci_bridge(dev, parent) {
++		if (PCI_SLOT(dev->devfn) == PCI_SLOT(slot->devfn))
+ 			pci_hp_add_bridge(dev);
+ 	}
+ 
+-
+ 	pci_assign_unassigned_bridge_resources(parent->self);
+ 
+ 	pci_bus_add_devices(parent);
+diff --git a/drivers/pci/hotplug/pciehp_pci.c b/drivers/pci/hotplug/pciehp_pci.c
+index 19f30a9f461d..c3af027ee1a6 100644
+--- a/drivers/pci/hotplug/pciehp_pci.c
++++ b/drivers/pci/hotplug/pciehp_pci.c
+@@ -60,9 +60,8 @@ int pciehp_configure_device(struct slot *p_slot)
+ 		goto out;
+ 	}
+ 
+-	list_for_each_entry(dev, &parent->devices, bus_list)
+-		if (pci_is_bridge(dev))
+-			pci_hp_add_bridge(dev);
++	for_each_pci_bridge(dev, parent)
++		pci_hp_add_bridge(dev);
+ 
+ 	pci_assign_unassigned_bridge_resources(bridge);
+ 	pcie_bus_configure_settings(parent);
+diff --git a/drivers/pci/hotplug/shpchp_pci.c b/drivers/pci/hotplug/shpchp_pci.c
+index f8cd3a27e351..ea63db58b4b1 100644
+--- a/drivers/pci/hotplug/shpchp_pci.c
++++ b/drivers/pci/hotplug/shpchp_pci.c
+@@ -61,10 +61,8 @@ int shpchp_configure_device(struct slot *p_slot)
+ 		goto out;
+ 	}
+ 
+-	list_for_each_entry(dev, &parent->devices, bus_list) {
+-		if (PCI_SLOT(dev->devfn) != p_slot->device)
+-			continue;
+-		if (pci_is_bridge(dev))
++	for_each_pci_bridge(dev, parent) {
++		if (PCI_SLOT(dev->devfn) == p_slot->device)
+ 			pci_hp_add_bridge(dev);
+ 	}
+ 
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index ff94b69738a8..cdc2f83c11c5 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -2421,10 +2421,8 @@ unsigned int pci_scan_child_bus(struct pci_bus *bus)
+ 	}
+ 
+ 	for (pass = 0; pass < 2; pass++)
+-		list_for_each_entry(dev, &bus->devices, bus_list) {
+-			if (pci_is_bridge(dev))
+-				max = pci_scan_bridge(bus, dev, max, pass);
+-		}
++		for_each_pci_bridge(dev, bus)
++			max = pci_scan_bridge(bus, dev, max, pass);
+ 
+ 	/*
+ 	 * Make sure a hotplug bridge has at least the minimum requested
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 958da7db9033..7ca03407404c 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -1921,10 +1921,9 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+ 					want additional resources */
+ 
+ 	down_read(&pci_bus_sem);
+-	list_for_each_entry(dev, &bus->devices, bus_list)
+-		if (pci_is_bridge(dev) && pci_has_subordinate(dev))
+-				__pci_bus_size_bridges(dev->subordinate,
+-							 &add_list);
++	for_each_pci_bridge(dev, bus)
++		if (pci_has_subordinate(dev))
++			__pci_bus_size_bridges(dev->subordinate, &add_list);
+ 	up_read(&pci_bus_sem);
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
+ 	BUG_ON(!list_empty(&add_list));
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index f4f8ee5a7362..3dbe947b4152 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -596,6 +596,10 @@ static inline bool pci_is_bridge(struct pci_dev *dev)
+ 		dev->hdr_type == PCI_HEADER_TYPE_CARDBUS;
+ }
+ 
++#define for_each_pci_bridge(dev, bus)				\
++	list_for_each_entry(dev, &bus->devices, bus_list)	\
++		if (!pci_is_bridge(dev)) {} else
++
+ static inline struct pci_dev *pci_upstream_bridge(struct pci_dev *dev)
+ {
+ 	dev = pci_physfn(dev);
+-- 
+2.14.2
+
