@@ -1,94 +1,45 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 1/9] Bluetooth: hci_uart_set_flow_control: Fix NULL deref
- when using serdev
-Date: Tue, 3 Oct 2017 00:34:15 +0200
-Message-ID: <20171002223415.jmbi4zw7edyuxccl@earth>
-References: <20171002152356.4714-1-hdegoede@redhat.com>
- <20171002152356.4714-2-hdegoede@redhat.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v4 2/3] PM / mfd: intel-lpss: Push system sleep callbacks
+ to late/early stages
+Date: Tue, 3 Oct 2017 01:58:04 +0200
+Message-ID: <CAJZ5v0gvn=JMGzCEUr750zXDQAHEEcnGzpJQ-_BBwTa1-2L4nw@mail.gmail.com>
+References: <3023226.l5IfJK6GIc@aspire.rjw.lan> <3958866.l2qnKDbinI@aspire.rjw.lan>
+ <65494652.vEfz4tCBDb@aspire.rjw.lan> <4332008.kXBLY0K23i@aspire.rjw.lan> <20170925072847.nl2a6feqzrzdcxwz@ninjato>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="a4vtalppzdfi5uwv"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48564 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750770AbdJBWeT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 2 Oct 2017 18:34:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20171002152356.4714-2-hdegoede@redhat.com>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:36035 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750846AbdJBX6F (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Oct 2017 19:58:05 -0400
+In-Reply-To: <20170925072847.nl2a6feqzrzdcxwz@ninjato>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>, robh@kernel.org, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, linux-i2c <linux-i2c@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Rajat Jain <rajatja@google.com>
 
+On Mon, Sep 25, 2017 at 9:28 AM, Wolfram Sang <wsa@the-dreams.de> wrote:
+> On Mon, Sep 25, 2017 at 01:20:35AM +0200, Rafael J. Wysocki wrote:
+>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>
+>> Push the system suspend/resume callbacks of intel-lpss to the late
+>> suspend/early resume stages to allow child device callbacks to be
+>> pushed to the late/early stages of suspend/resume too, so as to
+>> make it possible to avoid resuming the children if they are runtime-
+>> suspended during system suspend going forward.
+>>
+>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+>> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>> Tested-by: Johannes Stezenbach <js@sig21.net>
+>> Tested-by: Rajat Jain <rajatja@google.com>
+>
+> If this series shall go in via I2C, I'd need an ack from Lee for this
+> one.
 
---a4vtalppzdfi5uwv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+So this one has been ACKed now, so the series should be good to go.
 
-Hi,
+Do you need me to resend it (because of the v5 of patch [1/3])?
 
-On Mon, Oct 02, 2017 at 05:23:48PM +0200, Hans de Goede wrote:
-> Fix a NULL pointer deref (hu->tty) when calling hci_uart_set_flow_control
-> on hci_uart-s using serdev.
->=20
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/bluetooth/hci_ldisc.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->=20
-> diff --git a/drivers/bluetooth/hci_ldisc.c b/drivers/bluetooth/hci_ldisc.c
-> index a746627e784e..d02f6d029093 100644
-> --- a/drivers/bluetooth/hci_ldisc.c
-> +++ b/drivers/bluetooth/hci_ldisc.c
-> @@ -41,6 +41,7 @@
->  #include <linux/ioctl.h>
->  #include <linux/skbuff.h>
->  #include <linux/firmware.h>
-> +#include <linux/serdev.h>
-> =20
->  #include <net/bluetooth/bluetooth.h>
->  #include <net/bluetooth/hci_core.h>
-> @@ -298,6 +299,11 @@ void hci_uart_set_flow_control(struct hci_uart *hu, =
-bool enable)
->  	unsigned int set =3D 0;
->  	unsigned int clear =3D 0;
-> =20
-> +	if (hu->serdev) {
-> +		serdev_device_set_flow_control(hu->serdev, !enable);
-> +		return;
-> +	}
-
-I think this should also control rts, so that the behaviour is the
-same for serdev and ldisc implementation:
-
-serdev_device_set_rts(serdev, enable);
-
-> +
->  	if (enable) {
->  		/* Disable hardware flow control */
->  		ktermios =3D tty->termios;
-
--- Sebastian
-
---a4vtalppzdfi5uwv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnSvuEACgkQ2O7X88g7
-+ppKMw/+L8KxKyOIDnYr+OOoqaplzoDgOsr91ccJBh/DXXwz63T7LWiUcPQuYWiO
-eZ0vG7VsYA+10YIfgiLLzesx4TrIv28+HZUK1a7lthGayq/zw5W8pLsoSPoHpx0h
-wHBy+ZoL1JegC+/+OfaqojjVnoEgq0zOY+zt4EDmz4E1LmIpo2gsnOgOkH8xjhr/
-2/P79GTJHHfyjpP9eU/qI2g+Doxpf1hLn0Zst+LlYF+/dR0Lf71eINmWJ5r38Y5Z
-OA6tKA7yMiYvK4sjbYZplI8APzA6rxVUx0fB/oo6IhPoG3LWk9mN/D1htULPO4Hy
-OuuIHTiIp68wn+LjFFBP+eulR42q2fppARTCLbvVLmebKS0yo9VmaW2iNBB7DSAf
-Jgys38SNhmEeLZgFiCqCIXww1ihoMyBwhWerI0vLZE3V4iZm4HVuB6/C5LPNHBXd
-zoMzsHj1NIGLiYEHjOIXZLlPVS0Pr03EAGUYtjfoFodWOR5sCh2Zb5DM/p74A/E4
-Fmzg289zFrFYcPtjo3UZXB8P/crPS34BJbKpPxzO580y4Wpw4JPnIlpajKIdgliT
-gzA4gsMstzaGDTym24VXcW6MEAhjmwU5lVIoeX6sjYR78PH7jYQLWx0412C5sots
-F5PhziJiv6FNMDs21KMc6739PKZ74eWLoDgLVdu9ttSlZR3gRGI=
-=3ZvC
------END PGP SIGNATURE-----
-
---a4vtalppzdfi5uwv--
+Thanks,
+Rafael
