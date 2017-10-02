@@ -1,13 +1,13 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 4/9] Bluetooth: hci_bcm: Move platform_get_irq call to bcm_probe
-Date: Mon,  2 Oct 2017 17:23:51 +0200
-Message-ID: <20171002152356.4714-5-hdegoede@redhat.com>
+Subject: [PATCH 7/9] Bluetooth: hci_bcm: Make acpi_probe get irq from ACPI resources
+Date: Mon,  2 Oct 2017 17:23:54 +0200
+Message-ID: <20171002152356.4714-8-hdegoede@redhat.com>
 References: <20171002152356.4714-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49104 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:46490 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751814AbdJBPYJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 2 Oct 2017 11:24:09 -0400
+        id S1751814AbdJBPYQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 2 Oct 2017 11:24:16 -0400
 In-Reply-To: <20171002152356.4714-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -17,39 +17,45 @@ Cc: Hans de Goede <hdegoede@redhat.com>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Danis?= 
 The ACPI subsys is going to move over to instantiating ACPI enumerated
 HCIs as serdevs, rather then as platform devices.
 
-Most of the code in bcm_platform_probe is actually not platform
-specific and will work with any struct device passed to it, the one
-platform specific call in bcm_platform_probe is platform_get_irq.
+So we need to make bcm_acpi_probe() suitable for use on non platform-
+devices too, which means that we cannot rely on platform_get_irq()
+getting called.
 
-This commit moves platform_get_irq call to the platform-driver's bcm_probe
-function, this is a preparation patch for adding (runtime)pm support to
-the serdev path.
+This commit modifies bcm_acpi_probe() to directly get the irq from
+the ACPI resources, this is a preparation patch for adding (runtime)pm
+support to the serdev path.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/bluetooth/hci_bcm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/bluetooth/hci_bcm.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/drivers/bluetooth/hci_bcm.c b/drivers/bluetooth/hci_bcm.c
-index 00103307a776..ea530a56778d 100644
+index 5c8371d8aace..48a428909958 100644
 --- a/drivers/bluetooth/hci_bcm.c
 +++ b/drivers/bluetooth/hci_bcm.c
-@@ -776,7 +776,6 @@ static int bcm_platform_probe(struct bcm_device *dev)
- 		return PTR_ERR(dev->shutdown);
+@@ -805,6 +805,7 @@ static int bcm_acpi_probe(struct bcm_device *dev)
+ 	const struct dmi_system_id *dmi_id;
+ 	const struct acpi_gpio_mapping *gpio_mapping = acpi_bcm_int_last_gpios;
+ 	const struct acpi_device_id *id;
++	struct resource_entry *entry;
+ 	int ret;
  
- 	/* IRQ can be declared in ACPI table as Interrupt or GpioInt */
--	dev->irq = platform_get_irq(pdev, 0);
- 	if (dev->irq <= 0) {
- 		struct gpio_desc *gpio;
+ 	/* Retrieve GPIO data */
+@@ -821,6 +822,13 @@ static int bcm_acpi_probe(struct bcm_device *dev)
+ 				     &resources, bcm_resource, dev);
+ 	if (ret < 0)
+ 		return ret;
++
++	resource_list_for_each_entry(entry, &resources) {
++		if (resource_type(entry->res) == IORESOURCE_IRQ) {
++			dev->irq = entry->res->start;
++			break;
++		}
++	}
+ 	acpi_dev_free_resource_list(&resources);
  
-@@ -853,6 +852,7 @@ static int bcm_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	dev->pdev = pdev;
-+	dev->irq = platform_get_irq(pdev, 0);
- 
- 	if (has_acpi_companion(&pdev->dev)) {
- 		ret = bcm_acpi_probe(dev);
+ 	dmi_id = dmi_first_match(bcm_active_low_irq_dmi_table);
 -- 
 2.14.2
 
