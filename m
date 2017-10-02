@@ -1,121 +1,49 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH v2] ACPI/IORT: Fix PCI ACS enablement
-Date: Mon,  2 Oct 2017 18:28:44 +0100
-Message-ID: <1506965324-5818-1-git-send-email-lorenzo.pieralisi@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39378 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751082AbdJBR0I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 2 Oct 2017 13:26:08 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: bfields@fieldses.org (J. Bruce Fields)
+Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
+Date: Mon, 2 Oct 2017 15:22:24 -0400
+Message-ID: <20171002192224.GD1903@fieldses.org>
+References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
+ <20171001220131.GA11812@eros>
+ <20171001205220.10b78086@blatinox-laptop.localdomain>
+ <20171002053554.GA28743@kroah.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171002053554.GA28743@kroah.com>
+Sender: netdev-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: =?utf-8?B?SsOpcsOpbXk=?= Lefaure <jeremy.lefaure@lse.epita.fr>, "Tobin C. Harding" <me@tobin.cc>, alsa-devel@alsa-project.org, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, dm-devel@redhat.com, brcm80211-dev-list@cypress.com, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org, openipmi-developer@lists.sourceforge.net, intel-gvt-dev@lists.freedesktop.org, devel@acpica.org, brcm80211-dev-list.pdl@broadcom.com, netde
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Robin Murphy <robin.murphy@arm.com>, Zhou Wang <wangzhou1@hisilicon.com>, Alex Williamson <alex.williamson@redhat.com>
 
-commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
-workarounds") removed kernel code that was allowing to initialize
-and probe the SMMU devices early (ie earlier than PCI devices, through
-linker script callback entries) in the boot process because it was not
-needed any longer in that the SMMU devices/drivers now support deferred
-probing.
+On Mon, Oct 02, 2017 at 07:35:54AM +0200, Greg KH wrote:
+> On Sun, Oct 01, 2017 at 08:52:20PM -0400, Jérémy Lefaure wrote:
+> > On Mon, 2 Oct 2017 09:01:31 +1100
+> > "Tobin C. Harding" <me@tobin.cc> wrote:
+> > 
+> > > > In order to reduce the size of the To: and Cc: lines, each patch of the
+> > > > series is sent only to the maintainers and lists concerned by the patch.
+> > > > This cover letter is sent to every list concerned by this series.  
+> > > 
+> > > Why don't you just send individual patches for each subsystem? I'm not a maintainer but I don't see
+> > > how any one person is going to be able to apply this whole series, it is making it hard for
+> > > maintainers if they have to pick patches out from among the series (if indeed any will bother
+> > > doing that).
+> > Yeah, maybe it would have been better to send individual patches.
+> > 
+> > From my point of view it's a series because the patches are related (I
+> > did a git format-patch from my local branch). But for the maintainers
+> > point of view, they are individual patches.
+> 
+> And the maintainers view is what matters here, if you wish to get your
+> patches reviewed and accepted...
 
-Since the SMMUs probe routines are also in charge of requesting global
-PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
-up early-probing workarounds") also postponed PCI ACS enablement to
-SMMUs devices probe time, which is too late given that PCI devices needs
-to detect if PCI ACS is enabled to init the respective capability
-through the following call path:
+Mainly I'd just like to know which you're asking for.  Do you want me to
+apply this, or to ACK it so someone else can?  If it's sent as a series
+I tend to assume the latter.
 
-pci_device_add()
- -> pci_init_capabilities()
-  -> pci_enable_acs()
+But in this case I'm assuming it's the former, so I'll pick up the nfsd
+one....
 
-Add code in the ACPI IORT SMMU platform devices initialization path
-(that is called before ACPI PCI enumeration) to detect if there
-exists firmware mappings to map root complexes ids to SMMU ids
-and if so enable ACS for the system.
-
-Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
-Signed-workarounds")
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Zhou Wang <wangzhou1@hisilicon.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
----
-v1 -> v2:
-
-- Reworked ACS enablement logic and based on root complex to SMMU
-  ids firmware mapping detection
-- Rebased against v4.14-rc3
-
-v1: https://marc.info/?l=linux-acpi&m=150584059818925&w=2
-
- drivers/acpi/arm64/iort.c | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
-
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 9565d57..de56394 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -1178,12 +1178,44 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
- 	return ret;
- }
- 
-+static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
-+{
-+	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
-+		struct acpi_iort_node *parent;
-+		struct acpi_iort_id_mapping *map;
-+		int i;
-+
-+		map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, iort_node,
-+				   iort_node->mapping_offset);
-+
-+		for (i = 0; i < iort_node->mapping_count; i++, map++) {
-+			if (!map->output_reference)
-+				continue;
-+
-+			parent = ACPI_ADD_PTR(struct acpi_iort_node,
-+					iort_table,  map->output_reference);
-+			/*
-+			 * If we detect a RC->SMMU mapping, make sure
-+			 * we enable ACS on the system.
-+			 */
-+			if ((parent->type == ACPI_IORT_NODE_SMMU) ||
-+				(parent->type == ACPI_IORT_NODE_SMMU_V3)) {
-+				pci_request_acs();
-+				return true;
-+			}
-+		}
-+	}
-+
-+	return false;
-+}
-+
- static void __init iort_init_platform_devices(void)
- {
- 	struct acpi_iort_node *iort_node, *iort_end;
- 	struct acpi_table_iort *iort;
- 	struct fwnode_handle *fwnode;
- 	int i, ret;
-+	bool acs_enabled = false;
- 
- 	/*
- 	 * iort_table and iort both point to the start of IORT table, but
-@@ -1203,6 +1235,9 @@ static void __init iort_init_platform_devices(void)
- 			return;
- 		}
- 
-+		if (!acs_enabled)
-+			acs_enabled = iort_enable_acs(iort_node);
-+
- 		if ((iort_node->type == ACPI_IORT_NODE_SMMU) ||
- 			(iort_node->type == ACPI_IORT_NODE_SMMU_V3)) {
- 
--- 
-2.4.12
-
+--b.
