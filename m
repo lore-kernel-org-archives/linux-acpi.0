@@ -1,47 +1,45 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] ACPI / sysfs: make function param_set_trace_method_name static
-Date: Mon,  2 Oct 2017 15:40:33 +0100
-Message-ID: <20171002144033.26965-1-colin.king@canonical.com>
+From: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/9] Bluetooth: hci_bcm: Add (runtime)pm support to the serdev drv
+Date: Mon,  2 Oct 2017 17:23:47 +0200
+Message-ID: <20171002152356.4714-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:47214 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751120AbdJBOkg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Oct 2017 10:40:36 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, Gustavo Padovan <gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org>, Johan Hedberg <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Danis?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+Hi All,
 
-The function param_set_trace_method_name is local to the source and does
-not need to be in global scope, so make it static.
+The ACPI subsys is going to move over to instantiating ACPI enumerated
+HCIs as serdevs, rather then as platform devices.
 
-Cleans up sparse warning:
-symbol 'param_set_trace_method_name' was not declared. Should it be static?
+This means that the serdev driver paths of hci_bcm.c also need to start
+supporting (runtime)pm through GPIOs and a host-wake IRQ.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/acpi/sysfs.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+This series makes most of the code in hci_bcm.c indepdenent from how
+the hci was instantiated and then more or less unifies the platform
+and serdev drivers, adding (runtime)pm / GPIO / IRQ support to the
+serdev driver.
 
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 78a5a23010ab..ca80e13aeeb1 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -168,7 +168,8 @@ module_param_cb(debug_level, &param_ops_debug_level, &acpi_dbg_level, 0644);
- 
- static char trace_method_name[1024];
- 
--int param_set_trace_method_name(const char *val, const struct kernel_param *kp)
-+static int param_set_trace_method_name(const char *val,
-+				       const struct kernel_param *kp)
- {
- 	u32 saved_flags = 0;
- 	bool is_abs_path = true;
--- 
-2.14.1
+Besides adding (runtime)pm support, GPIO control in general is necessary
+to e.g. keep the ACPI BCM2E7E id used with the BCM4356A2 wifi/bt combo
+on the GPD pocket working after moving over to serdev enumeration.
 
+I've chosen to keep the platform enumeration based code paths in place
+for now. This way we can first merge this series and then, once this
+series is in place, the first 2 patches of Frédéric Danis RFC series
+for ACPI serdev support can be merged without causing any regressions.
+
+Once the ACPI serdev support is merged a follow up patch removing the
+platform-device related code can be submitted.
+
+Note the 2nd patch in this series is a resend of a bug-fix I submitted
+a couple of days ago, I've included that with the series to avoid
+conflicts when applying the series without that fix.
+
+Regards,
+
+Hans
