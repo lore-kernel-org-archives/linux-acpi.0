@@ -1,156 +1,68 @@
-From: Nate Watterson <nwatters@codeaurora.org>
-Subject: Re: [PATCH v2] ACPI/IORT: Fix PCI ACS enablement
-Date: Tue, 3 Oct 2017 15:08:02 -0400
-Message-ID: <5801e03f-2715-65b8-4fe4-cadae3ccf33a@codeaurora.org>
-References: <1506965324-5818-1-git-send-email-lorenzo.pieralisi@arm.com>
- <20171003124843.GA16134@red-moon>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference to
+ `__udivdi3'
+Date: Tue, 3 Oct 2017 19:41:23 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E6130BD@ORSMSX110.amr.corp.intel.com>
+References: <201710031050.2Iy92vzG%fengguang.wu@intel.com>
+ <2859755.8uSvH3hIdc@aspire.rjw.lan>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E613050@ORSMSX110.amr.corp.intel.com>
+ <CAJZ5v0inoxc0KXF87CZXoD_nzNwgcTMf=BLbQfM+fGT5ks0v4Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:49508 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750820AbdJCTIJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Oct 2017 15:08:09 -0400
-In-Reply-To: <20171003124843.GA16134@red-moon>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0inoxc0KXF87CZXoD_nzNwgcTMf=BLbQfM+fGT5ks0v4Q@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, "kbuild-all@01.org" <kbuild-all@01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org, Zhou Wang <wangzhou1@hisilicon.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Robin Murphy <robin.murphy@arm.com>, Alex Williamson <alex.williamson@redhat.com>
 
-Hi Lorenzo,
-
-On 10/3/2017 8:48 AM, Lorenzo Pieralisi wrote:
-> [+Nate]
-> 
-> Zhou, Nate,
-> 
-> On Mon, Oct 02, 2017 at 06:28:44PM +0100, Lorenzo Pieralisi wrote:
->> commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
->> workarounds") removed kernel code that was allowing to initialize
->> and probe the SMMU devices early (ie earlier than PCI devices, through
->> linker script callback entries) in the boot process because it was not
->> needed any longer in that the SMMU devices/drivers now support deferred
->> probing.
->>
->> Since the SMMUs probe routines are also in charge of requesting global
->> PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
->> up early-probing workarounds") also postponed PCI ACS enablement to
->> SMMUs devices probe time, which is too late given that PCI devices needs
->> to detect if PCI ACS is enabled to init the respective capability
->> through the following call path:
->>
->> pci_device_add()
->>   -> pci_init_capabilities()
->>    -> pci_enable_acs()
->>
->> Add code in the ACPI IORT SMMU platform devices initialization path
->> (that is called before ACPI PCI enumeration) to detect if there
->> exists firmware mappings to map root complexes ids to SMMU ids
->> and if so enable ACS for the system.
->>
->> Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
->> Signed-workarounds")
->> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Cc: Will Deacon <will.deacon@arm.com>
->> Cc: Hanjun Guo <hanjun.guo@linaro.org>
->> Cc: Sudeep Holla <sudeep.holla@arm.com>
->> Cc: Catalin Marinas <catalin.marinas@arm.com>
->> Cc: Robin Murphy <robin.murphy@arm.com>
->> Cc: Zhou Wang <wangzhou1@hisilicon.com>
->> Cc: Alex Williamson <alex.williamson@redhat.com>
->> ---
->> v1 -> v2:
->>
->> - Reworked ACS enablement logic and based on root complex to SMMU
->>    ids firmware mapping detection
->> - Rebased against v4.14-rc3
->>
->> v1: https://marc.info/?l=linux-acpi&m=150584059818925&w=2
->>
->>   drivers/acpi/arm64/iort.c | 35 +++++++++++++++++++++++++++++++++++
->>   1 file changed, 35 insertions(+)
-> 
-> I have reworked the enablement logic wrt v1, dou you mind testing it
-> please, I would like to get it merged since I have 4.15 patches depending
-> on it.
-
-I tested with and without RC->SMMU mappings defined in the IORT and
-observed the expected value for pci_acs_enable in both cases.
-
-Tested-by: Nate Watterson <nwatters@codeaurora.org>
-
-Thanks,
-Nate
-
-> 
-> Thanks,
-> Lorenzo
-> 
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index 9565d57..de56394 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -1178,12 +1178,44 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
->>   	return ret;
->>   }
->>   
->> +static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
->> +{
->> +	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
->> +		struct acpi_iort_node *parent;
->> +		struct acpi_iort_id_mapping *map;
->> +		int i;
->> +
->> +		map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, iort_node,
->> +				   iort_node->mapping_offset);
->> +
->> +		for (i = 0; i < iort_node->mapping_count; i++, map++) {
->> +			if (!map->output_reference)
->> +				continue;
->> +
->> +			parent = ACPI_ADD_PTR(struct acpi_iort_node,
->> +					iort_table,  map->output_reference);
->> +			/*
->> +			 * If we detect a RC->SMMU mapping, make sure
->> +			 * we enable ACS on the system.
->> +			 */
->> +			if ((parent->type == ACPI_IORT_NODE_SMMU) ||
->> +				(parent->type == ACPI_IORT_NODE_SMMU_V3)) {
->> +				pci_request_acs();
->> +				return true;
->> +			}
->> +		}
->> +	}
->> +
->> +	return false;
->> +}
->> +
->>   static void __init iort_init_platform_devices(void)
->>   {
->>   	struct acpi_iort_node *iort_node, *iort_end;
->>   	struct acpi_table_iort *iort;
->>   	struct fwnode_handle *fwnode;
->>   	int i, ret;
->> +	bool acs_enabled = false;
->>   
->>   	/*
->>   	 * iort_table and iort both point to the start of IORT table, but
->> @@ -1203,6 +1235,9 @@ static void __init iort_init_platform_devices(void)
->>   			return;
->>   		}
->>   
->> +		if (!acs_enabled)
->> +			acs_enabled = iort_enable_acs(iort_node);
->> +
->>   		if ((iort_node->type == ACPI_IORT_NODE_SMMU) ||
->>   			(iort_node->type == ACPI_IORT_NODE_SMMU_V3)) {
->>   
->> -- 
->> 2.4.12
->>
-
--- 
-Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogcmp3eXNvY2tpQGdtYWls
+LmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFpbC5jb21dIE9uIEJlaGFsZiBPZg0KPiBSYWZhZWwg
+Si4gV3lzb2NraQ0KPiBTZW50OiBUdWVzZGF5LCBPY3RvYmVyIDMsIDIwMTcgMTE6MjEgQU0NCj4g
+VG86IE1vb3JlLCBSb2JlcnQgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+DQo+IENjOiBSYWZhZWwg
+Si4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBaaGVuZywgTHYNCj4gPGx2LnpoZW5nQGlu
+dGVsLmNvbT47IFd1LCBGZW5nZ3VhbmcgPGZlbmdndWFuZy53dUBpbnRlbC5jb20+OyBrYnVpbGQt
+DQo+IGFsbEAwMS5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eu
+b3JnOyBsaW51eC0NCj4gcG1Admdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbcG06Ymxl
+ZWRpbmctZWRnZSAxMi80MV0gdXRzdHJzdXBwdC5jOnVuZGVmaW5lZCByZWZlcmVuY2UNCj4gdG8g
+YF9fdWRpdmRpMycNCj4gDQo+IE9uIFR1ZSwgT2N0IDMsIDIwMTcgYXQgNjo0MyBQTSwgTW9vcmUs
+IFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4NCj4gd3JvdGU6DQo+ID4NCj4gPg0KPiA+
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBSYWZhZWwgSi4gV3lzb2Nr
+aSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiA+PiBTZW50OiBUdWVzZGF5LCBPY3RvYmVy
+IDMsIDIwMTcgNDozMiBBTQ0KPiA+PiBUbzogTW9vcmUsIFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGlu
+dGVsLmNvbT47IFpoZW5nLCBMdg0KPiA+PiA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiA+PiBDYzog
+V3UsIEZlbmdndWFuZyA8ZmVuZ2d1YW5nLnd1QGludGVsLmNvbT47IGtidWlsZC1hbGxAMDEub3Jn
+OyBsaW51eC0NCj4gPj4gYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGRldmVsQGFjcGljYS5vcmc7IGxp
+bnV4LXBtQHZnZXIua2VybmVsLm9yZw0KPiA+PiBTdWJqZWN0OiBSZTogW3BtOmJsZWVkaW5nLWVk
+Z2UgMTIvNDFdIHV0c3Ryc3VwcHQuYzp1bmRlZmluZWQNCj4gPj4gcmVmZXJlbmNlIHRvIGBfX3Vk
+aXZkaTMnDQo+ID4+DQo+ID4+IE9uIFR1ZXNkYXksIE9jdG9iZXIgMywgMjAxNyA0OjI1OjUyIEFN
+IENFU1Qga2J1aWxkIHRlc3Qgcm9ib3Qgd3JvdGU6DQo+ID4+ID4gdHJlZToNCj4gaHR0cHM6Ly9n
+aXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvcmFmYWVsL2xpbnV4LQ0KPiA+
+PiBwbS5naXQgYmxlZWRpbmctZWRnZQ0KPiA+PiA+IGhlYWQ6ICAgMDliMDg5YTI0N2VhNzI3MmRm
+OTNhMjExNjM2OGJmMjRiNjU2Y2Q2NQ0KPiA+PiA+IGNvbW1pdDogMDU1NDViM2ZiNmVhYjM1Mjkw
+NDEzMjExNjE3NzkzYmMyNzRlMTM2YiBbMTIvNDFdIEFDUElDQToNCj4gPj4gUmVzdHJ1Y3R1cmUv
+Y2xlYW51cCBhbGwgc3RyaW5nLXRvLWludGVnZXIgY29udmVyc2lvbiBmdW5jdGlvbnMNCj4gPj4g
+PiBjb25maWc6IGkzODYtZGVmY29uZmlnIChhdHRhY2hlZCBhcyAuY29uZmlnKQ0KPiA+PiA+IGNv
+bXBpbGVyOiBnY2MtNiAoRGViaWFuIDYuMi4wLTMpIDYuMi4wIDIwMTYwOTAxDQo+ID4+ID4gcmVw
+cm9kdWNlOg0KPiA+PiA+ICAgICAgICAgZ2l0IGNoZWNrb3V0IDA1NTQ1YjNmYjZlYWIzNTI5MDQx
+MzIxMTYxNzc5M2JjMjc0ZTEzNmINCj4gPj4gPiAgICAgICAgICMgc2F2ZSB0aGUgYXR0YWNoZWQg
+LmNvbmZpZyB0byBsaW51eCBidWlsZCB0cmVlDQo+ID4+ID4gICAgICAgICBtYWtlIEFSQ0g9aTM4
+Ng0KPiA+PiA+DQo+ID4+ID4gQWxsIGVycm9ycyAobmV3IG9uZXMgcHJlZml4ZWQgYnkgPj4pOg0K
+PiA+PiA+DQo+ID4+ID4gICAgZHJpdmVycy9hY3BpL2FjcGljYS91dHN0cnN1cHB0Lm86IEluIGZ1
+bmN0aW9uDQo+ID4+IGBhY3BpX3V0X2luc2VydF9kaWdpdCc6DQo+ID4+ID4gPj4gdXRzdHJzdXBw
+dC5jOigudGV4dCsweDMzKTogdW5kZWZpbmVkIHJlZmVyZW5jZSB0byBgX191ZGl2ZGkzJw0KPiA+
+Pg0KPiA+PiBfX3VkaXZkaTMoKSBkb2Vzbid0IHdvcmsgb24gMzItYml0IHg4NiBBRkFJQ1MuDQo+
+ID4+DQo+ID4+IENhbiB3ZSBhdm9pZCB1c2luZyBpdCBvciBhdCBsZWFzdCBwdXQgaXQgdW5kZXIg
+I2lmZGVmIHNvbWVob3c/DQo+ID4gW01vb3JlLCBSb2JlcnRdDQo+ID4NCj4gPg0KPiA+IEkgdGFr
+ZSBpdCB0aGF0IF9fdWRpdmRpMyBpcyBhIDY0LWJpdCBkaXZpZGU/DQo+IA0KPiBQcmFjdGljYWxs
+eSwgeWVzIChBRkFJQ1MpLg0KPiANCj4gPiBXZSBkbyBoYXZlIGEgbG9jYWwgZGl2aWRlIGltcGxl
+bWVudGF0aW9uKHMpIGZvciB0aGluZ3MgbGlrZSB0aGlzLg0KPiA+DQo+ID4gSG93ZXZlciwgSSBk
+b24ndCBzZWUgYSBkaXZpZGUgaW4gdXRfaW5zZXJ0X2RpZ2l0OyBUaGVyZSBpcyBhIDY0LWJpdA0K
+PiBkaXZpZGUgaW4gdXRfc3RydG91bF9hZGRfNjQsIGhvd2V2ZXIuDQpbTW9vcmUsIFJvYmVydF0g
+DQoNCk9vcHMsIHNvcnJ5LiBUaGUgZGl2aWRlZCBpcyBpbiBzdHJ0b3VsX211bHRpcGx5XzY0LiBX
+ZSBhcmUgY2hlY2tpbmcgZm9yIGFuIG92ZXJmbG93IGNvbmRpdGlvbiB1cCBmcm9udC4NCg0KPiA+
+DQo+ID4gU28sIHRoZXJlIGFyZSBubyBpc3N1ZXMgd2l0aCA2NC1iaXQgYWRkLCBzdWJ0cmFjdCwg
+YW5kIG11bHRpcGx5Pw0KPiANCj4gVGhlIG9ubHkgcHJvYmxlbWF0aWMgb25lIEkga25vdyBvZiBp
+cyBfX3VkaXZkaTMoKS4NCg==
