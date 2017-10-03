@@ -1,45 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v6 3/3] ACPI / PMIC: Add TI PMIC TPS68470 operation region driver
-Date: Tue, 03 Oct 2017 13:43:43 +0200
-Message-ID: <1897738.1BtWKn31FQ@aspire.rjw.lan>
-References: <1501288226-27469-1-git-send-email-rajmohan.mani@intel.com> <20170814203900.qobophvzcrdtv34s@kekkonen.localdomain> <20171002165402.5ypqveemuz2ziuiq@valkosipuli.retiisi.org.uk>
+From: Colin Ian King <colin.king@canonical.com>
+Subject: Re: [Devel] [PATCH 15/18] acpi: use ARRAY_SIZE
+Date: Tue, 3 Oct 2017 13:34:23 +0100
+Message-ID: <e0ab5224-1120-4b06-b625-822491d6b926@canonical.com>
+References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
+ <1668017.YFhvic4TWu@aspire.rjw.lan>
+ <20171002211622.30d324ca@blatinox-laptop.localdomain>
+ <5437275.MVdmGJ04h3@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20171002165402.5ypqveemuz2ziuiq@valkosipuli.retiisi.org.uk>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Rajmohan Mani <rajmohan.mani@intel.com>, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5437275.MVdmGJ04h3@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, =?UTF-8?Q?J=c3=a9r=c3=a9my_Lefaure?= <jeremy.lefaure@lse.epita.fr>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, October 2, 2017 6:54:03 PM CEST Sakari Ailus wrote:
-> Hi Rafael,
+On 03/10/17 12:39, Rafael J. Wysocki wrote:
+> On Tuesday, October 3, 2017 3:16:22 AM CEST Jérémy Lefaure wrote:
+>> On Mon, 02 Oct 2017 14:27:52 +0200
+>> "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
+>>
+>>> ACPICA is soewhat special code, though and I'm not taking or ACKing patches
+>>> for it directly as a rule.
+>>>
+>>> For one, I'm not sure if ACPICA can use ARRAY_SIZE at all.
+>> Why is it special code that can't use ARRAY_SIZE ? Is it because this
+>> macro is defined in linux/kernel.h ?
+
+However, ACPICA does have ACPI_ARRAY_LENGTH(x), see source/include/actypes.h
+
 > 
-> On Mon, Aug 14, 2017 at 11:39:00PM +0300, Sakari Ailus wrote:
-> > On Fri, Jul 28, 2017 at 05:30:26PM -0700, Rajmohan Mani wrote:
-> > > The Kabylake platform coreboot (Chrome OS equivalent of
-> > > BIOS) has defined 4 operation regions for the TI TPS68470 PMIC.
-> > > These operation regions are to enable/disable voltage
-> > > regulators, configure voltage regulators, enable/disable
-> > > clocks and to configure clocks.
-> > > 
-> > > This config adds ACPI operation region support for TI TPS68470 PMIC.
-> > > TPS68470 device is an advanced power management unit that powers
-> > > a Compact Camera Module (CCM), generates clocks for image sensors,
-> > > drives a dual LED for flash and incorporates two LED drivers for
-> > > general purpose indicators.
-> > > This driver enables ACPI operation region support to control voltage
-> > > regulators and clocks for the TPS68470 PMIC.
-> > > 
-> > > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> > 
-> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Basically, yes.
 > 
-> The other two patches from the set are in v4.14-rc1.
-
-Thanks!
-
-I'll queue it up for 4.15 then.
-
-
+> ACPICA is a separate project and the kernel acquires its source code from
+> the upstream (which is used by other OSes too).  That is not the case for
+> any other code in the kernel I know about.
+> 
+> 
+> We strive to keep the ACPICA code in the kernel as close to the upstream as
+> reasonably possible for maintenance reasons, so we avoid doing Linux-specific
+> things in it.
+> 
+> As a rule of thumb, if you do cleanups like this one, better avoid the ACPICA
+> code. :-)
+> 
+> Thanks,
+> Rafael
+> 
+> _______________________________________________
+> Devel mailing list
+> Devel@acpica.org
+> https://lists.acpica.org/mailman/listinfo/devel
+> 
