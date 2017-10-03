@@ -1,167 +1,135 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference to
- `__udivdi3'
-Date: Tue, 3 Oct 2017 21:44:38 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E613222@ORSMSX110.amr.corp.intel.com>
-References: <201710031050.2Iy92vzG%fengguang.wu@intel.com>
- <7672294.bGB5UuPiJL@aspire.rjw.lan>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E6131F5@ORSMSX110.amr.corp.intel.com>
- <1959321.5JVcEPhjSi@aspire.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 1/1] device property: Align return codes of __acpi_node_get_property_reference
+Date: Wed, 04 Oct 2017 01:40:45 +0200
+Message-ID: <2779235.4J9vddcLys@aspire.rjw.lan>
+References: <20170926090827.31861-1-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:5844 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751117AbdJCVox (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 3 Oct 2017 17:44:53 -0400
-In-Reply-To: <1959321.5JVcEPhjSi@aspire.rjw.lan>
-Content-Language: en-US
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:55540 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750865AbdJCXuH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Oct 2017 19:50:07 -0400
+In-Reply-To: <20170926090827.31861-1-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, "kbuild-all@01.org" <kbuild-all@01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, robh@kernel.org, frowand.list@gmail.com, mika.westerberg@linux.intel.com, rafael@kernel.org, hverkuil@xs4all.nl
 
-
-
-> -----Original Message-----
-> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> Sent: Tuesday, October 3, 2017 2:18 PM
-> To: Moore, Robert <robert.moore@intel.com>
-> Cc: Rafael J. Wysocki <rafael@kernel.org>; Zheng, Lv
-> <lv.zheng@intel.com>; Wu, Fengguang <fengguang.wu@intel.com>; kbuild-
-> all@01.org; linux-acpi@vger.kernel.org; devel@acpica.org; linux-
-> pm@vger.kernel.org
-> Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference
-> to `__udivdi3'
+On Tuesday, September 26, 2017 11:08:27 AM CEST Sakari Ailus wrote:
+> acpi_fwnode_get_reference_args(), the function implementing ACPI
+> support for fwnode_property_get_reference_args(), returns directly
+> error codes from __acpi_node_get_property_reference(). The latter uses
+> different error codes than the OF implementation. In particular, the OF
+> implementation uses -ENOENT to indicate that the property is not found, a
+> reference entry is empty and there are no more references.
 > 
-> On Tuesday, October 3, 2017 11:23:36 PM CEST Moore, Robert wrote:
-> >
-> > > -----Original Message-----
-> > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > > Sent: Tuesday, October 3, 2017 2:07 PM
-> > > To: Moore, Robert <robert.moore@intel.com>
-> > > Cc: Rafael J. Wysocki <rafael@kernel.org>; Zheng, Lv
-> > > <lv.zheng@intel.com>; Wu, Fengguang <fengguang.wu@intel.com>;
-> > > kbuild- all@01.org; linux-acpi@vger.kernel.org; devel@acpica.org;
-> > > linux- pm@vger.kernel.org
-> > > Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined
-> > > reference to `__udivdi3'
-> > >
-> > > On Tuesday, October 3, 2017 10:50:11 PM CEST Rafael J. Wysocki
-> wrote:
-> > > > On Tuesday, October 3, 2017 9:41:23 PM CEST Moore, Robert wrote:
-> > > > >
-> > > > > > -----Original Message-----
-> > > > > > From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On
-> > > > > > Behalf Of Rafael J. Wysocki
-> > > > > > Sent: Tuesday, October 3, 2017 11:21 AM
-> > > > > > To: Moore, Robert <robert.moore@intel.com>
-> > > > > > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>; Zheng, Lv
-> > > > > > <lv.zheng@intel.com>; Wu, Fengguang <fengguang.wu@intel.com>;
-> > > > > > kbuild- all@01.org; linux-acpi@vger.kernel.org;
-> > > > > > devel@acpica.org;
-> > > > > > linux- pm@vger.kernel.org
-> > > > > > Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined
-> > > > > > reference to `__udivdi3'
-> > > > > >
-> > > > > > On Tue, Oct 3, 2017 at 6:43 PM, Moore, Robert
-> > > > > > <robert.moore@intel.com>
-> > > > > > wrote:
-> > > > > > >
-> > > > > > >
-> > > > > > >> -----Original Message-----
-> > > > > > >> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > > > > > >> Sent: Tuesday, October 3, 2017 4:32 AM
-> > > > > > >> To: Moore, Robert <robert.moore@intel.com>; Zheng, Lv
-> > > > > > >> <lv.zheng@intel.com>
-> > > > > > >> Cc: Wu, Fengguang <fengguang.wu@intel.com>;
-> > > > > > >> kbuild-all@01.org;
-> > > > > > >> linux- acpi@vger.kernel.org; devel@acpica.org;
-> > > > > > >> linux-pm@vger.kernel.org
-> > > > > > >> Subject: Re: [pm:bleeding-edge 12/41]
-> > > > > > >> utstrsuppt.c:undefined reference to `__udivdi3'
-> > > > > > >>
-> > > > > > >> On Tuesday, October 3, 2017 4:25:52 AM CEST kbuild test
-> > > > > > >> robot
-> > > wrote:
-> > > > > > >> > tree:
-> > > > > > https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-
-> > > > > > >> pm.git bleeding-edge
-> > > > > > >> > head:   09b089a247ea7272df93a2116368bf24b656cd65
-> > > > > > >> > commit: 05545b3fb6eab35290413211617793bc274e136b [12/41]
-> > > ACPICA:
-> > > > > > >> Restructure/cleanup all string-to-integer conversion
-> > > > > > >> functions
-> > > > > > >> > config: i386-defconfig (attached as .config)
-> > > > > > >> > compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
-> > > > > > >> > reproduce:
-> > > > > > >> >         git checkout
-> 05545b3fb6eab35290413211617793bc274e136b
-> > > > > > >> >         # save the attached .config to linux build tree
-> > > > > > >> >         make ARCH=i386
-> > > > > > >> >
-> > > > > > >> > All errors (new ones prefixed by >>):
-> > > > > > >> >
-> > > > > > >> >    drivers/acpi/acpica/utstrsuppt.o: In function
-> > > > > > >> `acpi_ut_insert_digit':
-> > > > > > >> > >> utstrsuppt.c:(.text+0x33): undefined reference to
-> > > `__udivdi3'
-> > > > > > >>
-> > > > > > >> __udivdi3() doesn't work on 32-bit x86 AFAICS.
-> > > > > > >>
-> > > > > > >> Can we avoid using it or at least put it under #ifdef
-> somehow?
-> > > > > > > [Moore, Robert]
-> > > > > > >
-> > > > > > >
-> > > > > > > I take it that __udivdi3 is a 64-bit divide?
-> > > > > >
-> > > > > > Practically, yes (AFAICS).
-> > > > > >
-> > > > > > > We do have a local divide implementation(s) for things like
-> > > this.
-> > > > > > >
-> > > > > > > However, I don't see a divide in ut_insert_digit; There is a
-> > > > > > > 64-bit
-> > > > > > divide in ut_strtoul_add_64, however.
-> > > > > [Moore, Robert]
-> > > > >
-> > > > > Oops, sorry. The divided is in strtoul_multiply_64. We are
-> > > > > checking for an overflow condition up front.
-> > > >
-> > > > But this is a plain division, so it looks like a build system or
-> > > > compiler issue to me.
-> > >
-> > > Well, OK.  Plain u64 / u64 divisions need to be avoided for stuff to
-> > > build on 32-bit x86.
-> > >
-> > [Moore, Robert]
-> >
-> > Even u64/u32.
-> >
-> > Anyway, this is no problem to change since we already have the
-> functionality locally.
+> Document and align the error codes for property for
+> fwnode_property_get_reference_args() so that they match with
+> of_parse_phandle_with_args().
 > 
-> OK
+> Fixes: 3e3119d3088f ("device property: Introduce fwnode_property_get_reference_args")
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Applied, thanks!
+
+> ---
+> The patch was called "device property: Align return codes of
+> acpi_fwnode_get_reference_with_args", and is an alternative to the set
+> "[RFC 0/5] Align and document return values of phandle and reference
+> parsing for OF and ACPI".
 > 
-> Can you please send me a patch against upstream ACPICA to change this?
+> since v2:
 > 
-> I'll try do fold it in. :-)
-[Moore, Robert] 
+> - Change the functionality of __acpi_node_get_property_reference rather
+>   than that of acpi_fwnode_get_reference_args.
+> 
+>  drivers/acpi/property.c | 19 +++++++++----------
+>  drivers/base/property.c |  4 ++++
+>  2 files changed, 13 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 3fb8ff513461..5a8ac5e1081b 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -571,10 +571,9 @@ static int acpi_data_get_property_array(const struct acpi_device_data *data,
+>   *     }
+>   * }
+>   *
+> - * Calling this function with index %2 return %-ENOENT and with index %3
+> - * returns the last entry. If the property does not contain any more values
+> - * %-ENODATA is returned. The NULL entry must be single integer and
+> - * preferably contain value %0.
+> + * Calling this function with index %2 or index %3 return %-ENOENT. If the
+> + * property does not contain any more values %-ENOENT is returned. The NULL
+> + * entry must be single integer and preferably contain value %0.
+>   *
+>   * Return: %0 on success, negative error code on failure.
+>   */
+> @@ -590,7 +589,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+>  
+>  	data = acpi_device_data_of_node(fwnode);
+>  	if (!data)
+> -		return -EINVAL;
+> +		return -ENOENT;
+>  
+>  	ret = acpi_data_get_property(data, propname, ACPI_TYPE_ANY, &obj);
+>  	if (ret)
+> @@ -635,7 +634,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+>  			ret = acpi_bus_get_device(element->reference.handle,
+>  						  &device);
+>  			if (ret)
+> -				return -ENODEV;
+> +				return -EINVAL;
+>  
+>  			nargs = 0;
+>  			element++;
+> @@ -649,11 +648,11 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+>  				else if (type == ACPI_TYPE_LOCAL_REFERENCE)
+>  					break;
+>  				else
+> -					return -EPROTO;
+> +					return -EINVAL;
+>  			}
+>  
+>  			if (nargs > MAX_ACPI_REFERENCE_ARGS)
+> -				return -EPROTO;
+> +				return -EINVAL;
+>  
+>  			if (idx == index) {
+>  				args->adev = device;
+> @@ -670,13 +669,13 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+>  				return -ENOENT;
+>  			element++;
+>  		} else {
+> -			return -EPROTO;
+> +			return -EINVAL;
+>  		}
+>  
+>  		idx++;
+>  	}
+>  
+> -	return -ENODATA;
+> +	return -ENOENT;
+>  }
+>  EXPORT_SYMBOL_GPL(__acpi_node_get_property_reference);
+>  
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 0c8958747c8b..a9ee5efe22d9 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -682,6 +682,10 @@ EXPORT_SYMBOL_GPL(fwnode_property_match_string);
+>   * Caller is responsible to call fwnode_handle_put() on the returned
+>   * args->fwnode pointer.
+>   *
+> + * Returns: %0 on success
+> + *	    %-ENOENT when the index is out of bounds, the index has an empty
+> + *		     reference or the property was not found
+> + *	    %-EINVAL on parse error
+>   */
+>  int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
+>  				       const char *prop, const char *nargs_prop,
+> 
 
-I'll need to do it and then run some tests on it, so when it is done, I'll send it. I envision 2
 
-[Moore, Robert] I think it will look something like this:
-
-    UINT64                  Quotient;
-
-...
-
-    /* Check for 64-bit overflow before the actual multiplication */
-
-    AcpiUtShortDivide (ACPI_UINT64_MAX, (UINT32) Multiplier, &Quotient, NULL);
-    if (Multiplicand > Quotient)
-    {
-        return (AE_NUMERIC_OVERFLOW);
-    }
