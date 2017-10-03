@@ -1,55 +1,72 @@
 From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Devel] [PATCH 15/18] acpi: use ARRAY_SIZE
-Date: Tue, 3 Oct 2017 16:38:17 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E613032@ORSMSX110.amr.corp.intel.com>
-References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
- <1668017.YFhvic4TWu@aspire.rjw.lan>
- <20171002211622.30d324ca@blatinox-laptop.localdomain>
- <5437275.MVdmGJ04h3@aspire.rjw.lan>
- <e0ab5224-1120-4b06-b625-822491d6b926@canonical.com>
- <CAJZ5v0j+UPDJrWfiZzE26=PGSzmqZnQwMwCkei9N8+M1JkEmyg@mail.gmail.com>
+Subject: RE: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference to
+ `__udivdi3'
+Date: Tue, 3 Oct 2017 16:43:42 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E613050@ORSMSX110.amr.corp.intel.com>
+References: <201710031050.2Iy92vzG%fengguang.wu@intel.com>
+ <2859755.8uSvH3hIdc@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:62423 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:34029 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751801AbdJCQiU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 3 Oct 2017 12:38:20 -0400
-In-Reply-To: <CAJZ5v0j+UPDJrWfiZzE26=PGSzmqZnQwMwCkei9N8+M1JkEmyg@mail.gmail.com>
+        id S1751132AbdJCQn5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 3 Oct 2017 12:43:57 -0400
+In-Reply-To: <2859755.8uSvH3hIdc@aspire.rjw.lan>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Colin Ian King <colin.king@canonical.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, =?utf-8?B?SsOpcsOpbXkgTGVmYXVyZQ==?= <jeremy.lefaure@lse.epita.fr>, "devel@acpica.org" <devel@acpica.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wu, Fengguang" <fengguang.wu@intel.com>, "kbuild-all@01.org" <kbuild-all@01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogRGV2ZWwgW21haWx0bzpk
-ZXZlbC1ib3VuY2VzQGFjcGljYS5vcmddIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4NCj4gV3lzb2Nr
-aQ0KPiBTZW50OiBUdWVzZGF5LCBPY3RvYmVyIDMsIDIwMTcgOTowNSBBTQ0KPiBUbzogQ29saW4g
-SWFuIEtpbmcgPGNvbGluLmtpbmdAY2Fub25pY2FsLmNvbT4NCj4gQ2M6IFd5c29ja2ksIFJhZmFl
-bCBKIDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNvbT47IFJhZmFlbCBKLiBXeXNvY2tpDQo+IDxy
-andAcmp3eXNvY2tpLm5ldD47IExpbnV4IEtlcm5lbCBNYWlsaW5nIExpc3QgPGxpbnV4LQ0KPiBr
-ZXJuZWxAdmdlci5rZXJuZWwub3JnPjsgQUNQSSBEZXZlbCBNYWxpbmcgTGlzdCA8bGludXgtDQo+
-IGFjcGlAdmdlci5rZXJuZWwub3JnPjsgSsOpcsOpbXkgTGVmYXVyZSA8amVyZW15LmxlZmF1cmVA
-bHNlLmVwaXRhLmZyPjsNCj4gZGV2ZWxAYWNwaWNhLm9yZw0KPiBTdWJqZWN0OiBSZTogW0RldmVs
-XSBbUEFUQ0ggMTUvMThdIGFjcGk6IHVzZSBBUlJBWV9TSVpFDQo+IA0KPiBPbiBUdWUsIE9jdCAz
-LCAyMDE3IGF0IDI6MzQgUE0sIENvbGluIElhbiBLaW5nDQo+IDxjb2xpbi5raW5nQGNhbm9uaWNh
-bC5jb20+IHdyb3RlOg0KPiA+IE9uIDAzLzEwLzE3IDEyOjM5LCBSYWZhZWwgSi4gV3lzb2NraSB3
-cm90ZToNCj4gPj4gT24gVHVlc2RheSwgT2N0b2JlciAzLCAyMDE3IDM6MTY6MjIgQU0gQ0VTVCBK
-w6lyw6lteSBMZWZhdXJlIHdyb3RlOg0KPiA+Pj4gT24gTW9uLCAwMiBPY3QgMjAxNyAxNDoyNzo1
-MiArMDIwMA0KPiA+Pj4gIlJhZmFlbCBKLiBXeXNvY2tpIiA8cmp3QHJqd3lzb2NraS5uZXQ+IHdy
-b3RlOg0KPiA+Pj4NCj4gPj4+PiBBQ1BJQ0EgaXMgc29ld2hhdCBzcGVjaWFsIGNvZGUsIHRob3Vn
-aCBhbmQgSSdtIG5vdCB0YWtpbmcgb3IgQUNLaW5nDQo+ID4+Pj4gcGF0Y2hlcyBmb3IgaXQgZGly
-ZWN0bHkgYXMgYSBydWxlLg0KPiA+Pj4+DQo+ID4+Pj4gRm9yIG9uZSwgSSdtIG5vdCBzdXJlIGlm
-IEFDUElDQSBjYW4gdXNlIEFSUkFZX1NJWkUgYXQgYWxsLg0KPiA+Pj4gV2h5IGlzIGl0IHNwZWNp
-YWwgY29kZSB0aGF0IGNhbid0IHVzZSBBUlJBWV9TSVpFID8gSXMgaXQgYmVjYXVzZQ0KPiA+Pj4g
-dGhpcyBtYWNybyBpcyBkZWZpbmVkIGluIGxpbnV4L2tlcm5lbC5oID8NCj4gPg0KPiA+IEhvd2V2
-ZXIsIEFDUElDQSBkb2VzIGhhdmUgQUNQSV9BUlJBWV9MRU5HVEgoeCksIHNlZQ0KPiA+IHNvdXJj
-ZS9pbmNsdWRlL2FjdHlwZXMuaA0KPiANCj4gRmFpciBlbm91Z2gsIGJ1dCB0aGF0IGNsZWFudXAg
-c2hvdWxkIGdvIGluIHZpYSBBQ1BJQ0EgdXBzdHJlYW0gYW55d2F5Lg0KW01vb3JlLCBSb2JlcnRd
-IA0KDQpUaGlzIHdvdWxkIGJlIGFjY2VwdGFibGUsIGFzIGxvbmcgYXMgaXQgd2lsbCB3b3JrIHBy
-b3Blcmx5IGluIHRoZSBjYXNlcyB0aGF0IHdlcmUgcHJlc2VudGVkIGVhcmxpZXIgKHVzaW5nIEFS
-UkFZX1NJWkUpLg0KDQoNCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQo+IF9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQo+IERldmVsIG1haWxpbmcgbGlzdA0K
-PiBEZXZlbEBhY3BpY2Eub3JnDQo+IGh0dHBzOi8vbGlzdHMuYWNwaWNhLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2RldmVsDQo=
+
+
+> -----Original Message-----
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Sent: Tuesday, October 3, 2017 4:32 AM
+> To: Moore, Robert <robert.moore@intel.com>; Zheng, Lv
+> <lv.zheng@intel.com>
+> Cc: Wu, Fengguang <fengguang.wu@intel.com>; kbuild-all@01.org; linux-
+> acpi@vger.kernel.org; devel@acpica.org; linux-pm@vger.kernel.org
+> Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference
+> to `__udivdi3'
+> 
+> On Tuesday, October 3, 2017 4:25:52 AM CEST kbuild test robot wrote:
+> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-
+> pm.git bleeding-edge
+> > head:   09b089a247ea7272df93a2116368bf24b656cd65
+> > commit: 05545b3fb6eab35290413211617793bc274e136b [12/41] ACPICA:
+> Restructure/cleanup all string-to-integer conversion functions
+> > config: i386-defconfig (attached as .config)
+> > compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
+> > reproduce:
+> >         git checkout 05545b3fb6eab35290413211617793bc274e136b
+> >         # save the attached .config to linux build tree
+> >         make ARCH=i386
+> >
+> > All errors (new ones prefixed by >>):
+> >
+> >    drivers/acpi/acpica/utstrsuppt.o: In function
+> `acpi_ut_insert_digit':
+> > >> utstrsuppt.c:(.text+0x33): undefined reference to `__udivdi3'
+> 
+> __udivdi3() doesn't work on 32-bit x86 AFAICS.
+> 
+> Can we avoid using it or at least put it under #ifdef somehow?
+[Moore, Robert] 
+
+
+I take it that __udivdi3 is a 64-bit divide?
+We do have a local divide implementation(s) for things like this.
+
+However, I don't see a divide in ut_insert_digit; There is a 64-bit divide in ut_strtoul_add_64, however.
+
+So, there are no issues with 64-bit add, subtract, and multiply?
+
+
+
+> 
+> Thanks,
+> Rafael
+
