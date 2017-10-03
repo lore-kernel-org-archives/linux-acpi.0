@@ -1,27 +1,24 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+From: Robin Murphy <robin.murphy@arm.com>
 Subject: Re: [PATCH v2] ACPI/IORT: Fix PCI ACS enablement
-Date: Tue, 3 Oct 2017 13:48:43 +0100
-Message-ID: <20171003124843.GA16134@red-moon>
+Date: Tue, 3 Oct 2017 14:47:28 +0100
+Message-ID: <121eb6d7-1ac7-ecfa-5ec4-75e5446f5e85@arm.com>
 References: <1506965324-5818-1-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:48104 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752912AbdJCMqH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 3 Oct 2017 08:46:07 -0400
-Content-Disposition: inline
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:49056 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751116AbdJCNrc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 3 Oct 2017 09:47:32 -0400
 In-Reply-To: <1506965324-5818-1-git-send-email-lorenzo.pieralisi@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, Zhou Wang <wangzhou1@hisilicon.com>, nwatters@codeaurora.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Robin Murphy <robin.murphy@arm.com>, Alex Williamson <alex.williamson@redhat.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Zhou Wang <wangzhou1@hisilicon.com>
 
-[+Nate]
-
-Zhou, Nate,
-
-On Mon, Oct 02, 2017 at 06:28:44PM +0100, Lorenzo Pieralisi wrote:
+On 02/10/17 18:28, Lorenzo Pieralisi wrote:
 > commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
 > workarounds") removed kernel code that was allowing to initialize
 > and probe the SMMU devices early (ie earlier than PCI devices, through
@@ -44,7 +41,21 @@ On Mon, Oct 02, 2017 at 06:28:44PM +0100, Lorenzo Pieralisi wrote:
 > (that is called before ACPI PCI enumeration) to detect if there
 > exists firmware mappings to map root complexes ids to SMMU ids
 > and if so enable ACS for the system.
-> 
+
+As a self-contained fix I think this looks reasonable and sufficiently
+unintrusive if it wants backporting:
+
+Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+
+More generally, though, I do wonder why this pci_request_acs() mechanism
+is like it is - Alex, Bjorn, is there any particular reason that IOMMU
+drivers couldn't call pci_enable_acs() directly from their .add_device
+callback? In the cases we care about, we can still rely on the IOMMU
+probing before any bridge or endpoint drivers, so AFAICS at that point
+nothing should have changed much since pci_device_add() time.
+
+Robin.
+
 > Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
 > Signed-workarounds")
 > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
@@ -66,14 +77,7 @@ On Mon, Oct 02, 2017 at 06:28:44PM +0100, Lorenzo Pieralisi wrote:
 > 
 >  drivers/acpi/arm64/iort.c | 35 +++++++++++++++++++++++++++++++++++
 >  1 file changed, 35 insertions(+)
-
-I have reworked the enablement logic wrt v1, dou you mind testing it
-please, I would like to get it merged since I have 4.15 patches depending
-on it.
-
-Thanks,
-Lorenzo
-
+> 
 > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
 > index 9565d57..de56394 100644
 > --- a/drivers/acpi/arm64/iort.c
@@ -133,6 +137,5 @@ Lorenzo
 >  		if ((iort_node->type == ACPI_IORT_NODE_SMMU) ||
 >  			(iort_node->type == ACPI_IORT_NODE_SMMU_V3)) {
 >  
-> -- 
-> 2.4.12
 > 
+
