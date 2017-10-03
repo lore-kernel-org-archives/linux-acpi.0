@@ -1,51 +1,42 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH] tee: ACPI support for optee driver
-Date: Tue, 3 Oct 2017 02:19:00 -0400
-Message-ID: <03008e2f-5a2f-78af-528a-3b31b1013aad@redhat.com>
-References: <1505977937-25034-1-git-send-email-mchitale@apm.com>
- <59C36E18.1050106@huawei.com> <20170922093703.GD1523@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH 0/4] PM / Sleep / ACPI: Some cleanups and clarifications
+Date: Tue,  3 Oct 2017 09:11:05 +0200
+Message-ID: <1507014669-1502-1-git-send-email-ulf.hansson@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52874 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750797AbdJCGTB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 3 Oct 2017 02:19:01 -0400
-In-Reply-To: <20170922093703.GD1523@red-moon>
+Received: from mail-lf0-f43.google.com ([209.85.215.43]:44490 "EHLO
+        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750720AbdJCHLU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Oct 2017 03:11:20 -0400
+Received: by mail-lf0-f43.google.com with SMTP id l196so8575510lfl.1
+        for <linux-acpi@vger.kernel.org>; Tue, 03 Oct 2017 00:11:19 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <guohanjun@huawei.com>
-Cc: Mayuresh Chitale <mchitale@apm.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, jens.wiklander@linaro.org, patches@apm.com
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Kevin Hilman <khilman@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On 09/22/2017 05:37 AM, Lorenzo Pieralisi wrote:
-> On Thu, Sep 21, 2017 at 03:45:28PM +0800, Hanjun Guo wrote:
->> On 2017/9/21 15:12, Mayuresh Chitale wrote:
->>> This patch modifies the optee driver to add support for parsing
->>> the conduit method from an ACPI node.
->>
->> Sorry I didn't involve this earlier, but I think this is a wrong
->> approach, in ACPI 5.1+ spec, there is a bit in FADT table which
->> indicates PSCI using SMC or HVC, please see ACPI 6.2 [1],
->> Table 5-37 Fixed ACPI Description Table ARM Boot Architecture Flags.
->>
->> Can we just use that to get the conduit method for optee driver too?
->>
->> [1]: http://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
-> 
-> It is just not a matter of conduit method but also to define how OPTEE
-> should be detected. It is up to Linaro (who owns OP-TEE) to put forward
-> a binding at ACPI (ARM) spec level.
-> 
-> We do not define ACPI bindings on a kernel mailing list.
-> 
-> NAK on this patch.
+This series contains four patches which are re-submitted as a subset from an
+earlier posted series [1]. These changes addresses cleanups/clarifications to
+the code and do not include any functional changes.
 
-Is this actively being tracked by Linaro? If not, can Applied folks ping
-me off-list and I will proxy your request into Linaro.
+[1]
+https://www.spinics.net/lists/arm-kernel/msg603856.html
 
-Jon.
+Kind regards
+Uffe
 
+Ulf Hansson (4):
+  PM / ACPI: Restore acpi_subsys_complete()
+  PM / Sleep: Remove pm_complete_with_resume_check()
+  PM / ACPI: Split code validating need for runtime resume in
+    ->prepare()
+  PM / ACPI: Split acpi_lpss_suspend_late|resume_early()
+
+ drivers/acpi/acpi_lpss.c         | 31 +++++++++++++++++-----
+ drivers/acpi/device_pm.c         | 56 ++++++++++++++++++++++++++++++----------
+ drivers/base/power/generic_ops.c | 23 -----------------
+ include/linux/pm.h               |  1 -
+ 4 files changed, 66 insertions(+), 45 deletions(-)
 
 -- 
-Computer Architect | Sent from my Fedora powered laptop
+2.7.4
+
