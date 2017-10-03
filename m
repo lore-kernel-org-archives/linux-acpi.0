@@ -1,55 +1,138 @@
-From: Colin Ian King <colin.king@canonical.com>
-Subject: Re: [Devel] [PATCH 15/18] acpi: use ARRAY_SIZE
-Date: Tue, 3 Oct 2017 13:34:23 +0100
-Message-ID: <e0ab5224-1120-4b06-b625-822491d6b926@canonical.com>
-References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
- <1668017.YFhvic4TWu@aspire.rjw.lan>
- <20171002211622.30d324ca@blatinox-laptop.localdomain>
- <5437275.MVdmGJ04h3@aspire.rjw.lan>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2] ACPI/IORT: Fix PCI ACS enablement
+Date: Tue, 3 Oct 2017 13:48:43 +0100
+Message-ID: <20171003124843.GA16134@red-moon>
+References: <1506965324-5818-1-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5437275.MVdmGJ04h3@aspire.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, =?UTF-8?Q?J=c3=a9r=c3=a9my_Lefaure?= <jeremy.lefaure@lse.epita.fr>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:48104 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752912AbdJCMqH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 3 Oct 2017 08:46:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1506965324-5818-1-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, Zhou Wang <wangzhou1@hisilicon.com>, nwatters@codeaurora.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Robin Murphy <robin.murphy@arm.com>, Alex Williamson <alex.williamson@redhat.com>
 
-On 03/10/17 12:39, Rafael J. Wysocki wrote:
-> On Tuesday, October 3, 2017 3:16:22 AM CEST Jérémy Lefaure wrote:
->> On Mon, 02 Oct 2017 14:27:52 +0200
->> "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
->>
->>> ACPICA is soewhat special code, though and I'm not taking or ACKing patches
->>> for it directly as a rule.
->>>
->>> For one, I'm not sure if ACPICA can use ARRAY_SIZE at all.
->> Why is it special code that can't use ARRAY_SIZE ? Is it because this
->> macro is defined in linux/kernel.h ?
+[+Nate]
 
-However, ACPICA does have ACPI_ARRAY_LENGTH(x), see source/include/actypes.h
+Zhou, Nate,
 
+On Mon, Oct 02, 2017 at 06:28:44PM +0100, Lorenzo Pieralisi wrote:
+> commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
+> workarounds") removed kernel code that was allowing to initialize
+> and probe the SMMU devices early (ie earlier than PCI devices, through
+> linker script callback entries) in the boot process because it was not
+> needed any longer in that the SMMU devices/drivers now support deferred
+> probing.
 > 
-> Basically, yes.
+> Since the SMMUs probe routines are also in charge of requesting global
+> PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
+> up early-probing workarounds") also postponed PCI ACS enablement to
+> SMMUs devices probe time, which is too late given that PCI devices needs
+> to detect if PCI ACS is enabled to init the respective capability
+> through the following call path:
 > 
-> ACPICA is a separate project and the kernel acquires its source code from
-> the upstream (which is used by other OSes too).  That is not the case for
-> any other code in the kernel I know about.
+> pci_device_add()
+>  -> pci_init_capabilities()
+>   -> pci_enable_acs()
 > 
+> Add code in the ACPI IORT SMMU platform devices initialization path
+> (that is called before ACPI PCI enumeration) to detect if there
+> exists firmware mappings to map root complexes ids to SMMU ids
+> and if so enable ACS for the system.
 > 
-> We strive to keep the ACPICA code in the kernel as close to the upstream as
-> reasonably possible for maintenance reasons, so we avoid doing Linux-specific
-> things in it.
+> Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
+> Signed-workarounds")
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Zhou Wang <wangzhou1@hisilicon.com>
+> Cc: Alex Williamson <alex.williamson@redhat.com>
+> ---
+> v1 -> v2:
 > 
-> As a rule of thumb, if you do cleanups like this one, better avoid the ACPICA
-> code. :-)
+> - Reworked ACS enablement logic and based on root complex to SMMU
+>   ids firmware mapping detection
+> - Rebased against v4.14-rc3
 > 
-> Thanks,
-> Rafael
+> v1: https://marc.info/?l=linux-acpi&m=150584059818925&w=2
 > 
-> _______________________________________________
-> Devel mailing list
-> Devel@acpica.org
-> https://lists.acpica.org/mailman/listinfo/devel
+>  drivers/acpi/arm64/iort.c | 35 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 35 insertions(+)
+
+I have reworked the enablement logic wrt v1, dou you mind testing it
+please, I would like to get it merged since I have 4.15 patches depending
+on it.
+
+Thanks,
+Lorenzo
+
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 9565d57..de56394 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -1178,12 +1178,44 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+>  	return ret;
+>  }
+>  
+> +static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
+> +{
+> +	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+> +		struct acpi_iort_node *parent;
+> +		struct acpi_iort_id_mapping *map;
+> +		int i;
+> +
+> +		map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, iort_node,
+> +				   iort_node->mapping_offset);
+> +
+> +		for (i = 0; i < iort_node->mapping_count; i++, map++) {
+> +			if (!map->output_reference)
+> +				continue;
+> +
+> +			parent = ACPI_ADD_PTR(struct acpi_iort_node,
+> +					iort_table,  map->output_reference);
+> +			/*
+> +			 * If we detect a RC->SMMU mapping, make sure
+> +			 * we enable ACS on the system.
+> +			 */
+> +			if ((parent->type == ACPI_IORT_NODE_SMMU) ||
+> +				(parent->type == ACPI_IORT_NODE_SMMU_V3)) {
+> +				pci_request_acs();
+> +				return true;
+> +			}
+> +		}
+> +	}
+> +
+> +	return false;
+> +}
+> +
+>  static void __init iort_init_platform_devices(void)
+>  {
+>  	struct acpi_iort_node *iort_node, *iort_end;
+>  	struct acpi_table_iort *iort;
+>  	struct fwnode_handle *fwnode;
+>  	int i, ret;
+> +	bool acs_enabled = false;
+>  
+>  	/*
+>  	 * iort_table and iort both point to the start of IORT table, but
+> @@ -1203,6 +1235,9 @@ static void __init iort_init_platform_devices(void)
+>  			return;
+>  		}
+>  
+> +		if (!acs_enabled)
+> +			acs_enabled = iort_enable_acs(iort_node);
+> +
+>  		if ((iort_node->type == ACPI_IORT_NODE_SMMU) ||
+>  			(iort_node->type == ACPI_IORT_NODE_SMMU_V3)) {
+>  
+> -- 
+> 2.4.12
 > 
