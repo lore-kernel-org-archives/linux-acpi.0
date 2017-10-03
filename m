@@ -1,45 +1,59 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 2/3] PM / mfd: intel-lpss: Push system sleep callbacks
- to late/early stages
-Date: Tue, 3 Oct 2017 01:58:04 +0200
-Message-ID: <CAJZ5v0gvn=JMGzCEUr750zXDQAHEEcnGzpJQ-_BBwTa1-2L4nw@mail.gmail.com>
-References: <3023226.l5IfJK6GIc@aspire.rjw.lan> <3958866.l2qnKDbinI@aspire.rjw.lan>
- <65494652.vEfz4tCBDb@aspire.rjw.lan> <4332008.kXBLY0K23i@aspire.rjw.lan> <20170925072847.nl2a6feqzrzdcxwz@ninjato>
+Subject: Re: [PATCH v10 00/24] Unified fwnode endpoint parser, async
+ sub-device notifier support, N9 flash DTS
+Date: Tue, 3 Oct 2017 02:04:50 +0200
+Message-ID: <CAJZ5v0g4MUx8xaZjBwfVtYnad2+-ftkjk6Y51VRxS86YZar3oQ@mail.gmail.com>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:36035 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750846AbdJBX6F (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Oct 2017 19:58:05 -0400
-In-Reply-To: <20170925072847.nl2a6feqzrzdcxwz@ninjato>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:36227 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750986AbdJCAEv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Oct 2017 20:04:51 -0400
+In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, linux-i2c <linux-i2c@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kevin Hilman <khilman@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jisheng Zhang <jszhang@marvell.com>, John Stultz <john.stultz@linaro.org>, Guodong Xu <guodong.xu@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Johannes Stezenbach <js@sig21.net>, Ulf Hansson <ulf.hansson@linaro.org>, Rajat Jain <rajatja@google.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, Rob Herring <robh@kernel.org>, hverkuil@xs4all.nl, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 
-On Mon, Sep 25, 2017 at 9:28 AM, Wolfram Sang <wsa@the-dreams.de> wrote:
-> On Mon, Sep 25, 2017 at 01:20:35AM +0200, Rafael J. Wysocki wrote:
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> Push the system suspend/resume callbacks of intel-lpss to the late
->> suspend/early resume stages to allow child device callbacks to be
->> pushed to the late/early stages of suspend/resume too, so as to
->> make it possible to avoid resuming the children if they are runtime-
->> suspended during system suspend going forward.
->>
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
->> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> Tested-by: Johannes Stezenbach <js@sig21.net>
->> Tested-by: Rajat Jain <rajatja@google.com>
+Hi,
+
+On Mon, Sep 11, 2017 at 9:59 AM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> Hi folks,
 >
-> If this series shall go in via I2C, I'd need an ack from Lee for this
-> one.
+> We have a large influx of new, unmerged, drivers that are now parsing
+> fwnode endpoints and each one of them is doing this a little bit
+> differently. The needs are still exactly the same for the graph data
+> structure is device independent. This is still a non-trivial task and the
+> majority of the driver implementations are buggy, just buggy in different
+> ways.
+>
+> Facilitate parsing endpoints by adding a convenience function for parsing
+> the endpoints, and make the omap3isp and rcar-vin drivers use them as an
+> example.
+>
+> To show where we're getting with this, I've added support for async
+> sub-device notifier support that is notifiers that can be registered by
+> sub-device drivers as well as V4L2 fwnode improvements to make use of them
+> and the DTS changes for the Nokia N9. Some of these patches I've posted
+> previously in this set here:
+>
+> <URL:http://www.spinics.net/lists/linux-media/msg118764.html>
+>
+> Since that, the complete callback of the master notifier registering the
+> V4L2 device is only called once all sub-notifiers have been completed as
+> well. This way the device node creation can be postponed until all devices
+> have been successfully initialised.
+>
+> With this, the as3645a driver successfully registers a sub-device to the
+> media device created by the omap3isp driver. The kernel also has the
+> information it's related to the sensor driven by the smiapp driver but we
+> don't have a way to expose that information yet.
 
-So this one has been ACKed now, so the series should be good to go.
-
-Do you need me to resend it (because of the v5 of patch [1/3])?
+I don't see core changes in this set, so I'm assuming it to be
+targeted at the users of endpoints etc.
 
 Thanks,
 Rafael
