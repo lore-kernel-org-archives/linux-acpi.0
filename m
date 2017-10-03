@@ -1,72 +1,156 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference to
- `__udivdi3'
-Date: Tue, 3 Oct 2017 16:43:42 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E613050@ORSMSX110.amr.corp.intel.com>
-References: <201710031050.2Iy92vzG%fengguang.wu@intel.com>
- <2859755.8uSvH3hIdc@aspire.rjw.lan>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2] ACPI/IORT: Fix PCI ACS enablement
+Date: Tue, 3 Oct 2017 17:53:01 +0100
+Message-ID: <20171003165301.GC26028@red-moon>
+References: <1506965324-5818-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <116e7445-b2be-68fd-d707-ff2babd8d415@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34029 "EHLO mga09.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:51606 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751132AbdJCQn5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 3 Oct 2017 12:43:57 -0400
-In-Reply-To: <2859755.8uSvH3hIdc@aspire.rjw.lan>
-Content-Language: en-US
+        id S1752037AbdJCQuX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 3 Oct 2017 12:50:23 -0400
+Content-Disposition: inline
+In-Reply-To: <116e7445-b2be-68fd-d707-ff2babd8d415@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wu, Fengguang" <fengguang.wu@intel.com>, "kbuild-all@01.org" <kbuild-all@01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+To: John Garry <john.garry@huawei.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Robin Murphy <robin.murphy@arm.com>, Zhou Wang <wangzhou1@hisilicon.com>, Alex Williamson <alex.williamson@redhat.com>, Linuxarm <linuxarm@huawei.com>
 
-
-
-> -----Original Message-----
-> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> Sent: Tuesday, October 3, 2017 4:32 AM
-> To: Moore, Robert <robert.moore@intel.com>; Zheng, Lv
-> <lv.zheng@intel.com>
-> Cc: Wu, Fengguang <fengguang.wu@intel.com>; kbuild-all@01.org; linux-
-> acpi@vger.kernel.org; devel@acpica.org; linux-pm@vger.kernel.org
-> Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference
-> to `__udivdi3'
-> 
-> On Tuesday, October 3, 2017 4:25:52 AM CEST kbuild test robot wrote:
-> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-
-> pm.git bleeding-edge
-> > head:   09b089a247ea7272df93a2116368bf24b656cd65
-> > commit: 05545b3fb6eab35290413211617793bc274e136b [12/41] ACPICA:
-> Restructure/cleanup all string-to-integer conversion functions
-> > config: i386-defconfig (attached as .config)
-> > compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
-> > reproduce:
-> >         git checkout 05545b3fb6eab35290413211617793bc274e136b
-> >         # save the attached .config to linux build tree
-> >         make ARCH=i386
+On Tue, Oct 03, 2017 at 03:45:38PM +0100, John Garry wrote:
+> On 02/10/2017 18:28, Lorenzo Pieralisi wrote:
+> >commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
+> >workarounds") removed kernel code that was allowing to initialize
+> >and probe the SMMU devices early (ie earlier than PCI devices, through
+> >linker script callback entries) in the boot process because it was not
+> >needed any longer in that the SMMU devices/drivers now support deferred
+> >probing.
 > >
-> > All errors (new ones prefixed by >>):
+> >Since the SMMUs probe routines are also in charge of requesting global
+> >PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
+> >up early-probing workarounds") also postponed PCI ACS enablement to
+> >SMMUs devices probe time, which is too late given that PCI devices needs
+> >to detect if PCI ACS is enabled to init the respective capability
+> >through the following call path:
 > >
-> >    drivers/acpi/acpica/utstrsuppt.o: In function
-> `acpi_ut_insert_digit':
-> > >> utstrsuppt.c:(.text+0x33): undefined reference to `__udivdi3'
+> >pci_device_add()
+> > -> pci_init_capabilities()
+> >  -> pci_enable_acs()
+> >
+> >Add code in the ACPI IORT SMMU platform devices initialization path
+> >(that is called before ACPI PCI enumeration) to detect if there
+> >exists firmware mappings to map root complexes ids to SMMU ids
+> >and if so enable ACS for the system.
+> >
+> >Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
+> >Signed-workarounds")
+> >Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >Cc: Will Deacon <will.deacon@arm.com>
+> >Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> >Cc: Sudeep Holla <sudeep.holla@arm.com>
+> >Cc: Catalin Marinas <catalin.marinas@arm.com>
+> >Cc: Robin Murphy <robin.murphy@arm.com>
+> >Cc: Zhou Wang <wangzhou1@hisilicon.com>
+> >Cc: Alex Williamson <alex.williamson@redhat.com>
+> >---
+> >v1 -> v2:
+> >
+> >- Reworked ACS enablement logic and based on root complex to SMMU
+> >  ids firmware mapping detection
+> >- Rebased against v4.14-rc3
+> >
+> >v1: https://marc.info/?l=linux-acpi&m=150584059818925&w=2
+> >
+> > drivers/acpi/arm64/iort.c | 35 +++++++++++++++++++++++++++++++++++
+> > 1 file changed, 35 insertions(+)
+> >
+> >diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> >index 9565d57..de56394 100644
+> >--- a/drivers/acpi/arm64/iort.c
+> >+++ b/drivers/acpi/arm64/iort.c
+> >@@ -1178,12 +1178,44 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+> > 	return ret;
+> > }
+> >
+> >+static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
+> >+{
+> >+	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+> >+		struct acpi_iort_node *parent;
+> >+		struct acpi_iort_id_mapping *map;
+> >+		int i;
+> >+
+> >+		map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, iort_node,
+> >+				   iort_node->mapping_offset);
+> >+
+> >+		for (i = 0; i < iort_node->mapping_count; i++, map++) {
+> >+			if (!map->output_reference)
+> >+				continue;
+> >+
+> >+			parent = ACPI_ADD_PTR(struct acpi_iort_node,
+> >+					iort_table,  map->output_reference);
+> >+			/*
+> >+			 * If we detect a RC->SMMU mapping, make sure
+> >+			 * we enable ACS on the system.
+> >+			 */
+> >+			if ((parent->type == ACPI_IORT_NODE_SMMU) ||
+> >+				(parent->type == ACPI_IORT_NODE_SMMU_V3)) {
 > 
-> __udivdi3() doesn't work on 32-bit x86 AFAICS.
+> Hi Lorenzo,
 > 
-> Can we avoid using it or at least put it under #ifdef somehow?
-[Moore, Robert] 
-
-
-I take it that __udivdi3 is a 64-bit divide?
-We do have a local divide implementation(s) for things like this.
-
-However, I don't see a divide in ut_insert_digit; There is a 64-bit divide in ut_strtoul_add_64, however.
-
-So, there are no issues with 64-bit add, subtract, and multiply?
-
-
-
+> There are a couple of places now which check for any SMMU type.
+> Should we have a helper function/macro to condense, like this:
+> IORT_TYPE_MASK(type) & IORT_IOMMU_TYPE
 > 
-> Thanks,
-> Rafael
+> Personal taste, I guess.
 
+I agree, I will add that macro for 4.15, I would like to merge this
+as a fix now.
+
+> BTW, unfortunately we can't re-test this week due to Chinese holiday.
+
+Understood, I just would like to get some coverage before asking Will
+and Catalin to queue it as a fix.
+
+Cheers,
+Lorenzo
+
+> Cheers,
+> John
+> 
+> >+				pci_request_acs();
+> >+				return true;
+> >+			}
+> >+		}
+> >+	}
+> >+
+> >+	return false;
+> >+}
+> >+
+> > static void __init iort_init_platform_devices(void)
+> > {
+> > 	struct acpi_iort_node *iort_node, *iort_end;
+> > 	struct acpi_table_iort *iort;
+> > 	struct fwnode_handle *fwnode;
+> > 	int i, ret;
+> >+	bool acs_enabled = false;
+> >
+> > 	/*
+> > 	 * iort_table and iort both point to the start of IORT table, but
+> >@@ -1203,6 +1235,9 @@ static void __init iort_init_platform_devices(void)
+> > 			return;
+> > 		}
+> >
+> >+		if (!acs_enabled)
+> >+			acs_enabled = iort_enable_acs(iort_node);
+> >+
+> > 		if ((iort_node->type == ACPI_IORT_NODE_SMMU) ||
+> > 			(iort_node->type == ACPI_IORT_NODE_SMMU_V3)) {
+> >
+> >
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
