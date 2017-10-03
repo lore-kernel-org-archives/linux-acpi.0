@@ -1,68 +1,92 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference to
- `__udivdi3'
-Date: Tue, 3 Oct 2017 19:41:23 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E6130BD@ORSMSX110.amr.corp.intel.com>
-References: <201710031050.2Iy92vzG%fengguang.wu@intel.com>
- <2859755.8uSvH3hIdc@aspire.rjw.lan>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E613050@ORSMSX110.amr.corp.intel.com>
- <CAJZ5v0inoxc0KXF87CZXoD_nzNwgcTMf=BLbQfM+fGT5ks0v4Q@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference to `__udivdi3'
+Date: Tue, 03 Oct 2017 22:50:11 +0200
+Message-ID: <1939602.aFdyoUdUJn@aspire.rjw.lan>
+References: <201710031050.2Iy92vzG%fengguang.wu@intel.com> <CAJZ5v0inoxc0KXF87CZXoD_nzNwgcTMf=BLbQfM+fGT5ks0v4Q@mail.gmail.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37E6130BD@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0inoxc0KXF87CZXoD_nzNwgcTMf=BLbQfM+fGT5ks0v4Q@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, "kbuild-all@01.org" <kbuild-all@01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63672 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751238AbdJCU7d (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Oct 2017 16:59:33 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E6130BD@ORSMSX110.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, "kbuild-all@01.org" <kbuild-all@01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogcmp3eXNvY2tpQGdtYWls
-LmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFpbC5jb21dIE9uIEJlaGFsZiBPZg0KPiBSYWZhZWwg
-Si4gV3lzb2NraQ0KPiBTZW50OiBUdWVzZGF5LCBPY3RvYmVyIDMsIDIwMTcgMTE6MjEgQU0NCj4g
-VG86IE1vb3JlLCBSb2JlcnQgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+DQo+IENjOiBSYWZhZWwg
-Si4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBaaGVuZywgTHYNCj4gPGx2LnpoZW5nQGlu
-dGVsLmNvbT47IFd1LCBGZW5nZ3VhbmcgPGZlbmdndWFuZy53dUBpbnRlbC5jb20+OyBrYnVpbGQt
-DQo+IGFsbEAwMS5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eu
-b3JnOyBsaW51eC0NCj4gcG1Admdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbcG06Ymxl
-ZWRpbmctZWRnZSAxMi80MV0gdXRzdHJzdXBwdC5jOnVuZGVmaW5lZCByZWZlcmVuY2UNCj4gdG8g
-YF9fdWRpdmRpMycNCj4gDQo+IE9uIFR1ZSwgT2N0IDMsIDIwMTcgYXQgNjo0MyBQTSwgTW9vcmUs
-IFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4NCj4gd3JvdGU6DQo+ID4NCj4gPg0KPiA+
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBSYWZhZWwgSi4gV3lzb2Nr
-aSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiA+PiBTZW50OiBUdWVzZGF5LCBPY3RvYmVy
-IDMsIDIwMTcgNDozMiBBTQ0KPiA+PiBUbzogTW9vcmUsIFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGlu
-dGVsLmNvbT47IFpoZW5nLCBMdg0KPiA+PiA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiA+PiBDYzog
-V3UsIEZlbmdndWFuZyA8ZmVuZ2d1YW5nLnd1QGludGVsLmNvbT47IGtidWlsZC1hbGxAMDEub3Jn
-OyBsaW51eC0NCj4gPj4gYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGRldmVsQGFjcGljYS5vcmc7IGxp
-bnV4LXBtQHZnZXIua2VybmVsLm9yZw0KPiA+PiBTdWJqZWN0OiBSZTogW3BtOmJsZWVkaW5nLWVk
-Z2UgMTIvNDFdIHV0c3Ryc3VwcHQuYzp1bmRlZmluZWQNCj4gPj4gcmVmZXJlbmNlIHRvIGBfX3Vk
-aXZkaTMnDQo+ID4+DQo+ID4+IE9uIFR1ZXNkYXksIE9jdG9iZXIgMywgMjAxNyA0OjI1OjUyIEFN
-IENFU1Qga2J1aWxkIHRlc3Qgcm9ib3Qgd3JvdGU6DQo+ID4+ID4gdHJlZToNCj4gaHR0cHM6Ly9n
-aXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvcmFmYWVsL2xpbnV4LQ0KPiA+
-PiBwbS5naXQgYmxlZWRpbmctZWRnZQ0KPiA+PiA+IGhlYWQ6ICAgMDliMDg5YTI0N2VhNzI3MmRm
-OTNhMjExNjM2OGJmMjRiNjU2Y2Q2NQ0KPiA+PiA+IGNvbW1pdDogMDU1NDViM2ZiNmVhYjM1Mjkw
-NDEzMjExNjE3NzkzYmMyNzRlMTM2YiBbMTIvNDFdIEFDUElDQToNCj4gPj4gUmVzdHJ1Y3R1cmUv
-Y2xlYW51cCBhbGwgc3RyaW5nLXRvLWludGVnZXIgY29udmVyc2lvbiBmdW5jdGlvbnMNCj4gPj4g
-PiBjb25maWc6IGkzODYtZGVmY29uZmlnIChhdHRhY2hlZCBhcyAuY29uZmlnKQ0KPiA+PiA+IGNv
-bXBpbGVyOiBnY2MtNiAoRGViaWFuIDYuMi4wLTMpIDYuMi4wIDIwMTYwOTAxDQo+ID4+ID4gcmVw
-cm9kdWNlOg0KPiA+PiA+ICAgICAgICAgZ2l0IGNoZWNrb3V0IDA1NTQ1YjNmYjZlYWIzNTI5MDQx
-MzIxMTYxNzc5M2JjMjc0ZTEzNmINCj4gPj4gPiAgICAgICAgICMgc2F2ZSB0aGUgYXR0YWNoZWQg
-LmNvbmZpZyB0byBsaW51eCBidWlsZCB0cmVlDQo+ID4+ID4gICAgICAgICBtYWtlIEFSQ0g9aTM4
-Ng0KPiA+PiA+DQo+ID4+ID4gQWxsIGVycm9ycyAobmV3IG9uZXMgcHJlZml4ZWQgYnkgPj4pOg0K
-PiA+PiA+DQo+ID4+ID4gICAgZHJpdmVycy9hY3BpL2FjcGljYS91dHN0cnN1cHB0Lm86IEluIGZ1
-bmN0aW9uDQo+ID4+IGBhY3BpX3V0X2luc2VydF9kaWdpdCc6DQo+ID4+ID4gPj4gdXRzdHJzdXBw
-dC5jOigudGV4dCsweDMzKTogdW5kZWZpbmVkIHJlZmVyZW5jZSB0byBgX191ZGl2ZGkzJw0KPiA+
-Pg0KPiA+PiBfX3VkaXZkaTMoKSBkb2Vzbid0IHdvcmsgb24gMzItYml0IHg4NiBBRkFJQ1MuDQo+
-ID4+DQo+ID4+IENhbiB3ZSBhdm9pZCB1c2luZyBpdCBvciBhdCBsZWFzdCBwdXQgaXQgdW5kZXIg
-I2lmZGVmIHNvbWVob3c/DQo+ID4gW01vb3JlLCBSb2JlcnRdDQo+ID4NCj4gPg0KPiA+IEkgdGFr
-ZSBpdCB0aGF0IF9fdWRpdmRpMyBpcyBhIDY0LWJpdCBkaXZpZGU/DQo+IA0KPiBQcmFjdGljYWxs
-eSwgeWVzIChBRkFJQ1MpLg0KPiANCj4gPiBXZSBkbyBoYXZlIGEgbG9jYWwgZGl2aWRlIGltcGxl
-bWVudGF0aW9uKHMpIGZvciB0aGluZ3MgbGlrZSB0aGlzLg0KPiA+DQo+ID4gSG93ZXZlciwgSSBk
-b24ndCBzZWUgYSBkaXZpZGUgaW4gdXRfaW5zZXJ0X2RpZ2l0OyBUaGVyZSBpcyBhIDY0LWJpdA0K
-PiBkaXZpZGUgaW4gdXRfc3RydG91bF9hZGRfNjQsIGhvd2V2ZXIuDQpbTW9vcmUsIFJvYmVydF0g
-DQoNCk9vcHMsIHNvcnJ5LiBUaGUgZGl2aWRlZCBpcyBpbiBzdHJ0b3VsX211bHRpcGx5XzY0LiBX
-ZSBhcmUgY2hlY2tpbmcgZm9yIGFuIG92ZXJmbG93IGNvbmRpdGlvbiB1cCBmcm9udC4NCg0KPiA+
-DQo+ID4gU28sIHRoZXJlIGFyZSBubyBpc3N1ZXMgd2l0aCA2NC1iaXQgYWRkLCBzdWJ0cmFjdCwg
-YW5kIG11bHRpcGx5Pw0KPiANCj4gVGhlIG9ubHkgcHJvYmxlbWF0aWMgb25lIEkga25vdyBvZiBp
-cyBfX3VkaXZkaTMoKS4NCg==
+On Tuesday, October 3, 2017 9:41:23 PM CEST Moore, Robert wrote:
+> 
+> > -----Original Message-----
+> > From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of
+> > Rafael J. Wysocki
+> > Sent: Tuesday, October 3, 2017 11:21 AM
+> > To: Moore, Robert <robert.moore@intel.com>
+> > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>; Zheng, Lv
+> > <lv.zheng@intel.com>; Wu, Fengguang <fengguang.wu@intel.com>; kbuild-
+> > all@01.org; linux-acpi@vger.kernel.org; devel@acpica.org; linux-
+> > pm@vger.kernel.org
+> > Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference
+> > to `__udivdi3'
+> > 
+> > On Tue, Oct 3, 2017 at 6:43 PM, Moore, Robert <robert.moore@intel.com>
+> > wrote:
+> > >
+> > >
+> > >> -----Original Message-----
+> > >> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > >> Sent: Tuesday, October 3, 2017 4:32 AM
+> > >> To: Moore, Robert <robert.moore@intel.com>; Zheng, Lv
+> > >> <lv.zheng@intel.com>
+> > >> Cc: Wu, Fengguang <fengguang.wu@intel.com>; kbuild-all@01.org; linux-
+> > >> acpi@vger.kernel.org; devel@acpica.org; linux-pm@vger.kernel.org
+> > >> Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined
+> > >> reference to `__udivdi3'
+> > >>
+> > >> On Tuesday, October 3, 2017 4:25:52 AM CEST kbuild test robot wrote:
+> > >> > tree:
+> > https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-
+> > >> pm.git bleeding-edge
+> > >> > head:   09b089a247ea7272df93a2116368bf24b656cd65
+> > >> > commit: 05545b3fb6eab35290413211617793bc274e136b [12/41] ACPICA:
+> > >> Restructure/cleanup all string-to-integer conversion functions
+> > >> > config: i386-defconfig (attached as .config)
+> > >> > compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
+> > >> > reproduce:
+> > >> >         git checkout 05545b3fb6eab35290413211617793bc274e136b
+> > >> >         # save the attached .config to linux build tree
+> > >> >         make ARCH=i386
+> > >> >
+> > >> > All errors (new ones prefixed by >>):
+> > >> >
+> > >> >    drivers/acpi/acpica/utstrsuppt.o: In function
+> > >> `acpi_ut_insert_digit':
+> > >> > >> utstrsuppt.c:(.text+0x33): undefined reference to `__udivdi3'
+> > >>
+> > >> __udivdi3() doesn't work on 32-bit x86 AFAICS.
+> > >>
+> > >> Can we avoid using it or at least put it under #ifdef somehow?
+> > > [Moore, Robert]
+> > >
+> > >
+> > > I take it that __udivdi3 is a 64-bit divide?
+> > 
+> > Practically, yes (AFAICS).
+> > 
+> > > We do have a local divide implementation(s) for things like this.
+> > >
+> > > However, I don't see a divide in ut_insert_digit; There is a 64-bit
+> > divide in ut_strtoul_add_64, however.
+> [Moore, Robert] 
+> 
+> Oops, sorry. The divided is in strtoul_multiply_64. We are checking for an
+> overflow condition up front.
+
+But this is a plain division, so it looks like a build system or compiler issue
+to me.
+
+Thanks,
+Rafael
+
