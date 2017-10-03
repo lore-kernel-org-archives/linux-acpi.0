@@ -1,59 +1,29 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v10 00/24] Unified fwnode endpoint parser, async
- sub-device notifier support, N9 flash DTS
-Date: Tue, 3 Oct 2017 02:04:50 +0200
-Message-ID: <CAJZ5v0g4MUx8xaZjBwfVtYnad2+-ftkjk6Y51VRxS86YZar3oQ@mail.gmail.com>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+From: =?UTF-8?B?SsOpcsOpbXk=?= Lefaure <jeremy.lefaure@lse.epita.fr>
+Subject: Re: [PATCH 15/18] acpi: use ARRAY_SIZE
+Date: Mon, 2 Oct 2017 21:16:22 -0400
+Message-ID: <20171002211622.30d324ca@blatinox-laptop.localdomain>
+References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
+        <20171001193101.8898-16-jeremy.lefaure@lse.epita.fr>
+        <1668017.YFhvic4TWu@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:36227 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750986AbdJCAEv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Oct 2017 20:04:51 -0400
-In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1668017.YFhvic4TWu@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, Rob Herring <robh@kernel.org>, hverkuil@xs4all.nl, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 
-Hi,
+On Mon, 02 Oct 2017 14:27:52 +0200
+"Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
 
-On Mon, Sep 11, 2017 at 9:59 AM, Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
-> Hi folks,
->
-> We have a large influx of new, unmerged, drivers that are now parsing
-> fwnode endpoints and each one of them is doing this a little bit
-> differently. The needs are still exactly the same for the graph data
-> structure is device independent. This is still a non-trivial task and the
-> majority of the driver implementations are buggy, just buggy in different
-> ways.
->
-> Facilitate parsing endpoints by adding a convenience function for parsing
-> the endpoints, and make the omap3isp and rcar-vin drivers use them as an
-> example.
->
-> To show where we're getting with this, I've added support for async
-> sub-device notifier support that is notifiers that can be registered by
-> sub-device drivers as well as V4L2 fwnode improvements to make use of them
-> and the DTS changes for the Nokia N9. Some of these patches I've posted
-> previously in this set here:
->
-> <URL:http://www.spinics.net/lists/linux-media/msg118764.html>
->
-> Since that, the complete callback of the master notifier registering the
-> V4L2 device is only called once all sub-notifiers have been completed as
-> well. This way the device node creation can be postponed until all devices
-> have been successfully initialised.
->
-> With this, the as3645a driver successfully registers a sub-device to the
-> media device created by the omap3isp driver. The kernel also has the
-> information it's related to the sensor driven by the smiapp driver but we
-> don't have a way to expose that information yet.
+> ACPICA is soewhat special code, though and I'm not taking or ACKing patches
+> for it directly as a rule.
+> 
+> For one, I'm not sure if ACPICA can use ARRAY_SIZE at all.
+Why is it special code that can't use ARRAY_SIZE ? Is it because this
+macro is defined in linux/kernel.h ?
 
-I don't see core changes in this set, so I'm assuming it to be
-targeted at the users of endpoints etc.
-
-Thanks,
-Rafael
+Thank you,
+Jérémy
