@@ -1,529 +1,188 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v15 00/32] Unified fwnode endpoint parser, async sub-device notifier support, N9 flash DTS
-Date: Thu,  5 Oct 2017 00:50:19 +0300
-Message-ID: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v1] pci: introduce for_each_pci_bridge() helper
+Date: Wed, 4 Oct 2017 17:24:44 -0500
+Message-ID: <20171004222444.GM25517@bhelgaas-glaptop.roam.corp.google.com>
+References: <20170929192123.24817-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-media-owner@vger.kernel.org>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:42714 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750951AbdJDWYr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 4 Oct 2017 18:24:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20170929192123.24817-1-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-Hi folks,
-
-	I've dropped the full set from devicetree and linux-acpi lists;
-	let me know if you want it back. The entire set is posted to
-	linux-media list.
-
-We have a large influx of new, unmerged, drivers that are now parsing
-fwnode endpoints and each one of them is doing this a little bit
-differently. The needs are still exactly the same for the graph data
-structure is device independent. This is still a non-trivial task and the
-majority of the driver implementations are buggy, just buggy in different
-ways.
-
-Facilitate parsing endpoints by adding a convenience function for parsing
-the endpoints, and make the omap3isp and rcar-vin drivers use them as an
-example.
-
-To show where we're getting with this, I've added support for async
-sub-device notifier support that is notifiers that can be registered by
-sub-device drivers as well as V4L2 fwnode improvements to make use of them
-and the DTS changes for the Nokia N9. Some of these patches I've posted
-previously in this set here:
-
-<URL:http://www.spinics.net/lists/linux-media/msg118764.html>
-
-Since that, the complete callback of the master notifier registering the
-V4L2 device is only called once all sub-notifiers have been completed as
-well. This way the device node creation can be postponed until all devices
-have been successfully initialised.
-
-With this, the as3645a driver successfully registers a sub-device to the
-media device created by the omap3isp driver. The kernel also has the
-information it's related to the sensor driven by the smiapp driver but we
-don't have a way to expose that information yet.
-
-The patches have a dependency to the as3645a driver fixes:
-
-<URL:https://git.kernel.org/pub/scm/linux/kernel/git/j.anaszewski/linux-leds.git/log/?h=fixes-4.14-rc3>
-
-since v14:
-
-- Patch "v4l: fwnode: Support generic parsing of graph endpoints in a
-  device" depends on another patch "device property: preserve usecount for
-  node passed to of_fwnode_graph_get_port_parent()". Add Depends-on tag.
-
-- Add patch "v4l: async: fix unbind error in
-  v4l2_async_notifier_unregister()" by Niklas. Effectively the notifier's
-  unbind callback is called before v4l2_async_cleanup(), not after it.
-
-- Fix complete callback error handling (patch "v4l: async: Fix notifier
-  complete callback error handling").
-
-- Rework error handling in in v4l2_async_match_notify() and add comments.
-  No functional changes there.
-
-- Don't assign sd->dev to NULL in v4l2_async_cleanup() (patch "v4l: async:
-  Don't set sd->dev NULL in v4l2_async_cleanup").
-
-- Introduce a function to unbind sub-devices from a notifier. This is a
-  common operation so a common implementation is beneficial.
-
-- Assign notifier's v4l2_dev (or sd for sub-device notifiers) NULL on
-  failure.
-
-- Make v4l2_async_notifier_unregister() safe to call with a NULL argument.
-
-- Set the implicitly allocated sub-device notifier NULL on async
-  sub-device unregistration (used to be a dangling pointer).
-
-- Clean up async sub-device unregistration.
-
-- Fix v4l2_fwnode_endpoint_free() comment to match KernelDoc style, i.e.
-  make the function visible in documentation.
-
-- Don't add a random newline near the end of v4l2_async.h.
-
-- Move patch "v4l: fwnode: Move KernelDoc documentation to the header"
-  later in the set. The five first patches should now address bugs in the
-  V4L2 async framework, causing an oops on complete callback failure.
-
-since v13:
-
-- Add patch "v4l: fwnode: Add a convenience function for registering sensors"
-  and make the sensor driver changes a lot smaller.
-
-- Fix v4l2_async_notifier_parse_fwnode_endpoints() error handling for
-  omap3isp.
-
-- Return -ENODEV in rcar-vin if no async sub-device is available. I.e. fix
-  a bug in previous versions of "rcar-vin: Use generic parser for parsing
-  fwnode endpoints".
-
-- Rework notifier completion in patch "v4l: async: Allow binding notifiers to
-  sub-devices". This fixes calling complete notifiers more than once; they
-  are now all called once when all async sub-devices in all related
-  notifiers have been bound.
-
-- Split the same patch ("v4l: async: Allow binding notifiers to
-  sub-devices") into two, first one that prepares for async sub-devices
-  and another that implements the bulk of support for sub-device notifiers.
-
-- Postpone sub-device bound callback until v4l2_device is available in all
-  cases. This also applies to the media device. The notifier's bound
-  callback was in some cases called before having v4l2_device in v13.
-
-- Prevent registering fwnodes as async sub-devices more than once.
-
-- Use list_move instead of list_del and list_add in
-  v4l2_async_notifier_unbind_all_subdevs.
-
-- Call v4l2_async_notifier_release v4l2_async_notifier_cleanup instead.
-  It's a cleanup function and does not release the object passed to it.
-
-- In v4l2_async_notifier_fwnode_parse_endpoint, set match_type field with
-  the fwnode.fwnode field, not later.
-
-- In debug and other messages, use port@number/endpoint@number format.
-
-- Call fwnode_handle_put() to release references obtained using e.g.
-  fwnode_graph_get_port_parent.
-
-- Multiple KernelDoc documentation fixes.
-
-since v12:
-
-- Merge patches "v4l: fwnode: Support generic parsing of graph endpoints
-  in a device" and "v4l: fwnode: Support generic parsing of graph
-  endpoints, per port". Improve the commit and KernelDoc documentation as
-  well.
-
-- Reformat loop conditions in v4l2_async_notifier_try_complete() and
-  v4l2_fwnode_reference_get_int_prop(). Improve comments in
-  fwnode_property_get_reference_args() return value handling. Also check
-  for -ENODATA in v4l2_fwnode_reference_parse_int_props().
-
-- Add an ACPI example for v4l2_fwnode_reference_get_int_prop().
-
-- Document index parameter, document nprops parameter better and fix
-  -EINVAL error code documentation for
-  v4l2_fwnode_reference_get_int_prop().
-
-- Use WARN_ON_ONCE(true) instead of WARN_ON_ONCE(1) in
-  v4l2_async_notifier_release().
-
-since v11:
-
-- Add patch "et8ek8: Add support for flash and lens devices".
-
-- Add patch "v4l: fwnode: Support generic parsing of graph endpoints, per
-  port". The use case for this is to parse only upstream ports in a device
-  with sources and sinks. The downstream ports have already been parsed by
-  other drivers.
-
-- Rename v4l2_fwnode_reference_parse_sensor_common as
-  v4l2_async_notifier_parse_fwnode_sensor_common. This is in line with
-  other functions that parse information using fwnode API and set up async
-  sub-devices in the notifier.
-
-since v10:
-
-- Rename v4l2_async_get_subdev_notifier as
-  v4l2_async_find_subdev_notifier, as this is what it effectively does:
-  finds a notifier for a sub-device. Same for v4l2_async_notifier_get_v4l2_dev
-  / v4l2_async_notifier_get_v4l2_dev.
-
-- Initialise lists before calling v4l2_async_notifier_call_complete() if
-  there are no sub-devices in a notifier.
-
-- Warn on missing sub-device or existing v4l2_device on sub-device
-  notifier register, and conversely missing v4l2_device or existing
-  sub-device for a master notifier.
-
-- Set notifier's sd and v4l2_dev fields NULL when the sub-device is
-  unregistered.
-
-- Document the newly added helper functions for parsing external
-  references in v4l2-fwnode.c better.
-
-- Return -ENOENT in v4l2_fwnode_reference_parse if no entries are found,
-  and other errors as they occur.
-
-- Turn the loop in v4l2_fwnode_reference_get_int_prop a while loop (was
-  for).
-
-- Don't put fwnodes in v4l2_fwnode_reference_parse_int_props.
-
-- Fix description of parent field in struct v4l2_async_notifier.
-
-- In the documentation of v4l2_async_notifier_release, document that this
-  function must be called also after
-  v4l2_fwnode_reference_parse_sensor_common, not just
-  v4l2_async_notifier_parse_fwnode_endpoints. The same goes for
-  v4l2_async_notifier_parse_fwnode_endpoints as well as
-  v4l2_fwnode_reference_parse_sensor_common.
-
-since v9:
-
-- Drop "as3645a: Switch to fwnode property API" and "ACPI: Document how to
-  refer to LEDs from remote nodes" patches. They're better off separately
-  from this set.
-
-- Address property documentation redundancy in smiapp DT binding
-  documentation.
-
-- Add patches "ov5670: Add support for flash and lens devices" and
-  "ov13858: Add support for flash and lens devices".
-
-since v8:
-
-- Improve terminology for notifiers. Instead of master / subdev, we
-  have root, parent and subdev notifiers.
-
-- Renamed "flash" property as "flash-leds". There are many, and currently
-  we make assumptions in a lot of places (e.g. LED bindings) that these
-  are LEDs. While we don't have any other types of flashes supported right
-  now (e.g. Xenon), it's safer to assume we might have them in the future.
-
-- Use ENOTCONN instead of EPERM to tell from driver's callback function
-  that an endpoint is to be skipped but not handled as an error.
-
-- Avoid accessing notifier's subdevs array as well as num_subdevs field
-  from rcar-vin driver.
-
-- Add a patch "v4l: async: Allow async notifier register call succeed with no
-  subdevs", which allows, well, what the subject says.
-
-- Move checks for subdev / v4l2_dev from __v4l2_async_notifier_register()
-  to v4l2_async_notifier_register() and
-  v4l2_async_subdev_notifier_register().
-
-- Don't initialise notifier->list. There was no need to do so, as this is
-  the entry added to the list and not used otherwise. I.e. regarding this,
-  the state before this patchset is restored.
-
-- Clean up error handling in v4l2_async_notifier_fwnode_parse_endpoint().
-
-- WARN_ON() in v4l2_async_notifier_parse_fwnode_endpoints() if the
-  asd_struct_size is smaller than size of struct v4l2_async_subdev.
-
-- Make v4l2_fwnode_reference_parse() static as there should be no need to
-  use it outside the V4L2 fwnode framework. Also, remove the callback
-  function as well as other arguments that always have the same value in
-  current usage. (This can be changed later on if needed without affecting
-  drivers.)
-
-- Add the patch "v4l: fwnode: Add a helper function to obtain device /
-  interger references", which allows similar use than
-  v4l2_fwnode_reference_parse() but is more useful on ACPI based systems
-  --- on ACPI, you can only refer to device nodes (corresponding struct
-  deice in Linux), not to data extension nodes under the devices.
-
-- Improve v4l2_fwnode_reference_parse_sensor_common() to work on ACPI
-  based systems.
-
-- Add patch "ACPI: Document how to refer to LEDs from remote nodes" to
-  document using and referring to LEDs on ACPI.
-
-- Rebase the set on AS3645A fixes I just sent ("AS3645A fixes")
-
-- In v4l2_fwnode_reference_parse_sensor_common(), tell if parsing a
-  property failed.
-
-- Improved documentation for v4l2_async_notifier_parse_fwnode_endpoints().
-
-- Fix v4l2_async_notifier_try_all_subdevs(); it is allowed that the list
-  entry being iterated over is deleted but no other changes to the list
-  are allowed. This could be the case if a sub-device driver's notifier
-  binds a sub-device. Restart the loop whenever a match is found.
-
-- Add patch "as3645a: Switch to fwnode property API" which also adds ACPI
-  support.
-
-since v7:
-
-- Added three more patches:
-
-	v4l: async: Remove re-probing support
-	v4l: async: Use more intuitive names for internal functions
-	dt: bindings: smiapp: Document lens-focus and flash properties
-
-  The last one was already sent previously after the rest of the patchset.
-
-- Removed re-probing support. This is hard to support and only useful in
-  special cases. It can be reintroduced later on if there's really a need
-  --- note that in e.g. omap3isp this was always broken and no-one ever
-  complained.
-
-- Remove smiapp driver's async complete callback (and ops). It is
-  redundant: the sub-device nodes are created through the master notifier.
-
-- Improve flash property documentation in video-interfaces.txt.
-
-- Introduce helper functions to call notifier operations, one for each
-  operation.
-
-- Rename v4l2_async_test_notify as v4l2_async_match_notify and
-  v4l2_async_belongs to v4l2_async_find_match.
-
-- v4l2_async_notifier_test_all_subdevs() renamed as
-  v4l2_async_notifier_try_all_subdevs().
-
-- Made notifier_v4l2_dev a function (it was a macro).
-
-- Registering subdev notifiers from sub-device drivers that control
-  sub-devices created through sub-notifiers is now supported. In other
-  words, subdev notifiers may be registered through other subdev
-  notifiers. This is the source of the bulk of the changes between v7 and
-  v8.
-
-- Add explanatory comments to helper functions used by V4L2 async
-  framework. This should help understanding the internal workings of the
-  framework.
-
-- Removed the "notifiers" list in struct v4l2_async_notifier. The
-  information can be found from existing data structures.
-
-- Explicitly check that registering a non-subdev notifier has v4l2_dev and
-  a subdev notifier has a sub-device pointer.
-
-- Unified several code paths between subdev notifiers and non-subdev
-  notifiers.
-
-- Fixed v4l2_async_notifier_release() --- calling it on a notifier for
-  which the driver had allocated the subdevs array would lead calling
-  kvfree() on that array. Now notifier->max_subdevs is checked before
-  proceeding.
-
-- Fixed a use-after-free issue in
-  v4l2_async_notifier_fwnode_parse_endpoints().
-
-- Small fixes to KernelDoc documentation for
-  v4l2_async_notifier_parse_fwnode_endpoints().
-
-since v6:
-
-- Drop the last patch that added variant for parsing endpoints given
-  specific port and endpoints numbers.
-
-- Separate driver changes from the fwnode endpoint parser patch into two
-  patches. rcar-vin driver is now using the name function.
-
-- Use -ENOTCONN to tell the parser that and endpoint (or a reference) is
-  to be ignored.
-
-- parse_endpoint and parse_single callback functions are now optional and
-  documented as such.
-
-- Added Laurent's patch adding notifier operations struct which I rebase
-  on the fwnode parser patchset. I wrote another patch to call the
-  notifier operations through macros.
-
-- Add DT bindings for flash and lens devices.
-
-- V4L2 fwnode parser for references (such as flash and lens).
-
-- Added smiapp driver support for async sub-devices (lens and flash).
-
-- Added a few fixes for omap3isp.
-
-since v5:
-
-- Use v4l2_async_ prefix for static functions as well (4th patch)
-
-- Use memcpy() to copy array rather than a loop
-
-- Document that the v4l2_async_subdev pointer in driver specific struct
-  must be the first member
-
-- Improve documentation of the added functions (4th and 5th
-  patches)
-
-	- Arguments
-
-	- More thorough explation of the purpose, usage and object
-	  lifetime
-
-- Added acks
-
-since v4:
-
-- Prepend the set with three documentation fixes.
-
-- The driver's async struct must begin with struct v4l2_async_subdev. Fix this
-  for omap3isp and document it.
-
-- Improve documentation for new functions.
-
-- Don't use devm_ family of functions for allocating memory. Introduce
-  v4l2_async_notifier_release() to release memory resources.
-
-- Rework both v4l2_async_notifier_fwnode_parse_endpoints() and
-  v4l2_async_notifier_fwnode_parse_endpoint() and the local functions they
-  call. This should make the code cleaner. Despite the name, for linking
-  and typical usage reasons the functions remain in v4l2-fwnode.c.
-
-- Convert rcar-vin to use v4l2_async_notifier_fwnode_parse_endpoint().
-
-- Use kvmalloc() for allocating the notifier's subdevs array.
-
-- max_subdevs argument for notifier_realloc is now the total maximum
-  number of subdevs, not the number of available subdevs.
-
-- Use fwnode_device_is_available() to make sure the device actually
-  exists.
-
-- Move the note telling v4l2_async_notifier_fwnode_parse_endpoints()
-  should not be used by new drivers to the last patch adding
-  v4l2_async_notifier_fwnode_parse_endpoint().
-
-since v3:
-
-- Rebase on current mediatree master.
-
-since v2:
-
-- Rebase on CCP2 support patches.
-
-- Prepend a patch cleaning up omap3isp driver a little.
-
-since v1:
-
-- The first patch has been merged (it was a bugfix).
-
-- In anticipation that the parsing can take place over several iterations,
-  take the existing number of async sub-devices into account when
-  re-allocating an array of async sub-devices.
-
-- Rework the first patch to better anticipate parsing single endpoint at a
-  time by a driver.
-
-- Add a second patch that adds a function for parsing endpoints one at a
-  time based on port and endpoint numbers.
-
-Laurent Pinchart (1):
-  v4l: async: Move async subdev notifier operations to a separate
-    structure
-
-Niklas Söderlund (1):
-  v4l: async: fix unbind error in v4l2_async_notifier_unregister()
-
-Sakari Ailus (30):
-  v4l: async: Remove re-probing support
-  v4l: async: Don't set sd->dev NULL in v4l2_async_cleanup
-  v4l: async: Fix notifier complete callback error handling
-  v4l: async: Correctly serialise async sub-device unregistration
-  v4l: async: Use more intuitive names for internal functions
-  v4l: async: Add V4L2 async documentation to the documentation build
-  v4l: fwnode: Support generic parsing of graph endpoints in a device
-  omap3isp: Use generic parser for parsing fwnode endpoints
-  rcar-vin: Use generic parser for parsing fwnode endpoints
-  omap3isp: Fix check for our own sub-devices
-  omap3isp: Print the name of the entity where no source pads could be
-    found
-  v4l: async: Introduce helpers for calling async ops callbacks
-  v4l: async: Register sub-devices before calling bound callback
-  v4l: async: Allow async notifier register call succeed with no subdevs
-  v4l: async: Prepare for async sub-device notifiers
-  v4l: async: Allow binding notifiers to sub-devices
-  v4l: async: Ensure only unique fwnodes are registered to notifiers
-  dt: bindings: Add a binding for flash LED devices associated to a
-    sensor
-  dt: bindings: Add lens-focus binding for image sensors
-  v4l: fwnode: Move KernelDoc documentation to the header
-  v4l: fwnode: Add a helper function for parsing generic references
-  v4l: fwnode: Add a helper function to obtain device / integer
-    references
-  v4l: fwnode: Add convenience function for parsing common external refs
-  v4l: fwnode: Add a convenience function for registering sensors
-  dt: bindings: smiapp: Document lens-focus and flash-leds properties
-  smiapp: Add support for flash and lens devices
-  et8ek8: Add support for flash and lens devices
-  ov5670: Add support for flash and lens devices
-  ov13858: Add support for flash and lens devices
-  arm: dts: omap3: N9/N950: Add flash references to the camera
-
- .../devicetree/bindings/media/i2c/nokia,smia.txt   |   2 +
- .../devicetree/bindings/media/video-interfaces.txt |  10 +
- Documentation/media/kapi/v4l2-async.rst            |   3 +
- Documentation/media/kapi/v4l2-core.rst             |   1 +
- arch/arm/boot/dts/omap3-n9.dts                     |   1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi               |   4 +-
- arch/arm/boot/dts/omap3-n950.dts                   |   1 +
- drivers/media/i2c/et8ek8/et8ek8_driver.c           |   2 +-
- drivers/media/i2c/ov13858.c                        |   2 +-
- drivers/media/i2c/ov5670.c                         |   2 +-
- drivers/media/i2c/smiapp/smiapp-core.c             |   2 +-
- drivers/media/platform/am437x/am437x-vpfe.c        |   8 +-
- drivers/media/platform/atmel/atmel-isc.c           |  10 +-
- drivers/media/platform/atmel/atmel-isi.c           |  10 +-
- drivers/media/platform/davinci/vpif_capture.c      |   8 +-
- drivers/media/platform/davinci/vpif_display.c      |   8 +-
- drivers/media/platform/exynos4-is/media-dev.c      |   8 +-
- drivers/media/platform/omap3isp/isp.c              | 133 ++---
- drivers/media/platform/omap3isp/isp.h              |   5 +-
- drivers/media/platform/pxa_camera.c                |   8 +-
- drivers/media/platform/qcom/camss-8x16/camss.c     |   8 +-
- drivers/media/platform/rcar-vin/rcar-core.c        | 117 ++--
- drivers/media/platform/rcar-vin/rcar-dma.c         |  10 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c        |  14 +-
- drivers/media/platform/rcar-vin/rcar-vin.h         |   4 +-
- drivers/media/platform/rcar_drif.c                 |  10 +-
- drivers/media/platform/soc_camera/soc_camera.c     |  14 +-
- drivers/media/platform/stm32/stm32-dcmi.c          |  10 +-
- drivers/media/platform/ti-vpe/cal.c                |   8 +-
- drivers/media/platform/xilinx/xilinx-vipp.c        |   8 +-
- drivers/media/v4l2-core/v4l2-async.c               | 537 ++++++++++++++----
- drivers/media/v4l2-core/v4l2-fwnode.c              | 623 ++++++++++++++++++---
- drivers/staging/media/imx/imx-media-dev.c          |   8 +-
- include/media/v4l2-async.h                         |  90 ++-
- include/media/v4l2-fwnode.h                        | 220 +++++++-
- include/media/v4l2-subdev.h                        |   3 +
- 36 files changed, 1488 insertions(+), 424 deletions(-)
- create mode 100644 Documentation/media/kapi/v4l2-async.rst
-
--- 
-2.11.0
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Scott Murray <scott@spiteful.org>, Lukas Wunner <lukas@wunner.de>, Keith Busch <keith.busch@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+
+On Fri, Sep 29, 2017 at 10:21:23PM +0300, Andy Shevchenko wrote:
+> It seems often the following pattern has been used
+> 
+> 	list_for_each_entry(dev, &bus->devices, bus_list) {
+> 		if (pci_is_bridge(dev)) {
+> 			...
+> 		}
+> 	}
+> 
+> Here for_each_pci_bridge() helper is introduced to make that code better
+> to write and read by lowing indentation level. It also saves one or few
+> lines of code in each occurrence.
+> 
+> Convert PCI core parts here at the same time.
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+Applied to pci/misc for v4.15, thanks!
+
+> ---
+>  drivers/pci/hotplug/acpiphp_glue.c     | 15 ++++++---------
+>  drivers/pci/hotplug/cpci_hotplug_pci.c |  7 ++-----
+>  drivers/pci/hotplug/pciehp_pci.c       |  5 ++---
+>  drivers/pci/hotplug/shpchp_pci.c       |  6 ++----
+>  drivers/pci/probe.c                    |  6 ++----
+>  drivers/pci/setup-bus.c                |  7 +++----
+>  include/linux/pci.h                    |  4 ++++
+>  7 files changed, 21 insertions(+), 29 deletions(-)
+> 
+> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+> index 5ed2dcaa8e27..5db6f1839dad 100644
+> --- a/drivers/pci/hotplug/acpiphp_glue.c
+> +++ b/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -462,18 +462,15 @@ static void enable_slot(struct acpiphp_slot *slot)
+>  	acpiphp_rescan_slot(slot);
+>  	max = acpiphp_max_busnr(bus);
+>  	for (pass = 0; pass < 2; pass++) {
+> -		list_for_each_entry(dev, &bus->devices, bus_list) {
+> +		for_each_pci_bridge(dev, bus) {
+>  			if (PCI_SLOT(dev->devfn) != slot->device)
+>  				continue;
+>  
+> -			if (pci_is_bridge(dev)) {
+> -				max = pci_scan_bridge(bus, dev, max, pass);
+> -				if (pass && dev->subordinate) {
+> -					check_hotplug_bridge(slot, dev);
+> -					pcibios_resource_survey_bus(dev->subordinate);
+> -					__pci_bus_size_bridges(dev->subordinate,
+> -							       &add_list);
+> -				}
+> +			max = pci_scan_bridge(bus, dev, max, pass);
+> +			if (pass && dev->subordinate) {
+> +				check_hotplug_bridge(slot, dev);
+> +				pcibios_resource_survey_bus(dev->subordinate);
+> +				__pci_bus_size_bridges(dev->subordinate, &add_list);
+>  			}
+>  		}
+>  	}
+> diff --git a/drivers/pci/hotplug/cpci_hotplug_pci.c b/drivers/pci/hotplug/cpci_hotplug_pci.c
+> index 80c80017197d..f616358fa938 100644
+> --- a/drivers/pci/hotplug/cpci_hotplug_pci.c
+> +++ b/drivers/pci/hotplug/cpci_hotplug_pci.c
+> @@ -286,14 +286,11 @@ int cpci_configure_slot(struct slot *slot)
+>  	}
+>  	parent = slot->dev->bus;
+>  
+> -	list_for_each_entry(dev, &parent->devices, bus_list) {
+> -		if (PCI_SLOT(dev->devfn) != PCI_SLOT(slot->devfn))
+> -			continue;
+> -		if (pci_is_bridge(dev))
+> +	for_each_pci_bridge(dev, parent) {
+> +		if (PCI_SLOT(dev->devfn) == PCI_SLOT(slot->devfn))
+>  			pci_hp_add_bridge(dev);
+>  	}
+>  
+> -
+>  	pci_assign_unassigned_bridge_resources(parent->self);
+>  
+>  	pci_bus_add_devices(parent);
+> diff --git a/drivers/pci/hotplug/pciehp_pci.c b/drivers/pci/hotplug/pciehp_pci.c
+> index 19f30a9f461d..c3af027ee1a6 100644
+> --- a/drivers/pci/hotplug/pciehp_pci.c
+> +++ b/drivers/pci/hotplug/pciehp_pci.c
+> @@ -60,9 +60,8 @@ int pciehp_configure_device(struct slot *p_slot)
+>  		goto out;
+>  	}
+>  
+> -	list_for_each_entry(dev, &parent->devices, bus_list)
+> -		if (pci_is_bridge(dev))
+> -			pci_hp_add_bridge(dev);
+> +	for_each_pci_bridge(dev, parent)
+> +		pci_hp_add_bridge(dev);
+>  
+>  	pci_assign_unassigned_bridge_resources(bridge);
+>  	pcie_bus_configure_settings(parent);
+> diff --git a/drivers/pci/hotplug/shpchp_pci.c b/drivers/pci/hotplug/shpchp_pci.c
+> index f8cd3a27e351..ea63db58b4b1 100644
+> --- a/drivers/pci/hotplug/shpchp_pci.c
+> +++ b/drivers/pci/hotplug/shpchp_pci.c
+> @@ -61,10 +61,8 @@ int shpchp_configure_device(struct slot *p_slot)
+>  		goto out;
+>  	}
+>  
+> -	list_for_each_entry(dev, &parent->devices, bus_list) {
+> -		if (PCI_SLOT(dev->devfn) != p_slot->device)
+> -			continue;
+> -		if (pci_is_bridge(dev))
+> +	for_each_pci_bridge(dev, parent) {
+> +		if (PCI_SLOT(dev->devfn) == p_slot->device)
+>  			pci_hp_add_bridge(dev);
+>  	}
+>  
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index ff94b69738a8..cdc2f83c11c5 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -2421,10 +2421,8 @@ unsigned int pci_scan_child_bus(struct pci_bus *bus)
+>  	}
+>  
+>  	for (pass = 0; pass < 2; pass++)
+> -		list_for_each_entry(dev, &bus->devices, bus_list) {
+> -			if (pci_is_bridge(dev))
+> -				max = pci_scan_bridge(bus, dev, max, pass);
+> -		}
+> +		for_each_pci_bridge(dev, bus)
+> +			max = pci_scan_bridge(bus, dev, max, pass);
+>  
+>  	/*
+>  	 * Make sure a hotplug bridge has at least the minimum requested
+> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+> index 958da7db9033..7ca03407404c 100644
+> --- a/drivers/pci/setup-bus.c
+> +++ b/drivers/pci/setup-bus.c
+> @@ -1921,10 +1921,9 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+>  					want additional resources */
+>  
+>  	down_read(&pci_bus_sem);
+> -	list_for_each_entry(dev, &bus->devices, bus_list)
+> -		if (pci_is_bridge(dev) && pci_has_subordinate(dev))
+> -				__pci_bus_size_bridges(dev->subordinate,
+> -							 &add_list);
+> +	for_each_pci_bridge(dev, bus)
+> +		if (pci_has_subordinate(dev))
+> +			__pci_bus_size_bridges(dev->subordinate, &add_list);
+>  	up_read(&pci_bus_sem);
+>  	__pci_bus_assign_resources(bus, &add_list, NULL);
+>  	BUG_ON(!list_empty(&add_list));
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index f4f8ee5a7362..3dbe947b4152 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -596,6 +596,10 @@ static inline bool pci_is_bridge(struct pci_dev *dev)
+>  		dev->hdr_type == PCI_HEADER_TYPE_CARDBUS;
+>  }
+>  
+> +#define for_each_pci_bridge(dev, bus)				\
+> +	list_for_each_entry(dev, &bus->devices, bus_list)	\
+> +		if (!pci_is_bridge(dev)) {} else
+> +
+>  static inline struct pci_dev *pci_upstream_bridge(struct pci_dev *dev)
+>  {
+>  	dev = pci_physfn(dev);
+> -- 
+> 2.14.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
