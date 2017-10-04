@@ -1,70 +1,86 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v10 00/24] Unified fwnode endpoint parser, async
- sub-device notifier support, N9 flash DTS
-Date: Wed, 4 Oct 2017 15:45:01 +0300
-Message-ID: <20171004124500.bm2rt3abfem63svi@kekkonen.localdomain>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <CAJZ5v0g4MUx8xaZjBwfVtYnad2+-ftkjk6Y51VRxS86YZar3oQ@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 7/9] Bluetooth: hci_bcm: Make acpi_probe get irq from ACPI
+ resources
+Date: Wed, 4 Oct 2017 15:26:57 +0200
+Message-ID: <e648b8ea-923a-6053-e43b-3f48e36d1eb9@redhat.com>
+References: <20171002152356.4714-1-hdegoede@redhat.com>
+ <20171002152356.4714-8-hdegoede@redhat.com>
+ <c06ae2d7-9628-ad70-2509-eca18ba16f0a@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:7372 "EHLO mga09.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:41696 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751278AbdJDMpK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 4 Oct 2017 08:45:10 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0g4MUx8xaZjBwfVtYnad2+-ftkjk6Y51VRxS86YZar3oQ@mail.gmail.com>
+        id S1752102AbdJDN1A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 4 Oct 2017 09:27:00 -0400
+In-Reply-To: <c06ae2d7-9628-ad70-2509-eca18ba16f0a@gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, Rob Herring <robh@kernel.org>, hverkuil@xs4all.nl, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
+To: =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss@gmail.com>, Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>
+Cc: Sebastian Reichel <sre@kernel.org>, robh@kernel.org, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Rafael,
+Hi,
 
-On Tue, Oct 03, 2017 at 02:04:50AM +0200, Rafael J. Wysocki wrote:
-> Hi,
+On 03-10-17 19:21, Frédéric Danis wrote:
+> Hi Hans,
 > 
-> On Mon, Sep 11, 2017 at 9:59 AM, Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> > Hi folks,
-> >
-> > We have a large influx of new, unmerged, drivers that are now parsing
-> > fwnode endpoints and each one of them is doing this a little bit
-> > differently. The needs are still exactly the same for the graph data
-> > structure is device independent. This is still a non-trivial task and the
-> > majority of the driver implementations are buggy, just buggy in different
-> > ways.
-> >
-> > Facilitate parsing endpoints by adding a convenience function for parsing
-> > the endpoints, and make the omap3isp and rcar-vin drivers use them as an
-> > example.
-> >
-> > To show where we're getting with this, I've added support for async
-> > sub-device notifier support that is notifiers that can be registered by
-> > sub-device drivers as well as V4L2 fwnode improvements to make use of them
-> > and the DTS changes for the Nokia N9. Some of these patches I've posted
-> > previously in this set here:
-> >
-> > <URL:http://www.spinics.net/lists/linux-media/msg118764.html>
-> >
-> > Since that, the complete callback of the master notifier registering the
-> > V4L2 device is only called once all sub-notifiers have been completed as
-> > well. This way the device node creation can be postponed until all devices
-> > have been successfully initialised.
-> >
-> > With this, the as3645a driver successfully registers a sub-device to the
-> > media device created by the omap3isp driver. The kernel also has the
-> > information it's related to the sensor driven by the smiapp driver but we
-> > don't have a way to expose that information yet.
+> First of all, many thanks for your work on this, it helped me a lot to get full Bluetooth on my Asus T100.
+
+You're welcome thank you for your patches tying everything
+together, it will be good to have this all finally working
+OOTB.
+
+> Le 02/10/2017 à 17:23, Hans de Goede a écrit :
+>> The ACPI subsys is going to move over to instantiating ACPI enumerated
+>> HCIs as serdevs, rather then as platform devices.
+>>
+>> So we need to make bcm_acpi_probe() suitable for use on non platform-
+>> devices too, which means that we cannot rely on platform_get_irq()
+>> getting called.
+>>
+>> This commit modifies bcm_acpi_probe() to directly get the irq from
+>> the ACPI resources, this is a preparation patch for adding (runtime)pm
+>> support to the serdev path.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>   drivers/bluetooth/hci_bcm.c | 8 ++++++++
+>>   1 file changed, 8 insertions(+)
+>>
+>> diff --git a/drivers/bluetooth/hci_bcm.c b/drivers/bluetooth/hci_bcm.c
+>> index 5c8371d8aace..48a428909958 100644
+>> --- a/drivers/bluetooth/hci_bcm.c
+>> +++ b/drivers/bluetooth/hci_bcm.c
+>> @@ -805,6 +805,7 @@ static int bcm_acpi_probe(struct bcm_device *dev)
+>>       const struct dmi_system_id *dmi_id;
+>>       const struct acpi_gpio_mapping *gpio_mapping = acpi_bcm_int_last_gpios;
+>>       const struct acpi_device_id *id;
+>> +    struct resource_entry *entry;
+>>       int ret;
+>>       /* Retrieve GPIO data */
+>> @@ -821,6 +822,13 @@ static int bcm_acpi_probe(struct bcm_device *dev)
+>>                        &resources, bcm_resource, dev);
+>>       if (ret < 0)
+>>           return ret;
+>> +
+>> +    resource_list_for_each_entry(entry, &resources) {
+>> +        if (resource_type(entry->res) == IORESOURCE_IRQ) {
+>> +            dev->irq = entry->res->start;
+>> +            break;
+>> +        }
+>> +    }
+>>       acpi_dev_free_resource_list(&resources);
+>>       dmi_id = dmi_first_match(bcm_active_low_irq_dmi_table);
 > 
-> I don't see core changes in this set, so I'm assuming it to be
-> targeted at the users of endpoints etc.
+> You should also return 0 in bcm_resource(), otherwise the resources list is empty, ending up with "BCM irq: -22" trace in dmesg.
 
-Yes, this is dealing with V4L2 and how information from firmware is used
-mainly but there is also DT binding documentation.
+Right, good one. I did not notice that as on the device I was testing with
+the IRQ is specified in the DSDT as a GpioInt rather as an Interrupt.
 
--- 
-Kind regards,
+Fixed for v2 of this series.
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Regards,
+
+Hans
