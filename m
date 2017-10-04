@@ -1,86 +1,112 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 7/9] Bluetooth: hci_bcm: Make acpi_probe get irq from ACPI
- resources
-Date: Wed, 4 Oct 2017 15:26:57 +0200
-Message-ID: <e648b8ea-923a-6053-e43b-3f48e36d1eb9@redhat.com>
-References: <20171002152356.4714-1-hdegoede@redhat.com>
- <20171002152356.4714-8-hdegoede@redhat.com>
- <c06ae2d7-9628-ad70-2509-eca18ba16f0a@gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v8 3/5] iommu/of: Add msi address regions reservation
+ helper
+Date: Wed, 4 Oct 2017 14:50:07 +0100
+Message-ID: <20171004135007.GA12327@red-moon>
+References: <20170927133241.21036-1-shameerali.kolothum.thodi@huawei.com>
+ <20170927133241.21036-4-shameerali.kolothum.thodi@huawei.com>
+ <f3146f49-6004-7a15-866b-653e3ea54856@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41696 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752102AbdJDN1A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 4 Oct 2017 09:27:00 -0400
-In-Reply-To: <c06ae2d7-9628-ad70-2509-eca18ba16f0a@gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <f3146f49-6004-7a15-866b-653e3ea54856-5wv7dgnIgG8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+Cc: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, sudeep.holla-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss@gmail.com>, Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, robh@kernel.org, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
-
-On 03-10-17 19:21, Frédéric Danis wrote:
-> Hi Hans,
+On Wed, Oct 04, 2017 at 12:22:04PM +0100, Marc Zyngier wrote:
+> On 27/09/17 14:32, Shameer Kolothum wrote:
+> > From: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > 
+> > On some platforms msi-controller address regions have to be excluded
+> > from normal IOVA allocation in that they are detected and decoded in
+> > a HW specific way by system components and so they cannot be considered
+> > normal IOVA address space.
+> > 
+> > Add a helper function that retrieves msi address regions through device
+> > tree msi mapping, so that these regions will not be translated by IOMMU
+> > and will be excluded from IOVA allocations.
+> > 
+> > Signed-off-by: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > [Shameer: Modified msi-parent retrieval logic]
+> > Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/iommu/of_iommu.c | 95 ++++++++++++++++++++++++++++++++++++++++++++++++
+> >  include/linux/of_iommu.h | 10 +++++
+> >  2 files changed, 105 insertions(+)
+> > 
+> > diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+> > index e60e3db..ffd7fb7 100644
+> > --- a/drivers/iommu/of_iommu.c
+> > +++ b/drivers/iommu/of_iommu.c
+> > @@ -21,6 +21,7 @@
+> >  #include <linux/iommu.h>
+> >  #include <linux/limits.h>
+> >  #include <linux/of.h>
+> > +#include <linux/of_address.h>
+> >  #include <linux/of_iommu.h>
+> >  #include <linux/of_pci.h>
+> >  #include <linux/slab.h>
+> > @@ -138,6 +139,14 @@ static int of_iommu_xlate(struct device *dev,
+> >  	return ops->of_xlate(dev, iommu_spec);
+> >  }
+> >  
+> > +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+> > +{
+> > +	u32 *rid = data;
+> > +
+> > +	*rid = alias;
+> > +	return 0;
+> > +}
+> > +
+> >  struct of_pci_iommu_alias_info {
+> >  	struct device *dev;
+> >  	struct device_node *np;
+> > @@ -163,6 +172,73 @@ static int of_pci_iommu_init(struct pci_dev *pdev, u16 alias, void *data)
+> >  	return info->np == pdev->bus->dev.of_node;
+> >  }
+> >  
+> > +static int of_iommu_alloc_resv_region(struct device_node *np,
+> > +				      struct list_head *head)
+> > +{
+> > +	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+> > +	struct iommu_resv_region *region;
+> > +	struct resource res;
+> > +	int err;
+> > +
+> > +	err = of_address_to_resource(np, 0, &res);
 > 
-> First of all, many thanks for your work on this, it helped me a lot to get full Bluetooth on my Asus T100.
-
-You're welcome thank you for your patches tying everything
-together, it will be good to have this all finally working
-OOTB.
-
-> Le 02/10/2017 à 17:23, Hans de Goede a écrit :
->> The ACPI subsys is going to move over to instantiating ACPI enumerated
->> HCIs as serdevs, rather then as platform devices.
->>
->> So we need to make bcm_acpi_probe() suitable for use on non platform-
->> devices too, which means that we cannot rely on platform_get_irq()
->> getting called.
->>
->> This commit modifies bcm_acpi_probe() to directly get the irq from
->> the ACPI resources, this is a preparation patch for adding (runtime)pm
->> support to the serdev path.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>   drivers/bluetooth/hci_bcm.c | 8 ++++++++
->>   1 file changed, 8 insertions(+)
->>
->> diff --git a/drivers/bluetooth/hci_bcm.c b/drivers/bluetooth/hci_bcm.c
->> index 5c8371d8aace..48a428909958 100644
->> --- a/drivers/bluetooth/hci_bcm.c
->> +++ b/drivers/bluetooth/hci_bcm.c
->> @@ -805,6 +805,7 @@ static int bcm_acpi_probe(struct bcm_device *dev)
->>       const struct dmi_system_id *dmi_id;
->>       const struct acpi_gpio_mapping *gpio_mapping = acpi_bcm_int_last_gpios;
->>       const struct acpi_device_id *id;
->> +    struct resource_entry *entry;
->>       int ret;
->>       /* Retrieve GPIO data */
->> @@ -821,6 +822,13 @@ static int bcm_acpi_probe(struct bcm_device *dev)
->>                        &resources, bcm_resource, dev);
->>       if (ret < 0)
->>           return ret;
->> +
->> +    resource_list_for_each_entry(entry, &resources) {
->> +        if (resource_type(entry->res) == IORESOURCE_IRQ) {
->> +            dev->irq = entry->res->start;
->> +            break;
->> +        }
->> +    }
->>       acpi_dev_free_resource_list(&resources);
->>       dmi_id = dmi_first_match(bcm_active_low_irq_dmi_table);
+> What is the rational for registering the first region only? Surely you
+> can have more than one region in an MSI controller (yes, your particular
+> case is the ITS which has only one, but we're trying to do something
+> generic here).
 > 
-> You should also return 0 in bcm_resource(), otherwise the resources list is empty, ending up with "BCM irq: -22" trace in dmesg.
+> Another issue I have with this code is that it inserts all of the ITS
+> MMIO in the RESV_MSI range. As long as we don't generate any page tables
+> for this, we're fine. But if we ever change this, we'll end-up with the
+> ITS programming interface being exposed to a device, which wouldn't be
+> acceptable.
+> 
+> Why can't we have some generic property instead, that would describe the
+> actual ranges that cannot be translated? That way, no random insertion
+> of a random range, and relatively future proof.
 
-Right, good one. I did not notice that as on the device I was testing with
-the IRQ is specified in the DSDT as a GpioInt rather as an Interrupt.
+IORT code has the same issue (ie it reserves all ITS regions) and I do
+not know where a property can be added to describe those ranges (IORT
+specs ? I'd rather not) in ACPI other than the IORT tables entries
+themselves.
 
-Fixed for v2 of this series.
+> I'm not sure where to declare it (PCIe node? IOMMU node?), but it'd feel
+> like a much nicer and simpler solution to this problem.
 
-Regards,
+It could be but if we throw ACPI into the picture we have to knock
+together Hisilicon specific namespace bindings to handle this and
+quickly.
 
-Hans
+Lorenzo
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
