@@ -1,58 +1,142 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v2] ACPI/IORT: Fix PCI ACS enablement
-Date: Wed, 4 Oct 2017 17:36:47 +0100
-Message-ID: <20171004163647.zmgvhevi3pb4u32o@armageddon.cambridge.arm.com>
-References: <1506965324-5818-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v8 3/5] iommu/of: Add msi address regions reservation
+	helper
+Date: Wed, 4 Oct 2017 17:07:15 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA83841C809@FRAEML521-MBX.china.huawei.com>
+References: <20170927133241.21036-1-shameerali.kolothum.thodi@huawei.com>
+	<20170927133241.21036-4-shameerali.kolothum.thodi@huawei.com>
+	<f3146f49-6004-7a15-866b-653e3ea54856@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:35398 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750966AbdJDQgw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 4 Oct 2017 12:36:52 -0400
-Content-Disposition: inline
-In-Reply-To: <1506965324-5818-1-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <f3146f49-6004-7a15-866b-653e3ea54856-5wv7dgnIgG8@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "robin.murphy-5wv7dgnIgG8@public.gmane.org" <robin.murphy-5wv7dgnIgG8@public.gmane.org>, "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "Guohanjun (Hanjun Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Zhou Wang <wangzhou1@hisilicon.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Robin Murphy <robin.murphy@arm.com>, linux-arm-kernel@lists.infradead.org
 
-On Mon, Oct 02, 2017 at 06:28:44PM +0100, Lorenzo Pieralisi wrote:
-> commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
-> workarounds") removed kernel code that was allowing to initialize
-> and probe the SMMU devices early (ie earlier than PCI devices, through
-> linker script callback entries) in the boot process because it was not
-> needed any longer in that the SMMU devices/drivers now support deferred
-> probing.
-> 
-> Since the SMMUs probe routines are also in charge of requesting global
-> PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
-> up early-probing workarounds") also postponed PCI ACS enablement to
-> SMMUs devices probe time, which is too late given that PCI devices needs
-> to detect if PCI ACS is enabled to init the respective capability
-> through the following call path:
-> 
-> pci_device_add()
->  -> pci_init_capabilities()
->   -> pci_enable_acs()
-> 
-> Add code in the ACPI IORT SMMU platform devices initialization path
-> (that is called before ACPI PCI enumeration) to detect if there
-> exists firmware mappings to map root complexes ids to SMMU ids
-> and if so enable ACS for the system.
-> 
-> Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
-> Signed-workarounds")
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Sudeep Holla <sudeep.holla@arm.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Robin Murphy <robin.murphy@arm.com>
-> Cc: Zhou Wang <wangzhou1@hisilicon.com>
-> Cc: Alex Williamson <alex.williamson@redhat.com>
 
-Queued for 4.14-rc4. Thanks.
 
--- 
-Catalin
+> -----Original Message-----
+> From: Marc Zyngier [mailto:marc.zyngier-5wv7dgnIgG8@public.gmane.org]
+> Sent: Wednesday, October 04, 2017 12:22 PM
+> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>;
+> lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org; sudeep.holla-5wv7dgnIgG8@public.gmane.org; will.deacon-5wv7dgnIgG8@public.gmane.org;
+> robin.murphy-5wv7dgnIgG8@public.gmane.org; joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org; mark.rutland-5wv7dgnIgG8@public.gmane.org;
+> robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> Cc: Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; John Garry
+> <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-arm-
+> kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org; Linuxarm
+> <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; Wangzhou (B) <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>;
+> Guohanjun (Hanjun Guo) <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Subject: Re: [PATCH v8 3/5] iommu/of: Add msi address regions reservation
+> helper
+> 
+> On 27/09/17 14:32, Shameer Kolothum wrote:
+> > From: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> >
+> > On some platforms msi-controller address regions have to be excluded
+> > from normal IOVA allocation in that they are detected and decoded in a
+> > HW specific way by system components and so they cannot be considered
+> > normal IOVA address space.
+> >
+> > Add a helper function that retrieves msi address regions through
+> > device tree msi mapping, so that these regions will not be translated
+> > by IOMMU and will be excluded from IOVA allocations.
+> >
+> > Signed-off-by: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > [Shameer: Modified msi-parent retrieval logic]
+> > Signed-off-by: Shameer Kolothum
+> <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/iommu/of_iommu.c | 95
+> > ++++++++++++++++++++++++++++++++++++++++++++++++
+> >  include/linux/of_iommu.h | 10 +++++
+> >  2 files changed, 105 insertions(+)
+> >
+> > diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+> index
+> > e60e3db..ffd7fb7 100644
+> > --- a/drivers/iommu/of_iommu.c
+> > +++ b/drivers/iommu/of_iommu.c
+> > @@ -21,6 +21,7 @@
+> >  #include <linux/iommu.h>
+> >  #include <linux/limits.h>
+> >  #include <linux/of.h>
+> > +#include <linux/of_address.h>
+> >  #include <linux/of_iommu.h>
+> >  #include <linux/of_pci.h>
+> >  #include <linux/slab.h>
+> > @@ -138,6 +139,14 @@ static int of_iommu_xlate(struct device *dev,
+> >  	return ops->of_xlate(dev, iommu_spec);  }
+> >
+> > +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+> > +{
+> > +	u32 *rid = data;
+> > +
+> > +	*rid = alias;
+> > +	return 0;
+> > +}
+> > +
+> >  struct of_pci_iommu_alias_info {
+> >  	struct device *dev;
+> >  	struct device_node *np;
+> > @@ -163,6 +172,73 @@ static int of_pci_iommu_init(struct pci_dev *pdev,
+> u16 alias, void *data)
+> >  	return info->np == pdev->bus->dev.of_node;  }
+> >
+> > +static int of_iommu_alloc_resv_region(struct device_node *np,
+> > +				      struct list_head *head)
+> > +{
+> > +	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+> > +	struct iommu_resv_region *region;
+> > +	struct resource res;
+> > +	int err;
+> > +
+> > +	err = of_address_to_resource(np, 0, &res);
+> 
+> What is the rational for registering the first region only? Surely you can have
+> more than one region in an MSI controller (yes, your particular case is the ITS
+> which has only one, but we're trying to do something generic here).
+
+Ok. 
+
+> Another issue I have with this code is that it inserts all of the ITS MMIO in the
+> RESV_MSI range. As long as we don't generate any page tables for this, we're
+> fine. But if we ever change this, we'll end-up with the ITS programming
+> interface being exposed to a device, which wouldn't be acceptable.
+
+I understand the concern of reserving the whole of ITS MMIO region. Sorry, 
+but just being curious, how this will be exposed to a  device ? You mean a device
+can  be configured to access the ITS MMIO region and it will fail because there is
+no SMMU mapping for that?
+ 
+> Why can't we have some generic property instead, that would describe the
+> actual ranges that cannot be translated? That way, no random insertion of a
+> random range, and relatively future proof.
+> 
+> I'm not sure where to declare it (PCIe node? IOMMU node?), but it'd feel like
+> a much nicer and simpler solution to this problem.
+
+I am not sure that will be seen as legitimizing the untranslated regions or not.
+We had this discussion to include the regions specified in IORT spec and the
+answer was that, it will in a way legitimize this and encourage future
+implementations.
+
+How about making the _msi_get_resv_regions() function be very specific to GIC
+ITS like _its_msi_get_resv_regions() ? Is that something we can consider?
+(In fact we had a checking for "arm, gic-v3-its" in a previous version of this series).
+
+Thanks,
+Shameer
