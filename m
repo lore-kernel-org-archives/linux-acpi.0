@@ -1,142 +1,69 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v8 3/5] iommu/of: Add msi address regions reservation
-	helper
-Date: Wed, 4 Oct 2017 17:07:15 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA83841C809@FRAEML521-MBX.china.huawei.com>
-References: <20170927133241.21036-1-shameerali.kolothum.thodi@huawei.com>
-	<20170927133241.21036-4-shameerali.kolothum.thodi@huawei.com>
-	<f3146f49-6004-7a15-866b-653e3ea54856@arm.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 1/9] Bluetooth: hci_uart_set_flow_control: Fix NULL deref
+ when using serdev
+Date: Wed, 4 Oct 2017 20:42:23 +0200
+Message-ID: <4cfac353-cd8d-a78e-812b-833720e96451@redhat.com>
+References: <20171002152356.4714-1-hdegoede@redhat.com>
+ <20171002152356.4714-2-hdegoede@redhat.com>
+ <20171002223415.jmbi4zw7edyuxccl@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <f3146f49-6004-7a15-866b-653e3ea54856-5wv7dgnIgG8@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:49158 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750937AbdJDSm0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 4 Oct 2017 14:42:26 -0400
+In-Reply-To: <20171002223415.jmbi4zw7edyuxccl@earth>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "robin.murphy-5wv7dgnIgG8@public.gmane.org" <robin.murphy-5wv7dgnIgG8@public.gmane.org>, "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "Guohanjun (Hanjun Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss@gmail.com>, robh@kernel.org, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
+Hi,
 
-
-> -----Original Message-----
-> From: Marc Zyngier [mailto:marc.zyngier-5wv7dgnIgG8@public.gmane.org]
-> Sent: Wednesday, October 04, 2017 12:22 PM
-> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>;
-> lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org; sudeep.holla-5wv7dgnIgG8@public.gmane.org; will.deacon-5wv7dgnIgG8@public.gmane.org;
-> robin.murphy-5wv7dgnIgG8@public.gmane.org; joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org; mark.rutland-5wv7dgnIgG8@public.gmane.org;
-> robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> Cc: Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; John Garry
-> <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-arm-
-> kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org; Linuxarm
-> <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; Wangzhou (B) <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>;
-> Guohanjun (Hanjun Guo) <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Subject: Re: [PATCH v8 3/5] iommu/of: Add msi address regions reservation
-> helper
+On 03-10-17 00:34, Sebastian Reichel wrote:
+> Hi,
 > 
-> On 27/09/17 14:32, Shameer Kolothum wrote:
-> > From: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> >
-> > On some platforms msi-controller address regions have to be excluded
-> > from normal IOVA allocation in that they are detected and decoded in a
-> > HW specific way by system components and so they cannot be considered
-> > normal IOVA address space.
-> >
-> > Add a helper function that retrieves msi address regions through
-> > device tree msi mapping, so that these regions will not be translated
-> > by IOMMU and will be excluded from IOVA allocations.
-> >
-> > Signed-off-by: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > [Shameer: Modified msi-parent retrieval logic]
-> > Signed-off-by: Shameer Kolothum
-> <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/iommu/of_iommu.c | 95
-> > ++++++++++++++++++++++++++++++++++++++++++++++++
-> >  include/linux/of_iommu.h | 10 +++++
-> >  2 files changed, 105 insertions(+)
-> >
-> > diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-> index
-> > e60e3db..ffd7fb7 100644
-> > --- a/drivers/iommu/of_iommu.c
-> > +++ b/drivers/iommu/of_iommu.c
-> > @@ -21,6 +21,7 @@
-> >  #include <linux/iommu.h>
-> >  #include <linux/limits.h>
-> >  #include <linux/of.h>
-> > +#include <linux/of_address.h>
-> >  #include <linux/of_iommu.h>
-> >  #include <linux/of_pci.h>
-> >  #include <linux/slab.h>
-> > @@ -138,6 +139,14 @@ static int of_iommu_xlate(struct device *dev,
-> >  	return ops->of_xlate(dev, iommu_spec);  }
-> >
-> > +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
-> > +{
-> > +	u32 *rid = data;
-> > +
-> > +	*rid = alias;
-> > +	return 0;
-> > +}
-> > +
-> >  struct of_pci_iommu_alias_info {
-> >  	struct device *dev;
-> >  	struct device_node *np;
-> > @@ -163,6 +172,73 @@ static int of_pci_iommu_init(struct pci_dev *pdev,
-> u16 alias, void *data)
-> >  	return info->np == pdev->bus->dev.of_node;  }
-> >
-> > +static int of_iommu_alloc_resv_region(struct device_node *np,
-> > +				      struct list_head *head)
-> > +{
-> > +	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
-> > +	struct iommu_resv_region *region;
-> > +	struct resource res;
-> > +	int err;
-> > +
-> > +	err = of_address_to_resource(np, 0, &res);
+> On Mon, Oct 02, 2017 at 05:23:48PM +0200, Hans de Goede wrote:
+>> Fix a NULL pointer deref (hu->tty) when calling hci_uart_set_flow_control
+>> on hci_uart-s using serdev.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>   drivers/bluetooth/hci_ldisc.c | 6 ++++++
+>>   1 file changed, 6 insertions(+)
+>>
+>> diff --git a/drivers/bluetooth/hci_ldisc.c b/drivers/bluetooth/hci_ldisc.c
+>> index a746627e784e..d02f6d029093 100644
+>> --- a/drivers/bluetooth/hci_ldisc.c
+>> +++ b/drivers/bluetooth/hci_ldisc.c
+>> @@ -41,6 +41,7 @@
+>>   #include <linux/ioctl.h>
+>>   #include <linux/skbuff.h>
+>>   #include <linux/firmware.h>
+>> +#include <linux/serdev.h>
+>>   
+>>   #include <net/bluetooth/bluetooth.h>
+>>   #include <net/bluetooth/hci_core.h>
+>> @@ -298,6 +299,11 @@ void hci_uart_set_flow_control(struct hci_uart *hu, bool enable)
+>>   	unsigned int set = 0;
+>>   	unsigned int clear = 0;
+>>   
+>> +	if (hu->serdev) {
+>> +		serdev_device_set_flow_control(hu->serdev, !enable);
+>> +		return;
+>> +	}
 > 
-> What is the rational for registering the first region only? Surely you can have
-> more than one region in an MSI controller (yes, your particular case is the ITS
-> which has only one, but we're trying to do something generic here).
-
-Ok. 
-
-> Another issue I have with this code is that it inserts all of the ITS MMIO in the
-> RESV_MSI range. As long as we don't generate any page tables for this, we're
-> fine. But if we ever change this, we'll end-up with the ITS programming
-> interface being exposed to a device, which wouldn't be acceptable.
-
-I understand the concern of reserving the whole of ITS MMIO region. Sorry, 
-but just being curious, how this will be exposed to a  device ? You mean a device
-can  be configured to access the ITS MMIO region and it will fail because there is
-no SMMU mapping for that?
- 
-> Why can't we have some generic property instead, that would describe the
-> actual ranges that cannot be translated? That way, no random insertion of a
-> random range, and relatively future proof.
+> I think this should also control rts, so that the behaviour is the
+> same for serdev and ldisc implementation:
 > 
-> I'm not sure where to declare it (PCIe node? IOMMU node?), but it'd feel like
-> a much nicer and simpler solution to this problem.
+> serdev_device_set_rts(serdev, enable);
 
-I am not sure that will be seen as legitimizing the untranslated regions or not.
-We had this discussion to include the regions specified in IORT spec and the
-answer was that, it will in a way legitimize this and encourage future
-implementations.
+Good point, fixed for v2 of this set (which I will send out right
+after this mail).
 
-How about making the _msi_get_resv_regions() function be very specific to GIC
-ITS like _its_msi_get_resv_regions() ? Is that something we can consider?
-(In fact we had a checking for "arm, gic-v3-its" in a previous version of this series).
+Regards,
 
-Thanks,
-Shameer
+Hans
