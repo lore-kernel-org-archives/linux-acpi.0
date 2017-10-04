@@ -1,188 +1,349 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v1] pci: introduce for_each_pci_bridge() helper
-Date: Wed, 4 Oct 2017 17:24:44 -0500
-Message-ID: <20171004222444.GM25517@bhelgaas-glaptop.roam.corp.google.com>
-References: <20170929192123.24817-1-andriy.shevchenko@linux.intel.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH] ACPI / LPIT: Add Low Power Idle Table (LPIT) support
+Date: Wed,  4 Oct 2017 16:43:33 -0700
+Message-ID: <1507160613-56852-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42714 "EHLO mail.kernel.org"
+Received: from mga11.intel.com ([192.55.52.93]:33240 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750951AbdJDWYr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 4 Oct 2017 18:24:47 -0400
-Content-Disposition: inline
-In-Reply-To: <20170929192123.24817-1-andriy.shevchenko@linux.intel.com>
+        id S1750951AbdJDXnh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 4 Oct 2017 19:43:37 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Scott Murray <scott@spiteful.org>, Lukas Wunner <lukas@wunner.de>, Keith Busch <keith.busch@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: rjw@rjwysocki.net
+Cc: lv.zheng@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-On Fri, Sep 29, 2017 at 10:21:23PM +0300, Andy Shevchenko wrote:
-> It seems often the following pattern has been used
-> 
-> 	list_for_each_entry(dev, &bus->devices, bus_list) {
-> 		if (pci_is_bridge(dev)) {
-> 			...
-> 		}
-> 	}
-> 
-> Here for_each_pci_bridge() helper is introduced to make that code better
-> to write and read by lowing indentation level. It also saves one or few
-> lines of code in each occurrence.
-> 
-> Convert PCI core parts here at the same time.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Added functionality to read LPIT table, which provides:
 
-Applied to pci/misc for v4.15, thanks!
+- Sysfs interface to read residency counters via
+/sys/devices/system/cpu/cpuidle/low_power_idle_cpu_residency_us
+/sys/devices/system/cpu/cpuidle/low_power_idle_system_residency_us
 
-> ---
->  drivers/pci/hotplug/acpiphp_glue.c     | 15 ++++++---------
->  drivers/pci/hotplug/cpci_hotplug_pci.c |  7 ++-----
->  drivers/pci/hotplug/pciehp_pci.c       |  5 ++---
->  drivers/pci/hotplug/shpchp_pci.c       |  6 ++----
->  drivers/pci/probe.c                    |  6 ++----
->  drivers/pci/setup-bus.c                |  7 +++----
->  include/linux/pci.h                    |  4 ++++
->  7 files changed, 21 insertions(+), 29 deletions(-)
-> 
-> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-> index 5ed2dcaa8e27..5db6f1839dad 100644
-> --- a/drivers/pci/hotplug/acpiphp_glue.c
-> +++ b/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -462,18 +462,15 @@ static void enable_slot(struct acpiphp_slot *slot)
->  	acpiphp_rescan_slot(slot);
->  	max = acpiphp_max_busnr(bus);
->  	for (pass = 0; pass < 2; pass++) {
-> -		list_for_each_entry(dev, &bus->devices, bus_list) {
-> +		for_each_pci_bridge(dev, bus) {
->  			if (PCI_SLOT(dev->devfn) != slot->device)
->  				continue;
->  
-> -			if (pci_is_bridge(dev)) {
-> -				max = pci_scan_bridge(bus, dev, max, pass);
-> -				if (pass && dev->subordinate) {
-> -					check_hotplug_bridge(slot, dev);
-> -					pcibios_resource_survey_bus(dev->subordinate);
-> -					__pci_bus_size_bridges(dev->subordinate,
-> -							       &add_list);
-> -				}
-> +			max = pci_scan_bridge(bus, dev, max, pass);
-> +			if (pass && dev->subordinate) {
-> +				check_hotplug_bridge(slot, dev);
-> +				pcibios_resource_survey_bus(dev->subordinate);
-> +				__pci_bus_size_bridges(dev->subordinate, &add_list);
->  			}
->  		}
->  	}
-> diff --git a/drivers/pci/hotplug/cpci_hotplug_pci.c b/drivers/pci/hotplug/cpci_hotplug_pci.c
-> index 80c80017197d..f616358fa938 100644
-> --- a/drivers/pci/hotplug/cpci_hotplug_pci.c
-> +++ b/drivers/pci/hotplug/cpci_hotplug_pci.c
-> @@ -286,14 +286,11 @@ int cpci_configure_slot(struct slot *slot)
->  	}
->  	parent = slot->dev->bus;
->  
-> -	list_for_each_entry(dev, &parent->devices, bus_list) {
-> -		if (PCI_SLOT(dev->devfn) != PCI_SLOT(slot->devfn))
-> -			continue;
-> -		if (pci_is_bridge(dev))
-> +	for_each_pci_bridge(dev, parent) {
-> +		if (PCI_SLOT(dev->devfn) == PCI_SLOT(slot->devfn))
->  			pci_hp_add_bridge(dev);
->  	}
->  
-> -
->  	pci_assign_unassigned_bridge_resources(parent->self);
->  
->  	pci_bus_add_devices(parent);
-> diff --git a/drivers/pci/hotplug/pciehp_pci.c b/drivers/pci/hotplug/pciehp_pci.c
-> index 19f30a9f461d..c3af027ee1a6 100644
-> --- a/drivers/pci/hotplug/pciehp_pci.c
-> +++ b/drivers/pci/hotplug/pciehp_pci.c
-> @@ -60,9 +60,8 @@ int pciehp_configure_device(struct slot *p_slot)
->  		goto out;
->  	}
->  
-> -	list_for_each_entry(dev, &parent->devices, bus_list)
-> -		if (pci_is_bridge(dev))
-> -			pci_hp_add_bridge(dev);
-> +	for_each_pci_bridge(dev, parent)
-> +		pci_hp_add_bridge(dev);
->  
->  	pci_assign_unassigned_bridge_resources(bridge);
->  	pcie_bus_configure_settings(parent);
-> diff --git a/drivers/pci/hotplug/shpchp_pci.c b/drivers/pci/hotplug/shpchp_pci.c
-> index f8cd3a27e351..ea63db58b4b1 100644
-> --- a/drivers/pci/hotplug/shpchp_pci.c
-> +++ b/drivers/pci/hotplug/shpchp_pci.c
-> @@ -61,10 +61,8 @@ int shpchp_configure_device(struct slot *p_slot)
->  		goto out;
->  	}
->  
-> -	list_for_each_entry(dev, &parent->devices, bus_list) {
-> -		if (PCI_SLOT(dev->devfn) != p_slot->device)
-> -			continue;
-> -		if (pci_is_bridge(dev))
-> +	for_each_pci_bridge(dev, parent) {
-> +		if (PCI_SLOT(dev->devfn) == p_slot->device)
->  			pci_hp_add_bridge(dev);
->  	}
->  
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index ff94b69738a8..cdc2f83c11c5 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -2421,10 +2421,8 @@ unsigned int pci_scan_child_bus(struct pci_bus *bus)
->  	}
->  
->  	for (pass = 0; pass < 2; pass++)
-> -		list_for_each_entry(dev, &bus->devices, bus_list) {
-> -			if (pci_is_bridge(dev))
-> -				max = pci_scan_bridge(bus, dev, max, pass);
-> -		}
-> +		for_each_pci_bridge(dev, bus)
-> +			max = pci_scan_bridge(bus, dev, max, pass);
->  
->  	/*
->  	 * Make sure a hotplug bridge has at least the minimum requested
-> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-> index 958da7db9033..7ca03407404c 100644
-> --- a/drivers/pci/setup-bus.c
-> +++ b/drivers/pci/setup-bus.c
-> @@ -1921,10 +1921,9 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
->  					want additional resources */
->  
->  	down_read(&pci_bus_sem);
-> -	list_for_each_entry(dev, &bus->devices, bus_list)
-> -		if (pci_is_bridge(dev) && pci_has_subordinate(dev))
-> -				__pci_bus_size_bridges(dev->subordinate,
-> -							 &add_list);
-> +	for_each_pci_bridge(dev, bus)
-> +		if (pci_has_subordinate(dev))
-> +			__pci_bus_size_bridges(dev->subordinate, &add_list);
->  	up_read(&pci_bus_sem);
->  	__pci_bus_assign_resources(bus, &add_list, NULL);
->  	BUG_ON(!list_empty(&add_list));
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index f4f8ee5a7362..3dbe947b4152 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -596,6 +596,10 @@ static inline bool pci_is_bridge(struct pci_dev *dev)
->  		dev->hdr_type == PCI_HEADER_TYPE_CARDBUS;
->  }
->  
-> +#define for_each_pci_bridge(dev, bus)				\
-> +	list_for_each_entry(dev, &bus->devices, bus_list)	\
-> +		if (!pci_is_bridge(dev)) {} else
-> +
->  static inline struct pci_dev *pci_upstream_bridge(struct pci_dev *dev)
->  {
->  	dev = pci_physfn(dev);
-> -- 
-> 2.14.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Here the count "low_power_idle_cpu_residency_us" shows the time spent
+by CPU package in low power state. This is read via MSR interface, which
+points to MSR for PKG C10.
+
+Here the count "low_power_idle_system_residency_us" show the count the
+system was in low power state. This is read via MMIO interface. This
+is mapped to SLP_S0 residency on modern Intel systems. This residency
+is achieved only when CPU is in PKG C10 and all functional blocks are
+in low power state.
+
+It is possible that none of the above counters present or anyone of the
+counter present or all counters present.
+
+For example: On my Kabylake system both of the above counters present.
+After suspend to idle these counts updated and prints:
+6916179
+6998564
+
+This counter can be read by tools like turbostat to display. Or it can
+be used to debug, if modern systems are reaching desired low power state.
+
+- Provides an interface to read residency counter memory address
+This address can be used to get the base address of PMC memory mapped IO.
+This is utilized by intel_pmc_core driver to print more debug information.
+
+Link: http://www.uefi.org/sites/default/files/resources/Intel_ACPI_Low_Power_S0_Idle.pdf
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+---
+ Documentation/acpi/lpit.txt |  26 ++++++++
+ drivers/acpi/Kconfig        |   5 ++
+ drivers/acpi/Makefile       |   1 +
+ drivers/acpi/acpi_lpit.c    | 157 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/scan.c         |   3 +
+ include/acpi/acpi_lpit.h    |  34 ++++++++++
+ 6 files changed, 226 insertions(+)
+ create mode 100644 Documentation/acpi/lpit.txt
+ create mode 100644 drivers/acpi/acpi_lpit.c
+ create mode 100644 include/acpi/acpi_lpit.h
+
+diff --git a/Documentation/acpi/lpit.txt b/Documentation/acpi/lpit.txt
+new file mode 100644
+index 0000000..6be68c0
+--- /dev/null
++++ b/Documentation/acpi/lpit.txt
+@@ -0,0 +1,26 @@
++To enumerate platform Low Power Idle states, Intel platforms are using
++“Low Power Idle Table” (LPIT). More details about this table can be
++downloaded from:
++http://www.uefi.org/sites/default/files/resources/Intel_ACPI_Low_Power_S0_Idle.pdf
++
++Residencies for each low power state can be read via FFH
++(Function fixed hardware) or a memory mapped interface.
++
++On platforms supporting S0ix sleep states, there can be two types of
++residencies:
++- CPU PKG C10 (Read via FFH interface)
++- Platform Controller Hub (PCH) SLP_S0 (Read via memory mapped interface)
++
++The following attributes are added dynamically to the cpuidle
++sysfs attribute group:
++	/sys/devices/system/cpu/cpuidle/low_power_idle_cpu_residency_us
++	/sys/devices/system/cpu/cpuidle/low_power_idle_system_residency_us
++
++The "low_power_idle_cpu_residency_us" attribute shows time spent
++by the CPU package in PKG C10
++
++The "low_power_idle_system_residency_us" attribute shows SLP_S0
++residency, or system time spent with the SLP_S0# signal asserted.
++This is the lowest possible system power state, achieved only when CPU is in
++PKG C10 and all functional blocks in PCH are in a low power state.
++
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 1ce52f8..4bfef0f 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -80,6 +80,11 @@ endif
+ config ACPI_SPCR_TABLE
+ 	bool
+ 
++config ACPI_LPIT
++	bool
++	depends on X86_64
++	default y
++
+ config ACPI_SLEEP
+ 	bool
+ 	depends on SUSPEND || HIBERNATION
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 90265ab..6a19bd7 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -56,6 +56,7 @@ acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+ acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+ acpi-y				+= acpi_lpat.o
++acpi-$(CONFIG_ACPI_LPIT)	+= acpi_lpit.o
+ acpi-$(CONFIG_ACPI_GENERIC_GSI) += irq.o
+ acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
+ 
+diff --git a/drivers/acpi/acpi_lpit.c b/drivers/acpi/acpi_lpit.c
+new file mode 100644
+index 0000000..38d760d
+--- /dev/null
++++ b/drivers/acpi/acpi_lpit.c
+@@ -0,0 +1,157 @@
++
++/*
++ * acpi_lpit.c - LPIT table processing functions
++ *
++ * Copyright (C) 2017 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/cpu.h>
++#include <linux/acpi.h>
++#include <asm/msr.h>
++#include <asm/tsc.h>
++
++struct lpit_residency_info {
++	struct acpi_generic_address gaddr;
++	u64 frequency;
++	void __iomem *iomem_addr;
++};
++
++/* Storage for an memory mapped and FFH based entries */
++static struct lpit_residency_info residency_info_mem;
++static struct lpit_residency_info residency_info_ffh;
++
++static int lpit_read_residency_counter_us(u64 *counter, bool io_mem)
++{
++	int err;
++
++	if (io_mem) {
++		u32 count;
++
++		count = readl(residency_info_mem.iomem_addr);
++		*counter = div64_u64(count * 1000000ULL, residency_info_mem.frequency);
++		return 0;
++	}
++
++	err = rdmsrl_safe(residency_info_ffh.gaddr.address, counter);
++	if (!err) {
++		u64 mask = GENMASK_ULL(residency_info_ffh.gaddr.bit_offset +
++				       residency_info_ffh.gaddr. bit_width - 1,
++				       residency_info_ffh.gaddr.bit_offset);
++
++		*counter &= mask;
++		*counter >>= residency_info_ffh.gaddr.bit_offset;
++		*counter = div64_u64(*counter * 1000000ULL, residency_info_ffh.frequency);
++		return 0;
++	}
++
++	return -ENODATA;
++}
++
++static ssize_t low_power_idle_system_residency_us_show(struct device *dev,
++						       struct device_attribute *attr,
++						       char *buf)
++{
++	u64 counter;
++	int ret;
++
++	ret = lpit_read_residency_counter_us(&counter, true);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%llu\n", counter);
++}
++static DEVICE_ATTR_RO(low_power_idle_system_residency_us);
++
++static ssize_t low_power_idle_cpu_residency_us_show(struct device *dev,
++						    struct device_attribute *attr,
++						    char *buf)
++{
++	u64 counter;
++	int ret;
++
++	ret = lpit_read_residency_counter_us(&counter, false);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%llu\n", counter);
++}
++static DEVICE_ATTR_RO(low_power_idle_cpu_residency_us);
++
++int lpit_read_residency_count_address(u64 *address)
++{
++	if (!residency_info_mem.gaddr.address)
++		return -EINVAL;
++
++	*address = residency_info_mem.gaddr.address;
++
++	return 0;
++}
++
++static void lpit_update_residency(struct lpit_residency_info *info,
++				 struct acpi_lpit_native *lpit_native)
++{
++	info->frequency = lpit_native->counter_frequency ?
++				lpit_native->counter_frequency : tsc_khz * 1000;
++	if (!info->frequency)
++		info->frequency = 1;
++
++	info->gaddr = lpit_native->residency_counter;
++	if (info->gaddr.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
++		info->iomem_addr = ioremap_nocache(info->gaddr.address,
++						   info->gaddr.bit_width / 8);
++		if (!info->iomem_addr)
++			return;
++
++		/* Silently fail, if cpuidle attribute group is not present */
++		sysfs_add_file_to_group(&cpu_subsys.dev_root->kobj,
++					&dev_attr_low_power_idle_system_residency_us.attr,
++					"cpuidle");
++	} else if (info->gaddr.space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) {
++		/* Silently fail, if cpuidle attribute group is not present */
++		sysfs_add_file_to_group(&cpu_subsys.dev_root->kobj,
++					&dev_attr_low_power_idle_cpu_residency_us.attr,
++					"cpuidle");
++	}
++}
++
++static void lpit_process(u64 begin, u64 end)
++{
++	while (begin + sizeof(struct acpi_lpit_native) < end) {
++		struct acpi_lpit_native *lpit_native = (struct acpi_lpit_native *)begin;
++
++		if (!lpit_native->header.type && !lpit_native->header.flags) {
++			if (lpit_native->residency_counter.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY &&
++			    !residency_info_mem.gaddr.address) {
++				lpit_update_residency(&residency_info_mem, lpit_native);
++			} else if (lpit_native->residency_counter.space_id == ACPI_ADR_SPACE_FIXED_HARDWARE &&
++				   !residency_info_ffh.gaddr.address) {
++				lpit_update_residency(&residency_info_ffh, lpit_native);
++			}
++		}
++		begin += lpit_native->header.length;
++	}
++}
++
++void acpi_init_lpit(void)
++{
++	acpi_status status;
++	u64 lpit_begin;
++	struct acpi_table_lpit *lpit;
++
++	status = acpi_get_table(ACPI_SIG_LPIT, 0, (struct acpi_table_header **)&lpit);
++
++	if (ACPI_FAILURE(status))
++		return;
++
++	lpit_begin = (u64)lpit + sizeof(*lpit);
++	lpit_process(lpit_begin, lpit_begin + lpit->header.length);
++}
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 602f8ff..3f05d43 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -15,6 +15,8 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/platform_data/x86/apple.h>
+ 
++#include <acpi/acpi_lpit.h>
++
+ #include <asm/pgtable.h>
+ 
+ #include "internal.h"
+@@ -2122,6 +2124,7 @@ int __init acpi_scan_init(void)
+ 	acpi_int340x_thermal_init();
+ 	acpi_amba_init();
+ 	acpi_watchdog_init();
++	acpi_init_lpit();
+ 
+ 	acpi_scan_add_handler(&generic_device_handler);
+ 
+diff --git a/include/acpi/acpi_lpit.h b/include/acpi/acpi_lpit.h
+new file mode 100644
+index 0000000..5d5285a
+--- /dev/null
++++ b/include/acpi/acpi_lpit.h
+@@ -0,0 +1,34 @@
++/*
++ * acpi_lpit.h - LPIT table processing functions interface
++ *
++ * Copyright (C) 2017 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef ACPI_LPIT_H
++#define ACPI_LPIT_H
++
++#ifdef CONFIG_ACPI_LPIT
++
++void acpi_init_lpit(void);
++int lpit_read_residency_count_address(u64 *address);
++
++#else
++
++static inline void acpi_init_lpit(void) { }
++
++static inline int lpit_read_residency_count_address(u64 *address)
++{
++	return -EINVAL;
++}
++
++#endif
++#endif
+-- 
+2.7.5
+
