@@ -1,169 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference to `__udivdi3'
-Date: Wed, 04 Oct 2017 01:44:55 +0200
-Message-ID: <1613813.8GnoMyR66V@aspire.rjw.lan>
-References: <201710031050.2Iy92vzG%fengguang.wu@intel.com> <1959321.5JVcEPhjSi@aspire.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E37E613222@ORSMSX110.amr.corp.intel.com>
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Danis?=
+        <frederic.danis.oss@gmail.com>
+Subject: [PATCH 0/2] ACPI serdev support
+Date: Wed,  4 Oct 2017 10:51:28 +0200
+Message-ID: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59735 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750865AbdJCXyR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Oct 2017 19:54:17 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E613222@ORSMSX110.amr.corp.intel.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:57253 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751736AbdJDIvd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Oct 2017 04:51:33 -0400
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wu, Fengguang" <fengguang.wu@intel.com>, "kbuild-all@01.org" <kbuild-all@01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+To: robh@kernel.org, marcel@holtmann.org, sre@kernel.org, loic.poulain@gmail.com, johan@kernel.org, lukas@wunner.de, hdegoede@redhat.com
+Cc: linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, frederic.danis.oss@gmail.com
 
-On Tuesday, October 3, 2017 11:44:38 PM CEST Moore, Robert wrote:
-> 
-> > -----Original Message-----
-> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > Sent: Tuesday, October 3, 2017 2:18 PM
-> > To: Moore, Robert <robert.moore@intel.com>
-> > Cc: Rafael J. Wysocki <rafael@kernel.org>; Zheng, Lv
-> > <lv.zheng@intel.com>; Wu, Fengguang <fengguang.wu@intel.com>; kbuild-
-> > all@01.org; linux-acpi@vger.kernel.org; devel@acpica.org; linux-
-> > pm@vger.kernel.org
-> > Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined reference
-> > to `__udivdi3'
-> > 
-> > On Tuesday, October 3, 2017 11:23:36 PM CEST Moore, Robert wrote:
-> > >
-> > > > -----Original Message-----
-> > > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > > > Sent: Tuesday, October 3, 2017 2:07 PM
-> > > > To: Moore, Robert <robert.moore@intel.com>
-> > > > Cc: Rafael J. Wysocki <rafael@kernel.org>; Zheng, Lv
-> > > > <lv.zheng@intel.com>; Wu, Fengguang <fengguang.wu@intel.com>;
-> > > > kbuild- all@01.org; linux-acpi@vger.kernel.org; devel@acpica.org;
-> > > > linux- pm@vger.kernel.org
-> > > > Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined
-> > > > reference to `__udivdi3'
-> > > >
-> > > > On Tuesday, October 3, 2017 10:50:11 PM CEST Rafael J. Wysocki
-> > wrote:
-> > > > > On Tuesday, October 3, 2017 9:41:23 PM CEST Moore, Robert wrote:
-> > > > > >
-> > > > > > > -----Original Message-----
-> > > > > > > From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On
-> > > > > > > Behalf Of Rafael J. Wysocki
-> > > > > > > Sent: Tuesday, October 3, 2017 11:21 AM
-> > > > > > > To: Moore, Robert <robert.moore@intel.com>
-> > > > > > > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>; Zheng, Lv
-> > > > > > > <lv.zheng@intel.com>; Wu, Fengguang <fengguang.wu@intel.com>;
-> > > > > > > kbuild- all@01.org; linux-acpi@vger.kernel.org;
-> > > > > > > devel@acpica.org;
-> > > > > > > linux- pm@vger.kernel.org
-> > > > > > > Subject: Re: [pm:bleeding-edge 12/41] utstrsuppt.c:undefined
-> > > > > > > reference to `__udivdi3'
-> > > > > > >
-> > > > > > > On Tue, Oct 3, 2017 at 6:43 PM, Moore, Robert
-> > > > > > > <robert.moore@intel.com>
-> > > > > > > wrote:
-> > > > > > > >
-> > > > > > > >
-> > > > > > > >> -----Original Message-----
-> > > > > > > >> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > > > > > > >> Sent: Tuesday, October 3, 2017 4:32 AM
-> > > > > > > >> To: Moore, Robert <robert.moore@intel.com>; Zheng, Lv
-> > > > > > > >> <lv.zheng@intel.com>
-> > > > > > > >> Cc: Wu, Fengguang <fengguang.wu@intel.com>;
-> > > > > > > >> kbuild-all@01.org;
-> > > > > > > >> linux- acpi@vger.kernel.org; devel@acpica.org;
-> > > > > > > >> linux-pm@vger.kernel.org
-> > > > > > > >> Subject: Re: [pm:bleeding-edge 12/41]
-> > > > > > > >> utstrsuppt.c:undefined reference to `__udivdi3'
-> > > > > > > >>
-> > > > > > > >> On Tuesday, October 3, 2017 4:25:52 AM CEST kbuild test
-> > > > > > > >> robot
-> > > > wrote:
-> > > > > > > >> > tree:
-> > > > > > > https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-
-> > > > > > > >> pm.git bleeding-edge
-> > > > > > > >> > head:   09b089a247ea7272df93a2116368bf24b656cd65
-> > > > > > > >> > commit: 05545b3fb6eab35290413211617793bc274e136b [12/41]
-> > > > ACPICA:
-> > > > > > > >> Restructure/cleanup all string-to-integer conversion
-> > > > > > > >> functions
-> > > > > > > >> > config: i386-defconfig (attached as .config)
-> > > > > > > >> > compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
-> > > > > > > >> > reproduce:
-> > > > > > > >> >         git checkout
-> > 05545b3fb6eab35290413211617793bc274e136b
-> > > > > > > >> >         # save the attached .config to linux build tree
-> > > > > > > >> >         make ARCH=i386
-> > > > > > > >> >
-> > > > > > > >> > All errors (new ones prefixed by >>):
-> > > > > > > >> >
-> > > > > > > >> >    drivers/acpi/acpica/utstrsuppt.o: In function
-> > > > > > > >> `acpi_ut_insert_digit':
-> > > > > > > >> > >> utstrsuppt.c:(.text+0x33): undefined reference to
-> > > > `__udivdi3'
-> > > > > > > >>
-> > > > > > > >> __udivdi3() doesn't work on 32-bit x86 AFAICS.
-> > > > > > > >>
-> > > > > > > >> Can we avoid using it or at least put it under #ifdef
-> > somehow?
-> > > > > > > > [Moore, Robert]
-> > > > > > > >
-> > > > > > > >
-> > > > > > > > I take it that __udivdi3 is a 64-bit divide?
-> > > > > > >
-> > > > > > > Practically, yes (AFAICS).
-> > > > > > >
-> > > > > > > > We do have a local divide implementation(s) for things like
-> > > > this.
-> > > > > > > >
-> > > > > > > > However, I don't see a divide in ut_insert_digit; There is a
-> > > > > > > > 64-bit
-> > > > > > > divide in ut_strtoul_add_64, however.
-> > > > > > [Moore, Robert]
-> > > > > >
-> > > > > > Oops, sorry. The divided is in strtoul_multiply_64. We are
-> > > > > > checking for an overflow condition up front.
-> > > > >
-> > > > > But this is a plain division, so it looks like a build system or
-> > > > > compiler issue to me.
-> > > >
-> > > > Well, OK.  Plain u64 / u64 divisions need to be avoided for stuff to
-> > > > build on 32-bit x86.
-> > > >
-> > > [Moore, Robert]
-> > >
-> > > Even u64/u32.
-> > >
-> > > Anyway, this is no problem to change since we already have the
-> > functionality locally.
-> > 
-> > OK
-> > 
-> > Can you please send me a patch against upstream ACPICA to change this?
-> > 
-> > I'll try do fold it in. :-)
-> [Moore, Robert] 
-> 
-> I'll need to do it and then run some tests on it, so when it is done, I'll send it. I envision 2
-> 
-> [Moore, Robert] I think it will look something like this:
-> 
->     UINT64                  Quotient;
-> 
-> ...
-> 
->     /* Check for 64-bit overflow before the actual multiplication */
-> 
->     AcpiUtShortDivide (ACPI_UINT64_MAX, (UINT32) Multiplier, &Quotient, NULL);
->     if (Multiplicand > Quotient)
->     {
->         return (AE_NUMERIC_OVERFLOW);
->     }
+Add ACPI support for serial attached devices.
 
-OK, thanks!
+Currently, serial devices are not set as enumerated during ACPI scan for SPI
+or i2c buses (but not for UART). This should also be done for UART serial
+devices.
+I renamed *spi_i2c_slave* to *serial_bus_slave* to reflect this.
 
-I hope I have not butchered it. :-)
+For hci_bcm, this needs Hans de Goede's "Bluetooth: hci_bcm: Add (runtime)pm
+support to the serdev drv" patches to work.
 
-Anyway, it's in my bleeding-edge branch now.
+Tested on T100TA with Broadcom BCM2E39.
+
+Since RFC:
+  - Add or reword commit messages
+  - Rename *serial_slave* to *serial_bus_slave*
+  - Add specific check for Apple in acpi_is_serial_bus_slave(), thanks to
+    Lukas Wunner
+  - Update comment in acpi_default_enumeration()
+  - Remove patch 3 "Bluetooth: hci_bcm: Add ACPI serdev support for BCM2E39"
+    in favor of patches from Hans de Goede
+
+Frédéric Danis (2):
+  serdev: Add ACPI support
+  ACPI / scan: Fix enumeration for special UART devices
+
+ drivers/acpi/scan.c       | 37 ++++++++----------
+ drivers/tty/serdev/core.c | 99 ++++++++++++++++++++++++++++++++++++++++++++---
+ include/acpi/acpi_bus.h   |  2 +-
+ 3 files changed, 112 insertions(+), 26 deletions(-)
+
+-- 
+2.7.4
 
