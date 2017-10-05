@@ -1,53 +1,86 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCH 0/2] ACPI serdev support
-Date: Thu, 5 Oct 2017 17:21:50 +0200
-Message-ID: <A58D9E0F-99FC-4C13-95E8-F60EC61C18B2@holtmann.org>
-References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.0 \(3445.1.6\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/1] device properties: Fix return codes for __acpi_node_get_property_reference
+Date: Thu, 05 Oct 2017 17:30:37 +0200
+Message-ID: <2032313.C0WbF9e4VT@aspire.rjw.lan>
+References: <20171005060424.16780-1-sakari.ailus@linux.intel.com> <14664181.1rcyu63NdN@aspire.rjw.lan> <20171005140147.epmyxhcc7dtlam27@kekkonen.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from coyote.holtmann.net ([212.227.132.17]:59896 "EHLO
-        mail.holtmann.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751286AbdJEPVw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2017 11:21:52 -0400
-In-Reply-To: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46023 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751429AbdJEPkC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2017 11:40:02 -0400
+In-Reply-To: <20171005140147.epmyxhcc7dtlam27@kekkonen.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?utf-8?Q?Fr=C3=A9d=C3=A9ric_Danis?= <frederic.danis.oss@gmail.com>
-Cc: Rob Herring <robh@kernel.org>, Sebastian Reichel <sre@kernel.org>, Loic Poulain <loic.poulain@gmail.com>, Johan Hovold <johan@kernel.org>, Lukas Wunner <lukas@wunner.de>, Hans de Goede <hdegoede@redhat.com>, "bluez mailin list (linux-bluetooth@vger.kernel.org)" <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <greg@kroah.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, mika.westerberg@intel.com, hyungwoo.yang@intel.com
 
-Hi Fred,
-
-> Add ACPI support for serial attached devices.
+On Thursday, October 5, 2017 4:01:48 PM CEST Sakari Ailus wrote:
+> Hi Rafael,
 > 
-> Currently, serial devices are not set as enumerated during ACPI scan for SPI
-> or i2c buses (but not for UART). This should also be done for UART serial
-> devices.
-> I renamed *spi_i2c_slave* to *serial_bus_slave* to reflect this.
+> On Thu, Oct 05, 2017 at 02:59:45PM +0200, Rafael J. Wysocki wrote:
+> > On Thursday, October 5, 2017 8:04:24 AM CEST Sakari Ailus wrote:
+> > > Fix more return codes for device property: Align return codes of
+> > > __acpi_node_get_property_reference. In particular what was missed
+> > > previously:
+> > > 
+> > > -EPROTO could be returned in certain cases, now -EINVAL;
+> > > -EINVAL was returned if the property was not found, now -ENOENT;
+> > > -EINVAL was returned also if the index was higher than the number of
+> > > entries in a package, now -ENOENT.
+> > > 
+> > > Fixes: ("device property: Align return codes of __acpi_node_get_property_reference")
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > Tested-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+> > > ---
+> > > Hi Rafael,
+> > > 
+> > > Unfortunately the patch I posted the previous time to remedy the issue
+> > > ("device property: Align return codes of
+> > > _acpi_node_get_property_reference") did not fully fix the issue.
+> > 
+> > OK, thanks for letting me know, but why didn't it?
 > 
-> For hci_bcm, this needs Hans de Goede's "Bluetooth: hci_bcm: Add (runtime)pm
-> support to the serdev drv" patches to work.
+> My testing appears to have been more limited than I thought, Hyungwoo later
+> on found this out. (Reported-by: Hyungwoo... would be appropriate, I'll add
+> that the next time.)
 > 
-> Tested on T100TA with Broadcom BCM2E39.
+> > 
+> > >  drivers/acpi/property.c | 20 +++++++++++++++-----
+> > >  1 file changed, 15 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> > > index 5a8ac5e1081b..8c28c516e7ec 100644
+> > > --- a/drivers/acpi/property.c
+> > > +++ b/drivers/acpi/property.c
+> > > @@ -592,8 +592,16 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+> > >  		return -ENOENT;
+> > >  
+> > >  	ret = acpi_data_get_property(data, propname, ACPI_TYPE_ANY, &obj);
+> > > -	if (ret)
+> > > -		return ret;
+> > > +	switch (ret) {
+> > > +	case -EINVAL:
+> > > +		return -ENOENT;
+> > > +	case -EPROTO:
+> > > +		return -EINVAL;
+> > > +	default:
+> > > +		if (ret)
+> > > +			return ret;
+> > > +		break;
+> > > +	}
+> > 
+> > To be clear, I'm not going to apply anything like the above.
 > 
-> Since RFC:
->  - Add or reword commit messages
->  - Rename *serial_slave* to *serial_bus_slave*
->  - Add specific check for Apple in acpi_is_serial_bus_slave(), thanks to
->    Lukas Wunner
->  - Update comment in acpi_default_enumeration()
->  - Remove patch 3 "Bluetooth: hci_bcm: Add ACPI serdev support for BCM2E39"
->    in favor of patches from Hans de Goede
+> On exactly what grounds? You don't like the combination of switch and if,
+> or because of the return values themselves? Or something else?
 
-I already applied Hans’ patch series to bluetooth-next tree. And I have no objections or comments for these changes. They should be reviewed and acked by the appropriate maintainers as well, but from my side this looks good.
+I just don't like changing error codes into different ones on the fly like
+this.  It always indicates some bad design somewhere and this particular
+piece of code just goes over the top with that IMO.
 
-Acked-by: Marcel Holtmann <marcel@holtmann.org>
-
-What we should discuss on how we get them upstream since besides the Bluetooth subsystem, they cover ACPI and TTY subsystems.
-
-Regards
-
-Marcel
+Thanks,
+Rafael
 
