@@ -1,91 +1,132 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] Revert "Bluetooth: btusb: Add workaround for Broadcom devices without product id"
-Date: Thu,  5 Oct 2017 09:42:51 +0200
-Message-ID: <20171005074251.7274-1-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51202 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751363AbdJEHmy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 5 Oct 2017 03:42:54 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Daniel Drake <drake@endlessm.com>
+Subject: r8169 Wake-on-LAN causes immediate ACPI GPE wakeup
+Date: Thu, 5 Oct 2017 16:57:37 +0800
+Message-ID: <CAD8Lp45YVtw48+8jSq6gtu1xA7Rt+qr6vvVZF4AC-QXeCKNj4w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: nic_swsd@realtek.com, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>
+Cc: Linux Upstreaming Team <linux@endlessm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Danis?= <frederic.danis.oss@gmail.com>, Sebastian Reichel <sre@kernel.org>, robh@kernel.org, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Commit 9834e586fa ("Bluetooth: btusb: Add workaround for Broadcom devices
-without product id") was added to deal with the BT part of the BCM4356A2
-on GPD pocket laptops having an usb vid:pid of 0000:0000.
+Hi,
 
-After another commit to add support for the BCM UART connected BT ACPI-id
-BCM2E7E used on the GPD win, it turns out that the BT on the GPD pocket is
-connected via both USB and UART. Adding support for the BCM2E7E ACPI-id
-causes it to switch to UART mode.
+On the Acer laptop models Aspire ES1-533, Aspire ES1-732, PackardBell
+ENTE69AP and Gateway NE533, we are seeing a problem where the system
+immediately wakes up after being put into S3 suspend.
 
-The Windows shipped with the device is using it in UART mode and the
-presence of the BCM2E7E ACPI-id combined with the 0 USB vid:pid also
-indicates that the BT part was never meant to be used in USB mode.
+This problem has been seen on all kernel versions that we have tried,
+including 4.14-rc3.
 
-But not only is there no need to support the USB mode, supporting it
-actually is troublesome, because with the workaround to support the all 0
-USB vid:pid, BT will just work for end users, until we add support for
-the ACPI-id, after which users need to have userspace doing a btattach,
-which may be considered a regression.
+After disabling wakeup sources one by one, we found that the r8169
+ethernet is responsible for these wakeups here, the hardware is:
 
-To avoid this regression when switching things over to UART mode as
-intended by the ACPI tables all along, this commit reverts the commit
-adding the workaround to support the all 0 USB vid:pid.
+01:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
+RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller (rev 15)
+    Subsystem: Acer Incorporated [ALI] Device 1084
+    Flags: bus master, fast devsel, latency 0, IRQ 124
+    I/O ports at 1000 [size=256]
+    Memory at 91204000 (64-bit, non-prefetchable) [size=4K]
+    Memory at 91200000 (64-bit, non-prefetchable) [size=16K]
+    Capabilities: [40] Power Management version 3
+    Capabilities: [50] MSI: Enable+ Count=1/1 Maskable- 64bit+
+    Capabilities: [70] Express Endpoint, MSI 01
+    Capabilities: [b0] MSI-X: Enable- Count=4 Masked-
+    Capabilities: [100] Advanced Error Reporting
+    Capabilities: [140] Virtual Channel
+    Capabilities: [160] Device Serial Number 01-00-00-00-68-4c-e0-00
+    Capabilities: [170] Latency Tolerance Reporting
+    Capabilities: [178] L1 PM Substates
+    Kernel driver in use: r8169
 
-This reverts commit 9834e586fa ("Bluetooth: btusb: Add workaround for
-Broadcom devices without product id").
+This driver enables WOL by default. The system wakes up immediately
+when it is put into S3 suspend, even if there is no ethernet cable
+plugged in.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/bluetooth/btusb.c | 18 ------------------
- 1 file changed, 18 deletions(-)
+The problem was also reproduced with the r8168 vendor driver, however
+it does not occur under Windows, where we can suspend the system just
+fine and also wake it up with a magic WOL packet.
 
-diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 7a5c06aaa181..c054d7bce490 100644
---- a/drivers/bluetooth/btusb.c
-+++ b/drivers/bluetooth/btusb.c
-@@ -66,7 +66,6 @@ static struct usb_driver btusb_driver;
- #define BTUSB_BCM2045		0x40000
- #define BTUSB_IFNUM_2		0x80000
- #define BTUSB_CW6622		0x100000
--#define BTUSB_BCM_NO_PRODID	0x200000
- 
- static const struct usb_device_id btusb_table[] = {
- 	/* Generic Bluetooth USB device */
-@@ -171,10 +170,6 @@ static const struct usb_device_id btusb_table[] = {
- 	{ USB_VENDOR_AND_INTERFACE_INFO(0x0930, 0xff, 0x01, 0x01),
- 	  .driver_info = BTUSB_BCM_PATCHRAM },
- 
--	/* Broadcom devices with missing product id */
--	{ USB_DEVICE_AND_INTERFACE_INFO(0x0000, 0x0000, 0xff, 0x01, 0x01),
--	  .driver_info = BTUSB_BCM_PATCHRAM | BTUSB_BCM_NO_PRODID },
--
- 	/* Intel Bluetooth USB Bootloader (RAM module) */
- 	{ USB_DEVICE(0x8087, 0x0a5a),
- 	  .driver_info = BTUSB_INTEL_BOOT | BTUSB_BROKEN_ISOC },
-@@ -2909,19 +2904,6 @@ static int btusb_probe(struct usb_interface *intf,
- 	if (id->driver_info == BTUSB_IGNORE)
- 		return -ENODEV;
- 
--	if (id->driver_info & BTUSB_BCM_NO_PRODID) {
--		struct usb_device *udev = interface_to_usbdev(intf);
--
--		/* For the broken Broadcom devices that show 0000:0000
--		 * as USB vendor and product information, check that the
--		 * manufacturer string identifies them as Broadcom based
--		 * devices.
--		 */
--		if (!udev->manufacturer ||
--		    strcmp(udev->manufacturer, "Broadcom Corp"))
--			return -ENODEV;
--	}
--
- 	if (id->driver_info & BTUSB_ATH3012) {
- 		struct usb_device *udev = interface_to_usbdev(intf);
- 
--- 
-2.14.2
+Further investigation takes us into ACPI-land. The complete DSDT is here:
+https://gist.github.com/dsd/62293b6d8c30a5204128709813a55ffb
 
+Both Windows and Linux associate PCI0.RP05.PXSX with this device, so
+let's consider this part of the DSDT:
+
+  Device (RP05)
+  {
+      Method (_ADR, 0, NotSerialized)  // _ADR: Address
+      {
+          If (RPA5 != Zero)
+          {
+              Return (RPA5) /* \RPA5 */
+          }
+          Else
+          {
+              Return (0x00130002)
+          }
+      }
+
+      Method (_PRW, 0, NotSerialized)  // _PRW: Power Resources for Wake
+      {
+          Return (GPRW (0x09, 0x04))
+      }
+
+      Device (PXSX)
+      {
+          Name (_ADR, Zero)  // _ADR: Address
+          Name (_PRW, Package (0x02)  // _PRW: Power Resources for Wake
+          {
+              0x08,
+              0x04
+          })
+      }
+
+  }
+
+RP05 corresponds to
+00:13.0 PCI bridge: Intel Corporation Device 5ada (rev fb)
+
+I am not familiar with this subdevice approach, where PXSX (with
+address 0) is detected as a child of the PCI bridge, however both
+Windows and Linux associate PXSX with the ethernet device, so I guess
+it is correct.
+
+Now to focus on the _PRW power resource for wakeup. The PXSX
+(ethernet) device says that it will wake up the system using GPE08.
+However if you look at the _L08 GPE08 event handler, you will see that
+it does not do anything related to RP05/PXSX (it instead calls into
+RP02, which does not even physically exist on this platform) -
+suspicious.
+
+On the other hand, the RP05 (root port) _PRW says it will wake up the
+system via GPE09, and the _L09 handler at least has one codepath which
+could potentially do a Notify(PXSX, 2) to indicate an ethernet wakeup.
+
+But in testing:
+ - If GPE08 is enabled as a wakeup source, the system will always wake
+up as soon as it goes to sleep
+ - I have never seen a wakeup on GPE09
+ - Disabling GPE08 and all other GPE wakeups, the system sleeps fine,
+and Wake-on-LAN works fine too
+
+So in summary, the messy situation is that the DSDT suggests that
+GPE08 will be used for ethernet wakeups, however that GPE seems to
+fire instantly during suspend, and actually wake-on-LAN does not
+appear to use ACPI GPEs to wake the system it all - it must use some
+other mechanism. Windows is for some reason ignoring the ethernet
+device _PRW information so it does not suffer this issue.
+
+Does anyone have suggestions for how Linux should work with this?
+
+What logic should we use to ignore the _PRW in this case, or how can
+we quirk it?
+
+Also, is there a standard behaviour defined for ethernet drivers
+regarding wake-on-LAN? r8169 appears to enable wake-on-LAN by default
+if it believes the hardware is capable of it, but other ethernet
+drivers seem to default to WOL off. (I don't expect users of the
+affected consumer laptops here to care about WOL support.)
+
+Daniel
