@@ -1,86 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/1] device properties: Fix return codes for __acpi_node_get_property_reference
-Date: Thu, 05 Oct 2017 17:30:37 +0200
-Message-ID: <2032313.C0WbF9e4VT@aspire.rjw.lan>
-References: <20171005060424.16780-1-sakari.ailus@linux.intel.com> <14664181.1rcyu63NdN@aspire.rjw.lan> <20171005140147.epmyxhcc7dtlam27@kekkonen.localdomain>
+From: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 9/9] Bluetooth: hci_bcm: Add (runtime)pm support to the
+ serdev driver
+Date: Thu, 5 Oct 2017 19:53:43 +0200
+Message-ID: <2487535c-18b4-c689-3c67-d1261b21feee@redhat.com>
+References: <20171004184343.7855-1-hdegoede@redhat.com>
+ <20171004184343.7855-9-hdegoede@redhat.com>
+ <DFCF661F-6FE0-4449-A169-D71ED9282074@holtmann.org>
+ <1389d64c-17aa-c6a1-d56f-6c2fe877f247@redhat.com>
+ <17592E57-3A4B-4386-B809-9EA928D38FDD@holtmann.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46023 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751429AbdJEPkC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2017 11:40:02 -0400
-In-Reply-To: <20171005140147.epmyxhcc7dtlam27@kekkonen.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <17592E57-3A4B-4386-B809-9EA928D38FDD-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
+Content-Language: en-US
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
+Cc: "Gustavo F. Padovan" <gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org>, Johan Hedberg <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bluez mailin list (linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, mika.westerberg@intel.com, hyungwoo.yang@intel.com
 
-On Thursday, October 5, 2017 4:01:48 PM CEST Sakari Ailus wrote:
-> Hi Rafael,
-> 
-> On Thu, Oct 05, 2017 at 02:59:45PM +0200, Rafael J. Wysocki wrote:
-> > On Thursday, October 5, 2017 8:04:24 AM CEST Sakari Ailus wrote:
-> > > Fix more return codes for device property: Align return codes of
-> > > __acpi_node_get_property_reference. In particular what was missed
-> > > previously:
-> > > 
-> > > -EPROTO could be returned in certain cases, now -EINVAL;
-> > > -EINVAL was returned if the property was not found, now -ENOENT;
-> > > -EINVAL was returned also if the index was higher than the number of
-> > > entries in a package, now -ENOENT.
-> > > 
-> > > Fixes: ("device property: Align return codes of __acpi_node_get_property_reference")
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > Tested-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
-> > > ---
-> > > Hi Rafael,
-> > > 
-> > > Unfortunately the patch I posted the previous time to remedy the issue
-> > > ("device property: Align return codes of
-> > > _acpi_node_get_property_reference") did not fully fix the issue.
-> > 
-> > OK, thanks for letting me know, but why didn't it?
-> 
-> My testing appears to have been more limited than I thought, Hyungwoo later
-> on found this out. (Reported-by: Hyungwoo... would be appropriate, I'll add
-> that the next time.)
-> 
-> > 
-> > >  drivers/acpi/property.c | 20 +++++++++++++++-----
-> > >  1 file changed, 15 insertions(+), 5 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> > > index 5a8ac5e1081b..8c28c516e7ec 100644
-> > > --- a/drivers/acpi/property.c
-> > > +++ b/drivers/acpi/property.c
-> > > @@ -592,8 +592,16 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
-> > >  		return -ENOENT;
-> > >  
-> > >  	ret = acpi_data_get_property(data, propname, ACPI_TYPE_ANY, &obj);
-> > > -	if (ret)
-> > > -		return ret;
-> > > +	switch (ret) {
-> > > +	case -EINVAL:
-> > > +		return -ENOENT;
-> > > +	case -EPROTO:
-> > > +		return -EINVAL;
-> > > +	default:
-> > > +		if (ret)
-> > > +			return ret;
-> > > +		break;
-> > > +	}
-> > 
-> > To be clear, I'm not going to apply anything like the above.
-> 
-> On exactly what grounds? You don't like the combination of switch and if,
-> or because of the return values themselves? Or something else?
+Hi,
 
-I just don't like changing error codes into different ones on the fly like
-this.  It always indicates some bad design somewhere and this particular
-piece of code just goes over the top with that IMO.
+On 05-10-17 17:15, Marcel Holtmann wrote:
+> Hi Hans,
+> 
+>>>> Make the serdev driver use struct bcm_device as its driver data and share
+>>>> all the pm / GPIO / IRQ related code paths with the platform driver.
+>>>>
+>>>> After this commit the 2 drivers are in essence the same and the serdev
+>>>> driver interface can be used for all ACPI enumerated HCI UARTs.
+>>>>
+>>>> Signed-off-by: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>>>> ---
+>>>> drivers/bluetooth/hci_bcm.c | 118 +++++++++++++++++++++++++-------------------
+>>>> 1 file changed, 68 insertions(+), 50 deletions(-)
+>>> all 9 patches have been applied to bluetooth-next tree.
+>>
+>> Excellent, thank you!
+>>
+>> So I guess this means we can also move forward with getting
+>> the 2 patches from Frédéric Danis merged ? There is a bit
+>> of a bisect-ability problem there, if the acpi pull-req
+>> gets merged first then uart attached bcm bt will stop
+>> working until the bluetooth subsys is also merged.
+>>
+>> But I don't think this will impact a lot of users
+>> (also given the need for a manual btattach so far),
+>> so I don't think this is a big problem... ?
+> 
+> I wonder if we should just do this as all-in-one change for 4.15 kernel. We surely can get the ACPI changes into 4.15 and the Bluetooth changes as well. Then it should just work.
+> 
+> So I am leaning to just adding the revert patch into the bluetooth-next tree and then just add the ACPI PnP ID for the GPD device in the same pull request. And if the ACPI changes make it then nobody will know the difference that we switched from USB to UART.
 
-Thanks,
-Rafael
+Yes that should work fine.
 
+Regards,
+
+Hans
