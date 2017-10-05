@@ -1,95 +1,218 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/1] device properties: Fix return codes for __acpi_node_get_property_reference
-Date: Thu, 05 Oct 2017 14:59:45 +0200
-Message-ID: <14664181.1rcyu63NdN@aspire.rjw.lan>
-References: <20171005060424.16780-1-sakari.ailus@linux.intel.com>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v8 3/5] iommu/of: Add msi address regions reservation
+ helper
+Date: Thu, 5 Oct 2017 14:08:45 +0100
+Message-ID: <82272c18-717d-bbaf-b8c3-61785af496bd@huawei.com>
+References: <20170927133241.21036-1-shameerali.kolothum.thodi@huawei.com>
+ <20170927133241.21036-4-shameerali.kolothum.thodi@huawei.com>
+ <f3146f49-6004-7a15-866b-653e3ea54856@arm.com>
+ <20171004135007.GA12327@red-moon>
+ <5c80f292-dc5d-a1c6-d7a0-df2a84cc77d1@arm.com>
+ <d525f112-fb20-d14b-bea0-6547c8b933dd@huawei.com>
+ <cd4d3ad0-317e-6b7b-c5f4-f4e6eac3ee10@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46309 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751280AbdJENJI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2017 09:09:08 -0400
-In-Reply-To: <20171005060424.16780-1-sakari.ailus@linux.intel.com>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:7494 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751280AbdJENJU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2017 09:09:20 -0400
+In-Reply-To: <cd4d3ad0-317e-6b7b-c5f4-f4e6eac3ee10@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, mika.westerberg@intel.com, hyungwoo.yang@intel.com
+To: Robin Murphy <robin.murphy@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, sudeep.holla@arm.com, will.deacon@arm.com, joro@8bytes.org, mark.rutland@arm.com, robh@kernel.org, gabriele.paoloni@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com
 
-On Thursday, October 5, 2017 8:04:24 AM CEST Sakari Ailus wrote:
-> Fix more return codes for device property: Align return codes of
-> __acpi_node_get_property_reference. In particular what was missed
-> previously:
-> 
-> -EPROTO could be returned in certain cases, now -EINVAL;
-> -EINVAL was returned if the property was not found, now -ENOENT;
-> -EINVAL was returned also if the index was higher than the number of
-> entries in a package, now -ENOENT.
-> 
-> Fixes: ("device property: Align return codes of __acpi_node_get_property_reference")
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Tested-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
-> ---
-> Hi Rafael,
-> 
-> Unfortunately the patch I posted the previous time to remedy the issue
-> ("device property: Align return codes of
-> _acpi_node_get_property_reference") did not fully fix the issue.
+On 05/10/2017 13:44, Robin Murphy wrote:
+> On 05/10/17 13:37, John Garry wrote:
+>> On 05/10/2017 12:07, Robin Murphy wrote:
+>>> On 04/10/17 14:50, Lorenzo Pieralisi wrote:
+>>>> On Wed, Oct 04, 2017 at 12:22:04PM +0100, Marc Zyngier wrote:
+>>>>> On 27/09/17 14:32, Shameer Kolothum wrote:
+>>>>>> From: John Garry <john.garry@huawei.com>
+>>>>>>
+>>>>>> On some platforms msi-controller address regions have to be excluded
+>>>>>> from normal IOVA allocation in that they are detected and decoded in
+>>>>>> a HW specific way by system components and so they cannot be
+>>>>>> considered
+>>>>>> normal IOVA address space.
+>>>>>>
+>>>>>> Add a helper function that retrieves msi address regions through
+>>>>>> device
+>>>>>> tree msi mapping, so that these regions will not be translated by
+>>>>>> IOMMU
+>>>>>> and will be excluded from IOVA allocations.
+>>>>>>
+>>>>>> Signed-off-by: John Garry <john.garry@huawei.com>
+>>>>>> [Shameer: Modified msi-parent retrieval logic]
+>>>>>> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+>>>>>> ---
+>>>>>>  drivers/iommu/of_iommu.c | 95
+>>>>>> ++++++++++++++++++++++++++++++++++++++++++++++++
+>>>>>>  include/linux/of_iommu.h | 10 +++++
+>>>>>>  2 files changed, 105 insertions(+)
+>>>>>>
+>>>>>> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+>>>>>> index e60e3db..ffd7fb7 100644
+>>>>>> --- a/drivers/iommu/of_iommu.c
+>>>>>> +++ b/drivers/iommu/of_iommu.c
+>>>>>> @@ -21,6 +21,7 @@
+>>>>>>  #include <linux/iommu.h>
+>>>>>>  #include <linux/limits.h>
+>>>>>>  #include <linux/of.h>
+>>>>>> +#include <linux/of_address.h>
+>>>>>>  #include <linux/of_iommu.h>
+>>>>>>  #include <linux/of_pci.h>
+>>>>>>  #include <linux/slab.h>
+>>>>>> @@ -138,6 +139,14 @@ static int of_iommu_xlate(struct device *dev,
+>>>>>>      return ops->of_xlate(dev, iommu_spec);
+>>>>>>  }
+>>>>>>
+>>>>>> +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>>>>>> +{
+>>>>>> +    u32 *rid = data;
+>>>>>> +
+>>>>>> +    *rid = alias;
+>>>>>> +    return 0;
+>>>>>> +}
+>>>>>> +
+>>>>>>  struct of_pci_iommu_alias_info {
+>>>>>>      struct device *dev;
+>>>>>>      struct device_node *np;
+>>>>>> @@ -163,6 +172,73 @@ static int of_pci_iommu_init(struct pci_dev
+>>>>>> *pdev, u16 alias, void *data)
+>>>>>>      return info->np == pdev->bus->dev.of_node;
+>>>>>>  }
+>>>>>>
+>>>>>> +static int of_iommu_alloc_resv_region(struct device_node *np,
+>>>>>> +                      struct list_head *head)
+>>>>>> +{
+>>>>>> +    int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+>>>>>> +    struct iommu_resv_region *region;
+>>>>>> +    struct resource res;
+>>>>>> +    int err;
+>>>>>> +
+>>>>>> +    err = of_address_to_resource(np, 0, &res);
+>>>>>
+>>>>> What is the rational for registering the first region only? Surely you
+>>>>> can have more than one region in an MSI controller (yes, your
+>>>>> particular
+>>>>> case is the ITS which has only one, but we're trying to do something
+>>>>> generic here).
+>>>>>
+>>>>> Another issue I have with this code is that it inserts all of the ITS
+>>>>> MMIO in the RESV_MSI range. As long as we don't generate any page
+>>>>> tables
+>>>>> for this, we're fine. But if we ever change this, we'll end-up with the
+>>>>> ITS programming interface being exposed to a device, which wouldn't be
+>>>>> acceptable.
+>>>>>
+>>>>> Why can't we have some generic property instead, that would describe
+>>>>> the
+>>>>> actual ranges that cannot be translated? That way, no random insertion
+>>>>> of a random range, and relatively future proof.
+>>>
+>>> Indeed. Furthermore, IORT has the advantage of being limited to a few
+>>> distinct device types and SBSA-compliant system topologies, so the
+>>> ITS-chasing is reasonable there (modulo only reserving GITS_TRANSLATER).
+>>> The scope of DT covers more embedded things as well like PCI host
+>>> controllers with internal MSI doorbells, and potentially even
+>>> direct-mapped memory regions for things like bootloader framebuffers to
+>>> prevent display glitches - a generic address/size/flags description of a
+>>> region could work for just about everything.
+>>>
+>>>> IORT code has the same issue (ie it reserves all ITS regions) and I do
+>>>> not know where a property can be added to describe those ranges (IORT
+>>>> specs ? I'd rather not) in ACPI other than the IORT tables entries
+>>>> themselves.
+>>>>
+>>>>> I'm not sure where to declare it (PCIe node? IOMMU node?), but it'd
+>>>>> feel
+>>>>> like a much nicer and simpler solution to this problem.
+>>>>
+>>>> It could be but if we throw ACPI into the picture we have to knock
+>>>> together Hisilicon specific namespace bindings to handle this and
+>>>> quickly.
+>>>
+>>> As above I'm happy with the ITS-specific solution for ACPI given the
+>>> limits of IORT. What I had in mind for DT was something tied in with the
+>>> generic IOMMU bindings. Something like this is probably easiest to
+>>> handle, but does rather spread the information around:
+>>>
+>>>
+>>>   pci {
+>>>       ...
+>>>       iommu-map = <0 0 &iommu1 0x10000>;
+>>>       iommu-reserved-ranges = <0x12340000 0x1000 IOMMU_MSI>,
+>>>                   <0x34560000 0x1000 IOMMU_MSI>;
+>>>   };
+>>>
+>>>   display {
+>>>       ...
+>>>       iommus = <&iommu1 0x20000>;
+>>>       /* simplefb region */
+>>>       iommu-reserved-ranges = <0x80080000 0x80000 IOMMU_DIRECT>,
+>>>   };
+>>>
+>>>
+>>> Alternatively, something inspired by reserved-memory might perhaps be
+>>> conceptually neater, at the risk of being more complicated:
+>>>
+>>>
+>>>   iommu1: iommu@acbd0000 {
+>>>       ...
+>>>       #iommu-cells = <1>;
+>>>
+>>>       iommu-reserved-ranges {
+>>>           #address-cells = <1>;
+>>>           #size-cells = <1>;
+>>>
+>>>         its0_resv: msi@12340000 {
+>>>               compatible = "iommu-msi-region";
+>>>               reg = <0x12340000 0x1000>;
+>>>           };
+>>>
+>>>         its1_resv: msi@34560000 {
+>>>               compatible = "iommu-msi-region";
+>>>               reg = <0x34560000 0x1000>;
+>>>           };
+>>>
+>>>         fb_resv: direct@12340000 {
+>>>               compatible = "iommu-direct-region";
+>>>               reg = <0x80080000 0x80000>;
+>>>           };
+>>>       };
+>>>   };
+>>>
+>>>
+>>
+>> If we did this, wouldn't it be easier to create dangerous reserved
+>> regions, like our ITS region which Marc was concerned by? It's not so
+>> hard to get dts changes into the kernel.
+>
+> Well, yeah. It's also equally easy to add some peripheral register
+> region to the /memory node and watch hilarity ensue. The solution to
+> both is "don't put bogus crap in your DT".
+>
 
-OK, thanks for letting me know, but why didn't it?
+Sure, but people make mistakes and often a lot more subtle than your 
+example.
 
->  drivers/acpi/property.c | 20 +++++++++++++++-----
->  1 file changed, 15 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 5a8ac5e1081b..8c28c516e7ec 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -592,8 +592,16 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
->  		return -ENOENT;
->  
->  	ret = acpi_data_get_property(data, propname, ACPI_TYPE_ANY, &obj);
-> -	if (ret)
-> -		return ret;
-> +	switch (ret) {
-> +	case -EINVAL:
-> +		return -ENOENT;
-> +	case -EPROTO:
-> +		return -EINVAL;
-> +	default:
-> +		if (ret)
-> +			return ret;
-> +		break;
-> +	}
+Only one person spotted the problem with our approach to the ITS 
+problem. I'm pretty confident it would not have been spotted if it was 
+submitted as a dts change.
 
-To be clear, I'm not going to apply anything like the above.
+Much appreciated,
+John
 
->  
->  	/*
->  	 * The simplest case is when the value is a single reference.  Just
-> @@ -605,7 +613,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
->  
->  		ret = acpi_bus_get_device(obj->reference.handle, &device);
->  		if (ret)
-> -			return ret;
-> +			return ret == -ENODEV ? -EINVAL : ret;
->  
->  		args->adev = device;
->  		args->nargs = 0;
-> @@ -621,8 +629,10 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
->  	 * The index argument is then used to determine which reference
->  	 * the caller wants (along with the arguments).
->  	 */
-> -	if (obj->type != ACPI_TYPE_PACKAGE || index >= obj->package.count)
-> -		return -EPROTO;
-> +	if (obj->type != ACPI_TYPE_PACKAGE)
-> +		return -EINVAL;
-> +	if (index >= obj->package.count)
-> +		return -ENOENT;
->  
->  	element = obj->package.elements;
->  	end = element + obj->package.count;
-> 
+> There's a big difference between wilfully misdescribing your platform
+> requirements vs. having the kernel automatically infer something but
+> leave a hole open in the process.
+>
+> Robin.
+>
+> .
+>
 
 
