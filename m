@@ -1,331 +1,91 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v15 00/32] Unified fwnode endpoint parser, async
- sub-device notifier support, N9 flash DTS
-Date: Thu, 5 Oct 2017 09:11:39 +0300
-Message-ID: <20171005061139.cqrauwjjhy4pwvy6@valkosipuli.retiisi.org.uk>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] Revert "Bluetooth: btusb: Add workaround for Broadcom devices without product id"
+Date: Thu,  5 Oct 2017 09:42:51 +0200
+Message-ID: <20171005074251.7274-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44778 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750824AbdJEGLn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2017 02:11:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:51202 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751363AbdJEHmy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 5 Oct 2017 03:42:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, marc.herbert@intel.com, hyungwoo.yang@intel.com, rajmohan.mani@intel.com, yong.zhi@intel.com
+To: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Danis?= <frederic.danis.oss@gmail.com>, Sebastian Reichel <sre@kernel.org>, robh@kernel.org, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Oct 05, 2017 at 12:50:19AM +0300, Sakari Ailus wrote:
-> Hi folks,
-> 
-> 	I've dropped the full set from devicetree and linux-acpi lists;
-> 	let me know if you want it back. The entire set is posted to
-> 	linux-media list.
+Commit 9834e586fa ("Bluetooth: btusb: Add workaround for Broadcom devices
+without product id") was added to deal with the BT part of the BCM4356A2
+on GPD pocket laptops having an usb vid:pid of 0000:0000.
 
-Here's the diff between v14 and v15. The patches can be found here, with
-the dependencies:
+After another commit to add support for the BCM UART connected BT ACPI-id
+BCM2E7E used on the GPD win, it turns out that the BT on the GPD pocket is
+connected via both USB and UART. Adding support for the BCM2E7E ACPI-id
+causes it to switch to UART mode.
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=fwnode-parse>
+The Windows shipped with the device is using it in UART mode and the
+presence of the BCM2E7E ACPI-id combined with the 0 USB vid:pid also
+indicates that the BT part was never meant to be used in USB mode.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 5aae5cb38b81..ae026eee3d03 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -248,18 +248,20 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	list_move(&sd->async_list, &notifier->done);
+But not only is there no need to support the USB mode, supporting it
+actually is troublesome, because with the workaround to support the all 0
+USB vid:pid, BT will just work for end users, until we add support for
+the ACPI-id, after which users need to have userspace doing a btattach,
+which may be considered a regression.
+
+To avoid this regression when switching things over to UART mode as
+intended by the ACPI tables all along, this commit reverts the commit
+adding the workaround to support the all 0 USB vid:pid.
+
+This reverts commit 9834e586fa ("Bluetooth: btusb: Add workaround for
+Broadcom devices without product id").
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/bluetooth/btusb.c | 18 ------------------
+ 1 file changed, 18 deletions(-)
+
+diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
+index 7a5c06aaa181..c054d7bce490 100644
+--- a/drivers/bluetooth/btusb.c
++++ b/drivers/bluetooth/btusb.c
+@@ -66,7 +66,6 @@ static struct usb_driver btusb_driver;
+ #define BTUSB_BCM2045		0x40000
+ #define BTUSB_IFNUM_2		0x80000
+ #define BTUSB_CW6622		0x100000
+-#define BTUSB_BCM_NO_PRODID	0x200000
  
- 	/*
--	 * See if the sub-device has a notifier. If it does, proceed
--	 * with checking for its async sub-devices.
-+	 * See if the sub-device has a notifier. If not, return here.
- 	 */
- 	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
--	if (subdev_notifier && !subdev_notifier->parent) {
--		subdev_notifier->parent = notifier;
--		ret = v4l2_async_notifier_try_all_subdevs(subdev_notifier);
--		if (ret)
--			return ret;
+ static const struct usb_device_id btusb_table[] = {
+ 	/* Generic Bluetooth USB device */
+@@ -171,10 +170,6 @@ static const struct usb_device_id btusb_table[] = {
+ 	{ USB_VENDOR_AND_INTERFACE_INFO(0x0930, 0xff, 0x01, 0x01),
+ 	  .driver_info = BTUSB_BCM_PATCHRAM },
+ 
+-	/* Broadcom devices with missing product id */
+-	{ USB_DEVICE_AND_INTERFACE_INFO(0x0000, 0x0000, 0xff, 0x01, 0x01),
+-	  .driver_info = BTUSB_BCM_PATCHRAM | BTUSB_BCM_NO_PRODID },
+-
+ 	/* Intel Bluetooth USB Bootloader (RAM module) */
+ 	{ USB_DEVICE(0x8087, 0x0a5a),
+ 	  .driver_info = BTUSB_INTEL_BOOT | BTUSB_BROKEN_ISOC },
+@@ -2909,19 +2904,6 @@ static int btusb_probe(struct usb_interface *intf,
+ 	if (id->driver_info == BTUSB_IGNORE)
+ 		return -ENODEV;
+ 
+-	if (id->driver_info & BTUSB_BCM_NO_PRODID) {
+-		struct usb_device *udev = interface_to_usbdev(intf);
+-
+-		/* For the broken Broadcom devices that show 0000:0000
+-		 * as USB vendor and product information, check that the
+-		 * manufacturer string identifies them as Broadcom based
+-		 * devices.
+-		 */
+-		if (!udev->manufacturer ||
+-		    strcmp(udev->manufacturer, "Broadcom Corp"))
+-			return -ENODEV;
 -	}
-+	if (!subdev_notifier || subdev_notifier->parent)
-+		return 0;
- 
--	return 0;
-+	/*
-+	 * Proceed with checking for the sub-device notifier's async
-+	 * sub-devices, and return the result. The error will be handled by the
-+	 * caller.
-+	 */
-+	subdev_notifier->parent = notifier;
-+
-+	return v4l2_async_notifier_try_all_subdevs(subdev_notifier);
- }
- 
- /* Test all async sub-devices in a notifier for a match. */
-@@ -304,7 +306,28 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- 	/* Subdevice driver will reprobe and put the subdev back onto the list */
- 	list_del_init(&sd->async_list);
- 	sd->asd = NULL;
--	sd->dev = NULL;
-+}
-+
-+/* Unbind all sub-devices in the notifier tree. */
-+static void v4l2_async_notifier_unbind_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd, *tmp;
-+
-+	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-+		struct v4l2_async_notifier *subdev_notifier =
-+			v4l2_async_find_subdev_notifier(sd);
-+
-+		if (subdev_notifier)
-+			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
-+
-+		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
-+		v4l2_async_cleanup(sd);
-+
-+		list_move(&sd->async_list, &subdev_list);
-+	}
-+
-+	notifier->parent = NULL;
- }
- 
- /* See if an fwnode can be found in a notifier's lists. */
-@@ -412,9 +435,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- 
- 	ret = v4l2_async_notifier_try_all_subdevs(notifier);
- 	if (ret)
--		goto out_unlock;
-+		goto err_unbind;
- 
- 	ret = v4l2_async_notifier_try_complete(notifier);
-+	if (ret)
-+		goto err_unbind;
- 
- 	/* Keep also completed notifiers on the list */
- 	list_add(&notifier->list, &notifier_list);
-@@ -422,69 +447,74 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- out_unlock:
- 	mutex_unlock(&list_lock);
- 
-+	return 0;
-+
-+err_unbind:
-+	/*
-+	 * On failure, unbind all sub-devices registered through this notifier.
-+	 */
-+	v4l2_async_notifier_unbind_all_subdevs(notifier);
-+
-+	mutex_unlock(&list_lock);
-+
- 	return ret;
- }
- 
- int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 				 struct v4l2_async_notifier *notifier)
- {
-+	int ret;
-+
- 	if (WARN_ON(!v4l2_dev || notifier->sd))
- 		return -EINVAL;
- 
- 	notifier->v4l2_dev = v4l2_dev;
- 
--	return __v4l2_async_notifier_register(notifier);
-+	ret = __v4l2_async_notifier_register(notifier);
-+	if (ret)
-+		notifier->v4l2_dev = NULL;
-+
-+	return ret;
- }
- EXPORT_SYMBOL(v4l2_async_notifier_register);
- 
- int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
- 					struct v4l2_async_notifier *notifier)
- {
-+	int ret;
-+
- 	if (WARN_ON(!sd || notifier->v4l2_dev))
- 		return -EINVAL;
- 
- 	notifier->sd = sd;
- 
--	return __v4l2_async_notifier_register(notifier);
-+	ret = __v4l2_async_notifier_register(notifier);
-+	if (ret)
-+		notifier->sd = NULL;
-+
-+	return ret;
- }
- EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
- 
--/* Unbind all sub-devices in the notifier tree. */
--static void v4l2_async_notifier_unbind_all_subdevs(
-+static void __v4l2_async_notifier_unregister(
- 	struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
 -
--	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
--		struct v4l2_async_notifier *subdev_notifier =
--			v4l2_async_find_subdev_notifier(sd);
--
--		if (subdev_notifier)
--			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
--
--		v4l2_async_cleanup(sd);
-+	if (!notifier || (!notifier->v4l2_dev && !notifier->sd))
-+		return;
+ 	if (id->driver_info & BTUSB_ATH3012) {
+ 		struct usb_device *udev = interface_to_usbdev(intf);
  
--		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
-+	v4l2_async_notifier_unbind_all_subdevs(notifier);
- 
--		list_move(&sd->async_list, &subdev_list);
--	}
-+	notifier->sd = NULL;
-+	notifier->v4l2_dev = NULL;
- 
--	notifier->parent = NULL;
-+	list_del(&notifier->list);
- }
- 
- void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- {
--	if (!notifier->v4l2_dev && !notifier->sd)
--		return;
--
- 	mutex_lock(&list_lock);
- 
--	v4l2_async_notifier_unbind_all_subdevs(notifier);
--
--	notifier->sd = NULL;
--	notifier->v4l2_dev = NULL;
--
--	list_del(&notifier->list);
-+	__v4l2_async_notifier_unregister(notifier);
- 
- 	mutex_unlock(&list_lock);
- }
-@@ -522,7 +552,9 @@ EXPORT_SYMBOL_GPL(v4l2_async_notifier_cleanup);
- 
- int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- {
-+	struct v4l2_async_notifier *subdev_notifier;
- 	struct v4l2_async_notifier *notifier;
-+	int ret;
- 
- 	/*
- 	 * No reference taken. The reference is held by the device
-@@ -549,47 +581,64 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 		if (!asd)
- 			continue;
- 
--		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
-+		ret = v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
-+					      asd);
-+		if (ret)
-+			goto err_unbind;
- 
--		if (!ret)
--			ret = v4l2_async_notifier_try_complete(notifier);
-+		ret = v4l2_async_notifier_try_complete(notifier);
-+		if (ret)
-+			goto err_unbind;
- 
--		mutex_unlock(&list_lock);
--		return ret;
-+		goto out_unlock;
- 	}
- 
- 	/* None matched, wait for hot-plugging */
- 	list_add(&sd->async_list, &subdev_list);
- 
-+out_unlock:
- 	mutex_unlock(&list_lock);
- 
- 	return 0;
-+
-+err_unbind:
-+	/*
-+	 * Complete failed. Unbind the sub-devices bound through registering
-+	 * this async sub-device.
-+	 */
-+	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
-+	if (subdev_notifier)
-+		v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
-+
-+	if (sd->asd)
-+		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
-+	v4l2_async_cleanup(sd);
-+
-+	mutex_unlock(&list_lock);
-+
-+	return ret;
- }
- EXPORT_SYMBOL(v4l2_async_register_subdev);
- 
- void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
- {
--	struct v4l2_async_notifier *notifier = sd->notifier;
-+	mutex_lock(&list_lock);
- 
--	if (sd->subdev_notifier)
--		v4l2_async_notifier_unregister(sd->subdev_notifier);
-+	__v4l2_async_notifier_unregister(sd->subdev_notifier);
- 	v4l2_async_notifier_cleanup(sd->subdev_notifier);
- 	kfree(sd->subdev_notifier);
-+	sd->subdev_notifier = NULL;
- 
--	if (!sd->asd) {
--		if (!list_empty(&sd->async_list))
--			v4l2_async_cleanup(sd);
--		return;
--	}
-+	if (sd->asd) {
-+		struct v4l2_async_notifier *notifier = sd->notifier;
- 
--	mutex_lock(&list_lock);
-+		list_add(&sd->asd->list, &notifier->waiting);
- 
--	list_add(&sd->asd->list, &notifier->waiting);
-+		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
-+	}
- 
- 	v4l2_async_cleanup(sd);
- 
--	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
--
- 	mutex_unlock(&list_lock);
- }
- EXPORT_SYMBOL(v4l2_async_unregister_subdev);
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 74f2ea27d117..65f87e80081a 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -201,5 +201,4 @@ int __must_check v4l2_async_register_subdev_sensor_common(
-  * @sd: pointer to &struct v4l2_subdev
-  */
- void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
--
- #endif
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index 834e74246412..43fd1a278bcc 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -137,7 +137,7 @@ struct v4l2_fwnode_link {
- int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 			       struct v4l2_fwnode_endpoint *vep);
- 
--/*
-+/**
-  * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-  * v4l2_fwnode_endpoint_alloc_parse()
-  * @vep - the V4L2 fwnode the resources of which are to be released
-
-
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.2
+
