@@ -1,115 +1,174 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH 1/1] device properties: Fix return codes for
- __acpi_node_get_property_reference
-Date: Thu, 5 Oct 2017 17:01:48 +0300
-Message-ID: <20171005140147.epmyxhcc7dtlam27@kekkonen.localdomain>
-References: <20171005060424.16780-1-sakari.ailus@linux.intel.com>
- <14664181.1rcyu63NdN@aspire.rjw.lan>
+From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v8 3/5] iommu/of: Add msi address regions reservation
+	helper
+Date: Thu, 5 Oct 2017 15:05:41 +0100
+Message-ID: <6f8e27fc-3f16-7f66-5443-2be64ce9e464@arm.com>
+References: <20170927133241.21036-1-shameerali.kolothum.thodi@huawei.com>
+	<20170927133241.21036-4-shameerali.kolothum.thodi@huawei.com>
+	<f3146f49-6004-7a15-866b-653e3ea54856@arm.com>
+	<20171004135007.GA12327@red-moon>
+	<5c80f292-dc5d-a1c6-d7a0-df2a84cc77d1@arm.com>
+	<d525f112-fb20-d14b-bea0-6547c8b933dd@huawei.com>
+	<cd4d3ad0-317e-6b7b-c5f4-f4e6eac3ee10@arm.com>
+	<82272c18-717d-bbaf-b8c3-61785af496bd@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:22923 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751043AbdJEOB6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 5 Oct 2017 10:01:58 -0400
-Content-Disposition: inline
-In-Reply-To: <14664181.1rcyu63NdN@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <82272c18-717d-bbaf-b8c3-61785af496bd-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, mika.westerberg@intel.com, hyungwoo.yang@intel.com
 
-Hi Rafael,
-
-On Thu, Oct 05, 2017 at 02:59:45PM +0200, Rafael J. Wysocki wrote:
-> On Thursday, October 5, 2017 8:04:24 AM CEST Sakari Ailus wrote:
-> > Fix more return codes for device property: Align return codes of
-> > __acpi_node_get_property_reference. In particular what was missed
-> > previously:
-> > 
-> > -EPROTO could be returned in certain cases, now -EINVAL;
-> > -EINVAL was returned if the property was not found, now -ENOENT;
-> > -EINVAL was returned also if the index was higher than the number of
-> > entries in a package, now -ENOENT.
-> > 
-> > Fixes: ("device property: Align return codes of __acpi_node_get_property_reference")
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Tested-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
-> > ---
-> > Hi Rafael,
-> > 
-> > Unfortunately the patch I posted the previous time to remedy the issue
-> > ("device property: Align return codes of
-> > _acpi_node_get_property_reference") did not fully fix the issue.
-> 
-> OK, thanks for letting me know, but why didn't it?
-
-My testing appears to have been more limited than I thought, Hyungwoo later
-on found this out. (Reported-by: Hyungwoo... would be appropriate, I'll add
-that the next time.)
-
-> 
-> >  drivers/acpi/property.c | 20 +++++++++++++++-----
-> >  1 file changed, 15 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> > index 5a8ac5e1081b..8c28c516e7ec 100644
-> > --- a/drivers/acpi/property.c
-> > +++ b/drivers/acpi/property.c
-> > @@ -592,8 +592,16 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
-> >  		return -ENOENT;
-> >  
-> >  	ret = acpi_data_get_property(data, propname, ACPI_TYPE_ANY, &obj);
-> > -	if (ret)
-> > -		return ret;
-> > +	switch (ret) {
-> > +	case -EINVAL:
-> > +		return -ENOENT;
-> > +	case -EPROTO:
-> > +		return -EINVAL;
-> > +	default:
-> > +		if (ret)
-> > +			return ret;
-> > +		break;
-> > +	}
-> 
-> To be clear, I'm not going to apply anything like the above.
-
-On exactly what grounds? You don't like the combination of switch and if,
-or because of the return values themselves? Or something else?
-
-> 
-> >  
-> >  	/*
-> >  	 * The simplest case is when the value is a single reference.  Just
-> > @@ -605,7 +613,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
-> >  
-> >  		ret = acpi_bus_get_device(obj->reference.handle, &device);
-> >  		if (ret)
-> > -			return ret;
-> > +			return ret == -ENODEV ? -EINVAL : ret;
-> >  
-> >  		args->adev = device;
-> >  		args->nargs = 0;
-> > @@ -621,8 +629,10 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
-> >  	 * The index argument is then used to determine which reference
-> >  	 * the caller wants (along with the arguments).
-> >  	 */
-> > -	if (obj->type != ACPI_TYPE_PACKAGE || index >= obj->package.count)
-> > -		return -EPROTO;
-> > +	if (obj->type != ACPI_TYPE_PACKAGE)
-> > +		return -EINVAL;
-> > +	if (index >= obj->package.count)
-> > +		return -ENOENT;
-> >  
-> >  	element = obj->package.elements;
-> >  	end = element + obj->package.count;
-> > 
-> 
-> 
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+T24gMDUvMTAvMTcgMTQ6MDgsIEpvaG4gR2Fycnkgd3JvdGU6Cj4gT24gMDUvMTAvMjAxNyAxMzo0
+NCwgUm9iaW4gTXVycGh5IHdyb3RlOgo+PiBPbiAwNS8xMC8xNyAxMzozNywgSm9obiBHYXJyeSB3
+cm90ZToKPj4+IE9uIDA1LzEwLzIwMTcgMTI6MDcsIFJvYmluIE11cnBoeSB3cm90ZToKPj4+PiBP
+biAwNC8xMC8xNyAxNDo1MCwgTG9yZW56byBQaWVyYWxpc2kgd3JvdGU6Cj4+Pj4+IE9uIFdlZCwg
+T2N0IDA0LCAyMDE3IGF0IDEyOjIyOjA0UE0gKzAxMDAsIE1hcmMgWnluZ2llciB3cm90ZToKPj4+
+Pj4+IE9uIDI3LzA5LzE3IDE0OjMyLCBTaGFtZWVyIEtvbG90aHVtIHdyb3RlOgo+Pj4+Pj4+IEZy
+b206IEpvaG4gR2FycnkgPGpvaG4uZ2FycnlAaHVhd2VpLmNvbT4KPj4+Pj4+Pgo+Pj4+Pj4+IE9u
+IHNvbWUgcGxhdGZvcm1zIG1zaS1jb250cm9sbGVyIGFkZHJlc3MgcmVnaW9ucyBoYXZlIHRvIGJl
+IGV4Y2x1ZGVkCj4+Pj4+Pj4gZnJvbSBub3JtYWwgSU9WQSBhbGxvY2F0aW9uIGluIHRoYXQgdGhl
+eSBhcmUgZGV0ZWN0ZWQgYW5kIGRlY29kZWQgaW4KPj4+Pj4+PiBhIEhXIHNwZWNpZmljIHdheSBi
+eSBzeXN0ZW0gY29tcG9uZW50cyBhbmQgc28gdGhleSBjYW5ub3QgYmUKPj4+Pj4+PiBjb25zaWRl
+cmVkCj4+Pj4+Pj4gbm9ybWFsIElPVkEgYWRkcmVzcyBzcGFjZS4KPj4+Pj4+Pgo+Pj4+Pj4+IEFk
+ZCBhIGhlbHBlciBmdW5jdGlvbiB0aGF0IHJldHJpZXZlcyBtc2kgYWRkcmVzcyByZWdpb25zIHRo
+cm91Z2gKPj4+Pj4+PiBkZXZpY2UKPj4+Pj4+PiB0cmVlIG1zaSBtYXBwaW5nLCBzbyB0aGF0IHRo
+ZXNlIHJlZ2lvbnMgd2lsbCBub3QgYmUgdHJhbnNsYXRlZCBieQo+Pj4+Pj4+IElPTU1VCj4+Pj4+
+Pj4gYW5kIHdpbGwgYmUgZXhjbHVkZWQgZnJvbSBJT1ZBIGFsbG9jYXRpb25zLgo+Pj4+Pj4+Cj4+
+Pj4+Pj4gU2lnbmVkLW9mZi1ieTogSm9obiBHYXJyeSA8am9obi5nYXJyeUBodWF3ZWkuY29tPgo+
+Pj4+Pj4+IFtTaGFtZWVyOiBNb2RpZmllZCBtc2ktcGFyZW50IHJldHJpZXZhbCBsb2dpY10KPj4+
+Pj4+PiBTaWduZWQtb2ZmLWJ5OiBTaGFtZWVyIEtvbG90aHVtCj4+Pj4+Pj4gPHNoYW1lZXJhbGku
+a29sb3RodW0udGhvZGlAaHVhd2VpLmNvbT4KPj4+Pj4+PiAtLS0KPj4+Pj4+PiDCoGRyaXZlcnMv
+aW9tbXUvb2ZfaW9tbXUuYyB8IDk1Cj4+Pj4+Pj4gKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrCj4+Pj4+Pj4gwqBpbmNsdWRlL2xpbnV4L29mX2lvbW11Lmgg
+fCAxMCArKysrKwo+Pj4+Pj4+IMKgMiBmaWxlcyBjaGFuZ2VkLCAxMDUgaW5zZXJ0aW9ucygrKQo+
+Pj4+Pj4+Cj4+Pj4+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW9tbXUvb2ZfaW9tbXUuYyBiL2Ry
+aXZlcnMvaW9tbXUvb2ZfaW9tbXUuYwo+Pj4+Pj4+IGluZGV4IGU2MGUzZGIuLmZmZDdmYjcgMTAw
+NjQ0Cj4+Pj4+Pj4gLS0tIGEvZHJpdmVycy9pb21tdS9vZl9pb21tdS5jCj4+Pj4+Pj4gKysrIGIv
+ZHJpdmVycy9pb21tdS9vZl9pb21tdS5jCj4+Pj4+Pj4gQEAgLTIxLDYgKzIxLDcgQEAKPj4+Pj4+
+PiDCoCNpbmNsdWRlIDxsaW51eC9pb21tdS5oPgo+Pj4+Pj4+IMKgI2luY2x1ZGUgPGxpbnV4L2xp
+bWl0cy5oPgo+Pj4+Pj4+IMKgI2luY2x1ZGUgPGxpbnV4L29mLmg+Cj4+Pj4+Pj4gKyNpbmNsdWRl
+IDxsaW51eC9vZl9hZGRyZXNzLmg+Cj4+Pj4+Pj4gwqAjaW5jbHVkZSA8bGludXgvb2ZfaW9tbXUu
+aD4KPj4+Pj4+PiDCoCNpbmNsdWRlIDxsaW51eC9vZl9wY2kuaD4KPj4+Pj4+PiDCoCNpbmNsdWRl
+IDxsaW51eC9zbGFiLmg+Cj4+Pj4+Pj4gQEAgLTEzOCw2ICsxMzksMTQgQEAgc3RhdGljIGludCBv
+Zl9pb21tdV94bGF0ZShzdHJ1Y3QgZGV2aWNlICpkZXYsCj4+Pj4+Pj4gwqDCoMKgwqAgcmV0dXJu
+IG9wcy0+b2ZfeGxhdGUoZGV2LCBpb21tdV9zcGVjKTsKPj4+Pj4+PiDCoH0KPj4+Pj4+Pgo+Pj4+
+Pj4+ICtzdGF0aWMgaW50IF9fZ2V0X3BjaV9yaWQoc3RydWN0IHBjaV9kZXYgKnBkZXYsIHUxNiBh
+bGlhcywgdm9pZAo+Pj4+Pj4+ICpkYXRhKQo+Pj4+Pj4+ICt7Cj4+Pj4+Pj4gK8KgwqDCoCB1MzIg
+KnJpZCA9IGRhdGE7Cj4+Pj4+Pj4gKwo+Pj4+Pj4+ICvCoMKgwqAgKnJpZCA9IGFsaWFzOwo+Pj4+
+Pj4+ICvCoMKgwqAgcmV0dXJuIDA7Cj4+Pj4+Pj4gK30KPj4+Pj4+PiArCj4+Pj4+Pj4gwqBzdHJ1
+Y3Qgb2ZfcGNpX2lvbW11X2FsaWFzX2luZm8gewo+Pj4+Pj4+IMKgwqDCoMKgIHN0cnVjdCBkZXZp
+Y2UgKmRldjsKPj4+Pj4+PiDCoMKgwqDCoCBzdHJ1Y3QgZGV2aWNlX25vZGUgKm5wOwo+Pj4+Pj4+
+IEBAIC0xNjMsNiArMTcyLDczIEBAIHN0YXRpYyBpbnQgb2ZfcGNpX2lvbW11X2luaXQoc3RydWN0
+IHBjaV9kZXYKPj4+Pj4+PiAqcGRldiwgdTE2IGFsaWFzLCB2b2lkICpkYXRhKQo+Pj4+Pj4+IMKg
+wqDCoMKgIHJldHVybiBpbmZvLT5ucCA9PSBwZGV2LT5idXMtPmRldi5vZl9ub2RlOwo+Pj4+Pj4+
+IMKgfQo+Pj4+Pj4+Cj4+Pj4+Pj4gK3N0YXRpYyBpbnQgb2ZfaW9tbXVfYWxsb2NfcmVzdl9yZWdp
+b24oc3RydWN0IGRldmljZV9ub2RlICpucCwKPj4+Pj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgIHN0cnVjdCBsaXN0X2hlYWQgKmhlYWQpCj4+Pj4+Pj4gK3sK
+Pj4+Pj4+PiArwqDCoMKgIGludCBwcm90ID0gSU9NTVVfV1JJVEUgfCBJT01NVV9OT0VYRUMgfCBJ
+T01NVV9NTUlPOwo+Pj4+Pj4+ICvCoMKgwqAgc3RydWN0IGlvbW11X3Jlc3ZfcmVnaW9uICpyZWdp
+b247Cj4+Pj4+Pj4gK8KgwqDCoCBzdHJ1Y3QgcmVzb3VyY2UgcmVzOwo+Pj4+Pj4+ICvCoMKgwqAg
+aW50IGVycjsKPj4+Pj4+PiArCj4+Pj4+Pj4gK8KgwqDCoCBlcnIgPSBvZl9hZGRyZXNzX3RvX3Jl
+c291cmNlKG5wLCAwLCAmcmVzKTsKPj4+Pj4+Cj4+Pj4+PiBXaGF0IGlzIHRoZSByYXRpb25hbCBm
+b3IgcmVnaXN0ZXJpbmcgdGhlIGZpcnN0IHJlZ2lvbiBvbmx5PyBTdXJlbHkKPj4+Pj4+IHlvdQo+
+Pj4+Pj4gY2FuIGhhdmUgbW9yZSB0aGFuIG9uZSByZWdpb24gaW4gYW4gTVNJIGNvbnRyb2xsZXIg
+KHllcywgeW91cgo+Pj4+Pj4gcGFydGljdWxhcgo+Pj4+Pj4gY2FzZSBpcyB0aGUgSVRTIHdoaWNo
+IGhhcyBvbmx5IG9uZSwgYnV0IHdlJ3JlIHRyeWluZyB0byBkbyBzb21ldGhpbmcKPj4+Pj4+IGdl
+bmVyaWMgaGVyZSkuCj4+Pj4+Pgo+Pj4+Pj4gQW5vdGhlciBpc3N1ZSBJIGhhdmUgd2l0aCB0aGlz
+IGNvZGUgaXMgdGhhdCBpdCBpbnNlcnRzIGFsbCBvZiB0aGUgSVRTCj4+Pj4+PiBNTUlPIGluIHRo
+ZSBSRVNWX01TSSByYW5nZS4gQXMgbG9uZyBhcyB3ZSBkb24ndCBnZW5lcmF0ZSBhbnkgcGFnZQo+
+Pj4+Pj4gdGFibGVzCj4+Pj4+PiBmb3IgdGhpcywgd2UncmUgZmluZS4gQnV0IGlmIHdlIGV2ZXIg
+Y2hhbmdlIHRoaXMsIHdlJ2xsIGVuZC11cAo+Pj4+Pj4gd2l0aCB0aGUKPj4+Pj4+IElUUyBwcm9n
+cmFtbWluZyBpbnRlcmZhY2UgYmVpbmcgZXhwb3NlZCB0byBhIGRldmljZSwgd2hpY2gKPj4+Pj4+
+IHdvdWxkbid0IGJlCj4+Pj4+PiBhY2NlcHRhYmxlLgo+Pj4+Pj4KPj4+Pj4+IFdoeSBjYW4ndCB3
+ZSBoYXZlIHNvbWUgZ2VuZXJpYyBwcm9wZXJ0eSBpbnN0ZWFkLCB0aGF0IHdvdWxkIGRlc2NyaWJl
+Cj4+Pj4+PiB0aGUKPj4+Pj4+IGFjdHVhbCByYW5nZXMgdGhhdCBjYW5ub3QgYmUgdHJhbnNsYXRl
+ZD8gVGhhdCB3YXksIG5vIHJhbmRvbQo+Pj4+Pj4gaW5zZXJ0aW9uCj4+Pj4+PiBvZiBhIHJhbmRv
+bSByYW5nZSwgYW5kIHJlbGF0aXZlbHkgZnV0dXJlIHByb29mLgo+Pj4+Cj4+Pj4gSW5kZWVkLiBG
+dXJ0aGVybW9yZSwgSU9SVCBoYXMgdGhlIGFkdmFudGFnZSBvZiBiZWluZyBsaW1pdGVkIHRvIGEg
+ZmV3Cj4+Pj4gZGlzdGluY3QgZGV2aWNlIHR5cGVzIGFuZCBTQlNBLWNvbXBsaWFudCBzeXN0ZW0g
+dG9wb2xvZ2llcywgc28gdGhlCj4+Pj4gSVRTLWNoYXNpbmcgaXMgcmVhc29uYWJsZSB0aGVyZSAo
+bW9kdWxvIG9ubHkgcmVzZXJ2aW5nCj4+Pj4gR0lUU19UUkFOU0xBVEVSKS4KPj4+PiBUaGUgc2Nv
+cGUgb2YgRFQgY292ZXJzIG1vcmUgZW1iZWRkZWQgdGhpbmdzIGFzIHdlbGwgbGlrZSBQQ0kgaG9z
+dAo+Pj4+IGNvbnRyb2xsZXJzIHdpdGggaW50ZXJuYWwgTVNJIGRvb3JiZWxscywgYW5kIHBvdGVu
+dGlhbGx5IGV2ZW4KPj4+PiBkaXJlY3QtbWFwcGVkIG1lbW9yeSByZWdpb25zIGZvciB0aGluZ3Mg
+bGlrZSBib290bG9hZGVyIGZyYW1lYnVmZmVycyB0bwo+Pj4+IHByZXZlbnQgZGlzcGxheSBnbGl0
+Y2hlcyAtIGEgZ2VuZXJpYyBhZGRyZXNzL3NpemUvZmxhZ3MgZGVzY3JpcHRpb24KPj4+PiBvZiBh
+Cj4+Pj4gcmVnaW9uIGNvdWxkIHdvcmsgZm9yIGp1c3QgYWJvdXQgZXZlcnl0aGluZy4KPj4+Pgo+
+Pj4+PiBJT1JUIGNvZGUgaGFzIHRoZSBzYW1lIGlzc3VlIChpZSBpdCByZXNlcnZlcyBhbGwgSVRT
+IHJlZ2lvbnMpIGFuZCBJIGRvCj4+Pj4+IG5vdCBrbm93IHdoZXJlIGEgcHJvcGVydHkgY2FuIGJl
+IGFkZGVkIHRvIGRlc2NyaWJlIHRob3NlIHJhbmdlcyAoSU9SVAo+Pj4+PiBzcGVjcyA/IEknZCBy
+YXRoZXIgbm90KSBpbiBBQ1BJIG90aGVyIHRoYW4gdGhlIElPUlQgdGFibGVzIGVudHJpZXMKPj4+
+Pj4gdGhlbXNlbHZlcy4KPj4+Pj4KPj4+Pj4+IEknbSBub3Qgc3VyZSB3aGVyZSB0byBkZWNsYXJl
+IGl0IChQQ0llIG5vZGU/IElPTU1VIG5vZGU/KSwgYnV0IGl0J2QKPj4+Pj4+IGZlZWwKPj4+Pj4+
+IGxpa2UgYSBtdWNoIG5pY2VyIGFuZCBzaW1wbGVyIHNvbHV0aW9uIHRvIHRoaXMgcHJvYmxlbS4K
+Pj4+Pj4KPj4+Pj4gSXQgY291bGQgYmUgYnV0IGlmIHdlIHRocm93IEFDUEkgaW50byB0aGUgcGlj
+dHVyZSB3ZSBoYXZlIHRvIGtub2NrCj4+Pj4+IHRvZ2V0aGVyIEhpc2lsaWNvbiBzcGVjaWZpYyBu
+YW1lc3BhY2UgYmluZGluZ3MgdG8gaGFuZGxlIHRoaXMgYW5kCj4+Pj4+IHF1aWNrbHkuCj4+Pj4K
+Pj4+PiBBcyBhYm92ZSBJJ20gaGFwcHkgd2l0aCB0aGUgSVRTLXNwZWNpZmljIHNvbHV0aW9uIGZv
+ciBBQ1BJIGdpdmVuIHRoZQo+Pj4+IGxpbWl0cyBvZiBJT1JULiBXaGF0IEkgaGFkIGluIG1pbmQg
+Zm9yIERUIHdhcyBzb21ldGhpbmcgdGllZCBpbiB3aXRoCj4+Pj4gdGhlCj4+Pj4gZ2VuZXJpYyBJ
+T01NVSBiaW5kaW5ncy4gU29tZXRoaW5nIGxpa2UgdGhpcyBpcyBwcm9iYWJseSBlYXNpZXN0IHRv
+Cj4+Pj4gaGFuZGxlLCBidXQgZG9lcyByYXRoZXIgc3ByZWFkIHRoZSBpbmZvcm1hdGlvbiBhcm91
+bmQ6Cj4+Pj4KPj4+Pgo+Pj4+IMKgIHBjaSB7Cj4+Pj4gwqDCoMKgwqDCoCAuLi4KPj4+PiDCoMKg
+wqDCoMKgIGlvbW11LW1hcCA9IDwwIDAgJmlvbW11MSAweDEwMDAwPjsKPj4+PiDCoMKgwqDCoMKg
+IGlvbW11LXJlc2VydmVkLXJhbmdlcyA9IDwweDEyMzQwMDAwIDB4MTAwMCBJT01NVV9NU0k+LAo+
+Pj4+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgPDB4MzQ1NjAwMDAgMHgxMDAw
+IElPTU1VX01TST47Cj4+Pj4gwqAgfTsKPj4+Pgo+Pj4+IMKgIGRpc3BsYXkgewo+Pj4+IMKgwqDC
+oMKgwqAgLi4uCj4+Pj4gwqDCoMKgwqDCoCBpb21tdXMgPSA8JmlvbW11MSAweDIwMDAwPjsKPj4+
+PiDCoMKgwqDCoMKgIC8qIHNpbXBsZWZiIHJlZ2lvbiAqLwo+Pj4+IMKgwqDCoMKgwqAgaW9tbXUt
+cmVzZXJ2ZWQtcmFuZ2VzID0gPDB4ODAwODAwMDAgMHg4MDAwMCBJT01NVV9ESVJFQ1Q+LAo+Pj4+
+IMKgIH07Cj4+Pj4KPj4+Pgo+Pj4+IEFsdGVybmF0aXZlbHksIHNvbWV0aGluZyBpbnNwaXJlZCBi
+eSByZXNlcnZlZC1tZW1vcnkgbWlnaHQgcGVyaGFwcyBiZQo+Pj4+IGNvbmNlcHR1YWxseSBuZWF0
+ZXIsIGF0IHRoZSByaXNrIG9mIGJlaW5nIG1vcmUgY29tcGxpY2F0ZWQ6Cj4+Pj4KPj4+Pgo+Pj4+
+IMKgIGlvbW11MTogaW9tbXVAYWNiZDAwMDAgewo+Pj4+IMKgwqDCoMKgwqAgLi4uCj4+Pj4gwqDC
+oMKgwqDCoCAjaW9tbXUtY2VsbHMgPSA8MT47Cj4+Pj4KPj4+PiDCoMKgwqDCoMKgIGlvbW11LXJl
+c2VydmVkLXJhbmdlcyB7Cj4+Pj4gwqDCoMKgwqDCoMKgwqDCoMKgICNhZGRyZXNzLWNlbGxzID0g
+PDE+Owo+Pj4+IMKgwqDCoMKgwqDCoMKgwqDCoCAjc2l6ZS1jZWxscyA9IDwxPjsKPj4+Pgo+Pj4+
+IMKgwqDCoMKgwqDCoMKgIGl0czBfcmVzdjogbXNpQDEyMzQwMDAwIHsKPj4+PiDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoCBjb21wYXRpYmxlID0gImlvbW11LW1zaS1yZWdpb24iOwo+Pj4+IMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJlZyA9IDwweDEyMzQwMDAwIDB4MTAwMD47Cj4+Pj4g
+wqDCoMKgwqDCoMKgwqDCoMKgIH07Cj4+Pj4KPj4+PiDCoMKgwqDCoMKgwqDCoCBpdHMxX3Jlc3Y6
+IG1zaUAzNDU2MDAwMCB7Cj4+Pj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgY29tcGF0aWJs
+ZSA9ICJpb21tdS1tc2ktcmVnaW9uIjsKPj4+PiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBy
+ZWcgPSA8MHgzNDU2MDAwMCAweDEwMDA+Owo+Pj4+IMKgwqDCoMKgwqDCoMKgwqDCoCB9Owo+Pj4+
+Cj4+Pj4gwqDCoMKgwqDCoMKgwqAgZmJfcmVzdjogZGlyZWN0QDEyMzQwMDAwIHsKPj4+PiDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBjb21wYXRpYmxlID0gImlvbW11LWRpcmVjdC1yZWdpb24i
+Owo+Pj4+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJlZyA9IDwweDgwMDgwMDAwIDB4ODAw
+MDA+Owo+Pj4+IMKgwqDCoMKgwqDCoMKgwqDCoCB9Owo+Pj4+IMKgwqDCoMKgwqAgfTsKPj4+PiDC
+oCB9Owo+Pj4+Cj4+Pj4KPj4+Cj4+PiBJZiB3ZSBkaWQgdGhpcywgd291bGRuJ3QgaXQgYmUgZWFz
+aWVyIHRvIGNyZWF0ZSBkYW5nZXJvdXMgcmVzZXJ2ZWQKPj4+IHJlZ2lvbnMsIGxpa2Ugb3VyIElU
+UyByZWdpb24gd2hpY2ggTWFyYyB3YXMgY29uY2VybmVkIGJ5PyBJdCdzIG5vdCBzbwo+Pj4gaGFy
+ZCB0byBnZXQgZHRzIGNoYW5nZXMgaW50byB0aGUga2VybmVsLgo+Pgo+PiBXZWxsLCB5ZWFoLiBJ
+dCdzIGFsc28gZXF1YWxseSBlYXN5IHRvIGFkZCBzb21lIHBlcmlwaGVyYWwgcmVnaXN0ZXIKPj4g
+cmVnaW9uIHRvIHRoZSAvbWVtb3J5IG5vZGUgYW5kIHdhdGNoIGhpbGFyaXR5IGVuc3VlLiBUaGUg
+c29sdXRpb24gdG8KPj4gYm90aCBpcyAiZG9uJ3QgcHV0IGJvZ3VzIGNyYXAgaW4geW91ciBEVCIu
+Cj4+Cj4gCj4gU3VyZSwgYnV0IHBlb3BsZSBtYWtlIG1pc3Rha2VzIGFuZCBvZnRlbiBhIGxvdCBt
+b3JlIHN1YnRsZSB0aGFuIHlvdXIKPiBleGFtcGxlLgoKSSB3YW50ZWQgdG8gd3JpdGUgYSByZXNw
+b25zZSB0byB0aGF0IGJ1dCBzaW5jZSBpdCB3YXMgdG9vIGVhc3kgdG8gaGl0CnRoZSB3cm9uZyBr
+ZXlzIG9uIG15IGtleWJvYXJkLCBJIGRpZG4ndC4KCkkgZG9uJ3Qgc2VlIGEgcHJvcG9zYWwgZm9y
+IHNvbWUgYWx0ZXJuYXRlIG1ldGhvZCBvZiBkZXNjcmliaW5nCnJlc3RyaWN0ZWQgSU9WQSByZWdp
+b25zIHdoaWNoIHNjYWxlcyBiZXlvbmQgSGlTaWxpY29uIEhpcDA3IGFuZCB3b3VsZCBiZQplbnRp
+cmVseSBpbW11bmUgdG8gYnVncywgc28gSSdtIHJlYWxseSBub3Qgc3VyZSB3aGF0IHlvdXIgYXJn
+dW1lbnQgaXMKaGVyZSA6LwoKUm9iaW4uCgo+IE9ubHkgb25lIHBlcnNvbiBzcG90dGVkIHRoZSBw
+cm9ibGVtIHdpdGggb3VyIGFwcHJvYWNoIHRvIHRoZSBJVFMKPiBwcm9ibGVtLiBJJ20gcHJldHR5
+IGNvbmZpZGVudCBpdCB3b3VsZCBub3QgaGF2ZSBiZWVuIHNwb3R0ZWQgaWYgaXQgd2FzCj4gc3Vi
+bWl0dGVkIGFzIGEgZHRzIGNoYW5nZS4KPiAKPiBNdWNoIGFwcHJlY2lhdGVkLAo+IEpvaG4KPiAK
+Pj4gVGhlcmUncyBhIGJpZyBkaWZmZXJlbmNlIGJldHdlZW4gd2lsZnVsbHkgbWlzZGVzY3JpYmlu
+ZyB5b3VyIHBsYXRmb3JtCj4+IHJlcXVpcmVtZW50cyB2cy4gaGF2aW5nIHRoZSBrZXJuZWwgYXV0
+b21hdGljYWxseSBpbmZlciBzb21ldGhpbmcgYnV0Cj4+IGxlYXZlIGEgaG9sZSBvcGVuIGluIHRo
+ZSBwcm9jZXNzLgo+Pgo+PiBSb2Jpbi4KPj4KPj4gLgo+Pgo+IAo+IAoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KaW9tbXUgbWFpbGluZyBsaXN0CmlvbW11
+QGxpc3RzLmxpbnV4LWZvdW5kYXRpb24ub3JnCmh0dHBzOi8vbGlzdHMubGludXhmb3VuZGF0aW9u
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2lvbW11
