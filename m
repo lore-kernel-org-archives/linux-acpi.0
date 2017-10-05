@@ -1,48 +1,45 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v8 1/5] Doc: iommu/arm-smmu-v3: Add workaround for
- HiSilicon erratum 161010801
-Date: Thu, 5 Oct 2017 17:24:16 -0500
-Message-ID: <20171005222416.zrrzwd3lmxccwodo@rob-hp-laptop>
-References: <20170927133241.21036-1-shameerali.kolothum.thodi@huawei.com>
- <20170927133241.21036-2-shameerali.kolothum.thodi@huawei.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management fix for v4.14-rc4
+Date: Fri, 6 Oct 2017 00:45:19 +0200
+Message-ID: <CAJZ5v0hBid3HBLuD_mK+wJ8dOpCAwF0oVkwS8kF__ErvL7HhRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:37574 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751381AbdJEWYT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2017 18:24:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20170927133241.21036-2-shameerali.kolothum.thodi@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Cc: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, joro@8bytes.org, mark.rutland@arm.com, gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com
 
-On Wed, Sep 27, 2017 at 02:32:37PM +0100, Shameer Kolothum wrote:
-> From: John Garry <john.garry@huawei.com>
-> 
-> The HiSilicon erratum 161010801 describes the limitation of HiSilicon
-> platforms hip06/hip07 to support the SMMU mappings for MSI transactions.
-> 
-> On these platforms, GICv3 ITS translator is presented with the deviceID
-> by extending the MSI payload data to 64 bits to include the deviceID.
-> Hence, the PCIe controller on this platforms has to differentiate the MSI
-> payload against other DMA payload and has to modify the MSI payload.
-> This basically makes it difficult for this platforms to have a SMMU
-> translation for MSI.
-> 
-> This patch adds a compatible string to implement this errata for
-> HiSilicon Hi161x SMMUv3 model on hip06/hip07 platforms.
-> 
-> Also, the arm64 silicon errata is updated with this same erratum.
-> 
-> Signed-off-by: John Garry <john.garry@huawei.com>
-> [Shameer: Modified to use compatible string for errata]
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> ---
->  Documentation/arm64/silicon-errata.txt                  | 1 +
->  Documentation/devicetree/bindings/iommu/arm,smmu-v3.txt | 9 ++++++++-
->  2 files changed, 9 insertions(+), 1 deletion(-)
+Hi Linus,
 
-Acked-by: Rob Herring <robh@kernel.org>
+Please pull from the tag
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-4.14-rc4
+
+with top-most commit ca935f8e769c3e36e1b6339cc527a25c49f4d624
+
+ Merge branch 'pm-sleep'
+
+on top of commit 9e66317d3c92ddaab330c125dfe9d06eee268aff
+
+ Linux 4.14-rc3
+
+to receive a power management fix for v4.14-rc4.
+
+This fixes a code ordering issue in the main suspend-to-idle loop
+that causes some "low power S0 idle" conditions to be incorrectly
+reported as unmet with suspend/resume debug messages enabled.
+
+Thanks!
+
+
+---------------
+
+Rafael J. Wysocki (1):
+      PM / s2idle: Invoke the ->wake() platform callback earlier
+
+---------------
+
+ kernel/power/suspend.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
