@@ -1,96 +1,95 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
- behind SMMUv3
-Date: Fri, 6 Oct 2017 14:27:13 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40C57A73@FRAEML521-MBX.china.huawei.com>
-References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
- <20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] mmc: sdhci-pci: Remove D3 delays for Intel BYT-related
+ host controllers
+Date: Fri, 6 Oct 2017 11:20:48 -0500
+Message-ID: <20171006162048.GC25517@bhelgaas-glaptop.roam.corp.google.com>
+References: <1507294259-20438-1-git-send-email-adrian.hunter@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:37278 "EHLO
-        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751491AbdJFO2G (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Oct 2017 10:28:06 -0400
-In-Reply-To: <20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
-Content-Language: en-US
+Received: from mail.kernel.org ([198.145.29.99]:51104 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751817AbdJFQUv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 6 Oct 2017 12:20:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1507294259-20438-1-git-send-email-adrian.hunter@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "joro@8bytes.org" <joro@8bytes.org>, "bhelgaas@google.com" <bhelgaas@google.com>
-Cc: John Garry <john.garry@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linuxarm <linuxarm@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>
+To: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Hi Shameer
-
-> -----Original Message-----
-> From: Shameerali Kolothum Thodi
-> Sent: 06 October 2017 15:05
-> To: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
-> sudeep.holla@arm.com; will.deacon@arm.com; robin.murphy@arm.com;
-> joro@8bytes.org; bhelgaas@google.com; Gabriele Paoloni
-> Cc: John Garry; iommu@lists.linux-foundation.org; linux-arm-
-> kernel@lists.infradead.org; linux-acpi@vger.kernel.org; linux-
-> pci@vger.kernel.org; devel@acpica.org; Linuxarm; Wangzhou (B);
-> Guohanjun (Hanjun Guo); Shameerali Kolothum Thodi
-> Subject: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
-> behind SMMUv3
+On Fri, Oct 06, 2017 at 03:50:59PM +0300, Adrian Hunter wrote:
+> The default D3 cold delay of 100 ms can cause pauses when streaming audio
+> from eMMC.
 > 
-> The HiSilicon erratum 161010801 describes the limitation of
-> HiSilicon platforms hip06/hip07 to support the SMMUv3 mappings
-> for MSI transactions.
+> Intel BYT-related host controllers do not need PCI D3 delays. Although the
+> delays can be set to zero via an ACPI _DSM, unfortunately that is not being
+> used in all cases. So just set the delays to zero in the driver.
 > 
-> PCIe controller on these platforms has to differentiate the MSI
-> payload against other DMA payload and has to modify the MSI
-> payload. This basically makes it difficult for this platforms to
-> have a SMMU translation for MSI. In order to workaround this, ARM
-> SMMUv3 driver requires a quirk to treat the MSI regions separately.
-> Such a quirk is currently missing for DT based systems and therefore
-> we need to blacklist the hip06/hip07 PCIe controllers.
-> 
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-
-For this patch
-Acked-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-
+> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
 > ---
->  drivers/pci/dwc/pcie-hisi.c | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
+>  drivers/mmc/host/sdhci-pci-core.c | 17 +++++++++++++----
+>  1 file changed, 13 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/pci/dwc/pcie-hisi.c b/drivers/pci/dwc/pcie-hisi.c
-> index a201791..6800747 100644
-> --- a/drivers/pci/dwc/pcie-hisi.c
-> +++ b/drivers/pci/dwc/pcie-hisi.c
-> @@ -270,6 +270,12 @@ static int hisi_pcie_probe(struct platform_device
-> *pdev)
->  	struct resource *reg;
->  	int ret;
-> 
-> +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
-> +			of_property_read_bool(dev->of_node, "iommu-map")) {
-> +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting
-> PCIe controllers behind SMMUv3\n");
-> +		return -ENODEV;
-> +	}
-> +
->  	hisi_pcie = devm_kzalloc(dev, sizeof(*hisi_pcie), GFP_KERNEL);
->  	if (!hisi_pcie)
->  		return -ENOMEM;
-> @@ -340,6 +346,12 @@ static int hisi_pcie_almost_ecam_probe(struct
-> platform_device *pdev)
->  	struct device *dev = &pdev->dev;
->  	struct pci_ecam_ops *ops;
-> 
-> +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
-> +			of_property_read_bool(dev->of_node, "iommu-map")) {
-> +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting
-> PCIe controllers behind SMMUv3\n");
-> +		return -ENODEV;
-> +	}
-> +
->  	ops = (struct pci_ecam_ops *)of_device_get_match_data(dev);
->  	return pci_host_common_probe(pdev, ops);
+> diff --git a/drivers/mmc/host/sdhci-pci-core.c b/drivers/mmc/host/sdhci-pci-core.c
+> index 5f3f7b51299f..14ef99b6e5b7 100644
+> --- a/drivers/mmc/host/sdhci-pci-core.c
+> +++ b/drivers/mmc/host/sdhci-pci-core.c
+> @@ -592,9 +592,18 @@ static void byt_read_dsm(struct sdhci_pci_slot *slot)
+>  	slot->chip->rpm_retune = intel_host->d3_retune;
 >  }
-> --
+>  
+> -static int byt_emmc_probe_slot(struct sdhci_pci_slot *slot)
+> +static void byt_common_setup(struct sdhci_pci_slot *slot)
+>  {
+>  	byt_read_dsm(slot);
+> +
+> +	/* PCI D3 delays are not needed */
+> +	slot->chip->pdev->d3_delay = 0;
+> +	slot->chip->pdev->d3cold_delay = 0;
+
+The fact that it doesn't need D3 delays sounds like a property of the
+device itself, regardless of which (if any) driver claims it.
+
+Can this be done as a quirk instead, maybe something in
+arch/x86/pci/fixup.c?  Maybe quirk_remove_d3_delay() could be used
+directly, or something like pci_d3_delay_fixup()?
+
+> +}
+> +
+> +static int byt_emmc_probe_slot(struct sdhci_pci_slot *slot)
+> +{
+> +	byt_common_setup(slot);
+>  	slot->host->mmc->caps |= MMC_CAP_8_BIT_DATA | MMC_CAP_NONREMOVABLE |
+>  				 MMC_CAP_HW_RESET | MMC_CAP_1_8V_DDR |
+>  				 MMC_CAP_CMD_DURING_TFR |
+> @@ -649,7 +658,7 @@ static int ni_byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
+>  {
+>  	int err;
+>  
+> -	byt_read_dsm(slot);
+> +	byt_common_setup(slot);
+>  
+>  	err = ni_set_max_freq(slot);
+>  	if (err)
+> @@ -662,7 +671,7 @@ static int ni_byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
+>  
+>  static int byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
+>  {
+> -	byt_read_dsm(slot);
+> +	byt_common_setup(slot);
+>  	slot->host->mmc->caps |= MMC_CAP_POWER_OFF_CARD | MMC_CAP_NONREMOVABLE |
+>  				 MMC_CAP_WAIT_WHILE_BUSY;
+>  	return 0;
+> @@ -670,7 +679,7 @@ static int byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
+>  
+>  static int byt_sd_probe_slot(struct sdhci_pci_slot *slot)
+>  {
+> -	byt_read_dsm(slot);
+> +	byt_common_setup(slot);
+>  	slot->host->mmc->caps |= MMC_CAP_WAIT_WHILE_BUSY |
+>  				 MMC_CAP_AGGRESSIVE_PM | MMC_CAP_CD_WAKE;
+>  	slot->cd_idx = 0;
+> -- 
 > 1.9.1
 > 
-
