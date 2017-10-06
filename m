@@ -1,84 +1,144 @@
-From: =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss@gmail.com>
-Subject: Re: [PATCH 0/2] ACPI serdev support
-Date: Fri, 6 Oct 2017 19:36:27 +0200
-Message-ID: <8645dbfb-ca09-340d-e610-6899a9b7dd8a@gmail.com>
-References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
- <A58D9E0F-99FC-4C13-95E8-F60EC61C18B2@holtmann.org>
- <25008d7b-db06-49ad-033f-63c0b72d9c34@gmail.com>
- <6cd58b2f-1ec8-c709-e983-98321bbfea70@gmail.com>
- <CAFXWsS9uhvB=5r83GC=aA=uujDvxfjnOvEUUviymNEM31fka5Q@mail.gmail.com>
+From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFCv2 PATCH 34/36] PCI: Make "PRG Response PASID Required"
+	handling common
+Date: Fri, 6 Oct 2017 13:11:38 -0500
+Message-ID: <20171006181138.GD25517@bhelgaas-glaptop.roam.corp.google.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+	<20171006133203.22803-35-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:46745 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752469AbdJFRgb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Oct 2017 13:36:31 -0400
-In-Reply-To: <CAFXWsS9uhvB=5r83GC=aA=uujDvxfjnOvEUUviymNEM31fka5Q@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171006133203.22803-35-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ian W MORRISON <ianwmorrison@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh@kernel.org>, Sebastian Reichel <sre@kernel.org>, Loic Poulain <loic.poulain@gmail.com>, Johan Hovold <johan@kernel.org>, Lukas Wunner <lukas@wunner.de>, Hans de Goede <hdegoede@redhat.com>, "bluez mailin list (linux-bluetooth@vger.kernel.org)" <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <greg@kroah.com>
 
-Hi Ian,
+On Fri, Oct 06, 2017 at 02:32:01PM +0100, Jean-Philippe Brucker wrote:
+> The PASID ECN to the PCIe spec added a bit in the PRI status register that
+> allows a Function to declare whether a PRG Response should contain the
+> PASID prefix or not.
+> 
+> Move the helper that accesses it from amd_iommu into the PCI subsystem,
+> renaming it to be consistent with the current spec (PRPR - PRG Response
+> PASID Required).
+> 
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
 
-Le 06/10/2017 à 16:47, Ian W MORRISON a écrit :
-> <snip>
->> It seems normal to me that BCM2EA4 is no more enumerated at ACPI level as
->> this is moved to serdev.
->> When removing 'if (ares->data.common_serial_bus.type !=
->> ACPI_RESOURCE_SERIAL_TYPE_UART)' you stop the serdev module finding the
->> Serial UART information. In this case it will not register the device and it
->> will fall back to previous behavior needing to use btattach to setup
->> Bluetooth.
->>
->> Can you share:
->> - btattach you are currently using,
->> - dmesg with with dynamic debug enabled for serdev and hci_uart modules
->> during boot (with Hans's patches, your MINIX Z83-4 patches and mine
->> patches).
->>
->> Regards,
->>
->> Fred
-> Hi Fred,
->
-> I've attached four (text) files:
->
-> 1. btattach.txt - Details of the 'bluez' package that contains the
-> 'btattach' I'm using.
-> 2. dmesg.txt - 'dmesg' with with dynamic debug enabled for serdev and
-> hci_uart modules. This doesn't seem to show much so have I provided
-> what you wanted?
-> 3. gitlog.txt - First few commits from the git log showing the kernel
-> patches used to build the kernel (sent just for clarity).
-> 4. working.txt - An extract from 'dmesg' when BCM2EA4 is enumerated
-> from a kernel patched with the 'if' statement refered to above.
->
-> Regards,
-> Ian
+Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 
-Which tty is used for btattach?
-Is this tty existing in /dev?
+I assume this will be merged with the rest of the series, probably via an
+IOMMU tree.
 
-I took a look at dmesg.txt and I did not find any trace related to serdev.
-On the T100, where ttyS4 is used for Bluetooth, I can see the following 
-traces:
-   [   11.732347] serial serial0: allocated controller 
-0xffff880036229000 id 0
-   [   11.732470] serial serial0-0: device serial0-0 registered
-   [   11.732475] serial serial0: serdev0 registered: dev:ffff880036229000
-   [   11.732478] serial serial0: tty port ttyS4 registered
-
-If serdev registration failed you should at least get something like:
-     serdev0 no devices registered: of:<> acpi:<>
-
-So, just to be sure, is SERIAL_DEV_BUS and SERIAL_DEV_CTRL_TTYPORT 
-enabled in your kernel?
-
-Regards,
-
-Fred
-
+> ---
+>  drivers/iommu/amd_iommu.c     | 19 +------------------
+>  drivers/pci/ats.c             | 17 +++++++++++++++++
+>  include/linux/pci-ats.h       |  8 ++++++++
+>  include/uapi/linux/pci_regs.h |  1 +
+>  4 files changed, 27 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+> index 51f8215877f5..45036a253d63 100644
+> --- a/drivers/iommu/amd_iommu.c
+> +++ b/drivers/iommu/amd_iommu.c
+> @@ -2039,23 +2039,6 @@ static int pdev_iommuv2_enable(struct pci_dev *pdev)
+>  	return ret;
+>  }
+>  
+> -/* FIXME: Move this to PCI code */
+> -#define PCI_PRI_TLP_OFF		(1 << 15)
+> -
+> -static bool pci_pri_tlp_required(struct pci_dev *pdev)
+> -{
+> -	u16 status;
+> -	int pos;
+> -
+> -	pos = pci_find_ext_capability(pdev, PCI_EXT_CAP_ID_PRI);
+> -	if (!pos)
+> -		return false;
+> -
+> -	pci_read_config_word(pdev, pos + PCI_PRI_STATUS, &status);
+> -
+> -	return (status & PCI_PRI_TLP_OFF) ? true : false;
+> -}
+> -
+>  /*
+>   * If a device is not yet associated with a domain, this function
+>   * assigns it visible for the hardware
+> @@ -2084,7 +2067,7 @@ static int attach_device(struct device *dev,
+>  
+>  			dev_data->ats.enabled = true;
+>  			dev_data->ats.qdep    = pci_ats_queue_depth(pdev);
+> -			dev_data->pri_tlp     = pci_pri_tlp_required(pdev);
+> +			dev_data->pri_tlp     = pci_prg_resp_requires_prefix(pdev);
+>  		}
+>  	} else if (amd_iommu_iotlb_sup &&
+>  		   pci_enable_ats(pdev, PAGE_SHIFT) == 0) {
+> diff --git a/drivers/pci/ats.c b/drivers/pci/ats.c
+> index ad8ddbbbf245..f95e42df728b 100644
+> --- a/drivers/pci/ats.c
+> +++ b/drivers/pci/ats.c
+> @@ -389,3 +389,20 @@ int pci_max_pasids(struct pci_dev *pdev)
+>  }
+>  EXPORT_SYMBOL_GPL(pci_max_pasids);
+>  #endif /* CONFIG_PCI_PASID */
+> +
+> +#if defined(CONFIG_PCI_PASID) && defined(CONFIG_PCI_PRI)
+> +bool pci_prg_resp_requires_prefix(struct pci_dev *pdev)
+> +{
+> +	u16 status;
+> +	int pos;
+> +
+> +	pos = pci_find_ext_capability(pdev, PCI_EXT_CAP_ID_PRI);
+> +	if (!pos)
+> +		return false;
+> +
+> +	pci_read_config_word(pdev, pos + PCI_PRI_STATUS, &status);
+> +
+> +	return !!(status & PCI_PRI_STATUS_PRPR);
+> +}
+> +EXPORT_SYMBOL_GPL(pci_prg_resp_requires_prefix);
+> +#endif /* CONFIG_PCI_PASID && CONFIG_PCI_PRI */
+> diff --git a/include/linux/pci-ats.h b/include/linux/pci-ats.h
+> index 782fb8e0755f..367ea9448441 100644
+> --- a/include/linux/pci-ats.h
+> +++ b/include/linux/pci-ats.h
+> @@ -67,5 +67,13 @@ static inline int pci_max_pasids(struct pci_dev *pdev)
+>  
+>  #endif /* CONFIG_PCI_PASID */
+>  
+> +#if defined(CONFIG_PCI_PASID) && defined(CONFIG_PCI_PRI)
+> +bool pci_prg_resp_requires_prefix(struct pci_dev *pdev);
+> +#else
+> +static inline bool pci_prg_resp_requires_prefix(struct pci_dev *pdev)
+> +{
+> +	return false;
+> +}
+> +#endif /* CONFIG_PCI_PASID && CONFIG_PCI_PRI */
+>  
+>  #endif /* LINUX_PCI_ATS_H*/
+> diff --git a/include/uapi/linux/pci_regs.h b/include/uapi/linux/pci_regs.h
+> index f8d58045926f..a0eeb16a2bfe 100644
+> --- a/include/uapi/linux/pci_regs.h
+> +++ b/include/uapi/linux/pci_regs.h
+> @@ -862,6 +862,7 @@
+>  #define  PCI_PRI_STATUS_RF	0x001	/* Response Failure */
+>  #define  PCI_PRI_STATUS_UPRGI	0x002	/* Unexpected PRG index */
+>  #define  PCI_PRI_STATUS_STOPPED	0x100	/* PRI Stopped */
+> +#define  PCI_PRI_STATUS_PRPR	0x8000	/* PRG Response requires PASID prefix */
+>  #define PCI_PRI_MAX_REQ		0x08	/* PRI max reqs supported */
+>  #define PCI_PRI_ALLOC_REQ	0x0c	/* PRI max reqs allowed */
+>  #define PCI_EXT_CAP_PRI_SIZEOF	16
+> -- 
+> 2.13.3
+> 
