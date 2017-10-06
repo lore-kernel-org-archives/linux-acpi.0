@@ -1,80 +1,30 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: [PATCH] mmc: sdhci-pci: Remove D3 delays for Intel BYT-related host controllers
-Date: Fri,  6 Oct 2017 15:50:59 +0300
-Message-ID: <1507294259-20438-1-git-send-email-adrian.hunter@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 0/4] PM / Sleep / ACPI: Some cleanups and clarifications
+Date: Fri, 6 Oct 2017 14:58:18 +0200
+Message-ID: <CAJZ5v0iwO=3Ykeu0xYtgegpQnmhafHVOTy-e4ktEM3D0h9-cfA@mail.gmail.com>
+References: <1507014669-1502-1-git-send-email-ulf.hansson@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:37128 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751869AbdJFM5q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 6 Oct 2017 08:57:46 -0400
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:38164 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752214AbdJFM6T (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Oct 2017 08:58:19 -0400
+In-Reply-To: <1507014669-1502-1-git-send-email-ulf.hansson@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Kevin Hilman <khilman@kernel.org>
 
-The default D3 cold delay of 100 ms can cause pauses when streaming audio
-from eMMC.
+On Tue, Oct 3, 2017 at 9:11 AM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> This series contains four patches which are re-submitted as a subset from an
+> earlier posted series [1]. These changes addresses cleanups/clarifications to
+> the code and do not include any functional changes.
+>
+> [1]
+> https://www.spinics.net/lists/arm-kernel/msg603856.html
 
-Intel BYT-related host controllers do not need PCI D3 delays. Although the
-delays can be set to zero via an ACPI _DSM, unfortunately that is not being
-used in all cases. So just set the delays to zero in the driver.
+OK for patches [1-3/4], but I'm not sure about the last one.
 
-Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
----
- drivers/mmc/host/sdhci-pci-core.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/mmc/host/sdhci-pci-core.c b/drivers/mmc/host/sdhci-pci-core.c
-index 5f3f7b51299f..14ef99b6e5b7 100644
---- a/drivers/mmc/host/sdhci-pci-core.c
-+++ b/drivers/mmc/host/sdhci-pci-core.c
-@@ -592,9 +592,18 @@ static void byt_read_dsm(struct sdhci_pci_slot *slot)
- 	slot->chip->rpm_retune = intel_host->d3_retune;
- }
- 
--static int byt_emmc_probe_slot(struct sdhci_pci_slot *slot)
-+static void byt_common_setup(struct sdhci_pci_slot *slot)
- {
- 	byt_read_dsm(slot);
-+
-+	/* PCI D3 delays are not needed */
-+	slot->chip->pdev->d3_delay = 0;
-+	slot->chip->pdev->d3cold_delay = 0;
-+}
-+
-+static int byt_emmc_probe_slot(struct sdhci_pci_slot *slot)
-+{
-+	byt_common_setup(slot);
- 	slot->host->mmc->caps |= MMC_CAP_8_BIT_DATA | MMC_CAP_NONREMOVABLE |
- 				 MMC_CAP_HW_RESET | MMC_CAP_1_8V_DDR |
- 				 MMC_CAP_CMD_DURING_TFR |
-@@ -649,7 +658,7 @@ static int ni_byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
- {
- 	int err;
- 
--	byt_read_dsm(slot);
-+	byt_common_setup(slot);
- 
- 	err = ni_set_max_freq(slot);
- 	if (err)
-@@ -662,7 +671,7 @@ static int ni_byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
- 
- static int byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
- {
--	byt_read_dsm(slot);
-+	byt_common_setup(slot);
- 	slot->host->mmc->caps |= MMC_CAP_POWER_OFF_CARD | MMC_CAP_NONREMOVABLE |
- 				 MMC_CAP_WAIT_WHILE_BUSY;
- 	return 0;
-@@ -670,7 +679,7 @@ static int byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
- 
- static int byt_sd_probe_slot(struct sdhci_pci_slot *slot)
- {
--	byt_read_dsm(slot);
-+	byt_common_setup(slot);
- 	slot->host->mmc->caps |= MMC_CAP_WAIT_WHILE_BUSY |
- 				 MMC_CAP_AGGRESSIVE_PM | MMC_CAP_CD_WAKE;
- 	slot->cd_idx = 0;
--- 
-1.9.1
-
+Thanks,
+Rafael
