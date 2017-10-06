@@ -1,50 +1,48 @@
-From: Daniel Drake <drake@endlessm.com>
-Subject: Re: r8169 Wake-on-LAN causes immediate ACPI GPE wakeup
-Date: Fri, 6 Oct 2017 10:44:02 +0800
-Message-ID: <CAD8Lp44=tBOTRZcZeuATLwV3+8_PDWd=HPPYs76qMfRtwrRv+A@mail.gmail.com>
-References: <CAD8Lp45YVtw48+8jSq6gtu1xA7Rt+qr6vvVZF4AC-QXeCKNj4w@mail.gmail.com>
- <CAJZ5v0i+Ct9HbT+vMchW0dNxYO2WvyY5Tmz1a+3k0FLmbFGE2w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0i+Ct9HbT+vMchW0dNxYO2WvyY5Tmz1a+3k0FLmbFGE2w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: nic_swsd@realtek.com, netdev@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Linux Upstreaming Team <linux@endlessm.com>, Linux PM <linux-pm@vger.kernel.org>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH] PM / ACPI: Removed unused function
+Date: Fri,  6 Oct 2017 09:08:34 +0200
+Message-ID: <1507273714-26394-1-git-send-email-ulf.hansson@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:48227 "EHLO
+        mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751318AbdJFHIl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Oct 2017 03:08:41 -0400
+Received: by mail-lf0-f41.google.com with SMTP id q132so19333820lfe.5
+        for <linux-acpi@vger.kernel.org>; Fri, 06 Oct 2017 00:08:40 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On Fri, Oct 6, 2017 at 9:24 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->> On the other hand, the RP05 (root port) _PRW says it will wake up the
->> system via GPE09, and the _L09 handler at least has one codepath which
->> could potentially do a Notify(PXSX, 2) to indicate an ethernet wakeup.
->
-> Which can only happen in the S0 system state.
+acpi_dev_pm_get_node() isn't used or implemented, let's remove it.
 
-Not quite sure I understand your comment here. Of course the _L09
-handler (and any other ACPI code) can only execute in S0 state.
-However if Linux leaves GPE09 enabled during S3 suspend, and then
-detects that it has an event pending on resume, it will execute _L09
-during resume. (However, we have not observed GPE09 firing at all)
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+---
+ include/linux/acpi.h | 5 -----
+ 1 file changed, 5 deletions(-)
 
->> But in testing:
->>  - If GPE08 is enabled as a wakeup source, the system will always wake
->> up as soon as it goes to sleep
->
-> What exactly do you mean by "enabled as a wakeup source"?
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 502af53..3b89b4f 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -868,17 +868,12 @@ int acpi_dev_runtime_suspend(struct device *dev);
+ int acpi_dev_runtime_resume(struct device *dev);
+ int acpi_subsys_runtime_suspend(struct device *dev);
+ int acpi_subsys_runtime_resume(struct device *dev);
+-struct acpi_device *acpi_dev_pm_get_node(struct device *dev);
+ int acpi_dev_pm_attach(struct device *dev, bool power_on);
+ #else
+ static inline int acpi_dev_runtime_suspend(struct device *dev) { return 0; }
+ static inline int acpi_dev_runtime_resume(struct device *dev) { return 0; }
+ static inline int acpi_subsys_runtime_suspend(struct device *dev) { return 0; }
+ static inline int acpi_subsys_runtime_resume(struct device *dev) { return 0; }
+-static inline struct acpi_device *acpi_dev_pm_get_node(struct device *dev)
+-{
+-	return NULL;
+-}
+ static inline int acpi_dev_pm_attach(struct device *dev, bool power_on)
+ {
+ 	return -ENODEV;
+-- 
+2.7.4
 
-Linux associates the ethernet PCI device with PCI0.RP05.PXSX, which
-has _PRW referencing GPE08.
-r8169 has already done device_set_wakeup_enable() at probe time.
-So when going into suspend, acpi_enable_wakeup_devices() and the code
-beneath that will ensure that GPE08 is enabled when the system goes
-into suspend.
-See acpi_hw_enable_wakeup_gpe_block().
-
-To disable it, "echo disabled > power/wakeup" for the ethernet device in sysfs.
-
-To test with GPE09 instead, I modified the _PRW method in the DSDT to
-point at GPE09, and again used sysfs to control whether the GPE is
-enabled during suspend or not.
-
-Thanks
-Daniel
