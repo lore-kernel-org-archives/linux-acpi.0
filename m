@@ -1,68 +1,35 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] PM / ACPI: Removed unused function
-Date: Fri, 6 Oct 2017 14:14:55 +0200
-Message-ID: <20171006121455.GA14483@amd>
-References: <1507273714-26394-1-git-send-email-ulf.hansson@linaro.org>
- <20171006121230.GA14256@amd>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 1/2] serdev: Add ACPI support
+Date: Fri, 6 Oct 2017 07:33:41 -0500
+Message-ID: <CAL_JsqKDzR9-ptE=SbL0LuQvTKDNT-GZ8buOvffJDyWz6fHfSA@mail.gmail.com>
+References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com> <1507107090-15992-2-git-send-email-frederic.danis.oss@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51699 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751841AbdJFMO5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Oct 2017 08:14:57 -0400
-Content-Disposition: inline
-In-Reply-To: <20171006121230.GA14256@amd>
+Received: from mail.kernel.org ([198.145.29.99]:58782 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751932AbdJFMeD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 6 Oct 2017 08:34:03 -0400
+In-Reply-To: <1507107090-15992-2-git-send-email-frederic.danis.oss@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: =?UTF-8?B?RnLDqWTDqXJpYyBEYW5pcw==?= <frederic.danis.oss@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>, Sebastian Reichel <sre@kernel.org>, Loic Poulain <loic.poulain@gmail.com>, Johan Hovold <johan@kernel.org>, Lukas Wunner <lukas@wunner.de>, Hans de Goede <hdegoede@redhat.com>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
+On Wed, Oct 4, 2017 at 3:51 AM, Frédéric Danis
+<frederic.danis.oss@gmail.com> wrote:
+> This patch allows SerDev module to manage serial devices declared as
+> attached to an UART in ACPI table.
+>
+> acpi_serdev_add_device() callback will only take into account entries
+> without enumerated flag set. This flags is set for all entries during
+> ACPI scan, except for SPI and I2C serial devices, and for UART with
+> 2nd patch in the series.
+>
+> Signed-off-by: Frédéric Danis <frederic.danis.oss@gmail.com>
+> ---
+>  drivers/tty/serdev/core.c | 99 ++++++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 94 insertions(+), 5 deletions(-)
 
---PNTmBPCT7hxwcZjr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri 2017-10-06 14:12:30, Pavel Machek wrote:
-> On Fri 2017-10-06 09:08:34, Ulf Hansson wrote:
-> > acpi_dev_pm_get_node() isn't used or implemented, let's remove it.
-> >=20
-> > Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
->=20
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-
-I was too quick sending this.
-
-How is it unused?
-
-=2E/drivers/acpi/device_pm.c: * acpi_dev_pm_attach - Prepare device for
-ACPI power management.
-=2E/drivers/acpi/device_pm.c:int acpi_dev_pm_attach(struct device *dev,
-bool power_on)
-=2E/drivers/acpi/device_pm.c:EXPORT_SYMBOL_GPL(acpi_dev_pm_attach);
-Binary file ./drivers/acpi/device_pm.o matches
-Binary file ./drivers/base/power/common.o matches
-=2E/drivers/base/power/common.c:		  ret =3D
-acpi_dev_pm_attach(dev, power_on);
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---PNTmBPCT7hxwcZjr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlnXc78ACgkQMOfwapXb+vJ8VwCfTInliKC1703aeNwfyHfWn4Mk
-VYkAnioPwx3WcG6LqxHaY8xxFwH/p27b
-=7F5u
------END PGP SIGNATURE-----
-
---PNTmBPCT7hxwcZjr--
+Reviewed-by: Rob Herring <robh@kernel.org>
