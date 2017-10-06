@@ -1,35 +1,80 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 1/2] serdev: Add ACPI support
-Date: Fri, 6 Oct 2017 07:33:41 -0500
-Message-ID: <CAL_JsqKDzR9-ptE=SbL0LuQvTKDNT-GZ8buOvffJDyWz6fHfSA@mail.gmail.com>
-References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com> <1507107090-15992-2-git-send-email-frederic.danis.oss@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: [PATCH] mmc: sdhci-pci: Remove D3 delays for Intel BYT-related host controllers
+Date: Fri,  6 Oct 2017 15:50:59 +0300
+Message-ID: <1507294259-20438-1-git-send-email-adrian.hunter@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58782 "EHLO mail.kernel.org"
+Received: from mga05.intel.com ([192.55.52.43]:37128 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751932AbdJFMeD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 6 Oct 2017 08:34:03 -0400
-In-Reply-To: <1507107090-15992-2-git-send-email-frederic.danis.oss@gmail.com>
+        id S1751869AbdJFM5q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 6 Oct 2017 08:57:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?B?RnLDqWTDqXJpYyBEYW5pcw==?= <frederic.danis.oss@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>, Sebastian Reichel <sre@kernel.org>, Loic Poulain <loic.poulain@gmail.com>, Johan Hovold <johan@kernel.org>, Lukas Wunner <lukas@wunner.de>, Hans de Goede <hdegoede@redhat.com>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Wed, Oct 4, 2017 at 3:51 AM, Frédéric Danis
-<frederic.danis.oss@gmail.com> wrote:
-> This patch allows SerDev module to manage serial devices declared as
-> attached to an UART in ACPI table.
->
-> acpi_serdev_add_device() callback will only take into account entries
-> without enumerated flag set. This flags is set for all entries during
-> ACPI scan, except for SPI and I2C serial devices, and for UART with
-> 2nd patch in the series.
->
-> Signed-off-by: Frédéric Danis <frederic.danis.oss@gmail.com>
-> ---
->  drivers/tty/serdev/core.c | 99 ++++++++++++++++++++++++++++++++++++++++++++---
->  1 file changed, 94 insertions(+), 5 deletions(-)
+The default D3 cold delay of 100 ms can cause pauses when streaming audio
+from eMMC.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+Intel BYT-related host controllers do not need PCI D3 delays. Although the
+delays can be set to zero via an ACPI _DSM, unfortunately that is not being
+used in all cases. So just set the delays to zero in the driver.
+
+Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+---
+ drivers/mmc/host/sdhci-pci-core.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/mmc/host/sdhci-pci-core.c b/drivers/mmc/host/sdhci-pci-core.c
+index 5f3f7b51299f..14ef99b6e5b7 100644
+--- a/drivers/mmc/host/sdhci-pci-core.c
++++ b/drivers/mmc/host/sdhci-pci-core.c
+@@ -592,9 +592,18 @@ static void byt_read_dsm(struct sdhci_pci_slot *slot)
+ 	slot->chip->rpm_retune = intel_host->d3_retune;
+ }
+ 
+-static int byt_emmc_probe_slot(struct sdhci_pci_slot *slot)
++static void byt_common_setup(struct sdhci_pci_slot *slot)
+ {
+ 	byt_read_dsm(slot);
++
++	/* PCI D3 delays are not needed */
++	slot->chip->pdev->d3_delay = 0;
++	slot->chip->pdev->d3cold_delay = 0;
++}
++
++static int byt_emmc_probe_slot(struct sdhci_pci_slot *slot)
++{
++	byt_common_setup(slot);
+ 	slot->host->mmc->caps |= MMC_CAP_8_BIT_DATA | MMC_CAP_NONREMOVABLE |
+ 				 MMC_CAP_HW_RESET | MMC_CAP_1_8V_DDR |
+ 				 MMC_CAP_CMD_DURING_TFR |
+@@ -649,7 +658,7 @@ static int ni_byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
+ {
+ 	int err;
+ 
+-	byt_read_dsm(slot);
++	byt_common_setup(slot);
+ 
+ 	err = ni_set_max_freq(slot);
+ 	if (err)
+@@ -662,7 +671,7 @@ static int ni_byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
+ 
+ static int byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
+ {
+-	byt_read_dsm(slot);
++	byt_common_setup(slot);
+ 	slot->host->mmc->caps |= MMC_CAP_POWER_OFF_CARD | MMC_CAP_NONREMOVABLE |
+ 				 MMC_CAP_WAIT_WHILE_BUSY;
+ 	return 0;
+@@ -670,7 +679,7 @@ static int byt_sdio_probe_slot(struct sdhci_pci_slot *slot)
+ 
+ static int byt_sd_probe_slot(struct sdhci_pci_slot *slot)
+ {
+-	byt_read_dsm(slot);
++	byt_common_setup(slot);
+ 	slot->host->mmc->caps |= MMC_CAP_WAIT_WHILE_BUSY |
+ 				 MMC_CAP_AGGRESSIVE_PM | MMC_CAP_CD_WAKE;
+ 	slot->cd_idx = 0;
+-- 
+1.9.1
+
