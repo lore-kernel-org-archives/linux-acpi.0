@@ -1,82 +1,129 @@
-From: =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/2] ACPI serdev support
-Date: Fri, 6 Oct 2017 10:16:37 +0200
-Message-ID: <6cd58b2f-1ec8-c709-e983-98321bbfea70@gmail.com>
-References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
- <A58D9E0F-99FC-4C13-95E8-F60EC61C18B2@holtmann.org>
- <25008d7b-db06-49ad-033f-63c0b72d9c34@gmail.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.9 084/104] x86/acpi: Restore the order of CPU IDs
+Date: Fri,  6 Oct 2017 10:52:02 +0200
+Message-ID: <20171006083853.342009310@linuxfoundation.org>
+References: <20171006083840.743659740@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <25008d7b-db06-49ad-033f-63c0b72d9c34-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ian W MORRISON <ianwmorrison-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Loic Poulain <loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "bluez mailin list (linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171006083840.743659740@linuxfoundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dou Liyang <douly.fnst@cn.fujitsu.com>, Xiaolong Ye <xiaolong.ye@intel.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, guzheng1@huawei.com, izumi.taku@jp.fujitsu.com, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, Sasha Levin <alexander.levin@verizon.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Ian,
+4.9-stable review patch.  If anyone has any objections, please let me know.
 
-Le 06/10/2017 à 09:33, Ian W MORRISON a écrit :
-> On 10/6/17 2:21 AM, Marcel Holtmann wrote:
->> Hi Fred,
->>
->>> Add ACPI support for serial attached devices.
->>>
->>> Currently, serial devices are not set as enumerated during ACPI scan for SPI
->>> or i2c buses (but not for UART). This should also be done for UART serial
->>> devices.
->>> I renamed *spi_i2c_slave* to *serial_bus_slave* to reflect this.
->>>
->>> For hci_bcm, this needs Hans de Goede's "Bluetooth: hci_bcm: Add (runtime)pm
->>> support to the serdev drv" patches to work.
->>>
->>> Tested on T100TA with Broadcom BCM2E39.
->>>
->>> Since RFC:
->>>   - Add or reword commit messages
->>>   - Rename *serial_slave* to *serial_bus_slave*
->>>   - Add specific check for Apple in acpi_is_serial_bus_slave(), thanks to
->>>     Lukas Wunner
->>>   - Update comment in acpi_default_enumeration()
->>>   - Remove patch 3 "Bluetooth: hci_bcm: Add ACPI serdev support for BCM2E39"
->>>     in favor of patches from Hans de Goede
->> I already applied Hans’ patch series to bluetooth-next tree. And I have no objections or comments for these changes. They should be reviewed and acked by the appropriate maintainers as well, but from my side this looks good.
->>
->> Acked-by: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
->>
->> What we should discuss on how we get them upstream since besides the Bluetooth subsystem, they cover ACPI and TTY subsystems.
->>
->> Regards
->>
->> Marcel
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-bluetooth" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> Hi Marcel,
->
-> I've tested these two patches along with the nine patches (plus revert patch) from Hans's series but cannot get bluetooth to work on some of my devices using these two patches as is, specifically on MINIX Z83-4 based PCs.
->
-> In order for bluetooth to function on these devices I submitted the patch 'Bluetooth: BCM: Add support for MINIX Z83-4 based devices' as they require the trigger type IRQF_TRIGGER_FALLING. With Hans's new patch series I've had to modify the patch which I've resubmitted as version 2. However when I apply the second patch from Fred's series 'ACPI / scan: Fix enumeration for special UART devices' I have found the bluetooth device (BCM2EA4) is no longer enumerated. Specifically I've found that the removal of the check 'if (ares->data.common_serial_bus.type != ACPI_RESOURCE_SERIAL_TYPE_UART)' causes this failure and if I re-add the 'if' statement then the device is loaded. However a 'btattach' is still required for functioning bluetooth.
+------------------
 
-It seems normal to me that BCM2EA4 is no more enumerated at ACPI level 
-as this is moved to serdev.
-When removing 'if (ares->data.common_serial_bus.type != 
-ACPI_RESOURCE_SERIAL_TYPE_UART)' you stop the serdev module finding the 
-Serial UART information. In this case it will not register the device 
-and it will fall back to previous behavior needing to use btattach to 
-setup Bluetooth.
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
 
-Can you share:
-- btattach you are currently using,
-- dmesg with with dynamic debug enabled for serdev and hci_uart modules 
-during boot (with Hans's patches, your MINIX Z83-4 patches and mine 
-patches).
 
-Regards,
+[ Upstream commit 2b85b3d22920db7473e5fed5719e7955c0ec323e ]
 
-Fred
+The following commits:
+
+  f7c28833c2 ("x86/acpi: Enable acpi to register all possible cpus at
+boot time") and 8f54969dc8 ("x86/acpi: Introduce persistent storage
+for cpuid <-> apicid mapping")
+
+... registered all the possible CPUs at boot time via ACPI tables to
+make the mapping of cpuid <-> apicid fixed. Both enabled and disabled
+CPUs could have a logical CPU ID after boot time.
+
+But, ACPI tables are unreliable. the number amd order of Local APIC
+entries which depends on the firmware is often inconsistent with the
+physical devices. Even if they are consistent, The disabled CPUs which
+take up some logical CPU IDs will also make the order discontinuous.
+
+Revert the part of disabled CPUs registration, keep the allocation
+logic of logical CPU IDs and also keep some code location changes.
+
+Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Tested-by: Xiaolong Ye <xiaolong.ye@intel.com>
+Cc: rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org
+Cc: guzheng1@huawei.com
+Cc: izumi.taku@jp.fujitsu.com
+Cc: lenb@kernel.org
+Link: http://lkml.kernel.org/r/1488528147-2279-4-git-send-email-douly.fnst@cn.fujitsu.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sasha Levin <alexander.levin@verizon.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/x86/kernel/acpi/boot.c |    7 ++++++-
+ arch/x86/kernel/apic/apic.c |   26 +++++++-------------------
+ 2 files changed, 13 insertions(+), 20 deletions(-)
+
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -176,10 +176,15 @@ static int acpi_register_lapic(int id, u
+ 		return -EINVAL;
+ 	}
+ 
++	if (!enabled) {
++		++disabled_cpus;
++		return -EINVAL;
++	}
++
+ 	if (boot_cpu_physical_apicid != -1U)
+ 		ver = boot_cpu_apic_version;
+ 
+-	cpu = __generic_processor_info(id, ver, enabled);
++	cpu = generic_processor_info(id, ver);
+ 	if (cpu >= 0)
+ 		early_per_cpu(x86_cpu_to_acpiid, cpu) = acpiid;
+ 
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -2070,7 +2070,7 @@ static int allocate_logical_cpuid(int ap
+ 	return nr_logical_cpuids++;
+ }
+ 
+-int __generic_processor_info(int apicid, int version, bool enabled)
++int generic_processor_info(int apicid, int version)
+ {
+ 	int cpu, max = nr_cpu_ids;
+ 	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
+@@ -2128,11 +2128,9 @@ int __generic_processor_info(int apicid,
+ 	if (num_processors >= nr_cpu_ids) {
+ 		int thiscpu = max + disabled_cpus;
+ 
+-		if (enabled) {
+-			pr_warning("APIC: NR_CPUS/possible_cpus limit of %i "
+-				   "reached. Processor %d/0x%x ignored.\n",
+-				   max, thiscpu, apicid);
+-		}
++		pr_warning("APIC: NR_CPUS/possible_cpus limit of %i "
++			   "reached. Processor %d/0x%x ignored.\n",
++			   max, thiscpu, apicid);
+ 
+ 		disabled_cpus++;
+ 		return -EINVAL;
+@@ -2184,23 +2182,13 @@ int __generic_processor_info(int apicid,
+ 		apic->x86_32_early_logical_apicid(cpu);
+ #endif
+ 	set_cpu_possible(cpu, true);
+-
+-	if (enabled) {
+-		num_processors++;
+-		physid_set(apicid, phys_cpu_present_map);
+-		set_cpu_present(cpu, true);
+-	} else {
+-		disabled_cpus++;
+-	}
++	physid_set(apicid, phys_cpu_present_map);
++	set_cpu_present(cpu, true);
++	num_processors++;
+ 
+ 	return cpu;
+ }
+ 
+-int generic_processor_info(int apicid, int version)
+-{
+-	return __generic_processor_info(apicid, version, true);
+-}
+-
+ int hard_smp_processor_id(void)
+ {
+ 	return read_apic_id();
