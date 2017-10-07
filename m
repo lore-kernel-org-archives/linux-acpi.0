@@ -1,29 +1,49 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] serdev: Add ACPI support
-Date: Sat, 7 Oct 2017 08:42:56 +0200
-Message-ID: <20171007064256.GA19701@kroah.com>
-References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
- <1507107090-15992-2-git-send-email-frederic.danis.oss@gmail.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] PM / ACPI: Removed unused function
+Date: Sat, 7 Oct 2017 08:44:33 +0200
+Message-ID: <CAPDyKFomApGebKqEMzpkiHJxq_YMxWaB6DUB9pjRDc_z-W3G8w@mail.gmail.com>
+References: <1507273714-26394-1-git-send-email-ulf.hansson@linaro.org>
+ <20171006121230.GA14256@amd> <20171006121455.GA14483@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1507107090-15992-2-git-send-email-frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-it0-f51.google.com ([209.85.214.51]:49385 "EHLO
+        mail-it0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750864AbdJGGof (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Oct 2017 02:44:35 -0400
+Received: by mail-it0-f51.google.com with SMTP id y15so3660137ita.4
+        for <linux-acpi@vger.kernel.org>; Fri, 06 Oct 2017 23:44:35 -0700 (PDT)
+In-Reply-To: <20171006121455.GA14483@amd>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wed, Oct 04, 2017 at 10:51:29AM +0200, Frédéric Danis wrote:
-> This patch allows SerDev module to manage serial devices declared as
-> attached to an UART in ACPI table.
-> 
-> acpi_serdev_add_device() callback will only take into account entries
-> without enumerated flag set. This flags is set for all entries during
-> ACPI scan, except for SPI and I2C serial devices, and for UART with
-> 2nd patch in the series.
-> 
-> Signed-off-by: Frédéric Danis <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+On 6 October 2017 at 14:14, Pavel Machek <pavel@ucw.cz> wrote:
+> On Fri 2017-10-06 14:12:30, Pavel Machek wrote:
+>> On Fri 2017-10-06 09:08:34, Ulf Hansson wrote:
+>> > acpi_dev_pm_get_node() isn't used or implemented, let's remove it.
+>> >
+>> > Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+>>
+>> Acked-by: Pavel Machek <pavel@ucw.cz>
+>
+> I was too quick sending this.
+>
+> How is it unused?
+>
+> ./drivers/acpi/device_pm.c: * acpi_dev_pm_attach - Prepare device for
+> ACPI power management.
+> ./drivers/acpi/device_pm.c:int acpi_dev_pm_attach(struct device *dev,
+> bool power_on)
+> ./drivers/acpi/device_pm.c:EXPORT_SYMBOL_GPL(acpi_dev_pm_attach);
+> Binary file ./drivers/acpi/device_pm.o matches
+> Binary file ./drivers/base/power/common.o matches
+> ./drivers/base/power/common.c:            ret =
+> acpi_dev_pm_attach(dev, power_on);
 
-Acked-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+I think you searched for the wrong function. It should be
+acpi_dev_pm_get_node().
+
+Kind regards
+Uffe
