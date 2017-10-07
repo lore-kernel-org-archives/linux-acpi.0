@@ -1,46 +1,47 @@
-From: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH 1/2] serdev: Add ACPI support
-Date: Sat, 7 Oct 2017 02:31:05 +0200
-Message-ID: <E5446B94-9914-44B5-A734-050F7457746D@holtmann.org>
-References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
- <1507107090-15992-2-git-send-email-frederic.danis.oss@gmail.com>
- <CAL_JsqKDzR9-ptE=SbL0LuQvTKDNT-GZ8buOvffJDyWz6fHfSA@mail.gmail.com>
- <BF8AC3FB-72FE-41C3-BE8D-27A32B84F6CB@holtmann.org>
- <CAJZ5v0gLhnisMn9o00ndnB6fjHt5V7KCy_57UScF=ZfZVF=dxA@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.0 \(3445.1.7\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZ5v0gLhnisMn9o00ndnB6fjHt5V7KCy_57UScF=ZfZVF=dxA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?utf-8?Q?Fr=C3=A9d=C3=A9ric_Danis?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Loic Poulain <loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Greg Kroah-Hartman <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Ian W MORRISON <ianwmorrison@gmail.com>
+Subject: [PATCH] serdev: Update drivers/tty/serdev/Kconfig for ACPI support
+Date: Sat, 7 Oct 2017 17:16:31 +1100
+Message-ID: <a4051ac2-1156-751d-ec16-2dbbb30b9258@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33538 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750822AbdJGGQc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Oct 2017 02:16:32 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com, "bluez mailin list (linux-bluetooth@vger.kernel.org)" <linux-bluetooth@vger.kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss@gmail.com>, Rob Herring <robh@kernel.org>, Sebastian Reichel <sre@kernel.org>, Loic Poulain <loic.poulain@gmail.com>, Johan Hovold <johan@kernel.org>, Lukas Wunner <lukas@wunner.de>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <greg@kroah.com>, "Rafael J. Wysocki" <rafael@kernel.org>
 
-Hi Rafael,
+The current Kconfig for serdev is not compatible when adding ACPI support as it does not work when built as a module as it requires config SERIAL_DEV_CTRL_TTYPORT to be set. This patch makes serdev compiled into the kernel if selected so that config SERIAL_DEV_CTRL_TTYPORT can be correctly set if requiring ACPI support.
+---
+ drivers/tty/serdev/Kconfig | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
->>>> This patch allows SerDev module to manage serial devices declared as
->>>> attached to an UART in ACPI table.
->>>> 
->>>> acpi_serdev_add_device() callback will only take into account entries
->>>> without enumerated flag set. This flags is set for all entries during
->>>> ACPI scan, except for SPI and I2C serial devices, and for UART with
->>>> 2nd patch in the series.
->>>> 
->>>> Signed-off-by: Frédéric Danis <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>>> ---
->>>> drivers/tty/serdev/core.c | 99 ++++++++++++++++++++++++++++++++++++++++++++---
->>>> 1 file changed, 94 insertions(+), 5 deletions(-)
->>> 
->>> Reviewed-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->> 
->> so how do we get these changes upstream? If the serdev changes alone do not cause any harm, I am almost proposing taking them through bluetooth-next tree and only leave only the ACPI change to the ACPI maintainers.
-> 
-> That would be fine by me.  I can take the serdev patch too, though.
-
-having both patches go via ACPI tree might be simplest. Greg, any objections from you?
-
-Regards
-
-Marcel
+diff --git a/drivers/tty/serdev/Kconfig b/drivers/tty/serdev/Kconfig
+index cdc6b820cf93..a9fb09a9c105 100644
+--- a/drivers/tty/serdev/Kconfig
++++ b/drivers/tty/serdev/Kconfig
+@@ -2,7 +2,8 @@
+ # Serial bus device driver configuration
+ #
+ menuconfig SERIAL_DEV_BUS
+-	tristate "Serial device bus"
++	bool "Serial device bus"
++	default y
+ 	help
+ 	  Core support for devices connected via a serial port.
+ 
+@@ -11,6 +12,6 @@ if SERIAL_DEV_BUS
+ config SERIAL_DEV_CTRL_TTYPORT
+ 	bool "Serial device TTY port controller"
+ 	depends on TTY
+-	depends on SERIAL_DEV_BUS != m
++	default y
+ 
+ endif
+-- 
+2.11.0
