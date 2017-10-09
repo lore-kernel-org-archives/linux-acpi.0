@@ -1,122 +1,117 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI / scan: Fix enumeration for special UART devices
-Date: Mon, 9 Oct 2017 11:08:35 +0200
-Message-ID: <20171009090835.GQ2618@localhost>
-References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
- <1507107090-15992-3-git-send-email-frederic.danis.oss@gmail.com>
- <20171007151934.GJ2618@localhost>
- <20171007225311.lvli7rkhv3bebq2j@earth>
- <20171009073526.GL2618@localhost>
- <20171009085534.c5smytfgckyx7mqy@earth>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: Re: [RFCv2 PATCH 00/36] Process management for IOMMU + SVM for SMMUv3
+Date: Mon, 9 Oct 2017 17:49:52 +0800
+Message-ID: <0c6778d8-741f-0db7-fe3c-df88a75ebbb2@huawei.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:35978 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754023AbdJIJIc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Oct 2017 05:08:32 -0400
-Content-Disposition: inline
-In-Reply-To: <20171009085534.c5smytfgckyx7mqy@earth>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:7949 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751401AbdJIJvi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Oct 2017 05:51:38 -0400
+In-Reply-To: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Johan Hovold <johan@kernel.org>, =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>, robh@kernel.org, marcel@holtmann.org, loic.poulain@gmail.com, lukas@wunner.de, hdegoede@redhat.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, iommu@lists.linux-foundation.org
+Cc: joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, robin.murphy@arm.com, bhelgaas@google.com, alex.williamson@redhat.com, tn@semihalf.com, liubo95@huawei.com, thunder.leizhen@huawei.com, gabriele.paoloni@huawei.com, nwatters@codeaurora.org, okaya@codeaurora.org, rfranz@cavium.com, dwmw2@infradead.org, jacob.jun.pan@linux.intel.com, yi.l.liu@intel.com, ashok.raj@intel.com, robdclark@gmail.com
 
-On Mon, Oct 09, 2017 at 10:55:34AM +0200, Sebastian Reichel wrote:
-> Hi,
+Hi Jean,
+
+On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
+> Following discussions at plumbers and elsewhere, it seems like we need to
+> unify some of the Shared Virtual Memory (SVM) code, in order to define
+> clear semantics for the SVM API.
 > 
-> On Mon, Oct 09, 2017 at 09:35:26AM +0200, Johan Hovold wrote:
-> > On Sun, Oct 08, 2017 at 12:53:11AM +0200, Sebastian Reichel wrote:
-> > > On Sat, Oct 07, 2017 at 05:19:34PM +0200, Johan Hovold wrote:
-> > > > On Wed, Oct 04, 2017 at 10:51:30AM +0200, Frédéric Danis wrote:
-> > > > > UART devices is expected to be enumerated by SerDev subsystem.
-> > > > > 
-> > > > > During ACPI scan, serial devices behind SPI, I2C or UART buses are not
-> > > > > enumerated, allowing them to be enumerated by their respective parents.
-> > > > > 
-> > > > > Rename *spi_i2c_slave* to *serial_bus_slave* as this will be used for serial
-> > > > > devices on serial buses (SPI, I2C or UART).
-> > > > > 
-> > > > > On Macs an empty ResourceTemplate is returned for uart slaves.
-> > > > > Instead the device properties "baud", "parity", "dataBits", "stopBits" are
-> > > > > provided. Add a check for "baud" in acpi_is_serial_bus_slave().
-> > > > > 
-> > > > > Signed-off-by: Frédéric Danis <frederic.danis.oss@gmail.com>
-> > > > 
-> > > > So just to reiterate what I just mentioned in a comment to one of Hans's
-> > > > hci_bcm patches:
-> > > > 
-> > > > This one would silently break PM for such devices on any system which
-> > > > does not have serdev enabled (as the corresponding platform devices
-> > > > would no longer be registered). And with serdev enabled, hciattach
-> > > > (btattach) would start failing as the tty device would no longer be
-> > > > registered (but I assume everyone is aware of that, and fine with it, by
-> > > > now).
-> > > > 
-> > > > Perhaps the hci_bcm driver should start depending on
-> > > > SERIAL_DEV_CTRL_TTYPORT when ACPI is enabled?
-> > > 
-> > > ACPI and DT both need SERIAL_DEV_CTRL_TTYPORT to work properly,
-> > > since SERIAL_DEV_CTRL_TTYPORT is the only controller implemented
-> > > for serdev. If any other controller is implemented that one could
-> > > also be used.
-> > 
-> > Not for hci_bcm, right? This particular driver specifically depends on
-> > SERIAL_DEV_CTRL_TTYPORT for the ACPI devices and not just any (future)
-> > serdev controller (or currently working systems soon breaks silently).
-> > 
-> > I don't think the same is true for the DT case where we do not already
-> > have child nodes defined in firmware (and in fact, this driver did not
-> > really support DT before serdev).
+> My previous RFC [1] was centered on the SMMUv3, but some of this code will
+> need to be reused by the SMMUv2 and virtio-iommu drivers. This second
+> proposal focuses on abstracting a little more into the core IOMMU API, and
+> also trying to find common ground for all SVM-capable IOMMUs.
 > 
-> The serdev ACPI support has been added to the core and not to
-> the ttyport and the hci_bcm driver only uses functions from the
-> core. As far as I can see the ACPI part would also work fine with
-> a different serdev controller.
-
-Indeed, but you need SERIAL_DEV_CTRL_TTYPORT to avoid silently breaking
-current ACPI setups which breaks when this patch is applied (as these
-devices all hang off of common serial ports managed by serial core).
-
-> Of course DT and ACPI currently require SERIAL_DEV_CTRL_TTYPORT,
-> since it's the only serdev controller implementation. Also it
-> covers most use cases. When SERIAL_DEV_BUS is selected it's
-> very likely, that you also want SERIAL_DEV_CTRL_TTYPORT.
-
-> > > I wonder if we should just hide SERIAL_DEV_CTRL_TTYPORT and enable
-> > > it together with SERDEV. I suspect that we won't see any other
-> > > controller (it would be a UART device, that is not registered as
-> > > tty device) in the next few years and the extra option seems to
-> > > confuse people.
-> > 
-> > I agree that it is somewhat confusing. But now that we have both,
-> > perhaps simply having SERIAL_DEV_CTRL_TTYPORT default to "y" when
-> > SERIAL_DEV_BUS is selected could be a compromise. The Kconfig entry
-> > might need to be amended as well (e.g. if only to mention that you
-> > need to select a controller as well).
+> SVM is, in the context of the IOMMU, sharing page tables between a process
+> and a device. Traditionally it requires IO Page Fault and Process Address
+> Space ID capabilities in device and IOMMU.
 > 
-> I think we should at least add a default "y" if SERIAL_DEV_BUS.
-
-I'm preparing a patch.
-
-> > And the bluetooth uart drivers already depend on SERIAL_DEV_BUS.
+> * A device driver can bind a process to a device, with iommu_process_bind.
+>   Internally we hold on to the mm and get notified of its activity with an
+>   mmu_notifier. The bond is removed by exit_mm, by a call to
+>   iommu_process_unbind or iommu_detach_device.
 > 
-> Yes and that's the correct dependency. They only need the serdev
-> core and controller. The only reason they do not work without
-> SERIAL_DEV_CTRL_TTYPORT is, that there won't be any serdev
-> controller.
+> * iommu_process_bind returns a 20-bit PASID (PCI terminology) to the
+>   device driver, which programs it into the device to access the process
+>   address space.
+> 
+> * The device and the IOMMU support recoverable page faults. This can be
+>   either ATS+PRI for PCI, or platform-specific mechanisms such as Stall
+>   for SMMU.
+> 
+> Ideally systems wanting to use SVM have to support these three features,
+> but in practice we'll see implementations supporting just a subset of
+> them, especially in validation environments. So even if this particular
+> patchset assumes all three capabilities, it should also be possible to
+> support PASID without IOPF (by pinning everything, see non-system SVM in
+> OpenCL)
+How to pin everything? If user malloc anything we should pin it. It should
+from user or driver?
 
-In general, yes. Again, the only exception would be hci_bcm to avoid
-breaking current setups without people noticing.
+> , or IOPF without PASID (sharing the single device address space
+> with a process, could be useful for DPDK+VFIO).
+> 
+> Implementing both these cases would enable PT sharing alone. Some people
+> would also like IOPF alone without SVM (covered by this series) or process
+> management without shared PT (not covered). Using these features
+> individually is also important for testing, as SVM is in its infancy and
+> providing easy ways to test is essential to reduce the number of quirks
+> down the line.
+> 
+>   Process management
+>   ==================
+> 
+> The first part of this series introduces boilerplate code for managing
+> PASIDs and processes bound to devices. It's something any IOMMU driver
+> that wants to support bind/unbind will have to do, and it is difficult to
+> get right.
+> 
+> Patches
+> 1: iommu_process and PASID allocation, attach and release
+> 2: process_exit callback for device drivers
+> 3: iommu_process search by PASID
+> 4: track process changes with an MMU notifiers
+> 5: bind and unbind operations
+> 
+> My proposal uses the following model:
+> 
+> * The PASID space is system-wide. This means that a Linux process will
+>   have a single PASID. I introduce the iommu_process structure and a
+>   global IDR to manage this.
+> 
+> * An iommu_process can be bound to multiple domains, and a domain can have
+>   multiple iommu_process.
+when bind a task to device, can we create a single domain for it? I am thinking
+about process management without shared PT(for some device only support PASID
+without pri ability), it seems hard to expand if a domain have multiple iommu_process?
+Do you have any idea about this?
 
-> Note, that the default "y" if SERIAL_DEV_BUS in SERIAL_DEV_CTRL_TTYPORT's
-> config entry is only a partial fix. There is still the problem,
-> that SERIAL_DEV_CTRL_TTYPORT can only be enabled if SERIAL_DEV_BUS
-> is configured builtin. This is a limitation of the ttyport
-> implementation, that hooks into builtin TTY core code.
+> 
+> * IOMMU groups share same PASID table. IOMMU groups are a convenient way
+>   to cover various hardware weaknesses that prevent a group of device to
+>   be isolated by the IOMMU (untrusted bridge, for instance). It's foolish
+>   to assume that all PASID implementations will perfectly isolate devices
+>   within a bus and functions within a device, so let's assume all devices
+>   within an IOMMU group have to share PASID traffic as well. In general
+>   there will be a single device per group.
+> 
+> * It's up to the driver implementation to decide where to implement the
+>   PASID tables. For SMMU it's more convenient to have a single PASID table
+>   per domain. And I think the model fits better with the existing IOMMU
+>   API: IOVA traffic is shared by all devices in a domain, so should PASID
+>   traffic.
+What's the meaning of "share PASID traffic"? PASID space is system-wide,
+and a domain can have multiple iommu_process , so a domain can have multiple
+PASIDs , one PASID for a iommu_process, right?
 
-I'm not saying it's a fix, but it is a sane default. I'm preparing a
-patch also amending the Kconfig entries, and we can take it from there.
+Yisheng Xie
+Thanks
 
-Johan
+
