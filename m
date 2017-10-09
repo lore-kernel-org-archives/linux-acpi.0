@@ -1,147 +1,83 @@
-From: <durrant@iupui.edu>
-Subject: (unknown)
-Date: Mon, 09 Oct 2017 06:17:05 -0000
-Message-ID: <150752982549.877.9236225821555314118@hinet.net>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH 2/2] ACPI / scan: Fix enumeration for special UART devices
+Date: Mon, 9 Oct 2017 09:35:26 +0200
+Message-ID: <20171009073526.GL2618@localhost>
+References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
+ <1507107090-15992-3-git-send-email-frederic.danis.oss@gmail.com>
+ <20171007151934.GJ2618@localhost>
+ <20171007225311.lvli7rkhv3bebq2j@earth>
 Mime-Version: 1.0
-Content-Type: application/zip; name="593592994.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 220-136-47-38.dynamic-ip.hinet.net ([220.136.47.38]:34191 "HELO
-        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751361AbdJIGRK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 9 Oct 2017 02:17:10 -0400
-Subject: 
-Content-Disposition: attachment
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:48500 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753728AbdJIHfW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Oct 2017 03:35:22 -0400
+Content-Disposition: inline
+In-Reply-To: <20171007225311.lvli7rkhv3bebq2j@earth>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Johan Hovold <johan@kernel.org>, =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>, robh@kernel.org, marcel@holtmann.org, loic.poulain@gmail.com, lukas@wunner.de, hdegoede@redhat.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-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
+On Sun, Oct 08, 2017 at 12:53:11AM +0200, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Sat, Oct 07, 2017 at 05:19:34PM +0200, Johan Hovold wrote:
+> > On Wed, Oct 04, 2017 at 10:51:30AM +0200, Frédéric Danis wrote:
+> > > UART devices is expected to be enumerated by SerDev subsystem.
+> > > 
+> > > During ACPI scan, serial devices behind SPI, I2C or UART buses are not
+> > > enumerated, allowing them to be enumerated by their respective parents.
+> > > 
+> > > Rename *spi_i2c_slave* to *serial_bus_slave* as this will be used for serial
+> > > devices on serial buses (SPI, I2C or UART).
+> > > 
+> > > On Macs an empty ResourceTemplate is returned for uart slaves.
+> > > Instead the device properties "baud", "parity", "dataBits", "stopBits" are
+> > > provided. Add a check for "baud" in acpi_is_serial_bus_slave().
+> > > 
+> > > Signed-off-by: Frédéric Danis <frederic.danis.oss@gmail.com>
+> > 
+> > So just to reiterate what I just mentioned in a comment to one of Hans's
+> > hci_bcm patches:
+> > 
+> > This one would silently break PM for such devices on any system which
+> > does not have serdev enabled (as the corresponding platform devices
+> > would no longer be registered). And with serdev enabled, hciattach
+> > (btattach) would start failing as the tty device would no longer be
+> > registered (but I assume everyone is aware of that, and fine with it, by
+> > now).
+> > 
+> > Perhaps the hci_bcm driver should start depending on
+> > SERIAL_DEV_CTRL_TTYPORT when ACPI is enabled?
+> 
+> ACPI and DT both need SERIAL_DEV_CTRL_TTYPORT to work properly,
+> since SERIAL_DEV_CTRL_TTYPORT is the only controller implemented
+> for serdev. If any other controller is implemented that one could
+> also be used.
+
+Not for hci_bcm, right? This particular driver specifically depends on
+SERIAL_DEV_CTRL_TTYPORT for the ACPI devices and not just any (future)
+serdev controller (or currently working systems soon breaks silently).
+
+I don't think the same is true for the DT case where we do not already
+have child nodes defined in firmware (and in fact, this driver did not
+really support DT before serdev).
+
+> I wonder if we should just hide SERIAL_DEV_CTRL_TTYPORT and enable
+> it together with SERDEV. I suspect that we won't see any other
+> controller (it would be a UART device, that is not registered as
+> tty device) in the next few years and the extra option seems to
+> confuse people.
+
+I agree that it is somewhat confusing. But now that we have both,
+perhaps simply having SERIAL_DEV_CTRL_TTYPORT default to "y" when
+SERIAL_DEV_BUS is selected could be a compromise. The Kconfig entry
+might need to be amended as well (e.g. if only to mention that you need
+to select a controller as well).
+
+And the bluetooth uart drivers already depend on SERIAL_DEV_BUS.
+
+Johan
