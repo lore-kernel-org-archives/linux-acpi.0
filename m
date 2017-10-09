@@ -1,155 +1,109 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Subject: Re: [RFCv2 PATCH 00/36] Process management for IOMMU + SVM for SMMUv3
-Date: Mon, 9 Oct 2017 12:36:22 +0100
-Message-ID: <0fecd29e-eaf7-9503-b087-7bfbc251da88@arm.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
- <0c6778d8-741f-0db7-fe3c-df88a75ebbb2@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:54768 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754049AbdJILbg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 9 Oct 2017 07:31:36 -0400
-In-Reply-To: <0c6778d8-741f-0db7-fe3c-df88a75ebbb2@huawei.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: [PATCH] device property: Track owner device of device property
+Date: Mon,  9 Oct 2017 16:28:37 +0300
+Message-ID: <20171009132837.1096-1-jarkko.nikula@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lukas Wunner <lukas@wunner.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yisheng Xie <xieyisheng1@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Cc: "joro@8bytes.org" <joro@8bytes.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Robin Murphy <Robin.Murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "liubo95@huawei.com" <liubo95@huawei.com>, "thunder.leizhen@huawei.com" <thunder.leizhen@huawei.com>, "gabriele.paoloni@huawei.com" <gabriele.paoloni@huawei.com>, nwatters@cod
 
-Hi,
+Deletion of subdevice will remove device properties associated to parent
+when they share the same firmware node after commit 478573c93abd ("driver
+core: Don't leak secondary fwnode on device removal"). This was observed
+with a driver adding subdevice that driver wasn't able to read device
+properties after rmmod/modprobe cycle.
 
-On 09/10/17 10:49, Yisheng Xie wrote:
-> Hi Jean,
-> 
-> On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
->> Following discussions at plumbers and elsewhere, it seems like we need to
->> unify some of the Shared Virtual Memory (SVM) code, in order to define
->> clear semantics for the SVM API.
->>
->> My previous RFC [1] was centered on the SMMUv3, but some of this code will
->> need to be reused by the SMMUv2 and virtio-iommu drivers. This second
->> proposal focuses on abstracting a little more into the core IOMMU API, and
->> also trying to find common ground for all SVM-capable IOMMUs.
->>
->> SVM is, in the context of the IOMMU, sharing page tables between a process
->> and a device. Traditionally it requires IO Page Fault and Process Address
->> Space ID capabilities in device and IOMMU.
->>
->> * A device driver can bind a process to a device, with iommu_process_bind.
->>   Internally we hold on to the mm and get notified of its activity with an
->>   mmu_notifier. The bond is removed by exit_mm, by a call to
->>   iommu_process_unbind or iommu_detach_device.
->>
->> * iommu_process_bind returns a 20-bit PASID (PCI terminology) to the
->>   device driver, which programs it into the device to access the process
->>   address space.
->>
->> * The device and the IOMMU support recoverable page faults. This can be
->>   either ATS+PRI for PCI, or platform-specific mechanisms such as Stall
->>   for SMMU.
->>
->> Ideally systems wanting to use SVM have to support these three features,
->> but in practice we'll see implementations supporting just a subset of
->> them, especially in validation environments. So even if this particular
->> patchset assumes all three capabilities, it should also be possible to
->> support PASID without IOPF (by pinning everything, see non-system SVM in
->> OpenCL)
-> How to pin everything? If user malloc anything we should pin it. It should
-> from user or driver?
+Consider the lifecycle of it:
 
-For userspace drivers, I guess it would be via a VFIO ioctl, that does the
-same preparatory work as VFIO_IOMMU_MAP_DMA, but doesn't call iommu_map.
-For things like OpenCL SVM buffers, it's the kernel driver that does the
-pinning, just like VFIO does it, before launching the work on a SVM buffer.
+parent device registration
+	ACPI_COMPANION_SET()
+	device_add_properties()
+		pset_copy_set()
+		set_secondary_fwnode(dev, &p->fwnode)
+	device_add()
 
->> , or IOPF without PASID (sharing the single device address space
->> with a process, could be useful for DPDK+VFIO).
->>
->> Implementing both these cases would enable PT sharing alone. Some people
->> would also like IOPF alone without SVM (covered by this series) or process
->> management without shared PT (not covered). Using these features
->> individually is also important for testing, as SVM is in its infancy and
->> providing easy ways to test is essential to reduce the number of quirks
->> down the line.
->>
->>   Process management
->>   ==================
->>
->> The first part of this series introduces boilerplate code for managing
->> PASIDs and processes bound to devices. It's something any IOMMU driver
->> that wants to support bind/unbind will have to do, and it is difficult to
->> get right.
->>
->> Patches
->> 1: iommu_process and PASID allocation, attach and release
->> 2: process_exit callback for device drivers
->> 3: iommu_process search by PASID
->> 4: track process changes with an MMU notifiers
->> 5: bind and unbind operations
->>
->> My proposal uses the following model:
->>
->> * The PASID space is system-wide. This means that a Linux process will
->>   have a single PASID. I introduce the iommu_process structure and a
->>   global IDR to manage this.
->>
->> * An iommu_process can be bound to multiple domains, and a domain can have
->>   multiple iommu_process.
-> when bind a task to device, can we create a single domain for it? I am thinking
-> about process management without shared PT(for some device only support PASID
-> without pri ability), it seems hard to expand if a domain have multiple iommu_process?
-> Do you have any idea about this?
+parent probe
+	read device properties
+	ACPI_COMPANION_SET(subdevice, ACPI_COMPANION(parent))
+	device_add(subdevice)
 
-A device always has to be in a domain, as far as I know. Not supporting
-PRI forces you to pin down all user mappings (or just the ones you use for
-DMA) but you should sill be able to share PT. Now if you don't support
-shared PT either, but only PASID, then you'll have to use io-pgtable and a
-new map/unmap API on an iommu_process. I don't understand your concern
-though, how would the link between process and domains prevent this use-case?
+parent remove
+	device_del(subdevice)
+		device_remove_properties()
+			set_secondary_fwnode(dev, NULL);
+			pset_free()
 
->> * IOMMU groups share same PASID table. IOMMU groups are a convenient way
->>   to cover various hardware weaknesses that prevent a group of device to
->>   be isolated by the IOMMU (untrusted bridge, for instance). It's foolish
->>   to assume that all PASID implementations will perfectly isolate devices
->>   within a bus and functions within a device, so let's assume all devices
->>   within an IOMMU group have to share PASID traffic as well. In general
->>   there will be a single device per group.
->>
->> * It's up to the driver implementation to decide where to implement the
->>   PASID tables. For SMMU it's more convenient to have a single PASID table
->>   per domain. And I think the model fits better with the existing IOMMU
->>   API: IOVA traffic is shared by all devices in a domain, so should PASID
->>   traffic.
-> What's the meaning of "share PASID traffic"? PASID space is system-wide,
-> and a domain can have multiple iommu_process , so a domain can have multiple
-> PASIDs , one PASID for a iommu_process, right?
+Parent device will have its primary firmware node pointing to an ACPI node
+and secondary firmware node point to device properties.
+ACPI_COMPANION_SET() call in parent probe will set the subdevice's firmware
+node to point to the same 'struct fwnode_handle' and the associated
+secondary firmware node, i.e. the device properties as the parent.
 
-Yes, I meant that if a device can access mappings for a specific PASID,
-then other devices in that same domain are also able to access them.
+When subdevice is deleted in parent remove that will remove those device
+properties and attempt to read device properties in next parent probe call
+will fail.
 
-A few reasons for this choice in the SMMU:
-* As all devices in an IOMMU group will be in the same domain and share
-the same PASID traffic, it encompasses that case. Groups are the smallest
-isolation granularity, then users are free to choose to put different
-IOMMU groups in different domains.
-* For architectures that can have both non-PASID and PASID traffic
-simultaneously, like the SMMU, it is simpler to reason about PASID tables
-being a domain, rather than sharing PASID0 within the domain and handling
-all others per device.
-* It's the same principle as non-PASID mappings (iommu_map/unmap is on a
-domain).
-* It implement the classic example of IOMMU architectures where multiple
-device descriptors point to the same PASID tables.
-* It may be desirable for drivers to share PASIDs within a domain, if they
-are actually using domains for conveniently sharing address spaces between
-devices. I'm not sure how much this is used as a feature. It does model a
-shared bus where each device can snoop DMA, so it may be useful.
+Fix this by tracking the owner device of device properties and delete them
+only when owner device is being deleted.
 
-bind/unbind operations are done on devices and not domains, though,
-because it allows users to know which device supports PASID, PRI, etc.
+Fixes: 478573c93abd ("driver core: Don't leak secondary fwnode on device removal")
+Cc: <stable@vger.kernel.org> # v4.9+
+Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+---
+ drivers/base/property.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-Thanks,
-Jean
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index d0b65bbe7e15..21fcc13013a5 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -21,6 +21,7 @@
+ #include <linux/phy.h>
+ 
+ struct property_set {
++	struct device *dev;
+ 	struct fwnode_handle fwnode;
+ 	const struct property_entry *properties;
+ };
+@@ -891,6 +892,7 @@ static struct property_set *pset_copy_set(const struct property_set *pset)
+ void device_remove_properties(struct device *dev)
+ {
+ 	struct fwnode_handle *fwnode;
++	struct property_set *pset;
+ 
+ 	fwnode = dev_fwnode(dev);
+ 	if (!fwnode)
+@@ -900,16 +902,16 @@ void device_remove_properties(struct device *dev)
+ 	 * the pset. If there is no real firmware node (ACPI/DT) primary
+ 	 * will hold the pset.
+ 	 */
+-	if (is_pset_node(fwnode)) {
++	pset = to_pset_node(fwnode);
++	if (pset) {
+ 		set_primary_fwnode(dev, NULL);
+-		pset_free_set(to_pset_node(fwnode));
+ 	} else {
+-		fwnode = fwnode->secondary;
+-		if (!IS_ERR(fwnode) && is_pset_node(fwnode)) {
++		pset = to_pset_node(fwnode->secondary);
++		if (pset && dev == pset->dev)
+ 			set_secondary_fwnode(dev, NULL);
+-			pset_free_set(to_pset_node(fwnode));
+-		}
+ 	}
++	if (pset && dev == pset->dev)
++		pset_free_set(pset);
+ }
+ EXPORT_SYMBOL_GPL(device_remove_properties);
+ 
+@@ -938,6 +940,7 @@ int device_add_properties(struct device *dev,
+ 
+ 	p->fwnode.ops = &pset_fwnode_ops;
+ 	set_secondary_fwnode(dev, &p->fwnode);
++	p->dev = dev;
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(device_add_properties);
+-- 
+2.14.2
