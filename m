@@ -1,160 +1,142 @@
-From: Zhou Wang <wangzhou1@hisilicon.com>
-Subject: Re: [PATCH v2] ACPI/IORT: Fix PCI ACS enablement
-Date: Mon, 9 Oct 2017 16:40:10 +0800
-Message-ID: <59DB35EA.7010301@hisilicon.com>
-References: <1506965324-5818-1-git-send-email-lorenzo.pieralisi@arm.com>
- <20171003124843.GA16134@red-moon>
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: Re: [PATCH 2/2] ACPI / scan: Fix enumeration for special UART devices
+Date: Mon, 9 Oct 2017 10:55:34 +0200
+Message-ID: <20171009085534.c5smytfgckyx7mqy@earth>
+References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
+ <1507107090-15992-3-git-send-email-frederic.danis.oss@gmail.com>
+ <20171007151934.GJ2618@localhost>
+ <20171007225311.lvli7rkhv3bebq2j@earth>
+ <20171009073526.GL2618@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20171003124843.GA16134@red-moon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org, nwatters@codeaurora.org
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-pci@vger.kernel.org, Robin Murphy <robin.murphy@arm.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="j7e4pzcivprtkvfp"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:48338 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751550AbdJIIzi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Oct 2017 04:55:38 -0400
+Content-Disposition: inline
+In-Reply-To: <20171009073526.GL2618@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>
+Cc: =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>, robh@kernel.org, marcel@holtmann.org, loic.poulain@gmail.com, lukas@wunner.de, hdegoede@redhat.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 2017/10/3 20:48, Lorenzo Pieralisi wrote:
-> [+Nate]
-> 
-> Zhou, Nate,
-> 
-> On Mon, Oct 02, 2017 at 06:28:44PM +0100, Lorenzo Pieralisi wrote:
->> commit f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
->> workarounds") removed kernel code that was allowing to initialize
->> and probe the SMMU devices early (ie earlier than PCI devices, through
->> linker script callback entries) in the boot process because it was not
->> needed any longer in that the SMMU devices/drivers now support deferred
->> probing.
->>
->> Since the SMMUs probe routines are also in charge of requesting global
->> PCI ACS kernel enablement, commit f6810c15cf97 ("iommu/arm-smmu: Clean
->> up early-probing workarounds") also postponed PCI ACS enablement to
->> SMMUs devices probe time, which is too late given that PCI devices needs
->> to detect if PCI ACS is enabled to init the respective capability
->> through the following call path:
->>
->> pci_device_add()
->>  -> pci_init_capabilities()
->>   -> pci_enable_acs()
->>
->> Add code in the ACPI IORT SMMU platform devices initialization path
->> (that is called before ACPI PCI enumeration) to detect if there
->> exists firmware mappings to map root complexes ids to SMMU ids
->> and if so enable ACS for the system.
->>
->> Fixes: f6810c15cf97 ("iommu/arm-smmu: Clean up early-probing
->> Signed-workarounds")
->> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Cc: Will Deacon <will.deacon@arm.com>
->> Cc: Hanjun Guo <hanjun.guo@linaro.org>
->> Cc: Sudeep Holla <sudeep.holla@arm.com>
->> Cc: Catalin Marinas <catalin.marinas@arm.com>
->> Cc: Robin Murphy <robin.murphy@arm.com>
->> Cc: Zhou Wang <wangzhou1@hisilicon.com>
->> Cc: Alex Williamson <alex.williamson@redhat.com>
->> ---
->> v1 -> v2:
->>
->> - Reworked ACS enablement logic and based on root complex to SMMU
->>   ids firmware mapping detection
->> - Rebased against v4.14-rc3
->>
->> v1: https://marc.info/?l=linux-acpi&m=150584059818925&w=2
->>
->>  drivers/acpi/arm64/iort.c | 35 +++++++++++++++++++++++++++++++++++
->>  1 file changed, 35 insertions(+)
-> 
-> I have reworked the enablement logic wrt v1, dou you mind testing it
-> please, I would like to get it merged since I have 4.15 patches depending
-> on it.
 
-Hi Lorenzo,
+--j7e4pzcivprtkvfp
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Sorry for late, I was in my National Day holiday.
+Hi,
 
-I tested this patch in HiSilicon Hip08 based board, it works well in RC->SMMU->ITS and
-RC->ITS maps.
+On Mon, Oct 09, 2017 at 09:35:26AM +0200, Johan Hovold wrote:
+> On Sun, Oct 08, 2017 at 12:53:11AM +0200, Sebastian Reichel wrote:
+> > On Sat, Oct 07, 2017 at 05:19:34PM +0200, Johan Hovold wrote:
+> > > On Wed, Oct 04, 2017 at 10:51:30AM +0200, Fr=E9d=E9ric Danis wrote:
+> > > > UART devices is expected to be enumerated by SerDev subsystem.
+> > > >=20
+> > > > During ACPI scan, serial devices behind SPI, I2C or UART buses are =
+not
+> > > > enumerated, allowing them to be enumerated by their respective pare=
+nts.
+> > > >=20
+> > > > Rename *spi_i2c_slave* to *serial_bus_slave* as this will be used f=
+or serial
+> > > > devices on serial buses (SPI, I2C or UART).
+> > > >=20
+> > > > On Macs an empty ResourceTemplate is returned for uart slaves.
+> > > > Instead the device properties "baud", "parity", "dataBits", "stopBi=
+ts" are
+> > > > provided. Add a check for "baud" in acpi_is_serial_bus_slave().
+> > > >=20
+> > > > Signed-off-by: Fr=E9d=E9ric Danis <frederic.danis.oss@gmail.com>
+> > >=20
+> > > So just to reiterate what I just mentioned in a comment to one of Han=
+s's
+> > > hci_bcm patches:
+> > >=20
+> > > This one would silently break PM for such devices on any system which
+> > > does not have serdev enabled (as the corresponding platform devices
+> > > would no longer be registered). And with serdev enabled, hciattach
+> > > (btattach) would start failing as the tty device would no longer be
+> > > registered (but I assume everyone is aware of that, and fine with it,=
+ by
+> > > now).
+> > >=20
+> > > Perhaps the hci_bcm driver should start depending on
+> > > SERIAL_DEV_CTRL_TTYPORT when ACPI is enabled?
+> >=20
+> > ACPI and DT both need SERIAL_DEV_CTRL_TTYPORT to work properly,
+> > since SERIAL_DEV_CTRL_TTYPORT is the only controller implemented
+> > for serdev. If any other controller is implemented that one could
+> > also be used.
+>=20
+> Not for hci_bcm, right? This particular driver specifically depends on
+> SERIAL_DEV_CTRL_TTYPORT for the ACPI devices and not just any (future)
+> serdev controller (or currently working systems soon breaks silently).
+>=20
+> I don't think the same is true for the DT case where we do not already
+> have child nodes defined in firmware (and in fact, this driver did not
+> really support DT before serdev).
 
-Tested-by: Zhou Wang <wangzhou1@hisilicon.com>
+The serdev ACPI support has been added to the core and not to
+the ttyport and the hci_bcm driver only uses functions from the
+core. As far as I can see the ACPI part would also work fine with
+a different serdev controller.
 
-Thanks,
-Zhou
+Of course DT and ACPI currently require SERIAL_DEV_CTRL_TTYPORT,
+since it's the only serdev controller implementation. Also it
+covers most use cases. When SERIAL_DEV_BUS is selected it's
+very likely, that you also want SERIAL_DEV_CTRL_TTYPORT.
 
-> 
-> Thanks,
-> Lorenzo
-> 
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index 9565d57..de56394 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -1178,12 +1178,44 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
->>  	return ret;
->>  }
->>  
->> +static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
->> +{
->> +	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
->> +		struct acpi_iort_node *parent;
->> +		struct acpi_iort_id_mapping *map;
->> +		int i;
->> +
->> +		map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, iort_node,
->> +				   iort_node->mapping_offset);
->> +
->> +		for (i = 0; i < iort_node->mapping_count; i++, map++) {
->> +			if (!map->output_reference)
->> +				continue;
->> +
->> +			parent = ACPI_ADD_PTR(struct acpi_iort_node,
->> +					iort_table,  map->output_reference);
->> +			/*
->> +			 * If we detect a RC->SMMU mapping, make sure
->> +			 * we enable ACS on the system.
->> +			 */
->> +			if ((parent->type == ACPI_IORT_NODE_SMMU) ||
->> +				(parent->type == ACPI_IORT_NODE_SMMU_V3)) {
->> +				pci_request_acs();
->> +				return true;
->> +			}
->> +		}
->> +	}
->> +
->> +	return false;
->> +}
->> +
->>  static void __init iort_init_platform_devices(void)
->>  {
->>  	struct acpi_iort_node *iort_node, *iort_end;
->>  	struct acpi_table_iort *iort;
->>  	struct fwnode_handle *fwnode;
->>  	int i, ret;
->> +	bool acs_enabled = false;
->>  
->>  	/*
->>  	 * iort_table and iort both point to the start of IORT table, but
->> @@ -1203,6 +1235,9 @@ static void __init iort_init_platform_devices(void)
->>  			return;
->>  		}
->>  
->> +		if (!acs_enabled)
->> +			acs_enabled = iort_enable_acs(iort_node);
->> +
->>  		if ((iort_node->type == ACPI_IORT_NODE_SMMU) ||
->>  			(iort_node->type == ACPI_IORT_NODE_SMMU_V3)) {
->>  
->> -- 
->> 2.4.12
->>
-> 
-> .
-> 
+> > I wonder if we should just hide SERIAL_DEV_CTRL_TTYPORT and enable
+> > it together with SERDEV. I suspect that we won't see any other
+> > controller (it would be a UART device, that is not registered as
+> > tty device) in the next few years and the extra option seems to
+> > confuse people.
+>=20
+> I agree that it is somewhat confusing. But now that we have both,
+> perhaps simply having SERIAL_DEV_CTRL_TTYPORT default to "y" when
+> SERIAL_DEV_BUS is selected could be a compromise. The Kconfig entry
+> might need to be amended as well (e.g. if only to mention that you
+> need to select a controller as well).
+
+I think we should at least add a default "y" if SERIAL_DEV_BUS.
+
+> And the bluetooth uart drivers already depend on SERIAL_DEV_BUS.
+
+Yes and that's the correct dependency. They only need the serdev
+core and controller. The only reason they do not work without
+SERIAL_DEV_CTRL_TTYPORT is, that there won't be any serdev
+controller.
+
+Note, that the default "y" if SERIAL_DEV_BUS in SERIAL_DEV_CTRL_TTYPORT's
+config entry is only a partial fix. There is still the problem,
+that SERIAL_DEV_CTRL_TTYPORT can only be enabled if SERIAL_DEV_BUS
+is configured builtin. This is a limitation of the ttyport
+implementation, that hooks into builtin TTY core code.
+
+-- Sebastian
+
+--j7e4pzcivprtkvfp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnbOYMACgkQ2O7X88g7
++prZlA//bTLSHjto6YCllMxj78GI7HmyRhFYWDbhoaRo6mDDyorYu4GeG+xTgk4h
+lhWU/gpdSllAJHo2cA9soGMOl5ZO9HQ0mrMlpK9cp/GDyvQfcdE4M0lAlzZAJOOt
+LRuwEYyQ+PhiT8lzr1JrBkcmzjdCmd0WS/ACi11rquuvNUIYjOAnl6PJa5pPCU4Q
+yEtziBrJBcZdEHlubQ0QcBWdg2M7LzX6GXxKNixH1xW7fKTVYQlG+D0l96eZO5ze
+CwuLkcj5JhATkmYZSIw+dIbtwJW/xsK+BBkn5Hw0O8fJSCM9UaPHGo2aBe1YZr5u
+nWMtDYOARLe3h1HGlx8k96oVrAzPAPtk5KcRcthruz4UmJmPALIkviOJbt5wsyNV
+plAkWMBkPtO/0RZcOcFiXNe2w1oUYBo4ja4cfxfJaOnlQXRdT202IinUeKgyWMHR
+PGsZfgnJvE3z5qRilU+rV3EbNFRy8EtY1K6sgj2+NV3Viq0lR086hkMoUAvh4Iyl
+49sIKPjnbQypYShok+8PeMcsXUnGDmtIfwq89YGeMJh/KMxpzBpbN8lS8iuL9KDK
+/NRWCgERbgNVtl3Zc0OK06PTFgT1ewic4a599uyJsazQH0fcaaTWCGYCojDKVljE
+G3J29y/qco/9z1c+Vuh2Z2aoDh6etgAmJmrYn7eoQxuQqvzoDok=
+=8k78
+-----END PGP SIGNATURE-----
+
+--j7e4pzcivprtkvfp--
