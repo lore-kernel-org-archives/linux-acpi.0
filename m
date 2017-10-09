@@ -1,123 +1,106 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] mmc: sdhci-pci: Remove D3 delays for Intel BYT-related
- host controllers
-Date: Mon, 9 Oct 2017 15:25:02 -0500
-Message-ID: <20171009202502.GN25517@bhelgaas-glaptop.roam.corp.google.com>
-References: <1507294259-20438-1-git-send-email-adrian.hunter@intel.com>
- <20171006162048.GC25517@bhelgaas-glaptop.roam.corp.google.com>
- <ada41e9b-6fb3-82ab-e458-af4942adba2d@intel.com>
- <20171009134154.GJ25517@bhelgaas-glaptop.roam.corp.google.com>
- <363DA0ED52042842948283D2FC38E4649BF3590E@IRSMSX106.ger.corp.intel.com>
+Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
+ behind SMMUv3
+Date: Mon, 9 Oct 2017 18:54:52 -0500
+Message-ID: <20171009235452.GP25517@bhelgaas-glaptop.roam.corp.google.com>
+References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
+ <20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38700 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56620 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754098AbdJIUZF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 9 Oct 2017 16:25:05 -0400
+        id S1755257AbdJIXyz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 9 Oct 2017 19:54:55 -0400
 Content-Disposition: inline
-In-Reply-To: <363DA0ED52042842948283D2FC38E4649BF3590E@IRSMSX106.ger.corp.intel.com>
+In-Reply-To: <20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Hunter, Adrian" <adrian.hunter@intel.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alan Cox <alan@linux.intel.com>
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Cc: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, joro@8bytes.org, bhelgaas@google.com, gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com
 
-On Mon, Oct 09, 2017 at 08:01:06PM +0000, Hunter, Adrian wrote:
-> > -----Original Message-----
-> > From: Bjorn Helgaas [mailto:helgaas@kernel.org]
-> > Sent: Monday, October 9, 2017 4:42 PM
-> > To: Hunter, Adrian <adrian.hunter@intel.com>
-> > Cc: Ulf Hansson <ulf.hansson@linaro.org>; linux-mmc <linux-
-> > mmc@vger.kernel.org>; linux-pci <linux-pci@vger.kernel.org>; Bjorn Helgaas
-> > <bhelgaas@google.com>; linux-acpi <linux-acpi@vger.kernel.org>; Rafael J.
-> > Wysocki <rjw@rjwysocki.net>; Alan Cox <alan@linux.intel.com>
-> > Subject: Re: [PATCH] mmc: sdhci-pci: Remove D3 delays for Intel BYT-related
-> > host controllers
-> > 
-> > [+cc Alan]
-> > 
-> > On Mon, Oct 09, 2017 at 11:56:43AM +0300, Adrian Hunter wrote:
-> > > On 06/10/17 19:20, Bjorn Helgaas wrote:
-> > > > On Fri, Oct 06, 2017 at 03:50:59PM +0300, Adrian Hunter wrote:
-> > > >> The default D3 cold delay of 100 ms can cause pauses when streaming
-> > > >> audio from eMMC.
-> > > >>
-> > > >> Intel BYT-related host controllers do not need PCI D3 delays.
-> > > >> Although the delays can be set to zero via an ACPI _DSM,
-> > > >> unfortunately that is not being used in all cases. So just set the delays to
-> > zero in the driver.
-> > > >>
-> > > >> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
-> > > >> ---
-> > > >>  drivers/mmc/host/sdhci-pci-core.c | 17 +++++++++++++----
-> > > >>  1 file changed, 13 insertions(+), 4 deletions(-)
-> > > >>
-> > > >> diff --git a/drivers/mmc/host/sdhci-pci-core.c
-> > > >> b/drivers/mmc/host/sdhci-pci-core.c
-> > > >> index 5f3f7b51299f..14ef99b6e5b7 100644
-> > > >> --- a/drivers/mmc/host/sdhci-pci-core.c
-> > > >> +++ b/drivers/mmc/host/sdhci-pci-core.c
-> > > >> @@ -592,9 +592,18 @@ static void byt_read_dsm(struct sdhci_pci_slot
-> > *slot)
-> > > >>  	slot->chip->rpm_retune = intel_host->d3_retune;  }
-> > > >>
-> > > >> -static int byt_emmc_probe_slot(struct sdhci_pci_slot *slot)
-> > > >> +static void byt_common_setup(struct sdhci_pci_slot *slot)
-> > > >>  {
-> > > >>  	byt_read_dsm(slot);
-> > > >> +
-> > > >> +	/* PCI D3 delays are not needed */
-> > > >> +	slot->chip->pdev->d3_delay = 0;
-> > > >> +	slot->chip->pdev->d3cold_delay = 0;
-> > > >
-> > > > The fact that it doesn't need D3 delays sounds like a property of
-> > > > the device itself, regardless of which (if any) driver claims it.
-> > > >
-> > > > Can this be done as a quirk instead, maybe something in
-> > > > arch/x86/pci/fixup.c?  Maybe quirk_remove_d3_delay() could be used
-> > > > directly, or something like pci_d3_delay_fixup()?
-> > >
-> > > A quirk would work, but that would mean setting the quirk for each
-> > > device
-> > > (28 so far) and then, when we have new ids, adding them there and to
-> > > the driver, so it is more convenient just to do it in the driver.
-> > > Certainly, this is the only driver we have for these Intel SDHCI PCI host
-> > controllers.
-> > 
-> > pci_d3_delay_fixup() has code that mitigates the problem of adding new IDs.
-> > Maybe that quirk should simply be moved to arch/x86/pci/fixup.c?
+Please change subject line:
+
+-  PCI: hisi: blacklist hip06/hip07 controllers behind SMMUv3
++  PCI: hisi: Blacklist hip06/hip07 controllers behind SMMUv3
+
+On Fri, Oct 06, 2017 at 03:04:50PM +0100, Shameer Kolothum wrote:
+> The HiSilicon erratum 161010801 describes the limitation of
+> HiSilicon platforms hip06/hip07 to support the SMMUv3 mappings
+> for MSI transactions.
+
+I don't suppose there's a URL for this erratum, is there?
+
+> PCIe controller on these platforms has to differentiate the MSI
+> payload against other DMA payload and has to modify the MSI
+> payload. This basically makes it difficult for this platforms to
+> have a SMMU translation for MSI. In order to workaround this, ARM
+> SMMUv3 driver requires a quirk to treat the MSI regions separately.
+> Such a quirk is currently missing for DT based systems and therefore
+> we need to blacklist the hip06/hip07 PCIe controllers.
+
+I don't understand the DT connection here.  If this is a hardware
+erratum, I assume the a quirk would be required whether the system
+uses DT, ACPI, etc.
+
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+
+I assume this will go via some non-PCI tree.  If I were applying this,
+I would look for an ack from Zhou or Gabriele in addition to mine.
+
+> ---
+>  drivers/pci/dwc/pcie-hisi.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
 > 
-> pci_d3_delay_fixup() is not setting zero.  quirk_remove_d3_delay() and creating
-> a quirk_remove_d3cold_delay() would work.
+> diff --git a/drivers/pci/dwc/pcie-hisi.c b/drivers/pci/dwc/pcie-hisi.c
+> index a201791..6800747 100644
+> --- a/drivers/pci/dwc/pcie-hisi.c
+> +++ b/drivers/pci/dwc/pcie-hisi.c
+> @@ -270,6 +270,12 @@ static int hisi_pcie_probe(struct platform_device *pdev)
+>  	struct resource *reg;
+>  	int ret;
+>  
+> +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
+> +			of_property_read_bool(dev->of_node, "iommu-map")) {
 
-Your concern was that a quirk would require a long list of device IDs
-and we'd have to add new ones.  I share that concern, and my point was
-that pci_d3_delay_fixup() checks for the platform type and sets the
-delay based on that, so it doesn't have a long list of device IDs.  
+Does the presence of "iommu-map" tell you this is an SMMUv3?  Could it
+have a different type of IOMMU?  I can't tell from reading
+Documentation/devicetree/bindings/pci/pci-iommu.txt.
 
-Whether the appropriate delay is zero or 3 is a question for you Intel
-guys to sort out.  We already have:
+Why do you care whether CONFIG_ARM_SMMU_V3 is set?  Does MSI work
+correctly if SMMUv3 is present but not used?
 
-  pci_d3delay_fixup()     # arch/x86/pci/intel_mid_pci.c
-  pci_d3_delay_fixup()    # drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-  atomisp_pci_probe()     # drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+Is it really necessary to ignore the PCIe controller completely?
+Could you use the devices below it as long as you disable MSI for
+them?  I know there are probably devices that require MSI, so maybe
+it's easier to just ignore everything than to respond to reports of
+"my device doesn't work because it requires MSI."
 
-and you're proposing to add a fourth one.  I think there's a lot of
-overlap there, and it'd be nice to clean that up.
-
-> > If we put this in the driver, won't we have the unnecessary delays on
-> > systems where the driver isn't in use?
+> +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting PCIe controllers behind SMMUv3\n");
+> +		return -ENODEV;
+> +	}
+> +
+>  	hisi_pcie = devm_kzalloc(dev, sizeof(*hisi_pcie), GFP_KERNEL);
+>  	if (!hisi_pcie)
+>  		return -ENOMEM;
+> @@ -340,6 +346,12 @@ static int hisi_pcie_almost_ecam_probe(struct platform_device *pdev)
+>  	struct device *dev = &pdev->dev;
+>  	struct pci_ecam_ops *ops;
+>  
+> +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
+> +			of_property_read_bool(dev->of_node, "iommu-map")) {
+> +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting PCIe controllers behind SMMUv3\n");
+> +		return -ENODEV;
+> +	}
+> +
+>  	ops = (struct pci_ecam_ops *)of_device_get_match_data(dev);
+>  	return pci_host_common_probe(pdev, ops);
+>  }
+> -- 
+> 1.9.1
 > 
-> The issue is unacceptable I/O latency (streaming audio through the device
-> was the example) which means you have to have a driver.
-
-If I don't use audio, I don't need the driver.  My concern is that
-even without the driver, there may be paths that use
-pci_dev_d3_sleep() for this device, e.g., suspend/resume of the whole
-system.  If that's the case, we should avoid the default 10ms delay
-even if there's no driver loaded.
-
-Maybe we never use pci_dev_d3_sleep() if there's no driver, but I
-haven't been able to convince myself of that yet.
-
-Bjorn
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
