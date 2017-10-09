@@ -1,110 +1,64 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCH 2/2] ACPI / scan: Fix enumeration for special UART devices
-Date: Mon, 9 Oct 2017 10:59:03 +0200
-Message-ID: <20171009085903.jw25zah3vb5bztcn@earth>
-References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
- <1507107090-15992-3-git-send-email-frederic.danis.oss@gmail.com>
- <20171007151934.GJ2618@localhost>
- <20171007225311.lvli7rkhv3bebq2j@earth>
- <B8D6C3B8-8108-4372-88E6-6182314C7849@holtmann.org>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH] mmc: sdhci-pci: Remove D3 delays for Intel BYT-related
+ host controllers
+Date: Mon, 9 Oct 2017 11:56:43 +0300
+Message-ID: <ada41e9b-6fb3-82ab-e458-af4942adba2d@intel.com>
+References: <1507294259-20438-1-git-send-email-adrian.hunter@intel.com>
+ <20171006162048.GC25517@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="cfs7mrf75yithqbd"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:48362 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751401AbdJII7I (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Oct 2017 04:59:08 -0400
-Content-Disposition: inline
-In-Reply-To: <B8D6C3B8-8108-4372-88E6-6182314C7849@holtmann.org>
+Received: from mga02.intel.com ([134.134.136.20]:15215 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750795AbdJIJDc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 9 Oct 2017 05:03:32 -0400
+In-Reply-To: <20171006162048.GC25517@bhelgaas-glaptop.roam.corp.google.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marcel Holtmann <marcel@holtmann.org>
-Cc: Johan Hovold <johan@kernel.org>, =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>, Rob Herring <robh@kernel.org>, Loic Poulain <loic.poulain@gmail.com>, Lukas Wunner <lukas@wunner.de>, Hans de Goede <hdegoede@redhat.com>, "bluez mailin list (linux-bluetooth@vger.kernel.org)" <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
+On 06/10/17 19:20, Bjorn Helgaas wrote:
+> On Fri, Oct 06, 2017 at 03:50:59PM +0300, Adrian Hunter wrote:
+>> The default D3 cold delay of 100 ms can cause pauses when streaming audio
+>> from eMMC.
+>>
+>> Intel BYT-related host controllers do not need PCI D3 delays. Although the
+>> delays can be set to zero via an ACPI _DSM, unfortunately that is not being
+>> used in all cases. So just set the delays to zero in the driver.
+>>
+>> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+>> ---
+>>  drivers/mmc/host/sdhci-pci-core.c | 17 +++++++++++++----
+>>  1 file changed, 13 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/sdhci-pci-core.c b/drivers/mmc/host/sdhci-pci-core.c
+>> index 5f3f7b51299f..14ef99b6e5b7 100644
+>> --- a/drivers/mmc/host/sdhci-pci-core.c
+>> +++ b/drivers/mmc/host/sdhci-pci-core.c
+>> @@ -592,9 +592,18 @@ static void byt_read_dsm(struct sdhci_pci_slot *slot)
+>>  	slot->chip->rpm_retune = intel_host->d3_retune;
+>>  }
+>>  
+>> -static int byt_emmc_probe_slot(struct sdhci_pci_slot *slot)
+>> +static void byt_common_setup(struct sdhci_pci_slot *slot)
+>>  {
+>>  	byt_read_dsm(slot);
+>> +
+>> +	/* PCI D3 delays are not needed */
+>> +	slot->chip->pdev->d3_delay = 0;
+>> +	slot->chip->pdev->d3cold_delay = 0;
+> 
+> The fact that it doesn't need D3 delays sounds like a property of the
+> device itself, regardless of which (if any) driver claims it.
+> 
+> Can this be done as a quirk instead, maybe something in
+> arch/x86/pci/fixup.c?  Maybe quirk_remove_d3_delay() could be used
+> directly, or something like pci_d3_delay_fixup()?
 
---cfs7mrf75yithqbd
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Sun, Oct 08, 2017 at 10:51:52AM +0200, Marcel Holtmann wrote:
-> Hi Sebastian,
->=20
-> >>> UART devices is expected to be enumerated by SerDev subsystem.
-> >>>=20
-> >>> During ACPI scan, serial devices behind SPI, I2C or UART buses are not
-> >>> enumerated, allowing them to be enumerated by their respective parent=
-s.
-> >>>=20
-> >>> Rename *spi_i2c_slave* to *serial_bus_slave* as this will be used for=
- serial
-> >>> devices on serial buses (SPI, I2C or UART).
-> >>>=20
-> >>> On Macs an empty ResourceTemplate is returned for uart slaves.
-> >>> Instead the device properties "baud", "parity", "dataBits", "stopBits=
-" are
-> >>> provided. Add a check for "baud" in acpi_is_serial_bus_slave().
-> >>>=20
-> >>> Signed-off-by: Fr=E9d=E9ric Danis <frederic.danis.oss@gmail.com>
-> >>=20
-> >> So just to reiterate what I just mentioned in a comment to one of Hans=
-'s
-> >> hci_bcm patches:
-> >>=20
-> >> This one would silently break PM for such devices on any system which
-> >> does not have serdev enabled (as the corresponding platform devices
-> >> would no longer be registered). And with serdev enabled, hciattach
-> >> (btattach) would start failing as the tty device would no longer be
-> >> registered (but I assume everyone is aware of that, and fine with it, =
-by
-> >> now).
-> >>=20
-> >> Perhaps the hci_bcm driver should start depending on
-> >> SERIAL_DEV_CTRL_TTYPORT when ACPI is enabled?
-> >=20
-> > ACPI and DT both need SERIAL_DEV_CTRL_TTYPORT to work properly,
-> > since SERIAL_DEV_CTRL_TTYPORT is the only controller implemented
-> > for serdev. If any other controller is implemented that one could
-> > also be used.
-> >=20
-> > I wonder if we should just hide SERIAL_DEV_CTRL_TTYPORT and enable
-> > it together with SERDEV. I suspect that we won't see any other
-> > controller (it would be a UART device, that is not registered as
-> > tty device) in the next few years and the extra option seems to
-> > confuse people.
->=20
-> I wonder if we should just default SERIAL_DEV_CTRL_TTYPORT=3Dy when
-> DT or ACPI is enabled. Then no driver would have to select or
-> depend on it.
-
-This is not related to DT/ACPI. SERIAL_DEV_CTRL_TTYPORT is a serdev
-controller driver, that registers serdev controller devices for each
-tty. It will also be used by clients, that are registered via board
-code.
-
--- Sebastian
-
---cfs7mrf75yithqbd
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnbOlcACgkQ2O7X88g7
-+pq+Sw//fyAJSiFXxHBJ20BamyhXbZrqssnZSjviDwls5XK0esvuxmpASwf48ZNI
-VzJYnueQnjfye6/TLiOMgOc/J/mGDbt+GoJfkXFboneRfG152GHqTkAlipTLSajl
-lc5oDMUw7YK/ARPH+/fBBBNKndXGBGkIYNdPJ6wBxrofyXeyIzFPLDRKc6D2C4XX
-sTqSmxMztaXNV375stb3mKtND9HzFgZN60R50K8hAKTUkSeROoFRol7yYGOyd2WG
-T+z8AvRgmtlkX3jO9ebpGgbBfGPvT4siYJ803x2uWoaVaxjltsaDs/ImIcusbAbr
-juPc5WSWdOa+O4NEaOOwtoazX2OqbrSISxuRpT49aW/n/A0aYPt5ssvxWc+ZoNDn
-c7cVAeKJmzATdBtjnlC0c/nz24Hr6OKIsYH+OLJN5h1ZEb5fTLCREtDG3HRcArSS
-7qQoWev7tqh07vhbb7MuJTawmwxpul6cmQ9Ao0teRopT8J8Dlt+rhz03p0+E7eKo
-wQcHRAZJp9c4grTR6lLHJ9aElit6R/M8cnf3bhuTQwE4V4zdt3lqblU10HXkpH20
-eFzRm7k/FUHGoNdRBCanC6Qj+10N73kvV9NUI/qYRBY3GZvFkZ7QwXJ7YeLa2LvM
-cRcdSaqClnPJW11mYR0qJ3aVZ8CKcqD4O4Bfo6KFvOJDRrWiGDc=
-=9RWh
------END PGP SIGNATURE-----
-
---cfs7mrf75yithqbd--
+A quirk would work, but that would mean setting the quirk for each device
+(28 so far) and then, when we have new ids, adding them there and to the
+driver, so it is more convenient just to do it in the driver.  Certainly,
+this is the only driver we have for these Intel SDHCI PCI host controllers.
