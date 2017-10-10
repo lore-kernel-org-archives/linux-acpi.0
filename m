@@ -1,80 +1,50 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
- behind SMMUv3
-Date: Tue, 10 Oct 2017 05:51:57 -0500
-Message-ID: <20171010105157.GT25517@bhelgaas-glaptop.roam.corp.google.com>
-References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
- <20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
+Subject: Re: [PATCH] mmc: sdhci-pci: Remove D3 delays for Intel BYT-related
+ host controllers
+Date: Tue, 10 Oct 2017 06:03:51 -0500
+Message-ID: <20171010110351.GU25517@bhelgaas-glaptop.roam.corp.google.com>
+References: <1507294259-20438-1-git-send-email-adrian.hunter@intel.com>
+ <20171006162048.GC25517@bhelgaas-glaptop.roam.corp.google.com>
+ <ada41e9b-6fb3-82ab-e458-af4942adba2d@intel.com>
+ <20171009134154.GJ25517@bhelgaas-glaptop.roam.corp.google.com>
+ <363DA0ED52042842948283D2FC38E4649BF3590E@IRSMSX106.ger.corp.intel.com>
+ <20171009202502.GN25517@bhelgaas-glaptop.roam.corp.google.com>
+ <1507626095.26339.5.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54368 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55230 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751398AbdJJKwC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Oct 2017 06:52:02 -0400
+        id S1755907AbdJJLD4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Oct 2017 07:03:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
+In-Reply-To: <1507626095.26339.5.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Cc: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, joro@8bytes.org, bhelgaas@google.com, gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com
+To: Alan Cox <alan@linux.intel.com>
+Cc: "Hunter, Adrian" <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Fri, Oct 06, 2017 at 03:04:50PM +0100, Shameer Kolothum wrote:
-> The HiSilicon erratum 161010801 describes the limitation of
-> HiSilicon platforms hip06/hip07 to support the SMMUv3 mappings
-> for MSI transactions.
+On Tue, Oct 10, 2017 at 10:01:35AM +0100, Alan Cox wrote:
+> > Your concern was that a quirk would require a long list of device IDs
+> > and we'd have to add new ones.  I share that concern,
 > 
-> PCIe controller on these platforms has to differentiate the MSI
-> payload against other DMA payload and has to modify the MSI
-> payload. This basically makes it difficult for this platforms to
-> have a SMMU translation for MSI. In order to workaround this, ARM
-> SMMUv3 driver requires a quirk to treat the MSI regions separately.
-> Such a quirk is currently missing for DT based systems and therefore
-> we need to blacklist the hip06/hip07 PCIe controllers.
-> 
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> I'm not sure I do. The bus topology tells you what is on die, and the
+> id of the root bridge tells you if it's one of the parts you can do
+> this.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Your a49d25364dfb ("staging/atomisp: Add support for the Intel IPU
+v2") added the most generic version (pci_d3_delay_fixup() uses
 
-> ---
->  drivers/pci/dwc/pcie-hisi.c | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/drivers/pci/dwc/pcie-hisi.c b/drivers/pci/dwc/pcie-hisi.c
-> index a201791..6800747 100644
-> --- a/drivers/pci/dwc/pcie-hisi.c
-> +++ b/drivers/pci/dwc/pcie-hisi.c
-> @@ -270,6 +270,12 @@ static int hisi_pcie_probe(struct platform_device *pdev)
->  	struct resource *reg;
->  	int ret;
->  
-> +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
-> +			of_property_read_bool(dev->of_node, "iommu-map")) {
-> +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting PCIe controllers behind SMMUv3\n");
-> +		return -ENODEV;
-> +	}
-> +
->  	hisi_pcie = devm_kzalloc(dev, sizeof(*hisi_pcie), GFP_KERNEL);
->  	if (!hisi_pcie)
->  		return -ENOMEM;
-> @@ -340,6 +346,12 @@ static int hisi_pcie_almost_ecam_probe(struct platform_device *pdev)
->  	struct device *dev = &pdev->dev;
->  	struct pci_ecam_ops *ops;
->  
-> +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
-> +			of_property_read_bool(dev->of_node, "iommu-map")) {
-> +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting PCIe controllers behind SMMUv3\n");
-> +		return -ENODEV;
-> +	}
-> +
->  	ops = (struct pci_ecam_ops *)of_device_get_match_data(dev);
->  	return pci_host_common_probe(pdev, ops);
->  }
-> -- 
-> 1.9.1
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, PCI_ANY_ID, pci_d3_delay_fixup);
+
+so there's no list of device IDs.  If this is really a property of the
+family (BYT/CHT/etc), it makes sense to me to do it that way, but if
+you think it's better to have a list, that's OK too.
+
+The more interesting question to me is whether the quirk should be in
+an optional driver or in the always-present arch code.  My assumption
+is that putting it in the driver means that if the driver isn't
+enabled, we're doing unnecessary delays.
+
+Bjorn
