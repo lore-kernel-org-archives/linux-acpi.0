@@ -1,57 +1,80 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2] acpi/arm64: pr_err() strings should end with newlines
-Date: Tue, 10 Oct 2017 11:24:36 +0100
-Message-ID: <20171010102436.GA949@red-moon>
-References: <d81bee42b06beefa9a7149b5b35bf884836c2595.1506321825.git.arvind.yadav.cs@gmail.com>
- <59DC93FE.2060004@huawei.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
+ behind SMMUv3
+Date: Tue, 10 Oct 2017 05:51:57 -0500
+Message-ID: <20171010105157.GT25517@bhelgaas-glaptop.roam.corp.google.com>
+References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
+ <20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41924 "EHLO foss.arm.com"
+Received: from mail.kernel.org ([198.145.29.99]:54368 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751398AbdJJKYn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Oct 2017 06:24:43 -0400
+        id S1751398AbdJJKwC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Oct 2017 06:52:02 -0400
 Content-Disposition: inline
-In-Reply-To: <59DC93FE.2060004@huawei.com>
+In-Reply-To: <20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Arvind Yadav <arvind.yadav.cs@gmail.com>, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Cc: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, will.deacon@arm.com, robin.murphy@arm.com, joro@8bytes.org, bhelgaas@google.com, gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com
 
-On Tue, Oct 10, 2017 at 05:33:50PM +0800, Hanjun Guo wrote:
-> On 2017/9/25 15:24, Arvind Yadav wrote:
-> > pr_err() messages should terminated with a new-line to avoid
-> > other messages being concatenated onto the end.
-> >
-> > Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-> > ---
-> > changes in v2:
-> >              Add changelog.
-> >
-> >  drivers/acpi/arm64/gtdt.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
-> > index 597a737..92f9edf 100644
-> > --- a/drivers/acpi/arm64/gtdt.c
-> > +++ b/drivers/acpi/arm64/gtdt.c
-> > @@ -199,7 +199,7 @@ static int __init gtdt_parse_timer_block(struct acpi_gtdt_timer_block *block,
-> >  	struct acpi_gtdt_timer_entry *gtdt_frame;
-> >  
-> >  	if (!block->timer_count) {
-> > -		pr_err(FW_BUG "GT block present, but frame count is zero.");
-> > +		pr_err(FW_BUG "GT block present, but frame count is zero.\n");
-> >  		return -ENODEV;
-> >  	}
-> >  
+On Fri, Oct 06, 2017 at 03:04:50PM +0100, Shameer Kolothum wrote:
+> The HiSilicon erratum 161010801 describes the limitation of
+> HiSilicon platforms hip06/hip07 to support the SMMUv3 mappings
+> for MSI transactions.
 > 
-> Make sense to me,
+> PCIe controller on these platforms has to differentiate the MSI
+> payload against other DMA payload and has to modify the MSI
+> payload. This basically makes it difficult for this platforms to
+> have a SMMU translation for MSI. In order to workaround this, ARM
+> SMMUv3 driver requires a quirk to treat the MSI regions separately.
+> Such a quirk is currently missing for DT based systems and therefore
+> we need to blacklist the hip06/hip07 PCIe controllers.
 > 
-> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> Lorenzo, could you pick this up for 4.15?
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 
-Sure, thanks for reminding.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Thanks,
-Lorenzo
+> ---
+>  drivers/pci/dwc/pcie-hisi.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/drivers/pci/dwc/pcie-hisi.c b/drivers/pci/dwc/pcie-hisi.c
+> index a201791..6800747 100644
+> --- a/drivers/pci/dwc/pcie-hisi.c
+> +++ b/drivers/pci/dwc/pcie-hisi.c
+> @@ -270,6 +270,12 @@ static int hisi_pcie_probe(struct platform_device *pdev)
+>  	struct resource *reg;
+>  	int ret;
+>  
+> +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
+> +			of_property_read_bool(dev->of_node, "iommu-map")) {
+> +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting PCIe controllers behind SMMUv3\n");
+> +		return -ENODEV;
+> +	}
+> +
+>  	hisi_pcie = devm_kzalloc(dev, sizeof(*hisi_pcie), GFP_KERNEL);
+>  	if (!hisi_pcie)
+>  		return -ENOMEM;
+> @@ -340,6 +346,12 @@ static int hisi_pcie_almost_ecam_probe(struct platform_device *pdev)
+>  	struct device *dev = &pdev->dev;
+>  	struct pci_ecam_ops *ops;
+>  
+> +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
+> +			of_property_read_bool(dev->of_node, "iommu-map")) {
+> +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting PCIe controllers behind SMMUv3\n");
+> +		return -ENODEV;
+> +	}
+> +
+>  	ops = (struct pci_ecam_ops *)of_device_get_match_data(dev);
+>  	return pci_host_common_probe(pdev, ops);
+>  }
+> -- 
+> 1.9.1
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
