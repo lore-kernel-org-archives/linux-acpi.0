@@ -1,77 +1,144 @@
-From: Ian W MORRISON <ianwmorrison-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] serdev: Add ACPI support
-Date: Wed, 11 Oct 2017 10:13:25 +1100
-Message-ID: <CAFXWsS9Mm6bEhrfWYHovUYOTjSmknLZ3KxLieteh3_2n14qNwA@mail.gmail.com>
-References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
- <1507107090-15992-2-git-send-email-frederic.danis.oss@gmail.com>
- <20171007151255.GH2618@localhost> <BC1C29B8-C76B-499D-B8BE-365B5D3A0065@holtmann.org>
- <20171010081528.GJ4269@localhost> <3F3CFF22-4FCE-4283-8A41-73A9A7944494@holtmann.org>
- <20171010163630.GO4269@localhost>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [RFC][PATCH] ACPI / LPSS: Update system sleep handling to follow runtime PM
+Date: Wed, 11 Oct 2017 01:17:51 +0200
+Message-ID: <6579657.vL5j0BfzvC@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171010163630.GO4269@localhost>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Cc: =?UTF-8?B?RnLDqWTDqXJpYyBEYW5pcw==?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Loic Poulain <loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "bluez mailin list (linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:62139 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756522AbdJJX1V (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Oct 2017 19:27:21 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-T24gMTEgT2N0b2JlciAyMDE3IGF0IDAzOjM2LCBKb2hhbiBIb3ZvbGQgPGpvaGFuQGtlcm5lbC5v
-cmc+IHdyb3RlOg0KPiBPbiBUdWUsIE9jdCAxMCwgMjAxNyBhdCAxMDoyMjoxOUFNICswMjAwLCBN
-YXJjZWwgSG9sdG1hbm4gd3JvdGU6DQo+Pg0KPj4gV2hhdCBJIHdhcyB3b25kZXJpbmcgdGhlIG90
-aGVyIGRheSBpcyBpZiB3ZSBuZWVkIGEgbHNzZXJkZXYgdG9vbCBvcg0KPj4gc29tZSBpbnRlZ3Jh
-dGlvbiBpbiBsc2h3IHRvIGJlIGFibGUgdG8gZGVidWcgd2hhdCBzZXJkZXYgZGV2aWNlcyBhbmQN
-Cj4+IElEIGFyZSBwcmVzZW50LiBUaGUgbHN1c2IgYW5kIC9zeXMva2VybmVsL2RlYnVnL3VzYi9k
-ZXZpY2VzIGlzIGp1c3QNCj4+IHN1cGVyIHBvd2VyZnVsIGFuZCBlYXN5IHdoZW4gaXQgY29tZXMg
-dG8gZmlndXJpbmcgb3V0IHdoYXQgcGVvcGxlIGhhdmUNCj4+IGluIHRoZWlyIHN5c3RlbS4gTWF5
-YmUgL3N5cy9rZXJuZWwvZGVidWcvc2VyZGV2L2RldmljZXMgY291bGQgYmUNCj4+IGhlbHBmdWwg
-YXMgd2VsbC4gSnVzdCB0aGlua2luZyBvdXQgbG91ZCBoZXJlLg0KPg0KPiBZZWFoLCBtYXliZS4g
-U2luY2UgeW91J2QgdHlwaWNhbGx5IG9ubHkgaGF2ZSBzbWFsbCBudW1iZXIgb2Ygc2VyZGV2DQo+
-IGRldmljZXMgKHNheSwgbWF4IDQpLCB1c2luZyAvc3lzL2J1cy9zZXJpYWwvZGV2aWNlcyBkaXJl
-Y3RseSBzaG91bGQgbm90DQo+IGJlIHRvbyBiYWQgbWVhbndoaWxlLiBOb3QgdGhhdCBtdWNoIGNv
-bW1vbiBpbmZvcm1hdGlvbiB3ZSBjYW4gZXhwb3NlDQo+IGVpdGhlciwgYXQgbGVhc3Qgbm90IGlu
-IGNvbXBhcmlzb24gdG8gVVNCLiBCdXQgSSdsbCBrZWVwIGl0IG1pbmQuIDopDQo+DQoNClllcyBp
-biB0aGUgaW50ZXJpbSwgaWYgeW91IGhhdmUgJ3RyZWUnIGluc3RhbGxlZCB0aGVuIGZvciBleGFt
-cGxlDQoNCiQgYWxpYXMgbHNzZXJkZXY9J3RyZWUgL3N5cy9idXMvc2VyaWFsL2RldmljZXMvKi0w
-Jw0KJCBsc3NlcmRldg0KL3N5cy9idXMvc2VyaWFsL2RldmljZXMvc2VyaWFsMC0wDQrilJzilIDi
-lIAgYmx1ZXRvb3RoDQrilIIgICDilJTilIDilIAgaGNpMA0K4pSCICAgICAgIOKUnOKUgOKUgCBk
-ZXZpY2UgLT4gLi4vLi4vLi4vc2VyaWFsMC0wDQrilIIgICAgICAg4pSc4pSA4pSAIHBvd2VyDQri
-lIIgICAgICAg4pSCICAg4pSc4pSA4pSAIGFzeW5jDQrilIIgICAgICAg4pSCICAg4pSc4pSA4pSA
-IGF1dG9zdXNwZW5kX2RlbGF5X21zDQrilIIgICAgICAg4pSCICAg4pSc4pSA4pSAIGNvbnRyb2wN
-CuKUgiAgICAgICDilIIgICDilJzilIDilIAgcnVudGltZV9hY3RpdmVfa2lkcw0K4pSCICAgICAg
-IOKUgiAgIOKUnOKUgOKUgCBydW50aW1lX2FjdGl2ZV90aW1lDQrilIIgICAgICAg4pSCICAg4pSc
-4pSA4pSAIHJ1bnRpbWVfZW5hYmxlZA0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCBydW50aW1l
-X3N0YXR1cw0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCBydW50aW1lX3N1c3BlbmRlZF90aW1l
-DQrilIIgICAgICAg4pSCICAg4pSU4pSA4pSAIHJ1bnRpbWVfdXNhZ2UNCuKUgiAgICAgICDilJzi
-lIDilIAgcmZraWxsMA0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCBkZXZpY2UgLT4gLi4vLi4v
-aGNpMA0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCBoYXJkDQrilIIgICAgICAg4pSCICAg4pSc
-4pSA4pSAIGluZGV4DQrilIIgICAgICAg4pSCICAg4pSc4pSA4pSAIG5hbWUNCuKUgiAgICAgICDi
-lIIgICDilJzilIDilIAgcGVyc2lzdGVudA0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCBwb3dl
-cg0K4pSCICAgICAgIOKUgiAgIOKUgiAgIOKUnOKUgOKUgCBhc3luYw0K4pSCICAgICAgIOKUgiAg
-IOKUgiAgIOKUnOKUgOKUgCBhdXRvc3VzcGVuZF9kZWxheV9tcw0K4pSCICAgICAgIOKUgiAgIOKU
-giAgIOKUnOKUgOKUgCBjb250cm9sDQrilIIgICAgICAg4pSCICAg4pSCICAg4pSc4pSA4pSAIHJ1
-bnRpbWVfYWN0aXZlX2tpZHMNCuKUgiAgICAgICDilIIgICDilIIgICDilJzilIDilIAgcnVudGlt
-ZV9hY3RpdmVfdGltZQ0K4pSCICAgICAgIOKUgiAgIOKUgiAgIOKUnOKUgOKUgCBydW50aW1lX2Vu
-YWJsZWQNCuKUgiAgICAgICDilIIgICDilIIgICDilJzilIDilIAgcnVudGltZV9zdGF0dXMNCuKU
-giAgICAgICDilIIgICDilIIgICDilJzilIDilIAgcnVudGltZV9zdXNwZW5kZWRfdGltZQ0K4pSC
-ICAgICAgIOKUgiAgIOKUgiAgIOKUlOKUgOKUgCBydW50aW1lX3VzYWdlDQrilIIgICAgICAg4pSC
-ICAg4pSc4pSA4pSAIHNvZnQNCuKUgiAgICAgICDilIIgICDilJzilIDilIAgc3RhdGUNCuKUgiAg
-ICAgICDilIIgICDilJzilIDilIAgc3Vic3lzdGVtIC0+IC4uLy4uLy4uLy4uLy4uLy4uLy4uLy4u
-L2NsYXNzL3Jma2lsbA0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCB0eXBlDQrilIIgICAgICAg
-4pSCICAg4pSU4pSA4pSAIHVldmVudA0K4pSCICAgICAgIOKUnOKUgOKUgCBzdWJzeXN0ZW0gLT4g
-Li4vLi4vLi4vLi4vLi4vLi4vLi4vY2xhc3MvYmx1ZXRvb3RoDQrilIIgICAgICAg4pSU4pSA4pSA
-IHVldmVudA0K4pSc4pSA4pSAIGRyaXZlciAtPiAuLi8uLi8uLi8uLi8uLi9idXMvc2VyaWFsL2Ry
-aXZlcnMvaGNpX3VhcnRfYmNtDQrilJzilIDilIAgZmlybXdhcmVfbm9kZSAtPg0KLi4vLi4vLi4v
-Li4vTE5YU1lTVE06MDAvTE5YU1lCVVM6MDAvUE5QMEEwODowMC84MDg2MjI4QTowMC9CQ00yRUE0
-OjAwDQrilJzilIDilIAgbW9kYWxpYXMNCuKUnOKUgOKUgCBwb3dlcg0K4pSCICAg4pSc4pSA4pSA
-IGFzeW5jDQrilIIgICDilJzilIDilIAgYXV0b3N1c3BlbmRfZGVsYXlfbXMNCuKUgiAgIOKUnOKU
-gOKUgCBjb250cm9sDQrilIIgICDilJzilIDilIAgcnVudGltZV9hY3RpdmVfa2lkcw0K4pSCICAg
-4pSc4pSA4pSAIHJ1bnRpbWVfYWN0aXZlX3RpbWUNCuKUgiAgIOKUnOKUgOKUgCBydW50aW1lX2Vu
-YWJsZWQNCuKUgiAgIOKUnOKUgOKUgCBydW50aW1lX3N0YXR1cw0K4pSCICAg4pSc4pSA4pSAIHJ1
-bnRpbWVfc3VzcGVuZGVkX3RpbWUNCuKUgiAgIOKUlOKUgOKUgCBydW50aW1lX3VzYWdlDQrilJzi
-lIDilIAgc3Vic3lzdGVtIC0+IC4uLy4uLy4uLy4uLy4uL2J1cy9zZXJpYWwNCuKUlOKUgOKUgCB1
-ZXZlbnQNCg0KMTMgZGlyZWN0b3JpZXMsIDM4IGZpbGVzDQokDQoNCkl0IGlzIGEgYml0IHNoYWJi
-eSB3aGVuIHRoZXJlIGlzIG5vdGhpbmcgdG8gcmVwb3J0DQoNCiQgbHNzZXJkZXYNCi9zeXMvYnVz
-L3NlcmlhbC9kZXZpY2VzLyotMCBbZXJyb3Igb3BlbmluZyBkaXJdDQoNCjAgZGlyZWN0b3JpZXMs
-IDAgZmlsZXMNCiQNCg==
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Modify the system sleep callback routines of acpi_lpss,
+acpi_lpss_suspend_late() and acpi_lpss_resume_early(), to follow
+the runtime PM ones and take LPSS_QUIRK_ALWAYS_POWER_ON into account.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+The runtime PM and system sleep handling in acpi_lpss have diverged
+which almost certainly is a bug.
+
+At least I see no reason why LPSS_QUIRK_ALWAYS_POWER_ON should not
+be taken into account during systen suspend/resume in the
+suspend-to-idle case, but also I don't see why doing that will
+hurt the S3 case in principle.
+
+---
+ drivers/acpi/acpi_lpss.c |   86 +++++++++++++++++++++++++++--------------------
+ 1 file changed, 51 insertions(+), 35 deletions(-)
+
+Index: linux-pm/drivers/acpi/acpi_lpss.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_lpss.c
++++ linux-pm/drivers/acpi/acpi_lpss.c
+@@ -715,41 +715,6 @@ static void acpi_lpss_dismiss(struct dev
+ {
+ 	acpi_dev_runtime_suspend(dev);
+ }
+-
+-#ifdef CONFIG_PM_SLEEP
+-static int acpi_lpss_suspend_late(struct device *dev)
+-{
+-	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+-	int ret;
+-
+-	ret = pm_generic_suspend_late(dev);
+-	if (ret)
+-		return ret;
+-
+-	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
+-		acpi_lpss_save_ctx(dev, pdata);
+-
+-	return acpi_dev_suspend_late(dev);
+-}
+-
+-static int acpi_lpss_resume_early(struct device *dev)
+-{
+-	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+-	int ret;
+-
+-	ret = acpi_dev_resume_early(dev);
+-	if (ret)
+-		return ret;
+-
+-	acpi_lpss_d3_to_d0_delay(pdata);
+-
+-	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
+-		acpi_lpss_restore_ctx(dev, pdata);
+-
+-	return pm_generic_resume_early(dev);
+-}
+-#endif /* CONFIG_PM_SLEEP */
+-
+ /* IOSF SB for LPSS island */
+ #define LPSS_IOSF_UNIT_LPIOEP		0xA0
+ #define LPSS_IOSF_UNIT_LPIO1		0xAB
+@@ -835,6 +800,57 @@ static void lpss_iosf_exit_d3_state(void
+ 	mutex_unlock(&lpss_iosf_mutex);
+ }
+ 
++#ifdef CONFIG_PM_SLEEP
++static int acpi_lpss_suspend_late(struct device *dev)
++{
++	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
++	int ret;
++
++	ret = pm_generic_suspend_late(dev);
++	if (ret)
++		return ret;
++
++	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
++		acpi_lpss_save_ctx(dev, pdata);
++
++	ret = acpi_dev_suspend_late(dev);
++
++	/*
++	 * This call must be last in the sequence, otherwise PMC will return
++	 * wrong status for devices being about to be powered off. See
++	 * lpss_iosf_enter_d3_state() for further information.
++	 */
++	if (lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
++		lpss_iosf_enter_d3_state();
++
++	return ret;
++}
++
++static int acpi_lpss_resume_early(struct device *dev)
++{
++	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
++	int ret;
++
++	/*
++	 * This call is kept first to be in symmetry with
++	 * acpi_lpss_runtime_suspend() one.
++	 */
++	if (lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
++		lpss_iosf_exit_d3_state();
++
++	ret = acpi_dev_resume_early(dev);
++	if (ret)
++		return ret;
++
++	acpi_lpss_d3_to_d0_delay(pdata);
++
++	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
++		acpi_lpss_restore_ctx(dev, pdata);
++
++	return pm_generic_resume_early(dev);
++}
++#endif /* CONFIG_PM_SLEEP */
++
+ static int acpi_lpss_runtime_suspend(struct device *dev)
+ {
+ 	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+
