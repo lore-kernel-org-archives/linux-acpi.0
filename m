@@ -1,144 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [RFC][PATCH] ACPI / LPSS: Update system sleep handling to follow runtime PM
-Date: Wed, 11 Oct 2017 01:17:51 +0200
-Message-ID: <6579657.vL5j0BfzvC@aspire.rjw.lan>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 0/3] i2c-xlp9xx: update i2c driver to handle
+ I2C_M_RECV_LEN flag
+Date: Wed, 11 Oct 2017 01:35:10 +0200
+Message-ID: <CAJZ5v0gz9FQMXhiBokOKY5esrmv2JNoScsv5-LNR2ui_CZPdAQ@mail.gmail.com>
+References: <1507616876-17189-1-git-send-email-kamlakant.patel@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:62139 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756522AbdJJX1V (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Oct 2017 19:27:21 -0400
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:37299 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751402AbdJJXfL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Oct 2017 19:35:11 -0400
+In-Reply-To: <1507616876-17189-1-git-send-email-kamlakant.patel@cavium.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Kamlakant Patel <kamlakant.patel@cavium.com>, Wolfram Sang <wsa@the-dreams.de>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tue, Oct 10, 2017 at 8:27 AM, Kamlakant Patel
+<kamlakant.patel@cavium.com> wrote:
+> This patch set has following changes:
+>  * Use Linux clk APIs to get input clock frequency for the I2C controller.
+>  * I2C driver update to handle I2C_M_RECV_LEN and I2C_CLIENT_PEC flags.
+>
+> Changes since v1:
+> * Rebased to mainline(4.14-rc4).
+> * Removed unnecessary parens in i2c-xlp9xx.c.
+>
+> Jayachandran C (2):
+>   ACPI / APD: Add clock frequency for ThunderX2 I2C controller
+>   i2c: xlp9xx: Get clock frequency with clk API
+>
+> Kamlakant Patel (1):
+>   i2c: xlp9xx: Handle I2C_M_RECV_LEN in msg->flags
+>
+>  drivers/acpi/acpi_apd.c         |  5 +++++
+>  drivers/i2c/busses/i2c-xlp9xx.c | 44 +++++++++++++++++++++++++++++++++++++----
+>  2 files changed, 45 insertions(+), 4 deletions(-)
 
-Modify the system sleep callback routines of acpi_lpss,
-acpi_lpss_suspend_late() and acpi_lpss_resume_early(), to follow
-the runtime PM ones and take LPSS_QUIRK_ALWAYS_POWER_ON into account.
+Hi Wolfram,
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+I'm assuming that this will go in via the i2c tree, so please let me
+know if anything is needed from my side.
 
-The runtime PM and system sleep handling in acpi_lpss have diverged
-which almost certainly is a bug.
-
-At least I see no reason why LPSS_QUIRK_ALWAYS_POWER_ON should not
-be taken into account during systen suspend/resume in the
-suspend-to-idle case, but also I don't see why doing that will
-hurt the S3 case in principle.
-
----
- drivers/acpi/acpi_lpss.c |   86 +++++++++++++++++++++++++++--------------------
- 1 file changed, 51 insertions(+), 35 deletions(-)
-
-Index: linux-pm/drivers/acpi/acpi_lpss.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpi_lpss.c
-+++ linux-pm/drivers/acpi/acpi_lpss.c
-@@ -715,41 +715,6 @@ static void acpi_lpss_dismiss(struct dev
- {
- 	acpi_dev_runtime_suspend(dev);
- }
--
--#ifdef CONFIG_PM_SLEEP
--static int acpi_lpss_suspend_late(struct device *dev)
--{
--	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
--	int ret;
--
--	ret = pm_generic_suspend_late(dev);
--	if (ret)
--		return ret;
--
--	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
--		acpi_lpss_save_ctx(dev, pdata);
--
--	return acpi_dev_suspend_late(dev);
--}
--
--static int acpi_lpss_resume_early(struct device *dev)
--{
--	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
--	int ret;
--
--	ret = acpi_dev_resume_early(dev);
--	if (ret)
--		return ret;
--
--	acpi_lpss_d3_to_d0_delay(pdata);
--
--	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
--		acpi_lpss_restore_ctx(dev, pdata);
--
--	return pm_generic_resume_early(dev);
--}
--#endif /* CONFIG_PM_SLEEP */
--
- /* IOSF SB for LPSS island */
- #define LPSS_IOSF_UNIT_LPIOEP		0xA0
- #define LPSS_IOSF_UNIT_LPIO1		0xAB
-@@ -835,6 +800,57 @@ static void lpss_iosf_exit_d3_state(void
- 	mutex_unlock(&lpss_iosf_mutex);
- }
- 
-+#ifdef CONFIG_PM_SLEEP
-+static int acpi_lpss_suspend_late(struct device *dev)
-+{
-+	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
-+	int ret;
-+
-+	ret = pm_generic_suspend_late(dev);
-+	if (ret)
-+		return ret;
-+
-+	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
-+		acpi_lpss_save_ctx(dev, pdata);
-+
-+	ret = acpi_dev_suspend_late(dev);
-+
-+	/*
-+	 * This call must be last in the sequence, otherwise PMC will return
-+	 * wrong status for devices being about to be powered off. See
-+	 * lpss_iosf_enter_d3_state() for further information.
-+	 */
-+	if (lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
-+		lpss_iosf_enter_d3_state();
-+
-+	return ret;
-+}
-+
-+static int acpi_lpss_resume_early(struct device *dev)
-+{
-+	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
-+	int ret;
-+
-+	/*
-+	 * This call is kept first to be in symmetry with
-+	 * acpi_lpss_runtime_suspend() one.
-+	 */
-+	if (lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
-+		lpss_iosf_exit_d3_state();
-+
-+	ret = acpi_dev_resume_early(dev);
-+	if (ret)
-+		return ret;
-+
-+	acpi_lpss_d3_to_d0_delay(pdata);
-+
-+	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
-+		acpi_lpss_restore_ctx(dev, pdata);
-+
-+	return pm_generic_resume_early(dev);
-+}
-+#endif /* CONFIG_PM_SLEEP */
-+
- static int acpi_lpss_runtime_suspend(struct device *dev)
- {
- 	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
-
+Thanks,
+Rafael
