@@ -1,51 +1,39 @@
-From: Ian W MORRISON <ianwmorrison@gmail.com>
-Subject: Re: [PATCH v3 2/2] serdev: Update drivers/bluetooth/Kconfig for ACPI
- serdev support
-Date: Tue, 10 Oct 2017 18:16:46 +1100
-Message-ID: <CAFXWsS8=t9SfUdWPOSpmHt4-6cgdrVtQChryyzJ74XOQQP3-Ww@mail.gmail.com>
-References: <dc9cecc0-d9ef-109f-5f05-cf77ab16e60e@gmail.com>
- <427a95f6-feda-e93e-9a0f-a05b7b339ee6@gmail.com> <20171009080606.GO2618@localhost>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH 1/3] ACPI/IORT: Remove leftover
+ ACPI_IORT_SMMU_V3_PXM_VALID guard
+Date: Tue, 10 Oct 2017 15:59:32 +0800
+Message-ID: <59DC7DE4.90409@huawei.com>
+References: <1507038811-23382-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1507038811-23382-2-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36943 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752216AbdJJHQs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Oct 2017 03:16:48 -0400
-In-Reply-To: <20171009080606.GO2618@localhost>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7532 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754585AbdJJIB3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Oct 2017 04:01:29 -0400
+In-Reply-To: <1507038811-23382-2-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: Marcel Holtmann <marcel@holtmann.org>, "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, "bluez mailin list (linux-bluetooth@vger.kernel.org)" <linux-bluetooth@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>, =?UTF-8?B?RnLDqWTDqXJpYyBEYW5pcw==?= <frederic.danis.oss@gmail.com>, Rob Herring <robh@kernel.org>, Sebastian Reichel <sre@kernel.org>, Loic Poulain <loic.poulain@gmail.com>, Lukas Wunner <lukas@wunner.de>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Greg Kroah-Hartman <greg@kroah.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
 
-On 9 October 2017 at 19:06, Johan Hovold <johan@kernel.org> wrote:
-> On Mon, Oct 09, 2017 at 11:43:31AM +1100, Ian W MORRISON wrote:
-<snip>
->>
->> This patch set addresses this by making BT_HCIUART_BCM dependent on
->> SERIAL_DEV_CTRL_TTYPORT which in turn is dependent on SERIAL_DEV_BUS
->> and ensures that if SERIAL_DEV_BUS is selected is the code is build it.
+On 2017/10/3 21:53, Lorenzo Pieralisi wrote:
+> The conditional ACPI_IORT_SMMU_V3_PXM_VALID guard around
+> arm_smmu_v3_set_proximity() was added to manage a cross tree
+> ACPICA merge dependency; with ACPICA changes merged in:
 >
-> Ok, so you didn't even bother to write two distinct commit messages for
-> your two patches, and my comments to the first patch apply also here.
+> commit c944230064eb ("ACPICA: iasl: Update to IORT SMMUv3
+> disassembling")
 >
-<snip>
+> the guard has become useless. Remove it.
 >
-> Johan
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+>
 
-Hi Johan,
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-My experience in submitting patches is still limited and I am very
-much learning so thanks for the helpful comments and apologies for
-trying your patience. My keenness on submitting patches was to show
-that I had tested my suggestions so as to given them credibility
-rather than any attempt to own the patch.
-
-What I was trying to do here was to suggested two patches with one
-requiring the other. Rather than keep as a single patch affecting two
-files I separated into two patches attempting to create a patch series
-with a single changelog. This was the wrong approach and I may have
-misled so apologies for that.
-
-Regards,
-Ian
