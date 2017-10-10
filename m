@@ -1,61 +1,57 @@
-From: Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
-	behind SMMUv3
-Date: Tue, 10 Oct 2017 10:19:51 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40C5DC1F@FRAEML521-MBX.china.huawei.com>
-References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
-	<20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
-	<20171009235452.GP25517@bhelgaas-glaptop.roam.corp.google.com>
-	<5FC3163CFD30C246ABAA99954A238FA838421875@FRAEML521-MBX.china.huawei.com>
-	<20171010100630.GA764@red-moon>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2] acpi/arm64: pr_err() strings should end with newlines
+Date: Tue, 10 Oct 2017 11:24:36 +0100
+Message-ID: <20171010102436.GA949@red-moon>
+References: <d81bee42b06beefa9a7149b5b35bf884836c2595.1506321825.git.arvind.yadav.cs@gmail.com>
+ <59DC93FE.2060004@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20171010100630.GA764@red-moon>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "marc.zyngier-5wv7dgnIgG8@public.gmane.org" <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Guohanjun (Hanjun Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:41924 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751398AbdJJKYn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Oct 2017 06:24:43 -0400
+Content-Disposition: inline
+In-Reply-To: <59DC93FE.2060004@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Arvind Yadav <arvind.yadav.cs@gmail.com>, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Lorenzo
-
-[...]
-
-> > > Does the presence of "iommu-map" tell you this is an SMMUv3?  Could
-> it
-> > > have a different type of IOMMU?  I can't tell from reading
-> > > Documentation/devicetree/bindings/pci/pci-iommu.txt.
+On Tue, Oct 10, 2017 at 05:33:50PM +0800, Hanjun Guo wrote:
+> On 2017/9/25 15:24, Arvind Yadav wrote:
+> > pr_err() messages should terminated with a new-line to avoid
+> > other messages being concatenated onto the end.
 > >
-> > Only if the SMMUv3 driver is loaded and iommu-map binding property
-> present,
-> > the pcie devices will use SMMU translated iova for MSI doorbell
-> addresses.
+> > Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> > ---
+> > changes in v2:
+> >              Add changelog.
+> >
+> >  drivers/acpi/arm64/gtdt.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+> > index 597a737..92f9edf 100644
+> > --- a/drivers/acpi/arm64/gtdt.c
+> > +++ b/drivers/acpi/arm64/gtdt.c
+> > @@ -199,7 +199,7 @@ static int __init gtdt_parse_timer_block(struct acpi_gtdt_timer_block *block,
+> >  	struct acpi_gtdt_timer_entry *gtdt_frame;
+> >  
+> >  	if (!block->timer_count) {
+> > -		pr_err(FW_BUG "GT block present, but frame count is zero.");
+> > +		pr_err(FW_BUG "GT block present, but frame count is zero.\n");
+> >  		return -ENODEV;
+> >  	}
+> >  
 > 
-> And the iommu-map property _actually_ points at an OF node with an
-> SMMUv3 compatible string - the sheer fact that the SMMUv3 driver
-> is compiled in is not sufficient IIUC.
-
-The blacklisted controller can only be present in an SoC that supports
-SMMUv3 only.
-
->From our view checking that SMMUv3 is compiled in and also checking that
-the DT contains iommu-map is sufficient to decide to blacklist the controller.
-
-Thanks
-Gab 
-
+> Make sense to me,
 > 
-> Lorenzo
+> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
 > 
+> Lorenzo, could you pick this up for 4.15?
 
-[...]
+Sure, thanks for reminding.
+
+Thanks,
+Lorenzo
