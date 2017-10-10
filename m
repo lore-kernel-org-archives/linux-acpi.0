@@ -1,59 +1,53 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
-	behind SMMUv3
-Date: Mon, 9 Oct 2017 19:15:42 -0500
-Message-ID: <20171010001542.GR25517@bhelgaas-glaptop.roam.corp.google.com>
-References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
-	<20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
-	<20171009235452.GP25517@bhelgaas-glaptop.roam.corp.google.com>
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/2] ACPI serdev support
+Date: Tue, 10 Oct 2017 02:27:33 +0200
+Message-ID: <CAJZ5v0iaXiPhZaohmN0XLJ2_n7ZzhbWebUh80uC3-8n5uGg8jg@mail.gmail.com>
+References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171009235452.GP25517-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1507107090-15992-1-git-send-email-frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?B?RnLDqWTDqXJpYyBEYW5pcw==?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Loic Poulain <loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Oct 09, 2017 at 06:54:52PM -0500, Bjorn Helgaas wrote:
-> Please change subject line:
-> 
-> -  PCI: hisi: blacklist hip06/hip07 controllers behind SMMUv3
-> +  PCI: hisi: Blacklist hip06/hip07 controllers behind SMMUv3
-> 
-> On Fri, Oct 06, 2017 at 03:04:50PM +0100, Shameer Kolothum wrote:
-> > The HiSilicon erratum 161010801 describes the limitation of
-> > HiSilicon platforms hip06/hip07 to support the SMMUv3 mappings
-> > for MSI transactions.
-> 
-> I don't suppose there's a URL for this erratum, is there?
-> 
-> > PCIe controller on these platforms has to differentiate the MSI
-> > payload against other DMA payload and has to modify the MSI
-> > payload. This basically makes it difficult for this platforms to
-> > have a SMMU translation for MSI. In order to workaround this, ARM
-> > SMMUv3 driver requires a quirk to treat the MSI regions separately.
-> > Such a quirk is currently missing for DT based systems and therefore
-> > we need to blacklist the hip06/hip07 PCIe controllers.
-> 
-> I don't understand the DT connection here.  If this is a hardware
-> erratum, I assume the a quirk would be required whether the system
-> uses DT, ACPI, etc.
-> 
-> > Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> 
-> I assume this will go via some non-PCI tree.  If I were applying this,
-> I would look for an ack from Zhou or Gabriele in addition to mine.
+On Wed, Oct 4, 2017 at 10:51 AM, Fr=C3=A9d=C3=A9ric Danis
+<frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Add ACPI support for serial attached devices.
+>
+> Currently, serial devices are not set as enumerated during ACPI scan for =
+SPI
+> or i2c buses (but not for UART). This should also be done for UART serial
+> devices.
+> I renamed *spi_i2c_slave* to *serial_bus_slave* to reflect this.
+>
+> For hci_bcm, this needs Hans de Goede's "Bluetooth: hci_bcm: Add (runtime=
+)pm
+> support to the serdev drv" patches to work.
+>
+> Tested on T100TA with Broadcom BCM2E39.
+>
+> Since RFC:
+>   - Add or reword commit messages
+>   - Rename *serial_slave* to *serial_bus_slave*
+>   - Add specific check for Apple in acpi_is_serial_bus_slave(), thanks to
+>     Lukas Wunner
+>   - Update comment in acpi_default_enumeration()
+>   - Remove patch 3 "Bluetooth: hci_bcm: Add ACPI serdev support for BCM2E=
+39"
+>     in favor of patches from Hans de Goede
+>
+> Fr=C3=A9d=C3=A9ric Danis (2):
+>   serdev: Add ACPI support
+>   ACPI / scan: Fix enumeration for special UART devices
 
-Never mind about this part; I see they already have acked it.  I really
-need to learn to read the whole thread before responding :)
+Some review comments you received on this series should be addressed
+IMO, so I'm expecting an update of it.
+
+When sending the next version, please add all of the tags you've
+already received on it.
+
+Thanks,
+Rafael
