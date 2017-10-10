@@ -1,185 +1,60 @@
 From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH v2 1/2] serdev: Add ACPI support
-Date: Tue, 10 Oct 2017 17:35:18 +0200
-Message-ID: <20171010153518.GM4269@localhost>
-References: <1507630365-26692-1-git-send-email-frederic.danis.oss@gmail.com>
- <1507630365-26692-2-git-send-email-frederic.danis.oss@gmail.com>
+Subject: Re: [PATCH 1/2] serdev: Add ACPI support
+Date: Tue, 10 Oct 2017 18:36:30 +0200
+Message-ID: <20171010163630.GO4269@localhost>
+References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
+ <1507107090-15992-2-git-send-email-frederic.danis.oss@gmail.com>
+ <20171007151255.GH2618@localhost>
+ <BC1C29B8-C76B-499D-B8BE-365B5D3A0065@holtmann.org>
+ <20171010081528.GJ4269@localhost>
+ <3F3CFF22-4FCE-4283-8A41-73A9A7944494@holtmann.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:53122 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932246AbdJJPfU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Oct 2017 11:35:20 -0400
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:36340 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932452AbdJJQgc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Oct 2017 12:36:32 -0400
 Content-Disposition: inline
-In-Reply-To: <1507630365-26692-2-git-send-email-frederic.danis.oss@gmail.com>
+In-Reply-To: <3F3CFF22-4FCE-4283-8A41-73A9A7944494@holtmann.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>
-Cc: robh@kernel.org, marcel@holtmann.org, sre@kernel.org, loic.poulain@gmail.com, johan@kernel.org, lukas@wunner.de, hdegoede@redhat.com, rafael@kernel.org, greg@kroah.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Marcel Holtmann <marcel@holtmann.org>
+Cc: Johan Hovold <johan@kernel.org>, =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>, robh@kernel.org, sre@kernel.org, loic.poulain@gmail.com, lukas@wunner.de, hdegoede@redhat.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Oct 10, 2017 at 12:12:44PM +0200, Frédéric Danis wrote:
-> This patch allows SerDev module to manage serial devices declared as
-> attached to an UART in ACPI table.
+On Tue, Oct 10, 2017 at 10:22:19AM +0200, Marcel Holtmann wrote:
+
+> > Some of the above are minor nits that can be addressed by a follow-up
+> > patch indeed, but the handling of nodes with no child devices needs to
+> > be correct (or you could end up breaking normal serial-port support).
 > 
-> acpi_serdev_add_device() callback will only take into account entries
-> without enumerated flag set. This flags is set for all entries during
-> ACPI scan, except for SPI and I2C serial devices, and for UART with
-> 2nd patch in the series.
+> that sounds good to me as well. Lets get this feature into the ACPI
+> tree since I am going to push Hansâ€™ patches into bluetooth-next as
+> soon as he re-submits the missing ID change. That hopefully gives us
+> then fully serdev support for ACPI and DT when it comes to Broadcom
+> Bluetooth controllers.
+
+But with Hans's work these devices should continue to function using the
+platform-device hacks until the ACPI patch eventually lands in Linus's
+tree (via the acpi tree).
+
+> Next step is to convert the Intel driver to also use ACPI based serdev
+> :)
 > 
-> Check if a serdev device as been allocated during acpi_walk_namespace()
-> to prevent serdev controller registration instead of the tty-class device.
-
-Good that we caught that one before every ACPI serial port broke. ;)
-
-> Signed-off-by: Frédéric Danis <frederic.danis.oss@gmail.com>
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> ---
->  drivers/tty/serdev/core.c | 106 +++++++++++++++++++++++++++++++++++++++++++---
->  1 file changed, 99 insertions(+), 7 deletions(-)
+> And for the brave, I think there are Realtek based systems using ACPI
+> as well.
 > 
-> diff --git a/drivers/tty/serdev/core.c b/drivers/tty/serdev/core.c
+> What I was wondering the other day is if we need a lsserdev tool or
+> some integration in lshw to be able to debug what serdev devices and
+> ID are present. The lsusb and /sys/kernel/debug/usb/devices is just
+> super powerful and easy when it comes to figuring out what people have
+> in their system. Maybe /sys/kernel/debug/serdev/devices could be
+> helpful as well. Just thinking out loud here.
 
-> @@ -385,6 +401,78 @@ static int of_serdev_register_devices(struct serdev_controller *ctrl)
->  	return 0;
->  }
->  
-> +#ifdef CONFIG_ACPI
-> +static acpi_status acpi_serdev_register_device(struct serdev_controller *ctrl,
-> +					    struct acpi_device *adev)
-> +{
-> +	struct serdev_device *serdev = NULL;
-> +	int err;
-> +
-> +	if (acpi_bus_get_status(adev) || !adev->status.present ||
-> +	    acpi_device_enumerated(adev))
-> +		return AE_OK;
-> +
-> +	serdev = serdev_device_alloc(ctrl);
-> +	if (!serdev) {
-> +		dev_err(&ctrl->dev, "failed to allocate serdev device for %s\n",
-> +			dev_name(&adev->dev));
-> +		return AE_NO_MEMORY;
-> +	}
-> +
-> +	ACPI_COMPANION_SET(&serdev->dev, adev);
-> +	acpi_device_set_enumerated(adev);
-
-Looks like this flag needs to be cleared when the device is later
-deregistered or you will not be able to reprobe the device (mostly
-useful for development). Can probably done in a follow-up patch.
-
-> +
-> +	err = serdev_device_add(serdev);
-> +	if (err) {
-> +		dev_err(&serdev->dev,
-> +			"failure adding ACPI serdev device. status %d\n", err);
-> +		serdev_device_put(serdev);
-> +		ctrl->serdev = NULL;
-
-You should not clear this pointer here. This should be taken care of by
-serdev core when registration fails, something which would also address
-the problem with how to deal with multiple child nodes which is a
-problem for ACPI as well as DT (as I mentioned briefly at Kernel
-Recipes).
-
-I'll submit a fix for that shortly, but the NULL assignment above needs
-to go.
-
-> +	}
-> +
-> +	return AE_OK;
-> +}
-> +
-> +static acpi_status acpi_serdev_add_device(acpi_handle handle, u32 level,
-> +				       void *data, void **return_value)
-> +{
-> +	struct serdev_controller *ctrl = data;
-> +	struct acpi_device *adev;
-> +
-> +	if (acpi_bus_get_device(handle, &adev))
-> +		return AE_OK;
-> +
-> +	return acpi_serdev_register_device(ctrl, adev);
-> +}
-> +
-> +static int acpi_serdev_register_devices(struct serdev_controller *ctrl)
-> +{
-> +	acpi_status status;
-> +	acpi_handle handle;
-> +
-> +	handle = ACPI_HANDLE(ctrl->dev.parent);
-> +	if (!handle)
-> +		return -ENODEV;
-> +
-> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-> +				     acpi_serdev_add_device, NULL, ctrl, NULL);
-> +	if (ACPI_FAILURE(status)) {
-> +		dev_dbg(&ctrl->dev, "failed to enumerate serdev slaves\n");
-
-So what if there are more than one child node defined? You could end up
-with an error here but with a slave still registered. And then when you
-return -ENODEV, that memory will leak.
-
-> +		return -ENODEV;
-
-Simply falling through here, and then return 0 or -ENODEV based on
-ctrl->serdev should suffice for now.
-
-> +	}
-> +
-> +	if (!ctrl->serdev)
-> +		return -ENODEV;
-> +
-> +	return 0;
-> +}
-> +#else
-> +static inline int acpi_serdev_register_devices(struct serdev_controller *ctrl)
-> +{
-> +	return -ENODEV;
-> +}
-> +#endif /* CONFIG_ACPI */
-> +
->  /**
->   * serdev_controller_add() - Add an serdev controller
->   * @ctrl:	controller to be registered.
-> @@ -394,7 +482,7 @@ static int of_serdev_register_devices(struct serdev_controller *ctrl)
->   */
->  int serdev_controller_add(struct serdev_controller *ctrl)
->  {
-> -	int ret;
-> +	int ret_of, ret_acpi, ret;
->  
->  	/* Can't register until after driver model init */
->  	if (WARN_ON(!is_registered))
-> @@ -404,12 +492,16 @@ int serdev_controller_add(struct serdev_controller *ctrl)
->  	if (ret)
->  		return ret;
->  
-> -	ret = of_serdev_register_devices(ctrl);
-> -	if (ret)
-> +	ret_of = of_serdev_register_devices(ctrl);
-> +	ret_acpi = acpi_serdev_register_devices(ctrl);
-> +	if (ret_of && ret_acpi) {
-> +		dev_dbg(&ctrl->dev, "no devices registered: of:%d acpi:%d\n",
-> +			ret_of, ret_acpi);
-> +		ret = -ENODEV;
->  		goto out_dev_del;
-> +	}
->  
-> -	dev_dbg(&ctrl->dev, "serdev%d registered: dev:%p\n",
-> -		ctrl->nr, &ctrl->dev);
-> +	dev_dbg(&ctrl->dev, "registered: dev:%p\n", &ctrl->dev);
-
-This change belongs in a separate patch. There seem to be a few more
-instances like this one, which can all be fixed in a later patch
-instead.
-
->  	return 0;
->  
->  out_dev_del:
+Yeah, maybe. Since you'd typically only have small number of serdev
+devices (say, max 4), using /sys/bus/serial/devices directly should not
+be too bad meanwhile. Not that much common information we can expose
+either, at least not in comparison to USB. But I'll keep it mind. :)
 
 Johan
