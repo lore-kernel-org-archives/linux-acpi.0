@@ -1,202 +1,61 @@
-From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Danis?=
-        <frederic.danis.oss@gmail.com>
-Subject: [PATCH v2 1/2] serdev: Add ACPI support
-Date: Tue, 10 Oct 2017 12:12:44 +0200
-Message-ID: <1507630365-26692-2-git-send-email-frederic.danis.oss@gmail.com>
-References: <1507630365-26692-1-git-send-email-frederic.danis.oss@gmail.com>
+From: Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
+	behind SMMUv3
+Date: Tue, 10 Oct 2017 10:19:51 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40C5DC1F@FRAEML521-MBX.china.huawei.com>
+References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
+	<20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
+	<20171009235452.GP25517@bhelgaas-glaptop.roam.corp.google.com>
+	<5FC3163CFD30C246ABAA99954A238FA838421875@FRAEML521-MBX.china.huawei.com>
+	<20171010100630.GA764@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:37553 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932228AbdJJKMv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Oct 2017 06:12:51 -0400
-In-Reply-To: <1507630365-26692-1-git-send-email-frederic.danis.oss@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20171010100630.GA764@red-moon>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "marc.zyngier-5wv7dgnIgG8@public.gmane.org" <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Guohanjun (Hanjun Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: robh@kernel.org, marcel@holtmann.org, sre@kernel.org, loic.poulain@gmail.com, johan@kernel.org, lukas@wunner.de, hdegoede@redhat.com, rafael@kernel.org, greg@kroah.com
-Cc: linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, frederic.danis.oss@gmail.com
 
-This patch allows SerDev module to manage serial devices declared as
-attached to an UART in ACPI table.
+Hi Lorenzo
 
-acpi_serdev_add_device() callback will only take into account entries
-without enumerated flag set. This flags is set for all entries during
-ACPI scan, except for SPI and I2C serial devices, and for UART with
-2nd patch in the series.
+[...]
 
-Check if a serdev device as been allocated during acpi_walk_namespace()
-to prevent serdev controller registration instead of the tty-class device.
+> > > Does the presence of "iommu-map" tell you this is an SMMUv3?  Could
+> it
+> > > have a different type of IOMMU?  I can't tell from reading
+> > > Documentation/devicetree/bindings/pci/pci-iommu.txt.
+> >
+> > Only if the SMMUv3 driver is loaded and iommu-map binding property
+> present,
+> > the pcie devices will use SMMU translated iova for MSI doorbell
+> addresses.
+> 
+> And the iommu-map property _actually_ points at an OF node with an
+> SMMUv3 compatible string - the sheer fact that the SMMUv3 driver
+> is compiled in is not sufficient IIUC.
 
-Signed-off-by: Frédéric Danis <frederic.danis.oss@gmail.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- drivers/tty/serdev/core.c | 106 +++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 99 insertions(+), 7 deletions(-)
+The blacklisted controller can only be present in an SoC that supports
+SMMUv3 only.
 
-diff --git a/drivers/tty/serdev/core.c b/drivers/tty/serdev/core.c
-index c68fb3a..7e00e2e 100644
---- a/drivers/tty/serdev/core.c
-+++ b/drivers/tty/serdev/core.c
-@@ -14,6 +14,7 @@
-  * GNU General Public License for more details.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/errno.h>
- #include <linux/idr.h>
- #include <linux/kernel.h>
-@@ -49,13 +50,22 @@ static const struct device_type serdev_ctrl_type = {
- 
- static int serdev_device_match(struct device *dev, struct device_driver *drv)
- {
--	/* TODO: ACPI and platform matching */
-+	/* TODO: platform matching */
-+	if (acpi_driver_match_device(dev, drv))
-+		return 1;
-+
- 	return of_driver_match_device(dev, drv);
- }
- 
- static int serdev_uevent(struct device *dev, struct kobj_uevent_env *env)
- {
--	/* TODO: ACPI and platform modalias */
-+	int rc;
-+
-+	/* TODO: platform modalias */
-+	rc = acpi_device_uevent_modalias(dev, env);
-+	if (rc != -ENODEV)
-+		return rc;
-+
- 	return of_device_uevent_modalias(dev, env);
- }
- 
-@@ -260,6 +270,12 @@ static int serdev_drv_remove(struct device *dev)
- static ssize_t modalias_show(struct device *dev,
- 			     struct device_attribute *attr, char *buf)
- {
-+	int len;
-+
-+	len = acpi_device_modalias(dev, buf, PAGE_SIZE - 1);
-+	if (len != -ENODEV)
-+		return len;
-+
- 	return of_device_modalias(dev, buf, PAGE_SIZE);
- }
- DEVICE_ATTR_RO(modalias);
-@@ -385,6 +401,78 @@ static int of_serdev_register_devices(struct serdev_controller *ctrl)
- 	return 0;
- }
- 
-+#ifdef CONFIG_ACPI
-+static acpi_status acpi_serdev_register_device(struct serdev_controller *ctrl,
-+					    struct acpi_device *adev)
-+{
-+	struct serdev_device *serdev = NULL;
-+	int err;
-+
-+	if (acpi_bus_get_status(adev) || !adev->status.present ||
-+	    acpi_device_enumerated(adev))
-+		return AE_OK;
-+
-+	serdev = serdev_device_alloc(ctrl);
-+	if (!serdev) {
-+		dev_err(&ctrl->dev, "failed to allocate serdev device for %s\n",
-+			dev_name(&adev->dev));
-+		return AE_NO_MEMORY;
-+	}
-+
-+	ACPI_COMPANION_SET(&serdev->dev, adev);
-+	acpi_device_set_enumerated(adev);
-+
-+	err = serdev_device_add(serdev);
-+	if (err) {
-+		dev_err(&serdev->dev,
-+			"failure adding ACPI serdev device. status %d\n", err);
-+		serdev_device_put(serdev);
-+		ctrl->serdev = NULL;
-+	}
-+
-+	return AE_OK;
-+}
-+
-+static acpi_status acpi_serdev_add_device(acpi_handle handle, u32 level,
-+				       void *data, void **return_value)
-+{
-+	struct serdev_controller *ctrl = data;
-+	struct acpi_device *adev;
-+
-+	if (acpi_bus_get_device(handle, &adev))
-+		return AE_OK;
-+
-+	return acpi_serdev_register_device(ctrl, adev);
-+}
-+
-+static int acpi_serdev_register_devices(struct serdev_controller *ctrl)
-+{
-+	acpi_status status;
-+	acpi_handle handle;
-+
-+	handle = ACPI_HANDLE(ctrl->dev.parent);
-+	if (!handle)
-+		return -ENODEV;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-+				     acpi_serdev_add_device, NULL, ctrl, NULL);
-+	if (ACPI_FAILURE(status)) {
-+		dev_dbg(&ctrl->dev, "failed to enumerate serdev slaves\n");
-+		return -ENODEV;
-+	}
-+
-+	if (!ctrl->serdev)
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+#else
-+static inline int acpi_serdev_register_devices(struct serdev_controller *ctrl)
-+{
-+	return -ENODEV;
-+}
-+#endif /* CONFIG_ACPI */
-+
- /**
-  * serdev_controller_add() - Add an serdev controller
-  * @ctrl:	controller to be registered.
-@@ -394,7 +482,7 @@ static int of_serdev_register_devices(struct serdev_controller *ctrl)
-  */
- int serdev_controller_add(struct serdev_controller *ctrl)
- {
--	int ret;
-+	int ret_of, ret_acpi, ret;
- 
- 	/* Can't register until after driver model init */
- 	if (WARN_ON(!is_registered))
-@@ -404,12 +492,16 @@ int serdev_controller_add(struct serdev_controller *ctrl)
- 	if (ret)
- 		return ret;
- 
--	ret = of_serdev_register_devices(ctrl);
--	if (ret)
-+	ret_of = of_serdev_register_devices(ctrl);
-+	ret_acpi = acpi_serdev_register_devices(ctrl);
-+	if (ret_of && ret_acpi) {
-+		dev_dbg(&ctrl->dev, "no devices registered: of:%d acpi:%d\n",
-+			ret_of, ret_acpi);
-+		ret = -ENODEV;
- 		goto out_dev_del;
-+	}
- 
--	dev_dbg(&ctrl->dev, "serdev%d registered: dev:%p\n",
--		ctrl->nr, &ctrl->dev);
-+	dev_dbg(&ctrl->dev, "registered: dev:%p\n", &ctrl->dev);
- 	return 0;
- 
- out_dev_del:
--- 
-2.7.4
+>From our view checking that SMMUv3 is compiled in and also checking that
+the DT contains iommu-map is sufficient to decide to blacklist the controller.
 
+Thanks
+Gab 
+
+> 
+> Lorenzo
+> 
+
+[...]
