@@ -1,29 +1,34 @@
-From: Alan Cox <alan@linux.intel.com>
-Subject: Re: [PATCH] mmc: sdhci-pci: Remove D3 delays for Intel BYT-related
- host controllers
-Date: Tue, 10 Oct 2017 10:01:35 +0100
-Message-ID: <1507626095.26339.5.camel@linux.intel.com>
-References: <1507294259-20438-1-git-send-email-adrian.hunter@intel.com>
-         <20171006162048.GC25517@bhelgaas-glaptop.roam.corp.google.com>
-         <ada41e9b-6fb3-82ab-e458-af4942adba2d@intel.com>
-         <20171009134154.GJ25517@bhelgaas-glaptop.roam.corp.google.com>
-         <363DA0ED52042842948283D2FC38E4649BF3590E@IRSMSX106.ger.corp.intel.com>
-         <20171009202502.GN25517@bhelgaas-glaptop.roam.corp.google.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH 2/3] ACPI/IORT: Improve functions return type/storage
+ class specifier indentation
+Date: Tue, 10 Oct 2017 17:03:40 +0800
+Message-ID: <59DC8CEC.5070005@huawei.com>
+References: <1507038811-23382-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1507038811-23382-3-git-send-email-lorenzo.pieralisi@arm.com>
+ <59DC7ED6.50204@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20171009202502.GN25517@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, "Hunter, Adrian" <adrian.hunter@intel.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:7958 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751826AbdJJJF6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Oct 2017 05:05:58 -0400
+In-Reply-To: <59DC7ED6.50204@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
 
-> Your concern was that a quirk would require a long list of device IDs
-> and we'd have to add new ones.  I share that concern,
+On 2017/10/10 16:03, Hanjun Guo wrote:
+...
 
-I'm not sure I do. The bus topology tells you what is on die, and the
-id of the root bridge tells you if it's one of the parts you can do
-this.
+>> -static __init
+>> -const struct iort_iommu_config *iort_get_iommu_cfg(struct acpi_iort_node *node)
+>> +static __init const struct iort_dev_config *iort_get_dev_cfg(
 
-Alan
+Seems patch rebase issue, this part should be in patch 3/3 :)
+
+Thanks
+Hanjun
+
