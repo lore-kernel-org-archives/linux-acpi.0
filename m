@@ -1,48 +1,95 @@
-From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH] Bluetooth: avoid silent hci_bcm ACPI PM regression
-Date: Tue, 10 Oct 2017 10:01:52 +0200
-Message-ID: <20171010080152.18444-1-johan@kernel.org>
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Cc: Gustavo Padovan <gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org>, Johan Hedberg <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Danis?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH 2/3] ACPI/IORT: Improve functions return type/storage
+ class specifier indentation
+Date: Tue, 10 Oct 2017 16:03:34 +0800
+Message-ID: <59DC7ED6.50204@huawei.com>
+References: <1507038811-23382-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1507038811-23382-3-git-send-email-lorenzo.pieralisi@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7533 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754585AbdJJIFI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Oct 2017 04:05:08 -0400
+In-Reply-To: <1507038811-23382-3-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
 
-The hci_bcm platform-device hack which was used to implement
-power management for ACPI devices is being replaced by a
-serial-device-bus implementation.
+On 2017/10/3 21:53, Lorenzo Pieralisi wrote:
+> Some functions definition indentations are using a style that is frowned
+> upon with return value type/storage class specifier in a separate line.
+>
+> Reindent the function definitions to fix them.
 
-Unfortunately, when the corresponding change to the ACPI code lands (a
-change that will stop enumerating and registering the serial-device-node
-child as a platform device) PM will break silently unless serdev
-TTY-port controller support has been enabled. Specifically, hciattach
-(btattach) would still succeed, but power management would no longer
-work.
+Shall we fix the functions which guarded with #ifdef CONFIG_IOMMU_API
+as well?
 
-Although this is strictly a runtime dependency, let's make the driver
-depend on SERIAL_DEV_CTRL_TTYPORT, which is the particular serdev
-controller implementation used by the ACPI devices currently managed by
-this driver, to avoid breaking PM without anyone noticing.
+Thanks
+Hanjun
 
-Note that the driver already has a (build-time) dependency on the serdev
-bus code.
+>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> ---
+>  drivers/acpi/arm64/iort.c | 20 +++++++++-----------
+>  1 file changed, 9 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 69f21f3..f4775e7 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -88,8 +88,8 @@ static inline int iort_set_fwnode(struct acpi_iort_node *iort_node,
+>   *
+>   * Returns: fwnode_handle pointer on success, NULL on failure
+>   */
+> -static inline
+> -struct fwnode_handle *iort_get_fwnode(struct acpi_iort_node *node)
+> +static inline struct fwnode_handle *iort_get_fwnode(
+> +			struct acpi_iort_node *node)
+>  {
+>  	struct iort_fwnode *curr;
+>  	struct fwnode_handle *fwnode = NULL;
+> @@ -306,9 +306,8 @@ static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
+>  	return 0;
+>  }
+>  
+> -static
+> -struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+> -					u32 *id_out, int index)
+> +static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+> +					       u32 *id_out, int index)
+>  {
+>  	struct acpi_iort_node *parent;
+>  	struct acpi_iort_id_mapping *map;
+> @@ -392,10 +391,9 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
+>  	return NULL;
+>  }
+>  
+> -static
+> -struct acpi_iort_node *iort_node_map_platform_id(struct acpi_iort_node *node,
+> -						 u32 *id_out, u8 type_mask,
+> -						 int index)
+> +static struct acpi_iort_node *iort_node_map_platform_id(
+> +		struct acpi_iort_node *node, u32 *id_out, u8 type_mask,
+> +		int index)
+>  {
+>  	struct acpi_iort_node *parent;
+>  	u32 id;
+> @@ -1077,8 +1075,8 @@ static const struct iort_iommu_config iort_arm_smmu_cfg __initconst = {
+>  	.iommu_init_resources = arm_smmu_init_resources
+>  };
+>  
+> -static __init
+> -const struct iort_iommu_config *iort_get_iommu_cfg(struct acpi_iort_node *node)
+> +static __init const struct iort_dev_config *iort_get_dev_cfg(
+> +			struct acpi_iort_node *node)
+>  {
+>  	switch (node->type) {
+>  	case ACPI_IORT_NODE_SMMU_V3:
 
-Signed-off-by: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/bluetooth/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/bluetooth/Kconfig b/drivers/bluetooth/Kconfig
-index fae5a74dc737..082e1c7329de 100644
---- a/drivers/bluetooth/Kconfig
-+++ b/drivers/bluetooth/Kconfig
-@@ -169,6 +169,7 @@ config BT_HCIUART_BCM
- 	bool "Broadcom protocol support"
- 	depends on BT_HCIUART
- 	depends on BT_HCIUART_SERDEV
-+	depends on (!ACPI || SERIAL_DEV_CTRL_TTYPORT)
- 	select BT_HCIUART_H4
- 	select BT_BCM
- 	help
--- 
-2.14.2
