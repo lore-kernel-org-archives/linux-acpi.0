@@ -1,63 +1,78 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH 1/1] device properties: Fix return codes for
- __acpi_node_get_property_reference
-Date: Tue, 10 Oct 2017 17:22:09 +0300
-Message-ID: <20171010142209.7gctlpyurenccp7z@paasikivi.fi.intel.com>
-References: <20171005060424.16780-1-sakari.ailus@linux.intel.com>
- <14664181.1rcyu63NdN@aspire.rjw.lan>
- <20171005140147.epmyxhcc7dtlam27@kekkonen.localdomain>
- <CAJZ5v0ioV4tVYg+KXdLsTca8F0OkHt-oxESj-vWOaxNnvmNdgA@mail.gmail.com>
+From: Ian W MORRISON <ianwmorrison@gmail.com>
+Subject: Re: [PATCH v2 1/2] serdev: Add ACPI support
+Date: Wed, 11 Oct 2017 02:16:07 +1100
+Message-ID: <CAFXWsS88T4TXya0dzVWLmgy_2tuLgPLJg8CQe=9ohAt_Mjvoow@mail.gmail.com>
+References: <1507630365-26692-1-git-send-email-frederic.danis.oss@gmail.com> <1507630365-26692-2-git-send-email-frederic.danis.oss@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:35257 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932134AbdJJOXN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Oct 2017 10:23:13 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0ioV4tVYg+KXdLsTca8F0OkHt-oxESj-vWOaxNnvmNdgA@mail.gmail.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:37773 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932176AbdJJPQJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Oct 2017 11:16:09 -0400
+In-Reply-To: <1507630365-26692-2-git-send-email-frederic.danis.oss@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@intel.com>, "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
+To: =?UTF-8?B?RnLDqWTDqXJpYyBEYW5pcw==?= <frederic.danis.oss@gmail.com>
+Cc: Rob Herring <robh@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Sebastian Reichel <sre@kernel.org>, Loic Poulain <loic.poulain@gmail.com>, Johan Hovold <johan@kernel.org>, Lukas Wunner <lukas@wunner.de>, Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Greg KH <greg@kroah.com>, "bluez mailin list (linux-bluetooth@vger.kernel.org)" <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Oct 05, 2017 at 10:40:42PM +0200, Rafael J. Wysocki wrote:
-> On Thu, Oct 5, 2017 at 4:01 PM, Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> > Hi Rafael,
-> >
-> > On Thu, Oct 05, 2017 at 02:59:45PM +0200, Rafael J. Wysocki wrote:
-> >> On Thursday, October 5, 2017 8:04:24 AM CEST Sakari Ailus wrote:
-> >> > Fix more return codes for device property: Align return codes of
-> >> > __acpi_node_get_property_reference. In particular what was missed
-> >> > previously:
-> >> >
-> >> > -EPROTO could be returned in certain cases, now -EINVAL;
-> >> > -EINVAL was returned if the property was not found, now -ENOENT;
-> >> > -EINVAL was returned also if the index was higher than the number of
-> >> > entries in a package, now -ENOENT.
-> >> >
-> >> > Fixes: ("device property: Align return codes of __acpi_node_get_property_reference")
-> >> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> > Tested-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
-> >> > ---
-> >> > Hi Rafael,
-> >> >
-> >> > Unfortunately the patch I posted the previous time to remedy the issue
-> >> > ("device property: Align return codes of
-> >> > _acpi_node_get_property_reference") did not fully fix the issue.
-> >>
-> >> OK, thanks for letting me know, but why didn't it?
-> >
-> > My testing appears to have been more limited than I thought, Hyungwoo later
-> > on found this out. (Reported-by: Hyungwoo... would be appropriate, I'll add
-> > that the next time.)
-> 
-> Well, you're not saying what exactly still doesn't work with the
-> previous patch applied which really is what I was asking about.
+On 10 October 2017 at 21:12, Fr=C3=A9d=C3=A9ric Danis
+<frederic.danis.oss@gmail.com> wrote:
+> This patch allows SerDev module to manage serial devices declared as
+> attached to an UART in ACPI table.
+>
+> acpi_serdev_add_device() callback will only take into account entries
+> without enumerated flag set. This flags is set for all entries during
+> ACPI scan, except for SPI and I2C serial devices, and for UART with
+> 2nd patch in the series.
+>
+> Check if a serdev device as been allocated during acpi_walk_namespace()
+> to prevent serdev controller registration instead of the tty-class device=
+.
 
-Hmm. The subject says it but I'll add it to the commit message as well.
+<snip>
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Hi Fred,
+
+I tested the v2 patch and can confirm it works:
+
+Before v1 patch:
+$ dmesg | grep tty
+[    0.000000] console [tty0] enabled
+[    2.409003] 00:01: ttyS0 at I/O 0x3f8 (irq =3D 4, base_baud =3D 115200)
+is a 16550A
+[    5.380336] 8086228A:00: ttyS4 at MMIO 0x9151b000 (irq =3D 39,
+base_baud =3D 2764800) is a 16550A
+[    5.388412] 8086228A:01: ttyS5 at MMIO 0x91519000 (irq =3D 40,
+base_baud =3D 2764800) is a 16550A
+$
+
+After v1 patch:
+$ dmesg | grep tty
+[    0.000000] console [tty0] enabled
+[    2.416973] 00:01: ttyS0 at I/O 0x3f8 (irq =3D 4, base_baud =3D 115200)
+is a 16550A
+[    2.417317] serial serial0: tty port ttyS0 registered
+[    5.928492] 8086228A:00: ttyS4 at MMIO 0x9151b000 (irq =3D 39,
+base_baud =3D 2764800) is a 16550A
+[    5.982195] serial serial1: tty port ttyS4 registered
+[    6.004426] 8086228A:01: ttyS5 at MMIO 0x91519000 (irq =3D 40,
+base_baud =3D 2764800) is a 16550A
+[    6.019369] serial serial2: tty port ttyS5 registered
+$
+
+After v2 patch:
+$ dmesg | grep tty
+[    0.000000] console [tty0] enabled
+[    2.420295] 00:01: ttyS0 at I/O 0x3f8 (irq =3D 4, base_baud =3D 115200)
+is a 16550A
+[    5.884777] 8086228A:00: ttyS4 at MMIO 0x9151b000 (irq =3D 39,
+base_baud =3D 2764800) is a 16550A
+[    5.917980] serial serial0: tty port ttyS4 registered
+[    5.933160] 8086228A:01: ttyS5 at MMIO 0x91519000 (irq =3D 40,
+base_baud =3D 2764800) is a 16550A
+$
+
+Regards,
+Ian
