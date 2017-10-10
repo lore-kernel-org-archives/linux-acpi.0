@@ -1,48 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] PM / ACPI: Removed unused function
-Date: Tue, 10 Oct 2017 18:55:12 +0200
-Message-ID: <3567036.iJx6k4I4BV@aspire.rjw.lan>
-References: <1507273714-26394-1-git-send-email-ulf.hansson@linaro.org>
+From: Ian W MORRISON <ianwmorrison-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] serdev: Add ACPI support
+Date: Wed, 11 Oct 2017 10:13:25 +1100
+Message-ID: <CAFXWsS9Mm6bEhrfWYHovUYOTjSmknLZ3KxLieteh3_2n14qNwA@mail.gmail.com>
+References: <1507107090-15992-1-git-send-email-frederic.danis.oss@gmail.com>
+ <1507107090-15992-2-git-send-email-frederic.danis.oss@gmail.com>
+ <20171007151255.GH2618@localhost> <BC1C29B8-C76B-499D-B8BE-365B5D3A0065@holtmann.org>
+ <20171010081528.GJ4269@localhost> <3F3CFF22-4FCE-4283-8A41-73A9A7944494@holtmann.org>
+ <20171010163630.GO4269@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1507273714-26394-1-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171010163630.GO4269@localhost>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
+Cc: =?UTF-8?B?RnLDqWTDqXJpYyBEYW5pcw==?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Loic Poulain <loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "bluez mailin list (linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, October 6, 2017 9:08:34 AM CEST Ulf Hansson wrote:
-> acpi_dev_pm_get_node() isn't used or implemented, let's remove it.
-> 
-> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-> ---
->  include/linux/acpi.h | 5 -----
->  1 file changed, 5 deletions(-)
-> 
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 502af53..3b89b4f 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -868,17 +868,12 @@ int acpi_dev_runtime_suspend(struct device *dev);
->  int acpi_dev_runtime_resume(struct device *dev);
->  int acpi_subsys_runtime_suspend(struct device *dev);
->  int acpi_subsys_runtime_resume(struct device *dev);
-> -struct acpi_device *acpi_dev_pm_get_node(struct device *dev);
->  int acpi_dev_pm_attach(struct device *dev, bool power_on);
->  #else
->  static inline int acpi_dev_runtime_suspend(struct device *dev) { return 0; }
->  static inline int acpi_dev_runtime_resume(struct device *dev) { return 0; }
->  static inline int acpi_subsys_runtime_suspend(struct device *dev) { return 0; }
->  static inline int acpi_subsys_runtime_resume(struct device *dev) { return 0; }
-> -static inline struct acpi_device *acpi_dev_pm_get_node(struct device *dev)
-> -{
-> -	return NULL;
-> -}
->  static inline int acpi_dev_pm_attach(struct device *dev, bool power_on)
->  {
->  	return -ENODEV;
-> 
-
-Applied, thanks!
+T24gMTEgT2N0b2JlciAyMDE3IGF0IDAzOjM2LCBKb2hhbiBIb3ZvbGQgPGpvaGFuQGtlcm5lbC5v
+cmc+IHdyb3RlOg0KPiBPbiBUdWUsIE9jdCAxMCwgMjAxNyBhdCAxMDoyMjoxOUFNICswMjAwLCBN
+YXJjZWwgSG9sdG1hbm4gd3JvdGU6DQo+Pg0KPj4gV2hhdCBJIHdhcyB3b25kZXJpbmcgdGhlIG90
+aGVyIGRheSBpcyBpZiB3ZSBuZWVkIGEgbHNzZXJkZXYgdG9vbCBvcg0KPj4gc29tZSBpbnRlZ3Jh
+dGlvbiBpbiBsc2h3IHRvIGJlIGFibGUgdG8gZGVidWcgd2hhdCBzZXJkZXYgZGV2aWNlcyBhbmQN
+Cj4+IElEIGFyZSBwcmVzZW50LiBUaGUgbHN1c2IgYW5kIC9zeXMva2VybmVsL2RlYnVnL3VzYi9k
+ZXZpY2VzIGlzIGp1c3QNCj4+IHN1cGVyIHBvd2VyZnVsIGFuZCBlYXN5IHdoZW4gaXQgY29tZXMg
+dG8gZmlndXJpbmcgb3V0IHdoYXQgcGVvcGxlIGhhdmUNCj4+IGluIHRoZWlyIHN5c3RlbS4gTWF5
+YmUgL3N5cy9rZXJuZWwvZGVidWcvc2VyZGV2L2RldmljZXMgY291bGQgYmUNCj4+IGhlbHBmdWwg
+YXMgd2VsbC4gSnVzdCB0aGlua2luZyBvdXQgbG91ZCBoZXJlLg0KPg0KPiBZZWFoLCBtYXliZS4g
+U2luY2UgeW91J2QgdHlwaWNhbGx5IG9ubHkgaGF2ZSBzbWFsbCBudW1iZXIgb2Ygc2VyZGV2DQo+
+IGRldmljZXMgKHNheSwgbWF4IDQpLCB1c2luZyAvc3lzL2J1cy9zZXJpYWwvZGV2aWNlcyBkaXJl
+Y3RseSBzaG91bGQgbm90DQo+IGJlIHRvbyBiYWQgbWVhbndoaWxlLiBOb3QgdGhhdCBtdWNoIGNv
+bW1vbiBpbmZvcm1hdGlvbiB3ZSBjYW4gZXhwb3NlDQo+IGVpdGhlciwgYXQgbGVhc3Qgbm90IGlu
+IGNvbXBhcmlzb24gdG8gVVNCLiBCdXQgSSdsbCBrZWVwIGl0IG1pbmQuIDopDQo+DQoNClllcyBp
+biB0aGUgaW50ZXJpbSwgaWYgeW91IGhhdmUgJ3RyZWUnIGluc3RhbGxlZCB0aGVuIGZvciBleGFt
+cGxlDQoNCiQgYWxpYXMgbHNzZXJkZXY9J3RyZWUgL3N5cy9idXMvc2VyaWFsL2RldmljZXMvKi0w
+Jw0KJCBsc3NlcmRldg0KL3N5cy9idXMvc2VyaWFsL2RldmljZXMvc2VyaWFsMC0wDQrilJzilIDi
+lIAgYmx1ZXRvb3RoDQrilIIgICDilJTilIDilIAgaGNpMA0K4pSCICAgICAgIOKUnOKUgOKUgCBk
+ZXZpY2UgLT4gLi4vLi4vLi4vc2VyaWFsMC0wDQrilIIgICAgICAg4pSc4pSA4pSAIHBvd2VyDQri
+lIIgICAgICAg4pSCICAg4pSc4pSA4pSAIGFzeW5jDQrilIIgICAgICAg4pSCICAg4pSc4pSA4pSA
+IGF1dG9zdXNwZW5kX2RlbGF5X21zDQrilIIgICAgICAg4pSCICAg4pSc4pSA4pSAIGNvbnRyb2wN
+CuKUgiAgICAgICDilIIgICDilJzilIDilIAgcnVudGltZV9hY3RpdmVfa2lkcw0K4pSCICAgICAg
+IOKUgiAgIOKUnOKUgOKUgCBydW50aW1lX2FjdGl2ZV90aW1lDQrilIIgICAgICAg4pSCICAg4pSc
+4pSA4pSAIHJ1bnRpbWVfZW5hYmxlZA0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCBydW50aW1l
+X3N0YXR1cw0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCBydW50aW1lX3N1c3BlbmRlZF90aW1l
+DQrilIIgICAgICAg4pSCICAg4pSU4pSA4pSAIHJ1bnRpbWVfdXNhZ2UNCuKUgiAgICAgICDilJzi
+lIDilIAgcmZraWxsMA0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCBkZXZpY2UgLT4gLi4vLi4v
+aGNpMA0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCBoYXJkDQrilIIgICAgICAg4pSCICAg4pSc
+4pSA4pSAIGluZGV4DQrilIIgICAgICAg4pSCICAg4pSc4pSA4pSAIG5hbWUNCuKUgiAgICAgICDi
+lIIgICDilJzilIDilIAgcGVyc2lzdGVudA0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCBwb3dl
+cg0K4pSCICAgICAgIOKUgiAgIOKUgiAgIOKUnOKUgOKUgCBhc3luYw0K4pSCICAgICAgIOKUgiAg
+IOKUgiAgIOKUnOKUgOKUgCBhdXRvc3VzcGVuZF9kZWxheV9tcw0K4pSCICAgICAgIOKUgiAgIOKU
+giAgIOKUnOKUgOKUgCBjb250cm9sDQrilIIgICAgICAg4pSCICAg4pSCICAg4pSc4pSA4pSAIHJ1
+bnRpbWVfYWN0aXZlX2tpZHMNCuKUgiAgICAgICDilIIgICDilIIgICDilJzilIDilIAgcnVudGlt
+ZV9hY3RpdmVfdGltZQ0K4pSCICAgICAgIOKUgiAgIOKUgiAgIOKUnOKUgOKUgCBydW50aW1lX2Vu
+YWJsZWQNCuKUgiAgICAgICDilIIgICDilIIgICDilJzilIDilIAgcnVudGltZV9zdGF0dXMNCuKU
+giAgICAgICDilIIgICDilIIgICDilJzilIDilIAgcnVudGltZV9zdXNwZW5kZWRfdGltZQ0K4pSC
+ICAgICAgIOKUgiAgIOKUgiAgIOKUlOKUgOKUgCBydW50aW1lX3VzYWdlDQrilIIgICAgICAg4pSC
+ICAg4pSc4pSA4pSAIHNvZnQNCuKUgiAgICAgICDilIIgICDilJzilIDilIAgc3RhdGUNCuKUgiAg
+ICAgICDilIIgICDilJzilIDilIAgc3Vic3lzdGVtIC0+IC4uLy4uLy4uLy4uLy4uLy4uLy4uLy4u
+L2NsYXNzL3Jma2lsbA0K4pSCICAgICAgIOKUgiAgIOKUnOKUgOKUgCB0eXBlDQrilIIgICAgICAg
+4pSCICAg4pSU4pSA4pSAIHVldmVudA0K4pSCICAgICAgIOKUnOKUgOKUgCBzdWJzeXN0ZW0gLT4g
+Li4vLi4vLi4vLi4vLi4vLi4vLi4vY2xhc3MvYmx1ZXRvb3RoDQrilIIgICAgICAg4pSU4pSA4pSA
+IHVldmVudA0K4pSc4pSA4pSAIGRyaXZlciAtPiAuLi8uLi8uLi8uLi8uLi9idXMvc2VyaWFsL2Ry
+aXZlcnMvaGNpX3VhcnRfYmNtDQrilJzilIDilIAgZmlybXdhcmVfbm9kZSAtPg0KLi4vLi4vLi4v
+Li4vTE5YU1lTVE06MDAvTE5YU1lCVVM6MDAvUE5QMEEwODowMC84MDg2MjI4QTowMC9CQ00yRUE0
+OjAwDQrilJzilIDilIAgbW9kYWxpYXMNCuKUnOKUgOKUgCBwb3dlcg0K4pSCICAg4pSc4pSA4pSA
+IGFzeW5jDQrilIIgICDilJzilIDilIAgYXV0b3N1c3BlbmRfZGVsYXlfbXMNCuKUgiAgIOKUnOKU
+gOKUgCBjb250cm9sDQrilIIgICDilJzilIDilIAgcnVudGltZV9hY3RpdmVfa2lkcw0K4pSCICAg
+4pSc4pSA4pSAIHJ1bnRpbWVfYWN0aXZlX3RpbWUNCuKUgiAgIOKUnOKUgOKUgCBydW50aW1lX2Vu
+YWJsZWQNCuKUgiAgIOKUnOKUgOKUgCBydW50aW1lX3N0YXR1cw0K4pSCICAg4pSc4pSA4pSAIHJ1
+bnRpbWVfc3VzcGVuZGVkX3RpbWUNCuKUgiAgIOKUlOKUgOKUgCBydW50aW1lX3VzYWdlDQrilJzi
+lIDilIAgc3Vic3lzdGVtIC0+IC4uLy4uLy4uLy4uLy4uL2J1cy9zZXJpYWwNCuKUlOKUgOKUgCB1
+ZXZlbnQNCg0KMTMgZGlyZWN0b3JpZXMsIDM4IGZpbGVzDQokDQoNCkl0IGlzIGEgYml0IHNoYWJi
+eSB3aGVuIHRoZXJlIGlzIG5vdGhpbmcgdG8gcmVwb3J0DQoNCiQgbHNzZXJkZXYNCi9zeXMvYnVz
+L3NlcmlhbC9kZXZpY2VzLyotMCBbZXJyb3Igb3BlbmluZyBkaXJdDQoNCjAgZGlyZWN0b3JpZXMs
+IDAgZmlsZXMNCiQNCg==
