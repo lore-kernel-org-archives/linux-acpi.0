@@ -1,54 +1,109 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: [POC] Extend "movable_node" to "movable_node=nn@ss" and add the
- interface in /sys to show the value
-Date: Wed, 11 Oct 2017 10:28:28 +0800
-Message-ID: <20171011022827.GD13296@localhost.localdomain>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH 3/4] ACPI: IORT: Skip SMMUv3 device ID map for two steps
+ mappings
+Date: Wed, 11 Oct 2017 13:26:10 +0800
+Message-ID: <59DDAB72.7070605@huawei.com>
+References: <1506475215-2731-1-git-send-email-hanjun.guo@linaro.org>
+ <1506475215-2731-4-git-send-email-hanjun.guo@linaro.org>
+ <20170927135449.GA11347@red-moon>
+ <CAGHbJ3DbuGeKH16zr+PdZYjoaZrHJrTmV5tmMxZ5CDPObErUCQ@mail.gmail.com>
+ <20171010092036.GA8507@red-moon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, keescook@chromium.org, bhe@redhat.com, arnd@arndb.de, dyoung@redhat.com, dave.jiang@intel.com, lv.zheng@intel.com, rjw@rjwysocki.net, yasu.isimatu@gmail.com
-Cc: caoj.fnst@cn.fujitsu.com, lizhijian@cn.fujitsu.com
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20171010092036.GA8507@red-moon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robin Murphy <robin.murphy@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+On 2017/10/10 17:20, Lorenzo Pieralisi wrote:
+> On Tue, Oct 10, 2017 at 02:47:53PM +0800, Hanjun Guo wrote:
+>> Hi Lorenzo,
+>>
+>> Sorry for the late reply, holidays in China for the past week.
+>>
+>> At 2017/9/27 21:54, Lorenzo Pieralisi wrote:
+>>> Hi Hanjun,
+>>>
+>>> On Wed, Sep 27, 2017 at 09:20:14AM +0800, Hanjun Guo wrote:
+>>>> IORT revision C introduced SMMUv3 MSI support which adding a
+>>>> device ID mapping index in SMMUv3 sub table, to get the SMMUv3
+>>>> device ID mapping for the output ID (dev ID for ITS) and the
+>>>> link to which ITS.
+>>>>
+>>>> So if a platform supports SMMUv3 MSI for control interrupt,
+>>>> there will be a additional single map entry under SMMU, this
+>>>> will not introduce any difference for devices just use one
+>>>> step map to get its output ID and parent (ITS or SMMU), such
+>>>> as PCI/NC/PMCG ---> ITS or PCI/NC ---> SMMU, but we need to
+>>>> do the special handling for two steps map case such as
+>>>> PCI/NC--->SMMUv3--->ITS.
+>>>>
+>>>> Take a PCI hostbridge for example,
+>>>>
+>>>> |----------------------|
+>>>> |  Root Complex Node   |
+>>>> |----------------------|
+>>>> |    map entry[x]      |
+>>>> |----------------------|
+>>>> |       id value       |
+>>>> | output_reference     |
+>>>> |---|------------------|
+>>>>      |
+>>>>      |   |----------------------|
+>>>>      |-->|        SMMUv3        |
+>>>>          |----------------------|
+>>>>          |     SMMU dev ID      |
+>>>>          |     mapping index 0  |
+>>>>          |----------------------|
+>>>>          |      map entry[0]    |
+>>>>          |----------------------|
+>>>>          |       id value       |
+>>>>          | output_reference-----------> ITS 1 (SMMU MSI domain)
+>>>>          |----------------------|
+>>>>          |      map entry[1]    |
+>>>>          |----------------------|
+>>>>          |       id value       |
+>>>>          | output_reference-----------> ITS 2 (PCI MSI domain)
+>>>>          |----------------------|
+>>>>
+>>>> When the SMMU dev ID mapping index is 0, there is entry[0]
+>>>> to map to a ITS, we need to skip that map entry for PCI
+>>>> or NC (named component), or we may get the wrong ITS parent.
+>>> Is this actually true ? I think that currently we would simply skip
+>>> the entry and print an error log but we can't get a wrong ITS parent.
+>> So the only valid single mapping under type SMMUv3 is SMMUv3's dev id
+>> mapping, we need to fix the IORT spec as well.
+>>
+>>> I am rewriting this commit (I will probably split it), it is doing the
+>>> right thing but the commit log is stale (probably caused by code
+>>> reshuffling).
+>> Do I need to resend another version, or you can help to update it?
+>> please let me know.
+> I reworked the patches, you can repost/retest them I made them available
+> in the branch below, we will have to add a guard around ACPICA smmu
+> struct (unfortunately I think we will have to use the ACPICA version as
+> a guard) or I can ask Rafael to pull the series if ACPICA goes via ACPI
+> tree (and your patch made it into the release - I will check ACPICA
+> upstream).
 
-Here is a problem:
-Here is a machine with several NUMA nodes and some of them are hot-pluggable,
-It's not good for kernel to be extracted in the memory region of movable node.
-But in current code, I print the address choosen by kaslr and found it may be
-placed in movable node sometimes. To solve this problem, it's better to the
-memory region choosen by kaslr to immovable node in kaslr.c. But the memory
-infomation about if it's hot-pluggable is stored in ACPI SRAT table, which is
-parsed after kernel is extracted. So we can't get the detail memory infomation
-before extracting kernel.
+Bob already merged my pull request yesterday, I think it will be ready for
+acpica release for this month.
 
-There are two methods to solve this problem:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git iort/smmu-msi-for-4.15
+>
 
-1. Get and parse the srat table before kernel extracted, then mark the memory
-   region in movable node which should be avoided in kaslr.
-   I have send the patch:
-   https://www.spinics.net/lists/kernel/msg2595546.html
-   But the change is large and then here is the second method.
+Thanks! I will retest then repost.
 
-2. Extend the movable_node to movable_node=nn@ss, in which nn means
-   the size of memory in immovable node, and ss means the start position of
-   this memory region.
-   But it brings another question, it may be a little difficult for a normal
-   user to specify the nn and ss. Because it's hard for a user to know the value
-   of the memory in immovable node.
-   So I wonder if it's good to add a interface in /sys, like:
-   # cat /sys/device/system/memory/immovable_node
-   nn@ss
-   nn@ss
-   ...
-   to show the two value.
-   When srat table is parsed in acpi_parse_memory_affinity, fill the value
-   and user can get and use them.
-
-If anyone has a better method, please let me know.
-Any comments will be welcome.
-
-Thanks,
-Chao Fan
+Hanjun
