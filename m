@@ -1,109 +1,102 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH 3/4] ACPI: IORT: Skip SMMUv3 device ID map for two steps
- mappings
-Date: Wed, 11 Oct 2017 13:26:10 +0800
-Message-ID: <59DDAB72.7070605@huawei.com>
-References: <1506475215-2731-1-git-send-email-hanjun.guo@linaro.org>
- <1506475215-2731-4-git-send-email-hanjun.guo@linaro.org>
- <20170927135449.GA11347@red-moon>
- <CAGHbJ3DbuGeKH16zr+PdZYjoaZrHJrTmV5tmMxZ5CDPObErUCQ@mail.gmail.com>
- <20171010092036.GA8507@red-moon>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: ACPI object counter overrun on frequent nvme resets
+Date: Wed, 11 Oct 2017 06:16:10 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CF7A228@SHSMSX101.ccr.corp.intel.com>
+References: <20170925130729.GA14151@infradead.org>
+ <1AE640813FDE7649BE1B193DEA596E886CF6F735@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20171010092036.GA8507@red-moon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robin Murphy <robin.murphy@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:11428 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754285AbdJKGQb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 11 Oct 2017 02:16:31 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CF6F735@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: 'Christoph Hellwig' <hch@infradead.org>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>
+Cc: "'linux-nvme@lists.infradead.org'" <linux-nvme@lists.infradead.org>
 
-On 2017/10/10 17:20, Lorenzo Pieralisi wrote:
-> On Tue, Oct 10, 2017 at 02:47:53PM +0800, Hanjun Guo wrote:
->> Hi Lorenzo,
->>
->> Sorry for the late reply, holidays in China for the past week.
->>
->> At 2017/9/27 21:54, Lorenzo Pieralisi wrote:
->>> Hi Hanjun,
->>>
->>> On Wed, Sep 27, 2017 at 09:20:14AM +0800, Hanjun Guo wrote:
->>>> IORT revision C introduced SMMUv3 MSI support which adding a
->>>> device ID mapping index in SMMUv3 sub table, to get the SMMUv3
->>>> device ID mapping for the output ID (dev ID for ITS) and the
->>>> link to which ITS.
->>>>
->>>> So if a platform supports SMMUv3 MSI for control interrupt,
->>>> there will be a additional single map entry under SMMU, this
->>>> will not introduce any difference for devices just use one
->>>> step map to get its output ID and parent (ITS or SMMU), such
->>>> as PCI/NC/PMCG ---> ITS or PCI/NC ---> SMMU, but we need to
->>>> do the special handling for two steps map case such as
->>>> PCI/NC--->SMMUv3--->ITS.
->>>>
->>>> Take a PCI hostbridge for example,
->>>>
->>>> |----------------------|
->>>> |  Root Complex Node   |
->>>> |----------------------|
->>>> |    map entry[x]      |
->>>> |----------------------|
->>>> |       id value       |
->>>> | output_reference     |
->>>> |---|------------------|
->>>>      |
->>>>      |   |----------------------|
->>>>      |-->|        SMMUv3        |
->>>>          |----------------------|
->>>>          |     SMMU dev ID      |
->>>>          |     mapping index 0  |
->>>>          |----------------------|
->>>>          |      map entry[0]    |
->>>>          |----------------------|
->>>>          |       id value       |
->>>>          | output_reference-----------> ITS 1 (SMMU MSI domain)
->>>>          |----------------------|
->>>>          |      map entry[1]    |
->>>>          |----------------------|
->>>>          |       id value       |
->>>>          | output_reference-----------> ITS 2 (PCI MSI domain)
->>>>          |----------------------|
->>>>
->>>> When the SMMU dev ID mapping index is 0, there is entry[0]
->>>> to map to a ITS, we need to skip that map entry for PCI
->>>> or NC (named component), or we may get the wrong ITS parent.
->>> Is this actually true ? I think that currently we would simply skip
->>> the entry and print an error log but we can't get a wrong ITS parent.
->> So the only valid single mapping under type SMMUv3 is SMMUv3's dev id
->> mapping, we need to fix the IORT spec as well.
->>
->>> I am rewriting this commit (I will probably split it), it is doing the
->>> right thing but the commit log is stale (probably caused by code
->>> reshuffling).
->> Do I need to resend another version, or you can help to update it?
->> please let me know.
-> I reworked the patches, you can repost/retest them I made them available
-> in the branch below, we will have to add a guard around ACPICA smmu
-> struct (unfortunately I think we will have to use the ACPICA version as
-> a guard) or I can ask Rafael to pull the series if ACPICA goes via ACPI
-> tree (and your patch made it into the release - I will check ACPICA
-> upstream).
+> From: Zheng, Lv
+> Subject: RE: ACPI object counter overrun on frequent nvme resets
+> 
+> Hi
+> 
+> I've converted this bug into a Bugzilla entry here:
+> https://bugzilla.kernel.org/show_bug.cgi?id=197071
 
-Bob already merged my pull request yesterday, I think it will be ready for
-acpica release for this month.
+Christoph, could you help to provide the detailed debugging information there.
+We need dmesg output and acpidump output.
 
->
-> git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git iort/smmu-msi-for-4.15
->
+Thanks in advance.
 
-Thanks! I will retest then repost.
-
-Hanjun
+> 
+> Thanks
+> Lv
+> 
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of
+> > Subject: ACPI object counter overrun on frequent nvme resets
+> >
+> > Hi all,
+> >
+> > when doing an error injection test with the nvme-pci driver on Linux 4.14
+> > almost rc2 (820bf5c419e4b85298e5c3001bd1b5be46d60765 plus a few nvme
+> > patches) that does a lot of nvme resets which shut down and re-enable the
+> > PCI device I see a flood of warnings like:
+> >
+> > [   78.237286] ACPI Warning: Large Reference Count (0x1001) in object ffff88007d702c68, Type=0x1D
+> > (20170728/utdelete-473)
+> >
+> > Throwing in a dump_stack into the path it comes from:
+> >
+> > [   78.238387] CPU: 0 PID: 286 Comm: kworker/u8:3 Not tainted 4.14.0-rc1+ #134
+> > [   78.238998] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-1 04/01/2014
+> > [   78.239720] Workqueue: nvme-wq nvme_reset_work
+> > [   78.239995] Call Trace:
+> > [   78.239995]  dump_stack+0x63/0x83
+> > [   78.239995]  acpi_ut_update_ref_count+0x2f7/0x2fe
+> > [   78.239995]  acpi_ut_update_object_reference+0x114/0x182
+> > [   78.239995]  acpi_ut_add_reference+0x1b/0x1e
+> > [   78.239995]  acpi_ds_init_package_element+0x149/0x16e
+> > [   78.239995]  ? acpi_ds_build_internal_object+0xca/0x12c
+> > [   78.239995]  acpi_ds_build_internal_package_obj+0x1b2/0x258
+> > [   78.239995]  ? acpi_ds_build_internal_package_obj+0x1b2/0x258
+> > [   78.239995]  acpi_ds_eval_data_object_operands+0xd3/0x123
+> > [   78.239995]  acpi_ds_exec_end_op+0x288/0x3e1
+> > [   78.239995]  acpi_ps_parse_loop+0x519/0x57b
+> > [   78.239995]  acpi_ps_parse_aml+0x93/0x29c
+> > [   78.239995]  acpi_ps_execute_method+0x148/0x17f
+> > [   78.239995]  acpi_ns_evaluate+0x1c1/0x24d
+> > [   78.239995]  acpi_ut_evaluate_object+0x72/0x197
+> > [   78.239995]  acpi_rs_get_prt_method_data+0x21/0x45
+> > [   78.239995]  acpi_get_irq_routing_table+0x2c/0x30
+> > [   78.239995]  acpi_pci_irq_find_prt_entry+0x8e/0x2c0
+> > [   78.239995]  ? irq_get_irq_data+0x9/0x20
+> > [   78.239995]  ? mp_unmap_irq+0xf/0x70
+> > [   78.239995]  acpi_pci_irq_lookup+0x26/0x1a0
+> > [   78.239995]  acpi_pci_irq_enable+0x5b/0x1b0
+> > [   78.239995]  ? pci_read_config_word+0x22/0x30
+> > [   78.239995]  pcibios_enable_device+0x28/0x30
+> > [   78.239995]  do_pci_enable_device+0x5f/0xe0
+> > [   78.239995]  pci_enable_device_flags+0xc3/0x110
+> > [   78.239995]  pci_enable_device_mem+0xe/0x10
+> > [   78.239995]  nvme_reset_work+0x4c/0x1610
+> > [   78.239995]  ? sched_clock+0x9/0x10
+> > [   78.239995]  ? sched_clock_local+0x17/0x90
+> > [   78.239995]  ? _raw_spin_lock+0x9/0x10
+> > [   78.239995]  ? pick_next_task_fair+0x420/0x690
+> > [   78.239995]  ? _raw_spin_unlock_irq+0x9/0x20
+> > [   78.239995]  ? finish_task_switch+0x7b/0x1f0
+> > [   78.239995]  ? __schedule+0x2d7/0x800
+> > [   78.239995]  process_one_work+0x1db/0x3e0
+> > [   78.239995]  worker_thread+0x43/0x3f0
+> > [   78.239995]  kthread+0x103/0x140
+> > [   78.239995]  ? process_one_work+0x3e0/0x3e0
+> > [   78.239995]  ? kthread_create_on_node+0x40/0x40
+> > [   78.239995]  ret_from_fork+0x25/0x30
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
