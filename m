@@ -1,190 +1,87 @@
-From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Danis?=
-        <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 1/2] serdev: Add ACPI support
-Date: Wed, 11 Oct 2017 10:32:13 +0200
-Message-ID: <1507710734-32520-2-git-send-email-frederic.danis.oss@gmail.com>
-References: <1507710734-32520-1-git-send-email-frederic.danis.oss@gmail.com>
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [POC] Extend "movable_node" to "movable_node=nn@ss" and add the
+ interface in /sys to show the value
+Date: Wed, 11 Oct 2017 16:42:15 +0800
+Message-ID: <20171011084215.GB9142@x1>
+References: <20171011022827.GD13296@localhost.localdomain>
+ <20171011075513.GA9142@x1>
+ <20171011082319.GA15263@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1507710734-32520-1-git-send-email-frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Type: text/plain; charset="utf-8"
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
-Cc: linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:36920 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756608AbdJKImV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 11 Oct 2017 04:42:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20171011082319.GA15263@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, keescook@chromium.org, arnd@arndb.de, dyoung@redhat.com, dave.jiang@intel.com, lv.zheng@intel.com, rjw@rjwysocki.net, yasu.isimatu@gmail.com, caoj.fnst@cn.fujitsu.com, lizhijian@cn.fujitsu.com
 
-This patch allows SerDev module to manage serial devices declared as
-attached to an UART in ACPI table.
+Hi dear Fan San,
 
-acpi_serdev_add_device() callback will only take into account entries
-without enumerated flag set. This flags is set for all entries during
-ACPI scan, except for SPI and I2C serial devices, and for UART with
-2nd patch in the series.
+On 10/11/17 at 04:23pm, Chao Fan wrote:
+> On Wed, Oct 11, 2017 at 03:55:13PM +0800, Baoquan He wrote:
+> >Hi Fan San,
+> >> 1. Get and parse the srat table before kernel extracted, then mark the memory
+> >>    region in movable node which should be avoided in kaslr.
+> >>    I have send the patch:
+> >>    https://www.spinics.net/lists/kernel/msg2595546.html
+> >>    But the change is large and then here is the second method.
+> >> 
+> >> 2. Extend the movable_node to movable_node=nn@ss, in which nn means
+> >>    the size of memory in immovable node, and ss means the start position of
+> >>    this memory region.
+> >>    But it brings another question, it may be a little difficult for a normal
+> >>    user to specify the nn and ss. Because it's hard for a user to know the value
+> >>    of the memory in immovable node.
+> >>    So I wonder if it's good to add a interface in /sys, like:
+> >>    # cat /sys/device/system/memory/immovable_node
+> >
+> Hi Baoquan,
+> 
+> Thanks for your reply,
+> 
+> >You can post patch. By the way, can the existing
+> >/sys/devices/system/memory/memoryX/removable be used instead?
+> 
+> I ever search the interfaces of /sys/devices/system/memory/, and noticed
+> this "removable", it does be able to help us judge it's removable or not.
+> But we should also get the information of the memory length and start position
+> by other interface. If there is a interface that show the nn and ss, we
+> can use them and change grub directly.
+> And there are more "memoryX" in one node. In my machine, I can see
+> memory0(linked to /sys/devices/system/memory/memory0) - memory7 in
+> /sys/devices/system/node/node0. And total memory38 for 4 nodes. I think
+> it's a little heavy to handle every memoryX.
+> But in SRAT table, one node has one or two memory regions. So I thinks
+> it's more straight and easy to use. How do you think about it?
 
-Check if a serdev device as been allocated during acpi_walk_namespace()
-to prevent serdev controller registration instead of the tty-class device.
+I am fine, I just mention it.
 
-Signed-off-by: Frédéric Danis <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Reviewed-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Acked-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
----
- drivers/tty/serdev/core.c | 100 +++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 95 insertions(+), 5 deletions(-)
+Then please show your code envelopped in well formatted patch.
 
-diff --git a/drivers/tty/serdev/core.c b/drivers/tty/serdev/core.c
-index c68fb3a..ec113e3 100644
---- a/drivers/tty/serdev/core.c
-+++ b/drivers/tty/serdev/core.c
-@@ -14,6 +14,7 @@
-  * GNU General Public License for more details.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/errno.h>
- #include <linux/idr.h>
- #include <linux/kernel.h>
-@@ -49,13 +50,22 @@ static const struct device_type serdev_ctrl_type = {
- 
- static int serdev_device_match(struct device *dev, struct device_driver *drv)
- {
--	/* TODO: ACPI and platform matching */
-+	/* TODO: platform matching */
-+	if (acpi_driver_match_device(dev, drv))
-+		return 1;
-+
- 	return of_driver_match_device(dev, drv);
- }
- 
- static int serdev_uevent(struct device *dev, struct kobj_uevent_env *env)
- {
--	/* TODO: ACPI and platform modalias */
-+	int rc;
-+
-+	/* TODO: platform modalias */
-+	rc = acpi_device_uevent_modalias(dev, env);
-+	if (rc != -ENODEV)
-+		return rc;
-+
- 	return of_device_uevent_modalias(dev, env);
- }
- 
-@@ -260,6 +270,12 @@ static int serdev_drv_remove(struct device *dev)
- static ssize_t modalias_show(struct device *dev,
- 			     struct device_attribute *attr, char *buf)
- {
-+	int len;
-+
-+	len = acpi_device_modalias(dev, buf, PAGE_SIZE - 1);
-+	if (len != -ENODEV)
-+		return len;
-+
- 	return of_device_modalias(dev, buf, PAGE_SIZE);
- }
- DEVICE_ATTR_RO(modalias);
-@@ -385,6 +401,75 @@ static int of_serdev_register_devices(struct serdev_controller *ctrl)
- 	return 0;
- }
- 
-+#ifdef CONFIG_ACPI
-+static acpi_status acpi_serdev_register_device(struct serdev_controller *ctrl,
-+					    struct acpi_device *adev)
-+{
-+	struct serdev_device *serdev = NULL;
-+	int err;
-+
-+	if (acpi_bus_get_status(adev) || !adev->status.present ||
-+	    acpi_device_enumerated(adev))
-+		return AE_OK;
-+
-+	serdev = serdev_device_alloc(ctrl);
-+	if (!serdev) {
-+		dev_err(&ctrl->dev, "failed to allocate serdev device for %s\n",
-+			dev_name(&adev->dev));
-+		return AE_NO_MEMORY;
-+	}
-+
-+	ACPI_COMPANION_SET(&serdev->dev, adev);
-+	acpi_device_set_enumerated(adev);
-+
-+	err = serdev_device_add(serdev);
-+	if (err) {
-+		dev_err(&serdev->dev,
-+			"failure adding ACPI serdev device. status %d\n", err);
-+		serdev_device_put(serdev);
-+	}
-+
-+	return AE_OK;
-+}
-+
-+static acpi_status acpi_serdev_add_device(acpi_handle handle, u32 level,
-+				       void *data, void **return_value)
-+{
-+	struct serdev_controller *ctrl = data;
-+	struct acpi_device *adev;
-+
-+	if (acpi_bus_get_device(handle, &adev))
-+		return AE_OK;
-+
-+	return acpi_serdev_register_device(ctrl, adev);
-+}
-+
-+static int acpi_serdev_register_devices(struct serdev_controller *ctrl)
-+{
-+	acpi_status status;
-+	acpi_handle handle;
-+
-+	handle = ACPI_HANDLE(ctrl->dev.parent);
-+	if (!handle)
-+		return -ENODEV;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-+				     acpi_serdev_add_device, NULL, ctrl, NULL);
-+	if (ACPI_FAILURE(status))
-+		dev_dbg(&ctrl->dev, "failed to enumerate serdev slaves\n");
-+
-+	if (!ctrl->serdev)
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+#else
-+static inline int acpi_serdev_register_devices(struct serdev_controller *ctrl)
-+{
-+	return -ENODEV;
-+}
-+#endif /* CONFIG_ACPI */
-+
- /**
-  * serdev_controller_add() - Add an serdev controller
-  * @ctrl:	controller to be registered.
-@@ -394,7 +479,7 @@ static int of_serdev_register_devices(struct serdev_controller *ctrl)
-  */
- int serdev_controller_add(struct serdev_controller *ctrl)
- {
--	int ret;
-+	int ret_of, ret_acpi, ret;
- 
- 	/* Can't register until after driver model init */
- 	if (WARN_ON(!is_registered))
-@@ -404,9 +489,14 @@ int serdev_controller_add(struct serdev_controller *ctrl)
- 	if (ret)
- 		return ret;
- 
--	ret = of_serdev_register_devices(ctrl);
--	if (ret)
-+	ret_of = of_serdev_register_devices(ctrl);
-+	ret_acpi = acpi_serdev_register_devices(ctrl);
-+	if (ret_of && ret_acpi) {
-+		dev_dbg(&ctrl->dev, "no devices registered: of:%d acpi:%d\n",
-+			ret_of, ret_acpi);
-+		ret = -ENODEV;
- 		goto out_dev_del;
-+	}
- 
- 	dev_dbg(&ctrl->dev, "serdev%d registered: dev:%p\n",
- 		ctrl->nr, &ctrl->dev);
--- 
-2.7.4
+Thanks
+Baoquan
+
+> >
+> >>    nn@ss
+> >>    nn@ss
+> >>    ...
+> >>    to show the two value.
+> >>    When srat table is parsed in acpi_parse_memory_affinity, fill the value
+> >>    and user can get and use them.
+> >> 
+> >> If anyone has a better method, please let me know.
+> >> Any comments will be welcome.
+> >> 
+> >> Thanks,
+> >> Chao Fan
+> >> 
+> >> 
+> >
+> >
+> 
+> 
