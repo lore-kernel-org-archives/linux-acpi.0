@@ -1,97 +1,110 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [POC] Extend "movable_node" to "movable_node=nn@ss" and add the
- interface in /sys to show the value
-Date: Wed, 11 Oct 2017 17:14:52 +0800
-Message-ID: <20171011091452.GB15263@localhost.localdomain>
-References: <20171011022827.GD13296@localhost.localdomain>
- <20171011075513.GA9142@x1>
- <20171011082319.GA15263@localhost.localdomain>
- <20171011084215.GB9142@x1>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 3/4] ACPI: IORT: Skip SMMUv3 device ID map for two steps
+ mappings
+Date: Wed, 11 Oct 2017 11:24:24 +0100
+Message-ID: <20171011102424.GA10795@red-moon>
+References: <1506475215-2731-1-git-send-email-hanjun.guo@linaro.org>
+ <1506475215-2731-4-git-send-email-hanjun.guo@linaro.org>
+ <20170927135449.GA11347@red-moon>
+ <CAGHbJ3DbuGeKH16zr+PdZYjoaZrHJrTmV5tmMxZ5CDPObErUCQ@mail.gmail.com>
+ <20171010092036.GA8507@red-moon>
+ <59DDAB72.7070605@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:57920 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753125AbdJKKYa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 11 Oct 2017 06:24:30 -0400
 Content-Disposition: inline
-In-Reply-To: <20171011084215.GB9142@x1>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Baoquan He <bhe@redhat.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, keescook@chromium.org, arnd@arndb.de, dyoung@redhat.com, dave.jiang@intel.com, lv.zheng@intel.com, rjw@rjwysocki.net, yasu.isimatu@gmail.com, caoj.fnst@cn.fujitsu.com, lizhijian@cn.fujitsu.com
+In-Reply-To: <59DDAB72.7070605@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Robin Murphy <robin.murphy@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Lv Zheng <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>
 
-On Wed, Oct 11, 2017 at 04:42:15PM +0800, Baoquan He wrote:
->Hi dear Fan San,
-Hi dear Uncle Bao,
+On Wed, Oct 11, 2017 at 01:26:10PM +0800, Hanjun Guo wrote:
+> On 2017/10/10 17:20, Lorenzo Pieralisi wrote:
+> > On Tue, Oct 10, 2017 at 02:47:53PM +0800, Hanjun Guo wrote:
+> >> Hi Lorenzo,
+> >>
+> >> Sorry for the late reply, holidays in China for the past week.
+> >>
+> >> At 2017/9/27 21:54, Lorenzo Pieralisi wrote:
+> >>> Hi Hanjun,
+> >>>
+> >>> On Wed, Sep 27, 2017 at 09:20:14AM +0800, Hanjun Guo wrote:
+> >>>> IORT revision C introduced SMMUv3 MSI support which adding a
+> >>>> device ID mapping index in SMMUv3 sub table, to get the SMMUv3
+> >>>> device ID mapping for the output ID (dev ID for ITS) and the
+> >>>> link to which ITS.
+> >>>>
+> >>>> So if a platform supports SMMUv3 MSI for control interrupt,
+> >>>> there will be a additional single map entry under SMMU, this
+> >>>> will not introduce any difference for devices just use one
+> >>>> step map to get its output ID and parent (ITS or SMMU), such
+> >>>> as PCI/NC/PMCG ---> ITS or PCI/NC ---> SMMU, but we need to
+> >>>> do the special handling for two steps map case such as
+> >>>> PCI/NC--->SMMUv3--->ITS.
+> >>>>
+> >>>> Take a PCI hostbridge for example,
+> >>>>
+> >>>> |----------------------|
+> >>>> |  Root Complex Node   |
+> >>>> |----------------------|
+> >>>> |    map entry[x]      |
+> >>>> |----------------------|
+> >>>> |       id value       |
+> >>>> | output_reference     |
+> >>>> |---|------------------|
+> >>>>      |
+> >>>>      |   |----------------------|
+> >>>>      |-->|        SMMUv3        |
+> >>>>          |----------------------|
+> >>>>          |     SMMU dev ID      |
+> >>>>          |     mapping index 0  |
+> >>>>          |----------------------|
+> >>>>          |      map entry[0]    |
+> >>>>          |----------------------|
+> >>>>          |       id value       |
+> >>>>          | output_reference-----------> ITS 1 (SMMU MSI domain)
+> >>>>          |----------------------|
+> >>>>          |      map entry[1]    |
+> >>>>          |----------------------|
+> >>>>          |       id value       |
+> >>>>          | output_reference-----------> ITS 2 (PCI MSI domain)
+> >>>>          |----------------------|
+> >>>>
+> >>>> When the SMMU dev ID mapping index is 0, there is entry[0]
+> >>>> to map to a ITS, we need to skip that map entry for PCI
+> >>>> or NC (named component), or we may get the wrong ITS parent.
+> >>> Is this actually true ? I think that currently we would simply skip
+> >>> the entry and print an error log but we can't get a wrong ITS parent.
+> >> So the only valid single mapping under type SMMUv3 is SMMUv3's dev id
+> >> mapping, we need to fix the IORT spec as well.
+> >>
+> >>> I am rewriting this commit (I will probably split it), it is doing the
+> >>> right thing but the commit log is stale (probably caused by code
+> >>> reshuffling).
+> >> Do I need to resend another version, or you can help to update it?
+> >> please let me know.
+> > I reworked the patches, you can repost/retest them I made them available
+> > in the branch below, we will have to add a guard around ACPICA smmu
+> > struct (unfortunately I think we will have to use the ACPICA version as
+> > a guard) or I can ask Rafael to pull the series if ACPICA goes via ACPI
+> > tree (and your patch made it into the release - I will check ACPICA
+> > upstream).
+> 
+> Bob already merged my pull request yesterday, I think it will be ready for
+> acpica release for this month.
 
->
->On 10/11/17 at 04:23pm, Chao Fan wrote:
->> On Wed, Oct 11, 2017 at 03:55:13PM +0800, Baoquan He wrote:
->> >Hi Fan San,
->> >> 1. Get and parse the srat table before kernel extracted, then mark the memory
->> >>    region in movable node which should be avoided in kaslr.
->> >>    I have send the patch:
->> >>    https://www.spinics.net/lists/kernel/msg2595546.html
->> >>    But the change is large and then here is the second method.
->> >> 
->> >> 2. Extend the movable_node to movable_node=nn@ss, in which nn means
->> >>    the size of memory in immovable node, and ss means the start position of
->> >>    this memory region.
->> >>    But it brings another question, it may be a little difficult for a normal
->> >>    user to specify the nn and ss. Because it's hard for a user to know the value
->> >>    of the memory in immovable node.
->> >>    So I wonder if it's good to add a interface in /sys, like:
->> >>    # cat /sys/device/system/memory/immovable_node
->> >
->> Hi Baoquan,
->> 
->> Thanks for your reply,
->> 
->> >You can post patch. By the way, can the existing
->> >/sys/devices/system/memory/memoryX/removable be used instead?
->> 
->> I ever search the interfaces of /sys/devices/system/memory/, and noticed
->> this "removable", it does be able to help us judge it's removable or not.
->> But we should also get the information of the memory length and start position
->> by other interface. If there is a interface that show the nn and ss, we
->> can use them and change grub directly.
->> And there are more "memoryX" in one node. In my machine, I can see
->> memory0(linked to /sys/devices/system/memory/memory0) - memory7 in
->> /sys/devices/system/node/node0. And total memory38 for 4 nodes. I think
->> it's a little heavy to handle every memoryX.
->> But in SRAT table, one node has one or two memory regions. So I thinks
->> it's more straight and easy to use. How do you think about it?
->
->I am fine, I just mention it.
+That's good, mind updating the patch series with an ACPICA guard in IORT
+code in preparation for the pull request ?
 
-OK, I just explain I did not find  the suitable existing interface.
+> > git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git iort/smmu-msi-for-4.15
+> >
+> 
+> Thanks! I will retest then repost.
 
->
->Then please show your code envelopped in well formatted patch.
-
-OK, will try to make it.
-
-Thanks,
-Chao Fan
->
->Thanks
->Baoquan
->
->> >
->> >>    nn@ss
->> >>    nn@ss
->> >>    ...
->> >>    to show the two value.
->> >>    When srat table is parsed in acpi_parse_memory_affinity, fill the value
->> >>    and user can get and use them.
->> >> 
->> >> If anyone has a better method, please let me know.
->> >> Any comments will be welcome.
->> >> 
->> >> Thanks,
->> >> Chao Fan
->> >> 
->> >> 
->> >
->> >
->> 
->> 
->
->
+Thank you,
+Lorenzo
