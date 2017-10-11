@@ -1,54 +1,67 @@
-From: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v3 0/2] ACPI serdev support
-Date: Wed, 11 Oct 2017 20:32:06 +0200
-Message-ID: <AA38D4FD-5A35-460D-85CF-380BAB933448@holtmann.org>
-References: <1507710734-32520-1-git-send-email-frederic.danis.oss@gmail.com>
- <20171011090354.GS4269@localhost>
- <CAJZ5v0jPEg5Ow4p0DzPJ9Md7RUTPhZZqCzqP5zmX-pPf9N80=g@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.0 \(3445.1.7\))
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZ5v0jPEg5Ow4p0DzPJ9Md7RUTPhZZqCzqP5zmX-pPf9N80=g@mail.gmail.com>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?utf-8?Q?Fr=C3=A9d=C3=A9ric_Danis?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Loic Poulain <loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Greg Kroah-Hartman <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: <info@kunstreich-im-pott.de>
+Subject: (unknown)
+Date: Wed, 11 Oct 2017 19:29:52 -0000
+Message-ID: <150775019264.32756.15989505185792719997@ftxnetworks.com>
+Mime-Version: 1.0
+Content-Type: application/zip; name="85891743224441.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 64-25-158-244.ftxnetworks.com ([64.25.158.244]:59925 "HELO
+        ftxnetworks.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with SMTP id S1752563AbdJKT3z (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Oct 2017 15:29:55 -0400
+Content-Disposition: attachment
+Subject: 
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi Greg,
-
->>> Add ACPI support for serial attached devices.
->>> 
->>> Currently, serial devices are not set as enumerated during ACPI scan for SPI
->>> or i2c buses (but not for UART). This should also be done for UART serial
->>> devices.
->>> I renamed *spi_i2c_slave* to *serial_bus_slave* to reflect this.
->>> 
->>> This needs Johan Hovold's "serdev: fix registration of second slave" patch.
->> 
->> In theory this series could go in through the acpi-tree without my
->> fix. It would only affect an error case where an unlikely failure to
->> register an ACPI serdev device, would prevent the tty-class device from
->> being registered instead of the controller. That is, something we can
->> live with until this all converges in 4.15-rc1 if needed.
->> 
->> That said, I think we should consider taking all serdev changes, and
->> therefore also the ACPI patch, through the tty tree instead in order to
->> avoid merge conflicts. Rafael?
-> 
-> OK
-> 
-> Please feel free to add
-> 
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> to the ACPI core change.
-> 
-> And I will assume that this series will go in via the tty tree.
-
-you have to take these two patches now via the TTY tree now. In case you already marked them as someone else problem ;)
-
-Regards
-
-Marcel
+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
