@@ -1,91 +1,58 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [POC] Extend "movable_node" to "movable_node=nn@ss" and add the
- interface in /sys to show the value
-Date: Wed, 11 Oct 2017 16:23:19 +0800
-Message-ID: <20171011082319.GA15263@localhost.localdomain>
-References: <20171011022827.GD13296@localhost.localdomain>
- <20171011075513.GA9142@x1>
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Danis?=
+        <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v3 0/2] ACPI serdev support
+Date: Wed, 11 Oct 2017 10:32:12 +0200
+Message-ID: <1507710734-32520-1-git-send-email-frederic.danis.oss@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171011075513.GA9142@x1>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Baoquan He <bhe@redhat.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, keescook@chromium.org, arnd@arndb.de, dyoung@redhat.com, dave.jiang@intel.com, lv.zheng@intel.com, rjw@rjwysocki.net, yasu.isimatu@gmail.com, caoj.fnst@cn.fujitsu.com, lizhijian@cn.fujitsu.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
+Cc: linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 11, 2017 at 03:55:13PM +0800, Baoquan He wrote:
->Hi Fan San,
->
->On 10/11/17 at 10:28am, Chao Fan wrote:
->> Hi all,
->> 
->> Here is a problem:
->> Here is a machine with several NUMA nodes and some of them are hot-pluggable,
->> It's not good for kernel to be extracted in the memory region of movable node.
->> But in current code, I print the address choosen by kaslr and found it may be
->> placed in movable node sometimes. To solve this problem, it's better to the
->> memory region choosen by kaslr to immovable node in kaslr.c. But the memory
->> infomation about if it's hot-pluggable is stored in ACPI SRAT table, which is
->> parsed after kernel is extracted. So we can't get the detail memory infomation
->> before extracting kernel.
->> 
->> There are two methods to solve this problem:
->> 
->> 1. Get and parse the srat table before kernel extracted, then mark the memory
->>    region in movable node which should be avoided in kaslr.
->>    I have send the patch:
->>    https://www.spinics.net/lists/kernel/msg2595546.html
->>    But the change is large and then here is the second method.
->> 
->> 2. Extend the movable_node to movable_node=nn@ss, in which nn means
->>    the size of memory in immovable node, and ss means the start position of
->>    this memory region.
->>    But it brings another question, it may be a little difficult for a normal
->>    user to specify the nn and ss. Because it's hard for a user to know the value
->>    of the memory in immovable node.
->>    So I wonder if it's good to add a interface in /sys, like:
->>    # cat /sys/device/system/memory/immovable_node
->
-Hi Baoquan,
+Add ACPI support for serial attached devices.
 
-Thanks for your reply,
+Currently, serial devices are not set as enumerated during ACPI scan for SPI
+or i2c buses (but not for UART). This should also be done for UART serial
+devices.
+I renamed *spi_i2c_slave* to *serial_bus_slave* to reflect this.
 
->You can post patch. By the way, can the existing
->/sys/devices/system/memory/memoryX/removable be used instead?
+This needs Johan Hovold's "serdev: fix registration of second slave" patch.
 
-I ever search the interfaces of /sys/devices/system/memory/, and noticed
-this "removable", it does be able to help us judge it's removable or not.
-But we should also get the information of the memory length and start position
-by other interface. If there is a interface that show the nn and ss, we
-can use them and change grub directly.
-And there are more "memoryX" in one node. In my machine, I can see
-memory0(linked to /sys/devices/system/memory/memory0) - memory7 in
-/sys/devices/system/node/node0. And total memory38 for 4 nodes. I think
-it's a little heavy to handle every memoryX.
-But in SRAT table, one node has one or two memory regions. So I thinks
-it's more straight and easy to use. How do you think about it?
+Tested on T100TA with Broadcom BCM2E39.
 
-Thanks,
-Chao Fan
->
->Thanks
->Baoquan
->
->>    nn@ss
->>    nn@ss
->>    ...
->>    to show the two value.
->>    When srat table is parsed in acpi_parse_memory_affinity, fill the value
->>    and user can get and use them.
->> 
->> If anyone has a better method, please let me know.
->> Any comments will be welcome.
->> 
->> Thanks,
->> Chao Fan
->> 
->> 
->
->
+Since v2:
+  - Remove ctrl->serdev set to NULL in acpi_serdev_register_device() in favor
+    of Johan's patch
+  - Fallback to ctrl->serdev check when acpi_walk_namespace() returns an error
+    to prevent memory leak
+  - Remove a change in dev_dbg() call in serdev_controller_add(), this will
+    be done in separate patch
+Since v1:
+  - Check if a serdev device as been allocated during acpi_walk_namespace() to
+    prevent serdev controller registration instead of the tty-class device.
+  - Reword dev_dbg() strings replacing Serial by serdev
+  - Removing redundant "serdev%d" in dev_dbg() calls in serdev_controller_add()
+Since RFC:
+  - Add or reword commit messages
+  - Rename *serial_slave* to *serial_bus_slave*
+  - Add specific check for Apple in acpi_is_serial_bus_slave(), thanks to
+    Lukas Wunner
+  - Update comment in acpi_default_enumeration()
+  - Remove patch 3 "Bluetooth: hci_bcm: Add ACPI serdev support for BCM2E39"
+    in favor of patches from Hans de Goede
+
+Frédéric Danis (2):
+  serdev: Add ACPI support
+  ACPI / scan: Fix enumeration for special UART devices
+
+ drivers/acpi/scan.c       |  37 ++++++++---------
+ drivers/tty/serdev/core.c | 100 +++++++++++++++++++++++++++++++++++++++++++---
+ include/acpi/acpi_bus.h   |   2 +-
+ 3 files changed, 113 insertions(+), 26 deletions(-)
+
+-- 
+2.7.4
