@@ -1,47 +1,54 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 0/3] i2c-xlp9xx: update i2c driver to handle
- I2C_M_RECV_LEN flag
-Date: Wed, 11 Oct 2017 01:35:10 +0200
-Message-ID: <CAJZ5v0gz9FQMXhiBokOKY5esrmv2JNoScsv5-LNR2ui_CZPdAQ@mail.gmail.com>
-References: <1507616876-17189-1-git-send-email-kamlakant.patel@cavium.com>
+From: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Subject: [POC] Extend "movable_node" to "movable_node=nn@ss" and add the
+ interface in /sys to show the value
+Date: Wed, 11 Oct 2017 10:28:28 +0800
+Message-ID: <20171011022827.GD13296@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:37299 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751402AbdJJXfL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Oct 2017 19:35:11 -0400
-In-Reply-To: <1507616876-17189-1-git-send-email-kamlakant.patel@cavium.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, keescook@chromium.org, bhe@redhat.com, arnd@arndb.de, dyoung@redhat.com, dave.jiang@intel.com, lv.zheng@intel.com, rjw@rjwysocki.net, yasu.isimatu@gmail.com
+Cc: caoj.fnst@cn.fujitsu.com, lizhijian@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Kamlakant Patel <kamlakant.patel@cavium.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Tue, Oct 10, 2017 at 8:27 AM, Kamlakant Patel
-<kamlakant.patel@cavium.com> wrote:
-> This patch set has following changes:
->  * Use Linux clk APIs to get input clock frequency for the I2C controller.
->  * I2C driver update to handle I2C_M_RECV_LEN and I2C_CLIENT_PEC flags.
->
-> Changes since v1:
-> * Rebased to mainline(4.14-rc4).
-> * Removed unnecessary parens in i2c-xlp9xx.c.
->
-> Jayachandran C (2):
->   ACPI / APD: Add clock frequency for ThunderX2 I2C controller
->   i2c: xlp9xx: Get clock frequency with clk API
->
-> Kamlakant Patel (1):
->   i2c: xlp9xx: Handle I2C_M_RECV_LEN in msg->flags
->
->  drivers/acpi/acpi_apd.c         |  5 +++++
->  drivers/i2c/busses/i2c-xlp9xx.c | 44 +++++++++++++++++++++++++++++++++++++----
->  2 files changed, 45 insertions(+), 4 deletions(-)
+Hi all,
 
-Hi Wolfram,
+Here is a problem:
+Here is a machine with several NUMA nodes and some of them are hot-pluggable,
+It's not good for kernel to be extracted in the memory region of movable node.
+But in current code, I print the address choosen by kaslr and found it may be
+placed in movable node sometimes. To solve this problem, it's better to the
+memory region choosen by kaslr to immovable node in kaslr.c. But the memory
+infomation about if it's hot-pluggable is stored in ACPI SRAT table, which is
+parsed after kernel is extracted. So we can't get the detail memory infomation
+before extracting kernel.
 
-I'm assuming that this will go in via the i2c tree, so please let me
-know if anything is needed from my side.
+There are two methods to solve this problem:
+
+1. Get and parse the srat table before kernel extracted, then mark the memory
+   region in movable node which should be avoided in kaslr.
+   I have send the patch:
+   https://www.spinics.net/lists/kernel/msg2595546.html
+   But the change is large and then here is the second method.
+
+2. Extend the movable_node to movable_node=nn@ss, in which nn means
+   the size of memory in immovable node, and ss means the start position of
+   this memory region.
+   But it brings another question, it may be a little difficult for a normal
+   user to specify the nn and ss. Because it's hard for a user to know the value
+   of the memory in immovable node.
+   So I wonder if it's good to add a interface in /sys, like:
+   # cat /sys/device/system/memory/immovable_node
+   nn@ss
+   nn@ss
+   ...
+   to show the two value.
+   When srat table is parsed in acpi_parse_memory_affinity, fill the value
+   and user can get and use them.
+
+If anyone has a better method, please let me know.
+Any comments will be welcome.
 
 Thanks,
-Rafael
+Chao Fan
