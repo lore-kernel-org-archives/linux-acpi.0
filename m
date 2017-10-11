@@ -1,67 +1,85 @@
-From: <info@kunstreich-im-pott.de>
-Subject: (unknown)
-Date: Wed, 11 Oct 2017 19:29:52 -0000
-Message-ID: <150775019264.32756.15989505185792719997@ftxnetworks.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 1/1] device properties: Fix return codes for __acpi_node_get_property_reference
+Date: Thu, 12 Oct 2017 01:45:11 +0200
+Message-ID: <3296794.JouVbsXHqI@aspire.rjw.lan>
+References: <20171011080613.19688-1-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="85891743224441.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 64-25-158-244.ftxnetworks.com ([64.25.158.244]:59925 "HELO
-        ftxnetworks.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1752563AbdJKT3z (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Oct 2017 15:29:55 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57561 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751587AbdJKXym (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 11 Oct 2017 19:54:42 -0400
+In-Reply-To: <20171011080613.19688-1-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, mika.westerberg@intel.com, hyungwoo.yang@intel.com
 
-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
+On Wednesday, October 11, 2017 10:06:13 AM CEST Sakari Ailus wrote:
+> Fix more return codes for device property: Align return codes of
+> __acpi_node_get_property_reference. In particular what was missed
+> previously:
+> 
+> -EPROTO could be returned in certain cases, now -EINVAL;
+> -EINVAL was returned if the property was not found, now -ENOENT;
+> -EINVAL was returned also if the index was higher than the number of
+> entries in a package, now -ENOENT.
+> 
+> Reported-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+> Fixes: ("device property: Align return codes of __acpi_node_get_property_reference")
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Tested-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+> ---
+> since v1:
+> 
+> - Remove the ugly switch from acpi_data_get_property() return value
+>   handling. Only -EINVAL and -EPROTO are returned by the function.
+> 
+>  drivers/acpi/property.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 5a8ac5e1081b..e26ea209b63e 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -593,7 +593,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+>  
+>  	ret = acpi_data_get_property(data, propname, ACPI_TYPE_ANY, &obj);
+>  	if (ret)
+> -		return ret;
+> +		return ret == -EINVAL ? -ENOENT : -EINVAL;
+>  
+>  	/*
+>  	 * The simplest case is when the value is a single reference.  Just
+> @@ -605,7 +605,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+>  
+>  		ret = acpi_bus_get_device(obj->reference.handle, &device);
+>  		if (ret)
+> -			return ret;
+> +			return ret == -ENODEV ? -EINVAL : ret;
+>  
+>  		args->adev = device;
+>  		args->nargs = 0;
+> @@ -621,8 +621,10 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+>  	 * The index argument is then used to determine which reference
+>  	 * the caller wants (along with the arguments).
+>  	 */
+> -	if (obj->type != ACPI_TYPE_PACKAGE || index >= obj->package.count)
+> -		return -EPROTO;
+> +	if (obj->type != ACPI_TYPE_PACKAGE)
+> +		return -EINVAL;
+> +	if (index >= obj->package.count)
+> +		return -ENOENT;
+>  
+>  	element = obj->package.elements;
+>  	end = element + obj->package.count;
+> 
+
+Applied (along with the previous one), thanks!
+
+Please double check my current linux-next branch, though, as I'm going to
+push this stuff to Linus tomorrow.
+
