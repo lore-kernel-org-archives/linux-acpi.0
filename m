@@ -1,70 +1,68 @@
-From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: Re: [PATCH] ACPI: configfs: make config_item_type const
-Date: Thu, 12 Oct 2017 17:05:08 +0200
-Message-ID: <CAOH+1jGPh=T-e_9kX3FYO0D79WMPTLri+27cfiTsunxMw-H04w@mail.gmail.com>
-References: <1507802571-4157-1-git-send-email-bhumirks@gmail.com>
+From: Jordan Crouse <jcrouse-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [RFCv2 PATCH 00/36] Process management for IOMMU + SVM for SMMUv3
+Date: Thu, 12 Oct 2017 09:28:03 -0600
+Message-ID: <20171012152803.GA3027@jcrouse-lnx.qualcomm.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+ <0c6778d8-741f-0db7-fe3c-df88a75ebbb2@huawei.com>
+ <0fecd29e-eaf7-9503-b087-7bfbc251da88@arm.com>
+ <c6b7fb4b-4f2b-0d81-8bb5-8fa6b62aca3a@huawei.com>
+ <8a1e090d-22e8-0295-a53f-bc3b5b7d7971@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:49631 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750716AbdJLPFK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Oct 2017 11:05:10 -0400
-In-Reply-To: <1507802571-4157-1-git-send-email-bhumirks@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <8a1e090d-22e8-0295-a53f-bc3b5b7d7971-5wv7dgnIgG8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Cc: Yisheng Xie <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dwmw2@infradea
 List-Id: linux-acpi@vger.kernel.org
-To: Julia Lawall <julia.lawall@lip6.fr>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Bhumika Goyal <bhumirks@gmail.com>
 
-On Thu, Oct 12, 2017 at 12:02 PM, Bhumika Goyal <bhumirks@gmail.com> wrote:
-> This is a followup patch for: https://lkml.org/lkml/2017/10/11/375 and
-> https://patchwork.kernel.org/patch/9999649/
->
-> Make these structures const as they are either passed to the functions
-> having the argument as const or stored as a reference in the "ci_type"
-> const field of a config_item structure.
->
-> Done using Coccienlle.
->
+On Thu, Oct 12, 2017 at 01:55:32PM +0100, Jean-Philippe Brucker wrote:
+> On 12/10/17 13:05, Yisheng Xie wrote:
+> [...]
+> >>>> * An iommu_process can be bound to multiple domains, and a domain can have
+> >>>>   multiple iommu_process.
+> >>> when bind a task to device, can we create a single domain for it? I am thinking
+> >>> about process management without shared PT(for some device only support PASID
+> >>> without pri ability), it seems hard to expand if a domain have multiple iommu_process?
+> >>> Do you have any idea about this?
+> >>
+> >> A device always has to be in a domain, as far as I know. Not supporting
+> >> PRI forces you to pin down all user mappings (or just the ones you use for
+> >> DMA) but you should sill be able to share PT. Now if you don't support
+> >> shared PT either, but only PASID, then you'll have to use io-pgtable and a
+> >> new map/unmap API on an iommu_process. I don't understand your concern
+> >> though, how would the link between process and domains prevent this use-case?
+> >>
+> > So you mean that if an iommu_process bind to multiple devices it should create
+> > multiple io-pgtables? or just share the same io-pgtable?
+> 
+> I don't know to be honest, I haven't thought much about the io-pgtable
+> case, I'm all about sharing the mm :)
+> 
+> It really depends on what the user (GPU driver I assume) wants. I think
+> that if you're not sharing an mm with the device, then you're trying to
+> hide parts of the process to the device, so you'd also want the
+> flexibility of having different io-pgtables between devices. Different
+> devices accessing isolated parts of the process requires separate io-pgtables.
 
-Actually, this patch is dependent on the patches in the links
-https://lkml.org/lkml/2017/10/11/375 and
-https://patchwork.kernel.org/patch/9999649/. Therefore, this patch
-won't be correct unless the patches in these links gets applied.
+In our specific Snapdragon use case the GPU is the only entity that cares about
+process specific io-pgtables.  Everything else (display, video, camera) is happy
+using a global io-ptgable.  The reasoning is that the GPU is programmable from
+user space and can be easily used to copy data whereas the other use cases have
+mostly fixed functions.
 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-> ---
->  drivers/acpi/acpi_configfs.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/acpi_configfs.c b/drivers/acpi/acpi_configfs.c
-> index 853bc7f..b588503 100644
-> --- a/drivers/acpi/acpi_configfs.c
-> +++ b/drivers/acpi/acpi_configfs.c
-> @@ -204,7 +204,7 @@ struct configfs_attribute *acpi_table_attrs[] = {
->         NULL,
->  };
->
-> -static struct config_item_type acpi_table_type = {
-> +static const struct config_item_type acpi_table_type = {
->         .ct_owner = THIS_MODULE,
->         .ct_bin_attrs = acpi_table_bin_attrs,
->         .ct_attrs = acpi_table_attrs,
-> @@ -237,12 +237,12 @@ struct configfs_group_operations acpi_table_group_ops = {
->         .drop_item = acpi_table_drop_item,
->  };
->
-> -static struct config_item_type acpi_tables_type = {
-> +static const struct config_item_type acpi_tables_type = {
->         .ct_owner = THIS_MODULE,
->         .ct_group_ops = &acpi_table_group_ops,
->  };
->
-> -static struct config_item_type acpi_root_group_type = {
-> +static const struct config_item_type acpi_root_group_type = {
->         .ct_owner = THIS_MODULE,
->  };
->
-> --
-> 1.9.1
->
+Even if different devices did want to have a process specific io-pgtable I doubt
+we would share them.  Every device uses the IOMMU differently and the magic
+needed to share a io-pgtable between (for example) a GPU and a DSP would be
+prohibitively complicated.
+
+Jordan
+
+-- 
+The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
