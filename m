@@ -1,133 +1,138 @@
-From: Hanjun Guo <guohanjun@huawei.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Subject: Re: [PATCH 3/4] ACPI: IORT: Skip SMMUv3 device ID map for two steps
  mappings
-Date: Thu, 12 Oct 2017 15:30:10 +0800
-Message-ID: <59DF1A02.9040008@huawei.com>
+Date: Thu, 12 Oct 2017 10:50:17 +0100
+Message-ID: <20171012095017.GA19816@red-moon>
 References: <1506475215-2731-1-git-send-email-hanjun.guo@linaro.org>
  <1506475215-2731-4-git-send-email-hanjun.guo@linaro.org>
  <20170927135449.GA11347@red-moon>
  <CAGHbJ3DbuGeKH16zr+PdZYjoaZrHJrTmV5tmMxZ5CDPObErUCQ@mail.gmail.com>
- <20171010092036.GA8507@red-moon> <59DDAB72.7070605@huawei.com>
+ <20171010092036.GA8507@red-moon>
+ <59DDAB72.7070605@huawei.com>
  <20171011102424.GA10795@red-moon>
+ <59DF1A02.9040008@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20171011102424.GA10795@red-moon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Robin Murphy <robin.murphy@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lv Zheng <lv.zheng@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:42778 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751074AbdJLJuX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 12 Oct 2017 05:50:23 -0400
+Content-Disposition: inline
+In-Reply-To: <59DF1A02.9040008@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Robin Murphy <robin.murphy@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Lv Zheng <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>
 
-On 2017/10/11 18:24, Lorenzo Pieralisi wrote:
-> On Wed, Oct 11, 2017 at 01:26:10PM +0800, Hanjun Guo wrote:
->> On 2017/10/10 17:20, Lorenzo Pieralisi wrote:
->>> On Tue, Oct 10, 2017 at 02:47:53PM +0800, Hanjun Guo wrote:
->>>> Hi Lorenzo,
->>>>
->>>> Sorry for the late reply, holidays in China for the past week.
->>>>
->>>> At 2017/9/27 21:54, Lorenzo Pieralisi wrote:
->>>>> Hi Hanjun,
->>>>>
->>>>> On Wed, Sep 27, 2017 at 09:20:14AM +0800, Hanjun Guo wrote:
->>>>>> IORT revision C introduced SMMUv3 MSI support which adding a
->>>>>> device ID mapping index in SMMUv3 sub table, to get the SMMUv3
->>>>>> device ID mapping for the output ID (dev ID for ITS) and the
->>>>>> link to which ITS.
->>>>>>
->>>>>> So if a platform supports SMMUv3 MSI for control interrupt,
->>>>>> there will be a additional single map entry under SMMU, this
->>>>>> will not introduce any difference for devices just use one
->>>>>> step map to get its output ID and parent (ITS or SMMU), such
->>>>>> as PCI/NC/PMCG ---> ITS or PCI/NC ---> SMMU, but we need to
->>>>>> do the special handling for two steps map case such as
->>>>>> PCI/NC--->SMMUv3--->ITS.
->>>>>>
->>>>>> Take a PCI hostbridge for example,
->>>>>>
->>>>>> |----------------------|
->>>>>> |  Root Complex Node   |
->>>>>> |----------------------|
->>>>>> |    map entry[x]      |
->>>>>> |----------------------|
->>>>>> |       id value       |
->>>>>> | output_reference     |
->>>>>> |---|------------------|
->>>>>>      |
->>>>>>      |   |----------------------|
->>>>>>      |-->|        SMMUv3        |
->>>>>>          |----------------------|
->>>>>>          |     SMMU dev ID      |
->>>>>>          |     mapping index 0  |
->>>>>>          |----------------------|
->>>>>>          |      map entry[0]    |
->>>>>>          |----------------------|
->>>>>>          |       id value       |
->>>>>>          | output_reference-----------> ITS 1 (SMMU MSI domain)
->>>>>>          |----------------------|
->>>>>>          |      map entry[1]    |
->>>>>>          |----------------------|
->>>>>>          |       id value       |
->>>>>>          | output_reference-----------> ITS 2 (PCI MSI domain)
->>>>>>          |----------------------|
->>>>>>
->>>>>> When the SMMU dev ID mapping index is 0, there is entry[0]
->>>>>> to map to a ITS, we need to skip that map entry for PCI
->>>>>> or NC (named component), or we may get the wrong ITS parent.
->>>>> Is this actually true ? I think that currently we would simply skip
->>>>> the entry and print an error log but we can't get a wrong ITS parent.
->>>> So the only valid single mapping under type SMMUv3 is SMMUv3's dev id
->>>> mapping, we need to fix the IORT spec as well.
->>>>
->>>>> I am rewriting this commit (I will probably split it), it is doing the
->>>>> right thing but the commit log is stale (probably caused by code
->>>>> reshuffling).
->>>> Do I need to resend another version, or you can help to update it?
->>>> please let me know.
->>> I reworked the patches, you can repost/retest them I made them available
->>> in the branch below, we will have to add a guard around ACPICA smmu
->>> struct (unfortunately I think we will have to use the ACPICA version as
->>> a guard) or I can ask Rafael to pull the series if ACPICA goes via ACPI
->>> tree (and your patch made it into the release - I will check ACPICA
->>> upstream).
->> Bob already merged my pull request yesterday, I think it will be ready for
->> acpica release for this month.
-> That's good, mind updating the patch series with an ACPICA guard in IORT
-> code in preparation for the pull request ?
+On Thu, Oct 12, 2017 at 03:30:10PM +0800, Hanjun Guo wrote:
+> On 2017/10/11 18:24, Lorenzo Pieralisi wrote:
+> > On Wed, Oct 11, 2017 at 01:26:10PM +0800, Hanjun Guo wrote:
+> >> On 2017/10/10 17:20, Lorenzo Pieralisi wrote:
+> >>> On Tue, Oct 10, 2017 at 02:47:53PM +0800, Hanjun Guo wrote:
+> >>>> Hi Lorenzo,
+> >>>>
+> >>>> Sorry for the late reply, holidays in China for the past week.
+> >>>>
+> >>>> At 2017/9/27 21:54, Lorenzo Pieralisi wrote:
+> >>>>> Hi Hanjun,
+> >>>>>
+> >>>>> On Wed, Sep 27, 2017 at 09:20:14AM +0800, Hanjun Guo wrote:
+> >>>>>> IORT revision C introduced SMMUv3 MSI support which adding a
+> >>>>>> device ID mapping index in SMMUv3 sub table, to get the SMMUv3
+> >>>>>> device ID mapping for the output ID (dev ID for ITS) and the
+> >>>>>> link to which ITS.
+> >>>>>>
+> >>>>>> So if a platform supports SMMUv3 MSI for control interrupt,
+> >>>>>> there will be a additional single map entry under SMMU, this
+> >>>>>> will not introduce any difference for devices just use one
+> >>>>>> step map to get its output ID and parent (ITS or SMMU), such
+> >>>>>> as PCI/NC/PMCG ---> ITS or PCI/NC ---> SMMU, but we need to
+> >>>>>> do the special handling for two steps map case such as
+> >>>>>> PCI/NC--->SMMUv3--->ITS.
+> >>>>>>
+> >>>>>> Take a PCI hostbridge for example,
+> >>>>>>
+> >>>>>> |----------------------|
+> >>>>>> |  Root Complex Node   |
+> >>>>>> |----------------------|
+> >>>>>> |    map entry[x]      |
+> >>>>>> |----------------------|
+> >>>>>> |       id value       |
+> >>>>>> | output_reference     |
+> >>>>>> |---|------------------|
+> >>>>>>      |
+> >>>>>>      |   |----------------------|
+> >>>>>>      |-->|        SMMUv3        |
+> >>>>>>          |----------------------|
+> >>>>>>          |     SMMU dev ID      |
+> >>>>>>          |     mapping index 0  |
+> >>>>>>          |----------------------|
+> >>>>>>          |      map entry[0]    |
+> >>>>>>          |----------------------|
+> >>>>>>          |       id value       |
+> >>>>>>          | output_reference-----------> ITS 1 (SMMU MSI domain)
+> >>>>>>          |----------------------|
+> >>>>>>          |      map entry[1]    |
+> >>>>>>          |----------------------|
+> >>>>>>          |       id value       |
+> >>>>>>          | output_reference-----------> ITS 2 (PCI MSI domain)
+> >>>>>>          |----------------------|
+> >>>>>>
+> >>>>>> When the SMMU dev ID mapping index is 0, there is entry[0]
+> >>>>>> to map to a ITS, we need to skip that map entry for PCI
+> >>>>>> or NC (named component), or we may get the wrong ITS parent.
+> >>>>> Is this actually true ? I think that currently we would simply skip
+> >>>>> the entry and print an error log but we can't get a wrong ITS parent.
+> >>>> So the only valid single mapping under type SMMUv3 is SMMUv3's dev id
+> >>>> mapping, we need to fix the IORT spec as well.
+> >>>>
+> >>>>> I am rewriting this commit (I will probably split it), it is doing the
+> >>>>> right thing but the commit log is stale (probably caused by code
+> >>>>> reshuffling).
+> >>>> Do I need to resend another version, or you can help to update it?
+> >>>> please let me know.
+> >>> I reworked the patches, you can repost/retest them I made them available
+> >>> in the branch below, we will have to add a guard around ACPICA smmu
+> >>> struct (unfortunately I think we will have to use the ACPICA version as
+> >>> a guard) or I can ask Rafael to pull the series if ACPICA goes via ACPI
+> >>> tree (and your patch made it into the release - I will check ACPICA
+> >>> upstream).
+> >> Bob already merged my pull request yesterday, I think it will be ready for
+> >> acpica release for this month.
+> > That's good, mind updating the patch series with an ACPICA guard in IORT
+> > code in preparation for the pull request ?
+> 
+> Do you mean drop the acpica patch in this patch set and adding the code below?
 
-Do you mean drop the acpica patch in this patch set and adding the code below?
+Yes unless we find a "smarter" way of handling the dependency.
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 37a1b9f..a883bec 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -366,6 +366,7 @@ static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
-        return NULL;
- }
- 
-+#if (ACPI_CA_VERSION > 0x20170929)
- static int iort_get_id_mapping_index(struct acpi_iort_node *node)
- {
-        struct acpi_iort_smmu_v3 *smmu;
-@@ -399,6 +400,12 @@ static int iort_get_id_mapping_index(struct acpi_iort_node *node)
-                return -EINVAL;
-        }
- }
-+#else
-+static int iort_get_id_mapping_index(struct acpi_iort_node *node)
-+{
-+ return -EINVAL;
-+}
-+#endif
- 
-Thanks
-Hanjun
+Thanks,
+Lorenzo
+
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 37a1b9f..a883bec 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -366,6 +366,7 @@ static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+>         return NULL;
+>  }
+>  
+> +#if (ACPI_CA_VERSION > 0x20170929)
+>  static int iort_get_id_mapping_index(struct acpi_iort_node *node)
+>  {
+>         struct acpi_iort_smmu_v3 *smmu;
+> @@ -399,6 +400,12 @@ static int iort_get_id_mapping_index(struct acpi_iort_node *node)
+>                 return -EINVAL;
+>         }
+>  }
+> +#else
+> +static int iort_get_id_mapping_index(struct acpi_iort_node *node)
+> +{
+> + return -EINVAL;
+> +}
+> +#endif
+>  
+> Thanks
+> Hanjun
+> 
