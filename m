@@ -1,68 +1,50 @@
-From: Jordan Crouse <jcrouse-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [RFCv2 PATCH 00/36] Process management for IOMMU + SVM for SMMUv3
-Date: Thu, 12 Oct 2017 09:28:03 -0600
-Message-ID: <20171012152803.GA3027@jcrouse-lnx.qualcomm.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
- <0c6778d8-741f-0db7-fe3c-df88a75ebbb2@huawei.com>
- <0fecd29e-eaf7-9503-b087-7bfbc251da88@arm.com>
- <c6b7fb4b-4f2b-0d81-8bb5-8fa6b62aca3a@huawei.com>
- <8a1e090d-22e8-0295-a53f-bc3b5b7d7971@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <8a1e090d-22e8-0295-a53f-bc3b5b7d7971-5wv7dgnIgG8@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Cc: Yisheng Xie <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dwmw2@infradea
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH v2 1/3] ACPI/IORT: Remove leftover ACPI_IORT_SMMU_V3_PXM_VALID guard
+Date: Thu, 12 Oct 2017 17:00:45 +0100
+Message-ID: <1507824047-17045-2-git-send-email-lorenzo.pieralisi@arm.com>
+References: <1507824047-17045-1-git-send-email-lorenzo.pieralisi@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:48990 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751348AbdJLQAx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 12 Oct 2017 12:00:53 -0400
+In-Reply-To: <1507824047-17045-1-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
 
-On Thu, Oct 12, 2017 at 01:55:32PM +0100, Jean-Philippe Brucker wrote:
-> On 12/10/17 13:05, Yisheng Xie wrote:
-> [...]
-> >>>> * An iommu_process can be bound to multiple domains, and a domain can have
-> >>>>   multiple iommu_process.
-> >>> when bind a task to device, can we create a single domain for it? I am thinking
-> >>> about process management without shared PT(for some device only support PASID
-> >>> without pri ability), it seems hard to expand if a domain have multiple iommu_process?
-> >>> Do you have any idea about this?
-> >>
-> >> A device always has to be in a domain, as far as I know. Not supporting
-> >> PRI forces you to pin down all user mappings (or just the ones you use for
-> >> DMA) but you should sill be able to share PT. Now if you don't support
-> >> shared PT either, but only PASID, then you'll have to use io-pgtable and a
-> >> new map/unmap API on an iommu_process. I don't understand your concern
-> >> though, how would the link between process and domains prevent this use-case?
-> >>
-> > So you mean that if an iommu_process bind to multiple devices it should create
-> > multiple io-pgtables? or just share the same io-pgtable?
-> 
-> I don't know to be honest, I haven't thought much about the io-pgtable
-> case, I'm all about sharing the mm :)
-> 
-> It really depends on what the user (GPU driver I assume) wants. I think
-> that if you're not sharing an mm with the device, then you're trying to
-> hide parts of the process to the device, so you'd also want the
-> flexibility of having different io-pgtables between devices. Different
-> devices accessing isolated parts of the process requires separate io-pgtables.
+The conditional ACPI_IORT_SMMU_V3_PXM_VALID guard around
+arm_smmu_v3_set_proximity() was added to manage a cross tree
+ACPICA merge dependency; with ACPICA changes merged in:
 
-In our specific Snapdragon use case the GPU is the only entity that cares about
-process specific io-pgtables.  Everything else (display, video, camera) is happy
-using a global io-ptgable.  The reasoning is that the GPU is programmable from
-user space and can be easily used to copy data whereas the other use cases have
-mostly fixed functions.
+commit c944230064eb ("ACPICA: iasl: Update to IORT SMMUv3
+disassembling")
 
-Even if different devices did want to have a process specific io-pgtable I doubt
-we would share them.  Every device uses the IOMMU differently and the magic
-needed to share a io-pgtable between (for example) a GPU and a DSP would be
-prohibitively complicated.
+the guard has become useless. Remove it.
 
-Jordan
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+---
+ drivers/acpi/arm64/iort.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index de56394..69f21f3 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -968,7 +968,7 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+ 	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
+ }
+ 
+-#if defined(CONFIG_ACPI_NUMA) && defined(ACPI_IORT_SMMU_V3_PXM_VALID)
++#if defined(CONFIG_ACPI_NUMA)
+ /*
+  * set numa proximity domain for smmuv3 device
+  */
 -- 
-The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.4.12
+
