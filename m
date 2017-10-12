@@ -1,85 +1,97 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/1] device properties: Fix return codes for __acpi_node_get_property_reference
-Date: Thu, 12 Oct 2017 01:45:11 +0200
-Message-ID: <3296794.JouVbsXHqI@aspire.rjw.lan>
-References: <20171011080613.19688-1-sakari.ailus@linux.intel.com>
+From: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Subject: Re: [PATCH] ACPI / battery: add quirk for Asus GL502VSK and UX305LA
+Date: Thu, 12 Oct 2017 13:16:47 +0800
+Message-ID: <CAAd53p7+EOCQyAPkAtUM306p821bqjK_UnD72KRDVYW9uuu9Cg@mail.gmail.com>
+References: <20170922082744.18988-1-kai.heng.feng@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57561 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751587AbdJKXym (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 11 Oct 2017 19:54:42 -0400
-In-Reply-To: <20171011080613.19688-1-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170922082744.18988-1-kai.heng.feng@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Kai-Heng Feng <kai.heng.feng@canonical.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, mika.westerberg@intel.com, hyungwoo.yang@intel.com
 
-On Wednesday, October 11, 2017 10:06:13 AM CEST Sakari Ailus wrote:
-> Fix more return codes for device property: Align return codes of
-> __acpi_node_get_property_reference. In particular what was missed
-> previously:
-> 
-> -EPROTO could be returned in certain cases, now -EINVAL;
-> -EINVAL was returned if the property was not found, now -ENOENT;
-> -EINVAL was returned also if the index was higher than the number of
-> entries in a package, now -ENOENT.
-> 
-> Reported-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
-> Fixes: ("device property: Align return codes of __acpi_node_get_property_reference")
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Tested-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+On Fri, Sep 22, 2017 at 4:27 PM, Kai-Heng Feng
+<kai.heng.feng@canonical.com> wrote:
+> On Asus GL502VSK and UX305LA, ACPI incorrectly reports discharging when
+> battery is full and AC is plugged.
+>
+> However rate_now is correct under this circumstance, hence we can use
+> "rate_now == 0" as a predicate to report battery full status correctly.
+>
+> BugLink: https://bugs.launchpad.net/bugs/1482390
+> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
 > ---
-> since v1:
-> 
-> - Remove the ugly switch from acpi_data_get_property() return value
->   handling. Only -EINVAL and -EPROTO are returned by the function.
-> 
->  drivers/acpi/property.c | 10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 5a8ac5e1081b..e26ea209b63e 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -593,7 +593,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
->  
->  	ret = acpi_data_get_property(data, propname, ACPI_TYPE_ANY, &obj);
->  	if (ret)
-> -		return ret;
-> +		return ret == -EINVAL ? -ENOENT : -EINVAL;
->  
->  	/*
->  	 * The simplest case is when the value is a single reference.  Just
-> @@ -605,7 +605,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
->  
->  		ret = acpi_bus_get_device(obj->reference.handle, &device);
->  		if (ret)
-> -			return ret;
-> +			return ret == -ENODEV ? -EINVAL : ret;
->  
->  		args->adev = device;
->  		args->nargs = 0;
-> @@ -621,8 +621,10 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
->  	 * The index argument is then used to determine which reference
->  	 * the caller wants (along with the arguments).
->  	 */
-> -	if (obj->type != ACPI_TYPE_PACKAGE || index >= obj->package.count)
-> -		return -EPROTO;
-> +	if (obj->type != ACPI_TYPE_PACKAGE)
-> +		return -EINVAL;
-> +	if (index >= obj->package.count)
-> +		return -ENOENT;
->  
->  	element = obj->package.elements;
->  	end = element + obj->package.count;
-> 
+>  drivers/acpi/battery.c | 29 ++++++++++++++++++++++++++++-
+>  1 file changed, 28 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 13e7b56e33ae..f9f008cf3da7 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -70,6 +70,7 @@ static async_cookie_t async_cookie;
+>  static bool battery_driver_registered;
+>  static int battery_bix_broken_package;
+>  static int battery_notification_delay_ms;
+> +static int battery_full_discharging;
+>  static unsigned int cache_time = 1000;
+>  module_param(cache_time, uint, 0644);
+>  MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+> @@ -214,7 +215,10 @@ static int acpi_battery_get_property(struct power_supply *psy,
+>                 return -ENODEV;
+>         switch (psp) {
+>         case POWER_SUPPLY_PROP_STATUS:
+> -               if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
+> +               if (battery_full_discharging && battery->rate_now == 0 &&
+> +                   battery->state & ACPI_BATTERY_STATE_DISCHARGING)
+> +                       val->intval = POWER_SUPPLY_STATUS_FULL;
+> +               else if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
+>                         val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+>                 else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
+>                         val->intval = POWER_SUPPLY_STATUS_CHARGING;
+> @@ -1166,6 +1170,13 @@ battery_notification_delay_quirk(const struct dmi_system_id *d)
+>         return 0;
+>  }
+>
+> +static int __init
+> +battery_full_discharging_quirk(const struct dmi_system_id *d)
+> +{
+> +       battery_full_discharging = 1;
+> +       return 0;
+> +}
+> +
+>  static const struct dmi_system_id bat_dmi_table[] __initconst = {
+>         {
+>                 .callback = battery_bix_broken_package_quirk,
+> @@ -1183,6 +1194,22 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
+>                         DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
+>                 },
+>         },
+> +       {
+> +               .callback = battery_full_discharging_quirk,
+> +               .ident = "ASUS GL502VSK",
+> +               .matches = {
+> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> +                       DMI_MATCH(DMI_PRODUCT_NAME, "GL502VSK"),
+> +               },
+> +       },
+> +       {
+> +               .callback = battery_full_discharging_quirk,
+> +               .ident = "ASUS UX305LA",
+> +               .matches = {
+> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> +                       DMI_MATCH(DMI_PRODUCT_NAME, "UX305LA"),
+> +               },
+> +       },
+>         {},
+>  };
+>
 
-Applied (along with the previous one), thanks!
+Hi,
 
-Please double check my current linux-next branch, though, as I'm going to
-push this stuff to Linus tomorrow.
+Is there any improvement I can make for this patch?
 
+> --
+> 2.14.1
+>
