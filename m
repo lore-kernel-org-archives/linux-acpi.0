@@ -1,110 +1,137 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v9 2/4] iommu/dma: Add a helper function to reserve HW
- MSI address regions for IOMMU drivers
-Date: Fri, 13 Oct 2017 20:23:50 +0100
-Message-ID: <20171013192350.GA32130@arm.com>
-References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
- <20171006140450.89652-3-shameerali.kolothum.thodi@huawei.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v3 0/7] Support PPTT for ARM64
+Date: Fri, 13 Oct 2017 14:34:51 -0500
+Message-ID: <08a1ad07-4bec-2767-d32c-6a5f8406af9c@arm.com>
+References: <20171012194856.13844-1-jeremy.linton@arm.com>
+ <f3fab8a0-48e1-57c2-fdc0-be1faccfff2b@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:38876 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751632AbdJMTXr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 13 Oct 2017 15:23:47 -0400
-Content-Disposition: inline
-In-Reply-To: <20171006140450.89652-3-shameerali.kolothum.thodi@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <f3fab8a0-48e1-57c2-fdc0-be1faccfff2b@huawei.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: John Garry <john.garry@huawei.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Cc: lorenzo.pieralisi@arm.com, marc.zyngier@arm.com, sudeep.holla@arm.com, robin.murphy@arm.com, joro@8bytes.org, bhelgaas@google.com, gabriele.paoloni@huawei.com, john.garry@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com, wangzhou1@hisilicon.com, guohanjun@huawei.com
 
-On Fri, Oct 06, 2017 at 03:04:48PM +0100, Shameer Kolothum wrote:
-> IOMMU drivers can use this to implement their .get_resv_regions callback
-> for HW MSI specific reservations(e.g. ARM GICv3 ITS MSI region).
+Hi,
+
+On 10/13/2017 06:08 AM, John Garry wrote:
+> On 12/10/2017 20:48, Jeremy Linton wrote:
+>> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+>> used to describe the processor and cache topology. Ideally it is
+>> used to extend/override information provided by the hardware, but
+>> right now ARM64 is entirely dependent on firmware provided tables.
+>>
+>> This patch parses the table for the cache topology and CPU topology.
+>> For the latter we also add an additional topology_cod_id() macro,
+>> and a package_id for arm64. Initially the physical id will match
+>> the cluster id, but we update users of the cluster to utilize
+>> the new macro. When we enable ACPI/PPTT for arm64 we map the socket
+>> to the physical id as the remainder of the kernel expects.
+>>
 > 
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> ---
->  drivers/iommu/dma-iommu.c | 20 ++++++++++++++++++++
->  include/linux/dma-iommu.h |  7 +++++++
->  2 files changed, 27 insertions(+)
+> Hi Jeremy,
+> 
+> Can you put this series on a public branch for convenience of review and 
+> test?
 
-I'd like to see Robin's Ack on this, because this is his code and he had
-ideas on ways to solve this problem properly.
+Let me see what I can do..
 
-Will
+> 
+> Also, what is your idea for supporting Type 2 ID structure?
 
-> diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-> index 9d1cebe..bae677e 100644
-> --- a/drivers/iommu/dma-iommu.c
-> +++ b/drivers/iommu/dma-iommu.c
-> @@ -19,6 +19,7 @@
->   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->   */
->  
-> +#include <linux/acpi_iort.h>
->  #include <linux/device.h>
->  #include <linux/dma-iommu.h>
->  #include <linux/gfp.h>
-> @@ -27,6 +28,7 @@
->  #include <linux/iova.h>
->  #include <linux/irq.h>
->  #include <linux/mm.h>
-> +#include <linux/of_iommu.h>
->  #include <linux/pci.h>
->  #include <linux/scatterlist.h>
->  #include <linux/vmalloc.h>
-> @@ -198,6 +200,24 @@ void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list)
->  }
->  EXPORT_SYMBOL(iommu_dma_get_resv_regions);
->  
-> +/**
-> + * iommu_dma_get_msi_resv_regions - Reserved region driver helper
-> + * @dev: Device from iommu_get_resv_regions()
-> + * @list: Reserved region list from iommu_get_resv_regions()
-> + *
-> + * IOMMU drivers can use this to implement their .get_resv_regions
-> + * callback for HW MSI specific reservations. For now, this only
-> + * covers ITS MSI region reservation using ACPI IORT helper function.
-> + */
-> +int iommu_dma_get_msi_resv_regions(struct device *dev, struct list_head *list)
-> +{
-> +	if (!is_of_node(dev->iommu_fwspec->iommu_fwnode))
-> +		return iort_iommu_msi_get_resv_regions(dev, list);
-> +
-> +	return -ENODEV;
-> +}
-> +EXPORT_SYMBOL(iommu_dma_get_msi_resv_regions);
-> +
->  static int cookie_init_hw_msi_region(struct iommu_dma_cookie *cookie,
->  		phys_addr_t start, phys_addr_t end)
->  {
-> diff --git a/include/linux/dma-iommu.h b/include/linux/dma-iommu.h
-> index 92f2083..6062ef0 100644
-> --- a/include/linux/dma-iommu.h
-> +++ b/include/linux/dma-iommu.h
-> @@ -74,6 +74,8 @@ void iommu_dma_unmap_resource(struct device *dev, dma_addr_t handle,
->  void iommu_dma_map_msi_msg(int irq, struct msi_msg *msg);
->  void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list);
->  
-> +int iommu_dma_get_msi_resv_regions(struct device *dev, struct list_head *list);
-> +
->  #else
->  
->  struct iommu_domain;
-> @@ -107,6 +109,11 @@ static inline void iommu_dma_get_resv_regions(struct device *dev, struct list_he
->  {
->  }
->  
-> +static inline int iommu_dma_get_msi_resv_regions(struct device *dev, struct list_head *list)
-> +{
-> +	return -ENODEV;
-> +}
-> +
->  #endif	/* CONFIG_IOMMU_DMA */
->  #endif	/* __KERNEL__ */
->  #endif	/* __DMA_IOMMU_H */
-> -- 
-> 1.9.1
+I don't have any plans, as you can see the current patches ignore the ID 
+nodes. It should be fairly easy to mine the information from the tables, 
+but what parts are necessary or where to use them isn't clear to me.
+
+Suggestions welcome.
+
+
+> 
+> Cheers,
+> John
+> 
+>> For example on juno:
+>> [root@mammon-juno-rh topology]# lstopo-no-graphics
+>>   Package L#0
+>>     L2 L#0 (1024KB)
+>>       L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+>>       L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+>>       L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+>>       L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+>>     L2 L#1 (2048KB)
+>>       L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
+>>       L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
+>>   HostBridge L#0
+>>     PCIBridge
+>>       PCIBridge
+>>         PCIBridge
+>>           PCI 1095:3132
+>>             Block(Disk) L#0 "sda"
+>>         PCIBridge
+>>           PCI 1002:68f9
+>>             GPU L#1 "renderD128"
+>>             GPU L#2 "card0"
+>>             GPU L#3 "controlD64"
+>>         PCIBridge
+>>           PCI 11ab:4380
+>>             Net L#4 "enp8s0"
+>>
+>> v2->v3:
+>>
+>> Remove valid bit check on leaf nodes. Now simply being a leaf node
+>>   is sufficient to verify the processor id against the ACPI
+>>   processor ids (gotten from MADT).
+>>
+>> Use the acpi processor for the "level 0" Id. This makes the /sys
+>>   visible core/thread ids more human readable if the firmware uses
+>>   small consecutive values for processor ids.
+>>
+>> Added PPTT to the list of injectable ACPI tables.
+>>
+>> Fix bug which kept the code from using the processor node as intended
+>>   in v2, caused by misuse of git rebase/fixup.
+>>
+>> v1->v2:
+>>
+>> The parser keys off the acpi_pptt_processor node to determine
+>>   unique cache's rather than the acpi_pptt_cache referenced by the
+>>   processor node. This allows PPTT tables which "share" cache nodes
+>>   across cpu nodes despite not being a shared cache.
+>>
+>> Normalize the socket, cluster and thread mapping so that they match
+>>   linux's traditional mapping for the physical id, and thread id.
+>>   Adding explicit scheduler knowledge of clusters (rather than just
+>>   their cache sharing attributes) is a subject for a future patch.
+>>
+>> Jeremy Linton (7):
+>>   ACPI/PPTT: Add Processor Properties Topology Table parsing
+>>   ACPI: Enable PPTT support on ARM64
+>>   drivers: base: cacheinfo: arm64: Add support for ACPI based firmware
+>>     tables
+>>   Topology: Add cluster on die macros and arm64 decoding
+>>   arm64: Fixup users of topology_physical_package_id
+>>   arm64: topology: Enable ACPI/PPTT based CPU topology.
+>>   ACPI: Add PPTT to injectable table list
+>>
+>>  arch/arm64/Kconfig                |   1 +
+>>  arch/arm64/include/asm/topology.h |   4 +-
+>>  arch/arm64/kernel/cacheinfo.c     |  23 +-
+>>  arch/arm64/kernel/topology.c      |  62 ++++-
+>>  drivers/acpi/Makefile             |   1 +
+>>  drivers/acpi/arm64/Kconfig        |   3 +
+>>  drivers/acpi/pptt.c               | 486 
+>> ++++++++++++++++++++++++++++++++++++++
+>>  drivers/acpi/tables.c             |   3 +-
+>>  drivers/base/cacheinfo.c          |  17 +-
+>>  drivers/cpufreq/arm_big_little.c  |   2 +-
+>>  drivers/firmware/psci_checker.c   |   2 +-
+>>  include/linux/cacheinfo.h         |  11 +-
+>>  include/linux/topology.h          |   4 +
+>>  13 files changed, 599 insertions(+), 20 deletions(-)
+>>  create mode 100644 drivers/acpi/pptt.c
+>>
 > 
 > 
