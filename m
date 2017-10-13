@@ -1,32 +1,38 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
 Subject: Re: [PATCH v3 1/7] ACPI/PPTT: Add Processor Properties Topology Table
  parsing
-Date: Fri, 13 Oct 2017 14:58:26 -0500
-Message-ID: <47852c78-047e-4245-ac9a-3b6b5db3ed18@arm.com>
+Date: Fri, 13 Oct 2017 17:41:00 -0500
+Message-ID: <0e61514a-576e-794e-c8e7-0f42e676eb55@arm.com>
 References: <20171012194856.13844-1-jeremy.linton@arm.com>
  <20171012194856.13844-2-jeremy.linton@arm.com>
- <SN4PR0701MB3661281A421AD5EE7C929F75F3480@SN4PR0701MB3661.namprd07.prod.outlook.com>
+ <0adcff12-760b-eef3-3186-34cbb46d5497@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39496 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:40768 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752877AbdJMT6a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 13 Oct 2017 15:58:30 -0400
-In-Reply-To: <SN4PR0701MB3661281A421AD5EE7C929F75F3480@SN4PR0701MB3661.namprd07.prod.outlook.com>
+        id S1751081AbdJMWlL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 13 Oct 2017 18:41:11 -0400
+In-Reply-To: <0adcff12-760b-eef3-3186-34cbb46d5497@arm.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tn <Tomasz.Nowicki@caviumnetworks.com>, linux-acpi@vger.kernel.org
+To: Julien Thierry <julien.thierry@arm.com>, linux-acpi@vger.kernel.org
 Cc: mark.rutland@arm.com, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, jhugo@codeaurora.org, rjw@rjwysocki.net, linux-pm@vger.kernel.org, will.deacon@arm.com, linux-kernel@vger.kernel.org, ahs3@redhat.com, viresh.kumar@linaro.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, austinwc@codeaurora.org, wangxiongfeng2@huawei.com, linux-arm-kernel@lists.infradead.org
 
 Hi,
 
-On 10/13/2017 09:23 AM, tn wrote:
+
+Thanks for spending the time to take a look at this.
+
+
+On 10/13/2017 04:56 AM, Julien Thierry wrote:
 > Hi Jeremy,
 > 
-> On 12.10.2017 21:48, Jeremy Linton wrote:
+> Please see below some suggestions.
+> 
+> On 12/10/17 20:48, Jeremy Linton wrote:
 >> ACPI 6.2 adds a new table, which describes how processing units
 >> are related to each other in tree like fashion. Caches are
 >> also sprinkled throughout the tree and describe the properties
@@ -98,19 +104,24 @@ On 10/13/2017 09:23 AM, tn wrote:
 >> +    /* there isn't a subtable at reference 0 */
 >> +    if (!pptt_ref)
 >> +        return NULL;
+> 
+> Seeing the usage of pptt_ref to retrieve the subtable, would the 
+> following be a more accurate check?
+> 
+>      if (pptt_ref < sizeof(struct acpi_table_header))
+>          return NULL;
+
+Yes, that makes it better match the comment, and I guess tightens up the 
+sanity checking. The original intention was just to catch null 
+references that were encoded as parent/etc fields.
+
+> 
 >> +
 >> +    if (pptt_ref + sizeof(struct acpi_subtable_header) > 
 >> table_hdr->length)
 >> +        return NULL;
 >> +
 >> +    entry = (struct acpi_subtable_header *)((u8 *)table_hdr + pptt_ref);
-> 
-> You can use ACPI_ADD_PTR() here.
-
-Hmmm, that is a useful macro.
-
-
-> 
 >> +
 >> +    if (pptt_ref + entry->length > table_hdr->length)
 >> +        return NULL;
@@ -143,10 +154,18 @@ Hmmm, that is a useful macro.
 >> +
 >> +    ref = *(u32 *)((u8 *)node + sizeof(struct acpi_pptt_processor) +
 >> +              sizeof(u32) * resource);
-> 
-> ACPI_ADD_PTR()
-> 
 >> +
+> 
+> I think this can be simplified as:
+> 
+>      ref = *((u32 *)(node + 1) + resource);
+
+I think Thomasz had a better suggestion with regard to ACPI_ADD_PTR() 
+for avoiding the explicit pointer math, although it may not be that 
+clean either because it doesn't fit 1:1 with the macro at the moment, 
+maybe i'm doing it wrong...
+
+> 
 >> +    return fetch_pptt_subtable(table_hdr, ref);
 >> +}
 >> +
@@ -265,17 +284,26 @@ Hmmm, that is a useful macro.
 >> +    unsigned long table_end;
 >> +    u32 node_entry;
 >> +    struct acpi_pptt_processor *cpu_node;
+> 
+> Can cpu_node be defined inside the loop? It isn't used outside.
+
+Yes, but i'm not sure that is the style of the acpi code, if you look at 
+scan.c, acpi_ipmi.c maybe others, they seem to be following the "all 
+definitions at the top of the block" form despite having a few loops 
+with variables that are only used in the block.
+
+> 
 >> +
 >> +    table_end = (unsigned long)table_hdr + table_hdr->length;
 >> +    node_entry = (u32)((u8 *)node - (u8 *)table_hdr);
 >> +    entry = (struct acpi_subtable_header *)((u8 *)table_hdr +
 >> +                        sizeof(struct acpi_table_pptt));
-> 
-> ACPI_ADD_PTR()
-> 
 >> +
 >> +    while (((unsigned long)entry) + sizeof(struct 
 >> acpi_subtable_header) < table_end) {
+> 
+>      while ((unsigned long) (entry + 1) < table_end) {
+> 
 >> +        cpu_node = (struct acpi_pptt_processor *)entry;
 >> +        if ((entry->type == ACPI_PPTT_TYPE_PROCESSOR) &&
 >> +            (cpu_node->parent == node_entry))
@@ -301,12 +329,31 @@ Hmmm, that is a useful macro.
 >> +    entry = (struct acpi_subtable_header *)((u8 *)table_hdr +
 >> +                        sizeof(struct acpi_table_pptt));
 > 
-> ACPI_ADD_PTR()
+> Can I suggest having two inline functions for this and the above function?
+> 
+> static inline unsigned long acpi_get_table_end(const struct 
+> acpi_table_header *);
+
+Which is a bit overkill for an add, let me think about this one.
+
+> 
+> static inline struct acpi_subtable_header *acpi_get_first_entry(const 
+> struct acpi_table_header *);
+
+This one and the below are really just degenerate cases of 
+fetch_pptt_subtable().
+
+> 
+> (Feel free to adapt the names of course)
 > 
 >> +
 >> +    /* find the processor structure associated with this cpuid */
 >> +    while (((unsigned long)entry) + sizeof(struct 
 >> acpi_subtable_header) < table_end) {
+> 
+> Same as above -> (unsigned long) (entry + 1).
+> 
+> 
 >> +        cpu_node = (struct acpi_pptt_processor *)entry;
 >> +
 >> +        if ((entry->type == ACPI_PPTT_TYPE_PROCESSOR) &&
@@ -324,19 +371,21 @@ Hmmm, that is a useful macro.
 >> +            pr_err("Invalid zero length subtable\n");
 >> +            break;
 >> +        }
-> 
-> For a better table content validation, this could be done at the 
-> beginning of the loop, like that:
-> 
-> if (WARN_TAINT(entry->length == 0, TAINT_FIRMWARE_WORKAROUND,
->         "Invalid zero length subtable, bad PPTT table!\n"))
->              break;
-> 
-> 
 >> +        entry = (struct acpi_subtable_header *)
 >> +            ((u8 *)entry + entry->length);
 > 
-> ACPI_ADD_PTR()
+> 
+> I also think it would be nicer to have an inline function for this:
+> 
+> static struct acpi_subtable_header *acpi_get_next_entry(const struct 
+> acpi_subtable_header *);
+
+Which is just a degenerate case of fetch_pptt_subtable() in both cases 
+after having had the macro in actypes.h pointed out, I think most of 
+this manipulation is going to just get buried behind those macros.
+
+
+> 
 > 
 >> +    }
 >> +
@@ -379,47 +428,14 @@ Hmmm, that is a useful macro.
 >> +    return number_of_levels;
 >> +}
 >> +
-> 
-> Based on ACPI spec 6.2:
-> 
 >> +#define ACPI_6_2_CACHE_TYPE_DATA              (0x0)
 >> +#define ACPI_6_2_CACHE_TYPE_INSTR              (1<<2)
 >> +#define ACPI_6_2_CACHE_TYPE_UNIFIED              (1<<3)
-> 
-> Bits:3:2: Cache type:
-> 0x0 Data
-> 0x1 Instruction
-> 0x2 or 0x3 Indicate a unified cache
-
-Originally I was trying to do something more clever than the switch 
-(given the less than optimal bit definitions), but the result wasn't as 
-clear as the switch, so I just plugged that in but forgot about the 3rd 
-case.
-
-> 
 >> +#define ACPI_6_2_CACHE_POLICY_WB              (0x0)
 >> +#define ACPI_6_2_CACHE_POLICY_WT              (1<<4)
 >> +#define ACPI_6_2_CACHE_READ_ALLOCATE              (0x0)
 >> +#define ACPI_6_2_CACHE_WRITE_ALLOCATE              (0x01)
 >> +#define ACPI_6_2_CACHE_RW_ALLOCATE              (0x02)
-> 
-> Bits 1:0: Allocation type
-> 0x0 - Read allocate
-> 0x1 - Write allocate
-> 0x2 or 0x03 indicate Read and Write allocate
-> 
-> BTW, why these are not part of ACPICA code (actbl1.h header) and have 
-> ACPI_PPTT prefixes?
-
-Well I guess they probably should be the only question is how one goes 
-about defining the duplicates..
-
-AKA:
-
-#define ACPI_PPTT_CACHE_RW_ALLOCATE              (0x02)
-#define ACPI_PPTT_CACHE_RW_ALLOCATE_ALT          (0x03)
-
-> 
 >> +
 >> +static u8 acpi_cache_type(enum cache_type type)
 >> +{
@@ -460,207 +476,11 @@ AKA:
 >> +    do {
 >> +        found = acpi_find_cache_level(table_hdr, cpu_node, 
 >> &total_levels, level, acpi_type);
-> 
-> Please align line to 80 characters at maximum.
-
-ok,
-
-> 
 >> +        *node = cpu_node;
 >> +        cpu_node = fetch_pptt_node(table_hdr, cpu_node->parent);
 >> +    } while ((cpu_node) && (!found));
->> +
->> +    return found;
->> +}
->> +
->> +int acpi_find_last_cache_level(unsigned int cpu)
->> +{
->> +    u32 acpi_cpu_id;
->> +    struct acpi_table_header *table;
->> +    int number_of_levels = 0;
->> +    acpi_status status;
->> +
->> +    pr_debug("Cache Setup find last level cpu=%d\n", cpu);
->> +
->> +    acpi_cpu_id = acpi_cpu_get_madt_gicc(cpu)->uid;
->> +    status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
->> +    if (ACPI_FAILURE(status)) {
->> +        pr_err_once("No PPTT table found, cache topology may be 
->> inaccurate\n");
->> +    } else {
->> +        number_of_levels = acpi_parse_pptt(table, acpi_cpu_id);
->> +        acpi_put_table(table);
->> +    }
->> +    pr_debug("Cache Setup find last level level=%d\n", 
->> number_of_levels);
->> +
->> +    return number_of_levels;
->> +}
->> +
->> +/*
->> + * The ACPI spec implies that the fields in the cache structures are 
->> used to
->> + * extend and correct the information probed from the hardware. In 
->> the case
->> + * of arm64 the CCSIDR probing has been removed because it might be 
->> incorrect.
->> + */
->> +static void update_cache_properties(struct cacheinfo *this_leaf,
->> +                    struct acpi_pptt_cache *found_cache,
->> +                    struct acpi_pptt_processor *cpu_node)
->> +{
->> +    if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID)
->> +        this_leaf->size = found_cache->size;
->> +    if (found_cache->flags & ACPI_PPTT_LINE_SIZE_VALID)
->> +        this_leaf->coherency_line_size = found_cache->line_size;
->> +    if (found_cache->flags & ACPI_PPTT_NUMBER_OF_SETS_VALID)
->> +        this_leaf->number_of_sets = found_cache->number_of_sets;
->> +    if (found_cache->flags & ACPI_PPTT_ASSOCIATIVITY_VALID)
->> +        this_leaf->ways_of_associativity = found_cache->associativity;
->> +    if (found_cache->flags & ACPI_PPTT_WRITE_POLICY_VALID)
->> +        switch (found_cache->attributes & ACPI_PPTT_MASK_WRITE_POLICY) {
->> +        case ACPI_6_2_CACHE_POLICY_WT:
->> +            this_leaf->attributes = CACHE_WRITE_THROUGH;
->> +            break;
->> +        case ACPI_6_2_CACHE_POLICY_WB:
->> +            this_leaf->attributes = CACHE_WRITE_BACK;
->> +            break;
->> +        default:
->> +            pr_err("Unknown ACPI cache policy %d\n",
->> +                  found_cache->attributes & 
->> ACPI_PPTT_MASK_WRITE_POLICY);
->> +        }
 > 
-> The 'default' case can never happen, please remove dead code.
+> Why not combine the do...while loop and the pevious check in a simple 
+> while loop? The same condion should work as such for a while loop.
 
-Ok,
-
-> 
->> +    if (found_cache->flags & ACPI_PPTT_ALLOCATION_TYPE_VALID)
->> +        switch (found_cache->attributes & 
->> ACPI_PPTT_MASK_ALLOCATION_TYPE) {
->> +        case ACPI_6_2_CACHE_READ_ALLOCATE:
->> +            this_leaf->attributes |= CACHE_READ_ALLOCATE;
->> +            break;
->> +        case ACPI_6_2_CACHE_WRITE_ALLOCATE:
->> +            this_leaf->attributes |= CACHE_WRITE_ALLOCATE;
->> +            break;
->> +        case ACPI_6_2_CACHE_RW_ALLOCATE:
->> +            this_leaf->attributes |=
->> +                CACHE_READ_ALLOCATE|CACHE_WRITE_ALLOCATE;
->> +            break;
->> +        default:
->> +            pr_err("Unknown ACPI cache allocation policy %d\n",
->> +               found_cache->attributes & 
->> ACPI_PPTT_MASK_ALLOCATION_TYPE);
->> +        }
-> 
-> Same here if you fix bits definitions.
-
-Sure,
-
-> 
->> +}
->> +
->> +static void cache_setup_acpi_cpu(struct acpi_table_header *table,
->> +                 unsigned int cpu)
->> +{
->> +    struct acpi_pptt_cache *found_cache;
->> +    struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
->> +    u32 acpi_cpu_id = acpi_cpu_get_madt_gicc(cpu)->uid;
->> +    struct cacheinfo *this_leaf;
->> +    unsigned int index = 0;
->> +    struct acpi_pptt_processor *cpu_node = NULL;
->> +
->> +    while (index < get_cpu_cacheinfo(cpu)->num_leaves) {
->> +        this_leaf = this_cpu_ci->info_list + index;
->> +        found_cache = acpi_find_cache_node(table, acpi_cpu_id,
->> +                           this_leaf->type,
->> +                           this_leaf->level,
->> +                           &cpu_node);
->> +        pr_debug("found = %p %p\n", found_cache, cpu_node);
->> +        if (found_cache)
->> +            update_cache_properties(this_leaf,
->> +                        found_cache,
->> +                        cpu_node);
->> +
->> +        index++;
->> +    }
->> +}
->> +
->> +static int topology_setup_acpi_cpu(struct acpi_table_header *table,
->> +                    unsigned int cpu, int level)
->> +{
->> +    struct acpi_pptt_processor *cpu_node;
->> +    u32 acpi_cpu_id = acpi_cpu_get_madt_gicc(cpu)->uid;
->> +
->> +    cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
->> +    if (cpu_node) {
->> +        cpu_node = acpi_find_processor_package_id(table, cpu_node, 
->> level);
->> +        /* Only the first level has a guaranteed id */
->> +        if (level == 0)
->> +            return cpu_node->acpi_processor_id;
->> +        return (int)((u8 *)cpu_node - (u8 *)table);
->> +    }
->> +    pr_err_once("PPTT table found, but unable to locate core for %d\n",
->> +            cpu);
->> +    return -ENOENT;
->> +}
->> +
->> +/*
->> + * simply assign a ACPI cache entry to each known CPU cache entry
->> + * determining which entries are shared is done later.
->> + */
->> +int cache_setup_acpi(unsigned int cpu)
->> +{
->> +    struct acpi_table_header *table;
->> +    acpi_status status;
->> +
->> +    pr_debug("Cache Setup ACPI cpu %d\n", cpu);
->> +
->> +    status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
->> +    if (ACPI_FAILURE(status)) {
->> +        pr_err_once("No PPTT table found, cache topology may be 
->> inaccurate\n");
->> +        return -ENOENT;
->> +    }
->> +
->> +    cache_setup_acpi_cpu(table, cpu);
->> +    acpi_put_table(table);
->> +
->> +    return status;
->> +}
->> +
->> +/*
->> + * Determine a topology unique ID for each 
->> thread/core/cluster/socket/etc.
->> + * This ID can then be used to group peers.
->> + */
->> +int setup_acpi_cpu_topology(unsigned int cpu, int level)
->> +{
->> +    struct acpi_table_header *table;
->> +    acpi_status status;
->> +    int retval;
->> +
->> +    status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
->> +    if (ACPI_FAILURE(status)) {
->> +        pr_err_once("No PPTT table found, cpu topology may be 
->> inaccurate\n");
->> +        return -ENOENT;
->> +    }
->> +    retval = topology_setup_acpi_cpu(table, cpu, level);
->> +    pr_debug("Topology Setup ACPI cpu %d, level %d ret = %d\n",
->> +         cpu, level, retval);
->> +    acpi_put_table(table);
->> +
->> +    return retval;
->> +}
->>
-> 
-> Thanks,
-> Tomasz
-> 
-
-Thanks for taking the time to look at this.
-
+Ok, sure...
