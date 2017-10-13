@@ -1,36 +1,101 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v2 2/3] ACPI/IORT: Improve functions return type/storage
- class specifier indentation
-Date: Fri, 13 Oct 2017 15:19:44 +0800
-Message-ID: <59E06910.40404@huawei.com>
-References: <1507824047-17045-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1507824047-17045-3-git-send-email-lorenzo.pieralisi@arm.com>
+Subject: [PATCH v2 3/4] ACPI/IORT: Add SMMUv3 specific special index mapping handling
+Date: Fri, 13 Oct 2017 15:09:49 +0800
+Message-ID: <1507878590-51066-4-git-send-email-guohanjun@huawei.com>
+References: <1507878590-51066-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:8024 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750722AbdJMHVA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Oct 2017 03:21:00 -0400
-In-Reply-To: <1507824047-17045-3-git-send-email-lorenzo.pieralisi@arm.com>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:7996 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750722AbdJMHXu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Oct 2017 03:23:50 -0400
+In-Reply-To: <1507878590-51066-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robin Murphy <robin.murphy@arm.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 2017/10/13 0:00, Lorenzo Pieralisi wrote:
-> Some functions definition indentations are using a style that is frowned
-> upon with return value type/storage class specifier in a separate line.
->
-> Reindent the function definitions to fix them.
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+IORT revision C introduced a mapping entry binding to describe ITS
+device ID mapping for SMMUv3 MSI interrupts.
 
-By the way, I tested this patch set on D05 with no regressions.
+Enable the single mapping flag (ie that is used by SMMUv3 component for
+its special index mappings) for the SMMUv3 node in the IORT mapping API
+and add IORT code to handle special index mapping entry for the SMMUv3
+IORT nodes to enable their MSI interrupts. In case the ACPICA for
+SMMUv3 device ID mapping is not ready, use the ACPICA version as a guard
+for function iort_get_id_mapping_index().
 
-Thanks
-Hanjun
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+[lorenzo.pieralisi@arm.com: split the patch, rewrote the log]
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+---
+ drivers/acpi/arm64/iort.c | 39 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 38 insertions(+), 1 deletion(-)
 
-
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index c3f3ac3..ca5dd21 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -356,7 +356,8 @@ static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+ 
+ 	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+ 		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+-		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
++		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
++		    node->type == ACPI_IORT_NODE_SMMU_V3) {
+ 			*id_out = map->output_base;
+ 			return parent;
+ 		}
+@@ -365,10 +366,46 @@ static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+ 	return NULL;
+ }
+ 
++#if (ACPI_CA_VERSION > 0x20170929)
++static int iort_get_id_mapping_index(struct acpi_iort_node *node)
++{
++	struct acpi_iort_smmu_v3 *smmu;
++
++	switch (node->type) {
++	case ACPI_IORT_NODE_SMMU_V3:
++		/*
++		 * SMMUv3 dev ID mapping index was introdueced in revision 1
++		 * table, not available in revision 0
++		 */
++		if (node->revision < 1)
++			return -EINVAL;
++
++		smmu = (struct acpi_iort_smmu_v3 *)node->node_data;
++		/*
++		 * ID mapping index is only ignored if all interrupts are
++		 * GSIV based
++		 */
++		if (smmu->event_gsiv && smmu->pri_gsiv && smmu->gerr_gsiv
++		    && smmu->sync_gsiv)
++			return -EINVAL;
++
++		if (smmu->id_mapping_index >= node->mapping_count) {
++			pr_err(FW_BUG "[node %p type %d] ID mapping index overflows valid mappings\n",
++			       node, node->type);
++			return -EINVAL;
++		}
++
++		return smmu->id_mapping_index;
++	default:
++		return -EINVAL;
++	}
++}
++#else
+ static inline int iort_get_id_mapping_index(struct acpi_iort_node *node)
+ {
+ 	return -EINVAL;
+ }
++#endif
+ 
+ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
+ 					       u32 id_in, u32 *id_out,
+-- 
+1.7.12.4
 
