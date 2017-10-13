@@ -1,39 +1,49 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 3/4] ACPI/IORT: Add SMMUv3 specific special index mapping handling
-Date: Fri, 13 Oct 2017 14:59:30 +0200
-Message-ID: <1751061.R5V0ggIEsy@aspire.rjw.lan>
-References: <1507878590-51066-1-git-send-email-guohanjun@huawei.com> <1507878590-51066-4-git-send-email-guohanjun@huawei.com> <20171013130445.GA27895@red-moon>
+Subject: Re: [PATCH] PM / QoS: Drop PM_QOS_FLAG_REMOTE_WAKEUP
+Date: Fri, 13 Oct 2017 15:04:42 +0200
+Message-ID: <1840235.EQbbjP2bUY@aspire.rjw.lan>
+References: <1853660.GWc8KbUC1W@aspire.rjw.lan> <CAPDyKFoxooS3QE6vjKr3DNOV6YadV8u0Btw8SWTGdL=EwAxLiQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48084 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753258AbdJMNJC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 13 Oct 2017 09:09:02 -0400
-In-Reply-To: <20171013130445.GA27895@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFoxooS3QE6vjKr3DNOV6YadV8u0Btw8SWTGdL=EwAxLiQ@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, will.deacon@arm.com
 
-On Friday, October 13, 2017 3:04:45 PM CEST Lorenzo Pieralisi wrote:
-> [+Robert, Will]
+On Friday, October 13, 2017 8:32:18 AM CEST Ulf Hansson wrote:
+> On 13 October 2017 at 02:35, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > The PM QoS flag PM_QOS_FLAG_REMOTE_WAKEUP is not used consistently
+> > and the vast majority of code simply assumes that remote wakeup
+> > should be enabled for devices in runtime suspend if they can
+> > generate wakeup signals, so drop it.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Rafael, Robert,
+> With a minor nitpick below, please add:
 > 
-> On Fri, Oct 13, 2017 at 03:09:49PM +0800, Hanjun Guo wrote:
+> Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 > 
-> [...]
+> > ---
+> >  drivers/acpi/device_pm.c    |    6 ++----
+> >  drivers/base/power/domain.c |    4 +---
+> >  drivers/base/power/sysfs.c  |   28 ----------------------------
+> >  include/linux/pm_qos.h      |    1 -
+> >  4 files changed, 3 insertions(+), 36 deletions(-)
 > 
-> > +#if (ACPI_CA_VERSION > 0x20170929)
-> 
-> Any objection to handling 4.15 trees dependency by using ACPICA
-> version as a temporary guard (that I will promptly remove at -rc1) ?
+> I found the flag to also be mentioned in the
+> Documentation/power/pm_qos_interface.txt, could please remove that
+> part as well.
 
-Well, fine by me, as long as you take care of dropping this going forward.
+Right, and not only there.
+
+That's how it goes when you try to document everything dutifully. :-)
+
+I'll send an update shortly.
 
 Thanks,
 Rafael
-
