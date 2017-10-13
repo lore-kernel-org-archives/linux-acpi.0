@@ -1,81 +1,79 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH v3 2/7] ACPI: Enable PPTT support on ARM64
-Date: Fri, 13 Oct 2017 12:51:39 -0500
-Message-ID: <68f0af6f-2552-0e1a-5242-a89acf3656d9@arm.com>
-References: <20171012194856.13844-1-jeremy.linton@arm.com>
- <20171012194856.13844-3-jeremy.linton@arm.com> <59E08D32.2010605@huawei.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFCv2 PATCH 12/36] dt-bindings: document stall and PASID
+	properties for IOMMU masters
+Date: Fri, 13 Oct 2017 14:10:51 -0500
+Message-ID: <20171013191051.lgxbcobkzzj5guhv@rob-hp-laptop>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+	<20171006133203.22803-13-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <59E08D32.2010605@huawei.com>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org
-Cc: mark.rutland@arm.com, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, jhugo@codeaurora.org, rjw@rjwysocki.net, linux-pm@vger.kernel.org, will.deacon@arm.com, linux-kernel@vger.kernel.org, ahs3@redhat.com, viresh.kumar@linaro.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, austinwc@codeaurora.org, wangxiongfeng2@huawei.com, linux-arm-kernel@lists.infradead.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171006133203.22803-13-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Fri, Oct 06, 2017 at 02:31:39PM +0100, Jean-Philippe Brucker wrote:
+> On ARM systems, some platform devices behind an IOMMU may support stall
+> and PASID features. Stall is the ability to recover from page faults and
+> PASID offers multiple process address spaces to the device. Together they
+> allow to do paging with a device. Let the firmware tell us when a device
+> supports stall and PASID.
 
-On 10/13/2017 04:53 AM, Hanjun Guo wrote:
-> Hi Jeremy,
+Can't these be implied by the compatible string of the devices?
+
 > 
-> On 2017/10/13 3:48, Jeremy Linton wrote:
->> Now that we have a PPTT parser, in preparation for its use
->> on arm64, lets build it.
->>
->> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->> ---
->>   arch/arm64/Kconfig         | 1 +
->>   drivers/acpi/Makefile      | 1 +
->>   drivers/acpi/arm64/Kconfig | 3 +++
->>   3 files changed, 5 insertions(+)
->>
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 0df64a6a56d4..68c9d1289735 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -7,6 +7,7 @@ config ARM64
->>   	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->>   	select ACPI_MCFG if ACPI
->>   	select ACPI_SPCR_TABLE if ACPI
->> +	select ACPI_PPTT if ACPI
->>   	select ARCH_CLOCKSOURCE_DATA
->>   	select ARCH_HAS_DEBUG_VIRTUAL
->>   	select ARCH_HAS_DEVMEM_IS_ALLOWED
->> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->> index 90265ab4437a..c92a0c937551 100644
->> --- a/drivers/acpi/Makefile
->> +++ b/drivers/acpi/Makefile
->> @@ -85,6 +85,7 @@ obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
->>   obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
->>   obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
->>   obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
->> +obj-$(CONFIG_ACPI_PPTT) 	+= pptt.o
->>   
->>   # processor has its own "processor." module_param namespace
->>   processor-y			:= processor_driver.o
->> diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
->> index 5a6f80fce0d6..74b855a669ea 100644
->> --- a/drivers/acpi/arm64/Kconfig
->> +++ b/drivers/acpi/arm64/Kconfig
->> @@ -7,3 +7,6 @@ config ACPI_IORT
->>   
->>   config ACPI_GTDT
->>   	bool
->> +
->> +config ACPI_PPTT
->> +	bool
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/iommu/iommu.txt | 24 +++++++++++++++++++++++
+>  1 file changed, 24 insertions(+)
 > 
-> Can this be located in drivers/acpi/Kconfig? then other
-> platform can select ACPI_PPTT if they want.
-
-It can be, but I've been resisting doing that because without any 
-callers using it will do little but bloat the code of anyone that dares 
-enable it.
-
-So my assumption is that when the code to enable PPTT on x86 shows up 
-the config option can be moved as well.
-
-How about I meet you 1/2 way, and put it in the acpi/Kconfig but wrapped 
-in the arm64 exclusive section?
+> diff --git a/Documentation/devicetree/bindings/iommu/iommu.txt b/Documentation/devicetree/bindings/iommu/iommu.txt
+> index 5a8b4624defc..c589b75f7277 100644
+> --- a/Documentation/devicetree/bindings/iommu/iommu.txt
+> +++ b/Documentation/devicetree/bindings/iommu/iommu.txt
+> @@ -86,6 +86,30 @@ have a means to turn off translation. But it is invalid in such cases to
+>  disable the IOMMU's device tree node in the first place because it would
+>  prevent any driver from properly setting up the translations.
+>  
+> +Optional properties:
+> +--------------------
+> +- dma-can-stall: When present, the master can wait for a transaction to
+> +  complete for an indefinite amount of time. Upon translation fault some
+> +  IOMMUs, instead of aborting the translation immediately, may first
+> +  notify the driver and keep the transaction in flight. This allows the OS
+> +  to inspect the fault and, for example, make physical pages resident
+> +  before updating the mappings and completing the transaction. Such IOMMU
+> +  accepts a limited number of simultaneous stalled transactions before
+> +  having to either put back-pressure on the master, or abort new faulting
+> +  transactions.
+> +
+> +  Firmware has to opt-in stalling, because most buses and masters don't
+> +  support it. In particular it isn't compatible with PCI, where
+> +  transactions have to complete before a time limit. More generally it
+> +  won't work in systems and masters that haven't been designed for
+> +  stalling. For example the OS, in order to handle a stalled transaction,
+> +  may attempt to retrieve pages from secondary storage in a stalled
+> +  domain, leading to a deadlock.
+> +
+> +- pasid-bits: Some masters support multiple address spaces for DMA. By
+> +  tagging DMA transactions with an address space identifier. By default,
+> +  this is 0, which means that the device only has one address space.
+> +
+>  
+>  Notes:
+>  ======
+> -- 
+> 2.13.3
+> 
