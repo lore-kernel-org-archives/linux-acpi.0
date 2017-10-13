@@ -1,63 +1,131 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Device properties framework fixes for v4.14-rc5
-Date: Fri, 13 Oct 2017 01:03:48 +0200
-Message-ID: <CAJZ5v0iOmf2CAo-i6echk3pBkFh2XzEDnVT5YAdfnr7_tHOi+w@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] PM / QoS: Drop PM_QOS_FLAG_REMOTE_WAKEUP
+Date: Fri, 13 Oct 2017 02:35:12 +0200
+Message-ID: <1853660.GWc8KbUC1W@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:53755 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753287AbdJMAoo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 12 Oct 2017 20:44:44 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linux PM <linux-pm@vger.kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi Linus,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Please pull from the tag
+The PM QoS flag PM_QOS_FLAG_REMOTE_WAKEUP is not used consistently
+and the vast majority of code simply assumes that remote wakeup
+should be enabled for devices in runtime suspend if they can
+generate wakeup signals, so drop it.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- devprop-4.14-rc5
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c    |    6 ++----
+ drivers/base/power/domain.c |    4 +---
+ drivers/base/power/sysfs.c  |   28 ----------------------------
+ include/linux/pm_qos.h      |    1 -
+ 4 files changed, 3 insertions(+), 36 deletions(-)
 
-with top-most commit 51858a2777f025333c5ac3b3484263bba56461b3
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -581,8 +581,7 @@ static int acpi_dev_pm_get_state(struct
+ 		d_min = ret;
+ 		wakeup = device_may_wakeup(dev) && adev->wakeup.flags.valid
+ 			&& adev->wakeup.sleep_state >= target_state;
+-	} else if (dev_pm_qos_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP) !=
+-			PM_QOS_FLAGS_NONE) {
++	} else {
+ 		wakeup = adev->wakeup.flags.valid;
+ 	}
+ 
+@@ -865,8 +864,7 @@ int acpi_dev_runtime_suspend(struct devi
+ 	if (!adev)
+ 		return 0;
+ 
+-	remote_wakeup = dev_pm_qos_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP) >
+-				PM_QOS_FLAGS_NONE;
++	remote_wakeup = acpi_device_can_wakeup(adev);
+ 	if (remote_wakeup) {
+ 		error = acpi_device_wakeup_enable(adev, ACPI_STATE_S0);
+ 		if (error)
+Index: linux-pm/include/linux/pm_qos.h
+===================================================================
+--- linux-pm.orig/include/linux/pm_qos.h
++++ linux-pm/include/linux/pm_qos.h
+@@ -39,7 +39,6 @@ enum pm_qos_flags_status {
+ #define PM_QOS_LATENCY_ANY			((s32)(~(__u32)0 >> 1))
+ 
+ #define PM_QOS_FLAG_NO_POWER_OFF	(1 << 0)
+-#define PM_QOS_FLAG_REMOTE_WAKEUP	(1 << 1)
+ 
+ struct pm_qos_request {
+ 	struct plist_node node;
+Index: linux-pm/drivers/base/power/domain.c
+===================================================================
+--- linux-pm.orig/drivers/base/power/domain.c
++++ linux-pm/drivers/base/power/domain.c
+@@ -346,9 +346,7 @@ static int genpd_power_off(struct generi
+ 	list_for_each_entry(pdd, &genpd->dev_list, list_node) {
+ 		enum pm_qos_flags_status stat;
+ 
+-		stat = dev_pm_qos_flags(pdd->dev,
+-					PM_QOS_FLAG_NO_POWER_OFF
+-						| PM_QOS_FLAG_REMOTE_WAKEUP);
++		stat = dev_pm_qos_flags(pdd->dev, PM_QOS_FLAG_NO_POWER_OFF);
+ 		if (stat > PM_QOS_FLAGS_NONE)
+ 			return -EBUSY;
+ 
+Index: linux-pm/drivers/base/power/sysfs.c
+===================================================================
+--- linux-pm.orig/drivers/base/power/sysfs.c
++++ linux-pm/drivers/base/power/sysfs.c
+@@ -309,33 +309,6 @@ static ssize_t pm_qos_no_power_off_store
+ static DEVICE_ATTR(pm_qos_no_power_off, 0644,
+ 		   pm_qos_no_power_off_show, pm_qos_no_power_off_store);
+ 
+-static ssize_t pm_qos_remote_wakeup_show(struct device *dev,
+-					 struct device_attribute *attr,
+-					 char *buf)
+-{
+-	return sprintf(buf, "%d\n", !!(dev_pm_qos_requested_flags(dev)
+-					& PM_QOS_FLAG_REMOTE_WAKEUP));
+-}
+-
+-static ssize_t pm_qos_remote_wakeup_store(struct device *dev,
+-					  struct device_attribute *attr,
+-					  const char *buf, size_t n)
+-{
+-	int ret;
+-
+-	if (kstrtoint(buf, 0, &ret))
+-		return -EINVAL;
+-
+-	if (ret != 0 && ret != 1)
+-		return -EINVAL;
+-
+-	ret = dev_pm_qos_update_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP, ret);
+-	return ret < 0 ? ret : n;
+-}
+-
+-static DEVICE_ATTR(pm_qos_remote_wakeup, 0644,
+-		   pm_qos_remote_wakeup_show, pm_qos_remote_wakeup_store);
+-
+ #ifdef CONFIG_PM_SLEEP
+ static const char _enabled[] = "enabled";
+ static const char _disabled[] = "disabled";
+@@ -671,7 +644,6 @@ static const struct attribute_group pm_q
+ 
+ static struct attribute *pm_qos_flags_attrs[] = {
+ 	&dev_attr_pm_qos_no_power_off.attr,
+-	&dev_attr_pm_qos_remote_wakeup.attr,
+ 	NULL,
+ };
+ static const struct attribute_group pm_qos_flags_attr_group = {
 
- ACPI: properties: Fix __acpi_node_get_property_reference() return codes
-
-on top of commit 8a5776a5f49812d29fe4b2d0a2d71675c3facf3f
-
- Linux 4.14-rc4
-
-to receive device properties framework fixes for v4.14-rc5.
-
-These fix an issue related to device removal introduced during the
-4.9 cycle and fix up new functionality added recently.
-
-Specifics:
-
- - Fix a device properties management issue, introduced during the
-   4.9 cycle, that causes device properties associated with a
-   parent device to go away on a removal of its child in some
-   cases (Jarkko Nikula).
-
- - Fix inconsistencies in error codes returned by a new function
-   helper in the device properties framework depending on the
-   underlying low-level firmware interface, DT or ACPI, by making the
-   meaning of error codes returned in the ACPI case agree with the
-   meaning of DT error codes in analogous situations (Sakari Ailus).
-
-Thanks!
-
-
----------------
-
-Jarkko Nikula (1):
-      device property: Track owner device of device property
-
-Sakari Ailus (2):
-      ACPI: properties: Align return codes of
-__acpi_node_get_property_reference()
-      ACPI: properties: Fix __acpi_node_get_property_reference() return codes
-
----------------
-
- drivers/acpi/property.c | 29 +++++++++++++++--------------
- drivers/base/property.c | 19 +++++++++++++------
- 2 files changed, 28 insertions(+), 20 deletions(-)
