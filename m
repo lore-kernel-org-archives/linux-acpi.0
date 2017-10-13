@@ -1,49 +1,36 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] PM / QoS: Drop PM_QOS_FLAG_REMOTE_WAKEUP
-Date: Fri, 13 Oct 2017 08:32:18 +0200
-Message-ID: <CAPDyKFoxooS3QE6vjKr3DNOV6YadV8u0Btw8SWTGdL=EwAxLiQ@mail.gmail.com>
-References: <1853660.GWc8KbUC1W@aspire.rjw.lan>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v2 2/3] ACPI/IORT: Improve functions return type/storage
+ class specifier indentation
+Date: Fri, 13 Oct 2017 15:19:44 +0800
+Message-ID: <59E06910.40404@huawei.com>
+References: <1507824047-17045-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1507824047-17045-3-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f43.google.com ([209.85.214.43]:46862 "EHLO
-        mail-it0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753403AbdJMGcU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Oct 2017 02:32:20 -0400
-Received: by mail-it0-f43.google.com with SMTP id f187so10117807itb.1
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Oct 2017 23:32:19 -0700 (PDT)
-In-Reply-To: <1853660.GWc8KbUC1W@aspire.rjw.lan>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:8024 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750722AbdJMHVA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Oct 2017 03:21:00 -0400
+In-Reply-To: <1507824047-17045-3-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
 
-On 13 October 2017 at 02:35, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 2017/10/13 0:00, Lorenzo Pieralisi wrote:
+> Some functions definition indentations are using a style that is frowned
+> upon with return value type/storage class specifier in a separate line.
 >
-> The PM QoS flag PM_QOS_FLAG_REMOTE_WAKEUP is not used consistently
-> and the vast majority of code simply assumes that remote wakeup
-> should be enabled for devices in runtime suspend if they can
-> generate wakeup signals, so drop it.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Reindent the function definitions to fix them.
 
-With a minor nitpick below, please add:
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
+By the way, I tested this patch set on D05 with no regressions.
 
-> ---
->  drivers/acpi/device_pm.c    |    6 ++----
->  drivers/base/power/domain.c |    4 +---
->  drivers/base/power/sysfs.c  |   28 ----------------------------
->  include/linux/pm_qos.h      |    1 -
->  4 files changed, 3 insertions(+), 36 deletions(-)
+Thanks
+Hanjun
 
-I found the flag to also be mentioned in the
-Documentation/power/pm_qos_interface.txt, could please remove that
-part as well.
 
-[...]
 
-Kind regards
-Uffe
