@@ -1,88 +1,38 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [GIT PULL] ACPI IORT changes for v4.15
-Date: Fri, 13 Oct 2017 16:29:37 +0100
-Message-ID: <20171013152937.GA13386@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH resend 2/3] Bluetooth: hci_bcm: Add support for BCM2E7E
+Date: Fri, 13 Oct 2017 17:54:02 +0200
+Message-ID: <20171013155403.27060-3-hdegoede@redhat.com>
+References: <20171013155403.27060-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35118 "EHLO foss.arm.com"
+Received: from mx1.redhat.com ([209.132.183.28]:65044 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753479AbdJMP3m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 13 Oct 2017 11:29:42 -0400
-Content-Disposition: inline
+        id S1757859AbdJMPyK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 13 Oct 2017 11:54:10 -0400
+In-Reply-To: <20171013155403.27060-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: will.deacon@arm.com, catalin.marinas@arm.com
-Cc: Arvind Yadav <arvind.yadav.cs@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>, sudeep.holla@arm.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, robin.murphy@arm.com
+To: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Catalin, Will,
+Tested on a GPD win with a BCM4356 PCI-E wifi/bt combo card.
 
-here are the ACPI IORT changes I have queued aimed at the v4.15 kernel
-release.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/bluetooth/hci_bcm.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Main changes:
+diff --git a/drivers/bluetooth/hci_bcm.c b/drivers/bluetooth/hci_bcm.c
+index c69da0e8b79f..707c2d1b84c7 100644
+--- a/drivers/bluetooth/hci_bcm.c
++++ b/drivers/bluetooth/hci_bcm.c
+@@ -941,6 +941,7 @@ static const struct acpi_device_id bcm_acpi_match[] = {
+ 	{ "BCM2E71", (kernel_ulong_t)&acpi_bcm_int_last_gpios },
+ 	{ "BCM2E7B", (kernel_ulong_t)&acpi_bcm_int_last_gpios },
+ 	{ "BCM2E7C", (kernel_ulong_t)&acpi_bcm_int_last_gpios },
++	{ "BCM2E7E", (kernel_ulong_t)&acpi_bcm_int_first_gpios },
+ 	{ "BCM2E95", (kernel_ulong_t)&acpi_bcm_int_first_gpios },
+ 	{ "BCM2E96", (kernel_ulong_t)&acpi_bcm_int_first_gpios },
+ 	{ "BCM2EA4", (kernel_ulong_t)&acpi_bcm_int_first_gpios },
+-- 
+2.14.2
 
-- SMMUv3 MSI enablement work based on IORT issue C spec updates
-  (Hanjun Guo)
-- Clean-ups/rework in preparation for PMCG support (Lorenzo Pieralisi)
-
-Patches have a compile time dependency on the ACPICA tree that we handled
-through an ACPI_CA_VERSION guard; I will remove it at v4.15-rc1 when
-dependencies have settled.
-
-Reference discussion:
-
-http://lkml.kernel.org/r/20171013130445.GA27895@red-moon
-
-I expect no merge conflict with the arm64 tree for-next/core branch.
-
-Patches are based on v4.14-rc4 owing to an IORT dependency on a fix
-(ie commit 37f6b42e9c ("ACPI/IORT: Fix PCI ACS enablement")) that
-was merged in v4.14-rc4.
-
-Please consider pulling, thank you.
-
-Lorenzo
-
--- >8 --
-The following changes since commit 8a5776a5f49812d29fe4b2d0a2d71675c3facf3f:
-
-  Linux 4.14-rc4 (2017-10-08 20:53:29 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git tags/acpi/iort-for-v4.15
-
-for you to fetch changes up to 9729b8a405980275e1deae7e163ecd30c6f56e33:
-
-  ACPI/IORT: Enable SMMUv3/PMCG IORT MSI domain set-up (2017-10-13 12:40:53 +0100)
-
-----------------------------------------------------------------
-ACPI IORT updates for v4.15; patches content is logically split into
-the following subseries:
-
-- Code clean-ups (A.Yadav, L.Pieralisi)
-- Platform devices inizialization rework in preparation for IORT PMCG
-  handling (L.Pieralisi)
-- Mapping API rework to enable MSIs for IORT components as defined in
-  IORT specification issue C (H.Guo, L.Pieralisi)
-
-----------------------------------------------------------------
-Arvind Yadav (1):
-      acpi/arm64: pr_err() strings should end with newlines
-
-Hanjun Guo (3):
-      ACPI/IORT: Look up IORT node through struct fwnode_handle pointer
-      ACPI/IORT: Enable special index ITS group mappings for IORT nodes
-      ACPI/IORT: Add SMMUv3 specific special index mapping handling
-
-Lorenzo Pieralisi (4):
-      ACPI/IORT: Remove leftover ACPI_IORT_SMMU_V3_PXM_VALID guard
-      ACPI/IORT: Improve functions return type/storage class specifier indentation
-      ACPI/IORT: Make platform devices initialization code SMMU agnostic
-      ACPI/IORT: Enable SMMUv3/PMCG IORT MSI domain set-up
-
- drivers/acpi/arm64/gtdt.c |   2 +-
- drivers/acpi/arm64/iort.c | 258 +++++++++++++++++++++++++++++++++++-----------
- include/linux/acpi_iort.h |   4 +-
- 3 files changed, 203 insertions(+), 61 deletions(-)
