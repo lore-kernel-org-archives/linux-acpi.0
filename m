@@ -1,20 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / PM: Combine device suspend routines
-Date: Sat, 14 Oct 2017 14:41:56 +0200
-Message-ID: <1757450.aXvHk4JRfq@aspire.rjw.lan>
+Subject: [PATCH v2] ACPI / PM: Combine device suspend routines
+Date: Sat, 14 Oct 2017 17:43:15 +0200
+Message-ID: <4784998.IJUKWVFqcl@aspire.rjw.lan>
+References: <1757450.aXvHk4JRfq@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63246 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752767AbdJNMva (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 14 Oct 2017 08:51:30 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1757450.aXvHk4JRfq@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
@@ -28,10 +25,14 @@ LPSS middle layer on driver removal.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
+
+-> v2: Drop a previously missed acpi_dev_runtime_suspend() header.
+
+---
  drivers/acpi/acpi_lpss.c |    6 ++--
  drivers/acpi/device_pm.c |   61 ++++++++++-------------------------------------
- include/linux/acpi.h     |    2 -
- 3 files changed, 18 insertions(+), 51 deletions(-)
+ include/linux/acpi.h     |    3 --
+ 3 files changed, 18 insertions(+), 52 deletions(-)
 
 Index: linux-pm/drivers/acpi/device_pm.c
 ===================================================================
@@ -182,15 +183,16 @@ Index: linux-pm/include/linux/acpi.h
 ===================================================================
 --- linux-pm.orig/include/linux/acpi.h
 +++ linux-pm/include/linux/acpi.h
-@@ -865,6 +865,7 @@ static inline void arch_reserve_mem_area
+@@ -864,7 +864,7 @@ static inline void arch_reserve_mem_area
+ #endif
  
  #if defined(CONFIG_ACPI) && defined(CONFIG_PM)
- int acpi_dev_runtime_suspend(struct device *dev);
+-int acpi_dev_runtime_suspend(struct device *dev);
 +int acpi_dev_suspend(struct device *dev, bool wakeup);
  int acpi_dev_resume(struct device *dev);
  int acpi_subsys_runtime_suspend(struct device *dev);
  int acpi_subsys_runtime_resume(struct device *dev);
-@@ -889,7 +890,6 @@ int acpi_subsys_resume_early(struct devi
+@@ -889,7 +889,6 @@ int acpi_subsys_resume_early(struct devi
  int acpi_subsys_suspend(struct device *dev);
  int acpi_subsys_freeze(struct device *dev);
  #else
@@ -198,4 +200,3 @@ Index: linux-pm/include/linux/acpi.h
  static inline int acpi_dev_resume_early(struct device *dev) { return 0; }
  static inline int acpi_subsys_prepare(struct device *dev) { return 0; }
  static inline void acpi_subsys_complete(struct device *dev) {}
-
