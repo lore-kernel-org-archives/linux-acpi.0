@@ -1,32 +1,201 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCH resend 0/3] Add support for BCM2E7E ACPI PNP id
-Date: Sat, 14 Oct 2017 09:26:47 +0200
-Message-ID: <CAAE7080-1068-4984-825C-405EDB80CC2D@holtmann.org>
-References: <20171013155403.27060-1-hdegoede@redhat.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.0 \(3445.1.7\))
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / PM: Combine device suspend routines
+Date: Sat, 14 Oct 2017 14:41:56 +0200
+Message-ID: <1757450.aXvHk4JRfq@aspire.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from coyote.holtmann.net ([212.227.132.17]:34433 "EHLO
-        mail.holtmann.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750778AbdJNH0t (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Oct 2017 03:26:49 -0400
-In-Reply-To: <20171013155403.27060-1-hdegoede@redhat.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63246 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752767AbdJNMva (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 14 Oct 2017 08:51:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, "bluez mailin list (linux-bluetooth@vger.kernel.org)" <linux-bluetooth@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi Hans,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> As requested here is a resend of my patches to add support for the
-> BCM2E7E ACPI PNP id and to revert the workaround for the all 0
-> USB id.
+On top of a previous change getting rid of the PM QoS flag
+PM_QOS_FLAG_REMOTE_WAKEUP, combine two ACPI device suspend routines,
+acpi_dev_runtime_suspend() and acpi_dev_suspend_late(), into one,
+acpi_dev_suspend(), to eliminate some code duplication.
 
-all 3 patches have been applied to bluetooth-next tree.
+It also avoids enabling wakeup for devices handled by the ACPI
+LPSS middle layer on driver removal.
 
-Regards
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_lpss.c |    6 ++--
+ drivers/acpi/device_pm.c |   61 ++++++++++-------------------------------------
+ include/linux/acpi.h     |    2 -
+ 3 files changed, 18 insertions(+), 51 deletions(-)
 
-Marcel
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -847,37 +847,39 @@ static int acpi_dev_pm_full_power(struct
+ }
+ 
+ /**
+- * acpi_dev_runtime_suspend - Put device into a low-power state using ACPI.
++ * acpi_dev_suspend - Put device into a low-power state using ACPI.
+  * @dev: Device to put into a low-power state.
++ * @wakeup: Whether or not to enable wakeup for the device.
+  *
+- * Put the given device into a runtime low-power state using the standard ACPI
++ * Put the given device into a low-power state using the standard ACPI
+  * mechanism.  Set up remote wakeup if desired, choose the state to put the
+  * device into (this checks if remote wakeup is expected to work too), and set
+  * the power state of the device.
+  */
+-int acpi_dev_runtime_suspend(struct device *dev)
++int acpi_dev_suspend(struct device *dev, bool wakeup)
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(dev);
+-	bool remote_wakeup;
++	u32 target_state = acpi_target_system_state();
+ 	int error;
+ 
+ 	if (!adev)
+ 		return 0;
+ 
+-	remote_wakeup = acpi_device_can_wakeup(adev);
+-	if (remote_wakeup) {
+-		error = acpi_device_wakeup_enable(adev, ACPI_STATE_S0);
++	if (wakeup && acpi_device_can_wakeup(adev)) {
++		error = acpi_device_wakeup_enable(adev, target_state);
+ 		if (error)
+ 			return -EAGAIN;
++	} else {
++		wakeup = false;
+ 	}
+ 
+-	error = acpi_dev_pm_low_power(dev, adev, ACPI_STATE_S0);
+-	if (error && remote_wakeup)
++	error = acpi_dev_pm_low_power(dev, adev, target_state);
++	if (error && wakeup)
+ 		acpi_device_wakeup_disable(adev);
+ 
+ 	return error;
+ }
+-EXPORT_SYMBOL_GPL(acpi_dev_runtime_suspend);
++EXPORT_SYMBOL_GPL(acpi_dev_suspend);
+ 
+ /**
+  * acpi_dev_resume - Put device into the full-power state using ACPI.
+@@ -910,7 +912,7 @@ EXPORT_SYMBOL_GPL(acpi_dev_resume);
+ int acpi_subsys_runtime_suspend(struct device *dev)
+ {
+ 	int ret = pm_generic_runtime_suspend(dev);
+-	return ret ? ret : acpi_dev_runtime_suspend(dev);
++	return ret ? ret : acpi_dev_suspend(dev, true);
+ }
+ EXPORT_SYMBOL_GPL(acpi_subsys_runtime_suspend);
+ 
+@@ -929,41 +931,6 @@ int acpi_subsys_runtime_resume(struct de
+ EXPORT_SYMBOL_GPL(acpi_subsys_runtime_resume);
+ 
+ #ifdef CONFIG_PM_SLEEP
+-/**
+- * acpi_dev_suspend_late - Put device into a low-power state using ACPI.
+- * @dev: Device to put into a low-power state.
+- *
+- * Put the given device into a low-power state during system transition to a
+- * sleep state using the standard ACPI mechanism.  Set up system wakeup if
+- * desired, choose the state to put the device into (this checks if system
+- * wakeup is expected to work too), and set the power state of the device.
+- */
+-int acpi_dev_suspend_late(struct device *dev)
+-{
+-	struct acpi_device *adev = ACPI_COMPANION(dev);
+-	u32 target_state;
+-	bool wakeup;
+-	int error;
+-
+-	if (!adev)
+-		return 0;
+-
+-	target_state = acpi_target_system_state();
+-	wakeup = device_may_wakeup(dev) && acpi_device_can_wakeup(adev);
+-	if (wakeup) {
+-		error = acpi_device_wakeup_enable(adev, target_state);
+-		if (error)
+-			return error;
+-	}
+-
+-	error = acpi_dev_pm_low_power(dev, adev, target_state);
+-	if (error && wakeup)
+-		acpi_device_wakeup_disable(adev);
+-
+-	return error;
+-}
+-EXPORT_SYMBOL_GPL(acpi_dev_suspend_late);
+-
+ static bool acpi_dev_needs_resume(struct device *dev, struct acpi_device *adev)
+ {
+ 	u32 sys_target = acpi_target_system_state();
+@@ -1046,7 +1013,7 @@ EXPORT_SYMBOL_GPL(acpi_subsys_suspend);
+ int acpi_subsys_suspend_late(struct device *dev)
+ {
+ 	int ret = pm_generic_suspend_late(dev);
+-	return ret ? ret : acpi_dev_suspend_late(dev);
++	return ret ? ret : acpi_dev_suspend(dev, device_may_wakeup(dev));
+ }
+ EXPORT_SYMBOL_GPL(acpi_subsys_suspend_late);
+ 
+Index: linux-pm/drivers/acpi/acpi_lpss.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_lpss.c
++++ linux-pm/drivers/acpi/acpi_lpss.c
+@@ -713,7 +713,7 @@ static int acpi_lpss_activate(struct dev
+ 
+ static void acpi_lpss_dismiss(struct device *dev)
+ {
+-	acpi_dev_runtime_suspend(dev);
++	acpi_dev_suspend(dev, false);
+ }
+ 
+ #ifdef CONFIG_PM_SLEEP
+@@ -729,7 +729,7 @@ static int acpi_lpss_suspend_late(struct
+ 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
+ 		acpi_lpss_save_ctx(dev, pdata);
+ 
+-	return acpi_dev_suspend_late(dev);
++	return acpi_dev_suspend(dev, device_may_wakeup(dev));
+ }
+ 
+ static int acpi_lpss_resume_early(struct device *dev)
+@@ -847,7 +847,7 @@ static int acpi_lpss_runtime_suspend(str
+ 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
+ 		acpi_lpss_save_ctx(dev, pdata);
+ 
+-	ret = acpi_dev_runtime_suspend(dev);
++	ret = acpi_dev_suspend(dev, true);
+ 
+ 	/*
+ 	 * This call must be last in the sequence, otherwise PMC will return
+Index: linux-pm/include/linux/acpi.h
+===================================================================
+--- linux-pm.orig/include/linux/acpi.h
++++ linux-pm/include/linux/acpi.h
+@@ -865,6 +865,7 @@ static inline void arch_reserve_mem_area
+ 
+ #if defined(CONFIG_ACPI) && defined(CONFIG_PM)
+ int acpi_dev_runtime_suspend(struct device *dev);
++int acpi_dev_suspend(struct device *dev, bool wakeup);
+ int acpi_dev_resume(struct device *dev);
+ int acpi_subsys_runtime_suspend(struct device *dev);
+ int acpi_subsys_runtime_resume(struct device *dev);
+@@ -889,7 +890,6 @@ int acpi_subsys_resume_early(struct devi
+ int acpi_subsys_suspend(struct device *dev);
+ int acpi_subsys_freeze(struct device *dev);
+ #else
+-static inline int acpi_dev_suspend_late(struct device *dev) { return 0; }
+ static inline int acpi_dev_resume_early(struct device *dev) { return 0; }
+ static inline int acpi_subsys_prepare(struct device *dev) { return 0; }
+ static inline void acpi_subsys_complete(struct device *dev) {}
 
