@@ -1,202 +1,118 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v2] ACPI / PM: Combine device suspend routines
-Date: Sat, 14 Oct 2017 17:43:15 +0200
-Message-ID: <4784998.IJUKWVFqcl@aspire.rjw.lan>
-References: <1757450.aXvHk4JRfq@aspire.rjw.lan>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
+	behind SMMUv3
+Date: Sun, 15 Oct 2017 07:46:34 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA838437676@FRAEML521-MBS.china.huawei.com>
+References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
+	<20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
+	<20171013192209.GH30572@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1757450.aXvHk4JRfq@aspire.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20171013192209.GH30572-5wv7dgnIgG8@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+Cc: Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "marc.zyngier-5wv7dgnIgG8@public.gmane.org" <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Guohanjun
+	(Hanjun Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-On top of a previous change getting rid of the PM QoS flag
-PM_QOS_FLAG_REMOTE_WAKEUP, combine two ACPI device suspend routines,
-acpi_dev_runtime_suspend() and acpi_dev_suspend_late(), into one,
-acpi_dev_suspend(), to eliminate some code duplication.
 
-It also avoids enabling wakeup for devices handled by the ACPI
-LPSS middle layer on driver removal.
+> -----Original Message-----
+> From: Will Deacon [mailto:will.deacon-5wv7dgnIgG8@public.gmane.org]
+> Sent: Friday, October 13, 2017 8:22 PM
+> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Cc: lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org; marc.zyngier-5wv7dgnIgG8@public.gmane.org;
+> sudeep.holla-5wv7dgnIgG8@public.gmane.org; robin.murphy-5wv7dgnIgG8@public.gmane.org; joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org;
+> bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org; Gabriele Paoloni <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>;
+> John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org;
+> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org; Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>;
+> Wangzhou (B) <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>; Guohanjun (Hanjun Guo)
+> <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers behind
+> SMMUv3
+> 
+> On Fri, Oct 06, 2017 at 03:04:50PM +0100, Shameer Kolothum wrote:
+> > The HiSilicon erratum 161010801 describes the limitation of HiSilicon
+> > platforms hip06/hip07 to support the SMMUv3 mappings for MSI
+> > transactions.
+> >
+> > PCIe controller on these platforms has to differentiate the MSI
+> > payload against other DMA payload and has to modify the MSI payload.
+> > This basically makes it difficult for this platforms to have a SMMU
+> > translation for MSI. In order to workaround this, ARM
+> > SMMUv3 driver requires a quirk to treat the MSI regions separately.
+> > Such a quirk is currently missing for DT based systems and therefore
+> > we need to blacklist the hip06/hip07 PCIe controllers.
+> >
+> > Signed-off-by: Shameer Kolothum
+> <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/pci/dwc/pcie-hisi.c | 12 ++++++++++++
+> >  1 file changed, 12 insertions(+)
+> >
+> > diff --git a/drivers/pci/dwc/pcie-hisi.c b/drivers/pci/dwc/pcie-hisi.c
+> > index a201791..6800747 100644
+> > --- a/drivers/pci/dwc/pcie-hisi.c
+> > +++ b/drivers/pci/dwc/pcie-hisi.c
+> > @@ -270,6 +270,12 @@ static int hisi_pcie_probe(struct platform_device
+> *pdev)
+> >  	struct resource *reg;
+> >  	int ret;
+> >
+> > +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
+> > +			of_property_read_bool(dev->of_node, "iommu-
+> map")) {
+> > +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting
+> PCIe controllers behind SMMUv3\n");
+> > +		return -ENODEV;
+> > +	}
+> > +
+> >  	hisi_pcie = devm_kzalloc(dev, sizeof(*hisi_pcie), GFP_KERNEL);
+> >  	if (!hisi_pcie)
+> >  		return -ENOMEM;
+> > @@ -340,6 +346,12 @@ static int hisi_pcie_almost_ecam_probe(struct
+> platform_device *pdev)
+> >  	struct device *dev = &pdev->dev;
+> >  	struct pci_ecam_ops *ops;
+> >
+> > +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
+> > +			of_property_read_bool(dev->of_node, "iommu-
+> map")) {
+> > +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting
+> PCIe controllers behind SMMUv3\n");
+> > +		return -ENODEV;
+> > +	}
+> 
+> This isn't the right way to solve this problem. I was really hoping you'd come
+> up with a solution for DT, and I know you've been trying, so I suppose for
+> now we'll just have to go with the ACPI workaround you have and leave DT in
+> the balance. I'm not at all happy with that, but I don't think this patch really
+> improves things.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+Yes Will, this is to get the ACPI support enabled for now. 
 
--> v2: Drop a previously missed acpi_dev_runtime_suspend() header.
+> What I think you should do is remove the relevant smmu/iommu-map
+> entries from the .dts files that are available for these platforms (i.e.
+> comment them out with a description as to why).
 
----
- drivers/acpi/acpi_lpss.c |    6 ++--
- drivers/acpi/device_pm.c |   61 ++++++++++-------------------------------------
- include/linux/acpi.h     |    3 --
- 3 files changed, 18 insertions(+), 52 deletions(-)
+We don't have any smmu/iommu-map entries for these platforms in the 
+.dts files [1][2]. We are not aiming for any official DT support for these platforms.
+This patch is to enforce the non-support.
 
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -847,37 +847,39 @@ static int acpi_dev_pm_full_power(struct
- }
- 
- /**
-- * acpi_dev_runtime_suspend - Put device into a low-power state using ACPI.
-+ * acpi_dev_suspend - Put device into a low-power state using ACPI.
-  * @dev: Device to put into a low-power state.
-+ * @wakeup: Whether or not to enable wakeup for the device.
-  *
-- * Put the given device into a runtime low-power state using the standard ACPI
-+ * Put the given device into a low-power state using the standard ACPI
-  * mechanism.  Set up remote wakeup if desired, choose the state to put the
-  * device into (this checks if remote wakeup is expected to work too), and set
-  * the power state of the device.
-  */
--int acpi_dev_runtime_suspend(struct device *dev)
-+int acpi_dev_suspend(struct device *dev, bool wakeup)
- {
- 	struct acpi_device *adev = ACPI_COMPANION(dev);
--	bool remote_wakeup;
-+	u32 target_state = acpi_target_system_state();
- 	int error;
- 
- 	if (!adev)
- 		return 0;
- 
--	remote_wakeup = acpi_device_can_wakeup(adev);
--	if (remote_wakeup) {
--		error = acpi_device_wakeup_enable(adev, ACPI_STATE_S0);
-+	if (wakeup && acpi_device_can_wakeup(adev)) {
-+		error = acpi_device_wakeup_enable(adev, target_state);
- 		if (error)
- 			return -EAGAIN;
-+	} else {
-+		wakeup = false;
- 	}
- 
--	error = acpi_dev_pm_low_power(dev, adev, ACPI_STATE_S0);
--	if (error && remote_wakeup)
-+	error = acpi_dev_pm_low_power(dev, adev, target_state);
-+	if (error && wakeup)
- 		acpi_device_wakeup_disable(adev);
- 
- 	return error;
- }
--EXPORT_SYMBOL_GPL(acpi_dev_runtime_suspend);
-+EXPORT_SYMBOL_GPL(acpi_dev_suspend);
- 
- /**
-  * acpi_dev_resume - Put device into the full-power state using ACPI.
-@@ -910,7 +912,7 @@ EXPORT_SYMBOL_GPL(acpi_dev_resume);
- int acpi_subsys_runtime_suspend(struct device *dev)
- {
- 	int ret = pm_generic_runtime_suspend(dev);
--	return ret ? ret : acpi_dev_runtime_suspend(dev);
-+	return ret ? ret : acpi_dev_suspend(dev, true);
- }
- EXPORT_SYMBOL_GPL(acpi_subsys_runtime_suspend);
- 
-@@ -929,41 +931,6 @@ int acpi_subsys_runtime_resume(struct de
- EXPORT_SYMBOL_GPL(acpi_subsys_runtime_resume);
- 
- #ifdef CONFIG_PM_SLEEP
--/**
-- * acpi_dev_suspend_late - Put device into a low-power state using ACPI.
-- * @dev: Device to put into a low-power state.
-- *
-- * Put the given device into a low-power state during system transition to a
-- * sleep state using the standard ACPI mechanism.  Set up system wakeup if
-- * desired, choose the state to put the device into (this checks if system
-- * wakeup is expected to work too), and set the power state of the device.
-- */
--int acpi_dev_suspend_late(struct device *dev)
--{
--	struct acpi_device *adev = ACPI_COMPANION(dev);
--	u32 target_state;
--	bool wakeup;
--	int error;
--
--	if (!adev)
--		return 0;
--
--	target_state = acpi_target_system_state();
--	wakeup = device_may_wakeup(dev) && acpi_device_can_wakeup(adev);
--	if (wakeup) {
--		error = acpi_device_wakeup_enable(adev, target_state);
--		if (error)
--			return error;
--	}
--
--	error = acpi_dev_pm_low_power(dev, adev, target_state);
--	if (error && wakeup)
--		acpi_device_wakeup_disable(adev);
--
--	return error;
--}
--EXPORT_SYMBOL_GPL(acpi_dev_suspend_late);
--
- static bool acpi_dev_needs_resume(struct device *dev, struct acpi_device *adev)
- {
- 	u32 sys_target = acpi_target_system_state();
-@@ -1046,7 +1013,7 @@ EXPORT_SYMBOL_GPL(acpi_subsys_suspend);
- int acpi_subsys_suspend_late(struct device *dev)
- {
- 	int ret = pm_generic_suspend_late(dev);
--	return ret ? ret : acpi_dev_suspend_late(dev);
-+	return ret ? ret : acpi_dev_suspend(dev, device_may_wakeup(dev));
- }
- EXPORT_SYMBOL_GPL(acpi_subsys_suspend_late);
- 
-Index: linux-pm/drivers/acpi/acpi_lpss.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpi_lpss.c
-+++ linux-pm/drivers/acpi/acpi_lpss.c
-@@ -713,7 +713,7 @@ static int acpi_lpss_activate(struct dev
- 
- static void acpi_lpss_dismiss(struct device *dev)
- {
--	acpi_dev_runtime_suspend(dev);
-+	acpi_dev_suspend(dev, false);
- }
- 
- #ifdef CONFIG_PM_SLEEP
-@@ -729,7 +729,7 @@ static int acpi_lpss_suspend_late(struct
- 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
- 		acpi_lpss_save_ctx(dev, pdata);
- 
--	return acpi_dev_suspend_late(dev);
-+	return acpi_dev_suspend(dev, device_may_wakeup(dev));
- }
- 
- static int acpi_lpss_resume_early(struct device *dev)
-@@ -847,7 +847,7 @@ static int acpi_lpss_runtime_suspend(str
- 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
- 		acpi_lpss_save_ctx(dev, pdata);
- 
--	ret = acpi_dev_runtime_suspend(dev);
-+	ret = acpi_dev_suspend(dev, true);
- 
- 	/*
- 	 * This call must be last in the sequence, otherwise PMC will return
-Index: linux-pm/include/linux/acpi.h
-===================================================================
---- linux-pm.orig/include/linux/acpi.h
-+++ linux-pm/include/linux/acpi.h
-@@ -864,7 +864,7 @@ static inline void arch_reserve_mem_area
- #endif
- 
- #if defined(CONFIG_ACPI) && defined(CONFIG_PM)
--int acpi_dev_runtime_suspend(struct device *dev);
-+int acpi_dev_suspend(struct device *dev, bool wakeup);
- int acpi_dev_resume(struct device *dev);
- int acpi_subsys_runtime_suspend(struct device *dev);
- int acpi_subsys_runtime_resume(struct device *dev);
-@@ -889,7 +889,6 @@ int acpi_subsys_resume_early(struct devi
- int acpi_subsys_suspend(struct device *dev);
- int acpi_subsys_freeze(struct device *dev);
- #else
--static inline int acpi_dev_suspend_late(struct device *dev) { return 0; }
- static inline int acpi_dev_resume_early(struct device *dev) { return 0; }
- static inline int acpi_subsys_prepare(struct device *dev) { return 0; }
- static inline void acpi_subsys_complete(struct device *dev) {}
+Thanks,
+Shameer
+
+1. http://elixir.free-electrons.com/linux/v4.14-rc4/source/arch/arm64/boot/dts/hisilicon/hip07.dtsi
+2. http://elixir.free-electrons.com/linux/v4.14-rc4/source/arch/arm64/boot/dts/hisilicon/hip06.dtsi
