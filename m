@@ -1,67 +1,61 @@
-From: <info@kunstreich-im-pott.de>
-Subject: (unknown)
-Date: Sun, 15 Oct 2017 22:07:34 -0000
-Message-ID: <150810525437.32758.7101939672682757236@telemar.net.br>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / device_sysfs: Leave modalias empty for devices
+ which are not present
+Date: Mon, 16 Oct 2017 01:47:20 +0200
+Message-ID: <CAJZ5v0hAx_-OUQNBngScNKHstZhZ42A42LwcBOFhR2g5pCFXOA@mail.gmail.com>
+References: <20171015192449.16035-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="377462.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 20118135035.host.telemar.net.br ([201.18.135.35]:4402 "HELO
-        telemar.net.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1751389AbdJOWHl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Oct 2017 18:07:41 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:34933 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751235AbdJOXrW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Oct 2017 19:47:22 -0400
+Received: by mail-oi0-f66.google.com with SMTP id e123so5998901oig.2
+        for <linux-acpi@vger.kernel.org>; Sun, 15 Oct 2017 16:47:21 -0700 (PDT)
+In-Reply-To: <20171015192449.16035-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-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
-AAAAAA==
+On Sun, Oct 15, 2017 at 9:24 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> Most Bay and Cherry Trail devices use a generic DSDT with all possible
+> peripheral devices present in the DSDT, with their _STA returning 0x00 or
+> 0x0f based on AML variables which describe what is actually present on
+> the board.
+>
+> Since ACPI device objects with a 0x00 status (not present) still get an
+> entry under /sys/bus/acpi/devices, and those entry had an acpi:PNPID
+> modalias, userspace would end up loading modules for non present hardware.
+>
+> This commit fixes this by leaving the modalias empty for non present
+> devices. This results in 10 modules less being loaded with a generic
+> distro kernel config on my Cherry Trail test-device (a GPD pocket).
+
+Well, what about hotplug?
+
+On some systems _STA may change from 0 to nonzero for some devices, so
+what's going to happen to the modalias then?
+
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/acpi/device_sysfs.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+> index 24418932612e..a041689e5701 100644
+> --- a/drivers/acpi/device_sysfs.c
+> +++ b/drivers/acpi/device_sysfs.c
+> @@ -146,6 +146,10 @@ static int create_pnp_modalias(struct acpi_device *acpi_dev, char *modalias,
+>         int count;
+>         struct acpi_hardware_id *id;
+>
+> +       /* Avoid unnecessarily loading modules for non present devices. */
+> +       if (!acpi_device_is_present(acpi_dev))
+> +               return 0;
+> +
+>         /*
+>          * Since we skip ACPI_DT_NAMESPACE_HID from the modalias below, 0 should
+>          * be returned if ACPI_DT_NAMESPACE_HID is the only ACPI/PNP ID in the
+> --
