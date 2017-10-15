@@ -1,38 +1,44 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v3 1/2] acpi: apei: remove the unused dead-code for SEA
- notification type
-Date: Sun, 15 Oct 2017 16:35:59 +0800
-Message-ID: <7a99ceed-850b-caf1-a258-f55624bb9bb3@huawei.com>
-References: <1506602498-25752-1-git-send-email-gengdongjiu@huawei.com>
- <20171013132135.ahumafo2grbkiqss@pd.tnic>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v3 2/2] ACPI / scan: Fix enumeration for special UART
+ devices
+Date: Sun, 15 Oct 2017 11:57:23 +0200
+Message-ID: <20171015095723.GA15524@wunner.de>
+References: <1507710734-32520-1-git-send-email-frederic.danis.oss@gmail.com>
+ <1507710734-32520-3-git-send-email-frederic.danis.oss@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:8046 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750753AbdJOIgg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Oct 2017 04:36:36 -0400
-In-Reply-To: <20171013132135.ahumafo2grbkiqss@pd.tnic>
-Content-Language: en-US
+Received: from bmailout2.hostsharing.net ([83.223.90.240]:36201 "EHLO
+        bmailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750722AbdJOKCs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Oct 2017 06:02:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1507710734-32520-3-git-send-email-frederic.danis.oss@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: will.deacon@arm.com, zjzhang@codeaurora.org, catalin.marinas@arm.com, tbaicar@codeaurora.org, james.morse@arm.com, geliangtang@gmail.com, andriy.shevchenko@linux.intel.com, tony.luck@intel.com, austinwc@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, john.garry@huawei.com, shiju.jose@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, huangshaoyu@huawei.com, wuquanming@huawei.com
+To: =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: robh@kernel.org, marcel@holtmann.org, sre@kernel.org, loic.poulain@gmail.com, johan@kernel.org, hdegoede@redhat.com, rafael@kernel.org, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Ronald =?iso-8859-1?Q?Tschal=E4r?= <ronald@innovation.ch>, "Peter Y. Chuang" <peteryuchuang@gmail.com>
 
-Borislav,
-  Thank you for your time to review it.
+On Wed, Oct 11, 2017 at 10:32:14AM +0200, Frédéric Danis wrote:
+> UART devices is expected to be enumerated by SerDev subsystem.
+> 
+> During ACPI scan, serial devices behind SPI, I2C or UART buses are not
+> enumerated, allowing them to be enumerated by their respective parents.
+> 
+> Rename *spi_i2c_slave* to *serial_bus_slave* as this will be used for serial
+> devices on serial buses (SPI, I2C or UART).
+> 
+> On Macs an empty ResourceTemplate is returned for uart slaves.
+> Instead the device properties "baud", "parity", "dataBits", "stopBits" are
+> provided. Add a check for "baud" in acpi_is_serial_bus_slave().
 
-On 2017/10/13 21:21, Borislav Petkov wrote:
->>  	.notifier_call = ghes_notify_hed,
->>  };
->>  
->> -#ifdef CONFIG_ACPI_APEI_SEA
->>  static LIST_HEAD(ghes_sea);
-> But now those get compiled in on x86 where there's no SEA and where we
-> don't need them. So no, I don't think this patch is correct.
+Tested-by: Ronald Tschalär <ronald@innovation.ch>
+Tested-by: Peter Y. Chuang <peteryuchuang@gmail.com>
 
-If have updated the patch for the x86, you can review the version 4 patches.
-thanks.
+Ronald and Peter both report success for the above-mentioned Mac-specific
+change on GitHub: https://github.com/l1k/linux/pull/1#issuecomment-336126330
 
+Thanks,
 
+Lukas
