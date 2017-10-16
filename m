@@ -1,75 +1,148 @@
-From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH v2 12/15] RDMA/cma: make config_item_type
-	const
-Date: Mon, 16 Oct 2017 17:18:51 +0200
-Message-ID: <1508167134-6243-13-git-send-email-bhumirks@gmail.com>
-References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
-Return-path: <cluster-devel-bounces@redhat.com>
-In-Reply-To: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/cluster-devel>
-List-Post: <mailto:cluster-devel@redhat.com>
-List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=subscribe>
-Sender: cluster-devel-bounces@redhat.com
-Errors-To: cluster-devel-bounces@redhat.com
-To: julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, hch@lst.de, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, cluster-devel@redhat.com, ocfs2-devel@oss.oracle.com, linux-fsdevel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v9 2/4] iommu/dma: Add a helper function to reserve HW
+ MSI address regions for IOMMU drivers
+Date: Mon, 16 Oct 2017 16:09:36 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA83844672A@FRAEML521-MBX.china.huawei.com>
+References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
+ <20171006140450.89652-3-shameerali.kolothum.thodi@huawei.com>
+ <20171013192350.GA32130@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20171013192350.GA32130@arm.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "joro@8bytes.org" <joro@8bytes.org>, John Garry <john.garry@huawei.com>, "Guohanjun
+ (Hanjun Guo)" <guohanjun@huawei.com>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Make these structures const as they are either passed to the functions
-having the argument as const or stored as a reference in the "ci_type"
-const field of a config_item structure.
+Hi Robin,
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
-* Changes in v2- Combine all the followup patches and the constification
-patches into a series.
+> -----Original Message-----
+> From: Will Deacon [mailto:will.deacon@arm.com]
+> Sent: Friday, October 13, 2017 8:24 PM
+> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+> Cc: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
+> sudeep.holla@arm.com; robin.murphy@arm.com; joro@8bytes.org;
+> bhelgaas@google.com; Gabriele Paoloni <gabriele.paoloni@huawei.com>;
+> John Garry <john.garry@huawei.com>; iommu@lists.linux-foundation.org;
+> linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org; linux-
+> pci@vger.kernel.org; devel@acpica.org; Linuxarm <linuxarm@huawei.com>;
+> Wangzhou (B) <wangzhou1@hisilicon.com>; Guohanjun (Hanjun Guo)
+> <guohanjun@huawei.com>
+> Subject: Re: [PATCH v9 2/4] iommu/dma: Add a helper function to reserve HW
+> MSI address regions for IOMMU drivers
+> 
+> On Fri, Oct 06, 2017 at 03:04:48PM +0100, Shameer Kolothum wrote:
+> > IOMMU drivers can use this to implement their .get_resv_regions callback
+> > for HW MSI specific reservations(e.g. ARM GICv3 ITS MSI region).
+> >
+> > Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> > ---
+> >  drivers/iommu/dma-iommu.c | 20 ++++++++++++++++++++
+> >  include/linux/dma-iommu.h |  7 +++++++
+> >  2 files changed, 27 insertions(+)
+> 
+> I'd like to see Robin's Ack on this, because this is his code and he had
+> ideas on ways to solve this problem properly.
 
- drivers/infiniband/core/cma_configfs.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Please let us know if it is ok to go ahead with ACPI support for now.
+It will help our customers to start using pass-through for PCIe.
 
-diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
-index 54076a3..31dfee0 100644
---- a/drivers/infiniband/core/cma_configfs.c
-+++ b/drivers/infiniband/core/cma_configfs.c
-@@ -186,7 +186,7 @@ static ssize_t default_roce_tos_store(struct config_item *item,
- 	NULL,
- };
- 
--static struct config_item_type cma_port_group_type = {
-+static const struct config_item_type cma_port_group_type = {
- 	.ct_attrs	= cma_configfs_attributes,
- 	.ct_owner	= THIS_MODULE
- };
-@@ -263,7 +263,7 @@ static void release_cma_ports_group(struct config_item  *item)
- 	.release = release_cma_ports_group
- };
- 
--static struct config_item_type cma_ports_group_type = {
-+static const struct config_item_type cma_ports_group_type = {
- 	.ct_item_ops	= &cma_ports_item_ops,
- 	.ct_owner	= THIS_MODULE
- };
-@@ -272,7 +272,7 @@ static void release_cma_ports_group(struct config_item  *item)
- 	.release = release_cma_dev
- };
- 
--static struct config_item_type cma_device_group_type = {
-+static const struct config_item_type cma_device_group_type = {
- 	.ct_item_ops	= &cma_device_item_ops,
- 	.ct_owner	= THIS_MODULE
- };
-@@ -323,7 +323,7 @@ static struct config_group *make_cma_dev(struct config_group *group,
- 	.make_group	= make_cma_dev,
- };
- 
--static struct config_item_type cma_subsys_type = {
-+static const struct config_item_type cma_subsys_type = {
- 	.ct_group_ops	= &cma_subsys_group_ops,
- 	.ct_owner	= THIS_MODULE,
- };
--- 
-1.9.1
+Thanks,
+Shameer
+
+> 
+> Will
+> 
+> > diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+> > index 9d1cebe..bae677e 100644
+> > --- a/drivers/iommu/dma-iommu.c
+> > +++ b/drivers/iommu/dma-iommu.c
+> > @@ -19,6 +19,7 @@
+> >   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+> >   */
+> >
+> > +#include <linux/acpi_iort.h>
+> >  #include <linux/device.h>
+> >  #include <linux/dma-iommu.h>
+> >  #include <linux/gfp.h>
+> > @@ -27,6 +28,7 @@
+> >  #include <linux/iova.h>
+> >  #include <linux/irq.h>
+> >  #include <linux/mm.h>
+> > +#include <linux/of_iommu.h>
+> >  #include <linux/pci.h>
+> >  #include <linux/scatterlist.h>
+> >  #include <linux/vmalloc.h>
+> > @@ -198,6 +200,24 @@ void iommu_dma_get_resv_regions(struct device
+> *dev, struct list_head *list)
+> >  }
+> >  EXPORT_SYMBOL(iommu_dma_get_resv_regions);
+> >
+> > +/**
+> > + * iommu_dma_get_msi_resv_regions - Reserved region driver helper
+> > + * @dev: Device from iommu_get_resv_regions()
+> > + * @list: Reserved region list from iommu_get_resv_regions()
+> > + *
+> > + * IOMMU drivers can use this to implement their .get_resv_regions
+> > + * callback for HW MSI specific reservations. For now, this only
+> > + * covers ITS MSI region reservation using ACPI IORT helper function.
+> > + */
+> > +int iommu_dma_get_msi_resv_regions(struct device *dev, struct list_head
+> *list)
+> > +{
+> > +	if (!is_of_node(dev->iommu_fwspec->iommu_fwnode))
+> > +		return iort_iommu_msi_get_resv_regions(dev, list);
+> > +
+> > +	return -ENODEV;
+> > +}
+> > +EXPORT_SYMBOL(iommu_dma_get_msi_resv_regions);
+> > +
+> >  static int cookie_init_hw_msi_region(struct iommu_dma_cookie *cookie,
+> >  		phys_addr_t start, phys_addr_t end)
+> >  {
+> > diff --git a/include/linux/dma-iommu.h b/include/linux/dma-iommu.h
+> > index 92f2083..6062ef0 100644
+> > --- a/include/linux/dma-iommu.h
+> > +++ b/include/linux/dma-iommu.h
+> > @@ -74,6 +74,8 @@ void iommu_dma_unmap_resource(struct device *dev,
+> dma_addr_t handle,
+> >  void iommu_dma_map_msi_msg(int irq, struct msi_msg *msg);
+> >  void iommu_dma_get_resv_regions(struct device *dev, struct list_head
+> *list);
+> >
+> > +int iommu_dma_get_msi_resv_regions(struct device *dev, struct list_head
+> *list);
+> > +
+> >  #else
+> >
+> >  struct iommu_domain;
+> > @@ -107,6 +109,11 @@ static inline void
+> iommu_dma_get_resv_regions(struct device *dev, struct list_he
+> >  {
+> >  }
+> >
+> > +static inline int iommu_dma_get_msi_resv_regions(struct device *dev,
+> struct list_head *list)
+> > +{
+> > +	return -ENODEV;
+> > +}
+> > +
+> >  #endif	/* CONFIG_IOMMU_DMA */
+> >  #endif	/* __KERNEL__ */
+> >  #endif	/* __DMA_IOMMU_H */
+> > --
+> > 1.9.1
+> >
+> >
