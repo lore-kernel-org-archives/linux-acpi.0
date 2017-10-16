@@ -1,129 +1,94 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [GIT PULL v2] ACPI IORT changes for v4.15
-Date: Mon, 16 Oct 2017 17:11:06 +0100
-Message-ID: <20171016161106.GA18942@red-moon>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 06/15] PCI: endpoint: make config_item_type const
+Date: Mon, 16 Oct 2017 13:24:37 -0500
+Message-ID: <20171016182437.GG25517@bhelgaas-glaptop.roam.corp.google.com>
+References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
+ <1508167134-6243-7-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59278 "EHLO foss.arm.com"
+Received: from mail.kernel.org ([198.145.29.99]:42974 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753221AbdJPQLJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 16 Oct 2017 12:11:09 -0400
+        id S1753266AbdJPSYl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 16 Oct 2017 14:24:41 -0400
 Content-Disposition: inline
+In-Reply-To: <1508167134-6243-7-git-send-email-bhumirks@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: will.deacon@arm.com, catalin.marinas@arm.com
-Cc: Arvind Yadav <arvind.yadav.cs@gmail.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, robin.murphy@arm.com, sudeep.holla@arm.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, hch@lst.de, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, cluster-devel@redh
 
-Hi Catalin, Will,
+On Mon, Oct 16, 2017 at 05:18:45PM +0200, Bhumika Goyal wrote:
+> Make config_item_type structures const as they are either passed to a
+> function having the argument as const or stored in the const "ci_type"
+> field of a config_item structure.
+> 
+> Done using Coccinelle.
+> 
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 
-this is a v2 of a previous PR:
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-v1 -> v2:
-	 Rebased pull request on top of v4.14-rc3
+Please apply this along with the rest of the series, since it depends
+on an earlier patch in the series.
 
-v1: http://lkml.kernel.org/r/20171013152937.GA13386@red-moon
-
-Here are the ACPI IORT changes I have queued aimed at the v4.15 kernel
-release.
-
-Main changes:
-
-- SMMUv3 MSI enablement work based on IORT issue C spec updates
-  (Hanjun Guo)
-- Clean-ups/rework in preparation for PMCG support (Lorenzo Pieralisi)
-
-Patches have a compile time dependency on the ACPICA tree that we handled
-through an ACPI_CA_VERSION guard; I will remove it at v4.15-rc1 when
-dependencies have settled.
-
-Reference discussion:
-
-http://lkml.kernel.org/r/20171013130445.GA27895@red-moon
-
-I expect no merge conflict with the arm64 tree for-next/core branch.
-
-The content patches will cause a minor conflict when pulled into mainline,
-since mainline contains a fix:
-
-commit 37f6b42e9c ("ACPI/IORT: Fix PCI ACS enablement"))
-
-that was merged in v4.14-rc4 and code in this pull request does not
-rebase cleanly on top of it; my commit resolution below.
-
-Please consider pulling, thank you.
-
-Lorenzo
-
--- >8 --
-diff --cc drivers/acpi/arm64/iort.c
-index de56394,7dc964f..0000000
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@@ -1215,7 -1326,7 +1357,8 @@@ static void __init iort_init_platform_d
-  	struct acpi_table_iort *iort;
-  	struct fwnode_handle *fwnode;
-  	int i, ret;
- +	bool acs_enabled = false;
-+ 	const struct iort_dev_config *ops;
-  
-  	/*
-  	 * iort_table and iort both point to the start of IORT table, but
-@@@ -1235,12 -1346,8 +1378,11 @@@
-  			return;
-  		}
-  
- +		if (!acs_enabled)
- +			acs_enabled = iort_enable_acs(iort_node);
- +
-- 		if ((iort_node->type == ACPI_IORT_NODE_SMMU) ||
-- 			(iort_node->type == ACPI_IORT_NODE_SMMU_V3)) {
-- 
-+ 		ops = iort_get_dev_cfg(iort_node);
-+ 		if (ops) {
-  			fwnode = acpi_alloc_fwnode_static();
-  			if (!fwnode)
-  				return;
--- >8 --
-
-The following changes since commit 9e66317d3c92ddaab330c125dfe9d06eee268aff:
-
-  Linux 4.14-rc3 (2017-10-01 14:54:54 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git tags/acpi/iort-for-v4.15
-
-for you to fetch changes up to 65637901a3409f8a7952750e975536bde70fa1f8:
-
-  ACPI/IORT: Enable SMMUv3/PMCG IORT MSI domain set-up (2017-10-16 14:30:15 +0100)
-
-----------------------------------------------------------------
-ACPI IORT updates for v4.15; patches content is logically split into
-the following subseries:
-
-- Code clean-ups (A.Yadav, L.Pieralisi)
-- Platform devices inizialization rework in preparation for IORT PMCG
-  handling (L.Pieralisi)
-- Mapping API rework to enable MSIs for IORT components as defined in
-  IORT specification issue C (H.Guo, L.Pieralisi)
-
-----------------------------------------------------------------
-Arvind Yadav (1):
-      acpi/arm64: pr_err() strings should end with newlines
-
-Hanjun Guo (3):
-      ACPI/IORT: Look up IORT node through struct fwnode_handle pointer
-      ACPI/IORT: Enable special index ITS group mappings for IORT nodes
-      ACPI/IORT: Add SMMUv3 specific special index mapping handling
-
-Lorenzo Pieralisi (4):
-      ACPI/IORT: Remove leftover ACPI_IORT_SMMU_V3_PXM_VALID guard
-      ACPI/IORT: Improve functions return type/storage class specifier indentation
-      ACPI/IORT: Make platform devices initialization code SMMU agnostic
-      ACPI/IORT: Enable SMMUv3/PMCG IORT MSI domain set-up
-
- drivers/acpi/arm64/gtdt.c |   2 +-
- drivers/acpi/arm64/iort.c | 258 +++++++++++++++++++++++++++++++++++-----------
- include/linux/acpi_iort.h |   4 +-
- 3 files changed, 203 insertions(+), 61 deletions(-)
+> ---
+> * Changes in v2- Combine all the followup patches and the constification
+> patches into a series.
+> 
+>  drivers/pci/endpoint/pci-ep-cfs.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/pci/endpoint/pci-ep-cfs.c b/drivers/pci/endpoint/pci-ep-cfs.c
+> index 424fdd6..4f74386 100644
+> --- a/drivers/pci/endpoint/pci-ep-cfs.c
+> +++ b/drivers/pci/endpoint/pci-ep-cfs.c
+> @@ -150,7 +150,7 @@ static void pci_epc_epf_unlink(struct config_item *epc_item,
+>  	.drop_link	= pci_epc_epf_unlink,
+>  };
+>  
+> -static struct config_item_type pci_epc_type = {
+> +static const struct config_item_type pci_epc_type = {
+>  	.ct_item_ops	= &pci_epc_item_ops,
+>  	.ct_attrs	= pci_epc_attrs,
+>  	.ct_owner	= THIS_MODULE,
+> @@ -361,7 +361,7 @@ static void pci_epf_release(struct config_item *item)
+>  	.release		= pci_epf_release,
+>  };
+>  
+> -static struct config_item_type pci_epf_type = {
+> +static const struct config_item_type pci_epf_type = {
+>  	.ct_item_ops	= &pci_epf_ops,
+>  	.ct_attrs	= pci_epf_attrs,
+>  	.ct_owner	= THIS_MODULE,
+> @@ -400,7 +400,7 @@ static void pci_epf_drop(struct config_group *group, struct config_item *item)
+>  	.drop_item      = &pci_epf_drop,
+>  };
+>  
+> -static struct config_item_type pci_epf_group_type = {
+> +static const struct config_item_type pci_epf_group_type = {
+>  	.ct_group_ops	= &pci_epf_group_ops,
+>  	.ct_owner	= THIS_MODULE,
+>  };
+> @@ -428,15 +428,15 @@ void pci_ep_cfs_remove_epf_group(struct config_group *group)
+>  }
+>  EXPORT_SYMBOL(pci_ep_cfs_remove_epf_group);
+>  
+> -static struct config_item_type pci_functions_type = {
+> +static const struct config_item_type pci_functions_type = {
+>  	.ct_owner	= THIS_MODULE,
+>  };
+>  
+> -static struct config_item_type pci_controllers_type = {
+> +static const struct config_item_type pci_controllers_type = {
+>  	.ct_owner	= THIS_MODULE,
+>  };
+>  
+> -static struct config_item_type pci_ep_type = {
+> +static const struct config_item_type pci_ep_type = {
+>  	.ct_owner	= THIS_MODULE,
+>  };
+>  
+> -- 
+> 1.9.1
+> 
