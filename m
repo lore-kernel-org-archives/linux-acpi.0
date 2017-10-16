@@ -1,214 +1,48 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v2] ACPI / PM: Combine device suspend routines
-Date: Mon, 16 Oct 2017 10:01:54 +0200
-Message-ID: <CAPDyKFqYbCmavU_v84P0pFaeyWuUBWdF1iei2epqhCFzzOeejw@mail.gmail.com>
-References: <1757450.aXvHk4JRfq@aspire.rjw.lan> <4784998.IJUKWVFqcl@aspire.rjw.lan>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [RFCv2 PATCH 12/36] dt-bindings: document stall and PASID
+ properties for IOMMU masters
+Date: Mon, 16 Oct 2017 11:23:02 +0100
+Message-ID: <e7288f51-1cfa-44ce-e3ce-e9f3daf91579@arm.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+ <20171006133203.22803-13-jean-philippe.brucker@arm.com>
+ <20171013191051.lgxbcobkzzj5guhv@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f178.google.com ([209.85.223.178]:50232 "EHLO
-        mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751743AbdJPIBz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Oct 2017 04:01:55 -0400
-Received: by mail-io0-f178.google.com with SMTP id 97so15135357iok.7
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Oct 2017 01:01:55 -0700 (PDT)
-In-Reply-To: <4784998.IJUKWVFqcl@aspire.rjw.lan>
+Received: from foss.arm.com ([217.140.101.70]:54890 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750914AbdJPKR7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 16 Oct 2017 06:17:59 -0400
+In-Reply-To: <20171013191051.lgxbcobkzzj5guhv@rob-hp-laptop>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Rob Herring <robh@kernel.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "joro@8bytes.org" <joro@8bytes.org>, Mark Rutland <Mark.Rutland@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Robin Murphy <Robin.Murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>
 
-On 14 October 2017 at 17:43, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> On top of a previous change getting rid of the PM QoS flag
-> PM_QOS_FLAG_REMOTE_WAKEUP, combine two ACPI device suspend routines,
-> acpi_dev_runtime_suspend() and acpi_dev_suspend_late(), into one,
-> acpi_dev_suspend(), to eliminate some code duplication.
->
-> It also avoids enabling wakeup for devices handled by the ACPI
-> LPSS middle layer on driver removal.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 13/10/17 20:10, Rob Herring wrote:
+> On Fri, Oct 06, 2017 at 02:31:39PM +0100, Jean-Philippe Brucker wrote:
+>> On ARM systems, some platform devices behind an IOMMU may support stall
+>> and PASID features. Stall is the ability to recover from page faults and
+>> PASID offers multiple process address spaces to the device. Together they
+>> allow to do paging with a device. Let the firmware tell us when a device
+>> supports stall and PASID.
+> 
+> Can't these be implied by the compatible string of the devices?
 
-Nice work and cleanup!
+I think that PASID capacity can be deduced from the compatible string but
+don't know how these devices will be implemented (the only known example
+being a software model for testing). In any case implementing PASID based
+on the compatible string is tricky, because the IOMMU driver needs to know
+PASID capacity before the device driver has had time to probe the device.
+Maybe we could get away with a static table associating compatible string
+to PASID capacity, but it's not very nice.
 
-Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
+For stall it's a property of the integration between device and IOMMU,
+much like the "iommus" property, so it can't be deduced only from the
+compatible string. It's crucial that the firmware validates that stalling
+is safe, because we don't have any other way to discover it.
 
-> ---
->
-> -> v2: Drop a previously missed acpi_dev_runtime_suspend() header.
->
-> ---
->  drivers/acpi/acpi_lpss.c |    6 ++--
->  drivers/acpi/device_pm.c |   61 ++++++++++-------------------------------------
->  include/linux/acpi.h     |    3 --
->  3 files changed, 18 insertions(+), 52 deletions(-)
->
-> Index: linux-pm/drivers/acpi/device_pm.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/device_pm.c
-> +++ linux-pm/drivers/acpi/device_pm.c
-> @@ -847,37 +847,39 @@ static int acpi_dev_pm_full_power(struct
->  }
->
->  /**
-> - * acpi_dev_runtime_suspend - Put device into a low-power state using ACPI.
-> + * acpi_dev_suspend - Put device into a low-power state using ACPI.
->   * @dev: Device to put into a low-power state.
-> + * @wakeup: Whether or not to enable wakeup for the device.
->   *
-> - * Put the given device into a runtime low-power state using the standard ACPI
-> + * Put the given device into a low-power state using the standard ACPI
->   * mechanism.  Set up remote wakeup if desired, choose the state to put the
->   * device into (this checks if remote wakeup is expected to work too), and set
->   * the power state of the device.
->   */
-> -int acpi_dev_runtime_suspend(struct device *dev)
-> +int acpi_dev_suspend(struct device *dev, bool wakeup)
->  {
->         struct acpi_device *adev = ACPI_COMPANION(dev);
-> -       bool remote_wakeup;
-> +       u32 target_state = acpi_target_system_state();
->         int error;
->
->         if (!adev)
->                 return 0;
->
-> -       remote_wakeup = acpi_device_can_wakeup(adev);
-> -       if (remote_wakeup) {
-> -               error = acpi_device_wakeup_enable(adev, ACPI_STATE_S0);
-> +       if (wakeup && acpi_device_can_wakeup(adev)) {
-> +               error = acpi_device_wakeup_enable(adev, target_state);
->                 if (error)
->                         return -EAGAIN;
-> +       } else {
-> +               wakeup = false;
->         }
->
-> -       error = acpi_dev_pm_low_power(dev, adev, ACPI_STATE_S0);
-> -       if (error && remote_wakeup)
-> +       error = acpi_dev_pm_low_power(dev, adev, target_state);
-> +       if (error && wakeup)
->                 acpi_device_wakeup_disable(adev);
->
->         return error;
->  }
-> -EXPORT_SYMBOL_GPL(acpi_dev_runtime_suspend);
-> +EXPORT_SYMBOL_GPL(acpi_dev_suspend);
->
->  /**
->   * acpi_dev_resume - Put device into the full-power state using ACPI.
-> @@ -910,7 +912,7 @@ EXPORT_SYMBOL_GPL(acpi_dev_resume);
->  int acpi_subsys_runtime_suspend(struct device *dev)
->  {
->         int ret = pm_generic_runtime_suspend(dev);
-> -       return ret ? ret : acpi_dev_runtime_suspend(dev);
-> +       return ret ? ret : acpi_dev_suspend(dev, true);
->  }
->  EXPORT_SYMBOL_GPL(acpi_subsys_runtime_suspend);
->
-> @@ -929,41 +931,6 @@ int acpi_subsys_runtime_resume(struct de
->  EXPORT_SYMBOL_GPL(acpi_subsys_runtime_resume);
->
->  #ifdef CONFIG_PM_SLEEP
-> -/**
-> - * acpi_dev_suspend_late - Put device into a low-power state using ACPI.
-> - * @dev: Device to put into a low-power state.
-> - *
-> - * Put the given device into a low-power state during system transition to a
-> - * sleep state using the standard ACPI mechanism.  Set up system wakeup if
-> - * desired, choose the state to put the device into (this checks if system
-> - * wakeup is expected to work too), and set the power state of the device.
-> - */
-> -int acpi_dev_suspend_late(struct device *dev)
-> -{
-> -       struct acpi_device *adev = ACPI_COMPANION(dev);
-> -       u32 target_state;
-> -       bool wakeup;
-> -       int error;
-> -
-> -       if (!adev)
-> -               return 0;
-> -
-> -       target_state = acpi_target_system_state();
-> -       wakeup = device_may_wakeup(dev) && acpi_device_can_wakeup(adev);
-> -       if (wakeup) {
-> -               error = acpi_device_wakeup_enable(adev, target_state);
-> -               if (error)
-> -                       return error;
-> -       }
-> -
-> -       error = acpi_dev_pm_low_power(dev, adev, target_state);
-> -       if (error && wakeup)
-> -               acpi_device_wakeup_disable(adev);
-> -
-> -       return error;
-> -}
-> -EXPORT_SYMBOL_GPL(acpi_dev_suspend_late);
-> -
->  static bool acpi_dev_needs_resume(struct device *dev, struct acpi_device *adev)
->  {
->         u32 sys_target = acpi_target_system_state();
-> @@ -1046,7 +1013,7 @@ EXPORT_SYMBOL_GPL(acpi_subsys_suspend);
->  int acpi_subsys_suspend_late(struct device *dev)
->  {
->         int ret = pm_generic_suspend_late(dev);
-> -       return ret ? ret : acpi_dev_suspend_late(dev);
-> +       return ret ? ret : acpi_dev_suspend(dev, device_may_wakeup(dev));
->  }
->  EXPORT_SYMBOL_GPL(acpi_subsys_suspend_late);
->
-> Index: linux-pm/drivers/acpi/acpi_lpss.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/acpi_lpss.c
-> +++ linux-pm/drivers/acpi/acpi_lpss.c
-> @@ -713,7 +713,7 @@ static int acpi_lpss_activate(struct dev
->
->  static void acpi_lpss_dismiss(struct device *dev)
->  {
-> -       acpi_dev_runtime_suspend(dev);
-> +       acpi_dev_suspend(dev, false);
->  }
->
->  #ifdef CONFIG_PM_SLEEP
-> @@ -729,7 +729,7 @@ static int acpi_lpss_suspend_late(struct
->         if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
->                 acpi_lpss_save_ctx(dev, pdata);
->
-> -       return acpi_dev_suspend_late(dev);
-> +       return acpi_dev_suspend(dev, device_may_wakeup(dev));
->  }
->
->  static int acpi_lpss_resume_early(struct device *dev)
-> @@ -847,7 +847,7 @@ static int acpi_lpss_runtime_suspend(str
->         if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
->                 acpi_lpss_save_ctx(dev, pdata);
->
-> -       ret = acpi_dev_runtime_suspend(dev);
-> +       ret = acpi_dev_suspend(dev, true);
->
->         /*
->          * This call must be last in the sequence, otherwise PMC will return
-> Index: linux-pm/include/linux/acpi.h
-> ===================================================================
-> --- linux-pm.orig/include/linux/acpi.h
-> +++ linux-pm/include/linux/acpi.h
-> @@ -864,7 +864,7 @@ static inline void arch_reserve_mem_area
->  #endif
->
->  #if defined(CONFIG_ACPI) && defined(CONFIG_PM)
-> -int acpi_dev_runtime_suspend(struct device *dev);
-> +int acpi_dev_suspend(struct device *dev, bool wakeup);
->  int acpi_dev_resume(struct device *dev);
->  int acpi_subsys_runtime_suspend(struct device *dev);
->  int acpi_subsys_runtime_resume(struct device *dev);
-> @@ -889,7 +889,6 @@ int acpi_subsys_resume_early(struct devi
->  int acpi_subsys_suspend(struct device *dev);
->  int acpi_subsys_freeze(struct device *dev);
->  #else
-> -static inline int acpi_dev_suspend_late(struct device *dev) { return 0; }
->  static inline int acpi_dev_resume_early(struct device *dev) { return 0; }
->  static inline int acpi_subsys_prepare(struct device *dev) { return 0; }
->  static inline void acpi_subsys_complete(struct device *dev) {}
->
+Thanks,
+Jean
