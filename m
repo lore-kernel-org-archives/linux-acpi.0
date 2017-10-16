@@ -1,82 +1,50 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] ACPI / device_sysfs: Leave modalias empty for devices
- which are not present
-Date: Mon, 16 Oct 2017 13:44:40 +0200
-Message-ID: <2550330b-38ff-28b1-6294-d55462c03cca@redhat.com>
-References: <20171015192449.16035-1-hdegoede@redhat.com>
- <CAJZ5v0hAx_-OUQNBngScNKHstZhZ42A42LwcBOFhR2g5pCFXOA@mail.gmail.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v6 5/7] arm64: kvm: route synchronous external abort exceptions
+ to el2
+Date: Mon, 16 Oct 2017 12:44:56 +0100
+Message-ID: <59E49BB8.8080801@arm.com>
+References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com> <1503916701-13516-6-git-send-email-gengdongjiu@huawei.com> <59B17449.6010201@arm.com> <fb7da3e3-d0f7-7ac6-b088-888a563d7ee7@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48686 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751398AbdJPLoo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 16 Oct 2017 07:44:44 -0400
-In-Reply-To: <CAJZ5v0hAx_-OUQNBngScNKHstZhZ42A42LwcBOFhR2g5pCFXOA@mail.gmail.com>
-Content-Language: en-US
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:55716 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752273AbdJPLqk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 16 Oct 2017 07:46:40 -0400
+In-Reply-To: <fb7da3e3-d0f7-7ac6-b088-888a563d7ee7@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: gengdongjiu <gengdongjiu@huawei.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, mst@redhat.com, john.garry@huawei.com, jonathan.cameron@huawei.com, shameerali.kolot
 
-Hi,
+Hi gengdongjiu,
 
-On 16-10-17 01:47, Rafael J. Wysocki wrote:
-> On Sun, Oct 15, 2017 at 9:24 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->> Most Bay and Cherry Trail devices use a generic DSDT with all possible
->> peripheral devices present in the DSDT, with their _STA returning 0x00 or
->> 0x0f based on AML variables which describe what is actually present on
->> the board.
->>
->> Since ACPI device objects with a 0x00 status (not present) still get an
->> entry under /sys/bus/acpi/devices, and those entry had an acpi:PNPID
->> modalias, userspace would end up loading modules for non present hardware.
->>
->> This commit fixes this by leaving the modalias empty for non present
->> devices. This results in 10 modules less being loaded with a generic
->> distro kernel config on my Cherry Trail test-device (a GPD pocket).
+On 14/09/17 12:12, gengdongjiu wrote:
+> On 2017/9/8 0:31, James Morse wrote:
+>> KVM already handles external aborts from lower exception levels, no more work
+>> needs doing for TEA.
+> If it is firmware first solution, that is SCR_EL3.EA=1, all SError interrupt and synchronous External
+> Abort exceptions are taken to EL3, so EL3 firmware will handle it, KVM no needs to handle it.
 > 
-> Well, what about hotplug?
+> HCR_EL3.TEA is only for EL3 to check its value to decide to jump to hypervisor or kernel.
 > 
-> On some systems _STA may change from 0 to nonzero for some devices, so
-> what's going to happen to the modalias then?
-
-A good question. I would expect a change uevent to be generated in
-this case and when the device has become present in this new uvent the
-modalias will no longer be empty and the module will get loaded, so
-the module will not get loaded until the actual hotplug.
-
-The actual generation of this uevent should be done by the various
-subsystems based on ACPI_RECONFIG_DEVICE_ADD messages, at which point
-adev->status is already updated and then when the subsys calls
-acpi_device_uevent_modalias() for the new uevent it will return a
-non-empty modalias.
-
-Regards,
-
-Hans
-
-
-> 
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>   drivers/acpi/device_sysfs.c | 4 ++++
->>   1 file changed, 4 insertions(+)
 >>
->> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
->> index 24418932612e..a041689e5701 100644
->> --- a/drivers/acpi/device_sysfs.c
->> +++ b/drivers/acpi/device_sysfs.c
->> @@ -146,6 +146,10 @@ static int create_pnp_modalias(struct acpi_device *acpi_dev, char *modalias,
->>          int count;
->>          struct acpi_hardware_id *id;
+>> What happens when a guest access the RAS-Error-Record registers?
 >>
->> +       /* Avoid unnecessarily loading modules for non present devices. */
->> +       if (!acpi_device_is_present(acpi_dev))
->> +               return 0;
->> +
->>          /*
->>           * Since we skip ACPI_DT_NAMESPACE_HID from the modalias below, 0 should
->>           * be returned if ACPI_DT_NAMESPACE_HID is the only ACPI/PNP ID in the
->> --
+>> Before we can set HCR_EL2.TERR I think we need to add some minimal emulation for
+>> the registers it traps. Most of them should be RAZ/WI, so it should be
+>> straightforward. (I think KVMs default is to emulate an undef for unknown traps).
+
+> Today I added the support to do some minimal emulation for RAS-Error-Record registers, thanks
+> for the good suggestion.
+
+Where can I find this patch?
+I'd like to repost it as part of the SError_rework/RAS/IESB series: this is one
+of the bits KVM needs but I didn't touch as it looks like your updated version
+of this patch should cover it.
+
+
+Thanks,
+
+James
