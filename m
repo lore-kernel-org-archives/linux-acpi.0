@@ -1,50 +1,59 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v6 5/7] arm64: kvm: route synchronous external abort exceptions
- to el2
-Date: Mon, 16 Oct 2017 12:44:56 +0100
-Message-ID: <59E49BB8.8080801@arm.com>
-References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com> <1503916701-13516-6-git-send-email-gengdongjiu@huawei.com> <59B17449.6010201@arm.com> <fb7da3e3-d0f7-7ac6-b088-888a563d7ee7@huawei.com>
+From: gengdongjiu <gengdj.1984@gmail.com>
+Subject: Re: [PATCH v6 5/7] arm64: kvm: route synchronous external abort
+ exceptions to el2
+Date: Mon, 16 Oct 2017 21:44:59 +0800
+Message-ID: <CAMj-D2Bn8HUL=HJO-tysisVT4HSTZW0z-xY-1w1EsgPvShFooQ@mail.gmail.com>
+References: <1503916701-13516-1-git-send-email-gengdongjiu@huawei.com>
+ <1503916701-13516-6-git-send-email-gengdongjiu@huawei.com>
+ <59B17449.6010201@arm.com> <fb7da3e3-d0f7-7ac6-b088-888a563d7ee7@huawei.com>
+ <59E49BB8.8080801@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:55716 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752273AbdJPLqk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 16 Oct 2017 07:46:40 -0400
-In-Reply-To: <fb7da3e3-d0f7-7ac6-b088-888a563d7ee7@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <59E49BB8.8080801@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: wangkefeng.wang@huawei.com, kvm@vger.kernel.org, david.daney@cavium.com, catalin.marinas@arm.com, tbaicar@codeaurora.org, will.deacon@arm.com, linuxarm@huawei.com, linux@armlinux.org.uk, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, stefan@hello-penguin.com, zjzhang@codeaurora.org, robert.moore@intel.com, gengdongjiu <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, huangshaoyu@huawei.com, huangdaode@hisilicon.com, bp@suse.de, Dave.Martin@arm.com, lenb@kernel.org, mingo@kernel.org, wuquanming@huawei.com, marc.zyngier@arm.com, john.garry@huawei.com, kristina.martsenko@arm.com, cov@codeaurora.org, jonathan.cameron@huawei.com, zhengqiang10@huawei.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, ard.biesheuvel@linaro.org, linux-kernel@vger.kernel.org, wangzhou1@hisilicon.com, mst@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: gengdongjiu <gengdongjiu@huawei.com>
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, xiexiuqi@huawei.com, cov@codeaurora.org, david.daney@cavium.com, suzuki.poulose@arm.com, stefan@hello-penguin.com, Dave.Martin@arm.com, kristina.martsenko@arm.com, wangkefeng.wang@huawei.com, tbaicar@codeaurora.org, ard.biesheuvel@linaro.org, mingo@kernel.org, bp@suse.de, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, mst@redhat.com, john.garry@huawei.com, jonathan.cameron@huawei.com, shameerali.kolot
 
-Hi gengdongjiu,
+Hi James,
 
-On 14/09/17 12:12, gengdongjiu wrote:
-> On 2017/9/8 0:31, James Morse wrote:
->> KVM already handles external aborts from lower exception levels, no more work
->> needs doing for TEA.
-> If it is firmware first solution, that is SCR_EL3.EA=1, all SError interrupt and synchronous External
-> Abort exceptions are taken to EL3, so EL3 firmware will handle it, KVM no needs to handle it.
-> 
-> HCR_EL3.TEA is only for EL3 to check its value to decide to jump to hypervisor or kernel.
-> 
->>
->> What happens when a guest access the RAS-Error-Record registers?
->>
->> Before we can set HCR_EL2.TERR I think we need to add some minimal emulation for
->> the registers it traps. Most of them should be RAZ/WI, so it should be
->> straightforward. (I think KVMs default is to emulate an undef for unknown traps).
+>
+>> Today I added the support to do some minimal emulation for
+>> RAS-Error-Record registers, thanks
+>> for the good suggestion.
+>
+> Where can I find this patch?
+> I'd like to repost it as part of the SError_rework/RAS/IESB series: this is
+> one
+> of the bits KVM needs but I didn't touch as it looks like your updated
+> version
+> of this patch should cover it.
 
-> Today I added the support to do some minimal emulation for RAS-Error-Record registers, thanks
-> for the good suggestion.
-
-Where can I find this patch?
-I'd like to repost it as part of the SError_rework/RAS/IESB series: this is one
-of the bits KVM needs but I didn't touch as it looks like your updated version
-of this patch should cover it.
+I have updated this patch according your suggestion that do some
+emulation for the ERR* trap. and have verified it. but still not sent
+it out. Tomorrow I will send it out for your review(now it is Chinese
+midnight), if you think it is ok, you can add it as part of the
+SError_rework/RAS/IESB series. thanks for your reminder and good
+review comments.
 
 
-Thanks,
-
-James
+>
+>
+> Thanks,
+>
+> James
+> _______________________________________________
+> kvmarm mailing list
+> kvmarm@lists.cs.columbia.edu
+> https://lists.cs.columbia.edu/mailman/listinfo/kvmarm
+>
