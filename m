@@ -1,47 +1,71 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 01/12] PM / core: Add NEVER_SKIP and SMART_PREPARE driver flags
-Date: Tue, 17 Oct 2017 00:11:23 +0200
-Message-ID: <2240270.3ttWVTLO4t@aspire.rjw.lan>
-References: <Pine.LNX.4.44L0.1710161612080.1377-100000@iolanthe.rowland.org>
+From: Kees Cook <keescook@chromium.org>
+Subject: [PATCH] ACPI / APEI: Convert timers to use timer_setup()
+Date: Mon, 16 Oct 2017 16:21:35 -0700
+Message-ID: <20171016232135.GA100431@beast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1710161612080.1377-100000@iolanthe.rowland.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f47.google.com ([74.125.83.47]:47210 "EHLO
+        mail-pg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757264AbdJPXVh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Oct 2017 19:21:37 -0400
+Received: by mail-pg0-f47.google.com with SMTP id r25so8039716pgn.4
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Oct 2017 16:21:37 -0700 (PDT)
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Shiju Jose <shiju.jose@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, October 16, 2017 10:16:15 PM CEST Alan Stern wrote:
-> On Mon, 16 Oct 2017, Rafael J. Wysocki wrote:
-> 
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > The motivation for this change is to provide a way to work around
-> > a problem with the direct-complete mechanism used for avoiding
-> > system suspend/resume handling for devices in runtime suspend.
-> > 
-> > The problem is that some middle layer code (the PCI bus type and
-> > the ACPI PM domain in particular) returns positive values from its
-> > system suspend ->prepare callbacks regardless of whether the driver's
-> > ->prepare returns a positive value or 0, which effectively prevents
-> > drivers from being able to control the direct-complete feature.
-> > Some drivers need that control, however, and the PCI bus type has
-> > grown its own flag to deal with this issue, but since it is not
-> > limited to PCI, it is better to address it by adding driver flags at
-> > the core level.
-> 
-> I'm curious: Why does the PCI bus type (and others) do this?  Why 
-> doesn't it do what the driver says to do?
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly.
 
-Well, the idea was that it might work for the existing drivers without the
-need to modify them (and they would have had to be modified had the driver's
-->prepare return value been required to be taken into account).
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: James Morse <james.morse@arm.com>
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Cc: Shiju Jose <shiju.jose@huawei.com>
+Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ drivers/acpi/apei/ghes.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-It actually does work for them in general, although with some notable
-exceptions.
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 3c3a37b8503b..ebaa51ba8a22 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -774,9 +774,9 @@ static void ghes_add_timer(struct ghes *ghes)
+ 	add_timer(&ghes->timer);
+ }
+ 
+-static void ghes_poll_func(unsigned long data)
++static void ghes_poll_func(struct timer_list *t)
+ {
+-	struct ghes *ghes = (void *)data;
++	struct ghes *ghes = from_timer(ghes, t, timer);
+ 
+ 	ghes_proc(ghes);
+ 	if (!(ghes->flags & GHES_EXITING))
+@@ -1147,8 +1147,7 @@ static int ghes_probe(struct platform_device *ghes_dev)
+ 
+ 	switch (generic->notify.type) {
+ 	case ACPI_HEST_NOTIFY_POLLED:
+-		setup_deferrable_timer(&ghes->timer, ghes_poll_func,
+-				       (unsigned long)ghes);
++		timer_setup(&ghes->timer, ghes_poll_func, TIMER_DEFERRABLE);
+ 		ghes_add_timer(ghes);
+ 		break;
+ 	case ACPI_HEST_NOTIFY_EXTERNAL:
+-- 
+2.7.4
 
-Thanks,
-Rafael
 
+-- 
+Kees Cook
+Pixel Security
