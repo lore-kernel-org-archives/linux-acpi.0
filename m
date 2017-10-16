@@ -1,48 +1,82 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Subject: Re: [RFCv2 PATCH 12/36] dt-bindings: document stall and PASID
- properties for IOMMU masters
-Date: Mon, 16 Oct 2017 11:23:02 +0100
-Message-ID: <e7288f51-1cfa-44ce-e3ce-e9f3daf91579@arm.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
- <20171006133203.22803-13-jean-philippe.brucker@arm.com>
- <20171013191051.lgxbcobkzzj5guhv@rob-hp-laptop>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ACPI / device_sysfs: Leave modalias empty for devices
+ which are not present
+Date: Mon, 16 Oct 2017 13:44:40 +0200
+Message-ID: <2550330b-38ff-28b1-6294-d55462c03cca@redhat.com>
+References: <20171015192449.16035-1-hdegoede@redhat.com>
+ <CAJZ5v0hAx_-OUQNBngScNKHstZhZ42A42LwcBOFhR2g5pCFXOA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54890 "EHLO foss.arm.com"
+Received: from mx1.redhat.com ([209.132.183.28]:48686 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750914AbdJPKR7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 16 Oct 2017 06:17:59 -0400
-In-Reply-To: <20171013191051.lgxbcobkzzj5guhv@rob-hp-laptop>
+        id S1751398AbdJPLoo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 16 Oct 2017 07:44:44 -0400
+In-Reply-To: <CAJZ5v0hAx_-OUQNBngScNKHstZhZ42A42LwcBOFhR2g5pCFXOA@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "joro@8bytes.org" <joro@8bytes.org>, Mark Rutland <Mark.Rutland@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Robin Murphy <Robin.Murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 13/10/17 20:10, Rob Herring wrote:
-> On Fri, Oct 06, 2017 at 02:31:39PM +0100, Jean-Philippe Brucker wrote:
->> On ARM systems, some platform devices behind an IOMMU may support stall
->> and PASID features. Stall is the ability to recover from page faults and
->> PASID offers multiple process address spaces to the device. Together they
->> allow to do paging with a device. Let the firmware tell us when a device
->> supports stall and PASID.
+Hi,
+
+On 16-10-17 01:47, Rafael J. Wysocki wrote:
+> On Sun, Oct 15, 2017 at 9:24 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> Most Bay and Cherry Trail devices use a generic DSDT with all possible
+>> peripheral devices present in the DSDT, with their _STA returning 0x00 or
+>> 0x0f based on AML variables which describe what is actually present on
+>> the board.
+>>
+>> Since ACPI device objects with a 0x00 status (not present) still get an
+>> entry under /sys/bus/acpi/devices, and those entry had an acpi:PNPID
+>> modalias, userspace would end up loading modules for non present hardware.
+>>
+>> This commit fixes this by leaving the modalias empty for non present
+>> devices. This results in 10 modules less being loaded with a generic
+>> distro kernel config on my Cherry Trail test-device (a GPD pocket).
 > 
-> Can't these be implied by the compatible string of the devices?
+> Well, what about hotplug?
+> 
+> On some systems _STA may change from 0 to nonzero for some devices, so
+> what's going to happen to the modalias then?
 
-I think that PASID capacity can be deduced from the compatible string but
-don't know how these devices will be implemented (the only known example
-being a software model for testing). In any case implementing PASID based
-on the compatible string is tricky, because the IOMMU driver needs to know
-PASID capacity before the device driver has had time to probe the device.
-Maybe we could get away with a static table associating compatible string
-to PASID capacity, but it's not very nice.
+A good question. I would expect a change uevent to be generated in
+this case and when the device has become present in this new uvent the
+modalias will no longer be empty and the module will get loaded, so
+the module will not get loaded until the actual hotplug.
 
-For stall it's a property of the integration between device and IOMMU,
-much like the "iommus" property, so it can't be deduced only from the
-compatible string. It's crucial that the firmware validates that stalling
-is safe, because we don't have any other way to discover it.
+The actual generation of this uevent should be done by the various
+subsystems based on ACPI_RECONFIG_DEVICE_ADD messages, at which point
+adev->status is already updated and then when the subsys calls
+acpi_device_uevent_modalias() for the new uevent it will return a
+non-empty modalias.
 
-Thanks,
-Jean
+Regards,
+
+Hans
+
+
+> 
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>   drivers/acpi/device_sysfs.c | 4 ++++
+>>   1 file changed, 4 insertions(+)
+>>
+>> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+>> index 24418932612e..a041689e5701 100644
+>> --- a/drivers/acpi/device_sysfs.c
+>> +++ b/drivers/acpi/device_sysfs.c
+>> @@ -146,6 +146,10 @@ static int create_pnp_modalias(struct acpi_device *acpi_dev, char *modalias,
+>>          int count;
+>>          struct acpi_hardware_id *id;
+>>
+>> +       /* Avoid unnecessarily loading modules for non present devices. */
+>> +       if (!acpi_device_is_present(acpi_dev))
+>> +               return 0;
+>> +
+>>          /*
+>>           * Since we skip ACPI_DT_NAMESPACE_HID from the modalias below, 0 should
+>>           * be returned if ACPI_DT_NAMESPACE_HID is the only ACPI/PNP ID in the
+>> --
