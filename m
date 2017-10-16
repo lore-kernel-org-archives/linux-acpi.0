@@ -1,94 +1,188 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2 06/15] PCI: endpoint: make config_item_type const
-Date: Mon, 16 Oct 2017 13:24:37 -0500
-Message-ID: <20171016182437.GG25517@bhelgaas-glaptop.roam.corp.google.com>
-References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
- <1508167134-6243-7-git-send-email-bhumirks@gmail.com>
+From: Jonathan Cameron <jic23@jic23.retrosnub.co.uk>
+Subject: Re: [PATCH v2 04/15] iio: make function argument and some structures const
+Date: Mon, 16 Oct 2017 19:48:03 +0100
+Message-ID: <7091CB3C-16A9-429D-B684-8141955611A7@jic23.retrosnub.co.uk>
+References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com> <1508167134-6243-5-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42974 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753266AbdJPSYl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 16 Oct 2017 14:24:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1508167134-6243-7-git-send-email-bhumirks@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1508167134-6243-5-git-send-email-bhumirks@gmail.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, hch@lst.de, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb
 List-Id: linux-acpi@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, hch@lst.de, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, cluster-devel@redh
 
-On Mon, Oct 16, 2017 at 05:18:45PM +0200, Bhumika Goyal wrote:
-> Make config_item_type structures const as they are either passed to a
-> function having the argument as const or stored in the const "ci_type"
-> field of a config_item structure.
-> 
-> Done using Coccinelle.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Please apply this along with the rest of the series, since it depends
-on an earlier patch in the series.
+On 16 October 2017 16:18:43 BST, Bhumika Goyal <bhumirks@gmail.com> wrote:
+>Make the argument of the functions iio_sw{d/t}_group_init_type_name
+>const
+>as they are only passed to the function config_group_init_type_name
+>having
+>the argument as const.
+>
+>Make the config_item_type structures const as they are either passed to
+>the functions having the argument as const or they are
+>stored in the const "ci_type" field of a config_item structure.
+>
+>Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Acked-by: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+>---
+>* Changes in v2- Combine all the followup patches and the
+>constification
+>patches into a series.
+>
+> drivers/iio/dummy/iio_simple_dummy.c   | 2 +-
+> drivers/iio/industrialio-configfs.c    | 2 +-
+> drivers/iio/industrialio-sw-device.c   | 6 +++---
+> drivers/iio/industrialio-sw-trigger.c  | 6 +++---
+> drivers/iio/trigger/iio-trig-hrtimer.c | 2 +-
+> drivers/iio/trigger/iio-trig-loop.c    | 2 +-
+> include/linux/iio/sw_device.h          | 2 +-
+> include/linux/iio/sw_trigger.h         | 2 +-
+> 8 files changed, 12 insertions(+), 12 deletions(-)
+>
+>diff --git a/drivers/iio/dummy/iio_simple_dummy.c
+>b/drivers/iio/dummy/iio_simple_dummy.c
+>index a45d01e..6205247 100644
+>--- a/drivers/iio/dummy/iio_simple_dummy.c
+>+++ b/drivers/iio/dummy/iio_simple_dummy.c
+>@@ -26,7 +26,7 @@
+> #include <linux/iio/sw_device.h>
+> #include "iio_simple_dummy.h"
+> 
+>-static struct config_item_type iio_dummy_type = {
+>+static const struct config_item_type iio_dummy_type = {
+> 	.ct_owner = THIS_MODULE,
+> };
+> 
+>diff --git a/drivers/iio/industrialio-configfs.c
+>b/drivers/iio/industrialio-configfs.c
+>index 45ce2bc..5a0aae1 100644
+>--- a/drivers/iio/industrialio-configfs.c
+>+++ b/drivers/iio/industrialio-configfs.c
+>@@ -17,7 +17,7 @@
+> #include <linux/iio/iio.h>
+> #include <linux/iio/configfs.h>
+> 
+>-static struct config_item_type iio_root_group_type = {
+>+static const struct config_item_type iio_root_group_type = {
+> 	.ct_owner       = THIS_MODULE,
+> };
+> 
+>diff --git a/drivers/iio/industrialio-sw-device.c
+>b/drivers/iio/industrialio-sw-device.c
+>index 81b49cf..90df97c 100644
+>--- a/drivers/iio/industrialio-sw-device.c
+>+++ b/drivers/iio/industrialio-sw-device.c
+>@@ -19,9 +19,9 @@
+> #include <linux/configfs.h>
+> 
+> static struct config_group *iio_devices_group;
+>-static struct config_item_type iio_device_type_group_type;
+>+static const struct config_item_type iio_device_type_group_type;
+> 
+>-static struct config_item_type iio_devices_group_type = {
+>+static const struct config_item_type iio_devices_group_type = {
+> 	.ct_owner = THIS_MODULE,
+> };
+> 
+>@@ -156,7 +156,7 @@ static void device_drop_group(struct config_group
+>*group,
+> 	.drop_item	= &device_drop_group,
+> };
+> 
+>-static struct config_item_type iio_device_type_group_type = {
+>+static const struct config_item_type iio_device_type_group_type = {
+> 	.ct_group_ops = &device_ops,
+> 	.ct_owner       = THIS_MODULE,
+> };
+>diff --git a/drivers/iio/industrialio-sw-trigger.c
+>b/drivers/iio/industrialio-sw-trigger.c
+>index 8d24fb1..bc6b7fb 100644
+>--- a/drivers/iio/industrialio-sw-trigger.c
+>+++ b/drivers/iio/industrialio-sw-trigger.c
+>@@ -19,9 +19,9 @@
+> #include <linux/configfs.h>
+> 
+> static struct config_group *iio_triggers_group;
+>-static struct config_item_type iio_trigger_type_group_type;
+>+static const struct config_item_type iio_trigger_type_group_type;
+> 
+>-static struct config_item_type iio_triggers_group_type = {
+>+static const struct config_item_type iio_triggers_group_type = {
+> 	.ct_owner = THIS_MODULE,
+> };
+> 
+>@@ -156,7 +156,7 @@ static void trigger_drop_group(struct config_group
+>*group,
+> 	.drop_item	= &trigger_drop_group,
+> };
+> 
+>-static struct config_item_type iio_trigger_type_group_type = {
+>+static const struct config_item_type iio_trigger_type_group_type = {
+> 	.ct_group_ops = &trigger_ops,
+> 	.ct_owner       = THIS_MODULE,
+> };
+>diff --git a/drivers/iio/trigger/iio-trig-hrtimer.c
+>b/drivers/iio/trigger/iio-trig-hrtimer.c
+>index 3ee9216..7accd01 100644
+>--- a/drivers/iio/trigger/iio-trig-hrtimer.c
+>+++ b/drivers/iio/trigger/iio-trig-hrtimer.c
+>@@ -30,7 +30,7 @@ struct iio_hrtimer_info {
+> 	ktime_t period;
+> };
+> 
+>-static struct config_item_type iio_hrtimer_type = {
+>+static const struct config_item_type iio_hrtimer_type = {
+> 	.ct_owner = THIS_MODULE,
+> };
+> 
+>diff --git a/drivers/iio/trigger/iio-trig-loop.c
+>b/drivers/iio/trigger/iio-trig-loop.c
+>index b4b02db..94a90e0 100644
+>--- a/drivers/iio/trigger/iio-trig-loop.c
+>+++ b/drivers/iio/trigger/iio-trig-loop.c
+>@@ -36,7 +36,7 @@ struct iio_loop_info {
+> 	struct task_struct *task;
+> };
+> 
+>-static struct config_item_type iio_loop_type = {
+>+static const struct config_item_type iio_loop_type = {
+> 	.ct_owner = THIS_MODULE,
+> };
+> 
+>diff --git a/include/linux/iio/sw_device.h
+>b/include/linux/iio/sw_device.h
+>index fa79319..8642b91 100644
+>--- a/include/linux/iio/sw_device.h
+>+++ b/include/linux/iio/sw_device.h
+>@@ -60,7 +60,7 @@ struct iio_sw_device *to_iio_sw_device(struct
+>config_item *item)
+> static inline
+> void iio_swd_group_init_type_name(struct iio_sw_device *d,
+> 				  const char *name,
+>-				  struct config_item_type *type)
+>+				  const struct config_item_type *type)
+> {
+> #if IS_ENABLED(CONFIG_CONFIGFS_FS)
+> 	config_group_init_type_name(&d->group, name, type);
+>diff --git a/include/linux/iio/sw_trigger.h
+>b/include/linux/iio/sw_trigger.h
+>index c97eab6..0c43738 100644
+>--- a/include/linux/iio/sw_trigger.h
+>+++ b/include/linux/iio/sw_trigger.h
+>@@ -60,7 +60,7 @@ struct iio_sw_trigger *to_iio_sw_trigger(struct
+>config_item *item)
+> static inline
+> void iio_swt_group_init_type_name(struct iio_sw_trigger *t,
+> 				  const char *name,
+>-				  struct config_item_type *type)
+>+				  const struct config_item_type *type)
+> {
+> #if IS_ENABLED(CONFIG_CONFIGFS_FS)
+> 	config_group_init_type_name(&t->group, name, type);
 
-> ---
-> * Changes in v2- Combine all the followup patches and the constification
-> patches into a series.
-> 
->  drivers/pci/endpoint/pci-ep-cfs.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/pci/endpoint/pci-ep-cfs.c b/drivers/pci/endpoint/pci-ep-cfs.c
-> index 424fdd6..4f74386 100644
-> --- a/drivers/pci/endpoint/pci-ep-cfs.c
-> +++ b/drivers/pci/endpoint/pci-ep-cfs.c
-> @@ -150,7 +150,7 @@ static void pci_epc_epf_unlink(struct config_item *epc_item,
->  	.drop_link	= pci_epc_epf_unlink,
->  };
->  
-> -static struct config_item_type pci_epc_type = {
-> +static const struct config_item_type pci_epc_type = {
->  	.ct_item_ops	= &pci_epc_item_ops,
->  	.ct_attrs	= pci_epc_attrs,
->  	.ct_owner	= THIS_MODULE,
-> @@ -361,7 +361,7 @@ static void pci_epf_release(struct config_item *item)
->  	.release		= pci_epf_release,
->  };
->  
-> -static struct config_item_type pci_epf_type = {
-> +static const struct config_item_type pci_epf_type = {
->  	.ct_item_ops	= &pci_epf_ops,
->  	.ct_attrs	= pci_epf_attrs,
->  	.ct_owner	= THIS_MODULE,
-> @@ -400,7 +400,7 @@ static void pci_epf_drop(struct config_group *group, struct config_item *item)
->  	.drop_item      = &pci_epf_drop,
->  };
->  
-> -static struct config_item_type pci_epf_group_type = {
-> +static const struct config_item_type pci_epf_group_type = {
->  	.ct_group_ops	= &pci_epf_group_ops,
->  	.ct_owner	= THIS_MODULE,
->  };
-> @@ -428,15 +428,15 @@ void pci_ep_cfs_remove_epf_group(struct config_group *group)
->  }
->  EXPORT_SYMBOL(pci_ep_cfs_remove_epf_group);
->  
-> -static struct config_item_type pci_functions_type = {
-> +static const struct config_item_type pci_functions_type = {
->  	.ct_owner	= THIS_MODULE,
->  };
->  
-> -static struct config_item_type pci_controllers_type = {
-> +static const struct config_item_type pci_controllers_type = {
->  	.ct_owner	= THIS_MODULE,
->  };
->  
-> -static struct config_item_type pci_ep_type = {
-> +static const struct config_item_type pci_ep_type = {
->  	.ct_owner	= THIS_MODULE,
->  };
->  
-> -- 
-> 1.9.1
-> 
+-- 
+Sent from my Android device with K-9 Mail. Please excuse my brevity.
