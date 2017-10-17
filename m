@@ -1,68 +1,40 @@
 From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: Re: [PATCH] ACPI / APEI: Convert timers to use timer_setup()
-Date: Tue, 17 Oct 2017 09:48:32 -0400
-Message-ID: <056ca6a5-6612-0794-c6a0-fdebb68e9937@codeaurora.org>
-References: <20171016232135.GA100431@beast>
+Subject: Re: [PATCH v5 1/2] acpi: apei: remove the unused dead-code for
+ SEA/NMI notification type
+Date: Tue, 17 Oct 2017 10:06:39 -0400
+Message-ID: <9287b646-7673-bf5d-bcde-933c8c98a0dd@codeaurora.org>
+References: <1508227341-15651-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171016232135.GA100431@beast>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:52390 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754244AbdJQOGn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Oct 2017 10:06:43 -0400
+In-Reply-To: <1508227341-15651-1-git-send-email-gengdongjiu@huawei.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Shiju Jose <shiju.jose@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dongjiu Geng <gengdongjiu@huawei.com>, bp@suse.de, james.morse@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, kristina.martsenko@arm.com, mingo@kernel.org, punit.agrawal@arm.com, stephen.boyd@linaro.org, kamensky@cisco.com, prarit@redhat.com, shiju.jose@huawei.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.or
 
-On 10/16/2017 7:21 PM, Kees Cook wrote:
-> In preparation for unconditionally passing the struct timer_list pointer to
-> all timer callbacks, switch to using the new timer_setup() and from_timer()
-> to pass the timer pointer explicitly.
+On 10/17/2017 4:02 AM, Dongjiu Geng wrote:
+> For the SEA notification, the two functions ghes_sea_add() and
+> ghes_sea_remove() are only called when CONFIG_ACPI_APEI_SEA
+> is defined. If not, it will return errors in the ghes_probe()
+> and not continue. If the probe is failed, the ghes_sea_remove()
+> also has no chance to be called. Hence, remove the unnecessary
+> handling when CONFIG_ACPI_APEI_SEA is not defined.
 >
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Borislav Petkov <bp@alien8.de>
+> For the NMI notification, it has the same issue as SEA notification,
+> so also remove the unused dead-code for it.
+>
 > Cc: Tyler Baicar <tbaicar@codeaurora.org>
-> Cc: Will Deacon <will.deacon@arm.com>
 > Cc: James Morse <james.morse@arm.com>
-> Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-> Cc: Shiju Jose <shiju.jose@huawei.com>
-> Cc: linux-acpi@vger.kernel.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
+> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
 Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
 
-Verified that the polled error sources still work with this timer setup.
+I've verified v5 of this series testing the SEA path.
 
 Thanks,
 Tyler
-> ---
->   drivers/acpi/apei/ghes.c | 7 +++----
->   1 file changed, 3 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 3c3a37b8503b..ebaa51ba8a22 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -774,9 +774,9 @@ static void ghes_add_timer(struct ghes *ghes)
->   	add_timer(&ghes->timer);
->   }
->   
-> -static void ghes_poll_func(unsigned long data)
-> +static void ghes_poll_func(struct timer_list *t)
->   {
-> -	struct ghes *ghes = (void *)data;
-> +	struct ghes *ghes = from_timer(ghes, t, timer);
->   
->   	ghes_proc(ghes);
->   	if (!(ghes->flags & GHES_EXITING))
-> @@ -1147,8 +1147,7 @@ static int ghes_probe(struct platform_device *ghes_dev)
->   
->   	switch (generic->notify.type) {
->   	case ACPI_HEST_NOTIFY_POLLED:
-> -		setup_deferrable_timer(&ghes->timer, ghes_poll_func,
-> -				       (unsigned long)ghes);
-> +		timer_setup(&ghes->timer, ghes_poll_func, TIMER_DEFERRABLE);
->   		ghes_add_timer(ghes);
->   		break;
->   	case ACPI_HEST_NOTIFY_EXTERNAL:
