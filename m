@@ -1,70 +1,62 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 0/12] PM / sleep: Driver flags for system suspend/resume
-Date: Tue, 17 Oct 2017 16:12:19 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1710171558170.1864-100000@iolanthe.rowland.org>
-References: <CAPDyKFrMTSUHP86hnpHius2CDfv-ap4svGg=xgwAiH8pKj9Lvw@mail.gmail.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v2 1/3] ACPI / APD: Add clock frequency for ThunderX2 I2C
+ controller
+Date: Tue, 17 Oct 2017 23:54:44 +0200
+Message-ID: <20171017215444.ofbudbjyk7ne4sch@ninjato>
+References: <1507616876-17189-1-git-send-email-kamlakant.patel@cavium.com>
+ <1507616876-17189-2-git-send-email-kamlakant.patel@cavium.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFrMTSUHP86hnpHius2CDfv-ap4svGg=xgwAiH8pKj9Lvw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="epodudpfczyxcdca"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sauhun.de ([88.99.104.3]:54729 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933438AbdJQVyq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 17 Oct 2017 17:54:46 -0400
+Content-Disposition: inline
+In-Reply-To: <1507616876-17189-2-git-send-email-kamlakant.patel@cavium.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kamlakant Patel <kamlakant.patel@cavium.com>
+Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Jayachandran C <jnair@caviumnetworks.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Tue, 17 Oct 2017, Ulf Hansson wrote:
 
-> > These functions are wrong, however, because they attempt to reuse the
-> > whole callback *path* instead of just reusing driver callbacks.  The
-> > *only* reason why it all "works" is because there are no middle layer
-> > callbacks involved in that now.
-> >
-> > If you changed them to reuse driver callbacks only today, nothing would break
-> > AFAICS.
-> 
-> Yes, it would.
-> 
-> First, for example, the amba bus is responsible for the amba bus
-> clock, but relies on drivers to gate/ungate it during system sleep. In
-> case the amba drivers don't use the pm_runtime_force_suspend|resume(),
-> it will explicitly have to start manage the clock during system sleep
-> themselves. Leading to open coding.
+--epodudpfczyxcdca
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I think what Rafael has in mind is that the PM core will call the amba
-bus's ->suspend callback, and that routine will then be able to call
-the amba driver's runtime_suspend routine directly, if it wants to --
-as opposed to going through pm_runtime_force_suspend.
+On Tue, Oct 10, 2017 at 11:57:54AM +0530, Kamlakant Patel wrote:
+> From: Jayachandran C <jnair@caviumnetworks.com>
+>=20
+> Add the input frequency of 125MHz for the ThunderX2 I2C controller block.
+> The ACPI ID used is "CAV9007".
+>=20
+> Signed-off-by: Jayachandran C <jnair@caviumnetworks.com>
+> Signed-off-by: Kamlakant Patel <kamlakant.patel@cavium.com>
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-However, it's not clear whether this fully answers your concerns.
+Applied to for-next, thanks!
 
-> Second, it will introduce a regression in behavior for all users of
-> pm_runtime_force_suspend|resume(), especially during system resume as
-> the driver may then end up resuming the device even in case it isn't
-> needed. I believe I have explained why, also several times by now -
-> and that's also how far you could take the i2c designware driver at
-> this point.
-> 
-> That said, I assume the second part may be addressed in this series,
-> if these drivers convert to use the "driver PM flags", right?
 
-Presumably.
+--epodudpfczyxcdca
+Content-Type: application/pgp-signature; name="signature.asc"
 
-The problem is how to handle things which need to be treated
-differently for runtime PM vs. system suspend vs. hibernation.  If
-everything filters through a runtime_suspend routine, that doesn't
-leave any scope for handling the different kinds of PM transitions
-differently.  Instead, we can make the middle layer (i.e., the bus-type
-callbacks) take care of the varying tasks, and they can directly invoke
-a driver's runtime-PM callbacks to handle all the common activities.  
-If that's how the middle layer wants to do it.
+-----BEGIN PGP SIGNATURE-----
 
-> However, what about the first case? Is some open coding needed or your
-> think the amba driver can instruct the amba bus via the "driver PM
-> flags"?
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlnmfCQACgkQFA3kzBSg
+Kbb3Dg//VDjupCDMFQN5Tjtvbl2oXYiXevUEeW/4sihWBZr5cdUF8j0VJXWuC4HJ
+9X74VDbvi1wHPIMx5AmvUQaAksEVwCe1EiC4Ljh23x8zYLkqsyJeD25kALnY4Dwr
+qBLqZBiCxSkR1oA2y1Lpc9pPoZyMW9Y+QGlpLUkk037xc8UqlFa4dBY9GFk+8uQw
+s0wwarTCyyIzjQYksCeFH1JNKHXSMbcN1eDXBGRUo9LI/BXZd8jLHJjU8NtEpKnm
+Rqf3/Ehe/4s2MmuwEp+HEQ3gyeyOiUM8av3rXLPUFt83js5RHLITyUR4I1DKy5HS
+RIUfqOSlQyp1JIGZVjymk7zNN+Q6RCd3J2FSzLX8cWepEzzdacNLnEAbI4ykbGem
+608RB2g9YmZtpqecOIbNhITvH2WtjQLtNKVZ8zySS9CfWZ6HYHmwe+2CLD7syPXe
+VoQ1dxEi1Anmx0jrB4sD5YiYpm1IQcggM9FSB0KM7c1h88EXPsd6wlqQ7HJHAk4b
+FMW/yCtejbq3MqVLu0kuG8fa2PUSmhyecz1v0BfWHecZcW6rJte7hMzgRIJLNTTX
+CtGIzlZvsTb/Zn6/Pgg8NFZJgGI4iu4wWIrJh8u4ht8Mc/rpJRnm0R099U3v+0AO
+NNtbec5x08iwMfRycLeS1ETEjHsGM96cHP7WJJrkcLxsCiZOxqM=
+=SN6X
+-----END PGP SIGNATURE-----
 
-PM flags won't directly be able to cover things like disabling clocks.  
-But they could be useful for indicating explicitly whether the code to
-take care of those things needs to reside at the driver layer or at the
-bus layer.
-
-Alan Stern
+--epodudpfczyxcdca--
