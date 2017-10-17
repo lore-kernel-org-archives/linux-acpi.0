@@ -1,49 +1,86 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 01/12] PM / core: Add NEVER_SKIP and SMART_PREPARE driver
- flags
-Date: Tue, 17 Oct 2017 09:15:43 +0200
-Message-ID: <20171017071543.GB27293@kroah.com>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan>
- <1998650.Q52BuGQTI4@aspire.rjw.lan>
- <20171016062852.GA28732@kroah.com>
- <6007227.iNoRbQyInB@aspire.rjw.lan>
+From: Dongjiu Geng <gengdongjiu@huawei.com>
+Subject: [PATCH v5 1/2] acpi: apei: remove the unused dead-code for SEA/NMI notification type
+Date: Tue, 17 Oct 2017 16:02:20 +0800
+Message-ID: <1508227341-15651-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6007227.iNoRbQyInB@aspire.rjw.lan>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:8464 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753573AbdJQHhW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Oct 2017 03:37:22 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: bp@suse.de, tbaicar@codeaurora.org, james.morse@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, kristina.martsenko@arm.com, mingo@kernel.org, punit.agrawal@arm.com, stephen.boyd@linaro.org, kamensky@cisco.com, prarit@redhat.com, shiju.jose@huawei.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.or
 
-On Tue, Oct 17, 2017 at 12:05:11AM +0200, Rafael J. Wysocki wrote:
-> On Monday, October 16, 2017 8:28:52 AM CEST Greg Kroah-Hartman wrote:
-> > On Mon, Oct 16, 2017 at 03:29:02AM +0200, Rafael J. Wysocki wrote:
-> > >  struct dev_pm_info {
-> > >  	pm_message_t		power_state;
-> > >  	unsigned int		can_wakeup:1;
-> > > @@ -561,6 +580,7 @@ struct dev_pm_info {
-> > >  	bool			is_late_suspended:1;
-> > >  	bool			early_init:1;	/* Owned by the PM core */
-> > >  	bool			direct_complete:1;	/* Owned by the PM core */
-> > > +	unsigned int		driver_flags;
-> > 
-> > Minor nit, u32 or u64?
-> 
-> u32 I think, will update.
-> 
-> BTW, there's a mess in this struct overall and I'd like all of the bit fileds
-> to be the same type (and that shouldn't be bool IMO :-)).
-> 
-> Do you prefer u32 or unsinged int?
+For the SEA notification, the two functions ghes_sea_add() and
+ghes_sea_remove() are only called when CONFIG_ACPI_APEI_SEA
+is defined. If not, it will return errors in the ghes_probe()
+and not continue. If the probe is failed, the ghes_sea_remove()
+also has no chance to be called. Hence, remove the unnecessary
+handling when CONFIG_ACPI_APEI_SEA is not defined.
 
-I always prefer an explicit size for variables, unless it's a "generic
-loop" type thing.  So I'll always say "u32" for this.
+For the NMI notification, it has the same issue as SEA notification,
+so also remove the unused dead-code for it.
 
-And cleaning up the structure would be great, it's grown over time in
-odd ways as you point out.
+Cc: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: James Morse <james.morse@arm.com>
+Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+---
+ drivers/acpi/apei/ghes.c | 33 +++++----------------------------
+ 1 file changed, 5 insertions(+), 28 deletions(-)
 
-thanks,
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index d661d45..3eee30a 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -849,17 +849,8 @@ static void ghes_sea_remove(struct ghes *ghes)
+ 	synchronize_rcu();
+ }
+ #else /* CONFIG_ACPI_APEI_SEA */
+-static inline void ghes_sea_add(struct ghes *ghes)
+-{
+-	pr_err(GHES_PFX "ID: %d, trying to add SEA notification which is not supported\n",
+-	       ghes->generic->header.source_id);
+-}
+-
+-static inline void ghes_sea_remove(struct ghes *ghes)
+-{
+-	pr_err(GHES_PFX "ID: %d, trying to remove SEA notification which is not supported\n",
+-	       ghes->generic->header.source_id);
+-}
++static inline void ghes_sea_add(struct ghes *ghes) { }
++static inline void ghes_sea_remove(struct ghes *ghes) { }
+ #endif /* CONFIG_ACPI_APEI_SEA */
+ 
+ #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+@@ -1061,23 +1052,9 @@ static void ghes_nmi_init_cxt(void)
+ 	init_irq_work(&ghes_proc_irq_work, ghes_proc_in_irq);
+ }
+ #else /* CONFIG_HAVE_ACPI_APEI_NMI */
+-static inline void ghes_nmi_add(struct ghes *ghes)
+-{
+-	pr_err(GHES_PFX "ID: %d, trying to add NMI notification which is not supported!\n",
+-	       ghes->generic->header.source_id);
+-	BUG();
+-}
+-
+-static inline void ghes_nmi_remove(struct ghes *ghes)
+-{
+-	pr_err(GHES_PFX "ID: %d, trying to remove NMI notification which is not supported!\n",
+-	       ghes->generic->header.source_id);
+-	BUG();
+-}
+-
+-static inline void ghes_nmi_init_cxt(void)
+-{
+-}
++static inline void ghes_nmi_add(struct ghes *ghes) { }
++static inline void ghes_nmi_remove(struct ghes *ghes) { }
++static inline void ghes_nmi_init_cxt(void) { }
+ #endif /* CONFIG_HAVE_ACPI_APEI_NMI */
+ 
+ static int ghes_probe(struct platform_device *ghes_dev)
+-- 
+2.10.1
 
-greg k-h
