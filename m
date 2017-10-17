@@ -1,42 +1,68 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 01/12] PM / core: Add NEVER_SKIP and SMART_PREPARE driver
- flags
-Date: Tue, 17 Oct 2017 15:26:41 +0200
-Message-ID: <20171017132641.GD25683@kroah.com>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan>
- <1998650.Q52BuGQTI4@aspire.rjw.lan>
- <20171016063122.GB28732@kroah.com>
- <1545766.cfb3OTroPT@aspire.rjw.lan>
+From: Tyler Baicar <tbaicar@codeaurora.org>
+Subject: Re: [PATCH] ACPI / APEI: Convert timers to use timer_setup()
+Date: Tue, 17 Oct 2017 09:48:32 -0400
+Message-ID: <056ca6a5-6612-0794-c6a0-fdebb68e9937@codeaurora.org>
+References: <20171016232135.GA100431@beast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45038 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1762186AbdJQN0f (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Oct 2017 09:26:35 -0400
-Content-Disposition: inline
-In-Reply-To: <1545766.cfb3OTroPT@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171016232135.GA100431@beast>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Shiju Jose <shiju.jose@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 
-On Tue, Oct 17, 2017 at 12:07:37AM +0200, Rafael J. Wysocki wrote:
-> On Monday, October 16, 2017 8:31:22 AM CEST Greg Kroah-Hartman wrote:
-> > On Mon, Oct 16, 2017 at 03:29:02AM +0200, Rafael J. Wysocki wrote:
-> > > +static inline void dev_pm_set_driver_flags(struct device *dev, unsigned int flags)
-> > > +{
-> > > +	dev->power.driver_flags = flags;
-> > > +}
-> > 
-> > Should this function just set the specific bit?  Or is it going to be ok
-> > to set the whole value, meaning you aren't going to care about turning
-> > on and off specific flags over the lifetime of the driver/device, you
-> > are just going to set them once and then just test them as needed?
-> 
-> The idea is to set them once and they should not be touched again until
-> the driver (or device) goes away, so that would be the whole value at once
-> (and one of the i2c-designware-platdrv patches actually sets multiple flags
-> in one go).
+On 10/16/2017 7:21 PM, Kees Cook wrote:
+> In preparation for unconditionally passing the struct timer_list pointer to
+> all timer callbacks, switch to using the new timer_setup() and from_timer()
+> to pass the timer pointer explicitly.
+>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Tony Luck <tony.luck@intel.com>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: Tyler Baicar <tbaicar@codeaurora.org>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: James Morse <james.morse@arm.com>
+> Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+> Cc: Shiju Jose <shiju.jose@huawei.com>
+> Cc: linux-acpi@vger.kernel.org
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
 
-Ok, thanks.
+Verified that the polled error sources still work with this timer setup.
+
+Thanks,
+Tyler
+> ---
+>   drivers/acpi/apei/ghes.c | 7 +++----
+>   1 file changed, 3 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 3c3a37b8503b..ebaa51ba8a22 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -774,9 +774,9 @@ static void ghes_add_timer(struct ghes *ghes)
+>   	add_timer(&ghes->timer);
+>   }
+>   
+> -static void ghes_poll_func(unsigned long data)
+> +static void ghes_poll_func(struct timer_list *t)
+>   {
+> -	struct ghes *ghes = (void *)data;
+> +	struct ghes *ghes = from_timer(ghes, t, timer);
+>   
+>   	ghes_proc(ghes);
+>   	if (!(ghes->flags & GHES_EXITING))
+> @@ -1147,8 +1147,7 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>   
+>   	switch (generic->notify.type) {
+>   	case ACPI_HEST_NOTIFY_POLLED:
+> -		setup_deferrable_timer(&ghes->timer, ghes_poll_func,
+> -				       (unsigned long)ghes);
+> +		timer_setup(&ghes->timer, ghes_poll_func, TIMER_DEFERRABLE);
+>   		ghes_add_timer(ghes);
+>   		break;
+>   	case ACPI_HEST_NOTIFY_EXTERNAL:
